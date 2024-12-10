@@ -4,7 +4,7 @@
 
 This directory contains tests related to our tracing engine. They are mainly about the generated stack traces, but they also test things like inferred errors and console logs.
 
-These tests are written with an ad-hoc mini framework, where each test corresponds to a directory under `test-files`. Each of these directories has a `test.json` file describing the test, and Solidity files that are used by that test. The `test.ts` file then consumes these files to generate and execute the corresponding tests.
+These tests are written with an ad hoc mini framework, where each test corresponds to a directory under `test-files`. Each of these directories has a `test.json` file describing the test, and Solidity files that are used by that test. The `test.ts` file then consumes these files to generate and execute the corresponding tests.
 
 ## Example
 
@@ -64,4 +64,4 @@ The solidity files in each test directory are compiled (unless a cached compilat
 
 ## The `HARDHAT_TESTS_SOLC_PATH` environment variable
 
-If this variable is set, the only compiler used will be the one that is available in that path. For example, if you want to test a nightly version, you would set the envvars `HARDHAT_TESTS_SOLC_PATH=/path/to/solc-nightly-0.8.21 HARDHAT_TESTS_SOLC_VERSION=0.8.21` and then run the tests. This would only run the test files under `test-files/0_8` and `test-files/version-independent`.
+If this variable is set, the only compiler used will be the one that is available in that path. For example, if you want to test a nightly version, you would set the envars `HARDHAT_TESTS_SOLC_PATH=/path/to/solc-nightly-0.8.21 HARDHAT_TESTS_SOLC_VERSION=0.8.21` and then run the tests. This would only run the test files under `test-files/0_8` and `test-files/version-independent`.
