@@ -64,8 +64,8 @@ import { clientVersion } from "./utils/client-version.js";
 import { ConsoleLogger } from "./utils/console-logger.js";
 import {
   edrRpcDebugTraceToHardhat,
-  ethereumjsIntervalMiningConfigToEdr,
-  ethereumjsMempoolOrderToEdrMineOrdering,
+  hardhatMiningIntervalToEdrMiningInterval,
+  hardhatMempoolOrderToEdrMineOrdering,
   ethereumsjsHardforkToEdrSpecId,
 } from "./utils/convert-to-edr.js";
 import { getHardforkName } from "./utils/hardfork.js";
@@ -170,13 +170,13 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
             : undefined,
         minGasPrice: networkConfig.minGasPrice,
         mining: {
-          autoMine: networkConfig.automine,
-          interval: ethereumjsIntervalMiningConfigToEdr(
-            networkConfig.intervalMining,
+          autoMine: networkConfig.mining.auto,
+          interval: hardhatMiningIntervalToEdrMiningInterval(
+            networkConfig.mining.interval,
           ),
           memPool: {
-            order: ethereumjsMempoolOrderToEdrMineOrdering(
-              networkConfig.mempoolOrder,
+            order: hardhatMempoolOrderToEdrMineOrdering(
+              networkConfig.mining.mempool.order,
             ),
           },
         },

@@ -3,6 +3,8 @@ import type {
   EdrNetworkConfig,
   EdrNetworkForkingConfig,
   EdrNetworkForkingUserConfig,
+  EdrNetworkMiningConfig,
+  EdrNetworkMiningUserConfig,
   EdrNetworkUserConfig,
   GasConfig,
   GasUserConfig,
@@ -233,16 +235,14 @@ export async function resolveUserConfig(
         gasMultiplier: networkConfig.gasMultiplier ?? 1,
         gasPrice: resolveGasConfig(networkConfig.gasPrice),
         forking: resolveForkingConfig(
-          resolvedConfig.paths.cache,
           networkConfig.forking,
+          resolvedConfig.paths.cache,
         ),
         hardfork: networkConfig.hardfork ?? "cancun",
         networkId: networkConfig.networkId ?? networkConfig.chainId ?? 31337,
         blockGasLimit: BigInt(networkConfig.blockGasLimit ?? 12_500_000n),
         minGasPrice: BigInt(networkConfig.minGasPrice ?? 0),
-        automine: networkConfig.automine ?? true,
-        intervalMining: networkConfig.intervalMining ?? 0,
-        mempoolOrder: networkConfig.mempoolOrder ?? "fifo",
+        mining: resolveMiningConfig(networkConfig.mining),
         chains: networkConfig.chains ?? new Map(),
         genesisAccounts: networkConfig.genesisAccounts ?? [
           ...DEFAULT_EDR_ACCOUNTS,
@@ -313,8 +313,8 @@ function isHdAccountsConfig(
 }
 
 function resolveForkingConfig(
+  forkingUserConfig: EdrNetworkForkingUserConfig | undefined,
   cacheDir: string,
-  forkingUserConfig?: EdrNetworkForkingUserConfig,
 ): EdrNetworkForkingConfig | undefined {
   if (forkingUserConfig === undefined) {
     return undefined;
@@ -337,5 +337,19 @@ function resolveForkingConfig(
         ? BigInt(forkingUserConfig.blockNumber)
         : undefined,
     httpHeaders,
+  };
+}
+
+function resolveMiningConfig(
+  miningUserConfig: EdrNetworkMiningUserConfig | undefined = {},
+): EdrNetworkMiningConfig {
+  const { auto, interval, mempool } = miningUserConfig;
+
+  return {
+    auto: auto ?? interval === undefined,
+    interval: interval ?? 0,
+    mempool: {
+      order: mempool?.order ?? "priority",
+    },
   };
 }

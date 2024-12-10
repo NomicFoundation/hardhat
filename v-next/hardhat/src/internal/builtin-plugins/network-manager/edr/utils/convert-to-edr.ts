@@ -1,6 +1,8 @@
 /* eslint-disable no-restricted-syntax -- hack */
-import type { IntervalMiningConfig } from "../../../../../types/config.js";
-import type { MempoolOrder } from "../types/node-types.js";
+import type {
+  EdrNetworkMempoolConfig,
+  EdrNetworkMiningConfig,
+} from "../../../../../types/config.js";
 import type { RpcDebugTraceOutput, RpcStructLog } from "../types/output.js";
 import type { IntervalRange, DebugTraceResult } from "@ignored/edr-optimism";
 
@@ -116,8 +118,8 @@ export function edrSpecIdToEthereumHardfork(specId: string): HardforkName {
   }
 }
 
-export function ethereumjsIntervalMiningConfigToEdr(
-  config: IntervalMiningConfig,
+export function hardhatMiningIntervalToEdrMiningInterval(
+  config: EdrNetworkMiningConfig["interval"],
 ): bigint | IntervalRange | undefined {
   if (typeof config === "number") {
     // Is interval mining disabled?
@@ -134,8 +136,8 @@ export function ethereumjsIntervalMiningConfigToEdr(
   }
 }
 
-export function ethereumjsMempoolOrderToEdrMineOrdering(
-  mempoolOrder: MempoolOrder,
+export function hardhatMempoolOrderToEdrMineOrdering(
+  mempoolOrder: EdrNetworkMempoolConfig["order"],
 ): MineOrdering {
   switch (mempoolOrder) {
     case "fifo":
