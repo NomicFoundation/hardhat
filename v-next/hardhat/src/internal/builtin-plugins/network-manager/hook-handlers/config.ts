@@ -1,15 +1,19 @@
 import type {
   ConfigurationVariable,
   EdrNetworkConfig,
+  EdrNetworkForkingConfig,
+  EdrNetworkForkingUserConfig,
+  EdrNetworkMiningConfig,
+  EdrNetworkMiningUserConfig,
   EdrNetworkUserConfig,
   GasConfig,
   GasUserConfig,
   HardhatConfig,
   HardhatUserConfig,
-  HDAccountsUserConfig,
   HttpNetworkAccountsConfig,
   HttpNetworkAccountsUserConfig,
   HttpNetworkConfig,
+  HttpNetworkHDAccountsUserConfig,
   HttpNetworkUserConfig,
   NetworkConfig,
   NetworkUserConfig,
@@ -20,8 +24,8 @@ import type { ConfigHooks } from "../../../../types/hooks.js";
 import path from "node:path";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { toSeconds } from "@ignored/hardhat-vnext-utils/date";
 import { normalizeHexString } from "@ignored/hardhat-vnext-utils/hex";
-import { resolveFromRoot } from "@ignored/hardhat-vnext-utils/path";
 
 import { validateUserConfig } from "../type-validation.js";
 
@@ -231,22 +235,15 @@ export async function resolveUserConfig(
         gas: resolveGasConfig(networkConfig.gas),
         gasMultiplier: networkConfig.gasMultiplier ?? 1,
         gasPrice: resolveGasConfig(networkConfig.gasPrice),
-        // TODO: This isn't how it's called in v2
-        forkConfig: networkConfig.forkConfig,
-        forkCachePath:
-          networkConfig.forkCachePath !== undefined
-            ? resolveFromRoot(
-                resolvedConfig.paths.root,
-                networkConfig.forkCachePath,
-              )
-            : path.join(resolvedConfig.paths.cache, "edr-cache"),
+        forking: resolveForkingConfig(
+          networkConfig.forking,
+          resolvedConfig.paths.cache,
+        ),
         hardfork: networkConfig.hardfork ?? "cancun",
         networkId: networkConfig.networkId ?? networkConfig.chainId ?? 31337,
-        blockGasLimit: networkConfig.blockGasLimit ?? 12_500_000,
+        blockGasLimit: BigInt(networkConfig.blockGasLimit ?? 30_000_000),
         minGasPrice: BigInt(networkConfig.minGasPrice ?? 0),
-        automine: networkConfig.automine ?? true,
-        intervalMining: networkConfig.intervalMining ?? 0,
-        mempoolOrder: networkConfig.mempoolOrder ?? "fifo",
+        mining: resolveMiningConfig(networkConfig.mining),
         chains: networkConfig.chains ?? new Map(),
         genesisAccounts: networkConfig.genesisAccounts ?? [
           ...DEFAULT_EDR_ACCOUNTS,
@@ -260,6 +257,7 @@ export async function resolveUserConfig(
           networkConfig.allowBlocksWithSameTimestamp ?? false,
         enableTransientStorage: networkConfig.enableTransientStorage ?? false,
         enableRip7212: networkConfig.enableRip7212 ?? false,
+        initialDate: resolveInitialDate(networkConfig.initialDate),
       };
 
       resolvedNetworks[networkName] = resolvedNetworkConfig;
@@ -311,6 +309,54 @@ function resolveAccounts(
 
 function isHdAccountsConfig(
   accounts: HttpNetworkAccountsUserConfig,
-): accounts is HDAccountsUserConfig {
+): accounts is HttpNetworkHDAccountsUserConfig {
   return typeof accounts === "object" && !Array.isArray(accounts);
+}
+
+function resolveForkingConfig(
+  forkingUserConfig: EdrNetworkForkingUserConfig | undefined,
+  cacheDir: string,
+): EdrNetworkForkingConfig | undefined {
+  if (forkingUserConfig === undefined) {
+    return undefined;
+  }
+
+  const httpHeaders =
+    forkingUserConfig.httpHeaders !== undefined
+      ? Object.entries(forkingUserConfig.httpHeaders).map(([name, value]) => ({
+          name,
+          value,
+        }))
+      : undefined;
+
+  return {
+    enabled: forkingUserConfig.enabled ?? true,
+    url: forkingUserConfig.url,
+    cacheDir: path.join(cacheDir, "edr-fork-cache"),
+    blockNumber:
+      forkingUserConfig.blockNumber !== undefined
+        ? BigInt(forkingUserConfig.blockNumber)
+        : undefined,
+    httpHeaders,
+  };
+}
+
+function resolveInitialDate(
+  initialDateUserConfig: string | Date = new Date(),
+): bigint {
+  return BigInt(toSeconds(initialDateUserConfig))
+}
+
+function resolveMiningConfig(
+  miningUserConfig: EdrNetworkMiningUserConfig | undefined = {},
+): EdrNetworkMiningConfig {
+  const { auto, interval, mempool } = miningUserConfig;
+
+  return {
+    auto: auto ?? interval === undefined,
+    interval: interval ?? 0,
+    mempool: {
+      order: mempool?.order ?? "priority",
+    },
+  }
 }

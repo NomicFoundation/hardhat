@@ -16,13 +16,13 @@ export async function reset(
   } else if (blockNumber === undefined) {
     await provider.request({
       method: "hardhat_reset",
-      params: [{ forking: { jsonRpcUrl: url } }],
+      params: [{ forking: { url } }],
     });
   } else {
     await provider.request({
       method: "hardhat_reset",
       params: [
-        { forking: { jsonRpcUrl: url, blockNumber: toNumber(blockNumber) } },
+        { forking: { url, blockNumber: toNumber(blockNumber) } },
       ],
     });
   }
