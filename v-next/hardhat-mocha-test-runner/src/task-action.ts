@@ -60,6 +60,12 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   const tsx = fileURLToPath(import.meta.resolve("tsx/esm"));
   process.env.NODE_OPTIONS = `--import ${tsx}`;
 
+  // This allows other plugins to hook into the mocha initialization.
+  // E.g.: hardhat-chai-matchers
+  await hre.hooks.runHandlerChain("mocha", "initialize", [], async () => {
+    return undefined;
+  });
+
   const { default: Mocha } = await import("mocha");
 
   const mochaConfig: MochaOptions = { ...hre.config.mocha };
