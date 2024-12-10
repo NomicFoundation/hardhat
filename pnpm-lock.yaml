@@ -1518,6 +1518,9 @@ importers:
       p-map:
         specifier: ^7.0.2
         version: 7.0.2
+      raw-body:
+        specifier: ^2.4.1
+        version: 2.5.2
       semver:
         specifier: ^7.6.3
         version: 7.6.3
@@ -1527,6 +1530,9 @@ importers:
       tsx:
         specifier: ^4.11.0
         version: 4.19.2
+      ws:
+        specifier: ^8.18.0
+        version: 8.18.0
       zod:
         specifier: ^3.23.8
         version: 3.23.8
@@ -1552,6 +1558,9 @@ importers:
       '@types/semver':
         specifier: ^7.5.8
         version: 7.5.8
+      '@types/ws':
+        specifier: ^8.5.13
+        version: 8.5.13
       '@typescript-eslint/eslint-plugin':
         specifier: ^7.7.1
         version: 7.18.0(@typescript-eslint/parser@7.18.0(eslint@8.57.0)(typescript@5.5.4))(eslint@8.57.0)(typescript@5.5.4)
@@ -3444,6 +3453,9 @@ packages:
   '@types/node@20.17.1':
     resolution: {integrity: sha512-j2VlPv1NnwPJbaCNv69FO/1z4lId0QmGvpT41YxitRtWlg96g/j8qcv2RKsLKe2F6OJgyXhupN1Xo17b2m139Q==}
 
+  '@types/node@22.10.0':
+    resolution: {integrity: sha512-XC70cRZVElFHfIUB40FgZOBbgJYFKKMa5nb9lxcwYstFG/Mi+/Y0bGS+rs6Dmhmkpq4pnNiLiuZAbc02YCOnmA==}
+
   '@types/node@22.7.5':
     resolution: {integrity: sha512-jML7s2NAzMWc//QSJ1a3prpk78cOPchGvXJsC3C6R6PSMoooztvRVQEz89gmBTBY1SPMaqo5teB4uNHPdetShQ==}
 
@@ -3494,6 +3506,9 @@ packages:
 
   '@types/ws@7.4.7':
     resolution: {integrity: sha512-JQbbmxZTZehdc2iszGKs5oC3NFnjeay7mtAWrdt7qNtAVK0g19muApzAy4bm9byz79xa2ZnO/BOBC2R8RC5Lww==}
+
+  '@types/ws@8.5.13':
+    resolution: {integrity: sha512-osM/gWBTPKgHV8XkTunnegTRIsvF6owmf5w+JtAfOw472dptdm0dlGv4xCt6GwQRcC2XVOvvRE/0bAoQcL2QkA==}
 
   '@types/ws@8.5.3':
     resolution: {integrity: sha512-6YOoWjruKj1uLf3INHH7D3qTXwFfEsg1kf3c0uDdSBJwfa/llkwIjrAGV7j7mVgGNbzTQ3HiHKKDXl6bJPD97w==}
@@ -6592,6 +6607,9 @@ packages:
   undici-types@6.19.8:
     resolution: {integrity: sha512-ve2KP6f/JnbPBFyobGHuerC9g1FYGn/F8n1LWTwNxCEzd6IfqTwUQcNXgEtmmQ6DlRrC1hrSrBnCZPokRrDHjw==}
 
+  undici-types@6.20.0:
+    resolution: {integrity: sha512-Ny6QZ2Nju20vw1SRHe3d9jVu6gJ+4e3+MMpqu7pqE5HT6WsTSlce++GQmK5UXS8mzV8DSYHrQH+Xrf2jVcuKNg==}
+
   undici@5.28.4:
     resolution: {integrity: sha512-72RFADWFqKmUb2hmmvNODKL3p9hcB6Gt2DOQMis1SEBaV6a4MH8soBvzg+95CYhCKPFedut2JY9bMfrDl9D23g==}
     engines: {node: '>=14.0'}
@@ -8123,7 +8141,7 @@ snapshots:
 
   '@types/adm-zip@0.5.5':
     dependencies:
-      '@types/node': 20.17.1
+      '@types/node': 22.10.0
 
   '@types/async-eventemitter@0.2.4':
     dependencies:
@@ -8131,11 +8149,11 @@ snapshots:
 
   '@types/bn.js@4.11.6':
     dependencies:
-      '@types/node': 20.17.1
+      '@types/node': 22.10.0
 
   '@types/bn.js@5.1.6':
     dependencies:
-      '@types/node': 18.19.59
+      '@types/node': 22.10.0
 
   '@types/chai-as-promised@7.1.8':
     dependencies:
@@ -8151,7 +8169,7 @@ snapshots:
 
   '@types/concat-stream@1.6.1':
     dependencies:
-      '@types/node': 20.17.1
+      '@types/node': 22.10.0
 
   '@types/debug@4.1.12':
     dependencies:
@@ -8163,16 +8181,16 @@ snapshots:
 
   '@types/form-data@0.0.33':
     dependencies:
-      '@types/node': 20.17.1
+      '@types/node': 22.10.0
 
   '@types/fs-extra@5.1.0':
     dependencies:
-      '@types/node': 18.19.59
+      '@types/node': 22.10.0
 
   '@types/glob@7.2.0':
     dependencies:
       '@types/minimatch': 5.1.2
-      '@types/node': 18.19.59
+      '@types/node': 22.10.0
 
   '@types/istanbul-lib-coverage@2.0.6': {}
 
@@ -8182,7 +8200,7 @@ snapshots:
 
   '@types/keccak@3.0.5':
     dependencies:
-      '@types/node': 18.19.59
+      '@types/node': 22.10.0
 
   '@types/lodash.clonedeep@4.5.9':
     dependencies:
@@ -8218,6 +8236,10 @@ snapshots:
     dependencies:
       undici-types: 6.19.8
 
+  '@types/node@22.10.0':
+    dependencies:
+      undici-types: 6.20.0
+
   '@types/node@22.7.5':
     dependencies:
       undici-types: 6.19.8
@@ -8230,7 +8252,7 @@ snapshots:
 
   '@types/pbkdf2@3.1.2':
     dependencies:
-      '@types/node': 20.17.1
+      '@types/node': 22.10.0
 
   '@types/prettier@2.7.3': {}
 
@@ -8238,14 +8260,14 @@ snapshots:
 
   '@types/readable-stream@2.3.15':
     dependencies:
-      '@types/node': 20.17.1
+      '@types/node': 22.10.0
       safe-buffer: 5.1.2
 
   '@types/resolve@1.20.6': {}
 
   '@types/secp256k1@4.0.6':
     dependencies:
-      '@types/node': 20.17.1
+      '@types/node': 22.10.0
 
   '@types/semver@6.2.7': {}
 
@@ -8268,11 +8290,15 @@ snapshots:
 
   '@types/ws@7.4.7':
     dependencies:
-      '@types/node': 18.19.59
+      '@types/node': 22.10.0
+
+  '@types/ws@8.5.13':
+    dependencies:
+      '@types/node': 22.10.0
 
   '@types/ws@8.5.3':
     dependencies:
-      '@types/node': 20.17.1
+      '@types/node': 22.10.0
 
   '@typescript-eslint/eslint-plugin@5.61.0(@typescript-eslint/parser@5.61.0(eslint@8.57.0)(typescript@5.0.4))(eslint@8.57.0)(typescript@5.0.4)':
     dependencies:
@@ -11842,6 +11868,8 @@ snapshots:
   undici-types@5.26.5: {}
 
   undici-types@6.19.8: {}
+
+  undici-types@6.20.0: {}
 
   undici@5.28.4:
     dependencies:
