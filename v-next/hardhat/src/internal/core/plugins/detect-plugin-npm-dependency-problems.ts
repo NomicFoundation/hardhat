@@ -28,8 +28,13 @@ export async function detectPluginNpmDependencyProblems(
     return;
   }
 
+  // Ensure trailing slash, otherwise createRequire won't work properly
+  const normalizedBasePath = basePathForNpmResolution.endsWith("/")
+    ? basePathForNpmResolution
+    : `${basePathForNpmResolution}/`;
+
   const pluginPackageResult = readPackageJsonViaNodeRequire(
-    basePathForNpmResolution,
+    normalizedBasePath,
     plugin.npmPackage,
   );
 
