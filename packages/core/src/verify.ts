@@ -20,6 +20,7 @@ import { Artifact, BuildInfo, CompilerInput } from "./types/artifact";
 import {
   ChainConfig,
   SourceToLibraryToAddress,
+  VerifyInfo,
   VerifyResult,
 } from "./types/verify";
 
@@ -65,6 +66,11 @@ export async function* getVerificationInformation(
       deploymentLoader,
       includeUnrelatedContracts
     );
+
+    if (typeof verifyInfo === "string") {
+      yield [null, verifyInfo];
+      continue;
+    }
 
     const verifyResult: VerifyResult = [chainConfig, verifyInfo];
 
@@ -126,11 +132,28 @@ async function convertExStateToVerifyInfo(
   exState: DeploymentExecutionState,
   deploymentLoader: FileDeploymentLoader,
   includeUnrelatedContracts: boolean = false
-) {
-  const [buildInfo, artifact] = await Promise.all([
-    deploymentLoader.readBuildInfo(exState.artifactId),
-    deploymentLoader.loadArtifact(exState.artifactId),
-  ]);
+): Promise<VerifyInfo | string> {
+  let result: [BuildInfo, Artifact];
+
+  try {
+    result = await Promise.all([
+      deploymentLoader.readBuildInfo(exState.artifactId),
+      deploymentLoader.loadArtifact(exState.artifactId),
+    ]);
+  } catch (e) {
+    assertIgnitionInvariant(
+      e instanceof Error && "code" in e && e.code === "ENOENT",
+      `Unexpected error loading build info or artifact for deployment execution state ${
+        exState.id
+      }: ${e as any}`
+    );
+
+    // if the artifact cannot be found, we cannot verify the contract
+    // we return the contract name so the recipient can know which contract could not be verified
+    return exState.artifactId;
+  }
+
+  const [buildInfo, artifact] = result;
 
   const { contractName, constructorArgs, libraries } = exState;
 

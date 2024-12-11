@@ -614,6 +614,14 @@ ignitionScope
           hre.config.etherscan.customChains,
           includeUnrelatedContracts
         )) {
+          if (chainConfig === null) {
+            console.log(
+              `Could not resolve contract artifacts for contract "${contractInfo}". Skipping verification.`
+            );
+            console.log("");
+            continue;
+          }
+
           const apiKeyAndUrls = getApiKeyAndUrls(
             hre.config.etherscan.apiKey,
             chainConfig

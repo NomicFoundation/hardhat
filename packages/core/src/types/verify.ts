@@ -41,7 +41,8 @@ export interface VerifyInfo {
 /**
  * The result of requesting the verification info for a deployment.
  * It returns the chainConfig followed by an array of VerifyInfo objects, one for each contract to be verified.
+ * Alternatively, it returns null and the contract name if the contract used external artifacts that could not be resolved for verification.
  *
  * @beta
  */
-export type VerifyResult = [ChainConfig, VerifyInfo];
+export type VerifyResult = [ChainConfig, VerifyInfo] | [null, name: string];

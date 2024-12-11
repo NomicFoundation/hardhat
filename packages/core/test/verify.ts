@@ -67,6 +67,45 @@ describe("verify", () => {
     assert.deepEqual(result, expectedResult);
   });
 
+  it("should yield a null verify result for a contract with external artifacts", async () => {
+    const expectedResult1: VerifyResult = [null, "LockModule#Basic"];
+
+    const expectedResult2: VerifyResult = [
+      {
+        network: "sepolia",
+        chainId: 11155111,
+        urls: {
+          apiURL: "https://api-sepolia.etherscan.io/api",
+          browserURL: "https://sepolia.etherscan.io",
+        },
+      },
+      {
+        address: "0x8f19334E79b16112E2D74E9Bc2246cB3cbA3cfaa",
+        compilerVersion: "v0.8.19+commit.7dd6d404",
+        sourceCode: `{"language":"Solidity","sources":{"contracts/Lock.sol":{"content":"// SPDX-License-Identifier: UNLICENSED\\npragma solidity ^0.8.9;\\n\\n// Uncomment this line to use console.log\\n// import \\"hardhat/console.sol\\";\\n\\ncontract Lock {\\n  uint public unlockTime;\\n  address payable public owner;\\n\\n  event Withdrawal(uint amount, uint when);\\n\\n  constructor(uint _unlockTime) payable {\\n    require(\\n      block.timestamp < _unlockTime,\\n      \\"Unlock time should be in the future\\"\\n    );\\n\\n    unlockTime = _unlockTime;\\n    owner = payable(msg.sender);\\n  }\\n\\n  function withdraw() public {\\n    // Uncomment this line, and the import of \\"hardhat/console.sol\\", to print a log in your terminal\\n    // console.log(\\"Unlock time is %o and block timestamp is %o\\", unlockTime, block.timestamp);\\n\\n    require(block.timestamp >= unlockTime, \\"You can't withdraw yet\\");\\n    require(msg.sender == owner, \\"You aren't the owner\\");\\n\\n    emit Withdrawal(address(this).balance, block.timestamp);\\n\\n    owner.transfer(address(this).balance);\\n  }\\n}\\n"}},"settings":{"optimizer":{"enabled":false,"runs":200},"outputSelection":{"*":{"*":["abi","evm.bytecode","evm.deployedBytecode","evm.methodIdentifiers","metadata"],"":["ast"]}}}}`,
+        name: "contracts/Lock.sol:Lock",
+        args: "00000000000000000000000000000000000000000000000000000000767d1650",
+      },
+    ];
+
+    const deploymentDir = path.join(
+      __dirname,
+      "mocks",
+      "verify",
+      "external-artifacts"
+    );
+
+    const generator = getVerificationInformation(deploymentDir);
+
+    const result1 = (await generator.next()).value;
+
+    assert.deepEqual(result1, expectedResult1);
+
+    const result2: VerifyResult = await (await generator.next()).value;
+
+    assert.deepEqual(result2, expectedResult2);
+  });
+
   it("should yield a verify result with a custom chain", async () => {
     const expectedResult: VerifyResult = [
       {
@@ -114,7 +153,11 @@ describe("verify", () => {
     const deploymentDir = path.join(__dirname, "mocks", "verify", "libraries");
 
     let success: boolean = false;
-    for await (const [, info] of getVerificationInformation(deploymentDir)) {
+    for await (const [chainInfo, info] of getVerificationInformation(
+      deploymentDir
+    )) {
+      assert(chainInfo !== null);
+
       if (info.name === "contracts/Lock.sol:WAAIT") {
         const librariesOutput = JSON.parse(info.sourceCode).settings.libraries;
 
@@ -153,7 +196,11 @@ describe("verify", () => {
 
     const deploymentDir = path.join(__dirname, "mocks", "verify", "min-input");
 
-    for await (const [, info] of getVerificationInformation(deploymentDir)) {
+    for await (const [contractInfo, info] of getVerificationInformation(
+      deploymentDir
+    )) {
+      assert(contractInfo !== null);
+
       const expectedSources = expectedResultMap[info.name];
       const actualSources = Object.keys(JSON.parse(info.sourceCode).sources);
 
@@ -191,11 +238,13 @@ describe("verify", () => {
 
     const deploymentDir = path.join(__dirname, "mocks", "verify", "min-input");
 
-    for await (const [, info] of getVerificationInformation(
+    for await (const [contractInfo, info] of getVerificationInformation(
       deploymentDir,
       undefined,
       true
     )) {
+      assert(contractInfo !== null);
+
       const expectedSources = expectedResultMap[info.name];
       const actualSources = Object.keys(JSON.parse(info.sourceCode).sources);
 
