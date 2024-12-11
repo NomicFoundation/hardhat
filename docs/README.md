@@ -1,76 +1,93 @@
 ### Tabs
 
-We use the plugin `remark-directive` to provide tabs functionality for showing alternative content versions, such as different package managers or programming languages. This is especially useful for providing a consistent experience regardless of a user's preferred tools.
+We use the plugin `remark-directive` to provide tabs functionality for showing alternative code examples or content variations. This is especially useful for documentation that needs to accommodate different:
+
+- Package managers (npm, yarn, pnpm)
+- Programming languages (JavaScript, TypeScript)
+- Operating systems (Windows, macOS, Linux)
+- Configuration formats (hardhat.config.js, hardhat.config.ts)
 
 #### Basic Structure
 
-The tabs system uses two main directives:
+The tabs system uses two main components:
+1. `tabsgroup` - Wrapper that defines all possible tab values
+2. `tab` - Individual content containers that match the defined values
 
-1. `tabsgroup` - The outer wrapper that defines available tab options
-2. `tab` - Individual content containers within the group
-
-#### Syntax
+#### Simple Example
 
 ```markdown
-::::tabsgroup{options="option1,option2"}
-    :::tab{value=option1}
-        Content for option 1
+::::tabsgroup{options=npm,yarn}
+    :::tab{value=npm}
+    npm install hardhat
     :::
 
-    :::tab{value=option2}
-        Content for option 2
+    :::tab{value=yarn}
+    yarn add hardhat
     :::
 ::::
 ```
 
-#### Real-World Examples
+#### Comprehensive Examples
 
-1. **Package Manager Installation**
+1. **Package Manager Installation Commands**
 ```markdown
 ::::tabsgroup{options=npm,yarn,pnpm}
     :::tab{value=npm}
     ```bash
-    npm install hardhat --save-dev
+    npm install --save-dev hardhat @nomicfoundation/hardhat-toolbox
     ```
     :::
 
     :::tab{value=yarn}
     ```bash
-    yarn add hardhat --dev
+    yarn add --dev hardhat @nomicfoundation/hardhat-toolbox
     ```
     :::
 
     :::tab{value=pnpm}
     ```bash
-    pnpm add hardhat --save-dev
+    pnpm add --save-dev hardhat @nomicfoundation/hardhat-toolbox
     ```
     :::
 ::::
 ```
 
-2. **Language Variants**
+2. **Configuration Files**
 ```markdown
 ::::tabsgroup{options="TypeScript,JavaScript"}
     :::tab{value=TypeScript}
     ```typescript
     import { HardhatUserConfig } from "hardhat/config";
-    
+    import "@nomicfoundation/hardhat-toolbox";
+
     const config: HardhatUserConfig = {
-      solidity: "0.8.19"
+      solidity: "0.8.19",
+      networks: {
+        hardhat: {},
+        localhost: {
+          url: "http://127.0.0.1:8545"
+        }
+      }
     };
-    
+
     export default config;
     ```
     :::
 
     :::tab{value=JavaScript}
     ```javascript
+    require("@nomicfoundation/hardhat-toolbox");
+
     /** @type import('hardhat/config').HardhatUserConfig */
-    const config = {
-      solidity: "0.8.19"
+    module.exports = {
+      solidity: "0.8.19",
+      networks: {
+        hardhat: {},
+        localhost: {
+          url: "http://127.0.0.1:8545"
+        }
+      }
     };
-    
-    module.exports = config;
     ```
     :::
 ::::
@@ -78,41 +95,64 @@ The tabs system uses two main directives:
 
 #### Parameters
 
-1. **tabsgroup Parameters**:
+1. **tabsgroup Parameters**
    - `options`: (Required) Comma-separated list of available tab values
    - Example: `options=npm,yarn,pnpm` or `options="TypeScript,JavaScript"`
+   - Use quotes (`""`) when values contain spaces: `options="Windows PowerShell,Mac Terminal"`
 
-2. **tab Parameters**:
-   - `value`: (Required) Must match one of the parent tabsgroup's options
-   - Example: `value=npm` or `value=TypeScript`
+2. **tab Parameters**
+   - `value`: (Required) Must match one of the options from parent tabsgroup
+   - Example: `value=npm` or `value="Windows PowerShell"`
 
 #### Best Practices
 
-1. **Naming Consistency**
-   - Use consistent option names across documentation
+1. **Consistent Naming**
+   - Use consistent capitalization and naming across all documentation
    - Example: Always use "TypeScript" not "typescript" or "Typescript"
+   - Keep option names identical across similar tab groups
 
-2. **Spacing**
-   - Include a blank line between tabs for better readability
-   - Indent the tab content for clear nesting
-
-3. **Quotes Usage**
-   - Use quotes for values with spaces: `options="Node.js API,Configuration file"`
-   - Simple values don't need quotes: `options=npm,yarn`
-
-4. **Content Completeness**
+2. **Content Completeness**
    - Each tab should contain complete, standalone content
-   - Avoid referring to content in other tabs
+   - Don't reference content from other tabs
+   - Include all necessary context within each tab
 
-5. **Order Consistency**
-   - Maintain consistent option ordering across similar tab groups
-   - Example: Always put TypeScript before JavaScript, or NPM before Yarn
+3. **Ordering**
+   - Maintain consistent order across similar tab groups
+   - Common ordering patterns:
+     - npm → yarn → pnpm
+     - TypeScript → JavaScript
+     - Windows → macOS → Linux
 
-#### Common Use Cases
+4. **Formatting**
+   - Include blank lines between tabs for readability
+   - Properly indent nested content
+   - Use consistent code formatting within code blocks
 
-- Package manager commands
-- Language-specific code examples
-- Configuration formats
-- Operating system-specific instructions
-- API usage examples in different languages
+5. **Accessibility**
+   - Use clear, descriptive tab names
+   - Ensure code examples are properly highlighted
+   - Maintain good contrast in syntax highlighting
 
+### Common Use Cases
+
+1. **Installation Instructions**
+   - Package manager commands
+   - Platform-specific setup steps
+   - Dependencies installation
+
+2. **Configuration Examples**
+   - Different config file formats
+   - Environment-specific configurations
+   - Plugin configurations
+
+3. **Code Examples**
+   - Language variants (TypeScript/JavaScript)
+   - Framework-specific implementations
+   - Testing frameworks
+
+4. **API Usage**
+   - Different client libraries
+   - Language-specific API calls
+   - Authentication methods
+
+The rest of the documentation continues as before...
