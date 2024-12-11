@@ -1,5 +1,7 @@
 import type {
   HardhatUserConfig,
+  HttpNetworkAccountsUserConfig,
+  HttpNetworkHDAccountsUserConfig,
   NetworkConfig,
 } from "../../../types/config.js";
 import type { HardhatUserConfigValidationError } from "../../../types/hooks.js";
@@ -222,4 +224,10 @@ export async function validateUserConfig(
   userConfig: HardhatUserConfig,
 ): Promise<HardhatUserConfigValidationError[]> {
   return validateUserConfigZodType(userConfig, userConfigSchema);
+}
+
+export function isHdAccountsConfig(
+  accounts: HttpNetworkAccountsUserConfig,
+): accounts is HttpNetworkHDAccountsUserConfig {
+  return isObject(accounts);
 }

@@ -1,4 +1,5 @@
 import type {
+  ConfigurationResolver,
   ConfigurationVariable,
   EdrNetworkConfig,
   EdrNetworkForkingConfig,
@@ -13,7 +14,6 @@ import type {
   HttpNetworkAccountsConfig,
   HttpNetworkAccountsUserConfig,
   HttpNetworkConfig,
-  HttpNetworkHDAccountsUserConfig,
   HttpNetworkUserConfig,
   NetworkConfig,
   NetworkUserConfig,
@@ -26,7 +26,7 @@ import path from "node:path";
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { normalizeHexString } from "@ignored/hardhat-vnext-utils/hex";
 
-import { validateUserConfig } from "../type-validation.js";
+import { isHdAccountsConfig, validateUserConfig } from "../type-validation.js";
 
 export default async (): Promise<Partial<ConfigHooks>> => ({
   extendUserConfig,
@@ -213,7 +213,7 @@ export async function resolveUserConfig(
         gas: resolveGasConfig(networkConfig.gas),
         gasMultiplier: networkConfig.gasMultiplier ?? 1,
         gasPrice: resolveGasConfig(networkConfig.gasPrice),
-        accounts: resolveAccounts(
+        accounts: resolveHttpNetworkAccounts(
           networkConfig.accounts,
           resolveConfigurationVariable,
         ),
@@ -275,11 +275,9 @@ function resolveGasConfig(value: GasUserConfig = "auto"): GasConfig {
   return value === "auto" ? value : BigInt(value);
 }
 
-function resolveAccounts(
-  accounts: HttpNetworkAccountsUserConfig | undefined,
-  resolveConfigurationVariable: (
-    variableOrString: ConfigurationVariable | string,
-  ) => ResolvedConfigurationVariable,
+function resolveHttpNetworkAccounts(
+  accounts: HttpNetworkAccountsUserConfig | undefined = "remote",
+  resolveConfigurationVariable: ConfigurationResolver,
 ): HttpNetworkAccountsConfig {
   const defaultHdAccountsConfigParams = {
     initialIndex: 0,
@@ -288,28 +286,24 @@ function resolveAccounts(
     passphrase: "",
   };
 
-  return accounts === undefined
-    ? "remote"
-    : isHdAccountsConfig(accounts)
-      ? {
-          ...defaultHdAccountsConfigParams,
-          ...accounts,
-        }
-      : Array.isArray(accounts)
-        ? accounts.map((acc) => {
-            if (typeof acc === "string") {
-              acc = normalizeHexString(acc);
-            }
+  if (Array.isArray(accounts)) {
+    return accounts.map((acc) => {
+      if (typeof acc === "string") {
+        acc = normalizeHexString(acc);
+      }
 
-            return resolveConfigurationVariable(acc);
-          })
-        : "remote";
-}
+      return resolveConfigurationVariable(acc);
+    });
+  }
 
-function isHdAccountsConfig(
-  accounts: HttpNetworkAccountsUserConfig,
-): accounts is HttpNetworkHDAccountsUserConfig {
-  return typeof accounts === "object" && !Array.isArray(accounts);
+  if (isHdAccountsConfig(accounts)) {
+    return {
+      ...defaultHdAccountsConfigParams,
+      ...accounts,
+    };
+  }
+
+  return accounts;
 }
 
 function resolveForkingConfig(
