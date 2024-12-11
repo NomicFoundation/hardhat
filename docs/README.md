@@ -1,73 +1,76 @@
-<!-- Previous content up to Tabs section -->
-
-# Hardhat documentation website
-
-This is a NextJS-based application for the Hardhat documentation website. This app utilizes SSG for creating pages during the build step. It is developed with best practices in mind, including accessibility, SEO, performance optimizations, and scalability.
-
-The app mainly provides two types of pages:
-
-- Landing pages (see home page)
-- Documentation pages (see documentation section)
-
-<!-- Rest of the existing content until Tabs section -->
-
 ### Tabs
 
-We use the plugin `remark-directive` to provide tabs functionality for showing alternative code examples or content variations. This is especially useful when showing code samples for different package managers or programming languages.
+We use the plugin `remark-directive` to provide tabs functionality for showing alternative content versions, such as different package managers or programming languages. This is especially useful for providing a consistent experience regardless of a user's preferred tools.
 
-#### Basic Usage
+#### Basic Structure
 
-The tabs system consists of two main components:
-1. `tabsgroup` - A wrapper that contains multiple tabs and defines their possible values
-2. `tab` - Individual tab containers that wrap content like code blocks
+The tabs system uses two main directives:
 
-#### Examples
+1. `tabsgroup` - The outer wrapper that defines available tab options
+2. `tab` - Individual content containers within the group
 
-Here are some practical examples of how to use tabs:
+#### Syntax
 
-1. **Package Manager Commands**
+```markdown
+::::tabsgroup{options="option1,option2"}
+    :::tab{value=option1}
+        Content for option 1
+    :::
+
+    :::tab{value=option2}
+        Content for option 2
+    :::
+::::
 ```
+
+#### Real-World Examples
+
+1. **Package Manager Installation**
+```markdown
 ::::tabsgroup{options=npm,yarn,pnpm}
     :::tab{value=npm}
     ```bash
-    npm install hardhat
+    npm install hardhat --save-dev
     ```
     :::
 
     :::tab{value=yarn}
     ```bash
-    yarn add hardhat
+    yarn add hardhat --dev
     ```
     :::
 
     :::tab{value=pnpm}
     ```bash
-    pnpm add hardhat
+    pnpm add hardhat --save-dev
     ```
     :::
 ::::
 ```
 
-2. **Programming Language Examples**
-```
+2. **Language Variants**
+```markdown
 ::::tabsgroup{options="TypeScript,JavaScript"}
     :::tab{value=TypeScript}
     ```typescript
-    async function deploy(): Promise<void> {
-      const MyContract = await ethers.getContractFactory("MyContract");
-      const contract = await MyContract.deploy();
-      await contract.deployed();
-    }
+    import { HardhatUserConfig } from "hardhat/config";
+    
+    const config: HardhatUserConfig = {
+      solidity: "0.8.19"
+    };
+    
+    export default config;
     ```
     :::
 
     :::tab{value=JavaScript}
     ```javascript
-    async function deploy() {
-      const MyContract = await ethers.getContractFactory("MyContract");
-      const contract = await MyContract.deploy();
-      await contract.deployed();
-    }
+    /** @type import('hardhat/config').HardhatUserConfig */
+    const config = {
+      solidity: "0.8.19"
+    };
+    
+    module.exports = config;
     ```
     :::
 ::::
@@ -75,22 +78,41 @@ Here are some practical examples of how to use tabs:
 
 #### Parameters
 
-1. **tabsgroup parameters**:
-   - `options`: Required. A comma-separated list of tab values that will be available in this group.
+1. **tabsgroup Parameters**:
+   - `options`: (Required) Comma-separated list of available tab values
    - Example: `options=npm,yarn,pnpm` or `options="TypeScript,JavaScript"`
-   
-2. **tab parameters**:
-   - `value`: Required. Must match one of the options defined in the parent tabsgroup.
-   - Example: `value=npm` or `value="TypeScript"`
 
-#### Tips and Best Practices
+2. **tab Parameters**:
+   - `value`: (Required) Must match one of the parent tabsgroup's options
+   - Example: `value=npm` or `value=TypeScript`
 
-- Use quotes (`""`) when your option/value contains spaces: `options="npm 7+,yarn 2"` 
-- Keep related content in the same tabs group
-- Use consistent option names across your documentation
-- Each tab should contain complete, standalone content
-- Consider adding a default selected tab for better user experience
+#### Best Practices
 
-<!-- Rest of the existing content -->
+1. **Naming Consistency**
+   - Use consistent option names across documentation
+   - Example: Always use "TypeScript" not "typescript" or "Typescript"
 
-<!-- Other sections continue as before... -->
+2. **Spacing**
+   - Include a blank line between tabs for better readability
+   - Indent the tab content for clear nesting
+
+3. **Quotes Usage**
+   - Use quotes for values with spaces: `options="Node.js API,Configuration file"`
+   - Simple values don't need quotes: `options=npm,yarn`
+
+4. **Content Completeness**
+   - Each tab should contain complete, standalone content
+   - Avoid referring to content in other tabs
+
+5. **Order Consistency**
+   - Maintain consistent option ordering across similar tab groups
+   - Example: Always put TypeScript before JavaScript, or NPM before Yarn
+
+#### Common Use Cases
+
+- Package manager commands
+- Language-specific code examples
+- Configuration formats
+- Operating system-specific instructions
+- API usage examples in different languages
+
