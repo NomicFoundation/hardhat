@@ -123,7 +123,10 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
     const coinbase = networkConfig.coinbase ?? DEFAULT_COINBASE;
 
     let fork: ForkConfig | undefined;
-    if (networkConfig.forking !== undefined && networkConfig.forking.enabled === true) {
+    if (
+      networkConfig.forking !== undefined &&
+      networkConfig.forking.enabled === true
+    ) {
       fork = {
         jsonRpcUrl: networkConfig.forking.url,
         blockNumber: networkConfig.forking.blockNumber,
