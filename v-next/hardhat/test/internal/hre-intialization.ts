@@ -52,7 +52,6 @@ describe("HRE intialization", () => {
 
       describe("the path param is passed", () => {
         it("should use the CWD as the default path", async () => {
-          console.log(process.cwd());
           const projectPath = path.join(
             process.cwd(),
             "test",
