@@ -78,7 +78,8 @@ import { printLine, replaceLastLine } from "./utils/logger.js";
 
 const log = debug("hardhat:core:hardhat-network:provider");
 
-export const DEFAULT_COINBASE = "0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e";
+export const EDR_NETWORK_DEFAULT_COINBASE =
+  "0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e";
 
 export const EDR_NETWORK_MNEMONIC =
   "test test test test test test test test test test test junk";
@@ -135,8 +136,6 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
     tracingConfig = {},
     jsonRpcRequestWrapper,
   }: EdrProviderConfig): Promise<EdrProvider> {
-    const coinbase = networkConfig.coinbase ?? DEFAULT_COINBASE;
-
     let fork: ForkConfig | undefined;
     if (
       networkConfig.forking !== undefined &&
@@ -171,7 +170,8 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
         cacheDir: networkConfig.forking?.cacheDir,
         chainId: BigInt(networkConfig.chainId),
         chains: this.#convertToEdrChains(networkConfig.chains),
-        coinbase: Buffer.from(coinbase.slice(2), "hex"),
+        // TODO: remove this cast when EDR updates the interface to accept Uint8Array
+        coinbase: Buffer.from(networkConfig.coinbase),
         enableRip7212: networkConfig.enableRip7212,
         fork,
         hardfork: ethereumsjsHardforkToEdrSpecId(hardforkName),

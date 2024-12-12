@@ -26,10 +26,16 @@ import type { ConfigHooks } from "../../../../types/hooks.js";
 import path from "node:path";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { normalizeHexString } from "@ignored/hardhat-vnext-utils/hex";
+import {
+  hexStringToBytes,
+  normalizeHexString,
+} from "@ignored/hardhat-vnext-utils/hex";
 
 import { DEFAULT_HD_ACCOUNTS_CONFIG_PARAMS } from "../accounts/derive-private-keys.js";
-import { DEFAULT_EDR_NETWORK_HD_ACCOUNTS_CONFIG_PARAMS } from "../edr/edr-provider.js";
+import {
+  DEFAULT_EDR_NETWORK_HD_ACCOUNTS_CONFIG_PARAMS,
+  EDR_NETWORK_DEFAULT_COINBASE,
+} from "../edr/edr-provider.js";
 import { isHdAccountsConfig, validateUserConfig } from "../type-validation.js";
 
 export default async (): Promise<Partial<ConfigHooks>> => ({
@@ -156,6 +162,7 @@ export async function resolveUserConfig(
         enableTransientStorage: networkConfig.enableTransientStorage ?? false,
         enableRip7212: networkConfig.enableRip7212 ?? false,
         initialDate: networkConfig.initialDate ?? new Date(),
+        coinbase: resolveCoinbase(networkConfig.coinbase),
       };
 
       resolvedNetworks[networkName] = resolvedNetworkConfig;
@@ -260,4 +267,10 @@ function resolveMiningConfig(
       order: mempool?.order ?? "priority",
     },
   };
+}
+
+function resolveCoinbase(
+  coinbase: string | undefined = EDR_NETWORK_DEFAULT_COINBASE,
+): Uint8Array {
+  return hexStringToBytes(coinbase);
 }

@@ -175,7 +175,7 @@ declare module "../../../../types/config.js" {
     allowUnlimitedContractSize: boolean;
     blockGasLimit: bigint;
     chains: EdrNetworkChainsConfig;
-    coinbase?: string;
+    coinbase: Uint8Array;
     enableRip7212: boolean;
     enableTransientStorage: boolean;
     forking?: EdrNetworkForkingConfig;
