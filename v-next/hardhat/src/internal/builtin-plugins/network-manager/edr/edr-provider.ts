@@ -2,7 +2,10 @@ import type { SolidityStackTrace } from "./stack-traces/solidity-stack-trace.js"
 import type { HardhatNetworkChainsConfig } from "./types/config.js";
 import type { LoggerConfig } from "./types/logger.js";
 import type { TracingConfig } from "./types/node-types.js";
-import type { EdrNetworkConfig } from "../../../../types/config.js";
+import type {
+  EdrNetworkConfig,
+  EdrNetworkHDAccountsConfig,
+} from "../../../../types/config.js";
 import type {
   EthereumProvider,
   EthSubscription,
@@ -51,6 +54,7 @@ import {
   HARDHAT_NETWORK_RESET_EVENT,
   HARDHAT_NETWORK_REVERT_SNAPSHOT_EVENT,
 } from "../../../constants.js";
+import { DEFAULT_HD_ACCOUNTS_CONFIG_PARAMS } from "../accounts/derive-private-keys.js";
 import { getJsonRpcRequest, isFailedJsonRpcResponse } from "../json-rpc.js";
 
 import {
@@ -67,6 +71,7 @@ import {
   hardhatMiningIntervalToEdrMiningInterval,
   hardhatMempoolOrderToEdrMineOrdering,
   ethereumsjsHardforkToEdrSpecId,
+  hardhatAccountsToEdrGenesisAccounts,
 } from "./utils/convert-to-edr.js";
 import { getHardforkName } from "./utils/hardfork.js";
 import { printLine, replaceLastLine } from "./utils/logger.js";
@@ -74,9 +79,19 @@ import { printLine, replaceLastLine } from "./utils/logger.js";
 const log = debug("hardhat:core:hardhat-network:provider");
 
 export const DEFAULT_COINBASE = "0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e";
-let _globalEdrContext: EdrContext | undefined;
+
+export const EDR_NETWORK_MNEMONIC =
+  "test test test test test test test test test test test junk";
+export const DEFAULT_EDR_NETWORK_BALANCE = 10000000000000000000000n;
+export const DEFAULT_EDR_NETWORK_HD_ACCOUNTS_CONFIG_PARAMS: EdrNetworkHDAccountsConfig =
+  {
+    ...DEFAULT_HD_ACCOUNTS_CONFIG_PARAMS,
+    mnemonic: EDR_NETWORK_MNEMONIC,
+    accountsBalance: DEFAULT_EDR_NETWORK_BALANCE,
+  };
 
 // Lazy initialize the global EDR context.
+let _globalEdrContext: EdrContext | undefined;
 export async function getGlobalEdrContext(): Promise<EdrContext> {
   if (_globalEdrContext === undefined) {
     // Only one is allowed to exist
@@ -160,12 +175,9 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
         enableRip7212: networkConfig.enableRip7212,
         fork,
         hardfork: ethereumsjsHardforkToEdrSpecId(hardforkName),
-        genesisAccounts: networkConfig.genesisAccounts.map((account) => {
-          return {
-            secretKey: account.privateKey,
-            balance: BigInt(account.balance),
-          };
-        }),
+        genesisAccounts: hardhatAccountsToEdrGenesisAccounts(
+          networkConfig.accounts,
+        ),
         initialDate: BigInt(toSeconds(networkConfig.initialDate)),
         initialBaseFeePerGas:
           networkConfig.initialBaseFeePerGas !== undefined

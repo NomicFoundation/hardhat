@@ -77,13 +77,13 @@ declare module "../../../../types/config.js" {
     | EdrNetworkHDAccountsUserConfig;
 
   export interface EdrNetworkAccountUserConfig {
-    balance: string;
+    balance: string | bigint;
     privateKey: string;
   }
 
   export interface EdrNetworkHDAccountsUserConfig {
     mnemonic?: string;
-    accountsBalance?: string;
+    accountsBalance?: string | bigint;
     count?: number;
     initialIndex?: number;
     passphrase?: string;
@@ -195,13 +195,13 @@ declare module "../../../../types/config.js" {
     | EdrNetworkHDAccountsConfig;
 
   export interface EdrNetworkAccountConfig {
-    balance: string;
+    balance: bigint;
     privateKey: string;
   }
 
   export interface EdrNetworkHDAccountsConfig {
     mnemonic: string;
-    accountsBalance: string;
+    accountsBalance: bigint;
     count: number;
     initialIndex: number;
     passphrase: string;

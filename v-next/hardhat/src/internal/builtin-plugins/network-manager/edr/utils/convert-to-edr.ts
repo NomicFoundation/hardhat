@@ -1,10 +1,16 @@
 /* eslint-disable no-restricted-syntax -- hack */
 import type {
+  EdrNetworkAccountConfig,
+  EdrNetworkAccountsConfig,
   EdrNetworkMempoolConfig,
   EdrNetworkMiningConfig,
 } from "../../../../../types/config.js";
 import type { RpcDebugTraceOutput, RpcStructLog } from "../types/output.js";
-import type { IntervalRange, DebugTraceResult } from "@ignored/edr-optimism";
+import type {
+  IntervalRange,
+  DebugTraceResult,
+  GenesisAccount,
+} from "@ignored/edr-optimism";
 
 import {
   MineOrdering,
@@ -26,7 +32,10 @@ import {
   SHANGHAI,
   CANCUN,
 } from "@ignored/edr-optimism";
+import { bytesToHexString } from "@ignored/hardhat-vnext-utils/bytes";
 
+import { derivePrivateKeys } from "../../accounts/derive-private-keys.js";
+import { DEFAULT_EDR_NETWORK_BALANCE } from "../edr-provider.js";
 import { HardforkName } from "../types/hardfork.js";
 
 export function ethereumsjsHardforkToEdrSpecId(hardfork: HardforkName): string {
@@ -201,4 +210,36 @@ export function edrRpcDebugTraceToHardhat(
     returnValue,
     structLogs,
   };
+}
+
+export function hardhatAccountsToEdrGenesisAccounts(
+  accounts: EdrNetworkAccountsConfig,
+): GenesisAccount[] {
+  const normalizedAccounts = normalizeEdrNetworkAccountsConfig(accounts);
+
+  return normalizedAccounts.map((account) => {
+    return {
+      secretKey: account.privateKey,
+      balance: account.balance,
+    };
+  });
+}
+
+function normalizeEdrNetworkAccountsConfig(
+  accounts: EdrNetworkAccountsConfig,
+): EdrNetworkAccountConfig[] {
+  if (Array.isArray(accounts)) {
+    return accounts;
+  }
+
+  return derivePrivateKeys(
+    accounts.mnemonic,
+    accounts.path,
+    accounts.initialIndex,
+    accounts.count,
+    accounts.passphrase,
+  ).map((pk) => ({
+    privateKey: bytesToHexString(pk),
+    balance: accounts.accountsBalance ?? DEFAULT_EDR_NETWORK_BALANCE,
+  }));
 }
