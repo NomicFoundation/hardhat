@@ -1,5 +1,4 @@
 import type { SolidityStackTrace } from "./stack-traces/solidity-stack-trace.js";
-import type { HardhatNetworkChainsConfig } from "./types/config.js";
 import type { LoggerConfig } from "./types/logger.js";
 import type { TracingConfig } from "./types/node-types.js";
 import type {
@@ -72,6 +71,7 @@ import {
   hardhatMempoolOrderToEdrMineOrdering,
   ethereumsjsHardforkToEdrSpecId,
   hardhatAccountsToEdrGenesisAccounts,
+  hardhatChainsToEdrChains,
 } from "./utils/convert-to-edr.js";
 import { getHardforkName } from "./utils/hardfork.js";
 import { printLine, replaceLastLine } from "./utils/logger.js";
@@ -169,7 +169,7 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
         blockGasLimit: networkConfig.blockGasLimit,
         cacheDir: networkConfig.forking?.cacheDir,
         chainId: BigInt(networkConfig.chainId),
-        chains: this.#convertToEdrChains(networkConfig.chains),
+        chains: hardhatChainsToEdrChains(networkConfig.chains),
         // TODO: remove this cast when EDR updates the interface to accept Uint8Array
         coinbase: Buffer.from(networkConfig.coinbase),
         enableRip7212: networkConfig.enableRip7212,
@@ -406,32 +406,6 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
     };
 
     util.callbackify(handleJsonRpcRequest)(callback);
-  }
-
-  static #convertToEdrChains(chains: HardhatNetworkChainsConfig) {
-    const edrChains = [];
-
-    for (const [chainId, hardforkConfig] of chains) {
-      const hardforks = [];
-
-      for (const [hardfork, blockNumber] of hardforkConfig.hardforkHistory) {
-        const specId = ethereumsjsHardforkToEdrSpecId(
-          getHardforkName(hardfork),
-        );
-
-        hardforks.push({
-          blockNumber: BigInt(blockNumber),
-          specId,
-        });
-      }
-
-      edrChains.push({
-        chainId: BigInt(chainId),
-        hardforks,
-      });
-    }
-
-    return edrChains;
   }
 
   #isErrorResponse(response: any): response is FailedJsonRpcResponse {

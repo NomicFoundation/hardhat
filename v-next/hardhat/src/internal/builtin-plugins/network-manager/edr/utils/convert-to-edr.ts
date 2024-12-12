@@ -2,6 +2,7 @@
 import type {
   EdrNetworkAccountConfig,
   EdrNetworkAccountsConfig,
+  EdrNetworkChainsConfig,
   EdrNetworkMempoolConfig,
   EdrNetworkMiningConfig,
 } from "../../../../../types/config.js";
@@ -10,6 +11,7 @@ import type {
   IntervalRange,
   DebugTraceResult,
   GenesisAccount,
+  ChainConfig,
 } from "@ignored/edr-optimism";
 
 import {
@@ -37,6 +39,8 @@ import { bytesToHexString } from "@ignored/hardhat-vnext-utils/bytes";
 import { derivePrivateKeys } from "../../accounts/derive-private-keys.js";
 import { DEFAULT_EDR_NETWORK_BALANCE } from "../edr-provider.js";
 import { HardforkName } from "../types/hardfork.js";
+
+import { getHardforkName } from "./hardfork.js";
 
 export function ethereumsjsHardforkToEdrSpecId(hardfork: HardforkName): string {
   switch (hardfork) {
@@ -242,4 +246,30 @@ function normalizeEdrNetworkAccountsConfig(
     privateKey: bytesToHexString(pk),
     balance: accounts.accountsBalance ?? DEFAULT_EDR_NETWORK_BALANCE,
   }));
+}
+
+export function hardhatChainsToEdrChains(
+  chains: EdrNetworkChainsConfig,
+): ChainConfig[] {
+  const edrChains: ChainConfig[] = [];
+
+  for (const [chainId, hardforkConfig] of chains) {
+    const hardforks = [];
+
+    for (const [hardfork, blockNumber] of hardforkConfig.hardforkHistory) {
+      const specId = ethereumsjsHardforkToEdrSpecId(getHardforkName(hardfork));
+
+      hardforks.push({
+        blockNumber: BigInt(blockNumber),
+        specId,
+      });
+    }
+
+    edrChains.push({
+      chainId: BigInt(chainId),
+      hardforks,
+    });
+  }
+
+  return edrChains;
 }
