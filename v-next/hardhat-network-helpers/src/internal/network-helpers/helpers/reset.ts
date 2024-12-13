@@ -21,9 +21,7 @@ export async function reset(
   } else {
     await provider.request({
       method: "hardhat_reset",
-      params: [
-        { forking: { url, blockNumber: toNumber(blockNumber) } },
-      ],
+      params: [{ forking: { url, blockNumber: toNumber(blockNumber) } }],
     });
   }
 }
