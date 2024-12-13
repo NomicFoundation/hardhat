@@ -1474,7 +1474,7 @@ describe("TaskManagerImplementation", () => {
 
       const task1 = hre.tasks.getTask("task1");
       assert.equal(taskRun, false);
-      await task1.run({});
+      await task1.run();
       assert.equal(taskRun, true);
     });
 
@@ -1496,7 +1496,7 @@ describe("TaskManagerImplementation", () => {
       );
 
       const task1 = hre.tasks.getTask("task1");
-      const result = await task1.run({});
+      const result = await task1.run();
       assert.equal(result, "task run successfully");
     });
 
@@ -1530,7 +1530,7 @@ describe("TaskManagerImplementation", () => {
       const task1 = hre.tasks.getTask("task1");
       assert.equal(taskRun, false);
       assert.equal(overrideTaskRun, false);
-      await task1.run({});
+      await task1.run();
       assert.equal(taskRun, true);
       assert.equal(overrideTaskRun, true);
     });
@@ -1588,7 +1588,7 @@ describe("TaskManagerImplementation", () => {
       assert.equal(override1TaskRun, false);
       assert.equal(override2TaskRun, false);
       assert.equal(override3TaskRun, false);
-      await task1.run({});
+      await task1.run();
       assert.equal(taskRun, true);
       assert.equal(override1TaskRun, true);
       assert.equal(override2TaskRun, true);
@@ -1624,7 +1624,7 @@ describe("TaskManagerImplementation", () => {
       const task1 = hre.tasks.getTask("task1");
       assert.equal(taskRun, false);
       assert.equal(overrideTaskRun, false);
-      await task1.run({});
+      await task1.run();
       assert.equal(taskRun, false);
       assert.equal(overrideTaskRun, true);
     });
@@ -1739,7 +1739,7 @@ describe("TaskManagerImplementation", () => {
       );
 
       const task1 = hre.tasks.getTask("task1");
-      await task1.run({});
+      await task1.run();
     });
 
     it("should run an empty task that was overriden", async () => {
@@ -1769,7 +1769,7 @@ describe("TaskManagerImplementation", () => {
 
       const task1 = hre.tasks.getTask("task1");
       assert.equal(overrideTaskRun, false);
-      await task1.run({});
+      await task1.run();
       assert.equal(overrideTaskRun, true);
     });
 
@@ -1857,7 +1857,7 @@ describe("TaskManagerImplementation", () => {
 
         const task1 = hre.tasks.getTask("task1");
         await assertRejectsWithHardhatError(
-          task1.run({}),
+          task1.run(),
           HardhatError.ERRORS.TASK_DEFINITIONS.EMPTY_TASK,
           {
             task: "task1",
@@ -2057,7 +2057,7 @@ describe("TaskManagerImplementation", () => {
 
         const task1 = hre.tasks.getTask("task1");
         await assertRejectsWithHardhatError(
-          task1.run({}),
+          task1.run(),
           HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_ACTION_URL,
           {
             action: "file://not-a-module",
@@ -2095,7 +2095,7 @@ describe("TaskManagerImplementation", () => {
         );
 
         await assertRejectsWithHardhatError(
-          hre.tasks.getTask("task1").run({}),
+          hre.tasks.getTask("task1").run(),
           HardhatError.ERRORS.PLUGINS.PLUGIN_NOT_INSTALLED,
           {
             pluginId: "plugin1",
@@ -2129,7 +2129,7 @@ describe("TaskManagerImplementation", () => {
         );
 
         await assertRejectsWithHardhatError(
-          hre.tasks.getTask("task1").run({}),
+          hre.tasks.getTask("task1").run(),
           HardhatError.ERRORS.PLUGINS.PLUGIN_NOT_INSTALLED,
           {
             pluginId: "plugin2",
@@ -2160,7 +2160,7 @@ describe("TaskManagerImplementation", () => {
 
         const task1 = hre.tasks.getTask("task1");
         await assertRejectsWithHardhatError(
-          task1.run({}),
+          task1.run(),
           HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_ACTION,
           {
             action: actionUrl,
@@ -2192,7 +2192,7 @@ describe("TaskManagerImplementation", () => {
 
         const task1 = hre.tasks.getTask("task1");
         await assertRejectsWithHardhatError(
-          task1.run({}),
+          task1.run(),
           HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_ACTION,
           {
             action: actionUrl,
