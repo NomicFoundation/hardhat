@@ -42,7 +42,7 @@ import { HardforkName } from "../types/hardfork.js";
 
 import { getHardforkName } from "./hardfork.js";
 
-export function ethereumsjsHardforkToEdrSpecId(hardfork: HardforkName): string {
+export function hardhatHardforkToEdrSpecId(hardfork: HardforkName): string {
   switch (hardfork) {
     case HardforkName.FRONTIER:
       return FRONTIER;
@@ -88,7 +88,7 @@ export function ethereumsjsHardforkToEdrSpecId(hardfork: HardforkName): string {
   }
 }
 
-export function edrSpecIdToEthereumHardfork(specId: string): HardforkName {
+export function edrSpecIdToHardhatHardfork(specId: string): HardforkName {
   switch (specId) {
     case FRONTIER:
       return HardforkName.FRONTIER;
@@ -257,7 +257,7 @@ export function hardhatChainsToEdrChains(
     const hardforks = [];
 
     for (const [hardfork, blockNumber] of hardforkConfig.hardforkHistory) {
-      const specId = ethereumsjsHardforkToEdrSpecId(getHardforkName(hardfork));
+      const specId = hardhatHardforkToEdrSpecId(getHardforkName(hardfork));
 
       hardforks.push({
         blockNumber: BigInt(blockNumber),

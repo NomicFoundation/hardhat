@@ -149,7 +149,10 @@ export async function resolveUserConfig(
           networkConfig.forking,
           resolvedConfig.paths.cache,
         ),
-        hardfork: networkConfig.hardfork ?? "cancun",
+        hardfork: resolveHardfork(
+          networkConfig.hardfork,
+          networkConfig.enableTransientStorage,
+        ),
         networkId: networkConfig.networkId ?? networkConfig.chainId ?? 31337,
         blockGasLimit: BigInt(networkConfig.blockGasLimit ?? 30_000_000n),
         minGasPrice: BigInt(networkConfig.minGasPrice ?? 0),
@@ -414,4 +417,19 @@ function resolveChains(
   });
 
   return resolvedChains;
+}
+
+function resolveHardfork(
+  hardfork: string | undefined,
+  enableTransientStorage: boolean | undefined,
+): string {
+  if (hardfork !== undefined) {
+    return hardfork;
+  }
+
+  if (enableTransientStorage === true) {
+    return HardforkName.CANCUN;
+  } else {
+    return HardforkName.SHANGHAI;
+  }
 }

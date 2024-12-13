@@ -69,7 +69,7 @@ import {
   edrRpcDebugTraceToHardhat,
   hardhatMiningIntervalToEdrMiningInterval,
   hardhatMempoolOrderToEdrMineOrdering,
-  ethereumsjsHardforkToEdrSpecId,
+  hardhatHardforkToEdrSpecId,
   hardhatAccountsToEdrGenesisAccounts,
   hardhatChainsToEdrChains,
 } from "./utils/convert-to-edr.js";
@@ -174,7 +174,7 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
         coinbase: Buffer.from(networkConfig.coinbase),
         enableRip7212: networkConfig.enableRip7212,
         fork,
-        hardfork: ethereumsjsHardforkToEdrSpecId(hardforkName),
+        hardfork: hardhatHardforkToEdrSpecId(hardforkName),
         genesisAccounts: hardhatAccountsToEdrGenesisAccounts(
           networkConfig.accounts,
         ),
