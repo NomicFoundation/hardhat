@@ -118,16 +118,16 @@ export async function resolveUserConfig(
     if (networkConfig.type === "http") {
       const resolvedNetworkConfig: HttpNetworkConfig = {
         type: "http",
+        accounts: resolveHttpNetworkAccounts(
+          networkConfig.accounts,
+          resolveConfigurationVariable,
+        ),
         chainId: networkConfig.chainId,
         chainType: networkConfig.chainType,
         from: networkConfig.from,
         gas: resolveGasConfig(networkConfig.gas),
         gasMultiplier: networkConfig.gasMultiplier ?? 1,
         gasPrice: resolveGasConfig(networkConfig.gasPrice),
-        accounts: resolveHttpNetworkAccounts(
-          networkConfig.accounts,
-          resolveConfigurationVariable,
-        ),
         url: networkConfig.url,
         timeout: networkConfig.timeout ?? 20_000,
         httpHeaders: networkConfig.httpHeaders ?? {},
@@ -139,12 +139,23 @@ export async function resolveUserConfig(
     if (networkConfig.type === "edr") {
       const resolvedNetworkConfig: EdrNetworkConfig = {
         type: "edr",
+        accounts: resolveEdrNetworkAccounts(networkConfig.accounts),
         chainId: networkConfig.chainId ?? 31337,
         chainType: networkConfig.chainType,
         from: networkConfig.from,
         gas: resolveGasConfig(networkConfig.gas),
         gasMultiplier: networkConfig.gasMultiplier ?? 1,
         gasPrice: resolveGasConfig(networkConfig.gasPrice),
+
+        allowBlocksWithSameTimestamp:
+          networkConfig.allowBlocksWithSameTimestamp ?? false,
+        allowUnlimitedContractSize:
+          networkConfig.allowUnlimitedContractSize ?? false,
+        blockGasLimit: BigInt(networkConfig.blockGasLimit ?? 30_000_000n),
+        chains: resolveChains(networkConfig.chains),
+        coinbase: resolveCoinbase(networkConfig.coinbase),
+        enableRip7212: networkConfig.enableRip7212 ?? false,
+        enableTransientStorage: networkConfig.enableTransientStorage ?? false,
         forking: resolveForkingConfig(
           networkConfig.forking,
           resolvedConfig.paths.cache,
@@ -153,24 +164,14 @@ export async function resolveUserConfig(
           networkConfig.hardfork,
           networkConfig.enableTransientStorage,
         ),
-        networkId: networkConfig.networkId ?? networkConfig.chainId ?? 31337,
-        blockGasLimit: BigInt(networkConfig.blockGasLimit ?? 30_000_000n),
+        initialDate: networkConfig.initialDate ?? new Date(),
+        loggingEnabled: networkConfig.loggingEnabled ?? false,
         minGasPrice: BigInt(networkConfig.minGasPrice ?? 0),
         mining: resolveMiningConfig(networkConfig.mining),
-        chains: resolveChains(networkConfig.chains),
-        accounts: resolveEdrNetworkAccounts(networkConfig.accounts),
-        allowUnlimitedContractSize:
-          networkConfig.allowUnlimitedContractSize ?? false,
+        networkId: networkConfig.networkId ?? networkConfig.chainId ?? 31337,
+        throwOnCallFailures: networkConfig.throwOnCallFailures ?? true,
         throwOnTransactionFailures:
           networkConfig.throwOnTransactionFailures ?? true,
-        throwOnCallFailures: networkConfig.throwOnCallFailures ?? true,
-        allowBlocksWithSameTimestamp:
-          networkConfig.allowBlocksWithSameTimestamp ?? false,
-        enableTransientStorage: networkConfig.enableTransientStorage ?? false,
-        enableRip7212: networkConfig.enableRip7212 ?? false,
-        initialDate: networkConfig.initialDate ?? new Date(),
-        coinbase: resolveCoinbase(networkConfig.coinbase),
-        loggingEnabled: networkConfig.loggingEnabled ?? false,
       };
 
       resolvedNetworks[networkName] = resolvedNetworkConfig;
