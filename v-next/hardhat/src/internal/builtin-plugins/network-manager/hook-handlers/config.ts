@@ -170,6 +170,7 @@ export async function resolveUserConfig(
         enableRip7212: networkConfig.enableRip7212 ?? false,
         initialDate: networkConfig.initialDate ?? new Date(),
         coinbase: resolveCoinbase(networkConfig.coinbase),
+        loggingEnabled: networkConfig.loggingEnabled ?? false,
       };
 
       resolvedNetworks[networkName] = resolvedNetworkConfig;
