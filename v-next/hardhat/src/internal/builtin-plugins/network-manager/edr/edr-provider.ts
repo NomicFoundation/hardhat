@@ -73,7 +73,6 @@ import {
   hardhatChainsToEdrChains,
   hardhatForkingConfigToEdrForkConfig,
 } from "./utils/convert-to-edr.js";
-import { getHardforkName } from "./utils/hardfork.js";
 import { printLine, replaceLastLine } from "./utils/logger.js";
 
 const log = debug("hardhat:core:hardhat-network:provider");
@@ -141,8 +140,6 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
 
     const vmTraceDecoder = await createVmTraceDecoder();
 
-    const hardforkName = getHardforkName(networkConfig.hardfork);
-
     const context = await getGlobalEdrContext();
     const provider = await context.createProvider(
       networkConfig.chainType === "optimism"
@@ -165,7 +162,7 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
         genesisAccounts: hardhatAccountsToEdrGenesisAccounts(
           networkConfig.accounts,
         ),
-        hardfork: hardhatHardforkToEdrSpecId(hardforkName),
+        hardfork: hardhatHardforkToEdrSpecId(networkConfig.hardfork),
         initialBaseFeePerGas: networkConfig.initialBaseFeePerGas,
         initialDate: BigInt(toSeconds(networkConfig.initialDate)),
         minGasPrice: networkConfig.minGasPrice,

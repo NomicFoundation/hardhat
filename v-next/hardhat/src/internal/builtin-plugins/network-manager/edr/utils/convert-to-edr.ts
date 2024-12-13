@@ -44,8 +44,10 @@ import { HardforkName } from "../types/hardfork.js";
 
 import { getHardforkName } from "./hardfork.js";
 
-export function hardhatHardforkToEdrSpecId(hardfork: HardforkName): string {
-  switch (hardfork) {
+export function hardhatHardforkToEdrSpecId(hardfork: string): string {
+  const hardforkName = getHardforkName(hardfork);
+
+  switch (hardforkName) {
     case HardforkName.FRONTIER:
       return FRONTIER;
     case HardforkName.HOMESTEAD:
@@ -82,7 +84,7 @@ export function hardhatHardforkToEdrSpecId(hardfork: HardforkName): string {
       return CANCUN;
     // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- trust but verify
     default:
-      const _exhaustiveCheck: never = hardfork;
+      const _exhaustiveCheck: never = hardforkName;
       throw new Error(
         // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- we want to print the fork
         `Unknown hardfork name '${hardfork as string}', this shouldn't happen`,
