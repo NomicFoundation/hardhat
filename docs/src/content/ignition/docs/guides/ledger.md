@@ -42,7 +42,7 @@ We are going to use the [Sepolia testnet](https://ethereum.org/en/developers/doc
 
 ```ts
 // ...rest of your imports...
-import("@nomicfoundation/hardhat-ledger");
+import ("@nomicfoundation/hardhat-ledger");
 
 // Go to https://alchemy.com, sign up, create a new App in
 // its dashboard, and set the Hardhat configuration variable
