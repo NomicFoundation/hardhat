@@ -6,7 +6,7 @@ import { describe, it } from "node:test";
 import { readClosestPackageJson } from "@ignored/hardhat-vnext-utils/package";
 
 import { BUILTIN_GLOBAL_OPTIONS_DEFINITIONS } from "../../../../src/internal/builtin-global-options.js";
-import { getGlobalHelpString } from "../../../../src/internal/cli/helpers/getGlobalHelpString.js";
+import { getGlobalHelpString } from "../../../../src/internal/cli/help/get-global-help-string.js";
 import { globalOption } from "../../../../src/internal/core/config.js";
 import { buildGlobalOptionDefinitions } from "../../../../src/internal/core/global-options.js";
 import { ArgumentType } from "../../../../src/types/arguments.js";
