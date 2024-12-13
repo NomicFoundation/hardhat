@@ -174,12 +174,12 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
         coinbase: Buffer.from(networkConfig.coinbase),
         enableRip7212: networkConfig.enableRip7212,
         fork,
-        hardfork: hardhatHardforkToEdrSpecId(hardforkName),
         genesisAccounts: hardhatAccountsToEdrGenesisAccounts(
           networkConfig.accounts,
         ),
-        initialDate: BigInt(toSeconds(networkConfig.initialDate)),
+        hardfork: hardhatHardforkToEdrSpecId(hardforkName),
         initialBaseFeePerGas: networkConfig.initialBaseFeePerGas,
+        initialDate: BigInt(toSeconds(networkConfig.initialDate)),
         minGasPrice: networkConfig.minGasPrice,
         mining: {
           autoMine: networkConfig.mining.auto,
