@@ -27,7 +27,6 @@ import type {
   VMTracer as VMTracerT,
   Provider,
   DebugTraceResult,
-  ForkConfig,
 } from "@ignored/edr-optimism";
 
 import EventEmitter from "node:events";
@@ -72,6 +71,7 @@ import {
   hardhatHardforkToEdrSpecId,
   hardhatAccountsToEdrGenesisAccounts,
   hardhatChainsToEdrChains,
+  hardhatForkingConfigToEdrForkConfig,
 } from "./utils/convert-to-edr.js";
 import { getHardforkName } from "./utils/hardfork.js";
 import { printLine, replaceLastLine } from "./utils/logger.js";
@@ -136,18 +136,6 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
     tracingConfig = {},
     jsonRpcRequestWrapper,
   }: EdrProviderConfig): Promise<EdrProvider> {
-    let fork: ForkConfig | undefined;
-    if (
-      networkConfig.forking !== undefined &&
-      networkConfig.forking.enabled === true
-    ) {
-      fork = {
-        jsonRpcUrl: networkConfig.forking.url,
-        blockNumber: networkConfig.forking.blockNumber,
-        httpHeaders: networkConfig.forking.httpHeaders,
-      };
-    }
-
     const printLineFn = loggerConfig.printLineFn ?? printLine;
     const replaceLastLineFn = loggerConfig.replaceLastLineFn ?? replaceLastLine;
 
@@ -173,7 +161,7 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
         // TODO: remove this cast when EDR updates the interface to accept Uint8Array
         coinbase: Buffer.from(networkConfig.coinbase),
         enableRip7212: networkConfig.enableRip7212,
-        fork,
+        fork: hardhatForkingConfigToEdrForkConfig(networkConfig.forking),
         genesisAccounts: hardhatAccountsToEdrGenesisAccounts(
           networkConfig.accounts,
         ),

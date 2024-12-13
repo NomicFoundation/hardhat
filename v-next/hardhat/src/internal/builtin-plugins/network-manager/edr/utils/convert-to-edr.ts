@@ -3,6 +3,7 @@ import type {
   EdrNetworkAccountConfig,
   EdrNetworkAccountsConfig,
   EdrNetworkChainsConfig,
+  EdrNetworkForkingConfig,
   EdrNetworkMempoolConfig,
   EdrNetworkMiningConfig,
 } from "../../../../../types/config.js";
@@ -12,6 +13,7 @@ import type {
   DebugTraceResult,
   GenesisAccount,
   ChainConfig,
+  ForkConfig,
 } from "@ignored/edr-optimism";
 
 import {
@@ -272,4 +274,19 @@ export function hardhatChainsToEdrChains(
   }
 
   return edrChains;
+}
+
+export function hardhatForkingConfigToEdrForkConfig(
+  forkingConfig: EdrNetworkForkingConfig | undefined,
+): ForkConfig | undefined {
+  let fork: ForkConfig | undefined;
+  if (forkingConfig !== undefined && forkingConfig.enabled === true) {
+    fork = {
+      jsonRpcUrl: forkingConfig.url,
+      blockNumber: forkingConfig.blockNumber,
+      httpHeaders: forkingConfig.httpHeaders,
+    };
+  }
+
+  return fork;
 }
