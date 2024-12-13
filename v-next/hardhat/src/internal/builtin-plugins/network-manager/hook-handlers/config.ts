@@ -164,6 +164,9 @@ export async function resolveUserConfig(
           networkConfig.hardfork,
           networkConfig.enableTransientStorage,
         ),
+        initialBaseFeePerGas: resolveInitialBaseFeePerGas(
+          networkConfig.initialBaseFeePerGas,
+        ),
         initialDate: networkConfig.initialDate ?? new Date(),
         loggingEnabled: networkConfig.loggingEnabled ?? false,
         minGasPrice: BigInt(networkConfig.minGasPrice ?? 0),
@@ -434,4 +437,12 @@ function resolveHardfork(
   } else {
     return HardforkName.SHANGHAI;
   }
+}
+
+function resolveInitialBaseFeePerGas(
+  initialBaseFeePerGas: bigint | number | undefined,
+): bigint | undefined {
+  return initialBaseFeePerGas !== undefined
+    ? BigInt(initialBaseFeePerGas)
+    : undefined;
 }

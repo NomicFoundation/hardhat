@@ -62,7 +62,7 @@ declare module "../../../../types/config.js" {
     enableTransientStorage?: boolean;
     forking?: EdrNetworkForkingUserConfig;
     hardfork?: string;
-    initialBaseFeePerGas?: number;
+    initialBaseFeePerGas?: number | bigint;
     initialDate?: string | Date;
     loggingEnabled?: boolean;
     minGasPrice?: number | bigint;
@@ -180,7 +180,7 @@ declare module "../../../../types/config.js" {
     enableTransientStorage: boolean;
     forking?: EdrNetworkForkingConfig;
     hardfork: string;
-    initialBaseFeePerGas?: number;
+    initialBaseFeePerGas?: bigint;
     initialDate: string | Date;
     loggingEnabled: boolean;
     minGasPrice: bigint;

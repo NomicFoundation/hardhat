@@ -179,10 +179,7 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
           networkConfig.accounts,
         ),
         initialDate: BigInt(toSeconds(networkConfig.initialDate)),
-        initialBaseFeePerGas:
-          networkConfig.initialBaseFeePerGas !== undefined
-            ? BigInt(networkConfig.initialBaseFeePerGas)
-            : undefined,
+        initialBaseFeePerGas: networkConfig.initialBaseFeePerGas,
         minGasPrice: networkConfig.minGasPrice,
         mining: {
           autoMine: networkConfig.mining.auto,
