@@ -177,7 +177,7 @@ We also deploy updated storybook on each build. You can find it on https://hardh
 
 There are two relatively independent processes in the build step:
 
-1. Generating pages themselves. We get page paths directly from the files located in the content folder. Their paths are mapped to the page routes. Layout settings don't affect to page's existence.
+1. Generating pages themselves. We get page paths directly from the files located in the content folder. Their paths are mapped to the page routes. Layout settings don't affect page existence.
 2. Generating layouts and mapping layouts to pages. For that, we're checking which folders belong to what layout and assigning that layout to a page
 
 Page paths are generated in the `getStaticPaths` functions in files of the `page` folder. The result of these functions is an array of page paths. Page props are generated with the `getStaticProps` function, which is executed once per page with a page path passed as an argument and returns all required page props.
