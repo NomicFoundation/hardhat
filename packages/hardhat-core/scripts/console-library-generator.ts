@@ -42,8 +42,8 @@ function selector({ name = "", params = [] as TypeName[] }) {
   return keccak256(Buffer.from(`${name}(${sigParams})`)).slice(0, 4);
 }
 
-function toHex(value: Uint8Array) {
-  return "0x" + Buffer.from(value).toString("hex");
+function toHex(value: Uint8Array): string {
+  return `0x${Buffer.from(value).toString('hex')}`;
 }
 
 /** The types for which we generate `logUint`, `logString`, etc. */
