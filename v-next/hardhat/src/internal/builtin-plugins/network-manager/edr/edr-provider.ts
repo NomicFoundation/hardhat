@@ -27,6 +27,7 @@ import type {
   VMTracer as VMTracerT,
   Provider,
   DebugTraceResult,
+  ProviderConfig,
 } from "@ignored/edr-optimism";
 
 import EventEmitter from "node:events";
@@ -145,40 +146,7 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
       networkConfig.chainType === "optimism"
         ? OPTIMISM_CHAIN_TYPE
         : GENERIC_CHAIN_TYPE, // TODO: l1 is missing here
-      {
-        allowBlocksWithSameTimestamp:
-          networkConfig.allowBlocksWithSameTimestamp,
-        allowUnlimitedContractSize: networkConfig.allowUnlimitedContractSize,
-        bailOnCallFailure: networkConfig.throwOnCallFailures,
-        bailOnTransactionFailure: networkConfig.throwOnTransactionFailures,
-        blockGasLimit: networkConfig.blockGasLimit,
-        cacheDir: networkConfig.forking?.cacheDir,
-        chainId: BigInt(networkConfig.chainId),
-        chains: hardhatChainsToEdrChains(networkConfig.chains),
-        // TODO: remove this cast when EDR updates the interface to accept Uint8Array
-        coinbase: Buffer.from(networkConfig.coinbase),
-        enableRip7212: networkConfig.enableRip7212,
-        fork: hardhatForkingConfigToEdrForkConfig(networkConfig.forking),
-        genesisAccounts: hardhatAccountsToEdrGenesisAccounts(
-          networkConfig.accounts,
-        ),
-        hardfork: hardhatHardforkToEdrSpecId(networkConfig.hardfork),
-        initialBaseFeePerGas: networkConfig.initialBaseFeePerGas,
-        initialDate: BigInt(toSeconds(networkConfig.initialDate)),
-        minGasPrice: networkConfig.minGasPrice,
-        mining: {
-          autoMine: networkConfig.mining.auto,
-          interval: hardhatMiningIntervalToEdrMiningInterval(
-            networkConfig.mining.interval,
-          ),
-          memPool: {
-            order: hardhatMempoolOrderToEdrMineOrdering(
-              networkConfig.mining.mempool.order,
-            ),
-          },
-        },
-        networkId: BigInt(networkConfig.networkId),
-      },
+      getProviderConfig(networkConfig),
       {
         enable: loggerConfig.enabled,
         decodeConsoleLogInputsCallback: ConsoleLogger.getDecodedLogs,
@@ -567,4 +535,40 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
 
     this.emit("message", message);
   }
+}
+
+function getProviderConfig(networkConfig: EdrNetworkConfig): ProviderConfig {
+  return {
+    allowBlocksWithSameTimestamp: networkConfig.allowBlocksWithSameTimestamp,
+    allowUnlimitedContractSize: networkConfig.allowUnlimitedContractSize,
+    bailOnCallFailure: networkConfig.throwOnCallFailures,
+    bailOnTransactionFailure: networkConfig.throwOnTransactionFailures,
+    blockGasLimit: networkConfig.blockGasLimit,
+    cacheDir: networkConfig.forking?.cacheDir,
+    chainId: BigInt(networkConfig.chainId),
+    chains: hardhatChainsToEdrChains(networkConfig.chains),
+    // TODO: remove this cast when EDR updates the interface to accept Uint8Array
+    coinbase: Buffer.from(networkConfig.coinbase),
+    enableRip7212: networkConfig.enableRip7212,
+    fork: hardhatForkingConfigToEdrForkConfig(networkConfig.forking),
+    genesisAccounts: hardhatAccountsToEdrGenesisAccounts(
+      networkConfig.accounts,
+    ),
+    hardfork: hardhatHardforkToEdrSpecId(networkConfig.hardfork),
+    initialBaseFeePerGas: networkConfig.initialBaseFeePerGas,
+    initialDate: BigInt(toSeconds(networkConfig.initialDate)),
+    minGasPrice: networkConfig.minGasPrice,
+    mining: {
+      autoMine: networkConfig.mining.auto,
+      interval: hardhatMiningIntervalToEdrMiningInterval(
+        networkConfig.mining.interval,
+      ),
+      memPool: {
+        order: hardhatMempoolOrderToEdrMineOrdering(
+          networkConfig.mining.mempool.order,
+        ),
+      },
+    },
+    networkId: BigInt(networkConfig.networkId),
+  };
 }
