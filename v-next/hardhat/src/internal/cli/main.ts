@@ -45,6 +45,10 @@ export interface MainOptions {
   rethrowErrors?: true;
 }
 
+declare global {
+  const Deno: any;
+}
+
 export async function main(
   cliArguments: string[],
   options: MainOptions = {},
@@ -98,8 +102,10 @@ export async function main(
       return;
     }
 
-    if (options.registerTsx) {
-      register();
+    if (typeof Deno === "undefined") {
+      if (options.registerTsx) {
+        register();
+      }
     }
 
     const userConfig = await importUserConfig(configPath);
