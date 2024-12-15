@@ -131,6 +131,7 @@ export class Batcher {
     const dependencies = batchState.adjacencyList.getDependenciesFor(futureId);
 
     return [...dependencies].every((depId) => {
+      // We distinguish between module and future ids here, as the future's always have `#` and the modules don't.
       if (/#/.test(depId)) {
         return batchState.visitState[depId] === VisitStatus.VISITED;
       }
