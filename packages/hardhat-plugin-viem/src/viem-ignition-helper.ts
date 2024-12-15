@@ -72,6 +72,7 @@ export class ViemIgnitionHelper {
       strategy,
       strategyConfig,
       deploymentId: givenDeploymentId = undefined,
+      displayUi = false,
     }: {
       parameters?: DeploymentParameters;
       config?: Partial<DeployConfig>;
@@ -79,6 +80,7 @@ export class ViemIgnitionHelper {
       strategy?: StrategyT;
       strategyConfig?: StrategyConfig[StrategyT];
       deploymentId?: string;
+      displayUi?: boolean;
     } = {
       parameters: {},
       config: {},
@@ -86,6 +88,7 @@ export class ViemIgnitionHelper {
       strategy: undefined,
       strategyConfig: undefined,
       deploymentId: undefined,
+      displayUi: undefined,
     }
   ): Promise<
     IgnitionModuleResultsToViemContracts<ContractNameT, IgnitionModuleResultsT>
@@ -125,7 +128,9 @@ export class ViemIgnitionHelper {
             deploymentId
           );
 
-    const executionEventListener = new PrettyEventHandler();
+    const executionEventListener = displayUi
+      ? new PrettyEventHandler()
+      : undefined;
 
     const result = await deploy({
       config: resolvedConfig,
