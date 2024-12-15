@@ -3,6 +3,7 @@ import type { ArtifactResolver } from "./types/artifact";
 import findLastIndex from "lodash/findLastIndex";
 
 import { IgnitionError } from "./errors";
+import { builtinChains } from "./internal/chain-config";
 import { FileDeploymentLoader } from "./internal/deployment-loader/file-deployment-loader";
 import { ERRORS } from "./internal/errors-list";
 import { loadDeploymentState } from "./internal/execution/deployment-state-helpers";
@@ -49,6 +50,10 @@ export async function listTransactions(
   }
 
   const transactions: ListTransactionsResult = [];
+
+  const browserUrl = builtinChains.find(
+    ({ chainId }) => chainId === deploymentState.chainId
+  );
 
   for await (const message of deploymentLoader.readFromJournal()) {
     if (message.type !== JournalMessageType.TRANSACTION_SEND) {
@@ -97,6 +102,7 @@ export async function listTransactions(
               : undefined,
           params: exState.constructorArgs,
           value: networkInteraction.value,
+          browserUrl: browserUrl?.urls.browserURL,
         });
 
         break;
@@ -118,6 +124,7 @@ export async function listTransactions(
           to: networkInteraction.to,
           params: exState.args,
           value: networkInteraction.value,
+          browserUrl: browserUrl?.urls.browserURL,
         });
 
         break;
@@ -133,6 +140,7 @@ export async function listTransactions(
           ),
           to: networkInteraction.to,
           value: networkInteraction.value,
+          browserUrl: browserUrl?.urls.browserURL,
         });
 
         break;

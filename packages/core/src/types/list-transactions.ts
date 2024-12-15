@@ -27,6 +27,7 @@ export interface TransactionInfo {
   address?: string;
   params?: SolidityParameterType[];
   value?: bigint;
+  browserUrl?: string;
 }
 
 /**

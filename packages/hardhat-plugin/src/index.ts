@@ -58,6 +58,7 @@ extendConfig((config, userConfig) => {
       maxPriorityFeePerGas: userNetworkConfig.ignition?.maxPriorityFeePerGas,
       gasPrice: userNetworkConfig.ignition?.gasPrice,
       disableFeeBumping: userNetworkConfig.ignition?.disableFeeBumping,
+      explorerUrl: userNetworkConfig.ignition?.explorerUrl,
     };
   });
 
@@ -717,7 +718,11 @@ ignitionScope
     }
 
     console.log(
-      calculateListTransactionsDisplay(deploymentId, listTransactionsResult)
+      calculateListTransactionsDisplay(
+        deploymentId,
+        listTransactionsResult,
+        hre.config.networks[hre.network.name]?.ignition?.explorerUrl
+      )
     );
   });
 
