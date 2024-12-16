@@ -19,16 +19,3 @@ declare module "@ignored/hardhat-vnext/types/config" {
     mocha: string;
   }
 }
-
-declare module "@ignored/hardhat-vnext/types/hooks" {
-  export interface HardhatHooks {
-    mocha: MochaHooks;
-  }
-
-  export interface MochaHooks {
-    initialize(
-      context: HookContext,
-      next: (context: HookContext) => Promise<void>,
-    ): Promise<void>;
-  }
-}
