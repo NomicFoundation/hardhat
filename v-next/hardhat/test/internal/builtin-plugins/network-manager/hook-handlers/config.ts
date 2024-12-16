@@ -14,7 +14,7 @@ import {
   extendUserConfig,
   resolveUserConfig,
 } from "../../../../../src/internal/builtin-plugins/network-manager/hook-handlers/config.js";
-import { validateUserConfig } from "../../../../../src/internal/builtin-plugins/network-manager/type-validation.js";
+import { validateNetworkUserConfig } from "../../../../../src/internal/builtin-plugins/network-manager/type-validation.js";
 import {
   FixedValueConfigurationVariable,
   resolveConfigurationVariable,
@@ -118,7 +118,7 @@ describe("network-manager/hook-handlers/config", () => {
         },
       };
 
-      const validationErrors = await validateUserConfig(config);
+      const validationErrors = await validateNetworkUserConfig(config);
 
       assertValidationErrors(validationErrors, []);
     });
@@ -130,7 +130,7 @@ describe("network-manager/hook-handlers/config", () => {
 
       /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       -- testing invalid network type for js users */
-      const validationErrors = await validateUserConfig(config as any);
+      const validationErrors = await validateNetworkUserConfig(config as any);
 
       assertValidationErrors(validationErrors, [
         {
@@ -147,7 +147,7 @@ describe("network-manager/hook-handlers/config", () => {
 
       /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       -- testing invalid network type for js users */
-      const validationErrors = await validateUserConfig(config as any);
+      const validationErrors = await validateNetworkUserConfig(config as any);
 
       assertValidationErrors(validationErrors, [
         {
@@ -164,7 +164,7 @@ describe("network-manager/hook-handlers/config", () => {
 
       /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       -- testing invalid network type for js users */
-      const validationErrors = await validateUserConfig(config as any);
+      const validationErrors = await validateNetworkUserConfig(config as any);
 
       assertValidationErrors(validationErrors, [
         {
@@ -185,7 +185,7 @@ describe("network-manager/hook-handlers/config", () => {
 
       /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       -- testing invalid network type for js users */
-      const validationErrors = await validateUserConfig(config as any);
+      const validationErrors = await validateNetworkUserConfig(config as any);
 
       assertValidationErrors(validationErrors, [
         {
@@ -204,7 +204,7 @@ describe("network-manager/hook-handlers/config", () => {
 
       /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       -- testing invalid network type for js users */
-      const validationErrors = await validateUserConfig(config as any);
+      const validationErrors = await validateNetworkUserConfig(config as any);
 
       assertValidationErrors(validationErrors, [
         {
@@ -227,7 +227,7 @@ describe("network-manager/hook-handlers/config", () => {
 
       /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       -- testing invalid network type for js users */
-      const validationErrors = await validateUserConfig(config as any);
+      const validationErrors = await validateNetworkUserConfig(config as any);
 
       assertValidationErrors(validationErrors, [
         {
@@ -250,7 +250,7 @@ describe("network-manager/hook-handlers/config", () => {
 
       /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       -- testing invalid network type for js users */
-      const validationErrors = await validateUserConfig(config as any);
+      const validationErrors = await validateNetworkUserConfig(config as any);
 
       assertValidationErrors(validationErrors, [
         {
@@ -273,7 +273,7 @@ describe("network-manager/hook-handlers/config", () => {
 
       /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       -- testing invalid network type for js users */
-      const validationErrors = await validateUserConfig(config as any);
+      const validationErrors = await validateNetworkUserConfig(config as any);
 
       assertValidationErrors(validationErrors, [
         {
@@ -294,7 +294,7 @@ describe("network-manager/hook-handlers/config", () => {
         },
       };
 
-      let validationErrors = await validateUserConfig(
+      let validationErrors = await validateNetworkUserConfig(
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
         -- testing invalid network type for js users */
         configWithInvalidGas as any,
@@ -317,7 +317,7 @@ describe("network-manager/hook-handlers/config", () => {
         },
       };
 
-      validationErrors = await validateUserConfig(
+      validationErrors = await validateNetworkUserConfig(
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
         -- testing invalid network type for js users */
         configWithNonSafeIntGas as any,
@@ -340,7 +340,7 @@ describe("network-manager/hook-handlers/config", () => {
         },
       };
 
-      validationErrors = await validateUserConfig(
+      validationErrors = await validateNetworkUserConfig(
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
         -- testing invalid network type for js users */
         configWithNegativeGas as any,
@@ -367,7 +367,7 @@ describe("network-manager/hook-handlers/config", () => {
 
       /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       -- testing invalid network type for js users */
-      const validationErrors = await validateUserConfig(config as any);
+      const validationErrors = await validateNetworkUserConfig(config as any);
 
       assertValidationErrors(validationErrors, [
         {
@@ -388,7 +388,7 @@ describe("network-manager/hook-handlers/config", () => {
         },
       };
 
-      let validationErrors = await validateUserConfig(
+      let validationErrors = await validateNetworkUserConfig(
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
         -- testing invalid network type for js users */
         configWithInvalidGasPrice as any,
@@ -411,7 +411,7 @@ describe("network-manager/hook-handlers/config", () => {
         },
       };
 
-      validationErrors = await validateUserConfig(
+      validationErrors = await validateNetworkUserConfig(
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
         -- testing invalid network type for js users */
         configWithNonSafeIntGasPrice as any,
@@ -434,7 +434,7 @@ describe("network-manager/hook-handlers/config", () => {
         },
       };
 
-      validationErrors = await validateUserConfig(
+      validationErrors = await validateNetworkUserConfig(
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
         -- testing invalid network type for js users */
         configWithNegativeGasPrice as any,
@@ -460,7 +460,7 @@ describe("network-manager/hook-handlers/config", () => {
 
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
         -- testing invalid network type for js users */
-        const validationErrors = await validateUserConfig(config as any);
+        const validationErrors = await validateNetworkUserConfig(config as any);
 
         assertValidationErrors(validationErrors, [
           {
@@ -482,7 +482,7 @@ describe("network-manager/hook-handlers/config", () => {
 
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
         -- testing invalid network type for js users */
-        const validationErrors = await validateUserConfig(config as any);
+        const validationErrors = await validateNetworkUserConfig(config as any);
 
         assertValidationErrors(validationErrors, [
           {
@@ -505,7 +505,7 @@ describe("network-manager/hook-handlers/config", () => {
 
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
         -- testing invalid network type for js users */
-        const validationErrors = await validateUserConfig(config as any);
+        const validationErrors = await validateNetworkUserConfig(config as any);
 
         assertValidationErrors(validationErrors, [
           {
@@ -526,7 +526,7 @@ describe("network-manager/hook-handlers/config", () => {
           },
         };
 
-        let validationErrors = await validateUserConfig(
+        let validationErrors = await validateNetworkUserConfig(
           /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
           -- testing invalid network type for js users */
           configWithStringHeaders as any,
@@ -551,7 +551,7 @@ describe("network-manager/hook-handlers/config", () => {
           },
         };
 
-        validationErrors = await validateUserConfig(
+        validationErrors = await validateNetworkUserConfig(
           /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
           -- testing invalid network type for js users */
           configWithInvalidHeaderValue as any,
@@ -587,7 +587,7 @@ describe("network-manager/hook-handlers/config", () => {
             hardhatUserConfig.networks.localhost.accounts = "remote";
 
             const validationErrors =
-              await validateUserConfig(hardhatUserConfig);
+              await validateNetworkUserConfig(hardhatUserConfig);
 
             assertValidationErrors(validationErrors, []);
           });
@@ -600,7 +600,7 @@ describe("network-manager/hook-handlers/config", () => {
             ];
 
             const validationErrors =
-              await validateUserConfig(hardhatUserConfig);
+              await validateNetworkUserConfig(hardhatUserConfig);
             assert.equal(validationErrors.length, 0);
           });
 
@@ -614,7 +614,7 @@ describe("network-manager/hook-handlers/config", () => {
             };
 
             const validationErrors =
-              await validateUserConfig(hardhatUserConfig);
+              await validateNetworkUserConfig(hardhatUserConfig);
 
             assertValidationErrors(validationErrors, []);
           });
@@ -625,7 +625,7 @@ describe("network-manager/hook-handlers/config", () => {
             ];
 
             const validationErrors =
-              await validateUserConfig(hardhatUserConfig);
+              await validateNetworkUserConfig(hardhatUserConfig);
 
             assertValidationErrors(validationErrors, []);
           });
@@ -639,7 +639,7 @@ describe("network-manager/hook-handlers/config", () => {
               ];
 
               const validationErrors =
-                await validateUserConfig(hardhatUserConfig);
+                await validateNetworkUserConfig(hardhatUserConfig);
 
               assertValidationErrors(validationErrors, [
                 {
@@ -654,7 +654,7 @@ describe("network-manager/hook-handlers/config", () => {
               hardhatUserConfig.networks.localhost.accounts = ["0xaaaa"];
 
               let validationErrors =
-                await validateUserConfig(hardhatUserConfig);
+                await validateNetworkUserConfig(hardhatUserConfig);
 
               assertValidationErrors(validationErrors, [
                 {
@@ -667,7 +667,8 @@ describe("network-manager/hook-handlers/config", () => {
               hardhatUserConfig.networks.localhost.accounts = [
                 "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabb",
               ];
-              validationErrors = await validateUserConfig(hardhatUserConfig);
+              validationErrors =
+                await validateNetworkUserConfig(hardhatUserConfig);
 
               assertValidationErrors(validationErrors, [
                 {
@@ -684,7 +685,7 @@ describe("network-manager/hook-handlers/config", () => {
               ];
 
               const validationErrors =
-                await validateUserConfig(hardhatUserConfig);
+                await validateNetworkUserConfig(hardhatUserConfig);
 
               assertValidationErrors(validationErrors, [
                 {
@@ -699,63 +700,81 @@ describe("network-manager/hook-handlers/config", () => {
 
         it("should fail with invalid types", async () => {
           hardhatUserConfig.networks.localhost.accounts = 123;
-          assertValidationErrors(await validateUserConfig(hardhatUserConfig), [
-            {
-              path: ["networks", "localhost", "accounts"],
-              message:
-                "Expected 'remote', an array with private keys or Configuration Variables, or an object with HD account details",
-            },
-          ]);
+          assertValidationErrors(
+            await validateNetworkUserConfig(hardhatUserConfig),
+            [
+              {
+                path: ["networks", "localhost", "accounts"],
+                message:
+                  "Expected 'remote', an array with private keys or Configuration Variables, or an object with HD account details",
+              },
+            ],
+          );
 
           hardhatUserConfig.networks.localhost.accounts = [{}];
-          assertValidationErrors(await validateUserConfig(hardhatUserConfig), [
-            {
-              path: ["networks", "localhost", "accounts", 0],
-              message:
-                "Expected a hex-encoded private key or a Configuration Variable",
-            },
-          ]);
+          assertValidationErrors(
+            await validateNetworkUserConfig(hardhatUserConfig),
+            [
+              {
+                path: ["networks", "localhost", "accounts", 0],
+                message:
+                  "Expected a hex-encoded private key or a Configuration Variable",
+              },
+            ],
+          );
 
           hardhatUserConfig.networks.localhost.accounts = { asd: 123 };
-          assertValidationErrors(await validateUserConfig(hardhatUserConfig), [
-            {
-              path: ["networks", "localhost", "accounts", "mnemonic"],
-              message: "Required",
-            },
-          ]);
+          assertValidationErrors(
+            await validateNetworkUserConfig(hardhatUserConfig),
+            [
+              {
+                path: ["networks", "localhost", "accounts", "mnemonic"],
+                message: "Required",
+              },
+            ],
+          );
         });
 
         it("should fail with invalid HttpNetworkHDAccountsConfig", async () => {
           hardhatUserConfig.networks.localhost.accounts = { mnemonic: 123 };
-          assertValidationErrors(await validateUserConfig(hardhatUserConfig), [
-            {
-              path: ["networks", "localhost", "accounts", "mnemonic"],
-              message: "Expected string, received number",
-            },
-          ]);
+          assertValidationErrors(
+            await validateNetworkUserConfig(hardhatUserConfig),
+            [
+              {
+                path: ["networks", "localhost", "accounts", "mnemonic"],
+                message: "Expected string, received number",
+              },
+            ],
+          );
 
           hardhatUserConfig.networks.localhost.accounts = {
             mnemonic: "valid",
             initialIndex: "asd",
           };
-          assertValidationErrors(await validateUserConfig(hardhatUserConfig), [
-            {
-              path: ["networks", "localhost", "accounts", "initialIndex"],
-              message: "Expected number, received string",
-            },
-          ]);
+          assertValidationErrors(
+            await validateNetworkUserConfig(hardhatUserConfig),
+            [
+              {
+                path: ["networks", "localhost", "accounts", "initialIndex"],
+                message: "Expected number, received string",
+              },
+            ],
+          );
 
           hardhatUserConfig.networks.localhost.accounts = {
             mnemonic: "valid",
             initialIndex: 1,
             count: "asd",
           };
-          assertValidationErrors(await validateUserConfig(hardhatUserConfig), [
-            {
-              path: ["networks", "localhost", "accounts", "count"],
-              message: "Expected number, received string",
-            },
-          ]);
+          assertValidationErrors(
+            await validateNetworkUserConfig(hardhatUserConfig),
+            [
+              {
+                path: ["networks", "localhost", "accounts", "count"],
+                message: "Expected number, received string",
+              },
+            ],
+          );
 
           hardhatUserConfig.networks.localhost.accounts = {
             mnemonic: "valid",
@@ -763,30 +782,39 @@ describe("network-manager/hook-handlers/config", () => {
             count: 1,
             path: 123,
           };
-          assertValidationErrors(await validateUserConfig(hardhatUserConfig), [
-            {
-              path: ["networks", "localhost", "accounts", "path"],
-              message: "Expected string, received number",
-            },
-          ]);
+          assertValidationErrors(
+            await validateNetworkUserConfig(hardhatUserConfig),
+            [
+              {
+                path: ["networks", "localhost", "accounts", "path"],
+                message: "Expected string, received number",
+              },
+            ],
+          );
 
           hardhatUserConfig.networks.localhost.accounts = { type: 123 };
-          assertValidationErrors(await validateUserConfig(hardhatUserConfig), [
-            {
-              path: ["networks", "localhost", "accounts", "mnemonic"],
-              message: "Required",
-            },
-          ]);
+          assertValidationErrors(
+            await validateNetworkUserConfig(hardhatUserConfig),
+            [
+              {
+                path: ["networks", "localhost", "accounts", "mnemonic"],
+                message: "Required",
+              },
+            ],
+          );
 
           hardhatUserConfig.networks.localhost.accounts = {
             initialIndex: 1,
           };
-          assertValidationErrors(await validateUserConfig(hardhatUserConfig), [
-            {
-              path: ["networks", "localhost", "accounts", "mnemonic"],
-              message: "Required",
-            },
-          ]);
+          assertValidationErrors(
+            await validateNetworkUserConfig(hardhatUserConfig),
+            [
+              {
+                path: ["networks", "localhost", "accounts", "mnemonic"],
+                message: "Required",
+              },
+            ],
+          );
         });
       });
 
@@ -831,7 +859,7 @@ describe("network-manager/hook-handlers/config", () => {
             ];
 
             const validationErrors =
-              await validateUserConfig(hardhatUserConfig);
+              await validateNetworkUserConfig(hardhatUserConfig);
 
             assertValidationErrors(validationErrors, []);
           });
@@ -847,7 +875,7 @@ describe("network-manager/hook-handlers/config", () => {
             };
 
             const validationErrors =
-              await validateUserConfig(hardhatUserConfig);
+              await validateNetworkUserConfig(hardhatUserConfig);
 
             assertValidationErrors(validationErrors, []);
           });
@@ -862,7 +890,7 @@ describe("network-manager/hook-handlers/config", () => {
             ];
 
             const validationErrors =
-              await validateUserConfig(hardhatUserConfig);
+              await validateNetworkUserConfig(hardhatUserConfig);
 
             assertValidationErrors(validationErrors, []);
           });
@@ -879,7 +907,7 @@ describe("network-manager/hook-handlers/config", () => {
               ];
 
               const validationErrors =
-                await validateUserConfig(hardhatUserConfig);
+                await validateNetworkUserConfig(hardhatUserConfig);
 
               assertValidationErrors(validationErrors, [
                 {
@@ -898,7 +926,7 @@ describe("network-manager/hook-handlers/config", () => {
               ];
 
               let validationErrors =
-                await validateUserConfig(hardhatUserConfig);
+                await validateNetworkUserConfig(hardhatUserConfig);
 
               assertValidationErrors(validationErrors, [
                 {
@@ -915,7 +943,8 @@ describe("network-manager/hook-handlers/config", () => {
                 },
               ];
 
-              validationErrors = await validateUserConfig(hardhatUserConfig);
+              validationErrors =
+                await validateNetworkUserConfig(hardhatUserConfig);
               assertValidationErrors(validationErrors, [
                 {
                   path: ["networks", "localhost", "accounts", 0, "privateKey"],
@@ -934,7 +963,7 @@ describe("network-manager/hook-handlers/config", () => {
               ];
 
               const validationErrors =
-                await validateUserConfig(hardhatUserConfig);
+                await validateNetworkUserConfig(hardhatUserConfig);
 
               assertValidationErrors(validationErrors, [
                 {
@@ -961,7 +990,7 @@ describe("network-manager/hook-handlers/config", () => {
             ];
 
             const validationErrors =
-              await validateUserConfig(hardhatUserConfig);
+              await validateNetworkUserConfig(hardhatUserConfig);
 
             assertValidationErrors(validationErrors, [
               {
@@ -974,7 +1003,7 @@ describe("network-manager/hook-handlers/config", () => {
           it("should fail with invalid types", async () => {
             hardhatUserConfig.networks.localhost.accounts = 123;
             assertValidationErrors(
-              await validateUserConfig(hardhatUserConfig),
+              await validateNetworkUserConfig(hardhatUserConfig),
               [
                 {
                   path: ["networks", "localhost", "accounts"],
@@ -986,7 +1015,7 @@ describe("network-manager/hook-handlers/config", () => {
 
             hardhatUserConfig.networks.localhost.accounts = [{}];
             assertValidationErrors(
-              await validateUserConfig(hardhatUserConfig),
+              await validateNetworkUserConfig(hardhatUserConfig),
               [
                 {
                   path: ["networks", "localhost", "accounts", 0, "balance"],
@@ -1006,7 +1035,7 @@ describe("network-manager/hook-handlers/config", () => {
               },
             ];
             assertValidationErrors(
-              await validateUserConfig(hardhatUserConfig),
+              await validateNetworkUserConfig(hardhatUserConfig),
               [
                 {
                   path: ["networks", "localhost", "accounts", 0, "balance"],
@@ -1017,7 +1046,7 @@ describe("network-manager/hook-handlers/config", () => {
 
             hardhatUserConfig.networks.localhost.accounts = [{ balance: "" }];
             assertValidationErrors(
-              await validateUserConfig(hardhatUserConfig),
+              await validateNetworkUserConfig(hardhatUserConfig),
               [
                 {
                   path: ["networks", "localhost", "accounts", 0, "privateKey"],
@@ -1028,7 +1057,7 @@ describe("network-manager/hook-handlers/config", () => {
 
             hardhatUserConfig.networks.localhost.accounts = [{ balance: 213 }];
             assertValidationErrors(
-              await validateUserConfig(hardhatUserConfig),
+              await validateNetworkUserConfig(hardhatUserConfig),
               [
                 {
                   path: ["networks", "localhost", "accounts", 0, "balance"],
@@ -1045,7 +1074,7 @@ describe("network-manager/hook-handlers/config", () => {
               { privateKey: 123 },
             ];
             assertValidationErrors(
-              await validateUserConfig(hardhatUserConfig),
+              await validateNetworkUserConfig(hardhatUserConfig),
               [
                 {
                   path: ["networks", "localhost", "accounts", 0, "balance"],
@@ -1065,7 +1094,7 @@ describe("network-manager/hook-handlers/config", () => {
             ];
 
             const validationErrors =
-              await validateUserConfig(hardhatUserConfig);
+              await validateNetworkUserConfig(hardhatUserConfig);
 
             assertValidationErrors(validationErrors, [
               {
@@ -1082,7 +1111,7 @@ describe("network-manager/hook-handlers/config", () => {
           it("should fail with invalid HD accounts", async () => {
             hardhatUserConfig.networks.localhost.accounts = { mnemonic: 123 };
             assertValidationErrors(
-              await validateUserConfig(hardhatUserConfig),
+              await validateNetworkUserConfig(hardhatUserConfig),
               [
                 {
                   path: ["networks", "localhost", "accounts", "mnemonic"],
@@ -1096,7 +1125,7 @@ describe("network-manager/hook-handlers/config", () => {
               initialIndex: "asd",
             };
             assertValidationErrors(
-              await validateUserConfig(hardhatUserConfig),
+              await validateNetworkUserConfig(hardhatUserConfig),
               [
                 {
                   path: ["networks", "localhost", "accounts", "initialIndex"],
@@ -1111,7 +1140,7 @@ describe("network-manager/hook-handlers/config", () => {
               count: "asd",
             };
             assertValidationErrors(
-              await validateUserConfig(hardhatUserConfig),
+              await validateNetworkUserConfig(hardhatUserConfig),
               [
                 {
                   path: ["networks", "localhost", "accounts", "count"],
@@ -1127,7 +1156,7 @@ describe("network-manager/hook-handlers/config", () => {
               path: 123,
             };
             assertValidationErrors(
-              await validateUserConfig(hardhatUserConfig),
+              await validateNetworkUserConfig(hardhatUserConfig),
               [
                 {
                   path: ["networks", "localhost", "accounts", "path"],

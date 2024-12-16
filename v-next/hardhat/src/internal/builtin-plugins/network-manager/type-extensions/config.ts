@@ -141,8 +141,8 @@ declare module "../../../../types/config.js" {
 
     // HTTP network specific
     url: string;
-    timeout: number;
     httpHeaders: Record<string, string>;
+    timeout: number;
   }
 
   export type HttpNetworkAccountsConfig =

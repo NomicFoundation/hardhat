@@ -18,21 +18,7 @@ import {
 } from "@ignored/hardhat-vnext-zod-utils";
 import { z } from "zod";
 
-const chainTypeSchema = unionType(
-  [z.literal("l1"), z.literal("optimism"), z.literal("generic")],
-  "Expected 'l1', 'optimism', or 'generic'",
-);
-
-const userGasSchema = unionType(
-  [
-    z.literal("auto"),
-    z.number().int().positive().safe(),
-    z.bigint().positive(),
-  ],
-  "Expected 'auto', a positive safe int, or positive bigint",
-);
-
-const accountsPrivateKeySchema = unionType(
+const accountsPrivateKeyUserConfigSchema = unionType(
   [
     configurationVariableSchema,
     z
@@ -43,87 +29,105 @@ const accountsPrivateKeySchema = unionType(
   `Expected a hex-encoded private key or a Configuration Variable`,
 );
 
-// TODO: We don't support config variables in EDR networks yet
-const edrPrivateKeySchemaMessage = `Expected a hex-encoded private key`;
-const edrPrivateKeySchema = z
+const httpNetworkHDAccountsUserConfigSchema = z.object({
+  mnemonic: z.string(),
+  count: z.optional(z.number().int().positive()),
+  initialIndex: z.optional(z.number().int()),
+  passphrase: z.optional(z.string()),
+  path: z.optional(z.string()),
+});
+
+const httpNetworkAccountsUserConfigSchema = conditionalUnionType(
+  [
+    [(data) => data === "remote", z.literal("remote")],
+    [
+      (data) => Array.isArray(data),
+      z.array(accountsPrivateKeyUserConfigSchema),
+    ],
+    [isObject, httpNetworkHDAccountsUserConfigSchema],
+  ],
+  `Expected 'remote', an array with private keys or Configuration Variables, or an object with HD account details`,
+);
+
+const chainTypeUserConfigSchema = unionType(
+  [z.literal("l1"), z.literal("optimism"), z.literal("generic")],
+  "Expected 'l1', 'optimism', or 'generic'",
+);
+
+const gasUserConfigSchema = unionType(
+  [
+    z.literal("auto"),
+    z.number().int().positive().safe(),
+    z.bigint().positive(),
+  ],
+  "Expected 'auto', a positive safe int, or positive bigint",
+);
+
+const httpNetworkUserConfigSchema = z.object({
+  type: z.literal("http"),
+  accounts: z.optional(httpNetworkAccountsUserConfigSchema),
+  chainId: z.optional(z.number().int()),
+  chainType: z.optional(chainTypeUserConfigSchema),
+  from: z.optional(z.string()),
+  gas: z.optional(gasUserConfigSchema),
+  gasMultiplier: z.optional(z.number()),
+  gasPrice: z.optional(gasUserConfigSchema),
+
+  // HTTP network specific
+  url: z.string().url(), // TODO: this should be a sensitiveUrlSchema
+  httpHeaders: z.optional(z.record(z.string())),
+  timeout: z.optional(z.number()),
+});
+
+const edrPrivateKeyUserConfigSchema = z
   .string()
   .refine(
     (val) =>
       getUnprefixedHexString(val).length === 64 &&
       /^[0-9a-fA-F]+$/.test(getUnprefixedHexString(val)),
-    { message: edrPrivateKeySchemaMessage },
+    { message: "Expected a hex-encoded private key" },
   );
 
-const httpNetworkHDAccountsUserConfig = z.object({
-  mnemonic: z.string(),
-  initialIndex: z.optional(z.number().int()),
-  count: z.optional(z.number().int().positive()),
-  path: z.optional(z.string()),
-  passphrase: z.optional(z.string()),
-});
-
-const httpNetworkUserConfigAccountsSchema = conditionalUnionType(
-  [
-    [(data) => data === "remote", z.literal("remote")],
-    [(data) => Array.isArray(data), z.array(accountsPrivateKeySchema)],
-    [isObject, httpNetworkHDAccountsUserConfig],
-  ],
-  `Expected 'remote', an array with private keys or Configuration Variables, or an object with HD account details`,
-);
-
-const httpNetworkUserConfigSchema = z.object({
-  type: z.literal("http"),
-  chainId: z.optional(z.number().int()),
-  chainType: z.optional(chainTypeSchema),
-  from: z.optional(z.string()),
-  gas: z.optional(userGasSchema),
-  gasMultiplier: z.optional(z.number()),
-  gasPrice: z.optional(userGasSchema),
-  accounts: z.optional(httpNetworkUserConfigAccountsSchema),
-
-  // HTTP network specific
-  url: z.string().url(), // TODO: this should be a sensitiveUrlSchema
-  timeout: z.optional(z.number()),
-  httpHeaders: z.optional(z.record(z.string())),
-});
-
-const edrNetworkUserConfigAccountSchema = z.object({
-  privateKey: edrPrivateKeySchema,
+const edrNetworkAccountUserConfigSchema = z.object({
   balance: unionType(
     [z.string(), z.bigint().positive()],
     "Expected a string or a positive bigint",
   ),
+  privateKey: edrPrivateKeyUserConfigSchema,
 });
 
-const edrNetworkHDAccountsUserConfig = z.object({
+const edrNetworkHDAccountsUserConfigSchema = z.object({
   mnemonic: z.optional(z.string()),
-  initialIndex: z.optional(z.number().int()),
-  count: z.optional(z.number().int().positive()),
-  path: z.optional(z.string()),
   accountsBalance: unionType(
     [z.string(), z.bigint().positive()],
     "Expected a string or a positive bigint",
   ).optional(),
+  count: z.optional(z.number().int().positive()),
+  initialIndex: z.optional(z.number().int()),
   passphrase: z.optional(z.string()),
+  path: z.optional(z.string()),
 });
 
-const edrNetworkUserConfigAccountsSchema = conditionalUnionType(
+const edrNetworkAccountsUserConfigSchema = conditionalUnionType(
   [
-    [(data) => Array.isArray(data), z.array(edrNetworkUserConfigAccountSchema)],
-    [isObject, edrNetworkHDAccountsUserConfig],
+    [(data) => Array.isArray(data), z.array(edrNetworkAccountUserConfigSchema)],
+    [isObject, edrNetworkHDAccountsUserConfigSchema],
   ],
   `Expected an array with with objects with private key and balance or Configuration Variables, or an object with HD account details`,
 );
 
 const edrNetworkUserConfigSchema = z.object({
   type: z.literal("edr"),
+  accounts: z.optional(edrNetworkAccountsUserConfigSchema),
   chainId: z.number().int().optional(),
-  chainType: z.optional(chainTypeSchema),
+  chainType: z.optional(chainTypeUserConfigSchema),
   from: z.optional(z.string()).optional(),
-  gas: userGasSchema.optional(),
+  gas: gasUserConfigSchema.optional(),
   gasMultiplier: z.number().optional(),
-  gasPrice: userGasSchema.optional(),
-  accounts: z.optional(edrNetworkUserConfigAccountsSchema),
+  gasPrice: gasUserConfigSchema.optional(),
+
+  // EDR network specific
+  // TODO: add the rest of the fields
 });
 
 const networkUserConfigSchema = z.discriminatedUnion("type", [
@@ -132,69 +136,83 @@ const networkUserConfigSchema = z.discriminatedUnion("type", [
 ]);
 
 const userConfigSchema = z.object({
-  defaultChainType: z.optional(chainTypeSchema),
+  defaultChainType: z.optional(chainTypeUserConfigSchema),
   defaultNetwork: z.optional(z.string()),
   networks: z.optional(z.record(networkUserConfigSchema)),
 });
 
-const gasSchema = unionType(
+const chainTypeConfigSchema = unionType(
+  [z.literal("l1"), z.literal("optimism"), z.literal("generic")],
+  "Expected 'l1', 'optimism', or 'generic'",
+);
+
+const gasConfigSchema = unionType(
   [z.literal("auto"), z.bigint().positive()],
   "Expected 'auto' or positive bigint",
 );
 
-const httpNetworkHDAccountsConfig = z.object({
+const httpNetworkHDAccountsConfigSchema = z.object({
   mnemonic: z.string(),
-  initialIndex: z.number().int(),
   count: z.number().int().positive(),
-  path: z.string(),
+  initialIndex: z.number().int(),
   passphrase: z.string(),
+  path: z.string(),
 });
 
-const httpNetworkAccountsSchema = conditionalUnionType(
+const httpNetworkAccountsConfigSchema = conditionalUnionType(
   [
     [(data) => data === "remote", z.literal("remote")],
     [
       (data) => Array.isArray(data),
       z.array(resolvedConfigurationVariableSchema),
     ],
-    [isObject, httpNetworkHDAccountsConfig],
+    [isObject, httpNetworkHDAccountsConfigSchema],
   ],
   `Expected 'remote', an array with of ResolvedConfigurationVariables, or an object with HD account details`,
 );
 
 const httpNetworkConfigSchema = z.object({
   type: z.literal("http"),
+  accounts: httpNetworkAccountsConfigSchema,
   chainId: z.optional(z.number().int()),
-  chainType: z.optional(chainTypeSchema),
+  chainType: z.optional(chainTypeConfigSchema),
   from: z.optional(z.string()),
-  gas: gasSchema,
+  gas: gasConfigSchema,
   gasMultiplier: z.number(),
-  gasPrice: gasSchema,
-  accounts: httpNetworkAccountsSchema,
+  gasPrice: gasConfigSchema,
 
   // HTTP network specific
   url: sensitiveUrlSchema,
-  timeout: z.number(),
   httpHeaders: z.record(z.string()),
+  timeout: z.number(),
 });
 
-const edrNetworkAccountSchema = z.object({
-  privateKey: edrPrivateKeySchema,
+const edrPrivateKeyConfigSchema = z
+  .string()
+  .refine(
+    (val) =>
+      getUnprefixedHexString(val).length === 64 &&
+      /^[0-9a-fA-F]+$/.test(getUnprefixedHexString(val)),
+    { message: "Expected a hex-encoded private key" },
+  );
+
+const edrNetworkAccountConfigSchema = z.object({
   balance: z.bigint().positive(),
+  privateKey: edrPrivateKeyConfigSchema,
 });
 
 const edrNetworkHDAccountsConfig = z.object({
   mnemonic: z.string(),
-  initialIndex: z.number().int(),
-  count: z.number().int().positive(),
-  path: z.string(),
   accountsBalance: z.bigint(),
+  count: z.number().int().positive(),
+  initialIndex: z.number().int(),
   passphrase: z.string(),
+  path: z.string(),
 });
 
-const edrNetworkAccountsSchema = conditionalUnionType(
+const edrNetworkAccountsConfigSchema = conditionalUnionType(
   [
-    [(data) => Array.isArray(data), z.array(edrNetworkAccountSchema)],
+    [(data) => Array.isArray(data), z.array(edrNetworkAccountConfigSchema)],
     [isObject, edrNetworkHDAccountsConfig],
   ],
   `Expected an array with with objects with private key and balance, or an object with HD account details`,
@@ -202,14 +220,17 @@ const edrNetworkAccountsSchema = conditionalUnionType(
 
 const edrNetworkConfigSchema = z.object({
   type: z.literal("edr"),
-  chainId: z.number().int(),
-  chainType: z.optional(chainTypeSchema),
-  from: z.optional(z.string()),
-  gas: gasSchema,
-  gasMultiplier: z.number(),
-  gasPrice: gasSchema,
   // TODO: make this required and resolve the accounts in the config hook handler
-  accounts: z.optional(edrNetworkAccountsSchema),
+  accounts: z.optional(edrNetworkAccountsConfigSchema),
+  chainId: z.number().int(),
+  chainType: z.optional(chainTypeConfigSchema),
+  from: z.optional(z.string()),
+  gas: gasConfigSchema,
+  gasMultiplier: z.number(),
+  gasPrice: gasConfigSchema,
+
+  // EDR network specific
+  // TODO: add the rest of the fields
 });
 
 const networkConfigSchema = z.discriminatedUnion("type", [
@@ -226,18 +247,18 @@ export function isNetworkConfig(
 
 export function validateNetworkConfig(
   networkConfig: unknown,
-): Array<{ message: string; path: Array<string | number> }> {
+): HardhatUserConfigValidationError[] {
   const result = networkConfigSchema.safeParse(networkConfig);
   return result.error?.errors ?? [];
 }
 
-export async function validateUserConfig(
+export async function validateNetworkUserConfig(
   userConfig: HardhatUserConfig,
 ): Promise<HardhatUserConfigValidationError[]> {
   return validateUserConfigZodType(userConfig, userConfigSchema);
 }
 
-export function isHdAccountsConfig(
+export function isHdAccountsUserConfig(
   accounts: HttpNetworkAccountsUserConfig,
 ): accounts is HttpNetworkHDAccountsUserConfig {
   return isObject(accounts);

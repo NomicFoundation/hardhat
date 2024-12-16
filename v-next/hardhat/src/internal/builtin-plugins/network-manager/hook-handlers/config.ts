@@ -25,11 +25,11 @@ import {
   resolveInitialBaseFeePerGas,
   resolveMiningConfig,
 } from "../config-resolution.js";
-import { validateUserConfig } from "../type-validation.js";
+import { validateNetworkUserConfig } from "../type-validation.js";
 
 export default async (): Promise<Partial<ConfigHooks>> => ({
   extendUserConfig,
-  validateUserConfig,
+  validateUserConfig: validateNetworkUserConfig,
   resolveUserConfig,
 });
 
