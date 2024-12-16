@@ -53,7 +53,7 @@ describe("HRE intialization", () => {
       });
 
       describe("the path param is passed", () => {
-        describe("the passed param does not contain a package file", () => {
+        describe("the path passed as param does not contain a package file", () => {
           useFixtureProject("resolve-project-root/with-path-param");
 
           it("should search for a package file in the parent directory", async () => {
@@ -67,7 +67,7 @@ describe("HRE intialization", () => {
           });
         });
 
-        describe("the cwd contains a package file", () => {
+        describe("the path passed as param contains a package file", () => {
           useFixtureProject("resolve-project-root/with-path-param");
 
           it("should find the package file at the specified path", async () => {
