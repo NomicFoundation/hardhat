@@ -6,7 +6,7 @@ import type { TransactionResponse } from "ethers/providers";
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { toBigInt } from "ethers/utils";
 
-import { buildAssert } from "../../utils.js";
+import { buildAssert } from "../utils/build-assert.js";
 import { CHANGE_ETHER_BALANCES_MATCHER } from "../constants.js";
 import { getAddressOf } from "../utils/account.js";
 import { assertIsNotNull } from "../utils/asserts.js";

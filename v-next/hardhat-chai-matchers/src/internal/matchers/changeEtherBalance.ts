@@ -9,7 +9,7 @@ import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
 import { isObject } from "@ignored/hardhat-vnext-utils/lang";
 import { toBigInt } from "ethers/utils";
 
-import { buildAssert } from "../../utils.js";
+import { buildAssert } from "../utils/build-assert.js";
 import { CHANGE_ETHER_BALANCE_MATCHER } from "../constants.js";
 import { getAddressOf } from "../utils/account.js";
 import {

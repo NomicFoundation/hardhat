@@ -1,8 +1,7 @@
+import type { Ssfi } from "./ssfi.js";
+
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { AssertionError } from "chai";
-
-// just a generic function type to avoid errors from the ban-types eslint rule
-export type Ssfi = (...args: any[]) => any;
 
 /**
  * This function is used by the matchers to obtain an `assert` function, which
@@ -53,5 +52,3 @@ export function buildAssert(negated: boolean, ssfi: Ssfi) {
     }
   };
 }
-
-export type AssertWithSsfi = ReturnType<typeof buildAssert>;

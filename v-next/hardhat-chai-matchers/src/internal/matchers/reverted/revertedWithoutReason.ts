@@ -1,6 +1,6 @@
 import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
 
-import { buildAssert } from "../../../utils.js";
+import { buildAssert } from "../../utils/build-assert.js";
 import { REVERTED_WITHOUT_REASON_MATCHER } from "../../constants.js";
 import { preventAsyncMatcherChaining } from "../../utils/prevent-chaining.js";
 

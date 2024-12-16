@@ -1,4 +1,4 @@
-import type { AssertWithSsfi, Ssfi } from "../../utils.js";
+import type { AssertWithSsfi, Ssfi } from "./ssfi.js";
 
 import {
   assertHardhatInvariant,

@@ -15,7 +15,7 @@ import {
 import { isObject } from "@ignored/hardhat-vnext-utils/lang";
 import { toBigInt } from "ethers/utils";
 
-import { buildAssert } from "../../utils.js";
+import { buildAssert } from "../utils/build-assert.js";
 import {
   CHANGE_TOKEN_BALANCES_MATCHER,
   CHANGE_TOKEN_BALANCE_MATCHER,
