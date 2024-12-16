@@ -1,6 +1,6 @@
 import type { HardhatPlugin } from "@ignored/hardhat-vnext/types/plugins";
 
-import "./type-extensions.d.js";
+import "./type-extensions.js";
 
 const hardhatChaiMatchersPlugin: HardhatPlugin = {
   id: "hardhat-chai-matchers",
