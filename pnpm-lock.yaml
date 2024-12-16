@@ -1612,9 +1612,6 @@ importers:
       '@ignored/hardhat-vnext-ethers':
         specifier: workspace:^3.0.0-next.12
         version: link:../hardhat-ethers
-      '@ignored/hardhat-vnext-mocha-test-runner':
-        specifier: workspace:^3.0.0-next.12
-        version: link:../hardhat-mocha-test-runner
       '@ignored/hardhat-vnext-utils':
         specifier: workspace:^3.0.0-next.15
         version: link:../hardhat-utils
@@ -1637,6 +1634,9 @@ importers:
       '@eslint-community/eslint-plugin-eslint-comments':
         specifier: ^4.3.0
         version: 4.4.1(eslint@8.57.0)
+      '@ignored/hardhat-vnext-mocha-test-runner':
+        specifier: workspace:^3.0.0-next.12
+        version: link:../hardhat-mocha-test-runner
       '@ignored/hardhat-vnext-node-test-reporter':
         specifier: workspace:^3.0.0-next.15
         version: link:../hardhat-node-test-reporter
@@ -1652,6 +1652,9 @@ importers:
       '@types/deep-eql':
         specifier: ^4.0.2
         version: 4.0.2
+      '@types/mocha':
+        specifier: ^10.0.10
+        version: 10.0.10
       '@types/node':
         specifier: ^20.14.9
         version: 20.17.1
@@ -1682,6 +1685,9 @@ importers:
       expect-type:
         specifier: ^0.19.0
         version: 0.19.0
+      mocha:
+        specifier: ^10.0.0
+        version: 10.7.3
       prettier:
         specifier: 3.2.5
         version: 3.2.5
@@ -3537,6 +3543,9 @@ packages:
 
   '@types/minimatch@5.1.2':
     resolution: {integrity: sha512-K0VQKziLUWkVKiRVrx4a40iPaxTUefQmjtkQofBkYRcoaaL/8rhwDWww9qWbrgicNOgnpIsMxyNIUM4+n6dUIA==}
+
+  '@types/mocha@10.0.10':
+    resolution: {integrity: sha512-xPyYSz1cMPnJQhl0CLMH68j3gprKZaTjG3s5Vi+fDgx+uhG9NOXwbVt52eFS8ECyXhyKcjDLCBEqBExKuiZb7Q==}
 
   '@types/mocha@10.0.9':
     resolution: {integrity: sha512-sicdRoWtYevwxjOHNMPTl3vSfJM6oyW8o1wXeI7uww6b6xHg8eBznQDNSGBCDJmsE8UMxP05JgZRtsKbTqt//Q==}
@@ -8335,6 +8344,8 @@ snapshots:
   '@types/lru-cache@5.1.1': {}
 
   '@types/minimatch@5.1.2': {}
+
+  '@types/mocha@10.0.10': {}
 
   '@types/mocha@10.0.9': {}
 
