@@ -79,7 +79,7 @@ describe("HRE intialization", () => {
 
             assert.equal(
               hre.config.paths.root,
-              `${process.cwd()}/folder-with-package`,
+              path.join(process.cwd(), "folder-with-package"),
             );
           });
         });
