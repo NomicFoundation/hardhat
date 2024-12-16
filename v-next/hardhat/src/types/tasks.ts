@@ -387,7 +387,7 @@ export interface Task {
   /**
    * Runs a task.
    */
-  run(taskArguments: TaskArguments): Promise<any>;
+  run(taskArguments?: TaskArguments): Promise<any>;
 }
 
 /**
