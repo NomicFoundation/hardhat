@@ -34,8 +34,8 @@ import { setGlobalHardhatRuntimeEnvironment } from "../global-hre-instance.js";
 import { createHardhatRuntimeEnvironment } from "../hre-intialization.js";
 
 import { printErrorMessages } from "./error-handler.js";
-import { getGlobalHelpString } from "./helpers/getGlobalHelpString.js";
-import { getHelpString } from "./helpers/getHelpString.js";
+import { getGlobalHelpString } from "./help/get-global-help-string.js";
+import { getHelpString } from "./help/get-help-string.js";
 import { ensureTelemetryConsent } from "./telemetry/telemetry-permissions.js";
 import { printVersionMessage } from "./version.js";
 
@@ -257,6 +257,12 @@ export async function parseBuiltinGlobalOptions(
     if (arg === "--version") {
       usedCliArguments[i] = true;
       version = true;
+      continue;
+    }
+
+    if (arg === "--verbose") {
+      usedCliArguments[i] = true;
+      debug.enable("hardhat*");
       continue;
     }
   }

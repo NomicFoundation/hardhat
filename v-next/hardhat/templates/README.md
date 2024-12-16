@@ -13,3 +13,12 @@ The `package.json` file contains the template's metadata. The following fields a
 Note that the `workspace:` prefix is stripped from the version of the template dependencies during project initialization.
 
 The other template files are copied to the project during project initialization.
+
+#### .gitignore files
+
+Due to a limitation in npm, `.gitignore` files are always ignored during project packing/publishing (see https://github.com/npm/npm/issues/3763).
+
+To work around this, we use the following convention:
+
+- if a template file is named `gitignore`, it is copied to the project workspace as `.gitignore`;
+- if a template file is named `.gitignore`, it is ignored during the project initialization (this should only affect local development, or future versions of `npm` if the aforementioned issue is resolved).

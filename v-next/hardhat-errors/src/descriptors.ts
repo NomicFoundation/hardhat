@@ -113,7 +113,8 @@ Please double check whether you have multiple versions of the same plugin instal
     },
     NO_CONFIG_FILE_FOUND: {
       number: 3,
-      messageTemplate: "No Hardhat config file found",
+      messageTemplate:
+        "No Hardhat config file found.\n\nYou can initialize a new project by running Hardhat with --init",
       websiteTitle: "No Hardhat config file found",
       websiteDescription:
         "Hardhat couldn't find a config file in the current directory or any of its parents.",
@@ -683,6 +684,13 @@ Try using another mnemonic or deriving less keys.`,
       websiteTitle: "Invalid network type",
       websiteDescription: `The network manager only supports the network types 'http' and 'edr'.`,
     },
+    DATA_FIELD_CANNOT_BE_NULL_WITH_NULL_ADDRESS: {
+      number: 721,
+      messageTemplate: `The "to" field is undefined, and the "data" field is also undefined; however, a transaction to the null address cannot have an undefined "data" field.`,
+      websiteTitle: "Transaction to null address cannot have undefined data",
+      websiteDescription:
+        "The transaction to the null address cannot have undefined data",
+    },
   },
   KEYSTORE: {
     INVALID_KEYSTORE_FILE_FORMAT: {
@@ -802,6 +810,22 @@ Learn more at (https://hardhat.org/hardhat-network-helpers/docs/reference#fixtur
 This might be caused by using hardhat_reset and loadFixture calls in a testcase.`,
       websiteTitle: "Error while reverting snapshot",
       websiteDescription: "Error while reverting snapshot",
+    },
+    CAN_ONLY_BE_USED_WITH_HARDHAT_NETWORK: {
+      number: 914,
+      messageTemplate: `This helper can only be used with the Hardhat Network. You are connected to "{networkName}".`,
+      websiteTitle:
+        "Hardhat network helpers can only be used with the Hardhat Network",
+      websiteDescription:
+        "Hardhat network helpers can only be used with the Hardhat Network",
+    },
+    CAN_ONLY_BE_USED_WITH_HARDHAT_NETWORK_VERSIONED: {
+      number: 915,
+      messageTemplate: `This helper can only be used with the Hardhat Network. You are connected to "{networkName}", whose identifier is "{version}".`,
+      websiteTitle:
+        "Hardhat network helpers can only be used with the Hardhat Network - version info",
+      websiteDescription:
+        "Hardhat network helpers can only be used with the Hardhat Network",
     },
   },
   SOLIDITY_TESTS: {

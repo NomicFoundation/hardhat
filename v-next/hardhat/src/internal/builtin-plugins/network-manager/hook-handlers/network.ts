@@ -2,6 +2,7 @@ import type {
   JsonRpcRequest,
   JsonRpcResponse,
 } from "../../../../types/providers.js";
+import type { RequestHandler } from "../request-handlers/types.js";
 import type {
   HookContext,
   NetworkHooks,
@@ -11,14 +12,21 @@ import type {
   NetworkConnection,
 } from "@ignored/hardhat-vnext/types/network";
 
-import { JsonRpcRequestModifier } from "../json-rpc-request-modifiers/json-rpc-request-modifier.js";
+import { deepClone } from "@ignored/hardhat-vnext-utils/lang";
+
+import { isJsonRpcResponse } from "../json-rpc.js";
+import { createHandlersArray } from "../request-handlers/hanlders-array.js";
 
 export default async (): Promise<Partial<NetworkHooks>> => {
-  // This map is necessary because Hardhat V3 supports multiple network connections, requiring us to track them
-  // to apply the appropriate modifiers to each request.
-  // When a connection is closed, it is removed from the map. Refer to "closeConnection" at the end of the file.
-  const jsonRpcRequestModifiers: Map<number, JsonRpcRequestModifier> =
-    new Map();
+  // This map is essential for managing multiple network connections in Hardhat V3.
+  // Since Hardhat V3 supports multiple connections, we use this map to track each one
+  // and associate it with the corresponding handlers array.
+  // When a connection is closed, its associated handlers array is removed from the map.
+  // See the "closeConnection" function at the end of the file for more details.
+  const requestHandlersPerConnection: WeakMap<
+    NetworkConnection<ChainType | string>,
+    RequestHandler[]
+  > = new Map();
 
   const handlers: Partial<NetworkHooks> = {
     async onRequest<ChainTypeT extends ChainType | string>(
@@ -31,31 +39,28 @@ export default async (): Promise<Partial<NetworkHooks>> => {
         nextJsonRpcRequest: JsonRpcRequest,
       ) => Promise<JsonRpcResponse>,
     ) {
-      let jsonRpcRequestModifier = jsonRpcRequestModifiers.get(
-        networkConnection.id,
-      );
+      let requestHandlers = requestHandlersPerConnection.get(networkConnection);
 
-      if (jsonRpcRequestModifier === undefined) {
-        jsonRpcRequestModifier = new JsonRpcRequestModifier(networkConnection);
-
-        jsonRpcRequestModifiers.set(
-          networkConnection.id,
-          jsonRpcRequestModifier,
-        );
+      if (requestHandlers === undefined) {
+        requestHandlers = await createHandlersArray(networkConnection);
+        requestHandlersPerConnection.set(networkConnection, requestHandlers);
       }
 
-      const newJsonRpcRequest =
-        await jsonRpcRequestModifier.createModifiedJsonRpcRequest(
-          jsonRpcRequest,
-        );
+      // We clone the request to avoid interfering with other hook handlers that
+      // might be using the original request.
+      let request = await deepClone(jsonRpcRequest);
 
-      const res = await jsonRpcRequestModifier.getResponse(jsonRpcRequest);
+      for (const handler of requestHandlers) {
+        const newRequestOrResponse = await handler.handle(request);
 
-      if (res !== null) {
-        return res;
+        if (isJsonRpcResponse(newRequestOrResponse)) {
+          return newRequestOrResponse;
+        }
+
+        request = newRequestOrResponse;
       }
 
-      return next(context, networkConnection, newJsonRpcRequest);
+      return next(context, networkConnection, request);
     },
 
     async closeConnection<ChainTypeT extends ChainType | string>(
@@ -66,8 +71,8 @@ export default async (): Promise<Partial<NetworkHooks>> => {
         nextNetworkConnection: NetworkConnection<ChainTypeT>,
       ) => Promise<void>,
     ): Promise<void> {
-      if (jsonRpcRequestModifiers.has(networkConnection.id) === true) {
-        jsonRpcRequestModifiers.delete(networkConnection.id);
+      if (requestHandlersPerConnection.has(networkConnection) === true) {
+        requestHandlersPerConnection.delete(networkConnection);
       }
 
       return next(context, networkConnection);

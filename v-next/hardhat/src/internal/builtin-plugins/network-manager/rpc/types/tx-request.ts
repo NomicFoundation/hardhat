@@ -3,7 +3,7 @@ import type { ZodType } from "zod";
 import { z } from "zod";
 
 import { rpcAccessList } from "./access-list.js";
-import { rpcAddress } from "./address.js";
+import { nullableRpcAddress, rpcAddress } from "./address.js";
 import { rpcData } from "./data.js";
 import { rpcHash } from "./hash.js";
 import { rpcQuantity } from "./quantity.js";
@@ -12,7 +12,7 @@ const optional = <T extends ZodType<any>>(schema: T) => schema.optional();
 
 export interface RpcTransactionRequest {
   from: Uint8Array;
-  to?: Uint8Array;
+  to?: Uint8Array | null;
   gas?: bigint;
   gasPrice?: bigint;
   value?: bigint;
@@ -28,7 +28,7 @@ export interface RpcTransactionRequest {
 
 export const rpcTransactionRequest: ZodType<RpcTransactionRequest> = z.object({
   from: rpcAddress,
-  to: optional(rpcAddress),
+  to: optional(nullableRpcAddress),
   gas: optional(rpcQuantity),
   gasPrice: optional(rpcQuantity),
   value: optional(rpcQuantity),

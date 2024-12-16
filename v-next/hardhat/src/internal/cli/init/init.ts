@@ -17,9 +17,9 @@ import { resolveFromRoot } from "@ignored/hardhat-vnext-utils/path";
 import chalk from "chalk";
 
 import { findClosestHardhatConfig } from "../../config-loading.js";
+import { HARDHAT_NAME } from "../../constants.js";
 import { getHardhatVersion } from "../../utils/package.js";
 
-import { HARDHAT_NAME } from "./constants.js";
 import {
   getDevDependenciesInstallationCommand,
   getPackageManager,
@@ -263,6 +263,32 @@ export async function ensureProjectPackageJson(
 }
 
 /**
+ * The following two functions are used to convert between relative workspace
+ * and template paths. To begin with, they are used to handle the special case
+ * of .gitignore.
+ *
+ * The reason for this is that npm ignores .gitignore files
+ * during npm pack (see https://github.com/npm/npm/issues/3763). That's why when
+ * we encounter a gitignore file in the template, we assume that it should be
+ * called .gitignore in the workspace (and vice versa).
+ *
+ * They are exported for testing purposes only.
+ */
+
+export function relativeWorkspaceToTemplatePath(file: string): string {
+  if (path.basename(file) === ".gitignore") {
+    return path.join(path.dirname(file), "gitignore");
+  }
+  return file;
+}
+export function relativeTemplateToWorkspacePath(file: string): string {
+  if (path.basename(file) === "gitignore") {
+    return path.join(path.dirname(file), ".gitignore");
+  }
+  return file;
+}
+
+/**
  * copyProjectFiles copies the template files to the workspace.
  *
  * If there are clashing files in the workspace, they will be overwritten only
@@ -280,27 +306,41 @@ export async function copyProjectFiles(
   force?: boolean,
 ): Promise<void> {
   // Find all the files in the workspace that would have been overwritten by the template files
-  const matchingFiles = await getAllFilesMatching(workspace, (file) =>
-    template.files.includes(path.relative(workspace, file)),
+  const matchingRelativeWorkspacePaths = await getAllFilesMatching(
+    workspace,
+    (file) => {
+      const relativeWorkspacePath = path.relative(workspace, file);
+      const relativeTemplatePath = relativeWorkspaceToTemplatePath(
+        relativeWorkspacePath,
+      );
+      return template.files.includes(relativeTemplatePath);
+    },
   ).then((files) => files.map((f) => path.relative(workspace, f)));
 
   // Ask the user for permission to overwrite existing files if needed
-  if (matchingFiles.length !== 0) {
+  if (matchingRelativeWorkspacePaths.length !== 0) {
     if (force === undefined) {
-      force = await promptForForce(matchingFiles);
+      force = await promptForForce(matchingRelativeWorkspacePaths);
     }
   }
 
   // Copy the template files to the workspace
-  for (const file of template.files) {
-    if (force === false && matchingFiles.includes(file)) {
+  for (const relativeTemplatePath of template.files) {
+    const relativeWorkspacePath =
+      relativeTemplateToWorkspacePath(relativeTemplatePath);
+
+    if (
+      force === false &&
+      matchingRelativeWorkspacePaths.includes(relativeWorkspacePath)
+    ) {
       continue;
     }
-    const pathToTemplateFile = path.join(template.path, file);
-    const pathToWorkspaceFile = path.join(workspace, file);
 
-    await ensureDir(path.dirname(pathToWorkspaceFile));
-    await copy(pathToTemplateFile, pathToWorkspaceFile);
+    const absoluteTemplatePath = path.join(template.path, relativeTemplatePath);
+    const absoluteWorkspacePath = path.join(workspace, relativeWorkspacePath);
+
+    await ensureDir(path.dirname(absoluteWorkspacePath));
+    await copy(absoluteTemplatePath, absoluteWorkspacePath);
   }
 
   console.log(`✨ ${chalk.cyan(`Template files copied`)} ✨`);

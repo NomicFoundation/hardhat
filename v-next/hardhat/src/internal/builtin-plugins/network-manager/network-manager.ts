@@ -4,23 +4,30 @@ import type {
   ChainType,
   DefaultChainType,
   NetworkConnection,
+  NetworkManager,
 } from "../../../types/network.js";
-import type { EthereumProvider } from "../../../types/providers.js";
+import type {
+  EthereumProvider,
+  JsonRpcRequest,
+  JsonRpcResponse,
+} from "../../../types/providers.js";
 
-import {
-  assertHardhatInvariant,
-  HardhatError,
-} from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
 import { EdrProvider } from "./edr/edr-provider.js";
 import { HttpProvider } from "./http-provider.js";
 import { NetworkConnectionImplementation } from "./network-connection.js";
 import { isNetworkConfig, validateNetworkConfig } from "./type-validation.js";
 
-export class NetworkManagerImplementation {
+export type JsonRpcRequestWrapperFunction = (
+  request: JsonRpcRequest,
+  defaultBehavior: (r: JsonRpcRequest) => Promise<JsonRpcResponse>,
+) => Promise<JsonRpcResponse>;
+
+export class NetworkManagerImplementation implements NetworkManager {
   readonly #defaultNetwork: string;
   readonly #defaultChainType: DefaultChainType;
-  readonly #networkConfigs: Record<string, NetworkConfig>;
+  readonly #networkConfigs: Readonly<Record<string, Readonly<NetworkConfig>>>;
   readonly #hookManager: HookManager;
 
   #nextConnectionId = 0;
@@ -136,11 +143,16 @@ export class NetworkManagerImplementation {
     const createProvider = async (
       networkConnection: NetworkConnectionImplementation<ChainTypeT>,
     ): Promise<EthereumProvider> => {
-      assertHardhatInvariant(
-        resolvedNetworkConfig.type === "edr" ||
-          resolvedNetworkConfig.type === "http",
-        `Invalid network type ${resolvedNetworkConfig.type}`,
-      );
+      const jsonRpcRequestWrapper: JsonRpcRequestWrapperFunction = (
+        request,
+        defaultBehavior,
+      ) =>
+        hookManager.runHandlerChain(
+          "network",
+          "onRequest",
+          [networkConnection, request],
+          async (_context, _connection, req) => defaultBehavior(req),
+        );
 
       if (resolvedNetworkConfig.type === "edr") {
         if (
@@ -154,26 +166,17 @@ export class NetworkManagerImplementation {
           );
         }
 
-        return EdrProvider.create(
+        return EdrProvider.create({
           // The resolvedNetworkConfig can have its chainType set to `undefined`
           // so we default to the default chain type here.
-          {
+          networkConfig: {
             ...resolvedNetworkConfig,
             /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
             This case is safe because we have a check above */
             chainType: resolvedChainType as ChainType,
           },
-          { enabled: false },
-          {},
-          (request, defaultBehavior) => {
-            return hookManager.runHandlerChain(
-              "network",
-              "onRequest",
-              [networkConnection, request],
-              async (_context, _connection, req) => defaultBehavior(req),
-            );
-          },
-        );
+          jsonRpcRequestWrapper,
+        });
       }
 
       return HttpProvider.create({
@@ -181,13 +184,7 @@ export class NetworkManagerImplementation {
         networkName: resolvedNetworkName,
         extraHeaders: resolvedNetworkConfig.httpHeaders,
         timeout: resolvedNetworkConfig.timeout,
-        jsonRpcRequestWrapper: (request, defaultBehavior) =>
-          hookManager.runHandlerChain(
-            "network",
-            "onRequest",
-            [networkConnection, request],
-            async (_context, _connection, req) => defaultBehavior(req),
-          ),
+        jsonRpcRequestWrapper,
       });
     };
 
