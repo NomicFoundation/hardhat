@@ -1653,7 +1653,7 @@ importers:
         specifier: ^4.0.2
         version: 4.0.2
       '@types/mocha':
-        specifier: ^10.0.10
+        specifier: '>=9.1.0'
         version: 10.0.10
       '@types/node':
         specifier: ^20.14.9
