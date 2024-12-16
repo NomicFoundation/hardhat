@@ -1627,6 +1627,9 @@ importers:
       chai-as-promised:
         specifier: ^8.0.0
         version: 8.0.0(chai@5.1.2)
+      deep-eql:
+        specifier: ^5.0.1
+        version: 5.0.2
       ethers:
         specifier: ^6.13.2
         version: 6.13.4
@@ -1646,6 +1649,9 @@ importers:
       '@types/debug':
         specifier: ^4.1.4
         version: 4.1.12
+      '@types/deep-eql':
+        specifier: ^4.0.2
+        version: 4.0.2
       '@types/node':
         specifier: ^20.14.9
         version: 20.17.1
@@ -3483,6 +3489,9 @@ packages:
 
   '@types/debug@4.1.12':
     resolution: {integrity: sha512-vIChWdVG3LG1SMxEvI/AK+FWJthlrqlTu7fbrlywTkkaONwk/UAGaULXRlf8vkzFBLVm0zkMdCquhL5aOjhXPQ==}
+
+  '@types/deep-eql@4.0.2':
+    resolution: {integrity: sha512-c9h9dVVMigMPc4bwTvC5dxqtqJZwQPePsWjPlpSOnojbor6pGqdk541lfA7AqFQr5pB1BRdq0juY9db81BwyFw==}
 
   '@types/events@3.0.3':
     resolution: {integrity: sha512-trOc4AAUThEz9hapPtSd7wf5tiQKvTtu5b371UxXdTuqzIh0ArcRspRP0i0Viu+LXstIQ1z96t1nsPxT9ol01g==}
@@ -8279,6 +8288,8 @@ snapshots:
   '@types/debug@4.1.12':
     dependencies:
       '@types/ms': 0.7.34
+
+  '@types/deep-eql@4.0.2': {}
 
   '@types/events@3.0.3': {}
 

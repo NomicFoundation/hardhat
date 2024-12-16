@@ -3,9 +3,9 @@ import util from "node:util";
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { toBigInt } from "@ignored/hardhat-vnext-utils/bigint";
 import { AssertionError } from "chai";
+import deepEqual from "deep-eql";
 
 import { isBigInt } from "../utils/bigint.js";
-import { deepEqual } from "../utils/deep-equal.js";
 
 export function supportBigNumber(
   Assertion: Chai.AssertionStatic,
@@ -162,7 +162,7 @@ function overwriteBigNumberFunction(
       chaiUtils.flag(this, "lockSsfi", true);
 
       this.assert(
-        deepEqual(actualArg, expectedFlag),
+        deepEqual(actualArg, expectedFlag, { comparator: deepEqualComparator }),
         `expected ${util.inspect(expectedFlag)} to deeply equal ${util.inspect(
           actualArg,
         )}`,
@@ -265,4 +265,15 @@ function overwriteBigNumberCloseTo(
       _super.apply(this, args);
     }
   };
+}
+
+function deepEqualComparator(a: any, b: any): boolean | null {
+  try {
+    const normalizedA = toBigInt(a);
+    const normalizedB = toBigInt(b);
+    return normalizedA === normalizedB;
+  } catch (e) {
+    // use default comparator
+    return null;
+  }
 }
