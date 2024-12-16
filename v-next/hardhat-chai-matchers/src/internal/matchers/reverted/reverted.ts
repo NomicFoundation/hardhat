@@ -3,9 +3,9 @@ import type { HardhatEthers } from "@ignored/hardhat-vnext-ethers/types";
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
 
-import { buildAssert } from "../../utils/build-assert.js";
 import { REVERTED_MATCHER } from "../../constants.js";
 import { assertIsNotNull } from "../../utils/asserts.js";
+import { buildAssert } from "../../utils/build-assert.js";
 import { preventAsyncMatcherChaining } from "../../utils/prevent-chaining.js";
 
 import {

@@ -1,8 +1,8 @@
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
 
-import { buildAssert } from "../../utils/build-assert.js";
 import { REVERTED_WITH_MATCHER } from "../../constants.js";
+import { buildAssert } from "../../utils/build-assert.js";
 import { preventAsyncMatcherChaining } from "../../utils/prevent-chaining.js";
 
 import { decodeReturnData, getReturnDataFromError } from "./utils.js";

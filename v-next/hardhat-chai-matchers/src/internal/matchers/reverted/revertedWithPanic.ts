@@ -2,8 +2,8 @@ import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { toBigInt } from "@ignored/hardhat-vnext-utils/bigint";
 import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
 
-import { buildAssert } from "../../utils/build-assert.js";
 import { REVERTED_WITH_PANIC_MATCHER } from "../../constants.js";
+import { buildAssert } from "../../utils/build-assert.js";
 import { preventAsyncMatcherChaining } from "../../utils/prevent-chaining.js";
 
 import { panicErrorCodeToReason } from "./panic.js";

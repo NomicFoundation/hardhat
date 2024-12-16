@@ -15,13 +15,13 @@ import {
 import { isObject } from "@ignored/hardhat-vnext-utils/lang";
 import { toBigInt } from "ethers/utils";
 
-import { buildAssert } from "../utils/build-assert.js";
 import {
   CHANGE_TOKEN_BALANCES_MATCHER,
   CHANGE_TOKEN_BALANCE_MATCHER,
 } from "../constants.js";
 import { getAddressOf } from "../utils/account.js";
 import { assertIsNotNull } from "../utils/asserts.js";
+import { buildAssert } from "../utils/build-assert.js";
 import { preventAsyncMatcherChaining } from "../utils/prevent-chaining.js";
 
 export type Token = BaseContract & {
