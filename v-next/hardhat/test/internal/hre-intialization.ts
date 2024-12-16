@@ -27,47 +27,61 @@ describe("HRE intialization", () => {
   });
 
   describe("createHardhatRuntimeEnvironment", () => {
-    describe("project root", () => {
+    describe("resolved project root", () => {
       describe("no path param is passed", () => {
-        it("should use the CWD as the default path", async () => {
-          const hre = await createHardhatRuntimeEnvironment({});
+        describe("the cwd does not contain a package file", () => {
+          useFixtureProject("resolve-project-root/no-path-param/folder");
 
-          // It should resolve to the first package.json file found, which is the one located at the CWD
-          assert.equal(hre.config.paths.root, process.cwd());
-        });
+          it("should search for a package file in the parent directory", async () => {
+            const expectedPath = path.join(process.cwd(), "..");
 
-        describe("when a fixture is used", () => {
-          const expectedPath = process.cwd();
-
-          useFixtureProject("resolve-project-root/no-path-param");
-
-          it("should use the fixture-project CWD as the default path", async () => {
             const hre = await createHardhatRuntimeEnvironment({});
 
-            // It should resolve to the first package.json file found, which is the one located at the root of the "hardhat" packages
             assert.equal(hre.config.paths.root, expectedPath);
+          });
+        });
+
+        describe("the cwd contains a package file", () => {
+          useFixtureProject("resolve-project-root/no-path-param");
+
+          it("should find the package file in the cwd", async () => {
+            const hre = await createHardhatRuntimeEnvironment({});
+
+            assert.equal(hre.config.paths.root, process.cwd());
           });
         });
       });
 
       describe("the path param is passed", () => {
-        it("should use the CWD as the default path", async () => {
-          const projectPath = path.join(
-            process.cwd(),
-            "test",
-            "fixture-projects",
-            "resolve-project-root",
-            "with-path-param",
-          );
+        describe("the passed param does not contain a package file", () => {
+          useFixtureProject("resolve-project-root/with-path-param");
 
-          const hre = await createHardhatRuntimeEnvironment(
-            {},
-            {},
-            projectPath,
-          );
+          it("should search for a package file in the parent directory", async () => {
+            const hre = await createHardhatRuntimeEnvironment(
+              {},
+              {},
+              `${process.cwd()}/folder-no-package`,
+            );
 
-          // It should resolve to the first package.json file found, which is the one located at the path passed as a param
-          assert.equal(hre.config.paths.root, projectPath);
+            assert.equal(hre.config.paths.root, process.cwd());
+          });
+        });
+
+        describe("the cwd contains a package file", () => {
+          useFixtureProject("resolve-project-root/with-path-param");
+
+          it("should find the package file at the specified path", async () => {
+            const hre = await createHardhatRuntimeEnvironment(
+              {},
+              {},
+              `${process.cwd()}/folder-with-package`,
+            );
+
+            assert.equal(
+              hre.config.paths.root,
+              `${process.cwd()}/folder-with-package`,
+            );
+          });
         });
       });
     });
