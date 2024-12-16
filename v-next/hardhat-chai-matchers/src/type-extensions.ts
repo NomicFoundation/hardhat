@@ -1,6 +1,8 @@
 import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
 import type { HardhatEthers } from "@ignored/hardhat-vnext-ethers/types";
 
+// We use declare global instead of declare module "chai", because that's what
+// @types/chai does.
 declare global {
   /* eslint-disable-next-line @typescript-eslint/no-namespace -- We have to use
   a namespace because @types/chai uses it. */
