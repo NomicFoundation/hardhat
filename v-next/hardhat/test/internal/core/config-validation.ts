@@ -1222,7 +1222,7 @@ describe("config validation", function () {
   describe("validatePaths", function () {
     describe("when the paths are valid", function () {
       it("should work when all the paths are strings", async function () {
-        const paths: ProjectPathsUserConfig = {
+        const paths: Required<ProjectPathsUserConfig> = {
           cache: "./cache",
           artifacts: "./artifacts",
           tests: "./tests",
