@@ -42,12 +42,6 @@ describe(
       runTests();
     });
 
-    // TODO: when V3 node is ready, add this functionality
-    // describe("connected to a hardhat node", ()=>{
-    //   useEnvironmentWithNode("hardhat-project");
-    //   runTests();
-    // });
-
     afterEach(() => {
       clearTokenDescriptionsCache();
     });

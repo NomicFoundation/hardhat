@@ -30,12 +30,6 @@ describe("INTEGRATION: Reverted with panic", { timeout: 60000 }, () => {
     runTests();
   });
 
-  // TODO: when V3 node is ready, add this functionality
-  // describe("connected to a hardhat node", ()=>{
-  //   useEnvironmentWithNode("hardhat-project");
-  //   runTests();
-  // });
-
   function runTests() {
     // deploy Matchers contract before each test
     let matchers: MatchersContract;

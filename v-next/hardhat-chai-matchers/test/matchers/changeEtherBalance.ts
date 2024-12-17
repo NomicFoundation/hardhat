@@ -28,12 +28,6 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
     runTests();
   });
 
-  // TODO: when V3 node is ready, add this functionality
-  // describe.skip("connected to a hardhat node", ()=> {
-  //   useEnvironmentWithNode("hardhat-project");
-  //   runTests();
-  // });
-
   function runTests() {
     let sender: HardhatEthersSigner;
     let receiver: HardhatEthersSigner;

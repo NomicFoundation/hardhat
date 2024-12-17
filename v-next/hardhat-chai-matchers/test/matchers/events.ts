@@ -35,12 +35,6 @@ describe(".to.emit (contract events)", { timeout: 60000 }, () => {
     runTests();
   });
 
-  // TODO: when V3 node is ready, add this functionality
-  // describe("connected to a hardhat node", ()=>{
-  // useEnvironmentWithNode("hardhat-project");
-  //   runTests();
-  // });
-
   function runTests() {
     let ethers: HardhatEthers;
 
