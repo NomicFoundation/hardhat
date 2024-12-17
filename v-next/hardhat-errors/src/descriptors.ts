@@ -109,7 +109,8 @@ Please double check whether you have multiple versions of the same plugin instal
     },
     NO_CONFIG_FILE_FOUND: {
       number: 3,
-      messageTemplate: "No Hardhat config file found",
+      messageTemplate:
+        "No Hardhat config file found.\n\nYou can initialize a new project by running Hardhat with --init",
       websiteTitle: "No Hardhat config file found",
       websiteDescription:
         "Hardhat couldn't find a config file in the current directory or any of its parents.",
