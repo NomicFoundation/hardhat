@@ -8,7 +8,7 @@ Plugins are bits of reusable configuration. Anything that you can do in a plugin
 
 When developing a plugin the main tools available to integrate new functionality are extending the [Hardhat Runtime Environment](/advanced/hardhat-runtime-environment.md), extending the Hardhat config, defining new tasks and overriding existing ones, which are all configuration actions achieved through code.
 
-Some examples of things you could achieve by creating a plugin are: running a linter when the `check` task runs, using different compiler versions for different files or generating an UML diagram for your contracts.
+Some examples of things you could achieve by creating a plugin are: running a linter when the `check` task runs, using different compiler versions for different files or generating a UML diagram for your contracts.
 
 ## Extending the Hardhat Runtime Environment
 

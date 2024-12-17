@@ -135,7 +135,7 @@ function isTransactionReceipt(x: unknown): x is { status: number } {
     const status = (x as any).status;
 
     // this means we only support ethers's receipts for now; adding support for
-    // raw receipts, where the status is an hexadecimal string, should be easy
+    // raw receipts, where the status is a hexadecimal string, should be easy
     // and we can do it if there's demand for that
     return typeof status === "number";
   }

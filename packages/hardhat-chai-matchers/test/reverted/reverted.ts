@@ -113,7 +113,7 @@ describe("INTEGRATION: Reverted", function () {
         );
       });
 
-      it("promise of an byte32 string", async function () {
+      it("promise of a byte32 string", async function () {
         await expect(
           Promise.resolve(
             "0x3230323400000000000000000000000000000000000000000000000000000000"

@@ -277,7 +277,7 @@ async function main() {
 
     let taskArguments: TaskArguments;
 
-    // --help is a also special case
+    // --help is an also special case
     if (hardhatArguments.help && taskName !== TASK_HELP) {
       // we "move" the task and scope names to the task arguments,
       // and run the help task
