@@ -6,7 +6,7 @@ import { before, describe, it } from "node:test";
 import { exists } from "@ignored/hardhat-vnext-utils/fs";
 
 import { HttpProvider } from "../../../../../src/internal/builtin-plugins/network-manager/http-provider.js";
-import { JsonRpcServer } from "../../../../../src/internal/builtin-plugins/node/json-rpc/server.js";
+import { JsonRpcServerImplementation } from "../../../../../src/internal/builtin-plugins/node/json-rpc/server.js";
 import { createHardhatRuntimeEnvironment } from "../../../../../src/internal/hre-intialization.js";
 
 describe("JSON-RPC server", function () {
@@ -21,7 +21,7 @@ describe("JSON-RPC server", function () {
     const port = 8545;
 
     const connection = await hre.network.connect();
-    const server = new JsonRpcServer({
+    const server = new JsonRpcServerImplementation({
       hostname,
       port,
       provider: connection.provider,

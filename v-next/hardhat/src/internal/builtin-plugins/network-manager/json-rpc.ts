@@ -74,7 +74,7 @@ export function isJsonRpcRequest(payload: unknown): payload is JsonRpcRequest {
     return false;
   }
 
-  if (payload.params !== undefined && !Array.isArray(payload.params)) {
+  if (!Array.isArray(payload.params)) {
     return false;
   }
 

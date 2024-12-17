@@ -1,4 +1,4 @@
-import type { EIP1193Provider } from "../../../../types/providers.js";
+import type { EthereumProvider } from "../../../../types/providers.js";
 import type { Server } from "node:http";
 import type { AddressInfo } from "node:net";
 
@@ -11,7 +11,7 @@ import { JsonRpcHandler } from "./handler.js";
 
 const log = debug("hardhat:core:tasks:node:json-rpc:server");
 
-export interface IJsonRpcServer {
+export interface JsonRpcServer {
   listen(): Promise<{ address: string; port: number }>;
   waitUntilClosed(): Promise<void>;
 
@@ -22,10 +22,10 @@ export interface JsonRpcServerConfig {
   hostname: string;
   port: number;
 
-  provider: EIP1193Provider;
+  provider: EthereumProvider;
 }
 
-export class JsonRpcServer implements IJsonRpcServer {
+export class JsonRpcServerImplementation implements JsonRpcServer {
   readonly #config: JsonRpcServerConfig;
   readonly #httpServer: Server;
   readonly #wsServer: WebSocketServer;

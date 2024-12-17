@@ -5,7 +5,7 @@ import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { exists } from "@ignored/hardhat-vnext-utils/fs";
 import chalk from "chalk";
 
-import { JsonRpcServer } from "./json-rpc/server.js";
+import { JsonRpcServerImplementation } from "./json-rpc/server.js";
 
 interface NodeActionArguments {
   hostname: string;
@@ -112,7 +112,7 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
     }
   }
 
-  const server: JsonRpcServer = new JsonRpcServer({
+  const server: JsonRpcServerImplementation = new JsonRpcServerImplementation({
     hostname,
     port: args.port,
     provider,

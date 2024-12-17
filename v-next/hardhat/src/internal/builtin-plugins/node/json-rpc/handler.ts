@@ -1,13 +1,11 @@
 import type {
-  EIP1193Provider,
+  EthereumProvider,
   FailedJsonRpcResponse,
   JsonRpcRequest,
   JsonRpcResponse,
 } from "../../../../types/providers.js";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type WebSocket from "ws";
-
-import getRawBody from "raw-body";
 
 import {
   InternalError,
@@ -22,9 +20,9 @@ import {
 import { ProviderError } from "../../network-manager/provider-errors.js";
 
 export class JsonRpcHandler {
-  readonly #provider: EIP1193Provider;
+  readonly #provider: EthereumProvider;
 
-  constructor(provider: EIP1193Provider) {
+  constructor(provider: EthereumProvider) {
     this.#provider = provider;
   }
 
@@ -46,18 +44,18 @@ export class JsonRpcHandler {
       return;
     }
 
+    // NOTE: EthereumProvider currently doesn't support batch requests. Thus,
+    // the following code block could be safely removed.
     if (Array.isArray(jsonHttpRequest)) {
       const responses = await Promise.all(
-        jsonHttpRequest.map((singleReq: any) =>
-          this.#handleSingleRequest(singleReq),
-        ),
+        jsonHttpRequest.map((singleReq: any) => this.#handleRequest(singleReq)),
       );
 
       this.#sendResponse(res, responses);
       return;
     }
 
-    const rpcResp = await this.#handleSingleRequest(jsonHttpRequest);
+    const rpcResp = await this.#handleRequest(jsonHttpRequest);
 
     this.#sendResponse(res, rpcResp);
   };
@@ -98,11 +96,9 @@ export class JsonRpcHandler {
 
         rpcResp = Array.isArray(rpcReq)
           ? await Promise.all(
-              rpcReq.map((req) =>
-                this.#handleSingleWsRequest(req, subscriptions),
-              ),
+              rpcReq.map((req) => this.#handleWsRequest(req, subscriptions)),
             )
-          : await this.#handleSingleWsRequest(rpcReq, subscriptions);
+          : await this.#handleWsRequest(rpcReq, subscriptions);
       } catch (error) {
         rpcResp = _handleError(error);
       }
@@ -146,7 +142,7 @@ export class JsonRpcHandler {
     res.end(JSON.stringify(rpcResp));
   }
 
-  async #handleSingleRequest(req: JsonRpcRequest): Promise<JsonRpcResponse> {
+  async #handleRequest(req: JsonRpcRequest): Promise<JsonRpcResponse> {
     if (!isJsonRpcRequest(req)) {
       return _handleError(new InvalidRequestError("Invalid request"));
     }
@@ -155,7 +151,16 @@ export class JsonRpcHandler {
     let rpcResp: JsonRpcResponse | undefined;
 
     try {
-      rpcResp = await this.#handleRequest(rpcReq);
+      const result = await this.#provider.request({
+        method: req.method,
+        params: req.params,
+      });
+
+      rpcResp = {
+        jsonrpc: "2.0",
+        id: req.id,
+        result,
+      };
     } catch (error) {
       rpcResp = _handleError(error);
     }
@@ -166,18 +171,13 @@ export class JsonRpcHandler {
       rpcResp = _handleError(new InternalError("Internal error"));
     }
 
-    if (rpcReq !== undefined) {
-      rpcResp.id = rpcReq.id !== undefined ? rpcReq.id : null;
-    }
+    rpcResp.id = rpcReq.id !== undefined ? rpcReq.id : null;
 
     return rpcResp;
   }
 
-  async #handleSingleWsRequest(
-    rpcReq: JsonRpcRequest,
-    subscriptions: string[],
-  ) {
-    const rpcResp = await this.#handleSingleRequest(rpcReq);
+  async #handleWsRequest(rpcReq: JsonRpcRequest, subscriptions: string[]) {
+    const rpcResp = await this.#handleRequest(rpcReq);
 
     // If eth_subscribe was successful, keep track of the subscription id,
     // so we can cleanup on websocket close.
@@ -191,29 +191,17 @@ export class JsonRpcHandler {
 
     return rpcResp;
   }
-
-  readonly #handleRequest = async (
-    req: JsonRpcRequest,
-  ): Promise<JsonRpcResponse> => {
-    const result = await this.#provider.request({
-      method: req.method,
-      params: req.params,
-    });
-
-    return {
-      jsonrpc: "2.0",
-      id: req.id,
-      result,
-    };
-  };
 }
 
 const _readJsonHttpRequest = async (req: IncomingMessage): Promise<any> => {
   let json;
 
   try {
-    const buf = await getRawBody(req);
-    const text = buf.toString();
+    const bytes: number[] = [];
+    for await (const chunk of req) {
+      bytes.push(...chunk);
+    }
+    const text = new TextDecoder("utf-8").decode(new Uint8Array(bytes));
 
     json = JSON.parse(text);
   } catch (error) {
@@ -252,13 +240,13 @@ const _handleError = (error: any): JsonRpcResponse => {
     txHash = error.transactionHash;
   }
   if (error.data !== undefined) {
-    if (error.data?.data !== undefined) {
+    if (error.data.data !== undefined) {
       returnData = error.data.data;
     } else {
       returnData = error.data;
     }
 
-    if (txHash === undefined && error.data?.transactionHash !== undefined) {
+    if (txHash === undefined && error.data.transactionHash !== undefined) {
       txHash = error.data.transactionHash;
     }
   }
@@ -282,6 +270,7 @@ const _handleError = (error: any): JsonRpcResponse => {
   };
 
   if (txHash !== undefined) {
+    data.txHash = txHash;
   }
 
   if (returnData !== undefined) {
