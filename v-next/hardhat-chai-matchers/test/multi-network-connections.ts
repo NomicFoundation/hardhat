@@ -11,9 +11,7 @@ import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
 import hardhatEthersPlugin from "@ignored/hardhat-vnext-ethers";
 import { expect } from "chai";
 
-import { addChaiMatchers } from "../src/internal/add-chai-matchers.js";
-
-addChaiMatchers();
+import hardhatChaiMatchersPlugin from "../src/index.js";
 
 describe("handle multiple connections", () => {
   let sender: HardhatEthersSigner;
@@ -30,7 +28,7 @@ describe("handle multiple connections", () => {
 
   before(async () => {
     const hre = await createHardhatRuntimeEnvironment({
-      plugins: [hardhatEthersPlugin],
+      plugins: [hardhatChaiMatchersPlugin, hardhatEthersPlugin],
       networks: {
         test1: {
           type: "edr",
