@@ -2,6 +2,7 @@ import {
   HardhatArtifactResolver,
   PrettyEventHandler,
   errorDeploymentResultToExceptionMessage,
+  readDeploymentParameters,
   resolveDeploymentId,
 } from "@nomicfoundation/hardhat-ignition/helpers";
 import {
@@ -81,7 +82,7 @@ export class EthersIgnitionHelper {
       deploymentId: givenDeploymentId = undefined,
       displayUi = false,
     }: {
-      parameters?: DeploymentParameters;
+      parameters?: DeploymentParameters | string;
       config?: Partial<DeployConfig>;
       defaultSender?: string;
       strategy?: StrategyT;
@@ -142,6 +143,14 @@ export class EthersIgnitionHelper {
       ? new PrettyEventHandler()
       : undefined;
 
+    let deploymentParameters: DeploymentParameters;
+
+    if (typeof parameters === "string") {
+      deploymentParameters = await readDeploymentParameters(parameters);
+    } else {
+      deploymentParameters = parameters;
+    }
+
     const result = await deploy({
       config: resolvedConfig,
       provider: this._provider,
@@ -149,7 +158,7 @@ export class EthersIgnitionHelper {
       executionEventListener,
       artifactResolver,
       ignitionModule,
-      deploymentParameters: parameters,
+      deploymentParameters,
       accounts,
       defaultSender,
       strategy,

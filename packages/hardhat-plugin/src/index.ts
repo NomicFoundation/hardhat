@@ -7,14 +7,7 @@ import {
   StatusResult,
 } from "@nomicfoundation/ignition-core";
 import debug from "debug";
-import {
-  ensureDir,
-  pathExists,
-  readFile,
-  readdirSync,
-  rm,
-  writeJSON,
-} from "fs-extra";
+import { ensureDir, pathExists, readdirSync, rm, writeJSON } from "fs-extra";
 import { extendConfig, extendEnvironment, scope } from "hardhat/config";
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import { parse as json5Parse } from "json5";
@@ -24,6 +17,7 @@ import "./type-extensions";
 import { calculateDeploymentStatusDisplay } from "./ui/helpers/calculate-deployment-status-display";
 import { bigintReviver } from "./utils/bigintReviver";
 import { getApiKeyAndUrls } from "./utils/getApiKeyAndUrls";
+import { readDeploymentParameters } from "./utils/read-deployment-parameters";
 import { resolveDeploymentId } from "./utils/resolve-deployment-id";
 import { shouldBeHardhatPluginError } from "./utils/shouldBeHardhatPluginError";
 import { verifyEtherscanContract } from "./utils/verifyEtherscanContract";
@@ -734,7 +728,7 @@ async function resolveParametersFromModuleName(
   const configFilename = `${moduleName}.config.json`;
 
   return files.includes(configFilename)
-    ? resolveConfigPath(path.resolve(ignitionPath, configFilename))
+    ? readDeploymentParameters(path.resolve(ignitionPath, configFilename))
     : undefined;
 }
 
@@ -743,31 +737,7 @@ async function resolveParametersFromFileName(
 ): Promise<DeploymentParameters> {
   const filepath = path.resolve(process.cwd(), fileName);
 
-  return resolveConfigPath(filepath);
-}
-
-async function resolveConfigPath(
-  filepath: string
-): Promise<DeploymentParameters> {
-  try {
-    const rawFile = await readFile(filepath);
-
-    return await json5Parse(rawFile.toString(), bigintReviver);
-  } catch (e) {
-    if (e instanceof NomicLabsHardhatPluginError) {
-      throw e;
-    }
-
-    if (e instanceof Error) {
-      throw new NomicLabsHardhatPluginError(
-        "@nomicfoundation/hardhat-ignition",
-        `Could not parse parameters from ${filepath}`,
-        e
-      );
-    }
-
-    throw e;
-  }
+  return readDeploymentParameters(filepath);
 }
 
 function resolveParametersString(paramString: string): DeploymentParameters {

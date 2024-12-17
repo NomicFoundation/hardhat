@@ -4,6 +4,7 @@ import {
   HardhatArtifactResolver,
   PrettyEventHandler,
   errorDeploymentResultToExceptionMessage,
+  readDeploymentParameters,
   resolveDeploymentId,
 } from "@nomicfoundation/hardhat-ignition/helpers";
 import {
@@ -74,7 +75,7 @@ export class ViemIgnitionHelper {
       deploymentId: givenDeploymentId = undefined,
       displayUi = false,
     }: {
-      parameters?: DeploymentParameters;
+      parameters?: DeploymentParameters | string;
       config?: Partial<DeployConfig>;
       defaultSender?: string;
       strategy?: StrategyT;
@@ -132,6 +133,14 @@ export class ViemIgnitionHelper {
       ? new PrettyEventHandler()
       : undefined;
 
+    let deploymentParameters: DeploymentParameters;
+
+    if (typeof parameters === "string") {
+      deploymentParameters = await readDeploymentParameters(parameters);
+    } else {
+      deploymentParameters = parameters;
+    }
+
     const result = await deploy({
       config: resolvedConfig,
       provider: this._provider,
@@ -139,7 +148,7 @@ export class ViemIgnitionHelper {
       executionEventListener,
       artifactResolver,
       ignitionModule,
-      deploymentParameters: parameters,
+      deploymentParameters,
       accounts,
       defaultSender,
       strategy,
