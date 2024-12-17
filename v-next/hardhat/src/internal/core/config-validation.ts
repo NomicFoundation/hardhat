@@ -161,7 +161,7 @@ export function validatePaths(
 function validatePath(
   filePath: unknown,
   pathName: "cache" | "artifacts" | "tests" | "sources",
-  index?: number, // If the filePath is part of an array, pass its index to make the error message more specific
+  index?: number,
 ): HardhatUserConfigValidationError[] {
   const validationErrors: HardhatUserConfigValidationError[] = [];
 
