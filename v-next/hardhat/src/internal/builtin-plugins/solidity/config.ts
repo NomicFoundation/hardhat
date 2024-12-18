@@ -12,6 +12,7 @@ import { resolveFromRoot } from "@ignored/hardhat-vnext-utils/path";
 import {
   conditionalUnionType,
   incompatibleFieldType,
+  unionType,
   validateUserConfigZodType,
 } from "@ignored/hardhat-vnext-zod-utils";
 import { z } from "zod";
@@ -34,22 +35,114 @@ const solcUserConfigType = z.object({
   profiles: incompatibleFieldType("This field is incompatible with `version`"),
 });
 
+const solidityTestUserConfigType = z.object({
+  timeout: z.number().optional(),
+  fsPermissions: z
+    .object({
+      readWrite: z.array(z.string()).optional(),
+      read: z.array(z.string()).optional(),
+      write: z.array(z.string()).optional(),
+    })
+    .optional(),
+  trace: z.boolean().optional(),
+  testFail: z.boolean().optional(),
+  labels: z
+    .array(
+      z.object({
+        address: z.string().startsWith("0x"),
+        label: z.string(),
+      }),
+    )
+    .optional(),
+  isolate: z.boolean().optional(),
+  ffi: z.boolean().optional(),
+  sender: z.string().startsWith("0x").optional(),
+  txOrigin: z.string().startsWith("0x").optional(),
+  initialBalance: z.bigint().optional(),
+  blockBaseFeePerGas: z.bigint().optional(),
+  blockCoinbase: z.string().startsWith("0x").optional(),
+  blockTimestamp: z.bigint().optional(),
+  blockDifficulty: z.bigint().optional(),
+  blockGasLimit: z.bigint().optional(),
+  disableBlockGasLimit: z.boolean().optional(),
+  memoryLimit: z.bigint().optional(),
+  ethRpcUrl: z.string().optional(),
+  forkBlockNumber: z.bigint().optional(),
+  rpcEndpoints: z.record(z.string()).optional(),
+  rpcCachePath: z.string().optional(),
+  rpcStorageCaching: z
+    .object({
+      chains: unionType(
+        [z.enum(["All", "None"]), z.array(z.string())],
+        "Expected `All`, `None` or a list of chain names to cache",
+      ),
+      endpoints: unionType(
+        [
+          z.enum(["All", "Remote"]),
+          z.object({
+            source: z.string(),
+          }),
+        ],
+        "Expected `All`, `Remote` or a RegExp object matching endpoints to cacche",
+      ),
+    })
+    .optional(),
+  promptTimeout: z.number().optional(),
+  fuzz: z
+    .object({
+      failurePersistDir: z.string().optional(),
+      failurePersistFile: z.string().optional(),
+      runs: z.number().optional(),
+      maxTestRejects: z.number().optional(),
+      seed: z.string().optional(),
+      dictionaryWeight: z.number().optional(),
+      includeStorage: z.boolean().optional(),
+      includePushBytes: z.boolean().optional(),
+    })
+    .optional(),
+  invariant: z
+    .object({
+      failurePersistDir: z.string().optional(),
+      runs: z.number().optional(),
+      depth: z.number().optional(),
+      failOnRevert: z.boolean().optional(),
+      callOverride: z.boolean().optional(),
+      dictionaryWeight: z.number().optional(),
+      includeStorage: z.boolean().optional(),
+      includePushBytes: z.boolean().optional(),
+      shrinkRunLimit: z.number().optional(),
+    })
+    .optional(),
+});
+
+const singleVersionSolcUserConfigType = solcUserConfigType.extend({
+  test: solidityTestUserConfigType.optional(),
+});
+
 const multiVersionSolcUserConfigType = z.object({
   compilers: z.array(solcUserConfigType).nonempty(),
   overrides: z.record(z.string(), solcUserConfigType).optional(),
+  test: solidityTestUserConfigType.optional(),
   version: incompatibleFieldType("This field is incompatible with `compilers`"),
   settings: incompatibleFieldType(
     "This field is incompatible with `compilers`",
   ),
 });
 
-const singleVersionSolidityUserConfigType = solcUserConfigType.extend({
-  dependenciesToCompile: z.array(z.string()).optional(),
-  remappings: z.array(z.string()).optional(),
-  compilers: incompatibleFieldType("This field is incompatible with `version`"),
-  overrides: incompatibleFieldType("This field is incompatible with `version`"),
-  profiles: incompatibleFieldType("This field is incompatible with `version`"),
-});
+const singleVersionSolidityUserConfigType =
+  singleVersionSolcUserConfigType.extend({
+    dependenciesToCompile: z.array(z.string()).optional(),
+    remappings: z.array(z.string()).optional(),
+    compilers: incompatibleFieldType(
+      "This field is incompatible with `version`",
+    ),
+    overrides: incompatibleFieldType(
+      "This field is incompatible with `version`",
+    ),
+    profiles: incompatibleFieldType(
+      "This field is incompatible with `version`",
+    ),
+  });
 
 const multiVersionSolidityUserConfigType =
   multiVersionSolcUserConfigType.extend({
@@ -68,7 +161,10 @@ const buildProfilesSolidityUserConfigType = z.object({
     z.string(),
     conditionalUnionType(
       [
-        [(data) => isObject(data) && "version" in data, solcUserConfigType],
+        [
+          (data) => isObject(data) && "version" in data,
+          singleVersionSolcUserConfigType,
+        ],
         [
           (data) => isObject(data) && "compilers" in data,
           multiVersionSolcUserConfigType,
@@ -196,6 +292,7 @@ function resolveSolidityConfig(
             settings: {},
           })),
           overrides: {},
+          test: {},
         },
       },
       dependenciesToCompile: [],
@@ -214,6 +311,7 @@ function resolveSolidityConfig(
             },
           ],
           overrides: {},
+          test: solidityConfig.test ?? {},
         },
       },
       dependenciesToCompile: solidityConfig.dependenciesToCompile ?? [],
@@ -242,6 +340,7 @@ function resolveSolidityConfig(
               },
             ),
           ),
+          test: solidityConfig.test ?? {},
         },
       },
       dependenciesToCompile: solidityConfig.dependenciesToCompile ?? [],
@@ -264,6 +363,7 @@ function resolveSolidityConfig(
           },
         ],
         overrides: {},
+        test: {},
       };
       continue;
     }
@@ -286,6 +386,7 @@ function resolveSolidityConfig(
           },
         ),
       ),
+      test: profile.test ?? {},
     };
   }
 

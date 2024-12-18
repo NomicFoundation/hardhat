@@ -181,6 +181,9 @@ const config: HardhatUserConfig = {
             version: "0.8.1",
           },
         },
+        test: {
+          testFail: true,
+        }
       },
       test: {
         version: "0.8.2",

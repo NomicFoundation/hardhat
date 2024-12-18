@@ -1,22 +1,27 @@
 import type { RunOptions } from "./runner.js";
 import type { TestEvent } from "./types.js";
 import type { NewTaskActionFunction } from "../../../types/tasks.js";
+import type { SolidityTestRunnerConfigArgs } from "@ignored/edr";
 
 import { finished } from "node:stream/promises";
 
 import { createNonClosingWriter } from "@ignored/hardhat-vnext-utils/stream";
 
-import { getArtifacts, isTestArtifact } from "./helpers.js";
+import {
+  getArtifacts,
+  isTestArtifact,
+  solidityTestUserConfigToRunOptions,
+  solidityTestUserConfigToSolidityTestRunnerConfigArgs,
+} from "./helpers.js";
 import { testReporter } from "./reporter.js";
 import { run } from "./runner.js";
 
 interface TestActionArguments {
-  timeout: number;
   noCompile: boolean;
 }
 
 const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
-  { timeout, noCompile },
+  { noCompile },
   hre,
 ) => {
   if (!noCompile) {
@@ -42,14 +47,19 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   console.log("Running Solidity tests");
   console.log();
 
-  const config = {
-    projectRoot: hre.config.paths.root,
-  };
-
   let includesFailures = false;
   let includesErrors = false;
 
-  const options: RunOptions = { timeout };
+  const profileName = hre.globalOptions.buildProfile;
+  const profile = hre.config.solidity.profiles[profileName];
+  const testOptions = profile.test;
+
+  const config: SolidityTestRunnerConfigArgs =
+    solidityTestUserConfigToSolidityTestRunnerConfigArgs(
+      hre.config.paths.root,
+      testOptions,
+    );
+  const options: RunOptions = solidityTestUserConfigToRunOptions(testOptions);
 
   const runStream = run(artifacts, testSuiteIds, config, options);
 
