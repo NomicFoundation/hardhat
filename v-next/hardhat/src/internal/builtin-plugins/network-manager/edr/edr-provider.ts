@@ -32,11 +32,14 @@ import EventEmitter from "node:events";
 import util from "node:util";
 
 import {
+  Account,
   EdrContext,
   createModelsAndDecodeBytecodes,
   initializeVmTraceDecoder,
   SolidityTracer,
   VmTracer,
+  BEACON_ROOTS_ADDRESS,
+  BEACON_ROOTS_BYTECODE,
   GENERIC_CHAIN_TYPE,
   OPTIMISM_CHAIN_TYPE,
   genericChainProviderFactory,
@@ -69,6 +72,7 @@ import {
 } from "./utils/convert-to-edr.js";
 import { getHardforkName } from "./utils/hardfork.js";
 import { printLine, replaceLastLine } from "./utils/logger.js";
+import { HardforkName } from "./types/hardfork.js";
 
 const log = debug("hardhat:core:hardhat-network:provider");
 
@@ -98,6 +102,24 @@ interface EdrProviderConfig {
   loggerConfig?: LoggerConfig;
   tracingConfig?: TracingConfig;
   jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction;
+}
+
+function localL1GenesisState(hardfork: HardforkName): Account[] {
+  if (hardfork < HardforkName.CANCUN) {
+    return [];
+  }
+
+  return [
+    {
+      address: Uint8Array.from(
+        Buffer.from(BEACON_ROOTS_ADDRESS.slice(2), "hex"),
+      ),
+      balance: 0n,
+      nonce: 0n,
+      code: Uint8Array.from(Buffer.from(BEACON_ROOTS_BYTECODE.slice(2), "hex")),
+      storage: [],
+    },
+  ];
 }
 
 export class EdrProvider extends EventEmitter implements EthereumProvider {
@@ -159,6 +181,13 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
 
     const hardforkName = getHardforkName(networkConfig.hardfork);
 
+    const genesisState =
+      fork !== undefined
+        ? []
+        : networkConfig.chainType === "optimism"
+          ? [] // TODO: Add local Optimism genesis state
+          : localL1GenesisState(hardforkName);
+
     const context = await getGlobalEdrContext();
     const provider = await context.createProvider(
       networkConfig.chainType === "optimism"
@@ -178,12 +207,7 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
         enableRip7212: networkConfig.enableRip7212,
         fork,
         hardfork: ethereumsjsHardforkToEdrSpecId(hardforkName),
-        genesisAccounts: networkConfig.genesisAccounts.map((account) => {
-          return {
-            secretKey: account.privateKey,
-            balance: BigInt(account.balance),
-          };
-        }),
+        genesisState,
         initialDate,
         initialBaseFeePerGas:
           networkConfig.initialBaseFeePerGas !== undefined
@@ -202,6 +226,12 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
           },
         },
         networkId: BigInt(networkConfig.networkId),
+        ownedAccounts: networkConfig.genesisAccounts.map((account) => {
+          return {
+            secretKey: account.privateKey,
+            balance: BigInt(account.balance),
+          };
+        }),
       },
       {
         enable: loggerConfig.enabled,
