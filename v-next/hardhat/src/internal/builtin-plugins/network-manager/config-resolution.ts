@@ -28,7 +28,7 @@ import {
   EDR_NETWORK_DEFAULT_COINBASE,
 } from "./edr/edr-provider.js";
 import { HardforkName } from "./edr/types/hardfork.js";
-import { isHdAccountsConfig } from "./type-validation.js";
+import { isHdAccountsUserConfig } from "./type-validation.js";
 
 export function resolveGasConfig(value: GasUserConfig = "auto"): GasConfig {
   return value === "auto" ? value : BigInt(value);
@@ -48,7 +48,7 @@ export function resolveHttpNetworkAccounts(
     });
   }
 
-  if (isHdAccountsConfig(accounts)) {
+  if (isHdAccountsUserConfig(accounts)) {
     return {
       ...DEFAULT_HD_ACCOUNTS_CONFIG_PARAMS,
       ...accounts,
@@ -62,12 +62,19 @@ export function resolveEdrNetworkAccounts(
   accounts:
     | EdrNetworkAccountsUserConfig
     | undefined = DEFAULT_EDR_NETWORK_HD_ACCOUNTS_CONFIG_PARAMS,
+  resolveConfigurationVariable: ConfigurationResolver,
 ): EdrNetworkAccountsConfig {
   if (Array.isArray(accounts)) {
-    return accounts.map(({ privateKey, balance }) => ({
-      privateKey: normalizeHexString(privateKey),
-      balance: BigInt(balance),
-    }));
+    return accounts.map(({ privateKey, balance }) => {
+      if (typeof privateKey === "string") {
+        privateKey = normalizeHexString(privateKey);
+      }
+
+      return {
+        privateKey: resolveConfigurationVariable(privateKey),
+        balance: BigInt(balance),
+      };
+    });
   }
 
   return {
