@@ -93,10 +93,12 @@ const edrNetworkAccountUserConfigSchema = z.object({
 
 const edrNetworkHDAccountsUserConfigSchema = z.object({
   mnemonic: z.optional(z.string()),
-  accountsBalance: unionType(
-    [z.string(), z.bigint().positive()],
-    "Expected a string or a positive bigint",
-  ).optional(),
+  accountsBalance: z.optional(
+    unionType(
+      [z.string(), z.bigint().positive()],
+      "Expected a string or a positive bigint",
+    ),
+  ),
   count: z.optional(z.number().int().positive()),
   initialIndex: z.optional(z.number().int()),
   passphrase: z.optional(z.string()),
@@ -114,12 +116,12 @@ const edrNetworkAccountsUserConfigSchema = conditionalUnionType(
 const edrNetworkUserConfigSchema = z.object({
   type: z.literal("edr"),
   accounts: z.optional(edrNetworkAccountsUserConfigSchema),
-  chainId: z.number().int().optional(),
+  chainId: z.optional(z.number().int()),
   chainType: z.optional(chainTypeUserConfigSchema),
-  from: z.optional(z.string()).optional(),
-  gas: gasUserConfigSchema.optional(),
-  gasMultiplier: z.number().optional(),
-  gasPrice: gasUserConfigSchema.optional(),
+  from: z.optional(z.string()),
+  gas: z.optional(gasUserConfigSchema),
+  gasMultiplier: z.optional(z.number()),
+  gasPrice: z.optional(gasUserConfigSchema),
 
   // EDR network specific
   // TODO: add the rest of the fields
