@@ -12,9 +12,9 @@ import type { RpcDebugTraceOutput, RpcStructLog } from "../types/output.js";
 import type {
   IntervalRange,
   DebugTraceResult,
-  GenesisAccount,
   ChainConfig,
   ForkConfig,
+  OwnedAccount,
 } from "@ignored/edr-optimism";
 
 import {
@@ -229,9 +229,9 @@ export function edrRpcDebugTraceToHardhat(
   };
 }
 
-export async function hardhatAccountsToEdrGenesisAccounts(
+export async function hardhatAccountsToEdrOwnedAccounts(
   accounts: EdrNetworkAccountsConfig,
-): Promise<GenesisAccount[]> {
+): Promise<OwnedAccount[]> {
   const normalizedAccounts = await normalizeEdrNetworkAccountsConfig(accounts);
 
   const accountPromises = normalizedAccounts.map(async (account) => ({
