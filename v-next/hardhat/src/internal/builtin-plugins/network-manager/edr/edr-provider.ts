@@ -31,6 +31,10 @@ import {
   initializeVmTraceDecoder,
   SolidityTracer,
   VmTracer,
+  optimismGenesisState,
+  optimismHardforkFromString,
+  l1GenesisState,
+  l1HardforkFromString,
 } from "@ignored/edr-optimism";
 import { toSeconds } from "@ignored/hardhat-vnext-utils/date";
 import { deepEqual } from "@ignored/hardhat-vnext-utils/lang";
@@ -60,7 +64,7 @@ import {
   hardhatMiningIntervalToEdrMiningInterval,
   hardhatMempoolOrderToEdrMineOrdering,
   hardhatHardforkToEdrSpecId,
-  hardhatAccountsToEdrGenesisAccounts,
+  hardhatAccountsToEdrOwnedAccounts,
   hardhatChainsToEdrChains,
   hardhatForkingConfigToEdrForkConfig,
   hardhatChainTypeToEdrChainType,
@@ -493,6 +497,22 @@ export class EdrProvider extends BaseProvider {
 async function getProviderConfig(
   networkConfig: EdrNetworkConfig,
 ): Promise<ProviderConfig> {
+  const genesisState =
+    networkConfig.forking !== undefined
+      ? [] // TODO: Add support for overriding remote fork state when the local fork is different
+      : networkConfig.chainType === "optimism"
+        ? optimismGenesisState(
+            optimismHardforkFromString(
+              // TODO: Optimism conversion is not implemented yet
+              hardhatHardforkToEdrSpecId(networkConfig.hardfork),
+            ),
+          )
+        : l1GenesisState(
+            l1HardforkFromString(
+              hardhatHardforkToEdrSpecId(networkConfig.hardfork),
+            ),
+          );
+
   return {
     allowBlocksWithSameTimestamp: networkConfig.allowBlocksWithSameTimestamp,
     allowUnlimitedContractSize: networkConfig.allowUnlimitedContractSize,
@@ -506,9 +526,7 @@ async function getProviderConfig(
     coinbase: Buffer.from(networkConfig.coinbase),
     enableRip7212: networkConfig.enableRip7212,
     fork: await hardhatForkingConfigToEdrForkConfig(networkConfig.forking),
-    genesisAccounts: await hardhatAccountsToEdrGenesisAccounts(
-      networkConfig.accounts,
-    ),
+    genesisState,
     hardfork: hardhatHardforkToEdrSpecId(networkConfig.hardfork),
     initialBaseFeePerGas: networkConfig.initialBaseFeePerGas,
     initialDate: BigInt(toSeconds(networkConfig.initialDate)),
@@ -525,5 +543,6 @@ async function getProviderConfig(
       },
     },
     networkId: BigInt(networkConfig.networkId),
+    ownedAccounts: hardhatAccountsToEdrOwnedAccounts(networkConfig.accounts),
   };
 }
