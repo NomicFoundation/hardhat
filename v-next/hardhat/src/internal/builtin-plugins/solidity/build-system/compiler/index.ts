@@ -25,35 +25,29 @@ export async function downloadConfiguredCompilers(
 ): Promise<void> {
   const platform = CompilerDownloaderImplementation.getCompilerPlatform();
 
-  const mainCompilerDownloader = new CompilerDownloaderImplementation(
-    platform,
-    await getGlobalCompilersCacheDir(),
-  );
+  if (platform !== CompilerPlatform.WASM) {
+    const mainCompilerDownloader = new CompilerDownloaderImplementation(
+      platform,
+      await getGlobalCompilersCacheDir(),
+    );
 
-  await mainCompilerDownloader.updateCompilerListIfNeeded(versions);
+    await mainCompilerDownloader.updateCompilerListIfNeeded(versions);
 
-  const wasmCompilersToGet = new Set<string>();
-
-  for (const version of versions) {
-    if (!(await mainCompilerDownloader.isCompilerDownloaded(version))) {
-      if (!quiet) {
-        console.log(`Downloading solc ${version}`);
-      }
-
-      const success = await mainCompilerDownloader.downloadCompiler(version);
-
-      if (!success) {
-        wasmCompilersToGet.add(version);
-
+    for (const version of versions) {
+      if (!(await mainCompilerDownloader.isCompilerDownloaded(version))) {
         if (!quiet) {
-          console.log(`Download failed for solc ${version}`);
+          console.log(`Downloading solc ${version}`);
+        }
+
+        const success = await mainCompilerDownloader.downloadCompiler(version);
+
+        if (!success) {
+          if (!quiet) {
+            console.log(`Download failed for solc ${version}`);
+          }
         }
       }
     }
-  }
-
-  if (platform === CompilerPlatform.WASM || wasmCompilersToGet.size === 0) {
-    return;
   }
 
   const wasmCompilerDownloader = new CompilerDownloaderImplementation(
@@ -61,9 +55,9 @@ export async function downloadConfiguredCompilers(
     await getGlobalCompilersCacheDir(),
   );
 
-  await wasmCompilerDownloader.updateCompilerListIfNeeded(wasmCompilersToGet);
+  await wasmCompilerDownloader.updateCompilerListIfNeeded(versions);
 
-  for (const version of wasmCompilersToGet) {
+  for (const version of versions) {
     if (!quiet) {
       console.log(`Downloading solc ${version} (WASM build)`);
     }
