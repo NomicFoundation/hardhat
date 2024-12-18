@@ -465,7 +465,7 @@ describe("network-manager/hook-handlers/config", () => {
         assertValidationErrors(validationErrors, [
           {
             path: ["networks", "localhost", "url"],
-            message: "Required",
+            message: "Expected a URL or a Configuration Variable",
           },
         ]);
       });
@@ -487,7 +487,7 @@ describe("network-manager/hook-handlers/config", () => {
         assertValidationErrors(validationErrors, [
           {
             path: ["networks", "localhost", "url"],
-            message: "Invalid url",
+            message: "Expected a URL or a Configuration Variable",
           },
         ]);
       });
@@ -1202,7 +1202,7 @@ describe("network-manager/hook-handlers/config", () => {
         nextUserConfig: HardhatUserConfig,
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
         -- Cast for simplicity as we won't test this */
-      ) => nextUserConfig as HardhatConfig;
+      ) => nextUserConfig as unknown as HardhatConfig;
 
       const resolvedConfig = await resolveUserConfig(
         extendedConfig,
@@ -1222,7 +1222,7 @@ describe("network-manager/hook-handlers/config", () => {
           gasMultiplier: 1,
           gasPrice: "auto",
           accounts: "remote",
-          url: "http://localhost:8545",
+          url: new FixedValueConfigurationVariable("http://localhost:8545"),
           timeout: 20_000,
           httpHeaders: {},
         },
@@ -1258,7 +1258,7 @@ describe("network-manager/hook-handlers/config", () => {
         nextUserConfig: HardhatUserConfig,
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
         -- Cast for simplicity as we won't test this */
-      ) => nextUserConfig as HardhatConfig;
+      ) => nextUserConfig as unknown as HardhatConfig;
 
       const resolvedConfig = await resolveUserConfig(
         userConfig,
@@ -1268,6 +1268,7 @@ describe("network-manager/hook-handlers/config", () => {
 
       assert.equal(resolvedConfig.defaultChainType, "generic");
       assert.equal(resolvedConfig.defaultNetwork, "myNetwork");
+      assert.equal(resolvedConfig.networks.myNetwork.type, "http");
       assert.deepEqual(resolvedConfig.networks, {
         myNetwork: {
           type: "http",
@@ -1282,7 +1283,7 @@ describe("network-manager/hook-handlers/config", () => {
               "0x000006d4548a3ac17d72b372ae1e416bf65b8ead",
             ),
           ],
-          url: "http://node.myNetwork.com",
+          url: new FixedValueConfigurationVariable("http://node.myNetwork.com"),
           timeout: 10_000,
           httpHeaders: {
             "Content-Type": "application/json",
@@ -1322,7 +1323,7 @@ describe("network-manager/hook-handlers/config", () => {
           nextUserConfig: HardhatUserConfig,
           /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
           -- Cast for simplicity as we won't test this */
-        ) => nextUserConfig as HardhatConfig;
+        ) => nextUserConfig as unknown as HardhatConfig;
 
         const resolvedConfig = await resolveUserConfig(
           userConfig,
@@ -1353,7 +1354,9 @@ describe("network-manager/hook-handlers/config", () => {
                 "0x000006d4548a3ac17d72b372ae1e416bf65b8ddd",
               ),
             ],
-            url: "http://node.myNetwork.com",
+            url: new FixedValueConfigurationVariable(
+              "http://node.myNetwork.com",
+            ),
             timeout: 10_000,
             httpHeaders: {
               "Content-Type": "application/json",
@@ -1390,7 +1393,7 @@ describe("network-manager/hook-handlers/config", () => {
           nextUserConfig: HardhatUserConfig,
           /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
           -- Cast for simplicity as we won't test this */
-        ) => nextUserConfig as HardhatConfig;
+        ) => nextUserConfig as unknown as HardhatConfig;
 
         const resolvedConfig = await resolveUserConfig(
           userConfig,
@@ -1414,7 +1417,9 @@ describe("network-manager/hook-handlers/config", () => {
               path: "m/44'/60'/0'/0",
               passphrase: "passphrase",
             },
-            url: "http://node.myNetwork.com",
+            url: new FixedValueConfigurationVariable(
+              "http://node.myNetwork.com",
+            ),
             timeout: 10_000,
             httpHeaders: {
               "Content-Type": "application/json",

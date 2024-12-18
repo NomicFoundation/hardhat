@@ -78,7 +78,7 @@ const httpNetworkUserConfigSchema = z.object({
   gasPrice: z.optional(gasUserConfigSchema),
 
   // HTTP network specific
-  url: z.string().url(), // TODO: this should be a sensitiveUrlSchema
+  url: sensitiveUrlSchema,
   httpHeaders: z.optional(z.record(z.string())),
   timeout: z.optional(z.number()),
 });
@@ -177,7 +177,7 @@ const httpNetworkConfigSchema = z.object({
   gasPrice: gasConfigSchema,
 
   // HTTP network specific
-  url: sensitiveUrlSchema,
+  url: resolvedConfigurationVariableSchema,
   httpHeaders: z.record(z.string()),
   timeout: z.number(),
 });

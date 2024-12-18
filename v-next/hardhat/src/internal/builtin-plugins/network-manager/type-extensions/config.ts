@@ -22,7 +22,7 @@ declare module "../../../../types/config.js" {
     gasPrice?: GasUserConfig;
 
     // HTTP network specific
-    url: string;
+    url: SensitiveString;
     httpHeaders?: Record<string, string>;
     timeout?: number;
   }
@@ -140,7 +140,7 @@ declare module "../../../../types/config.js" {
     gasPrice: GasConfig;
 
     // HTTP network specific
-    url: string;
+    url: ResolvedConfigurationVariable;
     httpHeaders: Record<string, string>;
     timeout: number;
   }
