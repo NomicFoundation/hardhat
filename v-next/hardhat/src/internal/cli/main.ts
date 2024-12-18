@@ -41,12 +41,8 @@ import { printVersionMessage } from "./version.js";
 
 export interface MainOptions {
   print?: (message: string) => void;
-  registerTsx?: true;
+  registerTsx?: boolean;
   rethrowErrors?: true;
-}
-
-declare global {
-  const Deno: any;
 }
 
 export async function main(
@@ -102,10 +98,9 @@ export async function main(
       return;
     }
 
-    if (typeof Deno === "undefined") {
-      if (options.registerTsx) {
-        register();
-      }
+    
+    if (options.registerTsx) {
+      register();
     }
 
     const userConfig = await importUserConfig(configPath);
