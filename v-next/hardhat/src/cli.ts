@@ -14,6 +14,15 @@ printNodeJsVersionWarningIfNecessary();
 // eslint-disable-next-line no-restricted-syntax -- Allow top-level await here
 const { main } = await import("./internal/cli/main.js");
 
-main(process.argv.slice(2), { registerTsx: true }).catch(() => {
+function isTsxRequired(): boolean {
+  const tsNativeRuntimes = ["Deno"];
+  // environments that support typescript natively don't need tsx
+  if (tsNativeRuntimes.some((env) => env in globalThis)) {
+    return false;
+  }
+  return true;
+}
+
+main(process.argv.slice(2), { registerTsx: isTsxRequired() }).catch(() => {
   process.exitCode = 1;
 });
