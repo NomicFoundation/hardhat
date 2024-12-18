@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 0.15.9 - 2024-12-18
+
+### Added
+
+- Standard Ignition UI can now be enabled when deploying via Hardhat scripts by setting `displayUi: true` in the `deploy` function options, @zoeyTM ([#843](https://github.com/NomicFoundation/hardhat-ignition/pull/843))
+- Ignition modules can now be set as a dependency in the `after` option of futures, @zoeyTM ([#828](https://github.com/NomicFoundation/hardhat-ignition/pull/828))
+- The `ignition transactions` command output will now include a link to view each transaction on the configured block explorer, @zoeyTM ([#849](https://github.com/NomicFoundation/hardhat-ignition/pull/849))
+- Module parameters can now be directly imported from a JSON file when deploying via Hardhat scripts by passing an absolute path to the file to the `parameters` option, @zoeyTM ([#850](https://github.com/NomicFoundation/hardhat-ignition/pull/850))
+
+### Fixed
+
+- Properly handle errors when verifying deployments that use external artifacts, @zoeyTM ([#848](https://github.com/NomicFoundation/hardhat-ignition/pull/848))
+- Fix issue with `ignition status` command not working with deployments that use external artifacts, @zoeyTM ([#846](https://github.com/NomicFoundation/hardhat-ignition/pull/846))
+
 ## 0.15.8 - 2024-11-22
 
 ### Fixed
