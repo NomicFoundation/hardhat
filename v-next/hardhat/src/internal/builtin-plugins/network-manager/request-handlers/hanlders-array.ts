@@ -1,14 +1,12 @@
 import type { RequestHandler } from "./types.js";
 import type {
-  HDAccountsUserConfig,
-  HttpNetworkAccountsUserConfig,
-} from "../../../../types/config.js";
-import type {
   ChainType,
   NetworkConnection,
 } from "../../../../types/network.js";
 
 import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
+
+import { isHdAccountsConfig } from "../type-validation.js";
 
 import { AutomaticSenderHandler } from "./handlers/accounts/automatic-sender-handler.js";
 import { FixedSenderHandler } from "./handlers/accounts/fixed-sender-handler.js";
@@ -98,7 +96,7 @@ export async function createHandlersArray<
       requestHandlers.push(
         new LocalAccountsHandler(networkConnection.provider, resolvedAccounts),
       );
-    } else if (isHDAccountsConfig(accounts)) {
+    } else if (isHdAccountsConfig(accounts)) {
       requestHandlers.push(
         new HDWalletHandler(
           networkConnection.provider,
@@ -113,10 +111,4 @@ export async function createHandlersArray<
   }
 
   return requestHandlers;
-}
-
-function isHDAccountsConfig(
-  accounts?: HttpNetworkAccountsUserConfig,
-): accounts is HDAccountsUserConfig {
-  return accounts !== undefined && Object.keys(accounts).includes("mnemonic");
 }

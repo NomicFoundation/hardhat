@@ -1,5 +1,7 @@
 import type {
   HardhatUserConfig,
+  HttpNetworkAccountsUserConfig,
+  HttpNetworkHDAccountsUserConfig,
   NetworkConfig,
 } from "../../../types/config.js";
 import type { HardhatUserConfigValidationError } from "../../../types/hooks.js";
@@ -85,9 +87,12 @@ const httpNetworkUserConfigSchema = z.object({
   httpHeaders: z.optional(z.record(z.string())),
 });
 
-const keyBalanceObject = z.object({
+const edrNetworkUserConfigAccountSchema = z.object({
   privateKey: edrPrivateKeySchema,
-  balance: z.string(),
+  balance: unionType(
+    [z.string(), z.bigint().positive()],
+    "Expected a string or a positive bigint",
+  ),
 });
 
 const edrNetworkHDAccountsUserConfig = z.object({
@@ -95,13 +100,16 @@ const edrNetworkHDAccountsUserConfig = z.object({
   initialIndex: z.optional(z.number().int()),
   count: z.optional(z.number().int().positive()),
   path: z.optional(z.string()),
-  accountsBalance: z.optional(z.string()),
+  accountsBalance: unionType(
+    [z.string(), z.bigint().positive()],
+    "Expected a string or a positive bigint",
+  ).optional(),
   passphrase: z.optional(z.string()),
 });
 
 const edrNetworkUserConfigAccountsSchema = conditionalUnionType(
   [
-    [(data) => Array.isArray(data), z.array(keyBalanceObject)],
+    [(data) => Array.isArray(data), z.array(edrNetworkUserConfigAccountSchema)],
     [isObject, edrNetworkHDAccountsUserConfig],
   ],
   `Expected an array with with objects with private key and balance or Configuration Variables, or an object with HD account details`,
@@ -170,18 +178,23 @@ const httpNetworkConfigSchema = z.object({
   httpHeaders: z.record(z.string()),
 });
 
+const edrNetworkAccountSchema = z.object({
+  privateKey: edrPrivateKeySchema,
+  balance: z.bigint().positive(),
+});
+
 const edrNetworkHDAccountsConfig = z.object({
   mnemonic: z.string(),
   initialIndex: z.number().int(),
   count: z.number().int().positive(),
   path: z.string(),
-  accountsBalance: z.string(),
+  accountsBalance: z.bigint(),
   passphrase: z.string(),
 });
 
 const edrNetworkAccountsSchema = conditionalUnionType(
   [
-    [(data) => Array.isArray(data), z.array(keyBalanceObject)],
+    [(data) => Array.isArray(data), z.array(edrNetworkAccountSchema)],
     [isObject, edrNetworkHDAccountsConfig],
   ],
   `Expected an array with with objects with private key and balance, or an object with HD account details`,
@@ -222,4 +235,10 @@ export async function validateUserConfig(
   userConfig: HardhatUserConfig,
 ): Promise<HardhatUserConfigValidationError[]> {
   return validateUserConfigZodType(userConfig, userConfigSchema);
+}
+
+export function isHdAccountsConfig(
+  accounts: HttpNetworkAccountsUserConfig,
+): accounts is HttpNetworkHDAccountsUserConfig {
+  return isObject(accounts);
 }
