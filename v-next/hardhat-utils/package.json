@@ -33,7 +33,8 @@
     "./resolve": "./dist/src/resolve.js",
     "./string": "./dist/src/string.js",
     "./stream": "./dist/src/stream.js",
-    "./subprocess": "./dist/src/subprocess.js"
+    "./subprocess": "./dist/src/subprocess.js",
+    "./synchronization": "./dist/src/synchronization.js"
   },
   "keywords": [
     "ethereum",
