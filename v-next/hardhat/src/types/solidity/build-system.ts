@@ -149,7 +149,11 @@ export interface CacheHitFileBuildResult {
   type: FileBuildResultType.CACHE_HIT;
   // TODO: Should we remove this? It is a buildId of an already existing build
   // info.
+  // NOTE: The buildId and contractArtifactsGenerated are useful when one uses
+  // the build system programatically and wants to find out what artifacts
+  // were generated for a given file, and with what configuration.
   buildId: string;
+  contractArtifactsGenerated: string[];
 }
 
 export interface SuccessfulFileBuildResult {
@@ -265,7 +269,7 @@ export interface SolidityBuildSystem {
    * This method should only be used after a complete build has succeeded, as
    * it relies on the build system to have generated all the necessary artifact
    * files.
-   
+
    * @param rootFilePaths All the root files of the project.
    */
   cleanupArtifacts(rootFilePaths: string[]): Promise<void>;
