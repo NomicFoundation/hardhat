@@ -912,7 +912,8 @@ describe("network-manager/hook-handlers/config", () => {
               assertValidationErrors(validationErrors, [
                 {
                   path: ["networks", "localhost", "accounts", 0, "privateKey"],
-                  message: "Expected string, received number",
+                  message:
+                    "Expected a hex-encoded private key or a Configuration Variable",
                 },
               ]);
             });
@@ -931,7 +932,8 @@ describe("network-manager/hook-handlers/config", () => {
               assertValidationErrors(validationErrors, [
                 {
                   path: ["networks", "localhost", "accounts", 0, "privateKey"],
-                  message: "Expected a hex-encoded private key",
+                  message:
+                    "Expected a hex-encoded private key or a Configuration Variable",
                 },
               ]);
 
@@ -948,7 +950,8 @@ describe("network-manager/hook-handlers/config", () => {
               assertValidationErrors(validationErrors, [
                 {
                   path: ["networks", "localhost", "accounts", 0, "privateKey"],
-                  message: "Expected a hex-encoded private key",
+                  message:
+                    "Expected a hex-encoded private key or a Configuration Variable",
                 },
               ]);
             });
@@ -968,7 +971,8 @@ describe("network-manager/hook-handlers/config", () => {
               assertValidationErrors(validationErrors, [
                 {
                   path: ["networks", "localhost", "accounts", 0, "privateKey"],
-                  message: "Expected a hex-encoded private key",
+                  message:
+                    "Expected a hex-encoded private key or a Configuration Variable",
                 },
               ]);
             });
@@ -1023,7 +1027,8 @@ describe("network-manager/hook-handlers/config", () => {
                 },
                 {
                   path: ["networks", "localhost", "accounts", 0, "privateKey"],
-                  message: "Required",
+                  message:
+                    "Expected a hex-encoded private key or a Configuration Variable",
                 },
               ],
             );
@@ -1050,7 +1055,8 @@ describe("network-manager/hook-handlers/config", () => {
               [
                 {
                   path: ["networks", "localhost", "accounts", 0, "privateKey"],
-                  message: "Required",
+                  message:
+                    "Expected a hex-encoded private key or a Configuration Variable",
                 },
               ],
             );
@@ -1065,7 +1071,8 @@ describe("network-manager/hook-handlers/config", () => {
                 },
                 {
                   path: ["networks", "localhost", "accounts", 0, "privateKey"],
-                  message: "Required",
+                  message:
+                    "Expected a hex-encoded private key or a Configuration Variable",
                 },
               ],
             );
@@ -1082,7 +1089,8 @@ describe("network-manager/hook-handlers/config", () => {
                 },
                 {
                   path: ["networks", "localhost", "accounts", 0, "privateKey"],
-                  message: "Expected string, received number",
+                  message:
+                    "Expected a hex-encoded private key or a Configuration Variable",
                 },
               ],
             );
@@ -1099,7 +1107,8 @@ describe("network-manager/hook-handlers/config", () => {
             assertValidationErrors(validationErrors, [
               {
                 path: ["networks", "localhost", "accounts", 0, "privateKey"],
-                message: "Expected a hex-encoded private key",
+                message:
+                  "Expected a hex-encoded private key or a Configuration Variable",
               },
               {
                 path: ["networks", "localhost", "accounts", 0, "balance"],

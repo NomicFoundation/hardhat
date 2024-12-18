@@ -78,7 +78,7 @@ declare module "../../../../types/config.js" {
 
   export interface EdrNetworkAccountUserConfig {
     balance: string | bigint;
-    privateKey: string;
+    privateKey: SensitiveString;
   }
 
   export interface EdrNetworkHDAccountsUserConfig {
@@ -196,7 +196,7 @@ declare module "../../../../types/config.js" {
 
   export interface EdrNetworkAccountConfig {
     balance: bigint;
-    privateKey: string;
+    privateKey: ResolvedConfigurationVariable;
   }
 
   export interface EdrNetworkHDAccountsConfig {

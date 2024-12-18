@@ -62,12 +62,19 @@ export function resolveEdrNetworkAccounts(
   accounts:
     | EdrNetworkAccountsUserConfig
     | undefined = DEFAULT_EDR_NETWORK_HD_ACCOUNTS_CONFIG_PARAMS,
+  resolveConfigurationVariable: ConfigurationResolver,
 ): EdrNetworkAccountsConfig {
   if (Array.isArray(accounts)) {
-    return accounts.map(({ privateKey, balance }) => ({
-      privateKey: normalizeHexString(privateKey),
-      balance: BigInt(balance),
-    }));
+    return accounts.map(({ privateKey, balance }) => {
+      if (typeof privateKey === "string") {
+        privateKey = normalizeHexString(privateKey);
+      }
+
+      return {
+        privateKey: resolveConfigurationVariable(privateKey),
+        balance: BigInt(balance),
+      };
+    });
   }
 
   return {

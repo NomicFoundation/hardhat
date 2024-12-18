@@ -124,7 +124,10 @@ export async function resolveUserConfig(
     if (networkConfig.type === "edr") {
       const resolvedNetworkConfig: EdrNetworkConfig = {
         type: "edr",
-        accounts: resolveEdrNetworkAccounts(networkConfig.accounts),
+        accounts: resolveEdrNetworkAccounts(
+          networkConfig.accounts,
+          resolveConfigurationVariable,
+        ),
         chainId: networkConfig.chainId ?? 31337,
         chainType: networkConfig.chainType,
         from: networkConfig.from,

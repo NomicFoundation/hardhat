@@ -6,7 +6,10 @@ import type {
 } from "../../../types/config.js";
 import type { HardhatUserConfigValidationError } from "../../../types/hooks.js";
 
-import { getUnprefixedHexString } from "@ignored/hardhat-vnext-utils/hex";
+import {
+  getUnprefixedHexString,
+  isHexString,
+} from "@ignored/hardhat-vnext-utils/hex";
 import { isObject } from "@ignored/hardhat-vnext-utils/lang";
 import {
   conditionalUnionType,
@@ -23,8 +26,9 @@ const accountsPrivateKeyUserConfigSchema = unionType(
     configurationVariableSchema,
     z
       .string()
-      .refine((val) => getUnprefixedHexString(val).length === 64)
-      .refine((val) => /^[0-9a-fA-F]+$/.test(getUnprefixedHexString(val))),
+      .refine(
+        (val) => isHexString(val) && getUnprefixedHexString(val).length === 64,
+      ),
   ],
   `Expected a hex-encoded private key or a Configuration Variable`,
 );
@@ -79,21 +83,12 @@ const httpNetworkUserConfigSchema = z.object({
   timeout: z.optional(z.number()),
 });
 
-const edrPrivateKeyUserConfigSchema = z
-  .string()
-  .refine(
-    (val) =>
-      getUnprefixedHexString(val).length === 64 &&
-      /^[0-9a-fA-F]+$/.test(getUnprefixedHexString(val)),
-    { message: "Expected a hex-encoded private key" },
-  );
-
 const edrNetworkAccountUserConfigSchema = z.object({
   balance: unionType(
     [z.string(), z.bigint().positive()],
     "Expected a string or a positive bigint",
   ),
-  privateKey: edrPrivateKeyUserConfigSchema,
+  privateKey: accountsPrivateKeyUserConfigSchema,
 });
 
 const edrNetworkHDAccountsUserConfigSchema = z.object({
@@ -168,7 +163,7 @@ const httpNetworkAccountsConfigSchema = conditionalUnionType(
     ],
     [isObject, httpNetworkHDAccountsConfigSchema],
   ],
-  `Expected 'remote', an array with of ResolvedConfigurationVariables, or an object with HD account details`,
+  `Expected 'remote', an array of ResolvedConfigurationVariables, or an object with HD account details`,
 );
 
 const httpNetworkConfigSchema = z.object({
@@ -187,18 +182,9 @@ const httpNetworkConfigSchema = z.object({
   timeout: z.number(),
 });
 
-const edrPrivateKeyConfigSchema = z
-  .string()
-  .refine(
-    (val) =>
-      getUnprefixedHexString(val).length === 64 &&
-      /^[0-9a-fA-F]+$/.test(getUnprefixedHexString(val)),
-    { message: "Expected a hex-encoded private key" },
-  );
-
 const edrNetworkAccountConfigSchema = z.object({
   balance: z.bigint().positive(),
-  privateKey: edrPrivateKeyConfigSchema,
+  privateKey: resolvedConfigurationVariableSchema,
 });
 
 const edrNetworkHDAccountsConfig = z.object({
