@@ -98,8 +98,7 @@ export async function main(
       return;
     }
 
-    
-    if (options.registerTsx) {
+    if (options.registerTsx === true) {
       register();
     }
 
