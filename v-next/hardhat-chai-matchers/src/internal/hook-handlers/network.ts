@@ -9,9 +9,9 @@ import type {
 
 import { addChaiMatchers } from "../add-chai-matchers.js";
 
-export default async (): Promise<Partial<NetworkHooks>> => {
-  let isInitialized = false;
+let isInitialized = false;
 
+export default async (): Promise<Partial<NetworkHooks>> => {
   const handlers: Partial<NetworkHooks> = {
     async newConnection<ChainTypeT extends ChainType | string>(
       context: HookContext,
