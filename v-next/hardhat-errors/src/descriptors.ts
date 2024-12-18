@@ -85,9 +85,10 @@ export const ERROR_CATEGORIES: {
   },
   SOLIDITY: { min: 1200, max: 1299, websiteTitle: "Solidity errors" },
   VIEM: { min: 1300, max: 1399, websiteTitle: "Hardhat-viem errors" },
+  NODE: { min: 1400, max: 1499, websiteTitle: "Hardhat node errors" },
   CHAI_MATCHERS: {
-    min: 1400,
-    max: 1499,
+    min: 1500,
+    max: 1599,
     websiteTitle: "Hardhat-chai-matchers errors",
   },
 };
@@ -1253,46 +1254,55 @@ Please check Hardhat's output for more details.`,
         "The deployment transaction was mined but its receipt doesn't contain a contract address.",
     },
   },
+  NODE: {
+    INVALID_NETWORK_TYPE: {
+      number: 1400,
+      messageTemplate:
+        "The provided node network type {networkType} for network {networkName} is not recognized, only `edr` is supported.",
+      websiteTitle: "Invalid node network type",
+      websiteDescription: `The node only supports the 'edr' network type.`,
+    },
+  },
   CHAI_MATCHERS: {
     UNKNOWN_COMPARISON_OPERATION: {
-      number: 1400,
+      number: 1500,
       messageTemplate: `Unknown comparison operation "{method}"`,
       websiteTitle: "Unknown comparison operation",
       websiteDescription: "Unknown comparison operation",
     },
     EXPECTED_STRING_OR_ADDRESSABLE: {
-      number: 1401,
+      number: 1501,
       messageTemplate: `Expected string or addressable, but got {account}`,
       websiteTitle: "Expected string or addressable",
       websiteDescription: "Expected string or addressable",
     },
     ASSERTION_WITHOUT_ERROR_MESSAGE: {
-      number: 1402,
+      number: 1502,
       messageTemplate: `Assertion doesn't have an error message. Please open an issue to report this.`,
       websiteTitle: "Assertion doesn't have an error message",
       websiteDescription: `Assertion doesn't have an error message. Please open an issue to report this.`,
       shouldBeReported: true,
     },
     MATCHER_CANNOT_BE_CHAINED_AFTER: {
-      number: 1403,
+      number: 1503,
       messageTemplate: `The matcher "{matcher}" cannot be chained after "{previousMatcher}". For more information, please refer to the documentation at: (https://hardhat.org/chaining-async-matchers).`,
       websiteTitle: "Matcher cannot be chained after",
       websiteDescription: `The matcher cannot be chained after another matcher. Please open an issue to report this.`,
     },
     DECODING_ERROR: {
-      number: 1404,
+      number: 1504,
       messageTemplate: `There was an error decoding "{encodedData}" as a "{type}. Reason: {reason}"`,
       websiteTitle: "Error while decoding data",
       websiteDescription: `There was an error decoding data`,
     },
     EXPECTED_VALID_TRANSACTION_HASH: {
-      number: 1405,
+      number: 1505,
       messageTemplate: `Expected a valid transaction hash, but got "{hash}"`,
       websiteTitle: "Expected a valid transaction hash",
       websiteDescription: `Expected a valid transaction hash`,
     },
     EXPECT_STRING_OR_REGEX_AS_REVERT_REASON: {
-      number: 1406,
+      number: 1506,
       messageTemplate:
         "Expected the revert reason to be a string or a regular expression",
       websiteTitle:
@@ -1301,20 +1311,20 @@ Please check Hardhat's output for more details.`,
         "Expected the revert reason to be a string or a regular expression",
     },
     FIRST_ARGUMENT_MUST_BE_A_CONTRACT: {
-      number: 1407,
+      number: 1507,
       messageTemplate:
         "The first argument of .revertedWithCustomError must be the contract that defines the custom error",
       websiteTitle: "First argument must be a contract",
       websiteDescription: "First argument must be a contract",
     },
     STRING_EXPECTED_AS_CUSTOM_ERROR_NAME: {
-      number: 1408,
+      number: 1508,
       messageTemplate: "Expected the custom error name to be a string",
       websiteTitle: "Expected the custom error name to be a string",
       websiteDescription: "Expected the custom error name to be a string",
     },
     CONTRACT_DOES_NOT_HAVE_CUSTOM_ERROR: {
-      number: 1409,
+      number: 1509,
       messageTemplate: `The given contract doesn't have a custom error named "{customErrorName}"`,
       websiteTitle:
         "Contract doesn't have a custom error with the specified name",
@@ -1322,7 +1332,7 @@ Please check Hardhat's output for more details.`,
         "Contract doesn't have a custom error with the specified name",
     },
     REVERT_INVALID_ARGUMENTS_LENGTH: {
-      number: 1410,
+      number: 1510,
       messageTemplate:
         "The .revertedWithCustomError matcher expects two arguments: the contract and the custom error name. Arguments should be asserted with the .withArgs helper.",
       websiteTitle:
@@ -1331,7 +1341,7 @@ Please check Hardhat's output for more details.`,
         "Invalid arguments length for the  .revertedWithCustomError matcher",
     },
     WITH_ARGS_FORBIDDEN: {
-      number: 1411,
+      number: 1511,
       messageTemplate:
         "[.withArgs] should never happen, please submit an issue to the Hardhat repository",
       websiteTitle:
@@ -1340,7 +1350,7 @@ Please check Hardhat's output for more details.`,
         "[.withArgs] should never happen, please submit an issue to the Hardhat repository",
     },
     INDEXED_EVENT_FORBIDDEN: {
-      number: 1412,
+      number: 1512,
       messageTemplate:
         "Should not get an indexed event when the assertion type is not event. Please open an issue about this.",
       websiteTitle:
@@ -1349,14 +1359,14 @@ Please check Hardhat's output for more details.`,
         "Should not get an indexed event when the assertion type is not event",
     },
     PANIC_CODE_EXPECTED: {
-      number: 1413,
+      number: 1513,
       messageTemplate: `Expected the given panic code to be a number-like value, but got "{panicCode}"`,
       websiteTitle: "Expected the given panic code to be a number-like value",
       websiteDescription:
         "Expected the given panic code to be a number-like value",
     },
     ACCOUNTS_NUMBER_DIFFERENT_FROM_BALANCE_CHANGES: {
-      number: 1414,
+      number: 1514,
       messageTemplate: `The number of accounts ({accounts}) is different than the number of expected balance changes ({balanceChanges})`,
       websiteTitle:
         "The number of accounts is different than the number of expected balance changes",
@@ -1364,50 +1374,50 @@ Please check Hardhat's output for more details.`,
         "The number of accounts is different than the number of expected balance changes",
     },
     FIRST_ARGUMENT_MUST_BE_A_CONTRACT_INSTANCE: {
-      number: 1415,
+      number: 1515,
       messageTemplate: `The first argument of "{method}" must be the contract instance of the token`,
       websiteTitle: "First argument must be a contract instance",
       websiteDescription: "First argument must be a contract instance",
     },
     CONTRACT_IS_NOT_AN_ERC20_TOKEN: {
-      number: 1416,
+      number: 1516,
       messageTemplate: `The given contract instance is not an ERC20 token`,
       websiteTitle: "Given contract instance is not an ERC20 token",
       websiteDescription: "Given contract instance is not an ERC20 token",
     },
     INVALID_TRANSACTION: {
-      number: 1417,
+      number: 1517,
       messageTemplate: "{transaction} is not a valid transaction",
       websiteTitle: "Invalid transaction",
       websiteDescription: "Invalid transaction",
     },
     CONTRACT_TARGET_MUST_BE_A_STRING: {
-      number: 1418,
+      number: 1518,
       messageTemplate: "The contract target should be a string",
       websiteTitle: "Contract target must be a string",
       websiteDescription: "Contract target must be a string",
     },
     EMIT_EXPECTS_TWO_ARGUMENTS: {
-      number: 1419,
+      number: 1519,
       messageTemplate:
         "The .emit matcher expects two arguments: the contract and the event name. Arguments should be asserted with the .withArgs helper.",
       websiteTitle: "Invalid arguments length for the .emit matcher",
       websiteDescription: "Invalid arguments length for the .emit matcher",
     },
     CONTRACT_RUNNER_PROVIDER_NOT_NULL: {
-      number: 1420,
+      number: 1520,
       messageTemplate: "contract.runner.provider shouldn't be null",
       websiteTitle: "Contract runner's provider shouldn't be null",
       websiteDescription: "Contract runner's provider shouldn't be null",
     },
     WITH_ARGS_CANNOT_BE_COMBINED_WITH_NOT: {
-      number: 1421,
+      number: 1521,
       messageTemplate: "Do not combine .not. with .withArgs()",
       websiteTitle: "Do not combine .not. with .withArgs()",
       websiteDescription: "Do not combine .not. with .withArgs()",
     },
     WITH_ARGS_WRONG_COMBINATION: {
-      number: 1422,
+      number: 1522,
       messageTemplate:
         "withArgs can only be used in combination with a previous .emit or .revertedWithCustomError assertion",
       websiteTitle:
@@ -1416,7 +1426,7 @@ Please check Hardhat's output for more details.`,
         "withArgs can only be used in combination with a previous .emit or .revertedWithCustomError assertion",
     },
     WITH_ARGS_COMBINED_WITH_INCOMPATIBLE_ASSERTIONS: {
-      number: 1423,
+      number: 1523,
       messageTemplate:
         "withArgs called with both .emit and .revertedWithCustomError, but these assertions cannot be combined",
       websiteTitle:
