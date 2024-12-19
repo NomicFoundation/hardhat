@@ -9,6 +9,7 @@ import type {
 } from "../../../types";
 
 import type {
+  Account,
   EdrContext,
   Provider as EdrProviderT,
   VmTraceDecoder as VmTraceDecoderT,
@@ -17,6 +18,10 @@ import type {
   Response,
   SubscriptionEvent,
   HttpHeader,
+} from "@nomicfoundation/edr";
+import {
+  BEACON_ROOTS_ADDRESS,
+  BEACON_ROOTS_BYTECODE,
 } from "@nomicfoundation/edr";
 import { Common } from "@nomicfoundation/ethereumjs-common";
 import picocolors from "picocolors";
@@ -42,7 +47,7 @@ import {
   ProviderError,
 } from "../../core/providers/errors";
 import { isErrorResponse } from "../../core/providers/http";
-import { getHardforkName } from "../../util/hardforks";
+import { getHardforkName, HardforkName } from "../../util/hardforks";
 import { createModelsAndDecodeBytecodes } from "../stack-traces/compiler-to-model";
 import { ConsoleLogger } from "../stack-traces/consoleLogger";
 import {
@@ -155,6 +160,24 @@ export function getNodeConfig(
   };
 }
 
+function localL1GenesisState(hardfork: HardforkName): Account[] {
+  if (hardfork < HardforkName.CANCUN) {
+    return [];
+  }
+
+  return [
+    {
+      address: Uint8Array.from(
+        Buffer.from(BEACON_ROOTS_ADDRESS.slice(2), "hex")
+      ),
+      balance: 0n,
+      nonce: 0n,
+      code: Uint8Array.from(Buffer.from(BEACON_ROOTS_BYTECODE.slice(2), "hex")),
+      storage: [],
+    },
+  ];
+}
+
 class EdrProviderEventAdapter extends EventEmitter {}
 
 type CallOverrideCallback = (
@@ -247,6 +270,9 @@ export class EdrProviderWrapper
 
     const hardforkName = getHardforkName(config.hardfork);
 
+    const genesisState =
+      fork !== undefined ? [] : localL1GenesisState(hardforkName);
+
     const context = await getGlobalEdrContext();
     const provider = await context.createProvider(
       GENERIC_CHAIN_TYPE,
@@ -278,13 +304,8 @@ export class EdrProviderWrapper
         coinbase: Buffer.from(coinbase.slice(2), "hex"),
         enableRip7212: config.enableRip7212,
         fork,
+        genesisState,
         hardfork: ethereumsjsHardforkToEdrSpecId(hardforkName),
-        genesisAccounts: config.genesisAccounts.map((account) => {
-          return {
-            secretKey: account.privateKey,
-            balance: BigInt(account.balance),
-          };
-        }),
         initialDate,
         initialBaseFeePerGas:
           config.initialBaseFeePerGas !== undefined
@@ -299,6 +320,12 @@ export class EdrProviderWrapper
           },
         },
         networkId: BigInt(config.networkId),
+        ownedAccounts: config.genesisAccounts.map((account) => {
+          return {
+            secretKey: account.privateKey,
+            balance: BigInt(account.balance),
+          };
+        }),
       },
       {
         enable: loggerConfig.enabled,
