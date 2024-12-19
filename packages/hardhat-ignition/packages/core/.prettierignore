@@ -1,0 +1,8 @@
+/node_modules
+/dist
+/coverage
+/.nyc_output
+/temp
+/test-integrations/fixture-projects/*/artifacts
+/test-integrations/fixture-projects/*/cache
+/test/mocks/*

@@ -1,0 +1,72 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug ignition deploy in samples",
+      "request": "launch",
+      "program": "${workspaceFolder}/node_modules/hardhat/internal/cli/cli.js",
+      "skipFiles": ["<node_internals>/**"],
+      "type": "node",
+      "cwd": "${workspaceFolder}/examples/sample",
+      "args": [
+        "ignition",
+        "deploy",
+        "${workspaceFolder}/examples/sample/ignition/modules/LockModule.js"
+      ]
+    },
+    {
+      "name": "New Modules",
+      "internalConsoleOptions": "openOnSessionStart",
+      "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+      "request": "launch",
+      "skipFiles": ["<node_internals>/**"],
+      "type": "node",
+      "cwd": "${workspaceFolder}/packages/core",
+      "args": [
+        "--no-timeouts",
+        "--colors",
+        "${workspaceFolder}/packages/core/test/newModules/*.ts"
+      ],
+      "env": {
+        "TS_NODE_FILES": "true",
+        "DEBUG": "hardhat-ignition:*,ignition:*"
+      }
+    },
+    {
+      "name": "Debug core tests",
+      "internalConsoleOptions": "openOnSessionStart",
+      "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+      "request": "launch",
+      "skipFiles": ["<node_internals>/**"],
+      "type": "node",
+      "cwd": "${workspaceFolder}/packages/core",
+      "args": [
+        "--no-timeouts",
+        "--colors",
+        "${workspaceFolder}/packages/core/test/**/*.ts"
+      ],
+      "env": {
+        "TS_NODE_FILES": "true",
+        "DEBUG": "hardhat-ignition:*,ignition:*"
+      }
+    },
+    {
+      "name": "Debug integration tests",
+      "internalConsoleOptions": "openOnSessionStart",
+      "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+      "request": "launch",
+      "skipFiles": ["<node_internals>/**"],
+      "type": "node",
+      "cwd": "${workspaceFolder}/packages/hardhat-plugin",
+      "args": [
+        "--no-timeouts",
+        "--colors",
+        "${workspaceFolder}/packages/hardhat-plugin/test/**/*.ts"
+      ],
+      "env": {
+        "TS_NODE_FILES": "true",
+        "DEBUG": "hardhat-ignition:*,ignition:*"
+      }
+    }
+  ]
+}
