@@ -13,6 +13,7 @@ import type {
   SubscriptionEvent,
   HttpHeader,
 } from "@nomicfoundation/edr";
+import { l1GenesisState, l1HardforkFromString } from "@nomicfoundation/edr";
 import { Common } from "@nomicfoundation/ethereumjs-common";
 import picocolors from "picocolors";
 import debug from "debug";
@@ -218,6 +219,11 @@ export class EdrProviderWrapper
 
     const hardforkName = getHardforkName(config.hardfork);
 
+    const genesisState =
+      fork !== undefined
+        ? []
+        : l1GenesisState(l1HardforkFromString(config.hardfork));
+
     const context = await getGlobalEdrContext();
     const provider = await context.createProvider(
       GENERIC_CHAIN_TYPE,
@@ -249,13 +255,8 @@ export class EdrProviderWrapper
         coinbase: Buffer.from(coinbase.slice(2), "hex"),
         enableRip7212: config.enableRip7212,
         fork,
+        genesisState,
         hardfork: ethereumsjsHardforkToEdrSpecId(hardforkName),
-        genesisAccounts: config.genesisAccounts.map((account) => {
-          return {
-            secretKey: account.privateKey,
-            balance: BigInt(account.balance),
-          };
-        }),
         initialDate,
         initialBaseFeePerGas:
           config.initialBaseFeePerGas !== undefined
@@ -270,6 +271,12 @@ export class EdrProviderWrapper
           },
         },
         networkId: BigInt(config.networkId),
+        ownedAccounts: config.genesisAccounts.map((account) => {
+          return {
+            secretKey: account.privateKey,
+            balance: BigInt(account.balance),
+          };
+        }),
       },
       {
         enable: loggerConfig.enabled,
