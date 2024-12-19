@@ -28,7 +28,7 @@ import {
   EDR_NETWORK_DEFAULT_COINBASE,
 } from "./edr/edr-provider.js";
 import { HardforkName } from "./edr/types/hardfork.js";
-import { isHdAccountsConfig } from "./type-validation.js";
+import { isHdAccountsUserConfig } from "./type-validation.js";
 
 export function resolveGasConfig(value: GasUserConfig = "auto"): GasConfig {
   return value === "auto" ? value : BigInt(value);
@@ -48,7 +48,7 @@ export function resolveHttpNetworkAccounts(
     });
   }
 
-  if (isHdAccountsConfig(accounts)) {
+  if (isHdAccountsUserConfig(accounts)) {
     return {
       ...DEFAULT_HD_ACCOUNTS_CONFIG_PARAMS,
       ...accounts,
@@ -62,12 +62,19 @@ export function resolveEdrNetworkAccounts(
   accounts:
     | EdrNetworkAccountsUserConfig
     | undefined = DEFAULT_EDR_NETWORK_HD_ACCOUNTS_CONFIG_PARAMS,
+  resolveConfigurationVariable: ConfigurationResolver,
 ): EdrNetworkAccountsConfig {
   if (Array.isArray(accounts)) {
-    return accounts.map(({ privateKey, balance }) => ({
-      privateKey: normalizeHexString(privateKey),
-      balance: BigInt(balance),
-    }));
+    return accounts.map(({ privateKey, balance }) => {
+      if (typeof privateKey === "string") {
+        privateKey = normalizeHexString(privateKey);
+      }
+
+      return {
+        privateKey: resolveConfigurationVariable(privateKey),
+        balance: BigInt(balance),
+      };
+    });
   }
 
   return {
@@ -83,6 +90,7 @@ export function resolveEdrNetworkAccounts(
 export function resolveForkingConfig(
   forkingUserConfig: EdrNetworkForkingUserConfig | undefined,
   cacheDir: string,
+  resolveConfigurationVariable: ConfigurationResolver,
 ): EdrNetworkForkingConfig | undefined {
   if (forkingUserConfig === undefined) {
     return undefined;
@@ -98,7 +106,7 @@ export function resolveForkingConfig(
 
   return {
     enabled: forkingUserConfig.enabled ?? true,
-    url: forkingUserConfig.url,
+    url: resolveConfigurationVariable(forkingUserConfig.url),
     cacheDir: path.join(cacheDir, "edr-fork-cache"),
     blockNumber:
       forkingUserConfig.blockNumber !== undefined

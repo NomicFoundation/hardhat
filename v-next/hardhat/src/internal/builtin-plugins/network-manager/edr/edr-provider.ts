@@ -141,12 +141,14 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
 
     const vmTraceDecoder = await createVmTraceDecoder();
 
+    const providerConfig = await getProviderConfig(networkConfig);
+
     const context = await getGlobalEdrContext();
     const provider = await context.createProvider(
       networkConfig.chainType === "optimism"
         ? OPTIMISM_CHAIN_TYPE
         : GENERIC_CHAIN_TYPE, // TODO: l1 is missing here
-      getProviderConfig(networkConfig),
+      providerConfig,
       {
         enable: loggerConfig.enabled,
         decodeConsoleLogInputsCallback: ConsoleLogger.getDecodedLogs,
@@ -537,7 +539,9 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
   }
 }
 
-function getProviderConfig(networkConfig: EdrNetworkConfig): ProviderConfig {
+async function getProviderConfig(
+  networkConfig: EdrNetworkConfig,
+): Promise<ProviderConfig> {
   return {
     allowBlocksWithSameTimestamp: networkConfig.allowBlocksWithSameTimestamp,
     allowUnlimitedContractSize: networkConfig.allowUnlimitedContractSize,
@@ -550,8 +554,8 @@ function getProviderConfig(networkConfig: EdrNetworkConfig): ProviderConfig {
     // TODO: remove this cast when EDR updates the interface to accept Uint8Array
     coinbase: Buffer.from(networkConfig.coinbase),
     enableRip7212: networkConfig.enableRip7212,
-    fork: hardhatForkingConfigToEdrForkConfig(networkConfig.forking),
-    genesisAccounts: hardhatAccountsToEdrGenesisAccounts(
+    fork: await hardhatForkingConfigToEdrForkConfig(networkConfig.forking),
+    genesisAccounts: await hardhatAccountsToEdrGenesisAccounts(
       networkConfig.accounts,
     ),
     hardfork: hardhatHardforkToEdrSpecId(networkConfig.hardfork),

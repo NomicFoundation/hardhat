@@ -22,7 +22,7 @@ declare module "../../../../types/config.js" {
     gasPrice?: GasUserConfig;
 
     // HTTP network specific
-    url: string;
+    url: SensitiveString;
     httpHeaders?: Record<string, string>;
     timeout?: number;
   }
@@ -78,7 +78,7 @@ declare module "../../../../types/config.js" {
 
   export interface EdrNetworkAccountUserConfig {
     balance: string | bigint;
-    privateKey: string;
+    privateKey: SensitiveString;
   }
 
   export interface EdrNetworkHDAccountsUserConfig {
@@ -106,7 +106,7 @@ declare module "../../../../types/config.js" {
 
   export interface EdrNetworkForkingUserConfig {
     enabled?: boolean;
-    url: string;
+    url: SensitiveString;
     blockNumber?: number;
     httpHeaders?: Record<string, string>;
   }
@@ -140,9 +140,9 @@ declare module "../../../../types/config.js" {
     gasPrice: GasConfig;
 
     // HTTP network specific
-    url: string;
-    timeout: number;
+    url: ResolvedConfigurationVariable;
     httpHeaders: Record<string, string>;
+    timeout: number;
   }
 
   export type HttpNetworkAccountsConfig =
@@ -196,7 +196,7 @@ declare module "../../../../types/config.js" {
 
   export interface EdrNetworkAccountConfig {
     balance: bigint;
-    privateKey: string;
+    privateKey: ResolvedConfigurationVariable;
   }
 
   export interface EdrNetworkHDAccountsConfig {
@@ -224,7 +224,7 @@ declare module "../../../../types/config.js" {
 
   export interface EdrNetworkForkingConfig {
     enabled: boolean;
-    url: string;
+    url: ResolvedConfigurationVariable;
     cacheDir: string;
     blockNumber?: bigint;
     httpHeaders?: HttpHeader[];

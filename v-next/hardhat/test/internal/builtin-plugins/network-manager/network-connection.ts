@@ -6,6 +6,7 @@ import { describe, it } from "node:test";
 
 import { HttpProvider } from "../../../../src/internal/builtin-plugins/network-manager/http-provider.js";
 import { NetworkConnectionImplementation } from "../../../../src/internal/builtin-plugins/network-manager/network-connection.js";
+import { FixedValueConfigurationVariable } from "../../../../src/internal/core/configuration-variables.js";
 
 describe("NetworkConnectionImplementation", () => {
   const localhostNetworkConfig: NetworkConfig = {
@@ -17,7 +18,7 @@ describe("NetworkConnectionImplementation", () => {
     gasMultiplier: 1,
     gasPrice: "auto",
     accounts: [],
-    url: "http://localhost:8545",
+    url: new FixedValueConfigurationVariable("http://localhost:8545"),
     timeout: 20_000,
     httpHeaders: {},
   };
@@ -28,7 +29,7 @@ describe("NetworkConnectionImplementation", () => {
 
       const createProvider = async (): Promise<EthereumProvider> => {
         expectedProvider = await HttpProvider.create({
-          url: localhostNetworkConfig.url,
+          url: await localhostNetworkConfig.url.getUrl(),
           networkName: "localhost",
           extraHeaders: localhostNetworkConfig.httpHeaders,
           timeout: localhostNetworkConfig.timeout,
