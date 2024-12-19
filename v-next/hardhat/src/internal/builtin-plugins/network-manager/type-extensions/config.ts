@@ -106,7 +106,7 @@ declare module "../../../../types/config.js" {
 
   export interface EdrNetworkForkingUserConfig {
     enabled?: boolean;
-    url: string;
+    url: SensitiveString;
     blockNumber?: number;
     httpHeaders?: Record<string, string>;
   }
@@ -224,7 +224,7 @@ declare module "../../../../types/config.js" {
 
   export interface EdrNetworkForkingConfig {
     enabled: boolean;
-    url: string;
+    url: ResolvedConfigurationVariable;
     cacheDir: string;
     blockNumber?: bigint;
     httpHeaders?: HttpHeader[];

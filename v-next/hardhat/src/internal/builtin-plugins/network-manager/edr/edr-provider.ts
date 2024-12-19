@@ -554,7 +554,7 @@ async function getProviderConfig(
     // TODO: remove this cast when EDR updates the interface to accept Uint8Array
     coinbase: Buffer.from(networkConfig.coinbase),
     enableRip7212: networkConfig.enableRip7212,
-    fork: hardhatForkingConfigToEdrForkConfig(networkConfig.forking),
+    fork: await hardhatForkingConfigToEdrForkConfig(networkConfig.forking),
     genesisAccounts: await hardhatAccountsToEdrGenesisAccounts(
       networkConfig.accounts,
     ),

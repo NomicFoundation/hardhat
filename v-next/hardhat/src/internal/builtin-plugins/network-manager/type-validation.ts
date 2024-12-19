@@ -131,7 +131,7 @@ const edrNetworkChainsUserConfigSchema = z.map(
 
 const edrNetworkForkingUserConfig = z.object({
   enabled: z.optional(z.boolean()),
-  url: z.string(),
+  url: sensitiveUrlSchema,
   blockNumber: z.optional(blockNumberSchema),
   httpHeaders: z.optional(z.record(z.string())),
 });
@@ -287,7 +287,7 @@ const edrNetworkChainsConfigSchema = z.map(
 
 const edrNetworkForkingConfig = z.object({
   enabled: z.boolean(),
-  url: z.string(),
+  url: resolvedConfigurationVariableSchema,
   cacheDir: z.string(),
   blockNumber: z.optional(blockNumberSchema),
   httpHeaders: z.optional(z.record(z.string())),

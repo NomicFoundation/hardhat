@@ -279,13 +279,13 @@ export function hardhatChainsToEdrChains(
   return edrChains;
 }
 
-export function hardhatForkingConfigToEdrForkConfig(
+export async function hardhatForkingConfigToEdrForkConfig(
   forkingConfig: EdrNetworkForkingConfig | undefined,
-): ForkConfig | undefined {
+): Promise<ForkConfig | undefined> {
   let fork: ForkConfig | undefined;
   if (forkingConfig !== undefined && forkingConfig.enabled === true) {
     fork = {
-      jsonRpcUrl: forkingConfig.url,
+      jsonRpcUrl: await forkingConfig.url.getUrl(),
       blockNumber: forkingConfig.blockNumber,
       httpHeaders: forkingConfig.httpHeaders,
     };

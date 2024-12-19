@@ -147,6 +147,7 @@ export async function resolveUserConfig(
         forking: resolveForkingConfig(
           networkConfig.forking,
           resolvedConfig.paths.cache,
+          resolveConfigurationVariable,
         ),
         hardfork: resolveHardfork(
           networkConfig.hardfork,

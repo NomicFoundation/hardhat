@@ -90,6 +90,7 @@ export function resolveEdrNetworkAccounts(
 export function resolveForkingConfig(
   forkingUserConfig: EdrNetworkForkingUserConfig | undefined,
   cacheDir: string,
+  resolveConfigurationVariable: ConfigurationResolver,
 ): EdrNetworkForkingConfig | undefined {
   if (forkingUserConfig === undefined) {
     return undefined;
@@ -105,7 +106,7 @@ export function resolveForkingConfig(
 
   return {
     enabled: forkingUserConfig.enabled ?? true,
-    url: forkingUserConfig.url,
+    url: resolveConfigurationVariable(forkingUserConfig.url),
     cacheDir: path.join(cacheDir, "edr-fork-cache"),
     blockNumber:
       forkingUserConfig.blockNumber !== undefined
