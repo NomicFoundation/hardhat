@@ -1,0 +1,50 @@
+{
+  "name": "@nomicfoundation/hardhat-ignition-viem",
+  "version": "0.15.9",
+  "license": "MIT",
+  "author": "Nomic Foundation",
+  "homepage": "https://hardhat.org",
+  "description": "The Viem extension to Hardhat Ignition. Hardhat Ignition is a declarative system for deploying smart contracts on Ethereum. It enables you to define smart contract instances you want to deploy, and any operation you want to run on them. By taking over the deployment and execution, Hardhat Ignition lets you focus on your project instead of getting caught up in the deployment details.",
+  "repository": "github:NomicFoundation/hardhat-ignition",
+  "keywords": [
+    "ethereum",
+    "smart-contracts",
+    "hardhat",
+    "blockchain",
+    "dapps",
+    "tooling",
+    "solidity",
+    "deployment",
+    "viem"
+  ],
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
+  "scripts": {
+    "prebuild": "ts-node ./scripts/compile-test-fixture-project.ts create2 && ts-node ./scripts/compile-test-fixture-project.ts minimal",
+    "build": "tsc --build",
+    "lint": "pnpm prettier --check && pnpm eslint",
+    "lint:fix": "pnpm prettier --write && pnpm eslint --fix",
+    "eslint": "eslint \"src/**/*.{ts,tsx}\" \"test/**/*.{ts,tsx}\"",
+    "prettier": "prettier \"**/*.{js,ts,md,json}\"",
+    "test": "mocha --recursive \"test/**/*.ts\"",
+    "test:debug": "DEBUG='hardhat-ignition-viem:*,ignition:*' pnpm test",
+    "test:coverage": "nyc mocha \"test/**/*.ts\"",
+    "test:build": "tsc --project ./test/",
+    "clean": "rimraf .nyc_output coverage dist tsconfig.tsbuildinfo ./test/fixture-projects/**/deployments ./test/fixture-projects/**/artifacts",
+    "prepack": "pnpm build"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-viem": "^2.0.0",
+    "@types/chai": "^4.2.22",
+    "@types/chai-as-promised": "^7.1.4",
+    "@types/sinon": "^10.0.13",
+    "hardhat": "^2.18.0"
+  },
+  "peerDependencies": {
+    "@nomicfoundation/hardhat-ignition": "workspace:^",
+    "@nomicfoundation/hardhat-viem": "^2.0.0",
+    "@nomicfoundation/ignition-core": "workspace:^",
+    "hardhat": "^2.18.0",
+    "viem": "^2.7.6"
+  }
+}
