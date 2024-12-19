@@ -13,7 +13,8 @@
   "license": "MIT",
   "type": "module",
   "exports": {
-    ".": "./dist/src/index.js"
+    ".": "./dist/src/index.js",
+    "./package.json": "./package.json"
   },
   "scripts": {
     "lint": "pnpm prettier --check && pnpm eslint",

@@ -21,6 +21,7 @@ const hardhatPlugin: HardhatPlugin = {
       defaultValue: "",
     }),
   ],
+  npmPackage: "@ignored/hardhat-vnext",
 };
 
 export default hardhatPlugin;

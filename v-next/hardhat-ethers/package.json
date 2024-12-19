@@ -13,6 +13,7 @@
   "type": "module",
   "exports": {
     ".": "./dist/src/index.js",
+    "./package.json": "./package.json",
     "./types": "./dist/src/types.js"
   },
   "keywords": [

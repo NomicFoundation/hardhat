@@ -12,6 +12,7 @@
   "license": "MIT",
   "type": "module",
   "exports": {
+    "./package.json": "./package.json",
     "./bigint": "./dist/src/bigint.js",
     "./bytecode": "./dist/src/bytecode.js",
     "./bytes": "./dist/src/bytes.js",
