@@ -32,18 +32,19 @@ import EventEmitter from "node:events";
 import util from "node:util";
 
 import {
-  Account,
   EdrContext,
   createModelsAndDecodeBytecodes,
   initializeVmTraceDecoder,
   SolidityTracer,
   VmTracer,
-  BEACON_ROOTS_ADDRESS,
-  BEACON_ROOTS_BYTECODE,
   GENERIC_CHAIN_TYPE,
   OPTIMISM_CHAIN_TYPE,
   genericChainProviderFactory,
   optimismProviderFactory,
+  optimismGenesisState,
+  optimismHardforkFromString,
+  l1GenesisState,
+  l1HardforkFromString,
 } from "@ignored/edr-optimism";
 import { ensureError } from "@ignored/hardhat-vnext-utils/error";
 import chalk from "chalk";
@@ -72,7 +73,6 @@ import {
 } from "./utils/convert-to-edr.js";
 import { getHardforkName } from "./utils/hardfork.js";
 import { printLine, replaceLastLine } from "./utils/logger.js";
-import { HardforkName } from "./types/hardfork.js";
 
 const log = debug("hardhat:core:hardhat-network:provider");
 
@@ -102,24 +102,6 @@ interface EdrProviderConfig {
   loggerConfig?: LoggerConfig;
   tracingConfig?: TracingConfig;
   jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction;
-}
-
-function localL1GenesisState(hardfork: HardforkName): Account[] {
-  if (hardfork < HardforkName.CANCUN) {
-    return [];
-  }
-
-  return [
-    {
-      address: Uint8Array.from(
-        Buffer.from(BEACON_ROOTS_ADDRESS.slice(2), "hex"),
-      ),
-      balance: 0n,
-      nonce: 0n,
-      code: Uint8Array.from(Buffer.from(BEACON_ROOTS_BYTECODE.slice(2), "hex")),
-      storage: [],
-    },
-  ];
 }
 
 export class EdrProvider extends EventEmitter implements EthereumProvider {
@@ -183,10 +165,10 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
 
     const genesisState =
       fork !== undefined
-        ? []
+        ? [] // TODO: Add support for overriding remote fork state when the local fork is different
         : networkConfig.chainType === "optimism"
-          ? [] // TODO: Add local Optimism genesis state
-          : localL1GenesisState(hardforkName);
+          ? optimismGenesisState(optimismHardforkFromString(hardforkName))
+          : l1GenesisState(l1HardforkFromString(hardforkName));
 
     const context = await getGlobalEdrContext();
     const provider = await context.createProvider(
