@@ -41,6 +41,10 @@ import {
   OPTIMISM_CHAIN_TYPE,
   genericChainProviderFactory,
   optimismProviderFactory,
+  optimismGenesisState,
+  optimismHardforkFromString,
+  l1GenesisState,
+  l1HardforkFromString,
 } from "@ignored/edr-optimism";
 import { ensureError } from "@ignored/hardhat-vnext-utils/error";
 import chalk from "chalk";
@@ -159,6 +163,13 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
 
     const hardforkName = getHardforkName(networkConfig.hardfork);
 
+    const genesisState =
+      fork !== undefined
+        ? [] // TODO: Add support for overriding remote fork state when the local fork is different
+        : networkConfig.chainType === "optimism"
+          ? optimismGenesisState(optimismHardforkFromString(hardforkName))
+          : l1GenesisState(l1HardforkFromString(hardforkName));
+
     const context = await getGlobalEdrContext();
     const provider = await context.createProvider(
       networkConfig.chainType === "optimism"
@@ -178,12 +189,7 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
         enableRip7212: networkConfig.enableRip7212,
         fork,
         hardfork: ethereumsjsHardforkToEdrSpecId(hardforkName),
-        genesisAccounts: networkConfig.genesisAccounts.map((account) => {
-          return {
-            secretKey: account.privateKey,
-            balance: BigInt(account.balance),
-          };
-        }),
+        genesisState,
         initialDate,
         initialBaseFeePerGas:
           networkConfig.initialBaseFeePerGas !== undefined
@@ -202,6 +208,12 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
           },
         },
         networkId: BigInt(networkConfig.networkId),
+        ownedAccounts: networkConfig.genesisAccounts.map((account) => {
+          return {
+            secretKey: account.privateKey,
+            balance: BigInt(account.balance),
+          };
+        }),
       },
       {
         enable: loggerConfig.enabled,
