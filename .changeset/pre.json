@@ -20,6 +20,7 @@
     "@nomicfoundation/hardhat-web3-v4": "1.0.0",
     "@nomicfoundation/example-project": "3.0.0",
     "@ignored/hardhat-vnext": "2.0.0",
+    "@ignored/hardhat-vnext-chai-matchers": "2.0.0",
     "@ignored/hardhat-vnext-errors": "2.0.0",
     "@ignored/hardhat-vnext-ethers": "2.0.0",
     "@ignored/hardhat-vnext-keystore": "2.0.0",
