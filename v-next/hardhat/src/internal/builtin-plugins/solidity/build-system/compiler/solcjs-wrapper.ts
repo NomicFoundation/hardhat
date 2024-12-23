@@ -34,7 +34,8 @@ export type CompileWrapper = (input: string) => string;
 
 export default function wrapper(solc: Solc): SolcWrapper {
   const version = bindVersion(solc);
-  const isVersion6OrNewer = semver.gte(versionToSemver(version()), "0.6.0");
+  const semverVersion = versionToSemver(version());
+  const isVersion6OrNewer = semver.gte(semverVersion, "0.6.0");
   const reset = bindReset(solc);
   const compile = bindCompile(solc, isVersion6OrNewer);
 
