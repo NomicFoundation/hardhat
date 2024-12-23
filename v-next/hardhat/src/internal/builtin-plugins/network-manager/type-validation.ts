@@ -21,6 +21,8 @@ import {
 } from "@ignored/hardhat-vnext-zod-utils";
 import { z } from "zod";
 
+import { HardforkName } from "./edr/types/hardfork.js";
+
 const nonnegativeNumberSchema = z.number().nonnegative();
 const nonnegativeIntSchema = z.number().int().nonnegative();
 const nonnegativeBigIntSchema = z.bigint().nonnegative();
@@ -178,7 +180,7 @@ const edrNetworkUserConfigSchema = z.object({
   enableRip7212: z.optional(z.boolean()),
   enableTransientStorage: z.optional(z.boolean()),
   forking: z.optional(edrNetworkForkingUserConfig),
-  hardfork: z.optional(z.string()),
+  hardfork: z.optional(z.nativeEnum(HardforkName)),
   initialBaseFeePerGas: z.optional(gasUnitUserConfigSchema),
   initialDate: z.optional(
     unionType([z.string(), z.instanceof(Date)], "Expected a string or a Date"),
@@ -331,7 +333,7 @@ const edrNetworkConfigSchema = z.object({
   enableRip7212: z.boolean(),
   enableTransientStorage: z.boolean(),
   forking: z.optional(edrNetworkForkingConfig),
-  hardfork: z.string(),
+  hardfork: z.nativeEnum(HardforkName),
   initialBaseFeePerGas: z.optional(gasUnitConfigSchema),
   initialDate: unionType(
     [z.string(), z.instanceof(Date)],
