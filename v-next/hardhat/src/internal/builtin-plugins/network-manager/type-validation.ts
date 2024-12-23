@@ -120,10 +120,10 @@ const edrNetworkAccountsUserConfigSchema = conditionalUnionType(
   `Expected an array with with objects with private key and balance or Configuration Variables, or an object with HD account details`,
 );
 
-const hardforkHistoryUserConfig = z.map(z.string(), blockNumberSchema);
+const hardforkHistoryUserConfigSchema = z.map(z.string(), blockNumberSchema);
 
 const edrNetworkChainUserConfigSchema = z.object({
-  hardforkHistory: z.optional(hardforkHistoryUserConfig),
+  hardforkHistory: z.optional(hardforkHistoryUserConfigSchema),
 });
 
 const edrNetworkChainsUserConfigSchema = z.map(
@@ -131,7 +131,7 @@ const edrNetworkChainsUserConfigSchema = z.map(
   edrNetworkChainUserConfigSchema,
 );
 
-const edrNetworkForkingUserConfig = z.object({
+const edrNetworkForkingUserConfigSchema = z.object({
   enabled: z.optional(z.boolean()),
   url: sensitiveUrlSchema,
   blockNumber: z.optional(blockNumberSchema),
@@ -179,7 +179,7 @@ const edrNetworkUserConfigSchema = z.object({
   coinbase: z.optional(z.string()),
   enableRip7212: z.optional(z.boolean()),
   enableTransientStorage: z.optional(z.boolean()),
-  forking: z.optional(edrNetworkForkingUserConfig),
+  forking: z.optional(edrNetworkForkingUserConfigSchema),
   hardfork: z.optional(z.nativeEnum(HardforkName)),
   initialBaseFeePerGas: z.optional(gasUnitUserConfigSchema),
   initialDate: z.optional(
@@ -259,7 +259,7 @@ const edrNetworkAccountConfigSchema = z.object({
   privateKey: resolvedConfigurationVariableSchema,
 });
 
-const edrNetworkHDAccountsConfig = z.object({
+const edrNetworkHDAccountsConfigSchema = z.object({
   mnemonic: z.string(),
   accountsBalance: accountBalanceConfigSchema,
   count: nonnegativeIntSchema,
@@ -271,15 +271,15 @@ const edrNetworkHDAccountsConfig = z.object({
 const edrNetworkAccountsConfigSchema = conditionalUnionType(
   [
     [(data) => Array.isArray(data), z.array(edrNetworkAccountConfigSchema)],
-    [isObject, edrNetworkHDAccountsConfig],
+    [isObject, edrNetworkHDAccountsConfigSchema],
   ],
   `Expected an array with with objects with private key and balance, or an object with HD account details`,
 );
 
-const hardforkHistoryConfig = z.map(z.string(), blockNumberSchema);
+const hardforkHistoryConfigSchema = z.map(z.string(), blockNumberSchema);
 
 const edrNetworkChainConfigSchema = z.object({
-  hardforkHistory: hardforkHistoryConfig,
+  hardforkHistory: hardforkHistoryConfigSchema,
 });
 
 const edrNetworkChainsConfigSchema = z.map(
@@ -287,7 +287,7 @@ const edrNetworkChainsConfigSchema = z.map(
   edrNetworkChainConfigSchema,
 );
 
-const edrNetworkForkingConfig = z.object({
+const edrNetworkForkingConfigSchema = z.object({
   enabled: z.boolean(),
   url: resolvedConfigurationVariableSchema,
   cacheDir: z.string(),
@@ -332,7 +332,7 @@ const edrNetworkConfigSchema = z.object({
   coinbase: z.instanceof(Uint8Array),
   enableRip7212: z.boolean(),
   enableTransientStorage: z.boolean(),
-  forking: z.optional(edrNetworkForkingConfig),
+  forking: z.optional(edrNetworkForkingConfigSchema),
   hardfork: z.nativeEnum(HardforkName),
   initialBaseFeePerGas: z.optional(gasUnitConfigSchema),
   initialDate: unionType(
