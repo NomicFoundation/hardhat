@@ -21,7 +21,11 @@ import {
 } from "@ignored/hardhat-vnext-zod-utils";
 import { z } from "zod";
 
-import { HardforkName } from "./edr/types/hardfork.js";
+import {
+  hardforkGte,
+  HardforkName,
+  LATEST_HARDFORK,
+} from "./edr/types/hardfork.js";
 
 const nonnegativeNumberSchema = z.number().nonnegative();
 const nonnegativeIntSchema = z.number().int().nonnegative();
@@ -29,6 +33,7 @@ const nonnegativeBigIntSchema = z.bigint().nonnegative();
 
 const blockNumberSchema = nonnegativeIntSchema;
 const chainIdSchema = nonnegativeIntSchema;
+const hardforkNameSchema = z.nativeEnum(HardforkName);
 
 const accountsPrivateKeyUserConfigSchema = unionType(
   [
@@ -120,7 +125,10 @@ const edrNetworkAccountsUserConfigSchema = conditionalUnionType(
   `Expected an array with with objects with private key and balance or Configuration Variables, or an object with HD account details`,
 );
 
-const hardforkHistoryUserConfigSchema = z.map(z.string(), blockNumberSchema);
+const hardforkHistoryUserConfigSchema = z.map(
+  hardforkNameSchema,
+  blockNumberSchema,
+);
 
 const edrNetworkChainUserConfigSchema = z.object({
   hardforkHistory: z.optional(hardforkHistoryUserConfigSchema),
@@ -180,7 +188,7 @@ const edrNetworkUserConfigSchema = z.object({
   enableRip7212: z.optional(z.boolean()),
   enableTransientStorage: z.optional(z.boolean()),
   forking: z.optional(edrNetworkForkingUserConfigSchema),
-  hardfork: z.optional(z.nativeEnum(HardforkName)),
+  hardfork: z.optional(hardforkNameSchema),
   initialBaseFeePerGas: z.optional(gasUnitUserConfigSchema),
   initialDate: z.optional(
     unionType([z.string(), z.instanceof(Date)], "Expected a string or a Date"),
@@ -193,10 +201,64 @@ const edrNetworkUserConfigSchema = z.object({
   throwOnTransactionFailures: z.optional(z.boolean()),
 });
 
-const networkUserConfigSchema = z.discriminatedUnion("type", [
-  httpNetworkUserConfigSchema,
-  edrNetworkUserConfigSchema,
-]);
+const networkUserConfigSchema = z
+  .discriminatedUnion("type", [
+    httpNetworkUserConfigSchema,
+    edrNetworkUserConfigSchema,
+  ])
+  // The superRefine is used to perform additional validation of correlated
+  // fields of the edr network that are not possible to express with Zod's
+  // built-in validation methods.
+  // Ideally, it should be applied to the edrNetworkUserConfigSchema, but it
+  // returns a ZodEffects, which is not compatible with the discriminatedUnion
+  // method, so it is applied to the networkUserConfigSchema instead.
+  .superRefine((networkConfig, ctx) => {
+    if (networkConfig.type === "edr") {
+      const {
+        hardfork = LATEST_HARDFORK,
+        minGasPrice,
+        initialBaseFeePerGas,
+        enableTransientStorage,
+      } = networkConfig;
+
+      if (hardforkGte(hardfork, HardforkName.LONDON)) {
+        if (minGasPrice !== undefined) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message:
+              "minGasPrice is not valid for networks with EIP-1559. Try an older hardfork or remove it.",
+          });
+        }
+      } else {
+        if (initialBaseFeePerGas !== undefined) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message:
+              "initialBaseFeePerGas is only valid for networks with EIP-1559. Try a newer hardfork or remove it.",
+          });
+        }
+      }
+
+      if (
+        !hardforkGte(hardfork, HardforkName.CANCUN) &&
+        enableTransientStorage === true
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `'enableTransientStorage' is not supported for hardforks before 'cancun'. Please use a hardfork from 'cancun' onwards to enable this feature.`,
+        });
+      }
+      if (
+        hardforkGte(hardfork, HardforkName.CANCUN) &&
+        enableTransientStorage === false
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `'enableTransientStorage' must be enabled for hardforks 'cancun' or later. To disable this feature, use a hardfork before 'cancun'.`,
+        });
+      }
+    }
+  });
 
 const userConfigSchema = z.object({
   defaultChainType: z.optional(chainTypeUserConfigSchema),
@@ -276,7 +338,10 @@ const edrNetworkAccountsConfigSchema = conditionalUnionType(
   `Expected an array with with objects with private key and balance, or an object with HD account details`,
 );
 
-const hardforkHistoryConfigSchema = z.map(z.string(), blockNumberSchema);
+const hardforkHistoryConfigSchema = z.map(
+  hardforkNameSchema,
+  blockNumberSchema,
+);
 
 const edrNetworkChainConfigSchema = z.object({
   hardforkHistory: hardforkHistoryConfigSchema,
@@ -333,7 +398,7 @@ const edrNetworkConfigSchema = z.object({
   enableRip7212: z.boolean(),
   enableTransientStorage: z.boolean(),
   forking: z.optional(edrNetworkForkingConfigSchema),
-  hardfork: z.nativeEnum(HardforkName),
+  hardfork: hardforkNameSchema,
   initialBaseFeePerGas: z.optional(gasUnitConfigSchema),
   initialDate: unionType(
     [z.string(), z.instanceof(Date)],

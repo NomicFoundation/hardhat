@@ -27,7 +27,7 @@ import {
   DEFAULT_EDR_NETWORK_HD_ACCOUNTS_CONFIG_PARAMS,
   EDR_NETWORK_DEFAULT_COINBASE,
 } from "./edr/edr-provider.js";
-import { HardforkName } from "./edr/types/hardfork.js";
+import { HardforkName, LATEST_HARDFORK } from "./edr/types/hardfork.js";
 import { isHdAccountsUserConfig } from "./type-validation.js";
 
 export function resolveGasConfig(value: GasUserConfig = "auto"): GasConfig {
@@ -282,7 +282,7 @@ export function resolveHardfork(
   }
 
   if (enableTransientStorage === true) {
-    return HardforkName.CANCUN;
+    return LATEST_HARDFORK;
   } else {
     return HardforkName.SHANGHAI;
   }
