@@ -345,7 +345,7 @@ describe(".to.emit (contract events)", () => {
           );
         });
 
-        it("Should fail the passerd argument is the hash, not the pre-image", async function () {
+        it("Should fail the passed argument is the hash, not the pre-image", async function () {
           await expect(
             expect(contract.emitIndexedBytes(str1.bytes))
               .to.emit(contract, "WithIndexedBytesArg")
