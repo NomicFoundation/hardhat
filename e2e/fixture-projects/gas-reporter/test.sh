@@ -1,6 +1,6 @@
 #! /usr/bin/env sh
 
-# fail if any commands fails
+# fail if any command fails
 set -e
 
 # import helpers functions
