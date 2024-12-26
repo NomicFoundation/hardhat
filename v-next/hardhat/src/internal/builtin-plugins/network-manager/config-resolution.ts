@@ -108,14 +108,6 @@ export function resolveForkingConfig(
     return undefined;
   }
 
-  const httpHeaders =
-    forkingUserConfig.httpHeaders !== undefined
-      ? Object.entries(forkingUserConfig.httpHeaders).map(([name, value]) => ({
-          name,
-          value,
-        }))
-      : undefined;
-
   return {
     enabled: forkingUserConfig.enabled ?? true,
     url: resolveConfigurationVariable(forkingUserConfig.url),
@@ -124,7 +116,7 @@ export function resolveForkingConfig(
       forkingUserConfig.blockNumber !== undefined
         ? BigInt(forkingUserConfig.blockNumber)
         : undefined,
-    httpHeaders,
+    httpHeaders: forkingUserConfig.httpHeaders,
   };
 }
 

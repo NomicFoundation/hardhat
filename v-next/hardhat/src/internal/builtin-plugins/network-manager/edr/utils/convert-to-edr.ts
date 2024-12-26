@@ -284,10 +284,18 @@ export async function hardhatForkingConfigToEdrForkConfig(
 ): Promise<ForkConfig | undefined> {
   let fork: ForkConfig | undefined;
   if (forkingConfig !== undefined && forkingConfig.enabled === true) {
+    const httpHeaders =
+      forkingConfig.httpHeaders !== undefined
+        ? Object.entries(forkingConfig.httpHeaders).map(([name, value]) => ({
+            name,
+            value,
+          }))
+        : undefined;
+
     fork = {
       jsonRpcUrl: await forkingConfig.url.getUrl(),
       blockNumber: forkingConfig.blockNumber,
-      httpHeaders: forkingConfig.httpHeaders,
+      httpHeaders,
     };
   }
 
