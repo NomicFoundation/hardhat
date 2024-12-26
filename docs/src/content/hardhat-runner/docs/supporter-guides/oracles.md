@@ -226,7 +226,7 @@ There are multiple oracle applications you can integrate into your dapp:
 
 - [Kleros Oracle](https://kleros.io/oracle) - _Crowd-sourced on-chain smart contract oracle in collaboration with the Reality.eth cryptoeconomic mechanism for verifying real-world events on-chain, a subjective oracle solution able to answer any question with a publicly verifiable answer._
 
-- [UMA Oracle](https://umaproject.org/products/optimistic-oracle) - _UMA's optimistic oracle allows smart contracts to quickly and receive any kind of data for different applications, including insurance, financial derivatives, and prediction market._
+- [UMA Oracle](https://umaproject.org/products/optimistic-oracle) - _UMA's optimistic oracle allows smart contracts to quickly receive any kind of data for different applications, including insurance, financial derivatives, and prediction market._
 
 - [Tellor](https://tellor.io/) - _Tellor is a transparent and permissionless oracle protocol for your smart contract to easily get any data whenever it needs it._
 
