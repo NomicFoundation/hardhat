@@ -33,7 +33,7 @@ describe("Proper private key", () => {
     );
   });
 
-  it("Expect to throw if negation with proper private key)", async () => {
+  it("Expect to throw if negation with proper private key", async () => {
     expect(
       () =>
         expect(
