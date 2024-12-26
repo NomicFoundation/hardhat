@@ -15,7 +15,7 @@ import type {
   CompilerInput,
   CompilerOutput,
 } from "../../../../types/solidity/compiler-io.js";
-import type { DefaultHDAccountsConfigParams } from "../accounts/derive-private-keys.js";
+import type { DefaultHDAccountsConfigParams } from "../accounts/constants.js";
 import type { JsonRpcRequestWrapperFunction } from "../network-manager.js";
 import type {
   RawTrace,
@@ -51,7 +51,7 @@ import {
   HARDHAT_NETWORK_RESET_EVENT,
   HARDHAT_NETWORK_REVERT_SNAPSHOT_EVENT,
 } from "../../../constants.js";
-import { DEFAULT_HD_ACCOUNTS_CONFIG_PARAMS } from "../accounts/derive-private-keys.js";
+import { DEFAULT_HD_ACCOUNTS_CONFIG_PARAMS } from "../accounts/constants.js";
 import { getJsonRpcRequest, isFailedJsonRpcResponse } from "../json-rpc.js";
 
 import {

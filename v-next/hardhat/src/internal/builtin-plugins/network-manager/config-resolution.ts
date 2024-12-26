@@ -22,7 +22,7 @@ import {
   normalizeHexString,
 } from "@ignored/hardhat-vnext-utils/hex";
 
-import { DEFAULT_HD_ACCOUNTS_CONFIG_PARAMS } from "./accounts/derive-private-keys.js";
+import { DEFAULT_HD_ACCOUNTS_CONFIG_PARAMS } from "./accounts/constants.js";
 import {
   DEFAULT_EDR_NETWORK_HD_ACCOUNTS_CONFIG_PARAMS,
   EDR_NETWORK_DEFAULT_COINBASE,
