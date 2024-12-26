@@ -1,6 +1,8 @@
 import type {
   HardhatUserConfig,
+  HttpNetworkAccountsConfig,
   HttpNetworkAccountsUserConfig,
+  HttpNetworkHDAccountsConfig,
   HttpNetworkHDAccountsUserConfig,
   NetworkConfig,
 } from "../../../types/config.js";
@@ -15,6 +17,7 @@ import {
   conditionalUnionType,
   configurationVariableSchema,
   resolvedConfigurationVariableSchema,
+  sensitiveStringSchema,
   sensitiveUrlSchema,
   unionType,
   validateUserConfigZodType,
@@ -48,10 +51,10 @@ const accountsPrivateKeyUserConfigSchema = unionType(
 );
 
 const httpNetworkHDAccountsUserConfigSchema = z.object({
-  mnemonic: z.string(),
+  mnemonic: sensitiveStringSchema,
   count: z.optional(nonnegativeIntSchema),
   initialIndex: z.optional(nonnegativeIntSchema),
-  passphrase: z.optional(z.string()),
+  passphrase: z.optional(sensitiveStringSchema),
   path: z.optional(z.string()),
 });
 
@@ -109,11 +112,11 @@ const edrNetworkAccountUserConfigSchema = z.object({
 });
 
 const edrNetworkHDAccountsUserConfigSchema = z.object({
-  mnemonic: z.optional(z.string()),
+  mnemonic: z.optional(sensitiveStringSchema),
   accountsBalance: z.optional(accountBalanceUserConfigSchema),
   count: z.optional(nonnegativeIntSchema),
   initialIndex: z.optional(nonnegativeIntSchema),
-  passphrase: z.optional(z.string()),
+  passphrase: z.optional(sensitiveStringSchema),
   path: z.optional(z.string()),
 });
 
@@ -279,10 +282,10 @@ const gasConfigSchema = unionType(
 );
 
 const httpNetworkHDAccountsConfigSchema = z.object({
-  mnemonic: z.string(),
+  mnemonic: resolvedConfigurationVariableSchema,
   count: nonnegativeIntSchema,
   initialIndex: nonnegativeIntSchema,
-  passphrase: z.string(),
+  passphrase: resolvedConfigurationVariableSchema,
   path: z.string(),
 });
 
@@ -322,11 +325,11 @@ const edrNetworkAccountConfigSchema = z.object({
 });
 
 const edrNetworkHDAccountsConfigSchema = z.object({
-  mnemonic: z.string(),
+  mnemonic: resolvedConfigurationVariableSchema,
   accountsBalance: accountBalanceConfigSchema,
   count: nonnegativeIntSchema,
   initialIndex: nonnegativeIntSchema,
-  passphrase: z.string(),
+  passphrase: resolvedConfigurationVariableSchema,
   path: z.string(),
 });
 
@@ -440,5 +443,11 @@ export async function validateNetworkUserConfig(
 export function isHdAccountsUserConfig(
   accounts: HttpNetworkAccountsUserConfig,
 ): accounts is HttpNetworkHDAccountsUserConfig {
+  return isObject(accounts);
+}
+
+export function isHdAccountsConfig(
+  accounts: HttpNetworkAccountsConfig,
+): accounts is HttpNetworkHDAccountsConfig {
   return isObject(accounts);
 }

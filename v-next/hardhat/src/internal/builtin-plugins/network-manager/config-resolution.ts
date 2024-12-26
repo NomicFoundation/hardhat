@@ -49,9 +49,15 @@ export function resolveHttpNetworkAccounts(
   }
 
   if (isHdAccountsUserConfig(accounts)) {
+    const { passphrase: defaultPassphrase, ...defaultHdAccountRest } =
+      DEFAULT_HD_ACCOUNTS_CONFIG_PARAMS;
+    const { mnemonic, passphrase, ...hdAccountRest } = accounts;
+
     return {
-      ...DEFAULT_HD_ACCOUNTS_CONFIG_PARAMS,
-      ...accounts,
+      ...defaultHdAccountRest,
+      ...hdAccountRest,
+      mnemonic: resolveConfigurationVariable(mnemonic),
+      passphrase: resolveConfigurationVariable(passphrase ?? defaultPassphrase),
     };
   }
 
@@ -77,13 +83,19 @@ export function resolveEdrNetworkAccounts(
     });
   }
 
+  const {
+    mnemonic: defaultMnemonic,
+    accountsBalance: defaultAccountsBalance,
+    passphrase: defaultPassphrase,
+    ...defaultHdAccountRest
+  } = DEFAULT_EDR_NETWORK_HD_ACCOUNTS_CONFIG_PARAMS;
+  const { mnemonic, passphrase, accountsBalance, ...hdAccountRest } = accounts;
   return {
-    ...DEFAULT_EDR_NETWORK_HD_ACCOUNTS_CONFIG_PARAMS,
-    ...accounts,
-    accountsBalance: BigInt(
-      accounts.accountsBalance ??
-        DEFAULT_EDR_NETWORK_HD_ACCOUNTS_CONFIG_PARAMS.accountsBalance,
-    ),
+    ...defaultHdAccountRest,
+    ...hdAccountRest,
+    mnemonic: resolveConfigurationVariable(mnemonic ?? defaultMnemonic),
+    accountsBalance: BigInt(accountsBalance ?? defaultAccountsBalance),
+    passphrase: resolveConfigurationVariable(passphrase ?? defaultPassphrase),
   };
 }
 

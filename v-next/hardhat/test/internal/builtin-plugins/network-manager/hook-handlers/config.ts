@@ -729,7 +729,7 @@ describe("network-manager/hook-handlers/config", () => {
             [
               {
                 path: ["networks", "localhost", "accounts", "mnemonic"],
-                message: "Required",
+                message: "Expected a string or a Configuration Variable",
               },
             ],
           );
@@ -742,7 +742,7 @@ describe("network-manager/hook-handlers/config", () => {
             [
               {
                 path: ["networks", "localhost", "accounts", "mnemonic"],
-                message: "Expected string, received number",
+                message: "Expected a string or a Configuration Variable",
               },
             ],
           );
@@ -798,7 +798,7 @@ describe("network-manager/hook-handlers/config", () => {
             [
               {
                 path: ["networks", "localhost", "accounts", "mnemonic"],
-                message: "Required",
+                message: "Expected a string or a Configuration Variable",
               },
             ],
           );
@@ -811,7 +811,7 @@ describe("network-manager/hook-handlers/config", () => {
             [
               {
                 path: ["networks", "localhost", "accounts", "mnemonic"],
-                message: "Required",
+                message: "Expected a string or a Configuration Variable",
               },
             ],
           );
@@ -1124,7 +1124,7 @@ describe("network-manager/hook-handlers/config", () => {
               [
                 {
                   path: ["networks", "localhost", "accounts", "mnemonic"],
-                  message: "Expected string, received number",
+                  message: "Expected a string or a Configuration Variable",
                 },
               ],
             );
@@ -1411,11 +1411,11 @@ describe("network-manager/hook-handlers/config", () => {
             gasMultiplier: 1.5,
             gasPrice: 100n,
             accounts: {
-              mnemonic: "asd asd asd",
+              mnemonic: new FixedValueConfigurationVariable("asd asd asd"),
               initialIndex: 0,
               count: 20,
               path: "m/44'/60'/0'/0",
-              passphrase: "passphrase",
+              passphrase: new FixedValueConfigurationVariable("passphrase"),
             },
             url: new FixedValueConfigurationVariable(
               "http://node.myNetwork.com",

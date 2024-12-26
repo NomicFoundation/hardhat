@@ -1,10 +1,7 @@
 import type { SolidityStackTrace } from "./stack-traces/solidity-stack-trace.js";
 import type { LoggerConfig } from "./types/logger.js";
 import type { TracingConfig } from "./types/node-types.js";
-import type {
-  EdrNetworkConfig,
-  EdrNetworkHDAccountsConfig,
-} from "../../../../types/config.js";
+import type { EdrNetworkConfig } from "../../../../types/config.js";
 import type {
   EthereumProvider,
   EthSubscription,
@@ -18,6 +15,7 @@ import type {
   CompilerInput,
   CompilerOutput,
 } from "../../../../types/solidity/compiler-io.js";
+import type { DefaultHDAccountsConfigParams } from "../accounts/derive-private-keys.js";
 import type { JsonRpcRequestWrapperFunction } from "../network-manager.js";
 import type {
   RawTrace,
@@ -81,10 +79,16 @@ const log = debug("hardhat:core:hardhat-network:provider");
 export const EDR_NETWORK_DEFAULT_COINBASE =
   "0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e";
 
+interface EdrNetworkDefaultHDAccountsConfigParams
+  extends DefaultHDAccountsConfigParams {
+  mnemonic: string;
+  accountsBalance: bigint;
+}
+
 export const EDR_NETWORK_MNEMONIC =
   "test test test test test test test test test test test junk";
 export const DEFAULT_EDR_NETWORK_BALANCE = 10000000000000000000000n;
-export const DEFAULT_EDR_NETWORK_HD_ACCOUNTS_CONFIG_PARAMS: EdrNetworkHDAccountsConfig =
+export const DEFAULT_EDR_NETWORK_HD_ACCOUNTS_CONFIG_PARAMS: EdrNetworkDefaultHDAccountsConfigParams =
   {
     ...DEFAULT_HD_ACCOUNTS_CONFIG_PARAMS,
     mnemonic: EDR_NETWORK_MNEMONIC,

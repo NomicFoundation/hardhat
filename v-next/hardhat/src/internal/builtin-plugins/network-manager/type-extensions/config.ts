@@ -33,10 +33,10 @@ declare module "../../../../types/config.js" {
     | HttpNetworkHDAccountsUserConfig;
 
   export interface HttpNetworkHDAccountsUserConfig {
-    mnemonic: string;
+    mnemonic: SensitiveString;
     count?: number;
     initialIndex?: number;
-    passphrase?: string;
+    passphrase?: SensitiveString;
     path?: string;
   }
 
@@ -82,11 +82,11 @@ declare module "../../../../types/config.js" {
   }
 
   export interface EdrNetworkHDAccountsUserConfig {
-    mnemonic?: string;
+    mnemonic?: SensitiveString;
     accountsBalance?: string | bigint;
     count?: number;
     initialIndex?: number;
-    passphrase?: string;
+    passphrase?: SensitiveString;
     path?: string;
   }
 
@@ -151,10 +151,10 @@ declare module "../../../../types/config.js" {
     | HttpNetworkHDAccountsConfig;
 
   export interface HttpNetworkHDAccountsConfig {
-    mnemonic: string;
+    mnemonic: ResolvedConfigurationVariable;
     count: number;
     initialIndex: number;
-    passphrase: string;
+    passphrase: ResolvedConfigurationVariable;
     path: string;
   }
 
@@ -200,11 +200,11 @@ declare module "../../../../types/config.js" {
   }
 
   export interface EdrNetworkHDAccountsConfig {
-    mnemonic: string;
+    mnemonic: ResolvedConfigurationVariable;
     accountsBalance: bigint;
     count: number;
     initialIndex: number;
-    passphrase: string;
+    passphrase: ResolvedConfigurationVariable;
     path: string;
   }
 

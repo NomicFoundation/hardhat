@@ -224,7 +224,7 @@ export function edrRpcDebugTraceToHardhat(
 export async function hardhatAccountsToEdrGenesisAccounts(
   accounts: EdrNetworkAccountsConfig,
 ): Promise<GenesisAccount[]> {
-  const normalizedAccounts = normalizeEdrNetworkAccountsConfig(accounts);
+  const normalizedAccounts = await normalizeEdrNetworkAccountsConfig(accounts);
 
   const accountPromises = normalizedAccounts.map(async (account) => ({
     secretKey: await account.privateKey.getHexString(),
@@ -234,19 +234,19 @@ export async function hardhatAccountsToEdrGenesisAccounts(
   return Promise.all(accountPromises);
 }
 
-function normalizeEdrNetworkAccountsConfig(
+async function normalizeEdrNetworkAccountsConfig(
   accounts: EdrNetworkAccountsConfig,
-): EdrNetworkAccountConfig[] {
+): Promise<EdrNetworkAccountConfig[]> {
   if (Array.isArray(accounts)) {
     return accounts;
   }
 
   return derivePrivateKeys(
-    accounts.mnemonic,
+    await accounts.mnemonic.get(),
     accounts.path,
     accounts.initialIndex,
     accounts.count,
-    accounts.passphrase,
+    await accounts.passphrase.get(),
   ).map((pk) => ({
     privateKey: new FixedValueConfigurationVariable(bytesToHexString(pk)),
     balance: accounts.accountsBalance ?? DEFAULT_EDR_NETWORK_BALANCE,
