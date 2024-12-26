@@ -1,5 +1,5 @@
 import type {
-  ConfigurationResolver,
+  ConfigurationVariableResolver,
   EdrNetworkAccountsConfig,
   EdrNetworkAccountsUserConfig,
   EdrNetworkChainConfig,
@@ -36,7 +36,7 @@ export function resolveGasConfig(value: GasUserConfig = "auto"): GasConfig {
 
 export function resolveHttpNetworkAccounts(
   accounts: HttpNetworkAccountsUserConfig | undefined = "remote",
-  resolveConfigurationVariable: ConfigurationResolver,
+  resolveConfigurationVariable: ConfigurationVariableResolver,
 ): HttpNetworkAccountsConfig {
   if (Array.isArray(accounts)) {
     return accounts.map((acc) => {
@@ -68,7 +68,7 @@ export function resolveEdrNetworkAccounts(
   accounts:
     | EdrNetworkAccountsUserConfig
     | undefined = DEFAULT_EDR_NETWORK_HD_ACCOUNTS_CONFIG_PARAMS,
-  resolveConfigurationVariable: ConfigurationResolver,
+  resolveConfigurationVariable: ConfigurationVariableResolver,
 ): EdrNetworkAccountsConfig {
   if (Array.isArray(accounts)) {
     return accounts.map(({ privateKey, balance }) => {
@@ -102,7 +102,7 @@ export function resolveEdrNetworkAccounts(
 export function resolveForkingConfig(
   forkingUserConfig: EdrNetworkForkingUserConfig | undefined,
   cacheDir: string,
-  resolveConfigurationVariable: ConfigurationResolver,
+  resolveConfigurationVariable: ConfigurationVariableResolver,
 ): EdrNetworkForkingConfig | undefined {
   if (forkingUserConfig === undefined) {
     return undefined;

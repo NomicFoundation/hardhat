@@ -49,7 +49,7 @@ export interface ResolvedConfigurationVariable {
 /**
  * A function that resolves a configuration variable.
  */
-export type ConfigurationResolver = (
+export type ConfigurationVariableResolver = (
   variableOrString: ConfigurationVariable | string,
 ) => ResolvedConfigurationVariable;
 
