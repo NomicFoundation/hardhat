@@ -59,7 +59,7 @@ const communityPlugins: IPlugin[] = [
     authorUrl: "https://tenderly.co/",
     description:
       "Easily integrate your Hardhat project with Tenderly. Tenderly is an Ethereum monitoring, debugging and analytics platform.",
-    tags: ["Debuggin", "Monitoring", "Alerting", "Tasks", "Scripts"],
+    tags: ["Debugging", "Monitoring", "Alerting", "Tasks", "Scripts"],
   },
   {
     name: "hardhat-ethernal",
