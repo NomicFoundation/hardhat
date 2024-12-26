@@ -2,7 +2,7 @@
 
 # hardhat-verify
 
-[Hardhat](https://hardhat.org) plugin to verify the source of code of deployed contracts.
+[Hardhat](https://hardhat.org) plugin to verify the source code of deployed contracts.
 
 ## What
 
@@ -13,7 +13,7 @@ It's smart and it tries to do as much as possible to facilitate the process:
 - Just provide the deployment address and constructor arguments, and the plugin will detect locally which contract to verify.
 - If your contract uses Solidity libraries, the plugin will detect them and deal with them automatically. You don't need to do anything about them.
 - A simulation of the verification process will run locally, allowing the plugin to detect and communicate any mistakes during the process.
-- Once the simulation is successful the contract will be verified using the Etherscan API.
+- Once the simulation is successful, the contract will be verified using the Etherscan API.
 
 ## Installation
 
@@ -131,7 +131,7 @@ module.exports = {
 
 If your project targets multiple EVM-compatible networks that have different explorers, you'll need to set multiple API keys.
 
-To configure the API keys for the chains you are using, provide an object under `etherscan/apiKey` with the identifier of each chain as the key. **This is not necessarily the same name that you are using to define the network**. For example, if you are going to verify contracts in Ethereum mainnet, Optimism and Arbitrum, your config would look like this:
+To configure the API keys for the chains you are using, provide an object under `etherscan/apiKey` with the identifier of each chain as the key. **This may not necessarily be the same name you use to define the network**. For example, if you are going to verify contracts in Ethereum mainnet, Optimism and Arbitrum, your config would look like this:
 
 ```js
 module.exports = {
