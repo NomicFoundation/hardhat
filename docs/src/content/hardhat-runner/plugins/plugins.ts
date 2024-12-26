@@ -819,7 +819,7 @@ const communityPlugins: IPlugin[] = [
     name: "hardhat-gasless-deployer",
     author: "Ahmed Ali",
     authorUrl: "https://twitter.com/0xAhmedAli",
-    npmPackage: "https://www.npmjs.com/package/hardhat-gasless-deployer",
+    npmPackage: "hardhat-gasless-deployer",
     description: "Deploy contracts with Hardhat using Gas Station Network",
     tags: ["GSN", "Gasless", "Deployment"],
   },
