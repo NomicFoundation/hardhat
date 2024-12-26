@@ -54,6 +54,7 @@ module.exports = {
   },
 };
 
-function isHardhatError(expression, tc) {
-  return getExpressionClassName(expression, tc) === "HardhatError";
+function isHardhatError(expression, typeChecker) {  // tc -> typeChecker для лучшей читаемости
+  return getExpressionClassName(expression, typeChecker) === "HardhatError";
+}
 }
