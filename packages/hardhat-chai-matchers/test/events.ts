@@ -71,7 +71,7 @@ describe(".to.emit (contract events)", () => {
       );
     });
 
-    it("Should fail when matcher is called with too many arguments", async function () {
+    it("Should fail when the matcher is called with too many arguments", async function () {
       await expect(
         // @ts-expect-error
         expect(contract.emitUint(1)).not.to.emit(contract, "WithoutArgs", 1)
