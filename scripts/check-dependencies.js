@@ -23,7 +23,7 @@ const IGNORE_PEER_DEPENDENCIES_CHECK_FOR_PACKAGES = {
   ["ts-node"]: ["hardhat"],
 };
 
-function CheckPeerDependencies(packageJson) {
+function checkPeerDependencies(packageJson) {
   if (packageJson.peerDependencies === undefined) {
     return true;
   }
@@ -169,7 +169,7 @@ function main() {
       continue;
     }
 
-    const peersOk = CheckPeerDependencies(packageJson);
+    const peersOk = checkPeerDependencies(packageJson);
     const dependencyMap = getDependencyMap(packageJson);
     dependencyMaps.push(dependencyMap);
 
