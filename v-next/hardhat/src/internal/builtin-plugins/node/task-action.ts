@@ -5,6 +5,7 @@ import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { exists } from "@ignored/hardhat-vnext-utils/fs";
 import chalk from "chalk";
 
+import { resolveConfigurationVariable } from "../../core/configuration-variables.js";
 import { resolveForkingConfig } from "../network-manager/config-resolution.js";
 
 import { JsonRpcServerImplementation } from "./json-rpc/server.js";
@@ -79,6 +80,8 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
           : undefined),
       },
       hre.config.paths.cache,
+      (strOrConfigVar) =>
+        resolveConfigurationVariable(hre.hooks, strOrConfigVar),
     );
   } else if (args.forkBlockNumber !== -1) {
     // NOTE: We could make the error more specific here.
