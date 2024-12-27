@@ -1,8 +1,0 @@
-{
-  "transactions": [
-    {
-      "file": "c.sol",
-      "contract": "C"
-    }
-  ]
-}
