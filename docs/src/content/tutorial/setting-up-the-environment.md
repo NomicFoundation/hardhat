@@ -49,7 +49,7 @@ Make sure you also [have `git` installed on WSL](https://docs.microsoft.com/en-u
 
 ## Upgrading your Node.js installation
 
-If your version of Node.js is older and [not supported by Hardhat](../hardhat-runner/docs/reference/stability-guarantees.md#node.js-versions-support) follow the instructions below to upgrade.
+If your version of Node.js is older and [is not supported by Hardhat](../hardhat-runner/docs/reference/stability-guarantees.md#node.js-versions-support) follow the instructions below to upgrade.
 
 ### Linux
 
