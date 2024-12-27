@@ -137,7 +137,9 @@ export class NetworkManagerImplementation implements NetworkManager {
       });
     }
 
-    // We only need to capture the hook manager in the closures below
+    /* Capture the hook manager in a local variable to avoid retaining a
+    reference to the NetworkManager instance, allowing the garbage collector
+    to clean up the NetworkConnectionImplementation instances properly. */
     const hookManager = this.#hookManager;
 
     const createProvider = async (
