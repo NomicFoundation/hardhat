@@ -309,7 +309,7 @@ export class SolidityError extends Error {
   }
 }
 
-class SolidityCallSite implements NodeJS.CallSite {
+export class SolidityCallSite implements NodeJS.CallSite {
   readonly #sourceName: string | undefined;
   readonly #contract: string | undefined;
   readonly #functionName: string | undefined;
@@ -335,7 +335,7 @@ class SolidityCallSite implements NodeJS.CallSite {
     return undefined;
   }
 
-  public getFileName() {
+  public getFileName(): string {
     return this.#sourceName ?? "unknown";
   }
 
@@ -343,7 +343,7 @@ class SolidityCallSite implements NodeJS.CallSite {
     return undefined;
   }
 
-  public getFunctionName() {
+  public getFunctionName(): string | null {
     // if it's a top-level function, we print its name
     if (this.#contract === undefined) {
       return this.#functionName ?? null;
@@ -352,11 +352,11 @@ class SolidityCallSite implements NodeJS.CallSite {
     return null;
   }
 
-  public getLineNumber() {
+  public getLineNumber(): number | null {
     return this.#line !== undefined ? this.#line : null;
   }
 
-  public getMethodName() {
+  public getMethodName(): string | null {
     if (this.#contract !== undefined) {
       return this.#functionName ?? null;
     }
@@ -380,7 +380,7 @@ class SolidityCallSite implements NodeJS.CallSite {
     return undefined;
   }
 
-  public getTypeName() {
+  public getTypeName(): string | null {
     return this.#contract ?? null;
   }
 
@@ -420,7 +420,41 @@ class SolidityCallSite implements NodeJS.CallSite {
     return 0;
   }
 
+  // Extracted and adapted from source-map-support package, which extracts it from V8
   public toString(): string {
-    return "[SolidityCallSite]";
+    let fileLocation = this.getFileName();
+
+    if (this.getLineNumber() !== null) {
+      fileLocation += `:${this.getLineNumber()}`;
+    }
+
+    let line = "";
+    const functionName = this.getFunctionName();
+    let addSuffix = true;
+    const isConstructor = this.isConstructor();
+    const isMethodCall = !(this.isToplevel() || isConstructor);
+    if (isMethodCall) {
+      const typeName = this.getTypeName();
+      const methodName = this.getMethodName();
+      if (functionName !== null) {
+        if (typeName !== null) {
+          line += typeName + ".";
+        }
+        line += functionName;
+      } else {
+        line += typeName + "." + (methodName ?? "<anonymous>");
+      }
+    } else if (isConstructor) {
+      line += "new " + (functionName ?? "<anonymous>");
+    } else if (functionName !== null) {
+      line += functionName;
+    } else {
+      line += fileLocation;
+      addSuffix = false;
+    }
+    if (addSuffix) {
+      line += " (" + fileLocation + ")";
+    }
+    return line;
   }
 }
