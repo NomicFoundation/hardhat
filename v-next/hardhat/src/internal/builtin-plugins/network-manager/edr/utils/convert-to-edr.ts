@@ -7,6 +7,7 @@ import type {
   EdrNetworkMempoolConfig,
   EdrNetworkMiningConfig,
 } from "../../../../../types/config.js";
+import type { ChainType } from "../../../../../types/network.js";
 import type { RpcDebugTraceOutput, RpcStructLog } from "../types/output.js";
 import type {
   IntervalRange,
@@ -35,6 +36,9 @@ import {
   MERGE,
   SHANGHAI,
   CANCUN,
+  OPTIMISM_CHAIN_TYPE,
+  L1_CHAIN_TYPE,
+  GENERIC_CHAIN_TYPE,
 } from "@ignored/edr-optimism";
 
 import { FixedValueConfigurationVariable } from "../../../../core/configuration-variables.js";
@@ -308,4 +312,18 @@ export async function hardhatForkingConfigToEdrForkConfig(
   }
 
   return fork;
+}
+
+export function hardhatChainTypeToEdrChainType(
+  chainType: ChainType | undefined,
+): string {
+  if (chainType === "optimism") {
+    return OPTIMISM_CHAIN_TYPE;
+  }
+
+  if (chainType === "l1") {
+    return L1_CHAIN_TYPE;
+  }
+
+  return GENERIC_CHAIN_TYPE;
 }

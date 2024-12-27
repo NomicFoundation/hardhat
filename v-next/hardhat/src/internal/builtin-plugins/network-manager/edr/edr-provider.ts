@@ -72,6 +72,7 @@ import {
   hardhatAccountsToEdrGenesisAccounts,
   hardhatChainsToEdrChains,
   hardhatForkingConfigToEdrForkConfig,
+  hardhatChainTypeToEdrChainType,
 } from "./utils/convert-to-edr.js";
 import { printLine, replaceLastLine } from "./utils/logger.js";
 
@@ -179,9 +180,7 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
 
     const context = await getGlobalEdrContext();
     const provider = await context.createProvider(
-      networkConfig.chainType === "optimism"
-        ? OPTIMISM_CHAIN_TYPE
-        : GENERIC_CHAIN_TYPE, // TODO: l1 is missing here
+      hardhatChainTypeToEdrChainType(networkConfig.chainType),
       providerConfig,
       {
         enable: loggerConfig.enabled,
