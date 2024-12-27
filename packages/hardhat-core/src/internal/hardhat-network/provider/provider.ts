@@ -157,7 +157,7 @@ export class EdrProviderWrapper
       _vm: MinimalEthereumJsVm;
     },
     // The common configuration for EthereumJS VM is not used by EDR, but tests expect it as part of the provider.
-    private readonly _common: Common,
+    private readonly _common: Common
   ) {
     super();
   }
@@ -290,7 +290,7 @@ export class EdrProviderWrapper
     const wrapper = new EdrProviderWrapper(
       provider,
       minimalEthereumJsNode,
-      common,
+      common
     );
 
     // Pass through all events from the provider
@@ -334,7 +334,7 @@ export class EdrProviderWrapper
 
     const needsTraces =
       this._node._vm.evm.events.eventNames().length > 0 ||
-      this._node._vm.events.eventNames().length > 0
+      this._node._vm.events.eventNames().length > 0;
 
     if (needsTraces) {
       const rawTraces = responseObject.traces;
@@ -387,7 +387,7 @@ export class EdrProviderWrapper
     if (isErrorResponse(response)) {
       let error;
 
-      const stackTrace: SolidityStackTrace | null =  responseObject.stackTrace();
+      const stackTrace: SolidityStackTrace | null = responseObject.stackTrace();
 
       if (stackTrace !== null) {
         error = encodeSolidityStackTrace(response.error.message, stackTrace);

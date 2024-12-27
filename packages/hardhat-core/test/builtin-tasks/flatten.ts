@@ -13,7 +13,7 @@ import {
 import { getPackageJson } from "../../src/internal/util/packageInfo";
 import { useEnvironment } from "../helpers/environment";
 import { useFixtureProject } from "../helpers/project";
-import { compileLiteral } from "../internal/hardhat-network/stack-traces/compilation";
+import { compileLiteral } from "../helpers/compilation";
 
 function getContractsOrder(flattenedFiles: string) {
   const CONTRACT_REGEX = /\s*contract(\s+)(\w)/gm;
