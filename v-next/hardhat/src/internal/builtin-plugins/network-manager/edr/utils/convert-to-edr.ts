@@ -36,11 +36,14 @@ import {
   SHANGHAI,
   CANCUN,
 } from "@ignored/edr-optimism";
-import { bytesToHexString } from "@ignored/hardhat-vnext-utils/bytes";
 
 import { FixedValueConfigurationVariable } from "../../../../core/configuration-variables.js";
 import { derivePrivateKeys } from "../../accounts/derive-private-keys.js";
-import { DEFAULT_EDR_NETWORK_BALANCE } from "../edr-provider.js";
+import {
+  DEFAULT_EDR_NETWORK_BALANCE,
+  EDR_NETWORK_DEFAULT_PRIVATE_KEYS,
+  isDefaultEdrNetworkHDAccountsConfig,
+} from "../edr-provider.js";
 import { HardforkName } from "../types/hardfork.js";
 
 import { getHardforkName } from "./hardfork.js";
@@ -241,14 +244,19 @@ async function normalizeEdrNetworkAccountsConfig(
     return accounts;
   }
 
-  return derivePrivateKeys(
-    await accounts.mnemonic.get(),
-    accounts.path,
-    accounts.initialIndex,
-    accounts.count,
-    await accounts.passphrase.get(),
-  ).map((pk) => ({
-    privateKey: new FixedValueConfigurationVariable(bytesToHexString(pk)),
+  const isDefaultConfig = await isDefaultEdrNetworkHDAccountsConfig(accounts);
+  const derivedPrivateKeys = isDefaultConfig
+    ? EDR_NETWORK_DEFAULT_PRIVATE_KEYS
+    : derivePrivateKeys(
+        await accounts.mnemonic.get(),
+        accounts.path,
+        accounts.initialIndex,
+        accounts.count,
+        await accounts.passphrase.get(),
+      );
+
+  return derivedPrivateKeys.map((privateKey) => ({
+    privateKey: new FixedValueConfigurationVariable(privateKey),
     balance: accounts.accountsBalance ?? DEFAULT_EDR_NETWORK_BALANCE,
   }));
 }
