@@ -97,7 +97,7 @@ export const DEFAULT_EDR_NETWORK_HD_ACCOUNTS_CONFIG_PARAMS: EdrNetworkDefaultHDA
     accountsBalance: DEFAULT_EDR_NETWORK_BALANCE,
   };
 
-export function isDefaultEdrNetworkHDAccountsConfig(
+export async function isDefaultEdrNetworkHDAccountsConfig(
   account: unknown,
 ): Promise<boolean> {
   return deepEqual(account, DEFAULT_EDR_NETWORK_HD_ACCOUNTS_CONFIG_PARAMS);
