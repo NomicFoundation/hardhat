@@ -53,7 +53,7 @@ npx hardhat flatten contracts/Foo.sol contracts/Bar.sol
 
 But if `Bar.sol` is a dependency of `Foo.sol`, then the result will be the same as in the previous example.
 
-As explained in the previous section, you can redirect the output to some file:
+As explained in the previous section, you can redirect the output to some a file:
 
 ```
 npx hardhat flatten contracts/Foo.sol > Flattened.sol
