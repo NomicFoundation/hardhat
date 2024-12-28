@@ -168,7 +168,7 @@ function deepFreezeUserConfig(
  * Receives an Error and checks if it's a MODULE_NOT_FOUND and the reason that
  * caused it.
  *
- * If it can infer the reason, it throws an appropiate error. Otherwise it does
+ * If it can infer the reason, it throws an appropriate error. Otherwise it does
  * nothing.
  */
 export function analyzeModuleNotFoundError(error: any, configPath: string) {
