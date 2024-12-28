@@ -2,7 +2,7 @@
 
 This guide will explore the creation of tasks in Hardhat, which are the core component used for automation.
 
-A task is a JavaScript async function with some associated metadata. This metadata is used by Hardhat to automate some things for you. Arguments parsing, validation, and help messages are taken care of.
+A task is a JavaScript async function with some associated metadata. This metadata is used by Hardhat to automate some things for you. Argument parsing, validation, and help messages are taken care of.
 
 Everything you can do in Hardhat is defined as a task. The default actions that come out of the box are built-in tasks and they are implemented using the same APIs that are available to you as a user.
 
