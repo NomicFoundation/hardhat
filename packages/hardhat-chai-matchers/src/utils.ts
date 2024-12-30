@@ -3,6 +3,44 @@ import { AssertionError } from "chai";
 // just a generic function type to avoid errors from the ban-types eslint rule
 export type Ssfi = (...args: any[]) => any;
 
+type Message = string | (() => string);
+
+function evalMessage(message?: Message): string {
+  if (message === undefined) {
+    throw new Error(
+      "Assertion doesn't have an error message. Please open an issue to report this."
+    );
+  }
+
+  return typeof message === "function" ? message() : message;
+}
+
+function buildNegated(ssfi: Ssfi) {
+  return function (
+    condition: boolean,
+    _messageFalse?: Message,
+    messageTrue?: Message
+  ) {
+    if (condition) {
+      const message = evalMessage(messageTrue);
+      throw new AssertionError(message, undefined, ssfi);
+    }
+  };
+}
+
+function buildNormal(ssfi: Ssfi) {
+  return function (
+    condition: boolean,
+    messageFalse?: Message,
+    _messageTrue?: Message
+  ) {
+    if (!condition) {
+      const message = evalMessage(messageFalse);
+      throw new AssertionError(message, undefined, ssfi);
+    }
+  };
+}
+
 /**
  * This function is used by the matchers to obtain an `assert` function, which
  * should be used instead of `this.assert`.
@@ -20,35 +58,7 @@ export type Ssfi = (...args: any[]) => any;
  * existing matchers for a reference of something that works well enough.
  */
 export function buildAssert(negated: boolean, ssfi: Ssfi) {
-  return function (
-    condition: boolean,
-    messageFalse?: string | (() => string),
-    messageTrue?: string | (() => string)
-  ) {
-    if (!negated && !condition) {
-      if (messageFalse === undefined) {
-        throw new Error(
-          "Assertion doesn't have an error message. Please open an issue to report this."
-        );
-      }
-
-      const message =
-        typeof messageFalse === "function" ? messageFalse() : messageFalse;
-      throw new AssertionError(message, undefined, ssfi);
-    }
-
-    if (negated && condition) {
-      if (messageTrue === undefined) {
-        throw new Error(
-          "Assertion doesn't have an error message. Please open an issue to report this."
-        );
-      }
-
-      const message =
-        typeof messageTrue === "function" ? messageTrue() : messageTrue;
-      throw new AssertionError(message, undefined, ssfi);
-    }
-  };
+  return negated ? buildNegated(ssfi) : buildNormal(ssfi);
 }
 
 export type AssertWithSsfi = ReturnType<typeof buildAssert>;
