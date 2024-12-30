@@ -990,7 +990,7 @@ describe("network-manager/hook-handlers/config", () => {
               [
                 {
                   path: ["networks", "localhost", "accounts", 0, "balance"],
-                  message: "Required",
+                  message: "Expected a string or a positive bigint",
                 },
                 {
                   path: ["networks", "localhost", "accounts", 0, "privateKey"],
@@ -1010,7 +1010,7 @@ describe("network-manager/hook-handlers/config", () => {
               [
                 {
                   path: ["networks", "localhost", "accounts", 0, "balance"],
-                  message: "Required",
+                  message: "Expected a string or a positive bigint",
                 },
               ],
             );
@@ -1032,7 +1032,7 @@ describe("network-manager/hook-handlers/config", () => {
               [
                 {
                   path: ["networks", "localhost", "accounts", 0, "balance"],
-                  message: "Expected string, received number",
+                  message: "Expected a string or a positive bigint",
                 },
                 {
                   path: ["networks", "localhost", "accounts", 0, "privateKey"],
@@ -1048,12 +1048,12 @@ describe("network-manager/hook-handlers/config", () => {
               await validateUserConfig(hardhatUserConfig),
               [
                 {
-                  path: ["networks", "localhost", "accounts", 0, "privateKey"],
-                  message: "Expected string, received number",
+                  path: ["networks", "localhost", "accounts", 0, "balance"],
+                  message: "Expected a string or a positive bigint",
                 },
                 {
-                  path: ["networks", "localhost", "accounts", 0, "balance"],
-                  message: "Required",
+                  path: ["networks", "localhost", "accounts", 0, "privateKey"],
+                  message: "Expected string, received number",
                 },
               ],
             );
@@ -1074,7 +1074,7 @@ describe("network-manager/hook-handlers/config", () => {
               },
               {
                 path: ["networks", "localhost", "accounts", 0, "balance"],
-                message: "Expected string, received number",
+                message: "Expected a string or a positive bigint",
               },
             ]);
           });

@@ -1,8 +1,20 @@
 /* eslint-disable no-restricted-syntax -- hack */
-import type { IntervalMiningConfig } from "../../../../../types/config.js";
-import type { MempoolOrder } from "../types/node-types.js";
+import type {
+  EdrNetworkAccountConfig,
+  EdrNetworkAccountsConfig,
+  EdrNetworkChainsConfig,
+  EdrNetworkForkingConfig,
+  EdrNetworkMempoolConfig,
+  EdrNetworkMiningConfig,
+} from "../../../../../types/config.js";
 import type { RpcDebugTraceOutput, RpcStructLog } from "../types/output.js";
-import type { IntervalRange, DebugTraceResult } from "@ignored/edr-optimism";
+import type {
+  IntervalRange,
+  DebugTraceResult,
+  GenesisAccount,
+  ChainConfig,
+  ForkConfig,
+} from "@ignored/edr-optimism";
 
 import {
   MineOrdering,
@@ -24,11 +36,18 @@ import {
   SHANGHAI,
   CANCUN,
 } from "@ignored/edr-optimism";
+import { bytesToHexString } from "@ignored/hardhat-vnext-utils/bytes";
 
+import { derivePrivateKeys } from "../../accounts/derive-private-keys.js";
+import { DEFAULT_EDR_NETWORK_BALANCE } from "../edr-provider.js";
 import { HardforkName } from "../types/hardfork.js";
 
-export function ethereumsjsHardforkToEdrSpecId(hardfork: HardforkName): string {
-  switch (hardfork) {
+import { getHardforkName } from "./hardfork.js";
+
+export function hardhatHardforkToEdrSpecId(hardfork: string): string {
+  const hardforkName = getHardforkName(hardfork);
+
+  switch (hardforkName) {
     case HardforkName.FRONTIER:
       return FRONTIER;
     case HardforkName.HOMESTEAD:
@@ -65,7 +84,7 @@ export function ethereumsjsHardforkToEdrSpecId(hardfork: HardforkName): string {
       return CANCUN;
     // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- trust but verify
     default:
-      const _exhaustiveCheck: never = hardfork;
+      const _exhaustiveCheck: never = hardforkName;
       throw new Error(
         // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- we want to print the fork
         `Unknown hardfork name '${hardfork as string}', this shouldn't happen`,
@@ -73,7 +92,7 @@ export function ethereumsjsHardforkToEdrSpecId(hardfork: HardforkName): string {
   }
 }
 
-export function edrSpecIdToEthereumHardfork(specId: string): HardforkName {
+export function edrSpecIdToHardhatHardfork(specId: string): HardforkName {
   switch (specId) {
     case FRONTIER:
       return HardforkName.FRONTIER;
@@ -116,8 +135,8 @@ export function edrSpecIdToEthereumHardfork(specId: string): HardforkName {
   }
 }
 
-export function ethereumjsIntervalMiningConfigToEdr(
-  config: IntervalMiningConfig,
+export function hardhatMiningIntervalToEdrMiningInterval(
+  config: EdrNetworkMiningConfig["interval"],
 ): bigint | IntervalRange | undefined {
   if (typeof config === "number") {
     // Is interval mining disabled?
@@ -134,8 +153,8 @@ export function ethereumjsIntervalMiningConfigToEdr(
   }
 }
 
-export function ethereumjsMempoolOrderToEdrMineOrdering(
-  mempoolOrder: MempoolOrder,
+export function hardhatMempoolOrderToEdrMineOrdering(
+  mempoolOrder: EdrNetworkMempoolConfig["order"],
 ): MineOrdering {
   switch (mempoolOrder) {
     case "fifo":
@@ -199,4 +218,77 @@ export function edrRpcDebugTraceToHardhat(
     returnValue,
     structLogs,
   };
+}
+
+export function hardhatAccountsToEdrGenesisAccounts(
+  accounts: EdrNetworkAccountsConfig,
+): GenesisAccount[] {
+  const normalizedAccounts = normalizeEdrNetworkAccountsConfig(accounts);
+
+  return normalizedAccounts.map((account) => {
+    return {
+      secretKey: account.privateKey,
+      balance: account.balance,
+    };
+  });
+}
+
+function normalizeEdrNetworkAccountsConfig(
+  accounts: EdrNetworkAccountsConfig,
+): EdrNetworkAccountConfig[] {
+  if (Array.isArray(accounts)) {
+    return accounts;
+  }
+
+  return derivePrivateKeys(
+    accounts.mnemonic,
+    accounts.path,
+    accounts.initialIndex,
+    accounts.count,
+    accounts.passphrase,
+  ).map((pk) => ({
+    privateKey: bytesToHexString(pk),
+    balance: accounts.accountsBalance ?? DEFAULT_EDR_NETWORK_BALANCE,
+  }));
+}
+
+export function hardhatChainsToEdrChains(
+  chains: EdrNetworkChainsConfig,
+): ChainConfig[] {
+  const edrChains: ChainConfig[] = [];
+
+  for (const [chainId, hardforkConfig] of chains) {
+    const hardforks = [];
+
+    for (const [hardfork, blockNumber] of hardforkConfig.hardforkHistory) {
+      const specId = hardhatHardforkToEdrSpecId(getHardforkName(hardfork));
+
+      hardforks.push({
+        blockNumber: BigInt(blockNumber),
+        specId,
+      });
+    }
+
+    edrChains.push({
+      chainId: BigInt(chainId),
+      hardforks,
+    });
+  }
+
+  return edrChains;
+}
+
+export function hardhatForkingConfigToEdrForkConfig(
+  forkingConfig: EdrNetworkForkingConfig | undefined,
+): ForkConfig | undefined {
+  let fork: ForkConfig | undefined;
+  if (forkingConfig !== undefined && forkingConfig.enabled === true) {
+    fork = {
+      jsonRpcUrl: forkingConfig.url,
+      blockNumber: forkingConfig.blockNumber,
+      httpHeaders: forkingConfig.httpHeaders,
+    };
+  }
+
+  return fork;
 }
