@@ -27,7 +27,7 @@ describe(
       useTmpDir("native-compiler-execution");
 
       let downloader: CompilerDownloader;
-      let optimizerConfig: any;
+      let optimizerConfig: CompilerInput["settings"]["optimizer"];
       let solcPath: string;
 
       before(function () {
