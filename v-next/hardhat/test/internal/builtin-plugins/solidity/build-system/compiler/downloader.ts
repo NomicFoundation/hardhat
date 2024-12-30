@@ -26,8 +26,8 @@ describe(
     let downloader: CompilerDownloader;
 
     beforeEach(async function () {
-      const plaftorm = CompilerDownloader.getCompilerPlatform();
-      downloader = new CompilerDownloader(plaftorm, process.cwd());
+      const platform = CompilerDownloader.getCompilerPlatform();
+      downloader = new CompilerDownloader(platform, process.cwd());
 
       await downloader.updateCompilerListIfNeeded(new Set([]));
 
