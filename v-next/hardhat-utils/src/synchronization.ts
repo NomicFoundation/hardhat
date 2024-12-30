@@ -15,6 +15,7 @@ import debug from "debug";
 
 import { ensureError } from "./error.js";
 import { FileSystemAccessError } from "./errors/fs.js";
+import { sleep } from "./lang.js";
 
 const log = debug("hardhat:util:multi-process-mutex");
 const DEFAULT_MAX_MUTEX_LIFESPAN_IN_MS = 60000;
@@ -50,7 +51,7 @@ export class MultiProcessMutex {
         this.#deleteMutexFile();
       } else {
         // wait
-        await this.#waitMs();
+        await sleep(MUTEX_LOOP_WAITING_TIME_IN_MS / 1000);
       }
     }
   }
@@ -121,11 +122,5 @@ export class MultiProcessMutex {
 
       throw new FileSystemAccessError(e.message, e);
     }
-  }
-
-  async #waitMs() {
-    return new Promise((resolve) =>
-      setTimeout(resolve, MUTEX_LOOP_WAITING_TIME_IN_MS),
-    );
   }
 }
