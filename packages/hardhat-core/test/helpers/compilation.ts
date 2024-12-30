@@ -29,7 +29,6 @@ export async function compileLiteral(
   return compile(getSolcInputForLiteral(source, filename), compiler);
 }
 
-
 function getSolcInput(sources: SolcSourceFileToContents): CompilerInput {
   const optimizer = {
     enabled: false,
