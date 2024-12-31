@@ -29,7 +29,7 @@ export type ParsedRootPath = { npmPath: string } | { fsPath: string };
 export function parseRootPath(
   rootPath: string,
 ): { npmPath: string } | { fsPath: string } {
-  if (rootPath.startsWith("npm:")) {
+  if (isNpmRootPath(rootPath)) {
     return { npmPath: rootPath.substring(4) };
   }
 
@@ -73,7 +73,7 @@ export function formatRootPath(
   publicSourceName: string,
   rootFile: ResolvedFile,
 ): string {
-  if (rootFile.type !== ResolvedFileType.NPM_PACKGE_FILE) {
+  if (rootFile.type !== ResolvedFileType.NPM_PACKAGE_FILE) {
     return publicSourceName;
   }
 

@@ -65,7 +65,7 @@ function assertNpmPackageResolvedFile(
   filePathFromPackageRoot: string,
 ): asserts resolvedFile is NpmPackageResolvedFile {
   assert.ok(
-    resolvedFile.type === ResolvedFileType.NPM_PACKGE_FILE,
+    resolvedFile.type === ResolvedFileType.NPM_PACKAGE_FILE,
     `Resolved file ${resolvedFile.fsPath} is not an npm file`,
   );
 
@@ -228,7 +228,8 @@ describe("Resolver", () => {
 
               await assertRejectsWithHardhatError(
                 resolver.resolveImport(contractsFileSol, "../file.sol"),
-                HardhatError.ERRORS.SOLIDITY.IMPORTED_FILE_WITH_ICORRECT_CASING,
+                HardhatError.ERRORS.SOLIDITY
+                  .IMPORTED_FILE_WITH_INCORRECT_CASING,
                 {
                   importPath: "../file.sol",
                   from: path.join("contracts", "File.sol"),
@@ -286,7 +287,8 @@ describe("Resolver", () => {
 
               await assertRejectsWithHardhatError(
                 resolver.resolveImport(contractsFileSol, "contracts/file2.sol"),
-                HardhatError.ERRORS.SOLIDITY.IMPORTED_FILE_WITH_ICORRECT_CASING,
+                HardhatError.ERRORS.SOLIDITY
+                  .IMPORTED_FILE_WITH_INCORRECT_CASING,
                 {
                   importPath: "contracts/file2.sol",
                   from: path.join("contracts", "File.sol"),
@@ -345,7 +347,10 @@ describe("Resolver", () => {
               "hardhat/console.sol",
             );
 
-            assert.deepEqual(consoleSol.type, ResolvedFileType.NPM_PACKGE_FILE);
+            assert.deepEqual(
+              consoleSol.type,
+              ResolvedFileType.NPM_PACKAGE_FILE,
+            );
             assert.deepEqual(consoleSol.package, {
               name: "@ignored/hardhat-vnext",
               version: "local", // The test considers it part of the monorepo, because it's the same package
@@ -410,7 +415,7 @@ describe("Resolver", () => {
 
             await assertRejectsWithHardhatError(
               resolver.resolveImport(contractsFileSol, "dependency/file.sol"),
-              HardhatError.ERRORS.SOLIDITY.IMPORTED_FILE_WITH_ICORRECT_CASING,
+              HardhatError.ERRORS.SOLIDITY.IMPORTED_FILE_WITH_INCORRECT_CASING,
               {
                 from: path.join("contracts", "File.sol"),
                 importPath: "dependency/file.sol",

@@ -16,7 +16,7 @@ export function printDependencyGraphAndRemappingsSummary(
   const rootRepresentations: string[] = [];
 
   for (const [rootFile, resolvedFile] of roots.entries()) {
-    if (resolvedFile.type === ResolvedFileType.NPM_PACKGE_FILE) {
+    if (resolvedFile.type === ResolvedFileType.NPM_PACKAGE_FILE) {
       rootRepresentations.push(`- ${rootFile} -> ${resolvedFile.sourceName}
       ${resolvedFile.fsPath}`);
     } else {

@@ -35,7 +35,7 @@ export interface ResolvedNpmPackage {
  */
 export enum ResolvedFileType {
   PROJECT_FILE = "PROJECT_FILE",
-  NPM_PACKGE_FILE = "NPM_PACKAGE_FILE",
+  NPM_PACKAGE_FILE = "NPM_PACKAGE_FILE",
 }
 
 /**
@@ -64,7 +64,7 @@ export interface ProjectResolvedFile {
  * A file that's part of an npm package.
  */
 export interface NpmPackageResolvedFile {
-  type: ResolvedFileType.NPM_PACKGE_FILE;
+  type: ResolvedFileType.NPM_PACKAGE_FILE;
 
   /**
    * The source of an npm package file is `npm/<package-name>@<version>/<path>`.
