@@ -961,7 +961,7 @@ Remaining test suites: {suites}`,
       websiteTitle: "Imported file doesn't exist",
       websiteDescription: `An imported file doesn't exist.`,
     },
-    IMPORTED_FILE_WITH_ICORRECT_CASING: {
+    IMPORTED_FILE_WITH_INCORRECT_CASING: {
       number: 1203,
       messageTemplate:
         'The import "{importPath} from "{from}" exists, but its casing is incorrect. The correct casing is "{correctCasing}".',

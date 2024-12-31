@@ -123,7 +123,7 @@ export class ResolverImplementation implements Resolver {
    * and the user remaps `dep/=nope/`, it could break `foo`'s import.
    *
    * To avoid this situation we set all the prefixes that `foo` needs unaffected
-   * by the user remapping, with a higher presedence than user remappings.
+   * by the user remapping, with a higher precedence than user remappings.
    */
   readonly #localPrefixesByPackage: Map<ResolvedNpmPackage, Set<string>> =
     new Map();
@@ -138,7 +138,6 @@ export class ResolverImplementation implements Resolver {
    *
    * @param projectRoot The absolute path to the Hardhat project root.
    * @param userRemappingStrings The remappings provided by the user.
-   * @param workingDirectory The absolute path to the working directory.
    */
   public static async create(
     projectRoot: string,
@@ -182,7 +181,7 @@ export class ResolverImplementation implements Resolver {
 
       // We first check if the file has already been resolved.
       //
-      // Note that it may have recevied the right path, but with the wrong
+      // Note that it may have received the right path, but with the wrong
       // casing. We don't care at this point, as it would just mean a cache
       // miss, and we proceed to get the right casing in that case.
       //
@@ -321,7 +320,7 @@ export class ResolverImplementation implements Resolver {
       const fsPath = path.join(npmPackage.rootFsPath, trueCaseFsPath);
 
       const resolvedFile: NpmPackageResolvedFile = {
-        type: ResolvedFileType.NPM_PACKGE_FILE,
+        type: ResolvedFileType.NPM_PACKAGE_FILE,
         sourceName,
         fsPath,
         content: await readFileContent(fsPath),
@@ -357,7 +356,7 @@ export class ResolverImplementation implements Resolver {
           importPath,
         );
 
-        if (from.type === ResolvedFileType.NPM_PACKGE_FILE) {
+        if (from.type === ResolvedFileType.NPM_PACKAGE_FILE) {
           if (!directImport.startsWith(from.package.rootSourceName)) {
             throw new HardhatError(
               HardhatError.ERRORS.SOLIDITY.ILLEGAL_PACKAGE_IMPORT,
@@ -388,7 +387,7 @@ export class ResolverImplementation implements Resolver {
             directImport,
           });
 
-        case ResolvedFileType.NPM_PACKGE_FILE:
+        case ResolvedFileType.NPM_PACKAGE_FILE:
           return this.#resolveImportFromNpmPackageFile({
             from,
             importPath,
@@ -511,7 +510,7 @@ export class ResolverImplementation implements Resolver {
   //  4. Resolving an import from an npm package to one of its own files with a
   //     direct import — This case is different from 3, as without especial care
   //     it could be affected by one of the user remappings.
-  //  5. Resolving an import to a different npm package using our own remmapings
+  //  5. Resolving an import to a different npm package using our own remappings
 
   /**
    * Resolves an import from a project file.
@@ -865,7 +864,7 @@ export class ResolverImplementation implements Resolver {
     );
 
     const resolvedFile: NpmPackageResolvedFile = {
-      type: ResolvedFileType.NPM_PACKGE_FILE,
+      type: ResolvedFileType.NPM_PACKAGE_FILE,
       sourceName,
       fsPath,
       content: await readFileContent(fsPath),
@@ -918,7 +917,7 @@ export class ResolverImplementation implements Resolver {
     const filePath = path.join(from.package.rootFsPath, relativePath);
 
     const resolvedFile: NpmPackageResolvedFile = {
-      type: ResolvedFileType.NPM_PACKGE_FILE,
+      type: ResolvedFileType.NPM_PACKAGE_FILE,
       sourceName,
       fsPath: filePath,
       content: await readFileContent(filePath),
@@ -973,7 +972,7 @@ export class ResolverImplementation implements Resolver {
     const fsPath = path.join(from.package.rootFsPath, relativeFsPath);
 
     const resolvedFile: NpmPackageResolvedFile = {
-      type: ResolvedFileType.NPM_PACKGE_FILE,
+      type: ResolvedFileType.NPM_PACKAGE_FILE,
       sourceName,
       fsPath,
       content: await readFileContent(fsPath),
@@ -1033,7 +1032,7 @@ export class ResolverImplementation implements Resolver {
     );
 
     const resolvedFile: NpmPackageResolvedFile = {
-      type: ResolvedFileType.NPM_PACKGE_FILE,
+      type: ResolvedFileType.NPM_PACKAGE_FILE,
       sourceName,
       fsPath,
       content: await readFileContent(fsPath),
@@ -1298,7 +1297,7 @@ export class ResolverImplementation implements Resolver {
 
     if (relativeFsPathToValidate !== trueCaseFsPath) {
       throw new HardhatError(
-        HardhatError.ERRORS.SOLIDITY.IMPORTED_FILE_WITH_ICORRECT_CASING,
+        HardhatError.ERRORS.SOLIDITY.IMPORTED_FILE_WITH_INCORRECT_CASING,
         {
           importPath,
           from: shortenPath(from.fsPath),
