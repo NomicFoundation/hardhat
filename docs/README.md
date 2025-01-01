@@ -70,7 +70,7 @@ All documentation content is represented by `*.md` files with Markdown syntax. B
 
 ### Redirects
 
-Redirects allow you to redirect an incoming request path to a different destination path. Redirects settings are located in `redirects.config.js` file. It exports an array of objects. Each object represents a single redirect option. We utilize [NextJS Redirects](https://nextjs.org/docs/api-reference/next.config.js/redirects) API for that.
+Redirects allow you to redirect an incoming request path to a different destination path. Redirects settings are located in `redirects.config.js` file. It exports an array of objects. Each object represents a single redirect option. We utilize [NextJS Redirects](https://nextjs.org/docs/app/api-reference/config/next-config-js/redirects) API for that.
 
 ### Tabs
 

@@ -71,7 +71,7 @@ describe(".to.emit (contract events)", () => {
       );
     });
 
-    it("Should fail when matcher is called with too many arguments", async function () {
+    it("Should fail when the matcher is called with too many arguments", async function () {
       await expect(
         // @ts-expect-error
         expect(contract.emitUint(1)).not.to.emit(contract, "WithoutArgs", 1)
@@ -345,7 +345,7 @@ describe(".to.emit (contract events)", () => {
           );
         });
 
-        it("Should fail the passerd argument is the hash, not the pre-image", async function () {
+        it("Should fail the passed argument is the hash, not the pre-image", async function () {
           await expect(
             expect(contract.emitIndexedBytes(str1.bytes))
               .to.emit(contract, "WithIndexedBytesArg")
