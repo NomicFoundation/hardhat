@@ -1,9 +1,8 @@
-import type { JsonRpcTransactionData } from "../../../../../../../src/internal/builtin-plugins/network-manager/request-handlers/handlers/accounts/types.js";
-
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
 
 import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
+import { isObject } from "@ignored/hardhat-vnext-utils/lang";
 
 import {
   getJsonRpcRequest,
@@ -15,7 +14,14 @@ import { EthereumMockedProvider } from "../../ethereum-mocked-provider.js";
 describe("FixedSenderHandler", function () {
   let fixedSenderHandler: FixedSenderHandler;
   let mockedProvider: EthereumMockedProvider;
-  let tx: JsonRpcTransactionData;
+  let tx: {
+    from?: string;
+    to: string;
+    gas: string;
+    gasPrice: string;
+    value: string;
+    nonce: string;
+  };
 
   before(() => {
     mockedProvider = new EthereumMockedProvider();
@@ -39,10 +45,9 @@ describe("FixedSenderHandler", function () {
 
     await fixedSenderHandler.handle(jsonRpcRequest);
 
-    assert.equal(
-      getRequestParams(jsonRpcRequest)[0].from,
-      "0x2a97a65d5673a2c61e95ce33cecadf24f654f96d",
-    );
+    const [requestTx] = getRequestParams(jsonRpcRequest);
+    assert.ok(isObject(requestTx), "tx is not an object");
+    assert.equal(requestTx.from, "0x2a97a65d5673a2c61e95ce33cecadf24f654f96d");
   });
 
   it("should not replace transaction's from", async () => {
@@ -52,9 +57,8 @@ describe("FixedSenderHandler", function () {
 
     await fixedSenderHandler.handle(jsonRpcRequest);
 
-    assert.equal(
-      getRequestParams(jsonRpcRequest)[0].from,
-      "0x000006d4548a3ac17d72b372ae1e416bf65b8ead",
-    );
+    const [requestTx] = getRequestParams(jsonRpcRequest);
+    assert.ok(isObject(requestTx), "tx is not an object");
+    assert.equal(requestTx.from, "0x000006d4548a3ac17d72b372ae1e416bf65b8ead");
   });
 });

@@ -1,4 +1,3 @@
-import type { JsonRpcTransactionData } from "./types.js";
 import type {
   EthereumProvider,
   JsonRpcRequest,
@@ -7,6 +6,7 @@ import type {
 import type { RequestHandler } from "../../types.js";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { isObject } from "@ignored/hardhat-vnext-utils/lang";
 
 import { getRequestParams } from "../../../json-rpc.js";
 
@@ -34,10 +34,9 @@ export abstract class SenderHandler implements RequestHandler {
       method === "eth_call" ||
       method === "eth_estimateGas"
     ) {
-      // TODO: from V2 - Should we validate this type?
-      const tx: JsonRpcTransactionData = params[0];
+      const [tx] = params;
 
-      if (tx !== undefined && tx.from === undefined) {
+      if (isObject(tx) && tx.from === undefined) {
         const senderAccount = await this.getSender();
 
         if (senderAccount !== undefined) {

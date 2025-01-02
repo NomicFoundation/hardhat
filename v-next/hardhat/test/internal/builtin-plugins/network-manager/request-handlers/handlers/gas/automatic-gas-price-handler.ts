@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
 
 import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
+import { isObject } from "@ignored/hardhat-vnext-utils/lang";
 
 import {
   getJsonRpcRequest,
@@ -39,8 +40,10 @@ describe("AutomaticGasPriceHandler", () => {
       ]);
 
       automaticGasPriceHandler.handle(jsonRpcRequest);
+      const [tx] = getRequestParams(jsonRpcRequest);
 
-      assert.equal(getRequestParams(jsonRpcRequest)[0].gasPrice, 456);
+      assert.ok(isObject(tx), "tx is not an object");
+      assert.equal(tx.gasPrice, 456);
     });
 
     it("shouldn't replace the provided maxFeePerGas and maxPriorityFeePerGas values", async () => {
@@ -55,12 +58,11 @@ describe("AutomaticGasPriceHandler", () => {
       ]);
 
       automaticGasPriceHandler.handle(jsonRpcRequest);
+      const [tx] = getRequestParams(jsonRpcRequest);
 
-      assert.equal(getRequestParams(jsonRpcRequest)[0].maxFeePerGas, 456);
-      assert.equal(
-        getRequestParams(jsonRpcRequest)[0].maxPriorityFeePerGas,
-        789,
-      );
+      assert.ok(isObject(tx), "tx is not an object");
+      assert.equal(tx.maxFeePerGas, 456);
+      assert.equal(tx.maxPriorityFeePerGas, 789);
     });
   });
 
@@ -95,12 +97,11 @@ describe("AutomaticGasPriceHandler", () => {
         ]);
 
         await automaticGasPriceHandler.handle(jsonRpcRequest);
+        const [tx] = getRequestParams(jsonRpcRequest);
 
-        assert.equal(
-          getRequestParams(jsonRpcRequest)[0].maxPriorityFeePerGas,
-          "0x4",
-        );
-        assert.equal(getRequestParams(jsonRpcRequest)[0].maxFeePerGas, "0x99");
+        assert.ok(isObject(tx), "tx is not an object");
+        assert.equal(tx.maxPriorityFeePerGas, "0x4");
+        assert.equal(tx.maxFeePerGas, "0x99");
       });
 
       it("should add the reward to the maxFeePerGas if not big enough", async () => {
@@ -114,12 +115,11 @@ describe("AutomaticGasPriceHandler", () => {
         ]);
 
         await automaticGasPriceHandler.handle(jsonRpcRequest);
+        const [tx] = getRequestParams(jsonRpcRequest);
 
-        assert.equal(
-          getRequestParams(jsonRpcRequest)[0].maxPriorityFeePerGas,
-          "0x4",
-        );
-        assert.equal(getRequestParams(jsonRpcRequest)[0].maxFeePerGas, "0x5");
+        assert.ok(isObject(tx), "tx is not an object");
+        assert.equal(tx.maxPriorityFeePerGas, "0x4");
+        assert.equal(tx.maxFeePerGas, "0x5");
       });
 
       it("should use the expected max base fee of N blocks in the future if maxFeePerGas is missing", async () => {
@@ -141,15 +141,11 @@ describe("AutomaticGasPriceHandler", () => {
         );
 
         await automaticGasPriceHandler.handle(jsonRpcRequest);
+        const [tx] = getRequestParams(jsonRpcRequest);
 
-        assert.equal(
-          getRequestParams(jsonRpcRequest)[0].maxPriorityFeePerGas,
-          "0x1",
-        );
-        assert.equal(
-          getRequestParams(jsonRpcRequest)[0].maxFeePerGas,
-          numberToHexString(expectedBaseFee),
-        );
+        assert.ok(isObject(tx), "tx is not an object");
+        assert.equal(tx.maxPriorityFeePerGas, "0x1");
+        assert.equal(tx.maxFeePerGas, numberToHexString(expectedBaseFee));
       });
     });
 
@@ -190,15 +186,11 @@ describe("AutomaticGasPriceHandler", () => {
         );
 
         await automaticGasPriceHandler.handle(jsonRpcRequest);
+        const [tx] = getRequestParams(jsonRpcRequest);
 
-        assert.equal(
-          getRequestParams(jsonRpcRequest)[0].maxPriorityFeePerGas,
-          "0x1",
-        );
-        assert.equal(
-          getRequestParams(jsonRpcRequest)[0].maxFeePerGas,
-          numberToHexString(expectedBaseFee),
-        );
+        assert.ok(isObject(tx), "tx is not an object");
+        assert.equal(tx.maxPriorityFeePerGas, "0x1");
+        assert.equal(tx.maxFeePerGas, numberToHexString(expectedBaseFee));
       });
     });
 
@@ -241,15 +233,11 @@ describe("AutomaticGasPriceHandler", () => {
         );
 
         await automaticGasPriceHandler.handle(jsonRpcRequest);
+        const [tx] = getRequestParams(jsonRpcRequest);
 
-        assert.equal(
-          getRequestParams(jsonRpcRequest)[0].maxPriorityFeePerGas,
-          "0x12",
-        );
-        assert.equal(
-          getRequestParams(jsonRpcRequest)[0].maxFeePerGas,
-          numberToHexString(expectedBaseFee),
-        );
+        assert.ok(isObject(tx), "tx is not an object");
+        assert.equal(tx.maxPriorityFeePerGas, "0x12");
+        assert.equal(tx.maxFeePerGas, numberToHexString(expectedBaseFee));
       });
     });
 
@@ -295,11 +283,10 @@ describe("AutomaticGasPriceHandler", () => {
         ]);
 
         await automaticGasPriceHandler.handle(jsonRpcRequest);
+        const [tx] = getRequestParams(jsonRpcRequest);
 
-        assert.equal(
-          getRequestParams(jsonRpcRequest)[0].gasPrice,
-          numberToHexString(FIXED_GAS_PRICE),
-        );
+        assert.ok(isObject(tx), "tx is not an object");
+        assert.equal(tx.gasPrice, numberToHexString(FIXED_GAS_PRICE));
       });
 
       it("should use gasPrice as default maxPriorityFeePerGas, adding it to maxFeePerGas if necessary", async () => {
@@ -313,15 +300,14 @@ describe("AutomaticGasPriceHandler", () => {
         ]);
 
         await automaticGasPriceHandler.handle(jsonRpcRequest);
+        const [tx] = getRequestParams(jsonRpcRequest);
 
+        assert.ok(isObject(tx), "tx is not an object");
         assert.equal(
-          getRequestParams(jsonRpcRequest)[0].maxPriorityFeePerGas,
+          tx.maxPriorityFeePerGas,
           numberToHexString(FIXED_GAS_PRICE),
         );
-        assert.equal(
-          getRequestParams(jsonRpcRequest)[0].maxFeePerGas,
-          numberToHexString(FIXED_GAS_PRICE + 1),
-        );
+        assert.equal(tx.maxFeePerGas, numberToHexString(FIXED_GAS_PRICE + 1));
       });
 
       it("should use gasPrice as default maxFeePerGas, fixing maxPriorityFee to it if necessary", async () => {
@@ -335,13 +321,15 @@ describe("AutomaticGasPriceHandler", () => {
         ]);
 
         await automaticGasPriceHandler.handle(jsonRpcRequest);
+        const [tx] = getRequestParams(jsonRpcRequest);
 
+        assert.ok(isObject(tx), "tx is not an object");
         assert.equal(
-          getRequestParams(jsonRpcRequest)[0].maxPriorityFeePerGas,
+          tx.maxPriorityFeePerGas,
           numberToHexString(FIXED_GAS_PRICE + 2),
         );
         assert.equal(
-          getRequestParams(jsonRpcRequest)[0].maxFeePerGas,
+          tx.maxFeePerGas,
           numberToHexString(FIXED_GAS_PRICE * 2 + 2),
         );
       });

@@ -127,7 +127,9 @@ export function isFailedJsonRpcResponse(
   return "error" in payload && payload.error !== undefined;
 }
 
-export function getRequestParams(requestArguments: RequestArguments): any[] {
+export function getRequestParams(
+  requestArguments: RequestArguments,
+): unknown[] {
   if (requestArguments.params === undefined) {
     return [];
   }
