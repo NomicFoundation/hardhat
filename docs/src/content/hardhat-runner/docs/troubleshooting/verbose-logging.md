@@ -15,7 +15,7 @@ $ npx hardhat test --verbose
   hardhat:core:hre Running task compile:solidity:get-source-names +9ms
   hardhat:core:hre Running task compile:solidity:get-dependency-graph +4ms
   hardhat:core:hre Running task compile:solidity:get-compilation-jobs +10ms
-  hardhat:core:tasks:compile The dependency graph was dividied in '1' connected components +0ms
+  hardhat:core:tasks:compile The dependency graph was divided in '1' connected components +0ms
   hardhat:core:hre Running task compile:solidity:get-compilation-job-for-file +1ms
   hardhat:core:compilation-job File '/tmp/hardhat-project/contracts/Greeter.sol' will be compiled with version '0.7.3' +0ms
   hardhat:core:compilation-job File '/tmp/hardhat-project/node_modules/hardhat/console.sol' added as dependency of '/tmp/hardhat-project/contracts/Greeter.sol' +0ms
