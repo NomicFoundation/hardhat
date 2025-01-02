@@ -151,24 +151,10 @@ export class HttpProvider extends BaseProvider {
     await this.#dispatcher.close();
   }
 
-  // TODO as we removed sendBatch, I think we can remove all the overloads
-  // that return an array of responses
   async #fetchJsonRpcResponse(
     jsonRpcRequest: JsonRpcRequest,
-    retryCount?: number,
-  ): Promise<JsonRpcResponse>;
-  async #fetchJsonRpcResponse(
-    jsonRpcRequest: JsonRpcRequest[],
-    retryCount?: number,
-  ): Promise<JsonRpcResponse[]>;
-  async #fetchJsonRpcResponse(
-    jsonRpcRequest: JsonRpcRequest | JsonRpcRequest[],
-    retryCount?: number,
-  ): Promise<JsonRpcResponse | JsonRpcResponse[]>;
-  async #fetchJsonRpcResponse(
-    jsonRpcRequest: JsonRpcRequest | JsonRpcRequest[],
     retryCount = 0,
-  ): Promise<JsonRpcResponse | JsonRpcResponse[]> {
+  ): Promise<JsonRpcResponse> {
     const requestOptions: RequestOptions = {
       extraHeaders: {
         "User-Agent": `Hardhat ${await getHardhatVersion()}`,
@@ -254,7 +240,7 @@ export class HttpProvider extends BaseProvider {
   }
 
   async #retry(
-    request: JsonRpcRequest | JsonRpcRequest[],
+    request: JsonRpcRequest,
     retryAfterSeconds: number,
     retryCount: number,
   ) {
