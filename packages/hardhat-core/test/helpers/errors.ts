@@ -61,7 +61,7 @@ export function expectHardhatError(
     assert.notMatch(
       error.message,
       /%[a-zA-Z][a-zA-Z0-9]*%/,
-      "HardhatError has an non-replaced variable tag"
+      "HardhatError has a non-replaced variable tag"
     );
 
     if (typeof errorMessage === "string") {
@@ -113,7 +113,7 @@ export async function expectHardhatErrorAsync(
     assert.notMatch(
       err.message,
       /%[a-zA-Z][a-zA-Z0-9]*%/,
-      "HardhatError has an non-replaced variable tag"
+      "HardhatError has a non-replaced variable tag"
     );
 
     if (errorMessage !== undefined) {
