@@ -15,6 +15,7 @@ import type {
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
 import { EdrProvider } from "./edr/edr-provider.js";
+import { isEdrSupportedChainType } from "./edr/utils/chain-type.js";
 import { HttpProvider } from "./http-provider.js";
 import { NetworkConnectionImplementation } from "./network-connection.js";
 import { isNetworkConfig, validateNetworkConfig } from "./type-validation.js";
@@ -157,11 +158,7 @@ export class NetworkManagerImplementation implements NetworkManager {
         );
 
       if (resolvedNetworkConfig.type === "edr") {
-        if (
-          resolvedChainType !== "optimism" &&
-          resolvedChainType !== "generic" &&
-          resolvedChainType !== "l1"
-        ) {
+        if (!isEdrSupportedChainType(resolvedChainType)) {
           throw new HardhatError(
             HardhatError.ERRORS.GENERAL.UNSUPPORTED_OPERATION,
             { operation: `Simulating chain type ${resolvedChainType}` },

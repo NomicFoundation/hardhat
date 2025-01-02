@@ -36,11 +36,12 @@ import {
   MERGE,
   SHANGHAI,
   CANCUN,
-  OPTIMISM_CHAIN_TYPE,
-  L1_CHAIN_TYPE,
-  GENERIC_CHAIN_TYPE,
+  OPTIMISM_CHAIN_TYPE as EDR_OPTIMISM_CHAIN_TYPE,
+  L1_CHAIN_TYPE as EDR_L1_CHAIN_TYPE,
+  GENERIC_CHAIN_TYPE as EDR_GENERIC_CHAIN_TYPE,
 } from "@ignored/edr-optimism";
 
+import { L1_CHAIN_TYPE, OPTIMISM_CHAIN_TYPE } from "../../../../constants.js";
 import { FixedValueConfigurationVariable } from "../../../../core/configuration-variables.js";
 import { derivePrivateKeys } from "../../accounts/derive-private-keys.js";
 import {
@@ -317,13 +318,13 @@ export async function hardhatForkingConfigToEdrForkConfig(
 export function hardhatChainTypeToEdrChainType(
   chainType: ChainType | undefined,
 ): string {
-  if (chainType === "optimism") {
-    return OPTIMISM_CHAIN_TYPE;
+  if (chainType === OPTIMISM_CHAIN_TYPE) {
+    return EDR_OPTIMISM_CHAIN_TYPE;
   }
 
-  if (chainType === "l1") {
-    return L1_CHAIN_TYPE;
+  if (chainType === L1_CHAIN_TYPE) {
+    return EDR_L1_CHAIN_TYPE;
   }
 
-  return GENERIC_CHAIN_TYPE;
+  return EDR_GENERIC_CHAIN_TYPE;
 }

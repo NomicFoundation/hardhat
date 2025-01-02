@@ -6,6 +6,7 @@ import { describe, it } from "node:test";
 
 import { HttpProvider } from "../../../../src/internal/builtin-plugins/network-manager/http-provider.js";
 import { NetworkConnectionImplementation } from "../../../../src/internal/builtin-plugins/network-manager/network-connection.js";
+import { GENERIC_CHAIN_TYPE } from "../../../../src/internal/constants.js";
 import { FixedValueConfigurationVariable } from "../../../../src/internal/core/configuration-variables.js";
 
 describe("NetworkConnectionImplementation", () => {
@@ -43,7 +44,7 @@ describe("NetworkConnectionImplementation", () => {
       const networkConnection = await NetworkConnectionImplementation.create(
         1,
         "localhost",
-        "generic",
+        GENERIC_CHAIN_TYPE,
         localhostNetworkConfig,
         closeConnection,
         createProvider,
@@ -51,7 +52,7 @@ describe("NetworkConnectionImplementation", () => {
 
       assert.equal(networkConnection.id, 1);
       assert.equal(networkConnection.networkName, "localhost");
-      assert.equal(networkConnection.chainType, "generic");
+      assert.equal(networkConnection.chainType, GENERIC_CHAIN_TYPE);
       assert.deepEqual(networkConnection.networkConfig, localhostNetworkConfig);
       assert.deepEqual(networkConnection.provider, expectedProvider);
     });

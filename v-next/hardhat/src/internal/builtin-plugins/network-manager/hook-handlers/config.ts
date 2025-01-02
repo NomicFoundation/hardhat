@@ -14,6 +14,7 @@ import type { ConfigHooks } from "../../../../types/hooks.js";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
+import { GENERIC_CHAIN_TYPE } from "../../../constants.js";
 import {
   resolveChains,
   resolveCoinbase,
@@ -172,7 +173,7 @@ export async function resolveUserConfig(
 
   return {
     ...resolvedConfig,
-    defaultChainType: resolvedConfig.defaultChainType ?? "generic",
+    defaultChainType: resolvedConfig.defaultChainType ?? GENERIC_CHAIN_TYPE,
     defaultNetwork: resolvedConfig.defaultNetwork ?? "hardhat",
     networks: resolvedNetworks,
   };
