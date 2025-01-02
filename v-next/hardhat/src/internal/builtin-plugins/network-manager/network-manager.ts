@@ -28,7 +28,7 @@ export class NetworkManagerImplementation implements NetworkManager {
   readonly #defaultNetwork: string;
   readonly #defaultChainType: DefaultChainType;
   readonly #networkConfigs: Readonly<Record<string, Readonly<NetworkConfig>>>;
-  readonly #hookManager: HookManager;
+  readonly #hookManager: Readonly<HookManager>;
 
   #nextConnectionId = 0;
 

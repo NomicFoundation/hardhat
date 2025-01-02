@@ -48,8 +48,8 @@ interface HttpProviderConfig {
 export class HttpProvider extends BaseProvider {
   readonly #url: string;
   readonly #networkName: string;
-  readonly #extraHeaders: Record<string, string>;
-  readonly #dispatcher: Dispatcher;
+  readonly #extraHeaders: Readonly<Record<string, string>>;
+  readonly #dispatcher: Readonly<Dispatcher>;
   readonly #jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction;
 
   #nextRequestId = 1;

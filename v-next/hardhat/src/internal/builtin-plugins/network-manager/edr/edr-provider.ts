@@ -148,8 +148,8 @@ interface EdrProviderConfig {
 }
 
 export class EdrProvider extends BaseProvider {
-  readonly #provider: Provider;
-  readonly #vmTraceDecoder: VmTraceDecoder;
+  readonly #provider: Readonly<Provider>;
+  readonly #vmTraceDecoder: Readonly<VmTraceDecoder>;
   readonly #jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction;
 
   #failedStackTraces: number = 0;
