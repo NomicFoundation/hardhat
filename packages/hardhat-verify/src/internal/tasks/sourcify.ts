@@ -217,7 +217,7 @@ ${contractURL}
 
       return {
         success: response.isSuccess(),
-        message: "Contract successfuly verified on Sourcify",
+        message: "Contract successfully verified on Sourcify",
       };
     }
   );
