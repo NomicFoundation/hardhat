@@ -3,10 +3,8 @@ import type { LoggerConfig } from "./types/logger.js";
 import type { TracingConfig } from "./types/node-types.js";
 import type { EdrNetworkConfig } from "../../../../types/config.js";
 import type {
-  EthereumProvider,
   EthSubscription,
   FailedJsonRpcResponse,
-  JsonRpcRequest,
   JsonRpcResponse,
   RequestArguments,
   SuccessfulJsonRpcResponse,
@@ -28,9 +26,6 @@ import type {
   ProviderConfig,
 } from "@ignored/edr-optimism";
 
-import EventEmitter from "node:events";
-import util from "node:util";
-
 import {
   EdrContext,
   createModelsAndDecodeBytecodes,
@@ -43,7 +38,6 @@ import {
   optimismProviderFactory,
 } from "@ignored/edr-optimism";
 import { toSeconds } from "@ignored/hardhat-vnext-utils/date";
-import { ensureError } from "@ignored/hardhat-vnext-utils/error";
 import { deepEqual } from "@ignored/hardhat-vnext-utils/lang";
 import chalk from "chalk";
 import debug from "debug";
@@ -53,6 +47,7 @@ import {
   HARDHAT_NETWORK_REVERT_SNAPSHOT_EVENT,
 } from "../../../constants.js";
 import { DEFAULT_HD_ACCOUNTS_CONFIG_PARAMS } from "../accounts/constants.js";
+import { BaseProvider } from "../base-provider.js";
 import { getJsonRpcRequest, isFailedJsonRpcResponse } from "../json-rpc.js";
 
 import {
@@ -152,7 +147,7 @@ interface EdrProviderConfig {
   jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction;
 }
 
-export class EdrProvider extends EventEmitter implements EthereumProvider {
+export class EdrProvider extends BaseProvider {
   readonly #provider: Provider;
   readonly #vmTraceDecoder: VmTraceDecoder;
   readonly #jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction;
@@ -337,60 +332,6 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
 
   public async close(): Promise<void> {
     // TODO: what needs cleaned up?
-  }
-
-  public async send(method: string, params?: unknown[]): Promise<unknown> {
-    return this.request({ method, params });
-  }
-
-  public sendAsync(
-    jsonRpcRequest: JsonRpcRequest,
-    callback: (error: any, jsonRpcResponse: JsonRpcResponse) => void,
-  ): void {
-    // TODO: this is a straight copy of the HTTP Provider,
-    // can we pull this out and share the logic.
-    const handleJsonRpcRequest = async () => {
-      let jsonRpcResponse: JsonRpcResponse;
-      try {
-        const result = await this.request({
-          method: jsonRpcRequest.method,
-          params: jsonRpcRequest.params,
-        });
-
-        jsonRpcResponse = {
-          jsonrpc: "2.0",
-          id: jsonRpcRequest.id,
-          result,
-        };
-      } catch (error) {
-        ensureError(error);
-
-        if (!("code" in error) || error.code === undefined) {
-          throw error;
-        }
-
-        /* eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-        -- Allow string interpolation of unknown `error.code`. It will be converted
-        to a number, and we will handle NaN cases appropriately afterwards. */
-        const errorCode = parseInt(`${error.code}`, 10);
-        jsonRpcResponse = {
-          jsonrpc: "2.0",
-          id: jsonRpcRequest.id,
-          error: {
-            code: !isNaN(errorCode) ? errorCode : -1,
-            message: error.message,
-            data: {
-              stack: error.stack,
-              name: error.name,
-            },
-          },
-        };
-      }
-
-      return jsonRpcResponse;
-    };
-
-    util.callbackify(handleJsonRpcRequest)(callback);
   }
 
   #isErrorResponse(response: any): response is FailedJsonRpcResponse {
