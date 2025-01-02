@@ -59,7 +59,7 @@ const communityPlugins: IPlugin[] = [
     authorUrl: "https://tenderly.co/",
     description:
       "Easily integrate your Hardhat project with Tenderly. Tenderly is an Ethereum monitoring, debugging and analytics platform.",
-    tags: ["Debuggin", "Monitoring", "Alerting", "Tasks", "Scripts"],
+    tags: ["Debugging", "Monitoring", "Alerting", "Tasks", "Scripts"],
   },
   {
     name: "hardhat-ethernal",
@@ -660,7 +660,7 @@ const communityPlugins: IPlugin[] = [
     author: "Mister Singh",
     authorUrl: "https://www.npmjs.com/package/hardhat-notifier",
     description:
-      "Hardhat plugin to send an OSX notification when hardhat compilcation fails/succeeds",
+      "Hardhat plugin to send an OSX notification when hardhat compilation fails/succeeds",
     tags: ["Deployment", "Tooling", "Notification", "Compile"],
   },
   {
