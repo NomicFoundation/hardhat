@@ -61,6 +61,7 @@ const hardhatKeystorePlugin: HardhatPlugin = {
       .setAction(import.meta.resolve("./internal/tasks/delete.js"))
       .build(),
   ],
+  npmPackage: "@ignored/hardhat-vnext-keystore",
 };
 
 export default hardhatKeystorePlugin;

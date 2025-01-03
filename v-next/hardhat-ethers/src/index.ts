@@ -7,6 +7,7 @@ const hardhatEthersPlugin: HardhatPlugin = {
   hookHandlers: {
     network: import.meta.resolve("./internal/hook-handlers/network.js"),
   },
+  npmPackage: "@ignored/hardhat-vnext-ethers",
 };
 
 export default hardhatEthersPlugin;
