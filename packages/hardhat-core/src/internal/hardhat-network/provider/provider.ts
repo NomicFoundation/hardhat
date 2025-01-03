@@ -1,7 +1,5 @@
 import type {
   Artifacts,
-  CompilerInput,
-  CompilerOutput,
   EIP1193Provider,
   EthSubscription,
   HardhatNetworkChainsConfig,
@@ -11,9 +9,6 @@ import type {
 import type {
   EdrContext,
   Provider as EdrProviderT,
-  VmTraceDecoder as VmTraceDecoderT,
-  VMTracer as VMTracerT,
-  RawTrace,
   Response,
   SubscriptionEvent,
   HttpHeader,
@@ -23,7 +18,6 @@ import picocolors from "picocolors";
 import debug from "debug";
 import { EventEmitter } from "events";
 import fsExtra from "fs-extra";
-import * as t from "io-ts";
 import semver from "semver";
 
 import { requireNapiRsModule } from "../../../common/napi-rs";
@@ -32,28 +26,16 @@ import {
   HARDHAT_NETWORK_REVERT_SNAPSHOT_EVENT,
 } from "../../constants";
 import {
-  rpcCompilerInput,
-  rpcCompilerOutput,
-} from "../../core/jsonrpc/types/input/solc";
-import { validateParams } from "../../core/jsonrpc/types/input/validation";
-import {
   InvalidArgumentsError,
   InvalidInputError,
   ProviderError,
 } from "../../core/providers/errors";
 import { isErrorResponse } from "../../core/providers/http";
 import { getHardforkName } from "../../util/hardforks";
-import { createModelsAndDecodeBytecodes } from "../stack-traces/compiler-to-model";
 import { ConsoleLogger } from "../stack-traces/consoleLogger";
-import {
-  VmTraceDecoder,
-  initializeVmTraceDecoder,
-} from "../stack-traces/vm-trace-decoder";
 import { FIRST_SOLC_VERSION_SUPPORTED } from "../stack-traces/constants";
 import { encodeSolidityStackTrace } from "../stack-traces/solidity-errors";
 import { SolidityStackTrace } from "../stack-traces/solidity-stack-trace";
-import { SolidityTracer } from "../stack-traces/solidityTracer";
-import { VMTracer } from "../stack-traces/vm-tracer";
 
 import { getPackageJson } from "../../util/packageInfo";
 import {
@@ -168,25 +150,16 @@ export class EdrProviderWrapper
   // temporarily added to make smock work with HH+EDR
   private _callOverrideCallback?: CallOverrideCallback;
 
-  /** Used for internal stack trace tests. */
-  private _vmTracer?: VMTracerT;
-
   private constructor(
     private readonly _provider: EdrProviderT,
     // we add this for backwards-compatibility with plugins like solidity-coverage
     private readonly _node: {
       _vm: MinimalEthereumJsVm;
     },
-    private readonly _vmTraceDecoder: VmTraceDecoderT,
     // The common configuration for EthereumJS VM is not used by EDR, but tests expect it as part of the provider.
-    private readonly _common: Common,
-    tracingConfig?: TracingConfig
+    private readonly _common: Common
   ) {
     super();
-
-    if (tracingConfig !== undefined) {
-      initializeVmTraceDecoder(this._vmTraceDecoder, tracingConfig);
-    }
   }
 
   public static async create(
@@ -237,8 +210,6 @@ export class EdrProviderWrapper
 
     const printLineFn = loggerConfig.printLineFn ?? printLine;
     const replaceLastLineFn = loggerConfig.replaceLastLineFn ?? replaceLastLine;
-
-    const vmTraceDecoder = new VmTraceDecoder();
 
     const hardforkName = getHardforkName(config.hardfork);
 
@@ -297,15 +268,6 @@ export class EdrProviderWrapper
       {
         enable: loggerConfig.enabled,
         decodeConsoleLogInputsCallback: ConsoleLogger.getDecodedLogs,
-        getContractAndFunctionNameCallback: (
-          code: Buffer,
-          calldata?: Buffer
-        ) => {
-          return vmTraceDecoder.getContractAndFunctionNamesForCall(
-            code,
-            calldata
-          );
-        },
         printLineCallback: (message: string, replace: boolean) => {
           if (replace) {
             replaceLastLineFn(message);
@@ -314,6 +276,7 @@ export class EdrProviderWrapper
           }
         },
       },
+      tracingConfig ?? {},
       (event: SubscriptionEvent) => {
         eventAdapter.emit("ethEvent", event);
       }
@@ -327,9 +290,7 @@ export class EdrProviderWrapper
     const wrapper = new EdrProviderWrapper(
       provider,
       minimalEthereumJsNode,
-      vmTraceDecoder,
-      common,
-      tracingConfig
+      common
     );
 
     // Pass through all events from the provider
@@ -350,14 +311,9 @@ export class EdrProviderWrapper
 
     const params = args.params ?? [];
 
-    if (args.method === "hardhat_addCompilationResult") {
-      return this._addCompilationResultAction(
-        ...this._addCompilationResultParams(params)
-      );
-    } else if (args.method === "hardhat_getStackTraceFailuresCount") {
-      return this._getStackTraceFailuresCountAction(
-        ...this._getStackTraceFailuresCountParams(params)
-      );
+    if (args.method === "hardhat_getStackTraceFailuresCount") {
+      // stubbed for backwards compatibility
+      return 0;
     }
 
     const stringifiedArgs = JSON.stringify({
@@ -378,14 +334,11 @@ export class EdrProviderWrapper
 
     const needsTraces =
       this._node._vm.evm.events.eventNames().length > 0 ||
-      this._node._vm.events.eventNames().length > 0 ||
-      this._vmTracer !== undefined;
+      this._node._vm.events.eventNames().length > 0;
 
     if (needsTraces) {
       const rawTraces = responseObject.traces;
       for (const rawTrace of rawTraces) {
-        this._vmTracer?.observe(rawTrace);
-
         // For other consumers in JS we need to marshall the entire trace over FFI
         const trace = rawTrace.trace();
 
@@ -434,13 +387,14 @@ export class EdrProviderWrapper
     if (isErrorResponse(response)) {
       let error;
 
-      const solidityTrace = responseObject.solidityTrace;
-      let stackTrace: SolidityStackTrace | undefined;
-      if (solidityTrace !== null) {
-        stackTrace = await this._rawTraceToSolidityStackTrace(solidityTrace);
+      let stackTrace: SolidityStackTrace | null = null;
+      try {
+        stackTrace = responseObject.stackTrace();
+      } catch (e) {
+        log("Failed to get stack trace: %O", e);
       }
 
-      if (stackTrace !== undefined) {
+      if (stackTrace !== null) {
         error = encodeSolidityStackTrace(response.error.message, stackTrace);
         // Pass data and transaction hash from the original error
         (error as any).data = response.error.data?.data ?? undefined;
@@ -480,15 +434,6 @@ export class EdrProviderWrapper
     } else {
       return response.result;
     }
-  }
-
-  /**
-   * Sets a `VMTracer` that observes EVM throughout requests.
-   *
-   * Used for internal stack traces integration tests.
-   */
-  public setVmTracer(vmTracer?: VMTracerT) {
-    this._vmTracer = vmTracer;
   }
 
   // temporarily added to make smock work with HH+EDR
@@ -532,88 +477,6 @@ export class EdrProviderWrapper
     };
 
     this.emit("message", message);
-  }
-
-  private _addCompilationResultParams(
-    params: any[]
-  ): [string, CompilerInput, CompilerOutput] {
-    return validateParams(
-      params,
-      t.string,
-      rpcCompilerInput,
-      rpcCompilerOutput
-    );
-  }
-
-  private async _addCompilationResultAction(
-    solcVersion: string,
-    compilerInput: CompilerInput,
-    compilerOutput: CompilerOutput
-  ): Promise<boolean> {
-    let bytecodes;
-    try {
-      bytecodes = createModelsAndDecodeBytecodes(
-        solcVersion,
-        compilerInput,
-        compilerOutput
-      );
-    } catch (error) {
-      console.warn(
-        picocolors.yellow(
-          "The Hardhat Network tracing engine could not be updated. Run Hardhat with --verbose to learn more."
-        )
-      );
-
-      log(
-        "VmTraceDecoder failed to be updated. Please report this to help us improve Hardhat.\n",
-        error
-      );
-
-      return false;
-    }
-
-    for (const bytecode of bytecodes) {
-      this._vmTraceDecoder.addBytecode(bytecode);
-    }
-
-    return true;
-  }
-
-  private _getStackTraceFailuresCountParams(params: any[]): [] {
-    return validateParams(params);
-  }
-
-  private _getStackTraceFailuresCountAction(): number {
-    return this._failedStackTraces;
-  }
-
-  private async _rawTraceToSolidityStackTrace(
-    rawTrace: RawTrace
-  ): Promise<SolidityStackTrace | undefined> {
-    const vmTracer = new VMTracer();
-    vmTracer.observe(rawTrace);
-
-    let vmTrace = vmTracer.getLastTopLevelMessageTrace();
-    const vmTracerError = vmTracer.getLastError();
-
-    if (vmTrace !== undefined) {
-      vmTrace = this._vmTraceDecoder.tryToDecodeMessageTrace(vmTrace);
-    }
-
-    try {
-      if (vmTrace === undefined || vmTracerError !== undefined) {
-        throw vmTracerError;
-      }
-
-      const solidityTracer = new SolidityTracer();
-      return solidityTracer.getStackTrace(vmTrace);
-    } catch (err) {
-      this._failedStackTraces += 1;
-      log(
-        "Could not generate stack trace. Please report this to help us improve Hardhat.\n",
-        err
-      );
-    }
   }
 }
 
