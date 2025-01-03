@@ -10,8 +10,8 @@ import { createNonClosingWriter } from "@ignored/hardhat-vnext-utils/stream";
 import {
   getArtifacts,
   isTestArtifact,
-  solidityTestUserConfigToRunOptions,
-  solidityTestUserConfigToSolidityTestRunnerConfigArgs,
+  solidityTestConfigToRunOptions,
+  solidityTestConfigToSolidityTestRunnerConfigArgs,
 } from "./helpers.js";
 import { testReporter } from "./reporter.js";
 import { run } from "./runner.js";
@@ -50,14 +50,15 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   let includesFailures = false;
   let includesErrors = false;
 
-  const testOptions = hre.config.solidityTest;
+  const solidityTestConfig = hre.config.solidityTest;
 
   const config: SolidityTestRunnerConfigArgs =
-    solidityTestUserConfigToSolidityTestRunnerConfigArgs(
+    solidityTestConfigToSolidityTestRunnerConfigArgs(
       hre.config.paths.root,
-      testOptions,
+      solidityTestConfig,
     );
-  const options: RunOptions = solidityTestUserConfigToRunOptions(testOptions);
+  const options: RunOptions =
+    solidityTestConfigToRunOptions(solidityTestConfig);
 
   const runStream = run(artifacts, testSuiteIds, config, options);
 

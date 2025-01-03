@@ -1,6 +1,6 @@
 import type { RunOptions } from "./runner.js";
 import type { ArtifactsManager } from "../../../types/artifacts.js";
-import type { SolidityTestUserConfig } from "../../../types/config.js";
+import type { SolidityTestConfig } from "../../../types/config.js";
 import type {
   Artifact,
   SolidityTestRunnerConfigArgs,
@@ -20,15 +20,15 @@ function hexStringToBuffer(hexString: string): Buffer {
   return Buffer.from(hexStringToBytes(hexString));
 }
 
-export function solidityTestUserConfigToRunOptions(
-  config: SolidityTestUserConfig,
+export function solidityTestConfigToRunOptions(
+  config: SolidityTestConfig,
 ): RunOptions {
   return config;
 }
 
-export function solidityTestUserConfigToSolidityTestRunnerConfigArgs(
+export function solidityTestConfigToSolidityTestRunnerConfigArgs(
   projectRoot: string,
-  config: SolidityTestUserConfig,
+  config: SolidityTestConfig,
 ): SolidityTestRunnerConfigArgs {
   const fsPermissions: PathPermission[] | undefined = [
     config.fsPermissions?.readWrite?.map((path) => ({ access: 0, path })) ?? [],
