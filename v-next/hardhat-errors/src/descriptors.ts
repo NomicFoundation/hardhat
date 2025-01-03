@@ -963,14 +963,14 @@ Remaining test suites: {suites}`,
 
 This error is thrown when you import a file with the wrong casing under a case insensitve filesystem.`,
     },
-    NPM_DEPEDNDENCY_NOT_INSTALLED: {
+    NPM_DEPENDENCY_NOT_INSTALLED: {
       number: 1204,
       messageTemplate:
         'The npm package "{packageName}" isn\'t installed in the {from}.',
       websiteTitle: "Uninstalled npm dependency",
       websiteDescription: `Trying to use an npm package as a solidity dependency, but it's not installed.`,
     },
-    NPM_DEPEDNDENCY_USES_EXPORTS: {
+    NPM_DEPENDENCY_USES_EXPORTS: {
       number: 1205,
       messageTemplate:
         'The npm package "{packageName}" is installed in {from}, but it uses package.json#exports, which is not supported by Hardhat.',
@@ -1188,6 +1188,27 @@ This happens when your files require incompatible versions of solc or you haven'
       websiteDescription: `Your smart contracts failed to compile.
 
 Please check Hardhat's output for more details.`,
+    },
+
+    NPM_DEPENDENCY_NOT_EXPORTING_PACKAGE_JSON: {
+      number: 1231,
+      messageTemplate:
+        'The npm package "{packageName}" is installed in {from}, but is not exporting its package.json file.',
+      websiteTitle: "Npm dependency is missing package.json in its exports",
+      websiteDescription: `The npm package you are trying to import uses package.json#exports, but it's not exporting its package.json file.`,
+    },
+    RESOLVE_NOT_EXPORTED_NPM_FILE: {
+      number: 1232,
+      messageTemplate: `You are tying to resolve the npm file "{module}", but it's not exported by the package.`,
+      websiteTitle: "Resolution of non-exported npm file",
+      websiteDescription: `You are tying to resolve an npm file that is not exported by the package.`,
+    },
+    IMPORTED_FILE_NOT_EXPORTED: {
+      number: 1233,
+      messageTemplate:
+        'The import "{importPath} from "{from}" is not exported by the npm package.',
+      websiteTitle: "Imported file is not exported by its npm package",
+      websiteDescription: `An imported file is not exported by its npm package.`,
     },
   },
   VIEM: {

@@ -63,15 +63,14 @@ function assertNpmPackageResolvedFile(
   pacakge: Omit<ResolvedNpmPackage, "rootFsPath">,
   packagePathFromTestFixturesRoot: string,
   filePathFromPackageRoot: string,
+  filePathFromTestFixturesRoot = path.join(
+    packagePathFromTestFixturesRoot,
+    filePathFromPackageRoot,
+  ),
 ): asserts resolvedFile is NpmPackageResolvedFile {
   assert.ok(
     resolvedFile.type === ResolvedFileType.NPM_PACKAGE_FILE,
     `Resolved file ${resolvedFile.fsPath} is not an npm file`,
-  );
-
-  const filePathFromTestFixturesRoot = path.join(
-    packagePathFromTestFixturesRoot,
-    filePathFromPackageRoot,
   );
 
   const packageRootPath = path.join(
@@ -927,6 +926,265 @@ describe("Resolver", () => {
     describe("Edge cases", () => {
       describe("Duplicated dependency in the monorepo", () => {
         it.todo("Should always be resolved to whatever was resolved first");
+      });
+    });
+  });
+
+  describe("NPM with package exports handling", function () {
+    describe("ensuring dependencies export their package.json", function () {
+      it("throws an error when importing a file from a package that doesnt export package.json", async () => {
+        const resolver = await ResolverImplementation.create(
+          FIXTURE_HARDHAT_PROJECT_ROOT,
+          [],
+        );
+
+        await assertRejectsWithHardhatError(
+          resolver.resolveNpmDependencyFileAsRoot(
+            "not-exporting-package-json/Exported.sol",
+          ),
+          HardhatError.ERRORS.SOLIDITY
+            .NPM_DEPENDENCY_NOT_EXPORTING_PACKAGE_JSON,
+          {
+            packageName: "not-exporting-package-json",
+            from: "your project",
+          },
+        );
+      });
+    });
+
+    describe("resolving dependenciesAsRoot for packages that use exports", function () {
+      it("resolves the exported dependency contract correctly", async () => {
+        const resolver = await ResolverImplementation.create(
+          FIXTURE_HARDHAT_PROJECT_ROOT,
+          [],
+        );
+        const file = await resolver.resolveNpmDependencyFileAsRoot(
+          "exports/Exported.sol",
+        );
+
+        assertNpmPackageResolvedFile(
+          file,
+          {
+            name: "exports",
+            version: "3.0.0",
+            rootSourceName: "npm/exports@3.0.0/",
+          },
+          "monorepo/node_modules/exports",
+          "Exported.sol",
+          "monorepo/node_modules/exports/contracts/Exported.sol",
+        );
+
+        assert.equal(file.sourceName, "npm/exports@3.0.0/Exported.sol");
+      });
+
+      it("throws RESOLVE_NON_EXISTENT_NPM_FILE if they are not cased correctly", async () => {
+        const resolver = await ResolverImplementation.create(
+          FIXTURE_HARDHAT_PROJECT_ROOT,
+          [],
+        );
+
+        await assertRejectsWithHardhatError(
+          resolver.resolveNpmDependencyFileAsRoot("exports/exported.sol"),
+          HardhatError.ERRORS.SOLIDITY.RESOLVE_NON_EXISTENT_NPM_FILE,
+          {
+            module: "exports/exported.sol",
+          },
+        );
+      });
+
+      it("throws RESOLVE_NON_EXISTENT_NPM_FILE when trying to use the real path instead of the exported path", async () => {
+        const resolver = await ResolverImplementation.create(
+          FIXTURE_HARDHAT_PROJECT_ROOT,
+          [],
+        );
+
+        await assertRejectsWithHardhatError(
+          resolver.resolveNpmDependencyFileAsRoot(
+            "exports/contracts/Exported.sol",
+          ),
+          HardhatError.ERRORS.SOLIDITY.RESOLVE_NON_EXISTENT_NPM_FILE,
+          {
+            module: "exports/contracts/Exported.sol",
+          },
+        );
+      });
+
+      it("throws RESOLVE_NOT_EXPORTED_NPM_FILE for non-exported files", async () => {
+        const resolver = await ResolverImplementation.create(
+          FIXTURE_HARDHAT_PROJECT_ROOT,
+          [],
+        );
+
+        await assertRejectsWithHardhatError(
+          resolver.resolveNpmDependencyFileAsRoot("exports/NotExported"),
+          HardhatError.ERRORS.SOLIDITY.RESOLVE_NOT_EXPORTED_NPM_FILE,
+          {
+            module: "exports/NotExported",
+          },
+        );
+      });
+    });
+
+    describe("resolving direct imports to npm packages that use exports", function () {
+      let file: ResolvedFile;
+      let resolver: Resolver;
+
+      beforeEach(async () => {
+        resolver = await ResolverImplementation.create(
+          FIXTURE_HARDHAT_PROJECT_ROOT,
+          [],
+        );
+        file = await resolver.resolveProjectFile(
+          path.resolve(FIXTURE_HARDHAT_PROJECT_ROOT, "contracts/File.sol"),
+        );
+      });
+
+      describe("without remappings", function () {
+        it("resolves a file that uses a single export", async () => {
+          const resolvedFile = await resolver.resolveImport(
+            file,
+            "exports/SingleExport.sol",
+          );
+
+          assertNpmPackageResolvedFile(
+            resolvedFile,
+            {
+              name: "exports",
+              version: "3.0.0",
+              rootSourceName: "npm/exports@3.0.0/",
+            },
+            "monorepo/node_modules/exports",
+            "SingleExport.sol",
+            "monorepo/node_modules/exports/contracts2/SingleExport.sol",
+          );
+
+          assert.equal(
+            resolvedFile.sourceName,
+            "npm/exports@3.0.0/SingleExport.sol",
+          );
+        });
+
+        it("resolves a file that uses wildcard export", async () => {
+          const resolvedFile = await resolver.resolveImport(
+            file,
+            "exports/Exported.sol",
+          );
+
+          assertNpmPackageResolvedFile(
+            resolvedFile,
+            {
+              name: "exports",
+              version: "3.0.0",
+              rootSourceName: "npm/exports@3.0.0/",
+            },
+            "monorepo/node_modules/exports",
+            "Exported.sol",
+            "monorepo/node_modules/exports/contracts/Exported.sol",
+          );
+
+          assert.equal(
+            resolvedFile.sourceName,
+            "npm/exports@3.0.0/Exported.sol",
+          );
+        });
+
+        it("requires correct casing", async () => {
+          await assertRejectsWithHardhatError(
+            resolver.resolveImport(file, "exports/singleexport.sol"),
+            HardhatError.ERRORS.SOLIDITY.IMPORTED_FILE_DOESNT_EXIST,
+            {
+              importPath: "exports/singleexport.sol",
+              from: path.join("contracts", "File.sol"),
+            },
+          );
+        });
+
+        it("requires the file to be exported", async () => {
+          await assertRejectsWithHardhatError(
+            resolver.resolveImport(file, "exports/NotExported"),
+            HardhatError.ERRORS.SOLIDITY.IMPORTED_FILE_NOT_EXPORTED,
+            {
+              importPath: "exports/NotExported",
+              from: path.join("contracts", "File.sol"),
+            },
+          );
+        });
+      });
+
+      describe("with remappings", function () {
+        it("resolves exported file when remapping part of the path", async () => {
+          resolver = await ResolverImplementation.create(
+            FIXTURE_HARDHAT_PROJECT_ROOT,
+            ["remapped_pkg/=npm/exports@3.0.0/"],
+          );
+
+          const resolvedFile = await resolver.resolveImport(
+            file,
+            "remapped_pkg/SingleExport.sol",
+          );
+
+          assertNpmPackageResolvedFile(
+            resolvedFile,
+            {
+              name: "exports",
+              version: "3.0.0",
+              rootSourceName: "npm/exports@3.0.0/",
+            },
+            "monorepo/node_modules/exports",
+            "SingleExport.sol",
+            "monorepo/node_modules/exports/contracts2/SingleExport.sol",
+          );
+
+          assert.equal(
+            resolvedFile.sourceName,
+            "npm/exports@3.0.0/SingleExport.sol",
+          );
+        });
+
+        it("resolves the exported file when remapping the whole path", async () => {
+          const resolver = await ResolverImplementation.create(
+            FIXTURE_HARDHAT_PROJECT_ROOT,
+            ["remapped_file=npm/exports@3.0.0/SingleExport.sol"],
+          );
+
+          const resolvedFile = await resolver.resolveImport(
+            file,
+            "remapped_file",
+          );
+
+          assertNpmPackageResolvedFile(
+            resolvedFile,
+            {
+              name: "exports",
+              version: "3.0.0",
+              rootSourceName: "npm/exports@3.0.0/",
+            },
+            "monorepo/node_modules/exports",
+            "SingleExport.sol",
+            "monorepo/node_modules/exports/contracts2/SingleExport.sol",
+          );
+
+          assert.equal(
+            resolvedFile.sourceName,
+            "npm/exports@3.0.0/SingleExport.sol",
+          );
+        });
+
+        it("throws an error when the remapped file doesnt exist", async () => {
+          const resolver = await ResolverImplementation.create(
+            FIXTURE_HARDHAT_PROJECT_ROOT,
+            ["remapped_pkg/=npm/exports@3.0.0/"],
+          );
+
+          await assertRejectsWithHardhatError(
+            resolver.resolveImport(file, "remapped_pkg/NonExistent.sol"),
+            HardhatError.ERRORS.SOLIDITY.IMPORTED_FILE_DOESNT_EXIST,
+            {
+              importPath: "remapped_pkg/NonExistent.sol",
+              from: path.join("contracts", "File.sol"),
+            },
+          );
+        });
       });
     });
   });

@@ -284,28 +284,29 @@ export class ResolverImplementation implements Resolver {
         "Resolving a local file as if it were an npm module",
       );
 
-      let trueCaseFsPath: string;
-      try {
-        trueCaseFsPath = await getFileTrueCase(
-          npmPackage.rootFsPath,
-          parsedNpmModule.path,
-        );
-      } catch (error) {
-        ensureError(error, FileNotFoundError);
+      const result = resolve(npmModule, ensureTrailingSlash(this.#projectRoot));
 
-        throw new HardhatError(
-          HardhatError.ERRORS.SOLIDITY.RESOLVE_NON_EXISTENT_NPM_FILE,
-          { module: npmModule },
-          error,
-        );
+      if (result.success === false) {
+        if (result.error === ResolutionError.MODULE_NOT_FOUND) {
+          throw new HardhatError(
+            HardhatError.ERRORS.SOLIDITY.RESOLVE_NON_EXISTENT_NPM_FILE,
+            { module: npmModule },
+          );
+        } else {
+          throw new HardhatError(
+            HardhatError.ERRORS.SOLIDITY.RESOLVE_NOT_EXPORTED_NPM_FILE,
+            { module: npmModule },
+          );
+        }
       }
+      const fsPath = result.absolutePath;
 
       // Just like with the project files, we are more forgiving with the casing
       // here, as this is not used for imports.
 
       const sourceName = sourceNamePathJoin(
         npmPackageToRootSourceName(npmPackage.name, npmPackage.version),
-        fsPathToSourceNamePath(trueCaseFsPath),
+        fsPathToSourceNamePath(parsedNpmModule.path),
       );
 
       const resolvedWithTheRightCasing =
@@ -316,8 +317,6 @@ export class ResolverImplementation implements Resolver {
       -- If it was, it's a ProjectResolvedFile */
         return resolvedWithTheRightCasing as NpmPackageResolvedFile;
       }
-
-      const fsPath = path.join(npmPackage.rootFsPath, trueCaseFsPath);
 
       const resolvedFile: NpmPackageResolvedFile = {
         type: ResolvedFileType.NPM_PACKAGE_FILE,
@@ -851,17 +850,26 @@ export class ResolverImplementation implements Resolver {
     // don't need a new remapping for this package, as it's already
     // remapped by the user.
 
-    await this.#validateExistanceAndCasingOfImport({
-      from,
-      importPath,
-      relativeFsPathToValidate: relativeFileFsPath,
-      absoluteFsPathToValidateFrom: remapping.targetNpmPackage.rootFsPath,
-    });
-
-    const fsPath = path.join(
-      remapping.targetNpmPackage.rootFsPath,
-      relativeFileFsPath,
+    const result = resolve(
+      `${remapping.targetNpmPackage.name}/${relativeFileFsPath}`,
+      ensureTrailingSlash(remapping.targetNpmPackage.rootFsPath),
     );
+
+    if (result.success === false) {
+      if (result.error === ResolutionError.MODULE_NOT_FOUND) {
+        throw new HardhatError(
+          HardhatError.ERRORS.SOLIDITY.IMPORTED_FILE_DOESNT_EXIST,
+          { importPath, from: shortenPath(from.fsPath) },
+        );
+      }
+
+      throw new HardhatError(
+        HardhatError.ERRORS.SOLIDITY.IMPORTED_FILE_NOT_EXPORTED,
+        { importPath, from: shortenPath(from.fsPath) },
+      );
+    }
+
+    const fsPath = result.absolutePath;
 
     const resolvedFile: NpmPackageResolvedFile = {
       type: ResolvedFileType.NPM_PACKAGE_FILE,
@@ -1019,17 +1027,25 @@ export class ResolverImplementation implements Resolver {
       return existing as NpmPackageResolvedFile;
     }
 
-    await this.#validateExistanceAndCasingOfImport({
-      from,
+    const result = resolve(
       importPath,
-      relativeFsPathToValidate: fsPathWithinThePackage,
-      absoluteFsPathToValidateFrom: importedPackage.rootFsPath,
-    });
-
-    const fsPath = path.join(
-      importedPackage.rootFsPath,
-      fsPathWithinThePackage,
+      ensureTrailingSlash(importedPackage.rootFsPath),
     );
+    if (result.success === false) {
+      if (result.error === ResolutionError.MODULE_NOT_FOUND) {
+        throw new HardhatError(
+          HardhatError.ERRORS.SOLIDITY.IMPORTED_FILE_DOESNT_EXIST,
+          { importPath, from: shortenPath(from.fsPath) },
+        );
+      } else {
+        throw new HardhatError(
+          HardhatError.ERRORS.SOLIDITY.IMPORTED_FILE_NOT_EXPORTED,
+          { importPath, from: shortenPath(from.fsPath) },
+        );
+      }
+    }
+
+    const fsPath = result.absolutePath;
 
     const resolvedFile: NpmPackageResolvedFile = {
       type: ResolvedFileType.NPM_PACKAGE_FILE,
@@ -1091,7 +1107,7 @@ export class ResolverImplementation implements Resolver {
     if (packageJsonResolution.success === false) {
       if (packageJsonResolution.error === ResolutionError.MODULE_NOT_FOUND) {
         throw new HardhatError(
-          HardhatError.ERRORS.SOLIDITY.NPM_DEPEDNDENCY_NOT_INSTALLED,
+          HardhatError.ERRORS.SOLIDITY.NPM_DEPENDENCY_NOT_INSTALLED,
           {
             from:
               from === PROJECT_ROOT_SENTINEL
@@ -1103,7 +1119,7 @@ export class ResolverImplementation implements Resolver {
       }
 
       throw new HardhatError(
-        HardhatError.ERRORS.SOLIDITY.NPM_DEPEDNDENCY_USES_EXPORTS,
+        HardhatError.ERRORS.SOLIDITY.NPM_DEPENDENCY_NOT_EXPORTING_PACKAGE_JSON,
         {
           from:
             from === PROJECT_ROOT_SENTINEL
@@ -1177,7 +1193,7 @@ export class ResolverImplementation implements Resolver {
       if (
         HardhatError.isHardhatError(
           error,
-          HardhatError.ERRORS.SOLIDITY.NPM_DEPEDNDENCY_NOT_INSTALLED,
+          HardhatError.ERRORS.SOLIDITY.NPM_DEPENDENCY_NOT_INSTALLED,
         )
       ) {
         throw new HardhatError(
@@ -1193,7 +1209,7 @@ export class ResolverImplementation implements Resolver {
       if (
         HardhatError.isHardhatError(
           error,
-          HardhatError.ERRORS.SOLIDITY.NPM_DEPEDNDENCY_USES_EXPORTS,
+          HardhatError.ERRORS.SOLIDITY.NPM_DEPENDENCY_USES_EXPORTS,
         )
       ) {
         throw new HardhatError(
@@ -1553,4 +1569,12 @@ async function readFileContent(absolutePath: string): Promise<FileContent> {
     importPaths: imports,
     versionPragmas,
   };
+}
+
+function ensureTrailingSlash(path: string): string {
+  if (path.endsWith("/")) {
+    return path;
+  }
+
+  return path + "/";
 }
