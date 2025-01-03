@@ -47,6 +47,13 @@ export interface ResolvedConfigurationVariable {
 }
 
 /**
+ * A function that resolves a configuration variable.
+ */
+export type ConfigurationResolver = (
+  variableOrString: ConfigurationVariable | string,
+) => ResolvedConfigurationVariable;
+
+/**
  * A sensitive string, which can be provided as a literal
  * string or as a configuration variable.
  */

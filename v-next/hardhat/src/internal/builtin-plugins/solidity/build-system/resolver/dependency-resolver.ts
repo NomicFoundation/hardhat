@@ -1318,6 +1318,7 @@ export class ResolverImplementation implements Resolver {
         path: string;
       }
     | undefined {
+    // NOTE: We assume usage of path.posix.sep in the direct import
     const directImportPattern =
       /^(?<package>(?:@[a-z0-9-~._]+\/)?[a-z0-9-~][a-z0-9-~._]*)\/(?<path>.*)$/;
 
@@ -1332,7 +1333,11 @@ export class ResolverImplementation implements Resolver {
       "Groups should be defined because they are part of the pattern",
     );
 
-    return { package: match.groups.package, path: match.groups.path };
+    // NOTE: We replace path.posix.sep with path.sep here so that the returned
+    // path can be later safely treated as a system aware path
+    const parsedPath = match.groups.path.replaceAll(path.posix.sep, path.sep);
+
+    return { package: match.groups.package, path: parsedPath };
   }
 }
 

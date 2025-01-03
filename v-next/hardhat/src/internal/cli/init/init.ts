@@ -17,9 +17,9 @@ import { resolveFromRoot } from "@ignored/hardhat-vnext-utils/path";
 import chalk from "chalk";
 
 import { findClosestHardhatConfig } from "../../config-loading.js";
+import { HARDHAT_NAME } from "../../constants.js";
 import { getHardhatVersion } from "../../utils/package.js";
 
-import { HARDHAT_NAME } from "./constants.js";
 import {
   getDevDependenciesInstallationCommand,
   getPackageManager,
@@ -60,15 +60,15 @@ export interface InitHardhatOptions {
  * 1. Print the ascii logo.
  * 2. Print the welcome message.
  * 3. Optionally, ask the user for the workspace to initialize the project in.
- * 4. Optionally, ask the user for the template to use for the project initialization.
- * 5. Create the package.json file if it does not exist.
+ * 4. Validate that the package.json file is an esm package if it exists; otherwise, create it.
+ * 5. Optionally, ask the user for the template to use for the project initialization.
  * 6. Validate that the package.json file is an esm package.
  * 7. Optionally, ask the user if files should be overwritten.
  * 8. Copy the template files to the workspace.
- * 10. Print the commands to install the project dependencies.
- * 11. Optionally, ask the user if the project dependencies should be installed.
- * 12. Optionally, run the commands to install the project dependencies.
- * 13. Print a message to star the project on GitHub.
+ * 9. Print the commands to install the project dependencies.
+ * 10. Optionally, ask the user if the project dependencies should be installed.
+ * 11. Optionally, run the commands to install the project dependencies.
+ * 12. Print a message to star the project on GitHub.
  */
 export async function initHardhat(options?: InitHardhatOptions): Promise<void> {
   try {
@@ -80,13 +80,13 @@ export async function initHardhat(options?: InitHardhatOptions): Promise<void> {
     // if it was not provided, and validate that it is not already initialized
     const workspace = await getWorkspace(options?.workspace);
 
-    // Ask the user for the template to use for the project initialization
-    // if it was not provided, and validate that it exists
-    const template = await getTemplate(options?.template);
-
     // Create the package.json file if it does not exist
     // and validate that it is an esm package
     await ensureProjectPackageJson(workspace);
+
+    // Ask the user for the template to use for the project initialization
+    // if it was not provided, and validate that it exists
+    const template = await getTemplate(options?.template);
 
     // Copy the template files to the workspace
     // Overwrite existing files only if the user opts-in to it

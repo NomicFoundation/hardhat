@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import path from "node:path";
 import { afterEach, describe, it } from "node:test";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
@@ -26,6 +27,65 @@ describe("HRE intialization", () => {
   });
 
   describe("createHardhatRuntimeEnvironment", () => {
+    describe("resolved project root", () => {
+      describe("no path param is passed", () => {
+        describe("the cwd does not contain a package file", () => {
+          useFixtureProject("resolve-project-root/no-path-param/folder");
+
+          it("should search for a package file in the parent directory", async () => {
+            const expectedPath = path.join(process.cwd(), "..");
+
+            const hre = await createHardhatRuntimeEnvironment({});
+
+            assert.equal(hre.config.paths.root, expectedPath);
+          });
+        });
+
+        describe("the cwd contains a package file", () => {
+          useFixtureProject("resolve-project-root/no-path-param");
+
+          it("should find the package file in the cwd", async () => {
+            const hre = await createHardhatRuntimeEnvironment({});
+
+            assert.equal(hre.config.paths.root, process.cwd());
+          });
+        });
+      });
+
+      describe("the path param is passed", () => {
+        describe("the path passed as param does not contain a package file", () => {
+          useFixtureProject("resolve-project-root/with-path-param");
+
+          it("should search for a package file in the parent directory", async () => {
+            const hre = await createHardhatRuntimeEnvironment(
+              {},
+              {},
+              `${process.cwd()}/folder-no-package`,
+            );
+
+            assert.equal(hre.config.paths.root, process.cwd());
+          });
+        });
+
+        describe("the path passed as param contains a package file", () => {
+          useFixtureProject("resolve-project-root/with-path-param");
+
+          it("should find the package file at the specified path", async () => {
+            const hre = await createHardhatRuntimeEnvironment(
+              {},
+              {},
+              `${process.cwd()}/folder-with-package`,
+            );
+
+            assert.equal(
+              hre.config.paths.root,
+              path.join(process.cwd(), "folder-with-package"),
+            );
+          });
+        });
+      });
+    });
+
     it("should include the built-in plugins", async () => {
       const hre = await createHardhatRuntimeEnvironment({});
 
@@ -189,6 +249,7 @@ describe("HRE intialization", () => {
           help: false,
           init: false,
           showStackTraces: false,
+          verbose: false,
           version: false,
           myGlobalOption: "default",
           network: "",
