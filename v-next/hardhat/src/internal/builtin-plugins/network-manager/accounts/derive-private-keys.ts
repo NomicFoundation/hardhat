@@ -12,7 +12,7 @@ export function derivePrivateKeys(
   count: number,
   passphrase: string,
 ): string[] {
-  if (hdpath.match(HD_PATH_REGEX) === null) {
+  if (!HD_PATH_REGEX.test(hdpath)) {
     throw new HardhatError(HardhatError.ERRORS.NETWORK.INVALID_HD_PATH, {
       path: hdpath,
     });
