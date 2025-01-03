@@ -62,12 +62,12 @@ export interface InitHardhatOptions {
  * The flow is as follows:
  * 1. Print the ascii logo.
  * 2. Print the welcome message.
- * 3. Ensure telemetry consent
- * 4. Optionally, ask the user for the workspace to initialize the project in.
- * 5. Validate that the package.json file is an esm package if it exists; otherwise, create it.
- * 6. Optionally, ask the user for the template to use for the project initialization.
- * 7. Optionally, ask the user if files should be overwritten.
- * 8. Copy the template files to the workspace.
+ * 3. Optionally, ask the user for the workspace to initialize the project in.
+ * 4. Validate that the package.json file is an esm package if it exists; otherwise, create it.
+ * 5. Optionally, ask the user for the template to use for the project initialization.
+ * 6. Optionally, ask the user if files should be overwritten.
+ * 7. Copy the template files to the workspace.
+ * 8. Ensure telemetry consent.
  * 9. Print the commands to install the project dependencies.
  * 10. Optionally, ask the user if the project dependencies should be installed.
  * 11. Optionally, run the commands to install the project dependencies.
@@ -78,10 +78,6 @@ export async function initHardhat(options?: InitHardhatOptions): Promise<void> {
     printAsciiLogo();
 
     await printWelcomeMessage();
-
-    // Ensure telemetry consent first so that we are allowed to also track
-    // the unfinished init flows
-    await ensureTelemetryConsent();
 
     // Ask the user for the workspace to initialize the project in
     // if it was not provided, and validate that it is not already initialized
@@ -98,6 +94,10 @@ export async function initHardhat(options?: InitHardhatOptions): Promise<void> {
     // Copy the template files to the workspace
     // Overwrite existing files only if the user opts-in to it
     await copyProjectFiles(workspace, template, options?.force);
+
+    // Ensure telemetry consent first so that we are allowed to also track
+    // the unfinished init flows
+    await ensureTelemetryConsent();
 
     // Print the commands to install the project dependencies
     // Run them only if the user opts-in to it
