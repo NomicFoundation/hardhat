@@ -1,5 +1,11 @@
 # hardhat
 
+## 2.22.18
+
+### Patch Changes
+
+- 25f45b0: Improve solidity stack traces performance by getting them from the EDR response.
+
 ## 2.22.17
 
 ### Patch Changes
