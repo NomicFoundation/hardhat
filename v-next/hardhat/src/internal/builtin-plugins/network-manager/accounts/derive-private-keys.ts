@@ -1,15 +1,25 @@
+import type { SensitiveString } from "../../../../types/config.js";
+
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { mnemonicToSeedSync } from "ethereum-cryptography/bip39";
 import { HDKey } from "ethereum-cryptography/hdkey";
 
 const HD_PATH_REGEX = /^m(:?\/\d+'?)+\/?$/;
 
-export const DEFAULT_HD_ACCOUNTS_CONFIG_PARAMS = {
-  initialIndex: 0,
-  count: 20,
-  path: "m/44'/60'/0'/0",
-  passphrase: "",
-};
+export interface DefaultHDAccountsConfigParams {
+  initialIndex: number;
+  count: number;
+  path: string;
+  passphrase: SensitiveString;
+}
+
+export const DEFAULT_HD_ACCOUNTS_CONFIG_PARAMS: DefaultHDAccountsConfigParams =
+  {
+    initialIndex: 0,
+    count: 20,
+    path: "m/44'/60'/0'/0",
+    passphrase: "",
+  };
 
 export function derivePrivateKeys(
   mnemonic: string,
