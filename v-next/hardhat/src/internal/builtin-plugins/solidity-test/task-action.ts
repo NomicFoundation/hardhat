@@ -50,7 +50,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   let includesFailures = false;
   let includesErrors = false;
 
-  const testOptions = hre.config.solidity.test;
+  const testOptions = hre.config.solidityTest;
 
   const config: SolidityTestRunnerConfigArgs =
     solidityTestUserConfigToSolidityTestRunnerConfigArgs(

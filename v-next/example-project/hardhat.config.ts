@@ -198,9 +198,9 @@ const config: HardhatUserConfig = {
       // This is necessary because most people import forge-std/Test.sol, and not forge-std/src/Test.sol
       "forge-std/=npm/forge-std@1.9.4/src/",
     ],
-    test: {
-      testFail: true,
-    },
+  },
+  solidityTest: {
+    testFail: true,
   },
 };
 
