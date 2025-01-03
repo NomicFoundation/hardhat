@@ -13,26 +13,33 @@ declare module "../../../types/config.js" {
     settings?: any;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-empty-interface -- This could be an extension point
+  export interface SingleVersionSolcUserConfig extends SolcUserConfig {}
+
   export interface MultiVersionSolcUserConfig {
     compilers: SolcUserConfig[];
     overrides?: Record<string, SolcUserConfig>;
   }
 
-  export interface SingleVersionSolidityUserConfig extends SolcUserConfig {
+  export interface CommonSolidityUserConfig {
     dependenciesToCompile?: string[];
     remappings?: string[];
   }
+
+  export interface SingleVersionSolidityUserConfig
+    extends SingleVersionSolcUserConfig,
+      CommonSolidityUserConfig {}
 
   export interface MultiVersionSolidityUserConfig
-    extends MultiVersionSolcUserConfig {
-    dependenciesToCompile?: string[];
-    remappings?: string[];
-  }
+    extends MultiVersionSolcUserConfig,
+      CommonSolidityUserConfig {}
 
-  export interface BuildProfilesSolidityUserConfig {
-    profiles: Record<string, SolcUserConfig | MultiVersionSolcUserConfig>;
-    dependenciesToCompile?: string[];
-    remappings?: string[];
+  export interface BuildProfilesSolidityUserConfig
+    extends CommonSolidityUserConfig {
+    profiles: Record<
+      string,
+      SingleVersionSolcUserConfig | MultiVersionSolcUserConfig
+    >;
   }
 
   export interface HardhatUserConfig {

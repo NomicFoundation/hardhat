@@ -25,8 +25,6 @@ function getEdrContext(): EdrContext {
 export interface RunOptions {
   /**
    * The maximum time in milliseconds to wait for all the test suites to finish.
-   *
-   * If not provided, the default is 1 hour.
    */
   timeout?: number;
 }
@@ -62,18 +60,20 @@ export function run(
 
       const remainingSuites = new Set(testSuiteIds.map(formatArtifactId));
 
-      // NOTE: The timeout prevents the situation in which the stream is never
-      // closed. This can happen if we receive fewer suite results than the
-      // number of test suites. The timeout is set to 1 hour.
-      const duration = options?.timeout ?? 60 * 60 * 1000;
-      const timeout = setTimeout(() => {
-        controller.error(
-          new HardhatError(HardhatError.ERRORS.SOLIDITY_TESTS.RUNNER_TIMEOUT, {
-            duration,
-            suites: Array.from(remainingSuites).join(", "),
-          }),
-        );
-      }, duration);
+      let timeout: NodeJS.Timeout | undefined;
+      if (options?.timeout !== undefined) {
+        timeout = setTimeout(() => {
+          controller.error(
+            new HardhatError(
+              HardhatError.ERRORS.SOLIDITY_TESTS.RUNNER_TIMEOUT,
+              {
+                duration: options.timeout,
+                suites: Array.from(remainingSuites).join(", "),
+              },
+            ),
+          );
+        }, options.timeout);
+      }
 
       // TODO: Just getting the context here to get it initialized, but this
       // is not currently tied to the `runSolidityTests` function.
