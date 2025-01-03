@@ -282,6 +282,22 @@ export const builtinChains: ChainConfig[] = [
       browserURL: "https://explorer.pops.one",
     },
   },
+  {
+    network: "inkSepolia",
+    chainId: 763373,
+    urls: {
+      apiURL: "https://explorer-sepolia.inkonchain.com/api/v2",
+      browserURL: "https://explorer-sepolia.inkonchain.com/",
+    },
+  },
+  {
+    network: "ink",
+    chainId: 57073,
+    urls: {
+      apiURL: "https://explorer.inkonchain.com/api/v2",
+      browserURL: "https://explorer.inkonchain.com/",
+    },
+  },
   // We are not adding new networks to the core of hardhat-verify anymore.
   // Please read this to learn how to manually add support for custom networks:
   // https://github.com/NomicFoundation/hardhat/tree/main/packages/hardhat-verify#adding-support-for-other-networks
