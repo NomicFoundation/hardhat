@@ -1189,6 +1189,12 @@ This happens when your files require incompatible versions of solc or you haven'
 
 Please check Hardhat's output for more details.`,
     },
+    INVALID_SOLCJS_COMPILER: {
+      number: 1231,
+      messageTemplate: `A wasm version of solc {version} is invalid. The compile function is not available.`,
+      websiteTitle: "Invalid solcjs compiler",
+      websiteDescription: `Hardhat successfully downloaded a WASM version of solc {version} but it is invalid. The compile function is missing.`,
+    },
   },
   VIEM: {
     NETWORK_NOT_FOUND: {
