@@ -30,7 +30,8 @@ export async function getPackageManager(
 
 /**
  * getDevDependenciesInstallationCommand returns the command to install the given dependencies
- * as dev dependencies using the given package manager.
+ * as dev dependencies using the given package manager. The returned command should
+ * be safe to run on the command line.
  *
  * @param packageManager The package manager to use.
  * @param dependencies The dependencies to install.
@@ -46,7 +47,9 @@ export function getDevDependenciesInstallationCommand(
     pnpm: ["pnpm", "add", "--save-dev"],
   };
   const command = packageManagerToCommand[packageManager];
-  command.push(...dependencies);
+  // We quote all the dependency identifiers so that they can be run on a shell
+  // without semver symbols interfering with the command
+  command.push(...dependencies.map((d) => `"${d}"`));
   return command;
 }
 
