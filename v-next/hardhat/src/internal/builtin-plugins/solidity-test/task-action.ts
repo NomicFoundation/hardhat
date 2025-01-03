@@ -1,12 +1,20 @@
 import type { RunOptions } from "./runner.js";
 import type { TestEvent } from "./types.js";
+import type { BuildOptions } from "../../../types/solidity/build-system.js";
 import type { NewTaskActionFunction } from "../../../types/tasks.js";
 
 import { finished } from "node:stream/promises";
 
+import { getAllFilesMatching } from "@ignored/hardhat-vnext-utils/fs";
 import { createNonClosingWriter } from "@ignored/hardhat-vnext-utils/stream";
 
-import { getArtifacts, isTestArtifact } from "./helpers.js";
+import { shouldMergeCompilationJobs } from "../solidity/build-profiles.js";
+
+import {
+  getArtifacts,
+  getTestSuiteIds,
+  throwIfSolidityBuildFailed,
+} from "./helpers.js";
 import { testReporter } from "./reporter.js";
 import { run } from "./runner.js";
 
@@ -16,28 +24,44 @@ interface TestActionArguments {
 }
 
 const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
-  { timeout, noCompile },
+  { timeout },
   hre,
 ) => {
-  if (!noCompile) {
-    await hre.tasks.getTask("compile").run({});
-    console.log();
-  }
-
-  const artifacts = await getArtifacts(hre.artifacts);
-  const testSuiteIds = (
-    await Promise.all(
-      artifacts.map(async (artifact) => {
-        if (await isTestArtifact(hre.config.paths.root, artifact)) {
-          return artifact.id;
-        }
+  const rootSourceFilePaths = await hre.solidity.getRootFilePaths();
+  // NOTE: A test file is either a file with a `.sol` extension in the `tests.solidity`
+  // directory or a file with a `.t.sol` extension in the `sources.solidity` directory
+  const rootTestFilePaths = (
+    await Promise.all([
+      getAllFilesMatching(hre.config.paths.tests.solidity, (f) =>
+        f.endsWith(".sol"),
+      ),
+      ...hre.config.paths.sources.solidity.map(async (dir) => {
+        return getAllFilesMatching(dir, (f) => f.endsWith(".t.sol"));
       }),
-    )
-  ).filter((artifact) => artifact !== undefined);
+    ])
+  ).flat(1);
 
-  if (testSuiteIds.length === 0) {
-    return;
-  }
+  const buildOptions: BuildOptions = {
+    force: false,
+    buildProfile: hre.globalOptions.buildProfile,
+    mergeCompilationJobs: shouldMergeCompilationJobs(
+      hre.globalOptions.buildProfile,
+    ),
+    quiet: false,
+  };
+
+  // NOTE: We compile all the sources together with the tests
+  const rootFilePaths = [...rootSourceFilePaths, ...rootTestFilePaths];
+  const results = await hre.solidity.build(rootFilePaths, buildOptions);
+
+  throwIfSolidityBuildFailed(results);
+
+  const artifacts = await getArtifacts(results, hre.config.paths.artifacts);
+  const testSuiteIds = await getTestSuiteIds(
+    artifacts,
+    rootTestFilePaths,
+    hre.config.paths.root,
+  );
 
   console.log("Running Solidity tests");
   console.log();

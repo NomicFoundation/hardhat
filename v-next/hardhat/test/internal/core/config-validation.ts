@@ -1,5 +1,8 @@
 import type { HardhatUserConfig } from "../../../src/config.js";
-import type { ProjectPathsUserConfig } from "../../../src/types/config.js";
+import type {
+  ProjectPathsUserConfig,
+  TestPathsUserConfig,
+} from "../../../src/types/config.js";
 import type { HardhatPlugin } from "../../../src/types/plugins.js";
 import type {
   EmptyTaskDefinition,
@@ -1247,7 +1250,8 @@ describe("config validation", function () {
       it("should work when the tests and sources properties are both objects", async function () {
         // Objects are not validated because they are customizable by the user
         const paths: ProjectPathsUserConfig = {
-          tests: { randomProperty: "randomValue" },
+          /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing validations for js users who can bypass type checks */
+          tests: { randomProperty: "randomValue" } as TestPathsUserConfig,
           sources: {},
         };
 
