@@ -50,9 +50,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   let includesFailures = false;
   let includesErrors = false;
 
-  const profileName = hre.globalOptions.buildProfile;
-  const profile = hre.config.solidity.profiles[profileName];
-  const testOptions = profile.test;
+  const testOptions = hre.config.solidity.test;
 
   const config: SolidityTestRunnerConfigArgs =
     solidityTestUserConfigToSolidityTestRunnerConfigArgs(

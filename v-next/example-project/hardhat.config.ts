@@ -181,9 +181,6 @@ const config: HardhatUserConfig = {
             version: "0.8.1",
           },
         },
-        test: {
-          testFail: true,
-        }
       },
       test: {
         version: "0.8.2",
@@ -201,6 +198,9 @@ const config: HardhatUserConfig = {
       // This is necessary because most people import forge-std/Test.sol, and not forge-std/src/Test.sol
       "forge-std/=npm/forge-std@1.9.4/src/",
     ],
+    test: {
+      testFail: true,
+    },
   },
 };
 

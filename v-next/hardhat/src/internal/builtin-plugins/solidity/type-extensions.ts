@@ -70,35 +70,34 @@ declare module "../../../types/config.js" {
     };
   }
 
-  export interface SingleVersionSolcUserConfig extends SolcUserConfig {
-    test?: SolidityTestUserConfig;
-  }
+  // eslint-disable-next-line @typescript-eslint/no-empty-interface -- This could be an extension point
+  export interface SingleVersionSolcUserConfig extends SolcUserConfig {}
 
   export interface MultiVersionSolcUserConfig {
     compilers: SolcUserConfig[];
     overrides?: Record<string, SolcUserConfig>;
+  }
+
+  export interface CommonSolidityUserConfig {
+    dependenciesToCompile?: string[];
+    remappings?: string[];
     test?: SolidityTestUserConfig;
   }
 
   export interface SingleVersionSolidityUserConfig
-    extends SingleVersionSolcUserConfig {
-    dependenciesToCompile?: string[];
-    remappings?: string[];
-  }
+    extends SingleVersionSolcUserConfig,
+      CommonSolidityUserConfig {}
 
   export interface MultiVersionSolidityUserConfig
-    extends MultiVersionSolcUserConfig {
-    dependenciesToCompile?: string[];
-    remappings?: string[];
-  }
+    extends MultiVersionSolcUserConfig,
+      CommonSolidityUserConfig {}
 
-  export interface BuildProfilesSolidityUserConfig {
+  export interface BuildProfilesSolidityUserConfig
+    extends CommonSolidityUserConfig {
     profiles: Record<
       string,
       SingleVersionSolcUserConfig | MultiVersionSolcUserConfig
     >;
-    dependenciesToCompile?: string[];
-    remappings?: string[];
   }
 
   export interface HardhatUserConfig {
@@ -116,13 +115,13 @@ declare module "../../../types/config.js" {
   export interface SolidityBuildProfileConfig {
     compilers: SolcConfig[];
     overrides: Record<string, SolcConfig>;
-    test: SolidityTestConfig;
   }
 
   export interface SolidityConfig {
     profiles: Record<string, SolidityBuildProfileConfig>;
     dependenciesToCompile: string[];
     remappings: string[];
+    test: SolidityTestConfig;
   }
 
   export interface HardhatConfig {

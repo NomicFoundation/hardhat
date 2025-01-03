@@ -115,24 +115,26 @@ const solidityTestUserConfigType = z.object({
     .optional(),
 });
 
-const singleVersionSolcUserConfigType = solcUserConfigType.extend({
-  test: solidityTestUserConfigType.optional(),
-});
+const singleVersionSolcUserConfigType = solcUserConfigType;
 
 const multiVersionSolcUserConfigType = z.object({
   compilers: z.array(solcUserConfigType).nonempty(),
   overrides: z.record(z.string(), solcUserConfigType).optional(),
-  test: solidityTestUserConfigType.optional(),
   version: incompatibleFieldType("This field is incompatible with `compilers`"),
   settings: incompatibleFieldType(
     "This field is incompatible with `compilers`",
   ),
 });
 
-const singleVersionSolidityUserConfigType =
-  singleVersionSolcUserConfigType.extend({
-    dependenciesToCompile: z.array(z.string()).optional(),
-    remappings: z.array(z.string()).optional(),
+const commonSolidityUserConfigType = z.object({
+  dependenciesToCompile: z.array(z.string()).optional(),
+  remappings: z.array(z.string()).optional(),
+  test: solidityTestUserConfigType.optional(),
+});
+
+const singleVersionSolidityUserConfigType = singleVersionSolcUserConfigType
+  .merge(commonSolidityUserConfigType)
+  .extend({
     compilers: incompatibleFieldType(
       "This field is incompatible with `version`",
     ),
@@ -144,10 +146,9 @@ const singleVersionSolidityUserConfigType =
     ),
   });
 
-const multiVersionSolidityUserConfigType =
-  multiVersionSolcUserConfigType.extend({
-    dependenciesToCompile: z.array(z.string()).optional(),
-    remappings: z.array(z.string()).optional(),
+const multiVersionSolidityUserConfigType = multiVersionSolcUserConfigType
+  .merge(commonSolidityUserConfigType)
+  .extend({
     version: incompatibleFieldType(
       "This field is incompatible with `compilers`",
     ),
@@ -156,33 +157,35 @@ const multiVersionSolidityUserConfigType =
     ),
   });
 
-const buildProfilesSolidityUserConfigType = z.object({
-  profiles: z.record(
-    z.string(),
-    conditionalUnionType(
-      [
+const buildProfilesSolidityUserConfigType = commonSolidityUserConfigType.extend(
+  {
+    profiles: z.record(
+      z.string(),
+      conditionalUnionType(
         [
-          (data) => isObject(data) && "version" in data,
-          singleVersionSolcUserConfigType,
+          [
+            (data) => isObject(data) && "version" in data,
+            singleVersionSolcUserConfigType,
+          ],
+          [
+            (data) => isObject(data) && "compilers" in data,
+            multiVersionSolcUserConfigType,
+          ],
         ],
-        [
-          (data) => isObject(data) && "compilers" in data,
-          multiVersionSolcUserConfigType,
-        ],
-      ],
-      "Expected an object configuring one or more versions of Solidity",
+        "Expected an object configuring one or more versions of Solidity",
+      ),
     ),
-  ),
-  dependenciesToCompile: z.array(z.string()).optional(),
-  remappings: z.array(z.string()).optional(),
-  version: incompatibleFieldType("This field is incompatible with `profiles`"),
-  compilers: incompatibleFieldType(
-    "This field is incompatible with `profiles`",
-  ),
-  overrides: incompatibleFieldType(
-    "This field is incompatible with `profiles`",
-  ),
-});
+    version: incompatibleFieldType(
+      "This field is incompatible with `profiles`",
+    ),
+    compilers: incompatibleFieldType(
+      "This field is incompatible with `profiles`",
+    ),
+    overrides: incompatibleFieldType(
+      "This field is incompatible with `profiles`",
+    ),
+  },
+);
 
 const soldityUserConfigType = conditionalUnionType(
   [
@@ -292,11 +295,11 @@ function resolveSolidityConfig(
             settings: {},
           })),
           overrides: {},
-          test: {},
         },
       },
       dependenciesToCompile: [],
       remappings: [],
+      test: {},
     };
   }
 
@@ -311,11 +314,11 @@ function resolveSolidityConfig(
             },
           ],
           overrides: {},
-          test: solidityConfig.test ?? {},
         },
       },
       dependenciesToCompile: solidityConfig.dependenciesToCompile ?? [],
       remappings: solidityConfig.remappings ?? [],
+      test: solidityConfig.test ?? {},
     };
   }
 
@@ -340,11 +343,11 @@ function resolveSolidityConfig(
               },
             ),
           ),
-          test: solidityConfig.test ?? {},
         },
       },
       dependenciesToCompile: solidityConfig.dependenciesToCompile ?? [],
       remappings: solidityConfig.remappings ?? [],
+      test: solidityConfig.test ?? {},
     };
   }
 
@@ -363,7 +366,6 @@ function resolveSolidityConfig(
           },
         ],
         overrides: {},
-        test: {},
       };
       continue;
     }
@@ -386,7 +388,6 @@ function resolveSolidityConfig(
           },
         ),
       ),
-      test: profile.test ?? {},
     };
   }
 
@@ -400,5 +401,6 @@ function resolveSolidityConfig(
     profiles,
     dependenciesToCompile: solidityConfig.dependenciesToCompile ?? [],
     remappings: solidityConfig.remappings ?? [],
+    test: solidityConfig.test ?? {},
   };
 }
