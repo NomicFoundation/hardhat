@@ -15,11 +15,13 @@ import {
 } from "@ignored/hardhat-vnext-utils/fs";
 import { resolveFromRoot } from "@ignored/hardhat-vnext-utils/path";
 import chalk from "chalk";
+import * as semver from "semver";
 
 import { findClosestHardhatConfig } from "../../config-loading.js";
+import { HARDHAT_NAME } from "../../constants.js";
 import { getHardhatVersion } from "../../utils/package.js";
+import { ensureTelemetryConsent } from "../telemetry/telemetry-permissions.js";
 
-import { HARDHAT_NAME } from "./constants.js";
 import {
   getDevDependenciesInstallationCommand,
   getPackageManager,
@@ -29,6 +31,7 @@ import {
   promptForForce,
   promptForInstall,
   promptForTemplate,
+  promptForUpdate,
   promptForWorkspace,
 } from "./prompt.js";
 import { spawn } from "./subprocess.js";
@@ -60,15 +63,15 @@ export interface InitHardhatOptions {
  * 1. Print the ascii logo.
  * 2. Print the welcome message.
  * 3. Optionally, ask the user for the workspace to initialize the project in.
- * 4. Optionally, ask the user for the template to use for the project initialization.
- * 5. Create the package.json file if it does not exist.
- * 6. Validate that the package.json file is an esm package.
- * 7. Optionally, ask the user if files should be overwritten.
- * 8. Copy the template files to the workspace.
- * 10. Print the commands to install the project dependencies.
- * 11. Optionally, ask the user if the project dependencies should be installed.
- * 12. Optionally, run the commands to install the project dependencies.
- * 13. Print a message to star the project on GitHub.
+ * 4. Validate that the package.json file is an esm package if it exists; otherwise, create it.
+ * 5. Optionally, ask the user for the template to use for the project initialization.
+ * 6. Optionally, ask the user if files should be overwritten.
+ * 7. Copy the template files to the workspace.
+ * 8. Ensure telemetry consent.
+ * 9. Print the commands to install the project dependencies.
+ * 10. Optionally, ask the user if the project dependencies should be installed.
+ * 11. Optionally, run the commands to install the project dependencies.
+ * 12. Print a message to star the project on GitHub.
  */
 export async function initHardhat(options?: InitHardhatOptions): Promise<void> {
   try {
@@ -80,17 +83,21 @@ export async function initHardhat(options?: InitHardhatOptions): Promise<void> {
     // if it was not provided, and validate that it is not already initialized
     const workspace = await getWorkspace(options?.workspace);
 
-    // Ask the user for the template to use for the project initialization
-    // if it was not provided, and validate that it exists
-    const template = await getTemplate(options?.template);
-
     // Create the package.json file if it does not exist
     // and validate that it is an esm package
     await ensureProjectPackageJson(workspace);
 
+    // Ask the user for the template to use for the project initialization
+    // if it was not provided, and validate that it exists
+    const template = await getTemplate(options?.template);
+
     // Copy the template files to the workspace
     // Overwrite existing files only if the user opts-in to it
     await copyProjectFiles(workspace, template, options?.force);
+
+    // Ensure telemetry consent first so that we are allowed to also track
+    // the unfinished init flows
+    await ensureTelemetryConsent();
 
     // Print the commands to install the project dependencies
     // Run them only if the user opts-in to it
@@ -355,11 +362,13 @@ export async function copyProjectFiles(
  * @param workspace The path to the workspace to initialize the project in.
  * @param template The template to use for the project initialization.
  * @param install Whether to install the project dependencies.
+ * @param update Whether to update the project dependencies.
  */
 export async function installProjectDependencies(
   workspace: string,
   template: Template,
   install?: boolean,
+  update?: boolean,
 ): Promise<void> {
   const pathToWorkspacePackageJson = path.join(workspace, "package.json");
 
@@ -380,42 +389,42 @@ export async function installProjectDependencies(
       templateDependencies[name] = version;
     }
   }
-  const workspaceDependencies = workspacePkg.devDependencies ?? {};
-  const dependenciesToInstall = Object.entries(templateDependencies)
+
+  // Checking both workspace dependencies and dev dependencies in case the user
+  // installed a dev dependency as a dependency
+  const workspaceDependencies = {
+    ...(workspacePkg.dependencies ?? {}),
+    ...(workspacePkg.devDependencies ?? {}),
+  };
+
+  // We need to strip the optional workspace prefix from template dependency versions
+  const templateDependencyEntries = Object.entries(templateDependencies).map(
+    ([name, version]) => [name, version.replace(/^workspace:/, "")],
+  );
+
+  // Finding the dependencies that are not already installed
+  const dependenciesToInstall = templateDependencyEntries
     .filter(([name]) => workspaceDependencies[name] === undefined)
-    .map(([name, version]) => {
-      // Strip the workspace: prefix from the version
-      return `${name}@${version.replace(/^workspace:/, "")}`;
-    });
+    .map(([name, version]) => `${name}@${version}`);
 
   // Try to install the missing dependencies if there are any
   if (Object.keys(dependenciesToInstall).length !== 0) {
     // Retrieve the package manager specific installation command
-    let command = getDevDependenciesInstallationCommand(
+    const command = getDevDependenciesInstallationCommand(
       packageManager,
       dependenciesToInstall,
     );
+    const commandString = command.join(" ");
 
-    // We quote all the dependency identifiers to that it can be run on a shell
-    // without semver symbols interfering with the command
-    command = [
-      command[0],
-      command[1],
-      command[2],
-      ...command.slice(3).map((arg) => `"${arg}"`),
-    ];
-
-    const formattedCommand = command.join(" ");
-
-    // Ask the user for permission to install the project dependencies and install them if needed
+    // Ask the user for permission to install the project dependencies
     if (install === undefined) {
-      install = await promptForInstall(formattedCommand);
+      install = await promptForInstall(commandString);
     }
 
     // If the user grants permission to install the dependencies, run the installation command
     if (install) {
       console.log();
-      console.log(formattedCommand);
+      console.log(commandString);
 
       await spawn(command[0], command.slice(1), {
         cwd: workspace,
@@ -427,6 +436,54 @@ export async function installProjectDependencies(
       });
 
       console.log(`✨ ${chalk.cyan(`Dependencies installed`)} ✨`);
+    }
+  }
+
+  // NOTE: Even though the dependency updates are very similar to pure
+  // installations, they are kept separate to allow the user to skip one while
+  // proceeding with the other, and to allow us to design handling of these
+  // two processes independently.
+
+  // Finding the installed dependencies that have an incompatible version
+  const dependenciesToUpdate = templateDependencyEntries
+    .filter(([name, version]) => {
+      const workspaceVersion = workspaceDependencies[name];
+      return (
+        workspaceVersion !== undefined &&
+        !semver.satisfies(version, workspaceVersion) &&
+        !semver.intersects(version, workspaceVersion)
+      );
+    })
+    .map(([name, version]) => `${name}@${version}`);
+
+  // Try to update the missing dependencies if there are any.
+  if (dependenciesToUpdate.length !== 0) {
+    // Retrieve the package manager specific installation command
+    const command = getDevDependenciesInstallationCommand(
+      packageManager,
+      dependenciesToUpdate,
+    );
+    const commandString = command.join(" ");
+
+    // Ask the user for permission to update the project dependencies
+    if (update === undefined) {
+      update = await promptForUpdate(commandString);
+    }
+
+    if (update) {
+      console.log();
+      console.log(commandString);
+
+      await spawn(command[0], command.slice(1), {
+        cwd: workspace,
+        // We need to run with `shell: true` for this to work on powershell, but
+        // we already enclosed every dependency identifier in quotes, so this
+        // is safe.
+        shell: true,
+        stdio: "inherit",
+      });
+
+      console.log(`✨ ${chalk.cyan(`Dependencies updated`)} ✨`);
     }
   }
 }

@@ -11,7 +11,7 @@ import type {
 } from "../../../src/types/tasks.js";
 
 import assert from "node:assert/strict";
-import { afterEach, before, describe, it } from "node:test";
+import { afterEach, before, describe, it, mock } from "node:test";
 import { pathToFileURL } from "node:url";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
@@ -22,6 +22,7 @@ import {
   useFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
 import chalk from "chalk";
+import debug from "debug";
 
 import {
   main,
@@ -103,6 +104,19 @@ describe("main", function () {
   describe("main", function () {
     afterEach(function () {
       resetGlobalHardhatRuntimeEnvironment();
+    });
+
+    describe("verbose", function () {
+      useFixtureProject("cli/parsing/base-project");
+
+      it("should enable the debug logs", async function () {
+        const spy = mock.method(debug, "enable");
+
+        const command = "npx hardhat --verbose";
+        await runMain(command);
+
+        assert.equal(spy.mock.calls.length, 1);
+      });
     });
 
     describe("version", function () {
@@ -212,6 +226,7 @@ AVAILABLE TASKS:
   clean                    Clears the cache and deletes all artifacts
   compile                  Compiles your project
   console                  Opens a hardhat console
+  node                     Starts a JSON-RPC server on top of Hardhat Network
   run                      Runs a user-defined script after compiling the project
   task                     A task that uses arg1
   test                     Runs all your tests
@@ -228,6 +243,7 @@ GLOBAL OPTIONS:
   --init                   Initializes a Hardhat project.
   --network                The network to connect to
   --show-stack-traces      Show stack traces (always enabled on CI servers).
+  --verbose                Enables Hardhat verbose logging.
   --version                Shows hardhat's version.
 
 To get help for a specific task run: npx hardhat <TASK> [SUBTASK] --help`;

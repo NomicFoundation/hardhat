@@ -1,8 +1,5 @@
-import type {
-  NetworkHelpers,
-  NumberLike,
-  Time as TimeI,
-} from "../../../types.js";
+import type { NumberLike, Time as TimeI } from "../../../types.js";
+import type { NetworkHelpers } from "../network-helpers.js";
 import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
 
 import { Duration } from "../duration/duration.js";
@@ -27,10 +24,12 @@ export class Time implements TimeI {
   }
 
   public async increase(amountInSeconds: NumberLike): Promise<number> {
+    await this.#networkHelpers.throwIfNotDevelopmentNetwork();
     return increase(this.#provider, this.#networkHelpers, amountInSeconds);
   }
 
   public async increaseTo(timestamp: NumberLike | Date): Promise<void> {
+    await this.#networkHelpers.throwIfNotDevelopmentNetwork();
     return increaseTo(
       this.#provider,
       this.#networkHelpers,
@@ -40,16 +39,19 @@ export class Time implements TimeI {
   }
 
   public async latest(): Promise<number> {
+    await this.#networkHelpers.throwIfNotDevelopmentNetwork();
     return latest(this.#provider);
   }
 
   public async latestBlock(): Promise<number> {
+    await this.#networkHelpers.throwIfNotDevelopmentNetwork();
     return latestBlock(this.#provider);
   }
 
   public async setNextBlockTimestamp(
     timestamp: NumberLike | Date,
   ): Promise<void> {
+    await this.#networkHelpers.throwIfNotDevelopmentNetwork();
     return setNextBlockTimestamp(this.#provider, timestamp, this.duration);
   }
 }

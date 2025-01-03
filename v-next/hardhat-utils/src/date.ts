@@ -5,7 +5,7 @@
  * @returns The Unix timestamp.
  */
 export function toSeconds(value: string | number | Date): number {
-  return Math.floor(new Date(value).valueOf() / 1000);
+  return Math.floor(new Date(value).getTime() / 1000);
 }
 
 /**
