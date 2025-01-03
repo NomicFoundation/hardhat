@@ -3,6 +3,7 @@ import type {
   JsonRpcRequest,
   JsonRpcResponse,
   RequestArguments,
+  SuccessfulJsonRpcResponse,
 } from "../../../types/providers.js";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
@@ -56,6 +57,30 @@ export function parseJsonRpcResponse(
   }
 }
 
+export function isJsonRpcRequest(payload: unknown): payload is JsonRpcRequest {
+  if (!isObject(payload)) {
+    return false;
+  }
+
+  if (payload.jsonrpc !== "2.0") {
+    return false;
+  }
+
+  if (typeof payload.id !== "number" && typeof payload.id !== "string") {
+    return false;
+  }
+
+  if (typeof payload.method !== "string") {
+    return false;
+  }
+
+  if (!Array.isArray(payload.params)) {
+    return false;
+  }
+
+  return true;
+}
+
 export function isJsonRpcResponse(
   payload: unknown,
 ): payload is JsonRpcResponse {
@@ -94,6 +119,12 @@ export function isJsonRpcResponse(
   }
 
   return true;
+}
+
+export function isSuccessfulJsonRpcResponse(
+  payload: JsonRpcResponse,
+): payload is SuccessfulJsonRpcResponse {
+  return "result" in payload;
 }
 
 export function isFailedJsonRpcResponse(

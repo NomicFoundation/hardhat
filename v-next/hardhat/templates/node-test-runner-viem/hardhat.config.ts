@@ -83,9 +83,6 @@ const config: HardhatUserConfig = {
    *   networks, it makes sure that the simulated chain behaves exactly like the
    *   real one. More information about this can be found in the test files.
    *
-   * - Some config fields, like `forkConfig`, are different from Hardhat 2 and
-   *   will be fixed in the near future.
-   *
    * - The `accounts` field of `http` networks can also receive Configuration
    *   Variables, which are values that only get loaded when needed. This allows
    *   Hardhat to still run despite some of its config not being available
@@ -102,8 +99,8 @@ const config: HardhatUserConfig = {
     edrOpSepolia: {
       type: "edr",
       chainType: "optimism",
-      forkConfig: {
-        jsonRpcUrl: "https://sepolia.optimism.io",
+      forking: {
+        url: "https://sepolia.optimism.io",
       },
     },
   },

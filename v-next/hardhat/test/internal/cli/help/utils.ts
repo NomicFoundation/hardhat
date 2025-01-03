@@ -11,7 +11,7 @@ import {
   getLongestNameLength,
   getSection,
   getUsageString,
-} from "../../../../src/internal/cli/helpers/utils.js";
+} from "../../../../src/internal/cli/help/utils.js";
 import { ArgumentType } from "../../../../src/types/arguments.js";
 
 describe("utils", function () {

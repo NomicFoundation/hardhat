@@ -2,7 +2,8 @@ import type { EthereumProvider } from "../../../../../../types/providers.js";
 
 import { bytesToHexString } from "@ignored/hardhat-vnext-utils/hex";
 
-import { derivePrivateKeys } from "./derive-private-keys.js";
+import { derivePrivateKeys } from "../../../accounts/derive-private-keys.js";
+
 import { LocalAccountsHandler } from "./local-accounts.js";
 
 export class HDWalletHandler extends LocalAccountsHandler {

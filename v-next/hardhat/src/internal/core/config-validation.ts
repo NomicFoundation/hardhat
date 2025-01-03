@@ -1,4 +1,7 @@
-import type { HardhatUserConfig } from "../../types/config.js";
+import type {
+  HardhatUserConfig,
+  ProjectPathsUserConfig,
+} from "../../types/config.js";
 import type {
   HardhatUserConfigValidationError,
   HookManager,
@@ -85,6 +88,17 @@ export function collectValidationErrorsForUserConfig(
 ): HardhatUserConfigValidationError[] {
   const validationErrors: HardhatUserConfigValidationError[] = [];
 
+  if (config.paths !== undefined) {
+    if (isObject(config.paths)) {
+      validationErrors.push(...validatePaths(config.paths));
+    } else {
+      validationErrors.push({
+        path: ["paths"],
+        message: "paths must be an object",
+      });
+    }
+  }
+
   if (config.tasks !== undefined) {
     if (Array.isArray(config.tasks)) {
       validationErrors.push(...validateTasksConfig(config.tasks));
@@ -105,6 +119,63 @@ export function collectValidationErrorsForUserConfig(
         message: "plugins must be an array",
       });
     }
+  }
+
+  return validationErrors;
+}
+
+export function validatePaths(
+  paths: ProjectPathsUserConfig,
+): HardhatUserConfigValidationError[] {
+  const validationErrors: HardhatUserConfigValidationError[] = [];
+
+  if (paths.cache !== undefined) {
+    validationErrors.push(...validatePath(paths.cache, "cache"));
+  }
+
+  if (paths.artifacts !== undefined) {
+    validationErrors.push(...validatePath(paths.artifacts, "artifacts"));
+  }
+
+  if (paths.tests !== undefined) {
+    // paths.tests of type TestPathsUserConfig is not validated because it is customizable by the user
+    if (!isObject(paths.tests)) {
+      validationErrors.push(...validatePath(paths.tests, "tests"));
+    }
+  }
+
+  if (paths.sources !== undefined) {
+    if (Array.isArray(paths.sources)) {
+      for (const [index, source] of paths.sources.entries()) {
+        validationErrors.push(...validatePath(source, "sources", index));
+      }
+      // paths.sources of type SourcePathsUserConfig is not validated because it is customizable by the user
+    } else if (!isObject(paths.sources)) {
+      validationErrors.push(...validatePath(paths.sources, "sources"));
+    }
+  }
+
+  return validationErrors;
+}
+
+function validatePath(
+  filePath: unknown,
+  pathName: "cache" | "artifacts" | "tests" | "sources",
+  index?: number,
+): HardhatUserConfigValidationError[] {
+  const validationErrors: HardhatUserConfigValidationError[] = [];
+
+  if (typeof filePath !== "string") {
+    const messagePrefix =
+      index !== undefined
+        ? `paths.${pathName} at index ${index}`
+        : `paths.${pathName}`;
+
+    validationErrors.push({
+      path:
+        index !== undefined ? ["paths", pathName, index] : ["paths", pathName],
+      message: `${messagePrefix} must be a string`,
+    });
   }
 
   return validationErrors;
