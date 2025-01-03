@@ -5,11 +5,7 @@ import type { NewTaskActionFunction } from "../../../types/tasks.js";
 
 import { finished } from "node:stream/promises";
 
-import {
-  getAllFilesMatching,
-  isDirectory,
-} from "@ignored/hardhat-vnext-utils/fs";
-import { resolveFromRoot } from "@ignored/hardhat-vnext-utils/path";
+import { getAllFilesMatching } from "@ignored/hardhat-vnext-utils/fs";
 import { createNonClosingWriter } from "@ignored/hardhat-vnext-utils/stream";
 
 import { shouldMergeCompilationJobs } from "../solidity/build-profiles.js";
@@ -28,32 +24,25 @@ interface TestActionArguments {
 }
 
 const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
-  { timeout, noCompile },
+  { timeout },
   hre,
 ) => {
-  const rootFilePaths = (
-    await Promise.all(
-      hre.config.paths.tests.solidity
-        .map((p) => resolveFromRoot(hre.config.paths.root, p))
-        .map(async (p) => {
-          // NOTE: The paths specified in the `paths.tests.solidity` array
-          // can be either directories or files.
-          if (await isDirectory(p)) {
-            return getAllFilesMatching(p, (f) => f.endsWith(".sol"));
-          } else if (p.endsWith(".sol") === true) {
-            return [p];
-          } else {
-            return [];
-          }
-        }),
-    )
+  const rootSourceFilePaths = await hre.solidity.getRootFilePaths();
+  // NOTE: A test file is either a file with a `.sol` extension in the `tests.solidity`
+  // directory or a file with a `.t.sol` extension in the `sources.solidity` directory
+  const rootTestFilePaths = (
+    await Promise.all([
+      getAllFilesMatching(hre.config.paths.tests.solidity, (f) =>
+        f.endsWith(".sol"),
+      ),
+      ...hre.config.paths.sources.solidity.map(async (dir) => {
+        return getAllFilesMatching(dir, (f) => f.endsWith(".t.sol"));
+      }),
+    ])
   ).flat(1);
 
   const buildOptions: BuildOptions = {
-    // NOTE: The uncached sources will still be compiled event if `noCompile`
-    // is true. We could consider adding a `cacheOnly` option to support true
-    // `noCompile` behavior.
-    force: !noCompile,
+    force: false,
     buildProfile: hre.globalOptions.buildProfile,
     mergeCompilationJobs: shouldMergeCompilationJobs(
       hre.globalOptions.buildProfile,
@@ -61,6 +50,8 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     quiet: false,
   };
 
+  // NOTE: We compile all the sources together with the tests
+  const rootFilePaths = [...rootSourceFilePaths, ...rootTestFilePaths];
   const results = await hre.solidity.build(rootFilePaths, buildOptions);
 
   throwIfSolidityBuildFailed(results);
@@ -68,7 +59,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   const artifacts = await getArtifacts(results, hre.config.paths.artifacts);
   const testSuiteIds = await getTestSuiteIds(
     artifacts,
-    rootFilePaths,
+    rootTestFilePaths,
     hre.config.paths.root,
   );
 

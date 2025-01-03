@@ -78,7 +78,10 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     const localFilesToCompile = (
       await Promise.all(
         this.#options.soliditySourcesPaths.map((dir) =>
-          getAllFilesMatching(dir, (f) => f.endsWith(".sol")),
+          getAllFilesMatching(
+            dir,
+            (f) => f.endsWith(".sol") && !f.endsWith(".t.sol"),
+          ),
         ),
       )
     ).flat(1);

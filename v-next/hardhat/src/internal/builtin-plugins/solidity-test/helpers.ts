@@ -104,14 +104,12 @@ export async function getArtifacts(
  */
 export async function getTestSuiteIds(
   artifacts: EdrArtifact[],
-  rootFilePaths: string[],
+  rootTestFilePaths: string[],
   projectRoot: string,
 ): Promise<EdrArtifactId[]> {
-  const testSources = rootFilePaths
-    .filter((p) => {
-      return p.endsWith(".t.sol");
-    })
-    .map((p) => path.relative(projectRoot, p));
+  const testSources = rootTestFilePaths.map((p) =>
+    path.relative(projectRoot, p),
+  );
 
   return artifacts
     .map(({ id }) => id)

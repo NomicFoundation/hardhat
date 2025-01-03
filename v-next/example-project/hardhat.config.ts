@@ -163,11 +163,7 @@ const config: HardhatUserConfig = {
     tests: {
       mocha: "test/mocha",
       nodeTest: "test/node",
-      solidity: [
-        "contracts/Counter.sol",
-        "contracts/Counter.t.sol",
-        "contracts/WithForge.t.sol",
-      ],
+      solidity: "test/contracts",
     },
   },
   solidity: {

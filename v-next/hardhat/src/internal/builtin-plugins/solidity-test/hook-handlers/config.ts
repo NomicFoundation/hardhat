@@ -37,25 +37,12 @@ export default async (): Promise<Partial<ConfigHooks>> => {
         resolveConfigurationVariable,
       );
 
-      let testsPaths: string[];
+      let testsPath = userConfig.paths?.tests;
 
       // TODO: use isObject when the type narrowing issue is fixed
-      if (
-        typeof userConfig.paths?.tests === "object" &&
-        userConfig.paths.tests.solidity !== undefined
-      ) {
-        if (Array.isArray(userConfig.paths.tests.solidity)) {
-          testsPaths = userConfig.paths.tests.solidity;
-        } else {
-          testsPaths = [userConfig.paths.tests.solidity];
-        }
-      } else {
-        testsPaths = resolvedConfig.paths.sources.solidity;
-      }
-
-      const resolvedPaths = testsPaths.map((p) =>
-        resolveFromRoot(resolvedConfig.paths.root, p),
-      );
+      testsPath =
+        typeof testsPath === "object" ? testsPath.solidity : testsPath;
+      testsPath ??= "test";
 
       return {
         ...resolvedConfig,
@@ -63,7 +50,7 @@ export default async (): Promise<Partial<ConfigHooks>> => {
           ...resolvedConfig.paths,
           tests: {
             ...resolvedConfig.paths.tests,
-            solidity: resolvedPaths,
+            solidity: resolveFromRoot(resolvedConfig.paths.root, testsPath),
           },
         },
       };
