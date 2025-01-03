@@ -387,7 +387,6 @@ export class EdrProviderWrapper
     if (isErrorResponse(response)) {
       let error;
 
-      // const stackTrace: SolidityStackTrace | null = responseObject.stackTrace();
       let stackTrace: SolidityStackTrace | null = null;
       try {
         stackTrace = responseObject.stackTrace();
