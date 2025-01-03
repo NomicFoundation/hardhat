@@ -85,7 +85,7 @@ export class HardhatEthersProvider implements HardhatEthersProviderI {
 
   readonly #hardhatProvider: EthereumProvider;
   readonly #networkName: string;
-  readonly #networkConfig: NetworkConfig;
+  readonly #networkConfig: Readonly<NetworkConfig>;
 
   // event-emitter related fields
   #latestBlockNumberPolled: number | undefined;

@@ -7,7 +7,11 @@ import type {
 } from "../../types.js";
 import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
 
-// Import all helper functions
+import {
+  assertHardhatInvariant,
+  HardhatError,
+} from "@ignored/hardhat-vnext-errors";
+
 import { dropTransaction } from "./helpers/drop-transaction.js";
 import { getStorageAt } from "./helpers/get-storage-at.js";
 import { impersonateAccount } from "./helpers/impersonate-account.js";
@@ -27,12 +31,21 @@ import { stopImpersonatingAccount } from "./helpers/stop-impersonating-account.j
 import { takeSnapshot } from "./helpers/take-snapshot.js";
 import { Time } from "./time/time.js";
 
+const SUPPORTED_TEST_NETWORKS = ["hardhat", "zksync", "anvil"];
+
 export class NetworkHelpers implements NetworkHelpersI {
   readonly #provider: EthereumProvider;
+  readonly #networkName: string;
+
+  #isDevelopmentNetwork: boolean | undefined;
+  #version: string | undefined;
+
   public time: Time;
 
-  constructor(provider: EthereumProvider) {
+  constructor(provider: EthereumProvider, networkName: string) {
     this.#provider = provider;
+    this.#networkName = networkName;
+
     this.time = new Time(this, provider);
   }
 
@@ -40,82 +53,139 @@ export class NetworkHelpers implements NetworkHelpersI {
     clearSnapshots();
   }
 
-  public dropTransaction(txHash: string): Promise<boolean> {
+  public async dropTransaction(txHash: string): Promise<boolean> {
+    await this.throwIfNotDevelopmentNetwork();
     return dropTransaction(this.#provider, txHash);
   }
 
-  public getStorageAt(
+  public async getStorageAt(
     address: string,
     index: NumberLike,
     block: NumberLike | BlockTag = "latest",
   ): Promise<string> {
+    await this.throwIfNotDevelopmentNetwork();
     return getStorageAt(this.#provider, address, index, block);
   }
 
-  public impersonateAccount(address: string): Promise<void> {
+  public async impersonateAccount(address: string): Promise<void> {
+    await this.throwIfNotDevelopmentNetwork();
     return impersonateAccount(this.#provider, address);
   }
 
-  public loadFixture<T>(fixture: Fixture<T>): Promise<T> {
+  public async loadFixture<T>(fixture: Fixture<T>): Promise<T> {
+    await this.throwIfNotDevelopmentNetwork();
     return loadFixture(this, fixture);
   }
 
-  public mine(
+  public async mine(
     blocks: NumberLike = 1,
     options: { interval?: NumberLike } = { interval: 1 },
   ): Promise<void> {
+    await this.throwIfNotDevelopmentNetwork();
     return mine(this.#provider, blocks, options);
   }
 
-  public mineUpTo(blockNumber: NumberLike): Promise<void> {
+  public async mineUpTo(blockNumber: NumberLike): Promise<void> {
+    await this.throwIfNotDevelopmentNetwork();
     return mineUpTo(this.#provider, blockNumber, this.time);
   }
 
-  public reset(url?: string, blockNumber?: NumberLike): Promise<void> {
+  public async reset(url?: string, blockNumber?: NumberLike): Promise<void> {
+    await this.throwIfNotDevelopmentNetwork();
     return reset(this, this.#provider, url, blockNumber);
   }
 
-  public setBalance(address: string, balance: NumberLike): Promise<void> {
+  public async setBalance(address: string, balance: NumberLike): Promise<void> {
+    await this.throwIfNotDevelopmentNetwork();
     return setBalance(this.#provider, address, balance);
   }
 
-  public setBlockGasLimit(blockGasLimit: NumberLike): Promise<void> {
+  public async setBlockGasLimit(blockGasLimit: NumberLike): Promise<void> {
+    await this.throwIfNotDevelopmentNetwork();
     return setBlockGasLimit(this.#provider, blockGasLimit);
   }
 
-  public setCode(address: string, code: string): Promise<void> {
+  public async setCode(address: string, code: string): Promise<void> {
+    await this.throwIfNotDevelopmentNetwork();
     return setCode(this.#provider, address, code);
   }
 
-  public setCoinbase(address: string): Promise<void> {
+  public async setCoinbase(address: string): Promise<void> {
+    await this.throwIfNotDevelopmentNetwork();
     return setCoinbase(this.#provider, address);
   }
 
-  public setNextBlockBaseFeePerGas(baseFeePerGas: NumberLike): Promise<void> {
+  public async setNextBlockBaseFeePerGas(
+    baseFeePerGas: NumberLike,
+  ): Promise<void> {
+    await this.throwIfNotDevelopmentNetwork();
     return setNextBlockBaseFeePerGas(this.#provider, baseFeePerGas);
   }
 
-  public setNonce(address: string, nonce: NumberLike): Promise<void> {
+  public async setNonce(address: string, nonce: NumberLike): Promise<void> {
+    await this.throwIfNotDevelopmentNetwork();
     return setNonce(this.#provider, address, nonce);
   }
 
-  public setPrevRandao(prevRandao: NumberLike): Promise<void> {
+  public async setPrevRandao(prevRandao: NumberLike): Promise<void> {
+    await this.throwIfNotDevelopmentNetwork();
     return setPrevRandao(this.#provider, prevRandao);
   }
 
-  public setStorageAt(
+  public async setStorageAt(
     address: string,
     index: NumberLike,
     value: NumberLike,
   ): Promise<void> {
+    await this.throwIfNotDevelopmentNetwork();
     return setStorageAt(this.#provider, address, index, value);
   }
 
-  public stopImpersonatingAccount(address: string): Promise<void> {
+  public async stopImpersonatingAccount(address: string): Promise<void> {
+    await this.throwIfNotDevelopmentNetwork();
     return stopImpersonatingAccount(this.#provider, address);
   }
 
-  public takeSnapshot(): Promise<SnapshotRestorer> {
+  public async takeSnapshot(): Promise<SnapshotRestorer> {
+    await this.throwIfNotDevelopmentNetwork();
     return takeSnapshot(this.#provider);
+  }
+
+  public async throwIfNotDevelopmentNetwork(): Promise<void> {
+    if (this.#isDevelopmentNetwork === undefined) {
+      const version = await this.#provider.request({
+        method: "web3_clientVersion",
+      });
+
+      assertHardhatInvariant(
+        typeof version === "string",
+        `"version" should be a string`,
+      );
+
+      this.#version = version;
+
+      this.#isDevelopmentNetwork = SUPPORTED_TEST_NETWORKS.some((network) =>
+        this.#version?.toLowerCase().startsWith(network),
+      );
+    }
+
+    if (!this.#isDevelopmentNetwork) {
+      if (this.#version !== undefined) {
+        throw new HardhatError(
+          HardhatError.ERRORS.NETWORK_HELPERS.CAN_ONLY_BE_USED_WITH_HARDHAT_NETWORK_VERSIONED,
+          {
+            networkName: this.#networkName,
+            version: this.#version,
+          },
+        );
+      }
+
+      throw new HardhatError(
+        HardhatError.ERRORS.NETWORK_HELPERS.CAN_ONLY_BE_USED_WITH_HARDHAT_NETWORK,
+        {
+          networkName: this.#networkName,
+        },
+      );
+    }
   }
 }

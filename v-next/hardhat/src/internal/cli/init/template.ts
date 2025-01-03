@@ -66,6 +66,11 @@ export async function getTemplates(): Promise<Template[]> {
         if (f === pathToPackageJson) {
           return false;
         }
+        // .gitignore files are expected to be called gitignore in the templates
+        // because npm ignores .gitignore files during npm pack (see https://github.com/npm/npm/issues/3763)
+        if (path.basename(f) === ".gitignore") {
+          return false;
+        }
         // We should ignore all the files according to the .gitignore rules
         // However, for simplicity, we just ignore the node_modules folder
         // If we needed to implement a more complex ignore logic, we could

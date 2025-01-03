@@ -485,8 +485,8 @@ describe("clients", () => {
             type: "edr",
             chainId: 10,
             chainType: "optimism",
-            forkConfig: {
-              jsonRpcUrl: "https://mainnet.optimism.io",
+            forking: {
+              url: "https://mainnet.optimism.io",
             },
             gas: "auto",
             gasMultiplier: 1,

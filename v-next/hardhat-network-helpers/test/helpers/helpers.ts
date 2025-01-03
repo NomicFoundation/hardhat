@@ -13,7 +13,7 @@ export async function initializeNetwork(): Promise<{
   const connection = await hre.network.connect();
   const provider = connection.provider;
 
-  const networkHelpers = new NetworkHelpers(provider);
+  const networkHelpers = new NetworkHelpers(provider, connection.networkName);
 
   return { provider, networkHelpers };
 }

@@ -1,3 +1,4 @@
+import type { JsonRpcRequestWrapperFunction } from "./network-manager.js";
 import type {
   EthereumProvider,
   JsonRpcRequest,
@@ -39,10 +40,14 @@ const TOO_MANY_REQUEST_STATUS = 429;
 const MAX_RETRIES = 6;
 const MAX_RETRY_WAIT_TIME_SECONDS = 5;
 
-export type JsonRpcRequestWrapperFunction = (
-  request: JsonRpcRequest,
-  defaultBehavior: (r: JsonRpcRequest) => Promise<JsonRpcResponse>,
-) => Promise<JsonRpcResponse>;
+interface HttpProviderConfig {
+  url: string;
+  networkName: string;
+  extraHeaders?: Record<string, string>;
+  timeout: number;
+  jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction;
+  testDispatcher?: Dispatcher;
+}
 
 export class HttpProvider extends EventEmitter implements EthereumProvider {
   readonly #url: string;
@@ -62,20 +67,16 @@ export class HttpProvider extends EventEmitter implements EthereumProvider {
     extraHeaders = {},
     timeout,
     jsonRpcRequestWrapper,
-  }: {
-    url: string;
-    networkName: string;
-    extraHeaders?: Record<string, string>;
-    timeout: number;
-    jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction;
-  }): Promise<HttpProvider> {
+    testDispatcher,
+  }: HttpProviderConfig): Promise<HttpProvider> {
     if (!isValidUrl(url)) {
       throw new HardhatError(HardhatError.ERRORS.NETWORK.INVALID_URL, {
         value: url,
       });
     }
 
-    const dispatcher = await getHttpDispatcher(url, timeout);
+    const dispatcher =
+      testDispatcher ?? (await getHttpDispatcher(url, timeout));
 
     const httpProvider = new HttpProvider(
       url,
@@ -95,8 +96,7 @@ export class HttpProvider extends EventEmitter implements EthereumProvider {
    * Use the static method {@link HttpProvider.create} to create an instance of
    * `HttpProvider`.
    */
-  // TODO: make the constructor private, but we need to fix the tests first
-  constructor(
+  private constructor(
     url: string,
     networkName: string,
     extraHeaders: Record<string, string>,

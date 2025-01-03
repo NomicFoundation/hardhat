@@ -35,43 +35,10 @@ export class HardhatEthersSigner implements HardhatEthersSignerI {
     this.networkName = networkName;
     this.networkConfig = networkConfig;
 
-    // depending on the config, we set a fixed gas limit for all transactions
     let gasLimit: bigint | undefined;
 
-    if (networkName === "hardhat") {
-      // If we are connected to the in-process hardhat network and the config
-      // has a fixed number as the gas config, we use that.
-      // Hardhat core already sets this value to the block gas limit when the
-      // user doesn't specify a number.
-      if (networkConfig.gas !== "auto") {
-        gasLimit = networkConfig.gas;
-      }
-    } else if (networkName === "localhost") {
-      const configuredGasLimit = networkConfig.gas;
-
-      if (configuredGasLimit !== "auto") {
-        // if the resolved gas config is a number, we use that
-        gasLimit = configuredGasLimit;
-      } else {
-        // if the resolved gas config is "auto", we need to check that
-        // the user config is undefined, because that's the default value;
-        // otherwise explicitly setting the gas to "auto" would have no effect
-        if (networkConfig.gas === undefined) {
-          // finally, we check if we are connected to a hardhat network
-          let isHardhatNetwork = false;
-          try {
-            await provider.send("hardhat_metadata");
-            isHardhatNetwork = true;
-          } catch {}
-
-          if (isHardhatNetwork) {
-            // WARNING: this assumes that the hardhat node is being run in the
-            // same project which might be wrong
-            // TODO: enable when V3 is ready: blockGasLimit currently missing in networkConfig
-            // gasLimit = networkConfig.blockGasLimit;
-          }
-        }
-      }
+    if (networkConfig.gas !== "auto") {
+      gasLimit = networkConfig.gas;
     }
 
     return new HardhatEthersSigner(address, provider, gasLimit);

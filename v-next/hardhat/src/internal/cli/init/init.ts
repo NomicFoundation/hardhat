@@ -18,10 +18,10 @@ import chalk from "chalk";
 import * as semver from "semver";
 
 import { findClosestHardhatConfig } from "../../config-loading.js";
+import { HARDHAT_NAME } from "../../constants.js";
 import { getHardhatVersion } from "../../utils/package.js";
 import { ensureTelemetryConsent } from "../telemetry/telemetry-permissions.js";
 
-import { HARDHAT_NAME } from "./constants.js";
 import {
   getDevDependenciesInstallationCommand,
   getPackageManager,
@@ -62,18 +62,16 @@ export interface InitHardhatOptions {
  * The flow is as follows:
  * 1. Print the ascii logo.
  * 2. Print the welcome message.
- * 3. Ensure telemetry consent.
+ * 3. Ensure telemetry consent
  * 4. Optionally, ask the user for the workspace to initialize the project in.
- * 5. Optionally, ask the user for the template to use for the project initialization.
- * 6. Create the package.json file if it does not exist.
- * 7. Validate that the package.json file is an esm package.
- * 8. Optionally, ask the user if files should be overwritten.
- * 9. Copy the template files to the workspace.
- * 10. Print the commands to install the project dependencies.
- * 11. Optionally, ask the user if the project dependencies should be installed.
- * 12. Optionally, run the commands to install the project dependencies.
- * 13. Ensure telemetry consent.
- * 14. Print a message to star the project on GitHub.
+ * 5. Validate that the package.json file is an esm package if it exists; otherwise, create it.
+ * 6. Optionally, ask the user for the template to use for the project initialization.
+ * 7. Optionally, ask the user if files should be overwritten.
+ * 8. Copy the template files to the workspace.
+ * 9. Print the commands to install the project dependencies.
+ * 10. Optionally, ask the user if the project dependencies should be installed.
+ * 11. Optionally, run the commands to install the project dependencies.
+ * 12. Print a message to star the project on GitHub.
  */
 export async function initHardhat(options?: InitHardhatOptions): Promise<void> {
   try {
@@ -89,13 +87,13 @@ export async function initHardhat(options?: InitHardhatOptions): Promise<void> {
     // if it was not provided, and validate that it is not already initialized
     const workspace = await getWorkspace(options?.workspace);
 
-    // Ask the user for the template to use for the project initialization
-    // if it was not provided, and validate that it exists
-    const template = await getTemplate(options?.template);
-
     // Create the package.json file if it does not exist
     // and validate that it is an esm package
     await ensureProjectPackageJson(workspace);
+
+    // Ask the user for the template to use for the project initialization
+    // if it was not provided, and validate that it exists
+    const template = await getTemplate(options?.template);
 
     // Copy the template files to the workspace
     // Overwrite existing files only if the user opts-in to it
@@ -272,6 +270,32 @@ export async function ensureProjectPackageJson(
 }
 
 /**
+ * The following two functions are used to convert between relative workspace
+ * and template paths. To begin with, they are used to handle the special case
+ * of .gitignore.
+ *
+ * The reason for this is that npm ignores .gitignore files
+ * during npm pack (see https://github.com/npm/npm/issues/3763). That's why when
+ * we encounter a gitignore file in the template, we assume that it should be
+ * called .gitignore in the workspace (and vice versa).
+ *
+ * They are exported for testing purposes only.
+ */
+
+export function relativeWorkspaceToTemplatePath(file: string): string {
+  if (path.basename(file) === ".gitignore") {
+    return path.join(path.dirname(file), "gitignore");
+  }
+  return file;
+}
+export function relativeTemplateToWorkspacePath(file: string): string {
+  if (path.basename(file) === "gitignore") {
+    return path.join(path.dirname(file), ".gitignore");
+  }
+  return file;
+}
+
+/**
  * copyProjectFiles copies the template files to the workspace.
  *
  * If there are clashing files in the workspace, they will be overwritten only
@@ -289,27 +313,41 @@ export async function copyProjectFiles(
   force?: boolean,
 ): Promise<void> {
   // Find all the files in the workspace that would have been overwritten by the template files
-  const matchingFiles = await getAllFilesMatching(workspace, (file) =>
-    template.files.includes(path.relative(workspace, file)),
+  const matchingRelativeWorkspacePaths = await getAllFilesMatching(
+    workspace,
+    (file) => {
+      const relativeWorkspacePath = path.relative(workspace, file);
+      const relativeTemplatePath = relativeWorkspaceToTemplatePath(
+        relativeWorkspacePath,
+      );
+      return template.files.includes(relativeTemplatePath);
+    },
   ).then((files) => files.map((f) => path.relative(workspace, f)));
 
   // Ask the user for permission to overwrite existing files if needed
-  if (matchingFiles.length !== 0) {
+  if (matchingRelativeWorkspacePaths.length !== 0) {
     if (force === undefined) {
-      force = await promptForForce(matchingFiles);
+      force = await promptForForce(matchingRelativeWorkspacePaths);
     }
   }
 
   // Copy the template files to the workspace
-  for (const file of template.files) {
-    if (force === false && matchingFiles.includes(file)) {
+  for (const relativeTemplatePath of template.files) {
+    const relativeWorkspacePath =
+      relativeTemplateToWorkspacePath(relativeTemplatePath);
+
+    if (
+      force === false &&
+      matchingRelativeWorkspacePaths.includes(relativeWorkspacePath)
+    ) {
       continue;
     }
-    const pathToTemplateFile = path.join(template.path, file);
-    const pathToWorkspaceFile = path.join(workspace, file);
 
-    await ensureDir(path.dirname(pathToWorkspaceFile));
-    await copy(pathToTemplateFile, pathToWorkspaceFile);
+    const absoluteTemplatePath = path.join(template.path, relativeTemplatePath);
+    const absoluteWorkspacePath = path.join(workspace, relativeWorkspacePath);
+
+    await ensureDir(path.dirname(absoluteWorkspacePath));
+    await copy(absoluteTemplatePath, absoluteWorkspacePath);
   }
 
   console.log(`✨ ${chalk.cyan(`Template files copied`)} ✨`);

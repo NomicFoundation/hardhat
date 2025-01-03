@@ -35,13 +35,6 @@ export async function confirmationPromptWithTimeout(
     }
 
     return result;
-  } catch (e) {
-    if (e === "") {
-      // If the user cancels the prompt, we quit
-      return undefined;
-    }
-
-    throw e;
   } finally {
     // We can always clear the timeout, even if not set, this API is safe to
     // call with invalid values.

@@ -27,7 +27,7 @@ interface Link {
 export class HardhatHelpers {
   readonly #provider: HardhatEthersProvider;
   readonly #networkName: string;
-  readonly #networkConfig: NetworkConfig;
+  readonly #networkConfig: Readonly<NetworkConfig>;
   readonly #artifactManager: ArtifactsManager;
 
   constructor(

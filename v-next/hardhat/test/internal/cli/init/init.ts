@@ -23,6 +23,8 @@ import {
   initHardhat,
   installProjectDependencies,
   printWelcomeMessage,
+  relativeTemplateToWorkspacePath,
+  relativeWorkspaceToTemplatePath,
 } from "../../../../src/internal/cli/init/init.js";
 import { getTemplates } from "../../../../src/internal/cli/init/template.js";
 
@@ -109,6 +111,36 @@ describe("ensureProjectPackageJson", () => {
   });
 });
 
+describe("relativeWorkspaceToTemplatePath", () => {
+  it("should convert .gitignore to gitignore", () => {
+    assert.equal(relativeWorkspaceToTemplatePath(".gitignore"), "gitignore");
+  });
+  it("should not convert gitignore", () => {
+    assert.equal(relativeWorkspaceToTemplatePath("gitignore"), "gitignore");
+  });
+  it("should convert .gitignore to gitignore in a subdirectory", () => {
+    assert.equal(
+      relativeWorkspaceToTemplatePath(path.join("subdirectory", ".gitignore")),
+      path.join("subdirectory", "gitignore"),
+    );
+  });
+});
+
+describe("relativeTemplateToWorkspacePath", () => {
+  it("should convert gitignore to .gitignore", () => {
+    assert.equal(relativeTemplateToWorkspacePath("gitignore"), ".gitignore");
+  });
+  it("should not convert .gitignore", () => {
+    assert.equal(relativeTemplateToWorkspacePath(".gitignore"), ".gitignore");
+  });
+  it("should convert gitignore to .gitignore in a subdirectory", () => {
+    assert.equal(
+      relativeTemplateToWorkspacePath(path.join("subdirectory", "gitignore")),
+      path.join("subdirectory", ".gitignore"),
+    );
+  });
+});
+
 describe("copyProjectFiles", () => {
   useTmpDir("copyProjectFiles");
 
@@ -118,7 +150,10 @@ describe("copyProjectFiles", () => {
     it("should copy the template files to the workspace and overwrite existing files", async () => {
       const template = await getTemplate("mocha-ethers");
       // Create template files with "some content" in the workspace
-      for (const file of template.files) {
+      const workspaceFiles = template.files.map(
+        relativeTemplateToWorkspacePath,
+      );
+      for (const file of workspaceFiles) {
         const pathToFile = path.join(process.cwd(), file);
         ensureDir(path.dirname(pathToFile));
         await writeUtf8File(pathToFile, "some content");
@@ -126,17 +161,34 @@ describe("copyProjectFiles", () => {
       // Copy the template files to the workspace
       await copyProjectFiles(process.cwd(), template, true);
       // Check that the template files in the workspace have been overwritten
-      for (const file of template.files) {
+      for (const file of workspaceFiles) {
         const pathToFile = path.join(process.cwd(), file);
         assert.notEqual(await readUtf8File(pathToFile), "some content");
       }
+    });
+    it("should copy the .gitignore file correctly", async () => {
+      const template = await getTemplate("mocha-ethers");
+      // Copy the template files to the workspace
+      await copyProjectFiles(process.cwd(), template, true);
+      // Check that the .gitignore exists but gitignore does not
+      assert.ok(
+        await exists(path.join(process.cwd(), ".gitignore")),
+        ".gitignore should exist",
+      );
+      assert.ok(
+        !(await exists(path.join(process.cwd(), "gitignore"))),
+        "gitignore should NOT exist",
+      );
     });
   });
   describe("when force is false", () => {
     it("should copy the template files to the workspace and NOT overwrite existing files", async () => {
       const template = await getTemplate("mocha-ethers");
       // Create template files with "some content" in the workspace
-      for (const file of template.files) {
+      const workspaceFiles = template.files.map(
+        relativeTemplateToWorkspacePath,
+      );
+      for (const file of workspaceFiles) {
         const pathToFile = path.join(process.cwd(), file);
         ensureDir(path.dirname(pathToFile));
         await writeUtf8File(pathToFile, "some content");
@@ -144,10 +196,24 @@ describe("copyProjectFiles", () => {
       // Copy the template files to the workspace
       await copyProjectFiles(process.cwd(), template, false);
       // Check that the template files in the workspace have not been overwritten
-      for (const file of template.files) {
+      for (const file of workspaceFiles) {
         const pathToFile = path.join(process.cwd(), file);
         assert.equal(await readUtf8File(pathToFile), "some content");
       }
+    });
+    it("should copy the .gitignore file correctly", async () => {
+      const template = await getTemplate("mocha-ethers");
+      // Copy the template files to the workspace
+      await copyProjectFiles(process.cwd(), template, false);
+      // Check that the .gitignore exists but gitignore does not
+      assert.ok(
+        await exists(path.join(process.cwd(), ".gitignore")),
+        ".gitignore should exist",
+      );
+      assert.ok(
+        !(await exists(path.join(process.cwd(), "gitignore"))),
+        "gitignore should NOT exist",
+      );
     });
   });
 });
@@ -258,7 +324,10 @@ describe("initHardhat", async () => {
           install: false,
         });
         assert.ok(await exists("package.json"), "package.json should exist");
-        for (const file of template.files) {
+        const workspaceFiles = template.files.map(
+          relativeTemplateToWorkspacePath,
+        );
+        for (const file of workspaceFiles) {
           const pathToFile = path.join(process.cwd(), file);
           assert.ok(await exists(pathToFile), `File ${file} should exist`);
         }

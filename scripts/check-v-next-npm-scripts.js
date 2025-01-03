@@ -25,6 +25,12 @@ for (const dir of dirs) {
     continue;
   }
 
+  // TODO: This is a temporary solution because compiler downloads are not yet managed via a mutex.
+  // As a result, the compilation step must occur in the pretest script to prevent multiple compilers from being downloaded simultaneously.
+  if (dir.name === "hardhat-chai-matchers") {
+    continue;
+  }
+
   const packageJsonPath = path.resolve(vNextDir, dir.name, "package.json");
   const packageJson = require(packageJsonPath);
 
