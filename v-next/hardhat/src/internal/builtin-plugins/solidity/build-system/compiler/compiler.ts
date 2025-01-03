@@ -53,7 +53,8 @@ export class SolcJsCompiler implements Compiler {
     // by the default ESM loader there.
     if (os.platform() === "win32") {
       const compilerFileUrl = pathToFileURL(this.compilerPath);
-      // NOTE: The tsx/esm loader doesn't support URLs with a scheme.
+      // NOTE: The script path passed to a tsx/esm loader is an exception to the
+      // above rule since the tsx/esm loader doesn't support URLs with a scheme.
       if (scriptPath.endsWith(".ts")) {
         args.push(scriptPath);
       } else {

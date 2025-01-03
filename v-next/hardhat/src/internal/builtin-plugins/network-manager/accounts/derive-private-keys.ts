@@ -4,6 +4,13 @@ import { HDKey } from "ethereum-cryptography/hdkey";
 
 const HD_PATH_REGEX = /^m(:?\/\d+'?)+\/?$/;
 
+export const DEFAULT_HD_ACCOUNTS_CONFIG_PARAMS = {
+  initialIndex: 0,
+  count: 20,
+  path: "m/44'/60'/0'/0",
+  passphrase: "",
+};
+
 export function derivePrivateKeys(
   mnemonic: string,
   hdpath: string,

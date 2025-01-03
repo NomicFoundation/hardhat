@@ -23,22 +23,9 @@ describe(
   function () {
     useTmpDir("compiler-downloader");
 
-    let downloader: CompilerDownloader;
-
-    beforeEach(async function () {
-      const plaftorm = CompilerDownloader.getCompilerPlatform();
-      downloader = new CompilerDownloader(plaftorm, process.cwd());
-
-      await downloader.updateCompilerListIfNeeded(new Set([]));
-
-      assert.ok(
-        !(await downloader.isCompilerDownloaded("0.4.12")),
-        "Compiler should not be downloaded",
-      );
-    });
-
     describe("isCompilerDownloaded (WASM)", function () {
       let wasmDownloader: CompilerDownloader;
+
       beforeEach(async function () {
         wasmDownloader = new CompilerDownloader(
           CompilerPlatform.WASM,
@@ -79,6 +66,15 @@ describe(
     });
 
     describe("isCompilerDownloaded (native)", function () {
+      let downloader: CompilerDownloader;
+
+      beforeEach(async function () {
+        const platform = CompilerDownloader.getCompilerPlatform();
+        downloader = new CompilerDownloader(platform, process.cwd());
+
+        await downloader.updateCompilerListIfNeeded(new Set([]));
+      });
+
       it("should throw when version is bad", async function () {
         await assertRejectsWithHardhatError(
           () => downloader.isCompilerDownloaded("0.4.12a"),
@@ -110,6 +106,15 @@ describe(
     });
 
     describe("downloadCompiler", function () {
+      let downloader: CompilerDownloader;
+
+      beforeEach(async function () {
+        const platform = CompilerDownloader.getCompilerPlatform();
+        downloader = new CompilerDownloader(platform, process.cwd());
+
+        await downloader.updateCompilerListIfNeeded(new Set([]));
+      });
+
       it("Should throw if the version is invalid or doesn't exist", async function () {
         await downloader.updateCompilerListIfNeeded(
           new Set(["asd", "100.0.0"]),
@@ -201,6 +206,8 @@ describe(
         await mockDownloader.downloadCompiler("0.4.12");
         await mockDownloader.downloadCompiler("0.4.13");
 
+        // NOTE: 1 download is done for the list, and 2 downloads are done for
+        // the compilers.
         assert.equal(downloads, 3);
       });
 
@@ -300,6 +307,8 @@ describe(
             "Compiler version should be defined",
           );
 
+          // NOTE: 1 download is done for the list, and 1 download is done for
+          // the compiler.
           assert.equal(downloads, 2);
         });
 
@@ -337,12 +346,23 @@ describe(
             );
           }
 
+          // NOTE: 1 download is done for the list, and VERSIONS.length downloads
+          // are done for the compilers.
           assert.equal(downloads, VERSIONS.length + 1);
         });
       });
     });
 
     describe("getCompiler", function () {
+      let downloader: CompilerDownloader;
+
+      beforeEach(async function () {
+        const platform = CompilerDownloader.getCompilerPlatform();
+        downloader = new CompilerDownloader(platform, process.cwd());
+
+        await downloader.updateCompilerListIfNeeded(new Set([]));
+      });
+
       it("should throw when trying to get a compiler that doesn't exist in the compiler list", async function () {
         await downloader.updateCompilerListIfNeeded(new Set([]));
 
@@ -415,7 +435,7 @@ describe(
 
         await mockDownloader.updateCompilerListIfNeeded(new Set(["0.4.12"]));
 
-        assertRejectsWithHardhatError(
+        await assertRejectsWithHardhatError(
           () => mockDownloader.downloadCompiler("0.4.12"),
           HardhatError.ERRORS.SOLIDITY.INVALID_DOWNLOAD,
           {

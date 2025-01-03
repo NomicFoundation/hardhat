@@ -123,8 +123,8 @@ const config: HardhatUserConfig = {
       type: "edr",
       chainType: "optimism",
       chainId: 10,
-      forkConfig: {
-        jsonRpcUrl: "https://mainnet.optimism.io",
+      forking: {
+        url: "https://mainnet.optimism.io",
       },
     },
     opSepolia: {
@@ -136,8 +136,8 @@ const config: HardhatUserConfig = {
     edrOpSepolia: {
       type: "edr",
       chainType: "optimism",
-      forkConfig: {
-        jsonRpcUrl: "https://sepolia.optimism.io",
+      forking: {
+        url: "https://sepolia.optimism.io",
       },
     },
   },

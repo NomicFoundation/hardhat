@@ -1,4 +1,5 @@
 import type { ChainType, DefaultChainType } from "../../../../types/network.js";
+import type { HttpHeader } from "@ignored/edr-optimism";
 
 import "../../../../types/config.js";
 declare module "../../../../types/config.js" {
@@ -8,107 +9,67 @@ declare module "../../../../types/config.js" {
     networks?: Record<string, NetworkUserConfig>;
   }
 
-  export interface HardhatConfig {
-    defaultChainType: DefaultChainType;
-    defaultNetwork: string;
-    networks: Record<string, NetworkConfig>;
-  }
-
   export type NetworkUserConfig = HttpNetworkUserConfig | EdrNetworkUserConfig;
-
-  export type GasUserConfig = "auto" | number | bigint;
 
   export interface HttpNetworkUserConfig {
     type: "http";
+    accounts?: HttpNetworkAccountsUserConfig;
     chainId?: number;
     chainType?: ChainType;
     from?: string;
     gas?: GasUserConfig;
     gasMultiplier?: number;
     gasPrice?: GasUserConfig;
-    accounts?: HttpNetworkAccountsUserConfig;
 
     // HTTP network specific
     url: string;
-    timeout?: number;
     httpHeaders?: Record<string, string>;
+    timeout?: number;
   }
 
   export type HttpNetworkAccountsUserConfig =
-    | REMOTE
+    | "remote"
     | SensitiveString[]
-    | HDAccountsUserConfig;
+    | HttpNetworkHDAccountsUserConfig;
 
-  export interface HDAccountsUserConfig {
+  export interface HttpNetworkHDAccountsUserConfig {
     mnemonic: string;
-    initialIndex?: number;
     count?: number;
-    path?: string;
+    initialIndex?: number;
     passphrase?: string;
+    path?: string;
   }
 
-  export type IntervalMiningConfig = number | [number, number];
-
-  export type MempoolOrder = "fifo" | "priority";
-
-  export type HardforkHistoryConfig = Map<
-    /* hardforkName */ string,
-    /* blockNumber */ number
-  >;
-
-  export interface HardhatNetworkChainConfig {
-    hardforkHistory: HardforkHistoryConfig;
-  }
-
-  export type HardhatNetworkChainsConfig = Map<
-    /* chainId */ number,
-    HardhatNetworkChainConfig
-  >;
-
-  export interface GenesisAccount {
-    privateKey: string;
-    balance: string | number | bigint;
-  }
-
-  export interface ForkConfig {
-    jsonRpcUrl: string;
-    blockNumber?: bigint;
-    httpHeaders?: Record<string, string>;
-  }
+  export type GasUserConfig = "auto" | number | bigint;
 
   export interface EdrNetworkUserConfig {
     type: "edr";
+    accounts?: EdrNetworkAccountsUserConfig;
     chainId?: number;
     chainType?: ChainType;
     from?: string;
     gas?: GasUserConfig;
     gasMultiplier?: number;
     gasPrice?: GasUserConfig;
-    accounts?: EdrNetworkAccountsUserConfig;
 
     // EDR network specific
-    hardfork?: string;
-    networkId?: number;
-    blockGasLimit?: number;
-    minGasPrice?: bigint;
-    automine?: boolean;
-    intervalMining?: IntervalMiningConfig;
-    mempoolOrder?: MempoolOrder;
-    chains?: HardhatNetworkChainsConfig;
-    genesisAccounts?: GenesisAccount[];
-    allowUnlimitedContractSize?: boolean;
-    throwOnTransactionFailures?: boolean;
-    throwOnCallFailures?: boolean;
     allowBlocksWithSameTimestamp?: boolean;
-    enableTransientStorage?: boolean;
-    enableRip7212?: boolean;
-    initialBaseFeePerGas?: number;
-    initialDate?: Date;
+    allowUnlimitedContractSize?: boolean;
+    blockGasLimit?: number | bigint;
+    chains?: EdrNetworkChainsUserConfig;
     coinbase?: string;
-    // TODO: This isn't how it's called in v2
-    forkConfig?: ForkConfig;
-    // TODO: This isn't configurable in v2
-    forkCachePath?: string;
+    enableRip7212?: boolean;
+    enableTransientStorage?: boolean;
+    forking?: EdrNetworkForkingUserConfig;
+    hardfork?: string;
+    initialBaseFeePerGas?: number | bigint;
+    initialDate?: string | Date;
+    loggingEnabled?: boolean;
+    minGasPrice?: number | bigint;
+    mining?: EdrNetworkMiningUserConfig;
+    networkId?: number;
+    throwOnCallFailures?: boolean;
+    throwOnTransactionFailures?: boolean;
   }
 
   export type EdrNetworkAccountsUserConfig =
@@ -116,32 +77,67 @@ declare module "../../../../types/config.js" {
     | EdrNetworkHDAccountsUserConfig;
 
   export interface EdrNetworkAccountUserConfig {
+    balance: string | bigint;
     privateKey: string;
-    balance: string;
   }
 
   export interface EdrNetworkHDAccountsUserConfig {
     mnemonic?: string;
-    initialIndex?: number;
+    accountsBalance?: string | bigint;
     count?: number;
-    path?: string;
-    accountsBalance?: string;
+    initialIndex?: number;
     passphrase?: string;
+    path?: string;
+  }
+
+  export type EdrNetworkChainsUserConfig = Map<
+    number /* chainId */,
+    EdrNetworkChainUserConfig
+  >;
+
+  export interface EdrNetworkChainUserConfig {
+    hardforkHistory?: HardforkHistoryUserConfig;
+  }
+
+  export type HardforkHistoryUserConfig = Map<
+    string /* hardforkName */,
+    number /* blockNumber */
+  >;
+
+  export interface EdrNetworkForkingUserConfig {
+    enabled?: boolean;
+    url: string;
+    blockNumber?: number;
+    httpHeaders?: Record<string, string>;
+  }
+
+  export interface EdrNetworkMiningUserConfig {
+    auto?: boolean;
+    interval?: number | [number, number];
+    mempool?: EdrNetworkMempoolUserConfig;
+  }
+
+  export interface EdrNetworkMempoolUserConfig {
+    order?: "fifo" | "priority";
+  }
+
+  export interface HardhatConfig {
+    defaultChainType: DefaultChainType;
+    defaultNetwork: string;
+    networks: Record<string, NetworkConfig>;
   }
 
   export type NetworkConfig = HttpNetworkConfig | EdrNetworkConfig;
 
-  export type GasConfig = "auto" | bigint;
-
   export interface HttpNetworkConfig {
     type: "http";
+    accounts: HttpNetworkAccountsConfig;
     chainId?: number;
     chainType?: ChainType;
     from?: string;
     gas: GasConfig;
     gasMultiplier: number;
     gasPrice: GasConfig;
-    accounts: HttpNetworkAccountsConfig;
 
     // HTTP network specific
     url: string;
@@ -149,71 +145,98 @@ declare module "../../../../types/config.js" {
     httpHeaders: Record<string, string>;
   }
 
-  export type REMOTE = "remote";
-
   export type HttpNetworkAccountsConfig =
-    | REMOTE
+    | "remote"
     | ResolvedConfigurationVariable[]
     | HttpNetworkHDAccountsConfig;
 
   export interface HttpNetworkHDAccountsConfig {
     mnemonic: string;
-    initialIndex: number;
     count: number;
-    path: string;
+    initialIndex: number;
     passphrase: string;
+    path: string;
   }
+
+  export type GasConfig = "auto" | bigint;
 
   export interface EdrNetworkConfig {
     type: "edr";
+    accounts: EdrNetworkAccountsConfig;
     chainId: number;
     chainType?: ChainType;
     from?: string;
     gas: GasConfig;
     gasMultiplier: number;
     gasPrice: GasConfig;
-    // TODO: make this required and resolve the accounts in the config hook handler
-    accounts?: EdrNetworkAccountsConfig;
 
     // EDR network specific
-    hardfork: string;
-    networkId: number;
-    blockGasLimit: number;
-    minGasPrice: bigint;
-    automine: boolean;
-    intervalMining: IntervalMiningConfig;
-    mempoolOrder: MempoolOrder;
-    chains: HardhatNetworkChainsConfig;
-    genesisAccounts: GenesisAccount[];
-    allowUnlimitedContractSize: boolean;
-    throwOnTransactionFailures: boolean;
-    throwOnCallFailures: boolean;
     allowBlocksWithSameTimestamp: boolean;
-    enableTransientStorage: boolean;
+    allowUnlimitedContractSize: boolean;
+    blockGasLimit: bigint;
+    chains: EdrNetworkChainsConfig;
+    coinbase: Uint8Array;
     enableRip7212: boolean;
-
-    initialBaseFeePerGas?: number;
-    initialDate?: Date;
-    coinbase?: string;
-    forkConfig?: ForkConfig;
-    forkCachePath: string;
+    enableTransientStorage: boolean;
+    forking?: EdrNetworkForkingConfig;
+    hardfork: string;
+    initialBaseFeePerGas?: bigint;
+    initialDate: string | Date;
+    loggingEnabled: boolean;
+    minGasPrice: bigint;
+    mining: EdrNetworkMiningConfig;
+    networkId: number;
+    throwOnCallFailures: boolean;
+    throwOnTransactionFailures: boolean;
   }
 
   export type EdrNetworkAccountsConfig =
-    | EdrNetworkHDAccountsConfig
-    | EdrNetworkAccountConfig[];
+    | EdrNetworkAccountConfig[]
+    | EdrNetworkHDAccountsConfig;
 
   export interface EdrNetworkAccountConfig {
+    balance: bigint;
     privateKey: string;
-    balance: string;
   }
 
   export interface EdrNetworkHDAccountsConfig {
     mnemonic: string;
-    initialIndex: number;
+    accountsBalance: bigint;
     count: number;
-    path: string;
-    accountsBalance: string;
+    initialIndex: number;
     passphrase: string;
+    path: string;
+  }
+
+  export type EdrNetworkChainsConfig = Map<
+    number /* chainId */,
+    EdrNetworkChainConfig
+  >;
+
+  export interface EdrNetworkChainConfig {
+    hardforkHistory: HardforkHistoryConfig;
+  }
+
+  export type HardforkHistoryConfig = Map<
+    string /* hardforkName */,
+    number /* blockNumber */
+  >;
+
+  export interface EdrNetworkForkingConfig {
+    enabled: boolean;
+    url: string;
+    cacheDir: string;
+    blockNumber?: bigint;
+    httpHeaders?: HttpHeader[];
+  }
+
+  export interface EdrNetworkMiningConfig {
+    auto: boolean;
+    interval: number | [number, number];
+    mempool: EdrNetworkMempoolConfig;
+  }
+
+  export interface EdrNetworkMempoolConfig {
+    order: "fifo" | "priority";
   }
 }

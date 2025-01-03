@@ -5,6 +5,8 @@ import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { exists } from "@ignored/hardhat-vnext-utils/fs";
 import chalk from "chalk";
 
+import { resolveForkingConfig } from "../network-manager/config-resolution.js";
+
 import { JsonRpcServerImplementation } from "./json-rpc/server.js";
 
 interface NodeActionArguments {
@@ -68,14 +70,16 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
 
   // NOTE: --fork-block-number is only valid if --fork is specified
   if (args.fork !== "") {
-    networkConfigOverride.forkConfig = {
-      jsonRpcUrl: args.fork,
-    };
-    if (args.forkBlockNumber !== -1) {
-      networkConfigOverride.forkConfig.blockNumber = BigInt(
-        args.forkBlockNumber,
-      );
-    }
+    networkConfigOverride.forking = resolveForkingConfig(
+      {
+        enabled: true,
+        url: args.fork,
+        ...(args.forkBlockNumber !== -1
+          ? { blockNumber: args.forkBlockNumber }
+          : undefined),
+      },
+      hre.config.paths.cache,
+    );
   } else if (args.forkBlockNumber !== -1) {
     // NOTE: We could make the error more specific here.
     throw new HardhatError(

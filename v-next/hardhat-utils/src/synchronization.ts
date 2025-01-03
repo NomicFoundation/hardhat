@@ -14,6 +14,8 @@ import path from "node:path";
 import debug from "debug";
 
 import { ensureError } from "./error.js";
+import { FileSystemAccessError } from "./errors/fs.js";
+import { sleep } from "./lang.js";
 
 const log = debug("hardhat:util:multi-process-mutex");
 const DEFAULT_MAX_MUTEX_LIFESPAN_IN_MS = 60000;
@@ -49,7 +51,7 @@ export class MultiProcessMutex {
         this.#deleteMutexFile();
       } else {
         // wait
-        await this.#waitMs();
+        await sleep(MUTEX_LOOP_WAITING_TIME_IN_MS / 1000);
       }
     }
   }
@@ -59,15 +61,15 @@ export class MultiProcessMutex {
       // Create a file only if it does not exist
       fs.writeFileSync(this.#mutexFilePath, "", { flag: "wx+" });
       return true;
-    } catch (error) {
-      ensureError(error);
+    } catch (e) {
+      ensureError<NodeJS.ErrnoException>(e);
 
-      if ("code" in error && error.code === "EEXIST") {
+      if (e.code === "EEXIST") {
         // File already exists, so the mutex is already acquired
         return false;
       }
 
-      throw error;
+      throw new FileSystemAccessError(e.message, e);
     }
   }
 
@@ -75,20 +77,12 @@ export class MultiProcessMutex {
     log(`Mutex acquired at path '${this.#mutexFilePath}'`);
 
     try {
-      const res = await f();
-
+      return await f();
+    } finally {
       // Release the mutex
       log(`Mutex released at path '${this.#mutexFilePath}'`);
       this.#deleteMutexFile();
-
       log(`Mutex released at path '${this.#mutexFilePath}'`);
-
-      return res;
-    } catch (error) {
-      // Catch any error to avoid stale locks.
-      // Remove the mutex file and re-throw the error
-      this.#deleteMutexFile();
-      throw error;
     }
   }
 
@@ -96,15 +90,15 @@ export class MultiProcessMutex {
     let fileStat;
     try {
       fileStat = fs.statSync(this.#mutexFilePath);
-    } catch (error) {
-      ensureError(error);
+    } catch (e) {
+      ensureError<NodeJS.ErrnoException>(e);
 
-      if ("code" in error && error.code === "ENOENT") {
+      if (e.code === "ENOENT") {
         // The file might have been deleted by another process while this function was trying to access it.
         return false;
       }
 
-      throw error;
+      throw new FileSystemAccessError(e.message, e);
     }
 
     const now = new Date();
@@ -118,21 +112,15 @@ export class MultiProcessMutex {
     try {
       log(`Deleting mutex file at path '${this.#mutexFilePath}'`);
       fs.unlinkSync(this.#mutexFilePath);
-    } catch (error) {
-      ensureError(error);
+    } catch (e) {
+      ensureError<NodeJS.ErrnoException>(e);
 
-      if ("code" in error && error.code === "ENOENT") {
+      if (e.code === "ENOENT") {
         // The file might have been deleted by another process while this function was trying to access it.
         return;
       }
 
-      throw error;
+      throw new FileSystemAccessError(e.message, e);
     }
-  }
-
-  async #waitMs() {
-    return new Promise((resolve) =>
-      setTimeout(resolve, MUTEX_LOOP_WAITING_TIME_IN_MS),
-    );
   }
 }

@@ -1,8 +1,10 @@
 import type { SolidityStackTrace } from "./stack-traces/solidity-stack-trace.js";
-import type { HardhatNetworkChainsConfig } from "./types/config.js";
 import type { LoggerConfig } from "./types/logger.js";
 import type { TracingConfig } from "./types/node-types.js";
-import type { EdrNetworkConfig } from "../../../../types/config.js";
+import type {
+  EdrNetworkConfig,
+  EdrNetworkHDAccountsConfig,
+} from "../../../../types/config.js";
 import type {
   EthereumProvider,
   EthSubscription,
@@ -24,8 +26,8 @@ import type {
   VmTraceDecoder,
   VMTracer as VMTracerT,
   Provider,
-  HttpHeader,
   DebugTraceResult,
+  ProviderConfig,
 } from "@ignored/edr-optimism";
 
 import EventEmitter from "node:events";
@@ -42,6 +44,7 @@ import {
   genericChainProviderFactory,
   optimismProviderFactory,
 } from "@ignored/edr-optimism";
+import { toSeconds } from "@ignored/hardhat-vnext-utils/date";
 import { ensureError } from "@ignored/hardhat-vnext-utils/error";
 import chalk from "chalk";
 import debug from "debug";
@@ -50,6 +53,7 @@ import {
   HARDHAT_NETWORK_RESET_EVENT,
   HARDHAT_NETWORK_REVERT_SNAPSHOT_EVENT,
 } from "../../../constants.js";
+import { DEFAULT_HD_ACCOUNTS_CONFIG_PARAMS } from "../accounts/derive-private-keys.js";
 import { getJsonRpcRequest, isFailedJsonRpcResponse } from "../json-rpc.js";
 
 import {
@@ -63,19 +67,32 @@ import { clientVersion } from "./utils/client-version.js";
 import { ConsoleLogger } from "./utils/console-logger.js";
 import {
   edrRpcDebugTraceToHardhat,
-  ethereumjsIntervalMiningConfigToEdr,
-  ethereumjsMempoolOrderToEdrMineOrdering,
-  ethereumsjsHardforkToEdrSpecId,
+  hardhatMiningIntervalToEdrMiningInterval,
+  hardhatMempoolOrderToEdrMineOrdering,
+  hardhatHardforkToEdrSpecId,
+  hardhatAccountsToEdrGenesisAccounts,
+  hardhatChainsToEdrChains,
+  hardhatForkingConfigToEdrForkConfig,
 } from "./utils/convert-to-edr.js";
-import { getHardforkName } from "./utils/hardfork.js";
 import { printLine, replaceLastLine } from "./utils/logger.js";
 
 const log = debug("hardhat:core:hardhat-network:provider");
 
-export const DEFAULT_COINBASE = "0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e";
-let _globalEdrContext: EdrContext | undefined;
+export const EDR_NETWORK_DEFAULT_COINBASE =
+  "0xc014ba5ec014ba5ec014ba5ec014ba5ec014ba5e";
+
+export const EDR_NETWORK_MNEMONIC =
+  "test test test test test test test test test test test junk";
+export const DEFAULT_EDR_NETWORK_BALANCE = 10000000000000000000000n;
+export const DEFAULT_EDR_NETWORK_HD_ACCOUNTS_CONFIG_PARAMS: EdrNetworkHDAccountsConfig =
+  {
+    ...DEFAULT_HD_ACCOUNTS_CONFIG_PARAMS,
+    mnemonic: EDR_NETWORK_MNEMONIC,
+    accountsBalance: DEFAULT_EDR_NETWORK_BALANCE,
+  };
 
 // Lazy initialize the global EDR context.
+let _globalEdrContext: EdrContext | undefined;
 export async function getGlobalEdrContext(): Promise<EdrContext> {
   if (_globalEdrContext === undefined) {
     // Only one is allowed to exist
@@ -119,90 +136,17 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
     tracingConfig = {},
     jsonRpcRequestWrapper,
   }: EdrProviderConfig): Promise<EdrProvider> {
-    const coinbase = networkConfig.coinbase ?? DEFAULT_COINBASE;
-
-    let fork;
-    if (networkConfig.forkConfig !== undefined) {
-      let httpHeaders: HttpHeader[] | undefined;
-      if (networkConfig.forkConfig.httpHeaders !== undefined) {
-        httpHeaders = [];
-
-        for (const [name, value] of Object.entries(
-          networkConfig.forkConfig.httpHeaders,
-        )) {
-          httpHeaders.push({
-            name,
-            value,
-          });
-        }
-      }
-
-      fork = {
-        jsonRpcUrl: networkConfig.forkConfig.jsonRpcUrl,
-        blockNumber:
-          networkConfig.forkConfig.blockNumber !== undefined
-            ? BigInt(networkConfig.forkConfig.blockNumber)
-            : undefined,
-        httpHeaders,
-      };
-    }
-
-    const initialDate =
-      networkConfig.initialDate !== undefined
-        ? BigInt(Math.floor(networkConfig.initialDate.getTime() / 1000))
-        : undefined;
-
     const printLineFn = loggerConfig.printLineFn ?? printLine;
     const replaceLastLineFn = loggerConfig.replaceLastLineFn ?? replaceLastLine;
 
     const vmTraceDecoder = await createVmTraceDecoder();
-
-    const hardforkName = getHardforkName(networkConfig.hardfork);
 
     const context = await getGlobalEdrContext();
     const provider = await context.createProvider(
       networkConfig.chainType === "optimism"
         ? OPTIMISM_CHAIN_TYPE
         : GENERIC_CHAIN_TYPE, // TODO: l1 is missing here
-      {
-        allowBlocksWithSameTimestamp:
-          networkConfig.allowBlocksWithSameTimestamp ?? false,
-        allowUnlimitedContractSize: networkConfig.allowUnlimitedContractSize,
-        bailOnCallFailure: networkConfig.throwOnCallFailures,
-        bailOnTransactionFailure: networkConfig.throwOnTransactionFailures,
-        blockGasLimit: BigInt(networkConfig.blockGasLimit),
-        chainId: BigInt(networkConfig.chainId),
-        chains: this.#convertToEdrChains(networkConfig.chains),
-        cacheDir: networkConfig.forkCachePath,
-        coinbase: Buffer.from(coinbase.slice(2), "hex"),
-        enableRip7212: networkConfig.enableRip7212,
-        fork,
-        hardfork: ethereumsjsHardforkToEdrSpecId(hardforkName),
-        genesisAccounts: networkConfig.genesisAccounts.map((account) => {
-          return {
-            secretKey: account.privateKey,
-            balance: BigInt(account.balance),
-          };
-        }),
-        initialDate,
-        initialBaseFeePerGas:
-          networkConfig.initialBaseFeePerGas !== undefined
-            ? BigInt(networkConfig.initialBaseFeePerGas)
-            : undefined,
-        minGasPrice: networkConfig.minGasPrice,
-        mining: {
-          autoMine: networkConfig.automine,
-          interval: ethereumjsIntervalMiningConfigToEdr(
-            networkConfig.intervalMining,
-          ),
-          memPool: {
-            order: ethereumjsMempoolOrderToEdrMineOrdering(
-              networkConfig.mempoolOrder,
-            ),
-          },
-        },
-        networkId: BigInt(networkConfig.networkId),
-      },
+      getProviderConfig(networkConfig),
       {
         enable: loggerConfig.enabled,
         decodeConsoleLogInputsCallback: ConsoleLogger.getDecodedLogs,
@@ -414,32 +358,6 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
     util.callbackify(handleJsonRpcRequest)(callback);
   }
 
-  static #convertToEdrChains(chains: HardhatNetworkChainsConfig) {
-    const edrChains = [];
-
-    for (const [chainId, hardforkConfig] of chains) {
-      const hardforks = [];
-
-      for (const [hardfork, blockNumber] of hardforkConfig.hardforkHistory) {
-        const specId = ethereumsjsHardforkToEdrSpecId(
-          getHardforkName(hardfork),
-        );
-
-        hardforks.push({
-          blockNumber: BigInt(blockNumber),
-          specId,
-        });
-      }
-
-      edrChains.push({
-        chainId: BigInt(chainId),
-        hardforks,
-      });
-    }
-
-    return edrChains;
-  }
-
   #isErrorResponse(response: any): response is FailedJsonRpcResponse {
     return typeof response.error !== "undefined";
   }
@@ -617,4 +535,40 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
 
     this.emit("message", message);
   }
+}
+
+function getProviderConfig(networkConfig: EdrNetworkConfig): ProviderConfig {
+  return {
+    allowBlocksWithSameTimestamp: networkConfig.allowBlocksWithSameTimestamp,
+    allowUnlimitedContractSize: networkConfig.allowUnlimitedContractSize,
+    bailOnCallFailure: networkConfig.throwOnCallFailures,
+    bailOnTransactionFailure: networkConfig.throwOnTransactionFailures,
+    blockGasLimit: networkConfig.blockGasLimit,
+    cacheDir: networkConfig.forking?.cacheDir,
+    chainId: BigInt(networkConfig.chainId),
+    chains: hardhatChainsToEdrChains(networkConfig.chains),
+    // TODO: remove this cast when EDR updates the interface to accept Uint8Array
+    coinbase: Buffer.from(networkConfig.coinbase),
+    enableRip7212: networkConfig.enableRip7212,
+    fork: hardhatForkingConfigToEdrForkConfig(networkConfig.forking),
+    genesisAccounts: hardhatAccountsToEdrGenesisAccounts(
+      networkConfig.accounts,
+    ),
+    hardfork: hardhatHardforkToEdrSpecId(networkConfig.hardfork),
+    initialBaseFeePerGas: networkConfig.initialBaseFeePerGas,
+    initialDate: BigInt(toSeconds(networkConfig.initialDate)),
+    minGasPrice: networkConfig.minGasPrice,
+    mining: {
+      autoMine: networkConfig.mining.auto,
+      interval: hardhatMiningIntervalToEdrMiningInterval(
+        networkConfig.mining.interval,
+      ),
+      memPool: {
+        order: hardhatMempoolOrderToEdrMineOrdering(
+          networkConfig.mining.mempool.order,
+        ),
+      },
+    },
+    networkId: BigInt(networkConfig.networkId),
+  };
 }

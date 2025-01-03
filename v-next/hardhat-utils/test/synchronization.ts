@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
+import { sleep } from "../src/lang.js";
 import { MultiProcessMutex } from "../src/synchronization.js";
 
 describe("multi-process-mutex", () => {
@@ -15,14 +16,14 @@ describe("multi-process-mutex", () => {
     const ms = [500, 700, 1000];
     await Promise.all([
       mutex.use(async () => {
-        await waitMs(ms[0]);
+        await sleep(ms[0] / 1000);
       }),
       mutex.use(async () => {
-        await waitMs(ms[1]);
+        await sleep(ms[1] / 1000);
       }),
 
       mutex.use(async () => {
-        await waitMs(ms[2]);
+        await sleep(ms[2] / 1000);
       }),
     ]);
 
@@ -43,13 +44,13 @@ describe("multi-process-mutex", () => {
 
     await Promise.all([
       mutex.use(async () => {
-        await waitMs(2000);
+        await sleep(2);
         res.push(1);
       }),
       new Promise((resolve) =>
         setTimeout(async () => {
           await mutex.use(async () => {
-            await waitMs(200);
+            await sleep(0.2);
             res.push(2);
           });
           resolve(true);
@@ -100,7 +101,3 @@ describe("multi-process-mutex", () => {
     );
   });
 });
-
-async function waitMs(timeout: number) {
-  return new Promise((resolve) => setTimeout(resolve, timeout));
-}
