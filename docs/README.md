@@ -206,7 +206,7 @@ Landing pages contain special "blocks" see src/components/landingBlocks. To crea
 
 We use two CI/CD providers:
 
-- Github actions for launching code checks
+- GitHub actions for launching code checks
 - Vercel to deploy app
 
-Each branch triggers its own process on CI/CD so you can see code check details on Github and preview the current branch on Vercel.
+Each branch triggers its own process on CI/CD so you can see code check details on GitHub and preview the current branch on Vercel.
