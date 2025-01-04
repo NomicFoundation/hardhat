@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# fail if any commands fails
+# fail if any command fails
 set -e
 
 # Use this function because yarn init -y throws a warning, and the whole script will fail
