@@ -113,7 +113,7 @@ export class TruffleEnvironmentArtifacts {
         if (library !== undefined) {
           const firstLinkData = linksData[0];
 
-          // link data is exressed in bytes, but the bytecode is hex encoded, so we
+          // link data is expressed in bytes, but the bytecode is hex encoded, so we
           // need to multiply everything by 2.
           const linkPlaceholder = destinationArtifact.bytecode.substr(
             firstLinkData.start * 2 + 2, // The + 2 is because of the 0x prefix

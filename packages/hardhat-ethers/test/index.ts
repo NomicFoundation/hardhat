@@ -203,7 +203,7 @@ describe("Ethers plugin", function () {
           const receipt = await response.wait();
 
           if (receipt === null) {
-            assert.fail("receipt shoudn't be null");
+            assert.fail("receipt shouldn't be null");
           }
           assert.strictEqual(receipt.status, 1);
         });
@@ -1124,10 +1124,10 @@ describe("Ethers plugin", function () {
 
         const receipt = await response.wait();
         if (receipt === null) {
-          assert.fail("receipt shoudn't be null");
+          assert.fail("receipt shouldn't be null");
         }
         if (receipt.contractAddress === null) {
-          assert.fail("receipt.contractAddress shoudn't be null");
+          assert.fail("receipt.contractAddress shouldn't be null");
         }
 
         let code = await this.env.ethers.provider.getCode(
@@ -1250,10 +1250,10 @@ describe("Ethers plugin", function () {
         const receipt = await response.wait();
 
         if (receipt === null) {
-          assert.fail("receipt shoudn't be null");
+          assert.fail("receipt shouldn't be null");
         }
         if (receipt.contractAddress === null) {
-          assert.fail("receipt.contractAddress shoudn't be null");
+          assert.fail("receipt.contractAddress shouldn't be null");
         }
 
         let code = await this.env.ethers.provider.getCode(
