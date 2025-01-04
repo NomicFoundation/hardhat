@@ -28,7 +28,7 @@
 
 ### Patch Changes
 
-- 73d5bea: Improved validation of contructor arguments (thanks @fwx5618177!)
+- 73d5bea: Improved validation of constructor arguments (thanks @fwx5618177!)
 
 ## 2.0.7
 
