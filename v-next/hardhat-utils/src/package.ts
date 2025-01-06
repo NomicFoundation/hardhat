@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import { createRequire } from "node:module";
 import path from "node:path";
 
 import { ensureError } from "./error.js";
@@ -7,6 +9,7 @@ import {
 } from "./errors/package.js";
 import { findUp, readJsonFile } from "./fs.js";
 import { getFilePath } from "./internal/package.js";
+import { ensureTrailingSlash } from "./string.js";
 
 /**
  * The structure of a `package.json` file. This is a subset of the actual
@@ -100,6 +103,34 @@ export async function findClosestPackageRoot(
   const packageJsonPath = await findClosestPackageJson(filePathOrUrl);
 
   return path.dirname(packageJsonPath);
+}
+
+/**
+ * Finds the package json for a given package
+ * @param from the absolute path from where to start the search
+ * @param packageName the name of the package to find
+ * @returns the absolute real path (resolved symlinks) of the package.json
+ */
+export async function findPackageJson(
+  from: string,
+  packageName: string,
+): Promise<string | undefined> {
+  const require = createRequire(ensureTrailingSlash(from));
+
+  const lookupPaths = require.resolve.paths(packageName) ?? [];
+
+  const pathToTest = [...packageName.split("/"), "package.json"];
+
+  for (const lookupPath of lookupPaths) {
+    const packageJsonPath = path.join(lookupPath, ...pathToTest);
+
+    try {
+      await fs.promises.access(packageJsonPath, fs.constants.R_OK);
+      return await fs.promises.realpath(packageJsonPath);
+    } catch (error) {
+      continue;
+    }
+  }
 }
 
 export {

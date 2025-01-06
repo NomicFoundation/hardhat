@@ -1,3 +1,5 @@
+import type { Exports } from "resolve.exports";
+
 /**
  * The representation of an npm package.
  */
@@ -11,6 +13,11 @@ export interface ResolvedNpmPackage {
    * The version of the package.
    */
   version: string;
+
+  /**
+   * The exports of the package.
+   */
+  exports?: Exports;
 
   /**
    * The path to the package's root directory.
