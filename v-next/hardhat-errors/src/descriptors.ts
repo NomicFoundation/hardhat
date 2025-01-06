@@ -1202,6 +1202,12 @@ Please check Hardhat's output for more details.`,
       websiteTitle: "Invalid solcjs compiler",
       websiteDescription: `Hardhat successfully downloaded a WASM version of solc {version} but it is invalid. The compile function is missing.`,
     },
+    RESOLVE_NOT_EXPORTED_NPM_FILE: {
+      number: 1232,
+      messageTemplate: `You are tying to resolve the npm file "{module}", but it's not exported by its package`,
+      websiteTitle: "Resolution of not-exported npm file",
+      websiteDescription: `You are tying to resolve an npm file that is not exported by its package.`,
+    },
   },
   VIEM: {
     NETWORK_NOT_FOUND: {

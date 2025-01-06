@@ -33,7 +33,8 @@
     "./types/tasks": "./dist/src/types/tasks.js",
     "./types/user-interruptions": "./dist/src/types/user-interruptions.js",
     "./types/utils": "./dist/src/types/utils.js",
-    "./types/solidity": "./dist/src/types/solidity.js"
+    "./types/solidity": "./dist/src/types/solidity.js",
+    "./console.sol": "./console.sol"
   },
   "keywords": [
     "ethereum",
@@ -98,6 +99,7 @@
     "ethereum-cryptography": "^2.2.1",
     "micro-eth-signer": "^0.13.0",
     "p-map": "^7.0.2",
+    "resolve.exports": "^2.0.3",
     "semver": "^7.6.3",
     "tsx": "^4.11.0",
     "ws": "^8.18.0",

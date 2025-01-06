@@ -60,3 +60,10 @@ export function camelToSnakeCase(str: string): string {
 export function camelToKebabCase(str: string): string {
   return str.replace(/[A-Z0-9]/g, (match) => `-${match.toLowerCase()}`);
 }
+
+/**
+ * Ensures a string ends with a slash.
+ */
+export function ensureTrailingSlash(path: string): string {
+  return path.endsWith("/") ? path : path + "/";
+}
