@@ -21,8 +21,12 @@ const hardhatPlugin: HardhatPlugin = {
         defaultValue: 60 * 60 * 1000,
       })
       .addFlag({
-        name: "noCompile",
-        description: "Don't compile the project before running the tests",
+        name: "force",
+        description: "Force compilation even if no files have changed",
+      })
+      .addFlag({
+        name: "quiet",
+        description: "Makes the compilation process less verbose",
       })
       .build(),
   ],

@@ -20,11 +20,12 @@ import { run } from "./runner.js";
 
 interface TestActionArguments {
   timeout: number;
-  noCompile: boolean;
+  force: boolean;
+  quiet: boolean;
 }
 
 const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
-  { timeout },
+  { timeout, force, quiet },
   hre,
 ) => {
   const rootSourceFilePaths = await hre.solidity.getRootFilePaths();
@@ -42,12 +43,12 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   ).flat(1);
 
   const buildOptions: BuildOptions = {
-    force: false,
+    force,
     buildProfile: hre.globalOptions.buildProfile,
     mergeCompilationJobs: shouldMergeCompilationJobs(
       hre.globalOptions.buildProfile,
     ),
-    quiet: false,
+    quiet,
   };
 
   // NOTE: We compile all the sources together with the tests
