@@ -9,12 +9,12 @@ import { getAllFilesMatching } from "@ignored/hardhat-vnext-utils/fs";
 import { createNonClosingWriter } from "@ignored/hardhat-vnext-utils/stream";
 
 import { shouldMergeCompilationJobs } from "../solidity/build-profiles.js";
-
 import {
   getArtifacts,
-  getTestSuiteIds,
   throwIfSolidityBuildFailed,
-} from "./helpers.js";
+} from "../solidity/build-results.js";
+
+import { getTestSuiteIds } from "./helpers.js";
 import { testReporter } from "./reporter.js";
 import { run } from "./runner.js";
 
