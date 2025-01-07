@@ -222,7 +222,9 @@ export class EdrProviderWrapper
     const genesisState =
       fork !== undefined
         ? []
-        : l1GenesisState(l1HardforkFromString(config.hardfork));
+        : l1GenesisState(
+            l1HardforkFromString(ethereumsjsHardforkToEdrSpecId(hardforkName))
+          );
 
     const context = await getGlobalEdrContext();
     const provider = await context.createProvider(
