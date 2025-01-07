@@ -410,7 +410,7 @@
 - c9809e182: Trim leading and trailing spaces in mnemonics.
 - a1d43109a: Pending blocks now include the `bloom` field.
 - 818107821: Added a new `hardhat_metadata` RPC method
-- 937d15e51: A better error is show if a Solidity file makes an import throug its own package name.
+- 937d15e51: A better error is show if a Solidity file makes an import through its own package name.
 - 4cf9a6d58: Added a `getBuildInfoSync` function to the `hre.artifacts` object (thanks @emretepedev!)
 
 ## 2.12.2
