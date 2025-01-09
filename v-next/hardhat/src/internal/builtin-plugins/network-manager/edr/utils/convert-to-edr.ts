@@ -284,9 +284,10 @@ export function hardhatForkingConfigToEdrForkConfig(
   let fork: ForkConfig | undefined;
   if (forkingConfig !== undefined && forkingConfig.enabled === true) {
     fork = {
-      jsonRpcUrl: forkingConfig.url,
+      cacheDir: forkingConfig.cacheDir,
       blockNumber: forkingConfig.blockNumber,
       httpHeaders: forkingConfig.httpHeaders,
+      url: forkingConfig.url,
     };
   }
 

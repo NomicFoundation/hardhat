@@ -416,7 +416,6 @@ function getProviderConfig(networkConfig: EdrNetworkConfig): ProviderConfig {
     bailOnCallFailure: networkConfig.throwOnCallFailures,
     bailOnTransactionFailure: networkConfig.throwOnTransactionFailures,
     blockGasLimit: networkConfig.blockGasLimit,
-    cacheDir: networkConfig.forking?.cacheDir,
     chainId: BigInt(networkConfig.chainId),
     chains: hardhatChainsToEdrChains(networkConfig.chains),
     // TODO: remove this cast when EDR updates the interface to accept Uint8Array
