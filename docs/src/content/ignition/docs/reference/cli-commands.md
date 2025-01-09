@@ -14,7 +14,7 @@ The Hardhat Ignition CLI provides a set of commands to interact with the deploym
 
 Deploy a module to the specified network
 
-```sh
+```
 Usage: hardhat [GLOBAL OPTIONS] ignition deploy [--default-sender <STRING>] [--deployment-id <STRING>] [--parameters <STRING>] [--reset] [--strategy <STRING>] [--verify] [--write-localhost-deployment] modulePath
 
 OPTIONS:
@@ -36,7 +36,7 @@ POSITIONAL ARGUMENTS:
 
 List all deployment IDs
 
-```sh
+```
 Usage: hardhat [GLOBAL OPTIONS] ignition deployments
 ```
 
@@ -44,7 +44,7 @@ Usage: hardhat [GLOBAL OPTIONS] ignition deployments
 
 Show the current status of a deployment
 
-```sh
+```
 Usage: hardhat [GLOBAL OPTIONS] ignition status deploymentId
 
 POSITIONAL ARGUMENTS:
@@ -56,7 +56,7 @@ POSITIONAL ARGUMENTS:
 
 Show all transactions for a given deployment
 
-```sh
+```
 Usage: hardhat [GLOBAL OPTIONS] ignition transactions deploymentId
 
 POSITIONAL ARGUMENTS:
@@ -68,7 +68,7 @@ POSITIONAL ARGUMENTS:
 
 Verify contracts from a deployment against the configured block explorers
 
-```sh
+```
 Usage: hardhat [GLOBAL OPTIONS] ignition verify [--include-unrelated-contracts] deploymentId
 
 OPTIONS:
@@ -84,7 +84,7 @@ POSITIONAL ARGUMENTS:
 
 Visualize a module as an HTML report
 
-```sh
+```
 Usage: hardhat [GLOBAL OPTIONS] ignition visualize [--no-open] modulePath
 
 OPTIONS:
@@ -100,7 +100,7 @@ POSITIONAL ARGUMENTS:
 
 Reset a deployment's future to allow rerunning
 
-```sh
+```
 Usage: hardhat [GLOBAL OPTIONS] ignition wipe deploymentId futureId
 
 POSITIONAL ARGUMENTS:

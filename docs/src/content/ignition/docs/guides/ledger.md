@@ -117,7 +117,7 @@ npx hardhat ignition deploy ignition/modules/Apollo.ts --network sepolia
 
 This will deploy as usual, however, you will now be prompted on your Ledger device to confirm each transaction before it's sent to the network. You should see a message like the following in your terminal:
 
-```sh
+```
 Hardhat Ignition 🚀
 
 Deploying [ Apollo ]

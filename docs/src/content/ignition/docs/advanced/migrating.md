@@ -251,7 +251,7 @@ npx hardhat ignition deploy ./ignition/modules/Token.ts
 
 Which, if working correctly, will output the contract’s deployed address:
 
-```sh
+```
 You are running Hardhat Ignition against an in-process instance of Hardhat Network.
 This will execute the deployment, but the results will be lost.
 You can use --network <network-name> to deploy to a different network.

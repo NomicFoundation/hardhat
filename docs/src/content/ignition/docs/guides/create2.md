@@ -151,7 +151,7 @@ npx hardhat ignition deploy ignition/modules/Apollo.js --network sepolia --strat
 
 The `--strategy create2` flag tells Ignition to deploy the module using `create2`. You should see output similar to the following:
 
-```sh
+```
 Compiled 1 Solidity file successfully (evm target: paris).
 Hardhat Ignition 🚀
 
