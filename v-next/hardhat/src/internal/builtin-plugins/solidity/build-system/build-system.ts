@@ -9,6 +9,7 @@ import type {
   GetCompilationJobsOptions,
   CompileBuildInfoOptions,
   RunCompilationJobOptions,
+  EmitArtifactsOptions,
 } from "../../../../types/solidity/build-system.js";
 import type { CompilationJob } from "../../../../types/solidity/compilation-job.js";
 import type {
@@ -24,6 +25,7 @@ import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
 import {
   getAllDirectoriesMatching,
   getAllFilesMatching,
+  isDirectory,
   readJsonFile,
   remove,
   writeUtf8File,
@@ -44,6 +46,7 @@ import {
   getContractArtifact,
   getDuplicatedContractNamesDeclarationFile,
 } from "./artifacts.js";
+import { Cache } from "./cache.js";
 import { CompilationJobImplementation } from "./compilation-job.js";
 import { downloadConfiguredCompilers, getCompiler } from "./compiler/index.js";
 import { buildDependencyGraph } from "./dependency-graph-building.js";
@@ -67,11 +70,21 @@ export interface SolidityBuildSystemOptions {
 
 export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
   readonly #options: SolidityBuildSystemOptions;
+  readonly #compilerOutputCache: Cache;
+  readonly #artifactsCache: Cache;
   readonly #defaultConcurrency = Math.max(os.cpus().length - 1, 1);
   #downloadedCompilers = false;
 
   constructor(options: SolidityBuildSystemOptions) {
     this.#options = options;
+    this.#compilerOutputCache = new Cache(
+      options.cachePath,
+      "hardhat.core.solidity.build-system.compiler-output",
+    );
+    this.#artifactsCache = new Cache(
+      options.cachePath,
+      "hardhat.core.solidity.build-system.artifacts",
+    );
   }
 
   public async getRootFilePaths(): Promise<string[]> {
@@ -115,11 +128,14 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
     const compilationJobs = [...new Set(compilationJobsPerFile.values())];
 
-    // TODO: Filter the compilation jobs based on the cache
-
+    const runCompilationJobOptions: RunCompilationJobOptions = {
+      force: options?.force,
+      quiet: options?.quiet,
+    };
     const results: CompilerOutput[] = await pMap(
       compilationJobs,
-      (compilationJob) => this.runCompilationJob(compilationJob),
+      (compilationJob) =>
+        this.runCompilationJob(compilationJob, runCompilationJobOptions),
       {
         concurrency: options?.concurrency ?? this.#defaultConcurrency,
         // An error when running the compiler is not a compilation failure, but
@@ -139,11 +155,16 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
     if (isSuccessfulBuild) {
       log("Emitting artifacts of successful build");
+      const emitArtifactsOptions: EmitArtifactsOptions = {
+        force: options?.force,
+        quiet: options?.quiet,
+      };
       await Promise.all(
         compilationJobs.map(async (compilationJob, i) => {
           const artifactsPerFile = await this.emitArtifacts(
             compilationJob,
             results[i],
+            emitArtifactsOptions,
           );
 
           contractArtifactsGeneratedByCompilationJob.set(
@@ -316,6 +337,17 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     compilationJob: CompilationJob,
     options?: RunCompilationJobOptions,
   ): Promise<CompilerOutput> {
+    const buildId = compilationJob.getBuildId();
+
+    if (options?.force !== true) {
+      const cachedCompilerOutput =
+        await this.#compilerOutputCache.getJson<CompilerOutput>(buildId);
+      if (cachedCompilerOutput !== undefined) {
+        log(`Using cached compiler output for build ${buildId}`);
+        return cachedCompilerOutput;
+      }
+    }
+
     await this.#downloadConfiguredCompilers(options?.quiet);
 
     let numberOfFiles = 0;
@@ -336,7 +368,15 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       "The long version of the compiler should match the long version of the compilation job",
     );
 
-    return compiler.compile(compilationJob.getSolcInput());
+    const compilerOutput = await compiler.compile(
+      compilationJob.getSolcInput(),
+    );
+
+    if (!this.#hasCompilationErrors(compilerOutput)) {
+      await this.#compilerOutputCache.setJson(buildId, compilerOutput);
+    }
+
+    return compilerOutput;
   }
 
   public async remapCompilerError(
@@ -373,8 +413,43 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
   public async emitArtifacts(
     compilationJob: CompilationJob,
     compilerOutput: CompilerOutput,
+    options?: EmitArtifactsOptions,
   ): Promise<ReadonlyMap<string, string[]>> {
     const result = new Map<string, string[]>();
+    const buildId = compilationJob.getBuildId();
+
+    if (options?.force !== true) {
+      const cachedFiles = await this.#artifactsCache.getFiles(
+        buildId,
+        this.#options.artifactsPath,
+      );
+      if (cachedFiles !== undefined) {
+        log(`Using cached artifacts for build ${buildId}`);
+        for (const filePath of cachedFiles) {
+          const relativePath = path.relative(
+            this.#options.artifactsPath,
+            filePath,
+          );
+          if (
+            path.dirname(relativePath) === "build-info" ||
+            path.basename(relativePath) === "artifacts.d.ts"
+          ) {
+            continue;
+          }
+          if (await isDirectory(filePath)) {
+            result.set(relativePath, []);
+          } else {
+            const publicSourceName = path.dirname(relativePath);
+            const paths = result.get(publicSourceName) ?? [];
+            paths.push(filePath);
+            result.set(publicSourceName, paths);
+          }
+        }
+        return result;
+      }
+    }
+
+    const filesToCache: string[] = [];
 
     // We emit the artifacts for each root file, first emitting one artifact
     // for each contract, and then one declaration file for the entire file,
@@ -434,11 +509,20 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         artifactsDeclarationFilePath,
         artifactsDeclarationFile,
       );
+
+      if (paths.length === 0) {
+        filesToCache.push(
+          path.join(this.#options.artifactsPath, publicSourceName),
+        );
+      } else {
+        filesToCache.push(...paths);
+      }
+      filesToCache.push(artifactsDeclarationFilePath);
     }
 
     // Once we have emitted all the contract artifacts and its declaration
     // file, we emit the build info file and its output file.
-    const buildInfoId = compilationJob.getBuildId();
+    const buildInfoId = buildId;
 
     const buildInfoPath = path.join(
       this.#options.artifactsPath,
@@ -477,6 +561,14 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         );
       })(),
     ]);
+
+    filesToCache.push(buildInfoPath, buildInfoOutputPath);
+
+    await this.#artifactsCache.setFiles(
+      buildId,
+      this.#options.artifactsPath,
+      filesToCache,
+    );
 
     return result;
   }
