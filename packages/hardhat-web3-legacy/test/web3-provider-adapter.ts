@@ -53,7 +53,7 @@ describe("Web3 provider adapter", function () {
     assert.isTrue(adaptedProvider.isConnected());
   });
 
-  it("Should return the same as the real provider for sigle requests", function (done) {
+  it("Should return the same as the real provider for single requests", function (done) {
     const request = createJsonRpcRequest("eth_accounts");
     realWeb3Provider.sendAsync(
       request,
