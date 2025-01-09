@@ -119,7 +119,6 @@ export class EdrProvider extends BaseProvider {
   readonly #provider: Readonly<Provider>;
   readonly #jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction;
 
-  #failedStackTraces: number = 0;
   #nextRequestId = 1;
 
   /**
