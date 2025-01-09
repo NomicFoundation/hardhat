@@ -50,8 +50,8 @@ const compileAction: NewTaskActionFunction<CompileActionArguments> = async (
 
   const sucessful = [...results.values()].every(
     ({ type }) =>
-      type === FileBuildResultType.CACHE_HIT ||
-      type === FileBuildResultType.BUILD_SUCCESS,
+      type === FileBuildResultType.BUILD_SUCCESS ||
+      type === FileBuildResultType.CACHE_HIT,
   );
 
   if (!sucessful) {

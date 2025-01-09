@@ -63,7 +63,29 @@ export type GetCompilationJobsOptions = Omit<
  */
 export interface RunCompilationJobOptions {
   /**
+   * If `true`, this option foces the build system to rerun the compilation job,
+   * even if its output is cached.
+   */
+  force?: boolean;
+
+  /**
    * If `true`, the compilation process doesn't print any output.
+   */
+  quiet?: boolean;
+}
+
+/**
+ * The options of the `emitArtifacts` method.
+ */
+export interface EmitArtifactsOptions {
+  /**
+   * If `true`, this option foces the build system to recreate the artifacts,
+   * even if they are cached.
+   */
+  force?: boolean;
+
+  /**
+   * If `true`, the emit process doesn't print any output.
    */
   quiet?: boolean;
 }
@@ -147,9 +169,8 @@ export type FileBuildResult =
 
 export interface CacheHitFileBuildResult {
   type: FileBuildResultType.CACHE_HIT;
-  // TODO: Should we remove this? It is a buildId of an already existing build
-  // info.
   buildId: string;
+  contractArtifactsGenerated: string[];
 }
 
 export interface SuccessfulFileBuildResult {
@@ -253,6 +274,7 @@ export interface SolidityBuildSystem {
   emitArtifacts(
     compilationJob: CompilationJob,
     compilerOutput: CompilerOutput,
+    options?: EmitArtifactsOptions,
   ): Promise<ReadonlyMap<string, string[]>>;
 
   /**
@@ -265,7 +287,7 @@ export interface SolidityBuildSystem {
    * This method should only be used after a complete build has succeeded, as
    * it relies on the build system to have generated all the necessary artifact
    * files.
-   
+
    * @param rootFilePaths All the root files of the project.
    */
   cleanupArtifacts(rootFilePaths: string[]): Promise<void>;
