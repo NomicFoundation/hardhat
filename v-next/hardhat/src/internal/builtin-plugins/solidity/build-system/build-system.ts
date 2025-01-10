@@ -132,10 +132,12 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       force: options?.force,
       quiet: options?.quiet,
     };
-    const results: CompilerOutput[] = await pMap(
+    const results: Array<CompilerOutput | undefined> = await pMap(
       compilationJobs,
-      (compilationJob) =>
-        this.runCompilationJob(compilationJob, runCompilationJobOptions),
+      async (compilationJob) =>
+        (await this.#artifactsCache.has(compilationJob.getBuildId()))
+          ? undefined
+          : this.runCompilationJob(compilationJob, runCompilationJobOptions),
       {
         concurrency: options?.concurrency ?? this.#defaultConcurrency,
         // An error when running the compiler is not a compilation failure, but
@@ -145,7 +147,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     );
 
     const isSuccessfulBuild = results.every(
-      (result) => !this.#hasCompilationErrors(result),
+      (result) => result === undefined || !this.#hasCompilationErrors(result),
     );
 
     const contractArtifactsGeneratedByCompilationJob: Map<
@@ -161,11 +163,28 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       };
       await Promise.all(
         compilationJobs.map(async (compilationJob, i) => {
-          const artifactsPerFile = await this.emitArtifacts(
-            compilationJob,
-            results[i],
-            emitArtifactsOptions,
-          );
+          const result = results[i];
+          let artifactsPerFile;
+          if (result === undefined) {
+            const cachedFiles = await this.#artifactsCache.getFiles(
+              compilationJob.getBuildId(),
+              this.#options.artifactsPath,
+            );
+
+            assertHardhatInvariant(
+              cachedFiles !== undefined,
+              "We checked if the compilation job was cached before",
+            );
+
+            artifactsPerFile =
+              await this.#groupEmitArtifactsResults(cachedFiles);
+          } else {
+            artifactsPerFile = await this.emitArtifacts(
+              compilationJob,
+              result,
+              emitArtifactsOptions,
+            );
+          }
 
           contractArtifactsGeneratedByCompilationJob.set(
             compilationJob,
@@ -177,7 +196,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
     const resultsMap: Map<string, FileBuildResult> = new Map();
 
-    for (let i = 0; i < results.length; i++) {
+    for (let i = 0; i < compilationJobs.length; i++) {
       const compilationJob = compilationJobs[i];
       const result = results[i];
 
@@ -192,15 +211,19 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
       const buildId = compilationJob.getBuildId();
 
-      const errors = await Promise.all(
-        (result.errors ?? []).map((error) =>
-          this.remapCompilerError(compilationJob, error, true),
-        ),
-      );
+      const errors =
+        result !== undefined
+          ? await Promise.all(
+              (result.errors ?? []).map((error) =>
+                this.remapCompilerError(compilationJob, error, true),
+              ),
+            )
+          : [];
 
       this.#printSolcErrorsAndWarnings(errors);
 
-      const successfulResult = !this.#hasCompilationErrors(result);
+      const successfulResult =
+        result === undefined || !this.#hasCompilationErrors(result);
 
       for (const [publicSourceName, root] of compilationJob.dependencyGraph
         .getRoots()
@@ -210,6 +233,17 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
             type: FileBuildResultType.BUILD_FAILURE,
             buildId,
             errors,
+          });
+
+          continue;
+        }
+
+        if (result === undefined) {
+          resultsMap.set(formatRootPath(publicSourceName, root), {
+            type: FileBuildResultType.CACHE_HIT,
+            buildId,
+            contractArtifactsGenerated:
+              contractArtifactsGenerated.get(publicSourceName) ?? [],
           });
 
           continue;
@@ -410,6 +444,32 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     };
   }
 
+  async #groupEmitArtifactsResults(
+    filePaths: string[],
+  ): Promise<Map<string, string[]>> {
+    const result = new Map<string, string[]>();
+
+    for (const filePath of filePaths) {
+      const relativePath = path.relative(this.#options.artifactsPath, filePath);
+      if (
+        path.dirname(relativePath) === "build-info" ||
+        path.basename(relativePath) === "artifacts.d.ts"
+      ) {
+        continue;
+      }
+      if (await isDirectory(filePath)) {
+        result.set(relativePath, []);
+      } else {
+        const publicSourceName = path.dirname(relativePath);
+        const paths = result.get(publicSourceName) ?? [];
+        paths.push(filePath);
+        result.set(publicSourceName, paths);
+      }
+    }
+
+    return result;
+  }
+
   public async emitArtifacts(
     compilationJob: CompilationJob,
     compilerOutput: CompilerOutput,
@@ -425,27 +485,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       );
       if (cachedFiles !== undefined) {
         log(`Using cached artifacts for build ${buildId}`);
-        for (const filePath of cachedFiles) {
-          const relativePath = path.relative(
-            this.#options.artifactsPath,
-            filePath,
-          );
-          if (
-            path.dirname(relativePath) === "build-info" ||
-            path.basename(relativePath) === "artifacts.d.ts"
-          ) {
-            continue;
-          }
-          if (await isDirectory(filePath)) {
-            result.set(relativePath, []);
-          } else {
-            const publicSourceName = path.dirname(relativePath);
-            const paths = result.get(publicSourceName) ?? [];
-            paths.push(filePath);
-            result.set(publicSourceName, paths);
-          }
-        }
-        return result;
+        return this.#groupEmitArtifactsResults(cachedFiles);
       }
     }
 

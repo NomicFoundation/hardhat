@@ -21,6 +21,10 @@ export class Cache {
     return path.join(this.#basePath, this.#namespace, key);
   }
 
+  public async has(key: string): Promise<boolean> {
+    return exists(this.#getPath(key));
+  }
+
   public async setJson<T>(key: string, value: T): Promise<void> {
     const filePath = this.#getPath(key);
     await writeJsonFile(filePath, value);
@@ -28,7 +32,7 @@ export class Cache {
 
   public async getJson<T>(key: string): Promise<T | undefined> {
     const filePath = this.#getPath(key);
-    return (await exists(filePath)) ? readJsonFile<T>(filePath) : undefined;
+    return (await this.has(key)) ? readJsonFile<T>(filePath) : undefined;
   }
 
   public async setFiles(
@@ -57,8 +61,8 @@ export class Cache {
     key: string,
     rootPath: string,
   ): Promise<string[] | undefined> {
-    const zipFilePath = this.#getPath(key);
-    if (await exists(zipFilePath)) {
+    if (await this.has(key)) {
+      const zipFilePath = this.#getPath(key);
       const zip = new AdmZip(zipFilePath);
       zip.extractAllTo(rootPath, true);
       const filePaths = zip
