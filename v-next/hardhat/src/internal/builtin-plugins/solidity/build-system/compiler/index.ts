@@ -58,16 +58,18 @@ export async function downloadConfiguredCompilers(
   await wasmCompilerDownloader.updateCompilerListIfNeeded(versions);
 
   for (const version of versions) {
-    if (!quiet) {
-      console.log(`Downloading solc ${version} (WASM build)`);
-    }
+    if (!(await wasmCompilerDownloader.isCompilerDownloaded(version))) {
+      if (!quiet) {
+        console.log(`Downloading solc ${version} (WASM build)`);
+      }
 
-    const success = await wasmCompilerDownloader.downloadCompiler(version);
+      const success = await wasmCompilerDownloader.downloadCompiler(version);
 
-    if (!success) {
-      throw new HardhatError(HardhatError.ERRORS.SOLIDITY.DOWNLOAD_FAILED, {
-        remoteVersion: version,
-      });
+      if (!success) {
+        throw new HardhatError(HardhatError.ERRORS.SOLIDITY.DOWNLOAD_FAILED, {
+          remoteVersion: version,
+        });
+      }
     }
   }
 }
