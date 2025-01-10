@@ -56,7 +56,7 @@ function ensureHexPrefix(hex: string) {
   return `${/^0x/i.test(hex) ? "" : "0x"}${hex}`;
 }
 
-/** Earlier versions of vyper have an gas estimate which is often
+/** Earlier versions of vyper have a gas estimate which is often
  * incorrect (https://github.com/vyperlang/vyper/issues/2151)*/
 function removeGasEstimate(abi: string[]): string[] {
   return JSON.parse(JSON.stringify(abi), (key, value) => {
