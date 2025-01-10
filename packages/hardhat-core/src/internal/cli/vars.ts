@@ -138,7 +138,7 @@ function setup(configPath: string | undefined) {
   } catch (err: any) {
     console.error(
       picocolors.red(
-        "There is an error in your Hardhat configuration file. Please double check it.\n"
+        "There is an error in your Hardhat configuration file. Please double-check it.\n"
       )
     );
 
