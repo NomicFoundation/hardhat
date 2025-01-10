@@ -1,10 +1,8 @@
 import type {
   HardhatUserConfig,
-  HttpNetworkAccountsConfig,
-  HttpNetworkAccountsUserConfig,
   HttpNetworkHDAccountsConfig,
   HttpNetworkHDAccountsUserConfig,
-  NetworkConfig,
+  NetworkUserConfig,
 } from "../../../types/config.js";
 import type { HardhatUserConfigValidationError } from "../../../types/hooks.js";
 
@@ -16,7 +14,6 @@ import { isObject } from "@ignored/hardhat-vnext-utils/lang";
 import {
   conditionalUnionType,
   configurationVariableSchema,
-  resolvedConfigurationVariableSchema,
   sensitiveStringSchema,
   sensitiveUrlSchema,
   unionType,
@@ -279,189 +276,29 @@ const userConfigSchema = z.object({
   networks: z.optional(z.record(networkUserConfigSchema)),
 });
 
-const chainTypeConfigSchema = unionType(
-  [
-    z.literal(L1_CHAIN_TYPE),
-    z.literal(OPTIMISM_CHAIN_TYPE),
-    z.literal(GENERIC_CHAIN_TYPE),
-  ],
-  `Expected '${L1_CHAIN_TYPE}', '${OPTIMISM_CHAIN_TYPE}', or '${GENERIC_CHAIN_TYPE}'`,
-);
-
-const gasUnitConfigSchema = nonnegativeBigIntSchema;
-
-const gasConfigSchema = unionType(
-  [z.literal("auto"), gasUnitConfigSchema],
-  "Expected 'auto' or positive bigint",
-);
-
-const httpNetworkHDAccountsConfigSchema = z.object({
-  mnemonic: resolvedConfigurationVariableSchema,
-  count: nonnegativeIntSchema,
-  initialIndex: nonnegativeIntSchema,
-  passphrase: resolvedConfigurationVariableSchema,
-  path: z.string(),
-});
-
-const httpNetworkAccountsConfigSchema = conditionalUnionType(
-  [
-    [(data) => data === "remote", z.literal("remote")],
-    [
-      (data) => Array.isArray(data),
-      z.array(resolvedConfigurationVariableSchema),
-    ],
-    [isObject, httpNetworkHDAccountsConfigSchema],
-  ],
-  `Expected 'remote', an array of ResolvedConfigurationVariables, or an object with HD account details`,
-);
-
-const httpNetworkConfigSchema = z.object({
-  type: z.literal("http"),
-  accounts: httpNetworkAccountsConfigSchema,
-  chainId: z.optional(chainIdSchema),
-  chainType: z.optional(chainTypeConfigSchema),
-  from: z.optional(z.string()),
-  gas: gasConfigSchema,
-  gasMultiplier: nonnegativeNumberSchema,
-  gasPrice: gasConfigSchema,
-
-  // HTTP network specific
-  url: resolvedConfigurationVariableSchema,
-  httpHeaders: z.record(z.string()),
-  timeout: nonnegativeNumberSchema,
-});
-
-const accountBalanceConfigSchema = nonnegativeBigIntSchema;
-
-const edrNetworkAccountConfigSchema = z.object({
-  balance: accountBalanceConfigSchema,
-  privateKey: resolvedConfigurationVariableSchema,
-});
-
-const edrNetworkHDAccountsConfigSchema = z.object({
-  mnemonic: resolvedConfigurationVariableSchema,
-  accountsBalance: accountBalanceConfigSchema,
-  count: nonnegativeIntSchema,
-  initialIndex: nonnegativeIntSchema,
-  passphrase: resolvedConfigurationVariableSchema,
-  path: z.string(),
-});
-
-const edrNetworkAccountsConfigSchema = conditionalUnionType(
-  [
-    [(data) => Array.isArray(data), z.array(edrNetworkAccountConfigSchema)],
-    [isObject, edrNetworkHDAccountsConfigSchema],
-  ],
-  `Expected an array with with objects with private key and balance, or an object with HD account details`,
-);
-
-const hardforkHistoryConfigSchema = z.map(
-  hardforkNameSchema,
-  blockNumberSchema,
-);
-
-const edrNetworkChainConfigSchema = z.object({
-  hardforkHistory: hardforkHistoryConfigSchema,
-});
-
-const edrNetworkChainsConfigSchema = z.map(
-  chainIdSchema,
-  edrNetworkChainConfigSchema,
-);
-
-const edrNetworkForkingConfigSchema = z.object({
-  enabled: z.boolean(),
-  url: resolvedConfigurationVariableSchema,
-  cacheDir: z.string(),
-  blockNumber: z.optional(blockNumberSchema),
-  httpHeaders: z.optional(z.record(z.string())),
-});
-
-const edrNetworkMempoolConfigSchema = z.object({
-  order: unionType(
-    [z.literal("fifo"), z.literal("priority")],
-    "Expected 'fifo' or 'priority'",
-  ),
-});
-
-const edrNetworkMiningConfigSchema = z.object({
-  auto: z.boolean(),
-  interval: unionType(
-    [
-      nonnegativeIntSchema,
-      z.tuple([nonnegativeIntSchema, nonnegativeIntSchema]),
-    ],
-    "Expected a number or an array of numbers",
-  ),
-  mempool: z.optional(edrNetworkMempoolConfigSchema),
-});
-
-const edrNetworkConfigSchema = z.object({
-  type: z.literal("edr"),
-  accounts: edrNetworkAccountsConfigSchema,
-  chainId: chainIdSchema,
-  chainType: z.optional(chainTypeConfigSchema),
-  from: z.optional(z.string()),
-  gas: gasConfigSchema,
-  gasMultiplier: nonnegativeNumberSchema,
-  gasPrice: gasConfigSchema,
-
-  // EDR network specific
-  allowBlocksWithSameTimestamp: z.boolean(),
-  allowUnlimitedContractSize: z.boolean(),
-  blockGasLimit: gasUnitConfigSchema,
-  chains: edrNetworkChainsConfigSchema,
-  coinbase: z.instanceof(Uint8Array),
-  enableRip7212: z.boolean(),
-  enableTransientStorage: z.boolean(),
-  forking: z.optional(edrNetworkForkingConfigSchema),
-  hardfork: hardforkNameSchema,
-  initialBaseFeePerGas: z.optional(gasUnitConfigSchema),
-  initialDate: unionType(
-    [z.string(), z.instanceof(Date)],
-    "Expected a string or a Date",
-  ),
-  loggingEnabled: z.boolean(),
-  minGasPrice: gasUnitConfigSchema,
-  mining: edrNetworkMiningConfigSchema,
-  networkId: chainIdSchema,
-  throwOnCallFailures: z.boolean(),
-  throwOnTransactionFailures: z.boolean(),
-});
-
-const networkConfigSchema = z.discriminatedUnion("type", [
-  httpNetworkConfigSchema,
-  edrNetworkConfigSchema,
-]);
-
-export function isNetworkConfig(
-  networkConfig: unknown,
-): networkConfig is NetworkConfig {
-  const result = networkConfigSchema.safeParse(networkConfig);
-  return result.success;
-}
-
-export function validateNetworkConfig(
-  networkConfig: unknown,
-): HardhatUserConfigValidationError[] {
-  const result = networkConfigSchema.safeParse(networkConfig);
-  return result.error?.errors ?? [];
-}
-
 export async function validateNetworkUserConfig(
   userConfig: HardhatUserConfig,
 ): Promise<HardhatUserConfigValidationError[]> {
   return validateUserConfigZodType(userConfig, userConfigSchema);
 }
 
-export function isHdAccountsUserConfig(
-  accounts: HttpNetworkAccountsUserConfig,
+export async function validateNetworkConfigOverride(
+  networkConfigOverride: NetworkUserConfig,
+): Promise<HardhatUserConfigValidationError[]> {
+  return validateUserConfigZodType(
+    networkConfigOverride,
+    networkUserConfigSchema,
+  );
+}
+
+export function isHttpNetworkHdAccountsUserConfig(
+  accounts: unknown,
 ): accounts is HttpNetworkHDAccountsUserConfig {
   return isObject(accounts);
 }
 
-export function isHdAccountsConfig(
-  accounts: HttpNetworkAccountsConfig,
+export function isHttpNetworkHdAccountsConfig(
+  accounts: unknown,
 ): accounts is HttpNetworkHDAccountsConfig {
   return isObject(accounts);
 }

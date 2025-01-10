@@ -16,7 +16,7 @@ import { expectTypeOf } from "expect-type";
 
 import { createHardhatRuntimeEnvironment } from "../../../../src/hre.js";
 import { NetworkManagerImplementation } from "../../../../src/internal/builtin-plugins/network-manager/network-manager.js";
-import { validateNetworkConfig } from "../../../../src/internal/builtin-plugins/network-manager/type-validation.js";
+import { validateNetworkUserConfig } from "../../../../src/internal/builtin-plugins/network-manager/type-validation.js";
 import {
   GENERIC_CHAIN_TYPE,
   L1_CHAIN_TYPE,
@@ -137,8 +137,8 @@ describe("NetworkManagerImplementation", () => {
       await assertRejectsWithHardhatError(
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
         -- Cast to test validation error */
-        networkManager.connect("myNetwork", L1_CHAIN_TYPE, {
-          type: L1_CHAIN_TYPE,
+        networkManager.connect("myNetwork", OPTIMISM_CHAIN_TYPE, {
+          type: "edr",
         } as any),
         HardhatError.ERRORS.NETWORK.INVALID_CONFIG_OVERRIDE,
         {
@@ -149,7 +149,7 @@ describe("NetworkManagerImplementation", () => {
       await assertRejectsWithHardhatError(
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
         -- Cast to test validation error */
-        networkManager.connect("myNetwork", L1_CHAIN_TYPE, {
+        networkManager.connect("myNetwork", OPTIMISM_CHAIN_TYPE, {
           type: undefined,
         } as any),
         HardhatError.ERRORS.NETWORK.INVALID_CONFIG_OVERRIDE,
@@ -310,7 +310,8 @@ describe("NetworkManagerImplementation", () => {
         it("should allow the value 'remote'", async () => {
           networkConfig.accounts = "remote";
 
-          const validationErrors = validateNetworkConfig(networkConfig);
+          const validationErrors =
+            await validateNetworkUserConfig(networkConfig);
 
           assert.equal(validationErrors.length, 0);
         });
@@ -322,7 +323,8 @@ describe("NetworkManagerImplementation", () => {
             "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
           ];
 
-          const validationErrors = validateNetworkConfig(networkConfig);
+          const validationErrors =
+            await validateNetworkUserConfig(networkConfig);
           console.log(validationErrors);
           assert.equal(validationErrors.length, 0);
         });
@@ -336,7 +338,8 @@ describe("NetworkManagerImplementation", () => {
             passphrase: "passphrase",
           };
 
-          const validationErrors = validateNetworkConfig(networkConfig);
+          const validationErrors =
+            await validateNetworkUserConfig(networkConfig);
 
           assert.equal(validationErrors.length, 0);
         });
@@ -346,7 +349,8 @@ describe("NetworkManagerImplementation", () => {
             "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           ];
 
-          const validationErrors = validateNetworkConfig(networkConfig);
+          const validationErrors =
+            await validateNetworkUserConfig(networkConfig);
 
           assert.equal(validationErrors.length, 0);
         });
@@ -359,7 +363,8 @@ describe("NetworkManagerImplementation", () => {
               0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,
             ];
 
-            const validationErrors = validateNetworkConfig(networkConfig);
+            const validationErrors =
+              await validateNetworkUserConfig(networkConfig);
 
             assert.notEqual(validationErrors.length, 0);
             assert.equal(
@@ -371,7 +376,8 @@ describe("NetworkManagerImplementation", () => {
           it("should not allow private keys of incorrect length", async () => {
             networkConfig.accounts = ["0xaaaa"];
 
-            let validationErrors = validateNetworkConfig(networkConfig);
+            let validationErrors =
+              await validateNetworkUserConfig(networkConfig);
 
             assert.notEqual(validationErrors.length, 0);
             assert.equal(
@@ -382,7 +388,7 @@ describe("NetworkManagerImplementation", () => {
             networkConfig.accounts = [
               "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabb",
             ];
-            validationErrors = validateNetworkConfig(networkConfig);
+            validationErrors = await validateNetworkUserConfig(networkConfig);
 
             assert.notEqual(validationErrors.length, 0);
             assert.equal(
@@ -396,7 +402,8 @@ describe("NetworkManagerImplementation", () => {
               "0xgggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg",
             ];
 
-            const validationErrors = validateNetworkConfig(networkConfig);
+            const validationErrors =
+              await validateNetworkUserConfig(networkConfig);
 
             assert.notEqual(validationErrors.length, 0);
             assert.equal(
@@ -413,7 +420,8 @@ describe("NetworkManagerImplementation", () => {
         for (const accounts of accountsValuesToTest) {
           networkConfig.accounts = accounts;
 
-          const validationErrors = validateNetworkConfig(networkConfig);
+          const validationErrors =
+            await validateNetworkUserConfig(networkConfig);
 
           assert.notEqual(validationErrors.length, 0);
           assert.equal(validationErrors[0].message, validationErrorMsg);
@@ -447,7 +455,8 @@ describe("NetworkManagerImplementation", () => {
         for (const [accounts, error] of accountsValuesToTest) {
           networkConfig.accounts = accounts;
 
-          const validationErrors = validateNetworkConfig(networkConfig);
+          const validationErrors =
+            await validateNetworkUserConfig(networkConfig);
 
           assert.notEqual(validationErrors.length, 0);
           assert.equal(validationErrors[0].message, error);
@@ -492,7 +501,8 @@ describe("NetworkManagerImplementation", () => {
             },
           ];
 
-          const validationErrors = validateNetworkConfig(networkConfig);
+          const validationErrors =
+            await validateNetworkUserConfig(networkConfig);
 
           assert.equal(validationErrors.length, 0);
         });
@@ -507,7 +517,8 @@ describe("NetworkManagerImplementation", () => {
             passphrase: "passphrase",
           };
 
-          const validationErrors = validateNetworkConfig(networkConfig);
+          const validationErrors =
+            await validateNetworkUserConfig(networkConfig);
 
           assert.equal(validationErrors.length, 0);
         });
@@ -521,7 +532,8 @@ describe("NetworkManagerImplementation", () => {
             },
           ];
 
-          const validationErrors = validateNetworkConfig(networkConfig);
+          const validationErrors =
+            await validateNetworkUserConfig(networkConfig);
 
           assert.equal(validationErrors.length, 0);
         });
@@ -537,7 +549,8 @@ describe("NetworkManagerImplementation", () => {
               },
             ];
 
-            const validationErrors = validateNetworkConfig(networkConfig);
+            const validationErrors =
+              await validateNetworkUserConfig(networkConfig);
 
             assert.notEqual(validationErrors.length, 0);
             assert.equal(
@@ -554,7 +567,8 @@ describe("NetworkManagerImplementation", () => {
               },
             ];
 
-            let validationErrors = validateNetworkConfig(networkConfig);
+            let validationErrors =
+              await validateNetworkUserConfig(networkConfig);
 
             assert.notEqual(validationErrors.length, 0);
             assert.equal(
@@ -570,7 +584,7 @@ describe("NetworkManagerImplementation", () => {
               },
             ];
 
-            validationErrors = validateNetworkConfig(networkConfig);
+            validationErrors = await validateNetworkUserConfig(networkConfig);
 
             assert.notEqual(validationErrors.length, 0);
             assert.equal(
@@ -588,7 +602,8 @@ describe("NetworkManagerImplementation", () => {
               },
             ];
 
-            const validationErrors = validateNetworkConfig(networkConfig);
+            const validationErrors =
+              await validateNetworkUserConfig(networkConfig);
 
             assert.notEqual(validationErrors.length, 0);
             assert.equal(
@@ -613,7 +628,8 @@ describe("NetworkManagerImplementation", () => {
             },
           ];
 
-          const validationErrors = validateNetworkConfig(networkConfig);
+          const validationErrors =
+            await validateNetworkUserConfig(networkConfig);
 
           assert.notEqual(validationErrors.length, 0);
           assert.equal(validationErrors[0].message, validationErrorMsg);
@@ -637,7 +653,8 @@ describe("NetworkManagerImplementation", () => {
           for (const accounts of accountsValuesToTest) {
             networkConfig.accounts = accounts;
 
-            const validationErrors = validateNetworkConfig(networkConfig);
+            const validationErrors =
+              await validateNetworkUserConfig(networkConfig);
 
             assert.notEqual(validationErrors.length, 0);
             assert.equal(validationErrors[0].message, validationErrorMsg);
@@ -647,7 +664,8 @@ describe("NetworkManagerImplementation", () => {
         it("should fail when the array of objects contains an invalid private key", async () => {
           networkConfig.accounts = [{ privateKey: "0xxxxx", balance: 213 }];
 
-          const validationErrors = validateNetworkConfig(networkConfig);
+          const validationErrors =
+            await validateNetworkUserConfig(networkConfig);
 
           assert.notEqual(validationErrors.length, 0);
           assert.equal(
@@ -677,7 +695,8 @@ describe("NetworkManagerImplementation", () => {
           for (const [accounts, error] of accountsValuesToTest) {
             networkConfig.accounts = accounts;
 
-            const validationErrors = validateNetworkConfig(networkConfig);
+            const validationErrors =
+              await validateNetworkUserConfig(networkConfig);
 
             assert.notEqual(validationErrors.length, 0);
             assert.equal(validationErrors[0].message, error);

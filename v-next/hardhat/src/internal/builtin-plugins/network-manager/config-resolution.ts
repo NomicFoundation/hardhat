@@ -5,14 +5,20 @@ import type {
   EdrNetworkChainConfig,
   EdrNetworkChainsConfig,
   EdrNetworkChainsUserConfig,
+  EdrNetworkConfig,
   EdrNetworkForkingConfig,
   EdrNetworkForkingUserConfig,
   EdrNetworkMiningConfig,
   EdrNetworkMiningUserConfig,
+  EdrNetworkUserConfig,
   GasConfig,
   GasUserConfig,
   HttpNetworkAccountsConfig,
   HttpNetworkAccountsUserConfig,
+  HttpNetworkConfig,
+  HttpNetworkUserConfig,
+  NetworkConfig,
+  NetworkUserConfig,
 } from "../../../types/config.js";
 
 import path from "node:path";
@@ -21,6 +27,7 @@ import {
   hexStringToBytes,
   normalizeHexString,
 } from "@ignored/hardhat-vnext-utils/hex";
+import { isObject } from "micro-eth-signer/utils";
 
 import { DEFAULT_HD_ACCOUNTS_CONFIG_PARAMS } from "./accounts/constants.js";
 import {
@@ -28,7 +35,155 @@ import {
   EDR_NETWORK_DEFAULT_COINBASE,
 } from "./edr/edr-provider.js";
 import { HardforkName, LATEST_HARDFORK } from "./edr/types/hardfork.js";
-import { isHdAccountsUserConfig } from "./type-validation.js";
+import { isHttpNetworkHdAccountsUserConfig } from "./type-validation.js";
+
+export function resolveHttpNetwork(
+  networkConfig: HttpNetworkUserConfig,
+  resolveConfigurationVariable: ConfigurationVariableResolver,
+): HttpNetworkConfig {
+  return {
+    type: "http",
+    accounts: resolveHttpNetworkAccounts(
+      networkConfig.accounts,
+      resolveConfigurationVariable,
+    ),
+    chainId: networkConfig.chainId,
+    chainType: networkConfig.chainType,
+    from: networkConfig.from,
+    gas: resolveGasConfig(networkConfig.gas),
+    gasMultiplier: networkConfig.gasMultiplier ?? 1,
+    gasPrice: resolveGasConfig(networkConfig.gasPrice),
+    url: resolveConfigurationVariable(networkConfig.url),
+    timeout: networkConfig.timeout ?? 20_000,
+    httpHeaders: networkConfig.httpHeaders ?? {},
+  };
+}
+
+export function resolveEdrNetwork(
+  networkConfig: EdrNetworkUserConfig,
+  cachePath: string,
+  resolveConfigurationVariable: ConfigurationVariableResolver,
+): EdrNetworkConfig {
+  return {
+    type: "edr",
+    accounts: resolveEdrNetworkAccounts(
+      networkConfig.accounts,
+      resolveConfigurationVariable,
+    ),
+    chainId: networkConfig.chainId ?? 31337,
+    chainType: networkConfig.chainType,
+    from: networkConfig.from,
+    gas: resolveGasConfig(networkConfig.gas),
+    gasMultiplier: networkConfig.gasMultiplier ?? 1,
+    gasPrice: resolveGasConfig(networkConfig.gasPrice),
+
+    allowBlocksWithSameTimestamp:
+      networkConfig.allowBlocksWithSameTimestamp ?? false,
+    allowUnlimitedContractSize:
+      networkConfig.allowUnlimitedContractSize ?? false,
+    blockGasLimit: BigInt(networkConfig.blockGasLimit ?? 30_000_000n),
+    chains: resolveChains(networkConfig.chains),
+    coinbase: resolveCoinbase(networkConfig.coinbase),
+    enableRip7212: networkConfig.enableRip7212 ?? false,
+    enableTransientStorage: networkConfig.enableTransientStorage ?? false,
+    forking: resolveForkingConfig(
+      networkConfig.forking,
+      cachePath,
+      resolveConfigurationVariable,
+    ),
+    hardfork: resolveHardfork(
+      networkConfig.hardfork,
+      networkConfig.enableTransientStorage,
+    ),
+    initialBaseFeePerGas: resolveInitialBaseFeePerGas(
+      networkConfig.initialBaseFeePerGas,
+    ),
+    initialDate: networkConfig.initialDate ?? new Date(),
+    loggingEnabled: networkConfig.loggingEnabled ?? false,
+    minGasPrice: BigInt(networkConfig.minGasPrice ?? 0),
+    mining: resolveMiningConfig(networkConfig.mining),
+    networkId: networkConfig.networkId ?? networkConfig.chainId ?? 31337,
+    throwOnCallFailures: networkConfig.throwOnCallFailures ?? true,
+    throwOnTransactionFailures:
+      networkConfig.throwOnTransactionFailures ?? true,
+  };
+}
+
+/**
+ * Resolves a NetworkUserConfig into a Partial<NetworkConfig> object.
+ * This function processes the network configuration override using the appropriate
+ * resolver (either HTTP or EDR) and ensures only the values explicitly specified
+ * in the override are included in the final result, preventing defaults from
+ * overwriting the user's configuration.
+ *
+ * @param networkUserConfigOverride The user's network configuration override.
+ * @param resolveConfigurationVariable A function to resolve configuration variables.
+ * @returns A Partial<NetworkConfig> containing the resolved values from the override.
+ */
+export function resolveNetworkConfigOverride(
+  networkUserConfigOverride: NetworkUserConfig,
+  resolveConfigurationVariable: ConfigurationVariableResolver,
+): Partial<NetworkConfig> {
+  let resolvedConfigOverride: NetworkConfig;
+
+  if (networkUserConfigOverride.type === "http") {
+    resolvedConfigOverride = resolveHttpNetwork(
+      networkUserConfigOverride,
+      resolveConfigurationVariable,
+    );
+  } else {
+    resolvedConfigOverride = resolveEdrNetwork(
+      networkUserConfigOverride,
+      "",
+      resolveConfigurationVariable,
+    );
+  }
+
+  /* Return only the resolved config of the values overridden by the user. This
+  ensures that only the overridden values are merged into the config and
+  indirectly removes cacheDir from the resolved forking config, as cacheDir
+  is not part of the NetworkUserConfig. */
+  return pickResolvedFromOverrides(
+    resolvedConfigOverride,
+    networkUserConfigOverride,
+  );
+}
+
+function pickResolvedFromOverrides<
+  TResolved extends object,
+  TOverride extends object,
+>(resolvedConfig: TResolved, overrides: TOverride): Partial<TResolved> {
+  const result: Partial<TResolved> = {};
+
+  for (const key of Object.keys(overrides)) {
+    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+    -- As TResolved and TOverride are objects share the same keys, we can
+    safely cast the key */
+    const resolvedKey = key as keyof TResolved;
+    const resolvedValue = resolvedConfig[resolvedKey];
+    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+    -- As TResolved and TOverride are objects share the same keys, we can
+    safely cast the key */
+    const overrideValue = overrides[key as keyof TOverride];
+
+    if (!(isObject(resolvedValue) && isObject(overrideValue))) {
+      result[resolvedKey] = resolvedValue;
+      continue;
+    }
+
+    /* Some properties in NetworkConfig, such as accounts, forking, and mining,
+    are objects themselves. To handle these, we process them recursively. */
+    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+    -- The return type adheres to TResolved[keyof TResolved], but TS can't
+    infer it */
+    result[resolvedKey] = pickResolvedFromOverrides(
+      resolvedValue,
+      overrideValue,
+    ) as TResolved[keyof TResolved];
+  }
+
+  return result;
+}
 
 export function resolveGasConfig(value: GasUserConfig = "auto"): GasConfig {
   return value === "auto" ? value : BigInt(value);
@@ -48,7 +203,7 @@ export function resolveHttpNetworkAccounts(
     });
   }
 
-  if (isHdAccountsUserConfig(accounts)) {
+  if (isHttpNetworkHdAccountsUserConfig(accounts)) {
     const { passphrase: defaultPassphrase, ...defaultHdAccountRest } =
       DEFAULT_HD_ACCOUNTS_CONFIG_PARAMS;
     const { mnemonic, passphrase, ...hdAccountRest } = accounts;

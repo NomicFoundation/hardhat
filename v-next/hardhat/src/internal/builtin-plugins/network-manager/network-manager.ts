@@ -1,4 +1,10 @@
-import type { NetworkConfig } from "../../../types/config.js";
+import type {
+  EdrNetworkUserConfig,
+  HttpNetworkUserConfig,
+  NetworkConfig,
+  NetworkConfigOverride,
+  NetworkUserConfig,
+} from "../../../types/config.js";
 import type { HookManager } from "../../../types/hooks.js";
 import type {
   ChainType,
@@ -14,11 +20,14 @@ import type {
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
+import { resolveConfigurationVariable } from "../../core/configuration-variables.js";
+
+import { resolveNetworkConfigOverride } from "./config-resolution.js";
 import { EdrProvider } from "./edr/edr-provider.js";
 import { isEdrSupportedChainType } from "./edr/utils/chain-type.js";
 import { HttpProvider } from "./http-provider.js";
 import { NetworkConnectionImplementation } from "./network-connection.js";
-import { isNetworkConfig, validateNetworkConfig } from "./type-validation.js";
+import { validateNetworkConfigOverride } from "./type-validation.js";
 
 export type JsonRpcRequestWrapperFunction = (
   request: JsonRpcRequest,
@@ -50,7 +59,7 @@ export class NetworkManagerImplementation implements NetworkManager {
   >(
     networkName?: string,
     chainType?: ChainTypeT,
-    networkConfigOverride?: Partial<NetworkConfig>,
+    networkConfigOverride?: NetworkConfigOverride,
   ): Promise<NetworkConnection<ChainTypeT>> {
     const networkConnection = await this.#hookManager.runHandlerChain(
       "network",
@@ -72,7 +81,7 @@ export class NetworkManagerImplementation implements NetworkManager {
   async #initializeNetworkConnection<ChainTypeT extends ChainType | string>(
     networkName?: string,
     chainType?: ChainTypeT,
-    networkConfigOverride?: Partial<NetworkConfig>,
+    networkConfigOverride?: NetworkConfigOverride,
   ): Promise<NetworkConnection<ChainTypeT>> {
     const resolvedNetworkName = networkName ?? this.#defaultNetwork;
     if (this.#networkConfigs[resolvedNetworkName] === undefined) {
@@ -81,39 +90,59 @@ export class NetworkManagerImplementation implements NetworkManager {
       });
     }
 
-    if (
-      networkConfigOverride !== undefined &&
-      "type" in networkConfigOverride &&
-      networkConfigOverride.type !==
-        this.#networkConfigs[resolvedNetworkName].type
-    ) {
-      throw new HardhatError(
-        HardhatError.ERRORS.NETWORK.INVALID_CONFIG_OVERRIDE,
-        {
-          errors: `\t* The type of the network cannot be changed.`,
-        },
+    let resolvedNetworkConfigOverride: Partial<NetworkConfig> | undefined;
+    if (networkConfigOverride !== undefined) {
+      if (
+        "type" in networkConfigOverride &&
+        networkConfigOverride.type !==
+          this.#networkConfigs[resolvedNetworkName].type
+      ) {
+        throw new HardhatError(
+          HardhatError.ERRORS.NETWORK.INVALID_CONFIG_OVERRIDE,
+          {
+            errors: `\t* The type of the network cannot be changed.`,
+          },
+        );
+      }
+
+      const normalizedNetworkConfigOverride =
+        await normalizeNetworkConfigOverride(
+          networkConfigOverride,
+          this.#networkConfigs[resolvedNetworkName],
+        );
+
+      // As normalizeNetworkConfigOverride is not type-safe, we validate the
+      // normalized network config override immediately after normalizing it.
+      const validationErrors = await validateNetworkConfigOverride(
+        normalizedNetworkConfigOverride,
+      );
+      if (validationErrors.length > 0) {
+        throw new HardhatError(
+          HardhatError.ERRORS.NETWORK.INVALID_CONFIG_OVERRIDE,
+          {
+            errors: `\t${validationErrors
+              .map(
+                (error) =>
+                  `* Error in ${error.path.join(".")}: ${error.message}`,
+              )
+              .join("\n\t")}`,
+          },
+        );
+      }
+
+      resolvedNetworkConfigOverride = resolveNetworkConfigOverride(
+        normalizedNetworkConfigOverride,
+        (strOrConfigVar) =>
+          resolveConfigurationVariable(this.#hookManager, strOrConfigVar),
       );
     }
 
+    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+    -- Cast to NetworkConfig as we know the types match, but TS can't infer it */
     const resolvedNetworkConfig = {
       ...this.#networkConfigs[resolvedNetworkName],
-      ...networkConfigOverride,
-    };
-
-    if (!isNetworkConfig(resolvedNetworkConfig)) {
-      const validationErrors = validateNetworkConfig(resolvedNetworkConfig);
-
-      throw new HardhatError(
-        HardhatError.ERRORS.NETWORK.INVALID_CONFIG_OVERRIDE,
-        {
-          errors: `\t${validationErrors
-            .map(
-              (error) => `* Error in ${error.path.join(".")}: ${error.message}`,
-            )
-            .join("\n\t")}`,
-        },
-      );
-    }
+      ...resolvedNetworkConfigOverride,
+    } as NetworkConfig;
 
     /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     -- Cast to ChainTypeT because we know it's valid */
@@ -205,4 +234,53 @@ export class NetworkManagerImplementation implements NetworkManager {
       createProvider,
     );
   }
+}
+
+/**
+ * Converts the NetworkConfigOverride into a valid NetworkUserConfig. This
+ * function determines the network type based on the provided `networkConfig`
+ * and sets default values for any required properties that are missing from
+ * the `networkConfigOverride`.
+ *
+ * @warning
+ * This function is not type-safe. It assumes that `networkConfigOverride` does
+ * not contain mixed properties from different network types. Always validate
+ * the resulting NetworkUserConfig before using it.
+ *
+ * @param networkConfigOverride The partial configuration override provided by
+ * the user.
+ * @param networkConfig The base network configuration used to infer defaults
+ * and the network type.
+ * @returns A fully resolved NetworkUserConfig with defaults applied.
+ */
+async function normalizeNetworkConfigOverride(
+  networkConfigOverride: NetworkConfigOverride,
+  networkConfig: NetworkConfig,
+): Promise<NetworkUserConfig> {
+  let networkConfigOverrideWithType: NetworkUserConfig;
+
+  if (networkConfig.type === "http") {
+    const networkConfigOverrideAsHttp =
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      -- Assumes that networkConfigOverride is a HttpNetworkUserConfig. */
+      networkConfigOverride as HttpNetworkUserConfig;
+
+    networkConfigOverrideWithType = {
+      ...networkConfigOverrideAsHttp,
+      type: "http",
+      url: networkConfigOverrideAsHttp.url ?? (await networkConfig.url.get()),
+    };
+  } else {
+    const networkConfigOverrideAsEdr =
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      -- Assumes that networkConfigOverride is an EdrNetworkUserConfig. */
+      networkConfigOverride as EdrNetworkUserConfig;
+
+    networkConfigOverrideWithType = {
+      ...networkConfigOverrideAsEdr,
+      type: "edr",
+    };
+  }
+
+  return networkConfigOverrideWithType;
 }

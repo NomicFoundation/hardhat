@@ -10,6 +10,20 @@ declare module "../../../../types/config.js" {
 
   export type NetworkUserConfig = HttpNetworkUserConfig | EdrNetworkUserConfig;
 
+  export type HttpNetworkConfigOverride = Partial<
+    Omit<HttpNetworkUserConfig, "type">
+  >;
+
+  export type EdrNetworkConfigOverride = Partial<
+    Omit<EdrNetworkUserConfig, "type">
+  >;
+
+  // Ideally we use Partial<Omit<NetworkUserConfig, "type">> but omit breaks
+  // discriminated unions. See https://github.com/microsoft/TypeScript/issues/31501
+  export type NetworkConfigOverride =
+    | HttpNetworkConfigOverride
+    | EdrNetworkConfigOverride;
+
   export interface HttpNetworkUserConfig {
     type: "http";
     accounts?: HttpNetworkAccountsUserConfig;
