@@ -101,7 +101,7 @@ describe("Solpp plugin", function () {
       );
     });
 
-    // This test skipped because solpp won't fail if a contract has an non-defined symbol.
+    // This test skipped because solpp won't fail if a contract has a non-defined symbol.
     describe.skip("fail-project", function () {
       useEnvironment("fail-project");
 
