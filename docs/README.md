@@ -26,7 +26,7 @@ https://hardhat-lime.vercel.app/
 
 ## Adding content
 
-Website content is located in `*.md` files within `src/content` folder. It's written in Markdown syntax. Folders structure in `content` is reflected on the website.
+Website content is located in `*.md` files within `src/content` folder. Its written in Markdown syntax. Folder structure in `content` is reflected on the website.
 
 To adjust page behavior and appearance, also use optional `*.yaml` files with additional configurations.
 
@@ -173,7 +173,7 @@ Each component can be exposed with different states (stories) independently by p
 
 We also deploy updated storybook on each build. You can find it on https://hardhat-storybook.netlify.app/
 
-## Content generating technical details
+## Content-generating technical details
 
 There are two relatively independent processes in the build step:
 
