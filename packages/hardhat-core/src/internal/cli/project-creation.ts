@@ -372,7 +372,7 @@ function showStarOnGitHubMessage() {
 }
 
 export function showSoliditySurveyMessage() {
-  if (new Date() > new Date("2024-01-07 23:39")) {
+  if (new Date() > new Date("2025-01-31 23:39")) {
     // the survey has finished
     return;
   }
@@ -380,7 +380,7 @@ export function showSoliditySurveyMessage() {
   console.log();
   console.log(
     picocolors.cyan(
-      "Please take a moment to complete the 2023 Solidity Survey: https://hardhat.org/solidity-survey-2023"
+      "Please take a moment to complete the 2024 Solidity Survey: https://hardhat.org/solidity-survey-2024"
     )
   );
 }
