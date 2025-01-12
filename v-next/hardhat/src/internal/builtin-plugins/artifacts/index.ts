@@ -6,6 +6,7 @@ const hardhatPlugin: HardhatPlugin = {
   hookHandlers: {
     hre: import.meta.resolve("./hook-handlers/hre.js"),
   },
+  npmPackage: "@ignored/hardhat-vnext",
 };
 
 export default hardhatPlugin;
