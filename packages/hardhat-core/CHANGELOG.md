@@ -1,5 +1,12 @@
 # hardhat
 
+## 2.22.18
+
+### Patch Changes
+
+- 25f45b0: Improve solidity stack traces performance by getting them from the EDR response
+- 0e5c8d7: Restored the message linking to the 2024 solidity survey
+
 ## 2.22.17
 
 ### Patch Changes
