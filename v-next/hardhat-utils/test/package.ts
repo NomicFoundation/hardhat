@@ -6,11 +6,18 @@ import { describe, it } from "node:test";
 
 import { expectTypeOf } from "expect-type";
 
-import { createFile, mkdir, writeJsonFile, writeUtf8File } from "../src/fs.js";
+import {
+  createFile,
+  getRealPath,
+  mkdir,
+  writeJsonFile,
+  writeUtf8File,
+} from "../src/fs.js";
 import {
   findClosestPackageJson,
   readClosestPackageJson,
   findClosestPackageRoot,
+  findDependencyPackageJson,
 } from "../src/package.js";
 
 import { useTmpDir } from "./helpers/fs.js";
@@ -178,6 +185,103 @@ describe("package", () => {
       await assert.rejects(findClosestPackageRoot(fromPath), {
         name: "PackageJsonNotFoundError",
         message: `No package.json found for ${fromPath}`,
+      });
+    });
+  });
+
+  describe("findDependencyPackageJson", async () => {
+    describe("Fixture project: find-dependency-packagejson", async () => {
+      const fixtureProjectPath = await getRealPath(
+        path.resolve(
+          import.meta.dirname,
+          "fixture-projects",
+          "find-dependency-packagejson",
+        ),
+      );
+
+      it("Should resolve non-scoped packages", async () => {
+        const packageJsonPath = await findDependencyPackageJson(
+          fixtureProjectPath,
+          "a",
+        );
+
+        assert.equal(
+          packageJsonPath,
+          path.join(fixtureProjectPath, "node_modules/a/package.json"),
+        );
+      });
+
+      it("Should work with and without trailing slashes", async () => {
+        assert.equal(
+          await findDependencyPackageJson(
+            fixtureProjectPath.replace(/\/+$/, ""),
+            "a",
+          ),
+          await findDependencyPackageJson(
+            fixtureProjectPath.replace(/\/+$/, "") + "/",
+            "a",
+          ),
+        );
+      });
+
+      it("Should resolve scoped packages", async () => {
+        const packageJsonPath = await findDependencyPackageJson(
+          fixtureProjectPath,
+          "@scope/a",
+        );
+
+        assert.equal(
+          packageJsonPath,
+          path.join(fixtureProjectPath, "node_modules/@scope/a/package.json"),
+        );
+      });
+
+      it("Shouldn't find non-existing packages", async () => {
+        const packageJsonPath = await findDependencyPackageJson(
+          fixtureProjectPath,
+          "nope",
+        );
+
+        assert.equal(packageJsonPath, undefined);
+      });
+
+      it("Should resolve nested dependencies local to the node_modules", async () => {
+        const packageJsonPath = await findDependencyPackageJson(
+          path.join(fixtureProjectPath, "node_modules/@scope/a"),
+          "a",
+        );
+
+        assert.equal(
+          packageJsonPath,
+          path.join(
+            fixtureProjectPath,
+            "node_modules/@scope/a/node_modules/a/package.json",
+          ),
+        );
+      });
+
+      it("Should resolve nested dependencies in an upper node_modules", async () => {
+        const packageJsonPath = await findDependencyPackageJson(
+          path.join(fixtureProjectPath, "node_modules/@scope/a"),
+          "b",
+        );
+
+        assert.equal(
+          packageJsonPath,
+          path.join(fixtureProjectPath, "node_modules/b/package.json"),
+        );
+      });
+
+      it("Should resolve symlinks", async () => {
+        const packageJsonPath = await findDependencyPackageJson(
+          path.join(fixtureProjectPath, "node_modules/b"),
+          "a",
+        );
+
+        assert.equal(
+          packageJsonPath,
+          path.join(fixtureProjectPath, "node_modules/a/package.json"),
+        );
       });
     });
   });
