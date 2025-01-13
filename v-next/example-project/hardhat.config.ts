@@ -200,6 +200,9 @@ const config: HardhatUserConfig = {
       "forge-std/=npm/forge-std@1.9.4/src/",
     ],
   },
+  solidityTest: {
+    testFail: true,
+  },
 };
 
 export default config;

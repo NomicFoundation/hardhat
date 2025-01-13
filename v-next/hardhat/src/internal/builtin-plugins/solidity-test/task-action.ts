@@ -2,6 +2,7 @@ import type { RunOptions } from "./runner.js";
 import type { TestEvent } from "./types.js";
 import type { BuildOptions } from "../../../types/solidity/build-system.js";
 import type { NewTaskActionFunction } from "../../../types/tasks.js";
+import type { SolidityTestRunnerConfigArgs } from "@ignored/edr";
 
 import { finished } from "node:stream/promises";
 
@@ -14,18 +15,21 @@ import {
   throwIfSolidityBuildFailed,
 } from "../solidity/build-results.js";
 
-import { getTestSuiteIds } from "./helpers.js";
+import {
+  getTestSuiteIds,
+  solidityTestConfigToRunOptions,
+  solidityTestConfigToSolidityTestRunnerConfigArgs,
+} from "./helpers.js";
 import { testReporter } from "./reporter.js";
 import { run } from "./runner.js";
 
 interface TestActionArguments {
-  timeout: number;
   force: boolean;
   quiet: boolean;
 }
 
 const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
-  { timeout, force, quiet },
+  { force, quiet },
   hre,
 ) => {
   const rootSourceFilePaths = await hre.solidity.getRootFilePaths();
@@ -67,14 +71,18 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   console.log("Running Solidity tests");
   console.log();
 
-  const config = {
-    projectRoot: hre.config.paths.root,
-  };
-
   let includesFailures = false;
   let includesErrors = false;
 
-  const options: RunOptions = { timeout };
+  const solidityTestConfig = hre.config.solidityTest;
+
+  const config: SolidityTestRunnerConfigArgs =
+    solidityTestConfigToSolidityTestRunnerConfigArgs(
+      hre.config.paths.root,
+      solidityTestConfig,
+    );
+  const options: RunOptions =
+    solidityTestConfigToRunOptions(solidityTestConfig);
 
   const runStream = run(artifacts, testSuiteIds, config, options);
 

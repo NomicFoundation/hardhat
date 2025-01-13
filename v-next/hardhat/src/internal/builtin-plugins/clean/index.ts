@@ -13,6 +13,7 @@ const hardhatPlugin: HardhatPlugin = {
       .setAction(import.meta.resolve("./task-action.js"))
       .build(),
   ],
+  npmPackage: "@ignored/hardhat-vnext",
 };
 
 export default hardhatPlugin;

@@ -17,6 +17,7 @@
   },
   "exports": {
     ".": "./dist/src/index.js",
+    "./package.json": "./package.json",
     "./config": "./dist/src/config.js",
     "./hre": "./dist/src/hre.js",
     "./plugins": "./dist/src/plugins.js",
