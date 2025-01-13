@@ -34,6 +34,7 @@ const solcUserConfigType = z.object({
   profiles: incompatibleFieldType("This field is incompatible with `version`"),
 });
 
+// NOTE: This is only to match the setup present in ./type-extensions.ts
 const singleVersionSolcUserConfigType = solcUserConfigType;
 
 const multiVersionSolcUserConfigType = z.object({
