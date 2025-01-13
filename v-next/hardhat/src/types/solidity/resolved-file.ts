@@ -1,5 +1,3 @@
-import type { Exports } from "resolve.exports";
-
 /**
  * The representation of an npm package.
  */
@@ -17,7 +15,7 @@ export interface ResolvedNpmPackage {
   /**
    * The exports of the package.
    */
-  exports?: Exports;
+  exports?: PacakgeExports;
 
   /**
    * The path to the package's root directory.
@@ -118,3 +116,26 @@ export interface FileContent {
    */
   versionPragmas: string[];
 }
+
+/* Adapted from `resolve.exports`. License: https://github.com/lukeed/resolve.exports/blob/master/license */
+
+export type PacakgeExports =
+  | PackageExportPath
+  | {
+      [path: PackageExportsEntry]: PackageExportsValue;
+      [condition: string]: PackageExportsValue;
+    };
+
+/** Allows "." and "./{name}" */
+export type PackageExportsEntry = `.${string}`;
+
+/** Internal path */
+export type PackageExportPath = `./${string}`;
+
+export type PackageExportsValue =
+  | PackageExportPath
+  | null
+  | {
+      [condition: string]: PackageExportsValue;
+    }
+  | PackageExportsValue[];
