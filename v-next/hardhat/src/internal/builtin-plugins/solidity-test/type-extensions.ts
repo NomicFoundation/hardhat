@@ -1,6 +1,14 @@
 import "../../../types/config.js";
 
 declare module "../../../types/config.js" {
+  export interface TestPathsUserConfig {
+    solidity?: string;
+  }
+
+  export interface TestPathsConfig {
+    solidity: string;
+  }
+
   export interface SolidityTestUserConfig {
     timeout?: number;
     fsPermissions?: {

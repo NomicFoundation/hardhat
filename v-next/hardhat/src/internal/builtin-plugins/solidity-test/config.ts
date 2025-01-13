@@ -2,7 +2,10 @@ import type { HardhatUserConfig } from "../../../config.js";
 import type { HardhatConfig } from "../../../types/config.js";
 import type { HardhatUserConfigValidationError } from "../../../types/hooks.js";
 
+import { isObject } from "@ignored/hardhat-vnext-utils/lang";
+import { resolveFromRoot } from "@ignored/hardhat-vnext-utils/path";
 import {
+  conditionalUnionType,
   unionType,
   validateUserConfigZodType,
 } from "@ignored/hardhat-vnext-zod-utils";
@@ -89,6 +92,17 @@ const solidityTestUserConfigType = z.object({
 });
 
 const userConfigType = z.object({
+  paths: z
+    .object({
+      test: conditionalUnionType(
+        [
+          [isObject, z.object({ solidity: z.string().optional() })],
+          [(data) => typeof data === "string", z.string()],
+        ],
+        "Expected a string or an object with an optional 'solidity' property",
+      ).optional(),
+    })
+    .optional(),
   solidityTest: solidityTestUserConfigType.optional(),
 });
 
@@ -102,8 +116,21 @@ export async function resolveSolidityTestUserConfig(
   userConfig: HardhatUserConfig,
   resolvedConfig: HardhatConfig,
 ): Promise<HardhatConfig> {
+  let testsPath = userConfig.paths?.tests;
+
+  // TODO: use isObject when the type narrowing issue is fixed
+  testsPath = typeof testsPath === "object" ? testsPath.solidity : testsPath;
+  testsPath ??= "test";
+
   return {
     ...resolvedConfig,
+    paths: {
+      ...resolvedConfig.paths,
+      tests: {
+        ...resolvedConfig.paths.tests,
+        solidity: resolveFromRoot(resolvedConfig.paths.root, testsPath),
+      },
+    },
     solidityTest: userConfig.solidityTest ?? {},
   };
 }

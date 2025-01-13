@@ -1,8 +1,6 @@
 import type { RunOptions } from "./runner.js";
-import type { ArtifactsManager } from "../../../types/artifacts.js";
 import type { SolidityTestConfig } from "../../../types/config.js";
 import type {
-  Artifact,
   SolidityTestRunnerConfigArgs,
   CachedChains,
   CachedEndpoints,
@@ -11,10 +9,7 @@ import type {
   AddressLabel,
 } from "@ignored/edr";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { exists } from "@ignored/hardhat-vnext-utils/fs";
 import { hexStringToBytes } from "@ignored/hardhat-vnext-utils/hex";
-import { resolveFromRoot } from "@ignored/hardhat-vnext-utils/path";
 
 function hexStringToBuffer(hexString: string): Buffer {
   return Buffer.from(hexStringToBytes(hexString));
@@ -31,9 +26,9 @@ export function solidityTestConfigToSolidityTestRunnerConfigArgs(
   config: SolidityTestConfig,
 ): SolidityTestRunnerConfigArgs {
   const fsPermissions: PathPermission[] | undefined = [
-    config.fsPermissions?.readWrite?.map((path) => ({ access: 0, path })) ?? [],
-    config.fsPermissions?.read?.map((path) => ({ access: 0, path })) ?? [],
-    config.fsPermissions?.write?.map((path) => ({ access: 0, path })) ?? [],
+    config.fsPermissions?.readWrite?.map((p) => ({ access: 0, path: p })) ?? [],
+    config.fsPermissions?.read?.map((p) => ({ access: 0, path: p })) ?? [],
+    config.fsPermissions?.write?.map((p) => ({ access: 0, path: p })) ?? [],
   ].flat(1);
 
   const labels: AddressLabel[] | undefined = config.labels?.map(
@@ -102,64 +97,4 @@ export function solidityTestConfigToSolidityTestRunnerConfigArgs(
     blockCoinbase,
     rpcStorageCaching,
   };
-}
-
-export async function getArtifacts(
-  hardhatArtifacts: ArtifactsManager,
-): Promise<Artifact[]> {
-  const fqns = await hardhatArtifacts.getAllFullyQualifiedNames();
-  const artifacts: Artifact[] = [];
-
-  for (const fqn of fqns) {
-    const hardhatArtifact = await hardhatArtifacts.readArtifact(fqn);
-    const buildInfo = await hardhatArtifacts.getBuildInfo(fqn);
-
-    if (buildInfo === undefined) {
-      throw new HardhatError(
-        HardhatError.ERRORS.SOLIDITY_TESTS.BUILD_INFO_NOT_FOUND_FOR_CONTRACT,
-        {
-          fqn,
-        },
-      );
-    }
-
-    const id = {
-      name: hardhatArtifact.contractName,
-      solcVersion: buildInfo.solcVersion,
-      source: hardhatArtifact.sourceName,
-    };
-
-    const contract = {
-      abi: JSON.stringify(hardhatArtifact.abi),
-      bytecode: hardhatArtifact.bytecode,
-      deployedBytecode: hardhatArtifact.deployedBytecode,
-    };
-
-    const artifact = { id, contract };
-    artifacts.push(artifact);
-  }
-
-  return artifacts;
-}
-
-export async function isTestArtifact(
-  root: string,
-  artifact: Artifact,
-): Promise<boolean> {
-  const { source } = artifact.id;
-
-  if (!source.endsWith(".t.sol")) {
-    return false;
-  }
-
-  // NOTE: We also check whether the file exists in the workspace to filter out
-  // the artifacts from node modules.
-  const sourcePath = resolveFromRoot(root, source);
-  const sourceExists = await exists(sourcePath);
-
-  if (!sourceExists) {
-    return false;
-  }
-
-  return true;
 }

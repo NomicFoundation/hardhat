@@ -12,10 +12,6 @@ const hardhatPlugin: HardhatPlugin = {
   tasks: [
     task(["test", "solidity"], "Run the Solidity tests")
       .setAction(import.meta.resolve("./task-action.js"))
-      .addFlag({
-        name: "noCompile",
-        description: "Don't compile the project before running the tests",
-      })
       .build(),
   ],
   dependencies: [

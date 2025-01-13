@@ -1,48 +1,62 @@
 import type { RunOptions } from "./runner.js";
 import type { TestEvent } from "./types.js";
+import type { BuildOptions } from "../../../types/solidity/build-system.js";
 import type { NewTaskActionFunction } from "../../../types/tasks.js";
 import type { SolidityTestRunnerConfigArgs } from "@ignored/edr";
 
 import { finished } from "node:stream/promises";
 
+import { getAllFilesMatching } from "@ignored/hardhat-vnext-utils/fs";
 import { createNonClosingWriter } from "@ignored/hardhat-vnext-utils/stream";
 
+import { shouldMergeCompilationJobs } from "../solidity/build-profiles.js";
 import {
   getArtifacts,
-  isTestArtifact,
+  throwIfSolidityBuildFailed,
+} from "../solidity/build-results.js";
+
+import {
   solidityTestConfigToRunOptions,
   solidityTestConfigToSolidityTestRunnerConfigArgs,
 } from "./helpers.js";
 import { testReporter } from "./reporter.js";
 import { run } from "./runner.js";
 
-interface TestActionArguments {
-  noCompile: boolean;
-}
+// eslint-disable-next-line @typescript-eslint/no-empty-interface -- the interface is expected to be expanded in the future
+interface TestActionArguments {}
 
 const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
-  { noCompile },
+  {},
   hre,
 ) => {
-  if (!noCompile) {
-    await hre.tasks.getTask("compile").run({});
-    console.log();
-  }
-
-  const artifacts = await getArtifacts(hre.artifacts);
-  const testSuiteIds = (
-    await Promise.all(
-      artifacts.map(async (artifact) => {
-        if (await isTestArtifact(hre.config.paths.root, artifact)) {
-          return artifact.id;
-        }
+  // NOTE: A test file is either a file with a `.sol` extension in the `tests.solidity`
+  // directory or a file with a `.t.sol` extension in the `sources.solidity` directory
+  const rootFilePaths = (
+    await Promise.all([
+      getAllFilesMatching(hre.config.paths.tests.solidity, (f) =>
+        f.endsWith(".sol"),
+      ),
+      ...hre.config.paths.sources.solidity.map(async (dir) => {
+        return getAllFilesMatching(dir, (f) => f.endsWith(".t.sol"));
       }),
-    )
-  ).filter((artifact) => artifact !== undefined);
+    ])
+  ).flat(1);
 
-  if (testSuiteIds.length === 0) {
-    return;
-  }
+  const buildOptions: BuildOptions = {
+    force: false,
+    buildProfile: hre.globalOptions.buildProfile,
+    mergeCompilationJobs: shouldMergeCompilationJobs(
+      hre.globalOptions.buildProfile,
+    ),
+    quiet: true,
+  };
+
+  const results = await hre.solidity.build(rootFilePaths, buildOptions);
+
+  throwIfSolidityBuildFailed(results);
+
+  const artifacts = await getArtifacts(results, hre.config.paths.artifacts);
+  const testSuiteIds = artifacts.map((artifact) => artifact.id);
 
   console.log("Running Solidity tests");
   console.log();
