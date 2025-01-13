@@ -5,6 +5,7 @@ import type {
   NetworkUserConfig,
 } from "../../../types/config.js";
 import type { HardhatUserConfigValidationError } from "../../../types/hooks.js";
+import type { RefinementCtx } from "zod";
 
 import {
   getUnprefixedHexString,
@@ -211,70 +212,84 @@ const edrNetworkUserConfigSchema = z.object({
   throwOnTransactionFailures: z.optional(z.boolean()),
 });
 
-const networkUserConfigSchema = z
-  .discriminatedUnion("type", [
-    httpNetworkUserConfigSchema,
-    edrNetworkUserConfigSchema,
-  ])
-  // The superRefine is used to perform additional validation of correlated
-  // fields of the edr network that are not possible to express with Zod's
-  // built-in validation methods.
-  // Ideally, it should be applied to the edrNetworkUserConfigSchema, but it
-  // returns a ZodEffects, which is not compatible with the discriminatedUnion
-  // method, so it is applied to the networkUserConfigSchema instead.
-  .superRefine((networkConfig, ctx) => {
-    if (networkConfig.type === "edr") {
-      const {
-        hardfork = LATEST_HARDFORK,
-        minGasPrice,
-        initialBaseFeePerGas,
-        enableTransientStorage,
-      } = networkConfig;
+const baseNetworkUserConfigSchema = z.discriminatedUnion("type", [
+  httpNetworkUserConfigSchema,
+  edrNetworkUserConfigSchema,
+]);
 
-      if (hardforkGte(hardfork, HardforkName.LONDON)) {
-        if (minGasPrice !== undefined) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message:
-              "minGasPrice is not valid for networks with EIP-1559. Try an older hardfork or remove it.",
-          });
-        }
-      } else {
-        if (initialBaseFeePerGas !== undefined) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message:
-              "initialBaseFeePerGas is only valid for networks with EIP-1559. Try a newer hardfork or remove it.",
-          });
-        }
-      }
+function refineEdrNetworkUserConfig(
+  networkConfig: z.infer<typeof baseNetworkUserConfigSchema>,
+  ctx: RefinementCtx,
+): void {
+  if (networkConfig.type === "edr") {
+    const {
+      hardfork = LATEST_HARDFORK,
+      minGasPrice,
+      initialBaseFeePerGas,
+      enableTransientStorage,
+    } = networkConfig;
 
-      if (
-        !hardforkGte(hardfork, HardforkName.CANCUN) &&
-        enableTransientStorage === true
-      ) {
+    if (hardforkGte(hardfork, HardforkName.LONDON)) {
+      if (minGasPrice !== undefined) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: `'enableTransientStorage' is not supported for hardforks before 'cancun'. Please use a hardfork from 'cancun' onwards to enable this feature.`,
+          message:
+            "minGasPrice is not valid for networks with EIP-1559. Try an older hardfork or remove it.",
         });
       }
-      if (
-        hardforkGte(hardfork, HardforkName.CANCUN) &&
-        enableTransientStorage === false
-      ) {
+    } else {
+      if (initialBaseFeePerGas !== undefined) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: `'enableTransientStorage' must be enabled for hardforks 'cancun' or later. To disable this feature, use a hardfork before 'cancun'.`,
+          message:
+            "initialBaseFeePerGas is only valid for networks with EIP-1559. Try a newer hardfork or remove it.",
         });
       }
     }
-  });
+
+    if (
+      !hardforkGte(hardfork, HardforkName.CANCUN) &&
+      enableTransientStorage === true
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `'enableTransientStorage' is not supported for hardforks before 'cancun'. Please use a hardfork from 'cancun' onwards to enable this feature.`,
+      });
+    }
+    if (
+      hardforkGte(hardfork, HardforkName.CANCUN) &&
+      enableTransientStorage === false
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `'enableTransientStorage' must be enabled for hardforks 'cancun' or later. To disable this feature, use a hardfork before 'cancun'.`,
+      });
+    }
+  }
+}
+
+// The superRefine is used to perform additional validation of correlated
+// fields of the edr network that are not possible to express with Zod's
+// built-in validation methods.
+// Ideally, it should be applied to the edrNetworkUserConfigSchema, but it
+// returns a ZodEffects, which is not compatible with the discriminatedUnion
+// method, so it is applied to the networkUserConfigSchema instead.
+const networkUserConfigSchema = baseNetworkUserConfigSchema.superRefine(
+  refineEdrNetworkUserConfig,
+);
 
 const userConfigSchema = z.object({
   defaultChainType: z.optional(chainTypeUserConfigSchema),
   defaultNetwork: z.optional(z.string()),
   networks: z.optional(z.record(networkUserConfigSchema)),
 });
+
+const networkConfigOverrideSchema = z
+  .discriminatedUnion("type", [
+    httpNetworkUserConfigSchema.strict(),
+    edrNetworkUserConfigSchema.strict(),
+  ])
+  .superRefine(refineEdrNetworkUserConfig);
 
 export async function validateNetworkUserConfig(
   userConfig: HardhatUserConfig,
@@ -287,7 +302,7 @@ export async function validateNetworkConfigOverride(
 ): Promise<HardhatUserConfigValidationError[]> {
   return validateUserConfigZodType(
     networkConfigOverride,
-    networkUserConfigSchema,
+    networkConfigOverrideSchema,
   );
 }
 

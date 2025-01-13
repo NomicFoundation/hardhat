@@ -121,9 +121,10 @@ export class NetworkManagerImplementation implements NetworkManager {
           HardhatError.ERRORS.NETWORK.INVALID_CONFIG_OVERRIDE,
           {
             errors: `\t${validationErrors
-              .map(
-                (error) =>
-                  `* Error in ${error.path.join(".")}: ${error.message}`,
+              .map((error) =>
+                error.path.length > 0
+                  ? `* Error in ${error.path.join(".")}: ${error.message}`
+                  : `* ${error.message}`,
               )
               .join("\n\t")}`,
           },

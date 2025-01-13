@@ -5,7 +5,10 @@ import type {
   NetworkConnection,
   NetworkManager,
 } from "../../../../src/types/network.js";
-import type { NetworkConfig } from "@ignored/hardhat-vnext/types/config";
+import type {
+  HttpNetworkConfigOverride,
+  NetworkConfig,
+} from "@ignored/hardhat-vnext/types/config";
 
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
@@ -112,16 +115,20 @@ describe("NetworkManagerImplementation", () => {
     });
 
     it("should override the network's chain config with the specified chain config", async () => {
+      const httpConfigOverride: HttpNetworkConfigOverride = {
+        chainId: 1234,
+        timeout: 30_000, // specific to http networks
+      };
       const networkConnection = await networkManager.connect(
         "myNetwork",
         OPTIMISM_CHAIN_TYPE,
-        { chainId: 1234 },
+        httpConfigOverride,
       );
       assert.equal(networkConnection.networkName, "myNetwork");
       assert.equal(networkConnection.chainType, OPTIMISM_CHAIN_TYPE);
       assert.deepEqual(networkConnection.networkConfig, {
         ...networks.myNetwork,
-        chainId: 1234,
+        ...httpConfigOverride,
       });
     });
 
@@ -169,6 +176,21 @@ describe("NetworkManagerImplementation", () => {
         HardhatError.ERRORS.NETWORK.INVALID_CONFIG_OVERRIDE,
         {
           errors: `\t* Error in chainId: Expected number, received string`,
+        },
+      );
+    });
+
+    it("should throw an error if the specified network config override has mixed properties from http and edr networks", async () => {
+      await assertRejectsWithHardhatError(
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+        -- Cast to test validation error */
+        networkManager.connect("myNetwork", OPTIMISM_CHAIN_TYPE, {
+          url: "http://localhost:8545",
+          hardfork: "cancun",
+        } as any),
+        HardhatError.ERRORS.NETWORK.INVALID_CONFIG_OVERRIDE,
+        {
+          errors: `\t* Unrecognized key(s) in object: 'hardfork'`,
         },
       );
     });
