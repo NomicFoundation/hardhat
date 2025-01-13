@@ -22,6 +22,7 @@ import {
 import { testReporter } from "./reporter.js";
 import { run } from "./runner.js";
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface -- the interface is expected to be expanded in the future
 interface TestActionArguments {}
 
 const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
