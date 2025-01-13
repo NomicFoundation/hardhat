@@ -23,7 +23,7 @@ import {
 } from "@ignored/hardhat-vnext-utils/fs";
 import {
   findClosestPackageJson,
-  findPackageJson,
+  findDependencyPackageJson,
 } from "@ignored/hardhat-vnext-utils/package";
 import { shortenPath } from "@ignored/hardhat-vnext-utils/path";
 import { analyze } from "@nomicfoundation/solidity-analyzer";
@@ -1092,7 +1092,7 @@ export class ResolverImplementation implements Resolver {
     const packageJsonPath =
       packageName === "hardhat"
         ? await findClosestPackageJson(import.meta.dirname)
-        : await findPackageJson(baseResolutionDirectory, packageName);
+        : await findDependencyPackageJson(baseResolutionDirectory, packageName);
 
     if (packageJsonPath === undefined) {
       throw new HardhatError(
@@ -1358,7 +1358,7 @@ async function validateAndResolveUserRemapping(
 
   const { packageName, packageVersion } = parsed;
 
-  const dependencyPackageJsonPath = await findPackageJson(
+  const dependencyPackageJsonPath = await findDependencyPackageJson(
     projectRoot,
     packageName,
   );
