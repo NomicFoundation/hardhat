@@ -12,14 +12,6 @@ const hardhatPlugin: HardhatPlugin = {
   tasks: [
     task(["test", "solidity"], "Run the Solidity tests")
       .setAction(import.meta.resolve("./task-action.js"))
-      .addFlag({
-        name: "force",
-        description: "Force compilation even if no files have changed",
-      })
-      .addFlag({
-        name: "quiet",
-        description: "Makes the compilation process less verbose",
-      })
       .build(),
   ],
   dependencies: [
