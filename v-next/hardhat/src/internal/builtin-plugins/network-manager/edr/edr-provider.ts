@@ -27,15 +27,10 @@ import type {
 } from "@ignored/edr-optimism";
 
 import {
-  EdrContext,
   createModelsAndDecodeBytecodes,
   initializeVmTraceDecoder,
   SolidityTracer,
   VmTracer,
-  GENERIC_CHAIN_TYPE,
-  OPTIMISM_CHAIN_TYPE,
-  genericChainProviderFactory,
-  optimismProviderFactory,
 } from "@ignored/edr-optimism";
 import { toSeconds } from "@ignored/hardhat-vnext-utils/date";
 import { deepEqual } from "@ignored/hardhat-vnext-utils/lang";
@@ -50,6 +45,7 @@ import { DEFAULT_HD_ACCOUNTS_CONFIG_PARAMS } from "../accounts/constants.js";
 import { BaseProvider } from "../base-provider.js";
 import { getJsonRpcRequest, isFailedJsonRpcResponse } from "../json-rpc.js";
 
+import { getGlobalEdrContext } from "./edr-context.js";
 import {
   InvalidArgumentsError,
   InvalidInputError,
@@ -120,25 +116,6 @@ export const EDR_NETWORK_DEFAULT_PRIVATE_KEYS: string[] = [
   "0xde9be858da4a475276426320d5e9262ecfc3ba460bfac56360bfa6c4c28b4ee0",
   "0xdf57089febbacf7ba0bc227dafbffa9fc08a93fdc68e1e42411a14efcf23656e",
 ];
-
-// Lazy initialize the global EDR context.
-let _globalEdrContext: EdrContext | undefined;
-export async function getGlobalEdrContext(): Promise<EdrContext> {
-  if (_globalEdrContext === undefined) {
-    // Only one is allowed to exist
-    _globalEdrContext = new EdrContext();
-    await _globalEdrContext.registerProviderFactory(
-      GENERIC_CHAIN_TYPE,
-      genericChainProviderFactory(),
-    );
-    await _globalEdrContext.registerProviderFactory(
-      OPTIMISM_CHAIN_TYPE,
-      optimismProviderFactory(),
-    );
-  }
-
-  return _globalEdrContext;
-}
 
 interface EdrProviderConfig {
   networkConfig: EdrNetworkConfig;
