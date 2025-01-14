@@ -26,4 +26,9 @@ describe("Mocha test with chai-matchers", () => {
   it("should have the hardhat additional matchers", () => {
     expect("0x0000010AB").to.not.hexEqual("0x0010abc");
   });
+
+  it("Should work", async () => {
+    const { ethers } = await hre.network.connect();
+    const c = await ethers.getContractFactory("Counter");
+  });
 });

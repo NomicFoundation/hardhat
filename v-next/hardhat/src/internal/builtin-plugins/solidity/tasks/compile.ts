@@ -109,6 +109,54 @@ const compileAction: NewTaskActionFunction<CompileActionArguments> = async (
     "TypeChain output transformer arrays changed in an unexpected way",
   );
 
+  const regex =
+    /^import\s+(type\s+)?\*\s+as\s+[a-zA-Z_][\w]*\s+from\s+['"].*?['"];(?<!\.js['"];)$/gm;
+
+  const regex2 = /static readonly \w+(?: = [^;]+)?;/gm;
+
+  // We add an output transformer too, so that we fix the imports missing "./index.js"
+  // And fix the module augmentations
+  outputTransformers.push((output, _services, _config) => {
+    // Process matches for missing index.js
+    let modifiedContent = output.replace(regex, (match) => {
+      const insertIndex = match.lastIndexOf(";") - 1;
+      return (
+        match.slice(0, insertIndex) + "/index.js" + match.slice(insertIndex)
+      );
+    });
+
+    // The following code will be removed in prod:
+    // Process matches for missing type declaration
+    modifiedContent = modifiedContent.replace(regex2, (match) => {
+      let insertIndex = match.lastIndexOf("=");
+      if (insertIndex < 0) {
+        insertIndex = match.lastIndexOf(";");
+      }
+
+      return match.slice(0, insertIndex) + ":any" + match.slice(insertIndex);
+    });
+
+    // Fixes imports of `"."`
+    modifiedContent = modifiedContent.replaceAll(
+      'from "."',
+      'from "./index.js"',
+    );
+
+    // Fixes the import of types from the ethers plugin
+    modifiedContent = modifiedContent.replaceAll(
+      'from "@nomicfoundation/hardhat-ethers/types"',
+      'from "@ignored/hardhat-vnext-ethers/types"',
+    );
+
+    // Fixes the module augmentation
+    modifiedContent = modifiedContent.replaceAll(
+      'declare module "hardhat/types/runtime"',
+      'declare module "@ignored/hardhat-vnext-ethers/types"',
+    );
+
+    return modifiedContent;
+  });
+
   const typechainOptions: Omit<RunTypeChainConfig, "filesToProcess"> = {
     cwd,
     allFiles: artifactsPaths,
@@ -129,51 +177,9 @@ const compileAction: NewTaskActionFunction<CompileActionArguments> = async (
     filesToProcess: artifactsPaths,
   });
 
-  const filesToFix = await getAllFilesMatching(
-    "/home/chris/repos/nomic-foundation/hardhat/v-next/example-project/types",
-    (f) => f.endsWith(".ts"),
-  );
-
   // console.log(filesToFix);
 
   // import * as withForgeTSol from './WithForge.t.sol';
-
-  const regex =
-    /^import\s+(type\s+)?\*\s+as\s+[a-zA-Z_][\w]*\s+from\s+['"].*?['"];(?<!\.js['"];)$/gm;
-
-  const regex2 = /static readonly \w+(?: = [^;]+)?;/gm;
-
-  for (const filePath of filesToFix) {
-    try {
-      // Read file content
-      const content = fs.readFileSync(filePath, "utf-8");
-
-      // Process matches for missing index.js
-      let modifiedContent = content.replace(regex, (match) => {
-        const insertIndex = match.lastIndexOf(";") - 1;
-        return (
-          match.slice(0, insertIndex) + "/index.js" + match.slice(insertIndex)
-        );
-      });
-
-      // The following code will be removed in prod:
-      // Process matches for missing type declaration
-      modifiedContent = modifiedContent.replace(regex2, (match) => {
-        let insertIndex = match.lastIndexOf("=");
-        if (insertIndex < 0) {
-          insertIndex = match.lastIndexOf(";");
-        }
-
-        return match.slice(0, insertIndex) + ":any" + match.slice(insertIndex);
-      });
-
-      // Overwrite the file with modified content
-      await fs.promises.writeFile(filePath, modifiedContent, "utf-8");
-      // console.log(`File modified: ${filePath}`);
-    } catch (error) {
-      console.error(`Error processing file ${filePath}:`, error);
-    }
-  }
 
   console.log(`Successfully generated ${result.filesGenerated} typings!`);
 
