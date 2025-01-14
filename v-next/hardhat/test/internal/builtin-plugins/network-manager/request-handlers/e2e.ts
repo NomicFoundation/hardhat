@@ -1,4 +1,4 @@
-import type { HttpNetworkHDAccountsConfig } from "../../../../../src/types/config.js";
+import type { HttpNetworkHDAccountsUserConfig } from "../../../../../src/types/config.js";
 
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
@@ -196,7 +196,7 @@ describe("request-handlers - e2e", () => {
       const MOCKED_GAS_LIMIT = 21000;
       const GAS_MULTIPLIER = 1.337;
       const LATEST_BASE_FEE_IN_MOCKED_PROVIDER = 80;
-      const HD_ACCOUNT: HttpNetworkHDAccountsConfig = {
+      const HD_ACCOUNT: HttpNetworkHDAccountsUserConfig = {
         mnemonic:
           "couch hunt wisdom giant regret supreme issue sing enroll ankle type husband",
         path: "m/44'/60'/0'/0/",

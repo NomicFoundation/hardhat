@@ -38,6 +38,7 @@ import {
 } from "@ignored/edr-optimism";
 import { bytesToHexString } from "@ignored/hardhat-vnext-utils/bytes";
 
+import { FixedValueConfigurationVariable } from "../../../../core/configuration-variables.js";
 import { derivePrivateKeys } from "../../accounts/derive-private-keys.js";
 import { DEFAULT_EDR_NETWORK_BALANCE } from "../edr-provider.js";
 import { HardforkName } from "../types/hardfork.js";
@@ -220,34 +221,34 @@ export function edrRpcDebugTraceToHardhat(
   };
 }
 
-export function hardhatAccountsToEdrGenesisAccounts(
+export async function hardhatAccountsToEdrGenesisAccounts(
   accounts: EdrNetworkAccountsConfig,
-): GenesisAccount[] {
-  const normalizedAccounts = normalizeEdrNetworkAccountsConfig(accounts);
+): Promise<GenesisAccount[]> {
+  const normalizedAccounts = await normalizeEdrNetworkAccountsConfig(accounts);
 
-  return normalizedAccounts.map((account) => {
-    return {
-      secretKey: account.privateKey,
-      balance: account.balance,
-    };
-  });
+  const accountPromises = normalizedAccounts.map(async (account) => ({
+    secretKey: await account.privateKey.getHexString(),
+    balance: account.balance,
+  }));
+
+  return Promise.all(accountPromises);
 }
 
-function normalizeEdrNetworkAccountsConfig(
+async function normalizeEdrNetworkAccountsConfig(
   accounts: EdrNetworkAccountsConfig,
-): EdrNetworkAccountConfig[] {
+): Promise<EdrNetworkAccountConfig[]> {
   if (Array.isArray(accounts)) {
     return accounts;
   }
 
   return derivePrivateKeys(
-    accounts.mnemonic,
+    await accounts.mnemonic.get(),
     accounts.path,
     accounts.initialIndex,
     accounts.count,
-    accounts.passphrase,
+    await accounts.passphrase.get(),
   ).map((pk) => ({
-    privateKey: bytesToHexString(pk),
+    privateKey: new FixedValueConfigurationVariable(bytesToHexString(pk)),
     balance: accounts.accountsBalance ?? DEFAULT_EDR_NETWORK_BALANCE,
   }));
 }
@@ -278,13 +279,13 @@ export function hardhatChainsToEdrChains(
   return edrChains;
 }
 
-export function hardhatForkingConfigToEdrForkConfig(
+export async function hardhatForkingConfigToEdrForkConfig(
   forkingConfig: EdrNetworkForkingConfig | undefined,
-): ForkConfig | undefined {
+): Promise<ForkConfig | undefined> {
   let fork: ForkConfig | undefined;
   if (forkingConfig !== undefined && forkingConfig.enabled === true) {
     fork = {
-      jsonRpcUrl: forkingConfig.url,
+      jsonRpcUrl: await forkingConfig.url.getUrl(),
       blockNumber: forkingConfig.blockNumber,
       httpHeaders: forkingConfig.httpHeaders,
     };

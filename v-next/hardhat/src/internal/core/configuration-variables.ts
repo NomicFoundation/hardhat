@@ -5,10 +5,7 @@ import type {
 import type { HookManager } from "../../types/hooks.js";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import {
-  isHexString,
-  normalizeHexString,
-} from "@ignored/hardhat-vnext-utils/hex";
+import { normalizeHexString } from "@ignored/hardhat-vnext-utils/hex";
 
 export function resolveConfigurationVariable(
   hooks: HookManager,
@@ -66,15 +63,13 @@ abstract class BaseResolvedConfigurationVariable
 
   public async getHexString(): Promise<string> {
     const value = await this.get();
-
-    const trimmedLowercaseValue = value.trim().toLowerCase();
-    if (!isHexString(trimmedLowercaseValue)) {
+    try {
+      return normalizeHexString(value);
+    } catch {
       throw new HardhatError(HardhatError.ERRORS.GENERAL.INVALID_HEX_STRING, {
         value,
       });
     }
-
-    return normalizeHexString(trimmedLowercaseValue);
   }
 }
 

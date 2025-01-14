@@ -100,11 +100,11 @@ export async function createHandlersArray<
       requestHandlers.push(
         new HDWalletHandler(
           networkConnection.provider,
-          accounts.mnemonic,
+          await accounts.mnemonic.get(),
           accounts.path,
           accounts.initialIndex,
           accounts.count,
-          accounts.passphrase,
+          await accounts.passphrase.get(),
         ),
       );
     }
