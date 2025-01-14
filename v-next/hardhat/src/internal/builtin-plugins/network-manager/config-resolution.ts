@@ -1,5 +1,5 @@
 import type {
-  ConfigurationResolver,
+  ConfigurationVariableResolver,
   EdrNetworkAccountsConfig,
   EdrNetworkAccountsUserConfig,
   EdrNetworkChainConfig,
@@ -22,7 +22,7 @@ import {
   normalizeHexString,
 } from "@ignored/hardhat-vnext-utils/hex";
 
-import { DEFAULT_HD_ACCOUNTS_CONFIG_PARAMS } from "./accounts/derive-private-keys.js";
+import { DEFAULT_HD_ACCOUNTS_CONFIG_PARAMS } from "./accounts/constants.js";
 import {
   DEFAULT_EDR_NETWORK_HD_ACCOUNTS_CONFIG_PARAMS,
   EDR_NETWORK_DEFAULT_COINBASE,
@@ -36,7 +36,7 @@ export function resolveGasConfig(value: GasUserConfig = "auto"): GasConfig {
 
 export function resolveHttpNetworkAccounts(
   accounts: HttpNetworkAccountsUserConfig | undefined = "remote",
-  resolveConfigurationVariable: ConfigurationResolver,
+  resolveConfigurationVariable: ConfigurationVariableResolver,
 ): HttpNetworkAccountsConfig {
   if (Array.isArray(accounts)) {
     return accounts.map((acc) => {
@@ -68,7 +68,7 @@ export function resolveEdrNetworkAccounts(
   accounts:
     | EdrNetworkAccountsUserConfig
     | undefined = DEFAULT_EDR_NETWORK_HD_ACCOUNTS_CONFIG_PARAMS,
-  resolveConfigurationVariable: ConfigurationResolver,
+  resolveConfigurationVariable: ConfigurationVariableResolver,
 ): EdrNetworkAccountsConfig {
   if (Array.isArray(accounts)) {
     return accounts.map(({ privateKey, balance }) => {
@@ -102,19 +102,11 @@ export function resolveEdrNetworkAccounts(
 export function resolveForkingConfig(
   forkingUserConfig: EdrNetworkForkingUserConfig | undefined,
   cacheDir: string,
-  resolveConfigurationVariable: ConfigurationResolver,
+  resolveConfigurationVariable: ConfigurationVariableResolver,
 ): EdrNetworkForkingConfig | undefined {
   if (forkingUserConfig === undefined) {
     return undefined;
   }
-
-  const httpHeaders =
-    forkingUserConfig.httpHeaders !== undefined
-      ? Object.entries(forkingUserConfig.httpHeaders).map(([name, value]) => ({
-          name,
-          value,
-        }))
-      : undefined;
 
   return {
     enabled: forkingUserConfig.enabled ?? true,
@@ -124,7 +116,7 @@ export function resolveForkingConfig(
       forkingUserConfig.blockNumber !== undefined
         ? BigInt(forkingUserConfig.blockNumber)
         : undefined,
-    httpHeaders,
+    httpHeaders: forkingUserConfig.httpHeaders,
   };
 }
 

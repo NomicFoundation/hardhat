@@ -1,25 +1,9 @@
-import type { SensitiveString } from "../../../../types/config.js";
-
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { bytesToHexString } from "@ignored/hardhat-vnext-utils/bytes";
 import { mnemonicToSeedSync } from "ethereum-cryptography/bip39";
 import { HDKey } from "ethereum-cryptography/hdkey";
 
 const HD_PATH_REGEX = /^m(:?\/\d+'?)+\/?$/;
-
-export interface DefaultHDAccountsConfigParams {
-  initialIndex: number;
-  count: number;
-  path: string;
-  passphrase: SensitiveString;
-}
-
-export const DEFAULT_HD_ACCOUNTS_CONFIG_PARAMS: DefaultHDAccountsConfigParams =
-  {
-    initialIndex: 0,
-    count: 20,
-    path: "m/44'/60'/0'/0",
-    passphrase: "",
-  };
 
 export function derivePrivateKeys(
   mnemonic: string,
@@ -27,8 +11,8 @@ export function derivePrivateKeys(
   initialIndex: number,
   count: number,
   passphrase: string,
-): Buffer[] {
-  if (hdpath.match(HD_PATH_REGEX) === null) {
+): string[] {
+  if (!HD_PATH_REGEX.test(hdpath)) {
     throw new HardhatError(HardhatError.ERRORS.NETWORK.INVALID_HD_PATH, {
       path: hdpath,
     });
@@ -38,7 +22,7 @@ export function derivePrivateKeys(
     hdpath += "/";
   }
 
-  const privateKeys: Buffer[] = [];
+  const privateKeys: string[] = [];
 
   for (let i = initialIndex; i < initialIndex + count; i++) {
     const privateKey = deriveKeyFromMnemonicAndPath(
@@ -64,7 +48,7 @@ function deriveKeyFromMnemonicAndPath(
   mnemonic: string,
   hdPath: string,
   passphrase: string,
-): Buffer | undefined {
+): string | undefined {
   // NOTE: If mnemonic has space or newline at the beginning or end, it will be trimmed.
   // This is because mnemonic containing them may generate different private keys.
   const trimmedMnemonic = mnemonic.trim();
@@ -76,5 +60,5 @@ function deriveKeyFromMnemonicAndPath(
 
   return derived.privateKey === null
     ? undefined
-    : Buffer.from(derived.privateKey);
+    : bytesToHexString(derived.privateKey);
 }

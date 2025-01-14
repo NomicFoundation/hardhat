@@ -5,6 +5,8 @@ import type {
 import type { RequestHandler } from "../../types.js";
 import type { PrefixedHexString } from "@ignored/hardhat-vnext-utils/hex";
 
+import { isObject } from "@ignored/hardhat-vnext-utils/lang";
+
 import { getRequestParams } from "../../../json-rpc.js";
 
 /**
@@ -26,13 +28,11 @@ export class FixedGasPriceHandler implements RequestHandler {
     }
 
     const params = getRequestParams(jsonRpcRequest);
-
-    // TODO: from V2 - Should we validate this type?
-    const tx = params[0];
+    const [tx] = params;
 
     // Temporary change to ignore EIP-1559
     if (
-      tx !== undefined &&
+      isObject(tx) &&
       tx.gasPrice === undefined &&
       tx.maxFeePerGas === undefined &&
       tx.maxPriorityFeePerGas === undefined

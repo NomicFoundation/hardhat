@@ -1,5 +1,4 @@
 import type { ChainType, DefaultChainType } from "../../../../types/network.js";
-import type { HttpHeader } from "@ignored/edr-optimism";
 
 import "../../../../types/config.js";
 declare module "../../../../types/config.js" {
@@ -227,7 +226,7 @@ declare module "../../../../types/config.js" {
     url: ResolvedConfigurationVariable;
     cacheDir: string;
     blockNumber?: bigint;
-    httpHeaders?: HttpHeader[];
+    httpHeaders?: Record<string, string>;
   }
 
   export interface EdrNetworkMiningConfig {

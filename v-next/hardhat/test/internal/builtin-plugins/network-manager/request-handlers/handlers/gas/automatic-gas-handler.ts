@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
 
 import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
+import { isObject } from "@ignored/hardhat-vnext-utils/lang";
 
 import {
   getJsonRpcRequest,
@@ -48,9 +49,11 @@ describe("AutomaticGasHandler", () => {
     ]);
 
     await automaticGasHandler.handle(jsonRpcRequest);
+    const [tx] = getRequestParams(jsonRpcRequest);
 
+    assert.ok(isObject(tx), "tx is not an object");
     assert.equal(
-      getRequestParams(jsonRpcRequest)[0].gas,
+      tx.gas,
       numberToHexString(Math.floor(FIXED_GAS_LIMIT * GAS_MULTIPLIER)),
     );
   });
@@ -72,9 +75,11 @@ describe("AutomaticGasHandler", () => {
     );
 
     await automaticGasHandler.handle(jsonRpcRequest);
+    const [tx] = getRequestParams(jsonRpcRequest);
 
+    assert.ok(isObject(tx), "tx is not an object");
     assert.equal(
-      getRequestParams(jsonRpcRequest)[0].gas,
+      tx.gas,
       numberToHexString(Math.floor(FIXED_GAS_LIMIT * GAS_MULTIPLIER2)),
     );
   });
@@ -91,9 +96,11 @@ describe("AutomaticGasHandler", () => {
     automaticGasHandler = new AutomaticGasHandler(mockedProvider);
 
     await automaticGasHandler.handle(jsonRpcRequest);
+    const [tx] = getRequestParams(jsonRpcRequest);
 
+    assert.ok(isObject(tx), "tx is not an object");
     assert.equal(
-      getRequestParams(jsonRpcRequest)[0].gas,
+      tx.gas,
       numberToHexString(Math.floor(FIXED_GAS_LIMIT * DEFAULT_GAS_MULTIPLIER)),
     );
   });
@@ -109,8 +116,10 @@ describe("AutomaticGasHandler", () => {
     ]);
 
     await automaticGasHandler.handle(jsonRpcRequest);
+    const [tx] = getRequestParams(jsonRpcRequest);
 
-    assert.equal(getRequestParams(jsonRpcRequest)[0].gas, 567);
+    assert.ok(isObject(tx), "tx is not an object");
+    assert.equal(tx.gas, 567);
   });
 
   it("should forward the other calls", async () => {
@@ -123,7 +132,9 @@ describe("AutomaticGasHandler", () => {
     ]);
 
     await automaticGasHandler.handle(jsonRpcRequest);
+    const [tx] = getRequestParams(jsonRpcRequest);
 
-    assert.equal(getRequestParams(jsonRpcRequest)[0].gas, undefined);
+    assert.ok(isObject(tx), "tx is not an object");
+    assert.equal(tx.gas, undefined);
   });
 });

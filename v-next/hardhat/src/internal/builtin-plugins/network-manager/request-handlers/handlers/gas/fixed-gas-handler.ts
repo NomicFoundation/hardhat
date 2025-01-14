@@ -5,6 +5,8 @@ import type {
 import type { RequestHandler } from "../../types.js";
 import type { PrefixedHexString } from "@ignored/hardhat-vnext-utils/hex";
 
+import { isObject } from "@ignored/hardhat-vnext-utils/lang";
+
 import { getRequestParams } from "../../../json-rpc.js";
 
 /**
@@ -26,11 +28,9 @@ export class FixedGasHandler implements RequestHandler {
     }
 
     const params = getRequestParams(jsonRpcRequest);
+    const [tx] = params;
 
-    // TODO: from V2 - Should we validate this type?
-    const tx = params[0];
-
-    if (tx !== undefined && tx.gas === undefined) {
+    if (isObject(tx) && tx.gas === undefined) {
       tx.gas = this.#gas;
     }
 

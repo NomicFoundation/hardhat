@@ -16,6 +16,10 @@ import {
 } from "../../../../../src/internal/builtin-plugins/network-manager/hook-handlers/config.js";
 import { validateNetworkUserConfig } from "../../../../../src/internal/builtin-plugins/network-manager/type-validation.js";
 import {
+  GENERIC_CHAIN_TYPE,
+  L1_CHAIN_TYPE,
+} from "../../../../../src/internal/constants.js";
+import {
   FixedValueConfigurationVariable,
   resolveConfigurationVariable,
 } from "../../../../../src/internal/core/configuration-variables.js";
@@ -98,13 +102,13 @@ describe("network-manager/hook-handlers/config", () => {
   describe("validateUserConfig", () => {
     it("should pass if the config is valid", async () => {
       const config: HardhatUserConfig = {
-        defaultChainType: "generic",
+        defaultChainType: GENERIC_CHAIN_TYPE,
         defaultNetwork: "localhost",
         networks: {
           localhost: {
             type: "http",
             chainId: 1337,
-            chainType: "l1",
+            chainType: L1_CHAIN_TYPE,
             from: "0x123",
             gas: "auto",
             gasMultiplier: 1.5,
@@ -1210,7 +1214,7 @@ describe("network-manager/hook-handlers/config", () => {
         next,
       );
 
-      assert.equal(resolvedConfig.defaultChainType, "generic");
+      assert.equal(resolvedConfig.defaultChainType, GENERIC_CHAIN_TYPE);
       assert.equal(resolvedConfig.defaultNetwork, "hardhat");
       assert.deepEqual(resolvedConfig.networks, {
         localhost: {
@@ -1233,13 +1237,13 @@ describe("network-manager/hook-handlers/config", () => {
       const userConfig: HardhatUserConfig = {
         // To change the defaultChainType, we need to augment the Hardhat types.
         // Since this can't be done for a single test, we'll leave this untested.
-        defaultChainType: "generic",
+        defaultChainType: GENERIC_CHAIN_TYPE,
         defaultNetwork: "myNetwork",
         networks: {
           myNetwork: {
             type: "http",
             chainId: 1234,
-            chainType: "l1",
+            chainType: L1_CHAIN_TYPE,
             from: "0x123",
             gas: "auto",
             gasMultiplier: 1.5,
@@ -1266,14 +1270,14 @@ describe("network-manager/hook-handlers/config", () => {
         next,
       );
 
-      assert.equal(resolvedConfig.defaultChainType, "generic");
+      assert.equal(resolvedConfig.defaultChainType, GENERIC_CHAIN_TYPE);
       assert.equal(resolvedConfig.defaultNetwork, "myNetwork");
       assert.equal(resolvedConfig.networks.myNetwork.type, "http");
       assert.deepEqual(resolvedConfig.networks, {
         myNetwork: {
           type: "http",
           chainId: 1234,
-          chainType: "l1",
+          chainType: L1_CHAIN_TYPE,
           from: "0x123",
           gas: "auto",
           gasMultiplier: 1.5,
@@ -1299,7 +1303,7 @@ describe("network-manager/hook-handlers/config", () => {
             myNetwork: {
               type: "http",
               chainId: 1234,
-              chainType: "l1",
+              chainType: L1_CHAIN_TYPE,
               from: "0x123",
               gas: "auto",
               gasMultiplier: 1.5,
@@ -1335,7 +1339,7 @@ describe("network-manager/hook-handlers/config", () => {
           myNetwork: {
             type: "http",
             chainId: 1234,
-            chainType: "l1",
+            chainType: L1_CHAIN_TYPE,
             from: "0x123",
             gas: "auto",
             gasMultiplier: 1.5,
@@ -1371,7 +1375,7 @@ describe("network-manager/hook-handlers/config", () => {
             myNetwork: {
               type: "http",
               chainId: 1234,
-              chainType: "l1",
+              chainType: L1_CHAIN_TYPE,
               from: "0x123",
               gas: "auto",
               gasMultiplier: 1.5,
@@ -1405,7 +1409,7 @@ describe("network-manager/hook-handlers/config", () => {
           myNetwork: {
             type: "http",
             chainId: 1234,
-            chainType: "l1",
+            chainType: L1_CHAIN_TYPE,
             from: "0x123",
             gas: "auto",
             gasMultiplier: 1.5,

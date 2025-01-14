@@ -25,6 +25,12 @@ import {
 import { z } from "zod";
 
 import {
+  GENERIC_CHAIN_TYPE,
+  L1_CHAIN_TYPE,
+  OPTIMISM_CHAIN_TYPE,
+} from "../../constants.js";
+
+import {
   hardforkGte,
   HardforkName,
   LATEST_HARDFORK,
@@ -71,8 +77,12 @@ const httpNetworkAccountsUserConfigSchema = conditionalUnionType(
 );
 
 const chainTypeUserConfigSchema = unionType(
-  [z.literal("l1"), z.literal("optimism"), z.literal("generic")],
-  "Expected 'l1', 'optimism', or 'generic'",
+  [
+    z.literal(L1_CHAIN_TYPE),
+    z.literal(OPTIMISM_CHAIN_TYPE),
+    z.literal(GENERIC_CHAIN_TYPE),
+  ],
+  `Expected '${L1_CHAIN_TYPE}', '${OPTIMISM_CHAIN_TYPE}', or '${GENERIC_CHAIN_TYPE}'`,
 );
 
 const gasUnitUserConfigSchema = unionType(
@@ -270,8 +280,12 @@ const userConfigSchema = z.object({
 });
 
 const chainTypeConfigSchema = unionType(
-  [z.literal("l1"), z.literal("optimism"), z.literal("generic")],
-  "Expected 'l1', 'optimism', or 'generic'",
+  [
+    z.literal(L1_CHAIN_TYPE),
+    z.literal(OPTIMISM_CHAIN_TYPE),
+    z.literal(GENERIC_CHAIN_TYPE),
+  ],
+  `Expected '${L1_CHAIN_TYPE}', '${OPTIMISM_CHAIN_TYPE}', or '${GENERIC_CHAIN_TYPE}'`,
 );
 
 const gasUnitConfigSchema = nonnegativeBigIntSchema;

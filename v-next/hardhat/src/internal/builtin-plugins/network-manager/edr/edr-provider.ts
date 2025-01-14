@@ -3,10 +3,8 @@ import type { LoggerConfig } from "./types/logger.js";
 import type { TracingConfig } from "./types/node-types.js";
 import type { EdrNetworkConfig } from "../../../../types/config.js";
 import type {
-  EthereumProvider,
   EthSubscription,
   FailedJsonRpcResponse,
-  JsonRpcRequest,
   JsonRpcResponse,
   RequestArguments,
   SuccessfulJsonRpcResponse,
@@ -15,7 +13,7 @@ import type {
   CompilerInput,
   CompilerOutput,
 } from "../../../../types/solidity/compiler-io.js";
-import type { DefaultHDAccountsConfigParams } from "../accounts/derive-private-keys.js";
+import type { DefaultHDAccountsConfigParams } from "../accounts/constants.js";
 import type { JsonRpcRequestWrapperFunction } from "../network-manager.js";
 import type {
   RawTrace,
@@ -28,32 +26,26 @@ import type {
   ProviderConfig,
 } from "@ignored/edr-optimism";
 
-import EventEmitter from "node:events";
-import util from "node:util";
-
 import {
-  EdrContext,
   createModelsAndDecodeBytecodes,
   initializeVmTraceDecoder,
   SolidityTracer,
   VmTracer,
-  GENERIC_CHAIN_TYPE,
-  OPTIMISM_CHAIN_TYPE,
-  genericChainProviderFactory,
-  optimismProviderFactory,
 } from "@ignored/edr-optimism";
 import { toSeconds } from "@ignored/hardhat-vnext-utils/date";
-import { ensureError } from "@ignored/hardhat-vnext-utils/error";
+import { deepEqual } from "@ignored/hardhat-vnext-utils/lang";
 import chalk from "chalk";
 import debug from "debug";
 
 import {
-  HARDHAT_NETWORK_RESET_EVENT,
-  HARDHAT_NETWORK_REVERT_SNAPSHOT_EVENT,
+  EDR_NETWORK_RESET_EVENT,
+  EDR_NETWORK_REVERT_SNAPSHOT_EVENT,
 } from "../../../constants.js";
-import { DEFAULT_HD_ACCOUNTS_CONFIG_PARAMS } from "../accounts/derive-private-keys.js";
+import { DEFAULT_HD_ACCOUNTS_CONFIG_PARAMS } from "../accounts/constants.js";
+import { BaseProvider } from "../base-provider.js";
 import { getJsonRpcRequest, isFailedJsonRpcResponse } from "../json-rpc.js";
 
+import { getGlobalEdrContext } from "./edr-context.js";
 import {
   InvalidArgumentsError,
   InvalidInputError,
@@ -71,6 +63,7 @@ import {
   hardhatAccountsToEdrGenesisAccounts,
   hardhatChainsToEdrChains,
   hardhatForkingConfigToEdrForkConfig,
+  hardhatChainTypeToEdrChainType,
 } from "./utils/convert-to-edr.js";
 import { printLine, replaceLastLine } from "./utils/logger.js";
 
@@ -95,24 +88,34 @@ export const DEFAULT_EDR_NETWORK_HD_ACCOUNTS_CONFIG_PARAMS: EdrNetworkDefaultHDA
     accountsBalance: DEFAULT_EDR_NETWORK_BALANCE,
   };
 
-// Lazy initialize the global EDR context.
-let _globalEdrContext: EdrContext | undefined;
-export async function getGlobalEdrContext(): Promise<EdrContext> {
-  if (_globalEdrContext === undefined) {
-    // Only one is allowed to exist
-    _globalEdrContext = new EdrContext();
-    await _globalEdrContext.registerProviderFactory(
-      GENERIC_CHAIN_TYPE,
-      genericChainProviderFactory(),
-    );
-    await _globalEdrContext.registerProviderFactory(
-      OPTIMISM_CHAIN_TYPE,
-      optimismProviderFactory(),
-    );
-  }
-
-  return _globalEdrContext;
+export async function isDefaultEdrNetworkHDAccountsConfig(
+  account: unknown,
+): Promise<boolean> {
+  return deepEqual(account, DEFAULT_EDR_NETWORK_HD_ACCOUNTS_CONFIG_PARAMS);
 }
+
+export const EDR_NETWORK_DEFAULT_PRIVATE_KEYS: string[] = [
+  "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
+  "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d",
+  "0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a",
+  "0x7c852118294e51e653712a81e05800f419141751be58f605c371e15141b007a6",
+  "0x47e179ec197488593b187f80a00eb0da91f1b9d0b13f8733639f19c30a34926a",
+  "0x8b3a350cf5c34c9194ca85829a2df0ec3153be0318b5e2d3348e872092edffba",
+  "0x92db14e403b83dfe3df233f83dfa3a0d7096f21ca9b0d6d6b8d88b2b4ec1564e",
+  "0x4bbbf85ce3377467afe5d46f804f221813b2bb87f24d81f60f1fcdbf7cbf4356",
+  "0xdbda1821b80551c9d65939329250298aa3472ba22feea921c0cf5d620ea67b97",
+  "0x2a871d0798f97d79848a013d4936a73bf4cc922c825d33c1cf7073dff6d409c6",
+  "0xf214f2b2cd398c806f84e317254e0f0b801d0643303237d97a22a48e01628897",
+  "0x701b615bbdfb9de65240bc28bd21bbc0d996645a3dd57e7b12bc2bdf6f192c82",
+  "0xa267530f49f8280200edf313ee7af6b827f2a8bce2897751d06a843f644967b1",
+  "0x47c99abed3324a2707c28affff1267e45918ec8c3f20b8aa892e8b065d2942dd",
+  "0xc526ee95bf44d8fc405a158bb884d9d1238d99f0612e9f33d006bb0789009aaa",
+  "0x8166f546bab6da521a8369cab06c5d2b9e46670292d85c875ee9ec20e84ffb61",
+  "0xea6c44ac03bff858b476bba40716402b03e41b8e97e276d1baec7c37d42484a0",
+  "0x689af8efa8c651a91ad287602527f3af2fe9f6501a7ac4b061667b5a93e037fd",
+  "0xde9be858da4a475276426320d5e9262ecfc3ba460bfac56360bfa6c4c28b4ee0",
+  "0xdf57089febbacf7ba0bc227dafbffa9fc08a93fdc68e1e42411a14efcf23656e",
+];
 
 interface EdrProviderConfig {
   networkConfig: EdrNetworkConfig;
@@ -121,9 +124,9 @@ interface EdrProviderConfig {
   jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction;
 }
 
-export class EdrProvider extends EventEmitter implements EthereumProvider {
-  readonly #provider: Provider;
-  readonly #vmTraceDecoder: VmTraceDecoder;
+export class EdrProvider extends BaseProvider {
+  readonly #provider: Readonly<Provider>;
+  readonly #vmTraceDecoder: Readonly<VmTraceDecoder>;
   readonly #jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction;
 
   #failedStackTraces: number = 0;
@@ -149,9 +152,7 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
 
     const context = await getGlobalEdrContext();
     const provider = await context.createProvider(
-      networkConfig.chainType === "optimism"
-        ? OPTIMISM_CHAIN_TYPE
-        : GENERIC_CHAIN_TYPE, // TODO: l1 is missing here
+      hardhatChainTypeToEdrChainType(networkConfig.chainType),
       providerConfig,
       {
         enable: loggerConfig.enabled,
@@ -270,9 +271,9 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
     }
 
     if (args.method === "hardhat_reset") {
-      this.emit(HARDHAT_NETWORK_RESET_EVENT);
+      this.emit(EDR_NETWORK_RESET_EVENT);
     } else if (args.method === "evm_revert") {
-      this.emit(HARDHAT_NETWORK_REVERT_SNAPSHOT_EVENT);
+      this.emit(EDR_NETWORK_REVERT_SNAPSHOT_EVENT);
     }
 
     // this can only happen if a wrapper doesn't call the default
@@ -308,60 +309,6 @@ export class EdrProvider extends EventEmitter implements EthereumProvider {
 
   public async close(): Promise<void> {
     // TODO: what needs cleaned up?
-  }
-
-  public async send(method: string, params?: unknown[]): Promise<unknown> {
-    return this.request({ method, params });
-  }
-
-  public sendAsync(
-    jsonRpcRequest: JsonRpcRequest,
-    callback: (error: any, jsonRpcResponse: JsonRpcResponse) => void,
-  ): void {
-    // TODO: this is a straight copy of the HTTP Provider,
-    // can we pull this out and share the logic.
-    const handleJsonRpcRequest = async () => {
-      let jsonRpcResponse: JsonRpcResponse;
-      try {
-        const result = await this.request({
-          method: jsonRpcRequest.method,
-          params: jsonRpcRequest.params,
-        });
-
-        jsonRpcResponse = {
-          jsonrpc: "2.0",
-          id: jsonRpcRequest.id,
-          result,
-        };
-      } catch (error) {
-        ensureError(error);
-
-        if (!("code" in error) || error.code === undefined) {
-          throw error;
-        }
-
-        /* eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-        -- Allow string interpolation of unknown `error.code`. It will be converted
-        to a number, and we will handle NaN cases appropriately afterwards. */
-        const errorCode = parseInt(`${error.code}`, 10);
-        jsonRpcResponse = {
-          jsonrpc: "2.0",
-          id: jsonRpcRequest.id,
-          error: {
-            code: !isNaN(errorCode) ? errorCode : -1,
-            message: error.message,
-            data: {
-              stack: error.stack,
-              name: error.name,
-            },
-          },
-        };
-      }
-
-      return jsonRpcResponse;
-    };
-
-    util.callbackify(handleJsonRpcRequest)(callback);
   }
 
   #isErrorResponse(response: any): response is FailedJsonRpcResponse {
