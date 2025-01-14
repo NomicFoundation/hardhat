@@ -51,7 +51,7 @@ export class Bytecode {
     //     compiler seems to add REVERT in all cases, meaning it currently won't happen and this check
     //     will always be correct.
     //   - It is possible, though very unlikely, that this string appears in the bytecode of an EVM
-    //     contract. As a result result, this _isOvm flag should only be used after trying to infer
+    //     contract. As a result, this _isOvm flag should only be used after trying to infer
     //     the solc version
     //   - We need this check because OVM bytecode has no metadata, so when verifying
     //     OVM bytecode the check in `inferSolcVersion` will always return `MISSING_METADATA_VERSION_RANGE`.
