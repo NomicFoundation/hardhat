@@ -44,11 +44,9 @@ export class AutomaticGasPriceHandler implements RequestHandler {
     }
 
     const params = getRequestParams(jsonRpcRequest);
+    const [tx] = params;
 
-    // TODO: from V2 - Should we validate this type?
-    const tx = params[0];
-
-    if (tx === undefined) {
+    if (!isObject(tx)) {
       return jsonRpcRequest;
     }
 
@@ -84,12 +82,12 @@ export class AutomaticGasPriceHandler implements RequestHandler {
     }
 
     let maxFeePerGas =
-      tx.maxFeePerGas !== undefined
+      typeof tx.maxFeePerGas === "string"
         ? hexStringToBigInt(tx.maxFeePerGas)
         : suggestedEip1559Values.maxFeePerGas;
 
     const maxPriorityFeePerGas =
-      tx.maxPriorityFeePerGas !== undefined
+      typeof tx.maxPriorityFeePerGas === "string"
         ? hexStringToBigInt(tx.maxPriorityFeePerGas)
         : suggestedEip1559Values.maxPriorityFeePerGas;
 

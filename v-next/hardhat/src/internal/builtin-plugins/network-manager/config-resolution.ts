@@ -1,5 +1,5 @@
 import type {
-  ConfigurationResolver,
+  ConfigurationVariableResolver,
   EdrNetworkAccountsConfig,
   EdrNetworkAccountsUserConfig,
   EdrNetworkChainConfig,
@@ -22,13 +22,13 @@ import {
   normalizeHexString,
 } from "@ignored/hardhat-vnext-utils/hex";
 
-import { DEFAULT_HD_ACCOUNTS_CONFIG_PARAMS } from "./accounts/derive-private-keys.js";
+import { DEFAULT_HD_ACCOUNTS_CONFIG_PARAMS } from "./accounts/constants.js";
 import {
   DEFAULT_EDR_NETWORK_HD_ACCOUNTS_CONFIG_PARAMS,
   EDR_NETWORK_DEFAULT_COINBASE,
 } from "./edr/edr-provider.js";
-import { HardforkName } from "./edr/types/hardfork.js";
-import { isHdAccountsConfig } from "./type-validation.js";
+import { HardforkName, LATEST_HARDFORK } from "./edr/types/hardfork.js";
+import { isHdAccountsUserConfig } from "./type-validation.js";
 
 export function resolveGasConfig(value: GasUserConfig = "auto"): GasConfig {
   return value === "auto" ? value : BigInt(value);
@@ -36,7 +36,7 @@ export function resolveGasConfig(value: GasUserConfig = "auto"): GasConfig {
 
 export function resolveHttpNetworkAccounts(
   accounts: HttpNetworkAccountsUserConfig | undefined = "remote",
-  resolveConfigurationVariable: ConfigurationResolver,
+  resolveConfigurationVariable: ConfigurationVariableResolver,
 ): HttpNetworkAccountsConfig {
   if (Array.isArray(accounts)) {
     return accounts.map((acc) => {
@@ -48,10 +48,16 @@ export function resolveHttpNetworkAccounts(
     });
   }
 
-  if (isHdAccountsConfig(accounts)) {
+  if (isHdAccountsUserConfig(accounts)) {
+    const { passphrase: defaultPassphrase, ...defaultHdAccountRest } =
+      DEFAULT_HD_ACCOUNTS_CONFIG_PARAMS;
+    const { mnemonic, passphrase, ...hdAccountRest } = accounts;
+
     return {
-      ...DEFAULT_HD_ACCOUNTS_CONFIG_PARAMS,
-      ...accounts,
+      ...defaultHdAccountRest,
+      ...hdAccountRest,
+      mnemonic: resolveConfigurationVariable(mnemonic),
+      passphrase: resolveConfigurationVariable(passphrase ?? defaultPassphrase),
     };
   }
 
@@ -62,49 +68,55 @@ export function resolveEdrNetworkAccounts(
   accounts:
     | EdrNetworkAccountsUserConfig
     | undefined = DEFAULT_EDR_NETWORK_HD_ACCOUNTS_CONFIG_PARAMS,
+  resolveConfigurationVariable: ConfigurationVariableResolver,
 ): EdrNetworkAccountsConfig {
   if (Array.isArray(accounts)) {
-    return accounts.map(({ privateKey, balance }) => ({
-      privateKey: normalizeHexString(privateKey),
-      balance: BigInt(balance),
-    }));
+    return accounts.map(({ privateKey, balance }) => {
+      if (typeof privateKey === "string") {
+        privateKey = normalizeHexString(privateKey);
+      }
+
+      return {
+        privateKey: resolveConfigurationVariable(privateKey),
+        balance: BigInt(balance),
+      };
+    });
   }
 
+  const {
+    mnemonic: defaultMnemonic,
+    accountsBalance: defaultAccountsBalance,
+    passphrase: defaultPassphrase,
+    ...defaultHdAccountRest
+  } = DEFAULT_EDR_NETWORK_HD_ACCOUNTS_CONFIG_PARAMS;
+  const { mnemonic, passphrase, accountsBalance, ...hdAccountRest } = accounts;
   return {
-    ...DEFAULT_EDR_NETWORK_HD_ACCOUNTS_CONFIG_PARAMS,
-    ...accounts,
-    accountsBalance: BigInt(
-      accounts.accountsBalance ??
-        DEFAULT_EDR_NETWORK_HD_ACCOUNTS_CONFIG_PARAMS.accountsBalance,
-    ),
+    ...defaultHdAccountRest,
+    ...hdAccountRest,
+    mnemonic: resolveConfigurationVariable(mnemonic ?? defaultMnemonic),
+    accountsBalance: BigInt(accountsBalance ?? defaultAccountsBalance),
+    passphrase: resolveConfigurationVariable(passphrase ?? defaultPassphrase),
   };
 }
 
 export function resolveForkingConfig(
   forkingUserConfig: EdrNetworkForkingUserConfig | undefined,
   cacheDir: string,
+  resolveConfigurationVariable: ConfigurationVariableResolver,
 ): EdrNetworkForkingConfig | undefined {
   if (forkingUserConfig === undefined) {
     return undefined;
   }
 
-  const httpHeaders =
-    forkingUserConfig.httpHeaders !== undefined
-      ? Object.entries(forkingUserConfig.httpHeaders).map(([name, value]) => ({
-          name,
-          value,
-        }))
-      : undefined;
-
   return {
     enabled: forkingUserConfig.enabled ?? true,
-    url: forkingUserConfig.url,
+    url: resolveConfigurationVariable(forkingUserConfig.url),
     cacheDir: path.join(cacheDir, "edr-fork-cache"),
     blockNumber:
       forkingUserConfig.blockNumber !== undefined
         ? BigInt(forkingUserConfig.blockNumber)
         : undefined,
-    httpHeaders,
+    httpHeaders: forkingUserConfig.httpHeaders,
   };
 }
 
@@ -274,7 +286,7 @@ export function resolveHardfork(
   }
 
   if (enableTransientStorage === true) {
-    return HardforkName.CANCUN;
+    return LATEST_HARDFORK;
   } else {
     return HardforkName.SHANGHAI;
   }

@@ -7,6 +7,7 @@ import type {
   EdrNetworkMempoolConfig,
   EdrNetworkMiningConfig,
 } from "../../../../../types/config.js";
+import type { ChainType } from "../../../../../types/network.js";
 import type { RpcDebugTraceOutput, RpcStructLog } from "../types/output.js";
 import type {
   IntervalRange,
@@ -35,11 +36,19 @@ import {
   MERGE,
   SHANGHAI,
   CANCUN,
+  OPTIMISM_CHAIN_TYPE as EDR_OPTIMISM_CHAIN_TYPE,
+  L1_CHAIN_TYPE as EDR_L1_CHAIN_TYPE,
+  GENERIC_CHAIN_TYPE as EDR_GENERIC_CHAIN_TYPE,
 } from "@ignored/edr-optimism";
-import { bytesToHexString } from "@ignored/hardhat-vnext-utils/bytes";
 
+import { L1_CHAIN_TYPE, OPTIMISM_CHAIN_TYPE } from "../../../../constants.js";
+import { FixedValueConfigurationVariable } from "../../../../core/configuration-variables.js";
 import { derivePrivateKeys } from "../../accounts/derive-private-keys.js";
-import { DEFAULT_EDR_NETWORK_BALANCE } from "../edr-provider.js";
+import {
+  DEFAULT_EDR_NETWORK_BALANCE,
+  EDR_NETWORK_DEFAULT_PRIVATE_KEYS,
+  isDefaultEdrNetworkHDAccountsConfig,
+} from "../edr-provider.js";
 import { HardforkName } from "../types/hardfork.js";
 
 import { getHardforkName } from "./hardfork.js";
@@ -220,34 +229,39 @@ export function edrRpcDebugTraceToHardhat(
   };
 }
 
-export function hardhatAccountsToEdrGenesisAccounts(
+export async function hardhatAccountsToEdrGenesisAccounts(
   accounts: EdrNetworkAccountsConfig,
-): GenesisAccount[] {
-  const normalizedAccounts = normalizeEdrNetworkAccountsConfig(accounts);
+): Promise<GenesisAccount[]> {
+  const normalizedAccounts = await normalizeEdrNetworkAccountsConfig(accounts);
 
-  return normalizedAccounts.map((account) => {
-    return {
-      secretKey: account.privateKey,
-      balance: account.balance,
-    };
-  });
+  const accountPromises = normalizedAccounts.map(async (account) => ({
+    secretKey: await account.privateKey.getHexString(),
+    balance: account.balance,
+  }));
+
+  return Promise.all(accountPromises);
 }
 
-function normalizeEdrNetworkAccountsConfig(
+async function normalizeEdrNetworkAccountsConfig(
   accounts: EdrNetworkAccountsConfig,
-): EdrNetworkAccountConfig[] {
+): Promise<EdrNetworkAccountConfig[]> {
   if (Array.isArray(accounts)) {
     return accounts;
   }
 
-  return derivePrivateKeys(
-    accounts.mnemonic,
-    accounts.path,
-    accounts.initialIndex,
-    accounts.count,
-    accounts.passphrase,
-  ).map((pk) => ({
-    privateKey: bytesToHexString(pk),
+  const isDefaultConfig = await isDefaultEdrNetworkHDAccountsConfig(accounts);
+  const derivedPrivateKeys = isDefaultConfig
+    ? EDR_NETWORK_DEFAULT_PRIVATE_KEYS
+    : derivePrivateKeys(
+        await accounts.mnemonic.get(),
+        accounts.path,
+        accounts.initialIndex,
+        accounts.count,
+        await accounts.passphrase.get(),
+      );
+
+  return derivedPrivateKeys.map((privateKey) => ({
+    privateKey: new FixedValueConfigurationVariable(privateKey),
     balance: accounts.accountsBalance ?? DEFAULT_EDR_NETWORK_BALANCE,
   }));
 }
@@ -278,17 +292,39 @@ export function hardhatChainsToEdrChains(
   return edrChains;
 }
 
-export function hardhatForkingConfigToEdrForkConfig(
+export async function hardhatForkingConfigToEdrForkConfig(
   forkingConfig: EdrNetworkForkingConfig | undefined,
-): ForkConfig | undefined {
+): Promise<ForkConfig | undefined> {
   let fork: ForkConfig | undefined;
   if (forkingConfig !== undefined && forkingConfig.enabled === true) {
+    const httpHeaders =
+      forkingConfig.httpHeaders !== undefined
+        ? Object.entries(forkingConfig.httpHeaders).map(([name, value]) => ({
+            name,
+            value,
+          }))
+        : undefined;
+
     fork = {
-      jsonRpcUrl: forkingConfig.url,
+      jsonRpcUrl: await forkingConfig.url.getUrl(),
       blockNumber: forkingConfig.blockNumber,
-      httpHeaders: forkingConfig.httpHeaders,
+      httpHeaders,
     };
   }
 
   return fork;
+}
+
+export function hardhatChainTypeToEdrChainType(
+  chainType: ChainType | undefined,
+): string {
+  if (chainType === OPTIMISM_CHAIN_TYPE) {
+    return EDR_OPTIMISM_CHAIN_TYPE;
+  }
+
+  if (chainType === L1_CHAIN_TYPE) {
+    return EDR_L1_CHAIN_TYPE;
+  }
+
+  return EDR_GENERIC_CHAIN_TYPE;
 }
