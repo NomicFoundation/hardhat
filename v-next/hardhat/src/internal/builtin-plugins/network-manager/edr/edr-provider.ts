@@ -38,8 +38,8 @@ import chalk from "chalk";
 import debug from "debug";
 
 import {
-  HARDHAT_NETWORK_RESET_EVENT,
-  HARDHAT_NETWORK_REVERT_SNAPSHOT_EVENT,
+  EDR_NETWORK_RESET_EVENT,
+  EDR_NETWORK_REVERT_SNAPSHOT_EVENT,
 } from "../../../constants.js";
 import { DEFAULT_HD_ACCOUNTS_CONFIG_PARAMS } from "../accounts/constants.js";
 import { BaseProvider } from "../base-provider.js";
@@ -271,9 +271,9 @@ export class EdrProvider extends BaseProvider {
     }
 
     if (args.method === "hardhat_reset") {
-      this.emit(HARDHAT_NETWORK_RESET_EVENT);
+      this.emit(EDR_NETWORK_RESET_EVENT);
     } else if (args.method === "evm_revert") {
-      this.emit(HARDHAT_NETWORK_REVERT_SNAPSHOT_EVENT);
+      this.emit(EDR_NETWORK_REVERT_SNAPSHOT_EVENT);
     }
 
     // this can only happen if a wrapper doesn't call the default
