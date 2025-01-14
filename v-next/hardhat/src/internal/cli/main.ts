@@ -41,7 +41,7 @@ import { printVersionMessage } from "./version.js";
 
 export interface MainOptions {
   print?: (message: string) => void;
-  registerTsx?: true;
+  registerTsx?: boolean;
   rethrowErrors?: true;
 }
 
@@ -98,7 +98,7 @@ export async function main(
       return;
     }
 
-    if (options.registerTsx) {
+    if (options.registerTsx === true) {
       register();
     }
 

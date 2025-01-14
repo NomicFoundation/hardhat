@@ -6,7 +6,7 @@ import type {
 import { execFile } from "node:child_process";
 import os from "node:os";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 import {
   HardhatError,
@@ -37,7 +37,8 @@ export class SolcJsCompiler implements Compiler {
   ) {}
 
   public async compile(input: CompilerInput): Promise<any> {
-    const scriptPath = fileURLToPath(import.meta.resolve("./solcjs-runner.js"));
+    const scriptFileUrl = import.meta.resolve("./solcjs-runner.js");
+    const scriptPath = fileURLToPath(scriptFileUrl);
 
     // If the script is a TypeScript file, we need to pass the --import tsx/esm
     // which is available, as we are running the tests
@@ -45,11 +46,30 @@ export class SolcJsCompiler implements Compiler {
       ? ["--import", "tsx/esm"]
       : [];
 
+    const args = [...nodeOptions];
+
+    // NOTE(https://github.com/nodejs/node/issues/31710): We're using file URLs
+    // on Windows instead of path because only URLs with a scheme are supported
+    // by the default ESM loader there.
+    if (os.platform() === "win32") {
+      const compilerFileUrl = pathToFileURL(this.compilerPath);
+      // NOTE: The script path passed to a tsx/esm loader is an exception to the
+      // above rule since the tsx/esm loader doesn't support URLs with a scheme.
+      if (scriptPath.endsWith(".ts")) {
+        args.push(scriptPath);
+      } else {
+        args.push(scriptFileUrl);
+      }
+      args.push(compilerFileUrl.href);
+    } else {
+      args.push(scriptPath, this.compilerPath);
+    }
+
     const output: string = await new Promise((resolve, reject) => {
       try {
         const subprocess = execFile(
           process.execPath,
-          [...nodeOptions, scriptPath, this.compilerPath],
+          args,
           {
             maxBuffer: COMPILATION_SUBPROCESS_IO_BUFFER_SIZE,
           },

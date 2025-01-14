@@ -218,34 +218,90 @@ describe("copyProjectFiles", () => {
   });
 });
 
-describe("installProjectDependencies", () => {
+describe("installProjectDependencies", async () => {
   useTmpDir("installProjectDependencies");
 
   disableConsole();
 
-  describe("when install is true", () => {
-    // This test is skipped because installing dependencies over the network is slow
-    it.skip("should install the project dependencies", async () => {
-      const template = await getTemplate("empty-typescript");
-      await writeUtf8File("package.json", JSON.stringify({ type: "module" }));
-      await installProjectDependencies(process.cwd(), template, true);
-      assert.ok(await exists("node_modules"), "node_modules should exist");
-    });
+  const templates = await getTemplates();
+
+  for (const template of templates) {
+    // NOTE: This test is slow because it installs dependencies over the network.
+    // It tests installation for all the templates, but only with the npm as the
+    // package manager. We also support pnpm and yarn.
+    it(
+      `should install all the ${template.name} template dependencies in an empty project if the user opts-in to the installation`,
+      {
+        skip: process.env.HARDHAT_DISABLE_SLOW_TESTS === "true",
+      },
+      async () => {
+        await writeUtf8File("package.json", JSON.stringify({ type: "module" }));
+        await installProjectDependencies(process.cwd(), template, true, false);
+        assert.ok(await exists("node_modules"), "node_modules should exist");
+        const dependencies = Object.keys(
+          template.packageJson.devDependencies ?? {},
+        );
+        for (const dependency of dependencies) {
+          const nodeModulesPath = path.join(
+            "node_modules",
+            ...dependency.split("/"),
+          );
+          assert.ok(
+            await exists(nodeModulesPath),
+            `${nodeModulesPath} should exist`,
+          );
+        }
+      },
+    );
+  }
+
+  it("should not install any template dependencies if the user opts-out of the installation", async () => {
+    const template = await getTemplate("mocha-ethers");
+    await writeUtf8File("package.json", JSON.stringify({ type: "module" }));
+    await installProjectDependencies(process.cwd(), template, false, false);
+    assert.ok(!(await exists("node_modules")), "node_modules should not exist");
   });
-  describe("when install is false", () => {
-    it("should not install the project dependencies", async () => {
+
+  it(
+    "should install any existing template dependencies that are out of date if the user opts-in to the update",
+    {
+      skip: process.env.HARDHAT_DISABLE_SLOW_TESTS === "true",
+    },
+    async () => {
       const template = await getTemplate("mocha-ethers");
-      await writeUtf8File("package.json", JSON.stringify({ type: "module" }));
-      await installProjectDependencies(process.cwd(), template, false);
-      assert.ok(
-        !(await exists("node_modules")),
-        "node_modules should not exist",
+      await writeUtf8File(
+        "package.json",
+        JSON.stringify({
+          type: "module",
+          devDependencies: { "@ignored/hardhat-vnext": "0.0.0" },
+        }),
       );
-    });
-  });
+      await installProjectDependencies(process.cwd(), template, false, true);
+      assert.ok(await exists("node_modules"), "node_modules should exist");
+      const dependencies = Object.keys(
+        template.packageJson.devDependencies ?? {},
+      );
+      for (const dependency of dependencies) {
+        const nodeModulesPath = path.join(
+          "node_modules",
+          ...dependency.split("/"),
+        );
+        if (dependency === "@ignored/hardhat-vnext") {
+          assert.ok(
+            await exists(nodeModulesPath),
+            `${nodeModulesPath} should exist`,
+          );
+        } else {
+          assert.ok(
+            !(await exists(nodeModulesPath)),
+            `${nodeModulesPath} should not exist`,
+          );
+        }
+      }
+    },
+  );
 });
 
-// NOTE: This uses network to access the npm registry
 describe("initHardhat", async () => {
   useTmpDir("initHardhat");
 
@@ -254,21 +310,28 @@ describe("initHardhat", async () => {
   const templates = await getTemplates();
 
   for (const template of templates) {
-    it(`should initialize the project using the ${template.name} template in an empty folder`, async () => {
-      await initHardhat({
-        template: template.name,
-        workspace: process.cwd(),
-        force: false,
-        install: false,
-      });
-      assert.ok(await exists("package.json"), "package.json should exist");
-      const workspaceFiles = template.files.map(
-        relativeTemplateToWorkspacePath,
-      );
-      for (const file of workspaceFiles) {
-        const pathToFile = path.join(process.cwd(), file);
-        assert.ok(await exists(pathToFile), `File ${file} should exist`);
-      }
-    });
+    // NOTE: This test uses network to access the npm registry
+    it(
+      `should initialize the project using the ${template.name} template in an empty folder`,
+      {
+        skip: process.env.HARDHAT_DISABLE_SLOW_TESTS === "true",
+      },
+      async () => {
+        await initHardhat({
+          template: template.name,
+          workspace: process.cwd(),
+          force: false,
+          install: false,
+        });
+        assert.ok(await exists("package.json"), "package.json should exist");
+        const workspaceFiles = template.files.map(
+          relativeTemplateToWorkspacePath,
+        );
+        for (const file of workspaceFiles) {
+          const pathToFile = path.join(process.cwd(), file);
+          assert.ok(await exists(pathToFile), `File ${file} should exist`);
+        }
+      },
+    );
   }
 });
