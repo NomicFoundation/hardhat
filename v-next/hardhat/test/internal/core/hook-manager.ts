@@ -257,8 +257,9 @@ describe("HookManager", () => {
                       _context: HookContext,
                       givenHre: HardhatRuntimeEnvironment,
                     ): Promise<void> => {
-                      givenHre.config.paths.tests =
-                        "./test-folder-from-plugin1";
+                      givenHre.config.paths.tests = {
+                        solidity: "./test-folder-from-plugin1",
+                      };
                     },
                   } as Partial<HardhatRuntimeEnvironmentHooks>;
 
@@ -277,8 +278,9 @@ describe("HookManager", () => {
                       _context: HookContext,
                       givenHre: HardhatRuntimeEnvironment,
                     ): Promise<void> => {
-                      givenHre.config.paths.tests =
-                        "./test-folder-from-overriding-plugin2";
+                      givenHre.config.paths.tests = {
+                        solidity: "./test-folder-from-overriding-plugin2",
+                      };
                     },
                   } as Partial<HardhatRuntimeEnvironmentHooks>;
 
@@ -302,7 +304,7 @@ describe("HookManager", () => {
 
             assert.equal(result.length, 2);
             assert.equal(
-              hre.config.paths.tests,
+              hre.config.paths.tests.solidity,
               "./test-folder-from-overriding-plugin2",
             );
           });

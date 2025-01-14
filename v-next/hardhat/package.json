@@ -17,6 +17,7 @@
   },
   "exports": {
     ".": "./dist/src/index.js",
+    "./package.json": "./package.json",
     "./config": "./dist/src/config.js",
     "./hre": "./dist/src/hre.js",
     "./plugins": "./dist/src/plugins.js",
@@ -98,7 +99,6 @@
     "micro-eth-signer": "^0.13.0",
     "p-map": "^7.0.2",
     "semver": "^7.6.3",
-    "solc": "^0.8.27",
     "tsx": "^4.11.0",
     "ws": "^8.18.0",
     "zod": "^3.23.8"
