@@ -2,7 +2,13 @@ import type { SuccessfulFileBuildResult } from "../../../../types/solidity.js";
 import type { NewTaskActionFunction } from "../../../../types/tasks.js";
 import type { PublicConfig as RunTypeChainConfig } from "typechain";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import fs from "node:fs";
+
+import {
+  assertHardhatInvariant,
+  HardhatError,
+} from "@ignored/hardhat-vnext-errors";
+import { getAllFilesMatching } from "@ignored/hardhat-vnext-utils/fs";
 import { resolveFromRoot } from "@ignored/hardhat-vnext-utils/path";
 
 import { FileBuildResultType } from "../../../../types/solidity.js";
@@ -88,7 +94,20 @@ const compileAction: NewTaskActionFunction<CompileActionArguments> = async (
 
   // console.log(cwd);
 
-  console.log(artifactsPaths);
+  // console.log(artifactsPaths);
+
+  // Note: this is a hack to avoid running prettier on the generated files.
+  // We remove the `prettier` output transformer from typechain.
+  const { outputTransformers } = await import(
+    "typechain/dist/codegen/outputTransformers/index.js"
+  );
+
+  const prettierTransaformer = outputTransformers.pop();
+
+  assertHardhatInvariant(
+    prettierTransaformer?.name === "prettierOutputTransformer",
+    "TypeChain output transformer arrays changed in an unexpected way",
+  );
 
   const typechainOptions: Omit<RunTypeChainConfig, "filesToProcess"> = {
     cwd,
@@ -109,6 +128,52 @@ const compileAction: NewTaskActionFunction<CompileActionArguments> = async (
     ...typechainOptions,
     filesToProcess: artifactsPaths,
   });
+
+  const filesToFix = await getAllFilesMatching(
+    "/home/chris/repos/nomic-foundation/hardhat/v-next/example-project/types",
+    (f) => f.endsWith(".ts"),
+  );
+
+  // console.log(filesToFix);
+
+  // import * as withForgeTSol from './WithForge.t.sol';
+
+  const regex =
+    /^import\s+(type\s+)?\*\s+as\s+[a-zA-Z_][\w]*\s+from\s+['"].*?['"];(?<!\.js['"];)$/gm;
+
+  const regex2 = /static readonly \w+(?: = [^;]+)?;/gm;
+
+  for (const filePath of filesToFix) {
+    try {
+      // Read file content
+      const content = fs.readFileSync(filePath, "utf-8");
+
+      // Process matches for missing index.js
+      let modifiedContent = content.replace(regex, (match) => {
+        const insertIndex = match.lastIndexOf(";") - 1;
+        return (
+          match.slice(0, insertIndex) + "/index.js" + match.slice(insertIndex)
+        );
+      });
+
+      // The following code will be removed in prod:
+      // Process matches for missing type declaration
+      modifiedContent = modifiedContent.replace(regex2, (match) => {
+        let insertIndex = match.lastIndexOf("=");
+        if (insertIndex < 0) {
+          insertIndex = match.lastIndexOf(";");
+        }
+
+        return match.slice(0, insertIndex) + ":any" + match.slice(insertIndex);
+      });
+
+      // Overwrite the file with modified content
+      await fs.promises.writeFile(filePath, modifiedContent, "utf-8");
+      // console.log(`File modified: ${filePath}`);
+    } catch (error) {
+      console.error(`Error processing file ${filePath}:`, error);
+    }
+  }
 
   console.log(`Successfully generated ${result.filesGenerated} typings!`);
 
