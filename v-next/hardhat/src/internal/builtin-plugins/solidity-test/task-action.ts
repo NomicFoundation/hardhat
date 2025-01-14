@@ -21,12 +21,14 @@ import {
 } from "./helpers.js";
 import { testReporter } from "./reporter.js";
 import { run } from "./runner.js";
+import chalk from "chalk";
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface -- the interface is expected to be expanded in the future
-interface TestActionArguments {}
+interface TestActionArguments {
+  noCompile: boolean;
+}
 
 const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
-  {},
+  { noCompile },
   hre,
 ) => {
   // NOTE: A test file is either a file with a `.sol` extension in the `tests.solidity`
@@ -41,6 +43,22 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
       }),
     ])
   ).flat(1);
+
+  // TODO: Decide either how to support or remove this flag from this task.
+  //
+  // One option for supporting it would be to iterate over
+  // hre.artifacts.getArtifactPaths() (or hre.artifacts.getBuildInfoPaths())
+  // and find the artifacts matching the rootFilePaths.
+  //
+  // However, we currently don't store fsPaths neither in artifacts nor in
+  // buildInfo, which makes the "matching" operation a bit more complicated.
+  if (noCompile) {
+    console.warn(
+      chalk.yellow(
+        "The --no-compile flag is currently not supported by the test solidity task. The task will always compile all the test contracts before running them.",
+      ),
+    );
+  }
 
   const buildOptions: BuildOptions = {
     force: false,
