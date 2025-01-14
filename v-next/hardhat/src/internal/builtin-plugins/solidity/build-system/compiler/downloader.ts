@@ -22,6 +22,7 @@ import {
   remove,
 } from "@ignored/hardhat-vnext-utils/fs";
 import { download } from "@ignored/hardhat-vnext-utils/request";
+import { MultiProcessMutex } from "@ignored/hardhat-vnext-utils/synchronization";
 import debug from "debug";
 
 import { NativeCompiler, SolcJsCompiler } from "./compiler.js";
@@ -137,6 +138,8 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
   readonly #compilersDir: string;
   readonly #downloadFunction: typeof download;
 
+  readonly #mutex = new MultiProcessMutex("compiler-download");
+
   /**
    * Use CompilerDownloader.getConcurrencySafeDownloader instead
    */
@@ -179,37 +182,43 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
   }
 
   public async downloadCompiler(version: string): Promise<boolean> {
-    const isCompilerDownloaded = await this.isCompilerDownloaded(version);
+    // Since only one process at a time can acquire the mutex, we avoid the risk of downloading the same compiler multiple times.
+    // This is because the mutex blocks access until a compiler has been fully downloaded, preventing any new process
+    // from checking whether that version of the compiler exists. Without mutex it might incorrectly
+    // return false, indicating that the compiler isn't present, even though it is currently being downloaded.
+    return this.#mutex.use(async () => {
+      const isCompilerDownloaded = await this.isCompilerDownloaded(version);
 
-    if (isCompilerDownloaded === true) {
-      return true;
-    }
+      if (isCompilerDownloaded === true) {
+        return true;
+      }
 
-    const build = await this.#getCompilerBuild(version);
+      const build = await this.#getCompilerBuild(version);
 
-    let downloadPath: string;
-    try {
-      downloadPath = await this.#downloadCompiler(build);
-    } catch (e) {
-      ensureError(e);
+      let downloadPath: string;
+      try {
+        downloadPath = await this.#downloadCompiler(build);
+      } catch (e) {
+        ensureError(e);
 
-      throw new HardhatError(
-        HardhatError.ERRORS.SOLIDITY.DOWNLOAD_FAILED,
-        {
+        throw new HardhatError(
+          HardhatError.ERRORS.SOLIDITY.DOWNLOAD_FAILED,
+          {
+            remoteVersion: build.longVersion,
+          },
+          e,
+        );
+      }
+
+      const verified = await this.#verifyCompilerDownload(build, downloadPath);
+      if (!verified) {
+        throw new HardhatError(HardhatError.ERRORS.SOLIDITY.INVALID_DOWNLOAD, {
           remoteVersion: build.longVersion,
-        },
-        e,
-      );
-    }
+        });
+      }
 
-    const verified = await this.#verifyCompilerDownload(build, downloadPath);
-    if (!verified) {
-      throw new HardhatError(HardhatError.ERRORS.SOLIDITY.INVALID_DOWNLOAD, {
-        remoteVersion: build.longVersion,
-      });
-    }
-
-    return this.#postProcessCompilerDownload(build, downloadPath);
+      return this.#postProcessCompilerDownload(build, downloadPath);
+    });
   }
 
   public async getCompiler(version: string): Promise<Compiler | undefined> {

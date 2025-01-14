@@ -34,6 +34,9 @@ const solcUserConfigType = z.object({
   profiles: incompatibleFieldType("This field is incompatible with `version`"),
 });
 
+// NOTE: This is only to match the setup present in ./type-extensions.ts
+const singleVersionSolcUserConfigType = solcUserConfigType;
+
 const multiVersionSolcUserConfigType = z.object({
   compilers: z.array(solcUserConfigType).nonempty(),
   overrides: z.record(z.string(), solcUserConfigType).optional(),
@@ -43,18 +46,28 @@ const multiVersionSolcUserConfigType = z.object({
   ),
 });
 
-const singleVersionSolidityUserConfigType = solcUserConfigType.extend({
+const commonSolidityUserConfigType = z.object({
   dependenciesToCompile: z.array(z.string()).optional(),
   remappings: z.array(z.string()).optional(),
-  compilers: incompatibleFieldType("This field is incompatible with `version`"),
-  overrides: incompatibleFieldType("This field is incompatible with `version`"),
-  profiles: incompatibleFieldType("This field is incompatible with `version`"),
 });
 
-const multiVersionSolidityUserConfigType =
-  multiVersionSolcUserConfigType.extend({
-    dependenciesToCompile: z.array(z.string()).optional(),
-    remappings: z.array(z.string()).optional(),
+const singleVersionSolidityUserConfigType = singleVersionSolcUserConfigType
+  .merge(commonSolidityUserConfigType)
+  .extend({
+    compilers: incompatibleFieldType(
+      "This field is incompatible with `version`",
+    ),
+    overrides: incompatibleFieldType(
+      "This field is incompatible with `version`",
+    ),
+    profiles: incompatibleFieldType(
+      "This field is incompatible with `version`",
+    ),
+  });
+
+const multiVersionSolidityUserConfigType = multiVersionSolcUserConfigType
+  .merge(commonSolidityUserConfigType)
+  .extend({
     version: incompatibleFieldType(
       "This field is incompatible with `compilers`",
     ),
@@ -63,30 +76,35 @@ const multiVersionSolidityUserConfigType =
     ),
   });
 
-const buildProfilesSolidityUserConfigType = z.object({
-  profiles: z.record(
-    z.string(),
-    conditionalUnionType(
-      [
-        [(data) => isObject(data) && "version" in data, solcUserConfigType],
+const buildProfilesSolidityUserConfigType = commonSolidityUserConfigType.extend(
+  {
+    profiles: z.record(
+      z.string(),
+      conditionalUnionType(
         [
-          (data) => isObject(data) && "compilers" in data,
-          multiVersionSolcUserConfigType,
+          [
+            (data) => isObject(data) && "version" in data,
+            singleVersionSolcUserConfigType,
+          ],
+          [
+            (data) => isObject(data) && "compilers" in data,
+            multiVersionSolcUserConfigType,
+          ],
         ],
-      ],
-      "Expected an object configuring one or more versions of Solidity",
+        "Expected an object configuring one or more versions of Solidity",
+      ),
     ),
-  ),
-  dependenciesToCompile: z.array(z.string()).optional(),
-  remappings: z.array(z.string()).optional(),
-  version: incompatibleFieldType("This field is incompatible with `profiles`"),
-  compilers: incompatibleFieldType(
-    "This field is incompatible with `profiles`",
-  ),
-  overrides: incompatibleFieldType(
-    "This field is incompatible with `profiles`",
-  ),
-});
+    version: incompatibleFieldType(
+      "This field is incompatible with `profiles`",
+    ),
+    compilers: incompatibleFieldType(
+      "This field is incompatible with `profiles`",
+    ),
+    overrides: incompatibleFieldType(
+      "This field is incompatible with `profiles`",
+    ),
+  },
+);
 
 const soldityUserConfigType = conditionalUnionType(
   [
