@@ -1,6 +1,7 @@
 import type { DependencyGraphImplementation } from "./dependency-graph.js";
 import type { Artifact } from "../../../../types/artifacts.js";
 import type { SolcConfig, SolidityConfig } from "../../../../types/config.js";
+import type { HookManager } from "../../../../types/hooks.js";
 import type {
   SolidityBuildSystem,
   BuildOptions,
@@ -66,11 +67,13 @@ export interface SolidityBuildSystemOptions {
 }
 
 export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
+  readonly #hooks: HookManager;
   readonly #options: SolidityBuildSystemOptions;
   readonly #defaultConcurrenty = Math.max(os.cpus().length - 1, 1);
   #downloadedCompilers = false;
 
-  constructor(options: SolidityBuildSystemOptions) {
+  constructor(hooks: HookManager, options: SolidityBuildSystemOptions) {
+    this.#hooks = hooks;
     this.#options = options;
   }
 
@@ -310,29 +313,39 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
   public async runCompilationJob(
     compilationJob: CompilationJob,
-    options?: RunCompilationJobOptions,
+    options: RunCompilationJobOptions = {},
   ): Promise<CompilerOutput> {
-    await this.#downloadConfiguredCompilers(options?.quiet);
+    await this.#downloadConfiguredCompilers(options.quiet);
 
-    let numberOfFiles = 0;
-    for (const _ of compilationJob.dependencyGraph.getAllFiles()) {
-      numberOfFiles++;
-    }
+    return this.#hooks.runHandlerChain(
+      "solidity",
+      "runCompilationJob",
+      [compilationJob, options],
+      async (_context, nextCompilationJob, _nextOptions) => {
+        let numberOfFiles = 0;
+        for (const _ of nextCompilationJob.dependencyGraph.getAllFiles()) {
+          numberOfFiles++;
+        }
 
-    const numberOfRootFiles = compilationJob.dependencyGraph.getRoots().size;
+        const numberOfRootFiles =
+          nextCompilationJob.dependencyGraph.getRoots().size;
 
-    const compiler = await getCompiler(compilationJob.solcConfig.version);
+        const compiler = await getCompiler(
+          nextCompilationJob.solcConfig.version,
+        );
 
-    log(
-      `Compiling ${numberOfRootFiles} root files and ${numberOfFiles - numberOfRootFiles} dependency files with solc ${compilationJob.solcConfig.version} using ${compiler.compilerPath}`,
+        log(
+          `Compiling ${numberOfRootFiles} root files and ${numberOfFiles - numberOfRootFiles} dependency files with solc ${nextCompilationJob.solcConfig.version} using ${compiler.compilerPath}`,
+        );
+
+        assertHardhatInvariant(
+          nextCompilationJob.solcLongVersion === compiler.longVersion,
+          "The long version of the compiler should match the long version of the compilation job",
+        );
+
+        return compiler.compile(nextCompilationJob.getSolcInput());
+      },
     );
-
-    assertHardhatInvariant(
-      compilationJob.solcLongVersion === compiler.longVersion,
-      "The long version of the compiler should match the long version of the compilation job",
-    );
-
-    return compiler.compile(compilationJob.getSolcInput());
   }
 
   public async remapCompilerError(
