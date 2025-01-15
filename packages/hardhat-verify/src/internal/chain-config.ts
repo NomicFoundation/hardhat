@@ -203,6 +203,14 @@ export const builtinChains: ChainConfig[] = [
     },
   },
   {
+    network: "ink",
+    chainId: 57073,
+    urls: {
+      apiURL: "https://explorer.inkonchain.com/api/v2",
+      browserURL: "https://explorer.inkonchain.com/",
+    },
+  },
+  {
     network: "polygonMumbai",
     chainId: 80001,
     urls: {
@@ -240,6 +248,14 @@ export const builtinChains: ChainConfig[] = [
     urls: {
       apiURL: "https://api-sepolia.arbiscan.io/api",
       browserURL: "https://sepolia.arbiscan.io/",
+    },
+  },
+  {
+    network: "inkSepolia",
+    chainId: 763373,
+    urls: {
+      apiURL: "https://explorer-sepolia.inkonchain.com/api/v2",
+      browserURL: "https://explorer-sepolia.inkonchain.com/",
     },
   },
   {
