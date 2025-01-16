@@ -16,7 +16,11 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
   }
 
   for (const subtask of thisTask.subtasks.values()) {
-    await subtask.run({ noCompile: true });
+    if (subtask.options.has("noCompile")) {
+      await subtask.run({ noCompile: true });
+    } else {
+      await subtask.run({});
+    }
   }
 
   if (process.exitCode !== undefined && process.exitCode !== 0) {
