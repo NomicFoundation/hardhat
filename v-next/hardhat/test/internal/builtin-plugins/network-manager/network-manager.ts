@@ -6,6 +6,7 @@ import type {
   NetworkManager,
 } from "../../../../src/types/network.js";
 import type {
+  EdrNetworkConfigOverride,
   HttpNetworkConfigOverride,
   NetworkConfig,
 } from "@ignored/hardhat-vnext/types/config";
@@ -18,6 +19,10 @@ import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-uti
 import { expectTypeOf } from "expect-type";
 
 import { createHardhatRuntimeEnvironment } from "../../../../src/hre.js";
+import {
+  resolveEdrNetwork,
+  resolveHttpNetwork,
+} from "../../../../src/internal/builtin-plugins/network-manager/config-resolution.js";
 import { NetworkManagerImplementation } from "../../../../src/internal/builtin-plugins/network-manager/network-manager.js";
 import { validateNetworkUserConfig } from "../../../../src/internal/builtin-plugins/network-manager/type-validation.js";
 import {
@@ -25,55 +30,58 @@ import {
   L1_CHAIN_TYPE,
   OPTIMISM_CHAIN_TYPE,
 } from "../../../../src/internal/constants.js";
-import { FixedValueConfigurationVariable } from "../../../../src/internal/core/configuration-variables.js";
+import {
+  FixedValueConfigurationVariable,
+  resolveConfigurationVariable,
+} from "../../../../src/internal/core/configuration-variables.js";
 
 describe("NetworkManagerImplementation", () => {
   let hre: HardhatRuntimeEnvironment;
   let networkManager: NetworkManager;
-  const networks: Record<string, NetworkConfig> = {
-    localhost: {
-      type: "http",
-      chainId: undefined,
-      chainType: undefined,
-      from: undefined,
-      gas: "auto",
-      gasMultiplier: 1,
-      gasPrice: "auto",
-      accounts: [],
-      url: new FixedValueConfigurationVariable("http://localhost:8545"),
-      timeout: 20_000,
-      httpHeaders: {},
-    },
-    customNetwork: {
-      type: "http",
-      chainId: undefined,
-      chainType: undefined,
-      from: undefined,
-      gas: "auto",
-      gasMultiplier: 1,
-      gasPrice: "auto",
-      accounts: [],
-      url: new FixedValueConfigurationVariable("http://node.customNetwork.com"),
-      timeout: 20_000,
-      httpHeaders: {},
-    },
-    myNetwork: {
-      type: "http",
-      chainId: undefined,
-      chainType: OPTIMISM_CHAIN_TYPE,
-      from: undefined,
-      gas: "auto",
-      gasMultiplier: 1,
-      gasPrice: "auto",
-      accounts: [],
-      url: new FixedValueConfigurationVariable("http://node.myNetwork.com"),
-      timeout: 20_000,
-      httpHeaders: {},
-    },
-  };
+  let networks: Record<string, NetworkConfig>;
 
   before(async () => {
     hre = await createHardhatRuntimeEnvironment({});
+
+    networks = {
+      localhost: resolveHttpNetwork(
+        {
+          type: "http",
+          url: "http://localhost:8545",
+        },
+        (varOrStr) => resolveConfigurationVariable(hre.hooks, varOrStr),
+      ),
+      customNetwork: resolveHttpNetwork(
+        {
+          type: "http",
+          url: "http://node.customNetwork.com",
+        },
+        (varOrStr) => resolveConfigurationVariable(hre.hooks, varOrStr),
+      ),
+      myNetwork: resolveHttpNetwork(
+        {
+          type: "http",
+          chainType: OPTIMISM_CHAIN_TYPE,
+          url: "http://node.myNetwork.com",
+        },
+        (varOrStr) => resolveConfigurationVariable(hre.hooks, varOrStr),
+      ),
+      edrNetwork: resolveEdrNetwork(
+        {
+          type: "edr",
+          chainType: OPTIMISM_CHAIN_TYPE,
+          mining: {
+            auto: true,
+            mempool: {
+              order: "priority",
+            },
+          },
+        },
+        "",
+        (varOrStr) => resolveConfigurationVariable(hre.hooks, varOrStr),
+      ),
+    };
+
     networkManager = new NetworkManagerImplementation(
       "localhost",
       GENERIC_CHAIN_TYPE,
@@ -116,10 +124,10 @@ describe("NetworkManagerImplementation", () => {
 
     it("should override the network's chain config with the specified chain config", async () => {
       const httpConfigOverride: HttpNetworkConfigOverride = {
-        chainId: 1234,
+        chainId: 1234, // optional in the resolved config
         timeout: 30_000, // specific to http networks
       };
-      const networkConnection = await networkManager.connect(
+      let networkConnection = await networkManager.connect(
         "myNetwork",
         OPTIMISM_CHAIN_TYPE,
         httpConfigOverride,
@@ -129,6 +137,52 @@ describe("NetworkManagerImplementation", () => {
       assert.deepEqual(networkConnection.networkConfig, {
         ...networks.myNetwork,
         ...httpConfigOverride,
+      });
+
+      // Overriding the url is handled differently
+      // so we need to test it separately
+      networkConnection = await networkManager.connect(
+        "myNetwork",
+        OPTIMISM_CHAIN_TYPE,
+        {
+          url: "http://localhost:8545",
+        },
+      );
+      assert.equal(networkConnection.networkName, "myNetwork");
+      assert.equal(networkConnection.chainType, OPTIMISM_CHAIN_TYPE);
+      assert.deepEqual(networkConnection.networkConfig, {
+        ...networks.myNetwork,
+        url: new FixedValueConfigurationVariable("http://localhost:8545"),
+      });
+    });
+
+    it("should override the network's chain config with the specified chain config recursively", async () => {
+      const edrConfigOverride: EdrNetworkConfigOverride = {
+        mining: {
+          mempool: {
+            order: "fifo",
+          },
+        },
+      };
+      const networkConnection = await networkManager.connect(
+        "edrNetwork",
+        OPTIMISM_CHAIN_TYPE,
+        edrConfigOverride,
+      );
+      assert.equal(networkConnection.networkName, "edrNetwork");
+      assert.equal(networkConnection.chainType, OPTIMISM_CHAIN_TYPE);
+      assert.equal(networks.edrNetwork.type, "edr"); // this is for the type assertion
+      assert.deepEqual(networkConnection.networkConfig, {
+        ...networks.edrNetwork,
+        ...edrConfigOverride,
+        mining: {
+          ...networks.edrNetwork.mining,
+          ...edrConfigOverride.mining,
+          mempool: {
+            ...networks.edrNetwork.mining.mempool,
+            ...edrConfigOverride.mining?.mempool,
+          },
+        },
       });
     });
 

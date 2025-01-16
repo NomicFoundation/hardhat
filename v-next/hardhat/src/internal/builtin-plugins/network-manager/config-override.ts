@@ -75,7 +75,11 @@ export function mergeConfigOverride<T extends object>(
   const result = { ...target };
 
   for (const key in source) {
-    if (isObject(source[key])) {
+    if (
+      isObject(source[key]) &&
+      // Only merge recursively objects that are not class instances
+      Object.getPrototypeOf(source[key]) === Object.prototype
+    ) {
       /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       -- result[key] is either an object or undefined, so we default it to {} */
       result[key] = mergeConfigOverride(
