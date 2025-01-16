@@ -1,5 +1,4 @@
-![hardhat_Ignition_banner](https://github.com/NomicFoundation/hardhat-ignition/assets/24030/cc73227b-8791-4bb3-bc9a-a39be69d215f)
-[![npm](https://img.shields.io/npm/v/@nomicfoundation/hardhat-ignition.svg)](https://www.npmjs.com/package/@nomicfoundation/hardhat-ignition) [![hardhat](https://hardhat.org/buidler-plugin-badge.svg?1)](https://hardhat.org)
+![hardhat_Ignition_banner](https://github.com/NomicFoundation/hardhat-ignition/assets/24030/cc73227b-8791-4bb3-bc9a-a39be69d215f) [![npm](https://img.shields.io/npm/v/@nomicfoundation/hardhat-ignition.svg)](https://www.npmjs.com/package/@nomicfoundation/hardhat-ignition) [![hardhat](https://hardhat.org/buidler-plugin-badge.svg?1)](https://hardhat.org)
 
 ---
 
