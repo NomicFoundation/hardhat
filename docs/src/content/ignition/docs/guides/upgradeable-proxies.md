@@ -316,7 +316,7 @@ import ProxyModule from "../ignition/modules/ProxyModule";
 import UpgradeModule from "../ignition/modules/UpgradeModule";
 
 describe("Demo Proxy", function () {
-  describe("Proxy interaction", async function () {
+  describe("Proxy interaction", function () {
     it("Should be interactable via proxy", async function () {
       const [, otherAccount] = await ethers.getSigners();
 
@@ -357,7 +357,7 @@ const ProxyModule = require("../ignition/modules/ProxyModule");
 const UpgradeModule = require("../ignition/modules/UpgradeModule");
 
 describe("Demo Proxy", function () {
-  describe("Proxy interaction", async function () {
+  describe("Proxy interaction", function () {
     it("Should be interactable via proxy", async function () {
       const [, otherAccount] = await ethers.getSigners();
 
