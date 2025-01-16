@@ -34,7 +34,7 @@ The first batch will contain `Future` objects that meet one of these rules:
 
 - It has started executing in a previous run and has neither completed nor failed.
 - It has no dependency.
-- All of its dependencies were successfully executed in a the previous run.
+- All of its dependencies were successfully executed in the previous run.
 
 The successive batches will have `Future` objects whose dependencies are included in the batches preceding it. For example, batch 4 would have `Future` objects whose dependencies were executed in a previous run, or are included in the batches 1, 2 or 3.
 
