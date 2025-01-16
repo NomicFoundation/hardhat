@@ -1492,8 +1492,8 @@ importers:
         specifier: 0.6.4-alpha.2
         version: 0.6.4-alpha.2
       '@ignored/edr-optimism':
-        specifier: 0.6.5-alpha.0
-        version: 0.6.5-alpha.0
+        specifier: 0.6.5-alpha.2
+        version: 0.6.5-alpha.2
       '@ignored/hardhat-vnext-errors':
         specifier: workspace:^3.0.0-next.15
         version: link:../hardhat-errors
@@ -1517,7 +1517,7 @@ importers:
         version: 5.3.0
       debug:
         specifier: ^4.1.1
-        version: 4.3.7
+        version: 4.3.7(supports-color@8.1.1)
       enquirer:
         specifier: ^2.3.0
         version: 2.4.1
@@ -3058,36 +3058,36 @@ packages:
     resolution: {integrity: sha512-GIHda/5xosqWELyse+wZGTWwwOWxKl1fWh5M5oykTla84TSmM++7VJPvM4Hnt+T+jj9OL2lW1zybvrwwFzxLAQ==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr-optimism-darwin-arm64@0.6.5-alpha.0':
-    resolution: {integrity: sha512-umEVWWr8M3g5uMwmAufkbYWEz0i2cm50ddm3Y2V4yi8qg2W4x4KPkklEILqkYEgeG7HTfODD9gk/ekz71nUR4Q==}
+  '@ignored/edr-optimism-darwin-arm64@0.6.5-alpha.2':
+    resolution: {integrity: sha512-AEZ41XN8KJlPRUc1cSW89SmDNsc1a8XgKA2rX6JrBJvw2rDWCF1yewnJ4Uiov15eA7ppCUSUuXpNiX/P5+EjKw==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr-optimism-darwin-x64@0.6.5-alpha.0':
-    resolution: {integrity: sha512-Vrd0Nt5KT4PrBhb+7FKcyoMQT1YV6nSqoREjHP60gL5KO11IjNFCbVMv3InBeHwNm46wFJjENdCMAcw+Pj+JvA==}
+  '@ignored/edr-optimism-darwin-x64@0.6.5-alpha.2':
+    resolution: {integrity: sha512-PR6aUOgUbPrAaaTxU6/VeLL/OiKcIOzzH3/Ss444giJlTMYinoYeJhEOF1yeuPY65fReWJ55Iq3tLyzBj/bheA==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr-optimism-linux-arm64-gnu@0.6.5-alpha.0':
-    resolution: {integrity: sha512-lvMFt6K/gN+a9Yu4vc55VPXP6qVRQyj+/Gsz6yjTLNkbzwP6hD32T9oliWJJ1aRzOjTwz7/1HBYIwLtuPg6/VA==}
+  '@ignored/edr-optimism-linux-arm64-gnu@0.6.5-alpha.2':
+    resolution: {integrity: sha512-72uUqsebdQd6VdbOe+kz1dsCNAgAX+NX2zeNJtryyXie0BrsKTRCHPwfWETg8ybqx8B7GPbx1pB4ubawSPknyw==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr-optimism-linux-arm64-musl@0.6.5-alpha.0':
-    resolution: {integrity: sha512-3mA+Tl59nt7J3+K79vlpGy1evbtr7q2LfUE2bd2gDegb5JfneeuJGQVPH/zd/3sIZnk624xKkTUTf6psW+r9iw==}
+  '@ignored/edr-optimism-linux-arm64-musl@0.6.5-alpha.2':
+    resolution: {integrity: sha512-P5kAi8p+DnJQ5NkVYSNzptbG8Cy4ZEdSYCJgagUojGqK0dGjj4hQwpKtOahePD/fF6JtF+fG/g6MWEEe9NPnJg==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr-optimism-linux-x64-gnu@0.6.5-alpha.0':
-    resolution: {integrity: sha512-lFsTGtDY2N24L6hgL+wCLCH0uXVaaYUyT32qGajNGt3FHNEtEGCuHYnCqQcDTcOXzXBVocIUkNihLVb/9MpgqA==}
+  '@ignored/edr-optimism-linux-x64-gnu@0.6.5-alpha.2':
+    resolution: {integrity: sha512-CeRk0J/qKe0NCBQWcnhehk2rWUkBqwH44ipNQDwT5cw7ehv6tpgu9OqKV0hOJJOlQl/oGngaCaTzuIQtp9iGhg==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr-optimism-linux-x64-musl@0.6.5-alpha.0':
-    resolution: {integrity: sha512-6lXLOW3e/Bw1z8l/nQmaG7S1Ady1MMxb21fJ9rf6/nod30cBfF4PgefhF2o8D0xGVqfW4FcHhqWtpGj/oV9xZg==}
+  '@ignored/edr-optimism-linux-x64-musl@0.6.5-alpha.2':
+    resolution: {integrity: sha512-nH9kjYPRILjmteCAUfzkws8HsAyl+8EfOmj8a+U29p8yIjtvJLy83hCQWU7Usxdg1e3modTJQqArERlmdKZN3Q==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr-optimism-win32-x64-msvc@0.6.5-alpha.0':
-    resolution: {integrity: sha512-gz29UrSw+3Bj/sWa9JGewHcD9CIj5xi9Zjn9POmwmUUOF/q48SkAJ01XA+BOhpdsR0bx91wWd8lGrAPZghGmIg==}
+  '@ignored/edr-optimism-win32-x64-msvc@0.6.5-alpha.2':
+    resolution: {integrity: sha512-dfbHzuOrVwET2ptIIWifZG0lLGynJhPhhXmjXDhCt2b2JZ0qpPgleuOjPW5oeSsrelwVcHQ4mFOFX/Fz4FCHCg==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr-optimism@0.6.5-alpha.0':
-    resolution: {integrity: sha512-RTMiCC6Y5tOW+q+V+ARpUw3ErmkvBVMYWj+5drq8MEZYOEcrLKXlavm3BM1QqkwWaeO2j+zTrIuI4lRCePj9oQ==}
+  '@ignored/edr-optimism@0.6.5-alpha.2':
+    resolution: {integrity: sha512-AMgM23RRndJ63/pZ6T2tesqb/jg5cwgVgkeOPkVWCCtE74In6YQlsSgRItG7eemVkq+hkuXe14RwCIiJfi8KeQ==}
     engines: {node: '>= 18'}
 
   '@ignored/edr-win32-x64-msvc@0.6.4-alpha.2':
@@ -7425,7 +7425,7 @@ snapshots:
   '@eslint/eslintrc@2.1.4':
     dependencies:
       ajv: 6.12.6
-      debug: 4.3.7
+      debug: 4.3.7(supports-color@8.1.1)
       espree: 9.6.1
       globals: 13.24.0
       ignore: 5.3.2
@@ -7726,7 +7726,7 @@ snapshots:
   '@humanwhocodes/config-array@0.11.14':
     dependencies:
       '@humanwhocodes/object-schema': 2.0.3
-      debug: 4.3.7
+      debug: 4.3.7(supports-color@8.1.1)
       minimatch: 3.1.2
     transitivePeerDependencies:
       - supports-color
@@ -7753,29 +7753,29 @@ snapshots:
   '@ignored/edr-linux-x64-musl@0.6.4-alpha.2':
     optional: true
 
-  '@ignored/edr-optimism-darwin-arm64@0.6.5-alpha.0': {}
+  '@ignored/edr-optimism-darwin-arm64@0.6.5-alpha.2': {}
 
-  '@ignored/edr-optimism-darwin-x64@0.6.5-alpha.0': {}
+  '@ignored/edr-optimism-darwin-x64@0.6.5-alpha.2': {}
 
-  '@ignored/edr-optimism-linux-arm64-gnu@0.6.5-alpha.0': {}
+  '@ignored/edr-optimism-linux-arm64-gnu@0.6.5-alpha.2': {}
 
-  '@ignored/edr-optimism-linux-arm64-musl@0.6.5-alpha.0': {}
+  '@ignored/edr-optimism-linux-arm64-musl@0.6.5-alpha.2': {}
 
-  '@ignored/edr-optimism-linux-x64-gnu@0.6.5-alpha.0': {}
+  '@ignored/edr-optimism-linux-x64-gnu@0.6.5-alpha.2': {}
 
-  '@ignored/edr-optimism-linux-x64-musl@0.6.5-alpha.0': {}
+  '@ignored/edr-optimism-linux-x64-musl@0.6.5-alpha.2': {}
 
-  '@ignored/edr-optimism-win32-x64-msvc@0.6.5-alpha.0': {}
+  '@ignored/edr-optimism-win32-x64-msvc@0.6.5-alpha.2': {}
 
-  '@ignored/edr-optimism@0.6.5-alpha.0':
+  '@ignored/edr-optimism@0.6.5-alpha.2':
     dependencies:
-      '@ignored/edr-optimism-darwin-arm64': 0.6.5-alpha.0
-      '@ignored/edr-optimism-darwin-x64': 0.6.5-alpha.0
-      '@ignored/edr-optimism-linux-arm64-gnu': 0.6.5-alpha.0
-      '@ignored/edr-optimism-linux-arm64-musl': 0.6.5-alpha.0
-      '@ignored/edr-optimism-linux-x64-gnu': 0.6.5-alpha.0
-      '@ignored/edr-optimism-linux-x64-musl': 0.6.5-alpha.0
-      '@ignored/edr-optimism-win32-x64-msvc': 0.6.5-alpha.0
+      '@ignored/edr-optimism-darwin-arm64': 0.6.5-alpha.2
+      '@ignored/edr-optimism-darwin-x64': 0.6.5-alpha.2
+      '@ignored/edr-optimism-linux-arm64-gnu': 0.6.5-alpha.2
+      '@ignored/edr-optimism-linux-arm64-musl': 0.6.5-alpha.2
+      '@ignored/edr-optimism-linux-x64-gnu': 0.6.5-alpha.2
+      '@ignored/edr-optimism-linux-x64-musl': 0.6.5-alpha.2
+      '@ignored/edr-optimism-win32-x64-msvc': 0.6.5-alpha.2
 
   '@ignored/edr-win32-x64-msvc@0.6.4-alpha.2':
     optional: true
@@ -8479,7 +8479,7 @@ snapshots:
       '@typescript-eslint/type-utils': 7.7.1(eslint@8.57.0)(typescript@5.5.4)
       '@typescript-eslint/utils': 7.7.1(eslint@8.57.0)(typescript@5.5.4)
       '@typescript-eslint/visitor-keys': 7.7.1
-      debug: 4.3.7
+      debug: 4.3.7(supports-color@8.1.1)
       eslint: 8.57.0
       graphemer: 1.4.0
       ignore: 5.3.2
@@ -8509,7 +8509,7 @@ snapshots:
       '@typescript-eslint/types': 7.18.0
       '@typescript-eslint/typescript-estree': 7.18.0(typescript@5.5.4)
       '@typescript-eslint/visitor-keys': 7.18.0
-      debug: 4.3.7
+      debug: 4.3.7(supports-color@8.1.1)
       eslint: 8.57.0
     optionalDependencies:
       typescript: 5.5.4
@@ -8522,7 +8522,7 @@ snapshots:
       '@typescript-eslint/types': 7.7.1
       '@typescript-eslint/typescript-estree': 7.7.1(typescript@5.5.4)
       '@typescript-eslint/visitor-keys': 7.7.1
-      debug: 4.3.7
+      debug: 4.3.7(supports-color@8.1.1)
       eslint: 8.57.0
     optionalDependencies:
       typescript: 5.5.4
@@ -8565,7 +8565,7 @@ snapshots:
     dependencies:
       '@typescript-eslint/typescript-estree': 7.18.0(typescript@5.5.4)
       '@typescript-eslint/utils': 7.18.0(eslint@8.57.0)(typescript@5.5.4)
-      debug: 4.3.7
+      debug: 4.3.7(supports-color@8.1.1)
       eslint: 8.57.0
       ts-api-utils: 1.3.0(typescript@5.5.4)
     optionalDependencies:
@@ -8577,7 +8577,7 @@ snapshots:
     dependencies:
       '@typescript-eslint/typescript-estree': 7.7.1(typescript@5.5.4)
       '@typescript-eslint/utils': 7.7.1(eslint@8.57.0)(typescript@5.5.4)
-      debug: 4.3.7
+      debug: 4.3.7(supports-color@8.1.1)
       eslint: 8.57.0
       ts-api-utils: 1.3.0(typescript@5.5.4)
     optionalDependencies:
@@ -8625,7 +8625,7 @@ snapshots:
     dependencies:
       '@typescript-eslint/types': 7.18.0
       '@typescript-eslint/visitor-keys': 7.18.0
-      debug: 4.3.7
+      debug: 4.3.7(supports-color@8.1.1)
       globby: 11.1.0
       is-glob: 4.0.3
       minimatch: 9.0.5
@@ -8640,7 +8640,7 @@ snapshots:
     dependencies:
       '@typescript-eslint/types': 7.7.1
       '@typescript-eslint/visitor-keys': 7.7.1
-      debug: 4.3.7
+      debug: 4.3.7(supports-color@8.1.1)
       globby: 11.1.0
       is-glob: 4.0.3
       minimatch: 9.0.5
@@ -8771,7 +8771,7 @@ snapshots:
 
   agent-base@6.0.2:
     dependencies:
-      debug: 4.3.7
+      debug: 4.3.7(supports-color@8.1.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -9343,10 +9343,6 @@ snapshots:
     dependencies:
       ms: 2.1.3
 
-  debug@4.3.7:
-    dependencies:
-      ms: 2.1.3
-
   debug@4.3.7(supports-color@8.1.1):
     dependencies:
       ms: 2.1.3
@@ -9648,7 +9644,7 @@ snapshots:
   eslint-import-resolver-typescript@3.6.3(@typescript-eslint/parser@7.18.0(eslint@8.57.0)(typescript@5.5.4))(eslint-plugin-import@2.29.1)(eslint@8.57.0):
     dependencies:
       '@nolyfill/is-core-module': 1.0.39
-      debug: 4.3.7
+      debug: 4.3.7(supports-color@8.1.1)
       enhanced-resolve: 5.17.1
       eslint: 8.57.0
       eslint-module-utils: 2.12.0(@typescript-eslint/parser@7.18.0(eslint@8.57.0)(typescript@5.5.4))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.3)(eslint@8.57.0)
@@ -9814,7 +9810,7 @@ snapshots:
       ajv: 6.12.6
       chalk: 4.1.2
       cross-spawn: 7.0.3
-      debug: 4.3.7
+      debug: 4.3.7(supports-color@8.1.1)
       doctrine: 3.0.0
       escape-string-regexp: 4.0.0
       eslint-scope: 7.2.2
@@ -10415,7 +10411,7 @@ snapshots:
   https-proxy-agent@5.0.1:
     dependencies:
       agent-base: 6.0.2
-      debug: 4.3.7
+      debug: 4.3.7(supports-color@8.1.1)
     transitivePeerDependencies:
       - supports-color
 
