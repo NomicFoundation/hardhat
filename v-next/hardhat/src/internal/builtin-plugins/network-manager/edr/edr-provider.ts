@@ -395,6 +395,8 @@ async function getProviderConfig(
       },
     },
     networkId: BigInt(networkConfig.networkId),
-    ownedAccounts: hardhatAccountsToEdrOwnedAccounts(networkConfig.accounts),
+    ownedAccounts: await hardhatAccountsToEdrOwnedAccounts(
+      networkConfig.accounts,
+    ),
   };
 }
