@@ -5,5 +5,8 @@
     "composite": true,
     "jsx": "react-jsx"
   },
-  "references": [{ "path": "../core" }, { "path": "../hardhat-plugin" }]
+  "references": [
+    { "path": "../hardhat-ignition-core" },
+    { "path": "../hardhat-ignition" }
+  ]
 }
