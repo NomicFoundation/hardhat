@@ -1,4 +1,4 @@
-import type { NetworkConfig } from "./config.js";
+import type { NetworkConfig, NetworkConfigOverride } from "./config.js";
 import type { EthereumProvider } from "./providers.js";
 
 /**
@@ -44,7 +44,7 @@ export interface NetworkManager {
   connect<ChainTypeT extends ChainType = DefaultChainType>(
     networkName?: string,
     chainType?: ChainTypeT,
-    networkConfigOverride?: Partial<NetworkConfig>,
+    networkConfigOverride?: NetworkConfigOverride,
   ): Promise<NetworkConnection<ChainTypeT>>;
 }
 

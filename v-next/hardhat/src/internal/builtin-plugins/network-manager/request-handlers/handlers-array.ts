@@ -6,7 +6,7 @@ import type {
 
 import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
 
-import { isHdAccountsConfig } from "../type-validation.js";
+import { isHttpNetworkHdAccountsConfig } from "../type-validation.js";
 
 import { AutomaticSenderHandler } from "./handlers/accounts/automatic-sender-handler.js";
 import { FixedSenderHandler } from "./handlers/accounts/fixed-sender-handler.js";
@@ -96,7 +96,7 @@ export async function createHandlersArray<
       requestHandlers.push(
         new LocalAccountsHandler(networkConnection.provider, resolvedAccounts),
       );
-    } else if (isHdAccountsConfig(accounts)) {
+    } else if (isHttpNetworkHdAccountsConfig(accounts)) {
       requestHandlers.push(
         new HDWalletHandler(
           networkConnection.provider,

@@ -1,4 +1,7 @@
-import type { NetworkConfig } from "../../../types/config.js";
+import type {
+  NetworkConfig,
+  NetworkConfigOverride,
+} from "../../../types/config.js";
 import type { HookManager } from "../../../types/hooks.js";
 import type {
   ChainType,
@@ -14,11 +17,18 @@ import type {
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
+import { resolveConfigurationVariable } from "../../core/configuration-variables.js";
+
+import {
+  mergeConfigOverride,
+  normalizeNetworkConfigOverride,
+} from "./config-override.js";
+import { resolveNetworkConfigOverride } from "./config-resolution.js";
 import { EdrProvider } from "./edr/edr-provider.js";
 import { isEdrSupportedChainType } from "./edr/utils/chain-type.js";
 import { HttpProvider } from "./http-provider.js";
 import { NetworkConnectionImplementation } from "./network-connection.js";
-import { isNetworkConfig, validateNetworkConfig } from "./type-validation.js";
+import { validateNetworkConfigOverride } from "./type-validation.js";
 
 export type JsonRpcRequestWrapperFunction = (
   request: JsonRpcRequest,
@@ -50,7 +60,7 @@ export class NetworkManagerImplementation implements NetworkManager {
   >(
     networkName?: string,
     chainType?: ChainTypeT,
-    networkConfigOverride?: Partial<NetworkConfig>,
+    networkConfigOverride?: NetworkConfigOverride,
   ): Promise<NetworkConnection<ChainTypeT>> {
     const networkConnection = await this.#hookManager.runHandlerChain(
       "network",
@@ -72,7 +82,7 @@ export class NetworkManagerImplementation implements NetworkManager {
   async #initializeNetworkConnection<ChainTypeT extends ChainType | string>(
     networkName?: string,
     chainType?: ChainTypeT,
-    networkConfigOverride?: Partial<NetworkConfig>,
+    networkConfigOverride?: NetworkConfigOverride,
   ): Promise<NetworkConnection<ChainTypeT>> {
     const resolvedNetworkName = networkName ?? this.#defaultNetwork;
     if (this.#networkConfigs[resolvedNetworkName] === undefined) {
@@ -81,39 +91,58 @@ export class NetworkManagerImplementation implements NetworkManager {
       });
     }
 
-    if (
-      networkConfigOverride !== undefined &&
-      "type" in networkConfigOverride &&
-      networkConfigOverride.type !==
-        this.#networkConfigs[resolvedNetworkName].type
-    ) {
-      throw new HardhatError(
-        HardhatError.ERRORS.NETWORK.INVALID_CONFIG_OVERRIDE,
-        {
-          errors: `\t* The type of the network cannot be changed.`,
-        },
+    let resolvedNetworkConfigOverride: Partial<NetworkConfig> | undefined;
+    if (networkConfigOverride !== undefined) {
+      if (
+        "type" in networkConfigOverride &&
+        networkConfigOverride.type !==
+          this.#networkConfigs[resolvedNetworkName].type
+      ) {
+        throw new HardhatError(
+          HardhatError.ERRORS.NETWORK.INVALID_CONFIG_OVERRIDE,
+          {
+            errors: `\t* The type of the network cannot be changed.`,
+          },
+        );
+      }
+
+      const normalizedNetworkConfigOverride =
+        await normalizeNetworkConfigOverride(
+          networkConfigOverride,
+          this.#networkConfigs[resolvedNetworkName],
+        );
+
+      // As normalizeNetworkConfigOverride is not type-safe, we validate the
+      // normalized network config override immediately after normalizing it.
+      const validationErrors = await validateNetworkConfigOverride(
+        normalizedNetworkConfigOverride,
+      );
+      if (validationErrors.length > 0) {
+        throw new HardhatError(
+          HardhatError.ERRORS.NETWORK.INVALID_CONFIG_OVERRIDE,
+          {
+            errors: `\t${validationErrors
+              .map((error) =>
+                error.path.length > 0
+                  ? `* Error in ${error.path.join(".")}: ${error.message}`
+                  : `* ${error.message}`,
+              )
+              .join("\n\t")}`,
+          },
+        );
+      }
+
+      resolvedNetworkConfigOverride = resolveNetworkConfigOverride(
+        normalizedNetworkConfigOverride,
+        (strOrConfigVar) =>
+          resolveConfigurationVariable(this.#hookManager, strOrConfigVar),
       );
     }
 
-    const resolvedNetworkConfig = {
-      ...this.#networkConfigs[resolvedNetworkName],
-      ...networkConfigOverride,
-    };
-
-    if (!isNetworkConfig(resolvedNetworkConfig)) {
-      const validationErrors = validateNetworkConfig(resolvedNetworkConfig);
-
-      throw new HardhatError(
-        HardhatError.ERRORS.NETWORK.INVALID_CONFIG_OVERRIDE,
-        {
-          errors: `\t${validationErrors
-            .map(
-              (error) => `* Error in ${error.path.join(".")}: ${error.message}`,
-            )
-            .join("\n\t")}`,
-        },
-      );
-    }
+    const resolvedNetworkConfig = mergeConfigOverride(
+      this.#networkConfigs[resolvedNetworkName],
+      resolvedNetworkConfigOverride,
+    );
 
     /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     -- Cast to ChainTypeT because we know it's valid */
