@@ -507,7 +507,7 @@ describe("abi", () => {
           });
         });
 
-        describe("When the function returns something and there's no clash", async () => {
+        describe("When the function returns something and there's no clash", () => {
           it("should return RevertWithoutReason", async () => {
             const { decoded } = decode("C", "revertWithoutReasonWithoutClash");
             assert.deepEqual(decoded, {
@@ -631,7 +631,7 @@ describe("abi", () => {
           });
         });
 
-        describe("When the function returns something and there's no clash", async () => {
+        describe("When the function returns something and there's no clash", () => {
           it("should return RevertWithoutReason", async () => {
             const { decoded } = decode("C", "invalidOpcode");
             assert.deepEqual(decoded, {

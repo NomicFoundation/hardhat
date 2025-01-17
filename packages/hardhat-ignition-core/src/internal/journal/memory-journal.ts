@@ -10,18 +10,18 @@ import { emitExecutionEvent } from "./utils/emitExecutionEvent";
  * @beta
  */
 export class MemoryJournal implements Journal {
-  private messages: JournalMessage[] = [];
+  private _messages: JournalMessage[] = [];
 
   constructor(private _executionEventListener?: ExecutionEventListener) {}
 
   public record(message: JournalMessage): void {
     this._log(message);
 
-    this.messages.push(message);
+    this._messages.push(message);
   }
 
   public async *read(): AsyncGenerator<JournalMessage> {
-    for (const message of this.messages) {
+    for (const message of this._messages) {
       yield message;
     }
   }

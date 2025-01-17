@@ -53,7 +53,7 @@ describe("JSON-RPC client", function () {
       return { artifact, address: receipt!.contractAddress! };
     }
 
-    describe("getChainId", async function () {
+    describe("getChainId", function () {
       it("Should return the chainId as number", async function () {
         const chainId = await client.getChainId();
 
@@ -61,7 +61,7 @@ describe("JSON-RPC client", function () {
       });
     });
 
-    describe("getLatestBlock", async function () {
+    describe("getLatestBlock", function () {
       it("Should return the first block in the correct format", async function () {
         const block = await client.getLatestBlock();
 
@@ -80,7 +80,7 @@ describe("JSON-RPC client", function () {
       });
     });
 
-    describe("getNetworkFees", async function () {
+    describe("getNetworkFees", function () {
       describe("With an EIP-1559 network (i.e. Hardhat Network)", function () {
         it("Should return information about EIP-1559 fees", async function () {
           const fees = await client.getNetworkFees();
