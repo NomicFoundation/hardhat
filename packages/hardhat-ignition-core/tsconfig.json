@@ -6,5 +6,5 @@
     "composite": true,
     "incremental": true
   },
-  "references": []
+  "references": [{ "path": "../hardhat-core" }]
 }
