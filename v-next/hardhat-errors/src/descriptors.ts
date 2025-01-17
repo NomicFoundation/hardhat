@@ -954,7 +954,7 @@ Remaining test suites: {suites}`,
       websiteTitle: "Imported file doesn't exist",
       websiteDescription: `An imported file doesn't exist.`,
     },
-    IMPORTED_FILE_WITH_ICORRECT_CASING: {
+    IMPORTED_FILE_WITH_INCORRECT_CASING: {
       number: 1203,
       messageTemplate:
         'The import "{importPath} from "{from}" exists, but its casing is incorrect. The correct casing is "{correctCasing}".',
@@ -1194,6 +1194,12 @@ Please check Hardhat's output for more details.`,
       messageTemplate: `A wasm version of solc {version} is invalid. The compile function is not available.`,
       websiteTitle: "Invalid solcjs compiler",
       websiteDescription: `Hardhat successfully downloaded a WASM version of solc {version} but it is invalid. The compile function is missing.`,
+    },
+    RESOLVE_NOT_EXPORTED_NPM_FILE: {
+      number: 1232,
+      messageTemplate: `You are tying to resolve the npm file "{module}", but it's not exported by its package`,
+      websiteTitle: "Resolution of not-exported npm file",
+      websiteDescription: `You are tying to resolve an npm file that is not exported by its package.`,
     },
   },
   VIEM: {

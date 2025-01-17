@@ -1,3 +1,5 @@
+import type { Exports } from "resolve.exports";
+
 /**
  * The representation of an npm package.
  */
@@ -11,6 +13,11 @@ export interface ResolvedNpmPackage {
    * The version of the package.
    */
   version: string;
+
+  /**
+   * The exports of the package.
+   */
+  exports?: Exports;
 
   /**
    * The path to the package's root directory.
@@ -35,7 +42,7 @@ export interface ResolvedNpmPackage {
  */
 export enum ResolvedFileType {
   PROJECT_FILE = "PROJECT_FILE",
-  NPM_PACKGE_FILE = "NPM_PACKAGE_FILE",
+  NPM_PACKAGE_FILE = "NPM_PACKAGE_FILE",
 }
 
 /**
@@ -64,7 +71,7 @@ export interface ProjectResolvedFile {
  * A file that's part of an npm package.
  */
 export interface NpmPackageResolvedFile {
-  type: ResolvedFileType.NPM_PACKGE_FILE;
+  type: ResolvedFileType.NPM_PACKAGE_FILE;
 
   /**
    * The source of an npm package file is `npm/<package-name>@<version>/<path>`.
