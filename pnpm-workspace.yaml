@@ -1,2 +1,4 @@
 packages:
   - "packages/*"
+  - "!packages/hardhat-ignition-legacy"
+  - "!packages/hardhat-ignition-examples"
