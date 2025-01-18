@@ -76,8 +76,8 @@ function addDependencies(packageName, dependenciesToAdd, allDependenciesMap) {
     return;
   }
 
-  for (const [name, specWithWorspace] of Object.entries(dependenciesToAdd)) {
-    const spec = specWithWorspace.replace(/^workspace:/, "");
+  for (const [name, specWithWorkspace] of Object.entries(dependenciesToAdd)) {
+    const spec = specWithWorkspace.replace(/^workspace:/, "");
     if (IGNORE_SAME_VERSION_FROM_ALL.includes(name)) {
       continue;
     }
