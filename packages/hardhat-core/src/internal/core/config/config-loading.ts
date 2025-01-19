@@ -29,7 +29,7 @@ export function importCsjOrEsModule(filePath: string): any {
     const imported = require(filePath);
     return imported.default !== undefined ? imported.default : imported;
   } catch (e: any) {
-    if (e.code === "ERR_REQUIRE_ESM") {
+    if (e.code === "ERR_REQUIRE_ESM" || e.message === "module is not defined" || e.message === "require is not defined") {
       throw new HardhatError(
         ERRORS.GENERAL.ESM_PROJECT_WITHOUT_CJS_CONFIG,
         {},
