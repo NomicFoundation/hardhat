@@ -408,9 +408,9 @@ export const createLayouts = () => {
     );
 
   /**
-   * We generating this config once per build from `getStaticPaths`.
-   * After that we writing the config to a temporary file for reusing this data from `getStaticProps` on page generations.
-   * So each single page don't need to execute this function again
+   * We are generating this config once per build from `getStaticPaths`.
+   * After that we are writing the config to a temporary file for reusing this data from `getStaticProps` on page generations.
+   * So each single page doesn't need to execute this function again
    */
   const sidebarConfigPath = `${TEMP_PATH}sidebarConfig.json`;
   fs.writeFileSync(
