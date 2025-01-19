@@ -1,6 +1,6 @@
 # Hardhat Boilerplate Project
 
-If you want to get started with your dApp quickly or see what this whole project looks like with a frontend, you can use [our boilerplate repo](https://github.com/NomicFoundation/hardhat-boilerplate).
+If you want to get started with your dApp quickly or see what this whole project looks like with a front-end, you can use [our boilerplate repo](https://github.com/NomicFoundation/hardhat-boilerplate).
 
 ## What's included
 
@@ -18,16 +18,16 @@ In the root of the repo you'll find the Hardhat project we put together through 
 - Anyone with at least one token can transfer tokens.
 - The token is non-divisible. You can transfer 1, 2, 3 or 37 tokens but not 2.5.
 
-### Frontend app
+### Front-end app
 
-In `frontend` you'll find a simple app that allows the user to do two things:
+In `front-end` you'll find a simple app that allows the user to do two things:
 
 - Check the connected wallet's balance
 - Send tokens to an address
 
 It's a separate npm project and it was created using `create-react-app`, so this means that it uses webpack and babel.
 
-### Frontend file architecture
+### Front-end file architecture
 
 - `src/` contains all the code
   - `src/components` contains the react components
@@ -54,7 +54,7 @@ npx hardhat run scripts/deploy.js --network localhost
 This will deploy the contract to Hardhat Network. After this completes, start the react web app:
 
 ```
-cd frontend
+cd front-end
 npm install
 npm run start
 ```
@@ -73,13 +73,13 @@ After connecting your wallet, you should see this:
 
 ![](/front-2.png)
 
-What's happening here is that the frontend code to show the current wallet's balance is detecting that the balance is `0`, so you wouldn't be able to try the transfer functionality. By running:
+What's happening here is that the front-end code to show the current wallet's balance is detecting that the balance is `0`, so you wouldn't be able to try the transfer functionality. By running:
 
 ```
 npx hardhat --network localhost faucet <your address>
 ```
 
-You'll run a custom Hardhat task we included that uses the balance of the deploying account to send 100 MHT and 1 ETH to your address. This will allow you to send tokens to another address. The transaction might take a few seconds before updating the balance visible in the frontend.
+You'll run a custom Hardhat task we included that uses the balance of the deploying account to send 100 MHT and 1 ETH to your address. This will allow you to send tokens to another address. The transaction might take a few seconds before updating the balance visible in the front-end.
 
 You can check out the code for the task in [`/tasks/faucet.js`](https://github.com/NomicFoundation/hardhat-boilerplate/blob/master/tasks/faucet.js), which is required from `hardhat.config.js`.
 
