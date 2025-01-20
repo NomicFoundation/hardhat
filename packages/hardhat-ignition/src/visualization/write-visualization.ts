@@ -22,7 +22,7 @@ export async function writeVisualization(
   );
 
   console.log("templateDir", templateDir);
-  console.log(readdirSync(require.resolve("@nomicfoundation/ignition-ui")));
+  console.log(readdirSync(path.join(templateDir, "..")));
 
   const templateDirExists = await pathExists(templateDir);
 
