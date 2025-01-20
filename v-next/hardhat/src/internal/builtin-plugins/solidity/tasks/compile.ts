@@ -1,10 +1,9 @@
 import type { NewTaskActionFunction } from "../../../../types/tasks.js";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { resolveFromRoot } from "@ignored/hardhat-vnext-utils/path";
 
-import { FileBuildResultType } from "../../../../types/solidity.js";
 import { shouldMergeCompilationJobs } from "../build-profiles.js";
+import { throwIfSolidityBuildFailed } from "../build-results.js";
 import { isNpmRootPath } from "../build-system/root-paths-utils.js";
 
 interface CompileActionArguments {
@@ -37,26 +36,7 @@ const compileAction: NewTaskActionFunction<CompileActionArguments> = async (
     quiet,
   });
 
-  if ("reason" in results) {
-    throw new HardhatError(
-      HardhatError.ERRORS.SOLIDITY.COMPILATION_JOB_CREATION_ERROR,
-      {
-        reason: results.formattedReason,
-        rootFilePath: results.rootFilePath,
-        buildProfile: results.buildProfile,
-      },
-    );
-  }
-
-  const sucessful = [...results.values()].every(
-    ({ type }) =>
-      type === FileBuildResultType.CACHE_HIT ||
-      type === FileBuildResultType.BUILD_SUCCESS,
-  );
-
-  if (!sucessful) {
-    throw new HardhatError(HardhatError.ERRORS.SOLIDITY.BUILD_FAILED);
-  }
+  throwIfSolidityBuildFailed(results);
 
   // If we recompiled the entire project we cleanup the artifacts
   if (files.length === 0) {

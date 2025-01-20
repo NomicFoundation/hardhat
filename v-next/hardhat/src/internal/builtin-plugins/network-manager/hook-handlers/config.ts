@@ -14,6 +14,7 @@ import type { ConfigHooks } from "../../../../types/hooks.js";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
+import { GENERIC_CHAIN_TYPE } from "../../../constants.js";
 import {
   resolveChains,
   resolveCoinbase,
@@ -25,11 +26,11 @@ import {
   resolveInitialBaseFeePerGas,
   resolveMiningConfig,
 } from "../config-resolution.js";
-import { validateUserConfig } from "../type-validation.js";
+import { validateNetworkUserConfig } from "../type-validation.js";
 
 export default async (): Promise<Partial<ConfigHooks>> => ({
   extendUserConfig,
-  validateUserConfig,
+  validateUserConfig: validateNetworkUserConfig,
   resolveUserConfig,
 });
 
@@ -113,7 +114,7 @@ export async function resolveUserConfig(
         gas: resolveGasConfig(networkConfig.gas),
         gasMultiplier: networkConfig.gasMultiplier ?? 1,
         gasPrice: resolveGasConfig(networkConfig.gasPrice),
-        url: networkConfig.url,
+        url: resolveConfigurationVariable(networkConfig.url),
         timeout: networkConfig.timeout ?? 20_000,
         httpHeaders: networkConfig.httpHeaders ?? {},
       };
@@ -124,7 +125,10 @@ export async function resolveUserConfig(
     if (networkConfig.type === "edr") {
       const resolvedNetworkConfig: EdrNetworkConfig = {
         type: "edr",
-        accounts: resolveEdrNetworkAccounts(networkConfig.accounts),
+        accounts: resolveEdrNetworkAccounts(
+          networkConfig.accounts,
+          resolveConfigurationVariable,
+        ),
         chainId: networkConfig.chainId ?? 31337,
         chainType: networkConfig.chainType,
         from: networkConfig.from,
@@ -144,6 +148,7 @@ export async function resolveUserConfig(
         forking: resolveForkingConfig(
           networkConfig.forking,
           resolvedConfig.paths.cache,
+          resolveConfigurationVariable,
         ),
         hardfork: resolveHardfork(
           networkConfig.hardfork,
@@ -168,7 +173,7 @@ export async function resolveUserConfig(
 
   return {
     ...resolvedConfig,
-    defaultChainType: resolvedConfig.defaultChainType ?? "generic",
+    defaultChainType: resolvedConfig.defaultChainType ?? GENERIC_CHAIN_TYPE,
     defaultNetwork: resolvedConfig.defaultNetwork ?? "hardhat",
     networks: resolvedNetworks,
   };

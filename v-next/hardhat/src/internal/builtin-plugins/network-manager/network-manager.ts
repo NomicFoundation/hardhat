@@ -15,6 +15,7 @@ import type {
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
 import { EdrProvider } from "./edr/edr-provider.js";
+import { isEdrSupportedChainType } from "./edr/utils/chain-type.js";
 import { HttpProvider } from "./http-provider.js";
 import { NetworkConnectionImplementation } from "./network-connection.js";
 import { isNetworkConfig, validateNetworkConfig } from "./type-validation.js";
@@ -28,7 +29,7 @@ export class NetworkManagerImplementation implements NetworkManager {
   readonly #defaultNetwork: string;
   readonly #defaultChainType: DefaultChainType;
   readonly #networkConfigs: Readonly<Record<string, Readonly<NetworkConfig>>>;
-  readonly #hookManager: HookManager;
+  readonly #hookManager: Readonly<HookManager>;
 
   #nextConnectionId = 0;
 
@@ -137,7 +138,9 @@ export class NetworkManagerImplementation implements NetworkManager {
       });
     }
 
-    // We only need to capture the hook manager in the closures below
+    /* Capture the hook manager in a local variable to avoid retaining a
+    reference to the NetworkManager instance, allowing the garbage collector
+    to clean up the NetworkConnectionImplementation instances properly. */
     const hookManager = this.#hookManager;
 
     const createProvider = async (
@@ -155,11 +158,7 @@ export class NetworkManagerImplementation implements NetworkManager {
         );
 
       if (resolvedNetworkConfig.type === "edr") {
-        if (
-          resolvedChainType !== "optimism" &&
-          resolvedChainType !== "generic" &&
-          resolvedChainType !== "l1"
-        ) {
+        if (!isEdrSupportedChainType(resolvedChainType)) {
           throw new HardhatError(
             HardhatError.ERRORS.GENERAL.UNSUPPORTED_OPERATION,
             { operation: `Simulating chain type ${resolvedChainType}` },
@@ -180,7 +179,7 @@ export class NetworkManagerImplementation implements NetworkManager {
       }
 
       return HttpProvider.create({
-        url: resolvedNetworkConfig.url,
+        url: await resolvedNetworkConfig.url.getUrl(),
         networkName: resolvedNetworkName,
         extraHeaders: resolvedNetworkConfig.httpHeaders,
         timeout: resolvedNetworkConfig.timeout,

@@ -69,7 +69,7 @@ export interface SolidityBuildSystemOptions {
 export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
   readonly #hooks: HookManager;
   readonly #options: SolidityBuildSystemOptions;
-  readonly #defaultConcurrenty = Math.max(os.cpus().length - 1, 1);
+  readonly #defaultConcurrency = Math.max(os.cpus().length - 1, 1);
   #downloadedCompilers = false;
 
   constructor(hooks: HookManager, options: SolidityBuildSystemOptions) {
@@ -81,7 +81,10 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     const localFilesToCompile = (
       await Promise.all(
         this.#options.soliditySourcesPaths.map((dir) =>
-          getAllFilesMatching(dir, (f) => f.endsWith(".sol")),
+          getAllFilesMatching(
+            dir,
+            (f) => f.endsWith(".sol") && !f.endsWith(".t.sol"),
+          ),
         ),
       )
     ).flat(1);
@@ -121,7 +124,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       compilationJobs,
       (compilationJob) => this.runCompilationJob(compilationJob),
       {
-        concurrency: options?.concurrency ?? this.#defaultConcurrenty,
+        concurrency: options?.concurrency ?? this.#defaultConcurrency,
         // An error when running the compiler is not a compilation failure, but
         // a fatal failure trying to run it, so we just throw on the first error
         stopOnError: true,

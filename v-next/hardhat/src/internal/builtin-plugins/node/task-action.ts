@@ -5,7 +5,9 @@ import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { exists } from "@ignored/hardhat-vnext-utils/fs";
 import chalk from "chalk";
 
+import { resolveConfigurationVariable } from "../../core/configuration-variables.js";
 import { resolveForkingConfig } from "../network-manager/config-resolution.js";
+import { isEdrSupportedChainType } from "../network-manager/edr/utils/chain-type.js";
 
 import { JsonRpcServerImplementation } from "./json-rpc/server.js";
 
@@ -46,11 +48,7 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
   const networkConfigOverride: Partial<EdrNetworkConfig> = {};
 
   if (args.chainType !== "") {
-    if (
-      args.chainType !== "generic" &&
-      args.chainType !== "l1" &&
-      args.chainType !== "optimism"
-    ) {
+    if (!isEdrSupportedChainType(args.chainType)) {
       // NOTE: We could make the error more specific here.
       throw new HardhatError(
         HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
@@ -79,6 +77,8 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
           : undefined),
       },
       hre.config.paths.cache,
+      (strOrConfigVar) =>
+        resolveConfigurationVariable(hre.hooks, strOrConfigVar),
     );
   } else if (args.forkBlockNumber !== -1) {
     // NOTE: We could make the error more specific here.

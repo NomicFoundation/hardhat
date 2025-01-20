@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
 
 import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
+import { isObject } from "@ignored/hardhat-vnext-utils/lang";
 
 import {
   getJsonRpcRequest,
@@ -30,11 +31,10 @@ describe("FixedGasPriceHandler", () => {
     ]);
 
     fixedGasPriceHandler.handle(jsonRpcRequest);
+    const [tx] = getRequestParams(jsonRpcRequest);
 
-    assert.equal(
-      getRequestParams(jsonRpcRequest)[0].gasPrice,
-      numberToHexString(FIXED_GAS_PRICE),
-    );
+    assert.ok(isObject(tx), "tx is not an object");
+    assert.equal(tx.gasPrice, numberToHexString(FIXED_GAS_PRICE));
   });
 
   it("shouldn't replace the provided gasPrice", async () => {
@@ -48,8 +48,10 @@ describe("FixedGasPriceHandler", () => {
     ]);
 
     fixedGasPriceHandler.handle(jsonRpcRequest);
+    const [tx] = getRequestParams(jsonRpcRequest);
 
-    assert.equal(getRequestParams(jsonRpcRequest)[0].gasPrice, 14567);
+    assert.ok(isObject(tx), "tx is not an object");
+    assert.equal(tx.gasPrice, 14567);
   });
 
   it("should forward the other calls and not modify the gasPrice", async () => {
@@ -62,7 +64,9 @@ describe("FixedGasPriceHandler", () => {
     ]);
 
     fixedGasPriceHandler.handle(jsonRpcRequest);
+    const [tx] = getRequestParams(jsonRpcRequest);
 
-    assert.equal(getRequestParams(jsonRpcRequest)[0].gas, undefined);
+    assert.ok(isObject(tx), "tx is not an object");
+    assert.equal(tx.gas, undefined);
   });
 });

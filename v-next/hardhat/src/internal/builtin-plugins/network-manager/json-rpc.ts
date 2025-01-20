@@ -33,23 +33,17 @@ export function getJsonRpcRequest(
   return requestObject;
 }
 
-export function parseJsonRpcResponse(
-  text: string,
-): JsonRpcResponse | JsonRpcResponse[] {
+export function parseJsonRpcResponse(text: string): JsonRpcResponse {
   try {
     const json: unknown = JSON.parse(text);
 
-    if (Array.isArray(json)) {
-      if (json.every(isJsonRpcResponse)) {
-        return json;
-      }
-    } else if (isJsonRpcResponse(json)) {
-      return json;
+    if (!isJsonRpcResponse(json)) {
+      /* eslint-disable-next-line no-restricted-syntax -- allow throwing a
+      generic error here as it will be handled in the catch block */
+      throw new Error("Invalid JSON-RPC response");
     }
 
-    /* eslint-disable-next-line no-restricted-syntax -- allow throwing a
-    generic error here as it will be handled in the catch block */
-    throw new Error();
+    return json;
   } catch {
     throw new HardhatError(HardhatError.ERRORS.NETWORK.INVALID_JSON_RESPONSE, {
       response: text,
@@ -133,7 +127,9 @@ export function isFailedJsonRpcResponse(
   return "error" in payload && payload.error !== undefined;
 }
 
-export function getRequestParams(requestArguments: RequestArguments): any[] {
+export function getRequestParams(
+  requestArguments: RequestArguments,
+): unknown[] {
   if (requestArguments.params === undefined) {
     return [];
   }

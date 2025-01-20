@@ -32,6 +32,7 @@ const hardhatPlugin: HardhatPlugin = {
   hookHandlers: {
     config: import.meta.resolve("./hookHandlers/config.js"),
   },
+  npmPackage: "@ignored/hardhat-vnext-node-test-runner",
 };
 
 export default hardhatPlugin;
