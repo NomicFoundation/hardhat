@@ -1,6 +1,16 @@
 const fs = require("fs");
 const path = require("path");
 
+// Ignition packages are allowed to have different versions of the same
+// dependency for now as we will sync them properly in Hardhat v3
+const IGNORE_SAME_VERSION_FOR_IGNITION_PACKAGES = [
+  "@nomicfoundation/hardhat-ignition",
+  "@nomicfoundation/ignition-core",
+  "@nomicfoundation/hardhat-ignition-ethers",
+  "@nomicfoundation/hardhat-ignition-viem",
+  "@nomicfoundation/ignition-ui",
+];
+
 // An array of dependencies whose version checks are ignored for all the
 // packages
 const IGNORE_SAME_VERSION_FROM_ALL = ["web3", "hardhat"];
@@ -83,8 +93,9 @@ function addDependencies(packageName, dependenciesToAdd, allDependenciesMap) {
     }
 
     if (
-      IGNORE_SAME_VERSION_FOR_PACKAGES[name] !== undefined &&
-      IGNORE_SAME_VERSION_FOR_PACKAGES[name].includes(packageName)
+      (IGNORE_SAME_VERSION_FOR_PACKAGES[name] !== undefined &&
+        IGNORE_SAME_VERSION_FOR_PACKAGES[name].includes(packageName)) ||
+      IGNORE_SAME_VERSION_FOR_IGNITION_PACKAGES.includes(packageName)
     ) {
       continue;
     }

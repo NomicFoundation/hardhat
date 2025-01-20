@@ -1,0 +1,16 @@
+/**
+ * comments allowed in json5
+ */
+
+{
+  // no quotes around keys
+  LockModule: {
+    // weird multi-line but should pass
+    unlockTime: "1\
+893\
+499\
+200\
+000n",
+    lockedAmount: "2000000000000n",
+  },
+}

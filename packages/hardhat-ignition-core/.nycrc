@@ -1,0 +1,12 @@
+{
+  "extends": "@istanbuljs/nyc-config-typescript",
+  "check-coverage": true,
+  "statements": 75,
+  "branches": 65,
+  "functions": 70,
+  "lines": 75,
+  "all": true,
+  "include": ["src/**/*.ts"],
+  "reporter": ["html", "lcov", "text", "text-summary"],
+  "report-dir": "coverage"
+}
