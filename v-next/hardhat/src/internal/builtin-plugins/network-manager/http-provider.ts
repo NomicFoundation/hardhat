@@ -22,10 +22,7 @@ import {
   ResponseStatusCodeError,
 } from "@ignored/hardhat-vnext-utils/request";
 
-import {
-  EDR_NETWORK_RESET_EVENT,
-  EDR_NETWORK_REVERT_SNAPSHOT_EVENT,
-} from "../../constants.js";
+import { EDR_NETWORK_REVERT_SNAPSHOT_EVENT } from "../../constants.js";
 import { getHardhatVersion } from "../../utils/package.js";
 
 import { BaseProvider } from "./base-provider.js";
@@ -123,7 +120,7 @@ export class HttpProvider extends BaseProvider {
       params,
     );
 
-    let jsonRpcResponse;
+    let jsonRpcResponse: JsonRpcResponse;
 
     if (this.#jsonRpcRequestWrapper !== undefined) {
       jsonRpcResponse = await this.#jsonRpcRequestWrapper(
@@ -145,9 +142,6 @@ export class HttpProvider extends BaseProvider {
       throw error;
     }
 
-    if (jsonRpcRequest.method === "hardhat_reset") {
-      this.emit(EDR_NETWORK_RESET_EVENT);
-    }
     if (jsonRpcRequest.method === "evm_revert") {
       this.emit(EDR_NETWORK_REVERT_SNAPSHOT_EVENT);
     }

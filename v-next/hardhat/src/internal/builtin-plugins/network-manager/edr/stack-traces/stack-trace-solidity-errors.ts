@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/consistent-type-assertions
--- TODO: remove me once constant values are exported from the EDR package
-to replace the enum values in the switch statement */
 import type {
   SolidityStackTrace,
   SolidityStackTraceEntry,
@@ -20,48 +17,52 @@ import {
   UNRECOGNIZED_FUNCTION_NAME,
 } from "./solidity-stack-trace.js";
 
-export function encodeSolidityStackTrace(
+export function createSolidityErrorWithStackTrace(
   fallbackMessage: string,
   stackTrace: SolidityStackTrace,
-  previousStack?: NodeJS.CallSite[],
+  data?: string,
+  transactionHash?: string,
 ): SolidityError {
-  const previousPrepareStackTrace = Error.prepareStackTrace;
-  Error.prepareStackTrace = (error, stack) => {
-    if (previousStack !== undefined) {
-      stack = previousStack;
-    } else {
-      // We remove error management related stack traces
-      stack.splice(0, 1);
-    }
+  const originalPrepareStackTrace = Error.prepareStackTrace;
 
-    for (const entry of stackTrace) {
-      const callsite = encodeStackTraceEntry(entry);
-      if (callsite === undefined) {
-        continue;
+  try {
+    Error.prepareStackTrace = (error, stack) => {
+      // Skip error management related stack traces
+      const adjustedStack = stack.slice(1);
+
+      for (const entry of stackTrace) {
+        const callsite = encodeStackTraceEntry(entry);
+        if (callsite !== undefined) {
+          adjustedStack.unshift(callsite);
+        }
       }
 
-      stack.unshift(callsite);
-    }
+      return originalPrepareStackTrace !== undefined
+        ? originalPrepareStackTrace(error, adjustedStack)
+        : // This should never happen, but just in case we add a fallback
+          `Error: ${error.message}\n    at ${adjustedStack.join("\n    at ")}`;
+    };
 
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: look at this pattern
-    return previousPrepareStackTrace!(error, stack);
-  };
+    const message =
+      getMessageFromLastStackTraceEntry(stackTrace[stackTrace.length - 1]) ??
+      fallbackMessage;
 
-  const msg = getMessageFromLastStackTraceEntry(
-    stackTrace[stackTrace.length - 1],
-  );
+    const solidityError = new SolidityError(
+      message,
+      stackTrace,
+      data,
+      transactionHash,
+    );
 
-  const solidityError = new SolidityError(
-    msg !== undefined ? msg : fallbackMessage,
-    stackTrace,
-  );
+    /* eslint-disable-next-line @typescript-eslint/no-unused-expressions
+    -- As the stack property is lazy-loaded in JavaScript, we need to access it
+    to trigger the custom prepareStackTrace logic */
+    solidityError.stack;
 
-  // This hack is here because prepare stack is lazy
-  solidityError.stack = solidityError.stack;
-
-  Error.prepareStackTrace = previousPrepareStackTrace;
-
-  return solidityError;
+    return solidityError;
+  } finally {
+    Error.prepareStackTrace = originalPrepareStackTrace;
+  }
 }
 
 function encodeStackTraceEntry(
@@ -172,9 +173,7 @@ function sourceReferenceToSolidityCallsite(
   return new SolidityCallSite(
     sourceReference.sourceName,
     sourceReference.contract,
-    sourceReference.function !== undefined
-      ? sourceReference.function
-      : UNKNOWN_FUNCTION_NAME,
+    sourceReference.function ?? UNKNOWN_FUNCTION_NAME,
     sourceReference.line,
   );
 }
@@ -182,7 +181,6 @@ function sourceReferenceToSolidityCallsite(
 function getMessageFromLastStackTraceEntry(
   stackTraceEntry: SolidityStackTraceEntry,
 ): string | undefined {
-  // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- TODO: We should cover all cases
   switch (stackTraceEntry.type) {
     case StackTraceEntryType.PRECOMPILE_ERROR:
       return `Transaction reverted: call to precompile ${stackTraceEntry.precompile} failed`;
@@ -280,27 +278,38 @@ function getMessageFromLastStackTraceEntry(
 
     case StackTraceEntryType.CONTRACT_CALL_RUN_OUT_OF_GAS_ERROR:
       return "Transaction reverted: contract call run out of gas and made the transaction revert";
+
+    /* These types are not expected to be the last entry in the stack trace, as
+    their presence indicates that another frame should follow in the call stack. */
+    case StackTraceEntryType.CALLSTACK_ENTRY:
+    case StackTraceEntryType.UNRECOGNIZED_CREATE_CALLSTACK_ENTRY:
+    case StackTraceEntryType.UNRECOGNIZED_CONTRACT_CALLSTACK_ENTRY:
+    case StackTraceEntryType.INTERNAL_FUNCTION_CALLSTACK_ENTRY:
+      return undefined;
   }
 }
 
-// TODO: see TODO at line 301
-// const inspect = Symbol.for("nodejs.util.inspect.custom");
-
-// Note: This error class MUST NOT extend ProviderError, as libraries
-//   use the code property to detect if they are dealing with a JSON-RPC error,
-//   and take control of errors.
+/**
+ * Note: This error class MUST NOT extend ProviderError, as libraries use the
+ * code property to detect if they are dealing with a JSON-RPC error, and take
+ * control of errors.
+ **/
 export class SolidityError extends Error {
-  public readonly stackTrace: SolidityStackTrace;
-
-  constructor(message: string, stackTrace: SolidityStackTrace) {
+  constructor(
+    message: string,
+    public readonly stackTrace: SolidityStackTrace,
+    public readonly data?: string,
+    public readonly transactionHash?: string,
+  ) {
     super(message);
-    this.stackTrace = stackTrace;
-  }
 
-  // TODO: Can we bring this back with isolated declarations?
-  // public [inspect](): string {
-  //   return this.inspect();
-  // }
+    Object.defineProperty(this, Symbol.for("nodejs.util.inspect.custom"), {
+      value: this.inspect,
+      writable: false,
+      enumerable: false,
+      configurable: true,
+    });
+  }
 
   public inspect(): string {
     return this.stack !== undefined

@@ -40,6 +40,8 @@ import {
   L1_CHAIN_TYPE as EDR_L1_CHAIN_TYPE,
   GENERIC_CHAIN_TYPE as EDR_GENERIC_CHAIN_TYPE,
 } from "@ignored/edr-optimism";
+import { getUnprefixedHexString } from "@ignored/hardhat-vnext-utils/hex";
+import { isObject } from "@ignored/hardhat-vnext-utils/lang";
 
 import { L1_CHAIN_TYPE, OPTIMISM_CHAIN_TYPE } from "../../../../constants.js";
 import { FixedValueConfigurationVariable } from "../../../../core/configuration-variables.js";
@@ -174,9 +176,9 @@ export function hardhatMempoolOrderToEdrMineOrdering(
 }
 
 export function edrRpcDebugTraceToHardhat(
-  rpcDebugTrace: DebugTraceResult,
+  debugTraceResult: DebugTraceResult,
 ): RpcDebugTraceOutput {
-  const structLogs = rpcDebugTrace.structLogs.map((log) => {
+  const structLogs = debugTraceResult.structLogs.map((log) => {
     const result: RpcStructLog = {
       depth: Number(log.depth),
       gas: Number(log.gas),
@@ -191,14 +193,15 @@ export function edrRpcDebugTraceToHardhat(
 
     if (log.stack !== undefined) {
       // Remove 0x prefix which is required by EIP-3155, but not expected by Hardhat.
-      result.stack = log.stack?.map((item) => item.slice(2));
+      result.stack = log.stack.map(getUnprefixedHexString);
     }
 
     if (log.storage !== undefined) {
       result.storage = Object.fromEntries(
-        Object.entries(log.storage).map(([key, value]) => {
-          return [key.slice(2), value.slice(2)];
-        }),
+        Object.entries(log.storage).map(([key, value]) => [
+          getUnprefixedHexString(key),
+          getUnprefixedHexString(value),
+        ]),
       );
     }
 
@@ -212,21 +215,33 @@ export function edrRpcDebugTraceToHardhat(
   });
 
   // REVM trace adds initial STOP that Hardhat doesn't expect
+  // ASK: is this still valid?
   if (structLogs.length > 0 && structLogs[0].op === "STOP") {
     structLogs.shift();
   }
 
-  let returnValue = rpcDebugTrace.output?.toString("hex") ?? "";
+  let returnValue = debugTraceResult.output?.toString("hex") ?? "";
   if (returnValue === "0x") {
     returnValue = "";
   }
 
   return {
-    failed: !rpcDebugTrace.pass,
-    gas: Number(rpcDebugTrace.gasUsed),
-    returnValue,
+    failed: !debugTraceResult.pass,
+    gas: Number(debugTraceResult.gasUsed),
+    returnValue, // ASK: do we expect an unprefixed hex string here?
     structLogs,
   };
+}
+
+export function isDebugTraceResult(
+  result: unknown,
+): result is DebugTraceResult {
+  return (
+    isObject(result) &&
+    "pass" in result &&
+    "gasUsed" in result &&
+    "structLogs" in result
+  );
 }
 
 export async function hardhatAccountsToEdrOwnedAccounts(
