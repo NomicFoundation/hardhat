@@ -66,7 +66,7 @@ await expect(token.transfer(address, 0)).to.be.revertedWithCustomError(
 );
 ```
 
-The first argument must be the contract that defines the error.
+The first argument must be the contract that defines the error. The contract is used to determine the full signature of the expected error. The matcher does not check whether the error was emitted by the contract.
 
 If the error has arguments, the `.withArgs` matcher can be added:
 
