@@ -157,6 +157,13 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       );
     }
 
+    await this.#hooks.runHandlerChain(
+      "solidity",
+      "onArtifactsEmitted",
+      [contractArtifactsGeneratedByCompilationJob],
+      async () => {},
+    );
+
     const resultsMap: Map<string, FileBuildResult> = new Map();
 
     for (let i = 0; i < results.length; i++) {

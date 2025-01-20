@@ -124,5 +124,22 @@ declare module "../../../types/hooks.js" {
         nextOptions: RunCompilationJobOptions,
       ) => Promise<CompilerOutput>,
     ) => Promise<CompilerOutput>;
+
+    /**
+     * Provide a handler for this hook to retrieve all artifacts created by a compilation job.
+     *
+     * @param context The hook context.
+     * @param artifacts A map of the artifacts created by each compilation job.
+     * @param next A function to call the next handler for this hook, or the
+     * default implementation if there are no more handlers.
+     */
+    onArtifactsEmitted: (
+      context: HookContext,
+      artifacts: Map<CompilationJob, ReadonlyMap<string, string[]>>,
+      next: (
+        nextContext: HookContext,
+        artifacts: Map<CompilationJob, ReadonlyMap<string, string[]>>,
+      ) => Promise<void>,
+    ) => Promise<void>;
   }
 }
