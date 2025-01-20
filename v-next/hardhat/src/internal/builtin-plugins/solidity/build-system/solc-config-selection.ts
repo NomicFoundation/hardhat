@@ -1,4 +1,3 @@
-import type { DependencyGraphImplementation } from "./dependency-graph.js";
 import type {
   SolcConfig,
   SolidityBuildProfileConfig,
@@ -11,6 +10,7 @@ import { shortenPath } from "@ignored/hardhat-vnext-utils/path";
 import { intersects, maxSatisfying, satisfies } from "semver";
 
 import { CompilationJobCreationErrorReason } from "../../../../types/solidity/build-system.js";
+import { DependencyGraph } from "../../../../types/solidity.js";
 
 export class SolcConfigSelector {
   readonly #buildProfileName: string;
@@ -30,7 +30,7 @@ export class SolcConfigSelector {
   constructor(
     buildProfileName: string,
     buildProfile: SolidityBuildProfileConfig,
-    _dependencyGraph: DependencyGraphImplementation,
+    _dependencyGraph: DependencyGraph,
   ) {
     this.#buildProfileName = buildProfileName;
     this.#buildProfile = buildProfile;
@@ -45,7 +45,7 @@ export class SolcConfigSelector {
    * CompilationJobCreationError if no compatible solc version could be found.
    */
   public selectBestSolcConfigForSingleRootGraph(
-    subgraph: DependencyGraphImplementation,
+    subgraph: DependencyGraph,
   ): SolcConfig | CompilationJobCreationError {
     const roots = subgraph.getRoots();
 
@@ -105,7 +105,7 @@ export class SolcConfigSelector {
 
   #getCompilationJobCreationError(
     root: ResolvedFile,
-    dependencyGraph: DependencyGraphImplementation,
+    dependencyGraph: DependencyGraph,
     compilerVersions: string[],
     overriden: boolean,
   ): CompilationJobCreationError {
@@ -165,7 +165,7 @@ export class SolcConfigSelector {
 
   *#getTransitiveDependencies(
     root: ResolvedFile,
-    dependencyGraph: DependencyGraphImplementation,
+    dependencyGraph: DependencyGraph,
     visited = new Set<ResolvedFile>([root]),
   ): Generator<{
     fsPath: string[];
