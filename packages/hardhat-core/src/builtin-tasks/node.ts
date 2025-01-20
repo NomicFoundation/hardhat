@@ -211,7 +211,7 @@ subtask(TASK_NODE_SERVER_CREATED)
       provider: EthereumProvider;
       server: JsonRpcServer;
     }) => {
-      // this task is meant to be overriden by plugin writers
+      // this task is meant to be overridden by plugin writers
     }
   );
 

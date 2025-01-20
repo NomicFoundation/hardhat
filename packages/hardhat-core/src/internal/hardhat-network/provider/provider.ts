@@ -204,7 +204,7 @@ export class EdrProviderWrapper
         ? BigInt(Math.floor(config.initialDate.getTime() / 1000))
         : undefined;
 
-    // To accomodate construction ordering, we need an adapter to forward events
+    // To accommodate construction ordering, we need an adapter to forward events
     // from the EdrProvider callback to the wrapper's listener
     const eventAdapter = new EdrProviderEventAdapter();
 
