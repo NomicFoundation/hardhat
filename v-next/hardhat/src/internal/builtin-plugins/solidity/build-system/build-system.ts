@@ -263,8 +263,9 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         DependencyGraphImplementation
       > = new Map();
 
-      // Note: This is merging solc config object identity, not a deep
-      // comparison. This is Hardhat v2's behavior.
+      // Note: This groups the subgraphs by solc config. It compares the configs
+      // based on reference, and not by deep equality. It misses some merging
+      // opportunities, but this is Hardhat v2's behavior and works well enough.
       for (const [solcConfig, subgraph] of subgraphsWithConfig) {
         const mergedSubgraph = mergedSubgraphsByConfig.get(solcConfig);
 
