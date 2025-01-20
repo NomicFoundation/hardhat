@@ -1,5 +1,13 @@
-import "../../../types/config.js";
+import type {
+  RunCompilationJobOptions,
+  SolidityBuildSystem,
+} from "../../../types/solidity/build-system.js";
+import type {
+  CompilationJob,
+  CompilerOutput,
+} from "../../../types/solidity.js";
 
+import "../../../types/config.js";
 declare module "../../../types/config.js" {
   export type SolidityUserConfig =
     | string
@@ -76,8 +84,6 @@ declare module "../../../types/config.js" {
 }
 
 import "../../../types/hre.js";
-import type { SolidityBuildSystem } from "../../../types/solidity/build-system.js";
-
 declare module "../../../types/hre.js" {
   export interface HardhatRuntimeEnvironment {
     solidity: SolidityBuildSystem;
@@ -88,5 +94,52 @@ import "../../../types/global-options.js";
 declare module "../../../types/global-options.js" {
   export interface GlobalOptions {
     buildProfile: string;
+  }
+}
+
+import "../../../types/hooks.js";
+declare module "../../../types/hooks.js" {
+  export interface HardhatHooks {
+    solidity: SolidityHooks;
+  }
+
+  export interface SolidityHooks {
+    /**
+     * Provide a handler for this hook to customize how a compilation job is
+     * run, or to run your custom logic right after a compilation job is run.
+     *
+     * @param context The hook context.
+     * @param compilationJob The compilation job to run.
+     * @param options The options to use when running the compilation job.
+     * @param next A function to call the next handler for this hook, or the
+     * default implementation if there are no more handlers.
+     */
+    runCompilationJob: (
+      context: HookContext,
+      compilationJob: CompilationJob,
+      options: RunCompilationJobOptions,
+      next: (
+        nextContext: HookContext,
+        nextCompilationJob: CompilationJob,
+        nextOptions: RunCompilationJobOptions,
+      ) => Promise<CompilerOutput>,
+    ) => Promise<CompilerOutput>;
+
+    /**
+     * Provide a handler for this hook to retrieve all artifacts created by a compilation job.
+     *
+     * @param context The hook context.
+     * @param artifacts A map of the artifacts created by each compilation job.
+     * @param next A function to call the next handler for this hook, or the
+     * default implementation if there are no more handlers.
+     */
+    onArtifactsEmitted: (
+      context: HookContext,
+      artifacts: Map<CompilationJob, ReadonlyMap<string, string[]>>,
+      next: (
+        nextContext: HookContext,
+        artifacts: Map<CompilationJob, ReadonlyMap<string, string[]>>,
+      ) => Promise<void>,
+    ) => Promise<void>;
   }
 }
