@@ -1446,6 +1446,9 @@ importers:
       '@ignored/hardhat-vnext-node-test-runner':
         specifier: workspace:^3.0.0-next.12
         version: link:../hardhat-node-test-runner
+      '@ignored/hardhat-vnext-typechain':
+        specifier: workspace:^3.0.0-next.12
+        version: link:../hardhat-typechain
       '@ignored/hardhat-vnext-viem':
         specifier: workspace:^3.0.0-next.11
         version: link:../hardhat-viem
