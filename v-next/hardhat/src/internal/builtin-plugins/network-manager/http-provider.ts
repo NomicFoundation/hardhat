@@ -50,9 +50,9 @@ export class HttpProvider extends BaseProvider {
   readonly #url: string;
   readonly #networkName: string;
   readonly #extraHeaders: Readonly<Record<string, string>>;
-  readonly #dispatcher: Readonly<Dispatcher>;
   readonly #jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction;
 
+  #dispatcher: Dispatcher | undefined;
   #nextRequestId = 1;
 
   /**
@@ -112,6 +112,10 @@ export class HttpProvider extends BaseProvider {
   public async request(
     requestArguments: RequestArguments,
   ): Promise<SuccessfulJsonRpcResponse["result"]> {
+    if (this.#dispatcher === undefined) {
+      throw new HardhatError(HardhatError.ERRORS.NETWORK.PROVIDER_CLOSED);
+    }
+
     const { method, params } = requestArguments;
 
     const jsonRpcRequest = getJsonRpcRequest(
@@ -150,8 +154,11 @@ export class HttpProvider extends BaseProvider {
   }
 
   public async close(): Promise<void> {
-    // See https://github.com/nodejs/undici/discussions/3522#discussioncomment-10498734
-    await this.#dispatcher.close();
+    if (this.#dispatcher !== undefined) {
+      // See https://github.com/nodejs/undici/discussions/3522#discussioncomment-10498734
+      await this.#dispatcher.close();
+      this.#dispatcher = undefined;
+    }
   }
 
   async #fetchJsonRpcResponse(

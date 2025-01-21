@@ -22,7 +22,10 @@ import {
   l1GenesisState,
   l1HardforkFromString,
 } from "@ignored/edr-optimism";
-import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
+import {
+  assertHardhatInvariant,
+  HardhatError,
+} from "@ignored/hardhat-vnext-errors";
 import { toSeconds } from "@ignored/hardhat-vnext-utils/date";
 import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
 import { deepEqual } from "@ignored/hardhat-vnext-utils/lang";
@@ -109,9 +112,9 @@ interface EdrProviderConfig {
 }
 
 export class EdrProvider extends BaseProvider {
-  readonly #provider: Readonly<Provider>;
   readonly #jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction;
 
+  #provider: Provider | undefined;
   #nextRequestId = 1;
 
   /**
@@ -176,6 +179,10 @@ export class EdrProvider extends BaseProvider {
   public async request(
     requestArguments: RequestArguments,
   ): Promise<SuccessfulJsonRpcResponse["result"]> {
+    if (this.#provider === undefined) {
+      throw new HardhatError(HardhatError.ERRORS.NETWORK.PROVIDER_CLOSED);
+    }
+
     const { method, params } = requestArguments;
 
     const jsonRpcRequest = getJsonRpcRequest(
@@ -190,6 +197,11 @@ export class EdrProvider extends BaseProvider {
       jsonRpcResponse = await this.#jsonRpcRequestWrapper(
         jsonRpcRequest,
         async (request) => {
+          assertHardhatInvariant(
+            this.#provider !== undefined,
+            "The provider is not defined",
+          );
+
           const stringifiedArgs = JSON.stringify(request);
           const edrResponse =
             await this.#provider.handleRequest(stringifiedArgs);
@@ -244,7 +256,8 @@ export class EdrProvider extends BaseProvider {
   }
 
   public async close(): Promise<void> {
-    // TODO: what needs cleaned up?
+    // Clear the provider reference to help with garbage collection
+    this.#provider = undefined;
   }
 
   async #handleEdrResponse(
