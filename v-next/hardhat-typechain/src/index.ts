@@ -1,6 +1,8 @@
 import type { HardhatPlugin } from "@ignored/hardhat-vnext/types/plugins";
 
 import "./type-extensions.js";
+import { globalOption } from "@ignored/hardhat-vnext/config";
+import { ArgumentType } from "@ignored/hardhat-vnext/types/arguments";
 
 const hardhatTypechain: HardhatPlugin = {
   id: "hardhat-typechain",
@@ -16,6 +18,14 @@ const hardhatTypechain: HardhatPlugin = {
       );
       return hardhatEthersPlugin;
     },
+  ],
+  globalOptions: [
+    globalOption({
+      name: "noTypechain",
+      description: "Disables the typechain type generation",
+      defaultValue: false,
+      type: ArgumentType.BOOLEAN,
+    }),
   ],
 };
 

@@ -10,3 +10,10 @@ declare module "@ignored/hardhat-vnext/types/config" {
     readonly typechain: TypechainConfig;
   }
 }
+
+import "@ignored/hardhat-vnext/types/global-options";
+declare module "@ignored/hardhat-vnext/types/global-options" {
+  interface GlobalOptions {
+    noTypechain: boolean;
+  }
+}

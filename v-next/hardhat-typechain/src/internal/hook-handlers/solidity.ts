@@ -23,6 +23,7 @@ export default async (): Promise<Partial<SolidityHooks>> => {
       await generateTypes(
         context.config.paths.root,
         context.config.typechain,
+        context.globalOptions.noTypechain,
         artifactsPaths,
       );
 
