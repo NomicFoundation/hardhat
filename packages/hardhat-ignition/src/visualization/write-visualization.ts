@@ -1,11 +1,5 @@
 import { SerializedIgnitionModule } from "@nomicfoundation/ignition-core";
-import {
-  ensureDir,
-  pathExists,
-  readFile,
-  writeFile,
-  readdirSync,
-} from "fs-extra";
+import { ensureDir, pathExists, readFile, writeFile } from "fs-extra";
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import path from "path";
 
@@ -20,9 +14,6 @@ export async function writeVisualization(
     require.resolve("@nomicfoundation/ignition-ui/package.json"),
     "../dist"
   );
-
-  console.log("templateDir", templateDir);
-  console.log(readdirSync(path.join(templateDir, "..")));
 
   const templateDirExists = await pathExists(templateDir);
 
