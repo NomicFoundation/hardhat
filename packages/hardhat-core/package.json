@@ -139,7 +139,7 @@
     "stacktrace-parser": "^0.1.10",
     "tinyglobby": "^0.2.6",
     "tsort": "0.0.1",
-    "undici": "^5.14.0",
+    "undici": "^5.28.5",
     "uuid": "^8.3.2",
     "ws": "^7.4.6"
   },
