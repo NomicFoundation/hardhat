@@ -1,0 +1,16 @@
+coverage/
+.nyc_output/
+*.tsbuildinfo
+**/.eslintrc.js
+.mocharc.json
+.nycrc
+.prettierignore
+.prettierrc
+src/
+!dist
+!dist/src
+dist/test
+dist/test-integrations
+test/
+temp
+test-integrations/
