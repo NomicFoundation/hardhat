@@ -94,19 +94,8 @@ function addTransformerForFixingCompiledFiles(
     _services,
     _config,
   ) => {
-    // Modify the content to ensure that all the "imports" include the ".js" extension.
-    // E.g.:
-    // import type * as src from './src';
-    // will be converted into
-    // import type * as src from './src/index.js';
-    const jsExtensionRegex = /^import.*(?<!\.js);$/gm;
-
-    let modifiedContent = output.replace(jsExtensionRegex, (match) => {
-      const insertIndex = match.lastIndexOf(";") - 1;
-      return (
-        match.slice(0, insertIndex) + "/index.js" + match.slice(insertIndex)
-      );
-    });
+    // TODO: here
+    let modifiedContent = addJsExtensionsIfNeeded(output);
 
     // Fixes the import of types from the ethers plugin. Update the imports from "ethers-v2" to "ethers-v3"
     modifiedContent = modifiedContent.replaceAll(
@@ -124,4 +113,19 @@ function addTransformerForFixingCompiledFiles(
   };
 
   outputTransformers.push(compiledFilesTransformer);
+}
+
+// This function is exported just for testing purposes.
+export function addJsExtensionsIfNeeded(content: string): string {
+  // Modify the content to ensure that all the "* imports" include the "/index.js" extension.
+  // E.g.:
+  // import type * as src from './src';
+  // will be converted into
+  // import type * as src from './src/index.js';
+  const jsExtensionRegex = /^import.*(?<!\.js)['"];$/gm;
+
+  return content.replace(jsExtensionRegex, (match) => {
+    const insertIndex = match.lastIndexOf(";") - 1;
+    return match.slice(0, insertIndex) + "/index.js" + match.slice(insertIndex);
+  });
 }
