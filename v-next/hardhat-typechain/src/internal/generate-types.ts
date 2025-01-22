@@ -94,7 +94,6 @@ function addTransformerForFixingCompiledFiles(
     _services,
     _config,
   ) => {
-    // TODO: here
     let modifiedContent = addJsExtensionsIfNeeded(output);
 
     // Fixes the import of types from the ethers plugin. Update the imports from "ethers-v2" to "ethers-v3"
