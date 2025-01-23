@@ -206,7 +206,7 @@ const config: HardhatUserConfig = {
     testFail: true,
   },
   typechain: {
-    discriminateTypes: true,
+    tsNocheck: false,
   },
 };
 
