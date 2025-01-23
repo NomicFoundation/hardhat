@@ -14,14 +14,14 @@
   "types": "dist/src/index.d.ts",
   "exports": {
     ".": "./dist/src/index.js",
-    "./types": "./dist/src/types.js"
+    "./types": "./dist/src/types.js",
+    "./package.json": "./package.json"
   },
   "keywords": [
     "typechain",
     "ethereum",
     "smart-contracts",
-    "hardhat",
-    "testing"
+    "hardhat"
   ],
   "scripts": {
     "lint": "pnpm prettier --check && pnpm eslint",

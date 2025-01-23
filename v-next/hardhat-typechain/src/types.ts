@@ -1,7 +1,7 @@
 export interface TypechainConfig {
   /**
-   * The absolute path where the generated types should be stored.
-   * Defaults to "types".
+   * The absolute path to the folder where the generated types will be stored.
+   * By default, this is set to the "types" folder in the root of your Hardhat project.
    */
   readonly outDir?: string;
 
