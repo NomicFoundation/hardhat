@@ -5,7 +5,11 @@ import type {
   NetworkConnection,
   NetworkManager,
 } from "../../../../src/types/network.js";
-import type { NetworkConfig } from "@ignored/hardhat-vnext/types/config";
+import type {
+  EdrNetworkConfigOverride,
+  HttpNetworkConfigOverride,
+  NetworkConfig,
+} from "@ignored/hardhat-vnext/types/config";
 
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
@@ -15,62 +19,69 @@ import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-uti
 import { expectTypeOf } from "expect-type";
 
 import { createHardhatRuntimeEnvironment } from "../../../../src/hre.js";
+import {
+  resolveEdrNetwork,
+  resolveHttpNetwork,
+} from "../../../../src/internal/builtin-plugins/network-manager/config-resolution.js";
 import { NetworkManagerImplementation } from "../../../../src/internal/builtin-plugins/network-manager/network-manager.js";
-import { validateNetworkConfig } from "../../../../src/internal/builtin-plugins/network-manager/type-validation.js";
+import { validateNetworkUserConfig } from "../../../../src/internal/builtin-plugins/network-manager/type-validation.js";
 import {
   GENERIC_CHAIN_TYPE,
   L1_CHAIN_TYPE,
   OPTIMISM_CHAIN_TYPE,
 } from "../../../../src/internal/constants.js";
-import { FixedValueConfigurationVariable } from "../../../../src/internal/core/configuration-variables.js";
+import {
+  FixedValueConfigurationVariable,
+  resolveConfigurationVariable,
+} from "../../../../src/internal/core/configuration-variables.js";
 
 describe("NetworkManagerImplementation", () => {
   let hre: HardhatRuntimeEnvironment;
   let networkManager: NetworkManager;
-  const networks: Record<string, NetworkConfig> = {
-    localhost: {
-      type: "http",
-      chainId: undefined,
-      chainType: undefined,
-      from: undefined,
-      gas: "auto",
-      gasMultiplier: 1,
-      gasPrice: "auto",
-      accounts: [],
-      url: new FixedValueConfigurationVariable("http://localhost:8545"),
-      timeout: 20_000,
-      httpHeaders: {},
-    },
-    customNetwork: {
-      type: "http",
-      chainId: undefined,
-      chainType: undefined,
-      from: undefined,
-      gas: "auto",
-      gasMultiplier: 1,
-      gasPrice: "auto",
-      accounts: [],
-      url: new FixedValueConfigurationVariable("http://node.customNetwork.com"),
-      timeout: 20_000,
-      httpHeaders: {},
-    },
-    myNetwork: {
-      type: "http",
-      chainId: undefined,
-      chainType: OPTIMISM_CHAIN_TYPE,
-      from: undefined,
-      gas: "auto",
-      gasMultiplier: 1,
-      gasPrice: "auto",
-      accounts: [],
-      url: new FixedValueConfigurationVariable("http://node.myNetwork.com"),
-      timeout: 20_000,
-      httpHeaders: {},
-    },
-  };
+  let networks: Record<string, NetworkConfig>;
 
   before(async () => {
     hre = await createHardhatRuntimeEnvironment({});
+
+    networks = {
+      localhost: resolveHttpNetwork(
+        {
+          type: "http",
+          url: "http://localhost:8545",
+        },
+        (varOrStr) => resolveConfigurationVariable(hre.hooks, varOrStr),
+      ),
+      customNetwork: resolveHttpNetwork(
+        {
+          type: "http",
+          url: "http://node.customNetwork.com",
+        },
+        (varOrStr) => resolveConfigurationVariable(hre.hooks, varOrStr),
+      ),
+      myNetwork: resolveHttpNetwork(
+        {
+          type: "http",
+          chainType: OPTIMISM_CHAIN_TYPE,
+          url: "http://node.myNetwork.com",
+        },
+        (varOrStr) => resolveConfigurationVariable(hre.hooks, varOrStr),
+      ),
+      edrNetwork: resolveEdrNetwork(
+        {
+          type: "edr",
+          chainType: OPTIMISM_CHAIN_TYPE,
+          mining: {
+            auto: true,
+            mempool: {
+              order: "priority",
+            },
+          },
+        },
+        "",
+        (varOrStr) => resolveConfigurationVariable(hre.hooks, varOrStr),
+      ),
+    };
+
     networkManager = new NetworkManagerImplementation(
       "localhost",
       GENERIC_CHAIN_TYPE,
@@ -112,16 +123,66 @@ describe("NetworkManagerImplementation", () => {
     });
 
     it("should override the network's chain config with the specified chain config", async () => {
-      const networkConnection = await networkManager.connect(
+      const httpConfigOverride: HttpNetworkConfigOverride = {
+        chainId: 1234, // optional in the resolved config
+        timeout: 30_000, // specific to http networks
+      };
+      let networkConnection = await networkManager.connect(
         "myNetwork",
         OPTIMISM_CHAIN_TYPE,
-        { chainId: 1234 },
+        httpConfigOverride,
       );
       assert.equal(networkConnection.networkName, "myNetwork");
       assert.equal(networkConnection.chainType, OPTIMISM_CHAIN_TYPE);
       assert.deepEqual(networkConnection.networkConfig, {
         ...networks.myNetwork,
-        chainId: 1234,
+        ...httpConfigOverride,
+      });
+
+      // Overriding the url is handled differently
+      // so we need to test it separately
+      networkConnection = await networkManager.connect(
+        "myNetwork",
+        OPTIMISM_CHAIN_TYPE,
+        {
+          url: "http://localhost:8545",
+        },
+      );
+      assert.equal(networkConnection.networkName, "myNetwork");
+      assert.equal(networkConnection.chainType, OPTIMISM_CHAIN_TYPE);
+      assert.deepEqual(networkConnection.networkConfig, {
+        ...networks.myNetwork,
+        url: new FixedValueConfigurationVariable("http://localhost:8545"),
+      });
+    });
+
+    it("should override the network's chain config with the specified chain config recursively", async () => {
+      const edrConfigOverride: EdrNetworkConfigOverride = {
+        mining: {
+          mempool: {
+            order: "fifo",
+          },
+        },
+      };
+      const networkConnection = await networkManager.connect(
+        "edrNetwork",
+        OPTIMISM_CHAIN_TYPE,
+        edrConfigOverride,
+      );
+      assert.equal(networkConnection.networkName, "edrNetwork");
+      assert.equal(networkConnection.chainType, OPTIMISM_CHAIN_TYPE);
+      assert.equal(networks.edrNetwork.type, "edr"); // this is for the type assertion
+      assert.deepEqual(networkConnection.networkConfig, {
+        ...networks.edrNetwork,
+        ...edrConfigOverride,
+        mining: {
+          ...networks.edrNetwork.mining,
+          ...edrConfigOverride.mining,
+          mempool: {
+            ...networks.edrNetwork.mining.mempool,
+            ...edrConfigOverride.mining?.mempool,
+          },
+        },
       });
     });
 
@@ -137,8 +198,8 @@ describe("NetworkManagerImplementation", () => {
       await assertRejectsWithHardhatError(
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
         -- Cast to test validation error */
-        networkManager.connect("myNetwork", L1_CHAIN_TYPE, {
-          type: L1_CHAIN_TYPE,
+        networkManager.connect("myNetwork", OPTIMISM_CHAIN_TYPE, {
+          type: "edr",
         } as any),
         HardhatError.ERRORS.NETWORK.INVALID_CONFIG_OVERRIDE,
         {
@@ -149,7 +210,7 @@ describe("NetworkManagerImplementation", () => {
       await assertRejectsWithHardhatError(
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
         -- Cast to test validation error */
-        networkManager.connect("myNetwork", L1_CHAIN_TYPE, {
+        networkManager.connect("myNetwork", OPTIMISM_CHAIN_TYPE, {
           type: undefined,
         } as any),
         HardhatError.ERRORS.NETWORK.INVALID_CONFIG_OVERRIDE,
@@ -169,6 +230,21 @@ describe("NetworkManagerImplementation", () => {
         HardhatError.ERRORS.NETWORK.INVALID_CONFIG_OVERRIDE,
         {
           errors: `\t* Error in chainId: Expected number, received string`,
+        },
+      );
+    });
+
+    it("should throw an error if the specified network config override has mixed properties from http and edr networks", async () => {
+      await assertRejectsWithHardhatError(
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+        -- Cast to test validation error */
+        networkManager.connect("myNetwork", OPTIMISM_CHAIN_TYPE, {
+          url: "http://localhost:8545",
+          hardfork: "cancun",
+        } as any),
+        HardhatError.ERRORS.NETWORK.INVALID_CONFIG_OVERRIDE,
+        {
+          errors: `\t* Unrecognized key(s) in object: 'hardfork'`,
         },
       );
     });
@@ -310,7 +386,8 @@ describe("NetworkManagerImplementation", () => {
         it("should allow the value 'remote'", async () => {
           networkConfig.accounts = "remote";
 
-          const validationErrors = validateNetworkConfig(networkConfig);
+          const validationErrors =
+            await validateNetworkUserConfig(networkConfig);
 
           assert.equal(validationErrors.length, 0);
         });
@@ -322,7 +399,8 @@ describe("NetworkManagerImplementation", () => {
             "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
           ];
 
-          const validationErrors = validateNetworkConfig(networkConfig);
+          const validationErrors =
+            await validateNetworkUserConfig(networkConfig);
           console.log(validationErrors);
           assert.equal(validationErrors.length, 0);
         });
@@ -336,7 +414,8 @@ describe("NetworkManagerImplementation", () => {
             passphrase: "passphrase",
           };
 
-          const validationErrors = validateNetworkConfig(networkConfig);
+          const validationErrors =
+            await validateNetworkUserConfig(networkConfig);
 
           assert.equal(validationErrors.length, 0);
         });
@@ -346,7 +425,8 @@ describe("NetworkManagerImplementation", () => {
             "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           ];
 
-          const validationErrors = validateNetworkConfig(networkConfig);
+          const validationErrors =
+            await validateNetworkUserConfig(networkConfig);
 
           assert.equal(validationErrors.length, 0);
         });
@@ -359,7 +439,8 @@ describe("NetworkManagerImplementation", () => {
               0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,
             ];
 
-            const validationErrors = validateNetworkConfig(networkConfig);
+            const validationErrors =
+              await validateNetworkUserConfig(networkConfig);
 
             assert.notEqual(validationErrors.length, 0);
             assert.equal(
@@ -371,7 +452,8 @@ describe("NetworkManagerImplementation", () => {
           it("should not allow private keys of incorrect length", async () => {
             networkConfig.accounts = ["0xaaaa"];
 
-            let validationErrors = validateNetworkConfig(networkConfig);
+            let validationErrors =
+              await validateNetworkUserConfig(networkConfig);
 
             assert.notEqual(validationErrors.length, 0);
             assert.equal(
@@ -382,7 +464,7 @@ describe("NetworkManagerImplementation", () => {
             networkConfig.accounts = [
               "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabb",
             ];
-            validationErrors = validateNetworkConfig(networkConfig);
+            validationErrors = await validateNetworkUserConfig(networkConfig);
 
             assert.notEqual(validationErrors.length, 0);
             assert.equal(
@@ -396,7 +478,8 @@ describe("NetworkManagerImplementation", () => {
               "0xgggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg",
             ];
 
-            const validationErrors = validateNetworkConfig(networkConfig);
+            const validationErrors =
+              await validateNetworkUserConfig(networkConfig);
 
             assert.notEqual(validationErrors.length, 0);
             assert.equal(
@@ -413,7 +496,8 @@ describe("NetworkManagerImplementation", () => {
         for (const accounts of accountsValuesToTest) {
           networkConfig.accounts = accounts;
 
-          const validationErrors = validateNetworkConfig(networkConfig);
+          const validationErrors =
+            await validateNetworkUserConfig(networkConfig);
 
           assert.notEqual(validationErrors.length, 0);
           assert.equal(validationErrors[0].message, validationErrorMsg);
@@ -447,7 +531,8 @@ describe("NetworkManagerImplementation", () => {
         for (const [accounts, error] of accountsValuesToTest) {
           networkConfig.accounts = accounts;
 
-          const validationErrors = validateNetworkConfig(networkConfig);
+          const validationErrors =
+            await validateNetworkUserConfig(networkConfig);
 
           assert.notEqual(validationErrors.length, 0);
           assert.equal(validationErrors[0].message, error);
@@ -492,7 +577,8 @@ describe("NetworkManagerImplementation", () => {
             },
           ];
 
-          const validationErrors = validateNetworkConfig(networkConfig);
+          const validationErrors =
+            await validateNetworkUserConfig(networkConfig);
 
           assert.equal(validationErrors.length, 0);
         });
@@ -507,7 +593,8 @@ describe("NetworkManagerImplementation", () => {
             passphrase: "passphrase",
           };
 
-          const validationErrors = validateNetworkConfig(networkConfig);
+          const validationErrors =
+            await validateNetworkUserConfig(networkConfig);
 
           assert.equal(validationErrors.length, 0);
         });
@@ -521,7 +608,8 @@ describe("NetworkManagerImplementation", () => {
             },
           ];
 
-          const validationErrors = validateNetworkConfig(networkConfig);
+          const validationErrors =
+            await validateNetworkUserConfig(networkConfig);
 
           assert.equal(validationErrors.length, 0);
         });
@@ -537,7 +625,8 @@ describe("NetworkManagerImplementation", () => {
               },
             ];
 
-            const validationErrors = validateNetworkConfig(networkConfig);
+            const validationErrors =
+              await validateNetworkUserConfig(networkConfig);
 
             assert.notEqual(validationErrors.length, 0);
             assert.equal(
@@ -554,7 +643,8 @@ describe("NetworkManagerImplementation", () => {
               },
             ];
 
-            let validationErrors = validateNetworkConfig(networkConfig);
+            let validationErrors =
+              await validateNetworkUserConfig(networkConfig);
 
             assert.notEqual(validationErrors.length, 0);
             assert.equal(
@@ -570,7 +660,7 @@ describe("NetworkManagerImplementation", () => {
               },
             ];
 
-            validationErrors = validateNetworkConfig(networkConfig);
+            validationErrors = await validateNetworkUserConfig(networkConfig);
 
             assert.notEqual(validationErrors.length, 0);
             assert.equal(
@@ -588,7 +678,8 @@ describe("NetworkManagerImplementation", () => {
               },
             ];
 
-            const validationErrors = validateNetworkConfig(networkConfig);
+            const validationErrors =
+              await validateNetworkUserConfig(networkConfig);
 
             assert.notEqual(validationErrors.length, 0);
             assert.equal(
@@ -613,7 +704,8 @@ describe("NetworkManagerImplementation", () => {
             },
           ];
 
-          const validationErrors = validateNetworkConfig(networkConfig);
+          const validationErrors =
+            await validateNetworkUserConfig(networkConfig);
 
           assert.notEqual(validationErrors.length, 0);
           assert.equal(validationErrors[0].message, validationErrorMsg);
@@ -637,7 +729,8 @@ describe("NetworkManagerImplementation", () => {
           for (const accounts of accountsValuesToTest) {
             networkConfig.accounts = accounts;
 
-            const validationErrors = validateNetworkConfig(networkConfig);
+            const validationErrors =
+              await validateNetworkUserConfig(networkConfig);
 
             assert.notEqual(validationErrors.length, 0);
             assert.equal(validationErrors[0].message, validationErrorMsg);
@@ -647,7 +740,8 @@ describe("NetworkManagerImplementation", () => {
         it("should fail when the array of objects contains an invalid private key", async () => {
           networkConfig.accounts = [{ privateKey: "0xxxxx", balance: 213 }];
 
-          const validationErrors = validateNetworkConfig(networkConfig);
+          const validationErrors =
+            await validateNetworkUserConfig(networkConfig);
 
           assert.notEqual(validationErrors.length, 0);
           assert.equal(
@@ -677,7 +771,8 @@ describe("NetworkManagerImplementation", () => {
           for (const [accounts, error] of accountsValuesToTest) {
             networkConfig.accounts = accounts;
 
-            const validationErrors = validateNetworkConfig(networkConfig);
+            const validationErrors =
+              await validateNetworkUserConfig(networkConfig);
 
             assert.notEqual(validationErrors.length, 0);
             assert.equal(validationErrors[0].message, error);

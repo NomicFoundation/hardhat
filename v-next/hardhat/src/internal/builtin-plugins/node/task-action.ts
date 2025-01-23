@@ -1,12 +1,10 @@
-import type { EdrNetworkConfig } from "../../../types/config.js";
+import type { EdrNetworkConfigOverride } from "../../../types/config.js";
 import type { NewTaskActionFunction } from "../../../types/tasks.js";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { exists } from "@ignored/hardhat-vnext-utils/fs";
 import chalk from "chalk";
 
-import { resolveConfigurationVariable } from "../../core/configuration-variables.js";
-import { resolveForkingConfig } from "../network-manager/config-resolution.js";
 import { isEdrSupportedChainType } from "../network-manager/edr/utils/chain-type.js";
 
 import { JsonRpcServerImplementation } from "./json-rpc/server.js";
@@ -45,7 +43,7 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
   // NOTE: We create an empty network config override here. We add to it based
   // on the result of arguments parsing. We can expand the list of arguments
   // as much as needed.
-  const networkConfigOverride: Partial<EdrNetworkConfig> = {};
+  const networkConfigOverride: EdrNetworkConfigOverride = {};
 
   if (args.chainType !== "") {
     if (!isEdrSupportedChainType(args.chainType)) {
@@ -68,18 +66,12 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
 
   // NOTE: --fork-block-number is only valid if --fork is specified
   if (args.fork !== "") {
-    networkConfigOverride.forking = resolveForkingConfig(
-      {
-        enabled: true,
-        url: args.fork,
-        ...(args.forkBlockNumber !== -1
-          ? { blockNumber: args.forkBlockNumber }
-          : undefined),
-      },
-      hre.config.paths.cache,
-      (strOrConfigVar) =>
-        resolveConfigurationVariable(hre.hooks, strOrConfigVar),
-    );
+    networkConfigOverride.forking = {
+      url: args.fork,
+      ...(args.forkBlockNumber !== -1
+        ? { blockNumber: args.forkBlockNumber }
+        : undefined),
+    };
   } else if (args.forkBlockNumber !== -1) {
     // NOTE: We could make the error more specific here.
     throw new HardhatError(
