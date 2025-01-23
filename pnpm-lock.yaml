@@ -1628,8 +1628,8 @@ importers:
         specifier: workspace:^
         version: link:../eslint-plugin-slow-imports
       '@nomicfoundation/hardhat-ignition-viem':
-        specifier: ^0.15.0
-        version: 0.15.7(@nomicfoundation/hardhat-ignition@0.15.9(@nomicfoundation/hardhat-verify@packages+hardhat-verify)(bufferutil@4.0.8)(hardhat@packages+hardhat-core)(utf-8-validate@5.0.10))(@nomicfoundation/hardhat-viem@packages+hardhat-viem)(@nomicfoundation/ignition-core@0.15.9(bufferutil@4.0.8)(utf-8-validate@5.0.10))(hardhat@packages+hardhat-core)(viem@2.21.34(bufferutil@4.0.8)(typescript@5.0.4)(utf-8-validate@5.0.10)(zod@3.23.8))
+        specifier: workspace:^0.15.0
+        version: link:../hardhat-ignition-viem
       '@nomicfoundation/hardhat-network-helpers':
         specifier: workspace:^1.0.0
         version: link:../hardhat-network-helpers
@@ -3160,15 +3160,6 @@ packages:
       '@nomicfoundation/ignition-core': ^0.15.7
       ethers: ^6.7.0
       hardhat: ^2.18.0
-
-  '@nomicfoundation/hardhat-ignition-viem@0.15.7':
-    resolution: {integrity: sha512-nvXOlUGHx/FruJi9N4OVQtVmrmwElLqWedl9JSC5FTqzs7JuP0AuIawzxfsVUNcf7w8z6TfMYezCkOMiWAGKuw==}
-    peerDependencies:
-      '@nomicfoundation/hardhat-ignition': ^0.15.7
-      '@nomicfoundation/hardhat-viem': ^2.0.0
-      '@nomicfoundation/ignition-core': ^0.15.7
-      hardhat: ^2.18.0
-      viem: ^2.7.6
 
   '@nomicfoundation/hardhat-ignition@0.15.9':
     resolution: {integrity: sha512-lSWqhaDOBt6gsqMadkRLvH6HdoFV1v8/bx7z+12cghaOloVwwn48CPoTH2iXXnkqilPGw8rdH5eVTE6UM+2v6Q==}
@@ -9945,14 +9936,6 @@ snapshots:
       '@nomicfoundation/ignition-core': 0.15.9(bufferutil@4.0.8)(utf-8-validate@5.0.10)
       ethers: 6.13.4(bufferutil@4.0.8)(utf-8-validate@5.0.10)
       hardhat: link:packages/hardhat-core
-
-  '@nomicfoundation/hardhat-ignition-viem@0.15.7(@nomicfoundation/hardhat-ignition@0.15.9(@nomicfoundation/hardhat-verify@packages+hardhat-verify)(bufferutil@4.0.8)(hardhat@packages+hardhat-core)(utf-8-validate@5.0.10))(@nomicfoundation/hardhat-viem@packages+hardhat-viem)(@nomicfoundation/ignition-core@0.15.9(bufferutil@4.0.8)(utf-8-validate@5.0.10))(hardhat@packages+hardhat-core)(viem@2.21.34(bufferutil@4.0.8)(typescript@5.0.4)(utf-8-validate@5.0.10)(zod@3.23.8))':
-    dependencies:
-      '@nomicfoundation/hardhat-ignition': 0.15.9(@nomicfoundation/hardhat-verify@packages+hardhat-verify)(bufferutil@4.0.8)(hardhat@packages+hardhat-core)(utf-8-validate@5.0.10)
-      '@nomicfoundation/hardhat-viem': link:packages/hardhat-viem
-      '@nomicfoundation/ignition-core': 0.15.9(bufferutil@4.0.8)(utf-8-validate@5.0.10)
-      hardhat: link:packages/hardhat-core
-      viem: 2.21.34(bufferutil@4.0.8)(typescript@5.0.4)(utf-8-validate@5.0.10)(zod@3.23.8)
 
   '@nomicfoundation/hardhat-ignition@0.15.9(@nomicfoundation/hardhat-verify@packages+hardhat-verify)(bufferutil@4.0.8)(hardhat@packages+hardhat-core)(utf-8-validate@5.0.10)':
     dependencies:
