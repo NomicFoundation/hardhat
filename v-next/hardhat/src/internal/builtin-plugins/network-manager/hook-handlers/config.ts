@@ -1,31 +1,18 @@
 import type {
-  ConfigurationVariable,
-  EdrNetworkConfig,
+  ConfigurationVariableResolver,
   EdrNetworkUserConfig,
   HardhatConfig,
   HardhatUserConfig,
-  HttpNetworkConfig,
   HttpNetworkUserConfig,
   NetworkConfig,
   NetworkUserConfig,
-  ResolvedConfigurationVariable,
 } from "../../../../types/config.js";
 import type { ConfigHooks } from "../../../../types/hooks.js";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
 import { GENERIC_CHAIN_TYPE } from "../../../constants.js";
-import {
-  resolveChains,
-  resolveCoinbase,
-  resolveEdrNetworkAccounts,
-  resolveForkingConfig,
-  resolveGasConfig,
-  resolveHardfork,
-  resolveHttpNetworkAccounts,
-  resolveInitialBaseFeePerGas,
-  resolveMiningConfig,
-} from "../config-resolution.js";
+import { resolveEdrNetwork, resolveHttpNetwork } from "../config-resolution.js";
 import { validateNetworkUserConfig } from "../type-validation.js";
 
 export default async (): Promise<Partial<ConfigHooks>> => ({
@@ -76,14 +63,10 @@ export async function extendUserConfig(
 
 export async function resolveUserConfig(
   userConfig: HardhatUserConfig,
-  resolveConfigurationVariable: (
-    variableOrString: ConfigurationVariable | string,
-  ) => ResolvedConfigurationVariable,
+  resolveConfigurationVariable: ConfigurationVariableResolver,
   next: (
     nextUserConfig: HardhatUserConfig,
-    nextResolveConfigurationVariable: (
-      variableOrString: ConfigurationVariable | string,
-    ) => ResolvedConfigurationVariable,
+    nextResolveConfigurationVariable: ConfigurationVariableResolver,
   ) => Promise<HardhatConfig>,
 ): Promise<HardhatConfig> {
   const resolvedConfig = await next(userConfig, resolveConfigurationVariable);
@@ -101,74 +84,14 @@ export async function resolveUserConfig(
       });
     }
 
-    if (networkConfig.type === "http") {
-      const resolvedNetworkConfig: HttpNetworkConfig = {
-        type: "http",
-        accounts: resolveHttpNetworkAccounts(
-          networkConfig.accounts,
-          resolveConfigurationVariable,
-        ),
-        chainId: networkConfig.chainId,
-        chainType: networkConfig.chainType,
-        from: networkConfig.from,
-        gas: resolveGasConfig(networkConfig.gas),
-        gasMultiplier: networkConfig.gasMultiplier ?? 1,
-        gasPrice: resolveGasConfig(networkConfig.gasPrice),
-        url: resolveConfigurationVariable(networkConfig.url),
-        timeout: networkConfig.timeout ?? 20_000,
-        httpHeaders: networkConfig.httpHeaders ?? {},
-      };
-
-      resolvedNetworks[networkName] = resolvedNetworkConfig;
-    }
-
-    if (networkConfig.type === "edr") {
-      const resolvedNetworkConfig: EdrNetworkConfig = {
-        type: "edr",
-        accounts: resolveEdrNetworkAccounts(
-          networkConfig.accounts,
-          resolveConfigurationVariable,
-        ),
-        chainId: networkConfig.chainId ?? 31337,
-        chainType: networkConfig.chainType,
-        from: networkConfig.from,
-        gas: resolveGasConfig(networkConfig.gas),
-        gasMultiplier: networkConfig.gasMultiplier ?? 1,
-        gasPrice: resolveGasConfig(networkConfig.gasPrice),
-
-        allowBlocksWithSameTimestamp:
-          networkConfig.allowBlocksWithSameTimestamp ?? false,
-        allowUnlimitedContractSize:
-          networkConfig.allowUnlimitedContractSize ?? false,
-        blockGasLimit: BigInt(networkConfig.blockGasLimit ?? 30_000_000n),
-        chains: resolveChains(networkConfig.chains),
-        coinbase: resolveCoinbase(networkConfig.coinbase),
-        enableRip7212: networkConfig.enableRip7212 ?? false,
-        enableTransientStorage: networkConfig.enableTransientStorage ?? false,
-        forking: resolveForkingConfig(
-          networkConfig.forking,
-          resolvedConfig.paths.cache,
-          resolveConfigurationVariable,
-        ),
-        hardfork: resolveHardfork(
-          networkConfig.hardfork,
-          networkConfig.enableTransientStorage,
-        ),
-        initialBaseFeePerGas: resolveInitialBaseFeePerGas(
-          networkConfig.initialBaseFeePerGas,
-        ),
-        initialDate: networkConfig.initialDate ?? new Date(),
-        loggingEnabled: networkConfig.loggingEnabled ?? false,
-        minGasPrice: BigInt(networkConfig.minGasPrice ?? 0),
-        mining: resolveMiningConfig(networkConfig.mining),
-        networkId: networkConfig.networkId ?? networkConfig.chainId ?? 31337,
-        throwOnCallFailures: networkConfig.throwOnCallFailures ?? true,
-        throwOnTransactionFailures:
-          networkConfig.throwOnTransactionFailures ?? true,
-      };
-
-      resolvedNetworks[networkName] = resolvedNetworkConfig;
-    }
+    resolvedNetworks[networkName] =
+      networkConfig.type === "http"
+        ? resolveHttpNetwork(networkConfig, resolveConfigurationVariable)
+        : resolveEdrNetwork(
+            networkConfig,
+            resolvedConfig.paths.cache,
+            resolveConfigurationVariable,
+          );
   }
 
   return {

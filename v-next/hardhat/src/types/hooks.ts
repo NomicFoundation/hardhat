@@ -1,8 +1,8 @@
 import type {
   ConfigurationVariable,
+  ConfigurationVariableResolver,
   HardhatConfig,
   HardhatUserConfig,
-  ResolvedConfigurationVariable,
 } from "./config.js";
 import type { HardhatRuntimeEnvironment } from "./hre.js";
 import type {
@@ -87,14 +87,10 @@ export interface ConfigHooks {
    */
   resolveUserConfig: (
     userConfig: HardhatUserConfig,
-    resolveConfigurationVariable: (
-      variableOrString: ConfigurationVariable | string,
-    ) => ResolvedConfigurationVariable,
+    resolveConfigurationVariable: ConfigurationVariableResolver,
     next: (
       nextUserConfig: HardhatUserConfig,
-      nextResolveConfigurationVariable: (
-        variableOrString: ConfigurationVariable | string,
-      ) => ResolvedConfigurationVariable,
+      nextResolveConfigurationVariable: ConfigurationVariableResolver,
     ) => Promise<HardhatConfig>,
   ) => Promise<HardhatConfig>;
 }
