@@ -7,6 +7,8 @@ import debug from "debug";
 
 const log = debug("hardhat:typechain:generate-types");
 
+const PRETTIER_TRANSFORMER_NAME = "prettierOutputTransformer";
+
 export async function generateTypes(
   rootPath: string,
   config: TypechainConfig,
@@ -24,14 +26,14 @@ export async function generateTypes(
     "typechain/dist/codegen/outputTransformers/index.js"
   );
 
-  removePrettierOutputTransformerIfNeeded(outputTransformers);
-  addTransformerForFixingCompiledFiles(outputTransformers);
+  removePrettierTransformerIfPresent(outputTransformers);
+  addCompiledFilesTransformerIfAbsent(outputTransformers);
 
   const typechainOptions: Omit<RunTypeChainConfig, "filesToProcess"> = {
     cwd: rootPath,
     allFiles: artifactsPaths,
     outDir: config.outDir,
-    target: "ethers-v6",
+    target: "ethers-v6", // We only support this target
     flags: {
       alwaysGenerateOverloads: config.alwaysGenerateOverloads,
       discriminateTypes: config.discriminateTypes,
@@ -49,29 +51,29 @@ export async function generateTypes(
   log(`Successfully generated ${result.filesGenerated} typings!`);
 }
 
-function removePrettierOutputTransformerIfNeeded(
+function removePrettierTransformerIfPresent(
   outputTransformers: OutputTransformer[],
 ): void {
-  // Note: this is a hack to avoid running prettier on the generated files.
+  // Note: This is a hack to avoid modifying the original TypeChain npm module; the goal is to avoid running prettier on the generated files.
   // We remove the `prettier` output transformer from typechain.
 
   // Check if the `prettier` output transformer is present. If multiple contracts are compiled at different
   // times in the same process, the `prettier` transformer may have already been removed earlier.
   const prettierIndex = outputTransformers.findIndex(
-    (item) => item.name === "prettierOutputTransformer",
+    (item) => item.name === PRETTIER_TRANSFORMER_NAME,
   );
 
   if (prettierIndex !== -1) {
     const removedTransformer = outputTransformers.splice(prettierIndex, 1)[0];
 
     assertHardhatInvariant(
-      removedTransformer.name === "prettierOutputTransformer",
+      removedTransformer.name === PRETTIER_TRANSFORMER_NAME,
       "TypeChain output transformer arrays changed in an unexpected way",
     );
   }
 }
 
-function addTransformerForFixingCompiledFiles(
+function addCompiledFilesTransformerIfAbsent(
   outputTransformers: OutputTransformer[],
 ) {
   // Note: This is a hack to avoid modifying the original TypeChain npm module.
@@ -80,9 +82,7 @@ function addTransformerForFixingCompiledFiles(
 
   if (
     // The "item.name" must match the name of the variable where the OutputTransformer is defined, which in this case is "compiledFilesTransformer"
-    outputTransformers.findIndex(
-      (item) => item.name === "compiledFilesTransformer",
-    ) !== -1
+    outputTransformers.some((item) => item.name === "compiledFilesTransformer")
   ) {
     // Check if the `compiledFilesTransformer` output transformer is present. If multiple contracts are compiled at different
     // times in the same process, the `compiledFilesTransformer` transformer may have already been added earlier.
