@@ -20,6 +20,12 @@ describe("config validation", () => {
     });
   });
 
+  it("should not throw when the typechain config is not present", async () => {
+    await createHardhatRuntimeEnvironment({
+      plugins: [hardhatTypechain],
+    });
+  });
+
   it("should throw when the properties are invalid", async () => {
     await assertRejectsWithHardhatError(
       createHardhatRuntimeEnvironment({
