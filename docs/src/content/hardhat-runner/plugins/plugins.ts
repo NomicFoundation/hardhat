@@ -59,7 +59,7 @@ const communityPlugins: IPlugin[] = [
     authorUrl: "https://tenderly.co/",
     description:
       "Easily integrate your Hardhat project with Tenderly. Tenderly is an Ethereum monitoring, debugging and analytics platform.",
-    tags: ["Debuggin", "Monitoring", "Alerting", "Tasks", "Scripts"],
+    tags: ["Debugging", "Monitoring", "Alerting", "Tasks", "Scripts"],
   },
   {
     name: "hardhat-ethernal",
@@ -278,13 +278,6 @@ const communityPlugins: IPlugin[] = [
     authorUrl: "https://github.com/3obby/hardhat-storage-layout-json",
     description: "View contracts' layouts with CLI and .json output",
     tags: ["solidity", "storage"],
-  },
-  {
-    name: "hardhat-change-network",
-    author: "David Mihal",
-    authorUrl: "https://github.com/dmihal",
-    description: "Allows changing the current network in Hardhat.",
-    tags: ["Testing"],
   },
   {
     name: "hardhat-packager",
@@ -667,7 +660,7 @@ const communityPlugins: IPlugin[] = [
     author: "Mister Singh",
     authorUrl: "https://www.npmjs.com/package/hardhat-notifier",
     description:
-      "Hardhat plugin to send an OSX notification when hardhat compilcation fails/succeeds",
+      "Hardhat plugin to send an OSX notification when hardhat compilation fails/succeeds",
     tags: ["Deployment", "Tooling", "Notification", "Compile"],
   },
   {
@@ -826,7 +819,7 @@ const communityPlugins: IPlugin[] = [
     name: "hardhat-gasless-deployer",
     author: "Ahmed Ali",
     authorUrl: "https://twitter.com/0xAhmedAli",
-    npmPackage: "https://www.npmjs.com/package/hardhat-gasless-deployer",
+    npmPackage: "hardhat-gasless-deployer",
     description: "Deploy contracts with Hardhat using Gas Station Network",
     tags: ["GSN", "Gasless", "Deployment"],
   },
@@ -861,7 +854,7 @@ const communityPlugins: IPlugin[] = [
     authorUrl: "https://github.com/AxelLoupias",
     description:
       "Display different signatures that have the methods, events and errors of your contracts by console",
-    tags: ["functions", "errors", "events", "tooling", "selectorss"],
+    tags: ["functions", "errors", "events", "tooling", "selectors"],
   },
   {
     name: "@dgma/hardhat-sol-bundler",
@@ -994,6 +987,38 @@ const communityPlugins: IPlugin[] = [
     authorUrl: "https://yankeguo.com",
     description: "Hardhat plugin for the Trezor hardware wallet",
     tags: ["Trezor", "Wallet"],
+  },
+  {
+    name: "hardhat-switch-network",
+    author: "0xNeshi",
+    authorUrl: "https://github.com/0xNeshi",
+    description:
+      "Hardhat plugin for enabling on-the-fly network switching within your Hardhat scripts and tasks",
+    tags: ["Tasks", "Scripts", "Testing"],
+  },
+  {
+    name: "@medga/hardhat-clone",
+    author: "The MEDGA Team",
+    authorUrl: "https://medga.org",
+    description:
+      "Clone an on-chain contract and integrate into your Hardhat project",
+    tags: ["etherscan", "clone", "verified contract"],
+  },
+  {
+    name: "hardhat-tx-decoder",
+    author: "Axel Loupias",
+    npmPackage: "hardhat-tx-decoder",
+    authorUrl: "https://github.com/AxelLoupias",
+    description:
+      "Simplifies the debugging process by extracting transaction details, decoding contract events, and identifying revert reasons",
+    tags: [
+      "functions",
+      "errors",
+      "events",
+      "tooling",
+      "decoder",
+      "transaction",
+    ],
   },
 ];
 

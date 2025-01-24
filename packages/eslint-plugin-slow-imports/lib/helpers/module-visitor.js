@@ -22,7 +22,7 @@ function visitModules(visitor) {
     const isTypeImport = node.importKind === "type";
     // import { type Foo } (Flow)
     const hasTypeSpecifiers =
-      node.specifiers > 0 &&
+      node.specifiers.length > 0 &&
       node.specifiers.every(({ importKind }) => importKind === "type");
     if (isTypeImport || hasTypeSpecifiers) {
       return;

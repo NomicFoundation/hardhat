@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-ethers",
-  "version": "3.0.6",
+  "version": "3.0.8",
   "description": "Hardhat plugin for ethers",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/main/packages/hardhat-ethers",
   "repository": "github:nomicfoundation/hardhat",
@@ -56,7 +56,6 @@
     "@typescript-eslint/parser": "5.61.0",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
-    "chalk": "^2.4.2",
     "eslint": "^8.44.0",
     "eslint-config-prettier": "8.3.0",
     "eslint-plugin-import": "2.27.5",
@@ -65,6 +64,7 @@
     "ethers": "^6.1.0",
     "hardhat": "workspace:^2.0.0",
     "mocha": "^10.0.0",
+    "picocolors": "^1.1.0",
     "prettier": "2.4.1",
     "rimraf": "^3.0.2",
     "sinon": "^9.0.0",

@@ -86,6 +86,17 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
   }
 
   public async request(args: RequestArguments): Promise<unknown> {
+    // This is a temporary fix to an issue with noisy warnings in the logs
+    // of a local node (#5406). This will be fixed in the next major release.
+    if (args.method === "hardhat_setLedgerOutputEnabled") {
+      const error = new ProviderError(
+        "hardhat_setLedgerOutputEnabled - Method not supported",
+        -32004
+      );
+      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
+      throw error;
+    }
+
     const jsonRpcRequest = this._getJsonRpcRequest(
       args.method,
       args.params as any[]

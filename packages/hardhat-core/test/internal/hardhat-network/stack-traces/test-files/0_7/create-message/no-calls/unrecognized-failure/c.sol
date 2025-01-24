@@ -1,9 +1,0 @@
-pragma solidity ^0.7.0;
-
-contract IgnoredC  {
-
-  constructor() public {
-    assert(false);
-  }
-
-}

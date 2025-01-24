@@ -8,7 +8,7 @@ To get started, we’ll uninstall the `hardhat-deploy` plugin and install the Ha
 
 1. Remove the `hardhat-deploy` packages from your project:
 
-   ::::tabsgroup{options="npm,yarn"}
+   ::::tabsgroup{options="npm,yarn,pnpm"}
 
    :::tab{value="npm"}
 
@@ -26,11 +26,19 @@ To get started, we’ll uninstall the `hardhat-deploy` plugin and install the Ha
 
    :::
 
+   :::tab{value="pnpm"}
+
+   ```sh
+   pnpm remove hardhat-deploy hardhat-deploy-ethers
+   ```
+
+   :::
+
    ::::
 
 2. Install the Hardhat Ignition package and `hardhat-network-helpers` to provide additional testing support as a replacement for `hardhat-deploy` functionality like EVM snapshots:
 
-   ::::tabsgroup{options="npm,yarn"}
+   ::::tabsgroup{options="npm,yarn,pnpm"}
 
    :::tab{value="npm"}
 
@@ -44,6 +52,14 @@ To get started, we’ll uninstall the `hardhat-deploy` plugin and install the Ha
 
    ```sh
    yarn add --dev @nomicfoundation/hardhat-ignition-ethers @nomicfoundation/hardhat-network-helpers
+   ```
+
+   :::
+
+   :::tab{value="pnpm"}
+
+   ```sh
+   pnpm add -D @nomicfoundation/hardhat-ignition-ethers @nomicfoundation/hardhat-network-helpers
    ```
 
    :::
@@ -235,7 +251,7 @@ npx hardhat ignition deploy ./ignition/modules/Token.ts
 
 Which, if working correctly, will output the contract’s deployed address:
 
-```sh
+```
 You are running Hardhat Ignition against an in-process instance of Hardhat Network.
 This will execute the deployment, but the results will be lost.
 You can use --network <network-name> to deploy to a different network.

@@ -345,7 +345,8 @@ for verification on the block explorer. Waiting for verification result...
       if (verificationStatus.isSuccess()) {
         const contractURL = verificationInterface.getContractUrl(address);
         console.log(`Successfully verified contract ${contractInformation.contractName} on the block explorer.
-${contractURL}\n`);
+${contractURL}
+`);
       }
 
       return {

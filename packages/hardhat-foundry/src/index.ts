@@ -7,7 +7,7 @@ import {
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { existsSync, writeFileSync } from "fs";
 import path from "path";
-import chalk from "chalk";
+import picocolors from "picocolors";
 import {
   getForgeConfig,
   getRemappings,
@@ -24,7 +24,7 @@ extendConfig((config, userConfig) => {
   if (!existsSync(path.join(config.paths.root, "foundry.toml"))) {
     if (!process.argv.includes(TASK_INIT_FOUNDRY)) {
       console.log(
-        chalk.yellow(
+        picocolors.yellow(
           `Warning: You are using the hardhat-foundry plugin but there isn't a foundry.toml file in your project. Run 'npx hardhat ${TASK_INIT_FOUNDRY}' to create one.`
         )
       );
@@ -112,7 +112,9 @@ task(
     );
 
     if (existsSync(foundryConfigPath)) {
-      console.warn(chalk.yellow(`File foundry.toml already exists. Aborting.`));
+      console.warn(
+        picocolors.yellow(`File foundry.toml already exists. Aborting.`)
+      );
       process.exit(1);
     }
 

@@ -14,31 +14,31 @@ const CTS_CONFIG_FILENAME = "hardhat.config.cts";
 
 export function isCwdInsideProject() {
   return (
-    findUp.sync(TS_CONFIG_FILENAME) !== null ||
-    findUp.sync(CTS_CONFIG_FILENAME) !== null ||
-    findUp.sync(CJS_CONFIG_FILENAME) !== null ||
-    findUp.sync(JS_CONFIG_FILENAME) !== null
+    findUp.sync(TS_CONFIG_FILENAME) !== undefined ||
+    findUp.sync(CTS_CONFIG_FILENAME) !== undefined ||
+    findUp.sync(CJS_CONFIG_FILENAME) !== undefined ||
+    findUp.sync(JS_CONFIG_FILENAME) !== undefined
   );
 }
 
 export function getUserConfigPath() {
   const tsConfigPath = findUp.sync(TS_CONFIG_FILENAME);
-  if (tsConfigPath !== null) {
+  if (tsConfigPath !== undefined) {
     return tsConfigPath;
   }
 
   const ctsConfigPath = findUp.sync(CTS_CONFIG_FILENAME);
-  if (ctsConfigPath !== null) {
+  if (ctsConfigPath !== undefined) {
     return ctsConfigPath;
   }
 
   const cjsConfigPath = findUp.sync(CJS_CONFIG_FILENAME);
-  if (cjsConfigPath !== null) {
+  if (cjsConfigPath !== undefined) {
     return cjsConfigPath;
   }
 
   const pathToConfigFile = findUp.sync(JS_CONFIG_FILENAME);
-  if (pathToConfigFile === null) {
+  if (pathToConfigFile === undefined) {
     throw new HardhatError(ERRORS.GENERAL.NOT_INSIDE_PROJECT);
   }
 

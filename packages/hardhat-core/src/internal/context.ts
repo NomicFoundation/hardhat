@@ -1,7 +1,6 @@
 import {
   ConfigExtender,
   EnvironmentExtender,
-  ExperimentalHardhatNetworkMessageTraceHook,
   HardhatRuntimeEnvironment,
   ProviderExtender,
 } from "../types";
@@ -60,10 +59,6 @@ export class HardhatContext {
 
   public readonly configExtenders: ConfigExtender[] = [];
 
-  // NOTE: This is experimental and will be removed. Please contact our team if
-  // you are planning to use it.
-  public readonly experimentalHardhatNetworkMessageTraceHooks: ExperimentalHardhatNetworkMessageTraceHook[] =
-    [];
   private _filesLoadedBeforeConfig?: string[];
   private _filesLoadedAfterConfig?: string[];
 

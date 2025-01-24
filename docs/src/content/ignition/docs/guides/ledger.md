@@ -4,7 +4,7 @@ Hardhat Ignition supports deploying contracts using a Ledger hardware wallet via
 
 The first step is to install the `hardhat-ledger` plugin:
 
-::::tabsgroup{options="npm,yarn"}
+::::tabsgroup{options="npm,yarn,pnpm"}
 
 :::tab{value="npm"}
 
@@ -22,6 +22,14 @@ yarn add --dev @nomicfoundation/hardhat-ledger
 
 :::
 
+:::tab{value="pnpm"}
+
+```sh
+pnpm add -D @nomicfoundation/hardhat-ledger
+```
+
+:::
+
 ::::
 
 ## Configuring the Ledger plugin
@@ -34,7 +42,7 @@ We are going to use the [Sepolia testnet](https://ethereum.org/en/developers/doc
 
 ```ts
 // ...rest of your imports...
-import("@nomicfoundation/hardhat-ledger");
+import "@nomicfoundation/hardhat-ledger";
 
 // Go to https://alchemy.com, sign up, create a new App in
 // its dashboard, and set the Hardhat configuration variable
@@ -91,6 +99,7 @@ module.exports = {
 To deploy on Sepolia you need to send some Sepolia ether to the address that's going to be making the deployment. You can get testnet ether from a faucet, a service that distributes testing-ETH for free. Here is one for Sepolia:
 
 - [Alchemy Sepolia Faucet](https://sepoliafaucet.com/)
+- [QuickNode Sepolia Faucet](https://faucet.quicknode.com/ethereum/sepolia)
 
 :::tip
 
@@ -108,7 +117,7 @@ npx hardhat ignition deploy ignition/modules/Apollo.ts --network sepolia
 
 This will deploy as usual, however, you will now be prompted on your Ledger device to confirm each transaction before it's sent to the network. You should see a message like the following in your terminal:
 
-```sh
+```
 Hardhat Ignition 🚀
 
 Deploying [ Apollo ]

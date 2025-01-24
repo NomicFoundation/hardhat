@@ -2,6 +2,7 @@ import type {
   AnotherContract,
   EventsContract,
   MatchersContract,
+  OverrideEventContract,
 } from "./contracts";
 
 import { expect, AssertionError } from "chai";
@@ -14,6 +15,7 @@ import { useEnvironment, useEnvironmentWithNode } from "./helpers";
 describe(".to.emit (contract events)", () => {
   let contract: EventsContract;
   let otherContract: AnotherContract;
+  let overrideEventContract: OverrideEventContract;
   let matchers: MatchersContract;
 
   describe("with the in-process hardhat network", function () {
@@ -37,6 +39,12 @@ describe(".to.emit (contract events)", () => {
           "Events"
         )
       ).deploy(await otherContract.getAddress());
+
+      overrideEventContract = await (
+        await this.hre.ethers.getContractFactory<[], OverrideEventContract>(
+          "OverrideEventContract"
+        )
+      ).deploy();
 
       const Matchers = await this.hre.ethers.getContractFactory<
         [],
@@ -63,7 +71,7 @@ describe(".to.emit (contract events)", () => {
       );
     });
 
-    it("Should fail when matcher is called with too many arguments", async function () {
+    it("Should fail when the matcher is called with too many arguments", async function () {
       await expect(
         // @ts-expect-error
         expect(contract.emitUint(1)).not.to.emit(contract, "WithoutArgs", 1)
@@ -337,7 +345,7 @@ describe(".to.emit (contract events)", () => {
           );
         });
 
-        it("Should fail the passerd argument is the hash, not the pre-image", async function () {
+        it("Should fail the passed argument is the hash, not the pre-image", async function () {
           await expect(
             expect(contract.emitIndexedBytes(str1.bytes))
               .to.emit(contract, "WithIndexedBytesArg")
@@ -871,6 +879,31 @@ describe(".to.emit (contract events)", () => {
     it("With transaction hash", async () => {
       const tx = await contract.emitWithoutArgs();
       await expect(tx.hash).to.emit(contract, "WithoutArgs");
+    });
+
+    describe("When event is overloaded", () => {
+      it("Should fail when the event name is ambiguous", async function () {
+        await expect(
+          expect(overrideEventContract.emitSimpleEventWithUintArg(1n)).to.emit(
+            overrideEventContract,
+            "simpleEvent"
+          )
+        ).to.be.eventually.rejectedWith(
+          AssertionError,
+          `ambiguous event description (i.e. matches "simpleEvent(uint256)", "simpleEvent()")`
+        );
+      });
+
+      it("Should pass when the event name is not ambiguous", async function () {
+        await expect(overrideEventContract.emitSimpleEventWithUintArg(1n))
+          .to.emit(overrideEventContract, "simpleEvent(uint256)")
+          .withArgs(1);
+
+        await expect(overrideEventContract.emitSimpleEventWithoutArg()).to.emit(
+          overrideEventContract,
+          "simpleEvent()"
+        );
+      });
     });
   }
 });

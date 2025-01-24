@@ -112,6 +112,14 @@ describe("INTEGRATION: Reverted", function () {
           "Expected a valid transaction hash, but got '0x123'"
         );
       });
+
+      it("promise of a byte32 string", async function () {
+        await expect(
+          Promise.resolve(
+            "0x3230323400000000000000000000000000000000000000000000000000000000"
+          )
+        ).not.to.be.reverted;
+      });
     });
 
     describe("with a TxResponse as its subject", function () {
