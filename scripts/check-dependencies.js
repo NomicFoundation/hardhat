@@ -28,7 +28,22 @@ const IGNORE_SAME_VERSION_FOR_PACKAGES = {
   ],
   ethers: ["@nomicfoundation/hardhat-verify"],
   ["ts-node"]: ["hardhat"],
-  ["typescript"]: ["hardhat"],
+  ["typescript"]: [
+    "hardhat",
+    // There is an incompatibilty with root introduced in `v-next`,
+    // we are explicitly choosing to ignore the `./packages` versions
+    // of these packages here.
+    "@nomicfoundation/hardhat-chai-matchers",
+    "@nomicfoundation/hardhat-ethers",
+    "@nomicfoundation/hardhat-foundry",
+    "@nomicfoundation/hardhat-ledger",
+    "@nomicfoundation/hardhat-network-helpers",
+    "hardhat-shorthand",
+    "@nomicfoundation/hardhat-verify",
+    "@nomicfoundation/hardhat-viem",
+    "@nomiclabs/hardhat-vyper",
+    "@nomicfoundation/hardhat-web3-v4",
+  ],
 };
 
 const IGNORE_PEER_DEPENDENCIES_CHECK_FOR_PACKAGES = {
