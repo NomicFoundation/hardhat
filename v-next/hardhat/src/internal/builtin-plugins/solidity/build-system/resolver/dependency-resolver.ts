@@ -750,7 +750,7 @@ export class ResolverImplementation implements Resolver {
       from,
       importPath,
       importedPackage: dependency,
-      subpath: sourceNamePathToFsPath(parsedDirectImport.subpath),
+      subpath: parsedDirectImport.subpath,
     });
   }
 
@@ -1002,7 +1002,7 @@ export class ResolverImplementation implements Resolver {
    * @param importedPackage The NpmPackage that is being imported.
    * @param subpath The path to the file to import, within the
    * package. That means, after parsing the direct import, and stripping the
-   * package part.
+   * package part, before resolving package exports.
    */
   async #resolveImportToNpmPackage({
     from,
@@ -1015,8 +1015,7 @@ export class ResolverImplementation implements Resolver {
     importedPackage: ResolvedNpmPackage;
     subpath: string;
   }): Promise<NpmPackageResolvedFile> {
-    const sourceName =
-      importedPackage.rootSourceName + fsPathToSourceNamePath(subpath);
+    const sourceName = importedPackage.rootSourceName + subpath;
 
     const existing = this.#resolvedFileBySourceName.get(sourceName);
     if (existing !== undefined) {
@@ -1025,12 +1024,13 @@ export class ResolverImplementation implements Resolver {
       return existing as NpmPackageResolvedFile;
     }
 
+    // We use the subpath (pre-resolution) to create source names
     const resolvedSubpath = resolveSubpath(importedPackage, subpath);
 
     await this.#validateExistanceAndCasingOfImport({
       from,
       importPath,
-      relativeFsPathToValidate: resolvedSubpath,
+      relativeFsPathToValidate: sourceNamePathToFsPath(resolvedSubpath),
       absoluteFsPathToValidateFrom: importedPackage.rootFsPath,
       usingPackageExports: importedPackage.exports !== undefined,
     });
