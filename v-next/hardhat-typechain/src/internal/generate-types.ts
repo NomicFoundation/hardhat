@@ -121,7 +121,11 @@ export function addJsExtensionsIfNeeded(content: string): string {
   // import type * as src from './src';
   // will be converted into
   // import type * as src from './src/index.js';
-  const jsExtensionRegex = /^import.*(?<!\.js)['"];$/gm;
+  // but
+  // import * from "npmPackage"
+  // will not be converted because the import path does not starts with a "."
+  const jsExtensionRegex =
+    /^import\s+.*?\s+from\s+(['"])\.[^'"]*(?<!\.js)\1;$/gm;
 
   content = content.replace(jsExtensionRegex, (match) => {
     const insertIndex = match.lastIndexOf(";") - 1;

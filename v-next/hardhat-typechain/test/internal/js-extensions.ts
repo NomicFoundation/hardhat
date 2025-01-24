@@ -55,6 +55,19 @@ import type { Counter } from "./Counter.js";
     assert.equal(output, input);
   });
 
+  it("should not add the '/index.js' extension because the imports is from a npm package", () => {
+    const input = `
+import * from 'npmPackage';
+import { a } from 'npmPackage';
+// Use " instead of '
+import * from "npmPackage";
+import { a } from "npmPackage";
+`;
+    const output = addJsExtensionsIfNeeded(input);
+
+    assert.equal(output, input);
+  });
+
   it("should not add the '/index.js' extension because there are no imports, only exports", () => {
     const input = `
 export type { withForgeTSol };
