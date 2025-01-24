@@ -865,6 +865,7 @@ export class ResolverImplementation implements Resolver {
       importPath,
       relativeFsPathToValidate: resolvedSubpath,
       absoluteFsPathToValidateFrom: remapping.targetNpmPackage.rootFsPath,
+      usingPackageExports: remapping.targetNpmPackage.exports !== undefined,
     });
 
     const fsPath = path.join(
@@ -1035,6 +1036,7 @@ export class ResolverImplementation implements Resolver {
       importPath,
       relativeFsPathToValidate: resolvedSubpath,
       absoluteFsPathToValidateFrom: importedPackage.rootFsPath,
+      usingPackageExports: importedPackage.exports !== undefined,
     });
 
     const fsPath = path.join(importedPackage.rootFsPath, resolvedSubpath);
@@ -1248,17 +1250,21 @@ export class ResolverImplementation implements Resolver {
    * @param relativePathToValidate The relative path to validate its existance.
    * @param absolutePathToValidateFrom The absolute path from in which the
    * relative path is.
+   * @param usingPackageExports Whether the import is using package exports,
+   * which controls which kind of error is thrown.
    */
   async #validateExistanceAndCasingOfImport({
     from,
     importPath,
     relativeFsPathToValidate,
     absoluteFsPathToValidateFrom,
+    usingPackageExports,
   }: {
     from: ResolvedFile;
     importPath: string;
     relativeFsPathToValidate: string;
     absoluteFsPathToValidateFrom: string;
+    usingPackageExports?: boolean;
   }) {
     let trueCaseFsPath: string;
     try {
@@ -1277,6 +1283,18 @@ export class ResolverImplementation implements Resolver {
     }
 
     if (relativeFsPathToValidate !== trueCaseFsPath) {
+      // If we are using package exports, we need to throw a special error,
+      // as we can't compute the correct casing.
+      if (usingPackageExports === true) {
+        throw new HardhatError(
+          HardhatError.ERRORS.SOLIDITY.IMPORTED_PACKAGE_EXPORTS_FILE_WITH_INCORRECT_CASING,
+          {
+            importPath,
+            from: shortenPath(from.fsPath),
+          },
+        );
+      }
+
       throw new HardhatError(
         HardhatError.ERRORS.SOLIDITY.IMPORTED_FILE_WITH_INCORRECT_CASING,
         {
@@ -1545,7 +1563,6 @@ function resolveSubpath(
   if (npmPackage.exports === undefined) {
     return subpath;
   }
-
   try {
     // As we are resolving Solidity files, the conditions don't really apply,
     // and Solidity package authors don't use them either.

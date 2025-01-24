@@ -1060,14 +1060,14 @@ describe("Resolver", () => {
           );
         });
 
-        it("requires correct casing", async () => {
+        it("requires correct casing, and uses a special error", async () => {
           await assertRejectsWithHardhatError(
             resolver.resolveImport(file, "exports/exported.sol"),
-            HardhatError.ERRORS.SOLIDITY.IMPORTED_FILE_WITH_INCORRECT_CASING,
+            HardhatError.ERRORS.SOLIDITY
+              .IMPORTED_PACKAGE_EXPORTS_FILE_WITH_INCORRECT_CASING,
             {
               importPath: "exports/exported.sol",
               from: path.join("contracts", "File.sol"),
-              correctCasing: "contracts/Exported.sol",
             },
           );
         });
