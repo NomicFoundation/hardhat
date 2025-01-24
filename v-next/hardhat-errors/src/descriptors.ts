@@ -1129,6 +1129,12 @@ Please try renaming the directory.`,
       websiteTitle: "Resolution of non-existent npm file",
       websiteDescription: `You are tying to resolve an npm file that doesn't exist within its package.`,
     },
+    RESOLVE_WRONG_CASING_NPM_FILE: {
+      number: 1224,
+      messageTemplate: `You are tying to resolve the npm file "{module}", its casing is incorrect.`,
+      websiteTitle: "Resolution of npm file with incorrect casing",
+      websiteDescription: `You are tying to resolve an npm file whose casing is incorrect.`,
+    },
     DOWNLOAD_FAILED: {
       number: 1225,
       messageTemplate:

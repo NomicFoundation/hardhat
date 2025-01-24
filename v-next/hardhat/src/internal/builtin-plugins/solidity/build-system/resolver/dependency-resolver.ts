@@ -306,21 +306,25 @@ export class ResolverImplementation implements Resolver {
         );
       }
 
-      // Just like with the project files, we are more forgiving with the casing
-      // here, as this is not used for imports.
+      if (resolvedSubpath !== trueCaseFsPath) {
+        throw new HardhatError(
+          HardhatError.ERRORS.SOLIDITY.RESOLVE_WRONG_CASING_NPM_FILE,
+          { module: npmModule },
+        );
+      }
 
       const sourceName = sourceNamePathJoin(
         npmPackageToRootSourceName(npmPackage.name, npmPackage.version),
+        // We use the subpath (pre-resolution) to create source names
         fsPathToSourceNamePath(subpath),
       );
 
-      const resolvedWithTheRightCasing =
-        this.#resolvedFileBySourceName.get(sourceName);
+      const resolved = this.#resolvedFileBySourceName.get(sourceName);
 
-      if (resolvedWithTheRightCasing !== undefined) {
+      if (resolved !== undefined) {
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       -- If it was, it's a ProjectResolvedFile */
-        return resolvedWithTheRightCasing as NpmPackageResolvedFile;
+        return resolved as NpmPackageResolvedFile;
       }
 
       const fsPath = path.join(npmPackage.rootFsPath, trueCaseFsPath);
