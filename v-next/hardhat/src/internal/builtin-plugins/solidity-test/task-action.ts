@@ -7,6 +7,7 @@ import type { SolidityTestRunnerConfigArgs } from "@ignored/edr";
 import { finished } from "node:stream/promises";
 
 import { getAllFilesMatching } from "@ignored/hardhat-vnext-utils/fs";
+import { resolveFromRoot } from "@ignored/hardhat-vnext-utils/path";
 import { createNonClosingWriter } from "@ignored/hardhat-vnext-utils/stream";
 
 import { shouldMergeCompilationJobs } from "../solidity/build-profiles.js";
@@ -22,25 +23,34 @@ import {
 import { testReporter } from "./reporter.js";
 import { run } from "./runner.js";
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface -- the interface is expected to be expanded in the future
-interface TestActionArguments {}
+interface TestActionArguments {
+  testFiles: string[];
+}
 
 const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
-  {},
+  { testFiles },
   hre,
 ) => {
-  // NOTE: A test file is either a file with a `.sol` extension in the `tests.solidity`
-  // directory or a file with a `.t.sol` extension in the `sources.solidity` directory
-  const rootFilePaths = (
-    await Promise.all([
-      getAllFilesMatching(hre.config.paths.tests.solidity, (f) =>
-        f.endsWith(".sol"),
-      ),
-      ...hre.config.paths.sources.solidity.map(async (dir) => {
-        return getAllFilesMatching(dir, (f) => f.endsWith(".t.sol"));
-      }),
-    ])
-  ).flat(1);
+  let rootFilePaths: string[];
+
+  if (testFiles.length > 0) {
+    rootFilePaths = testFiles.map((f) =>
+      resolveFromRoot(hre.config.paths.root, f),
+    );
+  } else {
+    // NOTE: A test file is either a file with a `.sol` extension in the `tests.solidity`
+    // directory or a file with a `.t.sol` extension in the `sources.solidity` directory
+    rootFilePaths = (
+      await Promise.all([
+        getAllFilesMatching(hre.config.paths.tests.solidity, (f) =>
+          f.endsWith(".sol"),
+        ),
+        ...hre.config.paths.sources.solidity.map(async (dir) => {
+          return getAllFilesMatching(dir, (f) => f.endsWith(".t.sol"));
+        }),
+      ])
+    ).flat(1);
+  }
 
   const buildOptions: BuildOptions = {
     force: false,
