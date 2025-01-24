@@ -425,7 +425,7 @@ export class ResolverImplementation implements Resolver {
       }
 
       for (const [importedPackage, dependency] of dependenciesMap.entries()) {
-        // As `hardhat/console.sol` is resolved through npm, even if the
+        // As `hardhat/console.sol` is always resolved through npm, even if the
         // `hardhat/` folder exists in the root of the package/project, we
         // only remap that file.
         //
@@ -436,10 +436,6 @@ export class ResolverImplementation implements Resolver {
         // the dependency's name, and that's because we always resolve 'hardhat'
         // as the hh package itself. If someone installs another package as
         // "hardhat", it may break.
-        //
-        // If we support package#exports, we may treat hardhat as a normal
-        // package, with the exception of `hardhat/console.sol` always being
-        // resolved through npm.
         if (
           dependency !== PROJECT_ROOT_SENTINEL &&
           importedPackage === "hardhat"
