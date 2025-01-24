@@ -356,6 +356,7 @@ describe("NetworkManagerImplementation", () => {
 
   // TODO: Skipped for the alpha, but these tests need to be redone using the
   // assertValidationErrors, and also better structured.
+  // TODO2: add validation for other fields
   describe.skip("accounts", () => {
     const ACCOUNTS_ERROR = `Error in the "accounts" property in configuration:`;
 
