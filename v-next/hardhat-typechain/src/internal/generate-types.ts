@@ -123,8 +123,16 @@ export function addJsExtensionsIfNeeded(content: string): string {
   // import type * as src from './src/index.js';
   const jsExtensionRegex = /^import.*(?<!\.js)['"];$/gm;
 
-  return content.replace(jsExtensionRegex, (match) => {
+  content = content.replace(jsExtensionRegex, (match) => {
     const insertIndex = match.lastIndexOf(";") - 1;
     return match.slice(0, insertIndex) + "/index.js" + match.slice(insertIndex);
   });
+
+  // Special scenario for ".d.ts" files: These files lack semicolons at the end,
+  // and imports do not include the ".js" extension.
+  // Handle this separately to improve code readability.
+  // Example:
+  // import { ethers } from 'ethers' // Not modified
+  // import * as Contracts from "." // Modified to: import * as Contracts from "./index.js"
+  return content.replaceAll(`from "."`, `from "./index.js"`);
 }

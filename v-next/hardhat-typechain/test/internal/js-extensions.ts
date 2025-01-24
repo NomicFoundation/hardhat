@@ -4,7 +4,7 @@ import { describe, it } from "node:test";
 import { addJsExtensionsIfNeeded } from "../../src/internal/generate-types.js";
 
 describe("addJsExtensionsIfNeeded", () => {
-  it("should correctly add the '/index.js'", () => {
+  it("should correctly add the '/index.js' - simulates .ts files", () => {
     const output = addJsExtensionsIfNeeded(`
 import type * as counterTSol from './Counter.t.sol';
 import type * as src from './src';
@@ -26,6 +26,19 @@ import * as token from './token/index.js';
 import type * as counterTSol from "./Counter.t.sol/index.js";
 import type * as src from "./src/index.js";
 import * from "./index.js";`,
+    );
+  });
+
+  it("should correctly add the '/index.js' - simulate .d.ts files", () => {
+    const output = addJsExtensionsIfNeeded(`
+import { ethers } from "ethers"; // Not modified
+import * from "." // modified`);
+
+    assert.equal(
+      output,
+      `
+import { ethers } from "ethers"; // Not modified
+import * from "./index.js" // modified`,
     );
   });
 
