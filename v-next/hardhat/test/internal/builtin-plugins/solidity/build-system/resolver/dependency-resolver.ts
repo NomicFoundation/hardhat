@@ -1081,51 +1081,19 @@ describe("Resolver", () => {
         });
 
         describe("exports that use conditions", function () {
-          it("resolves with the 'node' condition", async () => {
-            const resolvedFile = await resolver.resolveImport(
-              file,
-              "exports/Condition-node.sol",
-            );
-
-            assertNpmPackageResolvedFile(
-              resolvedFile,
-              {
-                name: "exports",
-                version: "3.0.0",
-                rootSourceName: "npm/exports@3.0.0/",
-              },
-              "monorepo/node_modules/exports",
-              "Condition-node.sol",
-              "monorepo/node_modules/exports/contracts4/Condition-node.sol",
-            );
-
-            assert.equal(
-              resolvedFile.sourceName,
-              "npm/exports@3.0.0/Condition-node.sol",
+          it("doesn't resolve with the 'node' condition", async () => {
+            assertRejectsWithHardhatError(
+              resolver.resolveImport(file, "exports/Condition-node.sol"),
+              HardhatError.ERRORS.SOLIDITY.RESOLVE_NOT_EXPORTED_NPM_FILE,
+              { module: "exports/Condition-node.sol" },
             );
           });
 
-          it("resolves with the 'import' condition", async () => {
-            const resolvedFile = await resolver.resolveImport(
-              file,
-              "exports/Condition-import.sol",
-            );
-
-            assertNpmPackageResolvedFile(
-              resolvedFile,
-              {
-                name: "exports",
-                version: "3.0.0",
-                rootSourceName: "npm/exports@3.0.0/",
-              },
-              "monorepo/node_modules/exports",
-              "Condition-import.sol",
-              "monorepo/node_modules/exports/contracts4/Condition-import.sol",
-            );
-
-            assert.equal(
-              resolvedFile.sourceName,
-              "npm/exports@3.0.0/Condition-import.sol",
+          it("does not resolve with the 'import' condition", async () => {
+            await assertRejectsWithHardhatError(
+              resolver.resolveImport(file, "exports/Condition-import.sol"),
+              HardhatError.ERRORS.SOLIDITY.RESOLVE_NOT_EXPORTED_NPM_FILE,
+              { module: "exports/Condition-import.sol" },
             );
           });
 

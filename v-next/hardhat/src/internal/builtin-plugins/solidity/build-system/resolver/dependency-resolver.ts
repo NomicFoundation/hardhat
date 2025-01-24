@@ -1547,7 +1547,17 @@ function resolveSubpath(
   }
 
   try {
-    const resolveOutput = resolve.exports(npmPackage, subpath);
+    // As we are resolving Solidity files, the conditions don't really apply,
+    // and Solidity package authors don't use them either.
+    //
+    // We use `resolve.exports` with the appropiate options so that it only
+    // takes the `"default"` condition into account.
+    const resolveOutput = resolve.exports(npmPackage, subpath, {
+      browser: false,
+      conditions: [],
+      require: false,
+      unsafe: true,
+    });
 
     assertHardhatInvariant(
       resolveOutput !== undefined,
