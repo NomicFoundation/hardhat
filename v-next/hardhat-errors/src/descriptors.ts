@@ -1130,13 +1130,13 @@ Please try renaming the directory.`,
       websiteDescription: `You are tying to resolve an npm file that doesn't exist within its package.`,
     },
     RESOLVE_WRONG_CASING_NPM_FILE: {
-      number: 1224,
+      number: 1225,
       messageTemplate: `You are tying to resolve the npm file "{module}", its casing is incorrect.`,
       websiteTitle: "Resolution of npm file with incorrect casing",
       websiteDescription: `You are tying to resolve an npm file whose casing is incorrect.`,
     },
     DOWNLOAD_FAILED: {
-      number: 1225,
+      number: 1226,
       messageTemplate:
         "Couldn't download compiler version {remoteVersion}. Please check your internet connection and try again.",
       websiteTitle: "`solc` download failed",
@@ -1145,7 +1145,7 @@ Please try renaming the directory.`,
 Please check your internet connection and try again.`,
     },
     VERSION_LIST_DOWNLOAD_FAILED: {
-      number: 1226,
+      number: 1227,
       messageTemplate:
         "Couldn't download compiler version list. Please check your internet connection and try again.",
       websiteTitle: "Couldn't obtain `solc` version list",
@@ -1154,7 +1154,7 @@ Please check your internet connection and try again.`,
 Please check your internet connection and try again.`,
     },
     INVALID_DOWNLOAD: {
-      number: 1227,
+      number: 1228,
       messageTemplate: `Couldn't download compiler version {remoteVersion}: Checksum verification failed.
 
 Please check your internet connection and try again.
@@ -1168,7 +1168,7 @@ Please check your internet connection and try again.
 If this error persists, run \`npx hardhat clean --global\`.`,
     },
     CANT_RUN_NATIVE_COMPILER: {
-      number: 1228,
+      number: 1229,
       messageTemplate: `A native version of solc failed to run.
 
 If you are running MacOS, try installing Apple Rosetta.
@@ -1182,7 +1182,7 @@ If you are running MacOS, try installing Apple Rosetta.
 If this error persists, run "npx hardhat clean --global".`,
     },
     CANT_RUN_SOLCJS_COMPILER: {
-      number: 1229,
+      number: 1230,
       messageTemplate: `A wasm version of solc failed to run.
 
 If this error persists, run "npx hardhat clean --global".`,
@@ -1194,7 +1194,7 @@ If you are running MacOS, try installing Apple Rosetta.
 If this error persists, run "npx hardhat clean --global".`,
     },
     COMPILATION_JOB_CREATION_ERROR: {
-      number: 1230,
+      number: 1231,
       messageTemplate: `Failed to create compilation job for file {rootFilePath} using the build profile "{buildProfile}".
 
 {reason}`,
@@ -1204,7 +1204,7 @@ If this error persists, run "npx hardhat clean --global".`,
 This happens when your files require incompatible versions of solc or you haven't configured a version that works with them`,
     },
     BUILD_FAILED: {
-      number: 1231,
+      number: 1232,
       messageTemplate: "Compilation failed",
       websiteTitle: "Compilation failed",
       websiteDescription: `Your smart contracts failed to compile.
@@ -1212,13 +1212,13 @@ This happens when your files require incompatible versions of solc or you haven'
 Please check Hardhat's output for more details.`,
     },
     INVALID_SOLCJS_COMPILER: {
-      number: 1232,
+      number: 1233,
       messageTemplate: `A wasm version of solc {version} is invalid. The compile function is not available.`,
       websiteTitle: "Invalid solcjs compiler",
       websiteDescription: `Hardhat successfully downloaded a WASM version of solc {version} but it is invalid. The compile function is missing.`,
     },
     RESOLVE_NOT_EXPORTED_NPM_FILE: {
-      number: 1233,
+      number: 1234,
       messageTemplate: `You are tying to resolve the npm file "{module}", but it's not exported by its package`,
       websiteTitle: "Resolution of not-exported npm file",
       websiteDescription: `You are tying to resolve an npm file that is not exported by its package.`,
