@@ -847,8 +847,9 @@ export class ResolverImplementation implements Resolver {
       return existing as NpmPackageResolvedFile;
     }
 
-    const subpath = sourceNamePathToFsPath(
-      path.relative(remapping.targetNpmPackage.rootSourceName, directImport),
+    const subpath = path.relative(
+      remapping.targetNpmPackage.rootSourceName,
+      directImport,
     );
     const resolvedSubpath = resolveSubpath(remapping.targetNpmPackage, subpath);
 
@@ -859,7 +860,7 @@ export class ResolverImplementation implements Resolver {
     await this.#validateExistanceAndCasingOfImport({
       from,
       importPath,
-      relativeFsPathToValidate: resolvedSubpath,
+      relativeFsPathToValidate: sourceNamePathToFsPath(resolvedSubpath),
       absoluteFsPathToValidateFrom: remapping.targetNpmPackage.rootFsPath,
       usingPackageExports: remapping.targetNpmPackage.exports !== undefined,
     });
