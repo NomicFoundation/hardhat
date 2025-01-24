@@ -31,14 +31,14 @@ import * from "./index.js";`,
 
   it("should correctly add the '/index.js' - simulate .d.ts files", () => {
     const output = addJsExtensionsIfNeeded(`
-import { ethers } from "ethers"; // Not modified
-import * from "." // modified`);
+import { ethers } from "ethers";
+import * from "."`);
 
     assert.equal(
       output,
       `
-import { ethers } from "ethers"; // Not modified
-import * from "./index.js" // modified`,
+import { ethers } from "ethers";
+import * from "./index.js"`,
     );
   });
 

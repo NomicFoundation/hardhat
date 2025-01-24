@@ -125,18 +125,13 @@ export function addJsExtensionsIfNeeded(content: string): string {
   // import * from "npmPackage"
   // will not be converted because the import path does not starts with a "."
   const jsExtensionRegex =
-    /^import\s+.*?\s+from\s+(['"])\.[^'"]*(?<!\.js)\1;$/gm;
+    /^import\s+.*?\s+from\s+(['"])\.[^'"]*(?<!\.js)\1;?$/gm;
 
-  content = content.replace(jsExtensionRegex, (match) => {
-    const insertIndex = match.lastIndexOf(";") - 1;
+  return content.replace(jsExtensionRegex, (match) => {
+    const insertIndex = match.includes(";")
+      ? match.length - 2
+      : match.length - 1;
+
     return match.slice(0, insertIndex) + "/index.js" + match.slice(insertIndex);
   });
-
-  // Special scenario for ".d.ts" files: These files lack semicolons at the end,
-  // and imports do not include the ".js" extension.
-  // Handle this separately to improve code readability.
-  // Example:
-  // import { ethers } from 'ethers' // Not modified
-  // import * as Contracts from "." // Modified to: import * as Contracts from "./index.js"
-  return content.replaceAll(`from "."`, `from "./index.js"`);
 }
