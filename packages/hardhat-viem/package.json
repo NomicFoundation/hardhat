@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-viem",
-  "version": "2.0.3",
+  "version": "2.0.6",
   "description": "Hardhat plugin for viem",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/main/packages/hardhat-viem",
   "repository": "github:nomicfoundation/hardhat",
@@ -70,7 +70,6 @@
   },
   "peerDependencies": {
     "hardhat": "workspace:^2.17.0",
-    "typescript": "~5.0.0",
     "viem": "^2.7.6"
   },
   "dependencies": {

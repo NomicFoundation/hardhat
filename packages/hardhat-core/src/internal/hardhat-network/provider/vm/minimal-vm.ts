@@ -82,7 +82,12 @@ export function getMinimalEthereumJsVm(
           })
         );
 
-        const response = JSON.parse(responseObject.json);
+        let response;
+        if (typeof responseObject.data === "string") {
+          response = JSON.parse(responseObject.data);
+        } else {
+          response = responseObject.data;
+        }
 
         return Buffer.from(response.result.slice(2), "hex");
       },

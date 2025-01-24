@@ -37,7 +37,7 @@ To preview content locally, launch the app with `pnpm dev` and open http://127.0
 All content is organized by hierarchy levels and the top-level entries are layouts. The layout represents a set of folders and provides navigation within them. Currently, a folder should belong to one of the layouts. In terms of UI, the layout is equivalent to a sidebar navigation menu with two-level items. Layout settings can be found in the `src/content/layouts.yaml` file. It contains all layouts (currently "documentation" and "tutorial"). Each layout can have the following settings:
 
 - title (optional)
-- folders - the list of folders should be included in this layout
+- folders - the list of folders that should be included in this layout
 
 ### Folders
 
@@ -70,7 +70,7 @@ All documentation content is represented by `*.md` files with Markdown syntax. B
 
 ### Redirects
 
-Redirects allow you to redirect an incoming request path to a different destination path. Redirects settings are located in `redirects.config.js` file. It exports an array of objects. Each object represents a single redirect option. We utilize [NextJS Redirects](https://nextjs.org/docs/api-reference/next.config.js/redirects) API for that.
+Redirects allow you to redirect an incoming request path to a different destination path. Redirects settings are located in `redirects.config.js` file. It exports an array of objects. Each object represents a single redirect option. We utilize [NextJS Redirects](https://nextjs.org/docs/app/api-reference/config/next-config-js/redirects) API for that.
 
 ### Tabs
 
@@ -177,7 +177,7 @@ We also deploy updated storybook on each build. You can find it on https://hardh
 
 There are two relatively independent processes in the build step:
 
-1. Generating pages themselves. We get page paths directly from the files located in the content folder. Their paths are mapped to the page routes. Layout settings don't affect to page's existence.
+1. Generating pages themselves. We get page paths directly from the files located in the content folder. Their paths are mapped to the page routes. Layout settings don't affect page existence.
 2. Generating layouts and mapping layouts to pages. For that, we're checking which folders belong to what layout and assigning that layout to a page
 
 Page paths are generated in the `getStaticPaths` functions in files of the `page` folder. The result of these functions is an array of page paths. Page props are generated with the `getStaticProps` function, which is executed once per page with a page path passed as an argument and returns all required page props.
@@ -186,11 +186,11 @@ Execution of `getStaticPaths` and `getStaticProps` is handled by NextJS on a bui
 
 ## Styling
 
-We utilize [Linaria](https://github.com/callstack/linaria) for styling components. It has the "Styled Components" syntax but generates css without runtime with works fine with SSG sites.
+We utilize [Linaria](https://github.com/callstack/linaria) for styling components. It has the "Styled Components" syntax but generates css without runtime which works fine with SSG sites.
 
 ## Theming
 
-The documentation section is Themable. A user can switch between light, dark and high contrast themes for their convenience. There is also an "Auto" setting when theme is selected based on a user system settings.
+The documentation section is Themeable. A user can switch between light, dark and high contrast themes for their convenience. There is also an "Auto" setting when theme is selected based on a user system settings.
 
 Theming solution provides abilities to switch themes, keep the selected value in user's local storage, seamlessly keep selected page on navigating and page refreshing.
 
@@ -200,7 +200,7 @@ Landing pages don't support themes.
 
 ## Creating new landings
 
-Landing pages contains special "blocks" see src/components/landingBlocks. To create a new landing page start from copying `/pages/index.tsx` and `src/content/home.ts`. You can create another page by reordering existing blocks and passing another content to them. If necessary create new landing blocks.
+Landing pages contain special "blocks" see src/components/landingBlocks. To create a new landing page start from copying `/pages/index.tsx` and `src/content/home.ts`. You can create another page by reordering existing blocks and passing another content to them. If necessary create new landing blocks.
 
 ## CI/CD
 

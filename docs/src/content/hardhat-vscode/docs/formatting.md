@@ -8,7 +8,7 @@ If you currently have other solidity extensions installed, or have had previousl
 
 To set Hardhat for Visual Studio Code as your default formatter for solidity files:
 
-1. Within a Solidity file run the _Format Document With_ command, either through the Command Palette, or by right clicking and selecting through the context menu:
+1. Within a Solidity file run the _Format Document With_ command, either through the Command Palette, or by right-clicking and selecting through the context menu:
 
    ![Format Document With](/hardhat-vscode-images/format_document_with.png "Format Document With")
 

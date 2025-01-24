@@ -1,0 +1,8 @@
+{
+  "CompleteModule#BasicContract": "0x74e720c9B362ae3A65fF356ad62866511486BBBc",
+  "CompleteModule#BasicLibrary": "0x1c947344BA932fC7f3D622600dA0199520A67EFd",
+  "CompleteModule#BasicLibrary2": "0xBdAce15b3211019E272418B8014971c1cefbC8f0",
+  "CompleteModule#BasicContract2": "0x74e720c9B362ae3A65fF356ad62866511486BBBc",
+  "CompleteModule#ContractWithLibrary": "0xD369D9aB22D85C2A12bEabc0B581a419789E3755",
+  "CompleteModule#ContractWithLibrary2": "0xD369D9aB22D85C2A12bEabc0B581a419789E3755"
+}

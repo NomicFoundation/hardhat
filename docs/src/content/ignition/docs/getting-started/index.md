@@ -40,7 +40,7 @@ If you prefer to use **Viem** instead of **ethers**, check out the [Viem guide](
 
 Once you have a Hardhat project ready, open a terminal in its root directory, and run:
 
-::::tabsgroup{options="npm 7+,npm 6,yarn"}
+::::tabsgroup{options="npm 7+,npm 6,yarn,pnpm"}
 
 :::tab{value="npm 7+"}
 
@@ -62,6 +62,14 @@ npm install --save-dev @nomicfoundation/hardhat-ignition-ethers @nomicfoundation
 
 ```sh
 yarn add --dev @nomicfoundation/hardhat-ignition-ethers @nomicfoundation/hardhat-ethers @nomicfoundation/hardhat-ignition @nomicfoundation/hardhat-verify @nomicfoundation/ignition-core ethers
+```
+
+:::
+
+:::tab{value="pnpm"}
+
+```sh
+pnpm add -D @nomicfoundation/hardhat-ignition-ethers @nomicfoundation/hardhat-ignition ethers
 ```
 
 :::

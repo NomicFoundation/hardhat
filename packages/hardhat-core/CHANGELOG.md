@@ -1,5 +1,83 @@
 # hardhat
 
+## 2.22.18
+
+### Patch Changes
+
+- 25f45b0: Improve solidity stack traces performance by getting them from the EDR response
+- 0e5c8d7: Restored the message linking to the 2024 solidity survey
+
+## 2.22.17
+
+### Patch Changes
+
+- c6efe1d: fix: don't panic when a precompile errors
+- 56d127b: Make totalDifficulty field optional, as spec has changed.
+- e47b495: Added support for solc versions 0.8.28
+- 9ad82f5: Added an optional `--output` param to the flatten task
+
+## 2.22.16
+
+### Patch Changes
+
+- fcece65: Replaced `chalk` with `picocolors`, `glob` with `tinyglob`, and upgraded `find-up`
+
+## 2.22.15
+
+### Patch Changes
+
+- ede1cde: Fixed custom HTTP headers for forked configurations
+
+## 2.22.14
+
+### Patch Changes
+
+- 09ead48: Fixed error when remote nodes are not returning total difficulty from the eth.getBlock RPC API, by adding fallback value
+
+## 2.22.13
+
+### Patch Changes
+
+- bf92f4c: Fixed more bugs in the newly ported Solidity tracing logic
+- 3df95d3: Remove support for `console.log` selectors that wrongly use "(u)int" type aliases in the selector calculation
+- 4c1bcfc: Fixed minor bugs in the newly ported Solidity tracing logic
+
+## 2.22.12
+
+### Patch Changes
+
+- 5fb3095: Adapted Hardhat to trace Solidity logic on EDR. This resulted in a 10% performance improvement for most workloads.
+
+## 2.22.11
+
+### Patch Changes
+
+- 601d543: Fixed a problem with provider events when `provider.init` was explicitly called before the first request.
+- 224159e: Added support for solc versions 0.8.25, 0.8.26, and 0.8.27
+- b43ed78: Added link to Ignition docs in sample projects
+- 07e0a9c: Hardhat node can now handle large response objects by streaming them.
+- 12d1980: Upgrade chokidar
+
+## 2.22.10
+
+### Patch Changes
+
+- 409e99f: Fixed `debug` logs in Hardhat Network initialization process.
+- 46cd7a1: Removed the experimentalAddHardhatNetworkMessageTraceHook API
+
+## 2.22.9
+
+### Patch Changes
+
+- 6771f00: Do not send `http_setLedgerOutputEnabled` messages beyond the HTTP Provider to prevent unwanted warnings in the logs of the local hardhat node
+
+## 2.22.8
+
+### Patch Changes
+
+- f5d5d15: Fixed an issue with `debug_traceTransaction` when large responses were generated
+- 31d9d77: Upgraded EDR to v0.5.2
+
 ## 2.22.7
 
 ### Patch Changes

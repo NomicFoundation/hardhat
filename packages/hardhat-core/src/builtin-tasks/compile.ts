@@ -1,5 +1,5 @@
 import os from "os";
-import chalk from "chalk";
+import picocolors from "picocolors";
 import debug from "debug";
 import fsExtra from "fs-extra";
 import semver from "semver";
@@ -179,7 +179,7 @@ subtask(TASK_COMPILE_SOLIDITY_READ_FILE)
  * DEPRECATED: This subtask is deprecated and will be removed in the future.
  *
  * This task transform the string literal in an import directive.
- * By default it does nothing, but it can be overriden by plugins.
+ * By default it does nothing, but it can be overridden by plugins.
  */
 subtask(TASK_COMPILE_TRANSFORM_IMPORT_NAME)
   .addParam("importName", undefined, undefined, types.string)
@@ -254,7 +254,7 @@ subtask(TASK_COMPILE_SOLIDITY_GET_DEPENDENCY_GRAPH)
  * returned instead.
  *
  * This is the right task to override to change the compiler configuration.
- * For example, if you want to change the compiler settings when targetting
+ * For example, if you want to change the compiler settings when targeting
  * goerli, you could do something like this:
  *
  *   const compilationJob = await runSuper();
@@ -704,7 +704,7 @@ subtask(TASK_COMPILE_SOLIDITY_RUN_SOLC)
  * solc binary or, if that's not possible, using solcjs. Returns the generated
  * output.
  *
- * This task can be overriden to change how solc is obtained or used.
+ * This task can be overridden to change how solc is obtained or used.
  */
 subtask(TASK_COMPILE_SOLIDITY_COMPILE_SOLC)
   .addParam("input", undefined, undefined, types.any)
@@ -800,11 +800,15 @@ subtask(TASK_COMPILE_SOLIDITY_LOG_COMPILATION_ERRORS)
           getFormattedInternalCompilerErrorMessage(error) ??
           error.formattedMessage;
 
-        console.error(errorMessage.replace(/^\w+:/, (t) => chalk.red.bold(t)));
+        console.error(
+          errorMessage.replace(/^\w+:/, (t) =>
+            picocolors.bold(picocolors.red(t))
+          )
+        );
       } else {
         console.warn(
           (error.formattedMessage as string).replace(/^\w+:/, (t) =>
-            chalk.yellow.bold(t)
+            picocolors.bold(picocolors.yellow(t))
           )
         );
       }
@@ -813,7 +817,7 @@ subtask(TASK_COMPILE_SOLIDITY_LOG_COMPILATION_ERRORS)
     const hasConsoleErrors: boolean = output.errors.some(isConsoleLogError);
     if (hasConsoleErrors) {
       console.error(
-        chalk.red(
+        picocolors.red(
           `The console.log call you made isn’t supported. See https://hardhat.org/console-log for the list of supported methods.`
         )
       );
@@ -1058,7 +1062,7 @@ subtask(TASK_COMPILE_SOLIDITY_COMPILE_JOB)
  * Receives a list of CompilationJobsFailure and throws an error if it's not
  * empty.
  *
- * This task could be overriden to avoid interrupting the compilation if
+ * This task could be overridden to avoid interrupting the compilation if
  * there's some part of the project that can't be compiled.
  */
 subtask(TASK_COMPILE_SOLIDITY_HANDLE_COMPILATION_JOBS_FAILURES)

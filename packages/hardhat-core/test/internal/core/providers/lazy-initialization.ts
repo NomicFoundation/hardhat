@@ -97,12 +97,26 @@ describe("LazyInitializationProviderAdapter", () => {
       assert.equal(callTimes, 3);
     });
 
-    it("should move the registered events to the provider after initialization", async () => {
+    it("should move the registered events to the provider after implicit initialization", async () => {
       provider.on("event", eventHandler);
       provider.on("otherevent", eventHandler);
       provider.once("onceevent", eventHandler);
 
       await provider.request({ method: "a-method" }); // init the inner provider calling the constructor function
+      provider.emit("event"); // 1
+      provider.emit("otherevent"); // 2
+      provider.emit("onceevent"); // 3
+      provider.emit("onceevent"); // 3
+
+      assert.deepEqual(callTimes, 3);
+    });
+
+    it("should move the registered events to the provider after explicit initialization", async () => {
+      provider.on("event", eventHandler);
+      provider.on("otherevent", eventHandler);
+      provider.once("onceevent", eventHandler);
+
+      await provider.init();
       provider.emit("event"); // 1
       provider.emit("otherevent"); // 2
       provider.emit("onceevent"); // 3

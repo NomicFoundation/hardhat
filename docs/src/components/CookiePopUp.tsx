@@ -21,7 +21,7 @@ const Container = styled.section`
   flex-direction: column;
   max-width: 332px;
   ${media.md} {
-    width: 332spx;
+    width: 332px;
     margin: 0px 24px;
     left: unset;
   }

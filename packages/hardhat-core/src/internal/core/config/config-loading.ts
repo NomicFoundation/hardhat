@@ -1,6 +1,6 @@
 import type StackTraceParserT from "stacktrace-parser";
 
-import chalk from "chalk";
+import picocolors from "picocolors";
 import debug from "debug";
 import fsExtra from "fs-extra";
 import path from "path";
@@ -29,7 +29,14 @@ export function importCsjOrEsModule(filePath: string): any {
     const imported = require(filePath);
     return imported.default !== undefined ? imported.default : imported;
   } catch (e: any) {
-    if (e.code === "ERR_REQUIRE_ESM") {
+    // An ESM project that has a Hardhat config with a .js extension will fail to be loaded,
+    // because Hardhat configs can only be CJS but a .js extension will be interpreted as ESM.
+    // The kind of error we get in these cases depends on the Node.js version.
+    const node20Heuristic = e.code === "ERR_REQUIRE_ESM";
+    const node22Heuristic =
+      e.message === "module is not defined" ||
+      e.message === "require is not defined";
+    if (node20Heuristic || node22Heuristic) {
       throw new HardhatError(
         ERRORS.GENERAL.ESM_PROJECT_WITHOUT_CJS_CONFIG,
         {},
@@ -168,7 +175,7 @@ function deepFreezeUserConfig(
  * Receives an Error and checks if it's a MODULE_NOT_FOUND and the reason that
  * caused it.
  *
- * If it can infer the reason, it throws an appropiate error. Otherwise it does
+ * If it can infer the reason, it throws an appropriate error. Otherwise it does
  * nothing.
  */
 export function analyzeModuleNotFoundError(error: any, configPath: string) {
@@ -198,7 +205,7 @@ export function analyzeModuleNotFoundError(error: any, configPath: string) {
 
   const packageJsonPath = findClosestPackageJson(throwingFile);
 
-  if (packageJsonPath === null) {
+  if (packageJsonPath === undefined) {
     return;
   }
 
@@ -281,14 +288,14 @@ function checkEmptyConfig(
       warning += `\nLearn more about configuring Hardhat at https://hardhat.org/config\n`;
     }
 
-    console.warn(chalk.yellow(warning));
+    console.warn(picocolors.yellow(warning));
   }
 }
 
 function checkMissingSolidityConfig(userConfig: any) {
   if (userConfig.solidity === undefined) {
     console.warn(
-      chalk.yellow(
+      picocolors.yellow(
         `Solidity compiler is not configured. Version ${DEFAULT_SOLC_VERSION} will be used by default. Add a 'solidity' entry to your configuration to suppress this warning.
 
 Learn more about compiler configuration at https://hardhat.org/config
@@ -314,7 +321,7 @@ function checkUnsupportedSolidityConfig(resolvedConfig: HardhatConfig) {
 
   if (unsupportedVersions.length > 0) {
     console.warn(
-      chalk.yellow(
+      picocolors.yellow(
         `Solidity ${unsupportedVersions.join(", ")} ${
           unsupportedVersions.length === 1 ? "is" : "are"
         } not fully supported yet. You can still use Hardhat, but some features, like stack traces, might not work correctly.
@@ -337,7 +344,7 @@ function checkUnsupportedRemappings({ solidity }: HardhatConfig) {
 
   if (remappings.length > 0) {
     console.warn(
-      chalk.yellow(
+      picocolors.yellow(
         `Solidity remappings are not currently supported; you may experience unexpected compilation results. Remove any 'remappings' fields from your configuration to suppress this warning.
 
 Learn more about compiler configuration at https://hardhat.org/config

@@ -99,7 +99,7 @@ describe("Etherscan", () => {
       assert.equal(currentChainConfig.chainId, 5);
     });
 
-    it("should throw if the selected network is hardhat and it's not a added to custom chains", async () => {
+    it("should throw if the selected network is hardhat and it's not added to custom chains", async () => {
       const networkName = "hardhat";
       const ethereumProvider = {
         async send() {

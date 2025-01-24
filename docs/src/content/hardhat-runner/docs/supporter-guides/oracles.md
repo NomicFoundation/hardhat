@@ -11,7 +11,7 @@ Oracles provide a bridge between the real-world and on-chain smart contracts by 
 
 Oracles play a critical role in facilitating the full potential of smart contract utility. Without a reliable connection to real-world data, smart contracts cannot effectively serve the real-world.
 
-<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/ZJfkNzyO7-U" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/ZJfkNzyO7-U" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 ## Why are they needed?
 
@@ -27,7 +27,7 @@ We can avoid the oracle problem by using a decentralized oracle network, which p
 
 ## Security
 
-An oracle is only as secure as its data source(s). If a dapp uses Uniswap as an oracle for its ETH/DAI price feed, an attacker can move the price on Uniswap to manipulate the dapp's understanding of the current price. An example of how to combat this is [a feed system](https://developer.makerdao.com/feeds/) like the one used by MakerDAO, which collates price data from many external price feeds instead of just relying on a single source.
+An oracle is only as secure as its data source(s). If a dapp uses Uniswap as an oracle for its ETH/DAI price feed, an attacker can move the price on Uniswap to manipulate the dapp's understanding of the current price. An example of how to combat this is [a feed system](https://docs.makerdao.com/smart-contract-modules/oracle-module/oracle-security-module-osm-detailed-documentation) like the one used by MakerDAO, which collates price data from many external price feeds instead of just relying on a single source.
 
 ## Architecture
 
@@ -94,7 +94,7 @@ Usually, you will create and manage your subscriptions on the [VRF Subscription 
 
 You will need to install it by typing:
 
-::::tabsgroup{options="npm 7+,npm 6,yarn"}
+::::tabsgroup{options="npm 7+,npm 6,yarn,pnpm"}
 
 :::tab{value="npm 7+"}
 
@@ -116,6 +116,14 @@ npm install --save-dev @chainlink/hardhat-chainlink
 
 ```
 yarn add --dev @chainlink/hardhat-chainlink
+```
+
+:::
+
+:::tab{value="pnpm"}
+
+```
+pnpm add -D @chainlink/hardhat-chainlink
 ```
 
 :::
@@ -202,7 +210,7 @@ main().catch((error) => {
 });
 ```
 
-Finnaly, run the deployment script by typing:
+Finally, run the deployment script by typing:
 
 ```sh
 npx hardhat run scripts/deploy.ts --network goerli

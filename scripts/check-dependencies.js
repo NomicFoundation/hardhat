@@ -4,6 +4,16 @@ const path = require("path");
 // We ignore te packages introduces in v-next for now
 const vNextPackages = ["template-package", "hardhat-utils"];
 
+// Ignition packages are allowed to have different versions of the same
+// dependency for now as we will sync them properly in Hardhat v3
+const IGNORE_SAME_VERSION_FOR_IGNITION_PACKAGES = [
+  "@nomicfoundation/hardhat-ignition",
+  "@nomicfoundation/ignition-core",
+  "@nomicfoundation/hardhat-ignition-ethers",
+  "@nomicfoundation/hardhat-ignition-viem",
+  "@nomicfoundation/ignition-ui",
+];
+
 // An array of dependencies whose version checks are ignored for all the
 // packages
 const IGNORE_SAME_VERSION_FROM_ALL = ["web3", "hardhat"];
@@ -26,7 +36,7 @@ const IGNORE_PEER_DEPENDENCIES_CHECK_FOR_PACKAGES = {
   ["ts-node"]: ["hardhat"],
 };
 
-function checkPeerDepedencies(packageJson) {
+function checkPeerDependencies(packageJson) {
   if (packageJson.peerDependencies === undefined) {
     return true;
   }
@@ -86,8 +96,9 @@ function addDependencies(packageName, dependenciesToAdd, allDependenciesMap) {
     }
 
     if (
-      IGNORE_SAME_VERSION_FOR_PACKAGES[name] !== undefined &&
-      IGNORE_SAME_VERSION_FOR_PACKAGES[name].includes(packageName)
+      (IGNORE_SAME_VERSION_FOR_PACKAGES[name] !== undefined &&
+        IGNORE_SAME_VERSION_FOR_PACKAGES[name].includes(packageName)) ||
+      IGNORE_SAME_VERSION_FOR_IGNITION_PACKAGES.includes(packageName)
     ) {
       continue;
     }
@@ -173,7 +184,7 @@ function main() {
       continue;
     }
 
-    const peersOk = checkPeerDepedencies(packageJson);
+    const peersOk = checkPeerDependencies(packageJson);
     const dependencyMap = getDependencyMap(packageJson);
     dependencyMaps.push(dependencyMap);
 

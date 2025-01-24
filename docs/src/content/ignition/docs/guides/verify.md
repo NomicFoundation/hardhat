@@ -117,6 +117,7 @@ module.exports = {
 To deploy on Sepolia you need to send some Sepolia ether to the address that's going to be making the deployment. You can get testnet ether from a faucet, a service that distributes testing-ETH for free. Here is one for Sepolia:
 
 - [Alchemy Sepolia Faucet](https://sepoliafaucet.com/)
+- [QuickNode Sepolia Faucet](https://faucet.quicknode.com/ethereum/sepolia)
 
 :::tip
 
