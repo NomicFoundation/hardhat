@@ -48,7 +48,6 @@ import {
 //    contain the package name and version. e.g. `npm/package@1.2.3/path.sol`.
 //  - Files within npm packages that are part of a monorepo are resolved like
 //    npm pacakges, but with the version `local`.
-//  - This resolver does not support `package.json#exports`.
 //  - This resolver fails if an import has a casing different from that of the
 //    file system.
 //  - We do not allow users to remap the imports present in files within npm
