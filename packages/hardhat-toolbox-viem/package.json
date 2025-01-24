@@ -72,7 +72,7 @@
     "viem": "^2.7.6"
   },
   "peerDependencies": {
-    "@nomicfoundation/hardhat-ignition-viem": "^0.15.0",
+    "@nomicfoundation/hardhat-ignition-viem": "workspace:^0.15.0",
     "@nomicfoundation/hardhat-network-helpers": "workspace:^1.0.0",
     "@nomicfoundation/hardhat-verify": "workspace:^2.0.0",
     "@nomicfoundation/hardhat-viem": "workspace:^2.0.0",

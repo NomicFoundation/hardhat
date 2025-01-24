@@ -1537,8 +1537,8 @@ importers:
         specifier: workspace:^3.0.0
         version: link:../hardhat-ethers
       '@nomicfoundation/hardhat-ignition-ethers':
-        specifier: ^0.15.0
-        version: 0.15.7(@nomicfoundation/hardhat-ethers@packages+hardhat-ethers)(@nomicfoundation/hardhat-ignition@0.15.9(@nomicfoundation/hardhat-verify@packages+hardhat-verify)(bufferutil@4.0.8)(hardhat@packages+hardhat-core)(utf-8-validate@5.0.10))(@nomicfoundation/ignition-core@0.15.9(bufferutil@4.0.8)(utf-8-validate@5.0.10))(ethers@6.13.4(bufferutil@4.0.8)(utf-8-validate@5.0.10))(hardhat@packages+hardhat-core)
+        specifier: workspace:^0.15.0
+        version: link:../hardhat-ignition-ethers
       '@nomicfoundation/hardhat-network-helpers':
         specifier: workspace:^1.0.0
         version: link:../hardhat-network-helpers
@@ -3151,27 +3151,6 @@ packages:
     peerDependenciesMeta:
       c-kzg:
         optional: true
-
-  '@nomicfoundation/hardhat-ignition-ethers@0.15.7':
-    resolution: {integrity: sha512-pUZWQeFNMwDe6F/yKIJsCo+87elk/M/Edjp6AnWWIBplRyPa13Nh63+yOqMSSd9Mx9lLuBaEGnYXoI2Uz2wYZA==}
-    peerDependencies:
-      '@nomicfoundation/hardhat-ethers': ^3.0.4
-      '@nomicfoundation/hardhat-ignition': ^0.15.7
-      '@nomicfoundation/ignition-core': ^0.15.7
-      ethers: ^6.7.0
-      hardhat: ^2.18.0
-
-  '@nomicfoundation/hardhat-ignition@0.15.9':
-    resolution: {integrity: sha512-lSWqhaDOBt6gsqMadkRLvH6HdoFV1v8/bx7z+12cghaOloVwwn48CPoTH2iXXnkqilPGw8rdH5eVTE6UM+2v6Q==}
-    peerDependencies:
-      '@nomicfoundation/hardhat-verify': ^2.0.1
-      hardhat: ^2.18.0
-
-  '@nomicfoundation/ignition-core@0.15.9':
-    resolution: {integrity: sha512-X8W+7UP/UQPorpHUnGvA1OdsEr/edGi8tDpNwEqzaLm83FMZVbRWdOsr3vNICHN2XMzNY/xIm18Cx7xGKL2PQw==}
-
-  '@nomicfoundation/ignition-ui@0.15.9':
-    resolution: {integrity: sha512-8lzbT7gpJ5PoowPQDQilkwdyqBviUKDMoHp/5rhgnwG1bDslnCS+Lxuo6s9R2akWu9LtEL14dNyqQb6WsURTag==}
 
   '@nomicfoundation/solidity-analyzer-darwin-arm64@0.1.2':
     resolution: {integrity: sha512-JaqcWPDZENCvm++lFFGjrDd8mxtf+CtLd2MiXvMNTBD33dContTZ9TWETwNFwg7JTJT5Q9HEecH7FA+HTSsIUw==}
@@ -9928,48 +9907,6 @@ snapshots:
     dependencies:
       '@nomicfoundation/ethereumjs-rlp': 5.0.4
       ethereum-cryptography: 0.1.3
-
-  '@nomicfoundation/hardhat-ignition-ethers@0.15.7(@nomicfoundation/hardhat-ethers@packages+hardhat-ethers)(@nomicfoundation/hardhat-ignition@0.15.9(@nomicfoundation/hardhat-verify@packages+hardhat-verify)(bufferutil@4.0.8)(hardhat@packages+hardhat-core)(utf-8-validate@5.0.10))(@nomicfoundation/ignition-core@0.15.9(bufferutil@4.0.8)(utf-8-validate@5.0.10))(ethers@6.13.4(bufferutil@4.0.8)(utf-8-validate@5.0.10))(hardhat@packages+hardhat-core)':
-    dependencies:
-      '@nomicfoundation/hardhat-ethers': link:packages/hardhat-ethers
-      '@nomicfoundation/hardhat-ignition': 0.15.9(@nomicfoundation/hardhat-verify@packages+hardhat-verify)(bufferutil@4.0.8)(hardhat@packages+hardhat-core)(utf-8-validate@5.0.10)
-      '@nomicfoundation/ignition-core': 0.15.9(bufferutil@4.0.8)(utf-8-validate@5.0.10)
-      ethers: 6.13.4(bufferutil@4.0.8)(utf-8-validate@5.0.10)
-      hardhat: link:packages/hardhat-core
-
-  '@nomicfoundation/hardhat-ignition@0.15.9(@nomicfoundation/hardhat-verify@packages+hardhat-verify)(bufferutil@4.0.8)(hardhat@packages+hardhat-core)(utf-8-validate@5.0.10)':
-    dependencies:
-      '@nomicfoundation/hardhat-verify': link:packages/hardhat-verify
-      '@nomicfoundation/ignition-core': 0.15.9(bufferutil@4.0.8)(utf-8-validate@5.0.10)
-      '@nomicfoundation/ignition-ui': 0.15.9
-      chalk: 4.1.2
-      debug: 4.3.7(supports-color@5.5.0)
-      fs-extra: 10.1.0
-      hardhat: link:packages/hardhat-core
-      json5: 2.2.3
-      prompts: 2.4.2
-    transitivePeerDependencies:
-      - bufferutil
-      - supports-color
-      - utf-8-validate
-
-  '@nomicfoundation/ignition-core@0.15.9(bufferutil@4.0.8)(utf-8-validate@5.0.10)':
-    dependencies:
-      '@ethersproject/address': 5.6.1
-      '@nomicfoundation/solidity-analyzer': 0.1.2
-      cbor: 9.0.2
-      debug: 4.3.7(supports-color@5.5.0)
-      ethers: 6.13.4(bufferutil@4.0.8)(utf-8-validate@5.0.10)
-      fs-extra: 10.1.0
-      immer: 10.0.2
-      lodash: 4.17.21
-      ndjson: 2.0.0
-    transitivePeerDependencies:
-      - bufferutil
-      - supports-color
-      - utf-8-validate
-
-  '@nomicfoundation/ignition-ui@0.15.9': {}
 
   '@nomicfoundation/solidity-analyzer-darwin-arm64@0.1.2':
     optional: true
