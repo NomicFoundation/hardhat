@@ -315,7 +315,7 @@ export class ResolverImplementation implements Resolver {
       const sourceName = sourceNamePathJoin(
         npmPackageToRootSourceName(npmPackage.name, npmPackage.version),
         // We use the subpath (pre-resolution) to create source names
-        fsPathToSourceNamePath(subpath),
+        subpath,
       );
 
       const resolved = this.#resolvedFileBySourceName.get(sourceName);
@@ -1309,6 +1309,8 @@ export class ResolverImplementation implements Resolver {
   /**
    * Parses a direct import as if it were an npm import, returning `undefined`
    * if the format is invalid.
+   *
+   * Note: The returned subpath is not an fs path, and always use path.posix.sep
    */
   #parseNpmDirectImport(directImport: string):
     | {
@@ -1331,11 +1333,7 @@ export class ResolverImplementation implements Resolver {
       "Groups should be defined because they are part of the pattern",
     );
 
-    // NOTE: We replace path.posix.sep with path.sep here so that the returned
-    // path can be later safely treated as a system aware path
-    const parsedPath = match.groups.path.replaceAll(path.posix.sep, path.sep);
-
-    return { package: match.groups.package, subpath: parsedPath };
+    return { package: match.groups.package, subpath: match.groups.path };
   }
 }
 
