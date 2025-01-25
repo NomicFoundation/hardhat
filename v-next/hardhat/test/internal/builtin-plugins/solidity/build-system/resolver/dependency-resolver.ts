@@ -957,7 +957,7 @@ describe("Resolver", () => {
           resolver.resolveNpmDependencyFileAsRoot(
             "exports/contracts/Exported.sol",
           ),
-          HardhatError.ERRORS.SOLIDITY.RESOLVE_NON_EXISTENT_NPM_FILE,
+          HardhatError.ERRORS.SOLIDITY.RESOLVE_NON_EXISTENT_NPM_ROOT,
           {
             module: "exports/contracts/Exported.sol",
           },
@@ -974,7 +974,7 @@ describe("Resolver", () => {
           resolver.resolveNpmDependencyFileAsRoot(
             "exports/ResolvesButDoesntExist.sol",
           ),
-          HardhatError.ERRORS.SOLIDITY.RESOLVE_NON_EXISTENT_NPM_FILE,
+          HardhatError.ERRORS.SOLIDITY.RESOLVE_NON_EXISTENT_NPM_ROOT,
           {
             module: "exports/ResolvesButDoesntExist.sol",
           },

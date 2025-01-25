@@ -300,7 +300,7 @@ export class ResolverImplementation implements Resolver {
         ensureError(error, FileNotFoundError);
 
         throw new HardhatError(
-          HardhatError.ERRORS.SOLIDITY.RESOLVE_NON_EXISTENT_NPM_FILE,
+          HardhatError.ERRORS.SOLIDITY.RESOLVE_NON_EXISTENT_NPM_ROOT,
           { module: npmModule },
           error,
         );
@@ -308,7 +308,7 @@ export class ResolverImplementation implements Resolver {
 
       if (relativeFsPath !== trueCaseFsPath) {
         throw new HardhatError(
-          HardhatError.ERRORS.SOLIDITY.RESOLVE_WRONG_CASING_NPM_FILE,
+          HardhatError.ERRORS.SOLIDITY.RESOLVE_WRONG_CASING_NPM_ROOT,
           { module: npmModule },
         );
       }
