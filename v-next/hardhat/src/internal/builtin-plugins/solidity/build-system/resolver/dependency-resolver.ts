@@ -289,11 +289,12 @@ export class ResolverImplementation implements Resolver {
       const subpath = parsedNpmModule.subpath;
       const resolvedSubpath = resolveSubpath(npmPackage, subpath);
 
+      const relativeFsPath = sourceNamePathToFsPath(resolvedSubpath);
       let trueCaseFsPath: string;
       try {
         trueCaseFsPath = await getFileTrueCase(
           npmPackage.rootFsPath,
-          resolvedSubpath,
+          relativeFsPath,
         );
       } catch (error) {
         ensureError(error, FileNotFoundError);
@@ -305,7 +306,7 @@ export class ResolverImplementation implements Resolver {
         );
       }
 
-      if (resolvedSubpath !== trueCaseFsPath) {
+      if (relativeFsPath !== trueCaseFsPath) {
         throw new HardhatError(
           HardhatError.ERRORS.SOLIDITY.RESOLVE_WRONG_CASING_NPM_FILE,
           { module: npmModule },
