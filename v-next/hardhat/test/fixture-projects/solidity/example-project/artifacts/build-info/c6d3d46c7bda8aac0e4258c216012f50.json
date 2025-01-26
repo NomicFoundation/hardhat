@@ -1,0 +1,106 @@
+{
+  "_format": "hh3-sol-build-info-1",
+  "id": "c6d3d46c7bda8aac0e4258c216012f50",
+  "solcVersion": "0.8.22",
+  "solcLongVersion": "0.8.22+commit.4fc1097e",
+  "publicSourceNameMap": {
+    "contracts/A.sol": "contracts/A.sol",
+    "contracts/B.sol": "contracts/B.sol",
+    "contracts/C.sol": "contracts/C.sol",
+    "contracts/D.sol": "contracts/D.sol",
+    "contracts/E.sol": "contracts/E.sol",
+    "contracts/UserRemappedImport.sol": "contracts/UserRemappedImport.sol"
+  },
+  "input": {
+    "language": "Solidity",
+    "sources": {
+      "contracts/A.sol": {
+        "content": "// SPDX-License-Identifier: UNLICENSED\npragma solidity ^0.8.0;\npragma solidity *;\n\nimport \"./B.sol\";\n\ncontract A is B {}\n"
+      },
+      "contracts/B.sol": {
+        "content": "// SPDX-License-Identifier: UNLICENSED\npragma solidity ^0.8.0;\n\nimport \"@openzeppelin/contracts/access/Ownable.sol\";\n\ncontract B {}\n"
+      },
+      "contracts/C.sol": {
+        "content": "// SPDX-License-Identifier: UNLICENSED\npragma solidity ^0.8.0;\n\nimport \"./B.sol\";\n\ncontract C {}\n\ncontract C2 {}\n"
+      },
+      "contracts/D.sol": {
+        "content": "// SPDX-License-Identifier: UNLICENSED\npragma solidity ^0.8.22;\n\nimport \"./C.sol\";\n"
+      },
+      "contracts/E.sol": {
+        "content": "// SPDX-License-Identifier: UNLICENSED\npragma solidity ^0.8.22;\n\nimport \"./C.sol\";\n"
+      },
+      "contracts/UserRemappedImport.sol": {
+        "content": "// SPDX-License-Identifier: SEE LICENSE IN LICENSE\npragma solidity ^0.8.0;\n\nimport \"remapped/Ownable.sol\";\n"
+      },
+      "npm/@openzeppelin/contracts@5.1.0/access/Ownable.sol": {
+        "content": "// SPDX-License-Identifier: MIT\n// OpenZeppelin Contracts (last updated v5.0.0) (access/Ownable.sol)\n\npragma solidity ^0.8.20;\n\nabstract contract Ownable {}\n"
+      }
+    },
+    "settings": {
+      "evmVersion": "shanghai",
+      "outputSelection": {
+        "*": {
+          "": ["ast"]
+        },
+        "contracts/A.sol": {
+          "*": [
+            "abi",
+            "evm.bytecode",
+            "evm.deployedBytecode",
+            "evm.methodIdentifiers",
+            "metadata"
+          ]
+        },
+        "contracts/B.sol": {
+          "*": [
+            "abi",
+            "evm.bytecode",
+            "evm.deployedBytecode",
+            "evm.methodIdentifiers",
+            "metadata"
+          ]
+        },
+        "contracts/C.sol": {
+          "*": [
+            "abi",
+            "evm.bytecode",
+            "evm.deployedBytecode",
+            "evm.methodIdentifiers",
+            "metadata"
+          ]
+        },
+        "contracts/D.sol": {
+          "*": [
+            "abi",
+            "evm.bytecode",
+            "evm.deployedBytecode",
+            "evm.methodIdentifiers",
+            "metadata"
+          ]
+        },
+        "contracts/E.sol": {
+          "*": [
+            "abi",
+            "evm.bytecode",
+            "evm.deployedBytecode",
+            "evm.methodIdentifiers",
+            "metadata"
+          ]
+        },
+        "contracts/UserRemappedImport.sol": {
+          "*": [
+            "abi",
+            "evm.bytecode",
+            "evm.deployedBytecode",
+            "evm.methodIdentifiers",
+            "metadata"
+          ]
+        }
+      },
+      "remappings": [
+        "remapped/=npm/@openzeppelin/contracts@5.1.0/access/",
+        "@openzeppelin/contracts/=npm/@openzeppelin/contracts@5.1.0/"
+      ]
+    }
+  }
+}
