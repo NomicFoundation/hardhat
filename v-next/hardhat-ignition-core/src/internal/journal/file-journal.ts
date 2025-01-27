@@ -18,7 +18,7 @@ import { serializeReplacer } from "./utils/serialize-replacer";
 export class FileJournal implements Journal {
   constructor(
     private _filePath: string,
-    private _executionEventListener?: ExecutionEventListener
+    private _executionEventListener?: ExecutionEventListener | undefined
   ) {}
 
   public record(message: JournalMessage): void {

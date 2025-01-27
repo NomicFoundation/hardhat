@@ -90,7 +90,7 @@ export class Batcher {
   }: {
     adjacencyList: AdjacencyList;
     visitState: VisitStatusMap;
-  }) {
+  }): void {
     const visitedFutures = Object.entries(visitState)
       .filter(([, vs]) => vs === VisitStatus.VISITED)
       .map(([futureId]) => futureId);

@@ -1,7 +1,7 @@
 /**
  * When stringifying messages to the journal, this defines the replacer.
  */
-export function serializeReplacer(_key: string, value: unknown) {
+export function serializeReplacer(_key: string, value: unknown): any {
   if (value instanceof Set) {
     return Array.from(value).sort();
   }

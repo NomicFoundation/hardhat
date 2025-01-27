@@ -1,10 +1,9 @@
 {
-  "extends": "../../config/typescript/tsconfig.json",
-  "compilerOptions": {
-    "target": "ES2022",
-    "outDir": "dist",
-    "composite": true,
-    "incremental": true
-  },
-  "references": [{ "path": "../hardhat-core" }]
+  "extends": "../../config-v-next/tsconfig.json",
+  "references": [{ "path": "../hardhat" }],
+  "exclude": [
+    "${configDir}/dist",
+    "${configDir}/node_modules",
+    "${configDir}/templates"
+  ]
 }

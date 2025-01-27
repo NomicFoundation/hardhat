@@ -9,7 +9,7 @@ declare module "mocha" {
   }
 }
 
-export function useHardhatProject(fixtureProjectName: string) {
+export function useHardhatProject(fixtureProjectName: string): void {
   const previousCwd = process.cwd();
   before("Loading Hardhat Runtime Environment", async function () {
     process.chdir(`${__dirname}/../fixture-projects/${fixtureProjectName}`);

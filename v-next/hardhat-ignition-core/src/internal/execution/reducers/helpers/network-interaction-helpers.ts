@@ -148,7 +148,7 @@ export function completeStaticCall<
     | CallExecutionState
     | SendDataExecutionState
     | StaticCallExecutionState
->(state: ExState, action: StaticCallCompleteMessage) {
+>(state: ExState, action: StaticCallCompleteMessage): ExState {
   return produce(state, (draft: ExState): void => {
     const onchainInteraction = findStaticCallBy(
       draft,

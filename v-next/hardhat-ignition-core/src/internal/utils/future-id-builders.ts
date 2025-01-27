@@ -38,7 +38,7 @@ export function toContractFutureId(
   moduleId: string,
   userProvidedId: string | undefined,
   contractOrLibraryName: string
-) {
+): string {
   // IMPORTANT: Keep in sync with src/internal/utils/identifier-validators.ts#isValidContractName
 
   if (userProvidedId !== undefined) {
@@ -69,7 +69,7 @@ export function toCallFutureId(
   contractModuleId: string,
   contractId: string,
   functionName: string
-) {
+): string {
   if (userProvidedId !== undefined) {
     return `${moduleId}${MODULE_SEPERATOR}${userProvidedId}`;
   }
@@ -104,7 +104,7 @@ export function toEncodeFunctionCallFutureId(
   contractModuleId: string,
   contractId: string,
   functionName: string
-) {
+): string {
   if (userProvidedId !== undefined) {
     return `${moduleId}${MODULE_SEPERATOR}${userProvidedId}`;
   }

@@ -1,7 +1,7 @@
 /**
  * When JSON.parsing journal messages deserialize, this defines the replacer.
  */
-export function deserializeReplacer(_key: string, value: unknown) {
+export function deserializeReplacer(_key: string, value: unknown): unknown {
   if (typeof value === "string" && /^\d+n$/.test(value)) {
     return BigInt(value.slice(0, -1));
   }
