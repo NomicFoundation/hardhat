@@ -18,8 +18,8 @@ import type {
 import { IgnitionError } from "../../errors.js";
 import { ERRORS } from "../errors-list.js";
 import { ExecutionStatus } from "../execution/types/execution-state.js";
-import { AdjacencyList } from "../utils/adjacency-list.js";
 import { AdjacencyListConverter } from "../utils/adjacency-list-converter.js";
+import { AdjacencyList } from "../utils/adjacency-list.js";
 import { getFuturesFromModule } from "../utils/get-futures-from-module.js";
 
 import { reconcileCurrentAndPreviousTypeMatch } from "./reconcile-current-and-previous-type-match.js";

@@ -1,5 +1,5 @@
-import type { IgnitionModule, IgnitionModuleResult } from "./types/module.js";
 import type { IgnitionModuleBuilder } from "./types/module-builder.js";
+import type { IgnitionModule, IgnitionModuleResult } from "./types/module.js";
 
 import { IgnitionError } from "./errors.js";
 import { ERRORS } from "./internal/errors-list.js";

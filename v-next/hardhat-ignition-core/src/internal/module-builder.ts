@@ -1,5 +1,16 @@
 import type { Artifact } from "../types/artifact.js";
 import type {
+  CallOptions,
+  ContractAtOptions,
+  ContractOptions,
+  EncodeFunctionCallOptions,
+  IgnitionModuleBuilder,
+  LibraryOptions,
+  ReadEventArgumentOptions,
+  SendDataOptions,
+  StaticCallOptions,
+} from "../types/module-builder.js";
+import type {
   AccountRuntimeValue,
   AddressResolvableFuture,
   ArgumentType,
@@ -22,17 +33,6 @@ import type {
   SendDataFuture,
   StaticCallFuture,
 } from "../types/module.js";
-import type {
-  CallOptions,
-  ContractAtOptions,
-  ContractOptions,
-  EncodeFunctionCallOptions,
-  IgnitionModuleBuilder,
-  LibraryOptions,
-  ReadEventArgumentOptions,
-  SendDataOptions,
-  StaticCallOptions,
-} from "../types/module-builder.js";
 
 import { inspect } from "node:util";
 
@@ -69,7 +69,6 @@ import {
   ReadEventArgumentFutureImplementation,
   SendDataFutureImplementation,
 } from "./module.js";
-import { resolveArgsToFutures } from "./utils.js";
 import { assertIgnitionInvariant } from "./utils/assertions.js";
 import {
   toCallFutureId,
@@ -84,6 +83,7 @@ import {
   isValidIgnitionIdentifier,
   isValidSolidityIdentifier,
 } from "./utils/identifier-validators.js";
+import { resolveArgsToFutures } from "./utils.js";
 
 const STUB_MODULE_RESULTS = {
   [inspect.custom](): string {
