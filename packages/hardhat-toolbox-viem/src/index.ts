@@ -1,6 +1,5 @@
 import "@nomicfoundation/hardhat-verify";
 import "@nomicfoundation/hardhat-viem";
-import "@nomicfoundation/hardhat-ignition-viem";
 import "hardhat-gas-reporter";
 import "solidity-coverage";
 import "./internal/chai-setup";
