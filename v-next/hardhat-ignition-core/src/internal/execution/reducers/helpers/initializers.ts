@@ -1,16 +1,13 @@
-import { FutureType } from "../../../../types/module";
-import {
+import type {
   CallExecutionState,
   ContractAtExecutionState,
   DeploymentExecutionState,
   EncodeFunctionCallExecutionState,
-  ExecutionSateType,
-  ExecutionStatus,
   ReadEventArgumentExecutionState,
   SendDataExecutionState,
   StaticCallExecutionState,
 } from "../../types/execution-state";
-import {
+import type {
   CallExecutionStateInitializeMessage,
   ContractAtExecutionStateInitializeMessage,
   DeploymentExecutionStateInitializeMessage,
@@ -19,6 +16,12 @@ import {
   SendDataExecutionStateInitializeMessage,
   StaticCallExecutionStateInitializeMessage,
 } from "../../types/messages";
+
+import { FutureType } from "../../../../types/module";
+import {
+  ExecutionSateType,
+  ExecutionStatus,
+} from "../../types/execution-state";
 
 export function initialiseDeploymentExecutionStateFrom(
   action: DeploymentExecutionStateInitializeMessage,

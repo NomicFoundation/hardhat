@@ -1,4 +1,4 @@
-import { Abi, Artifact } from "./artifact";
+import type { Abi, Artifact } from "./artifact";
 
 /**
  * Base argument type that smart contracts can receive in their constructors

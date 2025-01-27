@@ -1,11 +1,12 @@
+import type { ArtifactResolver } from "../../../types/artifact";
+import type { DeploymentParameters } from "../../../types/deploy";
+import type { ContractDeploymentFuture } from "../../../types/module";
+
 import { IgnitionError } from "../../../errors";
 import {
   isAccountRuntimeValue,
   isModuleParameterRuntimeValue,
 } from "../../../type-guards";
-import { ArtifactResolver } from "../../../types/artifact";
-import { DeploymentParameters } from "../../../types/deploy";
-import { ContractDeploymentFuture } from "../../../types/module";
 import { ERRORS } from "../../errors-list";
 import { validateContractConstructorArgsLength } from "../../execution/abi";
 import { validateLibraryNames } from "../../execution/libraries";

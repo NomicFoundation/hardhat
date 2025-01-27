@@ -1,5 +1,9 @@
-import { Future, FutureType } from "../../types/module";
-import {
+import type {
+  ReconciliationContext,
+  ReconciliationFutureResult,
+} from "./types";
+import type { Future } from "../../types/module";
+import type {
   CallExecutionState,
   ContractAtExecutionState,
   DeploymentExecutionState,
@@ -9,6 +13,8 @@ import {
   SendDataExecutionState,
   StaticCallExecutionState,
 } from "../execution/types/execution-state";
+
+import { FutureType } from "../../types/module";
 
 import { reconcileArtifactContractAt } from "./futures/reconcileArtifactContractAt";
 import { reconcileArtifactContractDeployment } from "./futures/reconcileArtifactContractDeployment";
@@ -21,7 +27,6 @@ import { reconcileNamedLibraryDeployment } from "./futures/reconcileNamedLibrary
 import { reconcileNamedStaticCall } from "./futures/reconcileNamedStaticCall";
 import { reconcileReadEventArgument } from "./futures/reconcileReadEventArgument";
 import { reconcileSendData } from "./futures/reconcileSendData";
-import { ReconciliationContext, ReconciliationFutureResult } from "./types";
 
 export async function reconcileFutureSpecificReconciliations(
   future: Future,

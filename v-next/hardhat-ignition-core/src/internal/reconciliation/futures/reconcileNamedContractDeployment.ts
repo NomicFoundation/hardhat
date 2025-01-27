@@ -1,5 +1,10 @@
-import { NamedArtifactContractDeploymentFuture } from "../../../types/module";
-import { DeploymentExecutionState } from "../../execution/types/execution-state";
+import type { NamedArtifactContractDeploymentFuture } from "../../../types/module";
+import type { DeploymentExecutionState } from "../../execution/types/execution-state";
+import type {
+  ReconciliationContext,
+  ReconciliationFutureResult,
+} from "../types";
+
 import { reconcileArguments } from "../helpers/reconcile-arguments";
 import { reconcileArtifacts } from "../helpers/reconcile-artifacts";
 import { reconcileContractName } from "../helpers/reconcile-contract-name";
@@ -7,7 +12,6 @@ import { reconcileFrom } from "../helpers/reconcile-from";
 import { reconcileLibraries } from "../helpers/reconcile-libraries";
 import { reconcileStrategy } from "../helpers/reconcile-strategy";
 import { reconcileValue } from "../helpers/reconcile-value";
-import { ReconciliationContext, ReconciliationFutureResult } from "../types";
 
 export async function reconcileNamedContractDeployment(
   future: NamedArtifactContractDeploymentFuture<string>,

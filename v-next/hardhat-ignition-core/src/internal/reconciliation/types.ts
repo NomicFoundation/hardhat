@@ -1,9 +1,9 @@
-import { ArtifactResolver } from "../../types/artifact";
-import { DeploymentParameters } from "../../types/deploy";
-import { Future } from "../../types/module";
-import { DeploymentLoader } from "../deployment-loader/types";
-import { DeploymentState } from "../execution/types/deployment-state";
-import {
+import type { ArtifactResolver } from "../../types/artifact";
+import type { DeploymentParameters } from "../../types/deploy";
+import type { Future } from "../../types/module";
+import type { DeploymentLoader } from "../deployment-loader/types";
+import type { DeploymentState } from "../execution/types/deployment-state";
+import type {
   ConcreteExecutionConfig,
   ExecutionState,
 } from "../execution/types/execution-state";

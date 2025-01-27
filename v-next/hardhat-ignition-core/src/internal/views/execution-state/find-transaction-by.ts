@@ -1,10 +1,11 @@
-import {
+import type {
   CallExecutionState,
   DeploymentExecutionState,
   SendDataExecutionState,
   StaticCallExecutionState,
 } from "../../execution/types/execution-state";
-import { Transaction } from "../../execution/types/jsonrpc";
+import type { Transaction } from "../../execution/types/jsonrpc";
+
 import { assertIgnitionInvariant } from "../../utils/assertions";
 
 import { findOnchainInteractionBy } from "./find-onchain-interaction-by";

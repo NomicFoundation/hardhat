@@ -1,24 +1,25 @@
-import { isDeploymentFuture } from "../../../type-guards";
-import {
+import type {
   ContractDeploymentFuture,
   ContractCallFuture,
   NamedArtifactContractDeploymentFuture,
   StaticCallFuture,
   EncodeFunctionCallFuture,
 } from "../../../types/module";
-import { resolveArgs } from "../../execution/future-processor/helpers/future-resolvers";
-import {
+import type {
   CallExecutionState,
   DeploymentExecutionState,
   EncodeFunctionCallExecutionState,
-  ExecutionSateType,
   StaticCallExecutionState,
 } from "../../execution/types/execution-state";
-import { isAddress, equalAddresses } from "../../execution/utils/address";
-import {
+import type {
   ReconciliationContext,
   ReconciliationFutureResultFailure,
 } from "../types";
+
+import { isDeploymentFuture } from "../../../type-guards";
+import { resolveArgs } from "../../execution/future-processor/helpers/future-resolvers";
+import { ExecutionSateType } from "../../execution/types/execution-state";
+import { isAddress, equalAddresses } from "../../execution/utils/address";
 import { fail } from "../utils";
 
 export function reconcileArguments(

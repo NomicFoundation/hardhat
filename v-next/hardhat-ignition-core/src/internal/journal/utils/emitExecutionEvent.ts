@@ -1,22 +1,23 @@
-import {
+import type {
   ExecutionEventListener,
-  ExecutionEventNetworkInteractionType,
   ExecutionEventResult,
-  ExecutionEventResultType,
-  ExecutionEventType,
 } from "../../../types/execution-events";
-import { SolidityParameterType } from "../../../types/module";
-import {
+import type { SolidityParameterType } from "../../../types/module";
+import type {
   CallExecutionResult,
   DeploymentExecutionResult,
-  ExecutionResultType,
   SendDataExecutionResult,
   StaticCallExecutionResult,
 } from "../../execution/types/execution-result";
+import type { JournalMessage } from "../../execution/types/messages";
+
 import {
-  JournalMessage,
-  JournalMessageType,
-} from "../../execution/types/messages";
+  ExecutionEventNetworkInteractionType,
+  ExecutionEventResultType,
+  ExecutionEventType,
+} from "../../../types/execution-events";
+import { ExecutionResultType } from "../../execution/types/execution-result";
+import { JournalMessageType } from "../../execution/types/messages";
 import { NetworkInteractionType } from "../../execution/types/network-interaction";
 
 import { failedEvmExecutionResultToErrorDescription } from "./failedEvmExecutionResultToErrorDescription";

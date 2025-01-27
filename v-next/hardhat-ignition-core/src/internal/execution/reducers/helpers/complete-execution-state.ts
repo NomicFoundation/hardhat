@@ -1,25 +1,26 @@
-import { produce } from "immer";
-
-import {
+import type {
   CallExecutionResult,
   DeploymentExecutionResult,
-  ExecutionResultType,
   SendDataExecutionResult,
   StaticCallExecutionResult,
 } from "../../types/execution-result";
-import {
+import type {
   CallExecutionState,
   DeploymentExecutionState,
-  ExecutionStatus,
   SendDataExecutionState,
   StaticCallExecutionState,
 } from "../../types/execution-state";
-import {
+import type {
   CallExecutionStateCompleteMessage,
   DeploymentExecutionStateCompleteMessage,
   SendDataExecutionStateCompleteMessage,
   StaticCallExecutionStateCompleteMessage,
 } from "../../types/messages";
+
+import { produce } from "immer";
+
+import { ExecutionResultType } from "../../types/execution-result";
+import { ExecutionStatus } from "../../types/execution-state";
 
 /**
  * Update the execution state for a future to complete.

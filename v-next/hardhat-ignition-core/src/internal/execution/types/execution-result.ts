@@ -1,6 +1,5 @@
-import { SolidityParameterType } from "../../../types/module";
-
-import { FailedEvmExecutionResult } from "./evm-execution";
+import type { FailedEvmExecutionResult } from "./evm-execution";
+import type { SolidityParameterType } from "../../../types/module";
 
 /**
  * The differnt types of result that executing a future can produce.

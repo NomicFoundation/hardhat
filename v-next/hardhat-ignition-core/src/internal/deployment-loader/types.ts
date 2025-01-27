@@ -1,5 +1,5 @@
-import { Artifact, BuildInfo } from "../../types/artifact";
-import { JournalMessage } from "../execution/types/messages";
+import type { Artifact, BuildInfo } from "../../types/artifact";
+import type { JournalMessage } from "../execution/types/messages";
 
 /**
  * Read and write to the deployment storage.

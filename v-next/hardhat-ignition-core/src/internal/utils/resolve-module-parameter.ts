@@ -1,10 +1,11 @@
-import { isAccountRuntimeValue } from "../../type-guards";
-import { DeploymentParameters } from "../../types/deploy";
-import {
+import type { DeploymentParameters } from "../../types/deploy";
+import type {
   ModuleParameterRuntimeValue,
   ModuleParameterType,
   SolidityParameterType,
 } from "../../types/module";
+
+import { isAccountRuntimeValue } from "../../type-guards";
 import { resolveAccountRuntimeValue } from "../execution/future-processor/helpers/future-resolvers";
 
 import { assertIgnitionInvariant } from "./assertions";

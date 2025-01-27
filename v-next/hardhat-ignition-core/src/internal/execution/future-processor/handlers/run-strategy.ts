@@ -1,34 +1,35 @@
-import { assertIgnitionInvariant } from "../../../utils/assertions";
-import {
-  ExecutionResultType,
-  RevertedTransactionExecutionResult,
-} from "../../types/execution-result";
-import {
+import type { RevertedTransactionExecutionResult } from "../../types/execution-result";
+import type {
   CallExecutionState,
   DeploymentExecutionState,
-  ExecutionSateType,
   SendDataExecutionState,
   StaticCallExecutionState,
 } from "../../types/execution-state";
-import {
+import type {
   CallStrategyGenerator,
   DeploymentStrategyGenerator,
   ExecutionStrategy,
   OnchainInteractionRequest,
-  OnchainInteractionResponseType,
-  SIMULATION_SUCCESS_SIGNAL_TYPE,
   SendDataStrategyGenerator,
   StaticCallRequest,
 } from "../../types/execution-strategy";
-import { TransactionReceiptStatus } from "../../types/jsonrpc";
-import {
+import type {
   CallExecutionStateCompleteMessage,
   DeploymentExecutionStateCompleteMessage,
-  JournalMessageType,
   NetworkInteractionRequestMessage,
   SendDataExecutionStateCompleteMessage,
   StaticCallExecutionStateCompleteMessage,
 } from "../../types/messages";
+
+import { assertIgnitionInvariant } from "../../../utils/assertions";
+import { ExecutionResultType } from "../../types/execution-result";
+import { ExecutionSateType } from "../../types/execution-state";
+import {
+  OnchainInteractionResponseType,
+  SIMULATION_SUCCESS_SIGNAL_TYPE,
+} from "../../types/execution-strategy";
+import { TransactionReceiptStatus } from "../../types/jsonrpc";
+import { JournalMessageType } from "../../types/messages";
 import { NetworkInteractionType } from "../../types/network-interaction";
 import {
   createExecutionStateCompleteMessage,

@@ -1,6 +1,10 @@
-import { DeploymentState } from "../execution/types/deployment-state";
+import type { DeploymentState } from "../execution/types/deployment-state";
+import type {
+  Transaction,
+  TransactionReceipt,
+} from "../execution/types/jsonrpc";
+
 import { ExecutionSateType } from "../execution/types/execution-state";
-import { Transaction, TransactionReceipt } from "../execution/types/jsonrpc";
 import { NetworkInteractionType } from "../execution/types/network-interaction";
 import { assertIgnitionInvariant } from "../utils/assertions";
 

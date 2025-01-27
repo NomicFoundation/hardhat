@@ -1,23 +1,24 @@
-import {
+import type {
   DeploymentExecutionResult,
   CallExecutionResult,
   SendDataExecutionResult,
   StaticCallExecutionResult,
 } from "../../types/execution-result";
-import {
+import type {
   DeploymentExecutionState,
   CallExecutionState,
   SendDataExecutionState,
   StaticCallExecutionState,
-  ExecutionSateType,
 } from "../../types/execution-state";
-import {
+import type {
   DeploymentExecutionStateCompleteMessage,
   CallExecutionStateCompleteMessage,
   SendDataExecutionStateCompleteMessage,
   StaticCallExecutionStateCompleteMessage,
-  JournalMessageType,
 } from "../../types/messages";
+
+import { ExecutionSateType } from "../../types/execution-state";
+import { JournalMessageType } from "../../types/messages";
 
 /**
  * Creates a message indicating that an execution state is now complete.

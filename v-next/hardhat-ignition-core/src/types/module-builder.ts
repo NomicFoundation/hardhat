@@ -1,5 +1,5 @@
-import { Abi, Artifact } from "./artifact";
-import {
+import type { Abi, Artifact } from "./artifact";
+import type {
   AccountRuntimeValue,
   AddressResolvableFuture,
   ArgumentType,

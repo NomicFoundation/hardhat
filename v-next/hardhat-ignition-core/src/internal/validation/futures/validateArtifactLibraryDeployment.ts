@@ -1,8 +1,9 @@
-import { IgnitionError } from "../../../errors";
+import type { IgnitionError } from "../../../errors";
+import type { ArtifactResolver } from "../../../types/artifact";
+import type { DeploymentParameters } from "../../../types/deploy";
+import type { LibraryDeploymentFuture } from "../../../types/module";
+
 import { isAccountRuntimeValue } from "../../../type-guards";
-import { ArtifactResolver } from "../../../types/artifact";
-import { DeploymentParameters } from "../../../types/deploy";
-import { LibraryDeploymentFuture } from "../../../types/module";
 import { validateLibraryNames } from "../../execution/libraries";
 import { validateAccountRuntimeValue } from "../utils";
 

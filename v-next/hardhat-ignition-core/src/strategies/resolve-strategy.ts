@@ -1,7 +1,8 @@
+import type { ExecutionStrategy } from "../internal/execution/types/execution-strategy";
+import type { StrategyConfig } from "../types/deploy";
+
 import { IgnitionError } from "../errors";
 import { ERRORS } from "../internal/errors-list";
-import { ExecutionStrategy } from "../internal/execution/types/execution-strategy";
-import { StrategyConfig } from "../types/deploy";
 
 import { BasicStrategy } from "./basic-strategy";
 import { Create2Strategy } from "./create2-strategy";
@@ -40,6 +41,7 @@ export function resolveStrategy<StrategyT extends keyof StrategyConfig>(
       }
 
       return new Create2Strategy({ salt: strategyConfig.salt });
+    // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- this is an option that can come from the user we want to retain the check
     default:
       throw new IgnitionError(ERRORS.STRATEGIES.UNKNOWN_STRATEGY, {
         strategyName,

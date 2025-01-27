@@ -1,5 +1,6 @@
-import { Future } from "../../types/module";
-import { DeploymentState } from "../execution/types/deployment-state";
+import type { Future } from "../../types/module";
+import type { DeploymentState } from "../execution/types/deployment-state";
+
 import { ExecutionStatus } from "../execution/types/execution-state";
 
 /**

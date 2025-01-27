@@ -1,7 +1,6 @@
-import {
-  EvmExecutionResultTypes,
-  FailedEvmExecutionResult,
-} from "../../execution/types/evm-execution";
+import type { FailedEvmExecutionResult } from "../../execution/types/evm-execution";
+
+import { EvmExecutionResultTypes } from "../../execution/types/evm-execution";
 
 export function failedEvmExecutionResultToErrorDescription(
   result: FailedEvmExecutionResult,

@@ -1,24 +1,23 @@
-import { FutureType, SolidityParameterType } from "../../../types/module";
-
-import {
+import type {
   CallExecutionResult,
   DeploymentExecutionResult,
   SendDataExecutionResult,
   StaticCallExecutionResult,
 } from "./execution-result";
-import {
+import type {
   ConcreteExecutionConfig,
   DeploymentExecutionStateFutureTypes,
 } from "./execution-state";
-import {
+import type {
   OnchainInteractionRequest,
   StaticCallRequest,
 } from "./execution-strategy";
-import {
+import type {
   RawStaticCallResult,
   Transaction,
   TransactionReceipt,
 } from "./jsonrpc";
+import type { FutureType, SolidityParameterType } from "../../../types/module";
 
 export type JournalMessage =
   | DeploymentInitializeMessage

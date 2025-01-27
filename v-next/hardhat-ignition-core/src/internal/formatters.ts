@@ -1,18 +1,18 @@
-import { SolidityParameterType } from "../types/module";
-
-import {
-  EvmExecutionResultTypes,
+import type {
   EvmTuple,
   FailedEvmExecutionResult,
 } from "./execution/types/evm-execution";
-import {
-  ExecutionResultType,
+import type {
   FailedStaticCallExecutionResult,
   RevertedTransactionExecutionResult,
   SimulationErrorExecutionResult,
   StrategyErrorExecutionResult,
   StrategySimulationErrorExecutionResult,
 } from "./execution/types/execution-result";
+import type { SolidityParameterType } from "../types/module";
+
+import { EvmExecutionResultTypes } from "./execution/types/evm-execution";
+import { ExecutionResultType } from "./execution/types/execution-result";
 import { convertEvmTupleToSolidityParam } from "./execution/utils/convert-evm-tuple-to-solidity-param";
 
 /**

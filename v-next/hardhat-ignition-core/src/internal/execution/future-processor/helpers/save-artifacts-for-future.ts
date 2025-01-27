@@ -1,12 +1,13 @@
-import { ArtifactResolver } from "../../../../types/artifact";
-import {
+import type { ArtifactResolver } from "../../../../types/artifact";
+import type {
   Future,
-  FutureType,
   NamedArtifactContractAtFuture,
   NamedArtifactContractDeploymentFuture,
   NamedArtifactLibraryDeploymentFuture,
 } from "../../../../types/module";
-import { DeploymentLoader } from "../../../deployment-loader/types";
+import type { DeploymentLoader } from "../../../deployment-loader/types";
+
+import { FutureType } from "../../../../types/module";
 
 export async function saveArtifactsForFuture(
   future: Future,

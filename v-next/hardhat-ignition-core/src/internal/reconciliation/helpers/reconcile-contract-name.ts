@@ -1,4 +1,4 @@
-import {
+import type {
   ContractAtFuture,
   ContractDeploymentFuture,
   LibraryDeploymentFuture,
@@ -6,11 +6,11 @@ import {
   NamedArtifactContractDeploymentFuture,
   NamedArtifactLibraryDeploymentFuture,
 } from "../../../types/module";
-import {
+import type {
   ContractAtExecutionState,
   DeploymentExecutionState,
 } from "../../execution/types/execution-state";
-import {
+import type {
   ReconciliationContext,
   ReconciliationFutureResultFailure,
 } from "../types";

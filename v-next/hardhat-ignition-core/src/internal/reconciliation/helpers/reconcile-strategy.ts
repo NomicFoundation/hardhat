@@ -1,4 +1,4 @@
-import {
+import type {
   ContractAtFuture,
   ContractCallFuture,
   ContractDeploymentFuture,
@@ -11,20 +11,21 @@ import {
   SendDataFuture,
   StaticCallFuture,
 } from "../../../types/module";
-import {
+import type {
   CallExecutionState,
   ContractAtExecutionState,
   DeploymentExecutionState,
   EncodeFunctionCallExecutionState,
-  ExecutionStatus,
   ReadEventArgumentExecutionState,
   SendDataExecutionState,
   StaticCallExecutionState,
 } from "../../execution/types/execution-state";
-import {
+import type {
   ReconciliationContext,
   ReconciliationFutureResultFailure,
 } from "../types";
+
+import { ExecutionStatus } from "../../execution/types/execution-state";
 import { fail } from "../utils";
 
 export function reconcileStrategy(

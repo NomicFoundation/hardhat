@@ -1,9 +1,12 @@
-import { DeployedContract } from "../../types/deploy";
-import { DeploymentState } from "../execution/types/deployment-state";
-import { ExecutionResultType } from "../execution/types/execution-result";
-import {
+import type { DeployedContract } from "../../types/deploy";
+import type { DeploymentState } from "../execution/types/deployment-state";
+import type {
   ContractAtExecutionState,
   DeploymentExecutionState,
+} from "../execution/types/execution-state";
+
+import { ExecutionResultType } from "../execution/types/execution-result";
+import {
   ExecutionSateType,
   ExecutionStatus,
 } from "../execution/types/execution-state";

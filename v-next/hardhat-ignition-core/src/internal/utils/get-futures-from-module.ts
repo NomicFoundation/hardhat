@@ -1,4 +1,4 @@
-import { Future, IgnitionModule } from "../../types/module";
+import type { Future, IgnitionModule } from "../../types/module";
 
 /**
  * Get the futures from a module, including its submodules.

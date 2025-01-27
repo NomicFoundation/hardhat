@@ -1,6 +1,7 @@
+import type { IgnitionModule, IgnitionModuleResult } from "./types/module";
+
 import { Batcher } from "./internal/batcher";
 import { deploymentStateReducer } from "./internal/execution/reducers/deployment-state-reducer";
-import { IgnitionModule, IgnitionModuleResult } from "./types/module";
 
 /**
  * Provides a array of batches, where each batch is an array of futureIds,

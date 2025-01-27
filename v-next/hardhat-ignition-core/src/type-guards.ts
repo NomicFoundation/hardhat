@@ -1,5 +1,5 @@
-import { Artifact } from "./types/artifact";
-import {
+import type { Artifact } from "./types/artifact";
+import type {
   AccountRuntimeValue,
   AddressResolvableFuture,
   CallableContractFuture,
@@ -10,7 +10,6 @@ import {
   EncodeFunctionCallFuture,
   FunctionCallFuture,
   Future,
-  FutureType,
   LibraryDeploymentFuture,
   ModuleParameterRuntimeValue,
   NamedArtifactContractAtFuture,
@@ -18,9 +17,10 @@ import {
   NamedArtifactLibraryDeploymentFuture,
   ReadEventArgumentFuture,
   RuntimeValue,
-  RuntimeValueType,
   StaticCallFuture,
 } from "./types/module";
+
+import { FutureType, RuntimeValueType } from "./types/module";
 
 function isValidEnumValue(
   theEnum: Record<string, string>,

@@ -1,4 +1,40 @@
-import { inspect } from "util";
+import type { Artifact } from "../types/artifact";
+import type {
+  AccountRuntimeValue,
+  AddressResolvableFuture,
+  ArgumentType,
+  CallableContractFuture,
+  ContractAtFuture,
+  ContractCallFuture,
+  ContractDeploymentFuture,
+  ContractFuture,
+  EncodeFunctionCallFuture,
+  IgnitionModule,
+  IgnitionModuleResult,
+  LibraryDeploymentFuture,
+  ModuleParameterRuntimeValue,
+  ModuleParameterType,
+  ModuleParameters,
+  NamedArtifactContractAtFuture,
+  NamedArtifactContractDeploymentFuture,
+  NamedArtifactLibraryDeploymentFuture,
+  ReadEventArgumentFuture,
+  SendDataFuture,
+  StaticCallFuture,
+} from "../types/module";
+import type {
+  CallOptions,
+  ContractAtOptions,
+  ContractOptions,
+  EncodeFunctionCallOptions,
+  IgnitionModuleBuilder,
+  LibraryOptions,
+  ReadEventArgumentOptions,
+  SendDataOptions,
+  StaticCallOptions,
+} from "../types/module-builder";
+
+import { inspect } from "node:util";
 
 import { IgnitionError } from "../errors";
 import {
@@ -13,42 +49,7 @@ import {
   isNamedStaticCallFuture,
   isReadEventArgumentFuture,
 } from "../type-guards";
-import { Artifact } from "../types/artifact";
-import {
-  AccountRuntimeValue,
-  AddressResolvableFuture,
-  ArgumentType,
-  CallableContractFuture,
-  ContractAtFuture,
-  ContractCallFuture,
-  ContractDeploymentFuture,
-  ContractFuture,
-  EncodeFunctionCallFuture,
-  FutureType,
-  IgnitionModule,
-  IgnitionModuleResult,
-  LibraryDeploymentFuture,
-  ModuleParameterRuntimeValue,
-  ModuleParameterType,
-  ModuleParameters,
-  NamedArtifactContractAtFuture,
-  NamedArtifactContractDeploymentFuture,
-  NamedArtifactLibraryDeploymentFuture,
-  ReadEventArgumentFuture,
-  SendDataFuture,
-  StaticCallFuture,
-} from "../types/module";
-import {
-  CallOptions,
-  ContractAtOptions,
-  ContractOptions,
-  EncodeFunctionCallOptions,
-  IgnitionModuleBuilder,
-  LibraryOptions,
-  ReadEventArgumentOptions,
-  SendDataOptions,
-  StaticCallOptions,
-} from "../types/module-builder";
+import { FutureType } from "../types/module";
 
 import { ERRORS } from "./errors-list";
 import { equalAddresses, isAddress } from "./execution/utils/address";
@@ -101,7 +102,7 @@ const STUB_MODULE_RESULTS = {
  * TODO: Add support for concrete values.
  */
 export class ModuleConstructor {
-  private _modules: Map<string, IgnitionModule> = new Map();
+  private readonly _modules: Map<string, IgnitionModule> = new Map();
 
   constructor(
     public readonly parameters: { [moduleId: string]: ModuleParameters } = {},
@@ -157,7 +158,7 @@ class IgnitionModuleBuilderImplementation<
   IgnitionModuleResultsT extends IgnitionModuleResult<ResultsContractNameT>,
 > implements IgnitionModuleBuilder
 {
-  private _futureIds: Set<string>;
+  private readonly _futureIds: Set<string>;
 
   constructor(
     private readonly _constructor: ModuleConstructor,

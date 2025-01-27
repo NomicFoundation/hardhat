@@ -1,5 +1,7 @@
-import { DeploymentState } from "../types/deployment-state";
-import { JournalMessage, JournalMessageType } from "../types/messages";
+import type { DeploymentState } from "../types/deployment-state";
+import type { JournalMessage } from "../types/messages";
+
+import { JournalMessageType } from "../types/messages";
 
 import { executionStateReducer } from "./execution-state-reducer";
 import { wipeExecutionState } from "./helpers/deployment-state-helpers";

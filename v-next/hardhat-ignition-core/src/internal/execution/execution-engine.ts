@@ -1,15 +1,17 @@
-import { ArtifactResolver } from "../../types/artifact";
-import { DeploymentParameters } from "../../types/deploy";
-import {
-  ExecutionEventListener,
-  ExecutionEventType,
-} from "../../types/execution-events";
-import {
+import type { Block, JsonRpcClient } from "./jsonrpc-client";
+import type { DeploymentState } from "./types/deployment-state";
+import type { ExecutionStrategy } from "./types/execution-strategy";
+import type { ArtifactResolver } from "../../types/artifact";
+import type { DeploymentParameters } from "../../types/deploy";
+import type { ExecutionEventListener } from "../../types/execution-events";
+import type {
   Future,
   IgnitionModule,
   IgnitionModuleResult,
 } from "../../types/module";
-import { DeploymentLoader } from "../deployment-loader/types";
+import type { DeploymentLoader } from "../deployment-loader/types";
+
+import { ExecutionEventType } from "../../types/execution-events";
 import { assertIgnitionInvariant } from "../utils/assertions";
 import { getFuturesFromModule } from "../utils/get-futures-from-module";
 import { getPendingNonceAndSender } from "../views/execution-state/get-pending-nonce-and-sender";
@@ -18,13 +20,10 @@ import { isBatchFinished } from "../views/is-batch-finished";
 
 import { applyNewMessage } from "./deployment-state-helpers";
 import { FutureProcessor } from "./future-processor/future-processor";
-import { Block, JsonRpcClient } from "./jsonrpc-client";
 import { getMaxNonceUsedBySender } from "./nonce-management/get-max-nonce-used-by-sender";
 import { getNonceSyncMessages } from "./nonce-management/get-nonce-sync-messages";
 import { JsonRpcNonceManager } from "./nonce-management/json-rpc-nonce-manager";
 import { TransactionTrackingTimer } from "./transaction-tracking-timer";
-import { DeploymentState } from "./types/deployment-state";
-import { ExecutionStrategy } from "./types/execution-strategy";
 
 /**
  * This class is used to execute a module to completion, returning the new

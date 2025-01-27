@@ -1,15 +1,14 @@
-import { assertIgnitionInvariant } from "../../../utils/assertions";
-import { JsonRpcClient } from "../../jsonrpc-client";
-import {
+import type { JsonRpcClient } from "../../jsonrpc-client";
+import type {
   CallExecutionState,
   DeploymentExecutionState,
   SendDataExecutionState,
   StaticCallExecutionState,
 } from "../../types/execution-state";
-import {
-  JournalMessageType,
-  StaticCallCompleteMessage,
-} from "../../types/messages";
+import type { StaticCallCompleteMessage } from "../../types/messages";
+
+import { assertIgnitionInvariant } from "../../../utils/assertions";
+import { JournalMessageType } from "../../types/messages";
 import { NetworkInteractionType } from "../../types/network-interaction";
 import { runStaticCall } from "../helpers/network-interaction-execution";
 

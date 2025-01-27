@@ -1,15 +1,16 @@
-import { IgnitionError } from "../../errors";
-import { EIP1193Provider } from "../../types/provider";
-import { ERRORS } from "../errors-list";
-
-import {
+import type {
   NetworkFees,
   RawStaticCallResult,
   Transaction,
   TransactionLog,
   TransactionReceipt,
-  TransactionReceiptStatus,
 } from "./types/jsonrpc";
+import type { EIP1193Provider } from "../../types/provider";
+
+import { IgnitionError } from "../../errors";
+import { ERRORS } from "../errors-list";
+
+import { TransactionReceiptStatus } from "./types/jsonrpc";
 import { toChecksumFormat } from "./utils/address";
 
 const DEFAULT_MAX_PRIORITY_FEE_PER_GAS = 1_000_000_000n;

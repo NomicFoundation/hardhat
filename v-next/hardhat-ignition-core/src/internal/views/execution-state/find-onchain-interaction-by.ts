@@ -1,13 +1,12 @@
-import {
+import type {
   CallExecutionState,
   DeploymentExecutionState,
   SendDataExecutionState,
   StaticCallExecutionState,
 } from "../../execution/types/execution-state";
-import {
-  NetworkInteractionType,
-  OnchainInteraction,
-} from "../../execution/types/network-interaction";
+import type { OnchainInteraction } from "../../execution/types/network-interaction";
+
+import { NetworkInteractionType } from "../../execution/types/network-interaction";
 import { assertIgnitionInvariant } from "../../utils/assertions";
 
 export function findOnchainInteractionBy(

@@ -1,21 +1,4 @@
 import type {
-  EventFragment,
-  Fragment,
-  FunctionFragment,
-  Interface,
-  ParamType,
-  Result,
-} from "ethers";
-
-import { IgnitionError } from "../../errors";
-import { Artifact } from "../../types/artifact";
-import { ArgumentType, SolidityParameterType } from "../../types/module";
-import { ERRORS } from "../errors-list";
-import { assertIgnitionInvariant } from "../utils/assertions";
-
-import { linkLibraries } from "./libraries";
-import {
-  EvmExecutionResultTypes,
   EvmTuple,
   EvmValue,
   FailedEvmExecutionResult,
@@ -26,7 +9,24 @@ import {
   RevertWithReason,
   SuccessfulEvmExecutionResult,
 } from "./types/evm-execution";
-import { TransactionReceipt } from "./types/jsonrpc";
+import type { TransactionReceipt } from "./types/jsonrpc";
+import type { Artifact } from "../../types/artifact";
+import type { ArgumentType, SolidityParameterType } from "../../types/module";
+import type {
+  EventFragment,
+  Fragment,
+  FunctionFragment,
+  Interface,
+  ParamType,
+  Result,
+} from "ethers";
+
+import { IgnitionError } from "../../errors";
+import { ERRORS } from "../errors-list";
+import { assertIgnitionInvariant } from "../utils/assertions";
+
+import { linkLibraries } from "./libraries";
+import { EvmExecutionResultTypes } from "./types/evm-execution";
 import { equalAddresses } from "./utils/address";
 
 const REVERT_REASON_SIGNATURE = "0x08c379a0";

@@ -1,5 +1,6 @@
+import type { Future } from "../../types/module";
+
 import { isFuture } from "../../type-guards";
-import { Future } from "../../types/module";
 
 import { AdjacencyList } from "./adjacency-list";
 

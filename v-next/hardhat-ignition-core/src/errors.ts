@@ -1,5 +1,6 @@
+import type { ErrorDescriptor } from "./types/errors";
+
 import { ERRORS, getErrorCode } from "./internal/errors-list";
-import { ErrorDescriptor } from "./types/errors";
 
 /**
  * Base error class extended by all custom errors.
@@ -27,8 +28,7 @@ export class IgnitionError extends CustomError {
   // interferring with it.
   //
   // Disabling this rule as private fields don't use `private`
-  // eslint-disable-next-line @typescript-eslint/explicit-member-accessibility
-  #errorDescriptor: ErrorDescriptor;
+  readonly #errorDescriptor: ErrorDescriptor;
 
   constructor(
     errorDescriptor: ErrorDescriptor,

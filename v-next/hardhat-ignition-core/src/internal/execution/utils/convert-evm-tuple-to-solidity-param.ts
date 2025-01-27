@@ -1,8 +1,9 @@
+import type { SolidityParameterType } from "../../../types/module";
+import type { EvmTuple, EvmValue } from "../types/evm-execution";
+
 import isArray from "lodash/isArray";
 
-import { SolidityParameterType } from "../../../types/module";
 import { assertIgnitionInvariant } from "../../utils/assertions";
-import { EvmTuple, EvmValue } from "../types/evm-execution";
 
 export function convertEvmValueToSolidityParam(
   evmValue: EvmValue,

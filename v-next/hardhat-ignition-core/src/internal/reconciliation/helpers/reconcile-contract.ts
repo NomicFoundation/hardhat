@@ -1,13 +1,17 @@
-import { ContractCallFuture, StaticCallFuture } from "../../../types/module";
-import { resolveAddressLike } from "../../execution/future-processor/helpers/future-resolvers";
-import {
+import type {
+  ContractCallFuture,
+  StaticCallFuture,
+} from "../../../types/module";
+import type {
   CallExecutionState,
   StaticCallExecutionState,
 } from "../../execution/types/execution-state";
-import {
+import type {
   ReconciliationContext,
   ReconciliationFutureResultFailure,
 } from "../types";
+
+import { resolveAddressLike } from "../../execution/future-processor/helpers/future-resolvers";
 
 import { compare } from "./compare";
 

@@ -1,4 +1,4 @@
-import { RawStaticCallResult, Transaction } from "./jsonrpc";
+import type { RawStaticCallResult, Transaction } from "./jsonrpc";
 
 /**
  * An interaction with an Ethereum network.

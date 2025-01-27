@@ -1,26 +1,25 @@
+import type { JsonRpcClient } from "../../jsonrpc-client";
+import type { TransactionTrackingTimer } from "../../transaction-tracking-timer";
+import type {
+  CallExecutionState,
+  DeploymentExecutionState,
+  SendDataExecutionState,
+} from "../../types/execution-state";
+import type { Transaction } from "../../types/jsonrpc";
+import type {
+  OnchainInteractionBumpFeesMessage,
+  OnchainInteractionTimeoutMessage,
+  TransactionConfirmMessage,
+} from "../../types/messages";
+import type { OnchainInteraction } from "../../types/network-interaction";
+
 import setupDebug from "debug";
 
 import { IgnitionError } from "../../../../errors";
 import { ERRORS } from "../../../errors-list";
 import { assertIgnitionInvariant } from "../../../utils/assertions";
-import { JsonRpcClient } from "../../jsonrpc-client";
-import { TransactionTrackingTimer } from "../../transaction-tracking-timer";
-import {
-  CallExecutionState,
-  DeploymentExecutionState,
-  SendDataExecutionState,
-} from "../../types/execution-state";
-import { Transaction } from "../../types/jsonrpc";
-import {
-  JournalMessageType,
-  OnchainInteractionBumpFeesMessage,
-  OnchainInteractionTimeoutMessage,
-  TransactionConfirmMessage,
-} from "../../types/messages";
-import {
-  NetworkInteractionType,
-  OnchainInteraction,
-} from "../../types/network-interaction";
+import { JournalMessageType } from "../../types/messages";
+import { NetworkInteractionType } from "../../types/network-interaction";
 
 const debug = setupDebug("hardhat-ignition:onchain-interaction-monitor");
 

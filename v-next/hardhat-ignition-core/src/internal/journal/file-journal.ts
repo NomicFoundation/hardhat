@@ -1,11 +1,12 @@
-/* eslint-disable no-bitwise */
-import fs, { closeSync, constants, openSync, writeFileSync } from "fs";
+/* eslint-disable no-bitwise -- we are intentionally working with to work with the file-system API */
+import type { Journal } from "./types";
+import type { ExecutionEventListener } from "../../types/execution-events";
+import type { JournalMessage } from "../execution/types/messages";
+
+import fs, { closeSync, constants, openSync, writeFileSync } from "node:fs";
+
 import { parse } from "ndjson";
 
-import { ExecutionEventListener } from "../../types/execution-events";
-import { JournalMessage } from "../execution/types/messages";
-
-import { Journal } from "./types";
 import { deserializeReplacer } from "./utils/deserialize-replacer";
 import { emitExecutionEvent } from "./utils/emitExecutionEvent";
 import { serializeReplacer } from "./utils/serialize-replacer";
@@ -17,8 +18,10 @@ import { serializeReplacer } from "./utils/serialize-replacer";
  */
 export class FileJournal implements Journal {
   constructor(
-    private _filePath: string,
-    private _executionEventListener?: ExecutionEventListener | undefined,
+    private readonly _filePath: string,
+    private readonly _executionEventListener?:
+      | ExecutionEventListener
+      | undefined,
   ) {}
 
   public record(message: JournalMessage): void {

@@ -5,24 +5,25 @@
  * @file
  */
 
-import { IgnitionError } from "../../../../errors";
-import { ERRORS } from "../../../errors-list";
-import { assertIgnitionInvariant } from "../../../utils/assertions";
-import { JsonRpcClient, TransactionParams } from "../../jsonrpc-client";
-import { NonceManager } from "../../nonce-management/json-rpc-nonce-manager";
-import {
+import type { JsonRpcClient, TransactionParams } from "../../jsonrpc-client";
+import type { NonceManager } from "../../nonce-management/json-rpc-nonce-manager";
+import type {
   SimulationErrorExecutionResult,
   StrategySimulationErrorExecutionResult,
 } from "../../types/execution-result";
-import {
+import type {
   NetworkFees,
   RawStaticCallResult,
   Transaction,
 } from "../../types/jsonrpc";
-import {
+import type {
   OnchainInteraction,
   StaticCall,
 } from "../../types/network-interaction";
+
+import { IgnitionError } from "../../../../errors";
+import { ERRORS } from "../../../errors-list";
+import { assertIgnitionInvariant } from "../../../utils/assertions";
 
 /**
  * Runs a StaticCall NetworkInteraction to completion, returning its raw result.

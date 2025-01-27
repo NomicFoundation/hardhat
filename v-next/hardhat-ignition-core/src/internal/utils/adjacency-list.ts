@@ -12,7 +12,10 @@ export class AdjacencyList {
    * Gives a mapping of {A: [], B: [A], C:[A]}
    *
    */
-  private _list: Map<string, Set<string>> = new Map<string, Set<string>>();
+  private readonly _list: Map<string, Set<string>> = new Map<
+    string,
+    Set<string>
+  >();
 
   constructor(futureIds: string[]) {
     for (const futureId of futureIds) {

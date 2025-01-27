@@ -1,3 +1,16 @@
+import type { DeploymentLoader } from "./internal/deployment-loader/types";
+import type { ExecutionStrategy } from "./internal/execution/types/execution-strategy";
+import type { ArtifactResolver } from "./types/artifact";
+import type {
+  DeployConfig,
+  DeploymentParameters,
+  DeploymentResult,
+  StrategyConfig,
+} from "./types/deploy";
+import type { ExecutionEventListener } from "./types/execution-events";
+import type { IgnitionModule, IgnitionModuleResult } from "./types/module";
+import type { EIP1193Provider } from "./types/provider";
+
 import { IgnitionError } from "./errors";
 import {
   DEFAULT_AUTOMINE_REQUIRED_CONFIRMATIONS,
@@ -6,28 +19,14 @@ import {
 import { Deployer } from "./internal/deployer";
 import { EphemeralDeploymentLoader } from "./internal/deployment-loader/ephemeral-deployment-loader";
 import { FileDeploymentLoader } from "./internal/deployment-loader/file-deployment-loader";
-import { DeploymentLoader } from "./internal/deployment-loader/types";
 import { ERRORS } from "./internal/errors-list";
 import { EIP1193JsonRpcClient } from "./internal/execution/jsonrpc-client";
-import { ExecutionStrategy } from "./internal/execution/types/execution-strategy";
 import { equalAddresses } from "./internal/execution/utils/address";
 import { getDefaultSender } from "./internal/execution/utils/get-default-sender";
 import { checkAutominedNetwork } from "./internal/utils/check-automined-network";
 import { validate } from "./internal/validation/validate";
 import { resolveStrategy } from "./strategies/resolve-strategy";
-import { ArtifactResolver } from "./types/artifact";
-import {
-  DeployConfig,
-  DeploymentParameters,
-  DeploymentResult,
-  StrategyConfig,
-} from "./types/deploy";
-import {
-  ExecutionEventListener,
-  ExecutionEventType,
-} from "./types/execution-events";
-import { IgnitionModule, IgnitionModuleResult } from "./types/module";
-import { EIP1193Provider } from "./types/provider";
+import { ExecutionEventType } from "./types/execution-events";
 
 /**
  * Deploy an IgnitionModule to the chain

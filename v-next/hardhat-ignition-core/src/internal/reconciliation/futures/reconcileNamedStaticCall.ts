@@ -1,12 +1,16 @@
-import { StaticCallFuture } from "../../../types/module";
-import { StaticCallExecutionState } from "../../execution/types/execution-state";
+import type { StaticCallFuture } from "../../../types/module";
+import type { StaticCallExecutionState } from "../../execution/types/execution-state";
+import type {
+  ReconciliationContext,
+  ReconciliationFutureResult,
+} from "../types";
+
 import { compare } from "../helpers/compare";
 import { reconcileArguments } from "../helpers/reconcile-arguments";
 import { reconcileContract } from "../helpers/reconcile-contract";
 import { reconcileFrom } from "../helpers/reconcile-from";
 import { reconcileFunctionName } from "../helpers/reconcile-function-name";
 import { reconcileStrategy } from "../helpers/reconcile-strategy";
-import { ReconciliationContext, ReconciliationFutureResult } from "../types";
 
 export function reconcileNamedStaticCall(
   future: StaticCallFuture<string, string>,
