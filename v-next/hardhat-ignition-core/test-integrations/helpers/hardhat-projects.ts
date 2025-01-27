@@ -1,7 +1,5 @@
 import type { HardhatRuntimeEnvironment } from "hardhat/types";
 
-import { resetHardhatContext } from "hardhat/plugins-testing";
-
 declare module "mocha" {
   interface Context {
     hre: HardhatRuntimeEnvironment;
@@ -48,7 +46,8 @@ export function useHardhatProject(fixtureProjectName: string): void {
     "Resetting Hardhat's context and CWD and deleting context fields",
     function () {
       process.chdir(previousCwd);
-      resetHardhatContext();
+      // TODO: replace with equivalent from Hardhat 3
+      // resetHardhatContext();
       delete (this as any).hre;
       delete (this as any).accounts;
     },
