@@ -1,16 +1,16 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
-import { Artifact, FutureType, ReadEventArgumentFuture } from "../src";
-import { buildModule } from "../src/build-module";
-import { getFuturesFromModule } from "../src/internal/utils/get-futures-from-module";
-import { validateReadEventArgument } from "../src/internal/validation/futures/validateReadEventArgument";
+import { Artifact, FutureType, ReadEventArgumentFuture } from "../src/index.js";
+import { buildModule } from "../src/build-module.js";
+import { getFuturesFromModule } from "../src/internal/utils/get-futures-from-module.js";
+import { validateReadEventArgument } from "../src/internal/validation/futures/validateReadEventArgument.js";
 
 import {
   assertValidationError,
   fakeArtifact,
   setupMockArtifactResolver,
-} from "./helpers";
+} from "./helpers.js";
 
 describe("Read event argument", () => {
   const exampleAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";

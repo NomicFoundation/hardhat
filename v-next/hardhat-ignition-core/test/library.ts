@@ -1,20 +1,20 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
-import { buildModule } from "../src/build-module";
+import { buildModule } from "../src/build-module.js";
 import {
   AccountRuntimeValueImplementation,
   NamedLibraryDeploymentFutureImplementation,
-} from "../src/internal/module";
-import { getFuturesFromModule } from "../src/internal/utils/get-futures-from-module";
-import { validateNamedLibraryDeployment } from "../src/internal/validation/futures/validateNamedLibraryDeployment";
-import { FutureType } from "../src/types/module";
+} from "../src/internal/module.js";
+import { getFuturesFromModule } from "../src/internal/utils/get-futures-from-module.js";
+import { validateNamedLibraryDeployment } from "../src/internal/validation/futures/validateNamedLibraryDeployment.js";
+import { FutureType } from "../src/types/module.js";
 
 import {
   assertInstanceOf,
   assertValidationError,
   setupMockArtifactResolver,
-} from "./helpers";
+} from "./helpers.js";
 
 describe("library", () => {
   it("should be able to setup a deploy library call", () => {

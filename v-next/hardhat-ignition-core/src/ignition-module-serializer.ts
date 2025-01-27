@@ -1,4 +1,4 @@
-import type { Graph } from "./internal/topological-order";
+import type { Graph } from "./internal/topological-order.js";
 import type {
   AccountRuntimeValue,
   AddressResolvableFuture,
@@ -15,7 +15,7 @@ import type {
   NamedArtifactContractDeploymentFuture,
   ReadEventArgumentFuture,
   StaticCallFuture,
-} from "./types/module";
+} from "./types/module.js";
 import type {
   FutureToken,
   ModuleToken,
@@ -38,10 +38,10 @@ import type {
   SerializedNamedStaticCallFuture,
   SerializedReadEventArgumentFuture,
   SerializedSendDataFuture,
-} from "./types/serialization";
+} from "./types/serialization.js";
 
-import { IgnitionError } from "./errors";
-import { ERRORS } from "./internal/errors-list";
+import { IgnitionError } from "./errors.js";
+import { ERRORS } from "./internal/errors-list.js";
 import {
   AccountRuntimeValueImplementation,
   ArtifactContractAtFutureImplementation,
@@ -57,9 +57,9 @@ import {
   NamedStaticCallFutureImplementation,
   ReadEventArgumentFutureImplementation,
   SendDataFutureImplementation,
-} from "./internal/module";
-import { getNodesInTopologicalOrder } from "./internal/topological-order";
-import { replaceWithinArg } from "./internal/utils/replace-within-arg";
+} from "./internal/module.js";
+import { getNodesInTopologicalOrder } from "./internal/topological-order.js";
+import { replaceWithinArg } from "./internal/utils/replace-within-arg.js";
 import {
   isAccountRuntimeValue,
   isAddressResolvableFuture,
@@ -68,8 +68,8 @@ import {
   isFuture,
   isModuleParameterRuntimeValue,
   isRuntimeValue,
-} from "./type-guards";
-import { FutureType, RuntimeValueType } from "./types/module";
+} from "./type-guards.js";
+import { FutureType, RuntimeValueType } from "./types/module.js";
 
 interface SerializeContext {
   argReplacer: (arg: ArgumentType) => SerializedArgumentType;

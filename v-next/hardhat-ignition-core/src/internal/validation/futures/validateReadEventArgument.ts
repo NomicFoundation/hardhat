@@ -1,11 +1,11 @@
-import type { ArtifactResolver } from "../../../types/artifact";
-import type { DeploymentParameters } from "../../../types/deploy";
-import type { ReadEventArgumentFuture } from "../../../types/module";
+import type { ArtifactResolver } from "../../../types/artifact.js";
+import type { DeploymentParameters } from "../../../types/deploy.js";
+import type { ReadEventArgumentFuture } from "../../../types/module.js";
 
-import { IgnitionError } from "../../../errors";
-import { isArtifactType } from "../../../type-guards";
-import { ERRORS } from "../../errors-list";
-import { validateArtifactEventArgumentParams } from "../../execution/abi";
+import { IgnitionError } from "../../../errors.js";
+import { isArtifactType } from "../../../type-guards.js";
+import { ERRORS } from "../../errors-list.js";
+import { validateArtifactEventArgumentParams } from "../../execution/abi.js";
 
 export async function validateReadEventArgument(
   future: ReadEventArgumentFuture,

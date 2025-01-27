@@ -1,12 +1,12 @@
-import type { ArtifactResolver } from "../../../types/artifact";
-import type { DeploymentParameters } from "../../../types/deploy";
-import type { NamedArtifactLibraryDeploymentFuture } from "../../../types/module";
+import type { ArtifactResolver } from "../../../types/artifact.js";
+import type { DeploymentParameters } from "../../../types/deploy.js";
+import type { NamedArtifactLibraryDeploymentFuture } from "../../../types/module.js";
 
-import { IgnitionError } from "../../../errors";
-import { isAccountRuntimeValue, isArtifactType } from "../../../type-guards";
-import { ERRORS } from "../../errors-list";
-import { validateLibraryNames } from "../../execution/libraries";
-import { validateAccountRuntimeValue } from "../utils";
+import { IgnitionError } from "../../../errors.js";
+import { isAccountRuntimeValue, isArtifactType } from "../../../type-guards.js";
+import { ERRORS } from "../../errors-list.js";
+import { validateLibraryNames } from "../../execution/libraries.js";
+import { validateAccountRuntimeValue } from "../utils.js";
 
 export async function validateNamedLibraryDeployment(
   future: NamedArtifactLibraryDeploymentFuture<string>,

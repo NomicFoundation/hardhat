@@ -1,10 +1,10 @@
-import type { DeploymentState } from "../types/deployment-state";
-import type { JournalMessage } from "../types/messages";
+import type { DeploymentState } from "../types/deployment-state.js";
+import type { JournalMessage } from "../types/messages.js";
 
-import { JournalMessageType } from "../types/messages";
+import { JournalMessageType } from "../types/messages.js";
 
-import { executionStateReducer } from "./execution-state-reducer";
-import { wipeExecutionState } from "./helpers/deployment-state-helpers";
+import { executionStateReducer } from "./execution-state-reducer.js";
+import { wipeExecutionState } from "./helpers/deployment-state-helpers.js";
 
 /**
  * The root level reducer for the overall deployment state.

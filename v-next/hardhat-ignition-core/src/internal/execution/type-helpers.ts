@@ -6,7 +6,7 @@ import type {
   ReadEventArgumentExecutionState,
   SendDataExecutionState,
   StaticCallExecutionState,
-} from "./types/execution-state";
+} from "./types/execution-state.js";
 
 export type MapExStateTypeToExState<ExStateT extends ExecutionSateType> =
   ExStateT extends ExecutionSateType.DEPLOYMENT_EXECUTION_STATE

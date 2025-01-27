@@ -1,9 +1,9 @@
-import type { SolidityParameterType } from "../../types/module";
-import type { DeploymentState } from "../execution/types/deployment-state";
+import type { SolidityParameterType } from "../../types/module.js";
+import type { DeploymentState } from "../execution/types/deployment-state.js";
 
-import { ExecutionResultType } from "../execution/types/execution-result";
-import { ExecutionSateType } from "../execution/types/execution-state";
-import { assertIgnitionInvariant } from "../utils/assertions";
+import { ExecutionResultType } from "../execution/types/execution-result.js";
+import { ExecutionSateType } from "../execution/types/execution-state.js";
+import { assertIgnitionInvariant } from "../utils/assertions.js";
 
 export function findResultForFutureById(
   deploymentState: DeploymentState,

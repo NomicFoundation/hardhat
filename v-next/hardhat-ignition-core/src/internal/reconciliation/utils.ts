@@ -1,5 +1,5 @@
-import type { ReconciliationFutureResultFailure } from "./types";
-import type { Future } from "../../types/module";
+import type { ReconciliationFutureResultFailure } from "./types.js";
+import type { Future } from "../../types/module.js";
 
 export function fail(
   future: Future,

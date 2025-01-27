@@ -1,8 +1,8 @@
-import type { Abi } from "./artifact";
+import type { Abi } from "./artifact.js";
 import type {
   DeployedContract,
   ExecutionErrorDeploymentResult,
-} from "./deploy";
+} from "./deploy.js";
 
 /**
  * The information of a deployed contract.

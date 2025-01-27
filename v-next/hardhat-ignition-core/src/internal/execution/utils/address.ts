@@ -1,4 +1,4 @@
-import { assertIgnitionInvariant } from "../../utils/assertions";
+import { assertIgnitionInvariant } from "../../utils/assertions.js";
 
 /**
  * Is the string a valid ethereum address?
@@ -19,7 +19,7 @@ export function isAddress(address: any): address is string {
 export function toChecksumFormat(address: string): string {
   assertIgnitionInvariant(
     isAddress(address),
-    `Expected ${address} to be an address`,
+    `Expected ${address} to be an address`
   );
 
   const { getAddress } = require("ethers") as typeof import("ethers");
@@ -33,7 +33,7 @@ export function toChecksumFormat(address: string): string {
  */
 export function equalAddresses(
   leftAddress: string,
-  rightAddress: string,
+  rightAddress: string
 ): boolean {
   return toChecksumFormat(leftAddress) === toChecksumFormat(rightAddress);
 }

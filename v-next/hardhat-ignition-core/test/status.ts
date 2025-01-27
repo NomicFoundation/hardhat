@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import path from "path";
 
-import { status } from "../src";
+import { status } from "../src/index.js";
 
 describe("status", () => {
   it("should return a status result for a successful deployment", async () => {

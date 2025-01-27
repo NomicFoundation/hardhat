@@ -1,24 +1,24 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
-import { buildModule } from "../src/build-module";
+import { buildModule } from "../src/build-module.js";
 import {
   IgnitionModuleDeserializer,
   IgnitionModuleSerializer,
-} from "../src/ignition-module-serializer";
+} from "../src/ignition-module-serializer.js";
 import {
   ArtifactContractDeploymentFutureImplementation,
   ArtifactLibraryDeploymentFutureImplementation,
   NamedContractDeploymentFutureImplementation,
   NamedLibraryDeploymentFutureImplementation,
-} from "../src/internal/module";
+} from "../src/internal/module.js";
 import {
   ContractFuture,
   IgnitionModule,
   IgnitionModuleResult,
-} from "../src/types/module";
+} from "../src/types/module.js";
 
-import { fakeArtifact } from "./helpers";
+import { fakeArtifact } from "./helpers.js";
 
 describe("stored deployment serializer", () => {
   const exampleAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";

@@ -1,10 +1,10 @@
-import type { RevertedTransactionExecutionResult } from "../../types/execution-result";
+import type { RevertedTransactionExecutionResult } from "../../types/execution-result.js";
 import type {
   CallExecutionState,
   DeploymentExecutionState,
   SendDataExecutionState,
   StaticCallExecutionState,
-} from "../../types/execution-state";
+} from "../../types/execution-state.js";
 import type {
   CallStrategyGenerator,
   DeploymentStrategyGenerator,
@@ -12,30 +12,30 @@ import type {
   OnchainInteractionRequest,
   SendDataStrategyGenerator,
   StaticCallRequest,
-} from "../../types/execution-strategy";
+} from "../../types/execution-strategy.js";
 import type {
   CallExecutionStateCompleteMessage,
   DeploymentExecutionStateCompleteMessage,
   NetworkInteractionRequestMessage,
   SendDataExecutionStateCompleteMessage,
   StaticCallExecutionStateCompleteMessage,
-} from "../../types/messages";
+} from "../../types/messages.js";
 
-import { assertIgnitionInvariant } from "../../../utils/assertions";
-import { ExecutionResultType } from "../../types/execution-result";
-import { ExecutionSateType } from "../../types/execution-state";
+import { assertIgnitionInvariant } from "../../../utils/assertions.js";
+import { ExecutionResultType } from "../../types/execution-result.js";
+import { ExecutionSateType } from "../../types/execution-state.js";
 import {
   OnchainInteractionResponseType,
   SIMULATION_SUCCESS_SIGNAL_TYPE,
-} from "../../types/execution-strategy";
-import { TransactionReceiptStatus } from "../../types/jsonrpc";
-import { JournalMessageType } from "../../types/messages";
-import { NetworkInteractionType } from "../../types/network-interaction";
+} from "../../types/execution-strategy.js";
+import { TransactionReceiptStatus } from "../../types/jsonrpc.js";
+import { JournalMessageType } from "../../types/messages.js";
+import { NetworkInteractionType } from "../../types/network-interaction.js";
 import {
   createExecutionStateCompleteMessage,
   createExecutionStateCompleteMessageForExecutionsWithOnchainInteractions,
-} from "../helpers/messages-helpers";
-import { replayStrategy } from "../helpers/replay-strategy";
+} from "../helpers/messages-helpers.js";
+import { replayStrategy } from "../helpers/replay-strategy.js";
 
 /**
  * Runs the strategy for the execution state, and returns a message that can be

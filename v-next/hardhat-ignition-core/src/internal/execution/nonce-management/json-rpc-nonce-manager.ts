@@ -1,7 +1,7 @@
-import type { JsonRpcClient } from "../jsonrpc-client";
+import type { JsonRpcClient } from "../jsonrpc-client.js";
 
-import { IgnitionError } from "../../../errors";
-import { ERRORS } from "../../errors-list";
+import { IgnitionError } from "../../../errors.js";
+import { ERRORS } from "../../errors-list.js";
 
 /**
  * This interface is meant to be used to fetch new nonces for transactions.

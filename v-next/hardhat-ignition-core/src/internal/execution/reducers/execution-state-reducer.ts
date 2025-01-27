@@ -1,5 +1,5 @@
-import type { MapExStateTypeToExState } from "../type-helpers";
-import type { ExecutionState } from "../types/execution-state";
+import type { MapExStateTypeToExState } from "../type-helpers.js";
+import type { ExecutionState } from "../types/execution-state.js";
 import type {
   CallExecutionStateCompleteMessage,
   CallExecutionStateInitializeMessage,
@@ -21,13 +21,13 @@ import type {
   StaticCallExecutionStateInitializeMessage,
   TransactionConfirmMessage,
   TransactionSendMessage,
-} from "../types/messages";
+} from "../types/messages.js";
 
-import { assertIgnitionInvariant } from "../../utils/assertions";
-import { ExecutionSateType } from "../types/execution-state";
-import { JournalMessageType } from "../types/messages";
+import { assertIgnitionInvariant } from "../../utils/assertions.js";
+import { ExecutionSateType } from "../types/execution-state.js";
+import { JournalMessageType } from "../types/messages.js";
 
-import { completeExecutionState } from "./helpers/complete-execution-state";
+import { completeExecutionState } from "./helpers/complete-execution-state.js";
 import {
   initialiseCallExecutionStateFrom,
   initialiseContractAtExecutionStateFrom,
@@ -36,7 +36,7 @@ import {
   initialiseReadEventArgumentExecutionStateFrom,
   initialiseSendDataExecutionStateFrom,
   initialiseStaticCallExecutionStateFrom,
-} from "./helpers/initializers";
+} from "./helpers/initializers.js";
 import {
   appendNetworkInteraction,
   appendTransactionToOnchainInteraction,
@@ -46,7 +46,7 @@ import {
   onchainInteractionTimedOut,
   resendDroppedOnchainInteraction,
   resetOnchainInteractionReplacedByUser,
-} from "./helpers/network-interaction-helpers";
+} from "./helpers/network-interaction-helpers.js";
 
 const exStateTypesThatSupportOnchainInteractions: Array<
   | ExecutionSateType.DEPLOYMENT_EXECUTION_STATE

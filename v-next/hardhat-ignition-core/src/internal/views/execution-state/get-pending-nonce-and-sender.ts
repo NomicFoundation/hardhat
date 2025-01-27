@@ -1,8 +1,8 @@
-import type { ExecutionState } from "../../execution/types/execution-state";
+import type { ExecutionState } from "../../execution/types/execution-state.js";
 
-import { ExecutionSateType } from "../../execution/types/execution-state";
+import { ExecutionSateType } from "../../execution/types/execution-state.js";
 
-import { getPendingOnchainInteraction } from "./get-pending-onchain-interaction";
+import { getPendingOnchainInteraction } from "./get-pending-onchain-interaction.js";
 
 /**
  * Returns the nonce and sender of a pending transaction of the execution state,

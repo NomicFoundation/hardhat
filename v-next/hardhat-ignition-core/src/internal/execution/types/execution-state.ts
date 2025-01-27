@@ -3,9 +3,9 @@ import type {
   DeploymentExecutionResult,
   SendDataExecutionResult,
   StaticCallExecutionResult,
-} from "./execution-result";
-import type { NetworkInteraction, StaticCall } from "./network-interaction";
-import type { FutureType, SolidityParameterType } from "../../../types/module";
+} from "./execution-result.js";
+import type { NetworkInteraction, StaticCall } from "./network-interaction.js";
+import type { FutureType, SolidityParameterType } from "../../../types/module.js";
 
 /**
  * An execution state is used to keep track of the execution of a future.

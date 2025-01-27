@@ -1,16 +1,16 @@
-import type { JsonRpcClient } from "../../jsonrpc-client";
+import type { JsonRpcClient } from "../../jsonrpc-client.js";
 import type {
   CallExecutionState,
   DeploymentExecutionState,
   SendDataExecutionState,
   StaticCallExecutionState,
-} from "../../types/execution-state";
-import type { StaticCallCompleteMessage } from "../../types/messages";
+} from "../../types/execution-state.js";
+import type { StaticCallCompleteMessage } from "../../types/messages.js";
 
-import { assertIgnitionInvariant } from "../../../utils/assertions";
-import { JournalMessageType } from "../../types/messages";
-import { NetworkInteractionType } from "../../types/network-interaction";
-import { runStaticCall } from "../helpers/network-interaction-execution";
+import { assertIgnitionInvariant } from "../../../utils/assertions.js";
+import { JournalMessageType } from "../../types/messages.js";
+import { NetworkInteractionType } from "../../types/network-interaction.js";
+import { runStaticCall } from "../helpers/network-interaction-execution.js";
 
 /**
  * Runs a static call and returns a message indicating its completion.

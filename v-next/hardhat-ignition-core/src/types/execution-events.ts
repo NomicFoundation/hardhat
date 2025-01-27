@@ -1,4 +1,4 @@
-import type { DeploymentResult } from "./deploy";
+import type { DeploymentResult } from "./deploy.js";
 
 /**
  * Events emitted by the execution engine to allow tracking

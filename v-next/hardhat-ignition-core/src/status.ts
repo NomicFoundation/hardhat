@@ -1,12 +1,12 @@
-import type { ArtifactResolver } from "./types/artifact";
-import type { StatusResult } from "./types/status";
+import type { ArtifactResolver } from "./types/artifact.js";
+import type { StatusResult } from "./types/status.js";
 
-import { IgnitionError } from "./errors";
-import { FileDeploymentLoader } from "./internal/deployment-loader/file-deployment-loader";
-import { ERRORS } from "./internal/errors-list";
-import { loadDeploymentState } from "./internal/execution/deployment-state-helpers";
-import { findDeployedContracts } from "./internal/views/find-deployed-contracts";
-import { findStatus } from "./internal/views/find-status";
+import { IgnitionError } from "./errors.js";
+import { FileDeploymentLoader } from "./internal/deployment-loader/file-deployment-loader.js";
+import { ERRORS } from "./internal/errors-list.js";
+import { loadDeploymentState } from "./internal/execution/deployment-state-helpers.js";
+import { findDeployedContracts } from "./internal/views/find-deployed-contracts.js";
+import { findStatus } from "./internal/views/find-status.js";
 
 /**
  * Show the status of a deployment.

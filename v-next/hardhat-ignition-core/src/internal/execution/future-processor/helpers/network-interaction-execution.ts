@@ -5,25 +5,25 @@
  * @file
  */
 
-import type { JsonRpcClient, TransactionParams } from "../../jsonrpc-client";
-import type { NonceManager } from "../../nonce-management/json-rpc-nonce-manager";
+import type { JsonRpcClient, TransactionParams } from "../../jsonrpc-client.js";
+import type { NonceManager } from "../../nonce-management/json-rpc-nonce-manager.js";
 import type {
   SimulationErrorExecutionResult,
   StrategySimulationErrorExecutionResult,
-} from "../../types/execution-result";
+} from "../../types/execution-result.js";
 import type {
   NetworkFees,
   RawStaticCallResult,
   Transaction,
-} from "../../types/jsonrpc";
+} from "../../types/jsonrpc.js";
 import type {
   OnchainInteraction,
   StaticCall,
-} from "../../types/network-interaction";
+} from "../../types/network-interaction.js";
 
-import { IgnitionError } from "../../../../errors";
-import { ERRORS } from "../../../errors-list";
-import { assertIgnitionInvariant } from "../../../utils/assertions";
+import { IgnitionError } from "../../../../errors.js";
+import { ERRORS } from "../../../errors-list.js";
+import { assertIgnitionInvariant } from "../../../utils/assertions.js";
 
 /**
  * Runs a StaticCall NetworkInteraction to completion, returning its raw result.

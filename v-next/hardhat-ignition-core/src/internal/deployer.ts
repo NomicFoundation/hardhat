@@ -1,13 +1,13 @@
-import type { DeploymentLoader } from "./deployment-loader/types";
-import type { JsonRpcClient } from "./execution/jsonrpc-client";
-import type { DeploymentState } from "./execution/types/deployment-state";
+import type { DeploymentLoader } from "./deployment-loader/types.js";
+import type { JsonRpcClient } from "./execution/jsonrpc-client.js";
+import type { DeploymentState } from "./execution/types/deployment-state.js";
 import type {
   ContractAtExecutionState,
   DeploymentExecutionState,
   ExecutionState,
-} from "./execution/types/execution-state";
-import type { ExecutionStrategy } from "./execution/types/execution-strategy";
-import type { ArtifactResolver } from "../types/artifact";
+} from "./execution/types/execution-state.js";
+import type { ExecutionStrategy } from "./execution/types/execution-strategy.js";
+import type { ArtifactResolver } from "../types/artifact.js";
 import type {
   DeployConfig,
   DeploymentParameters,
@@ -15,31 +15,31 @@ import type {
   ExecutionErrorDeploymentResult,
   PreviousRunErrorDeploymentResult,
   ReconciliationErrorDeploymentResult,
-} from "../types/deploy";
-import type { ExecutionEventListener } from "../types/execution-events";
-import type { IgnitionModule, IgnitionModuleResult } from "../types/module";
+} from "../types/deploy.js";
+import type { ExecutionEventListener } from "../types/execution-events.js";
+import type { IgnitionModule, IgnitionModuleResult } from "../types/module.js";
 
-import { IgnitionError } from "../errors";
-import { isContractFuture } from "../type-guards";
-import { DeploymentResultType } from "../types/deploy";
-import { ExecutionEventType } from "../types/execution-events";
+import { IgnitionError } from "../errors.js";
+import { isContractFuture } from "../type-guards.js";
+import { DeploymentResultType } from "../types/deploy.js";
+import { ExecutionEventType } from "../types/execution-events.js";
 
-import { Batcher } from "./batcher";
-import { ERRORS } from "./errors-list";
+import { Batcher } from "./batcher.js";
+import { ERRORS } from "./errors-list.js";
 import {
   initializeDeploymentState,
   loadDeploymentState,
-} from "./execution/deployment-state-helpers";
-import { ExecutionEngine } from "./execution/execution-engine";
+} from "./execution/deployment-state-helpers.js";
+import { ExecutionEngine } from "./execution/execution-engine.js";
 import {
   ExecutionSateType,
   ExecutionStatus,
-} from "./execution/types/execution-state";
-import { Reconciler } from "./reconciliation/reconciler";
-import { assertIgnitionInvariant } from "./utils/assertions";
-import { getFuturesFromModule } from "./utils/get-futures-from-module";
-import { findDeployedContracts } from "./views/find-deployed-contracts";
-import { findStatus } from "./views/find-status";
+} from "./execution/types/execution-state.js";
+import { Reconciler } from "./reconciliation/reconciler.js";
+import { assertIgnitionInvariant } from "./utils/assertions.js";
+import { getFuturesFromModule } from "./utils/get-futures-from-module.js";
+import { findDeployedContracts } from "./views/find-deployed-contracts.js";
+import { findStatus } from "./views/find-status.js";
 
 /**
  * Run an Igntition deployment.
@@ -54,18 +54,18 @@ export class Deployer {
     private readonly _deploymentLoader: DeploymentLoader,
     private readonly _executionEventListener?:
       | ExecutionEventListener
-      | undefined,
+      | undefined
   ) {
     assertIgnitionInvariant(
       this._config.requiredConfirmations >= 1,
-      `Configured value 'requiredConfirmations' cannot be less than 1. Value given: '${this._config.requiredConfirmations}'`,
+      `Configured value 'requiredConfirmations' cannot be less than 1. Value given: '${this._config.requiredConfirmations}'`
     );
   }
 
   public async deploy<
     ModuleIdT extends string,
     ContractNameT extends string,
-    IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>,
+    IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>
   >(
     ignitionModule: IgnitionModule<
       ModuleIdT,
@@ -74,7 +74,7 @@ export class Deployer {
     >,
     deploymentParameters: DeploymentParameters,
     accounts: string[],
-    defaultSender: string,
+    defaultSender: string
   ): Promise<DeploymentResult> {
     const deployment = await this._getOrInitializeDeploymentState();
 
@@ -86,7 +86,7 @@ export class Deployer {
       this._deploymentDir,
       isResumed,
       this._config.maxFeeBumps,
-      this._config.disableFeeBumping,
+      this._config.disableFeeBumping
     );
 
     const contracts =
@@ -101,12 +101,12 @@ export class Deployer {
     assertIgnitionInvariant(
       contractStates.every(
         (
-          exState,
+          exState
         ): exState is DeploymentExecutionState | ContractAtExecutionState =>
           exState.type === ExecutionSateType.DEPLOYMENT_EXECUTION_STATE ||
-          exState.type === ExecutionSateType.CONTRACT_AT_EXECUTION_STATE,
+          exState.type === ExecutionSateType.CONTRACT_AT_EXECUTION_STATE
       ),
-      "Invalid state map",
+      "Invalid state map"
     );
 
     const reconciliationResult = await Reconciler.reconcile(
@@ -118,7 +118,7 @@ export class Deployer {
       this._artifactResolver,
       defaultSender,
       this._executionStrategy.name,
-      this._executionStrategy.config,
+      this._executionStrategy.config
     );
 
     if (reconciliationResult.reconciliationFailures.length > 0) {
@@ -171,7 +171,7 @@ export class Deployer {
 
     if (reconciliationResult.missingExecutedFutures.length > 0) {
       this._emitReconciliationWarningsEvent(
-        reconciliationResult.missingExecutedFutures,
+        reconciliationResult.missingExecutedFutures
       );
     }
 
@@ -192,7 +192,7 @@ export class Deployer {
         this._config.timeBeforeBumpingFees,
         this._config.maxFeeBumps,
         this._config.blockPollingInterval,
-        this._config.disableFeeBumping,
+        this._config.disableFeeBumping
       );
 
       deploymentState = await executionEngine.executeModule(
@@ -201,13 +201,13 @@ export class Deployer {
         batches,
         accounts,
         deploymentParameters,
-        defaultSender,
+        defaultSender
       );
     }
 
     const result = await this._getDeploymentResult(
       deploymentState,
-      ignitionModule,
+      ignitionModule
     );
 
     this._emitDeploymentCompleteEvent(result);
@@ -218,10 +218,10 @@ export class Deployer {
   private async _getDeploymentResult<
     ModuleIdT extends string,
     ContractNameT extends string,
-    IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>,
+    IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>
   >(
     deploymentState: DeploymentState,
-    _module: IgnitionModule<ModuleIdT, ContractNameT, IgnitionModuleResultsT>,
+    _module: IgnitionModule<ModuleIdT, ContractNameT, IgnitionModuleResultsT>
   ): Promise<DeploymentResult> {
     if (!this._isSuccessful(deploymentState)) {
       return this._getExecutionErrorResult(deploymentState);
@@ -252,7 +252,7 @@ export class Deployer {
     if (deploymentState === undefined) {
       const newState = await initializeDeploymentState(
         chainId,
-        this._deploymentLoader,
+        this._deploymentLoader
       );
 
       return { deploymentState: newState, isResumed: false };
@@ -275,7 +275,7 @@ export class Deployer {
     deploymentDir: string | undefined,
     isResumed: boolean,
     maxFeeBumps: number,
-    disableFeeBumping: boolean,
+    disableFeeBumping: boolean
   ): void {
     if (this._executionEventListener === undefined) {
       return;
@@ -336,12 +336,12 @@ export class Deployer {
 
   private _isSuccessful(deploymentState: DeploymentState): boolean {
     return Object.values(deploymentState.executionStates).every(
-      (ex) => ex.status === ExecutionStatus.SUCCESS,
+      (ex) => ex.status === ExecutionStatus.SUCCESS
     );
   }
 
   private _getExecutionErrorResult(
-    deploymentState: DeploymentState,
+    deploymentState: DeploymentState
   ): ExecutionErrorDeploymentResult {
     const status = findStatus(deploymentState);
 

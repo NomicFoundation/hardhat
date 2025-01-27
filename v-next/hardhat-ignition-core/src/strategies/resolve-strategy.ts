@@ -1,11 +1,11 @@
-import type { ExecutionStrategy } from "../internal/execution/types/execution-strategy";
-import type { StrategyConfig } from "../types/deploy";
+import type { ExecutionStrategy } from "../internal/execution/types/execution-strategy.js";
+import type { StrategyConfig } from "../types/deploy.js";
 
-import { IgnitionError } from "../errors";
-import { ERRORS } from "../internal/errors-list";
+import { IgnitionError } from "../errors.js";
+import { ERRORS } from "../internal/errors-list.js";
 
-import { BasicStrategy } from "./basic-strategy";
-import { Create2Strategy } from "./create2-strategy";
+import { BasicStrategy } from "./basic-strategy.js";
+import { Create2Strategy } from "./create2-strategy.js";
 
 export function resolveStrategy<StrategyT extends keyof StrategyConfig>(
   strategyName: StrategyT | undefined,

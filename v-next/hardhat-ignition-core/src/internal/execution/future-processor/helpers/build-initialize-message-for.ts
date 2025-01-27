@@ -1,9 +1,9 @@
-import type { DeploymentParameters } from "../../../../types/deploy";
-import type { Future } from "../../../../types/module";
-import type { DeploymentLoader } from "../../../deployment-loader/types";
-import type { DeploymentState } from "../../types/deployment-state";
-import type { ConcreteExecutionConfig } from "../../types/execution-state";
-import type { ExecutionStrategy } from "../../types/execution-strategy";
+import type { DeploymentParameters } from "../../../../types/deploy.js";
+import type { Future } from "../../../../types/module.js";
+import type { DeploymentLoader } from "../../../deployment-loader/types.js";
+import type { DeploymentState } from "../../types/deployment-state.js";
+import type { ConcreteExecutionConfig } from "../../types/execution-state.js";
+import type { ExecutionStrategy } from "../../types/execution-strategy.js";
 import type {
   CallExecutionStateInitializeMessage,
   ContractAtExecutionStateInitializeMessage,
@@ -13,10 +13,10 @@ import type {
   ReadEventArgExecutionStateInitializeMessage,
   SendDataExecutionStateInitializeMessage,
   StaticCallExecutionStateInitializeMessage,
-} from "../../types/messages";
+} from "../../types/messages.js";
 
-import { FutureType } from "../../../../types/module";
-import { JournalMessageType } from "../../types/messages";
+import { FutureType } from "../../../../types/module.js";
+import { JournalMessageType } from "../../types/messages.js";
 
 import {
   resolveAddressForContractFuture,
@@ -29,7 +29,7 @@ import {
   resolveReadEventArgumentResult,
   resolveSendToAddress,
   resolveValue,
-} from "./future-resolvers";
+} from "./future-resolvers.js";
 
 export async function buildInitializeMessageFor(
   future: Future,

@@ -1,16 +1,16 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
-import { buildModule } from "../../src/build-module";
+import { buildModule } from "../../src/build-module.js";
 import {
   DeploymentExecutionState,
   ExecutionSateType,
   ExecutionStatus,
-} from "../../src/internal/execution/types/execution-state";
-import { getDefaultSender } from "../../src/internal/execution/utils/get-default-sender";
-import { Reconciler } from "../../src/internal/reconciliation/reconciler";
-import { FutureType } from "../../src/types/module";
-import { exampleAccounts } from "../helpers";
+} from "../../src/internal/execution/types/execution-state.js";
+import { getDefaultSender } from "../../src/internal/execution/utils/get-default-sender.js";
+import { Reconciler } from "../../src/internal/reconciliation/reconciler.js";
+import { FutureType } from "../../src/types/module.js";
+import { exampleAccounts } from "../helpers.js";
 
 import {
   ArtifactMapDeploymentLoader,
@@ -19,7 +19,7 @@ import {
   assertSuccessReconciliation,
   createDeploymentState,
   reconcile,
-} from "./helpers";
+} from "./helpers.js";
 
 describe("Reconciliation", () => {
   const exampleDeploymentState: DeploymentExecutionState = {

@@ -1,15 +1,15 @@
 /* eslint-disable no-bitwise -- we are intentionally working with to work with the file-system API */
-import type { Journal } from "./types";
-import type { ExecutionEventListener } from "../../types/execution-events";
-import type { JournalMessage } from "../execution/types/messages";
+import type { Journal } from "./types/index.js";
+import type { ExecutionEventListener } from "../../types/execution-events.js";
+import type { JournalMessage } from "../execution/types/messages.js";
 
 import fs, { closeSync, constants, openSync, writeFileSync } from "node:fs";
 
 import { parse } from "ndjson";
 
-import { deserializeReplacer } from "./utils/deserialize-replacer";
-import { emitExecutionEvent } from "./utils/emitExecutionEvent";
-import { serializeReplacer } from "./utils/serialize-replacer";
+import { deserializeReplacer } from "./utils/deserialize-replacer.js";
+import { emitExecutionEvent } from "./utils/emitExecutionEvent.js";
+import { serializeReplacer } from "./utils/serialize-replacer.js";
 
 /**
  * A file-based journal.
@@ -21,7 +21,7 @@ export class FileJournal implements Journal {
     private readonly _filePath: string,
     private readonly _executionEventListener?:
       | ExecutionEventListener
-      | undefined,
+      | undefined
   ) {}
 
   public record(message: JournalMessage): void {
@@ -42,7 +42,7 @@ export class FileJournal implements Journal {
 
       const deserializedChunk = JSON.parse(
         json,
-        deserializeReplacer.bind(this),
+        deserializeReplacer.bind(this)
       );
 
       yield deserializedChunk as JournalMessage;
@@ -61,7 +61,7 @@ export class FileJournal implements Journal {
     writeFileSync(
       fd,
       `\n${JSON.stringify(value, serializeReplacer.bind(this))}`,
-      "utf-8",
+      "utf-8"
     );
     closeSync(fd);
   }

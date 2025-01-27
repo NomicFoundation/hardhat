@@ -1,9 +1,9 @@
-import type { ExecutionState } from "../../execution/types/execution-state";
-import type { OnchainInteraction } from "../../execution/types/network-interaction";
+import type { ExecutionState } from "../../execution/types/execution-state.js";
+import type { OnchainInteraction } from "../../execution/types/network-interaction.js";
 
-import { ExecutionSateType } from "../../execution/types/execution-state";
-import { NetworkInteractionType } from "../../execution/types/network-interaction";
-import { assertIgnitionInvariant } from "../../utils/assertions";
+import { ExecutionSateType } from "../../execution/types/execution-state.js";
+import { NetworkInteractionType } from "../../execution/types/network-interaction.js";
+import { assertIgnitionInvariant } from "../../utils/assertions.js";
 
 /**
  * Returns the last NetworkInteraction if there's one and it's an

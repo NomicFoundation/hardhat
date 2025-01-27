@@ -1,34 +1,34 @@
-import type { JsonRpcClient } from "../../jsonrpc-client";
-import type { NonceManager } from "../../nonce-management/json-rpc-nonce-manager";
-import type { TransactionTrackingTimer } from "../../transaction-tracking-timer";
+import type { JsonRpcClient } from "../../jsonrpc-client.js";
+import type { NonceManager } from "../../nonce-management/json-rpc-nonce-manager.js";
+import type { TransactionTrackingTimer } from "../../transaction-tracking-timer.js";
 import type {
   CallExecutionState,
   DeploymentExecutionState,
   SendDataExecutionState,
-} from "../../types/execution-state";
+} from "../../types/execution-state.js";
 import type {
   CallStrategyGenerator,
   DeploymentStrategyGenerator,
   ExecutionStrategy,
-} from "../../types/execution-strategy";
+} from "../../types/execution-strategy.js";
 import type {
   CallExecutionStateCompleteMessage,
   DeploymentExecutionStateCompleteMessage,
   SendDataExecutionStateCompleteMessage,
   TransactionSendMessage,
-} from "../../types/messages";
+} from "../../types/messages.js";
 
-import { assertIgnitionInvariant } from "../../../utils/assertions";
-import { ExecutionResultType } from "../../types/execution-result";
-import { JournalMessageType } from "../../types/messages";
-import { NetworkInteractionType } from "../../types/network-interaction";
-import { decodeSimulationResult } from "../helpers/decode-simulation-result";
-import { createExecutionStateCompleteMessageForExecutionsWithOnchainInteractions } from "../helpers/messages-helpers";
+import { assertIgnitionInvariant } from "../../../utils/assertions.js";
+import { ExecutionResultType } from "../../types/execution-result.js";
+import { JournalMessageType } from "../../types/messages.js";
+import { NetworkInteractionType } from "../../types/network-interaction.js";
+import { decodeSimulationResult } from "../helpers/decode-simulation-result.js";
+import { createExecutionStateCompleteMessageForExecutionsWithOnchainInteractions } from "../helpers/messages-helpers.js";
 import {
   TRANSACTION_SENT_TYPE,
   sendTransactionForOnchainInteraction,
-} from "../helpers/network-interaction-execution";
-import { replayStrategy } from "../helpers/replay-strategy";
+} from "../helpers/network-interaction-execution.js";
+import { replayStrategy } from "../helpers/replay-strategy.js";
 
 /**
  * Sends a transaction for the execution state's latest NetworkInteraction

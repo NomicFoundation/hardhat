@@ -1,4 +1,4 @@
-import type { EIP1193Provider } from "../../types/provider";
+import type { EIP1193Provider } from "../../types/provider.js";
 
 export async function checkAutominedNetwork(
   provider: EIP1193Provider,

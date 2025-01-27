@@ -1,4 +1,4 @@
-import type { Artifact } from "../types/artifact";
+import type { Artifact } from "../types/artifact.js";
 import type {
   AccountRuntimeValue,
   AddressResolvableFuture,
@@ -20,9 +20,9 @@ import type {
   ReadEventArgumentFuture,
   SendDataFuture,
   EncodeFunctionCallFuture,
-} from "../types/module";
+} from "../types/module.js";
 
-import { FutureType, RuntimeValueType } from "../types/module";
+import { FutureType, RuntimeValueType } from "../types/module.js";
 
 const CUSTOM_INSPECT_SYMBOL: symbol = Symbol.for("nodejs.util.inspect.custom");
 
@@ -32,12 +32,12 @@ abstract class BaseFutureImplementation<FutureTypeT extends FutureType> {
   constructor(
     public readonly id: string,
     public readonly type: FutureTypeT,
-    public readonly module: IgnitionModuleImplementation,
+    public readonly module: IgnitionModuleImplementation
   ) {
     Object.defineProperty(this, CUSTOM_INSPECT_SYMBOL, {
       value: (
         _depth: number,
-        { inspect }: { inspect: (arg: {}) => string },
+        { inspect }: { inspect: (arg: {}) => string }
       ) => {
         const padding = " ".repeat(2);
 
@@ -45,7 +45,7 @@ abstract class BaseFutureImplementation<FutureTypeT extends FutureType> {
         Type: ${FutureType[this.type]}
         Module: ${this.module.id}
         Dependencies: ${inspect(
-          Array.from(this.dependencies).map((f) => f.id),
+          Array.from(this.dependencies).map((f) => f.id)
         ).replace(/\n/g, `\n${padding}`)}
       }`;
       },
@@ -57,7 +57,7 @@ abstract class BaseFutureImplementation<FutureTypeT extends FutureType> {
 }
 
 export class NamedContractDeploymentFutureImplementation<
-    ContractNameT extends string,
+    ContractNameT extends string
   >
   extends BaseFutureImplementation<FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT>
   implements NamedArtifactContractDeploymentFuture<ContractNameT>
@@ -73,14 +73,14 @@ export class NamedContractDeploymentFutureImplementation<
       | ModuleParameterRuntimeValue<bigint>
       | StaticCallFuture<string, string>
       | ReadEventArgumentFuture,
-    public readonly from: string | AccountRuntimeValue | undefined,
+    public readonly from: string | AccountRuntimeValue | undefined
   ) {
     super(id, FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT, module);
   }
 }
 
 export class ArtifactContractDeploymentFutureImplementation<
-    ContractNameT extends string,
+    ContractNameT extends string
   >
   extends BaseFutureImplementation<FutureType.CONTRACT_DEPLOYMENT>
   implements ContractDeploymentFuture
@@ -97,14 +97,14 @@ export class ArtifactContractDeploymentFutureImplementation<
       | ModuleParameterRuntimeValue<bigint>
       | StaticCallFuture<string, string>
       | ReadEventArgumentFuture,
-    public readonly from: string | AccountRuntimeValue | undefined,
+    public readonly from: string | AccountRuntimeValue | undefined
   ) {
     super(id, FutureType.CONTRACT_DEPLOYMENT, module);
   }
 }
 
 export class NamedLibraryDeploymentFutureImplementation<
-    LibraryNameT extends string,
+    LibraryNameT extends string
   >
   extends BaseFutureImplementation<FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT>
   implements NamedArtifactLibraryDeploymentFuture<LibraryNameT>
@@ -114,14 +114,14 @@ export class NamedLibraryDeploymentFutureImplementation<
     public override readonly module: IgnitionModuleImplementation,
     public readonly contractName: LibraryNameT,
     public readonly libraries: Record<string, ContractFuture<string>>,
-    public readonly from: string | AccountRuntimeValue | undefined,
+    public readonly from: string | AccountRuntimeValue | undefined
   ) {
     super(id, FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT, module);
   }
 }
 
 export class ArtifactLibraryDeploymentFutureImplementation<
-    LibraryNameT extends string,
+    LibraryNameT extends string
   >
   extends BaseFutureImplementation<FutureType.LIBRARY_DEPLOYMENT>
   implements LibraryDeploymentFuture
@@ -132,7 +132,7 @@ export class ArtifactLibraryDeploymentFutureImplementation<
     public readonly contractName: LibraryNameT,
     public readonly artifact: Artifact,
     public readonly libraries: Record<string, ContractFuture<string>>,
-    public readonly from: string | AccountRuntimeValue | undefined,
+    public readonly from: string | AccountRuntimeValue | undefined
   ) {
     super(id, FutureType.LIBRARY_DEPLOYMENT, module);
   }
@@ -140,7 +140,7 @@ export class ArtifactLibraryDeploymentFutureImplementation<
 
 export class NamedContractCallFutureImplementation<
     ContractNameT extends string,
-    FunctionNameT extends string,
+    FunctionNameT extends string
   >
   extends BaseFutureImplementation<FutureType.CONTRACT_CALL>
   implements ContractCallFuture<ContractNameT, FunctionNameT>
@@ -156,7 +156,7 @@ export class NamedContractCallFutureImplementation<
       | ModuleParameterRuntimeValue<bigint>
       | StaticCallFuture<string, string>
       | ReadEventArgumentFuture,
-    public readonly from: string | AccountRuntimeValue | undefined,
+    public readonly from: string | AccountRuntimeValue | undefined
   ) {
     super(id, FutureType.CONTRACT_CALL, module);
   }
@@ -164,7 +164,7 @@ export class NamedContractCallFutureImplementation<
 
 export class NamedStaticCallFutureImplementation<
     ContractNameT extends string,
-    FunctionNameT extends string,
+    FunctionNameT extends string
   >
   extends BaseFutureImplementation<FutureType.STATIC_CALL>
   implements StaticCallFuture<ContractNameT, FunctionNameT>
@@ -176,7 +176,7 @@ export class NamedStaticCallFutureImplementation<
     public readonly contract: ContractFuture<ContractNameT>,
     public readonly args: ArgumentType[],
     public readonly nameOrIndex: string | number,
-    public readonly from: string | AccountRuntimeValue | undefined,
+    public readonly from: string | AccountRuntimeValue | undefined
   ) {
     super(id, FutureType.STATIC_CALL, module);
   }
@@ -184,7 +184,7 @@ export class NamedStaticCallFutureImplementation<
 
 export class NamedEncodeFunctionCallFutureImplementation<
     ContractNameT extends string,
-    FunctionNameT extends string,
+    FunctionNameT extends string
   >
   extends BaseFutureImplementation<FutureType.ENCODE_FUNCTION_CALL>
   implements EncodeFunctionCallFuture<ContractNameT, FunctionNameT>
@@ -194,7 +194,7 @@ export class NamedEncodeFunctionCallFutureImplementation<
     public override readonly module: IgnitionModuleImplementation,
     public readonly functionName: FunctionNameT,
     public readonly contract: ContractFuture<ContractNameT>,
-    public readonly args: ArgumentType[],
+    public readonly args: ArgumentType[]
   ) {
     super(id, FutureType.ENCODE_FUNCTION_CALL, module);
   }
@@ -211,7 +211,7 @@ export class NamedContractAtFutureImplementation<ContractNameT extends string>
     public readonly address:
       | string
       | AddressResolvableFuture
-      | ModuleParameterRuntimeValue<string>,
+      | ModuleParameterRuntimeValue<string>
   ) {
     super(id, FutureType.NAMED_ARTIFACT_CONTRACT_AT, module);
   }
@@ -229,7 +229,7 @@ export class ArtifactContractAtFutureImplementation
       | string
       | AddressResolvableFuture
       | ModuleParameterRuntimeValue<string>,
-    public readonly artifact: Artifact,
+    public readonly artifact: Artifact
   ) {
     super(id, FutureType.CONTRACT_AT, module);
   }
@@ -250,7 +250,7 @@ export class ReadEventArgumentFutureImplementation
     public readonly eventName: string,
     public readonly nameOrIndex: string | number,
     public readonly emitter: ContractFuture<string>,
-    public readonly eventIndex: number,
+    public readonly eventIndex: number
   ) {
     super(id, FutureType.READ_EVENT_ARGUMENT, module);
   }
@@ -273,7 +273,7 @@ export class SendDataFutureImplementation
       | string
       | EncodeFunctionCallFuture<string, string>
       | undefined,
-    public readonly from: string | AccountRuntimeValue | undefined,
+    public readonly from: string | AccountRuntimeValue | undefined
   ) {
     super(id, FutureType.SEND_DATA, module);
   }
@@ -282,8 +282,7 @@ export class SendDataFutureImplementation
 export class IgnitionModuleImplementation<
   ModuleIdT extends string = string,
   ContractNameT extends string = string,
-  IgnitionModuleResultsT extends
-    IgnitionModuleResult<ContractNameT> = IgnitionModuleResult<ContractNameT>,
+  IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT> = IgnitionModuleResult<ContractNameT>
 > implements IgnitionModule<ModuleIdT, ContractNameT, IgnitionModuleResultsT>
 {
   public readonly futures: Set<Future> = new Set();
@@ -291,12 +290,12 @@ export class IgnitionModuleImplementation<
 
   constructor(
     public readonly id: ModuleIdT,
-    public readonly results: IgnitionModuleResultsT,
+    public readonly results: IgnitionModuleResultsT
   ) {
     Object.defineProperty(this, CUSTOM_INSPECT_SYMBOL, {
       value: (
         _depth: number,
-        { inspect }: { inspect: (arg: {}) => string },
+        { inspect }: { inspect: (arg: {}) => string }
       ) => {
         const padding = " ".repeat(2);
 
@@ -304,7 +303,7 @@ export class IgnitionModuleImplementation<
         Futures: ${inspect(this.futures).replace(/\n/g, `\n${padding}`)}
         Results: ${inspect(this.results).replace(/\n/g, `\n${padding}`)}
         Submodules: ${inspect(
-          Array.from(this.submodules).map((m) => m.id),
+          Array.from(this.submodules).map((m) => m.id)
         ).replace(/\n/g, `\n${padding}`)}
       }`;
       },
@@ -322,7 +321,7 @@ export class AccountRuntimeValueImplementation implements AccountRuntimeValue {
     Object.defineProperty(this, CUSTOM_INSPECT_SYMBOL, {
       value: (
         _depth: number,
-        _inspectOptions: { inspect: (arg: {}) => string },
+        _inspectOptions: { inspect: (arg: {}) => string }
       ) => {
         return `Account RuntimeValue {
           accountIndex: ${this.accountIndex}
@@ -336,7 +335,7 @@ export class AccountRuntimeValueImplementation implements AccountRuntimeValue {
 }
 
 export class ModuleParameterRuntimeValueImplementation<
-  ParamTypeT extends ModuleParameterType,
+  ParamTypeT extends ModuleParameterType
 > implements ModuleParameterRuntimeValue<ParamTypeT>
 {
   public readonly type: RuntimeValueType.MODULE_PARAMETER =
@@ -345,20 +344,20 @@ export class ModuleParameterRuntimeValueImplementation<
   constructor(
     public readonly moduleId: string,
     public readonly name: string,
-    public readonly defaultValue: ParamTypeT | undefined,
+    public readonly defaultValue: ParamTypeT | undefined
   ) {
     Object.defineProperty(this, CUSTOM_INSPECT_SYMBOL, {
       value: (
         _depth: number,
-        { inspect }: { inspect: (arg: {}) => string },
+        { inspect }: { inspect: (arg: {}) => string }
       ) => {
         return `Module Parameter RuntimeValue {
           name: ${this.name}${
-            this.defaultValue !== undefined
-              ? `
+          this.defaultValue !== undefined
+            ? `
           default value: ${inspect(this.defaultValue)}`
-              : ""
-          }
+            : ""
+        }
       }`;
       },
       writable: false,

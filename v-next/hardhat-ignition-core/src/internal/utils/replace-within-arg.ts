@@ -4,10 +4,10 @@ import type {
   Future,
   ModuleParameterRuntimeValue,
   ModuleParameterType,
-} from "../../types/module";
+} from "../../types/module.js";
 
-import { isFuture, isRuntimeValue } from "../../type-guards";
-import { RuntimeValueType } from "../../types/module";
+import { isFuture, isRuntimeValue } from "../../type-guards.js";
+import { RuntimeValueType } from "../../types/module.js";
 
 type Composable<T> =
   | T

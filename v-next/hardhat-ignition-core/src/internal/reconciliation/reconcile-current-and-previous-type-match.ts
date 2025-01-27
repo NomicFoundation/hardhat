@@ -1,13 +1,13 @@
 import type {
   ReconciliationContext,
   ReconciliationFutureResult,
-} from "./types";
-import type { Future } from "../../types/module";
-import type { ExecutionState } from "../execution/types/execution-state";
+} from "./types.js";
+import type { Future } from "../../types/module.js";
+import type { ExecutionState } from "../execution/types/execution-state.js";
 
-import { FutureType } from "../../types/module";
+import { FutureType } from "../../types/module.js";
 
-import { fail } from "./utils";
+import { fail } from "./utils.js";
 
 export function reconcileCurrentAndPreviousTypeMatch(
   future: Future,

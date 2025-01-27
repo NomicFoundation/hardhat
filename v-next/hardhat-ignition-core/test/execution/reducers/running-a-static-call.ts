@@ -1,24 +1,24 @@
 import { assert } from "chai";
 
-import { DeploymentState } from "../../../src/internal/execution/types/deployment-state";
-import { EvmExecutionResultTypes } from "../../../src/internal/execution/types/evm-execution";
-import { ExecutionResultType } from "../../../src/internal/execution/types/execution-result";
+import { DeploymentState } from "../../../src/internal/execution/types/deployment-state.js";
+import { EvmExecutionResultTypes } from "../../../src/internal/execution/types/evm-execution.js";
+import { ExecutionResultType } from "../../../src/internal/execution/types/execution-result.js";
 import {
   ExecutionSateType,
   ExecutionStatus,
   StaticCallExecutionState,
-} from "../../../src/internal/execution/types/execution-state";
+} from "../../../src/internal/execution/types/execution-state.js";
 import {
   JournalMessageType,
   NetworkInteractionRequestMessage,
   StaticCallCompleteMessage,
   StaticCallExecutionStateCompleteMessage,
   StaticCallExecutionStateInitializeMessage,
-} from "../../../src/internal/execution/types/messages";
-import { NetworkInteractionType } from "../../../src/internal/execution/types/network-interaction";
-import { findExecutionStateById } from "../../../src/internal/views/find-execution-state-by-id";
+} from "../../../src/internal/execution/types/messages.js";
+import { NetworkInteractionType } from "../../../src/internal/execution/types/network-interaction.js";
+import { findExecutionStateById } from "../../../src/internal/views/find-execution-state-by-id.js";
 
-import { applyMessages } from "./utils";
+import { applyMessages } from "./utils.js";
 
 describe("DeploymentStateReducer", () => {
   describe("running a static call", () => {

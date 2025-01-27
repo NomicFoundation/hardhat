@@ -1,16 +1,16 @@
-import type { ContractCallFuture } from "../../../types/module";
-import type { CallExecutionState } from "../../execution/types/execution-state";
+import type { ContractCallFuture } from "../../../types/module.js";
+import type { CallExecutionState } from "../../execution/types/execution-state.js";
 import type {
   ReconciliationContext,
   ReconciliationFutureResult,
-} from "../types";
+} from "../types.js";
 
-import { reconcileArguments } from "../helpers/reconcile-arguments";
-import { reconcileContract } from "../helpers/reconcile-contract";
-import { reconcileFrom } from "../helpers/reconcile-from";
-import { reconcileFunctionName } from "../helpers/reconcile-function-name";
-import { reconcileStrategy } from "../helpers/reconcile-strategy";
-import { reconcileValue } from "../helpers/reconcile-value";
+import { reconcileArguments } from "../helpers/reconcile-arguments.js";
+import { reconcileContract } from "../helpers/reconcile-contract.js";
+import { reconcileFrom } from "../helpers/reconcile-from.js";
+import { reconcileFunctionName } from "../helpers/reconcile-function-name.js";
+import { reconcileStrategy } from "../helpers/reconcile-strategy.js";
+import { reconcileValue } from "../helpers/reconcile-value.js";
 
 export function reconcileNamedContractCall(
   future: ContractCallFuture<string, string>,

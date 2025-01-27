@@ -1,4 +1,4 @@
-import type { ModuleParameters } from "./module";
+import type { ModuleParameters } from "./module.js";
 
 /**
  * Configuration options for the deployment.

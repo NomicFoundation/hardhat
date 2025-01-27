@@ -1,11 +1,11 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
-import { Artifact, DeploymentResultType } from "../src";
-import { buildModule } from "../src/build-module";
-import { validate } from "../src/internal/validation/validate";
+import { Artifact, DeploymentResultType } from "../src/index.js";
+import { buildModule } from "../src/build-module.js";
+import { validate } from "../src/internal/validation/validate.js";
 
-import { fakeArtifact, setupMockArtifactResolver } from "./helpers";
+import { fakeArtifact, setupMockArtifactResolver } from "./helpers.js";
 
 describe("useModule", () => {
   it("should be able to use a submodule", () => {

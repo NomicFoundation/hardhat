@@ -1,5 +1,5 @@
-import type { Artifact } from "./artifact";
-import type { FutureType } from "./module";
+import type { Artifact } from "./artifact.js";
+import type { FutureType } from "./module.js";
 
 /**
  * A serialized bigint.

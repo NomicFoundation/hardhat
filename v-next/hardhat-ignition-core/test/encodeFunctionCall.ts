@@ -1,23 +1,23 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
-import { Artifact } from "../src";
-import { buildModule } from "../src/build-module";
+import { Artifact } from "../src/index.js";
+import { buildModule } from "../src/build-module.js";
 import {
   AccountRuntimeValueImplementation,
   ModuleParameterRuntimeValueImplementation,
   NamedEncodeFunctionCallFutureImplementation,
-} from "../src/internal/module";
-import { getFuturesFromModule } from "../src/internal/utils/get-futures-from-module";
-import { validateNamedEncodeFunctionCall } from "../src/internal/validation/futures/validateNamedEncodeFunctionCall";
-import { FutureType } from "../src/types/module";
+} from "../src/internal/module.js";
+import { getFuturesFromModule } from "../src/internal/utils/get-futures-from-module.js";
+import { validateNamedEncodeFunctionCall } from "../src/internal/validation/futures/validateNamedEncodeFunctionCall.js";
+import { FutureType } from "../src/types/module.js";
 
 import {
   assertInstanceOf,
   assertValidationError,
   fakeArtifact,
   setupMockArtifactResolver,
-} from "./helpers";
+} from "./helpers.js";
 
 describe("encodeFunctionCall", () => {
   it("should be able to setup an encoded function call", () => {

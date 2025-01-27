@@ -1,25 +1,25 @@
-import type { ArtifactResolver } from "../../types/artifact";
+import type { ArtifactResolver } from "../../types/artifact.js";
 import type {
   DeploymentParameters,
   ValidationErrorDeploymentResult,
-} from "../../types/deploy";
-import type { Future, IgnitionModule } from "../../types/module";
+} from "../../types/deploy.js";
+import type { Future, IgnitionModule } from "../../types/module.js";
 
-import { DeploymentResultType } from "../../types/deploy";
-import { FutureType } from "../../types/module";
-import { getFuturesFromModule } from "../utils/get-futures-from-module";
+import { DeploymentResultType } from "../../types/deploy.js";
+import { FutureType } from "../../types/module.js";
+import { getFuturesFromModule } from "../utils/get-futures-from-module.js";
 
-import { validateArtifactContractAt } from "./futures/validateArtifactContractAt";
-import { validateArtifactContractDeployment } from "./futures/validateArtifactContractDeployment";
-import { validateArtifactLibraryDeployment } from "./futures/validateArtifactLibraryDeployment";
-import { validateNamedContractAt } from "./futures/validateNamedContractAt";
-import { validateNamedContractCall } from "./futures/validateNamedContractCall";
-import { validateNamedContractDeployment } from "./futures/validateNamedContractDeployment";
-import { validateNamedEncodeFunctionCall } from "./futures/validateNamedEncodeFunctionCall";
-import { validateNamedLibraryDeployment } from "./futures/validateNamedLibraryDeployment";
-import { validateNamedStaticCall } from "./futures/validateNamedStaticCall";
-import { validateReadEventArgument } from "./futures/validateReadEventArgument";
-import { validateSendData } from "./futures/validateSendData";
+import { validateArtifactContractAt } from "./futures/validateArtifactContractAt.js";
+import { validateArtifactContractDeployment } from "./futures/validateArtifactContractDeployment.js";
+import { validateArtifactLibraryDeployment } from "./futures/validateArtifactLibraryDeployment.js";
+import { validateNamedContractAt } from "./futures/validateNamedContractAt.js";
+import { validateNamedContractCall } from "./futures/validateNamedContractCall.js";
+import { validateNamedContractDeployment } from "./futures/validateNamedContractDeployment.js";
+import { validateNamedEncodeFunctionCall } from "./futures/validateNamedEncodeFunctionCall.js";
+import { validateNamedLibraryDeployment } from "./futures/validateNamedLibraryDeployment.js";
+import { validateNamedStaticCall } from "./futures/validateNamedStaticCall.js";
+import { validateReadEventArgument } from "./futures/validateReadEventArgument.js";
+import { validateSendData } from "./futures/validateSendData.js";
 
 export async function validate(
   module: IgnitionModule,

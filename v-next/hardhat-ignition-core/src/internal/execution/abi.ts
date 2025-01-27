@@ -8,10 +8,10 @@ import type {
   RevertWithPanicCode,
   RevertWithReason,
   SuccessfulEvmExecutionResult,
-} from "./types/evm-execution";
-import type { TransactionReceipt } from "./types/jsonrpc";
-import type { Artifact } from "../../types/artifact";
-import type { ArgumentType, SolidityParameterType } from "../../types/module";
+} from "./types/evm-execution.js";
+import type { TransactionReceipt } from "./types/jsonrpc.js";
+import type { Artifact } from "../../types/artifact.js";
+import type { ArgumentType, SolidityParameterType } from "../../types/module.js";
 import type {
   EventFragment,
   Fragment,
@@ -21,13 +21,13 @@ import type {
   Result,
 } from "ethers";
 
-import { IgnitionError } from "../../errors";
-import { ERRORS } from "../errors-list";
-import { assertIgnitionInvariant } from "../utils/assertions";
+import { IgnitionError } from "../../errors.js";
+import { ERRORS } from "../errors-list.js";
+import { assertIgnitionInvariant } from "../utils/assertions.js";
 
-import { linkLibraries } from "./libraries";
-import { EvmExecutionResultTypes } from "./types/evm-execution";
-import { equalAddresses } from "./utils/address";
+import { linkLibraries } from "./libraries.js";
+import { EvmExecutionResultTypes } from "./types/evm-execution.js";
+import { equalAddresses } from "./utils/address.js";
 
 const REVERT_REASON_SIGNATURE = "0x08c379a0";
 const PANIC_CODE_SIGNATURE = "0x4e487b71";

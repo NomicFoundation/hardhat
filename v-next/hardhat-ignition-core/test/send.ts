@@ -1,22 +1,22 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
-import { buildModule } from "../src/build-module";
+import { buildModule } from "../src/build-module.js";
 import {
   AccountRuntimeValueImplementation,
   ModuleParameterRuntimeValueImplementation,
   NamedEncodeFunctionCallFutureImplementation,
   SendDataFutureImplementation,
-} from "../src/internal/module";
-import { getFuturesFromModule } from "../src/internal/utils/get-futures-from-module";
-import { validateSendData } from "../src/internal/validation/futures/validateSendData";
-import { FutureType } from "../src/types/module";
+} from "../src/internal/module.js";
+import { getFuturesFromModule } from "../src/internal/utils/get-futures-from-module.js";
+import { validateSendData } from "../src/internal/validation/futures/validateSendData.js";
+import { FutureType } from "../src/types/module.js";
 
 import {
   assertInstanceOf,
   assertValidationError,
   setupMockArtifactResolver,
-} from "./helpers";
+} from "./helpers.js";
 
 describe("send", () => {
   const exampleAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";

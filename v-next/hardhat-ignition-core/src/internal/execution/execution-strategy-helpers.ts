@@ -9,12 +9,12 @@ import type {
   RevertWithCustomError,
   RevertWithInvalidData,
   SuccessfulEvmExecutionResult,
-} from "./types/evm-execution";
+} from "./types/evm-execution.js";
 import type {
   FailedStaticCallExecutionResult,
   SimulationErrorExecutionResult,
-} from "./types/execution-result";
-import type { StaticCallExecutionState } from "./types/execution-state";
+} from "./types/execution-result.js";
+import type { StaticCallExecutionState } from "./types/execution-state.js";
 import type {
   OnchainInteractionRequest,
   OnchainInteractionResponse,
@@ -22,18 +22,18 @@ import type {
   StaticCallRequest,
   StaticCallResponse,
   SuccessfulTransaction,
-} from "./types/execution-strategy";
-import type { SolidityParameterType } from "../../types/module";
+} from "./types/execution-strategy.js";
+import type { SolidityParameterType } from "../../types/module.js";
 
-import { assertIgnitionInvariant } from "../utils/assertions";
+import { assertIgnitionInvariant } from "../utils/assertions.js";
 
-import { decodeError } from "./abi";
-import { EvmExecutionResultTypes } from "./types/evm-execution";
-import { ExecutionResultType } from "./types/execution-result";
+import { decodeError } from "./abi.js";
+import { EvmExecutionResultTypes } from "./types/evm-execution.js";
+import { ExecutionResultType } from "./types/execution-result.js";
 import {
   OnchainInteractionResponseType,
   SIMULATION_SUCCESS_SIGNAL_TYPE,
-} from "./types/execution-strategy";
+} from "./types/execution-strategy.js";
 
 /**
  * Returns true if the given response is an onchain interaction response.
@@ -219,4 +219,4 @@ export function getStaticCallExecutionStateResultValue(
       ] as SolidityParameterType);
 }
 
-export * from "./abi";
+export * from "./abi.js";

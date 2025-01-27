@@ -3,12 +3,12 @@ import type {
   DeploymentExecutionState,
   SendDataExecutionState,
   StaticCallExecutionState,
-} from "../../execution/types/execution-state";
-import type { Transaction } from "../../execution/types/jsonrpc";
+} from "../../execution/types/execution-state.js";
+import type { Transaction } from "../../execution/types/jsonrpc.js";
 
-import { assertIgnitionInvariant } from "../../utils/assertions";
+import { assertIgnitionInvariant } from "../../utils/assertions.js";
 
-import { findOnchainInteractionBy } from "./find-onchain-interaction-by";
+import { findOnchainInteractionBy } from "./find-onchain-interaction-by.js";
 
 export function findTransactionBy(
   executionState:

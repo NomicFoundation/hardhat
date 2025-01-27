@@ -1,30 +1,30 @@
-import type { DeploymentState } from "./internal/execution/types/deployment-state";
-import type { DeploymentExecutionState } from "./internal/execution/types/execution-state";
-import type { Artifact, BuildInfo, CompilerInput } from "./types/artifact";
+import type { DeploymentState } from "./internal/execution/types/deployment-state.js";
+import type { DeploymentExecutionState } from "./internal/execution/types/execution-state.js";
+import type { Artifact, BuildInfo, CompilerInput } from "./types/artifact.js";
 import type {
   ChainConfig,
   SourceToLibraryToAddress,
   VerifyInfo,
   VerifyResult,
-} from "./types/verify";
+} from "./types/verify.js";
 
 import path from "node:path";
 
 import { analyze } from "@nomicfoundation/solidity-analyzer";
 
-import { IgnitionError } from "./errors";
-import { builtinChains } from "./internal/chain-config";
-import { FileDeploymentLoader } from "./internal/deployment-loader/file-deployment-loader";
-import { ERRORS } from "./internal/errors-list";
-import { encodeDeploymentArguments } from "./internal/execution/abi";
-import { loadDeploymentState } from "./internal/execution/deployment-state-helpers";
-import { ExecutionResultType } from "./internal/execution/types/execution-result";
+import { IgnitionError } from "./errors.js";
+import { builtinChains } from "./internal/chain-config.js";
+import { FileDeploymentLoader } from "./internal/deployment-loader/file-deployment-loader.js";
+import { ERRORS } from "./internal/errors-list.js";
+import { encodeDeploymentArguments } from "./internal/execution/abi.js";
+import { loadDeploymentState } from "./internal/execution/deployment-state-helpers.js";
+import { ExecutionResultType } from "./internal/execution/types/execution-result.js";
 import {
   ExecutionSateType,
   ExecutionStatus,
-} from "./internal/execution/types/execution-state";
-import { assertIgnitionInvariant } from "./internal/utils/assertions";
-import { findExecutionStatesByType } from "./internal/views/find-execution-states-by-type";
+} from "./internal/execution/types/execution-state.js";
+import { assertIgnitionInvariant } from "./internal/utils/assertions.js";
+import { findExecutionStatesByType } from "./internal/views/find-execution-states-by-type.js";
 
 /**
  * Retrieve the information required to verify all contracts from a deployment on Etherscan.

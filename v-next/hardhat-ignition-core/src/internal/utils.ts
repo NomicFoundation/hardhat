@@ -1,6 +1,6 @@
-import type { ArgumentType, Future } from "../types/module";
+import type { ArgumentType, Future } from "../types/module.js";
 
-import { isFuture } from "../type-guards";
+import { isFuture } from "../type-guards.js";
 
 export function resolveArgsToFutures(args: ArgumentType[]): Future[] {
   return args.flatMap(_resolveArgToFutures);

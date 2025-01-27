@@ -6,7 +6,7 @@ import type {
   ReadEventArgumentExecutionState,
   SendDataExecutionState,
   StaticCallExecutionState,
-} from "../../types/execution-state";
+} from "../../types/execution-state.js";
 import type {
   CallExecutionStateInitializeMessage,
   ContractAtExecutionStateInitializeMessage,
@@ -15,13 +15,13 @@ import type {
   ReadEventArgExecutionStateInitializeMessage,
   SendDataExecutionStateInitializeMessage,
   StaticCallExecutionStateInitializeMessage,
-} from "../../types/messages";
+} from "../../types/messages.js";
 
-import { FutureType } from "../../../../types/module";
+import { FutureType } from "../../../../types/module.js";
 import {
   ExecutionSateType,
   ExecutionStatus,
-} from "../../types/execution-state";
+} from "../../types/execution-state.js";
 
 export function initialiseDeploymentExecutionStateFrom(
   action: DeploymentExecutionStateInitializeMessage,

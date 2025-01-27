@@ -3,21 +3,21 @@ import type {
   DeploymentExecutionResult,
   SendDataExecutionResult,
   StaticCallExecutionResult,
-} from "./execution-result";
+} from "./execution-result.js";
 import type {
   ConcreteExecutionConfig,
   DeploymentExecutionStateFutureTypes,
-} from "./execution-state";
+} from "./execution-state.js";
 import type {
   OnchainInteractionRequest,
   StaticCallRequest,
-} from "./execution-strategy";
+} from "./execution-strategy.js";
 import type {
   RawStaticCallResult,
   Transaction,
   TransactionReceipt,
-} from "./jsonrpc";
-import type { FutureType, SolidityParameterType } from "../../../types/module";
+} from "./jsonrpc.js";
+import type { FutureType, SolidityParameterType } from "../../../types/module.js";
 
 export type JournalMessage =
   | DeploymentInitializeMessage

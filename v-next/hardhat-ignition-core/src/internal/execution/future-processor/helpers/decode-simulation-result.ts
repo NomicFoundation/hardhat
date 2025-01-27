@@ -1,24 +1,24 @@
 import type {
   SimulationErrorExecutionResult,
   StrategySimulationErrorExecutionResult,
-} from "../../types/execution-result";
+} from "../../types/execution-result.js";
 import type {
   CallExecutionState,
   DeploymentExecutionState,
   SendDataExecutionState,
-} from "../../types/execution-state";
+} from "../../types/execution-state.js";
 import type {
   CallStrategyGenerator,
   DeploymentStrategyGenerator,
-} from "../../types/execution-strategy";
-import type { RawStaticCallResult } from "../../types/jsonrpc";
+} from "../../types/execution-strategy.js";
+import type { RawStaticCallResult } from "../../types/jsonrpc.js";
 
-import { assertIgnitionInvariant } from "../../../utils/assertions";
-import { ExecutionResultType } from "../../types/execution-result";
+import { assertIgnitionInvariant } from "../../../utils/assertions.js";
+import { ExecutionResultType } from "../../types/execution-result.js";
 import {
   OnchainInteractionResponseType,
   SIMULATION_SUCCESS_SIGNAL_TYPE,
-} from "../../types/execution-strategy";
+} from "../../types/execution-strategy.js";
 
 export function decodeSimulationResult(
   strategyGenerator: DeploymentStrategyGenerator | CallStrategyGenerator,

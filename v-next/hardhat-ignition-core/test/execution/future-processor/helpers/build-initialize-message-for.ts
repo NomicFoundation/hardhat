@@ -1,21 +1,21 @@
 import { assert } from "chai";
 
-import { DeploymentLoader } from "../../../../src/internal/deployment-loader/types";
-import { buildInitializeMessageFor } from "../../../../src/internal/execution/future-processor/helpers/build-initialize-message-for";
-import { deploymentStateReducer } from "../../../../src/internal/execution/reducers/deployment-state-reducer";
-import { DeploymentState } from "../../../../src/internal/execution/types/deployment-state";
-import { ExecutionResultType } from "../../../../src/internal/execution/types/execution-result";
+import { DeploymentLoader } from "../../../../src/internal/deployment-loader/types.js";
+import { buildInitializeMessageFor } from "../../../../src/internal/execution/future-processor/helpers/build-initialize-message-for.js";
+import { deploymentStateReducer } from "../../../../src/internal/execution/reducers/deployment-state-reducer.js";
+import { DeploymentState } from "../../../../src/internal/execution/types/deployment-state.js";
+import { ExecutionResultType } from "../../../../src/internal/execution/types/execution-result.js";
 import {
   ContractAtExecutionState,
   DeploymentExecutionState,
   ExecutionSateType,
   ReadEventArgumentExecutionState,
   StaticCallExecutionState,
-} from "../../../../src/internal/execution/types/execution-state";
+} from "../../../../src/internal/execution/types/execution-state.js";
 import {
   Transaction,
   TransactionReceiptStatus,
-} from "../../../../src/internal/execution/types/jsonrpc";
+} from "../../../../src/internal/execution/types/jsonrpc.js";
 import {
   CallExecutionStateInitializeMessage,
   ContractAtExecutionStateInitializeMessage,
@@ -25,13 +25,13 @@ import {
   ReadEventArgExecutionStateInitializeMessage,
   SendDataExecutionStateInitializeMessage,
   StaticCallExecutionStateInitializeMessage,
-} from "../../../../src/internal/execution/types/messages";
+} from "../../../../src/internal/execution/types/messages.js";
 import {
   NetworkInteractionType,
   OnchainInteraction,
-} from "../../../../src/internal/execution/types/network-interaction";
-import { getDefaultSender } from "../../../../src/internal/execution/utils/get-default-sender";
-import { MemoryJournal } from "../../../../src/internal/journal/memory-journal";
+} from "../../../../src/internal/execution/types/network-interaction.js";
+import { getDefaultSender } from "../../../../src/internal/execution/utils/get-default-sender.js";
+import { MemoryJournal } from "../../../../src/internal/journal/memory-journal.js";
 import {
   AccountRuntimeValueImplementation,
   ArtifactContractAtFutureImplementation,
@@ -46,7 +46,7 @@ import {
   NamedStaticCallFutureImplementation,
   ReadEventArgumentFutureImplementation,
   SendDataFutureImplementation,
-} from "../../../../src/internal/module";
+} from "../../../../src/internal/module.js";
 import {
   ContractAtFuture,
   ContractCallFuture,
@@ -60,12 +60,12 @@ import {
   ReadEventArgumentFuture,
   SendDataFuture,
   StaticCallFuture,
-} from "../../../../src/types/module";
+} from "../../../../src/types/module.js";
 import {
   exampleAccounts,
   fakeArtifact,
   setupMockDeploymentLoader,
-} from "../../../helpers";
+} from "../../../helpers.js";
 
 describe("buildInitializeMessageFor", () => {
   const differentAddress = "0xBA12222222228d8Ba445958a75a0704d566BF2C8";

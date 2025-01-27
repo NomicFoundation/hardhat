@@ -1,6 +1,6 @@
-import type { ErrorDescriptor } from "./types/errors";
+import type { ErrorDescriptor } from "./types/errors.js";
 
-import { ERRORS, getErrorCode } from "./internal/errors-list";
+import { ERRORS, getErrorCode } from "./internal/errors-list.js";
 
 /**
  * Base error class extended by all custom errors.

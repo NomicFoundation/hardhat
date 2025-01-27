@@ -1,12 +1,12 @@
-import type { DeploymentState } from "../execution/types/deployment-state";
+import type { DeploymentState } from "../execution/types/deployment-state.js";
 import type {
   Transaction,
   TransactionReceipt,
-} from "../execution/types/jsonrpc";
+} from "../execution/types/jsonrpc.js";
 
-import { ExecutionSateType } from "../execution/types/execution-state";
-import { NetworkInteractionType } from "../execution/types/network-interaction";
-import { assertIgnitionInvariant } from "../utils/assertions";
+import { ExecutionSateType } from "../execution/types/execution-state.js";
+import { NetworkInteractionType } from "../execution/types/network-interaction.js";
+import { assertIgnitionInvariant } from "../utils/assertions.js";
 
 export function findConfirmedTransactionByFutureId(
   deploymentState: DeploymentState,

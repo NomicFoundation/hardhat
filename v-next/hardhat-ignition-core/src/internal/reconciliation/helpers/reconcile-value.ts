@@ -3,20 +3,20 @@ import type {
   ContractDeploymentFuture,
   NamedArtifactContractDeploymentFuture,
   SendDataFuture,
-} from "../../../types/module";
+} from "../../../types/module.js";
 import type {
   CallExecutionState,
   DeploymentExecutionState,
   SendDataExecutionState,
-} from "../../execution/types/execution-state";
+} from "../../execution/types/execution-state.js";
 import type {
   ReconciliationContext,
   ReconciliationFutureResultFailure,
-} from "../types";
+} from "../types.js";
 
-import { resolveValue } from "../../execution/future-processor/helpers/future-resolvers";
+import { resolveValue } from "../../execution/future-processor/helpers/future-resolvers.js";
 
-import { compare } from "./compare";
+import { compare } from "./compare.js";
 
 export function reconcileValue(
   future:

@@ -4,14 +4,14 @@ import type {
   Transaction,
   TransactionLog,
   TransactionReceipt,
-} from "./types/jsonrpc";
-import type { EIP1193Provider } from "../../types/provider";
+} from "./types/jsonrpc.js";
+import type { EIP1193Provider } from "../../types/provider.js";
 
-import { IgnitionError } from "../../errors";
-import { ERRORS } from "../errors-list";
+import { IgnitionError } from "../../errors.js";
+import { ERRORS } from "../errors-list.js";
 
-import { TransactionReceiptStatus } from "./types/jsonrpc";
-import { toChecksumFormat } from "./utils/address";
+import { TransactionReceiptStatus } from "./types/jsonrpc.js";
+import { toChecksumFormat } from "./utils/address.js";
 
 const DEFAULT_MAX_PRIORITY_FEE_PER_GAS = 1_000_000_000n;
 

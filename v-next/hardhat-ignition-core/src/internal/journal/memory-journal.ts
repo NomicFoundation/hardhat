@@ -1,8 +1,8 @@
-import type { Journal } from "./types";
-import type { ExecutionEventListener } from "../../types/execution-events";
-import type { JournalMessage } from "../execution/types/messages";
+import type { Journal } from "./types/index.js";
+import type { ExecutionEventListener } from "../../types/execution-events.js";
+import type { JournalMessage } from "../execution/types/messages.js";
 
-import { emitExecutionEvent } from "./utils/emitExecutionEvent";
+import { emitExecutionEvent } from "./utils/emitExecutionEvent.js";
 
 /**
  * An in-memory journal.
@@ -15,7 +15,7 @@ export class MemoryJournal implements Journal {
   constructor(
     private readonly _executionEventListener?:
       | ExecutionEventListener
-      | undefined,
+      | undefined
   ) {}
 
   public record(message: JournalMessage): void {

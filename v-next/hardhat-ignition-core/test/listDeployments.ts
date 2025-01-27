@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import path from "path";
 
-import { listDeployments } from "../src";
+import { listDeployments } from "../src/index.js";
 
 describe("listDeployments", () => {
   it("should return an empty array if given a directory that doesn't exist", async () => {

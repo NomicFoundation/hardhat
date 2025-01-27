@@ -1,19 +1,19 @@
 import type {
   EvmTuple,
   FailedEvmExecutionResult,
-} from "./execution/types/evm-execution";
+} from "./execution/types/evm-execution.js";
 import type {
   FailedStaticCallExecutionResult,
   RevertedTransactionExecutionResult,
   SimulationErrorExecutionResult,
   StrategyErrorExecutionResult,
   StrategySimulationErrorExecutionResult,
-} from "./execution/types/execution-result";
-import type { SolidityParameterType } from "../types/module";
+} from "./execution/types/execution-result.js";
+import type { SolidityParameterType } from "../types/module.js";
 
-import { EvmExecutionResultTypes } from "./execution/types/evm-execution";
-import { ExecutionResultType } from "./execution/types/execution-result";
-import { convertEvmTupleToSolidityParam } from "./execution/utils/convert-evm-tuple-to-solidity-param";
+import { EvmExecutionResultTypes } from "./execution/types/evm-execution.js";
+import { ExecutionResultType } from "./execution/types/execution-result.js";
+import { convertEvmTupleToSolidityParam } from "./execution/utils/convert-evm-tuple-to-solidity-param.js";
 
 /**
  * Formats an execution error result into a human-readable string.

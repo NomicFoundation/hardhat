@@ -1,20 +1,20 @@
-import type { ArtifactResolver } from "../../../types/artifact";
-import type { DeploymentParameters } from "../../../types/deploy";
-import type { EncodeFunctionCallFuture } from "../../../types/module";
+import type { ArtifactResolver } from "../../../types/artifact.js";
+import type { DeploymentParameters } from "../../../types/deploy.js";
+import type { EncodeFunctionCallFuture } from "../../../types/module.js";
 
-import { IgnitionError } from "../../../errors";
+import { IgnitionError } from "../../../errors.js";
 import {
   isArtifactType,
   isModuleParameterRuntimeValue,
-} from "../../../type-guards";
-import { ERRORS } from "../../errors-list";
-import { validateArtifactFunction } from "../../execution/abi";
+} from "../../../type-guards.js";
+import { ERRORS } from "../../errors-list.js";
+import { validateArtifactFunction } from "../../execution/abi.js";
 import {
   filterToAccountRuntimeValues,
   resolvePotentialModuleParameterValueFrom,
   retrieveNestedRuntimeValues,
   validateAccountRuntimeValue,
-} from "../utils";
+} from "../utils.js";
 
 export async function validateNamedEncodeFunctionCall(
   future: EncodeFunctionCallFuture<string, string>,

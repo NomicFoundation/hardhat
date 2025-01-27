@@ -1,17 +1,17 @@
 import { assert } from "chai";
 
-import { Artifact } from "../../../../src";
+import { Artifact } from "../../../../src/index.js";
 import {
   encodeArtifactDeploymentData,
   encodeArtifactFunctionCall,
-} from "../../../../src/internal/execution/abi";
-import { EIP1193JsonRpcClient } from "../../../../src/internal/execution/jsonrpc-client";
+} from "../../../../src/internal/execution/abi.js";
+import { EIP1193JsonRpcClient } from "../../../../src/internal/execution/jsonrpc-client.js";
 import {
   NetworkFees,
   TransactionReceiptStatus,
-} from "../../../../src/internal/execution/types/jsonrpc";
-import { assertIgnitionInvariant } from "../../../../src/internal/utils/assertions";
-import { useHardhatProject } from "../../../helpers/hardhat-projects";
+} from "../../../../src/internal/execution/types/jsonrpc.js";
+import { assertIgnitionInvariant } from "../../../../src/internal/utils/assertions.js";
+import { useHardhatProject } from "../../../helpers/hardhat-projects.js";
 
 describe("JSON-RPC client", function () {
   describe("With default hardhat project", function () {

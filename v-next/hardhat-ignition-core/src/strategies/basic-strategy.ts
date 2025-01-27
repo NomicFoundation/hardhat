@@ -1,18 +1,18 @@
-import type { DeploymentLoader } from "../internal/deployment-loader/types";
-import type { JsonRpcClient } from "../internal/execution/jsonrpc-client";
+import type { DeploymentLoader } from "../internal/deployment-loader/types.js";
+import type { JsonRpcClient } from "../internal/execution/jsonrpc-client.js";
 import type {
   CallExecutionState,
   DeploymentExecutionState,
   SendDataExecutionState,
   StaticCallExecutionState,
-} from "../internal/execution/types/execution-state";
+} from "../internal/execution/types/execution-state.js";
 import type {
   CallStrategyGenerator,
   DeploymentStrategyGenerator,
   ExecutionStrategy,
   SendDataStrategyGenerator,
   StaticCallStrategyGenerator,
-} from "../internal/execution/types/execution-strategy";
+} from "../internal/execution/types/execution-strategy.js";
 
 import {
   decodeArtifactCustomError,
@@ -22,11 +22,11 @@ import {
   executeOnchainInteractionRequest,
   executeStaticCallRequest,
   getStaticCallExecutionStateResultValue,
-} from "../internal/execution/execution-strategy-helpers";
-import { ExecutionResultType } from "../internal/execution/types/execution-result";
-import { OnchainInteractionResponseType } from "../internal/execution/types/execution-strategy";
-import { NetworkInteractionType } from "../internal/execution/types/network-interaction";
-import { assertIgnitionInvariant } from "../internal/utils/assertions";
+} from "../internal/execution/execution-strategy-helpers.js";
+import { ExecutionResultType } from "../internal/execution/types/execution-result.js";
+import { OnchainInteractionResponseType } from "../internal/execution/types/execution-strategy.js";
+import { NetworkInteractionType } from "../internal/execution/types/network-interaction.js";
+import { assertIgnitionInvariant } from "../internal/utils/assertions.js";
 
 /**
  * The basic execution strategy, which sends a single transaction

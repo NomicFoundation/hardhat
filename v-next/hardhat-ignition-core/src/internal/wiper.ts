@@ -1,15 +1,15 @@
-import type { DeploymentLoader } from "./deployment-loader/types";
-import type { DeploymentState } from "./execution/types/deployment-state";
-import type { WipeExecutionStateMessage } from "./execution/types/messages";
+import type { DeploymentLoader } from "./deployment-loader/types.js";
+import type { DeploymentState } from "./execution/types/deployment-state.js";
+import type { WipeExecutionStateMessage } from "./execution/types/messages.js";
 
-import { IgnitionError } from "../errors";
+import { IgnitionError } from "../errors.js";
 
-import { ERRORS } from "./errors-list";
+import { ERRORS } from "./errors-list.js";
 import {
   applyNewMessage,
   loadDeploymentState,
-} from "./execution/deployment-state-helpers";
-import { JournalMessageType } from "./execution/types/messages";
+} from "./execution/deployment-state-helpers.js";
+import { JournalMessageType } from "./execution/types/messages.js";
 
 export class Wiper {
   constructor(private readonly _deploymentLoader: DeploymentLoader) {}
@@ -30,7 +30,7 @@ export class Wiper {
     }
 
     const dependents = Object.values(deploymentState.executionStates).filter(
-      (psm) => psm.dependencies.has(futureId),
+      (psm) => psm.dependencies.has(futureId)
     );
 
     if (dependents.length > 0) {
@@ -48,7 +48,7 @@ export class Wiper {
     return applyNewMessage(
       wipeMessage,
       deploymentState,
-      this._deploymentLoader,
+      this._deploymentLoader
     );
   }
 }

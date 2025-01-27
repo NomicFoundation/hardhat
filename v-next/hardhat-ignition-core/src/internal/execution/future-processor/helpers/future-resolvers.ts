@@ -1,4 +1,4 @@
-import type { DeploymentParameters } from "../../../../types/deploy";
+import type { DeploymentParameters } from "../../../../types/deploy.js";
 import type {
   AccountRuntimeValue,
   AddressResolvableFuture,
@@ -10,23 +10,23 @@ import type {
   ReadEventArgumentFuture,
   SolidityParameterType,
   StaticCallFuture,
-} from "../../../../types/module";
-import type { DeploymentLoader } from "../../../deployment-loader/types";
-import type { DeploymentState } from "../../types/deployment-state";
+} from "../../../../types/module.js";
+import type { DeploymentLoader } from "../../../deployment-loader/types.js";
+import type { DeploymentState } from "../../types/deployment-state.js";
 
 import {
   isAccountRuntimeValue,
   isFuture,
   isModuleParameterRuntimeValue,
-} from "../../../../type-guards";
-import { assertIgnitionInvariant } from "../../../utils/assertions";
-import { replaceWithinArg } from "../../../utils/replace-within-arg";
-import { resolveModuleParameter } from "../../../utils/resolve-module-parameter";
-import { findAddressForContractFuture } from "../../../views/find-address-for-contract-future-by-id";
-import { findConfirmedTransactionByFutureId } from "../../../views/find-confirmed-transaction-by-future-id";
-import { findResultForFutureById } from "../../../views/find-result-for-future-by-id";
-import { getEventArgumentFromReceipt } from "../../abi";
-import { convertEvmValueToSolidityParam } from "../../utils/convert-evm-tuple-to-solidity-param";
+} from "../../../../type-guards.js";
+import { assertIgnitionInvariant } from "../../../utils/assertions.js";
+import { replaceWithinArg } from "../../../utils/replace-within-arg.js";
+import { resolveModuleParameter } from "../../../utils/resolve-module-parameter.js";
+import { findAddressForContractFuture } from "../../../views/find-address-for-contract-future-by-id.js";
+import { findConfirmedTransactionByFutureId } from "../../../views/find-confirmed-transaction-by-future-id.js";
+import { findResultForFutureById } from "../../../views/find-result-for-future-by-id.js";
+import { getEventArgumentFromReceipt } from "../../abi.js";
+import { convertEvmValueToSolidityParam } from "../../utils/convert-evm-tuple-to-solidity-param.js";
 
 /**
  * Resolve a futures value to a bigint.

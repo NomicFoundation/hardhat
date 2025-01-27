@@ -1,6 +1,6 @@
-import type { DeploymentState } from "../types/deployment-state";
+import type { DeploymentState } from "../types/deployment-state.js";
 
-import { getPendingNonceAndSender } from "../../views/execution-state/get-pending-nonce-and-sender";
+import { getPendingNonceAndSender } from "../../views/execution-state/get-pending-nonce-and-sender.js";
 
 export function getMaxNonceUsedBySender(deploymentState: DeploymentState): {
   [sender: string]: number;

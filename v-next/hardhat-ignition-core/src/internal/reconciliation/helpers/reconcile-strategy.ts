@@ -10,7 +10,7 @@ import type {
   ReadEventArgumentFuture,
   SendDataFuture,
   StaticCallFuture,
-} from "../../../types/module";
+} from "../../../types/module.js";
 import type {
   CallExecutionState,
   ContractAtExecutionState,
@@ -19,14 +19,14 @@ import type {
   ReadEventArgumentExecutionState,
   SendDataExecutionState,
   StaticCallExecutionState,
-} from "../../execution/types/execution-state";
+} from "../../execution/types/execution-state.js";
 import type {
   ReconciliationContext,
   ReconciliationFutureResultFailure,
-} from "../types";
+} from "../types.js";
 
-import { ExecutionStatus } from "../../execution/types/execution-state";
-import { fail } from "../utils";
+import { ExecutionStatus } from "../../execution/types/execution-state.js";
+import { fail } from "../utils.js";
 
 export function reconcileStrategy(
   future:

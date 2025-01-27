@@ -1,4 +1,4 @@
-import type { ErrorDescriptor } from "../types/errors";
+import type { ErrorDescriptor } from "../types/errors.js";
 
 export const ERROR_PREFIX = "IGN";
 

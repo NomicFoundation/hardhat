@@ -1,10 +1,10 @@
-import type { IgnitionModule, IgnitionModuleResult } from "./types/module";
-import type { IgnitionModuleBuilder } from "./types/module-builder";
+import type { IgnitionModule, IgnitionModuleResult } from "./types/module.js";
+import type { IgnitionModuleBuilder } from "./types/module-builder.js";
 
-import { IgnitionError } from "./errors";
-import { ERRORS } from "./internal/errors-list";
-import { ModuleConstructor } from "./internal/module-builder";
-import { isValidIgnitionIdentifier } from "./internal/utils/identifier-validators";
+import { IgnitionError } from "./errors.js";
+import { ERRORS } from "./internal/errors-list.js";
+import { ModuleConstructor } from "./internal/module-builder.js";
+import { isValidIgnitionIdentifier } from "./internal/utils/identifier-validators.js";
 
 /**
  * Construct a module definition that can be deployed through Ignition.
