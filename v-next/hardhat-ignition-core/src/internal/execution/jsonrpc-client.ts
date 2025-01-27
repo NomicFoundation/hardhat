@@ -85,7 +85,7 @@ export interface JsonRpcClient {
    */
   getBalance: (
     address: string,
-    blockTag: "latest" | "pending"
+    blockTag: "latest" | "pending",
   ) => Promise<bigint>;
 
   /**
@@ -109,7 +109,7 @@ export interface JsonRpcClient {
    */
   call: (
     callParams: CallParams,
-    blockTag: "latest" | "pending"
+    blockTag: "latest" | "pending",
   ) => Promise<RawStaticCallResult>;
 
   /**
@@ -149,7 +149,7 @@ export interface JsonRpcClient {
    */
   getTransactionCount: (
     address: string,
-    blockTag: "pending" | "latest" | number
+    blockTag: "pending" | "latest" | number,
   ) => Promise<number>;
 
   /**
@@ -158,7 +158,7 @@ export interface JsonRpcClient {
    * @param txHash The transaction hash.
    */
   getTransaction: (
-    txHash: string
+    txHash: string,
   ) => Promise<Omit<Transaction, "receipt"> | undefined>;
 
   /**
@@ -168,7 +168,7 @@ export interface JsonRpcClient {
    * @param txHash The transaction's hash.
    */
   getTransactionReceipt: (
-    txHash: string
+    txHash: string,
   ) => Promise<TransactionReceipt | undefined>;
 
   /**
@@ -193,7 +193,7 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
       maxFeePerGasLimit?: bigint;
       maxPriorityFeePerGas?: bigint;
       gasPrice?: bigint;
-    }
+    },
   ) {}
 
   public async getChainId(): Promise<number> {
@@ -216,7 +216,7 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
       maxFees > this._config.maxFeePerGasLimit
     ) {
       throw new IgnitionError(
-        ERRORS.EXECUTION.MAX_FEE_PER_GAS_EXCEEDS_GAS_LIMIT
+        ERRORS.EXECUTION.MAX_FEE_PER_GAS_EXCEEDS_GAS_LIMIT,
       );
     }
 
@@ -232,19 +232,19 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
     assertResponseType(
       "eth_getBlockByNumber",
       response,
-      typeof response === "object" && response !== null
+      typeof response === "object" && response !== null,
     );
 
     assertResponseType(
       "eth_getBlockByNumber",
       response,
-      "number" in response && typeof response.number === "string"
+      "number" in response && typeof response.number === "string",
     );
 
     assertResponseType(
       "eth_getBlockByNumber",
       response,
-      "hash" in response && typeof response.hash === "string"
+      "hash" in response && typeof response.hash === "string",
     );
 
     let baseFeePerGas: bigint | undefined;
@@ -252,7 +252,7 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
       assertResponseType(
         "eth_getBlockByNumber",
         response,
-        typeof response.baseFeePerGas === "string"
+        typeof response.baseFeePerGas === "string",
       );
 
       baseFeePerGas = jsonRpcQuantityToBigInt(response.baseFeePerGas);
@@ -267,7 +267,7 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
 
   public async getBalance(
     address: string,
-    blockTag: "latest" | "pending"
+    blockTag: "latest" | "pending",
   ): Promise<bigint> {
     const balance = await this._provider.request({
       method: "eth_getBalance",
@@ -295,7 +295,7 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
     assertResponseType(
       "hardhat_setBalance",
       returnedBalance,
-      typeof returnedBalance === "boolean"
+      typeof returnedBalance === "boolean",
     );
 
     return returnedBalance;
@@ -303,7 +303,7 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
 
   public async call(
     callParams: CallParams,
-    blockTag: "latest" | "pending"
+    blockTag: "latest" | "pending",
   ): Promise<RawStaticCallResult> {
     try {
       const jsonRpcEncodedParams = {
@@ -382,7 +382,7 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
   }
 
   public async estimateGas(
-    estimateGasParams: EstimateGasParams
+    estimateGasParams: EstimateGasParams,
   ): Promise<bigint> {
     const jsonRpcEncodedParams = {
       to: estimateGasParams.to,
@@ -401,14 +401,14 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
     assertResponseType(
       "eth_estimateGas",
       response,
-      typeof response === "string"
+      typeof response === "string",
     );
 
     return jsonRpcQuantityToBigInt(response);
   }
 
   public async sendTransaction(
-    transactionParams: TransactionParams
+    transactionParams: TransactionParams,
   ): Promise<string> {
     try {
       const jsonRpcEncodedParams = {
@@ -429,7 +429,7 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
       assertResponseType(
         "eth_sendTransaction",
         response,
-        typeof response === "string"
+        typeof response === "string",
       );
 
       return response;
@@ -457,7 +457,7 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
     assertResponseType(
       "eth_sendRawTransaction",
       response,
-      typeof response === "string"
+      typeof response === "string",
     );
 
     return response;
@@ -465,7 +465,7 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
 
   public async getTransactionCount(
     address: string,
-    blockTag: number | "latest" | "pending"
+    blockTag: number | "latest" | "pending",
   ): Promise<number> {
     const encodedBlockTag =
       typeof blockTag === "number"
@@ -480,14 +480,14 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
     assertResponseType(
       "eth_getTransactionCount",
       response,
-      typeof response === "string"
+      typeof response === "string",
     );
 
     return jsonRpcQuantityToNumber(response);
   }
 
   public async getTransaction(
-    txHash: string
+    txHash: string,
   ): Promise<Omit<Transaction, "receipt"> | undefined> {
     const method = "eth_getTransactionByHash";
 
@@ -505,7 +505,7 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
     assertResponseType(
       method,
       response,
-      "hash" in response && typeof response.hash === "string"
+      "hash" in response && typeof response.hash === "string",
     );
 
     assertResponseType(
@@ -513,14 +513,14 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
       response,
       "blockNumber" in response &&
         (typeof response.blockNumber === "string" ||
-          response.blockNumber === null)
+          response.blockNumber === null),
     );
 
     assertResponseType(
       method,
       response,
       "blockHash" in response &&
-        (typeof response.blockHash === "string" || response.blockHash === null)
+        (typeof response.blockHash === "string" || response.blockHash === null),
     );
 
     let networkFees: NetworkFees;
@@ -528,27 +528,27 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
       assertResponseType(
         method,
         response,
-        "maxFeePerGas" in response && typeof response.maxFeePerGas === "string"
+        "maxFeePerGas" in response && typeof response.maxFeePerGas === "string",
       );
 
       assertResponseType(
         method,
         response,
         "maxPriorityFeePerGas" in response &&
-          typeof response.maxPriorityFeePerGas === "string"
+          typeof response.maxPriorityFeePerGas === "string",
       );
 
       networkFees = {
         maxFeePerGas: jsonRpcQuantityToBigInt(response.maxFeePerGas),
         maxPriorityFeePerGas: jsonRpcQuantityToBigInt(
-          response.maxPriorityFeePerGas
+          response.maxPriorityFeePerGas,
         ),
       };
     } else {
       assertResponseType(
         method,
         response,
-        "gasPrice" in response && typeof response.gasPrice === "string"
+        "gasPrice" in response && typeof response.gasPrice === "string",
       );
 
       networkFees = {
@@ -563,7 +563,7 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
   }
 
   public async getTransactionReceipt(
-    txHash: string
+    txHash: string,
   ): Promise<TransactionReceipt | undefined> {
     const method = "eth_getTransactionReceipt";
 
@@ -581,19 +581,19 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
     assertResponseType(
       method,
       response,
-      "blockHash" in response && typeof response.blockHash === "string"
+      "blockHash" in response && typeof response.blockHash === "string",
     );
 
     assertResponseType(
       method,
       response,
-      "blockNumber" in response && typeof response.blockNumber === "string"
+      "blockNumber" in response && typeof response.blockNumber === "string",
     );
 
     assertResponseType(
       method,
       response,
-      "status" in response && typeof response.status === "string"
+      "status" in response && typeof response.status === "string",
     );
 
     assertResponseType(
@@ -601,7 +601,7 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
       response,
       "contractAddress" in response &&
         (response.contractAddress === null ||
-          typeof response.contractAddress === "string")
+          typeof response.contractAddress === "string"),
     );
 
     const status =
@@ -746,7 +746,7 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
     assertResponseType(
       "eth_maxPriorityFeePerGas",
       fee,
-      typeof fee === "string"
+      typeof fee === "string",
     );
 
     return jsonRpcQuantityToBigInt(fee);
@@ -811,7 +811,7 @@ function numberToJsonRpcQuantity(value: number): string {
 function assertResponseType(
   method: string,
   response: unknown,
-  assertion: boolean
+  assertion: boolean,
 ): asserts assertion {
   if (!assertion) {
     throw new IgnitionError(ERRORS.EXECUTION.INVALID_JSON_RPC_RESPONSE, {
@@ -827,7 +827,7 @@ function formatReceiptLogs(method: string, response: object): TransactionLog[] {
   assertResponseType(
     method,
     response,
-    "logs" in response && Array.isArray(response.logs)
+    "logs" in response && Array.isArray(response.logs),
   );
 
   const logs: unknown[] = response.logs;
@@ -836,37 +836,37 @@ function formatReceiptLogs(method: string, response: object): TransactionLog[] {
     assertResponseType(
       method,
       response,
-      typeof rawLog === "object" && rawLog !== null
+      typeof rawLog === "object" && rawLog !== null,
     );
 
     assertResponseType(
       method,
       response,
-      "address" in rawLog && typeof rawLog.address === "string"
+      "address" in rawLog && typeof rawLog.address === "string",
     );
 
     assertResponseType(
       method,
       response,
-      "logIndex" in rawLog && typeof rawLog.logIndex === "string"
+      "logIndex" in rawLog && typeof rawLog.logIndex === "string",
     );
 
     assertResponseType(
       method,
       response,
-      "data" in rawLog && typeof rawLog.data === "string"
+      "data" in rawLog && typeof rawLog.data === "string",
     );
 
     assertResponseType(
       method,
       response,
-      "topics" in rawLog && Array.isArray(rawLog.topics)
+      "topics" in rawLog && Array.isArray(rawLog.topics),
     );
 
     assertResponseType(
       method,
       response,
-      rawLog.topics.every((t: any) => typeof t === "string")
+      rawLog.topics.every((t: any) => typeof t === "string"),
     );
 
     formattedLogs.push({

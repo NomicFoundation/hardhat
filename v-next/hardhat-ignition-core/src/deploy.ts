@@ -38,7 +38,7 @@ export async function deploy<
   ModuleIdT extends string,
   ContractNameT extends string,
   IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>,
-  StrategyT extends keyof StrategyConfig = "basic"
+  StrategyT extends keyof StrategyConfig = "basic",
 >({
   config = {},
   artifactResolver,
@@ -78,7 +78,7 @@ export async function deploy<
 }): Promise<DeploymentResult> {
   const executionStrategy: ExecutionStrategy = resolveStrategy(
     strategy,
-    strategyConfig
+    strategyConfig,
   );
 
   if (executionEventListener !== undefined) {
@@ -97,7 +97,7 @@ export async function deploy<
     ignitionModule,
     artifactResolver,
     deploymentParameters,
-    accounts
+    accounts,
   );
 
   if (validationResult !== null) {
@@ -142,25 +142,25 @@ export async function deploy<
     jsonRpcClient,
     artifactResolver,
     deploymentLoader,
-    executionEventListener
+    executionEventListener,
   );
 
   return deployer.deploy(
     ignitionModule,
     deploymentParameters,
     accounts,
-    defaultSender
+    defaultSender,
   );
 }
 
 function _resolveDefaultSender(
   givenDefaultSender: string | undefined,
-  accounts: string[]
+  accounts: string[],
 ): string {
   let defaultSender: string;
   if (givenDefaultSender !== undefined) {
     const isDefaultSenderInAccounts = accounts.some((account) =>
-      equalAddresses(account, givenDefaultSender)
+      equalAddresses(account, givenDefaultSender),
     );
 
     if (!isDefaultSenderInAccounts) {

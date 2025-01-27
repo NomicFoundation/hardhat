@@ -8,7 +8,7 @@ describe("buildModule", () => {
     it("should error on passing async callback", async function () {
       assert.throws(
         () => buildModule("AsyncModule", (async () => {}) as any),
-        /The callback passed to 'buildModule' for AsyncModule returns a Promise; async callbacks are not allowed in 'buildModule'./
+        /The callback passed to 'buildModule' for AsyncModule returns a Promise; async callbacks are not allowed in 'buildModule'./,
       );
     });
 
@@ -18,7 +18,7 @@ describe("buildModule", () => {
           buildModule("AsyncModule", () => {
             throw new Error("User thrown error");
           }),
-        /User thrown error/
+        /User thrown error/,
       );
     });
   });

@@ -42,7 +42,7 @@ export function resolveValue(
     | ReadEventArgumentFuture,
   deploymentParameters: DeploymentParameters,
   deploymentState: DeploymentState,
-  accounts: string[]
+  accounts: string[],
 ): bigint {
   if (typeof givenValue === "bigint") {
     return givenValue;
@@ -60,7 +60,7 @@ export function resolveValue(
 
   assertIgnitionInvariant(
     typeof result === "bigint",
-    "Module parameter or future result used as value must be a bigint"
+    "Module parameter or future result used as value must be a bigint",
   );
 
   return result;
@@ -74,7 +74,7 @@ export function resolveArgs(
   args: ArgumentType[],
   deploymentState: DeploymentState,
   deploymentParameters: DeploymentParameters,
-  accounts: string[]
+  accounts: string[],
 ): SolidityParameterType[] {
   const replace = (arg: ArgumentType) =>
     replaceWithinArg<SolidityParameterType>(arg, {
@@ -103,7 +103,7 @@ export function resolveArgs(
 export function resolveFutureFrom(
   from: string | AccountRuntimeValue | undefined,
   accounts: string[],
-  defaultSender: string
+  defaultSender: string,
 ): string {
   if (from === undefined) {
     return defaultSender;
@@ -121,7 +121,7 @@ export function resolveFutureFrom(
  */
 export function resolveFutureData(
   data: string | EncodeFunctionCallFuture<string, string> | undefined,
-  deploymentState: DeploymentState
+  deploymentState: DeploymentState,
 ): string {
   if (data === undefined) {
     return "0x";
@@ -135,7 +135,7 @@ export function resolveFutureData(
 
   assertIgnitionInvariant(
     typeof result === "string",
-    "Expected future data to be a string"
+    "Expected future data to be a string",
   );
 
   return result;
@@ -146,12 +146,12 @@ export function resolveFutureData(
  */
 export function resolveAccountRuntimeValue(
   arv: AccountRuntimeValue,
-  accounts: string[]
+  accounts: string[],
 ): string {
   const address = accounts[arv.accountIndex];
   assertIgnitionInvariant(
     address !== undefined,
-    `Account ${arv.accountIndex} not found`
+    `Account ${arv.accountIndex} not found`,
   );
 
   return address;
@@ -162,13 +162,13 @@ export function resolveAccountRuntimeValue(
  */
 export function resolveLibraries(
   libraries: Record<string, ContractFuture<string>>,
-  deploymentState: DeploymentState
+  deploymentState: DeploymentState,
 ): { [libName: string]: string } {
   return Object.fromEntries(
     Object.entries(libraries).map(([key, lib]) => [
       key,
       findAddressForContractFuture(deploymentState, lib.id),
-    ])
+    ]),
   );
 }
 
@@ -177,7 +177,7 @@ export function resolveLibraries(
  */
 export function resolveAddressForContractFuture(
   contract: ContractFuture<string>,
-  deploymentState: DeploymentState
+  deploymentState: DeploymentState,
 ): string {
   return findAddressForContractFuture(deploymentState, contract.id);
 }
@@ -193,7 +193,7 @@ export function resolveSendToAddress(
     | AccountRuntimeValue,
   deploymentState: DeploymentState,
   deploymentParameters: DeploymentParameters,
-  accounts: string[]
+  accounts: string[],
 ): string {
   if (typeof to === "string") {
     return to;
@@ -207,7 +207,7 @@ export function resolveSendToAddress(
     to,
     deploymentState,
     deploymentParameters,
-    accounts
+    accounts,
   );
 }
 
@@ -223,7 +223,7 @@ export function resolveAddressLike(
     | ModuleParameterRuntimeValue<string>,
   deploymentState: DeploymentState,
   deploymentParameters: DeploymentParameters,
-  accounts: string[]
+  accounts: string[],
 ): string {
   if (typeof addressLike === "string") {
     return addressLike;
@@ -237,7 +237,7 @@ export function resolveAddressLike(
 
     assertIgnitionInvariant(
       typeof addressFromParam === "string",
-      "Module parameter used as address must be a string"
+      "Module parameter used as address must be a string",
     );
 
     return addressFromParam;
@@ -248,7 +248,7 @@ export function resolveAddressLike(
   const { isAddress } = require("ethers") as typeof import("ethers");
   assertIgnitionInvariant(
     typeof result === "string" && isAddress(result),
-    `Future '${addressLike.id}' must be a valid address`
+    `Future '${addressLike.id}' must be a valid address`,
   );
 
   return result;
@@ -264,7 +264,7 @@ export async function resolveReadEventArgumentResult(
   eventIndex: number,
   nameOrIndex: string | number,
   deploymentState: DeploymentState,
-  deploymentLoader: DeploymentLoader
+  deploymentLoader: DeploymentLoader,
 ): Promise<{
   result: SolidityParameterType;
   emitterAddress: string;
@@ -272,14 +272,14 @@ export async function resolveReadEventArgumentResult(
 }> {
   const emitterAddress = resolveAddressForContractFuture(
     emitter,
-    deploymentState
+    deploymentState,
   );
 
   const emitterArtifact = await deploymentLoader.loadArtifact(emitter.id);
 
   const confirmedTx = findConfirmedTransactionByFutureId(
     deploymentState,
-    future.id
+    future.id,
   );
 
   const evmValue = getEventArgumentFromReceipt(
@@ -288,7 +288,7 @@ export async function resolveReadEventArgumentResult(
     emitterAddress,
     eventName,
     eventIndex,
-    nameOrIndex
+    nameOrIndex,
   );
 
   return {
@@ -302,7 +302,7 @@ export async function resolveEncodeFunctionCallResult(
   artifactId: string,
   functionName: string,
   args: SolidityParameterType[],
-  deploymentLoader: DeploymentLoader
+  deploymentLoader: DeploymentLoader,
 ): Promise<string> {
   const artifact = await deploymentLoader.loadArtifact(artifactId);
 

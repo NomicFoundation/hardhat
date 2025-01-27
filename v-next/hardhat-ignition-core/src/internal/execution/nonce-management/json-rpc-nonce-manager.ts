@@ -33,13 +33,13 @@ export interface NonceManager {
 export class JsonRpcNonceManager implements NonceManager {
   constructor(
     private readonly _jsonRpcClient: JsonRpcClient,
-    private readonly _maxUsedNonce: { [sender: string]: number }
+    private readonly _maxUsedNonce: { [sender: string]: number },
   ) {}
 
   public async getNextNonce(sender: string): Promise<number> {
     const pendingCount = await this._jsonRpcClient.getTransactionCount(
       sender,
-      "pending"
+      "pending",
     );
 
     const expectedNonce =

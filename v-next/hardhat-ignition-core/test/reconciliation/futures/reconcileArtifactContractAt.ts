@@ -136,7 +136,7 @@ describe("Reconciliation - artifact contract at", () => {
         contractName: "Another",
         contractAddress: differentAddress,
         artifactId: "./artifact.json",
-      }
+      },
     );
 
     await assertSuccessReconciliation(moduleDefinition, deploymentState);
@@ -150,7 +150,7 @@ describe("Reconciliation - artifact contract at", () => {
         exampleAddress,
         {
           id: "Factory",
-        }
+        },
       );
 
       return { contract1 };
@@ -166,7 +166,7 @@ describe("Reconciliation - artifact contract at", () => {
         contractName: "ContractUnchanged",
         contractAddress: differentAddress,
         artifactId: "./artifact.json",
-      })
+      }),
     );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
@@ -186,7 +186,7 @@ describe("Reconciliation - artifact contract at", () => {
         exampleAddress,
         {
           id: "Factory",
-        }
+        },
       );
 
       return { contract1 };
@@ -200,7 +200,7 @@ describe("Reconciliation - artifact contract at", () => {
         futureType: FutureType.CONTRACT_AT,
         status: ExecutionStatus.STARTED,
         contractAddress: differentAddress,
-      })
+      }),
     );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
@@ -220,7 +220,7 @@ describe("Reconciliation - artifact contract at", () => {
         exampleAddress,
         {
           id: "Factory",
-        }
+        },
       );
 
       return { contract1 };
@@ -234,7 +234,7 @@ describe("Reconciliation - artifact contract at", () => {
         futureType: FutureType.CONTRACT_AT,
         status: ExecutionStatus.STARTED,
         strategy: "create2",
-      })
+      }),
     );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
@@ -253,7 +253,7 @@ describe("Reconciliation - artifact contract at", () => {
         exampleAddress,
         {
           id: "Factory",
-        }
+        },
       );
 
       return { contract1 };
@@ -269,7 +269,7 @@ describe("Reconciliation - artifact contract at", () => {
         strategyConfig: {
           salt: "value",
         },
-      })
+      }),
     );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [

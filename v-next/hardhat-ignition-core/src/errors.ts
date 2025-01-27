@@ -33,13 +33,13 @@ export class IgnitionError extends CustomError {
   constructor(
     errorDescriptor: ErrorDescriptor,
     messageArguments: Record<string, string | number> = {},
-    cause?: Error
+    cause?: Error,
   ) {
     const prefix = `${getErrorCode(errorDescriptor)}: `;
     const formattedMessage = _applyErrorMessageTemplate(
       errorDescriptor.message,
       messageArguments,
-      false
+      false,
     );
 
     super(prefix + formattedMessage, cause);
@@ -59,7 +59,7 @@ export class IgnitionError extends CustomError {
  */
 export class IgnitionPluginError extends CustomError {
   public static isIgnitionPluginError(
-    error: any
+    error: any,
   ): error is IgnitionPluginError {
     return (
       typeof error === "object" &&
@@ -86,7 +86,7 @@ export class IgnitionPluginError extends CustomError {
  */
 export class NomicIgnitionPluginError extends IgnitionPluginError {
   public static isNomicIgnitionPluginError(
-    error: any
+    error: any,
   ): error is NomicIgnitionPluginError {
     return (
       typeof error === "object" &&
@@ -101,7 +101,7 @@ export class NomicIgnitionPluginError extends IgnitionPluginError {
 function _applyErrorMessageTemplate(
   template: string,
   values: { [templateVar: string]: any },
-  isRecursiveCall: boolean
+  isRecursiveCall: boolean,
 ): string {
   if (!isRecursiveCall) {
     for (const variableName of Object.keys(values)) {
@@ -110,7 +110,7 @@ function _applyErrorMessageTemplate(
           ERRORS.INTERNAL.TEMPLATE_INVALID_VARIABLE_NAME,
           {
             variable: variableName,
-          }
+          },
         );
       }
 
@@ -151,7 +151,7 @@ function _applyErrorMessageTemplate(
     if (value.match(/%([a-zA-Z][a-zA-Z0-9]*)?%/) !== null) {
       throw new IgnitionError(
         ERRORS.INTERNAL.TEMPLATE_VALUE_CONTAINS_VARIABLE_TAG,
-        { variable: variableName }
+        { variable: variableName },
       );
     }
 

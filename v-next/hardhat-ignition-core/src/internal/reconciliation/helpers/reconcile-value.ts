@@ -27,13 +27,13 @@ export function reconcileValue(
     | DeploymentExecutionState
     | CallExecutionState
     | SendDataExecutionState,
-  context: ReconciliationContext
+  context: ReconciliationContext,
 ): ReconciliationFutureResultFailure | undefined {
   const resolvedValue = resolveValue(
     future.value,
     context.deploymentParameters,
     context.deploymentState,
-    context.accounts
+    context.accounts,
   );
 
   return compare(future, "Value", exState.value, resolvedValue);

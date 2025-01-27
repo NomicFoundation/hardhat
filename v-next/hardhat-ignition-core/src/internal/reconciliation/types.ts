@@ -45,5 +45,5 @@ export interface ReconciliationContext {
 export type ReconciliationCheck = (
   future: Future,
   executionState: ExecutionState,
-  context: ReconciliationContext
+  context: ReconciliationContext,
 ) => ReconciliationFutureResult | Promise<ReconciliationFutureResult>;

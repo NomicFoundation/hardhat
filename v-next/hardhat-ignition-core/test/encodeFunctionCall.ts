@@ -35,18 +35,18 @@ describe("encodeFunctionCall", () => {
     assert.equal(moduleWithASingleContract.id, "Module1");
     assert.equal(
       moduleWithASingleContract.results.contract1.id,
-      "Module1#Contract1"
+      "Module1#Contract1",
     );
 
     // 1 contract future & 1 call future
     assert.equal(moduleWithASingleContract.futures.size, 2);
     assert.equal(
       [...moduleWithASingleContract.futures][0].type,
-      FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT
+      FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
     );
     assert.equal(
       [...moduleWithASingleContract.futures][1].type,
-      FutureType.ENCODE_FUNCTION_CALL
+      FutureType.ENCODE_FUNCTION_CALL,
     );
 
     // No submodules
@@ -66,15 +66,15 @@ describe("encodeFunctionCall", () => {
     assert.isDefined(moduleWithDependentContracts);
 
     const exampleFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1#Example"
+      ({ id }) => id === "Module1#Example",
     );
 
     const anotherFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1#Example"
+      ({ id }) => id === "Module1#Example",
     );
 
     const callFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1#encodeFunctionCall(Module1#Example.test)"
+      ({ id }) => id === "Module1#encodeFunctionCall(Module1#Example.test)",
     );
 
     if (!(callFuture instanceof NamedEncodeFunctionCallFutureImplementation)) {
@@ -106,15 +106,15 @@ describe("encodeFunctionCall", () => {
     assert.isDefined(moduleWithDependentContracts);
 
     const exampleFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1#Example"
+      ({ id }) => id === "Module1#Example",
     );
 
     const anotherFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1#Another"
+      ({ id }) => id === "Module1#Another",
     );
 
     const callFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1#encodeFunctionCall(Module1#Example.test)"
+      ({ id }) => id === "Module1#encodeFunctionCall(Module1#Example.test)",
     );
 
     if (!(callFuture instanceof NamedEncodeFunctionCallFutureImplementation)) {
@@ -137,7 +137,7 @@ describe("encodeFunctionCall", () => {
       });
 
       const future = [...module.futures].find(
-        ({ type }) => type === FutureType.ENCODE_FUNCTION_CALL
+        ({ type }) => type === FutureType.ENCODE_FUNCTION_CALL,
       );
 
       assertInstanceOf(future, NamedEncodeFunctionCallFutureImplementation);
@@ -153,7 +153,7 @@ describe("encodeFunctionCall", () => {
       });
 
       const future = [...module.futures].find(
-        ({ type }) => type === FutureType.ENCODE_FUNCTION_CALL
+        ({ type }) => type === FutureType.ENCODE_FUNCTION_CALL,
       );
 
       assertInstanceOf(future, NamedEncodeFunctionCallFutureImplementation);
@@ -169,7 +169,7 @@ describe("encodeFunctionCall", () => {
       });
 
       const future = [...module.futures].find(
-        ({ type }) => type === FutureType.ENCODE_FUNCTION_CALL
+        ({ type }) => type === FutureType.ENCODE_FUNCTION_CALL,
       );
 
       assertInstanceOf(future, NamedEncodeFunctionCallFutureImplementation);
@@ -185,7 +185,7 @@ describe("encodeFunctionCall", () => {
       });
 
       const future = [...module.futures].find(
-        ({ type }) => type === FutureType.ENCODE_FUNCTION_CALL
+        ({ type }) => type === FutureType.ENCODE_FUNCTION_CALL,
       );
 
       assertInstanceOf(future, NamedEncodeFunctionCallFutureImplementation);
@@ -201,7 +201,7 @@ describe("encodeFunctionCall", () => {
       });
 
       const future = [...module.futures].find(
-        ({ type }) => type === FutureType.ENCODE_FUNCTION_CALL
+        ({ type }) => type === FutureType.ENCODE_FUNCTION_CALL,
       );
 
       assertInstanceOf(future, NamedEncodeFunctionCallFutureImplementation);
@@ -218,7 +218,7 @@ describe("encodeFunctionCall", () => {
       });
 
       const future = [...module.futures].find(
-        ({ type }) => type === FutureType.ENCODE_FUNCTION_CALL
+        ({ type }) => type === FutureType.ENCODE_FUNCTION_CALL,
       );
 
       assertInstanceOf(future, NamedEncodeFunctionCallFutureImplementation);
@@ -236,7 +236,7 @@ describe("encodeFunctionCall", () => {
       });
 
       const future = [...module.futures].find(
-        ({ type }) => type === FutureType.ENCODE_FUNCTION_CALL
+        ({ type }) => type === FutureType.ENCODE_FUNCTION_CALL,
       );
 
       assertInstanceOf(future, NamedEncodeFunctionCallFutureImplementation);
@@ -257,13 +257,13 @@ describe("encodeFunctionCall", () => {
       });
 
       const future = [...module.futures].find(
-        ({ type }) => type === FutureType.ENCODE_FUNCTION_CALL
+        ({ type }) => type === FutureType.ENCODE_FUNCTION_CALL,
       );
 
       assertInstanceOf(future, NamedEncodeFunctionCallFutureImplementation);
       assertInstanceOf(
         future.args[0],
-        ModuleParameterRuntimeValueImplementation
+        ModuleParameterRuntimeValueImplementation,
       );
       assert.equal(future.args[0].name, "p");
       assert.equal(future.args[0].defaultValue, 123);
@@ -279,7 +279,7 @@ describe("encodeFunctionCall", () => {
       });
 
       const future = [...module.futures].find(
-        ({ type }) => type === FutureType.ENCODE_FUNCTION_CALL
+        ({ type }) => type === FutureType.ENCODE_FUNCTION_CALL,
       );
 
       assertInstanceOf(future, NamedEncodeFunctionCallFutureImplementation);
@@ -305,11 +305,11 @@ describe("encodeFunctionCall", () => {
       assert.equal(moduleWithSameCallTwice.id, "Module1");
 
       const callFuture = [...moduleWithSameCallTwice.futures].find(
-        ({ id }) => id === "Module1#first"
+        ({ id }) => id === "Module1#first",
       );
 
       const callFuture2 = [...moduleWithSameCallTwice.futures].find(
-        ({ id }) => id === "Module1#second"
+        ({ id }) => id === "Module1#second",
       );
 
       assert.isDefined(callFuture);
@@ -328,7 +328,7 @@ describe("encodeFunctionCall", () => {
           }),
         `The autogenerated future id ("Module1#encodeFunctionCall(Module1#SameContract.test)") is already used. Please provide a unique id, as shown below:
 
-m.encodeFunctionCall(..., { id: "MyUniqueId"})`
+m.encodeFunctionCall(..., { id: "MyUniqueId"})`,
       );
     });
 
@@ -341,7 +341,7 @@ m.encodeFunctionCall(..., { id: "MyUniqueId"})`
             m.encodeFunctionCall(sameContract1, "test", [], { id: "first" });
             return { sameContract1 };
           }),
-        'The future id "first" is already used, please provide a different one.'
+        'The future id "first" is already used, please provide a different one.',
       );
     });
   });
@@ -359,7 +359,7 @@ m.encodeFunctionCall(..., { id: "MyUniqueId"})`
 
               return { another };
             }),
-          /Invalid contract given/
+          /Invalid contract given/,
         );
       });
 
@@ -373,7 +373,7 @@ m.encodeFunctionCall(..., { id: "MyUniqueId"})`
 
               return { another };
             }),
-          /Invalid contract given/
+          /Invalid contract given/,
         );
       });
     });
@@ -387,7 +387,7 @@ m.encodeFunctionCall(..., { id: "MyUniqueId"})`
       });
 
       const future = getFuturesFromModule(module).find(
-        (v) => v.type === FutureType.ENCODE_FUNCTION_CALL
+        (v) => v.type === FutureType.ENCODE_FUNCTION_CALL,
       );
 
       assertValidationError(
@@ -395,9 +395,9 @@ m.encodeFunctionCall(..., { id: "MyUniqueId"})`
           future as any,
           setupMockArtifactResolver({ Another: {} as any }),
           {},
-          []
+          [],
         ),
-        "Artifact for contract 'Another' is invalid"
+        "Artifact for contract 'Another' is invalid",
       );
     });
 
@@ -415,7 +415,7 @@ m.encodeFunctionCall(..., { id: "MyUniqueId"})`
       });
 
       const future = getFuturesFromModule(module).find(
-        (v) => v.type === FutureType.ENCODE_FUNCTION_CALL
+        (v) => v.type === FutureType.ENCODE_FUNCTION_CALL,
       );
 
       assertValidationError(
@@ -423,9 +423,9 @@ m.encodeFunctionCall(..., { id: "MyUniqueId"})`
           future as any,
           setupMockArtifactResolver(),
           {},
-          []
+          [],
         ),
-        "Function 'test' not found in contract Another"
+        "Function 'test' not found in contract Another",
       );
     });
 
@@ -457,7 +457,7 @@ m.encodeFunctionCall(..., { id: "MyUniqueId"})`
       });
 
       const future = getFuturesFromModule(module).find(
-        (v) => v.type === FutureType.ENCODE_FUNCTION_CALL
+        (v) => v.type === FutureType.ENCODE_FUNCTION_CALL,
       );
 
       assertValidationError(
@@ -465,9 +465,9 @@ m.encodeFunctionCall(..., { id: "MyUniqueId"})`
           future as any,
           setupMockArtifactResolver(),
           {},
-          []
+          [],
         ),
-        "Function inc in contract Another expects 1 arguments but 2 were given"
+        "Function inc in contract Another expects 1 arguments but 2 were given",
       );
     });
 
@@ -518,7 +518,7 @@ m.encodeFunctionCall(..., { id: "MyUniqueId"})`
       });
 
       const future = getFuturesFromModule(module).find(
-        (v) => v.type === FutureType.ENCODE_FUNCTION_CALL
+        (v) => v.type === FutureType.ENCODE_FUNCTION_CALL,
       );
 
       assertValidationError(
@@ -526,9 +526,9 @@ m.encodeFunctionCall(..., { id: "MyUniqueId"})`
           future as any,
           setupMockArtifactResolver(),
           {},
-          []
+          [],
         ),
-        "Function inc(bool,uint256) in contract Another expects 2 arguments but 3 were given"
+        "Function inc(bool,uint256) in contract Another expects 2 arguments but 3 were given",
       );
     });
 
@@ -543,7 +543,7 @@ m.encodeFunctionCall(..., { id: "MyUniqueId"})`
       });
 
       const future = getFuturesFromModule(module).find(
-        (v) => v.type === FutureType.ENCODE_FUNCTION_CALL
+        (v) => v.type === FutureType.ENCODE_FUNCTION_CALL,
       );
 
       assertValidationError(
@@ -551,9 +551,9 @@ m.encodeFunctionCall(..., { id: "MyUniqueId"})`
           future as any,
           setupMockArtifactResolver({ Another: fakeArtifact }),
           {},
-          []
+          [],
         ),
-        "Module parameter 'p' requires a value but was given none"
+        "Module parameter 'p' requires a value but was given none",
       );
     });
 
@@ -587,14 +587,14 @@ m.encodeFunctionCall(..., { id: "MyUniqueId"})`
       });
 
       const future = getFuturesFromModule(module).find(
-        (v) => v.type === FutureType.ENCODE_FUNCTION_CALL
+        (v) => v.type === FutureType.ENCODE_FUNCTION_CALL,
       );
 
       const result = await validateNamedEncodeFunctionCall(
         future as any,
         setupMockArtifactResolver({ Another: fakeArtifact }),
         {},
-        []
+        [],
       );
 
       assert.deepStrictEqual(result, []);
@@ -630,7 +630,7 @@ m.encodeFunctionCall(..., { id: "MyUniqueId"})`
       });
 
       const future = getFuturesFromModule(module).find(
-        (v) => v.type === FutureType.ENCODE_FUNCTION_CALL
+        (v) => v.type === FutureType.ENCODE_FUNCTION_CALL,
       );
 
       const result = await validateNamedEncodeFunctionCall(
@@ -641,7 +641,7 @@ m.encodeFunctionCall(..., { id: "MyUniqueId"})`
             p: true,
           },
         },
-        []
+        [],
       );
 
       assert.deepStrictEqual(result, []);
@@ -660,7 +660,7 @@ m.encodeFunctionCall(..., { id: "MyUniqueId"})`
       });
 
       const future = getFuturesFromModule(module).find(
-        (v) => v.type === FutureType.ENCODE_FUNCTION_CALL
+        (v) => v.type === FutureType.ENCODE_FUNCTION_CALL,
       );
 
       assertValidationError(
@@ -668,9 +668,9 @@ m.encodeFunctionCall(..., { id: "MyUniqueId"})`
           future as any,
           setupMockArtifactResolver({ Another: fakeArtifact }),
           {},
-          []
+          [],
         ),
-        "Module parameter 'p' requires a value but was given none"
+        "Module parameter 'p' requires a value but was given none",
       );
     });
 
@@ -706,7 +706,7 @@ m.encodeFunctionCall(..., { id: "MyUniqueId"})`
       });
 
       const future = getFuturesFromModule(module).find(
-        (v) => v.type === FutureType.ENCODE_FUNCTION_CALL
+        (v) => v.type === FutureType.ENCODE_FUNCTION_CALL,
       );
 
       await assert.isFulfilled(
@@ -714,8 +714,8 @@ m.encodeFunctionCall(..., { id: "MyUniqueId"})`
           future as any,
           setupMockArtifactResolver({ Another: fakeArtifact }),
           {},
-          []
-        )
+          [],
+        ),
       );
     });
 
@@ -749,7 +749,7 @@ m.encodeFunctionCall(..., { id: "MyUniqueId"})`
       });
 
       const future = getFuturesFromModule(module).find(
-        (v) => v.type === FutureType.ENCODE_FUNCTION_CALL
+        (v) => v.type === FutureType.ENCODE_FUNCTION_CALL,
       );
 
       await assert.isFulfilled(
@@ -757,8 +757,8 @@ m.encodeFunctionCall(..., { id: "MyUniqueId"})`
           future as any,
           setupMockArtifactResolver({ Another: fakeArtifact }),
           {},
-          []
-        )
+          [],
+        ),
       );
     });
 
@@ -792,7 +792,7 @@ m.encodeFunctionCall(..., { id: "MyUniqueId"})`
       });
 
       const future = getFuturesFromModule(module).find(
-        (v) => v.type === FutureType.ENCODE_FUNCTION_CALL
+        (v) => v.type === FutureType.ENCODE_FUNCTION_CALL,
       );
 
       assertValidationError(
@@ -800,9 +800,9 @@ m.encodeFunctionCall(..., { id: "MyUniqueId"})`
           future as any,
           setupMockArtifactResolver({ Test: fakerArtifact }),
           {},
-          []
+          [],
         ),
-        "Account index cannot be a negative number"
+        "Account index cannot be a negative number",
       );
     });
   });

@@ -122,14 +122,14 @@ describe("DeploymentStateReducer", () => {
         updatedStaticCallExState = findExecutionStateById(
           ExecutionSateType.STATIC_CALL_EXECUTION_STATE,
           updatedDeploymentState,
-          "StaticCall1"
+          "StaticCall1",
         );
       });
 
       it("should populate a static call execution state for the future", () => {
         assert.equal(
           updatedStaticCallExState.type,
-          ExecutionSateType.STATIC_CALL_EXECUTION_STATE
+          ExecutionSateType.STATIC_CALL_EXECUTION_STATE,
         );
       });
     });
@@ -144,7 +144,7 @@ describe("DeploymentStateReducer", () => {
         updatedStaticCallExState = findExecutionStateById(
           ExecutionSateType.STATIC_CALL_EXECUTION_STATE,
           updatedDeploymentState,
-          "StaticCall1"
+          "StaticCall1",
         );
       });
 
@@ -153,7 +153,7 @@ describe("DeploymentStateReducer", () => {
 
         assert.deepStrictEqual(
           updatedStaticCallExState.networkInteractions[0],
-          requestStaticCallInteractionMessage.networkInteraction
+          requestStaticCallInteractionMessage.networkInteraction,
         );
       });
     });
@@ -169,7 +169,7 @@ describe("DeploymentStateReducer", () => {
         updatedStaticCallExState = findExecutionStateById(
           ExecutionSateType.STATIC_CALL_EXECUTION_STATE,
           updatedDeploymentState,
-          "StaticCall1"
+          "StaticCall1",
         );
       });
 
@@ -181,11 +181,11 @@ describe("DeploymentStateReducer", () => {
 
         assert.deepStrictEqual(
           actualRest,
-          requestStaticCallInteractionMessage.networkInteraction
+          requestStaticCallInteractionMessage.networkInteraction,
         );
         assert.deepStrictEqual(
           actualResult,
-          completeStaticCallInteractionMessage.result
+          completeStaticCallInteractionMessage.result,
         );
       });
     });
@@ -202,7 +202,7 @@ describe("DeploymentStateReducer", () => {
         updatedStaticCallExState = findExecutionStateById(
           ExecutionSateType.STATIC_CALL_EXECUTION_STATE,
           updatedDeploymentState,
-          "StaticCall1"
+          "StaticCall1",
         );
       });
 
@@ -216,7 +216,7 @@ describe("DeploymentStateReducer", () => {
       it("should update the status to success", () => {
         assert.deepStrictEqual(
           updatedStaticCallExState.status,
-          ExecutionStatus.SUCCESS
+          ExecutionStatus.SUCCESS,
         );
       });
     });
@@ -233,7 +233,7 @@ describe("DeploymentStateReducer", () => {
         updatedStaticCallExState = findExecutionStateById(
           ExecutionSateType.STATIC_CALL_EXECUTION_STATE,
           updatedDeploymentState,
-          "StaticCall1"
+          "StaticCall1",
         );
       });
 
@@ -251,7 +251,7 @@ describe("DeploymentStateReducer", () => {
       it("should update the status to failed", () => {
         assert.deepStrictEqual(
           updatedStaticCallExState.status,
-          ExecutionStatus.FAILED
+          ExecutionStatus.FAILED,
         );
       });
     });
@@ -266,7 +266,7 @@ describe("DeploymentStateReducer", () => {
         updatedStaticCallExState = findExecutionStateById(
           ExecutionSateType.STATIC_CALL_EXECUTION_STATE,
           updatedDeploymentState,
-          "StaticCall1"
+          "StaticCall1",
         );
       });
 
@@ -280,7 +280,7 @@ describe("DeploymentStateReducer", () => {
       it("should update the status to failed", () => {
         assert.deepStrictEqual(
           updatedStaticCallExState.status,
-          ExecutionStatus.FAILED
+          ExecutionStatus.FAILED,
         );
       });
     });

@@ -158,7 +158,7 @@ describe("stored deployment serializer", () => {
         const contract1 = m.contractAt(
           "Contract1",
           fakeArtifact,
-          exampleAddress
+          exampleAddress,
         );
 
         return { contract1 };
@@ -172,7 +172,7 @@ describe("stored deployment serializer", () => {
         const contract1 = m.contractAt(
           "Contract1",
           fakeArtifact,
-          exampleAddress
+          exampleAddress,
         );
         const call = m.staticCall(contract1, "getAddress");
         const contract2 = m.contractAt("Contract2", fakeArtifact, call);
@@ -188,7 +188,7 @@ describe("stored deployment serializer", () => {
         const contract1 = m.contractAt(
           "Contract1",
           fakeArtifact,
-          exampleAddress
+          exampleAddress,
         );
         const contract2 = m.contractAt(
           "Contract2",
@@ -196,7 +196,7 @@ describe("stored deployment serializer", () => {
           differentAddress,
           {
             after: [contract1],
-          }
+          },
         );
 
         return { contract1, contract2 };
@@ -528,9 +528,9 @@ describe("stored deployment serializer", () => {
         JSON.parse(
           JSON.stringify(
             IgnitionModuleSerializer.serialize(module),
-            sortedKeysJsonStringifyReplacer
-          )
-        )
+            sortedKeysJsonStringifyReplacer,
+          ),
+        ),
       );
 
       const lc = reserialized.results.leftContract;
@@ -592,7 +592,7 @@ describe("stored deployment serializer", () => {
 
       assert.equal(
         (module.results.contract2.constructorArgs[0] as any).arr[0],
-        module.results.contract1
+        module.results.contract1,
       );
     });
 
@@ -665,54 +665,54 @@ describe("stored deployment serializer", () => {
 });
 
 function assertSerializableModuleIn(
-  module: IgnitionModule<string, string, IgnitionModuleResult<string>>
+  module: IgnitionModule<string, string, IgnitionModuleResult<string>>,
 ) {
   const serialized = JSON.stringify(
     IgnitionModuleSerializer.serialize(module),
     // This is not actually needed, but we use it to be able to compare the
     // serialized string, which can be easier to debug.
     sortedKeysJsonStringifyReplacer,
-    2
+    2,
   );
 
   const deserialized = IgnitionModuleDeserializer.deserialize(
-    JSON.parse(serialized)
+    JSON.parse(serialized),
   );
 
   const reserialized = JSON.stringify(
     IgnitionModuleSerializer.serialize(deserialized),
     sortedKeysJsonStringifyReplacer,
-    2
+    2,
   );
 
   assert.equal(
     serialized,
     reserialized,
-    "Module serialization not the same across serialization/deserialization"
+    "Module serialization not the same across serialization/deserialization",
   );
 
   assert.deepEqual(
     module,
     deserialized,
-    "Module not the same across serialization/deserialization"
+    "Module not the same across serialization/deserialization",
   );
 
   // Invariants
 
   const ignitionModule = IgnitionModuleDeserializer.deserialize(
-    JSON.parse(reserialized)
+    JSON.parse(reserialized),
   );
 
   assert(
     Object.values(ignitionModule.results).every((result) =>
-      hasFutureInModuleOrSubmoduleOf(ignitionModule, result)
+      hasFutureInModuleOrSubmoduleOf(ignitionModule, result),
     ),
-    "All results should be futures of the module or one of its submodules"
+    "All results should be futures of the module or one of its submodules",
   );
 
   assert(
     allFuturesHaveModuleIn(ignitionModule),
-    "All of the modules futures should have their parent module as the linked module"
+    "All of the modules futures should have their parent module as the linked module",
   );
 
   // All constructor args have been swapped out
@@ -728,7 +728,7 @@ function assertSerializableModuleIn(
 
       return true;
     }),
-    "All constructor args should have had their token futures swapped out for actual futures"
+    "All constructor args should have had their token futures swapped out for actual futures",
   );
 
   // All libraries have been swapped out
@@ -752,7 +752,7 @@ function assertSerializableModuleIn(
 
       return true;
     }),
-    "All libraries should have had their token futures swapped out for actual futures"
+    "All libraries should have had their token futures swapped out for actual futures",
   );
 
   // All dependencies have been swapped out
@@ -760,7 +760,7 @@ function assertSerializableModuleIn(
     Array.from(ignitionModule.futures).every((future) => {
       return noFutureTokensIn(Array.from(future.dependencies));
     }),
-    "All future dependencies should have had their token futures swapped out for actual futures"
+    "All future dependencies should have had their token futures swapped out for actual futures",
   );
 }
 
@@ -770,37 +770,37 @@ function noFutureTokensIn(list: any[]): boolean {
 
 function noFutureTokensInLibraries(libs: { [key: string]: any }): boolean {
   return Object.values(libs).every(
-    (arg) => Boolean(arg) && arg._kind !== "FutureToken"
+    (arg) => Boolean(arg) && arg._kind !== "FutureToken",
   );
 }
 
 function hasFutureInModuleOrSubmoduleOf(
   ignitionModule: IgnitionModule<string, string, IgnitionModuleResult<string>>,
-  future: ContractFuture<string>
+  future: ContractFuture<string>,
 ): unknown {
   if (ignitionModule.futures.has(future)) {
     return true;
   }
 
   return Array.from(ignitionModule.submodules).some((submodule) =>
-    hasFutureInModuleOrSubmoduleOf(submodule, future)
+    hasFutureInModuleOrSubmoduleOf(submodule, future),
   );
 }
 
 function allFuturesHaveModuleIn(
-  ignitionModule: IgnitionModule<string, string, IgnitionModuleResult<string>>
+  ignitionModule: IgnitionModule<string, string, IgnitionModuleResult<string>>,
 ): boolean {
   if (
     Array.from(ignitionModule.futures).some(
       (future) =>
-        future.module.id === "PLACEHOLDER" && future.module !== ignitionModule
+        future.module.id === "PLACEHOLDER" && future.module !== ignitionModule,
     )
   ) {
     return false;
   }
 
   return Array.from(ignitionModule.submodules).every((submodule) =>
-    allFuturesHaveModuleIn(submodule)
+    allFuturesHaveModuleIn(submodule),
   );
 }
 

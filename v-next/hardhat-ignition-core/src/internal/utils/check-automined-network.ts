@@ -1,11 +1,11 @@
 import { EIP1193Provider } from "../../types/provider";
 
 export async function checkAutominedNetwork(
-  provider: EIP1193Provider
+  provider: EIP1193Provider,
 ): Promise<boolean> {
   try {
     const isHardhat = Boolean(
-      await provider.request({ method: "hardhat_getAutomine" })
+      await provider.request({ method: "hardhat_getAutomine" }),
     );
 
     if (isHardhat) {
@@ -18,7 +18,7 @@ export async function checkAutominedNetwork(
 
   try {
     const isGanache = /ganache/i.test(
-      (await provider.request({ method: "web3_clientVersion" })) as string
+      (await provider.request({ method: "web3_clientVersion" })) as string,
     );
 
     if (isGanache) {

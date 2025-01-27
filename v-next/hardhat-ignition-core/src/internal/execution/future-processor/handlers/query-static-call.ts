@@ -28,23 +28,23 @@ export async function queryStaticCall(
     | CallExecutionState
     | SendDataExecutionState
     | StaticCallExecutionState,
-  jsonRpcClient: JsonRpcClient
+  jsonRpcClient: JsonRpcClient,
 ): Promise<StaticCallCompleteMessage> {
   const lastNetworkInteraction = exState.networkInteractions.at(-1);
 
   assertIgnitionInvariant(
     lastNetworkInteraction !== undefined,
-    `Network interaction not found for ExecutionState ${exState.id} when trying to run a StaticCall`
+    `Network interaction not found for ExecutionState ${exState.id} when trying to run a StaticCall`,
   );
 
   assertIgnitionInvariant(
     lastNetworkInteraction.type === NetworkInteractionType.STATIC_CALL,
-    `Transaction found as last network interaction of ExecutionState ${exState.id} when trying to run a StaticCall`
+    `Transaction found as last network interaction of ExecutionState ${exState.id} when trying to run a StaticCall`,
   );
 
   assertIgnitionInvariant(
     lastNetworkInteraction.result === undefined,
-    `Resolved StaticCall found in ${exState.id}/${lastNetworkInteraction.id} when trying to run it`
+    `Resolved StaticCall found in ${exState.id}/${lastNetworkInteraction.id} when trying to run it`,
   );
 
   const result = await runStaticCall(jsonRpcClient, lastNetworkInteraction);

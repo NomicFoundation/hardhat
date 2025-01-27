@@ -14,7 +14,7 @@ export function deserializeReplacer(_key: string, value: unknown): unknown {
 }
 
 function _isSerializedBigInt(
-  arg: unknown
+  arg: unknown,
 ): arg is { _kind: "bigint"; value: string } {
   return (
     arg !== null &&

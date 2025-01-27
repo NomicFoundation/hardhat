@@ -23,7 +23,7 @@ export async function validate(
   module: IgnitionModule,
   artifactLoader: ArtifactResolver,
   deploymentParameters: DeploymentParameters,
-  accounts: string[]
+  accounts: string[],
 ): Promise<ValidationErrorDeploymentResult | null> {
   const futures = getFuturesFromModule(module);
 
@@ -34,7 +34,7 @@ export async function validate(
       future,
       artifactLoader,
       deploymentParameters,
-      accounts
+      accounts,
     );
 
     if (validationErrors.length > 0) {
@@ -57,7 +57,7 @@ async function _validateFuture(
   future: Future,
   artifactLoader: ArtifactResolver,
   deploymentParameters: DeploymentParameters,
-  accounts: string[]
+  accounts: string[],
 ): Promise<string[]> {
   switch (future.type) {
     case FutureType.CONTRACT_DEPLOYMENT:
@@ -65,77 +65,77 @@ async function _validateFuture(
         future,
         artifactLoader,
         deploymentParameters,
-        accounts
+        accounts,
       );
     case FutureType.LIBRARY_DEPLOYMENT:
       return validateArtifactLibraryDeployment(
         future,
         artifactLoader,
         deploymentParameters,
-        accounts
+        accounts,
       );
     case FutureType.CONTRACT_AT:
       return validateArtifactContractAt(
         future,
         artifactLoader,
         deploymentParameters,
-        accounts
+        accounts,
       );
     case FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT:
       return validateNamedContractDeployment(
         future,
         artifactLoader,
         deploymentParameters,
-        accounts
+        accounts,
       );
     case FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT:
       return validateNamedLibraryDeployment(
         future,
         artifactLoader,
         deploymentParameters,
-        accounts
+        accounts,
       );
     case FutureType.NAMED_ARTIFACT_CONTRACT_AT:
       return validateNamedContractAt(
         future,
         artifactLoader,
         deploymentParameters,
-        accounts
+        accounts,
       );
     case FutureType.CONTRACT_CALL:
       return validateNamedContractCall(
         future,
         artifactLoader,
         deploymentParameters,
-        accounts
+        accounts,
       );
     case FutureType.STATIC_CALL:
       return validateNamedStaticCall(
         future,
         artifactLoader,
         deploymentParameters,
-        accounts
+        accounts,
       );
     case FutureType.ENCODE_FUNCTION_CALL:
       return validateNamedEncodeFunctionCall(
         future,
         artifactLoader,
         deploymentParameters,
-        accounts
+        accounts,
       );
     case FutureType.READ_EVENT_ARGUMENT:
       return validateReadEventArgument(
         future,
         artifactLoader,
         deploymentParameters,
-        accounts
+        accounts,
       );
     case FutureType.SEND_DATA:
       return validateSendData(
         future,
         artifactLoader,
         deploymentParameters,
-        accounts
+        accounts,
       );
   }
 }

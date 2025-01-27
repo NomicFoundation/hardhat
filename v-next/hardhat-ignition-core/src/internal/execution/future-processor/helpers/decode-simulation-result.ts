@@ -22,10 +22,10 @@ export function decodeSimulationResult(
   exState:
     | DeploymentExecutionState
     | CallExecutionState
-    | SendDataExecutionState
+    | SendDataExecutionState,
 ) {
   return async (
-    simulationResult: RawStaticCallResult
+    simulationResult: RawStaticCallResult,
   ): Promise<
     | SimulationErrorExecutionResult
     | StrategySimulationErrorExecutionResult
@@ -40,7 +40,7 @@ export function decodeSimulationResult(
       response.value.type === SIMULATION_SUCCESS_SIGNAL_TYPE ||
         response.value.type === ExecutionResultType.STRATEGY_SIMULATION_ERROR ||
         response.value.type === ExecutionResultType.SIMULATION_ERROR,
-      `Invalid response received from strategy after a simulation was run before sending a transaction for ExecutionState ${exState.id}`
+      `Invalid response received from strategy after a simulation was run before sending a transaction for ExecutionState ${exState.id}`,
     );
 
     if (response.value.type === SIMULATION_SUCCESS_SIGNAL_TYPE) {

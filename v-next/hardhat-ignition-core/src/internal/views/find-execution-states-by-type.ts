@@ -4,10 +4,10 @@ import { ExecutionSateType } from "../execution/types/execution-state";
 
 export function findExecutionStatesByType<ExStateT extends ExecutionSateType>(
   exStateType: ExStateT,
-  deployment: DeploymentState
+  deployment: DeploymentState,
 ): Array<MapExStateTypeToExState<ExStateT>> {
   const exStates = Object.values(deployment.executionStates).filter(
-    (exs) => exs.type === exStateType
+    (exs) => exs.type === exStateType,
   );
 
   return exStates as Array<MapExStateTypeToExState<ExStateT>>;

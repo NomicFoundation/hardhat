@@ -9,7 +9,7 @@ import { ReconciliationContext, ReconciliationFutureResult } from "../types";
 export async function reconcileNamedContractAt(
   future: NamedArtifactContractAtFuture<string>,
   executionState: ContractAtExecutionState,
-  context: ReconciliationContext
+  context: ReconciliationContext,
 ): Promise<ReconciliationFutureResult> {
   let result = reconcileContractName(future, executionState, context);
   if (result !== undefined) {

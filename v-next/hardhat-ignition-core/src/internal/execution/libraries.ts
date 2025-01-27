@@ -27,7 +27,7 @@ import { assertIgnitionInvariant } from "../utils/assertions";
  */
 export function validateLibraryNames(
   artifact: Artifact,
-  libraryNames: string[]
+  libraryNames: string[],
 ): IgnitionError[] {
   const errors: IgnitionError[] = [];
 
@@ -42,12 +42,12 @@ export function validateLibraryNames(
 
   try {
     const libraryNameToParsedName = libraryNames.map((libraryName) =>
-      getActualNameForArtifactLibrary(artifact, libraryName)
+      getActualNameForArtifactLibrary(artifact, libraryName),
     );
 
     for (const parsedName of Object.values(libraryNameToParsedName)) {
       requiredLibraries.delete(
-        getFullyQualifiedName(parsedName.sourceName, parsedName.libName)
+        getFullyQualifiedName(parsedName.sourceName, parsedName.libName),
       );
     }
 
@@ -60,13 +60,13 @@ export function validateLibraryNames(
         new IgnitionError(ERRORS.VALIDATION.MISSING_LIBRARIES, {
           fullyQualifiedNames,
           contractName: artifact.contractName,
-        })
+        }),
       );
     }
   } catch (e) {
     assertIgnitionInvariant(
       e instanceof IgnitionError,
-      "Error must be of type IgnitionError"
+      "Error must be of type IgnitionError",
     );
 
     errors.push(e);
@@ -81,7 +81,7 @@ export function validateLibraryNames(
  */
 export function linkLibraries(
   artifact: Artifact,
-  libraries: { [libraryName: string]: string }
+  libraries: { [libraryName: string]: string },
 ): string {
   validateAddresses(artifact, libraries);
 
@@ -102,7 +102,7 @@ export function linkLibraries(
 function linkReference(
   bytecode: string,
   ref: { start: number; length: number },
-  address: string
+  address: string,
 ): string {
   return (
     bytecode.substring(0, ref.start * 2 + 2) +
@@ -116,7 +116,7 @@ function linkReference(
  */
 function validateNotRepeatedLibraries(
   artifact: Artifact,
-  libraryNames: string[]
+  libraryNames: string[],
 ): IgnitionError[] {
   const errors: IgnitionError[] = [];
 
@@ -124,7 +124,7 @@ function validateNotRepeatedLibraries(
     try {
       const { sourceName, libName } = parseLibraryName(
         artifact.contractName,
-        inputName
+        inputName,
       );
 
       if (sourceName !== undefined && libraryNames.includes(libName)) {
@@ -133,13 +133,13 @@ function validateNotRepeatedLibraries(
             inputName,
             libName,
             contractName: artifact.contractName,
-          })
+          }),
         );
       }
     } catch (e) {
       assertIgnitionInvariant(
         e instanceof IgnitionError,
-        `Error must be of type IgnitionError`
+        `Error must be of type IgnitionError`,
       );
 
       errors.push(e);
@@ -154,7 +154,7 @@ function validateNotRepeatedLibraries(
  */
 function parseLibraryName(
   contractName: string,
-  libraryName: string
+  libraryName: string,
 ): {
   sourceName?: string;
   libName: string;
@@ -185,11 +185,11 @@ function getFullyQualifiedName(sourceName: string, libName: string): string {
  */
 function getActualNameForArtifactLibrary(
   artifact: Artifact,
-  libraryName: string
+  libraryName: string,
 ): { sourceName: string; libName: string } {
   const { sourceName, libName } = parseLibraryName(
     artifact.contractName,
-    libraryName
+    libraryName,
   );
 
   if (sourceName !== undefined) {
@@ -235,7 +235,7 @@ function getActualNameForArtifactLibrary(
     const fullyQualifiedNames = bareNameToParsedNames[libraryName]
       .map(
         (parsed) =>
-          `* ${getFullyQualifiedName(parsed.sourceName, parsed.libName)}`
+          `* ${getFullyQualifiedName(parsed.sourceName, parsed.libName)}`,
       )
       .join("\n");
 
@@ -254,7 +254,7 @@ function getActualNameForArtifactLibrary(
  */
 function validateAddresses(
   artifact: Artifact,
-  libraries: { [libraryName: string]: string }
+  libraries: { [libraryName: string]: string },
 ) {
   for (const [libraryName, address] of Object.entries(libraries)) {
     if (address.match(/^0x[0-9a-fA-F]{40}$/) === null) {

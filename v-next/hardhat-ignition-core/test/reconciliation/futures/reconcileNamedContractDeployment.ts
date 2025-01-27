@@ -53,7 +53,7 @@ describe("Reconciliation - named contract", () => {
           libraries: {
             SafeMath: safeMath,
           },
-        }
+        },
       );
 
       return { contract1 };
@@ -92,8 +92,8 @@ describe("Reconciliation - named contract", () => {
           libraries: {
             SafeMath: exampleAddress,
           },
-        }
-      )
+        },
+      ),
     );
   });
 
@@ -121,7 +121,7 @@ describe("Reconciliation - named contract", () => {
         status: ExecutionStatus.STARTED,
         contractName: "Contract",
         from: exampleAccounts[3],
-      })
+      }),
     );
   });
 
@@ -141,7 +141,7 @@ describe("Reconciliation - named contract", () => {
         id: "Module#Example",
         status: ExecutionStatus.STARTED,
         contractName: "ContractUnchanged",
-      })
+      }),
     );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
@@ -164,7 +164,7 @@ describe("Reconciliation - named contract", () => {
         [owner, { nested: { supply } }, [1, ticker, 3]],
         {
           id: "Example",
-        }
+        },
       );
 
       return { contract1 };
@@ -178,7 +178,7 @@ describe("Reconciliation - named contract", () => {
         status: ExecutionStatus.STARTED,
         contractName: "ContractUnchanged",
         constructorArgs: [1, 2, 3],
-      })
+      }),
     );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
@@ -206,7 +206,7 @@ describe("Reconciliation - named contract", () => {
         id: "Module#Contract1",
         status: ExecutionStatus.STARTED,
         constructorArgs: ["0x15D34AAF54267DB7D7C367839AAF71A00A2C6A65"],
-      })
+      }),
     );
   });
 
@@ -226,7 +226,7 @@ describe("Reconciliation - named contract", () => {
         id: "Module#Contract1",
         status: ExecutionStatus.STARTED,
         constructorArgs: ["0x15d34aaf54267db7D7c367839aaf71a00a2c6a65"],
-      })
+      }),
     );
 
     assert.deepStrictEqual(reconciliationResult.reconciliationFailures, [
@@ -269,8 +269,8 @@ describe("Reconciliation - named contract", () => {
           id: "Module#Contract1",
           status: ExecutionStatus.STARTED,
           libraries: {},
-        }
-      )
+        },
+      ),
     );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
@@ -299,7 +299,7 @@ describe("Reconciliation - named contract", () => {
         status: ExecutionStatus.STARTED,
         contractName: "Contract",
         value: BigInt(2),
-      })
+      }),
     );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
@@ -328,7 +328,7 @@ describe("Reconciliation - named contract", () => {
         status: ExecutionStatus.STARTED,
         contractName: "Contract",
         from: oneAddress,
-      })
+      }),
     );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
@@ -356,7 +356,7 @@ describe("Reconciliation - named contract", () => {
         status: ExecutionStatus.STARTED,
         contractName: "Contract",
         strategy: "create2",
-      })
+      }),
     );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
@@ -384,7 +384,7 @@ describe("Reconciliation - named contract", () => {
         status: ExecutionStatus.STARTED,
         contractName: "Contract",
         strategyConfig: { salt: "value" },
-      })
+      }),
     );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [

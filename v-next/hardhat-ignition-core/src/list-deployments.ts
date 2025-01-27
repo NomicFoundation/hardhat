@@ -8,7 +8,7 @@ import { readdir, pathExists } from "fs-extra";
  * @beta
  */
 export async function listDeployments(
-  deploymentDir: string
+  deploymentDir: string,
 ): Promise<string[]> {
   if (!(await pathExists(deploymentDir))) {
     return [];

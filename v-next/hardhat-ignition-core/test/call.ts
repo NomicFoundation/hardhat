@@ -35,18 +35,18 @@ describe("call", () => {
     assert.equal(moduleWithASingleContract.id, "Module1");
     assert.equal(
       moduleWithASingleContract.results.contract1.id,
-      "Module1#Contract1"
+      "Module1#Contract1",
     );
 
     // 1 contract future & 1 call future
     assert.equal(moduleWithASingleContract.futures.size, 2);
     assert.equal(
       [...moduleWithASingleContract.futures][0].type,
-      FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT
+      FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
     );
     assert.equal(
       [...moduleWithASingleContract.futures][1].type,
-      FutureType.CONTRACT_CALL
+      FutureType.CONTRACT_CALL,
     );
 
     // No submodules
@@ -66,15 +66,15 @@ describe("call", () => {
     assert.isDefined(moduleWithDependentContracts);
 
     const exampleFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1#Example"
+      ({ id }) => id === "Module1#Example",
     );
 
     const anotherFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1#Example"
+      ({ id }) => id === "Module1#Example",
     );
 
     const callFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1#Example.test"
+      ({ id }) => id === "Module1#Example.test",
     );
 
     if (!(callFuture instanceof NamedContractCallFutureImplementation)) {
@@ -104,15 +104,15 @@ describe("call", () => {
     assert.isDefined(moduleWithDependentContracts);
 
     const exampleFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1#Example"
+      ({ id }) => id === "Module1#Example",
     );
 
     const anotherFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1#Another"
+      ({ id }) => id === "Module1#Another",
     );
 
     const callFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1#Example.test"
+      ({ id }) => id === "Module1#Example.test",
     );
 
     if (!(callFuture instanceof NamedContractCallFutureImplementation)) {
@@ -137,7 +137,7 @@ describe("call", () => {
     assert.isDefined(moduleWithDependentContracts);
 
     const callFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1#Example.test"
+      ({ id }) => id === "Module1#Example.test",
     );
 
     if (!(callFuture instanceof NamedContractCallFutureImplementation)) {
@@ -159,7 +159,7 @@ describe("call", () => {
     assert.isDefined(moduleWithDependentContracts);
 
     const callFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1#Example.test"
+      ({ id }) => id === "Module1#Example.test",
     );
 
     if (!(callFuture instanceof NamedContractCallFutureImplementation)) {
@@ -168,7 +168,7 @@ describe("call", () => {
 
     assertInstanceOf(
       callFuture.value,
-      ModuleParameterRuntimeValueImplementation
+      ModuleParameterRuntimeValueImplementation,
     );
   });
 
@@ -184,7 +184,7 @@ describe("call", () => {
     assert.isDefined(moduleWithDependentContracts);
 
     const callFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1#Example.test"
+      ({ id }) => id === "Module1#Example.test",
     );
 
     if (!(callFuture instanceof NamedContractCallFutureImplementation)) {
@@ -206,7 +206,7 @@ describe("call", () => {
     assert.isDefined(moduleWithDependentContracts);
 
     const callFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1#Example.test"
+      ({ id }) => id === "Module1#Example.test",
     );
 
     if (!(callFuture instanceof NamedContractCallFutureImplementation)) {
@@ -227,7 +227,7 @@ describe("call", () => {
       });
 
       const future = [...module.futures].find(
-        ({ type }) => type === FutureType.CONTRACT_CALL
+        ({ type }) => type === FutureType.CONTRACT_CALL,
       );
 
       assertInstanceOf(future, NamedContractCallFutureImplementation);
@@ -243,7 +243,7 @@ describe("call", () => {
       });
 
       const future = [...module.futures].find(
-        ({ type }) => type === FutureType.CONTRACT_CALL
+        ({ type }) => type === FutureType.CONTRACT_CALL,
       );
 
       assertInstanceOf(future, NamedContractCallFutureImplementation);
@@ -259,7 +259,7 @@ describe("call", () => {
       });
 
       const future = [...module.futures].find(
-        ({ type }) => type === FutureType.CONTRACT_CALL
+        ({ type }) => type === FutureType.CONTRACT_CALL,
       );
 
       assertInstanceOf(future, NamedContractCallFutureImplementation);
@@ -275,7 +275,7 @@ describe("call", () => {
       });
 
       const future = [...module.futures].find(
-        ({ type }) => type === FutureType.CONTRACT_CALL
+        ({ type }) => type === FutureType.CONTRACT_CALL,
       );
 
       assertInstanceOf(future, NamedContractCallFutureImplementation);
@@ -291,7 +291,7 @@ describe("call", () => {
       });
 
       const future = [...module.futures].find(
-        ({ type }) => type === FutureType.CONTRACT_CALL
+        ({ type }) => type === FutureType.CONTRACT_CALL,
       );
 
       assertInstanceOf(future, NamedContractCallFutureImplementation);
@@ -308,7 +308,7 @@ describe("call", () => {
       });
 
       const future = [...module.futures].find(
-        ({ type }) => type === FutureType.CONTRACT_CALL
+        ({ type }) => type === FutureType.CONTRACT_CALL,
       );
 
       assertInstanceOf(future, NamedContractCallFutureImplementation);
@@ -326,7 +326,7 @@ describe("call", () => {
       });
 
       const future = [...module.futures].find(
-        ({ type }) => type === FutureType.CONTRACT_CALL
+        ({ type }) => type === FutureType.CONTRACT_CALL,
       );
 
       assertInstanceOf(future, NamedContractCallFutureImplementation);
@@ -347,13 +347,13 @@ describe("call", () => {
       });
 
       const future = [...module.futures].find(
-        ({ type }) => type === FutureType.CONTRACT_CALL
+        ({ type }) => type === FutureType.CONTRACT_CALL,
       );
 
       assertInstanceOf(future, NamedContractCallFutureImplementation);
       assertInstanceOf(
         future.args[0],
-        ModuleParameterRuntimeValueImplementation
+        ModuleParameterRuntimeValueImplementation,
       );
       assert.equal(future.args[0].name, "p");
       assert.equal(future.args[0].defaultValue, 123);
@@ -369,7 +369,7 @@ describe("call", () => {
       });
 
       const future = [...module.futures].find(
-        ({ type }) => type === FutureType.CONTRACT_CALL
+        ({ type }) => type === FutureType.CONTRACT_CALL,
       );
 
       assertInstanceOf(future, NamedContractCallFutureImplementation);
@@ -395,11 +395,11 @@ describe("call", () => {
       assert.equal(moduleWithSameCallTwice.id, "Module1");
 
       const callFuture = [...moduleWithSameCallTwice.futures].find(
-        ({ id }) => id === "Module1#first"
+        ({ id }) => id === "Module1#first",
       );
 
       const callFuture2 = [...moduleWithSameCallTwice.futures].find(
-        ({ id }) => id === "Module1#second"
+        ({ id }) => id === "Module1#second",
       );
 
       assert.isDefined(callFuture);
@@ -418,7 +418,7 @@ describe("call", () => {
           }),
         `The autogenerated future id ("Module1#SameContract.test") is already used. Please provide a unique id, as shown below:
 
-m.call(..., { id: "MyUniqueId"})`
+m.call(..., { id: "MyUniqueId"})`,
       );
     });
 
@@ -431,7 +431,7 @@ m.call(..., { id: "MyUniqueId"})`
             m.call(sameContract1, "test", [], { id: "first" });
             return { sameContract1 };
           }),
-        'The future id "first" is already used, please provide a different one.'
+        'The future id "first" is already used, please provide a different one.',
       );
     });
   });
@@ -447,7 +447,7 @@ m.call(..., { id: "MyUniqueId"})`
 
               return { another };
             }),
-          /IGN702: Module validation failed with reason: Invalid option "value" received. It should be a bigint, a module parameter, or a value obtained from an event or static call./
+          /IGN702: Module validation failed with reason: Invalid option "value" received. It should be a bigint, a module parameter, or a value obtained from an event or static call./,
         );
       });
 
@@ -460,7 +460,7 @@ m.call(..., { id: "MyUniqueId"})`
 
               return { another };
             }),
-          /IGN702: Module validation failed with reason: Invalid type for option "from": number/
+          /IGN702: Module validation failed with reason: Invalid type for option "from": number/,
         );
       });
 
@@ -475,7 +475,7 @@ m.call(..., { id: "MyUniqueId"})`
 
               return { another };
             }),
-          /Invalid contract given/
+          /Invalid contract given/,
         );
       });
 
@@ -489,7 +489,7 @@ m.call(..., { id: "MyUniqueId"})`
 
               return { another };
             }),
-          /Invalid contract given/
+          /Invalid contract given/,
         );
       });
     });
@@ -503,7 +503,7 @@ m.call(..., { id: "MyUniqueId"})`
       });
 
       const future = getFuturesFromModule(module).find(
-        (v) => v.type === FutureType.CONTRACT_CALL
+        (v) => v.type === FutureType.CONTRACT_CALL,
       );
 
       assertValidationError(
@@ -511,9 +511,9 @@ m.call(..., { id: "MyUniqueId"})`
           future as any,
           setupMockArtifactResolver({ Another: {} as any }),
           {},
-          []
+          [],
         ),
-        "Artifact for contract 'Another' is invalid"
+        "Artifact for contract 'Another' is invalid",
       );
     });
 
@@ -531,7 +531,7 @@ m.call(..., { id: "MyUniqueId"})`
       });
 
       const future = getFuturesFromModule(module).find(
-        (v) => v.type === FutureType.CONTRACT_CALL
+        (v) => v.type === FutureType.CONTRACT_CALL,
       );
 
       assertValidationError(
@@ -539,9 +539,9 @@ m.call(..., { id: "MyUniqueId"})`
           future as any,
           setupMockArtifactResolver(),
           {},
-          []
+          [],
         ),
-        "Function 'test' not found in contract Another"
+        "Function 'test' not found in contract Another",
       );
     });
 
@@ -573,7 +573,7 @@ m.call(..., { id: "MyUniqueId"})`
       });
 
       const future = getFuturesFromModule(module).find(
-        (v) => v.type === FutureType.CONTRACT_CALL
+        (v) => v.type === FutureType.CONTRACT_CALL,
       );
 
       assertValidationError(
@@ -581,9 +581,9 @@ m.call(..., { id: "MyUniqueId"})`
           future as any,
           setupMockArtifactResolver(),
           {},
-          []
+          [],
         ),
-        "Function inc in contract Another expects 1 arguments but 2 were given"
+        "Function inc in contract Another expects 1 arguments but 2 were given",
       );
     });
 
@@ -634,7 +634,7 @@ m.call(..., { id: "MyUniqueId"})`
       });
 
       const future = getFuturesFromModule(module).find(
-        (v) => v.type === FutureType.CONTRACT_CALL
+        (v) => v.type === FutureType.CONTRACT_CALL,
       );
 
       assertValidationError(
@@ -642,9 +642,9 @@ m.call(..., { id: "MyUniqueId"})`
           future as any,
           setupMockArtifactResolver(),
           {},
-          []
+          [],
         ),
-        "Function inc(bool,uint256) in contract Another expects 2 arguments but 3 were given"
+        "Function inc(bool,uint256) in contract Another expects 2 arguments but 3 were given",
       );
     });
 
@@ -659,7 +659,7 @@ m.call(..., { id: "MyUniqueId"})`
       });
 
       const future = getFuturesFromModule(module).find(
-        (v) => v.type === FutureType.CONTRACT_CALL
+        (v) => v.type === FutureType.CONTRACT_CALL,
       );
 
       assertValidationError(
@@ -667,9 +667,9 @@ m.call(..., { id: "MyUniqueId"})`
           future as any,
           setupMockArtifactResolver({ Another: fakeArtifact }),
           {},
-          []
+          [],
         ),
-        "Module parameter 'p' requires a value but was given none"
+        "Module parameter 'p' requires a value but was given none",
       );
     });
 
@@ -684,7 +684,7 @@ m.call(..., { id: "MyUniqueId"})`
       });
 
       const future = getFuturesFromModule(module).find(
-        (v) => v.type === FutureType.CONTRACT_CALL
+        (v) => v.type === FutureType.CONTRACT_CALL,
       );
 
       assertValidationError(
@@ -692,9 +692,9 @@ m.call(..., { id: "MyUniqueId"})`
           future as any,
           setupMockArtifactResolver({ Another: fakeArtifact }),
           {},
-          []
+          [],
         ),
-        "Module parameter 'p' must be of type 'bigint' but is 'boolean'"
+        "Module parameter 'p' must be of type 'bigint' but is 'boolean'",
       );
     });
 
@@ -722,7 +722,7 @@ m.call(..., { id: "MyUniqueId"})`
       });
 
       const future = getFuturesFromModule(module).find(
-        (v) => v.type === FutureType.CONTRACT_CALL
+        (v) => v.type === FutureType.CONTRACT_CALL,
       );
 
       await assert.isFulfilled(
@@ -730,8 +730,8 @@ m.call(..., { id: "MyUniqueId"})`
           future as any,
           setupMockArtifactResolver({ Another: fakeArtifact }),
           {},
-          []
-        )
+          [],
+        ),
       );
     });
 
@@ -765,14 +765,14 @@ m.call(..., { id: "MyUniqueId"})`
       });
 
       const future = getFuturesFromModule(module).find(
-        (v) => v.type === FutureType.CONTRACT_CALL
+        (v) => v.type === FutureType.CONTRACT_CALL,
       );
 
       const result = await validateNamedContractCall(
         future as any,
         setupMockArtifactResolver({ Another: fakeArtifact }),
         {},
-        []
+        [],
       );
 
       assert.deepEqual(result, []);
@@ -808,7 +808,7 @@ m.call(..., { id: "MyUniqueId"})`
       });
 
       const future = getFuturesFromModule(module).find(
-        (v) => v.type === FutureType.CONTRACT_CALL
+        (v) => v.type === FutureType.CONTRACT_CALL,
       );
 
       const result = await validateNamedContractCall(
@@ -819,7 +819,7 @@ m.call(..., { id: "MyUniqueId"})`
             p: true,
           },
         },
-        []
+        [],
       );
 
       assert.deepEqual(result, []);
@@ -838,7 +838,7 @@ m.call(..., { id: "MyUniqueId"})`
       });
 
       const future = getFuturesFromModule(module).find(
-        (v) => v.type === FutureType.CONTRACT_CALL
+        (v) => v.type === FutureType.CONTRACT_CALL,
       );
 
       assertValidationError(
@@ -846,9 +846,9 @@ m.call(..., { id: "MyUniqueId"})`
           future as any,
           setupMockArtifactResolver({ Another: fakeArtifact }),
           {},
-          []
+          [],
         ),
-        "Module parameter 'p' requires a value but was given none"
+        "Module parameter 'p' requires a value but was given none",
       );
     });
 
@@ -884,7 +884,7 @@ m.call(..., { id: "MyUniqueId"})`
       });
 
       const future = getFuturesFromModule(module).find(
-        (v) => v.type === FutureType.CONTRACT_CALL
+        (v) => v.type === FutureType.CONTRACT_CALL,
       );
 
       await assert.isFulfilled(
@@ -892,8 +892,8 @@ m.call(..., { id: "MyUniqueId"})`
           future as any,
           setupMockArtifactResolver({ Another: fakeArtifact }),
           {},
-          []
-        )
+          [],
+        ),
       );
     });
 
@@ -927,7 +927,7 @@ m.call(..., { id: "MyUniqueId"})`
       });
 
       const future = getFuturesFromModule(module).find(
-        (v) => v.type === FutureType.CONTRACT_CALL
+        (v) => v.type === FutureType.CONTRACT_CALL,
       );
 
       await assert.isFulfilled(
@@ -935,8 +935,8 @@ m.call(..., { id: "MyUniqueId"})`
           future as any,
           setupMockArtifactResolver({ Another: fakeArtifact }),
           {},
-          []
-        )
+          [],
+        ),
       );
     });
 
@@ -970,7 +970,7 @@ m.call(..., { id: "MyUniqueId"})`
       });
 
       const future = getFuturesFromModule(module).find(
-        (v) => v.type === FutureType.CONTRACT_CALL
+        (v) => v.type === FutureType.CONTRACT_CALL,
       );
 
       assertValidationError(
@@ -978,9 +978,9 @@ m.call(..., { id: "MyUniqueId"})`
           future as any,
           setupMockArtifactResolver({ Test: fakerArtifact }),
           {},
-          []
+          [],
         ),
-        "Account index cannot be a negative number"
+        "Account index cannot be a negative number",
       );
     });
 
@@ -1013,7 +1013,7 @@ m.call(..., { id: "MyUniqueId"})`
       });
 
       const future = getFuturesFromModule(module).find(
-        (v) => v.type === FutureType.CONTRACT_CALL
+        (v) => v.type === FutureType.CONTRACT_CALL,
       );
 
       assertValidationError(
@@ -1021,9 +1021,9 @@ m.call(..., { id: "MyUniqueId"})`
           future as any,
           setupMockArtifactResolver(),
           {},
-          []
+          [],
         ),
-        "Account index cannot be a negative number"
+        "Account index cannot be a negative number",
       );
     });
 
@@ -1056,7 +1056,7 @@ m.call(..., { id: "MyUniqueId"})`
       });
 
       const future = getFuturesFromModule(module).find(
-        (v) => v.type === FutureType.CONTRACT_CALL
+        (v) => v.type === FutureType.CONTRACT_CALL,
       );
 
       assertValidationError(
@@ -1064,9 +1064,9 @@ m.call(..., { id: "MyUniqueId"})`
           future as any,
           setupMockArtifactResolver(),
           {},
-          []
+          [],
         ),
-        "Requested account index '1' is greater than the total number of available accounts '0'"
+        "Requested account index '1' is greater than the total number of available accounts '0'",
       );
     });
   });

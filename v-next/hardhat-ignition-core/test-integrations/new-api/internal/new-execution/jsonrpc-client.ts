@@ -98,12 +98,12 @@ describe("JSON-RPC client", function () {
             this.hre.network.provider,
             {
               maxFeePerGasLimit: 1n,
-            }
+            },
           );
 
           await assert.isRejected(
             failClient.getNetworkFees(),
-            /IGN407: The calculated max fee per gas exceeds the configured limit./
+            /IGN407: The calculated max fee per gas exceeds the configured limit./,
           );
         });
 
@@ -112,7 +112,7 @@ describe("JSON-RPC client", function () {
             this.hre.network.provider,
             {
               maxPriorityFeePerGas: 1n,
-            }
+            },
           );
           const fees = await maxFeeClient.getNetworkFees();
 
@@ -145,7 +145,7 @@ describe("JSON-RPC client", function () {
             },
             {
               maxPriorityFeePerGas: 1n,
-            }
+            },
           );
           const fees = await polygonClient.getNetworkFees();
 
@@ -216,7 +216,7 @@ describe("JSON-RPC client", function () {
               maxFeePerGas: 1_000_000_000n,
               maxPriorityFeePerGas: 1_000_000_000n,
             },
-            "Both max fee and max priority fee should be 1 gwei, as the base fee is 0 for BNB Chain"
+            "Both max fee and max priority fee should be 1 gwei, as the base fee is 0 for BNB Chain",
           );
         });
 
@@ -251,7 +251,7 @@ describe("JSON-RPC client", function () {
               maxFeePerGas: 1_000_000_000n,
               maxPriorityFeePerGas: 1_000_000_000n,
             },
-            "Both max fee and max priority fee should be 1 gwei, as the base fee is 0 for BNB Test Chain"
+            "Both max fee and max priority fee should be 1 gwei, as the base fee is 0 for BNB Test Chain",
           );
         });
 
@@ -286,7 +286,7 @@ describe("JSON-RPC client", function () {
             request: async (req: { method: string }) => {
               if (req.method === "eth_maxPriorityFeePerGas") {
                 throw new Error(
-                  "Method eth_maxPriorityFeePerGas is not supported"
+                  "Method eth_maxPriorityFeePerGas is not supported",
                 );
               }
 
@@ -316,7 +316,7 @@ describe("JSON-RPC client", function () {
             value: 0n,
             from: this.accounts[0],
           },
-          "latest"
+          "latest",
         );
 
         assert.isTrue(result.success);
@@ -334,7 +334,7 @@ describe("JSON-RPC client", function () {
             from: this.accounts[0],
             to: address,
           },
-          "latest"
+          "latest",
         );
 
         // The ABI encoded representation of "hello"
@@ -354,7 +354,7 @@ describe("JSON-RPC client", function () {
             value: 0n,
             from: this.accounts[0],
           },
-          "latest"
+          "latest",
         );
 
         assert.isFalse(result.success);
@@ -370,13 +370,13 @@ describe("JSON-RPC client", function () {
             data: encodeArtifactFunctionCall(
               artifact,
               "revertWithReasonMessage",
-              []
+              [],
             ),
             value: 0n,
             from: this.accounts[0],
             to: address,
           },
-          "latest"
+          "latest",
         );
 
         // The ABI encoded representation of Error("reason")
@@ -408,7 +408,7 @@ describe("JSON-RPC client", function () {
 
             assertIgnitionInvariant(
               false,
-              `Unimplemented mock for ${req.method}`
+              `Unimplemented mock for ${req.method}`,
             );
           }
         }
@@ -421,7 +421,7 @@ describe("JSON-RPC client", function () {
             value: 0n,
             from: this.accounts[0],
           },
-          "latest"
+          "latest",
         );
 
         assert.isFalse(result1.success);
@@ -434,7 +434,7 @@ describe("JSON-RPC client", function () {
             value: 0n,
             from: this.accounts[0],
           },
-          "latest"
+          "latest",
         );
 
         assert.isFalse(result2.success);
@@ -451,7 +451,7 @@ describe("JSON-RPC client", function () {
 
             assertIgnitionInvariant(
               false,
-              `Unimplemented mock for ${req.method}`
+              `Unimplemented mock for ${req.method}`,
             );
           }
         }
@@ -464,7 +464,7 @@ describe("JSON-RPC client", function () {
             value: 0n,
             from: this.accounts[0],
           },
-          "latest"
+          "latest",
         );
 
         assert.isFalse(result1.success);
@@ -481,7 +481,7 @@ describe("JSON-RPC client", function () {
 
             assertIgnitionInvariant(
               false,
-              `Unimplemented mock for ${req.method}`
+              `Unimplemented mock for ${req.method}`,
             );
           }
         }
@@ -495,9 +495,9 @@ describe("JSON-RPC client", function () {
               value: 0n,
               from: this.accounts[0],
             },
-            "latest"
+            "latest",
           ),
-          /IGN406\: The configured base fee exceeds the block gas limit\. Please reduce the configured base fee or increase the block gas limit\./
+          /IGN406\: The configured base fee exceeds the block gas limit\. Please reduce the configured base fee or increase the block gas limit\./,
         );
       });
 
@@ -509,13 +509,13 @@ describe("JSON-RPC client", function () {
             data: encodeArtifactFunctionCall(
               artifact,
               "revertWithUnknownCustomError",
-              []
+              [],
             ),
             value: 0n,
             from: this.accounts[0],
             to: address,
           },
-          "latest"
+          "latest",
         );
 
         assert.isFalse(result.success);
@@ -531,13 +531,13 @@ describe("JSON-RPC client", function () {
             data: encodeArtifactFunctionCall(
               artifact,
               "revertWithInvalidData",
-              []
+              [],
             ),
             value: 0n,
             from: this.accounts[0],
             to: address,
           },
-          "latest"
+          "latest",
         );
 
         assert.isFalse(result.success);
@@ -571,13 +571,13 @@ describe("JSON-RPC client", function () {
             data: encodeArtifactFunctionCall(
               artifact,
               "revertWithInvalidData",
-              []
+              [],
             ),
             value: 0n,
             from: this.accounts[0],
             to: address,
           },
-          "latest"
+          "latest",
         );
 
         assert.isTrue(resultLatest.success);
@@ -589,13 +589,13 @@ describe("JSON-RPC client", function () {
             data: encodeArtifactFunctionCall(
               artifact,
               "revertWithInvalidData",
-              []
+              [],
             ),
             value: 0n,
             from: this.accounts[0],
             to: address,
           },
-          "pending"
+          "pending",
         );
 
         assert.isFalse(resultPending.success);
@@ -666,7 +666,7 @@ describe("JSON-RPC client", function () {
 
         assert.equal(
           balance,
-          defaultHardhatNetworkBalance - 21_000n * nextBlockBaseFee - 1n
+          defaultHardhatNetworkBalance - 21_000n * nextBlockBaseFee - 1n,
         );
       });
 
@@ -702,7 +702,7 @@ describe("JSON-RPC client", function () {
         // Arrange
         const balanceBefore = await client.getBalance(
           this.accounts[19],
-          "latest"
+          "latest",
         );
 
         assert.equal(balanceBefore, 10000000000000000000000n);
@@ -713,7 +713,7 @@ describe("JSON-RPC client", function () {
         // Assert
         const balanceAfter = await client.getBalance(
           this.accounts[19],
-          "latest"
+          "latest",
         );
 
         assert.equal(balanceAfter, 99999n);
@@ -741,7 +741,7 @@ describe("JSON-RPC client", function () {
 
         const balanceBefore = await fakeAnvilClient.getBalance(
           this.accounts[19],
-          "latest"
+          "latest",
         );
 
         assert.equal(balanceBefore, 10000000000000000000000n);
@@ -752,7 +752,7 @@ describe("JSON-RPC client", function () {
         // Assert
         const balanceAfter = await fakeAnvilClient.getBalance(
           this.accounts[19],
-          "latest"
+          "latest",
         );
 
         assert.equal(balanceAfter, 99999n);
@@ -787,7 +787,7 @@ describe("JSON-RPC client", function () {
             data: encodeArtifactFunctionCall(
               artifact,
               "revertWithReasonMessage",
-              []
+              [],
             ),
             nonce: 0,
             fees: {
@@ -795,7 +795,7 @@ describe("JSON-RPC client", function () {
               maxPriorityFeePerGas: 1n,
             },
             value: 0n,
-          })
+          }),
         );
       });
     });
@@ -804,7 +804,7 @@ describe("JSON-RPC client", function () {
       it("`latest` should return the amount of confirmed transactions", async function () {
         let count = await client.getTransactionCount(
           this.accounts[0],
-          "latest"
+          "latest",
         );
 
         assert.equal(count, 0);
@@ -848,12 +848,12 @@ describe("JSON-RPC client", function () {
         await this.hre.network.provider.send("evm_setAutomine", [false]);
         let latestCount = await client.getTransactionCount(
           this.accounts[0],
-          "latest"
+          "latest",
         );
 
         let pendingCount = await client.getTransactionCount(
           this.accounts[0],
-          "pending"
+          "pending",
         );
 
         assert.equal(latestCount, 0);
@@ -874,12 +874,12 @@ describe("JSON-RPC client", function () {
 
         latestCount = await client.getTransactionCount(
           this.accounts[0],
-          "latest"
+          "latest",
         );
 
         pendingCount = await client.getTransactionCount(
           this.accounts[0],
-          "pending"
+          "pending",
         );
 
         assert.equal(latestCount, 0);
@@ -900,12 +900,12 @@ describe("JSON-RPC client", function () {
 
         latestCount = await client.getTransactionCount(
           this.accounts[0],
-          "latest"
+          "latest",
         );
 
         pendingCount = await client.getTransactionCount(
           this.accounts[0],
-          "pending"
+          "pending",
         );
 
         assert.equal(latestCount, 0);
@@ -928,12 +928,12 @@ describe("JSON-RPC client", function () {
 
         let latestCount = await client.getTransactionCount(
           this.accounts[0],
-          "latest"
+          "latest",
         );
 
         let blockOneCount = await client.getTransactionCount(
           this.accounts[0],
-          1
+          1,
         );
 
         assert.equal(latestCount, 1);
@@ -954,7 +954,7 @@ describe("JSON-RPC client", function () {
 
         latestCount = await client.getTransactionCount(
           this.accounts[0],
-          "latest"
+          "latest",
         );
 
         blockOneCount = await client.getTransactionCount(this.accounts[0], 1);
@@ -995,7 +995,7 @@ describe("JSON-RPC client", function () {
             assert.equal(tx!.fees.maxFeePerGas, req.fees.maxFeePerGas);
             assert.equal(
               tx!.fees.maxPriorityFeePerGas,
-              req.fees.maxPriorityFeePerGas
+              req.fees.maxPriorityFeePerGas,
             );
           });
         });
@@ -1028,13 +1028,13 @@ describe("JSON-RPC client", function () {
             assert.equal(tx!.fees.maxFeePerGas, req.fees.maxFeePerGas);
             assert.equal(
               tx!.fees.maxPriorityFeePerGas,
-              req.fees.maxPriorityFeePerGas
+              req.fees.maxPriorityFeePerGas,
             );
           });
 
           it("Should return undefined if the transaction was never sent", async function () {
             const tx = await client.getTransaction(
-              "0x0000000000000000000000000000000000000000000000000000000000000001"
+              "0x0000000000000000000000000000000000000000000000000000000000000001",
             );
 
             assert.isUndefined(tx);
@@ -1254,7 +1254,7 @@ describe("JSON-RPC client", function () {
 
         it("Should return undefined if the transaction was never sent", async function () {
           const receipt = await client.getTransactionReceipt(
-            "0x0000000000000000000000000000000000000000000000000000000000000001"
+            "0x0000000000000000000000000000000000000000000000000000000000000001",
           );
 
           assert.isUndefined(receipt);

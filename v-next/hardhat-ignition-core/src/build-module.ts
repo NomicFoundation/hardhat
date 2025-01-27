@@ -18,10 +18,10 @@ import { IgnitionModuleBuilder } from "./types/module-builder";
 export function buildModule<
   ModuleIdT extends string,
   ContractNameT extends string,
-  IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>
+  IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>,
 >(
   moduleId: ModuleIdT,
-  moduleDefintionFunction: (m: IgnitionModuleBuilder) => IgnitionModuleResultsT
+  moduleDefintionFunction: (m: IgnitionModuleBuilder) => IgnitionModuleResultsT,
 ): IgnitionModule<ModuleIdT, ContractNameT, IgnitionModuleResultsT> {
   if (typeof moduleId !== "string") {
     throw new IgnitionError(ERRORS.MODULE.INVALID_MODULE_ID);
@@ -57,7 +57,7 @@ export function buildModule<
  * module and its submodules.
  */
 function _checkForDuplicateModuleIds(
-  ignitionModule: IgnitionModule<string, string, IgnitionModuleResult<string>>
+  ignitionModule: IgnitionModule<string, string, IgnitionModuleResult<string>>,
 ): void {
   const duplicateModuleIds = [
     ignitionModule.id,

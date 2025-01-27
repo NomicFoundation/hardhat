@@ -49,7 +49,7 @@ const PANIC_CODE_NAMES: { [key: number]: string | undefined } = {
  */
 export function encodeDeploymentArguments(
   artifact: Artifact,
-  args: SolidityParameterType[]
+  args: SolidityParameterType[],
 ): string {
   const { ethers } = require("ethers") as typeof import("ethers");
   const iface = new ethers.Interface(artifact.abi);
@@ -67,7 +67,7 @@ export function encodeDeploymentArguments(
 export function encodeArtifactDeploymentData(
   artifact: Artifact,
   args: SolidityParameterType[],
-  libraries: { [libraryName: string]: string }
+  libraries: { [libraryName: string]: string },
 ): string {
   const linkedBytecode = linkLibraries(artifact, libraries);
   const encodedArgs = encodeDeploymentArguments(artifact, args);
@@ -81,7 +81,7 @@ export function encodeArtifactDeploymentData(
 export function encodeArtifactFunctionCall(
   artifact: Artifact,
   functionName: string,
-  args: SolidityParameterType[]
+  args: SolidityParameterType[],
 ): string {
   const validationErrors = validateArtifactFunctionName(artifact, functionName);
 
@@ -102,7 +102,7 @@ export function encodeArtifactFunctionCall(
  */
 export function decodeArtifactCustomError(
   artifact: Artifact,
-  returnData: string
+  returnData: string,
 ): RevertWithCustomError | RevertWithInvalidData | undefined {
   const { ethers } = require("ethers") as typeof import("ethers");
   const iface = ethers.Interface.from(artifact.abi);
@@ -136,7 +136,7 @@ export function decodeArtifactCustomError(
 export function decodeArtifactFunctionCallResult(
   artifact: Artifact,
   functionName: string,
-  returnData: string
+  returnData: string,
 ): InvalidResultError | SuccessfulEvmExecutionResult {
   const validationErrors = validateArtifactFunctionName(artifact, functionName);
 
@@ -171,7 +171,7 @@ export function decodeArtifactFunctionCallResult(
 export function validateContractConstructorArgsLength(
   artifact: Artifact,
   contractName: string,
-  args: ArgumentType[]
+  args: ArgumentType[],
 ): IgnitionError[] {
   const errors: IgnitionError[] = [];
 
@@ -187,7 +187,7 @@ export function validateContractConstructorArgsLength(
         contractName,
         argsLength,
         expectedArgsLength,
-      })
+      }),
     );
   }
 
@@ -211,14 +211,14 @@ export function validateArtifactFunction(
   contractName: string,
   functionName: string,
   args: ArgumentType[],
-  isStaticCall: boolean
+  isStaticCall: boolean,
 ): IgnitionError[] {
   try {
     validateOverloadedName(artifact, functionName, false);
   } catch (e) {
     assertIgnitionInvariant(
       e instanceof IgnitionError,
-      "validateOverloadedName should only throw IgnitionErrors"
+      "validateOverloadedName should only throw IgnitionErrors",
     );
 
     return [e];
@@ -238,7 +238,7 @@ export function validateArtifactFunction(
         contractName,
         argsLength: args.length,
         expectedLength: fragment.inputs.length,
-      })
+      }),
     );
   }
 
@@ -248,7 +248,7 @@ export function validateArtifactFunction(
       new IgnitionError(ERRORS.VALIDATION.INVALID_STATIC_CALL, {
         functionName,
         contractName,
-      })
+      }),
     );
   }
 
@@ -265,14 +265,14 @@ export function validateArtifactFunction(
  */
 export function validateArtifactFunctionName(
   artifact: Artifact,
-  functionName: string
+  functionName: string,
 ): IgnitionError[] {
   try {
     validateOverloadedName(artifact, functionName, false);
   } catch (e) {
     assertIgnitionInvariant(
       e instanceof IgnitionError,
-      "validateOverloadedName should only throw IgnitionError"
+      "validateOverloadedName should only throw IgnitionError",
     );
 
     return [e];
@@ -292,14 +292,14 @@ export function validateArtifactFunctionName(
 export function validateArtifactEventArgumentParams(
   emitterArtifact: Artifact,
   eventName: string,
-  argument: string | number
+  argument: string | number,
 ): IgnitionError[] {
   try {
     validateOverloadedName(emitterArtifact, eventName, true);
   } catch (e) {
     assertIgnitionInvariant(
       e instanceof IgnitionError,
-      "validateOverloadedName should only throw IgnitionError"
+      "validateOverloadedName should only throw IgnitionError",
     );
 
     return [e];
@@ -314,7 +314,7 @@ export function validateArtifactEventArgumentParams(
   } catch (e) {
     assertIgnitionInvariant(
       e instanceof IgnitionError,
-      "getEventFragment should only throw IgnitionError"
+      "getEventFragment should only throw IgnitionError",
     );
 
     return [e];
@@ -326,12 +326,12 @@ export function validateArtifactEventArgumentParams(
       emitterArtifact.contractName,
       eventName,
       eventFragment,
-      argument
+      argument,
     );
   } catch (e) {
     assertIgnitionInvariant(
       e instanceof IgnitionError,
-      "getEventArgumentParamType should only throw IgnitionError"
+      "getEventArgumentParamType should only throw IgnitionError",
     );
 
     return [e];
@@ -373,10 +373,10 @@ export function getEventArgumentFromReceipt(
   emitterAddress: string,
   eventName: string,
   eventIndex: number,
-  nameOrIndex: string | number
+  nameOrIndex: string | number,
 ): EvmValue {
   const emitterLogs = receipt.logs.filter((l) =>
-    equalAddresses(l.address, emitterAddress)
+    equalAddresses(l.address, emitterAddress),
   );
 
   const { ethers } = require("ethers") as typeof import("ethers");
@@ -384,7 +384,7 @@ export function getEventArgumentFromReceipt(
 
   const eventFragment = getEventFragment(iface, eventName);
   const eventLogs = emitterLogs.filter(
-    (l) => l.topics[0] === eventFragment.topicHash
+    (l) => l.topics[0] === eventFragment.topicHash,
   );
 
   const log = eventLogs[eventIndex];
@@ -392,7 +392,7 @@ export function getEventArgumentFromReceipt(
   const ethersResult = iface.decodeEventLog(
     eventFragment,
     log.data,
-    log.topics
+    log.topics,
   );
 
   const evmTuple = ethersResultIntoEvmTuple(ethersResult, eventFragment.inputs);
@@ -420,8 +420,8 @@ export function decodeError(
   returnData: string,
   customErrorReported: boolean,
   decodeCustomError?: (
-    returnData: string
-  ) => RevertWithCustomError | RevertWithInvalidData | undefined
+    returnData: string,
+  ) => RevertWithCustomError | RevertWithInvalidData | undefined,
 ): FailedEvmExecutionResult {
   if (returnData === "0x") {
     return { type: EvmExecutionResultTypes.REVERT_WITHOUT_REASON };
@@ -460,7 +460,7 @@ export function decodeError(
 }
 
 function tryToDecodeReason(
-  returnData: string
+  returnData: string,
 ): RevertWithReason | RevertWithInvalidData | undefined {
   if (!returnData.startsWith(REVERT_REASON_SIGNATURE)) {
     return undefined;
@@ -472,7 +472,7 @@ function tryToDecodeReason(
   try {
     const [reason] = abiCoder.decode(
       ["string"],
-      Buffer.from(returnData.slice(REVERT_REASON_SIGNATURE.length), "hex")
+      Buffer.from(returnData.slice(REVERT_REASON_SIGNATURE.length), "hex"),
     );
 
     return {
@@ -488,7 +488,7 @@ function tryToDecodeReason(
 }
 
 function tryToDecodePanicCode(
-  returnData: string
+  returnData: string,
 ): RevertWithPanicCode | RevertWithInvalidData | undefined {
   if (!returnData.startsWith(PANIC_CODE_SIGNATURE)) {
     return undefined;
@@ -500,7 +500,7 @@ function tryToDecodePanicCode(
   try {
     const decoded = abiCoder.decode(
       ["uint256"],
-      Buffer.from(returnData.slice(REVERT_REASON_SIGNATURE.length), "hex")
+      Buffer.from(returnData.slice(REVERT_REASON_SIGNATURE.length), "hex"),
     );
 
     const panicCode = Number(decoded[0]);
@@ -529,7 +529,7 @@ function tryToDecodePanicCode(
 
 function ethersValueIntoEvmValue(
   ethersValue: any,
-  paramType: ParamType
+  paramType: ParamType,
 ): EvmValue {
   const { ethers } = require("ethers") as typeof import("ethers");
 
@@ -553,18 +553,18 @@ function ethersValueIntoEvmValue(
     if (paramType.baseType === "array") {
       assertIgnitionInvariant(
         paramType.arrayChildren !== null,
-        `[ethers.js values decoding] arrayChildren must be defined for array ${paramType.type}`
+        `[ethers.js values decoding] arrayChildren must be defined for array ${paramType.type}`,
       );
 
       return ethersResultIntoEvmValueArray(
         ethersValue,
-        paramType.arrayChildren
+        paramType.arrayChildren,
       );
     }
 
     assertIgnitionInvariant(
       paramType.components !== null,
-      `[ethers.js values decoding] components must be defined for tuple ${paramType.type}`
+      `[ethers.js values decoding] components must be defined for tuple ${paramType.type}`,
     );
 
     return ethersResultIntoEvmTuple(ethersValue, paramType.components);
@@ -578,16 +578,16 @@ function ethersValueIntoEvmValue(
 
 function ethersResultIntoEvmValueArray(
   result: Result,
-  elementParamType: ParamType
+  elementParamType: ParamType,
 ): EvmValue[] {
   return Array.from(result).map((ethersValue) =>
-    ethersValueIntoEvmValue(ethersValue, elementParamType)
+    ethersValueIntoEvmValue(ethersValue, elementParamType),
   );
 }
 
 function ethersResultIntoEvmTuple(
   result: Result,
-  paramsParamType: readonly ParamType[]
+  paramsParamType: readonly ParamType[],
 ): EvmTuple {
   const positional: EvmValue[] = [];
   const named: Record<string, EvmValue> = {};
@@ -613,7 +613,7 @@ function ethersResultIntoEvmTuple(
  */
 function getFunctionFragment(
   iface: Interface,
-  functionName: string
+  functionName: string,
 ): FunctionFragment {
   const { ethers } = require("ethers") as typeof import("ethers");
 
@@ -622,12 +622,12 @@ function getFunctionFragment(
     .find(
       (fr) =>
         fr.name === functionName ||
-        getFunctionNameWithParams(fr) === functionName
+        getFunctionNameWithParams(fr) === functionName,
     );
 
   assertIgnitionInvariant(
     fragment !== undefined,
-    "Called getFunctionFragment with an invalid function name"
+    "Called getFunctionFragment with an invalid function name",
   );
 
   return fragment;
@@ -646,12 +646,12 @@ function getEventFragment(iface: Interface, eventName: string): EventFragment {
   const fragment = iface.fragments
     .filter(ethers.Fragment.isEvent)
     .find(
-      (fr) => fr.name === eventName || getEventNameWithParams(fr) === eventName
+      (fr) => fr.name === eventName || getEventNameWithParams(fr) === eventName,
     );
 
   assertIgnitionInvariant(
     fragment !== undefined,
-    "Called getEventFragment with an invalid event name"
+    "Called getEventFragment with an invalid event name",
   );
 
   return fragment;
@@ -687,7 +687,7 @@ function getBareName(functionOrEventName: string): string | undefined {
 function validateOverloadedName(
   artifact: Artifact,
   name: string,
-  isEvent: boolean
+  isEvent: boolean,
 ): void {
   const eventOrFunction = isEvent ? "event" : "function";
   const eventOrFunctionCapitalized = isEvent ? "Event" : "Function";
@@ -776,7 +776,7 @@ function getEventArgumentParamType(
   contractName: string,
   eventName: string,
   eventFragment: EventFragment,
-  argument: string | number
+  argument: string | number,
 ): ParamType {
   if (typeof argument === "string") {
     for (const input of eventFragment.inputs) {
@@ -813,7 +813,7 @@ export function validateFunctionArgumentParamType(
   contractName: string,
   functionName: string,
   artifact: Artifact,
-  argument: string | number
+  argument: string | number,
 ): IgnitionError[] {
   const { ethers } = require("ethers") as typeof import("ethers");
   const iface = new ethers.Interface(artifact.abi);
@@ -823,7 +823,7 @@ export function validateFunctionArgumentParamType(
   } catch (e) {
     assertIgnitionInvariant(
       e instanceof IgnitionError,
-      "getFunctionFragment should only throw IgnitionError"
+      "getFunctionFragment should only throw IgnitionError",
     );
     return [e];
   }

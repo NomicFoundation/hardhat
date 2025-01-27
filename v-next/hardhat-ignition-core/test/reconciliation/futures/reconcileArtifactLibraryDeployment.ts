@@ -78,8 +78,8 @@ describe("Reconciliation - artifact library", () => {
           libraries: {
             SafeMath: exampleAddress,
           },
-        }
-      )
+        },
+      ),
     );
   });
 
@@ -100,7 +100,7 @@ describe("Reconciliation - artifact library", () => {
         futureType: FutureType.LIBRARY_DEPLOYMENT,
         status: ExecutionStatus.STARTED,
         contractName: "LibraryUnchanged",
-      })
+      }),
     );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
@@ -146,8 +146,8 @@ describe("Reconciliation - artifact library", () => {
           libraries: {
             Unchanged: exampleAddress,
           },
-        }
-      )
+        },
+      ),
     );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
@@ -177,7 +177,7 @@ describe("Reconciliation - artifact library", () => {
         status: ExecutionStatus.STARTED,
         contractName: "Library1",
         from: oneAddress,
-      })
+      }),
     );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
@@ -206,7 +206,7 @@ describe("Reconciliation - artifact library", () => {
         status: ExecutionStatus.STARTED,
         contractName: "Library1",
         strategy: "create2",
-      })
+      }),
     );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
@@ -237,7 +237,7 @@ describe("Reconciliation - artifact library", () => {
         strategyConfig: {
           salt: "value",
         },
-      })
+      }),
     );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [

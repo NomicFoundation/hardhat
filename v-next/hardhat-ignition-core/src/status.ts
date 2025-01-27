@@ -17,7 +17,7 @@ import { StatusResult } from "./types/status";
  */
 export async function status(
   deploymentDir: string,
-  _artifactResolver?: Omit<ArtifactResolver, "getBuildInfo">
+  _artifactResolver?: Omit<ArtifactResolver, "getBuildInfo">,
 ): Promise<StatusResult> {
   const deploymentLoader = new FileDeploymentLoader(deploymentDir);
 
@@ -35,7 +35,7 @@ export async function status(
   const contracts: StatusResult["contracts"] = {};
 
   for (const [futureId, deployedContract] of Object.entries(
-    deployedContracts
+    deployedContracts,
   )) {
     const artifact = await deploymentLoader.loadArtifact(deployedContract.id);
 

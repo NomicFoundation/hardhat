@@ -104,14 +104,14 @@ describe("DeploymentStateReducer", () => {
         updatedDepExState = findExecutionStateById(
           ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
           updatedDeploymentState,
-          "future1"
+          "future1",
         );
       });
 
       it("should populate a deployment execution state for the future", () => {
         assert.equal(
           updatedDepExState.type,
-          ExecutionSateType.DEPLOYMENT_EXECUTION_STATE
+          ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
         );
       });
     });
@@ -129,7 +129,7 @@ describe("DeploymentStateReducer", () => {
         updatedDepExState = findExecutionStateById(
           ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
           updatedDeploymentState,
-          "future1"
+          "future1",
         );
       });
 
@@ -143,7 +143,7 @@ describe("DeploymentStateReducer", () => {
       it("should update the status to success", () => {
         assert.deepStrictEqual(
           updatedDepExState.status,
-          ExecutionStatus.SUCCESS
+          ExecutionStatus.SUCCESS,
         );
       });
     });

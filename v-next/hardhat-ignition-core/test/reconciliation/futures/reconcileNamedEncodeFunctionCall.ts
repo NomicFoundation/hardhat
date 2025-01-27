@@ -85,8 +85,8 @@ describe("Reconciliation - named encode function call", () => {
           status: ExecutionStatus.SUCCESS,
           functionName: "function1",
           args: [1, "a", differentAddress],
-        }
-      )
+        },
+      ),
     );
   });
 
@@ -117,8 +117,8 @@ describe("Reconciliation - named encode function call", () => {
           futureType: FutureType.ENCODE_FUNCTION_CALL,
           status: ExecutionStatus.STARTED,
           functionName: "function1",
-        }
-      )
+        },
+      ),
     );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
@@ -157,8 +157,8 @@ describe("Reconciliation - named encode function call", () => {
           futureType: FutureType.ENCODE_FUNCTION_CALL,
           status: ExecutionStatus.STARTED,
           functionName: "functionUnchanged",
-        }
-      )
+        },
+      ),
     );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
@@ -200,8 +200,8 @@ describe("Reconciliation - named encode function call", () => {
           status: ExecutionStatus.STARTED,
           functionName: "function1",
           args: [["UNCHANGED"]],
-        }
-      )
+        },
+      ),
     );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
@@ -240,8 +240,8 @@ describe("Reconciliation - named encode function call", () => {
           status: ExecutionStatus.STARTED,
           functionName: "function1",
           strategy: "create2",
-        }
-      )
+        },
+      ),
     );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
@@ -280,8 +280,8 @@ describe("Reconciliation - named encode function call", () => {
           status: ExecutionStatus.STARTED,
           functionName: "function1",
           strategyConfig: { salt: "value" },
-        }
-      )
+        },
+      ),
     );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [

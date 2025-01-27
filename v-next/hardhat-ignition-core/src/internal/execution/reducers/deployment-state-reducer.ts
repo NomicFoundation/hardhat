@@ -13,7 +13,7 @@ import { wipeExecutionState } from "./helpers/deployment-state-helpers";
  */
 export function deploymentStateReducer(
   state?: DeploymentState,
-  action?: JournalMessage
+  action?: JournalMessage,
 ): DeploymentState {
   if (state === undefined) {
     state = {

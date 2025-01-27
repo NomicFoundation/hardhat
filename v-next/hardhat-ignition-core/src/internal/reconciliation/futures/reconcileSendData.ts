@@ -11,20 +11,20 @@ import { ReconciliationContext, ReconciliationFutureResult } from "../types";
 export function reconcileSendData(
   future: SendDataFuture,
   executionState: SendDataExecutionState,
-  context: ReconciliationContext
+  context: ReconciliationContext,
 ): ReconciliationFutureResult {
   const resolvedAddress = resolveSendToAddress(
     future.to,
     context.deploymentState,
     context.deploymentParameters,
-    context.accounts
+    context.accounts,
   );
 
   let result = compare(
     future,
     'Address "to"',
     executionState.to,
-    resolvedAddress
+    resolvedAddress,
   );
   if (result !== undefined) {
     return result;

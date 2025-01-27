@@ -8,7 +8,7 @@ import { Create2Strategy } from "./create2-strategy";
 
 export function resolveStrategy<StrategyT extends keyof StrategyConfig>(
   strategyName: StrategyT | undefined,
-  strategyConfig: StrategyConfig[StrategyT] | undefined
+  strategyConfig: StrategyConfig[StrategyT] | undefined,
 ): ExecutionStrategy {
   if (strategyName === undefined) {
     return new BasicStrategy();

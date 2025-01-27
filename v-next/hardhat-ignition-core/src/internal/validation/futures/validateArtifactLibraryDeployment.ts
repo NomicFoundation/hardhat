@@ -10,7 +10,7 @@ export async function validateArtifactLibraryDeployment(
   future: LibraryDeploymentFuture,
   _artifactLoader: ArtifactResolver,
   _deploymentParameters: DeploymentParameters,
-  accounts: string[]
+  accounts: string[],
 ): Promise<string[]> {
   const errors: IgnitionError[] = [];
 
@@ -21,7 +21,7 @@ export async function validateArtifactLibraryDeployment(
   }
 
   errors.push(
-    ...validateLibraryNames(future.artifact, Object.keys(future.libraries))
+    ...validateLibraryNames(future.artifact, Object.keys(future.libraries)),
   );
 
   return errors.map((e) => e.message);

@@ -33,7 +33,7 @@ describe("abi", () => {
     function getDecodedResults(
       artifact: Artifact,
       functionName: string,
-      args: SolidityParameterType[]
+      args: SolidityParameterType[],
     ) {
       const encoded = encodeArtifactFunctionCall(artifact, functionName, args);
 
@@ -42,7 +42,7 @@ describe("abi", () => {
       const decodeResult = decodeArtifactFunctionCallResult(
         artifact,
         functionName,
-        `0x${encoded.substring(10)}` // Remove the selector
+        `0x${encoded.substring(10)}`, // Remove the selector
       );
 
       assert(decodeResult.type === EvmExecutionResultTypes.SUCESSFUL_RESULT);
@@ -55,7 +55,7 @@ describe("abi", () => {
       const decoded = getDecodedResults(
         callEncodingFixtures.ToTestEthersEncodingConversion,
         "numberTypes",
-        args
+        args,
       );
 
       assert.deepEqual(decoded, {
@@ -70,7 +70,7 @@ describe("abi", () => {
       const decoded = getDecodedResults(
         callEncodingFixtures.ToTestEthersEncodingConversion,
         "booleans",
-        args
+        args,
       );
 
       assert.deepEqual(decoded, {
@@ -85,7 +85,7 @@ describe("abi", () => {
       const decoded = getDecodedResults(
         callEncodingFixtures.ToTestEthersEncodingConversion,
         "byteArrays",
-        args
+        args,
       );
 
       assert.deepEqual(decoded, {
@@ -100,7 +100,7 @@ describe("abi", () => {
       const decoded = getDecodedResults(
         callEncodingFixtures.ToTestEthersEncodingConversion,
         "strings",
-        args
+        args,
       );
 
       assert.deepEqual(decoded, {
@@ -115,7 +115,7 @@ describe("abi", () => {
       const decoded = getDecodedResults(
         callEncodingFixtures.ToTestEthersEncodingConversion,
         "addresses",
-        args
+        args,
       );
 
       assert.deepEqual(decoded, {
@@ -134,7 +134,7 @@ describe("abi", () => {
       const decoded = getDecodedResults(
         callEncodingFixtures.ToTestEthersEncodingConversion,
         "arrays",
-        args
+        args,
       );
 
       assert.deepEqual(decoded, {
@@ -149,7 +149,7 @@ describe("abi", () => {
       const decoded = getDecodedResults(
         callEncodingFixtures.ToTestEthersEncodingConversion,
         "structs",
-        args
+        args,
       );
 
       assert.deepEqual(decoded, {
@@ -171,7 +171,7 @@ describe("abi", () => {
       const decoded = getDecodedResults(
         callEncodingFixtures.ToTestEthersEncodingConversion,
         "tuple",
-        args
+        args,
       );
 
       assert.deepEqual(decoded, {
@@ -188,7 +188,7 @@ describe("abi", () => {
       const decoded = getDecodedResults(
         callEncodingFixtures.ToTestEthersEncodingConversion,
         "recursiveApplication",
-        args
+        args,
       );
 
       assert.deepEqual(decoded, {
@@ -225,21 +225,21 @@ describe("abi", () => {
     function decodeResult(contractName: string, functionName: string) {
       assert.isDefined(
         staticCallResultFixturesArtifacts[contractName],
-        `No artifact for ${contractName}`
+        `No artifact for ${contractName}`,
       );
       assert.isDefined(
         staticCallResultFixtures[contractName],
-        `No fixtures for ${contractName}`
+        `No fixtures for ${contractName}`,
       );
       assert.isDefined(
         staticCallResultFixtures[contractName][functionName],
-        `No fixtures for ${contractName}.${functionName}`
+        `No fixtures for ${contractName}.${functionName}`,
       );
 
       const decoded = decodeArtifactFunctionCallResult(
         staticCallResultFixturesArtifacts[contractName],
         functionName,
-        staticCallResultFixtures[contractName][functionName].returnData
+        staticCallResultFixtures[contractName][functionName].returnData,
       );
 
       return {
@@ -397,7 +397,7 @@ describe("abi", () => {
       const decodeResult = decodeArtifactFunctionCallResult(
         artifact,
         "foo",
-        `0x${encoded.substring(10)}` // Remove the selector
+        `0x${encoded.substring(10)}`, // Remove the selector
       );
 
       assert(decodeResult.type === EvmExecutionResultTypes.SUCESSFUL_RESULT);
@@ -430,7 +430,7 @@ describe("abi", () => {
 
       const decoded = decodeArtifactCustomError(
         artifact,
-        staticCallResultFixtures.C.revertWithCustomError.returnData
+        staticCallResultFixtures.C.revertWithCustomError.returnData,
       );
 
       assert.deepEqual(decoded, {
@@ -450,7 +450,7 @@ describe("abi", () => {
 
       const decoded = decodeArtifactCustomError(
         artifact,
-        staticCallResultFixtures.C.revertWithInvalidCustomError.returnData
+        staticCallResultFixtures.C.revertWithInvalidCustomError.returnData,
       );
 
       assert.deepEqual(decoded, {
@@ -465,7 +465,7 @@ describe("abi", () => {
 
       const decoded = decodeArtifactCustomError(
         artifact,
-        staticCallResultFixtures.C.revertWithUnknownCustomError.returnData
+        staticCallResultFixtures.C.revertWithUnknownCustomError.returnData,
       );
 
       assert.isUndefined(decoded);
@@ -475,7 +475,7 @@ describe("abi", () => {
   describe("Error decoding", () => {
     function decode(
       contractName: keyof typeof staticCallResultFixtures,
-      functionName: keyof (typeof staticCallResultFixtures)[typeof contractName]
+      functionName: keyof (typeof staticCallResultFixtures)[typeof contractName],
     ) {
       const decoded = decodeError(
         staticCallResultFixtures[contractName][functionName].returnData,
@@ -484,8 +484,8 @@ describe("abi", () => {
         (returnData) =>
           decodeArtifactCustomError(
             staticCallResultFixturesArtifacts[contractName],
-            returnData
-          )
+            returnData,
+          ),
       );
 
       return {
@@ -536,7 +536,7 @@ describe("abi", () => {
       it("should return RevertWithInvalidData if the revert reason signature is used incorrectlt", async () => {
         const { decoded, returnData } = decode(
           "C",
-          "revertWithInvalidErrorMessage"
+          "revertWithInvalidErrorMessage",
         );
         assert.deepEqual(decoded, {
           type: EvmExecutionResultTypes.REVERT_WITH_INVALID_DATA,
@@ -556,7 +556,7 @@ describe("abi", () => {
       it("should return RevertWithInvalidData if the panic code signature is used incorrectly", async () => {
         const { decoded, returnData } = decode(
           "C",
-          "revertWithInvalidErrorMessage"
+          "revertWithInvalidErrorMessage",
         );
         assert.deepEqual(decoded, {
           type: EvmExecutionResultTypes.REVERT_WITH_INVALID_DATA,
@@ -567,7 +567,7 @@ describe("abi", () => {
       it("should return RevertWithInvalidData if the panic code signature is used correctly but with a non-existing invalid code", async () => {
         const { decoded, returnData } = decode(
           "C",
-          "revertWithNonExistentPanicCode"
+          "revertWithNonExistentPanicCode",
         );
         assert.deepEqual(decoded, {
           type: EvmExecutionResultTypes.REVERT_WITH_INVALID_DATA,
@@ -592,7 +592,7 @@ describe("abi", () => {
       it("should return RevertWithInvalidData if the custom error signature is used incorrectly", async () => {
         const { decoded, returnData } = decode(
           "C",
-          "revertWithInvalidCustomError"
+          "revertWithInvalidCustomError",
         );
         assert.deepEqual(decoded, {
           type: EvmExecutionResultTypes.REVERT_WITH_INVALID_DATA,
@@ -603,7 +603,7 @@ describe("abi", () => {
       it("should return RevertWithUnknownCustomError if the JSON-RPC errors with a message indicating that there was a custom error", async () => {
         const { decoded, returnData } = decode(
           "C",
-          "revertWithUnknownCustomError"
+          "revertWithUnknownCustomError",
         );
         assert.deepEqual(decoded, {
           type: EvmExecutionResultTypes.REVERT_WITH_UNKNOWN_CUSTOM_ERROR,
@@ -649,17 +649,17 @@ describe("abi", () => {
         assertValidationError(
           validateArtifactFunctionName(
             callEncodingFixtures.FunctionNameValidation,
-            "12"
+            "12",
           ).map((e) => e.message),
-          `Invalid function name '12'`
+          `Invalid function name '12'`,
         );
 
         assertValidationError(
           validateArtifactFunctionName(
             callEncodingFixtures.FunctionNameValidation,
-            "asd(123, asd"
+            "asd(123, asd",
           ).map((e) => e.message),
-          `Invalid function name 'asd(123, asd'`
+          `Invalid function name 'asd(123, asd'`,
         );
       });
 
@@ -667,17 +667,17 @@ describe("abi", () => {
         assertValidationError(
           validateArtifactFunctionName(
             callEncodingFixtures.FunctionNameValidation,
-            "nonExistentFunction"
+            "nonExistentFunction",
           ).map((e) => e.message),
-          `Function 'nonExistentFunction' not found in contract FunctionNameValidation`
+          `Function 'nonExistentFunction' not found in contract FunctionNameValidation`,
         );
 
         assertValidationError(
           validateArtifactFunctionName(
             callEncodingFixtures.FunctionNameValidation,
-            "nonExistentFunction2(uint,bytes32)"
+            "nonExistentFunction2(uint,bytes32)",
           ).map((e) => e.message),
-          `Function 'nonExistentFunction2(uint,bytes32)' not found in contract FunctionNameValidation`
+          `Function 'nonExistentFunction2(uint,bytes32)' not found in contract FunctionNameValidation`,
         );
       });
 
@@ -685,17 +685,17 @@ describe("abi", () => {
         it("Should not throw if the bare function name is used and the function exists", () => {
           validateArtifactFunctionName(
             callEncodingFixtures.FunctionNameValidation,
-            "noOverloads"
+            "noOverloads",
           );
 
           validateArtifactFunctionName(
             callEncodingFixtures.FunctionNameValidation,
-            "_$_weirdName"
+            "_$_weirdName",
           );
 
           validateArtifactFunctionName(
             callEncodingFixtures.FunctionNameValidation,
-            "$_weirdName2"
+            "$_weirdName2",
           );
         });
 
@@ -703,9 +703,9 @@ describe("abi", () => {
           assertValidationError(
             validateArtifactFunctionName(
               callEncodingFixtures.FunctionNameValidation,
-              "noOverloads()"
+              "noOverloads()",
             ).map((e) => e.message),
-            `Function name 'noOverloads()' used for contract FunctionNameValidation, but it's not overloaded. Use 'noOverloads' instead.`
+            `Function name 'noOverloads()' used for contract FunctionNameValidation, but it's not overloaded. Use 'noOverloads' instead.`,
           );
         });
       });
@@ -715,23 +715,23 @@ describe("abi", () => {
           assertValidationError(
             validateArtifactFunctionName(
               callEncodingFixtures.FunctionNameValidation,
-              "withTypeBasedOverloads"
+              "withTypeBasedOverloads",
             ).map((e) => e.message),
             `Function 'withTypeBasedOverloads' is overloaded in contract FunctionNameValidation. Please use one of these names instead:
 
 * withTypeBasedOverloads(uint256)
-* withTypeBasedOverloads(int256)`
+* withTypeBasedOverloads(int256)`,
           );
 
           assertValidationError(
             validateArtifactFunctionName(
               callEncodingFixtures.FunctionNameValidation,
-              "withParamCountOverloads"
+              "withParamCountOverloads",
             ).map((e) => e.message),
             `Function 'withParamCountOverloads' is overloaded in contract FunctionNameValidation. Please use one of these names instead:
 
 * withParamCountOverloads()
-* withParamCountOverloads(int256)`
+* withParamCountOverloads(int256)`,
           );
         });
 
@@ -739,40 +739,40 @@ describe("abi", () => {
           assertValidationError(
             validateArtifactFunctionName(
               callEncodingFixtures.FunctionNameValidation,
-              "withTypeBasedOverloads(bool)"
+              "withTypeBasedOverloads(bool)",
             ).map((e) => e.message),
             `Function 'withTypeBasedOverloads(bool)' is not a valid overload of 'withTypeBasedOverloads' in contract FunctionNameValidation. Please use one of these names instead:
 
 * withTypeBasedOverloads(uint256)
-* withTypeBasedOverloads(int256)`
+* withTypeBasedOverloads(int256)`,
           );
 
           assertValidationError(
             validateArtifactFunctionName(
               callEncodingFixtures.FunctionNameValidation,
-              "withParamCountOverloads(bool)"
+              "withParamCountOverloads(bool)",
             ).map((e) => e.message),
             `Function 'withParamCountOverloads(bool)' is not a valid overload of 'withParamCountOverloads' in contract FunctionNameValidation. Please use one of these names instead:
 
 * withParamCountOverloads()
-* withParamCountOverloads(int256)`
+* withParamCountOverloads(int256)`,
           );
         });
 
         it("Should not throw if the overload described by the function name exists", () => {
           validateArtifactFunctionName(
             callEncodingFixtures.FunctionNameValidation,
-            "withTypeBasedOverloads(uint256)"
+            "withTypeBasedOverloads(uint256)",
           );
 
           validateArtifactFunctionName(
             callEncodingFixtures.FunctionNameValidation,
-            "withParamCountOverloads(int256)"
+            "withParamCountOverloads(int256)",
           );
 
           validateArtifactFunctionName(
             callEncodingFixtures.FunctionNameValidation,
-            "complexTypeOverload((uint256,uint32,string)[])"
+            "complexTypeOverload((uint256,uint32,string)[])",
           );
         });
       });

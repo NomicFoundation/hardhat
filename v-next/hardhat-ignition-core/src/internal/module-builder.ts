@@ -104,17 +104,17 @@ export class ModuleConstructor {
   private _modules: Map<string, IgnitionModule> = new Map();
 
   constructor(
-    public readonly parameters: { [moduleId: string]: ModuleParameters } = {}
+    public readonly parameters: { [moduleId: string]: ModuleParameters } = {},
   ) {}
 
   public construct<
     ModuleIdT extends string,
     ContractNameT extends string,
-    IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>
+    IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>,
   >(moduleDefintion: {
     id: ModuleIdT;
     moduleDefintionFunction: (
-      m: IgnitionModuleBuilder
+      m: IgnitionModuleBuilder,
     ) => IgnitionModuleResultsT;
   }): IgnitionModule<ModuleIdT, ContractNameT, IgnitionModuleResultsT> {
     const cachedModule = this._modules.get(moduleDefintion.id);
@@ -135,8 +135,8 @@ export class ModuleConstructor {
       new IgnitionModuleBuilderImplementation(
         this,
         mod,
-        this.parameters[moduleDefintion.id]
-      )
+        this.parameters[moduleDefintion.id],
+      ),
     );
 
     if ((mod as any).results instanceof Promise) {
@@ -154,7 +154,7 @@ export class ModuleConstructor {
 class IgnitionModuleBuilderImplementation<
   ModuleIdT extends string,
   ResultsContractNameT extends string,
-  IgnitionModuleResultsT extends IgnitionModuleResult<ResultsContractNameT>
+  IgnitionModuleResultsT extends IgnitionModuleResult<ResultsContractNameT>,
 > implements IgnitionModuleBuilder
 {
   private _futureIds: Set<string>;
@@ -166,7 +166,7 @@ class IgnitionModuleBuilderImplementation<
       ResultsContractNameT,
       IgnitionModuleResultsT
     >,
-    public readonly parameters: ModuleParameters = {}
+    public readonly parameters: ModuleParameters = {},
   ) {
     this._futureIds = new Set<string>();
   }
@@ -175,7 +175,7 @@ class IgnitionModuleBuilderImplementation<
     if (typeof accountIndex !== "number") {
       this._throwErrorWithStackTrace(
         `Account index must be a number, received ${typeof accountIndex}`,
-        this.getAccount
+        this.getAccount,
       );
     }
 
@@ -184,45 +184,45 @@ class IgnitionModuleBuilderImplementation<
 
   public getParameter<ParamTypeT extends ModuleParameterType = any>(
     parameterName: string,
-    defaultValue?: ParamTypeT
+    defaultValue?: ParamTypeT,
   ): ModuleParameterRuntimeValue<ParamTypeT> {
     if (typeof parameterName !== "string") {
       this._throwErrorWithStackTrace(
         `Parameter name must be a string, received ${typeof parameterName}`,
-        this.getParameter
+        this.getParameter,
       );
     }
 
     return new ModuleParameterRuntimeValueImplementation(
       this._module.id,
       parameterName,
-      defaultValue
+      defaultValue,
     );
   }
 
   public contract<ContractNameT extends string>(
     contractName: ContractNameT,
     args?: ArgumentType[],
-    options?: ContractOptions
+    options?: ContractOptions,
   ): NamedArtifactContractDeploymentFuture<ContractNameT>;
   public contract(
     contractName: string,
     artifact: Artifact,
     args?: ArgumentType[],
-    options?: ContractOptions
+    options?: ContractOptions,
   ): ContractDeploymentFuture;
   public contract<ContractNameT extends string>(
     contractName: ContractNameT,
     artifactOrArgs?: Artifact | ArgumentType[],
     argsorOptions?: ArgumentType[] | ContractAtOptions,
-    maybeOptions?: ContractOptions
+    maybeOptions?: ContractOptions,
   ):
     | NamedArtifactContractDeploymentFuture<ContractNameT>
     | ContractDeploymentFuture {
     if (typeof contractName !== "string") {
       this._throwErrorWithStackTrace(
         `Contract name must be a string, received ${typeof contractName}`,
-        this.contract
+        this.contract,
       );
     }
 
@@ -230,21 +230,21 @@ class IgnitionModuleBuilderImplementation<
       if (Array.isArray(argsorOptions)) {
         this._throwErrorWithStackTrace(
           `Invalid parameter "options" provided to contract "${contractName}" in module "${this._module.id}"`,
-          this.contract
+          this.contract,
         );
       }
 
       return this._namedArtifactContract(
         contractName,
         artifactOrArgs,
-        argsorOptions
+        argsorOptions,
       );
     }
 
     if (argsorOptions !== undefined && !Array.isArray(argsorOptions)) {
       this._throwErrorWithStackTrace(
         `Invalid parameter "args" provided to contract "${contractName}" in module "${this._module.id}"`,
-        this.contract
+        this.contract,
       );
     }
 
@@ -252,19 +252,19 @@ class IgnitionModuleBuilderImplementation<
       contractName,
       artifactOrArgs,
       argsorOptions,
-      maybeOptions
+      maybeOptions,
     );
   }
 
   private _namedArtifactContract<ContractNameT extends string>(
     contractName: ContractNameT,
     args: ArgumentType[] = [],
-    options: ContractOptions = {}
+    options: ContractOptions = {},
   ): NamedArtifactContractDeploymentFuture<ContractNameT> {
     const futureId = toContractFutureId(
       this._module.id,
       options.id,
-      contractName
+      contractName,
     );
 
     options.libraries ??= {};
@@ -286,7 +286,7 @@ class IgnitionModuleBuilderImplementation<
       args,
       options.libraries,
       options.value,
-      options.from
+      options.from,
     );
 
     if (isFuture(options.value)) {
@@ -319,12 +319,12 @@ class IgnitionModuleBuilderImplementation<
     contractName: string,
     artifact: Artifact,
     args: ArgumentType[] = [],
-    options: ContractOptions = {}
+    options: ContractOptions = {},
   ): ContractDeploymentFuture {
     const futureId = toContractFutureId(
       this._module.id,
       options.id,
-      contractName
+      contractName,
     );
     options.libraries ??= {};
     options.value ??= BigInt(0);
@@ -347,7 +347,7 @@ class IgnitionModuleBuilderImplementation<
       artifact,
       options.libraries,
       options.value,
-      options.from
+      options.from,
     );
 
     if (isFuture(options.value)) {
@@ -378,22 +378,22 @@ class IgnitionModuleBuilderImplementation<
 
   public library<LibraryNameT extends string>(
     libraryName: LibraryNameT,
-    options?: LibraryOptions
+    options?: LibraryOptions,
   ): NamedArtifactLibraryDeploymentFuture<LibraryNameT>;
   public library(
     libraryName: string,
     artifact: Artifact,
-    options?: LibraryOptions
+    options?: LibraryOptions,
   ): LibraryDeploymentFuture;
   public library<LibraryNameT extends string>(
     libraryName: LibraryNameT,
     artifactOrOptions?: Artifact | LibraryOptions,
-    options?: LibraryOptions
+    options?: LibraryOptions,
   ) {
     if (typeof libraryName !== "string") {
       this._throwErrorWithStackTrace(
         `Library name must be a string, received ${typeof libraryName}`,
-        this.library
+        this.library,
       );
     }
 
@@ -406,12 +406,12 @@ class IgnitionModuleBuilderImplementation<
 
   private _namedArtifactLibrary<LibraryNameT extends string>(
     libraryName: LibraryNameT,
-    options: LibraryOptions = {}
+    options: LibraryOptions = {},
   ): NamedArtifactLibraryDeploymentFuture<LibraryNameT> {
     const futureId = toContractFutureId(
       this._module.id,
       options.id,
-      libraryName
+      libraryName,
     );
 
     options.libraries ??= {};
@@ -429,7 +429,7 @@ class IgnitionModuleBuilderImplementation<
       this._module,
       libraryName,
       options.libraries,
-      options.from
+      options.from,
     );
 
     for (const afterFuture of options.after ?? []) {
@@ -453,12 +453,12 @@ class IgnitionModuleBuilderImplementation<
   private _libraryFromArtifact(
     libraryName: string,
     artifact: Artifact,
-    options: LibraryOptions = {}
+    options: LibraryOptions = {},
   ): LibraryDeploymentFuture {
     const futureId = toContractFutureId(
       this._module.id,
       options.id,
-      libraryName
+      libraryName,
     );
     options.libraries ??= {};
 
@@ -477,7 +477,7 @@ class IgnitionModuleBuilderImplementation<
       libraryName,
       artifact,
       options.libraries,
-      options.from
+      options.from,
     );
 
     for (const afterFuture of options.after ?? []) {
@@ -502,19 +502,19 @@ class IgnitionModuleBuilderImplementation<
     contractFuture: CallableContractFuture<ContractNameT>,
     functionName: FunctionNameT,
     args: ArgumentType[] = [],
-    options: CallOptions = {}
+    options: CallOptions = {},
   ): ContractCallFuture<ContractNameT, FunctionNameT> {
     if (!Array.isArray(args)) {
       this._throwErrorWithStackTrace(
         `Invalid parameter "args" provided to call "${functionName}" in module "${this._module.id}"`,
-        this.call
+        this.call,
       );
     }
 
     if (typeof options !== "object") {
       this._throwErrorWithStackTrace(
         `Invalid parameter "options" provided to call "${functionName}" in module "${this._module.id}"`,
-        this.call
+        this.call,
       );
     }
 
@@ -523,7 +523,7 @@ class IgnitionModuleBuilderImplementation<
       options.id,
       contractFuture.module.id,
       contractFuture.id,
-      functionName
+      functionName,
     );
 
     options.value ??= BigInt(0);
@@ -544,7 +544,7 @@ class IgnitionModuleBuilderImplementation<
       contractFuture,
       args,
       options.value,
-      options.from
+      options.from,
     );
 
     future.dependencies.add(contractFuture);
@@ -576,19 +576,19 @@ class IgnitionModuleBuilderImplementation<
     functionName: FunctionNameT,
     args: ArgumentType[] = [],
     nameOrIndex: string | number = 0,
-    options: StaticCallOptions = {}
+    options: StaticCallOptions = {},
   ): StaticCallFuture<ContractNameT, FunctionNameT> {
     if (!Array.isArray(args)) {
       this._throwErrorWithStackTrace(
         `Invalid parameter "args" provided to staticCall "${functionName}" in module "${this._module.id}"`,
-        this.staticCall
+        this.staticCall,
       );
     }
 
     if (typeof options !== "object") {
       this._throwErrorWithStackTrace(
         `Invalid parameter "options" provided to staticCall "${functionName}" in module "${this._module.id}"`,
-        this.staticCall
+        this.staticCall,
       );
     }
 
@@ -597,7 +597,7 @@ class IgnitionModuleBuilderImplementation<
       options.id,
       contractFuture.module.id,
       contractFuture.id,
-      functionName
+      functionName,
     );
 
     /* validation start */
@@ -616,7 +616,7 @@ class IgnitionModuleBuilderImplementation<
       contractFuture,
       args,
       nameOrIndex,
-      options.from
+      options.from,
     );
 
     future.dependencies.add(contractFuture);
@@ -641,24 +641,24 @@ class IgnitionModuleBuilderImplementation<
 
   public encodeFunctionCall<
     ContractNameT extends string,
-    FunctionNameT extends string
+    FunctionNameT extends string,
   >(
     contractFuture: CallableContractFuture<ContractNameT>,
     functionName: FunctionNameT,
     args: ArgumentType[] = [],
-    options: EncodeFunctionCallOptions = {}
+    options: EncodeFunctionCallOptions = {},
   ): EncodeFunctionCallFuture<ContractNameT, FunctionNameT> {
     if (!Array.isArray(args)) {
       this._throwErrorWithStackTrace(
         `Invalid parameter "args" provided to encodeFunctionCall "${functionName}" in module "${this._module.id}"`,
-        this.encodeFunctionCall
+        this.encodeFunctionCall,
       );
     }
 
     if (typeof options !== "object") {
       this._throwErrorWithStackTrace(
         `Invalid parameter "options" provided to encodeFunctionCall "${functionName}" in module "${this._module.id}"`,
-        this.encodeFunctionCall
+        this.encodeFunctionCall,
       );
     }
 
@@ -667,7 +667,7 @@ class IgnitionModuleBuilderImplementation<
       options.id,
       contractFuture.module.id,
       contractFuture.id,
-      functionName
+      functionName,
     );
 
     /* validation start */
@@ -682,7 +682,7 @@ class IgnitionModuleBuilderImplementation<
       this._module,
       functionName,
       contractFuture,
-      args
+      args,
     );
 
     future.dependencies.add(contractFuture);
@@ -711,7 +711,7 @@ class IgnitionModuleBuilderImplementation<
       | string
       | AddressResolvableFuture
       | ModuleParameterRuntimeValue<string>,
-    options?: ContractAtOptions
+    options?: ContractAtOptions,
   ): NamedArtifactContractAtFuture<ContractNameT>;
   public contractAt(
     contractName: string,
@@ -720,7 +720,7 @@ class IgnitionModuleBuilderImplementation<
       | string
       | AddressResolvableFuture
       | ModuleParameterRuntimeValue<string>,
-    options?: ContractAtOptions
+    options?: ContractAtOptions,
   ): ContractAtFuture;
   public contractAt<ContractNameT extends string>(
     contractName: ContractNameT,
@@ -734,12 +734,12 @@ class IgnitionModuleBuilderImplementation<
       | string
       | AddressResolvableFuture
       | ModuleParameterRuntimeValue<string>,
-    options?: ContractAtOptions
+    options?: ContractAtOptions,
   ) {
     if (typeof contractName !== "string") {
       this._throwErrorWithStackTrace(
         `Contract name must be a string, received ${typeof contractName}`,
-        this.contractAt
+        this.contractAt,
       );
     }
 
@@ -753,7 +753,7 @@ class IgnitionModuleBuilderImplementation<
       ) {
         this._throwErrorWithStackTrace(
           `Invalid parameter "address" provided to contractAt "${contractName}" in module "${this._module.id}"`,
-          this.contractAt
+          this.contractAt,
         );
       }
 
@@ -761,14 +761,14 @@ class IgnitionModuleBuilderImplementation<
         contractName,
         addressOrArtifact,
         optionsOrAddress,
-        options
+        options,
       );
     }
 
     return this._namedArtifactContractAt(
       contractName,
       addressOrArtifact,
-      optionsOrAddress as ContractAtOptions
+      optionsOrAddress as ContractAtOptions,
     );
   }
 
@@ -778,12 +778,12 @@ class IgnitionModuleBuilderImplementation<
       | string
       | AddressResolvableFuture
       | ModuleParameterRuntimeValue<string>,
-    options: ContractAtOptions = {}
+    options: ContractAtOptions = {},
   ): NamedArtifactContractAtFuture<ContractNameT> {
     const futureId = toContractFutureId(
       this._module.id,
       options.id,
-      contractName
+      contractName,
     );
 
     /* validation start */
@@ -797,7 +797,7 @@ class IgnitionModuleBuilderImplementation<
       futureId,
       this._module,
       contractName,
-      address
+      address,
     );
 
     for (const afterFuture of options.after ?? []) {
@@ -825,12 +825,12 @@ class IgnitionModuleBuilderImplementation<
       | string
       | AddressResolvableFuture
       | ModuleParameterRuntimeValue<string>,
-    options: ContractAtOptions = {}
+    options: ContractAtOptions = {},
   ): ContractAtFuture {
     const futureId = toContractFutureId(
       this._module.id,
       options.id,
-      contractName
+      contractName,
     );
 
     /* validation start */
@@ -846,7 +846,7 @@ class IgnitionModuleBuilderImplementation<
       this._module,
       contractName,
       address,
-      artifact
+      artifact,
     );
 
     for (const afterFuture of options.after ?? []) {
@@ -875,12 +875,12 @@ class IgnitionModuleBuilderImplementation<
       | ContractCallFuture<string, string>,
     eventName: string,
     nameOrIndex: string | number,
-    options: ReadEventArgumentOptions = {}
+    options: ReadEventArgumentOptions = {},
   ): ReadEventArgumentFuture {
     if (typeof options !== "object") {
       this._throwErrorWithStackTrace(
         `Invalid parameter "options" provided to readEventArgument "${eventName}" in module "${this._module.id}"`,
-        this.readEventArgument
+        this.readEventArgument,
       );
     }
 
@@ -908,7 +908,7 @@ class IgnitionModuleBuilderImplementation<
       emitter.contractName,
       eventName,
       nameOrIndex,
-      eventIndex
+      eventIndex,
     );
 
     /* validation start */
@@ -925,7 +925,7 @@ class IgnitionModuleBuilderImplementation<
       eventName,
       nameOrIndex,
       emitter,
-      eventIndex
+      eventIndex,
     );
 
     future.dependencies.add(futureToReadFrom);
@@ -948,12 +948,12 @@ class IgnitionModuleBuilderImplementation<
       | AccountRuntimeValue,
     value?: bigint | ModuleParameterRuntimeValue<bigint>,
     data?: string | EncodeFunctionCallFuture<string, string>,
-    options: SendDataOptions = {}
+    options: SendDataOptions = {},
   ): SendDataFuture {
     if (typeof options !== "object") {
       this._throwErrorWithStackTrace(
         `Invalid parameter "options" provided to send "${id}" in module "${this._module.id}"`,
-        this.send
+        this.send,
       );
     }
 
@@ -976,7 +976,7 @@ class IgnitionModuleBuilderImplementation<
       to,
       val,
       data,
-      options.from
+      options.from,
     );
 
     if (isFuture(to)) {
@@ -1004,17 +1004,18 @@ class IgnitionModuleBuilderImplementation<
   public useModule<
     SubmoduleModuleIdT extends string,
     SubmoduleContractNameT extends string,
-    SubmoduleIgnitionModuleResultsT extends IgnitionModuleResult<SubmoduleContractNameT>
+    SubmoduleIgnitionModuleResultsT extends
+      IgnitionModuleResult<SubmoduleContractNameT>,
   >(
     ignitionSubmodule: IgnitionModule<
       SubmoduleModuleIdT,
       SubmoduleContractNameT,
       SubmoduleIgnitionModuleResultsT
-    >
+    >,
   ): SubmoduleIgnitionModuleResultsT {
     assertIgnitionInvariant(
       ignitionSubmodule !== undefined,
-      "Trying to use `undefined` as submodule. Make sure you don't have a circular dependency of modules."
+      "Trying to use `undefined` as submodule. Make sure you don't have a circular dependency of modules.",
     );
 
     // Some things that should be done here:
@@ -1028,11 +1029,11 @@ class IgnitionModuleBuilderImplementation<
 
   private _throwErrorWithStackTrace(
     message: string,
-    func: (...[]: any[]) => any
+    func: (...[]: any[]) => any,
   ): never {
     const validationError = new IgnitionError(
       ERRORS.VALIDATION.INVALID_MODULE,
-      { message }
+      { message },
     );
 
     // Improve the stack trace to stop on module api level
@@ -1052,13 +1053,13 @@ class IgnitionModuleBuilderImplementation<
 
     this._throwErrorWithStackTrace(
       `The id "${id}" is invalid. Ids can only contain alphanumerics or underscores, and they must start with an alphanumeric character.`,
-      func
+      func,
     );
   }
 
   private _assertValidContractName(
     contractName: string,
-    func: (...[]: any[]) => any
+    func: (...[]: any[]) => any,
   ) {
     if (isValidContractName(contractName)) {
       return;
@@ -1066,13 +1067,13 @@ class IgnitionModuleBuilderImplementation<
 
     this._throwErrorWithStackTrace(
       `The contract name "${contractName}" is invalid.`,
-      func
+      func,
     );
   }
 
   private _assertValidEventName(
     eventName: string,
-    func: (...[]: any[]) => any
+    func: (...[]: any[]) => any,
   ) {
     if (isValidFunctionOrEventName(eventName)) {
       return;
@@ -1080,13 +1081,13 @@ class IgnitionModuleBuilderImplementation<
 
     this._throwErrorWithStackTrace(
       `The event name "${eventName}" is invalid, make sure you use a valid identifier.`,
-      func
+      func,
     );
   }
 
   private _assertValidFunctionName(
     functionName: string,
-    func: (...[]: any[]) => any
+    func: (...[]: any[]) => any,
   ) {
     if (isValidFunctionOrEventName(functionName)) {
       return;
@@ -1094,14 +1095,14 @@ class IgnitionModuleBuilderImplementation<
 
     this._throwErrorWithStackTrace(
       `The function name "${functionName}" is invalid, make sure you use a valid identifier.`,
-      func
+      func,
     );
   }
 
   private _assertUniqueFutureId(
     futureId: string,
     userProvidedId: string | undefined,
-    futureConstructor: (...[]: any[]) => any
+    futureConstructor: (...[]: any[]) => any,
   ) {
     if (!this._futureIds.has(futureId)) {
       return;
@@ -1110,7 +1111,7 @@ class IgnitionModuleBuilderImplementation<
     if (userProvidedId !== undefined) {
       this._throwErrorWithStackTrace(
         `The future id "${userProvidedId}" is already used, please provide a different one.`,
-        futureConstructor
+        futureConstructor,
       );
     }
 
@@ -1118,19 +1119,19 @@ class IgnitionModuleBuilderImplementation<
       `The autogenerated future id ("${futureId}") is already used. Please provide a unique id, as shown below:
 
 m.${futureConstructor.name}(..., { id: "MyUniqueId"})`,
-      futureConstructor
+      futureConstructor,
     );
   }
 
   private _assertValidLibraries(
     libraries: Record<string, ContractFuture<string>>,
-    func: (...[]: any[]) => any
+    func: (...[]: any[]) => any,
   ) {
     for (const [libraryName, libraryFuture] of Object.entries(libraries)) {
       if (!isContractFuture(libraryFuture)) {
         this._throwErrorWithStackTrace(
           `The value you provided for the library '${libraryName}' is not a valid Future or it doesn't represent a contract`,
-          func
+          func,
         );
       }
     }
@@ -1143,7 +1144,7 @@ m.${futureConstructor.name}(..., { id: "MyUniqueId"})`,
       | StaticCallFuture<string, string>
       | ReadEventArgumentFuture
       | any,
-    func: (...[]: any[]) => any
+    func: (...[]: any[]) => any,
   ) {
     if (
       !isReadEventArgumentFuture(value) &&
@@ -1153,14 +1154,14 @@ m.${futureConstructor.name}(..., { id: "MyUniqueId"})`,
     ) {
       this._throwErrorWithStackTrace(
         `Invalid option "value" received. It should be a bigint, a module parameter, or a value obtained from an event or static call.`,
-        func
+        func,
       );
     }
   }
 
   private _assertValidFrom(
     from: string | AccountRuntimeValue | undefined,
-    func: (...[]: any[]) => any
+    func: (...[]: any[]) => any,
   ) {
     if (
       !isAccountRuntimeValue(from) &&
@@ -1169,14 +1170,14 @@ m.${futureConstructor.name}(..., { id: "MyUniqueId"})`,
     ) {
       this._throwErrorWithStackTrace(
         `Invalid type for option "from": ${typeof from}`,
-        func
+        func,
       );
     }
   }
 
   private _assertValidArtifact(
     artifact: Artifact,
-    func: (...[]: any[]) => any
+    func: (...[]: any[]) => any,
   ) {
     if (isArtifactType(artifact)) {
       return;
@@ -1187,7 +1188,7 @@ m.${futureConstructor.name}(..., { id: "MyUniqueId"})`,
 
   private _assertValidCallableContract(
     contract: CallableContractFuture<string>,
-    func: (...[]: any[]) => any
+    func: (...[]: any[]) => any,
   ) {
     if (isCallableContractFuture(contract)) {
       return;
@@ -1198,7 +1199,7 @@ m.${futureConstructor.name}(..., { id: "MyUniqueId"})`,
 
   private _assertValidNameOrIndex(
     nameOrIndex: string | number,
-    func: (...[]: any[]) => any
+    func: (...[]: any[]) => any,
   ) {
     if (typeof nameOrIndex !== "string" && typeof nameOrIndex !== "number") {
       this._throwErrorWithStackTrace(`Invalid nameOrIndex given`, func);
@@ -1214,7 +1215,7 @@ m.${futureConstructor.name}(..., { id: "MyUniqueId"})`,
 
     this._throwErrorWithStackTrace(
       `The argument "${nameOrIndex}" is expected to have a valid name, but it's invalid.`,
-      func
+      func,
     );
   }
 
@@ -1224,7 +1225,7 @@ m.${futureConstructor.name}(..., { id: "MyUniqueId"})`,
       | AddressResolvableFuture
       | ModuleParameterRuntimeValue<string>
       | AccountRuntimeValue,
-    func: (...[]: any[]) => any
+    func: (...[]: any[]) => any,
   ) {
     if (typeof address === "string" && !isAddress(address)) {
       return this._throwErrorWithStackTrace(`Invalid address given`, func);
@@ -1242,7 +1243,7 @@ m.${futureConstructor.name}(..., { id: "MyUniqueId"})`,
 
   private _assertValidData(
     data: string | EncodeFunctionCallFuture<string, string> | undefined,
-    func: (...[]: any[]) => any
+    func: (...[]: any[]) => any,
   ) {
     if (
       typeof data !== "string" &&
@@ -1260,7 +1261,7 @@ m.${futureConstructor.name}(..., { id: "MyUniqueId"})`,
       | ModuleParameterRuntimeValue<string>
       | AccountRuntimeValue,
     from: string | AccountRuntimeValue | undefined,
-    func: (...[]: any[]) => any
+    func: (...[]: any[]) => any,
   ) {
     if (
       typeof to === "string" &&
@@ -1269,7 +1270,7 @@ m.${futureConstructor.name}(..., { id: "MyUniqueId"})`,
     ) {
       this._throwErrorWithStackTrace(
         `The "to" and "from" addresses are the same`,
-        func
+        func,
       );
     } else if (
       isAccountRuntimeValue(to) &&
@@ -1278,7 +1279,7 @@ m.${futureConstructor.name}(..., { id: "MyUniqueId"})`,
     ) {
       this._throwErrorWithStackTrace(
         `The "to" and "from" addresses are the same`,
-        func
+        func,
       );
     }
   }

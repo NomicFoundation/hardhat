@@ -8,11 +8,11 @@ import { ReconciliationContext, ReconciliationFutureResult } from "../types";
 export function reconcileReadEventArgument(
   future: ReadEventArgumentFuture,
   executionState: ReadEventArgumentExecutionState,
-  context: ReconciliationContext
+  context: ReconciliationContext,
 ): ReconciliationFutureResult {
   const resolvedAddress = resolveAddressForContractFuture(
     future.emitter,
-    context.deploymentState
+    context.deploymentState,
   );
 
   let result = compare(
@@ -20,7 +20,7 @@ export function reconcileReadEventArgument(
     "Emitter",
     executionState.emitterAddress,
     resolvedAddress,
-    ` (future ${future.emitter.id})`
+    ` (future ${future.emitter.id})`,
   );
   if (result !== undefined) {
     return result;
@@ -30,7 +30,7 @@ export function reconcileReadEventArgument(
     future,
     "Event name",
     executionState.eventName,
-    future.eventName
+    future.eventName,
   );
   if (result !== undefined) {
     return result;
@@ -40,7 +40,7 @@ export function reconcileReadEventArgument(
     future,
     "Event index",
     executionState.eventIndex,
-    future.eventIndex
+    future.eventIndex,
   );
   if (result !== undefined) {
     return result;
@@ -50,7 +50,7 @@ export function reconcileReadEventArgument(
     future,
     "Argument name or index",
     executionState.nameOrIndex,
-    future.nameOrIndex
+    future.nameOrIndex,
   );
   if (result !== undefined) {
     return result;

@@ -14,12 +14,12 @@ export function logJournalableMessage(message: JournalMessage): void {
 
     case JournalMessageType.WIPE_APPLY: {
       console.log(
-        `Removing the execution of future ${message.futureId} from the journal`
+        `Removing the execution of future ${message.futureId} from the journal`,
       );
     }
     case JournalMessageType.DEPLOYMENT_EXECUTION_STATE_INITIALIZE:
       console.log(
-        `Starting to execute the deployment future ${message.futureId}`
+        `Starting to execute the deployment future ${message.futureId}`,
       );
       break;
 
@@ -29,13 +29,13 @@ export function logJournalableMessage(message: JournalMessage): void {
 
     case JournalMessageType.STATIC_CALL_EXECUTION_STATE_INITIALIZE:
       console.log(
-        `Starting to execute the static call future ${message.futureId}`
+        `Starting to execute the static call future ${message.futureId}`,
       );
       break;
 
     case JournalMessageType.SEND_DATA_EXECUTION_STATE_INITIALIZE:
       console.log(
-        `Started to execute the send data future ${message.futureId}`
+        `Started to execute the send data future ${message.futureId}`,
       );
       break;
 
@@ -44,7 +44,7 @@ export function logJournalableMessage(message: JournalMessage): void {
         console.log(
           `Successfully completed the execution of static call future ${
             message.futureId
-          } with result ${formatSolidityParameter(message.result.value)}`
+          } with result ${formatSolidityParameter(message.result.value)}`,
         );
       } else {
         console.log(`Execution of future ${message.futureId} failed`);
@@ -54,7 +54,7 @@ export function logJournalableMessage(message: JournalMessage): void {
     case JournalMessageType.DEPLOYMENT_EXECUTION_STATE_COMPLETE:
       if (message.result.type === ExecutionResultType.SUCCESS) {
         console.log(
-          `Successfully completed the execution of deployment future ${message.futureId} with result ${message.result.address}`
+          `Successfully completed the execution of deployment future ${message.futureId} with result ${message.result.address}`,
         );
       } else {
         console.log(`Execution of future ${message.futureId} failed`);
@@ -64,7 +64,7 @@ export function logJournalableMessage(message: JournalMessage): void {
     case JournalMessageType.CALL_EXECUTION_STATE_COMPLETE:
       if (message.result.type === ExecutionResultType.SUCCESS) {
         console.log(
-          `Successfully completed the execution of call future ${message.futureId}`
+          `Successfully completed the execution of call future ${message.futureId}`,
         );
       } else {
         console.log(`Execution of future ${message.futureId} failed`);
@@ -74,7 +74,7 @@ export function logJournalableMessage(message: JournalMessage): void {
     case JournalMessageType.SEND_DATA_EXECUTION_STATE_COMPLETE:
       if (message.result.type === ExecutionResultType.SUCCESS) {
         console.log(
-          `Successfully completed the execution of send data future ${message.futureId}`
+          `Successfully completed the execution of send data future ${message.futureId}`,
         );
       } else {
         console.log(`Execution of future ${message.futureId} failed`);
@@ -89,13 +89,13 @@ export function logJournalableMessage(message: JournalMessage): void {
       console.log(
         `Executed read event argument future ${
           message.futureId
-        } with result ${formatSolidityParameter(message.result)}`
+        } with result ${formatSolidityParameter(message.result)}`,
       );
       break;
 
     case JournalMessageType.ENCODE_FUNCTION_CALL_EXECUTION_STATE_INITIALIZE:
       console.log(
-        `Executed encode function call future ${message.futureId} with result ${message.result}`
+        `Executed encode function call future ${message.futureId} with result ${message.result}`,
       );
       break;
 
@@ -105,18 +105,18 @@ export function logJournalableMessage(message: JournalMessage): void {
         NetworkInteractionType.ONCHAIN_INTERACTION
       ) {
         console.log(
-          `New onchain interaction ${message.networkInteraction.id} requested for future ${message.futureId}`
+          `New onchain interaction ${message.networkInteraction.id} requested for future ${message.futureId}`,
         );
       } else {
         console.log(
-          `New static call ${message.networkInteraction.id} requested for future ${message.futureId}`
+          `New static call ${message.networkInteraction.id} requested for future ${message.futureId}`,
         );
       }
       break;
 
     case JournalMessageType.TRANSACTION_SEND:
       console.log(
-        `Transaction ${message.transaction.hash} sent for onchain interaction ${message.networkInteractionId} of future ${message.futureId}`
+        `Transaction ${message.transaction.hash} sent for onchain interaction ${message.networkInteractionId} of future ${message.futureId}`,
       );
       break;
 
@@ -126,31 +126,31 @@ export function logJournalableMessage(message: JournalMessage): void {
 
     case JournalMessageType.STATIC_CALL_COMPLETE:
       console.log(
-        `Static call ${message.networkInteractionId} completed for future ${message.futureId}`
+        `Static call ${message.networkInteractionId} completed for future ${message.futureId}`,
       );
       break;
 
     case JournalMessageType.ONCHAIN_INTERACTION_BUMP_FEES:
       console.log(
-        `A transaction with higher fees will be sent for onchain interaction ${message.networkInteractionId} of future ${message.futureId}`
+        `A transaction with higher fees will be sent for onchain interaction ${message.networkInteractionId} of future ${message.futureId}`,
       );
       break;
 
     case JournalMessageType.ONCHAIN_INTERACTION_DROPPED:
       console.log(
-        `Transactions for onchain interaction ${message.networkInteractionId} of future ${message.futureId} has been dropped and will be resent`
+        `Transactions for onchain interaction ${message.networkInteractionId} of future ${message.futureId} has been dropped and will be resent`,
       );
       break;
 
     case JournalMessageType.ONCHAIN_INTERACTION_REPLACED_BY_USER:
       console.log(
-        `Transactions for onchain interaction ${message.networkInteractionId} of future ${message.futureId} has been replaced by the user and the onchain interaction exection will start again`
+        `Transactions for onchain interaction ${message.networkInteractionId} of future ${message.futureId} has been replaced by the user and the onchain interaction exection will start again`,
       );
       break;
 
     case JournalMessageType.ONCHAIN_INTERACTION_TIMEOUT:
       console.log(
-        `Onchain interaction ${message.networkInteractionId} of future ${message.futureId} failed due to being resent too many times and not having confirmed`
+        `Onchain interaction ${message.networkInteractionId} of future ${message.futureId} failed due to being resent too many times and not having confirmed`,
       );
       break;
   }

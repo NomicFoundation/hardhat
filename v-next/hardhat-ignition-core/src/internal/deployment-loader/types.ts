@@ -12,16 +12,16 @@ export interface DeploymentLoader {
   loadArtifact(artifactId: string): Promise<Artifact>;
   storeUserProvidedArtifact(
     futureId: string,
-    artifact: Artifact
+    artifact: Artifact,
   ): Promise<void>;
   storeNamedArtifact(
     futureId: string,
     contractName: string,
-    artifact: Artifact
+    artifact: Artifact,
   ): Promise<void>;
   storeBuildInfo(futureId: string, buildInfo: BuildInfo): Promise<void>;
   recordDeployedAddress(
     futureId: string,
-    contractAddress: string
+    contractAddress: string,
   ): Promise<void>;
 }

@@ -108,7 +108,7 @@ export type DeploymentFuture<ContractNameT extends string> =
  */
 export type FunctionCallFuture<
   ContractNameT extends string,
-  FunctionNameT extends string
+  FunctionNameT extends string,
 > =
   | ContractCallFuture<ContractNameT, FunctionNameT>
   | StaticCallFuture<ContractNameT, FunctionNameT>;
@@ -129,7 +129,7 @@ export type AddressResolvableFuture =
  * @beta
  */
 export interface NamedArtifactContractDeploymentFuture<
-  ContractNameT extends string
+  ContractNameT extends string,
 > {
   type: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT;
   id: string;
@@ -175,7 +175,7 @@ export interface ContractDeploymentFuture<AbiT extends Abi = Abi> {
  * @beta
  */
 export interface NamedArtifactLibraryDeploymentFuture<
-  LibraryNameT extends string
+  LibraryNameT extends string,
 > {
   type: FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT;
   id: string;
@@ -210,7 +210,7 @@ export interface LibraryDeploymentFuture<AbiT extends Abi = Abi> {
  */
 export interface ContractCallFuture<
   ContractNameT extends string,
-  FunctionNameT extends string
+  FunctionNameT extends string,
 > {
   type: FutureType.CONTRACT_CALL;
   id: string;
@@ -234,7 +234,7 @@ export interface ContractCallFuture<
  */
 export interface StaticCallFuture<
   ContractNameT extends string,
-  FunctionNameT extends string
+  FunctionNameT extends string,
 > {
   type: FutureType.STATIC_CALL;
   id: string;
@@ -254,7 +254,7 @@ export interface StaticCallFuture<
  */
 export interface EncodeFunctionCallFuture<
   ContractNameT extends string,
-  FunctionNameT extends string
+  FunctionNameT extends string,
 > {
   type: FutureType.ENCODE_FUNCTION_CALL;
   id: string;
@@ -402,7 +402,7 @@ export interface AccountRuntimeValue {
  * @beta
  */
 export interface ModuleParameterRuntimeValue<
-  ParamTypeT extends ModuleParameterType
+  ParamTypeT extends ModuleParameterType,
 > {
   type: RuntimeValueType.MODULE_PARAMETER;
   moduleId: string;
@@ -436,7 +436,8 @@ export interface IgnitionModuleResult<ContractNameT extends string> {
 export interface IgnitionModule<
   ModuleIdT extends string = string,
   ContractNameT extends string = string,
-  IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT> = IgnitionModuleResult<ContractNameT>
+  IgnitionModuleResultsT extends
+    IgnitionModuleResult<ContractNameT> = IgnitionModuleResult<ContractNameT>,
 > {
   id: ModuleIdT; // Unique id
   futures: Set<Future>; // Future created in this module — All of them have to be deployed before returning the results. Note that not all of them are in results

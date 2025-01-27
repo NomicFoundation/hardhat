@@ -50,7 +50,7 @@ export class FutureProcessor {
     private readonly _accounts: string[],
     private readonly _deploymentParameters: DeploymentParameters,
     private readonly _defaultSender: string,
-    private readonly _disableFeeBumping: boolean
+    private readonly _disableFeeBumping: boolean,
   ) {}
 
   /**
@@ -64,7 +64,7 @@ export class FutureProcessor {
    */
   public async processFuture(
     future: Future,
-    deploymentState: DeploymentState
+    deploymentState: DeploymentState,
   ): Promise<{ newState: DeploymentState }> {
     let exState = deploymentState.executionStates[future.id];
 
@@ -76,26 +76,26 @@ export class FutureProcessor {
         this._deploymentParameters,
         this._deploymentLoader,
         this._accounts,
-        this._defaultSender
+        this._defaultSender,
       );
 
       await saveArtifactsForFuture(
         future,
         this._artifactResolver,
-        this._deploymentLoader
+        this._deploymentLoader,
       );
 
       deploymentState = await applyNewMessage(
         initMessage,
         deploymentState,
-        this._deploymentLoader
+        this._deploymentLoader,
       );
 
       exState = deploymentState.executionStates[future.id];
 
       assertIgnitionInvariant(
         exState !== undefined,
-        `Invalid initialization message for future ${future.id}: it didn't create its execution state`
+        `Invalid initialization message for future ${future.id}: it didn't create its execution state`,
       );
 
       await this._recordDeployedAddressIfNeeded(initMessage);
@@ -108,7 +108,7 @@ export class FutureProcessor {
             ExecutionSateType.READ_EVENT_ARGUMENT_EXECUTION_STATE &&
           exState.type !==
             ExecutionSateType.ENCODE_FUNCTION_CALL_EXECUTION_STATE,
-        `Unexpected ExectutionState ${exState.id} with type ${exState.type} and status ${exState.status}: it should have been immediately completed`
+        `Unexpected ExectutionState ${exState.id} with type ${exState.type} and status ${exState.status}: it should have been immediately completed`,
       );
 
       const nextAction = nextActionExecutionState(exState);
@@ -124,7 +124,7 @@ export class FutureProcessor {
       deploymentState = await applyNewMessage(
         nextMessage,
         deploymentState,
-        this._deploymentLoader
+        this._deploymentLoader,
       );
 
       exState = deploymentState.executionStates[future.id];
@@ -142,7 +142,7 @@ export class FutureProcessor {
    * @param lastAppliedMessage The last message that was applied to the deployment state.
    */
   private async _recordDeployedAddressIfNeeded(
-    lastAppliedMessage: JournalMessage
+    lastAppliedMessage: JournalMessage,
   ) {
     if (
       lastAppliedMessage.type ===
@@ -151,7 +151,7 @@ export class FutureProcessor {
     ) {
       await this._deploymentLoader.recordDeployedAddress(
         lastAppliedMessage.futureId,
-        lastAppliedMessage.result.address
+        lastAppliedMessage.result.address,
       );
     } else if (
       lastAppliedMessage.type ===
@@ -159,7 +159,7 @@ export class FutureProcessor {
     ) {
       await this._deploymentLoader.recordDeployedAddress(
         lastAppliedMessage.futureId,
-        lastAppliedMessage.contractAddress
+        lastAppliedMessage.contractAddress,
       );
     }
   }
@@ -175,7 +175,7 @@ export class FutureProcessor {
       | CallExecutionState
       | SendDataExecutionState
       | StaticCallExecutionState,
-    nextAction: NextAction
+    nextAction: NextAction,
   ): Promise<JournalMessage | undefined> {
     switch (nextAction) {
       case NextAction.RUN_STRATEGY:
@@ -184,7 +184,7 @@ export class FutureProcessor {
       case NextAction.SEND_TRANSACTION:
         assertIgnitionInvariant(
           exState.type !== ExecutionSateType.STATIC_CALL_EXECUTION_STATE,
-          `Unexpected transaction request in StaticCallExecutionState ${exState.id}`
+          `Unexpected transaction request in StaticCallExecutionState ${exState.id}`,
         );
 
         return sendTransaction(
@@ -192,7 +192,7 @@ export class FutureProcessor {
           this._executionStrategy,
           this._jsonRpcClient,
           this._nonceManager,
-          this._transactionTrackingTimer
+          this._transactionTrackingTimer,
         );
 
       case NextAction.QUERY_STATIC_CALL:
@@ -201,7 +201,7 @@ export class FutureProcessor {
       case NextAction.MONITOR_ONCHAIN_INTERACTION:
         assertIgnitionInvariant(
           exState.type !== ExecutionSateType.STATIC_CALL_EXECUTION_STATE,
-          `Unexpected transaction request in StaticCallExecutionState ${exState.id}`
+          `Unexpected transaction request in StaticCallExecutionState ${exState.id}`,
         );
 
         return monitorOnchainInteraction(
@@ -212,7 +212,7 @@ export class FutureProcessor {
           this._millisecondBeforeBumpingFees,
           this._maxFeeBumps,
           undefined,
-          this._disableFeeBumping
+          this._disableFeeBumping,
         );
     }
   }

@@ -4,7 +4,7 @@ import { ReconciliationFutureResultFailure } from "./types";
 
 export function fail(
   future: Future,
-  failure: string
+  failure: string,
 ): ReconciliationFutureResultFailure {
   return {
     success: false,
@@ -44,7 +44,7 @@ export function getBytecodeWithoutMetadata(bytecode: string): string {
 
   const metadataPayload = bytecodeBuffer.slice(
     -metadataSectionLength,
-    -METADATA_LENGTH
+    -METADATA_LENGTH,
   );
 
   if (isValidMetadata(metadataPayload)) {

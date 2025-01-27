@@ -12,7 +12,7 @@ import { compare } from "./compare";
 export function reconcileData(
   future: SendDataFuture,
   exState: SendDataExecutionState,
-  context: ReconciliationContext
+  context: ReconciliationContext,
 ): ReconciliationFutureResultFailure | undefined {
   if (typeof future.data === "string" || future.data === undefined) {
     return compare(future, "Data", exState.data, future.data ?? "0x");
@@ -20,12 +20,12 @@ export function reconcileData(
 
   const newData = findResultForFutureById(
     context.deploymentState,
-    future.data.id
+    future.data.id,
   );
 
   assertIgnitionInvariant(
     typeof newData === "string",
-    "Expected data to be a string"
+    "Expected data to be a string",
   );
 
   return compare(future, "Data", exState.data, newData);

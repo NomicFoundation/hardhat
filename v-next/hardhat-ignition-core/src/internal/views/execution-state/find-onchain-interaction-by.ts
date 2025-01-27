@@ -16,20 +16,20 @@ export function findOnchainInteractionBy(
     | CallExecutionState
     | StaticCallExecutionState
     | SendDataExecutionState,
-  networkInteractionId: number
+  networkInteractionId: number,
 ): OnchainInteraction {
   const onchainInteraction = executionState.networkInteractions.find(
-    (interaction) => interaction.id === networkInteractionId
+    (interaction) => interaction.id === networkInteractionId,
   );
 
   assertIgnitionInvariant(
     onchainInteraction !== undefined,
-    `Expected network interaction ${executionState.id}/${networkInteractionId} to exist, but it did not`
+    `Expected network interaction ${executionState.id}/${networkInteractionId} to exist, but it did not`,
   );
 
   assertIgnitionInvariant(
     onchainInteraction.type === NetworkInteractionType.ONCHAIN_INTERACTION,
-    `Expected network interaction ${executionState.id}/${networkInteractionId} to be an onchain interaction, but instead it was ${onchainInteraction.type}`
+    `Expected network interaction ${executionState.id}/${networkInteractionId} to be an onchain interaction, but instead it was ${onchainInteraction.type}`,
   );
 
   return onchainInteraction;

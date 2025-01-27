@@ -178,14 +178,14 @@ describe("DeploymentStateReducer", () => {
         updatedStaticCallExState = findExecutionStateById(
           ExecutionSateType.CALL_EXECUTION_STATE,
           updatedDeploymentState,
-          "Call1"
+          "Call1",
         );
       });
 
       it("should populate a call execution state for the future", () => {
         assert.equal(
           updatedStaticCallExState.type,
-          ExecutionSateType.CALL_EXECUTION_STATE
+          ExecutionSateType.CALL_EXECUTION_STATE,
         );
       });
     });
@@ -200,7 +200,7 @@ describe("DeploymentStateReducer", () => {
         updatedStaticCallExState = findExecutionStateById(
           ExecutionSateType.CALL_EXECUTION_STATE,
           updatedDeploymentState,
-          "Call1"
+          "Call1",
         );
       });
 
@@ -213,7 +213,7 @@ describe("DeploymentStateReducer", () => {
         assertIgnitionInvariant(
           networkInteraction.type ===
             NetworkInteractionType.ONCHAIN_INTERACTION,
-          "Added Network interaction is of the wrong type "
+          "Added Network interaction is of the wrong type ",
         );
 
         const { transactions, shouldBeResent, nonce, ...rest } =
@@ -221,7 +221,7 @@ describe("DeploymentStateReducer", () => {
 
         assert.deepStrictEqual(
           rest,
-          requestNetworkInteractionMessage.networkInteraction
+          requestNetworkInteractionMessage.networkInteraction,
         );
         assert.isArray(transactions);
         assert.lengthOf(transactions, 0);
@@ -241,14 +241,14 @@ describe("DeploymentStateReducer", () => {
         updatedStaticCallExState = findExecutionStateById(
           ExecutionSateType.CALL_EXECUTION_STATE,
           updatedDeploymentState,
-          "Call1"
+          "Call1",
         );
       });
 
       it("should populate the transaction against the network interaction", () => {
         const networkInteraction = findOnchainInteractionBy(
           updatedStaticCallExState,
-          1
+          1,
         );
 
         assert.equal(networkInteraction.transactions.length, 1);
@@ -256,7 +256,7 @@ describe("DeploymentStateReducer", () => {
         const transaction = findTransactionBy(
           updatedStaticCallExState,
           1,
-          "0xdeadbeef"
+          "0xdeadbeef",
         );
 
         assert.deepStrictEqual(sendTransactionMessage.transaction, transaction);
@@ -276,7 +276,7 @@ describe("DeploymentStateReducer", () => {
         updatedStaticCallExState = findExecutionStateById(
           ExecutionSateType.CALL_EXECUTION_STATE,
           updatedDeploymentState,
-          "Call1"
+          "Call1",
         );
       });
 
@@ -284,19 +284,19 @@ describe("DeploymentStateReducer", () => {
         const transaction = findTransactionBy(
           updatedStaticCallExState,
           1,
-          "0xdeadbeef"
+          "0xdeadbeef",
         );
 
         assert.deepStrictEqual(
           transaction.receipt,
-          confirmTransactionMessage.receipt
+          confirmTransactionMessage.receipt,
         );
       });
 
       it("should clear all other transactions for the network interaction", () => {
         const networkInteraction = findOnchainInteractionBy(
           updatedStaticCallExState,
-          1
+          1,
         );
 
         assert.equal(networkInteraction.transactions.length, 1);
@@ -317,7 +317,7 @@ describe("DeploymentStateReducer", () => {
         updatedStaticCallExState = findExecutionStateById(
           ExecutionSateType.CALL_EXECUTION_STATE,
           updatedDeploymentState,
-          "Call1"
+          "Call1",
         );
       });
 
@@ -330,7 +330,7 @@ describe("DeploymentStateReducer", () => {
       it("should update the status to success", () => {
         assert.deepStrictEqual(
           updatedStaticCallExState.status,
-          ExecutionStatus.SUCCESS
+          ExecutionStatus.SUCCESS,
         );
       });
     });
@@ -347,7 +347,7 @@ describe("DeploymentStateReducer", () => {
         updatedStaticCallExState = findExecutionStateById(
           ExecutionSateType.CALL_EXECUTION_STATE,
           updatedDeploymentState,
-          "Call1"
+          "Call1",
         );
       });
 
@@ -374,7 +374,7 @@ describe("DeploymentStateReducer", () => {
         updatedStaticCallExState = findExecutionStateById(
           ExecutionSateType.CALL_EXECUTION_STATE,
           updatedDeploymentState,
-          "Call1"
+          "Call1",
         );
       });
 
@@ -403,7 +403,7 @@ describe("DeploymentStateReducer", () => {
         updatedStaticCallExState = findExecutionStateById(
           ExecutionSateType.CALL_EXECUTION_STATE,
           updatedDeploymentState,
-          "Call1"
+          "Call1",
         );
       });
 
@@ -431,7 +431,7 @@ describe("DeploymentStateReducer", () => {
         updatedStaticCallExState = findExecutionStateById(
           ExecutionSateType.CALL_EXECUTION_STATE,
           updatedDeploymentState,
-          "Call1"
+          "Call1",
         );
       });
 

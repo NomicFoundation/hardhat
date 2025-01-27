@@ -59,7 +59,7 @@ export async function getNonceSyncMessages(
   ignitionModule: IgnitionModule<string, string, IgnitionModuleResult<string>>,
   accounts: string[],
   defaultSender: string,
-  requiredConfirmations: number
+  requiredConfirmations: number,
 ): Promise<
   Array<
     OnchainInteractionReplacedByUserMessage | OnchainInteractionDroppedMessage
@@ -74,7 +74,7 @@ export async function getNonceSyncMessages(
       deploymentState,
       ignitionModule,
       accounts,
-      defaultSender
+      defaultSender,
     );
 
   const block = await jsonRpcClient.getLatestBlock();
@@ -84,7 +84,7 @@ export async function getNonceSyncMessages(
       : undefined;
 
   for (const [sender, pendingIgnitionTransactions] of Object.entries(
-    pendingTransactionsPerSender
+    pendingTransactionsPerSender,
   )) {
     // If this is undefined, it means that no transaction has fully confirmed.
     const safeConfirmationsCount =
@@ -94,12 +94,12 @@ export async function getNonceSyncMessages(
 
     const pendingCount = await jsonRpcClient.getTransactionCount(
       sender,
-      "pending"
+      "pending",
     );
 
     const latestCount = await jsonRpcClient.getTransactionCount(
       sender,
-      "latest"
+      "latest",
     );
 
     // Is the pending count the same as the safe count (x confirmation blocks
@@ -129,7 +129,7 @@ export async function getNonceSyncMessages(
       networkInteractionId,
     } of pendingIgnitionTransactions) {
       const fetchedTransactions = await Promise.all(
-        transactions.map((tx) => jsonRpcClient.getTransaction(tx))
+        transactions.map((tx) => jsonRpcClient.getTransaction(tx)),
       );
 
       // If at least one transaction for the future is still in the mempool,
@@ -207,7 +207,7 @@ export async function getNonceSyncMessages(
     // Case 4: the user sent additional transactions with nonces higher than
     // our highest pending nonce.
     const highestPendingNonce = Math.max(
-      ...pendingIgnitionTransactions.map((t) => t.nonce)
+      ...pendingIgnitionTransactions.map((t) => t.nonce),
     );
 
     if (highestPendingNonce + 1 < pendingCount) {
@@ -230,7 +230,7 @@ function createMapFromSenderToNonceAndTransactions(
   deploymentState: DeploymentState,
   ignitionModule: IgnitionModule<string, string, IgnitionModuleResult<string>>,
   accounts: string[],
-  defaultSender: string
+  defaultSender: string,
 ): {
   [sender: string]: Array<{
     nonce: number;
@@ -290,7 +290,7 @@ function createMapFromSenderToNonceAndTransactions(
     ignitionModule,
     accounts,
     defaultSender,
-    exStateIds
+    exStateIds,
   );
 
   for (const futureSender of futureSenders) {
@@ -300,7 +300,7 @@ function createMapFromSenderToNonceAndTransactions(
   }
 
   for (const pendingTransactions of Object.values(
-    pendingTransactionsPerAccount
+    pendingTransactionsPerAccount,
   )) {
     pendingTransactions.sort((a, b) => a.nonce - b.nonce);
   }
@@ -316,7 +316,7 @@ function _resolveFutureSenders(
   ignitionModule: IgnitionModule<string, string, IgnitionModuleResult<string>>,
   accounts: string[],
   defaultSender: string,
-  exStateIds: string[]
+  exStateIds: string[],
 ): string[] {
   const futures = getFuturesFromModule(ignitionModule);
 
@@ -331,7 +331,7 @@ function _resolveFutureSenders(
 function _pickFrom(
   future: Future,
   accounts: string[],
-  defaultSender: string
+  defaultSender: string,
 ): string | null {
   if (isNamedContractAtFuture(future)) {
     return null;

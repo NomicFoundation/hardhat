@@ -133,7 +133,7 @@ describe("Reconciliation - named contract at", () => {
         status: ExecutionStatus.STARTED,
         contractAddress: differentAddress,
         contractName: "Another",
-      }
+      },
     );
 
     await assertSuccessReconciliation(moduleDefinition, previousExecutionState);
@@ -157,7 +157,7 @@ describe("Reconciliation - named contract at", () => {
         status: ExecutionStatus.STARTED,
         contractName: "ContractUnchanged",
         contractAddress: exampleAddress,
-      })
+      }),
     );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
@@ -186,7 +186,7 @@ describe("Reconciliation - named contract at", () => {
         futureType: FutureType.NAMED_ARTIFACT_CONTRACT_AT,
         status: ExecutionStatus.STARTED,
         contractAddress: differentAddress,
-      })
+      }),
     );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
@@ -216,7 +216,7 @@ describe("Reconciliation - named contract at", () => {
         status: ExecutionStatus.STARTED,
         contractAddress: exampleAddress,
         strategy: "create2",
-      })
+      }),
     );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
@@ -245,7 +245,7 @@ describe("Reconciliation - named contract at", () => {
         status: ExecutionStatus.STARTED,
         contractAddress: exampleAddress,
         strategyConfig: { salt: "value" },
-      })
+      }),
     );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [

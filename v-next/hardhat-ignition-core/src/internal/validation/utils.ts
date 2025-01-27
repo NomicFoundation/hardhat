@@ -25,7 +25,7 @@ import { ERRORS } from "../errors-list";
  */
 export function resolvePotentialModuleParameterValueFrom(
   deploymentParameters: DeploymentParameters,
-  moduleRuntimeValue: ModuleParameterRuntimeValue<any>
+  moduleRuntimeValue: ModuleParameterRuntimeValue<any>,
 ): SolidityParameterType | undefined {
   return (
     deploymentParameters[moduleRuntimeValue.moduleId]?.[
@@ -38,7 +38,7 @@ export function resolvePotentialModuleParameterValueFrom(
 
 export function validateAccountRuntimeValue(
   arv: AccountRuntimeValue,
-  accounts: string[]
+  accounts: string[],
 ): IgnitionError[] {
   const errors: IgnitionError[] = [];
 
@@ -51,7 +51,7 @@ export function validateAccountRuntimeValue(
       new IgnitionError(ERRORS.VALIDATION.ACCOUNT_INDEX_TOO_HIGH, {
         accountIndex: arv.accountIndex,
         accountsLength: accounts.length,
-      })
+      }),
     );
   }
 
@@ -59,7 +59,7 @@ export function validateAccountRuntimeValue(
 }
 
 export function filterToAccountRuntimeValues(
-  runtimeValues: RuntimeValue[]
+  runtimeValues: RuntimeValue[],
 ): AccountRuntimeValue[] {
   return runtimeValues
     .map((rv) => {
@@ -75,13 +75,13 @@ export function filterToAccountRuntimeValues(
 }
 
 export function retrieveNestedRuntimeValues(
-  args: ArgumentType[]
+  args: ArgumentType[],
 ): RuntimeValue[] {
   return args.flatMap(checkForValues).filter(isRuntimeValue);
 }
 
 function checkForValues(
-  arg: ArgumentType
+  arg: ArgumentType,
 ): Array<RuntimeValue | null> | RuntimeValue | null {
   if (isRuntimeValue(arg)) {
     return arg;

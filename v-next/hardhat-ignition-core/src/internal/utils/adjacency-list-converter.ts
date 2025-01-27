@@ -5,7 +5,7 @@ import { AdjacencyList } from "./adjacency-list";
 
 export class AdjacencyListConverter {
   public static buildAdjacencyListFromFutures(
-    futures: Future[]
+    futures: Future[],
   ): AdjacencyList {
     const dependencyGraph = new AdjacencyList(futures.map((f) => f.id));
 
@@ -17,7 +17,7 @@ export class AdjacencyListConverter {
           this._optionallyAddDependenciesSubmoduleSiblings(
             dependencyGraph,
             future,
-            dependency
+            dependency,
           );
         }
       }
@@ -34,7 +34,7 @@ export class AdjacencyListConverter {
   private static _optionallyAddDependenciesSubmoduleSiblings(
     dependencyGraph: AdjacencyList,
     future: Future,
-    dependency: Future
+    dependency: Future,
   ): void {
     if (future.module === dependency.module) {
       return;

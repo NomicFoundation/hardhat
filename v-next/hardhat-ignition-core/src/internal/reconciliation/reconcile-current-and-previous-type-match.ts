@@ -7,7 +7,7 @@ import { fail } from "./utils";
 export function reconcileCurrentAndPreviousTypeMatch(
   future: Future,
   executionState: ExecutionState,
-  _context: ReconciliationContext
+  _context: ReconciliationContext,
 ): ReconciliationFutureResult {
   if (executionState.futureType === future.type) {
     return { success: true };
@@ -17,6 +17,6 @@ export function reconcileCurrentAndPreviousTypeMatch(
     future,
     `Future with id ${future.id} has changed from ${
       FutureType[executionState.futureType]
-    } to ${FutureType[future.type]}`
+    } to ${FutureType[future.type]}`,
   );
 }

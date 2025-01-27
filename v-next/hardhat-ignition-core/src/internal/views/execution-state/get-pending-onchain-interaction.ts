@@ -17,7 +17,7 @@ import { assertIgnitionInvariant } from "../../utils/assertions";
  *  was a transaction, and it hasn't been been confirmed yet.
  */
 export function getPendingOnchainInteraction(
-  exState: ExecutionState
+  exState: ExecutionState,
 ): OnchainInteraction | undefined {
   if (
     exState.type === ExecutionSateType.STATIC_CALL_EXECUTION_STATE ||
@@ -32,7 +32,7 @@ export function getPendingOnchainInteraction(
 
   assertIgnitionInvariant(
     interaction !== undefined,
-    `Unable to find network interaction for ${exState.id} when trying to get pending onchain interaction`
+    `Unable to find network interaction for ${exState.id} when trying to get pending onchain interaction`,
   );
 
   if (

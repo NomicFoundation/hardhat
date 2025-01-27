@@ -12,14 +12,14 @@ describe("future id rules", () => {
     it("the fallback id should be built based on the contract or library name", () => {
       assert.equal(
         toContractFutureId("MyModule", undefined, "MyContract"),
-        "MyModule#MyContract"
+        "MyModule#MyContract",
       );
     });
 
     it("namespaces to the module a user provided id", () => {
       assert.equal(
         toContractFutureId("MyModule", "MyId", "MyContract"),
-        "MyModule#MyId"
+        "MyModule#MyId",
       );
     });
   });
@@ -32,9 +32,9 @@ describe("future id rules", () => {
           undefined,
           "MyModule",
           "MyModule#MyContract",
-          "MyFunction"
+          "MyFunction",
         ),
-        "MyModule#MyContract.MyFunction"
+        "MyModule#MyContract.MyFunction",
       );
     });
 
@@ -45,9 +45,9 @@ describe("future id rules", () => {
           undefined,
           "Submodule",
           "Submodule#MyContract",
-          "MyFunction"
+          "MyFunction",
         ),
-        "MyModule#Submodule~MyContract.MyFunction"
+        "MyModule#Submodule~MyContract.MyFunction",
       );
     });
 
@@ -58,9 +58,9 @@ describe("future id rules", () => {
           "MyId",
           "MyModule",
           "MyModule#MyContract",
-          "MyFunction"
+          "MyFunction",
         ),
-        "MyModule#MyId"
+        "MyModule#MyId",
       );
     });
   });
@@ -74,9 +74,9 @@ describe("future id rules", () => {
           "MyContract",
           "MyFunction",
           "MyArg",
-          2
+          2,
         ),
-        "MyModule#MyContract.MyFunction.MyArg.2"
+        "MyModule#MyContract.MyFunction.MyArg.2",
       );
     });
 
@@ -88,9 +88,9 @@ describe("future id rules", () => {
           "MyContract",
           "MyFunction",
           3,
-          2
+          2,
         ),
-        "MyModule#MyContract.MyFunction.3.2"
+        "MyModule#MyContract.MyFunction.3.2",
       );
     });
 
@@ -102,9 +102,9 @@ describe("future id rules", () => {
           "MyContract",
           "MyFunction",
           "MyArg",
-          2
+          2,
         ),
-        "MyModule#MyId"
+        "MyModule#MyId",
       );
     });
   });

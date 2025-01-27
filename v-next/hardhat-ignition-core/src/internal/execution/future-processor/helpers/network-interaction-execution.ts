@@ -33,7 +33,7 @@ import {
  */
 export async function runStaticCall(
   client: JsonRpcClient,
-  staticCall: StaticCall
+  staticCall: StaticCall,
 ): Promise<RawStaticCallResult> {
   return client.call(
     {
@@ -42,7 +42,7 @@ export async function runStaticCall(
       data: staticCall.data,
       value: staticCall.value,
     },
-    "latest"
+    "latest",
   );
 }
 
@@ -101,12 +101,12 @@ export async function sendTransactionForOnchainInteraction(
   onchainInteraction: OnchainInteraction,
   nonceManager: NonceManager,
   decodeSimulationResult: (
-    simulationResult: RawStaticCallResult
+    simulationResult: RawStaticCallResult,
   ) => Promise<
     | SimulationErrorExecutionResult
     | StrategySimulationErrorExecutionResult
     | undefined
-  >
+  >,
 ): Promise<
   | SimulationErrorExecutionResult
   | StrategySimulationErrorExecutionResult
@@ -146,11 +146,11 @@ export async function sendTransactionForOnchainInteraction(
     // about why it failed.
     const failedEstimateGasSimulationResult = await client.call(
       paramsWithoutFees,
-      "pending"
+      "pending",
     );
 
     const decoded = await decodeSimulationResult(
-      failedEstimateGasSimulationResult
+      failedEstimateGasSimulationResult,
     );
 
     if (decoded !== undefined) {
@@ -160,14 +160,14 @@ export async function sendTransactionForOnchainInteraction(
     // this is just for type inference
     assertIgnitionInvariant(
       error instanceof Error,
-      "Unexpected error type while resolving failed gas estimation"
+      "Unexpected error type while resolving failed gas estimation",
     );
 
     // If the user has tried to transfer funds (i.e. m.send(...)) and they have insufficient funds
     if (/insufficient funds for transfer/.test(error.message)) {
       throw new IgnitionError(
         ERRORS.EXECUTION.INSUFFICIENT_FUNDS_FOR_TRANSFER,
-        { sender, amount: estimateGasPrams.value.toString() }
+        { sender, amount: estimateGasPrams.value.toString() },
       );
     }
     // if the user has insufficient funds to deploy the contract they're trying to deploy
@@ -193,9 +193,8 @@ export async function sendTransactionForOnchainInteraction(
   // And to get the return data, which we will need to decode the error if the
   // simulation fails.
   const simulationResult = await client.call(transactionParams, "pending");
-  const decodedSimulationResult = await decodeSimulationResult(
-    simulationResult
-  );
+  const decodedSimulationResult =
+    await decodeSimulationResult(simulationResult);
 
   if (decodedSimulationResult !== undefined) {
     return decodedSimulationResult;
@@ -223,7 +222,7 @@ export async function sendTransactionForOnchainInteraction(
  */
 async function getNextTransactionFees(
   client: JsonRpcClient,
-  onchainInteraction: OnchainInteraction
+  onchainInteraction: OnchainInteraction,
 ): Promise<NetworkFees> {
   const recommendedFees = await client.getNetworkFees();
 
@@ -270,7 +269,7 @@ async function getNextTransactionFees(
 
   assertIgnitionInvariant(
     "gasPrice" in transactionWithHighestFees.fees,
-    "EIP-1559 transaction was already sent but the currently recommended fees are not EIP-1559"
+    "EIP-1559 transaction was already sent but the currently recommended fees are not EIP-1559",
   );
 
   const bumpedGasPrice =

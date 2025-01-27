@@ -44,7 +44,7 @@ export function nextActionForExecutionState(
     | DeploymentExecutionState
     | CallExecutionState
     | SendDataExecutionState
-    | StaticCallExecutionState
+    | StaticCallExecutionState,
 ): NextAction {
   const interaction = exState.networkInteractions.at(-1);
 

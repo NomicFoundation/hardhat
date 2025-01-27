@@ -94,13 +94,13 @@ describe("Reconciliation", () => {
         ...exampleDeploymentState,
         id: "Module1#ContractMissed", // This future is not in the module
         status: ExecutionStatus.STARTED,
-      })
+      }),
     );
 
     assert.deepStrictEqual(
       reconiliationResult.missingExecutedFutures,
       ["Module1#ContractMissed"],
-      "Expected one missing previous executed future"
+      "Expected one missing previous executed future",
     );
   });
 
@@ -210,7 +210,7 @@ describe("Reconciliation", () => {
           futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
           status: ExecutionStatus.STARTED,
           from: exampleAccounts[3],
-        })
+        }),
       );
 
       assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
@@ -236,7 +236,7 @@ describe("Reconciliation", () => {
           futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
           status: ExecutionStatus.STARTED,
           constructorArgs: [exampleAccounts[3]],
-        })
+        }),
       );
 
       assert.deepStrictEqual(reconiliationResult.reconciliationFailures, []);
@@ -257,7 +257,7 @@ describe("Reconciliation", () => {
           futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
           status: ExecutionStatus.STARTED,
           constructorArgs: [exampleAccounts[3]],
-        })
+        }),
       );
 
       assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
@@ -307,8 +307,8 @@ describe("Reconciliation", () => {
             status: ExecutionStatus.STARTED,
             dependencies: new Set(["Module#Contract2", "Module#Contract2"]),
             contractName: "Contract3",
-          }
-        )
+          },
+        ),
       );
     });
 
@@ -347,8 +347,8 @@ describe("Reconciliation", () => {
             status: ExecutionStatus.SUCCESS,
             dependencies: new Set(["Module#Contract1", "Module#Contract2"]),
             contractName: "Contract3",
-          }
-        )
+          },
+        ),
       );
     });
 
@@ -379,8 +379,8 @@ describe("Reconciliation", () => {
             status: ExecutionStatus.STARTED,
             contractName: "Contract2",
             dependencies: new Set<string>(), // no deps on last run
-          }
-        )
+          },
+        ),
       );
     });
 
@@ -411,8 +411,8 @@ describe("Reconciliation", () => {
             status: ExecutionStatus.SUCCESS,
             dependencies: new Set<string>(), // no deps on last run
             contractName: "Contract2",
-          }
-        )
+          },
+        ),
       );
 
       assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
@@ -455,8 +455,8 @@ describe("Reconciliation", () => {
             dependencies: new Set<string>("Module#ContractOriginal"), // no deps on last run
             contractName: "Contract2",
             constructorArgs: [exampleAddress],
-          }
-        )
+          },
+        ),
       );
 
       assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
@@ -499,7 +499,7 @@ describe("Reconciliation", () => {
           artifactId: "Module#Contract1",
         }),
         new ArtifactMapDeploymentLoader(storedArtifactMap),
-        new ArtifactMapResolver(moduleArtifactMap)
+        new ArtifactMapResolver(moduleArtifactMap),
       );
 
       assertNoWarningsOrErrors(reconciliationResult);
@@ -540,7 +540,7 @@ describe("Reconciliation", () => {
           artifactId: "Module#Contract1",
         }),
         new ArtifactMapDeploymentLoader(storedArtifactMap),
-        new ArtifactMapResolver(moduleArtifactMap)
+        new ArtifactMapResolver(moduleArtifactMap),
       );
 
       assert.deepStrictEqual(reconciliationResult.reconciliationFailures, [
@@ -558,9 +558,9 @@ describe("Reconciliation", () => {
       // We modify the last two bytes before the metadata length
       const mainnetWethWithModifiedMetadata = `${mainnetWethBytecode.substring(
         0,
-        mainnetWethBytecode.length - METADATA_LENGTH_SIZE_IN_HEX - 2
+        mainnetWethBytecode.length - METADATA_LENGTH_SIZE_IN_HEX - 2,
       )}00${mainnetWethBytecode.substring(
-        mainnetWethBytecode.length - METADATA_LENGTH_SIZE_IN_HEX
+        mainnetWethBytecode.length - METADATA_LENGTH_SIZE_IN_HEX,
       )}`;
 
       assert.notEqual(mainnetWethBytecode, mainnetWethWithModifiedMetadata);
@@ -599,7 +599,7 @@ describe("Reconciliation", () => {
           artifactId: "Module#Contract1",
         }),
         new ArtifactMapDeploymentLoader(storedArtifactMap),
-        new ArtifactMapResolver(moduleArtifactMap)
+        new ArtifactMapResolver(moduleArtifactMap),
       );
 
       assertNoWarningsOrErrors(reconciliationResult);
@@ -662,8 +662,8 @@ describe("Reconciliation", () => {
             contractName: "Contract",
             strategy: "create2",
             strategyConfig: {},
-          }
-        )
+          },
+        ),
       );
 
       assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
@@ -708,13 +708,13 @@ describe("Reconciliation", () => {
             contractName: "Contract",
             strategy: "create2",
             strategyConfig: { salt: "value" },
-          }
+          },
         ),
         undefined,
         undefined,
         {},
         "create2",
-        { salt: "another-value" }
+        { salt: "another-value" },
       );
 
       assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
@@ -752,7 +752,7 @@ describe("Reconciliation", () => {
         undefined,
         {},
         "basic",
-        {}
+        {},
       );
 
       assert.deepStrictEqual(reconiliationResult, {
@@ -789,7 +789,7 @@ describe("Reconciliation", () => {
         "create2",
         {
           salt: "my-salt",
-        }
+        },
       );
 
       assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [

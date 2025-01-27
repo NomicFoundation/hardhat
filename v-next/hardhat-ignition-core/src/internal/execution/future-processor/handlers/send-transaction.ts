@@ -56,7 +56,7 @@ export async function sendTransaction(
   executionStrategy: ExecutionStrategy,
   jsonRpcClient: JsonRpcClient,
   nonceManager: NonceManager,
-  transactionTrackingTimer: TransactionTrackingTimer
+  transactionTrackingTimer: TransactionTrackingTimer,
 ): Promise<
   | TransactionSendMessage
   | DeploymentExecutionStateCompleteMessage
@@ -67,12 +67,12 @@ export async function sendTransaction(
 
   assertIgnitionInvariant(
     lastNetworkInteraction !== undefined,
-    `No network interaction found for ExecutionState ${exState.id} when trying to send a transaction`
+    `No network interaction found for ExecutionState ${exState.id} when trying to send a transaction`,
   );
 
   assertIgnitionInvariant(
     lastNetworkInteraction.type === NetworkInteractionType.ONCHAIN_INTERACTION,
-    `StaticCall found as last network interaction of ExecutionState ${exState.id} when trying to send a transaction`
+    `StaticCall found as last network interaction of ExecutionState ${exState.id} when trying to send a transaction`,
   );
 
   const generator = await replayStrategy(exState, executionStrategy);
@@ -87,7 +87,7 @@ export async function sendTransaction(
     exState.from,
     lastNetworkInteraction,
     nonceManager,
-    decodeSimulationResult(strategyGenerator, exState)
+    decodeSimulationResult(strategyGenerator, exState),
   );
 
   // If the transaction failed during simulation, we need to revert the nonce allocation
@@ -112,6 +112,6 @@ export async function sendTransaction(
 
   return createExecutionStateCompleteMessageForExecutionsWithOnchainInteractions(
     exState,
-    result
+    result,
   );
 }

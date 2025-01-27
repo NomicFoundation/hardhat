@@ -36,7 +36,7 @@ import {
  * Returns true if the given response is an onchain interaction response.
  */
 export function isOnchainInteractionResponse(
-  response: StaticCallResponse | OnchainInteractionResponse
+  response: StaticCallResponse | OnchainInteractionResponse,
 ): response is OnchainInteractionResponse {
   return (
     "type" in response &&
@@ -54,7 +54,7 @@ export function isOnchainInteractionResponse(
  *  recognized.
  */
 export type DecodeCustomError = (
-  returnData: string
+  returnData: string,
 ) => RevertWithCustomError | RevertWithInvalidData | undefined;
 
 /**
@@ -64,7 +64,7 @@ export type DecodeCustomError = (
  *  `SuccessfulEvmExecutionResult` if the result can be decoded.
  */
 export type DecodeSuccessfulExecutionResult = (
-  returnData: string
+  returnData: string,
 ) => InvalidResultError | SuccessfulEvmExecutionResult;
 
 /**
@@ -84,7 +84,7 @@ export async function* executeOnchainInteractionRequest(
   executionStateId: string,
   onchainInteractionRequest: OnchainInteractionRequest,
   decodeSuccessfulSimulationResult?: DecodeSuccessfulExecutionResult,
-  decodeCustomError?: DecodeCustomError
+  decodeCustomError?: DecodeCustomError,
 ): AsyncGenerator<
   OnchainInteractionRequest | SimulationSuccessSignal,
   SuccessfulTransaction | SimulationErrorExecutionResult,
@@ -96,7 +96,7 @@ export async function* executeOnchainInteractionRequest(
 
   assertIgnitionInvariant(
     isOnchainInteractionResponse(firstResponse),
-    `${assertionPrefix}Expected onchain interaction response and got raw static call result`
+    `${assertionPrefix}Expected onchain interaction response and got raw static call result`,
   );
 
   let onchainInteractionResponse:
@@ -108,7 +108,7 @@ export async function* executeOnchainInteractionRequest(
       const error = decodeError(
         firstResponse.result.returnData,
         firstResponse.result.customErrorReported,
-        decodeCustomError
+        decodeCustomError,
       );
 
       return {
@@ -119,7 +119,7 @@ export async function* executeOnchainInteractionRequest(
 
     if (decodeSuccessfulSimulationResult !== undefined) {
       const result = decodeSuccessfulSimulationResult(
-        firstResponse.result.returnData
+        firstResponse.result.returnData,
       );
 
       if (result.type === EvmExecutionResultTypes.INVALID_RESULT_ERROR) {
@@ -139,13 +139,13 @@ export async function* executeOnchainInteractionRequest(
 
   assertIgnitionInvariant(
     isOnchainInteractionResponse(onchainInteractionResponse),
-    `${assertionPrefix}Expected onchain interaction response and got raw static call result`
+    `${assertionPrefix}Expected onchain interaction response and got raw static call result`,
   );
 
   assertIgnitionInvariant(
     onchainInteractionResponse.type ===
       OnchainInteractionResponseType.SUCCESSFUL_TRANSACTION,
-    `${assertionPrefix}Expected confirmed transaction and got simulation result`
+    `${assertionPrefix}Expected confirmed transaction and got simulation result`,
   );
 
   return onchainInteractionResponse;
@@ -162,7 +162,7 @@ export async function* executeOnchainInteractionRequest(
 export async function* executeStaticCallRequest(
   staticCallRequest: StaticCallRequest,
   decodeSuccessfulResult: DecodeSuccessfulExecutionResult,
-  decodeCustomError: DecodeCustomError
+  decodeCustomError: DecodeCustomError,
 ): AsyncGenerator<
   StaticCallRequest,
   SuccessfulEvmExecutionResult | FailedStaticCallExecutionResult,
@@ -174,7 +174,7 @@ export async function* executeStaticCallRequest(
     const error = decodeError(
       result.returnData,
       result.customErrorReported,
-      decodeCustomError
+      decodeCustomError,
     );
 
     return {
@@ -205,7 +205,7 @@ export async function* executeStaticCallRequest(
  */
 export function getStaticCallExecutionStateResultValue(
   exState: StaticCallExecutionState,
-  lastStaticCallResult: SuccessfulEvmExecutionResult
+  lastStaticCallResult: SuccessfulEvmExecutionResult,
 ): SolidityParameterType {
   return typeof exState.nameOrIndex === "string"
     ? (lastStaticCallResult.values.named[

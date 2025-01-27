@@ -225,14 +225,14 @@ export interface ExecutionStrategy {
 
   init: (
     deploymentLoader: DeploymentLoader,
-    jsonRpcClient: JsonRpcClient
+    jsonRpcClient: JsonRpcClient,
   ) => Promise<void>;
 
   /**
    * Executes a deployment execution state.
    */
   executeDeployment: (
-    executionState: DeploymentExecutionState
+    executionState: DeploymentExecutionState,
   ) => DeploymentStrategyGenerator;
 
   /**
@@ -244,14 +244,14 @@ export interface ExecutionStrategy {
    * Executes a deployment execution state.
    */
   executeSendData: (
-    executionState: SendDataExecutionState
+    executionState: SendDataExecutionState,
   ) => SendDataStrategyGenerator;
 
   /**
    * Executes a deployment execution state.
    */
   executeStaticCall: (
-    executionState: StaticCallExecutionState
+    executionState: StaticCallExecutionState,
   ) => AsyncGenerator<
     StaticCallRequest,
     StaticCallExecutionResult,

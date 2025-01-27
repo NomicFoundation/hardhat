@@ -43,7 +43,7 @@ export class ExecutionEngine {
     private readonly _millisecondBeforeBumpingFees: number,
     private readonly _maxFeeBumps: number,
     private readonly _blockPollingInterval: number,
-    private readonly _disableFeeBumping: boolean
+    private readonly _disableFeeBumping: boolean,
   ) {}
 
   /**
@@ -66,25 +66,25 @@ export class ExecutionEngine {
     batches: string[][],
     accounts: string[],
     deploymentParameters: DeploymentParameters,
-    defaultSender: string
+    defaultSender: string,
   ): Promise<DeploymentState> {
     deploymentState = await this._syncNonces(
       deploymentState,
       module,
       accounts,
-      defaultSender
+      defaultSender,
     );
 
     await this._executionStrategy.init(
       this._deploymentLoader,
-      this._jsonRpcClient
+      this._jsonRpcClient,
     );
 
     const transactionTrackingTimer = new TransactionTrackingTimer();
 
     const nonceManager = new JsonRpcNonceManager(
       this._jsonRpcClient,
-      getMaxNonceUsedBySender(deploymentState)
+      getMaxNonceUsedBySender(deploymentState),
     );
 
     const futureProcessor = new FutureProcessor(
@@ -100,7 +100,7 @@ export class ExecutionEngine {
       accounts,
       deploymentParameters,
       defaultSender,
-      this._disableFeeBumping
+      this._disableFeeBumping,
     );
 
     const futures = getFuturesFromModule(module);
@@ -110,13 +110,13 @@ export class ExecutionEngine {
 
       // TODO: consider changing batcher to return futures rather than ids
       const executionBatch = batch.map((futureId) =>
-        this._lookupFuture(futures, futureId)
+        this._lookupFuture(futures, futureId),
       );
 
       deploymentState = await this._executeBatch(
         futureProcessor,
         executionBatch,
-        deploymentState
+        deploymentState,
       );
 
       if (
@@ -140,12 +140,12 @@ export class ExecutionEngine {
   private async _executeBatch(
     futureProcessor: FutureProcessor,
     batch: Future[],
-    deploymentState: DeploymentState
+    deploymentState: DeploymentState,
   ): Promise<DeploymentState> {
     // TODO: Do we really need to sort them here?
     const sortedFutures: Future[] = this._getBatchSortedByHighesPendingNonce(
       batch,
-      deploymentState
+      deploymentState,
     );
 
     let block = await this._jsonRpcClient.getLatestBlock();
@@ -154,7 +154,7 @@ export class ExecutionEngine {
       for (const future of sortedFutures) {
         const { newState } = await futureProcessor.processFuture(
           future,
-          deploymentState
+          deploymentState,
         );
 
         deploymentState = newState;
@@ -163,7 +163,7 @@ export class ExecutionEngine {
       if (
         isBatchFinished(
           deploymentState,
-          sortedFutures.map((f) => f.id)
+          sortedFutures.map((f) => f.id),
         )
       ) {
         break;
@@ -188,7 +188,7 @@ export class ExecutionEngine {
   private async _waitForNextBlock(previousBlock: Block): Promise<Block> {
     while (true) {
       await new Promise((resolve) =>
-        setTimeout(resolve, this._blockPollingInterval)
+        setTimeout(resolve, this._blockPollingInterval),
       );
 
       const newBlock = await this._jsonRpcClient.getLatestBlock();
@@ -216,7 +216,7 @@ export class ExecutionEngine {
       IgnitionModuleResult<string>
     >,
     accounts: string[],
-    defaultSender: string
+    defaultSender: string,
   ): Promise<DeploymentState> {
     const nonceSyncMessages = await getNonceSyncMessages(
       this._jsonRpcClient,
@@ -224,14 +224,14 @@ export class ExecutionEngine {
       ignitionModule,
       accounts,
       defaultSender,
-      this._requiredConfirmations
+      this._requiredConfirmations,
     );
 
     for (const message of nonceSyncMessages) {
       deploymentState = await applyNewMessage(
         message,
         deploymentState,
-        this._deploymentLoader
+        this._deploymentLoader,
       );
     }
 
@@ -246,7 +246,7 @@ export class ExecutionEngine {
 
     assertIgnitionInvariant(
       future !== undefined,
-      `Future ${futureId} not found`
+      `Future ${futureId} not found`,
     );
 
     return future;
@@ -260,7 +260,7 @@ export class ExecutionEngine {
    */
   private _getBatchSortedByHighesPendingNonce(
     batch: Future[],
-    deploymentState: DeploymentState
+    deploymentState: DeploymentState,
   ): Future[] {
     const batchWithNonces = batch.map((f) => {
       const NO_PENDING_RESULT = {

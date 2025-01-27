@@ -35,7 +35,7 @@ export class Reconciler {
     artifactResolver: ArtifactResolver,
     defaultSender: string,
     strategy: string,
-    strategyConfig: ConcreteExecutionConfig
+    strategyConfig: ConcreteExecutionConfig,
   ): Promise<ReconciliationResult> {
     const reconciliationFailures = await this._reconcileEachFutureInModule(
       module,
@@ -53,28 +53,28 @@ export class Reconciler {
         reconcileCurrentAndPreviousTypeMatch,
         reconcileDependencyRules,
         reconcileFutureSpecificReconciliations,
-      ]
+      ],
     );
 
     // TODO: Reconcile sender of incomplete futures.
 
     const missingExecutedFutures = this._missingPreviouslyExecutedFutures(
       module,
-      deploymentState
+      deploymentState,
     );
 
     return { reconciliationFailures, missingExecutedFutures };
   }
 
   public static checkForPreviousRunErrors(
-    deploymentState: DeploymentState
+    deploymentState: DeploymentState,
   ): ReconciliationFailure[] {
     const failuresOrTimeouts = Object.values(
-      deploymentState.executionStates
+      deploymentState.executionStates,
     ).filter(
       (exState) =>
         exState.status === ExecutionStatus.FAILED ||
-        exState.status === ExecutionStatus.TIMEOUT
+        exState.status === ExecutionStatus.TIMEOUT,
     );
 
     return failuresOrTimeouts.map((exState) => ({
@@ -100,7 +100,7 @@ export class Reconciler {
   private static async _reconcileEachFutureInModule(
     module: IgnitionModule,
     context: ReconciliationContext,
-    checks: ReconciliationCheck[]
+    checks: ReconciliationCheck[],
   ): Promise<ReconciliationFailure[]> {
     // TODO: swap this out for linearization of execution state
     // once execution is fleshed out.
@@ -127,14 +127,14 @@ export class Reconciler {
 
   private static _missingPreviouslyExecutedFutures(
     module: IgnitionModule,
-    deploymentState: DeploymentState
+    deploymentState: DeploymentState,
   ) {
     const moduleFutures = new Set(
-      getFuturesFromModule(module).map((f) => f.id)
+      getFuturesFromModule(module).map((f) => f.id),
     );
 
     const previouslyStarted = Object.values(
-      deploymentState.executionStates
+      deploymentState.executionStates,
     ).map((es) => es.id);
 
     const missing = previouslyStarted.filter((sf) => !moduleFutures.has(sf));
@@ -143,7 +143,7 @@ export class Reconciler {
   }
 
   private static _getFuturesInReverseTopoligicalOrder(
-    module: IgnitionModule
+    module: IgnitionModule,
   ): Future[] {
     const futures = getFuturesFromModule(module);
 
@@ -162,7 +162,7 @@ export class Reconciler {
     future: Future,
     executionState: ExecutionState,
     context: ReconciliationContext,
-    checks: ReconciliationCheck[]
+    checks: ReconciliationCheck[],
   ): Promise<ReconciliationFutureResult> {
     for (const check of checks) {
       const result = await check(future, executionState, context);

@@ -11,6 +11,6 @@ export type ForbiddenExcessProperties<K extends keyof any> = {
 // type error.
 export type ExactInterface<
   InterfaceT,
-  ImplementationT extends InterfaceT
+  ImplementationT extends InterfaceT,
 > = ImplementationT &
   ForbiddenExcessProperties<Exclude<keyof ImplementationT, keyof InterfaceT>>;

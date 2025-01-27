@@ -13,7 +13,7 @@ export async function validateNamedContractAt(
   future: NamedArtifactContractAtFuture<string>,
   artifactLoader: ArtifactResolver,
   deploymentParameters: DeploymentParameters,
-  _accounts: string[]
+  _accounts: string[],
 ): Promise<string[]> {
   const errors: IgnitionError[] = [];
 
@@ -25,7 +25,7 @@ export async function validateNamedContractAt(
     errors.push(
       new IgnitionError(ERRORS.VALIDATION.INVALID_ARTIFACT, {
         contractName: future.contractName,
-      })
+      }),
     );
   }
 
@@ -34,14 +34,14 @@ export async function validateNamedContractAt(
   if (isModuleParameterRuntimeValue(future.address)) {
     const param = resolvePotentialModuleParameterValueFrom(
       deploymentParameters,
-      future.address
+      future.address,
     );
 
     if (param === undefined) {
       errors.push(
         new IgnitionError(ERRORS.VALIDATION.MISSING_MODULE_PARAMETER, {
           name: future.address.name,
-        })
+        }),
       );
     } else if (typeof param !== "string") {
       errors.push(
@@ -49,7 +49,7 @@ export async function validateNamedContractAt(
           name: future.address.name,
           expectedType: "string",
           actualType: typeof param,
-        })
+        }),
       );
     }
   }

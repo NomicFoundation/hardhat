@@ -130,7 +130,7 @@ describe("execution - getNonceSyncMessages", () => {
             },
           },
         },
-        `IGN403: You have sent transactions from ${exampleAccounts[1]} and they interfere with Hardhat Ignition. Please wait until they get 5 confirmations before running Hardhat Ignition again.`
+        `IGN403: You have sent transactions from ${exampleAccounts[1]} and they interfere with Hardhat Ignition. Please wait until they get 5 confirmations before running Hardhat Ignition again.`,
       );
     });
 
@@ -153,7 +153,7 @@ describe("execution - getNonceSyncMessages", () => {
             },
           },
         },
-        `IGN403: You have sent transactions from ${exampleAccounts[1]} and they interfere with Hardhat Ignition. Please wait until they get 5 confirmations before running Hardhat Ignition again.`
+        `IGN403: You have sent transactions from ${exampleAccounts[1]} and they interfere with Hardhat Ignition. Please wait until they get 5 confirmations before running Hardhat Ignition again.`,
       );
     });
 
@@ -194,7 +194,7 @@ describe("execution - getNonceSyncMessages", () => {
             },
             latestBlockNumber: 0,
           },
-          []
+          [],
         );
       });
 
@@ -231,7 +231,7 @@ describe("execution - getNonceSyncMessages", () => {
             },
             latestBlockNumber: 3,
           },
-          `IGN403: You have sent transactions from ${exampleAccounts[1]} and they interfere with Hardhat Ignition. Please wait until they get 5 confirmations before running Hardhat Ignition again.`
+          `IGN403: You have sent transactions from ${exampleAccounts[1]} and they interfere with Hardhat Ignition. Please wait until they get 5 confirmations before running Hardhat Ignition again.`,
         );
       });
     });
@@ -281,7 +281,7 @@ describe("execution - getNonceSyncMessages", () => {
             getTransaction: (txHash: string) => {
               if (txHash !== inflightTxHash) {
                 throw new Error(
-                  `Mock getTransaction was not expecting the getTransaction request for: ${txHash}`
+                  `Mock getTransaction was not expecting the getTransaction request for: ${txHash}`,
                 );
               }
 
@@ -325,7 +325,7 @@ describe("execution - getNonceSyncMessages", () => {
             getTransaction: (txHash: string) => {
               if (txHash !== inflightTxHash) {
                 throw new Error(
-                  `Mock getTransaction was not expecting the getTransaction request for: ${txHash}`
+                  `Mock getTransaction was not expecting the getTransaction request for: ${txHash}`,
                 );
               }
 
@@ -370,7 +370,7 @@ describe("execution - getNonceSyncMessages", () => {
             getTransaction: (txHash: string) => {
               if (txHash !== inflightTxHash) {
                 throw new Error(
-                  `Mock getTransaction was not expecting the getTransaction request for: ${txHash}`
+                  `Mock getTransaction was not expecting the getTransaction request for: ${txHash}`,
                 );
               }
 
@@ -415,7 +415,7 @@ describe("execution - getNonceSyncMessages", () => {
                 networkInteractionId: 1,
                 type: JournalMessageType.ONCHAIN_INTERACTION_REPLACED_BY_USER,
               },
-            ]
+            ],
           );
         });
 
@@ -443,7 +443,7 @@ describe("execution - getNonceSyncMessages", () => {
               },
               latestBlockNumber,
             },
-            `IGN404: You have sent transactions from ${exampleAccounts[1]} with nonce 16 and it interferes with Hardhat Ignition. Please wait until they get 5 confirmations before running Hardhat Ignition again.`
+            `IGN404: You have sent transactions from ${exampleAccounts[1]} with nonce 16 and it interferes with Hardhat Ignition. Please wait until they get 5 confirmations before running Hardhat Ignition again.`,
           );
         });
 
@@ -471,7 +471,7 @@ describe("execution - getNonceSyncMessages", () => {
               },
               latestBlockNumber,
             },
-            `IGN404: You have sent transactions from ${exampleAccounts[1]} with nonce 30 and it interferes with Hardhat Ignition. Please wait until they get 5 confirmations before running Hardhat Ignition again.`
+            `IGN404: You have sent transactions from ${exampleAccounts[1]} with nonce 30 and it interferes with Hardhat Ignition. Please wait until they get 5 confirmations before running Hardhat Ignition again.`,
           );
         });
 
@@ -515,7 +515,7 @@ describe("execution - getNonceSyncMessages", () => {
               getTransaction: (txHash: string) => {
                 if (txHash !== inflightTxHash) {
                   throw new Error(
-                    `Mock getTransaction was not expecting the getTransaction request for: ${txHash}`
+                    `Mock getTransaction was not expecting the getTransaction request for: ${txHash}`,
                   );
                 }
 
@@ -523,7 +523,7 @@ describe("execution - getNonceSyncMessages", () => {
               },
               latestBlockNumber,
             },
-            `IGN404: You have sent transactions from ${exampleAccounts[1]} with nonce 11 and it interferes with Hardhat Ignition. Please wait until they get 5 confirmations before running Hardhat Ignition again.`
+            `IGN404: You have sent transactions from ${exampleAccounts[1]} with nonce 11 and it interferes with Hardhat Ignition. Please wait until they get 5 confirmations before running Hardhat Ignition again.`,
           );
         });
 
@@ -571,7 +571,7 @@ describe("execution - getNonceSyncMessages", () => {
             getTransaction: (txHash: string) => {
               if (txHash !== inflightTxHash) {
                 throw new Error(
-                  `Mock getTransaction was not expecting the getTransaction request for: ${txHash}`
+                  `Mock getTransaction was not expecting the getTransaction request for: ${txHash}`,
                 );
               }
 
@@ -613,7 +613,7 @@ describe("execution - getNonceSyncMessages", () => {
                 networkInteractionId: 1,
                 type: JournalMessageType.ONCHAIN_INTERACTION_DROPPED,
               },
-            ]
+            ],
           );
         });
 
@@ -675,7 +675,7 @@ async function assertGetNonceSyncThrows(
     getTransaction?: (txHash: string) => any;
     latestBlockNumber?: number;
   },
-  errorMessage: string
+  errorMessage: string,
 ) {
   await assert.isRejected(assertGetNonceSyncResult(ctx, []), errorMessage);
 }
@@ -722,12 +722,12 @@ async function assertGetNonceSyncResult(
   },
   expectedResult: Array<
     OnchainInteractionReplacedByUserMessage | OnchainInteractionDroppedMessage
-  >
+  >,
 ) {
   const mockJsonRpcClient = setupJsonRpcClient(
     latestBlockNumber,
     transactionCountEntries,
-    getTransaction
+    getTransaction,
   );
 
   const result = await getNonceSyncMessages(
@@ -736,7 +736,7 @@ async function assertGetNonceSyncResult(
     ignitionModule,
     exampleAccounts,
     exampleAccounts[2],
-    requiredConfirmations
+    requiredConfirmations,
   );
 
   assert.deepStrictEqual(result, expectedResult);
@@ -751,7 +751,7 @@ function setupJsonRpcClient(
       number: (num: number) => number;
     };
   },
-  getTransaction?: (txHash: string) => any
+  getTransaction?: (txHash: string) => any,
 ): JsonRpcClient {
   const mockJsonRpcClient = {
     getLatestBlock: () => {
@@ -766,13 +766,13 @@ function setupJsonRpcClient(
     },
     getTransactionCount: (
       address: string,
-      blockTag: "pending" | "latest" | number
+      blockTag: "pending" | "latest" | number,
     ) => {
       const transactionCountEntry = transactionCountEntries[address];
 
       if (transactionCountEntry === undefined) {
         throw new Error(
-          `Mock getTransactionCount was not expecting the sender: ${address}`
+          `Mock getTransactionCount was not expecting the sender: ${address}`,
         );
       }
 
@@ -790,7 +790,7 @@ function setupJsonRpcClient(
 }
 
 function setupDeploymentStateBasedOnExampleModuleWithOneTranWith(
-  nonce: number
+  nonce: number,
 ): DeploymentState {
   const exampleDeploymentState: DeploymentExecutionState = {
     id: "Example",

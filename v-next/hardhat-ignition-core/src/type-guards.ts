@@ -24,7 +24,7 @@ import {
 
 function isValidEnumValue(
   theEnum: Record<string, string>,
-  value: string
+  value: string,
 ): boolean {
   // Enums are objects that have entries that map:
   //   1) keys to values
@@ -88,7 +88,7 @@ export function isFuture(potential: unknown): potential is Future {
  * @beta
  */
 export function isContractFuture(
-  future: Future
+  future: Future,
 ): future is ContractFuture<string> {
   switch (future.type) {
     case FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT:
@@ -110,7 +110,7 @@ export function isContractFuture(
  * @beta
  */
 export function isCallableContractFuture(
-  future: Future
+  future: Future,
 ): future is CallableContractFuture<string> {
   switch (future.type) {
     case FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT:
@@ -130,7 +130,7 @@ export function isCallableContractFuture(
  * @beta
  */
 export function isAddressResolvableFuture(
-  future: Future
+  future: Future,
 ): future is AddressResolvableFuture {
   return (
     isContractFuture(future) ||
@@ -145,7 +145,7 @@ export function isAddressResolvableFuture(
  * @beta
  */
 export function isFunctionCallFuture(
-  future: Future
+  future: Future,
 ): future is FunctionCallFuture<string, string> {
   return (
     future.type === FutureType.CONTRACT_CALL ||
@@ -159,7 +159,7 @@ export function isFunctionCallFuture(
  * @beta
  */
 export function isNamedStaticCallFuture(
-  future: Future
+  future: Future,
 ): future is StaticCallFuture<string, string> {
   return future.type === FutureType.STATIC_CALL;
 }
@@ -170,7 +170,7 @@ export function isNamedStaticCallFuture(
  * @beta
  */
 export function isEncodeFunctionCallFuture(
-  potential: unknown
+  potential: unknown,
 ): potential is EncodeFunctionCallFuture<string, string> {
   return (
     isFuture(potential) && potential.type === FutureType.ENCODE_FUNCTION_CALL
@@ -183,7 +183,7 @@ export function isEncodeFunctionCallFuture(
  * @beta
  */
 export function isReadEventArgumentFuture(
-  future: Future
+  future: Future,
 ): future is ReadEventArgumentFuture {
   return future.type === FutureType.READ_EVENT_ARGUMENT;
 }
@@ -194,7 +194,7 @@ export function isReadEventArgumentFuture(
  * @beta
  */
 export function isNamedContractDeploymentFuture(
-  future: Future
+  future: Future,
 ): future is NamedArtifactContractDeploymentFuture<string> {
   return future.type === FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT;
 }
@@ -205,7 +205,7 @@ export function isNamedContractDeploymentFuture(
  * @beta
  */
 export function isArtifactContractDeploymentFuture(
-  future: Future
+  future: Future,
 ): future is ContractDeploymentFuture {
   return future.type === FutureType.CONTRACT_DEPLOYMENT;
 }
@@ -216,7 +216,7 @@ export function isArtifactContractDeploymentFuture(
  * @beta
  */
 export function isNamedLibraryDeploymentFuture(
-  future: Future
+  future: Future,
 ): future is NamedArtifactLibraryDeploymentFuture<string> {
   return future.type === FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT;
 }
@@ -227,7 +227,7 @@ export function isNamedLibraryDeploymentFuture(
  * @beta
  */
 export function isArtifactLibraryDeploymentFuture(
-  future: Future
+  future: Future,
 ): future is LibraryDeploymentFuture {
   return future.type === FutureType.LIBRARY_DEPLOYMENT;
 }
@@ -238,7 +238,7 @@ export function isArtifactLibraryDeploymentFuture(
  * @beta
  */
 export function isNamedContractAtFuture(
-  future: Future
+  future: Future,
 ): future is NamedArtifactContractAtFuture<string> {
   return future.type === FutureType.NAMED_ARTIFACT_CONTRACT_AT;
 }
@@ -249,7 +249,7 @@ export function isNamedContractAtFuture(
  * @beta
  */
 export function isArtifactContractAtFuture(
-  future: Future
+  future: Future,
 ): future is ContractAtFuture {
   return future.type === FutureType.CONTRACT_AT;
 }
@@ -260,7 +260,7 @@ export function isArtifactContractAtFuture(
  * @beta
  */
 export function isDeploymentType(
-  potential: unknown
+  potential: unknown,
 ): potential is DeploymentFuture<string>["type"] {
   const deploymentTypes = [
     FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
@@ -281,7 +281,7 @@ export function isDeploymentType(
  * @beta
  */
 export function isDeploymentFuture(
-  future: Future
+  future: Future,
 ): future is DeploymentFuture<string> {
   return isDeploymentType(future.type);
 }
@@ -292,7 +292,7 @@ export function isDeploymentFuture(
  * @beta
  */
 export function isFutureThatSubmitsOnchainTransaction(
-  f: Future
+  f: Future,
 ): f is Exclude<
   Exclude<
     Exclude<
@@ -317,7 +317,7 @@ export function isFutureThatSubmitsOnchainTransaction(
  * @beta
  */
 export function isRuntimeValueType(
-  potential: unknown
+  potential: unknown,
 ): potential is RuntimeValueType {
   return (
     typeof potential === "string" &&
@@ -345,7 +345,7 @@ export function isRuntimeValue(potential: unknown): potential is RuntimeValue {
  * @beta
  */
 export function isAccountRuntimeValue(
-  potential: unknown
+  potential: unknown,
 ): potential is AccountRuntimeValue {
   return (
     isRuntimeValue(potential) && potential.type === RuntimeValueType.ACCOUNT
@@ -358,7 +358,7 @@ export function isAccountRuntimeValue(
  * @beta
  */
 export function isModuleParameterRuntimeValue(
-  potential: unknown
+  potential: unknown,
 ): potential is ModuleParameterRuntimeValue<any> {
   return (
     isRuntimeValue(potential) &&

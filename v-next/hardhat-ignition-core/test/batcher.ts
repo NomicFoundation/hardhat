@@ -177,7 +177,7 @@ describe("batcher", () => {
           },
         },
       },
-      [["Module1#Contract1"], ["Module1#Contract3"]]
+      [["Module1#Contract1"], ["Module1#Contract3"]],
     );
   });
 });
@@ -190,7 +190,7 @@ function assertBatching(
     ignitionModule: IgnitionModule;
     deploymentState?: DeploymentState;
   },
-  expectedBatches: string[][]
+  expectedBatches: string[][],
 ) {
   assert.isDefined(ignitionModule);
 

@@ -19,11 +19,11 @@ export function reconcileLibraries(
     | NamedArtifactLibraryDeploymentFuture<string>
     | LibraryDeploymentFuture,
   exState: DeploymentExecutionState,
-  context: ReconciliationContext
+  context: ReconciliationContext,
 ): ReconciliationFutureResultFailure | undefined {
   const futureLibraries = resolveLibraries(
     future.libraries,
-    context.deploymentState
+    context.deploymentState,
   );
 
   for (const [libName, exStateLib] of Object.entries(exState.libraries)) {

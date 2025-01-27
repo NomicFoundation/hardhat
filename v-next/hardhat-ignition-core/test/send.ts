@@ -35,14 +35,14 @@ describe("send", () => {
     assert.equal(moduleWithASingleContract.futures.size, 1);
     assert.equal(
       [...moduleWithASingleContract.futures][0].type,
-      FutureType.SEND_DATA
+      FutureType.SEND_DATA,
     );
 
     // No submodules
     assert.equal(moduleWithASingleContract.submodules.size, 0);
 
     const sendFuture = [...moduleWithASingleContract.futures].find(
-      ({ id }) => id === "Module1#test_send"
+      ({ id }) => id === "Module1#test_send",
     );
 
     if (!(sendFuture instanceof SendDataFutureImplementation)) {
@@ -63,11 +63,11 @@ describe("send", () => {
     assert.isDefined(moduleWithDependentContracts);
 
     const exampleFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1#Example"
+      ({ id }) => id === "Module1#Example",
     );
 
     const sendFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1#test_send"
+      ({ id }) => id === "Module1#test_send",
     );
 
     if (!(sendFuture instanceof SendDataFutureImplementation)) {
@@ -96,11 +96,11 @@ describe("send", () => {
     assert.isDefined(moduleWithDependentContracts);
 
     const exampleFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1#Example"
+      ({ id }) => id === "Module1#Example",
     );
 
     const sendFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1#test_send"
+      ({ id }) => id === "Module1#test_send",
     );
 
     if (!(sendFuture instanceof SendDataFutureImplementation)) {
@@ -122,7 +122,7 @@ describe("send", () => {
     assert.isDefined(moduleWithDependentContracts);
 
     const sendFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1#test_send"
+      ({ id }) => id === "Module1#test_send",
     );
 
     if (!(sendFuture instanceof SendDataFutureImplementation)) {
@@ -142,7 +142,7 @@ describe("send", () => {
     assert.isDefined(moduleWithDependentContracts);
 
     const sendFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1#test_send"
+      ({ id }) => id === "Module1#test_send",
     );
 
     if (!(sendFuture instanceof SendDataFutureImplementation)) {
@@ -151,7 +151,7 @@ describe("send", () => {
 
     assertInstanceOf(
       sendFuture.value,
-      ModuleParameterRuntimeValueImplementation
+      ModuleParameterRuntimeValueImplementation,
     );
   });
 
@@ -165,7 +165,7 @@ describe("send", () => {
     assert.isDefined(moduleWithDependentContracts);
 
     const sendFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1#test_send"
+      ({ id }) => id === "Module1#test_send",
     );
 
     if (!(sendFuture instanceof SendDataFutureImplementation)) {
@@ -185,7 +185,7 @@ describe("send", () => {
     assert.isDefined(moduleWithDependentContracts);
 
     const sendFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1#test_send"
+      ({ id }) => id === "Module1#test_send",
     );
 
     if (!(sendFuture instanceof SendDataFutureImplementation)) {
@@ -206,7 +206,7 @@ describe("send", () => {
     assert.isDefined(moduleWithDependentContracts);
 
     const sendFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1#test_send"
+      ({ id }) => id === "Module1#test_send",
     );
 
     if (!(sendFuture instanceof SendDataFutureImplementation)) {
@@ -232,7 +232,7 @@ describe("send", () => {
     assertInstanceOf(futureC, SendDataFutureImplementation);
 
     const futureC2 = Array.from(module.futures).find(
-      (f) => f.id === "Module#C2"
+      (f) => f.id === "Module#C2",
     );
     assertInstanceOf(futureC2, SendDataFutureImplementation);
 
@@ -257,11 +257,11 @@ describe("send", () => {
     assert.isDefined(moduleWithDependentContracts);
 
     const exampleFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1#encodeFunctionCall(Module1#Example.test)"
+      ({ id }) => id === "Module1#encodeFunctionCall(Module1#Example.test)",
     );
 
     const sendFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1#test_send"
+      ({ id }) => id === "Module1#test_send",
     );
 
     if (!(sendFuture instanceof SendDataFutureImplementation)) {
@@ -290,11 +290,11 @@ describe("send", () => {
       assert.equal(moduleWithSameCallTwice.id, "Module1");
 
       const sendFuture = [...moduleWithSameCallTwice.futures].find(
-        ({ id }) => id === "Module1#first"
+        ({ id }) => id === "Module1#first",
       );
 
       const sendFuture2 = [...moduleWithSameCallTwice.futures].find(
-        ({ id }) => id === "Module1#second"
+        ({ id }) => id === "Module1#second",
       );
 
       assert.isDefined(sendFuture);
@@ -310,7 +310,7 @@ describe("send", () => {
 
             return {};
           }),
-        'The future id "test_send" is already used, please provide a different one.'
+        'The future id "test_send" is already used, please provide a different one.',
       );
     });
 
@@ -322,7 +322,7 @@ describe("send", () => {
             m.send("first", exampleAddress, 0n, "test");
             return {};
           }),
-        'The future id "first" is already used, please provide a different one.'
+        'The future id "first" is already used, please provide a different one.',
       );
     });
   });
@@ -338,7 +338,7 @@ describe("send", () => {
 
               return { another };
             }),
-          /IGN702: Module validation failed with reason: Invalid option "value" received. It should be a bigint, a module parameter, or a value obtained from an event or static call./
+          /IGN702: Module validation failed with reason: Invalid option "value" received. It should be a bigint, a module parameter, or a value obtained from an event or static call./,
         );
       });
 
@@ -351,7 +351,7 @@ describe("send", () => {
 
               return { another };
             }),
-          /Invalid data given/
+          /Invalid data given/,
         );
       });
 
@@ -364,7 +364,7 @@ describe("send", () => {
 
               return { another };
             }),
-          /IGN702: Module validation failed with reason: Invalid type for option "from": number/
+          /IGN702: Module validation failed with reason: Invalid type for option "from": number/,
         );
       });
 
@@ -379,7 +379,7 @@ describe("send", () => {
 
               return { another };
             }),
-          /Invalid address given/
+          /Invalid address given/,
         );
       });
 
@@ -391,7 +391,7 @@ describe("send", () => {
 
               return {};
             }),
-          /Invalid address given/
+          /Invalid address given/,
         );
       });
 
@@ -403,7 +403,7 @@ describe("send", () => {
 
               return {};
             }),
-          /The "to" and "from" addresses are the same/
+          /The "to" and "from" addresses are the same/,
         );
       });
     });
@@ -417,7 +417,7 @@ describe("send", () => {
       });
 
       const future = getFuturesFromModule(module).find(
-        (v) => v.type === FutureType.SEND_DATA
+        (v) => v.type === FutureType.SEND_DATA,
       );
 
       assertValidationError(
@@ -425,9 +425,9 @@ describe("send", () => {
           future as any,
           setupMockArtifactResolver(),
           {},
-          []
+          [],
         ),
-        "Module parameter 'p' requires a value but was given none"
+        "Module parameter 'p' requires a value but was given none",
       );
     });
 
@@ -440,14 +440,14 @@ describe("send", () => {
       });
 
       const future = getFuturesFromModule(module).find(
-        (v) => v.type === FutureType.SEND_DATA
+        (v) => v.type === FutureType.SEND_DATA,
       );
 
       const result = await validateSendData(
         future as any,
         setupMockArtifactResolver(),
         {},
-        []
+        [],
       );
 
       assert.deepStrictEqual(result, []);
@@ -462,7 +462,7 @@ describe("send", () => {
       });
 
       const future = getFuturesFromModule(module).find(
-        (v) => v.type === FutureType.SEND_DATA
+        (v) => v.type === FutureType.SEND_DATA,
       );
 
       const result = await validateSendData(
@@ -473,7 +473,7 @@ describe("send", () => {
             p: "0x123",
           },
         },
-        []
+        [],
       );
 
       assert.deepStrictEqual(result, []);
@@ -488,7 +488,7 @@ describe("send", () => {
       });
 
       const future = getFuturesFromModule(module).find(
-        (v) => v.type === FutureType.SEND_DATA
+        (v) => v.type === FutureType.SEND_DATA,
       );
 
       assertValidationError(
@@ -496,9 +496,9 @@ describe("send", () => {
           future as any,
           setupMockArtifactResolver(),
           {},
-          []
+          [],
         ),
-        "Module parameter 'p' must be of type 'bigint' but is 'boolean'"
+        "Module parameter 'p' must be of type 'bigint' but is 'boolean'",
       );
     });
 
@@ -511,14 +511,14 @@ describe("send", () => {
       });
 
       const future = getFuturesFromModule(module).find(
-        (v) => v.type === FutureType.SEND_DATA
+        (v) => v.type === FutureType.SEND_DATA,
       );
 
       const result = await validateSendData(
         future as any,
         setupMockArtifactResolver(),
         {},
-        []
+        [],
       );
 
       assert.deepStrictEqual(result, []);
@@ -533,7 +533,7 @@ describe("send", () => {
       });
 
       const future = getFuturesFromModule(module).find(
-        (v) => v.type === FutureType.SEND_DATA
+        (v) => v.type === FutureType.SEND_DATA,
       );
 
       assertValidationError(
@@ -541,9 +541,9 @@ describe("send", () => {
           future as any,
           setupMockArtifactResolver(),
           {},
-          []
+          [],
         ),
-        "Account index cannot be a negative number"
+        "Account index cannot be a negative number",
       );
     });
 
@@ -556,7 +556,7 @@ describe("send", () => {
       });
 
       const future = getFuturesFromModule(module).find(
-        (v) => v.type === FutureType.SEND_DATA
+        (v) => v.type === FutureType.SEND_DATA,
       );
 
       assertValidationError(
@@ -564,9 +564,9 @@ describe("send", () => {
           future as any,
           setupMockArtifactResolver(),
           {},
-          []
+          [],
         ),
-        "Requested account index '1' is greater than the total number of available accounts '0'"
+        "Requested account index '1' is greater than the total number of available accounts '0'",
       );
     });
   });

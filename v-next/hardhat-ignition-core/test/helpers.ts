@@ -14,17 +14,17 @@ export const exampleAccounts: string[] = [
 
 export function assertValidationError(
   errors: string[],
-  expectedError: string
+  expectedError: string,
 ): void {
   assert.includeMembers(
     errors.map((e) => e.split(/IGN\d+: /)[1]),
-    [expectedError]
+    [expectedError],
   );
 }
 
 export function assertInstanceOf<ObjectT>(
   obj: unknown,
-  klass: new (...args: any[]) => ObjectT
+  klass: new (...args: any[]) => ObjectT,
 ): asserts obj is ObjectT {
   assert.instanceOf(obj, klass, `Not a valid instace of ${klass.name}`);
 }
@@ -53,7 +53,7 @@ export function setupMockArtifactResolver(artifacts?: {
 
       if (artifact === undefined) {
         throw new Error(
-          `No artifact set in test for that contractName ${contractName}`
+          `No artifact set in test for that contractName ${contractName}`,
         );
       }
 
@@ -67,7 +67,7 @@ export function setupMockArtifactResolver(artifacts?: {
 
 export function setupMockDeploymentLoader(
   journal: Journal,
-  deployedAddresses?: { [key: string]: string }
+  deployedAddresses?: { [key: string]: string },
 ): DeploymentLoader {
   const storedArtifacts: { [key: string]: Artifact } = {};
   const storedDeployedAddresses: { [key: string]: string } =

@@ -37,7 +37,7 @@ const SUBKEY_SEPERATOR = ".";
 export function toContractFutureId(
   moduleId: string,
   userProvidedId: string | undefined,
-  contractOrLibraryName: string
+  contractOrLibraryName: string,
 ): string {
   // IMPORTANT: Keep in sync with src/internal/utils/identifier-validators.ts#isValidContractName
 
@@ -68,7 +68,7 @@ export function toCallFutureId(
   userProvidedId: string | undefined,
   contractModuleId: string,
   contractId: string,
-  functionName: string
+  functionName: string,
 ): string {
   if (userProvidedId !== undefined) {
     return `${moduleId}${MODULE_SEPERATOR}${userProvidedId}`;
@@ -81,7 +81,7 @@ export function toCallFutureId(
 
   // We replace the MODULE_SEPARATOR for SUBMODULE_SEPARATOR
   const submoduleContractId = `${contractModuleId}${SUBMODULE_SEPARATOR}${contractId.substring(
-    contractModuleId.length + MODULE_SEPERATOR.length
+    contractModuleId.length + MODULE_SEPERATOR.length,
   )}`;
 
   return `${moduleId}${MODULE_SEPERATOR}${submoduleContractId}${SUBKEY_SEPERATOR}${functionName}`;
@@ -103,7 +103,7 @@ export function toEncodeFunctionCallFutureId(
   userProvidedId: string | undefined,
   contractModuleId: string,
   contractId: string,
-  functionName: string
+  functionName: string,
 ): string {
   if (userProvidedId !== undefined) {
     return `${moduleId}${MODULE_SEPERATOR}${userProvidedId}`;
@@ -115,7 +115,7 @@ export function toEncodeFunctionCallFutureId(
 
   // We replace the MODULE_SEPARATOR for SUBMODULE_SEPARATOR
   const submoduleContractId = `${contractModuleId}${SUBMODULE_SEPARATOR}${contractId.substring(
-    contractModuleId.length + MODULE_SEPERATOR.length
+    contractModuleId.length + MODULE_SEPERATOR.length,
   )}`;
 
   return `${moduleId}${MODULE_SEPERATOR}encodeFunctionCall(${submoduleContractId}${SUBKEY_SEPERATOR}${functionName})`;
@@ -142,7 +142,7 @@ export function toReadEventArgumentFutureId(
   contractName: string,
   eventName: string,
   nameOrIndex: string | number,
-  eventIndex: number
+  eventIndex: number,
 ) {
   const futureKey =
     userProvidedId ??

@@ -57,7 +57,7 @@ export type ConcreteExecutionConfig = Record<string, number | string>;
  */
 interface BaseExecutionState<
   ExecutionStateT extends ExecutionSateType,
-  FutureTypeT extends FutureType
+  FutureTypeT extends FutureType,
 > {
   id: string;
   type: ExecutionStateT;

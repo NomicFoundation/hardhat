@@ -185,14 +185,14 @@ describe("DeploymentStateReducer", () => {
         updatedDepExState = findExecutionStateById(
           ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
           updatedDeploymentState,
-          "future1"
+          "future1",
         );
       });
 
       it("should populate a deployment execution state for the future", () => {
         assert.equal(
           updatedDepExState.type,
-          ExecutionSateType.DEPLOYMENT_EXECUTION_STATE
+          ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
         );
       });
     });
@@ -207,7 +207,7 @@ describe("DeploymentStateReducer", () => {
         updatedDepExState = findExecutionStateById(
           ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
           updatedDeploymentState,
-          "future1"
+          "future1",
         );
       });
 
@@ -219,7 +219,7 @@ describe("DeploymentStateReducer", () => {
         assertIgnitionInvariant(
           networkInteraction.type ===
             NetworkInteractionType.ONCHAIN_INTERACTION,
-          "Added Network interaction is of the wrong type "
+          "Added Network interaction is of the wrong type ",
         );
 
         const { transactions, shouldBeResent, nonce, ...rest } =
@@ -227,7 +227,7 @@ describe("DeploymentStateReducer", () => {
 
         assert.deepStrictEqual(
           rest,
-          requestNetworkInteractionMessage.networkInteraction
+          requestNetworkInteractionMessage.networkInteraction,
         );
         assert.isArray(transactions);
         assert.lengthOf(transactions, 0);
@@ -247,14 +247,14 @@ describe("DeploymentStateReducer", () => {
         updatedDepExState = findExecutionStateById(
           ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
           updatedDeploymentState,
-          "future1"
+          "future1",
         );
       });
 
       it("should populate the transaction against the network interaction", () => {
         const networkInteraction = findOnchainInteractionBy(
           updatedDepExState,
-          1
+          1,
         );
 
         assert.equal(networkInteraction.transactions.length, 1);
@@ -262,7 +262,7 @@ describe("DeploymentStateReducer", () => {
         const transaction = findTransactionBy(
           updatedDepExState,
           1,
-          "0xdeadbeef"
+          "0xdeadbeef",
         );
 
         assert.deepStrictEqual(sendTransactionMessage.transaction, transaction);
@@ -282,7 +282,7 @@ describe("DeploymentStateReducer", () => {
         updatedDepExState = findExecutionStateById(
           ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
           updatedDeploymentState,
-          "future1"
+          "future1",
         );
       });
 
@@ -290,19 +290,19 @@ describe("DeploymentStateReducer", () => {
         const transaction = findTransactionBy(
           updatedDepExState,
           1,
-          "0xdeadbeef"
+          "0xdeadbeef",
         );
 
         assert.deepStrictEqual(
           transaction.receipt,
-          confirmTransactionMessage.receipt
+          confirmTransactionMessage.receipt,
         );
       });
 
       it("should clear all other transactions for the network interaction", () => {
         const networkInteraction = findOnchainInteractionBy(
           updatedDepExState,
-          1
+          1,
         );
 
         assert.equal(networkInteraction.transactions.length, 1);
@@ -323,7 +323,7 @@ describe("DeploymentStateReducer", () => {
         updatedDepExState = findExecutionStateById(
           ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
           updatedDeploymentState,
-          "future1"
+          "future1",
         );
       });
 
@@ -337,7 +337,7 @@ describe("DeploymentStateReducer", () => {
       it("should update the status to success", () => {
         assert.deepStrictEqual(
           updatedDepExState.status,
-          ExecutionStatus.SUCCESS
+          ExecutionStatus.SUCCESS,
         );
       });
     });
@@ -354,7 +354,7 @@ describe("DeploymentStateReducer", () => {
         updatedDepExState = findExecutionStateById(
           ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
           updatedDeploymentState,
-          "future1"
+          "future1",
         );
       });
 
@@ -385,7 +385,7 @@ describe("DeploymentStateReducer", () => {
         updatedDepExState = findExecutionStateById(
           ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
           updatedDeploymentState,
-          "future1"
+          "future1",
         );
       });
 
@@ -418,7 +418,7 @@ describe("DeploymentStateReducer", () => {
         updatedDepExState = findExecutionStateById(
           ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
           updatedDeploymentState,
-          "future1"
+          "future1",
         );
       });
 
@@ -449,7 +449,7 @@ describe("DeploymentStateReducer", () => {
         updatedDepExState = findExecutionStateById(
           ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
           updatedDeploymentState,
-          "future1"
+          "future1",
         );
       });
 

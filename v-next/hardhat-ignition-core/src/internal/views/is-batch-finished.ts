@@ -11,12 +11,12 @@ import { ExecutionStatus } from "../execution/types/execution-state";
  */
 export function isBatchFinished(
   deploymentState: DeploymentState,
-  batch: string[]
+  batch: string[],
 ): boolean {
   return batch
     .map((futureId) => deploymentState.executionStates[futureId])
     .every(
       (exState) =>
-        exState !== undefined && exState.status !== ExecutionStatus.STARTED
+        exState !== undefined && exState.status !== ExecutionStatus.STARTED,
     );
 }

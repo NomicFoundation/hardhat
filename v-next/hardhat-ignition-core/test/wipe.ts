@@ -58,18 +58,18 @@ describe("wipe", () => {
 
   it("should allow wiping of future", async () => {
     const deploymentLoader = new EphemeralDeploymentLoader(
-      mockArtifactResolver
+      mockArtifactResolver,
     );
 
     let deploymentState = await initializeDeploymentState(
       123,
-      deploymentLoader
+      deploymentLoader,
     );
 
     deploymentState = await applyNewMessage(
       contract1InitMessage,
       deploymentState,
-      deploymentLoader
+      deploymentLoader,
     );
 
     assert.isDefined(deploymentState.executionStates[contract1Id]);
@@ -83,19 +83,19 @@ describe("wipe", () => {
 
   it("should error if the deployment hasn't been initialized", async () => {
     const deploymentLoader = new EphemeralDeploymentLoader(
-      mockArtifactResolver
+      mockArtifactResolver,
     );
 
     const wiper = new Wiper(deploymentLoader);
     await assert.isRejected(
       wiper.wipe("whatever"),
-      "hasn't been intialialized yet"
+      "hasn't been intialialized yet",
     );
   });
 
   it("should error if the future id doesn't exist", async () => {
     const deploymentLoader = new EphemeralDeploymentLoader(
-      mockArtifactResolver
+      mockArtifactResolver,
     );
 
     await initializeDeploymentState(123, deploymentLoader);
@@ -103,30 +103,30 @@ describe("wipe", () => {
     const wiper = new Wiper(deploymentLoader);
     await assert.isRejected(
       wiper.wipe("Module1:Nonexistant"),
-      "IGN601: Cannot wipe Module1:Nonexistant as it has no previous execution recorded"
+      "IGN601: Cannot wipe Module1:Nonexistant as it has no previous execution recorded",
     );
   });
 
   it("should error if other futures are depenent on the future being wiped", async () => {
     const deploymentLoader = new EphemeralDeploymentLoader(
-      mockArtifactResolver
+      mockArtifactResolver,
     );
 
     let deploymentState = await initializeDeploymentState(
       123,
-      deploymentLoader
+      deploymentLoader,
     );
 
     deploymentState = await applyNewMessage(
       contract1InitMessage,
       deploymentState,
-      deploymentLoader
+      deploymentLoader,
     );
 
     deploymentState = await applyNewMessage(
       contract2InitMessage,
       deploymentState,
-      deploymentLoader
+      deploymentLoader,
     );
 
     assert.isDefined(deploymentState.executionStates[contract1Id]);
@@ -136,7 +136,7 @@ describe("wipe", () => {
 
     await assert.isRejected(
       wiper.wipe(contract1Id),
-      `IGN602: Cannot wipe ${contract1Id} as there are dependent futures that have previous executions recorded. Consider wiping these first: ${contract2Id}`
+      `IGN602: Cannot wipe ${contract1Id} as there are dependent futures that have previous executions recorded. Consider wiping these first: ${contract2Id}`,
     );
   });
 });

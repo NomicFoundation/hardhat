@@ -91,8 +91,8 @@ describe("Reconciliation - read event argument", () => {
           status: ExecutionStatus.STARTED,
           eventName: "EventName1",
           nameOrIndex: "arg1",
-        }
-      )
+        },
+      ),
     );
   });
 
@@ -126,8 +126,8 @@ describe("Reconciliation - read event argument", () => {
           id: "Module#ReadEvent",
           status: ExecutionStatus.STARTED,
           eventName: "eventUnchanged",
-        }
-      )
+        },
+      ),
     );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
@@ -169,8 +169,8 @@ describe("Reconciliation - read event argument", () => {
           id: "Module#ReadEvent",
           status: ExecutionStatus.STARTED,
           nameOrIndex: "argUnchanged",
-        }
-      )
+        },
+      ),
     );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
@@ -213,8 +213,8 @@ describe("Reconciliation - read event argument", () => {
           id: "Module#ReadEvent",
           status: ExecutionStatus.STARTED,
           eventIndex: 1,
-        }
-      )
+        },
+      ),
     );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
@@ -268,8 +268,8 @@ describe("Reconciliation - read event argument", () => {
           id: "Module#ReadEvent",
           status: ExecutionStatus.STARTED,
           emitterAddress: exampleAddress,
-        }
-      )
+        },
+      ),
     );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
@@ -346,8 +346,8 @@ describe("Reconciliation - read event argument", () => {
             address: differentAddress,
           },
           constructorArgs: ["first"],
-        }
-      )
+        },
+      ),
     );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
@@ -388,8 +388,8 @@ describe("Reconciliation - read event argument", () => {
           id: "Module#ReadEvent",
           status: ExecutionStatus.STARTED,
           strategy: "create2",
-        }
-      )
+        },
+      ),
     );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
@@ -430,8 +430,8 @@ describe("Reconciliation - read event argument", () => {
           id: "Module#ReadEvent",
           status: ExecutionStatus.STARTED,
           strategyConfig: { salt: "value" },
-        }
-      )
+        },
+      ),
     );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [

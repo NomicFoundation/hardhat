@@ -84,7 +84,11 @@ interface SerializeContext {
  */
 export class IgnitionModuleSerializer {
   public static serialize(
-    ignitionModule: IgnitionModule<string, string, IgnitionModuleResult<string>>
+    ignitionModule: IgnitionModule<
+      string,
+      string,
+      IgnitionModuleResult<string>
+    >,
   ): SerializedIgnitionModule {
     const argReplacer = (arg: ArgumentType) =>
       replaceWithinArg<SerializedArgumentType>(arg, {
@@ -100,22 +104,25 @@ export class IgnitionModuleSerializer {
     return {
       startModule: ignitionModule.id,
       modules: Object.fromEntries(
-        allModules.map((m) => [m.id, this._serializeModule(m, { argReplacer })])
+        allModules.map((m) => [
+          m.id,
+          this._serializeModule(m, { argReplacer }),
+        ]),
       ),
     };
   }
 
   private static _serializeModule(
     userModule: IgnitionModule<string, string, IgnitionModuleResult<string>>,
-    context: SerializeContext
+    context: SerializeContext,
   ): SerializedModuleDescription {
     return {
       id: userModule.id,
       futures: Array.from(userModule.futures).map((future) =>
-        this._serializeFuture(future, context)
+        this._serializeFuture(future, context),
       ),
       submodules: Array.from(userModule.submodules).map(
-        this._convertModuleToModuleToken
+        this._convertModuleToModuleToken,
       ),
       results: Object.entries(userModule.results).map(([key, future]) => [
         key,
@@ -126,7 +133,7 @@ export class IgnitionModuleSerializer {
 
   private static _serializeFuture(
     future: Future,
-    context: SerializeContext
+    context: SerializeContext,
   ): SerializedFuture {
     switch (future.type) {
       case FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT:
@@ -138,11 +145,11 @@ export class IgnitionModuleSerializer {
             dependencies: Array.from(future.dependencies).map((d) =>
               isFuture(d)
                 ? this._convertFutureToFutureToken(d)
-                : this._convertModuleToModuleToken(d)
+                : this._convertModuleToModuleToken(d),
             ),
             contractName: future.contractName,
             constructorArgs: future.constructorArgs.map((arg) =>
-              context.argReplacer(arg)
+              context.argReplacer(arg),
             ),
             from: isRuntimeValue(future.from)
               ? this._serializeAccountRuntimeValue(future.from)
@@ -151,8 +158,8 @@ export class IgnitionModuleSerializer {
             value: isFuture(future.value)
               ? this._convertFutureToFutureToken(future.value)
               : isRuntimeValue(future.value)
-              ? this._serializeModuleParamterRuntimeValue(future.value)
-              : this._serializeBigint(future.value),
+                ? this._serializeModuleParamterRuntimeValue(future.value)
+                : this._serializeBigint(future.value),
           };
         return serializedNamedContractDeploymentFuture;
 
@@ -165,12 +172,12 @@ export class IgnitionModuleSerializer {
             dependencies: Array.from(future.dependencies).map((d) =>
               isFuture(d)
                 ? this._convertFutureToFutureToken(d)
-                : this._convertModuleToModuleToken(d)
+                : this._convertModuleToModuleToken(d),
             ),
             contractName: future.contractName,
             artifact: future.artifact,
             constructorArgs: future.constructorArgs.map((arg) =>
-              context.argReplacer(arg)
+              context.argReplacer(arg),
             ),
             from: isRuntimeValue(future.from)
               ? this._serializeAccountRuntimeValue(future.from)
@@ -179,8 +186,8 @@ export class IgnitionModuleSerializer {
             value: isFuture(future.value)
               ? this._convertFutureToFutureToken(future.value)
               : isRuntimeValue(future.value)
-              ? this._serializeModuleParamterRuntimeValue(future.value)
-              : this._serializeBigint(future.value),
+                ? this._serializeModuleParamterRuntimeValue(future.value)
+                : this._serializeBigint(future.value),
           };
         return serializedArtifactContractDeploymentFuture;
 
@@ -193,7 +200,7 @@ export class IgnitionModuleSerializer {
             dependencies: Array.from(future.dependencies).map((d) =>
               isFuture(d)
                 ? this._convertFutureToFutureToken(d)
-                : this._convertModuleToModuleToken(d)
+                : this._convertModuleToModuleToken(d),
             ),
             contractName: future.contractName,
             from: isRuntimeValue(future.from)
@@ -212,7 +219,7 @@ export class IgnitionModuleSerializer {
             dependencies: Array.from(future.dependencies).map((d) =>
               isFuture(d)
                 ? this._convertFutureToFutureToken(d)
-                : this._convertModuleToModuleToken(d)
+                : this._convertModuleToModuleToken(d),
             ),
             contractName: future.contractName,
             artifact: future.artifact,
@@ -232,7 +239,7 @@ export class IgnitionModuleSerializer {
             dependencies: Array.from(future.dependencies).map((d) =>
               isFuture(d)
                 ? this._convertFutureToFutureToken(d)
-                : this._convertModuleToModuleToken(d)
+                : this._convertModuleToModuleToken(d),
             ),
             contract: this._convertFutureToFutureToken(future.contract),
             functionName: future.functionName,
@@ -240,8 +247,8 @@ export class IgnitionModuleSerializer {
             value: isFuture(future.value)
               ? this._convertFutureToFutureToken(future.value)
               : isRuntimeValue(future.value)
-              ? this._serializeModuleParamterRuntimeValue(future.value)
-              : this._serializeBigint(future.value),
+                ? this._serializeModuleParamterRuntimeValue(future.value)
+                : this._serializeBigint(future.value),
             from: isRuntimeValue(future.from)
               ? this._serializeAccountRuntimeValue(future.from)
               : future.from,
@@ -257,7 +264,7 @@ export class IgnitionModuleSerializer {
             dependencies: Array.from(future.dependencies).map((d) =>
               isFuture(d)
                 ? this._convertFutureToFutureToken(d)
-                : this._convertModuleToModuleToken(d)
+                : this._convertModuleToModuleToken(d),
             ),
             contract: this._convertFutureToFutureToken(future.contract),
             functionName: future.functionName,
@@ -278,7 +285,7 @@ export class IgnitionModuleSerializer {
             dependencies: Array.from(future.dependencies).map((d) =>
               isFuture(d)
                 ? this._convertFutureToFutureToken(d)
-                : this._convertModuleToModuleToken(d)
+                : this._convertModuleToModuleToken(d),
             ),
             contract: this._convertFutureToFutureToken(future.contract),
             functionName: future.functionName,
@@ -295,15 +302,15 @@ export class IgnitionModuleSerializer {
             dependencies: Array.from(future.dependencies).map((d) =>
               isFuture(d)
                 ? this._convertFutureToFutureToken(d)
-                : this._convertModuleToModuleToken(d)
+                : this._convertModuleToModuleToken(d),
             ),
             contractName: future.contractName,
             address: isFuture(future.address)
               ? this._convertFutureToFutureToken(future.address)
               : isRuntimeValue(future.address) &&
-                future.address.type === RuntimeValueType.MODULE_PARAMETER
-              ? this._serializeModuleParamterRuntimeValue(future.address)
-              : future.address,
+                  future.address.type === RuntimeValueType.MODULE_PARAMETER
+                ? this._serializeModuleParamterRuntimeValue(future.address)
+                : future.address,
           };
         return serializedNamedContractAtFuture;
 
@@ -316,16 +323,16 @@ export class IgnitionModuleSerializer {
             dependencies: Array.from(future.dependencies).map((d) =>
               isFuture(d)
                 ? this._convertFutureToFutureToken(d)
-                : this._convertModuleToModuleToken(d)
+                : this._convertModuleToModuleToken(d),
             ),
             contractName: future.contractName,
             artifact: future.artifact,
             address: isFuture(future.address)
               ? this._convertFutureToFutureToken(future.address)
               : isRuntimeValue(future.address) &&
-                future.address.type === RuntimeValueType.MODULE_PARAMETER
-              ? this._serializeModuleParamterRuntimeValue(future.address)
-              : future.address,
+                  future.address.type === RuntimeValueType.MODULE_PARAMETER
+                ? this._serializeModuleParamterRuntimeValue(future.address)
+                : future.address,
           };
         return serializedArtifactContractAtFuture;
 
@@ -338,10 +345,10 @@ export class IgnitionModuleSerializer {
             dependencies: Array.from(future.dependencies).map((d) =>
               isFuture(d)
                 ? this._convertFutureToFutureToken(d)
-                : this._convertModuleToModuleToken(d)
+                : this._convertModuleToModuleToken(d),
             ),
             futureToReadFrom: this._convertFutureToFutureToken(
-              future.futureToReadFrom
+              future.futureToReadFrom,
             ),
             emitter: this._convertFutureToFutureToken(future.emitter),
             eventName: future.eventName,
@@ -358,15 +365,15 @@ export class IgnitionModuleSerializer {
           dependencies: Array.from(future.dependencies).map((d) =>
             isFuture(d)
               ? this._convertFutureToFutureToken(d)
-              : this._convertModuleToModuleToken(d)
+              : this._convertModuleToModuleToken(d),
           ),
           to: isFuture(future.to)
             ? this._convertFutureToFutureToken(future.to)
             : isModuleParameterRuntimeValue(future.to)
-            ? this._serializeModuleParamterRuntimeValue(future.to)
-            : isAccountRuntimeValue(future.to)
-            ? this._serializeAccountRuntimeValue(future.to)
-            : future.to,
+              ? this._serializeModuleParamterRuntimeValue(future.to)
+              : isAccountRuntimeValue(future.to)
+                ? this._serializeAccountRuntimeValue(future.to)
+                : future.to,
           value: isRuntimeValue(future.value)
             ? this._serializeModuleParamterRuntimeValue(future.value)
             : this._serializeBigint(future.value),
@@ -382,7 +389,7 @@ export class IgnitionModuleSerializer {
   }
 
   private static _convertLibrariesToLibraryTokens(
-    libraries: Record<string, ContractFuture<string>>
+    libraries: Record<string, ContractFuture<string>>,
   ): SerializedLibraries {
     return Object.entries(libraries).map(([key, lib]) => [
       key,
@@ -391,13 +398,13 @@ export class IgnitionModuleSerializer {
   }
 
   private static _serializeAccountRuntimeValue(
-    arg: AccountRuntimeValue
+    arg: AccountRuntimeValue,
   ): SerializedAccountRuntimeValue {
     return { _kind: "AccountRuntimeValue", accountIndex: arg.accountIndex };
   }
 
   private static _serializeModuleParamterRuntimeValue(
-    arg: ModuleParameterRuntimeValue<ModuleParameterType>
+    arg: ModuleParameterRuntimeValue<ModuleParameterType>,
   ): SerializedModuleParameterRuntimeValue {
     return {
       _kind: "ModuleParameterRuntimeValue",
@@ -419,7 +426,7 @@ export class IgnitionModuleSerializer {
       value,
       (_: string, v: any) =>
         typeof v === "bigint" ? this._serializeBigint(v) : v,
-      prettyPrint ? 2 : undefined
+      prettyPrint ? 2 : undefined,
     );
   }
 
@@ -431,7 +438,7 @@ export class IgnitionModuleSerializer {
   }
 
   private static _convertModuleToModuleToken(
-    m: IgnitionModule<string, string, IgnitionModuleResult<string>>
+    m: IgnitionModule<string, string, IgnitionModuleResult<string>>,
   ): ModuleToken {
     return {
       moduleId: m.id,
@@ -440,12 +447,12 @@ export class IgnitionModuleSerializer {
   }
 
   private static _getModulesAndSubmoduleFor(
-    module: IgnitionModule<string, string, IgnitionModuleResult<string>>
+    module: IgnitionModule<string, string, IgnitionModuleResult<string>>,
   ): Array<IgnitionModule<string, string, IgnitionModuleResult<string>>> {
     return [module].concat(
       Array.from(module.submodules).flatMap((sm) =>
-        this._getModulesAndSubmoduleFor(sm)
-      )
+        this._getModulesAndSubmoduleFor(sm),
+      ),
     );
   }
 }
@@ -458,10 +465,10 @@ export class IgnitionModuleSerializer {
  */
 export class IgnitionModuleDeserializer {
   public static deserialize(
-    serializedIgnitionModule: SerializedIgnitionModule
+    serializedIgnitionModule: SerializedIgnitionModule,
   ): IgnitionModule<string, string, IgnitionModuleResult<string>> {
     const sortedModules = this._getSerializedModulesInReverseTopologicalOrder(
-      serializedIgnitionModule
+      serializedIgnitionModule,
     );
 
     const modulesLookup: Map<string, IgnitionModuleImplementation> = new Map();
@@ -476,7 +483,7 @@ export class IgnitionModuleDeserializer {
     }
 
     const sortedFutures = this._getSerializedFuturesInReverseTopologicalOrder(
-      serializedIgnitionModule
+      serializedIgnitionModule,
     );
 
     const futuresLookup: Map<string, Future> = new Map();
@@ -493,7 +500,7 @@ export class IgnitionModuleDeserializer {
         modulesLookup,
         futuresLookup,
         contractFuturesLookup,
-        addressResolvableFutureLookup
+        addressResolvableFutureLookup,
       );
 
       for (const dependencyId of serializedFuture.dependencies) {
@@ -520,14 +527,14 @@ export class IgnitionModuleDeserializer {
     }
 
     for (const serializedModule of Object.values(
-      serializedIgnitionModule.modules
+      serializedIgnitionModule.modules,
     )) {
       const mod = this._lookup(modulesLookup, serializedModule.id);
 
       for (const [name, futureToken] of serializedModule.results) {
         const contract = this._lookup(
           contractFuturesLookup,
-          futureToken.futureId
+          futureToken.futureId,
         );
 
         mod.results[name] = contract;
@@ -543,7 +550,7 @@ export class IgnitionModuleDeserializer {
   }
 
   private static _getSerializedModulesInReverseTopologicalOrder(
-    serializedIgnitionModule: SerializedIgnitionModule
+    serializedIgnitionModule: SerializedIgnitionModule,
   ): SerializedModuleDescription[] {
     const graph: Graph<SerializedModuleDescription> = new Map();
 
@@ -562,11 +569,11 @@ export class IgnitionModuleDeserializer {
   }
 
   private static _getSerializedFuturesInReverseTopologicalOrder(
-    serializedIgnitionModule: SerializedIgnitionModule
+    serializedIgnitionModule: SerializedIgnitionModule,
   ): SerializedFuture[] {
     const serializedFutures = this._getAllFuturesFor(serializedIgnitionModule);
     const serializedFuturesMap = Object.fromEntries(
-      serializedFutures.map((f) => [f.id, f])
+      serializedFutures.map((f) => [f.id, f]),
     );
 
     const graph: Graph<SerializedFuture> = new Map();
@@ -589,7 +596,7 @@ export class IgnitionModuleDeserializer {
 
   private static _deserializeArgument(
     arg: SerializedArgumentType,
-    futureLookup: Map<string, Future>
+    futureLookup: Map<string, Future>,
   ): ArgumentType {
     if (this._isSerializedFutureToken(arg)) {
       const swappedFuture = this._lookup(futureLookup, arg.futureId);
@@ -633,7 +640,7 @@ export class IgnitionModuleDeserializer {
         Object.entries(arg).map(([k, v]) => [
           k,
           this._deserializeArgument(v, futureLookup),
-        ])
+        ]),
       );
     }
 
@@ -655,7 +662,7 @@ export class IgnitionModuleDeserializer {
   }
 
   private static _isSerializedFutureToken(
-    arg: SerializedArgumentType
+    arg: SerializedArgumentType,
   ): arg is FutureToken {
     return (
       typeof arg === "object" && "_kind" in arg && arg._kind === "FutureToken"
@@ -663,16 +670,16 @@ export class IgnitionModuleDeserializer {
   }
 
   private static _isSerializedBigInt(
-    arg: SerializedArgumentType
+    arg: SerializedArgumentType,
   ): arg is SerializedBigInt {
     return typeof arg === "object" && "_kind" in arg && arg._kind === "bigint";
   }
 
   private static _getAllFuturesFor(
-    deployment: SerializedIgnitionModule
+    deployment: SerializedIgnitionModule,
   ): SerializedFuture[] {
     return Object.values(deployment.modules).flatMap((m) =>
-      Object.values(m.futures)
+      Object.values(m.futures),
     );
   }
 
@@ -684,7 +691,7 @@ export class IgnitionModuleDeserializer {
     >,
     futuresLookup: Map<string, Future>,
     contractFuturesLookup: Map<string, ContractFuture<string>>,
-    addressResolvableFutureLookup: Map<string, AddressResolvableFuture>
+    addressResolvableFutureLookup: Map<string, AddressResolvableFuture>,
   ): Future {
     const mod = this._lookup(modulesLookup, serializedFuture.moduleId);
 
@@ -695,28 +702,28 @@ export class IgnitionModuleDeserializer {
           mod,
           serializedFuture.contractName,
           serializedFuture.constructorArgs.map((arg) =>
-            this._deserializeArgument(arg, futuresLookup)
+            this._deserializeArgument(arg, futuresLookup),
           ),
           Object.fromEntries(
             serializedFuture.libraries.map(([name, lib]) => [
               name,
               this._lookup(contractFuturesLookup, lib.futureId),
-            ])
+            ]),
           ),
           this._isSerializedFutureToken(serializedFuture.value)
             ? (this._lookup(futuresLookup, serializedFuture.value.futureId) as
                 | StaticCallFuture<string, string>
                 | ReadEventArgumentFuture)
             : this._isSerializedModuleParameterRuntimeValue(
-                serializedFuture.value
-              )
-            ? (this._deserializeModuleParameterRuntimeValue(
-                serializedFuture.value
-              ) as ModuleParameterRuntimeValue<bigint>) // This is unsafe, but we only serialize valid values
-            : this._deserializedBigint(serializedFuture.value),
+                  serializedFuture.value,
+                )
+              ? (this._deserializeModuleParameterRuntimeValue(
+                  serializedFuture.value,
+                ) as ModuleParameterRuntimeValue<bigint>) // This is unsafe, but we only serialize valid values
+              : this._deserializedBigint(serializedFuture.value),
           this._isSerializedAccountRuntimeValue(serializedFuture.from)
             ? this._deserializeAccountRuntimeValue(serializedFuture.from)
-            : serializedFuture.from
+            : serializedFuture.from,
         );
       case FutureType.CONTRACT_DEPLOYMENT:
         return new ArtifactContractDeploymentFutureImplementation(
@@ -724,29 +731,29 @@ export class IgnitionModuleDeserializer {
           mod,
           serializedFuture.contractName,
           serializedFuture.constructorArgs.map((arg) =>
-            this._deserializeArgument(arg, futuresLookup)
+            this._deserializeArgument(arg, futuresLookup),
           ),
           serializedFuture.artifact,
           Object.fromEntries(
             serializedFuture.libraries.map(([name, lib]) => [
               name,
               this._lookup(contractFuturesLookup, lib.futureId),
-            ])
+            ]),
           ),
           this._isSerializedFutureToken(serializedFuture.value)
             ? (this._lookup(futuresLookup, serializedFuture.value.futureId) as
                 | StaticCallFuture<string, string>
                 | ReadEventArgumentFuture)
             : this._isSerializedModuleParameterRuntimeValue(
-                serializedFuture.value
-              )
-            ? (this._deserializeModuleParameterRuntimeValue(
-                serializedFuture.value
-              ) as ModuleParameterRuntimeValue<bigint>) // This is unsafe, but we only serialize valid values
-            : this._deserializedBigint(serializedFuture.value),
+                  serializedFuture.value,
+                )
+              ? (this._deserializeModuleParameterRuntimeValue(
+                  serializedFuture.value,
+                ) as ModuleParameterRuntimeValue<bigint>) // This is unsafe, but we only serialize valid values
+              : this._deserializedBigint(serializedFuture.value),
           this._isSerializedAccountRuntimeValue(serializedFuture.from)
             ? this._deserializeAccountRuntimeValue(serializedFuture.from)
-            : serializedFuture.from
+            : serializedFuture.from,
         );
       case FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT:
         return new NamedLibraryDeploymentFutureImplementation(
@@ -757,11 +764,11 @@ export class IgnitionModuleDeserializer {
             serializedFuture.libraries.map(([name, lib]) => [
               name,
               this._lookup(contractFuturesLookup, lib.futureId),
-            ])
+            ]),
           ),
           this._isSerializedAccountRuntimeValue(serializedFuture.from)
             ? this._deserializeAccountRuntimeValue(serializedFuture.from)
-            : serializedFuture.from
+            : serializedFuture.from,
         );
       case FutureType.LIBRARY_DEPLOYMENT:
         return new ArtifactLibraryDeploymentFutureImplementation(
@@ -773,11 +780,11 @@ export class IgnitionModuleDeserializer {
             serializedFuture.libraries.map(([name, lib]) => [
               name,
               this._lookup(contractFuturesLookup, lib.futureId),
-            ])
+            ]),
           ),
           this._isSerializedAccountRuntimeValue(serializedFuture.from)
             ? this._deserializeAccountRuntimeValue(serializedFuture.from)
-            : serializedFuture.from
+            : serializedFuture.from,
         );
       case FutureType.CONTRACT_CALL:
         return new NamedContractCallFutureImplementation(
@@ -786,25 +793,25 @@ export class IgnitionModuleDeserializer {
           serializedFuture.functionName,
           this._lookup(
             contractFuturesLookup,
-            serializedFuture.contract.futureId
+            serializedFuture.contract.futureId,
           ),
           serializedFuture.args.map((arg) =>
-            this._deserializeArgument(arg, futuresLookup)
+            this._deserializeArgument(arg, futuresLookup),
           ),
           this._isSerializedFutureToken(serializedFuture.value)
             ? (this._lookup(futuresLookup, serializedFuture.value.futureId) as
                 | StaticCallFuture<string, string>
                 | ReadEventArgumentFuture)
             : this._isSerializedModuleParameterRuntimeValue(
-                serializedFuture.value
-              )
-            ? (this._deserializeModuleParameterRuntimeValue(
-                serializedFuture.value
-              ) as ModuleParameterRuntimeValue<bigint>) // This is unsafe, but we only serialize valid values
-            : this._deserializedBigint(serializedFuture.value),
+                  serializedFuture.value,
+                )
+              ? (this._deserializeModuleParameterRuntimeValue(
+                  serializedFuture.value,
+                ) as ModuleParameterRuntimeValue<bigint>) // This is unsafe, but we only serialize valid values
+              : this._deserializedBigint(serializedFuture.value),
           this._isSerializedAccountRuntimeValue(serializedFuture.from)
             ? this._deserializeAccountRuntimeValue(serializedFuture.from)
-            : serializedFuture.from
+            : serializedFuture.from,
         );
       case FutureType.STATIC_CALL:
         return new NamedStaticCallFutureImplementation(
@@ -813,15 +820,15 @@ export class IgnitionModuleDeserializer {
           serializedFuture.functionName,
           this._lookup(
             contractFuturesLookup,
-            serializedFuture.contract.futureId
+            serializedFuture.contract.futureId,
           ),
           serializedFuture.args.map((arg) =>
-            this._deserializeArgument(arg, futuresLookup)
+            this._deserializeArgument(arg, futuresLookup),
           ),
           serializedFuture.nameOrIndex,
           this._isSerializedAccountRuntimeValue(serializedFuture.from)
             ? this._deserializeAccountRuntimeValue(serializedFuture.from)
-            : serializedFuture.from
+            : serializedFuture.from,
         );
       case FutureType.ENCODE_FUNCTION_CALL:
         return new NamedEncodeFunctionCallFutureImplementation(
@@ -830,11 +837,11 @@ export class IgnitionModuleDeserializer {
           serializedFuture.functionName,
           this._lookup(
             contractFuturesLookup,
-            serializedFuture.contract.futureId
+            serializedFuture.contract.futureId,
           ),
           serializedFuture.args.map((arg) =>
-            this._deserializeArgument(arg, futuresLookup)
-          )
+            this._deserializeArgument(arg, futuresLookup),
+          ),
         );
       case FutureType.NAMED_ARTIFACT_CONTRACT_AT:
         return new NamedContractAtFutureImplementation(
@@ -844,15 +851,15 @@ export class IgnitionModuleDeserializer {
           this._isSerializedFutureToken(serializedFuture.address)
             ? this._lookup(
                 addressResolvableFutureLookup,
-                serializedFuture.address.futureId
+                serializedFuture.address.futureId,
               )
             : this._isSerializedModuleParameterRuntimeValue(
-                serializedFuture.address
-              )
-            ? (this._deserializeModuleParameterRuntimeValue(
-                serializedFuture.address
-              ) as ModuleParameterRuntimeValue<string>) // This is unsafe, but we only serialize valid values
-            : serializedFuture.address
+                  serializedFuture.address,
+                )
+              ? (this._deserializeModuleParameterRuntimeValue(
+                  serializedFuture.address,
+                ) as ModuleParameterRuntimeValue<string>) // This is unsafe, but we only serialize valid values
+              : serializedFuture.address,
         );
       case FutureType.CONTRACT_AT:
         return new ArtifactContractAtFutureImplementation(
@@ -862,16 +869,16 @@ export class IgnitionModuleDeserializer {
           this._isSerializedFutureToken(serializedFuture.address)
             ? this._lookup(
                 addressResolvableFutureLookup,
-                serializedFuture.address.futureId
+                serializedFuture.address.futureId,
               )
             : this._isSerializedModuleParameterRuntimeValue(
-                serializedFuture.address
-              )
-            ? (this._deserializeModuleParameterRuntimeValue(
-                serializedFuture.address
-              ) as ModuleParameterRuntimeValue<string>) // This is unsafe, but we only serialize valid values
-            : serializedFuture.address,
-          serializedFuture.artifact
+                  serializedFuture.address,
+                )
+              ? (this._deserializeModuleParameterRuntimeValue(
+                  serializedFuture.address,
+                ) as ModuleParameterRuntimeValue<string>) // This is unsafe, but we only serialize valid values
+              : serializedFuture.address,
+          serializedFuture.artifact,
         );
       case FutureType.READ_EVENT_ARGUMENT:
         return new ReadEventArgumentFutureImplementation(
@@ -879,7 +886,7 @@ export class IgnitionModuleDeserializer {
           mod,
           this._lookup(
             futuresLookup,
-            serializedFuture.futureToReadFrom.futureId
+            serializedFuture.futureToReadFrom.futureId,
           ) as
             | NamedArtifactContractDeploymentFuture<string>
             | ContractDeploymentFuture
@@ -888,9 +895,9 @@ export class IgnitionModuleDeserializer {
           serializedFuture.nameOrIndex,
           this._lookup(
             contractFuturesLookup,
-            serializedFuture.emitter.futureId
+            serializedFuture.emitter.futureId,
           ),
-          serializedFuture.eventIndex
+          serializedFuture.eventIndex,
         );
       case FutureType.SEND_DATA:
         return new SendDataFutureImplementation(
@@ -899,18 +906,18 @@ export class IgnitionModuleDeserializer {
           this._isSerializedFutureToken(serializedFuture.to)
             ? this._lookup(
                 addressResolvableFutureLookup,
-                serializedFuture.to.futureId
+                serializedFuture.to.futureId,
               )
             : this._isSerializedModuleParameterRuntimeValue(serializedFuture.to)
-            ? (this._deserializeModuleParameterRuntimeValue(
-                serializedFuture.to
-              ) as ModuleParameterRuntimeValue<string>) // This is unsafe, but we only serialize valid values
-            : this._isSerializedAccountRuntimeValue(serializedFuture.to)
-            ? this._deserializeAccountRuntimeValue(serializedFuture.to)
-            : serializedFuture.to,
+              ? (this._deserializeModuleParameterRuntimeValue(
+                  serializedFuture.to,
+                ) as ModuleParameterRuntimeValue<string>) // This is unsafe, but we only serialize valid values
+              : this._isSerializedAccountRuntimeValue(serializedFuture.to)
+                ? this._deserializeAccountRuntimeValue(serializedFuture.to)
+                : serializedFuture.to,
           this._isSerializedModuleParameterRuntimeValue(serializedFuture.value)
             ? (this._deserializeModuleParameterRuntimeValue(
-                serializedFuture.value
+                serializedFuture.value,
               ) as ModuleParameterRuntimeValue<bigint>) // This is unsafe, but we only serialize valid values
             : this._deserializedBigint(serializedFuture.value),
           serializedFuture.data === undefined ||
@@ -918,11 +925,11 @@ export class IgnitionModuleDeserializer {
             ? serializedFuture.data
             : (this._lookup(
                 futuresLookup,
-                serializedFuture.data.futureId
+                serializedFuture.data.futureId,
               ) as EncodeFunctionCallFuture<string, string>),
           this._isSerializedAccountRuntimeValue(serializedFuture.from)
             ? this._deserializeAccountRuntimeValue(serializedFuture.from)
-            : serializedFuture.from
+            : serializedFuture.from,
         );
     }
   }
@@ -940,7 +947,7 @@ export class IgnitionModuleDeserializer {
   }
 
   private static _isSerializedAccountRuntimeValue(
-    v: unknown
+    v: unknown,
   ): v is SerializedAccountRuntimeValue {
     return (
       v instanceof Object && "_kind" in v && v._kind === "AccountRuntimeValue"
@@ -948,13 +955,13 @@ export class IgnitionModuleDeserializer {
   }
 
   private static _deserializeAccountRuntimeValue(
-    serialized: SerializedAccountRuntimeValue
+    serialized: SerializedAccountRuntimeValue,
   ): AccountRuntimeValue {
     return new AccountRuntimeValueImplementation(serialized.accountIndex);
   }
 
   private static _isSerializedModuleParameterRuntimeValue(
-    v: unknown
+    v: unknown,
   ): v is SerializedModuleParameterRuntimeValue {
     return (
       v instanceof Object &&
@@ -964,14 +971,14 @@ export class IgnitionModuleDeserializer {
   }
 
   private static _deserializeModuleParameterRuntimeValue(
-    serialized: SerializedModuleParameterRuntimeValue
+    serialized: SerializedModuleParameterRuntimeValue,
   ): ModuleParameterRuntimeValue<ModuleParameterType> {
     let defaultValue: ModuleParameterType | undefined;
     if (serialized.defaultValue !== undefined) {
       // We cast here because we receive an `unknown`, but we known it came from
       // serializing a ModuleParameterType
       const parsedDefaultValue = this._jsonParseWithBigint(
-        serialized.defaultValue
+        serialized.defaultValue,
       );
 
       if (
@@ -981,7 +988,7 @@ export class IgnitionModuleDeserializer {
         typeof parsedDefaultValue.accountIndex === "number"
       ) {
         defaultValue = new AccountRuntimeValueImplementation(
-          parsedDefaultValue.accountIndex
+          parsedDefaultValue.accountIndex,
         );
       } else {
         defaultValue = parsedDefaultValue as ModuleParameterType;
@@ -991,7 +998,7 @@ export class IgnitionModuleDeserializer {
     return new ModuleParameterRuntimeValueImplementation(
       serialized.moduleId,
       serialized.name,
-      defaultValue
+      defaultValue,
     );
   }
 }

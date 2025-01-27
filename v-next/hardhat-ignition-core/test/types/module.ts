@@ -8,7 +8,7 @@ import {
 } from "../../src/types/module";
 
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
-  k: infer I
+  k: infer I,
 ) => void
   ? I
   : never;
@@ -25,7 +25,7 @@ interface BaseRuntimeValue {
 }
 
 function _testThatTheValuesOfFutureTypeMatchTheKeys<ValueT extends FutureType>(
-  type: ValueT
+  type: ValueT,
 ): FutureType {
   return FutureType[type];
 }
@@ -35,7 +35,7 @@ function _testThatEveryFutureIsBaseFuture(f: Future): BaseFuture {
 }
 
 function _testThatBaseFutureIncludesAllSharedFieldsExceptType(
-  f: Omit<BaseFuture, "type">
+  f: Omit<BaseFuture, "type">,
 ): UnionToIntersection<Omit<Future, "type">> {
   return f;
 }
@@ -45,25 +45,25 @@ function _testThatEveryFutureTypeIsUsed(type: FutureType): Future["type"] {
 }
 
 function _testThatEveryRuntimeValueIsBaseRuntimeValue(
-  r: RuntimeValue
+  r: RuntimeValue,
 ): BaseRuntimeValue {
   return r;
 }
 
 function _testThatBaseRuntimeValueIncludesAllSharedFieldsExceptType(
-  r: Omit<BaseRuntimeValue, "type">
+  r: Omit<BaseRuntimeValue, "type">,
 ): UnionToIntersection<Omit<RuntimeValue, "type">> {
   return r;
 }
 
 function _testThatEveryRuntimeValueTypeIsUsed(
-  type: RuntimeValueType
+  type: RuntimeValueType,
 ): RuntimeValue["type"] {
   return type;
 }
 
 function _testThatTheValuesOfRuntimeValueTypeMatchTheKeys<
-  ValueT extends RuntimeValueType
+  ValueT extends RuntimeValueType,
 >(type: ValueT): RuntimeValueType {
   return RuntimeValueType[type];
 }

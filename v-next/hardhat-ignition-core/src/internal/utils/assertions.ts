@@ -3,7 +3,7 @@ import { ERRORS } from "../errors-list";
 
 export function assertIgnitionInvariant(
   invariant: boolean,
-  description: string
+  description: string,
 ): asserts invariant {
   if (!invariant) {
     throw new IgnitionError(ERRORS.GENERAL.ASSERTION_ERROR, { description });

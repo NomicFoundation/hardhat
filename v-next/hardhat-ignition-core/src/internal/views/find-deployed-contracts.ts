@@ -15,10 +15,10 @@ export function findDeployedContracts(deploymentState: DeploymentState): {
   return Object.values(deploymentState.executionStates)
     .filter(
       (
-        exState
+        exState,
       ): exState is DeploymentExecutionState | ContractAtExecutionState =>
         exState.type === ExecutionSateType.DEPLOYMENT_EXECUTION_STATE ||
-        exState.type === ExecutionSateType.CONTRACT_AT_EXECUTION_STATE
+        exState.type === ExecutionSateType.CONTRACT_AT_EXECUTION_STATE,
     )
     .filter((des) => des.status === ExecutionStatus.SUCCESS)
     .map(_toDeployedContract)
@@ -29,14 +29,14 @@ export function findDeployedContracts(deploymentState: DeploymentState): {
 }
 
 function _toDeployedContract(
-  des: DeploymentExecutionState | ContractAtExecutionState
+  des: DeploymentExecutionState | ContractAtExecutionState,
 ): DeployedContract {
   switch (des.type) {
     case ExecutionSateType.DEPLOYMENT_EXECUTION_STATE: {
       assertIgnitionInvariant(
         des.result !== undefined &&
           des.result.type === ExecutionResultType.SUCCESS,
-        `Deployment execution state ${des.id} should have a successful result to retrieve address`
+        `Deployment execution state ${des.id} should have a successful result to retrieve address`,
       );
 
       return {

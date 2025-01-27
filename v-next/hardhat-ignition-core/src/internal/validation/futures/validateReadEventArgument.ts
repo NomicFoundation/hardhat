@@ -10,7 +10,7 @@ export async function validateReadEventArgument(
   future: ReadEventArgumentFuture,
   artifactLoader: ArtifactResolver,
   _deploymentParameters: DeploymentParameters,
-  _accounts: string[]
+  _accounts: string[],
 ): Promise<string[]> {
   const errors: IgnitionError[] = [];
 
@@ -25,15 +25,15 @@ export async function validateReadEventArgument(
     errors.push(
       new IgnitionError(ERRORS.VALIDATION.INVALID_ARTIFACT, {
         contractName: future.emitter.contractName,
-      })
+      }),
     );
   } else {
     errors.push(
       ...validateArtifactEventArgumentParams(
         artifact,
         future.eventName,
-        future.nameOrIndex
-      )
+        future.nameOrIndex,
+      ),
     );
   }
 

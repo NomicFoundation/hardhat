@@ -39,7 +39,7 @@ export function createExecutionStateCompleteMessage(
     | DeploymentExecutionResult
     | CallExecutionResult
     | SendDataExecutionResult
-    | StaticCallExecutionResult
+    | StaticCallExecutionResult,
 ):
   | DeploymentExecutionStateCompleteMessage
   | CallExecutionStateCompleteMessage
@@ -55,7 +55,7 @@ export function createExecutionStateCompleteMessage(
 
   return createExecutionStateCompleteMessageForExecutionsWithOnchainInteractions(
     exState,
-    result
+    result,
   );
 }
 
@@ -78,7 +78,7 @@ export function createExecutionStateCompleteMessageForExecutionsWithOnchainInter
   result:
     | DeploymentExecutionResult
     | CallExecutionResult
-    | SendDataExecutionResult
+    | SendDataExecutionResult,
 ):
   | DeploymentExecutionStateCompleteMessage
   | CallExecutionStateCompleteMessage
