@@ -1,5 +1,5 @@
-import { Artifact } from "../types/artifact";
-import {
+import type { Artifact } from "../types/artifact";
+import type {
   AccountRuntimeValue,
   AddressResolvableFuture,
   ArgumentType,
@@ -8,7 +8,6 @@ import {
   LibraryDeploymentFuture,
   ContractFuture,
   Future,
-  FutureType,
   IgnitionModule,
   IgnitionModuleResult,
   ModuleParameterRuntimeValue,
@@ -19,12 +18,13 @@ import {
   NamedArtifactLibraryDeploymentFuture,
   StaticCallFuture,
   ReadEventArgumentFuture,
-  RuntimeValueType,
   SendDataFuture,
   EncodeFunctionCallFuture,
 } from "../types/module";
 
-const customInspectSymbol = Symbol.for("util.inspect.custom");
+import { FutureType, RuntimeValueType } from "../types/module";
+
+const CUSTOM_INSPECT_SYMBOL: symbol = Symbol.for("nodejs.util.inspect.custom");
 
 abstract class BaseFutureImplementation<FutureTypeT extends FutureType> {
   public readonly dependencies: Set<Future | IgnitionModule> = new Set();
@@ -33,21 +33,26 @@ abstract class BaseFutureImplementation<FutureTypeT extends FutureType> {
     public readonly id: string,
     public readonly type: FutureTypeT,
     public readonly module: IgnitionModuleImplementation
-  ) {}
-
-  public [customInspectSymbol](
-    _depth: number,
-    { inspect }: { inspect: (arg: {}) => string }
   ) {
-    const padding = " ".repeat(2);
+    Object.defineProperty(this, CUSTOM_INSPECT_SYMBOL, {
+      value: (
+        _depth: number,
+        { inspect }: { inspect: (arg: {}) => string }
+      ) => {
+        const padding = " ".repeat(2);
 
-    return `Future ${this.id} {
-    Type: ${FutureType[this.type]}
-    Module: ${this.module.id}
-    Dependencies: ${inspect(
-      Array.from(this.dependencies).map((f) => f.id)
-    ).replace(/\n/g, `\n${padding}`)}
-  }`;
+        return `Future ${this.id} {
+        Type: ${FutureType[this.type]}
+        Module: ${this.module.id}
+        Dependencies: ${inspect(
+          Array.from(this.dependencies).map((f) => f.id)
+        ).replace(/\n/g, `\n${padding}`)}
+      }`;
+      },
+      writable: false,
+      enumerable: false,
+      configurable: true,
+    });
   }
 }
 
@@ -58,8 +63,8 @@ export class NamedContractDeploymentFutureImplementation<
   implements NamedArtifactContractDeploymentFuture<ContractNameT>
 {
   constructor(
-    public readonly id: string,
-    public readonly module: IgnitionModuleImplementation,
+    public override readonly id: string,
+    public override readonly module: IgnitionModuleImplementation,
     public readonly contractName: ContractNameT,
     public readonly constructorArgs: ArgumentType[],
     public readonly libraries: Record<string, ContractFuture<string>>,
@@ -81,8 +86,8 @@ export class ArtifactContractDeploymentFutureImplementation<
   implements ContractDeploymentFuture
 {
   constructor(
-    public readonly id: string,
-    public readonly module: IgnitionModuleImplementation,
+    public override readonly id: string,
+    public override readonly module: IgnitionModuleImplementation,
     public readonly contractName: ContractNameT,
     public readonly constructorArgs: ArgumentType[],
     public readonly artifact: Artifact,
@@ -105,8 +110,8 @@ export class NamedLibraryDeploymentFutureImplementation<
   implements NamedArtifactLibraryDeploymentFuture<LibraryNameT>
 {
   constructor(
-    public readonly id: string,
-    public readonly module: IgnitionModuleImplementation,
+    public override readonly id: string,
+    public override readonly module: IgnitionModuleImplementation,
     public readonly contractName: LibraryNameT,
     public readonly libraries: Record<string, ContractFuture<string>>,
     public readonly from: string | AccountRuntimeValue | undefined
@@ -122,8 +127,8 @@ export class ArtifactLibraryDeploymentFutureImplementation<
   implements LibraryDeploymentFuture
 {
   constructor(
-    public readonly id: string,
-    public readonly module: IgnitionModuleImplementation,
+    public override readonly id: string,
+    public override readonly module: IgnitionModuleImplementation,
     public readonly contractName: LibraryNameT,
     public readonly artifact: Artifact,
     public readonly libraries: Record<string, ContractFuture<string>>,
@@ -141,8 +146,8 @@ export class NamedContractCallFutureImplementation<
   implements ContractCallFuture<ContractNameT, FunctionNameT>
 {
   constructor(
-    public readonly id: string,
-    public readonly module: IgnitionModuleImplementation,
+    public override readonly id: string,
+    public override readonly module: IgnitionModuleImplementation,
     public readonly functionName: FunctionNameT,
     public readonly contract: ContractFuture<ContractNameT>,
     public readonly args: ArgumentType[],
@@ -165,8 +170,8 @@ export class NamedStaticCallFutureImplementation<
   implements StaticCallFuture<ContractNameT, FunctionNameT>
 {
   constructor(
-    public readonly id: string,
-    public readonly module: IgnitionModuleImplementation,
+    public override readonly id: string,
+    public override readonly module: IgnitionModuleImplementation,
     public readonly functionName: FunctionNameT,
     public readonly contract: ContractFuture<ContractNameT>,
     public readonly args: ArgumentType[],
@@ -185,8 +190,8 @@ export class NamedEncodeFunctionCallFutureImplementation<
   implements EncodeFunctionCallFuture<ContractNameT, FunctionNameT>
 {
   constructor(
-    public readonly id: string,
-    public readonly module: IgnitionModuleImplementation,
+    public override readonly id: string,
+    public override readonly module: IgnitionModuleImplementation,
     public readonly functionName: FunctionNameT,
     public readonly contract: ContractFuture<ContractNameT>,
     public readonly args: ArgumentType[]
@@ -200,8 +205,8 @@ export class NamedContractAtFutureImplementation<ContractNameT extends string>
   implements NamedArtifactContractAtFuture<ContractNameT>
 {
   constructor(
-    public readonly id: string,
-    public readonly module: IgnitionModuleImplementation,
+    public override readonly id: string,
+    public override readonly module: IgnitionModuleImplementation,
     public readonly contractName: ContractNameT,
     public readonly address:
       | string
@@ -217,8 +222,8 @@ export class ArtifactContractAtFutureImplementation
   implements ContractAtFuture
 {
   constructor(
-    public readonly id: string,
-    public readonly module: IgnitionModuleImplementation,
+    public override readonly id: string,
+    public override readonly module: IgnitionModuleImplementation,
     public readonly contractName: string,
     public readonly address:
       | string
@@ -235,8 +240,8 @@ export class ReadEventArgumentFutureImplementation
   implements ReadEventArgumentFuture
 {
   constructor(
-    public readonly id: string,
-    public readonly module: IgnitionModuleImplementation,
+    public override readonly id: string,
+    public override readonly module: IgnitionModuleImplementation,
     public readonly futureToReadFrom:
       | NamedArtifactContractDeploymentFuture<string>
       | ContractDeploymentFuture
@@ -256,8 +261,8 @@ export class SendDataFutureImplementation
   implements SendDataFuture
 {
   constructor(
-    public readonly id: string,
-    public readonly module: IgnitionModuleImplementation,
+    public override readonly id: string,
+    public override readonly module: IgnitionModuleImplementation,
     public readonly to:
       | string
       | AddressResolvableFuture
@@ -286,37 +291,46 @@ export class IgnitionModuleImplementation<
   constructor(
     public readonly id: ModuleIdT,
     public readonly results: IgnitionModuleResultsT
-  ) {}
-
-  public [customInspectSymbol](
-    _depth: number,
-    { inspect }: { inspect: (arg: {}) => string }
   ) {
-    const padding = " ".repeat(2);
+    Object.defineProperty(this, CUSTOM_INSPECT_SYMBOL, {
+      value: (
+        _depth: number,
+        { inspect }: { inspect: (arg: {}) => string }
+      ) => {
+        const padding = " ".repeat(2);
 
-    return `IgnitionModule ${this.id} {
-    Futures: ${inspect(this.futures).replace(/\n/g, `\n${padding}`)}
-    Results: ${inspect(this.results).replace(/\n/g, `\n${padding}`)}
-    Submodules: ${inspect(Array.from(this.submodules).map((m) => m.id)).replace(
-      /\n/g,
-      `\n${padding}`
-    )}
-  }`;
+        return `IgnitionModule ${this.id} {
+        Futures: ${inspect(this.futures).replace(/\n/g, `\n${padding}`)}
+        Results: ${inspect(this.results).replace(/\n/g, `\n${padding}`)}
+        Submodules: ${inspect(
+          Array.from(this.submodules).map((m) => m.id)
+        ).replace(/\n/g, `\n${padding}`)}
+      }`;
+      },
+      writable: false,
+      enumerable: false,
+      configurable: true,
+    });
   }
 }
 
 export class AccountRuntimeValueImplementation implements AccountRuntimeValue {
-  public readonly type = RuntimeValueType.ACCOUNT;
+  public readonly type: RuntimeValueType.ACCOUNT = RuntimeValueType.ACCOUNT;
 
-  constructor(public readonly accountIndex: number) {}
-
-  public [customInspectSymbol](
-    _depth: number,
-    _inspectOptions: { inspect: (arg: {}) => string }
-  ) {
-    return `Account RuntimeValue {
-    accountIndex: ${this.accountIndex}
-}`;
+  constructor(public readonly accountIndex: number) {
+    Object.defineProperty(this, CUSTOM_INSPECT_SYMBOL, {
+      value: (
+        _depth: number,
+        _inspectOptions: { inspect: (arg: {}) => string }
+      ) => {
+        return `Account RuntimeValue {
+          accountIndex: ${this.accountIndex}
+      }`;
+      },
+      writable: false,
+      enumerable: false,
+      configurable: true,
+    });
   }
 }
 
@@ -324,25 +338,31 @@ export class ModuleParameterRuntimeValueImplementation<
   ParamTypeT extends ModuleParameterType
 > implements ModuleParameterRuntimeValue<ParamTypeT>
 {
-  public readonly type = RuntimeValueType.MODULE_PARAMETER;
+  public readonly type: RuntimeValueType.MODULE_PARAMETER =
+    RuntimeValueType.MODULE_PARAMETER;
 
   constructor(
     public readonly moduleId: string,
     public readonly name: string,
     public readonly defaultValue: ParamTypeT | undefined
-  ) {}
-
-  public [customInspectSymbol](
-    _depth: number,
-    { inspect }: { inspect: (arg: {}) => string }
   ) {
-    return `Module Parameter RuntimeValue {
-    name: ${this.name}${
-      this.defaultValue !== undefined
-        ? `
-    default value: ${inspect(this.defaultValue)}`
-        : ""
-    }
-}`;
+    Object.defineProperty(this, CUSTOM_INSPECT_SYMBOL, {
+      value: (
+        _depth: number,
+        { inspect }: { inspect: (arg: {}) => string }
+      ) => {
+        return `Module Parameter RuntimeValue {
+          name: ${this.name}${
+          this.defaultValue !== undefined
+            ? `
+          default value: ${inspect(this.defaultValue)}`
+            : ""
+        }
+      }`;
+      },
+      writable: false,
+      enumerable: false,
+      configurable: true,
+    });
   }
 }
