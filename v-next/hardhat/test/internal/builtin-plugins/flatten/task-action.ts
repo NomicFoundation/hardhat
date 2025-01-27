@@ -2,7 +2,7 @@ import type { FlattenActionArguments } from "../../../../src/internal/builtin-pl
 
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { afterEach, beforeEach, describe, it } from "node:test";
+import { beforeEach, describe, it } from "node:test";
 
 import { useFixtureProject } from "@nomicfoundation/hardhat-test-utils";
 
@@ -10,14 +10,24 @@ import { createHardhatRuntimeEnvironment } from "../../../../src/hre.js";
 import flattenAction from "../../../../src/internal/builtin-plugins/flatten/task-action.js";
 import { getHardhatVersion } from "../../../../src/internal/utils/package.js";
 
-const originalConsoleLog = console.log;
-const originalConsoleWarn = console.warn;
-
+// Helpers to capture the console output
 const consoleLogBuffer: string[] = [];
 const consoleWarnBuffer: string[] = [];
 
 const getConsoleLogOutput = () => consoleLogBuffer.join("\n");
 const getConsoleWarnOutput = () => consoleWarnBuffer.join("\n");
+
+const logFunction = (...args: unknown[]) => {
+  consoleLogBuffer.push(args.join(" "));
+};
+const warnFunction = (...args: unknown[]) => {
+  consoleWarnBuffer.push(args.join(" "));
+};
+
+const logOptions = {
+  logFunction,
+  warnFunction,
+};
 
 async function getExpectedSol(fileName = "expected.sol") {
   const expected = fs.readFileSync(fileName, "utf8");
@@ -45,21 +55,9 @@ async function createHRE() {
 
 describe("flatten/task-action", () => {
   beforeEach(() => {
-    // Replace console.log and console.warn so we can assert on their output
+    // Reset the io buffers
     consoleLogBuffer.length = 0;
     consoleWarnBuffer.length = 0;
-
-    console.log = (...args: unknown[]) => {
-      consoleLogBuffer.push(args.join(" "));
-    };
-    console.warn = (...args: unknown[]) => {
-      consoleWarnBuffer.push(args.join(" "));
-    };
-  });
-
-  afterEach(() => {
-    console.log = originalConsoleLog;
-    console.warn = originalConsoleWarn;
   });
 
   describe("flattenAction", () => {
@@ -68,7 +66,10 @@ describe("flatten/task-action", () => {
 
       it("should return an empty string", async () => {
         const hre = await createHRE();
-        const { flattened } = await flattenAction({ files: [] }, hre);
+        const { flattened } = await flattenAction(
+          { files: [], ...logOptions },
+          hre,
+        );
 
         assert.equal(flattened, "");
       });
@@ -81,36 +82,36 @@ describe("flatten/task-action", () => {
         it("should flatten the specified files and dependencies", async () => {
           const hre = await createHRE();
           const { flattened: cFlattened } = await flattenAction(
-            { files: ["contracts/C.sol"] },
+            { files: ["contracts/C.sol"], ...logOptions },
             hre,
           );
           assert.deepEqual(getContractsOrder(cFlattened), ["C"]);
 
           const { flattened: bFlattened } = await flattenAction(
-            { files: ["contracts/B.sol"] },
+            { files: ["contracts/B.sol"], ...logOptions },
             hre,
           );
 
-          assert.deepEqual(getContractsOrder(bFlattened), ["C", "B"]);
+          assert.deepEqual(getContractsOrder(bFlattened), ["B", "C"]);
 
           const { flattened: baFlattened } = await flattenAction(
-            { files: ["contracts/B.sol", "contracts/A.sol"] },
+            { files: ["contracts/B.sol", "contracts/A.sol"], ...logOptions },
             hre,
           );
 
-          assert.deepEqual(getContractsOrder(baFlattened), ["C", "B", "A"]);
+          assert.deepEqual(getContractsOrder(baFlattened), ["A", "B", "C"]);
         });
       });
 
       describe("when no arguments are passed", function () {
         it("flattens all the project contracts and dependencies", async () => {
-          const args: FlattenActionArguments = { files: [] };
+          const args: FlattenActionArguments = { files: [], ...logOptions };
 
           const hre = await createHRE();
           const { flattened } = await flattenAction(args, hre);
 
-          assertFlattenedFilesResult(flattened);
-          assert.deepEqual(getContractsOrder(flattened), ["C", "B", "A"]);
+          await assertFlattenedFilesResult(flattened);
+          assert.deepEqual(getContractsOrder(flattened), ["A", "B", "C"]);
         });
       });
     });
@@ -120,9 +121,12 @@ describe("flatten/task-action", () => {
 
       it("should flatten files sorted correctly with repetition", async function () {
         const hre = await createHRE();
-        const { flattened } = await flattenAction({ files: [] }, hre);
+        const { flattened } = await flattenAction(
+          { files: [], ...logOptions },
+          hre,
+        );
 
-        assert.deepEqual(getContractsOrder(flattened), ["C", "B", "A", "C"]);
+        assert.deepEqual(getContractsOrder(flattened), ["A", "B", "C", "C"]);
       });
     });
 
@@ -131,7 +135,10 @@ describe("flatten/task-action", () => {
 
       it("should not include multiline imports", async function () {
         const hre = await createHRE();
-        const { flattened } = await flattenAction({ files: [] }, hre);
+        const { flattened } = await flattenAction(
+          { files: [], ...logOptions },
+          hre,
+        );
         assert.ok(
           flattened.includes("} from") === false,
           "Flatten should not include multiline imports",
@@ -148,9 +155,12 @@ describe("flatten/task-action", () => {
 
         for (let i = 0; i < runs; i++) {
           const hre = await createHRE();
-          const { flattened } = await flattenAction({ files: [] }, hre);
+          const { flattened } = await flattenAction(
+            { files: [], ...logOptions },
+            hre,
+          );
 
-          assert.deepEqual(getContractsOrder(flattened), ["B", "A"]);
+          assert.deepEqual(getContractsOrder(flattened), ["A", "B"]);
 
           flattenedFiles.push(flattened);
         }
@@ -169,7 +179,10 @@ describe("flatten/task-action", () => {
       it("should successfully flatten and compile the files", async function () {
         const hre = await createHRE();
 
-        const { flattened, metadata } = await flattenAction({ files: [] }, hre);
+        const { flattened, metadata } = await flattenAction(
+          { files: [], ...logOptions },
+          hre,
+        );
 
         await assertFlattenedFilesResult(flattened);
 
@@ -190,7 +203,7 @@ describe("flatten/task-action", () => {
           it("should successfully flatten and compile the files", async function () {
             const hre = await createHRE();
             const { flattened, metadata } = await flattenAction(
-              { files: [] },
+              { files: [], ...logOptions },
               hre,
             );
 
@@ -214,7 +227,7 @@ describe("flatten/task-action", () => {
           it("should successfully flatten and compile the files", async function () {
             const hre = await createHRE();
             const { flattened, metadata } = await flattenAction(
-              { files: [] },
+              { files: [], ...logOptions },
               hre,
             );
 
@@ -242,7 +255,7 @@ describe("flatten/task-action", () => {
           it("should successfully flatten and compile the files", async function () {
             const hre = await createHRE();
             const { flattened, metadata } = await flattenAction(
-              { files: [] },
+              { files: [], ...logOptions },
               hre,
             );
 
@@ -268,7 +281,7 @@ describe("flatten/task-action", () => {
           it("should successfully flatten and compile the files", async function () {
             const hre = await createHRE();
             const { flattened, metadata } = await flattenAction(
-              { files: [] },
+              { files: [], ...logOptions },
               hre,
             );
 
@@ -297,7 +310,7 @@ describe("flatten/task-action", () => {
           it("should successfully flatten and compile the files", async function () {
             const hre = await createHRE();
             const { flattened, metadata } = await flattenAction(
-              { files: [] },
+              { files: [], ...logOptions },
               hre,
             );
 
@@ -320,7 +333,7 @@ describe("flatten/task-action", () => {
           it("should successfully flatten and compile the files", async function () {
             const hre = await createHRE();
             const { flattened, metadata } = await flattenAction(
-              { files: [] },
+              { files: [], ...logOptions },
               hre,
             );
 
@@ -342,7 +355,7 @@ describe("flatten/task-action", () => {
         it("should successfully flatten and compile the files", async function () {
           const hre = await createHRE();
           const { flattened, metadata } = await flattenAction(
-            { files: [] },
+            { files: [], ...logOptions },
             hre,
           );
 
@@ -365,7 +378,10 @@ describe("flatten/task-action", () => {
 
       it("should successfully flatten and compile the files", async function () {
         const hre = await createHRE();
-        const { flattened, metadata } = await flattenAction({ files: [] }, hre);
+        const { flattened, metadata } = await flattenAction(
+          { files: [], ...logOptions },
+          hre,
+        );
 
         await assertFlattenedFilesResult(flattened);
 
@@ -385,7 +401,10 @@ describe("flatten/task-action", () => {
 
       it("should successfully flatten and compile the files", async function () {
         const hre = await createHRE();
-        const { flattened, metadata } = await flattenAction({ files: [] }, hre);
+        const { flattened, metadata } = await flattenAction(
+          { files: [], ...logOptions },
+          hre,
+        );
 
         await assertFlattenedFilesResult(flattened);
 
@@ -404,7 +423,7 @@ describe("flatten/task-action", () => {
 
     it("should console log the flattened files and the warnings about missing licenses and pragma directives", async function () {
       const hre = await createHRE();
-      await flattenAction({ files: [] }, hre);
+      await flattenAction({ files: [], ...logOptions }, hre);
       const expectedOutput = await getExpectedSol();
 
       assert.equal(getConsoleLogOutput(), expectedOutput);
@@ -433,7 +452,7 @@ describe("flatten/task-action", () => {
 
     it("should not console warn because licenses and pragma directives are specified", async function () {
       const hre = await createHRE();
-      await flattenAction({ files: ["contracts/D.sol"] }, hre);
+      await flattenAction({ files: ["contracts/D.sol"], ...logOptions }, hre);
 
       assert.equal(getConsoleWarnOutput(), "");
     });
@@ -444,7 +463,7 @@ describe("flatten/task-action", () => {
 
     it("should not throw an error when metadata is null", async function () {
       const hre = await createHRE();
-      await flattenAction({ files: [] }, hre);
+      await flattenAction({ files: [], ...logOptions }, hre);
     });
   });
 });

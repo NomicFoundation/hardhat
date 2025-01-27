@@ -3,7 +3,6 @@ import type { NewTaskActionFunction } from "../../../types/tasks.js";
 
 import { resolveFromRoot } from "@ignored/hardhat-vnext-utils/path";
 import chalk from "chalk";
-import toposort from "toposort";
 
 import { getHardhatVersion } from "../../utils/package.js";
 import { buildDependencyGraph } from "../solidity/build-system/dependency-graph-building.js";
@@ -15,14 +14,18 @@ const SPDX_LICENSES_REGEX =
 // Match every group where a pragma directive is defined. The first captured group is the pragma directive.
 const PRAGMA_DIRECTIVES_REGEX =
   /^(?: |\t)*(pragma\s*abicoder\s*v(1|2)|pragma\s*experimental\s*ABIEncoderV2)\s*;/gim;
+// Match import statements
+const IMPORT_SOLIDITY_REGEX = /^\s*import(\s+)[\s\S]*?;\s*$/gm;
 
 export interface FlattenActionArguments {
   files: string[];
+  logFunction?: typeof console.log;
+  warnFunction?: typeof console.warn;
 }
 
 export interface FlattenActionResult {
   flattened: string;
-  metadata: FlattenMetadata | null;
+  metadata?: FlattenMetadata;
 }
 
 export interface FlattenMetadata {
@@ -33,9 +36,12 @@ export interface FlattenMetadata {
 }
 
 const flattenAction: NewTaskActionFunction<FlattenActionArguments> = async (
-  { files },
+  { files, logFunction, warnFunction },
   { solidity, config },
 ): Promise<FlattenActionResult> => {
+  const log = logFunction ?? console.log;
+  const warn = warnFunction ?? console.warn;
+
   // Resolve files from arguments or default to all root files
   const rootPaths =
     files.length === 0
@@ -59,7 +65,7 @@ const flattenAction: NewTaskActionFunction<FlattenActionArguments> = async (
 
   // Return empty string when no files are resolved
   if (Array.from(dependencyGraph.getAllFiles()).length === 0) {
-    return { flattened, metadata: null };
+    return { flattened, metadata: undefined };
   }
 
   // Write a comment with hardhat version used to flatten
@@ -68,13 +74,13 @@ const flattenAction: NewTaskActionFunction<FlattenActionArguments> = async (
 
   const sortedFiles = getSortedFiles(dependencyGraph);
 
-  const [licenses, filesWithoutLicenses] = getLicensesInfo(sortedFiles);
+  const { licenses, filesWithoutLicenses } = getLicensesInfo(sortedFiles);
 
-  const [
+  const {
     pragmaDirective,
     filesWithoutPragmaDirectives,
     filesWithDifferentPragmaDirectives,
-  ] = getPragmaAbicoderDirectiveInfo(sortedFiles);
+  } = getPragmaAbicoderDirectiveInfo(sortedFiles);
 
   // Write the combined license header and pragma abicoder directive with highest importance
   flattened += getLicensesHeader(licenses);
@@ -82,8 +88,8 @@ const flattenAction: NewTaskActionFunction<FlattenActionArguments> = async (
 
   for (const file of sortedFiles) {
     let normalizedText = getTextWithoutImports(file);
-    normalizedText = commentLicenses(normalizedText);
-    normalizedText = commentPragmaAbicoderDirectives(normalizedText);
+    normalizedText = commentOutLicenses(normalizedText);
+    normalizedText = commentOutPragmaAbicoderDirectives(normalizedText);
 
     // Write files without imports, with commented licenses and pragma abicoder directives
     flattened += `\n\n// File ${file.sourceName}\n`;
@@ -91,10 +97,10 @@ const flattenAction: NewTaskActionFunction<FlattenActionArguments> = async (
   }
 
   // Print the flattened file
-  console.log(flattened);
+  log(flattened);
 
   if (filesWithoutLicenses.length > 0) {
-    console.warn(
+    warn(
       chalk.yellow(
         `\nThe following file(s) do NOT specify SPDX licenses: ${filesWithoutLicenses.join(
           ", ",
@@ -104,7 +110,7 @@ const flattenAction: NewTaskActionFunction<FlattenActionArguments> = async (
   }
 
   if (pragmaDirective !== "" && filesWithoutPragmaDirectives.length > 0) {
-    console.warn(
+    warn(
       chalk.yellow(
         `\nPragma abicoder directives are defined in some files, but they are not defined in the following ones: ${filesWithoutPragmaDirectives.join(
           ", ",
@@ -114,7 +120,7 @@ const flattenAction: NewTaskActionFunction<FlattenActionArguments> = async (
   }
 
   if (filesWithDifferentPragmaDirectives.length > 0) {
-    console.warn(
+    warn(
       chalk.yellow(
         `\nThe flattened file is using the pragma abicoder directive '${pragmaDirective}' but these files have a different pragma abicoder directive: ${filesWithDifferentPragmaDirectives.join(
           ", ",
@@ -134,11 +140,16 @@ const flattenAction: NewTaskActionFunction<FlattenActionArguments> = async (
   };
 };
 
-function getLicensesInfo(sortedFiles: ResolvedFile[]): [string[], string[]] {
+interface LicensesInfo {
+  licenses: string[];
+  filesWithoutLicenses: string[];
+}
+
+function getLicensesInfo(files: ResolvedFile[]): LicensesInfo {
   const licenses: Set<string> = new Set();
   const filesWithoutLicenses: Set<string> = new Set();
 
-  for (const file of sortedFiles) {
+  for (const file of files) {
     const matches = [...file.content.text.matchAll(SPDX_LICENSES_REGEX)];
 
     if (matches.length === 0) {
@@ -152,12 +163,21 @@ function getLicensesInfo(sortedFiles: ResolvedFile[]): [string[], string[]] {
   }
 
   // Sort alphabetically
-  return [Array.from(licenses).sort(), Array.from(filesWithoutLicenses).sort()];
+  return {
+    licenses: Array.from(licenses).sort(),
+    filesWithoutLicenses: Array.from(filesWithoutLicenses).sort(),
+  };
+}
+
+interface PragmaDirectivesInfo {
+  pragmaDirective: string;
+  filesWithoutPragmaDirectives: string[];
+  filesWithDifferentPragmaDirectives: string[];
 }
 
 function getPragmaAbicoderDirectiveInfo(
-  sortedFiles: ResolvedFile[],
-): [string, string[], string[]] {
+  files: ResolvedFile[],
+): PragmaDirectivesInfo {
   let directive = "";
   const directivesByImportance = [
     "pragma abicoder v1",
@@ -165,9 +185,9 @@ function getPragmaAbicoderDirectiveInfo(
     "pragma abicoder v2",
   ];
   const filesWithoutPragmaDirectives: Set<string> = new Set();
-  const filesWithMostImportantDirective: Array<[string, string]> = []; // Every array element has the structure: [ fileName, fileMostImportantDirective ]
+  const filesWithMostImportantDirective: Record<string, string> = {};
 
-  for (const file of sortedFiles) {
+  for (const file of files) {
     const matches = [...file.content.text.matchAll(PRAGMA_DIRECTIVES_REGEX)];
 
     if (matches.length === 0) {
@@ -177,7 +197,9 @@ function getPragmaAbicoderDirectiveInfo(
 
     let fileMostImportantDirective = "";
     for (const groups of matches) {
-      const normalizedPragma = removeUnnecessarySpaces(groups[1]);
+      const normalizedPragma = removeDuplicateAndSurroundingWhitespaces(
+        groups[1],
+      );
 
       // Update the most important pragma directive among all the files
       if (
@@ -196,78 +218,68 @@ function getPragmaAbicoderDirectiveInfo(
       }
     }
 
-    // Add in the array the most important directive for the current file
-    filesWithMostImportantDirective.push([
-      file.sourceName,
-      fileMostImportantDirective,
-    ]);
+    filesWithMostImportantDirective[file.sourceName] =
+      fileMostImportantDirective;
   }
 
   // Add to the array the files that have a pragma directive which is not the same as the main one that
   // is going to be used in the flatten file
-  const filesWithDifferentPragmaDirectives = filesWithMostImportantDirective
+  const filesWithDifferentPragmaDirectives = Object.entries(
+    filesWithMostImportantDirective,
+  )
     .filter(([, fileDirective]) => fileDirective !== directive)
-    .map(([fileName]) => fileName);
+    .map(([fileName]) => fileName)
+    .sort();
 
   // Sort alphabetically
-  return [
-    directive,
-    Array.from(filesWithoutPragmaDirectives).sort(),
-    filesWithDifferentPragmaDirectives.sort(),
-  ];
+  return {
+    pragmaDirective: directive,
+    filesWithoutPragmaDirectives: Array.from(
+      filesWithoutPragmaDirectives,
+    ).sort(),
+    filesWithDifferentPragmaDirectives,
+  };
 }
 
+// Returns files sorted in topological order
 function getSortedFiles(dependencyGraph: DependencyGraph): ResolvedFile[] {
-  const sortingGraph: Array<[string, string]> = [];
-  const visited = new Set<string>();
+  const sortedFiles: ResolvedFile[] = [];
 
-  const walk = (files: Iterable<ResolvedFile>) => {
+  // Helper function for sorting files by sourceName, for deterministic results
+  const sortBySourceName = (files: Iterable<ResolvedFile>) => {
+    return Array.from(files).sort((f1, f2) =>
+      f1.sourceName.localeCompare(f2.sourceName),
+    );
+  };
+
+  // Depth-first walking
+  const walk = (files: ResolvedFile[]) => {
     for (const file of files) {
-      if (visited.has(file.sourceName)) continue;
+      if (sortedFiles.includes(file)) continue;
 
-      visited.add(file.sourceName);
+      sortedFiles.push(file);
 
-      // Sort dependencies in alphabetical order for deterministic results
-      const dependencies = Array.from(
+      const dependencies = sortBySourceName(
         dependencyGraph.getDependencies(file),
-      ).sort((f1, f2) => f1.sourceName.localeCompare(f2.sourceName));
-
-      for (const dependency of dependencies) {
-        sortingGraph.push([dependency.sourceName, file.sourceName]);
-      }
+      );
 
       walk(dependencies);
     }
   };
 
-  // Sort roots in alphabetical order for deterministic results
-  const roots = Array.from(dependencyGraph.getRoots().values()).sort((f1, f2) =>
-    f1.sourceName.localeCompare(f2.sourceName),
-  );
+  const roots = sortBySourceName(dependencyGraph.getRoots().values());
 
   walk(roots);
 
-  // Get all nodes so the graph includes files with no dependencies
-  const allSourceNames = Array.from(dependencyGraph.getAllFiles()).map(
-    (f) => f.sourceName,
-  );
-
-  // Get source names sorted in topological order
-  const sortedSourceNames = toposort.array(allSourceNames, sortingGraph);
-
-  const sortedFiles = sortedSourceNames.map((sourceName) =>
-    dependencyGraph.getFileBySourceName(sourceName),
-  );
-
-  return sortedFiles.filter((f) => f !== undefined);
+  return sortedFiles;
 }
 
-function removeUnnecessarySpaces(str: string): string {
+function removeDuplicateAndSurroundingWhitespaces(str: string): string {
   return str.replace(/\s+/g, " ").trim();
 }
 
 function getLicensesHeader(licenses: string[]): string {
-  return licenses.length <= 0
+  return licenses.length === 0
     ? ""
     : `\n\n// SPDX-License-Identifier: ${licenses.join(" AND ")}`;
 }
@@ -277,21 +289,19 @@ function getPragmaAbicoderDirectiveHeader(pragmaDirective: string): string {
 }
 
 function getTextWithoutImports(resolvedFile: ResolvedFile) {
-  const IMPORT_SOLIDITY_REGEX = /^\s*import(\s+)[\s\S]*?;\s*$/gm;
-
   return resolvedFile.content.text.replace(IMPORT_SOLIDITY_REGEX, "").trim();
 }
 
-function commentLicenses(file: string): string {
+function commentOutLicenses(file: string): string {
   return file.replaceAll(
     SPDX_LICENSES_REGEX,
     (...groups) => `// Original license: SPDX_License_Identifier: ${groups[1]}`,
   );
 }
 
-function commentPragmaAbicoderDirectives(file: string): string {
+function commentOutPragmaAbicoderDirectives(file: string): string {
   return file.replaceAll(PRAGMA_DIRECTIVES_REGEX, (...groups) => {
-    return `// Original pragma directive: ${removeUnnecessarySpaces(
+    return `// Original pragma directive: ${removeDuplicateAndSurroundingWhitespaces(
       groups[1],
     )}`;
   });

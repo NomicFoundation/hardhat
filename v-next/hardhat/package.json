@@ -69,7 +69,6 @@
     "@types/debug": "^4.1.4",
     "@types/node": "^20.14.9",
     "@types/semver": "^7.5.8",
-    "@types/toposort": "^2.0.7",
     "@types/ws": "^8.5.13",
     "@typescript-eslint/eslint-plugin": "^7.7.1",
     "@typescript-eslint/parser": "^7.7.1",
@@ -100,7 +99,6 @@
     "micro-eth-signer": "^0.13.0",
     "p-map": "^7.0.2",
     "semver": "^7.6.3",
-    "toposort": "^2.0.2",
     "tsx": "^4.11.0",
     "ws": "^8.18.0",
     "zod": "^3.23.8"

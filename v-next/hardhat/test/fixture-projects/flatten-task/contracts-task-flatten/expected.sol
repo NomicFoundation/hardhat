@@ -4,11 +4,9 @@
 
 pragma abicoder v2;
 
-// File contracts/C.sol
+// File contracts/A.sol
 
-// Original pragma directive: pragma abicoder v1
-
-contract C {}
+contract A {}
 
 
 // File contracts/B.sol
@@ -16,9 +14,11 @@ contract C {}
 contract B {}
 
 
-// File contracts/A.sol
+// File contracts/C.sol
 
-contract A {}
+// Original pragma directive: pragma abicoder v1
+
+contract C {}
 
 
 // File contracts/D.sol
