@@ -4,13 +4,13 @@ import type {
 } from "../../../../types/config.js";
 import type { CompilationJobCreationError } from "../../../../types/solidity/build-system.js";
 import type { ResolvedFile } from "../../../../types/solidity/resolved-file.js";
+import type { DependencyGraph } from "../../../../types/solidity.js";
 
 import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
 import { shortenPath } from "@ignored/hardhat-vnext-utils/path";
 import { intersects, maxSatisfying, satisfies } from "semver";
 
 import { CompilationJobCreationErrorReason } from "../../../../types/solidity/build-system.js";
-import { DependencyGraph } from "../../../../types/solidity.js";
 
 export class SolcConfigSelector {
   readonly #buildProfileName: string;
