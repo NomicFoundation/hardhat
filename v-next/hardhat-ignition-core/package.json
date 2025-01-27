@@ -57,7 +57,7 @@
     "@types/mocha": "9.1.1",
     "@types/node": "^20.14.9",
     "@types/ndjson": "2.0.1",
-    "@types/lodash": "^4.14.123",
+    "@types/lodash-es": "^4.17.12",
     "@typescript-eslint/eslint-plugin": "^7.7.1",
     "@typescript-eslint/parser": "^7.7.1",
     "chai": "^4.3.4",
@@ -85,7 +85,7 @@
     "ethers": "^6.7.0",
     "fs-extra": "^10.0.0",
     "immer": "10.0.2",
-    "lodash": "4.17.21",
+    "lodash-es": "4.17.21",
     "ndjson": "2.0.0"
   }
 }

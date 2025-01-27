@@ -1,7 +1,11 @@
 import { assert } from "chai";
 import path from "path";
 
-import { BuildInfo, VerifyResult, getVerificationInformation } from "../src/index.js";
+import {
+  BuildInfo,
+  VerifyResult,
+  getVerificationInformation,
+} from "../src/index.js";
 import { getImportSourceNames } from "../src/verify.js";
 
 describe("verify", () => {

@@ -59,7 +59,7 @@ export function reconcileArguments(
     );
   }
 
-  const isEqual = require("lodash/isEqual") as typeof import("lodash/isEqual");
+  const { isEqual } = require("lodash-es") as typeof import("lodash-es");
   for (const [i, futureArg] of futureArgs.entries()) {
     const exStateArg = exStateArgs[i];
 

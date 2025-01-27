@@ -15,7 +15,7 @@ export class MemoryJournal implements Journal {
   constructor(
     private readonly _executionEventListener?:
       | ExecutionEventListener
-      | undefined
+      | undefined,
   ) {}
 
   public record(message: JournalMessage): void {

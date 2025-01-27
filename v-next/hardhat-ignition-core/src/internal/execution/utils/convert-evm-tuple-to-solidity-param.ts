@@ -1,7 +1,7 @@
 import type { SolidityParameterType } from "../../../types/module.js";
 import type { EvmTuple, EvmValue } from "../types/evm-execution.js";
 
-import isArray from "lodash/isArray";
+import { isArray } from "lodash-es";
 
 import { assertIgnitionInvariant } from "../../utils/assertions.js";
 

@@ -11,7 +11,10 @@ import type {
 } from "./types/evm-execution.js";
 import type { TransactionReceipt } from "./types/jsonrpc.js";
 import type { Artifact } from "../../types/artifact.js";
-import type { ArgumentType, SolidityParameterType } from "../../types/module.js";
+import type {
+  ArgumentType,
+  SolidityParameterType,
+} from "../../types/module.js";
 import type {
   EventFragment,
   Fragment,
