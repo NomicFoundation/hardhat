@@ -26,76 +26,76 @@ import { ReconciliationContext, ReconciliationFutureResult } from "./types";
 export async function reconcileFutureSpecificReconciliations(
   future: Future,
   executionState: ExecutionState,
-  context: ReconciliationContext
+  context: ReconciliationContext,
 ): Promise<ReconciliationFutureResult> {
   switch (future.type) {
     case FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT:
       return reconcileNamedContractDeployment(
         future,
         executionState as DeploymentExecutionState,
-        context
+        context,
       );
     case FutureType.CONTRACT_DEPLOYMENT:
       return reconcileArtifactContractDeployment(
         future,
         executionState as DeploymentExecutionState,
-        context
+        context,
       );
     case FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT:
       return reconcileNamedLibraryDeployment(
         future,
         executionState as DeploymentExecutionState,
-        context
+        context,
       );
     case FutureType.LIBRARY_DEPLOYMENT:
       return reconcileArtifactLibraryDeployment(
         future,
         executionState as DeploymentExecutionState,
-        context
+        context,
       );
     case FutureType.CONTRACT_CALL:
       return reconcileNamedContractCall(
         future,
         executionState as CallExecutionState,
-        context
+        context,
       );
     case FutureType.STATIC_CALL:
       return reconcileNamedStaticCall(
         future,
         executionState as StaticCallExecutionState,
-        context
+        context,
       );
     case FutureType.ENCODE_FUNCTION_CALL:
       return reconcileNamedEncodeFunctionCall(
         future,
         executionState as EncodeFunctionCallExecutionState,
-        context
+        context,
       );
     case FutureType.NAMED_ARTIFACT_CONTRACT_AT:
       return reconcileNamedContractAt(
         future,
         executionState as ContractAtExecutionState,
-        context
+        context,
       );
     case FutureType.CONTRACT_AT: {
       return reconcileArtifactContractAt(
         future,
         executionState as ContractAtExecutionState,
-        context
+        context,
       );
     }
     case FutureType.READ_EVENT_ARGUMENT: {
       return reconcileReadEventArgument(
         future,
         executionState as ReadEventArgumentExecutionState,
-        context
+        context,
       );
     }
     case FutureType.SEND_DATA: {
       return reconcileSendData(
         future,
         executionState as SendDataExecutionState,
-        context
+        context,
       );
     }
   }

@@ -14,7 +14,7 @@ import { getPendingOnchainInteraction } from "./get-pending-onchain-interaction"
  *  of the execution state, if any.
  */
 export function getPendingNonceAndSender(
-  exState: ExecutionState
+  exState: ExecutionState,
 ): { nonce: number; sender: string } | undefined {
   if (
     exState.type === ExecutionSateType.READ_EVENT_ARGUMENT_EXECUTION_STATE ||

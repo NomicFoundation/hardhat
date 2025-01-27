@@ -25,7 +25,7 @@ export async function reconcileArtifacts(
     | NamedArtifactContractAtFuture<string>
     | ContractAtFuture,
   exState: DeploymentExecutionState | ContractAtExecutionState,
-  context: ReconciliationContext
+  context: ReconciliationContext,
 ): Promise<ReconciliationFutureResultFailure | undefined> {
   const moduleArtifact =
     "artifact" in future
@@ -33,14 +33,14 @@ export async function reconcileArtifacts(
       : await context.artifactResolver.loadArtifact(future.contractName);
 
   const storedArtifact = await context.deploymentLoader.loadArtifact(
-    exState.artifactId
+    exState.artifactId,
   );
 
   const moduleArtifactBytecode = getBytecodeWithoutMetadata(
-    moduleArtifact.bytecode
+    moduleArtifact.bytecode,
   );
   const storedArtifactBytecode = getBytecodeWithoutMetadata(
-    storedArtifact.bytecode
+    storedArtifact.bytecode,
   );
 
   if (moduleArtifactBytecode !== storedArtifactBytecode) {

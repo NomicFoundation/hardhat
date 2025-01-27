@@ -8,7 +8,7 @@ import { ReconciliationContext, ReconciliationFutureResult } from "../types";
 export function reconcileNamedEncodeFunctionCall(
   future: EncodeFunctionCallFuture<string, string>,
   executionState: EncodeFunctionCallExecutionState,
-  context: ReconciliationContext
+  context: ReconciliationContext,
 ): ReconciliationFutureResult {
   let result = reconcileFunctionName(future, executionState, context);
   if (result !== undefined) {

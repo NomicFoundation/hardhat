@@ -26,7 +26,7 @@ import {
 
 export async function setupFutureProcessor(
   sendTransaction: (transactionParams: TransactionParams) => Promise<string>,
-  transactions: { [key: string]: TransactionReceipt }
+  transactions: { [key: string]: TransactionReceipt },
 ): Promise<{
   processor: FutureProcessor;
   storedDeployedAddresses: { [key: string]: string };
@@ -35,14 +35,14 @@ export async function setupFutureProcessor(
 
   const mockDeploymentLoader = setupMockDeploymentLoader(
     new MemoryJournal(),
-    storedDeployedAddresses
+    storedDeployedAddresses,
   );
 
   const mockArtifactResolver = setupMockArtifactResolver();
 
   const mockJsonRpcClient = setupMockJsonRpcClient(
     sendTransaction,
-    transactions
+    transactions,
   );
 
   const basicExecutionStrategy = new BasicStrategy();
@@ -65,7 +65,7 @@ export async function setupFutureProcessor(
     exampleAccounts,
     {},
     getDefaultSender(exampleAccounts),
-    false // disableFeeBumping
+    false, // disableFeeBumping
   );
 
   return { processor, storedDeployedAddresses };
@@ -85,7 +85,7 @@ function setupMockNonceManager(): NonceManager {
 
 function setupMockJsonRpcClient(
   sendTransaction: (transactionParams: TransactionParams) => Promise<string>,
-  transactions: { [key: string]: TransactionReceipt }
+  transactions: { [key: string]: TransactionReceipt },
 ): JsonRpcClient {
   const client = new MockJsonRpcClient(sendTransaction, transactions);
 
@@ -97,9 +97,9 @@ class MockJsonRpcClient implements JsonRpcClient {
 
   constructor(
     private _sendTransaction: (
-      transactionParams: TransactionParams
+      transactionParams: TransactionParams,
     ) => Promise<string>,
-    private _transactions: { [key: string]: TransactionReceipt }
+    private _transactions: { [key: string]: TransactionReceipt },
   ) {}
 
   public async getChainId(): Promise<number> {
@@ -123,7 +123,7 @@ class MockJsonRpcClient implements JsonRpcClient {
 
   public getBalance(
     _address: string,
-    _blockTag: "latest" | "pending"
+    _blockTag: "latest" | "pending",
   ): Promise<bigint> {
     throw new Error("Method not implemented.");
   }
@@ -134,7 +134,7 @@ class MockJsonRpcClient implements JsonRpcClient {
 
   public async call(
     _callParams: CallParams,
-    _blockTag: "latest" | "pending"
+    _blockTag: "latest" | "pending",
   ): Promise<RawStaticCallResult> {
     return {
       success: true,
@@ -144,13 +144,13 @@ class MockJsonRpcClient implements JsonRpcClient {
   }
 
   public async estimateGas(
-    _transactionParams: EstimateGasParams
+    _transactionParams: EstimateGasParams,
   ): Promise<bigint> {
     return 100n;
   }
 
   public async sendTransaction(
-    transactionParams: TransactionParams
+    transactionParams: TransactionParams,
   ): Promise<string> {
     return this._sendTransaction(transactionParams);
   }
@@ -161,13 +161,13 @@ class MockJsonRpcClient implements JsonRpcClient {
 
   public getTransactionCount(
     _address: string,
-    _blockTag: number | "latest" | "pending"
+    _blockTag: number | "latest" | "pending",
   ): Promise<number> {
     throw new Error("Method not implemented.");
   }
 
   public async getTransaction(
-    txHash: string
+    txHash: string,
   ): Promise<Omit<Transaction, "receipt"> | undefined> {
     return {
       hash: txHash,
@@ -178,11 +178,11 @@ class MockJsonRpcClient implements JsonRpcClient {
   }
 
   public async getTransactionReceipt(
-    txHash: string
+    txHash: string,
   ): Promise<TransactionReceipt | undefined> {
     assertIgnitionInvariant(
       txHash in this._transactions,
-      `No transaction registered in test for the hash ${txHash}`
+      `No transaction registered in test for the hash ${txHash}`,
     );
 
     return this._transactions[txHash];

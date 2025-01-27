@@ -35,7 +35,7 @@ export function reconcileFrom(
     | CallExecutionState
     | SendDataExecutionState
     | StaticCallExecutionState,
-  context: ReconciliationContext
+  context: ReconciliationContext,
 ): ReconciliationFutureResultFailure | undefined {
   if (future.from === undefined && context.accounts.includes(exState.from)) {
     return undefined;
@@ -44,7 +44,7 @@ export function reconcileFrom(
   const resolvedFrom = resolveFutureFrom(
     future.from,
     context.accounts,
-    context.defaultSender
+    context.defaultSender,
   );
 
   return compare(future, "From account", exState.from, resolvedFrom);

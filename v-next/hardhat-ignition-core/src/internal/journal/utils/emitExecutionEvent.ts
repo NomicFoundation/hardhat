@@ -23,7 +23,7 @@ import { failedEvmExecutionResultToErrorDescription } from "./failedEvmExecution
 
 export function emitExecutionEvent(
   message: JournalMessage,
-  executionEventListener: ExecutionEventListener
+  executionEventListener: ExecutionEventListener,
 ): void {
   switch (message.type) {
     case JournalMessageType.DEPLOYMENT_INITIALIZE: {
@@ -199,7 +199,7 @@ function convertExecutionResultToEventResult(
   result:
     | DeploymentExecutionResult
     | CallExecutionResult
-    | SendDataExecutionResult
+    | SendDataExecutionResult,
 ): ExecutionEventResult {
   switch (result.type) {
     case ExecutionResultType.SUCCESS: {
@@ -239,7 +239,7 @@ function convertExecutionResultToEventResult(
 }
 
 function convertStaticCallResultToExecutionEventResult(
-  result: StaticCallExecutionResult
+  result: StaticCallExecutionResult,
 ): ExecutionEventResult {
   switch (result.type) {
     case ExecutionResultType.SUCCESS: {

@@ -10,7 +10,7 @@ export async function validateArtifactContractAt(
   future: ContractAtFuture,
   _artifactLoader: ArtifactResolver,
   deploymentParameters: DeploymentParameters,
-  _accounts: string[]
+  _accounts: string[],
 ): Promise<string[]> {
   const errors: IgnitionError[] = [];
 
@@ -19,14 +19,14 @@ export async function validateArtifactContractAt(
   if (isModuleParameterRuntimeValue(future.address)) {
     const param = resolvePotentialModuleParameterValueFrom(
       deploymentParameters,
-      future.address
+      future.address,
     );
 
     if (param === undefined) {
       errors.push(
         new IgnitionError(ERRORS.VALIDATION.MISSING_MODULE_PARAMETER, {
           name: future.address.name,
-        })
+        }),
       );
     } else if (typeof param !== "string") {
       errors.push(
@@ -34,7 +34,7 @@ export async function validateArtifactContractAt(
           name: future.address.name,
           expectedType: "string",
           actualType: typeof param,
-        })
+        }),
       );
     }
   }

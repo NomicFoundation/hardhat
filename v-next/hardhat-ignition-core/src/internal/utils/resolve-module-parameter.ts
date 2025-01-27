@@ -11,7 +11,7 @@ import { assertIgnitionInvariant } from "./assertions";
 
 export function resolveModuleParameter(
   moduleParamRuntimeValue: ModuleParameterRuntimeValue<ModuleParameterType>,
-  context: { deploymentParameters: DeploymentParameters; accounts: string[] }
+  context: { deploymentParameters: DeploymentParameters; accounts: string[] },
 ): SolidityParameterType {
   const potentialParamAtModuleLevel =
     context.deploymentParameters?.[moduleParamRuntimeValue.moduleId]?.[
@@ -31,7 +31,7 @@ export function resolveModuleParameter(
 
   assertIgnitionInvariant(
     moduleParamRuntimeValue.defaultValue !== undefined,
-    `No default value provided for module parameter ${moduleParamRuntimeValue.moduleId}/${moduleParamRuntimeValue.name}`
+    `No default value provided for module parameter ${moduleParamRuntimeValue.moduleId}/${moduleParamRuntimeValue.name}`,
   );
 
   return _resolveDefaultValue(moduleParamRuntimeValue, context.accounts);
@@ -39,17 +39,17 @@ export function resolveModuleParameter(
 
 function _resolveDefaultValue(
   moduleParamRuntimeValue: ModuleParameterRuntimeValue<ModuleParameterType>,
-  accounts: string[]
+  accounts: string[],
 ): SolidityParameterType {
   assertIgnitionInvariant(
     moduleParamRuntimeValue.defaultValue !== undefined,
-    `No default value provided for module parameter ${moduleParamRuntimeValue.moduleId}/${moduleParamRuntimeValue.name}`
+    `No default value provided for module parameter ${moduleParamRuntimeValue.moduleId}/${moduleParamRuntimeValue.name}`,
   );
 
   if (isAccountRuntimeValue(moduleParamRuntimeValue.defaultValue)) {
     return resolveAccountRuntimeValue(
       moduleParamRuntimeValue.defaultValue,
-      accounts
+      accounts,
     );
   }
 

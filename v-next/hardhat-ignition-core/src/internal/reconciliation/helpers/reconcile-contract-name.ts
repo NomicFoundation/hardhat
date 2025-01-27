@@ -26,12 +26,12 @@ export function reconcileContractName(
     | NamedArtifactContractAtFuture<string>
     | ContractAtFuture,
   exState: DeploymentExecutionState | ContractAtExecutionState,
-  _context: ReconciliationContext
+  _context: ReconciliationContext,
 ): ReconciliationFutureResultFailure | undefined {
   return compare(
     future,
     "Contract name",
     exState.contractName,
-    future.contractName
+    future.contractName,
   );
 }

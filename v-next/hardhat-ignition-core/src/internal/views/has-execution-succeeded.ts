@@ -11,7 +11,7 @@ import { ExecutionStatus } from "../execution/types/execution-state";
  */
 export function hasExecutionSucceeded(
   future: Future,
-  deploymentState: DeploymentState
+  deploymentState: DeploymentState,
 ): boolean {
   const exState = deploymentState.executionStates[future.id];
 

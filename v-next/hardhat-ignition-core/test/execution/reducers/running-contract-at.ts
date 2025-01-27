@@ -45,14 +45,14 @@ describe("DeploymentStateReducer", () => {
         updatedContractAtExState = findExecutionStateById(
           ExecutionSateType.CONTRACT_AT_EXECUTION_STATE,
           updatedDeploymentState,
-          "ContractAt1"
+          "ContractAt1",
         );
       });
 
       it("should populate a contract at execution state for the future", () => {
         assert.equal(
           updatedContractAtExState.type,
-          ExecutionSateType.CONTRACT_AT_EXECUTION_STATE
+          ExecutionSateType.CONTRACT_AT_EXECUTION_STATE,
         );
       });
 

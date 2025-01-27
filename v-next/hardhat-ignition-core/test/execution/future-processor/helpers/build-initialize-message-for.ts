@@ -99,7 +99,7 @@ describe("buildInitializeMessageFor", () => {
       fakeModule,
       "SafeMath",
       {},
-      exampleAccounts[0]
+      exampleAccounts[0],
     );
 
     anotherNamedContractDeployment =
@@ -110,7 +110,7 @@ describe("buildInitializeMessageFor", () => {
         [],
         {},
         0n,
-        exampleAccounts[0]
+        exampleAccounts[0],
       );
 
     namedContractDeployment = new NamedContractDeploymentFutureImplementation(
@@ -122,7 +122,7 @@ describe("buildInitializeMessageFor", () => {
         SafeMath: safeMathLibraryDeployment,
       },
       10n,
-      exampleAccounts[0]
+      exampleAccounts[0],
     );
 
     // This is typically done by the deployment builder
@@ -140,7 +140,7 @@ describe("buildInitializeMessageFor", () => {
           SafeMath: safeMathLibraryDeployment,
         },
         10n,
-        exampleAccounts[0]
+        exampleAccounts[0],
       );
 
     artifactContractDeployment.dependencies.add(anotherNamedContractDeployment);
@@ -153,7 +153,7 @@ describe("buildInitializeMessageFor", () => {
       {
         SafeMath: safeMathLibraryDeployment,
       },
-      exampleAccounts[0]
+      exampleAccounts[0],
     );
 
     namedLibraryDeployment.dependencies.add(safeMathLibraryDeployment);
@@ -167,7 +167,7 @@ describe("buildInitializeMessageFor", () => {
         {
           SafeMath: safeMathLibraryDeployment,
         },
-        exampleAccounts[0]
+        exampleAccounts[0],
       );
 
     artifactLibraryDeployment.dependencies.add(safeMathLibraryDeployment);
@@ -179,7 +179,7 @@ describe("buildInitializeMessageFor", () => {
       anotherNamedContractDeployment,
       [1n, "b", safeMathLibraryDeployment, { sub: "d" }],
       0n,
-      exampleAccounts[0]
+      exampleAccounts[0],
     );
 
     namedContractCall.dependencies.add(anotherNamedContractDeployment);
@@ -192,7 +192,7 @@ describe("buildInitializeMessageFor", () => {
       anotherNamedContractDeployment,
       [BigInt(1), "b", safeMathLibraryDeployment, { sub: "d" }],
       0,
-      exampleAccounts[0]
+      exampleAccounts[0],
     );
 
     staticCall.dependencies.add(anotherNamedContractDeployment);
@@ -203,7 +203,7 @@ describe("buildInitializeMessageFor", () => {
       fakeModule,
       "test",
       anotherNamedContractDeployment,
-      [1n, "b", safeMathLibraryDeployment, { sub: "d" }]
+      [1n, "b", safeMathLibraryDeployment, { sub: "d" }],
     );
 
     encodedCall.dependencies.add(anotherNamedContractDeployment);
@@ -213,7 +213,7 @@ describe("buildInitializeMessageFor", () => {
       "MyModule:NamedContractAt",
       fakeModule,
       "NamedContractAt",
-      differentAddress
+      differentAddress,
     );
 
     artifactContractAt = new ArtifactContractAtFutureImplementation(
@@ -221,7 +221,7 @@ describe("buildInitializeMessageFor", () => {
       fakeModule,
       "ArtifactContractAt",
       differentAddress,
-      fakeArtifact
+      fakeArtifact,
     );
 
     readEventArgument = new ReadEventArgumentFutureImplementation(
@@ -231,7 +231,7 @@ describe("buildInitializeMessageFor", () => {
       "event1",
       "arg1",
       anotherNamedContractDeployment,
-      0
+      0,
     );
 
     await mockDeploymentLoader.storeNamedArtifact(
@@ -283,7 +283,7 @@ describe("buildInitializeMessageFor", () => {
             ],
           },
         ],
-      }
+      },
     );
 
     sendData = new SendDataFutureImplementation(
@@ -292,7 +292,7 @@ describe("buildInitializeMessageFor", () => {
       exampleAccounts[4],
       2n,
       "fake-data",
-      exampleAccounts[3]
+      exampleAccounts[3],
     );
 
     exampleDeploymentState = deploymentStateReducer(undefined as any);
@@ -370,14 +370,14 @@ describe("buildInitializeMessageFor", () => {
           {},
           mockDeploymentLoader,
           exampleAccounts,
-          getDefaultSender(exampleAccounts)
+          getDefaultSender(exampleAccounts),
         )) as DeploymentExecutionStateInitializeMessage;
       });
 
       it("should build an initialize message for a deployment", async () => {
         assert.equal(
           message.type,
-          JournalMessageType.DEPLOYMENT_EXECUTION_STATE_INITIALIZE
+          JournalMessageType.DEPLOYMENT_EXECUTION_STATE_INITIALIZE,
         );
       });
 
@@ -429,7 +429,7 @@ describe("buildInitializeMessageFor", () => {
           {},
           mockDeploymentLoader,
           exampleAccounts,
-          getDefaultSender(exampleAccounts)
+          getDefaultSender(exampleAccounts),
         )) as DeploymentExecutionStateInitializeMessage;
       });
 
@@ -469,7 +469,7 @@ describe("buildInitializeMessageFor", () => {
           {},
           mockDeploymentLoader,
           exampleAccounts,
-          getDefaultSender(exampleAccounts)
+          getDefaultSender(exampleAccounts),
         )) as DeploymentExecutionStateInitializeMessage;
       });
 
@@ -502,7 +502,7 @@ describe("buildInitializeMessageFor", () => {
           {},
           mockDeploymentLoader,
           exampleAccounts,
-          getDefaultSender(exampleAccounts)
+          getDefaultSender(exampleAccounts),
         )) as DeploymentExecutionStateInitializeMessage;
       });
 
@@ -532,7 +532,7 @@ describe("buildInitializeMessageFor", () => {
           new ModuleParameterRuntimeValueImplementation<bigint>(
             "MyModule",
             "passedValue",
-            undefined
+            undefined,
           );
 
         message = (await buildInitializeMessageFor(
@@ -546,7 +546,7 @@ describe("buildInitializeMessageFor", () => {
           },
           mockDeploymentLoader,
           exampleAccounts,
-          getDefaultSender(exampleAccounts)
+          getDefaultSender(exampleAccounts),
         )) as DeploymentExecutionStateInitializeMessage;
       });
 
@@ -561,7 +561,7 @@ describe("buildInitializeMessageFor", () => {
           new ModuleParameterRuntimeValueImplementation<bigint>(
             "MyModule",
             "passedValue",
-            undefined
+            undefined,
           );
 
         message = (await buildInitializeMessageFor(
@@ -575,7 +575,7 @@ describe("buildInitializeMessageFor", () => {
           },
           mockDeploymentLoader,
           exampleAccounts,
-          getDefaultSender(exampleAccounts)
+          getDefaultSender(exampleAccounts),
         )) as DeploymentExecutionStateInitializeMessage;
       });
 
@@ -592,7 +592,7 @@ describe("buildInitializeMessageFor", () => {
           new ModuleParameterRuntimeValueImplementation<bigint>(
             "MyModule",
             "passedValue",
-            expectedDefaultValue
+            expectedDefaultValue,
           );
 
         const deploymentParameters = undefined as any;
@@ -604,7 +604,7 @@ describe("buildInitializeMessageFor", () => {
           deploymentParameters,
           mockDeploymentLoader,
           exampleAccounts,
-          getDefaultSender(exampleAccounts)
+          getDefaultSender(exampleAccounts),
         )) as DeploymentExecutionStateInitializeMessage;
       });
 
@@ -624,7 +624,7 @@ describe("buildInitializeMessageFor", () => {
           {},
           mockDeploymentLoader,
           exampleAccounts,
-          getDefaultSender(exampleAccounts)
+          getDefaultSender(exampleAccounts),
         )) as DeploymentExecutionStateInitializeMessage;
       });
 
@@ -642,7 +642,7 @@ describe("buildInitializeMessageFor", () => {
           {},
           mockDeploymentLoader,
           exampleAccounts,
-          getDefaultSender(exampleAccounts)
+          getDefaultSender(exampleAccounts),
         )) as DeploymentExecutionStateInitializeMessage;
       });
 
@@ -664,7 +664,7 @@ describe("buildInitializeMessageFor", () => {
           {},
           mockDeploymentLoader,
           exampleAccounts,
-          getDefaultSender(exampleAccounts)
+          getDefaultSender(exampleAccounts),
         )) as CallExecutionStateInitializeMessage;
       });
 
@@ -698,7 +698,7 @@ describe("buildInitializeMessageFor", () => {
           {},
           mockDeploymentLoader,
           exampleAccounts,
-          getDefaultSender(exampleAccounts)
+          getDefaultSender(exampleAccounts),
         )) as StaticCallExecutionStateInitializeMessage;
       });
 
@@ -731,7 +731,7 @@ describe("buildInitializeMessageFor", () => {
         {},
         mockDeploymentLoader,
         exampleAccounts,
-        getDefaultSender(exampleAccounts)
+        getDefaultSender(exampleAccounts),
       )) as EncodeFunctionCallExecutionStateInitializeMessage;
     });
 
@@ -763,7 +763,7 @@ describe("buildInitializeMessageFor", () => {
           {},
           mockDeploymentLoader,
           exampleAccounts,
-          getDefaultSender(exampleAccounts)
+          getDefaultSender(exampleAccounts),
         )) as ContractAtExecutionStateInitializeMessage;
       });
 
@@ -791,7 +791,7 @@ describe("buildInitializeMessageFor", () => {
           {},
           mockDeploymentLoader,
           exampleAccounts,
-          getDefaultSender(exampleAccounts)
+          getDefaultSender(exampleAccounts),
         )) as ContractAtExecutionStateInitializeMessage;
       });
 
@@ -820,8 +820,8 @@ describe("buildInitializeMessageFor", () => {
             new ModuleParameterRuntimeValueImplementation<string>(
               "MyModule",
               "diffAddress",
-              undefined
-            )
+              undefined,
+            ),
           ),
           exampleDeploymentState,
           basicStrategy,
@@ -832,7 +832,7 @@ describe("buildInitializeMessageFor", () => {
           },
           mockDeploymentLoader,
           exampleAccounts,
-          getDefaultSender(exampleAccounts)
+          getDefaultSender(exampleAccounts),
         );
 
         assert.deepStrictEqual(m, {
@@ -856,14 +856,14 @@ describe("buildInitializeMessageFor", () => {
             "MyModule:NamedContractAt",
             {} as any,
             "NamedContractAt",
-            anotherNamedContractDeployment
+            anotherNamedContractDeployment,
           ),
           exampleDeploymentState,
           basicStrategy,
           {},
           mockDeploymentLoader,
           exampleAccounts,
-          getDefaultSender(exampleAccounts)
+          getDefaultSender(exampleAccounts),
         );
 
         assert.deepStrictEqual(m, {
@@ -903,14 +903,14 @@ describe("buildInitializeMessageFor", () => {
             "MyModule:SecondNamedContractAt",
             {} as any,
             "SecondNamedContractAt",
-            namedContractAt
+            namedContractAt,
           ),
           exampleDeploymentState,
           basicStrategy,
           {},
           mockDeploymentLoader,
           exampleAccounts,
-          getDefaultSender(exampleAccounts)
+          getDefaultSender(exampleAccounts),
         );
 
         assert.deepStrictEqual(m, {
@@ -949,14 +949,14 @@ describe("buildInitializeMessageFor", () => {
             "MyModule:NamedContractAt",
             {} as any,
             "NamedContractAt",
-            readEventArgument
+            readEventArgument,
           ),
           exampleDeploymentState,
           basicStrategy,
           {},
           mockDeploymentLoader,
           exampleAccounts,
-          getDefaultSender(exampleAccounts)
+          getDefaultSender(exampleAccounts),
         );
 
         assert.deepStrictEqual(m, {
@@ -998,14 +998,14 @@ describe("buildInitializeMessageFor", () => {
             "MyModule:NamedContractAt",
             {} as any,
             "NamedContractAt",
-            staticCall
+            staticCall,
           ),
           exampleDeploymentState,
           basicStrategy,
           {},
           mockDeploymentLoader,
           exampleAccounts,
-          getDefaultSender(exampleAccounts)
+          getDefaultSender(exampleAccounts),
         );
 
         assert.deepStrictEqual(m, {
@@ -1034,7 +1034,7 @@ describe("buildInitializeMessageFor", () => {
         {},
         mockDeploymentLoader,
         exampleAccounts,
-        getDefaultSender(exampleAccounts)
+        getDefaultSender(exampleAccounts),
       )) as ReadEventArgExecutionStateInitializeMessage;
     });
 
@@ -1067,7 +1067,7 @@ describe("buildInitializeMessageFor", () => {
         {},
         mockDeploymentLoader,
         exampleAccounts,
-        getDefaultSender(exampleAccounts)
+        getDefaultSender(exampleAccounts),
       )) as SendDataExecutionStateInitializeMessage;
     });
 

@@ -40,7 +40,7 @@ async function replayExecutionStartegyWithOnchainInteractions(
     | DeploymentExecutionState
     | CallExecutionState
     | SendDataExecutionState,
-  strategy: ExecutionStrategy
+  strategy: ExecutionStrategy,
 ): Promise<
   | DeploymentStrategyGenerator
   | CallStrategyGenerator
@@ -48,7 +48,7 @@ async function replayExecutionStartegyWithOnchainInteractions(
 > {
   assertIgnitionInvariant(
     executionState.status === ExecutionStatus.STARTED,
-    `Unexpected completed execution state ${executionState.id} when replaying it.`
+    `Unexpected completed execution state ${executionState.id} when replaying it.`,
   );
 
   let generator:
@@ -81,14 +81,14 @@ async function replayExecutionStartegyWithOnchainInteractions(
       executionState.id,
       interaction,
       generatorResult,
-      true
+      true,
     );
 
     if (interaction.type === NetworkInteractionType.STATIC_CALL) {
       generatorResult = await generator.next(interaction.result!);
     } else {
       const confirmedTx = interaction.transactions.find(
-        (tx) => tx.receipt !== undefined
+        (tx) => tx.receipt !== undefined,
       );
 
       generatorResult = await generator.next({
@@ -103,7 +103,7 @@ async function replayExecutionStartegyWithOnchainInteractions(
   assertValidGeneratorResult(
     executionState.id,
     lastInteraction,
-    generatorResult
+    generatorResult,
   );
 
   return generator;
@@ -114,11 +114,11 @@ async function replayExecutionStartegyWithOnchainInteractions(
  */
 async function replayStaticCallExecutionStrategy(
   executionState: StaticCallExecutionState,
-  strategy: ExecutionStrategy
+  strategy: ExecutionStrategy,
 ): Promise<StaticCallStrategyGenerator> {
   assertIgnitionInvariant(
     executionState.status === ExecutionStatus.STARTED,
-    `Unexpected completed execution state ${executionState.id} when replaying it.`
+    `Unexpected completed execution state ${executionState.id} when replaying it.`,
   );
 
   const generator = strategy.executeStaticCall(executionState);
@@ -136,7 +136,7 @@ async function replayStaticCallExecutionStrategy(
       executionState.id,
       interaction,
       generatorResult,
-      true
+      true,
     );
 
     generatorResult = await generator.next(interaction.result!);
@@ -147,7 +147,7 @@ async function replayStaticCallExecutionStrategy(
   assertValidGeneratorResult(
     executionState.id,
     lastInteraction,
-    generatorResult
+    generatorResult,
   );
 
   return generator;
@@ -172,7 +172,7 @@ export async function replayStrategy(
     | CallExecutionState
     | SendDataExecutionState
     | StaticCallExecutionState,
-  strategy: ExecutionStrategy
+  strategy: ExecutionStrategy,
 ): Promise<
   | DeploymentStrategyGenerator
   | CallStrategyGenerator
@@ -183,17 +183,17 @@ export async function replayStrategy(
     case ExecutionSateType.DEPLOYMENT_EXECUTION_STATE:
       return replayExecutionStartegyWithOnchainInteractions(
         executionState,
-        strategy
+        strategy,
       );
     case ExecutionSateType.CALL_EXECUTION_STATE:
       return replayExecutionStartegyWithOnchainInteractions(
         executionState,
-        strategy
+        strategy,
       );
     case ExecutionSateType.SEND_DATA_EXECUTION_STATE:
       return replayExecutionStartegyWithOnchainInteractions(
         executionState,
-        strategy
+        strategy,
       );
     case ExecutionSateType.STATIC_CALL_EXECUTION_STATE:
       return replayStaticCallExecutionStrategy(executionState, strategy);
@@ -207,21 +207,21 @@ function assertValidGeneratorResult(
     | Awaited<ReturnType<DeploymentStrategyGenerator["next"]>>
     | Awaited<ReturnType<CallStrategyGenerator["next"]>>
     | Awaited<ReturnType<SendDataStrategyGenerator["next"]>>,
-  shouldBeResolved?: true
+  shouldBeResolved?: true,
 ) {
   assertIgnitionInvariant(
     generatorResult.done !== true,
-    `Unexpected strategy finalization when replaying ${executionStateId}/${interaction.id}`
+    `Unexpected strategy finalization when replaying ${executionStateId}/${interaction.id}`,
   );
 
   assertIgnitionInvariant(
     generatorResult.value.type !== SIMULATION_SUCCESS_SIGNAL_TYPE,
-    `Unexpected ${SIMULATION_SUCCESS_SIGNAL_TYPE} when replaying ${executionStateId}/${interaction.id}`
+    `Unexpected ${SIMULATION_SUCCESS_SIGNAL_TYPE} when replaying ${executionStateId}/${interaction.id}`,
   );
 
   assertIgnitionInvariant(
     interaction.type === generatorResult.value.type,
-    `Unexpected difference between execution strategy request and wat was already executed while replaying ${executionStateId}/${interaction.id}`
+    `Unexpected difference between execution strategy request and wat was already executed while replaying ${executionStateId}/${interaction.id}`,
   );
 
   if (shouldBeResolved === undefined) {
@@ -231,23 +231,23 @@ function assertValidGeneratorResult(
   if (interaction.type === NetworkInteractionType.STATIC_CALL) {
     assertIgnitionInvariant(
       interaction.result !== undefined,
-      `Unexpected unresolved StaticCall request when replaying ${executionStateId}/${interaction.id}`
+      `Unexpected unresolved StaticCall request when replaying ${executionStateId}/${interaction.id}`,
     );
 
     return;
   }
 
   const confirmedTx = interaction.transactions.find(
-    (tx) => tx.receipt !== undefined
+    (tx) => tx.receipt !== undefined,
   );
 
   assertIgnitionInvariant(
     confirmedTx !== undefined,
-    `Unexpected unresolved OnchainInteraction request when replaying ${executionStateId}/${interaction.id}`
+    `Unexpected unresolved OnchainInteraction request when replaying ${executionStateId}/${interaction.id}`,
   );
 
   assertIgnitionInvariant(
     confirmedTx.receipt !== undefined,
-    `Unexpected unresolved OnchainInteraction request when replaying ${executionStateId}/${interaction.id}`
+    `Unexpected unresolved OnchainInteraction request when replaying ${executionStateId}/${interaction.id}`,
   );
 }

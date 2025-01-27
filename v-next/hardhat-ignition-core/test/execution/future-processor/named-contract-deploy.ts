@@ -35,7 +35,7 @@ describe("future processor", () => {
           [],
           {},
           BigInt(0),
-          exampleAccounts[0]
+          exampleAccounts[0],
         );
 
       const { processor, storedDeployedAddresses } = await setupFutureProcessor(
@@ -50,19 +50,19 @@ describe("future processor", () => {
             status: TransactionReceiptStatus.SUCCESS,
             logs: [],
           },
-        }
+        },
       );
 
       // Act
       const result = await processor.processFuture(
         deploymentFuture,
-        initialDeploymentState
+        initialDeploymentState,
       );
 
       // Assert
       assert.equal(
         storedDeployedAddresses["MyModule:TestContract"],
-        exampleAddress
+        exampleAddress,
       );
 
       const updatedExState =
@@ -70,7 +70,7 @@ describe("future processor", () => {
 
       assertIgnitionInvariant(
         updatedExState.type === ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
-        "to be honest this was unexpected"
+        "to be honest this was unexpected",
       );
 
       assert.equal(updatedExState.status, ExecutionStatus.SUCCESS);

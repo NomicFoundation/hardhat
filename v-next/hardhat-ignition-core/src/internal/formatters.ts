@@ -24,12 +24,12 @@ export function formatExecutionError(
     | StrategySimulationErrorExecutionResult
     | RevertedTransactionExecutionResult
     | FailedStaticCallExecutionResult
-    | StrategyErrorExecutionResult
+    | StrategyErrorExecutionResult,
 ): string {
   switch (result.type) {
     case ExecutionResultType.SIMULATION_ERROR:
       return `Simulating the transaction failed with error: ${formatFailedEvmExecutionResult(
-        result.error
+        result.error,
       )}`;
     case ExecutionResultType.STRATEGY_SIMULATION_ERROR:
       return `Simulating the transaction failed with error: ${result.error}`;
@@ -37,7 +37,7 @@ export function formatExecutionError(
       return `Transaction ${result.txHash} reverted`;
     case ExecutionResultType.STATIC_CALL_ERROR:
       return `Static call failed with error: ${formatFailedEvmExecutionResult(
-        result.error
+        result.error,
       )}`;
     case ExecutionResultType.STRATEGY_ERROR:
       return `Execution failed with error: ${result.error}`;
@@ -48,7 +48,7 @@ export function formatExecutionError(
  * Formats a failed EVM execution result into a human-readable string.
  */
 export function formatFailedEvmExecutionResult(
-  result: FailedEvmExecutionResult
+  result: FailedEvmExecutionResult,
 ): string {
   switch (result.type) {
     case EvmExecutionResultTypes.INVALID_RESULT_ERROR:
@@ -66,7 +66,7 @@ export function formatFailedEvmExecutionResult(
     case EvmExecutionResultTypes.REVERT_WITH_CUSTOM_ERROR:
       return `Reverted with custom error ${formatCustomError(
         result.errorName,
-        result.args
+        result.args,
       )}`;
 
     case EvmExecutionResultTypes.REVERT_WITH_UNKNOWN_CUSTOM_ERROR:
@@ -104,7 +104,7 @@ export function formatSolidityParameter(param: SolidityParameterType): string {
 
   if (typeof param === "object") {
     const values = Object.entries(param).map(
-      ([key, value]) => `"${key}": ${formatSolidityParameter(value)}`
+      ([key, value]) => `"${key}": ${formatSolidityParameter(value)}`,
     );
 
     return `{${values.join(", ")}}`;

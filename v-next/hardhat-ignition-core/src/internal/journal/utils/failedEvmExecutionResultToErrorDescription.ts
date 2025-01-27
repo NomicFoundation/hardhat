@@ -4,7 +4,7 @@ import {
 } from "../../execution/types/evm-execution";
 
 export function failedEvmExecutionResultToErrorDescription(
-  result: FailedEvmExecutionResult
+  result: FailedEvmExecutionResult,
 ): string {
   switch (result.type) {
     case EvmExecutionResultTypes.INVALID_RESULT_ERROR: {

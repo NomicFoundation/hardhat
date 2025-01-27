@@ -46,14 +46,14 @@ describe("DeploymentStateReducer", () => {
         updatedReadEventExState = findExecutionStateById(
           ExecutionSateType.READ_EVENT_ARGUMENT_EXECUTION_STATE,
           updatedDeploymentState,
-          "ReadEventArg1"
+          "ReadEventArg1",
         );
       });
 
       it("should populate a read event argument execution state for the future", () => {
         assert.equal(
           updatedReadEventExState.type,
-          ExecutionSateType.READ_EVENT_ARGUMENT_EXECUTION_STATE
+          ExecutionSateType.READ_EVENT_ARGUMENT_EXECUTION_STATE,
         );
       });
 

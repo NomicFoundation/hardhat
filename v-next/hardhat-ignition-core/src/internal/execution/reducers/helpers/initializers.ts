@@ -21,7 +21,7 @@ import {
 } from "../../types/messages";
 
 export function initialiseDeploymentExecutionStateFrom(
-  action: DeploymentExecutionStateInitializeMessage
+  action: DeploymentExecutionStateInitializeMessage,
 ): DeploymentExecutionState {
   const deploymentExecutionInitialState: DeploymentExecutionState = {
     id: action.futureId,
@@ -44,7 +44,7 @@ export function initialiseDeploymentExecutionStateFrom(
 }
 
 export function initialiseStaticCallExecutionStateFrom(
-  action: StaticCallExecutionStateInitializeMessage
+  action: StaticCallExecutionStateInitializeMessage,
 ): StaticCallExecutionState {
   const callExecutionInitialState: StaticCallExecutionState = {
     id: action.futureId,
@@ -67,7 +67,7 @@ export function initialiseStaticCallExecutionStateFrom(
 }
 
 export function initialiseSendDataExecutionStateFrom(
-  action: SendDataExecutionStateInitializeMessage
+  action: SendDataExecutionStateInitializeMessage,
 ): SendDataExecutionState {
   const callExecutionInitialState: SendDataExecutionState = {
     id: action.futureId,
@@ -88,7 +88,7 @@ export function initialiseSendDataExecutionStateFrom(
 }
 
 export function initialiseReadEventArgumentExecutionStateFrom(
-  action: ReadEventArgExecutionStateInitializeMessage
+  action: ReadEventArgExecutionStateInitializeMessage,
 ): ReadEventArgumentExecutionState {
   const readEventArgumentExecutionInitialState: ReadEventArgumentExecutionState =
     {
@@ -112,7 +112,7 @@ export function initialiseReadEventArgumentExecutionStateFrom(
 }
 
 export function initialiseContractAtExecutionStateFrom(
-  action: ContractAtExecutionStateInitializeMessage
+  action: ContractAtExecutionStateInitializeMessage,
 ): ContractAtExecutionState {
   const contractAtExecutionInitialState: ContractAtExecutionState = {
     id: action.futureId,
@@ -131,7 +131,7 @@ export function initialiseContractAtExecutionStateFrom(
 }
 
 export function initialiseEncodeFunctionCallExecutionStateFrom(
-  action: EncodeFunctionCallExecutionStateInitializeMessage
+  action: EncodeFunctionCallExecutionStateInitializeMessage,
 ): EncodeFunctionCallExecutionState {
   const encodeFunctionCallExecutionInitialState: EncodeFunctionCallExecutionState =
     {
@@ -152,7 +152,7 @@ export function initialiseEncodeFunctionCallExecutionStateFrom(
 }
 
 export function initialiseCallExecutionStateFrom(
-  action: CallExecutionStateInitializeMessage
+  action: CallExecutionStateInitializeMessage,
 ): CallExecutionState {
   const callExecutionInitialState: CallExecutionState = {
     id: action.futureId,

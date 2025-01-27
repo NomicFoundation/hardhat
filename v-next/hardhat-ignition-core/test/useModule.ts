@@ -42,7 +42,7 @@ describe("useModule", () => {
 
     assert.equal(
       moduleWithSubmodule.results.first,
-      moduleWithSubmodule.results.second
+      moduleWithSubmodule.results.second,
     );
 
     assert.equal(moduleWithSubmodule.submodules.size, 1);
@@ -66,8 +66,8 @@ describe("useModule", () => {
 
     assert(
       moduleWithSubmodule.results.contract2.dependencies.has(
-        submodule.results.contract1
-      )
+        submodule.results.contract1,
+      ),
     );
   });
 
@@ -136,8 +136,8 @@ describe("useModule", () => {
             Contract3: fakerArtifact,
           }),
           moduleParams,
-          []
-        )
+          [],
+        ),
       );
     });
 
@@ -201,7 +201,7 @@ describe("useModule", () => {
           Contract3: fakerArtifact,
         }),
         moduleParams,
-        []
+        [],
       );
 
       assert.deepStrictEqual(result, {

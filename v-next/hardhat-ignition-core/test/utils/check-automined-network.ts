@@ -7,31 +7,31 @@ describe("check-automin-network", () => {
   it("should confirm a Hardhat network that has automining enabled", async () =>
     assert.isTrue(
       await checkAutominedNetwork(setupMockProvider("hardhat", true)),
-      "Hardhat network should have automining enabled"
+      "Hardhat network should have automining enabled",
     ));
 
   it("should indicate a Hardhat network that has automining disabled", async () =>
     assert.isFalse(
       await checkAutominedNetwork(setupMockProvider("hardhat", false)),
-      "Hardhat network should _not_ have automining enabled"
+      "Hardhat network should _not_ have automining enabled",
     ));
 
   it("should confirm a ganache network", async () =>
     assert.isTrue(
       await checkAutominedNetwork(setupMockProvider("ganache")),
-      "Ganache networks should have automining enabled"
+      "Ganache networks should have automining enabled",
     ));
 
   it("should indicate not an automining network for other networks", async () =>
     assert.isFalse(
       await checkAutominedNetwork(setupMockProvider("other")),
-      "Other network should _not_ have automining enabled"
+      "Other network should _not_ have automining enabled",
     ));
 });
 
 function setupMockProvider(
   network: "hardhat" | "ganache" | "other",
-  autominingEnabled = true
+  autominingEnabled = true,
 ): EIP1193Provider {
   return {
     request: async ({

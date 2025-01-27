@@ -46,21 +46,21 @@ export class BasicStrategy implements ExecutionStrategy {
 
   public async init(
     deploymentLoader: DeploymentLoader,
-    _jsonRpcClient: JsonRpcClient
+    _jsonRpcClient: JsonRpcClient,
   ): Promise<void> {
     this._deploymentLoader = deploymentLoader;
   }
 
   public async *executeDeployment(
-    executionState: DeploymentExecutionState
+    executionState: DeploymentExecutionState,
   ): DeploymentStrategyGenerator {
     assertIgnitionInvariant(
       this._deploymentLoader !== undefined,
-      `Strategy ${this.name} not initialized`
+      `Strategy ${this.name} not initialized`,
     );
 
     const artifact = await this._deploymentLoader.loadArtifact(
-      executionState.artifactId
+      executionState.artifactId,
     );
 
     const transactionOrResult = yield* executeOnchainInteractionRequest(
@@ -72,12 +72,12 @@ export class BasicStrategy implements ExecutionStrategy {
         data: encodeArtifactDeploymentData(
           artifact,
           executionState.constructorArgs,
-          executionState.libraries
+          executionState.libraries,
         ),
         value: executionState.value,
       },
       undefined,
-      (returnData) => decodeArtifactCustomError(artifact, returnData)
+      (returnData) => decodeArtifactCustomError(artifact, returnData),
     );
 
     if (
@@ -104,15 +104,15 @@ export class BasicStrategy implements ExecutionStrategy {
   }
 
   public async *executeCall(
-    executionState: CallExecutionState
+    executionState: CallExecutionState,
   ): CallStrategyGenerator {
     assertIgnitionInvariant(
       this._deploymentLoader !== undefined,
-      `Strategy ${this.name} not initialized`
+      `Strategy ${this.name} not initialized`,
     );
 
     const artifact = await this._deploymentLoader.loadArtifact(
-      executionState.artifactId
+      executionState.artifactId,
     );
 
     const transactionOrResult = yield* executeOnchainInteractionRequest(
@@ -124,7 +124,7 @@ export class BasicStrategy implements ExecutionStrategy {
         data: encodeArtifactFunctionCall(
           artifact,
           executionState.functionName,
-          executionState.args
+          executionState.args,
         ),
         value: executionState.value,
       },
@@ -133,9 +133,9 @@ export class BasicStrategy implements ExecutionStrategy {
         decodeArtifactFunctionCallResult(
           artifact,
           executionState.functionName,
-          returnData
+          returnData,
         ),
-      (returnData) => decodeArtifactCustomError(artifact, returnData)
+      (returnData) => decodeArtifactCustomError(artifact, returnData),
     );
 
     if (
@@ -151,7 +151,7 @@ export class BasicStrategy implements ExecutionStrategy {
   }
 
   public async *executeSendData(
-    executionState: SendDataExecutionState
+    executionState: SendDataExecutionState,
   ): SendDataStrategyGenerator {
     const transactionOrResult = yield* executeOnchainInteractionRequest(
       executionState.id,
@@ -161,7 +161,7 @@ export class BasicStrategy implements ExecutionStrategy {
         to: executionState.to,
         data: executionState.data,
         value: executionState.value,
-      }
+      },
     );
 
     if (
@@ -177,15 +177,15 @@ export class BasicStrategy implements ExecutionStrategy {
   }
 
   public async *executeStaticCall(
-    executionState: StaticCallExecutionState
+    executionState: StaticCallExecutionState,
   ): StaticCallStrategyGenerator {
     assertIgnitionInvariant(
       this._deploymentLoader !== undefined,
-      `Strategy ${this.name} not initialized`
+      `Strategy ${this.name} not initialized`,
     );
 
     const artifact = await this._deploymentLoader.loadArtifact(
-      executionState.artifactId
+      executionState.artifactId,
     );
 
     const decodedResultOrError = yield* executeStaticCallRequest(
@@ -197,7 +197,7 @@ export class BasicStrategy implements ExecutionStrategy {
         data: encodeArtifactFunctionCall(
           artifact,
           executionState.functionName,
-          executionState.args
+          executionState.args,
         ),
         value: 0n,
       },
@@ -205,9 +205,9 @@ export class BasicStrategy implements ExecutionStrategy {
         decodeArtifactFunctionCallResult(
           artifact,
           executionState.functionName,
-          returnData
+          returnData,
         ),
-      (returnData) => decodeArtifactCustomError(artifact, returnData)
+      (returnData) => decodeArtifactCustomError(artifact, returnData),
     );
 
     if (decodedResultOrError.type === ExecutionResultType.STATIC_CALL_ERROR) {
@@ -218,7 +218,7 @@ export class BasicStrategy implements ExecutionStrategy {
       type: ExecutionResultType.SUCCESS,
       value: getStaticCallExecutionStateResultValue(
         executionState,
-        decodedResultOrError
+        decodedResultOrError,
       ),
     };
   }

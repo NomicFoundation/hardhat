@@ -36,7 +36,7 @@ export async function buildInitializeMessageFor(
   deploymentParameters: DeploymentParameters,
   deploymentLoader: DeploymentLoader,
   accounts: string[],
-  defaultSender: string
+  defaultSender: string,
 ): Promise<JournalMessage> {
   switch (future.type) {
     case FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT:
@@ -55,17 +55,17 @@ export async function buildInitializeMessageFor(
               future.constructorArgs,
               deploymentState,
               deploymentParameters,
-              accounts
+              accounts,
             ),
             libraries: resolveLibraries(future.libraries, deploymentState),
             value: resolveValue(
               future.value,
               deploymentParameters,
               deploymentState,
-              accounts
+              accounts,
             ),
             from: resolveFutureFrom(future.from, accounts, defaultSender),
-          }
+          },
         );
 
       return deploymentExecStateInit;
@@ -85,7 +85,7 @@ export async function buildInitializeMessageFor(
             libraries: resolveLibraries(future.libraries, deploymentState),
             value: BigInt(0),
             from: resolveFutureFrom(future.from, accounts, defaultSender),
-          }
+          },
         );
 
       return libraryDeploymentInit;
@@ -101,22 +101,22 @@ export async function buildInitializeMessageFor(
               future.args,
               deploymentState,
               deploymentParameters,
-              accounts
+              accounts,
             ),
             functionName: future.functionName,
             contractAddress: resolveAddressForContractFuture(
               future.contract,
-              deploymentState
+              deploymentState,
             ),
             artifactId: future.contract.id,
             value: resolveValue(
               future.value,
               deploymentParameters,
               deploymentState,
-              accounts
+              accounts,
             ),
             from: resolveFutureFrom(future.from, accounts, defaultSender),
-          }
+          },
         );
 
       return namedContractCallInit;
@@ -133,17 +133,17 @@ export async function buildInitializeMessageFor(
               future.args,
               deploymentState,
               deploymentParameters,
-              accounts
+              accounts,
             ),
             nameOrIndex: future.nameOrIndex,
             functionName: future.functionName,
             contractAddress: resolveAddressForContractFuture(
               future.contract,
-              deploymentState
+              deploymentState,
             ),
             artifactId: future.contract.id,
             from: resolveFutureFrom(future.from, accounts, defaultSender),
-          }
+          },
         );
 
       return namedStaticCallInit;
@@ -153,14 +153,14 @@ export async function buildInitializeMessageFor(
         future.args,
         deploymentState,
         deploymentParameters,
-        accounts
+        accounts,
       );
 
       const result = await resolveEncodeFunctionCallResult(
         future.contract.id,
         future.functionName,
         args,
-        deploymentLoader
+        deploymentLoader,
       );
 
       const encodeFunctionCallInit: EncodeFunctionCallExecutionStateInitializeMessage =
@@ -174,7 +174,7 @@ export async function buildInitializeMessageFor(
             functionName: future.functionName,
             artifactId: future.contract.id,
             result,
-          }
+          },
         );
 
       return encodeFunctionCallInit;
@@ -194,10 +194,10 @@ export async function buildInitializeMessageFor(
               future.address,
               deploymentState,
               deploymentParameters,
-              accounts
+              accounts,
             ),
             artifactId: future.id,
-          }
+          },
         );
 
       return contractAtInit;
@@ -211,7 +211,7 @@ export async function buildInitializeMessageFor(
           future.eventIndex,
           future.nameOrIndex,
           deploymentState,
-          deploymentLoader
+          deploymentLoader,
         );
 
       const readEventArgInit: ReadEventArgExecutionStateInitializeMessage =
@@ -228,7 +228,7 @@ export async function buildInitializeMessageFor(
             txToReadFrom,
             emitterAddress,
             result,
-          }
+          },
         );
 
       return readEventArgInit;
@@ -245,17 +245,17 @@ export async function buildInitializeMessageFor(
               future.to,
               deploymentState,
               deploymentParameters,
-              accounts
+              accounts,
             ),
             value: resolveValue(
               future.value,
               deploymentParameters,
               deploymentState,
-              accounts
+              accounts,
             ),
             data: resolveFutureData(future.data, deploymentState),
             from: resolveFutureFrom(future.from, accounts, defaultSender),
-          }
+          },
         );
 
       return sendDataInit;
@@ -265,13 +265,13 @@ export async function buildInitializeMessageFor(
 function _extendBaseInitWith<
   FutureT extends Future,
   MessageT extends JournalMessageType,
-  ExtensionT extends object
+  ExtensionT extends object,
 >(
   messageType: MessageT,
   future: FutureT,
   strategy: string,
   strategyConfig: ConcreteExecutionConfig,
-  extension: ExtensionT
+  extension: ExtensionT,
 ): {
   type: MessageT;
   futureId: string;

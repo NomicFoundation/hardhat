@@ -510,6 +510,6 @@ export type SnakeToCamelCase<S extends string> =
  */
 export type ExecutionEventListener = {
   [eventType in ExecutionEventType as SnakeToCamelCase<eventType>]: (
-    event: ExecutionEventTypeMap[eventType]
+    event: ExecutionEventTypeMap[eventType],
   ) => void;
 };

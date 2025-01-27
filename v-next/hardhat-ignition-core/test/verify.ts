@@ -8,7 +8,7 @@ describe("verify", () => {
   it("should not verify an unitialized deployment", async () => {
     await assert.isRejected(
       getVerificationInformation("test").next(),
-      /IGN1000: Cannot verify contracts for nonexistant deployment at test/
+      /IGN1000: Cannot verify contracts for nonexistant deployment at test/,
     );
   });
 
@@ -17,12 +17,12 @@ describe("verify", () => {
       __dirname,
       "mocks",
       "verify",
-      "no-contracts"
+      "no-contracts",
     );
 
     await assert.isRejected(
       getVerificationInformation(deploymentDir).next(),
-      /IGN1001: Cannot verify deployment/
+      /IGN1001: Cannot verify deployment/,
     );
   });
 
@@ -31,12 +31,12 @@ describe("verify", () => {
       __dirname,
       "mocks",
       "verify",
-      "unsupported-chain"
+      "unsupported-chain",
     );
 
     await assert.isRejected(
       getVerificationInformation(deploymentDir).next(),
-      /IGN1002: Verification not natively supported for chainId 123456789\. Please use a custom chain configuration to add support\./
+      /IGN1002: Verification not natively supported for chainId 123456789\. Please use a custom chain configuration to add support\./,
     );
   });
 
@@ -92,7 +92,7 @@ describe("verify", () => {
       __dirname,
       "mocks",
       "verify",
-      "external-artifacts"
+      "external-artifacts",
     );
 
     const generator = getVerificationInformation(deploymentDir);
@@ -154,7 +154,7 @@ describe("verify", () => {
 
     let success: boolean = false;
     for await (const [chainInfo, info] of getVerificationInformation(
-      deploymentDir
+      deploymentDir,
     )) {
       assert(chainInfo !== null);
 
@@ -197,7 +197,7 @@ describe("verify", () => {
     const deploymentDir = path.join(__dirname, "mocks", "verify", "min-input");
 
     for await (const [contractInfo, info] of getVerificationInformation(
-      deploymentDir
+      deploymentDir,
     )) {
       assert(contractInfo !== null);
 
@@ -241,7 +241,7 @@ describe("verify", () => {
     for await (const [contractInfo, info] of getVerificationInformation(
       deploymentDir,
       undefined,
-      true
+      true,
     )) {
       assert(contractInfo !== null);
 

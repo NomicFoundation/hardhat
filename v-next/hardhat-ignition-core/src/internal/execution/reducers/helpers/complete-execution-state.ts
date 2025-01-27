@@ -37,14 +37,14 @@ export function completeExecutionState<
     | StaticCallExecutionState
     | SendDataExecutionState
     | CallExecutionState
-    | DeploymentExecutionState
+    | DeploymentExecutionState,
 >(
   state: ExState,
   message:
     | StaticCallExecutionStateCompleteMessage
     | SendDataExecutionStateCompleteMessage
     | CallExecutionStateCompleteMessage
-    | DeploymentExecutionStateCompleteMessage
+    | DeploymentExecutionStateCompleteMessage,
 ): ExState {
   return produce(state, (draft: ExState): void => {
     draft.status = _mapResultTypeToStatus(message.result);
@@ -57,7 +57,7 @@ function _mapResultTypeToStatus(
     | StaticCallExecutionResult
     | SendDataExecutionResult
     | CallExecutionResult
-    | DeploymentExecutionResult
+    | DeploymentExecutionResult,
 ) {
   switch (result.type) {
     case ExecutionResultType.SUCCESS:

@@ -63,33 +63,33 @@ class StubJsonRpcClient implements JsonRpcClient {
 
   public async getBalance(
     _address: string,
-    _blockTag: "latest" | "pending"
+    _blockTag: "latest" | "pending",
   ): Promise<bigint> {
     throw new Error("Mock not implemented.");
   }
 
   public async setBalance(
     _address: string,
-    _balance: bigint
+    _balance: bigint,
   ): Promise<boolean> {
     throw new Error("Mock not implemented.");
   }
 
   public async call(
     _callParams: CallParams,
-    _blockTag: "latest" | "pending"
+    _blockTag: "latest" | "pending",
   ): Promise<RawStaticCallResult> {
     throw new Error("Mock not implemented.");
   }
 
   public async estimateGas(
-    _transactionParams: EstimateGasParams
+    _transactionParams: EstimateGasParams,
   ): Promise<bigint> {
     throw new Error("Mock not implemented.");
   }
 
   public async sendTransaction(
-    _transactionParams: TransactionParams
+    _transactionParams: TransactionParams,
   ): Promise<string> {
     throw new Error("Mock not implemented.");
   }
@@ -100,19 +100,19 @@ class StubJsonRpcClient implements JsonRpcClient {
 
   public async getTransactionCount(
     _address: string,
-    _blockTag: number | "latest" | "pending"
+    _blockTag: number | "latest" | "pending",
   ): Promise<number> {
     throw new Error("Mock not implemented.");
   }
 
   public async getTransaction(
-    _txHash: string
+    _txHash: string,
   ): Promise<Omit<Transaction, "receipt"> | undefined> {
     throw new Error("Mock not implemented.");
   }
 
   public async getTransactionReceipt(
-    _txHash: string
+    _txHash: string,
   ): Promise<TransactionReceipt | undefined> {
     throw new Error("Mock not implemented.");
   }
@@ -145,7 +145,7 @@ describe("Network interactions", () => {
 
         public override async call(
           callParams: CallParams,
-          blockTag: "latest" | "pending"
+          blockTag: "latest" | "pending",
         ): Promise<RawStaticCallResult> {
           this.calls += 1;
           assert.equal(callParams.from, staticCall.from);
@@ -243,7 +243,7 @@ describe("Network interactions", () => {
         millisecondBeforeBumpingFees,
         maxFeeBumps,
         testGetTransactionRetryConfig,
-        false
+        false,
       );
 
       if (message === undefined) {
@@ -288,9 +288,9 @@ describe("Network interactions", () => {
           millisecondBeforeBumpingFees,
           maxFeeBumps,
           testGetTransactionRetryConfig,
-          false
+          false,
         ),
-        /IGN401: Error while executing test: all the transactions of its network interaction 1 were dropped\. Please try rerunning Hardhat Ignition\./
+        /IGN401: Error while executing test: all the transactions of its network interaction 1 were dropped\. Please try rerunning Hardhat Ignition\./,
       );
 
       assert.equal(mockClient.calls, 10);
@@ -308,14 +308,14 @@ describe("Network interactions", () => {
         }
 
         public override async estimateGas(
-          _transactionParams: EstimateGasParams
+          _transactionParams: EstimateGasParams,
         ): Promise<bigint> {
           return 0n;
         }
 
         public override async call(
           _callParams: CallParams,
-          _blockTag: "latest" | "pending"
+          _blockTag: "latest" | "pending",
         ): Promise<RawStaticCallResult> {
           return {
             customErrorReported: false,
@@ -325,7 +325,7 @@ describe("Network interactions", () => {
         }
 
         public override async sendTransaction(
-          _transactionParams: TransactionParams
+          _transactionParams: TransactionParams,
         ): Promise<string> {
           return "0x1234";
         }
@@ -357,7 +357,7 @@ describe("Network interactions", () => {
           }
 
           public override async sendTransaction(
-            _transactionParams: TransactionParams
+            _transactionParams: TransactionParams,
           ): Promise<string> {
             this.storedFees = _transactionParams.fees as EIP1559NetworkFees;
             return "0x1234";
@@ -382,7 +382,7 @@ describe("Network interactions", () => {
           exampleAccounts[0],
           onchainInteraction,
           nonceManager,
-          async () => undefined
+          async () => undefined,
         );
 
         assert.equal(client.storedFees.maxFeePerGas, 100n);
@@ -409,7 +409,7 @@ describe("Network interactions", () => {
             exampleAccounts[0],
             onchainInteraction,
             nonceManager,
-            async () => undefined
+            async () => undefined,
           );
 
           assert.equal(nonceManager.calls[exampleAccounts[0]], 1);
@@ -420,7 +420,7 @@ describe("Network interactions", () => {
             public storedNonce: number | undefined;
 
             public override async sendTransaction(
-              _transactionParams: TransactionParams
+              _transactionParams: TransactionParams,
             ): Promise<string> {
               this.storedNonce = _transactionParams.nonce;
               return "0x1234";
@@ -446,7 +446,7 @@ describe("Network interactions", () => {
             exampleAccounts[0],
             onchainInteraction,
             nonceManager,
-            async () => undefined
+            async () => undefined,
           );
 
           assert.equal(nonceManager.calls[exampleAccounts[0]], undefined);
@@ -460,7 +460,7 @@ describe("Network interactions", () => {
             class LocalMockJsonRpcClient extends MockJsonRpcClient {
               public override async call(
                 _callParams: CallParams,
-                _blockTag: "latest" | "pending"
+                _blockTag: "latest" | "pending",
               ): Promise<RawStaticCallResult> {
                 return {
                   customErrorReported: true,
@@ -506,7 +506,7 @@ describe("Network interactions", () => {
               exampleAccounts[0],
               onchainInteraction,
               nonceManager,
-              decodeSimulationResult(mockStrategyGenerator, mockExecutionState)
+              decodeSimulationResult(mockStrategyGenerator, mockExecutionState),
             );
 
             // type casting
@@ -541,7 +541,7 @@ describe("Network interactions", () => {
               exampleAccounts[0],
               onchainInteraction,
               nonceManager,
-              async () => undefined
+              async () => undefined,
             );
 
             // type casting
@@ -565,14 +565,14 @@ describe("Network interactions", () => {
           }
 
           public override async estimateGas(
-            _transactionParams: EstimateGasParams
+            _transactionParams: EstimateGasParams,
           ): Promise<bigint> {
             throw new Error(this.errorMessage);
           }
 
           public override async call(
             _callParams: CallParams,
-            _blockTag: "latest" | "pending"
+            _blockTag: "latest" | "pending",
           ): Promise<RawStaticCallResult> {
             return {
               customErrorReported: true,
@@ -620,7 +620,7 @@ describe("Network interactions", () => {
               exampleAccounts[0],
               onchainInteraction,
               nonceManager,
-              decodeSimulationResult(mockStrategyGenerator, mockExecutionState)
+              decodeSimulationResult(mockStrategyGenerator, mockExecutionState),
             );
 
             // type casting
@@ -639,7 +639,7 @@ describe("Network interactions", () => {
           describe("When there are insufficient funds for a transfer", () => {
             it("Should throw an error", async () => {
               const client = new LocalMockJsonRpcClient(
-                "insufficient funds for transfer"
+                "insufficient funds for transfer",
               );
               const nonceManager = new MockNonceManager();
 
@@ -659,9 +659,9 @@ describe("Network interactions", () => {
                   exampleAccounts[0],
                   onchainInteraction,
                   nonceManager,
-                  async () => undefined
+                  async () => undefined,
                 ),
-                /^IGN408/
+                /^IGN408/,
               );
             });
           });
@@ -669,7 +669,7 @@ describe("Network interactions", () => {
           describe("When there are insufficient funds for a deployment", () => {
             it("Should throw an error", async () => {
               const client = new LocalMockJsonRpcClient(
-                "contract creation code storage out of gas"
+                "contract creation code storage out of gas",
               );
               const nonceManager = new MockNonceManager();
 
@@ -689,9 +689,9 @@ describe("Network interactions", () => {
                   exampleAccounts[0],
                   onchainInteraction,
                   nonceManager,
-                  async () => undefined
+                  async () => undefined,
                 ),
-                /^IGN409/
+                /^IGN409/,
               );
             });
           });
@@ -717,9 +717,9 @@ describe("Network interactions", () => {
                   exampleAccounts[0],
                   onchainInteraction,
                   nonceManager,
-                  async () => undefined
+                  async () => undefined,
                 ),
-                /^IGN410/
+                /^IGN410/,
               );
             });
           });
@@ -745,7 +745,7 @@ class MockGetTransactionJsonRpcClient extends StubJsonRpcClient {
   public result: Omit<Transaction, "receipt"> | undefined = undefined;
 
   public override async getTransaction(
-    _txHash: string
+    _txHash: string,
   ): Promise<Omit<Transaction, "receipt"> | undefined> {
     if (this.calls === this.callToFindResult) {
       return this.result;
@@ -764,7 +764,7 @@ class MockGetTransactionJsonRpcClient extends StubJsonRpcClient {
   }
 
   public override async getTransactionReceipt(
-    _txHash: string
+    _txHash: string,
   ): Promise<TransactionReceipt | undefined> {
     return {
       blockHash: "0xblockhash",

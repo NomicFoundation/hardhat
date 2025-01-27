@@ -37,7 +37,7 @@ import {
  */
 export async function listTransactions(
   deploymentDir: string,
-  _artifactResolver: Omit<ArtifactResolver, "getBuildInfo">
+  _artifactResolver: Omit<ArtifactResolver, "getBuildInfo">,
 ): Promise<ListTransactionsResult> {
   const deploymentLoader = new FileDeploymentLoader(deploymentDir);
 
@@ -52,7 +52,7 @@ export async function listTransactions(
   const transactions: ListTransactionsResult = [];
 
   const browserUrl = builtinChains.find(
-    ({ chainId }) => chainId === deploymentState.chainId
+    ({ chainId }) => chainId === deploymentState.chainId,
   );
 
   for await (const message of deploymentLoader.readFromJournal()) {
@@ -64,7 +64,7 @@ export async function listTransactions(
 
     assertIgnitionInvariant(
       doesSendTransactions(exState),
-      "Expected execution state to be a type that sends transactions"
+      "Expected execution state to be a type that sends transactions",
     );
 
     const networkInteraction =
@@ -72,13 +72,13 @@ export async function listTransactions(
 
     assertIgnitionInvariant(
       networkInteraction.type === "ONCHAIN_INTERACTION",
-      "Expected network interaction to be an onchain interaction"
+      "Expected network interaction to be an onchain interaction",
     );
 
     // this seems redundant, but we use it later to determine pending vs dropped status
     const lastTxIndex = findLastIndex(
       networkInteraction.transactions,
-      (tx) => tx.hash === message.transaction.hash
+      (tx) => tx.hash === message.transaction.hash,
     );
 
     const transaction = networkInteraction.transactions[lastTxIndex];
@@ -91,7 +91,7 @@ export async function listTransactions(
           txHash: transaction.hash,
           status: getTransactionStatus(
             transaction,
-            lastTxIndex === networkInteraction.transactions.length - 1
+            lastTxIndex === networkInteraction.transactions.length - 1,
           ),
           name: exState.contractName,
           address:
@@ -109,7 +109,7 @@ export async function listTransactions(
       }
       case ExecutionSateType.CALL_EXECUTION_STATE: {
         const artifact = await deploymentLoader.loadArtifact(
-          exState.artifactId
+          exState.artifactId,
         );
 
         transactions.push({
@@ -118,7 +118,7 @@ export async function listTransactions(
           txHash: transaction.hash,
           status: getTransactionStatus(
             transaction,
-            lastTxIndex === networkInteraction.transactions.length - 1
+            lastTxIndex === networkInteraction.transactions.length - 1,
           ),
           name: `${artifact.contractName}#${exState.functionName}`,
           to: networkInteraction.to,
@@ -136,7 +136,7 @@ export async function listTransactions(
           txHash: transaction.hash,
           status: getTransactionStatus(
             transaction,
-            lastTxIndex === networkInteraction.transactions.length - 1
+            lastTxIndex === networkInteraction.transactions.length - 1,
           ),
           to: networkInteraction.to,
           value: networkInteraction.value,
@@ -152,7 +152,7 @@ export async function listTransactions(
 }
 
 function doesSendTransactions(
-  exState: ExecutionState
+  exState: ExecutionState,
 ): exState is
   | DeploymentExecutionState
   | CallExecutionState
@@ -166,7 +166,7 @@ function doesSendTransactions(
 
 function getTransactionStatus(
   transaction: Transaction,
-  isFinalTransaction: boolean
+  isFinalTransaction: boolean,
 ): TransactionStatus {
   if (transaction.receipt === undefined) {
     if (isFinalTransaction) {

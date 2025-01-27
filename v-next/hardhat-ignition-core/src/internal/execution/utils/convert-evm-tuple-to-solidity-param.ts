@@ -5,7 +5,7 @@ import { assertIgnitionInvariant } from "../../utils/assertions";
 import { EvmTuple, EvmValue } from "../types/evm-execution";
 
 export function convertEvmValueToSolidityParam(
-  evmValue: EvmValue
+  evmValue: EvmValue,
 ): SolidityParameterType {
   if (isArray(evmValue)) {
     return evmValue.map(convertEvmValueToSolidityParam);
@@ -19,13 +19,13 @@ export function convertEvmValueToSolidityParam(
 }
 
 export function convertEvmTupleToSolidityParam(
-  evmTuple: EvmTuple
+  evmTuple: EvmTuple,
 ): SolidityParameterType[] {
   const converted = convertEvmValueToSolidityParam(evmTuple);
 
   assertIgnitionInvariant(
     Array.isArray(converted),
-    "Failed to convert an EvmTuple to SolidityParameterType[]"
+    "Failed to convert an EvmTuple to SolidityParameterType[]",
   );
 
   return converted;

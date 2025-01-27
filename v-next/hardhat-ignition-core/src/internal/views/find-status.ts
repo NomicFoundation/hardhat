@@ -14,7 +14,7 @@ import { formatExecutionError } from "../formatters";
 import { assertIgnitionInvariant } from "../utils/assertions";
 
 export function findStatus(
-  deploymentState: DeploymentState
+  deploymentState: DeploymentState,
 ): Omit<ExecutionErrorDeploymentResult, "type"> {
   const executionStates = Object.values(deploymentState.executionStates);
 
@@ -31,12 +31,12 @@ export function findStatus(
       .map((ex) => {
         assertIgnitionInvariant(
           ex.result !== undefined,
-          `Execution state ${ex.id} is marked as held but has no result`
+          `Execution state ${ex.id} is marked as held but has no result`,
         );
 
         assertIgnitionInvariant(
           ex.result.type === ExecutionResultType.STRATEGY_HELD,
-          `Execution state ${ex.id} is marked as held but has ${ex.result.type} instead of a held result`
+          `Execution state ${ex.id} is marked as held but has ${ex.result.type} instead of a held result`,
         );
 
         return {
@@ -60,7 +60,7 @@ export function findStatus(
           ex.result !== undefined &&
             ex.result.type !== ExecutionResultType.SUCCESS &&
             ex.result.type !== ExecutionResultType.STRATEGY_HELD,
-          `Execution state ${ex.id} is marked as failed but has no error result`
+          `Execution state ${ex.id} is marked as failed but has no error result`,
         );
 
         return {
@@ -74,7 +74,7 @@ export function findStatus(
 
 // TODO: Does this exist anywhere else? It's in fact just checking if it sends txs
 function canTimeout(
-  exState: ExecutionState
+  exState: ExecutionState,
 ): exState is
   | DeploymentExecutionState
   | CallExecutionState
@@ -88,7 +88,7 @@ function canTimeout(
 
 // TODO: Does this exist anywhere else? It's in fact just checking if has network interactions
 function canFail(
-  exState: ExecutionState
+  exState: ExecutionState,
 ): exState is
   | DeploymentExecutionState
   | CallExecutionState

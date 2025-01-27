@@ -81,8 +81,8 @@ describe("Reconciliation - artifact contract", () => {
           libraries: {
             SafeMath: exampleAddress,
           },
-        }
-      )
+        },
+      ),
     );
   });
 
@@ -103,7 +103,7 @@ describe("Reconciliation - artifact contract", () => {
         futureType: FutureType.CONTRACT_DEPLOYMENT,
         status: ExecutionStatus.STARTED,
         contractName: "ContractUnchanged",
-      })
+      }),
     );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
@@ -142,7 +142,7 @@ describe("Reconciliation - artifact contract", () => {
           { nested: { supply: BigInt(500) } },
           [1, "NotCodeCoin", 3],
         ],
-      })
+      }),
     );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
@@ -170,7 +170,7 @@ describe("Reconciliation - artifact contract", () => {
         futureType: FutureType.CONTRACT_DEPLOYMENT,
         status: ExecutionStatus.STARTED,
         constructorArgs: ["0x15D34AAF54267DB7D7C367839AAF71A00A2C6A65"],
-      })
+      }),
     );
   });
 
@@ -191,7 +191,7 @@ describe("Reconciliation - artifact contract", () => {
         futureType: FutureType.CONTRACT_DEPLOYMENT,
         status: ExecutionStatus.STARTED,
         constructorArgs: ["0x15d34aaf54267db7D7c367839aaf71a00a2c6a65"],
-      })
+      }),
     );
 
     assert.deepStrictEqual(reconciliationResult.reconciliationFailures, [
@@ -235,8 +235,8 @@ describe("Reconciliation - artifact contract", () => {
           futureType: FutureType.CONTRACT_DEPLOYMENT,
           status: ExecutionStatus.STARTED,
           libraries: {},
-        }
-      )
+        },
+      ),
     );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
@@ -265,7 +265,7 @@ describe("Reconciliation - artifact contract", () => {
         futureType: FutureType.CONTRACT_DEPLOYMENT,
         status: ExecutionStatus.STARTED,
         value: BigInt(3),
-      })
+      }),
     );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
@@ -294,7 +294,7 @@ describe("Reconciliation - artifact contract", () => {
         futureType: FutureType.CONTRACT_DEPLOYMENT,
         status: ExecutionStatus.STARTED,
         from: oneAddress,
-      })
+      }),
     );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
@@ -322,7 +322,7 @@ describe("Reconciliation - artifact contract", () => {
         futureType: FutureType.CONTRACT_DEPLOYMENT,
         status: ExecutionStatus.STARTED,
         strategy: "create2",
-      })
+      }),
     );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
@@ -350,7 +350,7 @@ describe("Reconciliation - artifact contract", () => {
         futureType: FutureType.CONTRACT_DEPLOYMENT,
         status: ExecutionStatus.STARTED,
         strategyConfig: { salt: "value" },
-      })
+      }),
     );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [

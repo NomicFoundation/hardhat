@@ -55,7 +55,7 @@ export async function runStrategy(
     | CallExecutionState
     | SendDataExecutionState
     | StaticCallExecutionState,
-  executionStrategy: ExecutionStrategy
+  executionStrategy: ExecutionStrategy,
 ): Promise<
   | NetworkInteractionRequestMessage
   | DeploymentExecutionStateCompleteMessage
@@ -76,7 +76,7 @@ export async function runStrategy(
   ) {
     assertIgnitionInvariant(
       exState.type !== ExecutionSateType.STATIC_CALL_EXECUTION_STATE,
-      `Unexpected StaticCallExecutionState ${exState.id} with onchain interaction ${lastNetworkInteraction.id} when trying to run a strategy`
+      `Unexpected StaticCallExecutionState ${exState.id} with onchain interaction ${lastNetworkInteraction.id} when trying to run a strategy`,
     );
 
     // We know this is safe because StaticCallExecutionState's can't generate
@@ -87,12 +87,12 @@ export async function runStrategy(
       | SendDataStrategyGenerator;
 
     const confirmedTx = lastNetworkInteraction.transactions.find(
-      (tx) => tx.receipt !== undefined
+      (tx) => tx.receipt !== undefined,
     );
 
     assertIgnitionInvariant(
       confirmedTx !== undefined && confirmedTx.receipt !== undefined,
-      "Trying to advance strategy without confirmed tx in the last network interaction"
+      "Trying to advance strategy without confirmed tx in the last network interaction",
     );
 
     if (confirmedTx.receipt.status === TransactionReceiptStatus.FAILURE) {
@@ -103,7 +103,7 @@ export async function runStrategy(
 
       return createExecutionStateCompleteMessageForExecutionsWithOnchainInteractions(
         exState,
-        result
+        result,
       );
     }
 
@@ -120,7 +120,7 @@ export async function runStrategy(
   } else {
     assertIgnitionInvariant(
       lastNetworkInteraction.result !== undefined,
-      "Trying to advance strategy without result in the last network interaction"
+      "Trying to advance strategy without result in the last network interaction",
     );
 
     response = await strategyGenerator.next(lastNetworkInteraction.result);
@@ -129,7 +129,7 @@ export async function runStrategy(
   if (response.done !== true) {
     assertIgnitionInvariant(
       response.value.type !== SIMULATION_SUCCESS_SIGNAL_TYPE,
-      "Invalid SIMULATION_SUCCESS_SIGNAL received"
+      "Invalid SIMULATION_SUCCESS_SIGNAL received",
     );
 
     return {
@@ -137,7 +137,7 @@ export async function runStrategy(
       futureId: exState.id,
       networkInteraction: resolveNetworkInteractionRequest(
         exState,
-        response.value
+        response.value,
       ),
     };
   }
@@ -151,7 +151,7 @@ function resolveNetworkInteractionRequest(
     | CallExecutionState
     | SendDataExecutionState
     | StaticCallExecutionState,
-  req: OnchainInteractionRequest | StaticCallRequest
+  req: OnchainInteractionRequest | StaticCallRequest,
 ): NetworkInteractionRequestMessage["networkInteraction"] {
   if (req.type === NetworkInteractionType.STATIC_CALL) {
     return {

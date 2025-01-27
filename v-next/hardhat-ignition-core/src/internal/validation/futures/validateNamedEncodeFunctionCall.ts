@@ -19,7 +19,7 @@ export async function validateNamedEncodeFunctionCall(
   future: EncodeFunctionCallFuture<string, string>,
   artifactLoader: ArtifactResolver,
   deploymentParameters: DeploymentParameters,
-  accounts: string[]
+  accounts: string[],
 ): Promise<string[]> {
   const errors: IgnitionError[] = [];
 
@@ -34,7 +34,7 @@ export async function validateNamedEncodeFunctionCall(
     errors.push(
       new IgnitionError(ERRORS.VALIDATION.INVALID_ARTIFACT, {
         contractName: future.contract.contractName,
-      })
+      }),
     );
   } else {
     errors.push(
@@ -43,8 +43,8 @@ export async function validateNamedEncodeFunctionCall(
         future.contract.contractName,
         future.functionName,
         future.args,
-        false
-      )
+        false,
+      ),
     );
   }
 
@@ -56,21 +56,21 @@ export async function validateNamedEncodeFunctionCall(
 
   errors.push(
     ...accountParams.flatMap((arv) =>
-      validateAccountRuntimeValue(arv, accounts)
-    )
+      validateAccountRuntimeValue(arv, accounts),
+    ),
   );
 
   const missingParams = moduleParams.filter(
     (param) =>
       resolvePotentialModuleParameterValueFrom(deploymentParameters, param) ===
-      undefined
+      undefined,
   );
 
   if (missingParams.length > 0) {
     errors.push(
       new IgnitionError(ERRORS.VALIDATION.MISSING_MODULE_PARAMETER, {
         name: missingParams[0].name,
-      })
+      }),
     );
   }
 

@@ -16,20 +16,20 @@ export function findTransactionBy(
     | StaticCallExecutionState
     | SendDataExecutionState,
   networkInteractionId: number,
-  hash: string
+  hash: string,
 ): Transaction {
   const onchainInteraction = findOnchainInteractionBy(
     executionState,
-    networkInteractionId
+    networkInteractionId,
   );
 
   const transaction = onchainInteraction.transactions.find(
-    (tx) => tx.hash === hash
+    (tx) => tx.hash === hash,
   );
 
   assertIgnitionInvariant(
     transaction !== undefined,
-    `Expected transaction ${executionState.id}/${networkInteractionId}/${hash} to exist, but it did not`
+    `Expected transaction ${executionState.id}/${networkInteractionId}/${hash} to exist, but it did not`,
   );
 
   return transaction;

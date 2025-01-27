@@ -6,6 +6,6 @@ import { Future, IgnitionModule } from "../../types/module";
  */
 export function getFuturesFromModule(module: IgnitionModule): Future[] {
   return [...module.futures].concat(
-    Array.from(module.submodules).flatMap((sub) => getFuturesFromModule(sub))
+    Array.from(module.submodules).flatMap((sub) => getFuturesFromModule(sub)),
   );
 }

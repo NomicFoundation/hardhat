@@ -35,7 +35,7 @@ import {
 export async function* getVerificationInformation(
   deploymentDir: string,
   customChains: ChainConfig[] = [],
-  includeUnrelatedContracts = false
+  includeUnrelatedContracts = false,
 ): AsyncGenerator<VerifyResult> {
   const deploymentLoader = new FileDeploymentLoader(deploymentDir);
 
@@ -51,7 +51,7 @@ export async function* getVerificationInformation(
 
   const deploymentExStates = findExecutionStatesByType(
     ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
-    deploymentState
+    deploymentState,
   ).filter((exState) => exState.status === ExecutionStatus.SUCCESS);
 
   if (deploymentExStates.length === 0) {
@@ -64,7 +64,7 @@ export async function* getVerificationInformation(
     const verifyInfo = await convertExStateToVerifyInfo(
       exState,
       deploymentLoader,
-      includeUnrelatedContracts
+      includeUnrelatedContracts,
     );
 
     if (typeof verifyInfo === "string") {
@@ -80,13 +80,13 @@ export async function* getVerificationInformation(
 
 function resolveChainConfig(
   deploymentState: DeploymentState,
-  customChains: ChainConfig[]
+  customChains: ChainConfig[],
 ) {
   // implementation note:
   // if a user has set a custom chain with the same chainId as a builtin chain,
   // the custom chain will be used instead of the builtin chain
   const chainConfig = [...customChains, ...builtinChains].find(
-    (c) => c.chainId === deploymentState.chainId
+    (c) => c.chainId === deploymentState.chainId,
   );
 
   if (chainConfig === undefined) {
@@ -101,7 +101,7 @@ function resolveChainConfig(
 export function getImportSourceNames(
   sourceName: string,
   buildInfo: BuildInfo,
-  visited: Record<string, boolean> = {}
+  visited: Record<string, boolean> = {},
 ): string[] {
   if (visited[sourceName]) {
     return [];
@@ -123,7 +123,7 @@ export function getImportSourceNames(
   return [
     ...importSources,
     ...importSources.flatMap((i) =>
-      getImportSourceNames(i, buildInfo, visited)
+      getImportSourceNames(i, buildInfo, visited),
     ),
   ];
 }
@@ -131,7 +131,7 @@ export function getImportSourceNames(
 async function convertExStateToVerifyInfo(
   exState: DeploymentExecutionState,
   deploymentLoader: FileDeploymentLoader,
-  includeUnrelatedContracts: boolean = false
+  includeUnrelatedContracts: boolean = false,
 ): Promise<VerifyInfo | string> {
   let result: [BuildInfo, Artifact];
 
@@ -145,7 +145,7 @@ async function convertExStateToVerifyInfo(
       e instanceof Error && "code" in e && e.code === "ENOENT",
       `Unexpected error loading build info or artifact for deployment execution state ${
         exState.id
-      }: ${e as any}`
+      }: ${e as any}`,
     );
 
     // if the artifact cannot be found, we cannot verify the contract
@@ -160,7 +160,7 @@ async function convertExStateToVerifyInfo(
   assertIgnitionInvariant(
     exState.result !== undefined &&
       exState.result.type === ExecutionResultType.SUCCESS,
-    `Deployment execution state ${exState.id} should have a successful result to retrieve address`
+    `Deployment execution state ${exState.id} should have a successful result to retrieve address`,
   );
 
   const sourceCode = prepareInputBasedOn(buildInfo, artifact, libraries);
@@ -194,11 +194,11 @@ async function convertExStateToVerifyInfo(
 function prepareInputBasedOn(
   buildInfo: BuildInfo,
   artifact: Artifact,
-  libraries: Record<string, string>
+  libraries: Record<string, string>,
 ): CompilerInput {
   const sourceToLibraryAddresses = resolveLibraryInfoForArtifact(
     artifact,
-    libraries
+    libraries,
   );
 
   if (sourceToLibraryAddresses === null) {
@@ -213,7 +213,7 @@ function prepareInputBasedOn(
 
 function resolveLibraryInfoForArtifact(
   artifact: Artifact,
-  libraries: Record<string, string>
+  libraries: Record<string, string>,
 ): SourceToLibraryToAddress | null {
   const sourceToLibraryToAddress: SourceToLibraryToAddress = {};
 
@@ -225,7 +225,7 @@ function resolveLibraryInfoForArtifact(
 
       assertIgnitionInvariant(
         libraryAddress !== undefined,
-        `Could not find address for library ${libName}`
+        `Could not find address for library ${libName}`,
       );
 
       sourceToLibraryToAddress[sourceName][libName] = libraryAddress;

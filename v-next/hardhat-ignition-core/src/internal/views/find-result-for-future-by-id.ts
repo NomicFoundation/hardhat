@@ -6,13 +6,13 @@ import { assertIgnitionInvariant } from "../utils/assertions";
 
 export function findResultForFutureById(
   deploymentState: DeploymentState,
-  futureId: string
+  futureId: string,
 ): SolidityParameterType {
   const exState = deploymentState.executionStates[futureId];
 
   assertIgnitionInvariant(
     exState !== undefined,
-    `Expected execution state for ${futureId} to exist, but it did not`
+    `Expected execution state for ${futureId} to exist, but it did not`,
   );
 
   assertIgnitionInvariant(
@@ -21,7 +21,7 @@ export function findResultForFutureById(
       exState.type === ExecutionSateType.CONTRACT_AT_EXECUTION_STATE ||
       exState.type === ExecutionSateType.READ_EVENT_ARGUMENT_EXECUTION_STATE ||
       exState.type === ExecutionSateType.ENCODE_FUNCTION_CALL_EXECUTION_STATE,
-    `Expected execution state for ${futureId} to be support result lookup, but instead it was ${exState.type}`
+    `Expected execution state for ${futureId} to be support result lookup, but instead it was ${exState.type}`,
   );
 
   if (exState.type === ExecutionSateType.CONTRACT_AT_EXECUTION_STATE) {
@@ -30,7 +30,7 @@ export function findResultForFutureById(
 
   assertIgnitionInvariant(
     exState.result !== undefined,
-    `Expected execution state for ${futureId} to have a result, but it did not`
+    `Expected execution state for ${futureId} to have a result, but it did not`,
   );
 
   if (
@@ -42,7 +42,7 @@ export function findResultForFutureById(
 
   assertIgnitionInvariant(
     exState.result.type === ExecutionResultType.SUCCESS,
-    `Cannot access the result of ${futureId}, it was not a deployment success or static call success`
+    `Cannot access the result of ${futureId}, it was not a deployment success or static call success`,
   );
 
   switch (exState.type) {

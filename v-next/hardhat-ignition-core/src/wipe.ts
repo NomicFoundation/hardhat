@@ -14,7 +14,7 @@ import { ArtifactResolver } from "./types/artifact";
 export async function wipe(
   deploymentDir: string,
   artifactResolver: ArtifactResolver,
-  futureId: string
+  futureId: string,
 ): Promise<void> {
   const deploymentLoader =
     deploymentDir !== undefined

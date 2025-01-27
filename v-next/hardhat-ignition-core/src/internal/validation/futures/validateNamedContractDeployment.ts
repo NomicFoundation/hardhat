@@ -21,7 +21,7 @@ export async function validateNamedContractDeployment(
   future: NamedArtifactContractDeploymentFuture<string>,
   artifactLoader: ArtifactResolver,
   deploymentParameters: DeploymentParameters,
-  accounts: string[]
+  accounts: string[],
 ): Promise<string[]> {
   const errors: IgnitionError[] = [];
 
@@ -33,19 +33,19 @@ export async function validateNamedContractDeployment(
     errors.push(
       new IgnitionError(ERRORS.VALIDATION.INVALID_ARTIFACT, {
         contractName: future.contractName,
-      })
+      }),
     );
   } else {
     errors.push(
-      ...validateLibraryNames(artifact, Object.keys(future.libraries))
+      ...validateLibraryNames(artifact, Object.keys(future.libraries)),
     );
 
     errors.push(
       ...validateContractConstructorArgsLength(
         artifact,
         future.contractName,
-        future.constructorArgs
-      )
+        future.constructorArgs,
+      ),
     );
   }
 
@@ -60,35 +60,35 @@ export async function validateNamedContractDeployment(
 
   errors.push(
     ...accountParams.flatMap((arv) =>
-      validateAccountRuntimeValue(arv, accounts)
-    )
+      validateAccountRuntimeValue(arv, accounts),
+    ),
   );
 
   const missingParams = moduleParams.filter(
     (param) =>
       resolvePotentialModuleParameterValueFrom(deploymentParameters, param) ===
-      undefined
+      undefined,
   );
 
   if (missingParams.length > 0) {
     errors.push(
       new IgnitionError(ERRORS.VALIDATION.MISSING_MODULE_PARAMETER, {
         name: missingParams[0].name,
-      })
+      }),
     );
   }
 
   if (isModuleParameterRuntimeValue(future.value)) {
     const param = resolvePotentialModuleParameterValueFrom(
       deploymentParameters,
-      future.value
+      future.value,
     );
 
     if (param === undefined) {
       errors.push(
         new IgnitionError(ERRORS.VALIDATION.MISSING_MODULE_PARAMETER, {
           name: future.value.name,
-        })
+        }),
       );
     } else if (typeof param !== "bigint") {
       errors.push(
@@ -96,7 +96,7 @@ export async function validateNamedContractDeployment(
           name: future.value.name,
           expectedType: "bigint",
           actualType: typeof param,
-        })
+        }),
       );
     }
   }

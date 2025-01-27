@@ -15,7 +15,7 @@ describe("listDeployments", () => {
       __dirname,
       "mocks",
       "listDeployments",
-      "no-deployments"
+      "no-deployments",
     );
 
     const result = await listDeployments(deploymentDir);
@@ -28,7 +28,7 @@ describe("listDeployments", () => {
       __dirname,
       "mocks",
       "listDeployments",
-      "has-deployments"
+      "has-deployments",
     );
 
     const result = await listDeployments(deploymentDir);

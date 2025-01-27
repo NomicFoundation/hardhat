@@ -87,7 +87,7 @@ export function executionStateReducer(
     | OnchainInteractionBumpFeesMessage
     | OnchainInteractionDroppedMessage
     | OnchainInteractionReplacedByUserMessage
-    | OnchainInteractionTimeoutMessage
+    | OnchainInteractionTimeoutMessage,
 ): ExecutionState {
   switch (action.type) {
     case JournalMessageType.DEPLOYMENT_EXECUTION_STATE_INITIALIZE:
@@ -109,84 +109,84 @@ export function executionStateReducer(
         state,
         action,
         [ExecutionSateType.DEPLOYMENT_EXECUTION_STATE],
-        completeExecutionState
+        completeExecutionState,
       );
     case JournalMessageType.CALL_EXECUTION_STATE_COMPLETE:
       return _ensureStateThen(
         state,
         action,
         [ExecutionSateType.CALL_EXECUTION_STATE],
-        completeExecutionState
+        completeExecutionState,
       );
     case JournalMessageType.STATIC_CALL_EXECUTION_STATE_COMPLETE:
       return _ensureStateThen(
         state,
         action,
         [ExecutionSateType.STATIC_CALL_EXECUTION_STATE],
-        completeExecutionState
+        completeExecutionState,
       );
     case JournalMessageType.SEND_DATA_EXECUTION_STATE_COMPLETE:
       return _ensureStateThen(
         state,
         action,
         [ExecutionSateType.SEND_DATA_EXECUTION_STATE],
-        completeExecutionState
+        completeExecutionState,
       );
     case JournalMessageType.NETWORK_INTERACTION_REQUEST:
       return _ensureStateThen(
         state,
         action,
         exStateTypesThatSupportOnchainInteractionsAndStaticCalls,
-        appendNetworkInteraction
+        appendNetworkInteraction,
       );
     case JournalMessageType.STATIC_CALL_COMPLETE:
       return _ensureStateThen(
         state,
         action,
         exStateTypesThatSupportOnchainInteractionsAndStaticCalls,
-        completeStaticCall
+        completeStaticCall,
       );
     case JournalMessageType.TRANSACTION_SEND:
       return _ensureStateThen(
         state,
         action,
         exStateTypesThatSupportOnchainInteractions,
-        appendTransactionToOnchainInteraction
+        appendTransactionToOnchainInteraction,
       );
     case JournalMessageType.TRANSACTION_CONFIRM:
       return _ensureStateThen(
         state,
         action,
         exStateTypesThatSupportOnchainInteractions,
-        confirmTransaction
+        confirmTransaction,
       );
     case JournalMessageType.ONCHAIN_INTERACTION_BUMP_FEES:
       return _ensureStateThen(
         state,
         action,
         exStateTypesThatSupportOnchainInteractions,
-        bumpOnchainInteractionFees
+        bumpOnchainInteractionFees,
       );
     case JournalMessageType.ONCHAIN_INTERACTION_DROPPED:
       return _ensureStateThen(
         state,
         action,
         exStateTypesThatSupportOnchainInteractions,
-        resendDroppedOnchainInteraction
+        resendDroppedOnchainInteraction,
       );
     case JournalMessageType.ONCHAIN_INTERACTION_REPLACED_BY_USER:
       return _ensureStateThen(
         state,
         action,
         exStateTypesThatSupportOnchainInteractions,
-        resetOnchainInteractionReplacedByUser
+        resetOnchainInteractionReplacedByUser,
       );
     case JournalMessageType.ONCHAIN_INTERACTION_TIMEOUT:
       return _ensureStateThen(
         state,
         action,
         exStateTypesThatSupportOnchainInteractions,
-        onchainInteractionTimedOut
+        onchainInteractionTimedOut,
       );
   }
 }
@@ -203,24 +203,24 @@ export function executionStateReducer(
  */
 function _ensureStateThen<
   ExStateT extends ExecutionSateType,
-  Message extends JournalMessage
+  Message extends JournalMessage,
 >(
   state: ExecutionState | undefined,
   action: Message,
   allowedExStateTypes: ExStateT[],
   then: (
     state: MapExStateTypeToExState<ExStateT>,
-    action: Message
-  ) => MapExStateTypeToExState<ExStateT>
+    action: Message,
+  ) => MapExStateTypeToExState<ExStateT>,
 ): ExecutionState {
   assertIgnitionInvariant(
     state !== undefined,
-    `Execution state must be defined`
+    `Execution state must be defined`,
   );
 
   assertIgnitionInvariant(
     allowedExStateTypes.includes(state.type as ExStateT),
-    `The execution state ${state.type} is not supported`
+    `The execution state ${state.type} is not supported`,
   );
 
   return then(state as MapExStateTypeToExState<ExStateT>, action);

@@ -20,7 +20,7 @@ export async function validateNamedContractCall(
   future: ContractCallFuture<string, string>,
   artifactLoader: ArtifactResolver,
   deploymentParameters: DeploymentParameters,
-  accounts: string[]
+  accounts: string[],
 ): Promise<string[]> {
   const errors: IgnitionError[] = [];
 
@@ -35,7 +35,7 @@ export async function validateNamedContractCall(
     errors.push(
       new IgnitionError(ERRORS.VALIDATION.INVALID_ARTIFACT, {
         contractName: future.contract.contractName,
-      })
+      }),
     );
   } else {
     errors.push(
@@ -44,8 +44,8 @@ export async function validateNamedContractCall(
         future.contract.contractName,
         future.functionName,
         future.args,
-        false
-      )
+        false,
+      ),
     );
   }
 
@@ -60,35 +60,35 @@ export async function validateNamedContractCall(
 
   errors.push(
     ...accountParams.flatMap((arv) =>
-      validateAccountRuntimeValue(arv, accounts)
-    )
+      validateAccountRuntimeValue(arv, accounts),
+    ),
   );
 
   const missingParams = moduleParams.filter(
     (param) =>
       resolvePotentialModuleParameterValueFrom(deploymentParameters, param) ===
-      undefined
+      undefined,
   );
 
   if (missingParams.length > 0) {
     errors.push(
       new IgnitionError(ERRORS.VALIDATION.MISSING_MODULE_PARAMETER, {
         name: missingParams[0].name,
-      })
+      }),
     );
   }
 
   if (isModuleParameterRuntimeValue(future.value)) {
     const param = resolvePotentialModuleParameterValueFrom(
       deploymentParameters,
-      future.value
+      future.value,
     );
 
     if (param === undefined) {
       errors.push(
         new IgnitionError(ERRORS.VALIDATION.MISSING_MODULE_PARAMETER, {
           name: future.value.name,
-        })
+        }),
       );
     } else if (typeof param !== "bigint") {
       errors.push(
@@ -96,7 +96,7 @@ export async function validateNamedContractCall(
           name: future.value.name,
           expectedType: "bigint",
           actualType: typeof param,
-        })
+        }),
       );
     }
   }

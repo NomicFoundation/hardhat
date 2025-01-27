@@ -33,11 +33,11 @@ describe("Arg resolution", () => {
             mprv.defaultValue === undefined
               ? "na"
               : isAccountRuntimeValue(mprv.defaultValue)
-              ? {
-                  _kind: "AccountRuntimeValue",
-                  accountIndex: mprv.defaultValue.accountIndex,
-                }
-              : mprv.defaultValue,
+                ? {
+                    _kind: "AccountRuntimeValue",
+                    accountIndex: mprv.defaultValue.accountIndex,
+                  }
+                : mprv.defaultValue,
         }),
         bigint: (bi) => `${bi.toString()}n`,
         future: (f) => ({ _kind: "FutureToken", futureId: f.id }),
@@ -122,8 +122,8 @@ describe("Arg resolution", () => {
         new ModuleParameterRuntimeValueImplementation(
           "MyModule",
           "supply",
-          BigInt(12)
-        )
+          BigInt(12),
+        ),
       );
 
       assert.deepStrictEqual(actual, {
@@ -140,7 +140,7 @@ describe("Arg resolution", () => {
         new ModuleParameterRuntimeValueImplementation(
           "MyModule",
           "supply",
-          BigInt(12)
+          BigInt(12),
         ),
         "c",
       ]);
@@ -163,14 +163,14 @@ describe("Arg resolution", () => {
         account: new ModuleParameterRuntimeValueImplementation(
           "MyModule",
           "supply",
-          BigInt(2)
+          BigInt(2),
         ),
         string: "c",
         nested: {
           subaccount: new ModuleParameterRuntimeValueImplementation(
             "MyModule",
             "ticker",
-            "CodeCoin"
+            "CodeCoin",
           ),
         },
       });
@@ -237,8 +237,8 @@ describe("Arg resolution", () => {
           "MyModule:MyContract",
           {} as any,
           "MyContract",
-          exampleAddress
-        )
+          exampleAddress,
+        ),
       );
 
       assert.deepStrictEqual(actual, {
@@ -254,7 +254,7 @@ describe("Arg resolution", () => {
           "MyModule:MyContract",
           {} as any,
           "MyContract",
-          exampleAddress
+          exampleAddress,
         ),
         "c",
       ]);
@@ -276,7 +276,7 @@ describe("Arg resolution", () => {
           "MyModule:MyContract1",
           {} as any,
           "MyContract1",
-          exampleAddress
+          exampleAddress,
         ),
         string: "c",
         nested: {
@@ -284,7 +284,7 @@ describe("Arg resolution", () => {
             "MyModule:MyContract2",
             {} as any,
             "MyContract2",
-            exampleAddress
+            exampleAddress,
           ),
         },
       });
@@ -309,7 +309,7 @@ describe("Arg resolution", () => {
 
 function assertEqualBeforeAndAfterResolution(
   resolve: (arg: ArgumentType) => SolidityParameterType,
-  arg: ArgumentType
+  arg: ArgumentType,
 ) {
   const before = arg;
 
@@ -318,6 +318,6 @@ function assertEqualBeforeAndAfterResolution(
   assert.deepStrictEqual(
     after,
     before,
-    "After should be a structural clone of before"
+    "After should be a structural clone of before",
   );
 }

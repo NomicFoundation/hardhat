@@ -13,7 +13,7 @@ export class MemoryJournal implements Journal {
   private _messages: JournalMessage[] = [];
 
   constructor(
-    private _executionEventListener?: ExecutionEventListener | undefined
+    private _executionEventListener?: ExecutionEventListener | undefined,
   ) {}
 
   public record(message: JournalMessage): void {

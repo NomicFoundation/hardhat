@@ -30,14 +30,14 @@ export function useHardhatProject(fixtureProjectName: string): void {
 
   before("Taking initial snapshot", async function () {
     snapshotId = (await this.hre.network.provider.send(
-      "evm_snapshot"
+      "evm_snapshot",
     )) as number;
   });
 
   beforeEach("Revert to snapshot", async function () {
     await this.hre.network.provider.send("evm_revert", [snapshotId]);
     snapshotId = (await this.hre.network.provider.send(
-      "evm_snapshot"
+      "evm_snapshot",
     )) as number;
 
     // Automining is not including in snapshots
@@ -51,6 +51,6 @@ export function useHardhatProject(fixtureProjectName: string): void {
       resetHardhatContext();
       delete (this as any).hre;
       delete (this as any).accounts;
-    }
+    },
   );
 }

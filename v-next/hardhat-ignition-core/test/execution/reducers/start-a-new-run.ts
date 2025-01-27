@@ -25,7 +25,7 @@ describe("DeploymentStateReducer", () => {
     it("should leave the previous execution states", () => {
       assert.deepEqual(
         initialState.executionStates,
-        updatedState.executionStates
+        updatedState.executionStates,
       );
     });
   });

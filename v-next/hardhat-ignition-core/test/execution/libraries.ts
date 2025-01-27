@@ -23,14 +23,14 @@ describe("Libraries handling", () => {
         validateLibraryNames(deploymentFixturesArtifacts.WithLibrary, [
           "NotALibrary",
         ]).map((e) => e.message),
-        "Invalid library NotALibrary for contract WithLibrary: this library is not needed by this contract."
+        "Invalid library NotALibrary for contract WithLibrary: this library is not needed by this contract.",
       );
     });
 
     it("Should throw if a library name is ambiguous", () => {
       const [error] = validateLibraryNames(
         deploymentFixturesArtifacts.WithAmbiguousLibraryName,
-        ["Lib"]
+        ["Lib"],
       ).map((e) => e.message);
 
       assert(error !== undefined);
@@ -42,7 +42,7 @@ describe("Libraries handling", () => {
     it("Should throw if a library is missing", () => {
       const [error] = validateLibraryNames(
         deploymentFixturesArtifacts.WithLibrary,
-        []
+        [],
       ).map((e) => e.message);
 
       assert(error !== undefined);
@@ -56,7 +56,7 @@ describe("Libraries handling", () => {
           "Lib",
           "contracts/C.sol:Lib",
         ]).map((e) => e.message),
-        `Invalid libraries for contract WithLibrary: The names 'contracts/C.sol:Lib' and 'Lib' clash with each other, please use qualified names for both.`
+        `Invalid libraries for contract WithLibrary: The names 'contracts/C.sol:Lib' and 'Lib' clash with each other, please use qualified names for both.`,
       );
     });
 
@@ -90,7 +90,7 @@ describe("Libraries handling", () => {
         {
           ["contracts/Libs.sol:Lib"]: mockAddress,
           ["contracts/C.sol:Lib"]: mockAddress2,
-        }
+        },
       );
 
       // We don't really validate if they were linked correctly here
@@ -103,7 +103,7 @@ describe("Libraries handling", () => {
         deploymentFixturesArtifacts.WithLibrary,
         {
           Lib: mockAddress,
-        }
+        },
       );
 
       assert.include(linkedBytecode, mockAddress.slice(2));
@@ -116,9 +116,9 @@ describe("Libraries handling", () => {
       assert.equal(
         linkedBytecode.slice(
           firstRef.start * 2 + 2,
-          firstRef.start * 2 + 2 + firstRef.length * 2
+          firstRef.start * 2 + 2 + firstRef.length * 2,
         ),
-        mockAddress.slice(2)
+        mockAddress.slice(2),
       );
     });
   });

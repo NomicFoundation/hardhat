@@ -13,7 +13,7 @@ import { IgnitionModule, IgnitionModuleResult } from "./types/module";
  * @beta
  */
 export function batches(
-  ignitionModule: IgnitionModule<string, string, IgnitionModuleResult<string>>
+  ignitionModule: IgnitionModule<string, string, IgnitionModuleResult<string>>,
 ): string[][] {
   const deploymentState = deploymentStateReducer(undefined);
 

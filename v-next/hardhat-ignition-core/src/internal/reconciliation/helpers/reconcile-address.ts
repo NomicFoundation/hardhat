@@ -14,13 +14,13 @@ import { compare } from "./compare";
 export function reconcileAddress(
   future: NamedArtifactContractAtFuture<string> | ContractAtFuture,
   exState: ContractAtExecutionState,
-  context: ReconciliationContext
+  context: ReconciliationContext,
 ): ReconciliationFutureResultFailure | undefined {
   const resolvedAddress = resolveAddressLike(
     future.address,
     context.deploymentState,
     context.deploymentParameters,
-    context.accounts
+    context.accounts,
   );
 
   return compare(future, "Address", exState.contractAddress, resolvedAddress);

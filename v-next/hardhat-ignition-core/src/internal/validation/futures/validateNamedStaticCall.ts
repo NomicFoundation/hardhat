@@ -23,7 +23,7 @@ export async function validateNamedStaticCall(
   future: StaticCallFuture<string, string>,
   artifactLoader: ArtifactResolver,
   deploymentParameters: DeploymentParameters,
-  accounts: string[]
+  accounts: string[],
 ): Promise<string[]> {
   const errors: IgnitionError[] = [];
 
@@ -38,7 +38,7 @@ export async function validateNamedStaticCall(
     errors.push(
       new IgnitionError(ERRORS.VALIDATION.INVALID_ARTIFACT, {
         contractName: future.contract.contractName,
-      })
+      }),
     );
   } else {
     errors.push(
@@ -47,8 +47,8 @@ export async function validateNamedStaticCall(
         future.contract.contractName,
         future.functionName,
         future.args,
-        true
-      )
+        true,
+      ),
     );
 
     errors.push(
@@ -56,8 +56,8 @@ export async function validateNamedStaticCall(
         future.contract.contractName,
         future.functionName,
         artifact,
-        future.nameOrIndex
-      )
+        future.nameOrIndex,
+      ),
     );
   }
 
@@ -72,21 +72,21 @@ export async function validateNamedStaticCall(
 
   errors.push(
     ...accountParams.flatMap((arv) =>
-      validateAccountRuntimeValue(arv, accounts)
-    )
+      validateAccountRuntimeValue(arv, accounts),
+    ),
   );
 
   const missingParams = moduleParams.filter(
     (param) =>
       resolvePotentialModuleParameterValueFrom(deploymentParameters, param) ===
-      undefined
+      undefined,
   );
 
   if (missingParams.length > 0) {
     errors.push(
       new IgnitionError(ERRORS.VALIDATION.MISSING_MODULE_PARAMETER, {
         name: missingParams[0].name,
-      })
+      }),
     );
   }
 

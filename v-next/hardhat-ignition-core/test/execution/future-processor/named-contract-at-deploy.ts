@@ -21,12 +21,12 @@ describe("future processor", () => {
           "MyModule:TestContract",
           fakeModule,
           "TestContract",
-          exampleAddress
+          exampleAddress,
         );
 
       const { processor, storedDeployedAddresses } = await setupFutureProcessor(
         (() => {}) as any,
-        {}
+        {},
       );
 
       // Act
@@ -35,7 +35,7 @@ describe("future processor", () => {
       // Assert
       assert.equal(
         storedDeployedAddresses["MyModule:TestContract"],
-        exampleAddress
+        exampleAddress,
       );
     });
   });

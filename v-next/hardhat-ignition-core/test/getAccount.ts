@@ -18,7 +18,7 @@ describe("getAccount", () => {
 
     assertInstanceOf(
       mod.results.contract.from,
-      AccountRuntimeValueImplementation
+      AccountRuntimeValueImplementation,
     );
     assert.equal(mod.results.contract.from.accountIndex, 2);
   });

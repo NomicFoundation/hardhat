@@ -11,7 +11,7 @@ import { ReconciliationContext, ReconciliationFutureResult } from "../types";
 export function reconcileNamedContractCall(
   future: ContractCallFuture<string, string>,
   executionState: CallExecutionState,
-  context: ReconciliationContext
+  context: ReconciliationContext,
 ): ReconciliationFutureResult {
   let result = reconcileContract(future, executionState, context);
   if (result !== undefined) {

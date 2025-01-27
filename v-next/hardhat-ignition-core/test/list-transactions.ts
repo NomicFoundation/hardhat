@@ -88,7 +88,7 @@ describe("listTransactions", () => {
       __dirname,
       "mocks",
       "listTransactions",
-      "success"
+      "success",
     );
 
     const artifactResolver = setupMockArtifactResolver();
@@ -103,7 +103,7 @@ describe("listTransactions", () => {
 
     await assert.isRejected(
       listTransactions("fake", artifactResolver),
-      /IGN1200: Cannot list transactions for nonexistant deployment at fake/
+      /IGN1200: Cannot list transactions for nonexistant deployment at fake/,
     );
   });
 });

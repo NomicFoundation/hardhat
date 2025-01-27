@@ -86,7 +86,7 @@ export class Create2Strategy implements ExecutionStrategy {
 
   public async init(
     deploymentLoader: DeploymentLoader,
-    jsonRpcClient: JsonRpcClient
+    jsonRpcClient: JsonRpcClient,
   ): Promise<void> {
     this._deploymentLoader = deploymentLoader;
     this._jsonRpcClient = jsonRpcClient;
@@ -98,7 +98,7 @@ export class Create2Strategy implements ExecutionStrategy {
     if (result !== "0x") {
       assertIgnitionInvariant(
         ethers.keccak256(result) === CREATE_X_DEPLOYED_BYTECODE_HASH,
-        "Deployed CreateX bytecode does not match expected bytecode"
+        "Deployed CreateX bytecode does not match expected bytecode",
       );
 
       return;
@@ -110,7 +110,7 @@ export class Create2Strategy implements ExecutionStrategy {
     if (chainId !== 31337) {
       throw new NomicIgnitionPluginError(
         "create2",
-        `CreateX not deployed on current network ${chainId}`
+        `CreateX not deployed on current network ${chainId}`,
       );
     }
 
@@ -119,21 +119,21 @@ export class Create2Strategy implements ExecutionStrategy {
   }
 
   public async *executeDeployment(
-    executionState: DeploymentExecutionState
+    executionState: DeploymentExecutionState,
   ): DeploymentStrategyGenerator {
     assertIgnitionInvariant(
       this._deploymentLoader !== undefined && this._jsonRpcClient !== undefined,
-      `Strategy ${this.name} not initialized`
+      `Strategy ${this.name} not initialized`,
     );
 
     const artifact = await this._deploymentLoader.loadArtifact(
-      executionState.artifactId
+      executionState.artifactId,
     );
 
     const bytecodeToDeploy = encodeArtifactDeploymentData(
       artifact,
       executionState.constructorArgs,
-      executionState.libraries
+      executionState.libraries,
     );
 
     const transactionOrResult = yield* executeOnchainInteractionRequest(
@@ -145,7 +145,7 @@ export class Create2Strategy implements ExecutionStrategy {
         data: encodeArtifactFunctionCall(
           createxArtifact,
           "deployCreate2(bytes32,bytes)",
-          [this.config.salt, bytecodeToDeploy]
+          [this.config.salt, bytecodeToDeploy],
         ),
         value: executionState.value,
       },
@@ -154,9 +154,9 @@ export class Create2Strategy implements ExecutionStrategy {
         decodeArtifactFunctionCallResult(
           createxArtifact,
           "deployCreate2(bytes32,bytes)",
-          returnData
+          returnData,
         ),
-      (returnData) => decodeArtifactCustomError(createxArtifact, returnData)
+      (returnData) => decodeArtifactCustomError(createxArtifact, returnData),
     );
 
     if (
@@ -172,12 +172,12 @@ export class Create2Strategy implements ExecutionStrategy {
       CREATE_X_ADDRESS,
       "ContractCreation",
       0,
-      "newContract"
+      "newContract",
     );
 
     assertIgnitionInvariant(
       typeof deployedAddress === "string",
-      "Deployed event should return a string addr property"
+      "Deployed event should return a string addr property",
     );
 
     return {
@@ -187,15 +187,15 @@ export class Create2Strategy implements ExecutionStrategy {
   }
 
   public async *executeCall(
-    executionState: CallExecutionState
+    executionState: CallExecutionState,
   ): CallStrategyGenerator {
     assertIgnitionInvariant(
       this._deploymentLoader !== undefined && this._jsonRpcClient !== undefined,
-      `Strategy ${this.name} not initialized`
+      `Strategy ${this.name} not initialized`,
     );
 
     const artifact = await this._deploymentLoader.loadArtifact(
-      executionState.artifactId
+      executionState.artifactId,
     );
 
     const transactionOrResult = yield* executeOnchainInteractionRequest(
@@ -207,7 +207,7 @@ export class Create2Strategy implements ExecutionStrategy {
         data: encodeArtifactFunctionCall(
           artifact,
           executionState.functionName,
-          executionState.args
+          executionState.args,
         ),
         value: executionState.value,
       },
@@ -216,9 +216,9 @@ export class Create2Strategy implements ExecutionStrategy {
         decodeArtifactFunctionCallResult(
           artifact,
           executionState.functionName,
-          returnData
+          returnData,
         ),
-      (returnData) => decodeArtifactCustomError(artifact, returnData)
+      (returnData) => decodeArtifactCustomError(artifact, returnData),
     );
 
     if (
@@ -234,7 +234,7 @@ export class Create2Strategy implements ExecutionStrategy {
   }
 
   public async *executeSendData(
-    executionState: SendDataExecutionState
+    executionState: SendDataExecutionState,
   ): SendDataStrategyGenerator {
     const transactionOrResult = yield* executeOnchainInteractionRequest(
       executionState.id,
@@ -244,7 +244,7 @@ export class Create2Strategy implements ExecutionStrategy {
         to: executionState.to,
         data: executionState.data,
         value: executionState.value,
-      }
+      },
     );
 
     if (
@@ -260,15 +260,15 @@ export class Create2Strategy implements ExecutionStrategy {
   }
 
   public async *executeStaticCall(
-    executionState: StaticCallExecutionState
+    executionState: StaticCallExecutionState,
   ): StaticCallStrategyGenerator {
     assertIgnitionInvariant(
       this._deploymentLoader !== undefined && this._jsonRpcClient !== undefined,
-      `Strategy ${this.name} not initialized`
+      `Strategy ${this.name} not initialized`,
     );
 
     const artifact = await this._deploymentLoader.loadArtifact(
-      executionState.artifactId
+      executionState.artifactId,
     );
 
     const decodedResultOrError = yield* executeStaticCallRequest(
@@ -280,7 +280,7 @@ export class Create2Strategy implements ExecutionStrategy {
         data: encodeArtifactFunctionCall(
           artifact,
           executionState.functionName,
-          executionState.args
+          executionState.args,
         ),
         value: 0n,
       },
@@ -288,9 +288,9 @@ export class Create2Strategy implements ExecutionStrategy {
         decodeArtifactFunctionCallResult(
           artifact,
           executionState.functionName,
-          returnData
+          returnData,
         ),
-      (returnData) => decodeArtifactCustomError(artifact, returnData)
+      (returnData) => decodeArtifactCustomError(artifact, returnData),
     );
 
     if (decodedResultOrError.type === ExecutionResultType.STATIC_CALL_ERROR) {
@@ -301,7 +301,7 @@ export class Create2Strategy implements ExecutionStrategy {
       type: ExecutionResultType.SUCCESS,
       value: getStaticCallExecutionStateResultValue(
         executionState,
-        decodedResultOrError
+        decodedResultOrError,
       ),
     };
   }
@@ -315,7 +315,7 @@ export class Create2Strategy implements ExecutionStrategy {
     // first
     await client.setBalance(
       CREATE_X_PRESIGNED_DEPLOYER_ADDRESS,
-      400000000000000000n
+      400000000000000000n,
     );
 
     const txHash = await client.sendRawTransaction(presignedTx);
@@ -328,12 +328,12 @@ export class Create2Strategy implements ExecutionStrategy {
       if (receipt !== undefined) {
         assertIgnitionInvariant(
           receipt?.contractAddress !== undefined,
-          "CreateX deployment should have an address"
+          "CreateX deployment should have an address",
         );
 
         assertIgnitionInvariant(
           receipt.contractAddress === CREATE_X_ADDRESS,
-          `CreateX deployment should have the expected address ${CREATE_X_ADDRESS}, instead it is ${receipt.contractAddress}`
+          `CreateX deployment should have the expected address ${CREATE_X_ADDRESS}, instead it is ${receipt.contractAddress}`,
         );
 
         return;

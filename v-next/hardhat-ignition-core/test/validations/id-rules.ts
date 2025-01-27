@@ -57,7 +57,7 @@ describe("id rules", () => {
             [],
             {
               id: "MyContractFromArtifact:v2",
-            }
+            },
           );
 
           return { myContract };
@@ -85,7 +85,7 @@ describe("id rules", () => {
             fakeArtifact,
             {
               id: "MyLibraryFromArtifact:v2",
-            }
+            },
           );
 
           return { myLibraryFromArtifact };
@@ -142,7 +142,7 @@ describe("id rules", () => {
             exampleAddress,
             {
               id: "MyContractAt:v2",
-            }
+            },
           );
 
           return { myContractAt };
@@ -211,7 +211,7 @@ describe("id rules", () => {
         buildModule("MyModule", (m) => {
           const myLibraryFromArtifact = m.library(
             "MyLibraryFromArtifact#v2",
-            fakeArtifact
+            fakeArtifact,
           );
 
           return { myLibraryFromArtifact };
@@ -235,7 +235,7 @@ describe("id rules", () => {
           const myContractAt = m.contractAt(
             "MyContractAt#v2",
             fakeArtifact,
-            exampleAddress
+            exampleAddress,
           );
 
           return { myContractAt };
@@ -283,7 +283,7 @@ describe("id rules", () => {
             buildModule("MyModule", (m) => {
               const myContract = m.contract(
                 "sourceName.sol:MyContract#v2",
-                fakeArtifact
+                fakeArtifact,
               );
 
               return { myContract };
@@ -306,7 +306,7 @@ describe("id rules", () => {
             buildModule("MyModule", (m) => {
               const myLibraryFromArtifact = m.library(
                 "sourceName.sol:MyLibraryFromArtifact#v2",
-                fakeArtifact
+                fakeArtifact,
               );
 
               return { myLibraryFromArtifact };
@@ -319,7 +319,7 @@ describe("id rules", () => {
             buildModule("MyModule", (m) => {
               const myContractAt = m.contractAt(
                 "sourceName.sol:MyContract#v2",
-                exampleAddress
+                exampleAddress,
               );
 
               return { myContractAt };
@@ -333,7 +333,7 @@ describe("id rules", () => {
               const myContractAt = m.contractAt(
                 "sourceName.sol:MyContractAt#v2",
                 fakeArtifact,
-                exampleAddress
+                exampleAddress,
               );
 
               return { myContractAt };

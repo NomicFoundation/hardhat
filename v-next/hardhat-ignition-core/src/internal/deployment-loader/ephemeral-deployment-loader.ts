@@ -24,7 +24,7 @@ export class EphemeralDeploymentLoader implements DeploymentLoader {
 
   constructor(
     private _artifactResolver: ArtifactResolver,
-    private _executionEventListener?: ExecutionEventListener | undefined
+    private _executionEventListener?: ExecutionEventListener | undefined,
   ) {
     this._journal = new MemoryJournal(this._executionEventListener);
     this._deployedAddresses = {};
@@ -41,14 +41,14 @@ export class EphemeralDeploymentLoader implements DeploymentLoader {
 
   public async recordDeployedAddress(
     futureId: string,
-    contractAddress: string
+    contractAddress: string,
   ): Promise<void> {
     this._deployedAddresses[futureId] = contractAddress;
   }
 
   public async storeBuildInfo(
     _futureId: string,
-    _buildInfo: BuildInfo
+    _buildInfo: BuildInfo,
   ): Promise<void> {
     // For ephemeral we are ignoring build info
   }
@@ -56,14 +56,14 @@ export class EphemeralDeploymentLoader implements DeploymentLoader {
   public async storeNamedArtifact(
     futureId: string,
     contractName: string,
-    _artifact: Artifact
+    _artifact: Artifact,
   ): Promise<void> {
     this._savedArtifacts[futureId] = { _kind: "contractName", contractName };
   }
 
   public async storeUserProvidedArtifact(
     futureId: string,
-    artifact: Artifact
+    artifact: Artifact,
   ): Promise<void> {
     this._savedArtifacts[futureId] = { _kind: "artifact", artifact };
   }
@@ -75,7 +75,7 @@ export class EphemeralDeploymentLoader implements DeploymentLoader {
 
     assertIgnitionInvariant(
       saved !== undefined,
-      `No stored artifact for ${futureId}`
+      `No stored artifact for ${futureId}`,
     );
 
     switch (saved._kind) {
@@ -84,12 +84,12 @@ export class EphemeralDeploymentLoader implements DeploymentLoader {
       }
       case "contractName": {
         const fileArtifact = this._artifactResolver.loadArtifact(
-          saved.contractName
+          saved.contractName,
         );
 
         assertIgnitionInvariant(
           fileArtifact !== undefined,
-          `Unable to load artifact, underlying resolver returned undefined for ${saved.contractName}`
+          `Unable to load artifact, underlying resolver returned undefined for ${saved.contractName}`,
         );
 
         return fileArtifact;

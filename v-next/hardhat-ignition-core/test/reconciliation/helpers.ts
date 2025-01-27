@@ -47,7 +47,7 @@ class MockDeploymentLoader implements DeploymentLoader {
 
   public async storeUserProvidedArtifact(
     _futureId: string,
-    _artifact: Artifact
+    _artifact: Artifact,
   ): Promise<void> {
     throw new Error("Method not implemented.");
   }
@@ -55,21 +55,21 @@ class MockDeploymentLoader implements DeploymentLoader {
   public storeNamedArtifact(
     _futureId: string,
     _contractName: string,
-    _artifact: Artifact
+    _artifact: Artifact,
   ): Promise<void> {
     throw new Error("Method not implemented.");
   }
 
   public storeBuildInfo(
     _futureId: string,
-    _buildInfo: BuildInfo
+    _buildInfo: BuildInfo,
   ): Promise<void> {
     throw new Error("Method not implemented.");
   }
 
   public recordDeployedAddress(
     _futureId: string,
-    _contractAddress: string
+    _contractAddress: string,
   ): Promise<void> {
     throw new Error("Method not implemented.");
   }
@@ -85,7 +85,7 @@ class MockArtifactResolver implements ArtifactResolver {
   }
 
   public async getBuildInfo(
-    _contractName: string
+    _contractName: string,
   ): Promise<BuildInfo | undefined> {
     throw new Error("Method not implemented.");
   }
@@ -93,7 +93,7 @@ class MockArtifactResolver implements ArtifactResolver {
 
 export class ArtifactMapResolver extends MockArtifactResolver {
   constructor(
-    private readonly _artifactMap: { [artifactId: string]: Artifact } = {}
+    private readonly _artifactMap: { [artifactId: string]: Artifact } = {},
   ) {
     super();
   }
@@ -105,7 +105,7 @@ export class ArtifactMapResolver extends MockArtifactResolver {
 
 export class ArtifactMapDeploymentLoader extends MockDeploymentLoader {
   constructor(
-    private readonly _artifactMap: { [artifactId: string]: Artifact } = {}
+    private readonly _artifactMap: { [artifactId: string]: Artifact } = {},
   ) {
     super();
   }
@@ -131,7 +131,7 @@ export async function reconcile(
   artifactLoader: ArtifactResolver = new MockArtifactResolver(),
   deploymentParameters: DeploymentParameters = {},
   strategy: string = "basic",
-  strategyConfig: ConcreteExecutionConfig = {}
+  strategyConfig: ConcreteExecutionConfig = {},
 ): Promise<ReconciliationResult> {
   const reconiliationResult = Reconciler.reconcile(
     ignitionModule,
@@ -142,14 +142,14 @@ export async function reconcile(
     artifactLoader,
     getDefaultSender(exampleAccounts),
     strategy,
-    strategyConfig
+    strategyConfig,
   );
 
   return reconiliationResult;
 }
 
 export function assertNoWarningsOrErrors(
-  reconciliationResult: ReconciliationResult
+  reconciliationResult: ReconciliationResult,
 ): void {
   assert.equal(
     reconciliationResult.reconciliationFailures.length,
@@ -157,8 +157,8 @@ export function assertNoWarningsOrErrors(
     `Unreconcilied futures found: \n${JSON.stringify(
       reconciliationResult.reconciliationFailures,
       undefined,
-      2
-    )}`
+      2,
+    )}`,
   );
   assert.equal(
     reconciliationResult.missingExecutedFutures.length,
@@ -166,14 +166,14 @@ export function assertNoWarningsOrErrors(
     `Missing futures found: \n${JSON.stringify(
       reconciliationResult.missingExecutedFutures,
       undefined,
-      2
-    )}`
+      2,
+    )}`,
   );
 }
 
 export async function assertSuccessReconciliation(
   ignitionModule: IgnitionModule,
-  deploymentState: DeploymentState
+  deploymentState: DeploymentState,
 ): Promise<void> {
   const reconciliationResult = await reconcile(ignitionModule, deploymentState);
 

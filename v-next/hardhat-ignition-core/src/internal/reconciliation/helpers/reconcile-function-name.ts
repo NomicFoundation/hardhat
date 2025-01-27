@@ -24,12 +24,12 @@ export function reconcileFunctionName(
     | CallExecutionState
     | StaticCallExecutionState
     | EncodeFunctionCallExecutionState,
-  _context: ReconciliationContext
+  _context: ReconciliationContext,
 ): ReconciliationFutureResultFailure | undefined {
   return compare(
     future,
     "Function name",
     exState.functionName,
-    future.functionName
+    future.functionName,
   );
 }

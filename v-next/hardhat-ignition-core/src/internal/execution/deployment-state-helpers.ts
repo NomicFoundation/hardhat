@@ -15,7 +15,7 @@ import {
  * @returns The deployment state or undefined if no messages were provided.
  */
 export async function loadDeploymentState(
-  deploymentLoader: DeploymentLoader
+  deploymentLoader: DeploymentLoader,
 ): Promise<DeploymentState | undefined> {
   let deploymentState: DeploymentState | undefined;
 
@@ -35,7 +35,7 @@ export async function loadDeploymentState(
  */
 export async function initializeDeploymentState(
   chainId: number,
-  deploymentLoader: DeploymentLoader
+  deploymentLoader: DeploymentLoader,
 ): Promise<DeploymentState> {
   const message: DeploymentInitializeMessage = {
     type: JournalMessageType.DEPLOYMENT_INITIALIZE,
@@ -59,7 +59,7 @@ export async function initializeDeploymentState(
 export async function applyNewMessage(
   message: JournalMessage,
   deploymentState: DeploymentState,
-  deploymentLoader: DeploymentLoader
+  deploymentLoader: DeploymentLoader,
 ): Promise<DeploymentState> {
   if (shouldBeJournaled(message)) {
     await deploymentLoader.recordToJournal(message);

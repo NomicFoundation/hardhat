@@ -10,7 +10,7 @@ import { ReconciliationContext, ReconciliationFutureResult } from "../types";
 export async function reconcileArtifactLibraryDeployment(
   future: LibraryDeploymentFuture,
   executionState: DeploymentExecutionState,
-  context: ReconciliationContext
+  context: ReconciliationContext,
 ): Promise<ReconciliationFutureResult> {
   let result = reconcileContractName(future, executionState, context);
   if (result !== undefined) {

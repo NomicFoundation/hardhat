@@ -13,7 +13,7 @@ import { fail } from "./utils";
 export function reconcileDependencyRules(
   future: Future,
   executionState: ExecutionState,
-  context: { deploymentState: DeploymentState }
+  context: { deploymentState: DeploymentState },
 ): ReconciliationFutureResult {
   const previousDeps: string[] = [...executionState.dependencies];
   const currentDeps: string[] = [...future.dependencies].map((f) => f.id);
@@ -27,7 +27,7 @@ export function reconcileDependencyRules(
     if (additionalExecutionState === undefined) {
       return fail(
         future,
-        `A dependency from ${future.id} to ${additionalDep} has been added. The former has started executing before the latter started executing, so this change is incompatible.`
+        `A dependency from ${future.id} to ${additionalDep} has been added. The former has started executing before the latter started executing, so this change is incompatible.`,
       );
     }
 
@@ -38,7 +38,7 @@ export function reconcileDependencyRules(
 
     return fail(
       future,
-      `A dependency from ${future.id} to ${additionalDep} has been added, and both futures had already started executing, so this change is incompatible`
+      `A dependency from ${future.id} to ${additionalDep} has been added, and both futures had already started executing, so this change is incompatible`,
     );
   }
 

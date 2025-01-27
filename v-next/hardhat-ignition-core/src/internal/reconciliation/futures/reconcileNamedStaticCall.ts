@@ -11,7 +11,7 @@ import { ReconciliationContext, ReconciliationFutureResult } from "../types";
 export function reconcileNamedStaticCall(
   future: StaticCallFuture<string, string>,
   executionState: StaticCallExecutionState,
-  context: ReconciliationContext
+  context: ReconciliationContext,
 ): ReconciliationFutureResult {
   let result = reconcileContract(future, executionState, context);
   if (result !== undefined) {
@@ -42,7 +42,7 @@ export function reconcileNamedStaticCall(
     future,
     "Argument name or index",
     executionState.nameOrIndex,
-    future.nameOrIndex
+    future.nameOrIndex,
   );
   if (result !== undefined) {
     return result;

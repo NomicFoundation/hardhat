@@ -92,8 +92,8 @@ describe("Reconciliation - named static call", () => {
           contractAddress: exampleAddress,
           functionName: "function1",
           args: [1, "a"],
-        }
-      )
+        },
+      ),
     );
   });
 
@@ -129,8 +129,8 @@ describe("Reconciliation - named static call", () => {
           functionName: "function1",
           args: [1, "a"],
           from: exampleAccounts[4],
-        }
-      )
+        },
+      ),
     );
   });
 
@@ -161,8 +161,8 @@ describe("Reconciliation - named static call", () => {
           status: ExecutionStatus.STARTED,
           functionName: "function1",
           contractAddress: exampleAddress,
-        }
-      )
+        },
+      ),
     );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
@@ -202,8 +202,8 @@ describe("Reconciliation - named static call", () => {
           status: ExecutionStatus.STARTED,
           contractAddress: exampleAddress,
           functionName: "functionUnchanged",
-        }
-      )
+        },
+      ),
     );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
@@ -246,8 +246,8 @@ describe("Reconciliation - named static call", () => {
           contractAddress: exampleAddress,
           functionName: "function1",
           args: [{ ticker: "UNCHANGED" }],
-        }
-      )
+        },
+      ),
     );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
@@ -288,8 +288,8 @@ describe("Reconciliation - named static call", () => {
           status: ExecutionStatus.STARTED,
           functionName: "function1",
           args: ["0x15D34AAF54267DB7D7C367839AAF71A00A2C6A65"],
-        }
-      )
+        },
+      ),
     );
   });
 
@@ -323,8 +323,8 @@ describe("Reconciliation - named static call", () => {
           status: ExecutionStatus.STARTED,
           functionName: "function1",
           args: ["0x15d34aaf54267db7D7c367839aaf71a00a2c6a65"],
-        }
-      )
+        },
+      ),
     );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
@@ -367,8 +367,8 @@ describe("Reconciliation - named static call", () => {
           contractAddress: exampleAddress,
           functionName: "function1",
           from: oneAddress,
-        }
-      )
+        },
+      ),
     );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
@@ -407,8 +407,8 @@ describe("Reconciliation - named static call", () => {
           id: "Module#Contract.function",
           status: ExecutionStatus.STARTED,
           nameOrIndex: "argUnchanged",
-        }
-      )
+        },
+      ),
     );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
@@ -493,8 +493,8 @@ describe("Reconciliation - named static call", () => {
             type: ExecutionResultType.SUCCESS,
             address: differentAddress,
           },
-        }
-      )
+        },
+      ),
     );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
@@ -533,8 +533,8 @@ describe("Reconciliation - named static call", () => {
           contractAddress: exampleAddress,
           functionName: "function1",
           strategy: "create2",
-        }
-      )
+        },
+      ),
     );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
@@ -573,8 +573,8 @@ describe("Reconciliation - named static call", () => {
           contractAddress: exampleAddress,
           functionName: "function1",
           strategyConfig: { salt: "value" },
-        }
-      )
+        },
+      ),
     );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [

@@ -31,7 +31,7 @@ export class Wiper {
     }
 
     const dependents = Object.values(deploymentState.executionStates).filter(
-      (psm) => psm.dependencies.has(futureId)
+      (psm) => psm.dependencies.has(futureId),
     );
 
     if (dependents.length > 0) {
@@ -49,7 +49,7 @@ export class Wiper {
     return applyNewMessage(
       wipeMessage,
       deploymentState,
-      this._deploymentLoader
+      this._deploymentLoader,
     );
   }
 }

@@ -252,7 +252,7 @@ export interface IgnitionModuleBuilder {
    */
   getParameter<ParamTypeT extends ModuleParameterType = any>(
     parameterName: string,
-    defaultValue?: ParamTypeT
+    defaultValue?: ParamTypeT,
   ): ModuleParameterRuntimeValue<ParamTypeT>;
 
   /**
@@ -270,7 +270,7 @@ export interface IgnitionModuleBuilder {
   contract<ContractNameT extends string>(
     contractName: ContractNameT,
     args?: ArgumentType[],
-    options?: ContractOptions
+    options?: ContractOptions,
   ): NamedArtifactContractDeploymentFuture<ContractNameT>;
 
   /**
@@ -290,7 +290,7 @@ export interface IgnitionModuleBuilder {
     contractName: string,
     artifact: Artifact<AbiT>,
     args?: ArgumentType[],
-    options?: ContractOptions
+    options?: ContractOptions,
   ): ContractDeploymentFuture<AbiT>;
 
   /**
@@ -307,7 +307,7 @@ export interface IgnitionModuleBuilder {
    */
   library<LibraryNameT extends string>(
     libraryName: LibraryNameT,
-    options?: LibraryOptions
+    options?: LibraryOptions,
   ): NamedArtifactLibraryDeploymentFuture<LibraryNameT>;
 
   /**
@@ -330,7 +330,7 @@ export interface IgnitionModuleBuilder {
   library<const AbiT extends Abi>(
     libraryName: string,
     artifact: Artifact<AbiT>,
-    options?: LibraryOptions
+    options?: LibraryOptions,
   ): LibraryDeploymentFuture<AbiT>;
 
   /**
@@ -351,7 +351,7 @@ export interface IgnitionModuleBuilder {
     contractFuture: CallableContractFuture<ContractNameT>,
     functionName: FunctionNameT,
     args?: ArgumentType[],
-    options?: CallOptions
+    options?: CallOptions,
   ): ContractCallFuture<ContractNameT, FunctionNameT>;
 
   /**
@@ -383,7 +383,7 @@ export interface IgnitionModuleBuilder {
     functionName: FunctionNameT,
     args?: ArgumentType[],
     nameOrIndex?: string | number,
-    options?: StaticCallOptions
+    options?: StaticCallOptions,
   ): StaticCallFuture<ContractNameT, FunctionNameT>;
 
   /**
@@ -406,12 +406,12 @@ export interface IgnitionModuleBuilder {
    */
   encodeFunctionCall<
     ContractNameT extends string,
-    FunctionNameT extends string
+    FunctionNameT extends string,
   >(
     contractFuture: CallableContractFuture<ContractNameT>,
     functionName: FunctionNameT,
     args?: ArgumentType[],
-    options?: EncodeFunctionCallOptions
+    options?: EncodeFunctionCallOptions,
   ): EncodeFunctionCallFuture<ContractNameT, FunctionNameT>;
 
   /**
@@ -436,7 +436,7 @@ export interface IgnitionModuleBuilder {
       | string
       | AddressResolvableFuture
       | ModuleParameterRuntimeValue<string>,
-    options?: ContractAtOptions
+    options?: ContractAtOptions,
   ): NamedArtifactContractAtFuture<ContractNameT>;
 
   /**
@@ -467,7 +467,7 @@ export interface IgnitionModuleBuilder {
       | string
       | AddressResolvableFuture
       | ModuleParameterRuntimeValue<string>,
-    options?: ContractAtOptions
+    options?: ContractAtOptions,
   ): ContractAtFuture<AbiT>;
 
   /**
@@ -507,7 +507,7 @@ export interface IgnitionModuleBuilder {
       | ContractCallFuture<string, string>,
     eventName: string,
     nameOrIndex: string | number,
-    options?: ReadEventArgumentOptions
+    options?: ReadEventArgumentOptions,
   ): ReadEventArgumentFuture;
 
   /**
@@ -541,7 +541,7 @@ export interface IgnitionModuleBuilder {
       | AccountRuntimeValue,
     value?: bigint | ModuleParameterRuntimeValue<bigint>,
     data?: string | EncodeFunctionCallFuture<string, string>,
-    options?: SendDataOptions
+    options?: SendDataOptions,
   ): SendDataFuture;
 
   /**
@@ -568,12 +568,12 @@ export interface IgnitionModuleBuilder {
   useModule<
     ModuleIdT extends string,
     ContractNameT extends string,
-    IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>
+    IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>,
   >(
     ignitionSubmodule: IgnitionModule<
       ModuleIdT,
       ContractNameT,
       IgnitionModuleResultsT
-    >
+    >,
   ): IgnitionModuleResultsT;
 }

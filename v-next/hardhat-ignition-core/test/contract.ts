@@ -35,14 +35,14 @@ describe("contract", () => {
     assert.equal(moduleWithASingleContract.id, "Module1");
     assert.equal(
       moduleWithASingleContract.results.contract1.id,
-      "Module1#Contract1"
+      "Module1#Contract1",
     );
 
     // 1 contract future
     assert.equal(moduleWithASingleContract.futures.size, 1);
     assert.equal(
       [...moduleWithASingleContract.futures][0].type,
-      FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT
+      FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
     );
 
     // No submodules
@@ -60,11 +60,11 @@ describe("contract", () => {
     assert.isDefined(moduleWithDependentContracts);
 
     const exampleFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1#Example"
+      ({ id }) => id === "Module1#Example",
     );
 
     const anotherFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1#Another"
+      ({ id }) => id === "Module1#Another",
     );
 
     if (
@@ -95,11 +95,11 @@ describe("contract", () => {
     assert.isDefined(moduleWithDependentContracts);
 
     const exampleFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1#Example"
+      ({ id }) => id === "Module1#Example",
     );
 
     const anotherFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1#Another"
+      ({ id }) => id === "Module1#Another",
     );
 
     if (
@@ -126,11 +126,11 @@ describe("contract", () => {
     assert.isDefined(moduleWithDependentContracts);
 
     const exampleFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1#Example"
+      ({ id }) => id === "Module1#Example",
     );
 
     const anotherFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1#Another"
+      ({ id }) => id === "Module1#Another",
     );
 
     if (
@@ -154,7 +154,7 @@ describe("contract", () => {
     assert.isDefined(moduleWithDependentContracts);
 
     const anotherFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1#Another"
+      ({ id }) => id === "Module1#Another",
     );
 
     if (
@@ -178,7 +178,7 @@ describe("contract", () => {
     assert.isDefined(moduleWithDependentContracts);
 
     const anotherFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1#Another"
+      ({ id }) => id === "Module1#Another",
     );
 
     if (
@@ -189,7 +189,7 @@ describe("contract", () => {
 
     assertInstanceOf(
       anotherFuture.value,
-      ModuleParameterRuntimeValueImplementation
+      ModuleParameterRuntimeValueImplementation,
     );
   });
 
@@ -208,7 +208,7 @@ describe("contract", () => {
     assert.isDefined(moduleWithDependentContracts);
 
     const anotherFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1#Another"
+      ({ id }) => id === "Module1#Another",
     );
 
     if (
@@ -235,7 +235,7 @@ describe("contract", () => {
     assert.isDefined(moduleWithDependentContracts);
 
     const anotherFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1#Another"
+      ({ id }) => id === "Module1#Another",
     );
 
     if (
@@ -246,7 +246,7 @@ describe("contract", () => {
 
     assertInstanceOf(
       anotherFuture.value,
-      ReadEventArgumentFutureImplementation
+      ReadEventArgumentFutureImplementation,
     );
   });
 
@@ -260,7 +260,7 @@ describe("contract", () => {
     assert.isDefined(moduleWithDependentContracts);
 
     const anotherFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1#Another"
+      ({ id }) => id === "Module1#Another",
     );
 
     if (
@@ -282,7 +282,7 @@ describe("contract", () => {
     assert.isDefined(moduleWithDependentContracts);
 
     const anotherFuture = [...moduleWithDependentContracts.futures].find(
-      ({ id }) => id === "Module1#Another"
+      ({ id }) => id === "Module1#Another",
     );
 
     if (
@@ -344,7 +344,7 @@ describe("contract", () => {
 
       assert.equal(
         module.results.contract2.constructorArgs[0],
-        module.results.contract1
+        module.results.contract1,
       );
     });
 
@@ -358,7 +358,7 @@ describe("contract", () => {
 
       assert.equal(
         (module.results.contract2.constructorArgs[0] as any).arr[0],
-        module.results.contract1
+        module.results.contract1,
       );
     });
 
@@ -372,7 +372,7 @@ describe("contract", () => {
 
       assertInstanceOf(
         module.results.contract1.constructorArgs[0],
-        AccountRuntimeValueImplementation
+        AccountRuntimeValueImplementation,
       );
       assert.equal(module.results.contract1.constructorArgs[0].accountIndex, 1);
     });
@@ -403,12 +403,12 @@ describe("contract", () => {
 
       assertInstanceOf(
         module.results.contract1.constructorArgs[0],
-        ModuleParameterRuntimeValueImplementation
+        ModuleParameterRuntimeValueImplementation,
       );
       assert.equal(module.results.contract1.constructorArgs[0].name, "p");
       assert.equal(
         module.results.contract1.constructorArgs[0].defaultValue,
-        123
+        123,
       );
     });
 
@@ -441,11 +441,11 @@ describe("contract", () => {
       assert.equal(moduleWithSameContractTwice.id, "Module1");
       assert.equal(
         moduleWithSameContractTwice.results.sameContract1.id,
-        "Module1#first"
+        "Module1#first",
       );
       assert.equal(
         moduleWithSameContractTwice.results.sameContract2.id,
-        "Module1#second"
+        "Module1#second",
       );
     });
 
@@ -460,7 +460,7 @@ describe("contract", () => {
           }),
         `The autogenerated future id ("Module1#SameContract") is already used. Please provide a unique id, as shown below:
 
-m.contract(..., { id: "MyUniqueId"})`
+m.contract(..., { id: "MyUniqueId"})`,
       );
     });
 
@@ -477,7 +477,7 @@ m.contract(..., { id: "MyUniqueId"})`
 
             return { sameContract1, sameContract2 };
           }),
-        'The future id "same" is already used, please provide a different one.'
+        'The future id "same" is already used, please provide a different one.',
       );
     });
   });
@@ -492,7 +492,7 @@ m.contract(..., { id: "MyUniqueId"})`
 
               return { another };
             }),
-          /IGN702: Module validation failed with reason: Invalid option "value" received. It should be a bigint, a module parameter, or a value obtained from an event or static call./
+          /IGN702: Module validation failed with reason: Invalid option "value" received. It should be a bigint, a module parameter, or a value obtained from an event or static call./,
         );
       });
 
@@ -504,7 +504,7 @@ m.contract(..., { id: "MyUniqueId"})`
 
               return { another };
             }),
-          /IGN702: Module validation failed with reason: Invalid type for option "from": number/
+          /IGN702: Module validation failed with reason: Invalid type for option "from": number/,
         );
       });
 
@@ -521,7 +521,7 @@ m.contract(..., { id: "MyUniqueId"})`
 
               return { another, test };
             }),
-          /IGN702: Module validation failed with reason: The value you provided for the library 'Call' is not a valid Future or it doesn't represent a contract/
+          /IGN702: Module validation failed with reason: The value you provided for the library 'Call' is not a valid Future or it doesn't represent a contract/,
         );
       });
     });
@@ -542,9 +542,9 @@ m.contract(..., { id: "MyUniqueId"})`
             Another: {} as any,
           }),
           {},
-          []
+          [],
         ),
-        "Artifact for contract 'Another' is invalid"
+        "Artifact for contract 'Another' is invalid",
       );
     });
 
@@ -562,9 +562,9 @@ m.contract(..., { id: "MyUniqueId"})`
           future as any,
           setupMockArtifactResolver({ Test: fakeArtifact }),
           {},
-          []
+          [],
         ),
-        "The constructor of the contract 'Test' expects 0 arguments but 3 were given"
+        "The constructor of the contract 'Test' expects 0 arguments but 3 were given",
       );
     });
 
@@ -600,9 +600,9 @@ m.contract(..., { id: "MyUniqueId"})`
           future as any,
           setupMockArtifactResolver({ Test: fakerArtifact }),
           {},
-          []
+          [],
         ),
-        "Module parameter 'p' requires a value but was given none"
+        "Module parameter 'p' requires a value but was given none",
       );
     });
 
@@ -632,9 +632,9 @@ m.contract(..., { id: "MyUniqueId"})`
           future as any,
           setupMockArtifactResolver({ Test: fakerArtifact }),
           {},
-          []
+          [],
         ),
-        "Module parameter 'p' must be of type 'bigint' but is 'boolean'"
+        "Module parameter 'p' must be of type 'bigint' but is 'boolean'",
       );
     });
 
@@ -664,8 +664,8 @@ m.contract(..., { id: "MyUniqueId"})`
           future as any,
           setupMockArtifactResolver({ Test: fakerArtifact }),
           {},
-          []
-        )
+          [],
+        ),
       );
     });
 
@@ -700,7 +700,7 @@ m.contract(..., { id: "MyUniqueId"})`
         future as any,
         setupMockArtifactResolver({ Test: fakerArtifact }),
         {},
-        []
+        [],
       );
 
       assert.deepEqual(result, []);
@@ -739,7 +739,7 @@ m.contract(..., { id: "MyUniqueId"})`
         {
           $global: { p: 123 },
         },
-        []
+        [],
       );
 
       assert.deepEqual(result, []);
@@ -779,9 +779,9 @@ m.contract(..., { id: "MyUniqueId"})`
           future as any,
           setupMockArtifactResolver({ Test: fakerArtifact }),
           {},
-          []
+          [],
         ),
-        "Module parameter 'p' requires a value but was given none"
+        "Module parameter 'p' requires a value but was given none",
       );
     });
 
@@ -819,8 +819,8 @@ m.contract(..., { id: "MyUniqueId"})`
           future as any,
           setupMockArtifactResolver({ Test: fakerArtifact }),
           {},
-          []
-        )
+          [],
+        ),
       );
     });
 
@@ -856,8 +856,8 @@ m.contract(..., { id: "MyUniqueId"})`
           future as any,
           setupMockArtifactResolver({ Test: fakerArtifact }),
           {},
-          []
-        )
+          [],
+        ),
       );
     });
 
@@ -893,9 +893,9 @@ m.contract(..., { id: "MyUniqueId"})`
           future as any,
           setupMockArtifactResolver({ Test: fakerArtifact }),
           {},
-          []
+          [],
         ),
-        "Account index cannot be a negative number"
+        "Account index cannot be a negative number",
       );
     });
 
@@ -914,9 +914,9 @@ m.contract(..., { id: "MyUniqueId"})`
           future as any,
           setupMockArtifactResolver({ Test: fakeArtifact }),
           {},
-          []
+          [],
         ),
-        "Account index cannot be a negative number"
+        "Account index cannot be a negative number",
       );
     });
 
@@ -935,9 +935,9 @@ m.contract(..., { id: "MyUniqueId"})`
           future as any,
           setupMockArtifactResolver({ Test: fakeArtifact }),
           {},
-          []
+          [],
         ),
-        "Requested account index '1' is greater than the total number of available accounts '0'"
+        "Requested account index '1' is greater than the total number of available accounts '0'",
       );
     });
   });

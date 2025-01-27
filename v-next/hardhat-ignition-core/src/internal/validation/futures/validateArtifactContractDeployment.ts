@@ -20,7 +20,7 @@ export async function validateArtifactContractDeployment(
   future: ContractDeploymentFuture,
   _artifactLoader: ArtifactResolver,
   deploymentParameters: DeploymentParameters,
-  accounts: string[]
+  accounts: string[],
 ): Promise<string[]> {
   const errors: IgnitionError[] = [];
 
@@ -34,8 +34,8 @@ export async function validateArtifactContractDeployment(
     ...validateContractConstructorArgsLength(
       artifact,
       future.contractName,
-      future.constructorArgs
-    )
+      future.constructorArgs,
+    ),
   );
 
   /* stage two */
@@ -49,35 +49,35 @@ export async function validateArtifactContractDeployment(
 
   errors.push(
     ...accountParams.flatMap((arv) =>
-      validateAccountRuntimeValue(arv, accounts)
-    )
+      validateAccountRuntimeValue(arv, accounts),
+    ),
   );
 
   const missingParams = moduleParams.filter(
     (param) =>
       resolvePotentialModuleParameterValueFrom(deploymentParameters, param) ===
-      undefined
+      undefined,
   );
 
   if (missingParams.length > 0) {
     errors.push(
       new IgnitionError(ERRORS.VALIDATION.MISSING_MODULE_PARAMETER, {
         name: missingParams[0].name,
-      })
+      }),
     );
   }
 
   if (isModuleParameterRuntimeValue(future.value)) {
     const param = resolvePotentialModuleParameterValueFrom(
       deploymentParameters,
-      future.value
+      future.value,
     );
 
     if (param === undefined) {
       errors.push(
         new IgnitionError(ERRORS.VALIDATION.MISSING_MODULE_PARAMETER, {
           name: future.value.name,
-        })
+        }),
       );
     } else if (typeof param !== "bigint") {
       errors.push(
@@ -85,7 +85,7 @@ export async function validateArtifactContractDeployment(
           name: future.value.name,
           expectedType: "bigint",
           actualType: typeof param,
-        })
+        }),
       );
     }
   }

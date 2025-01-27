@@ -16,19 +16,19 @@ import { assertIgnitionInvariant } from "../utils/assertions";
  */
 export function findAddressForContractFuture(
   deploymentState: DeploymentState,
-  futureId: string
+  futureId: string,
 ): string {
   const exState = deploymentState.executionStates[futureId];
 
   assertIgnitionInvariant(
     exState !== undefined,
-    `Expected execution state for ${futureId} to exist, but it did not`
+    `Expected execution state for ${futureId} to exist, but it did not`,
   );
 
   assertIgnitionInvariant(
     exState.type === ExecutionSateType.DEPLOYMENT_EXECUTION_STATE ||
       exState.type === ExecutionSateType.CONTRACT_AT_EXECUTION_STATE,
-    `Can only resolve an address for a ContractAt, NamedLibrary, NamedContract, ArtifactLibrary, ArtifactContract`
+    `Can only resolve an address for a ContractAt, NamedLibrary, NamedContract, ArtifactLibrary, ArtifactContract`,
   );
 
   if (exState.type === ExecutionSateType.CONTRACT_AT_EXECUTION_STATE) {
@@ -37,12 +37,12 @@ export function findAddressForContractFuture(
 
   assertIgnitionInvariant(
     exState.result !== undefined,
-    `Expected execution state for ${futureId} to have a result, but it did not`
+    `Expected execution state for ${futureId} to have a result, but it did not`,
   );
 
   assertIgnitionInvariant(
     exState.result.type === ExecutionResultType.SUCCESS,
-    `Cannot access the result of ${futureId}, it was not a deployment success`
+    `Cannot access the result of ${futureId}, it was not a deployment success`,
   );
 
   return exState.result.address;

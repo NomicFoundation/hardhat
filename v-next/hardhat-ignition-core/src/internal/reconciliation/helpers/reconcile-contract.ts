@@ -14,13 +14,13 @@ import { compare } from "./compare";
 export function reconcileContract(
   future: ContractCallFuture<string, string> | StaticCallFuture<string, string>,
   exState: CallExecutionState | StaticCallExecutionState,
-  context: ReconciliationContext
+  context: ReconciliationContext,
 ): ReconciliationFutureResultFailure | undefined {
   const resolvedAddress = resolveAddressLike(
     future.contract,
     context.deploymentState,
     context.deploymentParameters,
-    context.accounts
+    context.accounts,
   );
 
   return compare(
@@ -28,6 +28,6 @@ export function reconcileContract(
     "Contract address",
     exState.contractAddress,
     resolvedAddress,
-    ` (future ${future.contract.id})`
+    ` (future ${future.contract.id})`,
   );
 }

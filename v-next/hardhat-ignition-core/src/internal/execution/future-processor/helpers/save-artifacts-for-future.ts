@@ -11,7 +11,7 @@ import { DeploymentLoader } from "../../../deployment-loader/types";
 export async function saveArtifactsForFuture(
   future: Future,
   artifactResolver: ArtifactResolver,
-  deploymentLoader: DeploymentLoader
+  deploymentLoader: DeploymentLoader,
 ): Promise<void> {
   switch (future.type) {
     case FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT:
@@ -26,7 +26,7 @@ export async function saveArtifactsForFuture(
     case FutureType.CONTRACT_AT:
       return deploymentLoader.storeUserProvidedArtifact(
         future.id,
-        future.artifact
+        future.artifact,
       );
     case FutureType.CONTRACT_CALL:
     case FutureType.STATIC_CALL:
@@ -48,13 +48,13 @@ async function _storeArtifactAndBuildInfoAgainstDeployment(
   }: {
     deploymentLoader: DeploymentLoader;
     artifactResolver: ArtifactResolver;
-  }
+  },
 ): Promise<void> {
   const artifact = await artifactResolver.loadArtifact(future.contractName);
   await deploymentLoader.storeNamedArtifact(
     future.id,
     future.contractName,
-    artifact
+    artifact,
   );
   const buildInfo = await artifactResolver.getBuildInfo(future.contractName);
 

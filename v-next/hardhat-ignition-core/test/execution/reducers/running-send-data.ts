@@ -165,14 +165,14 @@ describe("DeploymentStateReducer", () => {
         updatedSendDataExState = findExecutionStateById(
           ExecutionSateType.SEND_DATA_EXECUTION_STATE,
           updatedDeploymentState,
-          "SendData1"
+          "SendData1",
         );
       });
 
       it("should populate a call execution state for the future", () => {
         assert.equal(
           updatedSendDataExState.type,
-          ExecutionSateType.SEND_DATA_EXECUTION_STATE
+          ExecutionSateType.SEND_DATA_EXECUTION_STATE,
         );
       });
     });
@@ -187,7 +187,7 @@ describe("DeploymentStateReducer", () => {
         updatedSendDataExState = findExecutionStateById(
           ExecutionSateType.SEND_DATA_EXECUTION_STATE,
           updatedDeploymentState,
-          "SendData1"
+          "SendData1",
         );
       });
 
@@ -200,7 +200,7 @@ describe("DeploymentStateReducer", () => {
         assertIgnitionInvariant(
           networkInteraction.type ===
             NetworkInteractionType.ONCHAIN_INTERACTION,
-          "Added Network interaction is of the wrong type "
+          "Added Network interaction is of the wrong type ",
         );
 
         const { transactions, shouldBeResent, nonce, ...rest } =
@@ -208,7 +208,7 @@ describe("DeploymentStateReducer", () => {
 
         assert.deepStrictEqual(
           rest,
-          requestNetworkInteractionMessage.networkInteraction
+          requestNetworkInteractionMessage.networkInteraction,
         );
         assert.isArray(transactions);
         assert.lengthOf(transactions, 0);
@@ -228,14 +228,14 @@ describe("DeploymentStateReducer", () => {
         updatedSendDataExState = findExecutionStateById(
           ExecutionSateType.SEND_DATA_EXECUTION_STATE,
           updatedDeploymentState,
-          "SendData1"
+          "SendData1",
         );
       });
 
       it("should populate the transaction against the network interaction", () => {
         const networkInteraction = findOnchainInteractionBy(
           updatedSendDataExState,
-          1
+          1,
         );
 
         assert.equal(networkInteraction.transactions.length, 1);
@@ -243,7 +243,7 @@ describe("DeploymentStateReducer", () => {
         const transaction = findTransactionBy(
           updatedSendDataExState,
           1,
-          "0xdeadbeef"
+          "0xdeadbeef",
         );
 
         assert.deepStrictEqual(sendTransactionMessage.transaction, transaction);
@@ -263,7 +263,7 @@ describe("DeploymentStateReducer", () => {
         updatedSendDataExState = findExecutionStateById(
           ExecutionSateType.SEND_DATA_EXECUTION_STATE,
           updatedDeploymentState,
-          "SendData1"
+          "SendData1",
         );
       });
 
@@ -271,19 +271,19 @@ describe("DeploymentStateReducer", () => {
         const transaction = findTransactionBy(
           updatedSendDataExState,
           1,
-          "0xdeadbeef"
+          "0xdeadbeef",
         );
 
         assert.deepStrictEqual(
           transaction.receipt,
-          confirmTransactionMessage.receipt
+          confirmTransactionMessage.receipt,
         );
       });
 
       it("should clear all other transactions for the network interaction", () => {
         const networkInteraction = findOnchainInteractionBy(
           updatedSendDataExState,
-          1
+          1,
         );
 
         assert.equal(networkInteraction.transactions.length, 1);
@@ -303,7 +303,7 @@ describe("DeploymentStateReducer", () => {
         updatedSendDataExState = findExecutionStateById(
           ExecutionSateType.SEND_DATA_EXECUTION_STATE,
           updatedDeploymentState,
-          "SendData1"
+          "SendData1",
         );
       });
 
@@ -311,19 +311,19 @@ describe("DeploymentStateReducer", () => {
         const transaction = findTransactionBy(
           updatedSendDataExState,
           1,
-          "0xdeadbeef"
+          "0xdeadbeef",
         );
 
         assert.deepStrictEqual(
           transaction.receipt,
-          revertedTransactionMessage.receipt
+          revertedTransactionMessage.receipt,
         );
       });
 
       it("should clear all other transactions for the network interaction", () => {
         const networkInteraction = findOnchainInteractionBy(
           updatedSendDataExState,
-          1
+          1,
         );
 
         assert.equal(networkInteraction.transactions.length, 1);
@@ -344,7 +344,7 @@ describe("DeploymentStateReducer", () => {
         updatedSendDataExState = findExecutionStateById(
           ExecutionSateType.SEND_DATA_EXECUTION_STATE,
           updatedDeploymentState,
-          "SendData1"
+          "SendData1",
         );
       });
 
@@ -357,7 +357,7 @@ describe("DeploymentStateReducer", () => {
       it("should update the status to success", () => {
         assert.deepStrictEqual(
           updatedSendDataExState.status,
-          ExecutionStatus.SUCCESS
+          ExecutionStatus.SUCCESS,
         );
       });
     });
@@ -374,7 +374,7 @@ describe("DeploymentStateReducer", () => {
         updatedSendDataExState = findExecutionStateById(
           ExecutionSateType.SEND_DATA_EXECUTION_STATE,
           updatedDeploymentState,
-          "SendData1"
+          "SendData1",
         );
       });
 
@@ -403,7 +403,7 @@ describe("DeploymentStateReducer", () => {
         updatedSendDataExState = findExecutionStateById(
           ExecutionSateType.SEND_DATA_EXECUTION_STATE,
           updatedDeploymentState,
-          "SendData1"
+          "SendData1",
         );
       });
 
@@ -433,7 +433,7 @@ describe("DeploymentStateReducer", () => {
         updatedSendDataExState = findExecutionStateById(
           ExecutionSateType.SEND_DATA_EXECUTION_STATE,
           updatedDeploymentState,
-          "SendData1"
+          "SendData1",
         );
       });
 

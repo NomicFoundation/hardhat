@@ -53,7 +53,7 @@ describe("Reconciliation - send data", () => {
         ...exampleSendState,
         id: "Submodule#test_send",
         status: ExecutionStatus.STARTED,
-      })
+      }),
     );
   });
 
@@ -78,7 +78,7 @@ describe("Reconciliation - send data", () => {
         ...exampleSendState,
         id: "Module#test_send",
         status: ExecutionStatus.STARTED,
-      })
+      }),
     );
   });
 
@@ -96,7 +96,7 @@ describe("Reconciliation - send data", () => {
         id: "Module#test_send",
         status: ExecutionStatus.STARTED,
         data: "0x",
-      })
+      }),
     );
   });
 
@@ -117,7 +117,7 @@ describe("Reconciliation - send data", () => {
         status: ExecutionStatus.STARTED,
         to: exampleAccounts[2],
         data: "example_data",
-      })
+      }),
     );
   });
 
@@ -135,7 +135,7 @@ describe("Reconciliation - send data", () => {
         id: "Module#test_send",
         status: ExecutionStatus.STARTED,
         to: exampleAddress,
-      })
+      }),
     );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
@@ -161,7 +161,7 @@ describe("Reconciliation - send data", () => {
         id: "Module#test_send",
         status: ExecutionStatus.STARTED,
         data: "unchanged_data",
-      })
+      }),
     );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
@@ -186,7 +186,7 @@ describe("Reconciliation - send data", () => {
         id: "Module#test_send",
         status: ExecutionStatus.STARTED,
         value: 2n,
-      })
+      }),
     );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
@@ -213,7 +213,7 @@ describe("Reconciliation - send data", () => {
         id: "Module#test_send",
         status: ExecutionStatus.STARTED,
         from: exampleAddress,
-      })
+      }),
     );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
@@ -238,7 +238,7 @@ describe("Reconciliation - send data", () => {
         id: "Module#test_send",
         status: ExecutionStatus.STARTED,
         strategy: "create2",
-      })
+      }),
     );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [
@@ -263,7 +263,7 @@ describe("Reconciliation - send data", () => {
         id: "Module#test_send",
         status: ExecutionStatus.STARTED,
         strategyConfig: { salt: "value" },
-      })
+      }),
     );
 
     assert.deepStrictEqual(reconiliationResult.reconciliationFailures, [

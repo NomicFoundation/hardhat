@@ -48,7 +48,7 @@ export function reconcileStrategy(
     | ContractAtExecutionState
     | SendDataExecutionState
     | ReadEventArgumentExecutionState,
-  context: ReconciliationContext
+  context: ReconciliationContext,
 ): ReconciliationFutureResultFailure | undefined {
   /**
    * If the execution was successful, we don't need to reconcile the strategy.
@@ -67,7 +67,7 @@ export function reconcileStrategy(
   if (storedStrategyName !== newStrategyName) {
     return fail(
       future,
-      `Strategy changed from "${storedStrategyName}" to "${newStrategyName}"`
+      `Strategy changed from "${storedStrategyName}" to "${newStrategyName}"`,
     );
   }
 
@@ -81,8 +81,8 @@ export function reconcileStrategy(
     return fail(
       future,
       `Strategy config changed from ${JSON.stringify(
-        storedStrategyConfig
-      )} to ${JSON.stringify(newStrategyConfig)}`
+        storedStrategyConfig,
+      )} to ${JSON.stringify(newStrategyConfig)}`,
     );
   }
 }

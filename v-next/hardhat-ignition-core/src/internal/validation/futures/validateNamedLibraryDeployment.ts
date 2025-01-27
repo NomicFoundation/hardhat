@@ -11,7 +11,7 @@ export async function validateNamedLibraryDeployment(
   future: NamedArtifactLibraryDeploymentFuture<string>,
   artifactLoader: ArtifactResolver,
   _deploymentParameters: DeploymentParameters,
-  accounts: string[]
+  accounts: string[],
 ): Promise<string[]> {
   const errors: IgnitionError[] = [];
 
@@ -23,11 +23,11 @@ export async function validateNamedLibraryDeployment(
     errors.push(
       new IgnitionError(ERRORS.VALIDATION.INVALID_ARTIFACT, {
         contractName: future.contractName,
-      })
+      }),
     );
   } else {
     errors.push(
-      ...validateLibraryNames(artifact, Object.keys(future.libraries))
+      ...validateLibraryNames(artifact, Object.keys(future.libraries)),
     );
   }
 

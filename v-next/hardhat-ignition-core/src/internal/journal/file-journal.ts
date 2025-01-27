@@ -18,7 +18,7 @@ import { serializeReplacer } from "./utils/serialize-replacer";
 export class FileJournal implements Journal {
   constructor(
     private _filePath: string,
-    private _executionEventListener?: ExecutionEventListener | undefined
+    private _executionEventListener?: ExecutionEventListener | undefined,
   ) {}
 
   public record(message: JournalMessage): void {
@@ -39,7 +39,7 @@ export class FileJournal implements Journal {
 
       const deserializedChunk = JSON.parse(
         json,
-        deserializeReplacer.bind(this)
+        deserializeReplacer.bind(this),
       );
 
       yield deserializedChunk as JournalMessage;
@@ -58,7 +58,7 @@ export class FileJournal implements Journal {
     writeFileSync(
       fd,
       `\n${JSON.stringify(value, serializeReplacer.bind(this))}`,
-      "utf-8"
+      "utf-8",
     );
     closeSync(fd);
   }

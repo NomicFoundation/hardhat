@@ -13,12 +13,12 @@ import { WipeExecutionStateMessage } from "../../types/messages";
  */
 export function wipeExecutionState(
   deploymentState: DeploymentState,
-  message: WipeExecutionStateMessage
+  message: WipeExecutionStateMessage,
 ): DeploymentState {
   return produce(deploymentState, (draft: DeploymentState): void => {
     assertIgnitionInvariant(
       draft.executionStates[message.futureId] !== undefined,
-      `ExecutionState ${message.futureId} must exist to be wiped.`
+      `ExecutionState ${message.futureId} must exist to be wiped.`,
     );
 
     delete draft.executionStates[message.futureId];

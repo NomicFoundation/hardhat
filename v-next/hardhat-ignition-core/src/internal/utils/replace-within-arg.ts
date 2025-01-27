@@ -16,7 +16,7 @@ type Composable<T> =
 interface Replacers<T> {
   accountRuntimeValue: (arg: AccountRuntimeValue) => Composable<T>;
   moduleParameterRuntimeValue: (
-    arg: ModuleParameterRuntimeValue<ModuleParameterType>
+    arg: ModuleParameterRuntimeValue<ModuleParameterType>,
   ) => Composable<T>;
   bigint: (arg: bigint) => Composable<T>;
   future: (arg: Future) => Composable<T>;
@@ -47,7 +47,7 @@ interface Replacers<T> {
  */
 export function replaceWithinArg<T>(
   arg: ArgumentType,
-  replacers: Replacers<T>
+  replacers: Replacers<T>,
 ): Composable<T | string | number | boolean> {
   if (typeof arg === "bigint") {
     return replacers.bigint(arg);
@@ -71,7 +71,7 @@ export function replaceWithinArg<T>(
 
   if (typeof arg === "object" && arg !== null) {
     return Object.fromEntries(
-      Object.entries(arg).map(([k, v]) => [k, replaceWithinArg(v, replacers)])
+      Object.entries(arg).map(([k, v]) => [k, replaceWithinArg(v, replacers)]),
     );
   }
 
