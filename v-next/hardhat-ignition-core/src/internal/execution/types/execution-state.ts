@@ -5,7 +5,10 @@ import type {
   StaticCallExecutionResult,
 } from "./execution-result.js";
 import type { NetworkInteraction, StaticCall } from "./network-interaction.js";
-import type { FutureType, SolidityParameterType } from "../../../types/module.js";
+import type {
+  FutureType,
+  SolidityParameterType,
+} from "../../../types/module.js";
 
 /**
  * An execution state is used to keep track of the execution of a future.

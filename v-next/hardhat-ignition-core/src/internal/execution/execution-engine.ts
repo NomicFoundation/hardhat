@@ -287,7 +287,7 @@ export class ExecutionEngine {
       };
     });
 
-    const sortBy = require("lodash/sortBy") as typeof import("lodash/sortBy");
+    const { sortBy } = require("lodash-es") as typeof import("lodash-es");
     const sortedBatch = sortBy(batchWithNonces, ["from", "nonce", "future.id"]);
 
     return sortedBatch.map((f) => f.future);

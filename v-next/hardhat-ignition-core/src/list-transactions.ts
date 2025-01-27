@@ -1,6 +1,6 @@
 import type { ArtifactResolver } from "./types/artifact.js";
 
-import findLastIndex from "lodash/findLastIndex";
+import { findLastIndex } from "lodash-es";
 
 import { IgnitionError } from "./errors.js";
 import { builtinChains } from "./internal/chain-config.js";

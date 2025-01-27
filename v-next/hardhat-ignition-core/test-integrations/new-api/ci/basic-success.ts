@@ -16,8 +16,8 @@ describe("Running deployment in CI environment", function () {
         { scope: "ignition", task: "deploy" },
         {
           modulePath: "./ignition/modules/LockModule.js",
-        }
-      )
+        },
+      ),
     );
   });
 });

@@ -77,7 +77,7 @@ export function reconcileStrategy(
   const storedStrategyConfig = exState.strategyConfig ?? {};
   const newStrategyConfig = context.strategyConfig;
 
-  const isEqual = require("lodash/isEqual") as typeof import("lodash/isEqual");
+  const { isEqual } = require("lodash-es") as typeof import("lodash-es");
   if (!isEqual(storedStrategyConfig, newStrategyConfig)) {
     return fail(
       future,

@@ -22,13 +22,13 @@ describe("execution-result-fixture tests", function () {
     const client = new EIP1193JsonRpcClient(this.hre.network.provider);
 
     for (const [name, artifact] of Object.entries(
-      staticCallResultFixturesArtifacts
+      staticCallResultFixturesArtifacts,
     )) {
       const expectedArtifact = await this.hre.artifacts.readArtifact(name);
       assert.deepEqual(
         artifact,
         expectedArtifact,
-        `Artifact ${name} doesn't match`
+        `Artifact ${name} doesn't match`,
       );
     }
 
@@ -39,7 +39,7 @@ describe("execution-result-fixture tests", function () {
     let nonce = 0;
 
     for (const [name, artifact] of Object.entries(
-      staticCallResultFixturesArtifacts
+      staticCallResultFixturesArtifacts,
     )) {
       const fees = await client.getNetworkFees();
       const tx = await client.sendTransaction({
@@ -55,7 +55,7 @@ describe("execution-result-fixture tests", function () {
       assert.isDefined(receipt, `No receipt for deployment of ${name}`);
       assert.isDefined(
         receipt!.contractAddress,
-        `No receipt address from deployment of ${name}`
+        `No receipt address from deployment of ${name}`,
       );
 
       addresses[name] = receipt!.contractAddress!;
@@ -63,11 +63,11 @@ describe("execution-result-fixture tests", function () {
 
     const assertFunctionFixtureMatches = async (
       contractName: string,
-      functionName: string
+      functionName: string,
     ) => {
       assert(
         contractName in staticCallResultFixturesArtifacts,
-        `Artifact ${contractName} missing from the fixture`
+        `Artifact ${contractName} missing from the fixture`,
       );
 
       const expected = await client.call(
@@ -75,24 +75,24 @@ describe("execution-result-fixture tests", function () {
           data: encodeArtifactFunctionCall(
             staticCallResultFixturesArtifacts[contractName],
             functionName,
-            []
+            [],
           ),
           value: 0n,
           from: this.accounts[0],
           to: addresses[contractName]!,
         },
-        "latest"
+        "latest",
       );
 
       assert.deepEqual(
         staticCallResultFixtures[contractName][functionName],
         expected,
-        `Fixture for [${contractName}]${functionName} doesn't match`
+        `Fixture for [${contractName}]${functionName} doesn't match`,
       );
     };
 
     const contractNames = Object.keys(
-      staticCallResultFixturesArtifacts
+      staticCallResultFixturesArtifacts,
     ) as string[];
 
     for (const contractName of contractNames) {
@@ -105,11 +105,11 @@ describe("execution-result-fixture tests", function () {
 
         assert(
           contractName in staticCallResultFixtures,
-          `Fixture for ${contractName} missing`
+          `Fixture for ${contractName} missing`,
         );
         assert(
           abiItem.name in staticCallResultFixtures[contractName],
-          `Fixture for ${contractName}.${abiItem.name} missing`
+          `Fixture for ${contractName}.${abiItem.name} missing`,
         );
 
         await assertFunctionFixtureMatches(contractName, abiItem.name);
@@ -117,13 +117,13 @@ describe("execution-result-fixture tests", function () {
     }
 
     for (const [name, artifact] of Object.entries(
-      deploymentFixturesArtifacts
+      deploymentFixturesArtifacts,
     )) {
       const expectedArtifact = await this.hre.artifacts.readArtifact(name);
       assert.deepEqual(
         artifact,
         expectedArtifact,
-        `Artifact ${name} doesn't match`
+        `Artifact ${name} doesn't match`,
       );
     }
 
@@ -132,7 +132,7 @@ describe("execution-result-fixture tests", function () {
       assert.deepEqual(
         artifact,
         expectedArtifact,
-        `Artifact ${name} doesn't match`
+        `Artifact ${name} doesn't match`,
       );
     }
   });

@@ -17,7 +17,10 @@ import type {
   Transaction,
   TransactionReceipt,
 } from "./jsonrpc.js";
-import type { FutureType, SolidityParameterType } from "../../../types/module.js";
+import type {
+  FutureType,
+  SolidityParameterType,
+} from "../../../types/module.js";
 
 export type JournalMessage =
   | DeploymentInitializeMessage

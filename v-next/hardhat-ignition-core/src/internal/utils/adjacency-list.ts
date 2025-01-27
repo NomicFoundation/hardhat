@@ -78,11 +78,11 @@ export class AdjacencyList {
 
       assertIgnitionInvariant(
         toSet !== undefined,
-        "Dependency sets should be defined"
+        "Dependency sets should be defined",
       );
 
       const setWithoutFuture = new Set<string>(
-        [...toSet].filter((n) => n !== futureId)
+        [...toSet].filter((n) => n !== futureId),
       );
 
       const updatedSet = new Set<string>([
@@ -106,8 +106,8 @@ export class AdjacencyList {
     // set of all nodes with no dependents
     const s = new Set<string>(
       [...newList._list.keys()].filter(
-        (fid) => newList.getDependentsFor(fid).length === 0
-      )
+        (fid) => newList.getDependentsFor(fid).length === 0,
+      ),
     );
 
     while (s.size !== 0) {

@@ -10,7 +10,7 @@ import type {
   OnchainInteractionReplacedByUserMessage,
 } from "../types/messages.js";
 
-import uniq from "lodash/uniq";
+import { uniq } from "lodash-es";
 
 import { IgnitionError } from "../../../errors.js";
 import {
@@ -23,7 +23,10 @@ import { ERRORS } from "../../errors-list.js";
 import { getFuturesFromModule } from "../../utils/get-futures-from-module.js";
 import { getPendingOnchainInteraction } from "../../views/execution-state/get-pending-onchain-interaction.js";
 import { resolveFutureFrom } from "../future-processor/helpers/future-resolvers.js";
-import { ExecutionSateType, ExecutionStatus } from "../types/execution-state.js";
+import {
+  ExecutionSateType,
+  ExecutionStatus,
+} from "../types/execution-state.js";
 import { JournalMessageType } from "../types/messages.js";
 
 /**
