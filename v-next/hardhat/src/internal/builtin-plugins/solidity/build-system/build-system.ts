@@ -481,10 +481,8 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     return result;
   }
 
-  public async cleanupArtifacts(): Promise<void> {
+  public async cleanupArtifacts(rootFilePaths: string[]): Promise<void> {
     log(`Cleaning up artifacts`);
-
-    const rootFilePaths = await this.getRootFilePaths();
 
     const publicSourceNames = rootFilePaths.map((rootFilePath) => {
       const parsed = parseRootPath(rootFilePath);
