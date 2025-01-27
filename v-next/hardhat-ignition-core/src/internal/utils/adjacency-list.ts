@@ -24,7 +24,7 @@ export class AdjacencyList {
    * Add a dependency from `from` to `to`. If A depends on B
    * then {`from`: A, `to`: B} should be passed.
    */
-  public addDependency({ from, to }: { from: string; to: string }) {
+  public addDependency({ from, to }: { from: string; to: string }): void {
     const toSet = this._list.get(from) ?? new Set<string>();
 
     toSet.add(to);
@@ -32,7 +32,7 @@ export class AdjacencyList {
     this._list.set(from, toSet);
   }
 
-  public deleteDependency({ from, to }: { from: string; to: string }) {
+  public deleteDependency({ from, to }: { from: string; to: string }): void {
     const toSet = this._list.get(from) ?? new Set<string>();
 
     toSet.delete(to);
@@ -54,7 +54,7 @@ export class AdjacencyList {
    * @param from - the future to get the list of dependents for
    * @returns - the dependents
    */
-  public getDependentsFor(to: string) {
+  public getDependentsFor(to: string): string[] {
     return [...this._list.entries()]
       .filter(([_from, toSet]) => toSet.has(to))
       .map(([from]) => from);

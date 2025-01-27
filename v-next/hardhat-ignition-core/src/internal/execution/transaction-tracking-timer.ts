@@ -16,7 +16,7 @@ export class TransactionTrackingTimer {
   /**
    * Adds a new transaction to track.
    */
-  public addTransaction(txHash: string) {
+  public addTransaction(txHash: string): void {
     this._transactionTrackingTimes[txHash] = Date.now();
   }
 

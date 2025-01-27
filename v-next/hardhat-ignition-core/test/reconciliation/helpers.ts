@@ -22,7 +22,7 @@ import { exampleAccounts } from "../helpers";
 export const oneAddress = "0x1111111111111111111111111111111111111111";
 export const twoAddress = "0x2222222222222222222222222222222222222222";
 
-export const mockArtifact = {
+export const mockArtifact: Artifact = {
   contractName: "Contract1",
   sourceName: "",
   bytecode: "0x",
@@ -98,7 +98,7 @@ export class ArtifactMapResolver extends MockArtifactResolver {
     super();
   }
 
-  public async loadArtifact(contractName: string): Promise<Artifact> {
+  public override async loadArtifact(contractName: string): Promise<Artifact> {
     return this._artifactMap[contractName];
   }
 }
@@ -110,7 +110,7 @@ export class ArtifactMapDeploymentLoader extends MockDeploymentLoader {
     super();
   }
 
-  public async loadArtifact(contractName: string): Promise<Artifact> {
+  public override async loadArtifact(contractName: string): Promise<Artifact> {
     return this._artifactMap[contractName];
   }
 }
@@ -150,7 +150,7 @@ export async function reconcile(
 
 export function assertNoWarningsOrErrors(
   reconciliationResult: ReconciliationResult
-) {
+): void {
   assert.equal(
     reconciliationResult.reconciliationFailures.length,
     0,
@@ -174,7 +174,7 @@ export function assertNoWarningsOrErrors(
 export async function assertSuccessReconciliation(
   ignitionModule: IgnitionModule,
   deploymentState: DeploymentState
-) {
+): Promise<void> {
   const reconciliationResult = await reconcile(ignitionModule, deploymentState);
 
   assertNoWarningsOrErrors(reconciliationResult);

@@ -12,7 +12,9 @@ import { emitExecutionEvent } from "./utils/emitExecutionEvent";
 export class MemoryJournal implements Journal {
   private _messages: JournalMessage[] = [];
 
-  constructor(private _executionEventListener?: ExecutionEventListener) {}
+  constructor(
+    private _executionEventListener?: ExecutionEventListener | undefined
+  ) {}
 
   public record(message: JournalMessage): void {
     this._log(message);

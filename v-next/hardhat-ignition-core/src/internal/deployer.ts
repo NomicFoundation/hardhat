@@ -52,7 +52,9 @@ export class Deployer {
     private readonly _jsonRpcClient: JsonRpcClient,
     private readonly _artifactResolver: ArtifactResolver,
     private readonly _deploymentLoader: DeploymentLoader,
-    private readonly _executionEventListener?: ExecutionEventListener
+    private readonly _executionEventListener?:
+      | ExecutionEventListener
+      | undefined
   ) {
     assertIgnitionInvariant(
       this._config.requiredConfirmations >= 1,

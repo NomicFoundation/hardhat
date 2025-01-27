@@ -23,7 +23,9 @@ export class FileDeploymentLoader implements DeploymentLoader {
 
   constructor(
     private readonly _deploymentDirPath: string,
-    private readonly _executionEventListener?: ExecutionEventListener
+    private readonly _executionEventListener?:
+      | ExecutionEventListener
+      | undefined
   ) {
     const artifactsDir = path.join(this._deploymentDirPath, "artifacts");
     const buildInfoDir = path.join(this._deploymentDirPath, "build-info");

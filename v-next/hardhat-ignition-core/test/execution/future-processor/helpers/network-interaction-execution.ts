@@ -143,7 +143,7 @@ describe("Network interactions", () => {
       class MockJsonRpcClient extends StubJsonRpcClient {
         public calls: number = 0;
 
-        public async call(
+        public override async call(
           callParams: CallParams,
           blockTag: "latest" | "pending"
         ): Promise<RawStaticCallResult> {
@@ -300,20 +300,20 @@ describe("Network interactions", () => {
   describe("sendTransactionForOnchainInteraction", () => {
     describe("First transaction", () => {
       class MockJsonRpcClient extends StubJsonRpcClient {
-        public async getNetworkFees(): Promise<NetworkFees> {
+        public override async getNetworkFees(): Promise<NetworkFees> {
           return {
             maxFeePerGas: 0n,
             maxPriorityFeePerGas: 0n,
           };
         }
 
-        public async estimateGas(
+        public override async estimateGas(
           _transactionParams: EstimateGasParams
         ): Promise<bigint> {
           return 0n;
         }
 
-        public async call(
+        public override async call(
           _callParams: CallParams,
           _blockTag: "latest" | "pending"
         ): Promise<RawStaticCallResult> {
@@ -324,7 +324,7 @@ describe("Network interactions", () => {
           };
         }
 
-        public async sendTransaction(
+        public override async sendTransaction(
           _transactionParams: TransactionParams
         ): Promise<string> {
           return "0x1234";
@@ -349,14 +349,14 @@ describe("Network interactions", () => {
         class LocalMockJsonRpcClient extends MockJsonRpcClient {
           public storedFees: EIP1559NetworkFees = {} as EIP1559NetworkFees;
 
-          public async getNetworkFees(): Promise<NetworkFees> {
+          public override async getNetworkFees(): Promise<NetworkFees> {
             return {
               maxFeePerGas: 100n,
               maxPriorityFeePerGas: 50n,
             };
           }
 
-          public async sendTransaction(
+          public override async sendTransaction(
             _transactionParams: TransactionParams
           ): Promise<string> {
             this.storedFees = _transactionParams.fees as EIP1559NetworkFees;
@@ -419,7 +419,7 @@ describe("Network interactions", () => {
           class LocalMockJsonRpcClient extends MockJsonRpcClient {
             public storedNonce: number | undefined;
 
-            public async sendTransaction(
+            public override async sendTransaction(
               _transactionParams: TransactionParams
             ): Promise<string> {
               this.storedNonce = _transactionParams.nonce;
@@ -458,7 +458,7 @@ describe("Network interactions", () => {
         describe("When the simulation fails", () => {
           it("Should return the decoded simulation error", async () => {
             class LocalMockJsonRpcClient extends MockJsonRpcClient {
-              public async call(
+              public override async call(
                 _callParams: CallParams,
                 _blockTag: "latest" | "pending"
               ): Promise<RawStaticCallResult> {
@@ -564,13 +564,13 @@ describe("Network interactions", () => {
             this.errorMessage = _errorMessage ?? this.errorMessage;
           }
 
-          public async estimateGas(
+          public override async estimateGas(
             _transactionParams: EstimateGasParams
           ): Promise<bigint> {
             throw new Error(this.errorMessage);
           }
 
-          public async call(
+          public override async call(
             _callParams: CallParams,
             _blockTag: "latest" | "pending"
           ): Promise<RawStaticCallResult> {
@@ -744,7 +744,7 @@ class MockGetTransactionJsonRpcClient extends StubJsonRpcClient {
   public callToFindResult: number = Number.MAX_SAFE_INTEGER;
   public result: Omit<Transaction, "receipt"> | undefined = undefined;
 
-  public async getTransaction(
+  public override async getTransaction(
     _txHash: string
   ): Promise<Omit<Transaction, "receipt"> | undefined> {
     if (this.calls === this.callToFindResult) {
@@ -756,14 +756,14 @@ class MockGetTransactionJsonRpcClient extends StubJsonRpcClient {
     return undefined;
   }
 
-  public async getLatestBlock(): Promise<Block> {
+  public override async getLatestBlock(): Promise<Block> {
     return {
       hash: "0xblockhas",
       number: 34,
     };
   }
 
-  public async getTransactionReceipt(
+  public override async getTransactionReceipt(
     _txHash: string
   ): Promise<TransactionReceipt | undefined> {
     return {
@@ -777,7 +777,7 @@ class MockGetTransactionJsonRpcClient extends StubJsonRpcClient {
 }
 
 class FakeTransactionTrackingTimer extends TransactionTrackingTimer {
-  public getTransactionTrackingTime(_txHash: string): number {
+  public override getTransactionTrackingTime(_txHash: string): number {
     return 0;
   }
 }

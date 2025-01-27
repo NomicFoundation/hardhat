@@ -6,6 +6,7 @@ import {
   applyNewMessage,
   loadDeploymentState,
 } from "./execution/deployment-state-helpers";
+import { DeploymentState } from "./execution/types/deployment-state";
 import {
   JournalMessageType,
   WipeExecutionStateMessage,
@@ -14,7 +15,7 @@ import {
 export class Wiper {
   constructor(private _deploymentLoader: DeploymentLoader) {}
 
-  public async wipe(futureId: string) {
+  public async wipe(futureId: string): Promise<DeploymentState> {
     const deploymentState = await loadDeploymentState(this._deploymentLoader);
 
     if (deploymentState === undefined) {

@@ -16,7 +16,7 @@ export function isAddress(address: any): address is string {
  * @param address - the address to reformat
  * @returns checksumed address
  */
-export function toChecksumFormat(address: string) {
+export function toChecksumFormat(address: string): string {
   assertIgnitionInvariant(
     isAddress(address),
     `Expected ${address} to be an address`

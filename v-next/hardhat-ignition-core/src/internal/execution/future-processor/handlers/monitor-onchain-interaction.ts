@@ -67,10 +67,7 @@ export async function monitorOnchainInteraction(
   requiredConfirmations: number,
   millisecondBeforeBumpingFees: number,
   maxFeeBumps: number,
-  getTransactionRetryConfig: GetTransactionRetryConfig = {
-    maxRetries: 10,
-    retryInterval: 1000,
-  },
+  givenGetTransactionRetryConfig: GetTransactionRetryConfig | undefined,
   disableFeeBumping: boolean
 ): Promise<
   | TransactionConfirmMessage
@@ -79,6 +76,10 @@ export async function monitorOnchainInteraction(
   | undefined
 > {
   const lastNetworkInteraction = exState.networkInteractions.at(-1);
+  const getTransactionRetryConfig = givenGetTransactionRetryConfig ?? {
+    maxRetries: 10,
+    retryInterval: 1000,
+  };
 
   assertIgnitionInvariant(
     lastNetworkInteraction !== undefined,
