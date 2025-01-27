@@ -1,15 +1,15 @@
-import type { LibraryDeploymentFuture } from "../../../types/module";
-import type { DeploymentExecutionState } from "../../execution/types/execution-state";
+import type { LibraryDeploymentFuture } from "../../../types/module.js";
+import type { DeploymentExecutionState } from "../../execution/types/execution-state.js";
 import type {
   ReconciliationContext,
   ReconciliationFutureResult,
-} from "../types";
+} from "../types.js";
 
-import { reconcileArtifacts } from "../helpers/reconcile-artifacts";
-import { reconcileContractName } from "../helpers/reconcile-contract-name";
-import { reconcileFrom } from "../helpers/reconcile-from";
-import { reconcileLibraries } from "../helpers/reconcile-libraries";
-import { reconcileStrategy } from "../helpers/reconcile-strategy";
+import { reconcileArtifacts } from "../helpers/reconcile-artifacts.js";
+import { reconcileContractName } from "../helpers/reconcile-contract-name.js";
+import { reconcileFrom } from "../helpers/reconcile-from.js";
+import { reconcileLibraries } from "../helpers/reconcile-libraries.js";
+import { reconcileStrategy } from "../helpers/reconcile-strategy.js";
 
 export async function reconcileArtifactLibraryDeployment(
   future: LibraryDeploymentFuture,

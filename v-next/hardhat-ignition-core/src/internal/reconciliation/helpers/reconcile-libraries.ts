@@ -3,15 +3,15 @@ import type {
   LibraryDeploymentFuture,
   NamedArtifactContractDeploymentFuture,
   NamedArtifactLibraryDeploymentFuture,
-} from "../../../types/module";
-import type { DeploymentExecutionState } from "../../execution/types/execution-state";
+} from "../../../types/module.js";
+import type { DeploymentExecutionState } from "../../execution/types/execution-state.js";
 import type {
   ReconciliationContext,
   ReconciliationFutureResultFailure,
-} from "../types";
+} from "../types.js";
 
-import { resolveLibraries } from "../../execution/future-processor/helpers/future-resolvers";
-import { fail } from "../utils";
+import { resolveLibraries } from "../../execution/future-processor/helpers/future-resolvers.js";
+import { fail } from "../utils.js";
 
 export function reconcileLibraries(
   future:

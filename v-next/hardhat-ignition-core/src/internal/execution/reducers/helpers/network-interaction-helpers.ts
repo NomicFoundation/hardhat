@@ -3,7 +3,7 @@ import type {
   DeploymentExecutionState,
   SendDataExecutionState,
   StaticCallExecutionState,
-} from "../../types/execution-state";
+} from "../../types/execution-state.js";
 import type {
   NetworkInteractionRequestMessage,
   OnchainInteractionBumpFeesMessage,
@@ -13,19 +13,19 @@ import type {
   StaticCallCompleteMessage,
   TransactionConfirmMessage,
   TransactionSendMessage,
-} from "../../types/messages";
+} from "../../types/messages.js";
 
 import { produce } from "immer";
 
-import { assertIgnitionInvariant } from "../../../utils/assertions";
-import { findOnchainInteractionBy } from "../../../views/execution-state/find-onchain-interaction-by";
-import { findStaticCallBy } from "../../../views/execution-state/find-static-call-by";
-import { findTransactionBy } from "../../../views/execution-state/find-transaction-by";
+import { assertIgnitionInvariant } from "../../../utils/assertions.js";
+import { findOnchainInteractionBy } from "../../../views/execution-state/find-onchain-interaction-by.js";
+import { findStaticCallBy } from "../../../views/execution-state/find-static-call-by.js";
+import { findTransactionBy } from "../../../views/execution-state/find-transaction-by.js";
 import {
   ExecutionSateType,
   ExecutionStatus,
-} from "../../types/execution-state";
-import { NetworkInteractionType } from "../../types/network-interaction";
+} from "../../types/execution-state.js";
+import { NetworkInteractionType } from "../../types/network-interaction.js";
 
 /**
  * Add a new network interaction to the execution state.
@@ -39,13 +39,13 @@ export function appendNetworkInteraction<
     | DeploymentExecutionState
     | CallExecutionState
     | StaticCallExecutionState
-    | SendDataExecutionState,
+    | SendDataExecutionState
 >(state: ExState, action: NetworkInteractionRequestMessage): ExState {
   return produce(state, (draft: ExState): void => {
     if (draft.type === ExecutionSateType.STATIC_CALL_EXECUTION_STATE) {
       assertIgnitionInvariant(
         action.networkInteraction.type === NetworkInteractionType.STATIC_CALL,
-        `Static call execution states like ${draft.id} cannot have onchain interactions`,
+        `Static call execution states like ${draft.id} cannot have onchain interactions`
       );
 
       draft.networkInteractions.push(action.networkInteraction);
@@ -62,7 +62,7 @@ export function appendNetworkInteraction<
             nonce: undefined,
             shouldBeResent: false,
           }
-        : action.networkInteraction,
+        : action.networkInteraction
     );
   });
 }
@@ -85,12 +85,12 @@ export function appendTransactionToOnchainInteraction<
     | DeploymentExecutionState
     | CallExecutionState
     | StaticCallExecutionState
-    | SendDataExecutionState,
+    | SendDataExecutionState
 >(state: ExState, action: TransactionSendMessage): ExState {
   return produce(state, (draft: ExState): void => {
     const onchainInteraction = findOnchainInteractionBy(
       draft,
-      action.networkInteractionId,
+      action.networkInteractionId
     );
 
     if (onchainInteraction.nonce === undefined) {
@@ -98,7 +98,7 @@ export function appendTransactionToOnchainInteraction<
     } else {
       assertIgnitionInvariant(
         onchainInteraction.nonce === action.nonce,
-        `New transaction sent for ${state.id}/${onchainInteraction.id} with nonce ${action.nonce} but expected ${onchainInteraction.nonce}`,
+        `New transaction sent for ${state.id}/${onchainInteraction.id} with nonce ${action.nonce} but expected ${onchainInteraction.nonce}`
       );
     }
 
@@ -118,18 +118,18 @@ export function confirmTransaction<
   ExState extends
     | DeploymentExecutionState
     | CallExecutionState
-    | SendDataExecutionState,
+    | SendDataExecutionState
 >(state: ExState, action: TransactionConfirmMessage): ExState {
   return produce(state, (draft: ExState): void => {
     const onchainInteraction = findOnchainInteractionBy(
       draft,
-      action.networkInteractionId,
+      action.networkInteractionId
     );
 
     const transaction = findTransactionBy(
       draft,
       action.networkInteractionId,
-      action.hash,
+      action.hash
     );
 
     transaction.receipt = action.receipt;
@@ -150,12 +150,12 @@ export function completeStaticCall<
     | DeploymentExecutionState
     | CallExecutionState
     | SendDataExecutionState
-    | StaticCallExecutionState,
+    | StaticCallExecutionState
 >(state: ExState, action: StaticCallCompleteMessage): ExState {
   return produce(state, (draft: ExState): void => {
     const onchainInteraction = findStaticCallBy(
       draft,
-      action.networkInteractionId,
+      action.networkInteractionId
     );
 
     onchainInteraction.result = action.result;
@@ -174,12 +174,12 @@ export function bumpOnchainInteractionFees<
   ExState extends
     | DeploymentExecutionState
     | CallExecutionState
-    | SendDataExecutionState,
+    | SendDataExecutionState
 >(state: ExState, action: OnchainInteractionBumpFeesMessage): ExState {
   return produce(state, (draft: ExState): void => {
     const onchainInteraction = findOnchainInteractionBy(
       draft,
-      action.networkInteractionId,
+      action.networkInteractionId
     );
 
     onchainInteraction.shouldBeResent = true;
@@ -198,12 +198,12 @@ export function resendDroppedOnchainInteraction<
   ExState extends
     | DeploymentExecutionState
     | CallExecutionState
-    | SendDataExecutionState,
+    | SendDataExecutionState
 >(state: ExState, action: OnchainInteractionDroppedMessage): ExState {
   return produce(state, (draft: ExState): void => {
     const onchainInteraction = findOnchainInteractionBy(
       draft,
-      action.networkInteractionId,
+      action.networkInteractionId
     );
 
     onchainInteraction.shouldBeResent = true;
@@ -222,12 +222,12 @@ export function resetOnchainInteractionReplacedByUser<
   ExState extends
     | DeploymentExecutionState
     | CallExecutionState
-    | SendDataExecutionState,
+    | SendDataExecutionState
 >(state: ExState, action: OnchainInteractionReplacedByUserMessage): ExState {
   return produce(state, (draft: ExState): void => {
     const onchainInteraction = findOnchainInteractionBy(
       draft,
-      action.networkInteractionId,
+      action.networkInteractionId
     );
 
     onchainInteraction.transactions = [];
@@ -244,7 +244,7 @@ export function onchainInteractionTimedOut<
   ExState extends
     | DeploymentExecutionState
     | CallExecutionState
-    | SendDataExecutionState,
+    | SendDataExecutionState
 >(state: ExState, _action: OnchainInteractionTimeoutMessage): ExState {
   return produce(state, (draft: ExState): void => {
     draft.status = ExecutionStatus.TIMEOUT;

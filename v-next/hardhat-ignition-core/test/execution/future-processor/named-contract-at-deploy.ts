@@ -1,10 +1,10 @@
 import { assert } from "chai";
 
-import { NamedArtifactContractAtFuture } from "../../../src";
-import { deploymentStateReducer } from "../../../src/internal/execution/reducers/deployment-state-reducer";
-import { NamedContractAtFutureImplementation } from "../../../src/internal/module";
+import { NamedArtifactContractAtFuture } from "../../../src/index.js";
+import { deploymentStateReducer } from "../../../src/internal/execution/reducers/deployment-state-reducer.js";
+import { NamedContractAtFutureImplementation } from "../../../src/internal/module.js";
 
-import { setupFutureProcessor } from "./utils";
+import { setupFutureProcessor } from "./utils.js";
 
 const exampleAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
 

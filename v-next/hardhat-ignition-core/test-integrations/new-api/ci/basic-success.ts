@@ -1,6 +1,6 @@
 import { assert } from "chai";
 
-import { useHardhatProject } from "../../helpers/hardhat-projects";
+import { useHardhatProject } from "../../helpers/hardhat-projects.js";
 
 // This test exists to ensure Ignition succeeds in a CI environment.
 // This is a test that the UI, runs even in constrained terminal environments.
@@ -16,8 +16,8 @@ describe("Running deployment in CI environment", function () {
         { scope: "ignition", task: "deploy" },
         {
           modulePath: "./ignition/modules/LockModule.js",
-        },
-      ),
+        }
+      )
     );
   });
 });

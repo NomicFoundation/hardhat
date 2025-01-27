@@ -3,9 +3,9 @@ import { assert } from "chai";
 import {
   linkLibraries,
   validateLibraryNames,
-} from "../../src/internal/execution/libraries";
-import { assertValidationError } from "../helpers";
-import { deploymentFixturesArtifacts } from "../helpers/execution-result-fixtures";
+} from "../../src/internal/execution/libraries.js";
+import { assertValidationError } from "../helpers.js";
+import { deploymentFixturesArtifacts } from "../helpers/execution-result-fixtures.js";
 
 const mockAddress = "0x1122334455667788990011223344556677889900";
 const mockAddress2 = "0x0011223344556677889900112233445566778899";

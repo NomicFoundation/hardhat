@@ -1,7 +1,7 @@
-import type { Future } from "../../../types/module";
-import type { ReconciliationFutureResultFailure } from "../types";
+import type { Future } from "../../../types/module.js";
+import type { ReconciliationFutureResultFailure } from "../types.js";
 
-import { fail } from "../utils";
+import { fail } from "../utils.js";
 
 export function compare<
   ValueT extends bigint | number | boolean | string | undefined,

@@ -1,21 +1,21 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
-import { buildModule } from "../../../src/build-module";
-import { ExecutionResultType } from "../../../src/internal/execution/types/execution-result";
+import { buildModule } from "../../../src/build-module.js";
+import { ExecutionResultType } from "../../../src/internal/execution/types/execution-result.js";
 import {
   DeploymentExecutionState,
   ExecutionSateType,
   ExecutionStatus,
   ReadEventArgumentExecutionState,
-} from "../../../src/internal/execution/types/execution-state";
-import { FutureType } from "../../../src/types/module";
-import { exampleAccounts } from "../../helpers";
+} from "../../../src/internal/execution/types/execution-state.js";
+import { FutureType } from "../../../src/types/module.js";
+import { exampleAccounts } from "../../helpers.js";
 import {
   assertSuccessReconciliation,
   createDeploymentState,
   reconcile,
-} from "../helpers";
+} from "../helpers.js";
 
 describe("Reconciliation - read event argument", () => {
   const exampleAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";

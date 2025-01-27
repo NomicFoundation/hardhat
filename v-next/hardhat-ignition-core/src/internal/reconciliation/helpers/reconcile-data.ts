@@ -1,14 +1,14 @@
-import type { SendDataFuture } from "../../../types/module";
-import type { SendDataExecutionState } from "../../execution/types/execution-state";
+import type { SendDataFuture } from "../../../types/module.js";
+import type { SendDataExecutionState } from "../../execution/types/execution-state.js";
 import type {
   ReconciliationContext,
   ReconciliationFutureResultFailure,
-} from "../types";
+} from "../types.js";
 
-import { assertIgnitionInvariant } from "../../utils/assertions";
-import { findResultForFutureById } from "../../views/find-result-for-future-by-id";
+import { assertIgnitionInvariant } from "../../utils/assertions.js";
+import { findResultForFutureById } from "../../views/find-result-for-future-by-id.js";
 
-import { compare } from "./compare";
+import { compare } from "./compare.js";
 
 export function reconcileData(
   future: SendDataFuture,

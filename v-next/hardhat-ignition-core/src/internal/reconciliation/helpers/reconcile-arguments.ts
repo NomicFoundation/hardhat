@@ -4,23 +4,23 @@ import type {
   NamedArtifactContractDeploymentFuture,
   StaticCallFuture,
   EncodeFunctionCallFuture,
-} from "../../../types/module";
+} from "../../../types/module.js";
 import type {
   CallExecutionState,
   DeploymentExecutionState,
   EncodeFunctionCallExecutionState,
   StaticCallExecutionState,
-} from "../../execution/types/execution-state";
+} from "../../execution/types/execution-state.js";
 import type {
   ReconciliationContext,
   ReconciliationFutureResultFailure,
-} from "../types";
+} from "../types.js";
 
-import { isDeploymentFuture } from "../../../type-guards";
-import { resolveArgs } from "../../execution/future-processor/helpers/future-resolvers";
-import { ExecutionSateType } from "../../execution/types/execution-state";
-import { isAddress, equalAddresses } from "../../execution/utils/address";
-import { fail } from "../utils";
+import { isDeploymentFuture } from "../../../type-guards.js";
+import { resolveArgs } from "../../execution/future-processor/helpers/future-resolvers.js";
+import { ExecutionSateType } from "../../execution/types/execution-state.js";
+import { isAddress, equalAddresses } from "../../execution/utils/address.js";
+import { fail } from "../utils.js";
 
 export function reconcileArguments(
   future:

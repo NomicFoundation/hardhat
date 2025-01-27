@@ -5,7 +5,7 @@ import {
   toContractFutureId,
   toReadEventArgumentFutureId,
   toSendDataFutureId,
-} from "../../src/internal/utils/future-id-builders";
+} from "../../src/internal/utils/future-id-builders.js";
 
 describe("future id rules", () => {
   describe("contract, library, contractAt ids", () => {

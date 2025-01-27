@@ -1,14 +1,14 @@
-import type { NamedArtifactContractAtFuture } from "../../../types/module";
-import type { ContractAtExecutionState } from "../../execution/types/execution-state";
+import type { NamedArtifactContractAtFuture } from "../../../types/module.js";
+import type { ContractAtExecutionState } from "../../execution/types/execution-state.js";
 import type {
   ReconciliationContext,
   ReconciliationFutureResult,
-} from "../types";
+} from "../types.js";
 
-import { reconcileAddress } from "../helpers/reconcile-address";
-import { reconcileArtifacts } from "../helpers/reconcile-artifacts";
-import { reconcileContractName } from "../helpers/reconcile-contract-name";
-import { reconcileStrategy } from "../helpers/reconcile-strategy";
+import { reconcileAddress } from "../helpers/reconcile-address.js";
+import { reconcileArtifacts } from "../helpers/reconcile-artifacts.js";
+import { reconcileContractName } from "../helpers/reconcile-contract-name.js";
+import { reconcileStrategy } from "../helpers/reconcile-strategy.js";
 
 export async function reconcileNamedContractAt(
   future: NamedArtifactContractAtFuture<string>,

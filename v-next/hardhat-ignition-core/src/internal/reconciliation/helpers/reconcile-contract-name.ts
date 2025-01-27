@@ -5,17 +5,17 @@ import type {
   NamedArtifactContractAtFuture,
   NamedArtifactContractDeploymentFuture,
   NamedArtifactLibraryDeploymentFuture,
-} from "../../../types/module";
+} from "../../../types/module.js";
 import type {
   ContractAtExecutionState,
   DeploymentExecutionState,
-} from "../../execution/types/execution-state";
+} from "../../execution/types/execution-state.js";
 import type {
   ReconciliationContext,
   ReconciliationFutureResultFailure,
-} from "../types";
+} from "../types.js";
 
-import { compare } from "./compare";
+import { compare } from "./compare.js";
 
 export function reconcileContractName(
   future:

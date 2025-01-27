@@ -1,13 +1,13 @@
-import type { ReadEventArgumentFuture } from "../../../types/module";
-import type { ReadEventArgumentExecutionState } from "../../execution/types/execution-state";
+import type { ReadEventArgumentFuture } from "../../../types/module.js";
+import type { ReadEventArgumentExecutionState } from "../../execution/types/execution-state.js";
 import type {
   ReconciliationContext,
   ReconciliationFutureResult,
-} from "../types";
+} from "../types.js";
 
-import { resolveAddressForContractFuture } from "../../execution/future-processor/helpers/future-resolvers";
-import { compare } from "../helpers/compare";
-import { reconcileStrategy } from "../helpers/reconcile-strategy";
+import { resolveAddressForContractFuture } from "../../execution/future-processor/helpers/future-resolvers.js";
+import { compare } from "../helpers/compare.js";
+import { reconcileStrategy } from "../helpers/reconcile-strategy.js";
 
 export function reconcileReadEventArgument(
   future: ReadEventArgumentFuture,

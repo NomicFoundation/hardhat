@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import { Artifact } from "hardhat/types";
 
-import { SolidityParameterType } from "../../src";
+import { SolidityParameterType } from "../../src/index.js";
 import {
   decodeArtifactCustomError,
   decodeArtifactFunctionCallResult,
@@ -9,16 +9,16 @@ import {
   encodeArtifactDeploymentData,
   encodeArtifactFunctionCall,
   validateArtifactFunctionName,
-} from "../../src/internal/execution/abi";
-import { linkLibraries } from "../../src/internal/execution/libraries";
-import { EvmExecutionResultTypes } from "../../src/internal/execution/types/evm-execution";
-import { assertValidationError } from "../helpers";
+} from "../../src/internal/execution/abi.js";
+import { linkLibraries } from "../../src/internal/execution/libraries.js";
+import { EvmExecutionResultTypes } from "../../src/internal/execution/types/evm-execution.js";
+import { assertValidationError } from "../helpers.js";
 import {
   callEncodingFixtures,
   deploymentFixturesArtifacts,
   staticCallResultFixtures,
   staticCallResultFixturesArtifacts,
-} from "../helpers/execution-result-fixtures";
+} from "../helpers/execution-result-fixtures.js";
 
 describe("abi", () => {
   // These tests validate that type conversions from the underlying abi library

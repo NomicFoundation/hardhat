@@ -1,26 +1,26 @@
 import type {
   ExecutionEventListener,
   ExecutionEventResult,
-} from "../../../types/execution-events";
-import type { SolidityParameterType } from "../../../types/module";
+} from "../../../types/execution-events.js";
+import type { SolidityParameterType } from "../../../types/module.js";
 import type {
   CallExecutionResult,
   DeploymentExecutionResult,
   SendDataExecutionResult,
   StaticCallExecutionResult,
-} from "../../execution/types/execution-result";
-import type { JournalMessage } from "../../execution/types/messages";
+} from "../../execution/types/execution-result.js";
+import type { JournalMessage } from "../../execution/types/messages.js";
 
 import {
   ExecutionEventNetworkInteractionType,
   ExecutionEventResultType,
   ExecutionEventType,
-} from "../../../types/execution-events";
-import { ExecutionResultType } from "../../execution/types/execution-result";
-import { JournalMessageType } from "../../execution/types/messages";
-import { NetworkInteractionType } from "../../execution/types/network-interaction";
+} from "../../../types/execution-events.js";
+import { ExecutionResultType } from "../../execution/types/execution-result.js";
+import { JournalMessageType } from "../../execution/types/messages.js";
+import { NetworkInteractionType } from "../../execution/types/network-interaction.js";
 
-import { failedEvmExecutionResultToErrorDescription } from "./failedEvmExecutionResultToErrorDescription";
+import { failedEvmExecutionResultToErrorDescription } from "./failedEvmExecutionResultToErrorDescription.js";
 
 export function emitExecutionEvent(
   message: JournalMessage,

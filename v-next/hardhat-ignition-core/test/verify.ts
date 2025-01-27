@@ -1,8 +1,8 @@
 import { assert } from "chai";
 import path from "path";
 
-import { BuildInfo, VerifyResult, getVerificationInformation } from "../src";
-import { getImportSourceNames } from "../src/verify";
+import { BuildInfo, VerifyResult, getVerificationInformation } from "../src/index.js";
+import { getImportSourceNames } from "../src/verify.js";
 
 describe("verify", () => {
   it("should not verify an unitialized deployment", async () => {

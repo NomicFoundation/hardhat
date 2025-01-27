@@ -2,29 +2,29 @@ import type {
   Future,
   IgnitionModule,
   IgnitionModuleResult,
-} from "../../../types/module";
-import type { JsonRpcClient } from "../jsonrpc-client";
-import type { DeploymentState } from "../types/deployment-state";
+} from "../../../types/module.js";
+import type { JsonRpcClient } from "../jsonrpc-client.js";
+import type { DeploymentState } from "../types/deployment-state.js";
 import type {
   OnchainInteractionDroppedMessage,
   OnchainInteractionReplacedByUserMessage,
-} from "../types/messages";
+} from "../types/messages.js";
 
 import uniq from "lodash/uniq";
 
-import { IgnitionError } from "../../../errors";
+import { IgnitionError } from "../../../errors.js";
 import {
   isArtifactContractAtFuture,
   isEncodeFunctionCallFuture,
   isNamedContractAtFuture,
   isReadEventArgumentFuture,
-} from "../../../type-guards";
-import { ERRORS } from "../../errors-list";
-import { getFuturesFromModule } from "../../utils/get-futures-from-module";
-import { getPendingOnchainInteraction } from "../../views/execution-state/get-pending-onchain-interaction";
-import { resolveFutureFrom } from "../future-processor/helpers/future-resolvers";
-import { ExecutionSateType, ExecutionStatus } from "../types/execution-state";
-import { JournalMessageType } from "../types/messages";
+} from "../../../type-guards.js";
+import { ERRORS } from "../../errors-list.js";
+import { getFuturesFromModule } from "../../utils/get-futures-from-module.js";
+import { getPendingOnchainInteraction } from "../../views/execution-state/get-pending-onchain-interaction.js";
+import { resolveFutureFrom } from "../future-processor/helpers/future-resolvers.js";
+import { ExecutionSateType, ExecutionStatus } from "../types/execution-state.js";
+import { JournalMessageType } from "../types/messages.js";
 
 /**
  * This function is meant to be used to sync the local state's nonces

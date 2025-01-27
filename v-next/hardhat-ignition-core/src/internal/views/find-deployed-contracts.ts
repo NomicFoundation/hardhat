@@ -1,16 +1,16 @@
-import type { DeployedContract } from "../../types/deploy";
-import type { DeploymentState } from "../execution/types/deployment-state";
+import type { DeployedContract } from "../../types/deploy.js";
+import type { DeploymentState } from "../execution/types/deployment-state.js";
 import type {
   ContractAtExecutionState,
   DeploymentExecutionState,
-} from "../execution/types/execution-state";
+} from "../execution/types/execution-state.js";
 
-import { ExecutionResultType } from "../execution/types/execution-result";
+import { ExecutionResultType } from "../execution/types/execution-result.js";
 import {
   ExecutionSateType,
   ExecutionStatus,
-} from "../execution/types/execution-state";
-import { assertIgnitionInvariant } from "../utils/assertions";
+} from "../execution/types/execution-state.js";
+import { assertIgnitionInvariant } from "../utils/assertions.js";
 
 export function findDeployedContracts(deploymentState: DeploymentState): {
   [futureId: string]: DeployedContract;

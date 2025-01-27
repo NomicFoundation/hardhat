@@ -1,7 +1,7 @@
-import type { IgnitionModule, IgnitionModuleResult } from "./types/module";
+import type { IgnitionModule, IgnitionModuleResult } from "./types/module.js";
 
-import { Batcher } from "./internal/batcher";
-import { deploymentStateReducer } from "./internal/execution/reducers/deployment-state-reducer";
+import { Batcher } from "./internal/batcher.js";
+import { deploymentStateReducer } from "./internal/execution/reducers/deployment-state-reducer.js";
 
 /**
  * Provides a array of batches, where each batch is an array of futureIds,

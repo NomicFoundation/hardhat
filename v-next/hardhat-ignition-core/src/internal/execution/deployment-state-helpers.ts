@@ -1,13 +1,13 @@
-import type { DeploymentState } from "./types/deployment-state";
+import type { DeploymentState } from "./types/deployment-state.js";
 import type {
   DeploymentInitializeMessage,
   JournalMessage,
-} from "./types/messages";
-import type { DeploymentLoader } from "../deployment-loader/types";
+} from "./types/messages.js";
+import type { DeploymentLoader } from "../deployment-loader/types.js";
 
-import { deploymentStateReducer } from "./reducers/deployment-state-reducer";
-import { ExecutionResultType } from "./types/execution-result";
-import { JournalMessageType } from "./types/messages";
+import { deploymentStateReducer } from "./reducers/deployment-state-reducer.js";
+import { ExecutionResultType } from "./types/execution-result.js";
+import { JournalMessageType } from "./types/messages.js";
 
 /**
  * Loads a previous deployment state from its existing messages.

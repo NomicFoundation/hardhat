@@ -1,21 +1,21 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
-import { buildModule } from "../../../src/build-module";
-import { ExecutionResultType } from "../../../src/internal/execution/types/execution-result";
+import { buildModule } from "../../../src/build-module.js";
+import { ExecutionResultType } from "../../../src/internal/execution/types/execution-result.js";
 import {
   DeploymentExecutionState,
   EncodeFunctionCallExecutionState,
   ExecutionSateType,
   ExecutionStatus,
-} from "../../../src/internal/execution/types/execution-state";
-import { FutureType } from "../../../src/types/module";
-import { exampleAccounts } from "../../helpers";
+} from "../../../src/internal/execution/types/execution-state.js";
+import { FutureType } from "../../../src/types/module.js";
+import { exampleAccounts } from "../../helpers.js";
 import {
   assertSuccessReconciliation,
   createDeploymentState,
   reconcile,
-} from "../helpers";
+} from "../helpers.js";
 
 describe("Reconciliation - named encode function call", () => {
   const differentAddress = "0xBA12222222228d8Ba445958a75a0704d566BF2C8";

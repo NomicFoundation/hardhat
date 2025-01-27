@@ -3,24 +3,24 @@ import type {
   DeploymentExecutionResult,
   SendDataExecutionResult,
   StaticCallExecutionResult,
-} from "../../types/execution-result";
+} from "../../types/execution-result.js";
 import type {
   CallExecutionState,
   DeploymentExecutionState,
   SendDataExecutionState,
   StaticCallExecutionState,
-} from "../../types/execution-state";
+} from "../../types/execution-state.js";
 import type {
   CallExecutionStateCompleteMessage,
   DeploymentExecutionStateCompleteMessage,
   SendDataExecutionStateCompleteMessage,
   StaticCallExecutionStateCompleteMessage,
-} from "../../types/messages";
+} from "../../types/messages.js";
 
 import { produce } from "immer";
 
-import { ExecutionResultType } from "../../types/execution-result";
-import { ExecutionStatus } from "../../types/execution-state";
+import { ExecutionResultType } from "../../types/execution-result.js";
+import { ExecutionStatus } from "../../types/execution-state.js";
 
 /**
  * Update the execution state for a future to complete.

@@ -1,14 +1,14 @@
 import { assert } from "chai";
 
-import { DeploymentState } from "../../../src/internal/execution/types/deployment-state";
-import { EvmExecutionResultTypes } from "../../../src/internal/execution/types/evm-execution";
-import { ExecutionResultType } from "../../../src/internal/execution/types/execution-result";
+import { DeploymentState } from "../../../src/internal/execution/types/deployment-state.js";
+import { EvmExecutionResultTypes } from "../../../src/internal/execution/types/evm-execution.js";
+import { ExecutionResultType } from "../../../src/internal/execution/types/execution-result.js";
 import {
   DeploymentExecutionState,
   ExecutionSateType,
   ExecutionStatus,
-} from "../../../src/internal/execution/types/execution-state";
-import { TransactionReceiptStatus } from "../../../src/internal/execution/types/jsonrpc";
+} from "../../../src/internal/execution/types/execution-state.js";
+import { TransactionReceiptStatus } from "../../../src/internal/execution/types/jsonrpc.js";
 import {
   DeploymentExecutionStateCompleteMessage,
   DeploymentExecutionStateInitializeMessage,
@@ -16,15 +16,15 @@ import {
   NetworkInteractionRequestMessage,
   TransactionConfirmMessage,
   TransactionSendMessage,
-} from "../../../src/internal/execution/types/messages";
-import { NetworkInteractionType } from "../../../src/internal/execution/types/network-interaction";
-import { assertIgnitionInvariant } from "../../../src/internal/utils/assertions";
-import { findOnchainInteractionBy } from "../../../src/internal/views/execution-state/find-onchain-interaction-by";
-import { findTransactionBy } from "../../../src/internal/views/execution-state/find-transaction-by";
-import { findExecutionStateById } from "../../../src/internal/views/find-execution-state-by-id";
-import { FutureType } from "../../../src/types/module";
+} from "../../../src/internal/execution/types/messages.js";
+import { NetworkInteractionType } from "../../../src/internal/execution/types/network-interaction.js";
+import { assertIgnitionInvariant } from "../../../src/internal/utils/assertions.js";
+import { findOnchainInteractionBy } from "../../../src/internal/views/execution-state/find-onchain-interaction-by.js";
+import { findTransactionBy } from "../../../src/internal/views/execution-state/find-transaction-by.js";
+import { findExecutionStateById } from "../../../src/internal/views/find-execution-state-by-id.js";
+import { FutureType } from "../../../src/types/module.js";
 
-import { applyMessages } from "./utils";
+import { applyMessages } from "./utils.js";
 
 describe("DeploymentStateReducer", () => {
   describe("running a named contract deploy", () => {

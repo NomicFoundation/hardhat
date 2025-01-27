@@ -1,19 +1,19 @@
-import type { DeploymentParameters } from "../../types/deploy";
+import type { DeploymentParameters } from "../../types/deploy.js";
 import type {
   AccountRuntimeValue,
   ArgumentType,
   ModuleParameterRuntimeValue,
   RuntimeValue,
   SolidityParameterType,
-} from "../../types/module";
+} from "../../types/module.js";
 
-import { IgnitionError } from "../../errors";
+import { IgnitionError } from "../../errors.js";
 import {
   isAccountRuntimeValue,
   isFuture,
   isRuntimeValue,
-} from "../../type-guards";
-import { ERRORS } from "../errors-list";
+} from "../../type-guards.js";
+import { ERRORS } from "../errors-list.js";
 
 /**
  * Given the deployment parameters and a ModuleParameterRuntimeValue,

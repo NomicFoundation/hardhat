@@ -1,17 +1,17 @@
-import type { ArtifactResolver } from "../../../types/artifact";
-import type { DeploymentParameters } from "../../../types/deploy";
-import type { SendDataFuture } from "../../../types/module";
+import type { ArtifactResolver } from "../../../types/artifact.js";
+import type { DeploymentParameters } from "../../../types/deploy.js";
+import type { SendDataFuture } from "../../../types/module.js";
 
-import { IgnitionError } from "../../../errors";
+import { IgnitionError } from "../../../errors.js";
 import {
   isAccountRuntimeValue,
   isModuleParameterRuntimeValue,
-} from "../../../type-guards";
-import { ERRORS } from "../../errors-list";
+} from "../../../type-guards.js";
+import { ERRORS } from "../../errors-list.js";
 import {
   resolvePotentialModuleParameterValueFrom,
   validateAccountRuntimeValue,
-} from "../utils";
+} from "../utils.js";
 
 export async function validateSendData(
   future: SendDataFuture,

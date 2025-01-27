@@ -1,13 +1,13 @@
-import type { ReconciliationFutureResult } from "./types";
-import type { Future } from "../../types/module";
-import type { DeploymentState } from "../execution/types/deployment-state";
-import type { ExecutionState } from "../execution/types/execution-state";
+import type { ReconciliationFutureResult } from "./types.js";
+import type { Future } from "../../types/module.js";
+import type { DeploymentState } from "../execution/types/deployment-state.js";
+import type { ExecutionState } from "../execution/types/execution-state.js";
 
 import difference from "lodash/difference";
 
-import { ExecutionStatus } from "../execution/types/execution-state";
+import { ExecutionStatus } from "../execution/types/execution-state.js";
 
-import { fail } from "./utils";
+import { fail } from "./utils.js";
 
 export function reconcileDependencyRules(
   future: Future,

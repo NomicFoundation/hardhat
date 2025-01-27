@@ -1,7 +1,7 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
-import { buildModule } from "../src/build-module";
+import { buildModule } from "../src/build-module.js";
 
 describe("buildModule", () => {
   describe("error handling", () => {

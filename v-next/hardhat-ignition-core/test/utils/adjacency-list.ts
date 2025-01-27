@@ -1,7 +1,7 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
-import { AdjacencyList } from "../../src/internal/utils/adjacency-list";
+import { AdjacencyList } from "../../src/internal/utils/adjacency-list.js";
 
 describe("adjacency list", () => {
   it("should provide a topological sort", () => {

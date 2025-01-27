@@ -3,7 +3,7 @@ import type {
   DeploymentExecutionState,
   SendDataExecutionState,
   StaticCallExecutionState,
-} from "../../types/execution-state";
+} from "../../types/execution-state.js";
 import type {
   CallStrategyGenerator,
   DeploymentStrategyGenerator,
@@ -11,19 +11,19 @@ import type {
   SendDataStrategyGenerator,
   StaticCallStrategyGenerator,
   SuccessfulTransaction,
-} from "../../types/execution-strategy";
-import type { NetworkInteraction } from "../../types/network-interaction";
+} from "../../types/execution-strategy.js";
+import type { NetworkInteraction } from "../../types/network-interaction.js";
 
-import { assertIgnitionInvariant } from "../../../utils/assertions";
+import { assertIgnitionInvariant } from "../../../utils/assertions.js";
 import {
   ExecutionSateType,
   ExecutionStatus,
-} from "../../types/execution-state";
+} from "../../types/execution-state.js";
 import {
   OnchainInteractionResponseType,
   SIMULATION_SUCCESS_SIGNAL_TYPE,
-} from "../../types/execution-strategy";
-import { NetworkInteractionType } from "../../types/network-interaction";
+} from "../../types/execution-strategy.js";
+import { NetworkInteractionType } from "../../types/network-interaction.js";
 
 /**
  * This function creates and replays an ExecutionStrategy generator, and

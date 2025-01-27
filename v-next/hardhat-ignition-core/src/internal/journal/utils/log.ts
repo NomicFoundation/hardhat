@@ -1,9 +1,9 @@
-import type { JournalMessage } from "../../execution/types/messages";
+import type { JournalMessage } from "../../execution/types/messages.js";
 
-import { ExecutionResultType } from "../../execution/types/execution-result";
-import { JournalMessageType } from "../../execution/types/messages";
-import { NetworkInteractionType } from "../../execution/types/network-interaction";
-import { formatSolidityParameter } from "../../formatters";
+import { ExecutionResultType } from "../../execution/types/execution-result.js";
+import { JournalMessageType } from "../../execution/types/messages.js";
+import { NetworkInteractionType } from "../../execution/types/network-interaction.js";
+import { formatSolidityParameter } from "../../formatters.js";
 
 export function logJournalableMessage(message: JournalMessage): void {
   switch (message.type) {

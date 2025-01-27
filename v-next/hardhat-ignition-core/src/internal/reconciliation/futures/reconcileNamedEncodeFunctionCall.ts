@@ -1,13 +1,13 @@
-import type { EncodeFunctionCallFuture } from "../../../types/module";
-import type { EncodeFunctionCallExecutionState } from "../../execution/types/execution-state";
+import type { EncodeFunctionCallFuture } from "../../../types/module.js";
+import type { EncodeFunctionCallExecutionState } from "../../execution/types/execution-state.js";
 import type {
   ReconciliationContext,
   ReconciliationFutureResult,
-} from "../types";
+} from "../types.js";
 
-import { reconcileArguments } from "../helpers/reconcile-arguments";
-import { reconcileFunctionName } from "../helpers/reconcile-function-name";
-import { reconcileStrategy } from "../helpers/reconcile-strategy";
+import { reconcileArguments } from "../helpers/reconcile-arguments.js";
+import { reconcileFunctionName } from "../helpers/reconcile-function-name.js";
+import { reconcileStrategy } from "../helpers/reconcile-strategy.js";
 
 export function reconcileNamedEncodeFunctionCall(
   future: EncodeFunctionCallFuture<string, string>,

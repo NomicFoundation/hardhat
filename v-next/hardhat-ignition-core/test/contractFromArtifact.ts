@@ -1,22 +1,22 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
-import { Artifact, FutureType } from "../src";
-import { buildModule } from "../src/build-module";
+import { Artifact, FutureType } from "../src/index.js";
+import { buildModule } from "../src/build-module.js";
 import {
   AccountRuntimeValueImplementation,
   ArtifactContractDeploymentFutureImplementation,
   ModuleParameterRuntimeValueImplementation,
-} from "../src/internal/module";
-import { getFuturesFromModule } from "../src/internal/utils/get-futures-from-module";
-import { validateArtifactContractDeployment } from "../src/internal/validation/futures/validateArtifactContractDeployment";
+} from "../src/internal/module.js";
+import { getFuturesFromModule } from "../src/internal/utils/get-futures-from-module.js";
+import { validateArtifactContractDeployment } from "../src/internal/validation/futures/validateArtifactContractDeployment.js";
 
 import {
   assertInstanceOf,
   assertValidationError,
   fakeArtifact,
   setupMockArtifactResolver,
-} from "./helpers";
+} from "./helpers.js";
 
 describe("contractFromArtifact", () => {
   it("should be able to deploy with a contract based on an artifact", () => {

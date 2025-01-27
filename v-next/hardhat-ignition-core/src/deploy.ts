@@ -1,32 +1,32 @@
-import type { DeploymentLoader } from "./internal/deployment-loader/types";
-import type { ExecutionStrategy } from "./internal/execution/types/execution-strategy";
-import type { ArtifactResolver } from "./types/artifact";
+import type { DeploymentLoader } from "./internal/deployment-loader/types.js";
+import type { ExecutionStrategy } from "./internal/execution/types/execution-strategy.js";
+import type { ArtifactResolver } from "./types/artifact.js";
 import type {
   DeployConfig,
   DeploymentParameters,
   DeploymentResult,
   StrategyConfig,
-} from "./types/deploy";
-import type { ExecutionEventListener } from "./types/execution-events";
-import type { IgnitionModule, IgnitionModuleResult } from "./types/module";
-import type { EIP1193Provider } from "./types/provider";
+} from "./types/deploy.js";
+import type { ExecutionEventListener } from "./types/execution-events.js";
+import type { IgnitionModule, IgnitionModuleResult } from "./types/module.js";
+import type { EIP1193Provider } from "./types/provider.js";
 
-import { IgnitionError } from "./errors";
+import { IgnitionError } from "./errors.js";
 import {
   DEFAULT_AUTOMINE_REQUIRED_CONFIRMATIONS,
   defaultConfig,
-} from "./internal/defaultConfig";
-import { Deployer } from "./internal/deployer";
-import { EphemeralDeploymentLoader } from "./internal/deployment-loader/ephemeral-deployment-loader";
-import { FileDeploymentLoader } from "./internal/deployment-loader/file-deployment-loader";
-import { ERRORS } from "./internal/errors-list";
-import { EIP1193JsonRpcClient } from "./internal/execution/jsonrpc-client";
-import { equalAddresses } from "./internal/execution/utils/address";
-import { getDefaultSender } from "./internal/execution/utils/get-default-sender";
-import { checkAutominedNetwork } from "./internal/utils/check-automined-network";
-import { validate } from "./internal/validation/validate";
-import { resolveStrategy } from "./strategies/resolve-strategy";
-import { ExecutionEventType } from "./types/execution-events";
+} from "./internal/defaultConfig.js";
+import { Deployer } from "./internal/deployer.js";
+import { EphemeralDeploymentLoader } from "./internal/deployment-loader/ephemeral-deployment-loader.js";
+import { FileDeploymentLoader } from "./internal/deployment-loader/file-deployment-loader.js";
+import { ERRORS } from "./internal/errors-list.js";
+import { EIP1193JsonRpcClient } from "./internal/execution/jsonrpc-client.js";
+import { equalAddresses } from "./internal/execution/utils/address.js";
+import { getDefaultSender } from "./internal/execution/utils/get-default-sender.js";
+import { checkAutominedNetwork } from "./internal/utils/check-automined-network.js";
+import { validate } from "./internal/validation/validate.js";
+import { resolveStrategy } from "./strategies/resolve-strategy.js";
+import { ExecutionEventType } from "./types/execution-events.js";
 
 /**
  * Deploy an IgnitionModule to the chain

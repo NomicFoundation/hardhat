@@ -1,4 +1,4 @@
-import type { Artifact } from "../types/artifact";
+import type { Artifact } from "../types/artifact.js";
 import type {
   AccountRuntimeValue,
   AddressResolvableFuture,
@@ -21,7 +21,7 @@ import type {
   ReadEventArgumentFuture,
   SendDataFuture,
   StaticCallFuture,
-} from "../types/module";
+} from "../types/module.js";
 import type {
   CallOptions,
   ContractAtOptions,
@@ -32,11 +32,11 @@ import type {
   ReadEventArgumentOptions,
   SendDataOptions,
   StaticCallOptions,
-} from "../types/module-builder";
+} from "../types/module-builder.js";
 
 import { inspect } from "node:util";
 
-import { IgnitionError } from "../errors";
+import { IgnitionError } from "../errors.js";
 import {
   isAccountRuntimeValue,
   isAddressResolvableFuture,
@@ -48,11 +48,11 @@ import {
   isModuleParameterRuntimeValue,
   isNamedStaticCallFuture,
   isReadEventArgumentFuture,
-} from "../type-guards";
-import { FutureType } from "../types/module";
+} from "../type-guards.js";
+import { FutureType } from "../types/module.js";
 
-import { ERRORS } from "./errors-list";
-import { equalAddresses, isAddress } from "./execution/utils/address";
+import { ERRORS } from "./errors-list.js";
+import { equalAddresses, isAddress } from "./execution/utils/address.js";
 import {
   AccountRuntimeValueImplementation,
   ArtifactContractAtFutureImplementation,
@@ -68,22 +68,22 @@ import {
   NamedStaticCallFutureImplementation,
   ReadEventArgumentFutureImplementation,
   SendDataFutureImplementation,
-} from "./module";
-import { resolveArgsToFutures } from "./utils";
-import { assertIgnitionInvariant } from "./utils/assertions";
+} from "./module.js";
+import { resolveArgsToFutures } from "./utils.js";
+import { assertIgnitionInvariant } from "./utils/assertions.js";
 import {
   toCallFutureId,
   toContractFutureId,
   toEncodeFunctionCallFutureId,
   toReadEventArgumentFutureId,
   toSendDataFutureId,
-} from "./utils/future-id-builders";
+} from "./utils/future-id-builders.js";
 import {
   isValidContractName,
   isValidFunctionOrEventName,
   isValidIgnitionIdentifier,
   isValidSolidityIdentifier,
-} from "./utils/identifier-validators";
+} from "./utils/identifier-validators.js";
 
 const STUB_MODULE_RESULTS = {
   [inspect.custom](): string {

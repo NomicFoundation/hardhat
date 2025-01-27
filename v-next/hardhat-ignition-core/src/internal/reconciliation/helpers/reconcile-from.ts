@@ -6,21 +6,21 @@ import type {
   NamedArtifactLibraryDeploymentFuture,
   SendDataFuture,
   StaticCallFuture,
-} from "../../../types/module";
+} from "../../../types/module.js";
 import type {
   CallExecutionState,
   DeploymentExecutionState,
   SendDataExecutionState,
   StaticCallExecutionState,
-} from "../../execution/types/execution-state";
+} from "../../execution/types/execution-state.js";
 import type {
   ReconciliationContext,
   ReconciliationFutureResultFailure,
-} from "../types";
+} from "../types.js";
 
-import { resolveFutureFrom } from "../../execution/future-processor/helpers/future-resolvers";
+import { resolveFutureFrom } from "../../execution/future-processor/helpers/future-resolvers.js";
 
-import { compare } from "./compare";
+import { compare } from "./compare.js";
 
 export function reconcileFrom(
   future:

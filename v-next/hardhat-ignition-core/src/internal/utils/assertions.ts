@@ -1,5 +1,5 @@
-import { IgnitionError } from "../../errors";
-import { ERRORS } from "../errors-list";
+import { IgnitionError } from "../../errors.js";
+import { ERRORS } from "../errors-list.js";
 
 export function assertIgnitionInvariant(
   invariant: boolean,

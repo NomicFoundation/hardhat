@@ -1,14 +1,14 @@
-import type { DeploymentParameters } from "../../types/deploy";
+import type { DeploymentParameters } from "../../types/deploy.js";
 import type {
   ModuleParameterRuntimeValue,
   ModuleParameterType,
   SolidityParameterType,
-} from "../../types/module";
+} from "../../types/module.js";
 
-import { isAccountRuntimeValue } from "../../type-guards";
-import { resolveAccountRuntimeValue } from "../execution/future-processor/helpers/future-resolvers";
+import { isAccountRuntimeValue } from "../../type-guards.js";
+import { resolveAccountRuntimeValue } from "../execution/future-processor/helpers/future-resolvers.js";
 
-import { assertIgnitionInvariant } from "./assertions";
+import { assertIgnitionInvariant } from "./assertions.js";
 
 export function resolveModuleParameter(
   moduleParamRuntimeValue: ModuleParameterRuntimeValue<ModuleParameterType>,

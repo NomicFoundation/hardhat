@@ -3,11 +3,11 @@ import type {
   DeploymentExecutionState,
   SendDataExecutionState,
   StaticCallExecutionState,
-} from "../../execution/types/execution-state";
-import type { OnchainInteraction } from "../../execution/types/network-interaction";
+} from "../../execution/types/execution-state.js";
+import type { OnchainInteraction } from "../../execution/types/network-interaction.js";
 
-import { NetworkInteractionType } from "../../execution/types/network-interaction";
-import { assertIgnitionInvariant } from "../../utils/assertions";
+import { NetworkInteractionType } from "../../execution/types/network-interaction.js";
+import { assertIgnitionInvariant } from "../../utils/assertions.js";
 
 export function findOnchainInteractionBy(
   executionState:

@@ -1,19 +1,19 @@
 import { assert } from "chai";
 
-import { NamedArtifactContractDeploymentFuture } from "../../../src";
-import { TransactionParams } from "../../../src/internal/execution/jsonrpc-client";
-import { deploymentStateReducer } from "../../../src/internal/execution/reducers/deployment-state-reducer";
-import { ExecutionResultType } from "../../../src/internal/execution/types/execution-result";
+import { NamedArtifactContractDeploymentFuture } from "../../../src/index.js";
+import { TransactionParams } from "../../../src/internal/execution/jsonrpc-client.js";
+import { deploymentStateReducer } from "../../../src/internal/execution/reducers/deployment-state-reducer.js";
+import { ExecutionResultType } from "../../../src/internal/execution/types/execution-result.js";
 import {
   ExecutionSateType,
   ExecutionStatus,
-} from "../../../src/internal/execution/types/execution-state";
-import { TransactionReceiptStatus } from "../../../src/internal/execution/types/jsonrpc";
-import { NamedContractDeploymentFutureImplementation } from "../../../src/internal/module";
-import { assertIgnitionInvariant } from "../../../src/internal/utils/assertions";
-import { exampleAccounts } from "../../helpers";
+} from "../../../src/internal/execution/types/execution-state.js";
+import { TransactionReceiptStatus } from "../../../src/internal/execution/types/jsonrpc.js";
+import { NamedContractDeploymentFutureImplementation } from "../../../src/internal/module.js";
+import { assertIgnitionInvariant } from "../../../src/internal/utils/assertions.js";
+import { exampleAccounts } from "../../helpers.js";
 
-import { setupFutureProcessor } from "./utils";
+import { setupFutureProcessor } from "./utils.js";
 
 const exampleAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
 

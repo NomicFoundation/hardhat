@@ -1,4 +1,4 @@
-import type { Abi, Artifact } from "./artifact";
+import type { Abi, Artifact } from "./artifact.js";
 import type {
   AccountRuntimeValue,
   AddressResolvableFuture,
@@ -21,7 +21,7 @@ import type {
   ReadEventArgumentFuture,
   SendDataFuture,
   StaticCallFuture,
-} from "./module";
+} from "./module.js";
 
 /**
  * The options for a `contract` deployment.

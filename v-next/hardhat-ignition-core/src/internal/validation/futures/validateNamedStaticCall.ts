@@ -1,24 +1,24 @@
-import type { ArtifactResolver } from "../../../types/artifact";
-import type { DeploymentParameters } from "../../../types/deploy";
-import type { StaticCallFuture } from "../../../types/module";
+import type { ArtifactResolver } from "../../../types/artifact.js";
+import type { DeploymentParameters } from "../../../types/deploy.js";
+import type { StaticCallFuture } from "../../../types/module.js";
 
-import { IgnitionError } from "../../../errors";
+import { IgnitionError } from "../../../errors.js";
 import {
   isAccountRuntimeValue,
   isArtifactType,
   isModuleParameterRuntimeValue,
-} from "../../../type-guards";
-import { ERRORS } from "../../errors-list";
+} from "../../../type-guards.js";
+import { ERRORS } from "../../errors-list.js";
 import {
   validateArtifactFunction,
   validateFunctionArgumentParamType,
-} from "../../execution/abi";
+} from "../../execution/abi.js";
 import {
   filterToAccountRuntimeValues,
   resolvePotentialModuleParameterValueFrom,
   retrieveNestedRuntimeValues,
   validateAccountRuntimeValue,
-} from "../utils";
+} from "../utils.js";
 
 export async function validateNamedStaticCall(
   future: StaticCallFuture<string, string>,

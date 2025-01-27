@@ -1,20 +1,20 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
-import { buildModule } from "../src/build-module";
+import { buildModule } from "../src/build-module.js";
 import {
   AccountRuntimeValueImplementation,
   ArtifactLibraryDeploymentFutureImplementation,
-} from "../src/internal/module";
-import { getFuturesFromModule } from "../src/internal/utils/get-futures-from-module";
-import { validateArtifactLibraryDeployment } from "../src/internal/validation/futures/validateArtifactLibraryDeployment";
+} from "../src/internal/module.js";
+import { getFuturesFromModule } from "../src/internal/utils/get-futures-from-module.js";
+import { validateArtifactLibraryDeployment } from "../src/internal/validation/futures/validateArtifactLibraryDeployment.js";
 
 import {
   assertInstanceOf,
   assertValidationError,
   fakeArtifact,
   setupMockArtifactResolver,
-} from "./helpers";
+} from "./helpers.js";
 
 describe("libraryFromArtifact", () => {
   it("should be able to deploy with a library based on an artifact", () => {

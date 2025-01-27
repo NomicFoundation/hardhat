@@ -1,6 +1,6 @@
 import { assert } from "chai";
 
-import { isValidFunctionOrEventName } from "../../src/internal/utils/identifier-validators";
+import { isValidFunctionOrEventName } from "../../src/internal/utils/identifier-validators.js";
 
 describe("isValidFunctionOrEventName", () => {
   it("should return true for valid solidity function names", () => {

@@ -1,6 +1,6 @@
-import type { ExecutionState } from "../execution/types/execution-state";
+import type { ExecutionState } from "../execution/types/execution-state.js";
 
-import { ExecutionStatus } from "../execution/types/execution-state";
+import { ExecutionStatus } from "../execution/types/execution-state.js";
 
 /**
  * Determine if an execution state has reached completion, either

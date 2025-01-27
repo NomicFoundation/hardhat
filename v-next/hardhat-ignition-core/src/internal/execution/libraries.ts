@@ -13,11 +13,11 @@
  * @file
  */
 
-import type { Artifact } from "../../types/artifact";
+import type { Artifact } from "../../types/artifact.js";
 
-import { IgnitionError } from "../../errors";
-import { ERRORS } from "../errors-list";
-import { assertIgnitionInvariant } from "../utils/assertions";
+import { IgnitionError } from "../../errors.js";
+import { ERRORS } from "../errors-list.js";
+import { assertIgnitionInvariant } from "../utils/assertions.js";
 
 /**
  * This function validates that the libraries object ensures that libraries:

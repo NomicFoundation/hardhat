@@ -1,4 +1,4 @@
-import type { ChainConfig } from "../types/verify";
+import type { ChainConfig } from "../types/verify.js";
 
 // See https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md#list-of-chain-ids
 export const builtinChains: ChainConfig[] = [

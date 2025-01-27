@@ -1,18 +1,18 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
-import { FutureType } from "../src";
-import { buildModule } from "../src/build-module";
-import { ModuleParameterRuntimeValueImplementation } from "../src/internal/module";
-import { getFuturesFromModule } from "../src/internal/utils/get-futures-from-module";
-import { validateNamedContractAt } from "../src/internal/validation/futures/validateNamedContractAt";
+import { FutureType } from "../src/index.js";
+import { buildModule } from "../src/build-module.js";
+import { ModuleParameterRuntimeValueImplementation } from "../src/internal/module.js";
+import { getFuturesFromModule } from "../src/internal/utils/get-futures-from-module.js";
+import { validateNamedContractAt } from "../src/internal/validation/futures/validateNamedContractAt.js";
 
 import {
   assertInstanceOf,
   assertValidationError,
   fakeArtifact,
   setupMockArtifactResolver,
-} from "./helpers";
+} from "./helpers.js";
 
 describe("contractAt", () => {
   const exampleAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";

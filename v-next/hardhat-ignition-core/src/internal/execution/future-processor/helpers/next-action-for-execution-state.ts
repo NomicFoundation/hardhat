@@ -3,9 +3,9 @@ import type {
   DeploymentExecutionState,
   SendDataExecutionState,
   StaticCallExecutionState,
-} from "../../types/execution-state";
+} from "../../types/execution-state.js";
 
-import { NetworkInteractionType } from "../../types/network-interaction";
+import { NetworkInteractionType } from "../../types/network-interaction.js";
 
 /**
  * The next action that the FutureProcessor should take.

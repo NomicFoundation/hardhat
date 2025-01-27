@@ -1,29 +1,29 @@
-import type { Block, JsonRpcClient } from "./jsonrpc-client";
-import type { DeploymentState } from "./types/deployment-state";
-import type { ExecutionStrategy } from "./types/execution-strategy";
-import type { ArtifactResolver } from "../../types/artifact";
-import type { DeploymentParameters } from "../../types/deploy";
-import type { ExecutionEventListener } from "../../types/execution-events";
+import type { Block, JsonRpcClient } from "./jsonrpc-client.js";
+import type { DeploymentState } from "./types/deployment-state.js";
+import type { ExecutionStrategy } from "./types/execution-strategy.js";
+import type { ArtifactResolver } from "../../types/artifact.js";
+import type { DeploymentParameters } from "../../types/deploy.js";
+import type { ExecutionEventListener } from "../../types/execution-events.js";
 import type {
   Future,
   IgnitionModule,
   IgnitionModuleResult,
-} from "../../types/module";
-import type { DeploymentLoader } from "../deployment-loader/types";
+} from "../../types/module.js";
+import type { DeploymentLoader } from "../deployment-loader/types.js";
 
-import { ExecutionEventType } from "../../types/execution-events";
-import { assertIgnitionInvariant } from "../utils/assertions";
-import { getFuturesFromModule } from "../utils/get-futures-from-module";
-import { getPendingNonceAndSender } from "../views/execution-state/get-pending-nonce-and-sender";
-import { hasExecutionSucceeded } from "../views/has-execution-succeeded";
-import { isBatchFinished } from "../views/is-batch-finished";
+import { ExecutionEventType } from "../../types/execution-events.js";
+import { assertIgnitionInvariant } from "../utils/assertions.js";
+import { getFuturesFromModule } from "../utils/get-futures-from-module.js";
+import { getPendingNonceAndSender } from "../views/execution-state/get-pending-nonce-and-sender.js";
+import { hasExecutionSucceeded } from "../views/has-execution-succeeded.js";
+import { isBatchFinished } from "../views/is-batch-finished.js";
 
-import { applyNewMessage } from "./deployment-state-helpers";
-import { FutureProcessor } from "./future-processor/future-processor";
-import { getMaxNonceUsedBySender } from "./nonce-management/get-max-nonce-used-by-sender";
-import { getNonceSyncMessages } from "./nonce-management/get-nonce-sync-messages";
-import { JsonRpcNonceManager } from "./nonce-management/json-rpc-nonce-manager";
-import { TransactionTrackingTimer } from "./transaction-tracking-timer";
+import { applyNewMessage } from "./deployment-state-helpers.js";
+import { FutureProcessor } from "./future-processor/future-processor.js";
+import { getMaxNonceUsedBySender } from "./nonce-management/get-max-nonce-used-by-sender.js";
+import { getNonceSyncMessages } from "./nonce-management/get-nonce-sync-messages.js";
+import { JsonRpcNonceManager } from "./nonce-management/json-rpc-nonce-manager.js";
+import { TransactionTrackingTimer } from "./transaction-tracking-timer.js";
 
 /**
  * This class is used to execute a module to completion, returning the new

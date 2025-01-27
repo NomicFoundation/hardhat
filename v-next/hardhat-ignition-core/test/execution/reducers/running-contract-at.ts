@@ -1,19 +1,19 @@
 import { assert } from "chai";
 
-import { DeploymentState } from "../../../src/internal/execution/types/deployment-state";
+import { DeploymentState } from "../../../src/internal/execution/types/deployment-state.js";
 import {
   ContractAtExecutionState,
   ExecutionSateType,
   ExecutionStatus,
-} from "../../../src/internal/execution/types/execution-state";
+} from "../../../src/internal/execution/types/execution-state.js";
 import {
   ContractAtExecutionStateInitializeMessage,
   JournalMessageType,
-} from "../../../src/internal/execution/types/messages";
-import { findExecutionStateById } from "../../../src/internal/views/find-execution-state-by-id";
-import { FutureType } from "../../../src/types/module";
+} from "../../../src/internal/execution/types/messages.js";
+import { findExecutionStateById } from "../../../src/internal/views/find-execution-state-by-id.js";
+import { FutureType } from "../../../src/types/module.js";
 
-import { applyMessages } from "./utils";
+import { applyMessages } from "./utils.js";
 
 describe("DeploymentStateReducer", () => {
   describe("running a contract at", () => {

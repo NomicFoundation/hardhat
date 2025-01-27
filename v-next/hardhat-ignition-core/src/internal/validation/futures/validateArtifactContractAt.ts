@@ -1,11 +1,11 @@
-import type { ArtifactResolver } from "../../../types/artifact";
-import type { DeploymentParameters } from "../../../types/deploy";
-import type { ContractAtFuture } from "../../../types/module";
+import type { ArtifactResolver } from "../../../types/artifact.js";
+import type { DeploymentParameters } from "../../../types/deploy.js";
+import type { ContractAtFuture } from "../../../types/module.js";
 
-import { IgnitionError } from "../../../errors";
-import { isModuleParameterRuntimeValue } from "../../../type-guards";
-import { ERRORS } from "../../errors-list";
-import { resolvePotentialModuleParameterValueFrom } from "../utils";
+import { IgnitionError } from "../../../errors.js";
+import { isModuleParameterRuntimeValue } from "../../../type-guards.js";
+import { ERRORS } from "../../errors-list.js";
+import { resolvePotentialModuleParameterValueFrom } from "../utils.js";
 
 export async function validateArtifactContractAt(
   future: ContractAtFuture,

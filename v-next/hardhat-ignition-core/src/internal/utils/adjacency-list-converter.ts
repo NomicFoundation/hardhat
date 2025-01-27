@@ -1,8 +1,8 @@
-import type { Future } from "../../types/module";
+import type { Future } from "../../types/module.js";
 
-import { isFuture } from "../../type-guards";
+import { isFuture } from "../../type-guards.js";
 
-import { AdjacencyList } from "./adjacency-list";
+import { AdjacencyList } from "./adjacency-list.js";
 
 export class AdjacencyListConverter {
   public static buildAdjacencyListFromFutures(

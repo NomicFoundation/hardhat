@@ -1,8 +1,8 @@
-import type { MapExStateTypeToExState } from "../execution/type-helpers";
-import type { DeploymentState } from "../execution/types/deployment-state";
-import type { ExecutionSateType } from "../execution/types/execution-state";
+import type { MapExStateTypeToExState } from "../execution/type-helpers.js";
+import type { DeploymentState } from "../execution/types/deployment-state.js";
+import type { ExecutionSateType } from "../execution/types/execution-state.js";
 
-import { assertIgnitionInvariant } from "../utils/assertions";
+import { assertIgnitionInvariant } from "../utils/assertions.js";
 
 export function findExecutionStateById<ExStateT extends ExecutionSateType>(
   exStateType: ExStateT,

@@ -1,16 +1,16 @@
 import type {
   ContractAtFuture,
   NamedArtifactContractAtFuture,
-} from "../../../types/module";
-import type { ContractAtExecutionState } from "../../execution/types/execution-state";
+} from "../../../types/module.js";
+import type { ContractAtExecutionState } from "../../execution/types/execution-state.js";
 import type {
   ReconciliationContext,
   ReconciliationFutureResultFailure,
-} from "../types";
+} from "../types.js";
 
-import { resolveAddressLike } from "../../execution/future-processor/helpers/future-resolvers";
+import { resolveAddressLike } from "../../execution/future-processor/helpers/future-resolvers.js";
 
-import { compare } from "./compare";
+import { compare } from "./compare.js";
 
 export function reconcileAddress(
   future: NamedArtifactContractAtFuture<string> | ContractAtFuture,

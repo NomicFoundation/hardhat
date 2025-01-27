@@ -1,7 +1,7 @@
-import type { Future } from "../../types/module";
-import type { DeploymentState } from "../execution/types/deployment-state";
+import type { Future } from "../../types/module.js";
+import type { DeploymentState } from "../execution/types/deployment-state.js";
 
-import { ExecutionStatus } from "../execution/types/execution-state";
+import { ExecutionStatus } from "../execution/types/execution-state.js";
 
 /**
  * Returns true if the execution of the given future has succeeded.

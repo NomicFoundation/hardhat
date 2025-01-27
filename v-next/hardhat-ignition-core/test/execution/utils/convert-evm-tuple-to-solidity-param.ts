@@ -1,7 +1,7 @@
 import { assert } from "chai";
 
-import { EvmTuple } from "../../../src/internal/execution/types/evm-execution";
-import { convertEvmTupleToSolidityParam } from "../../../src/internal/execution/utils/convert-evm-tuple-to-solidity-param";
+import { EvmTuple } from "../../../src/internal/execution/types/evm-execution.js";
+import { convertEvmTupleToSolidityParam } from "../../../src/internal/execution/utils/convert-evm-tuple-to-solidity-param.js";
 
 describe("converting evm tuples to solidity params", () => {
   it("should convert a tuple", () => {

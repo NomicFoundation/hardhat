@@ -4,22 +4,22 @@ import type {
   RevertedTransactionExecutionResult,
   SendDataExecutionResult,
   StaticCallExecutionResult,
-} from "./execution-result";
+} from "./execution-result.js";
 import type {
   CallExecutionState,
   DeploymentExecutionState,
   SendDataExecutionState,
   StaticCallExecutionState,
-} from "./execution-state";
+} from "./execution-state.js";
 import type {
   RawStaticCallResult,
   Transaction,
   TransactionReceiptStatus,
-} from "./jsonrpc";
-import type { OnchainInteraction, StaticCall } from "./network-interaction";
-import type { Artifact } from "../../../types/artifact";
-import type { DeploymentLoader } from "../../deployment-loader/types";
-import type { JsonRpcClient } from "../jsonrpc-client";
+} from "./jsonrpc.js";
+import type { OnchainInteraction, StaticCall } from "./network-interaction.js";
+import type { Artifact } from "../../../types/artifact.js";
+import type { DeploymentLoader } from "../../deployment-loader/types.js";
+import type { JsonRpcClient } from "../jsonrpc-client.js";
 
 /**
  * A function that loads an artifact from the deployment's artifacts store.

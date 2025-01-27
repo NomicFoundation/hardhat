@@ -1,7 +1,7 @@
 import { assert } from "chai";
 
-import { buildModule } from "../../src/build-module";
-import { fakeArtifact } from "../helpers";
+import { buildModule } from "../../src/build-module.js";
+import { fakeArtifact } from "../helpers.js";
 
 describe("id rules", () => {
   const exampleAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";

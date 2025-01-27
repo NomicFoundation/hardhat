@@ -1,8 +1,8 @@
 import type {
   ReconciliationContext,
   ReconciliationFutureResult,
-} from "./types";
-import type { Future } from "../../types/module";
+} from "./types.js";
+import type { Future } from "../../types/module.js";
 import type {
   CallExecutionState,
   ContractAtExecutionState,
@@ -12,21 +12,21 @@ import type {
   ReadEventArgumentExecutionState,
   SendDataExecutionState,
   StaticCallExecutionState,
-} from "../execution/types/execution-state";
+} from "../execution/types/execution-state.js";
 
-import { FutureType } from "../../types/module";
+import { FutureType } from "../../types/module.js";
 
-import { reconcileArtifactContractAt } from "./futures/reconcileArtifactContractAt";
-import { reconcileArtifactContractDeployment } from "./futures/reconcileArtifactContractDeployment";
-import { reconcileArtifactLibraryDeployment } from "./futures/reconcileArtifactLibraryDeployment";
-import { reconcileNamedContractAt } from "./futures/reconcileNamedContractAt";
-import { reconcileNamedContractCall } from "./futures/reconcileNamedContractCall";
-import { reconcileNamedContractDeployment } from "./futures/reconcileNamedContractDeployment";
-import { reconcileNamedEncodeFunctionCall } from "./futures/reconcileNamedEncodeFunctionCall";
-import { reconcileNamedLibraryDeployment } from "./futures/reconcileNamedLibraryDeployment";
-import { reconcileNamedStaticCall } from "./futures/reconcileNamedStaticCall";
-import { reconcileReadEventArgument } from "./futures/reconcileReadEventArgument";
-import { reconcileSendData } from "./futures/reconcileSendData";
+import { reconcileArtifactContractAt } from "./futures/reconcileArtifactContractAt.js";
+import { reconcileArtifactContractDeployment } from "./futures/reconcileArtifactContractDeployment.js";
+import { reconcileArtifactLibraryDeployment } from "./futures/reconcileArtifactLibraryDeployment.js";
+import { reconcileNamedContractAt } from "./futures/reconcileNamedContractAt.js";
+import { reconcileNamedContractCall } from "./futures/reconcileNamedContractCall.js";
+import { reconcileNamedContractDeployment } from "./futures/reconcileNamedContractDeployment.js";
+import { reconcileNamedEncodeFunctionCall } from "./futures/reconcileNamedEncodeFunctionCall.js";
+import { reconcileNamedLibraryDeployment } from "./futures/reconcileNamedLibraryDeployment.js";
+import { reconcileNamedStaticCall } from "./futures/reconcileNamedStaticCall.js";
+import { reconcileReadEventArgument } from "./futures/reconcileReadEventArgument.js";
+import { reconcileSendData } from "./futures/reconcileSendData.js";
 
 export async function reconcileFutureSpecificReconciliations(
   future: Future,

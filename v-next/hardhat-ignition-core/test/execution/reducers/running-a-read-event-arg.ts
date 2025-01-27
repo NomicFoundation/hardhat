@@ -1,18 +1,18 @@
 import { assert } from "chai";
 
-import { DeploymentState } from "../../../src/internal/execution/types/deployment-state";
+import { DeploymentState } from "../../../src/internal/execution/types/deployment-state.js";
 import {
   ExecutionSateType,
   ExecutionStatus,
   ReadEventArgumentExecutionState,
-} from "../../../src/internal/execution/types/execution-state";
+} from "../../../src/internal/execution/types/execution-state.js";
 import {
   JournalMessageType,
   ReadEventArgExecutionStateInitializeMessage,
-} from "../../../src/internal/execution/types/messages";
-import { findExecutionStateById } from "../../../src/internal/views/find-execution-state-by-id";
+} from "../../../src/internal/execution/types/messages.js";
+import { findExecutionStateById } from "../../../src/internal/views/find-execution-state-by-id.js";
 
-import { applyMessages } from "./utils";
+import { applyMessages } from "./utils.js";
 
 describe("DeploymentStateReducer", () => {
   describe("running a read event arg", () => {

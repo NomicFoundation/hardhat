@@ -1,4 +1,4 @@
-import type { DeployConfig } from "../types/deploy";
+import type { DeployConfig } from "../types/deploy.js";
 
 /**
  * Ignitions default deployment configuration values.

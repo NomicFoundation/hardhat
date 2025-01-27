@@ -1,37 +1,37 @@
-import type { ArtifactResolver } from "../../../types/artifact";
-import type { DeploymentParameters } from "../../../types/deploy";
-import type { Future } from "../../../types/module";
-import type { DeploymentLoader } from "../../deployment-loader/types";
-import type { JsonRpcClient } from "../jsonrpc-client";
-import type { NonceManager } from "../nonce-management/json-rpc-nonce-manager";
-import type { TransactionTrackingTimer } from "../transaction-tracking-timer";
-import type { DeploymentState } from "../types/deployment-state";
+import type { ArtifactResolver } from "../../../types/artifact.js";
+import type { DeploymentParameters } from "../../../types/deploy.js";
+import type { Future } from "../../../types/module.js";
+import type { DeploymentLoader } from "../../deployment-loader/types.js";
+import type { JsonRpcClient } from "../jsonrpc-client.js";
+import type { NonceManager } from "../nonce-management/json-rpc-nonce-manager.js";
+import type { TransactionTrackingTimer } from "../transaction-tracking-timer.js";
+import type { DeploymentState } from "../types/deployment-state.js";
 import type {
   CallExecutionState,
   DeploymentExecutionState,
   SendDataExecutionState,
   StaticCallExecutionState,
-} from "../types/execution-state";
-import type { ExecutionStrategy } from "../types/execution-strategy";
-import type { JournalMessage } from "../types/messages";
+} from "../types/execution-state.js";
+import type { ExecutionStrategy } from "../types/execution-strategy.js";
+import type { JournalMessage } from "../types/messages.js";
 
-import { assertIgnitionInvariant } from "../../utils/assertions";
-import { isExecutionStateComplete } from "../../views/is-execution-state-complete";
-import { applyNewMessage } from "../deployment-state-helpers";
-import { ExecutionResultType } from "../types/execution-result";
-import { ExecutionSateType } from "../types/execution-state";
-import { JournalMessageType } from "../types/messages";
+import { assertIgnitionInvariant } from "../../utils/assertions.js";
+import { isExecutionStateComplete } from "../../views/is-execution-state-complete.js";
+import { applyNewMessage } from "../deployment-state-helpers.js";
+import { ExecutionResultType } from "../types/execution-result.js";
+import { ExecutionSateType } from "../types/execution-state.js";
+import { JournalMessageType } from "../types/messages.js";
 
-import { monitorOnchainInteraction } from "./handlers/monitor-onchain-interaction";
-import { queryStaticCall } from "./handlers/query-static-call";
-import { runStrategy } from "./handlers/run-strategy";
-import { sendTransaction } from "./handlers/send-transaction";
-import { buildInitializeMessageFor } from "./helpers/build-initialize-message-for";
+import { monitorOnchainInteraction } from "./handlers/monitor-onchain-interaction.js";
+import { queryStaticCall } from "./handlers/query-static-call.js";
+import { runStrategy } from "./handlers/run-strategy.js";
+import { sendTransaction } from "./handlers/send-transaction.js";
+import { buildInitializeMessageFor } from "./helpers/build-initialize-message-for.js";
 import {
   NextAction,
   nextActionForExecutionState as nextActionExecutionState,
-} from "./helpers/next-action-for-execution-state";
-import { saveArtifactsForFuture } from "./helpers/save-artifacts-for-future";
+} from "./helpers/next-action-for-execution-state.js";
+import { saveArtifactsForFuture } from "./helpers/save-artifacts-for-future.js";
 
 /**
  * This class is used to process a future, executing as much as possible, and

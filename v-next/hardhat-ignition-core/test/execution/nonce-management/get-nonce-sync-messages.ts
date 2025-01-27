@@ -5,26 +5,26 @@ import {
   IgnitionModule,
   IgnitionModuleResult,
   buildModule,
-} from "../../../src";
-import { JsonRpcClient } from "../../../src/internal/execution/jsonrpc-client";
-import { getNonceSyncMessages } from "../../../src/internal/execution/nonce-management/get-nonce-sync-messages";
-import { deploymentStateReducer } from "../../../src/internal/execution/reducers/deployment-state-reducer";
-import { DeploymentState } from "../../../src/internal/execution/types/deployment-state";
+} from "../../../src/index.js";
+import { JsonRpcClient } from "../../../src/internal/execution/jsonrpc-client.js";
+import { getNonceSyncMessages } from "../../../src/internal/execution/nonce-management/get-nonce-sync-messages.js";
+import { deploymentStateReducer } from "../../../src/internal/execution/reducers/deployment-state-reducer.js";
+import { DeploymentState } from "../../../src/internal/execution/types/deployment-state.js";
 import {
   DeploymentExecutionState,
   ExecutionSateType,
   ExecutionStatus,
-} from "../../../src/internal/execution/types/execution-state";
+} from "../../../src/internal/execution/types/execution-state.js";
 import {
   JournalMessageType,
   OnchainInteractionDroppedMessage,
   OnchainInteractionReplacedByUserMessage,
-} from "../../../src/internal/execution/types/messages";
+} from "../../../src/internal/execution/types/messages.js";
 import {
   NetworkInteractionType,
   OnchainInteraction,
-} from "../../../src/internal/execution/types/network-interaction";
-import { exampleAccounts } from "../../helpers";
+} from "../../../src/internal/execution/types/network-interaction.js";
+import { exampleAccounts } from "../../helpers.js";
 
 const requiredConfirmations = 5;
 

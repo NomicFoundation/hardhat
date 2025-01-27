@@ -1,14 +1,14 @@
-import type { DeploymentLoader } from "./types";
-import type { Artifact, BuildInfo } from "../../types/artifact";
-import type { ExecutionEventListener } from "../../types/execution-events";
-import type { JournalMessage } from "../execution/types/messages";
-import type { Journal } from "../journal/types";
+import type { DeploymentLoader } from "./types.js";
+import type { Artifact, BuildInfo } from "../../types/artifact.js";
+import type { ExecutionEventListener } from "../../types/execution-events.js";
+import type { JournalMessage } from "../execution/types/messages.js";
+import type { Journal } from "../journal/types/index.js";
 
 import path from "node:path";
 
 import { ensureDir, pathExists, readFile, writeFile } from "fs-extra";
 
-import { FileJournal } from "../journal/file-journal";
+import { FileJournal } from "../journal/file-journal.js";
 
 export class FileDeploymentLoader implements DeploymentLoader {
   private readonly _journal: Journal;
@@ -26,14 +26,14 @@ export class FileDeploymentLoader implements DeploymentLoader {
     private readonly _deploymentDirPath: string,
     private readonly _executionEventListener?:
       | ExecutionEventListener
-      | undefined,
+      | undefined
   ) {
     const artifactsDir = path.join(this._deploymentDirPath, "artifacts");
     const buildInfoDir = path.join(this._deploymentDirPath, "build-info");
     const journalPath = path.join(this._deploymentDirPath, "journal.jsonl");
     const deployedAddressesPath = path.join(
       this._deploymentDirPath,
-      "deployed_addresses.json",
+      "deployed_addresses.json"
     );
 
     this._journal = new FileJournal(journalPath, this._executionEventListener);
@@ -63,7 +63,7 @@ export class FileDeploymentLoader implements DeploymentLoader {
   public storeNamedArtifact(
     futureId: string,
     _contractName: string,
-    artifact: Artifact,
+    artifact: Artifact
   ): Promise<void> {
     // For a file deployment we don't differentiate between
     // named contracts (from HH) and anonymous contracts passed in by the user
@@ -72,13 +72,13 @@ export class FileDeploymentLoader implements DeploymentLoader {
 
   public async storeUserProvidedArtifact(
     futureId: string,
-    artifact: Artifact,
+    artifact: Artifact
   ): Promise<void> {
     await this._initialize();
 
     const artifactFilePath = path.join(
       this._paths.artifactsDir,
-      `${futureId}.json`,
+      `${futureId}.json`
     );
 
     await writeFile(artifactFilePath, JSON.stringify(artifact, undefined, 2));
@@ -86,25 +86,25 @@ export class FileDeploymentLoader implements DeploymentLoader {
 
   public async storeBuildInfo(
     futureId: string,
-    buildInfo: BuildInfo,
+    buildInfo: BuildInfo
   ): Promise<void> {
     await this._initialize();
 
     const buildInfoFilePath = path.join(
       this._paths.buildInfoDir,
-      `${buildInfo.id}.json`,
+      `${buildInfo.id}.json`
     );
 
     await writeFile(buildInfoFilePath, JSON.stringify(buildInfo, undefined, 2));
 
     const debugInfoFilePath = path.join(
       this._paths.artifactsDir,
-      `${futureId}.dbg.json`,
+      `${futureId}.dbg.json`
     );
 
     const relativeBuildInfoPath = path.relative(
       this._paths.artifactsDir,
-      buildInfoFilePath,
+      buildInfoFilePath
     );
 
     await writeFile(
@@ -115,8 +115,8 @@ export class FileDeploymentLoader implements DeploymentLoader {
           buildInfo: relativeBuildInfoPath,
         },
         undefined,
-        2,
-      ),
+        2
+      )
     );
   }
 
@@ -125,14 +125,14 @@ export class FileDeploymentLoader implements DeploymentLoader {
 
     const debugInfoFilePath = path.join(
       this._paths.artifactsDir,
-      `${futureId}.dbg.json`,
+      `${futureId}.dbg.json`
     );
 
     const json = JSON.parse((await readFile(debugInfoFilePath)).toString());
 
     const buildInfoPath = path.resolve(
       this._paths.artifactsDir,
-      json.buildInfo,
+      json.buildInfo
     );
 
     const buildInfo = JSON.parse((await readFile(buildInfoPath)).toString());
@@ -154,7 +154,7 @@ export class FileDeploymentLoader implements DeploymentLoader {
 
   public async recordDeployedAddress(
     futureId: string,
-    contractAddress: string,
+    contractAddress: string
   ): Promise<void> {
     await this._initialize();
 
@@ -173,7 +173,7 @@ export class FileDeploymentLoader implements DeploymentLoader {
 
     await writeFile(
       this._paths.deployedAddressesPath,
-      `${JSON.stringify(deployedAddresses, undefined, 2)}\n`,
+      `${JSON.stringify(deployedAddresses, undefined, 2)}\n`
     );
   }
 
@@ -192,7 +192,7 @@ export class FileDeploymentLoader implements DeploymentLoader {
   private _resolveArtifactPathFor(futureId: string) {
     const artifactFilePath = path.join(
       this._paths.artifactsDir,
-      `${futureId}.json`,
+      `${futureId}.json`
     );
 
     return artifactFilePath;

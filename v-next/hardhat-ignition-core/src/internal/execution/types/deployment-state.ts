@@ -1,4 +1,4 @@
-import type { ExecutionState } from "./execution-state";
+import type { ExecutionState } from "./execution-state.js";
 
 /**
  * A map of execution states indexed by their id.

@@ -1,14 +1,14 @@
-import type { ArtifactResolver } from "../../../types/artifact";
-import type { DeploymentParameters } from "../../../types/deploy";
-import type { NamedArtifactContractAtFuture } from "../../../types/module";
+import type { ArtifactResolver } from "../../../types/artifact.js";
+import type { DeploymentParameters } from "../../../types/deploy.js";
+import type { NamedArtifactContractAtFuture } from "../../../types/module.js";
 
-import { IgnitionError } from "../../../errors";
+import { IgnitionError } from "../../../errors.js";
 import {
   isArtifactType,
   isModuleParameterRuntimeValue,
-} from "../../../type-guards";
-import { ERRORS } from "../../errors-list";
-import { resolvePotentialModuleParameterValueFrom } from "../utils";
+} from "../../../type-guards.js";
+import { ERRORS } from "../../errors-list.js";
+import { resolvePotentialModuleParameterValueFrom } from "../utils.js";
 
 export async function validateNamedContractAt(
   future: NamedArtifactContractAtFuture<string>,

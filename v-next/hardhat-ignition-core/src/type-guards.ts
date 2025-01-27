@@ -1,4 +1,4 @@
-import type { Artifact } from "./types/artifact";
+import type { Artifact } from "./types/artifact.js";
 import type {
   AccountRuntimeValue,
   AddressResolvableFuture,
@@ -18,9 +18,9 @@ import type {
   ReadEventArgumentFuture,
   RuntimeValue,
   StaticCallFuture,
-} from "./types/module";
+} from "./types/module.js";
 
-import { FutureType, RuntimeValueType } from "./types/module";
+import { FutureType, RuntimeValueType } from "./types/module.js";
 
 function isValidEnumValue(
   theEnum: Record<string, string>,

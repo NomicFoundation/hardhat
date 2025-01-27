@@ -1,21 +1,21 @@
-import type { ArtifactResolver } from "../../../types/artifact";
-import type { DeploymentParameters } from "../../../types/deploy";
-import type { ContractDeploymentFuture } from "../../../types/module";
+import type { ArtifactResolver } from "../../../types/artifact.js";
+import type { DeploymentParameters } from "../../../types/deploy.js";
+import type { ContractDeploymentFuture } from "../../../types/module.js";
 
-import { IgnitionError } from "../../../errors";
+import { IgnitionError } from "../../../errors.js";
 import {
   isAccountRuntimeValue,
   isModuleParameterRuntimeValue,
-} from "../../../type-guards";
-import { ERRORS } from "../../errors-list";
-import { validateContractConstructorArgsLength } from "../../execution/abi";
-import { validateLibraryNames } from "../../execution/libraries";
+} from "../../../type-guards.js";
+import { ERRORS } from "../../errors-list.js";
+import { validateContractConstructorArgsLength } from "../../execution/abi.js";
+import { validateLibraryNames } from "../../execution/libraries.js";
 import {
   filterToAccountRuntimeValues,
   resolvePotentialModuleParameterValueFrom,
   retrieveNestedRuntimeValues,
   validateAccountRuntimeValue,
-} from "../utils";
+} from "../utils.js";
 
 export async function validateArtifactContractDeployment(
   future: ContractDeploymentFuture,

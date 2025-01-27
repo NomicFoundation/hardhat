@@ -1,9 +1,9 @@
-import type { DeploymentState } from "../../types/deployment-state";
-import type { WipeExecutionStateMessage } from "../../types/messages";
+import type { DeploymentState } from "../../types/deployment-state.js";
+import type { WipeExecutionStateMessage } from "../../types/messages.js";
 
 import { produce } from "immer";
 
-import { assertIgnitionInvariant } from "../../../utils/assertions";
+import { assertIgnitionInvariant } from "../../../utils/assertions.js";
 
 /**
  * Removes an existing execution state from the deployment state.

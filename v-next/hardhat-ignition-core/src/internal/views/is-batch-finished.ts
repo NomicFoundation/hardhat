@@ -1,6 +1,6 @@
-import type { DeploymentState } from "../execution/types/deployment-state";
+import type { DeploymentState } from "../execution/types/deployment-state.js";
 
-import { ExecutionStatus } from "../execution/types/execution-state";
+import { ExecutionStatus } from "../execution/types/execution-state.js";
 
 /**
  * Have the futures making up a batch finished executing, as defined by

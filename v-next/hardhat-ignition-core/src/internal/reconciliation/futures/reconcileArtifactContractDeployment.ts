@@ -1,17 +1,17 @@
-import type { ContractDeploymentFuture } from "../../../types/module";
-import type { DeploymentExecutionState } from "../../execution/types/execution-state";
+import type { ContractDeploymentFuture } from "../../../types/module.js";
+import type { DeploymentExecutionState } from "../../execution/types/execution-state.js";
 import type {
   ReconciliationContext,
   ReconciliationFutureResult,
-} from "../types";
+} from "../types.js";
 
-import { reconcileArguments } from "../helpers/reconcile-arguments";
-import { reconcileArtifacts } from "../helpers/reconcile-artifacts";
-import { reconcileContractName } from "../helpers/reconcile-contract-name";
-import { reconcileFrom } from "../helpers/reconcile-from";
-import { reconcileLibraries } from "../helpers/reconcile-libraries";
-import { reconcileStrategy } from "../helpers/reconcile-strategy";
-import { reconcileValue } from "../helpers/reconcile-value";
+import { reconcileArguments } from "../helpers/reconcile-arguments.js";
+import { reconcileArtifacts } from "../helpers/reconcile-artifacts.js";
+import { reconcileContractName } from "../helpers/reconcile-contract-name.js";
+import { reconcileFrom } from "../helpers/reconcile-from.js";
+import { reconcileLibraries } from "../helpers/reconcile-libraries.js";
+import { reconcileStrategy } from "../helpers/reconcile-strategy.js";
+import { reconcileValue } from "../helpers/reconcile-value.js";
 
 export async function reconcileArtifactContractDeployment(
   future: ContractDeploymentFuture,

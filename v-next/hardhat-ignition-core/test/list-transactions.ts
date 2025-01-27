@@ -5,9 +5,9 @@ import {
   listTransactions,
   ListTransactionsResult,
   TransactionStatus,
-} from "../src";
+} from "../src/index.js";
 
-import { setupMockArtifactResolver } from "./helpers";
+import { setupMockArtifactResolver } from "./helpers.js";
 
 describe("listTransactions", () => {
   it("should return the transactions associated with a deployment", async () => {

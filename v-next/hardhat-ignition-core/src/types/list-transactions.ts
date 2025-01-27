@@ -1,4 +1,4 @@
-import type { SolidityParameterType } from "./module";
+import type { SolidityParameterType } from "./module.js";
 
 /**
  * The status of a transaction.

@@ -1,30 +1,30 @@
-import type { ArtifactResolver } from "./types/artifact";
+import type { ArtifactResolver } from "./types/artifact.js";
 
 import findLastIndex from "lodash/findLastIndex";
 
-import { IgnitionError } from "./errors";
-import { builtinChains } from "./internal/chain-config";
-import { FileDeploymentLoader } from "./internal/deployment-loader/file-deployment-loader";
-import { ERRORS } from "./internal/errors-list";
-import { loadDeploymentState } from "./internal/execution/deployment-state-helpers";
-import { ExecutionResultType } from "./internal/execution/types/execution-result";
+import { IgnitionError } from "./errors.js";
+import { builtinChains } from "./internal/chain-config.js";
+import { FileDeploymentLoader } from "./internal/deployment-loader/file-deployment-loader.js";
+import { ERRORS } from "./internal/errors-list.js";
+import { loadDeploymentState } from "./internal/execution/deployment-state-helpers.js";
+import { ExecutionResultType } from "./internal/execution/types/execution-result.js";
 import {
   ExecutionSateType,
   type CallExecutionState,
   type DeploymentExecutionState,
   type ExecutionState,
   type SendDataExecutionState,
-} from "./internal/execution/types/execution-state";
+} from "./internal/execution/types/execution-state.js";
 import {
   type Transaction,
   TransactionReceiptStatus,
-} from "./internal/execution/types/jsonrpc";
-import { JournalMessageType } from "./internal/execution/types/messages";
-import { assertIgnitionInvariant } from "./internal/utils/assertions";
+} from "./internal/execution/types/jsonrpc.js";
+import { JournalMessageType } from "./internal/execution/types/messages.js";
+import { assertIgnitionInvariant } from "./internal/utils/assertions.js";
 import {
   type ListTransactionsResult,
   TransactionStatus,
-} from "./types/list-transactions";
+} from "./types/list-transactions.js";
 
 /**
  * Returns the transactions associated with a deployment.

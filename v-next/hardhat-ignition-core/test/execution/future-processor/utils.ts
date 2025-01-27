@@ -1,28 +1,28 @@
-import { FutureProcessor } from "../../../src/internal/execution/future-processor/future-processor";
+import { FutureProcessor } from "../../../src/internal/execution/future-processor/future-processor.js";
 import {
   Block,
   CallParams,
   EstimateGasParams,
   JsonRpcClient,
   TransactionParams,
-} from "../../../src/internal/execution/jsonrpc-client";
-import { NonceManager } from "../../../src/internal/execution/nonce-management/json-rpc-nonce-manager";
-import { TransactionTrackingTimer } from "../../../src/internal/execution/transaction-tracking-timer";
+} from "../../../src/internal/execution/jsonrpc-client.js";
+import { NonceManager } from "../../../src/internal/execution/nonce-management/json-rpc-nonce-manager.js";
+import { TransactionTrackingTimer } from "../../../src/internal/execution/transaction-tracking-timer.js";
 import {
   NetworkFees,
   RawStaticCallResult,
   Transaction,
   TransactionReceipt,
-} from "../../../src/internal/execution/types/jsonrpc";
-import { getDefaultSender } from "../../../src/internal/execution/utils/get-default-sender";
-import { MemoryJournal } from "../../../src/internal/journal/memory-journal";
-import { assertIgnitionInvariant } from "../../../src/internal/utils/assertions";
-import { BasicStrategy } from "../../../src/strategies/basic-strategy";
+} from "../../../src/internal/execution/types/jsonrpc.js";
+import { getDefaultSender } from "../../../src/internal/execution/utils/get-default-sender.js";
+import { MemoryJournal } from "../../../src/internal/journal/memory-journal.js";
+import { assertIgnitionInvariant } from "../../../src/internal/utils/assertions.js";
+import { BasicStrategy } from "../../../src/strategies/basic-strategy.js";
 import {
   exampleAccounts,
   setupMockArtifactResolver,
   setupMockDeploymentLoader,
-} from "../../helpers";
+} from "../../helpers.js";
 
 export async function setupFutureProcessor(
   sendTransaction: (transactionParams: TransactionParams) => Promise<string>,

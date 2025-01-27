@@ -1,10 +1,10 @@
-import type { DeploymentState } from "./execution/types/deployment-state";
-import type { AdjacencyList } from "./utils/adjacency-list";
-import type { Future, IgnitionModule } from "../types/module";
+import type { DeploymentState } from "./execution/types/deployment-state.js";
+import type { AdjacencyList } from "./utils/adjacency-list.js";
+import type { Future, IgnitionModule } from "../types/module.js";
 
-import { ExecutionStatus } from "./execution/types/execution-state";
-import { AdjacencyListConverter } from "./utils/adjacency-list-converter";
-import { getFuturesFromModule } from "./utils/get-futures-from-module";
+import { ExecutionStatus } from "./execution/types/execution-state.js";
+import { AdjacencyListConverter } from "./utils/adjacency-list-converter.js";
+import { getFuturesFromModule } from "./utils/get-futures-from-module.js";
 
 enum VisitStatus {
   UNVISITED,
@@ -23,7 +23,7 @@ interface BatchState {
 export class Batcher {
   public static batch(
     module: IgnitionModule,
-    deploymentState: DeploymentState,
+    deploymentState: DeploymentState
   ): string[][] {
     const batchState = this._initializeBatchStateFrom(module, deploymentState);
 
@@ -42,13 +42,13 @@ export class Batcher {
 
   private static _initializeBatchStateFrom(
     module: IgnitionModule,
-    deploymentState: DeploymentState,
+    deploymentState: DeploymentState
   ): BatchState {
     const allFutures = getFuturesFromModule(module);
 
     const visitState = this._intializeVisitStateFrom(
       allFutures,
-      deploymentState,
+      deploymentState
     );
 
     const adjacencyList =
@@ -61,7 +61,7 @@ export class Batcher {
 
   private static _intializeVisitStateFrom(
     futures: Future[],
-    deploymentState: DeploymentState,
+    deploymentState: DeploymentState
   ): VisitStatusMap {
     return Object.fromEntries(
       futures.map((f) => {
@@ -80,7 +80,7 @@ export class Batcher {
           case ExecutionStatus.SUCCESS:
             return [f.id, VisitStatus.VISITED];
         }
-      }),
+      })
     );
   }
 
@@ -102,7 +102,7 @@ export class Batcher {
 
   private static _allVisited(batchState: BatchState): boolean {
     return Object.values(batchState.visitState).every(
-      (s) => s === VisitStatus.VISITED,
+      (s) => s === VisitStatus.VISITED
     );
   }
 
@@ -118,7 +118,7 @@ export class Batcher {
       .map(([id]) => id);
 
     const allUnvisitedWhereDepsVisited = allUnvisited.filter((futureId) =>
-      this._allDependenciesVisited(futureId, batchState),
+      this._allDependenciesVisited(futureId, batchState)
     );
 
     return allUnvisitedWhereDepsVisited.sort();
@@ -126,7 +126,7 @@ export class Batcher {
 
   private static _allDependenciesVisited(
     futureId: string,
-    batchState: BatchState,
+    batchState: BatchState
   ): boolean {
     const dependencies = batchState.adjacencyList.getDependenciesFor(futureId);
 
@@ -146,14 +146,14 @@ export class Batcher {
    */
   private static _checkModuleDependencyIsComplete(
     moduleId: string,
-    batchState: BatchState,
+    batchState: BatchState
   ) {
     const dependencies = Object.keys(batchState.visitState).filter((futureId) =>
-      futureId.startsWith(moduleId),
+      futureId.startsWith(moduleId)
     );
 
     return dependencies.every(
-      (depId) => batchState.visitState[depId] === VisitStatus.VISITED,
+      (depId) => batchState.visitState[depId] === VisitStatus.VISITED
     );
   }
 }

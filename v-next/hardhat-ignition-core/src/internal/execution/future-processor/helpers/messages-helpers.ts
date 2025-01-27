@@ -3,22 +3,22 @@ import type {
   CallExecutionResult,
   SendDataExecutionResult,
   StaticCallExecutionResult,
-} from "../../types/execution-result";
+} from "../../types/execution-result.js";
 import type {
   DeploymentExecutionState,
   CallExecutionState,
   SendDataExecutionState,
   StaticCallExecutionState,
-} from "../../types/execution-state";
+} from "../../types/execution-state.js";
 import type {
   DeploymentExecutionStateCompleteMessage,
   CallExecutionStateCompleteMessage,
   SendDataExecutionStateCompleteMessage,
   StaticCallExecutionStateCompleteMessage,
-} from "../../types/messages";
+} from "../../types/messages.js";
 
-import { ExecutionSateType } from "../../types/execution-state";
-import { JournalMessageType } from "../../types/messages";
+import { ExecutionSateType } from "../../types/execution-state.js";
+import { JournalMessageType } from "../../types/messages.js";
 
 /**
  * Creates a message indicating that an execution state is now complete.

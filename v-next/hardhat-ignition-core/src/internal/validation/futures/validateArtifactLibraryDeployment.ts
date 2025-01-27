@@ -1,11 +1,11 @@
-import type { IgnitionError } from "../../../errors";
-import type { ArtifactResolver } from "../../../types/artifact";
-import type { DeploymentParameters } from "../../../types/deploy";
-import type { LibraryDeploymentFuture } from "../../../types/module";
+import type { IgnitionError } from "../../../errors.js";
+import type { ArtifactResolver } from "../../../types/artifact.js";
+import type { DeploymentParameters } from "../../../types/deploy.js";
+import type { LibraryDeploymentFuture } from "../../../types/module.js";
 
-import { isAccountRuntimeValue } from "../../../type-guards";
-import { validateLibraryNames } from "../../execution/libraries";
-import { validateAccountRuntimeValue } from "../utils";
+import { isAccountRuntimeValue } from "../../../type-guards.js";
+import { validateLibraryNames } from "../../execution/libraries.js";
+import { validateAccountRuntimeValue } from "../utils.js";
 
 export async function validateArtifactLibraryDeployment(
   future: LibraryDeploymentFuture,

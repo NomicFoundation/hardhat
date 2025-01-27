@@ -1,12 +1,12 @@
-import type { ArtifactResolver } from "../../types/artifact";
-import type { DeploymentParameters } from "../../types/deploy";
-import type { Future } from "../../types/module";
-import type { DeploymentLoader } from "../deployment-loader/types";
-import type { DeploymentState } from "../execution/types/deployment-state";
+import type { ArtifactResolver } from "../../types/artifact.js";
+import type { DeploymentParameters } from "../../types/deploy.js";
+import type { Future } from "../../types/module.js";
+import type { DeploymentLoader } from "../deployment-loader/types.js";
+import type { DeploymentState } from "../execution/types/deployment-state.js";
 import type {
   ConcreteExecutionConfig,
   ExecutionState,
-} from "../execution/types/execution-state";
+} from "../execution/types/execution-state.js";
 
 export interface ReconciliationFailure {
   futureId: string;

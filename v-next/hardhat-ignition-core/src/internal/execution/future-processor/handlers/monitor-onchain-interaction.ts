@@ -1,25 +1,25 @@
-import type { JsonRpcClient } from "../../jsonrpc-client";
-import type { TransactionTrackingTimer } from "../../transaction-tracking-timer";
+import type { JsonRpcClient } from "../../jsonrpc-client.js";
+import type { TransactionTrackingTimer } from "../../transaction-tracking-timer.js";
 import type {
   CallExecutionState,
   DeploymentExecutionState,
   SendDataExecutionState,
-} from "../../types/execution-state";
-import type { Transaction } from "../../types/jsonrpc";
+} from "../../types/execution-state.js";
+import type { Transaction } from "../../types/jsonrpc.js";
 import type {
   OnchainInteractionBumpFeesMessage,
   OnchainInteractionTimeoutMessage,
   TransactionConfirmMessage,
-} from "../../types/messages";
-import type { OnchainInteraction } from "../../types/network-interaction";
+} from "../../types/messages.js";
+import type { OnchainInteraction } from "../../types/network-interaction.js";
 
 import setupDebug from "debug";
 
-import { IgnitionError } from "../../../../errors";
-import { ERRORS } from "../../../errors-list";
-import { assertIgnitionInvariant } from "../../../utils/assertions";
-import { JournalMessageType } from "../../types/messages";
-import { NetworkInteractionType } from "../../types/network-interaction";
+import { IgnitionError } from "../../../../errors.js";
+import { ERRORS } from "../../../errors-list.js";
+import { assertIgnitionInvariant } from "../../../utils/assertions.js";
+import { JournalMessageType } from "../../types/messages.js";
+import { NetworkInteractionType } from "../../types/network-interaction.js";
 
 const debug = setupDebug("hardhat-ignition:onchain-interaction-monitor");
 
@@ -67,7 +67,7 @@ export async function monitorOnchainInteraction(
   millisecondBeforeBumpingFees: number,
   maxFeeBumps: number,
   givenGetTransactionRetryConfig: GetTransactionRetryConfig | undefined,
-  disableFeeBumping: boolean,
+  disableFeeBumping: boolean
 ): Promise<
   | TransactionConfirmMessage
   | OnchainInteractionBumpFeesMessage
@@ -82,24 +82,24 @@ export async function monitorOnchainInteraction(
 
   assertIgnitionInvariant(
     lastNetworkInteraction !== undefined,
-    `No network interaction for ExecutionState ${exState.id} when trying to check its transactions`,
+    `No network interaction for ExecutionState ${exState.id} when trying to check its transactions`
   );
 
   assertIgnitionInvariant(
     lastNetworkInteraction.type === NetworkInteractionType.ONCHAIN_INTERACTION,
-    `StaticCall found as last network interaction of ExecutionState ${exState.id} when trying to check its transactions`,
+    `StaticCall found as last network interaction of ExecutionState ${exState.id} when trying to check its transactions`
   );
 
   assertIgnitionInvariant(
     lastNetworkInteraction.transactions.length > 0,
-    `No transaction found in OnchainInteraction ${exState.id}/${lastNetworkInteraction.id} when trying to check its transactions`,
+    `No transaction found in OnchainInteraction ${exState.id}/${lastNetworkInteraction.id} when trying to check its transactions`
   );
 
   const transaction = await _getTransactionWithRetry(
     jsonRpcClient,
     lastNetworkInteraction,
     getTransactionRetryConfig,
-    exState.id,
+    exState.id
   );
 
   // We do not try to recover from dopped transactions mid-execution
@@ -139,7 +139,7 @@ export async function monitorOnchainInteraction(
   }
 
   const timeTrackingTx = transactionTrackingTimer.getTransactionTrackingTime(
-    transaction.hash,
+    transaction.hash
   );
 
   if (timeTrackingTx < millisecondBeforeBumpingFees) {
@@ -168,7 +168,7 @@ async function _getTransactionWithRetry(
   jsonRpcClient: JsonRpcClient,
   onchainInteraction: OnchainInteraction,
   retryConfig: GetTransactionRetryConfig,
-  futureId: string,
+  futureId: string
 ): Promise<Transaction | undefined> {
   let transaction: Transaction | undefined;
 
@@ -179,13 +179,13 @@ async function _getTransactionWithRetry(
     debug(
       `Retrieving transaction for interaction ${futureId}/${
         onchainInteraction.id
-      } from mempool (attempt ${i + 1}/${retryConfig.maxRetries})`,
+      } from mempool (attempt ${i + 1}/${retryConfig.maxRetries})`
     );
 
     const transactions = await Promise.all(
       onchainInteraction.transactions.map((tx) =>
-        jsonRpcClient.getTransaction(tx.hash),
-      ),
+        jsonRpcClient.getTransaction(tx.hash)
+      )
     );
 
     transaction = transactions.find((tx) => tx !== undefined);
@@ -195,11 +195,11 @@ async function _getTransactionWithRetry(
     }
 
     debug(
-      `Transaction lookup for ${futureId}/${onchainInteraction.id} not found in mempool, waiting ${retryConfig.retryInterval} seconds before retrying`,
+      `Transaction lookup for ${futureId}/${onchainInteraction.id} not found in mempool, waiting ${retryConfig.retryInterval} seconds before retrying`
     );
 
     await new Promise((resolve) =>
-      setTimeout(resolve, retryConfig.retryInterval),
+      setTimeout(resolve, retryConfig.retryInterval)
     );
   }
 
