@@ -1,19 +1,20 @@
+import type { DeploymentLoader } from "./types";
+import type { Artifact, BuildInfo } from "../../types/artifact";
+import type { ExecutionEventListener } from "../../types/execution-events";
+import type { JournalMessage } from "../execution/types/messages";
+import type { Journal } from "../journal/types";
+
+import path from "node:path";
+
 import { ensureDir, pathExists, readFile, writeFile } from "fs-extra";
-import path from "path";
 
-import { Artifact, BuildInfo } from "../../types/artifact";
-import { ExecutionEventListener } from "../../types/execution-events";
-import { JournalMessage } from "../execution/types/messages";
 import { FileJournal } from "../journal/file-journal";
-import { Journal } from "../journal/types";
-
-import { DeploymentLoader } from "./types";
 
 export class FileDeploymentLoader implements DeploymentLoader {
-  private _journal: Journal;
+  private readonly _journal: Journal;
   private _deploymentDirsEnsured: boolean;
 
-  private _paths: {
+  private readonly _paths: {
     deploymentDir: string;
     artifactsDir: string;
     buildInfoDir: string;

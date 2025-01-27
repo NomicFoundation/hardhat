@@ -1,21 +1,24 @@
-import { assertIgnitionInvariant } from "../../../utils/assertions";
-import {
-  ExecutionResultType,
+import type {
   SimulationErrorExecutionResult,
   StrategySimulationErrorExecutionResult,
 } from "../../types/execution-result";
-import {
+import type {
   CallExecutionState,
   DeploymentExecutionState,
   SendDataExecutionState,
 } from "../../types/execution-state";
-import {
+import type {
   CallStrategyGenerator,
   DeploymentStrategyGenerator,
+} from "../../types/execution-strategy";
+import type { RawStaticCallResult } from "../../types/jsonrpc";
+
+import { assertIgnitionInvariant } from "../../../utils/assertions";
+import { ExecutionResultType } from "../../types/execution-result";
+import {
   OnchainInteractionResponseType,
   SIMULATION_SUCCESS_SIGNAL_TYPE,
 } from "../../types/execution-strategy";
-import { RawStaticCallResult } from "../../types/jsonrpc";
 
 export function decodeSimulationResult(
   strategyGenerator: DeploymentStrategyGenerator | CallStrategyGenerator,

@@ -1,12 +1,13 @@
-import { isFuture, isRuntimeValue } from "../../type-guards";
-import {
+import type {
   AccountRuntimeValue,
   ArgumentType,
   Future,
   ModuleParameterRuntimeValue,
   ModuleParameterType,
-  RuntimeValueType,
 } from "../../types/module";
+
+import { isFuture, isRuntimeValue } from "../../type-guards";
+import { RuntimeValueType } from "../../types/module";
 
 type Composable<T> =
   | T

@@ -1,5 +1,6 @@
-import { Future } from "../../../types/module";
-import { ReconciliationFutureResultFailure } from "../types";
+import type { Future } from "../../../types/module";
+import type { ReconciliationFutureResultFailure } from "../types";
+
 import { fail } from "../utils";
 
 export function compare<

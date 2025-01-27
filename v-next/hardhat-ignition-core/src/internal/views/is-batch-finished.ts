@@ -1,4 +1,5 @@
-import { DeploymentState } from "../execution/types/deployment-state";
+import type { DeploymentState } from "../execution/types/deployment-state";
+
 import { ExecutionStatus } from "../execution/types/execution-state";
 
 /**

@@ -1,7 +1,8 @@
+import type { ArtifactResolver } from "./types/artifact";
+
 import { EphemeralDeploymentLoader } from "./internal/deployment-loader/ephemeral-deployment-loader";
 import { FileDeploymentLoader } from "./internal/deployment-loader/file-deployment-loader";
 import { Wiper } from "./internal/wiper";
-import { ArtifactResolver } from "./types/artifact";
 
 /**
  * Clear the state against a future within a deployment

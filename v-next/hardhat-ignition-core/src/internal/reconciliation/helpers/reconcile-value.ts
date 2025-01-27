@@ -1,19 +1,20 @@
-import {
+import type {
   ContractCallFuture,
   ContractDeploymentFuture,
   NamedArtifactContractDeploymentFuture,
   SendDataFuture,
 } from "../../../types/module";
-import { resolveValue } from "../../execution/future-processor/helpers/future-resolvers";
-import {
+import type {
   CallExecutionState,
   DeploymentExecutionState,
   SendDataExecutionState,
 } from "../../execution/types/execution-state";
-import {
+import type {
   ReconciliationContext,
   ReconciliationFutureResultFailure,
 } from "../types";
+
+import { resolveValue } from "../../execution/future-processor/helpers/future-resolvers";
 
 import { compare } from "./compare";
 

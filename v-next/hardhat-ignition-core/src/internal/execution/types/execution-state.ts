@@ -1,12 +1,11 @@
-import { FutureType, SolidityParameterType } from "../../../types/module";
-
-import {
+import type {
   CallExecutionResult,
   DeploymentExecutionResult,
   SendDataExecutionResult,
   StaticCallExecutionResult,
 } from "./execution-result";
-import { NetworkInteraction, StaticCall } from "./network-interaction";
+import type { NetworkInteraction, StaticCall } from "./network-interaction";
+import type { FutureType, SolidityParameterType } from "../../../types/module";
 
 /**
  * An execution state is used to keep track of the execution of a future.

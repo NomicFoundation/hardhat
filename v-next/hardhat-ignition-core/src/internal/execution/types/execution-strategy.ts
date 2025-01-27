@@ -1,26 +1,25 @@
-import { Artifact } from "../../../types/artifact";
-import { DeploymentLoader } from "../../deployment-loader/types";
-import { JsonRpcClient } from "../jsonrpc-client";
-
-import {
+import type {
   CallExecutionResult,
   DeploymentExecutionResult,
   RevertedTransactionExecutionResult,
   SendDataExecutionResult,
   StaticCallExecutionResult,
 } from "./execution-result";
-import {
+import type {
   CallExecutionState,
   DeploymentExecutionState,
   SendDataExecutionState,
   StaticCallExecutionState,
 } from "./execution-state";
-import {
+import type {
   RawStaticCallResult,
   Transaction,
   TransactionReceiptStatus,
 } from "./jsonrpc";
-import { OnchainInteraction, StaticCall } from "./network-interaction";
+import type { OnchainInteraction, StaticCall } from "./network-interaction";
+import type { Artifact } from "../../../types/artifact";
+import type { DeploymentLoader } from "../../deployment-loader/types";
+import type { JsonRpcClient } from "../jsonrpc-client";
 
 /**
  * A function that loads an artifact from the deployment's artifacts store.

@@ -1,9 +1,10 @@
+import type { IgnitionModule, IgnitionModuleResult } from "./types/module";
+import type { IgnitionModuleBuilder } from "./types/module-builder";
+
 import { IgnitionError } from "./errors";
 import { ERRORS } from "./internal/errors-list";
 import { ModuleConstructor } from "./internal/module-builder";
 import { isValidIgnitionIdentifier } from "./internal/utils/identifier-validators";
-import { IgnitionModule, IgnitionModuleResult } from "./types/module";
-import { IgnitionModuleBuilder } from "./types/module-builder";
 
 /**
  * Construct a module definition that can be deployed through Ignition.

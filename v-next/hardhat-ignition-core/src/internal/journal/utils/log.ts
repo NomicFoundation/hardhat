@@ -1,8 +1,7 @@
+import type { JournalMessage } from "../../execution/types/messages";
+
 import { ExecutionResultType } from "../../execution/types/execution-result";
-import {
-  JournalMessage,
-  JournalMessageType,
-} from "../../execution/types/messages";
+import { JournalMessageType } from "../../execution/types/messages";
 import { NetworkInteractionType } from "../../execution/types/network-interaction";
 import { formatSolidityParameter } from "../../formatters";
 

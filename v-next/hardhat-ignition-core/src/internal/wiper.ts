@@ -1,19 +1,18 @@
+import type { DeploymentLoader } from "./deployment-loader/types";
+import type { DeploymentState } from "./execution/types/deployment-state";
+import type { WipeExecutionStateMessage } from "./execution/types/messages";
+
 import { IgnitionError } from "../errors";
 
-import { DeploymentLoader } from "./deployment-loader/types";
 import { ERRORS } from "./errors-list";
 import {
   applyNewMessage,
   loadDeploymentState,
 } from "./execution/deployment-state-helpers";
-import { DeploymentState } from "./execution/types/deployment-state";
-import {
-  JournalMessageType,
-  WipeExecutionStateMessage,
-} from "./execution/types/messages";
+import { JournalMessageType } from "./execution/types/messages";
 
 export class Wiper {
-  constructor(private _deploymentLoader: DeploymentLoader) {}
+  constructor(private readonly _deploymentLoader: DeploymentLoader) {}
 
   public async wipe(futureId: string): Promise<DeploymentState> {
     const deploymentState = await loadDeploymentState(this._deploymentLoader);

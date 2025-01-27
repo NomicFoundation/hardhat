@@ -1,10 +1,12 @@
-import { ArtifactResolver } from "../../types/artifact";
-import {
+import type { ArtifactResolver } from "../../types/artifact";
+import type {
   DeploymentParameters,
-  DeploymentResultType,
   ValidationErrorDeploymentResult,
 } from "../../types/deploy";
-import { Future, FutureType, IgnitionModule } from "../../types/module";
+import type { Future, IgnitionModule } from "../../types/module";
+
+import { DeploymentResultType } from "../../types/deploy";
+import { FutureType } from "../../types/module";
 import { getFuturesFromModule } from "../utils/get-futures-from-module";
 
 import { validateArtifactContractAt } from "./futures/validateArtifactContractAt";

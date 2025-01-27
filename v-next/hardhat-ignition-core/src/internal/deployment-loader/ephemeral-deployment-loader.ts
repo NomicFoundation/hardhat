@@ -1,11 +1,15 @@
-import { Artifact, ArtifactResolver, BuildInfo } from "../../types/artifact";
-import { ExecutionEventListener } from "../../types/execution-events";
-import { JournalMessage } from "../execution/types/messages";
-import { MemoryJournal } from "../journal/memory-journal";
-import { Journal } from "../journal/types";
-import { assertIgnitionInvariant } from "../utils/assertions";
+import type { DeploymentLoader } from "./types";
+import type {
+  Artifact,
+  ArtifactResolver,
+  BuildInfo,
+} from "../../types/artifact";
+import type { ExecutionEventListener } from "../../types/execution-events";
+import type { JournalMessage } from "../execution/types/messages";
+import type { Journal } from "../journal/types";
 
-import { DeploymentLoader } from "./types";
+import { MemoryJournal } from "../journal/memory-journal";
+import { assertIgnitionInvariant } from "../utils/assertions";
 
 /**
  * Stores and loads deployment related information without making changes
@@ -13,7 +17,7 @@ import { DeploymentLoader } from "./types";
  * Used when running in environments like Hardhat tests.
  */
 export class EphemeralDeploymentLoader implements DeploymentLoader {
-  private _journal: Journal;
+  private readonly _journal: Journal;
 
   private _deployedAddresses: { [key: string]: string };
   private _savedArtifacts: {
@@ -23,8 +27,10 @@ export class EphemeralDeploymentLoader implements DeploymentLoader {
   };
 
   constructor(
-    private _artifactResolver: ArtifactResolver,
-    private _executionEventListener?: ExecutionEventListener | undefined,
+    private readonly _artifactResolver: ArtifactResolver,
+    private readonly _executionEventListener?:
+      | ExecutionEventListener
+      | undefined,
   ) {
     this._journal = new MemoryJournal(this._executionEventListener);
     this._deployedAddresses = {};

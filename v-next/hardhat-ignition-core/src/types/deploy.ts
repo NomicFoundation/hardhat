@@ -1,4 +1,4 @@
-import { ModuleParameters } from "./module";
+import type { ModuleParameters } from "./module";
 
 /**
  * Configuration options for the deployment.

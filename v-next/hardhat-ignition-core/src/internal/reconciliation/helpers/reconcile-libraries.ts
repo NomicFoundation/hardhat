@@ -1,15 +1,16 @@
-import {
+import type {
   ContractDeploymentFuture,
   LibraryDeploymentFuture,
   NamedArtifactContractDeploymentFuture,
   NamedArtifactLibraryDeploymentFuture,
 } from "../../../types/module";
-import { resolveLibraries } from "../../execution/future-processor/helpers/future-resolvers";
-import { DeploymentExecutionState } from "../../execution/types/execution-state";
-import {
+import type { DeploymentExecutionState } from "../../execution/types/execution-state";
+import type {
   ReconciliationContext,
   ReconciliationFutureResultFailure,
 } from "../types";
+
+import { resolveLibraries } from "../../execution/future-processor/helpers/future-resolvers";
 import { fail } from "../utils";
 
 export function reconcileLibraries(

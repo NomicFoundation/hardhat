@@ -1,17 +1,18 @@
-import { IgnitionError } from "../../errors";
-import {
-  isAccountRuntimeValue,
-  isFuture,
-  isRuntimeValue,
-} from "../../type-guards";
-import { DeploymentParameters } from "../../types/deploy";
-import {
+import type { DeploymentParameters } from "../../types/deploy";
+import type {
   AccountRuntimeValue,
   ArgumentType,
   ModuleParameterRuntimeValue,
   RuntimeValue,
   SolidityParameterType,
 } from "../../types/module";
+
+import { IgnitionError } from "../../errors";
+import {
+  isAccountRuntimeValue,
+  isFuture,
+  isRuntimeValue,
+} from "../../type-guards";
 import { ERRORS } from "../errors-list";
 
 /**

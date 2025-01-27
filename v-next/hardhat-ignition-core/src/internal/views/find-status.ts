@@ -1,14 +1,17 @@
-import { ExecutionErrorDeploymentResult } from "../../types/deploy";
-import { DeploymentState } from "../execution/types/deployment-state";
-import { ExecutionResultType } from "../execution/types/execution-result";
-import {
+import type { ExecutionErrorDeploymentResult } from "../../types/deploy";
+import type { DeploymentState } from "../execution/types/deployment-state";
+import type {
   CallExecutionState,
   DeploymentExecutionState,
-  ExecutionSateType,
   ExecutionState,
-  ExecutionStatus,
   SendDataExecutionState,
   StaticCallExecutionState,
+} from "../execution/types/execution-state";
+
+import { ExecutionResultType } from "../execution/types/execution-result";
+import {
+  ExecutionSateType,
+  ExecutionStatus,
 } from "../execution/types/execution-state";
 import { formatExecutionError } from "../formatters";
 import { assertIgnitionInvariant } from "../utils/assertions";

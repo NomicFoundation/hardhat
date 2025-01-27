@@ -4,32 +4,35 @@
  * @file
  */
 
-import { SolidityParameterType } from "../../types/module";
-import { assertIgnitionInvariant } from "../utils/assertions";
-
-import { decodeError } from "./abi";
-import {
-  EvmExecutionResultTypes,
+import type {
   InvalidResultError,
   RevertWithCustomError,
   RevertWithInvalidData,
   SuccessfulEvmExecutionResult,
 } from "./types/evm-execution";
-import {
-  ExecutionResultType,
+import type {
   FailedStaticCallExecutionResult,
   SimulationErrorExecutionResult,
 } from "./types/execution-result";
-import { StaticCallExecutionState } from "./types/execution-state";
-import {
+import type { StaticCallExecutionState } from "./types/execution-state";
+import type {
   OnchainInteractionRequest,
   OnchainInteractionResponse,
-  OnchainInteractionResponseType,
-  SIMULATION_SUCCESS_SIGNAL_TYPE,
   SimulationSuccessSignal,
   StaticCallRequest,
   StaticCallResponse,
   SuccessfulTransaction,
+} from "./types/execution-strategy";
+import type { SolidityParameterType } from "../../types/module";
+
+import { assertIgnitionInvariant } from "../utils/assertions";
+
+import { decodeError } from "./abi";
+import { EvmExecutionResultTypes } from "./types/evm-execution";
+import { ExecutionResultType } from "./types/execution-result";
+import {
+  OnchainInteractionResponseType,
+  SIMULATION_SUCCESS_SIGNAL_TYPE,
 } from "./types/execution-strategy";
 
 /**

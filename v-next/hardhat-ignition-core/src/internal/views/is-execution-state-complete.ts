@@ -1,7 +1,6 @@
-import {
-  ExecutionState,
-  ExecutionStatus,
-} from "../execution/types/execution-state";
+import type { ExecutionState } from "../execution/types/execution-state";
+
+import { ExecutionStatus } from "../execution/types/execution-state";
 
 /**
  * Determine if an execution state has reached completion, either

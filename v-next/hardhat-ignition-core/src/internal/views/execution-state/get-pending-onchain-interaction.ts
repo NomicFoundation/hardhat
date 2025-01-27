@@ -1,11 +1,8 @@
-import {
-  ExecutionSateType,
-  ExecutionState,
-} from "../../execution/types/execution-state";
-import {
-  NetworkInteractionType,
-  OnchainInteraction,
-} from "../../execution/types/network-interaction";
+import type { ExecutionState } from "../../execution/types/execution-state";
+import type { OnchainInteraction } from "../../execution/types/network-interaction";
+
+import { ExecutionSateType } from "../../execution/types/execution-state";
+import { NetworkInteractionType } from "../../execution/types/network-interaction";
 import { assertIgnitionInvariant } from "../../utils/assertions";
 
 /**

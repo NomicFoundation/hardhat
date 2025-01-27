@@ -1,4 +1,4 @@
-import { JournalMessage } from "../../execution/types/messages";
+import type { JournalMessage } from "../../execution/types/messages";
 
 /**
  * Store a deployments execution state as a transaction log.

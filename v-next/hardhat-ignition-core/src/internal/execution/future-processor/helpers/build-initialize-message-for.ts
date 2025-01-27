@@ -1,20 +1,22 @@
-import { DeploymentParameters } from "../../../../types/deploy";
-import { Future, FutureType } from "../../../../types/module";
-import { DeploymentLoader } from "../../../deployment-loader/types";
-import { DeploymentState } from "../../types/deployment-state";
-import { ConcreteExecutionConfig } from "../../types/execution-state";
-import { ExecutionStrategy } from "../../types/execution-strategy";
-import {
+import type { DeploymentParameters } from "../../../../types/deploy";
+import type { Future } from "../../../../types/module";
+import type { DeploymentLoader } from "../../../deployment-loader/types";
+import type { DeploymentState } from "../../types/deployment-state";
+import type { ConcreteExecutionConfig } from "../../types/execution-state";
+import type { ExecutionStrategy } from "../../types/execution-strategy";
+import type {
   CallExecutionStateInitializeMessage,
   ContractAtExecutionStateInitializeMessage,
   DeploymentExecutionStateInitializeMessage,
   EncodeFunctionCallExecutionStateInitializeMessage,
   JournalMessage,
-  JournalMessageType,
   ReadEventArgExecutionStateInitializeMessage,
   SendDataExecutionStateInitializeMessage,
   StaticCallExecutionStateInitializeMessage,
 } from "../../types/messages";
+
+import { FutureType } from "../../../../types/module";
+import { JournalMessageType } from "../../types/messages";
 
 import {
   resolveAddressForContractFuture,

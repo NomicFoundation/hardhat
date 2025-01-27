@@ -1,5 +1,16 @@
+import type { DeploymentState } from "./internal/execution/types/deployment-state";
+import type { DeploymentExecutionState } from "./internal/execution/types/execution-state";
+import type { Artifact, BuildInfo, CompilerInput } from "./types/artifact";
+import type {
+  ChainConfig,
+  SourceToLibraryToAddress,
+  VerifyInfo,
+  VerifyResult,
+} from "./types/verify";
+
+import path from "node:path";
+
 import { analyze } from "@nomicfoundation/solidity-analyzer";
-import path from "path";
 
 import { IgnitionError } from "./errors";
 import { builtinChains } from "./internal/chain-config";
@@ -7,22 +18,13 @@ import { FileDeploymentLoader } from "./internal/deployment-loader/file-deployme
 import { ERRORS } from "./internal/errors-list";
 import { encodeDeploymentArguments } from "./internal/execution/abi";
 import { loadDeploymentState } from "./internal/execution/deployment-state-helpers";
-import { DeploymentState } from "./internal/execution/types/deployment-state";
 import { ExecutionResultType } from "./internal/execution/types/execution-result";
 import {
-  DeploymentExecutionState,
   ExecutionSateType,
   ExecutionStatus,
 } from "./internal/execution/types/execution-state";
 import { assertIgnitionInvariant } from "./internal/utils/assertions";
 import { findExecutionStatesByType } from "./internal/views/find-execution-states-by-type";
-import { Artifact, BuildInfo, CompilerInput } from "./types/artifact";
-import {
-  ChainConfig,
-  SourceToLibraryToAddress,
-  VerifyInfo,
-  VerifyResult,
-} from "./types/verify";
 
 /**
  * Retrieve the information required to verify all contracts from a deployment on Etherscan.

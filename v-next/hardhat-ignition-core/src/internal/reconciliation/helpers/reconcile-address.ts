@@ -1,13 +1,14 @@
-import {
+import type {
   ContractAtFuture,
   NamedArtifactContractAtFuture,
 } from "../../../types/module";
-import { resolveAddressLike } from "../../execution/future-processor/helpers/future-resolvers";
-import { ContractAtExecutionState } from "../../execution/types/execution-state";
-import {
+import type { ContractAtExecutionState } from "../../execution/types/execution-state";
+import type {
   ReconciliationContext,
   ReconciliationFutureResultFailure,
 } from "../types";
+
+import { resolveAddressLike } from "../../execution/future-processor/helpers/future-resolvers";
 
 import { compare } from "./compare";
 

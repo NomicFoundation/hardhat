@@ -1,7 +1,7 @@
-import { ExecutionEventListener } from "../../types/execution-events";
-import { JournalMessage } from "../execution/types/messages";
+import type { Journal } from "./types";
+import type { ExecutionEventListener } from "../../types/execution-events";
+import type { JournalMessage } from "../execution/types/messages";
 
-import { Journal } from "./types";
 import { emitExecutionEvent } from "./utils/emitExecutionEvent";
 
 /**
@@ -10,10 +10,12 @@ import { emitExecutionEvent } from "./utils/emitExecutionEvent";
  * @beta
  */
 export class MemoryJournal implements Journal {
-  private _messages: JournalMessage[] = [];
+  private readonly _messages: JournalMessage[] = [];
 
   constructor(
-    private _executionEventListener?: ExecutionEventListener | undefined,
+    private readonly _executionEventListener?:
+      | ExecutionEventListener
+      | undefined,
   ) {}
 
   public record(message: JournalMessage): void {

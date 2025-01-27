@@ -1,12 +1,16 @@
-import { SendDataFuture } from "../../../types/module";
+import type { SendDataFuture } from "../../../types/module";
+import type { SendDataExecutionState } from "../../execution/types/execution-state";
+import type {
+  ReconciliationContext,
+  ReconciliationFutureResult,
+} from "../types";
+
 import { resolveSendToAddress } from "../../execution/future-processor/helpers/future-resolvers";
-import { SendDataExecutionState } from "../../execution/types/execution-state";
 import { compare } from "../helpers/compare";
 import { reconcileData } from "../helpers/reconcile-data";
 import { reconcileFrom } from "../helpers/reconcile-from";
 import { reconcileStrategy } from "../helpers/reconcile-strategy";
 import { reconcileValue } from "../helpers/reconcile-value";
-import { ReconciliationContext, ReconciliationFutureResult } from "../types";
 
 export function reconcileSendData(
   future: SendDataFuture,

@@ -1,3 +1,15 @@
+import type {
+  Future,
+  IgnitionModule,
+  IgnitionModuleResult,
+} from "../../../types/module";
+import type { JsonRpcClient } from "../jsonrpc-client";
+import type { DeploymentState } from "../types/deployment-state";
+import type {
+  OnchainInteractionDroppedMessage,
+  OnchainInteractionReplacedByUserMessage,
+} from "../types/messages";
+
 import uniq from "lodash/uniq";
 
 import { IgnitionError } from "../../../errors";
@@ -7,23 +19,12 @@ import {
   isNamedContractAtFuture,
   isReadEventArgumentFuture,
 } from "../../../type-guards";
-import {
-  Future,
-  IgnitionModule,
-  IgnitionModuleResult,
-} from "../../../types/module";
 import { ERRORS } from "../../errors-list";
 import { getFuturesFromModule } from "../../utils/get-futures-from-module";
 import { getPendingOnchainInteraction } from "../../views/execution-state/get-pending-onchain-interaction";
 import { resolveFutureFrom } from "../future-processor/helpers/future-resolvers";
-import { JsonRpcClient } from "../jsonrpc-client";
-import { DeploymentState } from "../types/deployment-state";
 import { ExecutionSateType, ExecutionStatus } from "../types/execution-state";
-import {
-  JournalMessageType,
-  OnchainInteractionDroppedMessage,
-  OnchainInteractionReplacedByUserMessage,
-} from "../types/messages";
+import { JournalMessageType } from "../types/messages";
 
 /**
  * This function is meant to be used to sync the local state's nonces

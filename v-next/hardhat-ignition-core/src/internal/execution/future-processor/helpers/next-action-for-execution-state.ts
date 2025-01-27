@@ -1,9 +1,10 @@
-import {
+import type {
   CallExecutionState,
   DeploymentExecutionState,
   SendDataExecutionState,
   StaticCallExecutionState,
 } from "../../types/execution-state";
+
 import { NetworkInteractionType } from "../../types/network-interaction";
 
 /**

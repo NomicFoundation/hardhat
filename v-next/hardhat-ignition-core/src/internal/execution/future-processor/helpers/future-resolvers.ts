@@ -1,10 +1,5 @@
-import {
-  isAccountRuntimeValue,
-  isFuture,
-  isModuleParameterRuntimeValue,
-} from "../../../../type-guards";
-import { DeploymentParameters } from "../../../../types/deploy";
-import {
+import type { DeploymentParameters } from "../../../../types/deploy";
+import type {
   AccountRuntimeValue,
   AddressResolvableFuture,
   ArgumentType,
@@ -16,7 +11,14 @@ import {
   SolidityParameterType,
   StaticCallFuture,
 } from "../../../../types/module";
-import { DeploymentLoader } from "../../../deployment-loader/types";
+import type { DeploymentLoader } from "../../../deployment-loader/types";
+import type { DeploymentState } from "../../types/deployment-state";
+
+import {
+  isAccountRuntimeValue,
+  isFuture,
+  isModuleParameterRuntimeValue,
+} from "../../../../type-guards";
 import { assertIgnitionInvariant } from "../../../utils/assertions";
 import { replaceWithinArg } from "../../../utils/replace-within-arg";
 import { resolveModuleParameter } from "../../../utils/resolve-module-parameter";
@@ -24,7 +26,6 @@ import { findAddressForContractFuture } from "../../../views/find-address-for-co
 import { findConfirmedTransactionByFutureId } from "../../../views/find-confirmed-transaction-by-future-id";
 import { findResultForFutureById } from "../../../views/find-result-for-future-by-id";
 import { getEventArgumentFromReceipt } from "../../abi";
-import { DeploymentState } from "../../types/deployment-state";
 import { convertEvmValueToSolidityParam } from "../../utils/convert-evm-tuple-to-solidity-param";
 
 /**

@@ -1,11 +1,12 @@
-import { SendDataFuture } from "../../../types/module";
-import { SendDataExecutionState } from "../../execution/types/execution-state";
-import { assertIgnitionInvariant } from "../../utils/assertions";
-import { findResultForFutureById } from "../../views/find-result-for-future-by-id";
-import {
+import type { SendDataFuture } from "../../../types/module";
+import type { SendDataExecutionState } from "../../execution/types/execution-state";
+import type {
   ReconciliationContext,
   ReconciliationFutureResultFailure,
 } from "../types";
+
+import { assertIgnitionInvariant } from "../../utils/assertions";
+import { findResultForFutureById } from "../../views/find-result-for-future-by-id";
 
 import { compare } from "./compare";
 

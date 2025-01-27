@@ -1,4 +1,4 @@
-import {
+import type {
   ContractCallFuture,
   ContractDeploymentFuture,
   LibraryDeploymentFuture,
@@ -7,17 +7,18 @@ import {
   SendDataFuture,
   StaticCallFuture,
 } from "../../../types/module";
-import { resolveFutureFrom } from "../../execution/future-processor/helpers/future-resolvers";
-import {
+import type {
   CallExecutionState,
   DeploymentExecutionState,
   SendDataExecutionState,
   StaticCallExecutionState,
 } from "../../execution/types/execution-state";
-import {
+import type {
   ReconciliationContext,
   ReconciliationFutureResultFailure,
 } from "../types";
+
+import { resolveFutureFrom } from "../../execution/future-processor/helpers/future-resolvers";
 
 import { compare } from "./compare";
 

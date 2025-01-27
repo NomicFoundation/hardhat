@@ -1,26 +1,29 @@
-import { assertIgnitionInvariant } from "../../../utils/assertions";
-import {
+import type {
   CallExecutionState,
   DeploymentExecutionState,
-  ExecutionSateType,
-  ExecutionStatus,
   SendDataExecutionState,
   StaticCallExecutionState,
 } from "../../types/execution-state";
-import {
+import type {
   CallStrategyGenerator,
   DeploymentStrategyGenerator,
   ExecutionStrategy,
-  OnchainInteractionResponseType,
-  SIMULATION_SUCCESS_SIGNAL_TYPE,
   SendDataStrategyGenerator,
   StaticCallStrategyGenerator,
   SuccessfulTransaction,
 } from "../../types/execution-strategy";
+import type { NetworkInteraction } from "../../types/network-interaction";
+
+import { assertIgnitionInvariant } from "../../../utils/assertions";
 import {
-  NetworkInteraction,
-  NetworkInteractionType,
-} from "../../types/network-interaction";
+  ExecutionSateType,
+  ExecutionStatus,
+} from "../../types/execution-state";
+import {
+  OnchainInteractionResponseType,
+  SIMULATION_SUCCESS_SIGNAL_TYPE,
+} from "../../types/execution-strategy";
+import { NetworkInteractionType } from "../../types/network-interaction";
 
 /**
  * This function creates and replays an ExecutionStrategy generator, and

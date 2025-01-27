@@ -1,11 +1,12 @@
+import type { ArtifactResolver } from "./types/artifact";
+import type { StatusResult } from "./types/status";
+
 import { IgnitionError } from "./errors";
 import { FileDeploymentLoader } from "./internal/deployment-loader/file-deployment-loader";
 import { ERRORS } from "./internal/errors-list";
 import { loadDeploymentState } from "./internal/execution/deployment-state-helpers";
 import { findDeployedContracts } from "./internal/views/find-deployed-contracts";
 import { findStatus } from "./internal/views/find-status";
-import { ArtifactResolver } from "./types/artifact";
-import { StatusResult } from "./types/status";
 
 /**
  * Show the status of a deployment.

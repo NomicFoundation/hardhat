@@ -1,15 +1,23 @@
-import { IgnitionError } from "../../errors";
-import { ArtifactResolver } from "../../types/artifact";
-import { DeploymentParameters } from "../../types/deploy";
-import { Future, IgnitionModule } from "../../types/module";
-import { DeploymentLoader } from "../deployment-loader/types";
-import { ERRORS } from "../errors-list";
-import { DeploymentState } from "../execution/types/deployment-state";
-import {
+import type {
+  ReconciliationCheck,
+  ReconciliationContext,
+  ReconciliationFailure,
+  ReconciliationFutureResult,
+  ReconciliationResult,
+} from "./types";
+import type { ArtifactResolver } from "../../types/artifact";
+import type { DeploymentParameters } from "../../types/deploy";
+import type { Future, IgnitionModule } from "../../types/module";
+import type { DeploymentLoader } from "../deployment-loader/types";
+import type { DeploymentState } from "../execution/types/deployment-state";
+import type {
   ConcreteExecutionConfig,
   ExecutionState,
-  ExecutionStatus,
 } from "../execution/types/execution-state";
+
+import { IgnitionError } from "../../errors";
+import { ERRORS } from "../errors-list";
+import { ExecutionStatus } from "../execution/types/execution-state";
 import { AdjacencyList } from "../utils/adjacency-list";
 import { AdjacencyListConverter } from "../utils/adjacency-list-converter";
 import { getFuturesFromModule } from "../utils/get-futures-from-module";
@@ -17,13 +25,6 @@ import { getFuturesFromModule } from "../utils/get-futures-from-module";
 import { reconcileCurrentAndPreviousTypeMatch } from "./reconcile-current-and-previous-type-match";
 import { reconcileDependencyRules } from "./reconcile-dependency-rules";
 import { reconcileFutureSpecificReconciliations } from "./reconcile-future-specific-reconciliations";
-import {
-  ReconciliationCheck,
-  ReconciliationContext,
-  ReconciliationFailure,
-  ReconciliationFutureResult,
-  ReconciliationResult,
-} from "./types";
 
 export class Reconciler {
   public static async reconcile(

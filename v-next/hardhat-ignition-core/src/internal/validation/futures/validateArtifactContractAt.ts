@@ -1,8 +1,9 @@
+import type { ArtifactResolver } from "../../../types/artifact";
+import type { DeploymentParameters } from "../../../types/deploy";
+import type { ContractAtFuture } from "../../../types/module";
+
 import { IgnitionError } from "../../../errors";
 import { isModuleParameterRuntimeValue } from "../../../type-guards";
-import { ArtifactResolver } from "../../../types/artifact";
-import { DeploymentParameters } from "../../../types/deploy";
-import { ContractAtFuture } from "../../../types/module";
 import { ERRORS } from "../../errors-list";
 import { resolvePotentialModuleParameterValueFrom } from "../utils";
 

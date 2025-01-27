@@ -1,36 +1,5 @@
-import { IgnitionError } from "./errors";
-import { ERRORS } from "./internal/errors-list";
-import {
-  AccountRuntimeValueImplementation,
-  ArtifactContractAtFutureImplementation,
-  ArtifactContractDeploymentFutureImplementation,
-  ArtifactLibraryDeploymentFutureImplementation,
-  IgnitionModuleImplementation,
-  ModuleParameterRuntimeValueImplementation,
-  NamedContractAtFutureImplementation,
-  NamedContractCallFutureImplementation,
-  NamedContractDeploymentFutureImplementation,
-  NamedEncodeFunctionCallFutureImplementation,
-  NamedLibraryDeploymentFutureImplementation,
-  NamedStaticCallFutureImplementation,
-  ReadEventArgumentFutureImplementation,
-  SendDataFutureImplementation,
-} from "./internal/module";
-import {
-  Graph,
-  getNodesInTopologicalOrder,
-} from "./internal/topological-order";
-import { replaceWithinArg } from "./internal/utils/replace-within-arg";
-import {
-  isAccountRuntimeValue,
-  isAddressResolvableFuture,
-  isContractFuture,
-  isEncodeFunctionCallFuture,
-  isFuture,
-  isModuleParameterRuntimeValue,
-  isRuntimeValue,
-} from "./type-guards";
-import {
+import type { Graph } from "./internal/topological-order";
+import type {
   AccountRuntimeValue,
   AddressResolvableFuture,
   ArgumentType,
@@ -39,17 +8,15 @@ import {
   ContractFuture,
   EncodeFunctionCallFuture,
   Future,
-  FutureType,
   IgnitionModule,
   IgnitionModuleResult,
   ModuleParameterRuntimeValue,
   ModuleParameterType,
   NamedArtifactContractDeploymentFuture,
   ReadEventArgumentFuture,
-  RuntimeValueType,
   StaticCallFuture,
 } from "./types/module";
-import {
+import type {
   FutureToken,
   ModuleToken,
   SerializedAccountRuntimeValue,
@@ -72,6 +39,37 @@ import {
   SerializedReadEventArgumentFuture,
   SerializedSendDataFuture,
 } from "./types/serialization";
+
+import { IgnitionError } from "./errors";
+import { ERRORS } from "./internal/errors-list";
+import {
+  AccountRuntimeValueImplementation,
+  ArtifactContractAtFutureImplementation,
+  ArtifactContractDeploymentFutureImplementation,
+  ArtifactLibraryDeploymentFutureImplementation,
+  IgnitionModuleImplementation,
+  ModuleParameterRuntimeValueImplementation,
+  NamedContractAtFutureImplementation,
+  NamedContractCallFutureImplementation,
+  NamedContractDeploymentFutureImplementation,
+  NamedEncodeFunctionCallFutureImplementation,
+  NamedLibraryDeploymentFutureImplementation,
+  NamedStaticCallFutureImplementation,
+  ReadEventArgumentFutureImplementation,
+  SendDataFutureImplementation,
+} from "./internal/module";
+import { getNodesInTopologicalOrder } from "./internal/topological-order";
+import { replaceWithinArg } from "./internal/utils/replace-within-arg";
+import {
+  isAccountRuntimeValue,
+  isAddressResolvableFuture,
+  isContractFuture,
+  isEncodeFunctionCallFuture,
+  isFuture,
+  isModuleParameterRuntimeValue,
+  isRuntimeValue,
+} from "./type-guards";
+import { FutureType, RuntimeValueType } from "./types/module";
 
 interface SerializeContext {
   argReplacer: (arg: ArgumentType) => SerializedArgumentType;

@@ -1,24 +1,26 @@
-import { ArtifactResolver } from "../../../types/artifact";
-import { DeploymentParameters } from "../../../types/deploy";
-import { Future } from "../../../types/module";
-import { DeploymentLoader } from "../../deployment-loader/types";
-import { assertIgnitionInvariant } from "../../utils/assertions";
-import { isExecutionStateComplete } from "../../views/is-execution-state-complete";
-import { applyNewMessage } from "../deployment-state-helpers";
-import { JsonRpcClient } from "../jsonrpc-client";
-import { NonceManager } from "../nonce-management/json-rpc-nonce-manager";
-import { TransactionTrackingTimer } from "../transaction-tracking-timer";
-import { DeploymentState } from "../types/deployment-state";
-import { ExecutionResultType } from "../types/execution-result";
-import {
+import type { ArtifactResolver } from "../../../types/artifact";
+import type { DeploymentParameters } from "../../../types/deploy";
+import type { Future } from "../../../types/module";
+import type { DeploymentLoader } from "../../deployment-loader/types";
+import type { JsonRpcClient } from "../jsonrpc-client";
+import type { NonceManager } from "../nonce-management/json-rpc-nonce-manager";
+import type { TransactionTrackingTimer } from "../transaction-tracking-timer";
+import type { DeploymentState } from "../types/deployment-state";
+import type {
   CallExecutionState,
   DeploymentExecutionState,
-  ExecutionSateType,
   SendDataExecutionState,
   StaticCallExecutionState,
 } from "../types/execution-state";
-import { ExecutionStrategy } from "../types/execution-strategy";
-import { JournalMessage, JournalMessageType } from "../types/messages";
+import type { ExecutionStrategy } from "../types/execution-strategy";
+import type { JournalMessage } from "../types/messages";
+
+import { assertIgnitionInvariant } from "../../utils/assertions";
+import { isExecutionStateComplete } from "../../views/is-execution-state-complete";
+import { applyNewMessage } from "../deployment-state-helpers";
+import { ExecutionResultType } from "../types/execution-result";
+import { ExecutionSateType } from "../types/execution-state";
+import { JournalMessageType } from "../types/messages";
 
 import { monitorOnchainInteraction } from "./handlers/monitor-onchain-interaction";
 import { queryStaticCall } from "./handlers/query-static-call";
