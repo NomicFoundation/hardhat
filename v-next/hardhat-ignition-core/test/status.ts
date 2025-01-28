@@ -2,6 +2,9 @@ import { assert } from "chai";
 import path from "path";
 
 import { status } from "../src/index.js";
+import { fileURLToPath } from "node:url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 describe("status", () => {
   it("should return a status result for a successful deployment", async () => {

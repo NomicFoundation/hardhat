@@ -1,7 +1,10 @@
 import { assert } from "chai";
-import path from "path";
+import path from "node:path";
 
 import { listDeployments } from "../src/index.js";
+import { fileURLToPath } from "node:url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 describe("listDeployments", () => {
   it("should return an empty array if given a directory that doesn't exist", async () => {

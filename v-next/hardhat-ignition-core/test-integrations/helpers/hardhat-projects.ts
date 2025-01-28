@@ -1,4 +1,6 @@
 import type { HardhatRuntimeEnvironment } from "hardhat/types";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 declare module "mocha" {
   interface Context {
@@ -10,7 +12,9 @@ declare module "mocha" {
 export function useHardhatProject(fixtureProjectName: string): void {
   const previousCwd = process.cwd();
   before("Loading Hardhat Runtime Environment", async function () {
-    process.chdir(`${__dirname}/../fixture-projects/${fixtureProjectName}`);
+    process.chdir(
+      `${path.dirname(fileURLToPath(import.meta.url))}/../fixture-projects/${fixtureProjectName}`,
+    );
     this.hre = require("hardhat");
   });
 
