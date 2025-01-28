@@ -10,7 +10,7 @@ import {
   writeJsonFile,
 } from "@ignored/hardhat-vnext-utils/fs";
 
-export class Cache {
+export class ObjectCache<T> {
   readonly #path: string;
   readonly #maxAgeMs: number = 0;
   readonly #maxSize: number = 0;
@@ -19,12 +19,12 @@ export class Cache {
     this.#path = path.join(basePath, namespace, version);
   }
 
-  public async setJson<T>(key: string, value: T): Promise<void> {
+  public async set(key: string, value: T): Promise<void> {
     const filePath = path.join(this.#path, key);
     await writeJsonFile(filePath, value);
   }
 
-  public async getJson<T>(key: string): Promise<T | undefined> {
+  public async get(key: string): Promise<T | undefined> {
     const filePath = path.join(this.#path, key);
     return (await exists(filePath)) ? readJsonFile<T>(filePath) : undefined;
   }

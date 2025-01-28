@@ -46,7 +46,7 @@ import {
   getContractArtifact,
   getDuplicatedContractNamesDeclarationFile,
 } from "./artifacts.js";
-import { Cache } from "./cache.js";
+import { ObjectCache } from "./cache.js";
 import { CompilationJobImplementation } from "./compilation-job.js";
 import { downloadConfiguredCompilers, getCompiler } from "./compiler/index.js";
 import { buildDependencyGraph } from "./dependency-graph-building.js";
@@ -76,13 +76,13 @@ export interface SolidityBuildSystemOptions {
 
 export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
   readonly #options: SolidityBuildSystemOptions;
-  readonly #compilerOutputCache: Cache;
+  readonly #compilerOutputCache: ObjectCache<CompilerOutput>;
   readonly #defaultConcurrency = Math.max(os.cpus().length - 1, 1);
   #downloadedCompilers = false;
 
   constructor(options: SolidityBuildSystemOptions) {
     this.#options = options;
-    this.#compilerOutputCache = new Cache(
+    this.#compilerOutputCache = new ObjectCache<CompilerOutput>(
       options.cachePath,
       "hardhat.core.solidity.build-system.compiler-output",
       "v1",
@@ -141,7 +141,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
         if (runCompilationJobOptions?.force !== true) {
           const cachedCompilerOutput =
-            await this.#compilerOutputCache.getJson<CompilerOutput>(buildId);
+            await this.#compilerOutputCache.get(buildId);
           if (cachedCompilerOutput !== undefined) {
             log(`Using cached compiler output for build ${buildId}`);
             return {
@@ -180,7 +180,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     // will only care about the result of these operations in subsequent runs
     void Promise.all(
       uncachedSuccessfulResults.map(async (result) => {
-        return this.#compilerOutputCache.setJson(
+        return this.#compilerOutputCache.set(
           result.compilationJob.getBuildId(),
           result.compilerOutput,
         );
