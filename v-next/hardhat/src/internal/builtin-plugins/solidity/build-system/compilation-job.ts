@@ -5,10 +5,7 @@ import type { SolcConfig } from "../../../../types/config.js";
 import type { CompilationJob } from "../../../../types/solidity/compilation-job.js";
 import type { CompilerInput } from "../../../../types/solidity/compiler-io.js";
 import type { DependencyGraph } from "../../../../types/solidity/dependency-graph.js";
-import {
-  getResolvedFileContentHash,
-  type ResolvedFile,
-} from "../../../../types/solidity.js";
+import type { ResolvedFile } from "../../../../types/solidity.js";
 
 import { createNonCryptographicHashId } from "@ignored/hardhat-vnext-utils/crypto";
 
@@ -26,6 +23,8 @@ export class CompilationJobImplementation implements CompilationJob {
   #solcInput: CompilerInput | undefined;
   #solcInputWithoutSources: Omit<CompilerInput, "sources"> | undefined;
   #resolvedFiles: ResolvedFile[] | undefined;
+
+  static readonly #sourceContentHashCache = new Map<string, string>();
 
   constructor(
     dependencyGraph: DependencyGraphImplementation,
@@ -138,6 +137,23 @@ export class CompilationJobImplementation implements CompilationJob {
     };
   }
 
+  async #getSourceContentHash(file: ResolvedFile): Promise<string> {
+    const cachedSourceContentHash =
+      CompilationJobImplementation.#sourceContentHashCache.get(file.sourceName);
+    if (cachedSourceContentHash !== undefined) {
+      return cachedSourceContentHash;
+    }
+
+    const sourceContentHash = await createNonCryptographicHashId(
+      file.content.text,
+    );
+    CompilationJobImplementation.#sourceContentHashCache.set(
+      file.sourceName,
+      sourceContentHash,
+    );
+    return sourceContentHash;
+  }
+
   async #computeBuildId(): Promise<string> {
     // NOTE: We type it this way so that this stop compiling if we ever change
     // the format of the BuildInfo type.
@@ -149,7 +165,7 @@ export class CompilationJobImplementation implements CompilationJob {
     await Promise.all(
       resolvedFiles.map(async (file) => {
         sources[file.sourceName] = {
-          hash: await getResolvedFileContentHash(file),
+          hash: await this.#getSourceContentHash(file),
         };
       }),
     );
@@ -161,8 +177,8 @@ export class CompilationJobImplementation implements CompilationJob {
       format +
       this.solcLongVersion +
       JSON.stringify(this.#getSolcInputWithoutSources()) +
-      JSON.stringify(sources)
-      JSON.stringify(this.solcConfig);
+      JSON.stringify(sources);
+    JSON.stringify(this.solcConfig);
 
     return createNonCryptographicHashId(preimage);
   }
