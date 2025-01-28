@@ -29,11 +29,12 @@ export async function generateTypes(
   removePrettierTransformerIfPresent(outputTransformers);
   addCompiledFilesTransformerIfAbsent(outputTransformers);
 
-  const typechainOptions: Omit<RunTypeChainConfig, "filesToProcess"> = {
+  const typechainOptions: RunTypeChainConfig = {
     cwd: rootPath,
     allFiles: artifactsPaths,
     outDir: config.outDir,
     target: "ethers-v6", // We only support this target
+    filesToProcess: [], // We ignore this property for now
     flags: {
       alwaysGenerateOverloads: config.alwaysGenerateOverloads,
       discriminateTypes: config.discriminateTypes,
