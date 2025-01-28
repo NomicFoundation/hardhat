@@ -5,6 +5,7 @@ import type { SolcConfig } from "../../../../types/config.js";
 import type { CompilationJob } from "../../../../types/solidity/compilation-job.js";
 import type { CompilerInput } from "../../../../types/solidity/compiler-io.js";
 import type { DependencyGraph } from "../../../../types/solidity/dependency-graph.js";
+import type { ResolvedFile } from "../../../../types/solidity.js";
 
 import { createNonCryptographicHashId } from "@ignored/hardhat-vnext-utils/crypto";
 
@@ -20,6 +21,8 @@ export class CompilationJobImplementation implements CompilationJob {
 
   #buildId: string | undefined;
   #solcInput: CompilerInput | undefined;
+  #solcInputWithoutSources: Omit<CompilerInput, "sources"> | undefined;
+  #resolvedFiles: ResolvedFile[] | undefined;
 
   constructor(
     dependencyGraph: DependencyGraphImplementation,
@@ -35,7 +38,7 @@ export class CompilationJobImplementation implements CompilationJob {
 
   public async getSolcInput(): Promise<CompilerInput> {
     if (this.#solcInput === undefined) {
-      this.#solcInput = await this.#buildSolcInput();
+      this.#solcInput = this.#buildSolcInput();
     }
 
     return this.#solcInput;
@@ -49,13 +52,31 @@ export class CompilationJobImplementation implements CompilationJob {
     return this.#buildId;
   }
 
-  async #buildSolcInput(): Promise<CompilerInput> {
+  #getSolcInputWithoutSources(): Omit<CompilerInput, "sources"> {
+    if (this.#solcInputWithoutSources === undefined) {
+      this.#solcInputWithoutSources = this.#buildSolcInputWithoutSources();
+    }
+
+    return this.#solcInputWithoutSources;
+  }
+
+  #getResolvedFiles(): ResolvedFile[] {
+    if (this.#resolvedFiles === undefined) {
+      // we sort the files so that we always get the same compilation input
+      this.#resolvedFiles = [...this.dependencyGraph.getAllFiles()].sort(
+        (a, b) => a.sourceName.localeCompare(b.sourceName),
+      );
+    }
+
+    return this.#resolvedFiles;
+  }
+
+  #buildSolcInput(): CompilerInput {
+    const solcInputWithoutSources = this.#getSolcInputWithoutSources();
+
     const sources: { [sourceName: string]: { content: string } } = {};
 
-    // we sort the files so that we always get the same compilation input
-    const resolvedFiles = [...this.dependencyGraph.getAllFiles()].sort((a, b) =>
-      a.sourceName.localeCompare(b.sourceName),
-    );
+    const resolvedFiles = this.#getResolvedFiles();
 
     for (const file of resolvedFiles) {
       sources[file.sourceName] = {
@@ -63,6 +84,13 @@ export class CompilationJobImplementation implements CompilationJob {
       };
     }
 
+    return {
+      ...solcInputWithoutSources,
+      sources,
+    };
+  }
+
+  #buildSolcInputWithoutSources(): Omit<CompilerInput, "sources"> {
     const settings = this.solcConfig.settings;
 
     const rootsOutputSelection: CompilerInput["settings"]["outputSelection"] =
@@ -96,7 +124,6 @@ export class CompilationJobImplementation implements CompilationJob {
 
     return {
       language: "Solidity",
-      sources,
       settings: {
         ...settings,
         evmVersion:
