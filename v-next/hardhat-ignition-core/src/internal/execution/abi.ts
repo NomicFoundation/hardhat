@@ -24,6 +24,8 @@ import type {
   Result,
 } from "ethers";
 
+import { ethers } from "ethers";
+
 import { IgnitionError } from "../../errors.js";
 import { ERRORS } from "../errors-list.js";
 import { assertIgnitionInvariant } from "../utils/assertions.js";
@@ -54,7 +56,6 @@ export function encodeDeploymentArguments(
   artifact: Artifact,
   args: SolidityParameterType[],
 ): string {
-  const { ethers } = require("ethers") as typeof import("ethers");
   const iface = new ethers.Interface(artifact.abi);
 
   const encodedArgs = iface.encodeDeploy(args);
@@ -92,7 +93,6 @@ export function encodeArtifactFunctionCall(
     throw validationErrors[0];
   }
 
-  const { ethers } = require("ethers") as typeof import("ethers");
   const iface = new ethers.Interface(artifact.abi);
 
   const functionFragment = getFunctionFragment(iface, functionName);
@@ -107,7 +107,6 @@ export function decodeArtifactCustomError(
   artifact: Artifact,
   returnData: string,
 ): RevertWithCustomError | RevertWithInvalidData | undefined {
-  const { ethers } = require("ethers") as typeof import("ethers");
   const iface = ethers.Interface.from(artifact.abi);
   const errorFragment = iface.fragments
     .filter(ethers.Fragment.isError)
@@ -147,7 +146,6 @@ export function decodeArtifactFunctionCallResult(
     throw validationErrors[0];
   }
 
-  const { ethers } = require("ethers") as typeof import("ethers");
   const iface = ethers.Interface.from(artifact.abi);
   const functionFragment = getFunctionFragment(iface, functionName);
 
@@ -180,7 +178,6 @@ export function validateContractConstructorArgsLength(
 
   const argsLength = args.length;
 
-  const { ethers } = require("ethers") as typeof import("ethers");
   const iface = new ethers.Interface(artifact.abi);
   const expectedArgsLength = iface.deploy.inputs.length;
 
@@ -229,7 +226,6 @@ export function validateArtifactFunction(
 
   const errors: IgnitionError[] = [];
 
-  const { ethers } = require("ethers") as typeof import("ethers");
   const iface = new ethers.Interface(artifact.abi);
   const fragment = getFunctionFragment(iface, functionName);
 
@@ -308,7 +304,6 @@ export function validateArtifactEventArgumentParams(
     return [e];
   }
 
-  const { ethers } = require("ethers") as typeof import("ethers");
   const iface = new ethers.Interface(emitterArtifact.abi);
 
   let eventFragment: EventFragment;
@@ -382,7 +377,6 @@ export function getEventArgumentFromReceipt(
     equalAddresses(l.address, emitterAddress),
   );
 
-  const { ethers } = require("ethers") as typeof import("ethers");
   const iface = new ethers.Interface(emitterArtifact.abi);
 
   const eventFragment = getEventFragment(iface, eventName);
@@ -469,7 +463,6 @@ function tryToDecodeReason(
     return undefined;
   }
 
-  const { ethers } = require("ethers") as typeof import("ethers");
   const abiCoder = ethers.AbiCoder.defaultAbiCoder();
 
   try {
@@ -497,7 +490,6 @@ function tryToDecodePanicCode(
     return undefined;
   }
 
-  const { ethers } = require("ethers") as typeof import("ethers");
   const abiCoder = ethers.AbiCoder.defaultAbiCoder();
 
   try {
@@ -534,8 +526,6 @@ function ethersValueIntoEvmValue(
   ethersValue: any,
   paramType: ParamType,
 ): EvmValue {
-  const { ethers } = require("ethers") as typeof import("ethers");
-
   if (typeof ethersValue === "bigint") {
     return ethersValue;
   }
@@ -618,8 +608,6 @@ function getFunctionFragment(
   iface: Interface,
   functionName: string,
 ): FunctionFragment {
-  const { ethers } = require("ethers") as typeof import("ethers");
-
   const fragment = iface.fragments
     .filter(ethers.Fragment.isFunction)
     .find(
@@ -643,8 +631,6 @@ function getFunctionFragment(
  * @param eventName The event name to search for. MUST be validated first.
  */
 function getEventFragment(iface: Interface, eventName: string): EventFragment {
-  const { ethers } = require("ethers") as typeof import("ethers");
-
   // TODO: Add support for event overloading
   const fragment = iface.fragments
     .filter(ethers.Fragment.isEvent)
@@ -704,7 +690,6 @@ function validateOverloadedName(
     });
   }
 
-  const { ethers } = require("ethers") as typeof import("ethers");
   const iface = new ethers.Interface(artifact.abi);
 
   const fragments = iface.fragments
@@ -818,7 +803,6 @@ export function validateFunctionArgumentParamType(
   artifact: Artifact,
   argument: string | number,
 ): IgnitionError[] {
-  const { ethers } = require("ethers") as typeof import("ethers");
   const iface = new ethers.Interface(artifact.abi);
   let functionFragment: FunctionFragment;
   try {
