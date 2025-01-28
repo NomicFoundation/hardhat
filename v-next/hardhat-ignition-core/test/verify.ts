@@ -7,6 +7,9 @@ import {
   getVerificationInformation,
 } from "../src/index.js";
 import { getImportSourceNames } from "../src/verify.js";
+import { fileURLToPath } from "url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 describe("verify", () => {
   it("should not verify an unitialized deployment", async () => {

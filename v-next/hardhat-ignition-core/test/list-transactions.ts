@@ -8,6 +8,9 @@ import {
 } from "../src/index.js";
 
 import { setupMockArtifactResolver } from "./helpers.js";
+import { fileURLToPath } from "url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 describe("listTransactions", () => {
   it("should return the transactions associated with a deployment", async () => {
