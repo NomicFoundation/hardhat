@@ -307,17 +307,14 @@ export class SolidityError extends Error {
     super(message);
 
     Object.defineProperty(this, Symbol.for("nodejs.util.inspect.custom"), {
-      value: this.inspect,
+      value: () =>
+        this.stack !== undefined
+          ? this.stack
+          : "Internal error when encoding SolidityError",
       writable: false,
       enumerable: false,
       configurable: true,
     });
-  }
-
-  public inspect(): string {
-    return this.stack !== undefined
-      ? this.stack
-      : "Internal error when encoding SolidityError";
   }
 }
 
