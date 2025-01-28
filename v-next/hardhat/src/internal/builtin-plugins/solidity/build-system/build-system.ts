@@ -60,6 +60,11 @@ import { SolcConfigSelector } from "./solc-config-selection.js";
 
 const log = debug("hardhat:core:solidity:build-system");
 
+interface CompilationResult {
+  compilerOutput: CompilerOutput,
+  cached: boolean
+}
+
 export interface SolidityBuildSystemOptions {
   readonly solidityConfig: SolidityConfig;
   readonly projectRoot: string;
@@ -128,7 +133,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       force: options?.force,
       quiet: options?.quiet,
     };
-    const results: CompilerOutput[] = await pMap(
+    const results: CompilationResult[] = await pMap(
       compilationJobs,
       async (compilationJob) => {
         const buildId = compilationJob.getBuildId();
@@ -138,7 +143,10 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
             await this.#compilerOutputCache.getJson<CompilerOutput>(buildId);
           if (cachedCompilerOutput !== undefined) {
             log(`Using cached compiler output for build ${buildId}`);
-            return cachedCompilerOutput;
+            return {
+              compilerOutput: cachedCompilerOutput,
+              cached: true,
+            };
           }
         }
 
@@ -148,7 +156,10 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
           await this.#compilerOutputCache.setJson(buildId, compilerOutput);
         }
 
-        return compilerOutput;
+        return {
+          compilerOutput,
+          cached: false,
+        };
       },
       {
         concurrency: options?.concurrency ?? this.#defaultConcurrency,
@@ -158,8 +169,10 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       },
     );
 
+    void this.#compilerOutputCache.clean();
+
     const isSuccessfulBuild = results.every(
-      (result) => !this.#hasCompilationErrors(result),
+      (result) => !this.#hasCompilationErrors(result.compilerOutput),
     );
 
     const contractArtifactsGeneratedByCompilationJob: Map<
@@ -177,7 +190,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
           const result = results[i];
           const artifactsPerFile = await this.emitArtifacts(
             compilationJob,
-            result,
+            result.compilerOutput,
             emitArtifactsOptions,
           );
 
@@ -209,7 +222,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       const errors =
         result !== undefined
           ? await Promise.all(
-              (result.errors ?? []).map((error) =>
+              (result.compilerOutput.errors ?? []).map((error) =>
                 this.remapCompilerError(compilationJob, error, true),
               ),
             )
@@ -218,7 +231,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       this.#printSolcErrorsAndWarnings(errors);
 
       const successfulResult =
-        result === undefined || !this.#hasCompilationErrors(result);
+        result === undefined || !this.#hasCompilationErrors(result.compilerOutput);
 
       for (const [publicSourceName, root] of compilationJob.dependencyGraph
         .getRoots()
@@ -228,6 +241,18 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
             type: FileBuildResultType.BUILD_FAILURE,
             buildId,
             errors,
+          });
+
+          continue;
+        }
+
+        if (result.cached) {
+          resultsMap.set(formatRootPath(publicSourceName, root), {
+            type: FileBuildResultType.CACHE_HIT,
+            buildId,
+            contractArtifactsGenerated:
+              contractArtifactsGenerated.get(publicSourceName) ?? [],
+            warnings: errors,
           });
 
           continue;

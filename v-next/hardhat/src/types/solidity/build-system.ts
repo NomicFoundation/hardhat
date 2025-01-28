@@ -165,6 +165,7 @@ export interface CacheHitFileBuildResult {
   type: FileBuildResultType.CACHE_HIT;
   buildId: string;
   contractArtifactsGenerated: string[];
+  warnings: CompilerOutputError[];
 }
 
 export interface SuccessfulFileBuildResult {
