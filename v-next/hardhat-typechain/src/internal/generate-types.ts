@@ -74,12 +74,15 @@ function removePrettierTransformerIfPresent(
   }
 }
 
+/**
+ * This is a hack to avoid modifying the original TypeChain npm module.
+ * TypeChain generates files that are incompatible with Hardhat v3 TypeScript
+ * compile rules and also relies on the "hardhat-ethers-v2" module. To address
+ * these issues, we replace specific lines in the compiled files.
+ */
 function addCompiledFilesTransformerIfAbsent(
   outputTransformers: OutputTransformer[],
 ) {
-  // Note: This is a hack to avoid modifying the original TypeChain npm module.
-  // TypeChain generates files that are incompatible with Hardhat v3 TypeScript compile rules and it also rely on the "hardhat-ethers-v2" module.
-  // To address these issues, we replace specific lines in the compiled files.
 
   if (
     // The "item.name" must match the name of the variable where the OutputTransformer is defined, which in this case is "compiledFilesTransformer"
