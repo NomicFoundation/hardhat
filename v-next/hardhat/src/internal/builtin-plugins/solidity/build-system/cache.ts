@@ -19,10 +19,6 @@ export class Cache {
     this.#path = path.join(basePath, namespace, version);
   }
 
-  public async has(key: string): Promise<boolean> {
-    return exists(path.join(this.#path, key));
-  }
-
   public async setJson<T>(key: string, value: T): Promise<void> {
     const filePath = path.join(this.#path, key);
     await writeJsonFile(filePath, value);
@@ -30,7 +26,7 @@ export class Cache {
 
   public async getJson<T>(key: string): Promise<T | undefined> {
     const filePath = path.join(this.#path, key);
-    return (await this.has(key)) ? readJsonFile<T>(filePath) : undefined;
+    return (await exists(filePath)) ? readJsonFile<T>(filePath) : undefined;
   }
 
   public async clean(): Promise<void> {
