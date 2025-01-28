@@ -11,14 +11,16 @@ import AdmZip from "adm-zip";
 export class Cache {
   readonly #basePath: string;
   readonly #namespace: string;
+  readonly #version: string;
 
-  constructor(basePath: string, namespace: string) {
+  constructor(basePath: string, namespace: string, version: string) {
     this.#basePath = basePath;
     this.#namespace = namespace;
+    this.#version = version;
   }
 
   #getPath(key: string): string {
-    return path.join(this.#basePath, this.#namespace, key);
+    return path.join(this.#basePath, this.#namespace, this.#version, key);
   }
 
   public async has(key: string): Promise<boolean> {

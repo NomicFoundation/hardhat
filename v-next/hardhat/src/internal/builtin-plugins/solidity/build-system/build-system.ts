@@ -80,10 +80,12 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     this.#compilerOutputCache = new Cache(
       options.cachePath,
       "hardhat.core.solidity.build-system.compiler-output",
+      "v1",
     );
     this.#artifactsCache = new Cache(
       options.cachePath,
       "hardhat.core.solidity.build-system.artifacts",
+      "v1",
     );
   }
 
