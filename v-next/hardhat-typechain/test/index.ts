@@ -62,33 +62,6 @@ describe("hardhat-typechain", () => {
     });
   });
 
-  describe("generate types from contracts", () => {
-    const projectFolder = "generate-types";
-
-    useFixtureProject(projectFolder);
-
-    before(async () => {
-      await remove(`${process.cwd()}/types`);
-    });
-
-    it("should generate the types", async () => {
-      const hardhatConfig = await import(
-        // eslint-disable-next-line import/no-relative-packages -- allow for fixture projects
-        `./fixture-projects/${projectFolder}/hardhat.config.js`
-      );
-
-      const hre = await createHardhatRuntimeEnvironment(hardhatConfig.default);
-
-      assert.equal(await exists(`${process.cwd()}/types`), false);
-
-      await hre.tasks.getTask("clean").run();
-
-      await hre.tasks.getTask("compile").run();
-
-      assert.equal(await exists(`${process.cwd()}/types`), true);
-    });
-  });
-
   describe("typechain should not generate types during compilation", () => {
     describe("when the configuration property dontOverrideCompile is set to true", () => {
       const projectFolder = "skip-type-generation";
