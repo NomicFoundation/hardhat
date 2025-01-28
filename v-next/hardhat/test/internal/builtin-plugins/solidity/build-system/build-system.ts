@@ -33,15 +33,11 @@ async function emitArtifacts(solidity: SolidityBuildSystem): Promise<void> {
 
   const buildIds = new Set<string>();
   for (const compilationJob of compilationJobs.values()) {
-    const buildId = compilationJob.getBuildId();
+    const buildId = await compilationJob.getBuildId();
     if (!buildIds.has(buildId)) {
       buildIds.add(buildId);
       const buildInfoOutput = await readJsonFile<SolidityBuildInfoOutput>(
-        path.join(
-          artifactsPath,
-          "build-info",
-          `${compilationJob.getBuildId()}.output.json`,
-        ),
+        path.join(artifactsPath, "build-info", `${buildId}.output.json`),
       );
       await solidity.emitArtifacts(compilationJob, buildInfoOutput.output);
     }

@@ -25,7 +25,7 @@ export interface CompilationJob {
   /**
    * Returns the solc input to be used.
    */
-  getSolcInput(): CompilerInput;
+  getSolcInput(): Promise<CompilerInput>;
 
   /**
    * Returns the build id of the compilation job.
@@ -37,5 +37,5 @@ export interface CompilationJob {
    * While deterministic, it shouldn't be expected to be stable across different
    * versions of Hardhat.
    */
-  getBuildId(): string;
+  getBuildId(): Promise<string>;
 }

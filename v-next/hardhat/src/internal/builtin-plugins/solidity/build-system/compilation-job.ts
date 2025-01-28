@@ -33,23 +33,23 @@ export class CompilationJobImplementation implements CompilationJob {
     this.#remappings = remappings;
   }
 
-  public getSolcInput(): CompilerInput {
+  public async getSolcInput(): Promise<CompilerInput> {
     if (this.#solcInput === undefined) {
-      this.#solcInput = this.#buildSolcInput();
+      this.#solcInput = await this.#buildSolcInput();
     }
 
     return this.#solcInput;
   }
 
-  public getBuildId(): string {
+  public async getBuildId(): Promise<string> {
     if (this.#buildId === undefined) {
-      this.#buildId = this.#computeBuildId();
+      this.#buildId = await this.#computeBuildId();
     }
 
     return this.#buildId;
   }
 
-  #buildSolcInput(): CompilerInput {
+  async #buildSolcInput(): Promise<CompilerInput> {
     const sources: { [sourceName: string]: { content: string } } = {};
 
     // we sort the files so that we always get the same compilation input
@@ -108,7 +108,7 @@ export class CompilationJobImplementation implements CompilationJob {
     };
   }
 
-  #computeBuildId(): string {
+  async #computeBuildId(): Promise<string> {
     // NOTE: We type it this way so that this stop compiling if we ever change
     // the format of the BuildInfo type.
     const format: BuildInfo["_format"] = "hh3-sol-build-info-1";
