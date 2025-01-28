@@ -3,6 +3,7 @@ import type { LoggerConfig } from "./types/logger.js";
 import type { TracingConfig } from "./types/node-types.js";
 import type { EdrNetworkConfig } from "../../../../types/config.js";
 import type {
+  EthSubscription,
   JsonRpcResponse,
   RequestArguments,
   SuccessfulJsonRpcResponse,
@@ -332,13 +333,14 @@ export class EdrProvider extends BaseProvider {
   }
 
   #emitEip1193SubscriptionEvent(subscription: string, result: unknown) {
-    this.emit("message", {
+    const message: EthSubscription = {
       type: "eth_subscription",
       data: {
         subscription,
         result,
       },
-    });
+    };
+    this.emit("message", message);
   }
 }
 

@@ -89,6 +89,17 @@ export interface EthereumProvider extends EIP1193Provider {
 }
 
 /**
+ * A message emitted by the provider as a result of an eth_subscription.
+ */
+export interface EthSubscription {
+  readonly type: "eth_subscription";
+  readonly data: {
+    readonly subscription: string;
+    readonly result: unknown;
+  };
+}
+
+/**
  * A JSON-RPC 2.0 request object.
  *
  * For typing a JSON-RPC notification request, use `JsonRpcNotificationRequest`.
