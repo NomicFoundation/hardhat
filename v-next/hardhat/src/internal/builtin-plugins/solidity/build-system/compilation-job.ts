@@ -140,13 +140,24 @@ export class CompilationJobImplementation implements CompilationJob {
     // the format of the BuildInfo type.
     const format: BuildInfo["_format"] = "hh3-sol-build-info-1";
 
+    const sources: { [sourceName: string]: { hash: string } } = {};
+    const resolvedFiles = this.#getResolvedFiles();
+
+    await Promise.all(
+      resolvedFiles.map(async (file) => {
+        sources[file.sourceName] = {
+          hash: await createNonCryptographicHashId(file.content.text),
+        };
+      }),
+    );
+
     // The preimage should include all the information that makes this
     // compilation job unique, and as this is used to identify the build info
     // file, it also includes its format string.
     const preimage =
       format +
       this.solcLongVersion +
-      JSON.stringify(this.getSolcInput()) +
+      JSON.stringify(this.#getSolcInputWithoutSources()) +
       JSON.stringify(this.solcConfig);
 
     return createNonCryptographicHashId(preimage);
