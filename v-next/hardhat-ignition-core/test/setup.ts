@@ -1,5 +1,5 @@
 /* eslint-disable import/no-unused-modules */
-import chai from "chai";
+import { use } from "chai";
 import chaiAsPromised from "chai-as-promised";
 
-chai.use(chaiAsPromised);
+use(chaiAsPromised);
