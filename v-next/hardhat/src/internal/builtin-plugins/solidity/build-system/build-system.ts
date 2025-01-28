@@ -25,7 +25,6 @@ import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
 import {
   getAllDirectoriesMatching,
   getAllFilesMatching,
-  isDirectory,
   readJsonFile,
   remove,
   writeUtf8File,
@@ -449,32 +448,6 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         },
       ),
     };
-  }
-
-  async #groupEmitArtifactsResults(
-    filePaths: string[],
-  ): Promise<Map<string, string[]>> {
-    const result = new Map<string, string[]>();
-
-    for (const filePath of filePaths) {
-      const relativePath = path.relative(this.#options.artifactsPath, filePath);
-      if (
-        path.dirname(relativePath) === "build-info" ||
-        path.basename(relativePath) === "artifacts.d.ts"
-      ) {
-        continue;
-      }
-      if (await isDirectory(filePath)) {
-        result.set(relativePath, []);
-      } else {
-        const publicSourceName = path.dirname(relativePath);
-        const paths = result.get(publicSourceName) ?? [];
-        paths.push(filePath);
-        result.set(publicSourceName, paths);
-      }
-    }
-
-    return result;
   }
 
   public async emitArtifacts(
