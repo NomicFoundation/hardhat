@@ -1,3 +1,7 @@
+import type { HardhatUserConfig } from "@ignored/hardhat-vnext/config";
+import type { HardhatUserConfigValidationError } from "@ignored/hardhat-vnext-zod-utils";
+
+import { validateUserConfigZodType } from "@ignored/hardhat-vnext-zod-utils";
 import { z } from "zod";
 
 export const typechainUserConfigSchema: z.ZodOptional<
@@ -22,3 +26,12 @@ export const typechainUserConfigSchema: z.ZodOptional<
     tsNocheck: z.boolean().optional(),
   })
   .optional();
+
+export async function validateTypechainUserConfig(
+  userConfig: HardhatUserConfig,
+): Promise<HardhatUserConfigValidationError[]> {
+  return validateUserConfigZodType(
+    userConfig.typechain,
+    typechainUserConfigSchema,
+  );
+}
