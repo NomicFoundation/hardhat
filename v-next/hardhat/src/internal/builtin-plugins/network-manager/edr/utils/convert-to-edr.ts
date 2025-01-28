@@ -41,7 +41,6 @@ import {
   GENERIC_CHAIN_TYPE as EDR_GENERIC_CHAIN_TYPE,
 } from "@ignored/edr-optimism";
 import { getUnprefixedHexString } from "@ignored/hardhat-vnext-utils/hex";
-import { isObject } from "@ignored/hardhat-vnext-utils/lang";
 
 import { L1_CHAIN_TYPE, OPTIMISM_CHAIN_TYPE } from "../../../../constants.js";
 import { FixedValueConfigurationVariable } from "../../../../core/configuration-variables.js";
@@ -231,17 +230,6 @@ export function edrRpcDebugTraceToHardhat(
     returnValue, // ASK: do we expect an unprefixed hex string here?
     structLogs,
   };
-}
-
-export function isDebugTraceResult(
-  result: unknown,
-): result is DebugTraceResult {
-  return (
-    isObject(result) &&
-    "pass" in result &&
-    "gasUsed" in result &&
-    "structLogs" in result
-  );
 }
 
 export async function hardhatAccountsToEdrOwnedAccounts(

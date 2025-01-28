@@ -20,7 +20,7 @@ import {
 export function createSolidityErrorWithStackTrace(
   fallbackMessage: string,
   stackTrace: SolidityStackTrace,
-  data?: string,
+  data: string,
   transactionHash?: string,
 ): SolidityError {
   const originalPrepareStackTrace = Error.prepareStackTrace;
@@ -298,7 +298,7 @@ export class SolidityError extends Error {
   constructor(
     message: string,
     public readonly stackTrace: SolidityStackTrace,
-    public readonly data?: string,
+    public readonly data: string,
     public readonly transactionHash?: string,
   ) {
     super(message);

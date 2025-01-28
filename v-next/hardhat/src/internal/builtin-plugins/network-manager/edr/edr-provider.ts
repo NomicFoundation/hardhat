@@ -39,6 +39,10 @@ import { getJsonRpcRequest, isFailedJsonRpcResponse } from "../json-rpc.js";
 import { getGlobalEdrContext } from "./edr-context.js";
 import { InvalidArgumentsError, ProviderError } from "./errors.js";
 import { createSolidityErrorWithStackTrace } from "./stack-traces/stack-trace-solidity-errors.js";
+import {
+  isDebugTraceResult,
+  isEdrProviderErrorData,
+} from "./type-validation.js";
 import { clientVersion } from "./utils/client-version.js";
 import { ConsoleLogger } from "./utils/console-logger.js";
 import {
@@ -50,7 +54,6 @@ import {
   hardhatChainsToEdrChains,
   hardhatForkingConfigToEdrForkConfig,
   hardhatChainTypeToEdrChainType,
-  isDebugTraceResult,
 } from "./utils/convert-to-edr.js";
 import { printLine, replaceLastLine } from "./utils/logger.js";
 
@@ -283,20 +286,18 @@ export class EdrProvider extends BaseProvider {
       }
 
       if (stackTrace !== null) {
-        // Pass data and transaction hash from the original error
-        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-        -- If we have a stack trace, we know that the json rpc response data
-        is an object with the data and transactionHash fields */
-        const responseErrorData = responseError.data as {
-          data?: string;
-          transactionHash?: string;
-        };
+        // If we have a stack trace, we know that the json rpc response data
+        // is an object with the data and transactionHash fields
+        assertHardhatInvariant(
+          isEdrProviderErrorData(responseError.data),
+          "Invalid error data",
+        );
 
         error = createSolidityErrorWithStackTrace(
           responseError.message,
           stackTrace,
-          responseErrorData?.data,
-          responseErrorData?.transactionHash,
+          responseError.data.data,
+          responseError.data.transactionHash,
         );
       } else {
         error =
