@@ -2038,11 +2038,7 @@ importers:
         version: 5.4.1
       debug:
         specifier: ^4.1.1
-<<<<<<< HEAD
-        version: 4.3.7(supports-color@8.1.1)
-=======
         version: 4.4.0(supports-color@5.5.0)
->>>>>>> d08b13b614a2475792c39d18d685817ec713e038
       enquirer:
         specifier: ^2.3.0
         version: 2.4.1
@@ -2793,19 +2789,19 @@ importers:
         version: link:../hardhat-zod-utils
       '@typechain/ethers-v6':
         specifier: ^0.5.0
-        version: 0.5.1(ethers@6.13.4)(typechain@8.3.2(typescript@5.5.4))(typescript@5.5.4)
+        version: 0.5.1(ethers@6.13.5)(typechain@8.3.2(typescript@5.5.4))(typescript@5.5.4)
       debug:
         specifier: ^4.1.1
-        version: 4.3.7(supports-color@8.1.1)
+        version: 4.3.7
       ethers:
         specifier: ^6.13.2
-        version: 6.13.4
+        version: 6.13.5
       typechain:
         specifier: ^8.3.1
         version: 8.3.2(typescript@5.5.4)
       zod:
         specifier: ^3.23.8
-        version: 3.23.8
+        version: 3.24.1
     devDependencies:
       '@eslint-community/eslint-plugin-eslint-comments':
         specifier: ^4.3.0
@@ -2821,7 +2817,7 @@ importers:
         version: 4.1.12
       '@types/node':
         specifier: ^20.14.9
-        version: 20.17.1
+        version: 20.17.16
       '@typescript-eslint/eslint-plugin':
         specifier: ^7.7.1
         version: 7.18.0(@typescript-eslint/parser@7.18.0(eslint@8.57.0)(typescript@5.5.4))(eslint@8.57.0)(typescript@5.5.4)
@@ -2839,10 +2835,10 @@ importers:
         version: 9.1.0(eslint@8.57.0)
       eslint-import-resolver-typescript:
         specifier: ^3.6.1
-        version: 3.6.3(@typescript-eslint/parser@7.18.0(eslint@8.57.0)(typescript@5.5.4))(eslint-plugin-import@2.29.1)(eslint@8.57.0)
+        version: 3.7.0(eslint-plugin-import@2.29.1)(eslint@8.57.0)
       eslint-plugin-import:
         specifier: 2.29.1
-        version: 2.29.1(@typescript-eslint/parser@7.18.0(eslint@8.57.0)(typescript@5.5.4))(eslint-import-resolver-typescript@3.6.3)(eslint@8.57.0)
+        version: 2.29.1(@typescript-eslint/parser@7.18.0(eslint@8.57.0)(typescript@5.5.4))(eslint-import-resolver-typescript@3.7.0)(eslint@8.57.0)
       eslint-plugin-no-only-tests:
         specifier: 3.1.0
         version: 3.1.0
@@ -5623,6 +5619,15 @@ packages:
 
   debug@4.3.3:
     resolution: {integrity: sha512-/zxw5+vh1Tfv+4Qn7a5nsbcJKPaSvCDhojn6FEl9vupwK2VCSDtEiEtqr8DFtzYFOdz63LBkxec7DYuc2jon6Q==}
+    engines: {node: '>=6.0'}
+    peerDependencies:
+      supports-color: '*'
+    peerDependenciesMeta:
+      supports-color:
+        optional: true
+
+  debug@4.3.7:
+    resolution: {integrity: sha512-Er2nc/H7RrMXZBFCEim6TCmMk02Z8vLC2Rbi1KEBggpo0fS6l0S1nnapwmIi3yW/+GOJap1Krg4w0Hg80oCqgQ==}
     engines: {node: '>=6.0'}
     peerDependencies:
       supports-color: '*'
@@ -9192,11 +9197,7 @@ snapshots:
   '@eslint/eslintrc@2.1.4':
     dependencies:
       ajv: 6.12.6
-<<<<<<< HEAD
-      debug: 4.3.7(supports-color@8.1.1)
-=======
       debug: 4.4.0(supports-color@5.5.0)
->>>>>>> d08b13b614a2475792c39d18d685817ec713e038
       espree: 9.6.1
       globals: 13.24.0
       ignore: 5.3.2
@@ -9510,11 +9511,7 @@ snapshots:
   '@humanwhocodes/config-array@0.11.14':
     dependencies:
       '@humanwhocodes/object-schema': 2.0.3
-<<<<<<< HEAD
-      debug: 4.3.7(supports-color@8.1.1)
-=======
       debug: 4.4.0(supports-color@5.5.0)
->>>>>>> d08b13b614a2475792c39d18d685817ec713e038
       minimatch: 3.1.2
     transitivePeerDependencies:
       - supports-color
@@ -10135,19 +10132,15 @@ snapshots:
       typechain: 8.3.2(typescript@5.0.4)
       typescript: 5.0.4
 
-<<<<<<< HEAD
-  '@typechain/ethers-v6@0.5.1(ethers@6.13.4)(typechain@8.3.2(typescript@5.5.4))(typescript@5.5.4)':
+  '@typechain/ethers-v6@0.5.1(ethers@6.13.5)(typechain@8.3.2(typescript@5.5.4))(typescript@5.5.4)':
     dependencies:
-      ethers: 6.13.4
+      ethers: 6.13.5
       lodash: 4.17.21
       ts-essentials: 7.0.3(typescript@5.5.4)
       typechain: 8.3.2(typescript@5.5.4)
       typescript: 5.5.4
 
-  '@typechain/hardhat@9.1.0(@typechain/ethers-v6@0.5.1(ethers@6.13.4)(typechain@8.3.2(typescript@5.0.4))(typescript@5.0.4))(ethers@6.13.4)(hardhat@packages+hardhat-core)(typechain@8.3.2(typescript@5.0.4))':
-=======
   '@typechain/hardhat@9.1.0(@typechain/ethers-v6@0.5.1(ethers@6.13.5)(typechain@8.3.2(typescript@5.0.4))(typescript@5.0.4))(ethers@6.13.5)(hardhat@packages+hardhat-core)(typechain@8.3.2(typescript@5.0.4))':
->>>>>>> d08b13b614a2475792c39d18d685817ec713e038
     dependencies:
       '@typechain/ethers-v6': 0.5.1(ethers@6.13.5)(typechain@8.3.2(typescript@5.0.4))(typescript@5.0.4)
       ethers: 6.13.5
@@ -10188,7 +10181,7 @@ snapshots:
 
   '@types/bn.js@4.11.6':
     dependencies:
-      '@types/node': 18.19.74
+      '@types/node': 22.10.10
 
   '@types/bn.js@5.1.6':
     dependencies:
@@ -10208,7 +10201,7 @@ snapshots:
 
   '@types/concat-stream@1.6.1':
     dependencies:
-      '@types/node': 18.19.74
+      '@types/node': 22.10.10
 
   '@types/d3-scale-chromatic@3.1.0': {}
 
@@ -10230,7 +10223,7 @@ snapshots:
 
   '@types/form-data@0.0.33':
     dependencies:
-      '@types/node': 18.19.74
+      '@types/node': 22.10.10
 
   '@types/fs-extra@5.1.0':
     dependencies:
@@ -10243,7 +10236,7 @@ snapshots:
   '@types/glob@7.2.0':
     dependencies:
       '@types/minimatch': 5.1.2
-      '@types/node': 18.19.74
+      '@types/node': 22.10.10
 
   '@types/hoist-non-react-statics@3.3.6':
     dependencies:
@@ -10317,7 +10310,7 @@ snapshots:
 
   '@types/pbkdf2@3.1.2':
     dependencies:
-      '@types/node': 18.19.74
+      '@types/node': 22.10.10
 
   '@types/prettier@2.7.3': {}
 
@@ -10341,14 +10334,14 @@ snapshots:
 
   '@types/readable-stream@2.3.15':
     dependencies:
-      '@types/node': 18.19.74
+      '@types/node': 22.10.10
       safe-buffer: 5.1.2
 
   '@types/resolve@1.20.6': {}
 
   '@types/secp256k1@4.0.6':
     dependencies:
-      '@types/node': 18.19.74
+      '@types/node': 22.10.10
 
   '@types/semver@6.2.7': {}
 
@@ -10377,7 +10370,7 @@ snapshots:
 
   '@types/through@0.0.33':
     dependencies:
-      '@types/node': 18.19.74
+      '@types/node': 22.10.10
 
   '@types/trusted-types@2.0.7':
     optional: true
@@ -10398,7 +10391,7 @@ snapshots:
 
   '@types/ws@8.5.3':
     dependencies:
-      '@types/node': 18.19.74
+      '@types/node': 22.10.10
 
   '@typescript-eslint/eslint-plugin@5.61.0(@typescript-eslint/parser@5.61.0(eslint@8.57.0)(typescript@5.0.4))(eslint@8.57.0)(typescript@5.0.4)':
     dependencies:
@@ -10445,11 +10438,7 @@ snapshots:
       '@typescript-eslint/type-utils': 7.7.1(eslint@8.57.0)(typescript@5.5.4)
       '@typescript-eslint/utils': 7.7.1(eslint@8.57.0)(typescript@5.5.4)
       '@typescript-eslint/visitor-keys': 7.7.1
-<<<<<<< HEAD
-      debug: 4.3.7(supports-color@8.1.1)
-=======
       debug: 4.4.0(supports-color@5.5.0)
->>>>>>> d08b13b614a2475792c39d18d685817ec713e038
       eslint: 8.57.0
       graphemer: 1.4.0
       ignore: 5.3.2
@@ -10487,11 +10476,7 @@ snapshots:
       '@typescript-eslint/types': 7.18.0
       '@typescript-eslint/typescript-estree': 7.18.0(typescript@5.5.4)
       '@typescript-eslint/visitor-keys': 7.18.0
-<<<<<<< HEAD
-      debug: 4.3.7(supports-color@8.1.1)
-=======
       debug: 4.4.0(supports-color@5.5.0)
->>>>>>> d08b13b614a2475792c39d18d685817ec713e038
       eslint: 8.57.0
     optionalDependencies:
       typescript: 5.5.4
@@ -10504,11 +10489,7 @@ snapshots:
       '@typescript-eslint/types': 7.7.1
       '@typescript-eslint/typescript-estree': 7.7.1(typescript@5.5.4)
       '@typescript-eslint/visitor-keys': 7.7.1
-<<<<<<< HEAD
-      debug: 4.3.7(supports-color@8.1.1)
-=======
       debug: 4.4.0(supports-color@5.5.0)
->>>>>>> d08b13b614a2475792c39d18d685817ec713e038
       eslint: 8.57.0
     optionalDependencies:
       typescript: 5.5.4
@@ -10551,11 +10532,7 @@ snapshots:
     dependencies:
       '@typescript-eslint/typescript-estree': 7.18.0(typescript@5.5.4)
       '@typescript-eslint/utils': 7.18.0(eslint@8.57.0)(typescript@5.5.4)
-<<<<<<< HEAD
-      debug: 4.3.7(supports-color@8.1.1)
-=======
       debug: 4.4.0(supports-color@5.5.0)
->>>>>>> d08b13b614a2475792c39d18d685817ec713e038
       eslint: 8.57.0
       ts-api-utils: 1.4.3(typescript@5.5.4)
     optionalDependencies:
@@ -10567,11 +10544,7 @@ snapshots:
     dependencies:
       '@typescript-eslint/typescript-estree': 7.7.1(typescript@5.5.4)
       '@typescript-eslint/utils': 7.7.1(eslint@8.57.0)(typescript@5.5.4)
-<<<<<<< HEAD
-      debug: 4.3.7(supports-color@8.1.1)
-=======
       debug: 4.4.0(supports-color@5.5.0)
->>>>>>> d08b13b614a2475792c39d18d685817ec713e038
       eslint: 8.57.0
       ts-api-utils: 1.4.3(typescript@5.5.4)
     optionalDependencies:
@@ -10633,11 +10606,7 @@ snapshots:
     dependencies:
       '@typescript-eslint/types': 7.18.0
       '@typescript-eslint/visitor-keys': 7.18.0
-<<<<<<< HEAD
-      debug: 4.3.7(supports-color@8.1.1)
-=======
       debug: 4.4.0(supports-color@5.5.0)
->>>>>>> d08b13b614a2475792c39d18d685817ec713e038
       globby: 11.1.0
       is-glob: 4.0.3
       minimatch: 9.0.5
@@ -10652,11 +10621,7 @@ snapshots:
     dependencies:
       '@typescript-eslint/types': 7.7.1
       '@typescript-eslint/visitor-keys': 7.7.1
-<<<<<<< HEAD
-      debug: 4.3.7(supports-color@8.1.1)
-=======
       debug: 4.4.0(supports-color@5.5.0)
->>>>>>> d08b13b614a2475792c39d18d685817ec713e038
       globby: 11.1.0
       is-glob: 4.0.3
       minimatch: 9.0.5
@@ -10815,11 +10780,7 @@ snapshots:
 
   agent-base@6.0.2:
     dependencies:
-<<<<<<< HEAD
-      debug: 4.3.7(supports-color@8.1.1)
-=======
       debug: 4.4.0(supports-color@5.5.0)
->>>>>>> d08b13b614a2475792c39d18d685817ec713e038
     transitivePeerDependencies:
       - supports-color
 
@@ -11641,14 +11602,15 @@ snapshots:
     dependencies:
       ms: 2.1.3
 
-<<<<<<< HEAD
-  debug@4.3.7(supports-color@8.1.1):
-=======
   debug@4.3.3(supports-color@8.1.1):
     dependencies:
       ms: 2.1.2
     optionalDependencies:
       supports-color: 8.1.1
+
+  debug@4.3.7:
+    dependencies:
+      ms: 2.1.3
 
   debug@4.4.0(supports-color@5.5.0):
     dependencies:
@@ -11657,7 +11619,6 @@ snapshots:
       supports-color: 5.5.0
 
   debug@4.4.0(supports-color@8.1.1):
->>>>>>> d08b13b614a2475792c39d18d685817ec713e038
     dependencies:
       ms: 2.1.3
     optionalDependencies:
@@ -12012,13 +11973,8 @@ snapshots:
   eslint-import-resolver-typescript@3.7.0(eslint-plugin-import@2.29.0)(eslint@8.57.0):
     dependencies:
       '@nolyfill/is-core-module': 1.0.39
-<<<<<<< HEAD
-      debug: 4.3.7(supports-color@8.1.1)
-      enhanced-resolve: 5.17.1
-=======
       debug: 4.4.0(supports-color@5.5.0)
       enhanced-resolve: 5.18.0
->>>>>>> d08b13b614a2475792c39d18d685817ec713e038
       eslint: 8.57.0
       fast-glob: 3.3.3
       get-tsconfig: 4.10.0
@@ -12245,13 +12201,8 @@ snapshots:
       '@ungap/structured-clone': 1.3.0
       ajv: 6.12.6
       chalk: 4.1.2
-<<<<<<< HEAD
-      cross-spawn: 7.0.3
-      debug: 4.3.7(supports-color@8.1.1)
-=======
       cross-spawn: 7.0.6
       debug: 4.4.0(supports-color@5.5.0)
->>>>>>> d08b13b614a2475792c39d18d685817ec713e038
       doctrine: 3.0.0
       escape-string-regexp: 4.0.0
       eslint-scope: 7.2.2
@@ -12879,11 +12830,7 @@ snapshots:
   https-proxy-agent@5.0.1:
     dependencies:
       agent-base: 6.0.2
-<<<<<<< HEAD
-      debug: 4.3.7(supports-color@8.1.1)
-=======
       debug: 4.4.0(supports-color@5.5.0)
->>>>>>> d08b13b614a2475792c39d18d685817ec713e038
     transitivePeerDependencies:
       - supports-color
 
@@ -14790,15 +14737,11 @@ snapshots:
     dependencies:
       typescript: 5.0.4
 
-<<<<<<< HEAD
   ts-essentials@7.0.3(typescript@5.5.4):
     dependencies:
       typescript: 5.5.4
 
-  ts-node@10.9.2(@types/node@18.19.59)(typescript@5.0.4):
-=======
   ts-node@10.9.1(@types/node@18.19.74)(typescript@5.0.4):
->>>>>>> d08b13b614a2475792c39d18d685817ec713e038
     dependencies:
       '@cspotcode/source-map-support': 0.8.1
       '@tsconfig/node10': 1.0.11
@@ -14916,27 +14859,23 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-<<<<<<< HEAD
   typechain@8.3.2(typescript@5.5.4):
     dependencies:
       '@types/prettier': 2.7.3
-      debug: 4.3.7(supports-color@8.1.1)
+      debug: 4.4.0(supports-color@5.5.0)
       fs-extra: 7.0.1
       glob: 7.1.7
       js-sha3: 0.8.0
       lodash: 4.17.21
       mkdirp: 1.0.4
-      prettier: 2.4.1
+      prettier: 2.8.8
       ts-command-line-args: 2.5.1
       ts-essentials: 7.0.3(typescript@5.5.4)
       typescript: 5.5.4
     transitivePeerDependencies:
       - supports-color
 
-  typed-array-buffer@1.0.2:
-=======
   typed-array-buffer@1.0.3:
->>>>>>> d08b13b614a2475792c39d18d685817ec713e038
     dependencies:
       call-bound: 1.0.3
       es-errors: 1.3.0
