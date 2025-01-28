@@ -338,17 +338,6 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     compilationJob: CompilationJob,
     options?: RunCompilationJobOptions,
   ): Promise<CompilerOutput> {
-    const buildId = compilationJob.getBuildId();
-
-    if (options?.force !== true) {
-      const cachedCompilerOutput =
-        await this.#compilerOutputCache.getJson<CompilerOutput>(buildId);
-      if (cachedCompilerOutput !== undefined) {
-        log(`Using cached compiler output for build ${buildId}`);
-        return cachedCompilerOutput;
-      }
-    }
-
     await this.#downloadConfiguredCompilers(options?.quiet);
 
     let numberOfFiles = 0;
@@ -372,10 +361,6 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     const compilerOutput = await compiler.compile(
       compilationJob.getSolcInput(),
     );
-
-    if (!this.#hasCompilationErrors(compilerOutput)) {
-      await this.#compilerOutputCache.setJson(buildId, compilerOutput);
-    }
 
     return compilerOutput;
   }
