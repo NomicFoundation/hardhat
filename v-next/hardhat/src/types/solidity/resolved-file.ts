@@ -1,3 +1,5 @@
+import { createNonCryptographicHashId } from "@ignored/hardhat-vnext-utils/crypto";
+
 /**
  * The representation of an npm package.
  */
@@ -110,4 +112,20 @@ export interface FileContent {
    * The list of version pragmas that are used in the file.
    */
   versionPragmas: string[];
+}
+
+const contentHashCache = new Map<string, string>();
+
+export async function getResolvedFileContentHash(
+  file: ResolvedFile,
+): Promise<string> {
+  const cachedContentHash = contentHashCache.get(file.sourceName);
+  if (cachedContentHash !== undefined) {
+    return cachedContentHash;
+  }
+
+  const contentHash = await createNonCryptographicHashId(file.content.text);
+  contentHashCache.set(file.sourceName, contentHash);
+
+  return contentHash;
 }

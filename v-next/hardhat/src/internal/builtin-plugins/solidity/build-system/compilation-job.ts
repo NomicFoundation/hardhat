@@ -5,7 +5,10 @@ import type { SolcConfig } from "../../../../types/config.js";
 import type { CompilationJob } from "../../../../types/solidity/compilation-job.js";
 import type { CompilerInput } from "../../../../types/solidity/compiler-io.js";
 import type { DependencyGraph } from "../../../../types/solidity/dependency-graph.js";
-import type { ResolvedFile } from "../../../../types/solidity.js";
+import {
+  getResolvedFileContentHash,
+  type ResolvedFile,
+} from "../../../../types/solidity.js";
 
 import { createNonCryptographicHashId } from "@ignored/hardhat-vnext-utils/crypto";
 
@@ -146,7 +149,7 @@ export class CompilationJobImplementation implements CompilationJob {
     await Promise.all(
       resolvedFiles.map(async (file) => {
         sources[file.sourceName] = {
-          hash: await createNonCryptographicHashId(file.content.text),
+          hash: await getResolvedFileContentHash(file),
         };
       }),
     );
