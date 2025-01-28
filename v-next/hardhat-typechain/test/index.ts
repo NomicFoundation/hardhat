@@ -132,9 +132,10 @@ describe("hardhat-typechain", () => {
 
         const hre = await createHardhatRuntimeEnvironment(
           hardhatConfig.default,
+          {
+            noTypechain: true,
+          },
         );
-
-        hre.globalOptions.noTypechain = true;
 
         assert.equal(await exists(`${process.cwd()}/types`), false);
 
