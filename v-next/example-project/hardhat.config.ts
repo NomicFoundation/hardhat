@@ -16,6 +16,7 @@ import HardhatViem from "@ignored/hardhat-vnext-viem";
 import hardhatNetworkHelpersPlugin from "@ignored/hardhat-vnext-network-helpers";
 import hardhatEthersPlugin from "@ignored/hardhat-vnext-ethers";
 import hardhatChaiMatchersPlugin from "@ignored/hardhat-vnext-chai-matchers";
+import hardhatTypechain from "@ignored/hardhat-vnext-typechain";
 
 util.inspect.defaultOptions.depth = null;
 
@@ -158,6 +159,7 @@ const config: HardhatUserConfig = {
     HardhatNodeTestRunner,
     HardhatViem,
     hardhatChaiMatchersPlugin,
+    hardhatTypechain,
   ],
   paths: {
     tests: {
@@ -202,6 +204,9 @@ const config: HardhatUserConfig = {
   },
   solidityTest: {
     testFail: true,
+  },
+  typechain: {
+    tsNocheck: false,
   },
 };
 

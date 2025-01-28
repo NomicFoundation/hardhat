@@ -29,6 +29,7 @@
     "@ignored/hardhat-vnext-mocha-test-runner": "workspace:^3.0.0-next.12",
     "@ignored/hardhat-vnext-network-helpers": "workspace:^3.0.0-next.12",
     "@ignored/hardhat-vnext-node-test-runner": "workspace:^3.0.0-next.12",
+    "@ignored/hardhat-vnext-typechain": "workspace:^3.0.0-next.12",
     "@ignored/hardhat-vnext-viem": "workspace:^3.0.0-next.11",
     "@openzeppelin/contracts": "5.1.0",
     "@types/chai": "^4.2.0",
