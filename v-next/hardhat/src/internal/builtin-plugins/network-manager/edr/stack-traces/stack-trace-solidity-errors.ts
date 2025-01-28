@@ -5,6 +5,7 @@ import type {
 } from "./solidity-stack-trace.js";
 
 import { ReturnData } from "@ignored/edr-optimism";
+import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
 import { bytesToHexString } from "@ignored/hardhat-vnext-utils/bytes";
 
 import { panicErrorCodeToMessage } from "./panic-errors.js";
@@ -37,10 +38,12 @@ export function createSolidityErrorWithStackTrace(
         }
       }
 
-      return originalPrepareStackTrace !== undefined
-        ? originalPrepareStackTrace(error, adjustedStack)
-        : // This should never happen, but just in case we add a fallback
-          `Error: ${error.message}\n    at ${adjustedStack.join("\n    at ")}`;
+      assertHardhatInvariant(
+        originalPrepareStackTrace !== undefined,
+        "Error.prepareStackTrace should be defined",
+      );
+
+      return originalPrepareStackTrace(error, adjustedStack);
     };
 
     const message =
