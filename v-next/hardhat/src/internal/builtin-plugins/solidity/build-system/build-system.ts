@@ -240,9 +240,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
       this.#printSolcErrorsAndWarnings(errors);
 
-      const successfulResult =
-        result === undefined ||
-        !this.#hasCompilationErrors(result.compilerOutput);
+      const successfulResult = !this.#hasCompilationErrors(result.compilerOutput);
 
       for (const [
         publicSourceName,
