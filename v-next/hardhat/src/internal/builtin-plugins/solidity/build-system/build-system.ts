@@ -130,9 +130,26 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     };
     const results: CompilerOutput[] = await pMap(
       compilationJobs,
-      async (compilationJob) =>
-        (await this.#compilerOutputCache.getJson<CompilerOutput>(compilationJob.getBuildId())) ??
-          this.runCompilationJob(compilationJob, runCompilationJobOptions),
+      async (compilationJob) => {
+        const buildId = compilationJob.getBuildId();
+
+        if (runCompilationJobOptions?.force !== true) {
+          const cachedCompilerOutput =
+            await this.#compilerOutputCache.getJson<CompilerOutput>(buildId);
+          if (cachedCompilerOutput !== undefined) {
+            log(`Using cached compiler output for build ${buildId}`);
+            return cachedCompilerOutput;
+          }
+        }
+
+        const compilerOutput = await this.runCompilationJob(compilationJob, runCompilationJobOptions);
+
+        if (!this.#hasCompilationErrors(compilerOutput)) {
+          await this.#compilerOutputCache.setJson(buildId, compilerOutput);
+        }
+
+        return compilerOutput;
+      },
       {
         concurrency: options?.concurrency ?? this.#defaultConcurrency,
         // An error when running the compiler is not a compilation failure, but
