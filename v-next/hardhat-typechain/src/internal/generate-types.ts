@@ -114,27 +114,25 @@ function addCompiledFilesTransformerIfAbsent(
 
 /**
  * This function is exported solely for testing purposes.
- * 
+ *
  * Modifies the content to ensure that all the wildcard imports include the
  * "/index.js" extension. For example:
- * 
+ *
  * import type * as src from './src';
  * will be converted into:
  * import type * as src from './src/index.js';
- * 
+ *
  * However, imports like:
  * import * from "npmPackage";
  * will not be converted, as the import path does not start with a ".".
  */
 export function addJsExtensionsIfNeeded(content: string): string {
   const jsExtensionRegex =
-    /^import\s+.*?\s+from\s+(['"])\.[^'"]*(?<!\.js)\1;?$/gm;
+    /^import\s+(.*?)\s+from\s+(['"])(\.[^'"]*)(?<!\.js)\2;?$/gm;
 
-  return content.replace(jsExtensionRegex, (match) => {
-    const insertIndex = match.includes(";")
-      ? match.length - 2
-      : match.length - 1;
-
-    return match.slice(0, insertIndex) + "/index.js" + match.slice(insertIndex);
-  });
+  return content.replace(
+    jsExtensionRegex,
+    (_match, imports, quote, path) =>
+      `import ${imports} from ${quote}${path}/index.js${quote};`,
+  );
 }

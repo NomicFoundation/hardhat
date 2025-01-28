@@ -38,7 +38,7 @@ import * from "."`);
       output,
       `
 import { ethers } from "ethers";
-import * from "./index.js"`,
+import * from "./index.js";`,
     );
   });
 
