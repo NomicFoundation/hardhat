@@ -49,11 +49,14 @@ export async function generateTypes(
   log(`Successfully generated ${result.filesGenerated} typings!`);
 }
 
+/**
+ * This is a hack to avoid modifying the original TypeChain npm module. The
+ * goal is to avoid running Prettier on the generated files. To achieve this,
+ * we remove the `prettier` output transformer from TypeChain.
+ */
 function removePrettierTransformerIfPresent(
   outputTransformers: OutputTransformer[],
 ): void {
-  // Note: This is a hack to avoid modifying the original TypeChain npm module; the goal is to avoid running prettier on the generated files.
-  // We remove the `prettier` output transformer from typechain.
 
   // Check if the `prettier` output transformer is present. If multiple contracts are compiled at different
   // times in the same process, the `prettier` transformer may have already been removed earlier.
