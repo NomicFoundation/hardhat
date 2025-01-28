@@ -58,7 +58,7 @@ export function createSolidityErrorWithStackTrace(
     );
 
     /* eslint-disable-next-line @typescript-eslint/no-unused-expressions
-    -- As the stack property is lazy-loaded in JavaScript, we need to access it
+    -- As the stack property is lazy-loaded in v8, we need to access it
     to trigger the custom prepareStackTrace logic */
     solidityError.stack;
 
