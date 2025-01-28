@@ -31,7 +31,7 @@ describe("hardhat-typechain", () => {
 
       await hre.tasks.getTask("clean").run();
 
-      await hre.tasks.getTask("compile").run({});
+      await hre.tasks.getTask("compile").run();
 
       const content = await readUtf8File(
         path.join(process.cwd(), "types", "ethers-contracts", "hardhat.d.ts"),
@@ -83,7 +83,7 @@ describe("hardhat-typechain", () => {
 
       await hre.tasks.getTask("clean").run();
 
-      await hre.tasks.getTask("compile").run({});
+      await hre.tasks.getTask("compile").run();
 
       assert.equal(await exists(`${process.cwd()}/types`), true);
     });
@@ -168,7 +168,7 @@ describe("hardhat-typechain", () => {
 
       await hre.tasks.getTask("clean").run();
 
-      await hre.tasks.getTask("compile").run({});
+      await hre.tasks.getTask("compile").run();
 
       assert.equal(await exists(`${process.cwd()}/types`), false);
     });
@@ -196,7 +196,7 @@ describe("hardhat-typechain", () => {
 
       await hre.tasks.getTask("clean").run();
 
-      await hre.tasks.getTask("compile").run({});
+      await hre.tasks.getTask("compile").run();
 
       assert.equal(await exists(`${process.cwd()}/custom-types`), true);
       assert.equal(await exists(`${process.cwd()}/types`), false);
