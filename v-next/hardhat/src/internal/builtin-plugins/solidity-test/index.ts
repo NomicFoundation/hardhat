@@ -11,6 +11,11 @@ const hardhatPlugin: HardhatPlugin = {
   },
   tasks: [
     task(["test", "solidity"], "Run the Solidity tests")
+      .addVariadicArgument({
+        name: "testFiles",
+        description: "An optional list of files to test",
+        defaultValue: [],
+      })
       .setAction(import.meta.resolve("./task-action.js"))
       .build(),
   ],

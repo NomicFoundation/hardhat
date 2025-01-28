@@ -35,7 +35,7 @@ echo "[e2e] Building and packing hardhat-core"
 cd ../packages/hardhat-core
 pnpm install
 pnpm build
-HARDHAT_TGZ_FILE=$(pnpm pack)
+HARDHAT_TGZ_FILE=$(pnpm pack | grep "hardhat-*.*.*.tgz")
 echo "[e2e] Built $HARDHAT_TGZ_FILE"
 cd - >/dev/null
 

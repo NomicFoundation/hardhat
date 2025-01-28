@@ -29,7 +29,7 @@ describe("Proper address", () => {
     );
   });
 
-  it("Expect to throw if negation with proper address)", async () => {
+  it("Expect to throw if negation with proper address", async () => {
     expect(
       () =>
         expect("0x28FAA621c3348823D6c6548981a19716bcDc740e").not.to.be

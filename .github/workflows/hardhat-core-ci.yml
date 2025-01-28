@@ -18,6 +18,11 @@ on:
       - "packages/hardhat-core/**"
       - "packages/hardhat-common/**"
   workflow_dispatch:
+    inputs:
+      test-all-solc-versions:
+        description: Test all solc versions
+        required: false
+        default: "false"
 
 defaults:
   run:
@@ -63,6 +68,7 @@ jobs:
           DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true
           FORCE_COLOR: 3
           NODE_OPTIONS: --max-old-space-size=4096
+          HARDHAT_TESTS_ALL_SOLC_VERSIONS: ${{ github.event.inputs.test-all-solc-versions}}
         run: pnpm test:except-provider
 
   test-provider:

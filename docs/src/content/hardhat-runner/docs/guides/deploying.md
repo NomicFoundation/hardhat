@@ -50,7 +50,7 @@ You can deploy in the `localhost` network following these steps:
 
    ::::
 
-As general rule, you can target any network from your Hardhat config using:
+As a general rule, you can target any network from your Hardhat config using:
 
 ```
 npx hardhat ignition deploy ./ignition/modules/Lock.js --network <your-network>

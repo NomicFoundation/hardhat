@@ -1,6 +1,6 @@
 import type { EthereumProvider } from "hardhat/types";
 
-import { assert } from "chai";
+import { assert, expect } from "chai";
 import * as chains from "viem/chains";
 
 import {
@@ -32,6 +32,7 @@ describe("clients", () => {
 
       assert.equal(client.pollingInterval, 1000);
       assert.equal(client.cacheTime, 2000);
+      assert.equal(client.transport.retryCount, 3);
     });
 
     it("should return a public client with default parameters for development networks", async () => {
@@ -41,6 +42,29 @@ describe("clients", () => {
 
       assert.equal(client.pollingInterval, 50);
       assert.equal(client.cacheTime, 0);
+      assert.equal(client.transport.retryCount, 0);
+    });
+
+    it("should retry failed calls on public client", async () => {
+      const provider = new EthereumMockedProvider();
+
+      const client = await innerGetPublicClient(provider, chains.mainnet);
+
+      await expect(client.getBlockNumber()).to.eventually.be.rejectedWith(
+        /unknown RPC error/
+      );
+      assert.equal(provider.calledCount, 4);
+    });
+
+    it("should not retry failed calls on public client when using a development network", async () => {
+      const provider = new EthereumMockedProvider();
+
+      const client = await innerGetPublicClient(provider, chains.hardhat);
+
+      await expect(client.getBlockNumber()).to.eventually.be.rejectedWith(
+        /unknown RPC error/
+      );
+      assert.equal(provider.calledCount, 1);
     });
   });
 
@@ -97,7 +121,34 @@ describe("clients", () => {
       clients.forEach((client) => {
         assert.equal(client.pollingInterval, 50);
         assert.equal(client.cacheTime, 0);
+        assert.equal(client.transport.retryCount, 0);
       });
+    });
+
+    it("should retry failed calls on wallet client", async () => {
+      const provider = new EthereumMockedProvider();
+
+      const [client] = await innerGetWalletClients(provider, chains.mainnet, [
+        "0x1",
+      ]);
+
+      await expect(client.getChainId()).to.eventually.be.rejectedWith(
+        /unknown RPC error/
+      );
+      assert.equal(provider.calledCount, 4);
+    });
+
+    it("should not retry failed calls on wallet client when using a development network", async () => {
+      const provider = new EthereumMockedProvider();
+
+      const [client] = await innerGetWalletClients(provider, chains.hardhat, [
+        "0x1",
+      ]);
+
+      await expect(client.getChainId()).to.eventually.be.rejectedWith(
+        /unknown RPC error/
+      );
+      assert.equal(provider.calledCount, 1);
     });
 
     it("should return an empty array if there are no accounts owned by the user", async () => {
@@ -169,6 +220,22 @@ describe("clients", () => {
 
       assert.equal(client.pollingInterval, 50);
       assert.equal(client.cacheTime, 0);
+      assert.equal(client.transport.retryCount, 0);
+    });
+
+    it("should not retry failed calls on test client", async () => {
+      const provider = new EthereumMockedProvider();
+
+      const client = await innerGetTestClient(
+        provider,
+        chains.hardhat,
+        "hardhat"
+      );
+
+      await expect(client.getAutomine()).to.eventually.be.rejectedWith(
+        /unknown RPC error/
+      );
+      assert.equal(provider.calledCount, 1);
     });
   });
 });

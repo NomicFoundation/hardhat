@@ -1,4 +1,5 @@
-import chalk from "chalk";
+import picocolors from "picocolors";
+import { writeFileSync } from "node:fs";
 import { subtask, task, types } from "../internal/core/config/config-env";
 import { HardhatError } from "../internal/core/errors";
 import { ERRORS } from "../internal/core/errors-list";
@@ -303,46 +304,63 @@ task(
     undefined,
     types.inputFile
   )
-  .setAction(async ({ files }: { files: string[] | undefined }, { run }) => {
-    const [flattenedFile, metadata]: [string, FlattenMetadata | null] =
-      await run(TASK_FLATTEN_GET_FLATTENED_SOURCE_AND_METADATA, { files });
+  .addOptionalParam(
+    "output",
+    "The output file containing the flattened contracts",
+    undefined,
+    types.string
+  )
+  .setAction(
+    async (
+      {
+        files,
+        output,
+      }: { files: string[] | undefined; output: string | undefined },
+      { run }
+    ) => {
+      const [flattenedFile, metadata]: [string, FlattenMetadata | null] =
+        await run(TASK_FLATTEN_GET_FLATTENED_SOURCE_AND_METADATA, { files });
 
-    console.log(flattenedFile);
+      if (output !== undefined) {
+        writeFileSync(output, flattenedFile, { encoding: "utf-8" });
+      } else {
+        console.log(flattenedFile);
+      }
+      if (metadata === null) return;
 
-    if (metadata === null) return;
+      if (metadata.filesWithoutLicenses.length > 0) {
+        console.warn(
+          picocolors.yellow(
+            `\nThe following file(s) do NOT specify SPDX licenses: ${metadata.filesWithoutLicenses.join(
+              ", "
+            )}`
+          )
+        );
+      }
 
-    if (metadata.filesWithoutLicenses.length > 0) {
-      console.warn(
-        chalk.yellow(
-          `\nThe following file(s) do NOT specify SPDX licenses: ${metadata.filesWithoutLicenses.join(
-            ", "
-          )}`
-        )
-      );
+      if (
+        metadata.pragmaDirective !== "" &&
+        metadata.filesWithoutPragmaDirectives.length > 0
+      ) {
+        console.warn(
+          picocolors.yellow(
+            `\nPragma abicoder directives are defined in some files, but they are not defined in the following ones: ${metadata.filesWithoutPragmaDirectives.join(
+              ", "
+            )}`
+          )
+        );
+      }
+
+      if (metadata.filesWithDifferentPragmaDirectives.length > 0) {
+        console.warn(
+          picocolors.yellow(
+            `\nThe flattened file is using the pragma abicoder directive '${
+              metadata.pragmaDirective
+            }' but these files have a different pragma abicoder directive: ${metadata.filesWithDifferentPragmaDirectives.join(
+              ", "
+            )}`
+          )
+        );
+      }
     }
-
-    if (
-      metadata.pragmaDirective !== "" &&
-      metadata.filesWithoutPragmaDirectives.length > 0
-    ) {
-      console.warn(
-        chalk.yellow(
-          `\nPragma abicoder directives are defined in some files, but they are not defined in the following ones: ${metadata.filesWithoutPragmaDirectives.join(
-            ", "
-          )}`
-        )
-      );
-    }
-
-    if (metadata.filesWithDifferentPragmaDirectives.length > 0) {
-      console.warn(
-        chalk.yellow(
-          `\nThe flattened file is using the pragma abicoder directive '${
-            metadata.pragmaDirective
-          }' but these files have a different pragma abicoder directive: ${metadata.filesWithDifferentPragmaDirectives.join(
-            ", "
-          )}`
-        )
-      );
-    }
-  });
+  );

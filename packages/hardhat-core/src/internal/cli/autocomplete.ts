@@ -307,7 +307,7 @@ function getTaskFromTaskDefinition(taskDef: TaskDefinition): Task {
 function getProjectId(): string | undefined {
   const packageJsonPath = findup.sync("package.json");
 
-  if (packageJsonPath === null) {
+  if (packageJsonPath === undefined) {
     return undefined;
   }
 

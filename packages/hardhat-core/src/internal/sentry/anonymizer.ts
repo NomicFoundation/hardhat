@@ -59,7 +59,7 @@ export class Anonymizer {
     if (filename === this._configPath) {
       const packageJsonPath = this._getFilePackageJsonPath(filename);
 
-      if (packageJsonPath === null) {
+      if (packageJsonPath === undefined) {
         // if we can't find a package.json, we just return the basename
         return {
           anonymizedFilename: path.basename(filename),
@@ -163,7 +163,7 @@ export class Anonymizer {
     return false;
   }
 
-  protected _getFilePackageJsonPath(filename: string): string | null {
+  protected _getFilePackageJsonPath(filename: string): string | undefined {
     return findup.sync("package.json", {
       cwd: path.dirname(filename),
     });

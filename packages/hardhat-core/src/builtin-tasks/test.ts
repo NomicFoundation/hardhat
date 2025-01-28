@@ -1,6 +1,6 @@
 import type { MochaOptions } from "mocha";
 
-import chalk from "chalk";
+import picocolors from "picocolors";
 import path from "path";
 
 import { HARDHAT_NETWORK_NAME } from "../internal/constants";
@@ -207,7 +207,7 @@ task(TASK_TEST, "Runs mocha tests")
 
         if (stackTracesFailures !== 0) {
           console.warn(
-            chalk.yellow(
+            picocolors.yellow(
               `Failed to generate ${stackTracesFailures} ${pluralize(
                 stackTracesFailures,
                 "stack trace"

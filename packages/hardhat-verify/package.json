@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-verify",
-  "version": "2.0.9",
+  "version": "2.0.12",
   "description": "Hardhat plugin for verifying contracts",
   "keywords": [
     "ethereum",
@@ -42,9 +42,9 @@
     "@ethersproject/abi": "^5.1.2",
     "@ethersproject/address": "^5.0.2",
     "cbor": "^8.1.0",
-    "chalk": "^2.4.2",
     "debug": "^4.1.1",
     "lodash.clonedeep": "^4.5.0",
+    "picocolors": "^1.1.0",
     "semver": "^6.3.0",
     "table": "^6.8.0",
     "undici": "^5.14.0"

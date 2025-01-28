@@ -13,7 +13,7 @@ echo "[e2e] Building and packing hardhat-core"
 cd ../packages/hardhat-core
 pnpm install
 pnpm build
-HARDHAT_TGZ_FILE=$(pnpm pack)
+HARDHAT_TGZ_FILE=$(pnpm pack | grep "hardhat-*.*.*.tgz")
 echo "[e2e] Built $HARDHAT_TGZ_FILE"
 cd - >/dev/null
 
@@ -46,7 +46,7 @@ for dir in ${FIXTURE_PROJECTS_DIR}/*; do
 
     echo "[e2e] Installing modules in $dir"
     npm add $HARDHAT_CORE_FOLDER_PATH/$HARDHAT_TGZ_FILE >/dev/null 2>&1
-    npm install >/dev/null 2>&1 # install moduled specified in the package.json
+    npm install >/dev/null 2>&1 # install modules specified in the package.json
     echo "[e2e] All modules have been installed in $dir"
 
     echo "[e2e] Starting test in $dir"

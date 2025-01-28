@@ -1,8 +1,12 @@
 import type LodashCloneDeepT from "lodash.clonedeep";
 import type { HardhatConfig, HardhatUserConfig } from "hardhat/types";
-import type { EtherscanConfig, SourcifyConfig } from "../types";
+import type {
+  EtherscanConfig,
+  SourcifyConfig,
+  BlockscoutConfig,
+} from "../types";
 
-import chalk from "chalk";
+import picocolors from "picocolors";
 
 export function etherscanConfigExtender(
   config: HardhatConfig,
@@ -24,7 +28,7 @@ export function etherscanConfigExtender(
     config.networks?.etherscan !== undefined
   ) {
     console.warn(
-      chalk.yellow(
+      picocolors.yellow(
         "WARNING: you have an 'etherscan' entry in your networks configuration. This is likely a mistake. The etherscan configuration should be at the root of the configuration, not within the networks object."
       )
     );
@@ -43,4 +47,17 @@ export function sourcifyConfigExtender(
   const cloneDeep = require("lodash.clonedeep") as typeof LodashCloneDeepT;
   const userSourcifyConfig = cloneDeep(userConfig.sourcify);
   config.sourcify = { ...defaultSourcifyConfig, ...userSourcifyConfig };
+}
+
+export function blockscoutConfigExtender(
+  config: HardhatConfig,
+  userConfig: Readonly<HardhatUserConfig>
+): void {
+  const defaultBlockscoutConfig: BlockscoutConfig = {
+    enabled: false,
+    customChains: [],
+  };
+  const cloneDeep = require("lodash.clonedeep") as typeof LodashCloneDeepT;
+  const userBlockscoutConfig = cloneDeep(userConfig.blockscout);
+  config.blockscout = { ...defaultBlockscoutConfig, ...userBlockscoutConfig };
 }

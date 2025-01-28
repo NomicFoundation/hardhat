@@ -2,3 +2,4 @@ section-type: group
 section-title: Reference
 order:
   - /environment-variables
+  - /cli-commands
