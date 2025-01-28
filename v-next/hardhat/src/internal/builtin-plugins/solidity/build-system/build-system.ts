@@ -61,8 +61,9 @@ import { SolcConfigSelector } from "./solc-config-selection.js";
 const log = debug("hardhat:core:solidity:build-system");
 
 interface CompilationResult {
-  compilerOutput: CompilerOutput,
-  cached: boolean
+  compilationJob: CompilationJob;
+  compilerOutput: CompilerOutput;
+  cached: boolean;
 }
 
 export interface SolidityBuildSystemOptions {
@@ -144,19 +145,20 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
           if (cachedCompilerOutput !== undefined) {
             log(`Using cached compiler output for build ${buildId}`);
             return {
+              compilationJob,
               compilerOutput: cachedCompilerOutput,
               cached: true,
             };
           }
         }
 
-        const compilerOutput = await this.runCompilationJob(compilationJob, runCompilationJobOptions);
-
-        if (!this.#hasCompilationErrors(compilerOutput)) {
-          await this.#compilerOutputCache.setJson(buildId, compilerOutput);
-        }
+        const compilerOutput = await this.runCompilationJob(
+          compilationJob,
+          runCompilationJobOptions,
+        );
 
         return {
+          compilationJob,
           compilerOutput,
           cached: false,
         };
@@ -169,11 +171,26 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       },
     );
 
-    void this.#compilerOutputCache.clean();
-
-    const isSuccessfulBuild = results.every(
+    const uncachedResults = results.filter((result) => !result.cached);
+    const uncachedSuccessfulResults = uncachedResults.filter(
       (result) => !this.#hasCompilationErrors(result.compilerOutput),
     );
+
+    // NOTE: We're not waiting for the writes and clean to finish because we
+    // will only care about the result of these operations in subsequent runs
+    void Promise.all(
+      uncachedSuccessfulResults.map(async (result) => {
+        return this.#compilerOutputCache.setJson(
+          result.compilationJob.getBuildId(),
+          result.compilerOutput,
+        );
+      }),
+    ).then(() => {
+      return this.#compilerOutputCache.clean();
+    });
+
+    const isSuccessfulBuild =
+      uncachedResults.length === uncachedSuccessfulResults.length;
 
     const contractArtifactsGeneratedByCompilationJob: Map<
       CompilationJob,
@@ -204,12 +221,9 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
     const resultsMap: Map<string, FileBuildResult> = new Map();
 
-    for (let i = 0; i < compilationJobs.length; i++) {
-      const compilationJob = compilationJobs[i];
-      const result = results[i];
-
+    for (const result of results) {
       const contractArtifactsGenerated = isSuccessfulBuild
-        ? contractArtifactsGeneratedByCompilationJob.get(compilationJob)
+        ? contractArtifactsGeneratedByCompilationJob.get(result.compilationJob)
         : new Map();
 
       assertHardhatInvariant(
@@ -217,25 +231,24 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         "We emitted contract artifacts for all the jobs if the build was successful",
       );
 
-      const buildId = compilationJob.getBuildId();
+      const buildId = result.compilationJob.getBuildId();
 
-      const errors =
-        result !== undefined
-          ? await Promise.all(
-              (result.compilerOutput.errors ?? []).map((error) =>
-                this.remapCompilerError(compilationJob, error, true),
-              ),
-            )
-          : [];
+      const errors = await Promise.all(
+        (result.compilerOutput.errors ?? []).map((error) =>
+          this.remapCompilerError(result.compilationJob, error, true),
+        ),
+      );
 
       this.#printSolcErrorsAndWarnings(errors);
 
       const successfulResult =
-        result === undefined || !this.#hasCompilationErrors(result.compilerOutput);
+        result === undefined ||
+        !this.#hasCompilationErrors(result.compilerOutput);
 
-      for (const [publicSourceName, root] of compilationJob.dependencyGraph
-        .getRoots()
-        .entries()) {
+      for (const [
+        publicSourceName,
+        root,
+      ] of result.compilationJob.dependencyGraph.getRoots().entries()) {
         if (!successfulResult) {
           resultsMap.set(formatRootPath(publicSourceName, root), {
             type: FileBuildResultType.BUILD_FAILURE,

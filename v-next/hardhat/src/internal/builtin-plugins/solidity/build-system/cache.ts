@@ -45,8 +45,11 @@ export class Cache {
 
     const sortedFileInfos = fileInfos.sort((a, b) => a.atimeMs - b.atimeMs);
 
-    let size = sortedFileInfos.reduce((acc, fileInfo) => acc + fileInfo.size, 0);
-    const minAtimeMs = (new Date(0 - this.#maxAgeMs)).getTime();
+    let size = sortedFileInfos.reduce(
+      (acc, fileInfo) => acc + fileInfo.size,
+      0,
+    );
+    const minAtimeMs = new Date(0 - this.#maxAgeMs).getTime();
 
     const filesToRemove: string[] = [];
 
