@@ -79,12 +79,6 @@ export interface RunCompilationJobOptions {
  */
 export interface EmitArtifactsOptions {
   /**
-   * If `true`, this option foces the build system to recreate the artifacts,
-   * even if they are cached.
-   */
-  force?: boolean;
-
-  /**
    * If `true`, the emit process doesn't print any output.
    */
   quiet?: boolean;

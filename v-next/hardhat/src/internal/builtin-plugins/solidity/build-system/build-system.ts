@@ -71,7 +71,6 @@ export interface SolidityBuildSystemOptions {
 export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
   readonly #options: SolidityBuildSystemOptions;
   readonly #compilerOutputCache: Cache;
-  readonly #artifactsCache: Cache;
   readonly #defaultConcurrency = Math.max(os.cpus().length - 1, 1);
   #downloadedCompilers = false;
 
@@ -80,11 +79,6 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     this.#compilerOutputCache = new Cache(
       options.cachePath,
       "hardhat.core.solidity.build-system.compiler-output",
-      "v1",
-    );
-    this.#artifactsCache = new Cache(
-      options.cachePath,
-      "hardhat.core.solidity.build-system.artifacts",
       "v1",
     );
   }
@@ -134,12 +128,11 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       force: options?.force,
       quiet: options?.quiet,
     };
-    const results: Array<CompilerOutput | undefined> = await pMap(
+    const results: CompilerOutput[] = await pMap(
       compilationJobs,
       async (compilationJob) =>
-        (await this.#artifactsCache.has(compilationJob.getBuildId()))
-          ? undefined
-          : this.runCompilationJob(compilationJob, runCompilationJobOptions),
+        (await this.#compilerOutputCache.getJson<CompilerOutput>(compilationJob.getBuildId())) ??
+          this.runCompilationJob(compilationJob, runCompilationJobOptions),
       {
         concurrency: options?.concurrency ?? this.#defaultConcurrency,
         // An error when running the compiler is not a compilation failure, but
@@ -149,7 +142,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     );
 
     const isSuccessfulBuild = results.every(
-      (result) => result === undefined || !this.#hasCompilationErrors(result),
+      (result) => !this.#hasCompilationErrors(result),
     );
 
     const contractArtifactsGeneratedByCompilationJob: Map<
@@ -160,33 +153,16 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     if (isSuccessfulBuild) {
       log("Emitting artifacts of successful build");
       const emitArtifactsOptions: EmitArtifactsOptions = {
-        force: options?.force,
         quiet: options?.quiet,
       };
       await Promise.all(
         compilationJobs.map(async (compilationJob, i) => {
           const result = results[i];
-          let artifactsPerFile;
-          if (result === undefined) {
-            const cachedFiles = await this.#artifactsCache.getFiles(
-              compilationJob.getBuildId(),
-              this.#options.artifactsPath,
-            );
-
-            assertHardhatInvariant(
-              cachedFiles !== undefined,
-              "We checked if the compilation job was cached before",
-            );
-
-            artifactsPerFile =
-              await this.#groupEmitArtifactsResults(cachedFiles);
-          } else {
-            artifactsPerFile = await this.emitArtifacts(
-              compilationJob,
-              result,
-              emitArtifactsOptions,
-            );
-          }
+          const artifactsPerFile = await this.emitArtifacts(
+            compilationJob,
+            result,
+            emitArtifactsOptions,
+          );
 
           contractArtifactsGeneratedByCompilationJob.set(
             compilationJob,
@@ -235,17 +211,6 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
             type: FileBuildResultType.BUILD_FAILURE,
             buildId,
             errors,
-          });
-
-          continue;
-        }
-
-        if (result === undefined) {
-          resultsMap.set(formatRootPath(publicSourceName, root), {
-            type: FileBuildResultType.CACHE_HIT,
-            buildId,
-            contractArtifactsGenerated:
-              contractArtifactsGenerated.get(publicSourceName) ?? [],
           });
 
           continue;
@@ -475,23 +440,10 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
   public async emitArtifacts(
     compilationJob: CompilationJob,
     compilerOutput: CompilerOutput,
-    options?: EmitArtifactsOptions,
+    _options?: EmitArtifactsOptions,
   ): Promise<ReadonlyMap<string, string[]>> {
     const result = new Map<string, string[]>();
     const buildId = compilationJob.getBuildId();
-
-    if (options?.force !== true) {
-      const cachedFiles = await this.#artifactsCache.getFiles(
-        buildId,
-        this.#options.artifactsPath,
-      );
-      if (cachedFiles !== undefined) {
-        log(`Using cached artifacts for build ${buildId}`);
-        return this.#groupEmitArtifactsResults(cachedFiles);
-      }
-    }
-
-    const filesToCache: string[] = [];
 
     // We emit the artifacts for each root file, first emitting one artifact
     // for each contract, and then one declaration file for the entire file,
@@ -551,15 +503,6 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         artifactsDeclarationFilePath,
         artifactsDeclarationFile,
       );
-
-      if (paths.length === 0) {
-        filesToCache.push(
-          path.join(this.#options.artifactsPath, publicSourceName),
-        );
-      } else {
-        filesToCache.push(...paths);
-      }
-      filesToCache.push(artifactsDeclarationFilePath);
     }
 
     // Once we have emitted all the contract artifacts and its declaration
@@ -603,14 +546,6 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         );
       })(),
     ]);
-
-    filesToCache.push(buildInfoPath, buildInfoOutputPath);
-
-    await this.#artifactsCache.setFiles(
-      buildId,
-      this.#options.artifactsPath,
-      filesToCache,
-    );
 
     return result;
   }
