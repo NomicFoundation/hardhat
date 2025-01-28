@@ -16,9 +16,9 @@ describe("crypto", () => {
   });
 
   describe("createNonCryptographicHashId", () => {
-    it("Should create a non-cryptographic hash-based identifier", () => {
+    it("Should create a non-cryptographic hash-based identifier", async () => {
       assert.equal(
-        createNonCryptographicHashId("hello"),
+        await createNonCryptographicHashId("hello"),
         "5d41402abc4b2a76b9719d911017c592",
       );
     });
