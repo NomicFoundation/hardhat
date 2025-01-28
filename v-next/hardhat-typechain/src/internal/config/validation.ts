@@ -4,15 +4,7 @@ import type { HardhatUserConfigValidationError } from "@ignored/hardhat-vnext-zo
 import { validateUserConfigZodType } from "@ignored/hardhat-vnext-zod-utils";
 import { z } from "zod";
 
-export const typechainUserConfigSchema: z.ZodOptional<
-  z.ZodObject<{
-    outDir: z.ZodOptional<z.ZodString>;
-    alwaysGenerateOverloads: z.ZodOptional<z.ZodBoolean>;
-    dontOverrideCompile: z.ZodOptional<z.ZodBoolean>;
-    discriminateTypes: z.ZodOptional<z.ZodBoolean>;
-    tsNocheck: z.ZodOptional<z.ZodBoolean>;
-  }>
-> = z
+const typechainUserConfigSchema = z
   .object({
     outDir: z
       .string({
