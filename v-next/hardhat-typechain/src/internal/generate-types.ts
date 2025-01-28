@@ -57,7 +57,6 @@ export async function generateTypes(
 function removePrettierTransformerIfPresent(
   outputTransformers: OutputTransformer[],
 ): void {
-
   // Check if the `prettier` output transformer is present. If multiple contracts are compiled at different
   // times in the same process, the `prettier` transformer may have already been removed earlier.
   const prettierIndex = outputTransformers.findIndex(
@@ -83,7 +82,6 @@ function removePrettierTransformerIfPresent(
 function addCompiledFilesTransformerIfAbsent(
   outputTransformers: OutputTransformer[],
 ) {
-
   if (
     // The "item.name" must match the name of the variable where the OutputTransformer is defined, which in this case is "compiledFilesTransformer"
     outputTransformers.some((item) => item.name === "compiledFilesTransformer")
