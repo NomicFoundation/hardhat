@@ -53,7 +53,6 @@
     "@types/chai": "^5.0.1",
     "@types/chai-as-promised": "^8.0.1",
     "@types/debug": "^4.1.7",
-    "@types/fs-extra": "^9.0.13",
     "@types/mocha": ">=9.1.0",
     "@types/node": "^20.14.9",
     "@types/ndjson": "2.0.1",
@@ -79,11 +78,11 @@
   },
   "dependencies": {
     "@ethersproject/address": "5.6.1",
+    "@ignored/hardhat-vnext-utils": "workspace:^3.0.0-next.15",
     "@nomicfoundation/solidity-analyzer": "^0.1.1",
     "cbor": "^9.0.0",
     "debug": "^4.3.2",
     "ethers": "^6.7.0",
-    "fs-extra": "^10.0.0",
     "immer": "10.0.2",
     "lodash-es": "4.17.21",
     "ndjson": "2.0.0"

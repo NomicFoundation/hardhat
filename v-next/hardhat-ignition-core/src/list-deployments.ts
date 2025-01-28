@@ -1,4 +1,4 @@
-import { readdir, pathExists } from "fs-extra";
+import { exists, readdir } from "@ignored/hardhat-vnext-utils/fs";
 
 /**
  * Return a list of all deployments in the deployment directory.
@@ -10,7 +10,7 @@ import { readdir, pathExists } from "fs-extra";
 export async function listDeployments(
   deploymentDir: string,
 ): Promise<string[]> {
-  if (!(await pathExists(deploymentDir))) {
+  if (!(await exists(deploymentDir))) {
     return [];
   }
 

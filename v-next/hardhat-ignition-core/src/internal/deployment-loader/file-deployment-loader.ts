@@ -6,9 +6,19 @@ import type { Journal } from "../journal/types/index.js";
 
 import path from "node:path";
 
-import { ensureDir, pathExists, readFile, writeFile } from "fs-extra";
+import {
+  ensureDir,
+  exists,
+  readJsonFile,
+  writeJsonFile,
+} from "@ignored/hardhat-vnext-utils/fs";
 
 import { FileJournal } from "../journal/file-journal.js";
+
+interface DebugInfoFile {
+  _format: "hh-sol-dbg-1";
+  buildInfo: string;
+}
 
 export class FileDeploymentLoader implements DeploymentLoader {
   private readonly _journal: Journal;
@@ -81,7 +91,7 @@ export class FileDeploymentLoader implements DeploymentLoader {
       `${futureId}.json`,
     );
 
-    await writeFile(artifactFilePath, JSON.stringify(artifact, undefined, 2));
+    await writeJsonFile(artifactFilePath, artifact);
   }
 
   public async storeBuildInfo(
@@ -95,7 +105,7 @@ export class FileDeploymentLoader implements DeploymentLoader {
       `${buildInfo.id}.json`,
     );
 
-    await writeFile(buildInfoFilePath, JSON.stringify(buildInfo, undefined, 2));
+    await writeJsonFile(buildInfoFilePath, buildInfo);
 
     const debugInfoFilePath = path.join(
       this._paths.artifactsDir,
@@ -107,17 +117,12 @@ export class FileDeploymentLoader implements DeploymentLoader {
       buildInfoFilePath,
     );
 
-    await writeFile(
-      debugInfoFilePath,
-      JSON.stringify(
-        {
-          _format: "hh-sol-dbg-1",
-          buildInfo: relativeBuildInfoPath,
-        },
-        undefined,
-        2,
-      ),
-    );
+    const debugInfo: DebugInfoFile = {
+      _format: "hh-sol-dbg-1",
+      buildInfo: relativeBuildInfoPath,
+    };
+
+    await writeJsonFile(debugInfoFilePath, debugInfo);
   }
 
   public async readBuildInfo(futureId: string): Promise<BuildInfo> {
@@ -128,14 +133,14 @@ export class FileDeploymentLoader implements DeploymentLoader {
       `${futureId}.dbg.json`,
     );
 
-    const json = JSON.parse((await readFile(debugInfoFilePath)).toString());
+    const debugInfo = (await readJsonFile(debugInfoFilePath)) as DebugInfoFile;
 
     const buildInfoPath = path.resolve(
       this._paths.artifactsDir,
-      json.buildInfo,
+      debugInfo.buildInfo,
     );
 
-    const buildInfo = JSON.parse((await readFile(buildInfoPath)).toString());
+    const buildInfo = (await readJsonFile(buildInfoPath)) as BuildInfo;
 
     return buildInfo;
   }
@@ -145,9 +150,7 @@ export class FileDeploymentLoader implements DeploymentLoader {
 
     const artifactFilePath = this._resolveArtifactPathFor(futureId);
 
-    const json = await readFile(artifactFilePath);
-
-    const artifact = JSON.parse(json.toString());
+    const artifact = (await readJsonFile(artifactFilePath)) as Artifact;
 
     return artifact;
   }
@@ -159,22 +162,15 @@ export class FileDeploymentLoader implements DeploymentLoader {
     await this._initialize();
 
     let deployedAddresses: { [key: string]: string };
-    if (await pathExists(this._paths.deployedAddressesPath)) {
-      const json = (
-        await readFile(this._paths.deployedAddressesPath)
-      ).toString();
-
-      deployedAddresses = JSON.parse(json);
+    if (await exists(this._paths.deployedAddressesPath)) {
+      deployedAddresses = await readJsonFile(this._paths.deployedAddressesPath);
     } else {
       deployedAddresses = {};
     }
 
     deployedAddresses[futureId] = contractAddress;
 
-    await writeFile(
-      this._paths.deployedAddressesPath,
-      `${JSON.stringify(deployedAddresses, undefined, 2)}\n`,
-    );
+    await writeJsonFile(this._paths.deployedAddressesPath, deployedAddresses);
   }
 
   private async _initialize(): Promise<void> {
