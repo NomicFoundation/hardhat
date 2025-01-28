@@ -32,7 +32,7 @@ export async function generateTypes(
   const typechainOptions: RunTypeChainConfig = {
     cwd: rootPath,
     allFiles: artifactsPaths,
-    outDir: config.outDir,
+    outDir: config.outDir, // // If not set, it defaults to "types" when processed by the typeChain package
     target: "ethers-v6", // We only support this target
     filesToProcess: [], // We ignore this property for now
     flags: {
@@ -44,10 +44,7 @@ export async function generateTypes(
     },
   };
 
-  const result = await runTypeChain({
-    ...typechainOptions,
-    filesToProcess: artifactsPaths,
-  });
+  const result = await runTypeChain(typechainOptions);
 
   log(`Successfully generated ${result.filesGenerated} typings!`);
 }
