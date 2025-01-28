@@ -9,6 +9,8 @@ import type {
   SolidityBuildInfoOutput,
 } from "../../../../types/solidity/solidity-artifacts.js";
 
+import { getPrefixedHexString } from "@ignored/hardhat-vnext-utils/hex";
+
 export function getContractArtifact(
   buildInfoId: string,
   publicSourceName: string,
@@ -17,18 +19,16 @@ export function getContractArtifact(
   contract: CompilerOutputContract,
 ): Artifact {
   const evmBytecode = contract.evm?.bytecode;
-  let bytecode: string = evmBytecode?.object ?? "";
-
-  if (bytecode.slice(0, 2).toLowerCase() !== "0x") {
-    bytecode = `0x${bytecode}`;
-  }
+  const bytecode: string =
+    evmBytecode?.object !== undefined
+      ? getPrefixedHexString(evmBytecode.object)
+      : "";
 
   const evmDeployedBytecode = contract.evm?.deployedBytecode;
-  let deployedBytecode: string = evmDeployedBytecode?.object ?? "";
-
-  if (deployedBytecode.slice(0, 2).toLowerCase() !== "0x") {
-    deployedBytecode = `0x${deployedBytecode}`;
-  }
+  const deployedBytecode: string =
+    evmDeployedBytecode?.object !== undefined
+      ? getPrefixedHexString(evmDeployedBytecode.object)
+      : "";
 
   const linkReferences = evmBytecode?.linkReferences ?? {};
   const deployedLinkReferences = evmDeployedBytecode?.linkReferences ?? {};

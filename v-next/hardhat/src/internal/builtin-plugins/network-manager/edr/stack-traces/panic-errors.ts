@@ -1,11 +1,13 @@
+import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
+
 export function panicErrorCodeToMessage(errorCode: bigint): string {
   const reason = panicErrorCodeToReason(errorCode);
 
   if (reason !== undefined) {
-    return `reverted with panic code 0x${errorCode.toString(16)} (${reason})`;
+    return `reverted with panic code ${numberToHexString(errorCode)} (${reason})`;
   }
 
-  return `reverted with unknown panic code 0x${errorCode.toString(16)}`;
+  return `reverted with unknown panic code ${numberToHexString(errorCode)}`;
 }
 
 function panicErrorCodeToReason(errorCode: bigint): string | undefined {

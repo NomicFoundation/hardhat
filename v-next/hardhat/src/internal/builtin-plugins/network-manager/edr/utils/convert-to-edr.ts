@@ -40,7 +40,10 @@ import {
   L1_CHAIN_TYPE as EDR_L1_CHAIN_TYPE,
   GENERIC_CHAIN_TYPE as EDR_GENERIC_CHAIN_TYPE,
 } from "@ignored/edr-optimism";
-import { getUnprefixedHexString } from "@ignored/hardhat-vnext-utils/hex";
+import {
+  bytesToHexString,
+  getUnprefixedHexString,
+} from "@ignored/hardhat-vnext-utils/hex";
 
 import { L1_CHAIN_TYPE, OPTIMISM_CHAIN_TYPE } from "../../../../constants.js";
 import { FixedValueConfigurationVariable } from "../../../../core/configuration-variables.js";
@@ -214,12 +217,15 @@ export function edrRpcDebugTraceToHardhat(
   });
 
   // REVM trace adds initial STOP that Hardhat doesn't expect
-  // ASK: is this still valid?
+  // TODO: double check with EDR team that this is still the case
   if (structLogs.length > 0 && structLogs[0].op === "STOP") {
     structLogs.shift();
   }
 
-  let returnValue = debugTraceResult.output?.toString("hex") ?? "";
+  let returnValue =
+    debugTraceResult.output !== undefined
+      ? bytesToHexString(debugTraceResult.output)
+      : "";
   if (returnValue === "0x") {
     returnValue = "";
   }
@@ -227,7 +233,7 @@ export function edrRpcDebugTraceToHardhat(
   return {
     failed: !debugTraceResult.pass,
     gas: Number(debugTraceResult.gasUsed),
-    returnValue, // ASK: do we expect an unprefixed hex string here?
+    returnValue,
     structLogs,
   };
 }
