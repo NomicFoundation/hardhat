@@ -14,7 +14,9 @@ export function useHardhatProject(fixtureProjectName: string): void {
     process.chdir(
       `${path.dirname(fileURLToPath(import.meta.url))}/../fixture-projects/${fixtureProjectName}`,
     );
-    this.hre = require("hardhat");
+
+    throw new Error("Not implemented from migration yet");
+    this.hre = null; // TODO: use Hardhat 3 setup of HRE here
   });
 
   before("Compiling contracts", async function () {
