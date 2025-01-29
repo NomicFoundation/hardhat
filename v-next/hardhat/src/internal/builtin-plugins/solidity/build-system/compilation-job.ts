@@ -181,8 +181,8 @@ export class CompilationJobImplementation implements CompilationJob {
       format +
       this.solcLongVersion +
       JSON.stringify(this.#getSolcInputWithoutSources()) +
-      JSON.stringify(sortedSources);
-    JSON.stringify(this.solcConfig);
+      JSON.stringify(sortedSources) +
+      JSON.stringify(this.solcConfig);
 
     return createNonCryptographicHashId(preimage);
   }
