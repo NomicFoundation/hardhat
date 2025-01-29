@@ -69,16 +69,6 @@ export interface RunCompilationJobOptions {
 }
 
 /**
- * The options of the `emitArtifacts` method.
- */
-export interface EmitArtifactsOptions {
-  /**
-   * If `true`, the emit process doesn't print any output.
-   */
-  quiet?: boolean;
-}
-
-/**
  * The options of the `compileBuildInfo` method.
  */
 export interface CompileBuildInfoOptions {
@@ -263,7 +253,6 @@ export interface SolidityBuildSystem {
   emitArtifacts(
     compilationJob: CompilationJob,
     compilerOutput: CompilerOutput,
-    options?: EmitArtifactsOptions,
   ): Promise<ReadonlyMap<string, string[]>>;
 
   /**

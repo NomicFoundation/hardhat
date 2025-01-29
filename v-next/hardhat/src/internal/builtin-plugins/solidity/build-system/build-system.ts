@@ -10,7 +10,6 @@ import type {
   GetCompilationJobsOptions,
   CompileBuildInfoOptions,
   RunCompilationJobOptions,
-  EmitArtifactsOptions,
 } from "../../../../types/solidity/build-system.js";
 import type { CompilationJob } from "../../../../types/solidity/compilation-job.js";
 import type {
@@ -206,15 +205,11 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
     if (isSuccessfulBuild) {
       log("Emitting artifacts of successful build");
-      const emitArtifactsOptions: EmitArtifactsOptions = {
-        quiet: options?.quiet,
-      };
       await Promise.all(
         results.map(async (result) => {
           const artifactsPerFile = await this.emitArtifacts(
             result.compilationJob,
             result.compilerOutput,
-            emitArtifactsOptions,
           );
 
           contractArtifactsGeneratedByCompilationJob.set(
@@ -463,7 +458,6 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
   public async emitArtifacts(
     compilationJob: CompilationJob,
     compilerOutput: CompilerOutput,
-    _options?: EmitArtifactsOptions,
   ): Promise<ReadonlyMap<string, string[]>> {
     const result = new Map<string, string[]>();
     const buildId = await compilationJob.getBuildId();
