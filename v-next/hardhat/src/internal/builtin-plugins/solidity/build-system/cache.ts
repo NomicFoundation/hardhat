@@ -12,11 +12,19 @@ import {
 
 export class ObjectCache<T> {
   readonly #path: string;
-  readonly #maxAgeMs: number = 7 * 24 * 60 * 60 * 1000; // 1 week
-  readonly #maxSize: number = 2 * 1024 * 1024 * 1024; // 2 GB
+  readonly #defaultMaxAgeMs: number;
+  readonly #defaultMaxSize: number;
 
-  constructor(basePath: string, namespace: string, version: string) {
+  constructor(
+    basePath: string,
+    namespace: string,
+    version: string,
+    defaultMaxAgeMs: number = 7 * 24 * 60 * 60 * 1000, // 1 week
+    defaultMaxSize: number = 2 * 1024 * 1024 * 1024, // 2 GB
+  ) {
     this.#path = path.join(basePath, namespace, version);
+    this.#defaultMaxAgeMs = defaultMaxAgeMs;
+    this.#defaultMaxSize = defaultMaxSize;
   }
 
   public async set(key: string, value: T): Promise<void> {
@@ -29,7 +37,10 @@ export class ObjectCache<T> {
     return (await exists(filePath)) ? readJsonFile<T>(filePath) : undefined;
   }
 
-  public async clean(): Promise<void> {
+  public async clean(maxAgeMs?: number, maxSize?: number): Promise<void> {
+    maxAgeMs ??= this.#defaultMaxAgeMs;
+    maxSize ??= this.#defaultMaxSize;
+
     const files = await getAllFilesMatching(this.#path);
     const fileInfos = await Promise.all(
       files.map(async (file) => ({
@@ -45,12 +56,12 @@ export class ObjectCache<T> {
       (acc, fileInfo) => acc + fileInfo.size,
       0,
     );
-    const minAtimeMs = new Date(0 - this.#maxAgeMs).getTime();
+    const minAtimeMs = new Date().getTime() - maxAgeMs;
 
     const filesToRemove: string[] = [];
 
     for (const fileInfo of sortedFileInfos) {
-      if (fileInfo.atimeMs < minAtimeMs || size > this.#maxSize) {
+      if (fileInfo.atimeMs < minAtimeMs || size > maxSize) {
         filesToRemove.push(fileInfo.file);
         size -= fileInfo.size;
       } else {
