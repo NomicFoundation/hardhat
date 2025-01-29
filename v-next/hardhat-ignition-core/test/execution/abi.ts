@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { Artifact } from "hardhat/types";
+import { Artifact } from "../../src/types/artifact.js";
 
 import { SolidityParameterType } from "../../src/index.js";
 import {

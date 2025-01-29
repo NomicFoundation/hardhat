@@ -4,8 +4,7 @@
  * @file
  */
 
-// We use Hardhat artifacts here, that's why we import this type
-import { Artifact } from "hardhat/types";
+import { Artifact } from "../../src/types/artifact.js";
 
 import { RawStaticCallResult } from "../../src/internal/execution/types/jsonrpc.js";
 
