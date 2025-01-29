@@ -20,6 +20,7 @@ import {
   createDeploymentState,
   reconcile,
 } from "./helpers.js";
+import { deploy } from "../../src/deploy.js";
 
 describe("Reconciliation", () => {
   const exampleDeploymentState: DeploymentExecutionState = {
@@ -479,11 +480,14 @@ describe("Reconciliation", () => {
 
       const moduleArtifactMap = {
         Contract1: {
+          _format: "hh-sol-artifact-1",
           abi: [],
           bytecode: "0xaaaaaa",
           contractName: "Contract1",
           sourceName: "",
+          deployedBytecode: "0x",
           linkReferences: {},
+          deployedLinkReferences: {},
         },
       };
 
@@ -514,21 +518,27 @@ describe("Reconciliation", () => {
 
       const moduleArtifactMap = {
         Contract1: {
+          _format: "hh-sol-artifact-1",
           abi: [],
           bytecode: "0xaaaaaa",
+          deployedBytecode: "0x",
           contractName: "Contract1",
           sourceName: "",
           linkReferences: {},
+          deployedLinkReferences: {},
         },
       };
 
       const storedArtifactMap = {
         "Module#Contract1": {
+          _format: "hh-sol-artifact-1",
           abi: [],
           bytecode: "0xbbbbbb",
           contractName: "Contract1",
           sourceName: "",
+          deployedBytecode: "0x",
           linkReferences: {},
+          deployedLinkReferences: {},
         },
       };
 
@@ -573,21 +583,27 @@ describe("Reconciliation", () => {
 
       const storedArtifactMap = {
         "Module#Contract1": {
+          _format: "hh-sol-artifact-1",
           abi: [],
           bytecode: mainnetWethBytecode,
+          deployedBytecode: "0x",
           contractName: "Contract1",
           sourceName: "",
           linkReferences: {},
+          deployedLinkReferences: {},
         },
       };
 
       const moduleArtifactMap = {
         Contract1: {
+          _format: "hh-sol-artifact-1",
           abi: [],
           bytecode: mainnetWethWithModifiedMetadata,
+          deployedBytecode: "0x",
           contractName: "Contract1",
           sourceName: "",
           linkReferences: {},
+          deployedLinkReferences: {},
         },
       };
 

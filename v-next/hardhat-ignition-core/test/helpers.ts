@@ -30,11 +30,14 @@ export function assertInstanceOf<ObjectT>(
 }
 
 export const fakeArtifact: Artifact = {
+  _format: "hh-sol-artifact-1",
   abi: [],
   contractName: "",
   sourceName: "",
   bytecode: "",
+  deployedBytecode: "",
   linkReferences: {},
+  deployedLinkReferences: {},
 };
 
 export function setupMockArtifactResolver(artifacts?: {

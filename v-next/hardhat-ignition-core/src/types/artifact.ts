@@ -6,19 +6,29 @@
 export type Abi = readonly any[] | any[];
 
 /**
+ * The links between libraries and their references in the bytecode.
+ *
+ * @beta
+ */
+export type LinkReferences = Record<
+  string,
+  Record<string, Array<{ length: number; start: number }>>
+>;
+
+/**
  * An compilation artifact representing a smart contract.
  *
  * @beta
  */
 export interface Artifact<AbiT extends Abi = Abi> {
+  _format: string;
   contractName: string;
   sourceName: string;
-  bytecode: string;
   abi: AbiT;
-  linkReferences: Record<
-    string,
-    Record<string, Array<{ length: number; start: number }>>
-  >;
+  bytecode: string;
+  deployedBytecode: string;
+  linkReferences: LinkReferences;
+  deployedLinkReferences: LinkReferences;
 }
 
 /**

@@ -23,10 +23,13 @@ export const oneAddress = "0x1111111111111111111111111111111111111111";
 export const twoAddress = "0x2222222222222222222222222222222222222222";
 
 export const mockArtifact: Artifact = {
+  _format: "hh-sol-artifact-1",
   contractName: "Contract1",
   sourceName: "",
   bytecode: "0x",
+  deployedBytecode: "0x",
   linkReferences: {},
+  deployedLinkReferences: {},
   abi: [],
 };
 
