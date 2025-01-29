@@ -12,8 +12,8 @@ import {
 
 export class ObjectCache<T> {
   readonly #path: string;
-  readonly #maxAgeMs: number = 0;
-  readonly #maxSize: number = 0;
+  readonly #maxAgeMs: number = 7 * 24 * 60 * 60 * 1000; // 1 week
+  readonly #maxSize: number = 2 * 1024 * 1024 * 1024; // 2 GB
 
   constructor(basePath: string, namespace: string, version: string) {
     this.#path = path.join(basePath, namespace, version);
