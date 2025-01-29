@@ -1,6 +1,7 @@
 import type { DependencyGraphImplementation } from "./dependency-graph.js";
 import type { Artifact } from "../../../../types/artifacts.js";
 import type { SolcConfig, SolidityConfig } from "../../../../types/config.js";
+import type { HookManager } from "../../../../types/hooks.js";
 import type {
   SolidityBuildSystem,
   BuildOptions,
@@ -74,12 +75,14 @@ export interface SolidityBuildSystemOptions {
 }
 
 export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
+  readonly #hooks: HookManager;
   readonly #options: SolidityBuildSystemOptions;
   readonly #compilerOutputCache: ObjectCache<CompilerOutput>;
   readonly #defaultConcurrency = Math.max(os.cpus().length - 1, 1);
   #downloadedCompilers = false;
 
-  constructor(options: SolidityBuildSystemOptions) {
+  constructor(hooks: HookManager, options: SolidityBuildSystemOptions) {
+    this.#hooks = hooks;
     this.#options = options;
     this.#compilerOutputCache = new ObjectCache<CompilerOutput>(
       options.cachePath,
@@ -219,6 +222,13 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
             artifactsPerFile,
           );
         }),
+      );
+
+      await this.#hooks.runHandlerChain(
+        "solidity",
+        "onAllArtifactsEmitted",
+        [contractArtifactsGeneratedByCompilationJob],
+        async () => {},
       );
     }
 
