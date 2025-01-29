@@ -1,6 +1,8 @@
 import type { ReconciliationFutureResultFailure } from "./types.js";
 import type { Future } from "../../types/module.js";
 
+import { decode } from "cbor2";
+
 export function fail(
   future: Future,
   failure: string,
@@ -24,7 +26,6 @@ function getMetadataSectionLength(bytecode: Buffer): number | undefined {
 }
 
 function isValidMetadata(data: Buffer): boolean {
-  const { decode } = require("cbor") as typeof import("cbor");
   try {
     decode(data);
     return true;
