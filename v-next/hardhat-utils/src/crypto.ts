@@ -26,11 +26,11 @@ export async function keccak256(bytes: Uint8Array): Promise<Uint8Array> {
  * @returns The SHA-1 hash of the input string, represented as a
  * hexadecimal string.
  */
-export async function createNonCryptographicHashId(data: string): Promise<string> {
+export async function createNonCryptographicHashId(
+  data: string,
+): Promise<string> {
   const message = new TextEncoder().encode(data);
   const buffer = await crypto.subtle.digest("SHA-1", message);
   const array = Array.from(new Uint8Array(buffer));
-  return array
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
+  return array.map((b) => b.toString(16).padStart(2, "0")).join("");
 }
