@@ -1,4 +1,5 @@
 import type { SolidityConfig } from "../../../../../src/types/config.js";
+import type { HookContext } from "../../../../../src/types/hooks.js";
 import type {
   SolidityBuildInfoOutput,
   SolidityBuildSystem,
@@ -47,7 +48,7 @@ async function emitArtifacts(solidity: SolidityBuildSystem): Promise<void> {
 }
 
 // NOTE: This test is slow because solidity compilers are downloaded.
-describe(
+describe.only(
   "SolidityBuildSystemImplementation",
   {
     skip: process.env.HARDHAT_DISABLE_SLOW_TESTS === "true",
@@ -86,16 +87,16 @@ describe(
       expectedCachePath = path.join(process.cwd(), "cache");
       await remove(expectedArtifactsPath);
       await remove(expectedCachePath);
-      solidity = new SolidityBuildSystemImplementation(
-        new HookManagerImplementation(process.cwd(), []),
-        {
-          solidityConfig,
-          projectRoot: process.cwd(),
-          soliditySourcesPaths: [path.join(process.cwd(), "contracts")],
-          artifactsPath: expectedArtifactsPath,
-          cachePath: expectedCachePath,
-        },
-      );
+      const hooks = new HookManagerImplementation(process.cwd(), []);
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- We don't care about hooks in this context
+      hooks.setContext({} as HookContext);
+      solidity = new SolidityBuildSystemImplementation(hooks, {
+        solidityConfig,
+        projectRoot: process.cwd(),
+        soliditySourcesPaths: [path.join(process.cwd(), "contracts")],
+        artifactsPath: expectedArtifactsPath,
+        cachePath: expectedCachePath,
+      });
       const rootFilePaths = await solidity.getRootFilePaths();
       await solidity.build(rootFilePaths, {
         force: true,
@@ -108,16 +109,16 @@ describe(
       const tmpDir = await getTmpDir("solidity-build-system-implementation");
       actualArtifactsPath = path.join(tmpDir, "artifacts");
       actualCachePath = path.join(tmpDir, "cache");
-      solidity = new SolidityBuildSystemImplementation(
-        new HookManagerImplementation(process.cwd(), []),
-        {
-          solidityConfig,
-          projectRoot: process.cwd(),
-          soliditySourcesPaths: [path.join(process.cwd(), "contracts")],
-          artifactsPath: actualArtifactsPath,
-          cachePath: actualCachePath,
-        },
-      );
+      const hooks = new HookManagerImplementation(process.cwd(), []);
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- We don't care about hooks in this context
+      hooks.setContext({} as HookContext);
+      solidity = new SolidityBuildSystemImplementation(hooks, {
+        solidityConfig,
+        projectRoot: process.cwd(),
+        soliditySourcesPaths: [path.join(process.cwd(), "contracts")],
+        artifactsPath: actualArtifactsPath,
+        cachePath: actualCachePath,
+      });
     });
 
     describe("emitArtifacts", () => {
