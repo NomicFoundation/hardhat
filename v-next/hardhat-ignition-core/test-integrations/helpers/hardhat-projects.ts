@@ -1,10 +1,9 @@
-import type { HardhatRuntimeEnvironment } from "hardhat/types";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 declare module "mocha" {
   interface Context {
-    hre: HardhatRuntimeEnvironment;
+    hre: any; // TODO: Bring in HardhatRuntimeEnvironment with full Hardhat 3 import
     accounts: string[];
   }
 }
