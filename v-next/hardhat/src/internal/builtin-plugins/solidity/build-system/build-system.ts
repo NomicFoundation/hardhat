@@ -136,7 +136,6 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     );
 
     const runCompilationJobOptions: RunCompilationJobOptions = {
-      force: options?.force,
       quiet: options?.quiet,
     };
     const results: CompilationResult[] = await pMap(
@@ -144,7 +143,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       async (compilationJob) => {
         const buildId = await compilationJob.getBuildId();
 
-        if (runCompilationJobOptions?.force !== true) {
+        if (options?.force !== true) {
           const cachedCompilerOutput =
             await this.#compilerOutputCache.get(buildId);
           if (cachedCompilerOutput !== undefined) {
@@ -208,16 +207,15 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         quiet: options?.quiet,
       };
       await Promise.all(
-        compilationJobs.map(async (compilationJob, i) => {
-          const result = results[i];
+        results.map(async (result) => {
           const artifactsPerFile = await this.emitArtifacts(
-            compilationJob,
+            result.compilationJob,
             result.compilerOutput,
             emitArtifactsOptions,
           );
 
           contractArtifactsGeneratedByCompilationJob.set(
-            compilationJob,
+            result.compilationJob,
             artifactsPerFile,
           );
         }),
@@ -418,11 +416,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       "The long version of the compiler should match the long version of the compilation job",
     );
 
-    const compilerOutput = await compiler.compile(
-      compilationJob.getSolcInput(),
-    );
-
-    return compilerOutput;
+    return compiler.compile(compilationJob.getSolcInput());
   }
 
   public async remapCompilerError(
@@ -492,7 +486,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
           );
 
           const artifact = getContractArtifact(
-            await compilationJob.getBuildId(),
+            buildId,
             publicSourceName,
             root.sourceName,
             contractName,

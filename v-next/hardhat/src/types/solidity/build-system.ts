@@ -63,12 +63,6 @@ export type GetCompilationJobsOptions = Omit<
  */
 export interface RunCompilationJobOptions {
   /**
-   * If `true`, this option foces the build system to rerun the compilation job,
-   * even if its output is cached.
-   */
-  force?: boolean;
-
-  /**
    * If `true`, the compilation process doesn't print any output.
    */
   quiet?: boolean;
