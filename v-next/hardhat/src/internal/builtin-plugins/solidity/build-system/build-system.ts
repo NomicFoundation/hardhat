@@ -291,7 +291,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
     if (options?.quiet !== true) {
       if (isSuccessfulBuild) {
-        await this.#printCompilationResult(compilationJobs);
+        this.#printCompilationResult(compilationJobs);
       }
     }
 
@@ -755,7 +755,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     }
   }
 
-  async #printCompilationResult(compilationJobs: CompilationJob[]) {
+  #printCompilationResult(compilationJobs: CompilationJob[]) {
     const jobsPerVersionAndEvmVersion = new Map<
       string,
       Map<string, CompilationJob[]>
