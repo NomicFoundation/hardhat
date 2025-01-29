@@ -48,7 +48,7 @@ async function emitArtifacts(solidity: SolidityBuildSystem): Promise<void> {
 }
 
 // NOTE: This test is slow because solidity compilers are downloaded.
-describe.only(
+describe(
   "SolidityBuildSystemImplementation",
   {
     skip: process.env.HARDHAT_DISABLE_SLOW_TESTS === "true",
