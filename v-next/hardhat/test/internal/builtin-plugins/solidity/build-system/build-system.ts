@@ -1,5 +1,4 @@
-import type { SolidityUserConfig } from "../../../../../src/types/config.js";
-import type { HardhatRuntimeEnvironment } from "../../../../../src/types/hre.js";
+import type { SolidityConfig } from "../../../../../src/types/config.js";
 import type {
   SolidityBuildInfoOutput,
   SolidityBuildSystem,
@@ -7,7 +6,7 @@ import type {
 
 import assert from "node:assert/strict";
 import path from "node:path";
-import { before, beforeEach, describe, it } from "node:test";
+import { before, beforeEach, describe, it, mock } from "node:test";
 
 import {
   exists,
@@ -20,13 +19,13 @@ import {
   useFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
 
-import { createHardhatRuntimeEnvironment } from "../../../../../src/hre.js";
+import { SolidityBuildSystemImplementation } from "../../../../../src/internal/builtin-plugins/solidity/build-system/build-system.js";
 
 async function emitArtifacts(solidity: SolidityBuildSystem): Promise<void> {
   const rootFilePaths = await solidity.getRootFilePaths();
   const compilationJobs = await solidity.getCompilationJobs(rootFilePaths, {
     mergeCompilationJobs: true,
-    quiet: false,
+    quiet: true,
   });
 
   assert.ok(compilationJobs instanceof Map, "compilationJobs should be a Map");
@@ -54,58 +53,69 @@ describe(
   },
   () => {
     let actualArtifactsPath: string;
+    let actualCachePath: string;
     let expectedArtifactsPath: string;
-    let hre: HardhatRuntimeEnvironment;
+    let expectedCachePath: string;
+    let solidity: SolidityBuildSystemImplementation;
 
     useFixtureProject("solidity/example-project");
 
-    const solidityUserConfig: SolidityUserConfig = {
+    const solidityConfig: SolidityConfig = {
       profiles: {
         default: {
           compilers: [
             {
               version: "0.8.22",
+              settings: {},
             },
             {
               version: "0.7.1",
+              settings: {},
             },
           ],
+          overrides: {},
         },
       },
+      dependenciesToCompile: [],
       remappings: ["remapped/=npm/@openzeppelin/contracts@5.1.0/access/"],
     };
 
     before(async () => {
       expectedArtifactsPath = path.join(process.cwd(), "artifacts");
-      const expectedCachePath = path.join(process.cwd(), "cache");
+      expectedCachePath = path.join(process.cwd(), "cache");
       await remove(expectedArtifactsPath);
       await remove(expectedCachePath);
-      hre = await createHardhatRuntimeEnvironment({
-        paths: {
-          artifacts: expectedArtifactsPath,
-          cache: expectedCachePath,
-        },
-        solidity: solidityUserConfig,
+      solidity = new SolidityBuildSystemImplementation({
+        solidityConfig,
+        projectRoot: process.cwd(),
+        soliditySourcesPaths: [path.join(process.cwd(), "contracts")],
+        artifactsPath: expectedArtifactsPath,
+        cachePath: expectedCachePath,
       });
-      await hre.tasks.getTask("compile").run({ quiet: false });
+      const rootFilePaths = await solidity.getRootFilePaths();
+      await solidity.build(rootFilePaths, {
+        force: true,
+        mergeCompilationJobs: true,
+        quiet: true,
+      });
     });
 
     beforeEach(async () => {
       const tmpDir = await getTmpDir("solidity-build-system-implementation");
       actualArtifactsPath = path.join(tmpDir, "artifacts");
-      const actualCachePath = path.join(tmpDir, "cache");
-      hre = await createHardhatRuntimeEnvironment({
-        paths: {
-          artifacts: actualArtifactsPath,
-          cache: actualCachePath,
-        },
-        solidity: solidityUserConfig,
+      actualCachePath = path.join(tmpDir, "cache");
+      solidity = new SolidityBuildSystemImplementation({
+        solidityConfig,
+        projectRoot: process.cwd(),
+        soliditySourcesPaths: [path.join(process.cwd(), "contracts")],
+        artifactsPath: actualArtifactsPath,
+        cachePath: actualCachePath,
       });
     });
 
     describe("emitArtifacts", () => {
       it("should successfully emit the artifacts", async () => {
-        await emitArtifacts(hre.solidity);
+        await emitArtifacts(solidity);
 
         const expectedArtifactPaths = await getAllFilesMatching(
           expectedArtifactsPath,
@@ -137,12 +147,13 @@ describe(
     });
 
     describe("cleanupArtifacts", () => {
-      let artifactPathsBefore: string[];
+      let actualArtifactPathsBefore: string[];
       let duplicatedContractNamesDeclarationFilePath: string;
 
       beforeEach(async () => {
-        await emitArtifacts(hre.solidity);
-        artifactPathsBefore = await getAllFilesMatching(actualArtifactsPath);
+        await emitArtifacts(solidity);
+        actualArtifactPathsBefore =
+          await getAllFilesMatching(actualArtifactsPath);
         duplicatedContractNamesDeclarationFilePath = path.join(
           actualArtifactsPath,
           "artifacts.d.ts",
@@ -150,59 +161,211 @@ describe(
       });
 
       it("should clean up no artifacts when given all root file paths", async () => {
-        await hre.solidity.cleanupArtifacts(
-          await hre.solidity.getRootFilePaths(),
-        );
+        await solidity.cleanupArtifacts(await solidity.getRootFilePaths());
 
-        const artifactPathsAfter = await getAllFilesMatching(
+        const actualArtifactPathsAfter = await getAllFilesMatching(
           actualArtifactsPath,
           (f) => f !== duplicatedContractNamesDeclarationFilePath,
         );
 
         assert.deepEqual(
-          artifactPathsAfter,
-          artifactPathsBefore,
+          actualArtifactPathsAfter,
+          actualArtifactPathsBefore,
           "No artifacts should be cleaned up",
         );
       });
 
       it("should not clean up some of the artifacts when given a subset of all root file paths", async () => {
-        const rootFilePaths = await hre.solidity.getRootFilePaths();
+        const rootFilePaths = await solidity.getRootFilePaths();
         const rootFilePathsToCleanUp = rootFilePaths.slice(
           0,
           rootFilePaths.length - 1,
         );
 
-        await hre.solidity.cleanupArtifacts(rootFilePathsToCleanUp);
+        await solidity.cleanupArtifacts(rootFilePathsToCleanUp);
 
-        const artifactPathsAfter = await getAllFilesMatching(
+        const actualArtifactPathsAfter = await getAllFilesMatching(
           actualArtifactsPath,
           (f) => f !== duplicatedContractNamesDeclarationFilePath,
         );
 
         assert.ok(
-          artifactPathsBefore.length > artifactPathsAfter.length,
+          actualArtifactPathsBefore.length > actualArtifactPathsAfter.length,
           "Some artifacts should be cleaned up",
         );
       });
 
       it("should clean up all the artifacts when given no root file paths", async () => {
-        await hre.solidity.cleanupArtifacts([]);
+        await solidity.cleanupArtifacts([]);
 
-        const artifactPathsAfter = await getAllFilesMatching(
+        const actualArtifactPathsAfter = await getAllFilesMatching(
           actualArtifactsPath,
           (f) => f !== duplicatedContractNamesDeclarationFilePath,
         );
 
         assert.ok(
-          artifactPathsBefore.length > 0,
+          actualArtifactPathsBefore.length > 0,
           "There should be some artifacts to clean up",
         );
         assert.deepEqual(
-          artifactPathsAfter,
+          actualArtifactPathsAfter,
           [],
           "All artifacts should be cleaned up",
         );
+      });
+    });
+
+    describe("build", () => {
+      let expectedArtifactPaths: string[];
+      let expectedCachePaths: string[];
+
+      before(async () => {
+        expectedArtifactPaths = (
+          await getAllFilesMatching(expectedArtifactsPath)
+        ).map((f) => path.relative(expectedArtifactsPath, f));
+        expectedCachePaths = (await getAllFilesMatching(expectedCachePath)).map(
+          (f) => path.relative(expectedCachePath, f),
+        );
+      });
+
+      it("should build the project deterministically", async () => {
+        const rootFilePaths = await solidity.getRootFilePaths();
+        await solidity.build(rootFilePaths, {
+          force: true,
+          mergeCompilationJobs: true,
+          quiet: true,
+        });
+
+        const actualArtifactPaths = (
+          await getAllFilesMatching(actualArtifactsPath)
+        ).map((f) => path.relative(actualArtifactsPath, f));
+        const actualCachePaths = (
+          await getAllFilesMatching(actualCachePath)
+        ).map((f) => path.relative(actualCachePath, f));
+
+        assert.deepEqual(
+          actualArtifactPaths,
+          expectedArtifactPaths,
+          "Artifacts should be the same",
+        );
+        assert.deepEqual(
+          actualCachePaths,
+          expectedCachePaths,
+          "Cache should be the same",
+        );
+      });
+
+      it("should not recompile the project when given the same input as in the previous call", async () => {
+        const rootFilePaths = await solidity.getRootFilePaths();
+        await solidity.build(rootFilePaths, {
+          force: true,
+          mergeCompilationJobs: true,
+          quiet: true,
+        });
+
+        const runCompilationJobSpy = mock.method(solidity, "runCompilationJob");
+
+        await solidity.build(rootFilePaths, {
+          force: false,
+          mergeCompilationJobs: true,
+          quiet: true,
+        });
+
+        assert.equal(runCompilationJobSpy.mock.callCount(), 0);
+      });
+
+      it("should recompile the project when given the same input as in the previous call but the force flag is set", async () => {
+        const rootFilePaths = await solidity.getRootFilePaths();
+        await solidity.build(rootFilePaths, {
+          force: true,
+          mergeCompilationJobs: true,
+          quiet: true,
+        });
+
+        const runCompilationJobSpy = mock.method(solidity, "runCompilationJob");
+
+        await solidity.build(rootFilePaths, {
+          force: true,
+          mergeCompilationJobs: true,
+          quiet: true,
+        });
+
+        assert.equal(runCompilationJobSpy.mock.callCount(), 2);
+      });
+
+      it("should not recompile the project when the input changed but the generated compilation jobs are the subset of the previous ones", async () => {
+        const rootFilePaths = await solidity.getRootFilePaths();
+        await solidity.build(rootFilePaths, {
+          force: true,
+          mergeCompilationJobs: true,
+          quiet: true,
+        });
+
+        const runCompilationJobSpy = mock.method(solidity, "runCompilationJob");
+
+        await solidity.build(
+          rootFilePaths.filter((f) => path.basename(f) !== "NoImports.sol"),
+          {
+            force: false,
+            mergeCompilationJobs: true,
+            quiet: true,
+          },
+        );
+
+        assert.equal(runCompilationJobSpy.mock.callCount(), 0);
+      });
+
+      it("should recompile the project when the input changed and the generated compilation jobs changed", async () => {
+        const rootFilePaths = await solidity.getRootFilePaths();
+        await solidity.build(rootFilePaths, {
+          force: true,
+          mergeCompilationJobs: true,
+          quiet: true,
+        });
+
+        const runCompilationJobSpy = mock.method(solidity, "runCompilationJob");
+
+        await solidity.build(
+          rootFilePaths.filter((f) => path.basename(f) !== "A.sol"),
+          {
+            force: false,
+            mergeCompilationJobs: true,
+            quiet: true,
+          },
+        );
+
+        assert.equal(runCompilationJobSpy.mock.callCount(), 1);
+      });
+
+      it("should not recompile the project when the input is the same as in one of the previous calls", async () => {
+        const rootFilePaths = await solidity.getRootFilePaths();
+        await solidity.build(rootFilePaths, {
+          force: true,
+          mergeCompilationJobs: true,
+          quiet: true,
+        });
+
+        await solidity.build(
+          rootFilePaths.filter((f) => path.basename(f) !== "A.sol"),
+          {
+            force: false,
+            mergeCompilationJobs: true,
+            quiet: true,
+          },
+        );
+
+        const runCompilationJobSpy = mock.method(solidity, "runCompilationJob");
+
+        await solidity.build(
+          rootFilePaths.filter((f) => path.basename(f) !== "A.sol"),
+          {
+            force: false,
+            mergeCompilationJobs: true,
+            quiet: true,
+          },
+        );
+
+        assert.equal(runCompilationJobSpy.mock.callCount(), 0);
       });
     });
   },
