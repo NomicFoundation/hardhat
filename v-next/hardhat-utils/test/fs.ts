@@ -775,10 +775,7 @@ describe("File system utils", () => {
 
       const stats = await fsPromises.stat(filePath);
 
-      assert.equal(
-        stats.size,
-        (await getSize(filePath)),
-      );
+      assert.equal(stats.size, await getSize(filePath));
     });
 
     it("Should throw FileNotFoundError if the file doesn't exist", async () => {
