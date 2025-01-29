@@ -170,6 +170,10 @@ export class CompilationJobImplementation implements CompilationJob {
       }),
     );
 
+    const sortedSources = Object.fromEntries(
+      Object.entries(sources).sort((a, b) => a[0].localeCompare(b[0])),
+    );
+
     // The preimage should include all the information that makes this
     // compilation job unique, and as this is used to identify the build info
     // file, it also includes its format string.
@@ -177,7 +181,7 @@ export class CompilationJobImplementation implements CompilationJob {
       format +
       this.solcLongVersion +
       JSON.stringify(this.#getSolcInputWithoutSources()) +
-      JSON.stringify(sources);
+      JSON.stringify(sortedSources);
     JSON.stringify(this.solcConfig);
 
     return createNonCryptographicHashId(preimage);
