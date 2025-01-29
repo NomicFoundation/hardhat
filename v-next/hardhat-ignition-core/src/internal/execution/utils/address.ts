@@ -1,12 +1,11 @@
+import { isAddress as ethersIsAddress, getAddress } from "ethers/address";
+
 import { assertIgnitionInvariant } from "../../utils/assertions.js";
 
 /**
  * Is the string a valid ethereum address?
  */
 export function isAddress(address: any): address is string {
-  const { isAddress: ethersIsAddress } =
-    require("ethers") as typeof import("ethers");
-
   return ethersIsAddress(address);
 }
 
@@ -21,8 +20,6 @@ export function toChecksumFormat(address: string): string {
     isAddress(address),
     `Expected ${address} to be an address`,
   );
-
-  const { getAddress } = require("ethers") as typeof import("ethers");
 
   return getAddress(address);
 }
