@@ -419,7 +419,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     );
 
     const compilerOutput = await compiler.compile(
-      await compilationJob.getSolcInput(),
+      compilationJob.getSolcInput(),
     );
 
     return compilerOutput;
@@ -765,7 +765,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
     for (const job of compilationJobs) {
       const solcVersion = job.solcConfig.version;
-      const solcInput = await job.getSolcInput();
+      const solcInput = job.getSolcInput();
       const evmVersion =
         solcInput.settings.evmVersion ??
         `Check solc ${solcVersion}'s doc for its default evm version`;

@@ -38,7 +38,7 @@ export class CompilationJobImplementation implements CompilationJob {
     this.#remappings = remappings;
   }
 
-  public async getSolcInput(): Promise<CompilerInput> {
+  public getSolcInput(): CompilerInput {
     if (this.#solcInput === undefined) {
       this.#solcInput = this.#buildSolcInput();
     }
