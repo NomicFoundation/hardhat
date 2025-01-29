@@ -127,11 +127,15 @@ function formatSingleError(
     .replace(" [ERR_ASSERTION]", "")
     .replace(" [ERR_TEST_FAILURE]", "");
 
+  const diff = getErrorDiff(error);
+
+  if (diff !== undefined) {
+    message = message.match(/^(AssertionError:\s.*)\:/)?.[1] ?? message;
+  }
+
   if (prefix !== "") {
     message = `[${prefix}]: ${message}`;
   }
-
-  const diff = getErrorDiff(error);
 
   // This is a subset of parsed stack lines that belong to the stack
   let stackLines: StackLine[];
