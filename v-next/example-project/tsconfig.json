@@ -1,5 +1,8 @@
 {
   "extends": "../../config-v-next/tsconfig.json",
+  "compilerOptions": {
+    "isolatedDeclarations": false
+  },
   "references": [
     {
       "path": "../hardhat"
@@ -24,6 +27,9 @@
     },
     {
       "path": "../hardhat-chai-matchers"
+    },
+    {
+      "path": "../hardhat-typechain"
     }
   ]
 }

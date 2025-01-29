@@ -1,4 +1,7 @@
-import type { HardhatRuntimeEnvironmentHooks } from "../../../../types/hooks.js";
+import type {
+  HardhatRuntimeEnvironmentHooks,
+  HookManager,
+} from "../../../../types/hooks.js";
 import type {
   BuildOptions,
   CompilationJobCreationError,
@@ -17,11 +20,13 @@ import type { SolidityBuildInfo } from "../../../../types/solidity.js";
 import type { SolidityBuildSystemOptions } from "../build-system/build-system.js";
 
 class LazySolidityBuildSystem implements SolidityBuildSystem {
+  readonly #hooks: HookManager;
   readonly #options: SolidityBuildSystemOptions;
 
   #buildSystem: SolidityBuildSystem | undefined;
 
-  constructor(options: SolidityBuildSystemOptions) {
+  constructor(hooks: HookManager, options: SolidityBuildSystemOptions) {
+    this.#hooks = hooks;
     this.#options = options;
   }
 
@@ -94,7 +99,10 @@ class LazySolidityBuildSystem implements SolidityBuildSystem {
     );
 
     if (this.#buildSystem === undefined) {
-      this.#buildSystem = new SolidityBuildSystemImplementation(this.#options);
+      this.#buildSystem = new SolidityBuildSystemImplementation(
+        this.#hooks,
+        this.#options,
+      );
     }
 
     return this.#buildSystem;
@@ -104,7 +112,7 @@ class LazySolidityBuildSystem implements SolidityBuildSystem {
 export default async (): Promise<Partial<HardhatRuntimeEnvironmentHooks>> => {
   return {
     created: async (_context, hre) => {
-      hre.solidity = new LazySolidityBuildSystem({
+      hre.solidity = new LazySolidityBuildSystem(hre.hooks, {
         solidityConfig: hre.config.solidity,
         projectRoot: hre.config.paths.root,
         soliditySourcesPaths: hre.config.paths.sources.solidity,
