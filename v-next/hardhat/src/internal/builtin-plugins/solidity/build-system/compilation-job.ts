@@ -186,4 +186,9 @@ export class CompilationJobImplementation implements CompilationJob {
 
     return createNonCryptographicHashId(preimage);
   }
+
+  // NOTE: This method is used internally to clear the cache in between tests.
+  public static clearCache(): void {
+    CompilationJobImplementation.#sourceContentHashCache.clear();
+  }
 }
