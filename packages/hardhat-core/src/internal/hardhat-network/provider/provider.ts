@@ -12,13 +12,13 @@ import type {
   Response,
   SubscriptionEvent,
   HttpHeader,
+  TracingConfigWithBuffers,
 } from "@nomicfoundation/edr";
 import { Common } from "@nomicfoundation/ethereumjs-common";
 import picocolors from "picocolors";
 import debug from "debug";
 import { EventEmitter } from "events";
 import fsExtra from "fs-extra";
-import semver from "semver";
 
 import { requireNapiRsModule } from "../../../common/napi-rs";
 import {
@@ -33,7 +33,6 @@ import {
 import { isErrorResponse } from "../../core/providers/http";
 import { getHardforkName } from "../../util/hardforks";
 import { ConsoleLogger } from "../stack-traces/consoleLogger";
-import { FIRST_SOLC_VERSION_SUPPORTED } from "../stack-traces/constants";
 import { encodeSolidityStackTrace } from "../stack-traces/solidity-errors";
 import { SolidityStackTrace } from "../stack-traces/solidity-stack-trace";
 
@@ -165,7 +164,7 @@ export class EdrProviderWrapper
   public static async create(
     config: HardhatNetworkProviderConfig,
     loggerConfig: LoggerConfig,
-    tracingConfig?: TracingConfig
+    tracingConfig?: TracingConfigWithBuffers
   ): Promise<EdrProviderWrapper> {
     const { Provider } = requireNapiRsModule(
       "@nomicfoundation/edr"
@@ -506,19 +505,14 @@ export async function createHardhatNetworkProvider(
 
 async function makeTracingConfig(
   artifacts: Artifacts | undefined
-): Promise<TracingConfig | undefined> {
+): Promise<TracingConfigWithBuffers | undefined> {
   if (artifacts !== undefined) {
-    const buildInfos = [];
-
     const buildInfoFiles = await artifacts.getBuildInfoPaths();
 
     try {
-      for (const buildInfoFile of buildInfoFiles) {
-        const buildInfo = await fsExtra.readJson(buildInfoFile);
-        if (semver.gte(buildInfo.solcVersion, FIRST_SOLC_VERSION_SUPPORTED)) {
-          buildInfos.push(buildInfo);
-        }
-      }
+      const buildInfos = await Promise.all(
+        buildInfoFiles.map((filePath) => fsExtra.readFile(filePath))
+      );
 
       return {
         buildInfos,
