@@ -14,6 +14,8 @@ import type {
 import type { DeploymentLoader } from "../../../deployment-loader/types.js";
 import type { DeploymentState } from "../../types/deployment-state.js";
 
+import { isAddress } from "ethers/address";
+
 import {
   isAccountRuntimeValue,
   isFuture,
@@ -246,7 +248,6 @@ export function resolveAddressLike(
 
   const result = findResultForFutureById(deploymentState, addressLike.id);
 
-  const { isAddress } = require("ethers") as typeof import("ethers");
   assertIgnitionInvariant(
     typeof result === "string" && isAddress(result),
     `Future '${addressLike.id}' must be a valid address`,
@@ -307,7 +308,7 @@ export async function resolveEncodeFunctionCallResult(
 ): Promise<string> {
   const artifact = await deploymentLoader.loadArtifact(artifactId);
 
-  const { Interface } = require("ethers") as typeof import("ethers");
+  const { Interface } = await import("ethers");
   const iface = new Interface(artifact.abi);
 
   return iface.encodeFunctionData(functionName, args);
