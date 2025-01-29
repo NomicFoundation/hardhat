@@ -83,7 +83,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     this.#options = options;
     this.#compilerOutputCache = new ObjectCache<CompilerOutput>(
       options.cachePath,
-      "hardhat.core.solidity.build-system.compiler-output",
+      "compiler-output",
       "v1",
     );
   }
