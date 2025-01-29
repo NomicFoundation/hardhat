@@ -1,3 +1,4 @@
+import type { SolidityUserConfig } from "../../../../../src/types/config.js";
 import type { HardhatRuntimeEnvironment } from "../../../../../src/types/hre.js";
 import type {
   SolidityBuildInfoOutput,
@@ -6,12 +7,13 @@ import type {
 
 import assert from "node:assert/strict";
 import path from "node:path";
-import { beforeEach, describe, it } from "node:test";
+import { before, beforeEach, describe, it } from "node:test";
 
 import {
   exists,
   getAllFilesMatching,
   readJsonFile,
+  remove,
 } from "@ignored/hardhat-vnext-utils/fs";
 import {
   getTmpDir,
@@ -51,43 +53,59 @@ describe(
     skip: process.env.HARDHAT_DISABLE_SLOW_TESTS === "true",
   },
   () => {
-    let artifactsPath: string;
+    let actualArtifactsPath: string;
+    let expectedArtifactsPath: string;
     let hre: HardhatRuntimeEnvironment;
 
     useFixtureProject("solidity/example-project");
 
-    beforeEach(async () => {
-      const tmpDir = await getTmpDir("solidity-build-system-implementation");
-      artifactsPath = path.join(tmpDir, "artifacts");
-      const cachePath = path.join(tmpDir, "cache");
+    const solidityUserConfig: SolidityUserConfig = {
+      profiles: {
+        default: {
+          compilers: [
+            {
+              version: "0.8.22",
+            },
+            {
+              version: "0.7.1",
+            },
+          ],
+        },
+      },
+      remappings: ["remapped/=npm/@openzeppelin/contracts@5.1.0/access/"],
+    };
+
+    before(async () => {
+      expectedArtifactsPath = path.join(process.cwd(), "artifacts");
+      const expectedCachePath = path.join(process.cwd(), "cache");
+      await remove(expectedArtifactsPath);
+      await remove(expectedCachePath);
       hre = await createHardhatRuntimeEnvironment({
         paths: {
-          artifacts: artifactsPath,
-          cache: cachePath,
+          artifacts: expectedArtifactsPath,
+          cache: expectedCachePath,
         },
-        solidity: {
-          profiles: {
-            default: {
-              compilers: [
-                {
-                  version: "0.8.22",
-                },
-                {
-                  version: "0.7.1",
-                },
-              ],
-            },
-          },
-          remappings: ["remapped/=npm/@openzeppelin/contracts@5.1.0/access/"],
+        solidity: solidityUserConfig,
+      });
+      await hre.tasks.getTask("compile").run({ quiet: false });
+    });
+
+    beforeEach(async () => {
+      const tmpDir = await getTmpDir("solidity-build-system-implementation");
+      actualArtifactsPath = path.join(tmpDir, "artifacts");
+      const actualCachePath = path.join(tmpDir, "cache");
+      hre = await createHardhatRuntimeEnvironment({
+        paths: {
+          artifacts: actualArtifactsPath,
+          cache: actualCachePath,
         },
+        solidity: solidityUserConfig,
       });
     });
 
     describe("emitArtifacts", () => {
       it("should successfully emit the artifacts", async () => {
         await emitArtifacts(hre.solidity);
-
-        const expectedArtifactsPath = path.join(process.cwd(), "artifacts");
 
         const expectedArtifactPaths = await getAllFilesMatching(
           expectedArtifactsPath,
@@ -100,7 +118,7 @@ describe(
             expectedArtifactPath,
           );
           const actualArtifactPath = path.join(
-            artifactsPath,
+            actualArtifactsPath,
             relativeArtifactPath,
           );
           assert.ok(
@@ -124,9 +142,9 @@ describe(
 
       beforeEach(async () => {
         await emitArtifacts(hre.solidity);
-        artifactPathsBefore = await getAllFilesMatching(artifactsPath);
+        artifactPathsBefore = await getAllFilesMatching(actualArtifactsPath);
         duplicatedContractNamesDeclarationFilePath = path.join(
-          artifactsPath,
+          actualArtifactsPath,
           "artifacts.d.ts",
         );
       });
@@ -137,7 +155,7 @@ describe(
         );
 
         const artifactPathsAfter = await getAllFilesMatching(
-          artifactsPath,
+          actualArtifactsPath,
           (f) => f !== duplicatedContractNamesDeclarationFilePath,
         );
 
@@ -158,7 +176,7 @@ describe(
         await hre.solidity.cleanupArtifacts(rootFilePathsToCleanUp);
 
         const artifactPathsAfter = await getAllFilesMatching(
-          artifactsPath,
+          actualArtifactsPath,
           (f) => f !== duplicatedContractNamesDeclarationFilePath,
         );
 
@@ -172,7 +190,7 @@ describe(
         await hre.solidity.cleanupArtifacts([]);
 
         const artifactPathsAfter = await getAllFilesMatching(
-          artifactsPath,
+          actualArtifactsPath,
           (f) => f !== duplicatedContractNamesDeclarationFilePath,
         );
 
