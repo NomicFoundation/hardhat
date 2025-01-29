@@ -10,6 +10,7 @@ import type {
 
 import path from "node:path";
 
+import { FileNotFoundError } from "@ignored/hardhat-vnext-utils/fs";
 import { analyze } from "@nomicfoundation/solidity-analyzer";
 
 import { IgnitionError } from "./errors.js";
@@ -144,7 +145,7 @@ async function convertExStateToVerifyInfo(
     ]);
   } catch (e) {
     assertIgnitionInvariant(
-      e instanceof Error && "code" in e && e.code === "ENOENT",
+      e instanceof FileNotFoundError,
       `Unexpected error loading build info or artifact for deployment execution state ${
         exState.id
       }: ${e as any}`,
