@@ -20,6 +20,7 @@ import {
 } from "@nomicfoundation/hardhat-test-utils";
 
 import { SolidityBuildSystemImplementation } from "../../../../../src/internal/builtin-plugins/solidity/build-system/build-system.js";
+import { HookManagerImplementation } from "../../../../../src/internal/core/hook-manager.js";
 
 async function emitArtifacts(solidity: SolidityBuildSystem): Promise<void> {
   const rootFilePaths = await solidity.getRootFilePaths();
@@ -85,13 +86,16 @@ describe(
       expectedCachePath = path.join(process.cwd(), "cache");
       await remove(expectedArtifactsPath);
       await remove(expectedCachePath);
-      solidity = new SolidityBuildSystemImplementation({
-        solidityConfig,
-        projectRoot: process.cwd(),
-        soliditySourcesPaths: [path.join(process.cwd(), "contracts")],
-        artifactsPath: expectedArtifactsPath,
-        cachePath: expectedCachePath,
-      });
+      solidity = new SolidityBuildSystemImplementation(
+        new HookManagerImplementation(process.cwd(), []),
+        {
+          solidityConfig,
+          projectRoot: process.cwd(),
+          soliditySourcesPaths: [path.join(process.cwd(), "contracts")],
+          artifactsPath: expectedArtifactsPath,
+          cachePath: expectedCachePath,
+        },
+      );
       const rootFilePaths = await solidity.getRootFilePaths();
       await solidity.build(rootFilePaths, {
         force: true,
@@ -104,13 +108,16 @@ describe(
       const tmpDir = await getTmpDir("solidity-build-system-implementation");
       actualArtifactsPath = path.join(tmpDir, "artifacts");
       actualCachePath = path.join(tmpDir, "cache");
-      solidity = new SolidityBuildSystemImplementation({
-        solidityConfig,
-        projectRoot: process.cwd(),
-        soliditySourcesPaths: [path.join(process.cwd(), "contracts")],
-        artifactsPath: actualArtifactsPath,
-        cachePath: actualCachePath,
-      });
+      solidity = new SolidityBuildSystemImplementation(
+        new HookManagerImplementation(process.cwd(), []),
+        {
+          solidityConfig,
+          projectRoot: process.cwd(),
+          soliditySourcesPaths: [path.join(process.cwd(), "contracts")],
+          artifactsPath: actualArtifactsPath,
+          cachePath: actualCachePath,
+        },
+      );
     });
 
     describe("emitArtifacts", () => {
