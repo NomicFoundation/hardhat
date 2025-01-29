@@ -11,6 +11,8 @@ import type {
 } from "../../types/module.js";
 import type { DeploymentLoader } from "../deployment-loader/types.js";
 
+import sortBy from "lodash-es/sortBy.js";
+
 import { ExecutionEventType } from "../../types/execution-events.js";
 import { assertIgnitionInvariant } from "../utils/assertions.js";
 import { getFuturesFromModule } from "../utils/get-futures-from-module.js";
@@ -287,7 +289,6 @@ export class ExecutionEngine {
       };
     });
 
-    const { sortBy } = require("lodash-es") as typeof import("lodash-es");
     const sortedBatch = sortBy(batchWithNonces, ["from", "nonce", "future.id"]);
 
     return sortedBatch.map((f) => f.future);

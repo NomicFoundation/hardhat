@@ -25,6 +25,8 @@ import type {
   ReconciliationFutureResultFailure,
 } from "../types.js";
 
+import isEqual from "lodash-es/isEqual.js";
+
 import { ExecutionStatus } from "../../execution/types/execution-state.js";
 import { fail } from "../utils.js";
 
@@ -77,7 +79,6 @@ export function reconcileStrategy(
   const storedStrategyConfig = exState.strategyConfig ?? {};
   const newStrategyConfig = context.strategyConfig;
 
-  const { isEqual } = require("lodash-es") as typeof import("lodash-es");
   if (!isEqual(storedStrategyConfig, newStrategyConfig)) {
     return fail(
       future,
