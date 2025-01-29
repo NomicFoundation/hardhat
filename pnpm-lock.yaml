@@ -1846,9 +1846,9 @@ importers:
       '@nomicfoundation/solidity-analyzer':
         specifier: ^0.1.1
         version: 0.1.2
-      cbor:
-        specifier: ^9.0.0
-        version: 9.0.2
+      cbor2:
+        specifier: ^1.9.0
+        version: 1.9.0
       debug:
         specifier: ^4.3.2
         version: 4.4.0(supports-color@8.1.1)
@@ -4427,13 +4427,13 @@ packages:
   caseless@0.12.0:
     resolution: {integrity: sha512-4tYFyifaFfGacoiObjJegolkwSU4xQNGbVgUiNYVUxbQ2x2lUsFvY4hVgVzGiIe6WLOPqycWXA40l+PWsxthUw==}
 
+  cbor2@1.9.0:
+    resolution: {integrity: sha512-xDwD01KHzCHTbSwIWaK0cIL+n68eMs53qtfUe5dBtgMJ+w7GES+rur6vJQ5WF7ShRxANbCakbW1KnJ4E/INtsA==}
+    engines: {node: '>=18'}
+
   cbor@8.1.0:
     resolution: {integrity: sha512-DwGjNW9omn6EwP70aXsn7FQJx5kO12tX0bZkaTjzdVFM6/7nhA4t0EENocKGx6D2Bch9PE2KzCUf5SceBdeijg==}
     engines: {node: '>=12.19'}
-
-  cbor@9.0.2:
-    resolution: {integrity: sha512-JPypkxsB10s9QOWwa6zwPzqE1Md3vqpPc+cai4sAecuCsRyAtAl/pMyhPlMbT/xtPnm2dznJZYRLui57qiRhaQ==}
-    engines: {node: '>=16'}
 
   chai-as-promised@7.1.1:
     resolution: {integrity: sha512-azL6xMoi+uxu6z4rhWQ1jbdUhOMhis2PvscD/xjLqNMkv3BPPp2JyyuTHOrf9BOosGpNQ11v6BKv/g57RXbiaA==}
@@ -9520,11 +9520,9 @@ snapshots:
 
   caseless@0.12.0: {}
 
-  cbor@8.1.0:
-    dependencies:
-      nofilter: 3.1.0
+  cbor2@1.9.0: {}
 
-  cbor@9.0.2:
+  cbor@8.1.0:
     dependencies:
       nofilter: 3.1.0
 
