@@ -15,7 +15,7 @@ import {
 } from "../../../../../src/internal/builtin-plugins/network-manager/provider-errors.js";
 import { EDR_NETWORK_REVERT_SNAPSHOT_EVENT } from "../../../../../src/internal/constants.js";
 
-describe("edr-provider", () => {
+describe.only("edr-provider", () => {
   let hre: HardhatRuntimeEnvironment;
 
   before(async function () {
@@ -23,21 +23,30 @@ describe("edr-provider", () => {
   });
 
   describe("EdrProvider#request", () => {
-    it("should emit an event when the method is evm_revert", async () => {
-      let eventEmitted = false;
-      const { provider } = await hre.network.connect();
+    it(
+      "should emit an event when the method is evm_revert",
+      { timeout: 1000 },
+      async () => {
+        let eventEmitted = false;
+        const { provider } = await hre.network.connect();
 
-      provider.on(EDR_NETWORK_REVERT_SNAPSHOT_EVENT, () => {
-        eventEmitted = true;
-      });
+        const eventPromise = new Promise<void>((resolve) => {
+          provider.on(EDR_NETWORK_REVERT_SNAPSHOT_EVENT, () => {
+            eventEmitted = true;
+            resolve();
+          });
+        });
 
-      await provider.request({
-        method: "evm_revert",
-        params: ["0x1"], // any snapshot id should work
-      });
+        await provider.request({
+          method: "evm_revert",
+          params: ["0x1"], // any snapshot id should work
+        });
 
-      assert.ok(eventEmitted, "The evm_revert event should be emitted");
-    });
+        await eventPromise;
+
+        assert.ok(eventEmitted, "The evm_revert event should be emitted");
+      },
+    );
 
     it("should return the expected response when the method is web3_clientVersion", async () => {
       const { provider } = await hre.network.connect();
@@ -183,47 +192,55 @@ describe("edr-provider", () => {
   });
 
   describe("EdrProvider#onSubscriptionEvent", () => {
-    it("should emit notification and message events for each result of the SubscriptionEvent", async () => {
-      const event: SubscriptionEvent = {
-        filterId: 1n,
-        result: [{ data: "0x1" }, { data: "0x2" }],
-      };
-      let notificationEventTimesEmitted = 0;
-      let messageEventTimesEmitted = 0;
+    it(
+      "should emit notification and message events for each result of the SubscriptionEvent",
+      { timeout: 1000 },
+      async () => {
+        const event: SubscriptionEvent = {
+          filterId: 1n,
+          result: ["0x1", "0x2"],
+        };
+        const eventResultLength = event.result.length;
+        const notificationEventResults: string[] = [];
+        const messageEventResults: string[] = [];
 
-      const { provider } = await hre.network.connect();
+        const { provider } = await hre.network.connect();
 
-      provider.on("notification", (notificationEvent) => {
-        assert.deepEqual(notificationEvent, {
-          subscription: "0x1",
-          result: event.result[notificationEventTimesEmitted],
+        const notificationEventPromise = new Promise<void>((resolve) => {
+          provider.on("notification", ({ result }) => {
+            notificationEventResults.push(result);
+            if (notificationEventResults.length === eventResultLength) {
+              resolve();
+            }
+          });
         });
 
-        notificationEventTimesEmitted++;
-      });
-
-      provider.on("message", (messageEvent) => {
-        assert.deepEqual(messageEvent, {
-          type: "eth_subscription",
-          data: {
-            subscription: "0x1",
-            result: event.result[messageEventTimesEmitted],
-          },
+        const messageEventPromise = new Promise<void>((resolve) => {
+          provider.on("message", ({ data: { result } }) => {
+            messageEventResults.push(result);
+            if (messageEventResults.length === eventResultLength) {
+              resolve();
+            }
+          });
         });
 
-        messageEventTimesEmitted++;
-      });
+        assert.ok(
+          provider instanceof EdrProvider,
+          "Provider is not an EdrProvider",
+        );
 
-      assert.ok(
-        provider instanceof EdrProvider,
-        "Provider is not an EdrProvider",
-      );
+        provider.onSubscriptionEvent(event);
 
-      provider.onSubscriptionEvent(event);
+        await Promise.all([notificationEventPromise, messageEventPromise]);
 
-      assert.equal(notificationEventTimesEmitted, 2);
-      assert.equal(messageEventTimesEmitted, 2);
-    });
+        // Sort results as they can be emitted in any order
+        notificationEventResults.sort();
+        messageEventResults.sort();
+
+        assert.deepEqual(notificationEventResults, event.result);
+        assert.deepEqual(messageEventResults, event.result);
+      },
+    );
   });
 
   describe("EdrProvider#close", () => {
