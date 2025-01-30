@@ -40,10 +40,7 @@ import {
   L1_CHAIN_TYPE as EDR_L1_CHAIN_TYPE,
   GENERIC_CHAIN_TYPE as EDR_GENERIC_CHAIN_TYPE,
 } from "@ignored/edr-optimism";
-import {
-  bytesToHexString,
-  getUnprefixedHexString,
-} from "@ignored/hardhat-vnext-utils/hex";
+import { getUnprefixedHexString } from "@ignored/hardhat-vnext-utils/hex";
 
 import { L1_CHAIN_TYPE, OPTIMISM_CHAIN_TYPE } from "../../../../constants.js";
 import { FixedValueConfigurationVariable } from "../../../../core/configuration-variables.js";
@@ -177,6 +174,7 @@ export function hardhatMempoolOrderToEdrMineOrdering(
   }
 }
 
+// TODO: EDR should handle this conversion. This is a temporary solution.
 export function edrRpcDebugTraceToHardhat(
   debugTraceResult: DebugTraceResult,
 ): RpcDebugTraceOutput {
@@ -222,10 +220,9 @@ export function edrRpcDebugTraceToHardhat(
     structLogs.shift();
   }
 
-  let returnValue =
-    debugTraceResult.output !== undefined
-      ? bytesToHexString(debugTraceResult.output)
-      : "";
+  /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
+  debugTraceResult.output is a string, but it's typed as Buffer in Edr */
+  let returnValue = (debugTraceResult.output as unknown as string) ?? "0x";
   if (returnValue === "0x") {
     returnValue = "";
   }
