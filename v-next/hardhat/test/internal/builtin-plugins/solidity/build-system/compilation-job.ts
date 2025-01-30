@@ -1,16 +1,15 @@
 import type { Remapping } from "../../../../../src/internal/builtin-plugins/solidity/build-system/resolver/types.js";
 import type { SolcConfig } from "../../../../../src/types/config.js";
-import type {
-  NpmPackageResolvedFile,
-  ProjectResolvedFile,
-} from "../../../../../src/types/solidity.js";
 
 import assert from "node:assert/strict";
 import { before, beforeEach, describe, it } from "node:test";
 
 import { CompilationJobImplementation } from "../../../../../src/internal/builtin-plugins/solidity/build-system/compilation-job.js";
 import { DependencyGraphImplementation } from "../../../../../src/internal/builtin-plugins/solidity/build-system/dependency-graph.js";
-import { ResolvedFileType } from "../../../../../src/types/solidity.js";
+import {
+  NpmPackageResolvedFile,
+  ProjectResolvedFile,
+} from "../../../../../src/types/solidity.js";
 
 describe("CompilationJobImplementation", () => {
   let dependencyGraph: DependencyGraphImplementation;
@@ -24,8 +23,7 @@ describe("CompilationJobImplementation", () => {
 
   before(() => {
     dependencyGraph = new DependencyGraphImplementation();
-    rootFile = {
-      type: ResolvedFileType.PROJECT_FILE,
+    rootFile = new ProjectResolvedFile({
       sourceName: "root.sol",
       fsPath: "root.sol",
       content: {
@@ -33,9 +31,8 @@ describe("CompilationJobImplementation", () => {
         importPaths: [],
         versionPragmas: [],
       },
-    };
-    npmDependencyFile = {
-      type: ResolvedFileType.NPM_PACKGE_FILE,
+    });
+    npmDependencyFile = new NpmPackageResolvedFile({
       sourceName: "npm:dependency/1.0.0/dependency.sol",
       fsPath: "dependency.sol",
       package: {
@@ -49,9 +46,8 @@ describe("CompilationJobImplementation", () => {
         importPaths: [],
         versionPragmas: [],
       },
-    };
-    projectDependencyFile = {
-      type: ResolvedFileType.PROJECT_FILE,
+    });
+    projectDependencyFile = new ProjectResolvedFile({
       sourceName: "dependency.sol",
       fsPath: "dependency.sol",
       content: {
@@ -59,7 +55,7 @@ describe("CompilationJobImplementation", () => {
         importPaths: [],
         versionPragmas: [],
       },
-    };
+    });
     dependencyGraph.addRootFile(rootFile.sourceName, rootFile);
     dependencyGraph.addDependency(rootFile, npmDependencyFile);
     dependencyGraph.addDependency(rootFile, projectDependencyFile);

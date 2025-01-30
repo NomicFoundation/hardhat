@@ -71,7 +71,7 @@ export function formatRootPath(
   publicSourceName: string,
   rootFile: ResolvedFile,
 ): string {
-  if (rootFile.type !== ResolvedFileType.NPM_PACKGE_FILE) {
+  if (rootFile.type !== ResolvedFileType.NPM_PACKAGE_FILE) {
     return publicSourceName;
   }
 

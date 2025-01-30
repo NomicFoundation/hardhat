@@ -35,14 +35,10 @@ export interface ResolvedNpmPackage {
  */
 export enum ResolvedFileType {
   PROJECT_FILE = "PROJECT_FILE",
-  NPM_PACKGE_FILE = "NPM_PACKAGE_FILE",
+  NPM_PACKAGE_FILE = "NPM_PACKAGE_FILE",
 }
 
-/**
- * A file that's part of the Hardhat project (i.e. not installed through npm).
- */
-export interface ProjectResolvedFile {
-  type: ResolvedFileType.PROJECT_FILE;
+interface ProjectResolvedFileOptions {
   /**
    * The source name of a project files is its relative path from the Hardhat
    * project root.
@@ -61,11 +57,24 @@ export interface ProjectResolvedFile {
 }
 
 /**
- * A file that's part of an npm package.
+ * A file that's part of the Hardhat project (i.e. not installed through npm).
  */
-export interface NpmPackageResolvedFile {
-  type: ResolvedFileType.NPM_PACKGE_FILE;
+export class ProjectResolvedFile {
+  public readonly type: ResolvedFileType.PROJECT_FILE =
+    ResolvedFileType.PROJECT_FILE;
 
+  public readonly sourceName: string;
+  public readonly fsPath: string;
+  public readonly content: FileContent;
+
+  constructor(options: ProjectResolvedFileOptions) {
+    this.sourceName = options.sourceName;
+    this.fsPath = options.fsPath;
+    this.content = options.content;
+  }
+}
+
+interface NpmPackageResolvedFileOptions {
   /**
    * The source of an npm package file is `npm/<package-name>@<version>/<path>`.
    */
@@ -85,6 +94,26 @@ export interface NpmPackageResolvedFile {
    * The package this file belongs to.
    */
   package: ResolvedNpmPackage;
+}
+
+/**
+ * A file that's part of an npm package.
+ */
+export class NpmPackageResolvedFile {
+  public readonly type: ResolvedFileType.NPM_PACKAGE_FILE =
+    ResolvedFileType.NPM_PACKAGE_FILE;
+
+  public readonly sourceName: string;
+  public readonly fsPath: string;
+  public readonly content: FileContent;
+  public readonly package: ResolvedNpmPackage;
+
+  constructor(options: NpmPackageResolvedFileOptions) {
+    this.sourceName = options.sourceName;
+    this.fsPath = options.fsPath;
+    this.content = options.content;
+    this.package = options.package;
+  }
 }
 
 /**

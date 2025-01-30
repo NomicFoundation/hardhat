@@ -65,7 +65,7 @@ function assertNpmPackageResolvedFile(
   filePathFromPackageRoot: string,
 ): asserts resolvedFile is NpmPackageResolvedFile {
   assert.ok(
-    resolvedFile.type === ResolvedFileType.NPM_PACKGE_FILE,
+    resolvedFile.type === ResolvedFileType.NPM_PACKAGE_FILE,
     `Resolved file ${resolvedFile.fsPath} is not an npm file`,
   );
 
@@ -345,7 +345,10 @@ describe("Resolver", () => {
               "hardhat/console.sol",
             );
 
-            assert.deepEqual(consoleSol.type, ResolvedFileType.NPM_PACKGE_FILE);
+            assert.deepEqual(
+              consoleSol.type,
+              ResolvedFileType.NPM_PACKAGE_FILE,
+            );
             assert.deepEqual(consoleSol.package, {
               name: "@ignored/hardhat-vnext",
               version: "local", // The test considers it part of the monorepo, because it's the same package

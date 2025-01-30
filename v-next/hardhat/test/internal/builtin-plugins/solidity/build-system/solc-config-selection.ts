@@ -1,5 +1,4 @@
 import type { SolidityBuildProfileConfig } from "../../../../../src/types/config.js";
-import type { ProjectResolvedFile } from "../../../../../src/types/solidity.js";
 
 import assert from "node:assert/strict";
 import path from "node:path";
@@ -11,16 +10,15 @@ import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-uti
 import { DependencyGraphImplementation } from "../../../../../src/internal/builtin-plugins/solidity/build-system/dependency-graph.js";
 import { SolcConfigSelector } from "../../../../../src/internal/builtin-plugins/solidity/build-system/solc-config-selection.js";
 import {
+  ProjectResolvedFile,
   CompilationJobCreationErrorReason,
-  ResolvedFileType,
 } from "../../../../../src/types/solidity.js";
 
 function createProjectResolvedFile(
   sourceName: string,
   versionPragmas: string[],
 ): ProjectResolvedFile {
-  return {
-    type: ResolvedFileType.PROJECT_FILE,
+  return new ProjectResolvedFile({
     sourceName,
     fsPath: path.join(process.cwd(), sourceName),
     content: {
@@ -28,7 +26,7 @@ function createProjectResolvedFile(
       importPaths: [],
       versionPragmas,
     },
-  };
+  });
 }
 
 describe("SolcConfigSelector", () => {

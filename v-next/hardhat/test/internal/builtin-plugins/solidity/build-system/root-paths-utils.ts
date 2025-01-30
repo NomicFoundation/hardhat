@@ -11,7 +11,10 @@ import {
   npmModuleToNpmRootPath,
   parseRootPath,
 } from "../../../../../src/internal/builtin-plugins/solidity/build-system/root-paths-utils.js";
-import { ResolvedFileType } from "../../../../../src/types/solidity.js";
+import {
+  NpmPackageResolvedFile,
+  ProjectResolvedFile,
+} from "../../../../../src/types/solidity.js";
 
 interface TestRootPath {
   rootPath: string;
@@ -31,8 +34,7 @@ const testRootPaths: TestRootPath[] = [
     isNpm: true,
     npmModule: "ethers",
     publicSourceName: "ethers",
-    resolvedFile: {
-      type: ResolvedFileType.NPM_PACKGE_FILE,
+    resolvedFile: new NpmPackageResolvedFile({
       sourceName: "ethers",
       fsPath: "/Users/root/node_modules/ethers/index.js",
       content: {
@@ -46,7 +48,7 @@ const testRootPaths: TestRootPath[] = [
         rootFsPath: "/Users/root/node_modules/ethers",
         rootSourceName: "ethers",
       },
-    },
+    }),
   },
   {
     rootPath: "npm:@openzeppelin/contracts",
@@ -56,8 +58,7 @@ const testRootPaths: TestRootPath[] = [
     isNpm: true,
     npmModule: "@openzeppelin/contracts",
     publicSourceName: "@openzeppelin/contracts",
-    resolvedFile: {
-      type: ResolvedFileType.NPM_PACKGE_FILE,
+    resolvedFile: new NpmPackageResolvedFile({
       sourceName: "@openzeppelin/contracts",
       fsPath: "/Users/root/node_modules/@openzeppelin/contracts/index.js",
       content: {
@@ -71,7 +72,7 @@ const testRootPaths: TestRootPath[] = [
         rootFsPath: "/Users/root/node_modules/@openzeppelin/contracts",
         rootSourceName: "@openzeppelin/contracts",
       },
-    },
+    }),
   },
   {
     rootPath: "npm:@openzeppelin/contracts/token/ERC20/ERC20.sol",
@@ -81,8 +82,7 @@ const testRootPaths: TestRootPath[] = [
     isNpm: true,
     npmModule: "@openzeppelin/contracts/token/ERC20/ERC20.sol",
     publicSourceName: "@openzeppelin/contracts/token/ERC20/ERC20.sol",
-    resolvedFile: {
-      type: ResolvedFileType.NPM_PACKGE_FILE,
+    resolvedFile: new NpmPackageResolvedFile({
       sourceName: "@openzeppelin/contracts/token/ERC20/ERC20.sol",
       fsPath:
         "/Users/root/node_modules/@openzeppelin/contracts/token/ERC20/ERC20.sol",
@@ -97,7 +97,7 @@ const testRootPaths: TestRootPath[] = [
         rootFsPath: "/Users/root/node_modules/@openzeppelin/contracts",
         rootSourceName: "@openzeppelin/contracts",
       },
-    },
+    }),
   },
   {
     rootPath: "/Users/root/contracts/Contract.sol",
@@ -107,8 +107,7 @@ const testRootPaths: TestRootPath[] = [
     isNpm: false,
     npmModule: undefined,
     publicSourceName: "/Users/root/contracts/Contract.sol",
-    resolvedFile: {
-      type: ResolvedFileType.PROJECT_FILE,
+    resolvedFile: new ProjectResolvedFile({
       sourceName: "/Users/root/contracts/Contract.sol",
       fsPath: "/Users/root/contracts/Contract.sol",
       content: {
@@ -116,7 +115,7 @@ const testRootPaths: TestRootPath[] = [
         importPaths: [],
         versionPragmas: [],
       },
-    },
+    }),
   },
   {
     rootPath: "C:\\Users\\root\\contracts\\Contract.sol",
@@ -126,8 +125,7 @@ const testRootPaths: TestRootPath[] = [
     isNpm: false,
     npmModule: undefined,
     publicSourceName: "C:\\Users\\root\\contracts\\Contract.sol",
-    resolvedFile: {
-      type: ResolvedFileType.PROJECT_FILE,
+    resolvedFile: new ProjectResolvedFile({
       sourceName: "C:\\Users\\root\\contracts\\Contract.sol",
       fsPath: "C:\\Users\\root\\contracts\\Contract.sol",
       content: {
@@ -135,7 +133,7 @@ const testRootPaths: TestRootPath[] = [
         importPaths: [],
         versionPragmas: [],
       },
-    },
+    }),
   },
 ];
 
