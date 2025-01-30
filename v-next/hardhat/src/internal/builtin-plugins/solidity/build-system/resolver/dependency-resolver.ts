@@ -238,11 +238,12 @@ export class ResolverImplementation implements Resolver {
         trueCaseFsPath,
       );
 
-      const resolvedFile = new ProjectResolvedFileImplementation({
-        sourceName,
-        fsPath: fsPathWithTheRightCasing,
-        content: await readFileContent(fsPathWithTheRightCasing),
-      });
+      const resolvedFile: ProjectResolvedFile =
+        new ProjectResolvedFileImplementation({
+          sourceName,
+          fsPath: fsPathWithTheRightCasing,
+          content: await readFileContent(fsPathWithTheRightCasing),
+        });
 
       this.#resolvedFileBySourceName.set(sourceName, resolvedFile);
 
@@ -805,11 +806,12 @@ export class ResolverImplementation implements Resolver {
 
     const fsPath = path.join(this.#projectRoot, fsPathWithinTheProject);
 
-    const resolvedFile = new ProjectResolvedFileImplementation({
-      sourceName,
-      fsPath,
-      content: await readFileContent(fsPath),
-    });
+    const resolvedFile: ProjectResolvedFile =
+      new ProjectResolvedFileImplementation({
+        sourceName,
+        fsPath,
+        content: await readFileContent(fsPath),
+      });
 
     this.#resolvedFileBySourceName.set(sourceName, resolvedFile);
 
