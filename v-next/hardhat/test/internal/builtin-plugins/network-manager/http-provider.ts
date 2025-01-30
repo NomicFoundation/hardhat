@@ -4,7 +4,6 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { ensureError } from "@ignored/hardhat-vnext-utils/error";
 import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
@@ -498,25 +497,14 @@ describe("http-provider", () => {
       });
 
       await provider.close();
-      try {
-        await provider.request({
+
+      await assertRejectsWithHardhatError(
+        provider.request({
           method: "eth_chainId",
-        });
-      } catch (error) {
-        ensureError(error);
-
-        assert.ok(
-          error.cause !== undefined && error.cause instanceof Error,
-          "Error does not have a cause",
-        );
-
-        // If the client is still open, the error will be a connection error
-        if (error.cause.message === "getaddrinfo ENOTFOUND loocalhost") {
-          assert.fail("Client is still open");
-        }
-
-        assert.equal(error.cause.message, "The client is destroyed");
-      }
+        }),
+        HardhatError.ERRORS.NETWORK.PROVIDER_CLOSED,
+        {},
+      );
     });
   });
 });

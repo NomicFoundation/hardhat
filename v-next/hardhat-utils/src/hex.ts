@@ -95,7 +95,7 @@ export function hexStringToNumber(hexString: string): number {
  * @returns PrefixedHexString The hexadecimal representation of the bytes.
  */
 export function bytesToHexString(bytes: Uint8Array): PrefixedHexString {
-  return `0x${Buffer.from(bytes).toString("hex")}`;
+  return getPrefixedHexString(Buffer.from(bytes).toString("hex"));
 }
 
 /**
@@ -141,9 +141,7 @@ export function normalizeHexString(hexString: string): PrefixedHexString {
     );
   }
 
-  return isPrefixedHexString(normalizedHexString)
-    ? normalizedHexString
-    : `0x${normalizedHexString}`;
+  return getPrefixedHexString(normalizedHexString);
 }
 
 /**

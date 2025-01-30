@@ -692,6 +692,13 @@ Try using another mnemonic or deriving less keys.`,
       websiteDescription:
         "The transaction to the null address cannot have undefined data",
     },
+    PROVIDER_CLOSED: {
+      number: 722,
+      messageTemplate: "The provider has been closed.",
+      websiteTitle: "Provider closed",
+      websiteDescription:
+        "The provider your are trying to use has been closed. Please create a new one using hre.network.connect() and try again.",
+    },
   },
   KEYSTORE: {
     INVALID_KEYSTORE_FILE_FORMAT: {

@@ -22,10 +22,7 @@ import {
   ResponseStatusCodeError,
 } from "@ignored/hardhat-vnext-utils/request";
 
-import {
-  EDR_NETWORK_RESET_EVENT,
-  EDR_NETWORK_REVERT_SNAPSHOT_EVENT,
-} from "../../constants.js";
+import { EDR_NETWORK_REVERT_SNAPSHOT_EVENT } from "../../constants.js";
 import { getHardhatVersion } from "../../utils/package.js";
 
 import { BaseProvider } from "./base-provider.js";
@@ -53,9 +50,9 @@ export class HttpProvider extends BaseProvider {
   readonly #url: string;
   readonly #networkName: string;
   readonly #extraHeaders: Readonly<Record<string, string>>;
-  readonly #dispatcher: Readonly<Dispatcher>;
   readonly #jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction;
 
+  #dispatcher: Dispatcher | undefined;
   #nextRequestId = 1;
 
   /**
@@ -115,6 +112,10 @@ export class HttpProvider extends BaseProvider {
   public async request(
     requestArguments: RequestArguments,
   ): Promise<SuccessfulJsonRpcResponse["result"]> {
+    if (this.#dispatcher === undefined) {
+      throw new HardhatError(HardhatError.ERRORS.NETWORK.PROVIDER_CLOSED);
+    }
+
     const { method, params } = requestArguments;
 
     const jsonRpcRequest = getJsonRpcRequest(
@@ -123,7 +124,7 @@ export class HttpProvider extends BaseProvider {
       params,
     );
 
-    let jsonRpcResponse;
+    let jsonRpcResponse: JsonRpcResponse;
 
     if (this.#jsonRpcRequestWrapper !== undefined) {
       jsonRpcResponse = await this.#jsonRpcRequestWrapper(
@@ -145,9 +146,6 @@ export class HttpProvider extends BaseProvider {
       throw error;
     }
 
-    if (jsonRpcRequest.method === "hardhat_reset") {
-      this.emit(EDR_NETWORK_RESET_EVENT);
-    }
     if (jsonRpcRequest.method === "evm_revert") {
       this.emit(EDR_NETWORK_REVERT_SNAPSHOT_EVENT);
     }
@@ -156,8 +154,11 @@ export class HttpProvider extends BaseProvider {
   }
 
   public async close(): Promise<void> {
-    // See https://github.com/nodejs/undici/discussions/3522#discussioncomment-10498734
-    await this.#dispatcher.close();
+    if (this.#dispatcher !== undefined) {
+      // See https://github.com/nodejs/undici/discussions/3522#discussioncomment-10498734
+      await this.#dispatcher.close();
+      this.#dispatcher = undefined;
+    }
   }
 
   async #fetchJsonRpcResponse(

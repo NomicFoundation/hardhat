@@ -88,14 +88,6 @@ export class InternalError extends ProviderError {
   }
 }
 
-export class InvalidInputError extends ProviderError {
-  public static readonly CODE = -32000;
-
-  constructor(message: string, parent?: Error) {
-    super(message, InvalidInputError.CODE, parent);
-  }
-}
-
 export class TransactionExecutionError extends ProviderError {
   public static readonly CODE = -32003;
 
