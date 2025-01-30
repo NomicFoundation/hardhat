@@ -3,6 +3,7 @@ import type { HardhatPlugin } from "../../types/plugins.js";
 import artifacts from "./artifacts/index.js";
 import clean from "./clean/index.js";
 import console from "./console/index.js";
+import flatten from "./flatten/index.js";
 import networkManager from "./network-manager/index.js";
 import node from "./node/index.js";
 import run from "./run/index.js";
@@ -21,6 +22,7 @@ export type * from "./clean/index.js";
 export type * from "./console/index.js";
 export type * from "./run/index.js";
 export type * from "./node/index.js";
+export type * from "./flatten/index.js";
 
 // This array should be kept in order, respecting the dependencies between the
 // plugins.
@@ -34,4 +36,5 @@ export const builtinPlugins: HardhatPlugin[] = [
   console,
   run,
   node,
+  flatten,
 ];
