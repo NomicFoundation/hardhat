@@ -1,4 +1,7 @@
 import type {
+  EdrNetworkForkingConfig,
+  EdrNetworkHDAccountsConfig,
+  EdrNetworkMiningConfig,
   HardhatUserConfig,
   HttpNetworkHDAccountsConfig,
   HttpNetworkHDAccountsUserConfig,
@@ -306,6 +309,8 @@ export async function validateNetworkConfigOverride(
   );
 }
 
+// This type guard does not check beyond accounts being an object
+// because the actual structure of the object is validated by Zod.
 export function isHttpNetworkHdAccountsUserConfig(
   accounts: unknown,
 ): accounts is HttpNetworkHDAccountsUserConfig {
@@ -315,5 +320,48 @@ export function isHttpNetworkHdAccountsUserConfig(
 export function isHttpNetworkHdAccountsConfig(
   accounts: unknown,
 ): accounts is HttpNetworkHDAccountsConfig {
-  return isObject(accounts);
+  return (
+    isObject(accounts) &&
+    "mnemonic" in accounts &&
+    "count" in accounts &&
+    "initialIndex" in accounts &&
+    "passphrase" in accounts &&
+    "path" in accounts
+  );
+}
+
+export function isEdrNetworkHdAccountsConfig(
+  accounts: unknown,
+): accounts is EdrNetworkHDAccountsConfig {
+  return (
+    isObject(accounts) &&
+    "mnemonic" in accounts &&
+    "accountsBalance" in accounts &&
+    "count" in accounts &&
+    "initialIndex" in accounts &&
+    "passphrase" in accounts &&
+    "path" in accounts
+  );
+}
+
+export function isEdrNetworkForkingConfig(
+  forking: unknown,
+): forking is EdrNetworkForkingConfig {
+  return (
+    isObject(forking) &&
+    "enabled" in forking &&
+    "url" in forking &&
+    "cacheDir" in forking
+  );
+}
+
+export function isEdrNetworkMiningConfig(
+  mining: unknown,
+): mining is EdrNetworkMiningConfig {
+  return (
+    isObject(mining) &&
+    "auto" in mining &&
+    "interval" in mining &&
+    "mempool" in mining
+  );
 }

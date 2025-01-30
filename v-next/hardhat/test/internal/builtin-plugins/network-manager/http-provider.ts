@@ -15,6 +15,7 @@ import {
   ProviderError,
   LimitExceededError,
 } from "../../../../src/internal/builtin-plugins/network-manager/provider-errors.js";
+import { EDR_NETWORK_REVERT_SNAPSHOT_EVENT } from "../../../../src/internal/constants.js";
 import {
   createTestEnvManager,
   initializeTestDispatcher,
@@ -90,6 +91,57 @@ describe("http-provider", () => {
       assert.ok(typeof result === "string", "Result is not a string");
       assert.equal(result, "0x1");
     });
+
+    it(
+      "should emit an event when the method is evm_revert",
+      { timeout: 1000 },
+      async () => {
+        let eventEmitted = false;
+        const jsonRpcRequest = {
+          jsonrpc: "2.0",
+          id: 1,
+          method: "evm_revert",
+          params: ["0x1"],
+        };
+        const jsonRpcResponse = {
+          jsonrpc: "2.0",
+          id: 1,
+          result: true,
+        };
+
+        interceptor
+          .intercept({
+            ...baseInterceptorOptions,
+            body: JSON.stringify(jsonRpcRequest),
+          })
+          .reply(200, jsonRpcResponse);
+
+        const provider = await HttpProvider.create({
+          url: "http://localhost",
+          // it doesn't matter that this isn't a real edr network
+          // as we are mocking the dispatcher
+          networkName: "edrNetwork",
+          timeout: 20_000,
+          testDispatcher: interceptor,
+        });
+
+        const eventPromise = new Promise<void>((resolve) => {
+          provider.on(EDR_NETWORK_REVERT_SNAPSHOT_EVENT, () => {
+            eventEmitted = true;
+            resolve();
+          });
+        });
+
+        await provider.request({
+          method: "evm_revert",
+          params: ["0x1"],
+        });
+
+        await eventPromise;
+
+        assert.ok(eventEmitted, "The evm_revert event should be emitted");
+      },
+    );
 
     it("should throw if the params are an object", async () => {
       const provider = await HttpProvider.create({
