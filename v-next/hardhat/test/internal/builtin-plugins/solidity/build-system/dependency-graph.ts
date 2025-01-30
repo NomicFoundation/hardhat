@@ -1,3 +1,5 @@
+import type { ProjectResolvedFile } from "../../../../../src/types/solidity.js";
+
 import assert from "node:assert/strict";
 import path from "node:path";
 import { beforeEach, describe, it } from "node:test";
@@ -6,10 +8,10 @@ import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import { DependencyGraphImplementation } from "../../../../../src/internal/builtin-plugins/solidity/build-system/dependency-graph.js";
-import { ProjectResolvedFile } from "../../../../../src/types/solidity.js";
+import { ProjectResolvedFileImplementation } from "../../../../../src/internal/builtin-plugins/solidity/build-system/resolved-file.js";
 
 function createProjectResolvedFile(sourceName: string): ProjectResolvedFile {
-  return new ProjectResolvedFile({
+  return new ProjectResolvedFileImplementation({
     sourceName,
     fsPath: path.join(process.cwd(), sourceName),
     content: {
