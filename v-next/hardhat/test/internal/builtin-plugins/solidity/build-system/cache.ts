@@ -69,6 +69,7 @@ describe("ObjectCache", () => {
     it("should remove everything with the max age set to 0", async () => {
       const filesBefore = await getAllFilesMatching(cachePath);
       assert.notDeepEqual(filesBefore, []);
+      await new Promise((resolve) => setTimeout(resolve, 1));
       await cache.clean(0);
       const filesAfter = await getAllFilesMatching(cachePath);
       assert.deepEqual(filesAfter, []);
