@@ -36,9 +36,9 @@ import { EDR_NETWORK_REVERT_SNAPSHOT_EVENT } from "../../../constants.js";
 import { DEFAULT_HD_ACCOUNTS_CONFIG_PARAMS } from "../accounts/constants.js";
 import { BaseProvider } from "../base-provider.js";
 import { getJsonRpcRequest, isFailedJsonRpcResponse } from "../json-rpc.js";
+import { InvalidArgumentsError, ProviderError } from "../provider-errors.js";
 
 import { getGlobalEdrContext } from "./edr-context.js";
-import { InvalidArgumentsError, ProviderError } from "./errors.js";
 import { createSolidityErrorWithStackTrace } from "./stack-traces/stack-trace-solidity-errors.js";
 import {
   isDebugTraceResult,

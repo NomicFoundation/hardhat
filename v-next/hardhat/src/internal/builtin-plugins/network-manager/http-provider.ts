@@ -215,7 +215,7 @@ export class HttpProvider extends BaseProvider {
         }
 
         // eslint-disable-next-line no-restricted-syntax -- allow throwing ProviderError
-        throw new LimitExceededError(e);
+        throw new LimitExceededError(undefined, e);
       }
 
       throw e;

@@ -8,16 +8,16 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import type WebSocket from "ws";
 
 import {
-  InternalError,
-  InvalidJsonInputError,
-  InvalidRequestError,
-} from "../../network-manager/edr/errors.js";
-import {
   isJsonRpcRequest,
   isJsonRpcResponse,
   isSuccessfulJsonRpcResponse,
 } from "../../network-manager/json-rpc.js";
-import { ProviderError } from "../../network-manager/provider-errors.js";
+import {
+  InternalError,
+  InvalidJsonInputError,
+  InvalidRequestError,
+  ProviderError,
+} from "../../network-manager/provider-errors.js";
 
 export class JsonRpcHandler {
   readonly #provider: EthereumProvider;
@@ -144,7 +144,7 @@ export class JsonRpcHandler {
 
   async #handleRequest(req: JsonRpcRequest): Promise<JsonRpcResponse> {
     if (!isJsonRpcRequest(req)) {
-      return _handleError(new InvalidRequestError("Invalid request"));
+      return _handleError(new InvalidRequestError());
     }
 
     const rpcReq: JsonRpcRequest = req;
@@ -168,7 +168,7 @@ export class JsonRpcHandler {
     // Validate the RPC response.
     if (!isJsonRpcResponse(rpcResp)) {
       // Malformed response coming from the provider, report to user as an internal error.
-      rpcResp = _handleError(new InternalError("Internal error"));
+      rpcResp = _handleError(new InternalError());
     }
 
     rpcResp.id = rpcReq.id !== undefined ? rpcReq.id : null;
@@ -253,7 +253,7 @@ const _handleError = (error: any): JsonRpcResponse => {
 
   // In case of non-hardhat error, treat it as internal and associate the appropriate error code.
   if (!ProviderError.isProviderError(error)) {
-    error = new InternalError(error);
+    error = new InternalError(undefined, error);
   }
 
   const response: FailedJsonRpcResponse = {
