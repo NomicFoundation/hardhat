@@ -1,3 +1,5 @@
+import { createNonCryptographicHashId } from "@ignored/hardhat-vnext-utils/crypto";
+
 /**
  * The representation of an npm package.
  */
@@ -38,6 +40,20 @@ export enum ResolvedFileType {
   NPM_PACKAGE_FILE = "NPM_PACKAGE_FILE",
 }
 
+abstract class BaseResolvedFile {
+  public abstract readonly content: FileContent;
+
+  #contentHash?: string;
+
+  public async getContentHash(): Promise<string> {
+    if (this.#contentHash === undefined) {
+      this.#contentHash = await createNonCryptographicHashId(this.content.text);
+    }
+
+    return this.#contentHash;
+  }
+}
+
 interface ProjectResolvedFileOptions {
   /**
    * The source name of a project files is its relative path from the Hardhat
@@ -59,7 +75,7 @@ interface ProjectResolvedFileOptions {
 /**
  * A file that's part of the Hardhat project (i.e. not installed through npm).
  */
-export class ProjectResolvedFile {
+export class ProjectResolvedFile extends BaseResolvedFile {
   public readonly type: ResolvedFileType.PROJECT_FILE =
     ResolvedFileType.PROJECT_FILE;
 
@@ -68,6 +84,8 @@ export class ProjectResolvedFile {
   public readonly content: FileContent;
 
   constructor(options: ProjectResolvedFileOptions) {
+    super();
+
     this.sourceName = options.sourceName;
     this.fsPath = options.fsPath;
     this.content = options.content;
@@ -99,7 +117,7 @@ interface NpmPackageResolvedFileOptions {
 /**
  * A file that's part of an npm package.
  */
-export class NpmPackageResolvedFile {
+export class NpmPackageResolvedFile extends BaseResolvedFile {
   public readonly type: ResolvedFileType.NPM_PACKAGE_FILE =
     ResolvedFileType.NPM_PACKAGE_FILE;
 
@@ -109,6 +127,8 @@ export class NpmPackageResolvedFile {
   public readonly package: ResolvedNpmPackage;
 
   constructor(options: NpmPackageResolvedFileOptions) {
+    super();
+
     this.sourceName = options.sourceName;
     this.fsPath = options.fsPath;
     this.content = options.content;

@@ -24,8 +24,6 @@ export class CompilationJobImplementation implements CompilationJob {
   #solcInputWithoutSources: Omit<CompilerInput, "sources"> | undefined;
   #resolvedFiles: ResolvedFile[] | undefined;
 
-  static readonly #sourceContentHashCache = new Map<string, string>();
-
   constructor(
     dependencyGraph: DependencyGraphImplementation,
     solcConfig: SolcConfig,
@@ -137,23 +135,6 @@ export class CompilationJobImplementation implements CompilationJob {
     };
   }
 
-  async #getSourceContentHash(file: ResolvedFile): Promise<string> {
-    const cachedSourceContentHash =
-      CompilationJobImplementation.#sourceContentHashCache.get(file.sourceName);
-    if (cachedSourceContentHash !== undefined) {
-      return cachedSourceContentHash;
-    }
-
-    const sourceContentHash = await createNonCryptographicHashId(
-      file.content.text,
-    );
-    CompilationJobImplementation.#sourceContentHashCache.set(
-      file.sourceName,
-      sourceContentHash,
-    );
-    return sourceContentHash;
-  }
-
   async #computeBuildId(): Promise<string> {
     // NOTE: We type it this way so that this stop compiling if we ever change
     // the format of the BuildInfo type.
@@ -165,7 +146,7 @@ export class CompilationJobImplementation implements CompilationJob {
     await Promise.all(
       resolvedFiles.map(async (file) => {
         sources[file.sourceName] = {
-          hash: await this.#getSourceContentHash(file),
+          hash: await file.getContentHash(),
         };
       }),
     );
@@ -185,10 +166,5 @@ export class CompilationJobImplementation implements CompilationJob {
       JSON.stringify(this.solcConfig);
 
     return createNonCryptographicHashId(preimage);
-  }
-
-  // NOTE: This method is used internally to clear the cache in between tests.
-  public static clearCache(): void {
-    CompilationJobImplementation.#sourceContentHashCache.clear();
   }
 }
