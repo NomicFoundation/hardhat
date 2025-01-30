@@ -15,7 +15,7 @@ import {
 } from "../../../../../src/internal/builtin-plugins/network-manager/provider-errors.js";
 import { EDR_NETWORK_REVERT_SNAPSHOT_EVENT } from "../../../../../src/internal/constants.js";
 
-describe.only("edr-provider", () => {
+describe("edr-provider", () => {
   let hre: HardhatRuntimeEnvironment;
 
   before(async function () {
