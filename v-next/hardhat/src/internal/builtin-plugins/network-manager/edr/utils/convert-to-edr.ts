@@ -40,6 +40,7 @@ import {
   L1_CHAIN_TYPE as EDR_L1_CHAIN_TYPE,
   GENERIC_CHAIN_TYPE as EDR_GENERIC_CHAIN_TYPE,
 } from "@ignored/edr-optimism";
+import { getUnprefixedHexString } from "@ignored/hardhat-vnext-utils/hex";
 
 import { L1_CHAIN_TYPE, OPTIMISM_CHAIN_TYPE } from "../../../../constants.js";
 import { FixedValueConfigurationVariable } from "../../../../core/configuration-variables.js";
@@ -173,10 +174,11 @@ export function hardhatMempoolOrderToEdrMineOrdering(
   }
 }
 
+// TODO: EDR should handle this conversion. This is a temporary solution.
 export function edrRpcDebugTraceToHardhat(
-  rpcDebugTrace: DebugTraceResult,
+  debugTraceResult: DebugTraceResult,
 ): RpcDebugTraceOutput {
-  const structLogs = rpcDebugTrace.structLogs.map((log) => {
+  const structLogs = debugTraceResult.structLogs.map((log) => {
     const result: RpcStructLog = {
       depth: Number(log.depth),
       gas: Number(log.gas),
@@ -191,14 +193,15 @@ export function edrRpcDebugTraceToHardhat(
 
     if (log.stack !== undefined) {
       // Remove 0x prefix which is required by EIP-3155, but not expected by Hardhat.
-      result.stack = log.stack?.map((item) => item.slice(2));
+      result.stack = log.stack.map(getUnprefixedHexString);
     }
 
     if (log.storage !== undefined) {
       result.storage = Object.fromEntries(
-        Object.entries(log.storage).map(([key, value]) => {
-          return [key.slice(2), value.slice(2)];
-        }),
+        Object.entries(log.storage).map(([key, value]) => [
+          getUnprefixedHexString(key),
+          getUnprefixedHexString(value),
+        ]),
       );
     }
 
@@ -212,18 +215,21 @@ export function edrRpcDebugTraceToHardhat(
   });
 
   // REVM trace adds initial STOP that Hardhat doesn't expect
+  // TODO: double check with EDR team that this is still the case
   if (structLogs.length > 0 && structLogs[0].op === "STOP") {
     structLogs.shift();
   }
 
-  let returnValue = rpcDebugTrace.output?.toString("hex") ?? "";
+  /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
+  debugTraceResult.output is a string, but it's typed as Buffer in Edr */
+  let returnValue = (debugTraceResult.output as unknown as string) ?? "0x";
   if (returnValue === "0x") {
     returnValue = "";
   }
 
   return {
-    failed: !rpcDebugTrace.pass,
-    gas: Number(rpcDebugTrace.gasUsed),
+    failed: !debugTraceResult.pass,
+    gas: Number(debugTraceResult.gasUsed),
     returnValue,
     structLogs,
   };

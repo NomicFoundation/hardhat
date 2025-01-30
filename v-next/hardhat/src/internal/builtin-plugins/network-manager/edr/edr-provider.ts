@@ -4,7 +4,6 @@ import type { TracingConfig } from "./types/node-types.js";
 import type { EdrNetworkConfig } from "../../../../types/config.js";
 import type {
   EthSubscription,
-  FailedJsonRpcResponse,
   JsonRpcResponse,
   RequestArguments,
   SuccessfulJsonRpcResponse,
@@ -15,7 +14,6 @@ import type {
   SubscriptionEvent,
   Response,
   Provider,
-  DebugTraceResult,
   ProviderConfig,
 } from "@ignored/edr-optimism";
 
@@ -25,25 +23,27 @@ import {
   l1GenesisState,
   l1HardforkFromString,
 } from "@ignored/edr-optimism";
+import {
+  assertHardhatInvariant,
+  HardhatError,
+} from "@ignored/hardhat-vnext-errors";
 import { toSeconds } from "@ignored/hardhat-vnext-utils/date";
+import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
 import { deepEqual } from "@ignored/hardhat-vnext-utils/lang";
 import debug from "debug";
 
-import {
-  EDR_NETWORK_RESET_EVENT,
-  EDR_NETWORK_REVERT_SNAPSHOT_EVENT,
-} from "../../../constants.js";
+import { EDR_NETWORK_REVERT_SNAPSHOT_EVENT } from "../../../constants.js";
 import { DEFAULT_HD_ACCOUNTS_CONFIG_PARAMS } from "../accounts/constants.js";
 import { BaseProvider } from "../base-provider.js";
 import { getJsonRpcRequest, isFailedJsonRpcResponse } from "../json-rpc.js";
+import { InvalidArgumentsError, ProviderError } from "../provider-errors.js";
 
 import { getGlobalEdrContext } from "./edr-context.js";
+import { createSolidityErrorWithStackTrace } from "./stack-traces/stack-trace-solidity-errors.js";
 import {
-  InvalidArgumentsError,
-  InvalidInputError,
-  ProviderError,
-} from "./errors.js";
-import { encodeSolidityStackTrace } from "./stack-traces/stack-trace-solidity-errors.js";
+  isDebugTraceResult,
+  isEdrProviderErrorData,
+} from "./type-validation.js";
 import { clientVersion } from "./utils/client-version.js";
 import { ConsoleLogger } from "./utils/console-logger.js";
 import {
@@ -116,9 +116,9 @@ interface EdrProviderConfig {
 }
 
 export class EdrProvider extends BaseProvider {
-  readonly #provider: Readonly<Provider>;
   readonly #jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction;
 
+  #provider: Provider | undefined;
   #nextRequestId = 1;
 
   /**
@@ -177,31 +177,35 @@ export class EdrProvider extends BaseProvider {
     super();
 
     this.#provider = provider;
-
     this.#jsonRpcRequestWrapper = jsonRpcRequestWrapper;
   }
 
-  public async request(args: RequestArguments): Promise<unknown> {
-    if (args.params !== undefined && !Array.isArray(args.params)) {
-      // eslint-disable-next-line no-restricted-syntax -- TODO: review whether this should be a HH error
-      throw new InvalidInputError(
-        "Hardhat Network doesn't support JSON-RPC params sent as an object",
-      );
+  public async request(
+    requestArguments: RequestArguments,
+  ): Promise<SuccessfulJsonRpcResponse["result"]> {
+    if (this.#provider === undefined) {
+      throw new HardhatError(HardhatError.ERRORS.NETWORK.PROVIDER_CLOSED);
     }
 
-    const params = args.params ?? [];
+    const { method, params } = requestArguments;
 
     const jsonRpcRequest = getJsonRpcRequest(
       this.#nextRequestId++,
-      args.method,
+      method,
       params,
     );
 
     let jsonRpcResponse: JsonRpcResponse;
+
     if (this.#jsonRpcRequestWrapper !== undefined) {
       jsonRpcResponse = await this.#jsonRpcRequestWrapper(
         jsonRpcRequest,
         async (request) => {
+          assertHardhatInvariant(
+            this.#provider !== undefined,
+            "The provider is not defined",
+          );
+
           const stringifiedArgs = JSON.stringify(request);
           const edrResponse =
             await this.#provider.handleRequest(stringifiedArgs);
@@ -214,12 +218,6 @@ export class EdrProvider extends BaseProvider {
       const edrResponse = await this.#provider.handleRequest(stringifiedArgs);
 
       jsonRpcResponse = await this.#handleEdrResponse(edrResponse);
-    }
-
-    if (args.method === "hardhat_reset") {
-      this.emit(EDR_NETWORK_RESET_EVENT);
-    } else if (args.method === "evm_revert") {
-      this.emit(EDR_NETWORK_REVERT_SNAPSHOT_EVENT);
     }
 
     // this can only happen if a wrapper doesn't call the default
@@ -235,30 +233,35 @@ export class EdrProvider extends BaseProvider {
       throw error;
     }
 
+    if (jsonRpcRequest.method === "evm_revert") {
+      this.emit(EDR_NETWORK_REVERT_SNAPSHOT_EVENT);
+    }
+
     // Override EDR version string with Hardhat version string with EDR backend,
     // e.g. `HardhatNetwork/2.19.0/@ignored/edr-optimism/0.2.0-dev`
-    if (args.method === "web3_clientVersion") {
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- TODO
-      return clientVersion(jsonRpcResponse.result as string);
-    } else if (
-      args.method === "debug_traceTransaction" ||
-      args.method === "debug_traceCall"
-    ) {
-      return edrRpcDebugTraceToHardhat(
-        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- TODO
-        jsonRpcResponse.result as DebugTraceResult,
+    if (jsonRpcRequest.method === "web3_clientVersion") {
+      assertHardhatInvariant(
+        typeof jsonRpcResponse.result === "string",
+        "Invalid client version response",
       );
+      return clientVersion(jsonRpcResponse.result);
+    } else if (
+      jsonRpcRequest.method === "debug_traceTransaction" ||
+      jsonRpcRequest.method === "debug_traceCall"
+    ) {
+      assertHardhatInvariant(
+        isDebugTraceResult(jsonRpcResponse.result),
+        "Invalid debug trace response",
+      );
+      return edrRpcDebugTraceToHardhat(jsonRpcResponse.result);
     } else {
       return jsonRpcResponse.result;
     }
   }
 
   public async close(): Promise<void> {
-    // TODO: what needs cleaned up?
-  }
-
-  #isErrorResponse(response: any): response is FailedJsonRpcResponse {
-    return typeof response.error !== "undefined";
+    // Clear the provider reference to help with garbage collection
+    this.#provider = undefined;
   }
 
   async #handleEdrResponse(
@@ -272,7 +275,8 @@ export class EdrProvider extends BaseProvider {
       jsonRpcResponse = edrResponse.data;
     }
 
-    if (this.#isErrorResponse(jsonRpcResponse)) {
+    if (isFailedJsonRpcResponse(jsonRpcResponse)) {
+      const responseError = jsonRpcResponse.error;
       let error;
 
       let stackTrace: SolidityStackTrace | null = null;
@@ -283,34 +287,29 @@ export class EdrProvider extends BaseProvider {
       }
 
       if (stackTrace !== null) {
-        error = encodeSolidityStackTrace(
-          jsonRpcResponse.error.message,
-          stackTrace,
+        // If we have a stack trace, we know that the json rpc response data
+        // is an object with the data and transactionHash fields
+        assertHardhatInvariant(
+          isEdrProviderErrorData(responseError.data),
+          "Invalid error data",
         );
 
-        // Pass data and transaction hash from the original error
-        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- TODO: can we improve this `any
-        (error as any).data =
-          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- TODO: can we improve this `any
-          (jsonRpcResponse as any).error.data?.data ?? undefined;
-
-        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- TODO: can we improve this `any`
-        (error as any).transactionHash =
-          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- TODO: this really needs fixed
-          (jsonRpcResponse as any).error.data?.transactionHash ?? undefined;
+        error = createSolidityErrorWithStackTrace(
+          responseError.message,
+          stackTrace,
+          responseError.data.data,
+          responseError.data.transactionHash,
+        );
       } else {
-        if (jsonRpcResponse.error.code === InvalidArgumentsError.CODE) {
-          error = new InvalidArgumentsError(jsonRpcResponse.error.message);
-        } else {
-          error = new ProviderError(
-            jsonRpcResponse.error.message,
-            jsonRpcResponse.error.code,
-          );
-        }
-        error.data = jsonRpcResponse.error.data;
+        error =
+          responseError.code === InvalidArgumentsError.CODE
+            ? new InvalidArgumentsError(responseError.message)
+            : new ProviderError(responseError.message, responseError.code);
+        error.data = responseError.data;
       }
 
-      // eslint-disable-next-line no-restricted-syntax -- we may throw non-Hardaht errors inside of an EthereumProvider
+      /* eslint-disable-next-line no-restricted-syntax -- we may throw
+      non-Hardaht errors inside of an EthereumProvider */
       throw error;
     }
 
@@ -318,7 +317,7 @@ export class EdrProvider extends BaseProvider {
   }
 
   public onSubscriptionEvent(event: SubscriptionEvent): void {
-    const subscription = `0x${event.filterId.toString(16)}`;
+    const subscription = numberToHexString(event.filterId);
     const results = Array.isArray(event.result) ? event.result : [event.result];
     for (const result of results) {
       this.#emitLegacySubscriptionEvent(subscription, result);
@@ -326,7 +325,7 @@ export class EdrProvider extends BaseProvider {
     }
   }
 
-  #emitLegacySubscriptionEvent(subscription: string, result: any) {
+  #emitLegacySubscriptionEvent(subscription: string, result: unknown) {
     this.emit("notification", {
       subscription,
       result,
@@ -341,7 +340,6 @@ export class EdrProvider extends BaseProvider {
         result,
       },
     };
-
     this.emit("message", message);
   }
 }
