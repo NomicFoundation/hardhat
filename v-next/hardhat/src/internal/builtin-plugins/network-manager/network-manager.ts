@@ -40,6 +40,7 @@ export class NetworkManagerImplementation implements NetworkManager {
   readonly #defaultChainType: DefaultChainType;
   readonly #networkConfigs: Readonly<Record<string, Readonly<NetworkConfig>>>;
   readonly #hookManager: Readonly<HookManager>;
+  readonly #artifactsManager: Readonly<ArtifactsManager>;
 
   #nextConnectionId = 0;
 
@@ -48,11 +49,13 @@ export class NetworkManagerImplementation implements NetworkManager {
     defaultChainType: DefaultChainType,
     networkConfigs: Record<string, NetworkConfig>,
     hookManager: HookManager,
+    artifactsManager: ArtifactsManager,
   ) {
     this.#defaultNetwork = defaultNetwork;
     this.#defaultChainType = defaultChainType;
     this.#networkConfigs = networkConfigs;
     this.#hookManager = hookManager;
+    this.#artifactsManager = artifactsManager;
   }
 
   public async connect<
