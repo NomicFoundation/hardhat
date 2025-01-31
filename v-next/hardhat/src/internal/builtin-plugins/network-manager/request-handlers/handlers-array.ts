@@ -8,16 +8,6 @@ import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
 
 import { isHttpNetworkHdAccountsConfig } from "../type-validation.js";
 
-import { AutomaticSenderHandler } from "./handlers/accounts/automatic-sender-handler.js";
-import { FixedSenderHandler } from "./handlers/accounts/fixed-sender-handler.js";
-import { HDWalletHandler } from "./handlers/accounts/hd-wallet-handler.js";
-import { LocalAccountsHandler } from "./handlers/accounts/local-accounts.js";
-import { ChainIdValidatorHandler } from "./handlers/chain-id/chain-id-handler.js";
-import { AutomaticGasHandler } from "./handlers/gas/automatic-gas-handler.js";
-import { AutomaticGasPriceHandler } from "./handlers/gas/automatic-gas-price-handler.js";
-import { FixedGasHandler } from "./handlers/gas/fixed-gas-handler.js";
-import { FixedGasPriceHandler } from "./handlers/gas/fixed-gas-price-handler.js";
-
 /**
  * This function returns an handlers array based on the values in the NetworkConnection and NetworkConfig.
  * The order of the handlers, if all are present, is: chain handler, gas handlers (gasPrice first, then gas), sender handler and accounts handler.
@@ -31,6 +21,9 @@ export async function createHandlersArray<
   const networkConfig = networkConnection.networkConfig;
 
   if (networkConfig.type === "http" && networkConfig.chainId !== undefined) {
+    const { ChainIdValidatorHandler } = await import(
+      "./handlers/chain-id/chain-id-handler.js"
+    );
     requestHandlers.push(
       new ChainIdValidatorHandler(
         networkConnection.provider,
@@ -43,6 +36,9 @@ export async function createHandlersArray<
     networkConfig.gasPrice === undefined ||
     networkConfig.gasPrice === "auto"
   ) {
+    const { AutomaticGasPriceHandler } = await import(
+      "./handlers/gas/automatic-gas-price-handler.js"
+    );
     // If you use a hook handler that signs locally, you are required to
     // have all the transaction fields available, including the
     // gasPrice / maxFeePerGas & maxPriorityFeePerGas.
@@ -57,12 +53,18 @@ export async function createHandlersArray<
       new AutomaticGasPriceHandler(networkConnection.provider),
     );
   } else {
+    const { FixedGasPriceHandler } = await import(
+      "./handlers/gas/fixed-gas-price-handler.js"
+    );
     requestHandlers.push(
       new FixedGasPriceHandler(numberToHexString(networkConfig.gasPrice)),
     );
   }
 
   if (networkConfig.gas === undefined || networkConfig.gas === "auto") {
+    const { AutomaticGasHandler } = await import(
+      "./handlers/gas/automatic-gas-handler.js"
+    );
     requestHandlers.push(
       new AutomaticGasHandler(
         networkConnection.provider,
@@ -70,16 +72,25 @@ export async function createHandlersArray<
       ),
     );
   } else {
+    const { FixedGasHandler } = await import(
+      "./handlers/gas/fixed-gas-handler.js"
+    );
     requestHandlers.push(
       new FixedGasHandler(numberToHexString(networkConfig.gas)),
     );
   }
 
   if (networkConfig.from === undefined) {
+    const { AutomaticSenderHandler } = await import(
+      "./handlers/accounts/automatic-sender-handler.js"
+    );
     requestHandlers.push(
       new AutomaticSenderHandler(networkConnection.provider),
     );
   } else {
+    const { FixedSenderHandler } = await import(
+      "./handlers/accounts/fixed-sender-handler.js"
+    );
     requestHandlers.push(
       new FixedSenderHandler(networkConnection.provider, networkConfig.from),
     );
@@ -89,6 +100,9 @@ export async function createHandlersArray<
     const accounts = networkConfig.accounts;
 
     if (Array.isArray(accounts)) {
+      const { LocalAccountsHandler } = await import(
+        "./handlers/accounts/local-accounts.js"
+      );
       const resolvedAccounts = await Promise.all(
         accounts.map((acc) => acc.getHexString()),
       );
@@ -97,16 +111,18 @@ export async function createHandlersArray<
         new LocalAccountsHandler(networkConnection.provider, resolvedAccounts),
       );
     } else if (isHttpNetworkHdAccountsConfig(accounts)) {
-      requestHandlers.push(
-        new HDWalletHandler(
-          networkConnection.provider,
-          await accounts.mnemonic.get(),
-          accounts.path,
-          accounts.initialIndex,
-          accounts.count,
-          await accounts.passphrase.get(),
-        ),
+      const { HDWalletHandler } = await import(
+        "./handlers/accounts/hd-wallet-handler.js"
       );
+      const hdWalletHandler = await HDWalletHandler.create(
+        networkConnection.provider,
+        await accounts.mnemonic.get(),
+        accounts.path,
+        accounts.initialIndex,
+        accounts.count,
+        await accounts.passphrase.get(),
+      );
+      requestHandlers.push(hdWalletHandler);
     }
   }
 

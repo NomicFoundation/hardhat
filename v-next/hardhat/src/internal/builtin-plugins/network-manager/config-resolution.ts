@@ -27,7 +27,7 @@ import {
   hexStringToBytes,
   normalizeHexString,
 } from "@ignored/hardhat-vnext-utils/hex";
-import { isObject } from "micro-eth-signer/utils";
+import { isObject } from "@ignored/hardhat-vnext-utils/lang";
 
 import { DEFAULT_HD_ACCOUNTS_CONFIG_PARAMS } from "./accounts/constants.js";
 import {

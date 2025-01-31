@@ -255,15 +255,21 @@ async function normalizeEdrNetworkAccountsConfig(
     return accounts;
   }
 
-  const isDefaultConfig = await isDefaultEdrNetworkHDAccountsConfig(accounts);
+  const hdAccountConfig = {
+    ...accounts,
+    mnemonic: await accounts.mnemonic.get(),
+    passphrase: await accounts.passphrase.get(),
+  };
+  const isDefaultConfig =
+    await isDefaultEdrNetworkHDAccountsConfig(hdAccountConfig);
   const derivedPrivateKeys = isDefaultConfig
     ? EDR_NETWORK_DEFAULT_PRIVATE_KEYS
-    : derivePrivateKeys(
-        await accounts.mnemonic.get(),
-        accounts.path,
-        accounts.initialIndex,
-        accounts.count,
-        await accounts.passphrase.get(),
+    : await derivePrivateKeys(
+        hdAccountConfig.mnemonic,
+        hdAccountConfig.path,
+        hdAccountConfig.initialIndex,
+        hdAccountConfig.count,
+        hdAccountConfig.passphrase,
       );
 
   return derivedPrivateKeys.map((privateKey) => ({
