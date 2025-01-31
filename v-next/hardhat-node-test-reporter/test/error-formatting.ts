@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { formatLocation, parseStackLine } from "../src/error-formatting.js";
+import {
+  formatLocation,
+  formatSingleError,
+  parseStackLine,
+} from "../src/error-formatting.js";
 
 const stackLineToReference = [
   {
@@ -383,6 +387,102 @@ describe("formatLocation", async () => {
   locationToFormatted.forEach(({ location, base, sep, windows, formatted }) => {
     it(`should format "${location}"`, async () => {
       assert.equal(formatLocation(location, base, sep, windows), formatted);
+    });
+  });
+});
+
+describe("Removing the diff from the error message", () => {
+  function getAssertionError(a: unknown, b: unknown, message?: string) {
+    try {
+      assert.equal(a, b, message);
+    } catch (error) {
+      if (!(error instanceof Error)) {
+        throw error;
+      }
+
+      return error;
+    }
+
+    throw new Error("Function did not throw any error");
+  }
+
+  describe("With native values", () => {
+    it("Should work with the default node assert message", () => {
+      const error = getAssertionError(1, 2);
+
+      assert.equal(formatSingleError(error).includes("!=="), false);
+
+      // This test the test itself
+      assert.ok(
+        error.message.includes("!=="),
+        "The test checks the right diff marker",
+      );
+    });
+
+    it("Should work with a custom message", () => {
+      const error = getAssertionError(1, 2, "a\n b\n");
+
+      assert.equal(formatSingleError(error).includes("!=="), false);
+
+      const error2 = getAssertionError(1, 2, "a a as: a");
+
+      assert.equal(formatSingleError(error2).includes("!=="), false);
+
+      // This test the test itself
+      assert.ok(
+        error.message.includes("!=="),
+        "The test checks the right diff marker",
+      );
+
+      assert.ok(
+        error2.message.includes("!=="),
+        "The test checks the right diff marker",
+      );
+    });
+  });
+
+  describe("With complex values", () => {
+    it("Should work with the default node assert message", () => {
+      const error = getAssertionError({ a: 1 }, { a: 2 });
+
+      assert.equal(
+        formatSingleError(error).includes("+ actual - expected"),
+        false,
+      );
+
+      // This test the test itself
+      assert.ok(
+        error.message.includes("+ actual - expected"),
+        "The test checks the right diff marker",
+      );
+    });
+
+    it("Should work with a custom message", () => {
+      const error = getAssertionError({ a: 1 }, { a: 2 }, "a\n b\n");
+
+      assert.equal(
+        formatSingleError(error).includes("+ actual - expected"),
+        false,
+      );
+
+      const error2 = getAssertionError({ a: 1 }, { a: 2 }, "a a as: a");
+
+      assert.equal(
+        formatSingleError(error2).includes("+ actual - expected"),
+        false,
+      );
+
+      // This test the test itself
+      assert.ok(
+        error.message.includes("+ actual - expected"),
+        "The test checks the right diff marker",
+      );
+
+      // This test the test itself
+      assert.ok(
+        error2.message.includes("+ actual - expected"),
+        "The test checks the right diff marker",
+      );
     });
   });
 });
