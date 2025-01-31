@@ -32,7 +32,7 @@ const testRootPaths: TestRootPath[] = [
     npmModule: "ethers",
     publicSourceName: "ethers",
     resolvedFile: {
-      type: ResolvedFileType.NPM_PACKGE_FILE,
+      type: ResolvedFileType.NPM_PACKAGE_FILE,
       sourceName: "ethers",
       fsPath: "/Users/root/node_modules/ethers/index.js",
       content: {
@@ -57,7 +57,7 @@ const testRootPaths: TestRootPath[] = [
     npmModule: "@openzeppelin/contracts",
     publicSourceName: "@openzeppelin/contracts",
     resolvedFile: {
-      type: ResolvedFileType.NPM_PACKGE_FILE,
+      type: ResolvedFileType.NPM_PACKAGE_FILE,
       sourceName: "@openzeppelin/contracts",
       fsPath: "/Users/root/node_modules/@openzeppelin/contracts/index.js",
       content: {
@@ -82,7 +82,7 @@ const testRootPaths: TestRootPath[] = [
     npmModule: "@openzeppelin/contracts/token/ERC20/ERC20.sol",
     publicSourceName: "@openzeppelin/contracts/token/ERC20/ERC20.sol",
     resolvedFile: {
-      type: ResolvedFileType.NPM_PACKGE_FILE,
+      type: ResolvedFileType.NPM_PACKAGE_FILE,
       sourceName: "@openzeppelin/contracts/token/ERC20/ERC20.sol",
       fsPath:
         "/Users/root/node_modules/@openzeppelin/contracts/token/ERC20/ERC20.sol",

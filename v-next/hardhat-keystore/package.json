@@ -12,8 +12,7 @@
   "license": "MIT",
   "type": "module",
   "exports": {
-    ".": "./dist/src/index.js",
-    "./package.json": "./package.json"
+    ".": "./dist/src/index.js"
   },
   "keywords": [
     "keystore",
