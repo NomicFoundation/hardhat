@@ -15,7 +15,6 @@ import type {
 import { deepClone } from "@ignored/hardhat-vnext-utils/lang";
 
 import { isJsonRpcResponse } from "../json-rpc.js";
-import { createHandlersArray } from "../request-handlers/handlers-array.js";
 
 export default async (): Promise<Partial<NetworkHooks>> => {
   // This map is essential for managing multiple network connections in Hardhat V3.
@@ -39,6 +38,10 @@ export default async (): Promise<Partial<NetworkHooks>> => {
         nextJsonRpcRequest: JsonRpcRequest,
       ) => Promise<JsonRpcResponse>,
     ) {
+      const { createHandlersArray } = await import(
+        "../request-handlers/handlers-array.js"
+      );
+
       let requestHandlers = requestHandlersPerConnection.get(networkConnection);
 
       if (requestHandlers === undefined) {

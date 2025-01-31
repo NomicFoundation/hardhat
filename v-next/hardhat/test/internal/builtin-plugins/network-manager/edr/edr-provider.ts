@@ -39,7 +39,7 @@ describe("edr-provider", () => {
 
         await provider.request({
           method: "evm_revert",
-          params: ["0x1"], // any snapshot id should work
+          params: ["0x1"], // if the snapshotId does not exist, it will return false
         });
 
         await eventPromise;
