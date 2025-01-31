@@ -82,6 +82,29 @@ describe("Config resolution", () => {
         } as any);
       });
 
+      it("should not mutate the user config", () => {
+        const settings = {};
+        const { solidity } = resolveConfig(__filename, {
+          solidity: {
+            compilers: [
+              {
+                version: "0.5.15",
+                settings,
+              },
+              {
+                version: "0.6.7",
+                settings,
+              },
+            ],
+          },
+        });
+        assert.notStrictEqual(
+          solidity.compilers[0].settings,
+          solidity.compilers[1].settings
+        );
+        assert.deepEqual(settings, {} as any);
+      });
+
       it("should return the config merged ", () => {
         assert.lengthOf(config.solidity.compilers, 1);
         assert.equal(config.solidity.compilers[0].version, "0.5.15");
