@@ -131,7 +131,7 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
   // TODO(https://github.com/NomicFoundation/hardhat/issues/6040): Add build info watcher here
 
   // NOTE: Before creating the node, we check if the input network config is of type edr.
-  // We only proceed if it is. Hence, we can assume that the outputnetwork config is of type edr as well.
+  // We only proceed if it is. Hence, we can assume that the output network config is of type edr as well.
   assertHardhatInvariant(
     networkConfig.type === "edr",
     "Network config type should be edr",
