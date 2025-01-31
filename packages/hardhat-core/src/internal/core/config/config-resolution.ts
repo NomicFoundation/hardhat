@@ -401,7 +401,7 @@ function normalizeSolidityConfig(
 function resolveCompiler(compiler: SolcUserConfig): SolcConfig {
   const resolved: SolcConfig = {
     version: compiler.version,
-    settings: compiler.settings ?? {},
+    settings: { ...(compiler.settings ?? {}) },
   };
 
   if (semver.gte(resolved.version, "0.8.20")) {
