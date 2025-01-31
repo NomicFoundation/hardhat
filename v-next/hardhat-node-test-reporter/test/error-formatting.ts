@@ -420,13 +420,37 @@ describe("Removing the diff from the error message", () => {
     });
 
     it("Should work with a custom message", () => {
-      const error = getAssertionError(1, 2, "a\n b\n");
+      const customMessage = "aaa\n bbb\n";
+      const error = getAssertionError(1, 2, customMessage);
+      const formattedError = formatSingleError(error);
 
-      assert.equal(formatSingleError(error).includes("!=="), false);
+      assert.ok(
+        !formattedError.includes("!=="),
+        `${formattedError} does not include !==`,
+      );
+      assert.ok(
+        !customMessage
+          .trim()
+          .split(/\s*/)
+          .some((part) => !formattedError.includes(part)),
+        `${formattedError} does not include ${customMessage}`,
+      );
 
-      const error2 = getAssertionError(1, 2, "a a as: a");
+      const customMessage2 = "ccc ddd as: eee\n fff\n ggg\n";
+      const error2 = getAssertionError(1, 2, customMessage2);
+      const formattedError2 = formatSingleError(error2);
 
-      assert.equal(formatSingleError(error2).includes("!=="), false);
+      assert.ok(
+        !formattedError2.includes("!=="),
+        `${formattedError2} does not include !==`,
+      );
+      assert.ok(
+        !customMessage2
+          .trim()
+          .split(/\s*/)
+          .some((part) => !formattedError2.includes(part)),
+        `${formattedError2} does not include ${customMessage2}`,
+      );
 
       // This test the test itself
       assert.ok(
@@ -458,18 +482,36 @@ describe("Removing the diff from the error message", () => {
     });
 
     it("Should work with a custom message", () => {
-      const error = getAssertionError({ a: 1 }, { a: 2 }, "a\n b\n");
+      const customMessage = "aaa\n bbb\n";
+      const error = getAssertionError({ a: 1 }, { a: 2 }, customMessage);
+      const formattedError = formatSingleError(error);
 
-      assert.equal(
-        formatSingleError(error).includes("+ actual - expected"),
-        false,
+      assert.ok(
+        !formattedError.includes("+ actual - expected"),
+        `${formattedError} does not include +actual - expected`,
+      );
+      assert.ok(
+        !customMessage
+          .trim()
+          .split(/\s*/)
+          .some((part) => !formattedError.includes(part)),
+        `${formattedError} does not include ${customMessage}`,
       );
 
-      const error2 = getAssertionError({ a: 1 }, { a: 2 }, "a a as: a");
+      const customMessage2 = "ccc ddd as: eee\n fff\n ggg\n";
+      const error2 = getAssertionError({ a: 1 }, { a: 2 }, customMessage2);
+      const formattedError2 = formatSingleError(error2);
 
-      assert.equal(
-        formatSingleError(error2).includes("+ actual - expected"),
-        false,
+      assert.ok(
+        !formattedError2.includes("+ actual - expected"),
+        `${formattedError2} does not include +actual - expected`,
+      );
+      assert.ok(
+        !customMessage2
+          .trim()
+          .split(/\s*/)
+          .some((part) => !formattedError2.includes(part)),
+        `${formattedError2} does not include ${customMessage2}`,
       );
 
       // This test the test itself

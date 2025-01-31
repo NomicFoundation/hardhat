@@ -140,7 +140,7 @@ export function formatSingleError(
 
     // Format 2: A line starting with "{error.actual} !==".
     if (match === null && "actual" in error) {
-      match = message.match(/^(.*?)\n\s*?(?:.*?) !==/s);
+      match = message.match(/^(.*)\n\s*?(?:.*?) !==/s);
     }
 
     // Format 3: AssertionError: {message}:
