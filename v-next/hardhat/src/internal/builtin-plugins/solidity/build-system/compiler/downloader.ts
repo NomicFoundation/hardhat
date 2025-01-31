@@ -197,6 +197,7 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
 
       let downloadPath: string;
       try {
+        // TASK_COMPILE_SOLIDITY_LOG_DOWNLOAD_COMPILER_START
         downloadPath = await this.#downloadCompiler(build);
       } catch (e) {
         ensureError(e);

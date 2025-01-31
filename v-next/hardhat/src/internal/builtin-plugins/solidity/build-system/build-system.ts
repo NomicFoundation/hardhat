@@ -130,6 +130,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         stopOnError: true,
       },
     );
+    // TASK_COMPILE_SOLIDITY_COMPILE: a hook with the result of the compilation -> pass `results` to the hook
 
     const isSuccessfulBuild = results.every(
       (result) => !this.#hasCompilationErrors(result),
@@ -156,6 +157,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         }),
       );
 
+      // TASK_COMPILE_SOLIDITY_EMIT_ARTIFACTS - already implemented
       await this.#hooks.runHandlerChain(
         "solidity",
         "onAllArtifactsEmitted",
@@ -259,6 +261,8 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         solcConfigSelector.selectBestSolcConfigForSingleRootGraph(subgraph);
 
       if ("reason" in configOrError) {
+        // TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS - Same task also later in this function
+        // Give possibility to modify the compilation job, in this case the CompilationJobCreationError
         return configOrError;
       }
 
@@ -319,6 +323,8 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       }
     }
 
+    // TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS - Same task also above in this function
+    // Give possibility to modify the compilation job, in this case the CompilationJob.
     return compilationJobsPerFile;
   }
 
@@ -333,7 +339,21 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       numberOfFiles++;
     }
 
+    // TASK_COMPILE_SOLIDITY_LOG_NOTHING_TO_COMPILE if numberOfFiles === 0 ?
+
     const numberOfRootFiles = compilationJob.dependencyGraph.getRoots().size;
+
+    // TASK_COMPILE_SOLIDITY_COMPILE_SOLC
+    // TASK_COMPILE_SOLIDITY_RUN_SOLC
+    // TASK_COMPILE_SOLIDITY_RUN_SOLCJS
+    //
+    // Hook that returns a custom compiler otherwise the default one is used. Additional property might be needed, maybe we should add a `config` property).
+    // The default can be solc or solcJS so we can remove the TASKS: TASK_COMPILE_SOLIDITY_RUN_SOLC, TASK_COMPILE_SOLIDITY_RUN_SOLCJS
+    //
+    // Example: compiler.compile(input, zksolcConfig)
+
+    // TASK_COMPILE_SOLIDITY_LOG_RUN_COMPILER_START
+    // This TASK can be omitted because the logic can be probably merged with the TASK above
 
     const compiler = await getCompiler(compilationJob.solcConfig.version);
 
@@ -346,6 +366,10 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       "The long version of the compiler should match the long version of the compilation job",
     );
 
+    // TASK_COMPILE_SOLIDITY_GET_COMPILER_INPUT
+    // Give the possibility to modify the CompilerInput returned by `getSolcInput`
+
+    // TASK_COMPILE - needed or previous TASKS in this function can replace it?
     return compiler.compile(compilationJob.getSolcInput());
   }
 
@@ -397,6 +421,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         publicSourceName,
       );
 
+      // TASK_COMPILE_REMOVE_OBSOLETE_ARTIFACTS - is it here that we remove obsolete artifacts?
       // If the folder exists, we remove it first, as we don't want to leave
       // any old artifacts there.
       await remove(fileFolder);
@@ -420,6 +445,9 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
             contractName,
             contract,
           );
+
+          // TASK_COMPILE_SOLIDITY_GET_ARTIFACT_FROM_COMPILATION_OUTPUT
+          // emit single artifact returned by the above function `getContractArtifact` with possibility to change it
 
           await writeUtf8File(
             contractArtifactPath,
@@ -492,6 +520,8 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
   }
 
   public async cleanupArtifacts(rootFilePaths: string[]): Promise<void> {
+    // TASK_COMPILE_REMOVE_OBSOLETE_ARTIFACTS - is it here that we remove obsolete artifacts?
+
     log(`Cleaning up artifacts`);
 
     const publicSourceNames = rootFilePaths.map((rootFilePath) => {
@@ -592,7 +622,11 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       return;
     }
 
+    // TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD
+    // Allow to download other compiler otherwise default behavior
+    // Default behavior:
     await downloadConfiguredCompilers(this.#getAllCompilerVersions(), quiet);
+
     this.#downloadedCompilers = true;
   }
 
@@ -684,6 +718,8 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       string,
       Map<string, CompilationJob[]>
     >();
+    // TASK_COMPILE_SOLIDITY_LOG_COMPILATION_RESULT
+    // Possibility to modify the message that is printed
 
     for (const job of compilationJobs) {
       const solcVersion = job.solcConfig.version;
