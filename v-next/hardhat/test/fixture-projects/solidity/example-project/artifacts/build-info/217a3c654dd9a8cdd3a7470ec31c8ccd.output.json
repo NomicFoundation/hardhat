@@ -1,1 +1,65 @@
-{"_format":"hh3-sol-build-info-output-1","id":"217a3c654dd9a8cdd3a7470ec31c8ccd","output":{"contracts":{"contracts/NoImports.sol":{"NoImports":{"abi":[],"evm":{"bytecode":{"linkReferences":{},"object":"6080604052348015600f57600080fd5b50603f80601d6000396000f3fe6080604052600080fdfea2646970667358221220622ff1f92fb75a340477cc69a6f9fcbbd9518f40d01c4ed0fc96c42f94e05c5a64736f6c63430007010033","opcodes":"PUSH1 0x80 PUSH1 0x40 MSTORE CALLVALUE DUP1 ISZERO PUSH1 0xF JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST POP PUSH1 0x3F DUP1 PUSH1 0x1D PUSH1 0x0 CODECOPY PUSH1 0x0 RETURN INVALID PUSH1 0x80 PUSH1 0x40 MSTORE PUSH1 0x0 DUP1 REVERT INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 PUSH3 0x2FF1F9 0x2F 0xB7 GAS CALLVALUE DIV PUSH24 0xCC69A6F9FCBBD9518F40D01C4ED0FC96C42F94E05C5A6473 PUSH16 0x6C634300070100330000000000000000 ","sourceMap":"76:21:0:-:0;;;;;;;;;;;;;;;;;;;"},"deployedBytecode":{"immutableReferences":{},"linkReferences":{},"object":"6080604052600080fdfea2646970667358221220622ff1f92fb75a340477cc69a6f9fcbbd9518f40d01c4ed0fc96c42f94e05c5a64736f6c63430007010033","opcodes":"PUSH1 0x80 PUSH1 0x40 MSTORE PUSH1 0x0 DUP1 REVERT INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 PUSH3 0x2FF1F9 0x2F 0xB7 GAS CALLVALUE DIV PUSH24 0xCC69A6F9FCBBD9518F40D01C4ED0FC96C42F94E05C5A6473 PUSH16 0x6C634300070100330000000000000000 ","sourceMap":"76:21:0:-:0;;;;;"},"methodIdentifiers":{}},"metadata":"{\"compiler\":{\"version\":\"0.7.1+commit.f4a555be\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/NoImports.sol\":\"NoImports\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[\":@openzeppelin/contracts/=npm/@openzeppelin/contracts@5.1.0/\",\":remapped/=npm/@openzeppelin/contracts@5.1.0/access/\"]},\"sources\":{\"contracts/NoImports.sol\":{\"keccak256\":\"0x3a28c66ec59da4cb822584ed8f391ddaff26410fb89766d49d577497823bc5ea\",\"license\":\"SEE LICENSE IN LICENSE\",\"urls\":[\"bzz-raw://fb9c7244739857b5c2b14000e0cdf717a521671457ed04d73bf4dfce002cf454\",\"dweb:/ipfs/QmZH2Ky7fy8Q87bsf7g9wcMnM1qNJQLzjcyQSG8nX84yPY\"]}},\"version\":1}"}}},"sources":{"contracts/NoImports.sol":{"ast":{"absolutePath":"contracts/NoImports.sol","exportedSymbols":{"NoImports":[2]},"id":3,"license":"SEE LICENSE IN LICENSE","nodeType":"SourceUnit","nodes":[{"id":1,"literals":["solidity","^","0.7",".0"],"nodeType":"PragmaDirective","src":"51:23:0"},{"abstract":false,"baseContracts":[],"contractDependencies":[],"contractKind":"contract","fullyImplemented":true,"id":2,"linearizedBaseContracts":[2],"name":"NoImports","nodeType":"ContractDefinition","nodes":[],"scope":3,"src":"76:21:0"}],"src":"51:47:0"},"id":0}}}}
+{
+  "_format": "hh3-sol-build-info-output-1",
+  "id": "217a3c654dd9a8cdd3a7470ec31c8ccd",
+  "output": {
+    "contracts": {
+      "contracts/NoImports.sol": {
+        "NoImports": {
+          "abi": [],
+          "evm": {
+            "bytecode": {
+              "linkReferences": {},
+              "object": "6080604052348015600f57600080fd5b50603f80601d6000396000f3fe6080604052600080fdfea2646970667358221220622ff1f92fb75a340477cc69a6f9fcbbd9518f40d01c4ed0fc96c42f94e05c5a64736f6c63430007010033",
+              "opcodes": "PUSH1 0x80 PUSH1 0x40 MSTORE CALLVALUE DUP1 ISZERO PUSH1 0xF JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST POP PUSH1 0x3F DUP1 PUSH1 0x1D PUSH1 0x0 CODECOPY PUSH1 0x0 RETURN INVALID PUSH1 0x80 PUSH1 0x40 MSTORE PUSH1 0x0 DUP1 REVERT INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 PUSH3 0x2FF1F9 0x2F 0xB7 GAS CALLVALUE DIV PUSH24 0xCC69A6F9FCBBD9518F40D01C4ED0FC96C42F94E05C5A6473 PUSH16 0x6C634300070100330000000000000000 ",
+              "sourceMap": "76:21:0:-:0;;;;;;;;;;;;;;;;;;;"
+            },
+            "deployedBytecode": {
+              "immutableReferences": {},
+              "linkReferences": {},
+              "object": "6080604052600080fdfea2646970667358221220622ff1f92fb75a340477cc69a6f9fcbbd9518f40d01c4ed0fc96c42f94e05c5a64736f6c63430007010033",
+              "opcodes": "PUSH1 0x80 PUSH1 0x40 MSTORE PUSH1 0x0 DUP1 REVERT INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 PUSH3 0x2FF1F9 0x2F 0xB7 GAS CALLVALUE DIV PUSH24 0xCC69A6F9FCBBD9518F40D01C4ED0FC96C42F94E05C5A6473 PUSH16 0x6C634300070100330000000000000000 ",
+              "sourceMap": "76:21:0:-:0;;;;;"
+            },
+            "methodIdentifiers": {}
+          },
+          "metadata": "{\"compiler\":{\"version\":\"0.7.1+commit.f4a555be\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/NoImports.sol\":\"NoImports\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[\":@openzeppelin/contracts/=npm/@openzeppelin/contracts@5.1.0/\",\":remapped/=npm/@openzeppelin/contracts@5.1.0/access/\"]},\"sources\":{\"contracts/NoImports.sol\":{\"keccak256\":\"0x3a28c66ec59da4cb822584ed8f391ddaff26410fb89766d49d577497823bc5ea\",\"license\":\"SEE LICENSE IN LICENSE\",\"urls\":[\"bzz-raw://fb9c7244739857b5c2b14000e0cdf717a521671457ed04d73bf4dfce002cf454\",\"dweb:/ipfs/QmZH2Ky7fy8Q87bsf7g9wcMnM1qNJQLzjcyQSG8nX84yPY\"]}},\"version\":1}"
+        }
+      }
+    },
+    "sources": {
+      "contracts/NoImports.sol": {
+        "ast": {
+          "absolutePath": "contracts/NoImports.sol",
+          "exportedSymbols": { "NoImports": [2] },
+          "id": 3,
+          "license": "SEE LICENSE IN LICENSE",
+          "nodeType": "SourceUnit",
+          "nodes": [
+            {
+              "id": 1,
+              "literals": ["solidity", "^", "0.7", ".0"],
+              "nodeType": "PragmaDirective",
+              "src": "51:23:0"
+            },
+            {
+              "abstract": false,
+              "baseContracts": [],
+              "contractDependencies": [],
+              "contractKind": "contract",
+              "fullyImplemented": true,
+              "id": 2,
+              "linearizedBaseContracts": [2],
+              "name": "NoImports",
+              "nodeType": "ContractDefinition",
+              "nodes": [],
+              "scope": 3,
+              "src": "76:21:0"
+            }
+          ],
+          "src": "51:47:0"
+        },
+        "id": 0
+      }
+    }
+  }
+}

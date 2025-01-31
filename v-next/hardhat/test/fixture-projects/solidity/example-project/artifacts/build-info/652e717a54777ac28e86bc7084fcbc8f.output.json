@@ -1,1 +1,468 @@
-{"_format":"hh3-sol-build-info-output-1","id":"652e717a54777ac28e86bc7084fcbc8f","output":{"contracts":{"contracts/A.sol":{"A":{"abi":[],"evm":{"bytecode":{"functionDebugData":{},"generatedSources":[],"linkReferences":{},"object":"6080604052348015600e575f80fd5b50603e80601a5f395ff3fe60806040525f80fdfea2646970667358221220fa80377a08a97ad93ccb004c8ba5b1944699d70ad3012de9351c0bca77d0196664736f6c63430008160033","opcodes":"PUSH1 0x80 PUSH1 0x40 MSTORE CALLVALUE DUP1 ISZERO PUSH1 0xE JUMPI PUSH0 DUP1 REVERT JUMPDEST POP PUSH1 0x3E DUP1 PUSH1 0x1A PUSH0 CODECOPY PUSH0 RETURN INVALID PUSH1 0x80 PUSH1 0x40 MSTORE PUSH0 DUP1 REVERT INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 STATICCALL DUP1 CALLDATACOPY PUSH27 0x8A97AD93CCB004C8BA5B1944699D70AD3012DE9351C0BCA77D019 PUSH7 0x64736F6C634300 ADDMOD AND STOP CALLER ","sourceMap":"102:18:0:-:0;;;;;;;;;;;;;;;;;;;"},"deployedBytecode":{"functionDebugData":{},"generatedSources":[],"immutableReferences":{},"linkReferences":{},"object":"60806040525f80fdfea2646970667358221220fa80377a08a97ad93ccb004c8ba5b1944699d70ad3012de9351c0bca77d0196664736f6c63430008160033","opcodes":"PUSH1 0x80 PUSH1 0x40 MSTORE PUSH0 DUP1 REVERT INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 STATICCALL DUP1 CALLDATACOPY PUSH27 0x8A97AD93CCB004C8BA5B1944699D70AD3012DE9351C0BCA77D019 PUSH7 0x64736F6C634300 ADDMOD AND STOP CALLER ","sourceMap":"102:18:0:-:0;;;;;"},"methodIdentifiers":{}},"metadata":"{\"compiler\":{\"version\":\"0.8.22+commit.4fc1097e\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/A.sol\":\"A\"},\"evmVersion\":\"shanghai\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[\":@openzeppelin/contracts/=npm/@openzeppelin/contracts@5.1.0/\",\":remapped/=npm/@openzeppelin/contracts@5.1.0/access/\"]},\"sources\":{\"contracts/A.sol\":{\"keccak256\":\"0x0b6baab6b8f8c894f2ae3b4a30aa03687f5e1b5efdc79fc746d7001bc61ac2ae\",\"license\":\"UNLICENSED\",\"urls\":[\"bzz-raw://4745a08025dd5ecdc31adc7db51210d16b9034dc41f2ed7241f98961c687e905\",\"dweb:/ipfs/QmYGbMN118xuYMR3p2YjyTMAn781mWPZXgBtG2jsYDYcPW\"]},\"contracts/B.sol\":{\"keccak256\":\"0xe3bfba24c7ab781173f217b2a770a1bf762950f485d589fef5066493a9781575\",\"license\":\"UNLICENSED\",\"urls\":[\"bzz-raw://0265cd6edebc0e6ce4d1ed1107e40d1d0a79ad6ffc532269a9ac648a850e03b6\",\"dweb:/ipfs/QmaGSjd8xq5KotjZW1CWSRNEzXY4kWrBpDeGw16cuqNgpY\"]},\"npm/@openzeppelin/contracts@5.1.0/access/Ownable.sol\":{\"keccak256\":\"0x8bb13fdfb1cc614eed7de55fe3b8deb01cf864a125a43b0bb083f029698b834d\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://98a23f280b79fe5ee104c3748e3caf90c846d8dd41c9e1b333f500ec94c6dbea\",\"dweb:/ipfs/QmTD9zsov5nahn894F69rvUKcEphBXGR51f8Qy4Z67BLyx\"]}},\"version\":1}"}},"contracts/B.sol":{"B":{"abi":[],"evm":{"bytecode":{"functionDebugData":{},"generatedSources":[],"linkReferences":{},"object":"6080604052348015600e575f80fd5b50603e80601a5f395ff3fe60806040525f80fdfea26469706673582212203a770298304d45a01cb3629a2f032da51fb0fe9d9c0b8148d8aa64f0dd779c8564736f6c63430008160033","opcodes":"PUSH1 0x80 PUSH1 0x40 MSTORE CALLVALUE DUP1 ISZERO PUSH1 0xE JUMPI PUSH0 DUP1 REVERT JUMPDEST POP PUSH1 0x3E DUP1 PUSH1 0x1A PUSH0 CODECOPY PUSH0 RETURN INVALID PUSH1 0x80 PUSH1 0x40 MSTORE PUSH0 DUP1 REVERT INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 GASPRICE PUSH24 0x298304D45A01CB3629A2F032DA51FB0FE9D9C0B8148D8AA PUSH5 0xF0DD779C85 PUSH5 0x736F6C6343 STOP ADDMOD AND STOP CALLER ","sourceMap":"118:13:1:-:0;;;;;;;;;;;;;;;;;;;"},"deployedBytecode":{"functionDebugData":{},"generatedSources":[],"immutableReferences":{},"linkReferences":{},"object":"60806040525f80fdfea26469706673582212203a770298304d45a01cb3629a2f032da51fb0fe9d9c0b8148d8aa64f0dd779c8564736f6c63430008160033","opcodes":"PUSH1 0x80 PUSH1 0x40 MSTORE PUSH0 DUP1 REVERT INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 GASPRICE PUSH24 0x298304D45A01CB3629A2F032DA51FB0FE9D9C0B8148D8AA PUSH5 0xF0DD779C85 PUSH5 0x736F6C6343 STOP ADDMOD AND STOP CALLER ","sourceMap":"118:13:1:-:0;;;;;"},"methodIdentifiers":{}},"metadata":"{\"compiler\":{\"version\":\"0.8.22+commit.4fc1097e\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/B.sol\":\"B\"},\"evmVersion\":\"shanghai\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[\":@openzeppelin/contracts/=npm/@openzeppelin/contracts@5.1.0/\",\":remapped/=npm/@openzeppelin/contracts@5.1.0/access/\"]},\"sources\":{\"contracts/B.sol\":{\"keccak256\":\"0xe3bfba24c7ab781173f217b2a770a1bf762950f485d589fef5066493a9781575\",\"license\":\"UNLICENSED\",\"urls\":[\"bzz-raw://0265cd6edebc0e6ce4d1ed1107e40d1d0a79ad6ffc532269a9ac648a850e03b6\",\"dweb:/ipfs/QmaGSjd8xq5KotjZW1CWSRNEzXY4kWrBpDeGw16cuqNgpY\"]},\"npm/@openzeppelin/contracts@5.1.0/access/Ownable.sol\":{\"keccak256\":\"0x8bb13fdfb1cc614eed7de55fe3b8deb01cf864a125a43b0bb083f029698b834d\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://98a23f280b79fe5ee104c3748e3caf90c846d8dd41c9e1b333f500ec94c6dbea\",\"dweb:/ipfs/QmTD9zsov5nahn894F69rvUKcEphBXGR51f8Qy4Z67BLyx\"]}},\"version\":1}"}},"contracts/C.sol":{"C":{"abi":[],"evm":{"bytecode":{"functionDebugData":{},"generatedSources":[],"linkReferences":{},"object":"6080604052348015600e575f80fd5b50603e80601a5f395ff3fe60806040525f80fdfea264697066735822122066220fc59f0e456bfeed804b45a091ea9b64289092ec824766fee8af886447de64736f6c63430008160033","opcodes":"PUSH1 0x80 PUSH1 0x40 MSTORE CALLVALUE DUP1 ISZERO PUSH1 0xE JUMPI PUSH0 DUP1 REVERT JUMPDEST POP PUSH1 0x3E DUP1 PUSH1 0x1A PUSH0 CODECOPY PUSH0 RETURN INVALID PUSH1 0x80 PUSH1 0x40 MSTORE PUSH0 DUP1 REVERT INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 PUSH7 0x220FC59F0E456B INVALID 0xED DUP1 0x4B GASLIMIT LOG0 SWAP2 0xEA SWAP12 PUSH5 0x289092EC82 SELFBALANCE PUSH7 0xFEE8AF886447DE PUSH5 0x736F6C6343 STOP ADDMOD AND STOP CALLER ","sourceMap":"83:13:2:-:0;;;;;;;;;;;;;;;;;;;"},"deployedBytecode":{"functionDebugData":{},"generatedSources":[],"immutableReferences":{},"linkReferences":{},"object":"60806040525f80fdfea264697066735822122066220fc59f0e456bfeed804b45a091ea9b64289092ec824766fee8af886447de64736f6c63430008160033","opcodes":"PUSH1 0x80 PUSH1 0x40 MSTORE PUSH0 DUP1 REVERT INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 PUSH7 0x220FC59F0E456B INVALID 0xED DUP1 0x4B GASLIMIT LOG0 SWAP2 0xEA SWAP12 PUSH5 0x289092EC82 SELFBALANCE PUSH7 0xFEE8AF886447DE PUSH5 0x736F6C6343 STOP ADDMOD AND STOP CALLER ","sourceMap":"83:13:2:-:0;;;;;"},"methodIdentifiers":{}},"metadata":"{\"compiler\":{\"version\":\"0.8.22+commit.4fc1097e\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/C.sol\":\"C\"},\"evmVersion\":\"shanghai\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[\":@openzeppelin/contracts/=npm/@openzeppelin/contracts@5.1.0/\",\":remapped/=npm/@openzeppelin/contracts@5.1.0/access/\"]},\"sources\":{\"contracts/B.sol\":{\"keccak256\":\"0xe3bfba24c7ab781173f217b2a770a1bf762950f485d589fef5066493a9781575\",\"license\":\"UNLICENSED\",\"urls\":[\"bzz-raw://0265cd6edebc0e6ce4d1ed1107e40d1d0a79ad6ffc532269a9ac648a850e03b6\",\"dweb:/ipfs/QmaGSjd8xq5KotjZW1CWSRNEzXY4kWrBpDeGw16cuqNgpY\"]},\"contracts/C.sol\":{\"keccak256\":\"0xc59a3c8bafbab383c5b64ed325f6a3a61ec9fe36d5a375f2723cfd272c819675\",\"license\":\"UNLICENSED\",\"urls\":[\"bzz-raw://294d208fbc2235f9e93c60f0caca7723bf4a08397cc5932783a89d72a2319c42\",\"dweb:/ipfs/QmUn6fonDgB3rZ84UjUNnY65vRm28qPTMKknFcVY6r7E28\"]},\"npm/@openzeppelin/contracts@5.1.0/access/Ownable.sol\":{\"keccak256\":\"0x8bb13fdfb1cc614eed7de55fe3b8deb01cf864a125a43b0bb083f029698b834d\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://98a23f280b79fe5ee104c3748e3caf90c846d8dd41c9e1b333f500ec94c6dbea\",\"dweb:/ipfs/QmTD9zsov5nahn894F69rvUKcEphBXGR51f8Qy4Z67BLyx\"]}},\"version\":1}"},"C2":{"abi":[],"evm":{"bytecode":{"functionDebugData":{},"generatedSources":[],"linkReferences":{},"object":"6080604052348015600e575f80fd5b50603e80601a5f395ff3fe60806040525f80fdfea2646970667358221220c72aea65f1253bb034ad646e28ff9b53b7a7effdf03dfd58726d59b7083d8d9c64736f6c63430008160033","opcodes":"PUSH1 0x80 PUSH1 0x40 MSTORE CALLVALUE DUP1 ISZERO PUSH1 0xE JUMPI PUSH0 DUP1 REVERT JUMPDEST POP PUSH1 0x3E DUP1 PUSH1 0x1A PUSH0 CODECOPY PUSH0 RETURN INVALID PUSH1 0x80 PUSH1 0x40 MSTORE PUSH0 DUP1 REVERT INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 0xC7 0x2A 0xEA PUSH6 0xF1253BB034AD PUSH5 0x6E28FF9B53 0xB7 0xA7 0xEF REVERT CREATE RETURNDATASIZE REVERT PC PUSH19 0x6D59B7083D8D9C64736F6C6343000816003300 ","sourceMap":"98:14:2:-:0;;;;;;;;;;;;;;;;;;;"},"deployedBytecode":{"functionDebugData":{},"generatedSources":[],"immutableReferences":{},"linkReferences":{},"object":"60806040525f80fdfea2646970667358221220c72aea65f1253bb034ad646e28ff9b53b7a7effdf03dfd58726d59b7083d8d9c64736f6c63430008160033","opcodes":"PUSH1 0x80 PUSH1 0x40 MSTORE PUSH0 DUP1 REVERT INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 0xC7 0x2A 0xEA PUSH6 0xF1253BB034AD PUSH5 0x6E28FF9B53 0xB7 0xA7 0xEF REVERT CREATE RETURNDATASIZE REVERT PC PUSH19 0x6D59B7083D8D9C64736F6C6343000816003300 ","sourceMap":"98:14:2:-:0;;;;;"},"methodIdentifiers":{}},"metadata":"{\"compiler\":{\"version\":\"0.8.22+commit.4fc1097e\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/C.sol\":\"C2\"},\"evmVersion\":\"shanghai\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[\":@openzeppelin/contracts/=npm/@openzeppelin/contracts@5.1.0/\",\":remapped/=npm/@openzeppelin/contracts@5.1.0/access/\"]},\"sources\":{\"contracts/B.sol\":{\"keccak256\":\"0xe3bfba24c7ab781173f217b2a770a1bf762950f485d589fef5066493a9781575\",\"license\":\"UNLICENSED\",\"urls\":[\"bzz-raw://0265cd6edebc0e6ce4d1ed1107e40d1d0a79ad6ffc532269a9ac648a850e03b6\",\"dweb:/ipfs/QmaGSjd8xq5KotjZW1CWSRNEzXY4kWrBpDeGw16cuqNgpY\"]},\"contracts/C.sol\":{\"keccak256\":\"0xc59a3c8bafbab383c5b64ed325f6a3a61ec9fe36d5a375f2723cfd272c819675\",\"license\":\"UNLICENSED\",\"urls\":[\"bzz-raw://294d208fbc2235f9e93c60f0caca7723bf4a08397cc5932783a89d72a2319c42\",\"dweb:/ipfs/QmUn6fonDgB3rZ84UjUNnY65vRm28qPTMKknFcVY6r7E28\"]},\"npm/@openzeppelin/contracts@5.1.0/access/Ownable.sol\":{\"keccak256\":\"0x8bb13fdfb1cc614eed7de55fe3b8deb01cf864a125a43b0bb083f029698b834d\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://98a23f280b79fe5ee104c3748e3caf90c846d8dd41c9e1b333f500ec94c6dbea\",\"dweb:/ipfs/QmTD9zsov5nahn894F69rvUKcEphBXGR51f8Qy4Z67BLyx\"]}},\"version\":1}"}},"npm/@openzeppelin/contracts@5.1.0/access/Ownable.sol":{"Ownable":{"abi":[],"evm":{"bytecode":{"functionDebugData":{},"generatedSources":[],"linkReferences":{},"object":"","opcodes":"","sourceMap":""},"deployedBytecode":{"functionDebugData":{},"generatedSources":[],"immutableReferences":{},"linkReferences":{},"object":"","opcodes":"","sourceMap":""},"methodIdentifiers":{}},"metadata":"{\"compiler\":{\"version\":\"0.8.22+commit.4fc1097e\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"npm/@openzeppelin/contracts@5.1.0/access/Ownable.sol\":\"Ownable\"},\"evmVersion\":\"shanghai\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[\":@openzeppelin/contracts/=npm/@openzeppelin/contracts@5.1.0/\",\":remapped/=npm/@openzeppelin/contracts@5.1.0/access/\"]},\"sources\":{\"npm/@openzeppelin/contracts@5.1.0/access/Ownable.sol\":{\"keccak256\":\"0x8bb13fdfb1cc614eed7de55fe3b8deb01cf864a125a43b0bb083f029698b834d\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://98a23f280b79fe5ee104c3748e3caf90c846d8dd41c9e1b333f500ec94c6dbea\",\"dweb:/ipfs/QmTD9zsov5nahn894F69rvUKcEphBXGR51f8Qy4Z67BLyx\"]}},\"version\":1}"}}},"sources":{"contracts/A.sol":{"ast":{"absolutePath":"contracts/A.sol","exportedSymbols":{"A":[6],"B":[10],"Ownable":[27]},"id":7,"license":"UNLICENSED","nodeType":"SourceUnit","nodes":[{"id":1,"literals":["solidity","^","0.8",".0"],"nodeType":"PragmaDirective","src":"39:23:0"},{"id":2,"literals":["solidity","*"],"nodeType":"PragmaDirective","src":"63:18:0"},{"absolutePath":"contracts/B.sol","file":"./B.sol","id":3,"nameLocation":"-1:-1:-1","nodeType":"ImportDirective","scope":7,"sourceUnit":11,"src":"83:17:0","symbolAliases":[],"unitAlias":""},{"abstract":false,"baseContracts":[{"baseName":{"id":4,"name":"B","nameLocations":["116:1:0"],"nodeType":"IdentifierPath","referencedDeclaration":10,"src":"116:1:0"},"id":5,"nodeType":"InheritanceSpecifier","src":"116:1:0"}],"canonicalName":"A","contractDependencies":[],"contractKind":"contract","fullyImplemented":true,"id":6,"linearizedBaseContracts":[6,10],"name":"A","nameLocation":"111:1:0","nodeType":"ContractDefinition","nodes":[],"scope":7,"src":"102:18:0","usedErrors":[],"usedEvents":[]}],"src":"39:82:0"},"id":0},"contracts/B.sol":{"ast":{"absolutePath":"contracts/B.sol","exportedSymbols":{"B":[10],"Ownable":[27]},"id":11,"license":"UNLICENSED","nodeType":"SourceUnit","nodes":[{"id":8,"literals":["solidity","^","0.8",".0"],"nodeType":"PragmaDirective","src":"39:23:1"},{"absolutePath":"npm/@openzeppelin/contracts@5.1.0/access/Ownable.sol","file":"@openzeppelin/contracts/access/Ownable.sol","id":9,"nameLocation":"-1:-1:-1","nodeType":"ImportDirective","scope":11,"sourceUnit":28,"src":"64:52:1","symbolAliases":[],"unitAlias":""},{"abstract":false,"baseContracts":[],"canonicalName":"B","contractDependencies":[],"contractKind":"contract","fullyImplemented":true,"id":10,"linearizedBaseContracts":[10],"name":"B","nameLocation":"127:1:1","nodeType":"ContractDefinition","nodes":[],"scope":11,"src":"118:13:1","usedErrors":[],"usedEvents":[]}],"src":"39:93:1"},"id":1},"contracts/C.sol":{"ast":{"absolutePath":"contracts/C.sol","exportedSymbols":{"B":[10],"C":[14],"C2":[15],"Ownable":[27]},"id":16,"license":"UNLICENSED","nodeType":"SourceUnit","nodes":[{"id":12,"literals":["solidity","^","0.8",".0"],"nodeType":"PragmaDirective","src":"39:23:2"},{"absolutePath":"contracts/B.sol","file":"./B.sol","id":13,"nameLocation":"-1:-1:-1","nodeType":"ImportDirective","scope":16,"sourceUnit":11,"src":"64:17:2","symbolAliases":[],"unitAlias":""},{"abstract":false,"baseContracts":[],"canonicalName":"C","contractDependencies":[],"contractKind":"contract","fullyImplemented":true,"id":14,"linearizedBaseContracts":[14],"name":"C","nameLocation":"92:1:2","nodeType":"ContractDefinition","nodes":[],"scope":16,"src":"83:13:2","usedErrors":[],"usedEvents":[]},{"abstract":false,"baseContracts":[],"canonicalName":"C2","contractDependencies":[],"contractKind":"contract","fullyImplemented":true,"id":15,"linearizedBaseContracts":[15],"name":"C2","nameLocation":"107:2:2","nodeType":"ContractDefinition","nodes":[],"scope":16,"src":"98:14:2","usedErrors":[],"usedEvents":[]}],"src":"39:74:2"},"id":2},"contracts/D.sol":{"ast":{"absolutePath":"contracts/D.sol","exportedSymbols":{"B":[10],"C":[14],"C2":[15],"Ownable":[27]},"id":19,"license":"UNLICENSED","nodeType":"SourceUnit","nodes":[{"id":17,"literals":["solidity","^","0.8",".22"],"nodeType":"PragmaDirective","src":"39:24:3"},{"absolutePath":"contracts/C.sol","file":"./C.sol","id":18,"nameLocation":"-1:-1:-1","nodeType":"ImportDirective","scope":19,"sourceUnit":16,"src":"65:17:3","symbolAliases":[],"unitAlias":""}],"src":"39:44:3"},"id":3},"contracts/E.sol":{"ast":{"absolutePath":"contracts/E.sol","exportedSymbols":{"B":[10],"C":[14],"C2":[15],"Ownable":[27]},"id":22,"license":"UNLICENSED","nodeType":"SourceUnit","nodes":[{"id":20,"literals":["solidity","^","0.8",".22"],"nodeType":"PragmaDirective","src":"39:24:4"},{"absolutePath":"contracts/C.sol","file":"./C.sol","id":21,"nameLocation":"-1:-1:-1","nodeType":"ImportDirective","scope":22,"sourceUnit":16,"src":"65:17:4","symbolAliases":[],"unitAlias":""}],"src":"39:44:4"},"id":4},"contracts/UserRemappedImport.sol":{"ast":{"absolutePath":"contracts/UserRemappedImport.sol","exportedSymbols":{"Ownable":[27]},"id":25,"license":"SEE LICENSE IN LICENSE","nodeType":"SourceUnit","nodes":[{"id":23,"literals":["solidity","^","0.8",".0"],"nodeType":"PragmaDirective","src":"51:23:5"},{"absolutePath":"npm/@openzeppelin/contracts@5.1.0/access/Ownable.sol","file":"remapped/Ownable.sol","id":24,"nameLocation":"-1:-1:-1","nodeType":"ImportDirective","scope":25,"sourceUnit":28,"src":"76:30:5","symbolAliases":[],"unitAlias":""}],"src":"51:56:5"},"id":5},"npm/@openzeppelin/contracts@5.1.0/access/Ownable.sol":{"ast":{"absolutePath":"npm/@openzeppelin/contracts@5.1.0/access/Ownable.sol","exportedSymbols":{"Ownable":[27]},"id":28,"license":"MIT","nodeType":"SourceUnit","nodes":[{"id":26,"literals":["solidity","^","0.8",".20"],"nodeType":"PragmaDirective","src":"102:24:6"},{"abstract":true,"baseContracts":[],"canonicalName":"Ownable","contractDependencies":[],"contractKind":"contract","fullyImplemented":true,"id":27,"linearizedBaseContracts":[27],"name":"Ownable","nameLocation":"146:7:6","nodeType":"ContractDefinition","nodes":[],"scope":28,"src":"128:28:6","usedErrors":[],"usedEvents":[]}],"src":"102:55:6"},"id":6}}}}
+{
+  "_format": "hh3-sol-build-info-output-1",
+  "id": "652e717a54777ac28e86bc7084fcbc8f",
+  "output": {
+    "contracts": {
+      "contracts/A.sol": {
+        "A": {
+          "abi": [],
+          "evm": {
+            "bytecode": {
+              "functionDebugData": {},
+              "generatedSources": [],
+              "linkReferences": {},
+              "object": "6080604052348015600e575f80fd5b50603e80601a5f395ff3fe60806040525f80fdfea2646970667358221220fa80377a08a97ad93ccb004c8ba5b1944699d70ad3012de9351c0bca77d0196664736f6c63430008160033",
+              "opcodes": "PUSH1 0x80 PUSH1 0x40 MSTORE CALLVALUE DUP1 ISZERO PUSH1 0xE JUMPI PUSH0 DUP1 REVERT JUMPDEST POP PUSH1 0x3E DUP1 PUSH1 0x1A PUSH0 CODECOPY PUSH0 RETURN INVALID PUSH1 0x80 PUSH1 0x40 MSTORE PUSH0 DUP1 REVERT INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 STATICCALL DUP1 CALLDATACOPY PUSH27 0x8A97AD93CCB004C8BA5B1944699D70AD3012DE9351C0BCA77D019 PUSH7 0x64736F6C634300 ADDMOD AND STOP CALLER ",
+              "sourceMap": "102:18:0:-:0;;;;;;;;;;;;;;;;;;;"
+            },
+            "deployedBytecode": {
+              "functionDebugData": {},
+              "generatedSources": [],
+              "immutableReferences": {},
+              "linkReferences": {},
+              "object": "60806040525f80fdfea2646970667358221220fa80377a08a97ad93ccb004c8ba5b1944699d70ad3012de9351c0bca77d0196664736f6c63430008160033",
+              "opcodes": "PUSH1 0x80 PUSH1 0x40 MSTORE PUSH0 DUP1 REVERT INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 STATICCALL DUP1 CALLDATACOPY PUSH27 0x8A97AD93CCB004C8BA5B1944699D70AD3012DE9351C0BCA77D019 PUSH7 0x64736F6C634300 ADDMOD AND STOP CALLER ",
+              "sourceMap": "102:18:0:-:0;;;;;"
+            },
+            "methodIdentifiers": {}
+          },
+          "metadata": "{\"compiler\":{\"version\":\"0.8.22+commit.4fc1097e\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/A.sol\":\"A\"},\"evmVersion\":\"shanghai\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[\":@openzeppelin/contracts/=npm/@openzeppelin/contracts@5.1.0/\",\":remapped/=npm/@openzeppelin/contracts@5.1.0/access/\"]},\"sources\":{\"contracts/A.sol\":{\"keccak256\":\"0x0b6baab6b8f8c894f2ae3b4a30aa03687f5e1b5efdc79fc746d7001bc61ac2ae\",\"license\":\"UNLICENSED\",\"urls\":[\"bzz-raw://4745a08025dd5ecdc31adc7db51210d16b9034dc41f2ed7241f98961c687e905\",\"dweb:/ipfs/QmYGbMN118xuYMR3p2YjyTMAn781mWPZXgBtG2jsYDYcPW\"]},\"contracts/B.sol\":{\"keccak256\":\"0xe3bfba24c7ab781173f217b2a770a1bf762950f485d589fef5066493a9781575\",\"license\":\"UNLICENSED\",\"urls\":[\"bzz-raw://0265cd6edebc0e6ce4d1ed1107e40d1d0a79ad6ffc532269a9ac648a850e03b6\",\"dweb:/ipfs/QmaGSjd8xq5KotjZW1CWSRNEzXY4kWrBpDeGw16cuqNgpY\"]},\"npm/@openzeppelin/contracts@5.1.0/access/Ownable.sol\":{\"keccak256\":\"0x8bb13fdfb1cc614eed7de55fe3b8deb01cf864a125a43b0bb083f029698b834d\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://98a23f280b79fe5ee104c3748e3caf90c846d8dd41c9e1b333f500ec94c6dbea\",\"dweb:/ipfs/QmTD9zsov5nahn894F69rvUKcEphBXGR51f8Qy4Z67BLyx\"]}},\"version\":1}"
+        }
+      },
+      "contracts/B.sol": {
+        "B": {
+          "abi": [],
+          "evm": {
+            "bytecode": {
+              "functionDebugData": {},
+              "generatedSources": [],
+              "linkReferences": {},
+              "object": "6080604052348015600e575f80fd5b50603e80601a5f395ff3fe60806040525f80fdfea26469706673582212203a770298304d45a01cb3629a2f032da51fb0fe9d9c0b8148d8aa64f0dd779c8564736f6c63430008160033",
+              "opcodes": "PUSH1 0x80 PUSH1 0x40 MSTORE CALLVALUE DUP1 ISZERO PUSH1 0xE JUMPI PUSH0 DUP1 REVERT JUMPDEST POP PUSH1 0x3E DUP1 PUSH1 0x1A PUSH0 CODECOPY PUSH0 RETURN INVALID PUSH1 0x80 PUSH1 0x40 MSTORE PUSH0 DUP1 REVERT INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 GASPRICE PUSH24 0x298304D45A01CB3629A2F032DA51FB0FE9D9C0B8148D8AA PUSH5 0xF0DD779C85 PUSH5 0x736F6C6343 STOP ADDMOD AND STOP CALLER ",
+              "sourceMap": "118:13:1:-:0;;;;;;;;;;;;;;;;;;;"
+            },
+            "deployedBytecode": {
+              "functionDebugData": {},
+              "generatedSources": [],
+              "immutableReferences": {},
+              "linkReferences": {},
+              "object": "60806040525f80fdfea26469706673582212203a770298304d45a01cb3629a2f032da51fb0fe9d9c0b8148d8aa64f0dd779c8564736f6c63430008160033",
+              "opcodes": "PUSH1 0x80 PUSH1 0x40 MSTORE PUSH0 DUP1 REVERT INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 GASPRICE PUSH24 0x298304D45A01CB3629A2F032DA51FB0FE9D9C0B8148D8AA PUSH5 0xF0DD779C85 PUSH5 0x736F6C6343 STOP ADDMOD AND STOP CALLER ",
+              "sourceMap": "118:13:1:-:0;;;;;"
+            },
+            "methodIdentifiers": {}
+          },
+          "metadata": "{\"compiler\":{\"version\":\"0.8.22+commit.4fc1097e\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/B.sol\":\"B\"},\"evmVersion\":\"shanghai\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[\":@openzeppelin/contracts/=npm/@openzeppelin/contracts@5.1.0/\",\":remapped/=npm/@openzeppelin/contracts@5.1.0/access/\"]},\"sources\":{\"contracts/B.sol\":{\"keccak256\":\"0xe3bfba24c7ab781173f217b2a770a1bf762950f485d589fef5066493a9781575\",\"license\":\"UNLICENSED\",\"urls\":[\"bzz-raw://0265cd6edebc0e6ce4d1ed1107e40d1d0a79ad6ffc532269a9ac648a850e03b6\",\"dweb:/ipfs/QmaGSjd8xq5KotjZW1CWSRNEzXY4kWrBpDeGw16cuqNgpY\"]},\"npm/@openzeppelin/contracts@5.1.0/access/Ownable.sol\":{\"keccak256\":\"0x8bb13fdfb1cc614eed7de55fe3b8deb01cf864a125a43b0bb083f029698b834d\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://98a23f280b79fe5ee104c3748e3caf90c846d8dd41c9e1b333f500ec94c6dbea\",\"dweb:/ipfs/QmTD9zsov5nahn894F69rvUKcEphBXGR51f8Qy4Z67BLyx\"]}},\"version\":1}"
+        }
+      },
+      "contracts/C.sol": {
+        "C": {
+          "abi": [],
+          "evm": {
+            "bytecode": {
+              "functionDebugData": {},
+              "generatedSources": [],
+              "linkReferences": {},
+              "object": "6080604052348015600e575f80fd5b50603e80601a5f395ff3fe60806040525f80fdfea264697066735822122066220fc59f0e456bfeed804b45a091ea9b64289092ec824766fee8af886447de64736f6c63430008160033",
+              "opcodes": "PUSH1 0x80 PUSH1 0x40 MSTORE CALLVALUE DUP1 ISZERO PUSH1 0xE JUMPI PUSH0 DUP1 REVERT JUMPDEST POP PUSH1 0x3E DUP1 PUSH1 0x1A PUSH0 CODECOPY PUSH0 RETURN INVALID PUSH1 0x80 PUSH1 0x40 MSTORE PUSH0 DUP1 REVERT INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 PUSH7 0x220FC59F0E456B INVALID 0xED DUP1 0x4B GASLIMIT LOG0 SWAP2 0xEA SWAP12 PUSH5 0x289092EC82 SELFBALANCE PUSH7 0xFEE8AF886447DE PUSH5 0x736F6C6343 STOP ADDMOD AND STOP CALLER ",
+              "sourceMap": "83:13:2:-:0;;;;;;;;;;;;;;;;;;;"
+            },
+            "deployedBytecode": {
+              "functionDebugData": {},
+              "generatedSources": [],
+              "immutableReferences": {},
+              "linkReferences": {},
+              "object": "60806040525f80fdfea264697066735822122066220fc59f0e456bfeed804b45a091ea9b64289092ec824766fee8af886447de64736f6c63430008160033",
+              "opcodes": "PUSH1 0x80 PUSH1 0x40 MSTORE PUSH0 DUP1 REVERT INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 PUSH7 0x220FC59F0E456B INVALID 0xED DUP1 0x4B GASLIMIT LOG0 SWAP2 0xEA SWAP12 PUSH5 0x289092EC82 SELFBALANCE PUSH7 0xFEE8AF886447DE PUSH5 0x736F6C6343 STOP ADDMOD AND STOP CALLER ",
+              "sourceMap": "83:13:2:-:0;;;;;"
+            },
+            "methodIdentifiers": {}
+          },
+          "metadata": "{\"compiler\":{\"version\":\"0.8.22+commit.4fc1097e\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/C.sol\":\"C\"},\"evmVersion\":\"shanghai\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[\":@openzeppelin/contracts/=npm/@openzeppelin/contracts@5.1.0/\",\":remapped/=npm/@openzeppelin/contracts@5.1.0/access/\"]},\"sources\":{\"contracts/B.sol\":{\"keccak256\":\"0xe3bfba24c7ab781173f217b2a770a1bf762950f485d589fef5066493a9781575\",\"license\":\"UNLICENSED\",\"urls\":[\"bzz-raw://0265cd6edebc0e6ce4d1ed1107e40d1d0a79ad6ffc532269a9ac648a850e03b6\",\"dweb:/ipfs/QmaGSjd8xq5KotjZW1CWSRNEzXY4kWrBpDeGw16cuqNgpY\"]},\"contracts/C.sol\":{\"keccak256\":\"0xc59a3c8bafbab383c5b64ed325f6a3a61ec9fe36d5a375f2723cfd272c819675\",\"license\":\"UNLICENSED\",\"urls\":[\"bzz-raw://294d208fbc2235f9e93c60f0caca7723bf4a08397cc5932783a89d72a2319c42\",\"dweb:/ipfs/QmUn6fonDgB3rZ84UjUNnY65vRm28qPTMKknFcVY6r7E28\"]},\"npm/@openzeppelin/contracts@5.1.0/access/Ownable.sol\":{\"keccak256\":\"0x8bb13fdfb1cc614eed7de55fe3b8deb01cf864a125a43b0bb083f029698b834d\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://98a23f280b79fe5ee104c3748e3caf90c846d8dd41c9e1b333f500ec94c6dbea\",\"dweb:/ipfs/QmTD9zsov5nahn894F69rvUKcEphBXGR51f8Qy4Z67BLyx\"]}},\"version\":1}"
+        },
+        "C2": {
+          "abi": [],
+          "evm": {
+            "bytecode": {
+              "functionDebugData": {},
+              "generatedSources": [],
+              "linkReferences": {},
+              "object": "6080604052348015600e575f80fd5b50603e80601a5f395ff3fe60806040525f80fdfea2646970667358221220c72aea65f1253bb034ad646e28ff9b53b7a7effdf03dfd58726d59b7083d8d9c64736f6c63430008160033",
+              "opcodes": "PUSH1 0x80 PUSH1 0x40 MSTORE CALLVALUE DUP1 ISZERO PUSH1 0xE JUMPI PUSH0 DUP1 REVERT JUMPDEST POP PUSH1 0x3E DUP1 PUSH1 0x1A PUSH0 CODECOPY PUSH0 RETURN INVALID PUSH1 0x80 PUSH1 0x40 MSTORE PUSH0 DUP1 REVERT INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 0xC7 0x2A 0xEA PUSH6 0xF1253BB034AD PUSH5 0x6E28FF9B53 0xB7 0xA7 0xEF REVERT CREATE RETURNDATASIZE REVERT PC PUSH19 0x6D59B7083D8D9C64736F6C6343000816003300 ",
+              "sourceMap": "98:14:2:-:0;;;;;;;;;;;;;;;;;;;"
+            },
+            "deployedBytecode": {
+              "functionDebugData": {},
+              "generatedSources": [],
+              "immutableReferences": {},
+              "linkReferences": {},
+              "object": "60806040525f80fdfea2646970667358221220c72aea65f1253bb034ad646e28ff9b53b7a7effdf03dfd58726d59b7083d8d9c64736f6c63430008160033",
+              "opcodes": "PUSH1 0x80 PUSH1 0x40 MSTORE PUSH0 DUP1 REVERT INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 0xC7 0x2A 0xEA PUSH6 0xF1253BB034AD PUSH5 0x6E28FF9B53 0xB7 0xA7 0xEF REVERT CREATE RETURNDATASIZE REVERT PC PUSH19 0x6D59B7083D8D9C64736F6C6343000816003300 ",
+              "sourceMap": "98:14:2:-:0;;;;;"
+            },
+            "methodIdentifiers": {}
+          },
+          "metadata": "{\"compiler\":{\"version\":\"0.8.22+commit.4fc1097e\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/C.sol\":\"C2\"},\"evmVersion\":\"shanghai\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[\":@openzeppelin/contracts/=npm/@openzeppelin/contracts@5.1.0/\",\":remapped/=npm/@openzeppelin/contracts@5.1.0/access/\"]},\"sources\":{\"contracts/B.sol\":{\"keccak256\":\"0xe3bfba24c7ab781173f217b2a770a1bf762950f485d589fef5066493a9781575\",\"license\":\"UNLICENSED\",\"urls\":[\"bzz-raw://0265cd6edebc0e6ce4d1ed1107e40d1d0a79ad6ffc532269a9ac648a850e03b6\",\"dweb:/ipfs/QmaGSjd8xq5KotjZW1CWSRNEzXY4kWrBpDeGw16cuqNgpY\"]},\"contracts/C.sol\":{\"keccak256\":\"0xc59a3c8bafbab383c5b64ed325f6a3a61ec9fe36d5a375f2723cfd272c819675\",\"license\":\"UNLICENSED\",\"urls\":[\"bzz-raw://294d208fbc2235f9e93c60f0caca7723bf4a08397cc5932783a89d72a2319c42\",\"dweb:/ipfs/QmUn6fonDgB3rZ84UjUNnY65vRm28qPTMKknFcVY6r7E28\"]},\"npm/@openzeppelin/contracts@5.1.0/access/Ownable.sol\":{\"keccak256\":\"0x8bb13fdfb1cc614eed7de55fe3b8deb01cf864a125a43b0bb083f029698b834d\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://98a23f280b79fe5ee104c3748e3caf90c846d8dd41c9e1b333f500ec94c6dbea\",\"dweb:/ipfs/QmTD9zsov5nahn894F69rvUKcEphBXGR51f8Qy4Z67BLyx\"]}},\"version\":1}"
+        }
+      },
+      "npm/@openzeppelin/contracts@5.1.0/access/Ownable.sol": {
+        "Ownable": {
+          "abi": [],
+          "evm": {
+            "bytecode": {
+              "functionDebugData": {},
+              "generatedSources": [],
+              "linkReferences": {},
+              "object": "",
+              "opcodes": "",
+              "sourceMap": ""
+            },
+            "deployedBytecode": {
+              "functionDebugData": {},
+              "generatedSources": [],
+              "immutableReferences": {},
+              "linkReferences": {},
+              "object": "",
+              "opcodes": "",
+              "sourceMap": ""
+            },
+            "methodIdentifiers": {}
+          },
+          "metadata": "{\"compiler\":{\"version\":\"0.8.22+commit.4fc1097e\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"npm/@openzeppelin/contracts@5.1.0/access/Ownable.sol\":\"Ownable\"},\"evmVersion\":\"shanghai\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[\":@openzeppelin/contracts/=npm/@openzeppelin/contracts@5.1.0/\",\":remapped/=npm/@openzeppelin/contracts@5.1.0/access/\"]},\"sources\":{\"npm/@openzeppelin/contracts@5.1.0/access/Ownable.sol\":{\"keccak256\":\"0x8bb13fdfb1cc614eed7de55fe3b8deb01cf864a125a43b0bb083f029698b834d\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://98a23f280b79fe5ee104c3748e3caf90c846d8dd41c9e1b333f500ec94c6dbea\",\"dweb:/ipfs/QmTD9zsov5nahn894F69rvUKcEphBXGR51f8Qy4Z67BLyx\"]}},\"version\":1}"
+        }
+      }
+    },
+    "sources": {
+      "contracts/A.sol": {
+        "ast": {
+          "absolutePath": "contracts/A.sol",
+          "exportedSymbols": { "A": [6], "B": [10], "Ownable": [27] },
+          "id": 7,
+          "license": "UNLICENSED",
+          "nodeType": "SourceUnit",
+          "nodes": [
+            {
+              "id": 1,
+              "literals": ["solidity", "^", "0.8", ".0"],
+              "nodeType": "PragmaDirective",
+              "src": "39:23:0"
+            },
+            {
+              "id": 2,
+              "literals": ["solidity", "*"],
+              "nodeType": "PragmaDirective",
+              "src": "63:18:0"
+            },
+            {
+              "absolutePath": "contracts/B.sol",
+              "file": "./B.sol",
+              "id": 3,
+              "nameLocation": "-1:-1:-1",
+              "nodeType": "ImportDirective",
+              "scope": 7,
+              "sourceUnit": 11,
+              "src": "83:17:0",
+              "symbolAliases": [],
+              "unitAlias": ""
+            },
+            {
+              "abstract": false,
+              "baseContracts": [
+                {
+                  "baseName": {
+                    "id": 4,
+                    "name": "B",
+                    "nameLocations": ["116:1:0"],
+                    "nodeType": "IdentifierPath",
+                    "referencedDeclaration": 10,
+                    "src": "116:1:0"
+                  },
+                  "id": 5,
+                  "nodeType": "InheritanceSpecifier",
+                  "src": "116:1:0"
+                }
+              ],
+              "canonicalName": "A",
+              "contractDependencies": [],
+              "contractKind": "contract",
+              "fullyImplemented": true,
+              "id": 6,
+              "linearizedBaseContracts": [6, 10],
+              "name": "A",
+              "nameLocation": "111:1:0",
+              "nodeType": "ContractDefinition",
+              "nodes": [],
+              "scope": 7,
+              "src": "102:18:0",
+              "usedErrors": [],
+              "usedEvents": []
+            }
+          ],
+          "src": "39:82:0"
+        },
+        "id": 0
+      },
+      "contracts/B.sol": {
+        "ast": {
+          "absolutePath": "contracts/B.sol",
+          "exportedSymbols": { "B": [10], "Ownable": [27] },
+          "id": 11,
+          "license": "UNLICENSED",
+          "nodeType": "SourceUnit",
+          "nodes": [
+            {
+              "id": 8,
+              "literals": ["solidity", "^", "0.8", ".0"],
+              "nodeType": "PragmaDirective",
+              "src": "39:23:1"
+            },
+            {
+              "absolutePath": "npm/@openzeppelin/contracts@5.1.0/access/Ownable.sol",
+              "file": "@openzeppelin/contracts/access/Ownable.sol",
+              "id": 9,
+              "nameLocation": "-1:-1:-1",
+              "nodeType": "ImportDirective",
+              "scope": 11,
+              "sourceUnit": 28,
+              "src": "64:52:1",
+              "symbolAliases": [],
+              "unitAlias": ""
+            },
+            {
+              "abstract": false,
+              "baseContracts": [],
+              "canonicalName": "B",
+              "contractDependencies": [],
+              "contractKind": "contract",
+              "fullyImplemented": true,
+              "id": 10,
+              "linearizedBaseContracts": [10],
+              "name": "B",
+              "nameLocation": "127:1:1",
+              "nodeType": "ContractDefinition",
+              "nodes": [],
+              "scope": 11,
+              "src": "118:13:1",
+              "usedErrors": [],
+              "usedEvents": []
+            }
+          ],
+          "src": "39:93:1"
+        },
+        "id": 1
+      },
+      "contracts/C.sol": {
+        "ast": {
+          "absolutePath": "contracts/C.sol",
+          "exportedSymbols": {
+            "B": [10],
+            "C": [14],
+            "C2": [15],
+            "Ownable": [27]
+          },
+          "id": 16,
+          "license": "UNLICENSED",
+          "nodeType": "SourceUnit",
+          "nodes": [
+            {
+              "id": 12,
+              "literals": ["solidity", "^", "0.8", ".0"],
+              "nodeType": "PragmaDirective",
+              "src": "39:23:2"
+            },
+            {
+              "absolutePath": "contracts/B.sol",
+              "file": "./B.sol",
+              "id": 13,
+              "nameLocation": "-1:-1:-1",
+              "nodeType": "ImportDirective",
+              "scope": 16,
+              "sourceUnit": 11,
+              "src": "64:17:2",
+              "symbolAliases": [],
+              "unitAlias": ""
+            },
+            {
+              "abstract": false,
+              "baseContracts": [],
+              "canonicalName": "C",
+              "contractDependencies": [],
+              "contractKind": "contract",
+              "fullyImplemented": true,
+              "id": 14,
+              "linearizedBaseContracts": [14],
+              "name": "C",
+              "nameLocation": "92:1:2",
+              "nodeType": "ContractDefinition",
+              "nodes": [],
+              "scope": 16,
+              "src": "83:13:2",
+              "usedErrors": [],
+              "usedEvents": []
+            },
+            {
+              "abstract": false,
+              "baseContracts": [],
+              "canonicalName": "C2",
+              "contractDependencies": [],
+              "contractKind": "contract",
+              "fullyImplemented": true,
+              "id": 15,
+              "linearizedBaseContracts": [15],
+              "name": "C2",
+              "nameLocation": "107:2:2",
+              "nodeType": "ContractDefinition",
+              "nodes": [],
+              "scope": 16,
+              "src": "98:14:2",
+              "usedErrors": [],
+              "usedEvents": []
+            }
+          ],
+          "src": "39:74:2"
+        },
+        "id": 2
+      },
+      "contracts/D.sol": {
+        "ast": {
+          "absolutePath": "contracts/D.sol",
+          "exportedSymbols": {
+            "B": [10],
+            "C": [14],
+            "C2": [15],
+            "Ownable": [27]
+          },
+          "id": 19,
+          "license": "UNLICENSED",
+          "nodeType": "SourceUnit",
+          "nodes": [
+            {
+              "id": 17,
+              "literals": ["solidity", "^", "0.8", ".22"],
+              "nodeType": "PragmaDirective",
+              "src": "39:24:3"
+            },
+            {
+              "absolutePath": "contracts/C.sol",
+              "file": "./C.sol",
+              "id": 18,
+              "nameLocation": "-1:-1:-1",
+              "nodeType": "ImportDirective",
+              "scope": 19,
+              "sourceUnit": 16,
+              "src": "65:17:3",
+              "symbolAliases": [],
+              "unitAlias": ""
+            }
+          ],
+          "src": "39:44:3"
+        },
+        "id": 3
+      },
+      "contracts/E.sol": {
+        "ast": {
+          "absolutePath": "contracts/E.sol",
+          "exportedSymbols": {
+            "B": [10],
+            "C": [14],
+            "C2": [15],
+            "Ownable": [27]
+          },
+          "id": 22,
+          "license": "UNLICENSED",
+          "nodeType": "SourceUnit",
+          "nodes": [
+            {
+              "id": 20,
+              "literals": ["solidity", "^", "0.8", ".22"],
+              "nodeType": "PragmaDirective",
+              "src": "39:24:4"
+            },
+            {
+              "absolutePath": "contracts/C.sol",
+              "file": "./C.sol",
+              "id": 21,
+              "nameLocation": "-1:-1:-1",
+              "nodeType": "ImportDirective",
+              "scope": 22,
+              "sourceUnit": 16,
+              "src": "65:17:4",
+              "symbolAliases": [],
+              "unitAlias": ""
+            }
+          ],
+          "src": "39:44:4"
+        },
+        "id": 4
+      },
+      "contracts/UserRemappedImport.sol": {
+        "ast": {
+          "absolutePath": "contracts/UserRemappedImport.sol",
+          "exportedSymbols": { "Ownable": [27] },
+          "id": 25,
+          "license": "SEE LICENSE IN LICENSE",
+          "nodeType": "SourceUnit",
+          "nodes": [
+            {
+              "id": 23,
+              "literals": ["solidity", "^", "0.8", ".0"],
+              "nodeType": "PragmaDirective",
+              "src": "51:23:5"
+            },
+            {
+              "absolutePath": "npm/@openzeppelin/contracts@5.1.0/access/Ownable.sol",
+              "file": "remapped/Ownable.sol",
+              "id": 24,
+              "nameLocation": "-1:-1:-1",
+              "nodeType": "ImportDirective",
+              "scope": 25,
+              "sourceUnit": 28,
+              "src": "76:30:5",
+              "symbolAliases": [],
+              "unitAlias": ""
+            }
+          ],
+          "src": "51:56:5"
+        },
+        "id": 5
+      },
+      "npm/@openzeppelin/contracts@5.1.0/access/Ownable.sol": {
+        "ast": {
+          "absolutePath": "npm/@openzeppelin/contracts@5.1.0/access/Ownable.sol",
+          "exportedSymbols": { "Ownable": [27] },
+          "id": 28,
+          "license": "MIT",
+          "nodeType": "SourceUnit",
+          "nodes": [
+            {
+              "id": 26,
+              "literals": ["solidity", "^", "0.8", ".20"],
+              "nodeType": "PragmaDirective",
+              "src": "102:24:6"
+            },
+            {
+              "abstract": true,
+              "baseContracts": [],
+              "canonicalName": "Ownable",
+              "contractDependencies": [],
+              "contractKind": "contract",
+              "fullyImplemented": true,
+              "id": 27,
+              "linearizedBaseContracts": [27],
+              "name": "Ownable",
+              "nameLocation": "146:7:6",
+              "nodeType": "ContractDefinition",
+              "nodes": [],
+              "scope": 28,
+              "src": "128:28:6",
+              "usedErrors": [],
+              "usedEvents": []
+            }
+          ],
+          "src": "102:55:6"
+        },
+        "id": 6
+      }
+    }
+  }
+}

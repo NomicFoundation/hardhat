@@ -16,7 +16,7 @@ export interface A$Type {
   readonly immutableReferences: {};
   readonly inputSourceName: "contracts/A.sol";
   readonly buildInfoId: "652e717a54777ac28e86bc7084fcbc8f";
-};
+}
 
 import "@ignored/hardhat-vnext/types/artifacts";
 declare module "@ignored/hardhat-vnext/types/artifacts" {

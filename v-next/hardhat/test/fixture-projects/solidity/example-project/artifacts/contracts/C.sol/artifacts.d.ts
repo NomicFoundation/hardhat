@@ -16,7 +16,7 @@ export interface C$Type {
   readonly immutableReferences: {};
   readonly inputSourceName: "contracts/C.sol";
   readonly buildInfoId: "652e717a54777ac28e86bc7084fcbc8f";
-};
+}
 
 export interface C2$Type {
   readonly _format: "hh3-artifact-1";
@@ -30,14 +30,14 @@ export interface C2$Type {
   readonly immutableReferences: {};
   readonly inputSourceName: "contracts/C.sol";
   readonly buildInfoId: "652e717a54777ac28e86bc7084fcbc8f";
-};
+}
 
 import "@ignored/hardhat-vnext/types/artifacts";
 declare module "@ignored/hardhat-vnext/types/artifacts" {
   interface ArtifactMap {
-    ["C"]: C$Type
+    ["C"]: C$Type;
     ["C2"]: C2$Type;
-    ["contracts/C.sol:C"]: C$Type
+    ["contracts/C.sol:C"]: C$Type;
     ["contracts/C.sol:C2"]: C2$Type;
   }
 }
