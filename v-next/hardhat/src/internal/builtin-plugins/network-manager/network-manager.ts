@@ -1,3 +1,5 @@
+import type { Hardhat2BuildInfo } from "./edr/types/node-types.js";
+import type { ArtifactsManager } from "../../../types/artifacts.js";
 import type {
   NetworkConfig,
   NetworkConfigOverride,
@@ -14,8 +16,13 @@ import type {
   JsonRpcRequest,
   JsonRpcResponse,
 } from "../../../types/providers.js";
+import type {
+  SolidityBuildInfo,
+  SolidityBuildInfoOutput,
+} from "../../../types/solidity.js";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { readJsonFile } from "@ignored/hardhat-vnext-utils/fs";
 
 import { resolveConfigurationVariable } from "../../core/configuration-variables.js";
 
@@ -207,6 +214,10 @@ export class NetworkManagerImplementation implements NetworkManager {
             chainType: resolvedChainType as ChainType,
           },
           jsonRpcRequestWrapper,
+          tracingConfig: {
+            buildInfos: await this.#getHardhat2BuildInfos(),
+            ignoreContracts: false,
+          },
         });
       }
 
@@ -236,5 +247,35 @@ export class NetworkManagerImplementation implements NetworkManager {
       },
       createProvider,
     );
+  }
+
+  async #getHardhat2BuildInfos(): Promise<Hardhat2BuildInfo[]> {
+    const buildInfos: Hardhat2BuildInfo[] = [];
+
+    for (const id of await this.#artifactsManager.getAllBuildInfoIds()) {
+      const buildInfoPath = await this.#artifactsManager.getBuildInfoPath(id);
+      const buildInfoOutputPath =
+        await this.#artifactsManager.getBuildInfoOutputPath(id);
+
+      // TODO: This is a temporary solution while edr-optimism doesn't support
+      // the new build infos.
+      if (buildInfoPath !== undefined && buildInfoOutputPath !== undefined) {
+        const hh3BuildInfo =
+          await readJsonFile<SolidityBuildInfo>(buildInfoPath);
+        const hh3BuildInfoOutput =
+          await readJsonFile<SolidityBuildInfoOutput>(buildInfoOutputPath);
+
+        buildInfos.push({
+          _format: "hh-sol-build-info-1",
+          id,
+          solcVersion: hh3BuildInfo.solcVersion,
+          solcLongVersion: hh3BuildInfo.solcLongVersion,
+          input: hh3BuildInfo.input,
+          output: hh3BuildInfoOutput.output,
+        });
+      }
+    }
+
+    return buildInfos;
   }
 }
