@@ -248,7 +248,7 @@ export async function hardhatAccountsToEdrOwnedAccounts(
   return Promise.all(accountPromises);
 }
 
-async function normalizeEdrNetworkAccountsConfig(
+export async function normalizeEdrNetworkAccountsConfig(
   accounts: EdrNetworkAccountsConfig,
 ): Promise<EdrNetworkAccountConfig[]> {
   if (Array.isArray(accounts)) {
