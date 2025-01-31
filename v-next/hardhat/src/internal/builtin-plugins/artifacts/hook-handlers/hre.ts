@@ -46,9 +46,9 @@ class LazyArtifactsManager implements ArtifactsManager {
     return artifactsManager.getBuildInfoId(contractNameOrFullyQualifiedName);
   }
 
-  public async getBuildInfoIds(): Promise<string[]> {
+  public async getAllBuildInfoIds(): Promise<string[]> {
     const artifactsManager = await this.#getArtifactsManager();
-    return artifactsManager.getBuildInfoIds();
+    return artifactsManager.getAllBuildInfoIds();
   }
 
   public async getBuildInfoPath(

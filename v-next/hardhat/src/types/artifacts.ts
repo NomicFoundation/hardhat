@@ -81,7 +81,7 @@ export interface ArtifactsManager {
    * Note that there's one build info per run of solc, so they can be shared
    * by different contracts.
    */
-  getBuildInfoIds(): Promise<string[]>;
+  getAllBuildInfoIds(): Promise<string[]>;
 
   /**
    * Returns the absolute path to the given build info, or undefined if it

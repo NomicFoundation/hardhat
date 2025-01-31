@@ -81,7 +81,7 @@ export class MockArtifactsManager implements ArtifactsManager {
     });
   }
 
-  public async getBuildInfoIds(): Promise<string[]> {
+  public async getAllBuildInfoIds(): Promise<string[]> {
     throw new HardhatError(HardhatError.ERRORS.INTERNAL.NOT_IMPLEMENTED_ERROR, {
       message: "Not implemented in MockArtifactsManager",
     });

@@ -71,7 +71,7 @@ export class ArticlesManagerImplementation implements ArtifactsManager {
     );
   }
 
-  public async getBuildInfoIds(): Promise<string[]> {
+  public async getAllBuildInfoIds(): Promise<string[]> {
     const paths = await getAllFilesMatching(
       path.join(this.#artifactsPath, BUILD_INFO_DIR_NAME),
       (p) => p.endsWith(".json") && !p.endsWith(".output.json"),
