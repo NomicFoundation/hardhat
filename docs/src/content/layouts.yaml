@@ -67,3 +67,10 @@ tutorial:
   title: tutorial
   folders:
     - tutorial
+
+hh3:
+  title: hh3
+  folders:
+    - hh3
+    - hh3/comparison
+    - hh3/under-the-hood
