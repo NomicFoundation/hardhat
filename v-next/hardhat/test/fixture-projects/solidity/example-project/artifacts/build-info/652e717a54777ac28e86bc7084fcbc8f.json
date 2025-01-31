@@ -1,6 +1,6 @@
 {
   "_format": "hh3-sol-build-info-1",
-  "id": "c6d3d46c7bda8aac0e4258c216012f50",
+  "id": "652e717a54777ac28e86bc7084fcbc8f",
   "solcVersion": "0.8.22",
   "solcLongVersion": "0.8.22+commit.4fc1097e",
   "publicSourceNameMap": {
@@ -40,60 +40,15 @@
       "evmVersion": "shanghai",
       "outputSelection": {
         "*": {
-          "": ["ast"]
-        },
-        "contracts/A.sol": {
           "*": [
             "abi",
             "evm.bytecode",
             "evm.deployedBytecode",
             "evm.methodIdentifiers",
             "metadata"
-          ]
-        },
-        "contracts/B.sol": {
-          "*": [
-            "abi",
-            "evm.bytecode",
-            "evm.deployedBytecode",
-            "evm.methodIdentifiers",
-            "metadata"
-          ]
-        },
-        "contracts/C.sol": {
-          "*": [
-            "abi",
-            "evm.bytecode",
-            "evm.deployedBytecode",
-            "evm.methodIdentifiers",
-            "metadata"
-          ]
-        },
-        "contracts/D.sol": {
-          "*": [
-            "abi",
-            "evm.bytecode",
-            "evm.deployedBytecode",
-            "evm.methodIdentifiers",
-            "metadata"
-          ]
-        },
-        "contracts/E.sol": {
-          "*": [
-            "abi",
-            "evm.bytecode",
-            "evm.deployedBytecode",
-            "evm.methodIdentifiers",
-            "metadata"
-          ]
-        },
-        "contracts/UserRemappedImport.sol": {
-          "*": [
-            "abi",
-            "evm.bytecode",
-            "evm.deployedBytecode",
-            "evm.methodIdentifiers",
-            "metadata"
+          ],
+          "": [
+            "ast"
           ]
         }
       },
