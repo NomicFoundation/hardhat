@@ -143,9 +143,6 @@ export function formatSingleError(
       match = message.match(/^(.*)\n\s*?(?:.*?) !==/s);
     }
 
-    // Format 3: AssertionError: {message}:
-    match = match ?? message.match(/^(AssertionError:\s.*)\:/);
-
     if (match !== null) {
       // The message may contain white spaces or newlines at the end, so we trim
       // it.
