@@ -64,7 +64,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       packages: ${{ steps.filter.outputs.changes }}
-      files: ${{ toJSON(steps.filter.outputs) }}
+      should_bundle: ${{ contains(steps.filter.outputs.hardhat_files, '.github/workflows/v-next-ci.yml') || contains(steps.filter.outputs.hardhat_files, 'pnpm-lock.yaml') }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -96,15 +96,14 @@ jobs:
         with:
           list-files: json
           filters: ${{ steps.generate.outputs.filters }}
+          base: v-next # TODO: Remove once v-next becomes the default branch
 
   bundle:
     # Depending on list-packages only to check whether pnpm-lock.yaml has changed
     # This could be handled by a simpler job, but an extra runner would have to be allocated for it
     needs: list-packages
 
-    if: |
-      contains(fromJSON(needs.list-packages.outputs.files).hardhat_files, '.github/workflows/v-next-ci.yml') ||
-        contains(fromJSON(needs.list-packages.outputs.files).hardhat_files, 'pnpm-lock.yaml')
+    if: needs.list-packages.outputs.should_bundle == 'true'
 
     # Using a matrix strategy even though there's only one package
     # because we will want to add, at least, hardhat-toolbox in the future
