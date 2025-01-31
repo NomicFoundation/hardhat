@@ -1,13 +1,8 @@
 import type {
   Artifact,
   ArtifactsManager,
-  BuildInfo,
   GetAtifactByName,
 } from "@ignored/hardhat-vnext/types/artifacts";
-import type {
-  CompilerInput,
-  CompilerOutput,
-} from "@ignored/hardhat-vnext/types/solidity";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
@@ -28,6 +23,10 @@ export class MockArtifactsManager implements ArtifactsManager {
         this.#artifactsPaths.set(artifactName, fileName);
       }
     }
+  }
+
+  public async saveArtifact(artifact: Artifact): Promise<void> {
+    this.#artifacts.set(artifact.contractName, artifact);
   }
 
   public async readArtifact<ContractNameT extends string>(
@@ -52,7 +51,15 @@ export class MockArtifactsManager implements ArtifactsManager {
     return artifact;
   }
 
-  public artifactExists(
+  public async getArtifactPath(
+    _contractNameOrFullyQualifiedName: string,
+  ): Promise<string> {
+    throw new HardhatError(HardhatError.ERRORS.INTERNAL.NOT_IMPLEMENTED_ERROR, {
+      message: "Not implemented in MockArtifactsManager",
+    });
+  }
+
+  public async artifactExists(
     _contractNameOrFullyQualifiedName: string,
   ): Promise<boolean> {
     throw new HardhatError(HardhatError.ERRORS.INTERNAL.NOT_IMPLEMENTED_ERROR, {
@@ -60,64 +67,37 @@ export class MockArtifactsManager implements ArtifactsManager {
     });
   }
 
-  public getAllFullyQualifiedNames(): Promise<string[]> {
+  public async getAllFullyQualifiedNames(): Promise<string[]> {
     throw new HardhatError(HardhatError.ERRORS.INTERNAL.NOT_IMPLEMENTED_ERROR, {
       message: "Not implemented in MockArtifactsManager",
     });
   }
 
-  public getBuildInfo(
-    _fullyQualifiedName: string,
-  ): Promise<BuildInfo | undefined> {
-    throw new HardhatError(HardhatError.ERRORS.INTERNAL.NOT_IMPLEMENTED_ERROR, {
-      message: "Not implemented in MockArtifactsManager",
-    });
-  }
-
-  public getArtifactPaths(): Promise<string[]> {
-    throw new HardhatError(HardhatError.ERRORS.INTERNAL.NOT_IMPLEMENTED_ERROR, {
-      message: "Not implemented in MockArtifactsManager",
-    });
-  }
-
-  public getDebugFilePaths(): Promise<string[]> {
-    throw new HardhatError(HardhatError.ERRORS.INTERNAL.NOT_IMPLEMENTED_ERROR, {
-      message: "Not implemented in MockArtifactsManager",
-    });
-  }
-
-  public getBuildInfoPaths(): Promise<string[]> {
-    throw new HardhatError(HardhatError.ERRORS.INTERNAL.NOT_IMPLEMENTED_ERROR, {
-      message: "Not implemented in MockArtifactsManager",
-    });
-  }
-
-  public async saveArtifact(artifact: Artifact): Promise<void> {
-    this.#artifacts.set(artifact.contractName, artifact);
-  }
-
-  public saveBuildInfo(
-    _solcVersion: string,
-    _solcLongVersion: string,
-    _input: CompilerInput,
-    _output: CompilerOutput,
-  ): Promise<string> {
-    throw new HardhatError(HardhatError.ERRORS.INTERNAL.NOT_IMPLEMENTED_ERROR, {
-      message: "Not implemented in MockArtifactsManager",
-    });
-  }
-
-  public formArtifactPathFromFullyQualifiedName(
-    _fullyQualifiedName: string,
-  ): string {
-    throw new HardhatError(HardhatError.ERRORS.INTERNAL.NOT_IMPLEMENTED_ERROR, {
-      message: "Not implemented in MockArtifactsManager",
-    });
-  }
-
-  public getArtifactPath(
+  public async getBuildInfoId(
     _contractNameOrFullyQualifiedName: string,
-  ): Promise<string> {
+  ): Promise<string | undefined> {
+    throw new HardhatError(HardhatError.ERRORS.INTERNAL.NOT_IMPLEMENTED_ERROR, {
+      message: "Not implemented in MockArtifactsManager",
+    });
+  }
+
+  public async getBuildInfoIds(): Promise<string[]> {
+    throw new HardhatError(HardhatError.ERRORS.INTERNAL.NOT_IMPLEMENTED_ERROR, {
+      message: "Not implemented in MockArtifactsManager",
+    });
+  }
+
+  public async getBuildInfoPath(
+    _buildInfoId: string,
+  ): Promise<string | undefined> {
+    throw new HardhatError(HardhatError.ERRORS.INTERNAL.NOT_IMPLEMENTED_ERROR, {
+      message: "Not implemented in MockArtifactsManager",
+    });
+  }
+
+  public async getBuildInfoOutputPath(
+    _buildInfoId: string,
+  ): Promise<string | undefined> {
     throw new HardhatError(HardhatError.ERRORS.INTERNAL.NOT_IMPLEMENTED_ERROR, {
       message: "Not implemented in MockArtifactsManager",
     });

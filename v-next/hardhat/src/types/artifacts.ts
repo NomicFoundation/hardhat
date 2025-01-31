@@ -38,12 +38,19 @@ export interface ArtifactsManager {
   ): Promise<GetAtifactByName<ContractNameT>>;
 
   /**
+   * Returns the absolute path to the given artifact.
+   *
+   * @param contractNameOrFullyQualifiedName The name or fully qualified name
+   * of the contract.
+   */
+  getArtifactPath(contractNameOrFullyQualifiedName: string): Promise<string>;
+
+  /**
    * Returns true if an artifact exists.
    *
    * This function doesn't throw if the name is not unique.
    *
    * @param contractNameOrFullyQualifiedName Contract or fully qualified name.
-   *
    */
   artifactExists(contractNameOrFullyQualifiedName: string): Promise<boolean>;
 
@@ -53,36 +60,46 @@ export interface ArtifactsManager {
   getAllFullyQualifiedNames(): Promise<string[]>;
 
   /**
-   * Returns the BuildInfo associated with the solc run that compiled a
+   * Returns the BuildInfo id associated with the solc run that compiled a
    * contract.
    *
-   * Note that if your contract hasn't been compiled with Hardhat's build system
-   * this method can return undefined.
-   */
-  getBuildInfo(fullyQualifiedName: string): Promise<BuildInfo | undefined>;
-
-  /**
-   * Returns an array with the absolute paths of all the existing artifacts.
+   * Note that it may return `undefined` if the contract wasn't compiled with
+   * Hardhat's build system.
    *
-   * Note that there's an artifact per contract.
+   * If it it does return an id, it's not guaranteed that the build info is
+   * present.
+   *
+   * @param contractNameOrFullyQualifiedName Contract or fully qualified name, whose artifact must exist.
    */
-  getArtifactPaths(): Promise<string[]>;
+  getBuildInfoId(
+    contractNameOrFullyQualifiedName: string,
+  ): Promise<string | undefined>;
 
   /**
-   * Returns an array with the absolute paths of all the existing build infos.
+   * Returns an array with the ids of all the existing build infos.
    *
    * Note that there's one build info per run of solc, so they can be shared
    * by different contracts.
    */
-  getBuildInfoPaths(): Promise<string[]>;
+  getBuildInfoIds(): Promise<string[]>;
 
   /**
-   * Returns the absolute path to the given artifact.
+   * Returns the absolute path to the given build info, or undefined if it
+   * doesn't exist.
    *
-   * @param contractNameOrFullyQualifiedName The name or fully qualified name
-   * of the contract.
+   * @param buildInfoId The id of an existing build info.
    */
-  getArtifactPath(contractNameOrFullyQualifiedName: string): Promise<string>;
+  getBuildInfoPath(buildInfoId: string): Promise<string | undefined>;
+
+  /**
+   * Returns the absolute path to the output of the given build info,
+   * if present.
+   *
+   * Note that the build info may exist, but it's output may not.
+   *
+   * @param buildInfoId The id of an existing build info.
+   */
+  getBuildInfoOutputPath(buildInfoId: string): Promise<string | undefined>;
 }
 
 /**
