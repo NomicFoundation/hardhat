@@ -104,10 +104,7 @@ export class ArticlesManagerImplementation implements ArtifactsManager {
 
       this.#allArtifactPaths = await getAllFilesMatching(
         this.#artifactsPath,
-        (p) =>
-          !p.startsWith(buildInfosDir) &&
-          p.endsWith(".json") &&
-          !p.includes(".sol" + path.sep),
+        (p) => !p.startsWith(buildInfosDir) && p.endsWith(".json"),
       );
     }
 
@@ -146,7 +143,7 @@ export class ArticlesManagerImplementation implements ArtifactsManager {
       );
     }
 
-    return fqns[1];
+    return fqns[0];
   }
 
   async #getBareNameToFullyQualifiedNameMap(): Promise<Map<string, string[]>> {
