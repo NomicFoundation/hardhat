@@ -2376,6 +2376,12 @@ importers:
       '@ignored/hardhat-vnext-zod-utils':
         specifier: workspace:^3.0.0-next.15
         version: link:../hardhat-zod-utils
+      '@noble/ciphers':
+        specifier: 1.2.1
+        version: 1.2.1
+      '@noble/hashes':
+        specifier: 1.7.1
+        version: 1.7.1
       chalk:
         specifier: ^5.3.0
         version: 5.4.1
@@ -4002,6 +4008,10 @@ packages:
 
   '@microsoft/tsdoc@0.14.2':
     resolution: {integrity: sha512-9b8mPpKrfeGRuhFH5iO1iwCLeIIsV6+H1sRfxbkoGXIyQE2BTsPd9zqSqQJ+pv5sJ/hT5M1zvOFL02MnEezFug==}
+
+  '@noble/ciphers@1.2.1':
+    resolution: {integrity: sha512-rONPWMC7PeExE077uLE4oqWrZ1IvAfz3oH9LibVAcVCopJiA9R62uavnbEzdkVmJYI6M6Zgkbeb07+tWjlq2XA==}
+    engines: {node: ^14.21.3 || >=16}
 
   '@noble/curves@1.2.0':
     resolution: {integrity: sha512-oYclrNgRaM9SsBUBVbb8M6DTV7ZHRTKugureoYEncY5c65HOmRzvSiTE3y5CYaPYJA/GVkrhXEoF0M3Ya9PMnw==}
@@ -9769,6 +9779,8 @@ snapshots:
       resolve: 1.19.0
 
   '@microsoft/tsdoc@0.14.2': {}
+
+  '@noble/ciphers@1.2.1': {}
 
   '@noble/curves@1.2.0':
     dependencies:
