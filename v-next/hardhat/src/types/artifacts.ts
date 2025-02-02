@@ -100,6 +100,18 @@ export interface ArtifactsManager {
    * @param buildInfoId The id of an existing build info.
    */
   getBuildInfoOutputPath(buildInfoId: string): Promise<string | undefined>;
+
+  /**
+   * An artifact manager may cache information about the artifacts present in
+   * the project, for performance reasons. For example, it may read the entire
+   * list of artifacts from the file system, and cache it in memory.
+   *
+   * This method clears the artifact manager's cache, if any.
+   *
+   * This method is not meant to be used by end users, but by the Hardhat team
+   * and build-system-related plugins.
+   */
+  clearCache(): Promise<void>;
 }
 
 /**
