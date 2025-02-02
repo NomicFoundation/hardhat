@@ -3,16 +3,13 @@
     [31m1) should fail[39m
 
 
-[32m1 passing[39m[90m (216ms)[39m[31m[39m
+[32m1 passing[39m[90m (214ms)[39m[31m[39m
 [31m1 failing[39m
 
   1) imported tests
        should fail:
 
-   [31mAssertionError: Expected values to be strictly equal:[39m
-   [31m[39m
-   [31m1 !== 2[39m
-   [31m[39m
+   [31mAssertionError: Expected values to be strictly equal[39m
    [32m- Expected[39m
    [31m+ Received[39m
    
