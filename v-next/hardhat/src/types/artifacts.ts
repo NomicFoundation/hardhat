@@ -55,9 +55,9 @@ export interface ArtifactsManager {
   artifactExists(contractNameOrFullyQualifiedName: string): Promise<boolean>;
 
   /**
-   * Returns an array with the fully qualified names of all the artifacts.
+   * Returns a set with the fully qualified names of all the artifacts.
    */
-  getAllFullyQualifiedNames(): Promise<string[]>;
+  getAllFullyQualifiedNames(): Promise<ReadonlySet<string>>;
 
   /**
    * Returns the BuildInfo id associated with the solc run that compiled a
@@ -76,12 +76,12 @@ export interface ArtifactsManager {
   ): Promise<string | undefined>;
 
   /**
-   * Returns an array with the ids of all the existing build infos.
+   * Returns an set with the ids of all the existing build infos.
    *
    * Note that there's one build info per run of solc, so they can be shared
    * by different contracts.
    */
-  getAllBuildInfoIds(): Promise<string[]>;
+  getAllBuildInfoIds(): Promise<ReadonlySet<string>>;
 
   /**
    * Returns the absolute path to the given build info, or undefined if it
