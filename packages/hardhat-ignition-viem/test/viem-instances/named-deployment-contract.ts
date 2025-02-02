@@ -81,22 +81,22 @@ describe("deploy converts ignition named contract to viem instance", () => {
   it("should enforce the type is constrained to the contracts functions", async function () {
     await assert.isRejected(
       // @ts-expect-error
-      result.foo.write.nonexistantWrite(),
+      result.foo.write.nonexistentWrite(),
       /Make sure you are using the correct ABI and that the function exists on it./
     );
     await assert.isRejected(
       // @ts-expect-error
-      result.foo.read.nonexistantRead(),
+      result.foo.read.nonexistentRead(),
       /Make sure you are using the correct ABI and that the function exists on it./
     );
     await assert.isRejected(
       // @ts-expect-error
-      result.foo.estimateGas.nonexistantEstimate(),
+      result.foo.estimateGas.nonexistentEstimate(),
       /Make sure you are using the correct ABI and that the function exists on it./
     );
     await assert.isRejected(
       // @ts-expect-error
-      result.foo.simulate.nonexistantEstimate(),
+      result.foo.simulate.nonexistentEstimate(),
       /Make sure you are using the correct ABI and that the function exists on it./
     );
   });
