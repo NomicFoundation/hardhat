@@ -67,7 +67,7 @@ export class MockArtifactsManager implements ArtifactsManager {
     });
   }
 
-  public async getAllFullyQualifiedNames(): Promise<string[]> {
+  public async getAllFullyQualifiedNames(): Promise<ReadonlySet<string>> {
     throw new HardhatError(HardhatError.ERRORS.INTERNAL.NOT_IMPLEMENTED_ERROR, {
       message: "Not implemented in MockArtifactsManager",
     });
@@ -81,7 +81,7 @@ export class MockArtifactsManager implements ArtifactsManager {
     });
   }
 
-  public async getAllBuildInfoIds(): Promise<string[]> {
+  public async getAllBuildInfoIds(): Promise<ReadonlySet<string>> {
     throw new HardhatError(HardhatError.ERRORS.INTERNAL.NOT_IMPLEMENTED_ERROR, {
       message: "Not implemented in MockArtifactsManager",
     });
@@ -98,6 +98,12 @@ export class MockArtifactsManager implements ArtifactsManager {
   public async getBuildInfoOutputPath(
     _buildInfoId: string,
   ): Promise<string | undefined> {
+    throw new HardhatError(HardhatError.ERRORS.INTERNAL.NOT_IMPLEMENTED_ERROR, {
+      message: "Not implemented in MockArtifactsManager",
+    });
+  }
+
+  public async clearCache(): Promise<void> {
     throw new HardhatError(HardhatError.ERRORS.INTERNAL.NOT_IMPLEMENTED_ERROR, {
       message: "Not implemented in MockArtifactsManager",
     });
