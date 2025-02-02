@@ -238,7 +238,25 @@ describe("Generic crypto utils", () => {
   });
 });
 
+function createTestEmptyKeystore(password = "viva la ethereum"): {
+  emptyKeystore: EncryptedKeystore;
+  masterKey: Uint8Array;
+  salt: Uint8Array;
+  password: string;
+} {
+  const { salt, masterKey } = createMasterKey({ password });
+
+  const emptyKeystore = createEmptyEncryptedKeystore({
+    masterKey,
+    salt,
+  });
+
+  return { emptyKeystore, masterKey, salt, password };
+}
+
 describe("Keystore primitives", () => {
+  const testEmptyKeystore = createTestEmptyKeystore();
+
   describe("createMasterKey", () => {
     it("Should create new master key and salt every time", () => {
       const password = "viva la ethereum";
@@ -262,13 +280,7 @@ describe("Keystore primitives", () => {
 
   describe("Empty keystore creation", () => {
     it("Should use the provided master key and salt", () => {
-      const password = "viva la ethereum";
-      const { salt, masterKey } = createMasterKey({ password });
-
-      const emptyKeystore = createEmptyEncryptedKeystore({
-        masterKey,
-        salt,
-      });
+      const { emptyKeystore, masterKey, salt, password } = testEmptyKeystore;
 
       // We decrypt the data encryption key and hmac key to make sure they are
       // encrypted with the master key.
@@ -310,13 +322,7 @@ describe("Keystore primitives", () => {
     });
 
     it("Should set the right version and encryption values", () => {
-      const password = "viva la ethereum";
-      const { salt, masterKey } = createMasterKey({ password });
-
-      const emptyKeystore = createEmptyEncryptedKeystore({
-        masterKey,
-        salt,
-      });
+      const { emptyKeystore, salt } = testEmptyKeystore;
 
       assert.equal(emptyKeystore.version, KEYSTORE_VERSION);
       assert.deepEqual(emptyKeystore.crypto.masterKeyDerivation, {
@@ -341,13 +347,7 @@ describe("Keystore primitives", () => {
     });
 
     it("Should create different data encryption keys every time", () => {
-      const password = "viva la ethereum";
-      const { salt, masterKey } = createMasterKey({ password });
-
-      const emptyKeystore = createEmptyEncryptedKeystore({
-        masterKey,
-        salt,
-      });
+      const { emptyKeystore, salt, masterKey } = testEmptyKeystore;
 
       const emptyKeystore2 = createEmptyEncryptedKeystore({
         masterKey,
@@ -361,13 +361,7 @@ describe("Keystore primitives", () => {
     });
 
     it("Should create different hmac keys every time", () => {
-      const password = "viva la ethereum";
-      const { salt, masterKey } = createMasterKey({ password });
-
-      const emptyKeystore = createEmptyEncryptedKeystore({
-        masterKey,
-        salt,
-      });
+      const { emptyKeystore, salt, masterKey } = testEmptyKeystore;
 
       const emptyKeystore2 = createEmptyEncryptedKeystore({
         masterKey,
@@ -378,13 +372,7 @@ describe("Keystore primitives", () => {
     });
 
     it("Should create a valid hmac", () => {
-      const password = "viva la ethereum";
-      const { salt, masterKey } = createMasterKey({ password });
-
-      const emptyKeystore = createEmptyEncryptedKeystore({
-        masterKey,
-        salt,
-      });
+      const { emptyKeystore, masterKey } = testEmptyKeystore;
 
       const hmac = generateEncryptedKeystoreHmac({
         masterKey,
@@ -395,13 +383,7 @@ describe("Keystore primitives", () => {
     });
 
     it("Should have no secrets", () => {
-      const password = "viva la ethereum";
-      const { salt, masterKey } = createMasterKey({ password });
-
-      const emptyKeystore = createEmptyEncryptedKeystore({
-        masterKey,
-        salt,
-      });
+      const { emptyKeystore } = testEmptyKeystore;
 
       assert.deepEqual(emptyKeystore.secrets, {});
     });
@@ -409,12 +391,7 @@ describe("Keystore primitives", () => {
 
   describe("deriveMasterKeyFromKeystore", () => {
     it("Should derive the master key from the keystore", () => {
-      const password = "viva la ethereum";
-      const { salt, masterKey } = createMasterKey({ password });
-      const emptyKeystore = createEmptyEncryptedKeystore({
-        masterKey,
-        salt,
-      });
+      const { emptyKeystore, masterKey, password } = testEmptyKeystore;
 
       const derivedMasterKey = deriveMasterKeyFromKeystore({
         password,
@@ -427,13 +404,7 @@ describe("Keystore primitives", () => {
 
   describe("generateEncryptedKeystoreHmac", () => {
     it("Should generate the same hmac of an empty encrypted keystore every time", () => {
-      const password = "viva la ethereum";
-      const { salt, masterKey } = createMasterKey({ password });
-
-      const emptyKeystore = createEmptyEncryptedKeystore({
-        masterKey,
-        salt,
-      });
+      const { emptyKeystore, masterKey } = testEmptyKeystore;
 
       const hmac2 = generateEncryptedKeystoreHmac({
         masterKey,
@@ -451,13 +422,7 @@ describe("Keystore primitives", () => {
     });
 
     it("Should generate the same hmac of non empty encrypted keystore every time", () => {
-      const password = "viva la ethereum";
-      const { salt, masterKey } = createMasterKey({ password });
-
-      const emptyKeystore = createEmptyEncryptedKeystore({
-        masterKey,
-        salt,
-      });
+      const { emptyKeystore, masterKey } = testEmptyKeystore;
 
       const nonEmptyKeystore = addSecretToKeystore({
         masterKey,
@@ -482,13 +447,7 @@ describe("Keystore primitives", () => {
     });
 
     it("Should throw if the hmac key is corrupted", () => {
-      const password = "viva la ethereum";
-      const { salt, masterKey } = createMasterKey({ password });
-
-      const emptyKeystore = createEmptyEncryptedKeystore({
-        masterKey,
-        salt,
-      });
+      const { emptyKeystore, masterKey } = testEmptyKeystore;
 
       assertThrows(
         () =>
@@ -509,13 +468,9 @@ describe("Keystore primitives", () => {
 
   describe("Adding secrets to keystore", () => {
     it("Should add multiple secrets to a keystore, modifying only the secrets and hmac, allowing to overwrite secrets by key, and generating different cyphertext and ivs for the same secret values", () => {
-      const password = "viva la ethereum";
-      const { salt, masterKey } = createMasterKey({ password });
+      const { emptyKeystore, masterKey } = testEmptyKeystore;
 
-      let previousKeystore = createEmptyEncryptedKeystore({
-        masterKey,
-        salt,
-      });
+      let previousKeystore = emptyKeystore;
 
       let newKeystore = addSecretToKeystore({
         masterKey,
@@ -602,13 +557,7 @@ describe("Keystore primitives", () => {
     });
 
     it("Should validate the hmac", () => {
-      const password = "viva la ethereum";
-      const { salt, masterKey } = createMasterKey({ password });
-
-      const emptyKeystore = createEmptyEncryptedKeystore({
-        masterKey,
-        salt,
-      });
+      const { emptyKeystore, masterKey } = testEmptyKeystore;
 
       assertThrows(
         () =>
@@ -639,12 +588,7 @@ describe("Keystore primitives", () => {
 
   describe("Removing secrets to keystore", () => {
     it("Should throw if the secret is not present", () => {
-      const password = "viva la ethereum";
-      const { salt, masterKey } = createMasterKey({ password });
-      const emptyKeystore = createEmptyEncryptedKeystore({
-        masterKey,
-        salt,
-      });
+      const { emptyKeystore, masterKey } = testEmptyKeystore;
 
       assertThrows(
         () =>
@@ -658,12 +602,7 @@ describe("Keystore primitives", () => {
     });
 
     it("Should remove secrets from a keystore, modifying only that secret and the hmac", () => {
-      const password = "viva la ethereum";
-      const { salt, masterKey } = createMasterKey({ password });
-      const emptyKeystore = createEmptyEncryptedKeystore({
-        masterKey,
-        salt,
-      });
+      const { emptyKeystore, masterKey } = testEmptyKeystore;
 
       let keystore = emptyKeystore;
       keystore = addSecretToKeystore({
@@ -727,13 +666,7 @@ describe("Keystore primitives", () => {
     });
 
     it("Should validate the hmac", () => {
-      const password = "viva la ethereum";
-      const { salt, masterKey } = createMasterKey({ password });
-
-      const emptyKeystore = createEmptyEncryptedKeystore({
-        masterKey,
-        salt,
-      });
+      const { emptyKeystore, masterKey } = testEmptyKeystore;
 
       const keystore = addSecretToKeystore({
         masterKey,
@@ -759,12 +692,7 @@ describe("Keystore primitives", () => {
 
   describe("Decrypting a secret from keystore", () => {
     it("Should throw if the secret is not present", () => {
-      const password = "viva la ethereum";
-      const { salt, masterKey } = createMasterKey({ password });
-      const emptyKeystore = createEmptyEncryptedKeystore({
-        masterKey,
-        salt,
-      });
+      const { emptyKeystore, masterKey } = testEmptyKeystore;
 
       assertThrows(
         () =>
@@ -778,13 +706,7 @@ describe("Keystore primitives", () => {
     });
 
     it("Should allow a round trip of adding and decrypting a secret", () => {
-      const password = "viva la ethereum";
-      const { salt, masterKey } = createMasterKey({ password });
-
-      const emptyKeystore = createEmptyEncryptedKeystore({
-        masterKey,
-        salt,
-      });
+      const { emptyKeystore, masterKey } = testEmptyKeystore;
 
       const value = "my-secret-value";
 
@@ -805,13 +727,7 @@ describe("Keystore primitives", () => {
     });
 
     it("Should throw if the password is incorrect", () => {
-      const password = "viva la ethereum";
-      const { salt, masterKey } = createMasterKey({ password });
-
-      const emptyKeystore = createEmptyEncryptedKeystore({
-        masterKey,
-        salt,
-      });
+      const { emptyKeystore, masterKey } = testEmptyKeystore;
 
       const value = "my-secret-value";
 
@@ -840,13 +756,7 @@ describe("Keystore primitives", () => {
 
     it("Should validate the hmac", () => {
       it("Should validate the hmac", () => {
-        const password = "viva la ethereum";
-        const { salt, masterKey } = createMasterKey({ password });
-
-        const emptyKeystore = createEmptyEncryptedKeystore({
-          masterKey,
-          salt,
-        });
+        const { emptyKeystore, masterKey } = testEmptyKeystore;
 
         const keystore = addSecretToKeystore({
           masterKey,
@@ -873,13 +783,7 @@ describe("Keystore primitives", () => {
 
   describe("hmac validation", () => {
     it("Should throw if the hmac is invalid", () => {
-      const password = "viva la ethereum";
-      const { salt, masterKey } = createMasterKey({ password });
-
-      const emptyKeystore = createEmptyEncryptedKeystore({
-        masterKey,
-        salt,
-      });
+      const { emptyKeystore, masterKey } = testEmptyKeystore;
 
       assertThrows(
         () =>
@@ -895,13 +799,7 @@ describe("Keystore primitives", () => {
     });
 
     it("Should throw if the hmac key is corrupted", () => {
-      const password = "viva la ethereum";
-      const { salt, masterKey } = createMasterKey({ password });
-
-      const emptyKeystore = createEmptyEncryptedKeystore({
-        masterKey,
-        salt,
-      });
+      const { emptyKeystore, masterKey } = testEmptyKeystore;
 
       assertThrows(
         () =>
@@ -920,13 +818,7 @@ describe("Keystore primitives", () => {
     });
 
     it("Should throw if the data encryption key is corrupted", () => {
-      const password = "viva la ethereum";
-      const { salt, masterKey } = createMasterKey({ password });
-
-      const emptyKeystore = createEmptyEncryptedKeystore({
-        masterKey,
-        salt,
-      });
+      const { emptyKeystore, masterKey } = testEmptyKeystore;
 
       assertThrows(
         () =>
@@ -945,13 +837,7 @@ describe("Keystore primitives", () => {
     });
 
     it("Should throw if the master key salt is corrupted", () => {
-      const password = "viva la ethereum";
-      const { salt, masterKey } = createMasterKey({ password });
-
-      const emptyKeystore = createEmptyEncryptedKeystore({
-        masterKey,
-        salt,
-      });
+      const { emptyKeystore, password } = testEmptyKeystore;
 
       const corruptedKeystore: EncryptedKeystore = {
         ...emptyKeystore,
@@ -985,14 +871,7 @@ describe("Keystore primitives", () => {
       // While we are changing the scrypt params in this test, we are still able
       // to derive the master key from the keystore, because we don't use the
       // params in the keystore file, but only validate them.
-
-      const password = "viva la ethereum";
-      const { salt, masterKey } = createMasterKey({ password });
-
-      const emptyKeystore = createEmptyEncryptedKeystore({
-        masterKey,
-        salt,
-      });
+      const { emptyKeystore, password } = testEmptyKeystore;
 
       const corruptedKeystore: EncryptedKeystore = {
         ...emptyKeystore,
@@ -1022,13 +901,7 @@ describe("Keystore primitives", () => {
     });
 
     it("Should throw if the other params are corrupted", () => {
-      const password = "viva la ethereum";
-      const { salt, masterKey } = createMasterKey({ password });
-
-      const emptyKeystore = createEmptyEncryptedKeystore({
-        masterKey,
-        salt,
-      });
+      const { emptyKeystore, masterKey } = testEmptyKeystore;
 
       const corruptedKeystore: EncryptedKeystore = {
         ...emptyKeystore,
@@ -1053,13 +926,7 @@ describe("Keystore primitives", () => {
     });
 
     it("Should throw if a secret is corrupted", () => {
-      const password = "viva la ethereum";
-      const { salt, masterKey } = createMasterKey({ password });
-
-      const emptyKeystore = createEmptyEncryptedKeystore({
-        masterKey,
-        salt,
-      });
+      const { emptyKeystore, masterKey } = testEmptyKeystore;
 
       const keystore = addSecretToKeystore({
         masterKey,
