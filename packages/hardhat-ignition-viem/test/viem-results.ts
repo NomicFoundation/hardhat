@@ -20,7 +20,7 @@ describe("viem results", () => {
     assert.isDefined(result.foo);
 
     // @ts-expect-error - only returned result keys should exist
-    assert.isUndefined(result.nonexistant);
+    assert.isUndefined(result.nonexistent);
   });
 
   it("should differentiate between different contracts in the type system", async function () {
