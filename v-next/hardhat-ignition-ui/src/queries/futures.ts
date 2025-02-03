@@ -1,9 +1,10 @@
+// eslint-disable-next-line import/no-extraneous-dependencies -- this dependency is used to generate the build output
 import {
-  DeploymentFuture,
-  FunctionCallFuture,
-  Future,
-  IgnitionModule,
-  IgnitionModuleResult,
+  type DeploymentFuture,
+  type FunctionCallFuture,
+  type Future,
+  type IgnitionModule,
+  type IgnitionModuleResult,
   isDeploymentFuture,
   isFunctionCallFuture,
 } from "@ignored/hardhat-vnext-ignition-core/ui-helpers";
@@ -17,7 +18,7 @@ export function getFutureById(
   }
 
   const f = getAllFuturesForModule(ignitionModule).find(
-    (f) => f.id === futureId,
+    (future) => future.id === futureId,
   );
 
   if (f === undefined) {
@@ -50,7 +51,7 @@ export function getAllFuturesForModule({
  */
 export function getAllDeployFuturesFor(
   ignitionModule: IgnitionModule<string, string, IgnitionModuleResult<string>>,
-): DeploymentFuture<string>[] {
+): Array<DeploymentFuture<string>> {
   return getAllFuturesForModule(ignitionModule).filter(isDeploymentFuture);
 }
 
@@ -59,6 +60,6 @@ export function getAllDeployFuturesFor(
  */
 export function getAllCallFuturesFor(
   ignitionModule: IgnitionModule<string, string, IgnitionModuleResult<string>>,
-): FunctionCallFuture<string, string>[] {
+): Array<FunctionCallFuture<string, string>> {
   return getAllFuturesForModule(ignitionModule).filter(isFunctionCallFuture);
 }

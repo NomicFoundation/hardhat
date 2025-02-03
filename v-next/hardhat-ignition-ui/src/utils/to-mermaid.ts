@@ -1,11 +1,14 @@
+// eslint-disable-next-line import/no-extraneous-dependencies -- this dependency is used to generate the build output
 import {
-  Future,
+  type Future,
   FutureType,
-  IgnitionModule,
-  IgnitionModuleResult,
+  type IgnitionModule,
+  type IgnitionModuleResult,
   isFuture,
 } from "@ignored/hardhat-vnext-ignition-core/ui-helpers";
+
 import { getAllFuturesForModule } from "../queries/futures.js";
+
 import { argumentTypeToString } from "./argumentTypeToString.js";
 import { toEscapedId } from "./to-escaped-id.js";
 
@@ -29,7 +32,8 @@ export function toMermaid(
           ]),
         )
         .map(
-          ([from, to, isFuture]) => `${from} ${isFuture ? "-->" : "==>"} ${to}`,
+          ([from, to, isAFutureLink]) =>
+            `${from} ${isAFutureLink ? "-->" : "==>"} ${to}`,
         ),
     ),
   ].join("\n");
@@ -97,7 +101,7 @@ function prettyPrintModule(
     return outer;
   }
 
-  const title = `${lineIndent}subgraph ${toEscapedId(
+  const moduleTitle = `${lineIndent}subgraph ${toEscapedId(
     module.id,
   )}Padding["<strong>[ ${
     module.id
@@ -107,7 +111,7 @@ function prettyPrintModule(
 
   return `${lineIndent}subgraph ${toEscapedId(
     module.id,
-  )}[ ]\n${lineIndent} direction BT\n\n${lineIndent}${title}\n${lineIndent}end\n\nstyle ${toEscapedId(
+  )}[ ]\n${lineIndent} direction BT\n\n${lineIndent}${moduleTitle}\n${lineIndent}end\n\nstyle ${toEscapedId(
     module.id,
   )} fill:#fbfbfb,stroke:#e5e6e7`;
 }
