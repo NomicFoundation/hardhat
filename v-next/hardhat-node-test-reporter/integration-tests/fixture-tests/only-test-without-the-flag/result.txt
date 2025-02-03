@@ -11,16 +11,13 @@
     [90m[32m✔[39m[90m it[39m
 
 
-[32m2 passing[39m[90m (132ms)[39m[31m[39m
+[32m2 passing[39m[90m (130ms)[39m[31m[39m
 [31m3 failing[39m
 [34mℹ[39m 'only' and 'runOnly' require the --test-only command-line option.
 
   1) test only:
 
-   [31mAssertionError: Expected values to be strictly equal:[39m
-   [31m[39m
-   [31m1 !== 2[39m
-   [31m[39m
+   [31mAssertionError: Expected values to be strictly equal[39m
    [32m- Expected[39m
    [31m+ Received[39m
    
@@ -32,10 +29,7 @@
   2) describe only
        it:
 
-   [31mAssertionError: Expected values to be strictly equal:[39m
-   [31m[39m
-   [31m1 !== 2[39m
-   [31m[39m
+   [31mAssertionError: Expected values to be strictly equal[39m
    [32m- Expected[39m
    [31m+ Received[39m
    
@@ -47,10 +41,7 @@
   3) describe
        it only:
 
-   [31mAssertionError: Expected values to be strictly equal:[39m
-   [31m[39m
-   [31m1 !== 2[39m
-   [31m[39m
+   [31mAssertionError: Expected values to be strictly equal[39m
    [32m- Expected[39m
    [31m+ Received[39m
    

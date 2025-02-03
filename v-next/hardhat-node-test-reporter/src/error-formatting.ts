@@ -90,7 +90,7 @@ export function formatError(error: Error): string {
  * @param depth - The depth of the error in the error chain
  * @returns The formatted error
  */
-function formatSingleError(
+export function formatSingleError(
   error: Error,
   prefix: string = "",
   depth: number = 0,
@@ -123,15 +123,40 @@ function formatSingleError(
   if (!message.includes(error.message)) {
     message = error.message;
   }
+
+  // We remove the node:assert and node:test error codes
   message = message
     .replace(" [ERR_ASSERTION]", "")
     .replace(" [ERR_TEST_FAILURE]", "");
 
+  const diff = getErrorDiff(error);
+
+  if (diff !== undefined) {
+    // If we got a diff, we try to remove any diff from the message, which can
+    // have different formats.
+
+    // Format 1: A line starting with "+ actual - expected".
+    let match = message.match(/^(.*?)\n\s*?\+\sactual\s-\sexpected/s);
+
+    // Format 2: A line starting with "{error.actual} !==".
+    if (match === null && "actual" in error) {
+      match = message.match(/^(.*)\n\s*?(?:.*?) !==/s);
+    }
+
+    if (match !== null) {
+      // The message may contain white spaces or newlines at the end, so we trim
+      // it.
+      message = match[1].trim();
+
+      // It can also include a colon at the end (e.g. node:assert messages do),
+      // so we remove it.
+      message = message.replace(/:+$/, "");
+    }
+  }
+
   if (prefix !== "") {
     message = `[${prefix}]: ${message}`;
   }
-
-  const diff = getErrorDiff(error);
 
   // This is a subset of parsed stack lines that belong to the stack
   let stackLines: StackLine[];

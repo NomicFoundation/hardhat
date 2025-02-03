@@ -1,3 +1,4 @@
+import type { EdrNetworkHDAccountsConfig } from "../../../../../src/types/config.js";
 import type { HardhatRuntimeEnvironment } from "../../../../../src/types/hre.js";
 import type { SubscriptionEvent } from "@ignored/edr-optimism";
 
@@ -8,12 +9,17 @@ import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import { createHardhatRuntimeEnvironment } from "../../../../../src/hre.js";
-import { EdrProvider } from "../../../../../src/internal/builtin-plugins/network-manager/edr/edr-provider.js";
+import {
+  DEFAULT_EDR_NETWORK_HD_ACCOUNTS_CONFIG_PARAMS,
+  EdrProvider,
+  isDefaultEdrNetworkHDAccountsConfig,
+} from "../../../../../src/internal/builtin-plugins/network-manager/edr/edr-provider.js";
 import {
   InvalidArgumentsError,
   ProviderError,
 } from "../../../../../src/internal/builtin-plugins/network-manager/provider-errors.js";
 import { EDR_NETWORK_REVERT_SNAPSHOT_EVENT } from "../../../../../src/internal/constants.js";
+import { FixedValueConfigurationVariable } from "../../../../../src/internal/core/configuration-variables.js";
 
 describe("edr-provider", () => {
   let hre: HardhatRuntimeEnvironment;
@@ -39,7 +45,7 @@ describe("edr-provider", () => {
 
         await provider.request({
           method: "evm_revert",
-          params: ["0x1"], // any snapshot id should work
+          params: ["0x1"], // if the snapshotId does not exist, it will return false
         });
 
         await eventPromise;
@@ -255,6 +261,94 @@ describe("edr-provider", () => {
         }),
         HardhatError.ERRORS.NETWORK.PROVIDER_CLOSED,
         {},
+      );
+    });
+  });
+
+  describe("isDefaultEdrNetworkHDAccountsConfig", () => {
+    let defaultAccounts: EdrNetworkHDAccountsConfig;
+
+    before(() => {
+      assert.ok(
+        typeof DEFAULT_EDR_NETWORK_HD_ACCOUNTS_CONFIG_PARAMS.passphrase ===
+          "string",
+        "The default passphrase has to be a string",
+      );
+
+      defaultAccounts = {
+        ...DEFAULT_EDR_NETWORK_HD_ACCOUNTS_CONFIG_PARAMS,
+        mnemonic: new FixedValueConfigurationVariable(
+          DEFAULT_EDR_NETWORK_HD_ACCOUNTS_CONFIG_PARAMS.mnemonic,
+        ),
+        passphrase: new FixedValueConfigurationVariable(
+          DEFAULT_EDR_NETWORK_HD_ACCOUNTS_CONFIG_PARAMS.passphrase,
+        ),
+      };
+    });
+
+    it("should correctly detect the default EDR accounts", async () => {
+      assert.ok(
+        await isDefaultEdrNetworkHDAccountsConfig(defaultAccounts),
+        "The default accounts should be detected as default",
+      );
+    });
+
+    it("should not recognize the default EDR accounts with a different mnemonic as default", async () => {
+      const accounts = {
+        ...defaultAccounts,
+        mnemonic: new FixedValueConfigurationVariable(
+          "non default mnemonic non default mnemonic non default mnemonic non default mnemonic",
+        ),
+      };
+      assert.ok(
+        !(await isDefaultEdrNetworkHDAccountsConfig(accounts)),
+        "The accounts with a different mnemonic should not be detected as default",
+      );
+    });
+
+    it("should not recognize the default EDR accounts with a different passphrase as default", async () => {
+      const accounts = {
+        ...defaultAccounts,
+        passphrase: new FixedValueConfigurationVariable(
+          "non default passphrase",
+        ),
+      };
+      assert.ok(
+        !(await isDefaultEdrNetworkHDAccountsConfig(accounts)),
+        "The accounts with a different passphrase should not be detected as default",
+      );
+    });
+
+    it("should not recognize the default EDR accounts with a different path as default", async () => {
+      const accounts = {
+        ...defaultAccounts,
+        path: defaultAccounts.path + "/0",
+      };
+      assert.ok(
+        !(await isDefaultEdrNetworkHDAccountsConfig(accounts)),
+        "The accounts with a different path should not be detected as default",
+      );
+    });
+
+    it("should not recognize the default EDR accounts with a different initialIndex as default", async () => {
+      const accounts = {
+        ...defaultAccounts,
+        initialIndex: defaultAccounts.initialIndex + 1,
+      };
+      assert.ok(
+        !(await isDefaultEdrNetworkHDAccountsConfig(accounts)),
+        "The accounts with a different initialIndex should not be detected as default",
+      );
+    });
+
+    it("should not recognize the default EDR accounts with a different count as default", async () => {
+      const accounts = {
+        ...defaultAccounts,
+        count: defaultAccounts.count + 1,
+      };
+      assert.ok(
+        !(await isDefaultEdrNetworkHDAccountsConfig(accounts)),
+        "The accounts with a different count should not be detected as default",
       );
     });
   });

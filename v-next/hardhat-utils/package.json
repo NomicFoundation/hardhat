@@ -12,7 +12,6 @@
   "license": "MIT",
   "type": "module",
   "exports": {
-    "./package.json": "./package.json",
     "./bigint": "./dist/src/bigint.js",
     "./bytecode": "./dist/src/bytecode.js",
     "./bytes": "./dist/src/bytes.js",
@@ -31,7 +30,6 @@
     "./package": "./dist/src/package.js",
     "./path": "./dist/src/path.js",
     "./request": "./dist/src/request.js",
-    "./resolve": "./dist/src/resolve.js",
     "./string": "./dist/src/string.js",
     "./stream": "./dist/src/stream.js",
     "./subprocess": "./dist/src/subprocess.js",

@@ -248,7 +248,7 @@ export async function hardhatAccountsToEdrOwnedAccounts(
   return Promise.all(accountPromises);
 }
 
-async function normalizeEdrNetworkAccountsConfig(
+export async function normalizeEdrNetworkAccountsConfig(
   accounts: EdrNetworkAccountsConfig,
 ): Promise<EdrNetworkAccountConfig[]> {
   if (Array.isArray(accounts)) {
@@ -258,7 +258,7 @@ async function normalizeEdrNetworkAccountsConfig(
   const isDefaultConfig = await isDefaultEdrNetworkHDAccountsConfig(accounts);
   const derivedPrivateKeys = isDefaultConfig
     ? EDR_NETWORK_DEFAULT_PRIVATE_KEYS
-    : derivePrivateKeys(
+    : await derivePrivateKeys(
         await accounts.mnemonic.get(),
         accounts.path,
         accounts.initialIndex,

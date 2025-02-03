@@ -12,8 +12,7 @@
   "license": "MIT",
   "type": "module",
   "exports": {
-    ".": "./dist/src/reporter.js",
-    "./package.json": "./package.json"
+    ".": "./dist/src/reporter.js"
   },
   "keywords": [
     "ethereum",

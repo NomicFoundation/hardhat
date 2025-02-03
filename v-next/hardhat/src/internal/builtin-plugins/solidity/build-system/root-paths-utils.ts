@@ -26,8 +26,10 @@ export type ParsedRootPath = { npmPath: string } | { fsPath: string };
  * @param rootPath The root path.
  * @returns The parsed root path.
  */
-export function parseRootPath(rootPath: string): ParsedRootPath {
-  if (rootPath.startsWith("npm:")) {
+export function parseRootPath(
+  rootPath: string,
+): { npmPath: string } | { fsPath: string } {
+  if (isNpmRootPath(rootPath)) {
     return { npmPath: rootPath.substring(4) };
   }
 
