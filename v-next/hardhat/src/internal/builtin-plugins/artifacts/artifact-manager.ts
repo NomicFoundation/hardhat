@@ -1,5 +1,5 @@
 import type {
-  ArtifactsManager,
+  ArtifactManager,
   GetAtifactByName,
 } from "../../../types/artifacts.js";
 
@@ -32,7 +32,7 @@ interface FsData {
   fullyQualifiedNameToArtifactPath: Map<string, string>;
 }
 
-export class ArticlesManagerImplementation implements ArtifactsManager {
+export class ArtifactManagerImplementation implements ArtifactManager {
   readonly #artifactsPath: string;
 
   // This function can be overriden in the constructor for testing purposes.

@@ -1,4 +1,4 @@
-import type { ArtifactsManager } from "./types/artifacts.js";
+import type { ArtifactManager } from "./types/artifacts.js";
 import type { HardhatConfig } from "./types/config.js";
 import type { GlobalOptions } from "./types/global-options.js";
 import type { HookManager } from "./types/hooks.js";
@@ -27,7 +27,7 @@ export const interruptions: UserInterruptionManager = hre.interruptions;
 // NOTE: This is a small architectural violation, as the network manager comes
 // from a builtin plugin, and plugins can't add their own exports here.
 export const network: NetworkManager = hre.network;
-export const artifacts: ArtifactsManager = hre.artifacts;
+export const artifacts: ArtifactManager = hre.artifacts;
 export const solidity: SolidityBuildSystem = hre.solidity;
 
 export default hre;

@@ -18,10 +18,10 @@ export type GetAtifactByName<ContractNameT extends string> =
     : Artifact;
 
 /**
- * The ArtifactsManager is responsible for reading and writing artifacts from
+ * The ArtifactManager is responsible for reading and writing artifacts from
  * the Hardhat build system.
  */
-export interface ArtifactsManager {
+export interface ArtifactManager {
   /**
    * Reads an artifact.
    *
