@@ -4,7 +4,7 @@ import {
   IgnitionModule,
   IgnitionModuleResult,
   isFuture,
-} from "@nomicfoundation/ignition-core/ui-helpers";
+} from "@ignored/hardhat-vnext-ignition-core/ui-helpers";
 import { getAllFuturesForModule } from "../queries/futures.js";
 import { argumentTypeToString } from "./argumentTypeToString.js";
 import { toEscapedId } from "./to-escaped-id.js";

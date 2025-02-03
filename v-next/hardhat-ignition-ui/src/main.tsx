@@ -7,7 +7,7 @@ import {
   IgnitionModule,
   IgnitionModuleDeserializer,
   IgnitionModuleResult,
-} from "@nomicfoundation/ignition-core/ui-helpers";
+} from "@ignored/hardhat-vnext-ignition-core/ui-helpers";
 import ReactDOM from "react-dom/client";
 import { RouterProvider, createHashRouter } from "react-router-dom";
 import { VisualizationOverview } from "./pages/visualization-overview/visualization-overview";
@@ -74,7 +74,7 @@ const main = async () => {
     ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
       <React.StrictMode>
         <RouterProvider router={router} />
-      </React.StrictMode>
+      </React.StrictMode>,
     );
   } catch (error) {
     console.error(error);
@@ -85,7 +85,7 @@ const main = async () => {
         <h2>
           Error during deployment loading: <em>{message}</em>
         </h2>
-      </div>
+      </div>,
     );
   }
 };

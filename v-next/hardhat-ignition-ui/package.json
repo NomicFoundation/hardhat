@@ -16,7 +16,7 @@
   },
   "devDependencies": {
     "@fontsource/roboto": "^5.0.8",
-    "@nomicfoundation/ignition-core": "workspace:^",
+    "@ignored/hardhat-vnext-ignition-core": "workspace:^",
     "@types/chai": "^4.2.22",
     "@types/chai-as-promised": "^7.1.5",
     "@types/mocha": "9.1.1",

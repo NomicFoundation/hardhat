@@ -2,7 +2,7 @@ import {
   IgnitionModule,
   IgnitionModuleResult,
   isDeploymentFuture,
-} from "@nomicfoundation/ignition-core/ui-helpers";
+} from "@ignored/hardhat-vnext-ignition-core/ui-helpers";
 import React, { useState } from "react";
 import { Tooltip } from "react-tooltip";
 import styled, { css } from "styled-components";
@@ -16,16 +16,19 @@ export const DeploymentFlow: React.FC<{
   batches: string[][];
 }> = ({ ignitionModule, batches }) => {
   /* batch highlighting logic */
-  const escapedIdMap = batches.reduce((acc, batch, i) => {
-    const batchId = `batch-${i}`;
+  const escapedIdMap = batches.reduce(
+    (acc, batch, i) => {
+      const batchId = `batch-${i}`;
 
-    const escapedFutureIds = batch.map(toEscapedId);
+      const escapedFutureIds = batch.map(toEscapedId);
 
-    return {
-      ...acc,
-      [batchId]: escapedFutureIds,
-    };
-  }, {} as Record<string, string[]>);
+      return {
+        ...acc,
+        [batchId]: escapedFutureIds,
+      };
+    },
+    {} as Record<string, string[]>,
+  );
 
   const [currentlyHovered, setCurrentlyHovered] = useState("");
 
@@ -131,36 +134,33 @@ const HighlightedFutures = styled.div<{
 }>`
   ${({ deploys }) =>
     deploys.map(
-      (id) =>
-        css`
-          g[id^="flowchart-${id}-"] rect {
-            fill: #fbf8d8 !important;
-          }
-        `
+      (id) => css`
+        g[id^="flowchart-${id}-"] rect {
+          fill: #fbf8d8 !important;
+        }
+      `,
     )}
 
   ${({ others }) =>
     others.map(
-      (id) =>
-        css`
-          g[id^="flowchart-${id}-"] rect {
-            fill: #f8f2ff !important;
-          }
-        `
+      (id) => css`
+        g[id^="flowchart-${id}-"] rect {
+          fill: #f8f2ff !important;
+        }
+      `,
     )}
 
   ${({ futures }) =>
     futures.map(
-      (id) =>
-        css`
-          g[id^="flowchart-${id}-"] rect {
-            fill: #16181d !important;
-          }
+      (id) => css`
+        g[id^="flowchart-${id}-"] rect {
+          fill: #16181d !important;
+        }
 
-          g[id^="flowchart-${id}-"] span {
-            color: #fbf8d8 !important;
-          }
-        `
+        g[id^="flowchart-${id}-"] span {
+          color: #fbf8d8 !important;
+        }
+      `,
     )}
 `;
 

@@ -6,7 +6,7 @@ import {
   IgnitionModuleResult,
   isDeploymentFuture,
   isFunctionCallFuture,
-} from "@nomicfoundation/ignition-core/ui-helpers";
+} from "@ignored/hardhat-vnext-ignition-core/ui-helpers";
 
 export function getFutureById(
   ignitionModule: IgnitionModule<string, string, IgnitionModuleResult<string>>,

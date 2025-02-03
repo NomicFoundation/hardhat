@@ -5,7 +5,7 @@ import svgPanZoom from "svg-pan-zoom";
 import {
   IgnitionModule,
   IgnitionModuleResult,
-} from "@nomicfoundation/ignition-core/ui-helpers";
+} from "@ignored/hardhat-vnext-ignition-core/ui-helpers";
 import mermaid from "mermaid";
 
 import { toMermaid } from "../utils/to-mermaid";
