@@ -50,7 +50,7 @@
     "@ignored/hardhat-vnext-node-test-reporter": "workspace:^3.0.0-next.15",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
     "@types/chai": "^4.2.0",
-    "@types/debug": "^4.1.4",
+    "@types/debug": "^4.1.7",
     "@types/deep-eql": "^4.0.2",
     "@types/mocha": ">=9.1.0",
     "@types/node": "^20.14.9",
@@ -81,6 +81,6 @@
     "@ignored/hardhat-vnext": "workspace:^3.0.0-next.16",
     "@ignored/hardhat-vnext-ethers": "workspace:^3.0.0-next.12",
     "chai": "^5.1.2",
-    "ethers": "^6.13.2"
+    "ethers": "^6.13.4"
   }
 }
