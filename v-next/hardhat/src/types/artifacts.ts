@@ -32,6 +32,7 @@ export interface ArtifactsManager {
    *
    * @throws Throws an error if a non-unique contract name is used,
    *   indicating which fully qualified names can be used instead.
+   * @throws Throws an error if the artifact doesn't exist.
    */
   readArtifact<ContractNameT extends string>(
     contractNameOrFullyQualifiedName: ContractNameT,
@@ -42,6 +43,9 @@ export interface ArtifactsManager {
    *
    * @param contractNameOrFullyQualifiedName The name or fully qualified name
    * of the contract.
+   * @throws Throws an error if a non-unique contract name is used,
+   *   indicating which fully qualified names can be used instead.
+   * @throws Throws an error if the artifact doesn't exist.
    */
   getArtifactPath(contractNameOrFullyQualifiedName: string): Promise<string>;
 
@@ -50,7 +54,9 @@ export interface ArtifactsManager {
    *
    * This function doesn't throw if the name is not unique.
    *
-   * @param contractNameOrFullyQualifiedName Contract or fully qualified name.
+   * @param contractNameOrFullyQualifiedName Contract or fully qualified name.\
+   * @throws Throws an error if a non-unique contract name is used,
+   *   indicating which fully qualified names can be used instead.
    */
   artifactExists(contractNameOrFullyQualifiedName: string): Promise<boolean>;
 
@@ -63,13 +69,19 @@ export interface ArtifactsManager {
    * Returns the BuildInfo id associated with the solc run that compiled a
    * contract.
    *
-   * Note that it may return `undefined` if the contract wasn't compiled with
-   * Hardhat's build system.
+   * Note that it may return `undefined` if the artifact doesn't have a build
+   * id, which can happen if the artifact wasn't compiled with Hardhat 3's build
+   * system.
    *
    * If it it does return an id, it's not guaranteed that the build info is
    * present.
    *
    * @param contractNameOrFullyQualifiedName Contract or fully qualified name, whose artifact must exist.
+   * @throws Throws an error if a non-unique contract name is used,
+   *   indicating which fully qualified names can be used instead.
+   * @throws Throws an error if the artifact doesn't exist.
+   * @returns The build info id, or undefined if the artifact doesn't have a
+   *   build info id.
    */
   getBuildInfoId(
     contractNameOrFullyQualifiedName: string,
