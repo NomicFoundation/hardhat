@@ -25,9 +25,17 @@ export async function formatEdrNetworkConfigAccounts(
   formattedAccountsLines.push("========");
 
   if (isDefault === true) {
-    formattedAccountsLines.push();
+    formattedAccountsLines.push("");
     formattedAccountsLines.push(getPublicPrivateKeysWarning());
-    formattedAccountsLines.push();
+    formattedAccountsLines.push("");
+  }
+
+  const accountPrefix = (index: number) => `Account #${index}:`;
+  const privateKeyPrefix = "Private Key:";
+
+  let maxPrefixLength = accountPrefix(accounts.length - 1).length;
+  if (isDefault && privateKeyPrefix.length > maxPrefixLength) {
+    maxPrefixLength = privateKeyPrefix.length;
   }
 
   for (const [index, account] of accounts.entries()) {
@@ -37,20 +45,20 @@ export async function formatEdrNetworkConfigAccounts(
     const balance = (BigInt(account.balance) / 10n ** 18n).toString(10);
 
     formattedAccountsLines.push(
-      `Account #${index}: ${address} (${balance} ETH)`,
+      `${accountPrefix(index).padEnd(maxPrefixLength)} ${address} (${balance} ETH)`,
     );
     if (isDefault === true) {
       formattedAccountsLines.push(
-        `Private Key: ${await account.privateKey.getHexString()}`,
+        `${privateKeyPrefix.padEnd(maxPrefixLength)} ${await account.privateKey.getHexString()}`,
       );
     }
 
-    formattedAccountsLines.push();
+    formattedAccountsLines.push("");
   }
 
   if (isDefault === true) {
     formattedAccountsLines.push(getPublicPrivateKeysWarning());
-    formattedAccountsLines.push();
+    formattedAccountsLines.push("");
   }
 
   return formattedAccountsLines.join("\n");
