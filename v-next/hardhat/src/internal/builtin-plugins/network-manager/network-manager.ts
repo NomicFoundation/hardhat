@@ -1,5 +1,5 @@
 import type { Hardhat2BuildInfo } from "./edr/types/node-types.js";
-import type { ArtifactsManager } from "../../../types/artifacts.js";
+import type { ArtifactManager } from "../../../types/artifacts.js";
 import type {
   NetworkConfig,
   NetworkConfigOverride,
@@ -47,7 +47,7 @@ export class NetworkManagerImplementation implements NetworkManager {
   readonly #defaultChainType: DefaultChainType;
   readonly #networkConfigs: Readonly<Record<string, Readonly<NetworkConfig>>>;
   readonly #hookManager: Readonly<HookManager>;
-  readonly #artifactsManager: Readonly<ArtifactsManager>;
+  readonly #artifactsManager: Readonly<ArtifactManager>;
 
   #nextConnectionId = 0;
 
@@ -56,7 +56,7 @@ export class NetworkManagerImplementation implements NetworkManager {
     defaultChainType: DefaultChainType,
     networkConfigs: Record<string, NetworkConfig>,
     hookManager: HookManager,
-    artifactsManager: ArtifactsManager,
+    artifactsManager: ArtifactManager,
   ) {
     this.#defaultNetwork = defaultNetwork;
     this.#defaultChainType = defaultChainType;
