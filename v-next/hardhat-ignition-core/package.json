@@ -83,7 +83,7 @@
     "@nomicfoundation/solidity-analyzer": "^0.1.1",
     "cbor2": "^1.9.0",
     "debug": "^4.3.2",
-    "ethers": "^6.7.0",
+    "ethers": "^6.13.4",
     "immer": "10.0.2",
     "lodash-es": "4.17.21",
     "ndjson": "2.0.0"
