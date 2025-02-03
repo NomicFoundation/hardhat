@@ -5,7 +5,7 @@ import type {
 import type { HardhatEthers, HardhatEthersSigner } from "../src/types.js";
 import type {
   Artifact,
-  ArtifactsManager,
+  ArtifactManager,
 } from "@ignored/hardhat-vnext/types/artifacts";
 import type * as EthersT from "ethers";
 
@@ -23,11 +23,11 @@ import {
 
 describe("Ethers plugin", () => {
   let ethers: HardhatEthers;
-  let artifactsManager: ArtifactsManager;
+  let artifactManager: ArtifactManager;
 
   beforeEach(async () => {
     // Declare all the artifacts that we need during the test
-    ({ ethers, artifactsManager } = await initializeTestEthers([
+    ({ ethers, artifactManager } = await initializeTestEthers([
       { artifactName: "Greeter", fileName: "greeter" },
       { artifactName: "IGreeter", fileName: "igreeter" },
       { artifactName: "TestContractLib", fileName: "test-contract-lib" },
@@ -79,8 +79,8 @@ describe("Ethers plugin", () => {
       beforeEach(async () => {
         signers = await ethers.getSigners();
 
-        greeterArtifact = await artifactsManager.readArtifact("Greeter");
-        iGreeterArtifact = await artifactsManager.readArtifact("IGreeter");
+        greeterArtifact = await artifactManager.readArtifact("Greeter");
+        iGreeterArtifact = await artifactManager.readArtifact("IGreeter");
       });
 
       describe("getSigners", () => {
@@ -526,7 +526,7 @@ describe("Ethers plugin", () => {
           const libraryFactory = await ethers.getContractFactory("TestLibrary");
           const library = await libraryFactory.deploy();
           const testContractLibArtifact =
-            await artifactsManager.readArtifact("TestContractLib");
+            await artifactManager.readArtifact("TestContractLib");
           const contractFactory = await ethers.getContractFactoryFromArtifact<
             [],
             TestContractLib

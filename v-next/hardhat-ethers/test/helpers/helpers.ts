@@ -1,5 +1,5 @@
 import type { HardhatEthers } from "../../src/types.js";
-import type { ArtifactsManager } from "@ignored/hardhat-vnext/types/artifacts";
+import type { ArtifactManager } from "@ignored/hardhat-vnext/types/artifacts";
 import type { NetworkConfig } from "@ignored/hardhat-vnext/types/config";
 import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
 import type { ContractRunner, Signer } from "ethers";
@@ -10,7 +10,7 @@ import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
 
 import { initializeEthers } from "../../src/internal/initialization.js";
 
-import { MockArtifactsManager } from "./artifact-manager-mock.js";
+import { MockArtifactManager } from "./artifact-manager-mock.js";
 
 export async function initializeTestEthers(
   mockedArtifacts?: Array<{ artifactName: string; fileName: string }>,
@@ -19,7 +19,7 @@ export async function initializeTestEthers(
   provider: EthereumProvider;
   networkName: string;
   networkConfig: NetworkConfig;
-  artifactsManager: ArtifactsManager;
+  artifactManager: ArtifactManager;
 }> {
   const hre = await createHardhatRuntimeEnvironment({});
 
@@ -29,13 +29,13 @@ export async function initializeTestEthers(
   const networkName = connection.networkName;
   const networkConfig = connection.networkConfig;
 
-  const artifactsManager = new MockArtifactsManager(mockedArtifacts);
+  const artifactManager = new MockArtifactManager(mockedArtifacts);
 
   const ethers = await initializeEthers(
     provider,
     connection.networkName,
     connection.networkConfig,
-    artifactsManager,
+    artifactManager,
   );
 
   return {
@@ -43,7 +43,7 @@ export async function initializeTestEthers(
     provider,
     networkName,
     networkConfig,
-    artifactsManager,
+    artifactManager,
   };
 }
 

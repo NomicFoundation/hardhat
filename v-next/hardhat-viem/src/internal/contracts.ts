@@ -8,7 +8,7 @@ import type {
   SendDeploymentTransactionConfig,
   WalletClient,
 } from "../types.js";
-import type { ArtifactsManager } from "@ignored/hardhat-vnext/types/artifacts";
+import type { ArtifactManager } from "@ignored/hardhat-vnext/types/artifacts";
 import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
 import type { PrefixedHexString } from "@ignored/hardhat-vnext-utils/hex";
 import type { Abi as ViemAbi, Address as ViemAddress } from "viem";
@@ -23,7 +23,7 @@ import { getDefaultWalletClient, getPublicClient } from "./clients.js";
 
 export async function deployContract<ContractName extends string>(
   provider: EthereumProvider,
-  artifactManager: ArtifactsManager,
+  artifactManager: ArtifactManager,
   contractName: ContractName,
   constructorArgs: unknown[] = [],
   deployContractConfig: DeployContractConfig = {},
@@ -103,7 +103,7 @@ export async function deployContract<ContractName extends string>(
 
 export async function sendDeploymentTransaction<ContractName extends string>(
   provider: EthereumProvider,
-  artifactManager: ArtifactsManager,
+  artifactManager: ArtifactManager,
   contractName: ContractName,
   constructorArgs: unknown[] = [],
   sendDeploymentTransactionConfig: SendDeploymentTransactionConfig = {},
@@ -166,7 +166,7 @@ export async function sendDeploymentTransaction<ContractName extends string>(
 
 export async function getContractAt<ContractName extends string>(
   provider: EthereumProvider,
-  artifactManager: ArtifactsManager,
+  artifactManager: ArtifactManager,
   contractName: ContractName,
   address: ViemAddress,
   getContractAtConfig: GetContractAtConfig = {},
@@ -209,7 +209,7 @@ function createContractInstance<ContractName extends string>(
 }
 
 async function getContractAbiAndBytecode(
-  artifacts: ArtifactsManager,
+  artifacts: ArtifactManager,
   contractName: string,
   libraries: Libraries,
 ) {

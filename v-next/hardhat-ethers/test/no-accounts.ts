@@ -1,5 +1,5 @@
 import type { HardhatEthers } from "../src/types.js";
-import type { ArtifactsManager } from "@ignored/hardhat-vnext/types/artifacts";
+import type { ArtifactManager } from "@ignored/hardhat-vnext/types/artifacts";
 import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
 
 import assert from "node:assert/strict";
@@ -14,13 +14,13 @@ import { initializeTestEthers } from "./helpers/helpers.js";
 describe("hardhat-ethers plugin", () => {
   let ethers: HardhatEthers;
   let ethereumProvider: EthereumProvider;
-  let artifactsManager: ArtifactsManager;
+  let artifactManager: ArtifactManager;
 
   beforeEach(async () => {
     ({
       ethers,
       provider: ethereumProvider,
-      artifactsManager,
+      artifactManager: artifactManager,
     } = await initializeTestEthers([
       {
         artifactName: "Greeter",
@@ -96,8 +96,7 @@ describe("hardhat-ethers plugin", () => {
           // const signers = await ethers.getSigners();
           // assert.equal(signers.length, 0);
 
-          const greeterArtifact =
-            await artifactsManager.readArtifact("Greeter");
+          const greeterArtifact = await artifactManager.readArtifact("Greeter");
 
           const contract = await ethers.getContractAt(
             greeterArtifact.abi,

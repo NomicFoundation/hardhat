@@ -8,7 +8,7 @@ import type { HardhatEthersSigner } from "../signers/signers.js";
 import type {
   Abi,
   Artifact,
-  ArtifactsManager,
+  ArtifactManager,
 } from "@ignored/hardhat-vnext/types/artifacts";
 import type { NetworkConfig } from "@ignored/hardhat-vnext/types/config";
 import type { ethers as EthersT } from "ethers";
@@ -28,13 +28,13 @@ export class HardhatHelpers {
   readonly #provider: HardhatEthersProvider;
   readonly #networkName: string;
   readonly #networkConfig: Readonly<NetworkConfig>;
-  readonly #artifactManager: ArtifactsManager;
+  readonly #artifactManager: ArtifactManager;
 
   constructor(
     provider: HardhatEthersProvider,
     networkName: string,
     networkConfig: NetworkConfig,
-    artifactManager: ArtifactsManager,
+    artifactManager: ArtifactManager,
   ) {
     this.#provider = provider;
     this.#networkName = networkName;
