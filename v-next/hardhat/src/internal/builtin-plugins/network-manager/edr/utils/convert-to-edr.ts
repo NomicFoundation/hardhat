@@ -255,8 +255,7 @@ export async function normalizeEdrNetworkAccountsConfig(
     return accounts;
   }
 
-  const isDefaultConfig =
-    await isDefaultEdrNetworkHDAccountsConfig(accounts);
+  const isDefaultConfig = await isDefaultEdrNetworkHDAccountsConfig(accounts);
   const derivedPrivateKeys = isDefaultConfig
     ? EDR_NETWORK_DEFAULT_PRIVATE_KEYS
     : await derivePrivateKeys(

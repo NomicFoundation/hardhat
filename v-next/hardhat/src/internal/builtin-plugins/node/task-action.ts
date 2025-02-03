@@ -10,7 +10,7 @@ import chalk from "chalk";
 
 import { isEdrSupportedChainType } from "../network-manager/edr/utils/chain-type.js";
 
-import { printEdrNetworkConfigAccounts } from "./helpers.js";
+import { formatEdrNetworkConfigAccounts } from "./helpers.js";
 import { JsonRpcServerImplementation } from "./json-rpc/server.js";
 
 interface NodeActionArguments {
@@ -137,7 +137,7 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
     "Network config type should be edr",
   );
 
-  await printEdrNetworkConfigAccounts(networkConfig.accounts);
+  console.log(await formatEdrNetworkConfigAccounts(networkConfig.accounts));
 
   await server.waitUntilClosed();
 };

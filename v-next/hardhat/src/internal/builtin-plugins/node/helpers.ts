@@ -7,26 +7,27 @@ import { addr } from "micro-eth-signer";
 import { isDefaultEdrNetworkHDAccountsConfig } from "../network-manager/edr/edr-provider.js";
 import { normalizeEdrNetworkAccountsConfig } from "../network-manager/edr/utils/convert-to-edr.js";
 
-export async function printEdrNetworkConfigAccounts(
+export async function formatEdrNetworkConfigAccounts(
   config: EdrNetworkAccountsConfig,
-): Promise<void> {
+): Promise<string> {
   const accounts = await normalizeEdrNetworkAccountsConfig(config);
 
   if (accounts.length === 0) {
-    return;
+    return "";
   }
 
+  const formattedAccountsLines: string[] = [];
   const isDefault =
     !Array.isArray(config) &&
     (await isDefaultEdrNetworkHDAccountsConfig(config));
 
-  console.log("Accounts");
-  console.log("========");
+  formattedAccountsLines.push("Accounts");
+  formattedAccountsLines.push("========");
 
   if (isDefault === true) {
-    console.log();
-    printPublicPrivateKeysWarning();
-    console.log();
+    formattedAccountsLines.push();
+    formattedAccountsLines.push(getPublicPrivateKeysWarning());
+    formattedAccountsLines.push();
   }
 
   for (const [index, account] of accounts.entries()) {
@@ -35,24 +36,29 @@ export async function printEdrNetworkConfigAccounts(
       .toLowerCase();
     const balance = (BigInt(account.balance) / 10n ** 18n).toString(10);
 
-    console.log(`Account #${index}: ${address} (${balance} ETH)`);
+    formattedAccountsLines.push(
+      `Account #${index}: ${address} (${balance} ETH)`,
+    );
     if (isDefault === true) {
-      console.log(`Private Key: ${await account.privateKey.getHexString()}`);
+      formattedAccountsLines.push(
+        `Private Key: ${await account.privateKey.getHexString()}`,
+      );
     }
 
-    console.log();
+    formattedAccountsLines.push();
   }
 
   if (isDefault === true) {
-    printPublicPrivateKeysWarning();
-    console.log();
+    formattedAccountsLines.push(getPublicPrivateKeysWarning());
+    formattedAccountsLines.push();
   }
+
+  return formattedAccountsLines.join("\n");
 }
 
-function printPublicPrivateKeysWarning(): void {
-  console.log(
-    chalk.bold(
-      "WARNING: Funds sent on live network to accounts with publicly known private keys WILL BE LOST.",
-    ),
+// NOTE: This function is exported for testing purposes only
+export function getPublicPrivateKeysWarning(): string {
+  return chalk.bold(
+    "WARNING: Funds sent on live network to accounts with publicly known private keys WILL BE LOST.",
   );
 }
