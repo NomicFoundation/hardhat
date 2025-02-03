@@ -11,7 +11,7 @@
     "regenerate-deployment-example": "node ./scripts/generate-example-deployment-json.js",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
-    "clean": "rimraf dist tsconfig.tsbuildinfo",
+    "clean": "rimraf dist",
     "prepack": "pnpm build"
   },
   "devDependencies": {
@@ -36,6 +36,7 @@
     "react-dom": "^18.2.0",
     "react-router-dom": "6.11.0",
     "react-tooltip": "^5.21.4",
+    "rimraf": "^5.0.5",
     "styled-components": "5.3.10",
     "svg-pan-zoom": "^3.6.1",
     "ts-node": "10.9.1",
