@@ -2,7 +2,7 @@ import {
   type Artifact,
   type IgnitionModule,
   buildModule,
-} from "@nomicfoundation/ignition-core";
+} from "@ignored/hardhat-vnext-ignition-core";
 import { assert } from "chai";
 
 import { toMermaid } from "../src/utils/to-mermaid.js";
@@ -178,11 +178,14 @@ describe("to-mermaid", () => {
 
   it("should render a complex diagram with all actions", () => {
     const fakeArtifact: Artifact = {
+      _format: "hh3-artifact-1",
       abi: [],
       contractName: "",
       sourceName: "",
       bytecode: "",
+      deployedBytecode: "",
       linkReferences: {},
+      deployedLinkReferences: {},
     };
 
     const libArtifact = fakeArtifact;
