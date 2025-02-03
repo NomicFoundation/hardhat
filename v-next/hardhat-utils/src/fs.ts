@@ -408,6 +408,50 @@ export async function getChangeTime(absolutePath: string): Promise<Date> {
 }
 
 /**
+ * Retrieves the last access time of a file or directory's properties.
+ *
+ * @param absolutePath The absolute path to the file or directory.
+ * @returns The time of the last access as a Date object.
+ * @throws FileNotFoundError if the path does not exist.
+ * @throws FileSystemAccessError for any other error.
+ */
+export async function getAccessTime(absolutePath: string): Promise<Date> {
+  try {
+    const stats = await fsPromises.stat(absolutePath);
+    return stats.atime;
+  } catch (e) {
+    ensureError<NodeJS.ErrnoException>(e);
+    if (e.code === "ENOENT") {
+      throw new FileNotFoundError(absolutePath, e);
+    }
+
+    throw new FileSystemAccessError(e.message, e);
+  }
+}
+
+/**
+ * Retrieves the size of a file.
+ *
+ * @param absolutePath The absolute path to the file.
+ * @returns The size of the file in bytes.
+ * @throws FileNotFoundError if the path does not exist.
+ * @throws FileSystemAccessError for any other error.
+ */
+export async function getSize(absolutePath: string): Promise<number> {
+  try {
+    const stats = await fsPromises.stat(absolutePath);
+    return stats.size;
+  } catch (e) {
+    ensureError<NodeJS.ErrnoException>(e);
+    if (e.code === "ENOENT") {
+      throw new FileNotFoundError(absolutePath, e);
+    }
+
+    throw new FileSystemAccessError(e.message, e);
+  }
+}
+
+/**
  * Checks if a file or directory exists.
  *
  * @param absolutePath The absolute path to the file or directory.

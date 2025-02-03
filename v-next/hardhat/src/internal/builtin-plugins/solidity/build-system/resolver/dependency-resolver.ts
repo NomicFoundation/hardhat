@@ -2,9 +2,9 @@ import type { Remapping, Resolver } from "./types.js";
 import type {
   ResolvedNpmPackage,
   ResolvedFile,
+  FileContent,
   ProjectResolvedFile,
   NpmPackageResolvedFile,
-  FileContent,
 } from "../../../../../types/solidity/resolved-file.js";
 
 import path from "node:path";
@@ -31,6 +31,10 @@ import * as resolve from "resolve.exports";
 
 import { ResolvedFileType } from "../../../../../types/solidity/resolved-file.js";
 import { AsyncMutex } from "../../../../core/async-mutex.js";
+import {
+  NpmPackageResolvedFileImplementation,
+  ProjectResolvedFileImplementation,
+} from "../resolved-file.js";
 
 import {
   applyValidRemapping,
@@ -235,12 +239,12 @@ export class ResolverImplementation implements Resolver {
         trueCaseFsPath,
       );
 
-      const resolvedFile: ProjectResolvedFile = {
-        type: ResolvedFileType.PROJECT_FILE,
-        sourceName,
-        fsPath: fsPathWithTheRightCasing,
-        content: await readFileContent(fsPathWithTheRightCasing),
-      };
+      const resolvedFile: ProjectResolvedFile =
+        new ProjectResolvedFileImplementation({
+          sourceName,
+          fsPath: fsPathWithTheRightCasing,
+          content: await readFileContent(fsPathWithTheRightCasing),
+        });
 
       this.#resolvedFileBySourceName.set(sourceName, resolvedFile);
 
@@ -329,13 +333,13 @@ export class ResolverImplementation implements Resolver {
 
       const fsPath = path.join(npmPackage.rootFsPath, trueCaseFsPath);
 
-      const resolvedFile: NpmPackageResolvedFile = {
-        type: ResolvedFileType.NPM_PACKAGE_FILE,
-        sourceName,
-        fsPath,
-        content: await readFileContent(fsPath),
-        package: npmPackage,
-      };
+      const resolvedFile: NpmPackageResolvedFile =
+        new NpmPackageResolvedFileImplementation({
+          sourceName,
+          fsPath,
+          content: await readFileContent(fsPath),
+          package: npmPackage,
+        });
 
       this.#resolvedFileBySourceName.set(sourceName, resolvedFile);
 
@@ -809,12 +813,12 @@ export class ResolverImplementation implements Resolver {
 
     const fsPath = path.join(this.#projectRoot, fsPathWithinTheProject);
 
-    const resolvedFile: ProjectResolvedFile = {
-      type: ResolvedFileType.PROJECT_FILE,
-      sourceName,
-      fsPath,
-      content: await readFileContent(fsPath),
-    };
+    const resolvedFile: ProjectResolvedFile =
+      new ProjectResolvedFileImplementation({
+        sourceName,
+        fsPath,
+        content: await readFileContent(fsPath),
+      });
 
     this.#resolvedFileBySourceName.set(sourceName, resolvedFile);
 
@@ -874,13 +878,13 @@ export class ResolverImplementation implements Resolver {
       resolvedSubpath,
     );
 
-    const resolvedFile: NpmPackageResolvedFile = {
-      type: ResolvedFileType.NPM_PACKAGE_FILE,
-      sourceName,
-      fsPath,
-      content: await readFileContent(fsPath),
-      package: remapping.targetNpmPackage,
-    };
+    const resolvedFile: NpmPackageResolvedFile =
+      new NpmPackageResolvedFileImplementation({
+        sourceName,
+        fsPath,
+        content: await readFileContent(fsPath),
+        package: remapping.targetNpmPackage,
+      });
 
     this.#resolvedFileBySourceName.set(sourceName, resolvedFile);
 
@@ -927,13 +931,13 @@ export class ResolverImplementation implements Resolver {
 
     const filePath = path.join(from.package.rootFsPath, relativePath);
 
-    const resolvedFile: NpmPackageResolvedFile = {
-      type: ResolvedFileType.NPM_PACKAGE_FILE,
-      sourceName,
-      fsPath: filePath,
-      content: await readFileContent(filePath),
-      package: from.package,
-    };
+    const resolvedFile: NpmPackageResolvedFile =
+      new NpmPackageResolvedFileImplementation({
+        sourceName,
+        fsPath: filePath,
+        content: await readFileContent(filePath),
+        package: from.package,
+      });
 
     this.#resolvedFileBySourceName.set(sourceName, resolvedFile);
 
@@ -982,13 +986,13 @@ export class ResolverImplementation implements Resolver {
 
     const fsPath = path.join(from.package.rootFsPath, relativeFsPath);
 
-    const resolvedFile: NpmPackageResolvedFile = {
-      type: ResolvedFileType.NPM_PACKAGE_FILE,
-      sourceName,
-      fsPath,
-      content: await readFileContent(fsPath),
-      package: from.package,
-    };
+    const resolvedFile: NpmPackageResolvedFile =
+      new NpmPackageResolvedFileImplementation({
+        sourceName,
+        fsPath,
+        content: await readFileContent(fsPath),
+        package: from.package,
+      });
 
     this.#resolvedFileBySourceName.set(sourceName, resolvedFile);
 
@@ -1042,13 +1046,13 @@ export class ResolverImplementation implements Resolver {
 
     const fsPath = path.join(importedPackage.rootFsPath, resolvedSubpath);
 
-    const resolvedFile: NpmPackageResolvedFile = {
-      type: ResolvedFileType.NPM_PACKAGE_FILE,
-      sourceName,
-      fsPath,
-      content: await readFileContent(fsPath),
-      package: importedPackage,
-    };
+    const resolvedFile: NpmPackageResolvedFile =
+      new NpmPackageResolvedFileImplementation({
+        sourceName,
+        fsPath,
+        content: await readFileContent(fsPath),
+        package: importedPackage,
+      });
 
     this.#resolvedFileBySourceName.set(sourceName, resolvedFile);
 

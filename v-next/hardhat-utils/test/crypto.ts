@@ -16,10 +16,10 @@ describe("crypto", () => {
   });
 
   describe("createNonCryptographicHashId", () => {
-    it("Should create a non-cryptographic hash-based identifier", () => {
+    it("Should create a non-cryptographic hash-based identifier", async () => {
       assert.equal(
-        createNonCryptographicHashId("hello"),
-        "5d41402abc4b2a76b9719d911017c592",
+        await createNonCryptographicHashId("hello"),
+        "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d",
       );
     });
   });

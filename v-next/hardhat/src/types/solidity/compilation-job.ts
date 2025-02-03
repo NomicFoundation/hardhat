@@ -37,5 +37,5 @@ export interface CompilationJob {
    * While deterministic, it shouldn't be expected to be stable across different
    * versions of Hardhat.
    */
-  getBuildId(): string;
+  getBuildId(): Promise<string>;
 }
