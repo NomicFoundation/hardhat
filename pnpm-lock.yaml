@@ -1498,7 +1498,7 @@ importers:
         specifier: workspace:^3.0.0-next.15
         version: link:../hardhat-zod-utils
       '@nomicfoundation/solidity-analyzer':
-        specifier: ^0.1.0
+        specifier: ^0.1.1
         version: 0.1.2
       '@sentry/node':
         specifier: ^5.18.1
