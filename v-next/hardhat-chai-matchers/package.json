@@ -81,6 +81,6 @@
     "@ignored/hardhat-vnext": "workspace:^3.0.0-next.16",
     "@ignored/hardhat-vnext-ethers": "workspace:^3.0.0-next.12",
     "chai": "^5.1.2",
-    "ethers": "^6.13.2"
+    "ethers": "^6.13.4"
   }
 }

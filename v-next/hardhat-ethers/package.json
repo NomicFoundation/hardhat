@@ -67,7 +67,7 @@
     "@ignored/hardhat-vnext-errors": "workspace:^3.0.0-next.15",
     "@ignored/hardhat-vnext-utils": "workspace:^3.0.0-next.15",
     "debug": "^4.1.1",
-    "ethers": "^6.13.2"
+    "ethers": "^6.13.4"
   },
   "peerDependencies": {
     "@ignored/hardhat-vnext": "workspace:^3.0.0-next.16"
