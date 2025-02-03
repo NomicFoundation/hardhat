@@ -1878,8 +1878,8 @@ importers:
         specifier: workspace:^
         version: link:../../packages/eslint-plugin-hardhat-internal-rules
       '@types/chai':
-        specifier: ^5.0.1
-        version: 5.0.1
+        specifier: ^4.2.0
+        version: 4.3.20
       '@types/chai-as-promised':
         specifier: ^8.0.1
         version: 8.0.1
@@ -3700,9 +3700,6 @@ packages:
 
   '@types/chai@4.3.20':
     resolution: {integrity: sha512-/pC9HAB5I/xMlc5FP77qjCnI16ChlJfW0tGa0IUcFn38VJrTV6DeZ60NU5KZBtaOZqjdpwTWohz5HU1RrhiYxQ==}
-
-  '@types/chai@5.0.1':
-    resolution: {integrity: sha512-5T8ajsg3M/FOncpLYW7sdOcD6yf4+722sze/tc4KQV0P8Z2rAr3SAuHCIkYmYpt8VbcQlnz8SxlOlPQYefe4cA==}
 
   '@types/ci-info@2.0.0':
     resolution: {integrity: sha512-5R2/MHILQLDCzTuhs1j4Qqq8AaKUf7Ma4KSSkCtc12+fMs47zfa34qhto9goxpyX00tQK1zxB885VCiawZ5Qhg==}
@@ -8686,10 +8683,6 @@ snapshots:
       '@types/chai': 4.3.20
 
   '@types/chai@4.3.20': {}
-
-  '@types/chai@5.0.1':
-    dependencies:
-      '@types/deep-eql': 4.0.2
 
   '@types/ci-info@2.0.0': {}
 
