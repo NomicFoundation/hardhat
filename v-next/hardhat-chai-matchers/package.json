@@ -50,7 +50,7 @@
     "@ignored/hardhat-vnext-node-test-reporter": "workspace:^3.0.0-next.15",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
     "@types/chai": "^4.2.0",
-    "@types/debug": "^4.1.4",
+    "@types/debug": "^4.1.7",
     "@types/deep-eql": "^4.0.2",
     "@types/mocha": ">=9.1.0",
     "@types/node": "^20.14.9",
