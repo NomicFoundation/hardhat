@@ -87,6 +87,7 @@ describe("NetworkManagerImplementation", () => {
       GENERIC_CHAIN_TYPE,
       networks,
       hre.hooks,
+      hre.artifacts,
     );
   });
 

@@ -1,6 +1,6 @@
 {
   "_format": "hh3-sol-build-info-1",
-  "id": "89eed7b31e13eec3ee71467386d39108",
+  "id": "217a3c654dd9a8cdd3a7470ec31c8ccd",
   "solcVersion": "0.7.1",
   "solcLongVersion": "0.7.1+commit.f4a555be",
   "publicSourceNameMap": {
@@ -17,16 +17,14 @@
       "evmVersion": "istanbul",
       "outputSelection": {
         "*": {
-          "": ["ast"]
-        },
-        "contracts/NoImports.sol": {
           "*": [
             "abi",
             "evm.bytecode",
             "evm.deployedBytecode",
             "evm.methodIdentifiers",
             "metadata"
-          ]
+          ],
+          "": ["ast"]
         }
       },
       "remappings": [

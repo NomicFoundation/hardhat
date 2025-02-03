@@ -15,7 +15,7 @@ export interface A$Type {
   readonly deployedLinkReferences: {};
   readonly immutableReferences: {};
   readonly inputSourceName: "contracts/A.sol";
-  readonly buildInfoId: "c6d3d46c7bda8aac0e4258c216012f50";
+  readonly buildInfoId: "652e717a54777ac28e86bc7084fcbc8f";
 }
 
 import "@ignored/hardhat-vnext/types/artifacts";
