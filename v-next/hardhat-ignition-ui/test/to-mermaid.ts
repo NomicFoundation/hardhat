@@ -1,9 +1,10 @@
 import {
-  Artifact,
-  IgnitionModule,
+  type Artifact,
+  type IgnitionModule,
   buildModule,
 } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
+
 import { toMermaid } from "../src/utils/to-mermaid.js";
 
 describe("to-mermaid", () => {
