@@ -21,10 +21,13 @@ import {
   readJsonFile,
   readUtf8File,
 } from "@ignored/hardhat-vnext-utils/fs";
-import { findClosestPackageJson } from "@ignored/hardhat-vnext-utils/package";
+import {
+  findClosestPackageJson,
+  findDependencyPackageJson,
+} from "@ignored/hardhat-vnext-utils/package";
 import { shortenPath } from "@ignored/hardhat-vnext-utils/path";
-import { ResolutionError, resolve } from "@ignored/hardhat-vnext-utils/resolve";
 import { analyze } from "@nomicfoundation/solidity-analyzer";
+import * as resolve from "resolve.exports";
 
 import { ResolvedFileType } from "../../../../../types/solidity/resolved-file.js";
 import { AsyncMutex } from "../../../../core/async-mutex.js";
@@ -45,7 +48,6 @@ import {
 //    contain the package name and version. e.g. `npm/package@1.2.3/path.sol`.
 //  - Files within npm packages that are part of a monorepo are resolved like
 //    npm pacakges, but with the version `local`.
-//  - This resolver does not support `package.json#exports`.
 //  - This resolver fails if an import has a casing different from that of the
 //    file system.
 //  - We do not allow users to remap the imports present in files within npm
@@ -123,7 +125,7 @@ export class ResolverImplementation implements Resolver {
    * and the user remaps `dep/=nope/`, it could break `foo`'s import.
    *
    * To avoid this situation we set all the prefixes that `foo` needs unaffected
-   * by the user remapping, with a higher presedence than user remappings.
+   * by the user remapping, with a higher precedence than user remappings.
    */
   readonly #localPrefixesByPackage: Map<ResolvedNpmPackage, Set<string>> =
     new Map();
@@ -138,7 +140,6 @@ export class ResolverImplementation implements Resolver {
    *
    * @param projectRoot The absolute path to the Hardhat project root.
    * @param userRemappingStrings The remappings provided by the user.
-   * @param workingDirectory The absolute path to the working directory.
    */
   public static async create(
     projectRoot: string,
@@ -182,7 +183,7 @@ export class ResolverImplementation implements Resolver {
 
       // We first check if the file has already been resolved.
       //
-      // Note that it may have recevied the right path, but with the wrong
+      // Note that it may have received the right path, but with the wrong
       // casing. We don't care at this point, as it would just mean a cache
       // miss, and we proceed to get the right casing in that case.
       //
@@ -285,43 +286,51 @@ export class ResolverImplementation implements Resolver {
         "Resolving a local file as if it were an npm module",
       );
 
+      const subpath = parsedNpmModule.subpath;
+      const resolvedSubpath = resolveSubpath(npmPackage, subpath);
+
+      const relativeFsPath = sourceNamePathToFsPath(resolvedSubpath);
       let trueCaseFsPath: string;
       try {
         trueCaseFsPath = await getFileTrueCase(
           npmPackage.rootFsPath,
-          parsedNpmModule.path,
+          relativeFsPath,
         );
       } catch (error) {
         ensureError(error, FileNotFoundError);
 
         throw new HardhatError(
-          HardhatError.ERRORS.SOLIDITY.RESOLVE_NON_EXISTENT_NPM_FILE,
+          HardhatError.ERRORS.SOLIDITY.RESOLVE_NON_EXISTENT_NPM_ROOT,
           { module: npmModule },
           error,
         );
       }
 
-      // Just like with the project files, we are more forgiving with the casing
-      // here, as this is not used for imports.
+      if (relativeFsPath !== trueCaseFsPath) {
+        throw new HardhatError(
+          HardhatError.ERRORS.SOLIDITY.RESOLVE_WRONG_CASING_NPM_ROOT,
+          { module: npmModule },
+        );
+      }
 
       const sourceName = sourceNamePathJoin(
         npmPackageToRootSourceName(npmPackage.name, npmPackage.version),
-        fsPathToSourceNamePath(trueCaseFsPath),
+        // We use the subpath (pre-resolution) to create source names
+        subpath,
       );
 
-      const resolvedWithTheRightCasing =
-        this.#resolvedFileBySourceName.get(sourceName);
+      const resolved = this.#resolvedFileBySourceName.get(sourceName);
 
-      if (resolvedWithTheRightCasing !== undefined) {
+      if (resolved !== undefined) {
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       -- If it was, it's a ProjectResolvedFile */
-        return resolvedWithTheRightCasing as NpmPackageResolvedFile;
+        return resolved as NpmPackageResolvedFile;
       }
 
       const fsPath = path.join(npmPackage.rootFsPath, trueCaseFsPath);
 
       const resolvedFile: NpmPackageResolvedFile = {
-        type: ResolvedFileType.NPM_PACKGE_FILE,
+        type: ResolvedFileType.NPM_PACKAGE_FILE,
         sourceName,
         fsPath,
         content: await readFileContent(fsPath),
@@ -357,7 +366,7 @@ export class ResolverImplementation implements Resolver {
           importPath,
         );
 
-        if (from.type === ResolvedFileType.NPM_PACKGE_FILE) {
+        if (from.type === ResolvedFileType.NPM_PACKAGE_FILE) {
           if (!directImport.startsWith(from.package.rootSourceName)) {
             throw new HardhatError(
               HardhatError.ERRORS.SOLIDITY.ILLEGAL_PACKAGE_IMPORT,
@@ -388,7 +397,7 @@ export class ResolverImplementation implements Resolver {
             directImport,
           });
 
-        case ResolvedFileType.NPM_PACKGE_FILE:
+        case ResolvedFileType.NPM_PACKAGE_FILE:
           return this.#resolveImportFromNpmPackageFile({
             from,
             importPath,
@@ -420,7 +429,7 @@ export class ResolverImplementation implements Resolver {
       }
 
       for (const [importedPackage, dependency] of dependenciesMap.entries()) {
-        // As `hardhat/console.sol` is resolved through npm, even if the
+        // As `hardhat/console.sol` is always resolved through npm, even if the
         // `hardhat/` folder exists in the root of the package/project, we
         // only remap that file.
         //
@@ -431,10 +440,6 @@ export class ResolverImplementation implements Resolver {
         // the dependency's name, and that's because we always resolve 'hardhat'
         // as the hh package itself. If someone installs another package as
         // "hardhat", it may break.
-        //
-        // If we support package#exports, we may treat hardhat as a normal
-        // package, with the exception of `hardhat/console.sol` always being
-        // resolved through npm.
         if (
           dependency !== PROJECT_ROOT_SENTINEL &&
           importedPackage === "hardhat"
@@ -511,7 +516,7 @@ export class ResolverImplementation implements Resolver {
   //  4. Resolving an import from an npm package to one of its own files with a
   //     direct import — This case is different from 3, as without especial care
   //     it could be affected by one of the user remappings.
-  //  5. Resolving an import to a different npm package using our own remmapings
+  //  5. Resolving an import to a different npm package using our own remappings
 
   /**
    * Resolves an import from a project file.
@@ -739,7 +744,9 @@ export class ResolverImplementation implements Resolver {
         // If we import a file through npm and end up in the Hardhat project,
         // we are going to remap the importPackageName to "", so that the path
         // section of the parsed direct import should be the relative path.
-        fsPathWithinTheProject: sourceNamePathToFsPath(parsedDirectImport.path),
+        fsPathWithinTheProject: sourceNamePathToFsPath(
+          parsedDirectImport.subpath,
+        ),
       });
     }
 
@@ -747,7 +754,7 @@ export class ResolverImplementation implements Resolver {
       from,
       importPath,
       importedPackage: dependency,
-      fsPathWithinThePackage: sourceNamePathToFsPath(parsedDirectImport.path),
+      subpath: parsedDirectImport.subpath,
     });
   }
 
@@ -844,9 +851,11 @@ export class ResolverImplementation implements Resolver {
       return existing as NpmPackageResolvedFile;
     }
 
-    const relativeFileFsPath = sourceNamePathToFsPath(
-      path.relative(remapping.targetNpmPackage.rootSourceName, directImport),
+    const subpath = path.relative(
+      remapping.targetNpmPackage.rootSourceName,
+      directImport,
     );
+    const resolvedSubpath = resolveSubpath(remapping.targetNpmPackage, subpath);
 
     // We don't add the dependency to `this.#dependencyMaps` because we
     // don't need a new remapping for this package, as it's already
@@ -855,17 +864,18 @@ export class ResolverImplementation implements Resolver {
     await this.#validateExistanceAndCasingOfImport({
       from,
       importPath,
-      relativeFsPathToValidate: relativeFileFsPath,
+      relativeFsPathToValidate: sourceNamePathToFsPath(resolvedSubpath),
       absoluteFsPathToValidateFrom: remapping.targetNpmPackage.rootFsPath,
+      usingPackageExports: remapping.targetNpmPackage.exports !== undefined,
     });
 
     const fsPath = path.join(
       remapping.targetNpmPackage.rootFsPath,
-      relativeFileFsPath,
+      resolvedSubpath,
     );
 
     const resolvedFile: NpmPackageResolvedFile = {
-      type: ResolvedFileType.NPM_PACKGE_FILE,
+      type: ResolvedFileType.NPM_PACKAGE_FILE,
       sourceName,
       fsPath,
       content: await readFileContent(fsPath),
@@ -918,7 +928,7 @@ export class ResolverImplementation implements Resolver {
     const filePath = path.join(from.package.rootFsPath, relativePath);
 
     const resolvedFile: NpmPackageResolvedFile = {
-      type: ResolvedFileType.NPM_PACKGE_FILE,
+      type: ResolvedFileType.NPM_PACKAGE_FILE,
       sourceName,
       fsPath: filePath,
       content: await readFileContent(filePath),
@@ -973,7 +983,7 @@ export class ResolverImplementation implements Resolver {
     const fsPath = path.join(from.package.rootFsPath, relativeFsPath);
 
     const resolvedFile: NpmPackageResolvedFile = {
-      type: ResolvedFileType.NPM_PACKGE_FILE,
+      type: ResolvedFileType.NPM_PACKAGE_FILE,
       sourceName,
       fsPath,
       content: await readFileContent(fsPath),
@@ -995,24 +1005,23 @@ export class ResolverImplementation implements Resolver {
    * @param from The file from which the import is being resolved.
    * @param importPath The import path, as written in the source code.
    * @param importedPackage The NpmPackage that is being imported.
-   * @param pathWithinThePackage The path to the file to import, within the
+   * @param subpath The path to the file to import, within the
    * package. That means, after parsing the direct import, and stripping the
-   * package part.
+   * package part, before resolving package exports.
    */
   async #resolveImportToNpmPackage({
     from,
     importPath,
     importedPackage,
-    fsPathWithinThePackage,
+    subpath,
   }: {
     from: ResolvedFile;
     importPath: string;
     importedPackage: ResolvedNpmPackage;
-    fsPathWithinThePackage: string;
+    subpath: string;
   }): Promise<NpmPackageResolvedFile> {
-    const sourceName =
-      importedPackage.rootSourceName +
-      fsPathToSourceNamePath(fsPathWithinThePackage);
+    const sourceName = importedPackage.rootSourceName + subpath;
+
     const existing = this.#resolvedFileBySourceName.get(sourceName);
     if (existing !== undefined) {
       /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
@@ -1020,20 +1029,21 @@ export class ResolverImplementation implements Resolver {
       return existing as NpmPackageResolvedFile;
     }
 
+    // We use the subpath (pre-resolution) to create source names
+    const resolvedSubpath = resolveSubpath(importedPackage, subpath);
+
     await this.#validateExistanceAndCasingOfImport({
       from,
       importPath,
-      relativeFsPathToValidate: fsPathWithinThePackage,
+      relativeFsPathToValidate: sourceNamePathToFsPath(resolvedSubpath),
       absoluteFsPathToValidateFrom: importedPackage.rootFsPath,
+      usingPackageExports: importedPackage.exports !== undefined,
     });
 
-    const fsPath = path.join(
-      importedPackage.rootFsPath,
-      fsPathWithinThePackage,
-    );
+    const fsPath = path.join(importedPackage.rootFsPath, resolvedSubpath);
 
     const resolvedFile: NpmPackageResolvedFile = {
-      type: ResolvedFileType.NPM_PACKGE_FILE,
+      type: ResolvedFileType.NPM_PACKAGE_FILE,
       sourceName,
       fsPath,
       content: await readFileContent(fsPath),
@@ -1081,30 +1091,15 @@ export class ResolverImplementation implements Resolver {
     // We also need to figure out a way to test this inside the monorepo,
     // without the package `hardhat` in the top-level `node_modules` folder
     // interfering with the resolution.
-    const packageJsonResolution =
+
+    const packageJsonPath =
       packageName === "hardhat"
-        ? ({
-            success: true,
-            absolutePath: await findClosestPackageJson(import.meta.dirname),
-          } as const)
-        : resolve(packageName + "/package.json", baseResolutionDirectory);
+        ? await findClosestPackageJson(import.meta.dirname)
+        : await findDependencyPackageJson(baseResolutionDirectory, packageName);
 
-    if (packageJsonResolution.success === false) {
-      if (packageJsonResolution.error === ResolutionError.MODULE_NOT_FOUND) {
-        throw new HardhatError(
-          HardhatError.ERRORS.SOLIDITY.NPM_DEPEDNDENCY_NOT_INSTALLED,
-          {
-            from:
-              from === PROJECT_ROOT_SENTINEL
-                ? "your project"
-                : `"${shortenPath(from.rootFsPath)}"`,
-            packageName,
-          },
-        );
-      }
-
+    if (packageJsonPath === undefined) {
       throw new HardhatError(
-        HardhatError.ERRORS.SOLIDITY.NPM_DEPEDNDENCY_USES_EXPORTS,
+        HardhatError.ERRORS.SOLIDITY.NPM_DEPEDNDENCY_NOT_INSTALLED,
         {
           from:
             from === PROJECT_ROOT_SENTINEL
@@ -1115,16 +1110,16 @@ export class ResolverImplementation implements Resolver {
       );
     }
 
-    const packageJsonPath = packageJsonResolution.absolutePath;
-
     if (isPackageJsonFromProject(packageJsonPath, this.#projectRoot)) {
       dependenciesMap.set(packageName, PROJECT_ROOT_SENTINEL);
       return PROJECT_ROOT_SENTINEL;
     }
 
-    const packageJson = await readJsonFile<{ name: string; version: string }>(
-      packageJsonPath,
-    );
+    const packageJson = await readJsonFile<{
+      name: string;
+      version: string;
+      exports?: resolve.Exports;
+    }>(packageJsonPath);
 
     const name = packageJson.name;
     const version = isPackageJsonFromMonorepo(
@@ -1137,6 +1132,7 @@ export class ResolverImplementation implements Resolver {
     const npmPackage: ResolvedNpmPackage = {
       name,
       version,
+      exports: packageJson.exports,
       rootFsPath: path.dirname(packageJsonPath),
       rootSourceName: npmPackageToRootSourceName(name, version),
     };
@@ -1187,19 +1183,6 @@ export class ResolverImplementation implements Resolver {
             from: shortenPath(from.fsPath),
             importPath,
           },
-          error,
-        );
-      }
-
-      if (
-        HardhatError.isHardhatError(
-          error,
-          HardhatError.ERRORS.SOLIDITY.NPM_DEPEDNDENCY_USES_EXPORTS,
-        )
-      ) {
-        throw new HardhatError(
-          HardhatError.ERRORS.SOLIDITY.IMPORTED_NPM_DEPENDENCY_THAT_USES_EXPORTS,
-          { from: shortenPath(from.fsPath), importPath },
           error,
         );
       }
@@ -1268,17 +1251,21 @@ export class ResolverImplementation implements Resolver {
    * @param relativePathToValidate The relative path to validate its existance.
    * @param absolutePathToValidateFrom The absolute path from in which the
    * relative path is.
+   * @param usingPackageExports Whether the import is using package exports,
+   * which controls which kind of error is thrown.
    */
   async #validateExistanceAndCasingOfImport({
     from,
     importPath,
     relativeFsPathToValidate,
     absoluteFsPathToValidateFrom,
+    usingPackageExports,
   }: {
     from: ResolvedFile;
     importPath: string;
     relativeFsPathToValidate: string;
     absoluteFsPathToValidateFrom: string;
+    usingPackageExports?: boolean;
   }) {
     let trueCaseFsPath: string;
     try {
@@ -1297,8 +1284,20 @@ export class ResolverImplementation implements Resolver {
     }
 
     if (relativeFsPathToValidate !== trueCaseFsPath) {
+      // If we are using package exports, we need to throw a special error,
+      // as we can't compute the correct casing.
+      if (usingPackageExports === true) {
+        throw new HardhatError(
+          HardhatError.ERRORS.SOLIDITY.IMPORTED_PACKAGE_EXPORTS_FILE_WITH_INCORRECT_CASING,
+          {
+            importPath,
+            from: shortenPath(from.fsPath),
+          },
+        );
+      }
+
       throw new HardhatError(
-        HardhatError.ERRORS.SOLIDITY.IMPORTED_FILE_WITH_ICORRECT_CASING,
+        HardhatError.ERRORS.SOLIDITY.IMPORTED_FILE_WITH_INCORRECT_CASING,
         {
           importPath,
           from: shortenPath(from.fsPath),
@@ -1311,11 +1310,13 @@ export class ResolverImplementation implements Resolver {
   /**
    * Parses a direct import as if it were an npm import, returning `undefined`
    * if the format is invalid.
+   *
+   * Note: The returned subpath is not an fs path, and always use path.posix.sep
    */
   #parseNpmDirectImport(directImport: string):
     | {
         package: string;
-        path: string;
+        subpath: string;
       }
     | undefined {
     // NOTE: We assume usage of path.posix.sep in the direct import
@@ -1333,11 +1334,7 @@ export class ResolverImplementation implements Resolver {
       "Groups should be defined because they are part of the pattern",
     );
 
-    // NOTE: We replace path.posix.sep with path.sep here so that the returned
-    // path can be later safely treated as a system aware path
-    const parsedPath = match.groups.path.replaceAll(path.posix.sep, path.sep);
-
-    return { package: match.groups.package, path: parsedPath };
+    return { package: match.groups.package, subpath: match.groups.path };
   }
 }
 
@@ -1378,29 +1375,17 @@ async function validateAndResolveUserRemapping(
 
   const { packageName, packageVersion } = parsed;
 
-  const dependencyPackageJsonResolution = resolve(
-    `${packageName}/package.json`,
+  const dependencyPackageJsonPath = await findDependencyPackageJson(
     projectRoot,
+    packageName,
   );
 
-  if (dependencyPackageJsonResolution.success === false) {
-    if (
-      dependencyPackageJsonResolution.error === ResolutionError.MODULE_NOT_FOUND
-    ) {
-      throw new HardhatError(
-        HardhatError.ERRORS.SOLIDITY.REMAPPING_TO_UNINSTALLED_PACKAGE,
-        { remapping: remappingString, package: packageName },
-      );
-    }
-
+  if (dependencyPackageJsonPath === undefined) {
     throw new HardhatError(
-      HardhatError.ERRORS.SOLIDITY.REMAPPING_TO_PACKAGE_USING_EXPORTS,
+      HardhatError.ERRORS.SOLIDITY.REMAPPING_TO_UNINSTALLED_PACKAGE,
       { remapping: remappingString, package: packageName },
     );
   }
-
-  const dependencyPackageJsonPath =
-    dependencyPackageJsonResolution.absolutePath;
 
   if (isPackageJsonFromMonorepo(dependencyPackageJsonPath, projectRoot)) {
     if (packageVersion !== "local") {
@@ -1422,10 +1407,18 @@ async function validateAndResolveUserRemapping(
     );
   }
 
+  const npmPackage: ResolvedNpmPackage = {
+    name: packageName,
+    version: packageVersion,
+    rootFsPath: path.dirname(dependencyPackageJsonPath),
+    rootSourceName: npmPackageToRootSourceName(packageName, packageVersion),
+  };
+
   if (isPackageJsonFromNpmPackage(dependencyPackageJsonPath)) {
-    const dependencyPackageJson = await readJsonFile<{ version: string }>(
-      dependencyPackageJsonPath,
-    );
+    const dependencyPackageJson = await readJsonFile<{
+      version: string;
+      exports: resolve.Exports;
+    }>(dependencyPackageJsonPath);
 
     if (dependencyPackageJson.version !== packageVersion) {
       throw new HardhatError(
@@ -1438,14 +1431,9 @@ async function validateAndResolveUserRemapping(
         },
       );
     }
-  }
 
-  const npmPackage: ResolvedNpmPackage = {
-    name: packageName,
-    version: packageVersion,
-    rootFsPath: path.dirname(dependencyPackageJsonPath),
-    rootSourceName: npmPackageToRootSourceName(packageName, packageVersion),
-  };
+    npmPackage.exports = dependencyPackageJson.exports;
+  }
 
   return {
     ...remapping,
@@ -1559,4 +1547,49 @@ async function readFileContent(absolutePath: string): Promise<FileContent> {
     importPaths: imports,
     versionPragmas,
   };
+}
+
+/**
+ * Resolves a subpath for a given package, when it uses package#exports
+ * @param npmPackage
+ * @param subpath
+ * @returns
+ */
+function resolveSubpath(
+  npmPackage: ResolvedNpmPackage,
+  subpath: string,
+): string {
+  if (npmPackage.exports === undefined) {
+    return subpath;
+  }
+  try {
+    // As we are resolving Solidity files, the conditions don't really apply,
+    // and Solidity package authors don't use them either.
+    //
+    // We use `resolve.exports` with the appropiate options so that it only
+    // takes the `"default"` condition into account.
+    const resolveOutput = resolve.exports(npmPackage, subpath, {
+      browser: false,
+      conditions: [],
+      require: false,
+      unsafe: true,
+    });
+
+    assertHardhatInvariant(
+      resolveOutput !== undefined,
+      "resolve.exports should always return a result when package.exports exist",
+    );
+
+    const resolvedSubpath = resolveOutput[0].slice(2); // skip the leading './'
+
+    return resolvedSubpath.replace(/\/|\\/g, path.sep); // use fs path separator
+  } catch (error) {
+    ensureError(error, Error);
+
+    throw new HardhatError(
+      HardhatError.ERRORS.SOLIDITY.RESOLVE_NOT_EXPORTED_NPM_FILE,
+      { module: `${npmPackage.name}/${subpath}` },
+      error,
+    );
+  }
 }

@@ -8,15 +8,12 @@
     [31m3) it only[39m
 
 
-[32m0 passing[39m[90m (127ms)[39m[31m[39m
+[32m0 passing[39m[90m (137ms)[39m[31m[39m
 [31m3 failing[39m
 
   1) test only:
 
-   [31mAssertionError: Expected values to be strictly equal:[39m
-   [31m[39m
-   [31m1 !== 2[39m
-   [31m[39m
+   [31mAssertionError: Expected values to be strictly equal[39m
    [32m- Expected[39m
    [31m+ Received[39m
    
@@ -28,10 +25,7 @@
   2) describe only
        it:
 
-   [31mAssertionError: Expected values to be strictly equal:[39m
-   [31m[39m
-   [31m1 !== 2[39m
-   [31m[39m
+   [31mAssertionError: Expected values to be strictly equal[39m
    [32m- Expected[39m
    [31m+ Received[39m
    
@@ -43,10 +37,7 @@
   3) describe
        it only:
 
-   [31mAssertionError: Expected values to be strictly equal:[39m
-   [31m[39m
-   [31m1 !== 2[39m
-   [31m[39m
+   [31mAssertionError: Expected values to be strictly equal[39m
    [32m- Expected[39m
    [31m+ Received[39m
    

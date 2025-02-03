@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
+import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import {
   getJsonRpcRequest,
@@ -29,10 +29,14 @@ describe("HDWalletHandler", () => {
     "couch hunt wisdom giant regret supreme issue sing enroll ankle type husband";
   const hdpath = "m/44'/60'/0'/0/";
 
-  beforeEach(() => {
+  beforeEach(async () => {
     mockedProvider = new EthereumMockedProvider();
 
-    hdWalletHandler = new HDWalletHandler(mockedProvider, mnemonic, hdpath);
+    hdWalletHandler = await HDWalletHandler.create(
+      mockedProvider,
+      mnemonic,
+      hdpath,
+    );
   });
 
   it("should generate a valid address", async () => {
@@ -50,7 +54,7 @@ describe("HDWalletHandler", () => {
   it("should generate a valid address with passphrase", async () => {
     const passphrase = "this is a secret";
 
-    hdWalletHandler = new HDWalletHandler(
+    hdWalletHandler = await HDWalletHandler.create(
       mockedProvider,
       mnemonic,
       hdpath,
@@ -71,7 +75,12 @@ describe("HDWalletHandler", () => {
   });
 
   it("should generate a valid address when given a different index", async () => {
-    hdWalletHandler = new HDWalletHandler(mockedProvider, mnemonic, hdpath, 1);
+    hdWalletHandler = await HDWalletHandler.create(
+      mockedProvider,
+      mnemonic,
+      hdpath,
+      1,
+    );
 
     const jsonRpcRequest = getJsonRpcRequest(1, "eth_accounts");
 
@@ -85,7 +94,7 @@ describe("HDWalletHandler", () => {
   });
 
   it("should generate 2 accounts", async () => {
-    hdWalletHandler = new HDWalletHandler(
+    hdWalletHandler = await HDWalletHandler.create(
       mockedProvider,
       mnemonic,
       hdpath,
@@ -109,7 +118,7 @@ describe("HDWalletHandler", () => {
 
   describe("HDPath formatting", () => {
     it("should work if it doesn't end in a /", async () => {
-      hdWalletHandler = new HDWalletHandler(
+      hdWalletHandler = await HDWalletHandler.create(
         mockedProvider,
         mnemonic,
         "m/44'/60'/0'/0",
@@ -126,39 +135,39 @@ describe("HDWalletHandler", () => {
       assert.equal(result[0], "0x4f3e91d2cacd82fffd1f33a0d26d4078401986e9");
     });
 
-    it("should throw if the path is invalid", () => {
-      assertThrowsHardhatError(
-        () => new HDWalletHandler(mockedProvider, mnemonic, ""),
+    it("should throw if the path is invalid", async () => {
+      await assertRejectsWithHardhatError(
+        HDWalletHandler.create(mockedProvider, mnemonic, ""),
         HardhatError.ERRORS.NETWORK.INVALID_HD_PATH,
         { path: "" },
       );
 
-      assertThrowsHardhatError(
-        () => new HDWalletHandler(mockedProvider, mnemonic, "m/"),
+      await assertRejectsWithHardhatError(
+        HDWalletHandler.create(mockedProvider, mnemonic, "m/"),
         HardhatError.ERRORS.NETWORK.INVALID_HD_PATH,
         { path: "m/" },
       );
 
-      assertThrowsHardhatError(
-        () => new HDWalletHandler(mockedProvider, mnemonic, "m//"),
+      await assertRejectsWithHardhatError(
+        HDWalletHandler.create(mockedProvider, mnemonic, "m//"),
         HardhatError.ERRORS.NETWORK.INVALID_HD_PATH,
         { path: "m//" },
       );
 
-      assertThrowsHardhatError(
-        () => new HDWalletHandler(mockedProvider, mnemonic, "m/'"),
+      await assertRejectsWithHardhatError(
+        HDWalletHandler.create(mockedProvider, mnemonic, "m/'"),
         HardhatError.ERRORS.NETWORK.INVALID_HD_PATH,
         { path: "m/'" },
       );
 
-      assertThrowsHardhatError(
-        () => new HDWalletHandler(mockedProvider, mnemonic, "m/0''"),
+      await assertRejectsWithHardhatError(
+        HDWalletHandler.create(mockedProvider, mnemonic, "m/0''"),
         HardhatError.ERRORS.NETWORK.INVALID_HD_PATH,
         { path: "m/0''" },
       );
 
-      assertThrowsHardhatError(
-        () => new HDWalletHandler(mockedProvider, mnemonic, "ghj"),
+      await assertRejectsWithHardhatError(
+        HDWalletHandler.create(mockedProvider, mnemonic, "ghj"),
         HardhatError.ERRORS.NETWORK.INVALID_HD_PATH,
         { path: "ghj" },
       );

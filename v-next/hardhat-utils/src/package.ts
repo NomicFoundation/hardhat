@@ -1,3 +1,4 @@
+import { createRequire } from "node:module";
 import path from "node:path";
 
 import { ensureError } from "./error.js";
@@ -5,8 +6,9 @@ import {
   PackageJsonNotFoundError,
   PackageJsonReadError,
 } from "./errors/package.js";
-import { findUp, readJsonFile } from "./fs.js";
+import { exists, findUp, getRealPath, readJsonFile } from "./fs.js";
 import { getFilePath } from "./internal/package.js";
+import { ensureTrailingSlash } from "./string.js";
 
 /**
  * The structure of a `package.json` file. This is a subset of the actual
@@ -18,7 +20,7 @@ export interface PackageJson {
   description?: string;
   type?: "commonjs" | "module";
   engines?: {
-    node: string;
+    node?: string;
   };
   dependencies?: Record<string, string>;
   devDependencies?: Record<string, string>;
@@ -100,6 +102,39 @@ export async function findClosestPackageRoot(
   const packageJsonPath = await findClosestPackageJson(filePathOrUrl);
 
   return path.dirname(packageJsonPath);
+}
+
+/**
+ * Resolve a dependency starting by following the Node.js resolution algorithm
+ * starting from `from`, and returns the dependency's package.json file, or
+ * `undefined` if the dependency is not found.
+ *
+ * Note: This function uses Node.js's CommonJS resolution algorithm to find the
+ * package.json file, and works with packages using package#exports, even if
+ * they don't export the package.json file.
+ *
+ * @param from The absolute path from where to start the search (i.e. the file
+ *  importing the dependency, or its package root).
+ * @param dependencyPackageName The name of the package to find.
+ * @returns The absolute real path (resolved symlinks) of the package.json.
+ */
+export async function findDependencyPackageJson(
+  from: string,
+  dependencyPackageName: string,
+): Promise<string | undefined> {
+  const require = createRequire(ensureTrailingSlash(from));
+
+  const lookupPaths = require.resolve.paths(dependencyPackageName) ?? [];
+
+  const pathToTest = [...dependencyPackageName.split("/"), "package.json"];
+
+  for (const lookupPath of lookupPaths) {
+    const packageJsonPath = path.join(lookupPath, ...pathToTest);
+
+    if (await exists(packageJsonPath)) {
+      return getRealPath(packageJsonPath);
+    }
+  }
 }
 
 export {
