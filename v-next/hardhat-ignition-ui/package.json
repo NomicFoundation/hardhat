@@ -10,8 +10,9 @@
     "test:coverage": "nyc mocha --loader=ts-node/esm --recursive \"test/**/*.ts\"",
     "regenerate-deployment-example": "node ./scripts/generate-example-deployment-json.js",
     "lint": "pnpm prettier --check && pnpm eslint",
+    "lint:fix": "pnpm prettier --write && pnpm eslint --fix",
     "prettier": "prettier \"**/*.{ts,js,md,json}\"",
-    "eslint": "eslint \"src/**/*.ts\"",
+    "eslint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
     "preview": "vite preview",
     "clean": "rimraf dist",
     "prepack": "pnpm build"
