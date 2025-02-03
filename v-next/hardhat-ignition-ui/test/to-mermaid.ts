@@ -208,7 +208,7 @@ describe("to-mermaid", () => {
         "ContractWithLibrary",
         withLibArtifact,
         withLib,
-        { id: "ContractWithLibrary2" }
+        { id: "ContractWithLibrary2" },
       );
 
       m.send("test_send", duplicate, 123n);

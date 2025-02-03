@@ -41,7 +41,7 @@ const synthetixDefinition = buildModule("Synthetix", (m) => {
   const synthetixCore = m.contractAt(
     "SynthetixCore",
     "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-    fakeArtifact
+    fakeArtifact,
   );
 
   const { router } = m.useModule(uniswap);

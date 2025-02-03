@@ -10,7 +10,7 @@ import { argumentTypeToString } from "./argumentTypeToString.js";
 import { toEscapedId } from "./to-escaped-id.js";
 
 export function toMermaid(
-  ignitionModule: IgnitionModule<string, string, IgnitionModuleResult<string>>
+  ignitionModule: IgnitionModule<string, string, IgnitionModuleResult<string>>,
 ) {
   const modules = recursivelyListModulesAndSubmodulesFor(ignitionModule);
 
@@ -26,11 +26,11 @@ export function toMermaid(
             toEscapedId(f.id),
             toEscapedId(d.id),
             /#/.test(d.id),
-          ])
+          ]),
         )
         .map(
-          ([from, to, isFuture]) => `${from} ${isFuture ? "-->" : "==>"} ${to}`
-        )
+          ([from, to, isFuture]) => `${from} ${isFuture ? "-->" : "==>"} ${to}`,
+        ),
     ),
   ].join("\n");
 
@@ -41,74 +41,74 @@ export function toMermaid(
           Array.from(f.submodules).map((d) => [
             toEscapedId(f.id),
             toEscapedId(d.id),
-          ])
+          ]),
         )
-        .map(([from, to]) => `${from} -.-> ${to}`)
+        .map(([from, to]) => `${from} -.-> ${to}`),
     ),
   ].join("\n");
 
   return `flowchart BT\n\n${toEscapedId(
-    ignitionModule.id
+    ignitionModule.id,
   )}\n\n${subgraphSections}${
     futureDependencies === "" ? "" : "\n\n" + futureDependencies
   }${moduleDependencies === "" ? "" : "\n\n" + moduleDependencies}`;
 }
 
 function recursivelyListModulesAndSubmodulesFor(
-  module: IgnitionModule<string, string, IgnitionModuleResult<string>>
+  module: IgnitionModule<string, string, IgnitionModuleResult<string>>,
 ): Array<IgnitionModule<string, string, IgnitionModuleResult<string>>> {
   return [module].concat(
     Array.from(module.submodules).flatMap(
-      recursivelyListModulesAndSubmodulesFor
-    )
+      recursivelyListModulesAndSubmodulesFor,
+    ),
   );
 }
 
 function prettyPrintModule(
   module: IgnitionModule<string, string, IgnitionModuleResult<string>>,
-  lineIndent = ""
+  lineIndent = "",
 ): string {
   const futures = Array.from(module.futures);
   const futureList = futures
     .map(
-      (f) => `${lineIndent}${toEscapedId(f.id)}["${toLabel(f)}"]:::futureNode`
+      (f) => `${lineIndent}${toEscapedId(f.id)}["${toLabel(f)}"]:::futureNode`,
     )
     .join(`\n${lineIndent}`);
 
   if (futures.length > 0) {
     const inner = `${lineIndent}subgraph ${toEscapedId(
-      module.id
+      module.id,
     )}Inner[ ]\n${lineIndent}  direction BT\n\n${lineIndent}${futureList}\n${lineIndent}end\n\nstyle ${toEscapedId(
-      module.id
+      module.id,
     )}Inner fill:none,stroke:none`;
 
     const title = `${lineIndent}subgraph ${toEscapedId(module.id)}Padding["[ ${
       module.id
     } ]"]\n${lineIndent}  direction BT\n\n${lineIndent}${inner}\n${lineIndent}end\n\nstyle ${toEscapedId(
-      module.id
+      module.id,
     )}Padding fill:none,stroke:none`;
 
     const outer = `${lineIndent}subgraph ${toEscapedId(
-      module.id
+      module.id,
     )}[ ]\n${lineIndent} direction BT\n\n${lineIndent}${title}\n${lineIndent}end\n\nstyle ${toEscapedId(
-      module.id
+      module.id,
     )} fill:#fbfbfb,stroke:#e5e6e7`;
 
     return outer;
   }
 
   const title = `${lineIndent}subgraph ${toEscapedId(
-    module.id
+    module.id,
   )}Padding["<strong>[ ${
     module.id
   } ]</strong>"]\n${lineIndent}  direction BT\n\n${lineIndent}end\n\nstyle ${toEscapedId(
-    module.id
+    module.id,
   )}Padding fill:none,stroke:none`;
 
   return `${lineIndent}subgraph ${toEscapedId(
-    module.id
+    module.id,
   )}[ ]\n${lineIndent} direction BT\n\n${lineIndent}${title}\n${lineIndent}end\n\nstyle ${toEscapedId(
-    module.id
+    module.id,
   )} fill:#fbfbfb,stroke:#e5e6e7`;
 }
 
@@ -133,16 +133,16 @@ function toLabel(f: Future): string {
         typeof f.address === "string"
           ? f.address
           : isFuture(f.address)
-          ? f.address.id
-          : argumentTypeToString(f.address)
+            ? f.address.id
+            : argumentTypeToString(f.address)
       })`;
     case FutureType.CONTRACT_AT:
       return `Existing contract from artifact ${f.contractName} (${
         typeof f.address === "string"
           ? f.address
           : isFuture(f.address)
-          ? f.address.id
-          : argumentTypeToString(f.address)
+            ? f.address.id
+            : argumentTypeToString(f.address)
       })`;
     case FutureType.READ_EVENT_ARGUMENT:
       return `Read event from future ${f.futureToReadFrom.id} (event ${f.eventName} argument ${f.nameOrIndex})`;
@@ -151,8 +151,8 @@ function toLabel(f: Future): string {
         typeof f.to === "string"
           ? f.to
           : isFuture(f.to)
-          ? f.to.id
-          : argumentTypeToString(f.to)
+            ? f.to.id
+            : argumentTypeToString(f.to)
       }`;
   }
 }

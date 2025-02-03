@@ -23,8 +23,8 @@ async function writeDeploymentJsonFor(ignitionModule) {
     JSON.stringify(
       { module: serializedIgnitionModule, batches: moduleBatches },
       undefined,
-      2
-    )
+      2,
+    ),
   );
 }
 
