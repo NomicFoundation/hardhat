@@ -54,7 +54,7 @@ export interface ArtifactManager {
    *
    * This function doesn't throw if the name is not unique.
    *
-   * @param contractNameOrFullyQualifiedName Contract or fully qualified name.\
+   * @param contractNameOrFullyQualifiedName Contract or fully qualified name.
    * @throws Throws an error if a non-unique contract name is used,
    *   indicating which fully qualified names can be used instead.
    */
