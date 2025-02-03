@@ -1874,9 +1874,6 @@ importers:
       '@microsoft/api-extractor':
         specifier: 7.49.1
         version: 7.49.1(@types/node@20.17.16)
-      '@nomicfoundation/eslint-plugin-hardhat-internal-rules':
-        specifier: workspace:^
-        version: link:../../packages/eslint-plugin-hardhat-internal-rules
       '@types/chai':
         specifier: ^4.2.0
         version: 4.3.20
@@ -1931,9 +1928,6 @@ importers:
       eslint-plugin-no-only-tests:
         specifier: 3.1.0
         version: 3.1.0
-      hardhat:
-        specifier: workspace:^2.18.0
-        version: link:../../packages/hardhat-core
       mocha:
         specifier: ^10.0.0
         version: 10.8.2
