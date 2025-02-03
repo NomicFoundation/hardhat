@@ -6,7 +6,10 @@ import type {
 import { EOL } from "node:os";
 import path from "node:path";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import {
+  assertHardhatInvariant,
+  HardhatError,
+} from "@ignored/hardhat-vnext-errors";
 import {
   getAllFilesMatching,
   readJsonFile,
@@ -23,9 +26,10 @@ export const EDIT_DISTANCE_THRESHOLD = 3;
  * same time, using this interface to organize the data.
  */
 interface FsData {
-  bareNameToFullyQualifiedNameMap: Map<string, ReadonlySet<string>>;
   allArtifactPaths: ReadonlySet<string>;
   allFullyQualifiedNames: ReadonlySet<string>;
+  bareNameToFullyQualifiedNameMap: Map<string, ReadonlySet<string>>;
+  fullyQualifiedNameToArtifactPath: Map<string, string>;
 }
 
 export class ArticlesManagerImplementation implements ArtifactsManager {
@@ -59,7 +63,15 @@ export class ArticlesManagerImplementation implements ArtifactsManager {
       contractNameOrFullyQualifiedName,
     );
 
-    return this.#getArtifactPathFromFullyQualifiedName(fqn);
+    const { fullyQualifiedNameToArtifactPath } = await this.#getFsData();
+
+    const artifactPath = fullyQualifiedNameToArtifactPath.get(fqn);
+    assertHardhatInvariant(
+      artifactPath !== undefined,
+      "Artifact path should be defined",
+    );
+
+    return artifactPath;
   }
 
   public async artifactExists(
@@ -189,23 +201,6 @@ export class ArticlesManagerImplementation implements ArtifactsManager {
     return name.includes(":");
   }
 
-  /**
-   * Returs the expected path to the artifact given a fully qualified name.
-   *
-   * @param fullyQualifiedName The fully qualified name of the contract whose
-   * artifact is being requested.
-   * @returns The path to the artifact, which may or may not exist.
-   */
-  #getArtifactPathFromFullyQualifiedName(fullyQualifiedName: string): string {
-    // TODO: Cache this?
-    return (
-      path.join(
-        this.#artifactsPath,
-        ...fullyQualifiedName.replace(":", "/").split("/"),
-      ) + ".json"
-    );
-  }
-
   #getFullyQualifiedNameFromArtifactAbsolutePath(artifactPath: string): string {
     const relativePath = path.relative(this.#artifactsPath, artifactPath);
     const sourceName = path.dirname(relativePath).split(path.sep).join("/");
@@ -271,10 +266,14 @@ Please replace "${contractNameOrFullyQualifiedName}" for the correct contract na
     const allFullyQualifiedNames = new Set<string>();
     const bareNameToFullyQualifiedNameMap = new Map<string, Set<string>>();
 
+    const fullyQualifiedNameToArtifactPath = new Map<string, string>();
+
     for (const p of allArtifactPaths) {
       const bareName = path.basename(p, ".json");
       const fqn = this.#getFullyQualifiedNameFromArtifactAbsolutePath(p);
       allFullyQualifiedNames.add(fqn);
+
+      fullyQualifiedNameToArtifactPath.set(fqn, p);
 
       const fqns = bareNameToFullyQualifiedNameMap.get(bareName);
       if (fqns === undefined) {
@@ -286,8 +285,9 @@ Please replace "${contractNameOrFullyQualifiedName}" for the correct contract na
 
     return {
       allArtifactPaths: new Set(allArtifactPaths),
-      bareNameToFullyQualifiedNameMap,
       allFullyQualifiedNames,
+      bareNameToFullyQualifiedNameMap,
+      fullyQualifiedNameToArtifactPath,
     };
   }
 }
