@@ -2046,8 +2046,8 @@ importers:
         specifier: ^3.6.1
         version: 3.6.2
       ts-node:
-        specifier: 10.9.1
-        version: 10.9.1(@types/node@22.10.10)(typescript@5.5.4)
+        specifier: 10.9.2
+        version: 10.9.2(@types/node@22.10.10)(typescript@5.5.4)
       typescript:
         specifier: ~5.5.0
         version: 5.5.4
@@ -14142,14 +14142,14 @@ snapshots:
       v8-compile-cache-lib: 3.0.1
       yn: 3.1.1
 
-  ts-node@10.9.1(@types/node@22.10.10)(typescript@5.5.4):
+  ts-node@10.9.2(@types/node@20.17.16)(typescript@5.5.4):
     dependencies:
       '@cspotcode/source-map-support': 0.8.1
       '@tsconfig/node10': 1.0.11
       '@tsconfig/node12': 1.0.11
       '@tsconfig/node14': 1.0.3
       '@tsconfig/node16': 1.0.4
-      '@types/node': 22.10.10
+      '@types/node': 20.17.16
       acorn: 8.14.0
       acorn-walk: 8.3.4
       arg: 4.1.3
@@ -14160,14 +14160,14 @@ snapshots:
       v8-compile-cache-lib: 3.0.1
       yn: 3.1.1
 
-  ts-node@10.9.2(@types/node@20.17.16)(typescript@5.5.4):
+  ts-node@10.9.2(@types/node@22.10.10)(typescript@5.5.4):
     dependencies:
       '@cspotcode/source-map-support': 0.8.1
       '@tsconfig/node10': 1.0.11
       '@tsconfig/node12': 1.0.11
       '@tsconfig/node14': 1.0.3
       '@tsconfig/node16': 1.0.4
-      '@types/node': 20.17.16
+      '@types/node': 22.10.10
       acorn: 8.14.0
       acorn-walk: 8.3.4
       arg: 4.1.3
