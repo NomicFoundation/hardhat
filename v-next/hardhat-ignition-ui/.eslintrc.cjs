@@ -1,14 +1,11 @@
-module.exports = {
-  env: { browser: true, es2020: true },
-  extends: [
-    'eslint:recommended',
-    'plugin:@typescript-eslint/recommended',
-    'plugin:react-hooks/recommended',
-  ],
-  parser: '@typescript-eslint/parser',
-  parserOptions: { ecmaVersion: 'latest', sourceType: 'module' },
-  plugins: ['react-refresh'],
-  rules: {
-    'react-refresh/only-export-components': 'warn',
-  },
-}
+const { createConfig } = require("../../config-v-next/eslint.cjs");
+
+const config = createConfig(__filename);
+
+delete config.rules["@typescript-eslint/naming-convention"];
+delete config.rules["@typescript-eslint/switch-exhaustiveness-check"];
+delete config.rules[
+  "@typescript-eslint/use-unknown-in-catch-callback-variable"
+];
+
+module.exports = config;
