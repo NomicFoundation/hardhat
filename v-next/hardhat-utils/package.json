@@ -80,7 +80,7 @@
     "typescript-eslint": "7.7.1"
   },
   "dependencies": {
-    "debug": "^4.1.1",
+    "debug": "^4.3.2",
     "env-paths": "^2.2.0",
     "ethereum-cryptography": "^2.2.1",
     "fast-equals": "^5.0.1",
