@@ -3,7 +3,7 @@ import {
   IgnitionModule,
 } from "@ignored/hardhat-vnext-ignition-core";
 import { ensureDirSync, removeSync } from "fs-extra";
-import { resetHardhatContext } from "hardhat/plugins-testing";
+
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import path from "path";
 
@@ -49,7 +49,9 @@ export function useEphemeralIgnitionProject(fixtureProjectName: string) {
   });
 
   afterEach("reset hardhat context", function () {
-    resetHardhatContext();
+    throw new Error(
+      "Not implemented: need to find a replacement for `resetHardhatContext()`"
+    );
   });
 }
 
@@ -103,15 +105,17 @@ export function useFileIgnitionProject(
   });
 
   afterEach("reset hardhat context", function () {
-    resetHardhatContext();
+    throw new Error(
+      "Not implemented: need to find a replacement for resetHardhatContext()"
+    );
 
-    if (this.deploymentDir === undefined) {
-      throw new Error(
-        "Deployment dir not set during cleanup of file based project"
-      );
-    }
+    // if (this.deploymentDir === undefined) {
+    //   throw new Error(
+    //     "Deployment dir not set during cleanup of file based project"
+    //   );
+    // }
 
-    removeSync(this.deploymentDir);
+    // removeSync(this.deploymentDir);
   });
 }
 
