@@ -1,8 +1,8 @@
 import {
   LegacyTransaction as Transaction,
   LegacyTxData as TxData,
-} from "@nomicfoundation/ethereumjs-tx";
-import { bytesToHex, toBytes } from "@nomicfoundation/ethereumjs-util";
+} from "@ethereumjs/tx";
+import { bytesToHex, toBytes } from "@ethereumjs/util";
 
 import { numberToRpcQuantity } from "../../../../src/internal/core/jsonrpc/types/base-types";
 import { randomAddress } from "../../../../src/internal/hardhat-network/provider/utils/random";

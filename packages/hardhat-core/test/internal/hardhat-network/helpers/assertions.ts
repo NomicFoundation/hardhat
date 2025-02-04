@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { bytesToHex as bufferToHex } from "@nomicfoundation/ethereumjs-util";
+import { bytesToHex as bufferToHex } from "@ethereumjs/util";
 
 import {
   numberToRpcQuantity,

@@ -7,7 +7,7 @@ import type {
   TracingMessageResult,
   TracingStep,
 } from "@nomicfoundation/edr";
-import { Address } from "@nomicfoundation/ethereumjs-util";
+import { Address } from "@ethereumjs/util";
 
 import { requireNapiRsModule } from "../../../../common/napi-rs";
 import { HardforkName } from "../../../util/hardforks";

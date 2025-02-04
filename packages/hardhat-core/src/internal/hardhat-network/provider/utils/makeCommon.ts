@@ -1,4 +1,4 @@
-import { Common } from "@nomicfoundation/ethereumjs-common";
+import { Common } from "@ethereumjs/common";
 
 import { LocalNodeConfig } from "../node-types";
 import { HardforkName } from "../../../util/hardforks";

@@ -1,4 +1,4 @@
-import { Common } from "@nomicfoundation/ethereumjs-common";
+import { Common } from "@ethereumjs/common";
 import { assert } from "chai";
 import {
   getHardforkName,

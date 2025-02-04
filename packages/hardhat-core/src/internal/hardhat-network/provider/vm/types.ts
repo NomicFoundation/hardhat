@@ -1,5 +1,5 @@
 import type { ExceptionalHalt, SuccessReason } from "@nomicfoundation/edr";
-import type { Address } from "@nomicfoundation/ethereumjs-util";
+import type { Address } from "@ethereumjs/util";
 
 /**
  * These types are minimal versions of the values returned by ethereumjs

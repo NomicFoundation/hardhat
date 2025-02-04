@@ -1,4 +1,4 @@
-import type EthereumjsUtilT from "@nomicfoundation/ethereumjs-util";
+import type EthereumjsUtilT from "@ethereumjs/util";
 
 import picocolors from "picocolors";
 import debug from "debug";
@@ -56,7 +56,7 @@ function logHardhatNetworkAccounts(networkConfig: HardhatNetworkConfig) {
     privateToAddress,
     toBytes,
     toChecksumAddress,
-  } = require("@nomicfoundation/ethereumjs-util") as typeof EthereumjsUtilT;
+  } = require("@ethereumjs/util") as typeof EthereumjsUtilT;
 
   console.log("Accounts");
   console.log("========");

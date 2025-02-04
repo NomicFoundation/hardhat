@@ -1,9 +1,9 @@
-import { LegacyTransaction } from "@nomicfoundation/ethereumjs-tx";
+import { LegacyTransaction } from "@ethereumjs/tx";
 import {
   bytesToHex as bufferToHex,
   toBytes,
   zeroAddress,
-} from "@nomicfoundation/ethereumjs-util";
+} from "@ethereumjs/util";
 
 import { numberToRpcQuantity } from "../../../../src/internal/core/jsonrpc/types/base-types";
 import { RpcTransactionRequestInput } from "../../../../src/internal/core/jsonrpc/types/input/transactionRequest";

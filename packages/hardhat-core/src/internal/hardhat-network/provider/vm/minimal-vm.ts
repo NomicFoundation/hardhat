@@ -1,12 +1,12 @@
 import type { Provider as EdrProviderT } from "@nomicfoundation/edr";
-import type { Address } from "@nomicfoundation/ethereumjs-util";
+import type { Address } from "@ethereumjs/util";
 import type {
   MinimalEVMResult,
   MinimalInterpreterStep,
   MinimalMessage,
 } from "./types";
 
-import { AsyncEventEmitter } from "@nomicfoundation/ethereumjs-util";
+import { AsyncEventEmitter } from "@ethereumjs/util";
 
 /**
  * Used by the provider to keep the `_vm` variable used by some plugins. This
