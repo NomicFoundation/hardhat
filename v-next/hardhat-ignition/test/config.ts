@@ -4,8 +4,8 @@ import { buildModule } from "@ignored/hardhat-vnext-ignition-core";
 import { assert } from "chai";
 import { HardhatConfig } from "hardhat/types";
 
-import { KeyListOf } from "./test-helpers/type-helper";
-import { useEphemeralIgnitionProject } from "./test-helpers/use-ignition-project";
+import { KeyListOf } from "./test-helpers/type-helper.js";
+import { useEphemeralIgnitionProject } from "./test-helpers/use-ignition-project.js";
 
 describe("config", () => {
   describe("loading", () => {

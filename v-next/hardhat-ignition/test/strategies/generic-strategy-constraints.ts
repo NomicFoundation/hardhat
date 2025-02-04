@@ -1,9 +1,9 @@
 import { buildModule } from "@ignored/hardhat-vnext-ignition-core";
 import { assert } from "chai";
 
-import { mineBlock } from "../test-helpers/mine-block";
-import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project";
-import { waitForPendingTxs } from "../test-helpers/wait-for-pending-txs";
+import { mineBlock } from "../test-helpers/mine-block.js";
+import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";
+import { waitForPendingTxs } from "../test-helpers/wait-for-pending-txs.js";
 
 const strategies = ["basic", "create2"] as const;
 

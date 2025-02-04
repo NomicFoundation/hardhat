@@ -2,8 +2,8 @@
 import { buildModule } from "@ignored/hardhat-vnext-ignition-core";
 import { assert } from "chai";
 
-import { clearPendingTransactionsFromMemoryPool } from "../../test-helpers/clear-pending-transactions-from-memory-pool";
-import { mineBlock } from "../../test-helpers/mine-block";
+import { clearPendingTransactionsFromMemoryPool } from "../../test-helpers/clear-pending-transactions-from-memory-pool.js";
+import { mineBlock } from "../../test-helpers/mine-block.js";
 import {
   TestChainHelper,
   useFileIgnitionProject,

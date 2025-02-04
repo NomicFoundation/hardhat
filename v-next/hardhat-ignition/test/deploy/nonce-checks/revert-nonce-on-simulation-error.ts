@@ -2,7 +2,7 @@
 import { buildModule } from "@ignored/hardhat-vnext-ignition-core";
 import { assert } from "chai";
 
-import { useEphemeralIgnitionProject } from "../../test-helpers/use-ignition-project";
+import { useEphemeralIgnitionProject } from "../../test-helpers/use-ignition-project.js";
 
 /**
  * On running a deploy, if a transaction fails simulation, we should

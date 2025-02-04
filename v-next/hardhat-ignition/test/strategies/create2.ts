@@ -3,14 +3,14 @@ import { buildModule } from "@ignored/hardhat-vnext-ignition-core";
 import { assert } from "chai";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
-import { presignedTx } from "../test-helpers/createX-tx";
-import { externallyLoadedContractArtifact } from "../test-helpers/externally-loaded-contract";
-import { mineBlock } from "../test-helpers/mine-block";
+import { presignedTx } from "../test-helpers/createX-tx.js";
+import { externallyLoadedContractArtifact } from "../test-helpers/externally-loaded-contract.js";
+import { mineBlock } from "../test-helpers/mine-block.js";
 import {
   useEphemeralIgnitionProject,
   useFileIgnitionProject,
 } from "../test-helpers/use-ignition-project";
-import { waitForPendingTxs } from "../test-helpers/wait-for-pending-txs";
+import { waitForPendingTxs } from "../test-helpers/wait-for-pending-txs.js";
 
 describe("create2", function () {
   const example32ByteSalt =

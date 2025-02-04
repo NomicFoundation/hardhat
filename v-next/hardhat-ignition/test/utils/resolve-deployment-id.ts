@@ -1,6 +1,6 @@
 import { assert } from "chai";
 
-import { resolveDeploymentId } from "../../src/utils/resolve-deployment-id";
+import { resolveDeploymentId } from "../../src/utils/resolve-deployment-id.js";
 
 describe("deploy id rules", () => {
   const exampleChainId = 31337;

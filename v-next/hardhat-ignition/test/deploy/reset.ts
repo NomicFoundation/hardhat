@@ -1,8 +1,8 @@
 import { status } from "@ignored/hardhat-vnext-ignition-core";
 import { assert } from "chai";
 
-import { HardhatArtifactResolver } from "../../src/hardhat-artifact-resolver";
-import { useFileIgnitionProject } from "../test-helpers/use-ignition-project";
+import { HardhatArtifactResolver } from "../../src/hardhat-artifact-resolver.js";
+import { useFileIgnitionProject } from "../test-helpers/use-ignition-project.js";
 
 describe("reset flag", function () {
   useFileIgnitionProject("reset-flag", "custom-reset-id");

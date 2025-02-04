@@ -7,9 +7,9 @@ import { resetHardhatContext } from "hardhat/plugins-testing";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import path from "path";
 
-import { clearPendingTransactionsFromMemoryPool } from "./clear-pending-transactions-from-memory-pool";
-import { TestIgnitionHelper } from "./test-ignition-helper";
-import { waitForPendingTxs } from "./wait-for-pending-txs";
+import { clearPendingTransactionsFromMemoryPool } from "./clear-pending-transactions-from-memory-pool.js";
+import { TestIgnitionHelper } from "./test-ignition-helper.js";
+import { waitForPendingTxs } from "./wait-for-pending-txs.js";
 
 declare module "mocha" {
   interface Context {

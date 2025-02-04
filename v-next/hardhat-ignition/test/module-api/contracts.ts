@@ -2,8 +2,8 @@
 import { buildModule } from "@ignored/hardhat-vnext-ignition-core";
 import { assert } from "chai";
 
-import { getBalanceFor } from "../test-helpers/get-balance-for";
-import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project";
+import { getBalanceFor } from "../test-helpers/get-balance-for.js";
+import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";
 
 describe("contract deploys", () => {
   useEphemeralIgnitionProject("minimal");

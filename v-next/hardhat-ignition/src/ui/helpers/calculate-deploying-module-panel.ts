@@ -1,8 +1,8 @@
 import chalk from "chalk";
 
-import { UiState } from "../types";
+import { UiState } from "../types.js";
 
-import { pathFromCwd } from "./cwd-relative-path";
+import { pathFromCwd } from "./cwd-relative-path.js";
 
 export function calculateDeployingModulePanel(state: UiState): string {
   let deployingMessage = `Hardhat Ignition 🚀

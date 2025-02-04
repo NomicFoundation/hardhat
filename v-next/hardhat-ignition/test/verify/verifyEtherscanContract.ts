@@ -2,7 +2,7 @@ import type { Etherscan } from "@nomicfoundation/hardhat-verify/etherscan";
 
 import { assert } from "chai";
 
-import { verifyEtherscanContract } from "../../src/utils/verifyEtherscanContract";
+import { verifyEtherscanContract } from "../../src/utils/verifyEtherscanContract.js";
 
 describe("verifyEtherscanContract", function () {
   let etherscanInstance: any;

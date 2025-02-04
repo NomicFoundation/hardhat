@@ -10,7 +10,7 @@ import {
 } from "hardhat/plugins";
 import path from "path";
 
-import { shouldBeHardhatPluginError } from "./shouldBeHardhatPluginError";
+import { shouldBeHardhatPluginError } from "./shouldBeHardhatPluginError.js";
 
 const debug = setupDebug("hardhat-ignition:modules");
 

@@ -1,6 +1,6 @@
 import { assert } from "chai";
 
-import { calculateBatchDisplay } from "../../../src/ui/helpers/calculate-batch-display";
+import { calculateBatchDisplay } from "../../../src/ui/helpers/calculate-batch-display.js";
 import {
   UiFuture,
   UiFutureStatusType,
@@ -8,7 +8,7 @@ import {
   UiStateDeploymentStatus,
 } from "../../../src/ui/types";
 
-import { testFormat } from "./test-format";
+import { testFormat } from "./test-format.js";
 
 const exampleState: UiState = {
   status: UiStateDeploymentStatus.DEPLOYING,

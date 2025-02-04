@@ -2,7 +2,7 @@
 import { buildModule } from "@ignored/hardhat-vnext-ignition-core";
 import { assert } from "chai";
 
-import { mineBlock } from "../../test-helpers/mine-block";
+import { mineBlock } from "../../test-helpers/mine-block.js";
 import {
   TestChainHelper,
   useFileIgnitionProject,

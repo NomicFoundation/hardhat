@@ -21,8 +21,8 @@ import {
 } from "viem";
 import { hardhat } from "viem/chains";
 
-import { HardhatArtifactResolver } from "../../src/hardhat-artifact-resolver";
-import { errorDeploymentResultToExceptionMessage } from "../../src/utils/error-deployment-result-to-exception-message";
+import { HardhatArtifactResolver } from "../../src/hardhat-artifact-resolver.js";
+import { errorDeploymentResultToExceptionMessage } from "../../src/utils/error-deployment-result-to-exception-message.js";
 
 export type IgnitionModuleResultsTToViemContracts<
   ContractNameT extends string,

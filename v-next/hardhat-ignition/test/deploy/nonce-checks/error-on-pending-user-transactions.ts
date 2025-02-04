@@ -4,12 +4,12 @@ import { assert } from "chai";
 import { createWalletClient, custom } from "viem";
 import { hardhat } from "viem/chains";
 
-import { mineBlock } from "../../test-helpers/mine-block";
+import { mineBlock } from "../../test-helpers/mine-block.js";
 import {
   TestChainHelper,
   useFileIgnitionProject,
 } from "../../test-helpers/use-ignition-project";
-import { waitForPendingTxs } from "../../test-helpers/wait-for-pending-txs";
+import { waitForPendingTxs } from "../../test-helpers/wait-for-pending-txs.js";
 
 /**
  * For all accounts that will be used during the deployment we check

@@ -2,10 +2,10 @@ import { assert } from "chai";
 import chalk from "chalk";
 import path from "path";
 
-import { calculateDeployingModulePanel } from "../../../src/ui/helpers/calculate-deploying-module-panel";
-import { UiState, UiStateDeploymentStatus } from "../../../src/ui/types";
+import { calculateDeployingModulePanel } from "../../../src/ui/helpers/calculate-deploying-module-panel.js";
+import { UiState, UiStateDeploymentStatus } from "../../../src/ui/types.js";
 
-import { testFormat } from "./test-format";
+import { testFormat } from "./test-format.js";
 
 describe("ui - calculate starting message display", () => {
   const exampleState: UiState = {

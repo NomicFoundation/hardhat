@@ -3,8 +3,8 @@ import { setNextBlockBaseFeePerGas } from "@nomicfoundation/hardhat-network-help
 import { buildModule, wipe } from "@ignored/hardhat-vnext-ignition-core";
 import { assert } from "chai";
 
-import { HardhatArtifactResolver } from "../../../src/hardhat-artifact-resolver";
-import { mineBlock } from "../../test-helpers/mine-block";
+import { HardhatArtifactResolver } from "../../../src/hardhat-artifact-resolver.js";
+import { mineBlock } from "../../test-helpers/mine-block.js";
 import {
   TestChainHelper,
   useFileIgnitionProject,

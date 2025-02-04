@@ -9,10 +9,10 @@ import {
 } from "@ignored/hardhat-vnext-ignition-core";
 import chalk from "chalk";
 
-import { UiState } from "../types";
+import { UiState } from "../types.js";
 
-import { pathFromCwd } from "./cwd-relative-path";
-import { wasAnythingExecuted } from "./was-anything-executed";
+import { pathFromCwd } from "./cwd-relative-path.js";
+import { wasAnythingExecuted } from "./was-anything-executed.js";
 
 export function calculateDeploymentCompleteDisplay(
   event: DeploymentCompleteEvent,

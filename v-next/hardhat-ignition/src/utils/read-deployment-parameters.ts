@@ -3,7 +3,7 @@ import { readFile } from "fs-extra";
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import { parse as json5Parse } from "json5";
 
-import { bigintReviver } from "./bigintReviver";
+import { bigintReviver } from "./bigintReviver.js";
 
 export async function readDeploymentParameters(
   filepath: string

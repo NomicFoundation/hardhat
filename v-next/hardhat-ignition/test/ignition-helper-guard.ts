@@ -1,7 +1,7 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
-import { useEphemeralIgnitionProject } from "./test-helpers/use-ignition-project";
+import { useEphemeralIgnitionProject } from "./test-helpers/use-ignition-project.js";
 
 /**
  * A project that only imports `@nomicfoundation/hardhat-ignition` will not add

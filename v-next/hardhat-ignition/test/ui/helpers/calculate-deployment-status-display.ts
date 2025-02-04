@@ -2,9 +2,9 @@ import { StatusResult } from "@ignored/hardhat-vnext-ignition-core";
 import { assert } from "chai";
 import chalk from "chalk";
 
-import { calculateDeploymentStatusDisplay } from "../../../src/ui/helpers/calculate-deployment-status-display";
+import { calculateDeploymentStatusDisplay } from "../../../src/ui/helpers/calculate-deployment-status-display.js";
 
-import { testFormat } from "./test-format";
+import { testFormat } from "./test-format.js";
 
 describe("ui - calculate deployment status display", () => {
   const exampleAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";

@@ -14,13 +14,13 @@ import { parse as json5Parse } from "json5";
 import path from "path";
 
 import "./type-extensions";
-import { calculateDeploymentStatusDisplay } from "./ui/helpers/calculate-deployment-status-display";
-import { bigintReviver } from "./utils/bigintReviver";
-import { getApiKeyAndUrls } from "./utils/getApiKeyAndUrls";
-import { readDeploymentParameters } from "./utils/read-deployment-parameters";
-import { resolveDeploymentId } from "./utils/resolve-deployment-id";
-import { shouldBeHardhatPluginError } from "./utils/shouldBeHardhatPluginError";
-import { verifyEtherscanContract } from "./utils/verifyEtherscanContract";
+import { calculateDeploymentStatusDisplay } from "./ui/helpers/calculate-deployment-status-display.js";
+import { bigintReviver } from "./utils/bigintReviver.js";
+import { getApiKeyAndUrls } from "./utils/getApiKeyAndUrls.js";
+import { readDeploymentParameters } from "./utils/read-deployment-parameters.js";
+import { resolveDeploymentId } from "./utils/resolve-deployment-id.js";
+import { shouldBeHardhatPluginError } from "./utils/shouldBeHardhatPluginError.js";
+import { verifyEtherscanContract } from "./utils/verifyEtherscanContract.js";
 
 /* ignition config defaults */
 const IGNITION_DIR = "ignition";

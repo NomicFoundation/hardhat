@@ -4,8 +4,8 @@ import { assert } from "chai";
 import { createWalletClient, custom, parseEther } from "viem";
 import { hardhat } from "viem/chains";
 
-import { mineBlock } from "../../test-helpers/mine-block";
-import { sleep } from "../../test-helpers/sleep";
+import { mineBlock } from "../../test-helpers/mine-block.js";
+import { sleep } from "../../test-helpers/sleep.js";
 import {
   TestChainHelper,
   useFileIgnitionProject,

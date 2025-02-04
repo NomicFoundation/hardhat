@@ -1,6 +1,6 @@
 import { assert } from "chai";
 
-import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project";
+import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";
 
 describe("strategies - only built in strategies", function () {
   useEphemeralIgnitionProject("minimal");

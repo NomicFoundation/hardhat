@@ -37,11 +37,11 @@ import {
 } from "@ignored/hardhat-vnext-ignition-core";
 import readline from "readline";
 
-import { calculateBatchDisplay } from "./helpers/calculate-batch-display";
-import { calculateDeployingModulePanel } from "./helpers/calculate-deploying-module-panel";
-import { calculateDeploymentCompleteDisplay } from "./helpers/calculate-deployment-complete-display";
-import { calculateStartingMessage } from "./helpers/calculate-starting-message";
-import { wasAnythingExecuted } from "./helpers/was-anything-executed";
+import { calculateBatchDisplay } from "./helpers/calculate-batch-display.js";
+import { calculateDeployingModulePanel } from "./helpers/calculate-deploying-module-panel.js";
+import { calculateDeploymentCompleteDisplay } from "./helpers/calculate-deployment-complete-display.js";
+import { calculateStartingMessage } from "./helpers/calculate-starting-message.js";
+import { wasAnythingExecuted } from "./helpers/was-anything-executed.js";
 import {
   UiBatches,
   UiFuture,

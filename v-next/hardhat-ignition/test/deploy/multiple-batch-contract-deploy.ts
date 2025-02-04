@@ -2,8 +2,8 @@
 import { buildModule } from "@ignored/hardhat-vnext-ignition-core";
 import { assert } from "chai";
 
-import { sleep } from "../test-helpers/sleep";
-import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project";
+import { sleep } from "../test-helpers/sleep.js";
+import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";
 
 /**
  * Deploy a multiple contracts over several batches.

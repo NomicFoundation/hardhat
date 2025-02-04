@@ -7,7 +7,7 @@ import {
 } from "@ignored/hardhat-vnext-ignition-core";
 import { assert } from "chai";
 
-import { errorDeploymentResultToExceptionMessage } from "../../src/utils/error-deployment-result-to-exception-message";
+import { errorDeploymentResultToExceptionMessage } from "../../src/utils/error-deployment-result-to-exception-message.js";
 
 describe("display error deployment result", () => {
   describe("validation", () => {

@@ -1,6 +1,6 @@
 import { assert } from "chai";
 
-import { getApiKeyAndUrls } from "../../src/utils/getApiKeyAndUrls";
+import { getApiKeyAndUrls } from "../../src/utils/getApiKeyAndUrls.js";
 
 describe("getApiKeyAndUrls", function () {
   it("should return the correct API URLs when given a string", function () {

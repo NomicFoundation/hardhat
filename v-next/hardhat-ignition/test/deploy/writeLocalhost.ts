@@ -2,7 +2,7 @@ import { assert } from "chai";
 import { pathExists, removeSync } from "fs-extra";
 import path from "path";
 
-import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project";
+import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";
 
 const fixtureProjectName = "minimal";
 const deploymentDir = path.join(

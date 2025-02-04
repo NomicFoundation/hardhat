@@ -10,10 +10,10 @@ import {
 import { assert } from "chai";
 import chalk from "chalk";
 
-import { calculateDeploymentCompleteDisplay } from "../../../src/ui/helpers/calculate-deployment-complete-display";
-import { UiBatches, UiFutureStatusType } from "../../../src/ui/types";
+import { calculateDeploymentCompleteDisplay } from "../../../src/ui/helpers/calculate-deployment-complete-display.js";
+import { UiBatches, UiFutureStatusType } from "../../../src/ui/types.js";
 
-import { testFormat } from "./test-format";
+import { testFormat } from "./test-format.js";
 
 describe("ui - calculate deployment complete display", () => {
   const exampleAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";

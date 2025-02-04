@@ -1,4 +1,4 @@
-import { UiFuture, UiFutureStatusType, UiState } from "../types";
+import { UiFuture, UiFutureStatusType, UiState } from "../types.js";
 
 export function calculateBatchDisplay(state: UiState): {
   text: string;
