@@ -9,6 +9,7 @@ import { getHardhatVersion } from "../../../utils/package.js";
 import { isTelemetryAllowed } from "../telemetry-permissions.js";
 
 import { getSubprocessTransport } from "./transport.js";
+import { flush } from "@sentry/node";
 
 const log = debug("hardhat:cli:telemetry:sentry:reporter");
 
@@ -102,8 +103,8 @@ class Reporter {
 
     captureException(error);
 
-    // TODO: should we run it? Hook at the end of hardhat execution?
-    // await flush(50);
+    // NOTE: Alternatively, we could close the reporter when we exit the process.
+    await flush(50);
 
     return true;
   }
