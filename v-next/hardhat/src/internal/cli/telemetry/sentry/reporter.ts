@@ -2,6 +2,7 @@ import {
   HardhatError,
   HardhatPluginError,
 } from "@ignored/hardhat-vnext-errors";
+import { flush } from "@sentry/node";
 import debug from "debug";
 
 import { ProviderError } from "../../../builtin-plugins/network-manager/provider-errors.js";
@@ -9,7 +10,6 @@ import { getHardhatVersion } from "../../../utils/package.js";
 import { isTelemetryAllowed } from "../telemetry-permissions.js";
 
 import { getSubprocessTransport } from "./transport.js";
-import { flush } from "@sentry/node";
 
 const log = debug("hardhat:cli:telemetry:sentry:reporter");
 
@@ -104,7 +104,9 @@ class Reporter {
     captureException(error);
 
     // NOTE: Alternatively, we could close the reporter when we exit the process.
-    await flush(50);
+    if (!(await flush(50))) {
+      log("Failed to flush events");
+    }
 
     return true;
   }

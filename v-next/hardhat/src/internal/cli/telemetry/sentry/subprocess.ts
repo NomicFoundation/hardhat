@@ -43,8 +43,6 @@ try {
   const anonymizedEvent = await anonymizer.anonymize(sentryEvent);
 
   if (anonymizedEvent.success) {
-    // NOTE: It is quite surprising to find this check here.
-    // Should we move it to the reporter's #shouldBeReported method?
     if (anonymizer.raisedByHardhat(anonymizedEvent.event)) {
       await sendEventToSentry(anonymizedEvent.event);
     }
