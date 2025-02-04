@@ -150,7 +150,8 @@ export class ArtifactManagerImplementation implements ArtifactManager {
 
       this.#throwNotFoundError(
         contractNameOrFullyQualifiedName,
-        bareNameToFullyQualifiedNameMap,
+        bareNameToFullyQualifiedNameMap.keys(),
+        allFullyQualifiedNames,
       );
     }
 
@@ -161,7 +162,8 @@ export class ArtifactManagerImplementation implements ArtifactManager {
     if (fqns === undefined || fqns.size === 0) {
       this.#throwNotFoundError(
         contractNameOrFullyQualifiedName,
-        bareNameToFullyQualifiedNameMap,
+        bareNameToFullyQualifiedNameMap.keys(),
+        allFullyQualifiedNames,
       );
     }
 
@@ -179,11 +181,16 @@ export class ArtifactManagerImplementation implements ArtifactManager {
 
   #throwNotFoundError(
     contractNameOrFullyQualifiedName: string,
-    bareNameToFullyQualifiedNameMap: Map<string, ReadonlySet<string>>,
+    allBareNames: Iterable<string>,
+    allFullyQualifiedNames: Iterable<string>,
   ): never {
-    const similarNames = this.#getSimilarContractNames(
+    const names = this.#isFullyQualifiedName(contractNameOrFullyQualifiedName)
+      ? allFullyQualifiedNames
+      : allBareNames;
+
+    const similarNames = this.#getSimilarStrings(
       contractNameOrFullyQualifiedName,
-      bareNameToFullyQualifiedNameMap,
+      names,
     );
 
     const suggestion = this.#formatSimilarNameSuggestions(
@@ -208,24 +215,25 @@ export class ArtifactManagerImplementation implements ArtifactManager {
     return `${sourceName}:${contractName}`;
   }
 
-  #getSimilarContractNames(
-    contractNameOrFullyQualifiedName: string,
-    bareNameToFullyQualifiedNameMap: Map<string, ReadonlySet<string>>,
+  /**
+   * Filters an array of strings to only include the strings that are similar to
+   * the given string.
+   *
+   * @param stringToCompare The string to the other strings with.
+   * @param otherStrings The strings to filter.
+   * @param maxEditDistance The maximum edit distance to consider as a match.
+   * @returns The array of matches, sorted by increasing edit distance.
+   */
+  #getSimilarStrings(
+    stringToCompare: string,
+    otherStrings: Iterable<string>,
+    maxEditDistance: number = EDIT_DISTANCE_THRESHOLD,
   ): string[] {
-    const names = this.#isFullyQualifiedName(contractNameOrFullyQualifiedName)
-      ? Array.from(bareNameToFullyQualifiedNameMap?.values() ?? [])
-          .map((s) => [...s])
-          .flat(1)
-      : Array.from(bareNameToFullyQualifiedNameMap?.keys() ?? []);
-
-    return names
-      .map(
-        (name) =>
-          [name, editDistance(name, contractNameOrFullyQualifiedName)] as const,
-      )
+    return [...otherStrings]
+      .map((s) => [s, editDistance(s, stringToCompare)] as const)
       .sort(([_, d1], [__, d2]) => d1 - d2)
-      .filter(([_, d]) => d <= EDIT_DISTANCE_THRESHOLD)
-      .map(([name]) => name);
+      .filter(([_, d]) => d <= maxEditDistance)
+      .map(([s]) => s);
   }
 
   #formatSimilarNameSuggestions(
