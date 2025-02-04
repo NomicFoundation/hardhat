@@ -1,5 +1,6 @@
 import "@nomicfoundation/hardhat-verify";
-import { Etherscan } from "@nomicfoundation/hardhat-verify/etherscan";
+// TODO: Bring this file back with Hardhat Verify
+// import { Etherscan } from "@nomicfoundation/hardhat-verify/etherscan";
 import {
   DeploymentParameters,
   IgnitionError,
