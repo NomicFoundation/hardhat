@@ -240,6 +240,12 @@ export class ArtifactManagerImplementation implements ArtifactManager {
     contractNameOrFullyQualifiedName: string,
     similarNames: string[],
   ): string {
+    const contractNameType = this.#isFullyQualifiedName(
+      contractNameOrFullyQualifiedName,
+    )
+      ? "fully qualified contract name"
+      : "contract name";
+
     switch (similarNames.length) {
       case 0:
         return "";
@@ -250,7 +256,7 @@ export class ArtifactManagerImplementation implements ArtifactManager {
 
 ${similarNames.map((n) => `  * ${n}`).join(EOL)}
 
-Please replace "${contractNameOrFullyQualifiedName}" for the correct contract name wherever you are trying to read its artifact.
+Please replace "${contractNameOrFullyQualifiedName}" with the correct ${contractNameType} wherever you are trying to read its artifact.
 `;
     }
   }
