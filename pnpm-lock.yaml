@@ -1111,6 +1111,9 @@ importers:
 
   packages/hardhat-ledger:
     dependencies:
+      '@ethereumjs/util':
+        specifier: ^9.1.0
+        version: 9.1.0
       '@ledgerhq/errors':
         specifier: ^6.12.6
         version: 6.19.1
@@ -1123,9 +1126,6 @@ importers:
       '@ledgerhq/hw-transport-node-hid':
         specifier: ^6.27.13
         version: 6.29.5
-      '@nomicfoundation/ethereumjs-util':
-        specifier: 9.0.4
-        version: 9.0.4
       chalk:
         specifier: ^2.4.2
         version: 2.4.2
@@ -3122,20 +3122,6 @@ packages:
   '@nomicfoundation/edr@0.8.0':
     resolution: {integrity: sha512-dwWRrghSVBQDpt0wP+6RXD8BMz2i/9TI34TcmZqeEAZuCLei3U9KZRgGTKVAM1rMRvrpf5ROfPqrWNetKVUTag==}
     engines: {node: '>= 18'}
-
-  '@nomicfoundation/ethereumjs-rlp@5.0.4':
-    resolution: {integrity: sha512-8H1S3s8F6QueOc/X92SdrA4RDenpiAEqMg5vJH99kcQaCy/a3Q6fgseo75mgWlbanGJXSlAPtnCeG9jvfTYXlw==}
-    engines: {node: '>=18'}
-    hasBin: true
-
-  '@nomicfoundation/ethereumjs-util@9.0.4':
-    resolution: {integrity: sha512-sLOzjnSrlx9Bb9EFNtHzK/FJFsfg2re6bsGqinFinH1gCqVfz9YYlXiMWwDM4C/L4ywuHFCYwfKTVr/QHQcU0Q==}
-    engines: {node: '>=18'}
-    peerDependencies:
-      c-kzg: ^2.1.2
-    peerDependenciesMeta:
-      c-kzg:
-        optional: true
 
   '@nomicfoundation/solidity-analyzer-darwin-arm64@0.1.2':
     resolution: {integrity: sha512-JaqcWPDZENCvm++lFFGjrDd8mxtf+CtLd2MiXvMNTBD33dContTZ9TWETwNFwg7JTJT5Q9HEecH7FA+HTSsIUw==}
@@ -9861,13 +9847,6 @@ snapshots:
       '@nomicfoundation/edr-linux-x64-gnu': 0.8.0
       '@nomicfoundation/edr-linux-x64-musl': 0.8.0
       '@nomicfoundation/edr-win32-x64-msvc': 0.8.0
-
-  '@nomicfoundation/ethereumjs-rlp@5.0.4': {}
-
-  '@nomicfoundation/ethereumjs-util@9.0.4':
-    dependencies:
-      '@nomicfoundation/ethereumjs-rlp': 5.0.4
-      ethereum-cryptography: 0.1.3
 
   '@nomicfoundation/solidity-analyzer-darwin-arm64@0.1.2':
     optional: true
