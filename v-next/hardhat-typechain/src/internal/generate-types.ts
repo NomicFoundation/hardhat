@@ -34,7 +34,7 @@ export async function generateTypes(
     allFiles: artifactsPaths,
     outDir: config.outDir, // // If not set, it defaults to "types" when processed by the typeChain package
     target: "ethers-v6", // We only support this target
-    filesToProcess: [], // We ignore this property for now
+    filesToProcess: artifactsPaths,
     flags: {
       alwaysGenerateOverloads: config.alwaysGenerateOverloads,
       discriminateTypes: config.discriminateTypes,
