@@ -1,56 +1,57 @@
-import type { Etherscan } from "@nomicfoundation/hardhat-verify/etherscan";
+// TODO: Bring this file back with Hardhat Verify
+// import type { Etherscan } from "@nomicfoundation/hardhat-verify/etherscan";
 
-import { assert } from "chai";
+// import { assert } from "chai";
 
-import { verifyEtherscanContract } from "../../src/utils/verifyEtherscanContract.js";
+// import { verifyEtherscanContract } from "../../src/utils/verifyEtherscanContract.js";
 
-describe("verifyEtherscanContract", function () {
-  let etherscanInstance: any;
-  const contractInfo = {
-    address: "0x123",
-    compilerVersion: "v0.8.0",
-    sourceCode: "sourceCode",
-    name: "name",
-    args: "args",
-  };
+// describe("verifyEtherscanContract", function () {
+//   let etherscanInstance: any;
+//   const contractInfo = {
+//     address: "0x123",
+//     compilerVersion: "v0.8.0",
+//     sourceCode: "sourceCode",
+//     name: "name",
+//     args: "args",
+//   };
 
-  beforeEach(function () {
-    etherscanInstance = {
-      verify: async () => ({ message: "guid" }),
-      getVerificationStatus: async () => ({
-        isSuccess: () => true,
-        message: "message",
-      }),
-      getContractUrl: () => "url",
-    };
-  });
+//   beforeEach(function () {
+//     etherscanInstance = {
+//       verify: async () => ({ message: "guid" }),
+//       getVerificationStatus: async () => ({
+//         isSuccess: () => true,
+//         message: "message",
+//       }),
+//       getContractUrl: () => "url",
+//     };
+//   });
 
-  it("should return a success object when verification succeeds", async function () {
-    const result = await verifyEtherscanContract(
-      etherscanInstance as Etherscan,
-      contractInfo
-    );
+//   it("should return a success object when verification succeeds", async function () {
+//     const result = await verifyEtherscanContract(
+//       etherscanInstance as Etherscan,
+//       contractInfo
+//     );
 
-    assert.deepEqual(result, {
-      type: "success",
-      contractURL: "url",
-    });
-  });
+//     assert.deepEqual(result, {
+//       type: "success",
+//       contractURL: "url",
+//     });
+//   });
 
-  it("should return a failure object when verification is not successful", async function () {
-    etherscanInstance.getVerificationStatus = async () => ({
-      isSuccess: () => false,
-      message: "message",
-    });
+//   it("should return a failure object when verification is not successful", async function () {
+//     etherscanInstance.getVerificationStatus = async () => ({
+//       isSuccess: () => false,
+//       message: "message",
+//     });
 
-    const result = await verifyEtherscanContract(
-      etherscanInstance as Etherscan,
-      contractInfo
-    );
+//     const result = await verifyEtherscanContract(
+//       etherscanInstance as Etherscan,
+//       contractInfo
+//     );
 
-    assert.deepEqual(result, {
-      type: "failure",
-      reason: new Error("message"),
-    });
-  });
-});
+//     assert.deepEqual(result, {
+//       type: "failure",
+//       reason: new Error("message"),
+//     });
+//   });
+// });

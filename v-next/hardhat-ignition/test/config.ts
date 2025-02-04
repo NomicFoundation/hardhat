@@ -1,5 +1,3 @@
-/* eslint-disable import/no-unused-modules */
-
 import { buildModule } from "@ignored/hardhat-vnext-ignition-core";
 import { assert } from "chai";
 import { HardhatConfig } from "hardhat/types";
