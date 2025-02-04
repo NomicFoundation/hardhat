@@ -1,7 +1,10 @@
 import type { SolidityStackTrace } from "./stack-traces/solidity-stack-trace.js";
 import type { LoggerConfig } from "./types/logger.js";
 import type { TracingConfig } from "./types/node-types.js";
-import type { EdrNetworkConfig } from "../../../../types/config.js";
+import type {
+  EdrNetworkConfig,
+  EdrNetworkHDAccountsConfig,
+} from "../../../../types/config.js";
 import type {
   EthSubscription,
   JsonRpcResponse,
@@ -80,9 +83,16 @@ export const DEFAULT_EDR_NETWORK_HD_ACCOUNTS_CONFIG_PARAMS: EdrNetworkDefaultHDA
   };
 
 export async function isDefaultEdrNetworkHDAccountsConfig(
-  account: unknown,
+  accounts: EdrNetworkHDAccountsConfig,
 ): Promise<boolean> {
-  return deepEqual(account, DEFAULT_EDR_NETWORK_HD_ACCOUNTS_CONFIG_PARAMS);
+  return deepEqual(
+    {
+      ...accounts,
+      mnemonic: await accounts.mnemonic.get(),
+      passphrase: await accounts.passphrase.get(),
+    },
+    DEFAULT_EDR_NETWORK_HD_ACCOUNTS_CONFIG_PARAMS,
+  );
 }
 
 export const EDR_NETWORK_DEFAULT_PRIVATE_KEYS: string[] = [

@@ -20,7 +20,7 @@
         [31m7) level 0[39m
 
 
-[32m3 passing[39m[90m (141ms)[39m[31m[39m
+[32m3 passing[39m[90m (144ms)[39m[31m[39m
 [31m7 failing[39m[90m[39m
 [90m1 cancelled[39m
 
@@ -29,10 +29,7 @@
          level 2
            assertion error in nested test:
 
-   [31mAssertionError: Expected values to be strictly equal:[39m
-   [31m[39m
-   [31m1 !== 2[39m
-   [31m[39m
+   [31mAssertionError: Expected values to be strictly equal[39m
    [32m- Expected[39m
    [31m+ Received[39m
    
@@ -59,10 +56,7 @@
                level 2
                  assertion error in nested test:
 
-   [31mAssertionError: Expected values to be strictly equal:[39m
-   [31m[39m
-   [31m1 !== 2[39m
-   [31m[39m
+   [31mAssertionError: Expected values to be strictly equal[39m
    [32m- Expected[39m
    [31m+ Received[39m
    
@@ -70,12 +64,12 @@
    [31m+ 1[39m
    
    [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/nested-test/test.ts:29:22)[39m
-   [90m    at Test.runInAsyncScope (node:async_hooks:206:9)[39m
-   [90m    at Test.run (node:internal/test_runner/test:856:25)[39m
-   [90m    at Test.start (node:internal/test_runner/test:753:17)[39m
-   [90m    at startSubtest (node:internal/test_runner/harness:252:17)[39m
-   [90m    at run (node:internal/test_runner/harness:260:14)[39m
-   [90m    at test (node:internal/test_runner/harness:271:12)[39m
+   [90m    at Test.runInAsyncScope (node:async_hooks:211:14)[39m
+   [90m    at Test.run (node:internal/test_runner/test:934:25)[39m
+   [90m    at Test.start (node:internal/test_runner/test:833:17)[39m
+   [90m    at startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)[39m
+   [90m    at run (node:internal/test_runner/harness:307:12)[39m
+   [90m    at test (node:internal/test_runner/harness:316:12)[39m
    [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/nested-test/test.ts:28:19)[39m
 
   4) level 0
@@ -88,21 +82,21 @@
 
    [31mError: error with cause[39m
    [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/nested-test/test.ts:33:21)[39m
-   [90m    at Test.runInAsyncScope (node:async_hooks:206:9)[39m
-   [90m    at Test.run (node:internal/test_runner/test:856:25)[39m
-   [90m    at Test.start (node:internal/test_runner/test:753:17)[39m
-   [90m    at startSubtest (node:internal/test_runner/harness:252:17)[39m
-   [90m    at run (node:internal/test_runner/harness:260:14)[39m
-   [90m    at test (node:internal/test_runner/harness:271:12)[39m
+   [90m    at Test.runInAsyncScope (node:async_hooks:211:14)[39m
+   [90m    at Test.run (node:internal/test_runner/test:934:25)[39m
+   [90m    at Test.start (node:internal/test_runner/test:833:17)[39m
+   [90m    at startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)[39m
+   [90m    at run (node:internal/test_runner/harness:307:12)[39m
+   [90m    at test (node:internal/test_runner/harness:316:12)[39m
    [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/nested-test/test.ts:32:19)[39m
      [90m[cause]: Error: cause[39m
      [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/nested-test/test.ts:34:24)[39m
-     [90m    at Test.runInAsyncScope (node:async_hooks:206:9)[39m
-     [90m    at Test.run (node:internal/test_runner/test:856:25)[39m
-     [90m    at Test.start (node:internal/test_runner/test:753:17)[39m
-     [90m    at startSubtest (node:internal/test_runner/harness:252:17)[39m
-     [90m    at run (node:internal/test_runner/harness:260:14)[39m
-     [90m    at test (node:internal/test_runner/harness:271:12)[39m
+     [90m    at Test.runInAsyncScope (node:async_hooks:211:14)[39m
+     [90m    at Test.run (node:internal/test_runner/test:934:25)[39m
+     [90m    at Test.start (node:internal/test_runner/test:833:17)[39m
+     [90m    at startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)[39m
+     [90m    at run (node:internal/test_runner/harness:307:12)[39m
+     [90m    at test (node:internal/test_runner/harness:316:12)[39m
      [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/nested-test/test.ts:32:19)[39m
 
   5) level 0
