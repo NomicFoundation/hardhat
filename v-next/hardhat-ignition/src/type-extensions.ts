@@ -1,70 +1,71 @@
-/* eslint-disable import/no-unused-modules */
-import "hardhat/types/config";
-import "hardhat/types/runtime";
+// TODO: Bring back type extensions
 
-import {
-  DeployConfig,
-  StrategyConfig,
-} from "@ignored/hardhat-vnext-ignition-core";
+// import "hardhat/types/config";
+// import "hardhat/types/runtime";
 
-declare module "hardhat/types/config" {
-  export interface ProjectPathsUserConfig {
-    ignition?: string;
-  }
+// import {
+//   DeployConfig,
+//   StrategyConfig,
+// } from "@ignored/hardhat-vnext-ignition-core";
 
-  export interface ProjectPathsConfig {
-    ignition: string;
-  }
+// declare module "hardhat/types/config" {
+//   export interface ProjectPathsUserConfig {
+//     ignition?: string;
+//   }
 
-  export interface HardhatNetworkUserConfig {
-    ignition?: {
-      maxFeePerGasLimit?: bigint;
-      maxPriorityFeePerGas?: bigint;
-      gasPrice?: bigint;
-      disableFeeBumping?: boolean;
-      explorerUrl?: string;
-    };
-  }
+//   export interface ProjectPathsConfig {
+//     ignition: string;
+//   }
 
-  export interface HardhatNetworkConfig {
-    ignition: {
-      maxFeePerGasLimit?: bigint;
-      maxPriorityFeePerGas?: bigint;
-      gasPrice?: bigint;
-      disableFeeBumping?: boolean;
-      explorerUrl?: string;
-    };
-  }
+//   export interface HardhatNetworkUserConfig {
+//     ignition?: {
+//       maxFeePerGasLimit?: bigint;
+//       maxPriorityFeePerGas?: bigint;
+//       gasPrice?: bigint;
+//       disableFeeBumping?: boolean;
+//       explorerUrl?: string;
+//     };
+//   }
 
-  export interface HttpNetworkUserConfig {
-    ignition?: {
-      maxFeePerGasLimit?: bigint;
-      maxPriorityFeePerGas?: bigint;
-      gasPrice?: bigint;
-      disableFeeBumping?: boolean;
-      explorerUrl?: string;
-    };
-  }
+//   export interface HardhatNetworkConfig {
+//     ignition: {
+//       maxFeePerGasLimit?: bigint;
+//       maxPriorityFeePerGas?: bigint;
+//       gasPrice?: bigint;
+//       disableFeeBumping?: boolean;
+//       explorerUrl?: string;
+//     };
+//   }
 
-  export interface HttpNetworkConfig {
-    ignition: {
-      maxFeePerGasLimit?: bigint;
-      maxPriorityFeePerGas?: bigint;
-      gasPrice?: bigint;
-      disableFeeBumping?: boolean;
-      explorerUrl?: string;
-    };
-  }
+//   export interface HttpNetworkUserConfig {
+//     ignition?: {
+//       maxFeePerGasLimit?: bigint;
+//       maxPriorityFeePerGas?: bigint;
+//       gasPrice?: bigint;
+//       disableFeeBumping?: boolean;
+//       explorerUrl?: string;
+//     };
+//   }
 
-  export interface HardhatUserConfig {
-    ignition?: Partial<DeployConfig> & {
-      strategyConfig?: Partial<StrategyConfig>;
-    };
-  }
+//   export interface HttpNetworkConfig {
+//     ignition: {
+//       maxFeePerGasLimit?: bigint;
+//       maxPriorityFeePerGas?: bigint;
+//       gasPrice?: bigint;
+//       disableFeeBumping?: boolean;
+//       explorerUrl?: string;
+//     };
+//   }
 
-  export interface HardhatConfig {
-    ignition: Partial<DeployConfig> & {
-      strategyConfig?: Partial<StrategyConfig>;
-    };
-  }
-}
+//   export interface HardhatUserConfig {
+//     ignition?: Partial<DeployConfig> & {
+//       strategyConfig?: Partial<StrategyConfig>;
+//     };
+//   }
+
+//   export interface HardhatConfig {
+//     ignition: Partial<DeployConfig> & {
+//       strategyConfig?: Partial<StrategyConfig>;
+//     };
+//   }
+// }
