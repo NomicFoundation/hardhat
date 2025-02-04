@@ -73,7 +73,7 @@ export interface ArtifactManager {
    * id, which can happen if the artifact wasn't compiled with Hardhat 3's build
    * system.
    *
-   * If it it does return an id, it's not guaranteed that the build info is
+   * If it does return an id, it's not guaranteed that the build info is
    * present.
    *
    * @param contractNameOrFullyQualifiedName Contract or fully qualified name, whose artifact must exist.
