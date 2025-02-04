@@ -1480,7 +1480,7 @@ Please check Hardhat's output for more details.`,
       messageTemplate:
         'Artifact for contract "{contractName}" not found. {suggestion}',
       websiteTitle: "Artifact not found",
-      websiteDescription: `Tried to import a nonexistent artifact.
+      websiteDescription: `Tried to read a nonexistent artifact.
 
 Please double check that your contracts have been compiled and double check your artifact's name.`,
     },
