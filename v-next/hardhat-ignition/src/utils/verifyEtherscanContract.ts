@@ -1,5 +1,5 @@
 import type { Etherscan } from "@nomicfoundation/hardhat-verify/etherscan";
-import type { VerifyInfo } from "@nomicfoundation/ignition-core";
+import type { VerifyInfo } from "@ignored/hardhat-vnext-ignition-core";
 
 export async function verifyEtherscanContract(
   etherscanInstance: Etherscan,

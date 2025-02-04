@@ -6,7 +6,7 @@ import {
   PreviousRunErrorDeploymentResult,
   ReconciliationErrorDeploymentResult,
   ValidationErrorDeploymentResult,
-} from "@nomicfoundation/ignition-core";
+} from "@ignored/hardhat-vnext-ignition-core";
 import { assert } from "chai";
 import chalk from "chalk";
 

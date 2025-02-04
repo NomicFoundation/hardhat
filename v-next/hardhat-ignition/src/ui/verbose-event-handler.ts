@@ -31,7 +31,7 @@ import {
   TransactionConfirmEvent,
   TransactionSendEvent,
   WipeApplyEvent,
-} from "@nomicfoundation/ignition-core";
+} from "@ignored/hardhat-vnext-ignition-core";
 
 export class VerboseEventHandler implements ExecutionEventListener {
   public deploymentInitialize(event: DeploymentInitializeEvent): void {

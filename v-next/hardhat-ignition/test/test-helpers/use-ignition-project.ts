@@ -1,4 +1,7 @@
-import { DeployConfig, IgnitionModule } from "@nomicfoundation/ignition-core";
+import {
+  DeployConfig,
+  IgnitionModule,
+} from "@ignored/hardhat-vnext-ignition-core";
 import { ensureDirSync, removeSync } from "fs-extra";
 import { resetHardhatContext } from "hardhat/plugins-testing";
 import { HardhatRuntimeEnvironment } from "hardhat/types";

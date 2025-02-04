@@ -1,4 +1,4 @@
-import { TransactionStatus } from "@nomicfoundation/ignition-core";
+import { TransactionStatus } from "@ignored/hardhat-vnext-ignition-core";
 import { assert } from "chai";
 
 import { calculateListTransactionsDisplay } from "../../../src/ui/helpers/calculate-list-transactions-display";

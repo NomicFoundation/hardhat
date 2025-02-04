@@ -2,7 +2,7 @@ import {
   Artifact,
   ArtifactResolver,
   BuildInfo,
-} from "@nomicfoundation/ignition-core";
+} from "@ignored/hardhat-vnext-ignition-core";
 import fs from "fs";
 import { HardhatPluginError } from "hardhat/plugins";
 import { HardhatRuntimeEnvironment } from "hardhat/types";

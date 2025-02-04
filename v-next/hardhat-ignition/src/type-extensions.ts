@@ -2,7 +2,10 @@
 import "hardhat/types/config";
 import "hardhat/types/runtime";
 
-import { DeployConfig, StrategyConfig } from "@nomicfoundation/ignition-core";
+import {
+  DeployConfig,
+  StrategyConfig,
+} from "@ignored/hardhat-vnext-ignition-core";
 
 declare module "hardhat/types/config" {
   export interface ProjectPathsUserConfig {

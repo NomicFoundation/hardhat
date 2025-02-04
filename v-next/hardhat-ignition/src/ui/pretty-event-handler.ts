@@ -34,7 +34,7 @@ import {
   TransactionConfirmEvent,
   TransactionSendEvent,
   WipeApplyEvent,
-} from "@nomicfoundation/ignition-core";
+} from "@ignored/hardhat-vnext-ignition-core";
 import readline from "readline";
 
 import { calculateBatchDisplay } from "./helpers/calculate-batch-display";

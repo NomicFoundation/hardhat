@@ -5,7 +5,7 @@ import {
   IgnitionError,
   ListTransactionsResult,
   StatusResult,
-} from "@nomicfoundation/ignition-core";
+} from "@ignored/hardhat-vnext-ignition-core";
 import debug from "debug";
 import { ensureDir, pathExists, readdirSync, rm, writeJSON } from "fs-extra";
 import { extendConfig, extendEnvironment, scope } from "hardhat/config";

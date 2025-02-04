@@ -1,4 +1,4 @@
-import { DeploymentResult } from "@nomicfoundation/ignition-core";
+import { DeploymentResult } from "@ignored/hardhat-vnext-ignition-core";
 
 export enum UiFutureStatusType {
   UNSTARTED = "UNSTARTED",

@@ -1,4 +1,7 @@
-import { IgnitionError, IgnitionModule } from "@nomicfoundation/ignition-core";
+import {
+  IgnitionError,
+  IgnitionModule,
+} from "@ignored/hardhat-vnext-ignition-core";
 import setupDebug from "debug";
 import { pathExistsSync } from "fs-extra";
 import {

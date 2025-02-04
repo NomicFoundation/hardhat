@@ -1,4 +1,4 @@
-import { status } from "@nomicfoundation/ignition-core";
+import { status } from "@ignored/hardhat-vnext-ignition-core";
 import { assert } from "chai";
 
 import { HardhatArtifactResolver } from "../../src/hardhat-artifact-resolver";

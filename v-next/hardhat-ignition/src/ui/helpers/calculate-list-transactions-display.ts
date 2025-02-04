@@ -1,4 +1,4 @@
-import { ListTransactionsResult } from "@nomicfoundation/ignition-core";
+import { ListTransactionsResult } from "@ignored/hardhat-vnext-ignition-core";
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import { stringify } from "json5";
 

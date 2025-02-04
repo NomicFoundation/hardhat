@@ -1,4 +1,4 @@
-import { SerializedIgnitionModule } from "@nomicfoundation/ignition-core";
+import { SerializedIgnitionModule } from "@ignored/hardhat-vnext-ignition-core";
 import { ensureDir, pathExists, readFile, writeFile } from "fs-extra";
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import path from "path";

@@ -4,7 +4,7 @@ import {
   PreviousRunErrorDeploymentResult,
   ReconciliationErrorDeploymentResult,
   ValidationErrorDeploymentResult,
-} from "@nomicfoundation/ignition-core";
+} from "@ignored/hardhat-vnext-ignition-core";
 import { assert } from "chai";
 
 import { errorDeploymentResultToExceptionMessage } from "../../src/utils/error-deployment-result-to-exception-message";

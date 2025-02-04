@@ -10,7 +10,7 @@ import {
   isContractFuture,
   StrategyConfig,
   SuccessfulDeploymentResult,
-} from "@nomicfoundation/ignition-core";
+} from "@ignored/hardhat-vnext-ignition-core";
 import { HardhatPluginError } from "hardhat/plugins";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import {

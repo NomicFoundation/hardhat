@@ -1,4 +1,4 @@
-import { DeploymentParameters } from "@nomicfoundation/ignition-core";
+import { DeploymentParameters } from "@ignored/hardhat-vnext-ignition-core";
 import { readFile } from "fs-extra";
 import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 import { parse as json5Parse } from "json5";

@@ -1,5 +1,5 @@
 /* eslint-disable import/no-unused-modules */
-import { buildModule } from "@nomicfoundation/ignition-core";
+import { buildModule } from "@ignored/hardhat-vnext-ignition-core";
 import { assert } from "chai";
 
 import { getBalanceFor } from "../test-helpers/get-balance-for";

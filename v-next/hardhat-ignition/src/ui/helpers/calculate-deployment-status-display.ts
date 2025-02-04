@@ -1,4 +1,4 @@
-import { StatusResult } from "@nomicfoundation/ignition-core";
+import { StatusResult } from "@ignored/hardhat-vnext-ignition-core";
 import chalk from "chalk";
 
 export function calculateDeploymentStatusDisplay(

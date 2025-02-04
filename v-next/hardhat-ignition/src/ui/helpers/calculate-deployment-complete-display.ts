@@ -6,7 +6,7 @@ import {
   ReconciliationErrorDeploymentResult,
   SuccessfulDeploymentResult,
   ValidationErrorDeploymentResult,
-} from "@nomicfoundation/ignition-core";
+} from "@ignored/hardhat-vnext-ignition-core";
 import chalk from "chalk";
 
 import { UiState } from "../types";

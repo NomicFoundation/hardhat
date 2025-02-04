@@ -1,6 +1,6 @@
 /* eslint-disable import/no-unused-modules */
 import { setNextBlockBaseFeePerGas } from "@nomicfoundation/hardhat-network-helpers";
-import { buildModule, wipe } from "@nomicfoundation/ignition-core";
+import { buildModule, wipe } from "@ignored/hardhat-vnext-ignition-core";
 import { assert } from "chai";
 
 import { HardhatArtifactResolver } from "../../../src/hardhat-artifact-resolver";
