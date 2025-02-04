@@ -88,7 +88,7 @@ export interface ArtifactManager {
   ): Promise<string | undefined>;
 
   /**
-   * Returns an set with the ids of all the existing build infos.
+   * Returns a set with the ids of all the existing build infos.
    *
    * Note that there's one build info per run of solc, so they can be shared
    * by different contracts.
