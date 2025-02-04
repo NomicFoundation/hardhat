@@ -1,6 +1,6 @@
 import type { ChainConfig } from "@nomicfoundation/hardhat-verify/types";
 
-import { NomicLabsHardhatPluginError } from "hardhat/plugins";
+import { NomicLabsHardhatPluginError } from "@ignored/hardhat-vnext/plugins";
 
 export function getApiKeyAndUrls(
   etherscanApiKey: string | Record<string, string>,

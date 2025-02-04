@@ -6,7 +6,7 @@ import {
   UiFutureStatusType,
   UiState,
   UiStateDeploymentStatus,
-} from "../../../src/ui/types";
+} from "../../../src/ui/types.js";
 
 import { testFormat } from "./test-format.js";
 

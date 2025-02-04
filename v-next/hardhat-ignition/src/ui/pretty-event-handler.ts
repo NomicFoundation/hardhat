@@ -52,7 +52,7 @@ import {
   UiFutureSuccess,
   UiState,
   UiStateDeploymentStatus,
-} from "./types";
+} from "./types.js";
 
 export class PrettyEventHandler implements ExecutionEventListener {
   private _uiState: UiState = {

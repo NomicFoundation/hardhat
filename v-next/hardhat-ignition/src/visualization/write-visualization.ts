@@ -1,6 +1,6 @@
 import { SerializedIgnitionModule } from "@ignored/hardhat-vnext-ignition-core";
 import { ensureDir, pathExists, readFile, writeFile } from "fs-extra";
-import { NomicLabsHardhatPluginError } from "hardhat/plugins";
+import { NomicLabsHardhatPluginError } from "@ignored/hardhat-vnext/plugins";
 import path from "path";
 
 export async function writeVisualization(

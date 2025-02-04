@@ -6,7 +6,7 @@ import { assert } from "chai";
 import {
   TestChainHelper,
   useFileIgnitionProject,
-} from "../../test-helpers/use-ignition-project";
+} from "../../test-helpers/use-ignition-project.js";
 
 /**
  * A run that deploys a contract times out

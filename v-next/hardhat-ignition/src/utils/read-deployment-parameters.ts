@@ -1,6 +1,6 @@
 import { DeploymentParameters } from "@ignored/hardhat-vnext-ignition-core";
 import { readFile } from "fs-extra";
-import { NomicLabsHardhatPluginError } from "hardhat/plugins";
+import { NomicLabsHardhatPluginError } from "@ignored/hardhat-vnext/plugins";
 import { parse as json5Parse } from "json5";
 
 import { bigintReviver } from "./bigintReviver.js";

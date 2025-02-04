@@ -1,4 +1,4 @@
-import { NomicLabsHardhatPluginError } from "hardhat/plugins";
+import { NomicLabsHardhatPluginError } from "@ignored/hardhat-vnext/plugins";
 
 /**
  * A regex that captures Ignitions rules for deployment-ids, specifically

@@ -8,7 +8,7 @@ import { mineBlock } from "../../test-helpers/mine-block.js";
 import {
   TestChainHelper,
   useFileIgnitionProject,
-} from "../../test-helpers/use-ignition-project";
+} from "../../test-helpers/use-ignition-project.js";
 import { waitForPendingTxs } from "../../test-helpers/wait-for-pending-txs.js";
 
 /**

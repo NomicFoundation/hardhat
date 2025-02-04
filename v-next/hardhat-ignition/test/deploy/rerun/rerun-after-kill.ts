@@ -5,7 +5,7 @@ import { assert } from "chai";
 import {
   TestChainHelper,
   useFileIgnitionProject,
-} from "../../test-helpers/use-ignition-project";
+} from "../../test-helpers/use-ignition-project.js";
 
 /**
  * Run an initial deploy that deploys multiple contracts, one contract per batch.

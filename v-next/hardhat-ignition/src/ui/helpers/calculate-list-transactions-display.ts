@@ -1,5 +1,5 @@
 import { ListTransactionsResult } from "@ignored/hardhat-vnext-ignition-core";
-import { NomicLabsHardhatPluginError } from "hardhat/plugins";
+import { NomicLabsHardhatPluginError } from "@ignored/hardhat-vnext/plugins";
 import { stringify } from "json5";
 
 export function calculateListTransactionsDisplay(

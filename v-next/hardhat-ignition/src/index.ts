@@ -9,7 +9,7 @@ import {
 import debug from "debug";
 import { ensureDir, pathExists, readdirSync, rm, writeJSON } from "fs-extra";
 import { extendConfig, extendEnvironment, scope } from "hardhat/config";
-import { NomicLabsHardhatPluginError } from "hardhat/plugins";
+import { NomicLabsHardhatPluginError } from "@ignored/hardhat-vnext/plugins";
 import { parse as json5Parse } from "json5";
 import path from "path";
 
@@ -124,13 +124,15 @@ ignitionScope
     ) => {
       const { default: chalk } = await import("chalk");
       const { default: Prompt } = await import("prompts");
-      const { deploy } = await import("@nomicfoundation/ignition-core");
+      const { deploy } = await import("@ignored/hardhat-vnext-ignition-core");
 
       const { HardhatArtifactResolver } = await import(
-        "./hardhat-artifact-resolver"
+        "./hardhat-artifact-resolver.js"
       );
-      const { loadModule } = await import("./utils/load-module");
-      const { PrettyEventHandler } = await import("./ui/pretty-event-handler");
+      const { loadModule } = await import("./utils/load-module.js");
+      const { PrettyEventHandler } = await import(
+        "./ui/pretty-event-handler.js"
+      );
 
       if (verify) {
         if (
@@ -403,14 +405,14 @@ ignitionScope
       hre
     ) => {
       const { IgnitionModuleSerializer, batches } = await import(
-        "@nomicfoundation/ignition-core"
+        "@ignored/hardhat-vnext-ignition-core"
       );
 
-      const { loadModule } = await import("./utils/load-module");
-      const { open } = await import("./utils/open");
+      const { loadModule } = await import("./utils/load-module.js");
+      const { open } = await import("./utils/open.js");
 
       const { writeVisualization } = await import(
-        "./visualization/write-visualization"
+        "./visualization/write-visualization.js"
       );
 
       await hre.run("compile", { quiet: true });
@@ -467,10 +469,10 @@ ignitionScope
   .addPositionalParam("deploymentId", "The id of the deployment to show")
   .setDescription("Show the current status of a deployment")
   .setAction(async ({ deploymentId }: { deploymentId: string }, hre) => {
-    const { status } = await import("@nomicfoundation/ignition-core");
+    const { status } = await import("@ignored/hardhat-vnext-ignition-core");
 
     const { HardhatArtifactResolver } = await import(
-      "./hardhat-artifact-resolver"
+      "./hardhat-artifact-resolver.js"
     );
 
     const deploymentDir = path.join(
@@ -499,7 +501,9 @@ ignitionScope
   .task("deployments")
   .setDescription("List all deployment IDs")
   .setAction(async (_, hre) => {
-    const { listDeployments } = await import("@nomicfoundation/ignition-core");
+    const { listDeployments } = await import(
+      "@ignored/hardhat-vnext-ignition-core"
+    );
 
     const deploymentDir = path.join(hre.config.paths.ignition, "deployments");
 
@@ -531,10 +535,10 @@ ignitionScope
       { deploymentId, futureId }: { deploymentId: string; futureId: string },
       hre
     ) => {
-      const { wipe } = await import("@nomicfoundation/ignition-core");
+      const { wipe } = await import("@ignored/hardhat-vnext-ignition-core");
 
       const { HardhatArtifactResolver } = await import(
-        "./hardhat-artifact-resolver"
+        "./hardhat-artifact-resolver.js"
       );
 
       const deploymentDir = path.join(
@@ -580,7 +584,7 @@ ignitionScope
       hre
     ) => {
       const { getVerificationInformation } = await import(
-        "@nomicfoundation/ignition-core"
+        "@ignored/hardhat-vnext-ignition-core"
       );
 
       const deploymentDir = path.join(
@@ -680,13 +684,15 @@ ignitionScope
   )
   .setDescription("Show all transactions for a given deployment")
   .setAction(async ({ deploymentId }: { deploymentId: string }, hre) => {
-    const { listTransactions } = await import("@nomicfoundation/ignition-core");
+    const { listTransactions } = await import(
+      "@ignored/hardhat-vnext-ignition-core"
+    );
 
     const { HardhatArtifactResolver } = await import(
-      "./hardhat-artifact-resolver"
+      "./hardhat-artifact-resolver.js"
     );
     const { calculateListTransactionsDisplay } = await import(
-      "./ui/helpers/calculate-list-transactions-display"
+      "./ui/helpers/calculate-list-transactions-display.js"
     );
 
     const deploymentDir = path.join(

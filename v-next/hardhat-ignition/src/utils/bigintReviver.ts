@@ -1,4 +1,4 @@
-import { NomicLabsHardhatPluginError } from "hardhat/plugins";
+import { NomicLabsHardhatPluginError } from "@ignored/hardhat-vnext/plugins";
 
 export function bigintReviver(key: string, value: any): any {
   if (typeof value === "string" && /^\d+n$/.test(value)) {

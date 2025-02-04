@@ -9,7 +9,7 @@ import { sleep } from "../../test-helpers/sleep.js";
 import {
   TestChainHelper,
   useFileIgnitionProject,
-} from "../../test-helpers/use-ignition-project";
+} from "../../test-helpers/use-ignition-project.js";
 
 /**
  * Run an initial deploy, that starts but does not finish several on-chain

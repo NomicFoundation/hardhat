@@ -11,7 +11,7 @@ import {
   StrategyConfig,
   SuccessfulDeploymentResult,
 } from "@ignored/hardhat-vnext-ignition-core";
-import { HardhatPluginError } from "hardhat/plugins";
+import { HardhatPluginError } from "@ignored/hardhat-vnext/plugins";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import {
   createPublicClient,

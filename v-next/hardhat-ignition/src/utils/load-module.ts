@@ -7,7 +7,7 @@ import { pathExistsSync } from "fs-extra";
 import {
   HardhatPluginError,
   NomicLabsHardhatPluginError,
-} from "hardhat/plugins";
+} from "@ignored/hardhat-vnext/plugins";
 import path from "path";
 
 import { shouldBeHardhatPluginError } from "./shouldBeHardhatPluginError.js";

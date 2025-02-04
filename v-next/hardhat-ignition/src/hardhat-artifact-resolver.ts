@@ -4,7 +4,7 @@ import {
   BuildInfo,
 } from "@ignored/hardhat-vnext-ignition-core";
 import fs from "fs";
-import { HardhatPluginError } from "hardhat/plugins";
+import { HardhatPluginError } from "@ignored/hardhat-vnext/plugins";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import path from "path";
 

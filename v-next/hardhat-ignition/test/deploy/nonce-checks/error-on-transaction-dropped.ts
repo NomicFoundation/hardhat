@@ -5,7 +5,7 @@ import { assert } from "chai";
 import {
   TestChainHelper,
   useFileIgnitionProject,
-} from "../../test-helpers/use-ignition-project";
+} from "../../test-helpers/use-ignition-project.js";
 
 /**
  * On running a deploy, if a transaction is dropped from the mempool

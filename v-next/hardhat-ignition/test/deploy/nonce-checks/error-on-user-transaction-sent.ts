@@ -7,7 +7,7 @@ import { hardhat } from "viem/chains";
 import {
   TestChainHelper,
   useFileIgnitionProject,
-} from "../../test-helpers/use-ignition-project";
+} from "../../test-helpers/use-ignition-project.js";
 
 /**
  * On running a deploy, if a transaction is pending and the user

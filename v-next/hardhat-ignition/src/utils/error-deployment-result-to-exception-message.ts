@@ -5,7 +5,7 @@ import {
   ReconciliationErrorDeploymentResult,
   ValidationErrorDeploymentResult,
 } from "@ignored/hardhat-vnext-ignition-core";
-import { HardhatPluginError } from "hardhat/plugins";
+import { HardhatPluginError } from "@ignored/hardhat-vnext/plugins";
 
 /**
  * Converts the result of an errored deployment into a message that can
