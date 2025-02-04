@@ -83,12 +83,11 @@
     "viem": "^2.7.6"
   },
   "peerDependencies": {
-    "@nomicfoundation/hardhat-verify": "workspace:^2.0.1",
-    "hardhat": "workspace:^2.18.0"
+    "@ignored/hardhat-vnext": "workspace:^3.0.0-next.16"
   },
   "dependencies": {
-    "@nomicfoundation/ignition-core": "workspace:^",
-    "@nomicfoundation/ignition-ui": "workspace:^",
+    "@ignored/hardhat-vnext-ignition-core": "workspace:^",
+    "@ignored/hardhat-vnext-ignition-ui": "workspace:^",
     "chalk": "^4.0.0",
     "debug": "^4.3.2",
     "fs-extra": "^10.0.0",
