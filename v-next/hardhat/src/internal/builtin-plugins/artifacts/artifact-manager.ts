@@ -94,9 +94,9 @@ export class ArtifactManagerImplementation implements ArtifactManager {
   }
 
   public async getBuildInfoId(
-    fullyQualifiedName: string,
+    contractNameOrFullyQualifiedName: string,
   ): Promise<string | undefined> {
-    const artifact = await this.readArtifact(fullyQualifiedName);
+    const artifact = await this.readArtifact(contractNameOrFullyQualifiedName);
 
     return artifact.buildInfoId;
   }
