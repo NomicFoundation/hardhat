@@ -49,9 +49,7 @@
   },
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "1.0.2",
-    "@nomicfoundation/eslint-plugin-hardhat-internal-rules": "workspace:^",
     "@nomicfoundation/hardhat-network-helpers": "workspace:^1.0.9",
-    "@nomicfoundation/hardhat-verify": "workspace:^2.0.1",
     "@types/chai": "^4.2.22",
     "@types/chai-as-promised": "^7.1.4",
     "@types/debug": "^4.1.7",
