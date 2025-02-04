@@ -1488,7 +1488,7 @@ Please double check that your contracts have been compiled and double check your
       number: 1601,
       messageTemplate: `There are multiple artifacts for contract "{contractName}", please use a fully qualified name.
 
-Please replace %contractName% for one of these options wherever you are trying to read its artifact:
+Please replace {contractName} for one of these options wherever you are trying to read its artifact:
 
 {candidates}
 `,
