@@ -1,10 +1,8 @@
-/* eslint-disable import/no-unused-modules */
-import chai from "chai";
+import { use } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
 
-chai.use(chaiAsPromised);
-chai.config.truncateThreshold = 1000;
+use(chaiAsPromised);
 
 afterEach(() => {
   sinon.restore();
