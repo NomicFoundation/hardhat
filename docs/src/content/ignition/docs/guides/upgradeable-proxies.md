@@ -230,7 +230,7 @@ Next it's time to upgrade our proxy to a new version. To do this, we'll create a
 const upgradeModule = buildModule("UpgradeModule", (m) => {
   const proxyAdminOwner = m.getAccount(0);
 
-  const { proxyAdmin, proxy } = m.useModule(proxyModule);
+  const { proxyAdmin, proxy } = m.useModule(demoModule);
 
   const demoV2 = m.contract("DemoV2");
 
