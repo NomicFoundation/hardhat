@@ -4,13 +4,16 @@ import type {
 } from "@ignored/hardhat-vnext-ignition-core";
 import type { HardhatRuntimeEnvironment } from "hardhat/types";
 
-import path from "node:path";
+import path, { dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { ensureDir } from "@ignored/hardhat-vnext-utils/fs";
 
 import { clearPendingTransactionsFromMemoryPool } from "./clear-pending-transactions-from-memory-pool.js";
 import { TestIgnitionHelper } from "./test-ignition-helper.js";
 import { waitForPendingTxs } from "./wait-for-pending-txs.js";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 declare module "mocha" {
   interface Context {

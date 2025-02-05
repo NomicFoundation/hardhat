@@ -1,9 +1,12 @@
-import path from "node:path";
+import path, { dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { exists, remove } from "@ignored/hardhat-vnext-utils/fs";
 import { assert } from "chai";
 
 import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const fixtureProjectName = "minimal";
 const deploymentDir = path.join(
