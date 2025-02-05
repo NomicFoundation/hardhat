@@ -45,7 +45,7 @@ describe("execution - rerun after kill", function () {
         await c.waitForPendingTxs(1);
 
         c.exitDeploy();
-      }
+      },
     );
 
     // Rerun the deployment
@@ -58,7 +58,7 @@ describe("execution - rerun after kill", function () {
         await c.mineBlock(1);
         await c.mineBlock(1);
         await c.mineBlock(1);
-      }
+      },
     );
 
     assert.equal(await result.foo1.read.x(), 1n);

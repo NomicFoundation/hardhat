@@ -18,7 +18,7 @@ describe("events", () => {
       const newAddress = m.readEventArgument(
         createCall,
         "Deployed",
-        "fooAddress"
+        "fooAddress",
       );
 
       const foo = m.contractAt("Foo", newAddress);
@@ -45,7 +45,7 @@ describe("events", () => {
       const newAddress = m.readEventArgument(
         createCall,
         "Deployed",
-        "fooAddress"
+        "fooAddress",
       );
 
       const foo = m.contractAt("Foo", artifact, newAddress);

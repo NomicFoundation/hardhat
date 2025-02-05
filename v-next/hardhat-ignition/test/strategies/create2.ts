@@ -81,7 +81,7 @@ describe("create2", function () {
             strategyConfig: {
               salt: example32ByteSalt,
             },
-          }
+          },
         );
 
         await waitForPendingTxs(this.hre, 1, deployPromise);
@@ -112,9 +112,9 @@ describe("create2", function () {
               strategyConfig: {
                 salt: example32ByteSalt,
               },
-            }
+            },
           ),
-          /Simulating the transaction failed with error: Reverted with custom error FailedContractCreation/
+          /Simulating the transaction failed with error: Reverted with custom error FailedContractCreation/,
         );
       });
 
@@ -133,7 +133,7 @@ describe("create2", function () {
 
         assert.equal(
           result.foo.address,
-          EXPECTED_CUSTOM_SALT_FOO_CREATE2_ADDRESS
+          EXPECTED_CUSTOM_SALT_FOO_CREATE2_ADDRESS,
         );
 
         assert.equal(this.hre.network.config.chainId, 1);
@@ -153,7 +153,7 @@ describe("create2", function () {
               salt: example32ByteSalt,
             },
           }),
-          /CreateX not deployed on current network 88888/
+          /CreateX not deployed on current network 88888/,
         );
       });
     });
@@ -207,7 +207,7 @@ describe("create2", function () {
           strategyConfig: {
             salt: example32ByteSalt,
           },
-        }
+        },
       );
 
       await waitForPendingTxs(this.hre, 1, secondDeployPromise);
@@ -217,7 +217,7 @@ describe("create2", function () {
 
       assert.equal(
         secondDeployResult.bar.address,
-        EXPECTED_BAR_CREATE2_ADDRESS
+        EXPECTED_BAR_CREATE2_ADDRESS,
       );
       assert(await secondDeployResult.bar.read.isBar());
     });
@@ -233,9 +233,9 @@ describe("create2", function () {
           {
             modulePath: "./ignition/modules/MyModule.js",
             strategy: "create2",
-          }
+          },
         ),
-        /IGN1102: Missing required strategy configuration parameter 'salt' for the strategy 'create2'/
+        /IGN1102: Missing required strategy configuration parameter 'salt' for the strategy 'create2'/,
       );
     });
   });

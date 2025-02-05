@@ -8,7 +8,7 @@ describe("deploy id rules", () => {
   it("should use the user provided id if one is provided", () => {
     const deploymentId = resolveDeploymentId(
       "my-deployment-id",
-      exampleChainId
+      exampleChainId,
     );
 
     assert.equal(deploymentId, "my-deployment-id");

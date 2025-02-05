@@ -10,7 +10,7 @@ describe("loadModule", function () {
   it("should throw if the full path to the module does not exist", () => {
     assert.throws(
       () => loadModule("ignition", "./ignition/modules/Fake.js"),
-      "Could not find a module file at the path: ./ignition/modules/Fake.js"
+      "Could not find a module file at the path: ./ignition/modules/Fake.js",
     );
   });
 
@@ -24,7 +24,7 @@ describe("loadModule", function () {
 
     assert.throws(
       () => loadModule("ignition", "./hardhat.config.js"),
-      expectedErrorMessage
+      expectedErrorMessage,
     );
   });
 });

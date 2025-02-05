@@ -21,7 +21,7 @@ describe("gas estimation", function () {
 
     await assert.isRejected(
       this.hre.ignition.deploy(moduleDefinition),
-      /Simulating the transaction failed with error: Reverted with reason "Constructor failed"/
+      /Simulating the transaction failed with error: Reverted with reason "Constructor failed"/,
     );
   });
 });

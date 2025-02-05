@@ -19,7 +19,7 @@ export function errorDeploymentResultToExceptionMessage(
     | ValidationErrorDeploymentResult
     | ReconciliationErrorDeploymentResult
     | ExecutionErrorDeploymentResult
-    | PreviousRunErrorDeploymentResult
+    | PreviousRunErrorDeploymentResult,
 ): string {
   switch (result.type) {
     case DeploymentResultType.VALIDATION_ERROR:
@@ -34,10 +34,10 @@ export function errorDeploymentResultToExceptionMessage(
 }
 
 function _convertValidationError(
-  result: ValidationErrorDeploymentResult
+  result: ValidationErrorDeploymentResult,
 ): string {
   const errorsList = Object.entries(result.errors).flatMap(
-    ([futureId, errors]) => errors.map((err) => `  * ${futureId}: ${err}`)
+    ([futureId, errors]) => errors.map((err) => `  * ${futureId}: ${err}`),
   );
 
   return `The deployment wasn't run because of the following validation errors:
@@ -46,10 +46,10 @@ ${errorsList.join("\n")}`;
 }
 
 function _convertReconciliationError(
-  result: ReconciliationErrorDeploymentResult
+  result: ReconciliationErrorDeploymentResult,
 ) {
   const errorsList = Object.entries(result.errors).flatMap(
-    ([futureId, errors]) => errors.map((err) => `  * ${futureId}: ${err}`)
+    ([futureId, errors]) => errors.map((err) => `  * ${futureId}: ${err}`),
   );
 
   return `The deployment wasn't run because of the following reconciliation errors:
@@ -69,7 +69,7 @@ function _convertExecutionError(result: ExecutionErrorDeploymentResult) {
   if (messageDetails.timeouts) {
     const timeoutList = result.timedOut.map(
       ({ futureId, networkInteractionId }) =>
-        `  * ${futureId}/${networkInteractionId}`
+        `  * ${futureId}/${networkInteractionId}`,
     );
 
     sections.push(`Timed out:\n\n${timeoutList.join("\n")}`);
@@ -78,7 +78,7 @@ function _convertExecutionError(result: ExecutionErrorDeploymentResult) {
   if (messageDetails.failures) {
     const errorList = result.failed.map(
       ({ futureId, networkInteractionId, error }) =>
-        `  * ${futureId}/${networkInteractionId}: ${error}`
+        `  * ${futureId}/${networkInteractionId}: ${error}`,
     );
 
     sections.push(`Failures:\n\n${errorList.join("\n")}`);
@@ -86,14 +86,14 @@ function _convertExecutionError(result: ExecutionErrorDeploymentResult) {
 
   if (messageDetails.held) {
     const reasonList = result.held.map(
-      ({ futureId, heldId, reason }) => `  * ${futureId}/${heldId}: ${reason}`
+      ({ futureId, heldId, reason }) => `  * ${futureId}/${heldId}: ${reason}`,
     );
 
     sections.push(`Held:\n\n${reasonList.join("\n")}`);
   }
 
   return `The deployment wasn't successful, there were ${_toText(
-    messageDetails
+    messageDetails,
   )}:
 
 ${sections.join("\n\n")}`;
@@ -101,7 +101,7 @@ ${sections.join("\n\n")}`;
 
 function _convertPreviousRunError(result: PreviousRunErrorDeploymentResult) {
   const errorsList = Object.entries(result.errors).flatMap(
-    ([futureId, errors]) => errors.map((err) => `  * ${futureId}: ${err}`)
+    ([futureId, errors]) => errors.map((err) => `  * ${futureId}: ${err}`),
   );
 
   return `The deployment wasn't run because of the following errors in a previous run:
@@ -136,6 +136,6 @@ function _toText({
 
   throw new HardhatPluginError(
     "@nomicfoundation/hardhat-ignition",
-    "Invariant violated: neither timeouts or failures"
+    "Invariant violated: neither timeouts or failures",
   );
 }

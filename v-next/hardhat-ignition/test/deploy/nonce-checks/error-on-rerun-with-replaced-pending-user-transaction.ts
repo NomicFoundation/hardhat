@@ -18,7 +18,7 @@ import {
 describe("execution - error on rerun with replaced pending user transaction", () => {
   useFileIgnitionProject(
     "minimal",
-    "error-on-rerun-with-replaced-pending-user-transaction"
+    "error-on-rerun-with-replaced-pending-user-transaction",
   );
 
   it("should error on the second run", async function () {
@@ -47,7 +47,7 @@ describe("execution - error on rerun with replaced pending user transaction", ()
 
         // Then kill before any blocks
         c.exitDeploy();
-      }
+      },
     );
 
     const FooArtifact = this.hre.artifacts.readArtifactSync("Foo");
@@ -77,7 +77,7 @@ describe("execution - error on rerun with replaced pending user transaction", ()
     // and error
     await assert.isRejected(
       this.hre.ignition.deploy(moduleDefinition),
-      "IGN403: You have sent transactions from 0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc and they interfere with Hardhat Ignition. Please wait until they get 5 confirmations before running Hardhat Ignition again."
+      "IGN403: You have sent transactions from 0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc and they interfere with Hardhat Ignition. Please wait until they get 5 confirmations before running Hardhat Ignition again.",
     );
   });
 });

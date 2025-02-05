@@ -30,7 +30,7 @@ describe("execution - revert nonce on simulation error", () => {
     // but because of the actual simulation
     await assert.isRejected(
       this.hre.ignition.deploy(moduleDefinition),
-      /Simulating the transaction failed with error: Reverted with reason "fails"/
+      /Simulating the transaction failed with error: Reverted with reason "fails"/,
     );
   });
 });

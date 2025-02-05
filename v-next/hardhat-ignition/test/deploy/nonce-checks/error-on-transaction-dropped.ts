@@ -49,7 +49,7 @@ describe("execution - error on transaction dropped", () => {
         // Mine further block allowing foo2 to be checked again
         await c.mineBlock();
       }),
-      "IGN401: Error while executing FooModule#Foo2: all the transactions of its network interaction 1 were dropped. Please try rerunning Hardhat Ignition."
+      "IGN401: Error while executing FooModule#Foo2: all the transactions of its network interaction 1 were dropped. Please try rerunning Hardhat Ignition.",
     );
   });
 });

@@ -5,7 +5,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
  */
 export async function getBalanceFor(
   hre: HardhatRuntimeEnvironment,
-  address: string
+  address: string,
 ): Promise<bigint> {
   const balance = await hre.network.provider.send("eth_getBalance", [
     address,

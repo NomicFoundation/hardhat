@@ -14,9 +14,9 @@ describe("default sender", function () {
         {
           modulePath: "ignition/modules/OwnModule.js",
           defaultSender: "0x1234567890abcdef1234567890abcdef12345678",
-        }
+        },
       ),
-      /IGN700: Default sender 0x1234567890abcdef1234567890abcdef12345678 is not part of the configured accounts./
+      /IGN700: Default sender 0x1234567890abcdef1234567890abcdef12345678 is not part of the configured accounts./,
     );
   });
 
@@ -28,13 +28,13 @@ describe("default sender", function () {
       {
         modulePath: "ignition/modules/OwnModule.js",
         defaultSender: secondAccountAddress,
-      }
+      },
     );
 
     const existingModule = buildModule("ExistingModule", (m) => {
       const bar = m.contractAt(
         "Ownable",
-        "0x8464135c8F25Da09e49BC8782676a84730C318bC"
+        "0x8464135c8F25Da09e49BC8782676a84730C318bC",
       );
 
       return { bar };

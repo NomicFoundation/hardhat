@@ -26,7 +26,7 @@ export function calculateBatchDisplay(state: UiState): {
 function _futureStatus(
   future: UiFuture,
   gasBumps: Record<string, number>,
-  maxFeeBumps: number
+  maxFeeBumps: number,
 ): string {
   switch (future.status.type) {
     case UiFutureStatusType.UNSTARTED: {

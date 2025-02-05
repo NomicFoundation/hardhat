@@ -5,14 +5,14 @@ import { stringify } from "json5";
 export function calculateListTransactionsDisplay(
   deploymentId: string,
   listTransactionsResult: ListTransactionsResult,
-  configUrl?: string
+  configUrl?: string,
 ): string {
   let text = `Logging transactions for deployment ${deploymentId}\n\n`;
 
   for (const [index, transaction] of listTransactionsResult.entries()) {
     const txLink = getTransactionLink(
       transaction.txHash,
-      configUrl ?? transaction.browserUrl
+      configUrl ?? transaction.browserUrl,
     );
 
     text += `Transaction ${index + 1}${txLink === undefined ? "" : txLink}:\n`;
@@ -36,7 +36,7 @@ export function calculateListTransactionsDisplay(
     if (transaction.params !== undefined) {
       text += `  - Params: ${stringify(
         transaction.params,
-        transactionDisplaySerializeReplacer
+        transactionDisplaySerializeReplacer,
       )}\n`;
     }
 
@@ -61,14 +61,14 @@ function transactionTypeToDisplayType(type: string): string {
     default:
       throw new HardhatError(
         HardhatError.ERRORS.IGNITION.UNKNOWN_TRANSACTION_TYPE,
-        { type }
+        { type },
       );
   }
 }
 
 export function transactionDisplaySerializeReplacer(
   _key: string,
-  value: unknown
+  value: unknown,
 ): unknown {
   if (typeof value === "bigint") {
     return `${value}n`;
@@ -79,7 +79,7 @@ export function transactionDisplaySerializeReplacer(
 
 function getTransactionLink(
   txHash: string,
-  browserURL?: string
+  browserURL?: string,
 ): string | undefined {
   if (browserURL === undefined) {
     return undefined;

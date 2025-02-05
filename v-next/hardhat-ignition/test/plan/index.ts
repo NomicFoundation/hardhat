@@ -21,7 +21,7 @@ describe("visualize", () => {
       {
         noOpen: true,
         modulePath: "./ignition/modules/MyModule.js",
-      }
+      },
     );
 
     const files = await readdir(visualizationPath);

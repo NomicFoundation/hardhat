@@ -11,7 +11,7 @@ export function calculateDeployingModulePanel(state: UiState): string {
 
   if (state.isResumed === true) {
     deployingMessage += `${chalk.bold(
-      `Resuming existing deployment from ${pathFromCwd(state.deploymentDir!)}`
+      `Resuming existing deployment from ${pathFromCwd(state.deploymentDir!)}`,
     )}
 
 `;
@@ -19,14 +19,14 @@ export function calculateDeployingModulePanel(state: UiState): string {
 
   deployingMessage += `${chalk.bold(
     `Deploying [ ${state.moduleName ?? "unknown"} ]${_calculateStrategySuffix(
-      state
-    )}`
+      state,
+    )}`,
   )}
 `;
 
   if (state.warnings.length > 0) {
     deployingMessage += `\n${chalk.yellow(
-      "Warning - previously executed futures are not in the module:"
+      "Warning - previously executed futures are not in the module:",
     )}\n`;
 
     deployingMessage += state.warnings

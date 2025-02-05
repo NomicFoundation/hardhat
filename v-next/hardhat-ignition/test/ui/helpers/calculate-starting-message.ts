@@ -21,7 +21,7 @@ This will execute the deployment, but the results will be lost.
 You can use --network <network-name> to deploy to a different network.`;
 
     const expectedText = `${chalk.yellow(
-      chalk.bold(warningMessage)
+      chalk.bold(warningMessage),
     )}\n\nHardhat Ignition starting for [ MyModule ]...`;
 
     const actualText = calculateStartingMessage({

@@ -16,7 +16,7 @@ describe("reset flag", function () {
         modulePath: "./ignition/modules/FirstPass.js",
         deploymentId: "custom-reset-id",
         reset: true,
-      }
+      },
     );
 
     await this.hre.run(
@@ -25,7 +25,7 @@ describe("reset flag", function () {
         modulePath: "./ignition/modules/SecondPass.js",
         deploymentId: "custom-reset-id",
         reset: true,
-      }
+      },
     );
 
     const artifactResolver = new HardhatArtifactResolver(this.hre);
@@ -36,7 +36,7 @@ describe("reset flag", function () {
     // cleared the first pass
     assert(
       result.successful.includes("ResetModule#B"),
-      "Retry did not clear first pass, so second pass failed"
+      "Retry did not clear first pass, so second pass failed",
     );
   });
 });

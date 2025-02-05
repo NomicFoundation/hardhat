@@ -44,7 +44,7 @@ describe("useModule", function () {
           });
 
           return { trace };
-        }
+        },
       );
 
       const fourthCallModule = buildModule("FourthCallModule", (m) => {
@@ -70,7 +70,7 @@ describe("useModule", function () {
 
       assert.deepStrictEqual(
         [entry1, entry2, entry3, entry4],
-        ["first", "second", "third", "fourth"]
+        ["first", "second", "third", "fourth"],
       );
     });
   });

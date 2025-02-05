@@ -17,7 +17,7 @@ describe("module parameters", () => {
         {
           modulePath: "./ignition/modules/Lock.ts",
           parameters: "./ignition/modules/parameters.json",
-        }
+        },
       );
     });
 
@@ -30,7 +30,7 @@ describe("module parameters", () => {
         {
           modulePath: "./ignition/modules/Lock.ts",
           parameters: "./ignition/modules/parameters-json5.json5",
-        }
+        },
       );
     });
 
@@ -43,7 +43,7 @@ describe("module parameters", () => {
         {
           modulePath: "./ignition/modules/Lock.ts",
           parameters: "./ignition/modules/parameters-bigints-as-strings.json",
-        }
+        },
       );
     });
 
@@ -56,9 +56,9 @@ describe("module parameters", () => {
           },
           {
             modulePath: "./ignition/modules/nonexistant.ts",
-          }
+          },
         ),
-        /Could not find a module file at the path: .\/ignition\/modules\/nonexistant.ts/
+        /Could not find a module file at the path: .\/ignition\/modules\/nonexistant.ts/,
       );
     });
 
@@ -72,9 +72,9 @@ describe("module parameters", () => {
           {
             modulePath: "./ignition/modules/nonexistant.ts",
             parameters: "./ignition/modules/nonexistant.json",
-          }
+          },
         ),
-        /Could not find a module file at the path: .\/ignition\/modules\/nonexistant.ts/
+        /Could not find a module file at the path: .\/ignition\/modules\/nonexistant.ts/,
       );
     });
 
@@ -88,9 +88,9 @@ describe("module parameters", () => {
           {
             modulePath: "./ignition/modules/Lock.ts",
             parameters: "./ignition/modules/parameters-too-large.json",
-          }
+          },
         ),
-        /Parameter "unlockTime" exceeds maximum safe integer size. Encode the value as a string using bigint notation: `\${value}n`/
+        /Parameter "unlockTime" exceeds maximum safe integer size. Encode the value as a string using bigint notation: `\${value}n`/,
       );
     });
 

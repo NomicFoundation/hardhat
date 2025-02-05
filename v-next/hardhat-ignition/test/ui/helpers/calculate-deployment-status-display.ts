@@ -53,7 +53,7 @@ describe("ui - calculate deployment status display", () => {
 
       const actualText = calculateDeploymentStatusDisplay(
         "deployment-01",
-        statusResult
+        statusResult,
       );
 
       assert.equal(actualText, expectedText);
@@ -73,7 +73,7 @@ describe("ui - calculate deployment status display", () => {
 
       const actualText = calculateDeploymentStatusDisplay(
         "deployment-01",
-        statusResult
+        statusResult,
       );
 
       assert.equal(actualText, expectedText);
@@ -151,7 +151,7 @@ describe("ui - calculate deployment status display", () => {
 
       const actualText = calculateDeploymentStatusDisplay(
         "deployment-01",
-        statusResult
+        statusResult,
       );
 
       assert.equal(actualText, expectedText);
@@ -175,7 +175,7 @@ describe("ui - calculate deployment status display", () => {
 
       const actualText = calculateDeploymentStatusDisplay(
         "deployment-01",
-        statusResult
+        statusResult,
       );
 
       assert.equal(actualText, expectedText);

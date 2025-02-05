@@ -46,7 +46,7 @@ describe("ui - calculate batch display", () => {
         },
       ],
       3,
-      expectedText
+      expectedText,
     );
   });
 
@@ -66,7 +66,7 @@ describe("ui - calculate batch display", () => {
         },
       ],
       3,
-      expectedText
+      expectedText,
     );
   });
 
@@ -87,7 +87,7 @@ describe("ui - calculate batch display", () => {
         },
       ],
       3,
-      expectedText
+      expectedText,
     );
   });
 
@@ -107,7 +107,7 @@ describe("ui - calculate batch display", () => {
         },
       ],
       3,
-      expectedText
+      expectedText,
     );
   });
 
@@ -129,7 +129,7 @@ describe("ui - calculate batch display", () => {
         },
       ],
       3,
-      expectedText
+      expectedText,
     );
   });
 
@@ -180,7 +180,7 @@ describe("ui - calculate batch display", () => {
         },
       ],
       7,
-      expectedText
+      expectedText,
     );
   });
 
@@ -206,7 +206,7 @@ describe("ui - calculate batch display", () => {
       {
         ledger: true,
         ledgerMessage: "Waiting for confirmation on device",
-      }
+      },
     );
   });
 });
@@ -215,7 +215,7 @@ function assertBatchText(
   batch: UiFuture[],
   expectedHeight: number,
   expectedText: string,
-  extraState?: Partial<UiState>
+  extraState?: Partial<UiState>,
 ) {
   const { text: actualText, height } = calculateBatchDisplay({
     ...exampleState,

@@ -71,10 +71,10 @@ describe("execution - error on user transaction sent", () => {
         const fooAddress = await deployPromise;
         assert.equal(
           fooAddress,
-          "0x9154ff20c97a7ebf9d2ebbb3f8b7e24bf99caee050a24c50f1162492c0b6af79"
+          "0x9154ff20c97a7ebf9d2ebbb3f8b7e24bf99caee050a24c50f1162492c0b6af79",
         );
       }),
-      "IGN405: The next nonce for 0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc should be 1, but is 2. Please make sure not to send transactions from 0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc while running this deployment and try again."
+      "IGN405: The next nonce for 0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc should be 1, but is 2. Please make sure not to send transactions from 0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc while running this deployment and try again.",
     );
   });
 });

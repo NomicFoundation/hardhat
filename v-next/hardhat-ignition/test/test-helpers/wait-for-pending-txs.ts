@@ -7,7 +7,7 @@ const sleep = (timeout: number) =>
 export async function waitForPendingTxs(
   hre: any,
   expectedCount: number,
-  finished: Promise<any>
+  finished: Promise<any>,
 ): Promise<void> {
   let stopWaiting = false;
   finished.finally(() => {
@@ -20,7 +20,7 @@ export async function waitForPendingTxs(
     }
     const pendingBlock = await hre.network.provider.send(
       "eth_getBlockByNumber",
-      ["pending", false]
+      ["pending", false],
     );
 
     if (pendingBlock.transactions.length >= expectedCount) {

@@ -25,7 +25,7 @@ describe("libraries", () => {
     const contractThatDependsOnLib = result.dependsOnLib;
 
     const libBasedAddtion = await contractThatDependsOnLib.read.addThreeNumbers(
-      [1, 2, 3]
+      [1, 2, 3],
     );
 
     assert.equal(libBasedAddtion, 6);
@@ -34,9 +34,8 @@ describe("libraries", () => {
   it("should be able to deploy a contract that depends on an artifact library", async function () {
     await this.hre.run("compile", { quiet: true });
 
-    const libraryArtifact = await this.hre.artifacts.readArtifact(
-      "RubbishMath"
-    );
+    const libraryArtifact =
+      await this.hre.artifacts.readArtifact("RubbishMath");
 
     const moduleDefinition = buildModule("ArtifactLibraryModule", (m) => {
       const rubbishMath = m.library("RubbishMath", libraryArtifact);
@@ -55,7 +54,7 @@ describe("libraries", () => {
     const contractThatDependsOnLib = result.dependsOnLib;
 
     const libBasedAddtion = await contractThatDependsOnLib.read.addThreeNumbers(
-      [1, 2, 3]
+      [1, 2, 3],
     );
 
     assert.equal(libBasedAddtion, 6);
@@ -69,7 +68,7 @@ describe("libraries", () => {
     });
 
     const libDeployResult = await this.hre.ignition.deploy(
-      libraryModuleDefinition
+      libraryModuleDefinition,
     );
 
     const libAddress = libDeployResult.rubbishMath.address;
@@ -109,7 +108,7 @@ describe("libraries", () => {
           libraries: {
             LibDependsOnLib: libDependsOnLib,
           },
-        }
+        },
       );
 
       return { rubbishMath, libDependsOnLib, dependsOnLibThatDependsOnLib };

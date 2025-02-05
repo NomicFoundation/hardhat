@@ -31,7 +31,7 @@ describe("execution - rerun with new contract deploy", () => {
       async (c: TestChainHelper) => {
         // this block shound include deployment of foo1
         await c.mineBlock(1);
-      }
+      },
     );
 
     const firstRunBarAddress = originalBar.address.toLowerCase();
@@ -56,7 +56,7 @@ describe("execution - rerun with new contract deploy", () => {
       async (c: TestChainHelper) => {
         // this block shound include deployment of foo2
         await c.mineBlock(1);
-      }
+      },
     );
 
     const usedAddress = (

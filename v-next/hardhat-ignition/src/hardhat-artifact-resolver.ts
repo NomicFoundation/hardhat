@@ -12,7 +12,7 @@ export class HardhatArtifactResolver implements ArtifactResolver {
   constructor(private _hre: HardhatRuntimeEnvironment) {}
 
   public async getBuildInfo(
-    contractName: string
+    contractName: string,
   ): Promise<BuildInfo | undefined> {
     // If a fully qualified name is used, we can can
     // leverage the artifact manager directly to load the build
@@ -30,7 +30,7 @@ export class HardhatArtifactResolver implements ArtifactResolver {
     if (artifactPath === undefined) {
       throw new HardhatPluginError(
         "hardhat-ignition",
-        `Artifact path not found for ${contractName}`
+        `Artifact path not found for ${contractName}`,
       );
     }
 
@@ -39,7 +39,7 @@ export class HardhatArtifactResolver implements ArtifactResolver {
 
     const buildInfoPath = path.join(
       path.parse(debugPath).dir,
-      JSON.parse(debugJson.toString()).buildInfo
+      JSON.parse(debugJson.toString()).buildInfo,
     );
 
     const buildInfoJson = await fs.promises.readFile(buildInfoPath);
@@ -48,12 +48,12 @@ export class HardhatArtifactResolver implements ArtifactResolver {
   }
 
   private async _resolvePath(
-    contractName: string
+    contractName: string,
   ): Promise<string | undefined> {
     const artifactPaths = await this._hre.artifacts.getArtifactPaths();
 
     const artifactPath = artifactPaths.find(
-      (p) => path.parse(p).name === contractName
+      (p) => path.parse(p).name === contractName,
     );
 
     return artifactPath;

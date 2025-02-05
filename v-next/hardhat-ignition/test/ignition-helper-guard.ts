@@ -15,7 +15,7 @@ describe("ignition helper guard", () => {
   it("should error on attempting to use `hre.ignition` without viem/ethers plugins installed", function () {
     assert.throws(
       () => (this.hre as any).originalIgnition.deploy(),
-      /Please install either `@nomicfoundation\/hardhat-ignition-viem` or `@nomicfoundation\/hardhat-ignition-ethers` to use Ignition in your Hardhat tests/
+      /Please install either `@nomicfoundation\/hardhat-ignition-viem` or `@nomicfoundation\/hardhat-ignition-ethers` to use Ignition in your Hardhat tests/,
     );
   });
 });

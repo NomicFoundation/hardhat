@@ -162,7 +162,7 @@ describe("strategies - generic constraints", function () {
           {
             strategy,
             strategyConfig: exampleConfig[strategy],
-          }
+          },
         );
 
         await waitForPendingTxs(this.hre, 1, contractAtPromise);

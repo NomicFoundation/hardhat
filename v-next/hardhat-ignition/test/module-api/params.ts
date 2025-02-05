@@ -150,7 +150,7 @@ describe("params validation", () => {
 
     await assert.isRejected(
       deployPromise,
-      "Module parameter 'MyNumber' requires a value but was given none"
+      "Module parameter 'MyNumber' requires a value but was given none",
     );
   });
 
@@ -177,7 +177,7 @@ describe("params validation", () => {
 
     await assert.isRejected(
       deployPromise,
-      "Module parameter 'MyNumber' requires a value but was given none"
+      "Module parameter 'MyNumber' requires a value but was given none",
     );
   });
 });

@@ -29,7 +29,7 @@ describe("ui - pretty event handler", () => {
 
       assert.equal(
         eventHandler.state.ledgerMessage,
-        "Wallet connection failed"
+        "Wallet connection failed",
       );
     });
 
@@ -40,7 +40,7 @@ describe("ui - pretty event handler", () => {
 
       assert.equal(
         eventHandler.state.ledgerMessage,
-        "Waiting for confirmation on device"
+        "Waiting for confirmation on device",
       );
       assert.isTrue(eventHandler.state.ledger);
       assert.isTrue(eventHandler.state.ledgerMessageIsDisplayed);
@@ -53,7 +53,7 @@ describe("ui - pretty event handler", () => {
 
       assert.equal(
         eventHandler.state.ledgerMessage,
-        "Transaction approved by device"
+        "Transaction approved by device",
       );
       assert.isFalse(eventHandler.state.ledger);
     });
@@ -65,7 +65,7 @@ describe("ui - pretty event handler", () => {
 
       assert.equal(
         eventHandler.state.ledgerMessage,
-        "Transaction confirmation failed"
+        "Transaction confirmation failed",
       );
     });
   });

@@ -12,9 +12,9 @@ describe("strategies - only built in strategies", function () {
         {
           modulePath: "./ignition/modules/MyModule.js",
           strategy: "non-recognized-strategy",
-        }
+        },
       ),
-      /Invalid strategy name, must be either 'basic' or 'create2'/
+      /Invalid strategy name, must be either 'basic' or 'create2'/,
     );
   });
 });

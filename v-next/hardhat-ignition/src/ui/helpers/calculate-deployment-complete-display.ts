@@ -19,7 +19,7 @@ export function calculateDeploymentCompleteDisplay(
   uiState: Pick<
     UiState,
     "moduleName" | "isResumed" | "batches" | "deploymentDir"
-  >
+  >,
 ): string {
   const moduleName = uiState.moduleName ?? "unknown";
   const isResumed = uiState.isResumed ?? false;
@@ -60,11 +60,11 @@ function _displaySuccessfulDeployment(
     moduleName: string;
     isRerunWithNoChanges: boolean;
     deploymentDir: string | null | undefined;
-  }
+  },
 ): string {
   const fillerText = isRerunWithNoChanges
     ? `Nothing new to deploy based on previous execution stored in ${pathFromCwd(
-        deploymentDir ?? "Not provided"
+        deploymentDir ?? "Not provided",
       )}`
     : `successfully deployed 🚀`;
 
@@ -89,7 +89,7 @@ ${chalk.bold("Deployed Addresses")}
 
 function _displayValidationErrors(
   result: ValidationErrorDeploymentResult,
-  { moduleName }: { moduleName: string }
+  { moduleName }: { moduleName: string },
 ): string {
   let text = `[ ${moduleName} ] validation failed ⛔
 
@@ -114,7 +114,7 @@ The module contains futures that would fail to execute:
 
 function _displayReconciliationErrors(
   result: ReconciliationErrorDeploymentResult,
-  { moduleName }: { moduleName: string }
+  { moduleName }: { moduleName: string },
 ): string {
   let text = `[ ${moduleName} ] reconciliation failed ⛔
 
@@ -139,7 +139,7 @@ The module contains changes to executed futures:
 
 function _displayPreviousRunErrors(
   result: PreviousRunErrorDeploymentResult,
-  { moduleName }: { moduleName: string }
+  { moduleName }: { moduleName: string },
 ): string {
   let text = `[ ${moduleName} ] deployment cancelled ⛔\n\n`;
 
@@ -156,7 +156,7 @@ function _displayPreviousRunErrors(
 
 function _displayExecutionErrors(
   result: ExecutionErrorDeploymentResult,
-  { moduleName }: { moduleName: string }
+  { moduleName }: { moduleName: string },
 ) {
   const sections: string[] = [];
 

@@ -11,9 +11,8 @@ describe("existing contract", () => {
     await this.hre.run("compile", { quiet: true });
 
     const barArtifact = await this.hre.artifacts.readArtifact("Bar");
-    const usesContractArtifact = await this.hre.artifacts.readArtifact(
-      "UsesContract"
-    );
+    const usesContractArtifact =
+      await this.hre.artifacts.readArtifact("UsesContract");
 
     const firstModuleDefinition = buildModule("FirstModule", (m) => {
       const bar = m.contract("Bar");
@@ -34,7 +33,7 @@ describe("existing contract", () => {
       const usesContract = m.contractAt(
         "UsesContract",
         usesContractArtifact,
-        usesContractAddress
+        usesContractAddress,
       );
 
       m.call(usesContract, "setAddress", [bar]);

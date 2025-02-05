@@ -49,7 +49,7 @@ describe("execution - deploy run times out", () => {
         await setNextBlockBaseFeePerGas(1_000_000_000_000n);
         await c.mineBlock();
       }),
-      "The deployment wasn't successful, there were timeouts:\n\nTimed out:\n\n  * FooModule#Foo/1"
+      "The deployment wasn't successful, there were timeouts:\n\nTimed out:\n\n  * FooModule#Foo/1",
     );
   });
 });

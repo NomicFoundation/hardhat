@@ -35,7 +35,7 @@ describe("execution - rerun with dropped ignition transactions", () => {
 
         // kill the deployment before confirming foo
         c.exitDeploy();
-      }
+      },
     );
 
     // remove the submitted foo deploy from mempool
@@ -51,7 +51,7 @@ describe("execution - rerun with dropped ignition transactions", () => {
       async (c: TestChainHelper) => {
         // this block shound include deployment of foo via resend
         await c.mineBlock(1);
-      }
+      },
     );
 
     assert.equal(await result.foo.read.x(), 1n);

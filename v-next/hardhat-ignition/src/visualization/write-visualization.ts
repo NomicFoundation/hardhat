@@ -8,11 +8,11 @@ export async function writeVisualization(
     module: SerializedIgnitionModule;
     batches: string[][];
   },
-  { cacheDir }: { cacheDir: string }
+  { cacheDir }: { cacheDir: string },
 ): Promise<void> {
   const templateDir = path.join(
     require.resolve("@nomicfoundation/ignition-ui/package.json"),
-    "../dist"
+    "../dist",
   );
 
   const templateDirExists = await pathExists(templateDir);
@@ -22,7 +22,7 @@ export async function writeVisualization(
       HardhatError.ERRORS.IGNITION.VISUALIZATION_TEMPLATE_DIR_NOT_FOUND,
       {
         templateDir,
-      }
+      },
     );
   }
 

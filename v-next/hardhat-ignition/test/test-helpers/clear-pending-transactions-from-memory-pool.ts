@@ -2,16 +2,16 @@ import { assert } from "chai";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 export async function clearPendingTransactionsFromMemoryPool(
-  hre: HardhatRuntimeEnvironment
+  hre: HardhatRuntimeEnvironment,
 ): Promise<void> {
   const pendingBlockBefore = await hre.network.provider.send(
     "eth_getBlockByNumber",
-    ["pending", false]
+    ["pending", false],
   );
 
   assert(
     pendingBlockBefore.transactions.length > 0,
-    "Clearing an empty mempool"
+    "Clearing an empty mempool",
   );
 
   for (const hash of pendingBlockBefore.transactions) {
@@ -23,11 +23,11 @@ export async function clearPendingTransactionsFromMemoryPool(
 
   const pendingBlockAfter = await hre.network.provider.send(
     "eth_getBlockByNumber",
-    ["pending", false]
+    ["pending", false],
   );
 
   assert(
     pendingBlockAfter.transactions.length === 0,
-    "All blocks should be cleared"
+    "All blocks should be cleared",
   );
 }

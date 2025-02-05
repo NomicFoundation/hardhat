@@ -76,7 +76,7 @@ export class PrettyEventHandler implements ExecutionEventListener {
 
   constructor(
     private _deploymentParams: DeploymentParameters = {},
-    private _disableOutput = false
+    private _disableOutput = false,
   ) {}
 
   public get state(): UiState {
@@ -156,55 +156,55 @@ export class PrettyEventHandler implements ExecutionEventListener {
   }
 
   public deploymentExecutionStateInitialize(
-    event: DeploymentExecutionStateInitializeEvent
+    event: DeploymentExecutionStateInitializeEvent,
   ): void {
     this._setFutureStatusInitializedAndRedisplayBatch(event);
   }
 
   public deploymentExecutionStateComplete(
-    event: DeploymentExecutionStateCompleteEvent
+    event: DeploymentExecutionStateCompleteEvent,
   ): void {
     this._setFutureStatusCompleteAndRedisplayBatch(event);
   }
 
   public callExecutionStateInitialize(
-    event: CallExecutionStateInitializeEvent
+    event: CallExecutionStateInitializeEvent,
   ): void {
     this._setFutureStatusInitializedAndRedisplayBatch(event);
   }
 
   public callExecutionStateComplete(
-    event: CallExecutionStateCompleteEvent
+    event: CallExecutionStateCompleteEvent,
   ): void {
     this._setFutureStatusCompleteAndRedisplayBatch(event);
   }
 
   public staticCallExecutionStateInitialize(
-    event: StaticCallExecutionStateInitializeEvent
+    event: StaticCallExecutionStateInitializeEvent,
   ): void {
     this._setFutureStatusInitializedAndRedisplayBatch(event);
   }
 
   public staticCallExecutionStateComplete(
-    event: StaticCallExecutionStateCompleteEvent
+    event: StaticCallExecutionStateCompleteEvent,
   ): void {
     this._setFutureStatusCompleteAndRedisplayBatch(event);
   }
 
   public sendDataExecutionStateInitialize(
-    event: SendDataExecutionStateInitializeEvent
+    event: SendDataExecutionStateInitializeEvent,
   ): void {
     this._setFutureStatusInitializedAndRedisplayBatch(event);
   }
 
   public sendDataExecutionStateComplete(
-    event: SendDataExecutionStateCompleteEvent
+    event: SendDataExecutionStateCompleteEvent,
   ): void {
     this._setFutureStatusCompleteAndRedisplayBatch(event);
   }
 
   public contractAtExecutionStateInitialize(
-    event: ContractAtExecutionStateInitializeEvent
+    event: ContractAtExecutionStateInitializeEvent,
   ): void {
     this._setFutureStatusAndRedisplayBatch(event.futureId, {
       type: UiFutureStatusType.SUCCESS,
@@ -212,7 +212,7 @@ export class PrettyEventHandler implements ExecutionEventListener {
   }
 
   public readEventArgumentExecutionStateInitialize(
-    event: ReadEventArgExecutionStateInitializeEvent
+    event: ReadEventArgExecutionStateInitializeEvent,
   ): void {
     this._setFutureStatusAndRedisplayBatch(event.futureId, {
       type: UiFutureStatusType.SUCCESS,
@@ -220,7 +220,7 @@ export class PrettyEventHandler implements ExecutionEventListener {
   }
 
   public encodeFunctionCallExecutionStateInitialize(
-    event: EncodeFunctionCallExecutionStateInitializeEvent
+    event: EncodeFunctionCallExecutionStateInitializeEvent,
   ): void {
     this._setFutureStatusAndRedisplayBatch(event.futureId, {
       type: UiFutureStatusType.SUCCESS,
@@ -252,7 +252,7 @@ export class PrettyEventHandler implements ExecutionEventListener {
   }
 
   public networkInteractionRequest(
-    _event: NetworkInteractionRequestEvent
+    _event: NetworkInteractionRequestEvent,
   ): void {}
 
   public transactionSend(_event: TransactionSendEvent): void {}
@@ -262,7 +262,7 @@ export class PrettyEventHandler implements ExecutionEventListener {
   public staticCallComplete(_event: StaticCallCompleteEvent): void {}
 
   public onchainInteractionBumpFees(
-    event: OnchainInteractionBumpFeesEvent
+    event: OnchainInteractionBumpFeesEvent,
   ): void {
     if (this._uiState.gasBumps[event.futureId] === undefined) {
       this._uiState.gasBumps[event.futureId] = 0;
@@ -274,15 +274,15 @@ export class PrettyEventHandler implements ExecutionEventListener {
   }
 
   public onchainInteractionDropped(
-    _event: OnchainInteractionDroppedEvent
+    _event: OnchainInteractionDroppedEvent,
   ): void {}
 
   public onchainInteractionReplacedByUser(
-    _event: OnchainInteractionReplacedByUserEvent
+    _event: OnchainInteractionReplacedByUserEvent,
   ): void {}
 
   public onchainInteractionTimeout(
-    _event: OnchainInteractionTimeoutEvent
+    _event: OnchainInteractionTimeoutEvent,
   ): void {}
 
   public deploymentComplete(event: DeploymentCompleteEvent): void {
@@ -416,7 +416,7 @@ export class PrettyEventHandler implements ExecutionEventListener {
   }) {
     this._setFutureStatusAndRedisplayBatch(
       futureId,
-      this._getFutureStatusFromEventResult(result)
+      this._getFutureStatusFromEventResult(result),
     );
 
     this.state = {
@@ -427,7 +427,7 @@ export class PrettyEventHandler implements ExecutionEventListener {
 
   private _setFutureStatusAndRedisplayBatch(
     futureId: string,
-    status: UiFutureStatus
+    status: UiFutureStatus,
   ) {
     const updatedFuture: UiFuture = {
       futureId,
@@ -463,7 +463,7 @@ export class PrettyEventHandler implements ExecutionEventListener {
   }
 
   private _getFutureStatusFromEventResult(
-    result: ExecutionEventResult
+    result: ExecutionEventResult,
   ): UiFutureSuccess | UiFutureErrored | UiFutureHeld {
     switch (result.type) {
       case ExecutionEventResultType.SUCCESS: {
@@ -490,7 +490,7 @@ export class PrettyEventHandler implements ExecutionEventListener {
 
   private _applyResultToBatches(
     batches: UiBatches,
-    result: DeploymentResult
+    result: DeploymentResult,
   ): UiBatches {
     const newBatches: UiBatches = [];
 
@@ -510,7 +510,7 @@ export class PrettyEventHandler implements ExecutionEventListener {
 
   private _hasUpdatedResult(
     futureId: string,
-    result: DeploymentResult
+    result: DeploymentResult,
   ): UiFuture | null {
     if (result.type !== DeploymentResultType.EXECUTION_ERROR) {
       return null;

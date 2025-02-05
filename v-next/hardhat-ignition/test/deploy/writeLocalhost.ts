@@ -8,7 +8,7 @@ const fixtureProjectName = "minimal";
 const deploymentDir = path.join(
   path.resolve(__dirname, `../fixture-projects/${fixtureProjectName}/ignition`),
   "deployments",
-  "chain-31337"
+  "chain-31337",
 );
 
 describe("localhost deployment flag", function () {
@@ -29,12 +29,12 @@ describe("localhost deployment flag", function () {
       {
         modulePath: "./ignition/modules/OwnModule.js",
         writeLocalhostDeployment: true,
-      }
+      },
     );
 
     assert(
       await pathExists(deploymentDir),
-      "Deployment was not written to disk"
+      "Deployment was not written to disk",
     );
   });
 
@@ -44,12 +44,12 @@ describe("localhost deployment flag", function () {
       {
         modulePath: "./ignition/modules/OwnModule.js",
         writeLocalhostDeployment: false,
-      }
+      },
     );
 
     assert(
       !(await pathExists(deploymentDir)),
-      "Deployment was not written to disk"
+      "Deployment was not written to disk",
     );
   });
 });

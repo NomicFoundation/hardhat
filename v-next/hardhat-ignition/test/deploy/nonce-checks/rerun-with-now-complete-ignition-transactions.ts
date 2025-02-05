@@ -16,7 +16,7 @@ import {
 describe("execution - rerun with now complete ignition transactions", () => {
   useFileIgnitionProject(
     "minimal",
-    "rerun-with-now-complete-ignition-transactions"
+    "rerun-with-now-complete-ignition-transactions",
   );
 
   it("should complete the run on the second attempt", async function () {
@@ -71,7 +71,7 @@ describe("execution - rerun with now complete ignition transactions", () => {
         // Kill the deployment, after foo3 and foo4 are submitted to mempool
         await c.waitForPendingTxs(2);
         c.exitDeploy();
-      }
+      },
     );
 
     // Further blocks are processed confirming foo3 and foo4
@@ -83,7 +83,7 @@ describe("execution - rerun with now complete ignition transactions", () => {
       moduleDefinition,
       async (c: TestChainHelper) => {
         await c.mineBlock(2);
-      }
+      },
     );
 
     assert.isDefined(result);

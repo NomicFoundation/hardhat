@@ -16,8 +16,8 @@ export function calculateStartingMessage({
     chalk.bold(
       `You are running Hardhat Ignition against an in-process instance of Hardhat Network.
 This will execute the deployment, but the results will be lost.
-You can use --network <network-name> to deploy to a different network.`
-    )
+You can use --network <network-name> to deploy to a different network.`,
+    ),
   );
 
   const startingMessage = `Hardhat Ignition starting for [ ${

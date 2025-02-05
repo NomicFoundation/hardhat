@@ -3,7 +3,7 @@ import chalk from "chalk";
 
 export function calculateDeploymentStatusDisplay(
   deploymentId: string,
-  statusResult: StatusResult
+  statusResult: StatusResult,
 ): string {
   if (statusResult.started.length > 0) {
     return _calculateStartedButUnfinished(deploymentId, statusResult);
@@ -38,7 +38,7 @@ function _calculateSuccess(deploymentId: string, statusResult: StatusResult) {
 
 function _calculateStartedButUnfinished(
   deploymentId: string,
-  statusResult: StatusResult
+  statusResult: StatusResult,
 ) {
   let startedText = `Deployment ${deploymentId} (chainId: ${statusResult.chainId}) has futures that have started but not completed\n\n`;
 

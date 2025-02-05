@@ -93,7 +93,7 @@ describe("static calls", () => {
         0,
         {
           after: [createCall],
-        }
+        },
       );
 
       const foo = m.contractAt("Foo", newAddress);
@@ -149,7 +149,7 @@ describe("static calls", () => {
 
     await assert.isRejected(
       this.hre.ignition.deploy(moduleDefinition),
-      /Future 'FooModule#FooFactory.nonAddressResult' must be a valid address/
+      /Future 'FooModule#FooFactory.nonAddressResult' must be a valid address/,
     );
   });
 
@@ -174,7 +174,7 @@ describe("static calls", () => {
 
     await assert.isRejected(
       this.hre.ignition.deploy(moduleDefinition),
-      /Future 'FooModule#FooFactory.nonAddressResult' must be a valid address/
+      /Future 'FooModule#FooFactory.nonAddressResult' must be a valid address/,
     );
   });
 });

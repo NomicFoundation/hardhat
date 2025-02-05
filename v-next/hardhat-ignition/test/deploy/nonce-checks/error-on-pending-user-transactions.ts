@@ -19,7 +19,7 @@ import { waitForPendingTxs } from "../../test-helpers/wait-for-pending-txs.js";
 describe("execution - error on pending user transactions", () => {
   useFileIgnitionProject(
     "minimal",
-    "error-on-rerun-with-replaced-pending-user-transaction"
+    "error-on-rerun-with-replaced-pending-user-transaction",
   );
 
   it("should error if a transaction is in flight for an account used in the deploy", async function () {
@@ -59,9 +59,9 @@ describe("execution - error on pending user transactions", () => {
     await assert.isRejected(
       this.runControlledDeploy(
         moduleDefinition,
-        async (_c: TestChainHelper) => {}
+        async (_c: TestChainHelper) => {},
       ),
-      "IGN403: You have sent transactions from 0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc and they interfere with Hardhat Ignition. Please wait until they get 1 confirmations before running Hardhat Ignition again."
+      "IGN403: You have sent transactions from 0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc and they interfere with Hardhat Ignition. Please wait until they get 1 confirmations before running Hardhat Ignition again.",
     );
 
     // Now mine the user interference transaction
@@ -71,7 +71,7 @@ describe("execution - error on pending user transactions", () => {
     const outsideFoo = await deployPromise;
     assert.equal(
       outsideFoo,
-      "0x3d0ac80b8daf180b4d03e0ff107caa7089b5494cdbd81ba9d7619cc4d710caae"
+      "0x3d0ac80b8daf180b4d03e0ff107caa7089b5494cdbd81ba9d7619cc4d710caae",
     );
   });
 });

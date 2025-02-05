@@ -66,7 +66,7 @@ describe("execution - rerun with pending ignition transactions", () => {
         // Kill the deployment, with foo3 and foo4 submitted to mempool
         await c.waitForPendingTxs(2);
         c.exitDeploy();
-      }
+      },
     );
 
     // NOTE: no blocks mined between previous run and this run
@@ -80,7 +80,7 @@ describe("execution - rerun with pending ignition transactions", () => {
 
         // this block shound include foo5 and foo6
         await c.mineBlock(2);
-      }
+      },
     );
 
     assert.isDefined(result);

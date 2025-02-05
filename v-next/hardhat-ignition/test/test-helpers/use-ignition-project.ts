@@ -17,7 +17,7 @@ declare module "mocha" {
     deploymentDir: string | undefined;
     runControlledDeploy: (
       ignitionModule: IgnitionModule,
-      chainUpdates: (c: TestChainHelper) => Promise<void>
+      chainUpdates: (c: TestChainHelper) => Promise<void>,
     ) => ReturnType<typeof runDeploy>;
     config: Partial<DeployConfig>;
   }
@@ -34,7 +34,7 @@ const defaultTestConfig: DeployConfig = {
 export function useEphemeralIgnitionProject(fixtureProjectName: string): void {
   beforeEach("Load environment", async function () {
     process.chdir(
-      path.join(__dirname, "../fixture-projects", fixtureProjectName)
+      path.join(__dirname, "../fixture-projects", fixtureProjectName),
     );
 
     const hre = require("hardhat");
@@ -50,7 +50,7 @@ export function useEphemeralIgnitionProject(fixtureProjectName: string): void {
 
   afterEach("reset hardhat context", function () {
     throw new Error(
-      "Not implemented: need to find a replacement for `resetHardhatContext()`"
+      "Not implemented: need to find a replacement for `resetHardhatContext()`",
     );
   });
 }
@@ -58,11 +58,11 @@ export function useEphemeralIgnitionProject(fixtureProjectName: string): void {
 export function useFileIgnitionProject(
   fixtureProjectName: string,
   deploymentId: string,
-  config?: Partial<DeployConfig>
+  config?: Partial<DeployConfig>,
 ): void {
   beforeEach("Load environment", async function () {
     process.chdir(
-      path.join(__dirname, "../fixture-projects", fixtureProjectName)
+      path.join(__dirname, "../fixture-projects", fixtureProjectName),
     );
 
     const hre = require("hardhat");
@@ -70,10 +70,10 @@ export function useFileIgnitionProject(
     const deploymentDir = path.join(
       path.resolve(
         __dirname,
-        `../fixture-projects/${fixtureProjectName}/ignition`
+        `../fixture-projects/${fixtureProjectName}/ignition`,
       ),
       "deployments",
-      deploymentId
+      deploymentId,
     );
 
     this.hre = hre;
@@ -93,20 +93,20 @@ export function useFileIgnitionProject(
 
     this.runControlledDeploy = (
       ignitionModule: IgnitionModule,
-      chainUpdates: (c: TestChainHelper) => Promise<void> = async () => {}
+      chainUpdates: (c: TestChainHelper) => Promise<void> = async () => {},
     ) => {
       return runDeploy(
         deploymentDir,
         ignitionModule,
         { hre, config: testConfig },
-        chainUpdates
+        chainUpdates,
       );
     };
   });
 
   afterEach("reset hardhat context", function () {
     throw new Error(
-      "Not implemented: need to find a replacement for resetHardhatContext()"
+      "Not implemented: need to find a replacement for resetHardhatContext()",
     );
 
     // if (this.deploymentDir === undefined) {
@@ -126,7 +126,7 @@ async function runDeploy(
     hre,
     config = {},
   }: { hre: HardhatRuntimeEnvironment; config?: Partial<DeployConfig> },
-  chainUpdates: (c: TestChainHelper) => Promise<void> = async () => {}
+  chainUpdates: (c: TestChainHelper) => Promise<void> = async () => {},
 ): Promise<ReturnType<TestIgnitionHelper["deploy"]>> {
   const { ignitionHelper: ignitionHelper, kill: killFn } =
     setupIgnitionHelperRiggedToThrow(hre, deploymentDir, config);
@@ -156,7 +156,7 @@ async function runDeploy(
 function setupIgnitionHelperRiggedToThrow(
   hre: HardhatRuntimeEnvironment,
   deploymentDir: string,
-  config: Partial<DeployConfig> = {}
+  config: Partial<DeployConfig> = {},
 ): {
   ignitionHelper: TestIgnitionHelper;
   kill: () => void;
@@ -182,7 +182,7 @@ function setupIgnitionHelperRiggedToThrow(
     hre,
     config,
     proxiedProvider,
-    deploymentDir
+    deploymentDir,
   );
 
   return { ignitionHelper, kill };
@@ -192,7 +192,7 @@ export class TestChainHelper {
   constructor(
     private _hre: HardhatRuntimeEnvironment,
     private _deployPromise: Promise<any>,
-    private _exitFn: () => void
+    private _exitFn: () => void,
   ) {}
 
   public async waitForPendingTxs(expectedCount: number): Promise<void> {

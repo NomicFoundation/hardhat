@@ -57,7 +57,7 @@ describe("calls", () => {
   it("should be able to call contracts with arrays nested in objects args", async function () {
     const moduleDefinition = buildModule("ArrayNestedModule", (m) => {
       const captureComplexObjectContract = m.contract(
-        "CaptureComplexObjectContract"
+        "CaptureComplexObjectContract",
       );
 
       m.call(captureComplexObjectContract, "testComplexObject", [
@@ -105,7 +105,7 @@ describe("calls", () => {
 
     assert.deepStrictEqual(
       [entry1, entry2, entry3],
-      ["first", "second", "third"]
+      ["first", "second", "third"],
     );
   });
 
@@ -127,7 +127,7 @@ describe("calls", () => {
 
       const actualInstanceBalance = await getBalanceFor(
         this.hre,
-        result.passingValue.address
+        result.passingValue.address,
       );
 
       assert.equal(actualInstanceBalance, 1_000_000_000n);
@@ -164,7 +164,7 @@ describe("calls", () => {
 
       const actualInstanceBalance = await getBalanceFor(
         this.hre,
-        result.passingValue.address
+        result.passingValue.address,
       );
 
       assert.equal(actualInstanceBalance, 1_000_000_000n);

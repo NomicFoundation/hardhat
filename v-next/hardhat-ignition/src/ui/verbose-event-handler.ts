@@ -43,158 +43,158 @@ export class VerboseEventHandler implements ExecutionEventListener {
   }
 
   public deploymentExecutionStateInitialize(
-    event: DeploymentExecutionStateInitializeEvent
+    event: DeploymentExecutionStateInitializeEvent,
   ): void {
     console.log(`Starting to execute the deployment future ${event.futureId}`);
   }
 
   public deploymentExecutionStateComplete(
-    event: DeploymentExecutionStateCompleteEvent
+    event: DeploymentExecutionStateCompleteEvent,
   ): void {
     switch (event.result.type) {
       case ExecutionEventResultType.SUCCESS: {
         return console.log(
           `Successfully completed the execution of deployment future ${
             event.futureId
-          } with address ${event.result.result ?? "undefined"}`
+          } with address ${event.result.result ?? "undefined"}`,
         );
       }
       case ExecutionEventResultType.ERROR: {
         return console.log(
-          `Execution of future ${event.futureId} failed with reason: ${event.result.error}`
+          `Execution of future ${event.futureId} failed with reason: ${event.result.error}`,
         );
       }
       case ExecutionEventResultType.HELD: {
         return console.log(
-          `Execution of future ${event.futureId}/${event.result.heldId} held with reason: ${event.result.reason}`
+          `Execution of future ${event.futureId}/${event.result.heldId} held with reason: ${event.result.reason}`,
         );
       }
     }
   }
 
   public callExecutionStateInitialize(
-    event: CallExecutionStateInitializeEvent
+    event: CallExecutionStateInitializeEvent,
   ): void {
     console.log(`Starting to execute the call future ${event.futureId}`);
   }
 
   public callExecutionStateComplete(
-    event: CallExecutionStateCompleteEvent
+    event: CallExecutionStateCompleteEvent,
   ): void {
     switch (event.result.type) {
       case ExecutionEventResultType.SUCCESS: {
         return console.log(
-          `Successfully completed the execution of call future ${event.futureId}`
+          `Successfully completed the execution of call future ${event.futureId}`,
         );
       }
       case ExecutionEventResultType.ERROR: {
         return console.log(
-          `Execution of call future ${event.futureId} failed with reason: ${event.result.error}`
+          `Execution of call future ${event.futureId} failed with reason: ${event.result.error}`,
         );
       }
       case ExecutionEventResultType.HELD: {
         return console.log(
-          `Execution of call future ${event.futureId}/${event.result.heldId} held with reason: ${event.result.reason}`
+          `Execution of call future ${event.futureId}/${event.result.heldId} held with reason: ${event.result.reason}`,
         );
       }
     }
   }
 
   public staticCallExecutionStateInitialize(
-    event: StaticCallExecutionStateInitializeEvent
+    event: StaticCallExecutionStateInitializeEvent,
   ): void {
     console.log(`Starting to execute the static call future ${event.futureId}`);
   }
 
   public staticCallExecutionStateComplete(
-    event: StaticCallExecutionStateCompleteEvent
+    event: StaticCallExecutionStateCompleteEvent,
   ): void {
     switch (event.result.type) {
       case ExecutionEventResultType.SUCCESS: {
         return console.log(
           `Successfully completed the execution of static call future ${
             event.futureId
-          } with result ${event.result.result ?? "undefined"}`
+          } with result ${event.result.result ?? "undefined"}`,
         );
       }
       case ExecutionEventResultType.ERROR: {
         return console.log(
-          `Execution of static call future ${event.futureId} failed with reason: ${event.result.error}`
+          `Execution of static call future ${event.futureId} failed with reason: ${event.result.error}`,
         );
       }
       case ExecutionEventResultType.HELD: {
         return console.log(
-          `Execution of static call future ${event.futureId}/${event.result.heldId} held with reason: ${event.result.reason}`
+          `Execution of static call future ${event.futureId}/${event.result.heldId} held with reason: ${event.result.reason}`,
         );
       }
     }
   }
 
   public sendDataExecutionStateInitialize(
-    event: SendDataExecutionStateInitializeEvent
+    event: SendDataExecutionStateInitializeEvent,
   ): void {
     console.log(`Started to execute the send data future ${event.futureId}`);
   }
 
   public sendDataExecutionStateComplete(
-    event: SendDataExecutionStateCompleteEvent
+    event: SendDataExecutionStateCompleteEvent,
   ): void {
     switch (event.result.type) {
       case ExecutionEventResultType.SUCCESS: {
         return console.log(
           `Successfully completed the execution of send data future ${
             event.futureId
-          } in tx ${event.result.result ?? "undefined"}`
+          } in tx ${event.result.result ?? "undefined"}`,
         );
       }
       case ExecutionEventResultType.ERROR: {
         return console.log(
-          `Execution of future ${event.futureId} failed with reason: ${event.result.error}`
+          `Execution of future ${event.futureId} failed with reason: ${event.result.error}`,
         );
       }
       case ExecutionEventResultType.HELD: {
         return console.log(
-          `Execution of send future ${event.futureId}/${event.result.heldId} held with reason: ${event.result.reason}`
+          `Execution of send future ${event.futureId}/${event.result.heldId} held with reason: ${event.result.reason}`,
         );
       }
     }
   }
 
   public contractAtExecutionStateInitialize(
-    event: ContractAtExecutionStateInitializeEvent
+    event: ContractAtExecutionStateInitializeEvent,
   ): void {
     console.log(`Executed contract at future ${event.futureId}`);
   }
 
   public readEventArgumentExecutionStateInitialize(
-    event: ReadEventArgExecutionStateInitializeEvent
+    event: ReadEventArgExecutionStateInitializeEvent,
   ): void {
     console.log(
       `Executed read event argument future ${event.futureId} with result ${
         event.result.result ?? "undefined"
-      }`
+      }`,
     );
   }
 
   public encodeFunctionCallExecutionStateInitialize(
-    event: EncodeFunctionCallExecutionStateInitializeEvent
+    event: EncodeFunctionCallExecutionStateInitializeEvent,
   ): void {
     console.log(
       `Executed encode function call future ${event.futureId} with result ${
         event.result.result ?? "undefined"
-      }`
+      }`,
     );
   }
 
   public networkInteractionRequest(
-    event: NetworkInteractionRequestEvent
+    event: NetworkInteractionRequestEvent,
   ): void {
     if (
       event.networkInteractionType ===
       ExecutionEventNetworkInteractionType.ONCHAIN_INTERACTION
     ) {
       console.log(
-        `New onchain interaction requested for future ${event.futureId}`
+        `New onchain interaction requested for future ${event.futureId}`,
       );
     } else {
       console.log(`New static call requested for future ${event.futureId}`);
@@ -203,7 +203,7 @@ export class VerboseEventHandler implements ExecutionEventListener {
 
   public transactionSend(event: TransactionSendEvent): void {
     console.log(
-      `Transaction ${event.hash} sent for onchain interaction of future ${event.futureId}`
+      `Transaction ${event.hash} sent for onchain interaction of future ${event.futureId}`,
     );
   }
 
@@ -216,40 +216,40 @@ export class VerboseEventHandler implements ExecutionEventListener {
   }
 
   public onchainInteractionBumpFees(
-    event: OnchainInteractionBumpFeesEvent
+    event: OnchainInteractionBumpFeesEvent,
   ): void {
     console.log(
-      `A transaction with higher fees will be sent for onchain interaction of future ${event.futureId}`
+      `A transaction with higher fees will be sent for onchain interaction of future ${event.futureId}`,
     );
   }
 
   public onchainInteractionDropped(
-    event: OnchainInteractionDroppedEvent
+    event: OnchainInteractionDroppedEvent,
   ): void {
     console.log(
-      `Transactions for onchain interaction of future ${event.futureId} has been dropped and will be resent`
+      `Transactions for onchain interaction of future ${event.futureId} has been dropped and will be resent`,
     );
   }
 
   public onchainInteractionReplacedByUser(
-    event: OnchainInteractionReplacedByUserEvent
+    event: OnchainInteractionReplacedByUserEvent,
   ): void {
     console.log(
-      `Transactions for onchain interaction of future ${event.futureId} has been replaced by the user and the onchain interaction exection will start again`
+      `Transactions for onchain interaction of future ${event.futureId} has been replaced by the user and the onchain interaction exection will start again`,
     );
   }
 
   public onchainInteractionTimeout(
-    event: OnchainInteractionTimeoutEvent
+    event: OnchainInteractionTimeoutEvent,
   ): void {
     console.log(
-      `Onchain interaction of future ${event.futureId} failed due to being resent too many times and not having confirmed`
+      `Onchain interaction of future ${event.futureId} failed due to being resent too many times and not having confirmed`,
     );
   }
 
   public batchInitialize(event: BatchInitializeEvent): void {
     console.log(
-      `Starting execution for batches: ${JSON.stringify(event.batches)}`
+      `Starting execution for batches: ${JSON.stringify(event.batches)}`,
     );
   }
 
@@ -268,8 +268,8 @@ export class VerboseEventHandler implements ExecutionEventListener {
   public reconciliationWarnings(event: ReconciliationWarningsEvent): void {
     console.log(
       `Deployment produced reconciliation warnings:\n${event.warnings.join(
-        "  -"
-      )}`
+        "  -",
+      )}`,
     );
   }
 

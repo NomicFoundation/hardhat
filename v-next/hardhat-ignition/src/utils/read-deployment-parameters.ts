@@ -6,7 +6,7 @@ import { parse as json5Parse } from "json5";
 import { bigintReviver } from "./bigintReviver.js";
 
 export async function readDeploymentParameters(
-  filepath: string
+  filepath: string,
 ): Promise<DeploymentParameters> {
   try {
     const rawFile = await readFile(filepath);
@@ -23,7 +23,7 @@ export async function readDeploymentParameters(
         {
           filepath,
         },
-        e
+        e,
       );
     }
 

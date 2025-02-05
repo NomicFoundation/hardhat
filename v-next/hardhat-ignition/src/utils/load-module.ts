@@ -15,16 +15,16 @@ const MODULES_FOLDER = "modules";
 
 export function loadModule(
   ignitionDirectory: string,
-  modulePath: string
+  modulePath: string,
 ): IgnitionModule | undefined {
   const fullModulesDirectoryName = path.resolve(
     ignitionDirectory,
-    MODULES_FOLDER
+    MODULES_FOLDER,
   );
 
   const shortModulesDirectoryName = path.join(
     ignitionDirectory,
-    MODULES_FOLDER
+    MODULES_FOLDER,
   );
 
   debug(`Loading user modules from '${fullModulesDirectoryName}'`);
@@ -36,7 +36,7 @@ export function loadModule(
       HardhatError.ERRORS.IGNITION.MODULE_NOT_FOUND_AT_PATH,
       {
         modulePath,
-      }
+      },
     );
   }
 
@@ -46,7 +46,7 @@ export function loadModule(
       {
         modulePath,
         shortModulesDirectoryName,
-      }
+      },
     );
   }
 
@@ -68,7 +68,7 @@ export function loadModule(
 
         throw new HardhatError(
           HardhatError.ERRORS.IGNITION.MODULE_VALIDATION_FAILED,
-          e
+          e,
         );
       }
 
@@ -87,7 +87,7 @@ function isInModuleDirectory(modulesDirectory: string, modulePath: string) {
   const resolvedModulesDirectory = path.resolve(modulesDirectory);
   const moduleRelativeToModuleDir = path.relative(
     resolvedModulesDirectory,
-    modulePath
+    modulePath,
   );
 
   return (

@@ -52,7 +52,7 @@ describe("execution - rerun a deploy that timed out", () => {
         await c.waitForPendingTxs(1);
         await setNextBlockBaseFeePerGas(1_000_000_000_000n);
         await c.mineBlock();
-      })
+      }),
     );
 
     await assert.isRejected(
@@ -62,7 +62,7 @@ describe("execution - rerun a deploy that timed out", () => {
       }),
       `The deployment wasn\'t run because of the following errors in a previous run:
 
-  * FooModule#Foo: The previous run of the future FooModule#Foo timed out, and will need wiped before running again`
+  * FooModule#Foo: The previous run of the future FooModule#Foo timed out, and will need wiped before running again`,
     );
   });
 
@@ -101,7 +101,7 @@ describe("execution - rerun a deploy that timed out", () => {
         await c.waitForPendingTxs(1);
         await setNextBlockBaseFeePerGas(1_000_000_000_000n);
         await c.mineBlock();
-      })
+      }),
     );
 
     await setNextBlockBaseFeePerGas(1_000_000n);
@@ -110,7 +110,7 @@ describe("execution - rerun a deploy that timed out", () => {
     await wipe(
       this.deploymentDir!,
       new HardhatArtifactResolver(this.hre),
-      "FooModule#Foo"
+      "FooModule#Foo",
     );
 
     const result = await this.runControlledDeploy(
@@ -118,7 +118,7 @@ describe("execution - rerun a deploy that timed out", () => {
       async (c: TestChainHelper) => {
         // Mine the block, confirming foo
         await c.mineBlock(1);
-      }
+      },
     );
 
     assert.isDefined(result);

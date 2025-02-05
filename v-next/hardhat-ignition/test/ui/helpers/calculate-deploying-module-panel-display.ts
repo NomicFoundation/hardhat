@@ -61,7 +61,7 @@ describe("ui - calculate starting message display", () => {
     ${chalk.bold(`Deploying [ ExampleModule ]`)}
 
     ${chalk.yellow(
-      "Warning - previously executed futures are not in the module:"
+      "Warning - previously executed futures are not in the module:",
     )}
     ${chalk.yellow(" - MyModule#Contract1")}
     ${chalk.yellow(" - MyModule#Contract1.call1")}
@@ -102,7 +102,7 @@ describe("ui - calculate starting message display", () => {
     Hardhat Ignition 🚀
 
     ${chalk.bold(
-      `Resuming existing deployment from .${path.sep}ignition${path.sep}deployments${path.sep}foo`
+      `Resuming existing deployment from .${path.sep}ignition${path.sep}deployments${path.sep}foo`,
     )}
 
     ${chalk.bold(`Deploying [ ExampleModule ]`)}

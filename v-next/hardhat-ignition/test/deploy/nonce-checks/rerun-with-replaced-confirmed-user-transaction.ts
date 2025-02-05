@@ -24,7 +24,7 @@ describe("execution - rerun with replaced confirmed user transaction", () => {
     "rerun-with-replaced-confirmed-user-transaction",
     {
       requiredConfirmations: 2,
-    }
+    },
   );
 
   it.skip("should deploy user interfered transaction on second run", async function () {
@@ -51,7 +51,7 @@ describe("execution - rerun with replaced confirmed user transaction", () => {
         // then kill the deploy process
         await c.waitForPendingTxs(3);
         c.exitDeploy();
-      }
+      },
     );
 
     const FooArtifact = this.hre.artifacts.readArtifactSync("Foo");
@@ -88,7 +88,7 @@ describe("execution - rerun with replaced confirmed user transaction", () => {
       async (c: TestChainHelper) => {
         // this block should confirm foo3
         await c.mineBlock(1);
-      }
+      },
     );
 
     assert.isDefined(result);

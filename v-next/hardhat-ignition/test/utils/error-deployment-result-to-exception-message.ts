@@ -29,7 +29,7 @@ describe("display error deployment result", () => {
 
   * MyModule:MyContract: The number of params does not match the constructor
   * MyModule:MyContract: The name of the contract is invalid
-  * MyModule:AnotherContract: No library provided`
+  * MyModule:AnotherContract: No library provided`,
       );
     });
   });
@@ -53,7 +53,7 @@ describe("display error deployment result", () => {
 
   * MyModule:MyContract: The params don\'t match
   * MyModule:MyContract: The value doesn\'t match
-  * MyModule:AnotherContract: The future is timed out`
+  * MyModule:AnotherContract: The future is timed out`,
       );
     });
   });
@@ -73,7 +73,7 @@ describe("display error deployment result", () => {
         `The deployment wasn't run because of the following errors in a previous run:
 
   * MyModule:MyContract: The previous run failed
-  * MyModule:AnotherContract: The previous run timed out`
+  * MyModule:AnotherContract: The previous run timed out`,
       );
     });
   });
@@ -99,7 +99,7 @@ describe("display error deployment result", () => {
 Timed out:
 
   * MyModule:MyContract/1
-  * MyModule:AnotherContract/3`
+  * MyModule:AnotherContract/3`,
       );
     });
 
@@ -131,7 +131,7 @@ Timed out:
 Held:
 
   * MyModule:MyContract/1: Vote is not complete
-  * MyModule:AnotherContract/3: Server timed out`
+  * MyModule:AnotherContract/3: Server timed out`,
       );
     });
 
@@ -163,7 +163,7 @@ Held:
 Failures:
 
   * MyModule:MyContract/1: Reverted with reason x
-  * MyModule:AnotherContract/3: Reverted with reason y`
+  * MyModule:AnotherContract/3: Reverted with reason y`,
       );
     });
 
@@ -203,7 +203,7 @@ Timed out:
 Failures:
 
   * MyModule:ThirdContract/1: Reverted with reason x
-  * MyModule:FourthContract/3: Reverted with reason y`
+  * MyModule:FourthContract/3: Reverted with reason y`,
       );
     });
   });

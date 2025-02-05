@@ -102,7 +102,7 @@ describe("contract deploys", () => {
 
       const actualInstanceBalance = await getBalanceFor(
         this.hre,
-        result.passingValue.address
+        result.passingValue.address,
       );
 
       assert.equal(actualInstanceBalance, 1_000_000_000n);
@@ -131,7 +131,7 @@ describe("contract deploys", () => {
 
       const actualInstanceBalance = await getBalanceFor(
         this.hre,
-        result.passingValue.address
+        result.passingValue.address,
       );
 
       assert.equal(actualInstanceBalance, 2_000_000_000n);
@@ -162,7 +162,7 @@ describe("contract deploys", () => {
 
       const actualInstanceBalance = await getBalanceFor(
         this.hre,
-        result.passingValue.address
+        result.passingValue.address,
       );
 
       assert.equal(actualInstanceBalance.toString(), "42");
@@ -175,7 +175,7 @@ describe("contract deploys", () => {
         const valueResult = m.readEventArgument(
           valueContract,
           "EventValue",
-          "value"
+          "value",
         );
 
         const passingValue = m.contract("PassingValue", [], {
@@ -197,7 +197,7 @@ describe("contract deploys", () => {
 
       const actualInstanceBalance = await getBalanceFor(
         this.hre,
-        result.passingValue.address
+        result.passingValue.address,
       );
 
       assert.equal(actualInstanceBalance.toString(), "42");
