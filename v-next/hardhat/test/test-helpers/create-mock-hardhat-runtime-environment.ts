@@ -9,22 +9,22 @@ import "../../src/internal/builtin-plugins/artifacts/type-extensions.js";
 import { createHardhatRuntimeEnvironment } from "../../src/hre.js";
 import artifacts from "../../src/internal/builtin-plugins/artifacts/index.js";
 
-import { MockArtifactsManager } from "./mock-artifacts-manager.js";
+import { MockArtifactManager } from "./mock-artifact-manager.js";
 
 export async function createMockHardhatRuntimeEnvironment(
   config: HardhatUserConfig,
   userProvidedGlobalOptions: Partial<GlobalOptions> = {},
   projectRoot?: string,
   unsafeOptions: UnsafeHardhatRuntimeEnvironmentOptions = {},
-): Promise<HardhatRuntimeEnvironment & { artifacts: MockArtifactsManager }> {
+): Promise<HardhatRuntimeEnvironment & { artifacts: MockArtifactManager }> {
   /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
-  We know that the mockArtifactPlugin sets `hre.artifacts` to `MockArtifactsManager */
+  We know that the mockArtifactPlugin sets `hre.artifacts` to `MockArtifactManager */
   return createHardhatRuntimeEnvironment(
     { ...config, plugins: [mockArtifactsPlugin, ...(config.plugins ?? [])] },
     userProvidedGlobalOptions,
     projectRoot,
     unsafeOptions,
-  ) as Promise<HardhatRuntimeEnvironment & { artifacts: MockArtifactsManager }>;
+  ) as Promise<HardhatRuntimeEnvironment & { artifacts: MockArtifactManager }>;
 }
 
 const mockArtifactsPlugin: HardhatPlugin = {
@@ -34,7 +34,7 @@ const mockArtifactsPlugin: HardhatPlugin = {
     hre: async () => {
       return {
         created: async (_context, hre): Promise<void> => {
-          hre.artifacts = new MockArtifactsManager();
+          hre.artifacts = new MockArtifactManager();
         },
       };
     },

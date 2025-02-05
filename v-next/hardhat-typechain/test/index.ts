@@ -59,6 +59,14 @@ describe("hardhat-typechain", () => {
 
       // The import from a npm package should have ".js" extensions
       assert.equal(content.includes(`import { ethers } from 'ethers'`), true);
+
+      // Check that the types for the contract are generated
+      assert.equal(
+        await exists(
+          `${process.cwd()}/types/ethers-contracts/factories/A__factory.ts`,
+        ),
+        true,
+      );
     });
   });
 

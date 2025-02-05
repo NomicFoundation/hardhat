@@ -1,81 +1,93 @@
 import type {
-  ArtifactsManager,
-  BuildInfo,
+  ArtifactManager,
   GetAtifactByName,
 } from "../../../../types/artifacts.js";
 import type { HardhatRuntimeEnvironmentHooks } from "../../../../types/hooks.js";
 
-class LazyArtifactsManager implements ArtifactsManager {
+class LazyArtifactManager implements ArtifactManager {
   readonly #artifactsPath: string;
-  #artifactsManager: ArtifactsManager | undefined;
+  #artifactManager: ArtifactManager | undefined;
 
   constructor(artifactsPath: string) {
-    this.#artifactsManager = undefined;
+    this.#artifactManager = undefined;
     this.#artifactsPath = artifactsPath;
   }
 
   public async readArtifact<ContractNameT extends string>(
     contractNameOrFullyQualifiedName: ContractNameT,
   ): Promise<GetAtifactByName<ContractNameT>> {
-    const artifactsManager = await this.#getArtifactsManager();
-    return artifactsManager.readArtifact(contractNameOrFullyQualifiedName);
-  }
-
-  public async artifactExists(
-    contractNameOrFullyQualifiedName: string,
-  ): Promise<boolean> {
-    const artifactsManager = await this.#getArtifactsManager();
-    return artifactsManager.artifactExists(contractNameOrFullyQualifiedName);
-  }
-
-  public async getAllFullyQualifiedNames(): Promise<string[]> {
-    const artifactsManager = await this.#getArtifactsManager();
-    return artifactsManager.getAllFullyQualifiedNames();
-  }
-
-  public async getBuildInfo(
-    fullyQualifiedName: string,
-  ): Promise<BuildInfo | undefined> {
-    const artifactsManager = await this.#getArtifactsManager();
-    return artifactsManager.getBuildInfo(fullyQualifiedName);
-  }
-
-  public async getArtifactPaths(): Promise<string[]> {
-    const artifactsManager = await this.#getArtifactsManager();
-    return artifactsManager.getArtifactPaths();
-  }
-
-  public async getBuildInfoPaths(): Promise<string[]> {
-    const artifactsManager = await this.#getArtifactsManager();
-    return artifactsManager.getBuildInfoPaths();
+    const artifactManager = await this.#getArtifactManager();
+    return artifactManager.readArtifact(contractNameOrFullyQualifiedName);
   }
 
   public async getArtifactPath(
     contractNameOrFullyQualifiedName: string,
   ): Promise<string> {
-    const artifactsManager = await this.#getArtifactsManager();
-    return artifactsManager.getArtifactPath(contractNameOrFullyQualifiedName);
+    const artifactManager = await this.#getArtifactManager();
+    return artifactManager.getArtifactPath(contractNameOrFullyQualifiedName);
   }
 
-  async #getArtifactsManager(): Promise<ArtifactsManager> {
-    const { ArtifactsManagerImplementation } = await import(
-      "../artifacts-manager.js"
-    );
+  public async artifactExists(
+    contractNameOrFullyQualifiedName: string,
+  ): Promise<boolean> {
+    const artifactManager = await this.#getArtifactManager();
+    return artifactManager.artifactExists(contractNameOrFullyQualifiedName);
+  }
 
-    if (this.#artifactsManager === undefined) {
-      this.#artifactsManager = new ArtifactsManagerImplementation(
+  public async getAllFullyQualifiedNames(): Promise<ReadonlySet<string>> {
+    const artifactManager = await this.#getArtifactManager();
+    return artifactManager.getAllFullyQualifiedNames();
+  }
+
+  public async getBuildInfoId(
+    contractNameOrFullyQualifiedName: string,
+  ): Promise<string | undefined> {
+    const artifactManager = await this.#getArtifactManager();
+    return artifactManager.getBuildInfoId(contractNameOrFullyQualifiedName);
+  }
+
+  public async getAllBuildInfoIds(): Promise<ReadonlySet<string>> {
+    const artifactManager = await this.#getArtifactManager();
+    return artifactManager.getAllBuildInfoIds();
+  }
+
+  public async getBuildInfoPath(
+    buildInfoId: string,
+  ): Promise<string | undefined> {
+    const artifactManager = await this.#getArtifactManager();
+    return artifactManager.getBuildInfoPath(buildInfoId);
+  }
+
+  public async getBuildInfoOutputPath(
+    buildInfoId: string,
+  ): Promise<string | undefined> {
+    const artifactManager = await this.#getArtifactManager();
+    return artifactManager.getBuildInfoOutputPath(buildInfoId);
+  }
+
+  public async clearCache(): Promise<void> {
+    const artifactManager = await this.#getArtifactManager();
+    return artifactManager.clearCache();
+  }
+
+  async #getArtifactManager(): Promise<ArtifactManager> {
+    if (this.#artifactManager === undefined) {
+      const { ArtifactManagerImplementation } = await import(
+        "../artifact-manager.js"
+      );
+      this.#artifactManager = new ArtifactManagerImplementation(
         this.#artifactsPath,
       );
     }
 
-    return this.#artifactsManager;
+    return this.#artifactManager;
   }
 }
 
 export default async (): Promise<Partial<HardhatRuntimeEnvironmentHooks>> => {
   const handlers: Partial<HardhatRuntimeEnvironmentHooks> = {
     created: async (_context, hre): Promise<void> => {
-      hre.artifacts = new LazyArtifactsManager(hre.config.paths.artifacts);
+      hre.artifacts = new LazyArtifactManager(hre.config.paths.artifacts);
     },
   };
 

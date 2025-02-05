@@ -93,30 +93,24 @@ export class CompilationJobImplementation implements CompilationJob {
   #buildSolcInputWithoutSources(): Omit<CompilerInput, "sources"> {
     const settings = this.solcConfig.settings;
 
-    const rootsOutputSelection: CompilerInput["settings"]["outputSelection"] =
-      Object.fromEntries(
-        [...this.dependencyGraph.getRoots().values()]
-          .sort((a, b) => a.sourceName.localeCompare(b.sourceName))
-          .map((root) => [
-            root.sourceName,
-            {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-              ],
-            },
-          ]),
-      );
-
+    // Ideally we would be more selective with the output selection, so that
+    // we only ask solc to compile the root files.
+    // Unfortunately, solc may need to generate bytecode of contracts/libraries
+    // from other files (e.g. new Foo()), and it won't output its bytecode if
+    // it's not asked for. This would prevent EDR from doing any runtime
+    // analysis.
     const defaultOutputSelection: CompilerInput["settings"]["outputSelection"] =
       {
         "*": {
+          "*": [
+            "abi",
+            "evm.bytecode",
+            "evm.deployedBytecode",
+            "evm.methodIdentifiers",
+            "metadata",
+          ],
           "": ["ast"],
         },
-        ...rootsOutputSelection,
       };
 
     // TODO: Deep merge the user output selection with the default one
