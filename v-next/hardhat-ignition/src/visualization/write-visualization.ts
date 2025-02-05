@@ -9,7 +9,7 @@ export async function writeVisualization(
     batches: string[][];
   },
   { cacheDir }: { cacheDir: string }
-) {
+): Promise<void> {
   const templateDir = path.join(
     require.resolve("@nomicfoundation/ignition-ui/package.json"),
     "../dist"

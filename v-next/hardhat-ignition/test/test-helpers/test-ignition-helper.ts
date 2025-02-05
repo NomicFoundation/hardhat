@@ -48,7 +48,7 @@ export class TestIgnitionHelper {
 
   constructor(
     private _hre: HardhatRuntimeEnvironment,
-    private _config?: Partial<DeployConfig>,
+    private _config?: Partial<DeployConfig> | undefined,
     provider?: EIP1193Provider,
     deploymentDir?: string
   ) {

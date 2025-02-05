@@ -69,7 +69,7 @@ function transactionTypeToDisplayType(type: string): string {
 export function transactionDisplaySerializeReplacer(
   _key: string,
   value: unknown
-) {
+): unknown {
   if (typeof value === "bigint") {
     return `${value}n`;
   }

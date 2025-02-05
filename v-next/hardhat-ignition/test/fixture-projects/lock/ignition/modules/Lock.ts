@@ -1,6 +1,16 @@
-import { buildModule } from "@ignored/hardhat-vnext-ignition-core";
+import {
+  buildModule,
+  IgnitionModule,
+  NamedArtifactContractDeploymentFuture,
+} from "@ignored/hardhat-vnext-ignition-core";
 
-const LockModule = buildModule("LockModule", (m) => {
+const LockModule: IgnitionModule<
+  "LockModule",
+  string,
+  {
+    lock: NamedArtifactContractDeploymentFuture<"Lock">;
+  }
+> = buildModule("LockModule", (m) => {
   const unlockTime = m.getParameter("unlockTime");
   const lockedAmount = m.getParameter("lockedAmount", 1_000_000_000n);
 

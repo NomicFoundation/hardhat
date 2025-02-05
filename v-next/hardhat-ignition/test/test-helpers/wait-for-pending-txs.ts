@@ -8,7 +8,7 @@ export async function waitForPendingTxs(
   hre: any,
   expectedCount: number,
   finished: Promise<any>
-) {
+): Promise<void> {
   let stopWaiting = false;
   finished.finally(() => {
     stopWaiting = true;

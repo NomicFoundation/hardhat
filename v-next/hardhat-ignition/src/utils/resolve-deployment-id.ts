@@ -21,7 +21,7 @@ const ignitionDeploymentIdRegex = /^[a-zA-Z][a-zA-Z0-9_\-]*$/;
 export function resolveDeploymentId(
   givenDeploymentId: string | undefined,
   chainId: number
-) {
+): string {
   if (
     givenDeploymentId !== undefined &&
     !_isValidDeploymentIdentifier(givenDeploymentId)

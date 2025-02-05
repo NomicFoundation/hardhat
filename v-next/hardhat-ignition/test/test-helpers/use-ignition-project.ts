@@ -31,7 +31,7 @@ const defaultTestConfig: DeployConfig = {
   disableFeeBumping: false,
 };
 
-export function useEphemeralIgnitionProject(fixtureProjectName: string) {
+export function useEphemeralIgnitionProject(fixtureProjectName: string): void {
   beforeEach("Load environment", async function () {
     process.chdir(
       path.join(__dirname, "../fixture-projects", fixtureProjectName)
@@ -59,7 +59,7 @@ export function useFileIgnitionProject(
   fixtureProjectName: string,
   deploymentId: string,
   config?: Partial<DeployConfig>
-) {
+): void {
   beforeEach("Load environment", async function () {
     process.chdir(
       path.join(__dirname, "../fixture-projects", fixtureProjectName)
@@ -195,7 +195,7 @@ export class TestChainHelper {
     private _exitFn: () => void
   ) {}
 
-  public async waitForPendingTxs(expectedCount: number) {
+  public async waitForPendingTxs(expectedCount: number): Promise<void> {
     await waitForPendingTxs(this._hre, expectedCount, this._deployPromise);
   }
 
@@ -206,7 +206,7 @@ export class TestChainHelper {
    * @param pendingTxToAwait - the number of pending tx that should be in
    * the block before mining
    */
-  public async mineBlock(pendingTxToAwait: number = 0) {
+  public async mineBlock(pendingTxToAwait: number = 0): Promise<any> {
     if (pendingTxToAwait > 0) {
       await waitForPendingTxs(this._hre, pendingTxToAwait, this._deployPromise);
     }
@@ -214,7 +214,7 @@ export class TestChainHelper {
     return this._hre.network.provider.send("evm_mine");
   }
 
-  public async clearMempool(pendingTxToAwait: number = 0) {
+  public async clearMempool(pendingTxToAwait: number = 0): Promise<void> {
     if (pendingTxToAwait > 0) {
       await waitForPendingTxs(this._hre, pendingTxToAwait, this._deployPromise);
     }
@@ -225,7 +225,7 @@ export class TestChainHelper {
   /**
    * Exit from the deploy on the next block tick.
    */
-  public exitDeploy() {
+  public exitDeploy(): void {
     this._exitFn();
   }
 }
