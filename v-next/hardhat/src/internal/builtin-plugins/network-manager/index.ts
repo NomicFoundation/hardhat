@@ -22,6 +22,14 @@ const hardhatPlugin: HardhatPlugin = {
     }),
   ],
   npmPackage: "@ignored/hardhat-vnext",
+  dependencies: [
+    async () => {
+      const { default: artifactsPlugin } = await import(
+        "../artifacts/index.js"
+      );
+      return artifactsPlugin;
+    },
+  ],
 };
 
 export default hardhatPlugin;

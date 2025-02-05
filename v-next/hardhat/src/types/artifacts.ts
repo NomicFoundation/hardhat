@@ -18,10 +18,10 @@ export type GetAtifactByName<ContractNameT extends string> =
     : Artifact;
 
 /**
- * The ArtifactsManager is responsible for reading and writing artifacts from
+ * The ArtifactManager is responsible for reading and writing artifacts from
  * the Hardhat build system.
  */
-export interface ArtifactsManager {
+export interface ArtifactManager {
   /**
    * Reads an artifact.
    *
@@ -32,10 +32,22 @@ export interface ArtifactsManager {
    *
    * @throws Throws an error if a non-unique contract name is used,
    *   indicating which fully qualified names can be used instead.
+   * @throws Throws an error if the artifact doesn't exist.
    */
   readArtifact<ContractNameT extends string>(
     contractNameOrFullyQualifiedName: ContractNameT,
   ): Promise<GetAtifactByName<ContractNameT>>;
+
+  /**
+   * Returns the absolute path to the given artifact.
+   *
+   * @param contractNameOrFullyQualifiedName The name or fully qualified name
+   * of the contract.
+   * @throws Throws an error if a non-unique contract name is used,
+   *   indicating which fully qualified names can be used instead.
+   * @throws Throws an error if the artifact doesn't exist.
+   */
+  getArtifactPath(contractNameOrFullyQualifiedName: string): Promise<string>;
 
   /**
    * Returns true if an artifact exists.
@@ -43,46 +55,75 @@ export interface ArtifactsManager {
    * This function doesn't throw if the name is not unique.
    *
    * @param contractNameOrFullyQualifiedName Contract or fully qualified name.
-   *
+   * @throws Throws an error if a non-unique contract name is used,
+   *   indicating which fully qualified names can be used instead.
    */
   artifactExists(contractNameOrFullyQualifiedName: string): Promise<boolean>;
 
   /**
-   * Returns an array with the fully qualified names of all the artifacts.
+   * Returns a set with the fully qualified names of all the artifacts.
    */
-  getAllFullyQualifiedNames(): Promise<string[]>;
+  getAllFullyQualifiedNames(): Promise<ReadonlySet<string>>;
 
   /**
-   * Returns the BuildInfo associated with the solc run that compiled a
+   * Returns the BuildInfo id associated with the solc run that compiled a
    * contract.
    *
-   * Note that if your contract hasn't been compiled with Hardhat's build system
-   * this method can return undefined.
-   */
-  getBuildInfo(fullyQualifiedName: string): Promise<BuildInfo | undefined>;
-
-  /**
-   * Returns an array with the absolute paths of all the existing artifacts.
+   * Note that it may return `undefined` if the artifact doesn't have a build
+   * id, which can happen if the artifact wasn't compiled with Hardhat 3's build
+   * system.
    *
-   * Note that there's an artifact per contract.
+   * If it does return an id, it's not guaranteed that the build info is
+   * present.
+   *
+   * @param contractNameOrFullyQualifiedName Contract or fully qualified name, whose artifact must exist.
+   * @throws Throws an error if a non-unique contract name is used,
+   *   indicating which fully qualified names can be used instead.
+   * @throws Throws an error if the artifact doesn't exist.
+   * @returns The build info id, or undefined if the artifact doesn't have a
+   *   build info id.
    */
-  getArtifactPaths(): Promise<string[]>;
+  getBuildInfoId(
+    contractNameOrFullyQualifiedName: string,
+  ): Promise<string | undefined>;
 
   /**
-   * Returns an array with the absolute paths of all the existing build infos.
+   * Returns a set with the ids of all the existing build infos.
    *
    * Note that there's one build info per run of solc, so they can be shared
    * by different contracts.
    */
-  getBuildInfoPaths(): Promise<string[]>;
+  getAllBuildInfoIds(): Promise<ReadonlySet<string>>;
 
   /**
-   * Returns the absolute path to the given artifact.
+   * Returns the absolute path to the given build info, or undefined if it
+   * doesn't exist.
    *
-   * @param contractNameOrFullyQualifiedName The name or fully qualified name
-   * of the contract.
+   * @param buildInfoId The id of an existing build info.
    */
-  getArtifactPath(contractNameOrFullyQualifiedName: string): Promise<string>;
+  getBuildInfoPath(buildInfoId: string): Promise<string | undefined>;
+
+  /**
+   * Returns the absolute path to the output of the given build info,
+   * if present.
+   *
+   * Note that the build info may exist, but it's output may not.
+   *
+   * @param buildInfoId The id of an existing build info.
+   */
+  getBuildInfoOutputPath(buildInfoId: string): Promise<string | undefined>;
+
+  /**
+   * An artifact manager may cache information about the artifacts present in
+   * the project, for performance reasons. For example, it may read the entire
+   * list of artifacts from the file system, and cache it in memory.
+   *
+   * This method clears the artifact manager's cache, if any.
+   *
+   * This method is not meant to be used by end users, but by the Hardhat team
+   * and build-system-related plugins.
+   */
+  clearCache(): Promise<void>;
 }
 
 /**

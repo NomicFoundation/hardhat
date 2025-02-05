@@ -29,20 +29,32 @@ async function emitArtifacts(solidity: SolidityBuildSystem): Promise<void> {
 
   assert.ok(compilationJobs instanceof Map, "compilationJobs should be a Map");
 
-  const artifactsPath = path.join(process.cwd(), "artifacts");
+  const prebuiltArtifactsPath = path.join(process.cwd(), "artifacts");
 
   const buildIds = new Set<string>();
   for (const compilationJob of compilationJobs.values()) {
     const buildId = compilationJob.getBuildId();
     if (!buildIds.has(buildId)) {
       buildIds.add(buildId);
-      const buildInfoOutput = await readJsonFile<SolidityBuildInfoOutput>(
-        path.join(
-          artifactsPath,
-          "build-info",
-          `${compilationJob.getBuildId()}.output.json`,
-        ),
+
+      const prebuiltOutputPath = path.join(
+        prebuiltArtifactsPath,
+        "build-info",
+        `${compilationJob.getBuildId()}.output.json`,
       );
+
+      if (!(await exists(prebuiltOutputPath))) {
+        throw new Error(
+          `This tests will fail as they expect the artifacts to be already built
+
+Try deleting the folder ${prebuiltArtifactsPath}, uncommenting the before in this file, and running again.
+`,
+        );
+      }
+
+      const buildInfoOutput =
+        await readJsonFile<SolidityBuildInfoOutput>(prebuiltOutputPath);
+
       await solidity.emitArtifacts(compilationJob, buildInfoOutput.output);
     }
   }
@@ -60,6 +72,34 @@ describe(
 
     useFixtureProject("solidity/example-project");
 
+    const solidityConfig = {
+      profiles: {
+        default: {
+          compilers: [
+            {
+              version: "0.8.22",
+            },
+            {
+              version: "0.7.1",
+            },
+          ],
+        },
+      },
+      remappings: ["remapped/=npm/@openzeppelin/contracts@5.1.0/access/"],
+    };
+
+    // Uncomment to recompile the prebuilt artifacts
+    // before(async () => {
+    //   hre = await createHardhatRuntimeEnvironment(
+    //     {
+    //       solidity: solidityConfig,
+    //     },
+    //     { config: path.join(process.cwd(), "hardhat.config.ts") },
+    //   );
+    //
+    //   await hre.tasks.getTask("compile").run({});
+    // });
+
     beforeEach(async () => {
       const tmpDir = await getTmpDir("solidity-build-system-implementation");
       artifactsPath = path.join(tmpDir, "artifacts");
@@ -69,21 +109,7 @@ describe(
           artifacts: artifactsPath,
           cache: cachePath,
         },
-        solidity: {
-          profiles: {
-            default: {
-              compilers: [
-                {
-                  version: "0.8.22",
-                },
-                {
-                  version: "0.7.1",
-                },
-              ],
-            },
-          },
-          remappings: ["remapped/=npm/@openzeppelin/contracts@5.1.0/access/"],
-        },
+        solidity: solidityConfig,
       });
     });
 
