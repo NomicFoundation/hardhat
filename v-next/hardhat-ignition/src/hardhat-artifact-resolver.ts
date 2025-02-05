@@ -9,7 +9,7 @@ import type { HardhatRuntimeEnvironment } from "hardhat/types";
 import fs from "node:fs";
 import path from "node:path";
 
-import { HardhatPluginError } from "@ignored/hardhat-vnext/plugins";
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
 
 export class HardhatArtifactResolver implements ArtifactResolver {
@@ -32,10 +32,12 @@ export class HardhatArtifactResolver implements ArtifactResolver {
     const artifactPath = await this._resolvePath(contractName);
 
     if (artifactPath === undefined) {
-      throw new HardhatPluginError(
-        "hardhat-ignition",
-        `Artifact path not found for ${contractName}`,
-      );
+      throw new HardhatError(
+        HardhatError.ERRORS.IGNITION.ARTIFACT_PATH_NOT_FOUND,
+        {
+          contractName
+        }
+      )
     }
 
     const debugPath = artifactPath.replace(".json", ".dbg.json");

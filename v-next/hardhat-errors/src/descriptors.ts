@@ -1590,5 +1590,19 @@ Please use the fully qualified name of the contract to disambiguate it.`,
       websiteDescription:
         "Ignition modules must be located within the module directory.",
     },
+    VIEM_TEST_HELPER_ERROR: {
+      number: 1615,
+      messageTemplate: `Hardhat Ignition Viem Test Error: {message}`,
+      websiteTitle: "Test error in Hardhat Ignition Viem's test helper",
+      websiteDescription: "Test error in Hardhat Ignition Viem's test helper.",
+    },
+    ARTIFACT_PATH_NOT_FOUND: {
+      number: 1616,
+      messageTemplate: `Artifact path not found for {contractName}`,
+      websiteTitle:
+        "Hardhat Ignition unable to find artifact path for the contract name",
+      websiteDescription:
+        "Hardhat Ignition unable to find artifact path for the contract name",
+    },
   },
 } as const;

@@ -4,7 +4,7 @@ import type {
   ReconciliationErrorDeploymentResult,
   ValidationErrorDeploymentResult} from "@ignored/hardhat-vnext-ignition-core";
 
-import { HardhatPluginError } from "@ignored/hardhat-vnext/plugins";
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import {
   DeploymentResultType
 } from "@ignored/hardhat-vnext-ignition-core";
@@ -136,8 +136,10 @@ function _toText({
     return "holds";
   }
 
-  throw new HardhatPluginError(
-    "@nomicfoundation/hardhat-ignition",
-    "Invariant violated: neither timeouts or failures",
+  throw new HardhatError(
+    HardhatError.ERRORS.INTERNAL.ASSERTION_ERROR,
+    {
+      message: "Invariant violated: neither timeouts or failures",
+    }
   );
 }
