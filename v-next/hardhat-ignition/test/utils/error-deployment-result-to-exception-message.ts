@@ -2,11 +2,10 @@ import type {
   ExecutionErrorDeploymentResult,
   PreviousRunErrorDeploymentResult,
   ReconciliationErrorDeploymentResult,
-  ValidationErrorDeploymentResult} from "@ignored/hardhat-vnext-ignition-core";
-
-import {
-  DeploymentResultType
+  ValidationErrorDeploymentResult,
 } from "@ignored/hardhat-vnext-ignition-core";
+
+import { DeploymentResultType } from "@ignored/hardhat-vnext-ignition-core";
 import { assert } from "chai";
 
 import { errorDeploymentResultToExceptionMessage } from "../../src/utils/error-deployment-result-to-exception-message.js";

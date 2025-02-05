@@ -3,7 +3,6 @@ import type { UiState } from "../types.js";
 import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
 import chalk from "chalk";
 
-
 import { pathFromCwd } from "./cwd-relative-path.js";
 
 export function calculateDeployingModulePanel(state: UiState): string {
@@ -12,7 +11,10 @@ export function calculateDeployingModulePanel(state: UiState): string {
 `;
 
   if (state.isResumed === true) {
-    assertHardhatInvariant(state.deploymentDir !== null && state.deploymentDir !== undefined, "Deployment dir is undefined");
+    assertHardhatInvariant(
+      state.deploymentDir !== null && state.deploymentDir !== undefined,
+      "Deployment dir is undefined",
+    );
     deployingMessage += `${chalk.bold(
       `Resuming existing deployment from ${pathFromCwd(state.deploymentDir)}`,
     )}

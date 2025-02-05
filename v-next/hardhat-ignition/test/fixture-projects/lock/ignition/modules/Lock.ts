@@ -1,10 +1,9 @@
 import type {
   IgnitionModule,
-  NamedArtifactContractDeploymentFuture} from "@ignored/hardhat-vnext-ignition-core";
-
-import {
-  buildModule
+  NamedArtifactContractDeploymentFuture,
 } from "@ignored/hardhat-vnext-ignition-core";
+
+import { buildModule } from "@ignored/hardhat-vnext-ignition-core";
 
 const LockModule: IgnitionModule<
   "LockModule",

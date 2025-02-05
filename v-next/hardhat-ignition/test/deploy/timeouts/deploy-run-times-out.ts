@@ -1,14 +1,11 @@
 /* eslint-disable import/no-unused-modules */
-import type {
-  TestChainHelper} from "../../test-helpers/use-ignition-project.js";
+import type { TestChainHelper } from "../../test-helpers/use-ignition-project.js";
 
 import { buildModule } from "@ignored/hardhat-vnext-ignition-core";
 import { setNextBlockBaseFeePerGas } from "@nomicfoundation/hardhat-network-helpers";
 import { assert } from "chai";
 
-import {
-  useFileIgnitionProject,
-} from "../../test-helpers/use-ignition-project.js";
+import { useFileIgnitionProject } from "../../test-helpers/use-ignition-project.js";
 
 /**
  * A run that deploys a contract times out

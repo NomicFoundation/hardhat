@@ -28,11 +28,12 @@ import type {
   StaticCallExecutionStateInitializeEvent,
   TransactionConfirmEvent,
   TransactionSendEvent,
-  WipeApplyEvent} from "@ignored/hardhat-vnext-ignition-core";
+  WipeApplyEvent,
+} from "@ignored/hardhat-vnext-ignition-core";
 
 import {
   ExecutionEventNetworkInteractionType,
-  ExecutionEventResultType
+  ExecutionEventResultType,
 } from "@ignored/hardhat-vnext-ignition-core";
 
 export class VerboseEventHandler implements ExecutionEventListener {

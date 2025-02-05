@@ -5,13 +5,11 @@ import type {
   PreviousRunErrorDeploymentResult,
   ReconciliationErrorDeploymentResult,
   SuccessfulDeploymentResult,
-  ValidationErrorDeploymentResult} from "@ignored/hardhat-vnext-ignition-core";
-
-import {
-  DeploymentResultType
+  ValidationErrorDeploymentResult,
 } from "@ignored/hardhat-vnext-ignition-core";
-import chalk from "chalk";
 
+import { DeploymentResultType } from "@ignored/hardhat-vnext-ignition-core";
+import chalk from "chalk";
 
 import { pathFromCwd } from "./cwd-relative-path.js";
 import { wasAnythingExecuted } from "./was-anything-executed.js";

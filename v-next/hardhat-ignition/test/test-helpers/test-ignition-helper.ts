@@ -25,7 +25,7 @@ import { errorDeploymentResultToExceptionMessage } from "../../src/utils/error-d
 
 export type IgnitionModuleResultsTToViemContracts<
   ContractNameT extends string,
-  IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>
+  IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>,
 > = {
   [contract in keyof IgnitionModuleResultsT]: TypeChainViemContractByName;
 };
@@ -49,7 +49,7 @@ export class TestIgnitionHelper {
     private readonly _hre: HardhatRuntimeEnvironment,
     private readonly _config?: Partial<DeployConfig> | undefined,
     provider?: EIP1193Provider,
-    deploymentDir?: string
+    deploymentDir?: string,
   ) {
     this._provider = provider ?? this._hre.network.provider;
     this._deploymentDir = deploymentDir;
@@ -59,7 +59,7 @@ export class TestIgnitionHelper {
     ModuleIdT extends string,
     ContractNameT extends string,
     IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>,
-    StrategyT extends keyof StrategyConfig = "basic"
+    StrategyT extends keyof StrategyConfig = "basic",
   >(
     ignitionModule: IgnitionModule<
       ModuleIdT,
@@ -81,7 +81,7 @@ export class TestIgnitionHelper {
     } = {
       parameters: {},
       config: {},
-    }
+    },
   ): Promise<
     IgnitionModuleResultsTToViemContracts<ContractNameT, IgnitionModuleResultsT>
   > {
@@ -116,7 +116,7 @@ export class TestIgnitionHelper {
         HardhatError.ERRORS.IGNITION.VIEM_TEST_HELPER_ERROR,
         {
           message,
-        }
+        },
       );
     }
 
@@ -129,14 +129,14 @@ export class TestIgnitionHelper {
       this._hre,
       ignitionModule,
       result,
-      publicClient
+      publicClient,
     );
   }
 
   private async _toViemContracts<
     ModuleIdT extends string,
     ContractNameT extends string,
-    IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>
+    IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>,
   >(
     hre: HardhatRuntimeEnvironment,
     ignitionModule: IgnitionModule<
@@ -145,7 +145,7 @@ export class TestIgnitionHelper {
       IgnitionModuleResultsT
     >,
     result: SuccessfulDeploymentResult,
-    publicClient: any
+    publicClient: any,
   ): Promise<
     IgnitionModuleResultsTToViemContracts<ContractNameT, IgnitionModuleResultsT>
   > {
@@ -158,11 +158,11 @@ export class TestIgnitionHelper {
               hre,
               contractFuture,
               result.contracts[contractFuture.id],
-              publicClient
+              publicClient,
             ),
-          ]
-        )
-      )
+          ],
+        ),
+      ),
     );
   }
 
@@ -170,14 +170,14 @@ export class TestIgnitionHelper {
     hre: HardhatRuntimeEnvironment,
     future: Future,
     deployedContract: { address: string; contractName: string },
-    publicClient: any
+    publicClient: any,
   ): Promise<GetContractReturnType> {
     if (!isContractFuture(future)) {
       throw new HardhatError(
         HardhatError.ERRORS.IGNITION.VIEM_TEST_HELPER_ERROR,
         {
           message: `Expected contract future but got ${future.id} with type ${future.type} instead`,
-        }
+        },
       );
     }
 
@@ -185,7 +185,7 @@ export class TestIgnitionHelper {
       address: this._ensureAddressFormat(deployedContract.address),
       abi: await this._loadAbiFromHHArtifactFolder(
         hre,
-        deployedContract.contractName
+        deployedContract.contractName,
       ),
       client: { public: publicClient },
     });
@@ -203,13 +203,13 @@ export class TestIgnitionHelper {
 
   private async _loadAbiFromHHArtifactFolder(
     hre: HardhatRuntimeEnvironment,
-    contractName: string
+    contractName: string,
   ): Promise<any[]> {
     const artifact = await hre.artifacts.readArtifact(contractName);
 
     if (artifact === undefined) {
       throw new Error(
-        `Test error: no hardcoded abi for contract ${contractName}`
+        `Test error: no hardcoded abi for contract ${contractName}`,
       );
     }
 

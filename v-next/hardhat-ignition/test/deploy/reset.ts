@@ -31,7 +31,10 @@ describe("reset flag", function () {
 
     const artifactResolver = new HardhatArtifactResolver(this.hre);
 
-    assertHardhatInvariant(this.deploymentDir !== undefined, "Deployment dir is undefined");
+    assertHardhatInvariant(
+      this.deploymentDir !== undefined,
+      "Deployment dir is undefined",
+    );
     const result = await status(this.deploymentDir, artifactResolver);
 
     // ResetModule#B will only be in the success list if the second

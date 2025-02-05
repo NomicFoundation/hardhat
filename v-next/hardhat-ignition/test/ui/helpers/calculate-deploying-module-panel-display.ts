@@ -1,4 +1,4 @@
-import type { UiState} from "../../../src/ui/types.js";
+import type { UiState } from "../../../src/ui/types.js";
 
 import path from "node:path";
 

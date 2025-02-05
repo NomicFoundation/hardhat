@@ -1,15 +1,12 @@
 /* eslint-disable import/no-unused-modules */
-import type {
-  TestChainHelper} from "../../test-helpers/use-ignition-project.js";
+import type { TestChainHelper } from "../../test-helpers/use-ignition-project.js";
 
 import { buildModule } from "@ignored/hardhat-vnext-ignition-core";
 import { assert } from "chai";
 
 import { clearPendingTransactionsFromMemoryPool } from "../../test-helpers/clear-pending-transactions-from-memory-pool.js";
 import { mineBlock } from "../../test-helpers/mine-block.js";
-import {
-  useFileIgnitionProject,
-} from "../../test-helpers/use-ignition-project.js";
+import { useFileIgnitionProject } from "../../test-helpers/use-ignition-project.js";
 
 /**
  * Run an initial deploy, that starts but does not finish an on-chain

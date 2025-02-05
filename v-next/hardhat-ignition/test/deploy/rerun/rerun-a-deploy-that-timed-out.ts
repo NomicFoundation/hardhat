@@ -1,5 +1,4 @@
-import type {
-  TestChainHelper} from "../../test-helpers/use-ignition-project.js";
+import type { TestChainHelper } from "../../test-helpers/use-ignition-project.js";
 
 import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
 import { buildModule, wipe } from "@ignored/hardhat-vnext-ignition-core";
@@ -8,9 +7,7 @@ import { assert } from "chai";
 
 import { HardhatArtifactResolver } from "../../../src/hardhat-artifact-resolver.js";
 import { mineBlock } from "../../test-helpers/mine-block.js";
-import {
-  useFileIgnitionProject,
-} from "../../test-helpers/use-ignition-project.js";
+import { useFileIgnitionProject } from "../../test-helpers/use-ignition-project.js";
 
 /**
  * A run that deploys a contract times out
@@ -109,7 +106,10 @@ describe("execution - rerun a deploy that timed out", () => {
     await setNextBlockBaseFeePerGas(1_000_000n);
     await mineBlock(this.hre);
 
-    assertHardhatInvariant(this.deploymentDir !== undefined, "Deployment dir is undefined");
+    assertHardhatInvariant(
+      this.deploymentDir !== undefined,
+      "Deployment dir is undefined",
+    );
     await wipe(
       this.deploymentDir,
       new HardhatArtifactResolver(this.hre),

@@ -11,7 +11,6 @@ import path from "node:path";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
-
 export class HardhatArtifactResolver implements ArtifactResolver {
   constructor(private readonly _hre: HardhatRuntimeEnvironment) {}
 
@@ -35,9 +34,9 @@ export class HardhatArtifactResolver implements ArtifactResolver {
       throw new HardhatError(
         HardhatError.ERRORS.IGNITION.ARTIFACT_PATH_NOT_FOUND,
         {
-          contractName
-        }
-      )
+          contractName,
+        },
+      );
     }
 
     const debugPath = artifactPath.replace(".json", ".dbg.json");

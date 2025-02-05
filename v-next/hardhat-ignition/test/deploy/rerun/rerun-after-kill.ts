@@ -1,13 +1,10 @@
 /* eslint-disable import/no-unused-modules */
-import type {
-  TestChainHelper} from "../../test-helpers/use-ignition-project.js";
+import type { TestChainHelper } from "../../test-helpers/use-ignition-project.js";
 
 import { buildModule } from "@ignored/hardhat-vnext-ignition-core";
 import { assert } from "chai";
 
-import {
-  useFileIgnitionProject,
-} from "../../test-helpers/use-ignition-project.js";
+import { useFileIgnitionProject } from "../../test-helpers/use-ignition-project.js";
 
 /**
  * Run an initial deploy that deploys multiple contracts, one contract per batch.

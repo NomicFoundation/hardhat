@@ -1,6 +1,4 @@
-import type {
-  UiFuture,
-  UiState} from "../../../src/ui/types.js";
+import type { UiFuture, UiState } from "../../../src/ui/types.js";
 
 import { assert } from "chai";
 

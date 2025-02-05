@@ -6,7 +6,8 @@ import type {
   UiFutureHeld,
   UiFutureStatus,
   UiFutureSuccess,
-  UiState} from "./types.js";
+  UiState,
+} from "./types.js";
 import type {
   BatchInitializeEvent,
   BeginNextBatchEvent,
@@ -40,25 +41,22 @@ import type {
   StaticCallExecutionStateInitializeEvent,
   TransactionConfirmEvent,
   TransactionSendEvent,
-  WipeApplyEvent} from "@ignored/hardhat-vnext-ignition-core";
+  WipeApplyEvent,
+} from "@ignored/hardhat-vnext-ignition-core";
 
 import readline from "node:readline";
 
 import {
   DeploymentResultType,
-  ExecutionEventResultType
+  ExecutionEventResultType,
 } from "@ignored/hardhat-vnext-ignition-core";
-
 
 import { calculateBatchDisplay } from "./helpers/calculate-batch-display.js";
 import { calculateDeployingModulePanel } from "./helpers/calculate-deploying-module-panel.js";
 import { calculateDeploymentCompleteDisplay } from "./helpers/calculate-deployment-complete-display.js";
 import { calculateStartingMessage } from "./helpers/calculate-starting-message.js";
 import { wasAnythingExecuted } from "./helpers/was-anything-executed.js";
-import {
-  UiFutureStatusType,
-  UiStateDeploymentStatus,
-} from "./types.js";
+import { UiFutureStatusType, UiStateDeploymentStatus } from "./types.js";
 
 export class PrettyEventHandler implements ExecutionEventListener {
   private _uiState: UiState = {

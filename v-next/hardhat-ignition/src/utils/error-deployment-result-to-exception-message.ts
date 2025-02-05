@@ -2,12 +2,11 @@ import type {
   ExecutionErrorDeploymentResult,
   PreviousRunErrorDeploymentResult,
   ReconciliationErrorDeploymentResult,
-  ValidationErrorDeploymentResult} from "@ignored/hardhat-vnext-ignition-core";
+  ValidationErrorDeploymentResult,
+} from "@ignored/hardhat-vnext-ignition-core";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import {
-  DeploymentResultType
-} from "@ignored/hardhat-vnext-ignition-core";
+import { DeploymentResultType } from "@ignored/hardhat-vnext-ignition-core";
 
 /**
  * Converts the result of an errored deployment into a message that can
@@ -136,10 +135,7 @@ function _toText({
     return "holds";
   }
 
-  throw new HardhatError(
-    HardhatError.ERRORS.INTERNAL.ASSERTION_ERROR,
-    {
-      message: "Invariant violated: neither timeouts or failures",
-    }
-  );
+  throw new HardhatError(HardhatError.ERRORS.INTERNAL.ASSERTION_ERROR, {
+    message: "Invariant violated: neither timeouts or failures",
+  });
 }
