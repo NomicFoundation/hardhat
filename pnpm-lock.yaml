@@ -1840,6 +1840,9 @@ importers:
       '@ignored/hardhat-vnext':
         specifier: workspace:^3.0.0-next.16
         version: link:../hardhat
+      '@ignored/hardhat-vnext-errors':
+        specifier: workspace:^3.0.0-next.15
+        version: link:../hardhat-errors
       '@ignored/hardhat-vnext-ignition-core':
         specifier: workspace:^
         version: link:../hardhat-ignition-core

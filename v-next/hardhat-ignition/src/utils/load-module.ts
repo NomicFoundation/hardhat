@@ -4,10 +4,7 @@ import {
 } from "@ignored/hardhat-vnext-ignition-core";
 import setupDebug from "debug";
 import { pathExistsSync } from "fs-extra";
-import {
-  HardhatPluginError,
-  NomicLabsHardhatPluginError,
-} from "@ignored/hardhat-vnext/plugins";
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import path from "path";
 
 import { shouldBeHardhatPluginError } from "./shouldBeHardhatPluginError.js";
@@ -35,16 +32,21 @@ export function loadModule(
   const fullpathToModule = path.resolve(modulePath);
 
   if (!pathExistsSync(fullpathToModule)) {
-    throw new HardhatPluginError(
-      "hardhat-ignition",
-      `Could not find a module file at the path: ${modulePath}`
+    throw new HardhatError(
+      HardhatError.ERRORS.IGNITION.MODULE_NOT_FOUND_AT_PATH,
+      {
+        modulePath,
+      }
     );
   }
 
   if (!isInModuleDirectory(fullModulesDirectoryName, fullpathToModule)) {
-    throw new HardhatPluginError(
-      "hardhat-ignition",
-      `The referenced module file ${modulePath} is outside the module directory ${shortModulesDirectoryName}`
+    throw new HardhatError(
+      HardhatError.ERRORS.IGNITION.MODULE_OUTSIDE_MODULE_DIRECTORY,
+      {
+        modulePath,
+        shortModulesDirectoryName,
+      }
     );
   }
 
@@ -59,19 +61,19 @@ export function loadModule(
        * Errors thrown from within ModuleBuilder use this errorNumber.
        *
        * They have a stack trace that's useful to the user, so we display it here, instead of
-       * wrapping the error in a NomicLabsHardhatPluginError.
+       * wrapping the error in a HardhatError.
        */
       if (e.errorNumber === 702) {
         console.error(e);
 
-        throw new NomicLabsHardhatPluginError(
-          "hardhat-ignition",
-          "Module validation failed. Check the stack trace above to identify the issue and its source code location."
+        throw new HardhatError(
+          HardhatError.ERRORS.IGNITION.MODULE_VALIDATION_FAILED,
+          e
         );
       }
 
       if (shouldBeHardhatPluginError(e)) {
-        throw new NomicLabsHardhatPluginError("hardhat-ignition", e.message, e);
+        throw new HardhatError(HardhatError.ERRORS.IGNITION.INTERNAL_ERROR, e);
       }
     }
 

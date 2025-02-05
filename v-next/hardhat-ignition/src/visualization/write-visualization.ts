@@ -1,6 +1,6 @@
 import { SerializedIgnitionModule } from "@ignored/hardhat-vnext-ignition-core";
 import { ensureDir, pathExists, readFile, writeFile } from "fs-extra";
-import { NomicLabsHardhatPluginError } from "@ignored/hardhat-vnext/plugins";
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import path from "path";
 
 export async function writeVisualization(
@@ -18,9 +18,11 @@ export async function writeVisualization(
   const templateDirExists = await pathExists(templateDir);
 
   if (!templateDirExists) {
-    throw new NomicLabsHardhatPluginError(
-      "@nomicfouncation/hardhat-ignition",
-      `Unable to find template directory: ${templateDir}`
+    throw new HardhatError(
+      HardhatError.ERRORS.IGNITION.VISUALIZATION_TEMPLATE_DIR_NOT_FOUND,
+      {
+        templateDir,
+      }
     );
   }
 

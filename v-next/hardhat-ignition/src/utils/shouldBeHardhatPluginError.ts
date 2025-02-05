@@ -1,7 +1,7 @@
 import type { IgnitionError } from "@ignored/hardhat-vnext-ignition-core";
 
 /**
- * This is a whitelist of error codes that should be rethrown as NomicLabsHardhatPluginError.
+ * This is a whitelist of error codes that should be rethrown as HardhatErrors.
  *
  * The rules for adding an error code to this list are:
  *    - If an exception is used to tell the user that they did something wrong, it should be added.

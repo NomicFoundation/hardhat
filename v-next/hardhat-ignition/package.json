@@ -84,6 +84,7 @@
     "@ignored/hardhat-vnext": "workspace:^3.0.0-next.16"
   },
   "dependencies": {
+    "@ignored/hardhat-vnext-errors": "workspace:^3.0.0-next.15",
     "@ignored/hardhat-vnext-ignition-core": "workspace:^",
     "@ignored/hardhat-vnext-ignition-ui": "workspace:^",
     "chalk": "^4.0.0",

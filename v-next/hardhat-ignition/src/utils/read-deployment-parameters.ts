@@ -1,6 +1,6 @@
 import { DeploymentParameters } from "@ignored/hardhat-vnext-ignition-core";
 import { readFile } from "fs-extra";
-import { NomicLabsHardhatPluginError } from "@ignored/hardhat-vnext/plugins";
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { parse as json5Parse } from "json5";
 
 import { bigintReviver } from "./bigintReviver.js";
@@ -13,14 +13,16 @@ export async function readDeploymentParameters(
 
     return await json5Parse(rawFile.toString(), bigintReviver);
   } catch (e) {
-    if (e instanceof NomicLabsHardhatPluginError) {
+    if (e instanceof HardhatError) {
       throw e;
     }
 
     if (e instanceof Error) {
-      throw new NomicLabsHardhatPluginError(
-        "@nomicfoundation/hardhat-ignition",
-        `Could not parse parameters from ${filepath}`,
+      throw new HardhatError(
+        HardhatError.ERRORS.IGNITION.FAILED_TO_PARSE_DEPLOYMENT_PARAMETERS,
+        {
+          filepath,
+        },
         e
       );
     }

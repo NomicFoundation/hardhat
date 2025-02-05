@@ -1,5 +1,5 @@
 import { ListTransactionsResult } from "@ignored/hardhat-vnext-ignition-core";
-import { NomicLabsHardhatPluginError } from "@ignored/hardhat-vnext/plugins";
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { stringify } from "json5";
 
 export function calculateListTransactionsDisplay(
@@ -59,9 +59,9 @@ function transactionTypeToDisplayType(type: string): string {
     case "SEND_DATA_EXECUTION_STATE":
       return "Generic Transaction";
     default:
-      throw new NomicLabsHardhatPluginError(
-        "hardhat-ignition",
-        `Unknown transaction type: ${type}`
+      throw new HardhatError(
+        HardhatError.ERRORS.IGNITION.UNKNOWN_TRANSACTION_TYPE,
+        { type }
       );
   }
 }

@@ -10,7 +10,7 @@ import {
 import debug from "debug";
 import { ensureDir, pathExists, readdirSync, rm, writeJSON } from "fs-extra";
 import { extendConfig, extendEnvironment, scope } from "hardhat/config";
-import { NomicLabsHardhatPluginError } from "@ignored/hardhat-vnext/plugins";
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { parse as json5Parse } from "json5";
 import path from "path";
 
@@ -74,9 +74,8 @@ extendEnvironment((hre) => {
     (hre as any).ignition = {
       type: "stub",
       deploy: () => {
-        throw new NomicLabsHardhatPluginError(
-          "hardhat-ignition",
-          "Please install either `@nomicfoundation/hardhat-ignition-viem` or `@nomicfoundation/hardhat-ignition-ethers` to use Ignition in your Hardhat tests"
+        throw new HardhatError(
+          HardhatError.ERRORS.IGNITION.IGNITION_CLIENT_EXTENSION_NOT_INSTALLED
         );
       },
     };
@@ -144,9 +143,8 @@ ignitionScope
           hre.config.etherscan.apiKey === undefined ||
           hre.config.etherscan.apiKey === ""
         ) {
-          throw new NomicLabsHardhatPluginError(
-            "@nomicfoundation/hardhat-ignition",
-            "No etherscan API key configured"
+          throw new HardhatError(
+            HardhatError.ERRORS.IGNITION.ETHERSCAN_API_KEY_NOT_CONFIGURED
           );
         }
       }
@@ -221,9 +219,8 @@ ignitionScope
 
       if (reset) {
         if (deploymentDir === undefined) {
-          throw new NomicLabsHardhatPluginError(
-            "@nomicfoundation/hardhat-ignition",
-            "Deploy cancelled: Cannot reset deployment on ephemeral Hardhat network"
+          throw new HardhatError(
+            HardhatError.ERRORS.IGNITION.CANNOT_RESET_EPHEMERAL_NETWORK
           );
         } else {
           await rm(deploymentDir, { recursive: true, force: true });
@@ -231,10 +228,7 @@ ignitionScope
       }
 
       if (strategyName !== "basic" && strategyName !== "create2") {
-        throw new NomicLabsHardhatPluginError(
-          "hardhat-ignition",
-          "Invalid strategy name, must be either 'basic' or 'create2'"
-        );
+        throw new HardhatError(HardhatError.ERRORS.IGNITION.UNKNOWN_STRATEGY);
       }
 
       await hre.run("compile", { quiet: true });
@@ -242,10 +236,7 @@ ignitionScope
       const userModule = loadModule(hre.config.paths.ignition, modulePath);
 
       if (userModule === undefined) {
-        throw new NomicLabsHardhatPluginError(
-          "@nomicfoundation/hardhat-ignition",
-          "No Ignition modules found"
-        );
+        throw new HardhatError(HardhatError.ERRORS.IGNITION.NO_MODULES_FOUND);
       }
 
       let parameters: DeploymentParameters | undefined;
@@ -386,9 +377,8 @@ ignitionScope
         }
       } catch (e) {
         if (e instanceof IgnitionError && shouldBeHardhatPluginError(e)) {
-          throw new NomicLabsHardhatPluginError(
-            "hardhat-ignition",
-            e.message,
+          throw new HardhatError(
+            HardhatError.ERRORS.IGNITION.INTERNAL_ERROR,
             e
           );
         }
@@ -424,10 +414,7 @@ ignitionScope
       const userModule = loadModule(hre.config.paths.ignition, modulePath);
 
       if (userModule === undefined) {
-        throw new NomicLabsHardhatPluginError(
-          "@nomicfoundation/hardhat-ignition",
-          "No Ignition modules found"
-        );
+        throw new HardhatError(HardhatError.ERRORS.IGNITION.NO_MODULES_FOUND);
       } else {
         try {
           const serializedIgnitionModule =
@@ -443,9 +430,8 @@ ignitionScope
           );
         } catch (e) {
           if (e instanceof IgnitionError && shouldBeHardhatPluginError(e)) {
-            throw new NomicLabsHardhatPluginError(
-              "hardhat-ignition",
-              e.message,
+            throw new HardhatError(
+              HardhatError.ERRORS.IGNITION.INTERNAL_ERROR,
               e
             );
           }
@@ -492,7 +478,7 @@ ignitionScope
       statusResult = await status(deploymentDir, artifactResolver);
     } catch (e) {
       if (e instanceof IgnitionError && shouldBeHardhatPluginError(e)) {
-        throw new NomicLabsHardhatPluginError("hardhat-ignition", e.message, e);
+        throw new HardhatError(HardhatError.ERRORS.IGNITION.INTERNAL_ERROR, e);
       }
 
       throw e;
@@ -519,7 +505,7 @@ ignitionScope
       }
     } catch (e) {
       if (e instanceof IgnitionError && shouldBeHardhatPluginError(e)) {
-        throw new NomicLabsHardhatPluginError("hardhat-ignition", e.message, e);
+        throw new HardhatError(HardhatError.ERRORS.IGNITION.INTERNAL_ERROR, e);
       }
 
       throw e;
@@ -555,9 +541,8 @@ ignitionScope
         await wipe(deploymentDir, new HardhatArtifactResolver(hre), futureId);
       } catch (e) {
         if (e instanceof IgnitionError && shouldBeHardhatPluginError(e)) {
-          throw new NomicLabsHardhatPluginError(
-            "hardhat-ignition",
-            e.message,
+          throw new HardhatError(
+            HardhatError.ERRORS.IGNITION.INTERNAL_ERROR,
             e
           );
         }
@@ -716,7 +701,7 @@ ignitionScope
       );
     } catch (e) {
       if (e instanceof IgnitionError && shouldBeHardhatPluginError(e)) {
-        throw new NomicLabsHardhatPluginError("hardhat-ignition", e.message, e);
+        throw new HardhatError(HardhatError.ERRORS.IGNITION.INTERNAL_ERROR, e);
       }
 
       throw e;
@@ -755,14 +740,13 @@ function resolveParametersString(paramString: string): DeploymentParameters {
   try {
     return json5Parse(paramString, bigintReviver);
   } catch (e) {
-    if (e instanceof NomicLabsHardhatPluginError) {
+    if (e instanceof HardhatError) {
       throw e;
     }
 
     if (e instanceof Error) {
-      throw new NomicLabsHardhatPluginError(
-        "@nomicfoundation/hardhat-ignition",
-        "Could not parse JSON parameters",
+      throw new HardhatError(
+        HardhatError.ERRORS.IGNITION.FAILED_TO_PARSE_JSON,
         e
       );
     }

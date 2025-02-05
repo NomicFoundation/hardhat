@@ -1,4 +1,4 @@
-import { NomicLabsHardhatPluginError } from "@ignored/hardhat-vnext/plugins";
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
 export function bigintReviver(key: string, value: any): any {
   if (typeof value === "string" && /^\d+n$/.test(value)) {
@@ -6,9 +6,9 @@ export function bigintReviver(key: string, value: any): any {
   }
 
   if (typeof value === "number" && value > Number.MAX_SAFE_INTEGER) {
-    throw new NomicLabsHardhatPluginError(
-      "hardhat-ignition",
-      `Parameter "${key}" exceeds maximum safe integer size. Encode the value as a string using bigint notation: \`$\{value\}n\``
+    throw new HardhatError(
+      HardhatError.ERRORS.IGNITION.PARAMETER_EXCEEDS_MAXIMUM_SAFE_INTEGER,
+      { parameter: key, value }
     );
   }
 

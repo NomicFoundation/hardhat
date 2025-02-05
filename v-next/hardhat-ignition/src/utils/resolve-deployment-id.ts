@@ -1,4 +1,4 @@
-import { NomicLabsHardhatPluginError } from "@ignored/hardhat-vnext/plugins";
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
 /**
  * A regex that captures Ignitions rules for deployment-ids, specifically
@@ -26,10 +26,9 @@ export function resolveDeploymentId(
     givenDeploymentId !== undefined &&
     !_isValidDeploymentIdentifier(givenDeploymentId)
   ) {
-    throw new NomicLabsHardhatPluginError(
-      "hardhat-ignition",
-      `The deployment-id "${givenDeploymentId}" contains banned characters, ids can only contain alphanumerics, dashes or underscores`
-    );
+    throw new HardhatError(HardhatError.ERRORS.IGNITION.INVALID_DEPLOYMENT_ID, {
+      deploymentId: givenDeploymentId,
+    });
   }
 
   return givenDeploymentId ?? `chain-${chainId}`;
