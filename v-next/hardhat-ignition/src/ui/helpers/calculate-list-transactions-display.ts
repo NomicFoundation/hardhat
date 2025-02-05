@@ -1,13 +1,12 @@
 import type { ListTransactionsResult } from "@ignored/hardhat-vnext-ignition-core";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { stringify } from "json5";
 
-export function calculateListTransactionsDisplay(
+export async function calculateListTransactionsDisplay(
   deploymentId: string,
   listTransactionsResult: ListTransactionsResult,
   configUrl?: string,
-): string {
+): Promise<string> {
   let text = `Logging transactions for deployment ${deploymentId}\n\n`;
 
   for (const [index, transaction] of listTransactionsResult.entries()) {
@@ -35,6 +34,7 @@ export function calculateListTransactionsDisplay(
     }
 
     if (transaction.params !== undefined) {
+      const { stringify } = await import("json5");
       text += `  - Params: ${stringify(
         transaction.params,
         transactionDisplaySerializeReplacer,

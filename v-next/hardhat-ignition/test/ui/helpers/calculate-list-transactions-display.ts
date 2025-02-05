@@ -4,8 +4,8 @@ import { assert } from "chai";
 import { calculateListTransactionsDisplay } from "../../../src/ui/helpers/calculate-list-transactions-display.js";
 
 describe("calculateListTransactionsDisplay", function () {
-  it("should serialize a bigint in transaction params", () => {
-    const result = calculateListTransactionsDisplay("1", [
+  it("should serialize a bigint in transaction params", async () => {
+    const result = await calculateListTransactionsDisplay("1", [
       {
         status: TransactionStatus.SUCCESS,
         type: "DEPLOYMENT_EXECUTION_STATE",
@@ -36,8 +36,8 @@ Transaction 1:
     assert.equal(result, expected);
   });
 
-  it("should serialize bigints in nested transaction params", () => {
-    const result = calculateListTransactionsDisplay("1", [
+  it("should serialize bigints in nested transaction params", async () => {
+    const result = await calculateListTransactionsDisplay("1", [
       {
         status: TransactionStatus.SUCCESS,
         type: "DEPLOYMENT_EXECUTION_STATE",
