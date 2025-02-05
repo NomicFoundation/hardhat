@@ -4,7 +4,7 @@ import {
   exists,
   getAccessTime,
   getAllFilesMatching,
-  getSize,
+  getFileSize,
   readJsonFile,
   remove,
   writeJsonFile,
@@ -46,7 +46,7 @@ export class ObjectCache<T> {
       files.map(async (file) => ({
         file,
         atimeMs: (await getAccessTime(file)).getTime(),
-        size: await getSize(file),
+        size: await getFileSize(file),
       })),
     );
 

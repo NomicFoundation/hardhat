@@ -437,7 +437,7 @@ export async function getAccessTime(absolutePath: string): Promise<Date> {
  * @throws FileNotFoundError if the path does not exist.
  * @throws FileSystemAccessError for any other error.
  */
-export async function getSize(absolutePath: string): Promise<number> {
+export async function getFileSize(absolutePath: string): Promise<number> {
   try {
     const stats = await fsPromises.stat(absolutePath);
     return stats.size;

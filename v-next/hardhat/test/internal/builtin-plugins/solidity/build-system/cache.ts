@@ -3,7 +3,10 @@ import { randomUUID } from "node:crypto";
 import path from "node:path";
 import { beforeEach, describe, it } from "node:test";
 
-import { getAllFilesMatching, getSize } from "@ignored/hardhat-vnext-utils/fs";
+import {
+  getAllFilesMatching,
+  getFileSize,
+} from "@ignored/hardhat-vnext-utils/fs";
 import { useTmpDir } from "@nomicfoundation/hardhat-test-utils";
 
 import { ObjectCache } from "../../../../../src/internal/builtin-plugins/solidity/build-system/cache.js";
@@ -99,7 +102,7 @@ describe("ObjectCache", () => {
       const filesBefore = await getAllFilesMatching(cachePath);
       assert.notDeepEqual(filesBefore, []);
       cache.set(randomUUID(), testValue);
-      await cache.clean(undefined, (await getSize(filesBefore[0])) * 1.5);
+      await cache.clean(undefined, (await getFileSize(filesBefore[0])) * 1.5);
       const filesAfter = await getAllFilesMatching(cachePath);
       assert.notDeepEqual(filesAfter, []);
       assert.notDeepEqual(filesAfter, filesBefore);

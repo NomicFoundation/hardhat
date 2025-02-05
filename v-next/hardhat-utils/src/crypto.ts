@@ -31,6 +31,5 @@ export async function createNonCryptographicHashId(
 ): Promise<string> {
   const message = new TextEncoder().encode(data);
   const buffer = await crypto.subtle.digest("SHA-1", message);
-  const array = Array.from(new Uint8Array(buffer));
-  return array.map((b) => b.toString(16).padStart(2, "0")).join("");
+  return Buffer.from(buffer).toString("hex");
 }

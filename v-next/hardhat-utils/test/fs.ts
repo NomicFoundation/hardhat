@@ -27,7 +27,7 @@ import {
   writeUtf8File,
   readBinaryFile,
   getAccessTime,
-  getSize,
+  getFileSize,
 } from "../src/fs.js";
 
 import { useTmpDir } from "./helpers/fs.js";
@@ -775,13 +775,13 @@ describe("File system utils", () => {
 
       const stats = await fsPromises.stat(filePath);
 
-      assert.equal(stats.size, await getSize(filePath));
+      assert.equal(stats.size, await getFileSize(filePath));
     });
 
     it("Should throw FileNotFoundError if the file doesn't exist", async () => {
       const filePath = path.join(getTmpDir(), "not-exists.txt");
 
-      await assert.rejects(getSize(filePath), {
+      await assert.rejects(getFileSize(filePath), {
         name: "FileNotFoundError",
         message: `File ${filePath} not found`,
       });
@@ -790,7 +790,7 @@ describe("File system utils", () => {
     it("Should throw FileSystemAccessError if a different error is thrown", async () => {
       const invalidPath = "\0";
 
-      await assert.rejects(getSize(invalidPath), {
+      await assert.rejects(getFileSize(invalidPath), {
         name: "FileSystemAccessError",
       });
     });
