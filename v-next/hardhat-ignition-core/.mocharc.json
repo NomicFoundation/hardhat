@@ -1,0 +1,11 @@
+{
+  "extension": ["ts"],
+  "loader": "ts-node/esm",
+  "file": "./test/setup.ts",
+  "timeout": 25000,
+  "exclude": [
+    "./test/helpers/**/*",
+    "./test-integrations/fixture-projects/**/*",
+    "./test-integrations/helpers/**/*"
+  ]
+}
