@@ -24,7 +24,7 @@ export async function sendErrorTelemetry(
   configPath: string = "",
 ): Promise<boolean> {
   const instance = await Reporter.getInstance();
-  return instance.reportError(error, configPath);
+  return instance.reportErrorViaSubprocess(error, configPath);
 }
 
 // ATTENTION: this function is exported for testing, do not directly use it in production
@@ -86,7 +86,7 @@ class Reporter {
     this.#instance = undefined;
   }
 
-  public async reportError(
+  public async reportErrorViaSubprocess(
     error: Error,
     configPath: string = "",
   ): Promise<boolean> {
