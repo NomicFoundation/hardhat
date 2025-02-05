@@ -1,6 +1,7 @@
+import path from "node:path";
+
 import { assert } from "chai";
 import { pathExists, removeSync } from "fs-extra";
-import path from "path";
 
 import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";
 

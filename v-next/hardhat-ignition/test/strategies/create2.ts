@@ -1,7 +1,8 @@
 /* eslint-disable import/no-unused-modules */
+import type { HardhatRuntimeEnvironment } from "hardhat/types";
+
 import { buildModule } from "@ignored/hardhat-vnext-ignition-core";
 import { assert } from "chai";
-import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { presignedTx } from "../test-helpers/createX-tx.js";
 import { externallyLoadedContractArtifact } from "../test-helpers/externally-loaded-contract.js";

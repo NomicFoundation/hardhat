@@ -1,4 +1,7 @@
 /* eslint-disable import/no-unused-modules */
+import type {
+  TestChainHelper} from "../../test-helpers/use-ignition-project.js";
+
 import { buildModule } from "@ignored/hardhat-vnext-ignition-core";
 import { assert } from "chai";
 import { createWalletClient, custom, parseEther } from "viem";
@@ -7,7 +10,6 @@ import { hardhat } from "viem/chains";
 import { mineBlock } from "../../test-helpers/mine-block.js";
 import { sleep } from "../../test-helpers/sleep.js";
 import {
-  TestChainHelper,
   useFileIgnitionProject,
 } from "../../test-helpers/use-ignition-project.js";
 

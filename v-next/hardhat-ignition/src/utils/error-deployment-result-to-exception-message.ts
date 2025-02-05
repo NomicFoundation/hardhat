@@ -1,11 +1,13 @@
-import {
-  DeploymentResultType,
+import type {
   ExecutionErrorDeploymentResult,
   PreviousRunErrorDeploymentResult,
   ReconciliationErrorDeploymentResult,
-  ValidationErrorDeploymentResult,
-} from "@ignored/hardhat-vnext-ignition-core";
+  ValidationErrorDeploymentResult} from "@ignored/hardhat-vnext-ignition-core";
+
 import { HardhatPluginError } from "@ignored/hardhat-vnext/plugins";
+import {
+  DeploymentResultType
+} from "@ignored/hardhat-vnext-ignition-core";
 
 /**
  * Converts the result of an errored deployment into a message that can

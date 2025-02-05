@@ -1,3 +1,4 @@
+import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
 import { status } from "@ignored/hardhat-vnext-ignition-core";
 import { assert } from "chai";
 
@@ -29,7 +30,9 @@ describe("reset flag", function () {
     );
 
     const artifactResolver = new HardhatArtifactResolver(this.hre);
-    const result = await status(this.deploymentDir!, artifactResolver);
+
+    assertHardhatInvariant(this.deploymentDir !== undefined, "Deployment dir is undefined");
+    const result = await status(this.deploymentDir, artifactResolver);
 
     // ResetModule#B will only be in the success list if the second
     // run ran without any reconciliation errors - so the retry

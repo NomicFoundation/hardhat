@@ -1,4 +1,5 @@
-import { StatusResult } from "@ignored/hardhat-vnext-ignition-core";
+import type { StatusResult } from "@ignored/hardhat-vnext-ignition-core";
+
 import { assert } from "chai";
 import chalk from "chalk";
 

@@ -1,5 +1,5 @@
-import path from "path";
-import process from "process";
+import path from "node:path";
+import process from "node:process";
 
 export function pathFromCwd(thePath: string): string {
   const cwd = process.cwd();

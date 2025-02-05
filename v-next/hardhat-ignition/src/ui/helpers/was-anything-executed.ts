@@ -1,4 +1,4 @@
-import { UiState } from "../types.js";
+import type { UiState } from "../types.js";
 
 /**
  * Was anything executed during the deployment. We determine this based

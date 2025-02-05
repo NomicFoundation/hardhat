@@ -1,10 +1,12 @@
+import type {
+  UiFuture,
+  UiState} from "../../../src/ui/types.js";
+
 import { assert } from "chai";
 
 import { calculateBatchDisplay } from "../../../src/ui/helpers/calculate-batch-display.js";
 import {
-  UiFuture,
   UiFutureStatusType,
-  UiState,
   UiStateDeploymentStatus,
 } from "../../../src/ui/types.js";
 

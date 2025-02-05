@@ -1,4 +1,13 @@
-import {
+/* eslint-disable no-restricted-syntax */
+import type {
+  UiBatches,
+  UiFuture,
+  UiFutureErrored,
+  UiFutureHeld,
+  UiFutureStatus,
+  UiFutureSuccess,
+  UiState} from "./types.js";
+import type {
   BatchInitializeEvent,
   BeginNextBatchEvent,
   CallExecutionStateCompleteEvent,
@@ -10,12 +19,10 @@ import {
   DeploymentInitializeEvent,
   DeploymentParameters,
   DeploymentResult,
-  DeploymentResultType,
   DeploymentStartEvent,
   EncodeFunctionCallExecutionStateInitializeEvent,
   ExecutionEventListener,
   ExecutionEventResult,
-  ExecutionEventResultType,
   NetworkInteractionRequestEvent,
   OnchainInteractionBumpFeesEvent,
   OnchainInteractionDroppedEvent,
@@ -33,9 +40,15 @@ import {
   StaticCallExecutionStateInitializeEvent,
   TransactionConfirmEvent,
   TransactionSendEvent,
-  WipeApplyEvent,
+  WipeApplyEvent} from "@ignored/hardhat-vnext-ignition-core";
+
+import readline from "node:readline";
+
+import {
+  DeploymentResultType,
+  ExecutionEventResultType
 } from "@ignored/hardhat-vnext-ignition-core";
-import readline from "readline";
+
 
 import { calculateBatchDisplay } from "./helpers/calculate-batch-display.js";
 import { calculateDeployingModulePanel } from "./helpers/calculate-deploying-module-panel.js";
@@ -43,14 +56,7 @@ import { calculateDeploymentCompleteDisplay } from "./helpers/calculate-deployme
 import { calculateStartingMessage } from "./helpers/calculate-starting-message.js";
 import { wasAnythingExecuted } from "./helpers/was-anything-executed.js";
 import {
-  UiBatches,
-  UiFuture,
-  UiFutureErrored,
-  UiFutureHeld,
-  UiFutureStatus,
   UiFutureStatusType,
-  UiFutureSuccess,
-  UiState,
   UiStateDeploymentStatus,
 } from "./types.js";
 
@@ -75,8 +81,8 @@ export class PrettyEventHandler implements ExecutionEventListener {
   };
 
   constructor(
-    private _deploymentParams: DeploymentParameters = {},
-    private _disableOutput = false,
+    private readonly _deploymentParams: DeploymentParameters = {},
+    private readonly _disableOutput = false,
   ) {}
 
   public get state(): UiState {

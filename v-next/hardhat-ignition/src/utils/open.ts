@@ -1,5 +1,5 @@
-import { execSync } from "child_process";
-import os from "os";
+import { execSync } from "node:child_process";
+import os from "node:os";
 
 export function open(filePath: string): void {
   let command: string;

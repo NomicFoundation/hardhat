@@ -1,7 +1,8 @@
 /* eslint-disable import/no-unused-modules */
+import path from "node:path";
+
 import { assert } from "chai";
 import { emptyDirSync, readdir } from "fs-extra";
-import path from "path";
 
 import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";
 

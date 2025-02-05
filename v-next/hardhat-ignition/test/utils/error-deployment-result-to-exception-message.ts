@@ -1,9 +1,11 @@
-import {
-  DeploymentResultType,
+import type {
   ExecutionErrorDeploymentResult,
   PreviousRunErrorDeploymentResult,
   ReconciliationErrorDeploymentResult,
-  ValidationErrorDeploymentResult,
+  ValidationErrorDeploymentResult} from "@ignored/hardhat-vnext-ignition-core";
+
+import {
+  DeploymentResultType
 } from "@ignored/hardhat-vnext-ignition-core";
 import { assert } from "chai";
 

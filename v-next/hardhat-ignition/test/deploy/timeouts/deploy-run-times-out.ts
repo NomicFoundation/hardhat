@@ -1,10 +1,12 @@
 /* eslint-disable import/no-unused-modules */
-import { setNextBlockBaseFeePerGas } from "@nomicfoundation/hardhat-network-helpers";
+import type {
+  TestChainHelper} from "../../test-helpers/use-ignition-project.js";
+
 import { buildModule } from "@ignored/hardhat-vnext-ignition-core";
+import { setNextBlockBaseFeePerGas } from "@nomicfoundation/hardhat-network-helpers";
 import { assert } from "chai";
 
 import {
-  TestChainHelper,
   useFileIgnitionProject,
 } from "../../test-helpers/use-ignition-project.js";
 

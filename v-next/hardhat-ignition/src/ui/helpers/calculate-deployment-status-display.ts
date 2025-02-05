@@ -1,4 +1,5 @@
-import { StatusResult } from "@ignored/hardhat-vnext-ignition-core";
+import type { StatusResult } from "@ignored/hardhat-vnext-ignition-core";
+
 import chalk from "chalk";
 
 export function calculateDeploymentStatusDisplay(

@@ -1,4 +1,5 @@
-import { ListTransactionsResult } from "@ignored/hardhat-vnext-ignition-core";
+import type { ListTransactionsResult } from "@ignored/hardhat-vnext-ignition-core";
+
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { stringify } from "json5";
 

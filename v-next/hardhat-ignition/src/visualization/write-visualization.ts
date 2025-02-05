@@ -1,18 +1,20 @@
-import { SerializedIgnitionModule } from "@ignored/hardhat-vnext-ignition-core";
-import { ensureDir, pathExists, readFile, writeFile } from "fs-extra";
+import type { SerializedIgnitionModule } from "@ignored/hardhat-vnext-ignition-core";
+
+import path from "node:path";
+
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import path from "path";
+import { ensureDir, pathExists, readFile, writeFile } from "fs-extra";
 
 export async function writeVisualization(
   visualizationPayload: {
     module: SerializedIgnitionModule;
     batches: string[][];
   },
-  { cacheDir }: { cacheDir: string },
+  { cacheDir }: { cacheDir: string }
 ): Promise<void> {
   const templateDir = path.join(
     require.resolve("@nomicfoundation/ignition-ui/package.json"),
-    "../dist",
+    "../dist"
   );
 
   const templateDirExists = await pathExists(templateDir);
@@ -22,7 +24,7 @@ export async function writeVisualization(
       HardhatError.ERRORS.IGNITION.VISUALIZATION_TEMPLATE_DIR_NOT_FOUND,
       {
         templateDir,
-      },
+      }
     );
   }
 

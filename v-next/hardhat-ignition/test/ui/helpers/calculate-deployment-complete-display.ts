@@ -1,17 +1,20 @@
-import {
+import type { UiBatches} from "../../../src/ui/types.js";
+import type {
   DeploymentCompleteEvent,
-  DeploymentResultType,
   ExecutionErrorDeploymentResult,
-  ExecutionEventType,
   PreviousRunErrorDeploymentResult,
   ReconciliationErrorDeploymentResult,
-  ValidationErrorDeploymentResult,
+  ValidationErrorDeploymentResult} from "@ignored/hardhat-vnext-ignition-core";
+
+import {
+  DeploymentResultType,
+  ExecutionEventType
 } from "@ignored/hardhat-vnext-ignition-core";
 import { assert } from "chai";
 import chalk from "chalk";
 
 import { calculateDeploymentCompleteDisplay } from "../../../src/ui/helpers/calculate-deployment-complete-display.js";
-import { UiBatches, UiFutureStatusType } from "../../../src/ui/types.js";
+import { UiFutureStatusType } from "../../../src/ui/types.js";
 
 import { testFormat } from "./test-format.js";
 

@@ -1,23 +1,26 @@
-import {
-  deploy,
+import type {
   DeployConfig,
   DeploymentParameters,
-  DeploymentResultType,
   EIP1193Provider,
   Future,
   IgnitionModule,
   IgnitionModuleResult,
-  isContractFuture,
   StrategyConfig,
-  SuccessfulDeploymentResult,
-} from "@ignored/hardhat-vnext-ignition-core";
+  SuccessfulDeploymentResult} from "@ignored/hardhat-vnext-ignition-core";
+import type { HardhatRuntimeEnvironment } from "hardhat/types";
+import type {
+  GetContractReturnType} from "viem";
+
 import { HardhatPluginError } from "@ignored/hardhat-vnext/plugins";
-import { HardhatRuntimeEnvironment } from "hardhat/types";
+import {
+  deploy,
+  DeploymentResultType,
+  isContractFuture
+} from "@ignored/hardhat-vnext-ignition-core";
 import {
   createPublicClient,
   custom,
-  getContract,
-  GetContractReturnType,
+  getContract
 } from "viem";
 import { hardhat } from "viem/chains";
 
@@ -43,12 +46,12 @@ export interface TypeChainViemContractByName {
 export class TestIgnitionHelper {
   public type = "test";
 
-  private _provider: EIP1193Provider;
-  private _deploymentDir: string | undefined;
+  private readonly _provider: EIP1193Provider;
+  private readonly _deploymentDir: string | undefined;
 
   constructor(
-    private _hre: HardhatRuntimeEnvironment,
-    private _config?: Partial<DeployConfig> | undefined,
+    private readonly _hre: HardhatRuntimeEnvironment,
+    private readonly _config?: Partial<DeployConfig> | undefined,
     provider?: EIP1193Provider,
     deploymentDir?: string,
   ) {

@@ -1,4 +1,4 @@
-import {
+import type {
   BatchInitializeEvent,
   BeginNextBatchEvent,
   CallExecutionStateCompleteEvent,
@@ -11,8 +11,6 @@ import {
   DeploymentStartEvent,
   EncodeFunctionCallExecutionStateInitializeEvent,
   ExecutionEventListener,
-  ExecutionEventNetworkInteractionType,
-  ExecutionEventResultType,
   NetworkInteractionRequestEvent,
   OnchainInteractionBumpFeesEvent,
   OnchainInteractionDroppedEvent,
@@ -30,7 +28,11 @@ import {
   StaticCallExecutionStateInitializeEvent,
   TransactionConfirmEvent,
   TransactionSendEvent,
-  WipeApplyEvent,
+  WipeApplyEvent} from "@ignored/hardhat-vnext-ignition-core";
+
+import {
+  ExecutionEventNetworkInteractionType,
+  ExecutionEventResultType
 } from "@ignored/hardhat-vnext-ignition-core";
 
 export class VerboseEventHandler implements ExecutionEventListener {

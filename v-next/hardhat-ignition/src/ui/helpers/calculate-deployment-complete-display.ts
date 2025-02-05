@@ -1,15 +1,17 @@
-import {
+import type { UiState } from "../types.js";
+import type {
   DeploymentCompleteEvent,
-  DeploymentResultType,
   ExecutionErrorDeploymentResult,
   PreviousRunErrorDeploymentResult,
   ReconciliationErrorDeploymentResult,
   SuccessfulDeploymentResult,
-  ValidationErrorDeploymentResult,
+  ValidationErrorDeploymentResult} from "@ignored/hardhat-vnext-ignition-core";
+
+import {
+  DeploymentResultType
 } from "@ignored/hardhat-vnext-ignition-core";
 import chalk from "chalk";
 
-import { UiState } from "../types.js";
 
 import { pathFromCwd } from "./cwd-relative-path.js";
 import { wasAnythingExecuted } from "./was-anything-executed.js";

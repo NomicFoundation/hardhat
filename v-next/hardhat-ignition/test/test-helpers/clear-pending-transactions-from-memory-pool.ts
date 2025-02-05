@@ -1,5 +1,6 @@
+import type { HardhatRuntimeEnvironment } from "hardhat/types";
+
 import { assert } from "chai";
-import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 export async function clearPendingTransactionsFromMemoryPool(
   hre: HardhatRuntimeEnvironment,

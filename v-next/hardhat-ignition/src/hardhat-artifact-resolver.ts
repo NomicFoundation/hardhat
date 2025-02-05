@@ -1,15 +1,19 @@
-import {
+/* eslint-disable no-restricted-syntax */
+import type {
   Artifact,
   ArtifactResolver,
   BuildInfo,
 } from "@ignored/hardhat-vnext-ignition-core";
-import fs from "fs";
+import type { HardhatRuntimeEnvironment } from "hardhat/types";
+
+import fs from "node:fs";
+import path from "node:path";
+
 import { HardhatPluginError } from "@ignored/hardhat-vnext/plugins";
-import { HardhatRuntimeEnvironment } from "hardhat/types";
-import path from "path";
+
 
 export class HardhatArtifactResolver implements ArtifactResolver {
-  constructor(private _hre: HardhatRuntimeEnvironment) {}
+  constructor(private readonly _hre: HardhatRuntimeEnvironment) {}
 
   public async getBuildInfo(
     contractName: string,
