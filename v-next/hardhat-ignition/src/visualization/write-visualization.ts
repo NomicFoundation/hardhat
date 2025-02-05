@@ -3,7 +3,12 @@ import type { SerializedIgnitionModule } from "@ignored/hardhat-vnext-ignition-c
 import path from "node:path";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { ensureDir, pathExists, readFile, writeFile } from "fs-extra";
+import {
+  ensureDir,
+  exists,
+  readUtf8File,
+  writeUtf8File,
+} from "@ignored/hardhat-vnext-utils/fs";
 
 export async function writeVisualization(
   visualizationPayload: {
@@ -17,7 +22,7 @@ export async function writeVisualization(
     "../dist",
   );
 
-  const templateDirExists = await pathExists(templateDir);
+  const templateDirExists = await exists(templateDir);
 
   if (!templateDirExists) {
     throw new HardhatError(
@@ -32,10 +37,10 @@ export async function writeVisualization(
 
   await ensureDir(visualizationDir);
 
-  const indexHtml = await readFile(path.join(templateDir, "index.html"));
+  const indexHtml = await readUtf8File(path.join(templateDir, "index.html"));
   const updatedHtml = indexHtml
     .toString()
     .replace('{ "unloaded": true }', JSON.stringify(visualizationPayload));
 
-  await writeFile(path.join(visualizationDir, "index.html"), updatedHtml);
+  await writeUtf8File(path.join(visualizationDir, "index.html"), updatedHtml);
 }

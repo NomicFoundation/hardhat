@@ -6,7 +6,7 @@ import type { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import path from "node:path";
 
-import { ensureDirSync } from "fs-extra";
+import { ensureDir } from "@ignored/hardhat-vnext-utils/fs";
 
 import { clearPendingTransactionsFromMemoryPool } from "./clear-pending-transactions-from-memory-pool.js";
 import { TestIgnitionHelper } from "./test-ignition-helper.js";
@@ -90,7 +90,7 @@ export function useFileIgnitionProject(
 
     this.config = testConfig;
 
-    ensureDirSync(deploymentDir);
+    await ensureDir(deploymentDir);
 
     this.runControlledDeploy = (
       ignitionModule: IgnitionModule,

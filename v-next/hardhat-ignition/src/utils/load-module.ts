@@ -4,8 +4,8 @@ import path from "node:path";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { IgnitionError } from "@ignored/hardhat-vnext-ignition-core";
+import { exists } from "@ignored/hardhat-vnext-utils/fs";
 import setupDebug from "debug";
-import { pathExistsSync } from "fs-extra";
 
 import { shouldBeHardhatPluginError } from "./shouldBeHardhatPluginError.js";
 
@@ -13,10 +13,10 @@ const debug = setupDebug("hardhat-ignition:modules");
 
 const MODULES_FOLDER = "modules";
 
-export function loadModule(
+export async function loadModule(
   ignitionDirectory: string,
   modulePath: string,
-): IgnitionModule | undefined {
+): Promise<IgnitionModule | undefined> {
   const fullModulesDirectoryName = path.resolve(
     ignitionDirectory,
     MODULES_FOLDER,
@@ -31,7 +31,7 @@ export function loadModule(
 
   const fullpathToModule = path.resolve(modulePath);
 
-  if (!pathExistsSync(fullpathToModule)) {
+  if (!(await exists(fullpathToModule))) {
     throw new HardhatError(
       HardhatError.ERRORS.IGNITION.MODULE_NOT_FOUND_AT_PATH,
       {

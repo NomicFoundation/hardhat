@@ -1,7 +1,7 @@
 import path from "node:path";
 
+import { exists, remove } from "@ignored/hardhat-vnext-utils/fs";
 import { assert } from "chai";
-import { pathExists, removeSync } from "fs-extra";
 
 import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";
 
@@ -17,11 +17,11 @@ describe("localhost deployment flag", function () {
 
   beforeEach("clean filesystem", async function () {
     // make sure nothing is left over from a previous test
-    removeSync(deploymentDir);
+    await remove(deploymentDir);
   });
-  afterEach("clean filesystem", function () {
+  afterEach("clean filesystem", async function () {
     // cleanup
-    removeSync(deploymentDir);
+    await remove(deploymentDir);
   });
 
   it("true should write deployment to disk", async function () {
@@ -33,10 +33,7 @@ describe("localhost deployment flag", function () {
       },
     );
 
-    assert(
-      await pathExists(deploymentDir),
-      "Deployment was not written to disk",
-    );
+    assert(await exists(deploymentDir), "Deployment was not written to disk");
   });
 
   it("false should not write deployment to disk", async function () {
@@ -49,7 +46,7 @@ describe("localhost deployment flag", function () {
     );
 
     assert(
-      !(await pathExists(deploymentDir)),
+      !(await exists(deploymentDir)),
       "Deployment was not written to disk",
     );
   });

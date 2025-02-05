@@ -7,14 +7,14 @@ import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-projec
 describe("loadModule", function () {
   useEphemeralIgnitionProject("user-modules");
 
-  it("should throw if the full path to the module does not exist", () => {
-    assert.throws(
-      () => loadModule("ignition", "./ignition/modules/Fake.js"),
+  it("should throw if the full path to the module does not exist", async () => {
+    await assert.isRejected(
+      loadModule("ignition", "./ignition/modules/Fake.js"),
       "Could not find a module file at the path: ./ignition/modules/Fake.js",
     );
   });
 
-  it("should throw if the full path to the module is outside the module directory", () => {
+  it("should throw if the full path to the module is outside the module directory", async () => {
     const unixErrorMessage = `The referenced module file ./hardhat.config.js is outside the module directory ignition/modules`;
 
     const expectedErrorMessage =
@@ -22,8 +22,8 @@ describe("loadModule", function () {
         ? unixErrorMessage.replace("ignition/modules", "ignition\\modules")
         : unixErrorMessage;
 
-    assert.throws(
-      () => loadModule("ignition", "./hardhat.config.js"),
+    await assert.isRejected(
+      loadModule("ignition", "./hardhat.config.js"),
       expectedErrorMessage,
     );
   });
