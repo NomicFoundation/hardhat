@@ -1,7 +1,7 @@
 import {
   IgnitionModuleSerializer,
   batches,
-} from "@nomicfoundation/ignition-core";
+} from "@ignored/hardhat-vnext-ignition-core";
 import { writeFile } from "node:fs/promises";
 
 import complexModule from "../examples/ComplexModule.js";

@@ -1,4 +1,4 @@
-import { buildModule } from "@nomicfoundation/ignition-core";
+import { buildModule } from "@ignored/hardhat-vnext-ignition-core";
 
 const fakeArtifact = ["fake artifact"];
 
