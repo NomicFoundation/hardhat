@@ -22,6 +22,7 @@ import {
   StaticCallExecutionStateCompleteMessage,
   StaticCallExecutionStateInitializeMessage,
   TransactionConfirmMessage,
+  TransactionPrepareSendMessage,
   TransactionSendMessage,
 } from "../types/messages";
 
@@ -81,6 +82,7 @@ export function executionStateReducer(
     | ReadEventArgExecutionStateInitializeMessage
     | EncodeFunctionCallExecutionStateInitializeMessage
     | NetworkInteractionRequestMessage
+    | TransactionPrepareSendMessage
     | TransactionSendMessage
     | TransactionConfirmMessage
     | StaticCallCompleteMessage
@@ -145,6 +147,15 @@ export function executionStateReducer(
         action,
         exStateTypesThatSupportOnchainInteractionsAndStaticCalls,
         completeStaticCall
+      );
+    case JournalMessageType.TRANSACTION_PREPARE_SEND:
+      // This is a no-op, as this message does not modify the execution state
+      // and is only used to recover if the transaction send fails
+      return _ensureStateThen(
+        state,
+        action,
+        exStateTypesThatSupportOnchainInteractions,
+        (exState) => exState
       );
     case JournalMessageType.TRANSACTION_SEND:
       return _ensureStateThen(

@@ -1,4 +1,5 @@
 import { FutureType, SolidityParameterType } from "../../../types/module";
+import { TransactionParams } from "../jsonrpc-client";
 
 import {
   CallExecutionResult,
@@ -35,6 +36,7 @@ export type JournalMessage =
   | ReadEventArgExecutionStateInitializeMessage
   | EncodeFunctionCallExecutionStateInitializeMessage
   | NetworkInteractionRequestMessage
+  | TransactionPrepareSendMessage
   | TransactionSendMessage
   | TransactionConfirmMessage
   | StaticCallCompleteMessage
@@ -65,6 +67,7 @@ export enum JournalMessageType {
   READ_EVENT_ARGUMENT_EXECUTION_STATE_INITIALIZE = "READ_EVENT_ARGUMENT_EXECUTION_STATE_INITIALIZE",
   ENCODE_FUNCTION_CALL_EXECUTION_STATE_INITIALIZE = "ENCODE_FUNCTION_CALL_EXECUTION_STATE_INITIALIZE",
   NETWORK_INTERACTION_REQUEST = "NETWORK_INTERACTION_REQUEST",
+  TRANSACTION_PREPARE_SEND = "TRANSACTION_PREPARE_SEND",
   TRANSACTION_SEND = "TRANSACTION_SEND",
   TRANSACTION_CONFIRM = "TRANSACTION_CONFIRM",
   STATIC_CALL_COMPLETE = "STATIC_CALL_COMPLETE",
@@ -203,6 +206,13 @@ export interface NetworkInteractionRequestMessage {
   networkInteraction:
     | OnchainInteractionRequest
     | Omit<Required<StaticCallRequest>, "result">;
+}
+
+export interface TransactionPrepareSendMessage {
+  type: JournalMessageType.TRANSACTION_PREPARE_SEND;
+  futureId: string;
+  networkInteractionId: number;
+  transactionParams: TransactionParams;
 }
 
 export interface TransactionSendMessage {

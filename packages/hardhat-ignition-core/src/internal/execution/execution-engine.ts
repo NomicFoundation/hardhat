@@ -1,3 +1,4 @@
+import { IgnitionError } from "../../errors";
 import { ArtifactResolver } from "../../types/artifact";
 import { DeploymentParameters } from "../../types/deploy";
 import {
@@ -10,6 +11,7 @@ import {
   IgnitionModuleResult,
 } from "../../types/module";
 import { DeploymentLoader } from "../deployment-loader/types";
+import { ERRORS } from "../errors-list";
 import { assertIgnitionInvariant } from "../utils/assertions";
 import { getFuturesFromModule } from "../utils/get-futures-from-module";
 import { getPendingNonceAndSender } from "../views/execution-state/get-pending-nonce-and-sender";
@@ -25,6 +27,10 @@ import { JsonRpcNonceManager } from "./nonce-management/json-rpc-nonce-manager";
 import { TransactionTrackingTimer } from "./transaction-tracking-timer";
 import { DeploymentState } from "./types/deployment-state";
 import { ExecutionStrategy } from "./types/execution-strategy";
+import {
+  JournalMessageType,
+  TransactionPrepareSendMessage,
+} from "./types/messages";
 
 /**
  * This class is used to execute a module to completion, returning the new
@@ -68,6 +74,8 @@ export class ExecutionEngine {
     deploymentParameters: DeploymentParameters,
     defaultSender: string
   ): Promise<DeploymentState> {
+    await this._checkForMissingTransactions();
+
     deploymentState = await this._syncNonces(
       deploymentState,
       module,
@@ -195,6 +203,74 @@ export class ExecutionEngine {
       if (newBlock.number > previousBlock.number) {
         return newBlock;
       }
+    }
+  }
+
+  /**
+   * Checks the journal for missing transactions, throws if any are found
+   * and asks the user to track the missing transaction via the `track-tx` command.
+   */
+  private async _checkForMissingTransactions(): Promise<void> {
+    const prepareSendMessageMap: {
+      [futureId: string]: TransactionPrepareSendMessage[];
+    } = {};
+
+    for await (const message of this._deploymentLoader.readFromJournal()) {
+      if (
+        message.type !== JournalMessageType.TRANSACTION_SEND &&
+        message.type !== JournalMessageType.TRANSACTION_PREPARE_SEND &&
+        message.type !== JournalMessageType.ONCHAIN_INTERACTION_REPLACED_BY_USER
+      ) {
+        continue;
+      }
+
+      if (message.type === JournalMessageType.TRANSACTION_PREPARE_SEND) {
+        if (prepareSendMessageMap[message.futureId] === undefined) {
+          prepareSendMessageMap[message.futureId] = [];
+        }
+
+        prepareSendMessageMap[message.futureId].push(message);
+        continue;
+      }
+
+      if (
+        message.type === JournalMessageType.TRANSACTION_SEND ||
+        message.type === JournalMessageType.ONCHAIN_INTERACTION_REPLACED_BY_USER
+      ) {
+        const prepareSendMessages = prepareSendMessageMap[message.futureId];
+
+        // I believe the only way this could happen is if the deployment being resumed
+        // was first run before we added the prepare send message
+        if (prepareSendMessages === undefined) {
+          continue;
+        }
+
+        const indexOfMatchedMessage = prepareSendMessages.findIndex(
+          (prepareSendMessage) =>
+            message.type === JournalMessageType.TRANSACTION_SEND
+              ? prepareSendMessage.networkInteractionId ===
+                  message.networkInteractionId &&
+                prepareSendMessage.transactionParams.nonce === message.nonce
+              : prepareSendMessage.networkInteractionId ===
+                message.networkInteractionId
+        );
+
+        if (indexOfMatchedMessage !== -1) {
+          prepareSendMessages.splice(indexOfMatchedMessage, 1);
+        }
+      }
+    }
+
+    const missingPrepareSendMessages = Object.values(
+      prepareSendMessageMap
+    ).flat();
+
+    if (missingPrepareSendMessages.length > 0) {
+      throw new IgnitionError(ERRORS.EXECUTION.TRANSACTION_LOST, {
+        futureId: missingPrepareSendMessages[0].futureId,
+        nonce: missingPrepareSendMessages[0].transactionParams.nonce,
+        sender: missingPrepareSendMessages[0].transactionParams.from,
+      });
     }
   }
 

@@ -192,7 +192,8 @@ export class FutureProcessor {
           this._executionStrategy,
           this._jsonRpcClient,
           this._nonceManager,
-          this._transactionTrackingTimer
+          this._transactionTrackingTimer,
+          this._deploymentLoader
         );
 
       case NextAction.QUERY_STATIC_CALL:

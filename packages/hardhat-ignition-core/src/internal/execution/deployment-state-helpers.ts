@@ -51,9 +51,9 @@ export async function initializeDeploymentState(
  * This function applies a new message to the deployment state, recording it to the
  * journal if needed.
  *
- * @param message The message to apply.
- * @param deploymentState The original deployment state.
- * @param deploymentLoader The deployment loader that will be used to record the message.
+ * @param message - The message to apply.
+ * @param deploymentState - The original deployment state.
+ * @param deploymentLoader - The deployment loader that will be used to record the message.
  * @returns The new deployment state.
  */
 export async function applyNewMessage(
