@@ -164,7 +164,8 @@ const taskDeploy: NewTaskActionFunction<TaskDeployArguments> = async (
   }
 
   let parameters: DeploymentParameters | undefined;
-  if (parametersInput === undefined) {
+  // TODO: HH3 Remove the use of "" as a default value
+  if (parametersInput === undefined || parametersInput === "") {
     parameters = await resolveParametersFromModuleName(
       userModule.id,
       hre.config.paths.ignition,
@@ -224,7 +225,7 @@ const taskDeploy: NewTaskActionFunction<TaskDeployArguments> = async (
       ignitionModule: userModule,
       deploymentParameters: parameters ?? {},
       accounts,
-      defaultSender,
+      defaultSender: defaultSender === "" ? undefined : defaultSender,
       strategy: strategyName,
       strategyConfig,
       maxFeePerGasLimit:
