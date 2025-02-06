@@ -142,7 +142,7 @@ export class Batcher {
 
   /**
    * This is needed because moduleIds are not present in the visit state
-   * causing an infinite loop when checking whether a depenedency is visited if that dependency is a module.
+   * causing an infinite loop when checking whether a dependency is visited if that dependency is a module.
    */
   private static _checkModuleDependencyIsComplete(
     moduleId: string,
