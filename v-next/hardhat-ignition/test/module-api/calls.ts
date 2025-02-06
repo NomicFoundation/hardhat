@@ -52,7 +52,7 @@ describe.skip("calls", () => {
     const captureSuceeded =
       await result.captureArraysContract.read.arraysCaptured();
 
-    assert(captureSuceeded);
+    assert(captureSuceeded === true);
   });
 
   it("should be able to call contracts with arrays nested in objects args", async function () {
@@ -79,7 +79,7 @@ describe.skip("calls", () => {
     const captureSuceeded =
       await result.captureComplexObjectContract.read.complexArgCaptured();
 
-    assert(captureSuceeded);
+    assert(captureSuceeded === true);
   });
 
   it("should be able to make calls in order", async function () {

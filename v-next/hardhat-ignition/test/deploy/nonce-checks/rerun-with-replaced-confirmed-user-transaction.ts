@@ -98,6 +98,6 @@ describe("execution - rerun with replaced confirmed user transaction", () => {
 
     // the user deployed contract is working as well
     const userDeployed = await deployPromise;
-    assert(userDeployed);
+    assert(userDeployed.startsWith("0x"));
   });
 });

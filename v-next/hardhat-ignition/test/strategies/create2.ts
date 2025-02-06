@@ -220,7 +220,7 @@ describe.skip("create2", function () {
         secondDeployResult.bar.address,
         EXPECTED_BAR_CREATE2_ADDRESS,
       );
-      assert(await secondDeployResult.bar.read.isBar());
+      assert((await secondDeployResult.bar.read.isBar()) === true);
     });
   });
 

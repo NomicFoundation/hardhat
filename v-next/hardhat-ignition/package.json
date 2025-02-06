@@ -57,11 +57,10 @@
     "@types/node": "^20.14.9",
     "@types/prompts": "^2.4.2",
     "@types/sinon": "^10.0.13",
-    "@typescript-eslint/eslint-plugin": "^5.57.1",
-    "@typescript-eslint/experimental-utils": "^5.62.0",
-    "@typescript-eslint/parser": "^5.57.1",
-    "chai": "^4.3.4",
-    "chai-as-promised": "7.1.1",
+    "@typescript-eslint/eslint-plugin": "^7.7.1",
+    "@typescript-eslint/parser": "^7.7.1",
+    "chai": "^5.1.2",
+    "chai-as-promised": "^8.0.0",
     "cross-env": "7.0.3",
     "eslint": "8.57.0",
     "eslint-config-prettier": "9.1.0",
@@ -75,10 +74,10 @@
     "prettier": "3.2.5",
     "rimraf": "^5.0.5",
     "sinon": "^14.0.0",
-    "ts-node": "10.9.1",
+    "ts-node": "10.9.2",
     "typescript": "~5.5.0",
     "typescript-eslint": "7.7.1",
-    "viem": "^2.7.6"
+    "viem": "^2.21.42"
   },
   "peerDependencies": {
     "@ignored/hardhat-vnext": "workspace:^3.0.0-next.16"
@@ -88,7 +87,7 @@
     "@ignored/hardhat-vnext-ignition-core": "workspace:^",
     "@ignored/hardhat-vnext-ignition-ui": "workspace:^",
     "@ignored/hardhat-vnext-utils": "workspace:^3.0.0-next.15",
-    "chalk": "^4.0.0",
+    "chalk": "^5.3.0",
     "debug": "^4.3.2",
     "prompts": "^2.4.2",
     "json5": "^2.2.3"
