@@ -54,7 +54,7 @@ export async function loadModule(
 
   let module;
   try {
-    module = require(fullpathToModule);
+    module = await import(fullpathToModule);
   } catch (e) {
     if (e instanceof IgnitionError) {
       /**
