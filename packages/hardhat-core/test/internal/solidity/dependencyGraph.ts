@@ -61,7 +61,7 @@ describe("Dependency Graph", function () {
       fileWithoutDependencies = new ResolvedFile(
         "contracts/WD.sol",
         path.join(projectRoot, "contracts", "WD.sol"),
-        { rawContent: "no dependecy", imports: [], versionPragmas: [] },
+        { rawContent: "no dependency ", imports: [], versionPragmas: [] },
         "<content-hash-wd>",
         new Date()
       );
@@ -69,7 +69,7 @@ describe("Dependency Graph", function () {
       fileWithoutDependencies2 = new ResolvedFile(
         "contracts/WD2.sol",
         path.join(projectRoot, "contracts", "WD2.sol"),
-        { rawContent: "no dependecy", imports: [], versionPragmas: [] },
+        { rawContent: "no dependency ", imports: [], versionPragmas: [] },
         "<content-hash-wd2>",
         new Date()
       );
@@ -77,7 +77,7 @@ describe("Dependency Graph", function () {
       fileWithoutDependencies3 = new ResolvedFile(
         "contracts/WD3.sol",
         path.join(projectRoot, "contracts", "WD3.sol"),
-        { rawContent: "no dependecy", imports: [], versionPragmas: [] },
+        { rawContent: "no dependency ", imports: [], versionPragmas: [] },
         "<content-hash-wd3>",
         new Date()
       );
