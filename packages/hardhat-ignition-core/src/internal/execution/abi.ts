@@ -283,7 +283,7 @@ export function validateArtifactFunctionName(
 
 /**
  * Validates that the event exists in the artifact, it's name is valid, handles overloads
- * correctly, and that the arugment exists in the event.
+ * correctly, and that the argument exists in the event.
  *
  * @param emitterArtifact The artifact of the contract emitting the event.
  * @param eventName The name of the event.
@@ -768,7 +768,7 @@ function validateOverloadedName(
 }
 
 /**
- * Returns teh param type of an event argument, throwing a validation error if it's not found.
+ * Returns the param type of an event argument, throwing a validation error if it's not found.
  * @param eventFragment
  * @param argument
  */
