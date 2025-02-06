@@ -56,7 +56,7 @@ export const defaultHardhatNetworkParams: Omit<
   minGasPrice: 0n,
   chains: new Map([
     [
-      // block numbers below were taken from https://github.com/ethereumjs/ethereumjs-monorepo/tree/master/packages/common/src/chains
+      // block numbers below were taken from https://github.com/ethereumjs/ethereumjs-monorepo/tree/master/packages/common/src/chains.ts
       1, // mainnet
       {
         hardforkHistory: new Map([
@@ -77,6 +77,7 @@ export const defaultHardhatNetworkParams: Omit<
           [HardforkName.MERGE, 15_537_394],
           [HardforkName.SHANGHAI, 17_034_870],
           [HardforkName.CANCUN, 19_426_589],
+          [HardforkName.PRAGUE, 30_000_000], // TODO: replace with actual block number
         ]),
       },
     ],
@@ -138,6 +139,7 @@ export const defaultHardhatNetworkParams: Omit<
           [HardforkName.MERGE, 1_450_409],
           [HardforkName.SHANGHAI, 2_990_908],
           [HardforkName.CANCUN, 5_187_023],
+          [HardforkName.PRAGUE, 30_000_000], // TODO: replace with actual block number
         ]),
       },
     ],
