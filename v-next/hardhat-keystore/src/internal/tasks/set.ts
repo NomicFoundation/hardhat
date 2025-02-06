@@ -2,8 +2,10 @@ import type { KeystoreLoader } from "../types.js";
 import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
 import type { NewTaskActionFunction } from "@ignored/hardhat-vnext/types/tasks";
 
-import chalk from "chalk";
-
+import {
+  askPasswordAndComputeMasterKey,
+  setUpPasswordAndComputeMasterKey,
+} from "../keystores/password.js";
 import { requestSecretInput } from "../ui/request-secret-input.js";
 import { UserDisplayMessages } from "../ui/user-display-messages.js";
 import { setupKeystoreLoaderFrom } from "../utils/setup-keystore-loader-from.js";
@@ -39,7 +41,14 @@ export const set = async (
     return;
   }
 
-  const keystore = (await keystoreLoader.isKeystoreInitialized())
+  const isKeystoreInitialized = await keystoreLoader.isKeystoreInitialized();
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO
+  const { salt, masterKey } = isKeystoreInitialized
+    ? await askPasswordAndComputeMasterKey(requestSecretFromUser)
+    : await setUpPasswordAndComputeMasterKey(consoleLog, requestSecretFromUser);
+
+  const keystore = isKeystoreInitialized
     ? await keystoreLoader.loadKeystore()
     : await keystoreLoader.createUnsavedKeystore();
 
@@ -47,16 +56,6 @@ export const set = async (
     consoleLog(UserDisplayMessages.displayKeyAlreadyExistsWarning(key));
     process.exitCode = 1;
     return;
-  }
-
-  if (PRINT_UNENCRYPTED_KEYSTORE_FILE_MESSAGE) {
-    consoleLog(
-      chalk.red.bold(`***WARNING*** 
-  
-  During the alpha of Hardhat v3 this plugin doesn't encrypt the keystore file.
-  
-  DO NO STORE SENSITIVE INFORMATION OR PRIVATE KEYS`),
-    );
   }
 
   const secret = await requestSecretFromUser(

@@ -54,4 +54,33 @@ export class UserDisplayMessages {
   public static enterSecretMessage(): string {
     return "Enter secret to store: ";
   }
+
+  public static keystoreBannerMessage(): string {
+    return "\n👷🔐 Hardhat-Keystore 🔐👷\n";
+  }
+
+  public static passwordSetUpMessage(): string {
+    return "This is the first time you are using the keystore, please set a password.";
+  }
+
+  public static passwordRequirementsMessage(): string {
+    // return "The password must have at least 8 characters, one uppercase letter, one lowercase letter, and one special character.";
+    return "The password must have at least 8 characters.";
+  }
+
+  public static enterPasswordMsg(): string {
+    return "Enter the password: ";
+  }
+
+  public static passwordRequirementsError(): string {
+    return "Invalid password! It does not meet the required criteria.";
+  }
+
+  public static confirmPasswordMessage(): string {
+    return "Please confirm your password: ";
+  }
+
+  public static passwordsDoNotMatchError(): string {
+    return "Passwords do not match!";
+  }
 }
