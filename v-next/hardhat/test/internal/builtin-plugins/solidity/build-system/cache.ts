@@ -91,7 +91,7 @@ describe("ObjectCache", () => {
       assert.notDeepEqual(filesBefore, []);
       // NOTE: We're waiting a little so that the file's atime is different
       await new Promise((resolve) => setTimeout(resolve, 10));
-      cache.set(randomUUID(), testValue);
+      await cache.set(randomUUID(), testValue);
       await cache.clean(10);
       const filesAfter = await getAllFilesMatching(cachePath);
       assert.notDeepEqual(filesAfter, []);
@@ -103,7 +103,7 @@ describe("ObjectCache", () => {
       assert.notDeepEqual(filesBefore, []);
       // NOTE: We're waiting a little so that the file's atime is different
       await new Promise((resolve) => setTimeout(resolve, 10));
-      cache.set(randomUUID(), testValue);
+      await cache.set(randomUUID(), testValue);
       await cache.clean(undefined, (await getFileSize(filesBefore[0])) * 1.5);
       const filesAfter = await getAllFilesMatching(cachePath);
       assert.notDeepEqual(filesAfter, []);
