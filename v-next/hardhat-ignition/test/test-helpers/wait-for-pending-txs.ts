@@ -1,3 +1,5 @@
+import type { NetworkConnection } from "@ignored/hardhat-vnext/types/network";
+
 const sleep = (timeout: number) =>
   new Promise((res) => setTimeout(res, timeout));
 
@@ -5,7 +7,7 @@ const sleep = (timeout: number) =>
  * Wait until there are at least `expectedCount` transactions in the mempool
  */
 export async function waitForPendingTxs(
-  hre: any,
+  connection: NetworkConnection<string>,
   expectedCount: number,
   finished: Promise<any>,
 ): Promise<void> {
@@ -18,10 +20,12 @@ export async function waitForPendingTxs(
     if (stopWaiting) {
       return;
     }
-    const pendingBlock = await hre.network.provider.send(
-      "eth_getBlockByNumber",
-      ["pending", false],
-    );
+
+    // TODO: review this any, why are we not getting back a typed object?
+    const pendingBlock: any = await connection.provider.request({
+      method: "eth_getBlockByNumber",
+      params: ["pending", false],
+    });
 
     if (pendingBlock.transactions.length >= expectedCount) {
       return;

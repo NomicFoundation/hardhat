@@ -10,25 +10,21 @@ describe.skip("reset flag", function () {
   useFileIgnitionProject("reset-flag", "custom-reset-id");
 
   it("should reset a deployment", async function () {
-    this.hre.network.name = "something-else";
+    // TODO: HH3 look again at this any - is networkName even the right
+    // thing here.
+    (this.connection as any).networkName = "something-else";
 
-    await this.hre.run(
-      { scope: "ignition", task: "deploy" },
-      {
-        modulePath: "./ignition/modules/FirstPass.js",
-        deploymentId: "custom-reset-id",
-        reset: true,
-      },
-    );
+    await this.hre.tasks.getTask(["ignition", "deploy"]).run({
+      modulePath: "./ignition/modules/FirstPass.js",
+      deploymentId: "custom-reset-id",
+      reset: true,
+    });
 
-    await this.hre.run(
-      { scope: "ignition", task: "deploy" },
-      {
-        modulePath: "./ignition/modules/SecondPass.js",
-        deploymentId: "custom-reset-id",
-        reset: true,
-      },
-    );
+    await this.hre.tasks.getTask(["ignition", "deploy"]).run({
+      modulePath: "./ignition/modules/SecondPass.js",
+      deploymentId: "custom-reset-id",
+      reset: true,
+    });
 
     const artifactResolver = new HardhatArtifactResolver(this.hre);
 

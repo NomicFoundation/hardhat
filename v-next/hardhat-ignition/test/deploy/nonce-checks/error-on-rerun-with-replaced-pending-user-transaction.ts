@@ -50,18 +50,18 @@ describe.skip("execution - error on rerun with replaced pending user transaction
       },
     );
 
-    const FooArtifact = this.hre.artifacts.readArtifactSync("Foo");
+    const FooArtifact = await this.hre.artifacts.readArtifact("Foo");
 
     // Send user interefering deploy transaction, between runs
     // so it is in mempool, overriding the existing nonce 2
     // transaction
-    const [, , signer2] = (await this.hre.network.provider.request({
+    const [, , signer2] = (await this.connection.provider.request({
       method: "eth_accounts",
     })) as string[];
 
     const walletClient = createWalletClient({
       chain: hardhat,
-      transport: custom(this.hre.network.provider),
+      transport: custom(this.connection.provider),
     });
 
     void walletClient.deployContract({

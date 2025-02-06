@@ -49,13 +49,13 @@ describe.skip("execution - multiple batch contract deploy", function () {
     const deployPromise = this.hre.ignition.deploy(moduleDefinition);
 
     await sleep(300);
-    await this.hre.network.provider.send("evm_mine");
+    await this.connection.provider.request({ method: "evm_mine", params: [] });
 
     await sleep(300);
-    await this.hre.network.provider.send("evm_mine");
+    await this.connection.provider.request({ method: "evm_mine", params: [] });
 
     await sleep(300);
-    await this.hre.network.provider.send("evm_mine");
+    await this.connection.provider.request({ method: "evm_mine", params: [] });
 
     const result = await deployPromise;
 

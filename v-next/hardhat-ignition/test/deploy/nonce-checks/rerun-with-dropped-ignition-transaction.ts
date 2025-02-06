@@ -39,11 +39,11 @@ describe.skip("execution - rerun with dropped ignition transactions", () => {
     );
 
     // remove the submitted foo deploy from mempool
-    await clearPendingTransactionsFromMemoryPool(this.hre);
+    await clearPendingTransactionsFromMemoryPool(this.connection);
 
     // Further blocks with no pending transactions
-    await mineBlock(this.hre);
-    await mineBlock(this.hre);
+    await mineBlock(this.connection);
+    await mineBlock(this.connection);
 
     // Rerun the deployment
     const result = await this.runControlledDeploy(

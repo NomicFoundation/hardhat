@@ -1,15 +1,18 @@
+import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
+import type { NetworkConnection } from "@ignored/hardhat-vnext/types/network";
 import type {
   DeployConfig,
   IgnitionModule,
 } from "@ignored/hardhat-vnext-ignition-core";
-import type { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import path, { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
 import { ensureDir } from "@ignored/hardhat-vnext-utils/fs";
 
 import { clearPendingTransactionsFromMemoryPool } from "./clear-pending-transactions-from-memory-pool.js";
+import { mineBlock } from "./mine-block.js";
 import { TestIgnitionHelper } from "./test-ignition-helper.js";
 import { waitForPendingTxs } from "./wait-for-pending-txs.js";
 
@@ -18,6 +21,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 declare module "mocha" {
   interface Context {
     hre: HardhatRuntimeEnvironment & { ignition: TestIgnitionHelper };
+    connection: NetworkConnection;
     deploymentDir: string | undefined;
     runControlledDeploy: (
       ignitionModule: IgnitionModule,
@@ -41,14 +45,22 @@ export function useEphemeralIgnitionProject(fixtureProjectName: string): void {
       path.join(__dirname, "../fixture-projects", fixtureProjectName),
     );
 
-    const hre = require("hardhat");
+    const hre = await createHardhatRuntimeEnvironment({});
 
-    await hre.network.provider.send("evm_setAutomine", [true]);
-    await hre.run("compile", { quiet: true });
+    const connection = await hre.network.connect();
 
-    this.hre = hre;
+    await connection.provider.request({
+      method: "evm_setAutomine",
+      params: [true],
+    });
+
+    const compileTask = hre.tasks.getTask("compile");
+    await compileTask.run({ quiet: true });
+
+    this.hre = hre as any;
     (this.hre as any).originalIgnition = this.hre.ignition;
-    this.hre.ignition = new TestIgnitionHelper(hre);
+    this.connection = connection;
+    this.hre.ignition = new TestIgnitionHelper(hre, connection);
     this.deploymentDir = undefined;
   });
 
@@ -69,7 +81,7 @@ export function useFileIgnitionProject(
       path.join(__dirname, "../fixture-projects", fixtureProjectName),
     );
 
-    const hre = require("hardhat");
+    const hre = await createHardhatRuntimeEnvironment({});
 
     const deploymentDir = path.join(
       path.resolve(
@@ -80,11 +92,15 @@ export function useFileIgnitionProject(
       deploymentId,
     );
 
-    this.hre = hre;
-    this.hre.ignition = new TestIgnitionHelper(hre);
+    const connection = await hre.network.connect();
+
+    // TODO: HH3 remove this cast once the proper Ignition type extension has happened
+    this.hre = hre as any;
+    this.hre.ignition = new TestIgnitionHelper(hre, connection);
     this.deploymentDir = deploymentDir;
 
-    await hre.run("compile", { quiet: true });
+    const compileTask = hre.tasks.getTask("compile");
+    await compileTask.run({ quiet: true });
 
     const testConfig: Partial<DeployConfig> = {
       ...defaultTestConfig,
@@ -132,15 +148,17 @@ async function runDeploy(
   }: { hre: HardhatRuntimeEnvironment; config?: Partial<DeployConfig> },
   chainUpdates: (c: TestChainHelper) => Promise<void> = async () => {},
 ): Promise<ReturnType<TestIgnitionHelper["deploy"]>> {
+  const connection = await hre.network.connect();
+
   const { ignitionHelper: ignitionHelper, kill: killFn } =
-    setupIgnitionHelperRiggedToThrow(hre, deploymentDir, config);
+    setupIgnitionHelperRiggedToThrow(hre, connection, deploymentDir, config);
 
   try {
     const deployPromise = ignitionHelper.deploy(ignitionModule, {
       config,
     });
 
-    const chainHelper = new TestChainHelper(hre, deployPromise, killFn);
+    const chainHelper = new TestChainHelper(connection, deployPromise, killFn);
 
     const [result] = await Promise.all([
       deployPromise,
@@ -159,6 +177,7 @@ async function runDeploy(
 
 function setupIgnitionHelperRiggedToThrow(
   hre: HardhatRuntimeEnvironment,
+  connection: NetworkConnection,
   deploymentDir: string,
   config: Partial<DeployConfig> = {},
 ): {
@@ -171,7 +190,7 @@ function setupIgnitionHelperRiggedToThrow(
     trigger = true;
   };
 
-  const proxiedProvider = new Proxy(hre.network.provider, {
+  const proxiedProvider = new Proxy(connection.provider, {
     get(target: any, key) {
       if (trigger) {
         trigger = false;
@@ -184,6 +203,7 @@ function setupIgnitionHelperRiggedToThrow(
 
   const ignitionHelper = new TestIgnitionHelper(
     hre,
+    connection,
     config,
     proxiedProvider,
     deploymentDir,
@@ -194,13 +214,17 @@ function setupIgnitionHelperRiggedToThrow(
 
 export class TestChainHelper {
   constructor(
-    private readonly _hre: HardhatRuntimeEnvironment,
+    private readonly _connection: NetworkConnection,
     private readonly _deployPromise: Promise<any>,
     private readonly _exitFn: () => void,
   ) {}
 
   public async waitForPendingTxs(expectedCount: number): Promise<void> {
-    await waitForPendingTxs(this._hre, expectedCount, this._deployPromise);
+    await waitForPendingTxs(
+      this._connection,
+      expectedCount,
+      this._deployPromise,
+    );
   }
 
   /**
@@ -212,18 +236,33 @@ export class TestChainHelper {
    */
   public async mineBlock(pendingTxToAwait: number = 0): Promise<any> {
     if (pendingTxToAwait > 0) {
-      await waitForPendingTxs(this._hre, pendingTxToAwait, this._deployPromise);
+      await waitForPendingTxs(
+        this._connection,
+        pendingTxToAwait,
+        this._deployPromise,
+      );
     }
 
-    return this._hre.network.provider.send("evm_mine");
+    return mineBlock(this._connection);
   }
 
   public async clearMempool(pendingTxToAwait: number = 0): Promise<void> {
     if (pendingTxToAwait > 0) {
-      await waitForPendingTxs(this._hre, pendingTxToAwait, this._deployPromise);
+      await waitForPendingTxs(
+        this._connection,
+        pendingTxToAwait,
+        this._deployPromise,
+      );
     }
 
-    return clearPendingTransactionsFromMemoryPool(this._hre);
+    return clearPendingTransactionsFromMemoryPool(this._connection);
+  }
+
+  public async setNextBlockBaseFeePerGas(fee: bigint): Promise<void> {
+    // TODO: HH3 remove this any once the proper Ignition type extension has happened
+    return (this._connection as any).networkHelpers.setNextBlockBaseFeePerGas(
+      fee,
+    );
   }
 
   /**

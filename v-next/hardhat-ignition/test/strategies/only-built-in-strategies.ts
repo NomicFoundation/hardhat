@@ -8,13 +8,10 @@ describe.skip("strategies - only built in strategies", function () {
 
   it("should throw if a non-recognized strategy is specified", async function () {
     await assert.isRejected(
-      this.hre.run(
-        { scope: "ignition", task: "deploy" },
-        {
-          modulePath: "./ignition/modules/MyModule.js",
-          strategy: "non-recognized-strategy",
-        },
-      ),
+      this.hre.tasks.getTask(["ignition", "deploy"]).run({
+        modulePath: "./ignition/modules/MyModule.js",
+        strategy: "non-recognized-strategy",
+      }),
       /Invalid strategy name, must be either 'basic' or 'create2'/,
     );
   });

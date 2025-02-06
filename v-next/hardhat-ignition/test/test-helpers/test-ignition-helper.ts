@@ -1,3 +1,5 @@
+import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
+import type { NetworkConnection } from "@ignored/hardhat-vnext/types/network";
 import type {
   DeployConfig,
   DeploymentParameters,
@@ -8,7 +10,6 @@ import type {
   StrategyConfig,
   SuccessfulDeploymentResult,
 } from "@ignored/hardhat-vnext-ignition-core";
-import type { HardhatRuntimeEnvironment } from "hardhat/types";
 import type { GetContractReturnType } from "viem";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
@@ -47,11 +48,12 @@ export class TestIgnitionHelper {
 
   constructor(
     private readonly _hre: HardhatRuntimeEnvironment,
+    private readonly _connection: NetworkConnection,
     private readonly _config?: Partial<DeployConfig> | undefined,
     provider?: EIP1193Provider,
     deploymentDir?: string,
   ) {
-    this._provider = provider ?? this._hre.network.provider;
+    this._provider = provider ?? this._connection.provider;
     this._deploymentDir = deploymentDir;
   }
 
@@ -85,11 +87,11 @@ export class TestIgnitionHelper {
   ): Promise<
     IgnitionModuleResultsTToViemContracts<ContractNameT, IgnitionModuleResultsT>
   > {
-    const accounts = (await this._hre.network.provider.request({
+    const accounts = (await this._connection.provider.request({
       method: "eth_accounts",
     })) as string[];
 
-    const artifactResolver = new HardhatArtifactResolver(this._hre);
+    const artifactResolver = new HardhatArtifactResolver(this._connection);
 
     const resolvedConfig: Partial<DeployConfig> = {
       ...this._config,
@@ -122,7 +124,7 @@ export class TestIgnitionHelper {
 
     const publicClient = createPublicClient({
       chain: hardhat,
-      transport: custom(this._hre.network.provider),
+      transport: custom(this._connection.provider),
     });
 
     return this._toViemContracts(
@@ -204,7 +206,7 @@ export class TestIgnitionHelper {
   private async _loadAbiFromHHArtifactFolder(
     hre: HardhatRuntimeEnvironment,
     contractName: string,
-  ): Promise<any[]> {
+  ) {
     const artifact = await hre.artifacts.readArtifact(contractName);
 
     if (artifact === undefined) {

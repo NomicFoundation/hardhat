@@ -14,17 +14,11 @@ describe.skip("visualize", () => {
     const visualizationPath = path.resolve("../minimal/cache/visualization");
     await emptyDir(visualizationPath);
 
-    await this.hre.run("compile", { quiet: true });
-    await this.hre.run(
-      {
-        scope: "ignition",
-        task: "visualize",
-      },
-      {
-        noOpen: true,
-        modulePath: "./ignition/modules/MyModule.js",
-      },
-    );
+    await this.hre.tasks.getTask("compile").run({ quiet: true });
+    await this.hre.tasks.getTask(["ignition", "visualize"]).run({
+      noOpen: true,
+      modulePath: "./ignition/modules/MyModule.js",
+    });
 
     const files = await readdir(visualizationPath);
 

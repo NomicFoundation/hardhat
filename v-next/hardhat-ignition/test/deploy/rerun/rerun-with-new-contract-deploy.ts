@@ -37,8 +37,8 @@ describe.skip("execution - rerun with new contract deploy", () => {
     const firstRunBarAddress = originalBar.address.toLowerCase();
 
     // Further blocks with no pending transactions
-    await mineBlock(this.hre);
-    await mineBlock(this.hre);
+    await mineBlock(this.connection);
+    await mineBlock(this.connection);
 
     const updatedModuleDefinition = buildModule("BarModule", (m) => {
       const bar = m.contract("Bar");

@@ -15,10 +15,10 @@ describe.skip("gas estimation", function () {
       return { foo };
     });
 
-    await this.hre.network.provider.send("hardhat_setBalance", [
-      "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-      "0x1",
-    ]);
+    await this.connection.provider.request({
+      method: "hardhat_setBalance",
+      params: ["0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266", "0x1"],
+    });
 
     await assert.isRejected(
       this.hre.ignition.deploy(moduleDefinition),

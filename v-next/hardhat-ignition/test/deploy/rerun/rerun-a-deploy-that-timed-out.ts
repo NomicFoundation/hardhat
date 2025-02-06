@@ -1,8 +1,8 @@
 import type { TestChainHelper } from "../../test-helpers/use-ignition-project.js";
 
+import {} from "@ignored/hardhat-vnext-network-helpers";
 import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
 import { buildModule, wipe } from "@ignored/hardhat-vnext-ignition-core";
-import { setNextBlockBaseFeePerGas } from "@nomicfoundation/hardhat-network-helpers";
 import { assert } from "chai";
 
 import { HardhatArtifactResolver } from "../../../src/hardhat-artifact-resolver.js";
@@ -42,15 +42,15 @@ describe.skip("execution - rerun a deploy that timed out", () => {
         // wait for the deploy transaction to hit the memory pool,
         // but then never mine the block that will complete it.
         await c.waitForPendingTxs(1);
-        await setNextBlockBaseFeePerGas(10_000_000_000n);
+        await c.setNextBlockBaseFeePerGas(10_000_000_000n);
         await c.mineBlock();
 
         await c.waitForPendingTxs(1);
-        await setNextBlockBaseFeePerGas(100_000_000_000n);
+        await c.setNextBlockBaseFeePerGas(100_000_000_000n);
         await c.mineBlock();
 
         await c.waitForPendingTxs(1);
-        await setNextBlockBaseFeePerGas(1_000_000_000_000n);
+        await c.setNextBlockBaseFeePerGas(1_000_000_000_000n);
         await c.mineBlock();
       }),
     );
@@ -91,21 +91,21 @@ describe.skip("execution - rerun a deploy that timed out", () => {
         // wait for the deploy transaction to hit the memory pool,
         // but then never mine the block that will complete it.
         await c.waitForPendingTxs(1);
-        await setNextBlockBaseFeePerGas(10_000_000_000n);
+        await c.setNextBlockBaseFeePerGas(10_000_000_000n);
         await c.mineBlock();
 
         await c.waitForPendingTxs(1);
-        await setNextBlockBaseFeePerGas(100_000_000_000n);
+        await c.setNextBlockBaseFeePerGas(100_000_000_000n);
         await c.mineBlock();
 
         await c.waitForPendingTxs(1);
-        await setNextBlockBaseFeePerGas(1_000_000_000_000n);
+        await c.setNextBlockBaseFeePerGas(1_000_000_000_000n);
         await c.mineBlock();
       }),
     );
 
-    await setNextBlockBaseFeePerGas(1_000_000n);
-    await mineBlock(this.hre);
+    await this.connection.networkHelpers.setNextBlockBaseFeePerGas(1_000_000n);
+    await mineBlock(this.connection);
 
     assertHardhatInvariant(
       this.deploymentDir !== undefined,

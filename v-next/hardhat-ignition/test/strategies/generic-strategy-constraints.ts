@@ -32,8 +32,8 @@ describe.skip("strategies - generic constraints", function () {
           strategyConfig: exampleConfig[strategy],
         });
 
-        await waitForPendingTxs(this.hre, 1, deployPromise);
-        await mineBlock(this.hre);
+        await waitForPendingTxs(this.connection, 1, deployPromise);
+        await mineBlock(this.connection);
 
         const result = await deployPromise;
 
@@ -55,8 +55,8 @@ describe.skip("strategies - generic constraints", function () {
           strategyConfig: exampleConfig[strategy],
         });
 
-        await waitForPendingTxs(this.hre, 2, deployPromise);
-        await mineBlock(this.hre);
+        await waitForPendingTxs(this.connection, 2, deployPromise);
+        await mineBlock(this.connection);
 
         const result = await deployPromise;
 
@@ -81,10 +81,10 @@ describe.skip("strategies - generic constraints", function () {
           strategyConfig: exampleConfig[strategy],
         });
 
-        await waitForPendingTxs(this.hre, 1, deployPromise);
-        await mineBlock(this.hre);
-        await waitForPendingTxs(this.hre, 1, deployPromise);
-        await mineBlock(this.hre);
+        await waitForPendingTxs(this.connection, 1, deployPromise);
+        await mineBlock(this.connection);
+        await waitForPendingTxs(this.connection, 1, deployPromise);
+        await mineBlock(this.connection);
 
         const result = await deployPromise;
 
@@ -118,14 +118,14 @@ describe.skip("strategies - generic constraints", function () {
           strategyConfig: exampleConfig[strategy],
         });
 
-        await waitForPendingTxs(this.hre, 1, deployPromise);
-        await mineBlock(this.hre);
-        await waitForPendingTxs(this.hre, 1, deployPromise);
-        await mineBlock(this.hre);
-        await waitForPendingTxs(this.hre, 1, deployPromise);
-        await mineBlock(this.hre);
-        await waitForPendingTxs(this.hre, 1, deployPromise);
-        await mineBlock(this.hre);
+        await waitForPendingTxs(this.connection, 1, deployPromise);
+        await mineBlock(this.connection);
+        await waitForPendingTxs(this.connection, 1, deployPromise);
+        await mineBlock(this.connection);
+        await waitForPendingTxs(this.connection, 1, deployPromise);
+        await mineBlock(this.connection);
+        await waitForPendingTxs(this.connection, 1, deployPromise);
+        await mineBlock(this.connection);
 
         const result = await deployPromise;
 
@@ -143,8 +143,8 @@ describe.skip("strategies - generic constraints", function () {
 
         const deployPromise = this.hre.ignition.deploy(moduleDefinition);
 
-        await waitForPendingTxs(this.hre, 1, deployPromise);
-        await mineBlock(this.hre);
+        await waitForPendingTxs(this.connection, 1, deployPromise);
+        await mineBlock(this.connection);
 
         const result = await deployPromise;
 
@@ -166,8 +166,8 @@ describe.skip("strategies - generic constraints", function () {
           },
         );
 
-        await waitForPendingTxs(this.hre, 1, contractAtPromise);
-        await mineBlock(this.hre);
+        await waitForPendingTxs(this.connection, 1, contractAtPromise);
+        await mineBlock(this.connection);
 
         const contractAtResult = await contractAtPromise;
 
@@ -191,10 +191,10 @@ describe.skip("strategies - generic constraints", function () {
           strategyConfig: exampleConfig[strategy],
         });
 
-        await waitForPendingTxs(this.hre, 1, deployPromise);
-        await mineBlock(this.hre);
-        await waitForPendingTxs(this.hre, 1, deployPromise);
-        await mineBlock(this.hre);
+        await waitForPendingTxs(this.connection, 1, deployPromise);
+        await mineBlock(this.connection);
+        await waitForPendingTxs(this.connection, 1, deployPromise);
+        await mineBlock(this.connection);
 
         const result = await deployPromise;
 
@@ -224,12 +224,12 @@ describe.skip("strategies - generic constraints", function () {
           strategyConfig: exampleConfig[strategy],
         });
 
-        await waitForPendingTxs(this.hre, 1, deployPromise);
-        await mineBlock(this.hre);
-        await waitForPendingTxs(this.hre, 1, deployPromise);
-        await mineBlock(this.hre);
-        await waitForPendingTxs(this.hre, 1, deployPromise);
-        await mineBlock(this.hre);
+        await waitForPendingTxs(this.connection, 1, deployPromise);
+        await mineBlock(this.connection);
+        await waitForPendingTxs(this.connection, 1, deployPromise);
+        await mineBlock(this.connection);
+        await waitForPendingTxs(this.connection, 1, deployPromise);
+        await mineBlock(this.connection);
 
         const result = await deployPromise;
 

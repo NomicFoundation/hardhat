@@ -48,7 +48,8 @@
   },
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "1.0.2",
-    "@nomicfoundation/hardhat-network-helpers": "workspace:^1.0.9",
+    "@ignored/hardhat-vnext": "workspace:^3.0.0-next.16",
+    "@ignored/hardhat-vnext-network-helpers": "workspace:^3.0.0-next.12",
     "@types/chai": "^4.2.0",
     "@types/chai-as-promised": "^8.0.1",
     "@types/debug": "^4.1.7",
@@ -69,7 +70,6 @@
     "eslint-plugin-no-only-tests": "3.1.0",
     "eslint-plugin-mocha": "^9.0.0",
     "eslint-plugin-prettier": "4.0.0",
-    "hardhat": "workspace:^2.18.0",
     "mocha": "^10.0.0",
     "nyc": "15.1.0",
     "prettier": "3.2.5",

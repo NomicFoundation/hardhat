@@ -34,16 +34,16 @@ describe.skip("execution - error on pending user transactions", () => {
       };
     });
 
-    const FooArtifact = this.hre.artifacts.readArtifactSync("Foo");
+    const FooArtifact = await this.hre.artifacts.readArtifact("Foo");
 
     // Before deploy, put a valid transaction into the mempool for accounts[2]
-    const [, , signer2] = (await this.hre.network.provider.request({
+    const [, , signer2] = (await this.connection.provider.request({
       method: "eth_accounts",
     })) as string[];
 
     const walletClient = createWalletClient({
       chain: hardhat,
-      transport: custom(this.hre.network.provider),
+      transport: custom(this.connection.provider),
     });
 
     const deployPromise = walletClient.deployContract({
@@ -53,7 +53,7 @@ describe.skip("execution - error on pending user transactions", () => {
       account: signer2 as `0x${string}`,
     });
 
-    await waitForPendingTxs(this.hre, 1, deployPromise);
+    await waitForPendingTxs(this.connection, 1, deployPromise);
 
     // Deploying the module that uses accounts[2] throws with a warning
     await assert.isRejected(
@@ -65,7 +65,7 @@ describe.skip("execution - error on pending user transactions", () => {
     );
 
     // Now mine the user interference transaction
-    await mineBlock(this.hre);
+    await mineBlock(this.connection);
 
     // The users interfering transaction completes normally
     const outsideFoo = await deployPromise;

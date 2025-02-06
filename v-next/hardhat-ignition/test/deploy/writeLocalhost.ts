@@ -29,25 +29,19 @@ describe.skip("localhost deployment flag", function () {
   });
 
   it("true should write deployment to disk", async function () {
-    await this.hre.run(
-      { scope: "ignition", task: "deploy" },
-      {
-        modulePath: "./ignition/modules/OwnModule.js",
-        writeLocalhostDeployment: true,
-      },
-    );
+    await this.hre.tasks.getTask(["ignition", "deploy"]).run({
+      modulePath: "./ignition/modules/OwnModule.js",
+      writeLocalhostDeployment: true,
+    });
 
     assert(await exists(deploymentDir), "Deployment was not written to disk");
   });
 
   it("false should not write deployment to disk", async function () {
-    await this.hre.run(
-      { scope: "ignition", task: "deploy" },
-      {
-        modulePath: "./ignition/modules/OwnModule.js",
-        writeLocalhostDeployment: false,
-      },
-    );
+    await this.hre.tasks.getTask(["ignition", "deploy"]).run({
+      modulePath: "./ignition/modules/OwnModule.js",
+      writeLocalhostDeployment: false,
+    });
 
     assert(
       !(await exists(deploymentDir)),

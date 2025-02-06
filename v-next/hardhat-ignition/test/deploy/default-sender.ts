@@ -10,13 +10,10 @@ describe.skip("default sender", function () {
 
   it("should throw if default sender is not in configured accounts", async function () {
     await assert.isRejected(
-      this.hre.run(
-        { scope: "ignition", task: "deploy" },
-        {
-          modulePath: "ignition/modules/OwnModule.js",
-          defaultSender: "0x1234567890abcdef1234567890abcdef12345678",
-        },
-      ),
+      this.hre.tasks.getTask(["ignition", "deploy"]).run({
+        modulePath: "ignition/modules/OwnModule.js",
+        defaultSender: "0x1234567890abcdef1234567890abcdef12345678",
+      }),
       /IGN700: Default sender 0x1234567890abcdef1234567890abcdef12345678 is not part of the configured accounts./,
     );
   });
@@ -24,13 +21,10 @@ describe.skip("default sender", function () {
   it("should allow setting default sender via cli", async function () {
     const secondAccountAddress = "0x70997970C51812dc3A010C7d01b50e0d17dc79C8";
 
-    await this.hre.run(
-      { scope: "ignition", task: "deploy" },
-      {
-        modulePath: "ignition/modules/OwnModule.js",
-        defaultSender: secondAccountAddress,
-      },
-    );
+    await this.hre.tasks.getTask(["ignition", "deploy"]).run({
+      modulePath: "ignition/modules/OwnModule.js",
+      defaultSender: secondAccountAddress,
+    });
 
     const existingModule = buildModule("ExistingModule", (m) => {
       const bar = m.contractAt(

@@ -1,14 +1,14 @@
-import type { HardhatRuntimeEnvironment } from "hardhat/types";
+import type { NetworkConnection } from "@ignored/hardhat-vnext/types/network";
 
 import { assert } from "chai";
 
 export async function clearPendingTransactionsFromMemoryPool(
-  hre: HardhatRuntimeEnvironment,
+  connection: NetworkConnection,
 ): Promise<void> {
-  const pendingBlockBefore = await hre.network.provider.send(
-    "eth_getBlockByNumber",
-    ["pending", false],
-  );
+  const pendingBlockBefore = (await connection.provider.request({
+    method: "eth_getBlockByNumber",
+    params: ["pending", false],
+  })) as any;
 
   assert(
     pendingBlockBefore.transactions.length > 0,
@@ -16,16 +16,16 @@ export async function clearPendingTransactionsFromMemoryPool(
   );
 
   for (const hash of pendingBlockBefore.transactions) {
-    await hre.network.provider.request({
+    await connection.provider.request({
       method: "hardhat_dropTransaction",
       params: [hash],
     });
   }
 
-  const pendingBlockAfter = await hre.network.provider.send(
-    "eth_getBlockByNumber",
-    ["pending", false],
-  );
+  const pendingBlockAfter = (await connection.provider.request({
+    method: "eth_getBlockByNumber",
+    params: ["pending", false],
+  })) as any;
 
   assert(
     pendingBlockAfter.transactions.length === 0,

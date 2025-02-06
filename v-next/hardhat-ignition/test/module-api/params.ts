@@ -99,7 +99,9 @@ describe.skip("module parameters", () => {
 
     const v = (await result.ownerContract.read.owner()) as string;
 
-    const accounts = await this.hre.network.provider.send("eth_accounts");
+    const accounts = (await this.connection.provider.request({
+      method: "eth_accounts",
+    })) as string[];
 
     assert.equal(v.toLowerCase(), accounts[1]);
   });
@@ -115,7 +117,9 @@ describe.skip("module parameters", () => {
       return { ownerContract };
     });
 
-    const accounts = await this.hre.network.provider.send("eth_accounts");
+    const accounts = (await this.connection.provider.request({
+      method: "eth_accounts",
+    })) as string[];
 
     const result = await this.hre.ignition.deploy(moduleDefinition, {
       parameters: {
@@ -136,7 +140,7 @@ describe.skip("params validation", () => {
   useEphemeralIgnitionProject("minimal");
 
   it("should throw if no parameters object provided", async function () {
-    await this.hre.run("compile", { quiet: true });
+    await this.hre.tasks.getTask("compile").run({ quiet: true });
 
     const userModule = buildModule("UserModule", (m) => {
       const myNumber = m.getParameter("MyNumber");
@@ -157,7 +161,7 @@ describe.skip("params validation", () => {
   });
 
   it("should throw if parameter missing from parameters", async function () {
-    await this.hre.run("compile", { quiet: true });
+    await this.hre.tasks.getTask("compile").run({ quiet: true });
 
     const userModule = buildModule("UserModule", (m) => {
       const myNumber = m.getParameter("MyNumber");

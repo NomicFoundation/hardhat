@@ -44,17 +44,17 @@ describe.skip("execution - error on user transaction sent", () => {
         // wait for foo1 to be submitted
         await c.waitForPendingTxs(1);
 
-        const FooArtifact = this.hre.artifacts.readArtifactSync("Foo");
+        const FooArtifact = await this.hre.artifacts.readArtifact("Foo");
 
         // Submit user interference transaction to mempool (note a fresh
         // nonce is used, so no replacement)
-        const [, , signer2] = (await this.hre.network.provider.request({
+        const [, , signer2] = (await this.connection.provider.request({
           method: "eth_accounts",
         })) as string[];
 
         const walletClient = createWalletClient({
           chain: hardhat,
-          transport: custom(this.hre.network.provider),
+          transport: custom(this.connection.provider),
         });
 
         const deployPromise = walletClient.deployContract({

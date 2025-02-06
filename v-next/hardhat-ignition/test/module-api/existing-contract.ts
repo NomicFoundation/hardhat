@@ -9,7 +9,7 @@ describe.skip("existing contract", () => {
   useEphemeralIgnitionProject("minimal");
 
   it("should be able to use an existing contract", async function () {
-    await this.hre.run("compile", { quiet: true });
+    await this.hre.tasks.getTask("compile").run({ quiet: true });
 
     const barArtifact = await this.hre.artifacts.readArtifact("Bar");
     const usesContractArtifact =

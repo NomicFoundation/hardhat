@@ -1,5 +1,4 @@
-/* eslint-disable import/no-unused-modules */
-import type { HardhatRuntimeEnvironment } from "hardhat/types";
+import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
 
 import { buildModule } from "@ignored/hardhat-vnext-ignition-core";
 import { assert } from "chai";
@@ -57,14 +56,14 @@ describe.skip("create2", function () {
             },
           });
 
-          await waitForPendingTxs(this.hre, 1, deployPromise);
-          await mineBlock(this.hre);
+          await waitForPendingTxs(this.connection, 1, deployPromise);
+          await mineBlock(this.connection);
 
           const result = await deployPromise;
 
           assert.equal(result.foo.address, EXPECTED_FOO_CREATE2_ADDRESS);
 
-          assert.equal(this.hre.network.config.chainId, 1);
+          assert.equal(this.connection.networkConfig.chainId, 1);
           assert.equal(await result.foo.read.x(), Number(1));
         });
       });
@@ -86,12 +85,12 @@ describe.skip("create2", function () {
           },
         );
 
-        await waitForPendingTxs(this.hre, 1, deployPromise);
-        await mineBlock(this.hre);
+        await waitForPendingTxs(this.connection, 1, deployPromise);
+        await mineBlock(this.connection);
 
         const result = await deployPromise;
 
-        const balance = await this.hre.network.provider.request({
+        const balance = await this.connection.provider.request({
           method: "eth_getBalance",
           params: [result.foo.address, "latest"],
         });
@@ -128,8 +127,8 @@ describe.skip("create2", function () {
           },
         });
 
-        await waitForPendingTxs(this.hre, 1, deployPromise);
-        await mineBlock(this.hre);
+        await waitForPendingTxs(this.connection, 1, deployPromise);
+        await mineBlock(this.connection);
 
         const result = await deployPromise;
 
@@ -138,7 +137,7 @@ describe.skip("create2", function () {
           EXPECTED_CUSTOM_SALT_FOO_CREATE2_ADDRESS,
         );
 
-        assert.equal(this.hre.network.config.chainId, 1);
+        assert.equal(this.connection.networkConfig.chainId, 1);
         assert.equal(await result.foo.read.x(), Number(1));
       });
     });
@@ -147,7 +146,7 @@ describe.skip("create2", function () {
       useEphemeralIgnitionProject("create2-not-exists-chain");
 
       it("should throw when no createX contract exists on the network", async function () {
-        assert.equal(this.hre.network.config.chainId, 88888);
+        assert.equal(this.connection.networkConfig.chainId, 88888);
         await assert.isRejected(
           this.hre.ignition.deploy(moduleDefinition, {
             strategy: "create2",
@@ -172,14 +171,14 @@ describe.skip("create2", function () {
         },
       });
 
-      await waitForPendingTxs(this.hre, 1, deployPromise);
-      await mineBlock(this.hre);
+      await waitForPendingTxs(this.connection, 1, deployPromise);
+      await mineBlock(this.connection);
 
       const result = await deployPromise;
 
       assert.equal(result.foo.address, EXPECTED_FOO_CREATE2_ADDRESS);
 
-      assert.equal(this.hre.network.config.chainId, 31337);
+      assert.equal(this.connection.networkConfig.chainId, 31337);
       assert.equal(await result.foo.read.x(), Number(1));
     });
 
@@ -192,8 +191,8 @@ describe.skip("create2", function () {
         },
       });
 
-      await waitForPendingTxs(this.hre, 1, firstDeployPromise);
-      await mineBlock(this.hre);
+      await waitForPendingTxs(this.connection, 1, firstDeployPromise);
+      await mineBlock(this.connection);
 
       await firstDeployPromise;
 
@@ -212,8 +211,8 @@ describe.skip("create2", function () {
         },
       );
 
-      await waitForPendingTxs(this.hre, 1, secondDeployPromise);
-      await mineBlock(this.hre);
+      await waitForPendingTxs(this.connection, 1, secondDeployPromise);
+      await mineBlock(this.connection);
 
       const secondDeployResult = await secondDeployPromise;
 
@@ -230,13 +229,10 @@ describe.skip("create2", function () {
 
     it("should throw if salt is not defined in Hardhat config", async function () {
       await assert.isRejected(
-        this.hre.run(
-          { scope: "ignition", task: "deploy" },
-          {
-            modulePath: "./ignition/modules/MyModule.js",
-            strategy: "create2",
-          },
-        ),
+        this.hre.tasks.getTask(["ignition", "deploy"]).run({
+          modulePath: "./ignition/modules/MyModule.js",
+          strategy: "create2",
+        }),
         /IGN1102: Missing required strategy configuration parameter 'salt' for the strategy 'create2'/,
       );
     });
@@ -244,12 +240,14 @@ describe.skip("create2", function () {
 });
 
 async function deployCreateXFactory(hre: HardhatRuntimeEnvironment) {
-  await hre.network.provider.request({
+  const connection = await hre.network.connect();
+
+  await connection.provider.request({
     method: "hardhat_setBalance",
     params: ["0xeD456e05CaAb11d66C4c797dD6c1D6f9A7F352b5", "0x58D15E176280000"],
   });
 
-  await hre.network.provider.request({
+  await connection.provider.request({
     method: "eth_sendRawTransaction",
     params: [presignedTx],
   });

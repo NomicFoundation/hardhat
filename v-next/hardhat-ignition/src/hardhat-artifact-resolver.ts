@@ -4,7 +4,6 @@ import type {
   ArtifactResolver,
   BuildInfo,
 } from "@ignored/hardhat-vnext-ignition-core";
-import type { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import fs from "node:fs";
 import path from "node:path";
@@ -12,7 +11,8 @@ import path from "node:path";
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
 export class HardhatArtifactResolver implements ArtifactResolver {
-  constructor(private readonly _hre: HardhatRuntimeEnvironment) {}
+  // TODO: HH3 update to the correct type as part of the Artifact resolver step
+  constructor(private readonly _hre: any) {}
 
   public async getBuildInfo(
     contractName: string,
@@ -58,7 +58,7 @@ export class HardhatArtifactResolver implements ArtifactResolver {
     const artifactPaths = await this._hre.artifacts.getArtifactPaths();
 
     const artifactPath = artifactPaths.find(
-      (p) => path.parse(p).name === contractName,
+      (p: string) => path.parse(p).name === contractName,
     );
 
     return artifactPath;

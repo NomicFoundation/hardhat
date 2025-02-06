@@ -2,7 +2,6 @@
 import type { TestChainHelper } from "../../test-helpers/use-ignition-project.js";
 
 import { buildModule } from "@ignored/hardhat-vnext-ignition-core";
-import { setNextBlockBaseFeePerGas } from "@nomicfoundation/hardhat-network-helpers";
 import { assert } from "chai";
 
 import { useFileIgnitionProject } from "../../test-helpers/use-ignition-project.js";
@@ -38,15 +37,15 @@ describe.skip("execution - deploy run times out", () => {
         // but then bump the base fee so that it doesn't get mined,
         // with the next block
         await c.waitForPendingTxs(1);
-        await setNextBlockBaseFeePerGas(10_000_000_000n);
+        await c.setNextBlockBaseFeePerGas(10_000_000_000n);
         await c.mineBlock();
 
         await c.waitForPendingTxs(1);
-        await setNextBlockBaseFeePerGas(100_000_000_000n);
+        await c.setNextBlockBaseFeePerGas(100_000_000_000n);
         await c.mineBlock();
 
         await c.waitForPendingTxs(1);
-        await setNextBlockBaseFeePerGas(1_000_000_000_000n);
+        await c.setNextBlockBaseFeePerGas(1_000_000_000_000n);
         await c.mineBlock();
       }),
       "The deployment wasn't successful, there were timeouts:\n\nTimed out:\n\n  * FooModule#Foo/1",

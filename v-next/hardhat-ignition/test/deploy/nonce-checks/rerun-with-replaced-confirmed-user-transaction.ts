@@ -53,17 +53,17 @@ describe("execution - rerun with replaced confirmed user transaction", () => {
       },
     );
 
-    const FooArtifact = this.hre.artifacts.readArtifactSync("Foo");
+    const FooArtifact = await this.hre.artifacts.readArtifact("Foo");
 
     // Submit a user interfering deploy transaction
     // to the mempool reusing nonce 2
-    const [, , signer2] = (await this.hre.network.provider.request({
+    const [, , signer2] = (await this.connection.provider.request({
       method: "eth_accounts",
     })) as string[];
 
     const walletClient = createWalletClient({
       chain: hardhat,
-      transport: custom(this.hre.network.provider),
+      transport: custom(this.connection.provider),
     });
 
     const deployPromise = walletClient.deployContract({
@@ -78,7 +78,7 @@ describe("execution - rerun with replaced confirmed user transaction", () => {
     // mine a block confirming foo1, foo2, and the user provided transaction
     // foo3 is no longer in the mempool
     await sleep(300);
-    await mineBlock(this.hre);
+    await mineBlock(this.connection);
 
     // Rerun the deployment with foo3 replaced, causing it to
     // be resubmitted

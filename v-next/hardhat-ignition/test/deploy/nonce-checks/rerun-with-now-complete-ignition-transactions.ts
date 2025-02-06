@@ -75,8 +75,8 @@ describe.skip("execution - rerun with now complete ignition transactions", () =>
     );
 
     // Further blocks are processed confirming foo3 and foo4
-    await mineBlock(this.hre);
-    await mineBlock(this.hre);
+    await mineBlock(this.connection);
+    await mineBlock(this.connection);
 
     // Rerun the deployment, with foo3 and foo3 now confirmed
     const result = await this.runControlledDeploy(

@@ -1837,9 +1837,6 @@ importers:
 
   v-next/hardhat-ignition:
     dependencies:
-      '@ignored/hardhat-vnext':
-        specifier: workspace:^3.0.0-next.16
-        version: link:../hardhat
       '@ignored/hardhat-vnext-errors':
         specifier: workspace:^3.0.0-next.15
         version: link:../hardhat-errors
@@ -1865,12 +1862,15 @@ importers:
         specifier: ^2.4.2
         version: 2.4.2
     devDependencies:
+      '@ignored/hardhat-vnext':
+        specifier: workspace:^3.0.0-next.16
+        version: link:../hardhat
+      '@ignored/hardhat-vnext-network-helpers':
+        specifier: workspace:^3.0.0-next.12
+        version: link:../hardhat-network-helpers
       '@istanbuljs/nyc-config-typescript':
         specifier: 1.0.2
         version: 1.0.2(nyc@15.1.0)
-      '@nomicfoundation/hardhat-network-helpers':
-        specifier: workspace:^1.0.9
-        version: link:../../packages/hardhat-network-helpers
       '@types/chai':
         specifier: ^4.2.0
         version: 4.3.20
@@ -1931,9 +1931,6 @@ importers:
       eslint-plugin-prettier:
         specifier: 4.0.0
         version: 4.0.0(eslint-config-prettier@9.1.0(eslint@8.57.0))(eslint@8.57.0)(prettier@3.2.5)
-      hardhat:
-        specifier: workspace:^2.18.0
-        version: link:../../packages/hardhat-core
       mocha:
         specifier: ^10.0.0
         version: 10.8.2
