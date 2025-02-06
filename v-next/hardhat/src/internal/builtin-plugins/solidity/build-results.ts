@@ -1,20 +1,22 @@
 import type {
   Artifact as HardhatArtifact,
-  BuildInfo,
+  ArtifactManager,
 } from "../../../types/artifacts.js";
-import type { Artifact as EdrArtifact } from "@ignored/edr";
-
-import path from "node:path";
-
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { readJsonFile } from "@ignored/hardhat-vnext-utils/fs";
+import type {
+  CompilationJobCreationError,
+  FailedFileBuildResult,
+  FileBuildResult,
+  SolidityBuildInfo,
+} from "../../../types/solidity.js";
+import type { BuildInfoAndOutput, Artifact as EdrArtifact } from "@ignored/edr";
 
 import {
-  FileBuildResultType,
-  type CompilationJobCreationError,
-  type FailedFileBuildResult,
-  type FileBuildResult,
-} from "../../../types/solidity.js";
+  assertHardhatInvariant,
+  HardhatError,
+} from "@ignored/hardhat-vnext-errors";
+import { readBinaryFile, readJsonFile } from "@ignored/hardhat-vnext-utils/fs";
+
+import { FileBuildResultType } from "../../../types/solidity.js";
 
 type SolidityBuildResults =
   | Map<string, FileBuildResult>
@@ -23,6 +25,10 @@ type SuccessfulSolidityBuildResults = Map<
   string,
   Exclude<FileBuildResult, FailedFileBuildResult>
 >;
+interface ArtifactsAndBuildInfos {
+  artifacts: EdrArtifact[];
+  buildInfos: BuildInfoAndOutput[];
+}
 
 /**
  * This function asserts that the given Solidity build results are successful.
@@ -55,26 +61,59 @@ export function throwIfSolidityBuildFailed(
 }
 
 /**
- * This function returns the artifacts generated during the compilation associated
- * with the given Solidity build results. It relies on the fact that each successful
- * build result has a corresponding artifact generated property.
+ * This function returns the artifacts and build infos generated during the
+ * compilation associated with the given Solidity build results. It relies on
+ * the fact that each successful build result has a corresponding artifact
+ * generated property.
  */
-export async function getArtifacts(
+export async function getArtifactsAndBuildInfos(
   results: SuccessfulSolidityBuildResults,
-  artifactsRootPath: string,
-): Promise<EdrArtifact[]> {
+  artifactManager: ArtifactManager,
+): Promise<ArtifactsAndBuildInfos> {
   const artifacts: EdrArtifact[] = [];
+  const buildInfos: BuildInfoAndOutput[] = [];
+
+  const solcVersions: Map<string, string> = new Map();
 
   for (const [source, result] of results.entries()) {
     for (const artifactPath of result.contractArtifactsGenerated) {
       const artifact: HardhatArtifact = await readJsonFile(artifactPath);
-      const buildInfo: BuildInfo = await readJsonFile(
-        path.join(artifactsRootPath, "build-info", `${result.buildId}.json`),
-      );
+
+      let solcVersion = solcVersions.get(result.buildId);
+      if (solcVersion === undefined) {
+        const buildInfoPath = await artifactManager.getBuildInfoPath(
+          result.buildId,
+        );
+        const buildInfoOutputPath =
+          await artifactManager.getBuildInfoOutputPath(result.buildId);
+
+        assertHardhatInvariant(
+          buildInfoPath !== undefined,
+          "buildInfoPath should not be undefined",
+        );
+        assertHardhatInvariant(
+          buildInfoOutputPath !== undefined,
+          "buildInfoOutputPath should not be undefined",
+        );
+
+        const buildInfo = await readBinaryFile(buildInfoPath);
+        const output = await readBinaryFile(buildInfoOutputPath);
+
+        const solidityBuildInfo: SolidityBuildInfo = JSON.parse(
+          new TextDecoder("utf-8").decode(buildInfo),
+        );
+
+        solcVersion = solidityBuildInfo.solcVersion;
+
+        buildInfos.push({
+          buildInfo,
+          output,
+        });
+      }
 
       const id = {
         name: artifact.contractName,
-        solcVersion: buildInfo.solcVersion,
+        solcVersion,
         source,
       };
 
@@ -91,5 +130,8 @@ export async function getArtifacts(
     }
   }
 
-  return artifacts;
+  return {
+    artifacts,
+    buildInfos,
+  };
 }

@@ -3,6 +3,7 @@ import type {
   ArtifactId,
   Artifact,
   SolidityTestRunnerConfigArgs,
+  TracingConfigWithBuffers,
 } from "@ignored/edr";
 
 import { Readable } from "node:stream";
@@ -49,6 +50,7 @@ export function run(
   artifacts: Artifact[],
   testSuiteIds: ArtifactId[],
   configArgs: SolidityTestRunnerConfigArgs,
+  tracingConfig: TracingConfigWithBuffers,
   options?: RunOptions,
 ): TestsStream {
   const stream = new ReadableStream<TestEvent>({
@@ -83,6 +85,7 @@ export function run(
         artifacts,
         testSuiteIds,
         configArgs,
+        tracingConfig,
         (suiteResult) => {
           controller.enqueue({
             type: "suite:result",
