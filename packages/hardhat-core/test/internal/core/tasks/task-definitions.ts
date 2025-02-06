@@ -434,7 +434,7 @@ describe("SimpleTaskDefinition", () => {
         });
       });
 
-      it("should accept an optional parm with undefined as default vlaue", () => {
+      it("should accept an optional parm with undefined as default value", () => {
         taskDefinition.addParam("p", "desc", undefined, types.int, true);
         assertParamDefinition(taskDefinition.paramDefinitions.p, {
           defaultValue: undefined,
