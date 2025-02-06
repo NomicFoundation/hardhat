@@ -45,6 +45,7 @@ describe("Hardfork utils", function () {
       assert.equal("merge", HardforkName.MERGE);
       assert.equal("shanghai", HardforkName.SHANGHAI);
       assert.equal("cancun", HardforkName.CANCUN);
+      assert.equal("prague", HardforkName.PRAGUE);
     });
   });
 
