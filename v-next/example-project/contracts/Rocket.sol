@@ -2,15 +2,15 @@
 pragma solidity ^0.8.0;
 
 contract Rocket {
-    string public name;
-    string public status;
+  string public name;
+  string public status;
 
-    constructor(string memory _name) {
-        name = _name;
-        status = "ignition";
-    }
+  constructor(string memory _name) {
+    name = _name;
+    status = "ignition";
+  }
 
-    function launch() public {
-        status = "lift-off";
-    }
+  function launch() public {
+    status = "lift-off";
+  }
 }

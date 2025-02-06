@@ -30,6 +30,9 @@
     },
     {
       "path": "../hardhat-typechain"
+    },
+    {
+      "path": "../hardhat-ignition"
     }
   ]
 }
