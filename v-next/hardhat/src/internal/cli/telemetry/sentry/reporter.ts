@@ -2,6 +2,7 @@ import {
   HardhatError,
   HardhatPluginError,
 } from "@ignored/hardhat-vnext-errors";
+import { flush } from "@sentry/node";
 import debug from "debug";
 
 import { ProviderError } from "../../../builtin-plugins/network-manager/provider-errors.js";
@@ -23,7 +24,7 @@ export async function sendErrorTelemetry(
   configPath: string = "",
 ): Promise<boolean> {
   const instance = await Reporter.getInstance();
-  return instance.reportError(error, configPath);
+  return instance.reportErrorViaSubprocess(error, configPath);
 }
 
 // ATTENTION: this function is exported for testing, do not directly use it in production
@@ -85,7 +86,7 @@ class Reporter {
     this.#instance = undefined;
   }
 
-  public async reportError(
+  public async reportErrorViaSubprocess(
     error: Error,
     configPath: string = "",
   ): Promise<boolean> {
@@ -102,8 +103,10 @@ class Reporter {
 
     captureException(error);
 
-    // TODO: should we run it? Hook at the end of hardhat execution?
-    // await flush(50);
+    // NOTE: Alternatively, we could close the reporter when we exit the process.
+    if (!(await flush(50))) {
+      log("Failed to flush events");
+    }
 
     return true;
   }
