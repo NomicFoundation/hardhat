@@ -47,7 +47,9 @@ export class ObjectCache<T> {
     maxAgeMs ??= this.#defaultMaxAgeMs;
     maxSize ??= this.#defaultMaxSize;
 
-    const files = await getAllFilesMatching(this.#path);
+    const files = await getAllFilesMatching(this.#path, (file) =>
+      file.endsWith(".json"),
+    );
     const fileInfos = await Promise.all(
       files.map(async (file) => ({
         file,
@@ -64,7 +66,10 @@ export class ObjectCache<T> {
     );
     const minAtimeMs = new Date().getTime() - maxAgeMs;
 
-    const filesToRemove: string[] = [];
+    const filesToRemove: string[] = await getAllFilesMatching(
+      this.#path,
+      (file) => file.endsWith(".json.tmp"),
+    );
 
     for (const fileInfo of sortedFileInfos) {
       if (fileInfo.atimeMs < minAtimeMs || size > maxSize) {
