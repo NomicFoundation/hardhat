@@ -145,6 +145,8 @@ export class CompilationJobImplementation implements CompilationJob {
       }),
     );
 
+    // NOTE: We need to sort the sources because the sources map might be
+    // populated out of order which does affect serialisation.
     const sortedSources = Object.fromEntries(
       Object.entries(sources).sort((a, b) => a[0].localeCompare(b[0])),
     );

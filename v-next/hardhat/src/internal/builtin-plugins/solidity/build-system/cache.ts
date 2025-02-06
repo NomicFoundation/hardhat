@@ -5,6 +5,7 @@ import {
   getAccessTime,
   getAllFilesMatching,
   getFileSize,
+  move,
   readJsonFile,
   remove,
   writeJsonFile,
@@ -28,12 +29,17 @@ export class ObjectCache<T> {
   }
 
   public async set(key: string, value: T): Promise<void> {
-    const filePath = path.join(this.#path, key);
-    await writeJsonFile(filePath, value);
+    const filePath = path.join(this.#path, `${key}.json`);
+    const tmpPath = `${filePath}.tmp`;
+
+    // NOTE: We are writing to a temporary file first because the value might
+    // be large and we don't want to end up with corrupted files in the cache.
+    await writeJsonFile(tmpPath, value);
+    await move(tmpPath, filePath);
   }
 
   public async get(key: string): Promise<T | undefined> {
-    const filePath = path.join(this.#path, key);
+    const filePath = path.join(this.#path, `${key}.json`);
     return (await exists(filePath)) ? readJsonFile<T>(filePath) : undefined;
   }
 
