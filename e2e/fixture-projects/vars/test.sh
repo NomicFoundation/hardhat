@@ -22,5 +22,5 @@ echo "it should fail because the key does not exist"
 run_test_and_handle_failure "npx hardhat vars get HH_KEY_DO_NOT_EXIST_3468267" 1
 
 #
-# Do not DELETE or SET keys to avoid modifing the configuration variables of the user running these tests
+# Do not DELETE or SET keys to avoid modifying the configuration variables of the user running these tests
 #
