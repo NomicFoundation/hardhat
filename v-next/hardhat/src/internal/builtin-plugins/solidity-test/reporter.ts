@@ -8,6 +8,11 @@ import type { TestResult } from "@ignored/edr";
 import { bytesToHexString } from "@ignored/hardhat-vnext-utils/hex";
 import chalk from "chalk";
 
+import {
+  encodeStackTraceEntry,
+  getMessageFromLastStackTraceEntry,
+} from "../network-manager/edr/stack-traces/stack-trace-solidity-errors.js";
+
 import { formatArtifactId } from "./formatters.js";
 
 /**
@@ -117,27 +122,59 @@ export async function* testReporter(
     for (const [index, failure] of failures.entries()) {
       yield `\n${chalk.bold(chalk.red(`Failure (${index + 1})`))}: ${failure.name}\n`;
 
-      if (failure.decodedLogs !== undefined && failure.decodedLogs.length > 0) {
-        yield `Decoded Logs${chalk.grey(`: ${failure.decodedLogs.join("\n")}\n`)}`;
+      const stackTrace = failure.stackTrace();
+      if (
+        stackTrace !== undefined &&
+        stackTrace !== null &&
+        stackTrace.length > 0
+      ) {
+        const stackTraceMessage = getMessageFromLastStackTraceEntry(
+          stackTrace[stackTrace.length - 1],
+        );
+        if (stackTraceMessage !== undefined) {
+          yield `${stackTraceMessage}\n`;
+        }
+
+        for (const entry of stackTrace.reverse()) {
+          const callsite = encodeStackTraceEntry(entry);
+          if (callsite !== undefined) {
+            yield `  ${chalk.grey(`at ${callsite.toString()}`)}\n`;
+          }
+        }
       }
 
-      if (failure.reason !== undefined && failure.reason !== "") {
-        yield `Reason${chalk.grey(`: ${failure.reason}\n`)}`;
+      if (
+        failure.decodedLogs !== undefined &&
+        failure.decodedLogs !== null &&
+        failure.decodedLogs.length > 0
+      ) {
+        yield `Decoded Logs${chalk.grey(`:\n  ${failure.decodedLogs.join("\n  ")}\n`)}`;
       }
 
-      if (failure.counterexample !== undefined) {
+      if (
+        failure.reason !== undefined &&
+        failure.reason !== null &&
+        failure.reason !== ""
+      ) {
+        yield `Reason${chalk.grey(`:\n  ${failure.reason}\n`)}`;
+      }
+
+      if (
+        failure.counterexample !== undefined &&
+        failure.counterexample !== null
+      ) {
         const counterexamples = Array.isArray(failure.counterexample)
           ? failure.counterexample
           : [failure.counterexample];
 
         for (const counterexample of counterexamples) {
-          const details = `{\n${Object.entries(counterexample)
+          const details = Object.entries(counterexample)
             .map(
               ([key, value]) =>
                 `  ${key}: ${Buffer.isBuffer(value) ? bytesToHexString(value) : value}`,
             )
-            .join(",\n")}\n}`;
-          yield `Counterexample${chalk.grey(`: ${details}\n`)}`;
+            .join("\n");
+          yield `Counterexample${chalk.grey(`:\n${details}\n`)}`;
         }
       }
     }

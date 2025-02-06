@@ -68,7 +68,7 @@ export function createSolidityErrorWithStackTrace(
   }
 }
 
-function encodeStackTraceEntry(
+export function encodeStackTraceEntry(
   stackTraceEntry: SolidityStackTraceEntry,
 ): SolidityCallSite {
   switch (stackTraceEntry.type) {
@@ -181,7 +181,7 @@ function sourceReferenceToSolidityCallsite(
   );
 }
 
-function getMessageFromLastStackTraceEntry(
+export function getMessageFromLastStackTraceEntry(
   stackTraceEntry: SolidityStackTraceEntry,
 ): string | undefined {
   switch (stackTraceEntry.type) {
