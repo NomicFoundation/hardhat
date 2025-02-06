@@ -1,4 +1,4 @@
-import { buildModule } from "@nomicfoundation/ignition-core";
+import { buildModule } from "@ignored/hardhat-vnext-ignition-core";
 
 const fakeArtifact = ["fake artifact"];
 
@@ -41,7 +41,7 @@ const synthetixDefinition = buildModule("Synthetix", (m) => {
   const synthetixCore = m.contractAt(
     "SynthetixCore",
     "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-    fakeArtifact
+    fakeArtifact,
   );
 
   const { router } = m.useModule(uniswap);

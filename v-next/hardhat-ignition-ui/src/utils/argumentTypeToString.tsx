@@ -3,7 +3,7 @@ import {
   RuntimeValueType,
   isFuture,
   isRuntimeValue,
-} from "@nomicfoundation/ignition-core/ui-helpers";
+} from "@ignored/hardhat-vnext-ignition-core/ui-helpers";
 
 export function argumentTypeToString(argument: ArgumentType): string {
   if (typeof argument === "bigint") {

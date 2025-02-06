@@ -1,7 +1,7 @@
 import {
   IgnitionModule,
   IgnitionModuleResult,
-} from "@nomicfoundation/ignition-core/ui-helpers";
+} from "@ignored/hardhat-vnext-ignition-core/ui-helpers";
 import React, { useMemo } from "react";
 import styled from "styled-components";
 import { getAllDeployFuturesFor } from "../../../queries/futures";
@@ -11,13 +11,16 @@ export const Summary: React.FC<{
 }> = ({ ignitionModule }) => {
   const deployFutures = useMemo(
     () => getAllDeployFuturesFor(ignitionModule),
-    [ignitionModule]
+    [ignitionModule],
   );
 
-  const deployCountPerContract = deployFutures.reduce((acc, future) => {
-    const count = acc[future.contractName] ?? 0;
-    return { ...acc, [future.contractName]: count + 1 };
-  }, {} as Record<string, number>);
+  const deployCountPerContract = deployFutures.reduce(
+    (acc, future) => {
+      const count = acc[future.contractName] ?? 0;
+      return { ...acc, [future.contractName]: count + 1 };
+    },
+    {} as Record<string, number>,
+  );
 
   return (
     <SummaryStyle>
@@ -32,7 +35,7 @@ export const Summary: React.FC<{
                   {contractName}
                   {count > 1 ? ` x${count}` : null}
                 </ListItem>
-              )
+              ),
             )}
           </StyledList>
         )}

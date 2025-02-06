@@ -1,10 +1,8 @@
 # Hardhat Ignition Visualize UI
 
-> Warning: this package is used internally within Hardhat Ignition, and is
-> not intended to be used directly.
+> Warning: this package is used internally within Hardhat Ignition, and is not intended to be used directly.
 
-The website used in Hardhat Ignition's `visualize` task for visualising
-a deployment.
+The website used in Hardhat Ignition's `visualize` task for visualising a deployment.
 
 ## Development
 
@@ -14,9 +12,7 @@ A development server can be run from the root of this package with:
 pnpm dev
 ```
 
-By default in development the deployment in `./public/deployment.json` is used,
-to overwrite this example deployment, update the module in
-`./examples/ComplexModule.js` and run the regenerate command:
+By default in development the deployment in `./public/deployment.json` is used, to overwrite this example deployment, update the module in `./examples/ComplexModule.js` and run the regenerate command:
 
 ```sh
 pnpm regenerate-deployment-example

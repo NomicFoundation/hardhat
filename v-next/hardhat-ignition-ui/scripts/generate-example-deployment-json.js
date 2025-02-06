@@ -1,7 +1,7 @@
 import {
   IgnitionModuleSerializer,
   batches,
-} from "@nomicfoundation/ignition-core";
+} from "@ignored/hardhat-vnext-ignition-core";
 import { writeFile } from "node:fs/promises";
 
 import complexModule from "../examples/ComplexModule.js";
@@ -23,8 +23,8 @@ async function writeDeploymentJsonFor(ignitionModule) {
     JSON.stringify(
       { module: serializedIgnitionModule, batches: moduleBatches },
       undefined,
-      2
-    )
+      2,
+    ),
   );
 }
 

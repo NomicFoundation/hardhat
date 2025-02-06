@@ -1,23 +1,24 @@
+// eslint-disable-next-line import/no-extraneous-dependencies -- this dependency is used to generate the build output
 import {
-  DeploymentFuture,
-  FunctionCallFuture,
-  Future,
-  IgnitionModule,
-  IgnitionModuleResult,
+  type DeploymentFuture,
+  type FunctionCallFuture,
+  type Future,
+  type IgnitionModule,
+  type IgnitionModuleResult,
   isDeploymentFuture,
   isFunctionCallFuture,
-} from "@nomicfoundation/ignition-core/ui-helpers";
+} from "@ignored/hardhat-vnext-ignition-core/ui-helpers";
 
 export function getFutureById(
   ignitionModule: IgnitionModule<string, string, IgnitionModuleResult<string>>,
-  futureId: string | undefined
+  futureId: string | undefined,
 ): Future | undefined {
   if (futureId === undefined) {
     return undefined;
   }
 
   const f = getAllFuturesForModule(ignitionModule).find(
-    (f) => f.id === futureId
+    (future) => future.id === futureId,
   );
 
   if (f === undefined) {
@@ -35,8 +36,8 @@ export function getAllFuturesForModule({
   return Array.from(futures)
     .concat(
       Array.from(submodules.values()).flatMap((submodule) =>
-        getAllFuturesForModule(submodule)
-      )
+        getAllFuturesForModule(submodule),
+      ),
     )
     .filter((v, i, a) => a.indexOf(v) === i); // remove duplicates
 }
@@ -49,8 +50,8 @@ export function getAllFuturesForModule({
  * - artifact library deploys
  */
 export function getAllDeployFuturesFor(
-  ignitionModule: IgnitionModule<string, string, IgnitionModuleResult<string>>
-): DeploymentFuture<string>[] {
+  ignitionModule: IgnitionModule<string, string, IgnitionModuleResult<string>>,
+): Array<DeploymentFuture<string>> {
   return getAllFuturesForModule(ignitionModule).filter(isDeploymentFuture);
 }
 
@@ -58,7 +59,7 @@ export function getAllDeployFuturesFor(
  * Get all calls in a module and its submodules
  */
 export function getAllCallFuturesFor(
-  ignitionModule: IgnitionModule<string, string, IgnitionModuleResult<string>>
-): FunctionCallFuture<string, string>[] {
+  ignitionModule: IgnitionModule<string, string, IgnitionModuleResult<string>>,
+): Array<FunctionCallFuture<string, string>> {
   return getAllFuturesForModule(ignitionModule).filter(isFunctionCallFuture);
 }

@@ -4,7 +4,7 @@ import {
   FutureType,
   isDeploymentType,
   isFuture,
-} from "@nomicfoundation/ignition-core/ui-helpers";
+} from "@ignored/hardhat-vnext-ignition-core/ui-helpers";
 import React from "react";
 import styled from "styled-components";
 import { argumentTypeToString } from "../../../utils/argumentTypeToString";
@@ -166,16 +166,16 @@ function toDisplayText(future: Future): string {
         typeof future.address === "string"
           ? future.address
           : isFuture(future.address)
-          ? future.address.id
-          : argumentTypeToString(future.address)
+            ? future.address.id
+            : argumentTypeToString(future.address)
       })`;
     case FutureType.CONTRACT_AT:
       return `Existing contract ${future.id} from artifact (${
         typeof future.address === "string"
           ? future.address
           : isFuture(future.address)
-          ? future.address.id
-          : argumentTypeToString(future.address)
+            ? future.address.id
+            : argumentTypeToString(future.address)
       })`;
     case FutureType.READ_EVENT_ARGUMENT:
       return `Read event from future ${future.futureToReadFrom.id} (event ${future.eventName} argument ${future.nameOrIndex})`;
@@ -184,8 +184,8 @@ function toDisplayText(future: Future): string {
         typeof future.to === "string"
           ? future.to
           : isFuture(future.to)
-          ? future.to.id
-          : argumentTypeToString(future.to)
+            ? future.to.id
+            : argumentTypeToString(future.to)
       }`;
   }
 }
