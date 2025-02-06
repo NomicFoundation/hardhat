@@ -76,7 +76,10 @@ const taskDeploy: NewTaskActionFunction<TaskDeployArguments> = async (
     }),
   );
 
-  const deploymentId = resolveDeploymentId(givenDeploymentId, chainId);
+  const deploymentId = resolveDeploymentId(
+    givenDeploymentId === "" ? undefined : givenDeploymentId,
+    chainId,
+  );
 
   const deploymentDir =
     connection.networkName === "hardhat" && !writeLocalhostDeployment
