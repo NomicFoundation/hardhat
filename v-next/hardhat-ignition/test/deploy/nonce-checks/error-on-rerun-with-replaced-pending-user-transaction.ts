@@ -14,7 +14,8 @@ import { useFileIgnitionProject } from "../../test-helpers/use-ignition-project.
  * reusing a nonce with a higher gas value. On the rerun we should
  * error that there is a pending non-ignition transaction.
  */
-describe("execution - error on rerun with replaced pending user transaction", () => {
+// TODO: Bring back with Hardhat 3 fixtures
+describe.skip("execution - error on rerun with replaced pending user transaction", () => {
   useFileIgnitionProject(
     "minimal",
     "error-on-rerun-with-replaced-pending-user-transaction",

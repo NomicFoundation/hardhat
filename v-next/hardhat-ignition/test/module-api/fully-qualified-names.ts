@@ -3,7 +3,8 @@ import { assert } from "chai";
 
 import { useFileIgnitionProject } from "../test-helpers/use-ignition-project.js";
 
-describe("fully qualified names", () => {
+// TODO: Bring back with Hardhat 3 fixtures
+describe.skip("fully qualified names", () => {
   describe("where there are multiple contracts with the same name in the project", () => {
     useFileIgnitionProject(
       "multiple-contracts-with-same-name",

@@ -9,7 +9,8 @@ import { useEphemeralIgnitionProject } from "./test-helpers/use-ignition-project
  * We warn that you need to install either the viem or ethers plugin to get
  * Ignition support in tests or scripts.
  */
-describe("ignition helper guard", () => {
+// TODO: Bring back with Hardhat 3 fixtures
+describe.skip("ignition helper guard", () => {
   useEphemeralIgnitionProject("minimal");
 
   it("should error on attempting to use `hre.ignition` without viem/ethers plugins installed", function () {

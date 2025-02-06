@@ -14,7 +14,8 @@ import { useFileIgnitionProject } from "../../test-helpers/use-ignition-project.
  *
  * TODO: Needs to be updated to deal with fee bumps
  */
-describe("execution - rerun a deploy that timed out", () => {
+// TODO: Bring back with Hardhat 3 fixtures
+describe.skip("execution - rerun a deploy that timed out", () => {
   useFileIgnitionProject("minimal", "rerun-a-deploy-that-timed-out", {
     blockPollingInterval: 50,
     timeBeforeBumpingFees: 45,

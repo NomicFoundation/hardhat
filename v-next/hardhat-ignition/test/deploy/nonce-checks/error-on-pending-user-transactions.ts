@@ -15,7 +15,8 @@ import { waitForPendingTxs } from "../../test-helpers/wait-for-pending-txs.js";
  * to see if there are pending transactions (not from previous runs)
  * and error if there are any.
  */
-describe("execution - error on pending user transactions", () => {
+// TODO: Bring back with Hardhat 3 fixtures
+describe.skip("execution - error on pending user transactions", () => {
   useFileIgnitionProject(
     "minimal",
     "error-on-rerun-with-replaced-pending-user-transaction",

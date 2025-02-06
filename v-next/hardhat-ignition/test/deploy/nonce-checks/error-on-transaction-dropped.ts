@@ -10,7 +10,8 @@ import { useFileIgnitionProject } from "../../test-helpers/use-ignition-project.
  * On running a deploy, if a transaction is dropped from the mempool
  * before it is confirmed, then we halt and display an error.
  */
-describe("execution - error on transaction dropped", () => {
+// TODO: Bring back with Hardhat 3 fixtures
+describe.skip("execution - error on transaction dropped", () => {
   useFileIgnitionProject("minimal", "error-on-transaction-dropped");
 
   it("should error on the drop being detected", async function () {

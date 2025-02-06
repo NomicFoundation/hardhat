@@ -4,7 +4,8 @@ import { assert } from "chai";
 
 import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";
 
-describe("useModule", function () {
+// TODO: Bring back with Hardhat 3 fixtures
+describe.skip("useModule", function () {
   useEphemeralIgnitionProject("minimal");
 
   describe("returning futures from module usage", () => {

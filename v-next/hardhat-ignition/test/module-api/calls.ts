@@ -5,7 +5,8 @@ import { assert } from "chai";
 import { getBalanceFor } from "../test-helpers/get-balance-for.js";
 import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";
 
-describe("calls", () => {
+// TODO: Bring back with Hardhat 3 fixtures
+describe.skip("calls", () => {
   useEphemeralIgnitionProject("minimal");
 
   it("should be able to call contracts", async function () {

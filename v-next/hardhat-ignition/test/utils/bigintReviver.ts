@@ -10,7 +10,7 @@ describe("bigintReviver", function () {
   it("should throw if a number is bigger than Number.MAX_SAFE_INTEGER", function () {
     assert.throws(() => {
       JSON.parse('{"a":9007199254740992}', bigintReviver);
-    }, `Parameter "a" exceeds maximum safe integer size. Encode the value as a string using bigint notation: \`$\{value\}n\``);
+    }, `HHE1609: Parameter "a" exceeds maximum safe integer size. Encode the value as a string using bigint notation: \`9007199254740992n\``);
   });
 
   it("should not convert regular numbers", function () {

@@ -3,6 +3,7 @@
   "references": [
     { "path": "../hardhat-ignition-core" },
     { "path": "../hardhat" },
+    { "path": "../hardhat-errors" },
     { "path": "../hardhat-network-helpers" },
     { "path": "../hardhat-ignition-ui/tsconfig.node.json" }
   ],

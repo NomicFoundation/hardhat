@@ -34,7 +34,10 @@ export async function calculateListTransactionsDisplay(
     }
 
     if (transaction.params !== undefined) {
-      const { stringify } = await import("json5");
+      const {
+        default: { stringify },
+      } = await import("json5");
+
       text += `  - Params: ${stringify(
         transaction.params,
         transactionDisplaySerializeReplacer,

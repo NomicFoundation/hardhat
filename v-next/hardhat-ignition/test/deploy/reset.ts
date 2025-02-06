@@ -5,7 +5,8 @@ import { assert } from "chai";
 import { HardhatArtifactResolver } from "../../src/hardhat-artifact-resolver.js";
 import { useFileIgnitionProject } from "../test-helpers/use-ignition-project.js";
 
-describe("reset flag", function () {
+// TODO: Bring back with Hardhat 3 fixtures
+describe.skip("reset flag", function () {
   useFileIgnitionProject("reset-flag", "custom-reset-id");
 
   it("should reset a deployment", async function () {

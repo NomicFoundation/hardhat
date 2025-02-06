@@ -3,7 +3,8 @@ import { assert } from "chai";
 
 import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";
 
-describe("verify", function () {
+// TODO: Bring back with Hardhat 3 fixtures
+describe.skip("verify", function () {
   describe("when there is no etherscan API key configured", function () {
     useEphemeralIgnitionProject("verify-no-api-key");
 

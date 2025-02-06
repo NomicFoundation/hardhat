@@ -13,7 +13,8 @@ import {
 } from "../test-helpers/use-ignition-project.js";
 import { waitForPendingTxs } from "../test-helpers/wait-for-pending-txs.js";
 
-describe("create2", function () {
+// TODO: Bring back with Hardhat 3 fixtures
+describe.skip("create2", function () {
   const example32ByteSalt =
     "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
   const anotherExample32ByteSalt =

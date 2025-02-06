@@ -2,7 +2,8 @@ import { assert } from "chai";
 
 import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";
 
-describe("strategies - only built in strategies", function () {
+// TODO: Bring back with Hardhat 3 fixtures
+describe.skip("strategies - only built in strategies", function () {
   useEphemeralIgnitionProject("minimal");
 
   it("should throw if a non-recognized strategy is specified", async function () {

@@ -4,7 +4,8 @@ import { assert } from "chai";
 import { loadModule } from "../../src/utils/load-module.js";
 import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";
 
-describe("loadModule", function () {
+// TODO: bring back the test with Hardhat 3 fixtures
+describe.skip("loadModule", function () {
   useEphemeralIgnitionProject("user-modules");
 
   it("should throw if the full path to the module does not exist", async () => {

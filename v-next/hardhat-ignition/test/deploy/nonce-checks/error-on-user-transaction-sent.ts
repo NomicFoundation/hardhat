@@ -13,7 +13,8 @@ import { useFileIgnitionProject } from "../../test-helpers/use-ignition-project.
  * sends a new transaction outside Ignition on the same account
  * we should error and halt immediately
  */
-describe("execution - error on user transaction sent", () => {
+// TODO: Bring back with Hardhat 3 fixtures
+describe.skip("execution - error on user transaction sent", () => {
   useFileIgnitionProject("minimal", "error-on-user-transaction-sent");
 
   it("should error on the drop being detected", async function () {

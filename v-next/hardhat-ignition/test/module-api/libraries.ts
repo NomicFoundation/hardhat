@@ -4,7 +4,8 @@ import { assert } from "chai";
 
 import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";
 
-describe("libraries", () => {
+// TODO: Bring back with Hardhat 3 fixtures
+describe.skip("libraries", () => {
   useEphemeralIgnitionProject("minimal");
 
   it("should be able to deploy a contract that depends on a hardhat library", async function () {

@@ -4,7 +4,8 @@ import { assert } from "chai";
 
 import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";
 
-describe("module parameters", () => {
+// TODO: Bring back with Hardhat 3 fixtures
+describe.skip("module parameters", () => {
   useEphemeralIgnitionProject("minimal");
 
   it("should be able to retrieve a default number", async function () {
@@ -130,7 +131,8 @@ describe("module parameters", () => {
   });
 });
 
-describe("params validation", () => {
+// TODO: Bring back with Hardhat 3 fixtures
+describe.skip("params validation", () => {
   useEphemeralIgnitionProject("minimal");
 
   it("should throw if no parameters object provided", async function () {

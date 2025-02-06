@@ -4,7 +4,8 @@ import { assert } from "chai";
 
 import { useEphemeralIgnitionProject } from "./test-helpers/use-ignition-project.js";
 
-describe("module parameters", () => {
+// TODO: Bring back with Hardhat 3 fixtures
+describe.skip("module parameters", () => {
   describe("a standard hardhat project", () => {
     useEphemeralIgnitionProject("lock");
 

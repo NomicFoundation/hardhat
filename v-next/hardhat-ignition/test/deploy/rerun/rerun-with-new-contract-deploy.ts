@@ -12,7 +12,8 @@ import { useFileIgnitionProject } from "../../test-helpers/use-ignition-project.
  * to add an additional dependent contract. On the second run only one contract
  * is deployed.
  */
-describe("execution - rerun with new contract deploy", () => {
+// TODO: Bring back with Hardhat 3 fixtures
+describe.skip("execution - rerun with new contract deploy", () => {
   useFileIgnitionProject("minimal", "rerun-with-new-contract-deploy");
 
   it("should deploy only one contract on second run", async function () {

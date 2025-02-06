@@ -6,7 +6,8 @@ import { assert } from "chai";
 
 import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";
 
-describe("visualize", () => {
+// TODO: Bring back with Hardhat 3 fixtures
+describe.skip("visualize", () => {
   useEphemeralIgnitionProject("minimal");
 
   it("should create a visualization", async function () {
