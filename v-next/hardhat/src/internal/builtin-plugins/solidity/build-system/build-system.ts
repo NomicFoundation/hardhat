@@ -230,8 +230,6 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         "We emitted contract artifacts for all the jobs if the build was successful",
       );
 
-      const buildId = await result.compilationJob.getBuildId();
-
       const errors = await Promise.all(
         (result.compilerOutput.errors ?? []).map((error) =>
           this.remapCompilerError(result.compilationJob, error, true),
@@ -251,7 +249,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         if (!successfulResult) {
           resultsMap.set(formatRootPath(publicSourceName, root), {
             type: FileBuildResultType.BUILD_FAILURE,
-            buildId,
+            compilationJob: result.compilationJob,
             errors,
           });
 
@@ -261,7 +259,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         if (result.cached) {
           resultsMap.set(formatRootPath(publicSourceName, root), {
             type: FileBuildResultType.CACHE_HIT,
-            buildId,
+            compilationJob: result.compilationJob,
             contractArtifactsGenerated:
               contractArtifactsGenerated.get(publicSourceName) ?? [],
             warnings: errors,
@@ -272,7 +270,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
         resultsMap.set(formatRootPath(publicSourceName, root), {
           type: FileBuildResultType.BUILD_SUCCESS,
-          buildId,
+          compilationJob: result.compilationJob,
           contractArtifactsGenerated:
             contractArtifactsGenerated.get(publicSourceName) ?? [],
           warnings: errors,
