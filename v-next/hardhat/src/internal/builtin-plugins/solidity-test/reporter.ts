@@ -135,11 +135,16 @@ export async function* testReporter(
           yield `${stackTraceMessage}\n`;
         }
 
+        const stackTraceStack: string[] = [];
         for (const entry of stackTrace.reverse()) {
           const callsite = encodeStackTraceEntry(entry);
           if (callsite !== undefined) {
-            yield `  ${chalk.grey(`at ${callsite.toString()}`)}\n`;
+            stackTraceStack.push(`  at ${callsite.toString()}`);
           }
+        }
+
+        if (stackTraceMessage !== undefined || stackTraceStack.length > 0) {
+          yield `${stackTraceMessage ?? "Stack trace:"}\n${chalk.grey(stackTraceStack.join("\n"))}\n`;
         }
       }
 
@@ -148,7 +153,7 @@ export async function* testReporter(
         failure.decodedLogs !== null &&
         failure.decodedLogs.length > 0
       ) {
-        yield `Decoded Logs${chalk.grey(`:\n  ${failure.decodedLogs.join("\n  ")}\n`)}`;
+        yield `Decoded Logs:\n${chalk.grey(failure.decodedLogs.map((log) => `  ${log}`).join("\n"))}\n`;
       }
 
       if (
@@ -156,7 +161,7 @@ export async function* testReporter(
         failure.reason !== null &&
         failure.reason !== ""
       ) {
-        yield `Reason${chalk.grey(`:\n  ${failure.reason}\n`)}`;
+        yield `Reason:\n${chalk.grey(`  ${failure.reason}`)}\n`;
       }
 
       if (
@@ -174,7 +179,7 @@ export async function* testReporter(
                 `  ${key}: ${Buffer.isBuffer(value) ? bytesToHexString(value) : value}`,
             )
             .join("\n");
-          yield `Counterexample${chalk.grey(`:\n${details}\n`)}`;
+          yield `Counterexample:\n${chalk.grey(details)}\n`;
         }
       }
     }
