@@ -78,6 +78,11 @@ export async function getBuildInfos(
       const buildInfoOutputPath =
         await artifactManager.getBuildInfoOutputPath(buildId);
 
+      // This is only safe because of how we currently interact with getBuildInfos
+      // i.e. we call it immediately after a build which should ensure both
+      // the build info and build info output exist. If the usage pattern of this
+      // function changes, these invariants might not hold anymore and should be
+      // transformed into other errors instead.
       assertHardhatInvariant(
         buildInfoPath !== undefined,
         "buildInfoPath should not be undefined",
@@ -137,6 +142,11 @@ export async function getArtifacts(
 
       const solcVersion = solcVersions[buildId];
 
+      // This is only safe because of how we currently interact with getArtifacts
+      // i.e. we first call build, then we get the build infos, and the we call
+      // this function with the results. If the usage pattern of this function
+      // changes, these invariants might not hold anymore and should be
+      // transformed into other errors instead.
       assertHardhatInvariant(
         solcVersion !== undefined,
         "solcVersion should not be undefined",
