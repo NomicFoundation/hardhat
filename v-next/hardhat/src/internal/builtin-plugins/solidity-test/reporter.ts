@@ -170,11 +170,10 @@ export async function* testReporter(
           : [failure.counterexample];
 
         for (const counterexample of counterexamples) {
-          const details = Object.entries(counterexample)
-            .map(
-              ([key, value]) =>
-                `  ${key}: ${Buffer.isBuffer(value) ? bytesToHexString(value) : value}`,
-            )
+          const details = Object.entries(counterexample).map(
+            ([key, value]) =>
+              `  ${key}: ${Buffer.isBuffer(value) ? bytesToHexString(value) : value}`,
+          );
           yield `Counterexample:\n${chalk.grey(details.join("\n"))}\n`;
         }
       }
