@@ -8,10 +8,7 @@ import type { TestResult } from "@ignored/edr";
 import { bytesToHexString } from "@ignored/hardhat-vnext-utils/hex";
 import chalk from "chalk";
 
-import {
-  encodeStackTraceEntry,
-  getMessageFromLastStackTraceEntry,
-} from "../network-manager/edr/stack-traces/stack-trace-solidity-errors.js";
+import { encodeStackTraceEntry } from "../network-manager/edr/stack-traces/stack-trace-solidity-errors.js";
 
 import { formatArtifactId } from "./formatters.js";
 
@@ -122,16 +119,20 @@ export async function* testReporter(
     for (const [index, failure] of failures.entries()) {
       yield `\n${chalk.bold(chalk.red(`Failure (${index + 1})`))}: ${failure.name}\n`;
 
+      if (
+        failure.reason !== undefined &&
+        failure.reason !== null &&
+        failure.reason !== ""
+      ) {
+        yield `Reason: ${chalk.grey(failure.reason)}\n`;
+      }
+
       const stackTrace = failure.stackTrace();
       if (
         stackTrace !== undefined &&
         stackTrace !== null &&
         stackTrace.length > 0
       ) {
-        const stackTraceMessage = getMessageFromLastStackTraceEntry(
-          stackTrace[stackTrace.length - 1],
-        );
-
         const stackTraceStack: string[] = [];
         for (const entry of stackTrace.reverse()) {
           const callsite = encodeStackTraceEntry(entry);
@@ -140,8 +141,8 @@ export async function* testReporter(
           }
         }
 
-        if (stackTraceMessage !== undefined || stackTraceStack.length > 0) {
-          yield `${stackTraceMessage ?? "Stack trace:"}\n${chalk.grey(stackTraceStack.join("\n"))}\n`;
+        if (stackTraceStack.length > 0) {
+          yield `${chalk.grey(stackTraceStack.join("\n"))}\n`;
         }
       }
 
@@ -151,14 +152,6 @@ export async function* testReporter(
         failure.decodedLogs.length > 0
       ) {
         yield `Decoded Logs:\n${chalk.grey(failure.decodedLogs.map((log) => `  ${log}`).join("\n"))}\n`;
-      }
-
-      if (
-        failure.reason !== undefined &&
-        failure.reason !== null &&
-        failure.reason !== ""
-      ) {
-        yield `Reason:\n${chalk.grey(`  ${failure.reason}`)}\n`;
       }
 
       if (
