@@ -48,6 +48,7 @@ export enum ResolvedFileType {
  */
 export interface ProjectResolvedFile {
   type: ResolvedFileType.PROJECT_FILE;
+
   /**
    * The source name of a project files is its relative path from the Hardhat
    * project root.
@@ -63,6 +64,11 @@ export interface ProjectResolvedFile {
    * The file contents.
    */
   content: FileContent;
+
+  /**
+   * Return the non-cryptographic hash id of the file contents.
+   */
+  getContentHash(): Promise<string>;
 }
 
 /**
@@ -90,6 +96,11 @@ export interface NpmPackageResolvedFile {
    * The package this file belongs to.
    */
   package: ResolvedNpmPackage;
+
+  /**
+   * Return the non-cryptographic hash id of the file contents.
+   */
+  getContentHash(): Promise<string>;
 }
 
 /**

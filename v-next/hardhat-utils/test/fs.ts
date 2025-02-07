@@ -26,6 +26,8 @@ import {
   writeJsonFile,
   writeUtf8File,
   readBinaryFile,
+  getAccessTime,
+  getFileSize,
 } from "../src/fs.js";
 
 import { useTmpDir } from "./helpers/fs.js";
@@ -730,6 +732,65 @@ describe("File system utils", () => {
       const invalidPath = "\0";
 
       await assert.rejects(getChangeTime(invalidPath), {
+        name: "FileSystemAccessError",
+      });
+    });
+  });
+
+  describe("getAccessTime", () => {
+    it("Should return the access time of a file", async () => {
+      const filePath = path.join(getTmpDir(), "file.txt");
+      await createFile(filePath);
+
+      const stats = await fsPromises.stat(filePath);
+
+      assert.equal(
+        stats.atime.getTime(),
+        (await getAccessTime(filePath)).getTime(),
+      );
+    });
+
+    it("Should throw FileNotFoundError if the file doesn't exist", async () => {
+      const filePath = path.join(getTmpDir(), "not-exists.txt");
+
+      await assert.rejects(getAccessTime(filePath), {
+        name: "FileNotFoundError",
+        message: `File ${filePath} not found`,
+      });
+    });
+
+    it("Should throw FileSystemAccessError if a different error is thrown", async () => {
+      const invalidPath = "\0";
+
+      await assert.rejects(getAccessTime(invalidPath), {
+        name: "FileSystemAccessError",
+      });
+    });
+  });
+
+  describe("getSize", () => {
+    it("Should return the size of a file", async () => {
+      const filePath = path.join(getTmpDir(), "file.txt");
+      await createFile(filePath);
+
+      const stats = await fsPromises.stat(filePath);
+
+      assert.equal(stats.size, await getFileSize(filePath));
+    });
+
+    it("Should throw FileNotFoundError if the file doesn't exist", async () => {
+      const filePath = path.join(getTmpDir(), "not-exists.txt");
+
+      await assert.rejects(getFileSize(filePath), {
+        name: "FileNotFoundError",
+        message: `File ${filePath} not found`,
+      });
+    });
+
+    it("Should throw FileSystemAccessError if a different error is thrown", async () => {
+      const invalidPath = "\0";
+
+      await assert.rejects(getFileSize(invalidPath), {
         name: "FileSystemAccessError",
       });
     });
