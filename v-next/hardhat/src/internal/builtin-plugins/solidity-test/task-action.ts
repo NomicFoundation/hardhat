@@ -2,7 +2,10 @@ import type { RunOptions } from "./runner.js";
 import type { TestEvent } from "./types.js";
 import type { BuildOptions } from "../../../types/solidity/build-system.js";
 import type { NewTaskActionFunction } from "../../../types/tasks.js";
-import type { SolidityTestRunnerConfigArgs } from "@ignored/edr";
+import type {
+  SolidityTestRunnerConfigArgs,
+  TracingConfigWithBuffers,
+} from "@ignored/edr";
 
 import { finished } from "node:stream/promises";
 
@@ -13,6 +16,7 @@ import { createNonClosingWriter } from "@ignored/hardhat-vnext-utils/stream";
 import { shouldMergeCompilationJobs } from "../solidity/build-profiles.js";
 import {
   getArtifacts,
+  getBuildInfos,
   throwIfSolidityBuildFailed,
 } from "../solidity/build-results.js";
 
@@ -65,7 +69,8 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
 
   throwIfSolidityBuildFailed(results);
 
-  const artifacts = await getArtifacts(results, hre.config.paths.artifacts);
+  const buildInfos = await getBuildInfos(results, hre.artifacts);
+  const artifacts = await getArtifacts(results, buildInfos);
   const testSuiteIds = artifacts.map((artifact) => artifact.id);
 
   console.log("Running Solidity tests");
@@ -81,10 +86,20 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
       hre.config.paths.root,
       solidityTestConfig,
     );
+  const tracingConfig: TracingConfigWithBuffers = {
+    buildInfos,
+    ignoreContracts: false,
+  };
   const options: RunOptions =
     solidityTestConfigToRunOptions(solidityTestConfig);
 
-  const runStream = run(artifacts, testSuiteIds, config, options);
+  const runStream = run(
+    artifacts,
+    testSuiteIds,
+    config,
+    tracingConfig,
+    options,
+  );
 
   const testReporterStream = runStream
     .on("data", (event: TestEvent) => {
