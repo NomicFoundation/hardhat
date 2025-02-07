@@ -131,9 +131,6 @@ export async function* testReporter(
         const stackTraceMessage = getMessageFromLastStackTraceEntry(
           stackTrace[stackTrace.length - 1],
         );
-        if (stackTraceMessage !== undefined) {
-          yield `${stackTraceMessage}\n`;
-        }
 
         const stackTraceStack: string[] = [];
         for (const entry of stackTrace.reverse()) {
@@ -178,8 +175,7 @@ export async function* testReporter(
               ([key, value]) =>
                 `  ${key}: ${Buffer.isBuffer(value) ? bytesToHexString(value) : value}`,
             )
-            .join("\n");
-          yield `Counterexample:\n${chalk.grey(details)}\n`;
+          yield `Counterexample:\n${chalk.grey(details.join("\n"))}\n`;
         }
       }
     }
