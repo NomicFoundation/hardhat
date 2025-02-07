@@ -271,7 +271,7 @@
 - fa41db82b: Added an `enableTransientStorage` option to enable EIP-1153 opcodes
 - 8ae64478d: Fixed an issue where artifactExists would throw an error for missing artifacts.
 - 45f49ae20: Improved error message displayed when importing a directory instead of a file.
-- 3ea6c5237: Fixed a problem with receipts of remote transactions returning the wrong tx type when fetched through a fork.
+- 3ea6c5237: Fixed a problem with receipts of remote transactions returning the wrong tx type when fetched throughh a fork.
 
 ## 2.17.1
 
@@ -367,7 +367,7 @@
 ### Patch Changes
 
 - e443b3667: Added an option in Hardhat Network to allow mining blocks with the same timestamp
-- c23a1cac4: Added support for the `http_proxy` environment variable. When this variable is set, Hardhat will send its requests through the given proxy for things like JSON-RPC requests, mainnet forking and downloading compilers.
+- c23a1cac4: Added support for the `http_proxy` environment variable. When this variable is set, Hardhat will send its requests throughh the given proxy for things like JSON-RPC requests, mainnet forking and downloading compilers.
 
   We also removed support for the `HTTP_PROXY` and `HTTPS_PROXY` environment variables, since `http_proxy` is the most commonly used environment variable for this kind of thing. Those variables could only be used for downloading compilers.
 
@@ -375,7 +375,7 @@
 
   Note that requests to `"localhost"` or `"127.0.0.1"` are never proxied.
 
-- 69546655e: Added support for sending batch requests through WebSocket to the Hardhat node (thanks @tenbits!)
+- 69546655e: Added support for sending batch requests throughh WebSocket to the Hardhat node (thanks @tenbits!)
 - 6bf1673bb: Added a config validation for the number of optimizer runs used (thanks @konarshankar07!)
 
 ## 2.12.6
@@ -417,7 +417,7 @@
 - c9809e182: Trim leading and trailing spaces in mnemonics.
 - a1d43109a: Pending blocks now include the `bloom` field.
 - 818107821: Added a new `hardhat_metadata` RPC method
-- 937d15e51: A better error is show if a Solidity file makes an import throug its own package name.
+- 937d15e51: A better error is show if a Solidity file makes an import through its own package name.
 - 4cf9a6d58: Added a `getBuildInfoSync` function to the `hre.artifacts` object (thanks @emretepedev!)
 
 ## 2.12.2
@@ -483,7 +483,7 @@
 - f799e7e41: - Fixed a bug that was causing `console.log()` to print `undefined` instead of an empty line (issue #2721)
   - Made `console.log` ABI-compliant (issue #2666)
 - 36ca875dc: The selector is now shown in the "Unrecognized custom error" message
-- 3e3fe7bf0: Added support for Solidity versions up through 0.8.16
+- 3e3fe7bf0: Added support for Solidity versions up throughh 0.8.16
 
 ## 2.10.1
 
@@ -648,7 +648,7 @@
 ### Patch Changes
 
 - 99c17f43: Bump uuid package to remove a deprecation warning (thanks @yhuard!)
-- 8076c43b: Fixed how the cummulative gas is computed for receipts and added a missing field (Thanks @ngotchac!)
+- 8076c43b: Fixed how the cumulative gas is computed for receipts and added a missing field (Thanks @ngotchac!)
 - e6362902: Display similar artifact names in error output if given name is not found (#201)
 - e087bd0b: Improve validation of private keys in the Hardhat config
 - aa1a0080: Fix an issue with new versions of Node.js that prevented clients from connecting to Hardhat's node using 127.0.0.1
