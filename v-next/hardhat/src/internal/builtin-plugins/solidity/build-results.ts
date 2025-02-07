@@ -25,10 +25,6 @@ type SuccessfulSolidityBuildResults = Map<
   string,
   Exclude<FileBuildResult, FailedFileBuildResult>
 >;
-interface ArtifactsAndBuildInfos {
-  artifacts: EdrArtifact[];
-  buildInfos: BuildInfoAndOutput[];
-}
 
 /**
  * This function asserts that the given Solidity build results are successful.
@@ -61,55 +57,90 @@ export function throwIfSolidityBuildFailed(
 }
 
 /**
- * This function returns the artifacts and build infos generated during the
- * compilation associated with the given Solidity build results. It relies on
- * the fact that each successful build result has a corresponding artifact
- * generated property.
+ * This function returns the build infos and outputs associated with the given
+ * Solidity build results.
+ *
+ * @param results The successful Solidity build results.
+ * @param artifactManager The artifact manager.
+ * @returns The build infos in the Hardhat v3 format as expected by the EDR.
  */
-export async function getArtifactsAndBuildInfos(
+export async function getBuildInfos(
   results: SuccessfulSolidityBuildResults,
   artifactManager: ArtifactManager,
-): Promise<ArtifactsAndBuildInfos> {
-  const artifacts: EdrArtifact[] = [];
-  const buildInfos: BuildInfoAndOutput[] = [];
+): Promise<BuildInfoAndOutput[]> {
+  const buildIds = Array.from(new Set(results.values())).map(
+    ({ buildId }) => buildId,
+  );
 
-  const solcVersions: Map<string, string> = new Map();
+  return Promise.all(
+    buildIds.map(async (buildId) => {
+      const buildInfoPath = await artifactManager.getBuildInfoPath(buildId);
+      const buildInfoOutputPath =
+        await artifactManager.getBuildInfoOutputPath(buildId);
 
-  for (const [source, result] of results.entries()) {
-    for (const artifactPath of result.contractArtifactsGenerated) {
+      assertHardhatInvariant(
+        buildInfoPath !== undefined,
+        "buildInfoPath should not be undefined",
+      );
+      assertHardhatInvariant(
+        buildInfoOutputPath !== undefined,
+        "buildInfoOutputPath should not be undefined",
+      );
+
+      const buildInfo = await readBinaryFile(buildInfoPath);
+      const output = await readBinaryFile(buildInfoOutputPath);
+
+      return {
+        buildInfo,
+        output,
+      };
+    }),
+  );
+}
+
+/**
+ * This function returns the artifacts generated during the compilation associated
+ * with the given Solidity build results. It relies on the fact that each successful
+ * build result has a corresponding artifact generated property.
+ *
+ * @param results The successful Solidity build results.
+ * @param artifactManager The artifact manager.
+ * @returns The artifacts in the format expected by the EDR.
+ */
+export async function getArtifacts(
+  results: SuccessfulSolidityBuildResults,
+  buildInfos: BuildInfoAndOutput[],
+): Promise<EdrArtifact[]> {
+  const solcVersions = Object.fromEntries(
+    buildInfos.map(({ buildInfo }) => {
+      const solidityBuildInfo: SolidityBuildInfo = JSON.parse(
+        new TextDecoder("utf-8").decode(buildInfo),
+      );
+
+      return [solidityBuildInfo.id, solidityBuildInfo.solcVersion];
+    }),
+  );
+
+  const contractArtifacts = Array.from(results.entries())
+    .map(([source, result]) => {
+      return result.contractArtifactsGenerated.map((artifactPath) => ({
+        source,
+        buildId: result.buildId,
+        artifactPath,
+      }));
+    })
+    .flat();
+
+  return Promise.all(
+    contractArtifacts.map(async ({ source, buildId, artifactPath }) => {
       const artifact: HardhatArtifact = await readJsonFile(artifactPath);
 
-      let solcVersion = solcVersions.get(result.buildId);
-      if (solcVersion === undefined) {
-        const buildInfoPath = await artifactManager.getBuildInfoPath(
-          result.buildId,
-        );
-        const buildInfoOutputPath =
-          await artifactManager.getBuildInfoOutputPath(result.buildId);
+      const solcVersion = solcVersions[buildId];
 
-        assertHardhatInvariant(
-          buildInfoPath !== undefined,
-          "buildInfoPath should not be undefined",
-        );
-        assertHardhatInvariant(
-          buildInfoOutputPath !== undefined,
-          "buildInfoOutputPath should not be undefined",
-        );
-
-        const buildInfo = await readBinaryFile(buildInfoPath);
-        const output = await readBinaryFile(buildInfoOutputPath);
-
-        const solidityBuildInfo: SolidityBuildInfo = JSON.parse(
-          new TextDecoder("utf-8").decode(buildInfo),
-        );
-
-        solcVersion = solidityBuildInfo.solcVersion;
-
-        buildInfos.push({
-          buildInfo,
-          output,
-        });
-      }
+      assertHardhatInvariant(
+        solcVersion !== undefined,
+        "solcVersion should not be undefined",
+      );
 
       const id = {
         name: artifact.contractName,
@@ -123,15 +154,10 @@ export async function getArtifactsAndBuildInfos(
         deployedBytecode: artifact.deployedBytecode,
       };
 
-      artifacts.push({
+      return {
         id,
         contract,
-      });
-    }
-  }
-
-  return {
-    artifacts,
-    buildInfos,
-  };
+      };
+    }),
+  );
 }

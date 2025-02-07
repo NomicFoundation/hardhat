@@ -15,7 +15,8 @@ import { createNonClosingWriter } from "@ignored/hardhat-vnext-utils/stream";
 
 import { shouldMergeCompilationJobs } from "../solidity/build-profiles.js";
 import {
-  getArtifactsAndBuildInfos,
+  getArtifacts,
+  getBuildInfos,
   throwIfSolidityBuildFailed,
 } from "../solidity/build-results.js";
 
@@ -68,10 +69,8 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
 
   throwIfSolidityBuildFailed(results);
 
-  const { artifacts, buildInfos } = await getArtifactsAndBuildInfos(
-    results,
-    hre.artifacts,
-  );
+  const buildInfos = await getBuildInfos(results, hre.artifacts);
+  const artifacts = await getArtifacts(results, buildInfos);
   const testSuiteIds = artifacts.map((artifact) => artifact.id);
 
   console.log("Running Solidity tests");
