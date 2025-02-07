@@ -9,18 +9,15 @@ import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import { DependencyGraphImplementation } from "../../../../../src/internal/builtin-plugins/solidity/build-system/dependency-graph.js";
+import { ProjectResolvedFileImplementation } from "../../../../../src/internal/builtin-plugins/solidity/build-system/resolved-file.js";
 import { SolcConfigSelector } from "../../../../../src/internal/builtin-plugins/solidity/build-system/solc-config-selection.js";
-import {
-  CompilationJobCreationErrorReason,
-  ResolvedFileType,
-} from "../../../../../src/types/solidity.js";
+import { CompilationJobCreationErrorReason } from "../../../../../src/types/solidity.js";
 
 function createProjectResolvedFile(
   sourceName: string,
   versionPragmas: string[],
 ): ProjectResolvedFile {
-  return {
-    type: ResolvedFileType.PROJECT_FILE,
+  return new ProjectResolvedFileImplementation({
     sourceName,
     fsPath: path.join(process.cwd(), sourceName),
     content: {
@@ -28,7 +25,7 @@ function createProjectResolvedFile(
       importPaths: [],
       versionPragmas,
     },
-  };
+  });
 }
 
 describe("SolcConfigSelector", () => {
