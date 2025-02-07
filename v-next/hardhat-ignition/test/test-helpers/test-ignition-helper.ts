@@ -91,7 +91,7 @@ export class TestIgnitionHelper {
       method: "eth_accounts",
     })) as string[];
 
-    const artifactResolver = new HardhatArtifactResolver(this._connection);
+    const artifactResolver = new HardhatArtifactResolver(this._hre);
 
     const resolvedConfig: Partial<DeployConfig> = {
       ...this._config,
