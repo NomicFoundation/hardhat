@@ -135,7 +135,7 @@ describe("module parameters", () => {
 });
 
 // TODO: Bring back with Hardhat 3 fixtures
-describe.skip("params validation", () => {
+describe("params validation", () => {
   useEphemeralIgnitionProject("minimal");
 
   it("should throw if no parameters object provided", async function () {

@@ -14,8 +14,7 @@ const exampleConfig = {
   },
 } as const;
 
-// TODO: Bring back with Hardhat 3 fixtures
-describe.skip("strategies - generic constraints", function () {
+describe("strategies - generic constraints", function () {
   strategies.forEach((strategy) => {
     describe(strategy, function () {
       useEphemeralIgnitionProject("minimal");

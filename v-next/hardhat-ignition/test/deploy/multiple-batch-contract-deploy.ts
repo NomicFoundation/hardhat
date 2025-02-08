@@ -10,7 +10,7 @@ import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-projec
  *
  * The intent here is to test batching.
  */
-describe.skip("execution - multiple batch contract deploy", function () {
+describe("execution - multiple batch contract deploy", function () {
   useEphemeralIgnitionProject("minimal");
 
   it("should deploy over multiple batches", async function () {

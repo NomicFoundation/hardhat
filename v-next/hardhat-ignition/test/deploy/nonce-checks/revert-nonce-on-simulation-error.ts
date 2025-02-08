@@ -11,8 +11,7 @@ import { useEphemeralIgnitionProject } from "../../test-helpers/use-ignition-pro
  * This test ensures that the nonce is reverted and the rest of the batch completes
  * because the second transaction does not fail the nonce check.
  */
-// TODO: Bring back with Hardhat 3 fixtures
-describe.skip("execution - revert nonce on simulation error", () => {
+describe("execution - revert nonce on simulation error", () => {
   useEphemeralIgnitionProject("minimal");
 
   it("should raise the simulation error if there are multiple transactions in a batch and fails simulation", async function () {
