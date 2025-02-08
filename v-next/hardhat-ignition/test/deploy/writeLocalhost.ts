@@ -15,8 +15,7 @@ const deploymentDir = path.join(
   "chain-31337",
 );
 
-// TODO: Bring back with Hardhat 3 fixtures
-describe.skip("localhost deployment flag", function () {
+describe("localhost deployment flag", function () {
   useEphemeralIgnitionProject(fixtureProjectName);
 
   beforeEach("clean filesystem", async function () {
