@@ -4,8 +4,7 @@ import { assert } from "chai";
 
 import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";
 
-// TODO: Bring back with Hardhat 3 fixtures
-describe.skip("events", () => {
+describe("events", () => {
   useEphemeralIgnitionProject("minimal");
 
   it("should be able to use the output of a readEvent in a contract at", async function () {

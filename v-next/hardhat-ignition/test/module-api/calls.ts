@@ -5,8 +5,7 @@ import { assert } from "chai";
 import { getBalanceFor } from "../test-helpers/get-balance-for.js";
 import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";
 
-// TODO: Bring back with Hardhat 3 fixtures
-describe.skip("calls", () => {
+describe("calls", () => {
   useEphemeralIgnitionProject("minimal");
 
   it("should be able to call contracts", async function () {
@@ -111,7 +110,8 @@ describe.skip("calls", () => {
   });
 
   describe("passing value", () => {
-    it("should be able to call a contract passing a value", async function () {
+    // TODO: HH3 re-enable these tests next
+    it.skip("should be able to call a contract passing a value", async function () {
       const moduleDefinition = buildModule("PassingValue", (m) => {
         const passingValue = m.contract("PassingValue");
 
@@ -134,7 +134,8 @@ describe.skip("calls", () => {
       assert.equal(actualInstanceBalance, 1_000_000_000n);
     });
 
-    it("should be able to call a contract passing a value via a parameter", async function () {
+    // TODO: HH3 re-enable these tests next
+    it.skip("should be able to call a contract passing a value via a parameter", async function () {
       const submoduleDefinition = buildModule("Submodule", (m) => {
         const depositValue = m.getParameter("depositValue", 1000n);
 

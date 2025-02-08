@@ -4,8 +4,7 @@ import { assert } from "chai";
 
 import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";
 
-// TODO: Bring back with Hardhat 3 fixtures
-describe.skip("existing contract", () => {
+describe("existing contract", () => {
   useEphemeralIgnitionProject("minimal");
 
   it("should be able to use an existing contract", async function () {

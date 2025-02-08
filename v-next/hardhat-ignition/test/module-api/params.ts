@@ -4,8 +4,7 @@ import { assert } from "chai";
 
 import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";
 
-// TODO: Bring back with Hardhat 3 fixtures
-describe.skip("module parameters", () => {
+describe("module parameters", () => {
   useEphemeralIgnitionProject("minimal");
 
   it("should be able to retrieve a default number", async function () {
