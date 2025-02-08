@@ -21,7 +21,7 @@ describe.skip("calls", () => {
       return { bar, usesContract };
     });
 
-    const result = await this.hre.ignition.deploy(moduleDefinition);
+    const result = await this.ignition.deploy(moduleDefinition);
 
     assert.isDefined(result.bar);
     assert.isDefined(result.usesContract);
@@ -45,7 +45,7 @@ describe.skip("calls", () => {
       return { captureArraysContract };
     });
 
-    const result = await this.hre.ignition.deploy(moduleDefinition);
+    const result = await this.ignition.deploy(moduleDefinition);
 
     assert.isDefined(result.captureArraysContract);
 
@@ -72,7 +72,7 @@ describe.skip("calls", () => {
       return { captureComplexObjectContract };
     });
 
-    const result = await this.hre.ignition.deploy(moduleDefinition);
+    const result = await this.ignition.deploy(moduleDefinition);
 
     assert.isDefined(result.captureComplexObjectContract);
 
@@ -96,7 +96,7 @@ describe.skip("calls", () => {
       return { trace };
     });
 
-    const result = await this.hre.ignition.deploy(moduleDefinition);
+    const result = await this.ignition.deploy(moduleDefinition);
 
     assert.isDefined(result.trace);
 
@@ -122,7 +122,7 @@ describe.skip("calls", () => {
         return { passingValue };
       });
 
-      const result = await this.hre.ignition.deploy(moduleDefinition);
+      const result = await this.ignition.deploy(moduleDefinition);
 
       assert.isDefined(result.passingValue);
 
@@ -153,7 +153,7 @@ describe.skip("calls", () => {
         return { passingValue };
       });
 
-      const result = await this.hre.ignition.deploy(moduleDefinition, {
+      const result = await this.ignition.deploy(moduleDefinition, {
         parameters: {
           Submodule: {
             depositValue: 1_000_000_000n,

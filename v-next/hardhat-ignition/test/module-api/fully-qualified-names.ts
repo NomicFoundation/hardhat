@@ -31,7 +31,7 @@ describe.skip("fully qualified names", () => {
         return { rocket1, rocket2 };
       });
 
-      const result = await this.hre.ignition.deploy(LaunchModule);
+      const result = await this.ignition.deploy(LaunchModule);
 
       assert.equal(await result.rocket1.read.name(), "Rocket 1");
       assert.equal(await result.rocket2.read.name(), "Rocket 2");

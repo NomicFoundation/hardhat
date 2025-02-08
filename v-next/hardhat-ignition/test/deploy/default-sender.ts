@@ -35,7 +35,7 @@ describe.skip("default sender", function () {
       return { bar };
     });
 
-    const result = await this.hre.ignition.deploy(existingModule);
+    const result = await this.ignition.deploy(existingModule);
 
     assert.equal(await result.bar.read.owner(), secondAccountAddress);
   });

@@ -24,7 +24,7 @@ describe.skip("existing contract", () => {
       return { bar, usesContract };
     });
 
-    const firstResult = await this.hre.ignition.deploy(firstModuleDefinition);
+    const firstResult = await this.ignition.deploy(firstModuleDefinition);
 
     const barAddress: string = firstResult.bar.address;
     const usesContractAddress: string = firstResult.usesContract.address;
@@ -42,7 +42,7 @@ describe.skip("existing contract", () => {
       return { bar, usesContract };
     });
 
-    const result = await this.hre.ignition.deploy(secondModuleDefinition);
+    const result = await this.ignition.deploy(secondModuleDefinition);
 
     assert.isDefined(result.bar);
     assert.isDefined(result.usesContract);

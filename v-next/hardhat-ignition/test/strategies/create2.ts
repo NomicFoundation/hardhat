@@ -48,7 +48,7 @@ describe.skip("create2", function () {
         "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
       ].forEach((accountAddress) => {
         it(`should deploy a contract from account <${accountAddress}> using the createX factory to the expected address`, async function () {
-          const deployPromise = this.hre.ignition.deploy(moduleDefinition, {
+          const deployPromise = this.ignition.deploy(moduleDefinition, {
             strategy: "create2",
             defaultSender: accountAddress,
             strategyConfig: {
@@ -69,7 +69,7 @@ describe.skip("create2", function () {
       });
 
       it(`should support endowing eth to the deployed contract`, async function () {
-        const deployPromise = this.hre.ignition.deploy(
+        const deployPromise = this.ignition.deploy(
           buildModule("ValueModule", (m) => {
             const foo = m.contract("Foo", [], {
               value: 1_000_000_000n,
@@ -100,7 +100,7 @@ describe.skip("create2", function () {
 
       it(`should throw if you attempt to endow when the constructor isn't payable`, async function () {
         await assert.isRejected(
-          this.hre.ignition.deploy(
+          this.ignition.deploy(
             buildModule("ValueModule", (m) => {
               const foo = m.contract("Unpayable", [], {
                 value: 1_000_000_000n,
@@ -120,7 +120,7 @@ describe.skip("create2", function () {
       });
 
       it("should deploy with a custom salt", async function () {
-        const deployPromise = this.hre.ignition.deploy(moduleDefinition, {
+        const deployPromise = this.ignition.deploy(moduleDefinition, {
           strategy: "create2",
           strategyConfig: {
             salt: anotherExample32ByteSalt,
@@ -148,7 +148,7 @@ describe.skip("create2", function () {
       it("should throw when no createX contract exists on the network", async function () {
         assert.equal(this.connection.networkConfig.chainId, 88888);
         await assert.isRejected(
-          this.hre.ignition.deploy(moduleDefinition, {
+          this.ignition.deploy(moduleDefinition, {
             strategy: "create2",
             strategyConfig: {
               salt: example32ByteSalt,
@@ -164,7 +164,7 @@ describe.skip("create2", function () {
     useEphemeralIgnitionProject("minimal");
 
     it("should deploy a createX factory then use it to deploy the given contract", async function () {
-      const deployPromise = this.hre.ignition.deploy(moduleDefinition, {
+      const deployPromise = this.ignition.deploy(moduleDefinition, {
         strategy: "create2",
         strategyConfig: {
           salt: example32ByteSalt,
@@ -184,7 +184,7 @@ describe.skip("create2", function () {
 
     it("should use an existing createX factory to deploy the given contract", async function () {
       // Run create2 once deploying the factory
-      const firstDeployPromise = this.hre.ignition.deploy(moduleDefinition, {
+      const firstDeployPromise = this.ignition.deploy(moduleDefinition, {
         strategy: "create2",
         strategyConfig: {
           salt: example32ByteSalt,
@@ -197,7 +197,7 @@ describe.skip("create2", function () {
       await firstDeployPromise;
 
       // Run a second deploy, this time leveraging the existing create2 factory
-      const secondDeployPromise = this.hre.ignition.deploy(
+      const secondDeployPromise = this.ignition.deploy(
         buildModule("Second", (m) => {
           const bar = m.contract("Bar");
 

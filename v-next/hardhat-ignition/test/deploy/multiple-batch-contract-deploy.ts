@@ -46,7 +46,7 @@ describe.skip("execution - multiple batch contract deploy", function () {
       };
     });
 
-    const deployPromise = this.hre.ignition.deploy(moduleDefinition);
+    const deployPromise = this.ignition.deploy(moduleDefinition);
 
     await sleep(300);
     await this.connection.provider.request({ method: "evm_mine", params: [] });

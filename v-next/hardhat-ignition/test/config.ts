@@ -122,7 +122,7 @@ describe("config", () => {
       });
 
       await assert.isRejected(
-        this.hre.ignition.deploy(moduleDefinition, {
+        this.ignition.deploy(moduleDefinition, {
           config: {
             requiredConfirmations: 0,
           },

@@ -20,7 +20,8 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 declare module "mocha" {
   interface Context {
-    hre: HardhatRuntimeEnvironment & { ignition: TestIgnitionHelper };
+    hre: HardhatRuntimeEnvironment;
+    ignition: TestIgnitionHelper;
     connection: NetworkConnection;
     deploymentDir: string | undefined;
     runControlledDeploy: (
@@ -40,10 +41,18 @@ const defaultTestConfig: DeployConfig = {
 };
 
 export function useEphemeralIgnitionProject(fixtureProjectName: string): void {
+  let projectPath: string;
+  let prevWorkingDir: string;
+
   beforeEach("Load environment", async function () {
-    process.chdir(
-      path.join(__dirname, "../fixture-projects", fixtureProjectName),
+    projectPath = path.join(
+      __dirname,
+      "../fixture-projects",
+      fixtureProjectName,
     );
+
+    prevWorkingDir = process.cwd();
+    process.chdir(projectPath);
 
     const hre = await createHardhatRuntimeEnvironment({});
 
@@ -57,17 +66,14 @@ export function useEphemeralIgnitionProject(fixtureProjectName: string): void {
     const compileTask = hre.tasks.getTask("compile");
     await compileTask.run({ quiet: true });
 
-    this.hre = hre as any;
-    (this.hre as any).originalIgnition = this.hre.ignition;
+    this.hre = hre;
     this.connection = connection;
-    this.hre.ignition = new TestIgnitionHelper(hre, connection);
+    this.ignition = new TestIgnitionHelper(hre, connection);
     this.deploymentDir = undefined;
   });
 
   afterEach("reset hardhat context", function () {
-    throw new Error(
-      "Not implemented: need to find a replacement for `resetHardhatContext()`",
-    );
+    process.chdir(prevWorkingDir);
   });
 }
 
@@ -94,9 +100,8 @@ export function useFileIgnitionProject(
 
     const connection = await hre.network.connect();
 
-    // TODO: HH3 remove this cast once the proper Ignition type extension has happened
-    this.hre = hre as any;
-    this.hre.ignition = new TestIgnitionHelper(hre, connection);
+    this.hre = hre;
+    this.ignition = new TestIgnitionHelper(hre, connection);
     this.deploymentDir = deploymentDir;
 
     const compileTask = hre.tasks.getTask("compile");

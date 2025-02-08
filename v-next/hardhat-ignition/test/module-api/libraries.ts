@@ -20,7 +20,7 @@ describe.skip("libraries", () => {
       return { rubbishMath, dependsOnLib };
     });
 
-    const result = await this.hre.ignition.deploy(moduleDefinition);
+    const result = await this.ignition.deploy(moduleDefinition);
 
     assert.isDefined(result);
     const contractThatDependsOnLib = result.dependsOnLib;
@@ -49,7 +49,7 @@ describe.skip("libraries", () => {
       return { rubbishMath, dependsOnLib };
     });
 
-    const result = await this.hre.ignition.deploy(moduleDefinition);
+    const result = await this.ignition.deploy(moduleDefinition);
 
     assert.isDefined(result);
     const contractThatDependsOnLib = result.dependsOnLib;
@@ -68,9 +68,7 @@ describe.skip("libraries", () => {
       return { rubbishMath };
     });
 
-    const libDeployResult = await this.hre.ignition.deploy(
-      libraryModuleDefinition,
-    );
+    const libDeployResult = await this.ignition.deploy(libraryModuleDefinition);
 
     const libAddress = libDeployResult.rubbishMath.address;
 
@@ -86,7 +84,7 @@ describe.skip("libraries", () => {
       return { dependsOnLib };
     });
 
-    const result = await this.hre.ignition.deploy(moduleDefinition);
+    const result = await this.ignition.deploy(moduleDefinition);
 
     assert.equal(await libDeployResult.rubbishMath.read.add([1, 2]), 3);
     assert.equal(await result.dependsOnLib.read.addThreeNumbers([1, 2, 3]), 6);
@@ -115,7 +113,7 @@ describe.skip("libraries", () => {
       return { rubbishMath, libDependsOnLib, dependsOnLibThatDependsOnLib };
     });
 
-    const result = await this.hre.ignition.deploy(moduleDefinition);
+    const result = await this.ignition.deploy(moduleDefinition);
 
     assert.isDefined(result);
     const contractThatDependsOnLibOnLib = result.dependsOnLibThatDependsOnLib;

@@ -30,7 +30,7 @@ describe.skip("execution - revert nonce on simulation error", () => {
     // We check that it doesn't fail because of a nonce validation,
     // but because of the actual simulation
     await assert.isRejected(
-      this.hre.ignition.deploy(moduleDefinition),
+      this.ignition.deploy(moduleDefinition),
       /Simulating the transaction failed with error: Reverted with reason "fails"/,
     );
   });

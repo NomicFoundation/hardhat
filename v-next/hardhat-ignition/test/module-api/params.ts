@@ -19,7 +19,7 @@ describe.skip("module parameters", () => {
       return { foo };
     });
 
-    const result = await this.hre.ignition.deploy(moduleDefinition);
+    const result = await this.ignition.deploy(moduleDefinition);
 
     const v = await result.foo.read.x();
 
@@ -37,7 +37,7 @@ describe.skip("module parameters", () => {
       return { foo };
     });
 
-    const result = await this.hre.ignition.deploy(moduleDefinition, {
+    const result = await this.ignition.deploy(moduleDefinition, {
       parameters: {
         WithDefaultModule: {
           MyNumber: 20,
@@ -57,7 +57,7 @@ describe.skip("module parameters", () => {
       return { greeter };
     });
 
-    const result = await this.hre.ignition.deploy(moduleDefinition);
+    const result = await this.ignition.deploy(moduleDefinition);
 
     const v = await result.greeter.read.getGreeting();
 
@@ -73,7 +73,7 @@ describe.skip("module parameters", () => {
       return { greeter };
     });
 
-    const result = await this.hre.ignition.deploy(moduleDefinition, {
+    const result = await this.ignition.deploy(moduleDefinition, {
       parameters: {
         WithDefaultStringModule: {
           MyString: "NotExample",
@@ -95,7 +95,7 @@ describe.skip("module parameters", () => {
       return { ownerContract };
     });
 
-    const result = await this.hre.ignition.deploy(moduleDefinition);
+    const result = await this.ignition.deploy(moduleDefinition);
 
     const v = (await result.ownerContract.read.owner()) as string;
 
@@ -121,7 +121,7 @@ describe.skip("module parameters", () => {
       method: "eth_accounts",
     })) as string[];
 
-    const result = await this.hre.ignition.deploy(moduleDefinition, {
+    const result = await this.ignition.deploy(moduleDefinition, {
       parameters: {
         WithDefaultAccountModule: {
           newOwner: accounts[2],
@@ -152,7 +152,7 @@ describe.skip("params validation", () => {
       return { foo };
     });
 
-    const deployPromise = this.hre.ignition.deploy(userModule);
+    const deployPromise = this.ignition.deploy(userModule);
 
     await assert.isRejected(
       deployPromise,
@@ -173,7 +173,7 @@ describe.skip("params validation", () => {
       return { foo };
     });
 
-    const deployPromise = this.hre.ignition.deploy(userModule, {
+    const deployPromise = this.ignition.deploy(userModule, {
       parameters: {
         UserModule: {
           NotMyNumber: 11,

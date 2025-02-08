@@ -68,7 +68,7 @@ describe.skip("module parameters", () => {
         return { lock };
       });
 
-      const result = await this.hre.ignition.deploy(ignitionModule, {
+      const result = await this.ignition.deploy(ignitionModule, {
         parameters: { $global: { unlockTime: 1893499200000 } },
       });
 
@@ -84,7 +84,7 @@ describe.skip("module parameters", () => {
         return { lock };
       });
 
-      const result = await this.hre.ignition.deploy(ignitionModule, {
+      const result = await this.ignition.deploy(ignitionModule, {
         parameters: { $global: { unlockTime: 1893499200000 } },
       });
 
@@ -100,7 +100,7 @@ describe.skip("module parameters", () => {
         return { lock };
       });
 
-      const result = await this.hre.ignition.deploy(ignitionModule, {
+      const result = await this.ignition.deploy(ignitionModule, {
         parameters: {
           $global: { globalLevelParam: "should-not-be-read" },
           Test: {
@@ -121,7 +121,7 @@ describe.skip("module parameters", () => {
         return { lock };
       });
 
-      const result = await this.hre.ignition.deploy(ignitionModule, {
+      const result = await this.ignition.deploy(ignitionModule, {
         parameters: {
           $global: { globalLevelParam: 1893499200000 },
           Test: {
@@ -142,7 +142,7 @@ describe.skip("module parameters", () => {
         return { lock };
       });
 
-      const result = await this.hre.ignition.deploy(ignitionModule, {
+      const result = await this.ignition.deploy(ignitionModule, {
         parameters: {
           $global: { unlockTime: 1893499200000 },
           Test: { unlockTime: 9876543210000 },

@@ -24,7 +24,7 @@ describe.skip("useModule", function () {
         return { foo };
       });
 
-      const result = await this.hre.ignition.deploy(userModule);
+      const result = await this.ignition.deploy(userModule);
 
       assert.equal(await result.foo.read.x(), 2n);
     });
@@ -62,7 +62,7 @@ describe.skip("useModule", function () {
         return { trace };
       });
 
-      const result = await this.hre.ignition.deploy(userModule);
+      const result = await this.ignition.deploy(userModule);
 
       const entry1 = await result.trace.read.entries([0n]);
       const entry2 = await result.trace.read.entries([1n]);

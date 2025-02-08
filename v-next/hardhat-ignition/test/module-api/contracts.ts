@@ -5,8 +5,7 @@ import { assert } from "chai";
 import { getBalanceFor } from "../test-helpers/get-balance-for.js";
 import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";
 
-// TODO: Bring back with Hardhat 3 fixtures
-describe.skip("contract deploys", () => {
+describe("contract deploys", () => {
   useEphemeralIgnitionProject("minimal");
 
   it("should be able to deploy a contract", async function () {
@@ -16,7 +15,7 @@ describe.skip("contract deploys", () => {
       return { foo };
     });
 
-    const result = await this.hre.ignition.deploy(moduleDefinition);
+    const result = await this.ignition.deploy(moduleDefinition);
 
     assert.equal(await result.foo.read.x(), 1n);
   });
@@ -28,7 +27,7 @@ describe.skip("contract deploys", () => {
       return { greeter };
     });
 
-    const result = await this.hre.ignition.deploy(moduleDefinition);
+    const result = await this.ignition.deploy(moduleDefinition);
 
     const greeting = await result.greeter.read.getGreeting();
     assert.equal(greeting, "Hello World");
@@ -42,7 +41,7 @@ describe.skip("contract deploys", () => {
       return { bar, usesContract };
     });
 
-    const result = await this.hre.ignition.deploy(moduleDefinition);
+    const result = await this.ignition.deploy(moduleDefinition);
 
     assert.isDefined(result.bar);
     assert.isDefined(result.usesContract);
@@ -61,7 +60,7 @@ describe.skip("contract deploys", () => {
       return { foo, bar };
     });
 
-    const result = await this.hre.ignition.deploy(moduleDefinition);
+    const result = await this.ignition.deploy(moduleDefinition);
 
     const x = await result.foo.read.x();
     const isBar = await result.bar.read.isBar();
@@ -81,13 +80,14 @@ describe.skip("contract deploys", () => {
       return { greeter };
     });
 
-    const result = await this.hre.ignition.deploy(moduleDefinition);
+    const result = await this.ignition.deploy(moduleDefinition);
 
     const greeting = await result.greeter.read.getGreeting();
     assert.equal(greeting, "Hello World");
   });
 
-  describe("with endowment", () => {
+  // TODO: HH3 re-enable these tests next
+  describe.skip("with endowment", () => {
     it("should be able to deploy a contract with an endowment", async function () {
       const moduleDefinition = buildModule("EndowmentModule", (m) => {
         const passingValue = m.contract("PassingValue", [], {
@@ -97,7 +97,7 @@ describe.skip("contract deploys", () => {
         return { passingValue };
       });
 
-      const result = await this.hre.ignition.deploy(moduleDefinition);
+      const result = await this.ignition.deploy(moduleDefinition);
 
       assert.isDefined(result.passingValue);
 
@@ -126,7 +126,7 @@ describe.skip("contract deploys", () => {
         return { passingValue };
       });
 
-      const result = await this.hre.ignition.deploy(moduleDefinition);
+      const result = await this.ignition.deploy(moduleDefinition);
 
       assert.isDefined(result.passingValue);
 
@@ -157,7 +157,7 @@ describe.skip("contract deploys", () => {
         return { passingValue };
       });
 
-      const result = await this.hre.ignition.deploy(moduleDefinition);
+      const result = await this.ignition.deploy(moduleDefinition);
 
       assert.isDefined(result.passingValue);
 
@@ -192,7 +192,7 @@ describe.skip("contract deploys", () => {
         return { passingValue };
       });
 
-      const result = await this.hre.ignition.deploy(moduleDefinition);
+      const result = await this.ignition.deploy(moduleDefinition);
 
       assert.isDefined(result.passingValue);
 

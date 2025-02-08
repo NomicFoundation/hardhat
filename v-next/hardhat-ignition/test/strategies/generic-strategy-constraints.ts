@@ -27,7 +27,7 @@ describe.skip("strategies - generic constraints", function () {
           return { foo };
         });
 
-        const deployPromise = this.hre.ignition.deploy(moduleDefinition, {
+        const deployPromise = this.ignition.deploy(moduleDefinition, {
           strategy,
           strategyConfig: exampleConfig[strategy],
         });
@@ -50,7 +50,7 @@ describe.skip("strategies - generic constraints", function () {
           return { foo, bar };
         });
 
-        const deployPromise = this.hre.ignition.deploy(moduleDefinition, {
+        const deployPromise = this.ignition.deploy(moduleDefinition, {
           strategy,
           strategyConfig: exampleConfig[strategy],
         });
@@ -76,7 +76,7 @@ describe.skip("strategies - generic constraints", function () {
           return { foo };
         });
 
-        const deployPromise = this.hre.ignition.deploy(moduleDefinition, {
+        const deployPromise = this.ignition.deploy(moduleDefinition, {
           strategy,
           strategyConfig: exampleConfig[strategy],
         });
@@ -113,7 +113,7 @@ describe.skip("strategies - generic constraints", function () {
           return { foo };
         });
 
-        const deployPromise = this.hre.ignition.deploy(moduleDefinition, {
+        const deployPromise = this.ignition.deploy(moduleDefinition, {
           strategy,
           strategyConfig: exampleConfig[strategy],
         });
@@ -141,7 +141,7 @@ describe.skip("strategies - generic constraints", function () {
           return { foo };
         });
 
-        const deployPromise = this.hre.ignition.deploy(moduleDefinition);
+        const deployPromise = this.ignition.deploy(moduleDefinition);
 
         await waitForPendingTxs(this.connection, 1, deployPromise);
         await mineBlock(this.connection);
@@ -158,13 +158,10 @@ describe.skip("strategies - generic constraints", function () {
           return { contractAtFoo };
         });
 
-        const contractAtPromise = this.hre.ignition.deploy(
-          contractAtDefinition,
-          {
-            strategy,
-            strategyConfig: exampleConfig[strategy],
-          },
-        );
+        const contractAtPromise = this.ignition.deploy(contractAtDefinition, {
+          strategy,
+          strategyConfig: exampleConfig[strategy],
+        });
 
         await waitForPendingTxs(this.connection, 1, contractAtPromise);
         await mineBlock(this.connection);
@@ -186,7 +183,7 @@ describe.skip("strategies - generic constraints", function () {
           return { foo };
         });
 
-        const deployPromise = this.hre.ignition.deploy(moduleDefinition, {
+        const deployPromise = this.ignition.deploy(moduleDefinition, {
           strategy,
           strategyConfig: exampleConfig[strategy],
         });
@@ -219,7 +216,7 @@ describe.skip("strategies - generic constraints", function () {
           return { foo };
         });
 
-        const deployPromise = this.hre.ignition.deploy(moduleDefinition, {
+        const deployPromise = this.ignition.deploy(moduleDefinition, {
           strategy,
           strategyConfig: exampleConfig[strategy],
         });

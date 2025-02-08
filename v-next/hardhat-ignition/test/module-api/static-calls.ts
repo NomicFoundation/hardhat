@@ -25,7 +25,7 @@ describe.skip("static calls", () => {
       return { fooFactory, foo };
     });
 
-    const result = await this.hre.ignition.deploy(moduleDefinition);
+    const result = await this.ignition.deploy(moduleDefinition);
 
     assert.equal(await result.fooFactory.read.isDeployed(), true);
     assert.equal(await result.foo.read.x(), 1n);
@@ -50,7 +50,7 @@ describe.skip("static calls", () => {
       return { fooFactory, foo };
     });
 
-    const result = await this.hre.ignition.deploy(moduleDefinition);
+    const result = await this.ignition.deploy(moduleDefinition);
 
     assert.equal(await result.fooFactory.read.isDeployed(), true);
     assert.equal(await result.foo.read.x(), 1n);
@@ -73,7 +73,7 @@ describe.skip("static calls", () => {
       return { fooFactory, foo };
     });
 
-    const result = await this.hre.ignition.deploy(moduleDefinition);
+    const result = await this.ignition.deploy(moduleDefinition);
 
     assert.equal(await result.fooFactory.read.isDeployed(), true);
     assert.equal(await result.foo.read.x(), 1n);
@@ -102,7 +102,7 @@ describe.skip("static calls", () => {
       return { fooFactory, foo };
     });
 
-    const result = await this.hre.ignition.deploy(moduleDefinition);
+    const result = await this.ignition.deploy(moduleDefinition);
 
     assert.equal(await result.fooFactory.read.isDeployed(), true);
     assert.equal(await result.foo.read.x(), 1n);
@@ -125,7 +125,7 @@ describe.skip("static calls", () => {
       return { tupleContract };
     });
 
-    const result = await this.hre.ignition.deploy(moduleDefinition);
+    const result = await this.ignition.deploy(moduleDefinition);
 
     assert.equal(await result.tupleContract.read.arg1Captured(), true);
     assert.equal(await result.tupleContract.read.arg2Captured(), true);
@@ -149,7 +149,7 @@ describe.skip("static calls", () => {
     });
 
     await assert.isRejected(
-      this.hre.ignition.deploy(moduleDefinition),
+      this.ignition.deploy(moduleDefinition),
       /Future 'FooModule#FooFactory.nonAddressResult' must be a valid address/,
     );
   });
@@ -174,7 +174,7 @@ describe.skip("static calls", () => {
     });
 
     await assert.isRejected(
-      this.hre.ignition.deploy(moduleDefinition),
+      this.ignition.deploy(moduleDefinition),
       /Future 'FooModule#FooFactory.nonAddressResult' must be a valid address/,
     );
   });

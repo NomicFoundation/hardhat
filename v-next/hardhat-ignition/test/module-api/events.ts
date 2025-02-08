@@ -27,7 +27,7 @@ describe.skip("events", () => {
       return { fooFactory, foo };
     });
 
-    const result = await this.hre.ignition.deploy(moduleDefinition);
+    const result = await this.ignition.deploy(moduleDefinition);
 
     assert.equal(await result.fooFactory.read.isDeployed(), true);
     assert.equal(await result.foo.read.x(), 1n);
@@ -54,7 +54,7 @@ describe.skip("events", () => {
       return { fooFactory, foo };
     });
 
-    const result = await this.hre.ignition.deploy(moduleDefinition);
+    const result = await this.ignition.deploy(moduleDefinition);
 
     assert.equal(await result.fooFactory.read.isDeployed(), true);
     assert.equal(await result.foo.read.x(), 1n);
@@ -75,7 +75,7 @@ describe.skip("events", () => {
       return { sendEmitter };
     });
 
-    const result = await this.hre.ignition.deploy(moduleDefinition);
+    const result = await this.ignition.deploy(moduleDefinition);
 
     assert.equal(await result.sendEmitter.read.wasEmitted(), true);
   });
@@ -99,7 +99,7 @@ describe.skip("events", () => {
       return { tupleContract };
     });
 
-    const result = await this.hre.ignition.deploy(moduleDefinition);
+    const result = await this.ignition.deploy(moduleDefinition);
 
     assert.equal(await result.tupleContract.read.arg1Captured(), true);
     assert.equal(await result.tupleContract.read.arg2Captured(), true);

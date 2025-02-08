@@ -76,7 +76,7 @@ describe.skip("execution - error on rerun with replaced pending user transaction
     // On the second run, we should detect the user interference
     // and error
     await assert.isRejected(
-      this.hre.ignition.deploy(moduleDefinition),
+      this.ignition.deploy(moduleDefinition),
       "IGN403: You have sent transactions from 0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc and they interfere with Hardhat Ignition. Please wait until they get 5 confirmations before running Hardhat Ignition again.",
     );
   });
