@@ -24,7 +24,10 @@ describe("hook-handlers/network", () => {
 
     it("should be extended with viem", () => {
       assert.ok(isObject(connection.viem), "viem should be defined");
-
+      assert.ok(
+        isObject(connection.viem.publicClient),
+        "viem should have publicClient object",
+      );
       assert.ok(
         typeof connection.viem.getPublicClient === "function",
         "viem should have a getPublicClient function",
