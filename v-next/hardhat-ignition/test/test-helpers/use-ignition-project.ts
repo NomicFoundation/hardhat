@@ -1,10 +1,15 @@
 import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
 import type { NetworkConnection } from "@ignored/hardhat-vnext/types/network";
 import type {
+  EthereumProvider,
+  RequestArguments,
+} from "@ignored/hardhat-vnext/types/providers";
+import type {
   DeployConfig,
   IgnitionModule,
 } from "@ignored/hardhat-vnext-ignition-core";
 
+import { EventEmitter } from "node:events";
 import path, { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -214,22 +219,11 @@ function setupIgnitionHelperRiggedToThrow(
   ignitionHelper: TestIgnitionHelper;
   kill: () => void;
 } {
-  let trigger: boolean = false;
+  const proxiedProvider = new ProxyProvider(connection.provider);
 
   const kill = () => {
-    trigger = true;
+    proxiedProvider.trigger = true;
   };
-
-  const proxiedProvider = new Proxy(connection.provider, {
-    get(target: any, key) {
-      if (trigger) {
-        trigger = false;
-        throw new Error("Killing deploy process");
-      }
-
-      return target[key];
-    },
-  });
 
   const ignitionHelper = new TestIgnitionHelper(
     hre,
@@ -300,5 +294,52 @@ export class TestChainHelper {
    */
   public exitDeploy(): void {
     this._exitFn();
+  }
+}
+
+class ProxyProvider extends EventEmitter implements EthereumProvider {
+  public trigger: boolean;
+  readonly #provider: EthereumProvider;
+
+  constructor(provider: EthereumProvider) {
+    super();
+    this.trigger = false;
+    this.#provider = provider;
+  }
+
+  public async request(requestArguments: RequestArguments): Promise<unknown> {
+    if (this.trigger) {
+      this.trigger = false;
+      throw new Error("Killing deploy process");
+    }
+
+    return this.#provider.request(requestArguments);
+  }
+
+  public async close(): Promise<void> {
+    if (this.trigger) {
+      this.trigger = false;
+      throw new Error("Killing deploy process");
+    }
+
+    return this.#provider.close();
+  }
+
+  public async send(method: string, params?: unknown[]): Promise<unknown> {
+    if (this.trigger) {
+      this.trigger = false;
+      throw new Error("Killing deploy process");
+    }
+
+    return this.#provider.send(method, params);
+  }
+
+  public async sendAsync(jsonRpcRequest: any, callback: any): Promise<any> {
+    if (this.trigger) {
+      this.trigger = false;
+      throw new Error("Killing deploy process");
+    }
+
+    return this.#provider.sendAsync(jsonRpcRequest, callback);
   }
 }
