@@ -1,7 +1,6 @@
-// eslint-disable-next-line import/no-unused-modules
-const { buildModule } = require("@nomicfoundation/ignition-core");
+import { buildModule } from "@ignored/hardhat-vnext-ignition-core";
 
-module.exports = buildModule("MyModule", (m) => {
+export default buildModule("MyModule", (m) => {
   const foo = m.contract("Foo");
 
   return { foo };
