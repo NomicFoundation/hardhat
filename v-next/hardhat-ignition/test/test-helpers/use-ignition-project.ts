@@ -52,13 +52,20 @@ export function useEphemeralIgnitionProject(fixtureProjectName: string): void {
       "../fixture-projects",
       fixtureProjectName,
     );
-
     prevWorkingDir = process.cwd();
     process.chdir(projectPath);
 
-    const hre = await createHardhatRuntimeEnvironment({
-      plugins: [hardhatIgnition],
-    });
+    const configPath = path.join(projectPath, "hardhat.config.js");
+    const { default: userConfig } = await import(configPath);
+
+    const hre = await createHardhatRuntimeEnvironment(
+      {
+        ...userConfig,
+        plugins: [...(userConfig.plugins ?? []), hardhatIgnition],
+      },
+      { config: configPath },
+      projectPath,
+    );
 
     const connection = await hre.network.connect();
 
@@ -98,7 +105,17 @@ export function useFileIgnitionProject(
     prevWorkingDir = process.cwd();
     process.chdir(projectPath);
 
-    const hre = await createHardhatRuntimeEnvironment({});
+    const configPath = path.join(projectPath, "hardhat.config.js");
+    const { default: userConfig } = await import(configPath);
+
+    const hre = await createHardhatRuntimeEnvironment(
+      {
+        ...userConfig,
+        plugins: [...(userConfig.plugins ?? []), hardhatIgnition],
+      },
+      { config: configPath },
+      projectPath,
+    );
 
     const deploymentDir = path.join(
       projectPath,
@@ -110,6 +127,7 @@ export function useFileIgnitionProject(
     const connection = await hre.network.connect();
 
     this.hre = hre;
+    this.connection = connection;
     this.ignition = new TestIgnitionHelper(hre, connection);
     this.deploymentDir = deploymentDir;
 

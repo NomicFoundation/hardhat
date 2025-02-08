@@ -1,6 +1,6 @@
-const { buildModule } = require("@nomicfoundation/hardhat-ignition/modules");
+import { buildModule } from "@ignored/hardhat-vnext-ignition-core";
 
-module.exports = buildModule("ResetModule", (m) => {
+export default buildModule("ResetModule", (m) => {
   // Same id as first pass but a different contract
   const a = m.contract("Bar", [], {
     id: "A",
