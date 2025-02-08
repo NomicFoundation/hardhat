@@ -22,6 +22,7 @@ describe("localhost deployment flag", function () {
     // make sure nothing is left over from a previous test
     await remove(deploymentDir);
   });
+
   afterEach("clean filesystem", async function () {
     // cleanup
     await remove(deploymentDir);

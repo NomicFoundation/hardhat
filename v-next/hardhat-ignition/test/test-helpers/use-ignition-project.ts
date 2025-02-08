@@ -9,7 +9,7 @@ import path, { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
-import { ensureDir } from "@ignored/hardhat-vnext-utils/fs";
+import { ensureDir, remove } from "@ignored/hardhat-vnext-utils/fs";
 
 import hardhatIgnition from "../../src/index.js";
 
@@ -86,18 +86,23 @@ export function useFileIgnitionProject(
   deploymentId: string,
   config?: Partial<DeployConfig>,
 ): void {
+  let projectPath: string;
+  let prevWorkingDir: string;
+
   beforeEach("Load environment", async function () {
-    process.chdir(
-      path.join(__dirname, "../fixture-projects", fixtureProjectName),
+    projectPath = path.join(
+      __dirname,
+      "../fixture-projects",
+      fixtureProjectName,
     );
+    prevWorkingDir = process.cwd();
+    process.chdir(projectPath);
 
     const hre = await createHardhatRuntimeEnvironment({});
 
     const deploymentDir = path.join(
-      path.resolve(
-        __dirname,
-        `../fixture-projects/${fixtureProjectName}/ignition`,
-      ),
+      projectPath,
+      "ignition",
       "deployments",
       deploymentId,
     );
@@ -133,18 +138,16 @@ export function useFileIgnitionProject(
     };
   });
 
-  afterEach("reset hardhat context", function () {
-    throw new Error(
-      "Not implemented: need to find a replacement for resetHardhatContext()",
-    );
+  afterEach("reset hardhat context", async function () {
+    if (this.deploymentDir === undefined) {
+      throw new Error(
+        "Deployment dir not set during cleanup of file based project",
+      );
+    }
 
-    // if (this.deploymentDir === undefined) {
-    //   throw new Error(
-    //     "Deployment dir not set during cleanup of file based project"
-    //   );
-    // }
+    await remove(this.deploymentDir);
 
-    // removeSync(this.deploymentDir);
+    process.chdir(prevWorkingDir);
   });
 }
 

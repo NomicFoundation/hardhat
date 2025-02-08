@@ -10,6 +10,7 @@ import {
   ensureDir,
   exists,
   readdir,
+  readJsonFile,
   remove,
   writeJsonFile,
 } from "@ignored/hardhat-vnext-utils/fs";
@@ -125,7 +126,7 @@ const taskDeploy: NewTaskActionFunction<TaskDeployArguments> = async (
 
     const instanceFile: {
       [deploymentId: string]: string;
-    } = instanceFileExists ? require(instanceFilePath) : {};
+    } = instanceFileExists ? await readJsonFile(instanceFilePath) : {};
 
     const metadata = (await connection.provider.request({
       method: "hardhat_metadata",
