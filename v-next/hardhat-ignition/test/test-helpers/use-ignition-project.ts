@@ -11,7 +11,7 @@ import type {
 
 import { EventEmitter } from "node:events";
 import path, { dirname } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
 import { ensureDir, remove } from "@ignored/hardhat-vnext-utils/fs";
@@ -61,7 +61,9 @@ export function useEphemeralIgnitionProject(fixtureProjectName: string): void {
     process.chdir(projectPath);
 
     const configPath = path.join(projectPath, "hardhat.config.js");
-    const { default: userConfig } = await import(configPath);
+    const { default: userConfig } = await import(
+      pathToFileURL(configPath).href
+    );
 
     const hre = await createHardhatRuntimeEnvironment(
       {
@@ -111,7 +113,9 @@ export function useFileIgnitionProject(
     process.chdir(projectPath);
 
     const configPath = path.join(projectPath, "hardhat.config.js");
-    const { default: userConfig } = await import(configPath);
+    const { default: userConfig } = await import(
+      pathToFileURL(configPath).href
+    );
 
     const hre = await createHardhatRuntimeEnvironment(
       {
