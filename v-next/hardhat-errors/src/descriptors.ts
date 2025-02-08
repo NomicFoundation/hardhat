@@ -1506,7 +1506,7 @@ Please use the fully qualified name of the contract to disambiguate it.`,
     UNKNOWN_STRATEGY: {
       number: 1703,
       messageTemplate:
-        "Deploy cancelled: Cannot reset deployment on ephemeral Hardhat network",
+        "Invalid strategy name \"{strategyName}\", must be either 'basic' or 'create2'",
       websiteTitle:
         "Invalid strategy name, must be either 'basic' or 'create2'",
       websiteDescription:

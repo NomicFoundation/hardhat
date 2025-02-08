@@ -11,6 +11,8 @@ import { fileURLToPath } from "node:url";
 import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
 import { ensureDir } from "@ignored/hardhat-vnext-utils/fs";
 
+import hardhatIgnition from "../../src/index.js";
+
 import { clearPendingTransactionsFromMemoryPool } from "./clear-pending-transactions-from-memory-pool.js";
 import { mineBlock } from "./mine-block.js";
 import { TestIgnitionHelper } from "./test-ignition-helper.js";
@@ -54,7 +56,9 @@ export function useEphemeralIgnitionProject(fixtureProjectName: string): void {
     prevWorkingDir = process.cwd();
     process.chdir(projectPath);
 
-    const hre = await createHardhatRuntimeEnvironment({});
+    const hre = await createHardhatRuntimeEnvironment({
+      plugins: [hardhatIgnition],
+    });
 
     const connection = await hre.network.connect();
 

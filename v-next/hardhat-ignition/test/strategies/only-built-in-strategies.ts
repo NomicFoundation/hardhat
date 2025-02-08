@@ -2,8 +2,7 @@ import { assert } from "chai";
 
 import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";
 
-// TODO: Bring back with Hardhat 3 fixtures
-describe.skip("strategies - only built in strategies", function () {
+describe("strategies - only built in strategies", function () {
   useEphemeralIgnitionProject("minimal");
 
   it("should throw if a non-recognized strategy is specified", async function () {
@@ -12,7 +11,7 @@ describe.skip("strategies - only built in strategies", function () {
         modulePath: "./ignition/modules/MyModule.js",
         strategy: "non-recognized-strategy",
       }),
-      /Invalid strategy name, must be either 'basic' or 'create2'/,
+      /HHE1703: Invalid strategy name "non-recognized-strategy", must be either 'basic' or 'create2'/,
     );
   });
 });

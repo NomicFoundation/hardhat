@@ -152,7 +152,9 @@ const taskDeploy: NewTaskActionFunction<TaskDeployArguments> = async (
   }
 
   if (strategyName !== "basic" && strategyName !== "create2") {
-    throw new HardhatError(HardhatError.ERRORS.IGNITION.UNKNOWN_STRATEGY);
+    throw new HardhatError(HardhatError.ERRORS.IGNITION.UNKNOWN_STRATEGY, {
+      strategyName,
+    });
   }
 
   await hre.tasks.getTask("compile").run({ quiet: true });
@@ -258,7 +260,7 @@ const taskDeploy: NewTaskActionFunction<TaskDeployArguments> = async (
       log(error);
     }
 
-    // TODO: Bring back with the port of hardhat-verify
+    // TODO: HH3 Bring back with the port of hardhat-verify
     // if (result.type === "SUCCESSFUL_DEPLOYMENT" && verify) {
     //   console.log("");
     //   console.log(chalk.bold("Verifying deployed contracts"));
