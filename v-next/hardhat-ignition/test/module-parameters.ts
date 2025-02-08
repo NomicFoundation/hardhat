@@ -4,8 +4,7 @@ import { assert } from "chai";
 
 import { useEphemeralIgnitionProject } from "./test-helpers/use-ignition-project.js";
 
-// TODO: Bring back with Hardhat 3 fixtures
-describe.skip("module parameters", () => {
+describe("module parameters", () => {
   describe("a standard hardhat project", () => {
     useEphemeralIgnitionProject("lock");
 
@@ -55,7 +54,7 @@ describe.skip("module parameters", () => {
           modulePath: "./ignition/modules/Lock.ts",
           parameters: "./ignition/modules/parameters-too-large.json",
         }),
-        /Parameter "unlockTime" exceeds maximum safe integer size. Encode the value as a string using bigint notation: `\${value}n`/,
+        /Parameter "unlockTime" exceeds maximum safe integer size. Encode the value as a string using bigint notation: `1893499200000000000n`/,
       );
     });
 

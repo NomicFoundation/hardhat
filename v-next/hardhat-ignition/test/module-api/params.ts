@@ -134,7 +134,6 @@ describe("module parameters", () => {
   });
 });
 
-// TODO: Bring back with Hardhat 3 fixtures
 describe("params validation", () => {
   useEphemeralIgnitionProject("minimal");
 

@@ -3,6 +3,7 @@ import type {
   NamedArtifactContractDeploymentFuture,
 } from "@ignored/hardhat-vnext-ignition-core";
 
+// eslint-disable-next-line import/no-extraneous-dependencies
 import { buildModule } from "@ignored/hardhat-vnext-ignition-core";
 
 const LockModule: IgnitionModule<
@@ -22,5 +23,4 @@ const LockModule: IgnitionModule<
   return { lock };
 });
 
-// eslint-disable-next-line import/no-default-export
 export default LockModule;
