@@ -1,5 +1,3 @@
-require("../../../src/index");
-
-module.exports = {
+export default {
   solidity: "0.8.19",
 };
