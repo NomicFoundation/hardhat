@@ -1,5 +1,5 @@
 import type {
-  GetPublicClientReturnType,
+  PublicClientType,
   GetWalletClientReturnType,
   TestClient,
 } from "../types.js";
@@ -28,7 +28,7 @@ export async function getPublicClient<ChainTypeT extends ChainType | string>(
   provider: EthereumProvider,
   chainType: ChainTypeT,
   publicClientConfig?: Partial<ViemPublicClientConfig>,
-): Promise<GetPublicClientReturnType<ChainTypeT>> {
+): Promise<PublicClientType<ChainTypeT>> {
   const chain =
     publicClientConfig?.chain ?? (await getChain(provider, chainType));
   const parameters = {
@@ -48,7 +48,7 @@ export async function getPublicClient<ChainTypeT extends ChainType | string>(
 
   /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
   We need to assert the type because TS gets confused with the conditional type */
-  return publicClient as GetPublicClientReturnType<ChainTypeT>;
+  return publicClient as PublicClientType<ChainTypeT>;
 }
 
 export async function getWalletClients<ChainTypeT extends ChainType | string>(
