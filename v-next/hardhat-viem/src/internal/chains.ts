@@ -66,12 +66,12 @@ export async function getChain(
       throw new HardhatError(HardhatError.ERRORS.VIEM.NETWORK_NOT_FOUND, {
         chainId,
       });
+    } else {
+      assertHardhatInvariant(
+        false,
+        "This should not happen, as we check in isDevelopmentNetwork that it's either hardhat or anvil",
+      );
     }
-
-    assertHardhatInvariant(
-      false,
-      "This should not happen, as we check in isDevelopmentNetwork that it's either hardhat or anvil",
-    );
   }
 
   chainCache.set(provider, chain);
