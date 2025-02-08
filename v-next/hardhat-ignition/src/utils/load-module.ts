@@ -1,6 +1,7 @@
 import type { IgnitionModule } from "@ignored/hardhat-vnext-ignition-core";
 
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { IgnitionError } from "@ignored/hardhat-vnext-ignition-core";
@@ -54,7 +55,7 @@ export async function loadModule(
 
   let module;
   try {
-    module = await import(fullpathToModule);
+    module = await import(pathToFileURL(fullpathToModule).href);
   } catch (e) {
     if (e instanceof IgnitionError) {
       /**
