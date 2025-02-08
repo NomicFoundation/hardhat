@@ -1,6 +1,6 @@
-const { buildModule } = require("@nomicfoundation/ignition-core");
+import { buildModule } from "@ignored/hardhat-vnext-ignition-core";
 
-module.exports = buildModule("MyModule", (m) => {
+export default buildModule("MyModule", (m) => {
   const bar = m.contract("Bar");
   const usesContract = m.contract("UsesContract", {
     args: ["0x0000000000000000000000000000000000000000"],

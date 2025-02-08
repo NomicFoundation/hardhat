@@ -1,6 +1,4 @@
-require("../../../src/index");
-
-module.exports = {
+export default {
   networks: {
     hardhat: {
       mining: {

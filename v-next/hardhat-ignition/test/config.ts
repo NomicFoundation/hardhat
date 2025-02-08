@@ -110,8 +110,7 @@ describe("config", () => {
     });
   });
 
-  // TODO: HH3 bring back with proper fixtures
-  describe.skip("validating", () => {
+  describe("validating", () => {
     useEphemeralIgnitionProject("with-invalid-config");
 
     it("should throw when given a `requiredConfirmations` value less than 1", async function () {

@@ -1,0 +1,8 @@
+{
+  "name": "with-invalid-config",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "license": "ISC",
+  "description": "A minimal example of a Hardhat project with invalid Ignition config"
+}
