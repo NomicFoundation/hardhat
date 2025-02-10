@@ -245,11 +245,15 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
     chainId: number,
     privateKey: Buffer
   ): Promise<Uint8Array> {
-    const { AccessListEIP2930Transaction, LegacyTransaction } = await import(
-      "@ethereumjs/tx"
-    );
+    const {
+      AccessListEIP2930Transaction,
+      LegacyTransaction,
+      EOACodeEIP7702Transaction,
+    } = await import("@ethereumjs/tx");
 
     const { Common } = await import("@ethereumjs/common");
+
+    const { toBytes } = await import("@ethereumjs/util");
 
     const txData = {
       ...transactionRequest,
@@ -268,8 +272,38 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
       ({ address, storageKeys }) => [address, storageKeys] as [Buffer, Buffer[]]
     );
 
+    // we convert the authorization list to the type
+    // that EOACodeEIP7702Transaction expects
+    const authorizationList = txData.authorizationList?.map(
+      ({ chainId: authChainId, address, nonce, yParity, r, s }) =>
+        // TODO: There is an error in the type definition of rpcAuthorizationList
+        // in the @ethereumjs/common@4.4.0 package where nonce is defined as an
+        // array but it should be a string. This is fixed in the alpha version
+        // of the package but is not yet released. To work around this, we wrap
+        // nonce in an array here. However, this will not be accepted by the
+        // node and will throw an error.
+        [
+          Buffer.from(toBytes(authChainId)),
+          address,
+          [Buffer.from(toBytes(nonce))],
+          yParity,
+          r,
+          s,
+        ] as [Buffer, Buffer, Buffer[], Buffer, Buffer, Buffer]
+    );
+
     let transaction;
-    if (txData.maxFeePerGas !== undefined) {
+    if (authorizationList !== undefined) {
+      transaction = EOACodeEIP7702Transaction.fromTxData(
+        {
+          ...txData,
+          accessList,
+          authorizationList,
+          gasPrice: undefined,
+        },
+        { common }
+      );
+    } else if (txData.maxFeePerGas !== undefined) {
       transaction = FeeMarketEIP1559Transaction.fromTxData(
         {
           ...txData,

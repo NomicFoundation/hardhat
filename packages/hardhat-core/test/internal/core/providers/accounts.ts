@@ -42,6 +42,7 @@ describe("Local accounts provider", () => {
     "0x6d7229c1db5892730b84b4bc10543733b72cabf4cd3130d910faa8e459bb8eca",
     "0x6d4ec871d9b5469119bbfc891e958b6220d076a6849006098c370c8af5fc7776",
     "0xec02c2b7019e75378a05018adc30a0252ba705670acb383a1d332e57b0b792d2",
+    "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
   ];
 
   beforeEach(() => {
@@ -305,6 +306,40 @@ describe("Local accounts provider", () => {
     assert.equal(rawTransaction, expectedRaw);
 
     validateRawEIP2930Transaction(expectedRaw, tx);
+  });
+
+  // TODO: enable this test once prague is supported
+  it.skip("should send EIP-7702 transactions", async () => {
+    const tx = {
+      from: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+      to: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+      gas: numberToRpcQuantity(100000),
+      maxFeePerGas: numberToRpcQuantity(10n * 10n ** 9n),
+      maxPriorityFeePerGas: numberToRpcQuantity(10n ** 9n),
+      chainId: numberToRpcQuantity(MOCK_PROVIDER_CHAIN_ID),
+      nonce: numberToRpcQuantity(0),
+      authorizationList: [
+        {
+          chainId: numberToRpcQuantity(MOCK_PROVIDER_CHAIN_ID),
+          nonce: numberToRpcQuantity(1),
+          address: "0x1234567890123456789012345678901234567890",
+          yParity: "0x1",
+          r: "0xd4c36a32c935f7abf3950062024b08ee85a707cd725274a5b017865ea6e989ad",
+          s: "0x6218f33b32f2f26783db21cde75e6b72bcacfedbac4c1a1af438e3e5c755918a",
+        },
+      ],
+    };
+    await wrapper.request({
+      method: "eth_sendTransaction",
+      params: [tx],
+    });
+
+    const rawTransaction = mock.getLatestParams("eth_sendRawTransaction")[0];
+
+    const expectedRaw =
+      "0x04f8ca7b80843b9aca008502540be400830186a094f39fd6e51aad88f6f4ce6ab8827279cfffb922668080c0f85cf85a7b9412345678901234567890123456789012345678900101a0d4c36a32c935f7abf3950062024b08ee85a707cd725274a5b017865ea6e989ada06218f33b32f2f26783db21cde75e6b72bcacfedbac4c1a1af438e3e5c755918a80a09ae0f9ac575ff45f38805f7101455b397d248166a2a5771122a66e6c279c279ba0234d80d08a6f369a134b0058b74076e608db10da97ec3660ad829c8d4246098f";
+
+    assert.equal(rawTransaction, expectedRaw);
   });
 
   it("should add the chainId value if it's missing", async () => {
