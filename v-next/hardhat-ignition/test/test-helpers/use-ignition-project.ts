@@ -14,6 +14,7 @@ import path, { dirname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
+import hardhatNetworkHelpers from "@ignored/hardhat-vnext-network-helpers";
 import { ensureDir, remove } from "@ignored/hardhat-vnext-utils/fs";
 
 import hardhatIgnition from "../../src/index.js";
@@ -68,7 +69,11 @@ export function useEphemeralIgnitionProject(fixtureProjectName: string): void {
     const hre = await createHardhatRuntimeEnvironment(
       {
         ...userConfig,
-        plugins: [...(userConfig.plugins ?? []), hardhatIgnition],
+        plugins: [
+          ...(userConfig.plugins ?? []),
+          hardhatIgnition,
+          hardhatNetworkHelpers,
+        ],
       },
       { config: configPath },
       projectPath,
@@ -120,7 +125,11 @@ export function useFileIgnitionProject(
     const hre = await createHardhatRuntimeEnvironment(
       {
         ...userConfig,
-        plugins: [...(userConfig.plugins ?? []), hardhatIgnition],
+        plugins: [
+          ...(userConfig.plugins ?? []),
+          hardhatIgnition,
+          hardhatNetworkHelpers,
+        ],
       },
       { config: configPath },
       projectPath,
@@ -159,7 +168,7 @@ export function useFileIgnitionProject(
       return runDeploy(
         deploymentDir,
         ignitionModule,
-        { hre, config: testConfig },
+        { hre, connection, config: testConfig },
         chainUpdates,
       );
     };
@@ -183,14 +192,21 @@ async function runDeploy(
   ignitionModule: IgnitionModule,
   {
     hre,
+    connection,
     config = {},
-  }: { hre: HardhatRuntimeEnvironment; config?: Partial<DeployConfig> },
+  }: {
+    hre: HardhatRuntimeEnvironment;
+    connection: NetworkConnection;
+    config?: Partial<DeployConfig>;
+  },
   chainUpdates: (c: TestChainHelper) => Promise<void> = async () => {},
 ): Promise<ReturnType<TestIgnitionHelper["deploy"]>> {
-  const connection = await hre.network.connect();
-
-  const { ignitionHelper: ignitionHelper, kill: killFn } =
-    setupIgnitionHelperRiggedToThrow(hre, connection, deploymentDir, config);
+  const { ignitionHelper, kill: killFn } = setupIgnitionHelperRiggedToThrow(
+    hre,
+    connection,
+    deploymentDir,
+    config,
+  );
 
   try {
     const deployPromise = ignitionHelper.deploy(ignitionModule, {
@@ -287,10 +303,7 @@ export class TestChainHelper {
   }
 
   public async setNextBlockBaseFeePerGas(fee: bigint): Promise<void> {
-    // TODO: HH3 remove this any once the proper Ignition type extension has happened
-    return (this._connection as any).networkHelpers.setNextBlockBaseFeePerGas(
-      fee,
-    );
+    return this._connection.networkHelpers.setNextBlockBaseFeePerGas(fee);
   }
 
   /**
