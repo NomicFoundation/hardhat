@@ -308,8 +308,7 @@ describe("Local accounts provider", () => {
     validateRawEIP2930Transaction(expectedRaw, tx);
   });
 
-  // TODO: enable this test once prague is supported
-  it.skip("should send EIP-7702 transactions", async () => {
+  it("should send EIP-7702 transactions", async () => {
     const tx = {
       from: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
       to: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
