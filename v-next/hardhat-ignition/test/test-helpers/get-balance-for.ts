@@ -1,4 +1,4 @@
-import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
+import type { NetworkConnection } from "@ignored/hardhat-vnext/types/network";
 
 import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
 
@@ -6,11 +6,9 @@ import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
  * Get latest balance for an address.
  */
 export async function getBalanceFor(
-  hre: HardhatRuntimeEnvironment,
+  connection: NetworkConnection,
   address: string,
 ): Promise<bigint> {
-  const connection = await hre.network.connect();
-
   const balance = await connection.provider.request({
     method: "eth_getBalance",
     params: [address, "latest"],

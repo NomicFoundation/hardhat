@@ -110,8 +110,7 @@ describe("calls", () => {
   });
 
   describe("passing value", () => {
-    // TODO: HH3 re-enable these tests next
-    it.skip("should be able to call a contract passing a value", async function () {
+    it("should be able to call a contract passing a value", async function () {
       const moduleDefinition = buildModule("PassingValue", (m) => {
         const passingValue = m.contract("PassingValue");
 
@@ -127,15 +126,14 @@ describe("calls", () => {
       assert.isDefined(result.passingValue);
 
       const actualInstanceBalance = await getBalanceFor(
-        this.hre,
+        this.connection,
         result.passingValue.address,
       );
 
       assert.equal(actualInstanceBalance, 1_000_000_000n);
     });
 
-    // TODO: HH3 re-enable these tests next
-    it.skip("should be able to call a contract passing a value via a parameter", async function () {
+    it("should be able to call a contract passing a value via a parameter", async function () {
       const submoduleDefinition = buildModule("Submodule", (m) => {
         const depositValue = m.getParameter("depositValue", 1000n);
 
@@ -165,7 +163,7 @@ describe("calls", () => {
       assert.isDefined(result.passingValue);
 
       const actualInstanceBalance = await getBalanceFor(
-        this.hre,
+        this.connection,
         result.passingValue.address,
       );
 

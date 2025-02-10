@@ -86,8 +86,7 @@ describe("contract deploys", () => {
     assert.equal(greeting, "Hello World");
   });
 
-  // TODO: HH3 re-enable these tests next
-  describe.skip("with endowment", () => {
+  describe("with endowment", () => {
     it("should be able to deploy a contract with an endowment", async function () {
       const moduleDefinition = buildModule("EndowmentModule", (m) => {
         const passingValue = m.contract("PassingValue", [], {
@@ -102,7 +101,7 @@ describe("contract deploys", () => {
       assert.isDefined(result.passingValue);
 
       const actualInstanceBalance = await getBalanceFor(
-        this.hre,
+        this.connection,
         result.passingValue.address,
       );
 
@@ -131,7 +130,7 @@ describe("contract deploys", () => {
       assert.isDefined(result.passingValue);
 
       const actualInstanceBalance = await getBalanceFor(
-        this.hre,
+        this.connection,
         result.passingValue.address,
       );
 
@@ -162,7 +161,7 @@ describe("contract deploys", () => {
       assert.isDefined(result.passingValue);
 
       const actualInstanceBalance = await getBalanceFor(
-        this.hre,
+        this.connection,
         result.passingValue.address,
       );
 
@@ -197,7 +196,7 @@ describe("contract deploys", () => {
       assert.isDefined(result.passingValue);
 
       const actualInstanceBalance = await getBalanceFor(
-        this.hre,
+        this.connection,
         result.passingValue.address,
       );
 
