@@ -14,6 +14,7 @@ describe("default sender", function () {
   useEphemeralIgnitionProject("minimal");
 
   it("should throw if default sender is not in configured accounts", async function () {
+    // TODO: HH3 can this pattern be improved on with utils
     let threwException = false;
     try {
       await this.hre.tasks.getTask(["ignition", "deploy"]).run({

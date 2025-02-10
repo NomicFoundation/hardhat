@@ -1,6 +1,10 @@
-import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
+import type { NetworkConnection } from "@ignored/hardhat-vnext/types/network";
 
-import { buildModule } from "@ignored/hardhat-vnext-ignition-core";
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import {
+  buildModule,
+  IgnitionError,
+} from "@ignored/hardhat-vnext-ignition-core";
 import { assert } from "chai";
 
 import { presignedTx } from "../test-helpers/createX-tx.js";
@@ -12,8 +16,7 @@ import {
 } from "../test-helpers/use-ignition-project.js";
 import { waitForPendingTxs } from "../test-helpers/wait-for-pending-txs.js";
 
-// TODO: Bring back with Hardhat 3 fixtures
-describe.skip("create2", function () {
+describe("create2", function () {
   const example32ByteSalt =
     "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
   const anotherExample32ByteSalt =
@@ -39,7 +42,7 @@ describe.skip("create2", function () {
       useEphemeralIgnitionProject("create2-exists-chain");
 
       beforeEach(async function () {
-        await deployCreateXFactory(this.hre);
+        await deployCreateXFactory(this.connection);
       });
 
       [
@@ -228,20 +231,32 @@ describe.skip("create2", function () {
     useFileIgnitionProject("create2-bad-config", "attempt-bad-config");
 
     it("should throw if salt is not defined in Hardhat config", async function () {
-      await assert.isRejected(
-        this.hre.tasks.getTask(["ignition", "deploy"]).run({
+      // TODO: HH3 can this pattern be improved on with utils
+      let threwException = false;
+      try {
+        await this.hre.tasks.getTask(["ignition", "deploy"]).run({
           modulePath: "./ignition/modules/MyModule.js",
           strategy: "create2",
-        }),
-        /IGN1102: Missing required strategy configuration parameter 'salt' for the strategy 'create2'/,
-      );
+        });
+      } catch (error) {
+        threwException = true;
+
+        assert.instanceOf(error, HardhatError);
+        assert.isDefined(error.cause);
+        assert.instanceOf(error.cause, IgnitionError);
+        assert.include(
+          error.cause.message,
+          "IGN1102: Missing required strategy configuration parameter 'salt' for the strategy 'create2'",
+        );
+        assert.equal(error.cause.errorNumber, 1102);
+      }
+
+      assert.isTrue(threwException);
     });
   });
 });
 
-async function deployCreateXFactory(hre: HardhatRuntimeEnvironment) {
-  const connection = await hre.network.connect();
-
+async function deployCreateXFactory(connection: NetworkConnection) {
   await connection.provider.request({
     method: "hardhat_setBalance",
     params: ["0xeD456e05CaAb11d66C4c797dD6c1D6f9A7F352b5", "0x58D15E176280000"],
