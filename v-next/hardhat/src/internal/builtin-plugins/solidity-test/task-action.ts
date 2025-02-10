@@ -70,7 +70,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   throwIfSolidityBuildFailed(results);
 
   const buildInfos = await getBuildInfos(results, hre.artifacts);
-  const artifacts = await getArtifacts(results, buildInfos);
+  const artifacts = await getArtifacts(results);
   const testSuiteIds = artifacts.map((artifact) => artifact.id);
 
   console.log("Running Solidity tests");

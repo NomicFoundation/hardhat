@@ -147,21 +147,21 @@ export type FileBuildResult =
 
 export interface CacheHitFileBuildResult {
   type: FileBuildResultType.CACHE_HIT;
-  buildId: string;
+  compilationJob: CompilationJob;
   contractArtifactsGenerated: string[];
   warnings: CompilerOutputError[];
 }
 
 export interface SuccessfulFileBuildResult {
   type: FileBuildResultType.BUILD_SUCCESS;
-  buildId: string;
+  compilationJob: CompilationJob;
   contractArtifactsGenerated: string[];
   warnings: CompilerOutputError[];
 }
 
 export interface FailedFileBuildResult {
   type: FileBuildResultType.BUILD_FAILURE;
-  buildId: string;
+  compilationJob: CompilationJob;
   errors: CompilerOutputError[];
 }
 
