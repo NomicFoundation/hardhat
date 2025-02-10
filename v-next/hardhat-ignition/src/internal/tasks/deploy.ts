@@ -1,6 +1,9 @@
 import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
 import type { NewTaskActionFunction } from "@ignored/hardhat-vnext/types/tasks";
-import type { DeploymentParameters } from "@ignored/hardhat-vnext-ignition-core";
+import type {
+  DeploymentParameters,
+  DeploymentResult,
+} from "@ignored/hardhat-vnext-ignition-core";
 
 import path from "node:path";
 
@@ -50,7 +53,7 @@ const taskDeploy: NewTaskActionFunction<TaskDeployArguments> = async (
     writeLocalhostDeployment,
   },
   hre: HardhatRuntimeEnvironment,
-): Promise<void> => {
+): Promise<DeploymentResult | null> => {
   if (verify) {
     throw new HardhatError(HardhatError.ERRORS.INTERNAL.NOT_IMPLEMENTED_ERROR, {
       message:
@@ -97,7 +100,8 @@ const taskDeploy: NewTaskActionFunction<TaskDeployArguments> = async (
 
       if (prompt.networkConfirmation !== true) {
         console.log("Deploy cancelled");
-        return;
+        process.exitCode = 1;
+        return null;
       }
     }
 
@@ -111,7 +115,8 @@ const taskDeploy: NewTaskActionFunction<TaskDeployArguments> = async (
 
       if (resetPrompt.resetConfirmation !== true) {
         console.log("Deploy cancelled");
-        return;
+        process.exitCode = 1;
+        return null;
       }
     }
   } else if (deploymentDir !== undefined) {
@@ -273,6 +278,8 @@ const taskDeploy: NewTaskActionFunction<TaskDeployArguments> = async (
     if (result.type !== "SUCCESSFUL_DEPLOYMENT") {
       process.exitCode = 1;
     }
+
+    return result;
   } catch (e) {
     if (e instanceof IgnitionError && shouldBeHardhatPluginError(e)) {
       throw new HardhatError(HardhatError.ERRORS.IGNITION.INTERNAL_ERROR, e);

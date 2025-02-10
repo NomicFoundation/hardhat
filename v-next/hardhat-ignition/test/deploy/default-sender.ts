@@ -1,7 +1,9 @@
 /* eslint-disable import/no-unused-modules */
+import type { DeploymentResult } from "@ignored/hardhat-vnext-ignition-core";
+
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import {
-  buildModule,
+  DeploymentResultType,
   IgnitionError,
 } from "@ignored/hardhat-vnext-ignition-core";
 import { assert } from "chai";
@@ -34,26 +36,19 @@ describe("default sender", function () {
     assert.isTrue(threwException);
   });
 
-  // TODO: HH3 bring back next
-  it.skip("should allow setting default sender via cli", async function () {
+  it("should allow setting default sender via cli", async function () {
     const secondAccountAddress = "0x70997970C51812dc3A010C7d01b50e0d17dc79C8";
 
-    await this.hre.tasks.getTask(["ignition", "deploy"]).run({
-      modulePath: "ignition/modules/OwnModule.js",
-      defaultSender: secondAccountAddress,
-    });
+    const result: DeploymentResult | null = await this.hre.tasks
+      .getTask(["ignition", "deploy"])
+      .run({
+        modulePath:
+          "ignition/modules/RevertWhenDeployedFromFirstAccountModule.js",
+        defaultSender: secondAccountAddress,
+      });
 
-    const existingModule = buildModule("ExistingModule", (m) => {
-      const bar = m.contractAt(
-        "Ownable",
-        "0x8464135c8F25Da09e49BC8782676a84730C318bC",
-      );
+    assert.isNotNull(result);
 
-      return { bar };
-    });
-
-    const result = await this.ignition.deploy(existingModule);
-
-    assert.equal(await result.bar.read.owner(), secondAccountAddress);
+    assert.equal(result.type, DeploymentResultType.SUCCESSFUL_DEPLOYMENT);
   });
 });
