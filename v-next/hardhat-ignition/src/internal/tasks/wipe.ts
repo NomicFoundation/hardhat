@@ -1,41 +1,40 @@
-// ignitionScope
-//   .task("wipe")
-//   .addPositionalParam(
-//     "deploymentId",
-//     "The id of the deployment with the future to wipe"
-//   )
-//   .addPositionalParam("futureId", "The id of the future to wipe")
-//   .setDescription("Reset a deployment's future to allow rerunning")
-//   .setAction(
-//     async (
-//       { deploymentId, futureId }: { deploymentId: string; futureId: string },
-//       hre
-//     ) => {
-//       const { wipe } = await import("@ignored/hardhat-vnext-ignition-core");
+import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
+import type { NewTaskActionFunction } from "@ignored/hardhat-vnext/types/tasks";
 
-//       const { HardhatArtifactResolver } = await import(
-//         "./hardhat-artifact-resolver.js"
-//       );
+import path from "node:path";
 
-//       const deploymentDir = path.join(
-//         hre.config.paths.ignition,
-//         "deployments",
-//         deploymentId
-//       );
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { IgnitionError, wipe } from "@ignored/hardhat-vnext-ignition-core";
 
-//       try {
-//         await wipe(deploymentDir, new HardhatArtifactResolver(hre), futureId);
-//       } catch (e) {
-//         if (e instanceof IgnitionError && shouldBeHardhatPluginError(e)) {
-//           throw new HardhatError(
-//             HardhatError.ERRORS.IGNITION.INTERNAL_ERROR,
-//             e
-//           );
-//         }
+import { HardhatArtifactResolver } from "../../helpers/hardhat-artifact-resolver.js";
+import { shouldBeHardhatPluginError } from "../utils/shouldBeHardhatPluginError.js";
 
-//         throw e;
-//       }
+interface TaskWipeArguments {
+  deploymentId: string;
+  futureId: string;
+}
 
-//       console.log(`${futureId} state has been cleared`);
-//     }
-//   );
+const taskWipe: NewTaskActionFunction<TaskWipeArguments> = async (
+  { deploymentId, futureId },
+  hre: HardhatRuntimeEnvironment,
+) => {
+  const deploymentDir = path.join(
+    hre.config.paths.ignition,
+    "deployments",
+    deploymentId,
+  );
+
+  try {
+    await wipe(deploymentDir, new HardhatArtifactResolver(hre), futureId);
+  } catch (e) {
+    if (e instanceof IgnitionError && shouldBeHardhatPluginError(e)) {
+      throw new HardhatError(HardhatError.ERRORS.IGNITION.INTERNAL_ERROR, e);
+    }
+
+    throw e;
+  }
+
+  console.log(`${futureId} state has been cleared`);
+};
+
+export default taskWipe;

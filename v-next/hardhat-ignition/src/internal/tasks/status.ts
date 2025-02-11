@@ -5,7 +5,7 @@ import type { StatusResult } from "@ignored/hardhat-vnext-ignition-core";
 import path from "node:path";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { IgnitionError } from "@ignored/hardhat-vnext-ignition-core";
+import { IgnitionError, status } from "@ignored/hardhat-vnext-ignition-core";
 
 import { HardhatArtifactResolver } from "../../helpers/hardhat-artifact-resolver.js";
 import { calculateDeploymentStatusDisplay } from "../ui/helpers/calculate-deployment-status-display.js";
@@ -19,8 +19,6 @@ const taskStatus: NewTaskActionFunction<TaskStatusArguments> = async (
   { deploymentId },
   hre: HardhatRuntimeEnvironment,
 ) => {
-  const { status } = await import("@ignored/hardhat-vnext-ignition-core");
-
   const deploymentDir = path.join(
     hre.config.paths.ignition,
     "deployments",

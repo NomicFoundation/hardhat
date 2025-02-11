@@ -72,13 +72,29 @@ const hardhatIgnitionPlugin: HardhatPlugin = {
     task(["ignition", "deployments"], "List all deployment IDs")
       .setAction(import.meta.resolve("./internal/tasks/deployments.js"))
       .build(),
-    task(["ignition", "transactions"], "List all deployment IDs")
+    task(
+      ["ignition", "transactions"],
+      "Show all transactions for a given deployment",
+    )
       .addPositionalArgument({
         name: "deploymentId",
         type: ArgumentType.STRING,
         description: "The id of the deployment to show transactions for",
       })
-      .setAction(import.meta.resolve("./internal/tasks/deployments.js"))
+      .setAction(import.meta.resolve("./internal/tasks/transactions.js"))
+      .build(),
+    task(["ignition", "wipe"], "Reset a deployment's future to allow rerunning")
+      .addPositionalArgument({
+        name: "deploymentId",
+        type: ArgumentType.STRING,
+        description: "The id of the deployment with the future to wipe",
+      })
+      .addPositionalArgument({
+        name: "futureId",
+        type: ArgumentType.STRING,
+        description: "The id of the future to wipe",
+      })
+      .setAction(import.meta.resolve("./internal/tasks/wipe.js"))
       .build(),
   ],
 };
