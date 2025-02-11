@@ -22,7 +22,7 @@ describe("support changing default sender", () => {
 
     assert.equal(
       (await result.ownerSender.read.owner()).toLowerCase(),
-      defaultAccountAddress.toLowerCase()
+      defaultAccountAddress.toLowerCase(),
     );
   });
 
@@ -43,7 +43,7 @@ describe("support changing default sender", () => {
 
     assert.equal(
       (await result.ownerSender.read.owner()).toLowerCase(),
-      differentAccountAddress.toLowerCase()
+      differentAccountAddress.toLowerCase(),
     );
   });
 });

@@ -1,11 +1,9 @@
-/* eslint-disable import/no-unused-modules */
-import {
-  NamedArtifactContractDeploymentFuture,
-  buildModule,
-} from "@ignored/hardhat-vnext-ignition-core";
+import type { IgnitionModuleResultsToViemContracts } from "../../src/ignition-module-results-to-viem-contracts.js";
+import type { NamedArtifactContractDeploymentFuture } from "@ignored/hardhat-vnext-ignition-core";
+
+import { buildModule } from "@ignored/hardhat-vnext-ignition-core";
 import { assert } from "chai";
 
-import { IgnitionModuleResultsToViemContracts } from "../../src/ignition-module-results-to-viem-contracts.js";
 import { useIgnitionProject } from "../test-helpers/use-ignition-project.js";
 
 describe("strategies - invocation via helper", () => {
@@ -38,7 +36,7 @@ describe("strategies - invocation via helper", () => {
 
       assert.equal(
         result.foo.address,
-        "0x9318a275A28F46CA742f84402226E27463cA8050"
+        "0x9318a275A28F46CA742f84402226E27463cA8050",
       );
     });
 
@@ -53,10 +51,11 @@ describe("strategies - invocation via helper", () => {
         this.connection.ignition.deploy(moduleDefinition, {
           strategy: "create2",
           strategyConfig: {
+            // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- we're testing this specific error
             salt: undefined as any,
           },
         }),
-        /IGN1102: Missing required strategy configuration parameter 'salt' for the strategy 'create2'/
+        /IGN1102: Missing required strategy configuration parameter 'salt' for the strategy 'create2'/,
       );
     });
   });
@@ -84,7 +83,7 @@ describe("strategies - invocation via helper", () => {
 
       assert.equal(
         result.baz.address,
-        "0x8EFE40FAEF47066689Cb06b561F5EC63F9DeA616"
+        "0x8EFE40FAEF47066689Cb06b561F5EC63F9DeA616",
       );
     });
   });

@@ -1,4 +1,3 @@
-/* eslint-disable import/no-unused-modules */
 import { buildModule } from "@ignored/hardhat-vnext-ignition-core";
 import { assert } from "chai";
 
@@ -45,36 +44,36 @@ describe("viem results", () => {
     await assert.isRejected(
       // @ts-expect-error - isBar is not a method on Foo
       result.foo.read.isBar(),
-      /Make sure you are using the correct ABI and that the function exists on it./
+      /Make sure you are using the correct ABI and that the function exists on it./,
     );
     await assert.isRejected(
       // @ts-expect-error - isBar is not a method on Foo
       result.foo.read.isExternallyLoaded(),
-      /Make sure you are using the correct ABI and that the function exists on it./
+      /Make sure you are using the correct ABI and that the function exists on it./,
     );
 
     // bar shouldn't have foo or baz methods
     await assert.isRejected(
       // @ts-expect-error - isFoo is not a method on Bar
       result.bar.read.isFoo(),
-      /Make sure you are using the correct ABI and that the function exists on it./
+      /Make sure you are using the correct ABI and that the function exists on it./,
     );
     await assert.isRejected(
       // @ts-expect-error - isExternallyLoaded is not a method on Bar
       result.bar.read.isExternallyLoaded(),
-      /Make sure you are using the correct ABI and that the function exists on it./
+      /Make sure you are using the correct ABI and that the function exists on it./,
     );
 
     // baz shouldn't have foo or bar methods
     await assert.isRejected(
       // @ts-expect-error - isFoo is not a method on the externally loaded contract
       result.baz.read.isFoo(),
-      /Make sure you are using the correct ABI and that the function exists on it./
+      /Make sure you are using the correct ABI and that the function exists on it./,
     );
     await assert.isRejected(
       // @ts-expect-error - isBar is not a method on the externally loaded contract
       result.baz.read.isBar(),
-      /Make sure you are using the correct ABI and that the function exists on it./
+      /Make sure you are using the correct ABI and that the function exists on it./,
     );
   });
 });

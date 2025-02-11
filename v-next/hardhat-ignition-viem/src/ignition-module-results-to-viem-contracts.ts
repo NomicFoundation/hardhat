@@ -1,17 +1,17 @@
-import {
+import type {
   ContractAtFuture,
   ContractDeploymentFuture,
   ContractFuture,
   IgnitionModuleResult,
 } from "@ignored/hardhat-vnext-ignition-core";
-import {
+import type {
   ContractAbis,
   GetContractReturnType,
 } from "@ignored/hardhat-vnext-viem/types";
 
 export type IgnitionModuleResultsToViemContracts<
   ContractNameT extends string,
-  IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>
+  IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>,
 > = {
   [resultKey in keyof IgnitionModuleResultsT]: ToContractType<
     IgnitionModuleResultsT,
@@ -21,27 +21,27 @@ export type IgnitionModuleResultsToViemContracts<
 
 type ToContractType<
   IgnitionModuleResultsT extends IgnitionModuleResult<string>,
-  ResultKey extends keyof IgnitionModuleResultsT
+  ResultKey extends keyof IgnitionModuleResultsT,
 > = IgnitionModuleResultsT[ResultKey] extends
   | ContractDeploymentFuture
   | ContractAtFuture
   ? GetContractReturnType<AbiOf<IgnitionModuleResultsT[ResultKey]>>
   : LookupContractName<
-      IgnitionModuleResultsT,
-      ResultKey
-    > extends keyof ContractAbis
-  ? LookupContractReturnTypeForContractName<
-      LookupContractName<IgnitionModuleResultsT, ResultKey>
-    >
-  : never;
+        IgnitionModuleResultsT,
+        ResultKey
+      > extends keyof ContractAbis
+    ? LookupContractReturnTypeForContractName<
+        LookupContractName<IgnitionModuleResultsT, ResultKey>
+      >
+    : never;
 
 type LookupContractReturnTypeForContractName<
-  ContractName extends keyof ContractAbis
+  ContractName extends keyof ContractAbis,
 > = GetContractReturnType<ContractAbis[ContractName]>;
 
 type LookupContractName<
   IgnitionModuleResultsT extends IgnitionModuleResult<string>,
-  ResultsContractKey extends keyof IgnitionModuleResultsT
+  ResultsContractKey extends keyof IgnitionModuleResultsT,
 > = ContractNameOfContractFuture<IgnitionModuleResultsT[ResultsContractKey]>;
 
 type ContractNameOfContractFuture<ContractFutureT> =
@@ -55,5 +55,5 @@ export type AbiOf<ContractDeploymentFutureT> =
   >
     ? ContractDeploymentAbi
     : ContractDeploymentFutureT extends ContractAtFuture<infer ContractAbiT>
-    ? ContractAbiT
-    : never;
+      ? ContractAbiT
+      : never;

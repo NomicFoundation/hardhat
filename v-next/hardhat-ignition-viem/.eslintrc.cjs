@@ -1,3 +1,7 @@
 const { createConfig } = require("../../config-v-next/eslint.cjs");
 
-module.exports = createConfig(__filename);
+const config = createConfig(__filename);
+
+delete config.rules["@typescript-eslint/ban-ts-comment"]
+
+module.exports = config;

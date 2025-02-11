@@ -1,22 +1,14 @@
-import type { GetContractReturnType } from "@ignored/hardhat-vnext-viem/types";
-
-import {
-  HardhatArtifactResolver,
-  PrettyEventHandler,
-  errorDeploymentResultToExceptionMessage,
-  readDeploymentParameters,
-  resolveDeploymentId,
-} from "@ignored/hardhat-vnext-ignition/helpers";
-import {
+import type { IgnitionModuleResultsToViemContracts } from "./ignition-module-results-to-viem-contracts.js";
+import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
+import type { NetworkConnection } from "@ignored/hardhat-vnext/types/network";
+import type {
   ContractAtFuture,
   ContractDeploymentFuture,
   ContractFuture,
   DeployConfig,
   DeploymentParameters,
-  DeploymentResultType,
   EIP1193Provider,
   Future,
-  FutureType,
   IgnitionModule,
   IgnitionModuleResult,
   LibraryDeploymentFuture,
@@ -25,29 +17,44 @@ import {
   NamedArtifactLibraryDeploymentFuture,
   StrategyConfig,
   SuccessfulDeploymentResult,
+} from "@ignored/hardhat-vnext-ignition-core";
+import type { GetContractReturnType } from "@ignored/hardhat-vnext-viem/types";
+
+import path from "node:path";
+
+import { HardhatPluginError } from "@ignored/hardhat-vnext-errors";
+import {
+  HardhatArtifactResolver,
+  PrettyEventHandler,
+  errorDeploymentResultToExceptionMessage,
+  readDeploymentParameters,
+  resolveDeploymentId,
+} from "@ignored/hardhat-vnext-ignition/helpers";
+import {
+  DeploymentResultType,
+  FutureType,
   deploy,
   isContractFuture,
 } from "@ignored/hardhat-vnext-ignition-core";
 
-import path from "path";
-
-import { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
-import { NetworkConnection } from "@ignored/hardhat-vnext/types/network";
-import { HardhatPluginError } from "@ignored/hardhat-vnext-errors";
-import { IgnitionModuleResultsToViemContracts } from "./ignition-module-results-to-viem-contracts.js";
-
 export class ViemIgnitionHelper {
   public type = "viem";
 
-  private _provider: EIP1193Provider;
+  readonly #hre: HardhatRuntimeEnvironment;
+  readonly #connection: NetworkConnection;
+  readonly #config: Partial<DeployConfig> | undefined;
+  readonly #provider: EIP1193Provider;
 
   constructor(
-    private _hre: HardhatRuntimeEnvironment,
-    private _connection: NetworkConnection,
-    private _config?: Partial<DeployConfig> | undefined,
-    provider?: EIP1193Provider
+    hre: HardhatRuntimeEnvironment,
+    connection: NetworkConnection,
+    config?: Partial<DeployConfig> | undefined,
+    provider?: EIP1193Provider,
   ) {
-    this._provider = provider ?? this._connection.provider;
+    this.#hre = hre;
+    this.#connection = connection;
+    this.#config = config;
+    this.#provider = provider ?? this.#connection.provider;
   }
 
   /**
@@ -62,7 +69,7 @@ export class ViemIgnitionHelper {
     ModuleIdT extends string,
     ContractNameT extends string,
     IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>,
-    StrategyT extends keyof StrategyConfig = "basic"
+    StrategyT extends keyof StrategyConfig = "basic",
   >(
     ignitionModule: IgnitionModule<
       ModuleIdT,
@@ -93,43 +100,44 @@ export class ViemIgnitionHelper {
       strategyConfig: undefined,
       deploymentId: undefined,
       displayUi: undefined,
-    }
+    },
   ): Promise<
     IgnitionModuleResultsToViemContracts<ContractNameT, IgnitionModuleResultsT>
   > {
-    const accounts = (await this._connection.provider.request({
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- eth_accounts returns a string array
+    const accounts: string[] = (await this.#connection.provider.request({
       method: "eth_accounts",
     })) as string[];
 
-    const artifactResolver = new HardhatArtifactResolver(this._hre);
+    const artifactResolver = new HardhatArtifactResolver(this.#hre);
 
     const resolvedConfig: Partial<DeployConfig> = {
-      ...this._config,
+      ...this.#config,
       ...perDeployConfig,
     };
 
     const resolvedStrategyConfig =
-      ViemIgnitionHelper._resolveStrategyConfig<StrategyT>(
-        this._hre,
+      ViemIgnitionHelper.#resolveStrategyConfig<StrategyT>(
+        this.#hre,
         strategy,
-        strategyConfig
+        strategyConfig,
       );
 
     const chainId = Number(
-      await this._connection.provider.request({
+      await this.#connection.provider.request({
         method: "eth_chainId",
-      })
+      }),
     );
 
     const deploymentId = resolveDeploymentId(givenDeploymentId, chainId);
 
     const deploymentDir =
-      this._connection.networkName === "hardhat"
+      this.#connection.networkName === "hardhat"
         ? undefined
         : path.join(
-            this._hre.config.paths.ignition,
+            this.#hre.config.paths.ignition,
             "deployments",
-            deploymentId
+            deploymentId,
           );
 
     const executionEventListener = displayUi
@@ -146,7 +154,7 @@ export class ViemIgnitionHelper {
 
     const result = await deploy({
       config: resolvedConfig,
-      provider: this._provider,
+      provider: this.#provider,
       deploymentDir,
       executionEventListener,
       artifactResolver,
@@ -157,30 +165,31 @@ export class ViemIgnitionHelper {
       strategy,
       strategyConfig: resolvedStrategyConfig,
       maxFeePerGasLimit:
-        this._hre.config.networks[this._connection.networkName]?.ignition
+        this.#hre.config.networks[this.#connection.networkName]?.ignition
           .maxFeePerGasLimit,
       maxPriorityFeePerGas:
-        this._hre.config.networks[this._connection.networkName]?.ignition
+        this.#hre.config.networks[this.#connection.networkName]?.ignition
           .maxPriorityFeePerGas,
     });
 
     if (result.type !== DeploymentResultType.SUCCESSFUL_DEPLOYMENT) {
       const message = errorDeploymentResultToExceptionMessage(result);
 
+      // eslint-disable-next-line no-restricted-syntax -- TODO: HH3 revisit the error handling
       throw new HardhatPluginError("hardhat-ignition-viem", message);
     }
 
-    return ViemIgnitionHelper._toViemContracts(
-      this._connection,
+    return ViemIgnitionHelper.#toViemContracts(
+      this.#connection,
       ignitionModule,
-      result
+      result,
     );
   }
 
-  private static async _toViemContracts<
+  static async #toViemContracts<
     ModuleIdT extends string,
     ContractNameT extends string,
-    IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>
+    IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>,
   >(
     connection: NetworkConnection,
     ignitionModule: IgnitionModule<
@@ -188,7 +197,7 @@ export class ViemIgnitionHelper {
       ContractNameT,
       IgnitionModuleResultsT
     >,
-    result: SuccessfulDeploymentResult
+    result: SuccessfulDeploymentResult,
   ): Promise<
     IgnitionModuleResultsToViemContracts<ContractNameT, IgnitionModuleResultsT>
   > {
@@ -197,97 +206,99 @@ export class ViemIgnitionHelper {
         Object.entries(ignitionModule.results).map(
           async ([name, contractFuture]) => [
             name,
-            await ViemIgnitionHelper._getContract(
+            await ViemIgnitionHelper.#getContract(
               connection,
               contractFuture,
-              result.contracts[contractFuture.id]
+              result.contracts[contractFuture.id],
             ),
-          ]
-        )
-      )
+          ],
+        ),
+      ),
     );
   }
 
-  private static async _getContract(
+  static async #getContract(
     connection: NetworkConnection,
     future: Future,
-    deployedContract: { address: string }
+    deployedContract: { address: string },
   ): Promise<GetContractReturnType> {
     if (!isContractFuture(future)) {
+      // eslint-disable-next-line no-restricted-syntax -- TODO: HH3 revisit the error handling
       throw new HardhatPluginError(
         "hardhat-ignition-viem",
-        `Expected contract future but got ${future.id} with type ${future.type} instead`
+        `Expected contract future but got ${future.id} with type ${future.type} instead`,
       );
     }
 
-    return ViemIgnitionHelper._convertContractFutureToViemContract(
+    return ViemIgnitionHelper.#convertContractFutureToViemContract(
       connection,
       future,
-      deployedContract
+      deployedContract,
     );
   }
 
-  private static async _convertContractFutureToViemContract(
+  static async #convertContractFutureToViemContract(
     connection: NetworkConnection,
     future: ContractFuture<string>,
-    deployedContract: { address: string }
+    deployedContract: { address: string },
   ) {
     switch (future.type) {
       case FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT:
       case FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT:
       case FutureType.NAMED_ARTIFACT_CONTRACT_AT:
-        return ViemIgnitionHelper._convertHardhatContractToViemContract(
+        return ViemIgnitionHelper.#convertHardhatContractToViemContract(
           connection,
           future,
-          deployedContract
+          deployedContract,
         );
       case FutureType.CONTRACT_DEPLOYMENT:
       case FutureType.LIBRARY_DEPLOYMENT:
       case FutureType.CONTRACT_AT:
-        return ViemIgnitionHelper._convertArtifactToViemContract(
+        return ViemIgnitionHelper.#convertArtifactToViemContract(
           connection,
           future,
-          deployedContract
+          deployedContract,
         );
     }
   }
 
-  private static _convertHardhatContractToViemContract(
+  static #convertHardhatContractToViemContract(
     connection: NetworkConnection,
     future:
       | NamedArtifactContractDeploymentFuture<string>
       | NamedArtifactLibraryDeploymentFuture<string>
       | NamedArtifactContractAtFuture<string>,
-    deployedContract: { address: string }
+    deployedContract: { address: string },
   ): Promise<GetContractReturnType> {
     return connection.viem.getContractAt(
       future.contractName,
-      ViemIgnitionHelper._ensureAddressFormat(deployedContract.address)
+      ViemIgnitionHelper.#ensureAddressFormat(deployedContract.address),
     );
   }
 
-  private static async _convertArtifactToViemContract(
+  static async #convertArtifactToViemContract(
     connection: NetworkConnection,
     future:
       | ContractDeploymentFuture
       | LibraryDeploymentFuture
       | ContractAtFuture,
-    deployedContract: { address: string }
+    deployedContract: { address: string },
   ): Promise<GetContractReturnType> {
     const publicClient = await connection.viem.getPublicClient();
     const [walletClient] = await connection.viem.getWalletClients();
 
     if (walletClient === undefined) {
+      // eslint-disable-next-line no-restricted-syntax -- TODO: HH3 revisit the error handling
       throw new HardhatPluginError(
         "hardhat-ignition-viem",
-        "No default wallet client found"
+        "No default wallet client found",
       );
     }
 
     const viem = await import("viem");
     const contract = viem.getContract({
-      address: ViemIgnitionHelper._ensureAddressFormat(
-        deployedContract.address
+      address: ViemIgnitionHelper.#ensureAddressFormat(
+        deployedContract.address,
       ),
       abi: future.artifact.abi,
       client: {
@@ -299,7 +310,7 @@ export class ViemIgnitionHelper {
     return contract;
   }
 
-  private static _ensureAddressFormat(address: string): `0x${string}` {
+  static #ensureAddressFormat(address: string): `0x${string}` {
     if (!address.startsWith("0x")) {
       return `0x${address}`;
     }
@@ -307,10 +318,10 @@ export class ViemIgnitionHelper {
     return `0x${address.slice(2)}`;
   }
 
-  private static _resolveStrategyConfig<StrategyT extends keyof StrategyConfig>(
+  static #resolveStrategyConfig<StrategyT extends keyof StrategyConfig>(
     hre: HardhatRuntimeEnvironment,
     strategyName: StrategyT | undefined,
-    strategyConfig: StrategyConfig[StrategyT] | undefined
+    strategyConfig: StrategyConfig[StrategyT] | undefined,
   ): StrategyConfig[StrategyT] | undefined {
     if (strategyName === undefined) {
       return undefined;

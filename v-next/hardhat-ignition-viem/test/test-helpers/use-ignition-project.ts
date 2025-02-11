@@ -1,7 +1,9 @@
-import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
-import { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
-import { NetworkConnection } from "@ignored/hardhat-vnext/types/network";
+import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
+import type { NetworkConnection } from "@ignored/hardhat-vnext/types/network";
+
 import path from "node:path";
+
+import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
 
 declare module "mocha" {
   interface Context {
@@ -16,7 +18,7 @@ export function useIgnitionProject(fixtureProjectName: string): void {
     previousCwd = process.cwd();
 
     process.chdir(
-      path.join(__dirname, "../fixture-projects", fixtureProjectName)
+      path.join(__dirname, "../fixture-projects", fixtureProjectName),
     );
 
     const hre = await createHardhatRuntimeEnvironment({});

@@ -8,7 +8,7 @@ const main = async (projectToBuild) => {
   const fixtureProjectDir = path.join(
     dirname(fileURLToPath(import.meta.url)),
     "../test/fixture-projects",
-    projectToBuild
+    projectToBuild,
   );
 
   process.chdir(fixtureProjectDir);

@@ -1,10 +1,9 @@
-import {
-  ContractDeploymentFuture,
-  buildModule,
-} from "@ignored/hardhat-vnext-ignition-core";
+import type { IgnitionModuleResultsToViemContracts } from "../../src/ignition-module-results-to-viem-contracts.js";
+import type { ContractDeploymentFuture } from "@ignored/hardhat-vnext-ignition-core";
+
+import { buildModule } from "@ignored/hardhat-vnext-ignition-core";
 import { assert } from "chai";
 
-import { IgnitionModuleResultsToViemContracts } from "../../src/ignition-module-results-to-viem-contracts.js";
 import { externallyLoadedContractArtifact } from "../test-helpers/externally-loaded-contract.js";
 import { useIgnitionProject } from "../test-helpers/use-ignition-project.js";
 
@@ -26,7 +25,7 @@ describe("deploy converts ignition artifact contract to viem instance", () => {
         "ExternallyLoadedContract",
         externallyLoadedContractArtifact,
         [],
-        { id: "ExternallyLoadedContract" }
+        { id: "ExternallyLoadedContract" },
       );
 
       return { externallyLoadedContract };
@@ -38,21 +37,21 @@ describe("deploy converts ignition artifact contract to viem instance", () => {
   it("should provide the address", async function () {
     assert.equal(
       result.externallyLoadedContract.address,
-      "0x5FbDB2315678afecb367f032d93F642f64180aa3"
+      "0x5FbDB2315678afecb367f032d93F642f64180aa3",
     );
   });
 
   it("should provide the abi", async function () {
     assert.equal(
       result.externallyLoadedContract.abi,
-      externallyLoadedContractArtifact.abi
+      externallyLoadedContractArtifact.abi,
     );
   });
 
   it("should allow reading the contract instance", async function () {
     assert.equal(
       await result.externallyLoadedContract.read.buildMessage(["Hello World"]),
-      "A message: Hello World"
+      "A message: Hello World",
     );
   });
 
@@ -75,29 +74,29 @@ describe("deploy converts ignition artifact contract to viem instance", () => {
     const estimation = await result.externallyLoadedContract.estimateGas.inc();
 
     assert.isDefined(estimation);
-    assert(typeof estimation === "bigint");
+    assert(typeof estimation === "bigint", "Estimation should be a bigint");
   });
 
   it("should enforce the type is constrained to the contracts functions", async function () {
     await assert.isRejected(
       // @ts-expect-error
       result.externallyLoadedContract.write.nonexistantWrite(),
-      /Make sure you are using the correct ABI and that the function exists on it./
+      /Make sure you are using the correct ABI and that the function exists on it./,
     );
     await assert.isRejected(
       // @ts-expect-error
       result.externallyLoadedContract.read.nonexistantRead(),
-      /Make sure you are using the correct ABI and that the function exists on it./
+      /Make sure you are using the correct ABI and that the function exists on it./,
     );
     await assert.isRejected(
       // @ts-expect-error
       result.externallyLoadedContract.estimateGas.nonexistantEstimate(),
-      /Make sure you are using the correct ABI and that the function exists on it./
+      /Make sure you are using the correct ABI and that the function exists on it./,
     );
     await assert.isRejected(
       // @ts-expect-error
       result.externallyLoadedContract.simulate.nonexistantEstimate(),
-      /Make sure you are using the correct ABI and that the function exists on it./
+      /Make sure you are using the correct ABI and that the function exists on it./,
     );
   });
 });

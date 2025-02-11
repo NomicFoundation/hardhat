@@ -1,10 +1,9 @@
-import {
-  NamedArtifactContractAtFuture,
-  buildModule,
-} from "@ignored/hardhat-vnext-ignition-core";
+import type { IgnitionModuleResultsToViemContracts } from "../../src/ignition-module-results-to-viem-contracts.js";
+import type { NamedArtifactContractAtFuture } from "@ignored/hardhat-vnext-ignition-core";
+
+import { buildModule } from "@ignored/hardhat-vnext-ignition-core";
 import { assert } from "chai";
 
-import { IgnitionModuleResultsToViemContracts } from "../../src/ignition-module-results-to-viem-contracts.js";
 import { useIgnitionProject } from "../test-helpers/use-ignition-project.js";
 
 describe("deploy converts ignition named contractAt to viem instance", () => {
@@ -31,7 +30,7 @@ describe("deploy converts ignition named contractAt to viem instance", () => {
   it("should provide the address", async function () {
     assert.equal(
       result.contractAtFoo.address,
-      "0x5FbDB2315678afecb367f032d93F642f64180aa3"
+      "0x5FbDB2315678afecb367f032d93F642f64180aa3",
     );
   });
 
@@ -63,7 +62,7 @@ describe("deploy converts ignition named contractAt to viem instance", () => {
     const estimation = await result.contractAtFoo.estimateGas.inc();
 
     assert.isDefined(estimation);
-    assert(typeof estimation === "bigint");
+    assert(typeof estimation === "bigint", "Estimation should be a bigint");
   });
 
   it("should support events", async function () {
@@ -74,7 +73,7 @@ describe("deploy converts ignition named contractAt to viem instance", () => {
     assert.equal(logs.length, 1);
     assert.equal(
       logs[0].args.sender,
-      "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+      "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
     );
   });
 
@@ -82,22 +81,22 @@ describe("deploy converts ignition named contractAt to viem instance", () => {
     await assert.isRejected(
       // @ts-expect-error
       result.contractAtFoo.write.nonexistantWrite(),
-      /Make sure you are using the correct ABI and that the function exists on it./
+      /Make sure you are using the correct ABI and that the function exists on it./,
     );
     await assert.isRejected(
       // @ts-expect-error
       result.contractAtFoo.read.nonexistantRead(),
-      /Make sure you are using the correct ABI and that the function exists on it./
+      /Make sure you are using the correct ABI and that the function exists on it./,
     );
     await assert.isRejected(
       // @ts-expect-error
       result.contractAtFoo.estimateGas.nonexistantEstimate(),
-      /Make sure you are using the correct ABI and that the function exists on it./
+      /Make sure you are using the correct ABI and that the function exists on it./,
     );
     await assert.isRejected(
       // @ts-expect-error
       result.contractAtFoo.simulate.nonexistantEstimate(),
-      /Make sure you are using the correct ABI and that the function exists on it./
+      /Make sure you are using the correct ABI and that the function exists on it./,
     );
   });
 });
