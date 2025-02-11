@@ -5,15 +5,15 @@ import { assert } from "chai";
 import { HardhatArtifactResolver } from "../../src/hardhat-artifact-resolver.js";
 import { useFileIgnitionProject } from "../test-helpers/use-ignition-project.js";
 
-// TODO: Bring back with Hardhat 3 fixtures
-describe.skip("reset flag", function () {
+describe("reset flag", function () {
   useFileIgnitionProject("reset-flag", "custom-reset-id");
 
-  it("should reset a deployment", async function () {
-    // TODO: HH3 look again at this any - is networkName even the right
-    // thing here.
-    (this.connection as any).networkName = "something-else";
+  before(async function () {
+    process.env.HARDHAT_IGNITION_CONFIRM_DEPLOYMENT = "false";
+    process.env.HARDHAT_IGNITION_CONFIRM_RESET = "false";
+  });
 
+  it("should reset a deployment", async function () {
     await this.hre.tasks.getTask(["ignition", "deploy"]).run({
       modulePath: "./ignition/modules/FirstPass.js",
       deploymentId: "custom-reset-id",
