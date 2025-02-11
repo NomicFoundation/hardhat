@@ -47,7 +47,7 @@ const taskTransactions: NewTaskActionFunction<
   const networkName = (await hre.network.connect()).networkName;
 
   console.log(
-    calculateListTransactionsDisplay(
+    await calculateListTransactionsDisplay(
       deploymentId,
       listTransactionsResult,
       hre.config.networks[networkName]?.ignition?.explorerUrl,
