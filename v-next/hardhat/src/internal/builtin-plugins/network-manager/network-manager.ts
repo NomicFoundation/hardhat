@@ -1,4 +1,3 @@
-import type { Hardhat2BuildInfo } from "./edr/types/node-types.js";
 import type { ArtifactManager } from "../../../types/artifacts.js";
 import type {
   NetworkConfig,
@@ -16,13 +15,9 @@ import type {
   JsonRpcRequest,
   JsonRpcResponse,
 } from "../../../types/providers.js";
-import type {
-  SolidityBuildInfo,
-  SolidityBuildInfoOutput,
-} from "../../../types/solidity.js";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { readJsonFile } from "@ignored/hardhat-vnext-utils/fs";
+import { readBinaryFile } from "@ignored/hardhat-vnext-utils/fs";
 
 import { resolveConfigurationVariable } from "../../core/configuration-variables.js";
 
@@ -215,7 +210,7 @@ export class NetworkManagerImplementation implements NetworkManager {
           },
           jsonRpcRequestWrapper,
           tracingConfig: {
-            buildInfos: await this.#getHardhat2BuildInfos(),
+            buildInfos: await this.#getBuildInfosAndOutputsAsBuffers(),
             ignoreContracts: false,
           },
         });
@@ -249,33 +244,26 @@ export class NetworkManagerImplementation implements NetworkManager {
     );
   }
 
-  async #getHardhat2BuildInfos(): Promise<Hardhat2BuildInfo[]> {
-    const buildInfos: Hardhat2BuildInfo[] = [];
-
+  async #getBuildInfosAndOutputsAsBuffers(): Promise<
+    Array<{ buildInfo: Uint8Array; output: Uint8Array }>
+  > {
+    const results = [];
     for (const id of await this.#artifactsManager.getAllBuildInfoIds()) {
       const buildInfoPath = await this.#artifactsManager.getBuildInfoPath(id);
       const buildInfoOutputPath =
         await this.#artifactsManager.getBuildInfoOutputPath(id);
 
-      // TODO: This is a temporary solution while edr-optimism doesn't support
-      // the new build infos.
       if (buildInfoPath !== undefined && buildInfoOutputPath !== undefined) {
-        const hh3BuildInfo =
-          await readJsonFile<SolidityBuildInfo>(buildInfoPath);
-        const hh3BuildInfoOutput =
-          await readJsonFile<SolidityBuildInfoOutput>(buildInfoOutputPath);
+        const buildInfo = await readBinaryFile(buildInfoPath);
+        const output = await readBinaryFile(buildInfoOutputPath);
 
-        buildInfos.push({
-          _format: "hh-sol-build-info-1",
-          id,
-          solcVersion: hh3BuildInfo.solcVersion,
-          solcLongVersion: hh3BuildInfo.solcLongVersion,
-          input: hh3BuildInfo.input,
-          output: hh3BuildInfoOutput.output,
+        results.push({
+          buildInfo,
+          output,
         });
       }
     }
 
-    return buildInfos;
+    return results;
   }
 }
