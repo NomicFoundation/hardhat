@@ -26,19 +26,19 @@ const hardhatIgnitionPlugin: HardhatPlugin = {
         type: ArgumentType.FILE,
         description:
           "A relative path to a JSON file to use for the module parameters",
-        defaultValue: "", // TODO: check this comes through correctly
+        defaultValue: "", // TODO: HH3 check this comes through correctly
       })
       .addOption({
         name: "deploymentId",
         type: ArgumentType.STRING,
         description: "Set the id of the deployment",
-        defaultValue: "", // TODO: check this comes through correctly
+        defaultValue: "", // TODO: HH3 check this comes through correctly
       })
       .addOption({
         name: "defaultSender",
         type: ArgumentType.STRING,
         description: "Set the default sender for the deployment",
-        defaultValue: "", // TODO: check this comes through correctly
+        defaultValue: "", // TODO: HH3 check this comes through correctly
       })
       .addOption({
         name: "strategy",
@@ -70,6 +70,14 @@ const hardhatIgnitionPlugin: HardhatPlugin = {
       .setAction(import.meta.resolve("./internal/tasks/status.js"))
       .build(),
     task(["ignition", "deployments"], "List all deployment IDs")
+      .setAction(import.meta.resolve("./internal/tasks/deployments.js"))
+      .build(),
+    task(["ignition", "transactions"], "List all deployment IDs")
+      .addPositionalArgument({
+        name: "deploymentId",
+        type: ArgumentType.STRING,
+        description: "The id of the deployment to show transactions for",
+      })
       .setAction(import.meta.resolve("./internal/tasks/deployments.js"))
       .build(),
   ],

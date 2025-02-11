@@ -1,49 +1,58 @@
-// ignitionScope
-//   .task("transactions")
-//   .addPositionalParam(
-//     "deploymentId",
-//     "The id of the deployment to show transactions for"
-//   )
-//   .setDescription("Show all transactions for a given deployment")
-//   .setAction(async ({ deploymentId }: { deploymentId: string }, hre) => {
-//     const { listTransactions } = await import(
-//       "@ignored/hardhat-vnext-ignition-core"
-//     );
+import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
+import type { NewTaskActionFunction } from "@ignored/hardhat-vnext/types/tasks";
+import type { ListTransactionsResult } from "@ignored/hardhat-vnext-ignition-core";
 
-//     const { HardhatArtifactResolver } = await import(
-//       "./hardhat-artifact-resolver.js"
-//     );
-//     const { calculateListTransactionsDisplay } = await import(
-//       "./ui/helpers/calculate-list-transactions-display.js"
-//     );
+import path from "node:path";
 
-//     const deploymentDir = path.join(
-//       hre.config.paths.ignition,
-//       "deployments",
-//       deploymentId
-//     );
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import {
+  IgnitionError,
+  listTransactions,
+} from "@ignored/hardhat-vnext-ignition-core";
 
-//     const artifactResolver = new HardhatArtifactResolver(hre);
+import { HardhatArtifactResolver } from "../../helpers/hardhat-artifact-resolver.js";
+import { calculateListTransactionsDisplay } from "../ui/helpers/calculate-list-transactions-display.js";
+import { shouldBeHardhatPluginError } from "../utils/shouldBeHardhatPluginError.js";
 
-//     let listTransactionsResult: ListTransactionsResult;
-//     try {
-//       listTransactionsResult = await listTransactions(
-//         deploymentDir,
-//         artifactResolver
-//       );
-//     } catch (e) {
-//       if (e instanceof IgnitionError && shouldBeHardhatPluginError(e)) {
-//         throw new HardhatError(HardhatError.ERRORS.IGNITION.INTERNAL_ERROR, e);
-//       }
+interface TaskTransactionsArguments {
+  deploymentId: string;
+}
 
-//       throw e;
-//     }
+const taskTransactions: NewTaskActionFunction<
+  TaskTransactionsArguments
+> = async ({ deploymentId }, hre: HardhatRuntimeEnvironment) => {
+  const deploymentDir = path.join(
+    hre.config.paths.ignition,
+    "deployments",
+    deploymentId,
+  );
 
-//     console.log(
-//       calculateListTransactionsDisplay(
-//         deploymentId,
-//         listTransactionsResult,
-//         hre.config.networks[hre.network.name]?.ignition?.explorerUrl
-//       )
-//     );
-//   });
+  const artifactResolver = new HardhatArtifactResolver(hre);
+
+  let listTransactionsResult: ListTransactionsResult;
+
+  try {
+    listTransactionsResult = await listTransactions(
+      deploymentDir,
+      artifactResolver,
+    );
+  } catch (e) {
+    if (e instanceof IgnitionError && shouldBeHardhatPluginError(e)) {
+      throw new HardhatError(HardhatError.ERRORS.IGNITION.INTERNAL_ERROR, e);
+    }
+    throw e;
+  }
+
+  // TODO: HH3 revisit looking up the network name for display
+  const networkName = (await hre.network.connect()).networkName;
+
+  console.log(
+    calculateListTransactionsDisplay(
+      deploymentId,
+      listTransactionsResult,
+      hre.config.networks[networkName]?.ignition?.explorerUrl,
+    ),
+  );
+};
+
+export default taskTransactions;
