@@ -1,5 +1,6 @@
 import type { SerializedIgnitionModule } from "@ignored/hardhat-vnext-ignition-core";
 
+import { createRequire } from "node:module";
 import path from "node:path";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
@@ -17,8 +18,9 @@ export async function writeVisualization(
   },
   { cacheDir }: { cacheDir: string },
 ): Promise<void> {
+  const require = createRequire(import.meta.url);
   const templateDir = path.join(
-    require.resolve("@nomicfoundation/ignition-ui/package.json"),
+    require.resolve("@ignored/hardhat-vnext-ignition-ui/package.json"),
     "../dist",
   );
 
