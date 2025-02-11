@@ -1,5 +1,5 @@
 {
-  "name": "@nomicfoundation/hardhat-ignition-viem",
+  "name": "@ignored/hardhat-vnext-ignition-viem",
   "version": "0.15.9",
   "license": "MIT",
   "author": "Nomic Foundation",
@@ -35,10 +35,9 @@
   },
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "1.0.2",
-    "@nomicfoundation/eslint-plugin-hardhat-internal-rules": "workspace:^",
-    "@nomicfoundation/hardhat-ignition": "workspace:^",
-    "@nomicfoundation/hardhat-viem": "workspace:^2.0.0",
-    "@nomicfoundation/ignition-core": "workspace:^",
+    "@ignored/hardhat-vnext-ignition": "workspace:^2.0.0",
+    "@ignored/hardhat-vnext-viem": "workspace:^3.0.0-next.11",
+    "@ignored/hardhat-vnext-ignition-core": "workspace:^0.15.9",
     "@types/chai": "^4.2.22",
     "@types/chai-as-promised": "^7.1.4",
     "@types/mocha": "9.1.1",
@@ -56,21 +55,21 @@
     "eslint-plugin-mocha": "^9.0.0",
     "eslint-plugin-no-only-tests": "3.1.0",
     "eslint-plugin-prettier": "4.0.0",
-    "hardhat": "workspace:^2.18.0",
+    "@ignored/hardhat-vnext": "workspace:^3.0.0-next.16",
     "mocha": "^9.1.3",
     "nyc": "15.1.0",
     "prettier": "2.8.8",
-    "rimraf": "3.0.2",
+    "rimraf": "^5.0.5",
     "sinon": "^14.0.0",
     "ts-node": "10.9.1",
     "typescript": "^5.0.2",
     "viem": "^2.7.6"
   },
   "peerDependencies": {
-    "@nomicfoundation/hardhat-ignition": "workspace:^",
-    "@nomicfoundation/hardhat-viem": "workspace:^2.0.0",
-    "@nomicfoundation/ignition-core": "workspace:^",
-    "hardhat": "workspace:^2.18.0",
+    "@ignored/hardhat-vnext-ignition": "workspace:^2.0.0",
+    "@ignored/hardhat-vnext-viem": "workspace:^3.0.0-next.11",
+    "@ignored/hardhat-vnext-ignition-core": "workspace:^0.15.9",
+    "@ignored/hardhat-vnext": "workspace:^3.0.0-next.16",
     "viem": "^2.7.6"
   }
 }

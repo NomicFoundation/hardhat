@@ -1,5 +1,5 @@
-import "@nomicfoundation/hardhat-ignition";
-import "@nomicfoundation/hardhat-viem";
+import "@ignored/hardhat-vnext-ignition";
+import "@ignored/hardhat-vnext-viem";
 import { extendEnvironment } from "hardhat/config";
 import { HardhatPluginError, lazyObject } from "hardhat/plugins";
 

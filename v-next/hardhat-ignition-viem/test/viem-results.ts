@@ -1,5 +1,5 @@
 /* eslint-disable import/no-unused-modules */
-import { buildModule } from "@nomicfoundation/ignition-core";
+import { buildModule } from "@ignored/hardhat-vnext-ignition-core";
 import { assert } from "chai";
 
 import { externallyLoadedContractArtifact } from "./test-helpers/externally-loaded-contract";

@@ -1,4 +1,7 @@
-import { ContractAtFuture, buildModule } from "@nomicfoundation/ignition-core";
+import {
+  ContractAtFuture,
+  buildModule,
+} from "@ignored/hardhat-vnext-ignition-core";
 import { assert } from "chai";
 
 import { IgnitionModuleResultsToViemContracts } from "../../src/ignition-module-results-to-viem-contracts";

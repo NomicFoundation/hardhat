@@ -21,13 +21,13 @@ npm install --save-dev @nomicfoundation/hardhat-ignition-viem
 Import the plugin in your `hardhat.config.js``:
 
 ```js
-require("@nomicfoundation/hardhat-ignition-viem");
+require("@ignored/hardhat-vnext-ignition-viem");
 ```
 
 Or if you are using TypeScript, in your `hardhat.config.ts``:
 
 ```js
-import "@nomicfoundation/hardhat-ignition-viem";
+import "@ignored/hardhat-vnext-ignition-viem";
 ```
 
 ## Documentation

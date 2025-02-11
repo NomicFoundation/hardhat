@@ -4,7 +4,7 @@ import {
   ContractDeploymentFuture,
   ContractFuture,
   IgnitionModuleResult,
-} from "@nomicfoundation/ignition-core";
+} from "@ignored/hardhat-vnext-ignition-core";
 import { ArtifactsMap } from "hardhat/types";
 
 export type IgnitionModuleResultsToViemContracts<

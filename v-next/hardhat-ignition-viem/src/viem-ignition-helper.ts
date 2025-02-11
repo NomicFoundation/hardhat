@@ -27,7 +27,7 @@ import {
   SuccessfulDeploymentResult,
   deploy,
   isContractFuture,
-} from "@nomicfoundation/ignition-core";
+} from "@ignored/hardhat-vnext-ignition-core";
 import { HardhatPluginError } from "hardhat/plugins";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import path from "path";

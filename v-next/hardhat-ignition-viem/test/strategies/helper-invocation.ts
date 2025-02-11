@@ -2,7 +2,7 @@
 import {
   NamedArtifactContractDeploymentFuture,
   buildModule,
-} from "@nomicfoundation/ignition-core";
+} from "@ignored/hardhat-vnext-ignition-core";
 import { assert } from "chai";
 
 import { IgnitionModuleResultsToViemContracts } from "../../src/ignition-module-results-to-viem-contracts";
