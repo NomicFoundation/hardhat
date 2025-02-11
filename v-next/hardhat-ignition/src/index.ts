@@ -69,6 +69,9 @@ const hardhatIgnitionPlugin: HardhatPlugin = {
       })
       .setAction(import.meta.resolve("./internal/tasks/status.js"))
       .build(),
+    task(["ignition", "deployments"], "List all deployment IDs")
+      .setAction(import.meta.resolve("./internal/tasks/deployments.js"))
+      .build(),
   ],
 };
 

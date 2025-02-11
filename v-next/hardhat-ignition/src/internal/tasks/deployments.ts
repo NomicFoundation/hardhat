@@ -1,24 +1,35 @@
-// ignitionScope
-//   .task("deployments")
-//   .setDescription("List all deployment IDs")
-//   .setAction(async (_, hre) => {
-//     const { listDeployments } = await import(
-//       "@ignored/hardhat-vnext-ignition-core"
-//     );
+import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
+import type { NewTaskActionFunction } from "@ignored/hardhat-vnext/types/tasks";
 
-//     const deploymentDir = path.join(hre.config.paths.ignition, "deployments");
+import path from "node:path";
 
-//     try {
-//       const deployments = await listDeployments(deploymentDir);
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import {
+  IgnitionError,
+  listDeployments,
+} from "@ignored/hardhat-vnext-ignition-core";
 
-//       for (const deploymentId of deployments) {
-//         console.log(deploymentId);
-//       }
-//     } catch (e) {
-//       if (e instanceof IgnitionError && shouldBeHardhatPluginError(e)) {
-//         throw new HardhatError(HardhatError.ERRORS.IGNITION.INTERNAL_ERROR, e);
-//       }
+import { shouldBeHardhatPluginError } from "../utils/shouldBeHardhatPluginError.js";
 
-//       throw e;
-//     }
-//   });
+const taskDeployments: NewTaskActionFunction<{}> = async (
+  {},
+  hre: HardhatRuntimeEnvironment,
+) => {
+  const deploymentDir = path.join(hre.config.paths.ignition, "deployments");
+
+  try {
+    const deployments = await listDeployments(deploymentDir);
+
+    for (const deploymentId of deployments) {
+      console.log(deploymentId);
+    }
+  } catch (e) {
+    if (e instanceof IgnitionError && shouldBeHardhatPluginError(e)) {
+      throw new HardhatError(HardhatError.ERRORS.IGNITION.INTERNAL_ERROR, e);
+    }
+
+    throw e;
+  }
+};
+
+export default taskDeployments;
