@@ -11,7 +11,7 @@ import {
 import { Keystore } from "../../src/internal/keystores/keystore.js";
 import { TEST_PASSWORD } from "../helpers/test-password.js";
 
-describe("UnencryptedKeystore", () => {
+describe("Keystore", () => {
   describe("when the keystore is valid", () => {
     let keystore: KeystoreI;
     let masterKey: Uint8Array;

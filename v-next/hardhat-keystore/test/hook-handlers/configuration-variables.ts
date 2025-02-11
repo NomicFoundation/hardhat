@@ -25,7 +25,7 @@ const configurationVariableKeystoreFilePath = path.join(
   "..",
   "..",
   "fixture-projects",
-  "unencrypted-keystore",
+  "keystore",
   "config-variables-keystore.json",
 );
 
@@ -34,7 +34,7 @@ const nonExistingKeystoreFilePath = path.join(
   "..",
   "..",
   "fixture-projects",
-  "unencrypted-keystore",
+  "keystore",
   "nonexistent-keystore.json",
 );
 

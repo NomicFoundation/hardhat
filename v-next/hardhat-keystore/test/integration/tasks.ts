@@ -25,12 +25,12 @@ const keystoreFilePath = path.join(
   "..",
   "..",
   "fixture-projects",
-  "unencrypted-keystore",
+  "keystore",
   "keystore.json",
 );
 
 /**
- * These tests are writing to the filesystem within `./test/fixture-projects/unencrypted-keystore`.
+ * These tests are writing to the filesystem within `./test/fixture-projects/keystore`.
  *
  * They test the end to end keystore task runs by monkey patching `process.stdin` and `process.stdout`.
  */

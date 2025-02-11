@@ -26,7 +26,7 @@ const existingKeystoreFilePath = path.join(
   "..",
   "..",
   "fixture-projects",
-  "unencrypted-keystore",
+  "keystore",
   "existing-keystore.json",
 );
 
