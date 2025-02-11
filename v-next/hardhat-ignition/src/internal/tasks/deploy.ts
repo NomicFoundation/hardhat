@@ -60,7 +60,7 @@ const taskDeploy: NewTaskActionFunction<TaskDeployArguments> = async (
         "Verifying deployments is not available yet. It will be available in a future version of the Harhdat 3 Alpha",
     });
 
-    // TODO: Bring back with the port of hardhat-verify
+    // TODO: HH3 Bring back with the port of hardhat-verify
     // if (
     //   hre.config.etherscan === undefined ||
     //   hre.config.etherscan.apiKey === undefined ||
