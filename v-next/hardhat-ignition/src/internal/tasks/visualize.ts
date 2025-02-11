@@ -1,65 +1,68 @@
-// ignitionScope
-//   .task("visualize")
-//   .addFlag("noOpen", "Disables opening report in browser")
-//   .addPositionalParam("modulePath", "The path to the module file to visualize")
-//   .setDescription("Visualize a module as an HTML report")
-//   .setAction(
-//     async (
-//       { noOpen = false, modulePath }: { noOpen: boolean; modulePath: string },
-//       hre
-//     ) => {
-//       const { IgnitionModuleSerializer, batches } = await import(
-//         "@ignored/hardhat-vnext-ignition-core"
-//       );
+import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
+import type { NewTaskActionFunction } from "@ignored/hardhat-vnext/types/tasks";
 
-//       const { loadModule } = await import("./utils/load-module.js");
-//       const { open } = await import("./utils/open.js");
+import path from "node:path";
 
-//       const { writeVisualization } = await import(
-//         "./visualization/write-visualization.js"
-//       );
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import {
+  batches,
+  IgnitionError,
+  IgnitionModuleSerializer,
+} from "@ignored/hardhat-vnext-ignition-core";
 
-//       await hre.run("compile", { quiet: true });
+import { loadModule } from "../utils/load-module.js";
+import { open } from "../utils/open.js";
+import { shouldBeHardhatPluginError } from "../utils/shouldBeHardhatPluginError.js";
+import { writeVisualization } from "../visualization/write-visualization.js";
 
-//       const userModule = loadModule(hre.config.paths.ignition, modulePath);
+interface TaskVisualizeArguments {
+  modulePath: string;
+  noOpen: boolean;
+}
 
-//       if (userModule === undefined) {
-//         throw new HardhatError(HardhatError.ERRORS.IGNITION.NO_MODULES_FOUND);
-//       } else {
-//         try {
-//           const serializedIgnitionModule =
-//             IgnitionModuleSerializer.serialize(userModule);
+const visualizeTask: NewTaskActionFunction<TaskVisualizeArguments> = async (
+  { noOpen, modulePath }: { noOpen: boolean; modulePath: string },
+  hre: HardhatRuntimeEnvironment,
+) => {
+  await hre.tasks.getTask("compile").run({ quiet: true });
 
-//           const batchInfo = batches(userModule);
+  const userModule = await loadModule(hre.config.paths.ignition, modulePath);
 
-//           await writeVisualization(
-//             { module: serializedIgnitionModule, batches: batchInfo },
-//             {
-//               cacheDir: hre.config.paths.cache,
-//             }
-//           );
-//         } catch (e) {
-//           if (e instanceof IgnitionError && shouldBeHardhatPluginError(e)) {
-//             throw new HardhatError(
-//               HardhatError.ERRORS.IGNITION.INTERNAL_ERROR,
-//               e
-//             );
-//           }
+  if (userModule === undefined) {
+    throw new HardhatError(HardhatError.ERRORS.IGNITION.NO_MODULES_FOUND);
+  } else {
+    try {
+      const serializedIgnitionModule =
+        IgnitionModuleSerializer.serialize(userModule);
 
-//           throw e;
-//         }
-//       }
+      const batchInfo = batches(userModule);
 
-//       if (!noOpen) {
-//         const indexFile = path.join(
-//           hre.config.paths.cache,
-//           "visualization",
-//           "index.html"
-//         );
+      await writeVisualization(
+        { module: serializedIgnitionModule, batches: batchInfo },
+        {
+          cacheDir: hre.config.paths.cache,
+        },
+      );
+    } catch (e) {
+      if (e instanceof IgnitionError && shouldBeHardhatPluginError(e)) {
+        throw new HardhatError(HardhatError.ERRORS.IGNITION.INTERNAL_ERROR, e);
+      }
 
-//         console.log(`Deployment visualization written to ${indexFile}`);
+      throw e;
+    }
+  }
 
-//         open(indexFile);
-//       }
-//     }
-//   );
+  if (!noOpen) {
+    const indexFile = path.join(
+      hre.config.paths.cache,
+      "visualization",
+      "index.html",
+    );
+
+    console.log(`Deployment visualization written to ${indexFile}`);
+
+    open(indexFile);
+  }
+};
+
+export default visualizeTask;

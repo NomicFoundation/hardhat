@@ -96,6 +96,18 @@ const hardhatIgnitionPlugin: HardhatPlugin = {
       })
       .setAction(import.meta.resolve("./internal/tasks/wipe.js"))
       .build(),
+    task(["ignition", "visualize"], "Visualize a module as an HTML report")
+      .addPositionalArgument({
+        name: "modulePath",
+        type: ArgumentType.FILE,
+        description: "The path to the module file to visualize",
+      })
+      .addFlag({
+        name: "noOpen",
+        description: "Disables opening report in browser",
+      })
+      .setAction(import.meta.resolve("./internal/tasks/visualize.js"))
+      .build(),
   ],
 };
 
