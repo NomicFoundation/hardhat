@@ -2,9 +2,13 @@ import {
   HardhatError,
   HardhatPluginError,
 } from "@ignored/hardhat-vnext-errors";
+import { flush } from "@sentry/node";
 import debug from "debug";
 
-import { ProviderError } from "../../../builtin-plugins/network-manager/provider-errors.js";
+import {
+  ProviderError,
+  UnknownError,
+} from "../../../builtin-plugins/network-manager/provider-errors.js";
 import { getHardhatVersion } from "../../../utils/package.js";
 import { isTelemetryAllowed } from "../telemetry-permissions.js";
 
@@ -23,7 +27,7 @@ export async function sendErrorTelemetry(
   configPath: string = "",
 ): Promise<boolean> {
   const instance = await Reporter.getInstance();
-  return instance.reportError(error, configPath);
+  return instance.reportErrorViaSubprocess(error, configPath);
 }
 
 // ATTENTION: this function is exported for testing, do not directly use it in production
@@ -85,7 +89,7 @@ class Reporter {
     this.#instance = undefined;
   }
 
-  public async reportError(
+  public async reportErrorViaSubprocess(
     error: Error,
     configPath: string = "",
   ): Promise<boolean> {
@@ -102,8 +106,10 @@ class Reporter {
 
     captureException(error);
 
-    // TODO: should we run it? Hook at the end of hardhat execution?
-    // await flush(50);
+    // NOTE: Alternatively, we could close the reporter when we exit the process.
+    if (!(await flush(50))) {
+      log("Failed to flush events");
+    }
 
     return true;
   }
@@ -125,8 +131,11 @@ class Reporter {
       return false;
     }
 
-    if (ProviderError.isProviderError(error)) {
-      // We don't report network related errors
+    if (
+      ProviderError.isProviderError(error) &&
+      error.code !== UnknownError.CODE
+    ) {
+      // We don't report known network related errors
       return false;
     }
 

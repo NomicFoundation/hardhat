@@ -13,7 +13,6 @@ async function main() {
   // check that the expected scopes are there
   const scopeNames = Object.keys(scopes);
   assert(scopeNames.includes("vars"));
-  assert(scopeNames.includes("ignition"));
 
   // assert that chai-as-promised is loaded
   assert(chai.assert.eventually);

@@ -1,5 +1,5 @@
 import type { HardhatViemHelpers } from "../types.js";
-import type { ArtifactsManager } from "@ignored/hardhat-vnext/types/artifacts";
+import type { ArtifactManager } from "@ignored/hardhat-vnext/types/artifacts";
 import type { ChainType } from "@ignored/hardhat-vnext/types/network";
 import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
 
@@ -18,7 +18,7 @@ import {
 export function initializeViem<ChainTypeT extends ChainType | string>(
   chainType: ChainTypeT,
   provider: EthereumProvider,
-  artifactManager: ArtifactsManager,
+  artifactManager: ArtifactManager,
 ): HardhatViemHelpers<ChainTypeT> {
   return {
     getPublicClient: (publicClientConfig) =>

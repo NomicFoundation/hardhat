@@ -36,7 +36,7 @@
     "@types/mocha": ">=9.1.0",
     "@types/node": "^20.14.9",
     "chai": "^5.1.2",
-    "ethers": "^6.13.2",
+    "ethers": "^6.13.4",
     "forge-std": "foundry-rs/forge-std#v1.9.4",
     "mocha": "^10.0.0",
     "prettier": "3.2.5",

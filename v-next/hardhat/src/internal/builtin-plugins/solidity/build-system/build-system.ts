@@ -45,6 +45,7 @@ import {
   getContractArtifact,
   getDuplicatedContractNamesDeclarationFile,
 } from "./artifacts.js";
+import { ObjectCache } from "./cache.js";
 import { CompilationJobImplementation } from "./compilation-job.js";
 import { downloadConfiguredCompilers, getCompiler } from "./compiler/index.js";
 import { buildDependencyGraph } from "./dependency-graph-building.js";
@@ -58,6 +59,12 @@ import { SolcConfigSelector } from "./solc-config-selection.js";
 
 const log = debug("hardhat:core:solidity:build-system");
 
+interface CompilationResult {
+  compilationJob: CompilationJob;
+  compilerOutput: CompilerOutput;
+  cached: boolean;
+}
+
 export interface SolidityBuildSystemOptions {
   readonly solidityConfig: SolidityConfig;
   readonly projectRoot: string;
@@ -69,12 +76,18 @@ export interface SolidityBuildSystemOptions {
 export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
   readonly #hooks: HookManager;
   readonly #options: SolidityBuildSystemOptions;
+  readonly #compilerOutputCache: ObjectCache<CompilerOutput>;
   readonly #defaultConcurrency = Math.max(os.cpus().length - 1, 1);
   #downloadedCompilers = false;
 
   constructor(hooks: HookManager, options: SolidityBuildSystemOptions) {
     this.#hooks = hooks;
     this.#options = options;
+    this.#compilerOutputCache = new ObjectCache<CompilerOutput>(
+      options.cachePath,
+      "compiler-output",
+      "v1",
+    );
   }
 
   public async getRootFilePaths(): Promise<string[]> {
@@ -118,11 +131,46 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
     const compilationJobs = [...new Set(compilationJobsPerFile.values())];
 
-    // TODO: Filter the compilation jobs based on the cache
+    // NOTE: We precompute the build ids in parallel here, which are cached
+    // internally in each compilation job
+    await Promise.all(
+      compilationJobs.map(async (compilationJob) =>
+        compilationJob.getBuildId(),
+      ),
+    );
 
-    const results: CompilerOutput[] = await pMap(
+    const runCompilationJobOptions: RunCompilationJobOptions = {
+      quiet: options?.quiet,
+    };
+    const results: CompilationResult[] = await pMap(
       compilationJobs,
-      (compilationJob) => this.runCompilationJob(compilationJob),
+      async (compilationJob) => {
+        const buildId = await compilationJob.getBuildId();
+
+        if (options?.force !== true) {
+          const cachedCompilerOutput =
+            await this.#compilerOutputCache.get(buildId);
+          if (cachedCompilerOutput !== undefined) {
+            log(`Using cached compiler output for build ${buildId}`);
+            return {
+              compilationJob,
+              compilerOutput: cachedCompilerOutput,
+              cached: true,
+            };
+          }
+        }
+
+        const compilerOutput = await this.runCompilationJob(
+          compilationJob,
+          runCompilationJobOptions,
+        );
+
+        return {
+          compilationJob,
+          compilerOutput,
+          cached: false,
+        };
+      },
       {
         concurrency: options?.concurrency ?? this.#defaultConcurrency,
         // An error when running the compiler is not a compilation failure, but
@@ -131,9 +179,15 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       },
     );
 
-    const isSuccessfulBuild = results.every(
-      (result) => !this.#hasCompilationErrors(result),
+    const uncachedResults = results.filter((result) => !result.cached);
+    const uncachedSuccessfulResults = uncachedResults.filter(
+      (result) => !this.#hasCompilationErrors(result.compilerOutput),
     );
+
+    this.#cacheCompilationResults(uncachedSuccessfulResults);
+
+    const isSuccessfulBuild =
+      uncachedResults.length === uncachedSuccessfulResults.length;
 
     const contractArtifactsGeneratedByCompilationJob: Map<
       CompilationJob,
@@ -143,14 +197,14 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     if (isSuccessfulBuild) {
       log("Emitting artifacts of successful build");
       await Promise.all(
-        compilationJobs.map(async (compilationJob, i) => {
+        results.map(async (result) => {
           const artifactsPerFile = await this.emitArtifacts(
-            compilationJob,
-            results[i],
+            result.compilationJob,
+            result.compilerOutput,
           );
 
           contractArtifactsGeneratedByCompilationJob.set(
-            compilationJob,
+            result.compilationJob,
             artifactsPerFile,
           );
         }),
@@ -166,12 +220,9 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
     const resultsMap: Map<string, FileBuildResult> = new Map();
 
-    for (let i = 0; i < results.length; i++) {
-      const compilationJob = compilationJobs[i];
-      const result = results[i];
-
+    for (const result of results) {
       const contractArtifactsGenerated = isSuccessfulBuild
-        ? contractArtifactsGeneratedByCompilationJob.get(compilationJob)
+        ? contractArtifactsGeneratedByCompilationJob.get(result.compilationJob)
         : new Map();
 
       assertHardhatInvariant(
@@ -179,26 +230,39 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         "We emitted contract artifacts for all the jobs if the build was successful",
       );
 
-      const buildId = compilationJob.getBuildId();
-
       const errors = await Promise.all(
-        (result.errors ?? []).map((error) =>
-          this.remapCompilerError(compilationJob, error, true),
+        (result.compilerOutput.errors ?? []).map((error) =>
+          this.remapCompilerError(result.compilationJob, error, true),
         ),
       );
 
       this.#printSolcErrorsAndWarnings(errors);
 
-      const successfulResult = !this.#hasCompilationErrors(result);
+      const successfulResult = !this.#hasCompilationErrors(
+        result.compilerOutput,
+      );
 
-      for (const [publicSourceName, root] of compilationJob.dependencyGraph
-        .getRoots()
-        .entries()) {
+      for (const [
+        publicSourceName,
+        root,
+      ] of result.compilationJob.dependencyGraph.getRoots().entries()) {
         if (!successfulResult) {
           resultsMap.set(formatRootPath(publicSourceName, root), {
             type: FileBuildResultType.BUILD_FAILURE,
-            buildId,
+            compilationJob: result.compilationJob,
             errors,
+          });
+
+          continue;
+        }
+
+        if (result.cached) {
+          resultsMap.set(formatRootPath(publicSourceName, root), {
+            type: FileBuildResultType.CACHE_HIT,
+            compilationJob: result.compilationJob,
+            contractArtifactsGenerated:
+              contractArtifactsGenerated.get(publicSourceName) ?? [],
+            warnings: errors,
           });
 
           continue;
@@ -206,7 +270,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
         resultsMap.set(formatRootPath(publicSourceName, root), {
           type: FileBuildResultType.BUILD_SUCCESS,
-          buildId,
+          compilationJob: result.compilationJob,
           contractArtifactsGenerated:
             contractArtifactsGenerated.get(publicSourceName) ?? [],
           warnings: errors,
@@ -385,6 +449,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     compilerOutput: CompilerOutput,
   ): Promise<ReadonlyMap<string, string[]>> {
     const result = new Map<string, string[]>();
+    const buildId = await compilationJob.getBuildId();
 
     // We emit the artifacts for each root file, first emitting one artifact
     // for each contract, and then one declaration file for the entire file,
@@ -414,7 +479,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
           );
 
           const artifact = getContractArtifact(
-            compilationJob.getBuildId(),
+            buildId,
             publicSourceName,
             root.sourceName,
             contractName,
@@ -448,7 +513,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
     // Once we have emitted all the contract artifacts and its declaration
     // file, we emit the build info file and its output file.
-    const buildInfoId = compilationJob.getBuildId();
+    const buildInfoId = buildId;
 
     const buildInfoPath = path.join(
       this.#options.artifactsPath,
@@ -466,7 +531,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     // concurrently, and keep their lifetimes sperated and small.
     await Promise.all([
       (async () => {
-        const buildInfo = getBuildInfo(compilationJob);
+        const buildInfo = await getBuildInfo(compilationJob);
 
         await writeUtf8File(
           buildInfoPath,
@@ -476,7 +541,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         );
       })(),
       (async () => {
-        const buildInfoOutput = getBuildInfoOutput(
+        const buildInfoOutput = await getBuildInfoOutput(
           compilationJob,
           compilerOutput,
         );
@@ -643,6 +708,34 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     return `${error.type}: ${error.message}`.replace(/[:\s]*$/g, "").trim();
   }
 
+  /** This function caches the compilation results in the compiler output cache.
+   *
+   * Please note that it does **NOT** wait for the writes/clean to finish. This
+   * is because we don't want to hold up the compilation process.
+   *
+   * We accept that some of the writes might fail. This is only safe because
+   * the write operation first writes to a temporary file, and only once that
+   * is done, it moves the file to the final location.
+   *
+   * If we notice that the amount of write failures is too high, or that the
+   * cache is not getting cleaned up often enough, we should reconsider this
+   * approach.
+   *
+   * @param compilationResults
+   */
+  #cacheCompilationResults(compilationResults: CompilationResult[]): void {
+    void Promise.all(
+      compilationResults.map(async (result) => {
+        return this.#compilerOutputCache.set(
+          await result.compilationJob.getBuildId(),
+          result.compilerOutput,
+        );
+      }),
+    ).then(() => {
+      return this.#compilerOutputCache.clean();
+    });
+  }
+
   #printSolcErrorsAndWarnings(errors?: CompilerOutputError[]): void {
     if (errors === undefined) {
       return;
@@ -687,8 +780,9 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
     for (const job of compilationJobs) {
       const solcVersion = job.solcConfig.version;
+      const solcInput = job.getSolcInput();
       const evmVersion =
-        job.getSolcInput().settings.evmVersion ??
+        solcInput.settings.evmVersion ??
         `Check solc ${solcVersion}'s doc for its default evm version`;
 
       let jobsPerVersion = jobsPerVersionAndEvmVersion.get(solcVersion);

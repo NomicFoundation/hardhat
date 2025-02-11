@@ -20,7 +20,6 @@ const solidityTestUserConfigType = z.object({
       write: z.array(z.string()).optional(),
     })
     .optional(),
-  trace: z.boolean().optional(),
   testFail: z.boolean().optional(),
   labels: z
     .array(

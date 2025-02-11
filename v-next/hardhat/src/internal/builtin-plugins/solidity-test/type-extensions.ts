@@ -16,7 +16,6 @@ declare module "../../../types/config.js" {
       read?: string[];
       write?: string[];
     };
-    trace?: boolean;
     testFail?: boolean;
     labels?: Array<{
       address: string; // 0x-prefixed hex string

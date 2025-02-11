@@ -147,25 +147,21 @@ export type FileBuildResult =
 
 export interface CacheHitFileBuildResult {
   type: FileBuildResultType.CACHE_HIT;
-  // TODO: Should we remove this? It is a buildId of an already existing build
-  // info.
-  // NOTE: The buildId and contractArtifactsGenerated are useful when one uses
-  // the build system programatically and wants to find out what artifacts
-  // were generated for a given file, and with what configuration.
-  buildId: string;
+  compilationJob: CompilationJob;
   contractArtifactsGenerated: string[];
+  warnings: CompilerOutputError[];
 }
 
 export interface SuccessfulFileBuildResult {
   type: FileBuildResultType.BUILD_SUCCESS;
-  buildId: string;
+  compilationJob: CompilationJob;
   contractArtifactsGenerated: string[];
   warnings: CompilerOutputError[];
 }
 
 export interface FailedFileBuildResult {
   type: FileBuildResultType.BUILD_FAILURE;
-  buildId: string;
+  compilationJob: CompilationJob;
   errors: CompilerOutputError[];
 }
 

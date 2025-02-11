@@ -91,6 +91,11 @@ export const ERROR_CATEGORIES: {
     max: 1599,
     websiteTitle: "Hardhat-chai-matchers errors",
   },
+  ARTIFACTS: {
+    min: 1600,
+    max: 1699,
+    websiteTitle: "Compilation artifacts related errors",
+  },
 };
 
 export const ERRORS = {
@@ -1454,6 +1459,30 @@ Please check Hardhat's output for more details.`,
         "withArgs called with both .emit and .revertedWithCustomError, but these assertions cannot be combined",
       websiteDescription:
         "withArgs called with both .emit and .revertedWithCustomError, but these assertions cannot be combined",
+    },
+  },
+  ARTIFACTS: {
+    NOT_FOUND: {
+      number: 1600,
+      messageTemplate:
+        'Artifact for contract "{contractName}" not found. {suggestion}',
+      websiteTitle: "Artifact not found",
+      websiteDescription: `Tried to read a nonexistent artifact.
+
+Please double check that your contracts have been compiled and double check your artifact's name.`,
+    },
+    MULTIPLE_FOUND: {
+      number: 1601,
+      messageTemplate: `There are multiple artifacts for contract "{contractName}", please use a fully qualified name.
+
+Please replace {contractName} for one of these options wherever you are trying to read its artifact:
+
+{candidates}
+`,
+      websiteTitle: "Multiple artifacts found",
+      websiteDescription: `There are multiple artifacts that match the given contract name, and Hardhat doesn't know which one to use.
+
+Please use the fully qualified name of the contract to disambiguate it.`,
     },
   },
 } as const;

@@ -1,12 +1,16 @@
 import type { EdrNetworkConfigOverride } from "../../../types/config.js";
 import type { NewTaskActionFunction } from "../../../types/tasks.js";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import {
+  assertHardhatInvariant,
+  HardhatError,
+} from "@ignored/hardhat-vnext-errors";
 import { exists } from "@ignored/hardhat-vnext-utils/fs";
 import chalk from "chalk";
 
 import { isEdrSupportedChainType } from "../network-manager/edr/utils/chain-type.js";
 
+import { formatEdrNetworkConfigAccounts } from "./helpers.js";
 import { JsonRpcServerImplementation } from "./json-rpc/server.js";
 
 interface NodeActionArguments {
@@ -84,7 +88,7 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
 
   // NOTE: This is where we initialize the network; the connect method returns
   // a fully resolved networkConfig object which might be useful for display
-  const { provider } = await hre.network.connect(
+  const { networkConfig, provider } = await hre.network.connect(
     network,
     undefined,
     networkConfigOverride,
@@ -126,7 +130,14 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
 
   // TODO(https://github.com/NomicFoundation/hardhat/issues/6040): Add build info watcher here
 
-  // TODO(https://github.com/NomicFoundation/hardhat/issues/6042): Add accounts info printing here
+  // NOTE: Before creating the node, we check if the input network config is of type edr.
+  // We only proceed if it is. Hence, we can assume that the output network config is of type edr as well.
+  assertHardhatInvariant(
+    networkConfig.type === "edr",
+    "Network config type should be edr",
+  );
+
+  console.log(await formatEdrNetworkConfigAccounts(networkConfig.accounts));
 
   await server.waitUntilClosed();
 };

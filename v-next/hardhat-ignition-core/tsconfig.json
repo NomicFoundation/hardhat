@@ -1,0 +1,9 @@
+{
+  "extends": "../../config-v-next/tsconfig.json",
+  "references": [{ "path": "../hardhat-utils" }],
+  "exclude": [
+    "${configDir}/dist",
+    "${configDir}/node_modules",
+    "${configDir}/templates"
+  ]
+}

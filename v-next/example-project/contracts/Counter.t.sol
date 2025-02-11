@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "./Counter.sol";
+import "hardhat/console.sol";
 
 contract CounterTest {
   Counter counter;
@@ -41,14 +42,18 @@ contract FailingCounterTest {
   Counter counter;
 
   function setUp() public {
+    console.log("Setting up");
     counter = new Counter();
+    console.log("Counter set up");
   }
 
   function testInitialValue() public view {
+    console.log("Testing initial value");
     require(counter.x() == 1, "Initial value should be 1");
   }
 
   function testFuzzInc(uint8 x) public {
+    console.log("Fuzz testing inc");
     for (uint8 i = 0; i < x; i++) {
       counter.inc();
     }
@@ -59,6 +64,7 @@ contract FailingCounterTest {
   }
 
   function testFailFuzzInc(uint8 x) public {
+    console.log("Fuzz testing inc fail");
     for (uint8 i = 0; i < x; i++) {
       counter.inc();
     }

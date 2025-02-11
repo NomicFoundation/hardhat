@@ -68,7 +68,7 @@ export function createSolidityErrorWithStackTrace(
   }
 }
 
-function encodeStackTraceEntry(
+export function encodeStackTraceEntry(
   stackTraceEntry: SolidityStackTraceEntry,
 ): SolidityCallSite {
   switch (stackTraceEntry.type) {

@@ -36,6 +36,7 @@ import { createHardhatRuntimeEnvironment } from "../hre-intialization.js";
 import { printErrorMessages } from "./error-handler.js";
 import { getGlobalHelpString } from "./help/get-global-help-string.js";
 import { getHelpString } from "./help/get-help-string.js";
+import { sendErrorTelemetry } from "./telemetry/sentry/reporter.js";
 import { ensureTelemetryConsent } from "./telemetry/telemetry-permissions.js";
 import { printVersionMessage } from "./version.js";
 
@@ -54,6 +55,7 @@ export async function main(
   const log = debug("hardhat:core:cli:main");
 
   let builtinGlobalOptions;
+  let configPath;
 
   log("Hardhat CLI started");
 
@@ -82,7 +84,7 @@ export async function main(
 
     log("Retrieved telemetry consent");
 
-    const configPath = await resolveHardhatConfigPath(
+    configPath = await resolveHardhatConfigPath(
       builtinGlobalOptions.configPath,
     );
 
@@ -183,6 +185,14 @@ export async function main(
     await task.run(taskArguments);
   } catch (error) {
     printErrorMessages(error, builtinGlobalOptions?.showStackTraces);
+
+    if (error instanceof Error) {
+      try {
+        await sendErrorTelemetry(error, configPath);
+      } catch (e) {
+        log("Couldn't report error to sentry: %O", e);
+      }
+    }
 
     if (options.rethrowErrors) {
       throw error;
