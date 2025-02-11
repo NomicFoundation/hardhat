@@ -4,7 +4,7 @@ import type {
 } from "../../src/internal/keystores/encryption.js";
 
 import assert from "node:assert/strict";
-import { describe, it } from "node:test";
+import { before, describe, it } from "node:test";
 
 import { bytesToHex, hexToBytes, randomBytes } from "@noble/hashes/utils";
 import { assertThrows } from "@nomicfoundation/hardhat-test-utils";
@@ -956,5 +956,37 @@ describe("Keystore primitives", () => {
         (e) => e instanceof InvalidHmacError,
       );
     });
+  });
+});
+
+describe("password normalization", () => {
+  const password1 = "perché"; // "e" + "\u0301" (combining acute accent)
+  const password2 = "perché"; // Directly using "è"
+
+  before(() => {
+    // Confirm that the passwords are different
+    assert.notEqual(password1, password2);
+  });
+
+  it("should normalize the passwords correctly'", () => {
+    // create a master key using the password1
+    const { masterKey, salt } = createMasterKey({
+      password: password1,
+    });
+
+    // create an encrypted file using the masterKey created above with password1
+    const encryptedFile = createEmptyEncryptedKeystore({
+      masterKey,
+      salt,
+    });
+
+    // derive the masterKey from the encrypted file created above using the password2
+    const materKey2 = deriveMasterKeyFromKeystore({
+      encryptedKeystore: encryptedFile,
+      password: password2,
+    });
+
+    // the derived masterKey should be the same as the one created with password1 because of the password normalization
+    assert.deepEqual(masterKey, materKey2);
   });
 });

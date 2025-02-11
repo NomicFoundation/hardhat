@@ -550,6 +550,8 @@ function deriveMasterKey({
   password: string;
   salt: Uint8Array;
 }): Uint8Array {
+  password = password.normalize(PASSWORD_NORMALIZATION_FORM);
+
   const masterKey = scrypt(password, salt, {
     N: KEY_DERIVATION_PARAM_N,
     r: KEY_DERIVATION_PARAM_R,
