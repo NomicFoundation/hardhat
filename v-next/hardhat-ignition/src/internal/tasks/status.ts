@@ -1,32 +1,46 @@
-// ignitionScope
-//   .task("status")
-//   .addPositionalParam("deploymentId", "The id of the deployment to show")
-//   .setDescription("Show the current status of a deployment")
-//   .setAction(async ({ deploymentId }: { deploymentId: string }, hre) => {
-//     const { status } = await import("@ignored/hardhat-vnext-ignition-core");
+import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
+import type { NewTaskActionFunction } from "@ignored/hardhat-vnext/types/tasks";
+import type { StatusResult } from "@ignored/hardhat-vnext-ignition-core";
 
-//     const { HardhatArtifactResolver } = await import(
-//       "./hardhat-artifact-resolver.js"
-//     );
+import path from "node:path";
 
-//     const deploymentDir = path.join(
-//       hre.config.paths.ignition,
-//       "deployments",
-//       deploymentId
-//     );
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { IgnitionError } from "@ignored/hardhat-vnext-ignition-core";
 
-//     const artifactResolver = new HardhatArtifactResolver(hre);
+import { HardhatArtifactResolver } from "../../helpers/hardhat-artifact-resolver.js";
+import { calculateDeploymentStatusDisplay } from "../ui/helpers/calculate-deployment-status-display.js";
+import { shouldBeHardhatPluginError } from "../utils/shouldBeHardhatPluginError.js";
 
-//     let statusResult: StatusResult;
-//     try {
-//       statusResult = await status(deploymentDir, artifactResolver);
-//     } catch (e) {
-//       if (e instanceof IgnitionError && shouldBeHardhatPluginError(e)) {
-//         throw new HardhatError(HardhatError.ERRORS.IGNITION.INTERNAL_ERROR, e);
-//       }
+interface TaskStatusArguments {
+  deploymentId: string;
+}
 
-//       throw e;
-//     }
+const taskStatus: NewTaskActionFunction<TaskStatusArguments> = async (
+  { deploymentId },
+  hre: HardhatRuntimeEnvironment,
+) => {
+  const { status } = await import("@ignored/hardhat-vnext-ignition-core");
 
-//     console.log(calculateDeploymentStatusDisplay(deploymentId, statusResult));
-//   });
+  const deploymentDir = path.join(
+    hre.config.paths.ignition,
+    "deployments",
+    deploymentId,
+  );
+
+  const artifactResolver = new HardhatArtifactResolver(hre);
+
+  let statusResult: StatusResult;
+  try {
+    statusResult = await status(deploymentDir, artifactResolver);
+  } catch (e) {
+    if (e instanceof IgnitionError && shouldBeHardhatPluginError(e)) {
+      throw new HardhatError(HardhatError.ERRORS.IGNITION.INTERNAL_ERROR, e);
+    }
+
+    throw e;
+  }
+
+  console.log(calculateDeploymentStatusDisplay(deploymentId, statusResult));
+};
+
+export default taskStatus;

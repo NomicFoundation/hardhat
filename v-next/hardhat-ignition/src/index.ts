@@ -61,6 +61,14 @@ const hardhatIgnitionPlugin: HardhatPlugin = {
       })
       .setAction(import.meta.resolve("./internal/tasks/deploy.js"))
       .build(),
+    task(["ignition", "status"], "Show the current status of a deployment")
+      .addPositionalArgument({
+        name: "deploymentId",
+        type: ArgumentType.STRING,
+        description: "The id of the deployment to show",
+      })
+      .setAction(import.meta.resolve("./internal/tasks/status.js"))
+      .build(),
   ],
 };
 

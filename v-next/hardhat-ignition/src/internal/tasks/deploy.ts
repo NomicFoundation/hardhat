@@ -39,7 +39,7 @@ interface TaskDeployArguments {
   writeLocalhostDeployment: boolean;
 }
 
-const log = debug("hardhat:ignition");
+const log = debug("hardhat:ignition:task:deploy");
 
 const taskDeploy: NewTaskActionFunction<TaskDeployArguments> = async (
   {
