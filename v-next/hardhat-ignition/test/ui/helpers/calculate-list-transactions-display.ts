@@ -1,7 +1,7 @@
 import { TransactionStatus } from "@ignored/hardhat-vnext-ignition-core";
 import { assert } from "chai";
 
-import { calculateListTransactionsDisplay } from "../../../src/ui/helpers/calculate-list-transactions-display.js";
+import { calculateListTransactionsDisplay } from "../../../src/internal/ui/helpers/calculate-list-transactions-display.js";
 
 describe("calculateListTransactionsDisplay", function () {
   it("should serialize a bigint in transaction params", async () => {

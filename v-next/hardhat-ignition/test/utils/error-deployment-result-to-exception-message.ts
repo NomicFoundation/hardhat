@@ -8,7 +8,7 @@ import type {
 import { DeploymentResultType } from "@ignored/hardhat-vnext-ignition-core";
 import { assert } from "chai";
 
-import { errorDeploymentResultToExceptionMessage } from "../../src/utils/error-deployment-result-to-exception-message.js";
+import { errorDeploymentResultToExceptionMessage } from "../../src/internal/utils/error-deployment-result-to-exception-message.js";
 
 describe("display error deployment result", () => {
   describe("validation", () => {

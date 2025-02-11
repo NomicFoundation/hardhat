@@ -1,7 +1,7 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
-import { loadModule } from "../../src/utils/load-module.js";
+import { loadModule } from "../../src/internal/utils/load-module.js";
 import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";
 
 describe("loadModule", function () {

@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import chalk from "chalk";
 
-import { calculateStartingMessage } from "../../../src/ui/helpers/calculate-starting-message.js";
+import { calculateStartingMessage } from "../../../src/internal/ui/helpers/calculate-starting-message.js";
 
 describe("ui - calculate starting message display", () => {
   it("should display the starting message", () => {

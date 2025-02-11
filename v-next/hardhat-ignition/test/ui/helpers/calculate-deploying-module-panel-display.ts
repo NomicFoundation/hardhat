@@ -1,12 +1,12 @@
-import type { UiState } from "../../../src/ui/types.js";
+import type { UiState } from "../../../src/internal/ui/types.js";
 
 import path from "node:path";
 
 import { assert } from "chai";
 import chalk from "chalk";
 
-import { calculateDeployingModulePanel } from "../../../src/ui/helpers/calculate-deploying-module-panel.js";
-import { UiStateDeploymentStatus } from "../../../src/ui/types.js";
+import { calculateDeployingModulePanel } from "../../../src/internal/ui/helpers/calculate-deploying-module-panel.js";
+import { UiStateDeploymentStatus } from "../../../src/internal/ui/types.js";
 
 import { testFormat } from "./test-format.js";
 

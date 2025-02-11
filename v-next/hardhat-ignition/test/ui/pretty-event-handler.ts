@@ -1,6 +1,6 @@
 import { assert } from "chai";
 
-import { PrettyEventHandler } from "../../src/ui/pretty-event-handler.js";
+import { PrettyEventHandler } from "../../src/internal/ui/pretty-event-handler.js";
 
 describe("ui - pretty event handler", () => {
   describe("ledger", () => {

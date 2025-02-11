@@ -1,4 +1,4 @@
-import type { UiBatches } from "../../../src/ui/types.js";
+import type { UiBatches } from "../../../src/internal/ui/types.js";
 import type {
   DeploymentCompleteEvent,
   ExecutionErrorDeploymentResult,
@@ -14,8 +14,8 @@ import {
 import { assert } from "chai";
 import chalk from "chalk";
 
-import { calculateDeploymentCompleteDisplay } from "../../../src/ui/helpers/calculate-deployment-complete-display.js";
-import { UiFutureStatusType } from "../../../src/ui/types.js";
+import { calculateDeploymentCompleteDisplay } from "../../../src/internal/ui/helpers/calculate-deployment-complete-display.js";
+import { UiFutureStatusType } from "../../../src/internal/ui/types.js";
 
 import { testFormat } from "./test-format.js";
 

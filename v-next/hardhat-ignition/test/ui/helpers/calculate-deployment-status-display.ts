@@ -3,7 +3,7 @@ import type { StatusResult } from "@ignored/hardhat-vnext-ignition-core";
 import { assert } from "chai";
 import chalk from "chalk";
 
-import { calculateDeploymentStatusDisplay } from "../../../src/ui/helpers/calculate-deployment-status-display.js";
+import { calculateDeploymentStatusDisplay } from "../../../src/internal/ui/helpers/calculate-deployment-status-display.js";
 
 import { testFormat } from "./test-format.js";
 

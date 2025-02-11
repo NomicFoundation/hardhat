@@ -1,6 +1,6 @@
 import { assert } from "chai";
 
-import { bigintReviver } from "../../src/utils/bigintReviver.js";
+import { bigintReviver } from "../../src/internal/utils/bigintReviver.js";
 
 describe("bigintReviver", function () {
   it('should convert number strings ending with "n" to BigInt', function () {
