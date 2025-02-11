@@ -38,7 +38,10 @@
     "template-javascript-with-examples": "0.0.1",
     "template-mocha-ethers": "0.0.1",
     "template-typescript-with-examples": "0.0.1",
-    "template-node-test-runner-viem": "0.0.1"
+    "template-node-test-runner-viem": "0.0.1",
+    "@ignored/hardhat-vnext-ignition-core": "0.15.9",
+    "@ignored/hardhat-vnext-ignition-ui": "0.15.9",
+    "@ignored/hardhat-vnext-typechain": "3.0.0-next.12"
   },
   "changesets": [
     "big-points-try",
@@ -48,9 +51,12 @@
     "dull-squids-brake",
     "few-students-serve",
     "fifty-cooks-mix",
+    "flat-hornets-yell",
+    "fluffy-sloths-walk",
     "fuzzy-dolls-flash",
     "gold-panthers-kneel",
     "great-dots-rhyme",
+    "itchy-elephants-fetch",
     "mean-chefs-learn",
     "polite-rats-mix",
     "quick-islands-appear",
