@@ -33,8 +33,8 @@ import path from "path";
 
 import { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
 import { NetworkConnection } from "@ignored/hardhat-vnext/types/network";
-import { IgnitionModuleResultsToViemContracts } from "./ignition-module-results-to-viem-contracts.js";
 import { HardhatPluginError } from "@ignored/hardhat-vnext-errors";
+import { IgnitionModuleResultsToViemContracts } from "./ignition-module-results-to-viem-contracts.js";
 
 export class ViemIgnitionHelper {
   public type = "viem";
