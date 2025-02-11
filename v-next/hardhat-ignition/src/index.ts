@@ -108,6 +108,22 @@ const hardhatIgnitionPlugin: HardhatPlugin = {
       })
       .setAction(import.meta.resolve("./internal/tasks/visualize.js"))
       .build(),
+
+    task(
+      ["ignition", "verify"],
+      "Verify contracts from a deployment against the configured block explorers",
+    )
+      .addPositionalArgument({
+        name: "deploymentId",
+        type: ArgumentType.STRING,
+        description: "The id of the deployment to verify",
+      })
+      .addFlag({
+        name: "includeUnrelatedContracts",
+        description: "Include all compiled contracts in the verification",
+      })
+      .setAction(import.meta.resolve("./internal/tasks/verify.js"))
+      .build(),
   ],
 };
 
