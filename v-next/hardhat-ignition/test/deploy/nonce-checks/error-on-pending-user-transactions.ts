@@ -15,8 +15,7 @@ import { waitForPendingTxs } from "../../test-helpers/wait-for-pending-txs.js";
  * to see if there are pending transactions (not from previous runs)
  * and error if there are any.
  */
-// TODO: Bring back with Hardhat 3 fixtures
-describe.skip("execution - error on pending user transactions", () => {
+describe("execution - error on pending user transactions", () => {
   useFileIgnitionProject(
     "minimal",
     "error-on-rerun-with-replaced-pending-user-transaction",
@@ -71,7 +70,7 @@ describe.skip("execution - error on pending user transactions", () => {
     const outsideFoo = await deployPromise;
     assert.equal(
       outsideFoo,
-      "0x3d0ac80b8daf180b4d03e0ff107caa7089b5494cdbd81ba9d7619cc4d710caae",
+      "0x94581d6d5b6c86965a35291786d92fc802940c55113878103d26f8131744e96d",
     );
   });
 });

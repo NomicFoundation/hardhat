@@ -13,8 +13,7 @@ import { useFileIgnitionProject } from "../../test-helpers/use-ignition-project.
  * sends a new transaction outside Ignition on the same account
  * we should error and halt immediately
  */
-// TODO: Bring back with Hardhat 3 fixtures
-describe.skip("execution - error on user transaction sent", () => {
+describe("execution - error on user transaction sent", () => {
   useFileIgnitionProject("minimal", "error-on-user-transaction-sent");
 
   it("should error on the drop being detected", async function () {
@@ -71,7 +70,7 @@ describe.skip("execution - error on user transaction sent", () => {
         const fooAddress = await deployPromise;
         assert.equal(
           fooAddress,
-          "0x9154ff20c97a7ebf9d2ebbb3f8b7e24bf99caee050a24c50f1162492c0b6af79",
+          "0xc460a0b29b312aab7cfe6196aaf8d2ee991428c0c01fc7ab185f70041b7526a0",
         );
       }),
       "IGN405: The next nonce for 0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc should be 1, but is 2. Please make sure not to send transactions from 0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc while running this deployment and try again.",
