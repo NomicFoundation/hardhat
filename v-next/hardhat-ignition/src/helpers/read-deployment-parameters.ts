@@ -3,7 +3,7 @@ import type { DeploymentParameters } from "@ignored/hardhat-vnext-ignition-core"
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { readUtf8File } from "@ignored/hardhat-vnext-utils/fs";
 
-import { bigintReviver } from "./bigintReviver.js";
+import { bigintReviver } from "../internal/utils/bigintReviver.js";
 
 export async function readDeploymentParameters(
   filepath: string,

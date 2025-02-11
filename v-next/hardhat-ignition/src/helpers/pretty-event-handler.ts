@@ -7,7 +7,7 @@ import type {
   UiFutureStatus,
   UiFutureSuccess,
   UiState,
-} from "./types.js";
+} from "../internal/ui/types.js";
 import type {
   BatchInitializeEvent,
   BeginNextBatchEvent,
@@ -51,12 +51,15 @@ import {
   ExecutionEventResultType,
 } from "@ignored/hardhat-vnext-ignition-core";
 
-import { calculateBatchDisplay } from "./helpers/calculate-batch-display.js";
-import { calculateDeployingModulePanel } from "./helpers/calculate-deploying-module-panel.js";
-import { calculateDeploymentCompleteDisplay } from "./helpers/calculate-deployment-complete-display.js";
-import { calculateStartingMessage } from "./helpers/calculate-starting-message.js";
-import { wasAnythingExecuted } from "./helpers/was-anything-executed.js";
-import { UiFutureStatusType, UiStateDeploymentStatus } from "./types.js";
+import { calculateBatchDisplay } from "../internal/ui/helpers/calculate-batch-display.js";
+import { calculateDeployingModulePanel } from "../internal/ui/helpers/calculate-deploying-module-panel.js";
+import { calculateDeploymentCompleteDisplay } from "../internal/ui/helpers/calculate-deployment-complete-display.js";
+import { calculateStartingMessage } from "../internal/ui/helpers/calculate-starting-message.js";
+import { wasAnythingExecuted } from "../internal/ui/helpers/was-anything-executed.js";
+import {
+  UiFutureStatusType,
+  UiStateDeploymentStatus,
+} from "../internal/ui/types.js";
 
 export class PrettyEventHandler implements ExecutionEventListener {
   private _uiState: UiState = {

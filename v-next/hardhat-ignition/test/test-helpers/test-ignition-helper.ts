@@ -21,8 +21,8 @@ import {
 import { createPublicClient, custom, getContract } from "viem";
 import { hardhat } from "viem/chains";
 
-import { HardhatArtifactResolver } from "../../src/hardhat-artifact-resolver.js";
-import { errorDeploymentResultToExceptionMessage } from "../../src/internal/utils/error-deployment-result-to-exception-message.js";
+import { errorDeploymentResultToExceptionMessage } from "../../src/helpers/error-deployment-result-to-exception-message.js";
+import { HardhatArtifactResolver } from "../../src/helpers/hardhat-artifact-resolver.js";
 
 export type IgnitionModuleResultsTToViemContracts<
   ContractNameT extends string,

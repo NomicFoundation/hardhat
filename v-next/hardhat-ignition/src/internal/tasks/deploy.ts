@@ -20,12 +20,12 @@ import {
 import debug from "debug";
 import Prompt from "prompts";
 
-import { HardhatArtifactResolver } from "../../hardhat-artifact-resolver.js";
-import { PrettyEventHandler } from "../ui/pretty-event-handler.js";
+import { HardhatArtifactResolver } from "../../helpers/hardhat-artifact-resolver.js";
+import { PrettyEventHandler } from "../../helpers/pretty-event-handler.js";
+import { readDeploymentParameters } from "../../helpers/read-deployment-parameters.js";
+import { resolveDeploymentId } from "../../helpers/resolve-deployment-id.js";
 import { bigintReviver } from "../utils/bigintReviver.js";
 import { loadModule } from "../utils/load-module.js";
-import { readDeploymentParameters } from "../utils/read-deployment-parameters.js";
-import { resolveDeploymentId } from "../utils/resolve-deployment-id.js";
 import { shouldBeHardhatPluginError } from "../utils/shouldBeHardhatPluginError.js";
 
 interface TaskDeployArguments {
