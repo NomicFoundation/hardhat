@@ -1,4 +1,3 @@
-import type { UnencryptedKeystoreFile } from "../../src/internal/types.js";
 import type { ConfigurationVariable } from "@ignored/hardhat-vnext/types/config";
 import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
 
@@ -12,8 +11,14 @@ import { isCi } from "@ignored/hardhat-vnext-utils/ci";
 import { remove, writeJsonFile } from "@ignored/hardhat-vnext-utils/fs";
 
 import hardhatKeystorePlugin from "../../src/index.js";
-import { UnencryptedKeystore } from "../../src/internal/keystores/unencrypted-keystore.js";
+import {
+  addSecretToKeystore,
+  createEmptyEncryptedKeystore,
+  createMasterKey,
+} from "../../src/internal/keystores/encryption.js";
+import { setupKeystorePassword } from "../helpers/insert-password-hook.js";
 import { setupKeystoreFileLocationOverrideAt } from "../helpers/setup-keystore-file-location-override-at.js";
+import { TEST_PASSWORD } from "../helpers/test-password.js";
 
 const configurationVariableKeystoreFilePath = path.join(
   fileURLToPath(import.meta.url),
@@ -42,6 +47,9 @@ describe("hook-handlers - configuration variables - fetchValue", () => {
   let hre: HardhatRuntimeEnvironment;
   let runningInCi: boolean;
 
+  let masterKey: Uint8Array;
+  let salt: Uint8Array;
+
   // The config variables hook handler short circuits if running in CI
   // intentionally. In this integration test we check whether we are running
   // in _our_ CI - Github Actions, and turn off `process.env.GITHUB_ACTIONS`
@@ -68,11 +76,31 @@ describe("hook-handlers - configuration variables - fetchValue", () => {
     beforeEach(async () => {
       await remove(configurationVariableKeystoreFilePath);
 
-      const keystoreFile: UnencryptedKeystoreFile =
-        UnencryptedKeystore.createEmptyUnencryptedKeystoreFile();
+      ({ masterKey, salt } = createMasterKey({
+        password: TEST_PASSWORD,
+      }));
 
-      keystoreFile.keys.key1 = "value1";
-      keystoreFile.keys.key2 = "value2";
+      let keystoreFile = createEmptyEncryptedKeystore({ masterKey, salt });
+
+      const secrets = [
+        {
+          key: "key1",
+          value: "value1",
+        },
+        {
+          key: "key2",
+          value: "value2",
+        },
+      ];
+
+      for (const secret of secrets) {
+        keystoreFile = addSecretToKeystore({
+          masterKey,
+          encryptedKeystore: keystoreFile,
+          key: secret.key,
+          value: secret.value,
+        });
+      }
 
       await writeJsonFile(configurationVariableKeystoreFilePath, keystoreFile);
 
@@ -82,6 +110,7 @@ describe("hook-handlers - configuration variables - fetchValue", () => {
           setupKeystoreFileLocationOverrideAt(
             configurationVariableKeystoreFilePath,
           ),
+          setupKeystorePassword([TEST_PASSWORD, TEST_PASSWORD]),
         ],
       });
     });
@@ -153,7 +182,11 @@ describe("hook-handlers - configuration variables - fetchValue", () => {
           // empty keys to ensure the cache is being used
           await writeJsonFile(
             configurationVariableKeystoreFilePath,
-            UnencryptedKeystore.createEmptyUnencryptedKeystoreFile(),
+            createEmptyEncryptedKeystore(
+              createMasterKey({
+                password: "random-password",
+              }),
+            ),
           );
 
           resultValue2 = await hre.hooks.runHandlerChain(

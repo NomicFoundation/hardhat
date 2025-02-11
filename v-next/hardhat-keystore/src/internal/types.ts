@@ -1,18 +1,12 @@
-export interface UnencryptedKeystoreFile {
-  _format: "hh-unencrypted-keystore";
-  version: number;
-  keys: {
-    [key: string]: string;
-  };
-}
+import type { EncryptedKeystore } from "./keystores/encryption.js";
 
 export interface Keystore {
   listKeys(): Promise<string[]>;
   hasKey(key: string): Promise<boolean>;
-  addNewValue(key: string, value: string): Promise<void>;
-  removeKey(key: string): Promise<void>;
-  readValue(key: string): Promise<string>;
-  toJSON(): UnencryptedKeystoreFile;
+  addNewValue(key: string, value: string, masterKey: Uint8Array): Promise<void>;
+  removeKey(key: string, masterKey: Uint8Array): Promise<void>;
+  readValue(key: string, masterKey: Uint8Array): Promise<string>;
+  toJSON(): EncryptedKeystore;
 }
 
 /**
@@ -26,7 +20,13 @@ export interface Keystore {
  */
 export interface KeystoreLoader {
   isKeystoreInitialized: () => Promise<boolean>;
-  createUnsavedKeystore: () => Promise<Keystore>;
+  createUnsavedKeystore: ({
+    masterKey,
+    salt,
+  }: {
+    masterKey: Uint8Array;
+    salt: Uint8Array;
+  }) => Promise<Keystore>;
   loadKeystore: () => Promise<Keystore>;
   saveKeystoreToFile: () => Promise<void>;
 }
@@ -35,7 +35,7 @@ export interface FileManager {
   fileExists(absolutePath: string): Promise<boolean>;
   writeJsonFile(
     absolutePathToFile: string,
-    keystoreFile: UnencryptedKeystoreFile,
+    keystoreFile: EncryptedKeystore,
   ): Promise<void>;
-  readJsonFile(absolutePathToFile: string): Promise<UnencryptedKeystoreFile>;
+  readJsonFile(absolutePathToFile: string): Promise<EncryptedKeystore>;
 }

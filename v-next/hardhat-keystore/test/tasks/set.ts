@@ -4,12 +4,19 @@ import type { Mock } from "node:test";
 import assert from "node:assert/strict";
 import { beforeEach, describe, it, mock } from "node:test";
 
+import { assertRejects } from "@nomicfoundation/hardhat-test-utils";
 import chalk from "chalk";
 
+import {
+  decryptSecret,
+  deriveMasterKeyFromKeystore,
+} from "../../src/internal/keystores/encryption.js";
 import { KeystoreFileLoader } from "../../src/internal/loaders/keystore-file-loader.js";
 import { set } from "../../src/internal/tasks/set.js";
 import { assertOutputIncludes } from "../helpers/assert-output-includes.js";
 import { MockFileManager } from "../helpers/mock-file-manager.js";
+import { mockRequestSecretFn } from "../helpers/mock-request-secret.js";
+import { TEST_PASSWORD } from "../helpers/test-password.js";
 
 const fakeKeystoreFilePath = "./fake-keystore-path.json";
 
@@ -32,7 +39,8 @@ describe("tasks - set", () => {
 
   describe("a successful `set`", () => {
     beforeEach(async () => {
-      mockRequestSecret = mock.fn(async () => "myValue2");
+      mockFileManager.setupExistingKeystoreFile({ key: "oldValue" });
+      mockRequestSecret = mockRequestSecretFn([TEST_PASSWORD, "myValue2"]);
 
       await set(
         {
@@ -40,8 +48,8 @@ describe("tasks - set", () => {
           force: false,
         },
         keystoreLoader,
-        mockConsoleLog,
         mockRequestSecret,
+        mockConsoleLog,
       );
     });
 
@@ -54,8 +62,12 @@ describe("tasks - set", () => {
         await mockFileManager.readJsonFile(fakeKeystoreFilePath);
 
       assert.deepEqual(
-        keystoreFile.keys,
-        { myKey: "myValue2" },
+        decryptSecret({
+          masterKey: mockFileManager.masterKey,
+          encryptedKeystore: keystoreFile,
+          key: "myKey",
+        }),
+        "myValue2",
         "keystore should have been saved with update",
       );
     });
@@ -65,13 +77,13 @@ describe("tasks - set", () => {
     beforeEach(async () => {
       mockFileManager.setupExistingKeystoreFile({ key: "oldValue" });
 
-      mockRequestSecret = mock.fn(async () => "newValue");
+      mockRequestSecret = mockRequestSecretFn([TEST_PASSWORD, "newValue"]);
 
       await set(
         { key: "key", force: false },
         keystoreLoader,
-        mockConsoleLog,
         mockRequestSecret,
+        mockConsoleLog,
       );
 
       assert.equal(process.exitCode, 1);
@@ -92,8 +104,12 @@ describe("tasks - set", () => {
         await mockFileManager.readJsonFile(fakeKeystoreFilePath);
 
       assert.deepEqual(
-        keystoreFile.keys,
-        { key: "oldValue" },
+        decryptSecret({
+          masterKey: mockFileManager.masterKey,
+          encryptedKeystore: keystoreFile,
+          key: "key",
+        }),
+        "oldValue",
         "keystore should not have been updated with the new value",
       );
     });
@@ -102,13 +118,13 @@ describe("tasks - set", () => {
   describe("a forced `set` with a new value", async () => {
     beforeEach(async () => {
       mockFileManager.setupExistingKeystoreFile({ key: "oldValue" });
-      mockRequestSecret = mock.fn(async () => "newValue");
+      mockRequestSecret = mockRequestSecretFn([TEST_PASSWORD, "newValue"]);
 
       await set(
         { key: "key", force: true },
         keystoreLoader,
-        mockConsoleLog,
         mockRequestSecret,
+        mockConsoleLog,
       );
     });
 
@@ -121,8 +137,12 @@ describe("tasks - set", () => {
         await mockFileManager.readJsonFile(fakeKeystoreFilePath);
 
       assert.deepEqual(
-        keystoreFile.keys,
-        { key: "newValue" },
+        decryptSecret({
+          masterKey: mockFileManager.masterKey,
+          encryptedKeystore: keystoreFile,
+          key: "key",
+        }),
+        "newValue",
         "keystore should have been updated with the new value",
       );
     });
@@ -131,13 +151,13 @@ describe("tasks - set", () => {
   describe("`set` with an invalid key", async () => {
     beforeEach(async () => {
       mockFileManager.setupExistingKeystoreFile({ key: "value" });
-      mockRequestSecret = mock.fn(async () => "value");
+      mockRequestSecret = mockRequestSecretFn([TEST_PASSWORD, "value"]);
 
       await set(
         { key: "1key", force: false },
         keystoreLoader,
-        mockConsoleLog,
         mockRequestSecret,
+        mockConsoleLog,
       );
 
       assert.equal(process.exitCode, 1);
@@ -157,14 +177,13 @@ describe("tasks - set", () => {
   describe("the user entering an empty value", async () => {
     beforeEach(async () => {
       mockFileManager.setupExistingKeystoreFile({ key: "oldValue" });
-
-      mockRequestSecret = mock.fn(async () => "");
+      mockRequestSecret = mockRequestSecretFn([TEST_PASSWORD, ""]);
 
       await set(
         { key: "key", force: true },
         keystoreLoader,
-        mockConsoleLog,
         mockRequestSecret,
+        mockConsoleLog,
       );
 
       assert.equal(process.exitCode, 1);
@@ -190,13 +209,17 @@ describe("tasks - set", () => {
   describe("a `set` when the keystore file does not exist", () => {
     beforeEach(async () => {
       mockFileManager.setupNoKeystoreFile();
-      mockRequestSecret = mock.fn(async () => "myValue2");
+      mockRequestSecret = mockRequestSecretFn([
+        TEST_PASSWORD,
+        TEST_PASSWORD, // password passed twice because during the keystore creation, the password must be confirmed,
+        "myValue2",
+      ]);
 
       await set(
         { key: "myKey", force: false },
         keystoreLoader,
-        mockConsoleLog,
         mockRequestSecret,
+        mockConsoleLog,
       );
     });
 
@@ -205,9 +228,63 @@ describe("tasks - set", () => {
         await mockFileManager.readJsonFile(fakeKeystoreFilePath);
 
       assert.deepEqual(
-        keystoreFile.keys,
-        { myKey: "myValue2" },
+        decryptSecret({
+          masterKey: deriveMasterKeyFromKeystore({
+            password: TEST_PASSWORD,
+            encryptedKeystore: keystoreFile,
+          }),
+          encryptedKeystore: keystoreFile,
+          key: "myKey",
+        }),
+        "myValue2",
         "keystore should have been saved with update",
+      );
+
+      assert.deepEqual(
+        Object.keys(keystoreFile.secrets),
+        ["myKey"],
+        "keystore should only have one key",
+      );
+    });
+  });
+
+  describe("when the password is wrong", () => {
+    beforeEach(async () => {
+      mockFileManager.setupExistingKeystoreFile({ key: "oldValue" });
+
+      mockRequestSecret = mockRequestSecretFn(["wrong password", "myValue2"]);
+
+      await assertRejects(
+        set(
+          {
+            key: "key",
+            force: true,
+          },
+          keystoreLoader,
+          mockRequestSecret,
+          mockConsoleLog,
+        ),
+      );
+    });
+
+    it("should not save the updated keystore to file", async () => {
+      const keystoreFile =
+        await mockFileManager.readJsonFile(fakeKeystoreFilePath);
+
+      assert.deepEqual(
+        Object.keys(keystoreFile.secrets),
+        ["key"],
+        "keystore should only have one key",
+      );
+
+      assert.deepEqual(
+        decryptSecret({
+          masterKey: mockFileManager.masterKey,
+          encryptedKeystore: keystoreFile,
+          key: "key",
+        }),
+        "oldValue",
+        "keystore should not have been saved with update",
       );
     });
   });

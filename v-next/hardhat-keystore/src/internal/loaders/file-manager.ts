@@ -1,4 +1,5 @@
-import type { FileManager, UnencryptedKeystoreFile } from "../types.js";
+import type { EncryptedKeystore } from "../keystores/encryption.js";
+import type { FileManager } from "../types.js";
 
 import {
   exists,
@@ -13,14 +14,12 @@ export class FileManagerImpl implements FileManager {
 
   public writeJsonFile(
     absolutePathToFile: string,
-    keystoreFile: UnencryptedKeystoreFile,
+    keystoreFile: EncryptedKeystore,
   ): Promise<void> {
     return writeJsonFile(absolutePathToFile, keystoreFile);
   }
 
-  public readJsonFile(
-    absolutePathToFile: string,
-  ): Promise<UnencryptedKeystoreFile> {
+  public readJsonFile(absolutePathToFile: string): Promise<EncryptedKeystore> {
     return readJsonFile(absolutePathToFile);
   }
 }

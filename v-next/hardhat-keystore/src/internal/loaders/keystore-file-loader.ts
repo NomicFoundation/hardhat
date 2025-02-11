@@ -1,23 +1,14 @@
-import type {
-  FileManager,
-  Keystore,
-  KeystoreLoader,
-  UnencryptedKeystoreFile,
-} from "../types.js";
+import type { FileManager, KeystoreLoader } from "../types.js";
 
-import {
-  assertHardhatInvariant,
-  HardhatError,
-} from "@ignored/hardhat-vnext-errors";
-import { ensureError } from "@ignored/hardhat-vnext-utils/error";
+import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
 
-import { UnencryptedKeystore } from "../keystores/unencrypted-keystore.js";
-import { unencryptedKeystoreFileSchema } from "../types-validation.js";
+import { createEmptyEncryptedKeystore } from "../keystores/encryption.js";
+import { Keystore } from "../keystores/keystore.js";
 
 export class KeystoreFileLoader implements KeystoreLoader {
   readonly #keystoreFilePath: string;
   readonly #fileManager: FileManager;
-  #keystoreCache: UnencryptedKeystore | null;
+  #keystoreCache: Keystore | null;
 
   constructor(keystoreFilePath: string, fileManger: FileManager) {
     this.#keystoreFilePath = keystoreFilePath;
@@ -43,23 +34,28 @@ export class KeystoreFileLoader implements KeystoreLoader {
       this.#keystoreFilePath,
     );
 
-    this.#throwIfInvalidKeystoreFormat(keystoreFile);
-
-    const keystore = new UnencryptedKeystore(keystoreFile);
+    const keystore = new Keystore(keystoreFile);
     this.#keystoreCache = keystore;
 
     return keystore;
   }
 
-  public async createUnsavedKeystore(): Promise<Keystore> {
+  public async createUnsavedKeystore({
+    masterKey,
+    salt,
+  }: {
+    masterKey: Uint8Array;
+    salt: Uint8Array;
+  }): Promise<Keystore> {
     assertHardhatInvariant(
       this.#keystoreCache === null,
       "Cannot create a new Keystore when one is already loaded",
     );
 
-    const keystore = new UnencryptedKeystore(
-      UnencryptedKeystore.createEmptyUnencryptedKeystoreFile(),
+    const keystore = new Keystore(
+      createEmptyEncryptedKeystore({ masterKey, salt }), // TODO maybe extract variables from here
     );
+
     this.#keystoreCache = keystore;
 
     return keystore;
@@ -74,18 +70,5 @@ export class KeystoreFileLoader implements KeystoreLoader {
     const keystoreFile = this.#keystoreCache.toJSON();
 
     await this.#fileManager.writeJsonFile(this.#keystoreFilePath, keystoreFile);
-  }
-
-  #throwIfInvalidKeystoreFormat(keystore: UnencryptedKeystoreFile): void {
-    try {
-      unencryptedKeystoreFileSchema.parse(keystore);
-    } catch (error) {
-      ensureError(error);
-
-      throw new HardhatError(
-        HardhatError.ERRORS.KEYSTORE.INVALID_KEYSTORE_FILE_FORMAT,
-        error,
-      );
-    }
   }
 }

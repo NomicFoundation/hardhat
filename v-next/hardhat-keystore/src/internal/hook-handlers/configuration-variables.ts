@@ -7,6 +7,8 @@ import type {
 
 import { isCi } from "@ignored/hardhat-vnext-utils/ci";
 
+import { deriveMasterKeyFromKeystore } from "../keystores/encryption.js";
+import { askPassword } from "../keystores/password.js";
 import { setupKeystoreLoaderFrom } from "../utils/setup-keystore-loader-from.js";
 
 export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
@@ -39,7 +41,16 @@ export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
         return next(context, variable);
       }
 
-      return keystore.readValue(variable.name);
+      const password = await askPassword(
+        context.interruptions.requestSecretInput.bind(context.interruptions),
+      );
+
+      const masterKey = deriveMasterKeyFromKeystore({
+        encryptedKeystore: keystore.toJSON(),
+        password,
+      });
+
+      return keystore.readValue(variable.name, masterKey);
     },
   };
 

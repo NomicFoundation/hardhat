@@ -701,24 +701,11 @@ Try using another mnemonic or deriving less keys.`,
     },
   },
   KEYSTORE: {
-    INVALID_KEYSTORE_FILE_FORMAT: {
-      number: 800,
-      messageTemplate: "Invalid keystore format",
-      websiteTitle: "Invalid keystore format",
-      websiteDescription: "The provided JSON is not a valid keystore file",
-    },
     INVALID_READLINE_OUTPUT: {
       number: 801,
       messageTemplate: "Expected readline output to be defined",
       websiteTitle: "Expected readline output to be defined",
       websiteDescription: "Expected readline output to be defined",
-    },
-    USERINTERRUPTION_NOT_IMPLEMENTED: {
-      number: 802,
-      messageTemplate: "User interruption method not implemented",
-      websiteTitle: "User interruption method not implemented",
-      websiteDescription:
-        "Within the Keystore plugin, some direct user interruptions are not implemented. They are not expected to be invoked.",
     },
   },
   NETWORK_HELPERS: {

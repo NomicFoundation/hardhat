@@ -1,20 +1,15 @@
 import chalk from "chalk";
 
-import { requestSecretInput } from "../ui/request-secret-input.js";
+import { PLUGIN_ID } from "../constants.js";
 import { UserDisplayMessages } from "../ui/user-display-messages.js";
 
-import { createMasterKey } from "./encryption.js";
-
-export async function setUpPasswordAndComputeMasterKey(
+export async function setUpPassword(
+  requestSecretInput: (
+    interruptor: string,
+    inputDescription: string,
+  ) => Promise<string>,
   consoleLog: (text: string) => void = console.log,
-  requestSecretFromUser: (
-    requestText: string,
-  ) => Promise<string> = requestSecretInput,
-): Promise<{
-  salt: Uint8Array;
-  masterKey: Uint8Array;
-}> {
-  // const PASSWORD_REGEX = /^(?=.*[A-Z])(?=.*[a-z])(?=.*[\W_]).{8,}$/; // TODO: change password rule
+): Promise<string> {
   const PASSWORD_REGEX = /^.{8,}$/;
 
   consoleLog(UserDisplayMessages.keystoreBannerMessage()); // TODO: maybe move this to a different file
@@ -26,7 +21,8 @@ export async function setUpPasswordAndComputeMasterKey(
   let password: string | undefined;
 
   while (password === undefined) {
-    password = await requestSecretFromUser(
+    password = await requestSecretInput(
+      PLUGIN_ID,
       UserDisplayMessages.enterPasswordMsg(),
     );
 
@@ -38,7 +34,8 @@ export async function setUpPasswordAndComputeMasterKey(
 
   let confirmPassword: string | undefined;
   while (confirmPassword === undefined) {
-    confirmPassword = await requestSecretFromUser(
+    confirmPassword = await requestSecretInput(
+      PLUGIN_ID,
       UserDisplayMessages.confirmPasswordMessage(),
     );
 
@@ -48,20 +45,14 @@ export async function setUpPasswordAndComputeMasterKey(
     }
   }
 
-  return createMasterKey({ password });
+  return password;
 }
 
-export async function askPasswordAndComputeMasterKey(
-  requestSecretFromUser: (
-    requestText: string,
-  ) => Promise<string> = requestSecretInput,
-): Promise<{
-  salt: Uint8Array;
-  masterKey: Uint8Array;
-}> {
-  const password = await requestSecretFromUser(
-    UserDisplayMessages.enterPasswordMsg(),
-  );
-
-  return createMasterKey({ password });
+export async function askPassword(
+  requestSecretInput: (
+    interruptor: string,
+    inputDescription: string,
+  ) => Promise<string>,
+): Promise<string> {
+  return requestSecretInput(PLUGIN_ID, UserDisplayMessages.enterPasswordMsg());
 }

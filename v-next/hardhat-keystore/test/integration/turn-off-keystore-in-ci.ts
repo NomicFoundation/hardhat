@@ -13,8 +13,14 @@ import { isCi } from "@ignored/hardhat-vnext-utils/ci";
 // code. On CI this will be the reduced plugin, in local development this will
 // be the full plugin.
 import hardhatKeystorePlugin from "../../src/index.js";
+import { setupKeystorePassword } from "../helpers/insert-password-hook.js";
 import { setupKeystoreFileLocationOverrideAt } from "../helpers/setup-keystore-file-location-override-at.js";
+import { TEST_PASSWORD } from "../helpers/test-password.js";
 
+// The keystore json file for this test has been created using the following configuration:
+// Test password: test-password
+// Secret key name: key1
+// Secret value: secret
 const existingKeystoreFilePath = path.join(
   fileURLToPath(import.meta.url),
   "..",
@@ -45,6 +51,7 @@ describe("turn off keystore plugin when running in CI", function () {
       plugins: [
         hardhatKeystorePlugin,
         setupKeystoreFileLocationOverrideAt(existingKeystoreFilePath),
+        setupKeystorePassword([TEST_PASSWORD]),
       ],
     });
 
@@ -67,7 +74,7 @@ describe("turn off keystore plugin when running in CI", function () {
     if (isCi()) {
       assert.equal(resultValue, "expected-default-value-in-ci");
     } else {
-      assert.equal(resultValue, "value1");
+      assert.equal(resultValue, "secret");
     }
   });
 });
