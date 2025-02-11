@@ -2,8 +2,8 @@
 import { buildModule } from "@ignored/hardhat-vnext-ignition-core";
 import { assert } from "chai";
 
-import { externallyLoadedContractArtifact } from "./test-helpers/externally-loaded-contract";
-import { useIgnitionProject } from "./test-helpers/use-ignition-project";
+import { externallyLoadedContractArtifact } from "./test-helpers/externally-loaded-contract.js";
+import { useIgnitionProject } from "./test-helpers/use-ignition-project.js";
 
 describe("viem results", () => {
   useIgnitionProject("minimal");

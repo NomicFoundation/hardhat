@@ -2,7 +2,7 @@
 import { buildModule } from "@ignored/hardhat-vnext-ignition-core";
 import { assert } from "chai";
 
-import { useIgnitionProject } from "./test-helpers/use-ignition-project";
+import { useIgnitionProject } from "./test-helpers/use-ignition-project.js";
 
 describe("viem results should work across useModule boundaries", () => {
   useIgnitionProject("minimal");

@@ -4,8 +4,8 @@ import {
 } from "@ignored/hardhat-vnext-ignition-core";
 import { assert } from "chai";
 
-import { IgnitionModuleResultsToViemContracts } from "../../src/ignition-module-results-to-viem-contracts";
-import { useIgnitionProject } from "../test-helpers/use-ignition-project";
+import { IgnitionModuleResultsToViemContracts } from "../../src/ignition-module-results-to-viem-contracts.js";
+import { useIgnitionProject } from "../test-helpers/use-ignition-project.js";
 
 describe("deploy converts ignition named contract to viem instance", () => {
   useIgnitionProject("minimal");

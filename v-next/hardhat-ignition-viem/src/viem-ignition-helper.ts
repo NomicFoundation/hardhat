@@ -32,7 +32,7 @@ import { HardhatPluginError } from "hardhat/plugins";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import path from "path";
 
-import { IgnitionModuleResultsToViemContracts } from "./ignition-module-results-to-viem-contracts";
+import { IgnitionModuleResultsToViemContracts } from "./ignition-module-results-to-viem-contracts.js";
 
 export class ViemIgnitionHelper {
   public type = "viem";
