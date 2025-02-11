@@ -146,6 +146,9 @@ describe("tasks - get", () => {
           mockRequestSecret,
           mockConsoleLog,
         ),
+        (err) =>
+          err.message ===
+          "Invalid hmac key: make sure you are using the right password/key and that your encrypted data isn't corrupted",
       );
     });
   });
