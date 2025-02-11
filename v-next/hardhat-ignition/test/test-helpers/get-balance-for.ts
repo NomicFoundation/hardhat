@@ -14,8 +14,6 @@ export async function getBalanceFor(
     params: [address, "latest"],
   });
 
-  // TODO: revisit why this assertion is necessary.
-  // looks like a Hardhat 3 typing bug.
   assertHardhatInvariant(
     typeof balance === "string",
     "Balance must be a string",

@@ -21,7 +21,6 @@ export async function waitForPendingTxs(
       return;
     }
 
-    // TODO: review this any, why are we not getting back a typed object?
     const pendingBlock: any = await connection.provider.request({
       method: "eth_getBlockByNumber",
       params: ["pending", false],

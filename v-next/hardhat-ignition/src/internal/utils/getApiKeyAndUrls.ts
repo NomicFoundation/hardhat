@@ -1,4 +1,4 @@
-// TODO: Bring this file back with Hardhat Verify
+// TODO: HH3 Bring this file back with Hardhat Verify
 // import type { ChainConfig } from "@nomicfoundation/hardhat-verify/types";
 
 // import { NomicLabsHardhatPluginError } from "@ignored/hardhat-vnext/plugins";

@@ -231,7 +231,7 @@ describe("create2", function () {
     useFileIgnitionProject("create2-bad-config", "attempt-bad-config");
 
     it("should throw if salt is not defined in Hardhat config", async function () {
-      // TODO: HH3 can this pattern be improved on with utils
+      // TODO: HH3 can this pattern be improved on with utils?
       let threwException = false;
       try {
         await this.hre.tasks.getTask(["ignition", "deploy"]).run({
