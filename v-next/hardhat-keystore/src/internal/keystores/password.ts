@@ -12,7 +12,7 @@ export async function setUpPassword(
 ): Promise<string> {
   const PASSWORD_REGEX = /^.{8,}$/;
 
-  consoleLog(UserDisplayMessages.keystoreBannerMessage()); // TODO: maybe move this to a different file
+  consoleLog(UserDisplayMessages.keystoreBannerMessage());
 
   consoleLog(UserDisplayMessages.passwordSetUpMessage());
   consoleLog(UserDisplayMessages.passwordRequirementsMessage());

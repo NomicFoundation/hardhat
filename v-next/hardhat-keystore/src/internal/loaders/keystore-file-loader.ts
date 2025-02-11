@@ -53,7 +53,7 @@ export class KeystoreFileLoader implements KeystoreLoader {
     );
 
     const keystore = new Keystore(
-      createEmptyEncryptedKeystore({ masterKey, salt }), // TODO maybe extract variables from here
+      createEmptyEncryptedKeystore({ masterKey, salt }),
     );
 
     this.#keystoreCache = keystore;

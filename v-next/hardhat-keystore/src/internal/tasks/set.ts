@@ -62,7 +62,6 @@ export const set = async (
     password,
   });
 
-  // TODO: move app before asking for password?
   if (!force && (await keystore.hasKey(key))) {
     consoleLog(UserDisplayMessages.displayKeyAlreadyExistsWarning(key));
     process.exitCode = 1;
