@@ -5,7 +5,7 @@ import { ArgumentType } from "@ignored/hardhat-vnext/types/arguments";
 
 import { PLUGIN_ID } from "./internal/constants.js";
 
-import "./type-extensions/config.js";
+import "./type-extensions.js";
 
 const hardhatIgnitionPlugin: HardhatPlugin = {
   id: PLUGIN_ID,

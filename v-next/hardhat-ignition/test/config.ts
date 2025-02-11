@@ -8,7 +8,7 @@ import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
 import { buildModule } from "@ignored/hardhat-vnext-ignition-core";
 import { assert } from "chai";
 
-import "../src/type-extensions/config.js";
+import "../src/type-extensions.js";
 
 import hardhatIgnition from "../src/index.js";
 
