@@ -707,7 +707,7 @@ Try using another mnemonic or deriving less keys.`,
   },
   KEYSTORE: {
     INVALID_READLINE_OUTPUT: {
-      number: 801,
+      number: 800,
       messageTemplate: "Expected readline output to be defined",
       websiteTitle: "Expected readline output to be defined",
       websiteDescription: "Expected readline output to be defined",
