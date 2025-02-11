@@ -52,7 +52,7 @@ export class UserDisplayMessages {
   }
 
   public static enterSecretMessage(): string {
-    return "Enter secret to store: ";
+    return "Enter secret to store";
   }
 
   public static keystoreBannerMessage(): string {
@@ -69,7 +69,7 @@ export class UserDisplayMessages {
   }
 
   public static enterPasswordMsg(): string {
-    return "Enter the password: ";
+    return "Enter the password";
   }
 
   public static passwordRequirementsError(): string {
@@ -77,7 +77,7 @@ export class UserDisplayMessages {
   }
 
   public static confirmPasswordMessage(): string {
-    return "Please confirm your password: ";
+    return "Please confirm your password";
   }
 
   public static passwordsDoNotMatchError(): string {
