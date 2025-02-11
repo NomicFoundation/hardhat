@@ -29,7 +29,7 @@ describe("strategies - invocation via helper", () => {
         return { foo };
       });
 
-      result = await this.hre.ignition.deploy(moduleDefinition, {
+      result = await this.connection.ignition.deploy(moduleDefinition, {
         strategy: "create2",
         strategyConfig: {
           salt: example32ByteSalt,
@@ -50,7 +50,7 @@ describe("strategies - invocation via helper", () => {
       });
 
       await assert.isRejected(
-        this.hre.ignition.deploy(moduleDefinition, {
+        this.connection.ignition.deploy(moduleDefinition, {
           strategy: "create2",
           strategyConfig: {
             salt: undefined as any,
@@ -78,7 +78,7 @@ describe("strategies - invocation via helper", () => {
         return { baz };
       });
 
-      result = await this.hre.ignition.deploy(moduleDefinition, {
+      result = await this.connection.ignition.deploy(moduleDefinition, {
         strategy: "create2",
       });
 

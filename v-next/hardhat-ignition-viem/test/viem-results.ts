@@ -15,11 +15,11 @@ describe("viem results", () => {
       return { foo };
     });
 
-    const result = await this.hre.ignition.deploy(moduleDefinition);
+    const result = await this.connection.ignition.deploy(moduleDefinition);
 
     assert.isDefined(result.foo);
 
-    // @ts-expect-error - only returned result keys should exist
+    // @ts-expect-error
     assert.isUndefined(result.nonexistant);
   });
 
@@ -32,7 +32,7 @@ describe("viem results", () => {
       return { foo, bar, baz };
     });
 
-    const result = await this.hre.ignition.deploy(moduleDefinition);
+    const result = await this.connection.ignition.deploy(moduleDefinition);
 
     assert.isTrue(await result.foo.read.isFoo());
     assert.isTrue(await result.bar.read.isBar());

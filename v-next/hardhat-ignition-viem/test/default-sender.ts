@@ -7,7 +7,7 @@ describe("support changing default sender", () => {
   useIgnitionProject("minimal");
 
   it("should deploy on the first HH account by default", async function () {
-    const [defaultAccount] = await this.hre.viem.getWalletClients();
+    const [defaultAccount] = await this.connection.viem.getWalletClients();
     const defaultAccountAddress = defaultAccount.account.address;
 
     const moduleDefinition = buildModule("Module", (m) => {
@@ -16,7 +16,7 @@ describe("support changing default sender", () => {
       return { ownerSender };
     });
 
-    const result = await this.hre.ignition.deploy(moduleDefinition, {
+    const result = await this.connection.ignition.deploy(moduleDefinition, {
       defaultSender: undefined,
     });
 
@@ -27,7 +27,8 @@ describe("support changing default sender", () => {
   });
 
   it("should allow changing the default sender that the ignition deployment runs against", async function () {
-    const [, notTheDefaultAccount] = await this.hre.viem.getWalletClients();
+    const [, notTheDefaultAccount] =
+      await this.connection.viem.getWalletClients();
     const differentAccountAddress = notTheDefaultAccount.account.address;
 
     const moduleDefinition = buildModule("Module", (m) => {
@@ -36,7 +37,7 @@ describe("support changing default sender", () => {
       return { ownerSender };
     });
 
-    const result = await this.hre.ignition.deploy(moduleDefinition, {
+    const result = await this.connection.ignition.deploy(moduleDefinition, {
       defaultSender: differentAccountAddress,
     });
 

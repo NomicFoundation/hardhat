@@ -1,11 +1,13 @@
-import { GetContractReturnType } from "@nomicfoundation/hardhat-viem/types";
 import {
   ContractAtFuture,
   ContractDeploymentFuture,
   ContractFuture,
   IgnitionModuleResult,
 } from "@ignored/hardhat-vnext-ignition-core";
-import { ArtifactsMap } from "hardhat/types";
+import {
+  ContractAbis,
+  GetContractReturnType,
+} from "@ignored/hardhat-vnext-viem/types";
 
 export type IgnitionModuleResultsToViemContracts<
   ContractNameT extends string,
@@ -27,15 +29,15 @@ type ToContractType<
   : LookupContractName<
       IgnitionModuleResultsT,
       ResultKey
-    > extends keyof ArtifactsMap
+    > extends keyof ContractAbis
   ? LookupContractReturnTypeForContractName<
       LookupContractName<IgnitionModuleResultsT, ResultKey>
     >
   : never;
 
 type LookupContractReturnTypeForContractName<
-  ContractName extends keyof ArtifactsMap
-> = GetContractReturnType<ArtifactsMap[ContractName]["abi"]>;
+  ContractName extends keyof ContractAbis
+> = GetContractReturnType<ContractAbis[ContractName]>;
 
 type LookupContractName<
   IgnitionModuleResultsT extends IgnitionModuleResult<string>,

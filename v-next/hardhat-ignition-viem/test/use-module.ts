@@ -20,7 +20,7 @@ describe("viem results should work across useModule boundaries", () => {
       return { foo };
     });
 
-    const result = await this.hre.ignition.deploy(moduleDefinition);
+    const result = await this.connection.ignition.deploy(moduleDefinition);
 
     assert.equal(await result.foo.read.x(), 1n);
 

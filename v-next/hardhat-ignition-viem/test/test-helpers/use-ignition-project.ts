@@ -1,28 +1,40 @@
-import { resetHardhatContext } from "hardhat/plugins-testing";
-import { HardhatRuntimeEnvironment } from "hardhat/types";
-import path from "path";
+import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
+import { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
+import { NetworkConnection } from "@ignored/hardhat-vnext/types/network";
+import path from "node:path";
 
 declare module "mocha" {
   interface Context {
     hre: HardhatRuntimeEnvironment;
+    connection: NetworkConnection;
   }
 }
 
-export function useIgnitionProject(fixtureProjectName: string) {
+export function useIgnitionProject(fixtureProjectName: string): void {
+  let previousCwd: string;
   beforeEach("Load environment", async function () {
+    previousCwd = process.cwd();
+
     process.chdir(
       path.join(__dirname, "../fixture-projects", fixtureProjectName)
     );
 
-    const hre = require("hardhat");
+    const hre = await createHardhatRuntimeEnvironment({});
 
-    await hre.network.provider.send("evm_setAutomine", [true]);
-    await hre.run("compile", { quiet: true });
+    await hre.tasks.getTask("compile").run({ quiet: true });
+
+    const connection = await hre.network.connect();
+
+    await connection.provider.request({
+      method: "evm_setAutomine",
+      params: [true],
+    });
 
     this.hre = hre;
+    this.connection = connection;
   });
 
   afterEach("reset hardhat context", function () {
-    resetHardhatContext();
+    process.chdir(previousCwd);
   });
 }

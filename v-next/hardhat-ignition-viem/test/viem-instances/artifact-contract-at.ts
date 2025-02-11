@@ -38,7 +38,7 @@ describe("deploy converts ignition artifact contractAt to viem instance", () => 
       return { externallyLoadedContractAt };
     });
 
-    result = await this.hre.ignition.deploy(moduleDefinition);
+    result = await this.connection.ignition.deploy(moduleDefinition);
   });
 
   it("should provide the address", async function () {

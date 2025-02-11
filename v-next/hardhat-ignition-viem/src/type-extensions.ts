@@ -1,7 +1,8 @@
-import { ViemIgnitionHelper } from "./viem-ignition-helper.js";
+import type { ViemIgnitionHelper } from "./viem-ignition-helper.js";
 
-declare module "hardhat/types/runtime" {
-  export interface HardhatRuntimeEnvironment {
+import "@ignored/hardhat-vnext/types/network";
+declare module "@ignored/hardhat-vnext/types/network" {
+  interface NetworkConnection {
     ignition: ViemIgnitionHelper;
   }
 }

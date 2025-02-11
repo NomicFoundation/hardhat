@@ -25,7 +25,7 @@ describe("deploy converts ignition named contractAt to viem instance", () => {
       return { contractAtFoo };
     });
 
-    result = await this.hre.ignition.deploy(moduleDefinition);
+    result = await this.connection.ignition.deploy(moduleDefinition);
   });
 
   it("should provide the address", async function () {
