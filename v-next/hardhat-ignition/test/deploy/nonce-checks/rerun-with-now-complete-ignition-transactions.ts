@@ -12,8 +12,7 @@ import { useFileIgnitionProject } from "../../test-helpers/use-ignition-project.
  * transactions via Ignition. Those ignition transactions now confirm before
  * a second run completes the deploy.
  */
-// TODO: Bring back with Hardhat 3 fixtures
-describe.skip("execution - rerun with now complete ignition transactions", () => {
+describe("execution - rerun with now complete ignition transactions", () => {
   useFileIgnitionProject(
     "minimal",
     "rerun-with-now-complete-ignition-transactions",

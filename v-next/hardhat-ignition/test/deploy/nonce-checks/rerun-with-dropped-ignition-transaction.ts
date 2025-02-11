@@ -13,8 +13,7 @@ import { useFileIgnitionProject } from "../../test-helpers/use-ignition-project.
  * transaction. The transaction is dropped from the memory pool. On rerun
  * the transaction should be resubmitted.
  */
-// TODO: Bring back with Hardhat 3 fixtures
-describe.skip("execution - rerun with dropped ignition transactions", () => {
+describe("execution - rerun with dropped ignition transactions", () => {
   useFileIgnitionProject("minimal", "rerun-with-dropped-ignition-transactions");
 
   it("should deploy successfully on second run", async function () {

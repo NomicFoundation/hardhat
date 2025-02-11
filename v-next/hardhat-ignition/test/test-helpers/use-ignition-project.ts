@@ -144,6 +144,11 @@ export function useFileIgnitionProject(
 
     const connection = await hre.network.connect();
 
+    await connection.provider.request({
+      method: "evm_setAutomine",
+      params: [false],
+    });
+
     this.hre = hre;
     this.connection = connection;
     this.ignition = new TestIgnitionHelper(hre, connection);

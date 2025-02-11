@@ -11,8 +11,7 @@ import { useFileIgnitionProject } from "../../test-helpers/use-ignition-project.
  * transactions via Ignition. Perform another run picking the deployment
  * up where the first run left off and without any other user transactions.
  */
-// TODO: Bring back with Hardhat 3 fixtures
-describe.skip("execution - rerun with pending ignition transactions", () => {
+describe("execution - rerun with pending ignition transactions", () => {
   useFileIgnitionProject("minimal", "rerun-with-pending-ignition-transactions");
 
   it("should complete the run on the second attempt", async function () {

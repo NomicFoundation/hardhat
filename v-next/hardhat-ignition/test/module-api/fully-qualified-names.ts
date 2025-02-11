@@ -1,14 +1,11 @@
 import { buildModule } from "@ignored/hardhat-vnext-ignition-core";
 import { assert } from "chai";
 
-import { useFileIgnitionProject } from "../test-helpers/use-ignition-project.js";
+import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";
 
 describe("fully qualified names", () => {
   describe("where there are multiple contracts with the same name in the project", () => {
-    useFileIgnitionProject(
-      "multiple-contracts-with-same-name",
-      "contract-deploy",
-    );
+    useEphemeralIgnitionProject("multiple-contracts-with-same-name");
 
     it("should deploy contracts by referring using fully qualified names", async function () {
       const LaunchModule = buildModule("Apollo", (m) => {
