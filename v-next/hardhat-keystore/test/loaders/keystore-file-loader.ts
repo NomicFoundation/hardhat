@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
 
+import { assertRejects } from "@nomicfoundation/hardhat-test-utils";
+
 import { createMasterKey } from "../../src/internal/keystores/encryption.js";
 import { KeystoreFileLoader } from "../../src/internal/loaders/keystore-file-loader.js";
 import { MockFileManager } from "../helpers/mock-file-manager.js";
@@ -34,6 +36,40 @@ describe("KeystoreFileLoader", () => {
         const value = await keystore.readValue("myKey", masterKey);
 
         assert.equal(value, "myValue");
+      });
+    });
+
+    describe("when the keystore file is invalid on disk and the user tries to read it", () => {
+      let mockFileManager: MockFileManager;
+
+      beforeEach(async () => {
+        mockFileManager = new MockFileManager();
+
+        mockFileManager.setupExistingKeystoreFile({ myKey: "myValue" });
+
+        masterKey = mockFileManager.masterKey;
+
+        // Modify the keystore file to intentionally corrupt it.
+        const encryptedFile =
+          await mockFileManager.readJsonFile(fakeKeystoreFilePath);
+
+        encryptedFile.hmac = "corrupted-hmac";
+
+        mockFileManager.writeJsonFile(fakeKeystoreFilePath, encryptedFile);
+      });
+
+      it("should load the keystore", async () => {
+        const keystoreLoader = new KeystoreFileLoader(
+          fakeKeystoreFilePath,
+          mockFileManager,
+        );
+
+        const keystore = await keystoreLoader.loadKeystore();
+
+        await assertRejects(
+          keystore.readValue("myKey", masterKey),
+          (err) => err.message === "Invalid hmac in keystore",
+        );
       });
     });
   });
