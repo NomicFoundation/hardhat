@@ -33,14 +33,14 @@ Each file includes inline explanations of its purpose and highlights the changes
 To run all the tests in the project, execute the following command:
 
 ```shell
-npx hardhat3 test
+npx hardhat test
 ```
 
 You can also selectively run the Solidity or `node:test` tests:
 
 ```shell
-npx hardhat3 test solidity
-npx hardhat3 test node
+npx hardhat test solidity
+npx hardhat test node
 ```
 
 ### Sending a Transaction to Optimism Sepolia
@@ -50,7 +50,7 @@ This project includes an example script that sends a simple transaction to Optim
 To run the script with EDR in Optimism mode:
 
 ```shell
-npx hardhat3 run scripts/send-op-tx.ts --network edrOpSepolia
+npx hardhat run scripts/send-op-tx.ts --network edrOpSepolia
 ```
 
 To run the script with Optimism Sepolia, you need an account with funds to send the transaction. The provided Hardhat configuration includes a Configuration Variable called `OPTIMISM_SEPOLIA_PRIVATE_KEY`, which you can use to set the private key of the account you want to use.
@@ -62,13 +62,13 @@ You can set the `OPTIMISM_SEPOLIA_PRIVATE_KEY` variable using the `hardhat-keyst
 To set the `OPTIMISM_SEPOLIA_PRIVATE_KEY` config variable using `hardhat-keystore`:
 
 ```shell
-npx hardhat3 keystore set OPTIMISM_SEPOLIA_PRIVATE_KEY
+npx hardhat keystore set OPTIMISM_SEPOLIA_PRIVATE_KEY
 ```
 
 After setting the variable, you can run the script with the Optimism Sepolia network:
 
 ```shell
-npx hardhat3 run scripts/send-op-tx.ts --network opSepolia
+npx hardhat run scripts/send-op-tx.ts --network opSepolia
 ```
 
 ---

@@ -19,7 +19,7 @@
     "build": "tsc --build .",
     "clean": "rimraf dist",
     "pretest": "pnpm build && pnpm install",
-    "test": "hardhat3 test node && hardhat3 test mocha"
+    "test": "hardhat test node && hardhat test mocha"
   },
   "devDependencies": {
     "@ignored/hardhat-vnext": "workspace:^3.0.0-next.17",
