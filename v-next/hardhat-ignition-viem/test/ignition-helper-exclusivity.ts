@@ -1,4 +1,5 @@
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 describe("ignition helper mutual exclusivity", () => {
   let originalCwd: string;
@@ -7,7 +8,7 @@ describe("ignition helper mutual exclusivity", () => {
 
     process.chdir(
       path.join(
-        path.dirname(new URL(import.meta.url).pathname),
+        path.dirname(fileURLToPath(import.meta.url)),
         "./fixture-projects",
         "with-fake-helper",
       ),

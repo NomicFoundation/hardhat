@@ -2,6 +2,7 @@ import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre
 import type { NetworkConnection } from "@ignored/hardhat-vnext/types/network";
 
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
 
@@ -21,7 +22,7 @@ export function useIgnitionProject(fixtureProjectName: string): void {
 
     process.chdir(
       path.join(
-        path.dirname(new URL(import.meta.url).pathname),
+        path.dirname(fileURLToPath(import.meta.url)),
         "../fixture-projects",
         fixtureProjectName,
       ),
