@@ -226,11 +226,13 @@ AVAILABLE TASKS:
   clean                    Clears the cache and deletes all artifacts
   compile                  Compiles your project
   console                  Opens a hardhat console
+  coverage                 Not implemented yet - to be available soon
   flatten                  Flattens and prints contracts and their dependencies. If no file is passed, all the contracts in the project will be flattened.
   node                     Starts a JSON-RPC server on top of Hardhat Network
   run                      Runs a user-defined script after compiling the project
   task                     A task that uses arg1
   test                     Runs all your tests
+  verify                   Not implemented yet - to be available soon
 
 AVAILABLE SUBTASKS:
 

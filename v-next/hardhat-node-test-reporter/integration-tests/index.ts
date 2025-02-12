@@ -132,6 +132,13 @@ function normalizeOutput(name: string, output: string): string {
     normalizedOutput = normalizedOutput.replace(slowTestRegex, "");
   }
 
+  const testFileRegex = new RegExp(
+    path
+      .join("integration-tests", "fixture-tests", `[^${path.sep}]+`, "test.ts")
+      .replaceAll("\\", "\\\\"),
+    "g",
+  );
+
   return (
     normalizedOutput
       // Normalize the time it took to run the test
@@ -141,6 +148,10 @@ function normalizeOutput(name: string, output: string): string {
       // Normalize path separators to `/` within the (file:line:column)
       // part of the stack traces
       .replaceAll(/\(.*?:\d+:\d+\)/g, (match) => {
+        return match.replaceAll(path.sep, "/");
+      })
+      // Normalize path separators to `/` within the test file paths
+      .replaceAll(testFileRegex, (match) => {
         return match.replaceAll(path.sep, "/");
       })
       // Remove lines like `at TestHook.run (node:internal/test_runner/test:1107:18)`
