@@ -5,9 +5,9 @@ import chalk from "chalk";
 import { task } from "../../core/config.js";
 
 const hardhatPlugin: HardhatPlugin = {
-  id: "builtin:coverage",
+  id: "builtin:verify",
   tasks: [
-    task("coverage")
+    task("verify")
       .setDescription("Not implemented yet - to be available soon")
       .setAction(() =>
         console.log(

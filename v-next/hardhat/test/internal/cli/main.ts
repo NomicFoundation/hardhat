@@ -232,6 +232,7 @@ AVAILABLE TASKS:
   run                      Runs a user-defined script after compiling the project
   task                     A task that uses arg1
   test                     Runs all your tests
+  verify                   Not implemented yet - to be available soon
 
 AVAILABLE SUBTASKS:
 

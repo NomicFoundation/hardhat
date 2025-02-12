@@ -42,7 +42,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   if (chainType !== "l1") {
     console.log(
       chalk.yellow(
-        `\nChain type selection for tests will be implemented soon. Please check our communication channels for updates. For now, please run the task without the --chain-type option.\n`,
+        `Chain type selection for tests will be implemented soon. Please check our communication channels for updates. For now, please run the task without the --chain-type option.`,
       ),
     );
     process.exitCode = 1;
