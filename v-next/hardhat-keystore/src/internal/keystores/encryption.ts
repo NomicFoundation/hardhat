@@ -465,12 +465,12 @@ export function removeSecretFromKeystore({
   encryptedKeystore: EncryptedKeystore;
   keyToRemove: string;
 }): EncryptedKeystore {
+  validateHmac({ masterKey, encryptedKeystore });
+
   if (!(keyToRemove in encryptedKeystore.secrets)) {
     // eslint-disable-next-line no-restricted-syntax -- We don't throw HardhatErrors here
     throw new SecretNotFoundError(keyToRemove);
   }
-
-  validateHmac({ masterKey, encryptedKeystore });
 
   const secrets = {
     ...encryptedKeystore.secrets,
@@ -513,12 +513,12 @@ export function decryptSecret({
   encryptedKeystore: EncryptedKeystore;
   key: string;
 }): string {
+  validateHmac({ masterKey, encryptedKeystore });
+
   if (!(key in encryptedKeystore.secrets)) {
     // eslint-disable-next-line no-restricted-syntax -- We don't throw HardhatErrors here
     throw new SecretNotFoundError(key);
   }
-
-  validateHmac({ masterKey, encryptedKeystore });
 
   const dataEncryptionKey = hexToBytes(
     decryptUtf8String({
