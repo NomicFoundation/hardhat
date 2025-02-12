@@ -17,7 +17,7 @@ describe("Compiler downloader", function () {
 
   beforeEach(async function () {
     const plaftorm = CompilerDownloader.getCompilerPlatform();
-    downloader = new CompilerDownloader(plaftorm, this.tmpDir);
+    downloader = new CompilerDownloader(platform, this.tmpDir);
 
     assert.isFalse(await downloader.isCompilerDownloaded("0.4.12123"));
   });
