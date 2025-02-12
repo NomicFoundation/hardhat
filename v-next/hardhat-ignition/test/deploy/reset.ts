@@ -26,7 +26,7 @@ describe("reset flag", function () {
       reset: true,
     });
 
-    const artifactResolver = new HardhatArtifactResolver(this.hre);
+    const artifactResolver = new HardhatArtifactResolver(this.hre.artifacts);
 
     assertHardhatInvariant(
       this.deploymentDir !== undefined,

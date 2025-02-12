@@ -1,4 +1,4 @@
-import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
+import type { ArtifactManager } from "@ignored/hardhat-vnext/types/artifacts";
 import type {
   Artifact,
   ArtifactResolver,
@@ -8,23 +8,24 @@ import type {
 import { readJsonFile } from "@ignored/hardhat-vnext-utils/fs";
 
 export class HardhatArtifactResolver implements ArtifactResolver {
-  readonly #hre: HardhatRuntimeEnvironment;
+  readonly #artifactManager: ArtifactManager;
 
-  constructor(_hre: HardhatRuntimeEnvironment) {
-    this.#hre = _hre;
+  constructor(artifactManager: ArtifactManager) {
+    this.#artifactManager = artifactManager;
   }
 
   public async getBuildInfo(
     contractName: string,
   ): Promise<BuildInfo | undefined> {
-    const buildInfoId = await this.#hre.artifacts.getBuildInfoId(contractName);
+    const buildInfoId =
+      await this.#artifactManager.getBuildInfoId(contractName);
 
     if (buildInfoId === undefined) {
       return undefined;
     }
 
     const buildInfoPath =
-      await this.#hre.artifacts.getBuildInfoPath(buildInfoId);
+      await this.#artifactManager.getBuildInfoPath(buildInfoId);
 
     if (buildInfoPath === undefined) {
       return undefined;
@@ -34,6 +35,6 @@ export class HardhatArtifactResolver implements ArtifactResolver {
   }
 
   public loadArtifact(contractName: string): Promise<Artifact> {
-    return this.#hre.artifacts.readArtifact(contractName);
+    return this.#artifactManager.readArtifact(contractName);
   }
 }

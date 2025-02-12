@@ -1,8 +1,10 @@
 import type { ViemIgnitionHelper } from "./viem-ignition-helper.js";
 
-import "@ignored/hardhat-vnext/types/network";
 declare module "@ignored/hardhat-vnext/types/network" {
-  interface NetworkConnection {
-    ignition: ViemIgnitionHelper;
+  interface NetworkConnection<
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- the ChainTypeT must be declared in the interface but in this scenario it's not used
+    ChainTypeT extends ChainType | string = DefaultChainType,
+  > {
+    ignition: ViemIgnitionHelper<ChainTypeT>;
   }
 }

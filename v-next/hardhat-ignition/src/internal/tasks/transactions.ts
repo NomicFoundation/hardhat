@@ -27,7 +27,7 @@ const taskTransactions: NewTaskActionFunction<
     deploymentId,
   );
 
-  const artifactResolver = new HardhatArtifactResolver(hre);
+  const artifactResolver = new HardhatArtifactResolver(hre.artifacts);
 
   let listTransactionsResult: ListTransactionsResult;
 

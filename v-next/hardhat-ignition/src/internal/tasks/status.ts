@@ -25,7 +25,7 @@ const taskStatus: NewTaskActionFunction<TaskStatusArguments> = async (
     deploymentId,
   );
 
-  const artifactResolver = new HardhatArtifactResolver(hre);
+  const artifactResolver = new HardhatArtifactResolver(hre.artifacts);
 
   let statusResult: StatusResult;
   try {
