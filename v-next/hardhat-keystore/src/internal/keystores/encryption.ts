@@ -236,6 +236,10 @@ export class InvalidHmacError extends CustomError {
  * @param encryptionKey The encryption key to use.
  * @param value The value to encrypt, which will be utf-8 encoded.
  * @returns An object containing the iv and cypherText.
+ *
+ * @remarks
+ * The random IV is only 12 bytes, so we are assuming that no more than 2^20 encryptions are done with the same key
+ * as the probability of IV collision reaches 2^-57 at that point.
  */
 export function encryptUtf8String({
   encryptionKey,
