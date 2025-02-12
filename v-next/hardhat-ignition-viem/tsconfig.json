@@ -1,10 +1,11 @@
 {
   "extends": "../../config-v-next/tsconfig.json",
   "references": [
-    { "path": "../hardhat-ignition-core" },
+    { "path": "../hardhat" },
+    { "path": "../hardhat-errors" },
     { "path": "../hardhat-ignition" },
-    { "path": "../hardhat-viem" },
-    { "path": "../hardhat" }
+    { "path": "../hardhat-ignition-core" },
+    { "path": "../hardhat-viem" }
   ],
   "exclude": [
     "${configDir}/dist",
