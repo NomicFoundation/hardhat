@@ -14,6 +14,8 @@ import { setupKeystoreLoaderFrom } from "../utils/setup-keystore-loader-from.js"
 export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
   // Use a cache with hooks since they may be called multiple times consecutively.
   let keystoreLoader: KeystoreLoader | undefined;
+  // Caching the masterKey prevents repeated password prompts when retrieving multiple configuration variables.
+  let masterKey: Uint8Array | undefined;
 
   const handlers: Partial<ConfigurationVariableHooks> = {
     fetchValue: async (
@@ -41,14 +43,16 @@ export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
         return next(context, variable);
       }
 
-      const password = await askPassword(
-        context.interruptions.requestSecretInput.bind(context.interruptions),
-      );
+      if (masterKey === undefined) {
+        const password = await askPassword(
+          context.interruptions.requestSecretInput.bind(context.interruptions),
+        );
 
-      const masterKey = deriveMasterKeyFromKeystore({
-        encryptedKeystore: keystore.toJSON(),
-        password,
-      });
+        masterKey = deriveMasterKeyFromKeystore({
+          encryptedKeystore: keystore.toJSON(),
+          password,
+        });
+      }
 
       return keystore.readValue(variable.name, masterKey);
     },

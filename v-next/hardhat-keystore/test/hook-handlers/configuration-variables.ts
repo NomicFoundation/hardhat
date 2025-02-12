@@ -110,7 +110,7 @@ describe("hook-handlers - configuration variables - fetchValue", () => {
           setupKeystoreFileLocationOverrideAt(
             configurationVariableKeystoreFilePath,
           ),
-          setupKeystorePassword([TEST_PASSWORD, TEST_PASSWORD]),
+          setupKeystorePassword([TEST_PASSWORD]),
         ],
       });
     });
