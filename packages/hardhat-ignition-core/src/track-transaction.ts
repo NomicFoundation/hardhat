@@ -12,7 +12,6 @@ import { EIP1193Provider } from "./types/provider";
 import {
   JournalMessageType,
   OnchainInteractionReplacedByUserMessage,
-  TransactionPrepareSendMessage,
   TransactionSendMessage,
 } from "./internal/execution/types/messages";
 import {
@@ -21,6 +20,18 @@ import {
 } from "./internal/execution/types/jsonrpc";
 import { defaultConfig } from "./internal/defaultConfig";
 import { assertIgnitionInvariant } from "./internal/utils/assertions";
+import {
+  CallExecutionState,
+  DeploymentExecutionState,
+  SendDataExecutionState,
+  StaticCallExecutionState,
+} from "./internal/execution/types/execution-state";
+import {
+  NetworkInteractionType,
+  OnchainInteraction,
+} from "./internal/execution/types/network-interaction";
+import { DeploymentState } from "./internal/execution/types/deployment-state";
+import { getNetworkExecutionStates } from "./internal/views/execution-state/get-network-execution-states";
 
 /**
  * Tracks a transaction associated with a given deployment.
@@ -69,186 +80,134 @@ export async function trackTransaction(
     });
   }
 
+  const exStates = getNetworkExecutionStates(deploymentState);
+
   /**
    * Cases to consider:
-   * 1. (happy case) given txhash belongs to prepareSendMessage and no sendMessage is found
-   * 2. (user sent known txhash) given txhash matches prepareSendMessage (sender & nonce) but sendMessage is found with matching txhash
-   * 3. (user sent unknown txhash) given txhash matches prepareSendMessage (sender & nonce) but sendMessage is found with different txhash
-   * 4. (user sent unrelated txhash) given txhash doesn't match any prepareSendMessage (sender & nonce) for the given deployment
+   * 1. (happy case) given txhash matches a nonce we prepared but didn't record sending
+   * 2. (user replaced with different tx) given txhash matches a nonce we prepared but didn't record sending,
+   *     but the tx details are different
+   * 3. (user sent known txhash) given txhash matches a nonce we recorded sending with the same txhash
+   * 4. (user sent unknown txhash) given txhash matches a nonce we recorded sending but with a different txhash
+   * 5. (user sent unrelated txhash) given txhash doesn't match any nonce we've allocated
    */
+  for (const exState of exStates) {
+    for (const networkInteraction of exState.networkInteractions) {
+      if (
+        networkInteraction.type ===
+          NetworkInteractionType.ONCHAIN_INTERACTION &&
+        exState.from.toLowerCase() === transaction.from.toLowerCase() &&
+        networkInteraction.nonce === transaction.nonce
+      ) {
+        if (networkInteraction.transactions.length === 0) {
+          // case 1: the txHash matches a transaction we appear to have sent
+          if (
+            networkInteraction.to?.toLowerCase() ===
+              transaction.to?.toLowerCase() &&
+            networkInteraction.data === transaction.data &&
+            networkInteraction.value === transaction.value
+          ) {
+            let fees: NetworkFees;
+            if (
+              "maxFeePerGas" in transaction &&
+              "maxPriorityFeePerGas" in transaction &&
+              transaction.maxFeePerGas !== undefined &&
+              transaction.maxPriorityFeePerGas !== undefined
+            ) {
+              fees = {
+                maxFeePerGas: transaction.maxFeePerGas,
+                maxPriorityFeePerGas: transaction.maxPriorityFeePerGas,
+              };
+            } else {
+              assertIgnitionInvariant(
+                "gasPrice" in transaction && transaction.gasPrice !== undefined,
+                "Transaction fees are missing"
+              );
 
-  let prepareSendMessage: TransactionPrepareSendMessage | undefined;
-  for await (const message of deploymentLoader.readFromJournal()) {
-    if (
-      message.type !== JournalMessageType.TRANSACTION_SEND &&
-      message.type !== JournalMessageType.TRANSACTION_PREPARE_SEND
-    ) {
-      continue;
-    }
+              fees = {
+                gasPrice: transaction.gasPrice,
+              };
+            }
 
-    if (
-      message.type === JournalMessageType.TRANSACTION_PREPARE_SEND &&
-      message.transactionParams.from === transaction.from &&
-      message.transactionParams.nonce === transaction.nonce
-    ) {
-      prepareSendMessage = message;
-      continue;
-    }
+            const transactionSendMessage: TransactionSendMessage = {
+              futureId: exState.id,
+              networkInteractionId: networkInteraction.id,
+              nonce: networkInteraction.nonce,
+              type: JournalMessageType.TRANSACTION_SEND,
+              transaction: {
+                hash: transaction.hash,
+                fees,
+              },
+            };
 
-    // case: we found a sendTransaction message that matches our prepareSendMessage
-    if (
-      prepareSendMessage !== undefined &&
-      message.type === JournalMessageType.TRANSACTION_SEND &&
-      message.futureId === prepareSendMessage.futureId &&
-      message.networkInteractionId ===
-        prepareSendMessage.networkInteractionId &&
-      message.nonce === prepareSendMessage.transactionParams.nonce
-    ) {
-      // case: user sent known txhash that we already logged a sendTransaction message for in the journal
-      // i believe this would only happen if the user mistakenly sent us a tx for a nonce that we didn't ask for
-      // or if the user mistakenly used `npx hardhat ignition track-tx` twice for the same tx
-      if (message.transaction.hash === transaction.hash) {
-        throw new IgnitionError(ERRORS.TRACK_TRANSACTION.KNOWN_TRANSACTION);
+            await applyNewMessageFn(
+              transactionSendMessage,
+              deploymentState,
+              deploymentLoader
+            );
+
+            return;
+          }
+          // case 2: the user sent a different transaction that replaced ours
+          // so we check their transaction for the required number of confirmations
+          else {
+            return checkConfirmations(
+              exState,
+              networkInteraction,
+              transaction,
+              requiredConfirmations,
+              jsonRpcClient,
+              deploymentState,
+              deploymentLoader,
+              applyNewMessageFn
+            );
+          }
+        }
+        // case: the user gave us a transaction that matches a nonce we've already recorded sending from
+        else {
+          // case 3: the txHash matches the one we have saved in the journal for the same nonce
+          if (networkInteraction.transactions[0].hash === transaction.hash) {
+            throw new IgnitionError(ERRORS.TRACK_TRANSACTION.KNOWN_TRANSACTION);
+          }
+
+          // case 4: the user sent a different transaction that replaced ours
+          // so we check their transaction for the required number of confirmations
+          return checkConfirmations(
+            exState,
+            networkInteraction,
+            transaction,
+            requiredConfirmations,
+            jsonRpcClient,
+            deploymentState,
+            deploymentLoader,
+            applyNewMessageFn
+          );
+        }
       }
-
-      // case: user sent txhash that differs from the one we have saved in the journal for the same nonce
-      // in this case, the user has sent a tx that replaced ours on chain,
-      // so we check their tx for the required number of confirmations
-      const confirmations = await getTransactionConfirmations(
-        jsonRpcClient,
-        transaction.hash
-      );
-
-      if (confirmations >= requiredConfirmations) {
-        const transactionReplacedMessage: OnchainInteractionReplacedByUserMessage =
-          {
-            futureId: prepareSendMessage.futureId,
-            networkInteractionId: prepareSendMessage.networkInteractionId,
-            type: JournalMessageType.ONCHAIN_INTERACTION_REPLACED_BY_USER,
-          };
-
-        await applyNewMessageFn(
-          transactionReplacedMessage,
-          deploymentState,
-          deploymentLoader
-        );
-
-        /**
-         * We tell the user specifically what future will be executed upon re-running the deployment
-         * in case the replacement transaction sent by the user was the same transaction that we were going to send.
-         *
-         * i.e., if the broken transaction was for a future sending 100 ETH to an address, and the user decided to just send it
-         * themselves after the deployment failed, we tell them that the future sending 100 ETH will be executed upon re-running
-         * the deployment. It is not obvious to the user that that is the case, and it could result in a double send if they assume
-         * the opposite.
-         */
-        return `Your deployment has been fixed and will continue with the execution of the "${prepareSendMessage.futureId}" future.
-
-If this is not the expected behavior, please edit your Hardhat Ignition module accordingly before re-running your deployment.`;
-      } else {
-        throw new IgnitionError(
-          ERRORS.TRACK_TRANSACTION.INSUFFICIENT_CONFIRMATIONS
-        );
-      }
     }
   }
 
-  // we didn't find a prepareSendMessage that matches the nonce of the given txHash
-  if (prepareSendMessage === undefined) {
-    throw new IgnitionError(ERRORS.TRACK_TRANSACTION.MATCHING_NONCE_NOT_FOUND);
-  }
-
-  // we found a prepareSendMessage that matches the nonce of the given txHash and is missing a sendTransaction message
-  // but one or more fields of the prepareSendMessage don't match the given txHash
-  // in this case, the user has sent a tx that replaced ours on chain,
-  // so we check their tx for the required number of confirmations
-  if (
-    prepareSendMessage.transactionParams.to?.toLowerCase() !==
-      transaction.to?.toLowerCase() ||
-    prepareSendMessage.transactionParams.value !== transaction.value ||
-    prepareSendMessage.transactionParams.data !== transaction.data ||
-    prepareSendMessage.transactionParams.from.toLowerCase() !==
-      transaction.from.toLowerCase() ||
-    prepareSendMessage.transactionParams.nonce !== transaction.nonce ||
-    prepareSendMessage.transactionParams.gasLimit !== transaction.gasLimit ||
-    !feesEqual(prepareSendMessage.transactionParams.fees, transaction)
-  ) {
-    const confirmations = await getTransactionConfirmations(
-      jsonRpcClient,
-      transaction.hash
-    );
-
-    if (confirmations >= requiredConfirmations) {
-      const transactionReplacedMessage: OnchainInteractionReplacedByUserMessage =
-        {
-          futureId: prepareSendMessage.futureId,
-          networkInteractionId: prepareSendMessage.networkInteractionId,
-          type: JournalMessageType.ONCHAIN_INTERACTION_REPLACED_BY_USER,
-        };
-
-      await applyNewMessageFn(
-        transactionReplacedMessage,
-        deploymentState,
-        deploymentLoader
-      );
-
-      /**
-       * Like above, we tell the user specifically what future will be executed upon re-running the deployment
-       * in case the replacement transaction sent by the user was the same transaction that we were going to send.
-       *
-       * i.e., if the broken transaction was for a future sending 100 ETH to an address, and the user decided to just send it
-       * themselves after the deployment failed, we tell them that the future sending 100 ETH will be executed upon re-running
-       * the deployment. It is not obvious to the user that that is the case, and it could result in a double send if they assume
-       * the opposite.
-       */
-      return `Your deployment has been fixed and will continue with the execution of the "${prepareSendMessage.futureId}" future.
-
-If this is not the expected behavior, please edit your Hardhat Ignition module accordingly before re-running your deployment.`;
-    } else {
-      throw new IgnitionError(
-        ERRORS.TRACK_TRANSACTION.INSUFFICIENT_CONFIRMATIONS
-      );
-    }
-  }
-
-  // the given txHash perfectly matches our expectations based on the prepareSendMessage
-  // we can now create a sendTransaction message and add it to the journal
-  const transactionSendMessage: TransactionSendMessage = {
-    futureId: prepareSendMessage.futureId,
-    networkInteractionId: prepareSendMessage.networkInteractionId,
-    nonce: prepareSendMessage.transactionParams.nonce,
-    type: JournalMessageType.TRANSACTION_SEND,
-    transaction: {
-      hash: transaction.hash,
-      fees: prepareSendMessage.transactionParams.fees,
-    },
-  };
-
-  await applyNewMessageFn(
-    transactionSendMessage,
-    deploymentState,
-    deploymentLoader
-  );
+  // case 5: the txHash doesn't match any nonce we've allocated
+  throw new IgnitionError(ERRORS.TRACK_TRANSACTION.MATCHING_NONCE_NOT_FOUND);
 }
 
-function feesEqual(a: NetworkFees, b: FullTransaction): boolean {
-  if ("gasPrice" in a) {
-    return a.gasPrice === b.gasPrice;
-  }
-
-  return (
-    a.maxFeePerGas === b.maxFeePerGas &&
-    a.maxPriorityFeePerGas === b.maxPriorityFeePerGas
-  );
-}
-
-async function getTransactionConfirmations(
+async function checkConfirmations(
+  exState:
+    | DeploymentExecutionState
+    | CallExecutionState
+    | StaticCallExecutionState
+    | SendDataExecutionState,
+  networkInteraction: OnchainInteraction,
+  transaction: FullTransaction,
+  requiredConfirmations: number,
   jsonRpcClient: EIP1193JsonRpcClient,
-  txHash: string
-): Promise<number> {
+  deploymentState: DeploymentState,
+  deploymentLoader: FileDeploymentLoader,
+  applyNewMessageFn: (message: any, _a: any, _b: any) => Promise<any>
+) {
   const [block, receipt] = await Promise.all([
     jsonRpcClient.getLatestBlock(),
-    jsonRpcClient.getTransactionReceipt(txHash),
+    jsonRpcClient.getTransactionReceipt(transaction.hash),
   ]);
 
   assertIgnitionInvariant(
@@ -256,5 +215,37 @@ async function getTransactionConfirmations(
     "Unable to retrieve transaction receipt"
   );
 
-  return block.number - receipt.blockNumber + 1;
+  const confirmations = block.number - receipt.blockNumber + 1;
+
+  if (confirmations >= requiredConfirmations) {
+    const transactionReplacedMessage: OnchainInteractionReplacedByUserMessage =
+      {
+        futureId: exState.id,
+        networkInteractionId: networkInteraction.id,
+        type: JournalMessageType.ONCHAIN_INTERACTION_REPLACED_BY_USER,
+      };
+
+    await applyNewMessageFn(
+      transactionReplacedMessage,
+      deploymentState,
+      deploymentLoader
+    );
+
+    /**
+     * We tell the user specifically what future will be executed upon re-running the deployment
+     * in case the replacement transaction sent by the user was the same transaction that we were going to send.
+     *
+     * i.e., if the broken transaction was for a future sending 100 ETH to an address, and the user decided to just send it
+     * themselves after the deployment failed, we tell them that the future sending 100 ETH will be executed upon re-running
+     * the deployment. It is not obvious to the user that that is the case, and it could result in a double send if they assume
+     * the opposite.
+     */
+    return `Your deployment has been fixed and will continue with the execution of the "${exState.id}" future.
+
+If this is not the expected behavior, please edit your Hardhat Ignition module accordingly before re-running your deployment.`;
+  } else {
+    throw new IgnitionError(
+      ERRORS.TRACK_TRANSACTION.INSUFFICIENT_CONFIRMATIONS
+    );
+  }
 }

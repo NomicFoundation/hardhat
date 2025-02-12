@@ -39,6 +39,7 @@ import {
 import {
   appendNetworkInteraction,
   appendTransactionToOnchainInteraction,
+  applyNonceToOnchainInteraction,
   bumpOnchainInteractionFees,
   completeStaticCall,
   confirmTransaction,
@@ -149,13 +150,11 @@ export function executionStateReducer(
         completeStaticCall
       );
     case JournalMessageType.TRANSACTION_PREPARE_SEND:
-      // This is a no-op, as this message does not modify the execution state
-      // and is only used to recover if the transaction send fails
       return _ensureStateThen(
         state,
         action,
         exStateTypesThatSupportOnchainInteractions,
-        (exState) => exState
+        applyNonceToOnchainInteraction
       );
     case JournalMessageType.TRANSACTION_SEND:
       return _ensureStateThen(

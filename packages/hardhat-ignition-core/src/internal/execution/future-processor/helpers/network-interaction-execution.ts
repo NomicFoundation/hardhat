@@ -209,7 +209,7 @@ export async function sendTransactionForOnchainInteraction(
     type: JournalMessageType.TRANSACTION_PREPARE_SEND,
     futureId,
     networkInteractionId: onchainInteraction.id,
-    transactionParams,
+    nonce: transactionParams.nonce,
   });
 
   const txHash = await client.sendTransaction(transactionParams);

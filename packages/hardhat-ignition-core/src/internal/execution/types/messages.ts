@@ -1,5 +1,4 @@
 import { FutureType, SolidityParameterType } from "../../../types/module";
-import { TransactionParams } from "../jsonrpc-client";
 
 import {
   CallExecutionResult,
@@ -212,7 +211,7 @@ export interface TransactionPrepareSendMessage {
   type: JournalMessageType.TRANSACTION_PREPARE_SEND;
   futureId: string;
   networkInteractionId: number;
-  transactionParams: TransactionParams;
+  nonce: number;
 }
 
 export interface TransactionSendMessage {
