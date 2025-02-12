@@ -21,7 +21,7 @@
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
   "scripts": {
-    "prebuild": "node ./scripts/compile-test-fixture-project.js create2 && node ./scripts/compile-test-fixture-project.js minimal",
+    "prebuild": "pnpm run --dir ../hardhat-viem build && node ./scripts/compile-test-fixture-project.js create2 && node ./scripts/compile-test-fixture-project.js minimal",
     "build": "tsc --build .",
     "lint": "pnpm prettier --check && pnpm eslint",
     "lint:fix": "pnpm prettier --write && pnpm eslint --fix",
