@@ -16,6 +16,11 @@ const hardhatPlugin: HardhatPlugin = {
         description: "An optional list of files to test",
         defaultValue: [],
       })
+      .addOption({
+        name: "chainType",
+        description: "Not implemented yet - The chain type to use",
+        defaultValue: "l1",
+      })
       .setAction(import.meta.resolve("./task-action.js"))
       .build(),
   ],

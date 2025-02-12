@@ -3,6 +3,7 @@ import type { HardhatPlugin } from "../../types/plugins.js";
 import artifacts from "./artifacts/index.js";
 import clean from "./clean/index.js";
 import console from "./console/index.js";
+import coverage from "./coverage/index.js";
 import flatten from "./flatten/index.js";
 import networkManager from "./network-manager/index.js";
 import node from "./node/index.js";
@@ -37,4 +38,5 @@ export const builtinPlugins: HardhatPlugin[] = [
   run,
   node,
   flatten,
+  coverage,
 ];
