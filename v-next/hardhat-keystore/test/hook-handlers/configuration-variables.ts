@@ -43,6 +43,11 @@ const exampleConfigurationVariable: ConfigurationVariable = {
   name: "key1",
 };
 
+const exampleConfigurationVariable2: ConfigurationVariable = {
+  _type: "ConfigurationVariable",
+  name: "key2",
+};
+
 describe("hook-handlers - configuration variables - fetchValue", () => {
   let hre: HardhatRuntimeEnvironment;
   let runningInCi: boolean;
@@ -119,8 +124,10 @@ describe("hook-handlers - configuration variables - fetchValue", () => {
       await remove(configurationVariableKeystoreFilePath);
     });
 
-    describe("successful get on a key in the keystore", () => {
+    describe("successful get keys in the keystore", () => {
+      // The password should be requested only once since the masterKey is cached
       let resultValue: string;
+      let resultValue2: string;
 
       beforeEach(async () => {
         resultValue = await hre.hooks.runHandlerChain(
@@ -131,10 +138,20 @@ describe("hook-handlers - configuration variables - fetchValue", () => {
             return "unexpected-default-value";
           },
         );
+
+        resultValue2 = await hre.hooks.runHandlerChain(
+          "configurationVariables",
+          "fetchValue",
+          [exampleConfigurationVariable2],
+          async (_context, _configVar) => {
+            return "unexpected-default-value";
+          },
+        );
       });
 
-      it("should the value for the key in the keystore", async () => {
+      it("should fetch the value for the key in the keystore", async () => {
         assert.equal(resultValue, "value1");
+        assert.equal(resultValue2, "value2");
       });
     });
 
