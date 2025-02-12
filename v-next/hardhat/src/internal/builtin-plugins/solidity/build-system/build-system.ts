@@ -184,7 +184,9 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       (result) => !this.#hasCompilationErrors(result.compilerOutput),
     );
 
-    this.#cacheCompilationResults(uncachedSuccessfulResults);
+    const cachingCompilationResults = this.#cacheCompilationResults(
+      uncachedSuccessfulResults,
+    );
 
     const isSuccessfulBuild =
       uncachedResults.length === uncachedSuccessfulResults.length;
@@ -283,6 +285,9 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         this.#printCompilationResult(compilationJobs);
       }
     }
+
+    // We wait for the compilation results to be cached before returning
+    await cachingCompilationResults;
 
     return resultsMap;
   }
@@ -708,23 +713,10 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     return `${error.type}: ${error.message}`.replace(/[:\s]*$/g, "").trim();
   }
 
-  /** This function caches the compilation results in the compiler output cache.
-   *
-   * Please note that it does **NOT** wait for the writes/clean to finish. This
-   * is because we don't want to hold up the compilation process.
-   *
-   * We accept that some of the writes might fail. This is only safe because
-   * the write operation first writes to a temporary file, and only once that
-   * is done, it moves the file to the final location.
-   *
-   * If we notice that the amount of write failures is too high, or that the
-   * cache is not getting cleaned up often enough, we should reconsider this
-   * approach.
-   *
-   * @param compilationResults
-   */
-  #cacheCompilationResults(compilationResults: CompilationResult[]): void {
-    void Promise.all(
+  #cacheCompilationResults(
+    compilationResults: CompilationResult[],
+  ): Promise<void> {
+    return Promise.all(
       compilationResults.map(async (result) => {
         return this.#compilerOutputCache.set(
           await result.compilationJob.getBuildId(),

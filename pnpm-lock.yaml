@@ -1417,31 +1417,31 @@ importers:
   v-next/example-project:
     devDependencies:
       '@ignored/hardhat-vnext':
-        specifier: workspace:^3.0.0-next.16
+        specifier: workspace:^3.0.0-next.17
         version: link:../hardhat
       '@ignored/hardhat-vnext-chai-matchers':
-        specifier: workspace:^3.0.0-next.12
+        specifier: workspace:^3.0.0-next.13
         version: link:../hardhat-chai-matchers
       '@ignored/hardhat-vnext-ethers':
-        specifier: workspace:^3.0.0-next.12
+        specifier: workspace:^3.0.0-next.13
         version: link:../hardhat-ethers
       '@ignored/hardhat-vnext-keystore':
-        specifier: workspace:^3.0.0-next.12
+        specifier: workspace:^3.0.0-next.13
         version: link:../hardhat-keystore
       '@ignored/hardhat-vnext-mocha-test-runner':
-        specifier: workspace:^3.0.0-next.12
+        specifier: workspace:^3.0.0-next.13
         version: link:../hardhat-mocha-test-runner
       '@ignored/hardhat-vnext-network-helpers':
-        specifier: workspace:^3.0.0-next.12
+        specifier: workspace:^3.0.0-next.13
         version: link:../hardhat-network-helpers
       '@ignored/hardhat-vnext-node-test-runner':
-        specifier: workspace:^3.0.0-next.12
+        specifier: workspace:^3.0.0-next.13
         version: link:../hardhat-node-test-runner
       '@ignored/hardhat-vnext-typechain':
-        specifier: workspace:^3.0.0-next.12
+        specifier: workspace:^3.0.0-next.13
         version: link:../hardhat-typechain
       '@ignored/hardhat-vnext-viem':
-        specifier: workspace:^3.0.0-next.11
+        specifier: workspace:^3.0.0-next.12
         version: link:../hardhat-viem
       '@openzeppelin/contracts':
         specifier: 5.1.0
@@ -1483,19 +1483,19 @@ importers:
   v-next/hardhat:
     dependencies:
       '@ignored/edr':
-        specifier: 0.8.0-alpha.1
-        version: 0.8.0-alpha.1
+        specifier: 0.8.0-alpha.2
+        version: 0.8.0-alpha.2
       '@ignored/edr-optimism':
         specifier: 0.6.5-alpha.2
         version: 0.6.5-alpha.2
       '@ignored/hardhat-vnext-errors':
-        specifier: workspace:^3.0.0-next.15
+        specifier: workspace:^3.0.0-next.16
         version: link:../hardhat-errors
       '@ignored/hardhat-vnext-utils':
-        specifier: workspace:^3.0.0-next.15
+        specifier: workspace:^3.0.0-next.16
         version: link:../hardhat-utils
       '@ignored/hardhat-vnext-zod-utils':
-        specifier: workspace:^3.0.0-next.15
+        specifier: workspace:^3.0.0-next.16
         version: link:../hardhat-zod-utils
       '@nomicfoundation/solidity-analyzer':
         specifier: ^0.1.1
@@ -1544,7 +1544,7 @@ importers:
         specifier: ^4.3.0
         version: 4.4.1(eslint@8.57.0)
       '@ignored/hardhat-vnext-node-test-reporter':
-        specifier: workspace:^3.0.0-next.15
+        specifier: workspace:^3.0.0-next.16
         version: link:../hardhat-node-test-reporter
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
@@ -1604,16 +1604,16 @@ importers:
   v-next/hardhat-chai-matchers:
     dependencies:
       '@ignored/hardhat-vnext':
-        specifier: workspace:^3.0.0-next.16
+        specifier: workspace:^3.0.0-next.17
         version: link:../hardhat
       '@ignored/hardhat-vnext-errors':
-        specifier: workspace:^3.0.0-next.15
+        specifier: workspace:^3.0.0-next.16
         version: link:../hardhat-errors
       '@ignored/hardhat-vnext-ethers':
-        specifier: workspace:^3.0.0-next.12
+        specifier: workspace:^3.0.0-next.13
         version: link:../hardhat-ethers
       '@ignored/hardhat-vnext-utils':
-        specifier: workspace:^3.0.0-next.15
+        specifier: workspace:^3.0.0-next.16
         version: link:../hardhat-utils
       '@types/chai-as-promised':
         specifier: ^8.0.1
@@ -1635,10 +1635,10 @@ importers:
         specifier: ^4.3.0
         version: 4.4.1(eslint@8.57.0)
       '@ignored/hardhat-vnext-mocha-test-runner':
-        specifier: workspace:^3.0.0-next.12
+        specifier: workspace:^3.0.0-next.13
         version: link:../hardhat-mocha-test-runner
       '@ignored/hardhat-vnext-node-test-reporter':
-        specifier: workspace:^3.0.0-next.15
+        specifier: workspace:^3.0.0-next.16
         version: link:../hardhat-node-test-reporter
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
@@ -1707,14 +1707,14 @@ importers:
   v-next/hardhat-errors:
     dependencies:
       '@ignored/hardhat-vnext-utils':
-        specifier: workspace:^3.0.0-next.15
+        specifier: workspace:^3.0.0-next.16
         version: link:../hardhat-utils
     devDependencies:
       '@eslint-community/eslint-plugin-eslint-comments':
         specifier: ^4.3.0
         version: 4.4.1(eslint@8.57.0)
       '@ignored/hardhat-vnext-node-test-reporter':
-        specifier: workspace:^3.0.0-next.15
+        specifier: workspace:^3.0.0-next.16
         version: link:../hardhat-node-test-reporter
       '@types/node':
         specifier: ^20.14.9
@@ -1762,13 +1762,13 @@ importers:
   v-next/hardhat-ethers:
     dependencies:
       '@ignored/hardhat-vnext':
-        specifier: workspace:^3.0.0-next.16
+        specifier: workspace:^3.0.0-next.17
         version: link:../hardhat
       '@ignored/hardhat-vnext-errors':
-        specifier: workspace:^3.0.0-next.15
+        specifier: workspace:^3.0.0-next.16
         version: link:../hardhat-errors
       '@ignored/hardhat-vnext-utils':
-        specifier: workspace:^3.0.0-next.15
+        specifier: workspace:^3.0.0-next.16
         version: link:../hardhat-utils
       debug:
         specifier: ^4.3.2
@@ -1781,7 +1781,7 @@ importers:
         specifier: ^4.3.0
         version: 4.4.1(eslint@8.57.0)
       '@ignored/hardhat-vnext-node-test-reporter':
-        specifier: workspace:^3.0.0-next.15
+        specifier: workspace:^3.0.0-next.16
         version: link:../hardhat-node-test-reporter
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
@@ -2061,16 +2061,16 @@ importers:
   v-next/hardhat-keystore:
     dependencies:
       '@ignored/hardhat-vnext':
-        specifier: workspace:^3.0.0-next.16
+        specifier: workspace:^3.0.0-next.17
         version: link:../hardhat
       '@ignored/hardhat-vnext-errors':
-        specifier: workspace:^3.0.0-next.15
+        specifier: workspace:^3.0.0-next.16
         version: link:../hardhat-errors
       '@ignored/hardhat-vnext-utils':
-        specifier: workspace:^3.0.0-next.15
+        specifier: workspace:^3.0.0-next.16
         version: link:../hardhat-utils
       '@ignored/hardhat-vnext-zod-utils':
-        specifier: workspace:^3.0.0-next.15
+        specifier: workspace:^3.0.0-next.16
         version: link:../hardhat-zod-utils
       '@noble/ciphers':
         specifier: 1.2.1
@@ -2092,7 +2092,7 @@ importers:
         specifier: ^4.3.0
         version: 4.4.1(eslint@8.57.0)
       '@ignored/hardhat-vnext-node-test-reporter':
-        specifier: workspace:^3.0.0-next.15
+        specifier: workspace:^3.0.0-next.16
         version: link:../hardhat-node-test-reporter
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
@@ -2149,16 +2149,16 @@ importers:
   v-next/hardhat-mocha-test-runner:
     dependencies:
       '@ignored/hardhat-vnext':
-        specifier: workspace:^3.0.0-next.16
+        specifier: workspace:^3.0.0-next.17
         version: link:../hardhat
       '@ignored/hardhat-vnext-errors':
-        specifier: workspace:^3.0.0-next.15
+        specifier: workspace:^3.0.0-next.16
         version: link:../hardhat-errors
       '@ignored/hardhat-vnext-utils':
-        specifier: workspace:^3.0.0-next.15
+        specifier: workspace:^3.0.0-next.16
         version: link:../hardhat-utils
       '@ignored/hardhat-vnext-zod-utils':
-        specifier: workspace:^3.0.0-next.15
+        specifier: workspace:^3.0.0-next.16
         version: link:../hardhat-zod-utils
       mocha:
         specifier: ^10.0.0
@@ -2174,7 +2174,7 @@ importers:
         specifier: ^4.3.0
         version: 4.4.1(eslint@8.57.0)
       '@ignored/hardhat-vnext-node-test-reporter':
-        specifier: workspace:^3.0.0-next.15
+        specifier: workspace:^3.0.0-next.16
         version: link:../hardhat-node-test-reporter
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
@@ -2225,20 +2225,20 @@ importers:
   v-next/hardhat-network-helpers:
     dependencies:
       '@ignored/hardhat-vnext':
-        specifier: workspace:^3.0.0-next.16
+        specifier: workspace:^3.0.0-next.17
         version: link:../hardhat
       '@ignored/hardhat-vnext-errors':
-        specifier: workspace:^3.0.0-next.15
+        specifier: workspace:^3.0.0-next.16
         version: link:../hardhat-errors
       '@ignored/hardhat-vnext-utils':
-        specifier: workspace:^3.0.0-next.15
+        specifier: workspace:^3.0.0-next.16
         version: link:../hardhat-utils
     devDependencies:
       '@eslint-community/eslint-plugin-eslint-comments':
         specifier: ^4.3.0
         version: 4.4.1(eslint@8.57.0)
       '@ignored/hardhat-vnext-node-test-reporter':
-        specifier: workspace:^3.0.0-next.15
+        specifier: workspace:^3.0.0-next.16
         version: link:../hardhat-node-test-reporter
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
@@ -2350,19 +2350,19 @@ importers:
   v-next/hardhat-node-test-runner:
     dependencies:
       '@ignored/hardhat-vnext':
-        specifier: workspace:^3.0.0-next.16
+        specifier: workspace:^3.0.0-next.17
         version: link:../hardhat
       '@ignored/hardhat-vnext-errors':
-        specifier: workspace:^3.0.0-next.15
+        specifier: workspace:^3.0.0-next.16
         version: link:../hardhat-errors
       '@ignored/hardhat-vnext-node-test-reporter':
-        specifier: workspace:^3.0.0-next.15
+        specifier: workspace:^3.0.0-next.16
         version: link:../hardhat-node-test-reporter
       '@ignored/hardhat-vnext-utils':
-        specifier: workspace:^3.0.0-next.15
+        specifier: workspace:^3.0.0-next.16
         version: link:../hardhat-utils
       '@ignored/hardhat-vnext-zod-utils':
-        specifier: workspace:^3.0.0-next.15
+        specifier: workspace:^3.0.0-next.16
         version: link:../hardhat-zod-utils
       tsx:
         specifier: ^4.11.0
@@ -2478,19 +2478,19 @@ importers:
   v-next/hardhat-typechain:
     dependencies:
       '@ignored/hardhat-vnext':
-        specifier: workspace:^3.0.0-next.16
+        specifier: workspace:^3.0.0-next.17
         version: link:../hardhat
       '@ignored/hardhat-vnext-errors':
-        specifier: workspace:^3.0.0-next.15
+        specifier: workspace:^3.0.0-next.16
         version: link:../hardhat-errors
       '@ignored/hardhat-vnext-ethers':
-        specifier: workspace:^3.0.0-next.12
+        specifier: workspace:^3.0.0-next.13
         version: link:../hardhat-ethers
       '@ignored/hardhat-vnext-utils':
-        specifier: workspace:^3.0.0-next.15
+        specifier: workspace:^3.0.0-next.16
         version: link:../hardhat-utils
       '@ignored/hardhat-vnext-zod-utils':
-        specifier: workspace:^3.0.0-next.15
+        specifier: workspace:^3.0.0-next.16
         version: link:../hardhat-zod-utils
       '@typechain/ethers-v6':
         specifier: ^0.5.0
@@ -2512,7 +2512,7 @@ importers:
         specifier: ^4.3.0
         version: 4.4.1(eslint@8.57.0)
       '@ignored/hardhat-vnext-node-test-reporter':
-        specifier: workspace:^3.0.0-next.15
+        specifier: workspace:^3.0.0-next.16
         version: link:../hardhat-node-test-reporter
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
@@ -2591,7 +2591,7 @@ importers:
         specifier: ^4.3.0
         version: 4.4.1(eslint@8.57.0)
       '@ignored/hardhat-vnext-node-test-reporter':
-        specifier: workspace:^3.0.0-next.15
+        specifier: workspace:^3.0.0-next.16
         version: link:../hardhat-node-test-reporter
       '@types/bn.js':
         specifier: ^5.1.5
@@ -2645,20 +2645,20 @@ importers:
   v-next/hardhat-viem:
     dependencies:
       '@ignored/hardhat-vnext':
-        specifier: workspace:^3.0.0-next.16
+        specifier: workspace:^3.0.0-next.17
         version: link:../hardhat
       '@ignored/hardhat-vnext-errors':
-        specifier: workspace:^3.0.0-next.15
+        specifier: workspace:^3.0.0-next.16
         version: link:../hardhat-errors
       '@ignored/hardhat-vnext-utils':
-        specifier: workspace:^3.0.0-next.15
+        specifier: workspace:^3.0.0-next.16
         version: link:../hardhat-utils
     devDependencies:
       '@eslint-community/eslint-plugin-eslint-comments':
         specifier: ^4.3.0
         version: 4.4.1(eslint@8.57.0)
       '@ignored/hardhat-vnext-node-test-reporter':
-        specifier: workspace:^3.0.0-next.15
+        specifier: workspace:^3.0.0-next.16
         version: link:../hardhat-node-test-reporter
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
@@ -2712,14 +2712,14 @@ importers:
   v-next/hardhat-zod-utils:
     dependencies:
       '@ignored/hardhat-vnext-utils':
-        specifier: workspace:^3.0.0-next.15
+        specifier: workspace:^3.0.0-next.16
         version: link:../hardhat-utils
     devDependencies:
       '@eslint-community/eslint-plugin-eslint-comments':
         specifier: ^4.3.0
         version: 4.4.1(eslint@8.57.0)
       '@ignored/hardhat-vnext-node-test-reporter':
-        specifier: workspace:^3.0.0-next.15
+        specifier: workspace:^3.0.0-next.16
         version: link:../hardhat-node-test-reporter
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
@@ -2773,19 +2773,19 @@ importers:
   v-next/hardhat/templates/mocha-ethers:
     devDependencies:
       '@ignored/hardhat-vnext':
-        specifier: workspace:^3.0.0-next.16
+        specifier: workspace:^3.0.0-next.17
         version: link:../..
       '@ignored/hardhat-vnext-ethers':
-        specifier: workspace:^3.0.0-next.12
+        specifier: workspace:^3.0.0-next.13
         version: link:../../../hardhat-ethers
       '@ignored/hardhat-vnext-keystore':
-        specifier: workspace:^3.0.0-next.12
+        specifier: workspace:^3.0.0-next.13
         version: link:../../../hardhat-keystore
       '@ignored/hardhat-vnext-mocha-test-runner':
-        specifier: workspace:^3.0.0-next.12
+        specifier: workspace:^3.0.0-next.13
         version: link:../../../hardhat-mocha-test-runner
       '@ignored/hardhat-vnext-network-helpers':
-        specifier: workspace:^3.0.0-next.12
+        specifier: workspace:^3.0.0-next.13
         version: link:../../../hardhat-network-helpers
       '@types/chai':
         specifier: ^4.2.0
@@ -2821,19 +2821,19 @@ importers:
   v-next/hardhat/templates/node-test-runner-viem:
     devDependencies:
       '@ignored/hardhat-vnext':
-        specifier: workspace:^3.0.0-next.16
+        specifier: workspace:^3.0.0-next.17
         version: link:../..
       '@ignored/hardhat-vnext-keystore':
-        specifier: workspace:^3.0.0-next.12
+        specifier: workspace:^3.0.0-next.13
         version: link:../../../hardhat-keystore
       '@ignored/hardhat-vnext-network-helpers':
-        specifier: workspace:^3.0.0-next.12
+        specifier: workspace:^3.0.0-next.13
         version: link:../../../hardhat-network-helpers
       '@ignored/hardhat-vnext-node-test-runner':
-        specifier: workspace:^3.0.0-next.12
+        specifier: workspace:^3.0.0-next.13
         version: link:../../../hardhat-node-test-runner
       '@ignored/hardhat-vnext-viem':
-        specifier: workspace:^3.0.0-next.11
+        specifier: workspace:^3.0.0-next.12
         version: link:../../../hardhat-viem
       '@types/node':
         specifier: ^22.8.5
@@ -2854,7 +2854,7 @@ importers:
         specifier: ^4.3.0
         version: 4.4.1(eslint@8.57.0)
       '@ignored/hardhat-vnext-node-test-reporter':
-        specifier: workspace:^3.0.0-next.15
+        specifier: workspace:^3.0.0-next.16
         version: link:../hardhat-node-test-reporter
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
@@ -3542,28 +3542,28 @@ packages:
     resolution: {integrity: sha512-93zYdMES/c1D69yZiKDBj0V24vqNzB/koF26KPaagAfd3P/4gUlh3Dys5ogAK+Exi9QyzlD8x/08Zt7wIKcDcA==}
     deprecated: Use @eslint/object-schema instead
 
-  '@ignored/edr-darwin-arm64@0.8.0-alpha.1':
-    resolution: {integrity: sha512-+c1EycflMeoT1g+heYCir7pyicrXue2luN1/Adx+lqaC5VsIuFm8vuo3BwiCqKuUx8Rd9qw6PGHRFMeWn0tOIA==}
+  '@ignored/edr-darwin-arm64@0.8.0-alpha.2':
+    resolution: {integrity: sha512-Ia5QHBc4zJBa6Dp9a0CEtGWRaiEryOF3tubqaO3WwVXYuicBxK39oBoeqM3BA9gzpNwLN3PI08kp8Vi7lyU7UA==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr-darwin-x64@0.8.0-alpha.1':
-    resolution: {integrity: sha512-7rukXlljR2WQwM/E6FSNayWcaIj9wzcGvky88Cz8m2fys7QkwueHk2B0v1wHON8d3BhDjigDycz9XgRv/lLKrg==}
+  '@ignored/edr-darwin-x64@0.8.0-alpha.2':
+    resolution: {integrity: sha512-oqi2QhryysRkGhI3v0daJbw9y77u46XINJJr81a8F+KjwY2S99TDs+NGyG8+t8HHBziqaLJ27OT+icrlCMNQ6Q==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr-linux-arm64-gnu@0.8.0-alpha.1':
-    resolution: {integrity: sha512-IpJFsBKskGQuliddv6Q2daFkwvcOAZNr+nDW0vaeHdD7nfu3tnGjOxjDiQQMGqBNSvnkYi/HYHpbJMojmABwFw==}
+  '@ignored/edr-linux-arm64-gnu@0.8.0-alpha.2':
+    resolution: {integrity: sha512-WwiDVxrQ6voN/Bs2REanTJsXr/pgxqM/PS1pBrsISaQZlDoXObeJDaGqLu//ldqhOjtDx1wV/ChyZYECJeUH/Q==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr-linux-arm64-musl@0.8.0-alpha.1':
-    resolution: {integrity: sha512-chOgO30XkWtOIpritpb+0ZOWuu5nVs0kZ2tvKbiVPMtcAbJBt19S3rVhGhfuDRCkcoQfONX4dwr1l6xTEJh4DQ==}
+  '@ignored/edr-linux-arm64-musl@0.8.0-alpha.2':
+    resolution: {integrity: sha512-0CZC2knh4qtKZbCEkS6gCQ+YlsZkq5+fkFS1h8U+TKnuwDIdzC95GCg38LJuL2Jz/ZZqtjA+kBfIzMFjVvUa3g==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr-linux-x64-gnu@0.8.0-alpha.1':
-    resolution: {integrity: sha512-oASS70VCr2lbD1byUGj6k9s4DIQpiKyh0p5SlizJLDKwJfodfV/6GFCyP6VoVPsczfFL5cXLqsBxYDthytiikw==}
+  '@ignored/edr-linux-x64-gnu@0.8.0-alpha.2':
+    resolution: {integrity: sha512-gvwfmLR2+UYtdv4wIkPvKR0Vky2BysLSADo2Zo8te5VpzP31oZjp8T7uh/GKnWx9kPRYICGoF6awfCGP/q+z2A==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr-linux-x64-musl@0.8.0-alpha.1':
-    resolution: {integrity: sha512-QTmIoDnAXdBSXewrpx02ZYvJi41HePTpd80mxBWjMfhTZgI6tJ51ATl7U/clFcGBJvy4JGuiuVo6owI0gte7Pw==}
+  '@ignored/edr-linux-x64-musl@0.8.0-alpha.2':
+    resolution: {integrity: sha512-9F1F0x+XfN6Hb/EYfDK4M/KIjGGeSdWnJqm5HkcGQjGjjTlvrzwis2P/qoWYBdcLmSGRb1Inc8FwD6emzJzCEQ==}
     engines: {node: '>= 18'}
 
   '@ignored/edr-optimism-darwin-arm64@0.6.5-alpha.2':
@@ -3598,12 +3598,12 @@ packages:
     resolution: {integrity: sha512-AMgM23RRndJ63/pZ6T2tesqb/jg5cwgVgkeOPkVWCCtE74In6YQlsSgRItG7eemVkq+hkuXe14RwCIiJfi8KeQ==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr-win32-x64-msvc@0.8.0-alpha.1':
-    resolution: {integrity: sha512-X9VcX18iVIo925eqgzsanDmg1rtbb8BFZrea6F52Rf8+G1uXKGsLcxiomxnMYgO8B3/BtGvw9q89qNrYmeFo0A==}
+  '@ignored/edr-win32-x64-msvc@0.8.0-alpha.2':
+    resolution: {integrity: sha512-Mei/rdKYIVXHePZEpn+1A15EQQTsC4N8qHFxoqXVOu4UUjPoUBYAkh3ZbuvfyeNsWoDrPF7H+zhuwyR3BwHJWQ==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr@0.8.0-alpha.1':
-    resolution: {integrity: sha512-15twEtiWg2h5MGaqQvQry9tN3dmhJ6wWhhmPJatTRZTl52PtTHTLN8g+2Z5k3oddCicdSYNmmnFR2+isf2aZsQ==}
+  '@ignored/edr@0.8.0-alpha.2':
+    resolution: {integrity: sha512-PYATPTMMhTgG7zRdGraQLCXyLrD+cHwm3XqGEjJZ0uRg4m02FGOvjLetAtc5Dq17COUDsMMAZ9o3vS3w9mSgYw==}
     engines: {node: '>= 18'}
 
   '@isaacs/cliui@8.0.2':
@@ -9118,22 +9118,22 @@ snapshots:
 
   '@humanwhocodes/object-schema@2.0.3': {}
 
-  '@ignored/edr-darwin-arm64@0.8.0-alpha.1':
+  '@ignored/edr-darwin-arm64@0.8.0-alpha.2':
     optional: true
 
-  '@ignored/edr-darwin-x64@0.8.0-alpha.1':
+  '@ignored/edr-darwin-x64@0.8.0-alpha.2':
     optional: true
 
-  '@ignored/edr-linux-arm64-gnu@0.8.0-alpha.1':
+  '@ignored/edr-linux-arm64-gnu@0.8.0-alpha.2':
     optional: true
 
-  '@ignored/edr-linux-arm64-musl@0.8.0-alpha.1':
+  '@ignored/edr-linux-arm64-musl@0.8.0-alpha.2':
     optional: true
 
-  '@ignored/edr-linux-x64-gnu@0.8.0-alpha.1':
+  '@ignored/edr-linux-x64-gnu@0.8.0-alpha.2':
     optional: true
 
-  '@ignored/edr-linux-x64-musl@0.8.0-alpha.1':
+  '@ignored/edr-linux-x64-musl@0.8.0-alpha.2':
     optional: true
 
   '@ignored/edr-optimism-darwin-arm64@0.6.5-alpha.2': {}
@@ -9160,18 +9160,18 @@ snapshots:
       '@ignored/edr-optimism-linux-x64-musl': 0.6.5-alpha.2
       '@ignored/edr-optimism-win32-x64-msvc': 0.6.5-alpha.2
 
-  '@ignored/edr-win32-x64-msvc@0.8.0-alpha.1':
+  '@ignored/edr-win32-x64-msvc@0.8.0-alpha.2':
     optional: true
 
-  '@ignored/edr@0.8.0-alpha.1':
+  '@ignored/edr@0.8.0-alpha.2':
     optionalDependencies:
-      '@ignored/edr-darwin-arm64': 0.8.0-alpha.1
-      '@ignored/edr-darwin-x64': 0.8.0-alpha.1
-      '@ignored/edr-linux-arm64-gnu': 0.8.0-alpha.1
-      '@ignored/edr-linux-arm64-musl': 0.8.0-alpha.1
-      '@ignored/edr-linux-x64-gnu': 0.8.0-alpha.1
-      '@ignored/edr-linux-x64-musl': 0.8.0-alpha.1
-      '@ignored/edr-win32-x64-msvc': 0.8.0-alpha.1
+      '@ignored/edr-darwin-arm64': 0.8.0-alpha.2
+      '@ignored/edr-darwin-x64': 0.8.0-alpha.2
+      '@ignored/edr-linux-arm64-gnu': 0.8.0-alpha.2
+      '@ignored/edr-linux-arm64-musl': 0.8.0-alpha.2
+      '@ignored/edr-linux-x64-gnu': 0.8.0-alpha.2
+      '@ignored/edr-linux-x64-musl': 0.8.0-alpha.2
+      '@ignored/edr-win32-x64-msvc': 0.8.0-alpha.2
 
   '@isaacs/cliui@8.0.2':
     dependencies:
