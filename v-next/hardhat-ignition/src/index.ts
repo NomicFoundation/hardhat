@@ -14,7 +14,10 @@ const hardhatIgnitionPlugin: HardhatPlugin = {
     config: import.meta.resolve("./internal/hook-handlers/config.js"),
   },
   tasks: [
-    emptyTask("ignition", "Store your keys in a secure way").build(),
+    emptyTask(
+      "ignition",
+      "Deploy your smart contracts using Hardhat Ignition",
+    ).build(),
     task(["ignition", "deploy"], "Deploy a module to the specified network")
       .addPositionalArgument({
         name: "modulePath",
