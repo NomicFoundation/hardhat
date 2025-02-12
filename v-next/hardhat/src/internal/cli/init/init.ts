@@ -28,7 +28,7 @@ import {
   installsPeerDependenciesByDefault,
 } from "./package-manager.js";
 import {
-  promptForEsm,
+  promptForMigrateToEsm,
   promptForForce,
   promptForInstall,
   promptForTemplate,
@@ -40,7 +40,7 @@ import { getTemplates } from "./template.js";
 
 export interface InitHardhatOptions {
   workspace?: string;
-  esm?: boolean;
+  migrateToEsm?: boolean;
   template?: string;
   force?: boolean;
   install?: boolean;
@@ -88,7 +88,7 @@ export async function initHardhat(options?: InitHardhatOptions): Promise<void> {
 
     // Create the package.json file if it does not exist
     // and validate that it is an esm package
-    await validatePackageJson(workspace, options?.esm);
+    await validatePackageJson(workspace, options?.migrateToEsm);
 
     // Ask the user for the template to use for the project initialization
     // if it was not provided, and validate that it exists
@@ -253,30 +253,32 @@ export async function getTemplate(template?: string): Promise<Template> {
  */
 export async function validatePackageJson(
   workspace: string,
-  esm?: boolean,
+  migrateToEsm?: boolean,
 ): Promise<void> {
-  const pathToPackageJson = path.join(workspace, "package.json");
+  const absolutePathToPackageJson = path.join(workspace, "package.json");
 
   // Create the package.json file if it does not exist
-  if (!(await exists(pathToPackageJson))) {
-    await writeJsonFile(pathToPackageJson, {
+  if (!(await exists(absolutePathToPackageJson))) {
+    await writeJsonFile(absolutePathToPackageJson, {
       name: "hardhat-project",
       type: "module",
     });
   }
 
-  const pkg: PackageJson = await readJsonFile(pathToPackageJson);
+  const pkg: PackageJson = await readJsonFile(absolutePathToPackageJson);
 
   // Validate that the package.json file is an esm package
   if (pkg.type === "module") {
     return;
   }
 
-  if (esm === undefined) {
-    esm = await promptForEsm(pathToPackageJson);
+  if (migrateToEsm === undefined) {
+    migrateToEsm = await promptForMigrateToEsm(
+      path.relative(process.cwd(), workspace),
+    );
   }
 
-  if (!esm) {
+  if (!migrateToEsm) {
     throw new HardhatError(HardhatError.ERRORS.GENERAL.ONLY_ESM_SUPPORTED);
   }
 

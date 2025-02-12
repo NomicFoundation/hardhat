@@ -331,7 +331,7 @@ describe("initHardhat", async () => {
         await initHardhat({
           template: template.name,
           workspace: process.cwd(),
-          esm: false,
+          migrateToEsm: false,
           force: false,
           install: false,
         });
