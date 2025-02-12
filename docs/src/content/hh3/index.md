@@ -38,11 +38,9 @@ You are now ready to initialize a sample project. Run the follow command:
 npm/pnpm hardhat --init
 ```
 
-Use the current directory as the path to initialize the project, which is the default option. Then you'll have to choose between using a project based on **Node Test Runner and Viem** or one based on **Mocha and Ethers.js**. Select the first one. 
+Use the current directory as the path to initialize the project, which is the default option. Then you'll have to choose between using a project based on **Node Test Runner and Viem** or one based on **Mocha and Ethers.js**. Select the first one.
 
-::::tip
-We recommend using the built-in Node.js test runner because it's fast and doesn't require any dependencies, and viem for its ease of use and powerful typing features. But we'll continue to have support for Mocha and Ethers.js, both for backwards-compatibility and for people that don't want to switch libraries.
-::::
+::::tip We recommend using the built-in Node.js test runner because it's fast and doesn't require any dependencies, and viem for its ease of use and powerful typing features. But we'll continue to have support for Mocha and Ethers.js, both for backwards-compatibility and for people that don't want to switch libraries. ::::
 
 Finally, accept installing the necessary dependencies.
 
@@ -163,6 +161,7 @@ You can also run all your tests—both Solidity and TypeScript—simply by execu
 Hardhat 2, like other Ethereum development tools, makes an implicit assumption about your development workflow: you interact with a single network at a time, and that network behaves like the Ethereum Mainnet. That assumption used to be true, but it isn't anymore as the community executes on our rollup-centric roadmap.
 
 Both assumptions are dropped in Hardhat 3:
+
 - You can select the type of chain you want to interact with.
 - You can manage connections to multiple networks.
 
@@ -218,9 +217,9 @@ This network exists for the duration of the task, so the deployments are ephemer
 2. In another terminal, run `npx hardhat ignition deploy --network localhost`. This will deploy the module in the node.
 3. Once the deployment finishes, run the same command again. Nothing is done this time, because we have already deployed that module.
 4. Without stopping the node, add a new action at the end of the module:
-    ```
-    \<example diff>
-    ```
+   ```
+   \<example diff>
+   ```
 5. Run the deployment once more. Now only the new action will be performed.
 
 While Hardhat Ignition is our recommended approach for deploying contracts, you can choose to use anything else. For example, you can use plain scripts for simple deployments, or you could use a deployment plugin developed by the community.
@@ -273,7 +272,7 @@ import SomeHardhatPlugin from "some-hardhat-plugin";
 export default {
   plugins: [SomeHardhatPlugin],
   // ...other configuration...
-}
+};
 ```
 
 While this is slightly more verbose, having a fully declarative configuration has many advantages:
@@ -295,10 +294,10 @@ const accountsTask = task("accounts", "Prints the list of accounts")
   .setAction(async (taskArgs, { network }) => {
     const { viem } = await network.connect();
 
-    const walletClients = await viem.getWalletClients()
+    const walletClients = await viem.getWalletClients();
 
     for (const walletClient of walletClients) {
-      console.log(walletClient.account.address)
+      console.log(walletClient.account.address);
     }
   })
   .build();
@@ -306,7 +305,7 @@ const accountsTask = task("accounts", "Prints the list of accounts")
 export default {
   tasks: [accountsTask],
   // ...other configuration...
-}
+};
 ```
 
 This task is pretty much the same as in Hardhat 2, except for two differences:

@@ -2,22 +2,22 @@ section-type: group
 section-title: Hardhat 3 Alpha
 order:
   - title: Overview
-    href: '#overview'
+    href: "#overview"
   - title: Initializing a project
-    href: '#initializing-a-project'
+    href: "#initializing-a-project"
   - title: Solidity tests
-    href: '#solidity-tests'
+    href: "#solidity-tests"
   - title: TypeScript tests
-    href: '#typescript-tests'
+    href: "#typescript-tests"
   - title: Multichain support
-    href: '#multichain-support'
+    href: "#multichain-support"
   - title: Deploying contracts
-    href: '#deploying-contracts'
+    href: "#deploying-contracts"
   - title: Build profiles
-    href: '#build-profiles'
+    href: "#build-profiles"
   - title: Managing dependencies
-    href: '#managing-dependencies'
+    href: "#managing-dependencies"
   - title: Configuration
-    href: '#configuration'
+    href: "#configuration"
   - title: Extensibility
-    href: '#extensibility'
+    href: "#extensibility"
