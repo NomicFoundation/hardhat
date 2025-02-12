@@ -1,3 +1,5 @@
+import type { PackageJson } from "@ignored/hardhat-vnext-utils/package";
+
 import assert from "node:assert/strict";
 import path from "node:path";
 import { describe, it } from "node:test";
@@ -6,6 +8,7 @@ import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import {
   ensureDir,
   exists,
+  readJsonFile,
   readUtf8File,
   writeUtf8File,
 } from "@ignored/hardhat-vnext-utils/fs";
@@ -17,7 +20,7 @@ import {
 
 import {
   copyProjectFiles,
-  ensureProjectPackageJson,
+  validatePackageJson,
   getTemplate,
   getWorkspace,
   initHardhat,
@@ -80,15 +83,15 @@ describe("getTemplate", () => {
   });
 });
 
-describe("ensureProjectPackageJson", () => {
-  useTmpDir("ensureProjectPackageJson");
+describe("validatePackageJson", () => {
+  useTmpDir("validatePackageJson");
 
   it("should create the package.json file if it does not exist", async () => {
     assert.ok(
       !(await exists("package.json")),
       "package.json should not exist before ensuring it exists",
     );
-    await ensureProjectPackageJson(process.cwd());
+    await validatePackageJson(process.cwd(), false);
     assert.ok(await exists("package.json"), "package.json should exist");
   });
   it("should not create the package.json file if it already exists", async () => {
@@ -97,17 +100,25 @@ describe("ensureProjectPackageJson", () => {
       type: "module",
     });
     await writeUtf8File("package.json", before);
-    await ensureProjectPackageJson(process.cwd());
+    await validatePackageJson(process.cwd(), false);
     const after = await readUtf8File("package.json");
     assert.equal(before, after);
   });
   it("should throw if the package.json is not for an esm package", async () => {
     await writeUtf8File("package.json", "{}");
     await assertRejectsWithHardhatError(
-      async () => ensureProjectPackageJson(process.cwd()),
+      async () => validatePackageJson(process.cwd(), false),
       HardhatError.ERRORS.GENERAL.ONLY_ESM_SUPPORTED,
       {},
     );
+  });
+  it("should migrate package.json to esm if the user opts-in to it", async () => {
+    await writeUtf8File("package.json", "{}");
+    await validatePackageJson(process.cwd(), true);
+    const pkg: PackageJson = await readJsonFile(
+      path.join(process.cwd(), "package.json"),
+    );
+    assert.equal(pkg.type, "module");
   });
 });
 
@@ -320,6 +331,7 @@ describe("initHardhat", async () => {
         await initHardhat({
           template: template.name,
           workspace: process.cwd(),
+          esm: false,
           force: false,
           install: false,
         });

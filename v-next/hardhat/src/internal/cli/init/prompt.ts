@@ -20,6 +20,25 @@ export async function promptForWorkspace(): Promise<string> {
   return workspaceResponse.workspace;
 }
 
+export async function promptForEsm(
+  pathToPackageJson: string,
+): Promise<boolean> {
+  ensureTTY();
+
+  const { default: enquirer } = await import("enquirer");
+
+  const esmResponse = await enquirer.prompt<{ esm: boolean }>([
+    {
+      name: "esm",
+      type: "confirm",
+      message: `Hardhat only supports ESM projects. Would you like to set the type for ${pathToPackageJson} to "module" now?`,
+      initial: false,
+    },
+  ]);
+
+  return esmResponse.esm;
+}
+
 export async function promptForTemplate(
   templates: Template[],
 ): Promise<string> {
