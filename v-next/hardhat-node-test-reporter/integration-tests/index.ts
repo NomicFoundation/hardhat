@@ -133,12 +133,9 @@ function normalizeOutput(name: string, output: string): string {
   }
 
   const testFileRegex = new RegExp(
-    path.join(
-      "integration-tests",
-      "fixture-tests",
-      `[^${path.sep}]+`,
-      "test.ts",
-    ),
+    path
+      .join("integration-tests", "fixture-tests", `[^${path.sep}]+`, "test.ts")
+      .replaceAll("\\", "\\\\"),
     "g",
   );
 
