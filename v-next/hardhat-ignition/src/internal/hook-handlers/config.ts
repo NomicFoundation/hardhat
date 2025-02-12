@@ -60,7 +60,7 @@ export async function resolveUserConfig(
       ...paths,
       ignition: resolveFromRoot(
         resolvedConfig.paths.root,
-        paths.ignition ?? "ignition",
+        userConfig.paths?.ignition ?? "ignition",
       ),
     },
     ignition: {
