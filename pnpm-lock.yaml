@@ -2209,8 +2209,8 @@ importers:
         specifier: ^8.0.1
         version: 8.0.1
       '@types/mocha':
-        specifier: 9.1.1
-        version: 9.1.1
+        specifier: '>=9.1.0'
+        version: 10.0.10
       '@types/node':
         specifier: ^20.14.9
         version: 20.17.16
@@ -2275,7 +2275,7 @@ importers:
         specifier: 7.7.1
         version: 7.7.1(eslint@8.57.0)(typescript@5.5.4)
       viem:
-        specifier: ^2.7.6
+        specifier: ^2.21.42
         version: 2.22.13(typescript@5.5.4)(zod@3.24.1)
 
   v-next/hardhat-keystore:
@@ -4430,9 +4430,6 @@ packages:
 
   '@types/mocha@10.0.10':
     resolution: {integrity: sha512-xPyYSz1cMPnJQhl0CLMH68j3gprKZaTjG3s5Vi+fDgx+uhG9NOXwbVt52eFS8ECyXhyKcjDLCBEqBExKuiZb7Q==}
-
-  '@types/mocha@9.1.1':
-    resolution: {integrity: sha512-Z61JK7DKDtdKTWwLeElSEBcWGRLY8g95ic5FoQqI9CMx0ns/Ghep3B4DfcEimiKMvtamNVULVNKEsiwV3aQmXw==}
 
   '@types/ms@2.1.0':
     resolution: {integrity: sha512-GsCCIZDE/p3i96vtEqx+7dBUGXrc7zeSK3wwPHIaRThS+9OhWIXRqzs4d6k1SVU8g91DrNRWxWUGhp5KXQb2VA==}
@@ -10169,8 +10166,6 @@ snapshots:
   '@types/minimatch@5.1.2': {}
 
   '@types/mocha@10.0.10': {}
-
-  '@types/mocha@9.1.1': {}
 
   '@types/ms@2.1.0': {}
 

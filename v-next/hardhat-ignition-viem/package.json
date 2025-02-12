@@ -41,7 +41,7 @@
     "@ignored/hardhat-vnext-viem": "workspace:^3.0.0-next.11",
     "@types/chai": "^4.2.0",
     "@types/chai-as-promised": "^8.0.1",
-    "@types/mocha": "9.1.1",
+    "@types/mocha": ">=9.1.0",
     "@types/node": "^20.14.9",
     "@types/sinon": "^10.0.13",
     "@typescript-eslint/eslint-plugin": "^7.7.1",
@@ -63,7 +63,7 @@
     "ts-node": "10.9.2",
     "typescript": "~5.5.0",
     "typescript-eslint": "7.7.1",
-    "viem": "^2.7.6"
+    "viem": "^2.21.42"
   },
   "peerDependencies": {
     "@ignored/hardhat-vnext": "workspace:^3.0.0-next.16",
@@ -71,6 +71,6 @@
     "@ignored/hardhat-vnext-ignition": "workspace:^2.0.0",
     "@ignored/hardhat-vnext-ignition-core": "workspace:^0.15.9",
     "@ignored/hardhat-vnext-viem": "workspace:^3.0.0-next.11",
-    "viem": "^2.7.6"
+    "viem": "^2.21.42"
   }
 }
