@@ -1,7 +1,8 @@
 {
-  "require": "ts-node/register/transpile-only",
+  "extension": ["ts"],
+  "loader": "ts-node/esm",
   "file": "./test/setup.ts",
   "timeout": 20000,
   "exit": true,
-  "ignore": ["**/fixture-projects/**/*"]
+  "ignore": ["**/*.d.ts", "test/fixture-projects/**"]
 }

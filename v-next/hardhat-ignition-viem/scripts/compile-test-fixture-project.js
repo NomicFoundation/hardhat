@@ -1,6 +1,8 @@
-import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
 import path, { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+
+import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
+import hardhatViemPlugin from "@ignored/hardhat-vnext-viem";
 
 const main = async (projectToBuild) => {
   console.log("Running compile on the test fixture project - ", projectToBuild);
@@ -13,7 +15,9 @@ const main = async (projectToBuild) => {
 
   process.chdir(fixtureProjectDir);
 
-  const hre = await createHardhatRuntimeEnvironment({});
+  const hre = await createHardhatRuntimeEnvironment({
+    plugins: [hardhatViemPlugin],
+  });
 
   await hre.tasks.getTask("compile").run({ quiet: true });
 };

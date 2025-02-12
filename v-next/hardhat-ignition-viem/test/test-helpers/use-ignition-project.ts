@@ -5,6 +5,8 @@ import path from "node:path";
 
 import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
 
+import hardhatIgnitionViem from "../../src/index.js";
+
 declare module "mocha" {
   interface Context {
     hre: HardhatRuntimeEnvironment;
@@ -18,10 +20,16 @@ export function useIgnitionProject(fixtureProjectName: string): void {
     previousCwd = process.cwd();
 
     process.chdir(
-      path.join(__dirname, "../fixture-projects", fixtureProjectName),
+      path.join(
+        path.dirname(new URL(import.meta.url).pathname),
+        "../fixture-projects",
+        fixtureProjectName,
+      ),
     );
 
-    const hre = await createHardhatRuntimeEnvironment({});
+    const hre = await createHardhatRuntimeEnvironment({
+      plugins: [hardhatIgnitionViem],
+    });
 
     await hre.tasks.getTask("compile").run({ quiet: true });
 

@@ -6,7 +6,11 @@ describe("ignition helper mutual exclusivity", () => {
     originalCwd = process.cwd();
 
     process.chdir(
-      path.join(__dirname, "./fixture-projects", "with-fake-helper"),
+      path.join(
+        path.dirname(new URL(import.meta.url).pathname),
+        "./fixture-projects",
+        "with-fake-helper",
+      ),
     );
   });
 

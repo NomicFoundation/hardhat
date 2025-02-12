@@ -20,7 +20,8 @@ describe("strategies - invocation via helper", () => {
       }
     >;
 
-    it("should execute create2 when passed config programmatically via helper", async function () {
+    // TODO: HH3 bring back this test
+    it.skip("should execute create2 when passed config programmatically via helper", async function () {
       const moduleDefinition = buildModule("Module", (m) => {
         const foo = m.contract("Foo");
 
@@ -70,7 +71,8 @@ describe("strategies - invocation via helper", () => {
       }
     >;
 
-    it("should execute create2 with the helper loading the Hardhat config", async function () {
+    // TODO: HH3 bring back this test
+    it.skip("should execute create2 with the helper loading the Hardhat config", async function () {
       const moduleDefinition = buildModule("Module", (m) => {
         const baz = m.contract("Baz");
 

@@ -2,6 +2,8 @@ import { buildModule } from "@ignored/hardhat-vnext-ignition-core";
 import { assert } from "chai";
 
 import { useIgnitionProject } from "./test-helpers/use-ignition-project.js";
+import "@ignored/hardhat-vnext-viem";
+import "../src/type-extensions.js";
 
 describe("support changing default sender", () => {
   useIgnitionProject("minimal");
