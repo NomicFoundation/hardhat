@@ -1,5 +1,5 @@
 import { DeploymentState } from "../execution/types/deployment-state";
-import { ExecutionSateType } from "../execution/types/execution-state";
+import { ExecutionStateType } from "../execution/types/execution-state";
 import { Transaction, TransactionReceipt } from "../execution/types/jsonrpc";
 import { NetworkInteractionType } from "../execution/types/network-interaction";
 import { assertIgnitionInvariant } from "../utils/assertions";
@@ -18,9 +18,9 @@ export function findConfirmedTransactionByFutureId(
   );
 
   assertIgnitionInvariant(
-    exState.type === ExecutionSateType.DEPLOYMENT_EXECUTION_STATE ||
-      exState.type === ExecutionSateType.SEND_DATA_EXECUTION_STATE ||
-      exState.type === ExecutionSateType.CALL_EXECUTION_STATE,
+    exState.type === ExecutionStateType.DEPLOYMENT_EXECUTION_STATE ||
+      exState.type === ExecutionStateType.SEND_DATA_EXECUTION_STATE ||
+      exState.type === ExecutionStateType.CALL_EXECUTION_STATE,
     `Tx hash resolution only supported on execution states with network interactions, ${futureId} is ${exState.type}`
   );
 

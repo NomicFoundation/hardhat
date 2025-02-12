@@ -13,7 +13,7 @@ import { ExecutionResultType } from "../types/execution-result";
 import {
   CallExecutionState,
   DeploymentExecutionState,
-  ExecutionSateType,
+  ExecutionStateType,
   SendDataExecutionState,
   StaticCallExecutionState,
 } from "../types/execution-state";
@@ -103,11 +103,11 @@ export class FutureProcessor {
 
     while (!isExecutionStateComplete(exState)) {
       assertIgnitionInvariant(
-        exState.type !== ExecutionSateType.CONTRACT_AT_EXECUTION_STATE &&
+        exState.type !== ExecutionStateType.CONTRACT_AT_EXECUTION_STATE &&
           exState.type !==
-            ExecutionSateType.READ_EVENT_ARGUMENT_EXECUTION_STATE &&
+            ExecutionStateType.READ_EVENT_ARGUMENT_EXECUTION_STATE &&
           exState.type !==
-            ExecutionSateType.ENCODE_FUNCTION_CALL_EXECUTION_STATE,
+            ExecutionStateType.ENCODE_FUNCTION_CALL_EXECUTION_STATE,
         `Unexpected ExectutionState ${exState.id} with type ${exState.type} and status ${exState.status}: it should have been immediately completed`
       );
 
@@ -183,7 +183,7 @@ export class FutureProcessor {
 
       case NextAction.SEND_TRANSACTION:
         assertIgnitionInvariant(
-          exState.type !== ExecutionSateType.STATIC_CALL_EXECUTION_STATE,
+          exState.type !== ExecutionStateType.STATIC_CALL_EXECUTION_STATE,
           `Unexpected transaction request in StaticCallExecutionState ${exState.id}`
         );
 
@@ -201,7 +201,7 @@ export class FutureProcessor {
 
       case NextAction.MONITOR_ONCHAIN_INTERACTION:
         assertIgnitionInvariant(
-          exState.type !== ExecutionSateType.STATIC_CALL_EXECUTION_STATE,
+          exState.type !== ExecutionStateType.STATIC_CALL_EXECUTION_STATE,
           `Unexpected transaction request in StaticCallExecutionState ${exState.id}`
         );
 

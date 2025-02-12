@@ -3,7 +3,7 @@ import { assert } from "chai";
 
 import { buildModule } from "../../../src/build-module";
 import {
-  ExecutionSateType,
+  ExecutionStateType,
   ExecutionStatus,
   SendDataExecutionState,
 } from "../../../src/internal/execution/types/execution-state";
@@ -21,7 +21,7 @@ describe("Reconciliation - send data", () => {
 
   const exampleSendState: SendDataExecutionState = {
     id: "Example",
-    type: ExecutionSateType.SEND_DATA_EXECUTION_STATE,
+    type: ExecutionStateType.SEND_DATA_EXECUTION_STATE,
     futureType: FutureType.SEND_DATA,
     strategy: "basic",
     strategyConfig: {},

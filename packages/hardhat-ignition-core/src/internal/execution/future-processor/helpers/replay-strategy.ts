@@ -2,7 +2,7 @@ import { assertIgnitionInvariant } from "../../../utils/assertions";
 import {
   CallExecutionState,
   DeploymentExecutionState,
-  ExecutionSateType,
+  ExecutionStateType,
   ExecutionStatus,
   SendDataExecutionState,
   StaticCallExecutionState,
@@ -57,13 +57,13 @@ async function replayExecutionStartegyWithOnchainInteractions(
     | SendDataStrategyGenerator;
 
   switch (executionState.type) {
-    case ExecutionSateType.DEPLOYMENT_EXECUTION_STATE:
+    case ExecutionStateType.DEPLOYMENT_EXECUTION_STATE:
       generator = strategy.executeDeployment(executionState);
       break;
-    case ExecutionSateType.CALL_EXECUTION_STATE:
+    case ExecutionStateType.CALL_EXECUTION_STATE:
       generator = strategy.executeCall(executionState);
       break;
-    case ExecutionSateType.SEND_DATA_EXECUTION_STATE:
+    case ExecutionStateType.SEND_DATA_EXECUTION_STATE:
       generator = strategy.executeSendData(executionState);
       break;
   }
@@ -180,22 +180,22 @@ export async function replayStrategy(
   | StaticCallStrategyGenerator
 > {
   switch (executionState.type) {
-    case ExecutionSateType.DEPLOYMENT_EXECUTION_STATE:
+    case ExecutionStateType.DEPLOYMENT_EXECUTION_STATE:
       return replayExecutionStartegyWithOnchainInteractions(
         executionState,
         strategy
       );
-    case ExecutionSateType.CALL_EXECUTION_STATE:
+    case ExecutionStateType.CALL_EXECUTION_STATE:
       return replayExecutionStartegyWithOnchainInteractions(
         executionState,
         strategy
       );
-    case ExecutionSateType.SEND_DATA_EXECUTION_STATE:
+    case ExecutionStateType.SEND_DATA_EXECUTION_STATE:
       return replayExecutionStartegyWithOnchainInteractions(
         executionState,
         strategy
       );
-    case ExecutionSateType.STATIC_CALL_EXECUTION_STATE:
+    case ExecutionStateType.STATIC_CALL_EXECUTION_STATE:
       return replayStaticCallExecutionStrategy(executionState, strategy);
   }
 }

@@ -12,7 +12,7 @@ import { deploymentStateReducer } from "../../../src/internal/execution/reducers
 import { DeploymentState } from "../../../src/internal/execution/types/deployment-state";
 import {
   DeploymentExecutionState,
-  ExecutionSateType,
+  ExecutionStateType,
   ExecutionStatus,
 } from "../../../src/internal/execution/types/execution-state";
 import {
@@ -37,7 +37,7 @@ describe("execution - getNonceSyncMessages", () => {
 
   const exampleDeploymentState: DeploymentExecutionState = {
     id: "Example",
-    type: ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
+    type: ExecutionStateType.DEPLOYMENT_EXECUTION_STATE,
     futureType: FutureType.CONTRACT_DEPLOYMENT,
     strategy: "basic",
     strategyConfig: {},
@@ -794,7 +794,7 @@ function setupDeploymentStateBasedOnExampleModuleWithOneTranWith(
 ): DeploymentState {
   const exampleDeploymentState: DeploymentExecutionState = {
     id: "Example",
-    type: ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
+    type: ExecutionStateType.DEPLOYMENT_EXECUTION_STATE,
     futureType: FutureType.CONTRACT_DEPLOYMENT,
     strategy: "basic",
     strategyConfig: {},

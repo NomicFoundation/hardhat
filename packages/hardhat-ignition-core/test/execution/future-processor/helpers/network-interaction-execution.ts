@@ -27,7 +27,7 @@ import {
 import {
   CallExecutionState,
   DeploymentExecutionState,
-  ExecutionSateType,
+  ExecutionStateType,
   ExecutionStatus,
 } from "../../../../src/internal/execution/types/execution-state";
 import { CallStrategyGenerator } from "../../../../src/internal/execution/types/execution-strategy";
@@ -229,7 +229,7 @@ describe("Network interactions", () => {
 
     const exampleDeploymentExecutionState: DeploymentExecutionState = {
       id: "test",
-      type: ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
+      type: ExecutionStateType.DEPLOYMENT_EXECUTION_STATE,
       futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
       strategy: "basic",
       strategyConfig: {},

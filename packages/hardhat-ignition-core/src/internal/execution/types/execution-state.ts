@@ -34,7 +34,7 @@ export enum ExecutionStatus {
 /**
  * The different kinds of execution states.
  */
-export enum ExecutionSateType {
+export enum ExecutionStateType {
   DEPLOYMENT_EXECUTION_STATE = "DEPLOYMENT_EXECUTION_STATE",
   CALL_EXECUTION_STATE = "CALL_EXECUTION_STATE",
   STATIC_CALL_EXECUTION_STATE = "STATIC_CALL_EXECUTION_STATE",
@@ -56,7 +56,7 @@ export type ConcreteExecutionConfig = Record<string, number | string>;
  * Its id must match the id of the future that it belongs to.
  */
 interface BaseExecutionState<
-  ExecutionStateT extends ExecutionSateType,
+  ExecutionStateT extends ExecutionStateType,
   FutureTypeT extends FutureType
 > {
   id: string;
@@ -81,7 +81,7 @@ export type DeploymentExecutionStateFutureTypes =
  */
 export interface DeploymentExecutionState
   extends BaseExecutionState<
-    ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
+    ExecutionStateType.DEPLOYMENT_EXECUTION_STATE,
     DeploymentExecutionStateFutureTypes
   > {
   artifactId: string;
@@ -99,7 +99,7 @@ export interface DeploymentExecutionState
  */
 export interface CallExecutionState
   extends BaseExecutionState<
-    ExecutionSateType.CALL_EXECUTION_STATE,
+    ExecutionStateType.CALL_EXECUTION_STATE,
     FutureType.CONTRACT_CALL
   > {
   artifactId: string;
@@ -120,7 +120,7 @@ export interface CallExecutionState
  */
 export interface StaticCallExecutionState
   extends BaseExecutionState<
-    ExecutionSateType.STATIC_CALL_EXECUTION_STATE,
+    ExecutionStateType.STATIC_CALL_EXECUTION_STATE,
     FutureType.STATIC_CALL
   > {
   artifactId: string;
@@ -143,7 +143,7 @@ export interface StaticCallExecutionState
  */
 export interface EncodeFunctionCallExecutionState
   extends BaseExecutionState<
-    ExecutionSateType.ENCODE_FUNCTION_CALL_EXECUTION_STATE,
+    ExecutionStateType.ENCODE_FUNCTION_CALL_EXECUTION_STATE,
     FutureType.ENCODE_FUNCTION_CALL
   > {
   artifactId: string;
@@ -157,7 +157,7 @@ export interface EncodeFunctionCallExecutionState
  */
 export interface SendDataExecutionState
   extends BaseExecutionState<
-    ExecutionSateType.SEND_DATA_EXECUTION_STATE,
+    ExecutionStateType.SEND_DATA_EXECUTION_STATE,
     FutureType.SEND_DATA
   > {
   to: string;
@@ -178,7 +178,7 @@ export interface SendDataExecutionState
  */
 export interface ContractAtExecutionState
   extends BaseExecutionState<
-    ExecutionSateType.CONTRACT_AT_EXECUTION_STATE,
+    ExecutionStateType.CONTRACT_AT_EXECUTION_STATE,
     FutureType.NAMED_ARTIFACT_CONTRACT_AT | FutureType.CONTRACT_AT
   > {
   artifactId: string;
@@ -194,7 +194,7 @@ export interface ContractAtExecutionState
  */
 export interface ReadEventArgumentExecutionState
   extends BaseExecutionState<
-    ExecutionSateType.READ_EVENT_ARGUMENT_EXECUTION_STATE,
+    ExecutionStateType.READ_EVENT_ARGUMENT_EXECUTION_STATE,
     FutureType.READ_EVENT_ARGUMENT
   > {
   artifactId: string;

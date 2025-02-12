@@ -7,7 +7,7 @@ import { findTransactionBy } from "../../../views/execution-state/find-transacti
 import {
   CallExecutionState,
   DeploymentExecutionState,
-  ExecutionSateType,
+  ExecutionStateType,
   ExecutionStatus,
   SendDataExecutionState,
   StaticCallExecutionState,
@@ -40,7 +40,7 @@ export function appendNetworkInteraction<
     | SendDataExecutionState
 >(state: ExState, action: NetworkInteractionRequestMessage): ExState {
   return produce(state, (draft: ExState): void => {
-    if (draft.type === ExecutionSateType.STATIC_CALL_EXECUTION_STATE) {
+    if (draft.type === ExecutionStateType.STATIC_CALL_EXECUTION_STATE) {
       assertIgnitionInvariant(
         action.networkInteraction.type === NetworkInteractionType.STATIC_CALL,
         `Static call execution states like ${draft.id} cannot have onchain interactions`

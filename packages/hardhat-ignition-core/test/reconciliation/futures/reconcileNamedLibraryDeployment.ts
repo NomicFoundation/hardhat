@@ -5,7 +5,7 @@ import { buildModule } from "../../../src/build-module";
 import { ExecutionResultType } from "../../../src/internal/execution/types/execution-result";
 import {
   DeploymentExecutionState,
-  ExecutionSateType,
+  ExecutionStateType,
   ExecutionStatus,
 } from "../../../src/internal/execution/types/execution-state";
 import { FutureType } from "../../../src/types/module";
@@ -23,7 +23,7 @@ describe("Reconciliation - named library", () => {
 
   const exampleDeploymentState: DeploymentExecutionState = {
     id: "Example",
-    type: ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
+    type: ExecutionStateType.DEPLOYMENT_EXECUTION_STATE,
     futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
     strategy: "basic",
     strategyConfig: {},

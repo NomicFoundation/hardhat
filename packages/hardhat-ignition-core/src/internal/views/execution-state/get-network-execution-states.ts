@@ -2,7 +2,7 @@ import { DeploymentState } from "../../execution/types/deployment-state";
 import {
   CallExecutionState,
   DeploymentExecutionState,
-  ExecutionSateType,
+  ExecutionStateType,
   SendDataExecutionState,
   StaticCallExecutionState,
 } from "../../execution/types/execution-state";
@@ -24,10 +24,10 @@ export function getNetworkExecutionStates(
 
   for (const exState of Object.values(deploymentState.executionStates)) {
     if (
-      exState.type === ExecutionSateType.DEPLOYMENT_EXECUTION_STATE ||
-      exState.type === ExecutionSateType.CALL_EXECUTION_STATE ||
-      exState.type === ExecutionSateType.SEND_DATA_EXECUTION_STATE ||
-      exState.type === ExecutionSateType.STATIC_CALL_EXECUTION_STATE
+      exState.type === ExecutionStateType.DEPLOYMENT_EXECUTION_STATE ||
+      exState.type === ExecutionStateType.CALL_EXECUTION_STATE ||
+      exState.type === ExecutionStateType.SEND_DATA_EXECUTION_STATE ||
+      exState.type === ExecutionStateType.STATIC_CALL_EXECUTION_STATE
     ) {
       exStates.push(exState);
     }
