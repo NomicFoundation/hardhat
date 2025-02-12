@@ -42,7 +42,7 @@ export const remove = async (
 
   const keystore = await keystoreLoader.loadKeystore();
 
-  const keys = await keystore.listKeys();
+  const keys = await keystore.listUnverifiedKeys();
 
   if (!keys.includes(key)) {
     if (force) {

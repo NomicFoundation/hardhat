@@ -48,7 +48,7 @@ describe("Keystore", () => {
     });
 
     it("should list the keys", async () => {
-      assert.deepEqual(await keystore.listKeys(), ["key1", "key2"]);
+      assert.deepEqual(await keystore.listUnverifiedKeys(), ["key1", "key2"]);
     });
 
     it("should read a value", async () => {

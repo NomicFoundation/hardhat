@@ -20,7 +20,10 @@ export class Keystore implements KeystoreI {
     return this.#keystoreData;
   }
 
-  public async listKeys(): Promise<string[]> {
+  public async listUnverifiedKeys(): Promise<string[]> {
+    // In this scenario the keystore is not validated for integrity, so the returned keys might have been tampered with.
+    // This is acceptable if the keys are only listed for display purposes.
+    // This risk is considered acceptable for this use case.
     return Object.keys(this.#keystoreData.secrets);
   }
 
