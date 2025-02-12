@@ -5,7 +5,10 @@ import {
 import { flush } from "@sentry/node";
 import debug from "debug";
 
-import { ProviderError } from "../../../builtin-plugins/network-manager/provider-errors.js";
+import {
+  ProviderError,
+  UnknownError,
+} from "../../../builtin-plugins/network-manager/provider-errors.js";
 import { getHardhatVersion } from "../../../utils/package.js";
 import { isTelemetryAllowed } from "../telemetry-permissions.js";
 
@@ -127,8 +130,11 @@ class Reporter {
       return false;
     }
 
-    if (ProviderError.isProviderError(error)) {
-      // We don't report network related errors
+    if (
+      ProviderError.isProviderError(error) &&
+      error.code !== UnknownError.CODE
+    ) {
+      // We don't report known network related errors
       return false;
     }
 

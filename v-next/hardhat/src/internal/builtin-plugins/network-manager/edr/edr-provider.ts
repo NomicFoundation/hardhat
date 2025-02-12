@@ -1,12 +1,12 @@
 import type { SolidityStackTrace } from "./stack-traces/solidity-stack-trace.js";
 import type { LoggerConfig } from "./types/logger.js";
-import type { TracingConfig } from "./types/node-types.js";
 import type {
   EdrNetworkConfig,
   EdrNetworkHDAccountsConfig,
 } from "../../../../types/config.js";
 import type {
   EthSubscription,
+  JsonRpcRequest,
   JsonRpcResponse,
   RequestArguments,
   SuccessfulJsonRpcResponse,
@@ -18,6 +18,7 @@ import type {
   Response,
   Provider,
   ProviderConfig,
+  TracingConfigWithBuffers,
 } from "@ignored/edr-optimism";
 
 import {
@@ -31,6 +32,7 @@ import {
   HardhatError,
 } from "@ignored/hardhat-vnext-errors";
 import { toSeconds } from "@ignored/hardhat-vnext-utils/date";
+import { ensureError } from "@ignored/hardhat-vnext-utils/error";
 import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
 import { deepEqual } from "@ignored/hardhat-vnext-utils/lang";
 import debug from "debug";
@@ -39,7 +41,11 @@ import { EDR_NETWORK_REVERT_SNAPSHOT_EVENT } from "../../../constants.js";
 import { DEFAULT_HD_ACCOUNTS_CONFIG_PARAMS } from "../accounts/constants.js";
 import { BaseProvider } from "../base-provider.js";
 import { getJsonRpcRequest, isFailedJsonRpcResponse } from "../json-rpc.js";
-import { InvalidArgumentsError, ProviderError } from "../provider-errors.js";
+import {
+  InvalidArgumentsError,
+  ProviderError,
+  UnknownError,
+} from "../provider-errors.js";
 
 import { getGlobalEdrContext } from "./edr-context.js";
 import { createSolidityErrorWithStackTrace } from "./stack-traces/stack-trace-solidity-errors.js";
@@ -121,7 +127,7 @@ export const EDR_NETWORK_DEFAULT_PRIVATE_KEYS: string[] = [
 interface EdrProviderConfig {
   networkConfig: EdrNetworkConfig;
   loggerConfig?: LoggerConfig;
-  tracingConfig?: TracingConfig;
+  tracingConfig?: TracingConfigWithBuffers;
   jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction;
 }
 
@@ -145,30 +151,41 @@ export class EdrProvider extends BaseProvider {
 
     const providerConfig = await getProviderConfig(networkConfig);
 
-    const context = await getGlobalEdrContext();
-    const provider = await context.createProvider(
-      hardhatChainTypeToEdrChainType(networkConfig.chainType),
-      providerConfig,
-      {
-        enable: loggerConfig.enabled,
-        decodeConsoleLogInputsCallback: ConsoleLogger.getDecodedLogs,
-        printLineCallback: (message: string, replace: boolean) => {
-          if (replace) {
-            replaceLastLineFn(message);
-          } else {
-            printLineFn(message);
-          }
-        },
-      },
-      {
-        subscriptionCallback: (event: SubscriptionEvent) => {
-          edrProvider.onSubscriptionEvent(event);
-        },
-      },
-      tracingConfig,
-    );
+    let edrProvider: EdrProvider;
 
-    const edrProvider = new EdrProvider(provider, jsonRpcRequestWrapper);
+    // We need to catch errors here, as the provider creation can panic unexpectedly,
+    // and we want to make sure such a crash is propagated as a ProviderError.
+    try {
+      const context = await getGlobalEdrContext();
+      const provider = await context.createProvider(
+        hardhatChainTypeToEdrChainType(networkConfig.chainType),
+        providerConfig,
+        {
+          enable: loggerConfig.enabled,
+          decodeConsoleLogInputsCallback: ConsoleLogger.getDecodedLogs,
+          printLineCallback: (message: string, replace: boolean) => {
+            if (replace) {
+              replaceLastLineFn(message);
+            } else {
+              printLineFn(message);
+            }
+          },
+        },
+        {
+          subscriptionCallback: (event: SubscriptionEvent) => {
+            edrProvider.onSubscriptionEvent(event);
+          },
+        },
+        tracingConfig,
+      );
+
+      edrProvider = new EdrProvider(provider, jsonRpcRequestWrapper);
+    } catch (error) {
+      ensureError(error);
+
+      // eslint-disable-next-line no-restricted-syntax -- allow throwing UnknownError
+      throw new UnknownError(error.message, error);
+    }
 
     return edrProvider;
   }
@@ -210,24 +227,10 @@ export class EdrProvider extends BaseProvider {
     if (this.#jsonRpcRequestWrapper !== undefined) {
       jsonRpcResponse = await this.#jsonRpcRequestWrapper(
         jsonRpcRequest,
-        async (request) => {
-          assertHardhatInvariant(
-            this.#provider !== undefined,
-            "The provider is not defined",
-          );
-
-          const stringifiedArgs = JSON.stringify(request);
-          const edrResponse =
-            await this.#provider.handleRequest(stringifiedArgs);
-
-          return this.#handleEdrResponse(edrResponse);
-        },
+        this.#handleRequest.bind(this),
       );
     } else {
-      const stringifiedArgs = JSON.stringify(jsonRpcRequest);
-      const edrResponse = await this.#provider.handleRequest(stringifiedArgs);
-
-      jsonRpcResponse = await this.#handleEdrResponse(edrResponse);
+      jsonRpcResponse = await this.#handleRequest(jsonRpcRequest);
     }
 
     // this can only happen if a wrapper doesn't call the default
@@ -351,6 +354,30 @@ export class EdrProvider extends BaseProvider {
       },
     };
     this.emit("message", message);
+  }
+
+  async #handleRequest(request: JsonRpcRequest): Promise<JsonRpcResponse> {
+    assertHardhatInvariant(
+      this.#provider !== undefined,
+      "The provider is not defined",
+    );
+
+    const stringifiedArgs = JSON.stringify(request);
+
+    let edrResponse: Response;
+
+    // We need to catch errors here, as the provider creation can panic unexpectedly,
+    // and we want to make sure such a crash is propagated as a ProviderError.
+    try {
+      edrResponse = await this.#provider.handleRequest(stringifiedArgs);
+    } catch (error) {
+      ensureError(error);
+
+      // eslint-disable-next-line no-restricted-syntax -- allow throwing UnknownError
+      throw new UnknownError(error.message, error);
+    }
+
+    return this.#handleEdrResponse(edrResponse);
   }
 }
 

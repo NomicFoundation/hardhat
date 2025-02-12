@@ -127,3 +127,11 @@ export class InvalidResponseError extends ProviderError {
     super(message, InvalidResponseError.CODE, parent);
   }
 }
+
+export class UnknownError extends ProviderError {
+  public static readonly CODE = -1;
+
+  constructor(message: string = "Unknown error", parent?: Error) {
+    super(message, UnknownError.CODE, parent);
+  }
+}

@@ -15,6 +15,7 @@ import { hardhat, anvil, optimism } from "viem/chains";
 -- TODO: this assertion should not be necessary */
 const chains = Object.values(chainsModule) as ViemChain[];
 
+const chainCache = new WeakMap<EthereumProvider, ViemChain>();
 const chainIdCache = new WeakMap<EthereumProvider, number>();
 const isHardhatNetworkCache = new WeakMap<EthereumProvider, boolean>();
 const isAnvilNetworkCache = new WeakMap<EthereumProvider, boolean>();
@@ -26,46 +27,54 @@ export async function getChain(
   provider: EthereumProvider,
   chainType: ChainType | string,
 ): Promise<ViemChain> {
+  const cachedChain = chainCache.get(provider);
+  if (cachedChain !== undefined) {
+    return cachedChain;
+  }
+
   const chainId = await getChainId(provider);
 
-  const chain = extractChain({
+  let chain = extractChain({
     chains,
     id: chainId,
   });
 
   if ((await isDevelopmentNetwork(provider)) || chain === undefined) {
     if (await isHardhatNetwork(provider)) {
+      // TODO: We shoud improve how we handle the chains for the different chain
+      // types, as this is both a hardhat and an optimism chain.
+      //
+      // We are currently creating our chain based off optimism's, but that's
+      // not always the correct behavior, as the user may be connecting to
+      // a different chain.
       if (chainType === "optimism") {
-        // TODO: We may need a better way to merge this info.
-        return { ...optimism, id: chainId };
+        chain = { ...optimism, id: chainId };
+      } else {
+        chain = {
+          ...hardhat,
+          id: chainId,
+        };
       }
-
-      return {
-        ...hardhat,
-        id: chainId,
-      };
-    }
-
-    if (await isAnvilNetwork(provider)) {
-      return {
+    } else if (await isAnvilNetwork(provider)) {
+      chain = {
         ...anvil,
         id: chainId,
       };
-    }
-
-    // If the chain couldn't be found and we can't detect the development
-    // network we throw an error
-    if (chain === undefined) {
+    } else if (chain === undefined) {
+      // If the chain couldn't be found and we can't detect the development
+      // network we throw an error.
       throw new HardhatError(HardhatError.ERRORS.VIEM.NETWORK_NOT_FOUND, {
         chainId,
       });
+    } else {
+      assertHardhatInvariant(
+        false,
+        "This should not happen, as we check in isDevelopmentNetwork that it's either hardhat or anvil",
+      );
     }
-
-    assertHardhatInvariant(
-      false,
-      "This should not happen, as we check in isDevelopmentNetwork that it's either hardhat or anvil",
-    );
   }
+
+  chainCache.set(provider, chain);
 
   return chain;
 }
