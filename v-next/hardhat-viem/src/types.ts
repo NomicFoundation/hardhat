@@ -146,7 +146,7 @@ export type PublicClient = ViemPublicClient<ViemTransport, ViemChain>;
 export type OpPublicClient = ViemClient<
   ViemTransport,
   ViemChain,
-  ViemAccount,
+  undefined,
   ViemRpcSchema,
   ViemPublicActions<ViemTransport, ViemChain, ViemAccount> &
     ViemOpStackPublicActionsL2<ViemChain, ViemAccount>

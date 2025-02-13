@@ -1,6 +1,7 @@
 import type { Template } from "./template.js";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { shortenPath } from "@ignored/hardhat-vnext-utils/path";
 import chalk from "chalk";
 
 export async function promptForWorkspace(): Promise<string> {
@@ -18,6 +19,27 @@ export async function promptForWorkspace(): Promise<string> {
   ]);
 
   return workspaceResponse.workspace;
+}
+
+export async function promptForMigrateToEsm(
+  absolutePathToPackageJson: string,
+): Promise<boolean> {
+  ensureTTY();
+
+  const { default: enquirer } = await import("enquirer");
+
+  const migrateToEsmResponse = await enquirer.prompt<{ migrateToEsm: boolean }>(
+    [
+      {
+        name: "migrateToEsm",
+        type: "confirm",
+        message: `Hardhat only supports ESM projects. Would you like to set the type for ${shortenPath(absolutePathToPackageJson)} to "module" now?`,
+        initial: false,
+      },
+    ],
+  );
+
+  return migrateToEsmResponse.migrateToEsm;
 }
 
 export async function promptForTemplate(
