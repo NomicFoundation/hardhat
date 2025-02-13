@@ -76,9 +76,6 @@ export class PrettyEventHandler implements ExecutionEventListener {
     disableFeeBumping: null,
     gasBumps: {},
     strategy: null,
-    ledger: false,
-    ledgerMessage: "",
-    ledgerMessageIsDisplayed: false,
   };
 
   constructor(
@@ -333,77 +330,6 @@ export class PrettyEventHandler implements ExecutionEventListener {
     };
   }
 
-  public ledgerConnectionStart(): void {
-    this.state = {
-      ...this.state,
-      ledger: true,
-      ledgerMessage: "Connecting wallet",
-    };
-
-    this._redisplayCurrentBatch();
-
-    this.state = {
-      ...this.state,
-      ledgerMessageIsDisplayed: true,
-    };
-  }
-
-  public ledgerConnectionSuccess(): void {
-    this.state = {
-      ...this.state,
-      ledgerMessage: "Wallet connected",
-    };
-
-    this._redisplayCurrentBatch();
-  }
-
-  public ledgerConnectionFailure(): void {
-    this.state = {
-      ...this.state,
-      ledgerMessage: "Wallet connection failed",
-    };
-
-    this._redisplayCurrentBatch();
-  }
-
-  public ledgerConfirmationStart(): void {
-    this.state = {
-      ...this.state,
-      ledger: true,
-      ledgerMessage: "Waiting for confirmation on device",
-    };
-
-    this._redisplayCurrentBatch();
-
-    this.state = {
-      ...this.state,
-      ledgerMessageIsDisplayed: true,
-    };
-  }
-
-  public ledgerConfirmationSuccess(): void {
-    this.state = {
-      ...this.state,
-      ledgerMessage: "Transaction approved by device",
-    };
-
-    this._redisplayCurrentBatch();
-
-    this.state = {
-      ...this.state,
-      ledger: false,
-    };
-  }
-
-  public ledgerConfirmationFailure(): void {
-    this.state = {
-      ...this.state,
-      ledgerMessage: "Transaction confirmation failed",
-    };
-
-    this._redisplayCurrentBatch();
-  }
-
   private _setFutureStatusInitializedAndRedisplayBatch({
     futureId,
   }: {
@@ -428,7 +354,6 @@ export class PrettyEventHandler implements ExecutionEventListener {
 
     this.state = {
       ...this.state,
-      ledgerMessageIsDisplayed: false,
     };
   }
 

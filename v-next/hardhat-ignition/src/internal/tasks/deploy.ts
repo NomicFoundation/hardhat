@@ -17,7 +17,6 @@ import {
   remove,
   writeJsonFile,
 } from "@ignored/hardhat-vnext-utils/fs";
-import debug from "debug";
 import Prompt from "prompts";
 
 import { HardhatArtifactResolver } from "../../helpers/hardhat-artifact-resolver.js";
@@ -38,8 +37,6 @@ interface TaskDeployArguments {
   verify: boolean;
   writeLocalhostDeployment: boolean;
 }
-
-const log = debug("hardhat:ignition:task:deploy");
 
 const taskDeploy: NewTaskActionFunction<TaskDeployArguments> = async (
   {
@@ -198,32 +195,6 @@ const taskDeploy: NewTaskActionFunction<TaskDeployArguments> = async (
   const strategyConfig = hre.config.ignition.strategyConfig?.[strategyName];
 
   try {
-    const ledgerConnectionStart = () =>
-      executionEventListener.ledgerConnectionStart();
-    const ledgerConnectionSuccess = () =>
-      executionEventListener.ledgerConnectionSuccess();
-    const ledgerConnectionFailure = () =>
-      executionEventListener.ledgerConnectionFailure();
-    const ledgerConfirmationStart = () =>
-      executionEventListener.ledgerConfirmationStart();
-    const ledgerConfirmationSuccess = () =>
-      executionEventListener.ledgerConfirmationSuccess();
-    const ledgerConfirmationFailure = () =>
-      executionEventListener.ledgerConfirmationFailure();
-
-    try {
-      await connection.provider.send("hardhat_setLedgerOutputEnabled", [false]);
-
-      connection.provider.once("connection_start", ledgerConnectionStart);
-      connection.provider.once("connection_success", ledgerConnectionSuccess);
-      connection.provider.once("connection_failure", ledgerConnectionFailure);
-      connection.provider.on("confirmation_start", ledgerConfirmationStart);
-      connection.provider.on("confirmation_success", ledgerConfirmationSuccess);
-      connection.provider.on("confirmation_failure", ledgerConfirmationFailure);
-    } catch (error) {
-      log(error);
-    }
-
     const result = await deploy({
       config: hre.config.ignition,
       provider: connection.provider,
@@ -246,25 +217,6 @@ const taskDeploy: NewTaskActionFunction<TaskDeployArguments> = async (
         hre.config.ignition.disableFeeBumping ??
         hre.config.networks[connection.networkName]?.ignition.disableFeeBumping,
     });
-
-    try {
-      await connection.provider.send("hardhat_setLedgerOutputEnabled", [true]);
-
-      connection.provider.off("connection_start", ledgerConnectionStart);
-      connection.provider.off("connection_success", ledgerConnectionSuccess);
-      connection.provider.off("connection_failure", ledgerConnectionFailure);
-      connection.provider.off("confirmation_start", ledgerConfirmationStart);
-      connection.provider.off(
-        "confirmation_success",
-        ledgerConfirmationSuccess,
-      );
-      connection.provider.off(
-        "confirmation_failure",
-        ledgerConfirmationFailure,
-      );
-    } catch (error) {
-      log(error);
-    }
 
     // TODO: HH3 Bring back with the port of hardhat-verify
     // if (result.type === "SUCCESSFUL_DEPLOYMENT" && verify) {

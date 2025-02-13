@@ -25,9 +25,6 @@ describe("ui - calculate starting message display", () => {
     disableFeeBumping: false,
     gasBumps: {},
     strategy: "basic",
-    ledger: false,
-    ledgerMessage: "",
-    ledgerMessageIsDisplayed: false,
   };
 
   it("should display the deploying module message", () => {

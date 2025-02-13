@@ -66,9 +66,6 @@ export interface UiState {
   gasBumps: Record<string, number>;
   disableFeeBumping: boolean | null;
   strategy: string | null;
-  ledger: boolean;
-  ledgerMessage: string;
-  ledgerMessageIsDisplayed: boolean;
 }
 
 export interface AddressMap {
