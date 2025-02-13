@@ -28,6 +28,7 @@ import {
   installsPeerDependenciesByDefault,
 } from "./package-manager.js";
 import {
+  promptForMigrateToEsm,
   promptForForce,
   promptForInstall,
   promptForTemplate,
@@ -39,6 +40,7 @@ import { getTemplates } from "./template.js";
 
 export interface InitHardhatOptions {
   workspace?: string;
+  migrateToEsm?: boolean;
   template?: string;
   force?: boolean;
   install?: boolean;
@@ -63,15 +65,16 @@ export interface InitHardhatOptions {
  * 1. Print the ascii logo.
  * 2. Print the welcome message.
  * 3. Optionally, ask the user for the workspace to initialize the project in.
- * 4. Validate that the package.json file is an esm package if it exists; otherwise, create it.
- * 5. Optionally, ask the user for the template to use for the project initialization.
- * 6. Optionally, ask the user if files should be overwritten.
- * 7. Copy the template files to the workspace.
- * 8. Ensure telemetry consent.
- * 9. Print the commands to install the project dependencies.
- * 10. Optionally, ask the user if the project dependencies should be installed.
- * 11. Optionally, run the commands to install the project dependencies.
- * 12. Print a message to star the project on GitHub.
+ * 4. Validate that the package.json exists; otherwise, create it.
+ * 5. Validate that the package.json is an esm package; otherwise, ask the user if they want to set it.
+ * 6. Optionally, ask the user for the template to use for the project initialization.
+ * 7. Optionally, ask the user if files should be overwritten.
+ * 8. Copy the template files to the workspace.
+ * 9. Ensure telemetry consent.
+ * 10. Print the commands to install the project dependencies.
+ * 11. Optionally, ask the user if the project dependencies should be installed.
+ * 12. Optionally, run the commands to install the project dependencies.
+ * 13. Print a message to star the project on GitHub.
  */
 export async function initHardhat(options?: InitHardhatOptions): Promise<void> {
   try {
@@ -85,7 +88,7 @@ export async function initHardhat(options?: InitHardhatOptions): Promise<void> {
 
     // Create the package.json file if it does not exist
     // and validate that it is an esm package
-    await ensureProjectPackageJson(workspace);
+    await validatePackageJson(workspace, options?.migrateToEsm);
 
     // Ask the user for the template to use for the project initialization
     // if it was not provided, and validate that it exists
@@ -239,7 +242,7 @@ export async function getTemplate(template?: string): Promise<Template> {
 }
 
 /**
- * ensureProjectPackageJson creates the package.json file if it does not exist
+ * validatePackageJson creates the package.json file if it does not exist
  * in the workspace.
  *
  * It also validates that the package.json file is an esm package.
@@ -248,25 +251,44 @@ export async function getTemplate(template?: string): Promise<Template> {
  *
  * @param workspace The path to the workspace to initialize the project in.
  */
-export async function ensureProjectPackageJson(
+export async function validatePackageJson(
   workspace: string,
+  migrateToEsm?: boolean,
 ): Promise<void> {
-  const pathToPackageJson = path.join(workspace, "package.json");
+  const absolutePathToPackageJson = path.join(workspace, "package.json");
 
   // Create the package.json file if it does not exist
-  if (!(await exists(pathToPackageJson))) {
-    await writeJsonFile(pathToPackageJson, {
+  if (!(await exists(absolutePathToPackageJson))) {
+    await writeJsonFile(absolutePathToPackageJson, {
       name: "hardhat-project",
       type: "module",
     });
   }
 
-  const pkg: PackageJson = await readJsonFile(pathToPackageJson);
+  const pkg: PackageJson = await readJsonFile(absolutePathToPackageJson);
 
   // Validate that the package.json file is an esm package
-  if (pkg.type === undefined || pkg.type !== "module") {
+  if (pkg.type === "module") {
+    return;
+  }
+
+  if (migrateToEsm === undefined) {
+    migrateToEsm = await promptForMigrateToEsm(
+      path.relative(process.cwd(), workspace),
+    );
+  }
+
+  if (!migrateToEsm) {
     throw new HardhatError(HardhatError.ERRORS.GENERAL.ONLY_ESM_SUPPORTED);
   }
+
+  const packageManager = await getPackageManager(workspace);
+
+  await spawn(packageManager, ["pkg", "set", "type=module"], {
+    cwd: workspace,
+    shell: true,
+    stdio: "inherit",
+  });
 }
 
 /**
