@@ -34,7 +34,7 @@ export async function promptForMigrateToEsm(
         name: "migrateToEsm",
         type: "confirm",
         message: `Hardhat only supports ESM projects. Would you like to set the type for ${shortenPath(absolutePathToPackageJson)} to "module" now?`,
-        initial: false,
+        initial: true,
       },
     ],
   );
