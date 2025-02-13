@@ -2194,7 +2194,7 @@ importers:
         specifier: workspace:^2.0.0
         version: link:../hardhat-ignition
       '@ignored/hardhat-vnext-ignition-core':
-        specifier: workspace:^0.15.9
+        specifier: workspace:^0.15.10-next.0
         version: link:../hardhat-ignition-core
       '@ignored/hardhat-vnext-viem':
         specifier: workspace:^3.0.0-next.11
