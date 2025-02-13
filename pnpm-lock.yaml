@@ -2805,6 +2805,9 @@ importers:
       '@ignored/hardhat-vnext':
         specifier: workspace:^3.0.0-next.17
         version: link:../..
+      '@ignored/hardhat-vnext-chai-matchers':
+        specifier: workspace:^3.0.0-next.13
+        version: link:../../../hardhat-chai-matchers
       '@ignored/hardhat-vnext-ethers':
         specifier: workspace:^3.0.0-next.13
         version: link:../../../hardhat-ethers
@@ -2817,6 +2820,9 @@ importers:
       '@ignored/hardhat-vnext-network-helpers':
         specifier: workspace:^3.0.0-next.13
         version: link:../../../hardhat-network-helpers
+      '@ignored/hardhat-vnext-typechain':
+        specifier: workspace:^3.0.0-next.13
+        version: link:../../../hardhat-typechain
       '@types/chai':
         specifier: ^4.2.0
         version: 4.3.20
@@ -2830,11 +2836,8 @@ importers:
         specifier: ^22.8.5
         version: 22.10.10
       chai:
-        specifier: ^4.4.1
-        version: 4.5.0
-      chai-as-promised:
-        specifier: ^8.0.0
-        version: 8.0.1(chai@4.5.0)
+        specifier: ^5.1.2
+        version: 5.1.2
       ethers:
         specifier: ^6.13.4
         version: 6.13.5
@@ -10690,11 +10693,6 @@ snapshots:
     dependencies:
       chai: 4.5.0
       check-error: 1.0.3
-
-  chai-as-promised@8.0.1(chai@4.5.0):
-    dependencies:
-      chai: 4.5.0
-      check-error: 2.1.1
 
   chai-as-promised@8.0.1(chai@5.1.2):
     dependencies:

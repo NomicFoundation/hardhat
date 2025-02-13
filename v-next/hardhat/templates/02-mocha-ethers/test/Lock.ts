@@ -3,10 +3,10 @@ import { expect } from "chai";
 
 // We haven't ported `hardhat-chai-matchers` yet, so we use a simple `chai`
 // setup script, and `expect` without any Ethereum-specific functionality.
-import "./setup.js";
 
 import { HardhatEthers } from "@ignored/hardhat-vnext-ethers/types";
 import { NetworkHelpers } from "@ignored/hardhat-vnext-network-helpers/types";
+import { EthereumProvider } from "../../../dist/src/types/providers.js";
 
 describe("Lock", function () {
   /*
@@ -23,20 +23,22 @@ describe("Lock", function () {
    */
   let networkHelpers: NetworkHelpers;
   let ethers: HardhatEthers;
+  let provider: EthereumProvider;
 
   before(async function () {
     const connection = await network.connect();
     ethers = connection.ethers;
+    provider = connection.provider;
     networkHelpers = connection.networkHelpers;
   });
 
   // We define a fixture to reuse the same setup in every test.
   // We use loadFixture to run this setup once, snapshot that state,
   // and reset Hardhat Network to that snapshot in every test.
-  async function deployOneYearLockFixture() {
-    const ONE_YEAR_IN_SECS = 365 * 24 * 60 * 60;
-    const ONE_GWEI = 1_000_000_000;
+  const ONE_YEAR_IN_SECS = 365 * 24 * 60 * 60;
+  const ONE_GWEI = 1_000_000_000;
 
+  async function deployOneYearLockFixture() {
     const lockedAmount = ONE_GWEI;
 
     const latestTime = await networkHelpers.time.latest();
@@ -83,9 +85,9 @@ describe("Lock", function () {
       const latestTime = await networkHelpers.time.latest();
       const Lock = await ethers.getContractFactory("Lock");
 
-      await expect(
-        Lock.deploy(latestTime, { value: 1 }),
-      ).to.eventually.be.rejectedWith("Unlock time should be in the future");
+      await expect(Lock.deploy(latestTime, { value: 1 })).to.revertedWith(
+        "Unlock time should be in the future",
+      );
     });
   });
 
@@ -96,7 +98,7 @@ describe("Lock", function () {
           deployOneYearLockFixture,
         );
 
-        await expect(lock.withdraw()).to.eventually.be.rejectedWith(
+        await expect(lock.withdraw()).to.be.revertedWith(
           "You can't withdraw yet",
         );
       });
@@ -111,7 +113,7 @@ describe("Lock", function () {
         // We use lock.connect() to send a transaction from another account
         await expect(
           (lock.connect(otherAccount) as any).withdraw(),
-        ).to.eventually.be.rejectedWith("You aren't the owner");
+        ).to.be.revertedWith("You aren't the owner");
       });
 
       it("Shouldn't fail if the unlockTime has arrived and the owner calls it", async function () {
@@ -122,7 +124,7 @@ describe("Lock", function () {
         // Transactions are sent using the first signer by default
         await networkHelpers.time.increaseTo(unlockTime);
 
-        await expect(lock.withdraw()).to.eventually.be.fulfilled;
+        await expect(lock.withdraw()).to.not.be.reverted(ethers);
       });
     });
 
@@ -134,15 +136,7 @@ describe("Lock", function () {
 
         await networkHelpers.time.increaseTo(unlockTime);
 
-        const withdrawResult = await lock.withdraw();
-
-        const receipt = await withdrawResult.wait();
-
-        expect(receipt.logs.length).to.equal(1);
-        expect(
-          receipt.logs.filter((l: any) => l.fragment.name === "Withdrawal")
-            .length,
-        ).to.equal(1);
+        await expect(lock.withdraw()).to.emit(lock, "Withdrawal");
       });
     });
 
@@ -154,11 +148,11 @@ describe("Lock", function () {
 
         await networkHelpers.time.increaseTo(unlockTime);
 
-        await lock.withdraw();
-
-        const afterLockedBalance = await ethers.provider.getBalance(lock);
-
-        expect(afterLockedBalance).to.equal(0n);
+        await expect(lock.withdraw()).to.changeEtherBalance(
+          provider,
+          lock,
+          -ONE_GWEI,
+        );
       });
     });
   });
