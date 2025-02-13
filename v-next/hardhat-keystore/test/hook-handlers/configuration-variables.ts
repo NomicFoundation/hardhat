@@ -1,4 +1,3 @@
-import type { UnencryptedKeystoreFile } from "../../src/internal/types.js";
 import type { ConfigurationVariable } from "@ignored/hardhat-vnext/types/config";
 import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
 
@@ -12,15 +11,21 @@ import { isCi } from "@ignored/hardhat-vnext-utils/ci";
 import { remove, writeJsonFile } from "@ignored/hardhat-vnext-utils/fs";
 
 import hardhatKeystorePlugin from "../../src/index.js";
-import { UnencryptedKeystore } from "../../src/internal/keystores/unencrypted-keystore.js";
+import {
+  addSecretToKeystore,
+  createEmptyEncryptedKeystore,
+  createMasterKey,
+} from "../../src/internal/keystores/encryption.js";
+import { setupKeystorePassword } from "../helpers/insert-password-hook.js";
 import { setupKeystoreFileLocationOverrideAt } from "../helpers/setup-keystore-file-location-override-at.js";
+import { TEST_PASSWORD } from "../helpers/test-password.js";
 
 const configurationVariableKeystoreFilePath = path.join(
   fileURLToPath(import.meta.url),
   "..",
   "..",
   "fixture-projects",
-  "unencrypted-keystore",
+  "keystore",
   "config-variables-keystore.json",
 );
 
@@ -29,7 +34,7 @@ const nonExistingKeystoreFilePath = path.join(
   "..",
   "..",
   "fixture-projects",
-  "unencrypted-keystore",
+  "keystore",
   "nonexistent-keystore.json",
 );
 
@@ -38,9 +43,17 @@ const exampleConfigurationVariable: ConfigurationVariable = {
   name: "key1",
 };
 
+const exampleConfigurationVariable2: ConfigurationVariable = {
+  _type: "ConfigurationVariable",
+  name: "key2",
+};
+
 describe("hook-handlers - configuration variables - fetchValue", () => {
   let hre: HardhatRuntimeEnvironment;
   let runningInCi: boolean;
+
+  let masterKey: Uint8Array;
+  let salt: Uint8Array;
 
   // The config variables hook handler short circuits if running in CI
   // intentionally. In this integration test we check whether we are running
@@ -68,11 +81,31 @@ describe("hook-handlers - configuration variables - fetchValue", () => {
     beforeEach(async () => {
       await remove(configurationVariableKeystoreFilePath);
 
-      const keystoreFile: UnencryptedKeystoreFile =
-        UnencryptedKeystore.createEmptyUnencryptedKeystoreFile();
+      ({ masterKey, salt } = createMasterKey({
+        password: TEST_PASSWORD,
+      }));
 
-      keystoreFile.keys.key1 = "value1";
-      keystoreFile.keys.key2 = "value2";
+      let keystoreFile = createEmptyEncryptedKeystore({ masterKey, salt });
+
+      const secrets = [
+        {
+          key: "key1",
+          value: "value1",
+        },
+        {
+          key: "key2",
+          value: "value2",
+        },
+      ];
+
+      for (const secret of secrets) {
+        keystoreFile = addSecretToKeystore({
+          masterKey,
+          encryptedKeystore: keystoreFile,
+          key: secret.key,
+          value: secret.value,
+        });
+      }
 
       await writeJsonFile(configurationVariableKeystoreFilePath, keystoreFile);
 
@@ -82,6 +115,7 @@ describe("hook-handlers - configuration variables - fetchValue", () => {
           setupKeystoreFileLocationOverrideAt(
             configurationVariableKeystoreFilePath,
           ),
+          setupKeystorePassword([TEST_PASSWORD]),
         ],
       });
     });
@@ -90,8 +124,10 @@ describe("hook-handlers - configuration variables - fetchValue", () => {
       await remove(configurationVariableKeystoreFilePath);
     });
 
-    describe("successful get on a key in the keystore", () => {
+    describe("successful get keys in the keystore", () => {
+      // The password should be requested only once since the masterKey is cached
       let resultValue: string;
+      let resultValue2: string;
 
       beforeEach(async () => {
         resultValue = await hre.hooks.runHandlerChain(
@@ -102,10 +138,20 @@ describe("hook-handlers - configuration variables - fetchValue", () => {
             return "unexpected-default-value";
           },
         );
+
+        resultValue2 = await hre.hooks.runHandlerChain(
+          "configurationVariables",
+          "fetchValue",
+          [exampleConfigurationVariable2],
+          async (_context, _configVar) => {
+            return "unexpected-default-value";
+          },
+        );
       });
 
-      it("should the value for the key in the keystore", async () => {
+      it("should fetch the value for the key in the keystore", async () => {
         assert.equal(resultValue, "value1");
+        assert.equal(resultValue2, "value2");
       });
     });
 
@@ -153,7 +199,11 @@ describe("hook-handlers - configuration variables - fetchValue", () => {
           // empty keys to ensure the cache is being used
           await writeJsonFile(
             configurationVariableKeystoreFilePath,
-            UnencryptedKeystore.createEmptyUnencryptedKeystoreFile(),
+            createEmptyEncryptedKeystore(
+              createMasterKey({
+                password: "random-password",
+              }),
+            ),
           );
 
           resultValue2 = await hre.hooks.runHandlerChain(

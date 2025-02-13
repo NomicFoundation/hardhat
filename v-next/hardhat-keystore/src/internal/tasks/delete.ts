@@ -2,6 +2,8 @@ import type { KeystoreLoader } from "../types.js";
 import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
 import type { NewTaskActionFunction } from "@ignored/hardhat-vnext/types/tasks";
 
+import { deriveMasterKeyFromKeystore } from "../keystores/encryption.js";
+import { askPassword } from "../keystores/password.js";
 import { UserDisplayMessages } from "../ui/user-display-messages.js";
 import { setupKeystoreLoaderFrom } from "../utils/setup-keystore-loader-from.js";
 
@@ -16,12 +18,20 @@ const taskDelete: NewTaskActionFunction<TaskDeleteArguments> = async (
 ): Promise<void> => {
   const keystoreLoader = setupKeystoreLoaderFrom(hre);
 
-  await remove(setArgs, keystoreLoader);
+  await remove(
+    setArgs,
+    keystoreLoader,
+    hre.interruptions.requestSecretInput.bind(hre.interruptions),
+  );
 };
 
 export const remove = async (
   { key, force }: TaskDeleteArguments,
   keystoreLoader: KeystoreLoader,
+  requestSecretInput: (
+    interruptor: string,
+    inputDescription: string,
+  ) => Promise<string>,
   consoleLog: (text: string) => void = console.log,
 ): Promise<void> => {
   if (!(await keystoreLoader.isKeystoreInitialized())) {
@@ -32,9 +42,14 @@ export const remove = async (
 
   const keystore = await keystoreLoader.loadKeystore();
 
-  const keys = await keystore.listKeys();
+  const password = await askPassword(requestSecretInput);
 
-  if (!keys.includes(key)) {
+  const masterKey = deriveMasterKeyFromKeystore({
+    encryptedKeystore: keystore.toJSON(),
+    password,
+  });
+
+  if (!(await keystore.hasKey(key, masterKey))) {
     if (force) {
       return;
     }
@@ -44,7 +59,7 @@ export const remove = async (
     return;
   }
 
-  await keystore.removeKey(key);
+  await keystore.removeKey(key, masterKey);
 
   await keystoreLoader.saveKeystoreToFile();
 

@@ -26,7 +26,7 @@ export const list = async (
 
   const keystore = await keystoreLoader.loadKeystore();
 
-  const keys = await keystore.listKeys();
+  const keys = await keystore.listUnverifiedKeys();
 
   if (keys.length === 0) {
     consoleLog(UserDisplayMessages.displayNoKeysInfoMessage());
