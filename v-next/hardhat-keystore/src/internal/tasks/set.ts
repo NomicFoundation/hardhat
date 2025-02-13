@@ -62,7 +62,7 @@ export const set = async (
     password,
   });
 
-  if (!force && (await keystore.hasKey(key))) {
+  if (!force && (await keystore.hasKey(key, masterKey))) {
     consoleLog(UserDisplayMessages.displayKeyAlreadyExistsWarning(key));
     process.exitCode = 1;
     return;

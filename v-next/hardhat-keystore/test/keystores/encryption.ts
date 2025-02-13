@@ -41,6 +41,7 @@ import {
   serializeEncryptedData,
   UnsupportedTypeInDeterministicJsonError,
   validateHmac,
+  doesKeyExist,
 } from "../../src/internal/keystores/encryption.js";
 
 describe("Serialization utilities", () => {
@@ -686,6 +687,38 @@ describe("Keystore primitives", () => {
             keyToRemove: "my-secret",
           }),
         (e) => e instanceof InvalidHmacError,
+      );
+    });
+  });
+
+  describe("Checking if a key exists", () => {
+    it("should return true if the key exists and false if it does not", () => {
+      const { emptyKeystore, masterKey } = testEmptyKeystore;
+
+      let keystore = emptyKeystore;
+      keystore = addSecretToKeystore({
+        masterKey,
+        encryptedKeystore: keystore,
+        key: "my-secret",
+        value: "my-secret-value",
+      });
+
+      assert.equal(
+        doesKeyExist({
+          masterKey,
+          encryptedKeystore: keystore,
+          key: "my-secret",
+        }),
+        true,
+      );
+
+      assert.equal(
+        doesKeyExist({
+          masterKey,
+          encryptedKeystore: keystore,
+          key: "my-non-existing-secret",
+        }),
+        false,
       );
     });
   });

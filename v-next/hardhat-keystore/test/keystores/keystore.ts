@@ -62,13 +62,16 @@ describe("Keystore", () => {
       await keystore.removeKey("key1", masterKey);
 
       // Be sure the key has been deleted
-      assert.ok(!(await keystore.hasKey("key1")), "The key should not exist");
+      assert.ok(
+        !(await keystore.hasKey("key1", masterKey)),
+        "The key should not exist",
+      );
     });
 
     it("should add a new value", async () => {
       // Be sure that the key does not exist
       assert.ok(
-        !(await keystore.hasKey("new-key")),
+        !(await keystore.hasKey("new-key", masterKey)),
         "The key should not exist",
       );
 

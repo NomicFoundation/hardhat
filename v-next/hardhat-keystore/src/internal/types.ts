@@ -2,7 +2,7 @@ import type { EncryptedKeystore } from "./keystores/encryption.js";
 
 export interface Keystore {
   listUnverifiedKeys(): Promise<string[]>;
-  hasKey(key: string): Promise<boolean>;
+  hasKey(key: string, masterKey: Uint8Array): Promise<boolean>;
   addNewValue(key: string, value: string, masterKey: Uint8Array): Promise<void>;
   removeKey(key: string, masterKey: Uint8Array): Promise<void>;
   readValue(key: string, masterKey: Uint8Array): Promise<string>;

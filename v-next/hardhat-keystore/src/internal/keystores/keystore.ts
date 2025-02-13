@@ -5,6 +5,7 @@ import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
 import {
   addSecretToKeystore,
   decryptSecret,
+  doesKeyExist,
   removeSecretFromKeystore,
   type EncryptedKeystore,
 } from "./encryption.js";
@@ -27,8 +28,12 @@ export class Keystore implements KeystoreI {
     return Object.keys(this.#keystoreData.secrets);
   }
 
-  public async hasKey(key: string): Promise<boolean> {
-    return Object.keys(this.#keystoreData.secrets).includes(key);
+  public async hasKey(key: string, masterKey: Uint8Array): Promise<boolean> {
+    return doesKeyExist({
+      masterKey,
+      encryptedKeystore: this.#keystoreData,
+      key,
+    });
   }
 
   public async readValue(key: string, masterKey: Uint8Array): Promise<string> {

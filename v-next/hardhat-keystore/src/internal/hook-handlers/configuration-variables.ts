@@ -39,10 +39,6 @@ export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
 
       const keystore = await keystoreLoader.loadKeystore();
 
-      if (!(await keystore.hasKey(variable.name))) {
-        return next(context, variable);
-      }
-
       if (masterKey === undefined) {
         const password = await askPassword(
           context.interruptions.requestSecretInput.bind(context.interruptions),
@@ -52,6 +48,10 @@ export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
           encryptedKeystore: keystore.toJSON(),
           password,
         });
+      }
+
+      if (!(await keystore.hasKey(variable.name, masterKey))) {
+        return next(context, variable);
       }
 
       return keystore.readValue(variable.name, masterKey);

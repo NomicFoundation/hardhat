@@ -41,18 +41,18 @@ export const get = async (
 
   const keystore = await keystoreLoader.loadKeystore();
 
-  if (!(await keystore.hasKey(key))) {
-    consoleLog(UserDisplayMessages.displayKeyNotFoundErrorMessage(key));
-    process.exitCode = 1;
-    return;
-  }
-
   const password = await askPassword(requestSecretInput);
 
   const masterKey = deriveMasterKeyFromKeystore({
     encryptedKeystore: keystore.toJSON(),
     password,
   });
+
+  if (!(await keystore.hasKey(key, masterKey))) {
+    consoleLog(UserDisplayMessages.displayKeyNotFoundErrorMessage(key));
+    process.exitCode = 1;
+    return;
+  }
 
   const value = await keystore.readValue(key, masterKey);
 

@@ -42,9 +42,14 @@ export const remove = async (
 
   const keystore = await keystoreLoader.loadKeystore();
 
-  const keys = await keystore.listUnverifiedKeys();
+  const password = await askPassword(requestSecretInput);
 
-  if (!keys.includes(key)) {
+  const masterKey = deriveMasterKeyFromKeystore({
+    encryptedKeystore: keystore.toJSON(),
+    password,
+  });
+
+  if (!(await keystore.hasKey(key, masterKey))) {
     if (force) {
       return;
     }
@@ -53,13 +58,6 @@ export const remove = async (
     process.exitCode = 1;
     return;
   }
-
-  const password = await askPassword(requestSecretInput);
-
-  const masterKey = deriveMasterKeyFromKeystore({
-    encryptedKeystore: keystore.toJSON(),
-    password,
-  });
 
   await keystore.removeKey(key, masterKey);
 

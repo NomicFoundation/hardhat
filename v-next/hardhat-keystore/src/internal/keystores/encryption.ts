@@ -231,6 +231,31 @@ export class InvalidHmacError extends CustomError {
 /// ////////////////////////////////////////////////////////////////////////////
 
 /**
+ * Checks if the specified key exists in the provided encrypted keystore.
+ *
+ * @param masterKey The master key to use.
+ * @param encryptedKeystore - The encrypted keystore object containing the secrets.
+ * @param key - The name of the secret to check for existence.
+ * @returns True if the key is present in the keystore, otherwise false.
+ *
+ * @remarks
+ * This function first calls `validateHmac` to verify the cryptographic integrity of
+ * the keystore before checking for the existence of the specified key.
+ */
+export function doesKeyExist({
+  masterKey,
+  encryptedKeystore,
+  key,
+}: {
+  masterKey: Uint8Array;
+  encryptedKeystore: EncryptedKeystore;
+  key: string;
+}): boolean {
+  validateHmac({ masterKey, encryptedKeystore });
+  return Object.keys(encryptedKeystore.secrets).includes(key);
+}
+
+/**
  * Encrypts the utf-8 encoded value using the master key, and a new random iv.
  *
  * @param encryptionKey The encryption key to use.
