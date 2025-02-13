@@ -7,9 +7,7 @@ const hardhatPlugin: HardhatPlugin = {
   id: "builtin:flatten",
   tasks: [
     task("flatten")
-      .setDescription(
-        "Flattens and prints contracts and their dependencies. If no file is passed, all the contracts in the project will be flattened.",
-      )
+      .setDescription("Flattens and prints contracts and their dependencies")
       .setAction(import.meta.resolve("./task-action.js"))
       .addVariadicArgument({
         name: "files",
