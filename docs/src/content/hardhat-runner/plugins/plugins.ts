@@ -1032,8 +1032,8 @@ const communityPlugins: IPlugin[] = [
       "smart-contracts",
       "hardhat",
       "hardhat-plugin",
-      "tasks",
-      "scripts"
+      "task",
+      "script",
     ],
   },
 ];
