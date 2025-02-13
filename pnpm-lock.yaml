@@ -1419,12 +1419,12 @@ importers:
       '@ignored/hardhat-vnext':
         specifier: workspace:^3.0.0-next.18
         version: link:../hardhat
-      '@ignored/hardhat-vnext-chai-matchers':
-        specifier: workspace:^3.0.0-next.14
-        version: link:../hardhat-chai-matchers
       '@ignored/hardhat-vnext-ethers':
         specifier: workspace:^3.0.0-next.14
         version: link:../hardhat-ethers
+      '@ignored/hardhat-vnext-ethers-chai-matchers':
+        specifier: workspace:^3.0.0-next.14
+        version: link:../hardhat-ethers-chai-matchers
       '@ignored/hardhat-vnext-keystore':
         specifier: workspace:^3.0.0-next.14
         version: link:../hardhat-keystore
@@ -1601,109 +1601,6 @@ importers:
         specifier: 7.7.1
         version: 7.7.1(eslint@8.57.0)(typescript@5.5.4)
 
-  v-next/hardhat-chai-matchers:
-    dependencies:
-      '@ignored/hardhat-vnext':
-        specifier: workspace:^3.0.0-next.18
-        version: link:../hardhat
-      '@ignored/hardhat-vnext-errors':
-        specifier: workspace:^3.0.0-next.17
-        version: link:../hardhat-errors
-      '@ignored/hardhat-vnext-ethers':
-        specifier: workspace:^3.0.0-next.14
-        version: link:../hardhat-ethers
-      '@ignored/hardhat-vnext-utils':
-        specifier: workspace:^3.0.0-next.17
-        version: link:../hardhat-utils
-      '@types/chai-as-promised':
-        specifier: ^8.0.1
-        version: 8.0.1
-      chai:
-        specifier: ^5.1.2
-        version: 5.1.2
-      chai-as-promised:
-        specifier: ^8.0.0
-        version: 8.0.1(chai@5.1.2)
-      deep-eql:
-        specifier: ^5.0.1
-        version: 5.0.2
-      ethers:
-        specifier: ^6.13.4
-        version: 6.13.5
-    devDependencies:
-      '@eslint-community/eslint-plugin-eslint-comments':
-        specifier: ^4.3.0
-        version: 4.4.1(eslint@8.57.0)
-      '@ignored/hardhat-vnext-mocha-test-runner':
-        specifier: workspace:^3.0.0-next.14
-        version: link:../hardhat-mocha-test-runner
-      '@ignored/hardhat-vnext-node-test-reporter':
-        specifier: workspace:^3.0.0-next.17
-        version: link:../hardhat-node-test-reporter
-      '@nomicfoundation/hardhat-test-utils':
-        specifier: workspace:^
-        version: link:../hardhat-test-utils
-      '@types/chai':
-        specifier: ^4.2.0
-        version: 4.3.20
-      '@types/debug':
-        specifier: ^4.1.7
-        version: 4.1.12
-      '@types/deep-eql':
-        specifier: ^4.0.2
-        version: 4.0.2
-      '@types/mocha':
-        specifier: '>=9.1.0'
-        version: 10.0.10
-      '@types/node':
-        specifier: ^20.14.9
-        version: 20.17.16
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^7.7.1
-        version: 7.18.0(@typescript-eslint/parser@7.18.0(eslint@8.57.0)(typescript@5.5.4))(eslint@8.57.0)(typescript@5.5.4)
-      '@typescript-eslint/parser':
-        specifier: ^7.7.1
-        version: 7.18.0(eslint@8.57.0)(typescript@5.5.4)
-      c8:
-        specifier: ^9.1.0
-        version: 9.1.0
-      eslint:
-        specifier: 8.57.0
-        version: 8.57.0
-      eslint-config-prettier:
-        specifier: 9.1.0
-        version: 9.1.0(eslint@8.57.0)
-      eslint-import-resolver-typescript:
-        specifier: ^3.6.1
-        version: 3.7.0(eslint-plugin-import@2.29.1)(eslint@8.57.0)
-      eslint-plugin-import:
-        specifier: 2.29.1
-        version: 2.29.1(@typescript-eslint/parser@7.18.0(eslint@8.57.0)(typescript@5.5.4))(eslint-import-resolver-typescript@3.7.0)(eslint@8.57.0)
-      eslint-plugin-no-only-tests:
-        specifier: 3.1.0
-        version: 3.1.0
-      expect-type:
-        specifier: ^0.19.0
-        version: 0.19.0
-      mocha:
-        specifier: ^10.0.0
-        version: 10.8.2
-      prettier:
-        specifier: 3.2.5
-        version: 3.2.5
-      rimraf:
-        specifier: ^5.0.5
-        version: 5.0.10
-      tsx:
-        specifier: ^4.11.0
-        version: 4.19.2
-      typescript:
-        specifier: ~5.5.0
-        version: 5.5.4
-      typescript-eslint:
-        specifier: 7.7.1
-        version: 7.7.1(eslint@8.57.0)(typescript@5.5.4)
-
   v-next/hardhat-errors:
     dependencies:
       '@ignored/hardhat-vnext-utils':
@@ -1819,6 +1716,109 @@ importers:
       expect-type:
         specifier: ^0.19.0
         version: 0.19.0
+      prettier:
+        specifier: 3.2.5
+        version: 3.2.5
+      rimraf:
+        specifier: ^5.0.5
+        version: 5.0.10
+      tsx:
+        specifier: ^4.11.0
+        version: 4.19.2
+      typescript:
+        specifier: ~5.5.0
+        version: 5.5.4
+      typescript-eslint:
+        specifier: 7.7.1
+        version: 7.7.1(eslint@8.57.0)(typescript@5.5.4)
+
+  v-next/hardhat-ethers-chai-matchers:
+    dependencies:
+      '@ignored/hardhat-vnext':
+        specifier: workspace:^3.0.0-next.18
+        version: link:../hardhat
+      '@ignored/hardhat-vnext-errors':
+        specifier: workspace:^3.0.0-next.17
+        version: link:../hardhat-errors
+      '@ignored/hardhat-vnext-ethers':
+        specifier: workspace:^3.0.0-next.14
+        version: link:../hardhat-ethers
+      '@ignored/hardhat-vnext-utils':
+        specifier: workspace:^3.0.0-next.17
+        version: link:../hardhat-utils
+      '@types/chai-as-promised':
+        specifier: ^8.0.1
+        version: 8.0.1
+      chai:
+        specifier: ^5.1.2
+        version: 5.1.2
+      chai-as-promised:
+        specifier: ^8.0.0
+        version: 8.0.1(chai@5.1.2)
+      deep-eql:
+        specifier: ^5.0.1
+        version: 5.0.2
+      ethers:
+        specifier: ^6.13.4
+        version: 6.13.5
+    devDependencies:
+      '@eslint-community/eslint-plugin-eslint-comments':
+        specifier: ^4.3.0
+        version: 4.4.1(eslint@8.57.0)
+      '@ignored/hardhat-vnext-mocha-test-runner':
+        specifier: workspace:^3.0.0-next.14
+        version: link:../hardhat-mocha-test-runner
+      '@ignored/hardhat-vnext-node-test-reporter':
+        specifier: workspace:^3.0.0-next.17
+        version: link:../hardhat-node-test-reporter
+      '@nomicfoundation/hardhat-test-utils':
+        specifier: workspace:^
+        version: link:../hardhat-test-utils
+      '@types/chai':
+        specifier: ^4.2.0
+        version: 4.3.20
+      '@types/debug':
+        specifier: ^4.1.7
+        version: 4.1.12
+      '@types/deep-eql':
+        specifier: ^4.0.2
+        version: 4.0.2
+      '@types/mocha':
+        specifier: '>=9.1.0'
+        version: 10.0.10
+      '@types/node':
+        specifier: ^20.14.9
+        version: 20.17.16
+      '@typescript-eslint/eslint-plugin':
+        specifier: ^7.7.1
+        version: 7.18.0(@typescript-eslint/parser@7.18.0(eslint@8.57.0)(typescript@5.5.4))(eslint@8.57.0)(typescript@5.5.4)
+      '@typescript-eslint/parser':
+        specifier: ^7.7.1
+        version: 7.18.0(eslint@8.57.0)(typescript@5.5.4)
+      c8:
+        specifier: ^9.1.0
+        version: 9.1.0
+      eslint:
+        specifier: 8.57.0
+        version: 8.57.0
+      eslint-config-prettier:
+        specifier: 9.1.0
+        version: 9.1.0(eslint@8.57.0)
+      eslint-import-resolver-typescript:
+        specifier: ^3.6.1
+        version: 3.7.0(eslint-plugin-import@2.29.1)(eslint@8.57.0)
+      eslint-plugin-import:
+        specifier: 2.29.1
+        version: 2.29.1(@typescript-eslint/parser@7.18.0(eslint@8.57.0)(typescript@5.5.4))(eslint-import-resolver-typescript@3.7.0)(eslint@8.57.0)
+      eslint-plugin-no-only-tests:
+        specifier: 3.1.0
+        version: 3.1.0
+      expect-type:
+        specifier: ^0.19.0
+        version: 0.19.0
+      mocha:
+        specifier: ^10.0.0
+        version: 10.8.2
       prettier:
         specifier: 3.2.5
         version: 3.2.5
@@ -2805,12 +2805,12 @@ importers:
       '@ignored/hardhat-vnext':
         specifier: workspace:^3.0.0-next.18
         version: link:../..
-      '@ignored/hardhat-vnext-chai-matchers':
-        specifier: workspace:^3.0.0-next.14
-        version: link:../../../hardhat-chai-matchers
       '@ignored/hardhat-vnext-ethers':
         specifier: workspace:^3.0.0-next.14
         version: link:../../../hardhat-ethers
+      '@ignored/hardhat-vnext-ethers-chai-matchers':
+        specifier: workspace:^3.0.0-next.14
+        version: link:../../../hardhat-ethers-chai-matchers
       '@ignored/hardhat-vnext-keystore':
         specifier: workspace:^3.0.0-next.14
         version: link:../../../hardhat-keystore

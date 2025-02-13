@@ -1,9 +1,6 @@
 import { network } from "@ignored/hardhat-vnext";
 import { expect } from "chai";
 
-// We haven't ported `hardhat-chai-matchers` yet, so we use a simple `chai`
-// setup script, and `expect` without any Ethereum-specific functionality.
-
 import { HardhatEthers } from "@ignored/hardhat-vnext-ethers/types";
 import { NetworkHelpers } from "@ignored/hardhat-vnext-network-helpers/types";
 import { EthereumProvider } from "../../../dist/src/types/providers.js";

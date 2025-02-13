@@ -1,4 +1,4 @@
-export const ASSERTION_ABORTED = "hh-chai-matchers-assertion-aborted";
+export const ASSERTION_ABORTED = "hh-ethers-chai-matchers-assertion-aborted";
 export const PREVIOUS_MATCHER_NAME = "previousMatcherName";
 
 export const CHANGE_ETHER_BALANCE_MATCHER = "changeEtherBalance";

@@ -8,7 +8,7 @@
   "updateInternalDependencies": "patch",
   "ignore": [
     "@nomiclabs/common",
-    "@nomicfoundation/hardhat-chai-matchers",
+    "@nomicfoundation/hardhat-ethers-chai-matchers",
     "hardhat",
     "@nomicfoundation/hardhat-ethers",
     "@nomicfoundation/hardhat-foundry",
