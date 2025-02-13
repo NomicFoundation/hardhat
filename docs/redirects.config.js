@@ -106,6 +106,12 @@ const customRedirects = [
     permanent: false,
   },
   {
+    source: "/solidity-survey-2024",
+    destination:
+      "https://cryptpad.fr/form/#/2/form/view/9xjPVmdv8z0Cyyh1ejseMQ0igmx-TedH5CPST3PhRUk",
+    permanent: false,
+  },
+  {
     source: "/solc-viair",
     destination:
       "/hardhat-runner/docs/reference/solidity-support#support-for-ir-based-codegen",

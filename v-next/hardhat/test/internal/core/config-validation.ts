@@ -1,4 +1,8 @@
 import type { HardhatUserConfig } from "../../../src/config.js";
+import type {
+  ProjectPathsUserConfig,
+  TestPathsUserConfig,
+} from "../../../src/types/config.js";
 import type { HardhatPlugin } from "../../../src/types/plugins.js";
 import type {
   EmptyTaskDefinition,
@@ -19,6 +23,7 @@ import {
   validateTasksConfig,
   validatePluginsConfig,
   collectValidationErrorsForUserConfig,
+  validatePaths,
 } from "../../../src/internal/core/config-validation.js";
 import {
   type PositionalArgumentDefinition,
@@ -1217,6 +1222,128 @@ describe("config validation", function () {
     });
   });
 
+  describe("validatePaths", function () {
+    describe("when the paths are valid", function () {
+      it("should work when all the paths are strings", async function () {
+        const paths: Required<ProjectPathsUserConfig> = {
+          cache: "./cache",
+          artifacts: "./artifacts",
+          tests: "./tests",
+          sources: "./sources",
+        };
+
+        const validationErrors = validatePaths(paths);
+
+        assert.equal(validationErrors.length, 0);
+      });
+
+      it("should work when the sources property is an array", async function () {
+        const paths: ProjectPathsUserConfig = {
+          sources: ["./sources", "./sources2"],
+        };
+
+        const validationErrors = validatePaths(paths);
+
+        assert.equal(validationErrors.length, 0);
+      });
+
+      it("should work when the tests and sources properties are both objects", async function () {
+        // Objects are not validated because they are customizable by the user
+        const paths: ProjectPathsUserConfig = {
+          /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing validations for js users who can bypass type checks */
+          tests: { randomProperty: "randomValue" } as TestPathsUserConfig,
+          sources: {},
+        };
+
+        const validationErrors = validatePaths(paths);
+
+        assert.equal(validationErrors.length, 0);
+      });
+    });
+
+    describe("when the paths are not valid", function () {
+      it("should return an error when the cache path is not a string", async function () {
+        const paths: ProjectPathsUserConfig = {
+          /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing validations for js users who can bypass type checks */
+          cache: 123 as any,
+        };
+
+        const validationErrors = validatePaths(paths);
+
+        assert.equal(validationErrors.length, 1);
+        assert.deepEqual(validationErrors[0].path, ["paths", "cache"]);
+        assert.equal(
+          validationErrors[0].message,
+          "paths.cache must be a string",
+        );
+      });
+
+      it("should return an error when the artifacts path is not a string", async function () {
+        const paths: ProjectPathsUserConfig = {
+          /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing validations for js users who can bypass type checks */
+          artifacts: 123 as any,
+        };
+
+        const validationErrors = validatePaths(paths);
+
+        assert.equal(validationErrors.length, 1);
+        assert.deepEqual(validationErrors[0].path, ["paths", "artifacts"]);
+        assert.equal(
+          validationErrors[0].message,
+          "paths.artifacts must be a string",
+        );
+      });
+
+      it("should return an error when the tests path is not a string", async function () {
+        const paths: ProjectPathsUserConfig = {
+          /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing validations for js users who can bypass type checks */
+          tests: 123 as any,
+        };
+
+        const validationErrors = validatePaths(paths);
+
+        assert.equal(validationErrors.length, 1);
+        assert.deepEqual(validationErrors[0].path, ["paths", "tests"]);
+        assert.equal(
+          validationErrors[0].message,
+          "paths.tests must be a string",
+        );
+      });
+
+      it("should return an error when the sources path is not a string", async function () {
+        const paths: ProjectPathsUserConfig = {
+          /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing validations for js users who can bypass type checks */
+          sources: 123 as any,
+        };
+
+        const validationErrors = validatePaths(paths);
+
+        assert.equal(validationErrors.length, 1);
+        assert.deepEqual(validationErrors[0].path, ["paths", "sources"]);
+        assert.equal(
+          validationErrors[0].message,
+          "paths.sources must be a string",
+        );
+      });
+
+      it("should return an error when one of the source paths in the array are not strings", async function () {
+        const paths: ProjectPathsUserConfig = {
+          /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing validations for js users who can bypass type checks */
+          sources: ["./sources", 123 as any],
+        };
+
+        const validationErrors = validatePaths(paths);
+
+        assert.equal(validationErrors.length, 1);
+        assert.deepEqual(validationErrors[0].path, ["paths", "sources", 1]);
+        assert.equal(
+          validationErrors[0].message,
+          "paths.sources at index 1 must be a string",
+        );
+      });
+    });
+  });
+
   describe("validateTasksConfig", function () {
     it("should return an error if a task is not a valid task definition", function () {
       const tasks: TaskDefinition[] = [
@@ -1393,11 +1520,28 @@ describe("config validation", function () {
   describe("collectValidationErrorsForUserConfig", function () {
     it("should return an empty array if the config is valid", function () {
       const config = {
+        paths: {},
         tasks: [],
         plugins: [],
       };
 
       assert.deepEqual(collectValidationErrorsForUserConfig(config), []);
+    });
+
+    it("should return an error if the paths are not an object", function () {
+      const config: HardhatUserConfig = {
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing validations for js users who can bypass type checks */
+        paths: 1 as any,
+        tasks: [],
+        plugins: [],
+      };
+
+      assert.deepEqual(collectValidationErrorsForUserConfig(config), [
+        {
+          message: "paths must be an object",
+          path: ["paths"],
+        },
+      ]);
     });
 
     it("should return an error if the tasks is not an array", function () {

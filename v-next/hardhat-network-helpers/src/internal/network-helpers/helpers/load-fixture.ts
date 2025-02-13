@@ -1,5 +1,4 @@
-import type { Fixture, Snapshot } from "../../../types.js";
-import type { NetworkHelpers } from "../network-helpers.js";
+import type { Fixture, NetworkHelpers, Snapshot } from "../../../types.js";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 

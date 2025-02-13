@@ -1,5 +1,4 @@
 ---
-"@ignored/hardhat-vnext-core": major
 "@ignored/hardhat-vnext": major
 "@ignored/hardhat-vnext-errors": major
 "@ignored/hardhat-vnext-node-test-reporter": major

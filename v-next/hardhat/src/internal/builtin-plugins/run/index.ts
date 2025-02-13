@@ -3,7 +3,7 @@ import type { HardhatPlugin } from "../../../types/plugins.js";
 import { task } from "../../core/config.js";
 
 const hardhatPlugin: HardhatPlugin = {
-  id: "run",
+  id: "builtin:run",
   tasks: [
     task("run", "Runs a user-defined script after compiling the project")
       .addPositionalArgument({
@@ -12,11 +12,20 @@ const hardhatPlugin: HardhatPlugin = {
       })
       .addFlag({
         name: "noCompile",
-        description: "Don't compile before running this task",
+        description: "Don't compile the project before running the script",
       })
       .setAction(import.meta.resolve("./task-action.js"))
       .build(),
   ],
+  dependencies: [
+    async () => {
+      const { default: solidityBuiltinPlugin } = await import(
+        "../solidity/index.js"
+      );
+      return solidityBuiltinPlugin;
+    },
+  ],
+  npmPackage: "@ignored/hardhat-vnext",
 };
 
 export default hardhatPlugin;

@@ -1,3 +1,7 @@
+// NOTE: We import the builtin plugins in this module, so that their
+// type-extensions are loaded when the user imports `hardhat/types/config`.
+import "../internal/builtin-plugins/index.js";
+
 /**
  * A configuration variable to be fetched at runtime from
  * different sources, depending on the user's setup.
@@ -33,7 +37,21 @@ export interface ResolvedConfigurationVariable {
    * @throws an error if the value is not a valid BigInt.
    */
   getBigInt(): Promise<bigint>;
+
+  /**
+   * Returns the value of the configuration variable, validating that is a
+   * valid hex string. Trimming any spaces, and making sure it's lowecase and
+   * that it starts with 0x.
+   */
+  getHexString(): Promise<string>;
 }
+
+/**
+ * A function that resolves a configuration variable.
+ */
+export type ConfigurationVariableResolver = (
+  variableOrString: ConfigurationVariable | string,
+) => ResolvedConfigurationVariable;
 
 /**
  * A sensitive string, which can be provided as a literal

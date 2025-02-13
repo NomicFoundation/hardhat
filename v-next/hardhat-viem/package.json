@@ -1,0 +1,73 @@
+{
+  "name": "@ignored/hardhat-vnext-viem",
+  "version": "3.0.0-next.12",
+  "description": "Hardhat plugin for viem",
+  "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-viem",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NomicFoundation/hardhat",
+    "directory": "v-next/hardhat-viem"
+  },
+  "author": "Nomic Foundation",
+  "license": "MIT",
+  "type": "module",
+  "types": "dist/src/index.d.ts",
+  "exports": {
+    ".": "./dist/src/index.js",
+    "./types": "./dist/src/types.js"
+  },
+  "keywords": [
+    "ethereum",
+    "smart-contracts",
+    "hardhat",
+    "hardhat-plugin",
+    "viem"
+  ],
+  "scripts": {
+    "lint": "pnpm prettier --check && pnpm eslint",
+    "lint:fix": "pnpm prettier --write && pnpm eslint --fix",
+    "eslint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
+    "prettier": "prettier \"**/*.{ts,js,md,json}\"",
+    "test": "node --import tsx/esm --test --test-reporter=@ignored/hardhat-vnext-node-test-reporter \"test/*.ts\" \"test/!(fixture-projects|helpers)/**/*.ts\"",
+    "test:only": "node --import tsx/esm --test --test-only --test-reporter=@ignored/hardhat-vnext-node-test-reporter \"test/*.ts\" \"test/!(fixture-projects|helpers)/**/*.ts\"",
+    "pretest": "pnpm build",
+    "pretest:only": "pnpm build",
+    "build": "tsc --build .",
+    "clean": "rimraf dist"
+  },
+  "files": [
+    "dist/src/",
+    "src/",
+    "CHANGELOG.md",
+    "LICENSE",
+    "README.md"
+  ],
+  "devDependencies": {
+    "@eslint-community/eslint-plugin-eslint-comments": "^4.3.0",
+    "@ignored/hardhat-vnext-node-test-reporter": "workspace:^3.0.0-next.16",
+    "@nomicfoundation/hardhat-test-utils": "workspace:^",
+    "@types/node": "^20.14.9",
+    "@typescript-eslint/eslint-plugin": "^7.7.1",
+    "@typescript-eslint/parser": "^7.7.1",
+    "eslint": "8.57.0",
+    "eslint-config-prettier": "9.1.0",
+    "eslint-import-resolver-typescript": "^3.6.1",
+    "eslint-plugin-import": "2.29.1",
+    "eslint-plugin-no-only-tests": "3.1.0",
+    "expect-type": "^0.19.0",
+    "prettier": "3.2.5",
+    "rimraf": "^5.0.5",
+    "tsx": "^4.11.0",
+    "typescript": "~5.5.0",
+    "typescript-eslint": "7.7.1",
+    "viem": "^2.21.42"
+  },
+  "dependencies": {
+    "@ignored/hardhat-vnext-errors": "workspace:^3.0.0-next.16",
+    "@ignored/hardhat-vnext-utils": "workspace:^3.0.0-next.16"
+  },
+  "peerDependencies": {
+    "@ignored/hardhat-vnext": "workspace:^3.0.0-next.17",
+    "viem": "^2.21.42"
+  }
+}

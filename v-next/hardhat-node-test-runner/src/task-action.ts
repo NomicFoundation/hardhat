@@ -2,17 +2,19 @@ import type { HardhatConfig } from "@ignored/hardhat-vnext/types/config";
 import type { NewTaskActionFunction } from "@ignored/hardhat-vnext/types/tasks";
 import type { LastParameter } from "@ignored/hardhat-vnext/types/utils";
 
-import { finished } from "node:stream/promises";
+import { pipeline } from "node:stream/promises";
 import { run } from "node:test";
-import { fileURLToPath } from "node:url";
+import { URL } from "node:url";
 
 import { hardhatTestReporter } from "@ignored/hardhat-vnext-node-test-reporter";
 import { getAllFilesMatching } from "@ignored/hardhat-vnext-utils/fs";
+import { createNonClosingWriter } from "@ignored/hardhat-vnext-utils/stream";
 
 interface TestActionArguments {
   testFiles: string[];
   only: boolean;
   grep: string;
+  noCompile: boolean;
 }
 
 function isTypescriptFile(path: string): boolean {
@@ -50,13 +52,22 @@ async function getTestFiles(
  * Note that we are testing this manually for now as you can't run a node:test within a node:test
  */
 const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
-  { testFiles, only, grep },
+  { testFiles, only, grep, noCompile },
   hre,
 ) => {
+  if (!noCompile) {
+    await hre.tasks.getTask("compile").run({});
+    console.log();
+  }
+
   const files = await getTestFiles(testFiles, hre.config);
 
-  const tsx = fileURLToPath(import.meta.resolve("tsx/esm"));
-  process.env.NODE_OPTIONS = `--import ${tsx}`;
+  if (files.length === 0) {
+    return 0;
+  }
+
+  const tsx = new URL(import.meta.resolve("tsx/esm"));
+  process.env.NODE_OPTIONS = `--import "${tsx.href}"`;
 
   async function runTests(): Promise<number> {
     let failures = 0;
@@ -73,6 +84,9 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
       testOnlyMessage,
     });
 
+    console.log("Running node:test tests");
+    console.log();
+
     const reporterStream = run(nodeTestOptions)
       .on("test:fail", (event) => {
         if (event.details.type === "suite") {
@@ -87,9 +101,7 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
       })
       .compose(customReporter);
 
-    reporterStream.pipe(process.stdout);
-
-    await finished(reporterStream);
+    await pipeline(reporterStream, createNonClosingWriter(process.stdout));
 
     return failures;
   }
@@ -99,6 +111,8 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   if (testFailures > 0) {
     process.exitCode = 1;
   }
+
+  console.log();
 
   return testFailures;
 };

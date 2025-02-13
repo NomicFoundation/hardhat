@@ -7,12 +7,13 @@ import {
   bytesToHexString,
   hexStringToBytes,
   normalizeHexString,
-  isHexStringPrefixed,
+  isPrefixedHexString,
   isHexString,
   getUnprefixedHexString,
   getPrefixedHexString,
   unpadHexString,
   setLengthLeft,
+  hexStringToNumber,
 } from "../src/hex.js";
 
 describe("hex", () => {
@@ -72,8 +73,8 @@ describe("hex", () => {
     });
   });
 
-  describe("hexStringToNumber", () => {
-    it("Should convert a hexadecimal string to a number", () => {
+  describe("hexStringToBigInt", () => {
+    it("Should convert a hexadecimal string to a bigint", () => {
       assert.equal(hexStringToBigInt("0x"), 0n);
       assert.equal(hexStringToBigInt("0x0"), 0n);
       assert.equal(hexStringToBigInt("0x1"), 1n);
@@ -101,6 +102,53 @@ describe("hex", () => {
 
     it("Should throw InvalidParameterError if the input is not a hexadecimal string", () => {
       assert.throws(() => hexStringToBigInt("invalid"), {
+        name: "InvalidParameterError",
+        message: "Expected a valid hexadecimal string. Received: invalid",
+      });
+    });
+  });
+
+  describe("hexStringToNumber", () => {
+    it("Should convert a hexadecimal string to a number", () => {
+      assert.equal(hexStringToNumber("0x"), 0);
+      assert.equal(hexStringToNumber("0x0"), 0);
+      assert.equal(hexStringToNumber("0x1"), 1);
+      assert.equal(hexStringToNumber("0xf"), 15);
+      assert.equal(hexStringToNumber("0x10"), 16);
+      assert.equal(hexStringToNumber("0xff"), 255);
+      assert.equal(hexStringToNumber("0x100"), 256);
+      assert.equal(hexStringToNumber("0xffff"), 65535);
+      assert.equal(hexStringToNumber("0x10000"), 65536);
+      assert.equal(hexStringToNumber("0xffffffff"), 4294967295);
+      assert.equal(hexStringToNumber("0x100000000"), 4294967296);
+
+      assert.equal(hexStringToNumber(""), 0);
+      assert.equal(hexStringToNumber("0"), 0);
+      assert.equal(hexStringToNumber("1"), 1);
+      assert.equal(hexStringToNumber("f"), 15);
+      assert.equal(hexStringToNumber("10"), 16);
+      assert.equal(hexStringToNumber("ff"), 255);
+      assert.equal(hexStringToNumber("100"), 256);
+      assert.equal(hexStringToNumber("ffff"), 65535);
+      assert.equal(hexStringToNumber("10000"), 65536);
+      assert.equal(hexStringToNumber("ffffffff"), 4294967295);
+      assert.equal(hexStringToNumber("100000000"), 4294967296);
+      assert.equal(hexStringToNumber("ffffffff"), 4294967295);
+
+      // Max allowed value
+      assert.equal(hexStringToNumber("0x1fffffffffffff"), 9007199254740991);
+    });
+
+    it("Should throw InvalidParameterError if the input exceeds the safe integer limit", () => {
+      assert.throws(() => hexStringToNumber("0x20000000000000"), {
+        name: "InvalidParameterError",
+        message:
+          "Value exceeds the safe integer limit. Received: 0x20000000000000",
+      });
+    });
+
+    it("Should throw InvalidParameterError if the input is not a hexadecimal string", () => {
+      assert.throws(() => hexStringToNumber("invalid"), {
         name: "InvalidParameterError",
         message: "Expected a valid hexadecimal string. Received: invalid",
       });
@@ -207,12 +255,12 @@ describe("hex", () => {
     });
   });
 
-  describe("isHexStringPrefixed", () => {
+  describe("isPrefixedHexString", () => {
     it("Should check if a string is prefixed with '0x'", () => {
-      assert.equal(isHexStringPrefixed("0x0"), true);
-      assert.equal(isHexStringPrefixed("ffff"), false);
-      assert.equal(isHexStringPrefixed("0X100000000"), true);
-      assert.equal(isHexStringPrefixed("20000000000000"), false);
+      assert.equal(isPrefixedHexString("0x0"), true);
+      assert.equal(isPrefixedHexString("ffff"), false);
+      assert.equal(isPrefixedHexString("0X100000000"), true);
+      assert.equal(isPrefixedHexString("20000000000000"), false);
     });
   });
 

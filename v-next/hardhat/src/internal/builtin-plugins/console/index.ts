@@ -3,7 +3,7 @@ import type { HardhatPlugin } from "../../../types/plugins.js";
 import { task } from "../../core/config.js";
 
 const hardhatPlugin: HardhatPlugin = {
-  id: "console",
+  id: "builtin:console",
   tasks: [
     task("console", "Opens a hardhat console")
       .setAction(import.meta.resolve("./task-action.js"))
@@ -14,7 +14,7 @@ const hardhatPlugin: HardhatPlugin = {
       })
       .addFlag({
         name: "noCompile",
-        description: "Don't compile before running this task",
+        description: "Don't compile the project before starting the console",
       })
       .addVariadicArgument({
         name: "commands",
@@ -23,6 +23,15 @@ const hardhatPlugin: HardhatPlugin = {
       })
       .build(),
   ],
+  dependencies: [
+    async () => {
+      const { default: solidityBuiltinPlugin } = await import(
+        "../solidity/index.js"
+      );
+      return solidityBuiltinPlugin;
+    },
+  ],
+  npmPackage: "@ignored/hardhat-vnext",
 };
 
 export default hardhatPlugin;

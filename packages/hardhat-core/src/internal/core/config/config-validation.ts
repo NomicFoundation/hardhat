@@ -383,7 +383,7 @@ export function getValidationErrors(config: any): string[] {
     if (hardhatNetwork !== undefined && typeof hardhatNetwork === "object") {
       if ("url" in hardhatNetwork) {
         errors.push(
-          `HardhatConfig.networks.${HARDHAT_NETWORK_NAME} can't have an url`
+          `HardhatConfig.networks.${HARDHAT_NETWORK_NAME} can't have a url`
         );
       }
 

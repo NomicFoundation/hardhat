@@ -12,7 +12,7 @@
     "typescript": "~5.5.0"
   },
   "scripts": {
-    "build": "tsc --build packages/hardhat-core packages/hardhat-ethers packages/hardhat-verify packages/hardhat-vyper packages/hardhat-web3-v4 packages/hardhat-chai-matchers packages/hardhat-network-helpers packages/hardhat-toolbox packages/hardhat-foundry packages/hardhat-ledger packages/hardhat-viem packages/hardhat-toolbox-viem",
+    "build": "tsc --build packages/hardhat-core packages/hardhat-ethers packages/hardhat-verify packages/hardhat-vyper packages/hardhat-web3-v4 packages/hardhat-chai-matchers packages/hardhat-network-helpers packages/hardhat-toolbox packages/hardhat-foundry packages/hardhat-ledger packages/hardhat-viem packages/hardhat-toolbox-viem && pnpm run --filter \"./packages/hardhat-ignition*\" build",
     "prebuild": "pnpm run --recursive --filter \"./v-next/**\" build",
     "watch": "tsc --build --watch packages/hardhat-core/src packages/hardhat-ethers packages/hardhat-verify packages/hardhat-vyper packages/hardhat-web3-v4 packages/hardhat-chai-matchers packages/hardhat-network-helpers packages/hardhat-toolbox packages/hardhat-foundry packages/hardhat-ledger packages/hardhat-viem packages/hardhat-toolbox-viem",
     "postbuild": "cp packages/hardhat-core/src/internal/solidity/compiler/solcjs-runner.js packages/hardhat-core/internal/solidity/compiler/solcjs-runner.js",
@@ -22,6 +22,5 @@
     "lint:fix": "pnpm run --recursive lint:fix && pnpm prettier --write",
     "prettier": "prettier *.md \"{docs,.github}/**/*.{md,yml,ts,js}\" \"scripts/**/*.js\"",
     "vnext-full-check": "pnpm run --recursive --filter \"./v-next/**\" build && pnpm run --recursive --filter \"./v-next/**\" lint && pnpm run --recursive --filter \"./v-next/**\" test"
-  },
-  "dependencies": {}
+  }
 }

@@ -13,7 +13,7 @@ import {
  * @param value The value to check.
  * @returns True if the value is an Ethereum address, false otherwise.
  */
-export function isAddress(value: unknown): boolean {
+export function isAddress(value: unknown): value is PrefixedHexString {
   return typeof value === "string" && /^0x[0-9a-f]{40}$/i.test(value);
 }
 
@@ -24,9 +24,7 @@ export function isAddress(value: unknown): boolean {
  * @returns True if the value is an Ethereum address with a valid checksum, false otherwise.
  */
 export async function isValidChecksumAddress(value: unknown): Promise<boolean> {
-  return (
-    typeof value === "string" && isAddress(value) && isValidChecksum(value)
-  );
+  return isAddress(value) && isValidChecksum(value);
 }
 
 /**
@@ -35,7 +33,7 @@ export async function isValidChecksumAddress(value: unknown): Promise<boolean> {
  * @param value The value to check.
  * @returns True if the value is an Ethereum hash, false otherwise.
  */
-export function isHash(value: unknown): boolean {
+export function isHash(value: unknown): value is PrefixedHexString {
   return typeof value === "string" && /^0x[0-9a-f]{64}$/i.test(value);
 }
 
@@ -46,7 +44,7 @@ export function isHash(value: unknown): boolean {
  * @returns The hexadecimal representation of the number padded to 32 bytes.
  * @throws InvalidParameterError If the input is not a safe integer or is negative.
  */
-export function toEvmWord(value: bigint | number): string {
+export function toEvmWord(value: bigint | number): PrefixedHexString {
   return setLengthLeft(numberToHexString(value), 64);
 }
 

@@ -1,0 +1,36 @@
+{
+  "extends": "../../config-v-next/tsconfig.json",
+  "references": [
+    {
+      "path": "../hardhat"
+    },
+    {
+      "path": "../hardhat-errors"
+    },
+    {
+      "path": "../hardhat-ethers"
+    },
+    {
+      "path": "../hardhat-node-test-reporter"
+    },
+    {
+      "path": "../hardhat-test-utils"
+    },
+    {
+      "path": "../hardhat-utils"
+    },
+    {
+      "path": "../hardhat-zod-utils"
+    }
+  ],
+  "exclude": [
+    "${configDir}/dist",
+    "${configDir}/node_modules",
+    // This is needed because the code in the generated typechain types lack explicit type annotations,
+    // which are required by our compilation rules.
+    // The exclusion rules above come from the extended script. They need to be repeated here because
+    // the "exclude" property is overwritten and cannot be extended.
+    "${configDir}/test/fixture-projects/*/types",
+    "${configDir}/test/fixture-projects/*/custom-types"
+  ]
+}

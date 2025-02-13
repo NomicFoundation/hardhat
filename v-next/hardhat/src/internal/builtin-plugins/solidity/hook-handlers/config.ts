@@ -1,29 +1,14 @@
 import type { ConfigHooks } from "../../../../types/hooks.js";
 
-import { resolveFromRoot } from "@ignored/hardhat-vnext-utils/path";
 import {
-  unionType,
-  validateUserConfigZodType,
-} from "@ignored/hardhat-vnext-zod-utils";
-import { z } from "zod";
-
-const sourcePathsType = unionType(
-  [z.string(), z.array(z.string())],
-  "Expected a string or an array of strings",
-);
-
-const userConfigType = z.object({
-  sources: unionType(
-    [sourcePathsType, z.object({ solidity: sourcePathsType.optional() })],
-    "Expected a string, an array of strings, or an object with an optional 'solidity' property",
-  ).optional(),
-});
+  resolveSolidityUserConfig,
+  validateSolidityUserConfig,
+} from "../config.js";
 
 export default async (): Promise<Partial<ConfigHooks>> => {
   const handlers: Partial<ConfigHooks> = {
-    validateUserConfig: async (userConfig) => {
-      return validateUserConfigZodType(userConfig, userConfigType);
-    },
+    validateUserConfig: async (userConfig) =>
+      validateSolidityUserConfig(userConfig),
     resolveUserConfig: async (
       userConfig,
       resolveConfigurationVariable,
@@ -34,34 +19,7 @@ export default async (): Promise<Partial<ConfigHooks>> => {
         resolveConfigurationVariable,
       );
 
-      let sourcesPaths = userConfig.paths?.sources;
-
-      // TODO: use isObject when the type narrowing issue is fixed
-      sourcesPaths =
-        typeof sourcesPaths === "object" && !Array.isArray(sourcesPaths)
-          ? sourcesPaths.solidity
-          : sourcesPaths;
-
-      sourcesPaths ??= "contracts";
-
-      sourcesPaths = Array.isArray(sourcesPaths)
-        ? sourcesPaths
-        : [sourcesPaths];
-
-      const resolvedPaths = sourcesPaths.map((p) =>
-        resolveFromRoot(resolvedConfig.paths.root, p),
-      );
-
-      return {
-        ...resolvedConfig,
-        paths: {
-          ...resolvedConfig.paths,
-          sources: {
-            ...resolvedConfig.paths.sources,
-            solidity: resolvedPaths,
-          },
-        },
-      };
+      return resolveSolidityUserConfig(userConfig, resolvedConfig);
     },
   };
 

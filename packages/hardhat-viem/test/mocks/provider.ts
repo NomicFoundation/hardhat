@@ -11,7 +11,12 @@ export class EthereumMockedProvider
   extends EventEmitter
   implements EthereumProvider
 {
-  public async request(_args: RequestArguments): Promise<any> {}
+  public calledCount = 0;
+
+  public async request(_args: RequestArguments): Promise<any> {
+    this.calledCount++;
+    throw new Error();
+  }
 
   public async send(_method: string, _params: any[] = []) {}
 

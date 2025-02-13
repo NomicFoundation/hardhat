@@ -48,7 +48,7 @@ describe("console/task-action", function () {
         {
           commands: ['await import("./scripts/non-existent.js");', ".exit"],
           history: "",
-          noCompile: false,
+          noCompile: true,
           options,
         },
         hre,
@@ -61,7 +61,7 @@ describe("console/task-action", function () {
         {
           commands: [".help", 'await import("./scripts/success.js");', ".exit"],
           history: "",
-          noCompile: false,
+          noCompile: true,
           options,
         },
         hre,
@@ -74,7 +74,7 @@ describe("console/task-action", function () {
         {
           commands: ['await import("./scripts/throws.js");', ".exit"],
           history: "",
-          noCompile: false,
+          noCompile: true,
           options,
         },
         hre,
@@ -91,7 +91,7 @@ describe("console/task-action", function () {
         {
           commands: ['await import("./scripts/non-existent.ts");', ".exit"],
           history: "",
-          noCompile: false,
+          noCompile: true,
           options,
         },
         hre,
@@ -104,7 +104,7 @@ describe("console/task-action", function () {
         {
           commands: ['await import("./scripts/success.ts");', ".exit"],
           history: "",
-          noCompile: false,
+          noCompile: true,
           options,
         },
         hre,
@@ -117,7 +117,7 @@ describe("console/task-action", function () {
         {
           commands: ['await import("./scripts/throws.ts");', ".exit"],
           history: "",
-          noCompile: false,
+          noCompile: true,
           options,
         },
         hre,
@@ -132,7 +132,7 @@ describe("console/task-action", function () {
         {
           commands: ["console.log(hre);", ".exit"],
           history: "",
-          noCompile: false,
+          noCompile: true,
           options,
         },
         hre,
@@ -173,7 +173,7 @@ describe("console/task-action", function () {
         {
           commands: [".help", ".exit"],
           history,
-          noCompile: false,
+          noCompile: true,
           options,
         },
         hre,

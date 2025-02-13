@@ -12,7 +12,7 @@ export class NetworkConnectionImplementation<
 {
   public readonly id: number;
   public readonly networkName: string;
-  public readonly networkConfig: NetworkConfig;
+  public readonly networkConfig: Readonly<NetworkConfig>;
   public readonly chainType: ChainTypeT;
 
   #provider!: EthereumProvider;

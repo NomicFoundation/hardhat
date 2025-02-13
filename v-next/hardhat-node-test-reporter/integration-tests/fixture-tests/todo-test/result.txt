@@ -4,15 +4,12 @@
   [34m+ todo without a callback[39m
 
 
-[32m0 passing[39m[90m (123ms)[39m[34m[39m
+[32m0 passing[39m[90m (132ms)[39m[34m[39m
 [34m2 todo[39m
 
   1) todo with a callback:
 
-   [31mAssertionError: Expected values to be strictly equal:[39m
-   [31m[39m
-   [31m1 !== 2[39m
-   [31m[39m
+   [31mAssertionError: Expected values to be strictly equal[39m
    [32m- Expected[39m
    [31m+ Received[39m
    

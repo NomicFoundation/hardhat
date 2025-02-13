@@ -244,38 +244,15 @@ export function hardhatTestReporter(
           yield event.data.message;
           break;
         }
-        case "test:plan": {
-          // Do nothing
-          break;
-        }
-        case "test:enqueue": {
-          // Do nothing
-          break;
-        }
-        case "test:dequeue": {
-          // Do nothing
-          break;
-        }
-        case "test:watch:drained": {
-          // Do nothing
-          break;
-        }
-        case "test:complete": {
-          // Do nothing
-          break;
-        }
         case "test:coverage": {
           yield chalk.red("\nTest coverage not supported by this reporter\n");
           break;
         }
-        /* eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check --
-        We have this extra check here becase we know the @types/node type is
-        unreliable */
         default: {
-          const _isNever: never = event;
-          void _isNever;
-
-          yield chalk.red(`Unsuported node:test event:`, event);
+          // NOTE: Do nothing; we explicitly opt-in to the events we want to
+          // handle because future versions of node might and will emit new
+          // events that we don't yet know about and we don't want to break
+          // when that happens.
           break;
         }
       }

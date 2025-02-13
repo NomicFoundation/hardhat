@@ -17,6 +17,7 @@ import {
   assertHardhatInvariant,
 } from "@ignored/hardhat-vnext-errors";
 
+import { SHOULD_WARN_ABOUT_INLINE_TASK_ACTIONS_AND_HOOK_HANDLERS } from "./inline-functions-warning.js";
 import { detectPluginNpmDependencyProblems } from "./plugins/detect-plugin-npm-dependency-problems.js";
 
 export class HookManagerImplementation implements HookManager {
@@ -285,9 +286,11 @@ export class HookManagerImplementation implements HookManager {
             hookHandlerCategoryFactory,
           );
         } else {
-          console.warn(
-            `WARNING: Inline hooks found in plugin "${plugin.id}", category "${hookCategoryName}". User paths in production.`,
-          );
+          if (SHOULD_WARN_ABOUT_INLINE_TASK_ACTIONS_AND_HOOK_HANDLERS) {
+            console.warn(
+              `WARNING: Inline hooks found in plugin "${plugin.id}", category "${hookCategoryName}". Use file:// URLs in production.`,
+            );
+          }
 
           hookCategory = await hookHandlerCategoryFactory();
         }

@@ -3,7 +3,11 @@ import type EthersT from "ethers";
 import { buildAssert } from "../../utils";
 import { REVERTED_MATCHER } from "../constants";
 import { assertIsNotNull, preventAsyncMatcherChaining } from "../utils";
-import { decodeReturnData, getReturnDataFromError } from "./utils";
+import {
+  decodeReturnData,
+  getReturnDataFromError,
+  parseBytes32String,
+} from "./utils";
 
 export function supportReverted(
   Assertion: Chai.AssertionStatic,
@@ -35,6 +39,14 @@ export function supportReverted(
         }
 
         const receipt = await getTransactionReceipt(hash);
+
+        if (receipt === null) {
+          // If the receipt is null, maybe the string is a bytes32 string
+          if (isBytes32String(hash)) {
+            assert(false, "Expected transaction to be reverted");
+            return;
+          }
+        }
 
         assertIsNotNull(receipt, "receipt");
         assert(
@@ -123,7 +135,7 @@ function isTransactionReceipt(x: unknown): x is { status: number } {
     const status = (x as any).status;
 
     // this means we only support ethers's receipts for now; adding support for
-    // raw receipts, where the status is an hexadecimal string, should be easy
+    // raw receipts, where the status is a hexadecimal string, should be easy
     // and we can do it if there's demand for that
     return typeof status === "number";
   }
@@ -133,4 +145,13 @@ function isTransactionReceipt(x: unknown): x is { status: number } {
 
 function isValidTransactionHash(x: string): boolean {
   return /0x[0-9a-fA-F]{64}/.test(x);
+}
+
+function isBytes32String(v: string): boolean {
+  try {
+    parseBytes32String(v);
+    return true;
+  } catch {
+    return false;
+  }
 }

@@ -1,5 +1,5 @@
 import type { HardhatEthers } from "../types.js";
-import type { ArtifactsManager } from "@ignored/hardhat-vnext/types/artifacts";
+import type { ArtifactManager } from "@ignored/hardhat-vnext/types/artifacts";
 import type { NetworkConfig } from "@ignored/hardhat-vnext/types/config";
 import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
 
@@ -10,7 +10,7 @@ export async function initializeEthers(
   ethereumProvider: EthereumProvider,
   networkName: string,
   networkConfig: NetworkConfig,
-  artifactManager: ArtifactsManager,
+  artifactManager: ArtifactManager,
 ): Promise<HardhatEthers> {
   const ethers = await import("ethers");
 

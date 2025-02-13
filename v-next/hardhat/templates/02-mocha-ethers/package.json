@@ -1,0 +1,24 @@
+{
+  "name": "template-mocha-ethers",
+  "private": true,
+  "version": "0.0.1",
+  "description": "A Typescript Hardhat project using Mocha and Ethers.js",
+  "type": "module",
+  "devDependencies": {
+    "@ignored/hardhat-vnext": "workspace:^3.0.0-next.17",
+    "@ignored/hardhat-vnext-ethers": "workspace:^3.0.0-next.13",
+    "@ignored/hardhat-vnext-keystore": "workspace:^3.0.0-next.13",
+    "@ignored/hardhat-vnext-mocha-test-runner": "workspace:^3.0.0-next.13",
+    "@ignored/hardhat-vnext-network-helpers": "workspace:^3.0.0-next.13",
+    "@types/chai": "^4.2.0",
+    "@types/chai-as-promised": "^8.0.1",
+    "@types/mocha": "^10.0.0",
+    "@types/node": "^22.8.5",
+    "chai": "^4.4.1",
+    "chai-as-promised": "^8.0.0",
+    "ethers": "^6.13.4",
+    "forge-std": "foundry-rs/forge-std#v1.9.4",
+    "mocha": "^10.0.0",
+    "typescript": "~5.5.0"
+  }
+}

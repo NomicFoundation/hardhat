@@ -6,6 +6,8 @@ import { describe, it } from "node:test";
 
 import { HttpProvider } from "../../../../src/internal/builtin-plugins/network-manager/http-provider.js";
 import { NetworkConnectionImplementation } from "../../../../src/internal/builtin-plugins/network-manager/network-connection.js";
+import { GENERIC_CHAIN_TYPE } from "../../../../src/internal/constants.js";
+import { FixedValueConfigurationVariable } from "../../../../src/internal/core/configuration-variables.js";
 
 describe("NetworkConnectionImplementation", () => {
   const localhostNetworkConfig: NetworkConfig = {
@@ -16,7 +18,8 @@ describe("NetworkConnectionImplementation", () => {
     gas: "auto",
     gasMultiplier: 1,
     gasPrice: "auto",
-    url: "http://localhost:8545",
+    accounts: [],
+    url: new FixedValueConfigurationVariable("http://localhost:8545"),
     timeout: 20_000,
     httpHeaders: {},
   };
@@ -27,7 +30,7 @@ describe("NetworkConnectionImplementation", () => {
 
       const createProvider = async (): Promise<EthereumProvider> => {
         expectedProvider = await HttpProvider.create({
-          url: localhostNetworkConfig.url,
+          url: await localhostNetworkConfig.url.getUrl(),
           networkName: "localhost",
           extraHeaders: localhostNetworkConfig.httpHeaders,
           timeout: localhostNetworkConfig.timeout,
@@ -41,7 +44,7 @@ describe("NetworkConnectionImplementation", () => {
       const networkConnection = await NetworkConnectionImplementation.create(
         1,
         "localhost",
-        "unknown",
+        GENERIC_CHAIN_TYPE,
         localhostNetworkConfig,
         closeConnection,
         createProvider,
@@ -49,7 +52,7 @@ describe("NetworkConnectionImplementation", () => {
 
       assert.equal(networkConnection.id, 1);
       assert.equal(networkConnection.networkName, "localhost");
-      assert.equal(networkConnection.chainType, "unknown");
+      assert.equal(networkConnection.chainType, GENERIC_CHAIN_TYPE);
       assert.deepEqual(networkConnection.networkConfig, localhostNetworkConfig);
       assert.deepEqual(networkConnection.provider, expectedProvider);
     });

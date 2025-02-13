@@ -1,5 +1,4 @@
-import type { NumberLike } from "../../../../types.js";
-import type { NetworkHelpers } from "../../network-helpers.js";
+import type { NetworkHelpers, NumberLike } from "../../../../types.js";
 import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
 
 import { toBigInt, toRpcQuantity } from "../../../conversion.js";

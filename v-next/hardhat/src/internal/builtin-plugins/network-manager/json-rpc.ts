@@ -2,6 +2,8 @@ import type {
   FailedJsonRpcResponse,
   JsonRpcRequest,
   JsonRpcResponse,
+  RequestArguments,
+  SuccessfulJsonRpcResponse,
 } from "../../../types/providers.js";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
@@ -22,12 +24,7 @@ export function getJsonRpcRequest(
     method,
   };
 
-  if (isObject(params)) {
-    throw new HardhatError(HardhatError.ERRORS.NETWORK.INVALID_REQUEST_PARAMS);
-  }
-
-  // We default it as an empty array to be conservative
-  requestObject.params = params ?? [];
+  requestObject.params = getRequestParams({ method, params });
 
   if (id !== undefined) {
     requestObject.id = id;
@@ -36,28 +33,46 @@ export function getJsonRpcRequest(
   return requestObject;
 }
 
-export function parseJsonRpcResponse(
-  text: string,
-): JsonRpcResponse | JsonRpcResponse[] {
+export function parseJsonRpcResponse(text: string): JsonRpcResponse {
   try {
     const json: unknown = JSON.parse(text);
 
-    if (Array.isArray(json)) {
-      if (json.every(isJsonRpcResponse)) {
-        return json;
-      }
-    } else if (isJsonRpcResponse(json)) {
-      return json;
+    if (!isJsonRpcResponse(json)) {
+      /* eslint-disable-next-line no-restricted-syntax -- allow throwing a
+      generic error here as it will be handled in the catch block */
+      throw new Error("Invalid JSON-RPC response");
     }
 
-    /* eslint-disable-next-line no-restricted-syntax -- allow throwing a
-    generic error here as it will be handled in the catch block */
-    throw new Error();
+    return json;
   } catch {
     throw new HardhatError(HardhatError.ERRORS.NETWORK.INVALID_JSON_RESPONSE, {
       response: text,
     });
   }
+}
+
+export function isJsonRpcRequest(payload: unknown): payload is JsonRpcRequest {
+  if (!isObject(payload)) {
+    return false;
+  }
+
+  if (payload.jsonrpc !== "2.0") {
+    return false;
+  }
+
+  if (typeof payload.id !== "number" && typeof payload.id !== "string") {
+    return false;
+  }
+
+  if (typeof payload.method !== "string") {
+    return false;
+  }
+
+  if (!Array.isArray(payload.params)) {
+    return false;
+  }
+
+  return true;
 }
 
 export function isJsonRpcResponse(
@@ -100,8 +115,28 @@ export function isJsonRpcResponse(
   return true;
 }
 
+export function isSuccessfulJsonRpcResponse(
+  payload: JsonRpcResponse,
+): payload is SuccessfulJsonRpcResponse {
+  return "result" in payload;
+}
+
 export function isFailedJsonRpcResponse(
   payload: JsonRpcResponse,
 ): payload is FailedJsonRpcResponse {
   return "error" in payload && payload.error !== undefined;
+}
+
+export function getRequestParams(
+  requestArguments: RequestArguments,
+): unknown[] {
+  if (requestArguments.params === undefined) {
+    return [];
+  }
+
+  if (Array.isArray(requestArguments.params)) {
+    return requestArguments.params;
+  }
+
+  throw new HardhatError(HardhatError.ERRORS.NETWORK.INVALID_REQUEST_PARAMS);
 }

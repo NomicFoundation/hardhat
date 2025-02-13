@@ -10,6 +10,7 @@ import {
   assertHardhatInvariant,
 } from "@ignored/hardhat-vnext-errors";
 import { isCi } from "@ignored/hardhat-vnext-utils/ci";
+import { readClosestPackageJson } from "@ignored/hardhat-vnext-utils/package";
 import { kebabToCamelCase } from "@ignored/hardhat-vnext-utils/string";
 import debug from "debug";
 import { register } from "tsx/esm/api";
@@ -33,19 +34,28 @@ import { setGlobalHardhatRuntimeEnvironment } from "../global-hre-instance.js";
 import { createHardhatRuntimeEnvironment } from "../hre-intialization.js";
 
 import { printErrorMessages } from "./error-handler.js";
-import { getGlobalHelpString } from "./helpers/getGlobalHelpString.js";
-import { getHelpString } from "./helpers/getHelpString.js";
+import { getGlobalHelpString } from "./help/get-global-help-string.js";
+import { getHelpString } from "./help/get-help-string.js";
+import { sendErrorTelemetry } from "./telemetry/sentry/reporter.js";
 import { ensureTelemetryConsent } from "./telemetry/telemetry-permissions.js";
 import { printVersionMessage } from "./version.js";
 
+export interface MainOptions {
+  print?: (message: string) => void;
+  registerTsx?: boolean;
+  rethrowErrors?: true;
+}
+
 export async function main(
   cliArguments: string[],
-  print: (message: string) => void = console.log,
-  registerTsx = false,
+  options: MainOptions = {},
 ): Promise<void> {
+  const print = options.print ?? console.log;
+
   const log = debug("hardhat:core:cli:main");
 
   let builtinGlobalOptions;
+  let configPath;
 
   log("Hardhat CLI started");
 
@@ -74,14 +84,23 @@ export async function main(
 
     log("Retrieved telemetry consent");
 
-    const configPath = await resolveHardhatConfigPath(
+    configPath = await resolveHardhatConfigPath(
       builtinGlobalOptions.configPath,
     );
 
     const projectRoot = await resolveProjectRoot(configPath);
 
-    // Register tsx
-    if (registerTsx) {
+    const esmErrorPrinted = await printEsmErrorMessageIfNecessary(
+      projectRoot,
+      print,
+    );
+
+    if (esmErrorPrinted) {
+      process.exitCode = 1;
+      return;
+    }
+
+    if (options.registerTsx === true) {
       register();
     }
 
@@ -148,7 +167,7 @@ export async function main(
 
     const task = taskOrId;
 
-    if (builtinGlobalOptions.help) {
+    if (builtinGlobalOptions.help || task.isEmpty) {
       const taskHelp = await getHelpString(task);
 
       print(taskHelp);
@@ -166,6 +185,20 @@ export async function main(
     await task.run(taskArguments);
   } catch (error) {
     printErrorMessages(error, builtinGlobalOptions?.showStackTraces);
+
+    if (error instanceof Error) {
+      try {
+        await sendErrorTelemetry(error, configPath);
+      } catch (e) {
+        log("Couldn't report error to sentry: %O", e);
+      }
+    }
+
+    if (options.rethrowErrors) {
+      throw error;
+    }
+
+    process.exitCode = 1;
   }
 }
 
@@ -234,6 +267,12 @@ export async function parseBuiltinGlobalOptions(
     if (arg === "--version") {
       usedCliArguments[i] = true;
       version = true;
+      continue;
+    }
+
+    if (arg === "--verbose") {
+      usedCliArguments[i] = true;
+      debug.enable("hardhat*");
       continue;
     }
   }
@@ -547,4 +586,30 @@ function validateRequiredArguments(
     HardhatError.ERRORS.ARGUMENTS.MISSING_VALUE_FOR_ARGUMENT,
     { argument: missingRequiredArgument.name },
   );
+}
+
+/**
+ * Prints an error message if the user is running Hardhat on CJS mode, returning
+ * `true` if the message was printed.
+ */
+async function printEsmErrorMessageIfNecessary(
+  projectRoot: string,
+  print: (message: string) => void,
+): Promise<boolean> {
+  const packageJson = await readClosestPackageJson(projectRoot);
+
+  if (packageJson.type !== "module") {
+    print(`Hardhat only supports ESM projects.
+
+Please make sure you have \`"type": "module"\` in your package.json.
+
+You can set it automatically by running:
+
+npm pkg set type="module"
+`);
+
+    return true;
+  }
+
+  return false;
 }

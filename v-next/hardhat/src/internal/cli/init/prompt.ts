@@ -1,6 +1,8 @@
 import type { Template } from "./template.js";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { shortenPath } from "@ignored/hardhat-vnext-utils/path";
+import chalk from "chalk";
 
 export async function promptForWorkspace(): Promise<string> {
   ensureTTY();
@@ -11,12 +13,33 @@ export async function promptForWorkspace(): Promise<string> {
     {
       name: "workspace",
       type: "input",
-      message: `Where would you like to initialize the project?\n\nPlease provide either a path relative to ${process.cwd()} or an absolute path:`,
+      message: `Where would you like to initialize the project?\n\nPlease provide either a relative or an absolute path:`,
       initial: ".",
     },
   ]);
 
   return workspaceResponse.workspace;
+}
+
+export async function promptForMigrateToEsm(
+  absolutePathToPackageJson: string,
+): Promise<boolean> {
+  ensureTTY();
+
+  const { default: enquirer } = await import("enquirer");
+
+  const migrateToEsmResponse = await enquirer.prompt<{ migrateToEsm: boolean }>(
+    [
+      {
+        name: "migrateToEsm",
+        type: "confirm",
+        message: `Hardhat only supports ESM projects. Would you like to set the type for ${shortenPath(absolutePathToPackageJson)} to "module" now?`,
+        initial: false,
+      },
+    ],
+  );
+
+  return migrateToEsmResponse.migrateToEsm;
 }
 
 export async function promptForTemplate(
@@ -60,7 +83,9 @@ export async function promptForForce(files: string[]): Promise<boolean> {
   return forceResponse.force;
 }
 
-export async function promptForInstall(command: string[]): Promise<boolean> {
+export async function promptForInstall(
+  safelyFormattedCommand: string,
+): Promise<boolean> {
   ensureTTY();
 
   const { default: enquirer } = await import("enquirer");
@@ -69,12 +94,31 @@ export async function promptForInstall(command: string[]): Promise<boolean> {
     {
       name: "install",
       type: "confirm",
-      message: `You need to install the project dependencies using the following command:\n${command.join(" ")}\n\nDo you want to run it now?`,
-      initial: false,
+      message: `You need to install the following dependencies using the following command:\n${chalk.italic(safelyFormattedCommand)}\n\nDo you want to run it now?`,
+      initial: true,
     },
   ]);
 
   return installResponse.install;
+}
+
+export async function promptForUpdate(
+  safelyFormattedCommand: string,
+): Promise<boolean> {
+  ensureTTY();
+
+  const { default: enquirer } = await import("enquirer");
+
+  const updateResponse = await enquirer.prompt<{ update: boolean }>([
+    {
+      name: "update",
+      type: "confirm",
+      message: `You need to update the following dependencies using the following command:\n${chalk.italic(safelyFormattedCommand)}\n\nDo you want to run it now?`,
+      initial: true,
+    },
+  ]);
+
+  return updateResponse.update;
 }
 
 /**

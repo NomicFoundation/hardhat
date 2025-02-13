@@ -3,7 +3,6 @@ import type { NewTaskActionFunction } from "../../../types/tasks.js";
 import { pathToFileURL } from "node:url";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { ensureError } from "@ignored/hardhat-vnext-utils/error";
 import { exists } from "@ignored/hardhat-vnext-utils/fs";
 import { resolveFromRoot } from "@ignored/hardhat-vnext-utils/path";
 
@@ -14,7 +13,7 @@ interface RunActionArguments {
 
 const runScriptWithHardhat: NewTaskActionFunction<RunActionArguments> = async (
   { script, noCompile },
-  _hre,
+  hre,
 ) => {
   const normalizedPath = resolveFromRoot(process.cwd(), script);
 
@@ -26,27 +25,11 @@ const runScriptWithHardhat: NewTaskActionFunction<RunActionArguments> = async (
   }
 
   if (!noCompile) {
-    // TODO(#5600): run compile task
+    await hre.tasks.getTask("compile").run({});
+    console.log();
   }
 
-  try {
-    await import(pathToFileURL(normalizedPath).href);
-  } catch (error) {
-    ensureError(error);
-
-    if (HardhatError.isHardhatError(error)) {
-      throw error;
-    }
-
-    throw new HardhatError(
-      HardhatError.ERRORS.BUILTIN_TASKS.RUN_SCRIPT_ERROR,
-      {
-        script,
-        error: error.message,
-      },
-      error,
-    );
-  }
+  await import(pathToFileURL(normalizedPath).href);
 };
 
 export default runScriptWithHardhat;

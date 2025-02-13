@@ -3,7 +3,7 @@ import type { HardhatPlugin } from "../../../types/plugins.js";
 import { task } from "../../core/config.js";
 
 const hardhatPlugin: HardhatPlugin = {
-  id: "clean",
+  id: "builtin:clean",
   tasks: [
     task("clean", "Clears the cache and deletes all artifacts")
       .addFlag({
@@ -13,6 +13,7 @@ const hardhatPlugin: HardhatPlugin = {
       .setAction(import.meta.resolve("./task-action.js"))
       .build(),
   ],
+  npmPackage: "@ignored/hardhat-vnext",
 };
 
 export default hardhatPlugin;

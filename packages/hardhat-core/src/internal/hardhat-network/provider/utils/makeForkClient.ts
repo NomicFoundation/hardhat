@@ -1,4 +1,4 @@
-import chalk from "chalk";
+import picocolors from "picocolors";
 
 import { HARDHAT_NETWORK_NAME } from "../../../constants";
 import { assertHardhatInvariant } from "../../../core/errors";
@@ -61,7 +61,7 @@ export async function makeForkProvider(forkConfig: ForkConfig): Promise<{
         latestBlockNumber - BigInt(forkConfig.blockNumber) + 1n;
       const requiredConfirmations = maxReorg + 1n;
       console.warn(
-        chalk.yellow(
+        picocolors.yellow(
           `You are forking from block ${
             forkConfig.blockNumber
           }, which has less than ${requiredConfirmations} confirmations, and will affect Hardhat Network's performance.

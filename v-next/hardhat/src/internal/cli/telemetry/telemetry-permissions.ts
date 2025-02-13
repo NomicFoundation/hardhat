@@ -109,9 +109,16 @@ async function getTelemetryConsent(telemetryConsentFilePath?: string) {
 
   if (await exists(telemetryConsentFilePath)) {
     // Telemetry consent was already provided, hence return the answer
-    return (await readJsonFile<TelemetryConsent>(telemetryConsentFilePath))
-      .consent;
+    const consent = (
+      await readJsonFile<TelemetryConsent>(telemetryConsentFilePath)
+    ).consent;
+
+    log(`Telemetry consent value: ${consent}`);
+
+    return consent;
   }
+
+  log("No telemetry consent file found");
 
   return undefined;
 }

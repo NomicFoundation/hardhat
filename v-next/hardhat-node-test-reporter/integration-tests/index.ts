@@ -10,6 +10,7 @@ import { run } from "node:test";
 
 import { diff } from "jest-diff";
 
+import { formatSlowTestInfo } from "../src/formatting.js";
 import { hardhatTestReporter } from "../src/reporter.js";
 
 let SHOW_OUTPUT = false;
@@ -95,8 +96,8 @@ for (const entry of entries) {
     writeFileSync(entryPath + "/result.actual.txt", output);
     const expectedOutput = readFileSync(entryPath + "/result.txt", "utf8");
 
-    const normalizedOutput = normalizeOutputs(output);
-    const normalizedExpectedOutput = normalizeOutputs(expectedOutput);
+    const normalizedOutput = normalizeOutput(entry, output);
+    const normalizedExpectedOutput = normalizeOutput(entry, expectedOutput);
 
     if (normalizedOutput !== normalizedExpectedOutput) {
       console.log("Normalized outputs differ:");
@@ -119,9 +120,27 @@ for (const entry of entries) {
   }
 }
 
-function normalizeOutputs(output: string): string {
+function normalizeOutput(name: string, output: string): string {
+  let normalizedOutput = output;
+
+  if (name !== "slow-test") {
+    // Remove slow test info from the output
+    const slowTestInfo = formatSlowTestInfo(0)
+      .replace(/[/\-\\^$*+?.()|[\]{}]/g, "\\$&")
+      .replace("0", "\\d+");
+    const slowTestRegex = new RegExp(slowTestInfo, "g");
+    normalizedOutput = normalizedOutput.replace(slowTestRegex, "");
+  }
+
+  const testFileRegex = new RegExp(
+    path
+      .join("integration-tests", "fixture-tests", `[^${path.sep}]+`, "test.ts")
+      .replaceAll("\\", "\\\\"),
+    "g",
+  );
+
   return (
-    output
+    normalizedOutput
       // Normalize the time it took to run the test
       .replace(/\(\d+ms\)/g, "(Xms)")
       // Normalize windows new lines
@@ -129,6 +148,10 @@ function normalizeOutputs(output: string): string {
       // Normalize path separators to `/` within the (file:line:column)
       // part of the stack traces
       .replaceAll(/\(.*?:\d+:\d+\)/g, (match) => {
+        return match.replaceAll(path.sep, "/");
+      })
+      // Normalize path separators to `/` within the test file paths
+      .replaceAll(testFileRegex, (match) => {
         return match.replaceAll(path.sep, "/");
       })
       // Remove lines like `at TestHook.run (node:internal/test_runner/test:1107:18)`

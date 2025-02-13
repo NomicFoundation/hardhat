@@ -1,6 +1,6 @@
 {
   "name": "@ignored/hardhat-vnext",
-  "version": "3.0.0-next.3",
+  "version": "3.0.0-next.17",
   "description": "Hardhat is an extensible developer tool that helps smart contract developers increase productivity by reliably bringing together the tools they want.",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat",
   "repository": {
@@ -31,7 +31,9 @@
     "./types/providers": "./dist/src/types/providers.js",
     "./types/tasks": "./dist/src/types/tasks.js",
     "./types/user-interruptions": "./dist/src/types/user-interruptions.js",
-    "./types/utils": "./dist/src/types/utils.js"
+    "./types/utils": "./dist/src/types/utils.js",
+    "./types/solidity": "./dist/src/types/solidity.js",
+    "./console.sol": "./console.sol"
   },
   "keywords": [
     "ethereum",
@@ -54,17 +56,20 @@
     "dist/src/",
     "src/",
     "templates/",
+    "console.sol",
     "CHANGELOG.md",
     "LICENSE",
     "README.md"
   ],
   "devDependencies": {
     "@eslint-community/eslint-plugin-eslint-comments": "^4.3.0",
-    "@ignored/hardhat-vnext-node-test-reporter": "workspace:^3.0.0-next.2",
+    "@ignored/hardhat-vnext-node-test-reporter": "workspace:^3.0.0-next.16",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
-    "@types/debug": "^4.1.4",
+    "@types/adm-zip": "^0.5.5",
+    "@types/debug": "^4.1.7",
     "@types/node": "^20.14.9",
     "@types/semver": "^7.5.8",
+    "@types/ws": "^8.5.13",
     "@typescript-eslint/eslint-plugin": "^7.7.1",
     "@typescript-eslint/parser": "^7.7.1",
     "eslint": "8.57.0",
@@ -79,18 +84,24 @@
     "typescript-eslint": "7.7.1"
   },
   "dependencies": {
-    "@ignored/edr": "0.6.2-alpha.0",
-    "@ignored/hardhat-vnext-build-system": "workspace:^3.0.0-next.2",
-    "@ignored/hardhat-vnext-errors": "workspace:^3.0.0-next.2",
-    "@ignored/hardhat-vnext-utils": "workspace:^3.0.0-next.2",
-    "@ignored/hardhat-vnext-zod-utils": "workspace:^3.0.0-next.2",
+    "@ignored/edr": "0.8.0-alpha.2",
+    "@ignored/edr-optimism": "0.6.5-alpha.3",
+    "@ignored/hardhat-vnext-errors": "workspace:^3.0.0-next.16",
+    "@ignored/hardhat-vnext-utils": "workspace:^3.0.0-next.16",
+    "@ignored/hardhat-vnext-zod-utils": "workspace:^3.0.0-next.16",
+    "@nomicfoundation/solidity-analyzer": "^0.1.1",
     "@sentry/node": "^5.18.1",
+    "adm-zip": "^0.4.16",
     "chalk": "^5.3.0",
-    "debug": "^4.1.1",
+    "debug": "^4.3.2",
     "enquirer": "^2.3.0",
     "ethereum-cryptography": "^2.2.1",
+    "micro-eth-signer": "^0.13.0",
+    "p-map": "^7.0.2",
+    "resolve.exports": "^2.0.3",
     "semver": "^7.6.3",
     "tsx": "^4.11.0",
+    "ws": "^8.18.0",
     "zod": "^3.23.8"
   }
 }

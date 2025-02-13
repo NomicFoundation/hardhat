@@ -1,94 +1,100 @@
-import type { ArtifactsManager } from "../../../types/artifacts.js";
+import type { RunOptions } from "./runner.js";
+import type { SolidityTestConfig } from "../../../types/config.js";
 import type {
-  ArtifactId,
-  SuiteResult,
-  Artifact,
   SolidityTestRunnerConfigArgs,
-  TestResult,
+  CachedChains,
+  CachedEndpoints,
+  PathPermission,
+  StorageCachingConfig,
+  AddressLabel,
 } from "@ignored/edr";
 
-import { runSolidityTests } from "@ignored/edr";
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { hexStringToBytes } from "@ignored/hardhat-vnext-utils/hex";
 
-/**
- * Run all the given solidity tests and returns the whole results after finishing.
- *
- * This function is a direct port of the example v2 integration in the
- * EDR repo (see  https://github.com/NomicFoundation/edr/blob/feat/solidity-tests/js/helpers/src/index.ts).
- * The signature of the function should be considered a draft and may change in the future.
- *
- * TODO: Reconsider the signature and feedback to EDR team.
- */
-export async function runAllSolidityTests(
-  artifacts: Artifact[],
-  testSuites: ArtifactId[],
-  configArgs: SolidityTestRunnerConfigArgs,
-  testResultCallback: (
-    suiteResult: SuiteResult,
-    testResult: TestResult,
-  ) => void = () => {},
-): Promise<SuiteResult[]> {
-  return new Promise((resolve, reject) => {
-    const resultsFromCallback: SuiteResult[] = [];
-
-    runSolidityTests(
-      artifacts,
-      testSuites,
-      configArgs,
-      (suiteResult: SuiteResult) => {
-        for (const testResult of suiteResult.testResults) {
-          testResultCallback(suiteResult, testResult);
-        }
-
-        resultsFromCallback.push(suiteResult);
-        if (resultsFromCallback.length === testSuites.length) {
-          resolve(resultsFromCallback);
-        }
-      },
-      reject,
-    );
-  });
+function hexStringToBuffer(hexString: string): Buffer {
+  return Buffer.from(hexStringToBytes(hexString));
 }
 
-export async function buildSolidityTestsInput(
-  hardhatArtifacts: ArtifactsManager,
-  isTestArtifact: (artifact: Artifact) => boolean = () => true,
-): Promise<{ artifacts: Artifact[]; testSuiteIds: ArtifactId[] }> {
-  const fqns = await hardhatArtifacts.getAllFullyQualifiedNames();
-  const artifacts: Artifact[] = [];
-  const testSuiteIds: ArtifactId[] = [];
+export function solidityTestConfigToRunOptions(
+  config: SolidityTestConfig,
+): RunOptions {
+  return config;
+}
 
-  for (const fqn of fqns) {
-    const hardhatArtifact = await hardhatArtifacts.readArtifact(fqn);
-    const buildInfo = await hardhatArtifacts.getBuildInfo(fqn);
+export function solidityTestConfigToSolidityTestRunnerConfigArgs(
+  projectRoot: string,
+  config: SolidityTestConfig,
+): SolidityTestRunnerConfigArgs {
+  const fsPermissions: PathPermission[] | undefined = [
+    config.fsPermissions?.readWrite?.map((p) => ({ access: 0, path: p })) ?? [],
+    config.fsPermissions?.read?.map((p) => ({ access: 0, path: p })) ?? [],
+    config.fsPermissions?.write?.map((p) => ({ access: 0, path: p })) ?? [],
+  ].flat(1);
 
-    if (buildInfo === undefined) {
-      throw new HardhatError(
-        HardhatError.ERRORS.SOLIDITY_TESTS.BUILD_INFO_NOT_FOUND_FOR_CONTRACT,
-        {
-          fqn,
-        },
-      );
+  const labels: AddressLabel[] | undefined = config.labels?.map(
+    ({ address, label }) => ({
+      address: hexStringToBuffer(address),
+      label,
+    }),
+  );
+
+  let rpcStorageCaching: StorageCachingConfig | undefined;
+  if (config.rpcStorageCaching !== undefined) {
+    let chains: CachedChains | string[];
+    if (Array.isArray(config.rpcStorageCaching.chains)) {
+      chains = config.rpcStorageCaching.chains;
+    } else {
+      const rpcStorageCachingChains: "All" | "None" =
+        config.rpcStorageCaching.chains;
+      switch (rpcStorageCachingChains) {
+        case "All":
+          chains = 0;
+          break;
+        case "None":
+          chains = 1;
+          break;
+      }
     }
-
-    const id = {
-      name: hardhatArtifact.contractName,
-      solcVersion: buildInfo.solcVersion,
-      source: hardhatArtifact.sourceName,
-    };
-
-    const contract = {
-      abi: JSON.stringify(hardhatArtifact.abi),
-      bytecode: hardhatArtifact.bytecode,
-      deployedBytecode: hardhatArtifact.deployedBytecode,
-    };
-
-    const artifact = { id, contract };
-    artifacts.push(artifact);
-    if (isTestArtifact(artifact)) {
-      testSuiteIds.push(artifact.id);
+    let endpoints: CachedEndpoints | string;
+    if (config.rpcStorageCaching.endpoints instanceof RegExp) {
+      endpoints = config.rpcStorageCaching.endpoints.source;
+    } else {
+      const rpcStorageCachingEndpoints: "All" | "Remote" =
+        config.rpcStorageCaching.endpoints;
+      switch (rpcStorageCachingEndpoints) {
+        case "All":
+          endpoints = 0;
+          break;
+        case "Remote":
+          endpoints = 1;
+          break;
+      }
     }
+    rpcStorageCaching = {
+      chains,
+      endpoints,
+    };
   }
 
-  return { artifacts, testSuiteIds };
+  const sender: Buffer | undefined =
+    config.sender === undefined ? undefined : hexStringToBuffer(config.sender);
+  const txOrigin: Buffer | undefined =
+    config.txOrigin === undefined
+      ? undefined
+      : hexStringToBuffer(config.txOrigin);
+  const blockCoinbase: Buffer | undefined =
+    config.blockCoinbase === undefined
+      ? undefined
+      : hexStringToBuffer(config.blockCoinbase);
+
+  return {
+    projectRoot,
+    ...config,
+    fsPermissions,
+    labels,
+    sender,
+    txOrigin,
+    blockCoinbase,
+    rpcStorageCaching,
+  };
 }

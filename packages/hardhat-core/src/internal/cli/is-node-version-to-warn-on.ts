@@ -7,7 +7,7 @@ import { SUPPORTED_NODE_VERSIONS } from "./constants";
  * Determine if the node version should trigger an unsupported
  * warning.
  *
- * The current rule is that a unsupported warning will be shown if
+ * The current rule is that an unsupported warning will be shown if
  *
  * 1. An odd numbered version of Node.js is used - as this will never go to LTS
  * 2. The version is less than the minimum supported version

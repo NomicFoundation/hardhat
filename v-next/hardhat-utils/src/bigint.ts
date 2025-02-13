@@ -37,9 +37,7 @@ export function max(x: bigint, y: bigint): bigint {
  * @returns The input value converted to a bigint.
  * @throws InvalidParameterError If the input value cannot be converted to a bigint.
  */
-export async function toBigInt(
-  value: number | string | bigint,
-): Promise<bigint> {
+export function toBigInt(value: number | string | bigint): bigint {
   switch (typeof value) {
     case "number":
       if (!Number.isInteger(value)) {

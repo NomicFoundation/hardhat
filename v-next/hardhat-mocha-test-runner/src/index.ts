@@ -5,9 +5,9 @@ import { task } from "@ignored/hardhat-vnext/config";
 import "./type-extensions.js";
 
 const hardhatPlugin: HardhatPlugin = {
-  id: "test",
+  id: "hardhat-mocha",
   tasks: [
-    task("test", "Runs tests using the Mocha test runner")
+    task(["test", "mocha"], "Runs tests using the Mocha test runner")
       .addVariadicArgument({
         name: "testFiles",
         description: "An optional list of files to test",
@@ -22,12 +22,17 @@ const hardhatPlugin: HardhatPlugin = {
         description: "Only run tests matching the given string or regexp",
         defaultValue: "",
       })
+      .addFlag({
+        name: "noCompile",
+        description: "Don't compile the project before running the test",
+      })
       .setAction(import.meta.resolve("./task-action.js"))
       .build(),
   ],
   hookHandlers: {
     config: import.meta.resolve("./hookHandlers/config.js"),
   },
+  npmPackage: "@ignored/hardhat-vnext-mocha-test-runner",
 };
 
 export default hardhatPlugin;

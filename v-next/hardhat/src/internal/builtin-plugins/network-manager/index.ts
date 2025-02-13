@@ -8,10 +8,11 @@ import "./type-extensions/hooks.js";
 import "./type-extensions/hre.js";
 
 const hardhatPlugin: HardhatPlugin = {
-  id: "network-manager",
+  id: "builtin:network-manager",
   hookHandlers: {
     config: import.meta.resolve("./hook-handlers/config.js"),
     hre: import.meta.resolve("./hook-handlers/hre.js"),
+    network: import.meta.resolve("./hook-handlers/network.js"),
   },
   globalOptions: [
     globalOption({
@@ -19,6 +20,15 @@ const hardhatPlugin: HardhatPlugin = {
       description: "The network to connect to",
       defaultValue: "",
     }),
+  ],
+  npmPackage: "@ignored/hardhat-vnext",
+  dependencies: [
+    async () => {
+      const { default: artifactsPlugin } = await import(
+        "../artifacts/index.js"
+      );
+      return artifactsPlugin;
+    },
   ],
 };
 

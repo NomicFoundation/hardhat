@@ -24,7 +24,8 @@
     "@nomicfoundation/example-project",
     "@nomicfoundation/template-package",
     "@nomicfoundation/eslint-plugin-hardhat-internal-rules",
-    "@nomicfoundation/eslint-plugin-slow-imports"
+    "@nomicfoundation/eslint-plugin-slow-imports",
+    "template-*"
   ],
   "___experimentalUnsafeOptions_WILL_CHANGE_IN_PATCH": {
     "onlyUpdatePeerDependentsWhenOutOfRange": true

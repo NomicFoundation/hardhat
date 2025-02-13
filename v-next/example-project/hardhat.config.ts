@@ -1,15 +1,24 @@
-import type { HardhatUserConfig } from "@ignored/hardhat-vnext/types/config";
+import type { HardhatUserConfig } from "@ignored/hardhat-vnext/config";
 
 import { HardhatPluginError } from "@ignored/hardhat-vnext/plugins";
 
 import util from "node:util";
-import { task, emptyTask, globalOption } from "@ignored/hardhat-vnext/config";
+import {
+  task,
+  emptyTask,
+  globalOption,
+  configVariable,
+} from "@ignored/hardhat-vnext/config";
 import HardhatNodeTestRunner from "@ignored/hardhat-vnext-node-test-runner";
 import HardhatMochaTestRunner from "@ignored/hardhat-vnext-mocha-test-runner";
 import HardhatKeystore from "@ignored/hardhat-vnext-keystore";
-import { viemScketchPlugin } from "./viem-scketch-plugin.js";
+import HardhatViem from "@ignored/hardhat-vnext-viem";
 import hardhatNetworkHelpersPlugin from "@ignored/hardhat-vnext-network-helpers";
 import hardhatEthersPlugin from "@ignored/hardhat-vnext-ethers";
+import hardhatChaiMatchersPlugin from "@ignored/hardhat-vnext-chai-matchers";
+import hardhatTypechain from "@ignored/hardhat-vnext-typechain";
+
+util.inspect.defaultOptions.depth = null;
 
 const exampleEmptyTask = emptyTask("empty", "An example empty task").build();
 
@@ -46,12 +55,6 @@ const exampleTaskOverride = task("example2")
     name: "grep",
     description: "Only run tests matching the given string or regexp",
     defaultValue: "",
-  })
-  .build();
-
-const testSolidityTask = task(["test", "solidity"], "Runs Solidity tests")
-  .setAction(async () => {
-    console.log("Running Solidity tests");
   })
   .build();
 
@@ -110,9 +113,37 @@ const pluginExample = {
 };
 
 const config: HardhatUserConfig = {
+  networks: {
+    op: {
+      type: "http",
+      chainType: "optimism",
+      url: "https://mainnet.optimism.io/",
+      accounts: [configVariable("OP_SENDER")],
+    },
+    edrOp: {
+      type: "edr",
+      chainType: "optimism",
+      chainId: 10,
+      forking: {
+        url: "https://mainnet.optimism.io",
+      },
+    },
+    opSepolia: {
+      type: "http",
+      chainType: "optimism",
+      url: "https://sepolia.optimism.io",
+      accounts: [configVariable("OP_SEPOLIA_SENDER")],
+    },
+    edrOpSepolia: {
+      type: "edr",
+      chainType: "optimism",
+      forking: {
+        url: "https://sepolia.optimism.io",
+      },
+    },
+  },
   tasks: [
     exampleTaskOverride,
-    testSolidityTask,
     exampleEmptyTask,
     exampleEmptySubtask,
     greeting,
@@ -123,17 +154,59 @@ const config: HardhatUserConfig = {
     pluginExample,
     hardhatEthersPlugin,
     HardhatKeystore,
-    // HardhatMochaTestRunner,
-    // if testing node plugin, use the following line instead
+    HardhatMochaTestRunner,
     hardhatNetworkHelpersPlugin,
     HardhatNodeTestRunner,
-    viemScketchPlugin,
+    HardhatViem,
+    hardhatChaiMatchersPlugin,
+    hardhatTypechain,
   ],
   paths: {
     tests: {
       mocha: "test/mocha",
       nodeTest: "test/node",
+      solidity: "test/contracts",
     },
+  },
+  solidity: {
+    profiles: {
+      default: {
+        compilers: [
+          {
+            version: "0.8.22",
+          },
+          {
+            version: "0.7.1",
+          },
+        ],
+        overrides: {
+          "foo/bar.sol": {
+            version: "0.8.1",
+          },
+        },
+      },
+      test: {
+        version: "0.8.2",
+      },
+      coverage: {
+        version: "0.8.2",
+      },
+    },
+    dependenciesToCompile: [
+      "@openzeppelin/contracts/token/ERC20/ERC20.sol",
+      "forge-std/src/Test.sol",
+    ],
+    remappings: [
+      "remapped/=npm/@openzeppelin/contracts@5.1.0/access/",
+      // This is necessary because most people import forge-std/Test.sol, and not forge-std/src/Test.sol
+      "forge-std/=npm/forge-std@1.9.4/src/",
+    ],
+  },
+  solidityTest: {
+    testFail: true,
+  },
+  typechain: {
+    tsNocheck: false,
   },
 };
 

@@ -1,6 +1,6 @@
 {
   "name": "@ignored/hardhat-vnext-ethers",
-  "version": "3.0.0-next.2",
+  "version": "3.0.0-next.13",
   "description": "Hardhat plugin for ethers",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-ethers",
   "repository": {
@@ -27,7 +27,6 @@
     "eslint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
     "prettier": "prettier \"**/*.{ts,js,md,json}\"",
     "test": "node --import tsx/esm --test --test-reporter=@ignored/hardhat-vnext-node-test-reporter \"test/*.ts\" \"test/!(fixture-projects|helpers)/**/*.ts\"",
-    "test:tmp": "node --import tsx/esm ./run-tests.ts",
     "test:only": "node --import tsx/esm --test --test-only --test-reporter=@ignored/hardhat-vnext-node-test-reporter \"test/*.ts\" \"test/!(fixture-projects|helpers)/**/*.ts\"",
     "test:coverage": "c8 --reporter html --reporter text --all --exclude test --exclude src/internal/types.ts --exclude src/internal/ui/direct-user-interruption-manager.ts --src src node --import tsx/esm --test --test-reporter=@ignored/hardhat-vnext-node-test-reporter \"test/!(fixture-projects|helpers)/**/*.ts\"",
     "pretest": "pnpm build",
@@ -45,9 +44,9 @@
   ],
   "devDependencies": {
     "@eslint-community/eslint-plugin-eslint-comments": "^4.3.0",
-    "@ignored/hardhat-vnext-node-test-reporter": "workspace:^3.0.0-next.2",
+    "@ignored/hardhat-vnext-node-test-reporter": "workspace:^3.0.0-next.16",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
-    "@types/debug": "^4.1.4",
+    "@types/debug": "^4.1.7",
     "@types/node": "^20.14.9",
     "@typescript-eslint/eslint-plugin": "^7.7.1",
     "@typescript-eslint/parser": "^7.7.1",
@@ -65,12 +64,12 @@
     "typescript-eslint": "7.7.1"
   },
   "dependencies": {
-    "@ignored/hardhat-vnext-errors": "workspace:^3.0.0-next.2",
-    "@ignored/hardhat-vnext-utils": "workspace:^3.0.0-next.2",
-    "debug": "^4.1.1",
-    "ethers": "^6.13.2"
+    "@ignored/hardhat-vnext-errors": "workspace:^3.0.0-next.16",
+    "@ignored/hardhat-vnext-utils": "workspace:^3.0.0-next.16",
+    "debug": "^4.3.2",
+    "ethers": "^6.13.4"
   },
   "peerDependencies": {
-    "@ignored/hardhat-vnext": "workspace:^3.0.0-next.2"
+    "@ignored/hardhat-vnext": "workspace:^3.0.0-next.17"
   }
 }

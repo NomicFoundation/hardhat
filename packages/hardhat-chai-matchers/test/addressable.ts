@@ -64,7 +64,7 @@ describe("Addressable matcher", () => {
         }
       });
 
-      describe(`expect "${el1.name}" to not equal "${el1.name}"`, () => {
+      describe(`expect "${el1.name}" to not equal "${el2.name}"`, () => {
         if (expectEqual) {
           it("should revert", () => {
             expect(() => expect(el1.object).to.not.equal(el2.object)).to.throw(

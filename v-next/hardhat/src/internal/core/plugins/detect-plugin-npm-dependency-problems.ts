@@ -1,10 +1,13 @@
 import type { HardhatPlugin } from "../../../types/plugins.js";
-import type { PackageJson } from "@ignored/hardhat-vnext-utils/package";
 
-import { createRequire } from "node:module";
 import path from "node:path";
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { readJsonFile } from "@ignored/hardhat-vnext-utils/fs";
+import {
+  findDependencyPackageJson,
+  type PackageJson,
+} from "@ignored/hardhat-vnext-utils/package";
 
 /**
  * Validate that a plugin is installed and that its peer dependencies are
@@ -28,32 +31,36 @@ export async function detectPluginNpmDependencyProblems(
     return;
   }
 
-  const pluginPackageResult = readPackageJsonViaNodeRequire(
+  const pluginPackageJsonPath = await findDependencyPackageJson(
     basePathForNpmResolution,
     plugin.npmPackage,
   );
 
-  if (pluginPackageResult === undefined) {
+  if (pluginPackageJsonPath === undefined) {
     throw new HardhatError(HardhatError.ERRORS.PLUGINS.PLUGIN_NOT_INSTALLED, {
       pluginId: plugin.id,
     });
   }
 
-  const { packageJson: pluginPackageJson, packagePath } = pluginPackageResult;
+  const pluginPackageJson = await readJsonFile<PackageJson>(
+    pluginPackageJsonPath,
+  );
 
   if (pluginPackageJson.peerDependencies === undefined) {
     return;
   }
 
+  const pluginPackagePath = path.dirname(pluginPackageJsonPath);
+
   for (const [dependencyName, versionSpec] of Object.entries(
     pluginPackageJson.peerDependencies,
   )) {
-    const dependencyPackageJsonResult = readPackageJsonViaNodeRequire(
-      packagePath,
+    const dependencyPackageJsonPath = await findDependencyPackageJson(
+      pluginPackagePath,
       dependencyName,
     );
 
-    if (dependencyPackageJsonResult === undefined) {
+    if (dependencyPackageJsonPath === undefined) {
       throw new HardhatError(
         HardhatError.ERRORS.PLUGINS.PLUGIN_MISSING_DEPENDENCY,
         {
@@ -63,7 +70,11 @@ export async function detectPluginNpmDependencyProblems(
       );
     }
 
-    const installedVersion = dependencyPackageJsonResult.packageJson.version;
+    const dependencyPackageJson = await readJsonFile<PackageJson>(
+      dependencyPackageJsonPath,
+    );
+
+    const installedVersion = dependencyPackageJson.version;
 
     const { satisfies } = await import("semver");
 
@@ -78,30 +89,5 @@ export async function detectPluginNpmDependencyProblems(
         },
       );
     }
-  }
-}
-
-/**
- * Read the package.json of a named package resolved through the node require
- * system.
- *
- * @param packageName the package name i.e. "@nomiclabs/hardhat-waffle"
- * @param baseRequirePath  the dir path for node module resolution
- * @returns the package.json object or undefined if the package is not found
- */
-function readPackageJsonViaNodeRequire(
-  baseRequirePath: string,
-  packageName: string,
-): { packageJson: PackageJson; packagePath: string } | undefined {
-  try {
-    const require = createRequire(baseRequirePath);
-
-    const packagePath = require.resolve(path.join(packageName, "package.json"));
-
-    const packageJson = require(packagePath);
-
-    return { packageJson, packagePath };
-  } catch (error) {
-    return undefined;
   }
 }

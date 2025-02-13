@@ -6,9 +6,6 @@ on:
     branches:
       - v-next
   pull_request:
-    # TODO: Remove the filter when v-next is merged into main
-    branches:
-      - v-next
   workflow_dispatch:
 
 concurrency:
@@ -16,8 +13,28 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  is-v-next:
+    runs-on: ubuntu-latest
+    outputs:
+      is_v_next: ${{ steps.check.outputs.folder_exists }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check if the folder v-next exists
+        id: check
+        run: |
+          if [ -d "./v-next" ]; then
+            echo "folder_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "folder_exists=false" >> $GITHUB_OUTPUT
+          fi
+
   check_dependencies:
     name: Check dependency versions
+    needs: is-v-next
+    if: ${{ needs.is-v-next.outputs.is_v_next == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -29,6 +46,8 @@ jobs:
 
   check_npm_scripts:
     name: Check that the npm scripts are consistent
+    needs: is-v-next
+    if: ${{ needs.is-v-next.outputs.is_v_next == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -40,10 +59,12 @@ jobs:
 
   list-packages:
     name: List packages
+    needs: is-v-next
+    if: ${{ needs.is-v-next.outputs.is_v_next == 'true' }}
     runs-on: ubuntu-latest
     outputs:
       packages: ${{ steps.filter.outputs.changes }}
-      files: ${{ toJSON(steps.filter.outputs) }}
+      should_bundle: ${{ contains(steps.filter.outputs.hardhat_files, '.github/workflows/v-next-ci.yml') || contains(steps.filter.outputs.hardhat_files, 'pnpm-lock.yaml') }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -56,7 +77,6 @@ jobs:
             [
               ".",
               "packages/",
-              "v-next/example-project",
               "v-next/hardhat/templates/"
             ]
           COMMON_FILTERS: |
@@ -76,22 +96,21 @@ jobs:
         with:
           list-files: json
           filters: ${{ steps.generate.outputs.filters }}
+          base: v-next # TODO: Remove once v-next becomes the default branch
 
   bundle:
     # Depending on list-packages only to check whether pnpm-lock.yaml has changed
     # This could be handled by a simpler job, but an extra runner would have to be allocated for it
     needs: list-packages
 
-    if: |
-      contains(fromJSON(needs.list-packages.outputs.files).hardhat_files, '.github/workflows/v-next-ci.yml') ||
-        contains(fromJSON(needs.list-packages.outputs.files).hardhat_files, 'pnpm-lock.yaml')
+    if: needs.list-packages.outputs.should_bundle == 'true'
 
     # Using a matrix strategy even though there's only one package
     # because we will want to add, at least, hardhat-toolbox in the future
     strategy:
       fail-fast: false
       matrix:
-        package: ['hardhat']
+        package: ["hardhat"]
 
     name: "[${{ matrix.package }}] bundle"
     runs-on: ubuntu-latest
@@ -254,6 +273,8 @@ jobs:
       - name: Build
         run: pnpm build
       - name: Run tests
+        env:
+          __DO_NOT_USE_IS_HARDHAT_CI: true
         run: pnpm run test
 
   ci-aggregate:

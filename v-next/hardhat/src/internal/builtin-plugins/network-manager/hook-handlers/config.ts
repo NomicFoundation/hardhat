@@ -1,21 +1,23 @@
 import type {
-  ConfigurationVariable,
-  GasConfig,
-  GasUserConfig,
+  ConfigurationVariableResolver,
+  EdrNetworkUserConfig,
   HardhatConfig,
   HardhatUserConfig,
-  HttpNetworkConfig,
+  HttpNetworkUserConfig,
   NetworkConfig,
   NetworkUserConfig,
-  ResolvedConfigurationVariable,
 } from "../../../../types/config.js";
 import type { ConfigHooks } from "../../../../types/hooks.js";
 
-import { validateUserConfig } from "../type-validation.js";
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
+
+import { GENERIC_CHAIN_TYPE } from "../../../constants.js";
+import { resolveEdrNetwork, resolveHttpNetwork } from "../config-resolution.js";
+import { validateNetworkUserConfig } from "../type-validation.js";
 
 export default async (): Promise<Partial<ConfigHooks>> => ({
   extendUserConfig,
-  validateUserConfig,
+  validateUserConfig: validateNetworkUserConfig,
   resolveUserConfig,
 });
 
@@ -28,14 +30,32 @@ export async function extendUserConfig(
   const networks: Record<string, NetworkUserConfig> =
     extendedConfig.networks ?? {};
 
+  const localhostConfig: Omit<HttpNetworkUserConfig, "url"> = {
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- This is always http
+    ...(networks.localhost as HttpNetworkUserConfig),
+  };
+
+  const hardhatConfig: Partial<EdrNetworkUserConfig> = {
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- This is always edr
+    ...(networks.hardhat as EdrNetworkUserConfig),
+  };
+
   return {
     ...extendedConfig,
     networks: {
       ...networks,
       localhost: {
         url: "http://localhost:8545",
-        ...networks.localhost,
+        ...localhostConfig,
         type: "http",
+      },
+      hardhat: {
+        chainId: 31337,
+        gas: "auto",
+        gasMultiplier: 1,
+        gasPrice: "auto",
+        ...hardhatConfig,
+        type: "edr",
       },
     },
   };
@@ -43,14 +63,10 @@ export async function extendUserConfig(
 
 export async function resolveUserConfig(
   userConfig: HardhatUserConfig,
-  resolveConfigurationVariable: (
-    variableOrString: ConfigurationVariable | string,
-  ) => ResolvedConfigurationVariable,
+  resolveConfigurationVariable: ConfigurationVariableResolver,
   next: (
     nextUserConfig: HardhatUserConfig,
-    nextResolveConfigurationVariable: (
-      variableOrString: ConfigurationVariable | string,
-    ) => ResolvedConfigurationVariable,
+    nextResolveConfigurationVariable: ConfigurationVariableResolver,
   ) => Promise<HardhatConfig>,
 ): Promise<HardhatConfig> {
   const resolvedConfig = await next(userConfig, resolveConfigurationVariable);
@@ -60,35 +76,28 @@ export async function resolveUserConfig(
   const resolvedNetworks: Record<string, NetworkConfig> = {};
 
   for (const [networkName, networkConfig] of Object.entries(networks)) {
-    if (networkConfig.type !== "http") {
-      // eslint-disable-next-line no-restricted-syntax -- TODO
-      throw new Error("Only HTTP network is supported for now");
+    if (networkConfig.type !== "http" && networkConfig.type !== "edr") {
+      throw new HardhatError(HardhatError.ERRORS.NETWORK.INVALID_NETWORK_TYPE, {
+        networkName,
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- we want to show the type
+        networkType: (networkConfig as any).type,
+      });
     }
 
-    const resolvedNetworkConfig: HttpNetworkConfig = {
-      type: "http",
-      chainId: networkConfig.chainId,
-      chainType: networkConfig.chainType,
-      from: networkConfig.from,
-      gas: resolveGasConfig(networkConfig.gas),
-      gasMultiplier: networkConfig.gasMultiplier ?? 1,
-      gasPrice: resolveGasConfig(networkConfig.gasPrice),
-      url: networkConfig.url,
-      timeout: networkConfig.timeout ?? 20_000,
-      httpHeaders: networkConfig.httpHeaders ?? {},
-    };
-
-    resolvedNetworks[networkName] = resolvedNetworkConfig;
+    resolvedNetworks[networkName] =
+      networkConfig.type === "http"
+        ? resolveHttpNetwork(networkConfig, resolveConfigurationVariable)
+        : resolveEdrNetwork(
+            networkConfig,
+            resolvedConfig.paths.cache,
+            resolveConfigurationVariable,
+          );
   }
 
   return {
     ...resolvedConfig,
-    defaultChainType: resolvedConfig.defaultChainType ?? "unknown",
-    defaultNetwork: resolvedConfig.defaultNetwork ?? "localhost",
+    defaultChainType: resolvedConfig.defaultChainType ?? GENERIC_CHAIN_TYPE,
+    defaultNetwork: resolvedConfig.defaultNetwork ?? "hardhat",
     networks: resolvedNetworks,
   };
-}
-
-function resolveGasConfig(value: GasUserConfig = "auto"): GasConfig {
-  return value === "auto" ? value : BigInt(value);
 }

@@ -378,6 +378,12 @@ The Hardhat Toolbox also includes the [`hardhat-gas-reporter`](https://github.co
 REPORT_GAS=true npx hardhat test
 ```
 
+For Windows users, set the environment variable for the PowerShell session with `$env:REPORT_GAS="true"`:
+
+```
+$env:REPORT_GAS="true"; npx hardhat test
+```
+
 ### Running tests in parallel
 
 You can run your tests in parallel by using the `--parallel` flag:

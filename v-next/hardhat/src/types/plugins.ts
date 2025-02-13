@@ -2,6 +2,10 @@ import type { OptionDefinition } from "./arguments.js";
 import type { HardhatHooks } from "./hooks.js";
 import type { TaskDefinition } from "./tasks.js";
 
+// NOTE: We import the builtin plugins in this module, so that their
+// type-extensions are loaded when the user imports `hardhat/types/plugins`.
+import "../internal/builtin-plugins/index.js";
+
 // We add the plugins to the config types with a module augmentation to avoid
 // introducing a circular dependency that would look like this:
 // config.ts -> plugins.ts -> hooks.ts -> config.ts

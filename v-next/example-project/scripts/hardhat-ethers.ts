@@ -1,7 +1,6 @@
 /**
  * How to run this script:
- * 1) Start a Hardhat V2 node (until the V3 node is ready)
- * 3) Run this script with `npx hardhat run scripts/hardhat-ethers.ts`.
+ * run this script with `npx hardhat run scripts/hardhat-ethers.ts`.
  */
 
 import hre from "@ignored/hardhat-vnext";

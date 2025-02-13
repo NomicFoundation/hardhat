@@ -43,10 +43,12 @@ export async function getTemplates(): Promise<Template[]> {
   }
 
   const pathsToTemplates = await readdir(pathToTemplates);
+  pathsToTemplates.sort();
 
   const templates = await Promise.all(
-    pathsToTemplates.map(async (name) => {
-      const pathToTemplate = path.join(pathToTemplates, name);
+    pathsToTemplates.map(async (dirName) => {
+      const name = dirName.replace(/^\d+-/, "");
+      const pathToTemplate = path.join(pathToTemplates, dirName);
       const pathToPackageJson = path.join(pathToTemplate, "package.json");
 
       if (!(await isDirectory(pathToTemplate))) {
@@ -64,6 +66,11 @@ export async function getTemplates(): Promise<Template[]> {
       const files = await getAllFilesMatching(pathToTemplate, (f) => {
         // Ignore the package.json file because it is handled separately
         if (f === pathToPackageJson) {
+          return false;
+        }
+        // .gitignore files are expected to be called gitignore in the templates
+        // because npm ignores .gitignore files during npm pack (see https://github.com/npm/npm/issues/3763)
+        if (path.basename(f) === ".gitignore") {
           return false;
         }
         // We should ignore all the files according to the .gitignore rules

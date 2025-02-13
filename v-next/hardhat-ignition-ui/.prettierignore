@@ -1,0 +1,6 @@
+/node_modules
+/dist
+/coverage
+CHANGELOG.md
+vite.config.js
+vite.config.d.ts

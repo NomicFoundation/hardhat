@@ -2,7 +2,7 @@ import type { HardhatPlugin } from "@ignored/hardhat-vnext/types/plugins";
 
 import "./internal/type-extensions.js";
 
-import { task } from "@ignored/hardhat-vnext/config";
+import { emptyTask, task } from "@ignored/hardhat-vnext/config";
 import { ArgumentType } from "@ignored/hardhat-vnext/types/arguments";
 
 import { PLUGIN_ID } from "./internal/constants.js";
@@ -16,9 +16,7 @@ const hardhatKeystorePlugin: HardhatPlugin = {
     ),
   },
   tasks: [
-    task("keystore", "Store your keys in a secure way")
-      .setAction(async () => {})
-      .build(),
+    emptyTask("keystore", "Store your keys in a secure way").build(),
 
     task(
       ["keystore", "set"],
@@ -63,6 +61,7 @@ const hardhatKeystorePlugin: HardhatPlugin = {
       .setAction(import.meta.resolve("./internal/tasks/delete.js"))
       .build(),
   ],
+  npmPackage: "@ignored/hardhat-vnext-keystore",
 };
 
 export default hardhatKeystorePlugin;

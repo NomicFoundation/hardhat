@@ -68,6 +68,45 @@ export async function getAllFilesMatching(
 }
 
 /**
+ * Recursively searches a directory and its subdirectories for directories that
+ * satisfy the specified condition, returning their absolute paths. Once a
+ * directory is found, its subdirectories are not searched.
+ *
+ * Note: dirFrom is never returned, nor `matches` is called on it.
+ *
+ * @param dirFrom The absolute path of the directory to start the search from.
+ * @param matches A function to filter directories (not files).
+ * @returns An array of absolute paths. Each path has its true case, except
+ *  for the initial dirFrom part, which preserves the given casing.
+ *  No order is guaranteed. If dirFrom doesn't exist `[]` is returned.
+ * @throws NotADirectoryError if dirFrom is not a directory.
+ * @throws FileSystemAccessError for any other error.
+ */
+export async function getAllDirectoriesMatching(
+  dirFrom: string,
+  matches?: (absolutePathToDir: string) => boolean,
+): Promise<string[]> {
+  const dirContent = await readdirOrEmpty(dirFrom);
+
+  const results = await Promise.all(
+    dirContent.map(async (file) => {
+      const absolutePathToFile = path.join(dirFrom, file);
+      if (!(await isDirectory(absolutePathToFile))) {
+        return [];
+      }
+
+      if (matches === undefined || matches(absolutePathToFile)) {
+        return absolutePathToFile;
+      }
+
+      return getAllDirectoriesMatching(absolutePathToFile, matches);
+    }),
+  );
+
+  return results.flat();
+}
+
+/**
  * Determines the true case path of a given relative path from a specified
  * directory, without resolving symbolic links, and returns it.
  *
@@ -358,6 +397,50 @@ export async function getChangeTime(absolutePath: string): Promise<Date> {
   try {
     const stats = await fsPromises.stat(absolutePath);
     return stats.ctime;
+  } catch (e) {
+    ensureError<NodeJS.ErrnoException>(e);
+    if (e.code === "ENOENT") {
+      throw new FileNotFoundError(absolutePath, e);
+    }
+
+    throw new FileSystemAccessError(e.message, e);
+  }
+}
+
+/**
+ * Retrieves the last access time of a file or directory's properties.
+ *
+ * @param absolutePath The absolute path to the file or directory.
+ * @returns The time of the last access as a Date object.
+ * @throws FileNotFoundError if the path does not exist.
+ * @throws FileSystemAccessError for any other error.
+ */
+export async function getAccessTime(absolutePath: string): Promise<Date> {
+  try {
+    const stats = await fsPromises.stat(absolutePath);
+    return stats.atime;
+  } catch (e) {
+    ensureError<NodeJS.ErrnoException>(e);
+    if (e.code === "ENOENT") {
+      throw new FileNotFoundError(absolutePath, e);
+    }
+
+    throw new FileSystemAccessError(e.message, e);
+  }
+}
+
+/**
+ * Retrieves the size of a file.
+ *
+ * @param absolutePath The absolute path to the file.
+ * @returns The size of the file in bytes.
+ * @throws FileNotFoundError if the path does not exist.
+ * @throws FileSystemAccessError for any other error.
+ */
+export async function getFileSize(absolutePath: string): Promise<number> {
+  try {
+    const stats = await fsPromises.stat(absolutePath);
+    return stats.size;
   } catch (e) {
     ensureError<NodeJS.ErrnoException>(e);
     if (e.code === "ENOENT") {

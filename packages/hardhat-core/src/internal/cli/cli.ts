@@ -1,4 +1,4 @@
-import chalk from "chalk";
+import picocolors from "picocolors";
 import debug from "debug";
 import "source-map-support/register";
 
@@ -102,7 +102,7 @@ function showViaIRWarning(resolvedConfig: HardhatConfig) {
   if (viaIREnabled) {
     console.warn();
     console.warn(
-      chalk.yellow(
+      picocolors.yellow(
         `Your solidity settings have viaIR enabled, which is not fully supported yet. You can still use Hardhat, but some features, like stack traces, might not work correctly.
 
 Learn more at https://hardhat.org/solc-viair`
@@ -170,14 +170,16 @@ async function main() {
 
         // Warning for Hardhat V3 deprecation
         console.warn(
-          chalk.yellow.bold("\n\nDEPRECATION WARNING\n\n"),
-          chalk.yellow(
-            `Initializing a project with ${chalk.white.italic(
-              "npx hardhat"
+          picocolors.yellow(picocolors.bold("\n\nDEPRECATION WARNING\n\n")),
+          picocolors.yellow(
+            `Initializing a project with ${picocolors.white(
+              picocolors.italic("npx hardhat")
             )} is deprecated and will be removed in the future.\n`
           ),
-          chalk.yellow(
-            `Please use ${chalk.white.italic("npx hardhat init")} instead.\n\n`
+          picocolors.yellow(
+            `Please use ${picocolors.white(
+              picocolors.italic("npx hardhat init")
+            )} instead.\n\n`
           )
         );
 
@@ -234,7 +236,6 @@ async function main() {
       taskDefinitions,
       scopesDefinitions,
       envExtenders,
-      ctx.experimentalHardhatNetworkMessageTraceHooks,
       userConfig,
       providerExtenders
     );
@@ -276,7 +277,7 @@ async function main() {
 
     let taskArguments: TaskArguments;
 
-    // --help is a also special case
+    // --help is an also special case
     if (hardhatArguments.help && taskName !== TASK_HELP) {
       // we "move" the task and scope names to the task arguments,
       // and run the help task
@@ -388,20 +389,22 @@ async function main() {
     if (HardhatError.isHardhatError(error)) {
       isHardhatError = true;
       console.error(
-        chalk.red.bold("Error"),
-        error.message.replace(/^\w+:/, (t) => chalk.red.bold(t))
+        picocolors.red(picocolors.bold("Error")),
+        error.message.replace(/^\w+:/, (t) =>
+          picocolors.red(picocolors.bold(t))
+        )
       );
     } else if (HardhatPluginError.isHardhatPluginError(error)) {
       isHardhatError = true;
       console.error(
-        chalk.red.bold(`Error in plugin ${error.pluginName}:`),
+        picocolors.red(picocolors.bold(`Error in plugin ${error.pluginName}:`)),
         error.message
       );
     } else if (error instanceof Error) {
-      console.error(chalk.red("An unexpected error occurred:"));
+      console.error(picocolors.red("An unexpected error occurred:"));
       showStackTraces = true;
     } else {
-      console.error(chalk.red("An unexpected error occurred."));
+      console.error(picocolors.red("An unexpected error occurred."));
       showStackTraces = true;
     }
 

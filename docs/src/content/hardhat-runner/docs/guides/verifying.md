@@ -229,9 +229,11 @@ module.exports = {
 
 ::::
 
-To deploy on Sepolia you need to send some Sepolia ether to the address that's going to be making the deployment. You can get testnet ether from a faucet, a service that distributes testing-ETH for free. Here is one for Sepolia:
+To deploy on Sepolia you need to send some Sepolia ether to the address that's going to be making the deployment. You can get testnet ether from a faucet, a service that distributes testing-ETH for free. Here are some for Sepolia:
 
 - [Alchemy Sepolia Faucet](https://sepoliafaucet.com/)
+- [QuickNode Sepolia Faucet](https://faucet.quicknode.com/ethereum/sepolia)
+- [Ethereum Ecosystem Sepolia Faucet](https://www.ethereum-ecosystem.com/faucets/ethereum-sepolia)
 
 Now you are ready to deploy your contract, but first we are going to make the source code of our contract unique. The reason we need to do this is that the sample code from the previous section is already verified in Sepolia, so if you try to verify it you'll get an error.
 

@@ -12,6 +12,7 @@ interface TestActionArguments {
   testFiles: string[];
   bail: boolean;
   grep: string;
+  noCompile: boolean;
 }
 
 function isTypescriptFile(path: string): boolean {
@@ -42,10 +43,19 @@ async function getTestFiles(
 
 let testsAlreadyRun = false;
 const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
-  { testFiles, bail, grep },
+  { testFiles, bail, grep, noCompile },
   hre,
 ) => {
+  if (!noCompile) {
+    await hre.tasks.getTask("compile").run({});
+    console.log();
+  }
+
   const files = await getTestFiles(testFiles, hre.config);
+
+  if (files.length === 0) {
+    return;
+  }
 
   const tsx = fileURLToPath(import.meta.resolve("tsx/esm"));
   process.env.NODE_OPTIONS = `--import ${tsx}`;
@@ -76,6 +86,9 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   }
   testsAlreadyRun = true;
 
+  // We write instead of console.log because Mocha already prints some newlines
+  process.stdout.write("Running Mocha tests");
+
   // This instructs Mocha to use the more verbose file loading infrastructure
   // which supports both ESM and CJS
   await mocha.loadFilesAsync();
@@ -87,6 +100,8 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   if (testFailures > 0) {
     process.exitCode = 1;
   }
+
+  console.log();
 
   return testFailures;
 };

@@ -17,7 +17,7 @@ export function willRunWithTypescript(configPath?: string): boolean {
 }
 
 /**
- * Returns true if an Hardhat is already running with typescript.
+ * Returns true if a Hardhat is already running with typescript.
  */
 export function isRunningWithTypescript(config: HardhatConfig): boolean {
   return isNonEsmTypescriptFile(config.paths.configFile);

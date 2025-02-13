@@ -1,5 +1,17 @@
 # @nomiclabs/hardhat-ethers
 
+## 3.0.8
+
+### Patch Changes
+
+- efa905d: Fix for corrupted Hardhat peer dependency version from pnpm.
+
+## 3.0.7
+
+### Patch Changes
+
+- 93b30d5: Fix for `getSigners` against networks where `eth_accounts` is deprecated.
+
 ## 3.0.6
 
 ### Patch Changes

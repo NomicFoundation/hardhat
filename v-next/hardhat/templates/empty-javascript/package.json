@@ -1,8 +1,0 @@
-{
-  "name": "empty-javascript",
-  "description": "An empty JavaScript Hardhat project",
-  "type": "module",
-  "devDependencies": {
-    "@ignored/hardhat-vnext": "workspace:^3.0.0-next.3"
-  }
-}

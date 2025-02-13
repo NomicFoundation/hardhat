@@ -50,7 +50,7 @@ describe("promptForInstall", () => {
   it("should fail if the user is not in an interactive shell", async () => {
     if (!process.stdout.isTTY) {
       await assertRejectsWithHardhatError(
-        async () => promptForInstall([]),
+        async () => promptForInstall("foo"),
         HardhatError.ERRORS.GENERAL.NOT_IN_INTERACTIVE_SHELL,
         {},
       );

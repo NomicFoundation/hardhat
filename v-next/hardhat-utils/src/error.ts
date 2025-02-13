@@ -25,7 +25,7 @@ export abstract class CustomError extends Error {
   public override stack!: string;
 
   constructor(message: string, cause?: Error) {
-    super(message, { cause });
+    super(message, cause !== undefined ? { cause } : undefined);
     this.name = this.constructor.name;
     Error.captureStackTrace(this, this.constructor);
   }

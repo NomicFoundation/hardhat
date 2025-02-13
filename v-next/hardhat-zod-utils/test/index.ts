@@ -41,6 +41,40 @@ describe("unionType", () => {
 
     assertParseResult(union.safeParse(undefined), "Expected error message");
   });
+
+  it("Should work with deep errors", () => {
+    const mySchema = unionType(
+      [z.string(), z.number()],
+      "Expected a string or number",
+    );
+
+    assertParseResult(mySchema.safeParse(false), "Expected a string or number");
+
+    const mySchema2 = unionType(
+      [z.string().url(), z.number()],
+      "Expected a URL or number",
+    );
+
+    assertParseResult(mySchema2.safeParse(false), "Expected a URL or number");
+    assertParseResult(mySchema2.safeParse("a"), "Expected a URL or number");
+  });
+
+  it("Should accept valid data", () => {
+    const mySchema = unionType(
+      [z.string(), z.number()],
+      "Expected a string or number",
+    );
+
+    mySchema.parse("asd");
+    mySchema.parse(123);
+
+    const mySchema2 = unionType(
+      [z.string().url(), z.number()],
+      "Expected a URL or number",
+    );
+    mySchema2.parse("http://example.com");
+    mySchema2.parse(123);
+  });
 });
 
 describe("conditionalUnionType", () => {

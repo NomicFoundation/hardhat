@@ -16,10 +16,3 @@ await ethers.provider.getBlockNumber();
 // Hardhat helper methods
 await ethers.getSigners();
 ```
-
-### Tests
-
-Temporary solution to run manual tests until the V3 node is ready.
-
-1. Start a node in Hardhat V2: `npx hardhat node`
-2. Run the tests: `pnpm test:tmp`

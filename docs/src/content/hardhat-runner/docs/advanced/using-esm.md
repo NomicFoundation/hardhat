@@ -20,7 +20,7 @@ The following sections explain how to use ES modules in new or existing Hardhat 
 
 If you want to start a Hardhat project that uses ES modules by default, first you have to initialize a Node.js project:
 
-::::tabsgroup{options="npm 7+,npm 6,yarn"}
+::::tabsgroup{options="npm 7+,npm 6,yarn,pnpm"}
 
 :::tab{value="npm 7+"}
 
@@ -46,13 +46,21 @@ yarn init -y
 
 :::
 
+:::tab{value="pnpm"}
+
+```
+pnpm init
+```
+
+:::
+
 ::::
 
 Open the `package.json` that was created and add a `"type": "module"` entry. This will make the project use ESM by default.
 
 After that, install Hardhat:
 
-::::tabsgroup{options="npm 7+,npm 6,yarn"}
+::::tabsgroup{options="npm 7+,npm 6,yarn,pnpm"}
 
 :::tab{value="npm 7+"}
 
@@ -74,6 +82,14 @@ npm install --save-dev hardhat
 
 ```
 yarn add --dev hardhat
+```
+
+:::
+
+:::tab{value="pnpm"}
+
+```
+pnpm add -D hardhat
 ```
 
 :::
