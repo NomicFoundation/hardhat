@@ -705,14 +705,7 @@ Try using another mnemonic or deriving less keys.`,
         "The provider your are trying to use has been closed. Please create a new one using hre.network.connect() and try again.",
     },
   },
-  KEYSTORE: {
-    INVALID_READLINE_OUTPUT: {
-      number: 800,
-      messageTemplate: "Expected readline output to be defined",
-      websiteTitle: "Expected readline output to be defined",
-      websiteDescription: "Expected readline output to be defined",
-    },
-  },
+  KEYSTORE: {},
   NETWORK_HELPERS: {
     ONLY_ALLOW_0X_PREFIXED_STRINGS: {
       number: 900,
