@@ -7,9 +7,5 @@
     { "path": "../hardhat-ignition-core" },
     { "path": "../hardhat-viem" }
   ],
-  "exclude": [
-    "${configDir}/dist",
-    "${configDir}/node_modules",
-    "${configDir}/templates"
-  ]
+  "exclude": ["${configDir}/dist", "${configDir}/node_modules"]
 }
