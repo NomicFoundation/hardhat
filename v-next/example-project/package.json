@@ -16,6 +16,7 @@
     "lint": "pnpm prettier --check",
     "lint:fix": "pnpm prettier --write",
     "prettier": "prettier \"**/*.{ts,js,md,json}\"",
+    "prebuild": "pnpm run --dir ../hardhat-ignition-viem build",
     "build": "tsc --build .",
     "clean": "rimraf dist artifacts cache ignition/deployments types",
     "pretest": "pnpm build && pnpm install",
