@@ -5,7 +5,7 @@ import hardhatIgnitionPlugin from "@ignored/hardhat-vnext-ignition";
 
 import "./type-extensions.js";
 
-const hardhatIgnitionViemPlugin: HardhatPlugin = {
+const hardhatIgnitionEthersPlugin: HardhatPlugin = {
   id: "hardhat-ignition-ethers",
   dependencies: [
     async () => hardhatIgnitionPlugin,
@@ -17,4 +17,4 @@ const hardhatIgnitionViemPlugin: HardhatPlugin = {
   npmPackage: "@ignored/hardhat-vnext-ignition-ethers",
 };
 
-export default hardhatIgnitionViemPlugin;
+export default hardhatIgnitionEthersPlugin;
