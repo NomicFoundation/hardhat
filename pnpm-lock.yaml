@@ -3144,6 +3144,12 @@ importers:
       '@ignored/hardhat-vnext-ethers-chai-matchers':
         specifier: workspace:^3.0.0-next.14
         version: link:../../../hardhat-ethers-chai-matchers
+      '@ignored/hardhat-vnext-ignition':
+        specifier: workspace:^2.0.0
+        version: link:../../../hardhat-ignition
+      '@ignored/hardhat-vnext-ignition-ethers':
+        specifier: workspace:^2.0.0
+        version: link:../../../hardhat-ignition-ethers
       '@ignored/hardhat-vnext-keystore':
         specifier: workspace:^3.0.0-next.14
         version: link:../../../hardhat-keystore

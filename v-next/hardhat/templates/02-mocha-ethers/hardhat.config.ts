@@ -9,6 +9,7 @@ import HardhatNetworkHelpers from "@ignored/hardhat-vnext-network-helpers";
 import HardhatKeystore from "@ignored/hardhat-vnext-keystore";
 import HardhatChaiMatchers from "@ignored/hardhat-vnext-ethers-chai-matchers";
 import HardhatTypechain from "@ignored/hardhat-vnext-typechain";
+import HardhatIgnitionEthers from "@ignored/hardhat-vnext-ignition-ethers";
 
 const config: HardhatUserConfig = {
   /*
@@ -25,6 +26,7 @@ const config: HardhatUserConfig = {
     HardhatKeystore,
     HardhatChaiMatchers,
     HardhatTypechain,
+    HardhatIgnitionEthers,
   ],
   solidity: {
     /*
