@@ -23,7 +23,7 @@ export function useIgnitionProject(fixtureProjectName: string): void {
     projectPath = path.join(
       dirname(fileURLToPath(import.meta.url)),
       "../fixture-projects",
-      fixtureProjectName
+      fixtureProjectName,
     );
     prevWorkingDir = process.cwd();
     process.chdir(projectPath);
@@ -39,7 +39,7 @@ export function useIgnitionProject(fixtureProjectName: string): void {
         plugins: [...(userConfig.plugins ?? []), hardhatIgnitionEthers],
       },
       { config: configPath },
-      projectPath
+      projectPath,
     );
 
     await hre.tasks.getTask("compile").run({ quiet: true });

@@ -26,7 +26,7 @@ describe("strategies - invocation via helper", () => {
 
       assert.equal(
         await result.foo.getAddress(),
-        "0x647fB9ef6cd97537C553f6cC3c7f60395f81b410"
+        "0x647fB9ef6cd97537C553f6cC3c7f60395f81b410",
       );
     });
 
@@ -44,7 +44,7 @@ describe("strategies - invocation via helper", () => {
             salt: undefined as any,
           },
         }),
-        /IGN1102: Missing required strategy configuration parameter 'salt' for the strategy 'create2'/
+        /IGN1102: Missing required strategy configuration parameter 'salt' for the strategy 'create2'/,
       );
     });
   });
@@ -65,7 +65,7 @@ describe("strategies - invocation via helper", () => {
 
       assert.equal(
         await result.foo.getAddress(),
-        "0x8C1c4E6Fd637C7aa7165F19beFeAEab5E53095Bf"
+        "0x8C1c4E6Fd637C7aa7165F19beFeAEab5E53095Bf",
       );
     });
   });

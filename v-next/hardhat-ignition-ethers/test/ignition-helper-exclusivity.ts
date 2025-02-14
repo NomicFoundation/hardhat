@@ -6,7 +6,7 @@ import path from "path";
 describe("ignition helper mutual exclusivity", () => {
   before(function () {
     process.chdir(
-      path.join(__dirname, "./fixture-projects", "with-fake-helper")
+      path.join(__dirname, "./fixture-projects", "with-fake-helper"),
     );
   });
 
@@ -17,7 +17,7 @@ describe("ignition helper mutual exclusivity", () => {
   it("should error when loaded in conjunction with hardhat-ignition-viem", async function () {
     assert.throws(
       () => require("hardhat"),
-      /Found viem and ethers, but only one Hardhat Ignition extension plugin can be used at a time\./
+      /Found viem and ethers, but only one Hardhat Ignition extension plugin can be used at a time\./,
     );
   });
 });

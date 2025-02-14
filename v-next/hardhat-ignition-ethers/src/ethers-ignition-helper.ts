@@ -37,7 +37,7 @@ import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
 
 export type IgnitionModuleResultsTToEthersContracts<
   ContractNameT extends string,
-  IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>
+  IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>,
 > = {
   [contract in keyof IgnitionModuleResultsT]: IgnitionModuleResultsT[contract] extends
     | NamedArtifactContractDeploymentFuture<ContractNameT>
@@ -64,7 +64,7 @@ export class EthersIgnitionHelper<ChainTypeT extends ChainType | string> {
     artifactsManager: ArtifactManager,
     connection: NetworkConnection<ChainTypeT>,
     config?: Partial<DeployConfig> | undefined,
-    provider?: EIP1193Provider
+    provider?: EIP1193Provider,
   ) {
     this.#hardhatConfig = hardhatConfig;
     this.#artifactsManager = artifactsManager;
@@ -86,7 +86,7 @@ export class EthersIgnitionHelper<ChainTypeT extends ChainType | string> {
     ModuleIdT extends string,
     ContractNameT extends string,
     IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>,
-    StrategyT extends keyof StrategyConfig = "basic"
+    StrategyT extends keyof StrategyConfig = "basic",
   >(
     ignitionModule: IgnitionModule<
       ModuleIdT,
@@ -117,7 +117,7 @@ export class EthersIgnitionHelper<ChainTypeT extends ChainType | string> {
       strategyConfig: undefined,
       deploymentId: undefined,
       displayUi: undefined,
-    }
+    },
   ): Promise<
     IgnitionModuleResultsTToEthersContracts<
       ContractNameT,
@@ -129,7 +129,7 @@ export class EthersIgnitionHelper<ChainTypeT extends ChainType | string> {
     })) as string[];
 
     const artifactResolver = new HardhatArtifactResolver(
-      this.#artifactsManager
+      this.#artifactsManager,
     );
 
     const resolvedConfig: Partial<DeployConfig> = {
@@ -140,13 +140,13 @@ export class EthersIgnitionHelper<ChainTypeT extends ChainType | string> {
     const resolvedStrategyConfig = this.#resolveStrategyConfig<StrategyT>(
       this.#hardhatConfig,
       strategy,
-      strategyConfig
+      strategyConfig,
     );
 
     const chainId = Number(
       await this.#connection.provider.request({
         method: "eth_chainId",
-      })
+      }),
     );
 
     const deploymentId = resolveDeploymentId(givenDeploymentId, chainId);
@@ -157,7 +157,7 @@ export class EthersIgnitionHelper<ChainTypeT extends ChainType | string> {
         : path.join(
             this.#hardhatConfig.paths.ignition,
             "deployments",
-            deploymentId
+            deploymentId,
           );
 
     const executionEventListener = displayUi
@@ -206,7 +206,7 @@ export class EthersIgnitionHelper<ChainTypeT extends ChainType | string> {
   async #toEthersContracts<
     ModuleIdT extends string,
     ContractNameT extends string,
-    IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>
+    IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>,
   >(
     connection: NetworkConnection<ChainTypeT>,
     ignitionModule: IgnitionModule<
@@ -214,7 +214,7 @@ export class EthersIgnitionHelper<ChainTypeT extends ChainType | string> {
       ContractNameT,
       IgnitionModuleResultsT
     >,
-    result: SuccessfulDeploymentResult
+    result: SuccessfulDeploymentResult,
   ): Promise<
     IgnitionModuleResultsTToEthersContracts<
       ContractNameT,
@@ -229,22 +229,22 @@ export class EthersIgnitionHelper<ChainTypeT extends ChainType | string> {
             await this.#getContract(
               connection,
               contractFuture,
-              result.contracts[contractFuture.id]
+              result.contracts[contractFuture.id],
             ),
-          ]
-        )
-      )
+          ],
+        ),
+      ),
     );
   }
 
   async #getContract(
     connection: NetworkConnection<ChainTypeT>,
     future: Future,
-    deployedContract: { address: string }
+    deployedContract: { address: string },
   ): Promise<Contract> {
     assertHardhatInvariant(
       isContractFuture(future),
-      `Expected contract future but got ${future.id} with type ${future.type} instead`
+      `Expected contract future but got ${future.id} with type ${future.type} instead`,
     );
 
     if ("artifact" in future) {
@@ -252,20 +252,20 @@ export class EthersIgnitionHelper<ChainTypeT extends ChainType | string> {
         // The abi meets the abi spec and we assume we can convert to
         // an acceptable Ethers abi
         future.artifact.abi as any[],
-        deployedContract.address
+        deployedContract.address,
       );
     }
 
     return connection.ethers.getContractAt(
       future.contractName,
-      deployedContract.address
+      deployedContract.address,
     );
   }
 
   #resolveStrategyConfig<StrategyT extends keyof StrategyConfig>(
     hardhatConfig: HardhatConfig,
     strategyName: StrategyT | undefined,
-    strategyConfig: StrategyConfig[StrategyT] | undefined
+    strategyConfig: StrategyConfig[StrategyT] | undefined,
   ): StrategyConfig[StrategyT] | undefined {
     if (strategyName === undefined) {
       return undefined;

@@ -60,7 +60,7 @@ describe("deploy with ethers result", () => {
         "ExternallyLoadedContract",
         externallyLoadedContractArtifact,
         [],
-        { id: "ExternallyLoadedContract" }
+        { id: "ExternallyLoadedContract" },
       );
 
       return { externallyLoadedContract };
