@@ -13,16 +13,6 @@ import type {
   GetContractReturnType,
 } from "@ignored/hardhat-vnext-viem/types";
 
-export type IgnitionModuleResultsToViemContracts<
-  ContractNameT extends string,
-  IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>,
-> = {
-  [resultKey in keyof IgnitionModuleResultsT]: ToContractType<
-    IgnitionModuleResultsT,
-    resultKey
-  >;
-};
-
 export interface ViemIgnitionHelper {
   type: "viem";
 
@@ -50,6 +40,16 @@ export interface ViemIgnitionHelper {
     IgnitionModuleResultsToViemContracts<ContractNameT, IgnitionModuleResultsT>
   >;
 }
+
+export type IgnitionModuleResultsToViemContracts<
+  ContractNameT extends string,
+  IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>,
+> = {
+  [resultKey in keyof IgnitionModuleResultsT]: ToContractType<
+    IgnitionModuleResultsT,
+    resultKey
+  >;
+};
 
 type ToContractType<
   IgnitionModuleResultsT extends IgnitionModuleResult<string>,
