@@ -1429,13 +1429,13 @@ importers:
         specifier: workspace:^3.0.0-next.14
         version: link:../hardhat-ethers-chai-matchers
       '@ignored/hardhat-vnext-ignition':
-        specifier: workspace:^2.0.0
+        specifier: workspace:^3.0.0-next.0
         version: link:../hardhat-ignition
       '@ignored/hardhat-vnext-ignition-core':
         specifier: workspace:^0.15.10-next.0
         version: link:../hardhat-ignition-core
       '@ignored/hardhat-vnext-ignition-viem':
-        specifier: workspace:^2.0.0
+        specifier: workspace:^3.0.0-next.0
         version: link:../hardhat-ignition-viem
       '@ignored/hardhat-vnext-keystore':
         specifier: workspace:^3.0.0-next.14
@@ -2096,7 +2096,7 @@ importers:
         specifier: workspace:^3.0.0-next.14
         version: link:../hardhat-ethers
       '@ignored/hardhat-vnext-ignition':
-        specifier: workspace:^2.0.0
+        specifier: workspace:^3.0.0-next.0
         version: link:../hardhat-ignition
       '@ignored/hardhat-vnext-ignition-core':
         specifier: workspace:^0.15.10-next.0
@@ -2301,7 +2301,7 @@ importers:
         specifier: workspace:^3.0.0-next.18
         version: link:../hardhat
       '@ignored/hardhat-vnext-ignition':
-        specifier: workspace:^2.0.0
+        specifier: workspace:^3.0.0-next.0
         version: link:../hardhat-ignition
       '@ignored/hardhat-vnext-ignition-core':
         specifier: workspace:^0.15.10-next.0
@@ -3109,10 +3109,10 @@ importers:
         specifier: workspace:^3.0.0-next.18
         version: link:../..
       '@ignored/hardhat-vnext-ignition':
-        specifier: workspace:^2.0.0
+        specifier: workspace:^3.0.0-next.0
         version: link:../../../hardhat-ignition
       '@ignored/hardhat-vnext-ignition-viem':
-        specifier: workspace:^2.0.0
+        specifier: workspace:^3.0.0-next.0
         version: link:../../../hardhat-ignition-viem
       '@ignored/hardhat-vnext-keystore':
         specifier: workspace:^3.0.0-next.14
@@ -3151,10 +3151,10 @@ importers:
         specifier: workspace:^3.0.0-next.14
         version: link:../../../hardhat-ethers-chai-matchers
       '@ignored/hardhat-vnext-ignition':
-        specifier: workspace:^2.0.0
+        specifier: workspace:^3.0.0-next.0
         version: link:../../../hardhat-ignition
       '@ignored/hardhat-vnext-ignition-ethers':
-        specifier: workspace:^2.0.0
+        specifier: workspace:^3.0.0-next.0
         version: link:../../../hardhat-ignition-ethers
       '@ignored/hardhat-vnext-keystore':
         specifier: workspace:^3.0.0-next.14
