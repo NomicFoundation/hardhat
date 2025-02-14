@@ -8,9 +8,6 @@ import type {
 } from "@ignored/hardhat-vnext/types/network";
 import type { HardhatPlugin } from "@ignored/hardhat-vnext/types/plugins";
 
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-
 import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { assertRejects } from "@nomicfoundation/hardhat-test-utils";
@@ -19,8 +16,6 @@ import { assert } from "chai";
 import hardhatIgnitionViemPlugin from "../src/index.js";
 
 describe("ignition helper mutual exclusivity", () => {
-  let originalCwd: string;
-
   // A fake version of the hardhat-ignition-ethers plugin that adds
   // a fake ignition helper object to the network connection.
   const fakeHardhatIgnitionEthersPlugin: HardhatPlugin = {
@@ -50,22 +45,6 @@ describe("ignition helper mutual exclusivity", () => {
       },
     },
   };
-
-  before(function () {
-    originalCwd = process.cwd();
-
-    process.chdir(
-      path.join(
-        path.dirname(fileURLToPath(import.meta.url)),
-        "./fixture-projects",
-        "with-fake-helper",
-      ),
-    );
-  });
-
-  after(function () {
-    process.chdir(originalCwd);
-  });
 
   it("should error when loaded in conjunction with hardhat-ignition-ethers", async function () {
     await assertRejects(
