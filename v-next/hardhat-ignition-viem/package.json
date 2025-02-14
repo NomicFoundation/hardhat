@@ -35,7 +35,6 @@
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "1.0.2",
     "@ignored/hardhat-vnext": "workspace:^3.0.0-next.16",
-    "@ignored/hardhat-vnext-errors": "workspace:^3.0.0-next.15",
     "@ignored/hardhat-vnext-ignition": "workspace:^2.0.0",
     "@ignored/hardhat-vnext-ignition-core": "workspace:^0.15.10-next.0",
     "@ignored/hardhat-vnext-viem": "workspace:^3.0.0-next.11",
@@ -66,9 +65,11 @@
     "typescript-eslint": "7.7.1",
     "viem": "^2.21.42"
   },
+  "dependencies": {
+    "@ignored/hardhat-vnext-errors": "workspace:^3.0.0-next.17"
+  },
   "peerDependencies": {
     "@ignored/hardhat-vnext": "workspace:^3.0.0-next.16",
-    "@ignored/hardhat-vnext-errors": "workspace:^3.0.0-next.15",
     "@ignored/hardhat-vnext-ignition": "workspace:^2.0.0",
     "@ignored/hardhat-vnext-ignition-core": "workspace:^0.15.10-next.0",
     "@ignored/hardhat-vnext-viem": "workspace:^3.0.0-next.11",
