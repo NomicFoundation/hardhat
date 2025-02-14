@@ -1,6 +1,6 @@
 {
-  "name": "@nomicfoundation/hardhat-ignition-ethers",
-  "version": "0.15.9",
+  "name": "@ignored/hardhat-vnext-ignition-ethers",
+  "version": "2.0.0",
   "license": "MIT",
   "author": "Nomic Foundation",
   "homepage": "https://hardhat.org",
@@ -34,14 +34,14 @@
   },
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "1.0.2",
-    "@nomicfoundation/eslint-plugin-hardhat-internal-rules": "workspace:^",
-    "@nomicfoundation/hardhat-ethers": "workspace:^3.0.4",
-    "@nomicfoundation/hardhat-ignition": "workspace:^",
-    "@nomicfoundation/ignition-core": "workspace:^",
+    "@ignored/hardhat-vnext": "workspace:^3.0.0-next.16",
+    "@ignored/hardhat-vnext-ethers": "workspace:^3.0.0-next.14",
+    "@ignored/hardhat-vnext-ignition": "workspace:^2.0.0",
+    "@ignored/hardhat-vnext-ignition-core": "workspace:^0.15.10-next.0",
     "@types/chai": "^4.2.22",
     "@types/chai-as-promised": "^7.1.4",
     "@types/mocha": "9.1.1",
-    "@types/node": "^18.0.0",
+    "@types/node": "^20.14.9",
     "@types/sinon": "^10.0.13",
     "@typescript-eslint/eslint-plugin": "^5.57.1",
     "@typescript-eslint/experimental-utils": "^5.62.0",
@@ -55,8 +55,7 @@
     "eslint-plugin-mocha": "^9.0.0",
     "eslint-plugin-no-only-tests": "3.1.0",
     "eslint-plugin-prettier": "4.0.0",
-    "ethers": "^6.7.0",
-    "hardhat": "workspace:^2.18.0",
+    "ethers": "^6.13.4",
     "mocha": "^9.1.3",
     "nyc": "15.1.0",
     "prettier": "2.8.8",
@@ -66,10 +65,10 @@
     "typescript": "^5.0.2"
   },
   "peerDependencies": {
-    "@nomicfoundation/hardhat-ethers": "workspace:^3.0.4",
-    "@nomicfoundation/hardhat-ignition": "workspace:^",
-    "@nomicfoundation/ignition-core": "workspace:^",
-    "ethers": "^6.7.0",
-    "hardhat": "workspace:^2.18.0"
+    "@ignored/hardhat-vnext": "workspace:^3.0.0-next.16",
+    "@ignored/hardhat-vnext-ethers": "workspace:^3.0.0-next.14",
+    "@ignored/hardhat-vnext-ignition": "workspace:^2.0.0",
+    "@ignored/hardhat-vnext-ignition-core": "workspace:^0.15.10-next.0",
+    "ethers": "^6.13.4"
   }
 }
