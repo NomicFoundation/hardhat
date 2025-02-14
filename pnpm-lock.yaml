@@ -1428,6 +1428,9 @@ importers:
       '@ignored/hardhat-vnext-ignition':
         specifier: workspace:^2.0.0
         version: link:../hardhat-ignition
+      '@ignored/hardhat-vnext-ignition-viem':
+        specifier: workspace:^2.0.0
+        version: link:../hardhat-ignition-viem
       '@ignored/hardhat-vnext-keystore':
         specifier: workspace:^3.0.0-next.14
         version: link:../hardhat-keystore
