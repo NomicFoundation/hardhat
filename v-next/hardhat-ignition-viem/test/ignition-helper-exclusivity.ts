@@ -64,7 +64,7 @@ describe("ignition helper mutual exclusivity", () => {
         );
         return true;
       },
-      "The `hardhat-viem-plugin` did not detect the presence of the `hardhat-ethers-plugin`",
+      "The `hardhat-viem-plugin` did not detect the presence of the fake `hardhat-ignition-ethers-plugin`",
     );
   });
 });
