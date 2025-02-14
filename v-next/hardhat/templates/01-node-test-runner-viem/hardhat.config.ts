@@ -7,6 +7,7 @@ import HardhatNodeTestRunner from "@ignored/hardhat-vnext-node-test-runner";
 import HardhatViem from "@ignored/hardhat-vnext-viem";
 import HardhatNetworkHelpers from "@ignored/hardhat-vnext-network-helpers";
 import HardhatKeystore from "@ignored/hardhat-vnext-keystore";
+import HardhatIgnitionViem from "@ignored/hardhat-vnext-ignition-viem";
 
 const config: HardhatUserConfig = {
   /*
@@ -21,6 +22,7 @@ const config: HardhatUserConfig = {
     HardhatViem,
     HardhatNetworkHelpers,
     HardhatKeystore,
+    HardhatIgnitionViem,
   ],
   solidity: {
     /*
