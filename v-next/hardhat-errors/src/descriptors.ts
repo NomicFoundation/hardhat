@@ -1614,7 +1614,7 @@ Please use the fully qualified name of the contract to disambiguate it.`,
 Please only include one of the plugins in your Hardhat configuration.`,
     },
     DEPLOYMENT_ERROR: {
-      number: 1717,
+      number: 1718,
       messageTemplate: "Hardhat Ignition deployment error: {message}",
       websiteTitle: "Hardhat Ignition deployment error",
       websiteDescription: `Hardhat Ignition was not able to successfully complete a deployment.
@@ -1622,7 +1622,7 @@ Please only include one of the plugins in your Hardhat configuration.`,
 Please review the error message and try again.`,
     },
     NO_DEFAULT_VIEM_WALLET_CLIENT: {
-      number: 1718,
+      number: 1719,
       messageTemplate:
         "No default wallet client found while creating Viem contract instances for deployed contracts",
       websiteTitle: "No default Viem wallet client found",
