@@ -65,6 +65,9 @@
     "ts-node": "10.9.2",
     "typescript": "~5.5.0"
   },
+  "dependencies": {
+    "@ignored/hardhat-vnext-errors": "workspace:^3.0.0-next.17"
+  },
   "peerDependencies": {
     "@ignored/hardhat-vnext": "workspace:^3.0.0-next.16",
     "@ignored/hardhat-vnext-ethers": "workspace:^3.0.0-next.14",

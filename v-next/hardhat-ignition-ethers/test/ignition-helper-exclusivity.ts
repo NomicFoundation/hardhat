@@ -1,6 +1,6 @@
 /* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
-import { resetHardhatContext } from "hardhat/plugins-testing";
+import { resetHardhatContext } from "hardhat/plugins-testing.js";
 import path from "path";
 
 describe("ignition helper mutual exclusivity", () => {

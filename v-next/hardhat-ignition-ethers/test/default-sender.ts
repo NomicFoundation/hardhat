@@ -1,13 +1,14 @@
-import { buildModule } from "@nomicfoundation/ignition-core";
+import { buildModule } from "@ignored/hardhat-vnext-ignition-core";
 import { assert } from "chai";
 
-import { useIgnitionProject } from "./test-helpers/use-ignition-project";
+import { useIgnitionProject } from "./test-helpers/use-ignition-project.js";
+import "@ignored/hardhat-vnext-ethers";
 
 describe("support changing default sender", () => {
   useIgnitionProject("minimal");
 
   it("should deploy on the first HH account by default", async function () {
-    const [defaultAccount] = await this.hre.ethers.getSigners();
+    const [defaultAccount] = await this.connection.ethers.getSigners();
     const defaultAccountAddress = defaultAccount.address;
 
     const moduleDefinition = buildModule("Module", (m) => {
@@ -16,7 +17,7 @@ describe("support changing default sender", () => {
       return { ownerSender };
     });
 
-    const result = await this.hre.ignition.deploy(moduleDefinition, {
+    const result = await this.connection.ignition.deploy(moduleDefinition, {
       defaultSender: undefined,
     });
 
@@ -27,7 +28,7 @@ describe("support changing default sender", () => {
   });
 
   it("should allow changing the default sender that the ignition deployment runs against", async function () {
-    const [, notTheDefaultAccount] = await this.hre.ethers.getSigners();
+    const [, notTheDefaultAccount] = await this.connection.ethers.getSigners();
     const differentAccountAddress = notTheDefaultAccount.address;
 
     const moduleDefinition = buildModule("Module", (m) => {
@@ -36,7 +37,7 @@ describe("support changing default sender", () => {
       return { ownerSender };
     });
 
-    const result = await this.hre.ignition.deploy(moduleDefinition, {
+    const result = await this.connection.ignition.deploy(moduleDefinition, {
       defaultSender: differentAccountAddress,
     });
 

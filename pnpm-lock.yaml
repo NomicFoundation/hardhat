@@ -2084,6 +2084,10 @@ importers:
         version: 7.7.1(eslint@8.57.0)(typescript@5.5.4)
 
   v-next/hardhat-ignition-ethers:
+    dependencies:
+      '@ignored/hardhat-vnext-errors':
+        specifier: workspace:^3.0.0-next.17
+        version: link:../hardhat-errors
     devDependencies:
       '@ignored/hardhat-vnext':
         specifier: workspace:^3.0.0-next.16

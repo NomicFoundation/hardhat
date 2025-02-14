@@ -1,13 +1,10 @@
 /* eslint-disable import/no-unused-modules */
-import { buildModule } from "@nomicfoundation/ignition-core";
+import { buildModule } from "@ignored/hardhat-vnext-ignition-core";
 import { assert } from "chai";
-import { resetHardhatContext } from "hardhat/plugins-testing";
-import { HardhatRuntimeEnvironment } from "hardhat/types";
-import path from "path";
 
-import { externallyLoadedContractArtifact } from "./test-helpers/externally-loaded-contract";
-
-const fixtureProjectName = "minimal";
+import { externallyLoadedContractArtifact } from "./test-helpers/externally-loaded-contract.js";
+import { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
+import { useIgnitionProject } from "./test-helpers/use-ignition-project.js";
 
 declare module "mocha" {
   interface Context {
@@ -16,22 +13,7 @@ declare module "mocha" {
 }
 
 describe("deploy with ethers result", () => {
-  beforeEach("Load environment", async function () {
-    process.chdir(
-      path.join(__dirname, "./fixture-projects", fixtureProjectName)
-    );
-
-    const hre = require("hardhat");
-
-    await hre.network.provider.send("evm_setAutomine", [true]);
-    await hre.run("compile", { quiet: true });
-
-    this.hre = hre;
-  });
-
-  afterEach("reset hardhat context", function () {
-    resetHardhatContext();
-  });
+  useIgnitionProject("minimal");
 
   it("should get return ethers result from deploy", async function () {
     const moduleDefinition = buildModule("Module", (m) => {
@@ -41,7 +23,7 @@ describe("deploy with ethers result", () => {
       return { foo, fooAt };
     });
 
-    const result = await this.hre.ignition.deploy(moduleDefinition);
+    const result = await this.connection.ignition.deploy(moduleDefinition);
 
     assert.equal(await result.foo.x(), 1n);
     assert.equal(await result.fooAt.x(), 1n);
@@ -54,7 +36,7 @@ describe("deploy with ethers result", () => {
       return { foo };
     });
 
-    const result = await this.hre.ignition.deploy(moduleDefinition);
+    const result = await this.connection.ignition.deploy(moduleDefinition);
 
     assert.equal(await result.foo.x(), 1n);
   });
@@ -67,7 +49,7 @@ describe("deploy with ethers result", () => {
       return { contractAtFoo };
     });
 
-    const result = await this.hre.ignition.deploy(moduleDefinition);
+    const result = await this.connection.ignition.deploy(moduleDefinition);
 
     assert.equal(await result.contractAtFoo.x(), 1n);
   });
@@ -84,7 +66,7 @@ describe("deploy with ethers result", () => {
       return { externallyLoadedContract };
     });
 
-    const result = await this.hre.ignition.deploy(moduleDefinition);
+    const result = await this.connection.ignition.deploy(moduleDefinition);
 
     assert.isTrue(await result.externallyLoadedContract.isExternallyLoaded());
   });
@@ -97,7 +79,7 @@ describe("deploy with ethers result", () => {
       return { foo, bar };
     });
 
-    const result = await this.hre.ignition.deploy(moduleDefinition);
+    const result = await this.connection.ignition.deploy(moduleDefinition);
 
     assert.isTrue(await result.foo.isFoo());
     assert.isTrue(await result.bar.isBar());

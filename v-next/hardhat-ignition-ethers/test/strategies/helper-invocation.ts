@@ -1,31 +1,14 @@
-import { buildModule } from "@nomicfoundation/ignition-core";
+import { buildModule } from "@ignored/hardhat-vnext-ignition-core";
 import { assert } from "chai";
-import { resetHardhatContext } from "hardhat/plugins-testing";
-import path from "path";
+
+import { useIgnitionProject } from "../test-helpers/use-ignition-project.js";
 
 describe("strategies - invocation via helper", () => {
   const example32ByteSalt =
     "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
 
   describe("no Hardhat config setup", () => {
-    const fixtureProjectName = "minimal";
-
-    beforeEach("Load environment", async function () {
-      process.chdir(
-        path.join(__dirname, "../fixture-projects", fixtureProjectName)
-      );
-
-      const hre = require("hardhat");
-
-      await hre.network.provider.send("evm_setAutomine", [true]);
-      await hre.run("compile", { quiet: true });
-
-      this.hre = hre;
-    });
-
-    afterEach("reset hardhat context", function () {
-      resetHardhatContext();
-    });
+    useIgnitionProject("minimal");
 
     it("should execute create2 when passed config programmatically via helper", async function () {
       const moduleDefinition = buildModule("Module", (m) => {
@@ -34,7 +17,7 @@ describe("strategies - invocation via helper", () => {
         return { foo };
       });
 
-      const result = await this.hre.ignition.deploy(moduleDefinition, {
+      const result = await this.connection.ignition.deploy(moduleDefinition, {
         strategy: "create2",
         strategyConfig: {
           salt: example32ByteSalt,
@@ -55,7 +38,7 @@ describe("strategies - invocation via helper", () => {
       });
 
       await assert.isRejected(
-        this.hre.ignition.deploy(moduleDefinition, {
+        this.connection.ignition.deploy(moduleDefinition, {
           strategy: "create2",
           strategyConfig: {
             salt: undefined as any,
@@ -67,24 +50,7 @@ describe("strategies - invocation via helper", () => {
   });
 
   describe("Hardhat config setup with create2 config", () => {
-    const fixtureProjectName = "create2";
-
-    beforeEach("Load environment", async function () {
-      process.chdir(
-        path.join(__dirname, "../fixture-projects", fixtureProjectName)
-      );
-
-      const hre = require("hardhat");
-
-      await hre.network.provider.send("evm_setAutomine", [true]);
-      await hre.run("compile", { quiet: true });
-
-      this.hre = hre;
-    });
-
-    afterEach("reset hardhat context", function () {
-      resetHardhatContext();
-    });
+    useIgnitionProject("create2");
 
     it("should execute create2 with the helper loading the Hardhat config", async function () {
       const moduleDefinition = buildModule("Module", (m) => {
@@ -93,7 +59,7 @@ describe("strategies - invocation via helper", () => {
         return { foo };
       });
 
-      const result = await this.hre.ignition.deploy(moduleDefinition, {
+      const result = await this.connection.ignition.deploy(moduleDefinition, {
         strategy: "create2",
       });
 
