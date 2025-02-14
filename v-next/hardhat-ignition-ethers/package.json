@@ -21,7 +21,7 @@
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
   "scripts": {
-    "build": "tsc --build",
+    "build": "tsc --build .",
     "lint": "pnpm prettier --check && pnpm eslint",
     "lint:fix": "pnpm prettier --write && pnpm eslint --fix",
     "eslint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
