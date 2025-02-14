@@ -26,7 +26,10 @@ import type { GetContractReturnType } from "@ignored/hardhat-vnext-viem/types";
 
 import path from "node:path";
 
-import { HardhatPluginError } from "@ignored/hardhat-vnext-errors";
+import {
+  HardhatError,
+  HardhatPluginError,
+} from "@ignored/hardhat-vnext-errors";
 import {
   HardhatArtifactResolver,
   PrettyEventHandler,
@@ -184,8 +187,9 @@ export class ViemIgnitionHelper<ChainTypeT extends ChainType | string> {
     if (result.type !== DeploymentResultType.SUCCESSFUL_DEPLOYMENT) {
       const message = errorDeploymentResultToExceptionMessage(result);
 
-      // eslint-disable-next-line no-restricted-syntax -- TODO: HH3 revisit the error handling
-      throw new HardhatPluginError("hardhat-ignition-viem", message);
+      throw new HardhatError(HardhatError.ERRORS.IGNITION.DEPLOYMENT_ERROR, {
+        message,
+      });
     }
 
     return this.#toViemContracts(this.#connection, ignitionModule, result);

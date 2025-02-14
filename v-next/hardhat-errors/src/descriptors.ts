@@ -1613,5 +1613,13 @@ Please use the fully qualified name of the contract to disambiguate it.`,
 
 Please only include one of the plugins in your Hardhat configuration.`,
     },
+    DEPLOYMENT_ERROR: {
+      number: 1717,
+      messageTemplate: "Hardhat Ignition deployment error: {message}",
+      websiteTitle: "Hardhat Ignition deployment error",
+      websiteDescription: `Hardhat Ignition was not able to successfully complete a deployment.
+
+Please review the error message and try again.`,
+    },
   },
 } as const;
