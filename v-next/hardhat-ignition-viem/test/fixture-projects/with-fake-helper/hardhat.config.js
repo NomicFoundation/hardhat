@@ -1,7 +1,7 @@
 require("./index");
 require("../../../src/index");
 
-module.exports = {
+export default {
   solidity: "0.8.19",
   networks: {
     hardhat: {

@@ -7,6 +7,8 @@ import type {
   NetworkConnection,
 } from "@ignored/hardhat-vnext/types/network";
 
+import { HardhatError } from "@ignored/hardhat-vnext-errors";
+
 import { ViemIgnitionHelper } from "../../viem-ignition-helper.js";
 
 export default async (): Promise<Partial<NetworkHooks>> => {
@@ -18,6 +20,12 @@ export default async (): Promise<Partial<NetworkHooks>> => {
       ) => Promise<NetworkConnection<ChainTypeT>>,
     ) {
       const connection: NetworkConnection<ChainTypeT> = await next(context);
+
+      if (connection.ignition !== undefined) {
+        throw new HardhatError(
+          HardhatError.ERRORS.IGNITION.ONLY_ONE_IGNITION_EXTENSION_PLUGIN_ALLOWED,
+        );
+      }
 
       connection.ignition = new ViemIgnitionHelper(
         context.config,

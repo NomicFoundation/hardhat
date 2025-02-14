@@ -1604,5 +1604,14 @@ Please use the fully qualified name of the contract to disambiguate it.`,
       websiteDescription:
         "Hardhat Ignition unable to find artifact path for the contract name",
     },
+    ONLY_ONE_IGNITION_EXTENSION_PLUGIN_ALLOWED: {
+      number: 1717,
+      messageTemplate:
+        "Found ethers and viem, but only one Hardhat Ignition extension plugin can be used at a time",
+      websiteTitle: "Only one Ignition extension plugin allowed",
+      websiteDescription: `Both the ethers and viem Ignition extension plugins were found, but only one can be used at a time.
+
+Please only include one of the plugins in your Hardhat configuration.`,
+    },
   },
 } as const;
