@@ -1,7 +1,7 @@
 import type {
   ViemIgnitionHelper,
   IgnitionModuleResultsToViemContracts,
-} from "./types.js";
+} from "../types.js";
 import type { ArtifactManager } from "@ignored/hardhat-vnext/types/artifacts";
 import type { HardhatConfig } from "@ignored/hardhat-vnext/types/config";
 import type {
