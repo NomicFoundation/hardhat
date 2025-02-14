@@ -89,7 +89,7 @@ export const ERROR_CATEGORIES: {
   CHAI_MATCHERS: {
     min: 1500,
     max: 1599,
-    websiteTitle: "Hardhat-chai-matchers errors",
+    websiteTitle: "Hardhat-ethers-chai-matchers errors",
   },
   ARTIFACTS: {
     min: 1600,

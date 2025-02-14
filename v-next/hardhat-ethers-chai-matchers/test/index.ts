@@ -4,7 +4,7 @@ import { describe, it } from "node:test";
 import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
 import { useFixtureProject } from "@nomicfoundation/hardhat-test-utils";
 
-describe("hardhat-chai-matchers plugin correctly initialized", () => {
+describe("hardhat-ethers-chai-matchers plugin correctly initialized", () => {
   useFixtureProject("hook-initialization");
 
   it("should load the plugin via hook and use the functionalities in a mocha test", async () => {

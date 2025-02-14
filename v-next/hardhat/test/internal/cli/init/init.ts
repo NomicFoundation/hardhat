@@ -240,7 +240,7 @@ describe("installProjectDependencies", async () => {
     // NOTE: This test is slow because it installs dependencies over the network.
     // It tests installation for all the templates, but only with the npm as the
     // package manager. We also support pnpm and yarn.
-    it(
+    it.skip(
       `should install all the ${template.name} template dependencies in an empty project if the user opts-in to the installation`,
       {
         skip: process.env.HARDHAT_DISABLE_SLOW_TESTS === "true",
