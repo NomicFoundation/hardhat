@@ -9,7 +9,7 @@ import type {
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
-import { EthersIgnitionHelper } from "../../ethers-ignition-helper.js";
+import { EthersIgnitionHelperImpl } from "../ethers-ignition-helper.js";
 
 export default async (): Promise<Partial<NetworkHooks>> => {
   const handlers: Partial<NetworkHooks> = {
@@ -27,7 +27,7 @@ export default async (): Promise<Partial<NetworkHooks>> => {
         );
       }
 
-      connection.ignition = new EthersIgnitionHelper(
+      connection.ignition = new EthersIgnitionHelperImpl(
         context.config,
         context.artifacts,
         connection,

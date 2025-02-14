@@ -1,4 +1,5 @@
 import "@ignored/hardhat-vnext-ethers";
+import type { EthersIgnitionHelper } from "../types.js";
 import type { ArtifactManager } from "@ignored/hardhat-vnext/types/artifacts";
 import type { HardhatConfig } from "@ignored/hardhat-vnext/types/config";
 import type {
@@ -54,8 +55,10 @@ export type IgnitionModuleResultsTToEthersContracts<
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- this is a placeholder for TypeChain support
 export type TypeChainEthersContractByName<ContractNameT> = Contract;
 
-export class EthersIgnitionHelper<ChainTypeT extends ChainType | string> {
-  public type = "ethers";
+export class EthersIgnitionHelperImpl<ChainTypeT extends ChainType | string>
+  implements EthersIgnitionHelper
+{
+  public type: "ethers" = "ethers";
 
   readonly #hardhatConfig: HardhatConfig;
   readonly #artifactsManager: ArtifactManager;
