@@ -1,15 +1,11 @@
 {
-  "extends": "../../config/typescript/tsconfig.json",
-  "compilerOptions": {
-    "target": "ES2022",
-    "outDir": "dist",
-    "composite": true,
-    "jsx": "react-jsx"
-  },
+  "extends": "../../config-v-next/tsconfig.json",
   "references": [
-    { "path": "../hardhat-ignition-core" },
-    { "path": "../hardhat-ignition" },
+    { "path": "../hardhat" },
+    { "path": "../hardhat-errors" },
     { "path": "../hardhat-ethers" },
-    { "path": "../hardhat-core" }
-  ]
+    { "path": "../hardhat-ignition" },
+    { "path": "../hardhat-ignition-core" }
+  ],
+  "exclude": ["${configDir}/dist", "${configDir}/node_modules"]
 }
