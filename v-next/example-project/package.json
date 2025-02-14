@@ -25,8 +25,10 @@
   "devDependencies": {
     "@ignored/hardhat-vnext": "workspace:^3.0.0-next.18",
     "@ignored/hardhat-vnext-ethers-chai-matchers": "workspace:^3.0.0-next.14",
+    "@ignored/hardhat-vnext-errors": "workspace:^3.0.0-next.15",
     "@ignored/hardhat-vnext-ethers": "workspace:^3.0.0-next.14",
     "@ignored/hardhat-vnext-ignition": "workspace:^2.0.0",
+    "@ignored/hardhat-vnext-ignition-core": "workspace:^0.15.10-next.0",
     "@ignored/hardhat-vnext-ignition-viem": "workspace:^2.0.0",
     "@ignored/hardhat-vnext-keystore": "workspace:^3.0.0-next.14",
     "@ignored/hardhat-vnext-mocha-test-runner": "workspace:^3.0.0-next.14",
