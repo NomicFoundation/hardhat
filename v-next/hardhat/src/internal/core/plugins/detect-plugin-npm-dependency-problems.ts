@@ -78,7 +78,7 @@ export async function detectPluginNpmDependencyProblems(
 
     const { satisfies } = await import("semver");
 
-    if (!satisfies(installedVersion, versionSpec)) {
+    if (!satisfies(installedVersion, versionSpec.replace("workspace:", ""))) {
       throw new HardhatError(
         HardhatError.ERRORS.PLUGINS.DEPENDENCY_VERSION_MISMATCH,
         {

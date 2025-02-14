@@ -1,0 +1,8 @@
+{
+  "name": "create2-bad-config",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "license": "ISC",
+  "description": "A Hardhat project where the CREATE2 config is invalid"
+}

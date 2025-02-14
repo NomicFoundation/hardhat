@@ -96,6 +96,11 @@ export const ERROR_CATEGORIES: {
     max: 1699,
     websiteTitle: "Compilation artifacts related errors",
   },
+  IGNITION: {
+    min: 1700,
+    max: 1799,
+    websiteTitle: "Hardhat Ignition errors",
+  },
 };
 
 export const ERRORS = {
@@ -1476,6 +1481,128 @@ Please replace {contractName} for one of these options wherever you are trying t
       websiteDescription: `There are multiple artifacts that match the given contract name, and Hardhat doesn't know which one to use.
 
 Please use the fully qualified name of the contract to disambiguate it.`,
+    },
+  },
+  IGNITION: {
+    INTERNAL_ERROR: {
+      number: 1700,
+      messageTemplate: "Hardhat Ignition Internal Error",
+      websiteTitle: "An internal error to Hardhat Ignition has occurred",
+      websiteDescription: `An internal error to Hardhat Ignition has occurred`,
+    },
+    ETHERSCAN_API_KEY_NOT_CONFIGURED: {
+      number: 1701,
+      messageTemplate: "No etherscan API key configured",
+      websiteTitle: "No etherscan API key configured",
+      websiteDescription: `You are trying to run verification during a Hardhat Ignition deploy, but there is no Etherscan API Key set.`,
+    },
+    CANNOT_RESET_EPHEMERAL_NETWORK: {
+      number: 1702,
+      messageTemplate:
+        "Deploy cancelled: Cannot reset deployment on ephemeral Hardhat network",
+      websiteTitle: "Cannot reset deployment on ephemeral Hardhat network",
+      websiteDescription: `The reset flag can only used against a persistent network. You are trying to reset a deployment against an in-memory network.`,
+    },
+    UNKNOWN_STRATEGY: {
+      number: 1703,
+      messageTemplate:
+        "Invalid strategy name \"{strategyName}\", must be either 'basic' or 'create2'",
+      websiteTitle:
+        "Invalid strategy name, must be either 'basic' or 'create2'",
+      websiteDescription:
+        "Invalid strategy, must be either 'basic' or 'create2'",
+    },
+    NO_MODULES_FOUND: {
+      number: 1704,
+      messageTemplate: "No Ignition modules found",
+      websiteTitle: "No Ignition modules found",
+      websiteDescription:
+        "Ignition was unable to find the module requested for deployment.",
+    },
+    FAILED_TO_PARSE_JSON: {
+      number: 1705,
+      messageTemplate: "Could not parse JSON parameters",
+      websiteTitle: "Could not parse JSON parameters",
+      websiteDescription:
+        "Ignition failed to parse the JSON parameters for deployment. Review the JSON and try again.",
+    },
+    INVALID_DEPLOYMENT_ID: {
+      number: 1706,
+      messageTemplate: `The deployment-id "{deploymentId}" contains banned characters, ids can only contain alphanumerics, dashes or underscores`,
+      websiteTitle: "The deployment-id contains banned characters",
+      websiteDescription:
+        "The deployment-id being used for the Hardhat Ignition deployment contains banned characters. Deployment ids can only contain alphanumerics, dashes or underscores.",
+    },
+    IGNITION_CLIENT_EXTENSION_NOT_INSTALLED: {
+      number: 1707,
+      messageTemplate:
+        "Please install either `@nomicfoundation/hardhat-ignition-viem` or `@nomicfoundation/hardhat-ignition-ethers` to use Ignition in your Hardhat tests",
+      websiteTitle:
+        "Neither the `viem` or `ethers` Ignition extension plugin is installed.",
+      websiteDescription:
+        "Please install either `@nomicfoundation/hardhat-ignition-viem` or `@nomicfoundation/hardhat-ignition-ethers` to use Ignition in your Hardhat tests",
+    },
+    UNKNOWN_TRANSACTION_TYPE: {
+      number: 1708,
+      messageTemplate: `Unknown transaction type: {type}`,
+      websiteTitle:
+        "Hardhat Ignition was unable to display an unknown transaction type",
+      websiteDescription:
+        "Hardhat Ignition was unable to display an unknown transaction type",
+    },
+    PARAMETER_EXCEEDS_MAXIMUM_SAFE_INTEGER: {
+      number: 1709,
+      messageTemplate: `Parameter "{parameter}" exceeds maximum safe integer size. Encode the value as a string using bigint notation: \`{value}n\``,
+      websiteTitle: "Parameter exceeds maximum safe integer size",
+      websiteDescription: "Parameter exceeds maximum safe integer size",
+    },
+    MODULE_VALIDATION_FAILED: {
+      number: 1710,
+      messageTemplate:
+        "Module validation failed. Check the stack trace above to identify the issue and its source code location.",
+      websiteTitle: "Module validation failed.",
+      websiteDescription:
+        "Hardhat Ignition found problems while validating the module. Please review the module and try again.",
+    },
+    FAILED_TO_PARSE_DEPLOYMENT_PARAMETERS: {
+      number: 1711,
+      messageTemplate: `Could not parse parameters from {filepath}`,
+      websiteTitle: "Parsing of deployment parameters failed.",
+      websiteDescription: "Parsing of deployment parameters failed.",
+    },
+    VISUALIZATION_TEMPLATE_DIR_NOT_FOUND: {
+      number: 1712,
+      messageTemplate: `Unable to find template directory: {templateDir}`,
+      websiteTitle: "Visualization template directory not found",
+      websiteDescription: "Visualization template directory not found",
+    },
+    MODULE_NOT_FOUND_AT_PATH: {
+      number: 1713,
+      messageTemplate: `Could not find a module file at the path: {modulePath}`,
+      websiteTitle: "Ignition module not found",
+      websiteDescription:
+        "Hardhat Ignition was not able to find an Ignition Module at the given path.",
+    },
+    MODULE_OUTSIDE_MODULE_DIRECTORY: {
+      number: 1714,
+      messageTemplate: `The referenced module file {modulePath} is outside the module directory {shortModulesDirectoryName}`,
+      websiteTitle: "Ignition module outside of module directory",
+      websiteDescription:
+        "Ignition modules must be located within the module directory.",
+    },
+    VIEM_TEST_HELPER_ERROR: {
+      number: 1715,
+      messageTemplate: `Hardhat Ignition Viem Test Error: {message}`,
+      websiteTitle: "Test error in Hardhat Ignition Viem's test helper",
+      websiteDescription: "Test error in Hardhat Ignition Viem's test helper.",
+    },
+    ARTIFACT_PATH_NOT_FOUND: {
+      number: 1716,
+      messageTemplate: `Artifact path not found for {contractName}`,
+      websiteTitle:
+        "Hardhat Ignition unable to find artifact path for the contract name",
+      websiteDescription:
+        "Hardhat Ignition unable to find artifact path for the contract name",
     },
   },
 } as const;

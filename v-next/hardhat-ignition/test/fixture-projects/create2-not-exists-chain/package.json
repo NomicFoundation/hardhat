@@ -1,0 +1,8 @@
+{
+  "name": "create2-not-exists-chain",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "license": "ISC",
+  "description": "A Hardhat project for a chain where CREATE2 is not deployed"
+}
