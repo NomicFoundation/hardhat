@@ -13,13 +13,13 @@ import { HardhatError } from "@ignored/hardhat-vnext-errors";
 import { assertRejects } from "@nomicfoundation/hardhat-test-utils";
 import { assert } from "chai";
 
-import hardhatIgnitionViemPlugin from "../src/index.js";
+import hardhatIgnitionEthersPlugin from "../src/index.js";
 
 describe("ignition helper mutual exclusivity", () => {
   // A fake version of the hardhat-ignition-ethers plugin that adds
   // a fake ignition helper object to the network connection.
-  const fakeHardhatIgnitionEthersPlugin: HardhatPlugin = {
-    id: "test:hardhat-ignition-ethers",
+  const fakeHardhatIgnitionViemPlugin: HardhatPlugin = {
+    id: "test:hardhat-ignition-viem",
     hookHandlers: {
       network: async () => {
         const handlers: Partial<NetworkHooks> = {
@@ -34,7 +34,7 @@ describe("ignition helper mutual exclusivity", () => {
 
             // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- we are using a fake intentionally for the test
             connection.ignition = {
-              type: "test-fake-of-ignition-ethers",
+              type: "test-fake-of-ignition-viem",
             } as any;
 
             return connection;
@@ -46,11 +46,11 @@ describe("ignition helper mutual exclusivity", () => {
     },
   };
 
-  it("should error when loaded in conjunction with hardhat-ignition-ethers", async function () {
+  it("should error when loaded in conjunction with hardhat-ignition-viem", async function () {
     await assertRejects(
       async () => {
         const hre = await createHardhatRuntimeEnvironment({
-          plugins: [fakeHardhatIgnitionEthersPlugin, hardhatIgnitionViemPlugin],
+          plugins: [fakeHardhatIgnitionViemPlugin, hardhatIgnitionEthersPlugin],
         });
 
         return hre.network.connect();
@@ -64,7 +64,7 @@ describe("ignition helper mutual exclusivity", () => {
         );
         return true;
       },
-      "The `hardhat-viem-plugin` did not detect the presence of the fake `hardhat-ignition-ethers-plugin`",
+      "The `hardhat-ethers-plugin` did not detect the presence of the fake `hardhat-ignition-viem-plugin`",
     );
   });
 });

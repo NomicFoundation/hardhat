@@ -55,6 +55,12 @@ for (const dir of dirs) {
     continue;
   }
 
+  // TODO: This is a temporary solution until we convert Ignitions tests
+  // to Node Test Runner.
+  if (dir.name === "hardhat-ignition-ethers") {
+    continue;
+  }
+
   const packageJsonPath = path.resolve(vNextDir, dir.name, "package.json");
   const packageJson = require(packageJsonPath);
 

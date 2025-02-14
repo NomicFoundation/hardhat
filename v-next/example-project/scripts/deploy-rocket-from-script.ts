@@ -14,7 +14,7 @@ const name = await apollo.read.name();
 const status = await apollo.read.status();
 
 console.log(
-  `Deployed rocket with Ignition from a Hardhat Script 🚀
+  `Deployed rocket with Ignition and Viem from a Hardhat Script 🚀
 
   address: ${address}
   name: ${name}
