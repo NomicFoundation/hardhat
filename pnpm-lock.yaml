@@ -2192,7 +2192,7 @@ importers:
         specifier: ^5.0.8
         version: 5.1.1
       '@ignored/hardhat-vnext-ignition-core':
-        specifier: workspace:^
+        specifier: workspace:^0.15.10-next.0
         version: link:../hardhat-ignition-core
       '@types/chai':
         specifier: ^4.2.0
