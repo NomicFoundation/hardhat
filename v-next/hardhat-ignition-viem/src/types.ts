@@ -1,8 +1,12 @@
 import type {
+  IgnitionModuleResult,
+  StrategyConfig,
+  IgnitionModule,
+  DeploymentParameters,
+  DeployConfig,
   ContractAtFuture,
   ContractDeploymentFuture,
   ContractFuture,
-  IgnitionModuleResult,
 } from "@ignored/hardhat-vnext-ignition-core";
 import type {
   ContractAbis,
@@ -18,6 +22,34 @@ export type IgnitionModuleResultsToViemContracts<
     resultKey
   >;
 };
+
+export interface ViemIgnitionHelper {
+  type: "viem";
+
+  deploy<
+    ModuleIdT extends string,
+    ContractNameT extends string,
+    IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>,
+    StrategyT extends keyof StrategyConfig = "basic",
+  >(
+    ignitionModule: IgnitionModule<
+      ModuleIdT,
+      ContractNameT,
+      IgnitionModuleResultsT
+    >,
+    options?: {
+      parameters?: DeploymentParameters | string;
+      config?: Partial<DeployConfig>;
+      defaultSender?: string;
+      strategy?: StrategyT;
+      strategyConfig?: StrategyConfig[StrategyT];
+      deploymentId?: string;
+      displayUi?: boolean;
+    },
+  ): Promise<
+    IgnitionModuleResultsToViemContracts<ContractNameT, IgnitionModuleResultsT>
+  >;
+}
 
 type ToContractType<
   IgnitionModuleResultsT extends IgnitionModuleResult<string>,

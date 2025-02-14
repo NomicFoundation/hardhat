@@ -9,7 +9,7 @@ import type {
 
 import { HardhatError } from "@ignored/hardhat-vnext-errors";
 
-import { ViemIgnitionHelper } from "../../viem-ignition-helper.js";
+import { ViemIgnitionHelperImpl } from "../../viem-ignition-helper.js";
 
 export default async (): Promise<Partial<NetworkHooks>> => {
   const handlers: Partial<NetworkHooks> = {
@@ -27,7 +27,7 @@ export default async (): Promise<Partial<NetworkHooks>> => {
         );
       }
 
-      connection.ignition = new ViemIgnitionHelper(
+      connection.ignition = new ViemIgnitionHelperImpl(
         context.config,
         context.artifacts,
         connection,

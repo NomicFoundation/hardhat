@@ -1,4 +1,7 @@
-import type { IgnitionModuleResultsToViemContracts } from "./ignition-module-results-to-viem-contracts.js";
+import type {
+  ViemIgnitionHelper,
+  IgnitionModuleResultsToViemContracts,
+} from "./types.js";
 import type { ArtifactManager } from "@ignored/hardhat-vnext/types/artifacts";
 import type { HardhatConfig } from "@ignored/hardhat-vnext/types/config";
 import type {
@@ -44,8 +47,10 @@ import {
   isContractFuture,
 } from "@ignored/hardhat-vnext-ignition-core";
 
-export class ViemIgnitionHelper<ChainTypeT extends ChainType | string> {
-  public type = "viem";
+export class ViemIgnitionHelperImpl<ChainTypeT extends ChainType | string>
+  implements ViemIgnitionHelper
+{
+  public type: "viem" = "viem";
 
   readonly #hardhatConfig: HardhatConfig;
   readonly #artifactsManager: ArtifactManager;
@@ -129,7 +134,7 @@ export class ViemIgnitionHelper<ChainTypeT extends ChainType | string> {
     };
 
     const resolvedStrategyConfig =
-      ViemIgnitionHelper.#resolveStrategyConfig<StrategyT>(
+      ViemIgnitionHelperImpl.#resolveStrategyConfig<StrategyT>(
         this.#hardhatConfig,
         strategy,
         strategyConfig,
@@ -278,7 +283,7 @@ export class ViemIgnitionHelper<ChainTypeT extends ChainType | string> {
   ): Promise<GetContractReturnType> {
     return connection.viem.getContractAt(
       future.contractName,
-      ViemIgnitionHelper.#ensureAddressFormat(deployedContract.address),
+      ViemIgnitionHelperImpl.#ensureAddressFormat(deployedContract.address),
     );
   }
 
@@ -301,7 +306,7 @@ export class ViemIgnitionHelper<ChainTypeT extends ChainType | string> {
 
     const viem = await import("viem");
     const contract = viem.getContract({
-      address: ViemIgnitionHelper.#ensureAddressFormat(
+      address: ViemIgnitionHelperImpl.#ensureAddressFormat(
         deployedContract.address,
       ),
       abi: future.artifact.abi,

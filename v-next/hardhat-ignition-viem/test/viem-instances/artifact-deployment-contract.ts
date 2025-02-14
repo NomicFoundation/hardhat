@@ -1,4 +1,4 @@
-import type { IgnitionModuleResultsToViemContracts } from "../../src/ignition-module-results-to-viem-contracts.js";
+import type { IgnitionModuleResultsToViemContracts } from "../../src/types.js";
 import type { ContractDeploymentFuture } from "@ignored/hardhat-vnext-ignition-core";
 
 import { buildModule } from "@ignored/hardhat-vnext-ignition-core";
