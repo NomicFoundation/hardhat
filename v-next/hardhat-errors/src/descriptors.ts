@@ -1621,5 +1621,12 @@ Please only include one of the plugins in your Hardhat configuration.`,
 
 Please review the error message and try again.`,
     },
+    NO_DEFAULT_VIEM_WALLET_CLIENT: {
+      number: 1718,
+      messageTemplate:
+        "No default wallet client found while creating Viem contract instances for deployed contracts",
+      websiteTitle: "No default Viem wallet client found",
+      websiteDescription: `Hardhat Ignition will use the default wallet client to create Viem contract instances for deployed contracts. No wallet clients were found.`,
+    },
   },
 } as const;

@@ -27,8 +27,8 @@ import type { GetContractReturnType } from "@ignored/hardhat-vnext-viem/types";
 import path from "node:path";
 
 import {
+  assertHardhatInvariant,
   HardhatError,
-  HardhatPluginError,
 } from "@ignored/hardhat-vnext-errors";
 import {
   HardhatArtifactResolver,
@@ -231,13 +231,10 @@ export class ViemIgnitionHelper<ChainTypeT extends ChainType | string> {
     future: Future,
     deployedContract: { address: string },
   ): Promise<GetContractReturnType> {
-    if (!isContractFuture(future)) {
-      // eslint-disable-next-line no-restricted-syntax -- TODO: HH3 revisit the error handling
-      throw new HardhatPluginError(
-        "hardhat-ignition-viem",
-        `Expected contract future but got ${future.id} with type ${future.type} instead`,
-      );
-    }
+    assertHardhatInvariant(
+      isContractFuture(future),
+      `Expected contract future but got ${future.id} with type ${future.type} instead`,
+    );
 
     return this.#convertContractFutureToViemContract(
       connection,
@@ -297,10 +294,8 @@ export class ViemIgnitionHelper<ChainTypeT extends ChainType | string> {
     const [walletClient] = await connection.viem.getWalletClients();
 
     if (walletClient === undefined) {
-      // eslint-disable-next-line no-restricted-syntax -- TODO: HH3 revisit the error handling
-      throw new HardhatPluginError(
-        "hardhat-ignition-viem",
-        "No default wallet client found",
+      throw new HardhatError(
+        HardhatError.ERRORS.IGNITION.NO_DEFAULT_VIEM_WALLET_CLIENT,
       );
     }
 
