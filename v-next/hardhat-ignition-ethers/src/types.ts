@@ -1,11 +1,13 @@
-import type { IgnitionModuleResultsTToEthersContracts } from "./internal/ethers-ignition-helper.js";
 import type {
   IgnitionModuleResult,
   StrategyConfig,
   IgnitionModule,
   DeploymentParameters,
   DeployConfig,
+  NamedArtifactContractDeploymentFuture,
+  NamedArtifactContractAtFuture,
 } from "@ignored/hardhat-vnext-ignition-core";
+import type { Contract } from "ethers/contract";
 
 export interface EthersIgnitionHelper {
   type: "ethers";
@@ -37,3 +39,18 @@ export interface EthersIgnitionHelper {
     >
   >;
 }
+
+export type IgnitionModuleResultsTToEthersContracts<
+  ContractNameT extends string,
+  IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>,
+> = {
+  [contract in keyof IgnitionModuleResultsT]: IgnitionModuleResultsT[contract] extends
+    | NamedArtifactContractDeploymentFuture<ContractNameT>
+    | NamedArtifactContractAtFuture<ContractNameT>
+    ? TypeChainEthersContractByName<ContractNameT>
+    : Contract;
+};
+
+// TODO: Make this work to have support for TypeChain
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- this is a placeholder for TypeChain support
+export type TypeChainEthersContractByName<ContractNameT> = Contract;
