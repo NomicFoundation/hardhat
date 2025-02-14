@@ -182,11 +182,9 @@ export class ViemIgnitionHelperImpl<ChainTypeT extends ChainType | string>
       strategy,
       strategyConfig: resolvedStrategyConfig,
       maxFeePerGasLimit:
-        this.#hardhatConfig.networks[this.#connection.networkName]?.ignition
-          .maxFeePerGasLimit,
+        this.#connection.networkConfig?.ignition.maxFeePerGasLimit,
       maxPriorityFeePerGas:
-        this.#hardhatConfig.networks[this.#connection.networkName]?.ignition
-          .maxPriorityFeePerGas,
+        this.#connection.networkConfig?.ignition.maxPriorityFeePerGas,
     });
 
     if (result.type !== DeploymentResultType.SUCCESSFUL_DEPLOYMENT) {
