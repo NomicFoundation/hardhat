@@ -33,6 +33,9 @@
     },
     {
       "path": "../hardhat-ignition"
+    },
+    {
+      "path": "../hardhat-ignition-viem"
     }
   ]
 }

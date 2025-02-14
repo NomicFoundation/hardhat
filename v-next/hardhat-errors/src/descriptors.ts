@@ -1604,5 +1604,29 @@ Please use the fully qualified name of the contract to disambiguate it.`,
       websiteDescription:
         "Hardhat Ignition unable to find artifact path for the contract name",
     },
+    ONLY_ONE_IGNITION_EXTENSION_PLUGIN_ALLOWED: {
+      number: 1717,
+      messageTemplate:
+        "Found ethers and viem, but only one Hardhat Ignition extension plugin can be used at a time",
+      websiteTitle: "Only one Ignition extension plugin allowed",
+      websiteDescription: `Both the ethers and viem Ignition extension plugins were found, but only one can be used at a time.
+
+Please only include one of the plugins in your Hardhat configuration.`,
+    },
+    DEPLOYMENT_ERROR: {
+      number: 1718,
+      messageTemplate: "Hardhat Ignition deployment error: {message}",
+      websiteTitle: "Hardhat Ignition deployment error",
+      websiteDescription: `Hardhat Ignition was not able to successfully complete a deployment.
+
+Please review the error message and try again.`,
+    },
+    NO_DEFAULT_VIEM_WALLET_CLIENT: {
+      number: 1719,
+      messageTemplate:
+        "No default wallet client found while creating Viem contract instances for deployed contracts",
+      websiteTitle: "No default Viem wallet client found",
+      websiteDescription: `Hardhat Ignition will use the default wallet client to create Viem contract instances for deployed contracts. No wallet clients were found.`,
+    },
   },
 } as const;

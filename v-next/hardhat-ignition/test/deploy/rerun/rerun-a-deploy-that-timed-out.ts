@@ -112,7 +112,7 @@ describe("execution - rerun a deploy that timed out", () => {
     );
     await wipe(
       this.deploymentDir,
-      new HardhatArtifactResolver(this.hre),
+      new HardhatArtifactResolver(this.hre.artifacts),
       "FooModule#Foo",
     );
 

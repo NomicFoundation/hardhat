@@ -25,7 +25,11 @@ const taskWipe: NewTaskActionFunction<TaskWipeArguments> = async (
   );
 
   try {
-    await wipe(deploymentDir, new HardhatArtifactResolver(hre), futureId);
+    await wipe(
+      deploymentDir,
+      new HardhatArtifactResolver(hre.artifacts),
+      futureId,
+    );
   } catch (e) {
     if (e instanceof IgnitionError && shouldBeHardhatPluginError(e)) {
       throw new HardhatError(HardhatError.ERRORS.IGNITION.INTERNAL_ERROR, e);

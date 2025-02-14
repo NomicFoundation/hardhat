@@ -188,7 +188,7 @@ const taskDeploy: NewTaskActionFunction<TaskDeployArguments> = async (
     method: "eth_accounts",
   })) as string[];
 
-  const artifactResolver = new HardhatArtifactResolver(hre);
+  const artifactResolver = new HardhatArtifactResolver(hre.artifacts);
 
   const executionEventListener = new PrettyEventHandler();
 

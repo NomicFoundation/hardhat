@@ -17,7 +17,7 @@ import hardhatNetworkHelpersPlugin from "@ignored/hardhat-vnext-network-helpers"
 import hardhatEthersPlugin from "@ignored/hardhat-vnext-ethers";
 import hardhatChaiMatchersPlugin from "@ignored/hardhat-vnext-ethers-chai-matchers";
 import hardhatTypechain from "@ignored/hardhat-vnext-typechain";
-import hardhatIgnition from "@ignored/hardhat-vnext-ignition";
+import hardhatIgnitionViem from "@ignored/hardhat-vnext-ignition-viem";
 
 util.inspect.defaultOptions.depth = null;
 
@@ -161,7 +161,7 @@ const config: HardhatUserConfig = {
     HardhatViem,
     hardhatChaiMatchersPlugin,
     hardhatTypechain,
-    hardhatIgnition,
+    hardhatIgnitionViem,
   ],
   paths: {
     tests: {

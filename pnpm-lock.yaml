@@ -1419,6 +1419,9 @@ importers:
       '@ignored/hardhat-vnext':
         specifier: workspace:^3.0.0-next.18
         version: link:../hardhat
+      '@ignored/hardhat-vnext-errors':
+        specifier: workspace:^3.0.0-next.15
+        version: link:../hardhat-errors
       '@ignored/hardhat-vnext-ethers':
         specifier: workspace:^3.0.0-next.14
         version: link:../hardhat-ethers
@@ -1428,6 +1431,12 @@ importers:
       '@ignored/hardhat-vnext-ignition':
         specifier: workspace:^2.0.0
         version: link:../hardhat-ignition
+      '@ignored/hardhat-vnext-ignition-core':
+        specifier: workspace:^0.15.10-next.0
+        version: link:../hardhat-ignition-core
+      '@ignored/hardhat-vnext-ignition-viem':
+        specifier: workspace:^2.0.0
+        version: link:../hardhat-ignition-viem
       '@ignored/hardhat-vnext-keystore':
         specifier: workspace:^3.0.0-next.14
         version: link:../hardhat-keystore
@@ -2181,6 +2190,106 @@ importers:
       vite-plugin-singlefile:
         specifier: ^2.0.1
         version: 2.1.0(rollup@4.34.1)(vite@5.4.14(@types/node@22.10.10))
+
+  v-next/hardhat-ignition-viem:
+    dependencies:
+      '@ignored/hardhat-vnext-errors':
+        specifier: workspace:^3.0.0-next.17
+        version: link:../hardhat-errors
+    devDependencies:
+      '@ignored/hardhat-vnext':
+        specifier: workspace:^3.0.0-next.16
+        version: link:../hardhat
+      '@ignored/hardhat-vnext-ignition':
+        specifier: workspace:^2.0.0
+        version: link:../hardhat-ignition
+      '@ignored/hardhat-vnext-ignition-core':
+        specifier: workspace:^0.15.10-next.0
+        version: link:../hardhat-ignition-core
+      '@ignored/hardhat-vnext-viem':
+        specifier: workspace:^3.0.0-next.11
+        version: link:../hardhat-viem
+      '@istanbuljs/nyc-config-typescript':
+        specifier: 1.0.2
+        version: 1.0.2(nyc@15.1.0)
+      '@nomicfoundation/hardhat-test-utils':
+        specifier: workspace:^3.0.1-next.0
+        version: link:../hardhat-test-utils
+      '@types/chai':
+        specifier: ^4.2.0
+        version: 4.3.20
+      '@types/chai-as-promised':
+        specifier: ^8.0.1
+        version: 8.0.1
+      '@types/mocha':
+        specifier: '>=9.1.0'
+        version: 10.0.10
+      '@types/node':
+        specifier: ^20.14.9
+        version: 20.17.16
+      '@types/sinon':
+        specifier: ^10.0.13
+        version: 10.0.20
+      '@typescript-eslint/eslint-plugin':
+        specifier: ^7.7.1
+        version: 7.18.0(@typescript-eslint/parser@7.18.0(eslint@8.57.0)(typescript@5.5.4))(eslint@8.57.0)(typescript@5.5.4)
+      '@typescript-eslint/parser':
+        specifier: ^7.7.1
+        version: 7.18.0(eslint@8.57.0)(typescript@5.5.4)
+      chai:
+        specifier: ^5.1.2
+        version: 5.1.2
+      chai-as-promised:
+        specifier: ^8.0.0
+        version: 8.0.1(chai@5.1.2)
+      cross-env:
+        specifier: 7.0.3
+        version: 7.0.3
+      eslint:
+        specifier: 8.57.0
+        version: 8.57.0
+      eslint-config-prettier:
+        specifier: 9.1.0
+        version: 9.1.0(eslint@8.57.0)
+      eslint-import-resolver-typescript:
+        specifier: ^3.6.1
+        version: 3.7.0(eslint-plugin-import@2.29.1)(eslint@8.57.0)
+      eslint-plugin-import:
+        specifier: 2.29.1
+        version: 2.29.1(@typescript-eslint/parser@7.18.0(eslint@8.57.0)(typescript@5.5.4))(eslint-import-resolver-typescript@3.7.0)(eslint@8.57.0)
+      eslint-plugin-mocha:
+        specifier: ^9.0.0
+        version: 9.0.0(eslint@8.57.0)
+      eslint-plugin-no-only-tests:
+        specifier: 3.1.0
+        version: 3.1.0
+      mocha:
+        specifier: ^10.0.0
+        version: 10.8.2
+      nyc:
+        specifier: 15.1.0
+        version: 15.1.0
+      prettier:
+        specifier: 3.2.5
+        version: 3.2.5
+      rimraf:
+        specifier: ^5.0.5
+        version: 5.0.10
+      sinon:
+        specifier: ^14.0.0
+        version: 14.0.2
+      ts-node:
+        specifier: 10.9.2
+        version: 10.9.2(@types/node@20.17.16)(typescript@5.5.4)
+      typescript:
+        specifier: ~5.5.0
+        version: 5.5.4
+      typescript-eslint:
+        specifier: 7.7.1
+        version: 7.7.1(eslint@8.57.0)(typescript@5.5.4)
+      viem:
+        specifier: ^2.21.42
+        version: 2.22.13(typescript@5.5.4)(zod@3.24.1)
 
   v-next/hardhat-keystore:
     dependencies:
