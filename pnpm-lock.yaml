@@ -1420,7 +1420,7 @@ importers:
         specifier: workspace:^3.0.0-next.18
         version: link:../hardhat
       '@ignored/hardhat-vnext-errors':
-        specifier: workspace:^3.0.0-next.15
+        specifier: workspace:^3.0.0-next.17
         version: link:../hardhat-errors
       '@ignored/hardhat-vnext-ethers':
         specifier: workspace:^3.0.0-next.14
@@ -1850,16 +1850,16 @@ importers:
   v-next/hardhat-ignition:
     dependencies:
       '@ignored/hardhat-vnext-errors':
-        specifier: workspace:^3.0.0-next.15
+        specifier: workspace:^3.0.0-next.17
         version: link:../hardhat-errors
       '@ignored/hardhat-vnext-ignition-core':
-        specifier: workspace:^
+        specifier: workspace:^0.15.10-next.0
         version: link:../hardhat-ignition-core
       '@ignored/hardhat-vnext-ignition-ui':
-        specifier: workspace:^
+        specifier: workspace:^0.15.10-next.0
         version: link:../hardhat-ignition-ui
       '@ignored/hardhat-vnext-utils':
-        specifier: workspace:^3.0.0-next.15
+        specifier: workspace:^3.0.0-next.17
         version: link:../hardhat-utils
       chalk:
         specifier: ^5.3.0
@@ -1875,10 +1875,10 @@ importers:
         version: 2.4.2
     devDependencies:
       '@ignored/hardhat-vnext':
-        specifier: workspace:^3.0.0-next.16
+        specifier: workspace:^3.0.0-next.18
         version: link:../hardhat
       '@ignored/hardhat-vnext-network-helpers':
-        specifier: workspace:^3.0.0-next.12
+        specifier: workspace:^3.0.0-next.14
         version: link:../hardhat-network-helpers
       '@istanbuljs/nyc-config-typescript':
         specifier: 1.0.2
@@ -2090,7 +2090,7 @@ importers:
         version: link:../hardhat-errors
     devDependencies:
       '@ignored/hardhat-vnext':
-        specifier: workspace:^3.0.0-next.16
+        specifier: workspace:^3.0.0-next.18
         version: link:../hardhat
       '@ignored/hardhat-vnext-ethers':
         specifier: workspace:^3.0.0-next.14
@@ -2105,7 +2105,7 @@ importers:
         specifier: 1.0.2
         version: 1.0.2(nyc@15.1.0)
       '@nomicfoundation/hardhat-test-utils':
-        specifier: workspace:^3.0.1-next.0
+        specifier: workspace:^
         version: link:../hardhat-test-utils
       '@types/chai':
         specifier: ^4.2.0
@@ -2298,7 +2298,7 @@ importers:
         version: link:../hardhat-errors
     devDependencies:
       '@ignored/hardhat-vnext':
-        specifier: workspace:^3.0.0-next.16
+        specifier: workspace:^3.0.0-next.18
         version: link:../hardhat
       '@ignored/hardhat-vnext-ignition':
         specifier: workspace:^2.0.0
@@ -2307,13 +2307,13 @@ importers:
         specifier: workspace:^0.15.10-next.0
         version: link:../hardhat-ignition-core
       '@ignored/hardhat-vnext-viem':
-        specifier: workspace:^3.0.0-next.11
+        specifier: workspace:^3.0.0-next.13
         version: link:../hardhat-viem
       '@istanbuljs/nyc-config-typescript':
         specifier: 1.0.2
         version: 1.0.2(nyc@15.1.0)
       '@nomicfoundation/hardhat-test-utils':
-        specifier: workspace:^3.0.1-next.0
+        specifier: workspace:^
         version: link:../hardhat-test-utils
       '@types/chai':
         specifier: ^4.2.0
@@ -2753,10 +2753,10 @@ importers:
   v-next/hardhat-test-utils:
     dependencies:
       '@ignored/hardhat-vnext-errors':
-        specifier: workspace:^3.0.0-next.7
+        specifier: workspace:^3.0.0-next.17
         version: link:../hardhat-errors
       '@ignored/hardhat-vnext-utils':
-        specifier: workspace:^3.0.0-next.7
+        specifier: workspace:^3.0.0-next.17
         version: link:../hardhat-utils
     devDependencies:
       '@eslint-community/eslint-plugin-eslint-comments':

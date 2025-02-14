@@ -34,11 +34,11 @@
   },
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "1.0.2",
-    "@ignored/hardhat-vnext": "workspace:^3.0.0-next.16",
+    "@ignored/hardhat-vnext": "workspace:^3.0.0-next.18",
     "@ignored/hardhat-vnext-ignition": "workspace:^2.0.0",
     "@ignored/hardhat-vnext-ignition-core": "workspace:^0.15.10-next.0",
-    "@ignored/hardhat-vnext-viem": "workspace:^3.0.0-next.11",
-    "@nomicfoundation/hardhat-test-utils": "workspace:^3.0.1-next.0",
+    "@ignored/hardhat-vnext-viem": "workspace:^3.0.0-next.13",
+    "@nomicfoundation/hardhat-test-utils": "workspace:^",
     "@types/chai": "^4.2.0",
     "@types/chai-as-promised": "^8.0.1",
     "@types/mocha": ">=9.1.0",
@@ -69,10 +69,10 @@
     "@ignored/hardhat-vnext-errors": "workspace:^3.0.0-next.17"
   },
   "peerDependencies": {
-    "@ignored/hardhat-vnext": "workspace:^3.0.0-next.16",
+    "@ignored/hardhat-vnext": "workspace:^3.0.0-next.18",
     "@ignored/hardhat-vnext-ignition": "workspace:^2.0.0",
     "@ignored/hardhat-vnext-ignition-core": "workspace:^0.15.10-next.0",
-    "@ignored/hardhat-vnext-viem": "workspace:^3.0.0-next.11",
+    "@ignored/hardhat-vnext-viem": "workspace:^3.0.0-next.13",
     "viem": "^2.21.42"
   }
 }
