@@ -41,6 +41,7 @@ describe("strategies - invocation via helper", () => {
         this.connection.ignition.deploy(moduleDefinition, {
           strategy: "create2",
           strategyConfig: {
+            // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- we're testing a bad config
             salt: undefined as any,
           },
         }),

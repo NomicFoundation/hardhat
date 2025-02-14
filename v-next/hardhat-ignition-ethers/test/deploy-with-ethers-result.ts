@@ -1,9 +1,9 @@
-/* eslint-disable import/no-unused-modules */
+import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
+
 import { buildModule } from "@ignored/hardhat-vnext-ignition-core";
 import { assert } from "chai";
 
 import { externallyLoadedContractArtifact } from "./test-helpers/externally-loaded-contract.js";
-import { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
 import { useIgnitionProject } from "./test-helpers/use-ignition-project.js";
 
 declare module "mocha" {

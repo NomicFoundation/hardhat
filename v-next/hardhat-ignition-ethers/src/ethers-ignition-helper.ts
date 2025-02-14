@@ -1,14 +1,14 @@
-import {
-  HardhatArtifactResolver,
-  PrettyEventHandler,
-  errorDeploymentResultToExceptionMessage,
-  readDeploymentParameters,
-  resolveDeploymentId,
-} from "@ignored/hardhat-vnext-ignition/helpers";
-import {
+import "@ignored/hardhat-vnext-ethers";
+import type { ArtifactManager } from "@ignored/hardhat-vnext/types/artifacts";
+import type { HardhatConfig } from "@ignored/hardhat-vnext/types/config";
+import type {
+  ChainType,
+  NetworkConnection,
+} from "@ignored/hardhat-vnext/types/network";
+import "@ignored/hardhat-vnext-ignition";
+import type {
   DeployConfig,
   DeploymentParameters,
-  DeploymentResultType,
   EIP1193Provider,
   Future,
   IgnitionModule,
@@ -17,23 +17,27 @@ import {
   NamedArtifactContractDeploymentFuture,
   StrategyConfig,
   SuccessfulDeploymentResult,
+} from "@ignored/hardhat-vnext-ignition-core";
+import type { Contract } from "ethers";
+
+import path from "node:path";
+
+import {
+  HardhatError,
+  assertHardhatInvariant,
+} from "@ignored/hardhat-vnext-errors";
+import {
+  HardhatArtifactResolver,
+  PrettyEventHandler,
+  errorDeploymentResultToExceptionMessage,
+  readDeploymentParameters,
+  resolveDeploymentId,
+} from "@ignored/hardhat-vnext-ignition/helpers";
+import {
+  DeploymentResultType,
   deploy,
   isContractFuture,
 } from "@ignored/hardhat-vnext-ignition-core";
-import { Contract } from "ethers";
-
-import path from "path";
-import "@ignored/hardhat-vnext-ethers";
-import { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
-import { HardhatConfig } from "@ignored/hardhat-vnext/types/config";
-import { ArtifactManager } from "@ignored/hardhat-vnext/types/artifacts";
-import {
-  ChainType,
-  NetworkConnection,
-} from "@ignored/hardhat-vnext/types/network";
-import "@ignored/hardhat-vnext-ignition";
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
 
 export type IgnitionModuleResultsTToEthersContracts<
   ContractNameT extends string,
@@ -47,7 +51,7 @@ export type IgnitionModuleResultsTToEthersContracts<
 };
 
 // TODO: Make this work to have support for TypeChain
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- this is a placeholder for TypeChain support
 export type TypeChainEthersContractByName<ContractNameT> = Contract;
 
 export class EthersIgnitionHelper<ChainTypeT extends ChainType | string> {
@@ -124,7 +128,8 @@ export class EthersIgnitionHelper<ChainTypeT extends ChainType | string> {
       IgnitionModuleResultsT
     >
   > {
-    const accounts = (await this.#connection.provider.request({
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- eth_accounts returns a string array
+    const accounts: string[] = (await this.#connection.provider.request({
       method: "eth_accounts",
     })) as string[];
 
@@ -251,7 +256,7 @@ export class EthersIgnitionHelper<ChainTypeT extends ChainType | string> {
       return connection.ethers.getContractAt(
         // The abi meets the abi spec and we assume we can convert to
         // an acceptable Ethers abi
-        future.artifact.abi as any[],
+        future.artifact.abi,
         deployedContract.address,
       );
     }

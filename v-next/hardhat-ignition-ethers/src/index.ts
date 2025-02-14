@@ -1,7 +1,8 @@
-import { HardhatPlugin } from "@ignored/hardhat-vnext/types/plugins";
+import type { HardhatPlugin } from "@ignored/hardhat-vnext/types/plugins";
 
 import "./type-extensions.js";
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- this is only for a moment
 export default null as unknown as HardhatPlugin;
 
 /**

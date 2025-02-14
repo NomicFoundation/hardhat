@@ -24,7 +24,7 @@
     "build": "tsc --build",
     "lint": "pnpm prettier --check && pnpm eslint",
     "lint:fix": "pnpm prettier --write && pnpm eslint --fix",
-    "eslint": "eslint \"src/**/*.{ts,tsx}\" \"test/**/*.{ts,tsx}\"",
+    "eslint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
     "prettier": "prettier \"**/*.{ts,js,md,json}\"",
     "test": "mocha --recursive \"test/**/*.ts\"",
     "test:debug": "DEBUG='hardhat-ignition:*,ignition:*' pnpm test",

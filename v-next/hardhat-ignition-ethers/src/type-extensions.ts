@@ -1,4 +1,4 @@
-import { EthersIgnitionHelper } from "./ethers-ignition-helper.js";
+import type { EthersIgnitionHelper } from "./ethers-ignition-helper.js";
 
 declare module "@ignored/hardhat-vnext/types/network" {
   interface NetworkConnection<
