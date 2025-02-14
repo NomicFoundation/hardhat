@@ -1,8 +1,8 @@
 import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
 import type { NetworkConnection } from "@ignored/hardhat-vnext/types/network";
 
-import path from "node:path";
-import { fileURLToPath } from "node:url";
+import path, { dirname } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
 
@@ -16,21 +16,31 @@ declare module "mocha" {
 }
 
 export function useIgnitionProject(fixtureProjectName: string): void {
-  let previousCwd: string;
-  beforeEach("Load environment", async function () {
-    previousCwd = process.cwd();
+  let projectPath: string;
+  let prevWorkingDir: string;
 
-    process.chdir(
-      path.join(
-        path.dirname(fileURLToPath(import.meta.url)),
-        "../fixture-projects",
-        fixtureProjectName,
-      ),
+  beforeEach("Load environment", async function () {
+    projectPath = path.join(
+      dirname(fileURLToPath(import.meta.url)),
+      "../fixture-projects",
+      fixtureProjectName,
+    );
+    prevWorkingDir = process.cwd();
+    process.chdir(projectPath);
+
+    const configPath = path.join(projectPath, "hardhat.config.js");
+    const { default: userConfig } = await import(
+      pathToFileURL(configPath).href
     );
 
-    const hre = await createHardhatRuntimeEnvironment({
-      plugins: [hardhatIgnitionViem],
-    });
+    const hre = await createHardhatRuntimeEnvironment(
+      {
+        ...userConfig,
+        plugins: [...(userConfig.plugins ?? []), hardhatIgnitionViem],
+      },
+      { config: configPath },
+      projectPath,
+    );
 
     await hre.tasks.getTask("compile").run({ quiet: true });
 
@@ -46,6 +56,6 @@ export function useIgnitionProject(fixtureProjectName: string): void {
   });
 
   afterEach("reset hardhat context", function () {
-    process.chdir(previousCwd);
+    process.chdir(prevWorkingDir);
   });
 }
