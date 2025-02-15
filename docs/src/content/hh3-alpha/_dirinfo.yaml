@@ -13,10 +13,8 @@ order:
     href: "#multichain-support"
   - title: Deploying contracts
     href: "#deploying-contracts"
-  - title: Build profiles
-    href: "#build-profiles"
-  - title: Managing dependencies
-    href: "#managing-dependencies"
+  - title: Revamped build system
+    href: "#revamped-build-system"
   - title: Configuration
     href: "#configuration"
   - title: Extensibility
