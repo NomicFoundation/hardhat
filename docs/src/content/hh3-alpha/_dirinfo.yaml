@@ -3,19 +3,19 @@ section-title: Hardhat 3 Alpha
 order:
   - title: Overview
     href: "#overview"
-  - title: Initializing a project
-    href: "#initializing-a-project"
-  - title: Solidity tests
-    href: "#solidity-tests"
-  - title: TypeScript tests
-    href: "#typescript-tests"
-  - title: Multichain support
-    href: "#multichain-support"
-  - title: Deploying contracts
-    href: "#deploying-contracts"
+  - title: Getting started
+    href: "#getting-started"
+  - title: Native Solidity tests
+    href: "#native-solidity-tests"
+  - title: Advanced tests with TypeScript
+    href: "#advanced-tests-with-typescript"
+  - title: Multichain capabilities
+    href: "#multichain-capabilities"
+  - title: Seamless contract deployments
+    href: "#seamless-contract-deployments"
   - title: Revamped build system
     href: "#revamped-build-system"
-  - title: Configuration
-    href: "#configuration"
-  - title: Extensibility
-    href: "#extensibility"
+  - title: Declarative configuration
+    href: "#declarative-configuration"
+  - title: Powerful extensibility
+    href: "#powerful-extensibility"

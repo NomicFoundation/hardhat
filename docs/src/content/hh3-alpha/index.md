@@ -12,9 +12,9 @@ We assume that you are familiar with Hardhat 2, but this tutorial isn't meant as
 
 Join our "Hardhat 3 Alpha" Telegram group to share feedback and stay updated on new releases. It's still early, and your input can help us make Hardhat 3 the best it can be.
 
-## Initializing a project
+## Getting started
 
-This section covers how to initialize the sample project for this tutorial. Make sure Node.js is installed, along with a package manager like `npm` or `pnpm`.
+This section covers how to initialize the sample project for this tutorial. Make sure you have Node.js v22 or later installed, along with a package manager like `npm` or `pnpm`.
 
 Open a terminal and run these commands to create a new directory and initialize a Node.js project:
 
@@ -68,7 +68,7 @@ pnpm hardhat --init
 :::
 ::::
 
-During initialization, you'll be asked a series of questions. Accept the default answers for each one:
+Accept the default answer for each question:
 
 1. Select the current directory as the project location.
 2. Enable ESM for the project.
@@ -95,7 +95,7 @@ pnpm hardhat
 :::
 ::::
 
-## Solidity tests
+## Native Solidity tests
 
 One of Hardhat 3's new features is support for writing tests in Solidity. You can run the sample project's Solidity tests with the `test solidity` task:
 
@@ -177,7 +177,7 @@ Hardhat 3's Solidity tests are compatible with Foundry-style tests. You can writ
 
 Learn more about Hardhat 3's Solidity tests [here](/hh3/under-the-hood/solidity-tests).
 
-## TypeScript tests
+## Advanced tests with TypeScript
 
 Solidity tests are great for unit testing, but there are situations where they fall short:
 
@@ -258,7 +258,7 @@ pnpm hardhat test
 :::
 ::::
 
-## Multichain support
+## Multichain capabilities
 
 Hardhat 2, like other Ethereum development tools, assumes you're working with a single network that behaves like Ethereum Mainnet. That assumption made sense in the past, but it no longer reflects today's rollup-centric ecosystem.
 
@@ -341,7 +341,7 @@ The `network.connect` function returns a network connection, which provides both
 
 `network.connect` accepts two optional parameters: a network name and a chain type. The network name corresponds to one of the networks in your Hardhat config. The chain type is used to perform validations and to determine the correct types for the returned connection.
 
-## Deploying contracts
+## Seamless contract deployments
 
 Hardhat comes with an official deployment solution: **Hardhat Ignition**, a declarative system for deploying smart contracts. It's already available in Hardhat 2 and has been adopted by many projects. The API hasn't changed in Hardhat 3: if you're familiar with it, you won't encounter any surprises.
 
@@ -443,7 +443,7 @@ The new compilation system uses remappings internally to manage Solidity depende
 
 Learn more about this in ...
 
-## Configuration
+## Declarative configuration
 
 Configuration in Hardhat 3 is done via a TypeScript file, but now it's fully declarative. This contrasts with Hardhat 2, where some things are configured by the side effects of certain imports and function calls.
 
@@ -474,12 +474,12 @@ Although slightly more verbose, a fully declarative configuration has many advan
 
 Leaving aside these differences and the options related to new features, the configuration is essentially the same as in Hardhat 2.
 
-## Extensibility
+## Powerful extensibility
 
 The main extensibility point of Hardhat 3, like in Hardhat 2, is the ability to create custom tasks. The following example defines an `accounts` task that prints the accounts in the network:
 
 ```ts
-import { task } from "hardhat/config";
+import { task, HardhatUserConfig } from "hardhat/config";
 
 const accountsTask = task("accounts", "Prints the list of accounts")
   .setAction(async (taskArgs, { network }) => {
