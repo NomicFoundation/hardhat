@@ -54,7 +54,7 @@ describe("module parameters", () => {
           modulePath: "./ignition/modules/Lock.ts",
           parameters: "./ignition/modules/parameters-too-large.json",
         }),
-        /Parameter "unlockTime" exceeds maximum safe integer size. Encode the value as a string using bigint notation: `1893499200000000000n`/,
+        /Parameter "unlockTime" exceeds maximum safe integer size. Encode the value as a string using bigint notation: "1893499200000000000n"/,
       );
     });
 
