@@ -34,7 +34,7 @@ describe("module parameters", () => {
         this.hre.tasks.getTask(["ignition", "deploy"]).run({
           modulePath: "./ignition/modules/nonexistant.ts",
         }),
-        /Could not find a module file at the path: .\/ignition\/modules\/nonexistant.ts/,
+        /Could not find a module file at the path: ".\/ignition\/modules\/nonexistant.ts"/,
       );
     });
 
@@ -44,7 +44,7 @@ describe("module parameters", () => {
           modulePath: "./ignition/modules/nonexistant.ts",
           parameters: "./ignition/modules/nonexistant.json",
         }),
-        /Could not find a module file at the path: .\/ignition\/modules\/nonexistant.ts/,
+        /Could not find a module file at the path: ".\/ignition\/modules\/nonexistant.ts"/,
       );
     });
 
@@ -54,7 +54,7 @@ describe("module parameters", () => {
           modulePath: "./ignition/modules/Lock.ts",
           parameters: "./ignition/modules/parameters-too-large.json",
         }),
-        /Parameter "unlockTime" exceeds maximum safe integer size. Encode the value as a string using bigint notation: `1893499200000000000n`/,
+        /Parameter "unlockTime" exceeds maximum safe integer size. Encode the value as a string using bigint notation: "1893499200000000000n"/,
       );
     });
 
