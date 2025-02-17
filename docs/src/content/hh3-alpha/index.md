@@ -175,6 +175,24 @@ Solidity tests have access to cheatcodes—special functions that can be called 
 
 Hardhat 3's Solidity tests are compatible with Foundry-style tests. You can write unit, fuzz, and invariant tests, and use testing libraries like [forge-std](https://github.com/foundry-rs/forge-std) and [PRBTest](https://github.com/PaulRBerg/prb-test).
 
+Failing tests include Solidity stack traces. Make the `test_IncByZero` test statement fail by commenting out the `expectRevert` cheatcode:
+
+```solidity{2}
+  function test_IncByZero() public {
+      // vm.expectRevert();
+      counter.incBy(0);
+  }
+```
+
+And re-run the tests to get a stack trace like this:
+
+```
+Failure (1): test_IncByZero()
+Reason: revert: incBy: increment should be positive
+  at Counter.incBy (contracts/Counter.sol:15)
+  at CounterTest.test_IncByZero (contracts/Counter.t.sol:27)
+```
+
 Learn more about Hardhat 3's Solidity tests [here](/hh3/under-the-hood/solidity-tests).
 
 ## Advanced tests with TypeScript
