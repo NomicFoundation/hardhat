@@ -27,7 +27,7 @@ describe("Example EDR based test", () => {
     const connection = await hre.network.connect();
 
     const Revert = await connection.ethers.getContractFactory("Revert");
-    const revert = await Revert.deploy([]);
+    const revert = await Revert.deploy();
 
     try {
       await revert.boom();
