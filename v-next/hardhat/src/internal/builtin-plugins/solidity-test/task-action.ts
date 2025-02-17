@@ -67,6 +67,9 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
       ])
     ).flat(1);
   }
+  // NOTE: We remove duplicates in case there is an intersection between
+  // the tests.solidity paths and the sources paths
+  rootFilePaths = Array.from(new Set(rootFilePaths));
 
   const buildOptions: BuildOptions = {
     force: false,
