@@ -34,7 +34,7 @@ describe("module parameters", () => {
         this.hre.tasks.getTask(["ignition", "deploy"]).run({
           modulePath: "./ignition/modules/nonexistant.ts",
         }),
-        /Could not find a module file at the path: .\/ignition\/modules\/nonexistant.ts/,
+        /Could not find a module file at the path: ".\/ignition\/modules\/nonexistant.ts"/,
       );
     });
 
@@ -44,7 +44,7 @@ describe("module parameters", () => {
           modulePath: "./ignition/modules/nonexistant.ts",
           parameters: "./ignition/modules/nonexistant.json",
         }),
-        /Could not find a module file at the path: .\/ignition\/modules\/nonexistant.ts/,
+        /Could not find a module file at the path: ".\/ignition\/modules\/nonexistant.ts"/,
       );
     });
 
