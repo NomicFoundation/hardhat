@@ -1,10 +1,13 @@
 ---
+"@ignored/hardhat-vnext-ignition-ethers": major
+"@ignored/hardhat-vnext-ignition-viem": major
+"@ignored/hardhat-vnext-ignition": major
+"@ignored/hardhat-vnext-ignition-ui": patch
 "@ignored/hardhat-vnext": patch
-"@ignored/hardhat-vnext-ethers-chai-matchers": patch
 "@ignored/hardhat-vnext-errors": patch
 "@ignored/hardhat-vnext-ethers": patch
+"@ignored/hardhat-vnext-ethers-chai-matchers": patch
 "@ignored/hardhat-vnext-ignition-core": patch
-"@ignored/hardhat-vnext-ignition-ui": patch
 "@ignored/hardhat-vnext-keystore": patch
 "@ignored/hardhat-vnext-mocha-test-runner": patch
 "@ignored/hardhat-vnext-network-helpers": patch
@@ -16,4 +19,4 @@
 "@ignored/hardhat-vnext-zod-utils": patch
 ---
 
-Alpha testing release: 2025-02-13 18:44 UTC
+Feature complete release in preparation for Public Alpha

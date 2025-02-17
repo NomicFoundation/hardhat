@@ -1,6 +1,6 @@
 ---
 "@ignored/hardhat-vnext": patch
-"@ignored/hardhat-vnext-chai-matchers": patch
+"@ignored/hardhat-vnext-ethers-chai-matchers": patch
 "@ignored/hardhat-vnext-errors": patch
 "@ignored/hardhat-vnext-ethers": patch
 "@ignored/hardhat-vnext-keystore": patch

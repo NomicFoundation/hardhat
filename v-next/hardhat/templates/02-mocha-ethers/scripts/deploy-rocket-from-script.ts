@@ -1,6 +1,7 @@
-import apolloModule from "../../../../example-project/ignition/modules/Apollo.js";
 import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
 import hardhatIgnitionEthersPlugin from "@ignored/hardhat-vnext-ignition-ethers";
+
+import apolloModule from "../ignition/modules/Apollo.js";
 
 const hre = await createHardhatRuntimeEnvironment({
   plugins: [hardhatIgnitionEthersPlugin],

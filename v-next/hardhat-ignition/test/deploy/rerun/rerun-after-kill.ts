@@ -22,10 +22,10 @@ describe("execution - rerun after kill", function () {
   it("should pickup deployment and run contracts to completion", async function () {
     const moduleDefinition = buildModule("FooModule", (m) => {
       const foo1 = m.contract("Foo", [], { id: "foo1" });
-      const foo2 = m.contract("Foo", [], { id: "foo2" });
-      const foo3 = m.contract("Foo", [], { id: "foo3" });
-      const foo4 = m.contract("Foo", [], { id: "foo4" });
-      const foo5 = m.contract("Foo", [], { id: "foo5" });
+      const foo2 = m.contract("Foo", [], { id: "foo2", after: [foo1] });
+      const foo3 = m.contract("Foo", [], { id: "foo3", after: [foo2] });
+      const foo4 = m.contract("Foo", [], { id: "foo4", after: [foo3] });
+      const foo5 = m.contract("Foo", [], { id: "foo5", after: [foo4] });
 
       return {
         foo1,
