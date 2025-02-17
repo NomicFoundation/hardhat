@@ -5,10 +5,10 @@ order:
     href: "#overview"
   - title: Getting started
     href: "#getting-started"
-  - title: Native Solidity tests
-    href: "#native-solidity-tests"
-  - title: Advanced tests with TypeScript
-    href: "#advanced-tests-with-typescript"
+  - title: Solidity tests
+    href: "#solidity-tests"
+  - title: Integration tests with TypeScript
+    href: "#integration-tests-with-typescript"
   - title: Multichain capabilities
     href: "#multichain-capabilities"
   - title: Seamless contract deployments

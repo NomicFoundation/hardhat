@@ -95,7 +95,7 @@ pnpm hardhat
 :::
 ::::
 
-## Native Solidity tests
+## Solidity tests
 
 One of Hardhat 3's new features is support for writing tests in Solidity. You can run the sample project's Solidity tests with the `test solidity` task:
 
@@ -195,7 +195,7 @@ Reason: revert: incBy: increment should be positive
 
 Learn more about Hardhat 3's Solidity tests [here](/hh3/under-the-hood/solidity-tests).
 
-## Advanced tests with TypeScript
+## Integration tests with TypeScript
 
 Solidity tests are great for unit testing, but there are situations where they fall short:
 
@@ -215,13 +215,10 @@ describe("Counter", async function () {
     it("The sum of the Increment events should match the current value", async function () {
         const vault = await viem.deployContract("Counter");
 
-        await vault.write.inc();
-        await vault.write.inc();
-        await vault.write.incBy([3n]);
-        await vault.write.incBy([2n]);
-        await vault.write.inc();
-        await vault.write.inc();
-        await vault.write.inc();
+        // run a series of increments
+        for (let i = 1n; i <= 10n; i++) {
+          await vault.write.incBy([i]);
+        }
 
         const events = await publicClient.getContractEvents({
             address: vault.address,
@@ -231,6 +228,7 @@ describe("Counter", async function () {
             strict: true,
         })
 
+        // check that the aggregated events match the current value
         let total = 0n;
         for (const event of events) {
             total += event.args.by;
@@ -295,7 +293,45 @@ Hardhat 3 introduces the concept of chain types. You can think of a chain type a
 
 We'll gradually add new options over time.
 
-The `scripts/send-op-tx.ts` script demonstrates how to use chain types. This script uses viem's [OP Stack extension](https://viem.sh/op-stack) on a local chain configured with the `op` type. Run this command to try it out:
+The `scripts/send-op-tx.ts` script demonstrates how to use chain types:
+
+```ts
+import { network } from "hardhat";
+
+const chainType = "mainnet";
+
+const { viem } = await network.connect(
+  "hardhatOp",
+  chainType,
+);
+
+console.log("Sending transaction using the OP chain type");
+
+const publicClient = await viem.getPublicClient();
+const [senderClient] = await viem.getWalletClients();
+
+console.log("Sending 1 wei from", senderClient.account.address, "to itself");
+
+const l1Gas = await publicClient.estimateL1Gas({
+  account: senderClient.account.address,
+  to: senderClient.account.address,
+  value: 1n,
+});
+
+console.log("Estimated L1 gas:", l1Gas);
+
+console.log("Sending L2 transaction");
+const tx = await senderClient.sendTransaction({
+  to: senderClient.account.address,
+  value: 1n,
+});
+
+await publicClient.waitForTransactionReceipt({ hash: tx });
+
+console.log("Transaction sent successfully");
+```
+
+This script uses viem's [OP Stack extension](https://viem.sh/op-stack) on a local chain configured with the `op` type. Run this command to try it out:
 
 ::::tabsgroup{options=npm,pnpm}
 :::tab{value=npm}
@@ -311,7 +347,7 @@ pnpm hardhat run scripts/send-op-tx.ts
 :::
 ::::
 
-If you edit the script and change the type to `mainnet`, it will no longer work. More importantly, that change causes a compilation error, thanks to the powerful TypeScript capabilities of Hardhat 3 and viem.
+If you edit the script and change the value of `chainType` to `"mainnet"`, it will no longer work. More importantly, that change causes a compilation error, thanks to the powerful TypeScript capabilities of Hardhat 3 and viem.
 
 ### Network manager
 
@@ -320,30 +356,33 @@ In Hardhat 2, a task always uses a single network connection that's fixed for it
 The `scripts/network-manager.ts` script illustrates this: 
 
 ```ts
-import { network } from "hardhat";
+import { network } from "@ignored/hardhat-vnext";
 
-const GAS_PRICE_ORACLE_ADDRESS = "0x420000000000000000000000000000000000000F";
+// address of the GasPriceOracle deploy in OP Stack chains
+const OP_GAS_PRICE_ORACLE = "0x420000000000000000000000000000000000000F";
 
 async function mainnetExample() {
-    const { provider } = await network.connect(
+    const { viem } = await network.connect(
         "hardhatMainnet",
         "l1",
     );
 
-    const gasPriceOracleCode = await provider.send("eth_getCode", [GAS_PRICE_ORACLE_ADDRESS]);
+    const publicClient = await viem.getPublicClient();
+    const gasPriceOracleCode = await publicClient.getCode({ address: OP_GAS_PRICE_ORACLE });
 
-    console.log("Gas price oracle exists in mainnet chain type?", gasPriceOracleCode !== "0x");
+    console.log("GasPriceOracle exists in mainnet chain type?", gasPriceOracleCode !== undefined);
 }
 
 async function opExample() {
-    const { provider } = await network.connect(
+    const { provider, viem } = await network.connect(
         "hardhatOp",
         "optimism",
     );
 
-    const gasPriceOracleCode = await provider.send("eth_getCode", [GAS_PRICE_ORACLE_ADDRESS]);
+    const publicClient = await viem.getPublicClient();
+    const gasPriceOracleCode = await publicClient.getCode({ address: OP_GAS_PRICE_ORACLE });
 
-    console.log("Gas price oracle exists in optimism chain type?", gasPriceOracleCode !== "0x");
+    console.log("GasPriceOracle exists in op chain type?", gasPriceOracleCode !== undefined);
 }
 
 await mainnetExample();
@@ -443,7 +482,7 @@ The `default` profile disables the optimizer, making it ideal for development wo
 
 Tasks use a sensible build profile by default. For example, the `ignition deploy` task defaults to the `production` profile, while most other tasks rely on the `default` profile. You can also pass the `--build-profile` flag to choose which profile should be used.
 
-Build profiles don't need to be explicitly defined. You can include a single Solidity configuration and this will be used as the `default` profile:
+Build profiles don't need to be explicitly defined. If you include a Solidity configuration like you do in Hardhat 2, those settings will be used in the `default` profile:
 
 ```js
 solidity: {
@@ -468,20 +507,20 @@ Configuration in Hardhat 3 is done via a TypeScript file, but now it's fully dec
 For example, in Hardhat 2 you only need to import a plugin to enable it:
 
 ```ts
+// Hardhat 2
 import "some-hardhat-plugin";
 ```
 
 In Hardhat 3, you must explicitly add the imported plugin to the configuration object:
 
 ```ts
+// Hardhat 3
 import SomeHardhatPlugin from "some-hardhat-plugin";
 
 const config: HardhatUserConfig = {
   plugins: [SomeHardhatPlugin],
   // ...other configuration...
 };
-
-export default config;
 ```
 
 Although slightly more verbose, a fully declarative configuration has many advantages:
@@ -515,8 +554,6 @@ const config: HardhatUserConfig = {
   tasks: [accountsTask],
   // ...other configuration...
 };
-
-export default config;
 ```
 
 Defining this task is similar to how you do it in Hardhat 2, with two differences:
