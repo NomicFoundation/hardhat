@@ -2,7 +2,7 @@ name: Hardhat 3 Alpha feedback
 description: Give feedback about the Hardhat 3 Alpha.
 labels: hardhat-3-alpha
 body:
-- type: textarea
-  attributes:
-    label: "Feedback"
-    placeholder: "Your feedback"
+  - type: textarea
+    attributes:
+      label: "Feedback"
+      placeholder: "Your feedback"
