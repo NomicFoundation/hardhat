@@ -39,9 +39,12 @@
     "template-mocha-ethers": "0.0.1",
     "template-typescript-with-examples": "0.0.1",
     "template-node-test-runner-viem": "0.0.1",
+    "@ignored/hardhat-vnext-typechain": "3.0.0-next.12",
     "@ignored/hardhat-vnext-ignition-core": "0.15.9",
     "@ignored/hardhat-vnext-ignition-ui": "0.15.9",
-    "@ignored/hardhat-vnext-typechain": "3.0.0-next.12"
+    "@ignored/hardhat-vnext-ignition": "2.0.0",
+    "@ignored/hardhat-vnext-ignition-ethers": "2.0.0",
+    "@ignored/hardhat-vnext-ignition-viem": "2.0.0"
   },
   "changesets": [
     "big-points-try",
@@ -65,6 +68,7 @@
     "selfish-queens-double",
     "shy-doors-peel",
     "strange-ads-sing",
+    "twenty-worms-add",
     "wise-oranges-tan"
   ]
 }
