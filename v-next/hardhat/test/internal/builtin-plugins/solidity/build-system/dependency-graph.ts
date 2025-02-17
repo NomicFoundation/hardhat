@@ -82,7 +82,7 @@ describe("DependencyGraphImplementation", () => {
         },
         HardhatError.ERRORS.INTERNAL.ASSERTION_ERROR,
         {
-          message: "File already present",
+          message: `File ${file.sourceName} already present`,
         },
       );
     });
