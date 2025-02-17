@@ -1546,7 +1546,7 @@ Please use the fully qualified name of the contract to disambiguate it.`,
     },
     PARAMETER_EXCEEDS_MAXIMUM_SAFE_INTEGER: {
       number: 1709,
-      messageTemplate: `Parameter "{parameter}" exceeds maximum safe integer size. Encode the value as a string using bigint notation: \`{value}n\``,
+      messageTemplate: `Parameter "{parameter}" exceeds maximum safe integer size. Encode the value as a string using bigint notation: "{value}n"`,
       websiteTitle: "Parameter exceeds maximum safe integer size",
       websiteDescription: "Parameter exceeds maximum safe integer size",
     },
