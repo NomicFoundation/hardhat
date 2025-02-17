@@ -1,6 +1,6 @@
 {
   "name": "@ignored/hardhat-vnext-keystore",
-  "version": "3.0.0-next.14",
+  "version": "3.0.0-next.15",
   "description": "A module for managing keystore files that store a map from IDs to encrypted string values.",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-keystore",
   "repository": {
@@ -42,7 +42,7 @@
   ],
   "devDependencies": {
     "@eslint-community/eslint-plugin-eslint-comments": "^4.3.0",
-    "@ignored/hardhat-vnext-node-test-reporter": "workspace:^3.0.0-next.17",
+    "@ignored/hardhat-vnext-node-test-reporter": "workspace:^3.0.0-next.18",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
     "@types/debug": "^4.1.7",
     "@types/node": "^20.14.9",
@@ -62,9 +62,9 @@
     "typescript-eslint": "7.7.1"
   },
   "dependencies": {
-    "@ignored/hardhat-vnext-errors": "workspace:^3.0.0-next.17",
-    "@ignored/hardhat-vnext-utils": "workspace:^3.0.0-next.17",
-    "@ignored/hardhat-vnext-zod-utils": "workspace:^3.0.0-next.17",
+    "@ignored/hardhat-vnext-errors": "workspace:^3.0.0-next.18",
+    "@ignored/hardhat-vnext-utils": "workspace:^3.0.0-next.18",
+    "@ignored/hardhat-vnext-zod-utils": "workspace:^3.0.0-next.18",
     "@noble/ciphers": "1.2.1",
     "@noble/hashes": "1.7.1",
     "chalk": "^5.3.0",
@@ -72,6 +72,6 @@
     "zod": "^3.23.8"
   },
   "peerDependencies": {
-    "@ignored/hardhat-vnext": "workspace:^3.0.0-next.18"
+    "@ignored/hardhat-vnext": "workspace:^3.0.0-next.19"
   }
 }
