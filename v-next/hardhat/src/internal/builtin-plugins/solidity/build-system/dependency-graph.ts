@@ -133,7 +133,10 @@ export class DependencyGraphImplementation implements DependencyGraph {
   }
 
   #addFile(file: ResolvedFile): void {
-    assertHardhatInvariant(!this.hasFile(file), `File ${file.sourceName} already present`);
+    assertHardhatInvariant(
+      !this.hasFile(file),
+      `File ${file.sourceName} already present`,
+    );
 
     assertHardhatInvariant(
       this.#fileBySourceName.get(file.sourceName) === undefined,
