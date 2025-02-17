@@ -3,20 +3,20 @@ import Image, { StaticImageData } from "next/image";
 import { styled } from "linaria/react";
 import { CTAType } from "./types";
 import CTA from "./CTA";
-import useWindowSize from "../../hooks/useWindowSize";
 import { breakpoints, media, tm, tmDark, tmSelectors } from "../../themes";
+import ImageMask from "../../assets/why-we/grid.svg";
+import ArrowRight from "../../assets/icons/arrow-right";
 
 interface ArticleType {
   title: string;
   text: string;
+  icon: React.FC<any>;
+  cta: CTAType;
 }
 
 interface ContentProps {
-  mobileImgDark: StaticImageData;
-  desktopImgDark: StaticImageData;
-  mobileImg: StaticImageData;
-  desktopImg: StaticImageData;
-  cta: CTAType;
+  image: StaticImageData;
+  imageDark: StaticImageData;
   articleOne: ArticleType;
   articleTwo: ArticleType;
 }
@@ -30,69 +30,40 @@ const Container = styled.section`
   width: 100%;
   position: relative;
   display: flex;
-  flex-direction: column;
-  padding: 24px 0 24px 24px;
-  overflow: hidden;
-  ${media.md} {
-    overflow: visible;
-    flex-direction: row;
-    padding: 0;
-    margin-bottom: 128px;
-    &[data-reverse="true"] {
-      flex-direction: row-reverse;
-    }
-  }
+  align-items: center;
+  gap: 120px;
 `;
 
 const ImageContainer = styled.div`
   margin-bottom: 16px;
   position: relative;
-  width: 100%;
-  padding-top: 80%;
-  overflow: hidden;
-  ${media.smd} {
-    padding-top: 40%;
-  }
-  ${media.md} {
-    padding-top: unset;
-    overflow: visible;
+  height: 528px;
+  width: 576px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  img {
+    max-width: none !important;
+    max-height: none !important;
   }
 `;
 
-const ImageWrapper = styled.div`
+const ImageGrid = styled.div`
   position: absolute;
-  top: 20%;
-  left: 50%;
   width: 100%;
-  transform: translateX(-50%);
-  height: 300px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  ${media.smd} {
-    width: unset;
+  height: 100%;
+  left: 0;
+  top: 0;
+  img {
+    width: 100%;
+    height: 100%;
   }
-
-  & > span {
-    transform: scale(1.5);
-  }
-
-  ${media.md} {
-    width: 116%;
-    top: 0;
-    right: -16%;
-    left: unset;
-    height: auto;
-    transform: translateX(-10%);
-    & > span {
-      transform: none;
-    }
-
-    &[data-reverse="true"] {
-      left: 20%;
-      right: unset;
-    }
-  }
+`;
+const ImageWrapper = styled.div`
+  position: relative;
+  z-index: 1;
   &.dark {
     display: none;
   }
@@ -117,43 +88,28 @@ const ImageWrapper = styled.div`
 `;
 
 const ArticleStyled = styled.article`
-  margin-bottom: 24px;
   width: 100%;
-  display: flex;
-  flex-direction: column;
-  padding: unset;
-  ${media.md} {
-    padding: 32px 0;
-    margin-bottom: unset;
-  }
+  padding: 32px 16px 0 38px;
+  border-left: 1px solid #d2d3d5;
 `;
 
 const ContentContainer = styled.div`
   width: 100%;
   display: flex;
   flex-direction: column;
-  margin-top: 16px;
-  ${media.md} {
-    margin-top: unset;
-    &[data-reverse="false"] {
-      margin-left: 46px;
-    }
-  }
+  gap: 16px;
 `;
 
 const Title = styled.h3`
-  font-family: ChivoBold, sans-serif;
-  font-weight: normal;
-  font-size: 28px;
-  line-height: 32px;
-  letter-spacing: -0.01em;
-  margin-bottom: 24px;
+  font-family: Roboto, sans-serif;
+  font-weight: 600;
+  font-size: 31px;
+  line-height: 1.32;
+  letter-spacing: 0.046em;
+  margin-bottom: 16px;
+  text-wrap: balance;
   color: ${tm(({ colors }) => colors.neutral900)};
-  ${media.md} {
-    font-size: 42px;
-    line-height: 45px;
-    letter-spacing: 0.5px;
-  }
+
   ${tmSelectors.dark} {
     color: ${tmDark(({ colors }) => colors.neutral900)};
   }
@@ -165,16 +121,12 @@ const Title = styled.h3`
 `;
 
 const Text = styled.p`
-  font-family: ChivoLight, sans-serif;
-  font-size: 18px;
-  line-height: 28px;
-  letter-spacing: 0;
+  font-family: Roboto, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  letter-spacing: 0.05em;
   color: ${tm(({ colors }) => colors.neutral600)};
-  ${media.md} {
-    font-size: 18px;
-    line-height: 28px;
-    letter-spacing: 0;
-  }
+
   ${tmSelectors.dark} {
     color: ${tmDark(({ colors }) => colors.neutral600)};
   }
@@ -186,53 +138,58 @@ const Text = styled.p`
 `;
 
 const CTAWrapper = styled.div`
-  margin-top: 8px;
-  ${media.md} {
-    margin-top: 40px;
+  margin-top: 28px;
+
+  .icon {
+    fill: currentColor;
+    width: 16px;
+    height: 16px;
   }
 `;
 
-const Article = ({ title, text }: ArticleType) => {
+const IconContainer = styled.div`
+  display: block;
+  margin-bottom: 8px;
+`;
+
+const Article = ({ title, text, cta, icon: Icon }: ArticleType) => {
   return (
     <ArticleStyled>
+      <IconContainer>
+        <Icon />
+      </IconContainer>
       <Title>{title}</Title>
       <Text>{text}</Text>
+      <CTAWrapper>
+        <CTA href={cta.url} variant="primary">
+          {cta.title}
+          <ArrowRight />
+        </CTA>
+      </CTAWrapper>
     </ArticleStyled>
   );
 };
 
-const FeatureCard = ({ content, isReversed = false }: Props) => {
-  const {
-    mobileImg,
-    desktopImg,
-    cta,
-    articleOne,
-    articleTwo,
-    mobileImgDark,
-    desktopImgDark,
-  } = content;
-  const windowSize = useWindowSize();
-  const isDesktop = breakpoints.md <= windowSize.width;
-  const imgPath = isDesktop ? desktopImg : mobileImg;
-  const imgPathDark = isDesktop ? desktopImgDark : mobileImgDark;
+const FeatureCard = ({ content }: Props) => {
+  const { image, imageDark, articleOne, articleTwo } = content;
 
   return (
-    <Container data-reverse={isReversed}>
-      <ImageContainer>
-        <ImageWrapper data-reverse={isReversed} className="light">
-          <Image src={imgPath} alt="Feature card picture" quality={100} />
-        </ImageWrapper>
-        <ImageWrapper data-reverse={isReversed} className="dark">
-          <Image src={imgPathDark} alt="Feature card picture" quality={100} />
-        </ImageWrapper>
-      </ImageContainer>
-      <ContentContainer data-reverse={isReversed}>
+    <Container>
+      <ContentContainer>
         <Article {...articleOne} />
         <Article {...articleTwo} />
-        <CTAWrapper>
-          <CTA href={cta.url}>{cta.title}</CTA>
-        </CTAWrapper>
       </ContentContainer>
+      <ImageContainer>
+        <ImageWrapper className="light">
+          <Image src={image} alt="Feature card picture" quality={100} />
+        </ImageWrapper>
+        <ImageWrapper className="dark">
+          <Image src={imageDark} alt="Feature card picture" quality={100} />
+        </ImageWrapper>
+        <ImageGrid>
+          <Image src={ImageMask} alt="Feature card picture" layout="fill" />
+        </ImageGrid>
+      </ImageContainer>
     </Container>
   );
 };

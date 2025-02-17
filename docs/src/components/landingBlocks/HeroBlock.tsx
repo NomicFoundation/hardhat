@@ -1,11 +1,13 @@
 import React from "react";
 import { styled } from "linaria/react";
+import Image from "next/image";
 import Section from "../Section";
 import CTA from "../ui/CTA";
 import { media, tm, tmDark, tmSelectors } from "../../themes";
 import { CTAType } from "../ui/types";
-import DesktopAnimation from "../DesktopAnimation";
-import MobileAnimation from "../MobileAnimation";
+
+import LandingContainer from "../LandingContainer";
+import heroGraphicDesktop from "../../assets/hero/hero.svg";
 
 interface Props {
   content: {
@@ -15,101 +17,132 @@ interface Props {
   };
 }
 
-const Container = styled.section`
+const Container = styled.div`
   width: 100%;
-  display: flex;
-  flex-direction: column;
-  margin-top: 40px;
-  color: ${tm(({ colors }) => colors.neutral900)};
-  margin-bottom: 300px;
-  ${media.md} {
-    flex-direction: row;
-    justify-content: space-between;
-    margin-bottom: 280px;
-  }
+  padding: 95px 0 148px;
+  text-align: center;
+  color: ${tm(({ colors }) => colors.base100)};
+
   ${tmSelectors.dark} {
-    color: ${tmDark(({ colors }) => colors.neutral900)};
+    color: ${tmDark(({ colors }) => colors.base100)};
   }
 
   ${media.mqDark} {
     ${tmSelectors.auto} {
-      color: ${tmDark(({ colors }) => colors.neutral900)};
+      color: ${tmDark(({ colors }) => colors.base100)};
     }
   }
 `;
 
-const Block = styled.div`
+const Content = styled.div`
   width: 100%;
   display: flex;
   flex-direction: column;
-  padding: 0 0 24px;
-  min-height: 100px;
-  &.content {
-    z-index: 2;
-  }
-  & svg {
-    margin: 0 auto;
-  }
-  &.animation-container {
-    height: calc(100vh - 700px);
-  }
-  ${media.md} {
-    width: 40%;
-    &:first-child {
-      width: 60%;
-    }
-    padding: 0;
-    position: relative;
-    &.animation-container {
-      height: auto;
-    }
-  }
+  align-items: center;
+  gap: 40px;
+  padding-top: 60px;
+  max-width: 840px;
+  margin: 0 auto;
+  min-height: 900px;
+  position: relative;
+  z-index: 1;
+`;
+
+const GraphicContainer = styled.div`
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 1832px;
+  pointer-events: none;
+  transform: translateX(-50%);
+  z-index: -1;
 `;
 
 const TagLine = styled.span`
-  font-family: ChivoLight, sans-serif;
-  margin-bottom: 24px;
-  font-size: 22px;
-  line-height: 32px;
-  letter-spacing: -0.02em;
-  text-align: left;
-  ${media.md} {
-    font-size: 32px;
-    line-height: 32px;
-    letter-spacing: 0;
-    text-align: left;
-    margin-top: 32px;
-  }
+  font-family: SourceCodePro, sans-serif;
+
+  font-size: 31px;
+  line-height: 1.4;
+  letter-spacing: 0.05em;
 `;
 
 const Title = styled.h1`
-  margin-bottom: 48px;
-  font-size: 40px;
-  line-height: 45px;
-  letter-spacing: -0.01em;
-  font-family: ChivoBold, sans-serif;
-  font-weight: normal;
-  ${media.md} {
-    margin-bottom: 64px;
-    font-size: 72px;
-    line-height: 72px;
-    letter-spacing: 0;
+  font-size: 95px;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  font-family: Roboto, sans-serif;
+  font-weight: 700;
+`;
+
+const Block = styled.div`
+  margin-top: 94px;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 20px 54px;
+`;
+
+const BlockTitle = styled.h2`
+  font-size: 31px;
+  line-height: 1.35;
+  letter-spacing: 0.05em;
+  font-family: SourceCodePro, sans-serif;
+  font-weight: 600;
+  max-width: 300px;
+`;
+
+const BlockText = styled.p`
+  font-size: 20px;
+  line-height: 1.45;
+  letter-spacing: 0.05em;
+  font-family: Roboto, sans-serif;
+  max-width: 540px;
+  color: ${tm(({ colors }) => colors.base400)};
+
+  ${tmSelectors.dark} {
+    color: ${tmDark(({ colors }) => colors.base400)};
+  }
+
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      color: ${tmDark(({ colors }) => colors.base400)};
+    }
   }
 `;
 
 const HeroBlock = ({ content }: Props) => {
   return (
-    <Section>
+    <Section clearPadding>
       <Container>
-        <Block className="content">
-          <TagLine>{content.tagline}</TagLine>
-          <Title>{content.title}</Title>
-          <CTA href={content.cta.url}>{content.cta.title}</CTA>
-        </Block>
-        <Block className="animation-container">
-          <DesktopAnimation />
-          <MobileAnimation />
-        </Block>
+        <LandingContainer>
+          <Content>
+            <TagLine dangerouslySetInnerHTML={{ __html: content.tagline }} />
+            <Title>{content.title}</Title>
+
+            <CTA href={content.cta.url} variant="md">
+              {content.cta.title}
+            </CTA>
+            <GraphicContainer>
+              <Image
+                src={heroGraphicDesktop}
+                alt="ethereum logo dark"
+                className="light"
+                width={1832}
+                height={900}
+              />
+            </GraphicContainer>
+          </Content>
+
+          <Block>
+            <BlockTitle>Ready to use out of the box</BlockTitle>
+            <BlockText>
+              Hardhat includes everything you need for Solidity smart contract
+              development. Testing, deployment, gas analysis, code coverage,
+              code verification, and more.
+            </BlockText>
+          </Block>
+        </LandingContainer>
       </Container>
     </Section>
   );

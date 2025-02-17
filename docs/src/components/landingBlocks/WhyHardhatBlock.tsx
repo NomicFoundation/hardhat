@@ -1,112 +1,114 @@
 import React from "react";
 import { styled } from "linaria/react";
-
+import Image from "next/image";
 import Section from "../Section";
 import { media, tm, tmDark, tmSelectors } from "../../themes";
+import LandingContainer from "../LandingContainer";
+import lines from "../../assets/why-we/lines.svg";
 
 type Props = React.PropsWithChildren<{
-  content: { title: string };
+  content: { title: string; footer: { title: string; text: string } };
 }>;
 
 const Container = styled.section`
   width: 100%;
   position: relative;
-  display: flex;
-  flex-direction: column;
-  border-left: 1px solid ${tm(({ colors }) => colors.neutral400)};
-  padding-top: 52px;
-  ${media.md} {
-    border-left: unset;
-    border-top: 1px solid ${tm(({ colors }) => colors.neutral400)};
-  }
-  ${tmSelectors.dark} {
-    border-color: ${tmDark(({ colors }) => colors.neutral400)};
-  }
-  ${media.mqDark} {
-    ${tmSelectors.auto} {
-      border-color: ${tmDark(({ colors }) => colors.neutral400)};
-    }
-  }
+  padding-top: 92px;
+  padding-bottom: 105px;
 `;
 
 const Title = styled.h2`
-  position: absolute;
-  padding: 24px;
-  background-color: ${tm(({ colors }) => colors.neutral0)};
   color: ${tm(({ colors }) => colors.neutral900)};
-  left: 0;
-  top: 0;
-  transform: translateY(-50%);
-  text-transform: uppercase;
-  font-size: 20px;
-  font-style: normal;
-  font-weight: 400;
-  line-height: 24px;
-  letter-spacing: 0.2em;
-  margin-bottom: 32px;
-  ${media.md} {
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 24px;
-  }
+  text-transform: capitalize;
+  font-size: 49px;
+  font-weight: 600;
+  font-family: SourceCodePro, sans-serif;
+  line-height: 1.2;
+  letter-spacing: 0.045em;
+  margin-bottom: 52px;
+
   ${tmSelectors.dark} {
-    background-color: ${tmDark(({ colors }) => colors.neutral0)};
     color: ${tmDark(({ colors }) => colors.neutral900)};
   }
   ${media.mqDark} {
     ${tmSelectors.auto} {
-      background-color: ${tmDark(({ colors }) => colors.neutral0)};
       color: ${tmDark(({ colors }) => colors.neutral900)};
     }
   }
 `;
 
-const TopBrackets = styled.div`
+const Heading = styled.div`
+  position: relative;
+`;
+
+const TitleBrackets = styled.div`
   position: absolute;
-  top: 0;
-  left: 24px;
-  width: calc(100% - 24px);
-  height: 32px;
-  border-top: 1px solid ${tm(({ colors }) => colors.neutral400)};
-  border-left: 1px solid ${tm(({ colors }) => colors.neutral400)};
-  border-right: 1px solid ${tm(({ colors }) => colors.neutral400)};
-  ${media.md} {
-    height: 36px;
-    border-top: none;
-    width: 100%;
-    border-top: none;
-    left: 0;
-  }
+  top: 50%;
+  margin-top: -49px;
+  right: calc(100% + 26px);
+  width: 232px;
+  height: 99px;
+`;
+
+const CardList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 208px;
+`;
+
+const BottomWrapper = styled.div`
+  padding: 66px 0;
+  text-align: center;
+  position: relative;
+`;
+
+const BottomWrapperTitle = styled.div`
+  font-size: 31px;
+  fweight: 500;
+  font-family: SourceCodePro, sans-serif;
+  line-height: 1.2;
+  letter-spacing: 0.05em;
+  color: ${tm(({ colors }) => colors.neutral900)};
   ${tmSelectors.dark} {
-    border-color: ${tmDark(({ colors }) => colors.neutral400)};
+    color: ${tmDark(({ colors }) => colors.neutral900)};
   }
   ${media.mqDark} {
     ${tmSelectors.auto} {
-      border-color: ${tmDark(({ colors }) => colors.neutral400)};
+      color: ${tmDark(({ colors }) => colors.neutral900)};
     }
   }
 `;
-const BottomBrackets = styled.div`
-  position: absolute;
-  left: 0px;
-  bottom: 0;
-  width: 32px;
-  height: 32px;
-  border-bottom: 1px solid ${tm(({ colors }) => colors.neutral400)};
-  ${media.md} {
-    display: none;
-  }
+
+const BottomWrapperText = styled.div`
+  font-size: 20px;
+  fweight: 400;
+  font-family: Roboto, sans-serif;
+  line-height: 1.2;
+  margin-top: 16px;
+  letter-spacing: 0.05em;
+  color: #8e9094;
 `;
 
 const WhyHardhatBlock = ({ content, children }: Props) => {
   return (
-    <Section>
+    <Section clearPadding>
       <Container>
-        <TopBrackets />
-        <Title>{content.title}</Title>
-        {children}
-        <BottomBrackets />
+        <LandingContainer>
+          <Heading>
+            <Title>{content.title}</Title>
+            <TitleBrackets>
+              <Image src={lines} alt="lines" />
+            </TitleBrackets>
+          </Heading>
+          <CardList>{children}</CardList>
+        </LandingContainer>
       </Container>
+      <BottomWrapper>
+        <LandingContainer>
+          <BottomWrapperTitle>{content.footer.title}</BottomWrapperTitle>
+          <BottomWrapperText>{content.footer.text}</BottomWrapperText>
+        </LandingContainer>
+      </BottomWrapper>
     </Section>
   );
 };

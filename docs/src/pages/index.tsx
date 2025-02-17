@@ -10,6 +10,7 @@ import ReviewsBlock from "../components/landingBlocks/ReviewsBlock";
 import ToolsBlock from "../components/landingBlocks/ToolsBlock";
 import homepageContent from "../content/home";
 import LandingLayout from "../components/LandingLayout";
+import WhatIsNewBlock from "../components/landingBlocks/WhatIsNewBlock";
 
 const Home: NextPage = () => {
   return (
@@ -23,31 +24,31 @@ const Home: NextPage = () => {
     >
       <HeroBlock content={homepageContent.heroBlockContent} />
 
-      <ToolsBlock content={homepageContent.toolsBlockContent} />
+      {/* <ToolsBlock content={homepageContent.toolsBlockContent} /> */}
 
       <WhyHardhatBlock content={homepageContent.whyHardhatContent}>
         <FeatureCard
           content={homepageContent.featureCardsContent.featureCardOne}
-          isReversed
         />
         <FeatureCard
           content={homepageContent.featureCardsContent.featureCardTwo}
         />
         <FeatureCard
           content={homepageContent.featureCardsContent.featureCardThree}
-          isReversed
         />
         <FeatureCard
           content={homepageContent.featureCardsContent.featureCardFour}
         />
       </WhyHardhatBlock>
-      <VibrantCommunityBlock
+      <WhatIsNewBlock content={homepageContent.whatIsNewBlockContent} />
+
+      {/* <VibrantCommunityBlock
         content={homepageContent.vibrantCommunityBlockContent}
       />
       <GetStartedBlock content={homepageContent.getStartedBlockContent} />
       <TrustedTeamsBlock content={homepageContent.trustedTeamsBlockContent} />
       <ReviewsBlock content={homepageContent.reviewsBlockContent} />
-      <BuiltByBlock content={homepageContent.builtByBlockContent} />
+      <BuiltByBlock content={homepageContent.builtByBlockContent} /> */}
     </LandingLayout>
   );
 };

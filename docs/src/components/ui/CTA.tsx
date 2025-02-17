@@ -81,9 +81,39 @@ const A = styled.a`
       }
     }
   }
+  &.primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 19px 24px;
+    background-color: #e5e6e7;
+    color: #181a1f;
+    font-size: 16px;
+    font-weight: 600;
+    font-family: Roboto, sans-serif;
+    line-height: 1.5;
+    letter-spacing: 0.02em;
+    border-radius: 0;
+    .icon {
+      color: #ccb200;
+    }
+    &:hover {
+      background-color: #5e21ff;
+      color: #fbfbfb;
+      .icon {
+        color: #d2d3d5;
+      }
+    }
+  }
 
   &.full-padding {
     padding: 12px 28px;
+  }
+  &.md {
+    padding: 16px 28px;
+    font-size: 16px;
+    font-weight: 600;
+    font-family: Roboto, sans-serif;
   }
 `;
 

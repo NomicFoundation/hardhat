@@ -13,8 +13,11 @@ export const breakpoints = {
   xs: 360,
   sm: 412,
   smd: 592,
+  tablet: 768,
   md: 1000,
   lg: 1200,
+  laptop: 1280,
+  desktop: 1700,
 };
 
 export const media = {
@@ -22,8 +25,11 @@ export const media = {
   xs: `@media screen and (min-width: ${breakpoints.xs}px)`,
   sm: `@media screen and (min-width: ${breakpoints.sm}px)`,
   smd: `@media screen and (min-width: ${breakpoints.smd}px)`,
+  tablet: `@media screen and (min-width: ${breakpoints.tablet}px)`,
   md: `@media screen and (min-width: ${breakpoints.md}px)`,
   lg: `@media screen and (min-width: ${breakpoints.lg}px)`,
+  laptop: `@media screen and (min-width: ${breakpoints.laptop}px)`,
+  desktop: `@media screen and (min-width: ${breakpoints.desktop}px)`,
   mqDark: "@media (prefers-color-scheme: dark)",
 };
 
@@ -35,6 +41,9 @@ export const tmSelectors = {
 export const lightPalette = {
   name: "Light",
   transparent: "transparent",
+
+  base400: "#4A4D54",
+  base100: "#181A1F",
   neutral0: "#FFFFFF",
   neutral100: "#F2F2F2",
   neutral200: "#FCFCF1",
@@ -108,6 +117,8 @@ export const lightPalette = {
 export const darkPalette = {
   name: "Dark",
   transparent: "transparent",
+  base400: "#B0B2B5",
+  base100: "#E5E6E7",
   neutral0: "#181A1F",
   neutral100: "#F2F2F2",
   neutral200: "#16181D",
