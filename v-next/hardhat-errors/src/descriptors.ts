@@ -576,8 +576,7 @@ Please double check that the network is correctly defined in your networks confi
     },
     INVALID_CHAIN_TYPE: {
       number: 706,
-      messageTemplate:
-        `The provided chain type "{chainType}" does not match the network's chain type "{networkChainType}" for network "{networkName}".`,
+      messageTemplate: `The provided chain type "{chainType}" does not match the network's chain type "{networkChainType}" for network "{networkName}".`,
       websiteTitle: "Invalid chain type",
       websiteDescription: `The chain type does not match the network's chain type.
 
@@ -933,15 +932,13 @@ Remaining test suites: {suites}`,
   SOLIDITY: {
     RESOLVING_INCORRECT_FILE_AS_PROJECT_FILE: {
       number: 1200,
-      messageTemplate:
-        `File "{file}" is being resolved as a project file, but it's not part of the project.`,
+      messageTemplate: `File "{file}" is being resolved as a project file, but it's not part of the project.`,
       websiteTitle: "Solidity project file is outside the project",
       websiteDescription: `Tried to resolve a file as a project file, but it's not part of the project.`,
     },
     RESOLVING_NONEXISTENT_PROJECT_FILE: {
       number: 1201,
-      messageTemplate:
-        `File "{file}" is being resolved as a project file, but it doesn't exist.`,
+      messageTemplate: `File "{file}" is being resolved as a project file, but it doesn't exist.`,
       websiteTitle: "Solidity project file doesn't exist",
       websiteDescription: `Tried to resolve a file as a project file, but it doesn't exist.`,
     },
@@ -1271,8 +1268,7 @@ Please check Hardhat's output for more details.`,
     },
     DEPLOY_CONTRACT_ERROR: {
       number: 1305,
-      messageTemplate:
-        `The deployment transaction "{txHash}" was mined in block "{blockNumber}" but its receipt doesn't contain a contract address`,
+      messageTemplate: `The deployment transaction "{txHash}" was mined in block "{blockNumber}" but its receipt doesn't contain a contract address`,
       websiteTitle: "Deployment Transaction Error",
       websiteDescription:
         "The deployment transaction was mined but its receipt doesn't contain a contract address.",
@@ -1281,8 +1277,7 @@ Please check Hardhat's output for more details.`,
   NODE: {
     INVALID_NETWORK_TYPE: {
       number: 1400,
-      messageTemplate:
-        `The provided node network type "{networkType}" for network "{networkName}" is not recognized, only 'edr' is supported.`,
+      messageTemplate: `The provided node network type "{networkType}" for network "{networkName}" is not recognized, only 'edr' is supported.`,
       websiteTitle: "Invalid node network type",
       websiteDescription: `The node only supports the 'edr' network type.`,
     },
@@ -1505,8 +1500,7 @@ Please use the fully qualified name of the contract to disambiguate it.`,
     },
     UNKNOWN_STRATEGY: {
       number: 1703,
-      messageTemplate:
-        `Invalid strategy name "{strategyName}", must be either 'basic' or 'create2'`,
+      messageTemplate: `Invalid strategy name "{strategyName}", must be either 'basic' or 'create2'`,
       websiteTitle:
         "Invalid strategy name, must be either 'basic' or 'create2'",
       websiteDescription:
