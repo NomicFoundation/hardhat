@@ -32,16 +32,17 @@ describe("error-handler", () => {
           lines.push(msg);
         });
 
-        assert.equal(lines.length, 3);
+        assert.equal(lines.length, 2);
         assert.equal(
           lines[0],
           `${chalk.red.bold(`Error ${error.errorCode}:`)} ${error.formattedMessage}`,
         );
         assert.equal(lines[1], "");
-        assert.equal(
-          lines[2],
-          `For more info go to ${HARDHAT_WEBSITE_URL}${error.errorCode} or run ${HARDHAT_NAME} with --show-stack-traces`,
-        );
+        // Commented out until we have the new website
+        // assert.equal(
+        //   lines[2],
+        //   `For more info go to ${HARDHAT_WEBSITE_URL}${error.errorCode} or run ${HARDHAT_NAME} with --show-stack-traces`,
+        // );
       });
 
       it("should print the stack trace", () => {
@@ -74,16 +75,17 @@ describe("error-handler", () => {
           lines.push(msg);
         });
 
-        assert.equal(lines.length, 3);
+        assert.equal(lines.length, 2);
         assert.equal(
           lines[0],
           `${chalk.red.bold(`Error ${error.errorCode} in plugin ${error.pluginId}:`)} ${error.formattedMessage}`,
         );
         assert.equal(lines[1], "");
-        assert.equal(
-          lines[2],
-          `For more info go to ${HARDHAT_WEBSITE_URL}${error.errorCode} or run ${HARDHAT_NAME} with --show-stack-traces`,
-        );
+        // Commented out until we have the new website
+        // assert.equal(
+        //   lines[2],
+        //   `For more info go to ${HARDHAT_WEBSITE_URL}${error.errorCode} or run ${HARDHAT_NAME} with --show-stack-traces`,
+        // );
       });
 
       it("should print the stack trace", () => {
