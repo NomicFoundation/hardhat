@@ -18,55 +18,61 @@ This section covers how to initialize the sample project for this tutorial. Make
 
 Open a terminal and run these commands to create a new directory and initialize a Node.js project:
 
-::::tabsgroup{options=npm,pnpm}
-:::tab{value=npm}
+::::tabsgroup{options=npm,pnpm} :::tab{value=npm}
+
 ```
 mkdir hardhat3-alpha
 cd hardhat3-alpha
 npm init -y
 ```
+
 :::
 
 :::tab{value=pnpm}
+
 ```
 mkdir hardhat3-alpha
 cd hardhat3-alpha
 pnpm init
 ```
-:::
-::::
+
+::: ::::
 
 Then install the Alpha version of Hardhat 3:
 
-::::tabsgroup{options=npm,pnpm}
-:::tab{value=npm}
+::::tabsgroup{options=npm,pnpm} :::tab{value=npm}
+
 ```
 npm install hardhat@alpha
 ```
+
 :::
 
 :::tab{value=pnpm}
+
 ```
 pnpm install hardhat@alpha
 ```
-:::
-::::
+
+::: ::::
 
 You are ready to initialize the sample project. Run the following command:
 
-::::tabsgroup{options=npm,pnpm}
-:::tab{value=npm}
+::::tabsgroup{options=npm,pnpm} :::tab{value=npm}
+
 ```
 npx hardhat --init
 ```
+
 :::
 
 :::tab{value=pnpm}
+
 ```
 pnpm hardhat --init
 ```
-:::
-::::
+
+::: ::::
 
 Accept the default answer for each question:
 
@@ -75,43 +81,45 @@ Accept the default answer for each question:
 3. Set **Node Test Runner and Viem** as the testing setup.
 4. Install the necessary dependencies.
 
-::::tip
-The built-in [Node.js test runner](https://nodejs.org/api/test.html) is fast and requires no dependencies, and [viem](https://viem.sh/) is easy to use and has powerful typing features. We recommend using them, but Hardhat will continue to support Mocha and Ethers.js for backward compatibility and for those who prefer not to switch libraries.
-::::
+::::tip The built-in [Node.js test runner](https://nodejs.org/api/test.html) is fast and requires no dependencies, and [viem](https://viem.sh/) is easy to use and has powerful typing features. We recommend using them, but Hardhat will continue to support Mocha and Ethers.js for backward compatibility and for those who prefer not to switch libraries. ::::
 
 Everything should be set up now. Verify it by printing the help output:
 
-::::tabsgroup{options=npm,pnpm}
-:::tab{value=npm}
+::::tabsgroup{options=npm,pnpm} :::tab{value=npm}
+
 ```
 npx hardhat
 ```
+
 :::
 
 :::tab{value=pnpm}
+
 ```
 pnpm hardhat
 ```
-:::
-::::
+
+::: ::::
 
 ## Solidity tests
 
 One of Hardhat 3's new features is support for writing tests in Solidity. You can run the sample project's Solidity tests with the `test solidity` task:
 
-::::tabsgroup{options=npm,pnpm}
-:::tab{value=npm}
+::::tabsgroup{options=npm,pnpm} :::tab{value=npm}
+
 ```
 npx hardhat test solidity
 ```
+
 :::
 
 :::tab{value=pnpm}
+
 ```
 pnpm hardhat test solidity
 ```
-:::
-::::
+
+::: ::::
 
 The contract being tested is `Counter`, located in the `contracts/Counter.sol` file:
 
@@ -209,70 +217,73 @@ The sample project includes a TypeScript test as an example. The `Counter` contr
 
 ```ts
 describe("Counter", async function () {
-    const { viem } = await network.connect();
-    const publicClient = await viem.getPublicClient();
+  const { viem } = await network.connect();
+  const publicClient = await viem.getPublicClient();
 
-    it("The sum of the Increment events should match the current value", async function () {
-        const vault = await viem.deployContract("Counter");
+  it("The sum of the Increment events should match the current value", async function () {
+    const vault = await viem.deployContract("Counter");
 
-        // run a series of increments
-        for (let i = 1n; i <= 10n; i++) {
-          await vault.write.incBy([i]);
-        }
+    // run a series of increments
+    for (let i = 1n; i <= 10n; i++) {
+      await vault.write.incBy([i]);
+    }
 
-        const events = await publicClient.getContractEvents({
-            address: vault.address,
-            abi: vault.abi,
-            eventName: "Increment",
-            fromBlock: 0n,
-            strict: true,
-        })
-
-        // check that the aggregated events match the current value
-        let total = 0n;
-        for (const event of events) {
-            total += event.args.by;
-        }
-
-        assert.equal(total, await vault.read.x());
+    const events = await publicClient.getContractEvents({
+      address: vault.address,
+      abi: vault.abi,
+      eventName: "Increment",
+      fromBlock: 0n,
+      strict: true,
     });
+
+    // check that the aggregated events match the current value
+    let total = 0n;
+    for (const event of events) {
+      total += event.args.by;
+    }
+
+    assert.equal(total, await vault.read.x());
+  });
 });
 ```
 
 To run the TypeScript tests in the project, execute the following command:
 
-::::tabsgroup{options=npm,pnpm}
-:::tab{value=npm}
+::::tabsgroup{options=npm,pnpm} :::tab{value=npm}
+
 ```
 npx hardhat test node
 ```
+
 :::
 
 :::tab{value=pnpm}
+
 ```
 pnpm hardhat test node
 ```
-:::
-::::
+
+::: ::::
 
 This task comes from the Hardhat plugin for the Node.js test runner, but you can use alternative tools. We provide another plugin for Mocha, and it's possible to write plugins for other test runners as well.
 
 To run all your tests—both Solidity and TypeScript—use the `test` task:
 
+::::tabsgroup{options=npm,pnpm} :::tab{value=npm}
 
-::::tabsgroup{options=npm,pnpm}
-:::tab{value=npm}
 ```
 npx hardhat test
 ```
+
 :::
 
 :::tab{value=pnpm}
+
 ```
 pnpm hardhat test
 ```
-:::
-::::
+
+::: ::::
 
 ## Multichain capabilities
 
@@ -300,10 +311,7 @@ import { network } from "hardhat";
 
 const chainType = "optimism";
 
-const { viem } = await network.connect(
-  "hardhatOp",
-  chainType,
-);
+const { viem } = await network.connect("hardhatOp", chainType);
 
 console.log("Sending transaction using the OP chain type");
 
@@ -333,19 +341,21 @@ console.log("Transaction sent successfully");
 
 This script uses viem's [OP Stack extension](https://viem.sh/op-stack) on a local chain configured with the `op` type. Run this command to try it out:
 
-::::tabsgroup{options=npm,pnpm}
-:::tab{value=npm}
+::::tabsgroup{options=npm,pnpm} :::tab{value=npm}
+
 ```
 npx hardhat run scripts/send-op-tx.ts
 ```
+
 :::
 
 :::tab{value=pnpm}
+
 ```
 pnpm hardhat run scripts/send-op-tx.ts
 ```
-:::
-::::
+
+::: ::::
 
 If you edit the script and change the value of `chainType` to `"l1"`, it will no longer work. More importantly, that change causes a compilation error, thanks to the powerful TypeScript capabilities of Hardhat 3 and viem.
 
@@ -362,27 +372,31 @@ import { network } from "hardhat";
 const OP_GAS_PRICE_ORACLE = "0x420000000000000000000000000000000000000F";
 
 async function mainnetExample() {
-    const { viem } = await network.connect(
-        "hardhatMainnet",
-        "l1",
-    );
+  const { viem } = await network.connect("hardhatMainnet", "l1");
 
-    const publicClient = await viem.getPublicClient();
-    const gasPriceOracleCode = await publicClient.getCode({ address: OP_GAS_PRICE_ORACLE });
+  const publicClient = await viem.getPublicClient();
+  const gasPriceOracleCode = await publicClient.getCode({
+    address: OP_GAS_PRICE_ORACLE,
+  });
 
-    console.log("GasPriceOracle exists in l1 chain type?", gasPriceOracleCode !== undefined);
+  console.log(
+    "GasPriceOracle exists in l1 chain type?",
+    gasPriceOracleCode !== undefined
+  );
 }
 
 async function opExample() {
-    const { provider, viem } = await network.connect(
-        "hardhatOp",
-        "optimism",
-    );
+  const { provider, viem } = await network.connect("hardhatOp", "optimism");
 
-    const publicClient = await viem.getPublicClient();
-    const gasPriceOracleCode = await publicClient.getCode({ address: OP_GAS_PRICE_ORACLE });
+  const publicClient = await viem.getPublicClient();
+  const gasPriceOracleCode = await publicClient.getCode({
+    address: OP_GAS_PRICE_ORACLE,
+  });
 
-    console.log("GasPriceOracle exists in optimism chain type?", gasPriceOracleCode !== undefined);
+  console.log(
+    "GasPriceOracle exists in optimism chain type?",
+    gasPriceOracleCode !== undefined
+  );
 }
 
 await mainnetExample();
@@ -406,39 +420,44 @@ With Hardhat Ignition, you define the smart contract instances you want to deplo
 
 The sample project includes an Ignition Module as an example. To deploy this module in a simulated network, run the following command:
 
-::::tabsgroup{options=npm,pnpm}
-:::tab{value=npm}
+::::tabsgroup{options=npm,pnpm} :::tab{value=npm}
+
 ```
 npx hardhat ignition deploy ignition/modules/Counter.ts
 ```
+
 :::
 
 :::tab{value=pnpm}
+
 ```
 pnpm hardhat ignition deploy ignition/modules/Counter.ts
 ```
-:::
-::::
+
+::: ::::
 
 This deployment is executed on the default network, which lasts only for the duration of the task, short-lived. To simulate a deployment on a persistent network, follow these steps:
 
 1. Start a Hardhat node with `npx hardhat node` or `pnpm hardhat node`.
-2. Open another terminal and deploy the module to the Hardhat node:
-    ::::tabsgroup{options=npm,pnpm}
-    :::tab{value=npm}
-    ```
-    npx hardhat ignition deploy --network localhost ignition/modules/Counter.ts
-    ```
-    :::
+2. Open another terminal and deploy the module to the Hardhat node: ::::tabsgroup{options=npm,pnpm} :::tab{value=npm}
 
-    :::tab{value=pnpm}
-    ```
-    pnpm hardhat ignition deploy --network localhost ignition/modules/Counter.ts
-    ```
-    :::
-    ::::
+   ```
+   npx hardhat ignition deploy --network localhost ignition/modules/Counter.ts
+   ```
+
+   :::
+
+   :::tab{value=pnpm}
+
+   ```
+   pnpm hardhat ignition deploy --network localhost ignition/modules/Counter.ts
+   ```
+
+   ::: ::::
+
 3. Run the same command again once the deployment finishes. Since the module has already been deployed, Ignition won't send any transactions.
 4. Without stopping the node, add the following line to the Ignition module:
+
    ```ts{3}
    m.call(counter, "incBy", [5n]);
 
@@ -446,6 +465,7 @@ This deployment is executed on the default network, which lasts only for the dur
 
    return { counter };
    ```
+
 5. Run the command from step 2 once more. This time, only the new action runs.
 
 While Hardhat Ignition is our recommended approach for deploying contracts, you're free to use other tools. For example, you can use custom scripts for simple deployments or a deployment plugin from the community.
@@ -478,7 +498,8 @@ solidity: {
   },
 }
 ```
-The `default` profile disables the optimizer, making it ideal for development workflows that need fast compilation times.  The `production` profile is an example for production workflows, where optimized code matters more than compilation speed.
+
+The `default` profile disables the optimizer, making it ideal for development workflows that need fast compilation times. The `production` profile is an example for production workflows, where optimized code matters more than compilation speed.
 
 Tasks use a sensible build profile by default. For example, the `ignition deploy` task defaults to the `production` profile, while most other tasks rely on the `default` profile. You can also pass the `--build-profile` flag to choose which profile should be used.
 
