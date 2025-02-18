@@ -13,7 +13,6 @@ import type {
 
 import { hexStringToBytes } from "@ignored/hardhat-vnext-utils/hex";
 
-
 function hexStringToBuffer(hexString: string): Buffer {
   return Buffer.from(hexStringToBytes(hexString));
 }
