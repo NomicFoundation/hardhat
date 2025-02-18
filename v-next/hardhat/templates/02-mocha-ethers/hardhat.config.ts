@@ -42,7 +42,7 @@ const config: HardhatUserConfig = {
        * in the CLI or by the tasks you are running.
        */
       default: {
-        version: "0.8.24",
+        version: "0.8.28",
       },
       /*
        * The production profile is meant to be used for deployments, providing
@@ -50,7 +50,7 @@ const config: HardhatUserConfig = {
        * steps to simplify the process of verifying your contracts.
        */
       production: {
-        version: "0.8.24",
+        version: "0.8.28",
         settings: {
           optimizer: {
             enabled: true,
@@ -96,18 +96,19 @@ const config: HardhatUserConfig = {
    *   found in the "Sending a Transaction to Optimism Sepolia" of the README.
    */
   networks: {
-    opSepolia: {
-      type: "http",
-      chainType: "optimism",
-      url: "https://sepolia.optimism.io/",
-      accounts: [configVariable("OPTIMISM_SEPOLIA_PRIVATE_KEY")],
+    hardhatMainnet: {
+      type: "edr",
+      chainType: "l1",
     },
-    edrOpSepolia: {
+    hardhatOp: {
       type: "edr",
       chainType: "optimism",
-      forking: {
-        url: "https://sepolia.optimism.io",
-      },
+    },
+    sepolia: {
+      type: "http",
+      chainType: "l1",
+      url: configVariable("SEPOLIA_RPC_URL"),
+      accounts: [configVariable("SEPOLIA_PRIVATE_KEY")],
     },
   },
 };
