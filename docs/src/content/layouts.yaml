@@ -68,9 +68,9 @@ tutorial:
   folders:
     - tutorial
 
-hh3-alpha:
+hardhat3-preview:
   title: Hardhat 3 Alpha Tutorial
   folders:
-    - hh3-alpha
-    - hh3-alpha/comparison
-    - hh3-alpha/under-the-hood
+    - hardhat3-preview
+    - hardhat3-preview/comparison
+    - hardhat3-preview/under-the-hood
