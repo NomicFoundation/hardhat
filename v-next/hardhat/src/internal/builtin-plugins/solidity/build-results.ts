@@ -67,15 +67,15 @@ export async function getBuildInfos(
   results: SuccessfulSolidityBuildResults,
   artifactManager: ArtifactManager,
 ): Promise<BuildInfoAndOutput[]> {
-  let buildIds = await Promise.all(
+  const buildIds = await Promise.all(
     Array.from(new Set(results.values())).map(async ({ compilationJob }) =>
       compilationJob.getBuildId(),
     ),
   );
-  buildIds = Array.from(new Set(buildIds));
+  const uniqueBuildIds = Array.from(new Set(buildIds));
 
   return Promise.all(
-    buildIds.map(async (buildId) => {
+    uniqueBuildIds.map(async (buildId) => {
       const buildInfoPath = await artifactManager.getBuildInfoPath(buildId);
       const buildInfoOutputPath =
         await artifactManager.getBuildInfoOutputPath(buildId);
