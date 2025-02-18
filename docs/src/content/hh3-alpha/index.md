@@ -49,7 +49,7 @@ Then install the Alpha version of Hardhat 3:
 :::tab{value=npm}
 
 ```
-npm install hardhat@alpha
+npm install --save-dev hardhat@next
 ```
 
 :::
@@ -57,7 +57,7 @@ npm install hardhat@alpha
 :::tab{value=pnpm}
 
 ```
-pnpm install hardhat@alpha
+pnpm install --save-dev hardhat@next
 ```
 
 :::
