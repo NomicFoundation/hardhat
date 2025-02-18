@@ -3,8 +3,8 @@ import { describe, it } from "mocha";
 
 import { expect } from "chai";
 
-import { anyUint } from "@ignored/hardhat-vnext-chai-matchers/withArgs";
-import { PANIC_CODES } from "@ignored/hardhat-vnext-chai-matchers/panic";
+import { anyUint } from "@ignored/hardhat-vnext-ethers-chai-matchers/withArgs";
+import { PANIC_CODES } from "@ignored/hardhat-vnext-ethers-chai-matchers/panic";
 import hre from "@ignored/hardhat-vnext";
 
 describe("Mocha test", () => {

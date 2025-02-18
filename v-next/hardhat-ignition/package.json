@@ -1,0 +1,96 @@
+{
+  "name": "@ignored/hardhat-vnext-ignition",
+  "version": "3.0.0-next.0",
+  "license": "MIT",
+  "author": "Nomic Foundation",
+  "homepage": "https://hardhat.org",
+  "description": "Hardhat Ignition is a declarative system for deploying smart contracts on Ethereum. It enables you to define smart contract instances you want to deploy, and any operation you want to run on them. By taking over the deployment and execution, Hardhat Ignition lets you focus on your project instead of getting caught up in the deployment details.",
+  "repository": "github:NomicFoundation/hardhat-ignition",
+  "keywords": [
+    "ethereum",
+    "smart-contracts",
+    "hardhat",
+    "blockchain",
+    "dapps",
+    "tooling",
+    "solidity",
+    "deployment"
+  ],
+  "type": "module",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
+  "exports": {
+    ".": "./dist/src/index.js",
+    "./modules": "./dist/src/modules.js",
+    "./helpers": "./dist/src/helpers.js"
+  },
+  "typesVersions": {
+    "*": {
+      "modules": [
+        "./dist/src/modules.d.ts"
+      ],
+      "helpers": [
+        "./dist/src/helpers.d.ts"
+      ]
+    }
+  },
+  "scripts": {
+    "lint": "pnpm prettier --check && pnpm eslint",
+    "lint:fix": "pnpm prettier --write && pnpm eslint --fix",
+    "eslint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
+    "prettier": "prettier \"**/*.{ts,js,md,json}\"",
+    "pretest": "pnpm run --dir ../hardhat-ignition-ui build",
+    "test": "cross-env TS_NODE_COMPILER_OPTIONS=\"{\\\"isolatedDeclarations\\\":false}\" mocha --recursive \"test/**/*.ts\"",
+    "test:coverage": "cross-env TS_NODE_COMPILER_OPTIONS=\"{\\\"isolatedDeclarations\\\":false}\" nyc mocha \"test/**/*.ts\"",
+    "test:build": "tsc --project ./test/",
+    "prepack": "pnpm build",
+    "build": "tsc --build .",
+    "clean": "rimraf .nyc_output coverage dist tsconfig.tsbuildinfo ./test/fixture-projects/**/deployments ./test/fixture-projects/**/artifacts ./test/fixture-projects/**/cache"
+  },
+  "devDependencies": {
+    "@istanbuljs/nyc-config-typescript": "1.0.2",
+    "@ignored/hardhat-vnext": "workspace:^3.0.0-next.19",
+    "@ignored/hardhat-vnext-network-helpers": "workspace:^3.0.0-next.15",
+    "@types/chai": "^4.2.0",
+    "@types/chai-as-promised": "^8.0.1",
+    "@types/debug": "^4.1.7",
+    "@types/mocha": ">=9.1.0",
+    "@types/node": "^20.14.9",
+    "@types/prompts": "^2.4.2",
+    "@types/sinon": "^10.0.13",
+    "@typescript-eslint/eslint-plugin": "^7.7.1",
+    "@typescript-eslint/parser": "^7.7.1",
+    "chai": "^5.1.2",
+    "chai-as-promised": "^8.0.0",
+    "cross-env": "7.0.3",
+    "eslint": "8.57.0",
+    "eslint-config-prettier": "9.1.0",
+    "eslint-import-resolver-typescript": "^3.6.1",
+    "eslint-plugin-import": "2.29.1",
+    "eslint-plugin-no-only-tests": "3.1.0",
+    "eslint-plugin-mocha": "^9.0.0",
+    "eslint-plugin-prettier": "4.0.0",
+    "mocha": "^10.0.0",
+    "nyc": "15.1.0",
+    "prettier": "3.2.5",
+    "rimraf": "^5.0.5",
+    "sinon": "^14.0.0",
+    "ts-node": "10.9.2",
+    "typescript": "~5.5.0",
+    "typescript-eslint": "7.7.1",
+    "viem": "^2.21.42"
+  },
+  "peerDependencies": {
+    "@ignored/hardhat-vnext": "workspace:^3.0.0-next.19"
+  },
+  "dependencies": {
+    "@ignored/hardhat-vnext-errors": "workspace:^3.0.0-next.18",
+    "@ignored/hardhat-vnext-ignition-core": "workspace:^0.15.10-next.1",
+    "@ignored/hardhat-vnext-ignition-ui": "workspace:^0.15.10-next.1",
+    "@ignored/hardhat-vnext-utils": "workspace:^3.0.0-next.18",
+    "chalk": "^5.3.0",
+    "debug": "^4.3.2",
+    "prompts": "^2.4.2",
+    "json5": "^2.2.3"
+  }
+}

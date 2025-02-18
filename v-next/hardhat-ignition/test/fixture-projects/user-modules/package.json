@@ -1,0 +1,8 @@
+{
+  "name": "user-modules",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "license": "ISC",
+  "description": "A test project for module loading"
+}

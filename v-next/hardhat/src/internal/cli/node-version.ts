@@ -3,9 +3,9 @@
 
 import chalk from "chalk";
 
-const MIN_SUPPORTED_NODE_VERSION = [22, 10, 0];
+export const MIN_SUPPORTED_NODE_VERSION: number[] = [22, 10, 0];
 
-function isNodeVersionSupported(): boolean {
+export function isNodeVersionSupported(): boolean {
   try {
     const [majorStr, minorStr, patchStr] = process.versions.node.split(".");
 
@@ -15,10 +15,14 @@ function isNodeVersionSupported(): boolean {
 
     if (major < MIN_SUPPORTED_NODE_VERSION[0]) {
       return false;
+    } else if (major > MIN_SUPPORTED_NODE_VERSION[0]) {
+      return true;
     }
 
     if (minor < MIN_SUPPORTED_NODE_VERSION[1]) {
       return false;
+    } else if (minor > MIN_SUPPORTED_NODE_VERSION[1]) {
+      return true;
     }
 
     if (patch < MIN_SUPPORTED_NODE_VERSION[2]) {

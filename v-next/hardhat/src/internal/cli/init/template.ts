@@ -43,10 +43,12 @@ export async function getTemplates(): Promise<Template[]> {
   }
 
   const pathsToTemplates = await readdir(pathToTemplates);
+  pathsToTemplates.sort();
 
   const templates = await Promise.all(
-    pathsToTemplates.map(async (name) => {
-      const pathToTemplate = path.join(pathToTemplates, name);
+    pathsToTemplates.map(async (dirName) => {
+      const name = dirName.replace(/^\d+-/, "");
+      const pathToTemplate = path.join(pathToTemplates, dirName);
       const pathToPackageJson = path.join(pathToTemplate, "package.json");
 
       if (!(await isDirectory(pathToTemplate))) {

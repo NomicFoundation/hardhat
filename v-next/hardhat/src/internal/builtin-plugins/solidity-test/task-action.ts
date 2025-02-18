@@ -12,6 +12,7 @@ import { finished } from "node:stream/promises";
 import { getAllFilesMatching } from "@ignored/hardhat-vnext-utils/fs";
 import { resolveFromRoot } from "@ignored/hardhat-vnext-utils/path";
 import { createNonClosingWriter } from "@ignored/hardhat-vnext-utils/stream";
+import chalk from "chalk";
 
 import { shouldMergeCompilationJobs } from "../solidity/build-profiles.js";
 import {
@@ -29,13 +30,24 @@ import { run } from "./runner.js";
 
 interface TestActionArguments {
   testFiles: string[];
+  chainType: string;
 }
 
 const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
-  { testFiles },
+  { testFiles, chainType },
   hre,
 ) => {
   let rootFilePaths: string[];
+
+  if (chainType !== "l1") {
+    console.log(
+      chalk.yellow(
+        `Chain type selection for tests will be implemented soon. Please check our communication channels for updates. For now, please run the task without the --chain-type option.`,
+      ),
+    );
+    process.exitCode = 1;
+    return;
+  }
 
   if (testFiles.length > 0) {
     rootFilePaths = testFiles.map((f) =>
@@ -55,6 +67,9 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
       ])
     ).flat(1);
   }
+  // NOTE: We remove duplicates in case there is an intersection between
+  // the tests.solidity paths and the sources paths
+  rootFilePaths = Array.from(new Set(rootFilePaths));
 
   const buildOptions: BuildOptions = {
     force: false,

@@ -58,7 +58,9 @@ export function assertThrows(
       return;
     }
 
-    assert.ok(condition(error), conditionDescription);
+    if (!condition(error)) {
+      throw new Error(conditionDescription, { cause: error });
+    }
 
     return;
   }

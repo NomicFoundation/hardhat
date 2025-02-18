@@ -89,12 +89,17 @@ export const ERROR_CATEGORIES: {
   CHAI_MATCHERS: {
     min: 1500,
     max: 1599,
-    websiteTitle: "Hardhat-chai-matchers errors",
+    websiteTitle: "Hardhat-ethers-chai-matchers errors",
   },
   ARTIFACTS: {
     min: 1600,
     max: 1699,
     websiteTitle: "Compilation artifacts related errors",
+  },
+  IGNITION: {
+    min: 1700,
+    max: 1799,
+    websiteTitle: "Hardhat Ignition errors",
   },
 };
 
@@ -146,7 +151,7 @@ Please double check whether you have multiple versions of the same plugin instal
     },
     ENV_VAR_NOT_FOUND: {
       number: 7,
-      messageTemplate: `Configuration Variable '{name}' not found.
+      messageTemplate: `Configuration Variable "{name}" not found.
 
 You can define it using a plugin like hardhat-keystore, or set it as an environment variable.`,
       websiteTitle: "Configuration variable not found",
@@ -203,7 +208,7 @@ Please add the property "type" with the value "module" in your package.json to e
     GLOBAL_OPTION_ALREADY_DEFINED: {
       number: 14,
       messageTemplate:
-        "Plugin {plugin} is trying to define the global option {globalOption} but it is already defined by plugin {definedByPlugin}",
+        'Plugin "{plugin}"" is trying to define the global option "{globalOption}" but it is already defined by plugin "{definedByPlugin}"',
       websiteTitle: "Global option already defined",
       websiteDescription:
         "The global option is already defined by another plugin. Please ensure that global options are uniquely named to avoid conflicts.",
@@ -217,13 +222,13 @@ Please add the property "type" with the value "module" in your package.json to e
     },
     TEMPLATE_NOT_FOUND: {
       number: 16,
-      messageTemplate: `Template {template} not found`,
+      messageTemplate: `Template "{template}" not found`,
       websiteTitle: "Template not found",
       websiteDescription: `The template you provided is not found. Please check the documentation to learn which templates are available.`,
     },
     WORKSPACE_NOT_FOUND: {
       number: 17,
-      messageTemplate: `Workspace {workspace} not found`,
+      messageTemplate: `Workspace "{workspace}" not found`,
       websiteTitle: "Workspace not found",
       websiteDescription: `The workspace you provided does not exist. Please ensure that the workspace exists and try again.`,
     },
@@ -304,7 +309,7 @@ Please ensure that you are providing a correct file URL.`,
     },
     NO_ACTION: {
       number: 401,
-      messageTemplate: "The task {task} doesn't have an action",
+      messageTemplate: `The task "{task}" doesn't have an action`,
       websiteTitle: "Task missing action",
       websiteDescription: `A task was defined without an action.
 
@@ -313,7 +318,7 @@ Please ensure that an action is defined for each task.`,
     POSITIONAL_ARG_AFTER_VARIADIC: {
       number: 402,
       messageTemplate:
-        "Cannot add the positional argument {name} after a variadic one",
+        'Cannot add the positional argument "{name}" after a variadic one',
       websiteTitle: "Invalid task definition",
       websiteDescription:
         "A variadic argument must always be the last positional argument in a task definition.",
@@ -321,21 +326,21 @@ Please ensure that an action is defined for each task.`,
     REQUIRED_ARG_AFTER_OPTIONAL: {
       number: 403,
       messageTemplate:
-        "Cannot add required positional argument {name} after an optional one",
+        'Cannot add required positional argument "{name}" after an optional one',
       websiteTitle: "Invalid task definition",
       websiteDescription:
         "Required positional arguments must be defined before optional ones in a task definition.",
     },
     TASK_NOT_FOUND: {
       number: 404,
-      messageTemplate: "Task {task} not found",
+      messageTemplate: 'Task "{task}" not found',
       websiteTitle: "Task not found",
       websiteDescription: "The provided task name does not match any task.",
     },
     SUBTASK_WITHOUT_PARENT: {
       number: 405,
       messageTemplate:
-        "Task {task} not found when attempting to define subtask {subtask}. If you intend to only define subtasks, please first define {task} as an empty task",
+        'Task "{task}" not found when attempting to define subtask "{subtask}". If you intend to only define subtasks, please first define "{task}" as an empty task',
       websiteTitle: "Subtask without parent",
       websiteDescription:
         "The parent task of the subtask being defined was not found. If you intend to only define subtasks, please first define the parent task as an empty task.",
@@ -343,7 +348,7 @@ Please ensure that an action is defined for each task.`,
     TASK_ALREADY_DEFINED: {
       number: 406,
       messageTemplate:
-        "{actorFragment} trying to define the task {task} but it is already defined{definedByFragment}",
+        '{actorFragment} trying to define the task "{task}" but it is already defined{definedByFragment}',
       websiteTitle: "Task already defined",
       websiteDescription:
         "The task is already defined. Please ensure that tasks are uniquely named to avoid conflicts.",
@@ -358,7 +363,7 @@ Please ensure that an action is defined for each task.`,
     TASK_OPTION_ALREADY_DEFINED: {
       number: 408,
       messageTemplate:
-        "{actorFragment} trying to define task {task} with the option {option} but it is already defined as a global option by plugin {globalOptionPluginId}",
+        '{actorFragment} trying to define task "{task}" with the option "{option}" but it is already defined as a global option by plugin "{globalOptionPluginId}"',
       websiteTitle: "Task option already defined",
       websiteDescription:
         "The task option is already defined as a global option by another plugin. Please ensure that task options are uniquely named to avoid conflicts.",
@@ -366,14 +371,14 @@ Please ensure that an action is defined for each task.`,
     TASK_OVERRIDE_OPTION_ALREADY_DEFINED: {
       number: 409,
       messageTemplate:
-        "{actorFragment} trying to override the option {option} of the task {task} but it is already defined",
+        '{actorFragment} trying to override the option "{option}" of the task "{task}" but it is already defined',
       websiteTitle: "Task override option already defined",
       websiteDescription:
         "An attempt is being made to override an option that has already been defined. Please ensure that the option is not defined before trying to override it.",
     },
     EMPTY_TASK: {
       number: 410,
-      messageTemplate: "Can't run the empty task {task}",
+      messageTemplate: `Can't run the empty task "{task}"`,
       websiteTitle: "Empty task",
       websiteDescription:
         "The task is empty. Please ensure that tasks have at least one action.",
@@ -381,7 +386,7 @@ Please ensure that an action is defined for each task.`,
     INVALID_ACTION_URL: {
       number: 411,
       messageTemplate:
-        "Unable to import the module specified by the action {action} of task {task}",
+        'Unable to import the module specified by the action "{action}" of task "{task}"',
       websiteTitle: "Invalid action URL",
       websiteDescription:
         "The action URL is invalid. Please ensure that the URL is correct.",
@@ -389,7 +394,7 @@ Please ensure that an action is defined for each task.`,
     INVALID_ACTION: {
       number: 412,
       messageTemplate:
-        "The action resolved from {action} in task {task} is not a function",
+        'The action resolved from "{action}" in task "{task}" is not a function',
       websiteTitle: "Invalid action",
       websiteDescription:
         "The action of the task is not a function. Make sure that the file pointed to by the action URL exports a function as the default export.",
@@ -406,7 +411,7 @@ Please double check how you invoked Hardhat or ran your task.`,
     INVALID_VALUE_FOR_TYPE: {
       number: 414,
       messageTemplate:
-        "Invalid value {value} for argument {name} of type {type} in the task {task}",
+        'Invalid value "{value}" for argument "{name}" of type "{type}" in the task "{task}"',
       websiteTitle: "Invalid argument type",
       websiteDescription: `One of your task arguments has an invalid type.
 
@@ -414,7 +419,7 @@ Please double check your task arguments.`,
     },
     UNRECOGNIZED_TASK_OPTION: {
       number: 415,
-      messageTemplate: "Invalid option {option} for the task {task}",
+      messageTemplate: 'Invalid option "{option}" for the task "{task}"',
       websiteTitle: "Invalid option value",
       websiteDescription: `One of the options for your task is invalid.
 
@@ -425,7 +430,7 @@ Please double check your arguments.`,
     INVALID_VALUE_FOR_TYPE: {
       number: 500,
       messageTemplate:
-        "Invalid value {value} for argument {name} of type {type}",
+        'Invalid value "{value}" for argument "{name}" of type "{type}"',
       websiteTitle: "Invalid argument type",
       websiteDescription: `One of your Hardhat or task arguments has an invalid type.
 
@@ -433,7 +438,7 @@ Please double check your arguments.`,
     },
     RESERVED_NAME: {
       number: 501,
-      messageTemplate: "Argument name {name} is reserved",
+      messageTemplate: 'Argument name "{name}" is reserved',
       websiteTitle: "Reserved argument name",
       websiteDescription: `One of your Hardhat or task arguments has a reserved name.
 
@@ -441,7 +446,7 @@ Please double check your arguments.`,
     },
     DUPLICATED_NAME: {
       number: 502,
-      messageTemplate: "Argument name {name} is already in use",
+      messageTemplate: 'Argument name "{name}" is already in use',
       websiteTitle: "Argument name already in use",
       websiteDescription: `One of your Hardhat or task argument names is already in use.
 
@@ -458,7 +463,7 @@ Please double check your arguments.`,
     UNRECOGNIZED_OPTION: {
       number: 504,
       messageTemplate:
-        "Invalid option {option}. It is neither a valid global option nor associated with any task. Did you forget to add the task first, or did you misspell it?",
+        'Invalid option "{option}". It is neither a valid global option nor associated with any task. Did you forget to add the task first, or did you misspell it?',
       websiteTitle: "Invalid option value",
       websiteDescription: `One of your Hardhat options is invalid.
 
@@ -475,7 +480,7 @@ Please double check how you invoked Hardhat or ran your task.`,
     UNUSED_ARGUMENT: {
       number: 506,
       messageTemplate:
-        "The argument with value {value} was not consumed because it is not associated with any task.",
+        'The argument with value "{value}" was not consumed because it is not associated with any task.',
       websiteTitle: "Argument was not consumed",
       websiteDescription: `You tried to run a task, but one of your arguments was not consumed.
 
@@ -504,7 +509,7 @@ Please double check your arguments.`,
   BUILTIN_TASKS: {
     RUN_FILE_NOT_FOUND: {
       number: 600,
-      messageTemplate: `Script {script} doesn't exist`,
+      messageTemplate: `Script "{script}" doesn't exist`,
       websiteTitle: "Script doesn't exist",
       websiteDescription: `Tried to use \`hardhat run\` to execute a nonexistent script.
 
@@ -521,7 +526,7 @@ Please double check your script's path.`,
   NETWORK: {
     INVALID_URL: {
       number: 700,
-      messageTemplate: "Invalid URL {value} for network or forking.",
+      messageTemplate: 'Invalid URL "{value}" for network or forking.',
       websiteTitle: "Invalid URL for network or forking",
       websiteDescription: `You are trying to connect to a network with an invalid network or forking URL.
 
@@ -545,7 +550,7 @@ Please make sure your node is running, and check your internet connection and ne
     },
     CONNECTION_REFUSED: {
       number: 703,
-      messageTemplate: `Cannot connect to the network {network}.
+      messageTemplate: `Cannot connect to the network "{network}".
 Please make sure your node is running, and check your internet connection and networks config`,
       websiteTitle: "Cannot connect to the network",
       websiteDescription: `Cannot connect to the network.
@@ -563,7 +568,7 @@ Please make sure your node is running, and check your internet connection and ne
     },
     NETWORK_NOT_FOUND: {
       number: 705,
-      messageTemplate: `The network {networkName} is not defined in your networks config.`,
+      messageTemplate: `The network "{networkName}" is not defined in your networks config.`,
       websiteTitle: "Network not found",
       websiteDescription: `The network you are trying to connect to is not found.
 
@@ -571,8 +576,7 @@ Please double check that the network is correctly defined in your networks confi
     },
     INVALID_CHAIN_TYPE: {
       number: 706,
-      messageTemplate:
-        "The provided chain type {chainType} does not match the network's chain type {networkChainType} for network {networkName}.",
+      messageTemplate: `The provided chain type "{chainType}" does not match the network's chain type "{networkChainType}" for network "{networkName}".`,
       websiteTitle: "Invalid chain type",
       websiteDescription: `The chain type does not match the network's chain type.
 
@@ -589,7 +593,7 @@ If you want to use a different chain type, please update your networks config.`,
     INVALID_GLOBAL_CHAIN_ID: {
       number: 708,
       messageTemplate:
-        "Hardhat was set to use chain id {configChainId}, but connected to a chain with id {connectionChainId}.",
+        'Hardhat was set to use chain id "{configChainId}", but connected to a chain with id "{connectionChainId}".',
       websiteTitle: "Invalid global chain id",
       websiteDescription: `Hardhat was set to use a chain id but connected to a chain with a different id`,
     },
@@ -686,7 +690,7 @@ Try using another mnemonic or deriving less keys.`,
     INVALID_NETWORK_TYPE: {
       number: 720,
       messageTemplate:
-        "The provided network type {networkType} for network {networkName} is not recognized, only `http` and `edr` are supported.",
+        'The provided network type "{networkType}" for network "{networkName}" is not recognized, only `http` and `edr` are supported.',
       websiteTitle: "Invalid network type",
       websiteDescription: `The network manager only supports the network types 'http' and 'edr'.`,
     },
@@ -705,27 +709,7 @@ Try using another mnemonic or deriving less keys.`,
         "The provider your are trying to use has been closed. Please create a new one using hre.network.connect() and try again.",
     },
   },
-  KEYSTORE: {
-    INVALID_KEYSTORE_FILE_FORMAT: {
-      number: 800,
-      messageTemplate: "Invalid keystore format",
-      websiteTitle: "Invalid keystore format",
-      websiteDescription: "The provided JSON is not a valid keystore file",
-    },
-    INVALID_READLINE_OUTPUT: {
-      number: 801,
-      messageTemplate: "Expected readline output to be defined",
-      websiteTitle: "Expected readline output to be defined",
-      websiteDescription: "Expected readline output to be defined",
-    },
-    USERINTERRUPTION_NOT_IMPLEMENTED: {
-      number: 802,
-      messageTemplate: "User interruption method not implemented",
-      websiteTitle: "User interruption method not implemented",
-      websiteDescription:
-        "Within the Keystore plugin, some direct user interruptions are not implemented. They are not expected to be invoked.",
-    },
-  },
+  KEYSTORE: {},
   NETWORK_HELPERS: {
     ONLY_ALLOW_0X_PREFIXED_STRINGS: {
       number: 900,
@@ -844,7 +828,7 @@ This might be caused by using hardhat_reset and loadFixture calls in a testcase.
   SOLIDITY_TESTS: {
     BUILD_INFO_NOT_FOUND_FOR_CONTRACT: {
       number: 1000,
-      messageTemplate: `Build info not found for contract {fqn}`,
+      messageTemplate: `Build info not found for contract "{fqn}"`,
       websiteTitle: `Build info not found for contract`,
       websiteDescription: `Build info not found for contract while compiling Solidity test contracts.`,
     },
@@ -948,21 +932,19 @@ Remaining test suites: {suites}`,
   SOLIDITY: {
     RESOLVING_INCORRECT_FILE_AS_PROJECT_FILE: {
       number: 1200,
-      messageTemplate:
-        "File {file} is being resolved as a project file, but it's not part of the project.",
+      messageTemplate: `File "{file}" is being resolved as a project file, but it's not part of the project.`,
       websiteTitle: "Solidity project file is outside the project",
       websiteDescription: `Tried to resolve a file as a project file, but it's not part of the project.`,
     },
     RESOLVING_NONEXISTENT_PROJECT_FILE: {
       number: 1201,
-      messageTemplate:
-        "File {file} is being resolved as a project file, but it doesn't exist.",
+      messageTemplate: `File "{file}" is being resolved as a project file, but it doesn't exist.`,
       websiteTitle: "Solidity project file doesn't exist",
       websiteDescription: `Tried to resolve a file as a project file, but it doesn't exist.`,
     },
     IMPORTED_FILE_DOESNT_EXIST: {
       number: 1202,
-      messageTemplate: 'The import "{importPath} from "{from}" doesn\'t exist.',
+      messageTemplate: `The import "{importPath} from "{from}" doesn't exist.`,
       websiteTitle: "Imported file doesn't exist",
       websiteDescription: `An imported file doesn't exist.`,
     },
@@ -1200,7 +1182,7 @@ If this error persists, run "npx hardhat clean --global".`,
     },
     COMPILATION_JOB_CREATION_ERROR: {
       number: 1231,
-      messageTemplate: `Failed to create compilation job for file {rootFilePath} using the build profile "{buildProfile}".
+      messageTemplate: `Failed to create compilation job for file "{rootFilePath}" using the build profile "{buildProfile}".
 
 {reason}`,
       websiteTitle: "Failed to create compilation job",
@@ -1232,7 +1214,7 @@ Please check Hardhat's output for more details.`,
   VIEM: {
     NETWORK_NOT_FOUND: {
       number: 1300,
-      messageTemplate: `No network with chain id {chainId} found.`,
+      messageTemplate: `No network with chain id "{chainId}" found.`,
       websiteTitle: "Network not found",
       websiteDescription: `No network with the specified chain id was found. You can override the chain by passing it as a parameter to the client getter:
 
@@ -1255,7 +1237,7 @@ Please ensure you're using one of the supported networks.`,
     },
     DEFAULT_WALLET_CLIENT_NOT_FOUND: {
       number: 1302,
-      messageTemplate: `No default wallet client found for chain id {chainId}.`,
+      messageTemplate: `No default wallet client found for chain id "{chainId}".`,
       websiteTitle: "Default Wallet Client Not Found",
       websiteDescription: `A default wallet client could not be found for the specified chain ID. This issue may occur if no accounts were configured for the selected network.
 
@@ -1270,7 +1252,7 @@ await networkConnection.viem.getContractAt(contractName, address, { walletClient
     },
     LINKING_CONTRACT_ERROR: {
       number: 1303,
-      messageTemplate: `Error linking the contract {contractName}:
+      messageTemplate: `Error linking the contract "{contractName}":
 
 {error}`,
       websiteTitle: "Error Linking Contract",
@@ -1286,8 +1268,7 @@ Please check Hardhat's output for more details.`,
     },
     DEPLOY_CONTRACT_ERROR: {
       number: 1305,
-      messageTemplate:
-        "The deployment transaction {txHash} was mined in block {blockNumber} but its receipt doesn't contain a contract address",
+      messageTemplate: `The deployment transaction "{txHash}" was mined in block "{blockNumber}" but its receipt doesn't contain a contract address`,
       websiteTitle: "Deployment Transaction Error",
       websiteDescription:
         "The deployment transaction was mined but its receipt doesn't contain a contract address.",
@@ -1296,8 +1277,7 @@ Please check Hardhat's output for more details.`,
   NODE: {
     INVALID_NETWORK_TYPE: {
       number: 1400,
-      messageTemplate:
-        "The provided node network type {networkType} for network {networkName} is not recognized, only `edr` is supported.",
+      messageTemplate: `The provided node network type "{networkType}" for network "{networkName}" is not recognized, only 'edr' is supported.`,
       websiteTitle: "Invalid node network type",
       websiteDescription: `The node only supports the 'edr' network type.`,
     },
@@ -1311,7 +1291,7 @@ Please check Hardhat's output for more details.`,
     },
     EXPECTED_STRING_OR_ADDRESSABLE: {
       number: 1501,
-      messageTemplate: `Expected string or addressable, but got {account}`,
+      messageTemplate: `Expected string or addressable, but got "{account}"`,
       websiteTitle: "Expected string or addressable",
       websiteDescription: "Expected string or addressable",
     },
@@ -1426,7 +1406,7 @@ Please check Hardhat's output for more details.`,
     },
     INVALID_TRANSACTION: {
       number: 1517,
-      messageTemplate: "{transaction} is not a valid transaction",
+      messageTemplate: '"{transaction}" is not a valid transaction',
       websiteTitle: "Invalid transaction",
       websiteDescription: "Invalid transaction",
     },
@@ -1488,7 +1468,7 @@ Please double check that your contracts have been compiled and double check your
       number: 1601,
       messageTemplate: `There are multiple artifacts for contract "{contractName}", please use a fully qualified name.
 
-Please replace {contractName} for one of these options wherever you are trying to read its artifact:
+Please replace "{contractName}" for one of these options wherever you are trying to read its artifact:
 
 {candidates}
 `,
@@ -1496,6 +1476,151 @@ Please replace {contractName} for one of these options wherever you are trying t
       websiteDescription: `There are multiple artifacts that match the given contract name, and Hardhat doesn't know which one to use.
 
 Please use the fully qualified name of the contract to disambiguate it.`,
+    },
+  },
+  IGNITION: {
+    INTERNAL_ERROR: {
+      number: 1700,
+      messageTemplate: "Hardhat Ignition Internal Error",
+      websiteTitle: "An internal error to Hardhat Ignition has occurred",
+      websiteDescription: `An internal error to Hardhat Ignition has occurred`,
+    },
+    ETHERSCAN_API_KEY_NOT_CONFIGURED: {
+      number: 1701,
+      messageTemplate: "No etherscan API key configured",
+      websiteTitle: "No etherscan API key configured",
+      websiteDescription: `You are trying to run verification during a Hardhat Ignition deploy, but there is no Etherscan API Key set.`,
+    },
+    CANNOT_RESET_EPHEMERAL_NETWORK: {
+      number: 1702,
+      messageTemplate:
+        "Deploy cancelled: Cannot reset deployment on ephemeral Hardhat network",
+      websiteTitle: "Cannot reset deployment on ephemeral Hardhat network",
+      websiteDescription: `The reset flag can only used against a persistent network. You are trying to reset a deployment against an in-memory network.`,
+    },
+    UNKNOWN_STRATEGY: {
+      number: 1703,
+      messageTemplate: `Invalid strategy name "{strategyName}", must be either 'basic' or 'create2'`,
+      websiteTitle:
+        "Invalid strategy name, must be either 'basic' or 'create2'",
+      websiteDescription:
+        "Invalid strategy, must be either 'basic' or 'create2'",
+    },
+    NO_MODULES_FOUND: {
+      number: 1704,
+      messageTemplate: "No Ignition modules found",
+      websiteTitle: "No Ignition modules found",
+      websiteDescription:
+        "Ignition was unable to find the module requested for deployment.",
+    },
+    FAILED_TO_PARSE_JSON: {
+      number: 1705,
+      messageTemplate: "Could not parse JSON parameters",
+      websiteTitle: "Could not parse JSON parameters",
+      websiteDescription:
+        "Ignition failed to parse the JSON parameters for deployment. Review the JSON and try again.",
+    },
+    INVALID_DEPLOYMENT_ID: {
+      number: 1706,
+      messageTemplate: `The deployment-id "{deploymentId}" contains banned characters, ids can only contain alphanumerics, dashes or underscores`,
+      websiteTitle: "The deployment-id contains banned characters",
+      websiteDescription:
+        "The deployment-id being used for the Hardhat Ignition deployment contains banned characters. Deployment ids can only contain alphanumerics, dashes or underscores.",
+    },
+    IGNITION_CLIENT_EXTENSION_NOT_INSTALLED: {
+      number: 1707,
+      messageTemplate:
+        "Please install either `@nomicfoundation/hardhat-ignition-viem` or `@nomicfoundation/hardhat-ignition-ethers` to use Ignition in your Hardhat tests",
+      websiteTitle:
+        "Neither the `viem` or `ethers` Ignition extension plugin is installed.",
+      websiteDescription:
+        "Please install either `@nomicfoundation/hardhat-ignition-viem` or `@nomicfoundation/hardhat-ignition-ethers` to use Ignition in your Hardhat tests",
+    },
+    UNKNOWN_TRANSACTION_TYPE: {
+      number: 1708,
+      messageTemplate: `Unknown transaction type: "{type}"`,
+      websiteTitle:
+        "Hardhat Ignition was unable to display an unknown transaction type",
+      websiteDescription:
+        "Hardhat Ignition was unable to display an unknown transaction type",
+    },
+    PARAMETER_EXCEEDS_MAXIMUM_SAFE_INTEGER: {
+      number: 1709,
+      messageTemplate: `Parameter "{parameter}" exceeds maximum safe integer size. Encode the value as a string using bigint notation: "{value}n"`,
+      websiteTitle: "Parameter exceeds maximum safe integer size",
+      websiteDescription: "Parameter exceeds maximum safe integer size",
+    },
+    MODULE_VALIDATION_FAILED: {
+      number: 1710,
+      messageTemplate:
+        "Module validation failed. Check the stack trace above to identify the issue and its source code location.",
+      websiteTitle: "Module validation failed.",
+      websiteDescription:
+        "Hardhat Ignition found problems while validating the module. Please review the module and try again.",
+    },
+    FAILED_TO_PARSE_DEPLOYMENT_PARAMETERS: {
+      number: 1711,
+      messageTemplate: `Could not parse parameters from "{filepath}"`,
+      websiteTitle: "Parsing of deployment parameters failed.",
+      websiteDescription: "Parsing of deployment parameters failed.",
+    },
+    VISUALIZATION_TEMPLATE_DIR_NOT_FOUND: {
+      number: 1712,
+      messageTemplate: `Unable to find template directory: "{templateDir}"`,
+      websiteTitle: "Visualization template directory not found",
+      websiteDescription: "Visualization template directory not found",
+    },
+    MODULE_NOT_FOUND_AT_PATH: {
+      number: 1713,
+      messageTemplate: `Could not find a module file at the path: "{modulePath}"`,
+      websiteTitle: "Ignition module not found",
+      websiteDescription:
+        "Hardhat Ignition was not able to find an Ignition Module at the given path.",
+    },
+    MODULE_OUTSIDE_MODULE_DIRECTORY: {
+      number: 1714,
+      messageTemplate: `The referenced module file "{modulePath}" is outside the module directory "{shortModulesDirectoryName}"`,
+      websiteTitle: "Ignition module outside of module directory",
+      websiteDescription:
+        "Ignition modules must be located within the module directory.",
+    },
+    VIEM_TEST_HELPER_ERROR: {
+      number: 1715,
+      messageTemplate: `Hardhat Ignition Viem Test Error: {message}`,
+      websiteTitle: "Test error in Hardhat Ignition Viem's test helper",
+      websiteDescription: "Test error in Hardhat Ignition Viem's test helper.",
+    },
+    ARTIFACT_PATH_NOT_FOUND: {
+      number: 1716,
+      messageTemplate: `Artifact path not found for "{contractName}"`,
+      websiteTitle:
+        "Hardhat Ignition unable to find artifact path for the contract name",
+      websiteDescription:
+        "Hardhat Ignition unable to find artifact path for the contract name",
+    },
+    ONLY_ONE_IGNITION_EXTENSION_PLUGIN_ALLOWED: {
+      number: 1717,
+      messageTemplate:
+        "Found ethers and viem, but only one Hardhat Ignition extension plugin can be used at a time",
+      websiteTitle: "Only one Ignition extension plugin allowed",
+      websiteDescription: `Both the ethers and viem Ignition extension plugins were found, but only one can be used at a time.
+
+Please only include one of the plugins in your Hardhat configuration.`,
+    },
+    DEPLOYMENT_ERROR: {
+      number: 1718,
+      messageTemplate: "Hardhat Ignition deployment error: {message}",
+      websiteTitle: "Hardhat Ignition deployment error",
+      websiteDescription: `Hardhat Ignition was not able to successfully complete a deployment.
+
+Please review the error message and try again.`,
+    },
+    NO_DEFAULT_VIEM_WALLET_CLIENT: {
+      number: 1719,
+      messageTemplate:
+        "No default wallet client found while creating Viem contract instances for deployed contracts",
+      websiteTitle: "No default Viem wallet client found",
+      websiteDescription: `Hardhat Ignition will use the default wallet client to create Viem contract instances for deployed contracts. No wallet clients were found.`,
     },
   },
 } as const;

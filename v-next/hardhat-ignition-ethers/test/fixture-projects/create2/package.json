@@ -1,0 +1,8 @@
+{
+  "name": "create2",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "license": "ISC",
+  "description": "A Hardhat project with Create2 config"
+}

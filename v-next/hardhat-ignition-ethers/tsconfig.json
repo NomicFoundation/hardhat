@@ -1,0 +1,11 @@
+{
+  "extends": "../../config-v-next/tsconfig.json",
+  "references": [
+    { "path": "../hardhat" },
+    { "path": "../hardhat-errors" },
+    { "path": "../hardhat-ethers" },
+    { "path": "../hardhat-ignition" },
+    { "path": "../hardhat-ignition-core" }
+  ],
+  "exclude": ["${configDir}/dist", "${configDir}/node_modules"]
+}

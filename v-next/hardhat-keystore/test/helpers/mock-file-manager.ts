@@ -1,20 +1,31 @@
-import type {
-  FileManager,
-  UnencryptedKeystoreFile,
-} from "../../src/internal/types.js";
+import type { FileManager } from "../../src/internal/types.js";
 import type { Mock } from "node:test";
 
 import { mock } from "node:test";
 
 import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
 
-import { UnencryptedKeystore } from "../../src/internal/keystores/unencrypted-keystore.js";
+import {
+  addSecretToKeystore,
+  createEmptyEncryptedKeystore,
+  createMasterKey,
+  type EncryptedKeystore,
+} from "../../src/internal/keystores/encryption.js";
+
+import { TEST_PASSWORD } from "./test-password.js";
 
 export class MockFileManager implements FileManager {
-  #keystoreFile: UnencryptedKeystoreFile | null;
+  public masterKey: Uint8Array;
+
+  readonly #salt: Uint8Array;
+  #keystoreFile: EncryptedKeystore | null;
 
   constructor() {
     this.#keystoreFile = null;
+
+    ({ masterKey: this.masterKey, salt: this.#salt } = createMasterKey({
+      password: TEST_PASSWORD,
+    }));
   }
 
   /**
@@ -27,19 +38,27 @@ export class MockFileManager implements FileManager {
 
   public setupExistingKeystoreFile(keys: {
     [key: string]: string;
-  }): UnencryptedKeystoreFile {
-    const keystoreFile =
-      UnencryptedKeystore.createEmptyUnencryptedKeystoreFile();
+  }): EncryptedKeystore {
+    this.#keystoreFile = createEmptyEncryptedKeystore({
+      masterKey: this.masterKey,
+      salt: this.#salt,
+    });
 
-    keystoreFile.keys = keys;
+    for (const [key, value] of Object.entries(keys)) {
+      this.#keystoreFile = addSecretToKeystore({
+        masterKey: this.masterKey,
+        encryptedKeystore: this.#keystoreFile,
+        key,
+        value,
+      });
+    }
 
-    this.#keystoreFile = keystoreFile;
     this.writeJsonFile.mock.resetCalls();
 
-    return keystoreFile;
+    return this.#keystoreFile;
   }
 
-  public setKeystoreFile(keystoreFile: UnencryptedKeystoreFile): void {
+  public setKeystoreFile(keystoreFile: EncryptedKeystore): void {
     this.#keystoreFile = keystoreFile;
   }
 
@@ -51,12 +70,12 @@ export class MockFileManager implements FileManager {
   public writeJsonFile: Mock<
     (
       _absolutePathToFile: string,
-      keystoreFile: UnencryptedKeystoreFile,
+      keystoreFile: EncryptedKeystore,
     ) => Promise<void>
   > = mock.fn(
     async (
       _absolutePathToFile: string,
-      keystoreFile: UnencryptedKeystoreFile,
+      keystoreFile: EncryptedKeystore,
     ): Promise<void> => {
       this.#keystoreFile = keystoreFile;
     },
@@ -64,7 +83,7 @@ export class MockFileManager implements FileManager {
 
   public async readJsonFile(
     _absolutePathToFile: string,
-  ): Promise<UnencryptedKeystoreFile> {
+  ): Promise<EncryptedKeystore> {
     assertHardhatInvariant(
       this.#keystoreFile !== null,
       "Keystore file not set for mock file manager",

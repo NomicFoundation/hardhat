@@ -1,6 +1,6 @@
 {
   "name": "@ignored/hardhat-vnext-node-test-runner",
-  "version": "3.0.0-next.12",
+  "version": "3.0.0-next.15",
   "description": "A node:test runner",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-node-test-runner",
   "repository": {
@@ -56,14 +56,14 @@
     "typescript-eslint": "7.7.1"
   },
   "dependencies": {
-    "@ignored/hardhat-vnext-errors": "workspace:^3.0.0-next.15",
-    "@ignored/hardhat-vnext-node-test-reporter": "workspace:^3.0.0-next.15",
-    "@ignored/hardhat-vnext-utils": "workspace:^3.0.0-next.15",
-    "@ignored/hardhat-vnext-zod-utils": "workspace:^3.0.0-next.15",
+    "@ignored/hardhat-vnext-errors": "workspace:^3.0.0-next.18",
+    "@ignored/hardhat-vnext-node-test-reporter": "workspace:^3.0.0-next.18",
+    "@ignored/hardhat-vnext-utils": "workspace:^3.0.0-next.18",
+    "@ignored/hardhat-vnext-zod-utils": "workspace:^3.0.0-next.18",
     "tsx": "^4.11.0",
     "zod": "^3.23.8"
   },
   "peerDependencies": {
-    "@ignored/hardhat-vnext": "workspace:^3.0.0-next.16"
+    "@ignored/hardhat-vnext": "workspace:^3.0.0-next.19"
   }
 }

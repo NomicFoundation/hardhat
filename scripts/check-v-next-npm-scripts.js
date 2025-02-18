@@ -27,7 +27,7 @@ for (const dir of dirs) {
 
   // TODO: This is a temporary solution because compiler downloads are not yet managed via a mutex.
   // As a result, the compilation step must occur in the pretest script to prevent multiple compilers from being downloaded simultaneously.
-  if (dir.name === "hardhat-chai-matchers") {
+  if (dir.name === "hardhat-ethers-chai-matchers") {
     continue;
   }
 
@@ -40,6 +40,24 @@ for (const dir of dirs) {
   // TODO: This is a temporary solution until we convert Ignitions tests
   // to Node Test Runner.
   if (dir.name === "hardhat-ignition-ui") {
+    continue;
+  }
+
+  // TODO: This is a temporary solution until we convert Ignitions tests
+  // to Node Test Runner.
+  if (dir.name === "hardhat-ignition") {
+    continue;
+  }
+
+  // TODO: This is a temporary solution until we convert Ignitions tests
+  // to Node Test Runner.
+  if (dir.name === "hardhat-ignition-viem") {
+    continue;
+  }
+
+  // TODO: This is a temporary solution until we convert Ignitions tests
+  // to Node Test Runner.
+  if (dir.name === "hardhat-ignition-ethers") {
     continue;
   }
 

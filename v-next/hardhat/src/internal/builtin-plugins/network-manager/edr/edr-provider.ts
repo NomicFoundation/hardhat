@@ -1,6 +1,5 @@
 import type { SolidityStackTrace } from "./stack-traces/solidity-stack-trace.js";
 import type { LoggerConfig } from "./types/logger.js";
-import type { TracingConfig } from "./types/node-types.js";
 import type {
   EdrNetworkConfig,
   EdrNetworkHDAccountsConfig,
@@ -19,6 +18,7 @@ import type {
   Response,
   Provider,
   ProviderConfig,
+  TracingConfigWithBuffers,
 } from "@ignored/edr-optimism";
 
 import {
@@ -127,7 +127,7 @@ export const EDR_NETWORK_DEFAULT_PRIVATE_KEYS: string[] = [
 interface EdrProviderConfig {
   networkConfig: EdrNetworkConfig;
   loggerConfig?: LoggerConfig;
-  tracingConfig?: TracingConfig;
+  tracingConfig?: TracingConfigWithBuffers;
   jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction;
 }
 
