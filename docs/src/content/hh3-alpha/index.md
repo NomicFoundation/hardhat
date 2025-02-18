@@ -18,7 +18,9 @@ This section covers how to initialize the sample project for this tutorial. Make
 
 Open a terminal and run these commands to create a new directory and initialize a Node.js project:
 
-::::tabsgroup{options=npm,pnpm} :::tab{value=npm}
+::::tabsgroup{options=npm,pnpm}
+
+:::tab{value=npm}
 
 ```
 mkdir hardhat3-alpha
@@ -36,11 +38,15 @@ cd hardhat3-alpha
 pnpm init
 ```
 
-::: ::::
+:::
+
+::::
 
 Then install the Alpha version of Hardhat 3:
 
-::::tabsgroup{options=npm,pnpm} :::tab{value=npm}
+::::tabsgroup{options=npm,pnpm}
+
+:::tab{value=npm}
 
 ```
 npm install hardhat@alpha
@@ -54,11 +60,15 @@ npm install hardhat@alpha
 pnpm install hardhat@alpha
 ```
 
-::: ::::
+:::
+
+::::
 
 You are ready to initialize the sample project. Run the following command:
 
-::::tabsgroup{options=npm,pnpm} :::tab{value=npm}
+::::tabsgroup{options=npm,pnpm}
+
+:::tab{value=npm}
 
 ```
 npx hardhat --init
@@ -72,7 +82,9 @@ npx hardhat --init
 pnpm hardhat --init
 ```
 
-::: ::::
+:::
+
+::::
 
 Accept the default answer for each question:
 
@@ -81,11 +93,17 @@ Accept the default answer for each question:
 3. Set **Node Test Runner and Viem** as the testing setup.
 4. Install the necessary dependencies.
 
-::::tip The built-in [Node.js test runner](https://nodejs.org/api/test.html) is fast and requires no dependencies, and [viem](https://viem.sh/) is easy to use and has powerful typing features. We recommend using them, but Hardhat will continue to support Mocha and Ethers.js for backward compatibility and for those who prefer not to switch libraries. ::::
+::::tip
+
+The built-in [Node.js test runner](https://nodejs.org/api/test.html) is fast and requires no dependencies, and [viem](https://viem.sh/) is easy to use and has powerful typing features. We recommend using them, but Hardhat will continue to support Mocha and Ethers.js for backward compatibility and for those who prefer not to switch libraries.
+
+::::
 
 Everything should be set up now. Verify it by printing the help output:
 
-::::tabsgroup{options=npm,pnpm} :::tab{value=npm}
+::::tabsgroup{options=npm,pnpm}
+
+:::tab{value=npm}
 
 ```
 npx hardhat
@@ -99,13 +117,17 @@ npx hardhat
 pnpm hardhat
 ```
 
-::: ::::
+:::
+
+::::
 
 ## Solidity tests
 
 One of Hardhat 3's new features is support for writing tests in Solidity. You can run the sample project's Solidity tests with the `test solidity` task:
 
-::::tabsgroup{options=npm,pnpm} :::tab{value=npm}
+::::tabsgroup{options=npm,pnpm}
+
+:::tab{value=npm}
 
 ```
 npx hardhat test solidity
@@ -119,7 +141,9 @@ npx hardhat test solidity
 pnpm hardhat test solidity
 ```
 
-::: ::::
+:::
+
+::::
 
 The contract being tested is `Counter`, located in the `contracts/Counter.sol` file:
 
@@ -249,7 +273,9 @@ describe("Counter", async function () {
 
 To run the TypeScript tests in the project, execute the following command:
 
-::::tabsgroup{options=npm,pnpm} :::tab{value=npm}
+::::tabsgroup{options=npm,pnpm}
+
+:::tab{value=npm}
 
 ```
 npx hardhat test node
@@ -263,13 +289,17 @@ npx hardhat test node
 pnpm hardhat test node
 ```
 
-::: ::::
+:::
+
+::::
 
 This task comes from the Hardhat plugin for the Node.js test runner, but you can use alternative tools. We provide another plugin for Mocha, and it's possible to write plugins for other test runners as well.
 
 To run all your tests—both Solidity and TypeScript—use the `test` task:
 
-::::tabsgroup{options=npm,pnpm} :::tab{value=npm}
+::::tabsgroup{options=npm,pnpm}
+
+:::tab{value=npm}
 
 ```
 npx hardhat test
@@ -283,7 +313,9 @@ npx hardhat test
 pnpm hardhat test
 ```
 
-::: ::::
+:::
+
+::::
 
 ## Multichain capabilities
 
@@ -341,7 +373,9 @@ console.log("Transaction sent successfully");
 
 This script uses viem's [OP Stack extension](https://viem.sh/op-stack) on a local chain configured with the `op` type. Run this command to try it out:
 
-::::tabsgroup{options=npm,pnpm} :::tab{value=npm}
+::::tabsgroup{options=npm,pnpm}
+
+:::tab{value=npm}
 
 ```
 npx hardhat run scripts/send-op-tx.ts
@@ -355,7 +389,9 @@ npx hardhat run scripts/send-op-tx.ts
 pnpm hardhat run scripts/send-op-tx.ts
 ```
 
-::: ::::
+:::
+
+::::
 
 If you edit the script and change the value of `chainType` to `"l1"`, it will no longer work. More importantly, that change causes a compilation error, thanks to the powerful TypeScript capabilities of Hardhat 3 and viem.
 
@@ -420,7 +456,9 @@ With Hardhat Ignition, you define the smart contract instances you want to deplo
 
 The sample project includes an Ignition Module as an example. To deploy this module in a simulated network, run the following command:
 
-::::tabsgroup{options=npm,pnpm} :::tab{value=npm}
+::::tabsgroup{options=npm,pnpm}
+
+:::tab{value=npm}
 
 ```
 npx hardhat ignition deploy ignition/modules/Counter.ts
@@ -434,12 +472,18 @@ npx hardhat ignition deploy ignition/modules/Counter.ts
 pnpm hardhat ignition deploy ignition/modules/Counter.ts
 ```
 
-::: ::::
+:::
+
+::::
 
 This deployment is executed on the default network, which lasts only for the duration of the task, short-lived. To simulate a deployment on a persistent network, follow these steps:
 
 1. Start a Hardhat node with `npx hardhat node` or `pnpm hardhat node`.
-2. Open another terminal and deploy the module to the Hardhat node: ::::tabsgroup{options=npm,pnpm} :::tab{value=npm}
+2. Open another terminal and deploy the module to the Hardhat node:
+
+   ::::tabsgroup{options=npm,pnpm}
+
+   :::tab{value=npm}
 
    ```
    npx hardhat ignition deploy --network localhost ignition/modules/Counter.ts
@@ -453,7 +497,9 @@ This deployment is executed on the default network, which lasts only for the dur
    pnpm hardhat ignition deploy --network localhost ignition/modules/Counter.ts
    ```
 
-   ::: ::::
+   :::
+
+   ::::
 
 3. Run the same command again once the deployment finishes. Since the module has already been deployed, Ignition won't send any transactions.
 4. Without stopping the node, add the following line to the Ignition module:
