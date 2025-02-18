@@ -139,18 +139,18 @@ And this is the content of the `contracts/Counter.t.sol` Solidity test file:
 ```solidity
 import { Counter } from "./Counter.sol";
 import { Test } from "forge-std/Test.sol";
- 
+
 contract CounterTest is Test {
   Counter counter;
-                           
+
   function setUp() public {
     counter = new Counter();
   }
-  
+
   function test_InitialValue() public view {
     require(counter.x() == 0, "Initial value should be 0");
   }
-    
+
   function testFuzz_Inc(uint8 x) public {
     for (uint8 i = 0; i < x; i++) {
       counter.inc();
@@ -162,7 +162,7 @@ contract CounterTest is Test {
       vm.expectRevert();
       counter.incBy(0);
   }
- 
+
   // ...other tests...
 }
 ```
@@ -287,8 +287,8 @@ Hardhat 3 drops that assumption:
 
 Hardhat 3 introduces the concept of chain types. You can think of a chain type as the common behavior shared by a chain and its testnets. The initial release supports three chain types:
 
-- `mainnet`, for Ethereum Mainnet and its testnets.
-- `op`, for OP Mainnet and OP Sepolia.
+- `l1`, for Ethereum Mainnet and its testnets.
+- `optimism`, for OP Mainnet and OP Sepolia.
 - `generic`, a fallback for chains that are not supported.
 
 We'll gradually add new options over time.
@@ -298,7 +298,7 @@ The `scripts/send-op-tx.ts` script demonstrates how to use chain types:
 ```ts
 import { network } from "hardhat";
 
-const chainType = "mainnet";
+const chainType = "optimism";
 
 const { viem } = await network.connect(
   "hardhatOp",
@@ -347,16 +347,16 @@ pnpm hardhat run scripts/send-op-tx.ts
 :::
 ::::
 
-If you edit the script and change the value of `chainType` to `"mainnet"`, it will no longer work. More importantly, that change causes a compilation error, thanks to the powerful TypeScript capabilities of Hardhat 3 and viem.
+If you edit the script and change the value of `chainType` to `"l1"`, it will no longer work. More importantly, that change causes a compilation error, thanks to the powerful TypeScript capabilities of Hardhat 3 and viem.
 
 ### Network manager
 
 In Hardhat 2, a task always uses a single network connection that's fixed for its entire execution. You can't change this connection or create new ones. Hardhat 3 removes these limitations. You can create connections at runtime, have multiple connections simultaneously, or close them when needed.
 
-The `scripts/network-manager.ts` script illustrates this: 
+The `scripts/check-predeploy.ts` script illustrates this:
 
 ```ts
-import { network } from "@ignored/hardhat-vnext";
+import { network } from "hardhat";
 
 // address of the GasPriceOracle deploy in OP Stack chains
 const OP_GAS_PRICE_ORACLE = "0x420000000000000000000000000000000000000F";
@@ -370,7 +370,7 @@ async function mainnetExample() {
     const publicClient = await viem.getPublicClient();
     const gasPriceOracleCode = await publicClient.getCode({ address: OP_GAS_PRICE_ORACLE });
 
-    console.log("GasPriceOracle exists in mainnet chain type?", gasPriceOracleCode !== undefined);
+    console.log("GasPriceOracle exists in l1 chain type?", gasPriceOracleCode !== undefined);
 }
 
 async function opExample() {
@@ -382,7 +382,7 @@ async function opExample() {
     const publicClient = await viem.getPublicClient();
     const gasPriceOracleCode = await publicClient.getCode({ address: OP_GAS_PRICE_ORACLE });
 
-    console.log("GasPriceOracle exists in op chain type?", gasPriceOracleCode !== undefined);
+    console.log("GasPriceOracle exists in optimism chain type?", gasPriceOracleCode !== undefined);
 }
 
 await mainnetExample();
@@ -464,10 +464,10 @@ The sample project comes with two build profiles, `default` and `production`:
 solidity: {
   profiles: {
     default: {
-      version: "0.8.24",
+      version: "0.8.28",
     },
     production: {
-      version: "0.8.24",
+      version: "0.8.28",
       settings: {
         optimizer: {
           enabled: true,
@@ -542,11 +542,9 @@ const accountsTask = task("accounts", "Prints the list of accounts")
   .setAction(async (taskArgs, { network }) => {
     const { provider } = await network.connect();
 
-    const accounts: any = await provider.request({ method: "eth_accounts" });
+    const accounts = await provider.request({ method: "eth_accounts" });
 
-    for (const account of accounts) {
-      console.log(account);
-    }
+    console.log(accounts);
   })
   .build();
 
