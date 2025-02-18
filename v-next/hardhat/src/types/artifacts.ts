@@ -128,8 +128,14 @@ export interface ArtifactManager {
 
 /**
  * TODO: This type could be improved to better represent the ABI.
+ *
+ * Ref: https://docs.soliditylang.org/en/latest/abi-spec.html#json
  */
-export type Abi = readonly any[];
+interface FunctionDescription {
+  type: "function" | "constructor" | "receive" | "fallback";
+  name?: string;
+}
+export type Abi = readonly FunctionDescription[];
 
 /**
  * An Artifact represents the compilation output of a single contract.

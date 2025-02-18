@@ -7,9 +7,11 @@ import type {
   PathPermission,
   StorageCachingConfig,
   AddressLabel,
+  Artifact,
 } from "@ignored/edr";
 
 import { hexStringToBytes } from "@ignored/hardhat-vnext-utils/hex";
+import { Abi } from "../../../types/artifacts.js";
 
 function hexStringToBuffer(hexString: string): Buffer {
   return Buffer.from(hexStringToBytes(hexString));
@@ -97,4 +99,14 @@ export function solidityTestConfigToSolidityTestRunnerConfigArgs(
     blockCoinbase,
     rpcStorageCaching,
   };
+}
+
+export function isTestSuiteArtifact(artifact: Artifact): boolean {
+  const abi: Abi = JSON.parse(artifact.contract.abi);
+  return abi.some(({ type, name }) => {
+    if (type === "function" && name !== undefined) {
+      return name.startsWith("test") || name.startsWith("invariant");
+    }
+    return false;
+  });
 }
