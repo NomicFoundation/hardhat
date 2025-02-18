@@ -67,11 +67,12 @@ export async function getBuildInfos(
   results: SuccessfulSolidityBuildResults,
   artifactManager: ArtifactManager,
 ): Promise<BuildInfoAndOutput[]> {
-  const buildIds = await Promise.all(
+  let buildIds = await Promise.all(
     Array.from(new Set(results.values())).map(async ({ compilationJob }) =>
       compilationJob.getBuildId(),
     ),
   );
+  buildIds = Array.from(new Set(buildIds));
 
   return Promise.all(
     buildIds.map(async (buildId) => {
