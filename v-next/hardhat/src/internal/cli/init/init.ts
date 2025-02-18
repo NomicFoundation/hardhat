@@ -280,9 +280,7 @@ export async function validatePackageJson(
   }
 
   if (migrateToEsm === undefined) {
-    migrateToEsm = await promptForMigrateToEsm(
-      path.relative(process.cwd(), workspace),
-    );
+    migrateToEsm = await promptForMigrateToEsm(absolutePathToPackageJson);
   }
 
   if (!migrateToEsm) {
