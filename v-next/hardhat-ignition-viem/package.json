@@ -1,6 +1,6 @@
 {
   "name": "@ignored/hardhat-vnext-ignition-viem",
-  "version": "3.0.0-next.2",
+  "version": "3.0.0-next.3",
   "license": "MIT",
   "author": "Nomic Foundation",
   "homepage": "https://hardhat.org",
@@ -34,10 +34,10 @@
   },
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "1.0.2",
-    "@ignored/hardhat-vnext": "workspace:^3.0.0-next.21",
-    "@ignored/hardhat-vnext-ignition": "workspace:^3.0.0-next.2",
-    "@ignored/hardhat-vnext-ignition-core": "workspace:^0.15.10-next.3",
-    "@ignored/hardhat-vnext-viem": "workspace:^3.0.0-next.16",
+    "@ignored/hardhat-vnext": "workspace:^3.0.0-next.22",
+    "@ignored/hardhat-vnext-ignition": "workspace:^3.0.0-next.3",
+    "@ignored/hardhat-vnext-ignition-core": "workspace:^0.15.10-next.4",
+    "@ignored/hardhat-vnext-viem": "workspace:^3.0.0-next.17",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
     "@types/chai": "^4.2.0",
     "@types/chai-as-promised": "^8.0.1",
@@ -66,13 +66,13 @@
     "viem": "^2.21.42"
   },
   "dependencies": {
-    "@ignored/hardhat-vnext-errors": "workspace:^3.0.0-next.20"
+    "@ignored/hardhat-vnext-errors": "workspace:^3.0.0-next.21"
   },
   "peerDependencies": {
-    "@ignored/hardhat-vnext": "workspace:^3.0.0-next.21",
-    "@ignored/hardhat-vnext-ignition": "workspace:^3.0.0-next.2",
-    "@ignored/hardhat-vnext-ignition-core": "workspace:^0.15.10-next.3",
-    "@ignored/hardhat-vnext-viem": "workspace:^3.0.0-next.16",
+    "@ignored/hardhat-vnext": "workspace:^3.0.0-next.22",
+    "@ignored/hardhat-vnext-ignition": "workspace:^3.0.0-next.3",
+    "@ignored/hardhat-vnext-ignition-core": "workspace:^0.15.10-next.4",
+    "@ignored/hardhat-vnext-viem": "workspace:^3.0.0-next.17",
     "viem": "^2.21.42"
   }
 }
