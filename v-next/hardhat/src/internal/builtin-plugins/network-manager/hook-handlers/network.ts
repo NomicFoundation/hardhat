@@ -53,12 +53,11 @@ export default async (): Promise<Partial<NetworkHooks>> => {
           if (handlersPerConnection === undefined) {
             handlersPerConnection =
               await createHandlersArray(networkConnection);
+
             requestHandlersPerConnection.set(
               networkConnection,
               handlersPerConnection,
             );
-
-            return handlersPerConnection;
           }
 
           return handlersPerConnection;
