@@ -230,7 +230,7 @@ Next it's time to upgrade our proxy to a new version. To do this, we'll create a
 const upgradeModule = buildModule("UpgradeModule", (m) => {
   const proxyAdminOwner = m.getAccount(0);
 
-  const { proxyAdmin, proxy } = m.useModule(proxyModule);
+  const { proxyAdmin, proxy } = m.useModule(demoModule);
 
   const demoV2 = m.contract("DemoV2");
 
@@ -312,7 +312,7 @@ Inside our `test` directory, we'll create a file called `ProxyDemo.js` (or `Prox
 import { expect } from "chai";
 import { ignition, ethers } from "hardhat";
 
-import ProxyModule from "../ignition/modules/ProxyModule";
+import DemoModule from "../ignition/modules/ProxyModule";
 import UpgradeModule from "../ignition/modules/UpgradeModule";
 
 describe("Demo Proxy", function () {
@@ -320,7 +320,7 @@ describe("Demo Proxy", function () {
     it("Should be interactable via proxy", async function () {
       const [, otherAccount] = await ethers.getSigners();
 
-      const { demo } = await ignition.deploy(ProxyModule);
+      const { demo } = await ignition.deploy(DemoModule);
 
       expect(await demo.connect(otherAccount).version()).to.equal("1.0.0");
     });
@@ -353,7 +353,7 @@ describe("Demo Proxy", function () {
 ```javascript
 const { expect } = require("chai");
 
-const ProxyModule = require("../ignition/modules/ProxyModule");
+const DemoModule = require("../ignition/modules/ProxyModule");
 const UpgradeModule = require("../ignition/modules/UpgradeModule");
 
 describe("Demo Proxy", function () {
@@ -361,7 +361,7 @@ describe("Demo Proxy", function () {
     it("Should be interactable via proxy", async function () {
       const [, otherAccount] = await ethers.getSigners();
 
-      const { demo } = await ignition.deploy(ProxyModule);
+      const { demo } = await ignition.deploy(DemoModule);
 
       expect(await demo.connect(otherAccount).version()).to.equal("1.0.0");
     });
@@ -391,7 +391,7 @@ describe("Demo Proxy", function () {
 
 ::::
 
-Here we use Hardhat Ignition to deploy our imported modules. First, we deploy our base `ProxyModule` that returns the first version of our `Demo` contract and tests it to ensure the proxy worked and retrieves the appropriate version string. Then, we deploy our `UpgradeModule` that returns an upgraded version of our `Demo` contract and tests it to ensure the proxy returns the updated version string. We also test that our initialization function was called, setting the `name` state variable to `"Example Name"`.
+Here we use Hardhat Ignition to deploy our imported modules. First, we deploy our base `DemoModule` that returns the first version of our `Demo` contract and tests it to ensure the proxy worked and retrieves the appropriate version string. Then, we deploy our `UpgradeModule` that returns an upgraded version of our `Demo` contract and tests it to ensure the proxy returns the updated version string. We also test that our initialization function was called, setting the `name` state variable to `"Example Name"`.
 
 ## Further reading
 
