@@ -67,3 +67,10 @@ tutorial:
   title: tutorial
   folders:
     - tutorial
+
+hardhat3-preview:
+  title: Hardhat 3 Alpha Tutorial
+  folders:
+    - hardhat3-preview
+    - hardhat3-preview/comparison
+    - hardhat3-preview/under-the-hood

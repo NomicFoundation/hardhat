@@ -1,0 +1,21 @@
+section-type: group
+section-title: Hardhat 3 Alpha
+order:
+  - title: Overview
+    href: "#overview"
+  - title: Getting started
+    href: "#getting-started"
+  - title: Solidity tests
+    href: "#solidity-tests"
+  - title: Integration tests with TypeScript
+    href: "#integration-tests-with-typescript"
+  - title: Multichain capabilities
+    href: "#multichain-capabilities"
+  - title: Seamless contract deployments
+    href: "#seamless-contract-deployments"
+  - title: Revamped build system
+    href: "#revamped-build-system"
+  - title: Declarative configuration
+    href: "#declarative-configuration"
+  - title: Powerful extensibility
+    href: "#powerful-extensibility"
