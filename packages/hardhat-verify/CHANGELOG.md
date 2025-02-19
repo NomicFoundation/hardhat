@@ -1,5 +1,14 @@
 # @nomicfoundation/hardhat-verify
 
+## 2.0.13
+
+### Patch Changes
+
+- 0469eb2: Ink networks added
+- Updated dependencies [5d79fca]
+- Updated dependencies [00d542a]
+  - hardhat@2.22.19
+
 ## 2.0.12
 
 ### Patch Changes
