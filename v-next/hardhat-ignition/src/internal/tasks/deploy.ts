@@ -17,6 +17,7 @@ import {
   remove,
   writeJsonFile,
 } from "@ignored/hardhat-vnext-utils/fs";
+import chalk from "chalk";
 import Prompt from "prompts";
 
 import { HardhatArtifactResolver } from "../../helpers/hardhat-artifact-resolver.js";
@@ -52,10 +53,11 @@ const taskDeploy: NewTaskActionFunction<TaskDeployArguments> = async (
   hre: HardhatRuntimeEnvironment,
 ): Promise<DeploymentResult | null> => {
   if (verify) {
-    throw new HardhatError(HardhatError.ERRORS.INTERNAL.NOT_IMPLEMENTED_ERROR, {
-      message:
-        "Verifying deployments is not available yet. It will be available in a future version of the Harhdat 3 Alpha",
-    });
+    console.log(
+      chalk.yellow(
+        "Verifying deployments will be implemented soon. Check back soon for more updates.",
+      ),
+    );
 
     // TODO: HH3 Bring back with the port of hardhat-verify
     // if (
@@ -67,6 +69,8 @@ const taskDeploy: NewTaskActionFunction<TaskDeployArguments> = async (
     //     HardhatError.ERRORS.IGNITION.ETHERSCAN_API_KEY_NOT_CONFIGURED,
     //   );
     // }
+
+    return null;
   }
 
   const connection = await hre.network.connect();
