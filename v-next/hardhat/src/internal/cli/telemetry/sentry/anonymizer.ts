@@ -222,7 +222,15 @@ export class Anonymizer {
 
   #isHardhatFile(filename: string): boolean {
     const nomicFoundationPath = path.join("node_modules", "@nomicfoundation");
-    return filename.startsWith(nomicFoundationPath);
+    const ignoredOrgPath = path.join("node_modules", "@ignored");
+    const hardhatPath = path.join("node_modules", "hardhat");
+    filename = filename.toLowerCase();
+
+    return (
+      filename.startsWith(nomicFoundationPath) ||
+      filename.startsWith(ignoredOrgPath) ||
+      filename.startsWith(hardhatPath)
+    );
   }
 
   async #anonymizeExceptions(exceptions: Exception[]): Promise<Exception[]> {
