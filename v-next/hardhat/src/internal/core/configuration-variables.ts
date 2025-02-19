@@ -4,8 +4,13 @@ import type {
 } from "../../types/config.js";
 import type { HookManager } from "../../types/hooks.js";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import {
+  assertHardhatInvariant,
+  HardhatError,
+} from "@ignored/hardhat-vnext-errors";
 import { normalizeHexString } from "@ignored/hardhat-vnext-utils/hex";
+
+import { AsyncMutex } from "./async-mutex.js";
 
 export function resolveConfigurationVariable(
   hooks: HookManager,
@@ -74,6 +79,11 @@ abstract class BaseResolvedConfigurationVariable
 }
 
 export class LazyResolvedConfigurationVariable extends BaseResolvedConfigurationVariable {
+  // We want to serialize the calls to the configurationVariables#fetchValue
+  // hook for each HRE. We don't have the HRE here, so we create a mutex per
+  // HookManager, which is equivalent.
+  static readonly #mutexes: WeakMap<HookManager, AsyncMutex> = new WeakMap();
+
   readonly #hooks: HookManager;
   readonly #variable: ConfigurationVariable;
 
@@ -84,25 +94,34 @@ export class LazyResolvedConfigurationVariable extends BaseResolvedConfiguration
     this.name = variable.name;
     this.#hooks = hooks;
     this.#variable = variable;
+
+    if (!LazyResolvedConfigurationVariable.#mutexes.has(hooks)) {
+      LazyResolvedConfigurationVariable.#mutexes.set(hooks, new AsyncMutex());
+    }
   }
 
   protected async _getRawValue(): Promise<string> {
-    return this.#hooks.runHandlerChain(
-      "configurationVariables",
-      "fetchValue",
-      [this.#variable],
-      async (_context, v) => {
-        const value = process.env[v.name];
+    const mutex = LazyResolvedConfigurationVariable.#mutexes.get(this.#hooks);
+    assertHardhatInvariant(mutex !== undefined, "Mutex must be defined");
 
-        if (typeof value !== "string") {
-          throw new HardhatError(
-            HardhatError.ERRORS.GENERAL.ENV_VAR_NOT_FOUND,
-            { name: v.name },
-          );
-        }
+    return mutex.exclusiveRun(async () =>
+      this.#hooks.runHandlerChain(
+        "configurationVariables",
+        "fetchValue",
+        [this.#variable],
+        async (_context, v) => {
+          const value = process.env[v.name];
 
-        return value;
-      },
+          if (typeof value !== "string") {
+            throw new HardhatError(
+              HardhatError.ERRORS.GENERAL.ENV_VAR_NOT_FOUND,
+              { name: v.name },
+            );
+          }
+
+          return value;
+        },
+      ),
     );
   }
 }
