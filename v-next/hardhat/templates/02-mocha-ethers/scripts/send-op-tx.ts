@@ -1,31 +1,10 @@
 import { network } from "@ignored/hardhat-vnext";
 
-// We connect to the default network (which can be controlled with `--network`),
-// and use the `optimism` chain type.
-const { ethers, networkConfig, networkName } = await network.connect(
-  undefined,
-  "optimism",
-);
+const { ethers } = await network.connect("hardhatOp", "optimism");
 
-console.log("Sending transaction using network", networkName);
-
-if (networkConfig.type === "edr") {
-  console.log("Using an EDR network simulating Optimism, forking it");
-  console.log(
-    "Note: The forking initialization is not optimized yet, and the example RPC is slower than usual.",
-  );
-} else {
-  console.log("Using an HTTP connection to Optimism");
-}
+console.log("Sending transaction using the OP chain type");
 
 const [sender] = await ethers.getSigners();
-
-console.log("Sender:", await sender.address);
-
-console.log(
-  "Sender balance:",
-  await ethers.provider.getBalance(sender.address),
-);
 
 console.log("Sending 1 wei from", sender.address, "to itself");
 
@@ -35,14 +14,6 @@ const tx = await sender.sendTransaction({
   value: 1n,
 });
 
-const receipt = (await tx.wait())!;
+await tx.wait();
 
-console.log(
-  `Transaction included in block ${receipt.blockHash} (#${receipt.blockNumber})`,
-);
-
-if (networkName === "opSepolia") {
-  console.log(
-    `You can check your transaction on https://sepolia-optimism.etherscan.io/tx/${receipt.hash}`,
-  );
-}
+console.log("Transaction sent successfully");
