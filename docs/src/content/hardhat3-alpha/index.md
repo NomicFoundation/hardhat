@@ -194,7 +194,7 @@ Failed tests include Solidity stack traces. To see them in action, make the `tes
   }
 ```
 
-And re-run the tests to get a stack trace:
+And re-run the `test solidity` task again to get a stack trace:
 
 ```
 Failure (1): test_IncByZero()
@@ -496,24 +496,25 @@ While Hardhat Ignition is our recommended approach for deploying contracts, you'
 
 Hardhat 3 includes an encrypted secrets manager that makes it easier to handle sensitive information like private keys. This ensures you don't have to hardcode secrets in your source code or store them in plain text.
 
-The sepolia network configuration uses an encrypted secret in its list of accounts:
+The sepolia network configuration uses an encrypted secret for its RPC URL and private key:
 
 ```js
 networks: {
   sepolia: {
-    url: "https://sepolia.gateway.tenderly.co",
+    url: configVariable("SEPOLIA_RPC_URL"),
     accounts: [configVariable("SEPOLIA_PRIVATE_KEY")],
   },
 },
 ```
 
-Run the following task to add that secret:
+Run the following tasks to add these secrets:
 
 ::::tabsgroup{options=npm,pnpm}
 
 :::tab{value=npm}
 
 ```
+npx hardhat keystore set SEPOLIA_RPC_URL
 npx hardhat keystore set SEPOLIA_PRIVATE_KEY
 ```
 
@@ -522,6 +523,7 @@ npx hardhat keystore set SEPOLIA_PRIVATE_KEY
 :::tab{value=pnpm}
 
 ```
+pnpm hardhat keystore set SEPOLIA_RPC_URL
 pnpm hardhat keystore set SEPOLIA_PRIVATE_KEY
 ```
 
@@ -529,7 +531,11 @@ pnpm hardhat keystore set SEPOLIA_PRIVATE_KEY
 
 ::::
 
-Enter the private key of a Sepolia account with funds. Once the secret is set, you can deploy the Ignition module to Sepolia:
+::::tip
+If you don't have an RPC URL for Sepolia, you can use a public one like `https://sepolia.gateway.tenderly.co`. Keep in mind that public endpoints like this can be slower and less reliable.
+::::
+
+Once the secrets are set, you can deploy the Ignition module to Sepolia:
 
 ::::tabsgroup{options=npm,pnpm}
 
@@ -598,11 +604,11 @@ solidity: {
 
 ### Full npm support
 
-Hardhat 3 continues to use npm as the primary tool for managing Solidity dependencies, and now the build system is fully integrated with it: anything that can be done with npm is supported. In most cases, this won't affect you, but advanced scenarios that were previously difficult or unsupported now work out of the box.
+The build system of Hardhat 3 is now fully integrated with npm: **anything that can be done with npm is supported**. In most cases, this won't affect you, but advanced scenarios that were previously difficult or unsupported now work out of the box.
 
 A difficult scenario in Hardhat 2 was handling conflicting transitive dependencies. Suppose you have a project with two dependencies, each of which depends on a different version of OpenZeppelin. This leads to conflicts that require complex manual workarounds. In Hardhat 3, this same scenario works automatically without any extra effort on your part.
 
-The new compilation system uses remappings internally to manage Solidity dependencies, but this complexity is hidden from you. User-defined remappings are fully supported, but using them is optional—there's no need to set them unless you want to.
+The new compilation system uses remappings internally to manage Solidity dependencies, but this complexity is hidden from you. **User-defined remappings are fully supported**, but using them is optional—there's no need to set them unless you want to.
 
 ## Declarative configuration
 
