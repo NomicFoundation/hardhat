@@ -22,6 +22,7 @@ import {
 } from "../solidity/build-results.js";
 
 import {
+  isTestSuiteArtifact,
   solidityTestConfigToRunOptions,
   solidityTestConfigToSolidityTestRunnerConfigArgs,
 } from "./helpers.js";
@@ -86,7 +87,9 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
 
   const buildInfos = await getBuildInfos(results, hre.artifacts);
   const artifacts = await getArtifacts(results);
-  const testSuiteIds = artifacts.map((artifact) => artifact.id);
+  const testSuiteIds = artifacts
+    .filter(isTestSuiteArtifact)
+    .map((artifact) => artifact.id);
 
   console.log("Running Solidity tests");
   console.log();

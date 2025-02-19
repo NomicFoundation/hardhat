@@ -1,4 +1,5 @@
 import type { RunOptions } from "./runner.js";
+import type { Abi } from "../../../types/artifacts.js";
 import type { SolidityTestConfig } from "../../../types/config.js";
 import type {
   SolidityTestRunnerConfigArgs,
@@ -7,6 +8,7 @@ import type {
   PathPermission,
   StorageCachingConfig,
   AddressLabel,
+  Artifact,
 } from "@ignored/edr";
 
 import { hexStringToBytes } from "@ignored/hardhat-vnext-utils/hex";
@@ -97,4 +99,14 @@ export function solidityTestConfigToSolidityTestRunnerConfigArgs(
     blockCoinbase,
     rpcStorageCaching,
   };
+}
+
+export function isTestSuiteArtifact(artifact: Artifact): boolean {
+  const abi: Abi = JSON.parse(artifact.contract.abi);
+  return abi.some(({ type, name }) => {
+    if (type === "function" && typeof name === "string") {
+      return name.startsWith("test") || name.startsWith("invariant");
+    }
+    return false;
+  });
 }

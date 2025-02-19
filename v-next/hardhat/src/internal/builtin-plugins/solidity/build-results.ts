@@ -72,9 +72,10 @@ export async function getBuildInfos(
       compilationJob.getBuildId(),
     ),
   );
+  const uniqueBuildIds = Array.from(new Set(buildIds));
 
   return Promise.all(
-    buildIds.map(async (buildId) => {
+    uniqueBuildIds.map(async (buildId) => {
       const buildInfoPath = await artifactManager.getBuildInfoPath(buildId);
       const buildInfoOutputPath =
         await artifactManager.getBuildInfoOutputPath(buildId);
