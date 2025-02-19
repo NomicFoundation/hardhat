@@ -8,9 +8,9 @@ prev: false
 
 Welcome to the Hardhat 3 Alpha! This tutorial walks you through the major changes coming in Hardhat 3, including Solidity tests, support for multichain workflows, a revamped build system, and more.
 
-We assume that you are familiar with Hardhat 2, but this tutorial isn't meant as a migration guide. Since Hardhat 3 is still in alpha and its APIs might change, we recommend waiting for the beta release before migrating.
+We assume you are familiar with Hardhat 2, but this tutorial isn't meant as a migration guide. Since Hardhat 3 is still in alpha and its APIs might change, we recommend waiting until the beta release before migrating.
 
-Join our [Hardhat 3 Preview](https://t.me/+vWqXXHGklFQzZTUx) Telegram group to share feedback and stay updated on new releases. It's still early, and your input can help us make Hardhat 3 the best it can be.
+Join our [Hardhat 3 Alpha](https://t.me/+vWqXXHGklFQzZTUx) Telegram group to share feedback and stay updated on new releases. It's still early, and your input can help us make Hardhat 3 the best it can be.
 
 ## Getting started
 
@@ -64,7 +64,7 @@ pnpx hardhat@next --init
 
 ::::
 
-Accept the default answer for each question:
+Accept the default answers for each question:
 
 1. Select the current directory as the project location.
 2. Enable ESM for the project.
@@ -172,20 +172,20 @@ contract CounterTest is Test {
       vm.expectRevert();
       counter.incBy(0);
   }
-
-  // ...other tests...
 }
 ```
 
-Each function that starts with `test` in the `CounterTest` contract is a test. This contract is deployed, and all its test functions are executed. If an execution reverts, that test is considered a failure. Test contracts can also include a `setUp` function, which runs before each test function.
+The `CounterTest` contract is deployed, and all its functions starting with `test` are executed. If an execution reverts, that test is considered a failure. Test contracts can also include a `setUp` function, which runs before each test function.
 
-Functions that start with `test` and have no parameters are unit tests, while test functions that have parameters are considered fuzz tests. Fuzz tests are run multiple times with randomly generated inputs. If any of those executions revert, the test fails and the input is printed.
+Functions that start with `test` and have no parameters are unit tests, while those with parameters are considered fuzz tests. Fuzz tests are run multiple times with randomly generated inputs. If any of those executions revert, the test fails and the input is printed.
 
-Solidity tests have access to cheatcodes—special functions that can be called by a test to modify the EVM in non-standard ways. In the sample test, `test_IncByZero` uses the `vm.expectRevert` cheatcode, which causes the next call to expect a revert. If the call _doesn't_ revert, the test fails. There are many other cheatcodes available; for example, you can change the value of `block.number` with the `vm.roll` cheatcode.
+Solidity tests have access to cheatcodes—special functions that can be called by a test to modify the EVM in non-standard ways. In the sample test, `test_IncByZero` uses the `vm.expectRevert` cheatcode, which expects the next call to revert. If the call _doesn't_ revert, the test fails. There are many other cheatcodes available; for example, you can change the value of `block.number` with the `vm.roll` cheatcode.
 
 Hardhat 3's Solidity tests are compatible with Foundry-style tests. You can write unit, fuzz, and invariant tests, and use testing libraries like [forge-std](https://github.com/foundry-rs/forge-std) and [PRBTest](https://github.com/PaulRBerg/prb-test).
 
-Failing tests include Solidity stack traces. Make the `test_IncByZero` test statement fail by commenting out the `expectRevert` cheatcode:
+### Stack traces in Solidity tests
+
+Failed tests include Solidity stack traces. To see them in action, make the `test_IncByZero` test fail by commenting out the `expectRevert` cheatcode:
 
 ```solidity{2}
   function test_IncByZero() public {
@@ -194,7 +194,7 @@ Failing tests include Solidity stack traces. Make the `test_IncByZero` test stat
   }
 ```
 
-And re-run the tests to get a stack trace like this:
+And re-run the tests to get a stack trace:
 
 ```
 Failure (1): test_IncByZero()
@@ -209,9 +209,9 @@ Learn more about Hardhat 3's Solidity tests [here](/hh3/under-the-hood/solidity-
 
 Solidity tests are great for unit testing, but there are situations where they fall short:
 
-- Complex tests, where a general-purpose language is more comfortable than Solidity.
-- Tests that need real blockchain behavior, such as blocks and transactions. While you can use cheatcodes to simulate this, mocking too many things is error-prone and hard to maintain.
-- Integration or end-to-end tests, where you test deployed contracts under conditions similar to production.
+- **Complex tests**, where a general-purpose language is more comfortable than Solidity.
+- **Tests that need real blockchain behavior**, such as blocks and transactions. While you can use cheatcodes to simulate this, mocking too many things is error-prone and hard to maintain.
+- **End-to-end tests**, where you test deployed contracts under conditions similar to production.
 
 To handle these cases, Hardhat 3 continues to support writing tests in TypeScript or JavaScript.
 
@@ -271,7 +271,7 @@ pnpm hardhat test node
 
 ::::
 
-This task comes from the Hardhat plugin for the Node.js test runner, but you can use alternative tools. We provide another plugin for Mocha, and it's possible to write plugins for other test runners as well.
+This task comes from the Hardhat plugin for the Node.js test runner, but you can use alternative setups. We provide another plugin for Mocha, and it's possible to write plugins for other test runners as well.
 
 To run all your tests—both Solidity and TypeScript—use the `test` task:
 
@@ -297,7 +297,7 @@ pnpm hardhat test
 
 ## Multichain capabilities
 
-Hardhat 2, like other Ethereum development tools, assumes you're working with a single network that behaves like Ethereum Mainnet. That assumption made sense in the past, but it no longer reflects today's rollup-centric ecosystem.
+Like other Ethereum development tools, Hardhat 2 assumes you're working with a single network that behaves like Ethereum Mainnet. That assumption made sense in the past, but it no longer reflects today's rollup-centric ecosystem.
 
 Hardhat 3 drops that assumption:
 
@@ -349,7 +349,7 @@ await publicClient.waitForTransactionReceipt({ hash: tx });
 console.log("Transaction sent successfully");
 ```
 
-This script uses viem's [OP Stack extension](https://viem.sh/op-stack) on a local chain configured with the `op` type. Run this command to try it out:
+This script estimates the [L1 gas](https://docs.optimism.io/stack/transactions/fees) that will be used by an L2 transaction. It uses viem's [OP Stack extension](https://viem.sh/op-stack) on a local network configured with the `optimism` chain type. Run this command to try it out:
 
 ::::tabsgroup{options=npm,pnpm}
 
@@ -371,18 +371,18 @@ pnpm hardhat run scripts/send-op-tx.ts
 
 ::::
 
-If you edit the script and change the value of `chainType` to `"l1"`, it will no longer work. More importantly, that change causes a compilation error, thanks to the powerful TypeScript capabilities of Hardhat 3 and viem.
+If you edit the script and change the value of `chainType` to `"l1"`, it will no longer work. More importantly, that change will cause a compilation error, thanks to the powerful TypeScript capabilities of Hardhat 3 and viem.
 
 ### Network manager
 
-In Hardhat 2, a task always uses a single network connection that's fixed for its entire execution. You can't change this connection or create new ones. Hardhat 3 removes these limitations. You can create connections at runtime, have multiple connections simultaneously, or close them when needed.
+In Hardhat 2, a task always uses a single, fixed network connection during its entire execution. You can't change this connection or create new ones. Hardhat 3 removes these limitations. You can create connections at runtime, have multiple connections simultaneously, or close them when needed.
 
-The `scripts/check-predeploy.ts` script illustrates this:
+`scripts/check-predeploy.ts` illustrates this:
 
 ```ts
 import { network } from "hardhat";
 
-// address of the GasPriceOracle deploy in OP Stack chains
+// address of the GasPriceOracle predeploy in OP Stack chains
 const OP_GAS_PRICE_ORACLE = "0x420000000000000000000000000000000000000F";
 
 async function mainnetExample() {
@@ -417,14 +417,14 @@ await mainnetExample();
 await opExample();
 ```
 
-Each function creates a connection to a different network and checks if a predeploy exists.
+Each function creates a connection to a different network and checks if a given predeploy exists.
 
-The `network.connect` function returns a network connection, which provides both low-level and high-level functionality:
+The `network.connect` function returns a network connection, which is an object with properties related to the network:
 
-- On the low-level side, it includes information about the network and an EIP-1193 provider to interact with it.
-- On the high-level side, it provides functionality added by plugins, like a `viem` helper object when the `hardhat-viem` plugin is used.
+- It includes information about the network and an EIP-1193 provider to interact with it.
+- It provides extensions added by plugins, like a `viem` helper object when the `hardhat-viem` plugin is used.
 
-`network.connect` accepts two optional parameters: a network name and a chain type. The network name corresponds to one of the networks in your Hardhat config. The chain type is used to perform validations and to determine the correct types for the returned connection.
+`network.connect` accepts two optional parameters: a network name and a chain type. The network name corresponds to one of the networks in your Hardhat config. The chain type is used to perform validations and to properly type the returned object.
 
 ## Seamless contract deployments
 
@@ -454,7 +454,7 @@ pnpm hardhat ignition deploy ignition/modules/Counter.ts
 
 ::::
 
-This deployment is executed on the default network, which lasts only for the duration of the task, short-lived. To simulate a deployment on a persistent network, follow these steps:
+This deployment is executed on the default network, which lasts only for the duration of the task. To simulate a deployment on a persistent network, follow these steps:
 
 1. Start a Hardhat node with `npx hardhat node` or `pnpm hardhat node`.
 2. Open another terminal and deploy the module to the Hardhat node:
@@ -602,7 +602,7 @@ solidity: {
 
 Hardhat 3 continues to use npm as the primary tool for managing Solidity dependencies, and now the build system is fully integrated with it: anything that can be done with npm is supported. In most cases, this won't affect you, but advanced scenarios that were previously difficult or unsupported now work out of the box.
 
-An example of something that was hard to handle in Hardhat 2 is conflicting transitive dependencies. Suppose you have a project with two dependencies, each of which depends on a different version of OpenZeppelin. This leads to conflicts that require complex manual workarounds. In Hardhat 3, this same scenario works automatically without any extra effort on your part.
+A difficult scenario in Hardhat 2 was handling conflicting transitive dependencies. Suppose you have a project with two dependencies, each of which depends on a different version of OpenZeppelin. This leads to conflicts that require complex manual workarounds. In Hardhat 3, this same scenario works automatically without any extra effort on your part.
 
 The new compilation system uses remappings internally to manage Solidity dependencies, but this complexity is hidden from you. User-defined remappings are fully supported, but using them is optional—there's no need to set them unless you want to.
 
@@ -610,7 +610,7 @@ Learn more about this in ...
 
 ## Declarative configuration
 
-Configuration in Hardhat 3 is done via a TypeScript file, but now it's fully declarative. This contrasts with Hardhat 2, where some things are configured by the side effects of certain imports and function calls.
+Hardhat 3 configuration is done via a TypeScript file, and it's now fully declarative. This contrasts with Hardhat 2, where some things are configured by the side effects of certain imports and function calls.
 
 For example, in Hardhat 2 you only need to import a plugin to enable it:
 
@@ -662,7 +662,7 @@ const config: HardhatUserConfig = {
 };
 ```
 
-Defining this task is similar to how you do it in Hardhat 2, with two differences:
+Defining this task is similar to how it's done in Hardhat 2, with two differences:
 
 - It needs to be included in the configuration object, just like plugins.
 - The `build` function must be called at the end.
@@ -673,6 +673,6 @@ Hardhat 3 also includes a new hook system that enables easy extension of core fu
 
 In this tutorial, we covered some of the biggest changes coming in Hardhat 3, including first-class Solidity tests, multichain support, a revamped build system, and more—all designed to make Ethereum development more powerful and flexible.
 
-As this is an alpha release, things are still evolving. Your feedback is invaluable, whether it’s about missing features, usability issues, or anything else. Share your thoughts in the [Hardhat 3 Preview](https://t.me/+vWqXXHGklFQzZTUx) Telegram group or [open an issue](https://github.com/NomicFoundation/hardhat/issues/new?template=hardhat-3-alpha.yml) in our GitHub issue tracker.
+This is an alpha release and things are still evolving. Your feedback is invaluable, whether it's about missing features, usability issues, or anything else. Share your thoughts in the [Hardhat 3 Alpha](https://t.me/+vWqXXHGklFQzZTUx) Telegram group or [open an issue](https://github.com/NomicFoundation/hardhat/issues/new?template=hardhat-3-alpha.yml) in our GitHub issue tracker.
 
-We’ll continue refining Hardhat 3 in the alpha stage until all planned features are in place. Once complete, we’ll release a beta version with comprehensive documentation and a migration guide to help projects transition smoothly. Thanks for trying it out, and stay tuned for updates!
+We'll continue refining Hardhat 3 in the alpha stage until all planned features are in place. Once complete, we'll release a beta version with comprehensive documentation and a migration guide to help projects transition smoothly. Thanks for trying it out, and stay tuned for updates!
