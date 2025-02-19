@@ -48,6 +48,16 @@ const exampleConfigurationVariable2: ConfigurationVariable = {
   name: "key2",
 };
 
+const exampleConfigurationVariable3: ConfigurationVariable = {
+  _type: "ConfigurationVariable",
+  name: "key3",
+};
+
+const exampleConfigurationVariable4: ConfigurationVariable = {
+  _type: "ConfigurationVariable",
+  name: "key4",
+};
+
 describe("hook-handlers - configuration variables - fetchValue", () => {
   let hre: HardhatRuntimeEnvironment;
   let runningInCi: boolean;
@@ -96,6 +106,14 @@ describe("hook-handlers - configuration variables - fetchValue", () => {
           key: "key2",
           value: "value2",
         },
+        {
+          key: "key3",
+          value: "value3",
+        },
+        {
+          key: "key4",
+          value: "value4",
+        },
       ];
 
       for (const secret of secrets) {
@@ -126,32 +144,51 @@ describe("hook-handlers - configuration variables - fetchValue", () => {
 
     describe("successful get keys in the keystore", () => {
       // The password should be requested only once since the masterKey is cached
-      let resultValue: string;
-      let resultValue2: string;
+      let results: string[];
 
       beforeEach(async () => {
-        resultValue = await hre.hooks.runHandlerChain(
-          "configurationVariables",
-          "fetchValue",
-          [exampleConfigurationVariable],
-          async (_context, _configVar) => {
-            return "unexpected-default-value";
-          },
-        );
-
-        resultValue2 = await hre.hooks.runHandlerChain(
-          "configurationVariables",
-          "fetchValue",
-          [exampleConfigurationVariable2],
-          async (_context, _configVar) => {
-            return "unexpected-default-value";
-          },
-        );
+        results = await Promise.all([
+          // Ask twice for value
+          hre.hooks.runHandlerChain(
+            "configurationVariables",
+            "fetchValue",
+            [exampleConfigurationVariable],
+            async (_context, _configVar) => {
+              return "unexpected-default-value";
+            },
+          ),
+          hre.hooks.runHandlerChain(
+            "configurationVariables",
+            "fetchValue",
+            [exampleConfigurationVariable2],
+            async (_context, _configVar) => {
+              return "unexpected-default-value";
+            },
+          ),
+          hre.hooks.runHandlerChain(
+            "configurationVariables",
+            "fetchValue",
+            [exampleConfigurationVariable3],
+            async (_context, _configVar) => {
+              return "unexpected-default-value";
+            },
+          ),
+          hre.hooks.runHandlerChain(
+            "configurationVariables",
+            "fetchValue",
+            [exampleConfigurationVariable4],
+            async (_context, _configVar) => {
+              return "unexpected-default-value";
+            },
+          ),
+        ]);
       });
 
       it("should fetch the value for the key in the keystore", async () => {
-        assert.equal(resultValue, "value1");
-        assert.equal(resultValue2, "value2");
+        assert.equal(results[0], "value1");
+        assert.equal(results[1], "value2");
+        assert.equal(results[2], "value3");
+        assert.equal(results[3], "value4");
       });
     });
 
