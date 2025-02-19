@@ -1,5 +1,15 @@
 # hardhat
 
+## 2.22.19
+
+### Patch Changes
+
+- 5d79fca: Fix heuristic to detect that an ESM project doesn't have a Hardhat config with an explicit `.cjs` extension.
+- 00d542a: \* fix: improved provider initialization performance
+  - fix: ignore unknown opcodes in source maps
+  - fix: crash when loading EDR on Windows without a C Runtime library installed
+  - fix: improved stack trace generation performance
+
 ## 2.22.18
 
 ### Patch Changes
