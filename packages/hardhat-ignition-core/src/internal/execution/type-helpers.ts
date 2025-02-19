@@ -2,23 +2,23 @@ import {
   CallExecutionState,
   ContractAtExecutionState,
   DeploymentExecutionState,
-  ExecutionSateType,
+  ExecutionStateType,
   ReadEventArgumentExecutionState,
   SendDataExecutionState,
   StaticCallExecutionState,
 } from "./types/execution-state";
 
-export type MapExStateTypeToExState<ExStateT extends ExecutionSateType> =
-  ExStateT extends ExecutionSateType.DEPLOYMENT_EXECUTION_STATE
+export type MapExStateTypeToExState<ExStateT extends ExecutionStateType> =
+  ExStateT extends ExecutionStateType.DEPLOYMENT_EXECUTION_STATE
     ? DeploymentExecutionState
-    : ExStateT extends ExecutionSateType.CALL_EXECUTION_STATE
+    : ExStateT extends ExecutionStateType.CALL_EXECUTION_STATE
     ? CallExecutionState
-    : ExStateT extends ExecutionSateType.STATIC_CALL_EXECUTION_STATE
+    : ExStateT extends ExecutionStateType.STATIC_CALL_EXECUTION_STATE
     ? StaticCallExecutionState
-    : ExStateT extends ExecutionSateType.SEND_DATA_EXECUTION_STATE
+    : ExStateT extends ExecutionStateType.SEND_DATA_EXECUTION_STATE
     ? SendDataExecutionState
-    : ExStateT extends ExecutionSateType.CONTRACT_AT_EXECUTION_STATE
+    : ExStateT extends ExecutionStateType.CONTRACT_AT_EXECUTION_STATE
     ? ContractAtExecutionState
-    : ExStateT extends ExecutionSateType.READ_EVENT_ARGUMENT_EXECUTION_STATE
+    : ExStateT extends ExecutionStateType.READ_EVENT_ARGUMENT_EXECUTION_STATE
     ? ReadEventArgumentExecutionState
     : never;

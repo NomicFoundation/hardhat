@@ -4,7 +4,7 @@ import {
   ContractAtExecutionState,
   DeploymentExecutionState,
   EncodeFunctionCallExecutionState,
-  ExecutionSateType,
+  ExecutionStateType,
   ExecutionStatus,
   ReadEventArgumentExecutionState,
   SendDataExecutionState,
@@ -25,7 +25,7 @@ export function initialiseDeploymentExecutionStateFrom(
 ): DeploymentExecutionState {
   const deploymentExecutionInitialState: DeploymentExecutionState = {
     id: action.futureId,
-    type: ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
+    type: ExecutionStateType.DEPLOYMENT_EXECUTION_STATE,
     futureType: action.futureType,
     strategy: action.strategy,
     strategyConfig: action.strategyConfig,
@@ -48,7 +48,7 @@ export function initialiseStaticCallExecutionStateFrom(
 ): StaticCallExecutionState {
   const callExecutionInitialState: StaticCallExecutionState = {
     id: action.futureId,
-    type: ExecutionSateType.STATIC_CALL_EXECUTION_STATE,
+    type: ExecutionStateType.STATIC_CALL_EXECUTION_STATE,
     futureType: FutureType.STATIC_CALL,
     strategy: action.strategy,
     strategyConfig: action.strategyConfig,
@@ -71,7 +71,7 @@ export function initialiseSendDataExecutionStateFrom(
 ): SendDataExecutionState {
   const callExecutionInitialState: SendDataExecutionState = {
     id: action.futureId,
-    type: ExecutionSateType.SEND_DATA_EXECUTION_STATE,
+    type: ExecutionStateType.SEND_DATA_EXECUTION_STATE,
     futureType: FutureType.SEND_DATA,
     strategy: action.strategy,
     strategyConfig: action.strategyConfig,
@@ -93,7 +93,7 @@ export function initialiseReadEventArgumentExecutionStateFrom(
   const readEventArgumentExecutionInitialState: ReadEventArgumentExecutionState =
     {
       id: action.futureId,
-      type: ExecutionSateType.READ_EVENT_ARGUMENT_EXECUTION_STATE,
+      type: ExecutionStateType.READ_EVENT_ARGUMENT_EXECUTION_STATE,
       futureType: FutureType.READ_EVENT_ARGUMENT,
       strategy: action.strategy,
       strategyConfig: action.strategyConfig,
@@ -116,7 +116,7 @@ export function initialiseContractAtExecutionStateFrom(
 ): ContractAtExecutionState {
   const contractAtExecutionInitialState: ContractAtExecutionState = {
     id: action.futureId,
-    type: ExecutionSateType.CONTRACT_AT_EXECUTION_STATE,
+    type: ExecutionStateType.CONTRACT_AT_EXECUTION_STATE,
     futureType: action.futureType,
     strategy: action.strategy,
     strategyConfig: action.strategyConfig,
@@ -136,7 +136,7 @@ export function initialiseEncodeFunctionCallExecutionStateFrom(
   const encodeFunctionCallExecutionInitialState: EncodeFunctionCallExecutionState =
     {
       id: action.futureId,
-      type: ExecutionSateType.ENCODE_FUNCTION_CALL_EXECUTION_STATE,
+      type: ExecutionStateType.ENCODE_FUNCTION_CALL_EXECUTION_STATE,
       futureType: FutureType.ENCODE_FUNCTION_CALL,
       strategy: action.strategy,
       strategyConfig: action.strategyConfig,
@@ -156,7 +156,7 @@ export function initialiseCallExecutionStateFrom(
 ): CallExecutionState {
   const callExecutionInitialState: CallExecutionState = {
     id: action.futureId,
-    type: ExecutionSateType.CALL_EXECUTION_STATE,
+    type: ExecutionStateType.CALL_EXECUTION_STATE,
     futureType: FutureType.CONTRACT_CALL,
     strategy: action.strategy,
     strategyConfig: action.strategyConfig,

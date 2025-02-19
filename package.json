@@ -14,7 +14,8 @@
   },
   "scripts": {
     "postbuild": "cp packages/hardhat-core/src/internal/solidity/compiler/solcjs-runner.js packages/hardhat-core/internal/solidity/compiler/solcjs-runner.js",
-    "build": "tsc --build packages/hardhat-core packages/hardhat-ethers packages/hardhat-verify packages/hardhat-solhint packages/hardhat-solpp packages/hardhat-truffle4 packages/hardhat-truffle5 packages/hardhat-vyper packages/hardhat-web3 packages/hardhat-web3-v4 packages/hardhat-web3-legacy packages/hardhat-chai-matchers packages/hardhat-network-helpers packages/hardhat-toolbox packages/hardhat-foundry packages/hardhat-ledger packages/hardhat-viem packages/hardhat-toolbox-viem && pnpm run --filter \"./packages/hardhat-ignition*\" build",
+    "build": "tsc --build packages/hardhat-core packages/hardhat-ethers packages/hardhat-verify packages/hardhat-solhint packages/hardhat-solpp packages/hardhat-truffle4 packages/hardhat-truffle5 packages/hardhat-vyper packages/hardhat-web3 packages/hardhat-web3-v4 packages/hardhat-web3-legacy packages/hardhat-chai-matchers packages/hardhat-network-helpers packages/hardhat-toolbox packages/hardhat-foundry packages/hardhat-ledger packages/hardhat-viem packages/hardhat-toolbox-viem && pnpm build:ignition",
+    "build:ignition": "pnpm run --filter \"./packages/hardhat-ignition*\" build",
     "watch": "tsc --build --watch packages/hardhat-core/src packages/hardhat-ethers packages/hardhat-verify packages/hardhat-solhint packages/hardhat-solpp packages/hardhat-truffle4 packages/hardhat-truffle5 packages/hardhat-vyper packages/hardhat-web3 packages/hardhat-web3-v4 packages/hardhat-web3-legacy packages/hardhat-chai-matchers packages/hardhat-network-helpers packages/hardhat-toolbox packages/hardhat-foundry packages/hardhat-ledger packages/hardhat-viem packages/hardhat-toolbox-viem",
     "clean": "pnpm run --recursive clean",
     "test": "node scripts/run-tests.js",

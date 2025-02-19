@@ -5,7 +5,7 @@ import { TransactionParams } from "../../../src/internal/execution/jsonrpc-clien
 import { deploymentStateReducer } from "../../../src/internal/execution/reducers/deployment-state-reducer";
 import { ExecutionResultType } from "../../../src/internal/execution/types/execution-result";
 import {
-  ExecutionSateType,
+  ExecutionStateType,
   ExecutionStatus,
 } from "../../../src/internal/execution/types/execution-state";
 import { TransactionReceiptStatus } from "../../../src/internal/execution/types/jsonrpc";
@@ -69,7 +69,7 @@ describe("future processor", () => {
         result.newState.executionStates["MyModule:TestContract"];
 
       assertIgnitionInvariant(
-        updatedExState.type === ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
+        updatedExState.type === ExecutionStateType.DEPLOYMENT_EXECUTION_STATE,
         "to be honest this was unexpected"
       );
 

@@ -1,7 +1,7 @@
 import { assert } from "chai";
 
 import { ExecutionResultType } from "../../../src/internal/execution/types/execution-result";
-import { ExecutionSateType } from "../../../src/internal/execution/types/execution-state";
+import { ExecutionStateType } from "../../../src/internal/execution/types/execution-state";
 import { findResultForFutureById } from "../../../src/internal/views/find-result-for-future-by-id";
 
 describe("find result by future by", () => {
@@ -12,7 +12,7 @@ describe("find result by future by", () => {
     const deploymentState = {
       executionStates: {
         [futureId]: {
-          type: ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
+          type: ExecutionStateType.DEPLOYMENT_EXECUTION_STATE,
           result: {
             type: ExecutionResultType.SUCCESS,
             address: exampleAddress,
@@ -30,7 +30,7 @@ describe("find result by future by", () => {
     const deploymentState = {
       executionStates: {
         [futureId]: {
-          type: ExecutionSateType.CALL_EXECUTION_STATE,
+          type: ExecutionStateType.CALL_EXECUTION_STATE,
           result: {
             type: ExecutionResultType.SUCCESS,
           },
@@ -45,7 +45,7 @@ describe("find result by future by", () => {
     const deploymentState = {
       executionStates: {
         [futureId]: {
-          type: ExecutionSateType.STATIC_CALL_EXECUTION_STATE,
+          type: ExecutionStateType.STATIC_CALL_EXECUTION_STATE,
           result: {
             type: ExecutionResultType.SUCCESS,
             value: 99n,
@@ -63,7 +63,7 @@ describe("find result by future by", () => {
     const deploymentState = {
       executionStates: {
         [futureId]: {
-          type: ExecutionSateType.SEND_DATA_EXECUTION_STATE,
+          type: ExecutionStateType.SEND_DATA_EXECUTION_STATE,
           result: {
             type: ExecutionResultType.SUCCESS,
           },
@@ -78,7 +78,7 @@ describe("find result by future by", () => {
     const deploymentState = {
       executionStates: {
         [futureId]: {
-          type: ExecutionSateType.CONTRACT_AT_EXECUTION_STATE,
+          type: ExecutionStateType.CONTRACT_AT_EXECUTION_STATE,
           contractAddress: exampleAddress,
         },
       },
@@ -93,7 +93,7 @@ describe("find result by future by", () => {
     const deploymentState = {
       executionStates: {
         [futureId]: {
-          type: ExecutionSateType.READ_EVENT_ARGUMENT_EXECUTION_STATE,
+          type: ExecutionStateType.READ_EVENT_ARGUMENT_EXECUTION_STATE,
           result: "abc",
         },
       },

@@ -4,7 +4,7 @@ import { DeploymentState } from "../../../src/internal/execution/types/deploymen
 import { EvmExecutionResultTypes } from "../../../src/internal/execution/types/evm-execution";
 import { ExecutionResultType } from "../../../src/internal/execution/types/execution-result";
 import {
-  ExecutionSateType,
+  ExecutionStateType,
   ExecutionStatus,
   SendDataExecutionState,
 } from "../../../src/internal/execution/types/execution-state";
@@ -163,7 +163,7 @@ describe("DeploymentStateReducer", () => {
         ]);
 
         updatedSendDataExState = findExecutionStateById(
-          ExecutionSateType.SEND_DATA_EXECUTION_STATE,
+          ExecutionStateType.SEND_DATA_EXECUTION_STATE,
           updatedDeploymentState,
           "SendData1"
         );
@@ -172,7 +172,7 @@ describe("DeploymentStateReducer", () => {
       it("should populate a call execution state for the future", () => {
         assert.equal(
           updatedSendDataExState.type,
-          ExecutionSateType.SEND_DATA_EXECUTION_STATE
+          ExecutionStateType.SEND_DATA_EXECUTION_STATE
         );
       });
     });
@@ -185,7 +185,7 @@ describe("DeploymentStateReducer", () => {
         ]);
 
         updatedSendDataExState = findExecutionStateById(
-          ExecutionSateType.SEND_DATA_EXECUTION_STATE,
+          ExecutionStateType.SEND_DATA_EXECUTION_STATE,
           updatedDeploymentState,
           "SendData1"
         );
@@ -226,7 +226,7 @@ describe("DeploymentStateReducer", () => {
         ]);
 
         updatedSendDataExState = findExecutionStateById(
-          ExecutionSateType.SEND_DATA_EXECUTION_STATE,
+          ExecutionStateType.SEND_DATA_EXECUTION_STATE,
           updatedDeploymentState,
           "SendData1"
         );
@@ -261,7 +261,7 @@ describe("DeploymentStateReducer", () => {
         ]);
 
         updatedSendDataExState = findExecutionStateById(
-          ExecutionSateType.SEND_DATA_EXECUTION_STATE,
+          ExecutionStateType.SEND_DATA_EXECUTION_STATE,
           updatedDeploymentState,
           "SendData1"
         );
@@ -301,7 +301,7 @@ describe("DeploymentStateReducer", () => {
         ]);
 
         updatedSendDataExState = findExecutionStateById(
-          ExecutionSateType.SEND_DATA_EXECUTION_STATE,
+          ExecutionStateType.SEND_DATA_EXECUTION_STATE,
           updatedDeploymentState,
           "SendData1"
         );
@@ -342,7 +342,7 @@ describe("DeploymentStateReducer", () => {
         ]);
 
         updatedSendDataExState = findExecutionStateById(
-          ExecutionSateType.SEND_DATA_EXECUTION_STATE,
+          ExecutionStateType.SEND_DATA_EXECUTION_STATE,
           updatedDeploymentState,
           "SendData1"
         );
@@ -372,7 +372,7 @@ describe("DeploymentStateReducer", () => {
         ]);
 
         updatedSendDataExState = findExecutionStateById(
-          ExecutionSateType.SEND_DATA_EXECUTION_STATE,
+          ExecutionStateType.SEND_DATA_EXECUTION_STATE,
           updatedDeploymentState,
           "SendData1"
         );
@@ -401,7 +401,7 @@ describe("DeploymentStateReducer", () => {
         ]);
 
         updatedSendDataExState = findExecutionStateById(
-          ExecutionSateType.SEND_DATA_EXECUTION_STATE,
+          ExecutionStateType.SEND_DATA_EXECUTION_STATE,
           updatedDeploymentState,
           "SendData1"
         );
@@ -431,7 +431,7 @@ describe("DeploymentStateReducer", () => {
         ]);
 
         updatedSendDataExState = findExecutionStateById(
-          ExecutionSateType.SEND_DATA_EXECUTION_STATE,
+          ExecutionStateType.SEND_DATA_EXECUTION_STATE,
           updatedDeploymentState,
           "SendData1"
         );

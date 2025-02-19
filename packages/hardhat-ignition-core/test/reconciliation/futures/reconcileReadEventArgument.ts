@@ -5,7 +5,7 @@ import { buildModule } from "../../../src/build-module";
 import { ExecutionResultType } from "../../../src/internal/execution/types/execution-result";
 import {
   DeploymentExecutionState,
-  ExecutionSateType,
+  ExecutionStateType,
   ExecutionStatus,
   ReadEventArgumentExecutionState,
 } from "../../../src/internal/execution/types/execution-state";
@@ -24,7 +24,7 @@ describe("Reconciliation - read event argument", () => {
 
   const exampleReadArgState: ReadEventArgumentExecutionState = {
     id: "Example",
-    type: ExecutionSateType.READ_EVENT_ARGUMENT_EXECUTION_STATE,
+    type: ExecutionStateType.READ_EVENT_ARGUMENT_EXECUTION_STATE,
     futureType: FutureType.READ_EVENT_ARGUMENT,
     strategy: "basic",
     strategyConfig: {},
@@ -41,7 +41,7 @@ describe("Reconciliation - read event argument", () => {
 
   const exampleDeploymentState: DeploymentExecutionState = {
     id: "Example",
-    type: ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
+    type: ExecutionStateType.DEPLOYMENT_EXECUTION_STATE,
     futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
     strategy: "basic",
     strategyConfig: {},

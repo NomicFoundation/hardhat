@@ -1,7 +1,7 @@
 import { SolidityParameterType } from "../../types/module";
 import { DeploymentState } from "../execution/types/deployment-state";
 import { ExecutionResultType } from "../execution/types/execution-result";
-import { ExecutionSateType } from "../execution/types/execution-state";
+import { ExecutionStateType } from "../execution/types/execution-state";
 import { assertIgnitionInvariant } from "../utils/assertions";
 
 export function findResultForFutureById(
@@ -16,15 +16,15 @@ export function findResultForFutureById(
   );
 
   assertIgnitionInvariant(
-    exState.type === ExecutionSateType.DEPLOYMENT_EXECUTION_STATE ||
-      exState.type === ExecutionSateType.STATIC_CALL_EXECUTION_STATE ||
-      exState.type === ExecutionSateType.CONTRACT_AT_EXECUTION_STATE ||
-      exState.type === ExecutionSateType.READ_EVENT_ARGUMENT_EXECUTION_STATE ||
-      exState.type === ExecutionSateType.ENCODE_FUNCTION_CALL_EXECUTION_STATE,
+    exState.type === ExecutionStateType.DEPLOYMENT_EXECUTION_STATE ||
+      exState.type === ExecutionStateType.STATIC_CALL_EXECUTION_STATE ||
+      exState.type === ExecutionStateType.CONTRACT_AT_EXECUTION_STATE ||
+      exState.type === ExecutionStateType.READ_EVENT_ARGUMENT_EXECUTION_STATE ||
+      exState.type === ExecutionStateType.ENCODE_FUNCTION_CALL_EXECUTION_STATE,
     `Expected execution state for ${futureId} to be support result lookup, but instead it was ${exState.type}`
   );
 
-  if (exState.type === ExecutionSateType.CONTRACT_AT_EXECUTION_STATE) {
+  if (exState.type === ExecutionStateType.CONTRACT_AT_EXECUTION_STATE) {
     return exState.contractAddress;
   }
 
@@ -34,8 +34,8 @@ export function findResultForFutureById(
   );
 
   if (
-    exState.type === ExecutionSateType.READ_EVENT_ARGUMENT_EXECUTION_STATE ||
-    exState.type === ExecutionSateType.ENCODE_FUNCTION_CALL_EXECUTION_STATE
+    exState.type === ExecutionStateType.READ_EVENT_ARGUMENT_EXECUTION_STATE ||
+    exState.type === ExecutionStateType.ENCODE_FUNCTION_CALL_EXECUTION_STATE
   ) {
     return exState.result;
   }
@@ -46,9 +46,9 @@ export function findResultForFutureById(
   );
 
   switch (exState.type) {
-    case ExecutionSateType.DEPLOYMENT_EXECUTION_STATE:
+    case ExecutionStateType.DEPLOYMENT_EXECUTION_STATE:
       return exState.result.address;
-    case ExecutionSateType.STATIC_CALL_EXECUTION_STATE: {
+    case ExecutionStateType.STATIC_CALL_EXECUTION_STATE: {
       return exState.result.value;
     }
   }

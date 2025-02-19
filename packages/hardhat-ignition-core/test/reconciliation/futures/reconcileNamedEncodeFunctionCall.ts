@@ -6,7 +6,7 @@ import { ExecutionResultType } from "../../../src/internal/execution/types/execu
 import {
   DeploymentExecutionState,
   EncodeFunctionCallExecutionState,
-  ExecutionSateType,
+  ExecutionStateType,
   ExecutionStatus,
 } from "../../../src/internal/execution/types/execution-state";
 import { FutureType } from "../../../src/types/module";
@@ -22,7 +22,7 @@ describe("Reconciliation - named encode function call", () => {
 
   const exampleDeploymentState: DeploymentExecutionState = {
     id: "Example",
-    type: ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
+    type: ExecutionStateType.DEPLOYMENT_EXECUTION_STATE,
     futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
     strategy: "basic",
     strategyConfig: {},
@@ -39,7 +39,7 @@ describe("Reconciliation - named encode function call", () => {
 
   const exampleEncodeFunctionCallState: EncodeFunctionCallExecutionState = {
     id: "Example",
-    type: ExecutionSateType.ENCODE_FUNCTION_CALL_EXECUTION_STATE,
+    type: ExecutionStateType.ENCODE_FUNCTION_CALL_EXECUTION_STATE,
     futureType: FutureType.ENCODE_FUNCTION_CALL,
     strategy: "basic",
     strategyConfig: {},

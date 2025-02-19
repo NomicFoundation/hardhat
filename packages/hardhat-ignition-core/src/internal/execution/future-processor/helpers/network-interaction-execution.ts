@@ -6,6 +6,7 @@
  */
 
 import { IgnitionError } from "../../../../errors";
+import { DeploymentLoader } from "../../../deployment-loader/types";
 import { ERRORS } from "../../../errors-list";
 import { assertIgnitionInvariant } from "../../../utils/assertions";
 import { JsonRpcClient, TransactionParams } from "../../jsonrpc-client";
@@ -19,6 +20,7 @@ import {
   RawStaticCallResult,
   Transaction,
 } from "../../types/jsonrpc";
+import { JournalMessageType } from "../../types/messages";
 import {
   OnchainInteraction,
   StaticCall,
@@ -106,13 +108,15 @@ export async function sendTransactionForOnchainInteraction(
     | SimulationErrorExecutionResult
     | StrategySimulationErrorExecutionResult
     | undefined
-  >
+  >,
+  deploymentLoader: DeploymentLoader,
+  futureId: string
 ): Promise<
   | SimulationErrorExecutionResult
   | StrategySimulationErrorExecutionResult
   | {
       type: typeof TRANSACTION_SENT_TYPE;
-      transaction: Transaction;
+      transaction: Pick<Transaction, "hash" | "fees">;
       nonce: number;
     }
 > {
@@ -200,6 +204,13 @@ export async function sendTransactionForOnchainInteraction(
   if (decodedSimulationResult !== undefined) {
     return decodedSimulationResult;
   }
+
+  await deploymentLoader.recordToJournal({
+    type: JournalMessageType.TRANSACTION_PREPARE_SEND,
+    futureId,
+    networkInteractionId: onchainInteraction.id,
+    nonce: transactionParams.nonce,
+  });
 
   const txHash = await client.sendTransaction(transactionParams);
 

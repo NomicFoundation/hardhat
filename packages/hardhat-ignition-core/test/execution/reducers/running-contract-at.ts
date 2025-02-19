@@ -3,7 +3,7 @@ import { assert } from "chai";
 import { DeploymentState } from "../../../src/internal/execution/types/deployment-state";
 import {
   ContractAtExecutionState,
-  ExecutionSateType,
+  ExecutionStateType,
   ExecutionStatus,
 } from "../../../src/internal/execution/types/execution-state";
 import {
@@ -43,7 +43,7 @@ describe("DeploymentStateReducer", () => {
         ]);
 
         updatedContractAtExState = findExecutionStateById(
-          ExecutionSateType.CONTRACT_AT_EXECUTION_STATE,
+          ExecutionStateType.CONTRACT_AT_EXECUTION_STATE,
           updatedDeploymentState,
           "ContractAt1"
         );
@@ -52,7 +52,7 @@ describe("DeploymentStateReducer", () => {
       it("should populate a contract at execution state for the future", () => {
         assert.equal(
           updatedContractAtExState.type,
-          ExecutionSateType.CONTRACT_AT_EXECUTION_STATE
+          ExecutionStateType.CONTRACT_AT_EXECUTION_STATE
         );
       });
 

@@ -1,8 +1,8 @@
 import { MapExStateTypeToExState } from "../execution/type-helpers";
 import { DeploymentState } from "../execution/types/deployment-state";
-import { ExecutionSateType } from "../execution/types/execution-state";
+import { ExecutionStateType } from "../execution/types/execution-state";
 
-export function findExecutionStatesByType<ExStateT extends ExecutionSateType>(
+export function findExecutionStatesByType<ExStateT extends ExecutionStateType>(
   exStateType: ExStateT,
   deployment: DeploymentState
 ): Array<MapExStateTypeToExState<ExStateT>> {

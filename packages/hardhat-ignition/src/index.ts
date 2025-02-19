@@ -393,6 +393,60 @@ ignitionScope
   );
 
 ignitionScope
+  .task("track-tx")
+  .addPositionalParam("txHash", "The hash of the transaction to track")
+  .addPositionalParam(
+    "deploymentId",
+    "The id of the deployment to add the tx to"
+  )
+  .setDescription(
+    "Track a transaction that is missing from a given deployment. Only use if a Hardhat Ignition error message suggests to do so."
+  )
+  .setAction(
+    async (
+      { txHash, deploymentId }: { txHash: string; deploymentId: string },
+      hre
+    ) => {
+      const { trackTransaction } = await import(
+        "@nomicfoundation/ignition-core"
+      );
+
+      const deploymentDir = path.join(
+        hre.config.paths.ignition,
+        "deployments",
+        deploymentId
+      );
+
+      let output: string | void;
+      try {
+        output = await trackTransaction(
+          deploymentDir,
+          txHash,
+          hre.network.provider,
+          hre.config.ignition.requiredConfirmations
+        );
+      } catch (e) {
+        if (e instanceof IgnitionError && shouldBeHardhatPluginError(e)) {
+          throw new NomicLabsHardhatPluginError(
+            "hardhat-ignition",
+            e.message,
+            e
+          );
+        }
+
+        throw e;
+      }
+
+      console.log(
+        output ??
+          `Thanks for providing the transaction hash, your deployment has been fixed.
+
+Now you can re-run Hardhat Ignition to continue with your deployment.`
+      );
+    }
+  );
+
+ignitionScope
   .task("visualize")
   .addFlag("noOpen", "Disables opening report in browser")
   .addPositionalParam("modulePath", "The path to the module file to visualize")

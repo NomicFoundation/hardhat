@@ -19,5 +19,6 @@ export * from "./types/provider";
 export * from "./types/serialization";
 export * from "./types/status";
 export * from "./types/verify";
+export { trackTransaction } from "./track-transaction";
 export { getVerificationInformation } from "./verify";
 export { wipe } from "./wipe";

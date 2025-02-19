@@ -4,7 +4,7 @@ import { ExecutionResultType } from "../execution/types/execution-result";
 import {
   CallExecutionState,
   DeploymentExecutionState,
-  ExecutionSateType,
+  ExecutionStateType,
   ExecutionState,
   ExecutionStatus,
   SendDataExecutionState,
@@ -80,9 +80,9 @@ function canTimeout(
   | CallExecutionState
   | SendDataExecutionState {
   return (
-    exState.type === ExecutionSateType.DEPLOYMENT_EXECUTION_STATE ||
-    exState.type === ExecutionSateType.CALL_EXECUTION_STATE ||
-    exState.type === ExecutionSateType.SEND_DATA_EXECUTION_STATE
+    exState.type === ExecutionStateType.DEPLOYMENT_EXECUTION_STATE ||
+    exState.type === ExecutionStateType.CALL_EXECUTION_STATE ||
+    exState.type === ExecutionStateType.SEND_DATA_EXECUTION_STATE
   );
 }
 
@@ -95,9 +95,9 @@ function canFail(
   | SendDataExecutionState
   | StaticCallExecutionState {
   return (
-    exState.type === ExecutionSateType.DEPLOYMENT_EXECUTION_STATE ||
-    exState.type === ExecutionSateType.CALL_EXECUTION_STATE ||
-    exState.type === ExecutionSateType.SEND_DATA_EXECUTION_STATE ||
-    exState.type === ExecutionSateType.STATIC_CALL_EXECUTION_STATE
+    exState.type === ExecutionStateType.DEPLOYMENT_EXECUTION_STATE ||
+    exState.type === ExecutionStateType.CALL_EXECUTION_STATE ||
+    exState.type === ExecutionStateType.SEND_DATA_EXECUTION_STATE ||
+    exState.type === ExecutionStateType.STATIC_CALL_EXECUTION_STATE
   );
 }

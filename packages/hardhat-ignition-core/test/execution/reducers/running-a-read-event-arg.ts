@@ -2,7 +2,7 @@ import { assert } from "chai";
 
 import { DeploymentState } from "../../../src/internal/execution/types/deployment-state";
 import {
-  ExecutionSateType,
+  ExecutionStateType,
   ExecutionStatus,
   ReadEventArgumentExecutionState,
 } from "../../../src/internal/execution/types/execution-state";
@@ -44,7 +44,7 @@ describe("DeploymentStateReducer", () => {
         ]);
 
         updatedReadEventExState = findExecutionStateById(
-          ExecutionSateType.READ_EVENT_ARGUMENT_EXECUTION_STATE,
+          ExecutionStateType.READ_EVENT_ARGUMENT_EXECUTION_STATE,
           updatedDeploymentState,
           "ReadEventArg1"
         );
@@ -53,7 +53,7 @@ describe("DeploymentStateReducer", () => {
       it("should populate a read event argument execution state for the future", () => {
         assert.equal(
           updatedReadEventExState.type,
-          ExecutionSateType.READ_EVENT_ARGUMENT_EXECUTION_STATE
+          ExecutionStateType.READ_EVENT_ARGUMENT_EXECUTION_STATE
         );
       });
 

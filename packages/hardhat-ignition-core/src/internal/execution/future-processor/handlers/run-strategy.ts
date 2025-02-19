@@ -6,7 +6,7 @@ import {
 import {
   CallExecutionState,
   DeploymentExecutionState,
-  ExecutionSateType,
+  ExecutionStateType,
   SendDataExecutionState,
   StaticCallExecutionState,
 } from "../../types/execution-state";
@@ -75,7 +75,7 @@ export async function runStrategy(
     lastNetworkInteraction.type === NetworkInteractionType.ONCHAIN_INTERACTION
   ) {
     assertIgnitionInvariant(
-      exState.type !== ExecutionSateType.STATIC_CALL_EXECUTION_STATE,
+      exState.type !== ExecutionStateType.STATIC_CALL_EXECUTION_STATE,
       `Unexpected StaticCallExecutionState ${exState.id} with onchain interaction ${lastNetworkInteraction.id} when trying to run a strategy`
     );
 

@@ -5,7 +5,7 @@ import { EvmExecutionResultTypes } from "../../../src/internal/execution/types/e
 import { ExecutionResultType } from "../../../src/internal/execution/types/execution-result";
 import {
   DeploymentExecutionState,
-  ExecutionSateType,
+  ExecutionStateType,
   ExecutionStatus,
 } from "../../../src/internal/execution/types/execution-state";
 import { TransactionReceiptStatus } from "../../../src/internal/execution/types/jsonrpc";
@@ -183,7 +183,7 @@ describe("DeploymentStateReducer", () => {
         ]);
 
         updatedDepExState = findExecutionStateById(
-          ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
+          ExecutionStateType.DEPLOYMENT_EXECUTION_STATE,
           updatedDeploymentState,
           "future1"
         );
@@ -192,7 +192,7 @@ describe("DeploymentStateReducer", () => {
       it("should populate a deployment execution state for the future", () => {
         assert.equal(
           updatedDepExState.type,
-          ExecutionSateType.DEPLOYMENT_EXECUTION_STATE
+          ExecutionStateType.DEPLOYMENT_EXECUTION_STATE
         );
       });
     });
@@ -205,7 +205,7 @@ describe("DeploymentStateReducer", () => {
         ]);
 
         updatedDepExState = findExecutionStateById(
-          ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
+          ExecutionStateType.DEPLOYMENT_EXECUTION_STATE,
           updatedDeploymentState,
           "future1"
         );
@@ -245,7 +245,7 @@ describe("DeploymentStateReducer", () => {
         ]);
 
         updatedDepExState = findExecutionStateById(
-          ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
+          ExecutionStateType.DEPLOYMENT_EXECUTION_STATE,
           updatedDeploymentState,
           "future1"
         );
@@ -280,7 +280,7 @@ describe("DeploymentStateReducer", () => {
         ]);
 
         updatedDepExState = findExecutionStateById(
-          ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
+          ExecutionStateType.DEPLOYMENT_EXECUTION_STATE,
           updatedDeploymentState,
           "future1"
         );
@@ -321,7 +321,7 @@ describe("DeploymentStateReducer", () => {
         ]);
 
         updatedDepExState = findExecutionStateById(
-          ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
+          ExecutionStateType.DEPLOYMENT_EXECUTION_STATE,
           updatedDeploymentState,
           "future1"
         );
@@ -352,7 +352,7 @@ describe("DeploymentStateReducer", () => {
         ]);
 
         updatedDepExState = findExecutionStateById(
-          ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
+          ExecutionStateType.DEPLOYMENT_EXECUTION_STATE,
           updatedDeploymentState,
           "future1"
         );
@@ -383,7 +383,7 @@ describe("DeploymentStateReducer", () => {
         ]);
 
         updatedDepExState = findExecutionStateById(
-          ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
+          ExecutionStateType.DEPLOYMENT_EXECUTION_STATE,
           updatedDeploymentState,
           "future1"
         );
@@ -416,7 +416,7 @@ describe("DeploymentStateReducer", () => {
         ]);
 
         updatedDepExState = findExecutionStateById(
-          ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
+          ExecutionStateType.DEPLOYMENT_EXECUTION_STATE,
           updatedDeploymentState,
           "future1"
         );
@@ -447,7 +447,7 @@ describe("DeploymentStateReducer", () => {
         ]);
 
         updatedDepExState = findExecutionStateById(
-          ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
+          ExecutionStateType.DEPLOYMENT_EXECUTION_STATE,
           updatedDeploymentState,
           "future1"
         );

@@ -1,6 +1,6 @@
 import { DeploymentState } from "../execution/types/deployment-state";
 import { ExecutionResultType } from "../execution/types/execution-result";
-import { ExecutionSateType } from "../execution/types/execution-state";
+import { ExecutionStateType } from "../execution/types/execution-state";
 import { assertIgnitionInvariant } from "../utils/assertions";
 
 /**
@@ -26,12 +26,12 @@ export function findAddressForContractFuture(
   );
 
   assertIgnitionInvariant(
-    exState.type === ExecutionSateType.DEPLOYMENT_EXECUTION_STATE ||
-      exState.type === ExecutionSateType.CONTRACT_AT_EXECUTION_STATE,
+    exState.type === ExecutionStateType.DEPLOYMENT_EXECUTION_STATE ||
+      exState.type === ExecutionStateType.CONTRACT_AT_EXECUTION_STATE,
     `Can only resolve an address for a ContractAt, NamedLibrary, NamedContract, ArtifactLibrary, ArtifactContract`
   );
 
-  if (exState.type === ExecutionSateType.CONTRACT_AT_EXECUTION_STATE) {
+  if (exState.type === ExecutionStateType.CONTRACT_AT_EXECUTION_STATE) {
     return exState.contractAddress;
   }
 

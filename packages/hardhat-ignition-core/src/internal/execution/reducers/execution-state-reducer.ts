@@ -1,6 +1,6 @@
 import { assertIgnitionInvariant } from "../../utils/assertions";
 import { MapExStateTypeToExState } from "../type-helpers";
-import { ExecutionSateType, ExecutionState } from "../types/execution-state";
+import { ExecutionStateType, ExecutionState } from "../types/execution-state";
 import {
   CallExecutionStateCompleteMessage,
   CallExecutionStateInitializeMessage,
@@ -22,6 +22,7 @@ import {
   StaticCallExecutionStateCompleteMessage,
   StaticCallExecutionStateInitializeMessage,
   TransactionConfirmMessage,
+  TransactionPrepareSendMessage,
   TransactionSendMessage,
 } from "../types/messages";
 
@@ -38,6 +39,7 @@ import {
 import {
   appendNetworkInteraction,
   appendTransactionToOnchainInteraction,
+  applyNonceToOnchainInteraction,
   bumpOnchainInteractionFees,
   completeStaticCall,
   confirmTransaction,
@@ -47,23 +49,23 @@ import {
 } from "./helpers/network-interaction-helpers";
 
 const exStateTypesThatSupportOnchainInteractions: Array<
-  | ExecutionSateType.DEPLOYMENT_EXECUTION_STATE
-  | ExecutionSateType.CALL_EXECUTION_STATE
-  | ExecutionSateType.SEND_DATA_EXECUTION_STATE
+  | ExecutionStateType.DEPLOYMENT_EXECUTION_STATE
+  | ExecutionStateType.CALL_EXECUTION_STATE
+  | ExecutionStateType.SEND_DATA_EXECUTION_STATE
 > = [
-  ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
-  ExecutionSateType.CALL_EXECUTION_STATE,
-  ExecutionSateType.SEND_DATA_EXECUTION_STATE,
+  ExecutionStateType.DEPLOYMENT_EXECUTION_STATE,
+  ExecutionStateType.CALL_EXECUTION_STATE,
+  ExecutionStateType.SEND_DATA_EXECUTION_STATE,
 ];
 
 const exStateTypesThatSupportOnchainInteractionsAndStaticCalls: Array<
-  | ExecutionSateType.DEPLOYMENT_EXECUTION_STATE
-  | ExecutionSateType.CALL_EXECUTION_STATE
-  | ExecutionSateType.SEND_DATA_EXECUTION_STATE
-  | ExecutionSateType.STATIC_CALL_EXECUTION_STATE
+  | ExecutionStateType.DEPLOYMENT_EXECUTION_STATE
+  | ExecutionStateType.CALL_EXECUTION_STATE
+  | ExecutionStateType.SEND_DATA_EXECUTION_STATE
+  | ExecutionStateType.STATIC_CALL_EXECUTION_STATE
 > = [
   ...exStateTypesThatSupportOnchainInteractions,
-  ExecutionSateType.STATIC_CALL_EXECUTION_STATE,
+  ExecutionStateType.STATIC_CALL_EXECUTION_STATE,
 ];
 
 export function executionStateReducer(
@@ -81,6 +83,7 @@ export function executionStateReducer(
     | ReadEventArgExecutionStateInitializeMessage
     | EncodeFunctionCallExecutionStateInitializeMessage
     | NetworkInteractionRequestMessage
+    | TransactionPrepareSendMessage
     | TransactionSendMessage
     | TransactionConfirmMessage
     | StaticCallCompleteMessage
@@ -108,28 +111,28 @@ export function executionStateReducer(
       return _ensureStateThen(
         state,
         action,
-        [ExecutionSateType.DEPLOYMENT_EXECUTION_STATE],
+        [ExecutionStateType.DEPLOYMENT_EXECUTION_STATE],
         completeExecutionState
       );
     case JournalMessageType.CALL_EXECUTION_STATE_COMPLETE:
       return _ensureStateThen(
         state,
         action,
-        [ExecutionSateType.CALL_EXECUTION_STATE],
+        [ExecutionStateType.CALL_EXECUTION_STATE],
         completeExecutionState
       );
     case JournalMessageType.STATIC_CALL_EXECUTION_STATE_COMPLETE:
       return _ensureStateThen(
         state,
         action,
-        [ExecutionSateType.STATIC_CALL_EXECUTION_STATE],
+        [ExecutionStateType.STATIC_CALL_EXECUTION_STATE],
         completeExecutionState
       );
     case JournalMessageType.SEND_DATA_EXECUTION_STATE_COMPLETE:
       return _ensureStateThen(
         state,
         action,
-        [ExecutionSateType.SEND_DATA_EXECUTION_STATE],
+        [ExecutionStateType.SEND_DATA_EXECUTION_STATE],
         completeExecutionState
       );
     case JournalMessageType.NETWORK_INTERACTION_REQUEST:
@@ -145,6 +148,13 @@ export function executionStateReducer(
         action,
         exStateTypesThatSupportOnchainInteractionsAndStaticCalls,
         completeStaticCall
+      );
+    case JournalMessageType.TRANSACTION_PREPARE_SEND:
+      return _ensureStateThen(
+        state,
+        action,
+        exStateTypesThatSupportOnchainInteractions,
+        applyNonceToOnchainInteraction
       );
     case JournalMessageType.TRANSACTION_SEND:
       return _ensureStateThen(
@@ -202,7 +212,7 @@ export function executionStateReducer(
  * @returns a copy of the updated execution state
  */
 function _ensureStateThen<
-  ExStateT extends ExecutionSateType,
+  ExStateT extends ExecutionStateType,
   Message extends JournalMessage
 >(
   state: ExecutionState | undefined,

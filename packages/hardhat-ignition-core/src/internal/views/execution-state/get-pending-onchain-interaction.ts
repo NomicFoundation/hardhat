@@ -1,5 +1,5 @@
 import {
-  ExecutionSateType,
+  ExecutionStateType,
   ExecutionState,
 } from "../../execution/types/execution-state";
 import {
@@ -20,10 +20,10 @@ export function getPendingOnchainInteraction(
   exState: ExecutionState
 ): OnchainInteraction | undefined {
   if (
-    exState.type === ExecutionSateType.STATIC_CALL_EXECUTION_STATE ||
-    exState.type === ExecutionSateType.READ_EVENT_ARGUMENT_EXECUTION_STATE ||
-    exState.type === ExecutionSateType.CONTRACT_AT_EXECUTION_STATE ||
-    exState.type === ExecutionSateType.ENCODE_FUNCTION_CALL_EXECUTION_STATE
+    exState.type === ExecutionStateType.STATIC_CALL_EXECUTION_STATE ||
+    exState.type === ExecutionStateType.READ_EVENT_ARGUMENT_EXECUTION_STATE ||
+    exState.type === ExecutionStateType.CONTRACT_AT_EXECUTION_STATE ||
+    exState.type === ExecutionStateType.ENCODE_FUNCTION_CALL_EXECUTION_STATE
   ) {
     return undefined;
   }
