@@ -17,10 +17,13 @@ import {
   assertHardhatInvariant,
 } from "@ignored/hardhat-vnext-errors";
 
+import { AsyncMutex } from "./async-mutex.js";
 import { SHOULD_WARN_ABOUT_INLINE_TASK_ACTIONS_AND_HOOK_HANDLERS } from "./inline-functions-warning.js";
 import { detectPluginNpmDependencyProblems } from "./plugins/detect-plugin-npm-dependency-problems.js";
 
 export class HookManagerImplementation implements HookManager {
+  readonly #mutex: AsyncMutex = new AsyncMutex();
+
   readonly #projectRoot: string;
 
   readonly #pluginsInReverseOrder: HardhatPlugin[];
@@ -260,53 +263,55 @@ export class HookManagerImplementation implements HookManager {
   ): Promise<Array<HardhatHooks[HookCategoryNameT][HookNameT]>> {
     const categories: Array<
       Partial<HardhatHooks[HookCategoryNameT]> | undefined
-    > = await Promise.all(
-      this.#pluginsInReverseOrder.map(async (plugin) => {
-        const existingCategory = this.#staticHookHandlerCategories
-          .get(plugin.id)
-          ?.get(hookCategoryName);
+    > = await this.#mutex.exclusiveRun(async () => {
+      return Promise.all(
+        this.#pluginsInReverseOrder.map(async (plugin) => {
+          const existingCategory = this.#staticHookHandlerCategories
+            .get(plugin.id)
+            ?.get(hookCategoryName);
 
-        if (existingCategory !== undefined) {
-          return existingCategory as Partial<HardhatHooks[HookCategoryNameT]>;
-        }
-
-        const hookHandlerCategoryFactory =
-          plugin.hookHandlers?.[hookCategoryName];
-
-        if (hookHandlerCategoryFactory === undefined) {
-          return;
-        }
-
-        let hookCategory: Partial<HardhatHooks[HookCategoryNameT]>;
-
-        if (typeof hookHandlerCategoryFactory === "string") {
-          hookCategory = await this.#loadHookCategoryFactory(
-            plugin,
-            hookCategoryName,
-            hookHandlerCategoryFactory,
-          );
-        } else {
-          if (SHOULD_WARN_ABOUT_INLINE_TASK_ACTIONS_AND_HOOK_HANDLERS) {
-            console.warn(
-              `WARNING: Inline hooks found in plugin "${plugin.id}", category "${hookCategoryName}". Use file:// URLs in production.`,
-            );
+          if (existingCategory !== undefined) {
+            return existingCategory as Partial<HardhatHooks[HookCategoryNameT]>;
           }
 
-          hookCategory = await hookHandlerCategoryFactory();
-        }
+          const hookHandlerCategoryFactory =
+            plugin.hookHandlers?.[hookCategoryName];
 
-        if (!this.#staticHookHandlerCategories.has(plugin.id)) {
-          this.#staticHookHandlerCategories.set(plugin.id, new Map());
-        }
+          if (hookHandlerCategoryFactory === undefined) {
+            return;
+          }
 
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- Defined right above
-        this.#staticHookHandlerCategories
-          .get(plugin.id)!
-          .set(hookCategoryName, hookCategory);
+          let hookCategory: Partial<HardhatHooks[HookCategoryNameT]>;
 
-        return hookCategory;
-      }),
-    );
+          if (typeof hookHandlerCategoryFactory === "string") {
+            hookCategory = await this.#loadHookCategoryFactory(
+              plugin,
+              hookCategoryName,
+              hookHandlerCategoryFactory,
+            );
+          } else {
+            if (SHOULD_WARN_ABOUT_INLINE_TASK_ACTIONS_AND_HOOK_HANDLERS) {
+              console.warn(
+                `WARNING: Inline hooks found in plugin "${plugin.id}", category "${hookCategoryName}". Use file:// URLs in production.`,
+              );
+            }
+
+            hookCategory = await hookHandlerCategoryFactory();
+          }
+
+          if (!this.#staticHookHandlerCategories.has(plugin.id)) {
+            this.#staticHookHandlerCategories.set(plugin.id, new Map());
+          }
+
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- Defined right above
+          this.#staticHookHandlerCategories
+            .get(plugin.id)!
+            .set(hookCategoryName, hookCategory);
+
+          return hookCategory;
+        }),
+      );
+    });
 
     return categories.flatMap((category) => {
       const handler = category?.[hookName];
