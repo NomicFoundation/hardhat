@@ -1,7 +1,7 @@
 {
   "name": "@nomicfoundation/hardhat-test-utils",
   "private": true,
-  "version": "3.0.1-next.0",
+  "version": "2.0.0",
   "description": "Test utilities used to develop and test Hardhat",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-test-utils",
   "repository": {

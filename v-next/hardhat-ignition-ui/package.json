@@ -1,6 +1,6 @@
 {
-  "name": "@ignored/hardhat-vnext-ignition-ui",
-  "version": "0.15.10-next.4",
+  "name": "@nomicfoundation/ignition-ui",
+  "version": "0.15.9",
   "type": "module",
   "scripts": {
     "predev": "pnpm regenerate-deployment-example",

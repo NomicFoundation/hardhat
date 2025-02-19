@@ -1,6 +1,6 @@
 {
-  "name": "@ignored/hardhat-vnext-typechain",
-  "version": "3.0.0-next.18",
+  "name": "@nomicfoundation/hardhat-typechain",
+  "version": "2.0.0",
   "description": "Hardhat plugin to support typechain",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-typechain",
   "repository": {

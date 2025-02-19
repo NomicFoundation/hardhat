@@ -1,6 +1,6 @@
 {
-  "name": "@ignored/hardhat-vnext-ignition-core",
-  "version": "0.15.10-next.4",
+  "name": "@nomicfoundation/ignition-core",
+  "version": "0.15.9",
   "license": "MIT",
   "author": "Nomic Foundation",
   "homepage": "https://hardhat.org",
