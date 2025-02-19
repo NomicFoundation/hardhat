@@ -2,7 +2,7 @@ import {
   bytesToHex as bufferToHex,
   privateToAddress,
   toBytes,
-} from "@nomicfoundation/ethereumjs-util";
+} from "@ethereumjs/util";
 
 import {
   HardhatNetworkMempoolConfig,
