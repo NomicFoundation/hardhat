@@ -104,7 +104,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
-- More resilent automine check ([#721](https://github.com/NomicFoundation/hardhat-ignition/issues/721))
+- More resilient, resident automine check ([#721](https://github.com/NomicFoundation/hardhat-ignition/issues/721))
 - `getCode` usage brought in line with Ethereum RPC standard ([#715](https://github.com/NomicFoundation/hardhat-ignition/issues/715))
 - Fixed unexpected next nonce on revert ([#676](https://github.com/NomicFoundation/hardhat-ignition/issues/676))
 - Reduce sources being passed to etherscan for verification ([#706](https://github.com/NomicFoundation/hardhat-ignition/issues/706))
@@ -125,7 +125,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
-- Add memory pool lookup retry to reduce errors from slow propogation ([#667](https://github.com/NomicFoundation/hardhat-ignition/pull/667))
+- Add memory pool lookup retry to reduce errors from slow propagation ([#667](https://github.com/NomicFoundation/hardhat-ignition/pull/667))
 
 ### Added
 
@@ -391,7 +391,7 @@ First public launch 🚀
 
 ### Changed
 
-- Dependening on returned module contract equivalent to depending on the module ([#55](https://github.com/NomicFoundation/ignition/pull/55))
+- Depending on returned module contract equivalent to depending on the module ([#55](https://github.com/NomicFoundation/ignition/pull/55))
 
 ## 0.0.2 - 2022-10-26
 
