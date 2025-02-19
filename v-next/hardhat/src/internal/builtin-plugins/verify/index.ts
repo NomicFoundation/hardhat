@@ -1,7 +1,5 @@
 import type { HardhatPlugin } from "../../../types/plugins.js";
 
-import chalk from "chalk";
-
 import { task } from "../../core/config.js";
 
 const hardhatPlugin: HardhatPlugin = {
@@ -9,13 +7,7 @@ const hardhatPlugin: HardhatPlugin = {
   tasks: [
     task("verify")
       .setDescription("Not implemented yet - to be available soon")
-      .setAction(() =>
-        console.log(
-          chalk.yellow(
-            "This task will be implemented soon. Please check our communication channels for updates.",
-          ),
-        ),
-      )
+      .setAction(import.meta.resolve("./task-action.js"))
       .build(),
   ],
 };
