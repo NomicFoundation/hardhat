@@ -398,7 +398,7 @@ async function mainnetExample() {
 }
 
 async function opExample() {
-  const { provider, viem } = await network.connect("hardhatOp", "optimism");
+  const { viem } = await network.connect("hardhatOp", "optimism");
 
   const publicClient = await viem.getPublicClient();
   const gasPriceOracleCode = await publicClient.getCode({
