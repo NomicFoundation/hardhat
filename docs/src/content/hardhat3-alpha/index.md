@@ -501,6 +501,8 @@ The sepolia network configuration uses an encrypted secret for its RPC URL and p
 ```js
 networks: {
   sepolia: {
+    type: "http",
+    chainType: "l1",
     url: configVariable("SEPOLIA_RPC_URL"),
     accounts: [configVariable("SEPOLIA_PRIVATE_KEY")],
   },
