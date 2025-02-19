@@ -36,6 +36,7 @@ import { createHardhatRuntimeEnvironment } from "../hre-intialization.js";
 import { printErrorMessages } from "./error-handler.js";
 import { getGlobalHelpString } from "./help/get-global-help-string.js";
 import { getHelpString } from "./help/get-help-string.js";
+import { sendTaskAnalytics } from "./telemetry/analytics/analytics.js";
 import { sendErrorTelemetry } from "./telemetry/sentry/reporter.js";
 import { ensureTelemetryConsent } from "./telemetry/telemetry-permissions.js";
 import { printVersionMessage } from "./version.js";
@@ -182,7 +183,7 @@ export async function main(
 
     log(`Running task "${task.id.join(" ")}"`);
 
-    await task.run(taskArguments);
+    await Promise.all([task.run(taskArguments), sendTaskAnalytics(task.id)]);
   } catch (error) {
     printErrorMessages(error, builtinGlobalOptions?.showStackTraces);
 
