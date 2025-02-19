@@ -47,16 +47,21 @@ export default async (): Promise<Partial<NetworkHooks>> => {
 
       const requestHandlers = await intializationMutex.exclusiveRun(
         async () => {
-          let handlers = requestHandlersPerConnection.get(networkConnection);
+          let handlersPerConnection =
+            requestHandlersPerConnection.get(networkConnection);
 
-          if (handlers === undefined) {
-            handlers = await createHandlersArray(networkConnection);
-            requestHandlersPerConnection.set(networkConnection, handlers);
+          if (handlersPerConnection === undefined) {
+            handlersPerConnection =
+              await createHandlersArray(networkConnection);
+            requestHandlersPerConnection.set(
+              networkConnection,
+              handlersPerConnection,
+            );
 
-            return handlers;
+            return handlersPerConnection;
           }
 
-          return handlers;
+          return handlersPerConnection;
         },
       );
 
