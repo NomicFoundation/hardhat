@@ -71,6 +71,7 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
   // NOTE: --fork-block-number is only valid if --fork is specified
   if (args.fork !== "") {
     networkConfigOverride.forking = {
+      enabled: true,
       url: args.fork,
       ...(args.forkBlockNumber !== -1
         ? { blockNumber: args.forkBlockNumber }
