@@ -1,7 +1,0 @@
-section-type: group
-section-title: Under the hood
-order:
-  - title: ESM
-    href: /esm
-  - title: Solidity Tests
-    href: /solidity-tests

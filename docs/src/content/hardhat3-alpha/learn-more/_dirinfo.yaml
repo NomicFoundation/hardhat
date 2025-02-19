@@ -1,0 +1,7 @@
+section-type: group
+section-title: Learn more
+order:
+  - title: Differences with Hardhat 2
+    href: /comparison
+  - title: Solidity Tests
+    href: /solidity-tests
