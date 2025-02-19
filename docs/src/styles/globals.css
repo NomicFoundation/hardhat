@@ -21,7 +21,7 @@ a {
   font-family: "ChivoLight";
   src: url("/fonts/Chivo-Light.woff2") format("woff2"),
     url("/fonts/Chivo-Light.ttf") format("ttf");
-  font-weight: 400;
+  font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
@@ -29,7 +29,7 @@ a {
   font-family: "ChivoRegular";
   src: url("/fonts/Chivo-Regular.woff2") format("woff2"),
     url("/fonts/Chivo-Regular.ttf") format("ttf");
-  font-weight: 400;
+  font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
@@ -37,7 +37,7 @@ a {
   font-family: "ChivoBold";
   src: url("/fonts/Chivo-Bold.woff2") format("woff2"),
     url("/fonts/Chivo-Bold.ttf") format("ttf");
-  font-weight: 400;
+  font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
