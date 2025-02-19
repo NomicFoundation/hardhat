@@ -1,15 +1,24 @@
 import type { HardhatPlugin } from "@ignored/hardhat-vnext/types/plugins";
 
-import hardhatEthersPlugin from "@ignored/hardhat-vnext-ethers";
-import hardhatIgnitionPlugin from "@ignored/hardhat-vnext-ignition";
-
 import "./type-extensions.js";
 
 const hardhatIgnitionEthersPlugin: HardhatPlugin = {
   id: "hardhat-ignition-ethers",
   dependencies: [
-    async () => hardhatIgnitionPlugin,
-    async () => hardhatEthersPlugin,
+    async () => {
+      const { default: ignitionPlugin } = await import(
+        "@ignored/hardhat-vnext-ignition"
+      );
+
+      return ignitionPlugin;
+    },
+    async () => {
+      const { default: ethersPlugin } = await import(
+        "@ignored/hardhat-vnext-ethers"
+      );
+
+      return ethersPlugin;
+    },
   ],
   hookHandlers: {
     network: import.meta.resolve("./internal/hook-handlers/network.js"),
