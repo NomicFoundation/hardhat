@@ -33,7 +33,7 @@ export async function promptForMigrateToEsm(
       {
         name: "migrateToEsm",
         type: "confirm",
-        message: `Hardhat only supports ESM projects. Would you like to change your package.json "${shortenPath(absolutePathToPackageJson)}" to turn your project into ESM?`,
+        message: `Hardhat only supports ESM projects. Would you like to change "${shortenPath(absolutePathToPackageJson)}" to turn your project into ESM?`,
         initial: true,
       },
     ],
