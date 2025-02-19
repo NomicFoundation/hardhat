@@ -99,7 +99,10 @@ const hardhatIgnitionPlugin: HardhatPlugin = {
       })
       .setAction(import.meta.resolve("./internal/tasks/wipe.js"))
       .build(),
-    task(["ignition", "visualize"], "Visualize a module as an HTML report")
+    task(
+      ["ignition", "visualize"],
+      "Not implemented yet - to be available soon",
+    )
       .addPositionalArgument({
         name: "modulePath",
         type: ArgumentType.FILE,
@@ -112,10 +115,7 @@ const hardhatIgnitionPlugin: HardhatPlugin = {
       .setAction(import.meta.resolve("./internal/tasks/visualize.js"))
       .build(),
 
-    task(
-      ["ignition", "verify"],
-      "Verify contracts from a deployment against the configured block explorers",
-    )
+    task(["ignition", "verify"], "Not implemented yet - to be available soon")
       .addPositionalArgument({
         name: "deploymentId",
         type: ArgumentType.STRING,
