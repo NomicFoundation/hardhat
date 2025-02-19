@@ -48,12 +48,12 @@
     "expect-type": "^0.19.0",
     "prettier": "3.2.5",
     "rimraf": "^5.0.5",
-    "tsx": "^4.11.0",
+    "tsx": "^4.19.3",
     "typescript": "~5.5.0",
     "typescript-eslint": "7.7.1"
   },
   "dependencies": {
-    "@ignored/hardhat-vnext-utils": "workspace:^3.0.0-next.18",
-    "@ignored/hardhat-vnext-errors": "workspace:^3.0.0-next.18"
+    "@ignored/hardhat-vnext-errors": "workspace:^3.0.0-next.18",
+    "@ignored/hardhat-vnext-utils": "workspace:^3.0.0-next.18"
   }
 }

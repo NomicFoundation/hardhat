@@ -60,7 +60,7 @@
     "@ignored/hardhat-vnext-node-test-reporter": "workspace:^3.0.0-next.19",
     "@ignored/hardhat-vnext-utils": "workspace:^3.0.0-next.19",
     "@ignored/hardhat-vnext-zod-utils": "workspace:^3.0.0-next.19",
-    "tsx": "^4.11.0",
+    "tsx": "^4.19.3",
     "zod": "^3.23.8"
   },
   "peerDependencies": {
