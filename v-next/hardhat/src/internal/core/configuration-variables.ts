@@ -94,7 +94,10 @@ export class LazyResolvedConfigurationVariable extends BaseResolvedConfiguration
     this.name = variable.name;
     this.#hooks = hooks;
     this.#variable = variable;
-    LazyResolvedConfigurationVariable.#mutexes.set(hooks, new AsyncMutex());
+
+    if (!LazyResolvedConfigurationVariable.#mutexes.has(hooks)) {
+      LazyResolvedConfigurationVariable.#mutexes.set(hooks, new AsyncMutex());
+    }
   }
 
   protected async _getRawValue(): Promise<string> {
