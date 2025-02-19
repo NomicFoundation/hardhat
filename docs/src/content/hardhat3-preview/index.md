@@ -101,7 +101,9 @@ pnpm hardhat
 
 ## Solidity tests
 
-One of Hardhat 3's new features is support for writing tests in Solidity. You can run the sample project's Solidity tests with the `test solidity` task:
+Hardhat 3 has full support for writing Foundry-compatible Solidity tests. You can write unit, fuzz, and invariant tests, and use testing libraries like [forge-std](https://github.com/foundry-rs/forge-std) and [PRBTest](https://github.com/PaulRBerg/prb-test).
+
+Run the sample project's Solidity tests with the `test solidity` task:
 
 ::::tabsgroup{options=npm,pnpm}
 
@@ -181,8 +183,6 @@ Functions that start with `test` and have no parameters are unit tests, while th
 
 Solidity tests have access to cheatcodes—special functions that can be called by a test to modify the EVM in non-standard ways. In the sample test, `test_IncByZero` uses the `vm.expectRevert` cheatcode, which expects the next call to revert. If the call _doesn't_ revert, the test fails. There are many other cheatcodes available; for example, you can change the value of `block.number` with the `vm.roll` cheatcode.
 
-Hardhat 3's Solidity tests are compatible with Foundry-style tests. You can write unit, fuzz, and invariant tests, and use testing libraries like [forge-std](https://github.com/foundry-rs/forge-std) and [PRBTest](https://github.com/PaulRBerg/prb-test).
-
 ### Stack traces in Solidity tests
 
 Failed tests include Solidity stack traces. To see them in action, make the `test_IncByZero` test fail by commenting out the `expectRevert` cheatcode:
@@ -203,13 +203,11 @@ Reason: revert: incBy: increment should be positive
   at CounterTest.test_IncByZero (contracts/Counter.t.sol:27)
 ```
 
-Learn more about Hardhat 3's Solidity tests [here](/hh3/under-the-hood/solidity-tests).
-
 ## Integration tests with TypeScript
 
 Solidity tests are great for unit testing, but there are situations where they fall short:
 
-- **Complex tests**, where a general-purpose language is more comfortable than Solidity.
+- **Complex tests**, where a general-purpose language is more comfortable and productive than Solidity.
 - **Tests that need real blockchain behavior**, such as blocks and transactions. While you can use cheatcodes to simulate this, mocking too many things is error-prone and hard to maintain.
 - **End-to-end tests**, where you test deployed contracts under conditions similar to production.
 
@@ -428,7 +426,7 @@ The `network.connect` function returns a network connection, which is an object 
 
 ## Seamless contract deployments
 
-Hardhat comes with an official deployment solution: **Hardhat Ignition**, a declarative system for deploying smart contracts. It's already available in Hardhat 2 and has been adopted by many projects. The API hasn't changed in Hardhat 3: if you're familiar with it, you won't encounter any surprises.
+Hardhat comes with an official deployment solution: [**Hardhat Ignition**](https://hardhat.org/ignition), a declarative system for deploying smart contracts. It's already available in Hardhat 2 and has been adopted by many projects. The API hasn't changed in Hardhat 3: if you're familiar with it, you won't encounter any surprises.
 
 With Hardhat Ignition, you define the smart contract instances you want to deploy, along with any operations you want to perform on them. These definitions are grouped into Ignition Modules, which are then analyzed and executed in the most efficient way. This includes sending independent transactions in parallel, recovering from errors, and resuming interrupted deployments.
 
@@ -516,7 +514,7 @@ Run the following task to add that secret:
 :::tab{value=npm}
 
 ```
-npx hardhat keystore set OPTIMISM_SEPOLIA_PRIVATE_KEY
+npx hardhat keystore set SEPOLIA_PRIVATE_KEY
 ```
 
 :::
@@ -524,7 +522,7 @@ npx hardhat keystore set OPTIMISM_SEPOLIA_PRIVATE_KEY
 :::tab{value=pnpm}
 
 ```
-pnpm hardhat keystore set OPTIMISM_SEPOLIA_PRIVATE_KEY
+pnpm hardhat keystore set SEPOLIA_PRIVATE_KEY
 ```
 
 :::
@@ -553,9 +551,9 @@ pnpm hardhat ignition deploy --network sepolia ignition/modules/Counter.ts
 
 ::::
 
-You'll have to enter the password again to decrypt the private key, and then Hardhat Ignition will deploy the module with that account. If you repeat the command after a successful deployment, Ignition will detect that the module has already been deployed and won't send any new transactions.
+Enter your password to decrypt the private key, confirm that you want to deploy to Sepolia, and wait until Hardhat Ignition finishes the deployment. After this, if you repeat the command, Ignition will detect that the module has already been deployed and won't send any new transactions.
 
-Secrets are only decrypted when needed, which means that you only need to enter the password if a Hardhat task actually uses a secret.
+Secrets are only decrypted when needed, which means you only need to enter the password if a Hardhat task actually uses a secret.
 
 ## Revamped build system
 
@@ -605,8 +603,6 @@ Hardhat 3 continues to use npm as the primary tool for managing Solidity depende
 A difficult scenario in Hardhat 2 was handling conflicting transitive dependencies. Suppose you have a project with two dependencies, each of which depends on a different version of OpenZeppelin. This leads to conflicts that require complex manual workarounds. In Hardhat 3, this same scenario works automatically without any extra effort on your part.
 
 The new compilation system uses remappings internally to manage Solidity dependencies, but this complexity is hidden from you. User-defined remappings are fully supported, but using them is optional—there's no need to set them unless you want to.
-
-Learn more about this in ...
 
 ## Declarative configuration
 
@@ -667,7 +663,7 @@ Defining this task is similar to how it's done in Hardhat 2, with two difference
 - It needs to be included in the configuration object, just like plugins.
 - The `build` function must be called at the end.
 
-Hardhat 3 also includes a new hook system that enables easy extension of core functionality and allows plugin authors to add their own extensibility points. Learn more about Hooks in ...
+Hardhat 3 also includes a new hook system that enables easy extension of core functionality and allows plugin authors to add their own extensibility points.
 
 ## Closing words
 
