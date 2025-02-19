@@ -10,7 +10,7 @@ Welcome to the Hardhat 3 Alpha! This tutorial walks you through the major change
 
 We assume that you are familiar with Hardhat 2, but this tutorial isn't meant as a migration guide. Since Hardhat 3 is still in alpha and its APIs might change, we recommend waiting for the beta release before migrating.
 
-Join our "Hardhat 3 Alpha" Telegram group to share feedback and stay updated on new releases. It's still early, and your input can help us make Hardhat 3 the best it can be.
+Join our [Hardhat 3 Preview](https://t.me/+vWqXXHGklFQzZTUx) Telegram group to share feedback and stay updated on new releases. It's still early, and your input can help us make Hardhat 3 the best it can be.
 
 ## Getting started
 
@@ -42,14 +42,14 @@ pnpm init
 
 ::::
 
-Then install the Alpha version of Hardhat 3:
+Then initialize the sample project:
 
 ::::tabsgroup{options=npm,pnpm}
 
 :::tab{value=npm}
 
 ```
-npm install --save-dev hardhat@next
+npx hardhat@next --init
 ```
 
 :::
@@ -57,29 +57,7 @@ npm install --save-dev hardhat@next
 :::tab{value=pnpm}
 
 ```
-pnpm install --save-dev hardhat@next
-```
-
-:::
-
-::::
-
-You are ready to initialize the sample project. Run the following command:
-
-::::tabsgroup{options=npm,pnpm}
-
-:::tab{value=npm}
-
-```
-npx hardhat --init
-```
-
-:::
-
-:::tab{value=pnpm}
-
-```
-pnpm hardhat --init
+pnpx hardhat@next --init
 ```
 
 :::
@@ -516,6 +494,69 @@ This deployment is executed on the default network, which lasts only for the dur
 
 While Hardhat Ignition is our recommended approach for deploying contracts, you're free to use other tools. For example, you can use custom scripts for simple deployments or a deployment plugin from the community.
 
+### Managing secrets
+
+Hardhat 3 includes an encrypted secrets manager that makes it easier to handle sensitive information like private keys. This ensures you don't have to hardcode secrets in your source code or store them in plain text.
+
+The sepolia network configuration uses an encrypted secret in its list of accounts:
+
+```js
+networks: {
+  sepolia: {
+    url: "https://sepolia.gateway.tenderly.co",
+    accounts: [configVariable("SEPOLIA_PRIVATE_KEY")],
+  },
+},
+```
+
+Run the following task to add that secret:
+
+::::tabsgroup{options=npm,pnpm}
+
+:::tab{value=npm}
+
+```
+npx hardhat keystore set OPTIMISM_SEPOLIA_PRIVATE_KEY
+```
+
+:::
+
+:::tab{value=pnpm}
+
+```
+pnpm hardhat keystore set OPTIMISM_SEPOLIA_PRIVATE_KEY
+```
+
+:::
+
+::::
+
+Enter the private key of a Sepolia account with funds. Once the secret is set, you can deploy the Ignition module to Sepolia:
+
+::::tabsgroup{options=npm,pnpm}
+
+:::tab{value=npm}
+
+```
+npx hardhat ignition deploy --network sepolia ignition/modules/Counter.ts
+```
+
+:::
+
+:::tab{value=pnpm}
+
+```
+pnpm hardhat ignition deploy --network sepolia ignition/modules/Counter.ts
+```
+
+:::
+
+::::
+
+You'll have to enter the password again to decrypt the private key, and then Hardhat Ignition will deploy the module with that account. If you repeat the command after a successful deployment, Ignition will detect that the module has already been deployed and won't send any new transactions.
+
+Secrets are only decrypted when needed, which means that you only need to enter the password if a Hardhat task actually uses a secret.
+
 ## Revamped build system
 
 The build system was completely redesigned in Hardhat 3 to make it more powerful and flexible. The new system includes **build profiles**, offers **better npm compatibility**, and adds **opt-in support for user remappings**.
@@ -632,6 +673,6 @@ Hardhat 3 also includes a new hook system that enables easy extension of core fu
 
 In this tutorial, we covered some of the biggest changes coming in Hardhat 3, including first-class Solidity tests, multichain support, a revamped build system, and more—all designed to make Ethereum development more powerful and flexible.
 
-As this is an alpha release, things are still evolving. Your feedback is invaluable, whether it’s about missing features, usability issues, or anything else. Share your thoughts in the Hardhat 3 Alpha Telegram group or [open an issue](https://github.com/NomicFoundation/hardhat/issues/new?template=hardhat-3-alpha.yml) in our GitHub issue tracker.
+As this is an alpha release, things are still evolving. Your feedback is invaluable, whether it’s about missing features, usability issues, or anything else. Share your thoughts in the [Hardhat 3 Preview](https://t.me/+vWqXXHGklFQzZTUx) Telegram group or [open an issue](https://github.com/NomicFoundation/hardhat/issues/new?template=hardhat-3-alpha.yml) in our GitHub issue tracker.
 
 We’ll continue refining Hardhat 3 in the alpha stage until all planned features are in place. Once complete, we’ll release a beta version with comprehensive documentation and a migration guide to help projects transition smoothly. Thanks for trying it out, and stay tuned for updates!
