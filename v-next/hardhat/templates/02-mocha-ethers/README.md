@@ -4,17 +4,16 @@
 
 Welcome to the Hardhat 3 alpha version! This project showcases some of the changes and new features coming in Hardhat 3.
 
-To learn more about the Hardhat 3 alpha, please visit [its Docs Hub](https://www.notion.so/nomicfoundation/Hardhat-3-alpha-Docs-Hub-131578cdeaf580e89e8dca57b0d036c3).
+To learn more about the Hardhat 3 alpha, please visit [its tutorial](https://hardhat.org/hardhat3-preview). To share your feedback, join our [Hardhat 3 Preview](https://t.me/+vWqXXHGklFQzZTUx) Telegram group or [open an issue](https://github.com/NomicFoundation/hardhat/issues/new?template=hardhat-3-alpha.yml) in our GitHub issue tracker.
 
 ## Project Overview
 
 This example project includes:
 
-- A simple Hardhat configuration file
+- A simple Hardhat configuration file.
+- Foundry-compatible Solidity unit tests.
 - TypeScript integration tests using `mocha` and ethers.js
-- Foundry-compatible Solidity tests, including the usage of `forge-std`
-- Examples demonstrating how to connect to different types of networks, including simulating an Optimism network
-- A script that deploys a contract to Optimism Sepolia using Hardhat's new keystore capabilities
+- Examples demonstrating how to connect to different types of networks, including locally simulating OP mainnet.
 
 ## Navigating the Project
 
@@ -22,7 +21,7 @@ To get the most out of this example project, we recommend exploring the files in
 
 1. Read the `hardhat.config.ts` file, which contains the project configuration and explains multiple changes.
 2. Review the "Running Tests" section and explore the files in the `contracts/` and `test/` directories.
-3. Read the "Sending a Transaction to Optimism Sepolia" section, follow the instructions, and examine the `scripts/send-op-tx.ts` file.
+3. Read the "Make a deployment to Sepolia" section and follow the instructions.
 
 Each file includes inline explanations of its purpose and highlights the changes and new features introduced in Hardhat 3.
 
@@ -43,32 +42,30 @@ npx hardhat test solidity
 npx hardhat test mocha
 ```
 
-### Sending a Transaction to Optimism Sepolia
+### Make a deployment to Sepolia
 
-This project includes an example script that sends a simple transaction to Optimism Sepolia. You can run the script using either the actual Optimism Sepolia network or a simulated version that behaves exactly like the real network.
+This project includes an example Ignition module to deploy the contract. You can deploy this module to a locally simulated chain or to Sepolia.
 
-To run the script with EDR in Optimism mode:
+To run the deployment to a local chain:
 
 ```shell
-npx hardhat run scripts/send-op-tx.ts --network edrOpSepolia
+npx hardhat ignition deploy ignition/modules/Counter.ts
 ```
 
-To run the script with Optimism Sepolia, you need an account with funds to send the transaction. The provided Hardhat configuration includes a Configuration Variable called `OPTIMISM_SEPOLIA_PRIVATE_KEY`, which you can use to set the private key of the account you want to use.
+To run the deployment to Sepolia, you need an account with funds to send the transaction. The provided Hardhat configuration includes a Configuration Variable called `SEPOLIA_PRIVATE_KEY`, which you can use to set the private key of the account you want to use.
 
-You can set the `OPTIMISM_SEPOLIA_PRIVATE_KEY` variable using the `hardhat-keystore` plugin or by setting it as an environment variable.
+You can set the `SEPOLIA_PRIVATE_KEY` variable using the `hardhat-keystore` plugin or by setting it as an environment variable.
 
-> **WARNING**: The private key is currently stored unencrypted. Full encryption will be included before the beta release.
-
-To set the `OPTIMISM_SEPOLIA_PRIVATE_KEY` config variable using `hardhat-keystore`:
+To set the `SEPOLIA_PRIVATE_KEY` config variable using `hardhat-keystore`:
 
 ```shell
-npx hardhat keystore set OPTIMISM_SEPOLIA_PRIVATE_KEY
+npx hardhat keystore set SEPOLIA_PRIVATE_KEY
 ```
 
-After setting the variable, you can run the script with the Optimism Sepolia network:
+After setting the variable, you can run the deployment with the Sepolia network:
 
 ```shell
-npx hardhat run scripts/send-op-tx.ts --network opSepolia
+npx hardhat ignition deploy --network sepolia ignition/modules/Counter.ts
 ```
 
 ---
