@@ -235,7 +235,7 @@ describe("Requests util", () => {
 
   describe("getRequest", async () => {
     const interceptor = await initializeTestDispatcher();
-    const url = "http://localhost/";
+    const url = "http://localhost";
     const baseInterceptorOptions = {
       path: "/",
       method: "GET",
@@ -317,7 +317,7 @@ describe("Requests util", () => {
 
   describe("postJsonRequest", async () => {
     const interceptor = await initializeTestDispatcher();
-    const url = "http://localhost/";
+    const url = "http://localhost";
     const body = { foo: "bar" };
     const baseInterceptorOptions = {
       path: "/",
@@ -415,7 +415,7 @@ describe("Requests util", () => {
 
   describe("postFormRequest", async () => {
     const interceptor = await initializeTestDispatcher();
-    const url = "http://localhost/";
+    const url = "http://localhost";
     const body = { foo: "bar" };
     const baseInterceptorOptions = {
       path: "/",
@@ -514,7 +514,7 @@ describe("Requests util", () => {
   describe("download", async () => {
     const interceptor = await initializeTestDispatcher();
     const getTmpDir = useTmpDir("request");
-    const url = "http://localhost/";
+    const url = "http://localhost";
     const baseInterceptorOptions = {
       path: "/",
       method: "GET",
