@@ -14,6 +14,7 @@ import type {
 
 import { deepClone } from "@ignored/hardhat-vnext-utils/lang";
 
+import { AsyncMutex } from "../../../core/async-mutex.js";
 import { isJsonRpcResponse } from "../json-rpc.js";
 
 export default async (): Promise<Partial<NetworkHooks>> => {
@@ -26,6 +27,8 @@ export default async (): Promise<Partial<NetworkHooks>> => {
     NetworkConnection<ChainType | string>,
     RequestHandler[]
   > = new Map();
+
+  const intializationMutex = new AsyncMutex();
 
   const handlers: Partial<NetworkHooks> = {
     async onRequest<ChainTypeT extends ChainType | string>(
@@ -42,12 +45,20 @@ export default async (): Promise<Partial<NetworkHooks>> => {
         "../request-handlers/handlers-array.js"
       );
 
-      let requestHandlers = requestHandlersPerConnection.get(networkConnection);
+      const requestHandlers = await intializationMutex.exclusiveRun(
+        async () => {
+          let handlers = requestHandlersPerConnection.get(networkConnection);
 
-      if (requestHandlers === undefined) {
-        requestHandlers = await createHandlersArray(networkConnection);
-        requestHandlersPerConnection.set(networkConnection, requestHandlers);
-      }
+          if (handlers === undefined) {
+            handlers = await createHandlersArray(networkConnection);
+            requestHandlersPerConnection.set(networkConnection, handlers);
+
+            return handlers;
+          }
+
+          return handlers;
+        },
+      );
 
       // We clone the request to avoid interfering with other hook handlers that
       // might be using the original request.
