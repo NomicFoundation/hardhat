@@ -1,7 +1,7 @@
 import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
 import type { NewTaskActionFunction } from "@ignored/hardhat-vnext/types/tasks";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import chalk from "chalk";
 
 interface TaskVerifyArguments {
   deploymentId: string;
@@ -12,10 +12,13 @@ const verifyTask: NewTaskActionFunction<TaskVerifyArguments> = async (
   _args,
   _hre: HardhatRuntimeEnvironment,
 ) => {
-  throw new HardhatError(HardhatError.ERRORS.INTERNAL.NOT_IMPLEMENTED_ERROR, {
-    message:
-      "Verifying deployments is not available yet. It will be available in a future version of the Harhdat 3 Alpha",
-  });
+  console.log(
+    chalk.yellow(
+      "This task will be implemented soon. Check back soon for more updates.",
+    ),
+  );
+
+  return;
 
   // const { getVerificationInformation } = await import(
   //   "@ignored/hardhat-vnext-ignition-core"
