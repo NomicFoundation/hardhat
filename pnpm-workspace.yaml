@@ -1,5 +1,3 @@
 packages:
-  - "packages/*"
-  - "!packages/hardhat-ignition-examples"
   - "v-next/*"
   - "v-next/hardhat/templates/*"
