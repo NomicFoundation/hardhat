@@ -1,6 +1,6 @@
 {
   "name": "@ignored/hardhat-vnext-ignition-ui",
-  "version": "0.15.10-next.1",
+  "version": "0.15.10-next.2",
   "type": "module",
   "scripts": {
     "predev": "pnpm regenerate-deployment-example",
@@ -20,7 +20,7 @@
   "devDependencies": {
     "@eslint-community/eslint-plugin-eslint-comments": "^4.3.0",
     "@fontsource/roboto": "^5.0.8",
-    "@ignored/hardhat-vnext-ignition-core": "workspace:^0.15.10-next.1",
+    "@ignored/hardhat-vnext-ignition-core": "workspace:^0.15.10-next.2",
     "@types/chai": "^4.2.0",
     "@types/chai-as-promised": "^8.0.1",
     "@types/mocha": ">=9.1.0",
