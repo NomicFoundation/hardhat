@@ -1,6 +1,6 @@
 import { configVariable, HardhatUserConfig } from "hardhat/config";
 
-import HardhatMochaTestRunner from "@nomicfoundation/hardhat-mocha-test-runner";
+import HardhatMochaTestRunner from "@nomicfoundation/hardhat-mocha";
 import HardhatEthers from "@nomicfoundation/hardhat-ethers";
 import HardhatNetworkHelpers from "@nomicfoundation/hardhat-network-helpers";
 import HardhatKeystore from "@nomicfoundation/hardhat-keystore";

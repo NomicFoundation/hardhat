@@ -32,7 +32,7 @@ const hardhatPlugin: HardhatPlugin = {
   hookHandlers: {
     config: import.meta.resolve("./hookHandlers/config.js"),
   },
-  npmPackage: "@nomicfoundation/hardhat-mocha-test-runner",
+  npmPackage: "@nomicfoundation/hardhat-mocha",
 };
 
 export default hardhatPlugin;

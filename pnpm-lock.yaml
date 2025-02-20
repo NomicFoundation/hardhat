@@ -41,7 +41,7 @@ importers:
       '@nomicfoundation/hardhat-keystore':
         specifier: workspace:^2.0.0
         version: link:../hardhat-keystore
-      '@nomicfoundation/hardhat-mocha-test-runner':
+      '@nomicfoundation/hardhat-mocha':
         specifier: workspace:^2.0.0
         version: link:../hardhat-mocha-test-runner
       '@nomicfoundation/hardhat-network-helpers':
@@ -384,7 +384,7 @@ importers:
       '@eslint-community/eslint-plugin-eslint-comments':
         specifier: ^4.3.0
         version: 4.4.1(eslint@8.57.0)
-      '@nomicfoundation/hardhat-mocha-test-runner':
+      '@nomicfoundation/hardhat-mocha':
         specifier: workspace:^2.0.0
         version: link:../hardhat-mocha-test-runner
       '@nomicfoundation/hardhat-node-test-reporter':
@@ -1763,7 +1763,7 @@ importers:
       '@nomicfoundation/hardhat-keystore':
         specifier: workspace:^2.0.0
         version: link:../../../hardhat-keystore
-      '@nomicfoundation/hardhat-mocha-test-runner':
+      '@nomicfoundation/hardhat-mocha':
         specifier: workspace:^2.0.0
         version: link:../../../hardhat-mocha-test-runner
       '@nomicfoundation/hardhat-network-helpers':
