@@ -27,7 +27,10 @@
     "template-javascript-with-examples": "0.0.1",
     "template-mocha-ethers": "0.0.1",
     "template-typescript-with-examples": "0.0.1",
-    "template-node-test-runner-viem": "0.0.1"
+    "template-node-test-runner-viem": "0.0.1",
+    "@nomicfoundation/example-project": "3.0.1"
   },
-  "changesets": []
+  "changesets": [
+    "strong-mugs-change"
+  ]
 }
