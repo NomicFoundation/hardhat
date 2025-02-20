@@ -49,8 +49,8 @@
   },
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "1.0.2",
-    "@ignored/hardhat-vnext": "workspace:^3.0.0-next.22",
-    "@ignored/hardhat-vnext-network-helpers": "workspace:^3.0.0-next.18",
+    "hardhat": "workspace:^2.22.18",
+    "@nomicfoundation/hardhat-network-helpers": "workspace:^1.0.12",
     "@types/chai": "^4.2.0",
     "@types/chai-as-promised": "^8.0.1",
     "@types/debug": "^4.1.7",
@@ -81,13 +81,13 @@
     "viem": "^2.21.42"
   },
   "peerDependencies": {
-    "@ignored/hardhat-vnext": "workspace:^3.0.0-next.22"
+    "hardhat": "workspace:^2.22.18"
   },
   "dependencies": {
-    "@ignored/hardhat-vnext-errors": "workspace:^3.0.0-next.21",
-    "@ignored/hardhat-vnext-ignition-core": "workspace:^0.15.10-next.4",
-    "@ignored/hardhat-vnext-ignition-ui": "workspace:^0.15.10-next.4",
-    "@ignored/hardhat-vnext-utils": "workspace:^3.0.0-next.21",
+    "@nomicfoundation/hardhat-errors": "workspace:^2.0.0",
+    "@nomicfoundation/ignition-core": "workspace:^0.15.9",
+    "@nomicfoundation/ignition-ui": "workspace:^0.15.9",
+    "@nomicfoundation/hardhat-utils": "workspace:^2.0.0",
     "chalk": "^5.3.0",
     "debug": "^4.3.2",
     "prompts": "^2.4.2",

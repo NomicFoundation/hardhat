@@ -44,7 +44,7 @@
   ],
   "devDependencies": {
     "@eslint-community/eslint-plugin-eslint-comments": "^4.3.0",
-    "@ignored/hardhat-vnext-node-test-reporter": "workspace:^3.0.0-next.21",
+    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^2.0.0",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
     "@types/debug": "^4.1.7",
     "@types/node": "^20.14.9",
@@ -64,12 +64,12 @@
     "typescript-eslint": "7.7.1"
   },
   "dependencies": {
-    "@ignored/hardhat-vnext-errors": "workspace:^3.0.0-next.21",
-    "@ignored/hardhat-vnext-utils": "workspace:^3.0.0-next.21",
+    "@nomicfoundation/hardhat-errors": "workspace:^2.0.0",
+    "@nomicfoundation/hardhat-utils": "workspace:^2.0.0",
     "debug": "^4.3.2",
     "ethers": "^6.13.4"
   },
   "peerDependencies": {
-    "@ignored/hardhat-vnext": "workspace:^3.0.0-next.22"
+    "hardhat": "workspace:^2.22.18"
   }
 }

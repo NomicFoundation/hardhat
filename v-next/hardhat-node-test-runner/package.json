@@ -56,14 +56,14 @@
     "typescript-eslint": "7.7.1"
   },
   "dependencies": {
-    "@ignored/hardhat-vnext-errors": "workspace:^3.0.0-next.21",
-    "@ignored/hardhat-vnext-node-test-reporter": "workspace:^3.0.0-next.21",
-    "@ignored/hardhat-vnext-utils": "workspace:^3.0.0-next.21",
-    "@ignored/hardhat-vnext-zod-utils": "workspace:^3.0.0-next.21",
+    "@nomicfoundation/hardhat-errors": "workspace:^2.0.0",
+    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^2.0.0",
+    "@nomicfoundation/hardhat-utils": "workspace:^2.0.0",
+    "@nomicfoundation/hardhat-zod-utils": "workspace:^2.0.0",
     "tsx": "^4.19.3",
     "zod": "^3.23.8"
   },
   "peerDependencies": {
-    "@ignored/hardhat-vnext": "workspace:^3.0.0-next.22"
+    "hardhat": "workspace:^2.22.18"
   }
 }
