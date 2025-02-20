@@ -10,7 +10,7 @@ Welcome to the Hardhat 3 Alpha! This tutorial walks you through the major change
 
 We assume you are familiar with Hardhat 2, but this tutorial isn't meant as a migration guide. Since Hardhat 3 is still in alpha and its APIs might change, we recommend waiting until the beta release before migrating.
 
-Join our [Hardhat 3 Alpha](https://t.me/+vWqXXHGklFQzZTUx) Telegram group to share feedback and stay updated on new releases. It's still early, and your input can help us make Hardhat 3 the best it can be.
+Join our [Hardhat 3 Alpha](https://hardhat.org/hardhat3-alpha-telegram-group) Telegram group to share feedback and stay updated on new releases. It's still early, and your input can help us make Hardhat 3 the best it can be.
 
 ## Getting started
 
@@ -677,6 +677,6 @@ Hardhat 3 also includes a new hook system that enables easy extension of core fu
 
 In this tutorial, we covered some of the biggest changes coming in Hardhat 3, including first-class Solidity tests, multichain support, a revamped build system, and more—all designed to make Ethereum development more powerful and flexible.
 
-This is an alpha release and things are still evolving. Your feedback is invaluable, whether it's about missing features, usability issues, or anything else. Share your thoughts in the [Hardhat 3 Alpha](https://t.me/+vWqXXHGklFQzZTUx) Telegram group or [open an issue](https://github.com/NomicFoundation/hardhat/issues/new?template=hardhat-3-alpha.yml) in our GitHub issue tracker.
+This is an alpha release and things are still evolving. Your feedback is invaluable, whether it's about missing features, usability issues, or anything else. Share your thoughts in the [Hardhat 3 Alpha](https://hardhat.org/hardhat3-alpha-telegram-group) Telegram group or [open an issue](https://github.com/NomicFoundation/hardhat/issues/new?template=hardhat-3-alpha.yml) in our GitHub issue tracker.
 
 We'll continue refining Hardhat 3 in the alpha stage until all planned features are in place. Once complete, we'll release a beta version with comprehensive documentation and a migration guide to help projects transition smoothly. Thanks for trying it out, and stay tuned for updates!
