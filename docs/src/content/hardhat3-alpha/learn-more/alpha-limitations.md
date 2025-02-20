@@ -4,7 +4,11 @@ prev: false
 
 # Alpha Version Limitations
 
-This page lists some of the limitations of the alpha version of Hardhat 3. These issues will be addressed in upcoming releases. To stay up to date with the latest changes, you can join the [Hardhat 3 Alpha Telegram group](https://hardhat.org/hardhat3-alpha-telegram-group).
+Thanks for trying out Hardhat 3! Please note that the alpha version is still in development and may contain bugs, missing features, and rough edges.
+
+This page outlines some of the limitations and issues present in the alpha version. These will be addressed in upcoming releases.
+
+Since Hardhat 3 is still in development, things will continue to evolve, and your feedback can make a big difference. Let us know what you think and what you need! To stay up to date with the latest changes and share your feedback, join our [Hardhat 3 Alpha Telegram group](https://hardhat.org/hardhat3-alpha-telegram-group).
 
 ## Missing Plugins and Features
 
