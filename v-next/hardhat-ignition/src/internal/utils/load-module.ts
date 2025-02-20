@@ -4,8 +4,8 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { IgnitionError } from "@nomicfoundation/ignition-core";
 import { exists } from "@nomicfoundation/hardhat-utils/fs";
+import { IgnitionError } from "@nomicfoundation/ignition-core";
 import setupDebug from "debug";
 
 import { shouldBeHardhatPluginError } from "./shouldBeHardhatPluginError.js";

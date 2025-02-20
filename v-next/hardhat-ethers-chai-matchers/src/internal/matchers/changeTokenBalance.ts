@@ -1,4 +1,3 @@
-import type { EthereumProvider } from "hardhat/types/providers";
 import type {
   Addressable,
   BaseContract,
@@ -7,6 +6,7 @@ import type {
   ContractTransactionResponse,
 } from "ethers";
 import type { TransactionResponse } from "ethers/providers";
+import type { EthereumProvider } from "hardhat/types/providers";
 
 import {
   assertHardhatInvariant,

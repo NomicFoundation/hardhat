@@ -12,8 +12,8 @@ import path from "node:path";
 import { after, before, beforeEach, describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { getRealPath } from "@nomicfoundation/hardhat-utils/fs";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
+import { getRealPath } from "@nomicfoundation/hardhat-utils/fs";
 
 import {
   fsPathToSourceNamePath,

@@ -1,6 +1,6 @@
 import type { MatchersContract } from "../../helpers/contracts.js";
-import type { EthereumProvider } from "hardhat/types/providers";
 import type { HardhatEthers } from "@nomicfoundation/hardhat-ethers/types";
+import type { EthereumProvider } from "hardhat/types/providers";
 
 import path from "node:path";
 import { before, beforeEach, describe, it } from "node:test";

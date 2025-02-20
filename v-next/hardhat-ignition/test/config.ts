@@ -1,9 +1,9 @@
 import type { KeyListOf } from "./test-helpers/type-helper.js";
 import type { HardhatConfig, NetworkConfig } from "hardhat/types/config";
 
-import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 import { buildModule } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
+import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 import "../src/type-extensions.js";
 

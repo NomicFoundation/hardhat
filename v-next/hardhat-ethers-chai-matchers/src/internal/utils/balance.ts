@@ -1,5 +1,5 @@
-import type { EthereumProvider } from "hardhat/types/providers";
 import type { Addressable } from "ethers";
+import type { EthereumProvider } from "hardhat/types/providers";
 
 import { toBigInt } from "@nomicfoundation/hardhat-utils/bigint";
 import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";

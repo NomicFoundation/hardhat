@@ -1,6 +1,6 @@
+import type { ListTransactionsResult } from "@nomicfoundation/ignition-core";
 import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 import type { NewTaskActionFunction } from "hardhat/types/tasks";
-import type { ListTransactionsResult } from "@nomicfoundation/ignition-core";
 
 import path from "node:path";
 

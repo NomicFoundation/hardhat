@@ -17,8 +17,8 @@ import assert from "node:assert/strict";
 import { describe, it, beforeEach, before } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 
 import { HookManagerImplementation } from "../../../src/internal/core/hook-manager.js";
 import {

@@ -3,10 +3,6 @@ import type {
   EthersIgnitionHelper,
   IgnitionModuleResultsTToEthersContracts,
 } from "../types.js";
-import type { ArtifactManager } from "hardhat/types/artifacts";
-import type { HardhatConfig } from "hardhat/types/config";
-import type { ChainType, NetworkConnection } from "hardhat/types/network";
-import "@nomicfoundation/hardhat-ignition";
 import type {
   DeployConfig,
   DeploymentParameters,
@@ -18,6 +14,10 @@ import type {
   SuccessfulDeploymentResult,
 } from "@nomicfoundation/ignition-core";
 import type { Contract } from "ethers";
+import type { ArtifactManager } from "hardhat/types/artifacts";
+import type { HardhatConfig } from "hardhat/types/config";
+import type { ChainType, NetworkConnection } from "hardhat/types/network";
+import "@nomicfoundation/hardhat-ignition";
 
 import path from "node:path";
 

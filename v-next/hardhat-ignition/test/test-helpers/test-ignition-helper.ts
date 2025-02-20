@@ -1,5 +1,3 @@
-import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
-import type { NetworkConnection } from "hardhat/types/network";
 import type {
   DeployConfig,
   DeploymentParameters,
@@ -10,6 +8,8 @@ import type {
   StrategyConfig,
   SuccessfulDeploymentResult,
 } from "@nomicfoundation/ignition-core";
+import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
+import type { NetworkConnection } from "hardhat/types/network";
 import type { GetContractReturnType } from "viem";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";

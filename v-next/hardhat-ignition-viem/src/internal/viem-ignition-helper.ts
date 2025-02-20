@@ -2,9 +2,7 @@ import type {
   ViemIgnitionHelper,
   IgnitionModuleResultsToViemContracts,
 } from "../types.js";
-import type { ArtifactManager } from "hardhat/types/artifacts";
-import type { HardhatConfig } from "hardhat/types/config";
-import type { NetworkConnection, ChainType } from "hardhat/types/network";
+import type { GetContractReturnType } from "@nomicfoundation/hardhat-viem/types";
 import type {
   ContractAtFuture,
   ContractDeploymentFuture,
@@ -22,7 +20,9 @@ import type {
   StrategyConfig,
   SuccessfulDeploymentResult,
 } from "@nomicfoundation/ignition-core";
-import type { GetContractReturnType } from "@nomicfoundation/hardhat-viem/types";
+import type { ArtifactManager } from "hardhat/types/artifacts";
+import type { HardhatConfig } from "hardhat/types/config";
+import type { NetworkConnection, ChainType } from "hardhat/types/network";
 
 import path from "node:path";
 

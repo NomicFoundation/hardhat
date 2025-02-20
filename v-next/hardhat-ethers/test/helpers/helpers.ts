@@ -1,8 +1,8 @@
 import type { HardhatEthers } from "../../src/types.js";
+import type { ContractRunner, Signer } from "ethers";
 import type { ArtifactManager } from "hardhat/types/artifacts";
 import type { NetworkConfig } from "hardhat/types/config";
 import type { EthereumProvider } from "hardhat/types/providers";
-import type { ContractRunner, Signer } from "ethers";
 
 import assert from "node:assert/strict";
 

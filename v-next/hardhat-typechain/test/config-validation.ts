@@ -1,8 +1,8 @@
 import { describe, it } from "node:test";
 
-import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
+import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 import hardhatTypechain from "../src/index.js";
 

@@ -6,17 +6,17 @@ import { describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
+  assertRejectsWithHardhatError,
+  disableConsole,
+  useTmpDir,
+} from "@nomicfoundation/hardhat-test-utils";
+import {
   ensureDir,
   exists,
   readJsonFile,
   readUtf8File,
   writeUtf8File,
 } from "@nomicfoundation/hardhat-utils/fs";
-import {
-  assertRejectsWithHardhatError,
-  disableConsole,
-  useTmpDir,
-} from "@nomicfoundation/hardhat-test-utils";
 
 import {
   copyProjectFiles,

@@ -4,12 +4,12 @@ import type {
   EventsContract,
   MatchersContract,
 } from "../helpers/contracts.js";
-import type { EthereumProvider } from "hardhat/types/providers";
 import type {
   HardhatEthers,
   HardhatEthersSigner,
 } from "@nomicfoundation/hardhat-ethers/types";
 import type { TransactionResponse } from "ethers";
+import type { EthereumProvider } from "hardhat/types/providers";
 
 import assert from "node:assert/strict";
 import path from "node:path";

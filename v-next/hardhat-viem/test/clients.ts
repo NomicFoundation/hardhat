@@ -9,10 +9,10 @@ import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
 
-import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { expectTypeOf } from "expect-type";
+import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 import { parseEther } from "viem";
 
 import HardhatViem from "../src/index.js";

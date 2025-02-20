@@ -1,9 +1,9 @@
-import type { ArtifactManager } from "hardhat/types/artifacts";
 import type {
   Artifact,
   ArtifactResolver,
   BuildInfo,
 } from "@nomicfoundation/ignition-core";
+import type { ArtifactManager } from "hardhat/types/artifacts";
 
 import { readJsonFile } from "@nomicfoundation/hardhat-utils/fs";
 

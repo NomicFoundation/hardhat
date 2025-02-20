@@ -1,5 +1,5 @@
-import type { EthereumProvider } from "hardhat/types/providers";
 import type { HardhatEthers } from "@nomicfoundation/hardhat-ethers/types";
+import type { EthereumProvider } from "hardhat/types/providers";
 
 // We use declare global instead of declare module "chai", because that's what
 // @types/chai does.

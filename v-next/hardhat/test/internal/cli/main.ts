@@ -15,12 +15,12 @@ import { afterEach, before, describe, it, mock } from "node:test";
 import { pathToFileURL } from "node:url";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { isCi } from "@nomicfoundation/hardhat-utils/ci";
 import {
   assertThrowsHardhatError,
   assertRejectsWithHardhatError,
   useFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
+import { isCi } from "@nomicfoundation/hardhat-utils/ci";
 import chalk from "chalk";
 import debug from "debug";
 

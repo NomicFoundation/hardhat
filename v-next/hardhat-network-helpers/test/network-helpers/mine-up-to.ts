@@ -4,8 +4,8 @@ import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
+import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
 
 import { toBigInt } from "../../src/internal/conversion.js";
 import { initializeNetwork } from "../helpers/helpers.js";

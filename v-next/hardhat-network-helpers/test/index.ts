@@ -3,9 +3,9 @@ import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 
 import { beforeEach, describe, it } from "node:test";
 
-import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
+import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 import hardhatNetworkHelpersPlugin from "../src/index.js";
 

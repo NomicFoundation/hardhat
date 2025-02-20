@@ -1,14 +1,13 @@
-import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
-import type { NewTaskActionFunction } from "hardhat/types/tasks";
 import type {
   DeploymentParameters,
   DeploymentResult,
 } from "@nomicfoundation/ignition-core";
+import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
+import type { NewTaskActionFunction } from "hardhat/types/tasks";
 
 import path from "node:path";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { deploy, IgnitionError } from "@nomicfoundation/ignition-core";
 import {
   ensureDir,
   exists,
@@ -17,6 +16,7 @@ import {
   remove,
   writeJsonFile,
 } from "@nomicfoundation/hardhat-utils/fs";
+import { deploy, IgnitionError } from "@nomicfoundation/ignition-core";
 import chalk from "chalk";
 import Prompt from "prompts";
 

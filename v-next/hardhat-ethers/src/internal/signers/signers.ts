@@ -1,7 +1,7 @@
 import type { HardhatEthersSigner as HardhatEthersSignerI } from "../../types.js";
 import type { HardhatEthersProvider } from "../hardhat-ethers-provider/hardhat-ethers-provider.js";
-import type { NetworkConfig } from "hardhat/types/config";
 import type { BlockTag, TransactionRequest, ethers } from "ethers";
+import type { NetworkConfig } from "hardhat/types/config";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {

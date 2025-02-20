@@ -1,4 +1,8 @@
 import type {
+  ContractAbis,
+  GetContractReturnType,
+} from "@nomicfoundation/hardhat-viem/types";
+import type {
   IgnitionModuleResult,
   StrategyConfig,
   IgnitionModule,
@@ -8,10 +12,6 @@ import type {
   ContractDeploymentFuture,
   ContractFuture,
 } from "@nomicfoundation/ignition-core";
-import type {
-  ContractAbis,
-  GetContractReturnType,
-} from "@nomicfoundation/hardhat-viem/types";
 
 export interface ViemIgnitionHelper {
   type: "viem";

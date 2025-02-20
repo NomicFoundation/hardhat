@@ -1,7 +1,7 @@
 import type { BalanceChangeOptions } from "../utils/balance.js";
-import type { EthereumProvider } from "hardhat/types/providers";
 import type { Addressable } from "ethers/address";
 import type { TransactionResponse } from "ethers/providers";
+import type { EthereumProvider } from "hardhat/types/providers";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { toBigInt } from "ethers/utils";

@@ -1,7 +1,7 @@
 import type { EthereumProvider } from "hardhat/types/providers";
 
-import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
+import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 import { NetworkHelpers } from "../../src/internal/network-helpers/network-helpers.js";
 

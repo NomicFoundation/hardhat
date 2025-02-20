@@ -3,12 +3,12 @@ import path from "node:path";
 import { beforeEach, describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import * as fs from "@nomicfoundation/hardhat-utils/fs";
-import { download } from "@nomicfoundation/hardhat-utils/request";
 import {
   assertRejectsWithHardhatError,
   useTmpDir,
 } from "@nomicfoundation/hardhat-test-utils";
+import * as fs from "@nomicfoundation/hardhat-utils/fs";
+import { download } from "@nomicfoundation/hardhat-utils/request";
 
 import {
   CompilerDownloaderImplementation as CompilerDownloader,

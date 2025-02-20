@@ -5,15 +5,15 @@ import type { TransactionReceipt as ViemTransactionReceipt } from "viem";
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
 
-import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { ensureError } from "@nomicfoundation/hardhat-utils/error";
-import { sleep } from "@nomicfoundation/hardhat-utils/lang";
 import {
   assertIsHardhatError,
   assertRejectsWithHardhatError,
   useFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
+import { sleep } from "@nomicfoundation/hardhat-utils/lang";
+import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 import { getAddress, parseEther } from "viem";
 
 import HardhatViem from "../src/index.js";

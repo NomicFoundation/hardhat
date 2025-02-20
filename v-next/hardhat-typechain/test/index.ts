@@ -2,13 +2,13 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import { before, describe, it } from "node:test";
 
-import { createHardhatRuntimeEnvironment } from "hardhat/hre";
+import { useFixtureProject } from "@nomicfoundation/hardhat-test-utils";
 import {
   exists,
   readUtf8File,
   remove,
 } from "@nomicfoundation/hardhat-utils/fs";
-import { useFixtureProject } from "@nomicfoundation/hardhat-test-utils";
+import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 describe("hardhat-typechain", () => {
   describe("check that types are generated correctly", () => {

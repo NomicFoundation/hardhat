@@ -1,5 +1,5 @@
-import type { HardhatUserConfig } from "hardhat/config";
 import type { HardhatUserConfigValidationError } from "@nomicfoundation/hardhat-zod-utils";
+import type { HardhatUserConfig } from "hardhat/config";
 
 import { validateUserConfigZodType } from "@nomicfoundation/hardhat-zod-utils";
 import { z } from "zod";

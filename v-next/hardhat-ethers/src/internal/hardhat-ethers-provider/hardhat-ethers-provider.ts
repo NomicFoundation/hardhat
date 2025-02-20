@@ -1,6 +1,4 @@
 import type { HardhatEthersProvider as HardhatEthersProviderI } from "../../types.js";
-import type { NetworkConfig } from "hardhat/types/config";
-import type { EthereumProvider } from "hardhat/types/providers";
 import type {
   AddressLike,
   BlockTag,
@@ -18,6 +16,8 @@ import type {
   EventFilter,
   ethers,
 } from "ethers";
+import type { NetworkConfig } from "hardhat/types/config";
+import type { EthereumProvider } from "hardhat/types/providers";
 
 import {
   assertHardhatInvariant,

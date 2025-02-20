@@ -5,9 +5,9 @@ import type {
 } from "../../types.js";
 import type { HardhatEthersProvider } from "../hardhat-ethers-provider/hardhat-ethers-provider.js";
 import type { HardhatEthersSigner } from "../signers/signers.js";
+import type { ethers as EthersT } from "ethers";
 import type { Abi, Artifact, ArtifactManager } from "hardhat/types/artifacts";
 import type { NetworkConfig } from "hardhat/types/config";
-import type { ethers as EthersT } from "ethers";
 
 import {
   assertHardhatInvariant,

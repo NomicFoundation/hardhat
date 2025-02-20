@@ -6,8 +6,8 @@ import type {
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
 
-import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
+import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 import HardhatViem from "../../src/index.js";
 

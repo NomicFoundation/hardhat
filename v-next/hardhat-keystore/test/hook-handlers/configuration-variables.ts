@@ -6,9 +6,9 @@ import path from "node:path";
 import { after, afterEach, before, beforeEach, describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 
-import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 import { isCi } from "@nomicfoundation/hardhat-utils/ci";
 import { remove, writeJsonFile } from "@nomicfoundation/hardhat-utils/fs";
+import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 import hardhatKeystorePlugin from "../../src/index.js";
 import {

@@ -3,13 +3,13 @@ import { beforeEach, describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
-  hexStringToBytes,
-  numberToHexString,
-} from "@nomicfoundation/hardhat-utils/hex";
-import {
   assertRejects,
   assertRejectsWithHardhatError,
 } from "@nomicfoundation/hardhat-test-utils";
+import {
+  hexStringToBytes,
+  numberToHexString,
+} from "@nomicfoundation/hardhat-utils/hex";
 import { addr } from "micro-eth-signer";
 
 import { getJsonRpcRequest } from "../../../../../../../src/internal/builtin-plugins/network-manager/json-rpc.js";

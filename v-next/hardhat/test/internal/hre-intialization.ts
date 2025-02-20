@@ -3,11 +3,11 @@ import path from "node:path";
 import { afterEach, describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { getRealPath } from "@nomicfoundation/hardhat-utils/fs";
 import {
   assertRejectsWithHardhatError,
   useFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
+import { getRealPath } from "@nomicfoundation/hardhat-utils/fs";
 
 import { builtinPlugins } from "../../src/internal/builtin-plugins/index.js";
 import { resolveHardhatConfigPath } from "../../src/internal/config-loading.js";

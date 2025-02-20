@@ -1,8 +1,8 @@
 import type { BalanceChangeOptions } from "../utils/balance.js";
-import type { EthereumProvider } from "hardhat/types/providers";
 import type { Addressable } from "ethers/address";
 import type { TransactionResponse } from "ethers/providers";
 import type { BigNumberish } from "ethers/utils";
+import type { EthereumProvider } from "hardhat/types/providers";
 
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";

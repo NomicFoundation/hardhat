@@ -4,8 +4,8 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
+import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
 
 import {
   HttpProvider,
