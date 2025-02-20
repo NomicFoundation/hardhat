@@ -8,7 +8,7 @@ Hardhat 3 brings major improvements and new features, with a focus on testing ca
 
 ## Support for Solidity Tests
 
-Hardhat 3 introduces support for writing tests directly in Solidity, a feature designed to streamline Solidity-based testing. This makes it easier to test contracts without switching contexts or relying exclusively on JavaScript/TypeScript. These tests are compatible with those written in Foundry. Learn more in the deep dive into Solidity tests.
+Hardhat 3 introduces support for writing tests directly in Solidity, a feature designed to streamline Solidity-based testing. This makes it easier to test contracts without switching contexts or relying exclusively on JavaScript/TypeScript. These tests are compatible with those written for Foundry. Learn more in the deep dive into Solidity tests.
 
 ## Multichain Development Workflows
 
