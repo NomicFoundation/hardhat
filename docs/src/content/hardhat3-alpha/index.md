@@ -534,7 +534,9 @@ pnpm hardhat keystore set SEPOLIA_PRIVATE_KEY
 ::::
 
 ::::tip
+
 If you don't have an RPC URL for Sepolia, you can use a public one like `https://sepolia.gateway.tenderly.co`. Keep in mind that public endpoints like this can be slower and less reliable.
+
 ::::
 
 Once the secrets are set, you can deploy the Ignition module to Sepolia:
