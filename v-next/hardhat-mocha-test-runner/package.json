@@ -1,6 +1,6 @@
 {
   "name": "@ignored/hardhat-vnext-mocha-test-runner",
-  "version": "3.0.0-next.18",
+  "version": "3.0.0-next.19",
   "description": "A mocha test runner",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-mocha-test-runner",
   "repository": {
@@ -40,7 +40,7 @@
   ],
   "devDependencies": {
     "@eslint-community/eslint-plugin-eslint-comments": "^4.3.0",
-    "@ignored/hardhat-vnext-node-test-reporter": "workspace:^3.0.0-next.21",
+    "@ignored/hardhat-vnext-node-test-reporter": "workspace:^3.0.0-next.22",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
     "@types/mocha": ">=9.1.0",
     "@types/node": "^20.14.9",
@@ -58,10 +58,10 @@
     "typescript-eslint": "7.7.1"
   },
   "dependencies": {
-    "@ignored/hardhat-vnext": "workspace:^3.0.0-next.22",
-    "@ignored/hardhat-vnext-errors": "workspace:^3.0.0-next.21",
-    "@ignored/hardhat-vnext-utils": "workspace:^3.0.0-next.21",
-    "@ignored/hardhat-vnext-zod-utils": "workspace:^3.0.0-next.21",
+    "@ignored/hardhat-vnext": "workspace:^3.0.0-next.23",
+    "@ignored/hardhat-vnext-errors": "workspace:^3.0.0-next.22",
+    "@ignored/hardhat-vnext-utils": "workspace:^3.0.0-next.22",
+    "@ignored/hardhat-vnext-zod-utils": "workspace:^3.0.0-next.22",
     "mocha": "^10.0.0",
     "tsx": "^4.19.3",
     "zod": "^3.23.8"
