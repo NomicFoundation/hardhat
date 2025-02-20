@@ -4,7 +4,7 @@
 
 Welcome to the Hardhat 3 alpha version! This project showcases some of the changes and new features coming in Hardhat 3.
 
-To learn more about the Hardhat 3 alpha, please visit [its tutorial](https://hardhat.org/hardhat3-alpha). To share your feedback, join our [Hardhat 3 Alpha](https://t.me/+vWqXXHGklFQzZTUx) Telegram group or [open an issue](https://github.com/NomicFoundation/hardhat/issues/new?template=hardhat-3-alpha.yml) in our GitHub issue tracker.
+To learn more about the Hardhat 3 Alpha, please visit [its tutorial](https://hardhat.org/hardhat3-alpha). To share your feedback, join our [Hardhat 3 Alpha](https://hardhat.org/hardhat3-alpha-telegram-group) Telegram group or [open an issue](https://github.com/NomicFoundation/hardhat/issues/new?template=hardhat-3-alpha.yml) in our GitHub issue tracker.
 
 ## Project Overview
 
@@ -70,4 +70,4 @@ npx hardhat ignition deploy --network sepolia ignition/modules/Counter.ts
 
 ---
 
-Feel free to explore the project and provide feedback on your experience with Hardhat 3 alpha!
+Feel free to explore the project and provide feedback on your experience with Hardhat 3 Alpha!

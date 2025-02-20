@@ -1,10 +1,39 @@
 # Hardhat Network Helpers
 
-Hardhat Network Helpers is a library that provides a set of utility functions to interact with the [Hardhat Network](https://hardhat.org/hardhat-network/docs).
+Hardhat Network Helpers is a plugin that provides a set of utility functions to interact with the [Hardhat Network](https://hardhat.org/hardhat-network/docs).
+
+## Installation
+
+To install this plugin, run the following command:
+
+```bash
+npm install --save-dev @nomicfoundation/hardhat-network-helpers@next
+```
+
+and add the following statements to your `hardhat.config.ts` file:
+
+```typescript
+// ...
+import networkHelpersPlugin from "@nomicfoundation/hardhat-network-helpers";
+
+// ...
+
+export default {
+  // ...
+  plugins: [
+    // ...
+    networkHelpersPlugin,
+  ],
+
+  // ...
+};
+```
 
 ### Usage
 
-```javascript
+This plugin defines a new `networkHelpers` property on every `NetworkConnection` object.
+
+```ts
 const { networkHelpers } = await hre.network.connect();
 
 // Network helpers methods exposed via `networkHelpers`
@@ -16,10 +45,3 @@ await networkHelpers.time.increase(1);
 // Duration methods exposed via `duration`
 networkHelpers.time.duration.days(1);
 ```
-
-### Tests
-
-Temporary solution to run manual tests until the V3 node is ready.
-
-1. Start a node in Hardhat V2: `npx hardhat node`
-2. Run the tests: `pnpm test:tmp`
