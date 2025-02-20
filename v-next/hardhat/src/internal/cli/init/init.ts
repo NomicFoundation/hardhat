@@ -289,7 +289,14 @@ export async function validatePackageJson(
 
   const packageManager = await getPackageManager(workspace);
 
-  await spawn(packageManager, ["pkg", "set", "type=module"], {
+  // We know this works with npm, pnpm, but not with yarn. If, so we use
+  // pnpm or npm exclusively.
+  // If you read this comment and wonder if this is outdated, you can
+  // answer it by checking if the most popular versions of yarn and other
+  // package managers support `<package manager> pkg set type=module`.
+  const packageManagerToUse = packageManager === "pnpm" ? "pnpm" : "npm";
+
+  await spawn(packageManagerToUse, ["pkg", "set", "type=module"], {
     cwd: workspace,
     shell: true,
     stdio: "inherit",
