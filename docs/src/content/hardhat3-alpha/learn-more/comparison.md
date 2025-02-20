@@ -46,9 +46,6 @@ By default, their values are loaded from environment variables, but this behavio
 
 ## Build profiles
 
-<<<<<<< Updated upstream
-Hardhat 3 introduces a powerful hooks system, enabling greater extensibility for plugin authors. Learn more in the deep dive into hooks. This feature is primarily for plugin developers and is not something most users will need to interact with directly.
-=======
 Hardhat 3 introduces support for build profiles, which let you use different compilation settings for different tasks.
 
 ## Full npm support
@@ -62,4 +59,3 @@ Hardhat 3 comes with a new hook system that enables easy extension of core funct
 ## Typed artifacts
 
 Hardhat 3 generates TypeScript declarations to have typed artifacts by default. These artifacts can be used by plugins to derive contract type information without a code generation step.
->>>>>>> Stashed changes
