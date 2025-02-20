@@ -1,7 +1,6 @@
 /* eslint-disable import/no-unused-modules */
 import type { DeploymentResult } from "@nomicfoundation/ignition-core";
 
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   DeploymentResultType,
   IgnitionError,

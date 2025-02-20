@@ -1,6 +1,5 @@
 import type { NetworkConnection } from "hardhat/types/network";
 
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { buildModule, IgnitionError } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
