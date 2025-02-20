@@ -1,6 +1,6 @@
-# Hardhat Keystore
+# Hardhat Keystore plugin
 
-This plugin adds an encrypted keystore to Hardhat, yo handle secret values (e.g. api keys and private keys) in your config securely.
+This plugin adds an encrypted keystore to Hardhat, to handle secret values (e.g. API keys and private keys) in your config securely.
 
 ## Installation
 

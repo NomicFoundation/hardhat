@@ -1,4 +1,4 @@
-# Hardhat Ethers Chai Matchers
+# Hardhat Ethers Chai Matchers plugin
 
 This plugin adds Ethereum-specific matchers to the [Chai](https://chaijs.com/) assertion library that integrate with [ethers.js](https://ethers.org/), making your smart contract tests easy to write and read.
 

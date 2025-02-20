@@ -31,4 +31,4 @@ export default {
 
 ## Usage
 
-This plugin defines a new task called `test node` that runs yout tests using `node:test`. This task gets executed automatically executed when running `npx hardhat test`.
+This plugin defines a new task called `test node` that runs your tests using `node:test`. This task gets executed automatically when running `npx hardhat test`.

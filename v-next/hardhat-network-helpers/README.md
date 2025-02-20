@@ -1,6 +1,6 @@
 # Hardhat Network Helpers
 
-Hardhat Network Helpers is a library that provides a set of utility functions to interact with the [Hardhat Network](https://hardhat.org/hardhat-network/docs).
+Hardhat Network Helpers is a plugin that provides a set of utility functions to interact with the [Hardhat Network](https://hardhat.org/hardhat-network/docs).
 
 ## Installation
 
@@ -31,7 +31,7 @@ export default {
 
 ### Usage
 
-This plugin defines a new `networkHelpers` property to every `NetworkConnection` object.
+This plugin defines a new `networkHelpers` property on every `NetworkConnection` object.
 
 ```ts
 const { networkHelpers } = await hre.network.connect();

@@ -31,7 +31,7 @@ export default {
 
 ## Usage
 
-This plugin defines a new `viem` property to every `NetworkConnection` object.
+This plugin defines a new `viem` property on every `NetworkConnection` object.
 
 ```ts
 const { viem } = await hre.network.connect();

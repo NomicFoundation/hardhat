@@ -31,7 +31,7 @@ export default {
 
 ## Usage
 
-This plugin defines a new `ethers` property to every `NetworkConnection` object.
+This plugin defines a new `ethers` property on every `NetworkConnection` object.
 
 ```ts
 const { ethers } = await hre.network.connect();

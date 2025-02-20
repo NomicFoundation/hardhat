@@ -1,6 +1,6 @@
 # Hardhat Mocha plugin
 
-This plugin integrates the [Mocha](https://mochajs.org/) into Hardhat.
+This plugin integrates [Mocha](https://mochajs.org/) into Hardhat.
 
 ## Installation
 
@@ -31,4 +31,4 @@ export default {
 
 ## Usage
 
-This plugin defines a new task called `test mocha` that runs yout tests using Mocha. This task gets executed automatically executed when running `npx hardhat test`.
+This plugin defines a new task called `test mocha` that runs your tests using Mocha. This task gets executed automatically when running `npx hardhat test`.

@@ -18,7 +18,7 @@ It introduces a number of custom features to make it more suitable for use with 
 
 ## Stand-alone installation
 
-`hardhat-node-test-reporter` comes built-in with Hardhat's `node:test` plugin. You don't need to install it separately, and the reporter will be used automatically.
+`hardhat-node-test-reporter` comes built-in with Hardhat's `node:test` plugin. You don't need to install it separately. The reporter will be used automatically.
 
 If you want to use the reporter in your own project, you can install it with npm (optionally, with a `--save-dev` flag):
 
