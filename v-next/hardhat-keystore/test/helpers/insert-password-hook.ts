@@ -1,7 +1,7 @@
-import type { HookContext } from "@ignored/hardhat-vnext/types/hooks";
-import type { HardhatPlugin } from "@ignored/hardhat-vnext/types/plugins";
+import type { HookContext } from "hardhat/types/hooks";
+import type { HardhatPlugin } from "hardhat/types/plugins";
 
-import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 
 export const setupKeystorePassword = (
   secretsToMock: string[],

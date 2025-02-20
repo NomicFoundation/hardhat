@@ -1,8 +1,8 @@
 import type { ZodType } from "zod";
 
-import { isHash } from "@ignored/hardhat-vnext-utils/eth";
-import { hexStringToBytes } from "@ignored/hardhat-vnext-utils/hex";
-import { conditionalUnionType } from "@ignored/hardhat-vnext-zod-utils";
+import { isHash } from "@nomicfoundation/hardhat-utils/eth";
+import { hexStringToBytes } from "@nomicfoundation/hardhat-utils/hex";
+import { conditionalUnionType } from "@nomicfoundation/hardhat-zod-utils";
 import { z } from "zod";
 
 const HASH_LENGTH_BYTES = 32;

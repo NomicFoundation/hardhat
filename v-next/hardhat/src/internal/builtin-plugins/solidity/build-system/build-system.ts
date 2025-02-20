@@ -21,16 +21,16 @@ import type { SolidityBuildInfo } from "../../../../types/solidity.js";
 import os from "node:os";
 import path from "node:path";
 
-import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import {
   getAllDirectoriesMatching,
   getAllFilesMatching,
   readJsonFile,
   remove,
   writeUtf8File,
-} from "@ignored/hardhat-vnext-utils/fs";
-import { shortenPath } from "@ignored/hardhat-vnext-utils/path";
-import { pluralize } from "@ignored/hardhat-vnext-utils/string";
+} from "@nomicfoundation/hardhat-utils/fs";
+import { shortenPath } from "@nomicfoundation/hardhat-utils/path";
+import { pluralize } from "@nomicfoundation/hardhat-utils/string";
 import chalk from "chalk";
 import debug from "debug";
 import pMap from "p-map";

@@ -11,9 +11,9 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import {
   HardhatError,
   assertHardhatInvariant,
-} from "@ignored/hardhat-vnext-errors";
-import { ensureError } from "@ignored/hardhat-vnext-utils/error";
-import { mkdir } from "@ignored/hardhat-vnext-utils/fs";
+} from "@nomicfoundation/hardhat-errors";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
+import { mkdir } from "@nomicfoundation/hardhat-utils/fs";
 import * as semver from "semver";
 
 export interface Compiler {

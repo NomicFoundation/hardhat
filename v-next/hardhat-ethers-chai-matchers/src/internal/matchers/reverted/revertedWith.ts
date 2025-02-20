@@ -1,5 +1,5 @@
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
 
 import { REVERTED_WITH_MATCHER } from "../../constants.js";
 import { buildAssert } from "../../utils/build-assert.js";

@@ -1,11 +1,11 @@
 import type { MatchersContract } from "./contracts.js";
-import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
-import type { HardhatEthers } from "@ignored/hardhat-vnext-ethers/types";
+import type { EthereumProvider } from "hardhat/types/providers";
+import type { HardhatEthers } from "@nomicfoundation/hardhat-ethers/types";
 import type { ContractTransactionResponse } from "ethers/contract";
 
 import { pathToFileURL } from "node:url";
 
-import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
+import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 import { AssertionError, expect } from "chai";
 
 export async function initEnvironment(_artifactsPath: string): Promise<{

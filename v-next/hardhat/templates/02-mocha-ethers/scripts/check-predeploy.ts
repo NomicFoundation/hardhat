@@ -1,4 +1,4 @@
-import { network } from "@ignored/hardhat-vnext";
+import { network } from "hardhat";
 
 // address of the GasPriceOracle predeploy in OP Stack chains
 const OP_GAS_PRICE_ORACLE = "0x420000000000000000000000000000000000000F";

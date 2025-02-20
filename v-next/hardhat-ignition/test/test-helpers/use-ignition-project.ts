@@ -1,21 +1,21 @@
-import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
-import type { NetworkConnection } from "@ignored/hardhat-vnext/types/network";
-import type {
-  EthereumProvider,
-  RequestArguments,
-} from "@ignored/hardhat-vnext/types/providers";
 import type {
   DeployConfig,
   IgnitionModule,
-} from "@ignored/hardhat-vnext-ignition-core";
+} from "@nomicfoundation/ignition-core";
+import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
+import type { NetworkConnection } from "hardhat/types/network";
+import type {
+  EthereumProvider,
+  RequestArguments,
+} from "hardhat/types/providers";
 
 import { EventEmitter } from "node:events";
 import path, { dirname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
-import hardhatNetworkHelpers from "@ignored/hardhat-vnext-network-helpers";
-import { ensureDir, remove } from "@ignored/hardhat-vnext-utils/fs";
+import hardhatNetworkHelpers from "@nomicfoundation/hardhat-network-helpers";
+import { ensureDir, remove } from "@nomicfoundation/hardhat-utils/fs";
+import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 import hardhatIgnition from "../../src/index.js";
 

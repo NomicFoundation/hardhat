@@ -1,3 +1,8 @@
+import type {
+  EdrNetworkConfigOverride,
+  HttpNetworkConfigOverride,
+  NetworkConfig,
+} from "../../../../src/types/config.js";
 import type { NetworkHooks } from "../../../../src/types/hooks.js";
 import type { HardhatRuntimeEnvironment } from "../../../../src/types/hre.js";
 import type {
@@ -5,16 +10,11 @@ import type {
   NetworkConnection,
   NetworkManager,
 } from "../../../../src/types/network.js";
-import type {
-  EdrNetworkConfigOverride,
-  HttpNetworkConfigOverride,
-  NetworkConfig,
-} from "@ignored/hardhat-vnext/types/config";
 
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { expectTypeOf } from "expect-type";
 

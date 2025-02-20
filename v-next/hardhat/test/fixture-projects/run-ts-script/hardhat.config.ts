@@ -1,6 +1,6 @@
-import type { HardhatUserConfig } from "@ignored/hardhat-vnext/config";
+import type { HardhatUserConfig } from "hardhat/config";
 
-import { task } from "@ignored/hardhat-vnext/config";
+import { task } from "hardhat/config";
 
 const config: HardhatUserConfig = {
   tasks: [

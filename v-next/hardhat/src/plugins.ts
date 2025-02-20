@@ -1,1 +1,1 @@
-export { HardhatPluginError } from "@ignored/hardhat-vnext-errors";
+export { HardhatPluginError } from "@nomicfoundation/hardhat-errors";

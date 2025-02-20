@@ -9,7 +9,7 @@ import type {
 import EventEmitter from "node:events";
 import util from "node:util";
 
-import { ensureError } from "@ignored/hardhat-vnext-utils/error";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 
 export abstract class BaseProvider
   extends EventEmitter

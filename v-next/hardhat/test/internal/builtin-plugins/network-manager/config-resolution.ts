@@ -10,7 +10,7 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import { before, describe, it } from "node:test";
 
-import { bytesToHexString } from "@ignored/hardhat-vnext-utils/hex";
+import { bytesToHexString } from "@nomicfoundation/hardhat-utils/hex";
 
 import { configVariable } from "../../../../src/config.js";
 import { createHardhatRuntimeEnvironment } from "../../../../src/hre.js";

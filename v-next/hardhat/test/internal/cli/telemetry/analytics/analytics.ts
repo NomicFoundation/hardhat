@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import { after, afterEach, before, beforeEach, describe, it } from "node:test";
 
-import { readJsonFile, remove } from "@ignored/hardhat-vnext-utils/fs";
+import { readJsonFile, remove } from "@nomicfoundation/hardhat-utils/fs";
 
 import {
   sendTaskAnalytics,

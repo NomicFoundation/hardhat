@@ -8,10 +8,10 @@ import type { Task, TaskArguments } from "../../types/tasks.js";
 import {
   HardhatError,
   assertHardhatInvariant,
-} from "@ignored/hardhat-vnext-errors";
-import { isCi } from "@ignored/hardhat-vnext-utils/ci";
-import { readClosestPackageJson } from "@ignored/hardhat-vnext-utils/package";
-import { kebabToCamelCase } from "@ignored/hardhat-vnext-utils/string";
+} from "@nomicfoundation/hardhat-errors";
+import { isCi } from "@nomicfoundation/hardhat-utils/ci";
+import { readClosestPackageJson } from "@nomicfoundation/hardhat-utils/package";
+import { kebabToCamelCase } from "@nomicfoundation/hardhat-utils/string";
 import debug from "debug";
 import { register } from "tsx/esm/api";
 

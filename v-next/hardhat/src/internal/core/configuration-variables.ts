@@ -7,8 +7,8 @@ import type { HookManager } from "../../types/hooks.js";
 import {
   assertHardhatInvariant,
   HardhatError,
-} from "@ignored/hardhat-vnext-errors";
-import { normalizeHexString } from "@ignored/hardhat-vnext-utils/hex";
+} from "@nomicfoundation/hardhat-errors";
+import { normalizeHexString } from "@nomicfoundation/hardhat-utils/hex";
 
 import { AsyncMutex } from "./async-mutex.js";
 

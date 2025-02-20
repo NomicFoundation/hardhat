@@ -1,10 +1,10 @@
 import type { EthereumProvider } from "../../../../../../types/providers.js";
 
-import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import {
   hexStringToNumber,
   isPrefixedHexString,
-} from "@ignored/hardhat-vnext-utils/hex";
+} from "@nomicfoundation/hardhat-utils/hex";
 
 /**
  * This class is responsible for retrieving the chain ID of the network.

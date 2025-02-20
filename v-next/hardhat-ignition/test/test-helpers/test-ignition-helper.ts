@@ -1,5 +1,5 @@
-import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
-import type { NetworkConnection } from "@ignored/hardhat-vnext/types/network";
+import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
+import type { NetworkConnection } from "hardhat/types/network";
 import type {
   DeployConfig,
   DeploymentParameters,
@@ -9,15 +9,15 @@ import type {
   IgnitionModuleResult,
   StrategyConfig,
   SuccessfulDeploymentResult,
-} from "@ignored/hardhat-vnext-ignition-core";
+} from "@nomicfoundation/ignition-core";
 import type { GetContractReturnType } from "viem";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   deploy,
   DeploymentResultType,
   isContractFuture,
-} from "@ignored/hardhat-vnext-ignition-core";
+} from "@nomicfoundation/ignition-core";
 import { createPublicClient, custom, getContract } from "viem";
 import { hardhat } from "viem/chains";
 

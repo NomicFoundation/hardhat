@@ -1,6 +1,6 @@
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { toBigInt } from "@ignored/hardhat-vnext-utils/bigint";
-import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { toBigInt } from "@nomicfoundation/hardhat-utils/bigint";
+import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
 
 import { REVERTED_WITH_PANIC_MATCHER } from "../../constants.js";
 import { buildAssert } from "../../utils/build-assert.js";

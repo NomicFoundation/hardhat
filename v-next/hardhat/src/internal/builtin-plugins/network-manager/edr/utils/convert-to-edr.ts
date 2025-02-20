@@ -40,7 +40,7 @@ import {
   L1_CHAIN_TYPE as EDR_L1_CHAIN_TYPE,
   GENERIC_CHAIN_TYPE as EDR_GENERIC_CHAIN_TYPE,
 } from "@ignored/edr-optimism";
-import { getUnprefixedHexString } from "@ignored/hardhat-vnext-utils/hex";
+import { getUnprefixedHexString } from "@nomicfoundation/hardhat-utils/hex";
 
 import { L1_CHAIN_TYPE, OPTIMISM_CHAIN_TYPE } from "../../../../constants.js";
 import { FixedValueConfigurationVariable } from "../../../../core/configuration-variables.js";

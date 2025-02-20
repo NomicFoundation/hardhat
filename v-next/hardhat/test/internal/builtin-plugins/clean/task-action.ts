@@ -10,8 +10,8 @@ import {
   readdir,
   remove,
   writeUtf8File,
-} from "@ignored/hardhat-vnext-utils/fs";
-import { getCacheDir } from "@ignored/hardhat-vnext-utils/global-dir";
+} from "@nomicfoundation/hardhat-utils/fs";
+import { getCacheDir } from "@nomicfoundation/hardhat-utils/global-dir";
 import { useFixtureProject } from "@nomicfoundation/hardhat-test-utils";
 
 import cleanAction from "../../../../src/internal/builtin-plugins/clean/task-action.js";

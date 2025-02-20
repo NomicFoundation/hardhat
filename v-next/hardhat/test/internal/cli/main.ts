@@ -14,8 +14,8 @@ import assert from "node:assert/strict";
 import { afterEach, before, describe, it, mock } from "node:test";
 import { pathToFileURL } from "node:url";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { isCi } from "@ignored/hardhat-vnext-utils/ci";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { isCi } from "@nomicfoundation/hardhat-utils/ci";
 import {
   assertThrowsHardhatError,
   assertRejectsWithHardhatError,

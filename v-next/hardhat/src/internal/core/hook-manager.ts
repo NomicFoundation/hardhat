@@ -15,7 +15,7 @@ import type { LastParameter, Return } from "../../types/utils.js";
 import {
   HardhatError,
   assertHardhatInvariant,
-} from "@ignored/hardhat-vnext-errors";
+} from "@nomicfoundation/hardhat-errors";
 
 import { AsyncMutex } from "./async-mutex.js";
 import { SHOULD_WARN_ABOUT_INLINE_TASK_ACTIONS_AND_HOOK_HANDLERS } from "./inline-functions-warning.js";

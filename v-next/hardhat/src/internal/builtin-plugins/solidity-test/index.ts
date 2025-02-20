@@ -36,7 +36,7 @@ const hardhatPlugin: HardhatPlugin = {
       return testBuiltinPlugin;
     },
   ],
-  npmPackage: "@ignored/hardhat-vnext",
+  npmPackage: "hardhat",
 };
 
 export default hardhatPlugin;

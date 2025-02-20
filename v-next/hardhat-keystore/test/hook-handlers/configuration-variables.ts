@@ -1,14 +1,14 @@
-import type { ConfigurationVariable } from "@ignored/hardhat-vnext/types/config";
-import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
+import type { ConfigurationVariable } from "hardhat/types/config";
+import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 
 import assert from "node:assert/strict";
 import path from "node:path";
 import { after, afterEach, before, beforeEach, describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 
-import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
-import { isCi } from "@ignored/hardhat-vnext-utils/ci";
-import { remove, writeJsonFile } from "@ignored/hardhat-vnext-utils/fs";
+import { createHardhatRuntimeEnvironment } from "hardhat/hre";
+import { isCi } from "@nomicfoundation/hardhat-utils/ci";
+import { remove, writeJsonFile } from "@nomicfoundation/hardhat-utils/fs";
 
 import hardhatKeystorePlugin from "../../src/index.js";
 import {

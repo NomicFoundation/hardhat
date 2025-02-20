@@ -6,7 +6,7 @@ import {
   writeJsonFile,
   readJsonFile,
   move,
-} from "@ignored/hardhat-vnext-utils/fs";
+} from "@nomicfoundation/hardhat-utils/fs";
 
 export class FileManagerImpl implements FileManager {
   public fileExists(absolutePath: string): Promise<boolean> {

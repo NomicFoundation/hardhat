@@ -1,12 +1,12 @@
-import type { HardhatConfig } from "@ignored/hardhat-vnext/types/config";
-import type { NewTaskActionFunction } from "@ignored/hardhat-vnext/types/tasks";
+import type { HardhatConfig } from "hardhat/types/config";
+import type { NewTaskActionFunction } from "hardhat/types/tasks";
 import type { MochaOptions } from "mocha";
 
 import { resolve as pathResolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { getAllFilesMatching } from "@ignored/hardhat-vnext-utils/fs";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
 
 interface TestActionArguments {
   testFiles: string[];

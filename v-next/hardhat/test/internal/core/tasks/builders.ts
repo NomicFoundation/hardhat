@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { after, before, describe, it } from "node:test";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import { RESERVED_ARGUMENT_NAMES } from "../../../../src/internal/core/arguments.js";

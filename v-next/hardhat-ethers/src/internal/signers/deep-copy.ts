@@ -1,5 +1,5 @@
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { deepClone, isObject } from "@ignored/hardhat-vnext-utils/lang";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { deepClone, isObject } from "@nomicfoundation/hardhat-utils/lang";
 
 const PRIMITIVE = [
   "bigint",

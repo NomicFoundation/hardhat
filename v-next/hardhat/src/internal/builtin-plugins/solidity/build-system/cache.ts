@@ -9,7 +9,7 @@ import {
   readJsonFile,
   remove,
   writeJsonFile,
-} from "@ignored/hardhat-vnext-utils/fs";
+} from "@nomicfoundation/hardhat-utils/fs";
 
 export class ObjectCache<T> {
   readonly #path: string;

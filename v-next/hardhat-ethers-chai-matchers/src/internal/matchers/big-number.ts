@@ -1,7 +1,7 @@
 import util from "node:util";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { toBigInt } from "@ignored/hardhat-vnext-utils/bigint";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { toBigInt } from "@nomicfoundation/hardhat-utils/bigint";
 import { AssertionError } from "chai";
 import deepEqual from "deep-eql";
 

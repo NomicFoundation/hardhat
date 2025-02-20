@@ -1,10 +1,10 @@
-import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
-import type { NewTaskActionFunction } from "@ignored/hardhat-vnext/types/tasks";
+import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
+import type { NewTaskActionFunction } from "hardhat/types/tasks";
 
 import path from "node:path";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { IgnitionError, wipe } from "@ignored/hardhat-vnext-ignition-core";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { IgnitionError, wipe } from "@nomicfoundation/ignition-core";
 
 import { HardhatArtifactResolver } from "../../helpers/hardhat-artifact-resolver.js";
 import { shouldBeHardhatPluginError } from "../utils/shouldBeHardhatPluginError.js";

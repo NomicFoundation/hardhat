@@ -1,7 +1,7 @@
 import type { IgnitionModuleResultsToViemContracts } from "../../src/types.js";
-import type { NamedArtifactContractAtFuture } from "@ignored/hardhat-vnext-ignition-core";
+import type { NamedArtifactContractAtFuture } from "@nomicfoundation/ignition-core";
 
-import { buildModule } from "@ignored/hardhat-vnext-ignition-core";
+import { buildModule } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
 import { useIgnitionProject } from "../test-helpers/use-ignition-project.js";

@@ -1,7 +1,7 @@
 import type { NumberLike } from "../types.js";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { toBigInt as toBigIntUtil } from "@ignored/hardhat-vnext-utils/bigint";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { toBigInt as toBigIntUtil } from "@nomicfoundation/hardhat-utils/bigint";
 
 export function toNumber(x: NumberLike): number {
   return Number(toRpcQuantity(x));

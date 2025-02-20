@@ -8,7 +8,7 @@ import type {
 } from "../../types/hooks.js";
 import type { HardhatPlugin } from "../../types/plugins.js";
 
-import { isObject } from "@ignored/hardhat-vnext-utils/lang";
+import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 
 import {
   ArgumentType,

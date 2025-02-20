@@ -7,7 +7,7 @@ import {
   getRealPath,
   emptyDir,
   remove,
-} from "@ignored/hardhat-vnext-utils/fs";
+} from "@nomicfoundation/hardhat-utils/fs";
 
 /**
  * Create a tmp directory.

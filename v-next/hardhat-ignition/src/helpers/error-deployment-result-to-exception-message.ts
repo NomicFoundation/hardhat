@@ -3,10 +3,10 @@ import type {
   PreviousRunErrorDeploymentResult,
   ReconciliationErrorDeploymentResult,
   ValidationErrorDeploymentResult,
-} from "@ignored/hardhat-vnext-ignition-core";
+} from "@nomicfoundation/ignition-core";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { DeploymentResultType } from "@ignored/hardhat-vnext-ignition-core";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { DeploymentResultType } from "@nomicfoundation/ignition-core";
 
 /**
  * Converts the result of an errored deployment into a message that can

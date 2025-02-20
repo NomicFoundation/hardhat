@@ -4,7 +4,7 @@ import type {
   NetworkConnection,
 } from "../../../../types/network.js";
 
-import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
+import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
 
 import { isHttpNetworkHdAccountsConfig } from "../type-validation.js";
 

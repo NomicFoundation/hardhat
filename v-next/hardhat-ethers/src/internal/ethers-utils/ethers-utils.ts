@@ -10,7 +10,7 @@ import type {
   JsonRpcTransactionRequest,
 } from "ethers";
 
-import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import {
   accessListify,
   assert,

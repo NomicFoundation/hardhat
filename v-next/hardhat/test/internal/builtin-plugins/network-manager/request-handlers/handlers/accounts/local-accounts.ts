@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   hexStringToBytes,
   numberToHexString,
-} from "@ignored/hardhat-vnext-utils/hex";
+} from "@nomicfoundation/hardhat-utils/hex";
 import {
   assertRejects,
   assertRejectsWithHardhatError,

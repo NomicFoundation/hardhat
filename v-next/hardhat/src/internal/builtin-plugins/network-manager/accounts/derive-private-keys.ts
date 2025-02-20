@@ -1,5 +1,5 @@
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { bytesToHexString } from "@ignored/hardhat-vnext-utils/bytes";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { bytesToHexString } from "@nomicfoundation/hardhat-utils/bytes";
 
 const HD_PATH_REGEX = /^m(:?\/\d+'?)+\/?$/;
 

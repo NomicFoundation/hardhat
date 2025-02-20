@@ -6,7 +6,7 @@ import { describe, it } from "node:test";
 import {
   hexStringToBytes,
   numberToHexString,
-} from "@ignored/hardhat-vnext-utils/hex";
+} from "@nomicfoundation/hardhat-utils/hex";
 
 import { getJsonRpcRequest } from "../../../../../src/internal/builtin-plugins/network-manager/json-rpc.js";
 

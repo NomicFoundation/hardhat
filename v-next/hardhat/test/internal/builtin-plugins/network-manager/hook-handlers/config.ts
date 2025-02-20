@@ -1,8 +1,8 @@
-import type { HardhatRuntimeEnvironment } from "../../../../../src/types/hre.js";
 import type {
   HardhatConfig,
   HardhatUserConfig,
-} from "@ignored/hardhat-vnext/types/config";
+} from "../../../../../src/types/config.js";
+import type { HardhatRuntimeEnvironment } from "../../../../../src/types/hre.js";
 
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";

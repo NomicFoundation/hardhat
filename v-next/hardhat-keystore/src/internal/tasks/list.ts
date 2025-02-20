@@ -1,6 +1,6 @@
 import type { KeystoreLoader } from "../types.js";
-import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
-import type { NewTaskActionFunction } from "@ignored/hardhat-vnext/types/tasks";
+import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
+import type { NewTaskActionFunction } from "hardhat/types/tasks";
 
 import { UserDisplayMessages } from "../ui/user-display-messages.js";
 import { setupKeystoreLoaderFrom } from "../utils/setup-keystore-loader-from.js";

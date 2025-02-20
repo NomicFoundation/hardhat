@@ -8,15 +8,15 @@ import type {
   SendDeploymentTransactionConfig,
   WalletClient,
 } from "../types.js";
-import type { ArtifactManager } from "@ignored/hardhat-vnext/types/artifacts";
-import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
-import type { PrefixedHexString } from "@ignored/hardhat-vnext-utils/hex";
+import type { PrefixedHexString } from "@nomicfoundation/hardhat-utils/hex";
+import type { ArtifactManager } from "hardhat/types/artifacts";
+import type { EthereumProvider } from "hardhat/types/providers";
 import type { Abi as ViemAbi, Address as ViemAddress } from "viem";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { toBigInt } from "@ignored/hardhat-vnext-utils/bigint";
-import { resolveLinkedBytecode } from "@ignored/hardhat-vnext-utils/bytecode";
-import { ensureError } from "@ignored/hardhat-vnext-utils/error";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { toBigInt } from "@nomicfoundation/hardhat-utils/bigint";
+import { resolveLinkedBytecode } from "@nomicfoundation/hardhat-utils/bytecode";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { getContractAddress, getContract } from "viem";
 
 import { getDefaultWalletClient, getPublicClient } from "./clients.js";

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 
-import hre from "@ignored/hardhat-vnext";
+import hre from "hardhat";
 import { describe, it } from "mocha";
 
 describe("Mocha test", () => {

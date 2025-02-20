@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { afterEach, beforeEach, describe, it } from "node:test";
 
-import { writeJsonFile } from "@ignored/hardhat-vnext-utils/fs";
+import { writeJsonFile } from "@nomicfoundation/hardhat-utils/fs";
 import { useTmpDir } from "@nomicfoundation/hardhat-test-utils";
 
 import { isTelemetryAllowed } from "../../../../src/internal/cli/telemetry/telemetry-permissions.js";

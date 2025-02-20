@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import { afterEach, describe, it } from "node:test";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { getRealPath } from "@ignored/hardhat-vnext-utils/fs";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { getRealPath } from "@nomicfoundation/hardhat-utils/fs";
 import {
   assertRejectsWithHardhatError,
   useFixtureProject,

@@ -1,1 +1,1 @@
-export { buildModule } from "@ignored/hardhat-vnext-ignition-core";
+export { buildModule } from "@nomicfoundation/ignition-core";

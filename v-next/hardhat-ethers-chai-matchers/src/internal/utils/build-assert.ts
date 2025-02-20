@@ -1,6 +1,6 @@
 import type { Ssfi } from "./ssfi.js";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { AssertionError } from "chai";
 
 /**

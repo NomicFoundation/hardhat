@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { exists } from "@ignored/hardhat-vnext-utils/fs";
+import { exists } from "@nomicfoundation/hardhat-utils/fs";
 import { useTmpDir } from "@nomicfoundation/hardhat-test-utils";
 
 import { spawn } from "../../../../src/internal/cli/init/subprocess.js";

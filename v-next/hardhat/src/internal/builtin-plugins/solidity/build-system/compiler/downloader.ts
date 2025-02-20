@@ -8,10 +8,10 @@ import { promisify } from "node:util";
 import {
   HardhatError,
   assertHardhatInvariant,
-} from "@ignored/hardhat-vnext-errors";
-import { bytesToHexString } from "@ignored/hardhat-vnext-utils/bytes";
-import { keccak256 } from "@ignored/hardhat-vnext-utils/crypto";
-import { ensureError } from "@ignored/hardhat-vnext-utils/error";
+} from "@nomicfoundation/hardhat-errors";
+import { bytesToHexString } from "@nomicfoundation/hardhat-utils/bytes";
+import { keccak256 } from "@nomicfoundation/hardhat-utils/crypto";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import {
   chmod,
   createFile,
@@ -20,9 +20,9 @@ import {
   readBinaryFile,
   readJsonFile,
   remove,
-} from "@ignored/hardhat-vnext-utils/fs";
-import { download } from "@ignored/hardhat-vnext-utils/request";
-import { MultiProcessMutex } from "@ignored/hardhat-vnext-utils/synchronization";
+} from "@nomicfoundation/hardhat-utils/fs";
+import { download } from "@nomicfoundation/hardhat-utils/request";
+import { MultiProcessMutex } from "@nomicfoundation/hardhat-utils/synchronization";
 import debug from "debug";
 
 import { NativeCompiler, SolcJsCompiler } from "./compiler.js";

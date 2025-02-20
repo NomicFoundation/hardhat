@@ -7,7 +7,7 @@ import {
   IgnitionModule,
   IgnitionModuleDeserializer,
   IgnitionModuleResult,
-} from "@ignored/hardhat-vnext-ignition-core/ui-helpers";
+} from "@nomicfoundation/ignition-core/ui-helpers";
 import ReactDOM from "react-dom/client";
 import { RouterProvider, createHashRouter } from "react-router-dom";
 import { VisualizationOverview } from "./pages/visualization-overview/visualization-overview";

@@ -1,12 +1,12 @@
 import type { HardhatEthers } from "../../src/types.js";
-import type { ArtifactManager } from "@ignored/hardhat-vnext/types/artifacts";
-import type { NetworkConfig } from "@ignored/hardhat-vnext/types/config";
-import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
+import type { ArtifactManager } from "hardhat/types/artifacts";
+import type { NetworkConfig } from "hardhat/types/config";
+import type { EthereumProvider } from "hardhat/types/providers";
 import type { ContractRunner, Signer } from "ethers";
 
 import assert from "node:assert/strict";
 
-import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
+import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 import { initializeEthers } from "../../src/internal/initialization.js";
 

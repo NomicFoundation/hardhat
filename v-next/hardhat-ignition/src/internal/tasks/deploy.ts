@@ -1,14 +1,14 @@
-import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
-import type { NewTaskActionFunction } from "@ignored/hardhat-vnext/types/tasks";
+import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
+import type { NewTaskActionFunction } from "hardhat/types/tasks";
 import type {
   DeploymentParameters,
   DeploymentResult,
-} from "@ignored/hardhat-vnext-ignition-core";
+} from "@nomicfoundation/ignition-core";
 
 import path from "node:path";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { deploy, IgnitionError } from "@ignored/hardhat-vnext-ignition-core";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { deploy, IgnitionError } from "@nomicfoundation/ignition-core";
 import {
   ensureDir,
   exists,
@@ -16,7 +16,7 @@ import {
   readJsonFile,
   remove,
   writeJsonFile,
-} from "@ignored/hardhat-vnext-utils/fs";
+} from "@nomicfoundation/hardhat-utils/fs";
 import chalk from "chalk";
 import Prompt from "prompts";
 

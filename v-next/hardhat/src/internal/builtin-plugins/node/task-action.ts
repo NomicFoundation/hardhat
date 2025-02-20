@@ -4,8 +4,8 @@ import type { NewTaskActionFunction } from "../../../types/tasks.js";
 import {
   assertHardhatInvariant,
   HardhatError,
-} from "@ignored/hardhat-vnext-errors";
-import { exists } from "@ignored/hardhat-vnext-utils/fs";
+} from "@nomicfoundation/hardhat-errors";
+import { exists } from "@nomicfoundation/hardhat-utils/fs";
 import chalk from "chalk";
 
 import { isEdrSupportedChainType } from "../network-manager/edr/utils/chain-type.js";

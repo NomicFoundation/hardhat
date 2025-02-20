@@ -9,7 +9,7 @@ import type {
 } from "../../../../types/config.js";
 import type { ConfigHooks } from "../../../../types/hooks.js";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
 import { GENERIC_CHAIN_TYPE } from "../../../constants.js";
 import { resolveEdrNetwork, resolveHttpNetwork } from "../config-resolution.js";

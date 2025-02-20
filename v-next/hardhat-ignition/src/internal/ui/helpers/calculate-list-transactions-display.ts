@@ -1,6 +1,6 @@
-import type { ListTransactionsResult } from "@ignored/hardhat-vnext-ignition-core";
+import type { ListTransactionsResult } from "@nomicfoundation/ignition-core";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
 export async function calculateListTransactionsDisplay(
   deploymentId: string,

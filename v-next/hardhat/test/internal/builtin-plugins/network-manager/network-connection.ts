@@ -1,5 +1,5 @@
+import type { NetworkConfig } from "../../../../src/types/config.js";
 import type { EthereumProvider } from "../../../../src/types/providers.js";
-import type { NetworkConfig } from "@ignored/hardhat-vnext/types/config";
 
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";

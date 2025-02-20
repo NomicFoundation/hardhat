@@ -1,8 +1,8 @@
 import path, { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
-import hardhatViemPlugin from "@ignored/hardhat-vnext-viem";
+import hardhatViemPlugin from "@nomicfoundation/hardhat-viem";
+import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 const main = async (projectToBuild) => {
   console.log("Running compile on the test fixture project - ", projectToBuild);

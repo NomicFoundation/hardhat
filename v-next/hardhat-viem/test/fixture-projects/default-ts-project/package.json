@@ -3,6 +3,6 @@
   "private": "true",
   "type": "module",
   "dependencies": {
-    "@ignored/hardhat-vnext": "*"
+    "hardhat": "*"
   }
 }

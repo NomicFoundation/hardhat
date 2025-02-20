@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import { describe, it } from "node:test";
 
-import { exists } from "@ignored/hardhat-vnext-utils/fs";
+import { exists } from "@nomicfoundation/hardhat-utils/fs";
 
 import { getTemplates } from "../../../../src/internal/cli/init/template.js";
 

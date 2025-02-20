@@ -2,7 +2,7 @@ import type { HardhatRuntimeEnvironment } from "../../../../src/types/hre.js";
 
 import { before, describe, it } from "node:test";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   assertRejects,
   assertRejectsWithHardhatError,

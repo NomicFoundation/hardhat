@@ -1,12 +1,12 @@
-import type { ConfigHooks } from "@ignored/hardhat-vnext/types/hooks";
+import type { ConfigHooks } from "hardhat/types/hooks";
 
-import { isObject } from "@ignored/hardhat-vnext-utils/lang";
-import { resolveFromRoot } from "@ignored/hardhat-vnext-utils/path";
+import { isObject } from "@nomicfoundation/hardhat-utils/lang";
+import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
 import {
   conditionalUnionType,
   unionType,
   validateUserConfigZodType,
-} from "@ignored/hardhat-vnext-zod-utils";
+} from "@nomicfoundation/hardhat-zod-utils";
 import { z } from "zod";
 
 const mochaConfigType = z.object({

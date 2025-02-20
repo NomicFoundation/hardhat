@@ -1,15 +1,12 @@
-import "@ignored/hardhat-vnext-ethers";
+import "@nomicfoundation/hardhat-ethers";
 import type {
   EthersIgnitionHelper,
   IgnitionModuleResultsTToEthersContracts,
 } from "../types.js";
-import type { ArtifactManager } from "@ignored/hardhat-vnext/types/artifacts";
-import type { HardhatConfig } from "@ignored/hardhat-vnext/types/config";
-import type {
-  ChainType,
-  NetworkConnection,
-} from "@ignored/hardhat-vnext/types/network";
-import "@ignored/hardhat-vnext-ignition";
+import type { ArtifactManager } from "hardhat/types/artifacts";
+import type { HardhatConfig } from "hardhat/types/config";
+import type { ChainType, NetworkConnection } from "hardhat/types/network";
+import "@nomicfoundation/hardhat-ignition";
 import type {
   DeployConfig,
   DeploymentParameters,
@@ -19,7 +16,7 @@ import type {
   IgnitionModuleResult,
   StrategyConfig,
   SuccessfulDeploymentResult,
-} from "@ignored/hardhat-vnext-ignition-core";
+} from "@nomicfoundation/ignition-core";
 import type { Contract } from "ethers";
 
 import path from "node:path";
@@ -27,19 +24,19 @@ import path from "node:path";
 import {
   HardhatError,
   assertHardhatInvariant,
-} from "@ignored/hardhat-vnext-errors";
+} from "@nomicfoundation/hardhat-errors";
 import {
   HardhatArtifactResolver,
   PrettyEventHandler,
   errorDeploymentResultToExceptionMessage,
   readDeploymentParameters,
   resolveDeploymentId,
-} from "@ignored/hardhat-vnext-ignition/helpers";
+} from "@nomicfoundation/hardhat-ignition/helpers";
 import {
   DeploymentResultType,
   deploy,
   isContractFuture,
-} from "@ignored/hardhat-vnext-ignition-core";
+} from "@nomicfoundation/ignition-core";
 
 export class EthersIgnitionHelperImpl<ChainTypeT extends ChainType | string>
   implements EthersIgnitionHelper

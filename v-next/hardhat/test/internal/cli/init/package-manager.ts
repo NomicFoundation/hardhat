@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { afterEach, beforeEach, describe, it } from "node:test";
 
-import { writeUtf8File } from "@ignored/hardhat-vnext-utils/fs";
+import { writeUtf8File } from "@nomicfoundation/hardhat-utils/fs";
 import { useTmpDir } from "@nomicfoundation/hardhat-test-utils";
 
 import {

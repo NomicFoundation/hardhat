@@ -1,14 +1,14 @@
-import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
-import type { NewTaskActionFunction } from "@ignored/hardhat-vnext/types/tasks";
+import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
+import type { NewTaskActionFunction } from "hardhat/types/tasks";
 
 // import path from "node:path";
 
-// import { HardhatError } from "@ignored/hardhat-vnext-errors";
+// import { HardhatError } from "@nomicfoundation/hardhat-errors";
 // import {
 //   batches,
 //   IgnitionError,
 //   IgnitionModuleSerializer,
-// } from "@ignored/hardhat-vnext-ignition-core";
+// } from "@nomicfoundation/ignition-core";
 
 // import { loadModule } from "../utils/load-module.js";
 // import { open } from "../utils/open.js";

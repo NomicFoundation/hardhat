@@ -1,6 +1,6 @@
 import { mock, type Mock } from "node:test";
 
-import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 
 export function mockRequestSecretFn(
   valuesToMock: string[],

@@ -2,12 +2,12 @@ import type { HardhatPlugin } from "../../../types/plugins.js";
 
 import path from "node:path";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { readJsonFile } from "@ignored/hardhat-vnext-utils/fs";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { readJsonFile } from "@nomicfoundation/hardhat-utils/fs";
 import {
   findDependencyPackageJson,
   type PackageJson,
-} from "@ignored/hardhat-vnext-utils/package";
+} from "@nomicfoundation/hardhat-utils/package";
 
 /**
  * Validate that a plugin is installed and that its peer dependencies are

@@ -6,7 +6,7 @@ import { beforeEach, describe, it } from "node:test";
 import {
   getAllFilesMatching,
   getFileSize,
-} from "@ignored/hardhat-vnext-utils/fs";
+} from "@nomicfoundation/hardhat-utils/fs";
 import { useTmpDir } from "@nomicfoundation/hardhat-test-utils";
 
 import { ObjectCache } from "../../../../../src/internal/builtin-plugins/solidity/build-system/cache.js";

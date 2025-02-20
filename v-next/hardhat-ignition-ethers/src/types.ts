@@ -6,7 +6,7 @@ import type {
   DeployConfig,
   NamedArtifactContractDeploymentFuture,
   NamedArtifactContractAtFuture,
-} from "@ignored/hardhat-vnext-ignition-core";
+} from "@nomicfoundation/ignition-core";
 import type { Contract } from "ethers/contract";
 
 export interface EthersIgnitionHelper {

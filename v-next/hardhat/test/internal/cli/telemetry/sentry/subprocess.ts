@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import { afterEach, beforeEach, describe, it } from "node:test";
 
-import { readJsonFile, remove } from "@ignored/hardhat-vnext-utils/fs";
-import { spawnDetachedSubProcess } from "@ignored/hardhat-vnext-utils/subprocess";
+import { readJsonFile, remove } from "@nomicfoundation/hardhat-utils/fs";
+import { spawnDetachedSubProcess } from "@nomicfoundation/hardhat-utils/subprocess";
 
 import {
   checkIfSubprocessWasExecuted,

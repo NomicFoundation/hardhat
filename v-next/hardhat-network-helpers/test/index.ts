@@ -1,10 +1,10 @@
 import type { NetworkHelpers } from "../src/types.js";
-import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
+import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 
 import { beforeEach, describe, it } from "node:test";
 
-import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { createHardhatRuntimeEnvironment } from "hardhat/hre";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import hardhatNetworkHelpersPlugin from "../src/index.js";

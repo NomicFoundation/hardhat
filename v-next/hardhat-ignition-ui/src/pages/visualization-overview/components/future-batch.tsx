@@ -4,7 +4,7 @@ import {
   FutureType,
   isDeploymentType,
   isFuture,
-} from "@ignored/hardhat-vnext-ignition-core/ui-helpers";
+} from "@nomicfoundation/ignition-core/ui-helpers";
 import React from "react";
 import styled from "styled-components";
 import { argumentTypeToString } from "../../../utils/argumentTypeToString";

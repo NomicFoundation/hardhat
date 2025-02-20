@@ -1,4 +1,4 @@
-import type { HardhatPlugin } from "@ignored/hardhat-vnext/types/plugins";
+import type { HardhatPlugin } from "hardhat/types/plugins";
 
 import "./type-extensions.js";
 
@@ -7,14 +7,14 @@ const hardhatIgnitionEthersPlugin: HardhatPlugin = {
   dependencies: [
     async () => {
       const { default: ignitionPlugin } = await import(
-        "@ignored/hardhat-vnext-ignition"
+        "@nomicfoundation/hardhat-ignition"
       );
 
       return ignitionPlugin;
     },
     async () => {
       const { default: ethersPlugin } = await import(
-        "@ignored/hardhat-vnext-ethers"
+        "@nomicfoundation/hardhat-ethers"
       );
 
       return ethersPlugin;
@@ -23,7 +23,7 @@ const hardhatIgnitionEthersPlugin: HardhatPlugin = {
   hookHandlers: {
     network: import.meta.resolve("./internal/hook-handlers/network.js"),
   },
-  npmPackage: "@ignored/hardhat-vnext-ignition-ethers",
+  npmPackage: "@nomicfoundation/hardhat-ignition-ethers",
 };
 
 export default hardhatIgnitionEthersPlugin;

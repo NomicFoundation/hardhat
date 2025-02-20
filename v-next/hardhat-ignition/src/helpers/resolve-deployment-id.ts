@@ -1,4 +1,4 @@
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
 /**
  * A regex that captures Ignitions rules for deployment-ids, specifically

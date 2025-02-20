@@ -1,7 +1,7 @@
 import {
   HardhatError,
   HardhatPluginError,
-} from "@ignored/hardhat-vnext-errors";
+} from "@nomicfoundation/hardhat-errors";
 import { flush } from "@sentry/node";
 import debug from "debug";
 

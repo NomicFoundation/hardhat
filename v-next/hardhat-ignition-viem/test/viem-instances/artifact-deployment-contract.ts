@@ -1,7 +1,7 @@
 import type { IgnitionModuleResultsToViemContracts } from "../../src/types.js";
-import type { ContractDeploymentFuture } from "@ignored/hardhat-vnext-ignition-core";
+import type { ContractDeploymentFuture } from "@nomicfoundation/ignition-core";
 
-import { buildModule } from "@ignored/hardhat-vnext-ignition-core";
+import { buildModule } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
 import { externallyLoadedContractArtifact } from "../test-helpers/externally-loaded-contract.js";

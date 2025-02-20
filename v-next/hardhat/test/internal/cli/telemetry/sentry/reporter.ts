@@ -1,4 +1,4 @@
-import type { ErrorDescriptor } from "@ignored/hardhat-vnext-errors";
+import type { ErrorDescriptor } from "@nomicfoundation/hardhat-errors";
 
 import assert from "node:assert/strict";
 import path from "node:path";
@@ -7,8 +7,8 @@ import { afterEach, beforeEach, describe, it } from "node:test";
 import {
   HardhatError,
   HardhatPluginError,
-} from "@ignored/hardhat-vnext-errors";
-import { readJsonFile, remove } from "@ignored/hardhat-vnext-utils/fs";
+} from "@nomicfoundation/hardhat-errors";
+import { readJsonFile, remove } from "@nomicfoundation/hardhat-utils/fs";
 
 import { ProviderError } from "../../../../../src/internal/builtin-plugins/network-manager/provider-errors.js";
 import {

@@ -1,5 +1,5 @@
 import type { KeystoreLoader } from "../types.js";
-import type { HardhatConfig } from "@ignored/hardhat-vnext/types/config";
+import type { HardhatConfig } from "hardhat/types/config";
 
 import { FileManagerImpl } from "../loaders/file-manager.js";
 import { KeystoreFileLoader } from "../loaders/keystore-file-loader.js";

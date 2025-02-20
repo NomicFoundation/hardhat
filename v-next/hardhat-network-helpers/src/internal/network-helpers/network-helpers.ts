@@ -5,12 +5,12 @@ import type {
   NumberLike,
   SnapshotRestorer,
 } from "../../types.js";
-import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
+import type { EthereumProvider } from "hardhat/types/providers";
 
 import {
   assertHardhatInvariant,
   HardhatError,
-} from "@ignored/hardhat-vnext-errors";
+} from "@nomicfoundation/hardhat-errors";
 
 import { dropTransaction } from "./helpers/drop-transaction.js";
 import { getStorageAt } from "./helpers/get-storage-at.js";

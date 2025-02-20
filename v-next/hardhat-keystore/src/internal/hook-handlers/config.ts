@@ -1,4 +1,4 @@
-import type { ConfigHooks } from "@ignored/hardhat-vnext/types/hooks";
+import type { ConfigHooks } from "hardhat/types/hooks";
 
 import debug from "debug";
 

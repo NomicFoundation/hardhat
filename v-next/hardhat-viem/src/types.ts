@@ -1,8 +1,5 @@
-import type { ArtifactMap } from "@ignored/hardhat-vnext/types/artifacts";
-import type {
-  ChainType,
-  DefaultChainType,
-} from "@ignored/hardhat-vnext/types/network";
+import type { ArtifactMap } from "hardhat/types/artifacts";
+import type { ChainType, DefaultChainType } from "hardhat/types/network";
 import type {
   Abi as ViemAbi,
   Account as ViemAccount,

@@ -6,8 +6,8 @@ import type {
   SuccessfulJsonRpcResponse,
 } from "../../../types/providers.js";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { isObject } from "@ignored/hardhat-vnext-utils/lang";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 
 /**
  * Gets a JSON-RPC 2.0 request object.

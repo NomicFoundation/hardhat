@@ -1,7 +1,7 @@
 /* eslint-disable import/no-unused-modules */
 import type { TestChainHelper } from "../../test-helpers/use-ignition-project.js";
 
-import { buildModule } from "@ignored/hardhat-vnext-ignition-core";
+import { buildModule } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
 import { mineBlock } from "../../test-helpers/mine-block.js";

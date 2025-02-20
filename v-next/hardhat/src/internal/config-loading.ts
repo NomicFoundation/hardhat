@@ -2,10 +2,10 @@ import type { HardhatUserConfig } from "../types/config.js";
 
 import { pathToFileURL } from "node:url";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { exists, findUp } from "@ignored/hardhat-vnext-utils/fs";
-import { isObject } from "@ignored/hardhat-vnext-utils/lang";
-import { resolveFromRoot } from "@ignored/hardhat-vnext-utils/path";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { exists, findUp } from "@nomicfoundation/hardhat-utils/fs";
+import { isObject } from "@nomicfoundation/hardhat-utils/lang";
+import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
 import debug from "debug";
 
 const log = debug("hardhat:core:config-loading");

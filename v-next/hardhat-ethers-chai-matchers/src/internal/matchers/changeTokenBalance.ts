@@ -1,4 +1,4 @@
-import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
+import type { EthereumProvider } from "hardhat/types/providers";
 import type {
   Addressable,
   BaseContract,
@@ -11,8 +11,8 @@ import type { TransactionResponse } from "ethers/providers";
 import {
   assertHardhatInvariant,
   HardhatError,
-} from "@ignored/hardhat-vnext-errors";
-import { isObject } from "@ignored/hardhat-vnext-utils/lang";
+} from "@nomicfoundation/hardhat-errors";
+import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 import { toBigInt } from "ethers/utils";
 
 import {

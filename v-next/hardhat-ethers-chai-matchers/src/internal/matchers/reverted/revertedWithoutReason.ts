@@ -1,4 +1,4 @@
-import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
+import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
 
 import { REVERTED_WITHOUT_REASON_MATCHER } from "../../constants.js";
 import { buildAssert } from "../../utils/build-assert.js";

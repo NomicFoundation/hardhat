@@ -1,14 +1,14 @@
-import type { NetworkHooks } from "@ignored/hardhat-vnext/types/hooks";
-import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
+import type { NetworkHooks } from "hardhat/types/hooks";
+import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 import type { TransactionReceipt as ViemTransactionReceipt } from "viem";
 
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
 
-import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { ensureError } from "@ignored/hardhat-vnext-utils/error";
-import { sleep } from "@ignored/hardhat-vnext-utils/lang";
+import { createHardhatRuntimeEnvironment } from "hardhat/hre";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
+import { sleep } from "@nomicfoundation/hardhat-utils/lang";
 import {
   assertIsHardhatError,
   assertRejectsWithHardhatError,

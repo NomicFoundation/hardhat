@@ -1,6 +1,6 @@
 import type { NewTaskActionFunction } from "../../../../types/tasks.js";
 
-import { resolveFromRoot } from "@ignored/hardhat-vnext-utils/path";
+import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
 
 import { shouldMergeCompilationJobs } from "../build-profiles.js";
 import { throwIfSolidityBuildFailed } from "../build-results.js";

@@ -14,7 +14,7 @@ import {
   getAllFilesMatching,
   readJsonFile,
   remove,
-} from "@ignored/hardhat-vnext-utils/fs";
+} from "@nomicfoundation/hardhat-utils/fs";
 import {
   getTmpDir,
   useFixtureProject,

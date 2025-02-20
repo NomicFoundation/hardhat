@@ -1,7 +1,7 @@
 import type { DependencyGraph, ResolvedFile } from "../../../types/solidity.js";
 import type { NewTaskActionFunction } from "../../../types/tasks.js";
 
-import { resolveFromRoot } from "@ignored/hardhat-vnext-utils/path";
+import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
 import chalk from "chalk";
 
 import { getHardhatVersion } from "../../utils/package.js";

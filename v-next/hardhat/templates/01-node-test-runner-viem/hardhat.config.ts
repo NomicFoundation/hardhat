@@ -1,13 +1,10 @@
-import {
-  HardhatUserConfig,
-  configVariable,
-} from "@ignored/hardhat-vnext/config";
+import { HardhatUserConfig, configVariable } from "hardhat/config";
 
-import HardhatNodeTestRunner from "@ignored/hardhat-vnext-node-test-runner";
-import HardhatViem from "@ignored/hardhat-vnext-viem";
-import HardhatNetworkHelpers from "@ignored/hardhat-vnext-network-helpers";
-import HardhatKeystore from "@ignored/hardhat-vnext-keystore";
-import HardhatIgnitionViem from "@ignored/hardhat-vnext-ignition-viem";
+import HardhatNodeTestRunner from "@nomicfoundation/hardhat-node-test-runner";
+import HardhatViem from "@nomicfoundation/hardhat-viem";
+import HardhatNetworkHelpers from "@nomicfoundation/hardhat-network-helpers";
+import HardhatKeystore from "@nomicfoundation/hardhat-keystore";
+import HardhatIgnitionViem from "@nomicfoundation/hardhat-ignition-viem";
 
 const config: HardhatUserConfig = {
   /*

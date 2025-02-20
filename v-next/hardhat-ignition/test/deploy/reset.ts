@@ -1,5 +1,5 @@
-import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
-import { status } from "@ignored/hardhat-vnext-ignition-core";
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
+import { status } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
 import { HardhatArtifactResolver } from "../../src/helpers/hardhat-artifact-resolver.js";

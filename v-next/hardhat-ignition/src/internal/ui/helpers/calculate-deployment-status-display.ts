@@ -1,4 +1,4 @@
-import type { StatusResult } from "@ignored/hardhat-vnext-ignition-core";
+import type { StatusResult } from "@nomicfoundation/ignition-core";
 
 import chalk from "chalk";
 

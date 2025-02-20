@@ -42,14 +42,14 @@ import type {
   TransactionConfirmEvent,
   TransactionSendEvent,
   WipeApplyEvent,
-} from "@ignored/hardhat-vnext-ignition-core";
+} from "@nomicfoundation/ignition-core";
 
 import readline from "node:readline";
 
 import {
   DeploymentResultType,
   ExecutionEventResultType,
-} from "@ignored/hardhat-vnext-ignition-core";
+} from "@nomicfoundation/ignition-core";
 
 import { calculateBatchDisplay } from "../internal/ui/helpers/calculate-batch-display.js";
 import { calculateDeployingModulePanel } from "../internal/ui/helpers/calculate-deploying-module-panel.js";

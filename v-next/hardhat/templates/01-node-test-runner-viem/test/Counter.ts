@@ -1,5 +1,5 @@
 import { describe, it } from "node:test";
-import { network } from "@ignored/hardhat-vnext";
+import { network } from "hardhat";
 // We don't have Ethereum specific assertions in Hardhat 3 yet
 import assert from "node:assert/strict";
 

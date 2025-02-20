@@ -1,10 +1,10 @@
 import type { HardhatEthers } from "../src/types.js";
-import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
+import type { EthereumProvider } from "hardhat/types/providers";
 
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
+import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
 
 import { initializeTestEthers } from "./helpers/helpers.js";
 

@@ -8,11 +8,11 @@ import type {
 import type {
   Dispatcher,
   RequestOptions,
-} from "@ignored/hardhat-vnext-utils/request";
+} from "@nomicfoundation/hardhat-utils/request";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { ensureError } from "@ignored/hardhat-vnext-utils/error";
-import { sleep, isObject } from "@ignored/hardhat-vnext-utils/lang";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
+import { sleep, isObject } from "@nomicfoundation/hardhat-utils/lang";
 import {
   getDispatcher,
   isValidUrl,
@@ -21,7 +21,7 @@ import {
   ConnectionRefusedError,
   RequestTimeoutError,
   ResponseStatusCodeError,
-} from "@ignored/hardhat-vnext-utils/request";
+} from "@nomicfoundation/hardhat-utils/request";
 
 import { EDR_NETWORK_REVERT_SNAPSHOT_EVENT } from "../../constants.js";
 import { getHardhatVersion } from "../../utils/package.js";

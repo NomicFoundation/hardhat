@@ -1,17 +1,17 @@
-import type { PackageJson } from "@ignored/hardhat-vnext-utils/package";
+import type { PackageJson } from "@nomicfoundation/hardhat-utils/package";
 
 import assert from "node:assert/strict";
 import path from "node:path";
 import { describe, it } from "node:test";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   ensureDir,
   exists,
   readJsonFile,
   readUtf8File,
   writeUtf8File,
-} from "@ignored/hardhat-vnext-utils/fs";
+} from "@nomicfoundation/hardhat-utils/fs";
 import {
   assertRejectsWithHardhatError,
   disableConsole,
@@ -284,7 +284,7 @@ describe("installProjectDependencies", async () => {
         "package.json",
         JSON.stringify({
           type: "module",
-          devDependencies: { "@ignored/hardhat-vnext": "0.0.0" },
+          devDependencies: { hardhat: "0.0.0" },
         }),
       );
       await installProjectDependencies(process.cwd(), template, false, true);
@@ -297,7 +297,7 @@ describe("installProjectDependencies", async () => {
           "node_modules",
           ...dependency.split("/"),
         );
-        if (dependency === "@ignored/hardhat-vnext") {
+        if (dependency === "hardhat") {
           assert.ok(
             await exists(nodeModulesPath),
             `${nodeModulesPath} should exist`,

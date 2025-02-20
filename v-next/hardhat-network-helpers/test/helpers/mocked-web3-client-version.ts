@@ -1,15 +1,6 @@
-import type {
-  HookContext,
-  NetworkHooks,
-} from "@ignored/hardhat-vnext/types/hooks";
-import type {
-  ChainType,
-  NetworkConnection,
-} from "@ignored/hardhat-vnext/types/network";
-import type {
-  JsonRpcRequest,
-  JsonRpcResponse,
-} from "@ignored/hardhat-vnext/types/providers";
+import type { HookContext, NetworkHooks } from "hardhat/types/hooks";
+import type { ChainType, NetworkConnection } from "hardhat/types/network";
+import type { JsonRpcRequest, JsonRpcResponse } from "hardhat/types/providers";
 
 // This network hook handler will returned a mocked value when the method "web3_clientVersion" is called.
 // This will simulate a non-test network.

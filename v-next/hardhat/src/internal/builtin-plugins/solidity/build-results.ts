@@ -12,8 +12,11 @@ import type { BuildInfoAndOutput, Artifact as EdrArtifact } from "@ignored/edr";
 import {
   assertHardhatInvariant,
   HardhatError,
-} from "@ignored/hardhat-vnext-errors";
-import { readBinaryFile, readJsonFile } from "@ignored/hardhat-vnext-utils/fs";
+} from "@nomicfoundation/hardhat-errors";
+import {
+  readBinaryFile,
+  readJsonFile,
+} from "@nomicfoundation/hardhat-utils/fs";
 
 import { FileBuildResultType } from "../../../types/solidity.js";
 

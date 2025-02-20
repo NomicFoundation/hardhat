@@ -1,6 +1,6 @@
 import type { ZodType } from "zod";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
 export function validateParams<TypesT extends ReadonlyArray<ZodType<any>>>(
   params: any[],

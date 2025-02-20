@@ -6,7 +6,7 @@ import type { Transaction } from "ethers/transaction";
 
 import util from "node:util";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { AssertionError } from "chai";
 
 import { ASSERTION_ABORTED, EMIT_MATCHER } from "../constants.js";

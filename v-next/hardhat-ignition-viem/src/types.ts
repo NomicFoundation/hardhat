@@ -7,11 +7,11 @@ import type {
   ContractAtFuture,
   ContractDeploymentFuture,
   ContractFuture,
-} from "@ignored/hardhat-vnext-ignition-core";
+} from "@nomicfoundation/ignition-core";
 import type {
   ContractAbis,
   GetContractReturnType,
-} from "@ignored/hardhat-vnext-viem/types";
+} from "@nomicfoundation/hardhat-viem/types";
 
 export interface ViemIgnitionHelper {
   type: "viem";

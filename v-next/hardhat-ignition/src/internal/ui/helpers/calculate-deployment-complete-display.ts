@@ -6,9 +6,9 @@ import type {
   ReconciliationErrorDeploymentResult,
   SuccessfulDeploymentResult,
   ValidationErrorDeploymentResult,
-} from "@ignored/hardhat-vnext-ignition-core";
+} from "@nomicfoundation/ignition-core";
 
-import { DeploymentResultType } from "@ignored/hardhat-vnext-ignition-core";
+import { DeploymentResultType } from "@nomicfoundation/ignition-core";
 import chalk from "chalk";
 
 import { pathFromCwd } from "./cwd-relative-path.js";

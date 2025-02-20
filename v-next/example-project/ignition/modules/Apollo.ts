@@ -1,4 +1,4 @@
-import { buildModule } from "@ignored/hardhat-vnext-ignition/modules";
+import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 
 export default buildModule("Apollo", (m) => {
   const apollo = m.contract("Rocket", ["Saturn V"]);

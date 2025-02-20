@@ -1,17 +1,17 @@
 import path from "node:path";
 
-import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import {
   exists,
   getAllFilesMatching,
   isDirectory,
   readdir,
   readJsonFile,
-} from "@ignored/hardhat-vnext-utils/fs";
+} from "@nomicfoundation/hardhat-utils/fs";
 import {
   findClosestPackageRoot,
   type PackageJson,
-} from "@ignored/hardhat-vnext-utils/package";
+} from "@nomicfoundation/hardhat-utils/package";
 
 /**
  * This type describes a hardhat project template. It consists of:

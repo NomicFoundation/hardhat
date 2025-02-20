@@ -1,7 +1,7 @@
 /* eslint-disable import/no-unused-modules */
 import path from "node:path";
 
-import { emptyDir, readdir } from "@ignored/hardhat-vnext-utils/fs";
+import { emptyDir, readdir } from "@nomicfoundation/hardhat-utils/fs";
 import { assert } from "chai";
 
 import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";

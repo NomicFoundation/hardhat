@@ -1,11 +1,11 @@
 /* eslint-disable import/no-unused-modules */
-import type { DeploymentResult } from "@ignored/hardhat-vnext-ignition-core";
+import type { DeploymentResult } from "@nomicfoundation/ignition-core";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   DeploymentResultType,
   IgnitionError,
-} from "@ignored/hardhat-vnext-ignition-core";
+} from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
 import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";

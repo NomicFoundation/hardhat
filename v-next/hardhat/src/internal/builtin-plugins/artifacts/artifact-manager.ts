@@ -9,11 +9,11 @@ import path from "node:path";
 import {
   assertHardhatInvariant,
   HardhatError,
-} from "@ignored/hardhat-vnext-errors";
+} from "@nomicfoundation/hardhat-errors";
 import {
   getAllFilesMatching,
   readJsonFile,
-} from "@ignored/hardhat-vnext-utils/fs";
+} from "@nomicfoundation/hardhat-utils/fs";
 
 export const BUILD_INFO_DIR_NAME = "build-info";
 export const EDIT_DISTANCE_THRESHOLD = 3;

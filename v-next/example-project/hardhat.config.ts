@@ -1,23 +1,18 @@
-import type { HardhatUserConfig } from "@ignored/hardhat-vnext/config";
+import type { HardhatUserConfig } from "hardhat/config";
 
-import { HardhatPluginError } from "@ignored/hardhat-vnext/plugins";
+import { HardhatPluginError } from "hardhat/plugins";
 
 import util from "node:util";
-import {
-  task,
-  emptyTask,
-  globalOption,
-  configVariable,
-} from "@ignored/hardhat-vnext/config";
-import HardhatNodeTestRunner from "@ignored/hardhat-vnext-node-test-runner";
-import HardhatMochaTestRunner from "@ignored/hardhat-vnext-mocha-test-runner";
-import HardhatKeystore from "@ignored/hardhat-vnext-keystore";
-import HardhatViem from "@ignored/hardhat-vnext-viem";
-import hardhatNetworkHelpersPlugin from "@ignored/hardhat-vnext-network-helpers";
-import hardhatEthersPlugin from "@ignored/hardhat-vnext-ethers";
-import hardhatChaiMatchersPlugin from "@ignored/hardhat-vnext-ethers-chai-matchers";
-import hardhatTypechain from "@ignored/hardhat-vnext-typechain";
-import hardhatIgnitionViem from "@ignored/hardhat-vnext-ignition-viem";
+import { task, emptyTask, globalOption, configVariable } from "hardhat/config";
+import HardhatNodeTestRunner from "@nomicfoundation/hardhat-node-test-runner";
+import HardhatMochaTestRunner from "@nomicfoundation/hardhat-mocha-test-runner";
+import HardhatKeystore from "@nomicfoundation/hardhat-keystore";
+import HardhatViem from "@nomicfoundation/hardhat-viem";
+import hardhatNetworkHelpersPlugin from "@nomicfoundation/hardhat-network-helpers";
+import hardhatEthersPlugin from "@nomicfoundation/hardhat-ethers";
+import hardhatChaiMatchersPlugin from "@nomicfoundation/hardhat-ethers-chai-matchers";
+import hardhatTypechain from "@nomicfoundation/hardhat-typechain";
+import hardhatIgnitionViem from "@nomicfoundation/hardhat-ignition-viem";
 
 util.inspect.defaultOptions.depth = null;
 

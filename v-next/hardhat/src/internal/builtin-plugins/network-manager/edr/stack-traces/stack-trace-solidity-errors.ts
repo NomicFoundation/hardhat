@@ -5,8 +5,8 @@ import type {
 } from "./solidity-stack-trace.js";
 
 import { ReturnData } from "@ignored/edr-optimism";
-import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
-import { bytesToHexString } from "@ignored/hardhat-vnext-utils/bytes";
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
+import { bytesToHexString } from "@nomicfoundation/hardhat-utils/bytes";
 
 import { panicErrorCodeToMessage } from "./panic-errors.js";
 import {

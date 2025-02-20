@@ -1,13 +1,13 @@
 import type {
   GenericChainType,
   NetworkConnection,
-} from "@ignored/hardhat-vnext/types/network";
+} from "hardhat/types/network";
 
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
 
-import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
-import { isObject } from "@ignored/hardhat-vnext-utils/lang";
+import { createHardhatRuntimeEnvironment } from "hardhat/hre";
+import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 
 import HardhatViem from "../../src/index.js";
 

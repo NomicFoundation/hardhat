@@ -5,7 +5,7 @@ import type {
 } from "../../../../../../types/providers.js";
 import type { RequestHandler } from "../../types.js";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
 import { ChainId } from "./chain-id.js";
 

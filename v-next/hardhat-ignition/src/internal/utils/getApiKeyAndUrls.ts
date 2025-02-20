@@ -1,7 +1,7 @@
 // TODO: HH3 Bring this file back with Hardhat Verify
 // import type { ChainConfig } from "@nomicfoundation/hardhat-verify/types";
 
-// import { NomicLabsHardhatPluginError } from "@ignored/hardhat-vnext/plugins";
+// import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 
 // export function getApiKeyAndUrls(
 //   etherscanApiKey: string | Record<string, string>,

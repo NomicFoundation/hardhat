@@ -2,9 +2,9 @@ import type { NewTaskActionFunction } from "../../../types/tasks.js";
 
 import { pathToFileURL } from "node:url";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { exists } from "@ignored/hardhat-vnext-utils/fs";
-import { resolveFromRoot } from "@ignored/hardhat-vnext-utils/path";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { exists } from "@nomicfoundation/hardhat-utils/fs";
+import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
 
 interface RunActionArguments {
   script: string;

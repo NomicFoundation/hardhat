@@ -2,9 +2,9 @@ import type {
   Artifact,
   ArtifactManager,
   GetAtifactByName,
-} from "@ignored/hardhat-vnext/types/artifacts";
+} from "hardhat/types/artifacts";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
 export class MockArtifactManager implements ArtifactManager {
   readonly #artifacts: Map<string, Artifact>;

@@ -6,8 +6,8 @@ import path from "node:path";
 import { PassThrough } from "node:stream";
 import { afterEach, before, beforeEach, describe, it } from "node:test";
 
-import { ensureError } from "@ignored/hardhat-vnext-utils/error";
-import { exists, remove } from "@ignored/hardhat-vnext-utils/fs";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
+import { exists, remove } from "@nomicfoundation/hardhat-utils/fs";
 import {
   getTmpDir,
   useFixtureProject,

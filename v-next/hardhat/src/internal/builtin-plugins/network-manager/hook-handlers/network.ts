@@ -1,18 +1,15 @@
+import type { HookContext, NetworkHooks } from "../../../../types/hooks.js";
+import type {
+  ChainType,
+  NetworkConnection,
+} from "../../../../types/network.js";
 import type {
   JsonRpcRequest,
   JsonRpcResponse,
 } from "../../../../types/providers.js";
 import type { RequestHandler } from "../request-handlers/types.js";
-import type {
-  HookContext,
-  NetworkHooks,
-} from "@ignored/hardhat-vnext/types/hooks";
-import type {
-  ChainType,
-  NetworkConnection,
-} from "@ignored/hardhat-vnext/types/network";
 
-import { deepClone } from "@ignored/hardhat-vnext-utils/lang";
+import { deepClone } from "@nomicfoundation/hardhat-utils/lang";
 
 import { AsyncMutex } from "../../../core/async-mutex.js";
 import { isJsonRpcResponse } from "../json-rpc.js";

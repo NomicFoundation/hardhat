@@ -3,7 +3,7 @@
  * run this script with `npx hardhat run scripts/hardhat-ethers.ts`.
  */
 
-import hre from "@ignored/hardhat-vnext";
+import hre from "hardhat";
 
 const { ethers } = await hre.network.connect();
 

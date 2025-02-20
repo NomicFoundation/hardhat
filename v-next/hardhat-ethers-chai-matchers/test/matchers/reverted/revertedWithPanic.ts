@@ -1,12 +1,12 @@
 import type { MatchersContract } from "../../helpers/contracts.js";
-import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
-import type { HardhatEthers } from "@ignored/hardhat-vnext-ethers/types";
+import type { EthereumProvider } from "hardhat/types/providers";
+import type { HardhatEthers } from "@nomicfoundation/hardhat-ethers/types";
 
 import path from "node:path";
 import { before, beforeEach, describe, it } from "node:test";
 import util from "node:util";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   assertThrowsHardhatError,
   useFixtureProject,

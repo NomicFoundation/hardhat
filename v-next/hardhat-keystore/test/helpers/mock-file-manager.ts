@@ -3,7 +3,7 @@ import type { Mock } from "node:test";
 
 import { mock } from "node:test";
 
-import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 
 import {
   addSecretToKeystore,

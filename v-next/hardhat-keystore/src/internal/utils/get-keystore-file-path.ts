@@ -1,6 +1,6 @@
 import path from "node:path";
 
-import { getConfigDir } from "@ignored/hardhat-vnext-utils/global-dir";
+import { getConfigDir } from "@nomicfoundation/hardhat-utils/global-dir";
 
 /**
  * Get the path for the keystore in the Hardhat global config directory.

@@ -1,5 +1,5 @@
 import type { MatchersContract } from "../../helpers/contracts.js";
-import type { HardhatEthers } from "@ignored/hardhat-vnext-ethers/types";
+import type { HardhatEthers } from "@nomicfoundation/hardhat-ethers/types";
 
 import path from "node:path";
 import { before, beforeEach, describe, it } from "node:test";

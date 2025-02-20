@@ -1,15 +1,9 @@
-import type {
-  HookContext,
-  NetworkHooks,
-} from "@ignored/hardhat-vnext/types/hooks";
-import type {
-  ChainType,
-  NetworkConnection,
-} from "@ignored/hardhat-vnext/types/network";
-import type { HardhatPlugin } from "@ignored/hardhat-vnext/types/plugins";
+import type { HookContext, NetworkHooks } from "hardhat/types/hooks";
+import type { ChainType, NetworkConnection } from "hardhat/types/network";
+import type { HardhatPlugin } from "hardhat/types/plugins";
 
-import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { createHardhatRuntimeEnvironment } from "hardhat/hre";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejects } from "@nomicfoundation/hardhat-test-utils";
 import { assert } from "chai";
 

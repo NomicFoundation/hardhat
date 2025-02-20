@@ -3,7 +3,7 @@ import type { HardhatRuntimeEnvironment } from "../../../../../src/types/hre.js"
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
 
-import { exists } from "@ignored/hardhat-vnext-utils/fs";
+import { exists } from "@nomicfoundation/hardhat-utils/fs";
 
 import { HttpProvider } from "../../../../../src/internal/builtin-plugins/network-manager/http-provider.js";
 import { JsonRpcServerImplementation } from "../../../../../src/internal/builtin-plugins/node/json-rpc/server.js";

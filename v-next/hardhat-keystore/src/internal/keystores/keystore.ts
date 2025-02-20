@@ -1,6 +1,6 @@
 import type { Keystore as KeystoreI } from "../types.js";
 
-import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 
 import {
   addSecretToKeystore,

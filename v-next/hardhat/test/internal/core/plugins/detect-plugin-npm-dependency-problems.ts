@@ -2,7 +2,7 @@ import type { HardhatPlugin } from "../../../../src/types/plugins.js";
 
 import { describe, it } from "node:test";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import { detectPluginNpmDependencyProblems } from "../../../../src/internal/core/plugins/detect-plugin-npm-dependency-problems.js";

@@ -5,12 +5,12 @@ import type {
 } from "../../../../../../types/providers.js";
 import type { RequestHandler } from "../../types.js";
 
-import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import {
   hexStringToBigInt,
   numberToHexString,
-} from "@ignored/hardhat-vnext-utils/hex";
-import { isObject } from "@ignored/hardhat-vnext-utils/lang";
+} from "@nomicfoundation/hardhat-utils/hex";
+import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 
 import { getRequestParams } from "../../../json-rpc.js";
 

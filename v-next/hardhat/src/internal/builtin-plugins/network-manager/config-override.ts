@@ -6,7 +6,7 @@ import type {
   NetworkUserConfig,
 } from "../../../types/config.js";
 
-import { isObject } from "@ignored/hardhat-vnext-utils/lang";
+import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 
 /**
  * Converts the NetworkConfigOverride into a valid NetworkUserConfig. This

@@ -5,7 +5,7 @@ import {
   type IgnitionModule,
   type IgnitionModuleResult,
   isFuture,
-} from "@ignored/hardhat-vnext-ignition-core/ui-helpers";
+} from "@nomicfoundation/ignition-core/ui-helpers";
 
 import { getAllFuturesForModule } from "../queries/futures.js";
 

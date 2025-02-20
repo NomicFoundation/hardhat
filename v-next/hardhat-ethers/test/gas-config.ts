@@ -2,7 +2,7 @@
 // combinations and runs some common tests for all of them.
 
 import type { HardhatEthers } from "../src/types.js";
-import type { NetworkConfig } from "@ignored/hardhat-vnext/types/config";
+import type { NetworkConfig } from "hardhat/types/config";
 
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";

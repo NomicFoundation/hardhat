@@ -2,9 +2,9 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import { beforeEach, describe, it } from "node:test";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import * as fs from "@ignored/hardhat-vnext-utils/fs";
-import { download } from "@ignored/hardhat-vnext-utils/request";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import * as fs from "@nomicfoundation/hardhat-utils/fs";
+import { download } from "@nomicfoundation/hardhat-utils/request";
 import {
   assertRejectsWithHardhatError,
   useTmpDir,

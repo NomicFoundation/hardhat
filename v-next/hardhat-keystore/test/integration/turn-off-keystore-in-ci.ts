@@ -1,13 +1,13 @@
-import type { ConfigurationVariable } from "@ignored/hardhat-vnext/types/config";
-import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
+import type { ConfigurationVariable } from "hardhat/types/config";
+import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 
 import assert from "node:assert/strict";
 import path from "node:path";
 import { beforeEach, describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 
-import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
-import { isCi } from "@ignored/hardhat-vnext-utils/ci";
+import { isCi } from "@nomicfoundation/hardhat-utils/ci";
+import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 // NOTE: we are importing using the default export, running the CI determination
 // code. On CI this will be the reduced plugin, in local development this will

@@ -1,4 +1,4 @@
-import type { HardhatPlugin } from "@ignored/hardhat-vnext/types/plugins";
+import type { HardhatPlugin } from "hardhat/types/plugins";
 
 import "./type-extensions.js";
 
@@ -7,7 +7,7 @@ const hardhatPlugin: HardhatPlugin = {
   hookHandlers: {
     network: import.meta.resolve("./internal/hook-handlers/network.js"),
   },
-  npmPackage: "@ignored/hardhat-vnext-viem",
+  npmPackage: "@nomicfoundation/hardhat-viem",
 };
 
 export default hardhatPlugin;

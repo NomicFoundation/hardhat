@@ -7,7 +7,7 @@ import type { CompilerInput } from "../../../../types/solidity/compiler-io.js";
 import type { DependencyGraph } from "../../../../types/solidity/dependency-graph.js";
 import type { ResolvedFile } from "../../../../types/solidity.js";
 
-import { createNonCryptographicHashId } from "@ignored/hardhat-vnext-utils/crypto";
+import { createNonCryptographicHashId } from "@nomicfoundation/hardhat-utils/crypto";
 
 import { formatRemapping } from "./resolver/remappings.js";
 import { getEvmVersionFromSolcVersion } from "./solc-info.js";

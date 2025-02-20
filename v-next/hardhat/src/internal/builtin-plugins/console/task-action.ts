@@ -4,7 +4,7 @@ import type { REPLServer } from "node:repl";
 
 import repl from "node:repl";
 
-import { resolveFromRoot } from "@ignored/hardhat-vnext-utils/path";
+import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
 import chalk from "chalk";
 import debug from "debug";
 

@@ -1,4 +1,4 @@
-import type { NetworkConnection } from "@ignored/hardhat-vnext/types/network";
+import type { NetworkConnection } from "hardhat/types/network";
 
 const sleep = (timeout: number) =>
   new Promise((res) => setTimeout(res, timeout));
