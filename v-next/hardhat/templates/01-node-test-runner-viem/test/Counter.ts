@@ -57,16 +57,16 @@ describe("Counter", async function () {
   const publicClient = await viem.getPublicClient();
 
   it("The sum of the Increment events should match the current value", async function () {
-    const vault = await viem.deployContract("Counter");
+    const counter = await viem.deployContract("Counter");
 
     // run a series of increments
     for (let i = 1n; i <= 10n; i++) {
-      await vault.write.incBy([i]);
+      await counter.write.incBy([i]);
     }
 
     const events = await publicClient.getContractEvents({
-      address: vault.address,
-      abi: vault.abi,
+      address: counter.address,
+      abi: counter.abi,
       eventName: "Increment",
       fromBlock: 0n,
       strict: true,
@@ -78,6 +78,6 @@ describe("Counter", async function () {
       total += event.args.by;
     }
 
-    assert.equal(total, await vault.read.x());
+    assert.equal(total, await counter.read.x());
   });
 });
