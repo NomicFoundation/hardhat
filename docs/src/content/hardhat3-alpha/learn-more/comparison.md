@@ -2,7 +2,7 @@
 prev: false
 ---
 
-# Differences with Harhdat 2
+# Differences with Hardhat 2
 
 This document outlines the key improvements and new features introduced in Hardhat 3. While this list is long, most of these changes are backwards-compatible or easy to adapt to existing projects.
 
