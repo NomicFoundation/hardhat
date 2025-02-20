@@ -1,8 +1,37 @@
-# hardhat-viem
+# Hardhat Viem plugin
 
-[Hardhat](https://hardhat.org) plugin for integration with [viem](https://viem.sh/).
+This plugin integrates [Viem](https://viem.sh) into Hardhat, adding a `viem` object to each network connection.
 
-### Usage
+## Installation
+
+To install this plugin, run the following command:
+
+```bash
+npm install --save-dev @nomicfoundation/hardhat-viem@next
+```
+
+and add the following statements to your `hardhat.config.ts` file:
+
+```typescript
+// ...
+import viemPlugin from "@nomicfoundation/hardhat-viem";
+
+// ...
+
+export default {
+  // ...
+  plugins: [
+    // ...
+    viemPlugin,
+  ],
+
+  // ...
+};
+```
+
+## Usage
+
+This plugin defines a new `viem` property to every `NetworkConnection` object.
 
 ```ts
 const { viem } = await hre.network.connect();
