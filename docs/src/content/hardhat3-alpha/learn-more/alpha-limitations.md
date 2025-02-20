@@ -19,7 +19,7 @@ This page lists some of the limitations of the alpha version of Hardhat 3. These
 
 ## Solidity Tests
 
-- Solidity tests don't currently support Chain Types.
+- Solidity tests don't support Chain Types yet.
 
 ## Build System
 
