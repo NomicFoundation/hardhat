@@ -9,7 +9,7 @@ async function mainnetExample() {
   const gasPriceOracleCode = await ethers.provider.getCode(OP_GAS_PRICE_ORACLE);
 
   console.log(
-    "GasPriceOracle exists in mainnet chain type?",
+    "GasPriceOracle exists in l1 chain type?",
     gasPriceOracleCode !== "0x",
   );
 }
@@ -20,7 +20,7 @@ async function opExample() {
   const gasPriceOracleCode = await ethers.provider.getCode(OP_GAS_PRICE_ORACLE);
 
   console.log(
-    "GasPriceOracle exists in op chain type?",
+    "GasPriceOracle exists in optimism chain type?",
     gasPriceOracleCode !== "0x",
   );
 }

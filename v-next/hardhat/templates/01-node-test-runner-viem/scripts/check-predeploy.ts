@@ -12,7 +12,7 @@ async function mainnetExample() {
   });
 
   console.log(
-    "GasPriceOracle exists in mainnet chain type?",
+    "GasPriceOracle exists in l1 chain type?",
     gasPriceOracleCode !== undefined,
   );
 }
@@ -26,7 +26,7 @@ async function opExample() {
   });
 
   console.log(
-    "GasPriceOracle exists in op chain type?",
+    "GasPriceOracle exists in optimism chain type?",
     gasPriceOracleCode !== undefined,
   );
 }
