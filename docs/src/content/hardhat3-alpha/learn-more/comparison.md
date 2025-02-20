@@ -22,13 +22,13 @@ A Hardhat 2 task has access to a single, fixed connection for its entire duratio
 
 ## ESM-first
 
-Hardhat 3 embraces modern JavaScript by using ECMAScript Modules (ESM) by default. Configuration files must now use ESM, although CommonJS (CJS) modules are still supported in scripts and tests.
+Hardhat 3 embraces modern JavaScript by using [ECMAScript Modules (ESM)](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules) by default. Configuration files must now use ESM, although CommonJS (CJS) modules are still supported in scripts and tests.
 
 ## Test Runner Plugins
 
 In Hardhat 2, JavaScript tests are always run with a bundled version of Mocha. In Hardhat 3, the test runner is just another plugin and you can choose which one to use.
 
-Hardhat 3 provides official plugins for running tests: one for Mocha and one for Node.js’s built-in test runner. The recommended option is the Node.js test runner, because it's fast and has no external dependencies.
+Hardhat 3 provides official plugins for running tests: one for Mocha and one for [Node.js’s built-in test runner](https://nodejs.org/api/test.html) The recommended option is the Node.js test runner, because it's fast and has no external dependencies.
 
 ## Declarative Configuration
 
