@@ -478,7 +478,7 @@ This deployment is executed on the default network, which lasts only for the dur
    ::::
 
 3. Run the same command again once the deployment finishes. Since the module has already been deployed, Ignition won't send any transactions.
-4. Without stopping the node, add the following line to the Ignition module:
+4. Without stopping the node, add the following line to the Ignition module in `ignition/modules/Counter.ts`:
 
    ```ts{3}
    m.call(counter, "incBy", [5n]);
