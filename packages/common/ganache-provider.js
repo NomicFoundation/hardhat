@@ -6,7 +6,7 @@ const { GANACHE_PORT } = process.env;
 const port = GANACHE_PORT !== undefined ? Number(GANACHE_PORT) : 8545;
 
 function cleanup(ganacheChild) {
-  if (ganacheChild === undefined || ganacheChild === null) {
+  if (!ganacheChild) {
     return;
   }
 
