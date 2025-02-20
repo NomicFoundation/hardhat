@@ -94,7 +94,7 @@ export async function promptForInstall(
     {
       name: "install",
       type: "confirm",
-      message: `You need to install the following dependencies using the following command:\n${chalk.italic(safelyFormattedCommand)}\n\nDo you want to run it now?`,
+      message: `You need to install the necessary dependencies using the following command:\n${chalk.italic(safelyFormattedCommand)}\n\nDo you want to run it now?`,
       initial: true,
     },
   ]);

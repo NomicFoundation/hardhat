@@ -2,7 +2,7 @@
   "name": "template-node-test-runner-viem",
   "private": true,
   "version": "0.0.1",
-  "description": "A Typescript Hardhat project using Node Test Runner and Viem",
+  "description": "A TypeScript Hardhat project using Node Test Runner and Viem",
   "type": "module",
   "devDependencies": {
     "hardhat": "workspace:^2.22.18",
