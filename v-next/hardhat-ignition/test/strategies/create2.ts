@@ -238,14 +238,12 @@ describe("create2", function () {
       } catch (error) {
         threwException = true;
 
-        assert.instanceOf(error, HardhatError);
-        assert.isDefined(error.cause);
-        assert.instanceOf(error.cause, IgnitionError);
+        assert.instanceOf(error, IgnitionError);
         assert.include(
-          error.cause.message,
+          error.message,
           "IGN1102: Missing required strategy configuration parameter 'salt' for the strategy 'create2'",
         );
-        assert.equal(error.cause.errorNumber, 1102);
+        assert.equal(error.errorNumber, 1102);
       }
 
       assert.isTrue(threwException);
