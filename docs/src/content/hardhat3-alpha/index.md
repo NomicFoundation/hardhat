@@ -194,7 +194,7 @@ Failed tests include Solidity stack traces. To see them in action, make the `tes
   }
 ```
 
-And re-run the `test solidity` task again to get a stack trace:
+And run `npx hardhat test solidity` again to get a stack trace:
 
 ```
 Failure (1): test_IncByZero()
