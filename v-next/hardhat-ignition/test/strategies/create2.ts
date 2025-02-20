@@ -1,10 +1,7 @@
-import type { NetworkConnection } from "@ignored/hardhat-vnext/types/network";
+import type { NetworkConnection } from "hardhat/types/network";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import {
-  buildModule,
-  IgnitionError,
-} from "@ignored/hardhat-vnext-ignition-core";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { buildModule, IgnitionError } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
 import { presignedTx } from "../test-helpers/createX-tx.js";

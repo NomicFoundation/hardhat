@@ -1,10 +1,10 @@
-import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
-import type { NetworkConnection } from "@ignored/hardhat-vnext/types/network";
+import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
+import type { NetworkConnection } from "hardhat/types/network";
 
 import path, { dirname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
+import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 import hardhatIgnitionEthers from "../../src/index.js";
 

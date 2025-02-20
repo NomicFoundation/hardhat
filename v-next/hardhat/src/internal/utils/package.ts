@@ -1,6 +1,6 @@
-import type { PackageJson } from "@ignored/hardhat-vnext-utils/package";
+import type { PackageJson } from "@nomicfoundation/hardhat-utils/package";
 
-import { readClosestPackageJson } from "@ignored/hardhat-vnext-utils/package";
+import { readClosestPackageJson } from "@nomicfoundation/hardhat-utils/package";
 
 let cachedHardhatVersion: string | undefined;
 let cachedLatestHardhatVersion: string | undefined;
@@ -20,7 +20,7 @@ export async function getHardhatVersion(): Promise<string> {
 }
 
 export async function getLatestHardhatVersion(): Promise<string> {
-  const { getRequest } = await import("@ignored/hardhat-vnext-utils/request");
+  const { getRequest } = await import("@nomicfoundation/hardhat-utils/request");
 
   if (cachedLatestHardhatVersion !== undefined) {
     return cachedLatestHardhatVersion;

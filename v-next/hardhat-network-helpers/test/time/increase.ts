@@ -3,7 +3,7 @@ import type { Time, NumberLike } from "../../src/types.js";
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import { initializeNetwork } from "../helpers/helpers.js";

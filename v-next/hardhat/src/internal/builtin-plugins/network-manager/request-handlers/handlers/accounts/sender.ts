@@ -5,8 +5,8 @@ import type {
 } from "../../../../../../types/providers.js";
 import type { RequestHandler } from "../../types.js";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { isObject } from "@ignored/hardhat-vnext-utils/lang";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 
 import { getRequestParams } from "../../../json-rpc.js";
 

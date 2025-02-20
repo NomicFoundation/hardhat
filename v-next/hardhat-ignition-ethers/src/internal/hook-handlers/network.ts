@@ -1,13 +1,7 @@
-import type {
-  HookContext,
-  NetworkHooks,
-} from "@ignored/hardhat-vnext/types/hooks";
-import type {
-  ChainType,
-  NetworkConnection,
-} from "@ignored/hardhat-vnext/types/network";
+import type { HookContext, NetworkHooks } from "hardhat/types/hooks";
+import type { ChainType, NetworkConnection } from "hardhat/types/network";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
 import { EthersIgnitionHelperImpl } from "../ethers-ignition-helper.js";
 

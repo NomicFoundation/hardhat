@@ -10,7 +10,7 @@ import type {
 
 import path from "node:path";
 
-import { FileNotFoundError } from "@ignored/hardhat-vnext-utils/fs";
+import { FileNotFoundError } from "@nomicfoundation/hardhat-utils/fs";
 import { analyze } from "@nomicfoundation/solidity-analyzer";
 
 import { IgnitionError } from "./errors.js";

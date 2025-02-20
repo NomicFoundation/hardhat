@@ -1,6 +1,6 @@
 import type { FileManager, KeystoreLoader } from "../types.js";
 
-import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 
 import { createEmptyEncryptedKeystore } from "../keystores/encryption.js";
 import { Keystore } from "../keystores/keystore.js";

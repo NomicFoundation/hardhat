@@ -1,7 +1,7 @@
 import type { ProviderRpcError } from "../../../types/providers.js";
 
-import { CustomError } from "@ignored/hardhat-vnext-utils/error";
-import { isObject } from "@ignored/hardhat-vnext-utils/lang";
+import { CustomError } from "@nomicfoundation/hardhat-utils/error";
+import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 
 const IS_PROVIDER_ERROR_PROPERTY_NAME = "_isProviderError";
 

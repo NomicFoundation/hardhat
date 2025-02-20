@@ -3,11 +3,11 @@ import { randomUUID } from "node:crypto";
 import path from "node:path";
 import { beforeEach, describe, it } from "node:test";
 
+import { useTmpDir } from "@nomicfoundation/hardhat-test-utils";
 import {
   getAllFilesMatching,
   getFileSize,
-} from "@ignored/hardhat-vnext-utils/fs";
-import { useTmpDir } from "@nomicfoundation/hardhat-test-utils";
+} from "@nomicfoundation/hardhat-utils/fs";
 
 import { ObjectCache } from "../../../../../src/internal/builtin-plugins/solidity/build-system/cache.js";
 

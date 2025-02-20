@@ -1,5 +1,5 @@
-import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
-import type { NewTaskActionFunction } from "@ignored/hardhat-vnext/types/tasks";
+import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
+import type { NewTaskActionFunction } from "hardhat/types/tasks";
 
 import chalk from "chalk";
 
@@ -21,7 +21,7 @@ const verifyTask: NewTaskActionFunction<TaskVerifyArguments> = async (
   return;
 
   // const { getVerificationInformation } = await import(
-  //   "@ignored/hardhat-vnext-ignition-core"
+  //   "@nomicfoundation/ignition-core"
   // );
   // const deploymentDir = path.join(
   //   hre.config.paths.ignition,

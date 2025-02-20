@@ -1,9 +1,9 @@
 import type { Template } from "./template.js";
-import type { PackageJson } from "@ignored/hardhat-vnext-utils/package";
+import type { PackageJson } from "@nomicfoundation/hardhat-utils/package";
 
 import path from "node:path";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   copy,
   ensureDir,
@@ -12,8 +12,8 @@ import {
   isDirectory,
   readJsonFile,
   writeJsonFile,
-} from "@ignored/hardhat-vnext-utils/fs";
-import { resolveFromRoot } from "@ignored/hardhat-vnext-utils/path";
+} from "@nomicfoundation/hardhat-utils/fs";
+import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
 import chalk from "chalk";
 import * as semver from "semver";
 

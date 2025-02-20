@@ -1,7 +1,7 @@
 import type { BlockTag, NumberLike } from "../../../types.js";
-import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
+import type { EthereumProvider } from "hardhat/types/providers";
 
-import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 
 import { assertValidAddress } from "../../assertions.js";
 import { toRpcQuantity } from "../../conversion.js";

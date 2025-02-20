@@ -1,8 +1,8 @@
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   isAddress,
   isValidChecksumAddress,
-} from "@ignored/hardhat-vnext-utils/eth";
+} from "@nomicfoundation/hardhat-utils/eth";
 
 export function assertHexString(hexString: string): void {
   if (typeof hexString !== "string" || !/^0x[0-9a-fA-F]+$/.test(hexString)) {

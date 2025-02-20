@@ -1,6 +1,6 @@
 import type { Fixture, NetworkHelpers, Snapshot } from "../../../types.js";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
 let snapshots: Array<Snapshot<any>> = [];
 

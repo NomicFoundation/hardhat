@@ -1,7 +1,7 @@
 import type { Result } from "ethers/abi";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { ensureError } from "@ignored/hardhat-vnext-utils/error";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { AssertionError } from "chai";
 import { AbiCoder, decodeBytes32String } from "ethers/abi";
 

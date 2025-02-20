@@ -49,7 +49,7 @@ jobs:
       - name: lint
         run: pnpm lint
       - name: Check dependency versions
-        run: node scripts/check-dependencies.js
+        run: node scripts/check-v-next-dependencies.js
       - name: Install website
         working-directory: docs/
         run: pnpm install --frozen-lockfile --prefer-offline

@@ -11,7 +11,7 @@ import {
   exists,
   readJsonFile,
   writeJsonFile,
-} from "@ignored/hardhat-vnext-utils/fs";
+} from "@nomicfoundation/hardhat-utils/fs";
 
 import { FileJournal } from "../journal/file-journal.js";
 

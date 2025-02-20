@@ -1,6 +1,6 @@
 import type { UiState } from "../types.js";
 
-import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import chalk from "chalk";
 
 import { pathFromCwd } from "./cwd-relative-path.js";

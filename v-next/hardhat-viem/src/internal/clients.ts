@@ -3,8 +3,8 @@ import type {
   GetWalletClientReturnType,
   TestClient,
 } from "../types.js";
-import type { ChainType } from "@ignored/hardhat-vnext/types/network";
-import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
+import type { ChainType } from "hardhat/types/network";
+import type { EthereumProvider } from "hardhat/types/providers";
 import type {
   Address as ViemAddress,
   PublicClientConfig as ViemPublicClientConfig,
@@ -12,7 +12,7 @@ import type {
   WalletClientConfig as ViemWalletClientConfig,
 } from "viem";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   createPublicClient,
   createWalletClient,

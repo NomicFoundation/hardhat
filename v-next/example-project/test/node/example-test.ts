@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import hre from "@ignored/hardhat-vnext";
+import hre from "hardhat";
 
 describe("Example EDR based test", () => {
   it("should work get the block number from the EDR Network", async () => {

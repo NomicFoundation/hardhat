@@ -29,12 +29,12 @@ import type {
   TransactionConfirmEvent,
   TransactionSendEvent,
   WipeApplyEvent,
-} from "@ignored/hardhat-vnext-ignition-core";
+} from "@nomicfoundation/ignition-core";
 
 import {
   ExecutionEventNetworkInteractionType,
   ExecutionEventResultType,
-} from "@ignored/hardhat-vnext-ignition-core";
+} from "@nomicfoundation/ignition-core";
 
 export class VerboseEventHandler implements ExecutionEventListener {
   public deploymentInitialize(event: DeploymentInitializeEvent): void {

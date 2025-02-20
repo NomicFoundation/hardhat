@@ -1,12 +1,12 @@
 import type { BalanceChangeOptions } from "../utils/balance.js";
-import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
 import type { Addressable } from "ethers/address";
 import type { TransactionResponse } from "ethers/providers";
 import type { BigNumberish } from "ethers/utils";
+import type { EthereumProvider } from "hardhat/types/providers";
 
-import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
-import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
-import { isObject } from "@ignored/hardhat-vnext-utils/lang";
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
+import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
+import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 import { toBigInt } from "ethers/utils";
 
 import { CHANGE_ETHER_BALANCE_MATCHER } from "../constants.js";

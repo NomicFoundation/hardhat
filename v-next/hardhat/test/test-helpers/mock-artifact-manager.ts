@@ -7,7 +7,7 @@ import type {
 import {
   assertHardhatInvariant,
   HardhatError,
-} from "@ignored/hardhat-vnext-errors";
+} from "@nomicfoundation/hardhat-errors";
 
 export class MockArtifactManager implements ArtifactManager {
   readonly #artifacts: Map<string, Artifact>;

@@ -1,4 +1,4 @@
-import { artifacts } from "@ignored/hardhat-vnext";
+import { artifacts } from "hardhat";
 
 const Rocket = await artifacts.readArtifact("Rocket");
 //    ^?

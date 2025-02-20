@@ -1,5 +1,5 @@
-import type { Abi, Artifact } from "@ignored/hardhat-vnext/types/artifacts";
 import type * as ethers from "ethers";
+import type { Abi, Artifact } from "hardhat/types/artifacts";
 
 export type HardhatEthers = typeof ethers & HardhatEthersHelpers;
 

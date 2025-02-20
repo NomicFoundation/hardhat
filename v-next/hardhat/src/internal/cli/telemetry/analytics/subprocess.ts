@@ -1,7 +1,7 @@
 /* eslint-disable no-restricted-syntax -- This is the entry point of a
 subprocess, so we need to allow of top-level await here */
-import { writeJsonFile } from "@ignored/hardhat-vnext-utils/fs";
-import { postJsonRequest } from "@ignored/hardhat-vnext-utils/request";
+import { writeJsonFile } from "@nomicfoundation/hardhat-utils/fs";
+import { postJsonRequest } from "@nomicfoundation/hardhat-utils/request";
 
 // These keys are expected to be public
 const ANALYTICS_URL = "https://www.google-analytics.com/mp/collect";

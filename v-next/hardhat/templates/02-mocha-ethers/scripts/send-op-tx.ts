@@ -1,4 +1,4 @@
-import { network } from "@ignored/hardhat-vnext";
+import { network } from "hardhat";
 
 const { ethers } = await network.connect("hardhatOp", "optimism");
 

@@ -3,7 +3,7 @@ import util from "node:util";
 import {
   HardhatError,
   HardhatPluginError,
-} from "@ignored/hardhat-vnext-errors";
+} from "@nomicfoundation/hardhat-errors";
 import chalk from "chalk";
 
 import { HARDHAT_NAME, HARDHAT_WEBSITE_URL } from "../constants.js";

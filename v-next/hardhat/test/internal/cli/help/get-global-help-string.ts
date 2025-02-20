@@ -3,7 +3,7 @@ import type { Task } from "../../../../src/types/tasks.js";
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { readClosestPackageJson } from "@ignored/hardhat-vnext-utils/package";
+import { readClosestPackageJson } from "@nomicfoundation/hardhat-utils/package";
 
 import { BUILTIN_GLOBAL_OPTIONS_DEFINITIONS } from "../../../../src/internal/builtin-global-options.js";
 import { getGlobalHelpString } from "../../../../src/internal/cli/help/get-global-help-string.js";

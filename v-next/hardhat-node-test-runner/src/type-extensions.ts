@@ -1,6 +1,6 @@
-import "@ignored/hardhat-vnext/types/config";
+import "hardhat/types/config";
 
-declare module "@ignored/hardhat-vnext/types/config" {
+declare module "hardhat/types/config" {
   export interface TestPathsUserConfig {
     nodeTest?: string;
   }

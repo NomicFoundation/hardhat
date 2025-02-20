@@ -1,5 +1,5 @@
-import { network } from "@ignored/hardhat-vnext";
-import { HardhatEthers } from "@ignored/hardhat-vnext-ethers/types";
+import { network } from "hardhat";
+import { HardhatEthers } from "@nomicfoundation/hardhat-ethers/types";
 import { expect } from "chai";
 
 describe("Counter", function () {

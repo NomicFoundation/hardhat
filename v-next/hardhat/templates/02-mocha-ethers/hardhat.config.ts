@@ -1,15 +1,12 @@
-import {
-  configVariable,
-  HardhatUserConfig,
-} from "@ignored/hardhat-vnext/config";
+import { configVariable, HardhatUserConfig } from "hardhat/config";
 
-import HardhatMochaTestRunner from "@ignored/hardhat-vnext-mocha-test-runner";
-import HardhatEthers from "@ignored/hardhat-vnext-ethers";
-import HardhatNetworkHelpers from "@ignored/hardhat-vnext-network-helpers";
-import HardhatKeystore from "@ignored/hardhat-vnext-keystore";
-import HardhatChaiMatchers from "@ignored/hardhat-vnext-ethers-chai-matchers";
-import HardhatTypechain from "@ignored/hardhat-vnext-typechain";
-import HardhatIgnitionEthers from "@ignored/hardhat-vnext-ignition-ethers";
+import HardhatMochaTestRunner from "@nomicfoundation/hardhat-mocha-test-runner";
+import HardhatEthers from "@nomicfoundation/hardhat-ethers";
+import HardhatNetworkHelpers from "@nomicfoundation/hardhat-network-helpers";
+import HardhatKeystore from "@nomicfoundation/hardhat-keystore";
+import HardhatChaiMatchers from "@nomicfoundation/hardhat-ethers-chai-matchers";
+import HardhatTypechain from "@nomicfoundation/hardhat-typechain";
+import HardhatIgnitionEthers from "@nomicfoundation/hardhat-ignition-ethers";
 
 const config: HardhatUserConfig = {
   /*

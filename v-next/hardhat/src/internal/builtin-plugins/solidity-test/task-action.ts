@@ -9,9 +9,9 @@ import type {
 
 import { finished } from "node:stream/promises";
 
-import { getAllFilesMatching } from "@ignored/hardhat-vnext-utils/fs";
-import { resolveFromRoot } from "@ignored/hardhat-vnext-utils/path";
-import { createNonClosingWriter } from "@ignored/hardhat-vnext-utils/stream";
+import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
+import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
+import { createNonClosingWriter } from "@nomicfoundation/hardhat-utils/stream";
 import chalk from "chalk";
 
 import { shouldMergeCompilationJobs } from "../solidity/build-profiles.js";

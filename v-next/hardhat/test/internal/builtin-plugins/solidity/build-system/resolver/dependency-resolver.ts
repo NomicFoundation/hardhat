@@ -11,9 +11,9 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import { after, before, beforeEach, describe, it } from "node:test";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { getRealPath } from "@ignored/hardhat-vnext-utils/fs";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
+import { getRealPath } from "@nomicfoundation/hardhat-utils/fs";
 
 import {
   fsPathToSourceNamePath,
@@ -349,11 +349,11 @@ describe("Resolver", () => {
             );
 
             assert.equal(consoleSol.type, ResolvedFileType.NPM_PACKAGE_FILE);
-            assert.equal(consoleSol.package.name, "@ignored/hardhat-vnext");
+            assert.equal(consoleSol.package.name, "hardhat");
             assert.equal(consoleSol.package.version, "local");
             assert.equal(
               consoleSol.package.rootSourceName,
-              "npm/@ignored/hardhat-vnext@local/",
+              "npm/hardhat@local/",
             );
             assert.equal(
               consoleSol.package.rootFsPath,
@@ -373,7 +373,7 @@ describe("Resolver", () => {
               {
                 context: "",
                 prefix: "hardhat/console.sol",
-                target: "npm/@ignored/hardhat-vnext@local/console.sol",
+                target: "npm/hardhat@local/console.sol",
               },
             ]);
           });

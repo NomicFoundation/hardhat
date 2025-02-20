@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { isObject } from "@ignored/hardhat-vnext-utils/lang";
+import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 import { z } from "zod";
 
 import {

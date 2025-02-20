@@ -5,7 +5,7 @@ import type {
 } from "./types.js";
 import type { TestResult } from "@ignored/edr";
 
-import { bytesToHexString } from "@ignored/hardhat-vnext-utils/hex";
+import { bytesToHexString } from "@nomicfoundation/hardhat-utils/hex";
 import chalk from "chalk";
 
 import { encodeStackTraceEntry } from "../network-manager/edr/stack-traces/stack-trace-solidity-errors.js";

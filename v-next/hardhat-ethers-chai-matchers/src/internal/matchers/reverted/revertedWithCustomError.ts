@@ -2,8 +2,8 @@ import type { Ssfi } from "../../utils/ssfi.js";
 import type { ErrorFragment, Interface } from "ethers/abi";
 import type { BaseContract } from "ethers/contract";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
 
 import {
   ASSERTION_ABORTED,

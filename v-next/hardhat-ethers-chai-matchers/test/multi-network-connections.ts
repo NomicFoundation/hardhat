@@ -1,15 +1,15 @@
-import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
 import type {
   HardhatEthers,
   HardhatEthersSigner,
-} from "@ignored/hardhat-vnext-ethers/types";
+} from "@nomicfoundation/hardhat-ethers/types";
+import type { EthereumProvider } from "hardhat/types/providers";
 
 import assert from "node:assert/strict";
 import { before, beforeEach, describe, it } from "node:test";
 
-import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
-import hardhatEthersPlugin from "@ignored/hardhat-vnext-ethers";
+import hardhatEthersPlugin from "@nomicfoundation/hardhat-ethers";
 import { expect } from "chai";
+import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 import hardhatChaiMatchersPlugin from "../src/index.js";
 

@@ -2,13 +2,13 @@ import type { HardhatUserConfig } from "../../../config.js";
 import type { HardhatConfig } from "../../../types/config.js";
 import type { HardhatUserConfigValidationError } from "../../../types/hooks.js";
 
-import { isObject } from "@ignored/hardhat-vnext-utils/lang";
-import { resolveFromRoot } from "@ignored/hardhat-vnext-utils/path";
+import { isObject } from "@nomicfoundation/hardhat-utils/lang";
+import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
 import {
   conditionalUnionType,
   unionType,
   validateUserConfigZodType,
-} from "@ignored/hardhat-vnext-zod-utils";
+} from "@nomicfoundation/hardhat-zod-utils";
 import { z } from "zod";
 
 const solidityTestUserConfigType = z.object({

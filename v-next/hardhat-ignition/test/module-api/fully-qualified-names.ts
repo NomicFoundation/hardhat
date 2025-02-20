@@ -1,4 +1,4 @@
-import { buildModule } from "@ignored/hardhat-vnext-ignition-core";
+import { buildModule } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
 import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";

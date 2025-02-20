@@ -5,7 +5,7 @@ import util from "node:util";
 import {
   HardhatError,
   HardhatPluginError,
-} from "@ignored/hardhat-vnext-errors";
+} from "@nomicfoundation/hardhat-errors";
 import chalk from "chalk";
 
 import { printErrorMessages } from "../../../src/internal/cli/error-handler.js";

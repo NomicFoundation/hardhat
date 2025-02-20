@@ -1,8 +1,5 @@
-import type {
-  HookContext,
-  SolidityHooks,
-} from "@ignored/hardhat-vnext/types/hooks";
-import type { CompilationJob } from "@ignored/hardhat-vnext/types/solidity";
+import type { HookContext, SolidityHooks } from "hardhat/types/hooks";
+import type { CompilationJob } from "hardhat/types/solidity";
 
 import { generateTypes } from "../generate-types.js";
 

@@ -2,12 +2,7 @@ import type {
   ViemIgnitionHelper,
   IgnitionModuleResultsToViemContracts,
 } from "../types.js";
-import type { ArtifactManager } from "@ignored/hardhat-vnext/types/artifacts";
-import type { HardhatConfig } from "@ignored/hardhat-vnext/types/config";
-import type {
-  NetworkConnection,
-  ChainType,
-} from "@ignored/hardhat-vnext/types/network";
+import type { GetContractReturnType } from "@nomicfoundation/hardhat-viem/types";
 import type {
   ContractAtFuture,
   ContractDeploymentFuture,
@@ -24,28 +19,30 @@ import type {
   NamedArtifactLibraryDeploymentFuture,
   StrategyConfig,
   SuccessfulDeploymentResult,
-} from "@ignored/hardhat-vnext-ignition-core";
-import type { GetContractReturnType } from "@ignored/hardhat-vnext-viem/types";
+} from "@nomicfoundation/ignition-core";
+import type { ArtifactManager } from "hardhat/types/artifacts";
+import type { HardhatConfig } from "hardhat/types/config";
+import type { NetworkConnection, ChainType } from "hardhat/types/network";
 
 import path from "node:path";
 
 import {
   assertHardhatInvariant,
   HardhatError,
-} from "@ignored/hardhat-vnext-errors";
+} from "@nomicfoundation/hardhat-errors";
 import {
   HardhatArtifactResolver,
   PrettyEventHandler,
   errorDeploymentResultToExceptionMessage,
   readDeploymentParameters,
   resolveDeploymentId,
-} from "@ignored/hardhat-vnext-ignition/helpers";
+} from "@nomicfoundation/hardhat-ignition/helpers";
 import {
   DeploymentResultType,
   FutureType,
   deploy,
   isContractFuture,
-} from "@ignored/hardhat-vnext-ignition-core";
+} from "@nomicfoundation/ignition-core";
 
 export class ViemIgnitionHelperImpl<ChainTypeT extends ChainType | string>
   implements ViemIgnitionHelper

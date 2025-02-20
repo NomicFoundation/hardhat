@@ -1,4 +1,4 @@
-import type { NetworkConnection } from "@ignored/hardhat-vnext/types/network";
+import type { NetworkConnection } from "hardhat/types/network";
 
 export async function mineBlock(
   connection: NetworkConnection<string>,

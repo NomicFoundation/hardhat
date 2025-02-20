@@ -1,4 +1,4 @@
-import { network } from "@ignored/hardhat-vnext";
+import { network } from "hardhat";
 
 async function sendL2Transaction(networkConfigName: string) {
   console.log("Sending transaction using network", networkConfigName);

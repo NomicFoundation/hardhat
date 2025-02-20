@@ -1,6 +1,6 @@
 import type { EdrNetworkAccountsConfig } from "../../../types/config.js";
 
-import { hexStringToBytes } from "@ignored/hardhat-vnext-utils/hex";
+import { hexStringToBytes } from "@nomicfoundation/hardhat-utils/hex";
 import chalk from "chalk";
 import { addr } from "micro-eth-signer";
 

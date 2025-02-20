@@ -1,8 +1,8 @@
-import { buildModule } from "@ignored/hardhat-vnext-ignition-core";
+import { buildModule } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
 import { useIgnitionProject } from "./test-helpers/use-ignition-project.js";
-import "@ignored/hardhat-vnext-ethers";
+import "@nomicfoundation/hardhat-ethers";
 
 describe("support changing default sender", () => {
   useIgnitionProject("minimal");

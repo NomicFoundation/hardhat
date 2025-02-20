@@ -1,7 +1,7 @@
-import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
+import type { EthereumProvider } from "hardhat/types/providers";
 
-import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
-import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
+import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 import { NetworkHelpers } from "../../src/internal/network-helpers/network-helpers.js";
 

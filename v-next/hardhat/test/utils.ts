@@ -1,8 +1,8 @@
-import type { Interceptable } from "@ignored/hardhat-vnext-utils/request";
+import type { Interceptable } from "@nomicfoundation/hardhat-utils/request";
 
 import { after, afterEach, before } from "node:test";
 
-import { getTestDispatcher } from "@ignored/hardhat-vnext-utils/request";
+import { getTestDispatcher } from "@nomicfoundation/hardhat-utils/request";
 
 export function createTestEnvManager() {
   const changes = new Set<string>();

@@ -1,6 +1,6 @@
 import path from "node:path";
 
-import { exists, readJsonFile } from "@ignored/hardhat-vnext-utils/fs";
+import { exists, readJsonFile } from "@nomicfoundation/hardhat-utils/fs";
 
 export const ROOT_PATH_TO_FIXTURE: string = path.join(
   process.cwd(),

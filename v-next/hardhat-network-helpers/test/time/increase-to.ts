@@ -3,7 +3,7 @@ import type { Time } from "../../src/types.js";
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
 
-import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
+import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
 
 import { toBigInt } from "../../src/internal/conversion.js";
 import { initializeNetwork } from "../helpers/helpers.js";

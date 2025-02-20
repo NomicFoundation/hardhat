@@ -1,15 +1,15 @@
 import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import {
-  hexStringToBytes,
-  numberToHexString,
-} from "@ignored/hardhat-vnext-utils/hex";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   assertRejects,
   assertRejectsWithHardhatError,
 } from "@nomicfoundation/hardhat-test-utils";
+import {
+  hexStringToBytes,
+  numberToHexString,
+} from "@nomicfoundation/hardhat-utils/hex";
 import { addr } from "micro-eth-signer";
 
 import { getJsonRpcRequest } from "../../../../../../../src/internal/builtin-plugins/network-manager/json-rpc.js";

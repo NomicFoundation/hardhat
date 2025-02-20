@@ -1,4 +1,4 @@
-import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { isAddress, isAddressable } from "ethers";
 
 import { tryDereference } from "../utils/typed.js";

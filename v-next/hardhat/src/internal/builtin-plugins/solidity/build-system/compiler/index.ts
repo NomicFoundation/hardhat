@@ -5,8 +5,8 @@ import path from "node:path";
 import {
   assertHardhatInvariant,
   HardhatError,
-} from "@ignored/hardhat-vnext-errors";
-import { getCacheDir } from "@ignored/hardhat-vnext-utils/global-dir";
+} from "@nomicfoundation/hardhat-errors";
+import { getCacheDir } from "@nomicfoundation/hardhat-utils/global-dir";
 
 import {
   CompilerDownloaderImplementation,

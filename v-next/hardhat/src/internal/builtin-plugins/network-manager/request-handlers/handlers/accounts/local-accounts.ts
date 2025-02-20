@@ -8,13 +8,13 @@ import type { RequestHandler } from "../../types.js";
 import {
   assertHardhatInvariant,
   HardhatError,
-} from "@ignored/hardhat-vnext-errors";
-import { toBigInt } from "@ignored/hardhat-vnext-utils/bigint";
+} from "@nomicfoundation/hardhat-errors";
+import { toBigInt } from "@nomicfoundation/hardhat-utils/bigint";
 import {
   bytesToHexString,
   hexStringToBigInt,
   hexStringToBytes,
-} from "@ignored/hardhat-vnext-utils/hex";
+} from "@nomicfoundation/hardhat-utils/hex";
 import { addr, Transaction } from "micro-eth-signer";
 import * as typed from "micro-eth-signer/typed-data";
 import { signTyped } from "micro-eth-signer/typed-data";

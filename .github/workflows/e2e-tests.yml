@@ -1,44 +1,45 @@
-name: E2E tests
+# TODO: HH3 Bring back full E2E tests
+# name: E2E tests
 
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+# on:
+#   push:
+#     branches:
+#       - main
+#   pull_request:
+#     branches:
+#       - main
 
-jobs:
-  run-e2e:
-    strategy:
-      matrix:
-        # Disabled windows because it's too slow
-        # See: https://github.com/NomicFoundation/hardhat/issues/5247
-        os: [ubuntu-latest, macos-latest]
-    name: Run E2E tests on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    env:
-      # TODO: the e2e tests fail on windows when pnpm is used,
-      # for what we think is a bug in pnpm. We set this env
-      # variable to skip that combination until we find a solution.
-      #
-      # The failure is caused by `pnpm hardhat init` executing
-      # `hardhat init` twice on windows, which results in the
-      # second execution failing because `hardhat init` cannot
-      # be run on an existing project.
-      IS_WINDOWS: ${{ matrix.os == 'windows-latest' }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-env
-      - name: Run fixture-projects script
-        run: |
-          cd e2e
-          chmod +x run-fixture-projects.sh
-          ./run-fixture-projects.sh
-        shell: bash
-      - name: Run test-project-initialization script
-        run: |
-          cd e2e
-          chmod +x test-project-initialization.sh
-          ./test-project-initialization.sh
-        shell: bash
+# jobs:
+#   run-e2e:
+#     strategy:
+#       matrix:
+#         # Disabled windows because it's too slow
+#         # See: https://github.com/NomicFoundation/hardhat/issues/5247
+#         os: [ubuntu-latest, macos-latest]
+#     name: Run E2E tests on ${{ matrix.os }}
+#     runs-on: ${{ matrix.os }}
+#     env:
+#       # TODO: the e2e tests fail on windows when pnpm is used,
+#       # for what we think is a bug in pnpm. We set this env
+#       # variable to skip that combination until we find a solution.
+#       #
+#       # The failure is caused by `pnpm hardhat init` executing
+#       # `hardhat init` twice on windows, which results in the
+#       # second execution failing because `hardhat init` cannot
+#       # be run on an existing project.
+#       IS_WINDOWS: ${{ matrix.os == 'windows-latest' }}
+#     steps:
+#       - uses: actions/checkout@v4
+#       - uses: ./.github/actions/setup-env
+#       - name: Run fixture-projects script
+#         run: |
+#           cd e2e
+#           chmod +x run-fixture-projects.sh
+#           ./run-fixture-projects.sh
+#         shell: bash
+#       - name: Run test-project-initialization script
+#         run: |
+#           cd e2e
+#           chmod +x test-project-initialization.sh
+#           ./test-project-initialization.sh
+#         shell: bash

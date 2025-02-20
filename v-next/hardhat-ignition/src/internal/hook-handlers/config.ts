@@ -3,11 +3,11 @@ import type {
   HardhatConfig,
   HardhatUserConfig,
   IgnitionUserConfig,
-} from "@ignored/hardhat-vnext/types/config";
-import type { ConfigHooks } from "@ignored/hardhat-vnext/types/hooks";
+} from "hardhat/types/config";
+import type { ConfigHooks } from "hardhat/types/hooks";
 
-import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
-import { resolveFromRoot } from "@ignored/hardhat-vnext-utils/path";
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
+import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
 
 export default async (): Promise<Partial<ConfigHooks>> => ({
   resolveUserConfig,

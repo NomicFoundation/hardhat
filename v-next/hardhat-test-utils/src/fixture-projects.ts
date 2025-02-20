@@ -1,7 +1,7 @@
 import path from "node:path";
 import { before, after } from "node:test";
 
-import { exists, getRealPath } from "@ignored/hardhat-vnext-utils/fs";
+import { exists, getRealPath } from "@nomicfoundation/hardhat-utils/fs";
 
 /**
  * This helper adds node:test hooks to run the tests inside one of the projects

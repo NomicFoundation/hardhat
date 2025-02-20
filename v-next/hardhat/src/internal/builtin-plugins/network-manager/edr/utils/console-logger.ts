@@ -1,10 +1,10 @@
 import util from "node:util";
 
-import { bytesToHexString } from "@ignored/hardhat-vnext-utils/bytes";
+import { bytesToHexString } from "@nomicfoundation/hardhat-utils/bytes";
 import {
   bytesToBigInt,
   bytesToNumber,
-} from "@ignored/hardhat-vnext-utils/number";
+} from "@nomicfoundation/hardhat-utils/number";
 
 import {
   AddressTy,

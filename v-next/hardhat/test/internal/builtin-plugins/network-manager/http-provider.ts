@@ -3,9 +3,9 @@ import type { JsonRpcRequestWrapperFunction } from "../../../../src/internal/bui
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
+import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
 
 import {
   HttpProvider,

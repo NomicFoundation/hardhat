@@ -1,6 +1,6 @@
 import type { NumberLike, Time as TimeI } from "../../../types.js";
 import type { NetworkHelpers } from "../network-helpers.js";
-import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
+import type { EthereumProvider } from "hardhat/types/providers";
 
 import { Duration } from "../duration/duration.js";
 

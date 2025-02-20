@@ -1,7 +1,7 @@
 import type {
   EthereumProvider,
   RequestArguments,
-} from "@ignored/hardhat-vnext/types/providers";
+} from "hardhat/types/providers";
 
 import EventEmitter from "node:events";
 

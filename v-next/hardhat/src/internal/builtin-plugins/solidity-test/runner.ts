@@ -9,7 +9,7 @@ import type {
 import { Readable } from "node:stream";
 
 import { runSolidityTests, EdrContext } from "@ignored/edr";
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
 import { formatArtifactId } from "./formatters.js";
 

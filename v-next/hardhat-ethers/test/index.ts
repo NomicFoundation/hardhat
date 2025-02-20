@@ -1,9 +1,9 @@
 import type { HardhatEthers } from "../src/types.js";
-import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
+import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 
 import { beforeEach, describe, it } from "node:test";
 
-import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
+import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 import hardhatEthersPlugin from "../src/index.js";
 

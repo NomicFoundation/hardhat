@@ -1,4 +1,4 @@
-import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 
 export function assertCanConvertToBigInt(
   value: any,

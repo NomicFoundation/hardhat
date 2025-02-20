@@ -30,11 +30,11 @@ import {
 import {
   assertHardhatInvariant,
   HardhatError,
-} from "@ignored/hardhat-vnext-errors";
-import { toSeconds } from "@ignored/hardhat-vnext-utils/date";
-import { ensureError } from "@ignored/hardhat-vnext-utils/error";
-import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
-import { deepEqual } from "@ignored/hardhat-vnext-utils/lang";
+} from "@nomicfoundation/hardhat-errors";
+import { toSeconds } from "@nomicfoundation/hardhat-utils/date";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
+import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
+import { deepEqual } from "@nomicfoundation/hardhat-utils/lang";
 import debug from "debug";
 
 import { EDR_NETWORK_REVERT_SNAPSHOT_EVENT } from "../../../constants.js";

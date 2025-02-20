@@ -9,7 +9,7 @@ import type {
   SolidityBuildInfoOutput,
 } from "../../../../types/solidity/solidity-artifacts.js";
 
-import { getPrefixedHexString } from "@ignored/hardhat-vnext-utils/hex";
+import { getPrefixedHexString } from "@nomicfoundation/hardhat-utils/hex";
 
 export function getContractArtifact(
   buildInfoId: string,
@@ -74,8 +74,8 @@ export function getArtifactsDeclarationFile(artifacts: Artifact[]): string {
 
 ${artifactTypes.join("\n\n")}
 
-import "@ignored/hardhat-vnext/types/artifacts";
-declare module "@ignored/hardhat-vnext/types/artifacts" {
+import "hardhat/types/artifacts";
+declare module "hardhat/types/artifacts" {
   interface ArtifactMap {
     ${artifacts.map((artifact) => `["${artifact.contractName}"]: ${artifact.contractName}$Type`).join("\n    ")};
     ${artifacts.map((artifact) => `["${artifact.sourceName}:${artifact.contractName}"]: ${artifact.contractName}$Type`).join("\n    ")};
@@ -96,8 +96,8 @@ export function getDuplicatedContractNamesDeclarationFile(
 // eslint-disable
 // biome-ignore format: see above
 
-import "@ignored/hardhat-vnext/types/artifacts";
-declare module "@ignored/hardhat-vnext/types/artifacts" {
+import "hardhat/types/artifacts";
+declare module "hardhat/types/artifacts" {
   interface ArtifactMap {
     ${duplicatedContractNames.map((name) => `["${name}"]: never`).join("\n    ")};
   }

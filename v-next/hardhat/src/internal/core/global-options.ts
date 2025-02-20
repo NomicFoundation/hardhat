@@ -9,8 +9,8 @@ import type {
 } from "../../types/global-options.js";
 import type { HardhatPlugin } from "../../types/plugins.js";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { camelToSnakeCase } from "@ignored/hardhat-vnext-utils/string";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { camelToSnakeCase } from "@nomicfoundation/hardhat-utils/string";
 
 import { ArgumentType } from "../../types/arguments.js";
 

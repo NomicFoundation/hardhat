@@ -1,4 +1,4 @@
-import type { HardhatPlugin } from "@ignored/hardhat-vnext/types/plugins";
+import type { HardhatPlugin } from "hardhat/types/plugins";
 
 import "./type-extensions.js";
 
@@ -7,11 +7,11 @@ const hardhatChaiMatchersPlugin: HardhatPlugin = {
   hookHandlers: {
     network: import.meta.resolve("./internal/hook-handlers/network.js"),
   },
-  npmPackage: "@ignored/hardhat-vnext-ethers-chai-matchers",
+  npmPackage: "@nomicfoundation/hardhat-ethers-chai-matchers",
   dependencies: [
     async () => {
       const { default: hardhatEthersPlugin } = await import(
-        "@ignored/hardhat-vnext-ethers"
+        "@nomicfoundation/hardhat-ethers"
       );
       return hardhatEthersPlugin;
     },

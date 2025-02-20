@@ -5,7 +5,7 @@ import type {
   ResolvedNpmPackage,
 } from "../../../../types/solidity.js";
 
-import { createNonCryptographicHashId } from "@ignored/hardhat-vnext-utils/crypto";
+import { createNonCryptographicHashId } from "@nomicfoundation/hardhat-utils/crypto";
 
 import { ResolvedFileType } from "../../../../types/solidity.js";
 

@@ -1,4 +1,4 @@
-import { network } from "@ignored/hardhat-vnext";
+import { network } from "hardhat";
 
 const { provider } = await network.connect("op", "optimism");
 

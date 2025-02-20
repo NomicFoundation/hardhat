@@ -12,20 +12,20 @@ import path from "node:path";
 import {
   HardhatError,
   assertHardhatInvariant,
-} from "@ignored/hardhat-vnext-errors";
-import { ensureError } from "@ignored/hardhat-vnext-utils/error";
+} from "@nomicfoundation/hardhat-errors";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import {
   FileNotFoundError,
   exists,
   getFileTrueCase,
   readJsonFile,
   readUtf8File,
-} from "@ignored/hardhat-vnext-utils/fs";
+} from "@nomicfoundation/hardhat-utils/fs";
 import {
   findClosestPackageJson,
   findDependencyPackageJson,
-} from "@ignored/hardhat-vnext-utils/package";
-import { shortenPath } from "@ignored/hardhat-vnext-utils/path";
+} from "@nomicfoundation/hardhat-utils/package";
+import { shortenPath } from "@nomicfoundation/hardhat-utils/path";
 import { analyze } from "@nomicfoundation/solidity-analyzer";
 import * as resolve from "resolve.exports";
 

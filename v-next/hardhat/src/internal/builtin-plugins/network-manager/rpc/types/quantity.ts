@@ -1,6 +1,6 @@
 import type { ZodType } from "zod";
 
-import { conditionalUnionType } from "@ignored/hardhat-vnext-zod-utils";
+import { conditionalUnionType } from "@nomicfoundation/hardhat-zod-utils";
 import { z } from "zod";
 
 import { isRpcQuantityString } from "../utils.js";

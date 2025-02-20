@@ -2,9 +2,13 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import { before, describe, it } from "node:test";
 
-import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
-import { exists, readUtf8File, remove } from "@ignored/hardhat-vnext-utils/fs";
 import { useFixtureProject } from "@nomicfoundation/hardhat-test-utils";
+import {
+  exists,
+  readUtf8File,
+  remove,
+} from "@nomicfoundation/hardhat-utils/fs";
+import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 describe("hardhat-typechain", () => {
   describe("check that types are generated correctly", () => {
@@ -40,14 +44,14 @@ describe("hardhat-typechain", () => {
       // The overload target the v3 hardhat ethers package
       assert.equal(
         content.includes(
-          `declare module "@ignored/hardhat-vnext-ethers/types" {`,
+          `declare module "@nomicfoundation/hardhat-ethers/types" {`,
         ),
         true,
       );
 
       // The import should be from the v3 hardhat ethers package
       assert.equal(
-        content.includes(`from "@ignored/hardhat-vnext-ethers/types";`),
+        content.includes(`from "@nomicfoundation/hardhat-ethers/types";`),
         true,
       );
 

@@ -16,8 +16,8 @@ import type {
   JsonRpcResponse,
 } from "../../../types/providers.js";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { readBinaryFile } from "@ignored/hardhat-vnext-utils/fs";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { readBinaryFile } from "@nomicfoundation/hardhat-utils/fs";
 
 import { resolveConfigurationVariable } from "../../core/configuration-variables.js";
 

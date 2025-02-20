@@ -1,11 +1,11 @@
-import type { IgnitionModule } from "@ignored/hardhat-vnext-ignition-core";
+import type { IgnitionModule } from "@nomicfoundation/ignition-core";
 
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { IgnitionError } from "@ignored/hardhat-vnext-ignition-core";
-import { exists } from "@ignored/hardhat-vnext-utils/fs";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { exists } from "@nomicfoundation/hardhat-utils/fs";
+import { IgnitionError } from "@nomicfoundation/ignition-core";
 import setupDebug from "debug";
 
 import { shouldBeHardhatPluginError } from "./shouldBeHardhatPluginError.js";

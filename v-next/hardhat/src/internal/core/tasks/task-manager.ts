@@ -12,7 +12,7 @@ import type {
 import {
   HardhatError,
   assertHardhatInvariant,
-} from "@ignored/hardhat-vnext-errors";
+} from "@nomicfoundation/hardhat-errors";
 
 import { TaskDefinitionType } from "../../../types/tasks.js";
 

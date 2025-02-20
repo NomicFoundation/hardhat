@@ -1,11 +1,11 @@
-import "@ignored/hardhat-vnext/types/config";
+import "hardhat/types/config";
 
 import type {
   DeployConfig,
   StrategyConfig,
-} from "@ignored/hardhat-vnext-ignition-core";
+} from "@nomicfoundation/ignition-core";
 
-declare module "@ignored/hardhat-vnext/types/config" {
+declare module "hardhat/types/config" {
   export interface ProjectPathsUserConfig {
     ignition?: string;
   }

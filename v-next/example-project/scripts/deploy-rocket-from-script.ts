@@ -1,4 +1,4 @@
-import hre from "@ignored/hardhat-vnext";
+import hre from "hardhat";
 
 import apolloModule from "../ignition/modules/Apollo.js";
 

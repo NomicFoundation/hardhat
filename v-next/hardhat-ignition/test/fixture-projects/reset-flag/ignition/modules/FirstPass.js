@@ -1,4 +1,4 @@
-import { buildModule } from "@ignored/hardhat-vnext-ignition-core";
+import { buildModule } from "@nomicfoundation/ignition-core";
 
 export default buildModule("ResetModule", (m) => {
   const a = m.contract("Foo", [], {

@@ -1,6 +1,6 @@
 import type { DebugTraceResult } from "@ignored/edr-optimism";
 
-import { isObject } from "@ignored/hardhat-vnext-utils/lang";
+import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 
 export function isDebugTraceResult(
   result: unknown,

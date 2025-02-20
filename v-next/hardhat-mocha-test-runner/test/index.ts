@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   assertRejectsWithHardhatError,
   useFixtureProject,
@@ -12,9 +12,7 @@ describe("Hardhat Mocha plugin", () => {
     useFixtureProject("test-project");
 
     it("should work", async () => {
-      const { createHardhatRuntimeEnvironment } = await import(
-        "@ignored/hardhat-vnext/hre"
-      );
+      const { createHardhatRuntimeEnvironment } = await import("hardhat/hre");
 
       const hardhatConfig = await import(
         "./fixture-projects/test-project/hardhat.config.js"
@@ -32,9 +30,7 @@ describe("Hardhat Mocha plugin", () => {
     useFixtureProject("invalid-mocha-config");
 
     it("should fail", async () => {
-      const { createHardhatRuntimeEnvironment } = await import(
-        "@ignored/hardhat-vnext/hre"
-      );
+      const { createHardhatRuntimeEnvironment } = await import("hardhat/hre");
 
       const errors =
         "\t* Config error in config.mocha.delay: Expected boolean, received number";

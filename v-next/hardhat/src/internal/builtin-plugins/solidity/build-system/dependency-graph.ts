@@ -1,7 +1,7 @@
 import type { DependencyGraph } from "../../../../types/solidity/dependency-graph.js";
 import type { ResolvedFile } from "../../../../types/solidity/resolved-file.js";
 
-import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 
 export class DependencyGraphImplementation implements DependencyGraph {
   readonly #fileBySourceName = new Map<string, ResolvedFile>();

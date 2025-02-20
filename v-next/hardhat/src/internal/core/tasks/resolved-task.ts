@@ -15,8 +15,8 @@ import type {
 import {
   HardhatError,
   assertHardhatInvariant,
-} from "@ignored/hardhat-vnext-errors";
-import { ensureError } from "@ignored/hardhat-vnext-utils/error";
+} from "@nomicfoundation/hardhat-errors";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 
 import { SHOULD_WARN_ABOUT_INLINE_TASK_ACTIONS_AND_HOOK_HANDLERS } from "../inline-functions-warning.js";
 import { detectPluginNpmDependencyProblems } from "../plugins/detect-plugin-npm-dependency-problems.js";

@@ -1,7 +1,7 @@
 import { execSync } from "node:child_process";
 import path from "node:path";
 
-import { exists } from "@ignored/hardhat-vnext-utils/fs";
+import { exists } from "@nomicfoundation/hardhat-utils/fs";
 import semver from "semver";
 
 type PackageManager = "npm" | "yarn" | "pnpm";

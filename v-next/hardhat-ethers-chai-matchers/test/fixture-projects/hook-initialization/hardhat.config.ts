@@ -1,6 +1,6 @@
-import type { HardhatUserConfig } from "@ignored/hardhat-vnext/config";
+import type { HardhatUserConfig } from "hardhat/config";
 
-import HardhatMochaPlugin from "@ignored/hardhat-vnext-mocha-test-runner";
+import HardhatMochaPlugin from "@nomicfoundation/hardhat-mocha-test-runner";
 
 // eslint-disable-next-line import/no-relative-packages -- allow in fixture projects
 import hardhatChaiMatchersPlugin from "../../../src/index.js";

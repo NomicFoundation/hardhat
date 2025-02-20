@@ -4,11 +4,11 @@ import type {
   MatchersContract,
   OverrideEventContract,
 } from "../helpers/contracts.js";
-import type { HardhatEthers } from "@ignored/hardhat-vnext-ethers/types";
+import type { HardhatEthers } from "@nomicfoundation/hardhat-ethers/types";
 
 import { before, beforeEach, describe, it } from "node:test";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   assertRejectsWithHardhatError,
   useFixtureProject,

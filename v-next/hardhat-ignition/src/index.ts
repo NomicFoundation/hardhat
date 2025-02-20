@@ -1,7 +1,7 @@
-import type { HardhatPlugin } from "@ignored/hardhat-vnext/types/plugins";
+import type { HardhatPlugin } from "hardhat/types/plugins";
 
-import { emptyTask, task } from "@ignored/hardhat-vnext/config";
-import { ArgumentType } from "@ignored/hardhat-vnext/types/arguments";
+import { emptyTask, task } from "hardhat/config";
+import { ArgumentType } from "hardhat/types/arguments";
 
 import { PLUGIN_ID } from "./internal/constants.js";
 
@@ -9,7 +9,7 @@ import "./type-extensions.js";
 
 const hardhatIgnitionPlugin: HardhatPlugin = {
   id: PLUGIN_ID,
-  npmPackage: "@ignored/hardhat-vnext-ignition",
+  npmPackage: "@nomicfoundation/hardhat-ignition",
   hookHandlers: {
     config: import.meta.resolve("./internal/hook-handlers/config.js"),
   },

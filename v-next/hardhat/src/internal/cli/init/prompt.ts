@@ -1,7 +1,7 @@
 import type { Template } from "./template.js";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { shortenPath } from "@ignored/hardhat-vnext-utils/path";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { shortenPath } from "@nomicfoundation/hardhat-utils/path";
 import chalk from "chalk";
 
 export async function promptForWorkspace(): Promise<string> {

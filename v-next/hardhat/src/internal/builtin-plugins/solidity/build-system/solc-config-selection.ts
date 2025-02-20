@@ -6,8 +6,8 @@ import type { CompilationJobCreationError } from "../../../../types/solidity/bui
 import type { ResolvedFile } from "../../../../types/solidity/resolved-file.js";
 import type { DependencyGraph } from "../../../../types/solidity.js";
 
-import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
-import { shortenPath } from "@ignored/hardhat-vnext-utils/path";
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
+import { shortenPath } from "@nomicfoundation/hardhat-utils/path";
 import { intersects, maxSatisfying, satisfies } from "semver";
 
 import { CompilationJobCreationErrorReason } from "../../../../types/solidity/build-system.js";

@@ -3,8 +3,8 @@ import type { AssertWithSsfi, Ssfi } from "./ssfi.js";
 import {
   assertHardhatInvariant,
   HardhatError,
-} from "@ignored/hardhat-vnext-errors";
-import { ensureError } from "@ignored/hardhat-vnext-utils/error";
+} from "@nomicfoundation/hardhat-errors";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { keccak256 } from "ethers/crypto";
 import { getBytes, hexlify, isHexString, toUtf8Bytes } from "ethers/utils";
 

@@ -16,9 +16,9 @@ import type { HardhatPlugin } from "../../../src/types/plugins.js";
 import assert from "node:assert/strict";
 import { describe, it, beforeEach, before } from "node:test";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { ensureError } from "@ignored/hardhat-vnext-utils/error";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 
 import { HookManagerImplementation } from "../../../src/internal/core/hook-manager.js";
 import {

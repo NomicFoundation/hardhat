@@ -1,4 +1,4 @@
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
 import { PREVIOUS_MATCHER_NAME } from "../constants.js";
 

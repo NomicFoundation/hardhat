@@ -1,7 +1,7 @@
 import path, { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { exists, remove } from "@ignored/hardhat-vnext-utils/fs";
+import { exists, remove } from "@nomicfoundation/hardhat-utils/fs";
 import { assert } from "chai";
 
 import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";

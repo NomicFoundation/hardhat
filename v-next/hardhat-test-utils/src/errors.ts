@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 
-import { ensureError } from "@ignored/hardhat-vnext-utils/error";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 
 /**
  * Asserts that an async operation (i.e. calling an async function or a promise)

@@ -1,6 +1,4 @@
 import type { HardhatEthersProvider as HardhatEthersProviderI } from "../../types.js";
-import type { NetworkConfig } from "@ignored/hardhat-vnext/types/config";
-import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
 import type {
   AddressLike,
   BlockTag,
@@ -18,14 +16,16 @@ import type {
   EventFilter,
   ethers,
 } from "ethers";
+import type { NetworkConfig } from "hardhat/types/config";
+import type { EthereumProvider } from "hardhat/types/providers";
 
 import {
   assertHardhatInvariant,
   HardhatError,
-} from "@ignored/hardhat-vnext-errors";
-import { ensureError } from "@ignored/hardhat-vnext-utils/error";
-import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
-import { deepEqual } from "@ignored/hardhat-vnext-utils/lang";
+} from "@nomicfoundation/hardhat-errors";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
+import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
+import { deepEqual } from "@nomicfoundation/hardhat-utils/lang";
 import debug from "debug";
 import {
   Block,

@@ -1,7 +1,7 @@
 import type { Addressable } from "ethers/address";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { isAddress } from "@ignored/hardhat-vnext-utils/eth";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { isAddress } from "@nomicfoundation/hardhat-utils/eth";
 import { isAddressable } from "ethers/address";
 
 export async function getAddressOf(

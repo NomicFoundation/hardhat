@@ -1,11 +1,11 @@
-import type { ArtifactManager } from "@ignored/hardhat-vnext/types/artifacts";
 import type {
   Artifact,
   ArtifactResolver,
   BuildInfo,
-} from "@ignored/hardhat-vnext-ignition-core";
+} from "@nomicfoundation/ignition-core";
+import type { ArtifactManager } from "hardhat/types/artifacts";
 
-import { readJsonFile } from "@ignored/hardhat-vnext-utils/fs";
+import { readJsonFile } from "@nomicfoundation/hardhat-utils/fs";
 
 export class HardhatArtifactResolver implements ArtifactResolver {
   readonly #artifactManager: ArtifactManager;

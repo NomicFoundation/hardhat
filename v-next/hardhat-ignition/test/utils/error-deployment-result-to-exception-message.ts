@@ -3,9 +3,9 @@ import type {
   PreviousRunErrorDeploymentResult,
   ReconciliationErrorDeploymentResult,
   ValidationErrorDeploymentResult,
-} from "@ignored/hardhat-vnext-ignition-core";
+} from "@nomicfoundation/ignition-core";
 
-import { DeploymentResultType } from "@ignored/hardhat-vnext-ignition-core";
+import { DeploymentResultType } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
 import { errorDeploymentResultToExceptionMessage } from "../../src/helpers/error-deployment-result-to-exception-message.js";

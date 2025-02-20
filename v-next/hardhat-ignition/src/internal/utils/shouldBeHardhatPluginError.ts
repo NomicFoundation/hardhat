@@ -1,4 +1,4 @@
-import type { IgnitionError } from "@ignored/hardhat-vnext-ignition-core";
+import type { IgnitionError } from "@nomicfoundation/ignition-core";
 
 /**
  * This is a whitelist of error codes that should be rethrown as HardhatErrors.

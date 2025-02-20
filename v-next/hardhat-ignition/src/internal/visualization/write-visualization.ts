@@ -1,15 +1,15 @@
-import type { SerializedIgnitionModule } from "@ignored/hardhat-vnext-ignition-core";
+import type { SerializedIgnitionModule } from "@nomicfoundation/ignition-core";
 
 import { createRequire } from "node:module";
 import path from "node:path";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   ensureDir,
   exists,
   readUtf8File,
   writeUtf8File,
-} from "@ignored/hardhat-vnext-utils/fs";
+} from "@nomicfoundation/hardhat-utils/fs";
 
 export async function writeVisualization(
   visualizationPayload: {
@@ -20,7 +20,7 @@ export async function writeVisualization(
 ): Promise<void> {
   const require = createRequire(import.meta.url);
   const templateDir = path.join(
-    require.resolve("@ignored/hardhat-vnext-ignition-ui/package.json"),
+    require.resolve("@nomicfoundation/ignition-ui/package.json"),
     "../dist",
   );
 

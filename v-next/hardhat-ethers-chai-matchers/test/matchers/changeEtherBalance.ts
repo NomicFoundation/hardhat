@@ -1,16 +1,16 @@
 import type { Token } from "../../src/internal/matchers/changeTokenBalance.js";
 import type { ChangeEtherBalance } from "../helpers/contracts.js";
-import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
 import type {
   HardhatEthers,
   HardhatEthersSigner,
-} from "@ignored/hardhat-vnext-ethers/types";
+} from "@nomicfoundation/hardhat-ethers/types";
+import type { EthereumProvider } from "hardhat/types/providers";
 
 import path from "node:path";
 import { before, beforeEach, describe, it } from "node:test";
 import util from "node:util";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   assertThrowsHardhatError,
   useFixtureProject,

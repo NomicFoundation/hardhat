@@ -1,5 +1,5 @@
 import type { NumberLike } from "../../../types.js";
-import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
+import type { EthereumProvider } from "hardhat/types/providers";
 
 import { toRpcQuantity } from "../../conversion.js";
 

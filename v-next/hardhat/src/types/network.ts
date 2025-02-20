@@ -21,7 +21,7 @@ export type GenericChainType = "generic";
  * `ChainTypeConfig` interface with a valid `ChainType` value.
  * For example:
  * ```ts
- * declare module "@ignored/hardhat-vnext/types/network" {
+ * declare module "hardhat/types/network" {
  *   export interface ChainTypeConfig {
  *     defaultChainType: "l1";
  *   }

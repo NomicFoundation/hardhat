@@ -1,4 +1,4 @@
-import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
+import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 
 import assert from "node:assert/strict";
 import path from "node:path";
@@ -6,8 +6,8 @@ import { Readable } from "node:stream";
 import { afterEach, beforeEach, describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 
-import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
-import { remove, writeJsonFile } from "@ignored/hardhat-vnext-utils/fs";
+import { remove, writeJsonFile } from "@nomicfoundation/hardhat-utils/fs";
+import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 import hardhatKeystorePlugin from "../../src/index.js";
 import {

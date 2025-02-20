@@ -1,9 +1,9 @@
 import type { BalanceChangeOptions } from "../utils/balance.js";
-import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
 import type { Addressable } from "ethers/address";
 import type { TransactionResponse } from "ethers/providers";
+import type { EthereumProvider } from "hardhat/types/providers";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { toBigInt } from "ethers/utils";
 
 import { CHANGE_ETHER_BALANCES_MATCHER } from "../constants.js";

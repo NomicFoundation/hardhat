@@ -1,6 +1,6 @@
-import type { HardhatPlugin } from "@ignored/hardhat-vnext/types/plugins";
+import type { HardhatPlugin } from "hardhat/types/plugins";
 
-import { task } from "@ignored/hardhat-vnext/config";
+import { task } from "hardhat/config";
 
 import "./type-extensions.js";
 
@@ -32,7 +32,7 @@ const hardhatPlugin: HardhatPlugin = {
   hookHandlers: {
     config: import.meta.resolve("./hookHandlers/config.js"),
   },
-  npmPackage: "@ignored/hardhat-vnext-node-test-runner",
+  npmPackage: "@nomicfoundation/hardhat-node-test-runner",
 };
 
 export default hardhatPlugin;

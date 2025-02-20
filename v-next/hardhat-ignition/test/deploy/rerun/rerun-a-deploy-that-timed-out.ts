@@ -1,8 +1,8 @@
 import type { TestChainHelper } from "../../test-helpers/use-ignition-project.js";
 
-import {} from "@ignored/hardhat-vnext-network-helpers";
-import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
-import { buildModule, wipe } from "@ignored/hardhat-vnext-ignition-core";
+import {} from "@nomicfoundation/hardhat-network-helpers";
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
+import { buildModule, wipe } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
 import { HardhatArtifactResolver } from "../../../src/helpers/hardhat-artifact-resolver.js";

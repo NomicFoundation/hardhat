@@ -13,8 +13,8 @@ import type { RefinementCtx } from "zod";
 import {
   getUnprefixedHexString,
   isHexString,
-} from "@ignored/hardhat-vnext-utils/hex";
-import { isObject } from "@ignored/hardhat-vnext-utils/lang";
+} from "@nomicfoundation/hardhat-utils/hex";
+import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 import {
   conditionalUnionType,
   configurationVariableSchema,
@@ -22,7 +22,7 @@ import {
   sensitiveUrlSchema,
   unionType,
   validateUserConfigZodType,
-} from "@ignored/hardhat-vnext-zod-utils";
+} from "@nomicfoundation/hardhat-zod-utils";
 import { z } from "zod";
 
 import {

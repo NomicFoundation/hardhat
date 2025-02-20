@@ -2,7 +2,7 @@ import type { TypechainConfig } from "../types.js";
 import type { PublicConfig as RunTypeChainConfig } from "typechain";
 import type { OutputTransformer } from "typechain/dist/codegen/outputTransformers/index.js";
 
-import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import debug from "debug";
 
 const log = debug("hardhat:typechain:generate-types");
@@ -101,13 +101,13 @@ function addCompiledFilesTransformerIfAbsent(
     // Fixes the import of types from the ethers plugin. Update the imports from "ethers-v2" to "ethers-v3"
     modifiedContent = modifiedContent.replaceAll(
       'from "@nomicfoundation/hardhat-ethers/types"',
-      'from "@ignored/hardhat-vnext-ethers/types"',
+      'from "@nomicfoundation/hardhat-ethers/types"',
     );
 
     // Fixes the module augmentation to use the types declared in "ethers-v3"
     modifiedContent = modifiedContent.replaceAll(
       'declare module "hardhat/types/runtime"',
-      'declare module "@ignored/hardhat-vnext-ethers/types"',
+      'declare module "@nomicfoundation/hardhat-ethers/types"',
     );
 
     return modifiedContent;

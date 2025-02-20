@@ -1,7 +1,7 @@
-import type { HardhatEthers } from "@ignored/hardhat-vnext-ethers/types";
+import type { HardhatEthers } from "@nomicfoundation/hardhat-ethers/types";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
 
 import { REVERTED_MATCHER } from "../../constants.js";
 import { assertIsNotNull } from "../../utils/asserts.js";

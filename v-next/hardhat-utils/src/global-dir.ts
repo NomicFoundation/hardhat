@@ -1,6 +1,6 @@
 import { generatePaths, HARDHAT_PACKAGE_NAME } from "./internal/global-dir.js";
 
-import { ensureDir } from "@ignored/hardhat-vnext-utils/fs";
+import { ensureDir } from "@nomicfoundation/hardhat-utils/fs";
 
 /**
  * Returns the configuration directory path for a given package (defaults to "hardhat").

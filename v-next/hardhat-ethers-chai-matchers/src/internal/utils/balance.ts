@@ -1,8 +1,8 @@
-import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
 import type { Addressable } from "ethers";
+import type { EthereumProvider } from "hardhat/types/providers";
 
-import { toBigInt } from "@ignored/hardhat-vnext-utils/bigint";
-import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
+import { toBigInt } from "@nomicfoundation/hardhat-utils/bigint";
+import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
 
 import { getAddressOf } from "./account.js";
 import { assertCanBeConvertedToBigint } from "./asserts.js";

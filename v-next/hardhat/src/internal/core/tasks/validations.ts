@@ -5,7 +5,7 @@ import type {
   PositionalArgumentDefinition,
 } from "../../../types/arguments.js";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
 import { validateArgumentName, validateArgumentValue } from "../arguments.js";
 

@@ -10,15 +10,15 @@ import path from "node:path";
 import { before, beforeEach, describe, it, mock } from "node:test";
 
 import {
+  getTmpDir,
+  useFixtureProject,
+} from "@nomicfoundation/hardhat-test-utils";
+import {
   exists,
   getAllFilesMatching,
   readJsonFile,
   remove,
-} from "@ignored/hardhat-vnext-utils/fs";
-import {
-  getTmpDir,
-  useFixtureProject,
-} from "@nomicfoundation/hardhat-test-utils";
+} from "@nomicfoundation/hardhat-utils/fs";
 
 import { SolidityBuildSystemImplementation } from "../../../../../src/internal/builtin-plugins/solidity/build-system/build-system.js";
 import { HookManagerImplementation } from "../../../../../src/internal/core/hook-manager.js";

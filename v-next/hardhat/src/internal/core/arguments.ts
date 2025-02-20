@@ -1,6 +1,6 @@
 import type { ArgumentValue } from "../../types/arguments.js";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
 import { ArgumentType } from "../../types/arguments.js";
 

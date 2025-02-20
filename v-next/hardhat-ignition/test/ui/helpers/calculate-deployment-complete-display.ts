@@ -5,12 +5,12 @@ import type {
   PreviousRunErrorDeploymentResult,
   ReconciliationErrorDeploymentResult,
   ValidationErrorDeploymentResult,
-} from "@ignored/hardhat-vnext-ignition-core";
+} from "@nomicfoundation/ignition-core";
 
 import {
   DeploymentResultType,
   ExecutionEventType,
-} from "@ignored/hardhat-vnext-ignition-core";
+} from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 import chalk from "chalk";
 

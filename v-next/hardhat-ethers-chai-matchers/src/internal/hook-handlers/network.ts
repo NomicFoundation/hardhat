@@ -1,11 +1,5 @@
-import type {
-  HookContext,
-  NetworkHooks,
-} from "@ignored/hardhat-vnext/types/hooks";
-import type {
-  ChainType,
-  NetworkConnection,
-} from "@ignored/hardhat-vnext/types/network";
+import type { HookContext, NetworkHooks } from "hardhat/types/hooks";
+import type { ChainType, NetworkConnection } from "hardhat/types/network";
 
 import { addChaiMatchers } from "../add-chai-matchers.js";
 

@@ -1,12 +1,12 @@
 import type { TestClientMode } from "../types.js";
-import type { ChainType } from "@ignored/hardhat-vnext/types/network";
-import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
+import type { ChainType } from "hardhat/types/network";
+import type { EthereumProvider } from "hardhat/types/providers";
 import type { Chain as ViemChain } from "viem";
 
 import {
   assertHardhatInvariant,
   HardhatError,
-} from "@ignored/hardhat-vnext-errors";
+} from "@nomicfoundation/hardhat-errors";
 import { extractChain } from "viem";
 import * as chainsModule from "viem/chains";
 import { hardhat, anvil, optimism } from "viem/chains";

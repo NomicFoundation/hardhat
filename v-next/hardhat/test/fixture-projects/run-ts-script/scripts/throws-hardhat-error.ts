@@ -1,3 +1,3 @@
-import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 
 assertHardhatInvariant(false, "Intentional invariant violation");

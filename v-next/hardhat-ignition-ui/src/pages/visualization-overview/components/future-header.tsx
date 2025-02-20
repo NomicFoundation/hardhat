@@ -1,4 +1,4 @@
-import { Future } from "@ignored/hardhat-vnext-ignition-core/ui-helpers";
+import { Future } from "@nomicfoundation/ignition-core/ui-helpers";
 import styled from "styled-components";
 
 export const FutureHeader: React.FC<{

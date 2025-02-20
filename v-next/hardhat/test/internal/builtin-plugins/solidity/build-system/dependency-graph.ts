@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import { beforeEach, describe, it } from "node:test";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import { DependencyGraphImplementation } from "../../../../../src/internal/builtin-plugins/solidity/build-system/dependency-graph.js";

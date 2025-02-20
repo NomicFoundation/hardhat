@@ -1,6 +1,6 @@
 import type { KeystoreLoader } from "../types.js";
-import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
-import type { NewTaskActionFunction } from "@ignored/hardhat-vnext/types/tasks";
+import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
+import type { NewTaskActionFunction } from "hardhat/types/tasks";
 
 import { PLUGIN_ID } from "../constants.js";
 import {

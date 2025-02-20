@@ -3,7 +3,7 @@
 import path, { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
+import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 // Compile the contracts before executing the tests to bypass the compilation step during testing.
 

@@ -1,4 +1,4 @@
-import { exists, readdir } from "@ignored/hardhat-vnext-utils/fs";
+import { exists, readdir } from "@nomicfoundation/hardhat-utils/fs";
 
 /**
  * Return a list of all deployments in the deployment directory.

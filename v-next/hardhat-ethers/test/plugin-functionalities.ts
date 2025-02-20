@@ -3,16 +3,13 @@ import type {
   TestContractLib,
 } from "./helpers/example-contracts.js";
 import type { HardhatEthers, HardhatEthersSigner } from "../src/types.js";
-import type {
-  Artifact,
-  ArtifactManager,
-} from "@ignored/hardhat-vnext/types/artifacts";
 import type * as EthersT from "ethers";
+import type { Artifact, ArtifactManager } from "hardhat/types/artifacts";
 
 import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import {

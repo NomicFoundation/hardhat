@@ -1,6 +1,6 @@
-import type { NetworkConnection } from "@ignored/hardhat-vnext/types/network";
+import type { NetworkConnection } from "hardhat/types/network";
 
-import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 
 /**
  * Get latest balance for an address.

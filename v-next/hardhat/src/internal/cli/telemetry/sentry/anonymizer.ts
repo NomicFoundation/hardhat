@@ -5,7 +5,7 @@ import * as path from "node:path";
 import {
   findClosestPackageJson,
   PackageJsonNotFoundError,
-} from "@ignored/hardhat-vnext-utils/package";
+} from "@nomicfoundation/hardhat-utils/package";
 // This file is executed in a subprocess, and it is always run in this context.
 // Therefore, it is acceptable to avoid using dynamic imports and instead import all necessary modules at the beginning.
 import * as czech from "ethereum-cryptography/bip39/wordlists/czech.js";

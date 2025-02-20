@@ -1,6 +1,6 @@
 import type { Event, Response } from "@sentry/node";
 
-import { spawnDetachedSubProcess } from "@ignored/hardhat-vnext-utils/subprocess";
+import { spawnDetachedSubProcess } from "@nomicfoundation/hardhat-utils/subprocess";
 import debug from "debug";
 
 const log = debug("hardhat:cli:telemetry:sentry:transport");

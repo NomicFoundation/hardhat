@@ -14,13 +14,13 @@ import assert from "node:assert/strict";
 import { afterEach, before, describe, it, mock } from "node:test";
 import { pathToFileURL } from "node:url";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { isCi } from "@ignored/hardhat-vnext-utils/ci";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   assertThrowsHardhatError,
   assertRejectsWithHardhatError,
   useFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
+import { isCi } from "@nomicfoundation/hardhat-utils/ci";
 import chalk from "chalk";
 import debug from "debug";
 

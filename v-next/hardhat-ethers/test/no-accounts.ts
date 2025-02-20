@@ -1,11 +1,11 @@
 import type { HardhatEthers } from "../src/types.js";
-import type { ArtifactManager } from "@ignored/hardhat-vnext/types/artifacts";
-import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
+import type { ArtifactManager } from "hardhat/types/artifacts";
+import type { EthereumProvider } from "hardhat/types/providers";
 
 import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
 
-import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 
 import { HardhatEthersSigner } from "../src/internal/signers/signers.js";
 

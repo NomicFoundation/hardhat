@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
 import { useFixtureProject } from "@nomicfoundation/hardhat-test-utils";
+import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 describe("hardhat-ethers-chai-matchers plugin correctly initialized", () => {
   useFixtureProject("hook-initialization");

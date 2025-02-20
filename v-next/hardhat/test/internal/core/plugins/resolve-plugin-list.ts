@@ -3,7 +3,7 @@ import type { HardhatPlugin } from "../../../../src/types/plugins.js";
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import { resolvePluginList } from "../../../../src/internal/core/plugins/resolve-plugin-list.js";

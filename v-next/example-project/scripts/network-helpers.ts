@@ -3,7 +3,7 @@
  * Run this script with `npx hardhat run scripts/network-helpers.ts`.
  */
 
-import hre from "@ignored/hardhat-vnext";
+import hre from "hardhat";
 
 const { networkHelpers } = await hre.network.connect();
 
