@@ -353,7 +353,7 @@ describe("Resolver", () => {
             assert.equal(consoleSol.package.version, "local");
             assert.equal(
               consoleSol.package.rootSourceName,
-              "npm/@ignored/hardhat-vnext@local/",
+              "npm/hardhat@local/",
             );
             assert.equal(
               consoleSol.package.rootFsPath,
@@ -373,7 +373,7 @@ describe("Resolver", () => {
               {
                 context: "",
                 prefix: "hardhat/console.sol",
-                target: "npm/@ignored/hardhat-vnext@local/console.sol",
+                target: "npm/hardhat@local/console.sol",
               },
             ]);
           });
