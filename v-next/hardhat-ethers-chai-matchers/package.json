@@ -46,7 +46,7 @@
   ],
   "devDependencies": {
     "@eslint-community/eslint-plugin-eslint-comments": "^4.3.0",
-    "@nomicfoundation/hardhat-mocha-test-runner": "workspace:^2.0.0",
+    "@nomicfoundation/hardhat-mocha": "workspace:^2.0.0",
     "@nomicfoundation/hardhat-node-test-reporter": "workspace:^2.0.0",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
     "@types/chai": "^4.2.0",

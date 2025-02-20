@@ -5,7 +5,7 @@ import { HardhatPluginError } from "hardhat/plugins";
 import util from "node:util";
 import { task, emptyTask, globalOption, configVariable } from "hardhat/config";
 import HardhatNodeTestRunner from "@nomicfoundation/hardhat-node-test-runner";
-import HardhatMochaTestRunner from "@nomicfoundation/hardhat-mocha-test-runner";
+import HardhatMochaTestRunner from "@nomicfoundation/hardhat-mocha";
 import HardhatKeystore from "@nomicfoundation/hardhat-keystore";
 import HardhatViem from "@nomicfoundation/hardhat-viem";
 import hardhatNetworkHelpersPlugin from "@nomicfoundation/hardhat-network-helpers";
