@@ -313,34 +313,28 @@ import { expect } from "chai";
 import { ignition, ethers } from "hardhat";
 
 import ProxyModule from "../ignition/modules/ProxyModule";
-import UpgradeModule from "../ignition/modules/UpgradeModule";
+import DemoV2 from "../ignition/modules/DemoV2";
 
 describe("Demo Proxy", function () {
   describe("Proxy interaction", function () {
     it("Should be interactable via proxy", async function () {
-      const [, otherAccount] = await ethers.getSigners();
-
       const { demo } = await ignition.deploy(ProxyModule);
 
-      expect(await demo.connect(otherAccount).version()).to.equal("1.0.0");
+      expect(await demo.read.version()).to.equal("1.0.0");
     });
   });
 
   describe("Upgrading", function () {
     it("Should have upgraded the proxy to DemoV2", async function () {
-      const [, otherAccount] = await ethers.getSigners();
+      const { demo } = await ignition.deploy(DemoV2Module);
 
-      const { demo } = await ignition.deploy(UpgradeModule);
-
-      expect(await demo.connect(otherAccount).version()).to.equal("2.0.0");
+      expect(await demo.read.version()).to.equal("2.0.0");
     });
 
     it("Should have set the name during upgrade", async function () {
-      const [, otherAccount] = await ethers.getSigners();
+      const { demo } = await ignition.deploy(DemoV2Module);
 
-      const { demo } = await ignition.deploy(UpgradeModule);
-
-      expect(await demo.connect(otherAccount).name()).to.equal("Example Name");
+      expect(await demo.read.name()).to.equal("Example Name");
     });
   });
 });
@@ -354,34 +348,28 @@ describe("Demo Proxy", function () {
 const { expect } = require("chai");
 
 const ProxyModule = require("../ignition/modules/ProxyModule");
-const UpgradeModule = require("../ignition/modules/UpgradeModule");
+const DemoV2Module = require("../ignition/modules/DemoV2Module");
 
 describe("Demo Proxy", function () {
   describe("Proxy interaction", function () {
     it("Should be interactable via proxy", async function () {
-      const [, otherAccount] = await ethers.getSigners();
-
       const { demo } = await ignition.deploy(ProxyModule);
 
-      expect(await demo.connect(otherAccount).version()).to.equal("1.0.0");
+      expect(await demo.read.version()).to.equal("1.0.0");
     });
   });
 
   describe("Upgrading", function () {
     it("Should have upgraded the proxy to DemoV2", async function () {
-      const [, otherAccount] = await ethers.getSigners();
+      const { demo } = await ignition.deploy(DemoV2Module);
 
-      const { demo } = await ignition.deploy(UpgradeModule);
-
-      expect(await demo.connect(otherAccount).version()).to.equal("2.0.0");
+      expect(await demo.read.version()).to.equal("2.0.0");
     });
 
     it("Should have set the name during upgrade", async function () {
-      const [, otherAccount] = await ethers.getSigners();
+      const { demo } = await ignition.deploy(DemoV2Module);
 
-      const { demo } = await ignition.deploy(UpgradeModule);
-
-      expect(await demo.connect(otherAccount).name()).to.equal("Example Name");
+      expect(await demo.read.name()).to.equal("Example Name");
     });
   });
 });
@@ -391,7 +379,7 @@ describe("Demo Proxy", function () {
 
 ::::
 
-Here we use Hardhat Ignition to deploy our imported modules. First, we deploy our base `ProxyModule` that returns the first version of our `Demo` contract and tests it to ensure the proxy worked and retrieves the appropriate version string. Then, we deploy our `UpgradeModule` that returns an upgraded version of our `Demo` contract and tests it to ensure the proxy returns the updated version string. We also test that our initialization function was called, setting the `name` state variable to `"Example Name"`.
+Here we use Hardhat Ignition to deploy our imported modules. First, we deploy our base `ProxyModule` that returns the first version of our `Demo` contract and tests it to ensure the proxy worked and retrieves the appropriate version string. Then, we deploy our `DemoV2Module` that returns an upgraded version of our `Demo` contract and tests it to ensure the proxy returns the updated version string. We also test that our initialization function was called, setting the `name` state variable to `"Example Name"`.
 
 ## Further reading
 
