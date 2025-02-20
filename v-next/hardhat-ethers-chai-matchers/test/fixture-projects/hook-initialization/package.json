@@ -3,6 +3,6 @@
   "private": "true",
   "type": "module",
   "dependencies": {
-    "@ignored/hardhat-vnext-mocha-test-runner": "*"
+    "@ignored/hardhat-vnext-mocha": "*"
   }
 }

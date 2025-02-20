@@ -9,7 +9,7 @@
 "@ignored/hardhat-vnext-ethers-chai-matchers": patch
 "@ignored/hardhat-vnext-ignition-core": patch
 "@ignored/hardhat-vnext-keystore": patch
-"@ignored/hardhat-vnext-mocha-test-runner": patch
+"@ignored/hardhat-vnext-mocha": patch
 "@ignored/hardhat-vnext-network-helpers": patch
 "@ignored/hardhat-vnext-node-test-reporter": patch
 "@ignored/hardhat-vnext-node-test-runner": patch

@@ -3,7 +3,7 @@
 "@ignored/hardhat-vnext-errors": patch
 "@ignored/hardhat-vnext-ethers": patch
 "@ignored/hardhat-vnext-keystore": patch
-"@ignored/hardhat-vnext-mocha-test-runner": patch
+"@ignored/hardhat-vnext-mocha": patch
 "@ignored/hardhat-vnext-network-helpers": patch
 "@ignored/hardhat-vnext-node-test-reporter": patch
 "@ignored/hardhat-vnext-node-test-runner": patch

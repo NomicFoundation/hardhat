@@ -31,7 +31,7 @@
     "@ignored/hardhat-vnext-ignition-core": "workspace:^0.15.10-next.5",
     "@ignored/hardhat-vnext-ignition-viem": "workspace:^3.0.0-next.4",
     "@ignored/hardhat-vnext-keystore": "workspace:^3.0.0-next.19",
-    "@ignored/hardhat-vnext-mocha-test-runner": "workspace:^3.0.0-next.19",
+    "@ignored/hardhat-vnext-mocha": "workspace:^3.0.0-next.19",
     "@ignored/hardhat-vnext-network-helpers": "workspace:^3.0.0-next.19",
     "@ignored/hardhat-vnext-node-test-runner": "workspace:^3.0.0-next.19",
     "@ignored/hardhat-vnext-typechain": "workspace:^3.0.0-next.19",

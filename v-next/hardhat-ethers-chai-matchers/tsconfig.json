@@ -12,7 +12,7 @@
     },
 
     {
-      "path": "../hardhat-mocha-test-runner"
+      "path": "../hardhat-mocha"
     },
     {
       "path": "../hardhat-node-test-reporter"

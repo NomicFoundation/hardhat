@@ -1,12 +1,12 @@
 {
-  "name": "@ignored/hardhat-vnext-mocha-test-runner",
+  "name": "@ignored/hardhat-vnext-mocha",
   "version": "3.0.0-next.19",
   "description": "A mocha test runner",
-  "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-mocha-test-runner",
+  "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-mocha",
   "repository": {
     "type": "git",
     "url": "https://github.com/NomicFoundation/hardhat",
-    "directory": "v-next/hardhat-mocha-test-runner"
+    "directory": "v-next/hardhat-mocha"
   },
   "author": "Nomic Foundation",
   "license": "MIT",

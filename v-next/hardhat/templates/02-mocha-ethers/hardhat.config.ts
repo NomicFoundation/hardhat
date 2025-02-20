@@ -3,7 +3,7 @@ import {
   HardhatUserConfig,
 } from "@ignored/hardhat-vnext/config";
 
-import HardhatMochaTestRunner from "@ignored/hardhat-vnext-mocha-test-runner";
+import HardhatMochaTestRunner from "@ignored/hardhat-vnext-mocha";
 import HardhatEthers from "@ignored/hardhat-vnext-ethers";
 import HardhatNetworkHelpers from "@ignored/hardhat-vnext-network-helpers";
 import HardhatKeystore from "@ignored/hardhat-vnext-keystore";

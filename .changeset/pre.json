@@ -29,7 +29,7 @@
     "@ignored/hardhat-vnext-utils": "2.0.0",
     "@ignored/hardhat-vnext-viem": "2.0.0",
     "@ignored/hardhat-vnext-zod-utils": "2.0.0",
-    "@ignored/hardhat-vnext-mocha-test-runner": "2.0.0",
+    "@ignored/hardhat-vnext-mocha": "2.0.0",
     "@ignored/hardhat-vnext-node-test-runner": "2.0.0",
     "@nomicfoundation/hardhat-test-utils": "3.0.0",
     "@nomicfoundation/template-package": "3.0.0",

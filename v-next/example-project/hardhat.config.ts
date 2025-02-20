@@ -10,7 +10,7 @@ import {
   configVariable,
 } from "@ignored/hardhat-vnext/config";
 import HardhatNodeTestRunner from "@ignored/hardhat-vnext-node-test-runner";
-import HardhatMochaTestRunner from "@ignored/hardhat-vnext-mocha-test-runner";
+import HardhatMocha from "@ignored/hardhat-vnext-mocha";
 import HardhatKeystore from "@ignored/hardhat-vnext-keystore";
 import HardhatViem from "@ignored/hardhat-vnext-viem";
 import hardhatNetworkHelpersPlugin from "@ignored/hardhat-vnext-network-helpers";
@@ -155,7 +155,7 @@ const config: HardhatUserConfig = {
     pluginExample,
     hardhatEthersPlugin,
     HardhatKeystore,
-    HardhatMochaTestRunner,
+    HardhatMocha,
     hardhatNetworkHelpersPlugin,
     HardhatNodeTestRunner,
     HardhatViem,
