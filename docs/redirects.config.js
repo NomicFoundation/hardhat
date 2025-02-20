@@ -57,6 +57,11 @@ const customRedirects = [
     permanent: false,
   },
   {
+    source: "/hardhat3-alpha-telegram-group",
+    destination: "https://t.me/+nx5My-pzR0piMjU5",
+    permanent: false,
+  },
+  {
     source: "/hre",
     destination: "/advanced/hardhat-runtime-environment",
     permanent: false,
