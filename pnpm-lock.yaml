@@ -1442,7 +1442,7 @@ importers:
         version: link:../hardhat-keystore
       '@ignored/hardhat-vnext-mocha':
         specifier: workspace:^3.0.0-next.19
-        version: link:../hardhat-mocha-test-runner
+        version: link:../hardhat-mocha
       '@ignored/hardhat-vnext-network-helpers':
         specifier: workspace:^3.0.0-next.19
         version: link:../hardhat-network-helpers
@@ -1779,7 +1779,7 @@ importers:
         version: 4.4.1(eslint@8.57.0)
       '@ignored/hardhat-vnext-mocha':
         specifier: workspace:^3.0.0-next.19
-        version: link:../hardhat-mocha-test-runner
+        version: link:../hardhat-mocha
       '@ignored/hardhat-vnext-node-test-reporter':
         specifier: workspace:^3.0.0-next.22
         version: link:../hardhat-node-test-reporter
@@ -2479,7 +2479,7 @@ importers:
         specifier: 7.7.1
         version: 7.7.1(eslint@8.57.0)(typescript@5.5.4)
 
-  v-next/hardhat-mocha-test-runner:
+  v-next/hardhat-mocha:
     dependencies:
       '@ignored/hardhat-vnext':
         specifier: workspace:^3.0.0-next.23
@@ -3161,7 +3161,7 @@ importers:
         version: link:../../../hardhat-keystore
       '@ignored/hardhat-vnext-mocha':
         specifier: workspace:^3.0.0-next.19
-        version: link:../../../hardhat-mocha-test-runner
+        version: link:../../../hardhat-mocha
       '@ignored/hardhat-vnext-network-helpers':
         specifier: workspace:^3.0.0-next.19
         version: link:../../../hardhat-network-helpers
