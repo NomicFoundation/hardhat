@@ -50,7 +50,7 @@
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "1.0.2",
     "hardhat": "workspace:^2.22.18",
-    "@nomicfoundation/hardhat-network-helpers": "workspace:^1.0.12",
+    "@nomicfoundation/hardhat-network-helpers": "workspace:^2.0.0",
     "@types/chai": "^4.2.0",
     "@types/chai-as-promised": "^8.0.1",
     "@types/debug": "^4.1.7",

@@ -12,7 +12,7 @@
     "@nomicfoundation/hardhat-ignition-ethers": "workspace:^2.0.0",
     "@nomicfoundation/hardhat-keystore": "workspace:^2.0.0",
     "@nomicfoundation/hardhat-mocha-test-runner": "workspace:^2.0.0",
-    "@nomicfoundation/hardhat-network-helpers": "workspace:^1.0.12",
+    "@nomicfoundation/hardhat-network-helpers": "workspace:^2.0.0",
     "@nomicfoundation/hardhat-typechain": "workspace:^2.0.0",
     "@types/chai": "^4.2.0",
     "@types/chai-as-promised": "^8.0.1",

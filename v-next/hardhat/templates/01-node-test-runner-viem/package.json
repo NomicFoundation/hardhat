@@ -10,7 +10,7 @@
     "@nomicfoundation/hardhat-ignition-viem": "workspace:^2.0.0",
     "@nomicfoundation/hardhat-keystore": "workspace:^2.0.0",
     "@nomicfoundation/hardhat-node-test-runner": "workspace:^2.0.0",
-    "@nomicfoundation/hardhat-network-helpers": "workspace:^1.0.12",
+    "@nomicfoundation/hardhat-network-helpers": "workspace:^2.0.0",
     "@nomicfoundation/hardhat-viem": "workspace:^2.0.6",
     "@types/node": "^22.8.5",
     "forge-std": "foundry-rs/forge-std#v1.9.4",
