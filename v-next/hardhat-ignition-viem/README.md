@@ -31,4 +31,4 @@ export default {
 
 ## Usage
 
-This plugin defines a new `ignition` property to every `NetworkConnection` object, which allows you to deploy contracts using Hardhat Ignition, and returns a `viem` contract instances for each deployed contract.
+This plugin defines a new `ignition` property on every `NetworkConnection` object, which allows you to deploy contracts using Hardhat Ignition, and returns a `viem` contract instance for each deployed contract.

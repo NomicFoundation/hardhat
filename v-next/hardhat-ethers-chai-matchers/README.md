@@ -31,4 +31,4 @@ export default {
 
 ## Usage
 
-You don't need to do anything else to use this plugins. Whenever you run your tests with Hardhat, it will automatically add the matchers.
+You don't need to do anything else to use this plugin. Whenever you run your tests with Hardhat, it will automatically add the matchers.
