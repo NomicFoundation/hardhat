@@ -1,7 +1,7 @@
 ---
 "@ignored/hardhat-vnext": major
 "@ignored/hardhat-vnext-errors": major
-"@ignored/hardhat-vnext-node-test-reporter": major
+"@nomicfoundation/hardhat-node-test-reporter": major
 "@ignored/hardhat-vnext-utils": major
 "@ignored/hardhat-vnext-zod-utils": major
 ---

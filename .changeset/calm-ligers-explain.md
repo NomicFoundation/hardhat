@@ -5,7 +5,7 @@
 "@ignored/hardhat-vnext-keystore": patch
 "@ignored/hardhat-vnext-mocha-test-runner": patch
 "@ignored/hardhat-vnext-network-helpers": patch
-"@ignored/hardhat-vnext-node-test-reporter": patch
+"@nomicfoundation/hardhat-node-test-reporter": patch
 "@ignored/hardhat-vnext-node-test-runner": patch
 "@nomicfoundation/hardhat-test-utils": patch
 "@ignored/hardhat-vnext-utils": patch

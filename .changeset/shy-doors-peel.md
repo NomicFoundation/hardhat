@@ -1,5 +1,5 @@
 ---
-"@ignored/hardhat-vnext-node-test-reporter": patch
+"@nomicfoundation/hardhat-node-test-reporter": patch
 "@ignored/hardhat-vnext-mocha-test-runner": patch
 "@ignored/hardhat-vnext-node-test-runner": patch
 "@ignored/hardhat-vnext-network-helpers": patch

@@ -33,7 +33,7 @@ If you're using `hardhat`'s `node:test` plugin, the reporter will be used by def
 If you want to use the reporter directly with `node`, you can do so by passing the `--test-reporter` flag:
 
 ```bash
-node --test --test-reporter=@ignored/hardhat-vnext-node-test-reporter
+node --test --test-reporter=@nomicfoundation/hardhat-node-test-reporter
 ```
 
 ## Custom features
