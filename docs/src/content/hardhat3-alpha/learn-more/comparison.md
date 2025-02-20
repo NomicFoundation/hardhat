@@ -36,11 +36,11 @@ Hardhat 3 configuration is now fully declarative. This contrasts with Hardhat 2,
 
 ## Programmatic initialization of the Hardhat Runtime Environment
 
-Apart from accessing a global instance of the HRE by importing it from "hardhat", you can now initialize multiple independent instances of the Hardhat Runtime Environment programmatically.
+Apart from accessing a global instance of the HRE by importing it from the `hardhat` module, you can now initialize multiple independent instances of the Hardhat Runtime Environment programmatically.
 
 ## Configuration Variables
 
-Hardhat 3 has support for Configuration Variables, which are values of the config that will only be loaded when needed. A similar feature already exists in Hardhat 2, but Hardhat 3's configuration variables are lazy and extensible.
+Hardhat 3 has support for Configuration Variables: values of the config that will only be loaded when needed. A similar feature already exists in Hardhat 2, but Hardhat 3's configuration variables are lazy and extensible.
 
 By default, their values are loaded from environment variables, but this behavior can be customized by plugins. Hardhat 3 comes with an official plugin that lets you store them encrypted on disk.
 
