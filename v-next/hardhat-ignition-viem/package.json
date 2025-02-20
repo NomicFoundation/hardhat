@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-ignition-viem",
-  "version": "2.0.0",
+  "version": "3.0.0-next.0",
   "license": "MIT",
   "author": "Nomic Foundation",
   "homepage": "https://hardhat.org",
@@ -34,10 +34,10 @@
   },
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "1.0.2",
-    "hardhat": "workspace:^2.22.18",
-    "@nomicfoundation/hardhat-ignition": "workspace:^2.0.0",
-    "@nomicfoundation/ignition-core": "workspace:^2.0.0",
-    "@nomicfoundation/hardhat-viem": "workspace:^2.0.6",
+    "hardhat": "workspace:^3.0.0-next.0",
+    "@nomicfoundation/hardhat-ignition": "workspace:^3.0.0-next.0",
+    "@nomicfoundation/ignition-core": "workspace:^3.0.0-next.0",
+    "@nomicfoundation/hardhat-viem": "workspace:^3.0.0-next.0",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
     "@types/chai": "^4.2.0",
     "@types/chai-as-promised": "^8.0.1",
@@ -66,13 +66,13 @@
     "viem": "^2.21.42"
   },
   "dependencies": {
-    "@nomicfoundation/hardhat-errors": "workspace:^2.0.0"
+    "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.0"
   },
   "peerDependencies": {
-    "hardhat": "workspace:^2.22.18",
-    "@nomicfoundation/hardhat-ignition": "workspace:^2.0.0",
-    "@nomicfoundation/ignition-core": "workspace:^2.0.0",
-    "@nomicfoundation/hardhat-viem": "workspace:^2.0.6",
+    "hardhat": "workspace:^3.0.0-next.0",
+    "@nomicfoundation/hardhat-ignition": "workspace:^3.0.0-next.0",
+    "@nomicfoundation/ignition-core": "workspace:^3.0.0-next.0",
+    "@nomicfoundation/hardhat-viem": "workspace:^3.0.0-next.0",
     "viem": "^2.21.42"
   }
 }
