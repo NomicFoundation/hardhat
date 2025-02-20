@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/ignition-ui",
-  "version": "0.15.9",
+  "version": "2.0.0",
   "type": "module",
   "scripts": {
     "predev": "pnpm regenerate-deployment-example",
@@ -20,7 +20,7 @@
   "devDependencies": {
     "@eslint-community/eslint-plugin-eslint-comments": "^4.3.0",
     "@fontsource/roboto": "^5.0.8",
-    "@nomicfoundation/ignition-core": "workspace:^0.15.9",
+    "@nomicfoundation/ignition-core": "workspace:^2.0.0",
     "@types/chai": "^4.2.0",
     "@types/chai-as-promised": "^8.0.1",
     "@types/mocha": ">=9.1.0",

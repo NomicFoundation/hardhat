@@ -6,8 +6,8 @@
   "type": "module",
   "devDependencies": {
     "hardhat": "workspace:^2.22.18",
-    "@nomicfoundation/hardhat-ignition": "workspace:^0.15.9",
-    "@nomicfoundation/hardhat-ignition-viem": "workspace:^0.15.9",
+    "@nomicfoundation/hardhat-ignition": "workspace:^2.0.0",
+    "@nomicfoundation/hardhat-ignition-viem": "workspace:^2.0.0",
     "@nomicfoundation/hardhat-keystore": "workspace:^2.0.0",
     "@nomicfoundation/hardhat-node-test-runner": "workspace:^2.0.0",
     "@nomicfoundation/hardhat-network-helpers": "workspace:^1.0.12",
