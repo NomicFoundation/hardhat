@@ -8,7 +8,7 @@ This document outlines the key improvements and new features introduced in Hardh
 
 ## Support for Solidity Tests
 
-Hardhat 3 comes with Foundry-compatible Solidity tests, which are fast and ideal for unit testing. Writing integration tests in TypeScript is still supported and can be used alongside Solidity tests. 
+Hardhat 3 comes with Foundry-compatible Solidity tests, which are fast and ideal for unit testing. Writing integration tests in TypeScript is still supported and can be used alongside Solidity tests.
 
 ## Multichain support
 
