@@ -4,44 +4,62 @@ prev: false
 
 # Differences with Harhdat 2
 
-Hardhat 3 brings major improvements and new features, with a focus on testing capabilities and multichain development. This document outlines the key differences and innovations introduced in Hardhat 3. While this list is long, most of these changes are either backwards-compatible, or easy to adapt in existing projects.
+This document outlines the key improvements and new features introduced in Hardhat 3. While this list is long, most of these changes are backwards-compatible or easy to adapt to existing projects.
 
 ## Support for Solidity Tests
 
-Hardhat 3 introduces support for writing tests directly in Solidity, a feature designed to streamline Solidity-based testing. This makes it easier to test contracts without switching contexts or relying exclusively on JavaScript/TypeScript. These tests are compatible with those written for Foundry. Learn more in the deep dive into Solidity tests.
+Hardhat 3 comes with Foundry-compatible Solidity tests, which are fast and ideal for unit testing. Writing integration tests in TypeScript is still supported and can be used alongside Solidity tests. 
 
-## Multichain Development Workflows
+## Multichain support
 
-Hardhat 2 assumed a mainnet-like environment for simulations, which is the approach used by most existing tools. Hardhat 3 instead offers native support for multiple chain types, enabling developers to tailor their workflows to specific blockchain environments. Chain types represent the characteristics of different blockchains, such as mainnet, testnet, or custom configurations. Read more in the deep dive into multichain support.
+In Hardhat 2, you can only configure a single Hardhat network, which always behaves like Ethereum Mainnet. Hardhat 3 introduces chain types, letting you choose which kind of chain you want to simulate. And you can configure multiple Hardhat networks, each with its own chain type.
 
-## Declarative Configuration
+The first version will have support for Ethereum Mainnet and OP Mainnet, plus a "generic" chain type that can be used as a fallback for chains that are not yet supported.
 
-In Hardhat 2, configuration was defined using a DSL that could involve side effects. Hardhat 3 simplifies this by introducing a declarative configuration style. Configuration is now a plain JavaScript object, making it more predictable and easier to understand. This also allows developers to create Hardhat environments dynamically at runtime.
+## Network manager
 
-## ESM-First
+A Hardhat 2 task has access to a single, fixed connection for its entire duration. In Hardhat 3, connections are managed explicitly, and tasks can create and use multiple connections simultaneously.
 
-Hardhat 3 embraces modern JavaScript by making ECMAScript Modules (ESM) the default. Projects must now use ESM, although CommonJS (CJS) modules are still usable within ESM projects for compatibility. For more details, check out the deep dive into ESM.
+## ESM-first
+
+Hardhat 3 embraces modern JavaScript by making ECMAScript Modules (ESM) the default. Configuration files must now use ESM, although CommonJS (CJS) modules are still supported in scripts and tests.
 
 ## Test Runner Plugins
 
-In Hardhat 2, Mocha was bundled with the framework. In Hardhat 3, Mocha has been moved to a plugin, alongside a new plugin for the Node.js test runner. This provides developers with the flexibility to choose their preferred test runner. Mocha remains fully supported for those who wish to continue using it. Learn more in the Node test runner deep dive.
+In Hardhat 2, JavaScript tests are always run with a bundled version of Mocha. In Hardhat 3, the test runner is just another plugin and you can choose which one to use.
 
-## Network Manager
+Hardhat 3 provides official plugins for running tests: one for Mocha and one for Node.js’s built-in test runner. The recommended option is the Node.js test runner, because it's fast and has no external dependencies.
 
-The relationship between executions and connections has been revamped in Hardhat 3. In Hardhat 2, each execution was tied to a single connection. In Hardhat 3, connections are explicitly created and managed, allowing for multiple connections and dynamic workflows. Find more information in the Network Manager deep dive.
+## Declarative Configuration
 
-## Build Profiles
+Hardhat 3 configuration is now fully declarative. This contrasts with Hardhat 2, where some things are configured by the side effects of certain imports and function calls.
 
-Build profiles are now a first-class concept in Hardhat 3, simplifying development and production configurations. In Hardhat 2, this was achieved through a mix of code in configuration files and environment variables. In Hardhat 3, profiles integrate seamlessly with built-in tasks. For instance, a development profile is used when running tests and a production profile when deploying and verifying.
+## Programmatic initialization of the Hardhat Runtime Environment
 
-## Improved Compilation Pipeline
+Apart from accessing a global instance of the HRE by importing it from "hardhat", you can now initialize multiple independent instances of the Hardhat Runtime Environment programmatically.
 
-The compilation process in Hardhat 3 has been significantly enhanced, with better support for managing dependencies through npm and improved handling of remappings. Learn more in the deep dive into dependency management. While remappings are fully supported, they shouldn't be needed; you only use with them if you want to.
+## Configuration Variables
 
-## Lazy and Extensible Configuration Variables
+Hardhat 3 has support for Configuration Variables, which are values of the config that will only be loaded when needed. A similar feature already exists in Hardhat 2, but Hardhat 3's configuration variables are lazy and extensible.
 
-Hardhat 3 builds on Hardhat 2's configuration variable system, making it more powerful and flexible. Variables are now defined lazily, meaning they are only required if a specific workflow needs them. Learn more in the deep dive into configuration variables. Their fetching is handled by plugins, with Hardhat shipping a default plugin that stores them encrypted on disk. Plugins can also be created to fetch and store variables using other systems, such as AWS Secrets Manager or HashiCorp Vault.
+By default, their values are loaded from environment variables, but this behavior can be customized by plugins. Hardhat 3 comes with an official plugin that lets you store them encrypted on disk.
 
-## Hooks
+## Build profiles
 
+<<<<<<< Updated upstream
 Hardhat 3 introduces a powerful hooks system, enabling greater extensibility for plugin authors. Learn more in the deep dive into hooks. This feature is primarily for plugin developers and is not something most users will need to interact with directly.
+=======
+Hardhat 3 introduces support for build profiles, which let you use different compilation settings for different tasks.
+
+## Full npm support
+
+The build system of Hardhat 3 is now fully integrated with npm: anything that can be done with npm is supported. In most cases, this won't affect you, but advanced scenarios that were previously difficult or unsupported now work out of the box.
+
+## New plugin system
+
+Hardhat 3 comes with a new hook system that enables easy extension of core functionality and allows plugin authors to add their own extensibility points.
+
+## Typed artifacts
+
+Hardhat 3 generates TypeScript declarations to have typed artifacts by default. These artifacts can be used by plugins to derive contract type information without a code generation step.
+>>>>>>> Stashed changes
