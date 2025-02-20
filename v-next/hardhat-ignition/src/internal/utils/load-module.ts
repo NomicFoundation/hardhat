@@ -8,8 +8,6 @@ import { exists } from "@nomicfoundation/hardhat-utils/fs";
 import { IgnitionError } from "@nomicfoundation/ignition-core";
 import setupDebug from "debug";
 
-import { shouldBeHardhatPluginError } from "./shouldBeHardhatPluginError.js";
-
 const debug = setupDebug("hardhat-ignition:modules");
 
 const MODULES_FOLDER = "modules";
@@ -73,9 +71,10 @@ export async function loadModule(
         );
       }
 
-      if (shouldBeHardhatPluginError(e)) {
-        throw new HardhatError(HardhatError.ERRORS.IGNITION.INTERNAL_ERROR, e);
-      }
+      // Disabled for the alpha release
+      // if (e instanceof IgnitionError && shouldBeHardhatPluginError(e)) {
+      //   throw new HardhatError(HardhatError.ERRORS.IGNITION.INTERNAL_ERROR, e);
+      // }
     }
 
     throw e;
