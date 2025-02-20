@@ -19,7 +19,7 @@ Since Hardhat 3 is still in development, things will continue to evolve, and you
 - Both Solidity and JavaScript tests will offer alternative trace formats that users can choose from. Currently, only Solidity stack traces are supported.
 - The smart contract verification plugin hasn't been ported to Hardhat 3 yet.
 - Ledger device support is not yet available but will be added soon.
-- The output of different types of tests will be more integrated, improving their UX and readability.
+- The output printed by different types of tests will be more integrated, improving their UX and readability.
 
 ## Solidity Tests
 
