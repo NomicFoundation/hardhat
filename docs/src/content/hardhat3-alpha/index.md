@@ -596,7 +596,7 @@ solidity: {
 
 The `default` profile disables the optimizer, making it ideal for development workflows that need fast compilation times. The `production` profile is an example for production workflows, where optimized code matters more than compilation speed.
 
-Tasks use a sensible build profile by default. For example, the `ignition deploy` task defaults to the `production` profile, while most other tasks rely on the `default` profile. You can also pass the `--build-profile` flag to choose which profile should be used.
+Tasks can choose to use a sensible build profile by default. For example, tasks that deploy contracts can rely on the `production` profile, while other tasks can use the `default` profile. You can also pass the `--build-profile` flag to choose which profile should be used.
 
 Build profiles don't need to be explicitly defined. If you include a Solidity configuration like you do in Hardhat 2, those settings will be used in the `default` profile:
 
