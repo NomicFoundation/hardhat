@@ -2,7 +2,7 @@
   "name": "template-mocha-ethers",
   "private": true,
   "version": "0.0.1",
-  "description": "A Typescript Hardhat project using Mocha and Ethers.js",
+  "description": "A TypeScript Hardhat project using Mocha and Ethers.js",
   "type": "module",
   "devDependencies": {
     "hardhat": "workspace:^2.22.18",
