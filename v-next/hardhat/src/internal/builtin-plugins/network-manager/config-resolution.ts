@@ -434,17 +434,13 @@ export function resolveChains(
 
 export function resolveHardfork(
   hardfork: string | undefined,
-  enableTransientStorage: boolean | undefined,
+  _enableTransientStorage: boolean | undefined,
 ): string {
   if (hardfork !== undefined) {
     return hardfork;
   }
 
-  if (enableTransientStorage === true) {
-    return LATEST_HARDFORK;
-  } else {
-    return HardforkName.SHANGHAI;
-  }
+  return LATEST_HARDFORK;
 }
 
 export function resolveInitialBaseFeePerGas(
