@@ -1,10 +1,10 @@
 # Hardhat's `node:test` reporter
 
-This package includes Hardhat's `node:test` reporter.
+This package includes Hardhat 3's `node:test` reporter. To integrate it with your Hardhat project, you should use the `node:test` plugin.
 
-This project is heavily inspired by https://github.com/voxpelli/node-test-pretty-reporter.
+## Reporter style
 
-It tries to mimic [the `Mocha`'s default `Spec` reporter](https://mochajs.org/#spec), as close as possible.
+This reporter mimics [the `Mocha`'s default `Spec` reporter](https://mochajs.org/#spec), as close as possible.
 
 It is designed to output information about the test runs as soon as possible and in test **defintion** order.
 
@@ -16,19 +16,17 @@ It introduces a number of custom features to make it more suitable for use with 
 
 ![Demo](./demo.gif)
 
-## Installation
+## Stand-alone installation
 
-`hardhat-node-test-reporter` comes built-in with Hardhat's `node:test` plugin, which itself comes bundled in by default with `hardhat-toolbox`. You don't need to install it separately.
+`hardhat-node-test-reporter` comes built-in with Hardhat's `node:test` plugin. You don't need to install it separately. The reporter will be used automatically.
 
 If you want to use the reporter in your own project, you can install it with npm (optionally, with a `--save-dev` flag):
 
 ```bash
-npm install hardhat-node-test-reporter
+npm install --save-dev @nomicfoundation/hardhat-node-test-reporter
 ```
 
 ## Usage
-
-If you're using `hardhat`'s `node:test` plugin, the reporter will be used by default whenever you run the `hardhat test` task.
 
 If you want to use the reporter directly with `node`, you can do so by passing the `--test-reporter` flag:
 

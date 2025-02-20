@@ -1,3 +1,3 @@
 # Hardhat test utils
 
-This is an internal package that includes test utilities used during the development of Hardhat.
+This package contains test utilities used by Hardhat 3 and its plugins. It's considered internal and should not be used directly.
