@@ -1,7 +1,6 @@
 /* eslint-disable import/no-unused-modules */
 import type { DeploymentResult } from "@nomicfoundation/ignition-core";
 
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   DeploymentResultType,
   IgnitionError,
@@ -24,14 +23,12 @@ describe("default sender", function () {
     } catch (error) {
       threwException = true;
 
-      assert.instanceOf(error, HardhatError);
-      assert.isDefined(error.cause);
-      assert.instanceOf(error.cause, IgnitionError);
+      assert.instanceOf(error, IgnitionError);
       assert.include(
-        error.cause.message,
+        error.message,
         "IGN700: Default sender 0x1234567890abcdef1234567890abcdef12345678 is not part of the configured accounts.",
       );
-      assert.equal(error.cause.errorNumber, 700);
+      assert.equal(error.errorNumber, 700);
     }
 
     assert.isTrue(threwException);

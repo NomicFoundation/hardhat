@@ -16,7 +16,7 @@ import {
   remove,
   writeJsonFile,
 } from "@nomicfoundation/hardhat-utils/fs";
-import { deploy, IgnitionError } from "@nomicfoundation/ignition-core";
+import { deploy } from "@nomicfoundation/ignition-core";
 import chalk from "chalk";
 import Prompt from "prompts";
 
@@ -26,7 +26,6 @@ import { readDeploymentParameters } from "../../helpers/read-deployment-paramete
 import { resolveDeploymentId } from "../../helpers/resolve-deployment-id.js";
 import { bigintReviver } from "../utils/bigintReviver.js";
 import { loadModule } from "../utils/load-module.js";
-import { shouldBeHardhatPluginError } from "../utils/shouldBeHardhatPluginError.js";
 
 interface TaskDeployArguments {
   modulePath: string;
@@ -236,12 +235,13 @@ const taskDeploy: NewTaskActionFunction<TaskDeployArguments> = async (
     }
 
     return result;
-  } catch (e) {
-    if (e instanceof IgnitionError && shouldBeHardhatPluginError(e)) {
-      throw new HardhatError(HardhatError.ERRORS.IGNITION.INTERNAL_ERROR, e);
-    }
+  } catch (_e) {
+    // Disabled for the alpha release
+    // if (e instanceof IgnitionError && shouldBeHardhatPluginError(e)) {
+    //   throw new HardhatError(HardhatError.ERRORS.IGNITION.INTERNAL_ERROR, e);
+    // }
 
-    throw e;
+    throw _e;
   }
 };
 
