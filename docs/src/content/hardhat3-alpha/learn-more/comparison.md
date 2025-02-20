@@ -22,7 +22,7 @@ A Hardhat 2 task has access to a single, fixed connection for its entire duratio
 
 ## ESM-first
 
-Hardhat 3 embraces modern JavaScript by making ECMAScript Modules (ESM) the default. Configuration files must now use ESM, although CommonJS (CJS) modules are still supported in scripts and tests.
+Hardhat 3 embraces modern JavaScript by using ECMAScript Modules (ESM) by default. Configuration files must now use ESM, although CommonJS (CJS) modules are still supported in scripts and tests.
 
 ## Test Runner Plugins
 
