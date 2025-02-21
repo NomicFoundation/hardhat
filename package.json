@@ -6,8 +6,6 @@
   "private": true,
   "devDependencies": {
     "@changesets/cli": "^2.16.0",
-    "prettier": "2.4.1",
-    "shelljs": "^0.8.5",
     "typescript": "~5.5.0"
   },
   "scripts": {
