@@ -11,9 +11,10 @@
   "scripts": {
     "build": "pnpm run --recursive build",
     "clean": "pnpm run --recursive clean",
-    "test": "node scripts/run-tests.js",
-    "lint": "pnpm run --recursive lint && pnpm prettier --check",
-    "lint:fix": "pnpm run --recursive lint:fix && pnpm prettier --write",
-    "prettier": "prettier *.md \"{docs,.github}/**/*.{md,yml,ts,js}\" \"scripts/**/*.js\""
+    "test": "pnpm run --recursive clean",
+    "prelint": "pnpm build",
+    "lint": "pnpm run --recursive lint",
+    "prelint:fix": "pnpm build",
+    "lint:fix": "pnpm run --recursive lint:fix"
   }
 }
