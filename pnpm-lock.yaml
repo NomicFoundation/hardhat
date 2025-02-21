@@ -983,7 +983,7 @@ importers:
         specifier: ^0.3.4
         version: 0.3.5(eslint@8.57.1)
       mermaid:
-        specifier: ^10.9.0
+        specifier: 10.9.3
         version: 10.9.3
       mocha:
         specifier: ^9.1.3
