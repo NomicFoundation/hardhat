@@ -1,7 +1,7 @@
 {
   "name": "root",
   "version": "0.0.0",
-  "author": "Nomic Labs LLC",
+  "author": "Nomic Foundation",
   "license": "SEE LICENSE IN EACH PACKAGE'S LICENSE FILE",
   "private": true,
   "devDependencies": {
