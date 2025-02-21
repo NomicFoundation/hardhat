@@ -1,9 +1,9 @@
 import { MapExStateTypeToExState } from "../execution/type-helpers";
 import { DeploymentState } from "../execution/types/deployment-state";
-import { ExecutionSateType } from "../execution/types/execution-state";
+import { ExecutionStateType } from "../execution/types/execution-state";
 import { assertIgnitionInvariant } from "../utils/assertions";
 
-export function findExecutionStateById<ExStateT extends ExecutionSateType>(
+export function findExecutionStateById<ExStateT extends ExecutionStateType>(
   exStateType: ExStateT,
   deployment: DeploymentState,
   futureId: string

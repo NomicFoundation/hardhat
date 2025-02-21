@@ -5,10 +5,12 @@ import { ERRORS } from "../errors-list";
 import {
   NetworkFees,
   RawStaticCallResult,
+  FullTransaction,
   Transaction,
   TransactionLog,
   TransactionReceipt,
   TransactionReceiptStatus,
+  NetworkTransaction,
 } from "./types/jsonrpc";
 import { toChecksumFormat } from "./utils/address";
 
@@ -486,6 +488,57 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
     return jsonRpcQuantityToNumber(response);
   }
 
+  /**
+   * Like `getTransaction`, but returns the full transaction object.
+   */
+  public async getFullTransaction(
+    txHash: string
+  ): Promise<FullTransaction | undefined> {
+    const method = "eth_getTransactionByHash";
+
+    const response = await this._provider.request({
+      method,
+      params: [txHash],
+    });
+
+    if (response === null) {
+      return undefined;
+    }
+
+    assertResponseIsNetworkTransactionType(response);
+
+    return {
+      hash: response.hash,
+      data: response.input,
+      from: response.from,
+      to: response.to ?? undefined,
+      chainId: jsonRpcQuantityToNumber(response.chainId),
+      value: jsonRpcQuantityToBigInt(response.value),
+      nonce: jsonRpcQuantityToNumber(response.nonce),
+      blockHash: response.blockHash,
+      blockNumber:
+        response.blockNumber !== null
+          ? jsonRpcQuantityToBigInt(response.blockNumber)
+          : null,
+      maxFeePerGas:
+        "maxFeePerGas" in response
+          ? jsonRpcQuantityToBigInt(response.maxFeePerGas)
+          : undefined,
+      maxPriorityFeePerGas:
+        "maxPriorityFeePerGas" in response
+          ? jsonRpcQuantityToBigInt(response.maxPriorityFeePerGas)
+          : undefined,
+      gasPrice:
+        "gasPrice" in response
+          ? jsonRpcQuantityToBigInt(response.gasPrice)
+          : undefined,
+      gasLimit:
+        "gas" in response && response.gas !== undefined
+          ? jsonRpcQuantityToBigInt(response.gas)
+          : undefined,
+    };
+  }
+
   public async getTransaction(
     txHash: string
   ): Promise<Omit<Transaction, "receipt"> | undefined> {
@@ -500,44 +553,10 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
       return undefined;
     }
 
-    assertResponseType(method, response, typeof response === "object");
-
-    assertResponseType(
-      method,
-      response,
-      "hash" in response && typeof response.hash === "string"
-    );
-
-    assertResponseType(
-      method,
-      response,
-      "blockNumber" in response &&
-        (typeof response.blockNumber === "string" ||
-          response.blockNumber === null)
-    );
-
-    assertResponseType(
-      method,
-      response,
-      "blockHash" in response &&
-        (typeof response.blockHash === "string" || response.blockHash === null)
-    );
+    assertResponseIsNetworkTransactionType(response);
 
     let networkFees: NetworkFees;
     if ("maxFeePerGas" in response) {
-      assertResponseType(
-        method,
-        response,
-        "maxFeePerGas" in response && typeof response.maxFeePerGas === "string"
-      );
-
-      assertResponseType(
-        method,
-        response,
-        "maxPriorityFeePerGas" in response &&
-          typeof response.maxPriorityFeePerGas === "string"
-      );
-
       networkFees = {
         maxFeePerGas: jsonRpcQuantityToBigInt(response.maxFeePerGas),
         maxPriorityFeePerGas: jsonRpcQuantityToBigInt(
@@ -545,12 +564,6 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
         ),
       };
     } else {
-      assertResponseType(
-        method,
-        response,
-        "gasPrice" in response && typeof response.gasPrice === "string"
-      );
-
       networkFees = {
         gasPrice: jsonRpcQuantityToBigInt(response.gasPrice),
       };
@@ -818,6 +831,72 @@ function assertResponseType(
       method,
       response: JSON.stringify(response),
     });
+  }
+}
+
+function assertResponseIsNetworkTransactionType(
+  response: unknown
+): asserts response is NetworkTransaction {
+  const method = "eth_getTransactionByHash";
+
+  assertResponseType(
+    method,
+    response,
+    typeof response === "object" && response !== null
+  );
+
+  assertResponseType(
+    method,
+    response,
+    "hash" in response && typeof response.hash === "string"
+  );
+
+  assertResponseType(
+    method,
+    response,
+    "blockNumber" in response &&
+      (typeof response.blockNumber === "string" ||
+        response.blockNumber === null)
+  );
+
+  assertResponseType(
+    method,
+    response,
+    "blockHash" in response &&
+      (typeof response.blockHash === "string" || response.blockHash === null)
+  );
+
+  assertResponseType(
+    method,
+    response,
+    "input" in response && typeof response.input === "string"
+  );
+
+  assertResponseType(
+    method,
+    response,
+    "nonce" in response && typeof response.input === "string"
+  );
+
+  if ("maxFeePerGas" in response) {
+    assertResponseType(
+      method,
+      response,
+      "maxFeePerGas" in response && typeof response.maxFeePerGas === "string"
+    );
+
+    assertResponseType(
+      method,
+      response,
+      "maxPriorityFeePerGas" in response &&
+        typeof response.maxPriorityFeePerGas === "string"
+    );
+  } else {
+    assertResponseType(
+      method,
+      response,
+      "gasPrice" in response && typeof response.gasPrice === "string"
+    );
   }
 }
 

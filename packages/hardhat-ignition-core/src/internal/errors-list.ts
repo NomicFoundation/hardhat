@@ -78,6 +78,11 @@ export const ERROR_RANGES: {
     max: 1299,
     title: "List transactions errors",
   },
+  TRACK_TRANSACTION: {
+    min: 1300,
+    max: 1399,
+    title: "Track transaction errors",
+  },
 };
 
 /**
@@ -200,6 +205,14 @@ export const ERRORS = {
     GAS_ESTIMATION_FAILED: {
       number: 410,
       message: "Gas estimation failed: %error%",
+    },
+    TRANSACTION_LOST: {
+      number: 411,
+      message: `An error occured while trying to send a transaction for future %futureId%.
+
+Please use a block explorer to find the hash of the transaction with nonce %nonce% sent from account %sender% and use the following command to add it to your deployment:
+
+npx hardhat ignition track-tx <txHash> <deploymentId> --network <networkName>`,
     },
   },
   RECONCILIATION: {
@@ -410,6 +423,39 @@ export const ERRORS = {
       number: 1200,
       message:
         "Cannot list transactions for nonexistant deployment at %deploymentDir%",
+    },
+  },
+  TRACK_TRANSACTION: {
+    DEPLOYMENT_DIR_NOT_FOUND: {
+      number: 1300,
+      message: "Deployment directory %deploymentDir% not found",
+    },
+    UNINITIALIZED_DEPLOYMENT: {
+      number: 1301,
+      message:
+        "Cannot track transaction for nonexistant deployment at %deploymentDir%",
+    },
+    TRANSACTION_NOT_FOUND: {
+      number: 1302,
+      message: `Transaction %txHash% not found. Please double check the transaction hash and try again.`,
+    },
+    MATCHING_NONCE_NOT_FOUND: {
+      number: 1303,
+      message: `The transaction you provided doesn't seem to belong to your deployment.
+
+Please double check the error you are getting when running Hardhat Ignition, and the instructions it's providing.`,
+    },
+    KNOWN_TRANSACTION: {
+      number: 1304,
+      message: `The transaction hash that you provided was already present in your deployment. 
+
+Please double check the error you are getting when running Hardhat Ignition, and the instructions it's providing.`,
+    },
+    INSUFFICIENT_CONFIRMATIONS: {
+      number: 1305,
+      message: `The transaction you provided doesn't have enough confirmations yet. 
+
+Please try again later.`,
     },
   },
 };

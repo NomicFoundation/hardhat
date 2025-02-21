@@ -11,7 +11,7 @@ import {
   CallExecutionState,
   DeploymentExecutionState,
   EncodeFunctionCallExecutionState,
-  ExecutionSateType,
+  ExecutionStateType,
   StaticCallExecutionState,
 } from "../../execution/types/execution-state";
 import { isAddress, equalAddresses } from "../../execution/utils/address";
@@ -47,7 +47,7 @@ export function reconcileArguments(
   );
 
   const exStateArgs =
-    exState.type === ExecutionSateType.DEPLOYMENT_EXECUTION_STATE
+    exState.type === ExecutionStateType.DEPLOYMENT_EXECUTION_STATE
       ? exState.constructorArgs
       : exState.args;
 

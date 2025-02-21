@@ -9,7 +9,7 @@ import { ERRORS } from "./internal/errors-list";
 import { loadDeploymentState } from "./internal/execution/deployment-state-helpers";
 import { ExecutionResultType } from "./internal/execution/types/execution-result";
 import {
-  ExecutionSateType,
+  ExecutionStateType,
   type CallExecutionState,
   type DeploymentExecutionState,
   type ExecutionState,
@@ -84,7 +84,7 @@ export async function listTransactions(
     const transaction = networkInteraction.transactions[lastTxIndex];
 
     switch (exState.type) {
-      case ExecutionSateType.DEPLOYMENT_EXECUTION_STATE: {
+      case ExecutionStateType.DEPLOYMENT_EXECUTION_STATE: {
         transactions.push({
           type: exState.type,
           from: exState.from,
@@ -107,7 +107,7 @@ export async function listTransactions(
 
         break;
       }
-      case ExecutionSateType.CALL_EXECUTION_STATE: {
+      case ExecutionStateType.CALL_EXECUTION_STATE: {
         const artifact = await deploymentLoader.loadArtifact(
           exState.artifactId
         );
@@ -129,7 +129,7 @@ export async function listTransactions(
 
         break;
       }
-      case ExecutionSateType.SEND_DATA_EXECUTION_STATE: {
+      case ExecutionStateType.SEND_DATA_EXECUTION_STATE: {
         transactions.push({
           type: exState.type,
           from: exState.from,
@@ -158,9 +158,9 @@ function doesSendTransactions(
   | CallExecutionState
   | SendDataExecutionState {
   return (
-    exState.type === ExecutionSateType.DEPLOYMENT_EXECUTION_STATE ||
-    exState.type === ExecutionSateType.CALL_EXECUTION_STATE ||
-    exState.type === ExecutionSateType.SEND_DATA_EXECUTION_STATE
+    exState.type === ExecutionStateType.DEPLOYMENT_EXECUTION_STATE ||
+    exState.type === ExecutionStateType.CALL_EXECUTION_STATE ||
+    exState.type === ExecutionStateType.SEND_DATA_EXECUTION_STATE
   );
 }
 

@@ -4,7 +4,7 @@ import { DeploymentState } from "../../../src/internal/execution/types/deploymen
 import { EvmExecutionResultTypes } from "../../../src/internal/execution/types/evm-execution";
 import { ExecutionResultType } from "../../../src/internal/execution/types/execution-result";
 import {
-  ExecutionSateType,
+  ExecutionStateType,
   ExecutionStatus,
   StaticCallExecutionState,
 } from "../../../src/internal/execution/types/execution-state";
@@ -120,7 +120,7 @@ describe("DeploymentStateReducer", () => {
         ]);
 
         updatedStaticCallExState = findExecutionStateById(
-          ExecutionSateType.STATIC_CALL_EXECUTION_STATE,
+          ExecutionStateType.STATIC_CALL_EXECUTION_STATE,
           updatedDeploymentState,
           "StaticCall1"
         );
@@ -129,7 +129,7 @@ describe("DeploymentStateReducer", () => {
       it("should populate a static call execution state for the future", () => {
         assert.equal(
           updatedStaticCallExState.type,
-          ExecutionSateType.STATIC_CALL_EXECUTION_STATE
+          ExecutionStateType.STATIC_CALL_EXECUTION_STATE
         );
       });
     });
@@ -142,7 +142,7 @@ describe("DeploymentStateReducer", () => {
         ]);
 
         updatedStaticCallExState = findExecutionStateById(
-          ExecutionSateType.STATIC_CALL_EXECUTION_STATE,
+          ExecutionStateType.STATIC_CALL_EXECUTION_STATE,
           updatedDeploymentState,
           "StaticCall1"
         );
@@ -167,7 +167,7 @@ describe("DeploymentStateReducer", () => {
         ]);
 
         updatedStaticCallExState = findExecutionStateById(
-          ExecutionSateType.STATIC_CALL_EXECUTION_STATE,
+          ExecutionStateType.STATIC_CALL_EXECUTION_STATE,
           updatedDeploymentState,
           "StaticCall1"
         );
@@ -200,7 +200,7 @@ describe("DeploymentStateReducer", () => {
         ]);
 
         updatedStaticCallExState = findExecutionStateById(
-          ExecutionSateType.STATIC_CALL_EXECUTION_STATE,
+          ExecutionStateType.STATIC_CALL_EXECUTION_STATE,
           updatedDeploymentState,
           "StaticCall1"
         );
@@ -231,7 +231,7 @@ describe("DeploymentStateReducer", () => {
         ]);
 
         updatedStaticCallExState = findExecutionStateById(
-          ExecutionSateType.STATIC_CALL_EXECUTION_STATE,
+          ExecutionStateType.STATIC_CALL_EXECUTION_STATE,
           updatedDeploymentState,
           "StaticCall1"
         );
@@ -264,7 +264,7 @@ describe("DeploymentStateReducer", () => {
         ]);
 
         updatedStaticCallExState = findExecutionStateById(
-          ExecutionSateType.STATIC_CALL_EXECUTION_STATE,
+          ExecutionStateType.STATIC_CALL_EXECUTION_STATE,
           updatedDeploymentState,
           "StaticCall1"
         );

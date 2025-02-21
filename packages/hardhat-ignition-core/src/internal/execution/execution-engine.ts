@@ -1,3 +1,4 @@
+import { IgnitionError } from "../../errors";
 import { ArtifactResolver } from "../../types/artifact";
 import { DeploymentParameters } from "../../types/deploy";
 import {
@@ -10,8 +11,10 @@ import {
   IgnitionModuleResult,
 } from "../../types/module";
 import { DeploymentLoader } from "../deployment-loader/types";
+import { ERRORS } from "../errors-list";
 import { assertIgnitionInvariant } from "../utils/assertions";
 import { getFuturesFromModule } from "../utils/get-futures-from-module";
+import { getNetworkExecutionStates } from "../views/execution-state/get-network-execution-states";
 import { getPendingNonceAndSender } from "../views/execution-state/get-pending-nonce-and-sender";
 import { hasExecutionSucceeded } from "../views/has-execution-succeeded";
 import { isBatchFinished } from "../views/is-batch-finished";
@@ -25,6 +28,7 @@ import { JsonRpcNonceManager } from "./nonce-management/json-rpc-nonce-manager";
 import { TransactionTrackingTimer } from "./transaction-tracking-timer";
 import { DeploymentState } from "./types/deployment-state";
 import { ExecutionStrategy } from "./types/execution-strategy";
+import { NetworkInteractionType } from "./types/network-interaction";
 
 /**
  * This class is used to execute a module to completion, returning the new
@@ -68,6 +72,8 @@ export class ExecutionEngine {
     deploymentParameters: DeploymentParameters,
     defaultSender: string
   ): Promise<DeploymentState> {
+    await this._checkForMissingTransactions(deploymentState);
+
     deploymentState = await this._syncNonces(
       deploymentState,
       module,
@@ -194,6 +200,32 @@ export class ExecutionEngine {
       const newBlock = await this._jsonRpcClient.getLatestBlock();
       if (newBlock.number > previousBlock.number) {
         return newBlock;
+      }
+    }
+  }
+
+  /**
+   * Checks the journal for missing transactions, throws if any are found
+   * and asks the user to track the missing transaction via the `track-tx` command.
+   */
+  private async _checkForMissingTransactions(
+    deploymentState: DeploymentState
+  ): Promise<void> {
+    const exStates = getNetworkExecutionStates(deploymentState);
+
+    for (const exState of exStates) {
+      for (const ni of exState.networkInteractions) {
+        if (
+          ni.type === NetworkInteractionType.ONCHAIN_INTERACTION &&
+          ni.nonce !== undefined &&
+          ni.transactions.length === 0
+        ) {
+          throw new IgnitionError(ERRORS.EXECUTION.TRANSACTION_LOST, {
+            futureId: exState.id,
+            nonce: ni.nonce,
+            sender: exState.from,
+          });
+        }
       }
     }
   }
