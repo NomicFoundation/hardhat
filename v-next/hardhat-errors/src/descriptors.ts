@@ -426,6 +426,15 @@ Please double check your task arguments.`,
 
 Please double check your arguments.`,
     },
+    UNRECOGNIZED_SUBTASK: {
+      number: 416,
+      messageTemplate:
+        'Invalid subtask "{invalidSubtask}" for the task "{task}"',
+      websiteTitle: "Invalid subtask value",
+      websiteDescription: `The subtasks for your task is invalid.
+
+Please double check your subtask.,`,
+    },
   },
   ARGUMENTS: {
     INVALID_VALUE_FOR_TYPE: {
