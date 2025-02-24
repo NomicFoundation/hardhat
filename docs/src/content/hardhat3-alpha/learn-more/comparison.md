@@ -14,7 +14,7 @@ Hardhat 3 comes with Foundry-compatible Solidity tests, which are fast and ideal
 
 Hardhat 2's development network always behaves like Ethereum Mainnet. Hardhat 3 removes this limitation, letting you choose which kind of chain you want to simulate. And, unlike Hardhat 2, you can configure multiple Hardhat networks, each with its own chain type.
 
-The initial release includes first-class support for Ethereum Mainnet and OP Mainnet, providing more realistic simulations of these networks. We'll gradually add new chain types over time. In the meantime, a generic chain type can be used as a fallback for networks that are not yet supported. This generic chain type has full compatibility with Hardhat 2 and works with all of Hardhat 3's new features.
+The initial release includes first-class support for Ethereum Mainnet and OP Mainnet, providing more realistic simulations of these networks. We'll gradually add new chain types over time. In the meantime, a generic chain type can be used as a fallback for networks that are not yet supported. This generic chain type behaves the same as Hardhat Network in Hardhat 2 and works with all of Hardhat 3's new features.
 
 ## Network manager
 
