@@ -5,5 +5,5 @@ order:
     href: /comparison
   - title: Alpha version limitations
     href: /alpha-limitations
-  - title: Solidity Tests
-    href: /solidity-tests
+  # - title: Solidity Tests
+  #   href: /solidity-tests
