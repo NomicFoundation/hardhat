@@ -36,7 +36,7 @@ import debug from "debug";
 import pMap from "p-map";
 
 import { FileBuildResultType } from "../../../../types/solidity/build-system.js";
-import { DEFAULT_BUILD_PROFILE } from "../build-profiles.js";
+import { DEFAULT_BUILD_PROFILE, shouldMergeCompilationJobs } from "../build-profiles.js";
 
 import {
   getArtifactsDeclarationFile,
@@ -334,7 +334,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       subgraphsWithConfig.push([configOrError, subgraph]);
     }
 
-    if (options?.mergeCompilationJobs === true) {
+    if (options?.mergeCompilationJobs ?? shouldMergeCompilationJobs(buildProfileName)) {
       log(`Merging compilation jobs`);
 
       const mergedSubgraphsByConfig: Map<
