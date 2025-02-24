@@ -15,10 +15,17 @@ declare module "../../../types/config.js" {
     settings?: any;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-interface -- This could be an extension point
-  export interface SingleVersionSolcUserConfig extends SolcUserConfig {}
+  export interface CommonSolcUserConfig {
+    mergeCompilationJobs?: boolean;
+    concurrency?: number;
+  }
 
-  export interface MultiVersionSolcUserConfig {
+  // eslint-disable-next-line @typescript-eslint/no-empty-interface -- This could be an extension point
+  export interface SingleVersionSolcUserConfig
+    extends SolcUserConfig,
+      CommonSolcUserConfig {}
+
+  export interface MultiVersionSolcUserConfig extends CommonSolcUserConfig {
     compilers: SolcUserConfig[];
     overrides?: Record<string, SolcUserConfig>;
   }
@@ -36,12 +43,13 @@ declare module "../../../types/config.js" {
     extends MultiVersionSolcUserConfig,
       CommonSolidityUserConfig {}
 
+  export type SolidityBuildProfileUserConfig =
+    | SingleVersionSolcUserConfig
+    | MultiVersionSolcUserConfig;
+
   export interface BuildProfilesSolidityUserConfig
     extends CommonSolidityUserConfig {
-    profiles: Record<
-      string,
-      SingleVersionSolcUserConfig | MultiVersionSolcUserConfig
-    >;
+    profiles: Record<string, SolidityBuildProfileUserConfig>;
   }
 
   export interface HardhatUserConfig {
@@ -56,6 +64,8 @@ declare module "../../../types/config.js" {
   export interface SolidityBuildProfileConfig {
     compilers: SolcConfig[];
     overrides: Record<string, SolcConfig>;
+    mergeCompilationJobs?: boolean;
+    concurrency?: number;
   }
 
   export interface SolidityConfig {

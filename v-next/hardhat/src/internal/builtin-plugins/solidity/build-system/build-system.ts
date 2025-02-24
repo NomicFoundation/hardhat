@@ -36,7 +36,10 @@ import debug from "debug";
 import pMap from "p-map";
 
 import { FileBuildResultType } from "../../../../types/solidity/build-system.js";
-import { DEFAULT_BUILD_PROFILE, shouldMergeCompilationJobs } from "../build-profiles.js";
+import {
+  DEFAULT_BUILD_PROFILE,
+  shouldMergeCompilationJobs,
+} from "../build-profiles.js";
 
 import {
   getArtifactsDeclarationFile,
@@ -139,6 +142,14 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       ),
     );
 
+    const buildProfileName = options?.buildProfile ?? DEFAULT_BUILD_PROFILE;
+    const buildProfile =
+      this.#options.solidityConfig.profiles[buildProfileName];
+    const concurrency =
+      options?.concurrency ??
+      buildProfile.concurrency ??
+      this.#defaultConcurrency;
+
     const runCompilationJobOptions: RunCompilationJobOptions = {
       quiet: options?.quiet,
     };
@@ -172,7 +183,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         };
       },
       {
-        concurrency: options?.concurrency ?? this.#defaultConcurrency,
+        concurrency,
         // An error when running the compiler is not a compilation failure, but
         // a fatal failure trying to run it, so we just throw on the first error
         stopOnError: true,
@@ -308,9 +319,12 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
     log(`Using build profile ${buildProfileName}`);
 
+    const buildProfile =
+      this.#options.solidityConfig.profiles[buildProfileName];
+
     const solcConfigSelector = new SolcConfigSelector(
       buildProfileName,
-      this.#options.solidityConfig.profiles[buildProfileName],
+      buildProfile,
       dependencyGraph,
     );
 
@@ -334,7 +348,12 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       subgraphsWithConfig.push([configOrError, subgraph]);
     }
 
-    if (options?.mergeCompilationJobs ?? shouldMergeCompilationJobs(buildProfileName)) {
+    const mergeCompilationJobs =
+      options?.mergeCompilationJobs ??
+      buildProfile?.mergeCompilationJobs ??
+      shouldMergeCompilationJobs(buildProfileName);
+
+    if (mergeCompilationJobs) {
       log(`Merging compilation jobs`);
 
       const mergedSubgraphsByConfig: Map<
