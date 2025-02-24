@@ -6,11 +6,16 @@ import {
   getAllFilesMatching,
   getFileSize,
   move,
-  readJsonFile,
+  readJsonFileAsStream,
   remove,
-  writeJsonFile,
+  writeJsonFileAsStream,
 } from "@nomicfoundation/hardhat-utils/fs";
 
+/**
+ * ObjectCache is a simple cache that stores objects as JSON files. It uses the
+ * stream versions of the file system access functions to support large objects,
+ * i.e. files exceeding the maximum string length.
+ */
 export class ObjectCache<T> {
   readonly #path: string;
   readonly #defaultMaxAgeMs: number;
@@ -34,13 +39,15 @@ export class ObjectCache<T> {
 
     // NOTE: We are writing to a temporary file first because the value might
     // be large and we don't want to end up with corrupted files in the cache.
-    await writeJsonFile(tmpPath, value);
+    await writeJsonFileAsStream(tmpPath, value);
     await move(tmpPath, filePath);
   }
 
   public async get(key: string): Promise<T | undefined> {
     const filePath = path.join(this.#path, `${key}.json`);
-    return (await exists(filePath)) ? readJsonFile<T>(filePath) : undefined;
+    return (await exists(filePath))
+      ? readJsonFileAsStream<T>(filePath)
+      : undefined;
   }
 
   public async clean(maxAgeMs?: number, maxSize?: number): Promise<void> {
