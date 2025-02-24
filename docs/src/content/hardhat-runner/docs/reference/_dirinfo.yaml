@@ -1,6 +1,0 @@
-section-type: group
-section-title: Reference
-order:
-  - /stability-guarantees
-  - /solidity-support
-  - /environment-variables
