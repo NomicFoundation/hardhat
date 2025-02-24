@@ -1,8 +1,10 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+## 0.15.10
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
+### Patch Changes
+
+- d96c003: Fix for bug when we fail to save transaction hash
 
 ## 0.15.9 - 2024-12-18
 
