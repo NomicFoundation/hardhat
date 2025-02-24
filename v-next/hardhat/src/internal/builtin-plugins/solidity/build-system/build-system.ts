@@ -27,6 +27,8 @@ import {
   getAllFilesMatching,
   readJsonFile,
   remove,
+  writeJsonFile,
+  writeJsonFileAsStream,
   writeUtf8File,
 } from "@nomicfoundation/hardhat-utils/fs";
 import { shortenPath } from "@nomicfoundation/hardhat-utils/path";
@@ -557,12 +559,9 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       (async () => {
         const buildInfo = await getBuildInfo(compilationJob);
 
-        await writeUtf8File(
-          buildInfoPath,
-          // TODO: Maybe formatting the build info is slow, but it's mostly
-          // strings, so it probably shouldn't be a problem.
-          JSON.stringify(buildInfo, undefined, 2),
-        );
+        // TODO: Maybe formatting the build info is slow, but it's mostly
+        // strings, so it probably shouldn't be a problem.
+        await writeJsonFile(buildInfoPath, buildInfo);
       })(),
       (async () => {
         const buildInfoOutput = await getBuildInfoOutput(
@@ -570,10 +569,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
           compilerOutput,
         );
 
-        await writeUtf8File(
-          buildInfoOutputPath,
-          JSON.stringify(buildInfoOutput),
-        );
+        await writeJsonFileAsStream(buildInfoOutputPath, buildInfoOutput);
       })(),
     ]);
 
