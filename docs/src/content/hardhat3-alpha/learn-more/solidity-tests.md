@@ -14,7 +14,7 @@ That said, there are some key differences in how Hardhat handles Solidity tests 
 
 Hardhat treats Solidity files that follow specific conventions as test files. A Solidity file is considered a test file if it's under the contracts directory and has `.t.sol` as its extension, or if its under the `paths.tests.solidity` directory in Hardhat's configuration.
 
-All contracts in a test file are considered test contracts. The functions in these contracts whose names that start with `test` are considered test functions. These functions will be called by Hardhat when running the tests. If a test function reverts, the test will be considered failed.
+All contracts in a test file are considered test contracts. The functions in these contracts whose names start with `test` are considered test functions. These functions will be called by Hardhat when running the tests. If a test function reverts, the test will be considered failed.
 
 All the debugging features of Hardhat, such as console.log debugging, Solidity stack traces, and error inference, are fully compatible with Solidity tests. This ensures you get the same comprehensive insights into your tests as you would with TypeScript-based tests.
 
