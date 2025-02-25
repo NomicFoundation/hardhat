@@ -210,7 +210,7 @@ describe("main", function () {
       });
     });
 
-    describe("task wit non existing subtask", function () {
+    describe("task with non existing subtask", function () {
       useFixtureProject("cli/parsing/tasks-and-subtasks");
 
       it("should throw because the subtask does not exist", async function () {
