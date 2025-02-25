@@ -7,7 +7,7 @@ import type {
   TracingMessageResult,
   TracingStep,
 } from "@nomicfoundation/edr";
-import { Address } from "@nomicfoundation/ethereumjs-util";
+import { Address } from "@ethereumjs/util";
 
 import { requireNapiRsModule } from "../../../../common/napi-rs";
 import { HardforkName } from "../../../util/hardforks";
@@ -61,6 +61,9 @@ export function ethereumsjsHardforkToEdrSpecId(hardfork: HardforkName): SpecId {
       return SpecId.Shanghai;
     case HardforkName.CANCUN:
       return SpecId.Cancun;
+    case HardforkName.PRAGUE:
+      // TODO: update the value when Prague is added to EDR
+      return SpecId.Cancun;
     default:
       const _exhaustiveCheck: never = hardfork;
       throw new Error(
@@ -107,9 +110,11 @@ export function edrSpecIdToEthereumHardfork(specId: SpecId): HardforkName {
       return HardforkName.MERGE;
     case SpecId.Shanghai:
       return HardforkName.SHANGHAI;
-    // HACK: EthereumJS doesn't support Cancun, so report Shanghai
     case SpecId.Cancun:
-      return HardforkName.SHANGHAI;
+      return HardforkName.CANCUN;
+    // TODO: uncomment when Prague is added to EDR
+    /*     case SpecId.Prague:
+      return HardforkName.PRAGUE; */
 
     default:
       throw new Error(`Unknown spec id '${specId}', this shouldn't happen`);

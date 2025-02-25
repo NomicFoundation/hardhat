@@ -1,4 +1,4 @@
-import { Common } from "@nomicfoundation/ethereumjs-common";
+import { Common } from "@ethereumjs/common";
 import { assert } from "chai";
 import {
   getHardforkName,
@@ -45,6 +45,7 @@ describe("Hardfork utils", function () {
       assert.equal("merge", HardforkName.MERGE);
       assert.equal("shanghai", HardforkName.SHANGHAI);
       assert.equal("cancun", HardforkName.CANCUN);
+      assert.equal("prague", HardforkName.PRAGUE);
     });
   });
 
