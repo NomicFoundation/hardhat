@@ -282,9 +282,11 @@ ignitionScope
           executionEventListener.ledgerConfirmationFailure();
 
         try {
-          await hre.network.provider.send("hardhat_setLedgerOutputEnabled", [
-            false,
-          ]);
+          if (hre.network.name === "hardhat") { // for Hardhat Network
+            await hre.network.provider.send("hardhat_setLedgerOutputEnabled", [
+              false,
+            ]);
+          }
 
           hre.network.provider.once("connection_start", ledgerConnectionStart);
           hre.network.provider.once(
@@ -335,9 +337,11 @@ ignitionScope
         });
 
         try {
-          await hre.network.provider.send("hardhat_setLedgerOutputEnabled", [
-            true,
-          ]);
+          if (hre.network.name === "hardhat") { // for Hardhat Network
+            await hre.network.provider.send("hardhat_setLedgerOutputEnabled", [
+              true,
+            ]);
+          }
 
           hre.network.provider.off("connection_start", ledgerConnectionStart);
           hre.network.provider.off(
