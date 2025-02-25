@@ -431,7 +431,7 @@ Please double check your arguments.`,
       messageTemplate:
         'Invalid subtask "{invalidSubtask}" for the task "{task}"',
       websiteTitle: "Invalid subtask value",
-      websiteDescription: `The subtasks for your task is invalid.
+      websiteDescription: `The subtask for the task you provided is invalid.
 
 Please double check your subtask.,`,
     },
