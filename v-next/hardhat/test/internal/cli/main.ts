@@ -210,6 +210,23 @@ describe("main", function () {
       });
     });
 
+    describe("task wit non existing subtask", function () {
+      useFixtureProject("cli/parsing/tasks-and-subtasks");
+
+      it("should throw because the subtask does not exist", async function () {
+        const command = "npx hardhat task-default-3 nonExistingTask";
+
+        await assertRejectsWithHardhatError(
+          () => runMain(command),
+          HardhatError.ERRORS.TASK_DEFINITIONS.UNRECOGNIZED_SUBTASK,
+          {
+            task: "task-default-3",
+            invalidSubtask: "nonExistingTask",
+          },
+        );
+      });
+    });
+
     describe("global help", function () {
       useFixtureProject("cli/parsing/base-project");
 
@@ -269,6 +286,23 @@ Usage: hardhat [GLOBAL OPTIONS] empty-task <SUBTASK> [SUBTASK OPTIONS] [--] [SUB
 `;
 
           assert.equal(lines.join(""), expected);
+        });
+      });
+
+      describe("subtask does not exist", () => {
+        useFixtureProject("cli/parsing/tasks-and-subtasks");
+
+        it("should throw because the help option cannot be used on a non-existent subtask", async function () {
+          const command = "npx hardhat task-default-3 nonExistingTask --help";
+
+          await assertRejectsWithHardhatError(
+            () => runMain(command),
+            HardhatError.ERRORS.TASK_DEFINITIONS.UNRECOGNIZED_SUBTASK,
+            {
+              task: "task-default-3",
+              invalidSubtask: "nonExistingTask",
+            },
+          );
         });
       });
 
