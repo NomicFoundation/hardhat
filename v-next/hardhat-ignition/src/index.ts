@@ -99,10 +99,7 @@ const hardhatIgnitionPlugin: HardhatPlugin = {
       })
       .setAction(import.meta.resolve("./internal/tasks/wipe.js"))
       .build(),
-    task(
-      ["ignition", "visualize"],
-      "Not implemented yet - to be available soon",
-    )
+    task(["ignition", "visualize"], "Visualize a module as an HTML report")
       .addPositionalArgument({
         name: "modulePath",
         type: ArgumentType.FILE,
