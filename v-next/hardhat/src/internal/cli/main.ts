@@ -168,6 +168,18 @@ export async function main(
 
     const task = taskOrId;
 
+    if (task.isEmpty && usedCliArguments.includes(false)) {
+      const invalidSubtask = cliArguments[usedCliArguments.indexOf(false)];
+
+      throw new HardhatError(
+        HardhatError.ERRORS.TASK_DEFINITIONS.UNRECOGNIZED_SUBTASK,
+        {
+          task: task.id.join(" "),
+          invalidSubtask,
+        },
+      );
+    }
+
     if (builtinGlobalOptions.help || task.isEmpty) {
       const taskHelp = await getHelpString(task);
 
