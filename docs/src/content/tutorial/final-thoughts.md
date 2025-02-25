@@ -8,7 +8,7 @@ Here are some links you might find useful throughout your journey:
 - [Hardhat's documentation site](/docs/)
 - [Hardhat Toolbox's documentation](/hardhat-runner/plugins/nomicfoundation-hardhat-toolbox)
 - [Hardhat Ignition's documentation](/ignition)
-- [Hardhat Support Discord server](/discord)
+- [Hardhat Support Discord server](https://discord.com/invite/TETZs2KK4k)
 - [Ethers.js Documentation](https://docs.ethers.org/v6/)
 - [Mocha Documentation](https://mochajs.org/)
 - [Chai Documentation](https://www.chaijs.com/)
