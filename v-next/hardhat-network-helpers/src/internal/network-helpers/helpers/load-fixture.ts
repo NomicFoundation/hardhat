@@ -2,11 +2,10 @@ import type { Fixture, NetworkHelpers, Snapshot } from "../../../types.js";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
-let snapshots: Array<Snapshot<any>> = [];
-
 export async function loadFixture<T>(
   networkHelpers: NetworkHelpers,
   fixture: Fixture<T>,
+  snapshots: Array<Snapshot<any>>,
 ): Promise<T> {
   if (fixture.name === "") {
     throw new HardhatError(
@@ -20,10 +19,14 @@ export async function loadFixture<T>(
     try {
       await snapshot.restorer.restore();
 
-      snapshots = snapshots.filter(
+      const filteredSnapshots = snapshots.filter(
         (s) =>
           Number(s.restorer.snapshotId) <= Number(snapshot.restorer.snapshotId),
       );
+
+      // Modify the array by reference
+      snapshots.length = 0;
+      snapshots.push(...filteredSnapshots);
     } catch (e) {
       if (
         HardhatError.isHardhatError(e) &&
@@ -52,6 +55,7 @@ export async function loadFixture<T>(
   }
 }
 
-export function clearSnapshots(): void {
-  snapshots = [];
+export function clearSnapshots(snapshots: Array<Snapshot<any>>): void {
+  // Modify the array by reference
+  snapshots.length = 0;
 }
