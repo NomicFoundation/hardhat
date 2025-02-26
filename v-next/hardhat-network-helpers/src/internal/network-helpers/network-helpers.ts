@@ -3,6 +3,7 @@ import type {
   Fixture,
   NetworkHelpers as NetworkHelpersI,
   NumberLike,
+  Snapshot,
   SnapshotRestorer,
 } from "../../types.js";
 import type { EthereumProvider } from "hardhat/types/providers";
@@ -36,6 +37,7 @@ const SUPPORTED_TEST_NETWORKS = ["hardhat", "zksync", "anvil"];
 export class NetworkHelpers implements NetworkHelpersI {
   readonly #provider: EthereumProvider;
   readonly #networkName: string;
+  readonly #snapshots: Array<Snapshot<any>> = [];
 
   #isDevelopmentNetwork: boolean | undefined;
   #version: string | undefined;
@@ -50,7 +52,7 @@ export class NetworkHelpers implements NetworkHelpersI {
   }
 
   public clearSnapshots(): void {
-    clearSnapshots();
+    clearSnapshots(this.#snapshots);
   }
 
   public async dropTransaction(txHash: string): Promise<boolean> {
@@ -74,7 +76,7 @@ export class NetworkHelpers implements NetworkHelpersI {
 
   public async loadFixture<T>(fixture: Fixture<T>): Promise<T> {
     await this.throwIfNotDevelopmentNetwork();
-    return loadFixture(this, fixture);
+    return loadFixture(this, fixture, this.#snapshots);
   }
 
   public async mine(
