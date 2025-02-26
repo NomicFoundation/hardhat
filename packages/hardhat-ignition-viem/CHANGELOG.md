@@ -106,7 +106,7 @@
 
 ### Fixed
 
-- More resilent automine check ([#721](https://github.com/NomicFoundation/hardhat-ignition/issues/721))
+- More resilient, resident automine check ([#721](https://github.com/NomicFoundation/hardhat-ignition/issues/721))
 - `getCode` usage brought in line with Ethereum RPC standard ([#715](https://github.com/NomicFoundation/hardhat-ignition/issues/715))
 - Fixed unexpected next nonce on revert ([#676](https://github.com/NomicFoundation/hardhat-ignition/issues/676))
 - Reduce sources being passed to etherscan for verification ([#706](https://github.com/NomicFoundation/hardhat-ignition/issues/706))
