@@ -282,6 +282,8 @@ function resolveSolidityConfig(
           },
         ],
         overrides: {},
+        mergeCompilationJobs: profile.mergeCompilationJobs,
+        concurrency: profile.concurrency,
       };
       continue;
     }
@@ -304,6 +306,8 @@ function resolveSolidityConfig(
           },
         ),
       ),
+      mergeCompilationJobs: profile.mergeCompilationJobs,
+      concurrency: profile.concurrency,
     };
   }
 
