@@ -60,7 +60,7 @@ describe("getParameter", () => {
       assert.equal(isB.defaultValue, true);
     });
 
-    it("Should accept arrays as deafult", () => {
+    it("Should accept arrays as default", () => {
       const defaultValue: SolidityParameterType = [1, "dos", 3n, false];
       const mod = buildModule("MyModule", (m) => {
         const p = m.getParameter("p", defaultValue);
@@ -76,7 +76,7 @@ describe("getParameter", () => {
       assert.deepEqual(param.defaultValue, defaultValue);
     });
 
-    it("Should accept objects as deafult", () => {
+    it("Should accept objects as default", () => {
       const defaultValue: SolidityParameterType = { a: 1, b: "dos", c: 3n };
       const mod = buildModule("MyModule", (m) => {
         const p = m.getParameter("p", defaultValue);
