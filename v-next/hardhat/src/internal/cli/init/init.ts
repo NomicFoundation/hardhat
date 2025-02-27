@@ -484,8 +484,8 @@ export async function installProjectDependencies(
       const workspaceVersion = workspaceDependencies[name];
       return (
         workspaceVersion !== undefined &&
-        !semver.satisfies(version, workspaceVersion) &&
-        !semver.intersects(version, workspaceVersion)
+        !semver.satisfies(workspaceVersion, version) &&
+        !semver.intersects(workspaceVersion, version)
       );
     })
     .map(([name, version]) => `${name}@${version}`);

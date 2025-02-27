@@ -1,3 +1,4 @@
+import type { Template } from "../../../../src/internal/cli/init/template.js";
 import type { PackageJson } from "@nomicfoundation/hardhat-utils/package";
 
 import assert from "node:assert/strict";
@@ -309,6 +310,72 @@ describe("installProjectDependencies", async () => {
           );
         }
       }
+    },
+  );
+
+  it(
+    "should not update dependencies if they are up-to-date and the user opts-in to the update (specific version)",
+    {
+      skip: process.env.HARDHAT_DISABLE_SLOW_TESTS === "true",
+    },
+    async () => {
+      const template: Template = {
+        name: "test",
+        packageJson: {
+          name: "test",
+          version: "0.0.1",
+          devDependencies: { hardhat: "^3.0.0-next.0" }, // <-- required version
+        },
+        path: process.cwd(),
+        files: [],
+      };
+
+      await writeUtf8File(
+        "package.json",
+        JSON.stringify({
+          type: "module",
+          devDependencies: { hardhat: "3.0.0-next.0" }, // <-- specific version
+        }),
+      );
+      await installProjectDependencies(process.cwd(), template, false, true);
+
+      assert.ok(
+        !(await exists("node_modules")),
+        "no modules should have been installed",
+      );
+    },
+  );
+
+  it(
+    "should not update dependencies if they are up-to-date and the user opts-in to the update (version range)",
+    {
+      skip: process.env.HARDHAT_DISABLE_SLOW_TESTS === "true",
+    },
+    async () => {
+      const template: Template = {
+        name: "test",
+        packageJson: {
+          name: "test",
+          version: "0.0.1",
+          devDependencies: { hardhat: "^3.0.0-next.0" }, // <-- required version
+        },
+        path: process.cwd(),
+        files: [],
+      };
+
+      await writeUtf8File(
+        "package.json",
+        JSON.stringify({
+          type: "module",
+          devDependencies: { hardhat: ">= 3.0.0-next.0" }, // <-- version range
+        }),
+      );
+      await installProjectDependencies(process.cwd(), template, false, true);
+
+      assert.ok(
+        !(await exists("node_modules")),
+        "no modules should have been installed",
+      );
     },
   );
 });
