@@ -42,7 +42,7 @@
     "@eslint-community/eslint-plugin-eslint-comments": "^4.3.0",
     "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0-next.0",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
-    "@types/mocha": ">=9.1.0",
+    "@types/mocha": ">=10.0.10",
     "@types/node": "^20.14.9",
     "@typescript-eslint/eslint-plugin": "^7.7.1",
     "@typescript-eslint/parser": "^7.7.1",
@@ -62,7 +62,7 @@
     "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.0",
     "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.0",
     "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.0-next.0",
-    "mocha": "^10.0.0",
+    "mocha": "^11.0.0",
     "tsx": "^4.19.3",
     "zod": "^3.23.8"
   }
