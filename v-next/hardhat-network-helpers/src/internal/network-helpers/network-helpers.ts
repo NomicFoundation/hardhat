@@ -3,6 +3,7 @@ import type {
   Fixture,
   NetworkHelpers as NetworkHelpersI,
   NumberLike,
+  Snapshot,
   SnapshotRestorer,
 } from "../../types.js";
 import type { EthereumProvider } from "hardhat/types/providers";
@@ -15,7 +16,7 @@ import {
 import { dropTransaction } from "./helpers/drop-transaction.js";
 import { getStorageAt } from "./helpers/get-storage-at.js";
 import { impersonateAccount } from "./helpers/impersonate-account.js";
-import { clearSnapshots, loadFixture } from "./helpers/load-fixture.js";
+import { loadFixture } from "./helpers/load-fixture.js";
 import { mineUpTo } from "./helpers/mine-up-to.js";
 import { mine } from "./helpers/mine.js";
 import { reset } from "./helpers/reset.js";
@@ -36,6 +37,7 @@ const SUPPORTED_TEST_NETWORKS = ["hardhat", "zksync", "anvil"];
 export class NetworkHelpers implements NetworkHelpersI {
   readonly #provider: EthereumProvider;
   readonly #networkName: string;
+  #snapshots: Array<Snapshot<any>> = [];
 
   #isDevelopmentNetwork: boolean | undefined;
   #version: string | undefined;
@@ -50,7 +52,7 @@ export class NetworkHelpers implements NetworkHelpersI {
   }
 
   public clearSnapshots(): void {
-    clearSnapshots();
+    this.#snapshots = [];
   }
 
   public async dropTransaction(txHash: string): Promise<boolean> {
@@ -74,7 +76,16 @@ export class NetworkHelpers implements NetworkHelpersI {
 
   public async loadFixture<T>(fixture: Fixture<T>): Promise<T> {
     await this.throwIfNotDevelopmentNetwork();
-    return loadFixture(this, fixture);
+
+    const { snapshots, snapshotData } = await loadFixture(
+      this,
+      fixture,
+      this.#snapshots,
+    );
+
+    this.#snapshots = snapshots;
+
+    return snapshotData;
   }
 
   public async mine(
