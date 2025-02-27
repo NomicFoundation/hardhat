@@ -9,7 +9,9 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import { before, beforeEach, describe, it, mock } from "node:test";
 
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
+  assertRejectsWithHardhatError,
   getTmpDir,
   useFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
@@ -374,6 +376,23 @@ describe(
         );
 
         assert.equal(runCompilationJobSpy.mock.callCount(), 0);
+      });
+
+      it("should throw when given a build profile that is not defined", async () => {
+        const rootFilePaths = await solidity.getRootFilePaths();
+
+        await assertRejectsWithHardhatError(
+          solidity.build(rootFilePaths, {
+            force: false,
+            mergeCompilationJobs: true,
+            quiet: true,
+            buildProfile: "not-defined",
+          }),
+          HardhatError.ERRORS.SOLIDITY.BUILD_PROFILE_NOT_FOUND,
+          {
+            buildProfileName: "not-defined",
+          },
+        );
       });
     });
   },

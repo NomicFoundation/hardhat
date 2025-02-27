@@ -18,7 +18,7 @@ export class SolcConfigSelector {
 
   /**
    * Creates a new SolcConfigSelector that can be used to select the best solc
-   * configuration for subragraphs of the given dependency graph.
+   * configuration for subgraphs of the given dependency graph.
    *
    * All the queries are done in the context of the given dependency graph, and
    * using the same build profile.
