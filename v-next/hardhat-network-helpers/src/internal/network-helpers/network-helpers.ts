@@ -76,7 +76,16 @@ export class NetworkHelpers implements NetworkHelpersI {
 
   public async loadFixture<T>(fixture: Fixture<T>): Promise<T> {
     await this.throwIfNotDevelopmentNetwork();
-    return loadFixture(this, fixture, this.#snapshots);
+
+    const { snapshots, snapshotData } = await loadFixture(
+      this,
+      fixture,
+      this.#snapshots,
+    );
+
+    this.#snapshots = snapshots;
+
+    return snapshotData;
   }
 
   public async mine(
