@@ -84,7 +84,7 @@ contract Token {
     }
 
     /**
-     * Read only function to retrieve the token balance of a given account.
+     * Read-only function to retrieve the token balance of a given account.
      *
      * The `view` modifier indicates that it doesn't modify the contract's
      * state, which allows us to call it without executing a transaction.
