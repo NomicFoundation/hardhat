@@ -21,7 +21,10 @@ import type { SolidityBuildInfo } from "../../../../types/solidity.js";
 import os from "node:os";
 import path from "node:path";
 
-import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
+import {
+  assertHardhatInvariant,
+  HardhatError,
+} from "@nomicfoundation/hardhat-errors";
 import {
   getAllDirectoriesMatching,
   getAllFilesMatching,
@@ -305,6 +308,15 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     );
 
     const buildProfileName = options?.buildProfile ?? DEFAULT_BUILD_PROFILE;
+
+    if (this.#options.solidityConfig.profiles[buildProfileName] === undefined) {
+      throw new HardhatError(
+        HardhatError.ERRORS.SOLIDITY.BUILD_PROFILE_NOT_FOUND,
+        {
+          buildProfileName,
+        },
+      );
+    }
 
     log(`Using build profile ${buildProfileName}`);
 
