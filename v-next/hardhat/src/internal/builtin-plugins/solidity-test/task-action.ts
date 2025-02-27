@@ -14,7 +14,6 @@ import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
 import { createNonClosingWriter } from "@nomicfoundation/hardhat-utils/stream";
 import chalk from "chalk";
 
-import { shouldMergeCompilationJobs } from "../solidity/build-profiles.js";
 import {
   getArtifacts,
   getBuildInfos,
@@ -75,9 +74,6 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   const buildOptions: BuildOptions = {
     force: false,
     buildProfile: hre.globalOptions.buildProfile,
-    mergeCompilationJobs: shouldMergeCompilationJobs(
-      hre.globalOptions.buildProfile,
-    ),
     quiet: true,
   };
 
