@@ -4,7 +4,7 @@ Once you're ready to share your dApp with other people, you may want to deploy i
 
 The "mainnet" Ethereum network deals with real money, but there are separate "testnet" networks that do not. These testnets provide shared staging environments that do a good job of mimicking the real world scenario without putting real money at stake, and [Ethereum has several](https://ethereum.org/en/developers/docs/networks/#ethereum-testnets), like _Sepolia_ and _Goerli_. We recommend you deploy your contracts to the _Sepolia_ testnet.
 
-At the software level, deploying to a testnet is the same as deploying to mainnet. The only difference is which network you connect to. Let's look into what the code to deploy your contracts using [Hardhat Ignition](/ignition) would look like.
+At the software level, deploying to a testnet is the same as deploying to the mainnet. The only difference is which network you connect to. Let's look into what the code to deploy your contracts using [Hardhat Ignition](/ignition) would look like.
 
 In Hardhat Ignition, deployments are defined through Ignition Modules. These modules are abstractions to describe a deployment; that is, JavaScript functions that specify what you want to deploy.
 
