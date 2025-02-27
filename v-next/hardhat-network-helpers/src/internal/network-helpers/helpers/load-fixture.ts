@@ -5,8 +5,11 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
 export async function loadFixture<T>(
   networkHelpers: NetworkHelpers,
   fixture: Fixture<T>,
-  snapshots: Array<Snapshot<any>>,
-): Promise<T> {
+  snapshots: Array<Snapshot<T>>,
+): Promise<{
+  snapshots: Array<Snapshot<T>>;
+  snapshotData: T;
+}> {
   if (fixture.name === "") {
     throw new HardhatError(
       HardhatError.ERRORS.NETWORK_HELPERS.FIXTURE_ANONYMOUS_FUNCTION_ERROR,
@@ -19,14 +22,10 @@ export async function loadFixture<T>(
     try {
       await snapshot.restorer.restore();
 
-      const filteredSnapshots = snapshots.filter(
+      snapshots = snapshots.filter(
         (s) =>
           Number(s.restorer.snapshotId) <= Number(snapshot.restorer.snapshotId),
       );
-
-      // Modify the array by reference
-      snapshots.length = 0;
-      snapshots.push(...filteredSnapshots);
     } catch (e) {
       if (
         HardhatError.isHardhatError(e) &&
@@ -40,7 +39,10 @@ export async function loadFixture<T>(
       throw e;
     }
 
-    return snapshot.data;
+    return {
+      snapshots,
+      snapshotData: snapshot.data,
+    };
   } else {
     const data = await fixture();
     const restorer = await networkHelpers.takeSnapshot();
@@ -51,11 +53,9 @@ export async function loadFixture<T>(
       data,
     });
 
-    return data;
+    return {
+      snapshots,
+      snapshotData: data,
+    };
   }
-}
-
-export function clearSnapshots(snapshots: Array<Snapshot<any>>): void {
-  // Modify the array by reference
-  snapshots.length = 0;
 }
