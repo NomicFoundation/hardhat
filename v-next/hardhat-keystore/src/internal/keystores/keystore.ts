@@ -1,11 +1,15 @@
 import type { Keystore as KeystoreI } from "../types.js";
 
-import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
+import {
+  assertHardhatInvariant,
+  HardhatError,
+} from "@nomicfoundation/hardhat-errors";
 
 import {
   addSecretToKeystore,
   decryptSecret,
   doesKeyExist,
+  HmacKeyDecryptionError,
   removeSecretFromKeystore,
   type EncryptedKeystore,
 } from "./encryption.js";
@@ -29,11 +33,21 @@ export class Keystore implements KeystoreI {
   }
 
   public async hasKey(key: string, masterKey: Uint8Array): Promise<boolean> {
-    return doesKeyExist({
-      masterKey,
-      encryptedKeystore: this.#keystoreData,
-      key,
-    });
+    try {
+      return doesKeyExist({
+        masterKey,
+        encryptedKeystore: this.#keystoreData,
+        key,
+      });
+    } catch (error) {
+      if (error instanceof HmacKeyDecryptionError) {
+        throw new HardhatError(
+          HardhatError.ERRORS.KEYSTORE.INVALID_PASSWORD_OR_CORRUPTED_KEYSTORE,
+        );
+      }
+
+      throw error;
+    }
   }
 
   public async readValue(key: string, masterKey: Uint8Array): Promise<string> {
@@ -42,11 +56,21 @@ export class Keystore implements KeystoreI {
       "Unknown key should never be read",
     );
 
-    return decryptSecret({
-      masterKey,
-      encryptedKeystore: this.#keystoreData,
-      key,
-    });
+    try {
+      return decryptSecret({
+        masterKey,
+        encryptedKeystore: this.#keystoreData,
+        key,
+      });
+    } catch (error) {
+      if (error instanceof HmacKeyDecryptionError) {
+        throw new HardhatError(
+          HardhatError.ERRORS.KEYSTORE.INVALID_PASSWORD_OR_CORRUPTED_KEYSTORE,
+        );
+      }
+
+      throw error;
+    }
   }
 
   public async removeKey(key: string, masterKey: Uint8Array): Promise<void> {
@@ -55,11 +79,21 @@ export class Keystore implements KeystoreI {
       "Unknown key should never be removed",
     );
 
-    this.#keystoreData = removeSecretFromKeystore({
-      masterKey,
-      encryptedKeystore: this.#keystoreData,
-      keyToRemove: key,
-    });
+    try {
+      this.#keystoreData = removeSecretFromKeystore({
+        masterKey,
+        encryptedKeystore: this.#keystoreData,
+        keyToRemove: key,
+      });
+    } catch (error) {
+      if (error instanceof HmacKeyDecryptionError) {
+        throw new HardhatError(
+          HardhatError.ERRORS.KEYSTORE.INVALID_PASSWORD_OR_CORRUPTED_KEYSTORE,
+        );
+      }
+
+      throw error;
+    }
   }
 
   public async addNewValue(
@@ -67,11 +101,21 @@ export class Keystore implements KeystoreI {
     value: string,
     masterKey: Uint8Array,
   ): Promise<void> {
-    this.#keystoreData = addSecretToKeystore({
-      masterKey,
-      encryptedKeystore: this.#keystoreData,
-      key,
-      value,
-    });
+    try {
+      this.#keystoreData = addSecretToKeystore({
+        masterKey,
+        encryptedKeystore: this.#keystoreData,
+        key,
+        value,
+      });
+    } catch (error) {
+      if (error instanceof HmacKeyDecryptionError) {
+        throw new HardhatError(
+          HardhatError.ERRORS.KEYSTORE.INVALID_PASSWORD_OR_CORRUPTED_KEYSTORE,
+        );
+      }
+
+      throw error;
+    }
   }
 }

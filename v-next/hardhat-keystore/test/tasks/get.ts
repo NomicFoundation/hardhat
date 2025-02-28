@@ -4,7 +4,8 @@ import type { Mock } from "node:test";
 import assert from "node:assert/strict";
 import { beforeEach, describe, it, mock } from "node:test";
 
-import { assertRejects } from "@nomicfoundation/hardhat-test-utils";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import chalk from "chalk";
 
 import { KeystoreFileLoader } from "../../src/internal/loaders/keystore-file-loader.js";
@@ -137,7 +138,7 @@ describe("tasks - get", () => {
       });
       mockRequestSecret = mockRequestSecretFn(["wrong password"]);
 
-      await assertRejects(
+      await assertRejectsWithHardhatError(
         get(
           {
             key: "myKey",
@@ -146,9 +147,8 @@ describe("tasks - get", () => {
           mockRequestSecret,
           mockConsoleLog,
         ),
-        (err) =>
-          err.message ===
-          "Invalid hmac key: make sure you are using the right password/key and that your encrypted data isn't corrupted",
+        HardhatError.ERRORS.KEYSTORE.INVALID_PASSWORD_OR_CORRUPTED_KEYSTORE,
+        {},
       );
     });
   });
