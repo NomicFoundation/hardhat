@@ -1,21 +1,20 @@
 {
   "name": "root",
   "version": "0.0.0",
-  "author": "Nomic Labs LLC",
+  "author": "Nomic Foundation",
   "license": "SEE LICENSE IN EACH PACKAGE'S LICENSE FILE",
   "private": true,
   "devDependencies": {
     "@changesets/cli": "^2.16.0",
-    "prettier": "2.4.1",
-    "shelljs": "^0.8.5",
     "typescript": "~5.5.0"
   },
   "scripts": {
     "build": "pnpm run --recursive build",
     "clean": "pnpm run --recursive clean",
-    "test": "node scripts/run-tests.js",
-    "lint": "pnpm run --recursive lint && pnpm prettier --check",
-    "lint:fix": "pnpm run --recursive lint:fix && pnpm prettier --write",
-    "prettier": "prettier *.md \"{docs,.github}/**/*.{md,yml,ts,js}\" \"scripts/**/*.js\""
+    "test": "pnpm run --recursive test",
+    "prelint": "pnpm build",
+    "lint": "pnpm run --recursive lint",
+    "prelint:fix": "pnpm build",
+    "lint:fix": "pnpm run --recursive lint:fix"
   }
 }

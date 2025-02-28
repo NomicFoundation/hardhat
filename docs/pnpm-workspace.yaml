@@ -1,4 +1,0 @@
-# docs are a workspace with a single package to isolate
-# it from the rest of the monorepo
-packages:
-  - '.'
