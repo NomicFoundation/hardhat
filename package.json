@@ -11,7 +11,7 @@
   "scripts": {
     "build": "pnpm run --recursive build",
     "clean": "pnpm run --recursive clean",
-    "test": "pnpm run --recursive clean",
+    "test": "pnpm run --recursive test",
     "prelint": "pnpm build",
     "lint": "pnpm run --recursive lint",
     "prelint:fix": "pnpm build",
