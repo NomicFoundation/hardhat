@@ -1,20 +1,19 @@
 import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 import type { NewTaskActionFunction } from "hardhat/types/tasks";
 
-// import path from "node:path";
+import path from "node:path";
 
-// import { HardhatError } from "@nomicfoundation/hardhat-errors";
-// import {
-//   batches,
-//   IgnitionError,
-//   IgnitionModuleSerializer,
-// } from "@nomicfoundation/ignition-core";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import {
+  batches,
+  IgnitionError,
+  IgnitionModuleSerializer,
+} from "@nomicfoundation/ignition-core";
 
-// import { loadModule } from "../utils/load-module.js";
-// import { open } from "../utils/open.js";
-// import { shouldBeHardhatPluginError } from "../utils/shouldBeHardhatPluginError.js";
-// import { writeVisualization } from "../visualization/write-visualization.js";
-import chalk from "chalk";
+import { loadModule } from "../utils/load-module.js";
+import { open } from "../utils/open.js";
+import { shouldBeHardhatPluginError } from "../utils/shouldBeHardhatPluginError.js";
+import { writeVisualization } from "../visualization/write-visualization.js";
 
 interface TaskVisualizeArguments {
   modulePath: string;
@@ -22,56 +21,48 @@ interface TaskVisualizeArguments {
 }
 
 const visualizeTask: NewTaskActionFunction<TaskVisualizeArguments> = async (
-  _args: { noOpen: boolean; modulePath: string },
-  _hre: HardhatRuntimeEnvironment,
+  { noOpen, modulePath }: { noOpen: boolean; modulePath: string },
+  hre: HardhatRuntimeEnvironment,
 ) => {
-  console.log(
-    chalk.yellow(
-      "This task will be implemented soon. Check back soon for more updates.",
-    ),
-  );
+  await hre.tasks.getTask("compile").run({ quiet: true });
 
-  return;
+  const userModule = await loadModule(hre.config.paths.ignition, modulePath);
 
-  // await hre.tasks.getTask("compile").run({ quiet: true });
+  if (userModule === undefined) {
+    throw new HardhatError(HardhatError.ERRORS.IGNITION.NO_MODULES_FOUND);
+  }
 
-  // const userModule = await loadModule(hre.config.paths.ignition, modulePath);
+  try {
+    const serializedIgnitionModule =
+      IgnitionModuleSerializer.serialize(userModule);
 
-  // if (userModule === undefined) {
-  //   throw new HardhatError(HardhatError.ERRORS.IGNITION.NO_MODULES_FOUND);
-  // } else {
-  //   try {
-  //     const serializedIgnitionModule =
-  //       IgnitionModuleSerializer.serialize(userModule);
+    const batchInfo = batches(userModule);
 
-  //     const batchInfo = batches(userModule);
+    await writeVisualization(
+      { module: serializedIgnitionModule, batches: batchInfo },
+      {
+        cacheDir: hre.config.paths.cache,
+      },
+    );
+  } catch (e) {
+    if (e instanceof IgnitionError && shouldBeHardhatPluginError(e)) {
+      throw new HardhatError(HardhatError.ERRORS.IGNITION.INTERNAL_ERROR, e);
+    }
 
-  //     await writeVisualization(
-  //       { module: serializedIgnitionModule, batches: batchInfo },
-  //       {
-  //         cacheDir: hre.config.paths.cache,
-  //       },
-  //     );
-  //   } catch (e) {
-  //     if (e instanceof IgnitionError && shouldBeHardhatPluginError(e)) {
-  //       throw new HardhatError(HardhatError.ERRORS.IGNITION.INTERNAL_ERROR, e);
-  //     }
+    throw e;
+  }
 
-  //     throw e;
-  //   }
-  // }
+  if (!noOpen) {
+    const indexFile = path.join(
+      hre.config.paths.cache,
+      "visualization",
+      "index.html",
+    );
 
-  // if (!noOpen) {
-  //   const indexFile = path.join(
-  //     hre.config.paths.cache,
-  //     "visualization",
-  //     "index.html",
-  //   );
+    console.log(`Deployment visualization written to ${indexFile}`);
 
-  //   console.log(`Deployment visualization written to ${indexFile}`);
-
-  //   open(indexFile);
-  // }
+    open(indexFile);
+  }
 };
 
 export default visualizeTask;
