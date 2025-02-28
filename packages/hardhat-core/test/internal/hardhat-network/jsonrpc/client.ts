@@ -1,7 +1,4 @@
-import {
-  bytesToBigInt as bufferToBigInt,
-  toBytes,
-} from "@nomicfoundation/ethereumjs-util";
+import { bytesToBigInt as bufferToBigInt, toBytes } from "@ethereumjs/util";
 import { assert } from "chai";
 import fsExtra from "fs-extra";
 import sinon from "sinon";

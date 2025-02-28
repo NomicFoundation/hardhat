@@ -2,7 +2,7 @@ import {
   bytesToHex as bufferToHex,
   isValidAddress,
   toBytes,
-} from "@nomicfoundation/ethereumjs-util";
+} from "@ethereumjs/util";
 import * as t from "io-ts";
 
 import * as BigIntUtils from "../../../util/bigint";
@@ -24,6 +24,14 @@ export const rpcData = new t.Type<Buffer>(
   Buffer.isBuffer,
   (u, c) =>
     isRpcDataString(u) ? t.success(Buffer.from(toBytes(u))) : t.failure(u, c),
+  t.identity
+);
+
+export const rpcParity = new t.Type<Buffer>(
+  "PARITY",
+  Buffer.isBuffer,
+  (u, c) =>
+    isRpcParityString(u) ? t.success(Buffer.from(toBytes(u))) : t.failure(u, c),
   t.identity
 );
 
@@ -214,6 +222,10 @@ function isRpcQuantityString(u: unknown): u is string {
 
 function isRpcDataString(u: unknown): u is string {
   return typeof u === "string" && u.match(/^0x(?:[0-9a-fA-F]{2})*$/) !== null;
+}
+
+function isRpcParityString(u: unknown): u is string {
+  return typeof u === "string" && u.match(/^0x[0-9a-fA-F]{1,2}$/) !== null;
 }
 
 function isRpcHashString(u: unknown): u is string {
