@@ -1,94 +1,94 @@
-name: Changesets
+# name: Changesets
 
-on:
-  push:
-    branches:
-      - v-next
+# on:
+#   push:
+#     branches:
+#       - v-next
 
-jobs:
-  changesetcheck:
-    name: Changeset Check
-    runs-on: ubuntu-latest
-    outputs:
-      CHANGESETS: ${{ steps.changesetcheck.outputs.CHANGESETS }}
-    steps:
-      - name: checkout code repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - uses: ./.github/actions/setup-env
-        with:
-          node-version: 22
-      - name: Install
-        run: pnpm install --no-frozen-lockfile
-      - name: Changeset Check
-        id: changesetcheck
-        run: |
-          pnpm changeset status --output=changes.json
+# jobs:
+#   changesetcheck:
+#     name: Changeset Check
+#     runs-on: ubuntu-latest
+#     outputs:
+#       CHANGESETS: ${{ steps.changesetcheck.outputs.CHANGESETS }}
+#     steps:
+#       - name: checkout code repository
+#         uses: actions/checkout@v4
+#         with:
+#           fetch-depth: 0
+#       - uses: ./.github/actions/setup-env
+#         with:
+#           node-version: 22
+#       - name: Install
+#         run: pnpm install --no-frozen-lockfile
+#       - name: Changeset Check
+#         id: changesetcheck
+#         run: |
+#           pnpm changeset status --output=changes.json
 
-          if grep "\"releases\": \[\]," changes.json; then
-            echo "No changesets found."
-            echo "changesets=notfound" >> "$GITHUB_OUTPUT"
-          else
-            echo "Changesets found."
-            echo "changesets=found" >> "$GITHUB_OUTPUT"
-          fi
+#           if grep "\"releases\": \[\]," changes.json; then
+#             echo "No changesets found."
+#             echo "changesets=notfound" >> "$GITHUB_OUTPUT"
+#           else
+#             echo "Changesets found."
+#             echo "changesets=found" >> "$GITHUB_OUTPUT"
+#           fi
 
-  release-pre-check:
-    name: Release Pre-Check
-    runs-on: ubuntu-latest
-    needs: [changesetcheck]
-    if: needs.changesetcheck.outputs.CHANGESETS == 'found'
-    steps:
-      - name: checkout code repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - uses: ./.github/actions/setup-env
-        with:
-          node-version: 22
-      - name: Install
-        run: pnpm install --no-frozen-lockfile
-      - name: Run full check (build, lint and test)
-        run: pnpm run vnext-full-check
+#   release-pre-check:
+#     name: Release Pre-Check
+#     runs-on: ubuntu-latest
+#     needs: [changesetcheck]
+#     if: needs.changesetcheck.outputs.CHANGESETS == 'found'
+#     steps:
+#       - name: checkout code repository
+#         uses: actions/checkout@v4
+#         with:
+#           fetch-depth: 0
+#       - uses: ./.github/actions/setup-env
+#         with:
+#           node-version: 22
+#       - name: Install
+#         run: pnpm install --no-frozen-lockfile
+#       - name: Run full check (build, lint and test)
+#         run: pnpm run vnext-full-check
 
-  release:
-    name: Release
-    runs-on: ubuntu-latest
-    needs: [release-pre-check]
-    permissions:
-      contents: write
-      id-token: write
-    steps:
-      - name: checkout code repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - uses: ./.github/actions/setup-env
-        with:
-          node-version: 22
-      - name: Install
-        run: pnpm install --no-frozen-lockfile
-      - name: Apply and commit changesets
-        run: |
-          echo "Changesets found. Starting release."
+#   release:
+#     name: Release
+#     runs-on: ubuntu-latest
+#     needs: [release-pre-check]
+#     permissions:
+#       contents: write
+#       id-token: write
+#     steps:
+#       - name: checkout code repository
+#         uses: actions/checkout@v4
+#         with:
+#           fetch-depth: 0
+#       - uses: ./.github/actions/setup-env
+#         with:
+#           node-version: 22
+#       - name: Install
+#         run: pnpm install --no-frozen-lockfile
+#       - name: Apply and commit changesets
+#         run: |
+#           echo "Changesets found. Starting release."
 
-          # Apply prerelease changesets
-          pnpm changeset version
+#           # Apply prerelease changesets
+#           pnpm changeset version
 
-          # Update the pnpm package lock file
-          pnpm install --no-frozen-lockfile
+#           # Update the pnpm package lock file
+#           pnpm install --no-frozen-lockfile
 
-          # Commit the changes and push
-          git config --global user.name "Github Actions"
-          git config --global user.email "nomicfoundation@users.noreply.github.com"
-          git commit -a -m "chore: v-next version bump"
-          git push
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Setup npmrc
-        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.VNEXT_NPM_TOKEN }}" > .npmrc
-      - name: Publish
-        run: pnpm publish --filter "./v-next/**" -r --no-git-checks --tag next --access public
-        env:
-          NPM_CONFIG_PROVENANCE: true
+#           # Commit the changes and push
+#           git config --global user.name "Github Actions"
+#           git config --global user.email "nomicfoundation@users.noreply.github.com"
+#           git commit -a -m "chore: v-next version bump"
+#           git push
+#         env:
+#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#       - name: Setup npmrc
+#         run: echo "//registry.npmjs.org/:_authToken=${{ secrets.VNEXT_NPM_TOKEN }}" > .npmrc
+#       - name: Publish
+#         run: pnpm publish --filter "./v-next/**" -r --no-git-checks --tag next --access public
+#         env:
+#           NPM_CONFIG_PROVENANCE: true
