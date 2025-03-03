@@ -1194,9 +1194,9 @@ Please check Hardhat's output for more details.`,
     },
     BUILD_PROFILE_NOT_FOUND: {
       number: 1232,
-      messageTemplate: `The build profile "{buildProfileName}" is not defined in your config`,
+      messageTemplate: `The build profile "{buildProfileName}" is not defined in your Hardhat config`,
       websiteTitle: "Build profile not defined",
-      websiteDescription: `The build profile you are trying to use is not defined in your config.`,
+      websiteDescription: `The build profile you are trying to use is not defined in your Hardhat config.`,
     },
   },
   VIEM: {
