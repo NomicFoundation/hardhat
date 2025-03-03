@@ -4,6 +4,7 @@
 name: Check that the PR has a changeset
 
 on:
+  merge_group:
   pull_request:
     branches:
       - main
