@@ -60,7 +60,7 @@ importers:
         specifier: ^4.2.0
         version: 4.3.20
       '@types/mocha':
-        specifier: '>=9.1.0'
+        specifier: '>=10.0.10'
         version: 10.0.10
       '@types/node':
         specifier: ^20.14.9
@@ -78,8 +78,8 @@ importers:
         specifier: workspace:^3.0.0-next.0
         version: link:../hardhat
       mocha:
-        specifier: ^10.0.0
-        version: 10.8.2
+        specifier: ^11.0.0
+        version: 11.1.0
       prettier:
         specifier: 3.2.5
         version: 3.2.5
@@ -397,7 +397,7 @@ importers:
         specifier: ^4.0.2
         version: 4.0.2
       '@types/mocha':
-        specifier: '>=9.1.0'
+        specifier: '>=10.0.10'
         version: 10.0.10
       '@types/node':
         specifier: ^20.14.9
@@ -430,8 +430,8 @@ importers:
         specifier: ^0.19.0
         version: 0.19.0
       mocha:
-        specifier: ^10.0.0
-        version: 10.8.2
+        specifier: ^11.0.0
+        version: 11.1.0
       prettier:
         specifier: 3.2.5
         version: 3.2.5
@@ -491,7 +491,7 @@ importers:
         specifier: ^4.1.7
         version: 4.1.12
       '@types/mocha':
-        specifier: '>=9.1.0'
+        specifier: '>=10.0.10'
         version: 10.0.10
       '@types/node':
         specifier: ^20.14.9
@@ -530,8 +530,8 @@ importers:
         specifier: 2.29.1
         version: 2.29.1(@typescript-eslint/parser@7.18.0(eslint@8.57.0)(typescript@5.5.4))(eslint-import-resolver-typescript@3.7.0)(eslint@8.57.0)
       eslint-plugin-mocha:
-        specifier: ^9.0.0
-        version: 9.0.0(eslint@8.57.0)
+        specifier: ^10.0.0
+        version: 10.5.0(eslint@8.57.0)
       eslint-plugin-no-only-tests:
         specifier: 3.1.0
         version: 3.1.0
@@ -542,8 +542,8 @@ importers:
         specifier: workspace:^3.0.0-next.0
         version: link:../hardhat
       mocha:
-        specifier: ^10.0.0
-        version: 10.8.2
+        specifier: ^11.0.0
+        version: 11.1.0
       nyc:
         specifier: 15.1.0
         version: 15.1.0
@@ -621,7 +621,7 @@ importers:
         specifier: ^4.17.12
         version: 4.17.12
       '@types/mocha':
-        specifier: '>=9.1.0'
+        specifier: '>=10.0.10'
         version: 10.0.10
       '@types/ndjson':
         specifier: 2.0.1
@@ -657,14 +657,14 @@ importers:
         specifier: 2.29.1
         version: 2.29.1(@typescript-eslint/parser@7.18.0(eslint@8.57.0)(typescript@5.5.4))(eslint-import-resolver-typescript@3.7.0)(eslint@8.57.0)
       eslint-plugin-mocha:
-        specifier: ^9.0.0
-        version: 9.0.0(eslint@8.57.0)
+        specifier: ^10.0.0
+        version: 10.5.0(eslint@8.57.0)
       eslint-plugin-no-only-tests:
         specifier: 3.1.0
         version: 3.1.0
       mocha:
-        specifier: ^10.0.0
-        version: 10.8.2
+        specifier: ^11.0.0
+        version: 11.1.0
       nyc:
         specifier: 15.1.0
         version: 15.1.0
@@ -712,7 +712,7 @@ importers:
         specifier: ^8.0.1
         version: 8.0.1
       '@types/mocha':
-        specifier: '>=9.1.0'
+        specifier: '>=10.0.10'
         version: 10.0.10
       '@types/node':
         specifier: ^20.14.9
@@ -748,8 +748,8 @@ importers:
         specifier: 2.29.1
         version: 2.29.1(@typescript-eslint/parser@7.18.0(eslint@8.57.0)(typescript@5.5.4))(eslint-import-resolver-typescript@3.7.0)(eslint@8.57.0)
       eslint-plugin-mocha:
-        specifier: ^9.0.0
-        version: 9.0.0(eslint@8.57.0)
+        specifier: ^10.0.0
+        version: 10.5.0(eslint@8.57.0)
       eslint-plugin-no-only-tests:
         specifier: 3.1.0
         version: 3.1.0
@@ -760,8 +760,8 @@ importers:
         specifier: workspace:^3.0.0-next.0
         version: link:../hardhat
       mocha:
-        specifier: ^10.0.0
-        version: 10.8.2
+        specifier: ^11.0.0
+        version: 11.1.0
       nyc:
         specifier: 15.1.0
         version: 15.1.0
@@ -802,7 +802,7 @@ importers:
         specifier: ^8.0.1
         version: 8.0.1
       '@types/mocha':
-        specifier: '>=9.1.0'
+        specifier: '>=10.0.10'
         version: 10.0.10
       '@types/react':
         specifier: ^18.0.28
@@ -838,8 +838,8 @@ importers:
         specifier: 2.29.1
         version: 2.29.1(@typescript-eslint/parser@7.18.0(eslint@8.57.0)(typescript@5.5.4))(eslint-import-resolver-typescript@3.7.0)(eslint@8.57.0)
       eslint-plugin-mocha:
-        specifier: ^9.0.0
-        version: 9.0.0(eslint@8.57.0)
+        specifier: ^10.0.0
+        version: 10.5.0(eslint@8.57.0)
       eslint-plugin-no-only-tests:
         specifier: 3.1.0
         version: 3.1.0
@@ -853,8 +853,8 @@ importers:
         specifier: 10.9.3
         version: 10.9.3
       mocha:
-        specifier: ^10.0.0
-        version: 10.8.2
+        specifier: ^11.0.0
+        version: 11.1.0
       prettier:
         specifier: 3.2.5
         version: 3.2.5
@@ -920,7 +920,7 @@ importers:
         specifier: ^8.0.1
         version: 8.0.1
       '@types/mocha':
-        specifier: '>=9.1.0'
+        specifier: '>=10.0.10'
         version: 10.0.10
       '@types/node':
         specifier: ^20.14.9
@@ -956,8 +956,8 @@ importers:
         specifier: 2.29.1
         version: 2.29.1(@typescript-eslint/parser@7.18.0(eslint@8.57.0)(typescript@5.5.4))(eslint-import-resolver-typescript@3.7.0)(eslint@8.57.0)
       eslint-plugin-mocha:
-        specifier: ^9.0.0
-        version: 9.0.0(eslint@8.57.0)
+        specifier: ^10.0.0
+        version: 10.5.0(eslint@8.57.0)
       eslint-plugin-no-only-tests:
         specifier: 3.1.0
         version: 3.1.0
@@ -965,8 +965,8 @@ importers:
         specifier: workspace:^3.0.0-next.0
         version: link:../hardhat
       mocha:
-        specifier: ^10.0.0
-        version: 10.8.2
+        specifier: ^11.0.0
+        version: 11.1.0
       nyc:
         specifier: 15.1.0
         version: 15.1.0
@@ -1095,8 +1095,8 @@ importers:
         specifier: workspace:^3.0.0-next.0
         version: link:../hardhat
       mocha:
-        specifier: ^10.0.0
-        version: 10.8.2
+        specifier: ^11.0.0
+        version: 11.1.0
       tsx:
         specifier: ^4.19.3
         version: 4.19.3
@@ -1114,7 +1114,7 @@ importers:
         specifier: workspace:^
         version: link:../hardhat-test-utils
       '@types/mocha':
-        specifier: '>=9.1.0'
+        specifier: '>=10.0.10'
         version: 10.0.10
       '@types/node':
         specifier: ^20.14.9
@@ -1773,7 +1773,7 @@ importers:
         specifier: ^8.0.1
         version: 8.0.1
       '@types/mocha':
-        specifier: ^10.0.0
+        specifier: '>=10.0.10'
         version: 10.0.10
       '@types/node':
         specifier: ^22.8.5
@@ -1791,8 +1791,8 @@ importers:
         specifier: workspace:^3.0.0-next.0
         version: link:../..
       mocha:
-        specifier: ^10.0.0
-        version: 10.8.2
+        specifier: ^11.0.0
+        version: 11.1.0
       typescript:
         specifier: ~5.5.0
         version: 5.5.4
@@ -3361,9 +3361,6 @@ packages:
   cliui@6.0.0:
     resolution: {integrity: sha512-t6wbgtoCXvAzst7QgXxJYqPt0usEfbgQdftEPbLL/cvv6HPE5VgvqCuAIDR0NgU52ds6rFwqrgakNLrHEjCbrQ==}
 
-  cliui@7.0.4:
-    resolution: {integrity: sha512-OcRE68cOsVMXp1Yvonl/fzkQOyjLSu/8bhPDfQt0e0/Eb283TKP20Fs2MqoPsr9SwA595rRCA+QMzYc9nBP+JQ==}
-
   cliui@8.0.1:
     resolution: {integrity: sha512-BSeNnyus75C4//NQ9gQt1/csTXyo/8Sb+afLAkzAptFuMsod9HFokGNudZpi/oQV73hnVK+sR+5PVRMd+Dr7YQ==}
     engines: {node: '>=12'}
@@ -3829,9 +3826,9 @@ packages:
       '@typescript-eslint/parser':
         optional: true
 
-  eslint-plugin-mocha@9.0.0:
-    resolution: {integrity: sha512-d7knAcQj1jPCzZf3caeBIn3BnW6ikcvfz0kSqQpwPYcVGLoJV5sz0l0OJB2LR8I7dvTDbqq1oV6ylhSgzA10zg==}
-    engines: {node: '>=12.0.0'}
+  eslint-plugin-mocha@10.5.0:
+    resolution: {integrity: sha512-F2ALmQVPT1GoP27O1JTZGrV9Pqg8k79OeIuvw63UxMtQKREZtmkK1NFgkZQ2TW7L2JSSFKHFPTtHu5z8R9QNRw==}
+    engines: {node: '>=14.0.0'}
     peerDependencies:
       eslint: '>=7.0.0'
 
@@ -4079,11 +4076,6 @@ packages:
 
   glob@7.2.3:
     resolution: {integrity: sha512-nFR0zLpU2YCaRxwoCJvL6UvCH2JFyFVIvwTLsIf21AuHlMskA1hhTdk+LlYJtOlYt9v6dvszD2BGRqBL+iQK9Q==}
-    deprecated: Glob versions prior to v9 are no longer supported
-
-  glob@8.1.0:
-    resolution: {integrity: sha512-r8hpEjiQEYlF2QU0df3dS+nxxSIreXQS1qRhMJM0Q5NDdR386C7jb7Hwwod8Fgiuex+k0GFjgft18yvxm5XoCQ==}
-    engines: {node: '>=12'}
     deprecated: Glob versions prior to v9 are no longer supported
 
   globals@11.12.0:
@@ -4655,9 +4647,9 @@ packages:
     engines: {node: '>=10'}
     hasBin: true
 
-  mocha@10.8.2:
-    resolution: {integrity: sha512-VZlYo/WE8t1tstuRmqgeyBgCbJc/lEdopaa+axcKzTBJ+UIdlAB9XnmvTCAH4pwR4ElNInaedhEBmZD8iCSVEg==}
-    engines: {node: '>= 14.0.0'}
+  mocha@11.1.0:
+    resolution: {integrity: sha512-8uJR5RTC2NgpY3GrYcgpZrsEd9zKbPDpob1RezyR2upGHRQtHWofmzTMzTMSV6dru3tj5Ukt0+Vnq1qhFEEwAg==}
+    engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
     hasBin: true
 
   mri@1.2.0:
@@ -4900,8 +4892,8 @@ packages:
   queue-microtask@1.2.3:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
 
-  ramda@0.27.2:
-    resolution: {integrity: sha512-SbiLPU40JuJniHexQSAgad32hfwd+DRUdwF2PlVuI5RZD0/vahUco7R8vD86J/tcEKKF9vZrUVwgtmGCqlCKyA==}
+  rambda@7.5.0:
+    resolution: {integrity: sha512-y/M9weqWAH4iopRd7EHDEQQvpFPHj1AA3oHozE9tfITHUtTR7Z9PSlIRRG2l1GuW7sefC1cXFfIcF+cgnShdBA==}
 
   randombytes@2.1.0:
     resolution: {integrity: sha512-vYl3iOX+4CKUWuxGi9Ukhie6fsqXqS9FE2Zaic4tNFD2N2QQaXOMFbuKK4QmDHC0JO6B1Zp41J0LpT0oR68amQ==}
@@ -5596,10 +5588,6 @@ packages:
     resolution: {integrity: sha512-o50j0JeToy/4K6OZcaQmW6lyXXKhq7csREXcDwk2omFPJEwUNOVtJKvmDr9EI1fAJZUyZcRF7kxGBWmRXudrCQ==}
     engines: {node: '>=6'}
 
-  yargs-parser@20.2.9:
-    resolution: {integrity: sha512-y11nGElTIV+CT3Zv9t7VKl+Q3hTQoT9a1Qzezhhl6Rp21gJ/IVTW7Z3y9EWXhuUBC2Shnf+DX0antecpAwSP8w==}
-    engines: {node: '>=10'}
-
   yargs-parser@21.1.1:
     resolution: {integrity: sha512-tVpsJW7DdjecAiFpbIB1e3qxIQsE6NoPc5/eTdrbbIC4h0LVsWhnoa3g+m2HclBIujHzsxZ4VJVA+GUuc2/LBw==}
     engines: {node: '>=12'}
@@ -5611,10 +5599,6 @@ packages:
   yargs@15.4.1:
     resolution: {integrity: sha512-aePbxDmcYW++PaqBsJ+HYUFwCdv4LVvdnhBy78E57PIor8/OVvhMrADFFEDh8DHDFRv/O9i3lPhsENjO7QX0+A==}
     engines: {node: '>=8'}
-
-  yargs@16.2.0:
-    resolution: {integrity: sha512-D1mvvtDG0L5ft/jGWkLpG1+m0eQxOfaBvTNELraWj22wSVUMWxZUvYgJYcKh6jGGIkJFhH4IZPQhR4TKpc8mBw==}
-    engines: {node: '>=10'}
 
   yargs@17.7.2:
     resolution: {integrity: sha512-7dSzzRQ++CKnNI/krKnYRV7JKKPUXMEh61soaHKg9mrWEhzFWhFnxPxGl+69cD1Ou63C13NUPCnmIcrvqCuM6w==}
@@ -7256,12 +7240,6 @@ snapshots:
       strip-ansi: 6.0.1
       wrap-ansi: 6.2.0
 
-  cliui@7.0.4:
-    dependencies:
-      string-width: 4.2.3
-      strip-ansi: 6.0.1
-      wrap-ansi: 7.0.0
-
   cliui@8.0.1:
     dependencies:
       string-width: 4.2.3
@@ -7846,11 +7824,12 @@ snapshots:
       - eslint-import-resolver-webpack
       - supports-color
 
-  eslint-plugin-mocha@9.0.0(eslint@8.57.0):
+  eslint-plugin-mocha@10.5.0(eslint@8.57.0):
     dependencies:
       eslint: 8.57.0
       eslint-utils: 3.0.0(eslint@8.57.0)
-      ramda: 0.27.2
+      globals: 13.24.0
+      rambda: 7.5.0
 
   eslint-plugin-no-only-tests@3.1.0: {}
 
@@ -8155,14 +8134,6 @@ snapshots:
       minimatch: 3.1.2
       once: 1.4.0
       path-is-absolute: 1.0.1
-
-  glob@8.1.0:
-    dependencies:
-      fs.realpath: 1.0.0
-      inflight: 1.0.6
-      inherits: 2.0.4
-      minimatch: 5.1.6
-      once: 1.4.0
 
   globals@11.12.0: {}
 
@@ -8808,7 +8779,7 @@ snapshots:
 
   mkdirp@1.0.4: {}
 
-  mocha@10.8.2:
+  mocha@11.1.0:
     dependencies:
       ansi-colors: 4.1.3
       browser-stdout: 1.3.1
@@ -8817,7 +8788,7 @@ snapshots:
       diff: 5.2.0
       escape-string-regexp: 4.0.0
       find-up: 5.0.0
-      glob: 8.1.0
+      glob: 10.4.5
       he: 1.2.0
       js-yaml: 4.1.0
       log-symbols: 4.1.0
@@ -8827,8 +8798,8 @@ snapshots:
       strip-json-comments: 3.1.1
       supports-color: 8.1.1
       workerpool: 6.5.1
-      yargs: 16.2.0
-      yargs-parser: 20.2.9
+      yargs: 17.7.2
+      yargs-parser: 21.1.1
       yargs-unparser: 2.0.0
 
   mri@1.2.0: {}
@@ -9082,7 +9053,7 @@ snapshots:
 
   queue-microtask@1.2.3: {}
 
-  ramda@0.27.2: {}
+  rambda@7.5.0: {}
 
   randombytes@2.1.0:
     dependencies:
@@ -9847,8 +9818,6 @@ snapshots:
       camelcase: 5.3.1
       decamelize: 1.2.0
 
-  yargs-parser@20.2.9: {}
-
   yargs-parser@21.1.1: {}
 
   yargs-unparser@2.0.0:
@@ -9871,16 +9840,6 @@ snapshots:
       which-module: 2.0.1
       y18n: 4.0.3
       yargs-parser: 18.1.3
-
-  yargs@16.2.0:
-    dependencies:
-      cliui: 7.0.4
-      escalade: 3.2.0
-      get-caller-file: 2.0.5
-      require-directory: 2.1.1
-      string-width: 4.2.3
-      y18n: 5.0.8
-      yargs-parser: 20.2.9
 
   yargs@17.7.2:
     dependencies:
