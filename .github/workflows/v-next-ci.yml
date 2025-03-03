@@ -263,7 +263,7 @@ jobs:
           __DO_NOT_USE_IS_HARDHAT_CI: true
         run: pnpm run test:coverage
       - name: Upload coverage
-        if: ${{ matrix.os == 'ubuntu-latest' && matrix.node == '22' && hashFiles(format('v-next/{0}/coverage/lcov.info', matrix.package)) != '' }}
+        if: ${{ github.event_name != 'merge_group' && matrix.os == 'ubuntu-latest' && matrix.node == '22' && hashFiles(format('v-next/{0}/coverage/lcov.info', matrix.package)) != '' }}
         uses: codecov/codecov-action@0565863a31f2c772f9f0395002a31e3f06189574 # v5.4.0
         with:
           flags: ${{ matrix.package }}
@@ -277,7 +277,7 @@ jobs:
           OS: ${{ matrix.os }}
           NODE: ${{ matrix.node }}
       - name: Upload test results
-        if: ${{ !cancelled() && hashFiles(format('v-next/{0}/coverage/junit.xml', matrix.package)) != '' }}
+        if: ${{ !cancelled() && github.event_name != 'merge_group' &&hashFiles(format('v-next/{0}/coverage/junit.xml', matrix.package)) != '' }}
         uses: codecov/test-results-action@5c441a7bcc06f8706cde90192857d337c5dab8a6 # v1.0.4
         with:
           flags: package-${{ matrix.package }},os-${{ matrix.os }},node-${{ matrix.node }}
