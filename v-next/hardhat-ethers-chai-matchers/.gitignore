@@ -7,8 +7,5 @@
 # pnpm deploy output
 /bundle
 
-# test coverage output
-coverage
-
-# all the tmp folders in the fixture projects
-/test/fixture-projects/tmp/
+# TODO: add a comment with an explanation of this directory
+/cache

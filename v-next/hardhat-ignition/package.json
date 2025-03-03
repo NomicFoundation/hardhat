@@ -41,7 +41,7 @@
     "prettier": "prettier \"**/*.{ts,js,md,json}\"",
     "pretest": "pnpm run --dir ../hardhat-ignition-ui build",
     "test": "cross-env TS_NODE_COMPILER_OPTIONS=\"{\\\"isolatedDeclarations\\\":false}\" mocha --recursive \"test/**/*.ts\"",
-    "test:coverage": "cross-env TS_NODE_COMPILER_OPTIONS=\"{\\\"isolatedDeclarations\\\":false}\" nyc mocha \"test/**/*.ts\"",
+    "test:coverage": "cross-env TS_NODE_COMPILER_OPTIONS=\"{\\\"isolatedDeclarations\\\":false}\" nyc mocha --recursive \"test/**/*.ts\"",
     "test:build": "tsc --project ./test/",
     "prepack": "pnpm build",
     "build": "tsc --build .",
