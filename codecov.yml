@@ -16,3 +16,6 @@ comment:
 flag_management:
   default_rules:
     carryforward: true
+
+bundle_analysis:
+  status: false
