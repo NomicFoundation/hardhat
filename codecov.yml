@@ -2,120 +2,16 @@ codecov:
   branch: v-next
   require_ci_to_pass: false
   notify:
-    # TODO: replace with 'manual_trigger: true' if the commenter is rate limited
     wait_for_ci: false
+    notify_error: true
 
 coverage:
   status:
-    project: off
-    patch: off
+    project: false
+    patch: false
 
 comment:
-  layout: "header, diff, flags, components"
-
-# This section is not yet used because it doesn't support the carryforward setting
-component_management:
-  individual_components:
-    - component_id: example-project
-      name: example-project
-      flag_regexes:
-        - example-project
-        - package-example-project
-    - component_id: hardhat-mocha
-      name: hardhat-mocha
-      flag_regexes:
-        - hardhat-mocha
-        - package-hardhat-mocha
-    - component_id: hardhat
-      name: hardhat
-      flag_regexes:
-        - hardhat
-        - package-hardhat
-    - component_id: hardhat-network-helpers
-      name: hardhat-network-helpers
-      flag_regexes:
-        - hardhat-network-helpers
-        - package-hardhat-network-helpers
-    - component_id: hardhat-errors
-      name: hardhat-errors
-      flag_regexes:
-        - hardhat-errors
-        - package-hardhat-errors
-    - component_id: hardhat-node-test-reporter
-      name: hardhat-node-test-reporter
-      flag_regexes:
-        - hardhat-node-test-reporter
-        - package-hardhat-node-test-reporter
-    - component_id: hardhat-ethers
-      name: hardhat-ethers
-      flag_regexes:
-        - hardhat-ethers
-        - package-hardhat-ethers
-    - component_id: hardhat-node-test-runner
-      name: hardhat-node-test-runner
-      flag_regexes:
-        - hardhat-node-test-runner
-        - package-hardhat-node-test-runner
-    - component_id: hardhat-ethers-chai-matchers
-      name: hardhat-ethers-chai-matchers
-      flag_regexes:
-        - hardhat-ethers-chai-matchers
-        - package-hardhat-ethers-chai-matchers
-    - component_id: hardhat-test-utils
-      name: hardhat-test-utils
-      flag_regexes:
-        - hardhat-test-utils
-        - package-hardhat-test-utils
-    - component_id: hardhat-ignition
-      name: hardhat-ignition
-      flag_regexes:
-        - hardhat-ignition
-        - package-hardhat-ignition
-    - component_id: hardhat-typechain
-      name: hardhat-typechain
-      flag_regexes:
-        - hardhat-typechain
-        - package-hardhat-typechain
-    - component_id: hardhat-ignition-core
-      name: hardhat-ignition-core
-      flag_regexes:
-        - hardhat-ignition-core
-        - package-hardhat-ignition-core
-    - component_id: hardhat-utils
-      name: hardhat-utils
-      flag_regexes:
-        - hardhat-utils
-        - package-hardhat-utils
-    - component_id: hardhat-ignition-ethers
-      name: hardhat-ignition-ethers
-      flag_regexes:
-        - hardhat-ignition-ethers
-        - package-hardhat-ignition-ethers
-    - component_id: hardhat-viem
-      name: hardhat-viem
-      flag_regexes:
-        - hardhat-viem
-        - package-hardhat-viem
-    - component_id: hardhat-ignition-ui
-      name: hardhat-ignition-ui
-      flag_regexes:
-        - hardhat-ignition-ui
-        - package-hardhat-ignition-ui
-    - component_id: hardhat-zod-utils
-      name: hardhat-zod-utils
-      flag_regexes:
-        - hardhat-zod-utils
-        - package-hardhat-zod-utils
-    - component_id: hardhat-ignition-viem
-      name: hardhat-ignition-viem
-      flag_regexes:
-        - hardhat-ignition-viem
-        - package-hardhat-ignition-viem
-    - component_id: template-package
-      name: template-package
-      flag_regexes:
-        - template-packagee-package/**
-        - package-template-packagee-package/**
+  show_carryforward_flags: true
 
 flag_management:
   default_rules:
