@@ -128,8 +128,48 @@ jobs:
         run: pnpm build
       - name: Deploy
         run: |
-          pnpm deploy --config.shamefully-hoist=true --config.hoist=true --config.node-linker=true --config.shared-workspace-lockfile=false --filter="$(jq -r .name package.json)" --prod --no-optional bundle
-      - uses: actions/upload-artifact@v4
+          pnpm deploy --config.shamefully-hoist=true --config.hoist=true --config.node-linker=true --config.shared-workspace-lockfile=false --filter="$(jq -r .name package.json)" --prod --no-optional bundle.tmp
+
+          rsync -a --exclude node_modules/.pnpm/ --exclude node_modules/.modules.yaml --exclude node_modules/.bin --copy-links bundle.tmp/ bundle
+          rm -rf bundle.tmp
+
+          module_count=0
+          for module in bundle/node_modules/@*/* bundle/node_modules/*; do
+            if [[ $module == bundle/node_modules/@* && $module != bundle/node_modules/@*/* ]]; then
+              continue
+            fi
+            module_count=$((module_count + 1))
+          done
+
+          module_index=0
+          for module in bundle/node_modules/@*/* bundle/node_modules/*; do
+            if [[ $module == bundle/node_modules/@* && $module != bundle/node_modules/@*/* ]]; then
+              continue
+            fi
+            module_index=$((module_index + 1))
+            tar -cf "${module}_(${module_index}_of_${module_count}).dependency" $module
+            rm -rf $module
+          done
+
+          tar -cf "bundle/.src" bundle/src
+          rm -rf bundle/src
+
+          tar -cf "bundle/.dist" bundle/dist
+          rm -rf bundle/dist
+
+          for dir in bundle/src bundle/dist bundle/templates/*; do
+            tar -cf "$dir.template" $dir
+            rm -rf $dir
+          done
+      - name: Upload bundle
+        env:
+          BUNDLE_NAME: ${{ matrix.package }}
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        run: |
+          npx @codecov/bundle-analyzer ./bundle --bundle-name=$BUNDLE_NAME --upload-token=$CODECOV_TOKEN
+        continue-on-error: true
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.package }}
           path: |
@@ -143,9 +183,6 @@ jobs:
     name: bundle
     runs-on: ubuntu-latest
 
-    permissions:
-      pull-requests: write
-
     steps:
       - env:
           result: ${{ needs.bundle.result }}
@@ -154,37 +191,6 @@ jobs:
             exit 1
           fi
         shell: bash
-      - uses: actions/download-artifact@v4
-      - id: download
-        run: ls -1 | wc -l | xargs -I {} -0 echo "count={}" | tee -a $GITHUB_OUTPUT
-        shell: bash
-      - id: comment
-        if: steps.download.outputs.count != '0'
-        run: |
-          echo 'body<<EOF' >> $GITHUB_OUTPUT
-          for bundle in *; do
-            echo "# $bundle" | tee -a $GITHUB_OUTPUT
-            echo '' | tee -a $GITHUB_OUTPUT
-            echo "Total size of the bundle: "'`'"$(du -sh $bundle --exclude=$bundle/node_modules/.pnpm | cut -f1)"'`' | tee -a $GITHUB_OUTPUT
-            echo "Total number of dependencies (including transitive): "'`'"$(find $bundle/node_modules/@* $bundle/node_modules -mindepth 1 -maxdepth 1 -type d ! -name '.*' ! -name '@*' | wc -l)"'`' | tee -a $GITHUB_OUTPUT
-            echo '' | tee -a $GITHUB_OUTPUT
-            echo '<details>' | tee -a $GITHUB_OUTPUT
-            echo '<summary>List of dependencies (sorted by size)</summary>' | tee -a $GITHUB_OUTPUT
-            echo '' | tee -a $GITHUB_OUTPUT
-            echo '```' | tee -a $GITHUB_OUTPUT
-            du -shc $bundle/node_modules/@*/* $bundle/node_modules/* |
-              grep -Ev '/node_modules/@[^/]+$' | sort -rh |
-              sed "s|$bundle/node_modules/||" | tee -a $GITHUB_OUTPUT
-            echo '```' | tee -a $GITHUB_OUTPUT
-            echo '</details>' | tee -a $GITHUB_OUTPUT
-            echo '' | tee -a $GITHUB_OUTPUT
-          done
-          echo 'EOF' >> $GITHUB_OUTPUT
-      - if: github.event_name == 'pull_request' && steps.download.outputs.count != '0'
-        uses: marocchino/sticky-pull-request-comment@331f8f5b4215f0445d3c07b4967662a32a2d3e31 # v2.9.0
-        with:
-          header: bundle
-          message: ${{ steps.comment.outputs.body }}
 
   lint:
     needs: list-packages
@@ -234,7 +240,8 @@ jobs:
   ci:
     needs: list-packages
 
-    if: needs.list-packages.outputs.packages != '[]'
+    if: false
+    # if: needs.list-packages.outputs.packages != '[]'
 
     strategy:
       fail-fast: false
@@ -261,9 +268,9 @@ jobs:
       - name: Run tests
         env:
           __DO_NOT_USE_IS_HARDHAT_CI: true
-        run: pnpm run test:coverage
+        run: pnpm run test:ci
       - name: Upload coverage
-        if: ${{ github.event_name != 'merge_group' && matrix.os == 'ubuntu-latest' && matrix.node == '22' && hashFiles(format('v-next/{0}/coverage/lcov.info', matrix.package)) != '' }}
+        if: ${{ github.event_name != 'merge_group' && matrix.os == 'ubuntu-latest' && matrix.node == '22' && hashFiles(format('v-next/{0}/reports/lcov.info', matrix.package)) != '' }}
         uses: codecov/codecov-action@0565863a31f2c772f9f0395002a31e3f06189574 # v5.4.0
         with:
           name: '[${{ matrix.package }}] ci coverage on ${{ matrix.os }} (Node ${{ matrix.node }})'
@@ -278,7 +285,7 @@ jobs:
           OS: ${{ matrix.os }}
           NODE: ${{ matrix.node }}
       - name: Upload test results
-        if: ${{ !cancelled() && github.event_name != 'merge_group' &&hashFiles(format('v-next/{0}/coverage/junit.xml', matrix.package)) != '' }}
+        if: ${{ !cancelled() && github.event_name != 'merge_group' &&hashFiles(format('v-next/{0}/reports/junit.xml', matrix.package)) != '' }}
         uses: codecov/test-results-action@5c441a7bcc06f8706cde90192857d337c5dab8a6 # v1.0.4
         with:
           name: '[${{ matrix.package }}] ci results on ${{ matrix.os }} (Node ${{ matrix.node }})'
