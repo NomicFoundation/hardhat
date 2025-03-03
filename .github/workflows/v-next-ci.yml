@@ -276,6 +276,20 @@ jobs:
         env:
           OS: ${{ matrix.os }}
           NODE: ${{ matrix.node }}
+      - name: Upload test results
+        if: hashFiles('v-next/${{ matrix.package }}/coverage/junit.xml') != '' && !cancelled()
+        uses: codecov/test-results-action@5c441a7bcc06f8706cde90192857d337c5dab8a6 # v1.0.4
+        with:
+          flags: ${{ matrix.package }}
+          env_vars: OS,NODE
+          working-directory: v-next/${{ matrix.package }}
+          directory: coverage
+          files: junit.xml
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
+        env:
+          OS: ${{ matrix.os }}
+          NODE: ${{ matrix.node }}
 
   ci-aggregate:
     needs: ci
