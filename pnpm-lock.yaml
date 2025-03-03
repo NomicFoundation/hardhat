@@ -124,7 +124,7 @@ importers:
         version: 5.4.1
       debug:
         specifier: ^4.3.2
-        version: 4.4.0(supports-color@5.5.0)
+        version: 4.4.0(supports-color@8.1.1)
       enquirer:
         specifier: ^2.3.0
         version: 2.4.1
@@ -279,7 +279,7 @@ importers:
         version: link:../hardhat-utils
       debug:
         specifier: ^4.3.2
-        version: 4.4.0(supports-color@5.5.0)
+        version: 4.4.0(supports-color@8.1.1)
       ethers:
         specifier: ^6.13.4
         version: 6.13.5
@@ -308,9 +308,6 @@ importers:
       '@typescript-eslint/parser':
         specifier: ^7.7.1
         version: 7.18.0(eslint@8.57.0)(typescript@5.5.4)
-      c8:
-        specifier: ^9.1.0
-        version: 9.1.0
       eslint:
         specifier: 8.57.0
         version: 8.57.0
@@ -408,9 +405,6 @@ importers:
       '@typescript-eslint/parser':
         specifier: ^7.7.1
         version: 7.18.0(eslint@8.57.0)(typescript@5.5.4)
-      c8:
-        specifier: ^9.1.0
-        version: 9.1.0
       eslint:
         specifier: 8.57.0
         version: 8.57.0
@@ -467,7 +461,7 @@ importers:
         version: 5.4.1
       debug:
         specifier: ^4.3.2
-        version: 4.4.0(supports-color@5.5.0)
+        version: 4.4.0(supports-color@8.1.1)
       json5:
         specifier: ^2.2.3
         version: 2.2.3
@@ -585,7 +579,7 @@ importers:
         version: 1.9.0
       debug:
         specifier: ^4.3.2
-        version: 4.4.0(supports-color@5.5.0)
+        version: 4.4.0(supports-color@8.1.1)
       ethers:
         specifier: ^6.13.4
         version: 6.13.5
@@ -855,6 +849,9 @@ importers:
       mocha:
         specifier: ^11.0.0
         version: 11.1.0
+      nyc:
+        specifier: 15.1.0
+        version: 15.1.0
       prettier:
         specifier: 3.2.5
         version: 3.2.5
@@ -1014,7 +1011,7 @@ importers:
         version: 5.4.1
       debug:
         specifier: ^4.3.2
-        version: 4.4.0(supports-color@5.5.0)
+        version: 4.4.0(supports-color@8.1.1)
       hardhat:
         specifier: workspace:^3.0.0-next.0
         version: link:../hardhat
@@ -1043,9 +1040,6 @@ importers:
       '@typescript-eslint/parser':
         specifier: ^7.7.1
         version: 7.18.0(eslint@8.57.0)(typescript@5.5.4)
-      c8:
-        specifier: ^9.1.0
-        version: 9.1.0
       eslint:
         specifier: 8.57.0
         version: 8.57.0
@@ -1189,9 +1183,6 @@ importers:
       '@typescript-eslint/parser':
         specifier: ^7.7.1
         version: 7.18.0(eslint@8.57.0)(typescript@5.5.4)
-      c8:
-        specifier: ^9.1.0
-        version: 9.1.0
       eslint:
         specifier: 8.57.0
         version: 8.57.0
@@ -1428,7 +1419,7 @@ importers:
         version: 0.5.1(ethers@6.13.5)(typechain@8.3.2(typescript@5.5.4))(typescript@5.5.4)
       debug:
         specifier: ^4.3.2
-        version: 4.4.0(supports-color@5.5.0)
+        version: 4.4.0(supports-color@8.1.1)
       ethers:
         specifier: ^6.13.4
         version: 6.13.5
@@ -1463,9 +1454,6 @@ importers:
       '@typescript-eslint/parser':
         specifier: ^7.7.1
         version: 7.18.0(eslint@8.57.0)(typescript@5.5.4)
-      c8:
-        specifier: ^9.1.0
-        version: 9.1.0
       eslint:
         specifier: 8.57.0
         version: 8.57.0
@@ -1504,7 +1492,7 @@ importers:
     dependencies:
       debug:
         specifier: ^4.3.2
-        version: 4.4.0(supports-color@5.5.0)
+        version: 4.4.0(supports-color@8.1.1)
       env-paths:
         specifier: ^2.2.0
         version: 2.2.1
@@ -1967,9 +1955,6 @@ packages:
   '@babel/types@7.26.7':
     resolution: {integrity: sha512-t8kDRGrKXyp6+tjUh7hw2RLyclsW4TRoRvRHtSyAX9Bb5ldlFh+90YAYY6awRXrlB4G5G2izNeGySpATlFzmOg==}
     engines: {node: '>=6.9.0'}
-
-  '@bcoe/v8-coverage@0.2.3':
-    resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
 
   '@braintree/sanitize-url@6.0.4':
     resolution: {integrity: sha512-s3jaWicZd0pkP0jf5ysyHUI/RE7MHos6qlToFcGWXVp+ykHOy77OUMrfbgJ9it2C5bow7OIQwYYaHjk9XlBQ2A==}
@@ -2869,9 +2854,6 @@ packages:
   '@types/hoist-non-react-statics@3.3.6':
     resolution: {integrity: sha512-lPByRJUer/iN/xa4qpyL0qmL11DqNW81iU/IG1S3uvRUq4oKagz8VCxZjiWkumgt66YT3vOdDgZ0o32sGKtCEw==}
 
-  '@types/istanbul-lib-coverage@2.0.6':
-    resolution: {integrity: sha512-2QF/t/auWm0lsy8XtKVPG19v3sSOQlJe/YHZgfjb/KBBHOGSV+J2q/S671rcq9uTBrLAXmZpqJiaQbMT+zNU1w==}
-
   '@types/json-schema@7.0.15':
     resolution: {integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==}
 
@@ -3267,11 +3249,6 @@ packages:
   browserslist@4.24.4:
     resolution: {integrity: sha512-KDi1Ny1gSePi1vm0q4oxSF8b4DR44GF4BbmS2YdhPLOEqd8pDviZOGH/GsmRwoWJ2+5Lr085X7naowMwKHDG1A==}
     engines: {node: ^6 || ^7 || ^8 || ^9 || ^10 || ^11 || ^12 || >=13.7}
-    hasBin: true
-
-  c8@9.1.0:
-    resolution: {integrity: sha512-mBWcT5iqNir1zIkzSPyI3NCR9EZCVI3WUD+AVO17MVWTSFNyUueXE82qTeampNtTr+ilN/5Ua3j24LgbCKjDVg==}
-    engines: {node: '>=14.14.0'}
     hasBin: true
 
   caching-transform@4.0.0:
@@ -5441,10 +5418,6 @@ packages:
   v8-compile-cache-lib@3.0.1:
     resolution: {integrity: sha512-wa7YjyUGfNZngI/vtK0UHAN+lgDCxBPCylVXGp0zu59Fz5aiGtNXaq3DhIov063MorB+VfufLh3JlF2KdTK3xg==}
 
-  v8-to-istanbul@9.3.0:
-    resolution: {integrity: sha512-kiGUalWN+rgBJ/1OHZsBtU4rXZOfj/7rKQxULKlIzwzQSvMJUUNgPwJEEh7gU6xEVxC0ahoOBvN2YI8GH6FNgA==}
-    engines: {node: '>=10.12.0'}
-
   viem@2.22.13:
     resolution: {integrity: sha512-MaQKY5DUQ5SnZJPMytp5nTgvRu7N3wzvBhY31/9VT4lxDZAcQolqYEK3EqP+cdAD8jl0YmGuoJlfW9D1crqlGg==}
     peerDependencies:
@@ -5783,8 +5756,6 @@ snapshots:
     dependencies:
       '@babel/helper-string-parser': 7.25.9
       '@babel/helper-validator-identifier': 7.25.9
-
-  '@bcoe/v8-coverage@0.2.3': {}
 
   '@braintree/sanitize-url@6.0.4': {}
 
@@ -6672,8 +6643,6 @@ snapshots:
       '@types/react': 18.3.18
       hoist-non-react-statics: 3.3.2
 
-  '@types/istanbul-lib-coverage@2.0.6': {}
-
   '@types/json-schema@7.0.15': {}
 
   '@types/json5@0.0.29': {}
@@ -7133,20 +7102,6 @@ snapshots:
       electron-to-chromium: 1.5.87
       node-releases: 2.0.19
       update-browserslist-db: 1.1.2(browserslist@4.24.4)
-
-  c8@9.1.0:
-    dependencies:
-      '@bcoe/v8-coverage': 0.2.3
-      '@istanbuljs/schema': 0.1.3
-      find-up: 5.0.0
-      foreground-child: 3.3.0
-      istanbul-lib-coverage: 3.2.2
-      istanbul-lib-report: 3.0.1
-      istanbul-reports: 3.1.7
-      test-exclude: 6.0.0
-      v8-to-istanbul: 9.3.0
-      yargs: 17.7.2
-      yargs-parser: 21.1.1
 
   caching-transform@4.0.0:
     dependencies:
@@ -9678,12 +9633,6 @@ snapshots:
       sade: 1.8.1
 
   v8-compile-cache-lib@3.0.1: {}
-
-  v8-to-istanbul@9.3.0:
-    dependencies:
-      '@jridgewell/trace-mapping': 0.3.25
-      '@types/istanbul-lib-coverage': 2.0.6
-      convert-source-map: 2.0.0
 
   viem@2.22.13(typescript@5.5.4)(zod@3.24.1):
     dependencies:

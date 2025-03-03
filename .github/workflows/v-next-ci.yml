@@ -261,7 +261,21 @@ jobs:
       - name: Run tests
         env:
           __DO_NOT_USE_IS_HARDHAT_CI: true
-        run: pnpm run test
+        run: pnpm run test:coverage
+      - name: Upload coverage
+        if: hashFiles('v-next/${{ matrix.package }}/coverage/lcov.info') != ''
+        uses: codecov/codecov-action@0565863a31f2c772f9f0395002a31e3f06189574 # v5.4.0
+        with:
+          flags: ${{ matrix.package }}
+          env_vars: OS,NODE
+          working-directory: v-next/${{ matrix.package }}
+          directory: coverage
+          files: lcov.info
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
+        env:
+          OS: ${{ matrix.os }}
+          NODE: ${{ matrix.node }}
 
   ci-aggregate:
     needs: ci

@@ -4,4 +4,8 @@
 # Compilation output
 /dist
 
+# pnpm deploy output
+/bundle
+
+# TODO: add a comment with an explanation of this directory
 /cache
