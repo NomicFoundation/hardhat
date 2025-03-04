@@ -324,7 +324,7 @@ describe("installProjectDependencies", async () => {
         packageJson: {
           name: "test",
           version: "0.0.1",
-          devDependencies: { hardhat: "^3.0.0-next.0" }, // <-- required version
+          devDependencies: { "fake-dependency": "^1.2.3" }, // <-- required version
         },
         path: process.cwd(),
         files: [],
@@ -334,7 +334,7 @@ describe("installProjectDependencies", async () => {
         "package.json",
         JSON.stringify({
           type: "module",
-          devDependencies: { hardhat: "3.0.0-next.0" }, // <-- specific version
+          devDependencies: { "fake-dependency": "1.2.3" }, // <-- specific version
         }),
       );
       await installProjectDependencies(process.cwd(), template, false, true);
@@ -357,7 +357,7 @@ describe("installProjectDependencies", async () => {
         packageJson: {
           name: "test",
           version: "0.0.1",
-          devDependencies: { hardhat: "^3.0.0-next.0" }, // <-- required version
+          devDependencies: { "fake-dependency": "^1.2.3" }, // <-- required version
         },
         path: process.cwd(),
         files: [],
@@ -367,7 +367,7 @@ describe("installProjectDependencies", async () => {
         "package.json",
         JSON.stringify({
           type: "module",
-          devDependencies: { hardhat: ">= 3.0.0-next.0" }, // <-- version range
+          devDependencies: { "fake-dependency": ">= 1.2.3" }, // <-- version range
         }),
       );
       await installProjectDependencies(process.cwd(), template, false, true);
