@@ -147,19 +147,15 @@ jobs:
               continue
             fi
             dependency_index=$((dependency_index + 1))
-            tar -cf "${dependency}_(${dependency_index}_of_${dependency_count}).dependency" $dependency
-            rm -rf $dependency
+            mv $dependency $dependency.tmp
+            tar -cf "$dependency (#$dependency_index of $dependency_count)" $dependency.tmp
+            rm -rf $dependency.tmp
           done
 
-          tar -cf "bundle/.src" bundle/src
-          rm -rf bundle/src
-
-          tar -cf "bundle/.dist" bundle/dist
-          rm -rf bundle/dist
-
-          for template in bundle/templates/*; do
-            tar -cf "$template.template" $template
-            rm -rf $template
+          for dir in bundle/src bundle/dist bundle/templates/*; do
+            mv $dir $dir.tmp
+            tar -cf $dir $dir.tmp
+            rm -rf $dir.tmp
           done
       - name: Upload bundle
         env:
