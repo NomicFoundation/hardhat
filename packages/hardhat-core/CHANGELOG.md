@@ -1,5 +1,12 @@
 # hardhat
 
+## 2.22.20
+
+### Patch Changes
+
+- 4ad0bc0: Upgraded EDR to [v0.9.0](https://github.com/NomicFoundation/edr/releases/tag/%40nomicfoundation%2Fedr%400.9.0):
+  - Added support for the Prague hardfork
+
 ## 2.22.19
 
 ### Patch Changes
