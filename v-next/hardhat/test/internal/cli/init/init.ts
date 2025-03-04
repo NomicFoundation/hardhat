@@ -29,6 +29,7 @@ import {
   printWelcomeMessage,
   relativeTemplateToWorkspacePath,
   relativeWorkspaceToTemplatePath,
+  shouldUpdateDependency,
 } from "../../../../src/internal/cli/init/init.js";
 import { getTemplates } from "../../../../src/internal/cli/init/template.js";
 
@@ -357,7 +358,7 @@ describe("installProjectDependencies", async () => {
         packageJson: {
           name: "test",
           version: "0.0.1",
-          devDependencies: { "fake-dependency": "^1.2.3" }, // <-- required version
+          devDependencies: { "fake-dependency": ">=1.2.3" }, // <-- required version
         },
         path: process.cwd(),
         files: [],
@@ -367,7 +368,7 @@ describe("installProjectDependencies", async () => {
         "package.json",
         JSON.stringify({
           type: "module",
-          devDependencies: { "fake-dependency": ">= 1.2.3" }, // <-- version range
+          devDependencies: { "fake-dependency": "^1.2.3" }, // <-- version range
         }),
       );
       await installProjectDependencies(process.cwd(), template, false, true);
@@ -412,5 +413,168 @@ describe("initHardhat", async () => {
         }
       },
     );
+  }
+});
+
+describe("shouldUpdateDependency", () => {
+  const testCases = [
+    {
+      workspaceVersion: "1.0.0",
+      templateVersion: "1.0.0",
+      expectedResult: false,
+    },
+    {
+      workspaceVersion: "1.0.0",
+      templateVersion: "1.2.3",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: "1.2.3",
+      templateVersion: "1.0.0",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: "1.2.3",
+      templateVersion: "^1.2.3",
+      expectedResult: false,
+    },
+    {
+      workspaceVersion: "^1.2.3",
+      templateVersion: "1.2.3",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: ">= 1.2.3",
+      templateVersion: "^1.2.3",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: "^1.2.3",
+      templateVersion: ">= 1.2.3",
+      expectedResult: false,
+    },
+    {
+      workspaceVersion: "1.0.0-dev",
+      templateVersion: "1.0.0-dev",
+      expectedResult: false,
+    },
+    {
+      workspaceVersion: "1.0.0-dev",
+      templateVersion: "1.2.3-dev",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: "1.2.3-dev",
+      templateVersion: "1.0.0-dev",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: "1.2.3-dev",
+      templateVersion: "^1.2.3-dev",
+      expectedResult: false,
+    },
+    {
+      workspaceVersion: "^1.2.3-dev",
+      templateVersion: "1.2.3-dev",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: ">= 1.2.3-dev",
+      templateVersion: "^1.2.3-dev",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: "^1.2.3-dev",
+      templateVersion: ">= 1.2.3-dev",
+      expectedResult: false,
+    },
+    {
+      workspaceVersion: "1.0.0",
+      templateVersion: "1.0.0-dev",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: "1.0.0-dev",
+      templateVersion: "1.0.0",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: "1.0.0-dev",
+      templateVersion: "1.2.3",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: "1.0.0",
+      templateVersion: "1.2.3-dev",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: "1.2.3",
+      templateVersion: "1.0.0-dev",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: "1.2.3-dev",
+      templateVersion: "1.0.0",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: "1.2.3",
+      templateVersion: "^1.2.3-dev",
+      expectedResult: false,
+    },
+    {
+      workspaceVersion: "1.2.3-dev",
+      templateVersion: "^1.2.3",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: "^1.2.3",
+      templateVersion: "1.2.3-dev",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: "^1.2.3-dev",
+      templateVersion: "1.2.3",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: ">= 1.2.3",
+      templateVersion: "^1.2.3-dev",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: ">= 1.2.3-dev",
+      templateVersion: "^1.2.3",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: "^1.2.3",
+      templateVersion: ">= 1.2.3-dev",
+      expectedResult: false,
+    },
+    {
+      workspaceVersion: "^1.2.3-dev",
+      templateVersion: ">= 1.2.3",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: "3.0.0-next.0",
+      templateVersion: "^3.0.0-next.0",
+      expectedResult: false,
+    },
+  ];
+
+  for (const {
+    workspaceVersion,
+    templateVersion,
+    expectedResult,
+  } of testCases) {
+    it(`should return ${expectedResult} when workspace version is ${workspaceVersion} and template version is ${templateVersion}`, () => {
+      assert.equal(
+        shouldUpdateDependency(workspaceVersion, templateVersion),
+        expectedResult,
+      );
+    });
   }
 });
