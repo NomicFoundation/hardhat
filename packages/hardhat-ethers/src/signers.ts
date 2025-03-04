@@ -272,7 +272,7 @@ async function populate(
   const pop: any = copyRequest(tx);
 
   if (pop.to !== null && pop.to !== undefined) {
-    pop.to = resolveAddress(pop.to, signer);
+    pop.to = await resolveAddress(pop.to, signer);
   }
 
   if (pop.from !== null && pop.from !== undefined) {
