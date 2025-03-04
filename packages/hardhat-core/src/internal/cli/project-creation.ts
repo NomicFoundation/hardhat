@@ -554,12 +554,24 @@ function isInstalled(dep: string) {
   return dep in allDependencies;
 }
 
+function getProjectTypeFromUserAgent() {
+  const userAgent = process.env.npm_config_user_agent;
+  // Get first part of user agent string
+  const [projectType] = userAgent?.split("/") ?? [];
+  return projectType;
+}
+
 async function isYarnProject() {
-  return fsExtra.pathExists("yarn.lock");
+  return (
+    getProjectTypeFromUserAgent() === "yarn" || fsExtra.pathExists("yarn.lock")
+  );
 }
 
 async function isPnpmProject() {
-  return fsExtra.pathExists("pnpm-lock.yaml");
+  return (
+    getProjectTypeFromUserAgent() === "pnpm" ||
+    fsExtra.pathExists("pnpm-lock.yaml")
+  );
 }
 
 async function getProjectPackageManager(): Promise<PackageManager> {
