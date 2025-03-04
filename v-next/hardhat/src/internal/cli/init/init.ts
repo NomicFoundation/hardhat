@@ -3,7 +3,10 @@ import type { PackageJson } from "@nomicfoundation/hardhat-utils/package";
 
 import path from "node:path";
 
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import {
+  assertHardhatInvariant,
+  HardhatError,
+} from "@nomicfoundation/hardhat-errors";
 import {
   copy,
   ensureDir,
@@ -480,13 +483,9 @@ export async function installProjectDependencies(
 
   // Finding the installed dependencies that have an incompatible version
   const dependenciesToUpdate = templateDependencyEntries
-    .filter(([name, version]) => {
-      const workspaceVersion = workspaceDependencies[name];
-      return (
-        workspaceVersion !== undefined &&
-        !semver.satisfies(workspaceVersion, version) &&
-        !semver.intersects(workspaceVersion, version)
-      );
+    .filter(([dependencyName, templateVersion]) => {
+      const workspaceVersion = workspaceDependencies[dependencyName];
+      return shouldUpdateDependency(workspaceVersion, templateVersion);
     })
     .map(([name, version]) => `${name}@${version}`);
 
@@ -528,4 +527,35 @@ function showStarOnGitHubMessage() {
   );
   console.log();
   console.log(chalk.cyan("     https://github.com/NomicFoundation/hardhat"));
+}
+
+// NOTE: This function is exported for testing purposes only.
+export function shouldUpdateDependency(
+  workspaceVersion: string | undefined,
+  templateVersion: string,
+): boolean {
+  // We should not update the dependency if it is not yet installed in the workspace.
+  if (workspaceVersion === undefined) {
+    return false;
+  }
+  // NOTE: a specific version also a valid range that includes itself only
+  const workspaceRange = semver.validRange(workspaceVersion, {
+    includePrerelease: true,
+  });
+  const templateRange = semver.validRange(templateVersion, {
+    includePrerelease: true,
+  });
+  assertHardhatInvariant(
+    templateRange !== null,
+    "All dependencies of the template should have valid versions",
+  );
+  // We should update the dependency if the workspace version could not be parsed.
+  if (workspaceRange === null) {
+    return true;
+  }
+  // We should update the dependency if the workspace range (or, in particular, a specific version) is not
+  // a strict subset of the template range/does not equal the template version.
+  return !semver.subset(workspaceRange, templateRange, {
+    includePrerelease: true,
+  });
 }
