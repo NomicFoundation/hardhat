@@ -6,7 +6,7 @@ import { Batcher } from "../src/internal/batcher";
 import { DeploymentState } from "../src/internal/execution/types/deployment-state";
 import {
   DeploymentExecutionState,
-  ExecutionSateType,
+  ExecutionStateType,
   ExecutionStatus,
 } from "../src/internal/execution/types/execution-state";
 import { FutureType, IgnitionModule } from "../src/types/module";
@@ -14,7 +14,7 @@ import { FutureType, IgnitionModule } from "../src/types/module";
 describe("batcher", () => {
   const exampleDeploymentState: DeploymentExecutionState = {
     id: "Example",
-    type: ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
+    type: ExecutionStateType.DEPLOYMENT_EXECUTION_STATE,
     futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
     strategy: "basic",
     strategyConfig: {},

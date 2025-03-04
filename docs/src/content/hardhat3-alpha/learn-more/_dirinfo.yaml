@@ -1,0 +1,9 @@
+section-type: group
+section-title: Learn more
+order:
+  - title: Differences with Hardhat 2
+    href: /comparison
+  - title: Alpha version limitations
+    href: /alpha-limitations
+  # - title: Solidity Tests
+  #   href: /solidity-tests

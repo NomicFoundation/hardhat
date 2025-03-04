@@ -11,7 +11,7 @@ import { DeploymentState } from "./internal/execution/types/deployment-state";
 import { ExecutionResultType } from "./internal/execution/types/execution-result";
 import {
   DeploymentExecutionState,
-  ExecutionSateType,
+  ExecutionStateType,
   ExecutionStatus,
 } from "./internal/execution/types/execution-state";
 import { assertIgnitionInvariant } from "./internal/utils/assertions";
@@ -50,7 +50,7 @@ export async function* getVerificationInformation(
   const chainConfig = resolveChainConfig(deploymentState, customChains);
 
   const deploymentExStates = findExecutionStatesByType(
-    ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
+    ExecutionStateType.DEPLOYMENT_EXECUTION_STATE,
     deploymentState
   ).filter((exState) => exState.status === ExecutionStatus.SUCCESS);
 

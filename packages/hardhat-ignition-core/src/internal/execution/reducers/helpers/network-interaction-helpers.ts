@@ -7,7 +7,7 @@ import { findTransactionBy } from "../../../views/execution-state/find-transacti
 import {
   CallExecutionState,
   DeploymentExecutionState,
-  ExecutionSateType,
+  ExecutionStateType,
   ExecutionStatus,
   SendDataExecutionState,
   StaticCallExecutionState,
@@ -20,6 +20,7 @@ import {
   OnchainInteractionTimeoutMessage,
   StaticCallCompleteMessage,
   TransactionConfirmMessage,
+  TransactionPrepareSendMessage,
   TransactionSendMessage,
 } from "../../types/messages";
 import { NetworkInteractionType } from "../../types/network-interaction";
@@ -39,7 +40,7 @@ export function appendNetworkInteraction<
     | SendDataExecutionState
 >(state: ExState, action: NetworkInteractionRequestMessage): ExState {
   return produce(state, (draft: ExState): void => {
-    if (draft.type === ExecutionSateType.STATIC_CALL_EXECUTION_STATE) {
+    if (draft.type === ExecutionStateType.STATIC_CALL_EXECUTION_STATE) {
       assertIgnitionInvariant(
         action.networkInteraction.type === NetworkInteractionType.STATIC_CALL,
         `Static call execution states like ${draft.id} cannot have onchain interactions`
@@ -101,6 +102,37 @@ export function appendTransactionToOnchainInteraction<
 
     onchainInteraction.shouldBeResent = false;
     onchainInteraction.transactions.push(action.transaction);
+  });
+}
+
+/**
+ * Sets the nonce of the onchain interaction within an execution state.
+ *
+ * @param state - the execution state that will be added to
+ * @param action - the request message that contains the transaction prepare message
+ * @returns a copy of the execution state with the nonce set
+ */
+export function applyNonceToOnchainInteraction<
+  ExState extends
+    | DeploymentExecutionState
+    | CallExecutionState
+    | StaticCallExecutionState
+    | SendDataExecutionState
+>(state: ExState, action: TransactionPrepareSendMessage): ExState {
+  return produce(state, (draft: ExState): void => {
+    const onchainInteraction = findOnchainInteractionBy(
+      draft,
+      action.networkInteractionId
+    );
+
+    if (onchainInteraction.nonce === undefined) {
+      onchainInteraction.nonce = action.nonce;
+    } else {
+      assertIgnitionInvariant(
+        onchainInteraction.nonce === action.nonce,
+        `New transaction sent for ${state.id}/${onchainInteraction.id} with nonce ${action.nonce} but expected ${onchainInteraction.nonce}`
+      );
+    }
   });
 }
 

@@ -24,17 +24,17 @@ export const SOCIALS_LINKS = {
 
 export const PRIVACY_POLICY_PATH = "/privacy-policy.html";
 
-// export const bannerContent = {
-//   text: "Join the Hardhat team! Nomic Foundation is hiring",
-//   shortText: "Join the Hardhat team! We are hiring",
-//   href: "https://nomic.foundation/hiring",
-// };
-
 export const bannerContent = {
-  text: "Please take a few minutes to complete the 2024 Solidity Survey",
-  shortText: "Complete the 2024 Solidity Survey here",
-  href: "https://hardhat.org/solidity-survey-2024",
+  text: "Join the Hardhat team! Nomic Foundation is hiring",
+  shortText: "Join the Hardhat team! We are hiring",
+  href: "https://nomic.foundation/hiring",
 };
+
+// export const bannerContent = {
+//   text: "Please take a few minutes to complete the 2024 Solidity Survey",
+//   shortText: "Complete the 2024 Solidity Survey here",
+//   href: "https://hardhat.org/solidity-survey-2024",
+// };
 
 export const DOCS_PATH = path.join(process.cwd(), "src/content/");
 export const DOCS_LANDING_PATH = path.join(

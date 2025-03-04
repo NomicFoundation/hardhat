@@ -1,6 +1,6 @@
 {
   "name": "hardhat",
-  "version": "2.22.18",
+  "version": "2.22.19",
   "author": "Nomic Labs LLC",
   "license": "MIT",
   "homepage": "https://hardhat.org",
@@ -102,7 +102,7 @@
     "@ethereumjs/util": "^9.1.0",
     "@ethersproject/abi": "^5.1.2",
     "@metamask/eth-sig-util": "^4.0.0",
-    "@nomicfoundation/edr": "^0.8.0",
+    "@nomicfoundation/edr": "^0.9.0",
     "@nomicfoundation/solidity-analyzer": "^0.1.0",
     "@sentry/node": "^5.18.1",
     "@types/bn.js": "^5.1.0",

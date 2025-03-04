@@ -30,7 +30,7 @@ import { DeploymentState } from "./execution/types/deployment-state";
 import {
   ContractAtExecutionState,
   DeploymentExecutionState,
-  ExecutionSateType,
+  ExecutionStateType,
   ExecutionState,
   ExecutionStatus,
 } from "./execution/types/execution-state";
@@ -101,8 +101,8 @@ export class Deployer {
         (
           exState
         ): exState is DeploymentExecutionState | ContractAtExecutionState =>
-          exState.type === ExecutionSateType.DEPLOYMENT_EXECUTION_STATE ||
-          exState.type === ExecutionSateType.CONTRACT_AT_EXECUTION_STATE
+          exState.type === ExecutionStateType.DEPLOYMENT_EXECUTION_STATE ||
+          exState.type === ExecutionStateType.CONTRACT_AT_EXECUTION_STATE
       ),
       "Invalid state map"
     );

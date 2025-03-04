@@ -5,7 +5,7 @@ import { buildModule } from "../../../src/build-module";
 import { ExecutionResultType } from "../../../src/internal/execution/types/execution-result";
 import {
   DeploymentExecutionState,
-  ExecutionSateType,
+  ExecutionStateType,
   ExecutionStatus,
   StaticCallExecutionState,
 } from "../../../src/internal/execution/types/execution-state";
@@ -25,7 +25,7 @@ describe("Reconciliation - named static call", () => {
 
   const exampleDeploymentState: DeploymentExecutionState = {
     id: "Example",
-    type: ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
+    type: ExecutionStateType.DEPLOYMENT_EXECUTION_STATE,
     futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
     strategy: "basic",
     strategyConfig: {},
@@ -42,7 +42,7 @@ describe("Reconciliation - named static call", () => {
 
   const exampleStaticCallState: StaticCallExecutionState = {
     id: "Example",
-    type: ExecutionSateType.STATIC_CALL_EXECUTION_STATE,
+    type: ExecutionStateType.STATIC_CALL_EXECUTION_STATE,
     futureType: FutureType.STATIC_CALL,
     strategy: "basic",
     strategyConfig: {},

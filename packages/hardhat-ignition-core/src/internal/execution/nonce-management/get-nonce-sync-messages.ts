@@ -18,7 +18,7 @@ import { getPendingOnchainInteraction } from "../../views/execution-state/get-pe
 import { resolveFutureFrom } from "../future-processor/helpers/future-resolvers";
 import { JsonRpcClient } from "../jsonrpc-client";
 import { DeploymentState } from "../types/deployment-state";
-import { ExecutionSateType, ExecutionStatus } from "../types/execution-state";
+import { ExecutionStateType, ExecutionStatus } from "../types/execution-state";
 import {
   JournalMessageType,
   OnchainInteractionDroppedMessage,
@@ -251,10 +251,10 @@ function createMapFromSenderToNonceAndTransactions(
   for (const executionState of Object.values(deploymentState.executionStates)) {
     if (
       executionState.type ===
-        ExecutionSateType.READ_EVENT_ARGUMENT_EXECUTION_STATE ||
-      executionState.type === ExecutionSateType.CONTRACT_AT_EXECUTION_STATE ||
+        ExecutionStateType.READ_EVENT_ARGUMENT_EXECUTION_STATE ||
+      executionState.type === ExecutionStateType.CONTRACT_AT_EXECUTION_STATE ||
       executionState.type ===
-        ExecutionSateType.ENCODE_FUNCTION_CALL_EXECUTION_STATE
+        ExecutionStateType.ENCODE_FUNCTION_CALL_EXECUTION_STATE
     ) {
       continue;
     }
