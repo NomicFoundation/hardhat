@@ -3,4 +3,4 @@
 "hardhat": patch
 ---
 
-Added a check to throw an error if a non-existing subtask is executed
+Improve error message if a non-existing subtask is invoked ([#6375](https://github.com/NomicFoundation/hardhat/issues/6375))
