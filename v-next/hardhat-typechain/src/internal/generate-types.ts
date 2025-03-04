@@ -110,6 +110,8 @@ function addCompiledFilesTransformerIfAbsent(
       'declare module "@nomicfoundation/hardhat-ethers/types"',
     );
 
+    modifiedContent = addSupportForAttachMethod(modifiedContent);
+
     return modifiedContent;
   };
 
@@ -139,4 +141,38 @@ export function addJsExtensionsIfNeeded(content: string): string {
     (_match, imports, quote, path) =>
       `import ${imports} from ${quote}${path}/index.js${quote};`,
   );
+}
+
+function addSupportForAttachMethod(modifiedContent: string): string {
+  const pattern = /class\s+(\w+)__factory/; // Pattern to find the contract name in factory files
+  const match = modifiedContent.match(pattern);
+
+  if (match === null) {
+    // File is not a factory file, so there is no need to modify it
+    return modifiedContent;
+  }
+
+  const contractName = match[1];
+
+  // Insert the "attach" snippet right before the "connect" method
+  const insertPoint = modifiedContent.lastIndexOf("static connect(");
+
+  const attachMethod = `
+    override attach(address: string | Addressable): ${contractName} {
+      return super.attach(address) as ${contractName};
+    }
+  `;
+
+  modifiedContent =
+    modifiedContent.slice(0, insertPoint) +
+    attachMethod +
+    modifiedContent.slice(insertPoint);
+
+  // Import the "Addressable" type as it is required by the "attach" method
+  modifiedContent = modifiedContent.replace(
+    "/* eslint-disable */",
+    '/* eslint-disable */\nimport type { Addressable } from "ethers";',
+  );
+
+  return modifiedContent;
 }
