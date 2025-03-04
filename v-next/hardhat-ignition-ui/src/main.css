@@ -64,6 +64,7 @@ span.future-to-module-arrow {
 .mermaid svg {
   height: 100%;
   vertical-align: middle;
+  max-width: unset !important;
 }
 
 .mermaid span {
