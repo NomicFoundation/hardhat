@@ -7,14 +7,14 @@
     "dev": "vite --force",
     "build": "tsc --build . && vite build",
     "test": "mocha --loader=ts-node/esm --recursive \"test/**/*.ts\"",
-    "test:coverage": "nyc mocha --loader=ts-node/esm --recursive \"test/**/*.ts\"",
+    "test:ci": "nyc mocha --loader=ts-node/esm --recursive \"test/**/*.ts\"",
     "regenerate-deployment-example": "node ./scripts/generate-example-deployment-json.js",
     "lint": "pnpm prettier --check && pnpm eslint",
     "lint:fix": "pnpm prettier --write && pnpm eslint --fix",
     "prettier": "prettier \"**/*.{ts,js,md,json}\"",
     "eslint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
     "preview": "vite preview",
-    "clean": "rimraf dist",
+    "clean": "rimraf dist reports",
     "prepack": "pnpm build"
   },
   "devDependencies": {
