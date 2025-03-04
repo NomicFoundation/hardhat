@@ -426,6 +426,15 @@ Please double check your task arguments.`,
 
 Please double check your arguments.`,
     },
+    UNRECOGNIZED_SUBTASK: {
+      number: 416,
+      messageTemplate:
+        'Unrecognized subtask "{invalidSubtask}" for the task "{task}"',
+      websiteTitle: "Unrecognized subtask",
+      websiteDescription: `The subtask for the task you provided is not recognized.
+
+Please check you have the correct subtask.`,
+    },
   },
   ARGUMENTS: {
     INVALID_VALUE_FOR_TYPE: {
@@ -709,7 +718,15 @@ Try using another mnemonic or deriving less keys.`,
         "The provider your are trying to use has been closed. Please create a new one using hre.network.connect() and try again.",
     },
   },
-  KEYSTORE: {},
+  KEYSTORE: {
+    INVALID_PASSWORD_OR_CORRUPTED_KEYSTORE: {
+      number: 800,
+      messageTemplate: "Invalid password or corrupted keystore file.",
+      websiteTitle: "Invalid password or corrupted keystore file",
+      websiteDescription:
+        "The password you provided is incorrect or the keystore file is corrupted.",
+    },
+  },
   NETWORK_HELPERS: {
     ONLY_ALLOW_0X_PREFIXED_STRINGS: {
       number: 900,
@@ -1191,6 +1208,12 @@ Please check Hardhat's output for more details.`,
       messageTemplate: `You are tying to resolve the npm file "{module}", but it's not exported by its package`,
       websiteTitle: "Resolution of not-exported npm file",
       websiteDescription: `You are tying to resolve an npm file that is not exported by its package.`,
+    },
+    BUILD_PROFILE_NOT_FOUND: {
+      number: 1232,
+      messageTemplate: `The build profile "{buildProfileName}" is not defined in your Hardhat config`,
+      websiteTitle: "Build profile not defined",
+      websiteDescription: `The build profile you are trying to use is not defined in your Hardhat config.`,
     },
   },
   VIEM: {

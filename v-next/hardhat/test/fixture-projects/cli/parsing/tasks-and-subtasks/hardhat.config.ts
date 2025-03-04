@@ -1,6 +1,6 @@
 import type { HardhatUserConfig } from "../../../../../src/config.js";
 
-import { task } from "../../../../../src/config.js";
+import { emptyTask, task } from "../../../../../src/config.js";
 
 export const tasksResults = {
   wasArg1Used: false,
@@ -42,6 +42,8 @@ const customTask2 = task("task-default")
   })
   .build();
 
+const customTask3 = emptyTask("task-default-3", "description").build();
+
 const customSubtask = task(["task", "subtask"])
   .addOption({ name: "arg1", defaultValue: "<default-value1>" })
   .addPositionalArgument({ name: "arg2" })
@@ -70,8 +72,19 @@ const customSubtask2 = task(["task-default", "subtask-default"])
   })
   .build();
 
+const customSubtask3 = task(["task-default-3", "subtask-default-3"])
+  .setAction(() => {})
+  .build();
+
 const config: HardhatUserConfig = {
-  tasks: [customTask, customTask2, customSubtask, customSubtask2],
+  tasks: [
+    customTask,
+    customTask2,
+    customTask3,
+    customSubtask,
+    customSubtask2,
+    customSubtask3,
+  ],
 };
 
 export default config;
