@@ -709,7 +709,15 @@ Try using another mnemonic or deriving less keys.`,
         "The provider your are trying to use has been closed. Please create a new one using hre.network.connect() and try again.",
     },
   },
-  KEYSTORE: {},
+  KEYSTORE: {
+    INVALID_PASSWORD_OR_CORRUPTED_KEYSTORE: {
+      number: 800,
+      messageTemplate: "Invalid password or corrupted keystore file.",
+      websiteTitle: "Invalid password or corrupted keystore file",
+      websiteDescription:
+        "The password you provided is incorrect or the keystore file is corrupted.",
+    },
+  },
   NETWORK_HELPERS: {
     ONLY_ALLOW_0X_PREFIXED_STRINGS: {
       number: 900,
