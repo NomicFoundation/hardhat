@@ -429,11 +429,11 @@ Please double check your arguments.`,
     UNRECOGNIZED_SUBTASK: {
       number: 416,
       messageTemplate:
-        'Invalid subtask "{invalidSubtask}" for the task "{task}"',
-      websiteTitle: "Invalid subtask value",
-      websiteDescription: `The subtask for the task you provided is invalid.
+        'Unrecognized subtask "{invalidSubtask}" for the task "{task}"',
+      websiteTitle: "Unrecognized subtask",
+      websiteDescription: `The subtask for the task you provided is not recognized.
 
-Please double check your subtask.,`,
+Please check you have the correct subtask.`,
     },
   },
   ARGUMENTS: {
