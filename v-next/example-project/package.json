@@ -21,7 +21,7 @@
     "clean": "rimraf dist artifacts cache ignition/deployments types",
     "pretest": "pnpm build && pnpm install",
     "test": "hardhat test node && hardhat test mocha",
-    "test:coverage": "pnpm test"
+    "test:ci": "pnpm test"
   },
   "devDependencies": {
     "hardhat": "workspace:^3.0.0-next.0",

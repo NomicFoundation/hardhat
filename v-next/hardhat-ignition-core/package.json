@@ -41,9 +41,9 @@
     "api-extractor": "api-extractor run --local --verbose",
     "test": "cross-env TS_NODE_COMPILER_OPTIONS=\"{\\\"isolatedDeclarations\\\":false}\" mocha --recursive \"test/**/*.ts\"",
     "test:debug": "DEBUG='ignition:*' pnpm test",
-    "test:coverage": "cross-env TS_NODE_COMPILER_OPTIONS=\"{\\\"isolatedDeclarations\\\":false}\" nyc mocha --recursive \"test/**/*.ts\"",
+    "test:ci": "cross-env TS_NODE_COMPILER_OPTIONS=\"{\\\"isolatedDeclarations\\\":false}\" nyc mocha --recursive \"test/**/*.ts\"",
     "test:integrations": "cross-env TS_NODE_COMPILER_OPTIONS='{\"isolatedDeclarations\":false}' mocha --recursive \"test-integrations/**/*.ts\"",
-    "clean": "rimraf dist",
+    "clean": "rimraf dist reports",
     "prepack": "pnpm build"
   },
   "devDependencies": {

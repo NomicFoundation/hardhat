@@ -28,8 +28,8 @@
     "eslint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
     "prettier": "prettier \"**/*.{ts,js,md,json}\"",
     "test": "cross-env TS_NODE_TRANSPILE_ONLY=true TS_NODE_COMPILER_OPTIONS=\"{\\\"isolatedDeclarations\\\":false}\" mocha --recursive \"test/**/*.ts\"",
-    "test:coverage": "cross-env TS_NODE_TRANSPILE_ONLY=true TS_NODE_COMPILER_OPTIONS=\"{\\\"isolatedDeclarations\\\":false}\" nyc mocha --recursive \"test/**/*.ts\"",
-    "clean": "rimraf .nyc_output coverage dist tsconfig.tsbuildinfo ./test/fixture-projects/**/deployments ./test/fixture-projects/**/artifacts",
+    "test:ci": "cross-env TS_NODE_TRANSPILE_ONLY=true TS_NODE_COMPILER_OPTIONS=\"{\\\"isolatedDeclarations\\\":false}\" nyc mocha --recursive \"test/**/*.ts\"",
+    "clean": "rimraf .nyc_output reports dist tsconfig.tsbuildinfo ./test/fixture-projects/**/deployments ./test/fixture-projects/**/artifacts",
     "prepack": "pnpm build"
   },
   "devDependencies": {

@@ -133,22 +133,22 @@ jobs:
           rsync -a --exclude node_modules/.pnpm/ --exclude node_modules/.modules.yaml --exclude node_modules/.bin --copy-links bundle.tmp/ bundle
           rm -rf bundle.tmp
 
-          module_count=0
-          for module in bundle/node_modules/@*/* bundle/node_modules/*; do
-            if [[ $module == bundle/node_modules/@* && $module != bundle/node_modules/@*/* ]]; then
+          dependency_count=0
+          for dependency in bundle/node_modules/@*/* bundle/node_modules/*; do
+            if [[ $dependency == bundle/node_modules/@* && $dependency != bundle/node_modules/@*/* ]]; then
               continue
             fi
-            module_count=$((module_count + 1))
+            dependency_count=$((dependency_count + 1))
           done
 
-          module_index=0
-          for module in bundle/node_modules/@*/* bundle/node_modules/*; do
-            if [[ $module == bundle/node_modules/@* && $module != bundle/node_modules/@*/* ]]; then
+          dependency_index=0
+          for dependency in bundle/node_modules/@*/* bundle/node_modules/*; do
+            if [[ $dependency == bundle/node_modules/@* && $dependency != bundle/node_modules/@*/* ]]; then
               continue
             fi
-            module_index=$((module_index + 1))
-            tar -cf "${module}_(${module_index}_of_${module_count}).dependency" $module
-            rm -rf $module
+            dependency_index=$((dependency_index + 1))
+            tar -cf "${dependency}_(${dependency_index}_of_${dependency_count}).dependency" $dependency
+            rm -rf $dependency
           done
 
           tar -cf "bundle/.src" bundle/src
@@ -157,9 +157,9 @@ jobs:
           tar -cf "bundle/.dist" bundle/dist
           rm -rf bundle/dist
 
-          for dir in bundle/src bundle/dist bundle/templates/*; do
-            tar -cf "$dir.template" $dir
-            rm -rf $dir
+          for template in bundle/templates/*; do
+            tar -cf "$template.template" $template
+            rm -rf $template
           done
       - name: Upload bundle
         env:
@@ -277,7 +277,7 @@ jobs:
           flags: ${{ matrix.package }}
           env_vars: OS,NODE
           working-directory: v-next/${{ matrix.package }}
-          directory: coverage
+          directory: reports
           files: lcov.info
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: false
@@ -291,7 +291,7 @@ jobs:
           name: '[${{ matrix.package }}] ci results on ${{ matrix.os }} (Node ${{ matrix.node }})'
           flags: package-${{ matrix.package }},os-${{ matrix.os }},node-${{ matrix.node }}
           working-directory: v-next/${{ matrix.package }}
-          directory: coverage
+          directory: reports
           files: junit.xml
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: false

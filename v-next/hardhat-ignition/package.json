@@ -41,11 +41,11 @@
     "prettier": "prettier \"**/*.{ts,js,md,json}\"",
     "pretest": "pnpm run --dir ../hardhat-ignition-ui build",
     "test": "cross-env TS_NODE_COMPILER_OPTIONS=\"{\\\"isolatedDeclarations\\\":false}\" mocha --recursive \"test/**/*.ts\"",
-    "test:coverage": "cross-env TS_NODE_COMPILER_OPTIONS=\"{\\\"isolatedDeclarations\\\":false}\" nyc mocha --recursive \"test/**/*.ts\"",
+    "test:ci": "cross-env TS_NODE_COMPILER_OPTIONS=\"{\\\"isolatedDeclarations\\\":false}\" nyc mocha --recursive \"test/**/*.ts\"",
     "test:build": "tsc --project ./test/",
     "prepack": "pnpm build",
     "build": "tsc --build .",
-    "clean": "rimraf .nyc_output coverage dist tsconfig.tsbuildinfo ./test/fixture-projects/**/deployments ./test/fixture-projects/**/artifacts ./test/fixture-projects/**/cache"
+    "clean": "rimraf .nyc_output reports dist tsconfig.tsbuildinfo ./test/fixture-projects/**/deployments ./test/fixture-projects/**/artifacts ./test/fixture-projects/**/cache"
   },
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "1.0.2",

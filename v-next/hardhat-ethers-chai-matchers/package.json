@@ -30,10 +30,10 @@
     "prettier": "prettier \"**/*.{ts,js,md,json}\"",
     "test": "node --import tsx/esm --test --test-reporter=@nomicfoundation/hardhat-node-test-reporter \"test/*.ts\" \"test/!(fixture-projects|helpers)/**/*.ts\"",
     "test:only": "node --import tsx/esm --test --test-only --test-reporter=@nomicfoundation/hardhat-node-test-reporter \"test/*.ts\" \"test/!(fixture-projects|helpers)/**/*.ts\"",
-    "test:coverage": "node --import tsx/esm --test --test-reporter=@nomicfoundation/hardhat-node-test-reporter --test-reporter-destination=stdout --experimental-test-coverage --test-reporter=lcov --test-reporter-destination=coverage/lcov.info --test-reporter=junit --test-reporter-destination=coverage/junit.xml \"test/*.ts\" \"test/!(fixture-projects|helpers)/**/*.ts\"",
+    "test:ci": "node --import tsx/esm --test --test-reporter=@nomicfoundation/hardhat-node-test-reporter --test-reporter-destination=stdout --experimental-test-coverage --test-reporter=lcov --test-reporter-destination=reports/lcov.info --test-reporter=junit --test-reporter-destination=reports/junit.xml \"test/*.ts\" \"test/!(fixture-projects|helpers)/**/*.ts\"",
     "pretest": "pnpm build && node --import tsx/esm ./test/helpers/pretest.ts",
     "pretest:only": "pnpm build && node --import tsx/esm ./test/helpers/pretest.ts",
-    "pretest:coverage": "pnpm build && node --import tsx/esm ./test/helpers/pretest.ts && mkdir -p coverage",
+    "pretest:ci": "pnpm build && node --import tsx/esm ./test/helpers/pretest.ts && mkdir -p reports",
     "build": "tsc --build .",
     "prepublishOnly": "pnpm build",
     "clean": "rimraf dist"
