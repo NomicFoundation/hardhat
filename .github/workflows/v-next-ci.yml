@@ -130,9 +130,11 @@ jobs:
         run: |
           pnpm deploy --config.shamefully-hoist=true --config.hoist=true --config.node-linker=true --config.shared-workspace-lockfile=false --filter="$(jq -r .name package.json)" --prod --no-optional bundle.tmp
 
+          # We use rsync to replace the symlinks in the node_modules folder with the actual files
           rsync -a --exclude node_modules/.pnpm/ --exclude node_modules/.modules.yaml --exclude node_modules/.bin --copy-links bundle.tmp/ bundle
           rm -rf bundle.tmp
 
+          # We count all the dependencies in the node_modules folder first
           dependency_count=0
           for dependency in bundle/node_modules/@*/* bundle/node_modules/*; do
             if [[ $dependency == bundle/node_modules/@* && $dependency != bundle/node_modules/@*/* ]]; then
@@ -141,6 +143,9 @@ jobs:
             dependency_count=$((dependency_count + 1))
           done
 
+          # Then we package each dependency (without compression) so that it appears as a single asset in codecov
+          # We also include the index of the dependency and the total number of dependencies in the name
+          # so that it can be easily checked when looking at the assets in codecov
           dependency_index=0
           for dependency in bundle/node_modules/@*/* bundle/node_modules/*; do
             if [[ $dependency == bundle/node_modules/@* && $dependency != bundle/node_modules/@*/* ]]; then
@@ -152,6 +157,7 @@ jobs:
             rm -rf $dependency.tmp
           done
 
+          # We also package the src, dist, and templates folders to limit the number of assets in codecov
           for dir in bundle/src bundle/dist bundle/templates/*; do
             mv $dir $dir.tmp
             tar -cf $dir $dir.tmp
