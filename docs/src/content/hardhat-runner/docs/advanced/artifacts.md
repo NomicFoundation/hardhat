@@ -2,7 +2,7 @@
 
 Compiling with Hardhat generates two files per compiled contract (not each `.sol` file): an artifact and a debug file.
 
-An **artifact** has all the information that is necessary to deploy and interact with the contract. These are compatible with most tools, including Truffle's artifact format. Each artifact consists of a json with the following properties:
+An **artifact** has all the information that is necessary to deploy and interact with the contract. These are compatible with most tools, including Truffle's artifact format. Each artifact consists of a JSON with the following properties:
 
 - `contractName`: A string with the contract's name.
 
