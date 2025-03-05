@@ -207,7 +207,7 @@ await expect(token.transfer(account, 1)).to.changeTokenBalance(
 );
 ```
 
-Further, you can also check these conditions for multiple addresses at the same time:
+Additionally, you can check these conditions for multiple addresses simultaneously:
 
 ```js
 await expect(() =>
