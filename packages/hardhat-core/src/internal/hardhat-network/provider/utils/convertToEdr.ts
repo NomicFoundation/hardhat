@@ -62,8 +62,7 @@ export function ethereumsjsHardforkToEdrSpecId(hardfork: HardforkName): SpecId {
     case HardforkName.CANCUN:
       return SpecId.Cancun;
     case HardforkName.PRAGUE:
-      // TODO: update the value when Prague is added to EDR
-      return SpecId.Cancun;
+      return SpecId.Prague;
     default:
       const _exhaustiveCheck: never = hardfork;
       throw new Error(
