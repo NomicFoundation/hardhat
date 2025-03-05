@@ -14,7 +14,7 @@ will work. These assertions don't normally work because the value returned by `t
 
 The supported types are:
 
-- Plain javascript numbers
+- Plain JavaScript numbers
 - [BigInts](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt)
 - [`bn.js`](https://github.com/indutny/bn.js/) instances
 - [`bignumber.js`](https://github.com/MikeMcl/bignumber.js/) instances
