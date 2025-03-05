@@ -143,6 +143,14 @@ export function addJsExtensionsIfNeeded(content: string): string {
   );
 }
 
+// We expect the structure of the factory files to be:
+// /* eslint-disable */
+// ...
+// export class [contractName]__factory extends ContractFactory {
+//   ...
+//   static connect(
+//   ...
+// }
 function addSupportForAttachMethod(modifiedContent: string): string {
   const pattern = /class\s+(\w+)__factory/; // Pattern to find the contract name in factory files
   const match = modifiedContent.match(pattern);
