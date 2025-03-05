@@ -23,6 +23,7 @@ export enum HardforkName {
   MERGE = "merge",
   SHANGHAI = "shanghai",
   CANCUN = "cancun",
+  PRAGUE = "prague",
 }
 
 const HARDFORKS_ORDER: HardforkName[] = [
@@ -43,6 +44,7 @@ const HARDFORKS_ORDER: HardforkName[] = [
   HardforkName.MERGE,
   HardforkName.SHANGHAI,
   HardforkName.CANCUN,
+  HardforkName.PRAGUE,
 ];
 
 export function getHardforkName(name: string): HardforkName {

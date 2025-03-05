@@ -53,7 +53,7 @@ export function normalizeHardhatNetworkAccountsConfig(
     return accountsConfig;
   }
 
-  const { bytesToHex } = require("@nomicfoundation/ethereumjs-util");
+  const { bytesToHex } = require("@ethereumjs/util");
 
   return derivePrivateKeys(
     accountsConfig.mnemonic,

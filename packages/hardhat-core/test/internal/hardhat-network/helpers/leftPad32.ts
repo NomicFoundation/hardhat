@@ -1,4 +1,4 @@
-import { setLengthLeft, toBytes } from "@nomicfoundation/ethereumjs-util";
+import { setLengthLeft, toBytes } from "@ethereumjs/util";
 import { assert } from "chai";
 
 function toBuffer(x: Parameters<typeof toBytes>[0]) {
