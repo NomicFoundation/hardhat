@@ -242,8 +242,7 @@ jobs:
   ci:
     needs: list-packages
 
-    if: false
-    # if: needs.list-packages.outputs.packages != '[]'
+    if: needs.list-packages.outputs.packages != '[]'
 
     strategy:
       fail-fast: false
