@@ -11,6 +11,7 @@ import ToolsBlock from "../components/landingBlocks/ToolsBlock";
 import homepageContent from "../content/home";
 import LandingLayout from "../components/LandingLayout";
 import WhatIsNewBlock from "../components/landingBlocks/WhatIsNewBlock";
+import HardhatNews from "../components/landingBlocks/HardhatNews";
 
 const Home: NextPage = () => {
   return (
@@ -41,6 +42,7 @@ const Home: NextPage = () => {
         />
       </WhyHardhatBlock>
       <WhatIsNewBlock content={homepageContent.whatIsNewBlockContent} />
+      <HardhatNews content={homepageContent.hardhatNewsContent} />
 
       {/* <VibrantCommunityBlock
         content={homepageContent.vibrantCommunityBlockContent}

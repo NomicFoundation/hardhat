@@ -20,7 +20,7 @@ type NewsType = {
   cta: CTAType;
 };
 
-const Container = styled.section`
+const Container = styled.div`
   width: 100%;
   position: relative;
 `;

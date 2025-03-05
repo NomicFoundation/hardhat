@@ -103,3 +103,5 @@ Brewfile.lock.json
 
 # Input to scripts/generate-filters.js; generated in CI
 pnpm-lock.json
+
+docs/CLAUDE.md

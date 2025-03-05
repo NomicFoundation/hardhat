@@ -11,7 +11,7 @@ import SolidityDebuggerImage from "../assets/feature-cards/SolidityDebuggerImage
 
 import vibrantCommunityImage from "../assets/vibrantCommunityImage.svg";
 import vibrantCommunityImageDark from "../assets/vibrantCommunityImageDark.svg";
-import HardhatNews from "../assets/what-is-new/hardhat-news.svg";
+// import HardhatNews from "../assets/what-is-new/hardhat-news.svg";
 
 import { Tools } from "../components/ui/types";
 import reviewsBlock from "../assets/homepage-assets/reviews-block";
@@ -160,7 +160,8 @@ const whatIsNewBlockContent = {
   title: "What’s new in Hardhat",
   news: [
     {
-      imageUrl: HardhatNews,
+      // imageUrl: HardhatNews,
+      imageUrl: vibrantCommunityImage,
       title:
         "Lorem Ipsum dolor sit amet lorem Lorem Ipsum dolor sit amet lorem",
       text: "Accelerate your development by diving under the hood. Explore low level EVM aspects to figure out complex bugs quickly.Explore low level EVM aspects to figure out complex bugs quickly.",
@@ -293,6 +294,30 @@ const toolsBlockContent = {
   ],
 };
 
+const hardhatNewsContent = {
+  title: "Hardhat News",
+  cards: [
+    {
+      image: "https://blog.nomic.foundation/content/images/size/w1000/2024/08/EDR-announcement-blogpost-image.png",
+      title: "Hardhat v2.19.0: Introducing Configuration Variables",
+      text: "Handling configuration settings is a common situation in Ethereum development, and it often involves sensitive information that could cause…",
+      link: "https://blog.nomic.foundation/hardhat-v2-19-0-introducing-configuration-variables-b528c0c9a7c0/"
+    },
+    {
+      image: "https://blog.nomic.foundation/content/images/size/w2000/max/1200/1-tnfkli2xqvyeaqrtxl7dya.png",
+      title: "Migrating to Hardhat Ignition from hardhat-deploy",
+      text: "Migrating from hardhat-deploy to Hardhat Ignition For several years, the hardhat-deploy",
+      link: "https://blog.nomic.foundation/migrating-to-hardhat-ignition-from-hardhat-deploy-c17311bb658f/"
+    },
+    {
+      image: "https://blog.nomic.foundation/content/images/size/w2000/max/800/1-9dqzkhempnzywwkzleayew.png",
+      title: "Hardhat + Viem",
+      text: "We're happy to announce the newest addition to our official plugins - hardhat-viem. This plugin smoothly integrates the Viem library into…",
+      link: "https://blog.nomic.foundation/hardhat-viem-808a536dcfe6/"
+    }
+  ]
+};
+
 const homepageContent = {
   whyHardhatContent,
   featureCardsContent,
@@ -304,6 +329,7 @@ const homepageContent = {
   reviewsBlockContent,
   toolsBlockContent,
   whatIsNewBlockContent,
+  hardhatNewsContent,
 };
 
 export default homepageContent;
