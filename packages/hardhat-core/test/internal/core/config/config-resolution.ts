@@ -761,30 +761,6 @@ describe("Config resolution", () => {
           });
         });
       });
-
-      it("should use cancun as the hardfork when enableTransientStorage is set", async function () {
-        const config = resolveConfig(__filename, {
-          networks: {
-            hardhat: {
-              enableTransientStorage: true,
-            },
-          },
-        });
-
-        assert.equal(config.networks.hardhat.hardfork, "cancun");
-      });
-
-      it("should use shanghai as the hardfork when enableTransientStorage is disabled", async function () {
-        const config = resolveConfig(__filename, {
-          networks: {
-            hardhat: {
-              enableTransientStorage: false,
-            },
-          },
-        });
-
-        assert.equal(config.networks.hardhat.hardfork, "shanghai");
-      });
     });
 
     describe("HTTP networks resolution", function () {
