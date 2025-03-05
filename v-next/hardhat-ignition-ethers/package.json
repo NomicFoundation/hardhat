@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-ignition-ethers",
-  "version": "3.0.0-next.0",
+  "version": "3.0.0-next.1",
   "license": "MIT",
   "author": "Nomic Foundation",
   "homepage": "https://hardhat.org",
@@ -33,10 +33,10 @@
   },
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "1.0.2",
-    "hardhat": "workspace:^3.0.0-next.0",
-    "@nomicfoundation/hardhat-ethers": "workspace:^4.0.0-next.0",
-    "@nomicfoundation/hardhat-ignition": "workspace:^3.0.0-next.0",
-    "@nomicfoundation/ignition-core": "workspace:^3.0.0-next.0",
+    "hardhat": "workspace:^3.0.0-next.1",
+    "@nomicfoundation/hardhat-ethers": "workspace:^4.0.0-next.1",
+    "@nomicfoundation/hardhat-ignition": "workspace:^3.0.0-next.1",
+    "@nomicfoundation/ignition-core": "workspace:^3.0.0-next.1",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
     "@types/chai": "^4.2.0",
     "@types/chai-as-promised": "^8.0.1",
@@ -65,13 +65,13 @@
     "typescript-eslint": "7.7.1"
   },
   "dependencies": {
-    "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.0"
+    "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.1"
   },
   "peerDependencies": {
-    "hardhat": "workspace:^3.0.0-next.0",
-    "@nomicfoundation/hardhat-ethers": "workspace:^4.0.0-next.0",
-    "@nomicfoundation/hardhat-ignition": "workspace:^3.0.0-next.0",
-    "@nomicfoundation/ignition-core": "workspace:^3.0.0-next.0",
+    "hardhat": "workspace:^3.0.0-next.1",
+    "@nomicfoundation/hardhat-ethers": "workspace:^4.0.0-next.1",
+    "@nomicfoundation/hardhat-ignition": "workspace:^3.0.0-next.1",
+    "@nomicfoundation/ignition-core": "workspace:^3.0.0-next.1",
     "ethers": "^6.13.4"
   }
 }
