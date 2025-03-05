@@ -1,6 +1,6 @@
 # Building plugins
 
-In this section, we will explore the creation of plugins for Hardhat, which are the key component for integrating other tools and extending the built-in functionality.
+In this section, we will explore the creation of plugins for Hardhat, which are the key components for integrating other tools and extending the built-in functionality.
 
 ## What exactly are plugins in Hardhat?
 
