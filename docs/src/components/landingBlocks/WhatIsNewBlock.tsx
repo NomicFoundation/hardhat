@@ -67,29 +67,6 @@ const ListNews = styled.div`
   gap: 32px;
 `;
 
-const WhatIsNewBlock = ({ content, children }: Props) => {
-  return (
-    <Section clearPadding>
-      <Container>
-        <LandingContainer>
-          <Brackets className="brackets-top">
-            <Image src={brackets} alt="lines" width={101} height={98} />
-          </Brackets>
-          <Title>{content.title}</Title>
-          <ListNews>
-            {content.news.map((item) => (
-              <NewsCard key={item.title} {...item} />
-            ))}
-          </ListNews>
-          <Brackets className="brackets-bottom">
-            <Image src={brackets} alt="lines" width={101} height={98} />
-          </Brackets>
-        </LandingContainer>
-      </Container>
-    </Section>
-  );
-};
-
 const News = styled.article`
   width: 100%;
   min-width: 100px;
@@ -214,6 +191,29 @@ const NewsCard = ({ title, text, cta, imageUrl }: NewsType) => {
         </NewsLink>
       </NewsContent>
     </News>
+  );
+};
+
+const WhatIsNewBlock = ({ content }: Props) => {
+  return (
+    <Section clearPadding>
+      <Container>
+        <LandingContainer>
+          <Brackets className="brackets-top">
+            <Image src={brackets} alt="lines" width={101} height={98} />
+          </Brackets>
+          <Title>{content.title}</Title>
+          <ListNews>
+            {content.news.map((item) => (
+              <NewsCard key={item.title} {...item} />
+            ))}
+          </ListNews>
+          <Brackets className="brackets-bottom">
+            <Image src={brackets} alt="lines" width={101} height={98} />
+          </Brackets>
+        </LandingContainer>
+      </Container>
+    </Section>
   );
 };
 

@@ -8,6 +8,7 @@ import TrustedTeamsBlock from "../components/landingBlocks/TrustedTeamsBlock";
 import BuiltByBlock from "../components/landingBlocks/BuiltByBlock";
 import ReviewsBlock from "../components/landingBlocks/ReviewsBlock";
 import ToolsBlock from "../components/landingBlocks/ToolsBlock";
+import EmailForm from "../components/landingBlocks/EmailForm";
 import homepageContent from "../content/home";
 import LandingLayout from "../components/LandingLayout";
 import WhatIsNewBlock from "../components/landingBlocks/WhatIsNewBlock";
@@ -43,6 +44,9 @@ const Home: NextPage = () => {
       </WhyHardhatBlock>
       <WhatIsNewBlock content={homepageContent.whatIsNewBlockContent} />
       <HardhatNews content={homepageContent.hardhatNewsContent} />
+      <EmailForm 
+        endpoint={homepageContent.emailFormContent.endpoint} 
+      />
 
       {/* <VibrantCommunityBlock
         content={homepageContent.vibrantCommunityBlockContent}

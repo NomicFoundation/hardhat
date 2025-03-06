@@ -318,6 +318,10 @@ const hardhatNewsContent = {
   ]
 };
 
+const emailFormContent = {
+  endpoint: "/api/subscribe",
+};
+
 const homepageContent = {
   whyHardhatContent,
   featureCardsContent,
@@ -330,6 +334,7 @@ const homepageContent = {
   toolsBlockContent,
   whatIsNewBlockContent,
   hardhatNewsContent,
+  emailFormContent,
 };
 
 export default homepageContent;
