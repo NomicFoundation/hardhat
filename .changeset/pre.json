@@ -31,6 +31,16 @@
     "@nomicfoundation/example-project": "3.0.1"
   },
   "changesets": [
+    "cool-waves-wonder",
+    "early-wolves-move",
+    "eighty-clouds-act",
+    "many-wombats-grin",
+    "neat-frogs-punch",
+    "olive-lobsters-carry",
+    "selfish-worms-remain",
+    "short-beans-rest",
+    "short-zoos-arrive",
+    "slow-lobsters-watch",
     "strong-mugs-change"
   ]
 }
