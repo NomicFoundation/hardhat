@@ -22,13 +22,14 @@ const Wrapper = styled.div`
   width: 100%;
   position: relative;
   padding: 84px 0 128px;
+  background-color: ${tm(({ colors }) => colors.neutral0)};
 
   ${tmSelectors.dark} {
-    background-color: ${tmDark(({ colors }) => colors.neutral800)};
+    background-color: ${tmDark(({ colors }) => colors.neutral0)};
   }
   ${media.mqDark} {
     ${tmSelectors.auto} {
-      background-color: ${tmDark(({ colors }) => colors.neutral800)};
+      background-color: ${tmDark(({ colors }) => colors.neutral0)};
     }
   }
 `;
