@@ -157,17 +157,17 @@ const vibrantCommunityBlockContent = {
 };
 
 const whatIsNewBlockContent = {
-  title: "What’s new in Hardhat",
+  title: "What`s new in Hardhat",
   news: [
     {
       // imageUrl: HardhatNews,
       imageUrl: vibrantCommunityImage,
       title:
-        "Lorem Ipsum dolor sit amet lorem Lorem Ipsum dolor sit amet lorem",
+        "Hardhat v2.22.19 released",
       text: "Accelerate your development by diving under the hood. Explore low level EVM aspects to figure out complex bugs quickly.Explore low level EVM aspects to figure out complex bugs quickly.",
       cta: {
-        title: "Learn more about the Hardhat Debugger",
-        url: "/hardhat-network/#console.log",
+        title: "Learn more about Hardhat v2.22.19",
+        url: "https://github.com/NomicFoundation/hardhat/releases/tag/hardhat%402.22.19",
       },
     },
     {

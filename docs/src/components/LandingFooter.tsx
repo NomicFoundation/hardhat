@@ -2,21 +2,20 @@ import React from "react";
 import { styled } from "linaria/react";
 import Image from "next/image";
 import Link from "next/link";
-import ethereumFoundationLogo from "../assets/ethereum-foundation-logo.svg";
-import ethereumFoundationLogoDark from "../assets/ethereum-foundation-logo-dark.svg";
+import ethereumFoundationLogo from "../assets/nomic-foundation-logo.svg";
+import ethereumFoundationLogoDark from "../assets/nomic-foundation-logo.svg";
 import { media, tm, tmDark, tmSelectors } from "../themes";
 import { PRIVACY_POLICY_PATH } from "../config";
 
+// background-color: ${tm(({ colors }) => colors.neutral900)};
 const Footer = styled.footer`
-  padding: 80px 24px 120px;
+  background-color: ${tmDark(({ colors }) => colors.neutral900)};
+  padding: 140px 256px 140px;
   width: 100%;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  background-color: ${tm(({ colors }) => colors.neutral900)};
-  ${media.md} {
-    padding: 64px 24px 40px;
-  }
+  justify-content: space-between;
   & .light {
     display: inline;
   }
@@ -24,8 +23,8 @@ const Footer = styled.footer`
     display: none;
   }
   ${tmSelectors.dark} {
-    background-color: ${tmDark(({ colors }) => colors.neutral900)};
 
+    background-color: ${tm(({ colors }) => colors.neutral900)};
     & .light {
       display: none;
     }
@@ -35,7 +34,7 @@ const Footer = styled.footer`
   }
   ${media.mqDark} {
     ${tmSelectors.auto} {
-      background-color: ${tmDark(({ colors }) => colors.neutral900)};
+      background-color: ${tm(({ colors }) => colors.neutral900)};
 
       & .light {
         display: none;
@@ -57,11 +56,14 @@ const SupportedBy = styled.section`
 `;
 
 const Subtitle = styled.h2`
-  color: ${tm(({ colors }) => colors.footerText)};
-  font-size: 18px;
-  font-weight: normal;
-  line-height: 40px;
-  letter-spacing: 0;
+
+  color: ${tmDark(({ colors }) => colors.footerText)};
+  font-family: Roboto;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 24px;
+  letter-spacing: 0.8px;
   text-align: center;
   margin-bottom: 16px;
   font-family: ChivoLight, sans-serif;
@@ -71,7 +73,7 @@ const Subtitle = styled.h2`
     font-size: 24px;
   }
   ${tmSelectors.dark} {
-    color: ${tmDark(({ colors }) => colors.footerText)};
+    color: ${tm(({ colors }) => colors.footerText)};
   }
   ${media.mqDark} {
     ${tmSelectors.auto} {
@@ -132,20 +134,15 @@ const LandingFooter = () => {
   return (
     <Footer>
       <SupportedBy>
-        <Subtitle>Supported by</Subtitle>
-        <span className="light">
-          <Image src={ethereumFoundationLogo} alt="logo" />
-        </span>
-        <span className="dark">
-          <Image src={ethereumFoundationLogoDark} alt="logo dark" />
-        </span>
+        <Subtitle>Build with</Subtitle>
+        <Image src={ethereumFoundationLogo} alt="logo" />
       </SupportedBy>
-      <Legal>
+      <Subtitle>
         Copyright {new Date().getFullYear()} Nomic Foundation |
         <Link href={PRIVACY_POLICY_PATH} passHref>
           <PrivacyPolicyLink>Privacy Policy</PrivacyPolicyLink>
         </Link>
-      </Legal>
+      </Subtitle>
     </Footer>
   );
 };
