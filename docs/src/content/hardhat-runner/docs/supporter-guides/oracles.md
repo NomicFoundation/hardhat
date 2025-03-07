@@ -232,8 +232,6 @@ There are multiple oracle applications you can integrate into your dapp:
 
 - [Band Protocol](https://bandprotocol.com/) - _Band Protocol is a cross-chain data oracle platform that aggregates and connects real-world data and APIs to smart contracts._
 
-- [Provable](https://provable.xyz/) - _Provable connects blockchain dapps with any external Web API and leverages TLSNotary proofs, Trusted Execution Environments (TEEs), and secure cryptographic primitives to guarantee data authenticity._
-
 - [Paralink](https://paralink.network/) - _Paralink provides an open source and decentralized oracle platform for smart contracts running on Ethereum and other popular blockchains._
 
 - [Dos.Network](https://dos.network/) - _DOS Network is a decentralized oracle service network to boost blockchain usability with real-world data and computation power._
