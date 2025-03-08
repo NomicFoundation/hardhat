@@ -19,7 +19,7 @@
     "update:eslint-docs": "eslint-doc-generator"
   },
   "dependencies": {
-    "@typescript-eslint/utils": "^5.61.0",
+    "@typescript-eslint/utils": "^8.21.0",
     "requireindex": "^1.2.0"
   },
   "devDependencies": {
