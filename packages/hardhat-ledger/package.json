@@ -46,7 +46,7 @@
     "ethers": "^6.1.0",
     "fs-extra": "^11.3.0",
     "io-ts": "1.10.4",
-    "ora": "^5.4.1"
+    "ora": "^8.2.0"
   },
   "devDependencies": {
     "@nomicfoundation/eslint-plugin-hardhat-internal-rules": "workspace:^",
