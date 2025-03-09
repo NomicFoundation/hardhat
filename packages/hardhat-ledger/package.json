@@ -40,7 +40,7 @@
     "@ledgerhq/hw-transport": "^6.28.4",
     "@ledgerhq/hw-transport-node-hid": "^6.27.13",
     "@nomicfoundation/ethereumjs-util": "9.0.2",
-    "chalk": "^2.4.2",
+    "chalk": "^5.4.1",
     "debug": "^4.1.1",
     "env-paths": "^2.2.0",
     "ethers": "^6.1.0",
