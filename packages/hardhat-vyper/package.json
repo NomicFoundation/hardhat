@@ -37,7 +37,7 @@
     "fs-extra": "^7.0.1",
     "io-ts": "1.10.4",
     "lodash": "^4.17.11",
-    "semver": "^6.3.0"
+    "semver": "^7.7.1"
   },
   "devDependencies": {
     "@nomicfoundation/eslint-plugin-hardhat-internal-rules": "workspace:^",
