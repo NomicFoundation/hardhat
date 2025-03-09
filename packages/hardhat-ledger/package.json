@@ -36,7 +36,7 @@
   ],
   "dependencies": {
     "@ledgerhq/errors": "^6.12.6",
-    "@ledgerhq/hw-app-eth": "6.42.3",
+    "@ledgerhq/hw-app-eth": "6.42.5",
     "@ledgerhq/hw-transport": "^6.28.4",
     "@ledgerhq/hw-transport-node-hid": "^6.27.13",
     "@nomicfoundation/ethereumjs-util": "9.0.2",
