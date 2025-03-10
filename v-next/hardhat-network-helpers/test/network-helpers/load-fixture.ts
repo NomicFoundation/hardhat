@@ -1,7 +1,7 @@
 import type { NetworkHelpers } from "../../src/types.js";
 
 import assert from "node:assert/strict";
-import { before, describe, it } from "node:test";
+import { before, beforeEach, describe, it } from "node:test";
 
 import {
   assertHardhatInvariant,
@@ -152,5 +152,35 @@ describe("network-helpers - loadFixture", () => {
       HardhatError.ERRORS.NETWORK_HELPERS.FIXTURE_ANONYMOUS_FUNCTION_ERROR,
       {},
     );
+  });
+
+  describe("multiple different connections should use different fixtures", () => {
+    // This suite verifies that each new network connection gets its own "snapshots" array.
+    // Because we create a fresh "networkHelpers" instance for every test,
+    // the fixture should run for each test and not be cached across connections.
+
+    let calledCount = 0;
+
+    async function mineBlockFixture() {
+      calledCount++;
+    }
+
+    beforeEach(async () => {
+      ({ networkHelpers } = await initializeNetwork());
+    });
+
+    it("should execute the fixture the first time", async () => {
+      await networkHelpers.loadFixture(mineBlockFixture);
+
+      // Executing the fixture should increment `calledCount` to 1.
+      assert.equal(calledCount, 1);
+    });
+
+    it("should execute the fixture the second time", async () => {
+      await networkHelpers.loadFixture(mineBlockFixture);
+
+      // Loading the fixture again (with a new connection) should increment `calledCount` to 2.
+      assert.equal(calledCount, 2);
+    });
   });
 });

@@ -1,3 +1,4 @@
+import type { Template } from "../../../../src/internal/cli/init/template.js";
 import type { PackageJson } from "@nomicfoundation/hardhat-utils/package";
 
 import assert from "node:assert/strict";
@@ -28,6 +29,7 @@ import {
   printWelcomeMessage,
   relativeTemplateToWorkspacePath,
   relativeWorkspaceToTemplatePath,
+  shouldUpdateDependency,
 } from "../../../../src/internal/cli/init/init.js";
 import { getTemplates } from "../../../../src/internal/cli/init/template.js";
 
@@ -311,6 +313,72 @@ describe("installProjectDependencies", async () => {
       }
     },
   );
+
+  it(
+    "should not update dependencies if they are up-to-date and the user opts-in to the update (specific version)",
+    {
+      skip: process.env.HARDHAT_DISABLE_SLOW_TESTS === "true",
+    },
+    async () => {
+      const template: Template = {
+        name: "test",
+        packageJson: {
+          name: "test",
+          version: "0.0.1",
+          devDependencies: { "fake-dependency": "^1.2.3" }, // <-- required version
+        },
+        path: process.cwd(),
+        files: [],
+      };
+
+      await writeUtf8File(
+        "package.json",
+        JSON.stringify({
+          type: "module",
+          devDependencies: { "fake-dependency": "1.2.3" }, // <-- specific version
+        }),
+      );
+      await installProjectDependencies(process.cwd(), template, false, true);
+
+      assert.ok(
+        !(await exists("node_modules")),
+        "no modules should have been installed",
+      );
+    },
+  );
+
+  it(
+    "should not update dependencies if they are up-to-date and the user opts-in to the update (version range)",
+    {
+      skip: process.env.HARDHAT_DISABLE_SLOW_TESTS === "true",
+    },
+    async () => {
+      const template: Template = {
+        name: "test",
+        packageJson: {
+          name: "test",
+          version: "0.0.1",
+          devDependencies: { "fake-dependency": ">=1.2.3" }, // <-- required version
+        },
+        path: process.cwd(),
+        files: [],
+      };
+
+      await writeUtf8File(
+        "package.json",
+        JSON.stringify({
+          type: "module",
+          devDependencies: { "fake-dependency": "^1.2.3" }, // <-- version range
+        }),
+      );
+      await installProjectDependencies(process.cwd(), template, false, true);
+
+      assert.ok(
+        !(await exists("node_modules")),
+        "no modules should have been installed",
+      );
+    },
+  );
 });
 
 describe("initHardhat", async () => {
@@ -345,5 +413,168 @@ describe("initHardhat", async () => {
         }
       },
     );
+  }
+});
+
+describe("shouldUpdateDependency", () => {
+  const testCases = [
+    {
+      workspaceVersion: "1.0.0",
+      templateVersion: "1.0.0",
+      expectedResult: false,
+    },
+    {
+      workspaceVersion: "1.0.0",
+      templateVersion: "1.2.3",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: "1.2.3",
+      templateVersion: "1.0.0",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: "1.2.3",
+      templateVersion: "^1.2.3",
+      expectedResult: false,
+    },
+    {
+      workspaceVersion: "^1.2.3",
+      templateVersion: "1.2.3",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: ">= 1.2.3",
+      templateVersion: "^1.2.3",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: "^1.2.3",
+      templateVersion: ">= 1.2.3",
+      expectedResult: false,
+    },
+    {
+      workspaceVersion: "1.0.0-dev",
+      templateVersion: "1.0.0-dev",
+      expectedResult: false,
+    },
+    {
+      workspaceVersion: "1.0.0-dev",
+      templateVersion: "1.2.3-dev",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: "1.2.3-dev",
+      templateVersion: "1.0.0-dev",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: "1.2.3-dev",
+      templateVersion: "^1.2.3-dev",
+      expectedResult: false,
+    },
+    {
+      workspaceVersion: "^1.2.3-dev",
+      templateVersion: "1.2.3-dev",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: ">= 1.2.3-dev",
+      templateVersion: "^1.2.3-dev",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: "^1.2.3-dev",
+      templateVersion: ">= 1.2.3-dev",
+      expectedResult: false,
+    },
+    {
+      workspaceVersion: "1.0.0",
+      templateVersion: "1.0.0-dev",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: "1.0.0-dev",
+      templateVersion: "1.0.0",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: "1.0.0-dev",
+      templateVersion: "1.2.3",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: "1.0.0",
+      templateVersion: "1.2.3-dev",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: "1.2.3",
+      templateVersion: "1.0.0-dev",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: "1.2.3-dev",
+      templateVersion: "1.0.0",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: "1.2.3",
+      templateVersion: "^1.2.3-dev",
+      expectedResult: false,
+    },
+    {
+      workspaceVersion: "1.2.3-dev",
+      templateVersion: "^1.2.3",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: "^1.2.3",
+      templateVersion: "1.2.3-dev",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: "^1.2.3-dev",
+      templateVersion: "1.2.3",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: ">= 1.2.3",
+      templateVersion: "^1.2.3-dev",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: ">= 1.2.3-dev",
+      templateVersion: "^1.2.3",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: "^1.2.3",
+      templateVersion: ">= 1.2.3-dev",
+      expectedResult: false,
+    },
+    {
+      workspaceVersion: "^1.2.3-dev",
+      templateVersion: ">= 1.2.3",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: "3.0.0-next.0",
+      templateVersion: "^3.0.0-next.0",
+      expectedResult: false,
+    },
+  ];
+
+  for (const {
+    workspaceVersion,
+    templateVersion,
+    expectedResult,
+  } of testCases) {
+    it(`should return ${expectedResult} when workspace version is ${workspaceVersion} and template version is ${templateVersion}`, () => {
+      assert.equal(
+        shouldUpdateDependency(workspaceVersion, templateVersion),
+        expectedResult,
+      );
+    });
   }
 });

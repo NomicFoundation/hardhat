@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-ignition",
-  "version": "3.0.0-next.0",
+  "version": "3.0.0-next.1",
   "license": "MIT",
   "author": "Nomic Foundation",
   "homepage": "https://hardhat.org",
@@ -49,12 +49,12 @@
   },
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "1.0.2",
-    "hardhat": "workspace:^3.0.0-next.0",
-    "@nomicfoundation/hardhat-network-helpers": "workspace:^3.0.0-next.0",
+    "hardhat": "workspace:^3.0.0-next.1",
+    "@nomicfoundation/hardhat-network-helpers": "workspace:^3.0.0-next.1",
     "@types/chai": "^4.2.0",
     "@types/chai-as-promised": "^8.0.1",
     "@types/debug": "^4.1.7",
-    "@types/mocha": ">=9.1.0",
+    "@types/mocha": ">=10.0.10",
     "@types/node": "^20.14.9",
     "@types/prompts": "^2.4.2",
     "@types/sinon": "^10.0.13",
@@ -68,9 +68,9 @@
     "eslint-import-resolver-typescript": "^3.6.1",
     "eslint-plugin-import": "2.29.1",
     "eslint-plugin-no-only-tests": "3.1.0",
-    "eslint-plugin-mocha": "^9.0.0",
+    "eslint-plugin-mocha": "^10.0.0",
     "eslint-plugin-prettier": "4.0.0",
-    "mocha": "^10.0.0",
+    "mocha": "^11.0.0",
     "nyc": "15.1.0",
     "prettier": "3.2.5",
     "rimraf": "^5.0.5",
@@ -81,13 +81,13 @@
     "viem": "^2.21.42"
   },
   "peerDependencies": {
-    "hardhat": "workspace:^3.0.0-next.0"
+    "hardhat": "workspace:^3.0.0-next.1"
   },
   "dependencies": {
-    "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.0",
-    "@nomicfoundation/ignition-core": "workspace:^3.0.0-next.0",
-    "@nomicfoundation/ignition-ui": "workspace:^3.0.0-next.0",
-    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.0",
+    "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.1",
+    "@nomicfoundation/ignition-core": "workspace:^3.0.0-next.1",
+    "@nomicfoundation/ignition-ui": "workspace:^3.0.0-next.1",
+    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.1",
     "chalk": "^5.3.0",
     "debug": "^4.3.2",
     "prompts": "^2.4.2",
