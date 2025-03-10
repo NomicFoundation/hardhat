@@ -37,7 +37,7 @@ jobs:
           version: 8
       - uses: actions/setup-node@v2
         with:
-          node-version: 16
+          node-version: 18
           cache: "pnpm"
       - name: Install
         run: pnpm install --frozen-lockfile --prefer-offline
@@ -58,7 +58,7 @@ jobs:
           version: 8
       - uses: actions/setup-node@v2
         with:
-          node-version: 16
+          node-version: 18
           cache: "pnpm"
       - name: Install
         run: pnpm install --frozen-lockfile --prefer-offline
@@ -72,7 +72,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: [16, 18, 20]
+        node: [18, 20, 22]
     steps:
       - uses: actions/checkout@v2
       - uses: pnpm/action-setup@v2
