@@ -89,12 +89,18 @@ export async function main(
       builtinGlobalOptions.configPath,
     );
 
+    log("Resolved config path");
+
     const projectRoot = await resolveProjectRoot(configPath);
+
+    log("Resolved project root");
 
     const esmErrorPrinted = await printEsmErrorMessageIfNecessary(
       projectRoot,
       print,
     );
+
+    log("Printed esm error message");
 
     if (esmErrorPrinted) {
       process.exitCode = 1;
