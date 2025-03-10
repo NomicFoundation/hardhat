@@ -35,7 +35,7 @@
     "README.md"
   ],
   "dependencies": {
-    "solhint": "^3.4.0"
+    "solhint": "^5.0.5"
   },
   "devDependencies": {
     "@nomicfoundation/eslint-plugin-hardhat-internal-rules": "workspace:^",
