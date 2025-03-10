@@ -2,12 +2,14 @@ import type { Fixture, NetworkHelpers, Snapshot } from "../../../types.js";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
-let snapshots: Array<Snapshot<any>> = [];
-
 export async function loadFixture<T>(
   networkHelpers: NetworkHelpers,
   fixture: Fixture<T>,
-): Promise<T> {
+  snapshots: Array<Snapshot<T>>,
+): Promise<{
+  snapshots: Array<Snapshot<T>>;
+  snapshotData: T;
+}> {
   if (fixture.name === "") {
     throw new HardhatError(
       HardhatError.ERRORS.NETWORK_HELPERS.FIXTURE_ANONYMOUS_FUNCTION_ERROR,
@@ -37,7 +39,10 @@ export async function loadFixture<T>(
       throw e;
     }
 
-    return snapshot.data;
+    return {
+      snapshots,
+      snapshotData: snapshot.data,
+    };
   } else {
     const data = await fixture();
     const restorer = await networkHelpers.takeSnapshot();
@@ -48,10 +53,9 @@ export async function loadFixture<T>(
       data,
     });
 
-    return data;
+    return {
+      snapshots,
+      snapshotData: data,
+    };
   }
-}
-
-export function clearSnapshots(): void {
-  snapshots = [];
 }

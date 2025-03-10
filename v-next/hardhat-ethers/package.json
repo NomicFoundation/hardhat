@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-ethers",
-  "version": "4.0.0-next.0",
+  "version": "4.0.0-next.1",
   "description": "Hardhat plugin for ethers",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-ethers",
   "repository": {
@@ -45,7 +45,7 @@
   ],
   "devDependencies": {
     "@eslint-community/eslint-plugin-eslint-comments": "^4.3.0",
-    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0-next.0",
+    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0-next.1",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
     "@types/debug": "^4.1.7",
     "@types/node": "^20.14.9",
@@ -64,12 +64,12 @@
     "typescript-eslint": "7.7.1"
   },
   "dependencies": {
-    "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.0",
-    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.0",
+    "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.1",
+    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.1",
     "debug": "^4.3.2",
     "ethers": "^6.13.4"
   },
   "peerDependencies": {
-    "hardhat": "workspace:^3.0.0-next.0"
+    "hardhat": "workspace:^3.0.0-next.1"
   }
 }

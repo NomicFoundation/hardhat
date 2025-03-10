@@ -2,7 +2,6 @@ import type { NewTaskActionFunction } from "../../../../types/tasks.js";
 
 import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
 
-import { shouldMergeCompilationJobs } from "../build-profiles.js";
 import { throwIfSolidityBuildFailed } from "../build-results.js";
 import { isNpmRootPath } from "../build-system/root-paths-utils.js";
 
@@ -30,9 +29,6 @@ const compileAction: NewTaskActionFunction<CompileActionArguments> = async (
   const results = await solidity.build(rootPaths, {
     force,
     buildProfile: globalOptions.buildProfile,
-    mergeCompilationJobs: shouldMergeCompilationJobs(
-      globalOptions.buildProfile,
-    ),
     quiet,
   });
 

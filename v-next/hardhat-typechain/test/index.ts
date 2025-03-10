@@ -18,11 +18,6 @@ describe("hardhat-typechain", () => {
 
     before(async () => {
       await remove(`${process.cwd()}/types`);
-    });
-
-    it("should generate the types", async () => {
-      // Check that the types are generated with the expected addition of the "/index.js" extensions
-      // and the v3 modules
 
       const hardhatConfig = await import(
         // eslint-disable-next-line import/no-relative-packages -- allow for fixture projects
@@ -36,6 +31,11 @@ describe("hardhat-typechain", () => {
       await hre.tasks.getTask("clean").run();
 
       await hre.tasks.getTask("compile").run();
+    });
+
+    it("should generate the types for the `hardhat.d.ts` file", async () => {
+      // Check that the types are generated with the expected addition of the "/index.js" extensions
+      // and the v3 modules
 
       const content = await readUtf8File(
         path.join(process.cwd(), "types", "ethers-contracts", "hardhat.d.ts"),
@@ -63,12 +63,28 @@ describe("hardhat-typechain", () => {
 
       // The import from a npm package should have ".js" extensions
       assert.equal(content.includes(`import { ethers } from 'ethers'`), true);
+    });
 
-      // Check that the types for the contract are generated
-      assert.equal(
-        await exists(
-          `${process.cwd()}/types/ethers-contracts/factories/A__factory.ts`,
+    it("should generated types for the contracts and add the support for the `attach` method", async () => {
+      const content = await readUtf8File(
+        path.join(
+          process.cwd(),
+          "types",
+          "ethers-contracts",
+          "factories",
+          "A__factory.ts",
         ),
+      );
+
+      // The "Addressable" type should be imported
+      assert.equal(
+        content.includes(`import type { Addressable } from "ethers";`),
+        true,
+      );
+
+      // The "attach" method should be added to the factory
+      assert.equal(
+        content.includes(`override attach(address: string | Addressable): A {`),
         true,
       );
     });
