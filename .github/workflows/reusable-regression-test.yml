@@ -1,0 +1,433 @@
+name: Regression Test
+
+on:
+  workflow_call:
+    inputs:
+      hardhat-ref:
+        required: true
+        type: string
+        default: 'v-next'
+      edr-ref:
+        required: false
+        type: string
+        default: ''
+      repositories:
+        required: false
+        type: string
+        default: '["foundry-rs/forge-std"]'
+      runners:
+        required: false
+        type: string
+        default: '["ubuntu-latest", "macos-latest", "windows-latest"]'
+      commands:
+        required: false
+        type: string
+        default: '["forge build", "forge test", "hardhat compile", "hardhat test solidity"]'
+  worflow_dispatch:
+    inputs:
+      hardhat-ref:
+        required: true
+        type: string
+        default: 'v-next'
+      edr-ref:
+        required: false
+        type: string
+        default: ''
+      repositories:
+        required: false
+        type: string
+        default: '["foundry-rs/forge-std"]'
+      runners:
+        required: false
+        type: string
+        default: '["ubuntu-latest", "macos-latest", "windows-latest"]'
+      commands:
+        required: false
+        type: string
+        default: '["forge build", "forge test", "hardhat compile", "hardhat test solidity"]'
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build-edr:
+    name: Build EDR artifacts for Linux, macOS, and Windows
+    runs-on: ${{ matrix.context.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        context:
+          - host: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+          - host: macos-latest
+            target: aarch64-apple-darwin
+          - host: windows-latest
+            target: x86_64-pc-windows-msvc
+    defaults:
+      run:
+        working-directory: crates/edr_napi
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: NomicFoundation/edr
+          ref: ${{ inputs.edr-ref }}
+      - uses: ./.github/actions/setup-node
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+      - name: Add Rust cross-compilation target
+        run: rustup target add ${{ matrix.context.target }}
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --prefer-offline
+      - name: Build
+        run: |
+          pnpm build --target ${{ matrix.context.target }}
+          strip *.node
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: edr-${{ matrix.context.runner }}
+          path: crates/edr_napi/edr.*.node
+          if-no-files-found: error
+
+  publish-edr:
+    name: Publish EDR artifacts together
+    needs: [build-edr]
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: crates/edr_napi
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: NomicFoundation/edr
+          ref: ${{ inputs.edr-ref }}
+      - uses: ./.github/actions/setup-node
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: crates/edr_napi/artifacts
+      - name: Install sponge
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y moreutils
+      - name: Move artifacts
+        run: pnpm artifacts
+      - name: Create the package
+        run: pnpm pack
+      - name: Upload the package
+        uses: actions/upload-artifact@v4
+        with:
+          name: edr
+          path: crates/edr_napi/edr.*.tgz
+          if-no-files-found: error
+
+  build-and-publish-hardhat:
+    name: Build and publish Hardhat
+    needs: [publish-edr]
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: v-next/hardhat
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: NomicFoundation/hardhat
+          ref: ${{ inputs.hardhat-ref }}
+      - uses: ./.github/actions/setup-node
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --prefer-offline
+      - name: Download EDR
+        if: inputs.edr-ref != ''
+        uses: actions/download-artifact@v4
+        with:
+          name: edr
+          path: v-next/hardhat
+      - name: Install EDR
+        if: inputs.edr-ref != ''
+        run: |
+          pnpm install edr.*.tgz --save-dev
+          rm edr.*.tgz
+        working-directory: v-next/hardhat
+      - name: Build
+        run: pnpm build
+      - name: Deploy
+        run: |
+          pnpm deploy --config.shamefully-hoist=true --config.hoist=true --config.node-linker=true --config.shared-workspace-lockfile=false --filter="$(jq -r .name package.json)" --prod --no-optional bundle
+          tar -czf hardhat.tgz bundle
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hardhat
+          path: v-next/hardhat/hardhat.tgz
+          if-no-files-found: error
+
+  test:
+    name: Run the test command
+    needs: [build-and-publish-hardhat]
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        repository: ${{ fromJSON(inputs.repositories) }}
+        runner: ${{ fromJSON(inputs.runners) }}
+        command: ${{ fromJSON(inputs.commands) }}
+        config:
+          - repositories:
+              foundry-rs/forge-std:
+                org: foundry-rs
+                name: forge-std
+                ref: 8ba9031ffcbe25aa0d1224d3ca263a995026e477
+                forge-version: v0.3.0
+                hardhat-config: |
+                  export default {
+                    "paths": {
+                      "sources": "src",
+                      "tests": {
+                        "solidity": "test"
+                      }
+                    },
+                    "solidity": {
+                      "version": "0.8.26",
+                      "settings": {
+                        "optimizer": {
+                          "enabled": true,
+                          "runs": 200
+                        }
+                      }
+                    },
+                    "solidityTest": {
+                      "fsPermissions": {
+                        "readWrite": [
+                          "./"
+                        ]
+                      },
+                      "rpcEndpoints": {
+                        "mainnet": "https://eth-mainnet.alchemyapi.io/v2/WV407BEiBmjNJfKo9Uo_55u0z0ITyCOX",
+                        "optimism_sepolia": "https://sepolia.optimism.io/",
+                        "arbitrum_one_sepolia": "https://sepolia-rollup.arbitrum.io/rpc/",
+                        "needs_undefined_env_var": "${UNDEFINED_RPC_URL_PLACEHOLDER}"
+                      }
+                    }
+                  };
+            runners:
+              ubuntu-latest: {}
+              windows-latest: {}
+              macos-latest: {}
+            commands:
+              forge build:
+                hooks:
+                  post: |
+                    const out = fs.readFileSync(path.join(process.env.GITHUB_WORKSPACE, 'run.out'));
+                    const matches = out.matchAll(/Compiling (\d+) files with Solc \d+\.\d+/);
+                    let compiled = 0;
+                    for (const groups of matches) {
+                      compiled += parseInt(groups[1]);
+                    }
+                    const details = `Compiled ${compiled} file(s) with ${groups.length} different solc version(s)`;
+                    fs.writeFileSync(path.join(process.env.GITHUB_WORKSPACE, 'run.details'), details);
+              forge test:
+                hooks:
+                  post: |
+                    const out = fs.readFileSync(path.join(process.env.GITHUB_WORKSPACE, 'run.out'));
+                    const matches = out.matchAll(/Ran \d+ test suites in \d+\.\d+m?s \(\d+\.\d+m?s CPU time\): (\d+) tests passed, (\d+) failed, (\d+) skipped \(\d+ total tests\)/);
+                    let passed = 0;
+                    let failed = 0;
+                    let skipped = 0;
+                    for (const groups of matches) {
+                      passed += parseInt(groups[1]);
+                      failed += parseInt(groups[2]);
+                      skipped += parseInt(groups[3]);
+                    }
+                    const details = `Ran ${passed + failed} tests (${passed} passed, ${failed} failed, ${skipped} skipped)`;
+                    fs.writeFileSync(path.join(process.env.GITHUB_WORKSPACE, 'run.details'), details);
+              hardhat compile:
+                hooks:
+                  post: |
+                    const out = fs.readFileSync(path.join(process.env.GITHUB_WORKSPACE, 'run.out'));
+                    const matches = out.matchAll(/Compiled (\d+) Solidity files with solc \d+\.\d+/);
+                    let compiled = 0;
+                    for (const groups of matches) {
+                      compiled += parseInt(groups[1]);
+                    }
+                    const details = `Compiled ${compiled} file(s) with ${groups.length} different solc version(s)`;
+                    fs.writeFileSync(path.join(process.env.GITHUB_WORKSPACE, 'run.details'), details);
+              hardhat test solidity:
+                hooks:
+                  post: |
+                    const out = fs.readFileSync(path.join(process.env.GITHUB_WORKSPACE, 'run.out'));
+                    const matches = out.matchAll(/Run (Failed|Passed): \d+ tests, (\d+) passed, (\d+) failed, (\d+) skipped \(duration: \d+ ms\)/);
+                    let passed = 0;
+                    let failed = 0;
+                    let skipped = 0;
+                    for (const groups of matches) {
+                      passed += parseInt(groups[1]);
+                      failed += parseInt(groups[2]);
+                      skipped += parseInt(groups[3]);
+                    }
+                    const details = `Ran ${passed + failed} tests (${passed} passed, ${failed} failed, ${skipped} skipped)`;
+                    fs.writeFileSync(path.join(process.env.GITHUB_WORKSPACE, 'run.details'), details);
+    steps:
+      - id: config
+        env:
+          REPOSITORY: ${{ matrix.repository }}
+          RUNNER: ${{ matrix.runner }}
+          COMMAND: ${{ matrix.command }}
+          CONFIG: ${{ toJSON(matrix.config) }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const config = JSON.parse(process.env.CONFIG);
+            const repositoryConfig = config[process.env.REPOSITORY];
+            const runnerConfig = config[process.env.RUNNER];
+            const commandConfig = config[process.env.COMMAND];
+            if (!repositoryConfig) {
+              // error
+            }
+            if (!runnerConfig) {
+              // error
+            }
+            if (!commandConfig) {
+              // error
+            }
+            core.setOutput('repository', repositoryConfig);
+            core.setOutput('runner', runnerConfig);
+            core.setOutput('command', commandConfig);
+            fs.writeFileSync('run.in', JSON.stringify({
+              repository: process.env.REPOSITORY,
+              runner: process.env.RUNNER,
+              command: process.env.COMMAND,
+              config: {
+                repository: repositoryConfig,
+                runner: runnerConfig,
+                command: commandConfig,
+              },
+            }));
+      - name: Checkout the repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          repository: ${{ matrix.repository }}
+          ref: ${{ fromJSON(steps.config.outputs.repository).ref }}
+          path: ${{ matrix.repository }}
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Download Hardhat
+        if: startsWith(matrix.command, 'hardhat')
+        uses: actions/download-artifact@v4
+        with:
+          name: hardhat
+      - name: Install Hardhat
+        if: startsWith(matrix.command, 'hardhat')
+        run: |
+          npm install -g hardhat.tgz
+          rm hardhat.tgz
+      - name: Configure Hardhat
+        if: startsWith(matrix.command, 'hardhat')
+        env:
+          CONFIG: ${{ fromJSON(steps.config.outputs.repository).hardhat-config }}
+        run: echo "$CONFIG" > hardhat.config.js
+        working-directory: ${{ matrix.repository }}
+      - name: Initialize the package
+        if: startsWith(matrix.command, 'hardhat')
+        run: |
+          npm init -y
+          npm pkg set type="module"
+        working-directory: ${{ matrix.repository }}
+      - name: Install Forge
+        if: startsWith(matrix.command, 'forge')
+        uses: foundry-rs/foundry-toolchain@de808b1eea699e761c404bda44ba8f21aba30b2c
+        with:
+          version: ${{ fromJSON(steps.config.outputs.repository).forge-version }}
+          cache: false
+      - name: Run the repository pre-hook
+        if: fromJSON(steps.config.outputs.repository).hooks.pre != ''
+        uses: actions/github-script@v7
+        with:
+          script: ${{ fromJSON(steps.config.outputs.repository).hooks.pre }}
+        working-directory: ${{ matrix.repository }}
+      - name: Run the command pre-hook
+        if: fromJSON(steps.config.outputs.command).hooks.pre != ''
+        uses: actions/github-script@v7
+        with:
+          script: ${{ fromJSON(steps.config.outputs.command).hooks.pre }}
+        working-directory: ${{ matrix.repository }}
+      - name: Run ${{ matrix.command }}
+        id: run
+        env:
+          DEBUG: ${{ runner.debug && '*' || '' }}
+        run: |
+          before=$(date +%s)
+          { ${{ matrix.command }} 2>&1 || exit_code=$?; } | tee -a $GITHUB_WORKSPACE/run.out
+          exit_code=${exit_code:-0}
+          after=$(date +%s)
+          echo "{"exit_code": $exit_code, "time": $((after - before))}" > $GITHUB_WORKSPACE/run.result
+          exit $exit_code
+        working-directory: ${{ matrix.repository }}
+        continue-on-error: true
+      - name: Run the command post-hook
+        if: matrix.command.hooks.post != ''
+        uses: actions/github-script@v7
+        with:
+          script: ${{ matrix.command.hooks.post }}
+        working-directory: ${{ matrix.repository }}
+      - name: Run the repository post-hook
+        if: matrix.repository.hooks.post != ''
+        uses: actions/github-script@v7
+        with:
+          script: ${{ matrix.repository.hooks.post }}
+        working-directory: ${{ matrix.repository }}
+      - name: Upload the result
+        uses: actions/upload-artifact@v4
+        with:
+          name: repository-${{ matrix.repository.org }} ${{ matrix.repository.name }}_command-${{ matrix.command.id }}_runner-${{ matrix.runner }}
+          path: |
+            run.in
+            run.out
+            run.result
+            run.details
+
+  summarize:
+    name: Summarize the test results
+    if: (!cancelled())
+    needs: [test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download the results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: '*'
+      - name: Summarize the results
+        id: summary
+        env:
+          HARDHAT_REF: ${{ inputs.hardhat-ref }}
+          EDR_REF: ${{ inputs.edr-ref }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const artifacts = fs.readdirSync(process.env.GITHUB_WORKSPACE);
+            const results = [];
+            for (const artifact of artifacts) {
+              const in = fs.readFileSync(path.join(artifact, 'run.in'));
+              const result = fs.readFileSync(path.join(artifact, 'run.result'));
+              const details = fs.readFileSync(path.join(artifact, 'run.details'));
+              results.push({
+                repository: in.repository,
+                command: in.command,
+                runner: in.runner,
+                result: result.exit_code,
+                time: result.time,
+                details,
+              });
+            }
+            const summary = ```
+            | Repository | Command | Runner | Result | Wall-clock Time (ms) | Details |
+            | ---------- | ------- | ------ | ------ | -------------------- | ------- |
+            ${results.map(({repository, command, runner, result, time, details}) => {
+              return `| ${repository} | ${command} | ${runner} | ${result} | ${time} | ${details} |`;
+            }).join('\n')}
+            ```;
+            fs.writeFileSync(process.env.GITHUB_STEP_SUMMARY, summary);
