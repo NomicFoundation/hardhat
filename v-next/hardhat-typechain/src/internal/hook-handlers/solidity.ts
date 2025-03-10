@@ -13,8 +13,18 @@ export default async (): Promise<Partial<SolidityHooks>> => {
         artifacts: Map<CompilationJob, ReadonlyMap<string, string[]>>,
       ) => Promise<void>,
     ) {
-      const artifactsPaths = Array.from(artifacts.values()).flatMap(
+      const currentArtifactsPaths = Array.from(artifacts.values()).flatMap(
         (innerMap) => Array.from(innerMap.values()).flat(),
+      );
+
+      const existingArtifactsPaths = await Promise.all(
+        Array.from(await context.artifacts.getAllFullyQualifiedNames()).map(
+          (name) => context.artifacts.getArtifactPath(name),
+        ),
+      );
+
+      const artifactsPaths = Array.from(
+        new Set([...currentArtifactsPaths, ...existingArtifactsPaths]),
       );
 
       await generateTypes(

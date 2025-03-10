@@ -1,6 +1,8 @@
+import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
+
 import assert from "node:assert/strict";
 import path from "node:path";
-import { before, describe, it } from "node:test";
+import { before, beforeEach, describe, it } from "node:test";
 
 import { useFixtureProject } from "@nomicfoundation/hardhat-test-utils";
 import {
@@ -10,30 +12,61 @@ import {
 } from "@nomicfoundation/hardhat-utils/fs";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
+// Read the contract factory from the generated types
+async function readContractFactory(contractName: string) {
+  const potentialPaths = [
+    `${process.cwd()}/types/ethers-contracts/factories/${contractName}__factory.ts`,
+    `${process.cwd()}/types/ethers-contracts/factories/${contractName}.sol/${contractName}__factory.ts`,
+  ];
+  for (const potentialPath of potentialPaths) {
+    if (await exists(potentialPath)) {
+      return readUtf8File(potentialPath);
+    }
+  }
+  return undefined;
+}
+
+// Check the contract is typed in hardhat.d.ts
+function isContractTyped(typeFileContents: string, contractName: string) {
+  const lookupStrings = [
+    `getContractFactory(name: '${contractName}'`,
+    `getContractAt(name: '${contractName}'`,
+    `deployContract(name: '${contractName}'`,
+  ];
+  for (const lookupString of lookupStrings) {
+    if (!typeFileContents.includes(lookupString)) {
+      return false;
+    }
+  }
+  return true;
+}
+
 describe("hardhat-typechain", () => {
   describe("check that types are generated correctly", () => {
     const projectFolder = "generate-types";
+    let hre: HardhatRuntimeEnvironment;
+    let hardhatConfig: any;
 
     useFixtureProject(projectFolder);
 
-    before(async () => {
+    beforeEach(async () => {
       await remove(`${process.cwd()}/types`);
 
-      const hardhatConfig = await import(
+      hardhatConfig = await import(
         // eslint-disable-next-line import/no-relative-packages -- allow for fixture projects
         `./fixture-projects/${projectFolder}/hardhat.config.js`
       );
 
-      const hre = await createHardhatRuntimeEnvironment(hardhatConfig.default);
+      hre = await createHardhatRuntimeEnvironment(hardhatConfig.default);
 
       assert.equal(await exists(`${process.cwd()}/types`), false);
 
       await hre.tasks.getTask("clean").run();
-
-      await hre.tasks.getTask("compile").run();
     });
 
     it("should generate the types for the `hardhat.d.ts` file", async () => {
+      await hre.tasks.getTask("compile").run();
+
       // Check that the types are generated with the expected addition of the "/index.js" extensions
       // and the v3 modules
 
@@ -63,18 +96,21 @@ describe("hardhat-typechain", () => {
 
       // The import from a npm package should have ".js" extensions
       assert.equal(content.includes(`import { ethers } from 'ethers'`), true);
+
+      for (const contractName of ["A", "B"]) {
+        assert.notEqual(await readContractFactory(contractName), undefined);
+        assert.equal(isContractTyped(content, contractName), true);
+      }
     });
 
     it("should generated types for the contracts and add the support for the `attach` method", async () => {
-      const content = await readUtf8File(
-        path.join(
-          process.cwd(),
-          "types",
-          "ethers-contracts",
-          "factories",
-          "A__factory.ts",
-        ),
-      );
+      await hre.tasks.getTask("compile").run();
+
+      const content = await readContractFactory("A");
+
+      if (content === undefined) {
+        throw new Error("Factory for A.sol not found");
+      }
 
       // The "Addressable" type should be imported
       assert.equal(
@@ -87,6 +123,33 @@ describe("hardhat-typechain", () => {
         content.includes(`override attach(address: string | Addressable): A {`),
         true,
       );
+    });
+
+    it("doesnt lose types when compiling a subset of the contracts", async () => {
+      // First: compile only A.sol. Only A should be typed
+      await hre.tasks.getTask("compile").run({ files: ["contracts/A.sol"] });
+
+      assert.notEqual(await readContractFactory("A"), undefined);
+      assert.equal(await readContractFactory("B"), undefined);
+
+      let content = await readUtf8File(
+        path.join(process.cwd(), "types", "ethers-contracts", "hardhat.d.ts"),
+      );
+
+      assert.equal(isContractTyped(content, "A"), true);
+      assert.equal(isContractTyped(content, "B"), false);
+
+      // Second: compile only B.sol. Both A and B should be typed
+      await hre.tasks.getTask("compile").run({ files: ["contracts/B.sol"] });
+
+      assert.notEqual(await readContractFactory("A"), undefined);
+      assert.notEqual(await readContractFactory("B"), undefined);
+
+      content = await readUtf8File(
+        path.join(process.cwd(), "types", "ethers-contracts", "hardhat.d.ts"),
+      );
+      assert.equal(isContractTyped(content, "A"), true);
+      assert.equal(isContractTyped(content, "B"), true);
     });
   });
 
