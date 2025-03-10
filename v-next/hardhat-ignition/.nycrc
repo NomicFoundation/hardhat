@@ -7,6 +7,6 @@
   "lines": 70,
   "all": true,
   "include": ["src/**/*.ts"],
-  "reporter": ["html", "lcov", "text", "text-summary", "junit"],
+  "reporter": ["html", "lcov", "text", "text-summary"],
   "report-dir": "reports"
 }
