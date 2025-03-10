@@ -3,3 +3,9 @@
 
 # Compilation output
 /dist
+
+# pnpm deploy output
+/bundle
+
+# test:ci output
+/reports

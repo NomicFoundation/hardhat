@@ -8,5 +8,5 @@
   "all": true,
   "include": ["src/**/*.ts", "test/**/*.ts"],
   "reporter": ["html", "lcov", "text", "text-summary"],
-  "report-dir": "coverage"
+  "report-dir": "reports"
 }
