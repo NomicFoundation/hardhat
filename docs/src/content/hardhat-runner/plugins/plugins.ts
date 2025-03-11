@@ -72,7 +72,7 @@ const communityPlugins: IPlugin[] = [
   {
     name: "@typechain/hardhat",
     author: "Rahul Sethuram",
-    authorUrl: "https://twitter.com/rhlsthrm",
+    authorUrl: "https://x.com/rhlsthrm",
     description: "Zero-config TypeChain support for Hardhat.",
     tags: ["Testing", "Tasks"],
   },
@@ -189,7 +189,7 @@ const communityPlugins: IPlugin[] = [
   {
     name: "hardhat-erc1820",
     author: "David Mihal",
-    authorUrl: "https://twitter.com/dmihal",
+    authorUrl: "https://x.com/dmihal",
     description:
       "Automatically deploy the ERC-1820 registry contract to Hardhat EVM chains.",
     tags: ["Testing"],
@@ -197,7 +197,7 @@ const communityPlugins: IPlugin[] = [
   {
     name: "hardhat-local-networks-config-plugin",
     author: "Facu Spagnuolo",
-    authorUrl: "https://twitter.com/facuspagnuolo",
+    authorUrl: "https://x.com/facuspagnuolo",
     description:
       "Allow loading network configs for Hardhat projects in home file",
     tags: ["Networks", "Config"],
@@ -481,7 +481,7 @@ const communityPlugins: IPlugin[] = [
   {
     name: "hardhat-sourcify",
     author: "Zoey T",
-    authorUrl: "https://twitter.com/zzzzoey_t",
+    authorUrl: "https://x.com/zzzzoey_t",
     description: "A plugin for submitting code to Sourcify",
     tags: ["Sourcify", "Verification"],
   },
@@ -496,7 +496,7 @@ const communityPlugins: IPlugin[] = [
   {
     name: "hardhat-test-utils",
     author: "Naveen Sahu",
-    authorUrl: "https://twitter.com/heyNvN",
+    authorUrl: "https://x.com/heyNvN",
     description:
       "Handy set of utilities for testing contracts in Hardhat projects",
     tags: ["testing", "solidity"],
@@ -548,7 +548,7 @@ const communityPlugins: IPlugin[] = [
   {
     name: "hardhat-address-exporter",
     author: "Dennis Zoma",
-    authorUrl: "https://twitter.com/dennis_zoma",
+    authorUrl: "https://x.com/dennis_zoma",
     description:
       "Export deployed contract addresses (multichain) in typescript files.",
     tags: [
@@ -818,7 +818,7 @@ const communityPlugins: IPlugin[] = [
   {
     name: "hardhat-gasless-deployer",
     author: "Ahmed Ali",
-    authorUrl: "https://twitter.com/0xAhmedAli",
+    authorUrl: "https://x.com/0xAhmedAli",
     npmPackage: "hardhat-gasless-deployer",
     description: "Deploy contracts with Hardhat using Gas Station Network",
     tags: ["GSN", "Gasless", "Deployment"],
@@ -1042,7 +1042,7 @@ const officialPlugins: IPlugin[] = [
   {
     name: "@nomicfoundation/hardhat-toolbox",
     author: "Nomic Foundation",
-    authorUrl: "https://twitter.com/NomicFoundation",
+    authorUrl: "https://x.com/NomicFoundation",
     description:
       "Nomic Foundation's recommended bundle of Hardhat plugins (ethers based)",
     tags: ["Hardhat", "Setup", "Ethers.js"],
@@ -1050,7 +1050,7 @@ const officialPlugins: IPlugin[] = [
   {
     name: "@nomicfoundation/hardhat-toolbox-viem",
     author: "Nomic Foundation",
-    authorUrl: "https://twitter.com/NomicFoundation",
+    authorUrl: "https://x.com/NomicFoundation",
     description:
       "Nomic Foundation's recommended bundle of Hardhat plugins (viem based)",
     tags: ["Hardhat", "Setup", "viem"],
@@ -1058,35 +1058,35 @@ const officialPlugins: IPlugin[] = [
   {
     name: "@nomicfoundation/hardhat-chai-matchers",
     author: "Nomic Foundation",
-    authorUrl: "https://twitter.com/NomicFoundation",
+    authorUrl: "https://x.com/NomicFoundation",
     description: "Adds Ethereum-related matchers to Chai",
     tags: ["Chai", "Testing"],
   },
   {
     name: "@nomicfoundation/hardhat-ethers",
     author: "Nomic Foundation",
-    authorUrl: "https://twitter.com/NomicFoundation",
+    authorUrl: "https://x.com/NomicFoundation",
     description: "Injects ethers.js into the Hardhat Runtime Environment",
     tags: ["Ethers.js", "Testing", "Tasks", "Scripts"],
   },
   {
     name: "@nomicfoundation/hardhat-viem",
     author: "Nomic Foundation",
-    authorUrl: "https://twitter.com/NomicFoundation",
+    authorUrl: "https://x.com/NomicFoundation",
     description: "Makes it easier to use viem in a Hardhat project",
     tags: ["viem", "Testing", "Tasks", "Scripts"],
   },
   {
     name: "@nomicfoundation/hardhat-verify",
     author: "Nomic Foundation",
-    authorUrl: "https://twitter.com/NomicFoundation",
+    authorUrl: "https://x.com/NomicFoundation",
     description: "Automatically verify contracts",
     tags: ["Etherscan", "Verification"],
   },
   {
     name: "@nomicfoundation/hardhat-foundry",
     author: "Nomic Foundation",
-    authorUrl: "https://twitter.com/NomicFoundation",
+    authorUrl: "https://x.com/NomicFoundation",
     description:
       "Makes it easier to use Hardhat and Foundry in the same project",
     tags: ["Foundry"],
@@ -1094,28 +1094,28 @@ const officialPlugins: IPlugin[] = [
   {
     name: "@nomicfoundation/hardhat-ledger",
     author: "Nomic Foundation",
-    authorUrl: "https://twitter.com/NomicFoundation",
+    authorUrl: "https://x.com/NomicFoundation",
     description: "Hardhat plugin for the Ledger hardware wallet",
     tags: ["Ledger", "Wallet"],
   },
   {
     name: "@nomiclabs/hardhat-vyper",
     author: "Nomic Foundation",
-    authorUrl: "https://twitter.com/NomicFoundation",
+    authorUrl: "https://x.com/NomicFoundation",
     description: "Adds support to compile Vyper smart contracts",
     tags: ["Vyper", "Compiler"],
   },
   {
     name: "@nomiclabs/hardhat-solhint",
     author: "Nomic Foundation",
-    authorUrl: "https://twitter.com/NomicFoundation",
+    authorUrl: "https://x.com/NomicFoundation",
     description: "Easily run solhint to lint your Solidity code",
     tags: ["Solhint", "Linter"],
   },
   {
     name: "@nomiclabs/hardhat-solpp",
     author: "Nomic Foundation",
-    authorUrl: "https://twitter.com/NomicFoundation",
+    authorUrl: "https://x.com/NomicFoundation",
     description:
       "Automatically run the solpp preprocessor before each compilation",
     tags: ["Solpp", "Preprocessor"],
@@ -1123,7 +1123,7 @@ const officialPlugins: IPlugin[] = [
   {
     name: "@nomiclabs/hardhat-waffle",
     author: "Nomic Foundation",
-    authorUrl: "https://twitter.com/NomicFoundation",
+    authorUrl: "https://x.com/NomicFoundation",
     description:
       "Adds a Waffle-compatible provider to the Hardhat Runtime Environment and automatically initializes the Waffle Chai matchers",
     tags: ["Waffle", "Testing"],
@@ -1131,7 +1131,7 @@ const officialPlugins: IPlugin[] = [
   {
     name: "@nomiclabs/hardhat-web3",
     author: "Nomic Foundation",
-    authorUrl: "https://twitter.com/NomicFoundation",
+    authorUrl: "https://x.com/NomicFoundation",
     description: "Injects Web3 1.x into the Hardhat Runtime Environment",
     tags: ["Web3.js", "Testing", "Tasks", "Scripts"],
   },
@@ -1139,28 +1139,28 @@ const officialPlugins: IPlugin[] = [
     name: "@nomicfoundation/hardhat-web3-v4",
     author: "ChainSafe and Nomic Foundation",
     npmPackage: "@nomicfoundation/hardhat-web3-v4",
-    authorUrl: "https://twitter.com/ChainSafeth",
+    authorUrl: "https://x.com/ChainSafeth",
     description: "Injects Web3 4.x into the Hardhat Runtime Environment",
     tags: ["Web3.js", "Testing", "Tasks", "Scripts"],
   },
   {
     name: "@nomiclabs/hardhat-truffle5",
     author: "Nomic Foundation",
-    authorUrl: "https://twitter.com/NomicFoundation",
+    authorUrl: "https://x.com/NomicFoundation",
     description: "Integration with TruffleContract from Truffle 5",
     tags: ["Truffle", "Testing"],
   },
   {
     name: "@nomiclabs/hardhat-web3-legacy",
     author: "Nomic Foundation",
-    authorUrl: "https://twitter.com/NomicFoundation",
+    authorUrl: "https://x.com/NomicFoundation",
     description: "Injects Web3 0.20.x into the Hardhat Runtime Environment",
     tags: ["Web3.js", "Legacy", "Testing", "Tasks", "Scripts"],
   },
   {
     name: "@nomiclabs/hardhat-truffle4",
     author: "Nomic Foundation",
-    authorUrl: "https://twitter.com/NomicFoundation",
+    authorUrl: "https://x.com/NomicFoundation",
     description: "Integration with TruffleContract from Truffle 4",
     tags: ["Truffle", "Testing"],
   },
