@@ -39,8 +39,8 @@
     "test": "mocha --recursive \"test/**/*.ts\" --exit"
   },
   "dependencies": {
-    "@ethersproject/abi": "^5.1.2",
-    "@ethersproject/address": "^5.0.2",
+    "@ethersproject/abi": "^5.8.0",
+    "@ethersproject/address": "^5.8.0",
     "cbor": "^8.1.0",
     "debug": "^4.1.1",
     "lodash.clonedeep": "^4.5.0",
