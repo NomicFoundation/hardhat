@@ -4,8 +4,8 @@
 // ATTENTION: in the current implementation, there's still a risk of two processes running simultaneously.
 // For example, if processA has locked the mutex and is running, processB will wait.
 // During this wait, processB continuously checks the elapsed time since the mutex lock file was created.
-// If an excessive amount of time has passed, processB will assume ownership of the mutex to avoid stale locks.
-// However, there's a possibility that processB might take ownership because the mutex creation file is outdated, even though processA is still running
+// If an excessive amount of time has passed, processB will assume ownership of the mutex to prevent stale locks, even if processA is still running.
+// As a result, two processes will be running simultaneously in what is theoretically a mutex-locked section.
 
 import fs from "node:fs";
 import os from "node:os";
