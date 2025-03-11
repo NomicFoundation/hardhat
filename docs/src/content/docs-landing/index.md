@@ -5,7 +5,7 @@ description: Documentation about Hardhat, the Ethereum development environment
 
 Hardhat is a development environment for Ethereum software. It consists of different components for editing, compiling, debugging and deploying your smart contracts and dApps, all of which work together to create a complete development environment.
 
-To get started check out these sections:
+To get started, check out these sections:
 
 - [General overview](/hardhat-runner)
 - [Quick start guide](/hardhat-runner/docs/getting-started/index.md#quick-start)
@@ -29,7 +29,7 @@ Hardhat comes built-in with Hardhat Network, a local Ethereum network node desig
 
 ### Hardhat Ignition
 
-Hardhat Ignition is a declarative deployment system that enables you to deploy your smart contracts without navigating the mechanics of the deployment process. [Learn more.](/ignition)
+Hardhat Ignition is a declarative deployment system that lets you deploy smart contracts easily, without handling low-level deployment details. [Learn more.](/ignition)
 
 ### Hardhat for Visual Studio Code
 
