@@ -23,7 +23,7 @@ import {
   handleError,
 } from "./internal/request.js";
 
-export const DEFAULT_TIMEOUT_IN_MILLISECONDS = 30_000;
+export const DEFAULT_TIMEOUT_IN_MILLISECONDS = 300_000; // Aligned with unidici
 export const DEFAULT_MAX_REDIRECTS = 10;
 export const DEFAULT_POOL_MAX_CONNECTIONS = 128;
 export const DEFAULT_USER_AGENT = "Hardhat";
