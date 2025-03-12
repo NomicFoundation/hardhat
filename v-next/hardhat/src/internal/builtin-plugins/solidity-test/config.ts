@@ -2,6 +2,8 @@ import type { HardhatUserConfig } from "../../../config.js";
 import type { HardhatConfig } from "../../../types/config.js";
 import type { HardhatUserConfigValidationError } from "../../../types/hooks.js";
 
+import path from "node:path";
+
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
 import {
@@ -121,8 +123,13 @@ export async function resolveSolidityTestUserConfig(
   testsPath = typeof testsPath === "object" ? testsPath.solidity : testsPath;
   testsPath ??= "test";
 
+  const defaultRpcCachePath = path.join(
+    resolvedConfig.paths.cache,
+    "edr-cache",
+  );
+
   const solidityTest = {
-    rpcCachePath: "edr-cache",
+    rpcCachePath: defaultRpcCachePath,
     ...userConfig.solidityTest,
   };
 

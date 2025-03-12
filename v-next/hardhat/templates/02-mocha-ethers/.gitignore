@@ -13,8 +13,5 @@
 # Hardhat compilation (v2) support directory
 /cache
 
-# EDR Cache
-/edr-cache
-
 # Typechain output
 /types
