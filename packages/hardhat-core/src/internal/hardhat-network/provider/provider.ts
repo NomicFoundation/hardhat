@@ -14,7 +14,7 @@ import type {
   HttpHeader,
   TracingConfigWithBuffers,
 } from "@nomicfoundation/edr";
-import { Common } from "@nomicfoundation/ethereumjs-common";
+import { Common } from "@ethereumjs/common";
 import picocolors from "picocolors";
 import debug from "debug";
 import { EventEmitter } from "events";

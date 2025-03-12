@@ -1,5 +1,5 @@
 // reused from ethers.js
-import { Address, toBytes } from "@nomicfoundation/ethereumjs-util";
+import { Address, toBytes } from "@ethereumjs/util";
 import path from "path";
 
 function toBuffer(x: Parameters<typeof toBytes>[0]) {
