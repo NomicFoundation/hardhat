@@ -138,7 +138,8 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
   readonly #compilersDir: string;
   readonly #downloadFunction: typeof download;
 
-  readonly #mutex = new MultiProcessMutex("compiler-download");
+  readonly #mutexCompiler = new MultiProcessMutex("compiler-download");
+  readonly #mutexCompilerList = new MultiProcessMutex("compiler-download-list");
 
   /**
    * Use CompilerDownloader.getConcurrencySafeDownloader instead
@@ -156,21 +157,23 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
   public async updateCompilerListIfNeeded(
     versions: Set<string>,
   ): Promise<void> {
-    if (await this.#shouldDownloadCompilerList(versions)) {
-      try {
-        log(
-          `Downloading the list of solc builds for platform ${this.#platform}`,
-        );
-        await this.#downloadCompilerList();
-      } catch (e) {
-        ensureError(e);
+    await this.#mutexCompilerList.use(async () => {
+      if (await this.#shouldDownloadCompilerList(versions)) {
+        try {
+          log(
+            `Downloading the list of solc builds for platform ${this.#platform}`,
+          );
+          await this.#downloadCompilerList();
+        } catch (e) {
+          ensureError(e);
 
-        throw new HardhatError(
-          HardhatError.ERRORS.SOLIDITY.VERSION_LIST_DOWNLOAD_FAILED,
-          e,
-        );
+          throw new HardhatError(
+            HardhatError.ERRORS.SOLIDITY.VERSION_LIST_DOWNLOAD_FAILED,
+            e,
+          );
+        }
       }
-    }
+    });
   }
 
   public async isCompilerDownloaded(version: string): Promise<boolean> {
@@ -186,7 +189,7 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
     // This is because the mutex blocks access until a compiler has been fully downloaded, preventing any new process
     // from checking whether that version of the compiler exists. Without mutex it might incorrectly
     // return false, indicating that the compiler isn't present, even though it is currently being downloaded.
-    return this.#mutex.use(async () => {
+    return this.#mutexCompiler.use(async () => {
       const isCompilerDownloaded = await this.isCompilerDownloaded(version);
 
       if (isCompilerDownloaded === true) {
