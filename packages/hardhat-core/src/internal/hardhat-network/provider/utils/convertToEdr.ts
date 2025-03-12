@@ -111,9 +111,8 @@ export function edrSpecIdToEthereumHardfork(specId: SpecId): HardforkName {
       return HardforkName.SHANGHAI;
     case SpecId.Cancun:
       return HardforkName.CANCUN;
-    // TODO: uncomment when Prague is added to EDR
-    /*     case SpecId.Prague:
-      return HardforkName.PRAGUE; */
+    case SpecId.Prague:
+      return HardforkName.PRAGUE;
 
     default:
       throw new Error(`Unknown spec id '${specId}', this shouldn't happen`);
