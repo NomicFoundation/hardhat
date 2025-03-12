@@ -128,13 +128,15 @@ export async function* testReporter(
       }
 
       const stackTrace = failure.stackTrace();
+      // TODO handle `UnexpectedError` and `UnsafeToReplay` variants
       if (
         stackTrace !== undefined &&
         stackTrace !== null &&
-        stackTrace.length > 0
+        stackTrace.kind === "StackTrace" &&
+        stackTrace.entries.length > 0
       ) {
         const stackTraceStack: string[] = [];
-        for (const entry of stackTrace.reverse()) {
+        for (const entry of stackTrace.entries.reverse()) {
           const callsite = encodeStackTraceEntry(entry);
           if (callsite !== undefined) {
             stackTraceStack.push(`  at ${callsite.toString()}`);
