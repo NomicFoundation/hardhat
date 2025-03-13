@@ -1185,9 +1185,15 @@ describe("network-manager/hook-handlers/config", () => {
 
   describe("resolveUserConfig", () => {
     let hre: HardhatRuntimeEnvironment;
+    let next: (nextUserConfig: HardhatUserConfig) => Promise<HardhatConfig>;
 
     before(async () => {
       hre = await createHardhatRuntimeEnvironment({});
+      next = async (
+        nextUserConfig: HardhatUserConfig,
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+        -- Cast for simplicity as we won't test this */
+      ) => nextUserConfig as unknown as HardhatConfig;
     });
 
     it("should resolve an empty user config with the defaults", async () => {
@@ -1201,12 +1207,6 @@ describe("network-manager/hook-handlers/config", () => {
           },
         },
       };
-
-      const next = async (
-        nextUserConfig: HardhatUserConfig,
-        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-        -- Cast for simplicity as we won't test this */
-      ) => nextUserConfig as unknown as HardhatConfig;
 
       const resolvedConfig = await resolveUserConfig(
         extendedConfig,
@@ -1258,12 +1258,6 @@ describe("network-manager/hook-handlers/config", () => {
         },
       };
 
-      const next = async (
-        nextUserConfig: HardhatUserConfig,
-        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-        -- Cast for simplicity as we won't test this */
-      ) => nextUserConfig as unknown as HardhatConfig;
-
       const resolvedConfig = await resolveUserConfig(
         userConfig,
         (variable) => resolveConfigurationVariable(hre.hooks, variable),
@@ -1296,6 +1290,80 @@ describe("network-manager/hook-handlers/config", () => {
       });
     });
 
+    it("warns when mining interval is below 1000ms and allowBlocksWithSameTimestamp is false", async () => {
+      const makeConfig = (
+        interval: number | [number, number],
+        allowBlocksWithSameTimestamp: boolean,
+      ): HardhatUserConfig => ({
+        paths: {
+          cache: "cache-dir",
+        },
+        networks: {
+          test: {
+            type: "edr",
+            chainType: "l1",
+            allowBlocksWithSameTimestamp,
+            mining: {
+              interval,
+            },
+          },
+        },
+      });
+
+      let lastWarnMessage = "";
+
+      const warn = (message: string) => {
+        lastWarnMessage = message;
+      };
+
+      // Interval < 1000, allowBlocksWithSameTimestamp = false, warning
+      await resolveUserConfig(
+        makeConfig(999, false),
+        (variable) => resolveConfigurationVariable(hre.hooks, variable),
+        next,
+        warn,
+      );
+      assert.match(lastWarnMessage, /interval is set to less than 1000 ms/);
+      lastWarnMessage = "";
+
+      // Interval < 1000, allowBlocksWithSameTimestamp = true, no warning
+      await resolveUserConfig(
+        makeConfig(999, true),
+        (variable) => resolveConfigurationVariable(hre.hooks, variable),
+        next,
+        warn,
+      );
+      assert.equal(lastWarnMessage, "");
+
+      // Interval > 1000, allowBlocksWithSameTimestamp = false, no warning
+      await resolveUserConfig(
+        makeConfig(1001, false),
+        (variable) => resolveConfigurationVariable(hre.hooks, variable),
+        next,
+        warn,
+      );
+      assert.equal(lastWarnMessage, "");
+
+      // Interval range with min < 1000, allowBlocksWithSameTimestamp = false, warning
+      await resolveUserConfig(
+        makeConfig([999, 1000], false),
+        (variable) => resolveConfigurationVariable(hre.hooks, variable),
+        next,
+        warn,
+      );
+      assert.match(lastWarnMessage, /interval is set to less than 1000 ms/);
+      lastWarnMessage = "";
+
+      // Interval range with min >= 1000, allowBlocksWithSameTimestamp = false, no warning
+      await resolveUserConfig(
+        makeConfig([1000, 1000], false),
+        (variable) => resolveConfigurationVariable(hre.hooks, variable),
+        next,
+        warn,
+      );
+      assert.equal(lastWarnMessage, "");
+    });
+
     describe("accounts", () => {
       it("should normalize the accounts' private keys", async () => {
         const userConfig: HardhatUserConfig = {
@@ -1322,12 +1390,6 @@ describe("network-manager/hook-handlers/config", () => {
             },
           },
         };
-
-        const next = async (
-          nextUserConfig: HardhatUserConfig,
-          /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-          -- Cast for simplicity as we won't test this */
-        ) => nextUserConfig as unknown as HardhatConfig;
 
         const resolvedConfig = await resolveUserConfig(
           userConfig,
@@ -1392,12 +1454,6 @@ describe("network-manager/hook-handlers/config", () => {
             },
           },
         };
-
-        const next = async (
-          nextUserConfig: HardhatUserConfig,
-          /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-          -- Cast for simplicity as we won't test this */
-        ) => nextUserConfig as unknown as HardhatConfig;
 
         const resolvedConfig = await resolveUserConfig(
           userConfig,
