@@ -452,6 +452,52 @@ describe("network-manager/hook-handlers/config", () => {
       ]);
     });
 
+    it("warns when mining interval is below 1000ms and allowBlocksWithSameTimestamp is false", async () => {
+      const makeConfig = (
+        interval: number | [number, number],
+        allowBlocksWithSameTimestamp: boolean,
+      ): HardhatUserConfig => ({
+        networks: {
+          test: {
+            type: "edr",
+            chainType: "l1",
+            allowBlocksWithSameTimestamp,
+            mining: {
+              interval,
+            },
+          },
+        },
+      });
+
+      let lastWarnMessage = "";
+
+      const warn = (message: string) => {
+        lastWarnMessage = message;
+      };
+
+      // Interval < 1000, allowBlocksWithSameTimestamp = false, warning
+      await validateNetworkUserConfig(makeConfig(999, false), warn);
+      assert.match(lastWarnMessage, /interval is set to less than 1000 ms/);
+      lastWarnMessage = "";
+
+      // Interval < 1000, allowBlocksWithSameTimestamp = true, no warning
+      await validateNetworkUserConfig(makeConfig(999, true), warn);
+      assert.equal(lastWarnMessage, "");
+
+      // Interval > 1000, allowBlocksWithSameTimestamp = false, no warning
+      await validateNetworkUserConfig(makeConfig(1001, false), warn);
+      assert.equal(lastWarnMessage, "");
+
+      // Interval range with min < 1000, allowBlocksWithSameTimestamp = false, warning
+      await validateNetworkUserConfig(makeConfig([999, 1000], false), warn);
+      assert.match(lastWarnMessage, /interval is set to less than 1000 ms/);
+      lastWarnMessage = "";
+
+      // Interval range with min >= 1000, allowBlocksWithSameTimestamp = false, no warning
+      await validateNetworkUserConfig(makeConfig([1000, 1000], false), warn);
+      assert.equal(lastWarnMessage, "");
+    });
+
     describe("http network specific fields", () => {
       it("should throw if the url is missing", async () => {
         const config = {
@@ -1288,80 +1334,6 @@ describe("network-manager/hook-handlers/config", () => {
           },
         },
       });
-    });
-
-    it("warns when mining interval is below 1000ms and allowBlocksWithSameTimestamp is false", async () => {
-      const makeConfig = (
-        interval: number | [number, number],
-        allowBlocksWithSameTimestamp: boolean,
-      ): HardhatUserConfig => ({
-        paths: {
-          cache: "cache-dir",
-        },
-        networks: {
-          test: {
-            type: "edr",
-            chainType: "l1",
-            allowBlocksWithSameTimestamp,
-            mining: {
-              interval,
-            },
-          },
-        },
-      });
-
-      let lastWarnMessage = "";
-
-      const warn = (message: string) => {
-        lastWarnMessage = message;
-      };
-
-      // Interval < 1000, allowBlocksWithSameTimestamp = false, warning
-      await resolveUserConfig(
-        makeConfig(999, false),
-        (variable) => resolveConfigurationVariable(hre.hooks, variable),
-        next,
-        warn,
-      );
-      assert.match(lastWarnMessage, /interval is set to less than 1000 ms/);
-      lastWarnMessage = "";
-
-      // Interval < 1000, allowBlocksWithSameTimestamp = true, no warning
-      await resolveUserConfig(
-        makeConfig(999, true),
-        (variable) => resolveConfigurationVariable(hre.hooks, variable),
-        next,
-        warn,
-      );
-      assert.equal(lastWarnMessage, "");
-
-      // Interval > 1000, allowBlocksWithSameTimestamp = false, no warning
-      await resolveUserConfig(
-        makeConfig(1001, false),
-        (variable) => resolveConfigurationVariable(hre.hooks, variable),
-        next,
-        warn,
-      );
-      assert.equal(lastWarnMessage, "");
-
-      // Interval range with min < 1000, allowBlocksWithSameTimestamp = false, warning
-      await resolveUserConfig(
-        makeConfig([999, 1000], false),
-        (variable) => resolveConfigurationVariable(hre.hooks, variable),
-        next,
-        warn,
-      );
-      assert.match(lastWarnMessage, /interval is set to less than 1000 ms/);
-      lastWarnMessage = "";
-
-      // Interval range with min >= 1000, allowBlocksWithSameTimestamp = false, no warning
-      await resolveUserConfig(
-        makeConfig([1000, 1000], false),
-        (variable) => resolveConfigurationVariable(hre.hooks, variable),
-        next,
-        warn,
-      );
-      assert.equal(lastWarnMessage, "");
     });
 
     describe("accounts", () => {
