@@ -10,7 +10,6 @@ import type {
 import type { ConfigHooks } from "../../../../types/hooks.js";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import chalk from "chalk";
 
 import { GENERIC_CHAIN_TYPE } from "../../../constants.js";
 import { resolveEdrNetwork, resolveHttpNetwork } from "../config-resolution.js";
@@ -69,7 +68,6 @@ export async function resolveUserConfig(
     nextUserConfig: HardhatUserConfig,
     nextResolveConfigurationVariable: ConfigurationVariableResolver,
   ) => Promise<HardhatConfig>,
-  warn: typeof console.warn = console.warn,
 ): Promise<HardhatConfig> {
   const resolvedConfig = await next(userConfig, resolveConfigurationVariable);
 
@@ -95,23 +93,6 @@ export async function resolveUserConfig(
             resolvedConfig.paths.cache,
             resolveConfigurationVariable,
           );
-  }
-
-  // Validate mining config
-  for (const network of Object.values(networks)) {
-    if (network.type !== "edr" || network?.mining?.interval === undefined) {
-      continue;
-    }
-    const interval = network.mining.interval;
-    const minInterval =
-      typeof interval === "number" ? interval : Math.min(...interval);
-    if (minInterval < 1000 && network.allowBlocksWithSameTimestamp !== true) {
-      warn(
-        chalk.yellow(
-          "Mining interval is set to less than 1000 ms. To avoid the block timestamp diverging from clock time, please set allowBlocksWithSameTimestamp: true on the network config",
-        ),
-      );
-    }
   }
 
   return {
