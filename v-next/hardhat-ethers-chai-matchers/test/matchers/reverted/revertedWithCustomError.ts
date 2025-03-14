@@ -7,10 +7,7 @@ import { before, beforeEach, describe, it } from "node:test";
 import util from "node:util";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import {
-  assertThrowsHardhatError,
-  useFixtureProject,
-} from "@nomicfoundation/hardhat-test-utils";
+import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { AssertionError, expect } from "chai";
 
 import { addChaiMatchers } from "../../../src/internal/add-chai-matchers.js";
@@ -20,13 +17,14 @@ import {
   runFailedAsserts,
   mineSuccessfulTransaction,
   initEnvironment,
+  useTmpFixtureProject,
 } from "../../helpers/helpers.js";
 
 addChaiMatchers();
 
 describe("INTEGRATION: Reverted with custom error", { timeout: 60000 }, () => {
   describe("with the in-process hardhat network", () => {
-    useFixtureProject("hardhat-project");
+    useTmpFixtureProject("hardhat-project");
     runTests();
   });
 

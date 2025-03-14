@@ -11,20 +11,17 @@ import { before, beforeEach, describe, it } from "node:test";
 import util from "node:util";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import {
-  assertThrowsHardhatError,
-  useFixtureProject,
-} from "@nomicfoundation/hardhat-test-utils";
+import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { expect, AssertionError } from "chai";
 
 import { addChaiMatchers } from "../../src/internal/add-chai-matchers.js";
-import { initEnvironment } from "../helpers/helpers.js";
+import { initEnvironment, useTmpFixtureProject } from "../helpers/helpers.js";
 
 addChaiMatchers();
 
 describe("INTEGRATION: changeEtherBalances matcher", { timeout: 60000 }, () => {
   describe("with the in-process hardhat network", () => {
-    useFixtureProject("hardhat-project");
+    useTmpFixtureProject("hardhat-project");
     runTests();
   });
 
