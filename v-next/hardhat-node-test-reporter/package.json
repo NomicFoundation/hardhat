@@ -26,12 +26,14 @@
     "prettier": "prettier \"**/*.{ts,js,md,json}\"",
     "test": "node --import tsx/esm --test \"test/**/*.ts\"",
     "test:only": "node --import tsx/esm --test --test-only \"test/**/*.ts\"",
+    "test:coverage": "c8 --reporter html --reporter text --all --exclude test --exclude src/internal/types.ts --src src node --import tsx/esm --test \"test/**/*.ts\"",
     "test:integration": "node --import tsx/esm integration-tests/index.ts --color",
     "posttest": "pnpm test:integration",
     "pretest": "pnpm build",
     "pretest:only": "pnpm build",
     "pretest:integration": "pnpm build",
     "build": "tsc --build .",
+    "prepublishOnly": "pnpm build",
     "clean": "rimraf dist"
   },
   "files": [
@@ -45,6 +47,7 @@
     "@types/node": "^20.14.9",
     "@typescript-eslint/eslint-plugin": "^7.7.1",
     "@typescript-eslint/parser": "^7.7.1",
+    "c8": "^9.1.0",
     "eslint": "8.57.0",
     "eslint-config-prettier": "9.1.0",
     "eslint-import-resolver-typescript": "^3.6.1",
