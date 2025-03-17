@@ -27,7 +27,7 @@
     "prettier": "prettier \"**/*.{ts,js,md,json}\"",
     "test": "node --import tsx/esm --test --test-reporter=@nomicfoundation/hardhat-node-test-reporter \"test/*.ts\" \"test/!(fixture-projects|helpers)/**/*.ts\"",
     "test:only": "node --import tsx/esm --test --test-only --test-reporter=@nomicfoundation/hardhat-node-test-reporter \"test/*.ts\" \"test/!(fixture-projects|helpers)/**/*.ts\"",
-    "test:coverage": "c8 --reporter html --reporter text --all --exclude test --exclude src/internal/types.ts --src src node --import tsx/esm --test --test-reporter=@nomicfoundation/hardhat-node-test-reporter \"test/*.ts\" \"test/!(fixture-projects|helpers)/**/*.ts\"",
+    "test:coverage": "c8 --reporter html --reporter text --all --exclude test --exclude \"src/**/{types,type-extensions}.ts\" --src src node --import tsx/esm --test --test-reporter=@nomicfoundation/hardhat-node-test-reporter \"test/*.ts\" \"test/!(fixture-projects|helpers)/**/*.ts\"",
     "pretest": "pnpm build",
     "pretest:only": "pnpm build",
     "build": "tsc --build .",
