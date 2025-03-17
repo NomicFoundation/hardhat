@@ -4,4 +4,8 @@
 # Compilation output
 /dist
 
-/cache
+# pnpm deploy output
+/bundle
+
+# test coverage output
+coverage

@@ -7,4 +7,5 @@
 # pnpm deploy output
 /bundle
 
-!coverage
+# test coverage output
+coverage

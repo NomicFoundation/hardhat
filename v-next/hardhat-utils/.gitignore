@@ -6,3 +6,6 @@
 
 # pnpm deploy output
 /bundle
+
+# test coverage output
+coverage

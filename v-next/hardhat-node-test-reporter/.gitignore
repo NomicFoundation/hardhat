@@ -7,4 +7,7 @@
 # pnpm deploy output
 /bundle
 
+# test coverage output
+coverage
+
 /integration-tests/fixture-tests/*/result.actual.txt

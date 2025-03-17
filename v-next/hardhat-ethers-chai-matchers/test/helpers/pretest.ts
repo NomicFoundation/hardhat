@@ -16,6 +16,8 @@ const fixtureProjectDir = path.join(
   "hardhat-project",
 );
 
+process.chdir(fixtureProjectDir);
+
 const hre = await createHardhatRuntimeEnvironment({
   solidity: {
     version: "0.8.24", // Same version as the one in the contracts in the "hardhat-project" fixture project
