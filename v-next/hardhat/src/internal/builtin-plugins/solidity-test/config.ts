@@ -123,10 +123,7 @@ export async function resolveSolidityTestUserConfig(
   testsPath = typeof testsPath === "object" ? testsPath.solidity : testsPath;
   testsPath ??= "test";
 
-  const defaultRpcCachePath = path.join(
-    resolvedConfig.paths.cache,
-    "edr-cache",
-  );
+  const defaultRpcCachePath = path.join(resolvedConfig.paths.cache, "edr");
 
   const solidityTest = {
     rpcCachePath: defaultRpcCachePath,
