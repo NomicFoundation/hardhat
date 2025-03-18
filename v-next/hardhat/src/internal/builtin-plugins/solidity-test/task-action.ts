@@ -58,10 +58,14 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     // directory or a file with a `.t.sol` extension in the `sources.solidity` directory
     rootFilePaths = (
       await Promise.all([
-        getAllFilesMatching(hre.config.paths.tests.solidity, (f) =>
-          f.endsWith(".sol"),
+        getAllFilesMatching(
+          hre.config.paths.tests.solidity,
+          (
+            f, // /tests/solidity
+          ) => f.endsWith(".sol"),
         ),
         ...hre.config.paths.sources.solidity.map(async (dir) => {
+          // /contracts
           return getAllFilesMatching(dir, (f) => f.endsWith(".t.sol"));
         }),
       ])

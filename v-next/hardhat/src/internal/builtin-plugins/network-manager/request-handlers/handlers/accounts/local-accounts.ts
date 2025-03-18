@@ -15,9 +15,6 @@ import {
   hexStringToBigInt,
   hexStringToBytes,
 } from "@nomicfoundation/hardhat-utils/hex";
-import { addr, Transaction } from "micro-eth-signer";
-import * as typed from "micro-eth-signer/typed-data";
-import { signTyped } from "micro-eth-signer/typed-data";
 
 import { getRequestParams } from "../../../json-rpc.js";
 import { rpcAddress } from "../../../rpc/types/address.js";
@@ -33,13 +30,8 @@ import { ChainId } from "../chain-id/chain-id.js";
 export class LocalAccountsHandler extends ChainId implements RequestHandler {
   readonly #addressToPrivateKey: Map<string, Uint8Array> = new Map();
 
-  constructor(
-    provider: EthereumProvider,
-    localAccountsHexPrivateKeys: string[],
-  ) {
+  constructor(provider: EthereumProvider) {
     super(provider);
-
-    this.#initializePrivateKeys(localAccountsHexPrivateKeys);
   }
 
   public async handle(
@@ -69,6 +61,11 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
 
     const params = getRequestParams(jsonRpcRequest);
 
+    const {
+      personal: { sign },
+      signTyped,
+    } = await import("micro-eth-signer/typed-data");
+
     if (jsonRpcRequest.method === "eth_sign") {
       if (params.length > 0) {
         const [address, data] = validateParams(params, rpcAddress, rpcData);
@@ -81,9 +78,10 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
           }
 
           const privateKey = this.#getPrivateKeyForAddress(address);
+
           return this.#createJsonRpcResponse(
             jsonRpcRequest.id,
-            typed.personal.sign(data, privateKey),
+            sign(data, privateKey),
           );
         }
       }
@@ -103,7 +101,7 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
           const privateKey = this.#getPrivateKeyForAddress(address);
           return this.#createJsonRpcResponse(
             jsonRpcRequest.id,
-            typed.personal.sign(data, privateKey),
+            sign(data, privateKey),
           );
         }
       }
@@ -212,13 +210,19 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
     }
   }
 
-  #initializePrivateKeys(localAccountsHexPrivateKeys: string[]) {
+  public async initializePrivateKeys(
+    localAccountsHexPrivateKeys: string[],
+  ): Promise<void> {
     const privateKeys: Uint8Array[] = localAccountsHexPrivateKeys.map((h) =>
       hexStringToBytes(h),
     );
 
+    const {
+      addr: { fromPrivateKey },
+    } = await import("micro-eth-signer");
+
     for (const pk of privateKeys) {
-      const address = addr.fromPrivateKey(pk).toLowerCase();
+      const address = fromPrivateKey(pk).toLowerCase();
       this.#addressToPrivateKey.set(address, pk);
     }
   }
@@ -266,9 +270,14 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
       gasLimit: transactionRequest.gas,
     };
 
+    const {
+      Transaction,
+      addr: { addChecksum },
+    } = await import("micro-eth-signer");
+
     const accessList = txData.accessList?.map(({ address, storageKeys }) => {
       return {
-        address: addr.addChecksum(bytesToHexString(address)),
+        address: addChecksum(bytesToHexString(address)),
         storageKeys:
           storageKeys !== null
             ? storageKeys.map((k) => bytesToHexString(k))
@@ -291,7 +300,7 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
       // null or undefined addresses. Therefore, these values must be converted to "0x", the expected format.
       checksummedAddress = "0x";
     } else {
-      checksummedAddress = addr.addChecksum(
+      checksummedAddress = addChecksum(
         bytesToHexString(txData.to).toLowerCase(),
       );
     }
