@@ -41,7 +41,7 @@ export function useFixtureProject(
  */
 export function useEphemeralFixtureProject(projectName: string): void {
   const basePath = path.join(process.cwd(), "test", "fixture-projects");
-  const tmpProjectPath = path.join("tmp-generated", randomUUID());
+  const tmpProjectPath = path.join("tmp", randomUUID());
 
   before(() => {
     cpSync(
