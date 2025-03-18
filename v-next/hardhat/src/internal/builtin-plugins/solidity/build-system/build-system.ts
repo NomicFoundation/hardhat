@@ -217,13 +217,6 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
           );
         }),
       );
-
-      await this.#hooks.runHandlerChain(
-        "solidity",
-        "onAllArtifactsEmitted",
-        [contractArtifactsGeneratedByCompilationJob],
-        async () => {},
-      );
     }
 
     const resultsMap: Map<string, FileBuildResult> = new Map();
@@ -662,6 +655,13 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     await writeUtf8File(
       duplicatedContractNamesDeclarationFilePath,
       getDuplicatedContractNamesDeclarationFile(duplicatedNames),
+    );
+
+    await this.#hooks.runHandlerChain(
+      "solidity",
+      "onCleanUpArtifacts",
+      [artifactPaths],
+      async () => {},
     );
   }
 
