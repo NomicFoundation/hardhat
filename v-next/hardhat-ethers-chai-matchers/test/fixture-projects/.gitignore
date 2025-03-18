@@ -1,5 +1,2 @@
 artifacts/
 cache/
-
-# ignore the temporarily created fixture copy folders
-tmp-generated/
