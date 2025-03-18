@@ -10,7 +10,7 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   assertRejectsWithHardhatError,
   assertThrowsHardhatError,
-  useFixtureProject,
+  useEphemeralFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
 import { AssertionError, expect } from "chai";
 
@@ -27,7 +27,7 @@ addChaiMatchers();
 
 describe("INTEGRATION: Reverted", { timeout: 60000 }, () => {
   describe("with the in-process hardhat network", () => {
-    useFixtureProject("hardhat-project");
+    useEphemeralFixtureProject("hardhat-project");
     runTests();
   });
 
