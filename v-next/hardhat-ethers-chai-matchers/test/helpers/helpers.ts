@@ -3,42 +3,10 @@ import type { HardhatEthers } from "@nomicfoundation/hardhat-ethers/types";
 import type { ContractTransactionResponse } from "ethers/contract";
 import type { EthereumProvider } from "hardhat/types/providers";
 
-import { randomUUID } from "node:crypto";
-import { cpSync, rmSync } from "node:fs";
-import path from "node:path";
-import { before, after } from "node:test";
 import { pathToFileURL } from "node:url";
 
-import { useFixtureProject } from "@nomicfoundation/hardhat-test-utils";
 import { AssertionError, expect } from "chai";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
-
-// This helper function is necessary because multiple test files operate on the same fixture project.
-// Since these test files run in parallel, concurrency issues can arise: one test file might attempt
-// to access artifacts while another is deleting them.
-// To prevent this, each test file uses a temporary copy of the fixture project.
-// The temporary folder is named using a randomly generated UUID.
-export function useTmpFixtureProject(projectName: string): void {
-  const basePath = path.join(process.cwd(), "test", "fixture-projects");
-  const tmpProjectPath = path.join("tmp-generated", randomUUID());
-
-  before(() => {
-    cpSync(
-      path.join(basePath, projectName),
-      path.join(basePath, tmpProjectPath),
-      {
-        recursive: true,
-        force: true,
-      },
-    );
-  });
-
-  useFixtureProject(tmpProjectPath);
-
-  after(() => {
-    rmSync(path.join(basePath, tmpProjectPath), { recursive: true });
-  });
-}
 
 export async function initEnvironment(_artifactsPath: string): Promise<{
   provider: EthereumProvider;

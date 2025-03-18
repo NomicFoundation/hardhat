@@ -5,6 +5,7 @@ import path from "node:path";
 import { before, beforeEach, describe, it } from "node:test";
 import util from "node:util";
 
+import { useFixtureProjectCopy } from "@nomicfoundation/hardhat-test-utils";
 import { AssertionError, expect } from "chai";
 
 import { addChaiMatchers } from "../../../src/internal/add-chai-matchers.js";
@@ -12,14 +13,13 @@ import {
   runSuccessfulAsserts,
   runFailedAsserts,
   initEnvironment,
-  useTmpFixtureProject,
 } from "../../helpers/helpers.js";
 
 addChaiMatchers();
 
 describe("INTEGRATION: Reverted without reason", { timeout: 60000 }, () => {
   describe("with the in-process hardhat network", () => {
-    useTmpFixtureProject("hardhat-project");
+    useFixtureProjectCopy("hardhat-project");
     runTests();
   });
 

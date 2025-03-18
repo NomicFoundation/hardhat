@@ -9,7 +9,10 @@ import type { HardhatEthers } from "@nomicfoundation/hardhat-ethers/types";
 import { before, beforeEach, describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
+import {
+  assertRejectsWithHardhatError,
+  useFixtureProjectCopy,
+} from "@nomicfoundation/hardhat-test-utils";
 import { expect, AssertionError } from "chai";
 import { id } from "ethers/hash";
 import { hexlify, toUtf8Bytes, zeroPadValue } from "ethers/utils";
@@ -17,7 +20,7 @@ import { Wallet } from "ethers/wallet";
 
 import { addChaiMatchers } from "../../src/internal/add-chai-matchers.js";
 import { anyUint, anyValue } from "../../src/withArgs.js";
-import { initEnvironment, useTmpFixtureProject } from "../helpers/helpers.js";
+import { initEnvironment } from "../helpers/helpers.js";
 
 addChaiMatchers();
 
@@ -28,7 +31,7 @@ describe(".to.emit (contract events)", { timeout: 60000 }, () => {
   let matchers: MatchersContract;
 
   describe("with the in-process hardhat network", () => {
-    useTmpFixtureProject("hardhat-project");
+    useFixtureProjectCopy("hardhat-project");
     runTests();
   });
 
