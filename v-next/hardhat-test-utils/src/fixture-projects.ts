@@ -39,7 +39,7 @@ export function useFixtureProject(
  *
  * @param projectName The base name of the folder with the project to use.
  */
-export function useFixtureProjectCopy(projectName: string): void {
+export function useEphemeralFixtureProject(projectName: string): void {
   const basePath = path.join(process.cwd(), "test", "fixture-projects");
   const tmpProjectPath = path.join("tmp-generated", randomUUID());
 

@@ -13,7 +13,7 @@ import util from "node:util";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   assertThrowsHardhatError,
-  useFixtureProjectCopy,
+  useEphemeralFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
 import { expect, AssertionError } from "chai";
 
@@ -24,7 +24,7 @@ addChaiMatchers();
 
 describe("INTEGRATION: changeEtherBalances matcher", { timeout: 60000 }, () => {
   describe("with the in-process hardhat network", () => {
-    useFixtureProjectCopy("hardhat-project");
+    useEphemeralFixtureProject("hardhat-project");
     runTests();
   });
 
