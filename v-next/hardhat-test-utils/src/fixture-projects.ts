@@ -1,7 +1,9 @@
+import { randomUUID } from "node:crypto";
+import { cpSync } from "node:fs";
 import path from "node:path";
 import { before, after } from "node:test";
 
-import { exists, getRealPath } from "@nomicfoundation/hardhat-utils/fs";
+import { exists, getRealPath, remove } from "@nomicfoundation/hardhat-utils/fs";
 
 /**
  * This helper adds node:test hooks to run the tests inside one of the projects
@@ -25,6 +27,37 @@ export function useFixtureProject(
 
   after(() => {
     process.chdir(prevWorkingDir);
+  });
+}
+
+/**
+ * This helper function is necessary because multiple test files operate on the same fixture project.
+ * Since these test files run in parallel, concurrency issues can arise: one test file might attempt
+ * to access artifacts while another is deleting them.
+ * To prevent this, each test file uses a temporary copy of the fixture project.
+ * The temporary folder is named using a randomly generated UUID.
+ *
+ * @param projectName The base name of the folder with the project to use.
+ */
+export function useEphemeralFixtureProject(projectName: string): void {
+  const basePath = path.join(process.cwd(), "test", "fixture-projects");
+  const tmpProjectPath = path.join("tmp", randomUUID());
+
+  before(() => {
+    cpSync(
+      path.join(basePath, projectName),
+      path.join(basePath, tmpProjectPath),
+      {
+        recursive: true,
+        force: true,
+      },
+    );
+  });
+
+  useFixtureProject(tmpProjectPath);
+
+  after(async () => {
+    await remove(path.join(basePath, tmpProjectPath));
   });
 }
 
