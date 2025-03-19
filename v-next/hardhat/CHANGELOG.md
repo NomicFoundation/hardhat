@@ -1,5 +1,21 @@
 # hardhat
 
+## 3.0.0-next.2
+
+### Patch Changes
+
+- 739f6b3: Replaced the hook for emitting compiled artifacts and updated its usage in the `hardhat-typechain` plugin.
+- 4336742: Hardhat 3 Alpha release: 2025-03-19
+- 1e625dc: fix: We generate stack traces for failing Solidity tests by re-executing them for performance reasons. This fix ensures that we don't generate stack traces if EVM execution is indeterministic. Indeterminism can be caused by forking from the latest block number or by using impure cheatcodes.
+- 7ea2483: Upgrade sentry from 5.x to 9.x
+- aab6d99: Use default value for rpcCachePath when running solidity tests
+- c9d81f9: Added a mutex to synchronize compiler list downloads
+- Updated dependencies [4336742]
+- Updated dependencies [c9d81f9]
+  - @nomicfoundation/hardhat-errors@3.0.0-next.2
+  - @nomicfoundation/hardhat-utils@3.0.0-next.2
+  - @nomicfoundation/hardhat-zod-utils@3.0.0-next.2
+
 ## 3.0.0-next.1
 
 ### Patch Changes

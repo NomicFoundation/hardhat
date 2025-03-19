@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.0.0-next.2
+
+### Patch Changes
+
+- 4336742: Hardhat 3 Alpha release: 2025-03-19
+
 ## 3.0.0-next.1
 
 ### Patch Changes
