@@ -1,6 +1,7 @@
 ![](https://user-images.githubusercontent.com/176499/96893278-ebc67580-1460-11eb-9530-d5df3a3d65d0.png) [![NPM Package](https://img.shields.io/npm/v/hardhat.svg?style=flat-square)](https://www.npmjs.org/package/hardhat) [![GitPOAP Badge](https://public-api.gitpoap.io/v1/repo/NomicFoundation/hardhat/badge)](https://www.gitpoap.io/gh/NomicFoundation/hardhat)
 
 ---
+>**🚀 Hardhat 3 alpha release is out! [Learn more.](https://hardhat.org/hardhat3-alpha)**
 
 Hardhat is an Ethereum development environment for professionals. It facilitates performing frequent tasks, such as running tests, automatically checking code for mistakes or interacting with a smart contract. Check out the [plugin list](https://hardhat.org/plugins/) to use it with your existing tools.
 
