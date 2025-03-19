@@ -75,7 +75,6 @@ export async function resolveUserConfig(
 
   const resolvedNetworks: Record<string, NetworkConfig> = {};
 
-  // resolve edr and http networks
   for (const [networkName, networkConfig] of Object.entries(networks)) {
     if (networkConfig.type !== "http" && networkConfig.type !== "edr") {
       throw new HardhatError(HardhatError.ERRORS.NETWORK.INVALID_NETWORK_TYPE, {

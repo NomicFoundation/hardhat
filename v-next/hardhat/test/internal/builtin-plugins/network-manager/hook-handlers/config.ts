@@ -452,7 +452,7 @@ describe("network-manager/hook-handlers/config", () => {
       ]);
     });
 
-    it("warns when mining interval is below 1000ms and allowBlocksWithSameTimestamp is false", async () => {
+    it("should throw when mining interval is below 1000ms and allowBlocksWithSameTimestamp is false", async () => {
       const makeConfig = (
         interval: number | [number, number],
         allowBlocksWithSameTimestamp: boolean,
@@ -469,33 +469,46 @@ describe("network-manager/hook-handlers/config", () => {
         },
       });
 
-      let lastWarnMessage = "";
+      const errorMessage =
+        "mining.interval is set to less than 1000 ms. To avoid the block timestamp diverging from clock time, please set allowBlocksWithSameTimestamp: true on the network config";
 
-      const warn = (message: string) => {
-        lastWarnMessage = message;
-      };
+      // Interval < 1000, allowBlocksWithSameTimestamp = false, error
+      let validationErrors = await validateNetworkUserConfig(
+        makeConfig(999, false),
+      );
+      assertValidationErrors(validationErrors, [
+        {
+          path: ["networks", "test"],
+          message: errorMessage,
+        },
+      ]);
 
-      // Interval < 1000, allowBlocksWithSameTimestamp = false, warning
-      await validateNetworkUserConfig(makeConfig(999, false), warn);
-      assert.match(lastWarnMessage, /interval is set to less than 1000 ms/);
-      lastWarnMessage = "";
+      // Interval < 1000, allowBlocksWithSameTimestamp = true, no error
+      validationErrors = await validateNetworkUserConfig(makeConfig(999, true));
+      assert.equal(validationErrors.length, 0);
 
-      // Interval < 1000, allowBlocksWithSameTimestamp = true, no warning
-      await validateNetworkUserConfig(makeConfig(999, true), warn);
-      assert.equal(lastWarnMessage, "");
+      // Interval >= 1000, allowBlocksWithSameTimestamp = false, no error
+      validationErrors = await validateNetworkUserConfig(
+        makeConfig(1000, false),
+      );
+      assert.equal(validationErrors.length, 0);
 
-      // Interval > 1000, allowBlocksWithSameTimestamp = false, no warning
-      await validateNetworkUserConfig(makeConfig(1001, false), warn);
-      assert.equal(lastWarnMessage, "");
+      // Interval range with min < 1000, allowBlocksWithSameTimestamp = false, error
+      validationErrors = await validateNetworkUserConfig(
+        makeConfig([1000, 999], false),
+      );
+      assertValidationErrors(validationErrors, [
+        {
+          path: ["networks", "test"],
+          message: errorMessage,
+        },
+      ]);
 
-      // Interval range with min < 1000, allowBlocksWithSameTimestamp = false, warning
-      await validateNetworkUserConfig(makeConfig([999, 1000], false), warn);
-      assert.match(lastWarnMessage, /interval is set to less than 1000 ms/);
-      lastWarnMessage = "";
-
-      // Interval range with min >= 1000, allowBlocksWithSameTimestamp = false, no warning
-      await validateNetworkUserConfig(makeConfig([1000, 1000], false), warn);
-      assert.equal(lastWarnMessage, "");
+      // // Interval range with min >= 1000, allowBlocksWithSameTimestamp = false, no error
+      validationErrors = await validateNetworkUserConfig(
+        makeConfig([1000, 1000], true),
+      );
+      assert.equal(validationErrors.length, 0);
     });
 
     describe("http network specific fields", () => {

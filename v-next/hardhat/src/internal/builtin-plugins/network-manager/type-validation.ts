@@ -23,7 +23,6 @@ import {
   unionType,
   validateUserConfigZodType,
 } from "@nomicfoundation/hardhat-zod-utils";
-import chalk from "chalk";
 import { z } from "zod";
 
 import {
@@ -269,6 +268,24 @@ function refineEdrNetworkUserConfig(
         message: `'enableTransientStorage' must be enabled for hardforks 'cancun' or later. To disable this feature, use a hardfork before 'cancun'.`,
       });
     }
+
+    if (
+      typeof networkConfig.mining?.interval === "number" ||
+      Array.isArray(networkConfig.mining?.interval)
+    ) {
+      const interval = networkConfig.mining.interval;
+      const minInterval =
+        typeof interval === "number" ? interval : Math.min(...interval);
+      if (
+        minInterval < 1000 &&
+        networkConfig.allowBlocksWithSameTimestamp !== true
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `mining.interval is set to less than 1000 ms. To avoid the block timestamp diverging from clock time, please set allowBlocksWithSameTimestamp: true on the network config`,
+        });
+      }
+    }
   }
 }
 
@@ -297,25 +314,7 @@ const networkConfigOverrideSchema = z
 
 export async function validateNetworkUserConfig(
   userConfig: HardhatUserConfig,
-  warn: typeof console.warn = console.warn,
 ): Promise<HardhatUserConfigValidationError[]> {
-  // Validate mining config
-  for (const network of Object.values(userConfig.networks ?? {})) {
-    if (network.type !== "edr" || network?.mining?.interval === undefined) {
-      continue;
-    }
-    const interval = network.mining.interval;
-    const minInterval =
-      typeof interval === "number" ? interval : Math.min(...interval);
-    if (minInterval < 1000 && network.allowBlocksWithSameTimestamp !== true) {
-      warn(
-        chalk.yellow(
-          "Mining interval is set to less than 1000 ms. To avoid the block timestamp diverging from clock time, please set allowBlocksWithSameTimestamp: true on the network config",
-        ),
-      );
-    }
-  }
-
   return validateUserConfigZodType(userConfig, userConfigSchema);
 }
 
