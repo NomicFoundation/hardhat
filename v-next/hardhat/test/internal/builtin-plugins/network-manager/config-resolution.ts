@@ -101,7 +101,7 @@ describe("config-resolution", () => {
       assert.equal(httpNetworkConfig.chainType, undefined);
       assert.equal(httpNetworkConfig.from, undefined);
       assert.equal(httpNetworkConfig.gasMultiplier, 1);
-      assert.equal(httpNetworkConfig.timeout, 20_000);
+      assert.equal(httpNetworkConfig.timeout, 300_000);
       assert.deepEqual(httpNetworkConfig.httpHeaders, {});
     });
   });

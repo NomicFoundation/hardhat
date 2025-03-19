@@ -54,7 +54,7 @@ export function resolveHttpNetwork(
     gasMultiplier: networkConfig.gasMultiplier ?? 1,
     gasPrice: resolveGasConfig(networkConfig.gasPrice),
     url: resolveConfigurationVariable(networkConfig.url),
-    timeout: networkConfig.timeout ?? 20_000,
+    timeout: networkConfig.timeout ?? 300_000,
     httpHeaders: networkConfig.httpHeaders ?? {},
   };
 }
