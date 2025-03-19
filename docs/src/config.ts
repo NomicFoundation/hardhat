@@ -31,8 +31,7 @@ export const PRIVACY_POLICY_PATH = "/privacy-policy.html";
 // };
 
 export const bannerContent = {
-  text: "Please take a few minutes to complete the 2024 Solidity Survey",
-  shortText: "Complete the 2024 Solidity Survey here",
+  text: "join the Hardhat team! Nomic Labs is hiring",
   href: "https://hardhat.org/solidity-survey-2024",
 };
 

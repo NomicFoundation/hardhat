@@ -102,7 +102,7 @@ const SidebarItem = styled.li`
       }
     }
   }
-  &.group {
+  &.group:not(:first-child) {
     margin-top: 16px;
   }
 `;

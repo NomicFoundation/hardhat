@@ -3,15 +3,38 @@ import RunnerIcon from "../assets/tools/runner";
 import IgnitionIcon from "../assets/tools/ignition";
 import NetworkIcon from "../assets/tools/network";
 
-// TODO-LANDING-DARK: Replace images below with correct dark themed images.
+import SolidityDebuggerImage from "../assets/feature-cards/Desktop/SolidityDebuggerImage.svg";
+import SolidityDebuggerImageMd from "../assets/feature-cards/Desktop/SolidityDebuggerImageMd.svg";
+import SolidityDebuggerImageSm from "../assets/feature-cards/Desktop/SolidityDebuggerImageSm.svg";
+import SolidityDebuggerImageDark from "../assets/feature-cards/Desktop/SolidityDebuggerImageDark.svg";
+import SolidityDebuggerImageDarkMd from "../assets/feature-cards/Desktop/SolidityDebuggerImageDarkMd.svg";
+import SolidityDebuggerImageDarkSm from "../assets/feature-cards/Desktop/SolidityDebuggerImageDarkSm.svg";
 
-import SolidityImageDesktopDark from "../assets/feature-cards/Desktop/SolidityImageDark.svg";
+import ComprehensiveTestingImage from "../assets/feature-cards/Desktop/ComprehensiveTestingImage.svg";
+import ComprehensiveTestingImageMd from "../assets/feature-cards/Desktop/ComprehensiveTestingImageMd.svg";
+import ComprehensiveTestingImageSm from "../assets/feature-cards/Desktop/ComprehensiveTestingImageSm.svg";
+import ComprehensiveTestingImageDark from "../assets/feature-cards/Desktop/ComprehensiveTestingImageDark.svg";
+import ComprehensiveTestingImageDarkMd from "../assets/feature-cards/Desktop/ComprehensiveTestingImageDarkMd.svg";
+import ComprehensiveTestingImageDarkSm from "../assets/feature-cards/Desktop/ComprehensiveTestingImageDarkSm.svg";
 
-import SolidityDebuggerImage from "../assets/feature-cards/SolidityDebuggerImage.svg";
+import SimpleDeploymentsImage from "../assets/feature-cards/Desktop/SimpleDeploymentsImage.svg";
+import SimpleDeploymentsImageMd from "../assets/feature-cards/Desktop/SimpleDeploymentsImageMd.svg";
+import SimpleDeploymentsImageSm from "../assets/feature-cards/Desktop/SimpleDeploymentsImageSm.svg";
+import SimpleDeploymentsImageDark from "../assets/feature-cards/Desktop/SimpleDeploymentsImageDark.svg";
+import SimpleDeploymentsImageDarkMd from "../assets/feature-cards/Desktop/SimpleDeploymentsImageDarkMd.svg";
+import SimpleDeploymentsImageDarkSm from "../assets/feature-cards/Desktop/SimpleDeploymentsImageDarkSm.svg";
+
+import PluginEcosystemImage from "../assets/feature-cards/Desktop/PluginEcosystemImage.svg";
+import PluginEcosystemImageMd from "../assets/feature-cards/Desktop/PluginEcosystemImageMd.svg";
+import PluginEcosystemImageSm from "../assets/feature-cards/Desktop/PluginEcosystemImageSm.svg";
+import PluginEcosystemImageDark from "../assets/feature-cards/Desktop/PluginEcosystemImageDark.svg";
+import PluginEcosystemImageDarkMd from "../assets/feature-cards/Desktop/PluginEcosystemImageDarkMd.svg";
+import PluginEcosystemImageDarkSm from "../assets/feature-cards/Desktop/PluginEcosystemImageDarkSm.svg";
 
 import vibrantCommunityImage from "../assets/vibrantCommunityImage.svg";
 import vibrantCommunityImageDark from "../assets/vibrantCommunityImageDark.svg";
-// import HardhatNews from "../assets/what-is-new/hardhat-news.svg";
+
+import HardhatNewsImage from "../assets/what-is-new/Hardhat-news.svg";
 
 import { Tools } from "../components/ui/types";
 import reviewsBlock from "../assets/homepage-assets/reviews-block";
@@ -22,109 +45,6 @@ import SolidityIconDark from "../assets/tools/solidity-dark";
 
 import FeatureCardIcons from "../assets/feature-cards/icons";
 
-const whyHardhatContent = {
-  title: "Why hardhat?",
-  footer: {
-    title: "Flexible. Extensible. Fast.",
-    text: "Experience the new way of building Ethereum software.",
-  },
-};
-
-const featureCardsContent = {
-  featureCardOne: {
-    imageDark: SolidityImageDesktopDark,
-    image: SolidityDebuggerImage,
-    articleOne: {
-      title: "Solidity debugger. Reliable and fully featured.",
-      text: "Accelerate your development by diving under the hood. Explore low level EVM aspects to figure out complex bugs quickly.",
-      icon: FeatureCardIcons.CCIcon,
-      cta: {
-        url: "/hardhat-network/#console.log",
-        title: "Learn more about the Hardhat Debugger",
-      },
-    },
-    articleTwo: {
-      title: "Run Solidity locally on a Rust-powered runtime",
-      text: "Deploy your contracts, run tests, and debug your code without dealing with live networks. Hardhat’s Ethereum simulation engine, EDR, is written in Rust for great performance.",
-      icon: FeatureCardIcons.CAIcon,
-      cta: {
-        url: "/hardhat-network/#console.log",
-        title: "Learn more about EDR",
-      },
-    },
-  },
-  featureCardTwo: {
-    imageDark: SolidityImageDesktopDark,
-    image: SolidityDebuggerImage,
-
-    articleOne: {
-      title: "Comprehensive testing approach",
-      text: "Write unit tests in Solidity for speed and conciseness, integration tests in TypeScript for expressiveness and complexity, or fuzzing tests to push the edges. Decide on a case by case basis.",
-      icon: FeatureCardIcons.CubIcon,
-      cta: {
-        url: "/hardhat-network/#console.log",
-        title: "Learn more about testing",
-      },
-    },
-    articleTwo: {
-      title:
-        "Multi-chain ready: Optimism’s OP Stack and Base simulation support",
-      text: "Manage multiple networks at the same time and confidently deploy on OP Stack knowing your code was tested on an accurate simulation.",
-      icon: FeatureCardIcons.DCDIcon,
-      cta: {
-        url: "/hardhat-network/#console.log",
-        title: "Learn more about simulating Base",
-      },
-    },
-  },
-  featureCardThree: {
-    imageDark: SolidityImageDesktopDark,
-    image: SolidityDebuggerImage,
-
-    articleOne: {
-      title: "Simple and reliable deployments",
-      text: "Define your contract instances, their operations, and Hardhat Ignition will drive the complex details and parallelize execution.",
-      icon: FeatureCardIcons.CDIcon,
-      cta: {
-        url: "/hardhat-network/#console.log",
-        title: "Get started with Hardhat Ignition",
-      },
-    },
-    articleTwo: {
-      title: "TypeScript extensibility",
-      text: "A tooling platform designed to be extended, Hardhat has all the utilities you need to address your project-specific needs. Change anything you like. Even entire built-in tasks, or just parts of them.",
-      icon: FeatureCardIcons.LayoutIcon,
-      cta: {
-        url: "/hardhat-network/#console.log",
-        title: "Learn more about extending Hardhat",
-      },
-    },
-  },
-  featureCardFour: {
-    imageDark: SolidityImageDesktopDark,
-    image: SolidityDebuggerImage,
-
-    articleOne: {
-      title: "Plugin ecosystem",
-      text: "Extend Hardhat with a composable ecosystem of plugins that add functionality and integrate your existing tools into a smooth workflow.",
-      icon: FeatureCardIcons.CCReverseIcon,
-      cta: {
-        url: "/hardhat-network/#console.log",
-        title: "Learn started about simulating Base",
-      },
-    },
-    articleTwo: {
-      title: "For teams and projects of any scale",
-      text: "From single hacker quickly iterating on a proof of concept to full blown engineering organization dealing with ad-hoc needs at scale, Hardhat adapts as your needs change",
-      icon: FeatureCardIcons.CCIcon,
-      cta: {
-        url: "/hardhat-network/#console.log",
-        title: "Get started with plugins",
-      },
-    },
-  },
-};
-
 const heroBlockContent = {
   title: "Ethereum development environment for professionals",
   tagline: "<strong>Hardhat 3:</strong> Rearchitected & Rust-powered.",
@@ -132,6 +52,141 @@ const heroBlockContent = {
     title: "Get started",
     url: "/hardhat-runner/docs/getting-started",
   },
+};
+
+const whyHardhatContent = {
+  title: "Why hardhat?",
+  footer: {
+    title: "Flexible. Extensible. Fast.",
+    text: "Experience the new way of building Ethereum software.",
+  },
+  featureCards: [
+    {
+      image: {
+        lg: SolidityDebuggerImage,
+        md: SolidityDebuggerImageMd,
+        sm: SolidityDebuggerImageSm,
+      },
+      imageDark: {
+        lg: SolidityDebuggerImageDark,
+        md: SolidityDebuggerImageDarkMd,
+        sm: SolidityDebuggerImageDarkSm,
+      },
+
+      articleOne: {
+        title: "Solidity debugger. Reliable and fully featured.",
+        text: "Accelerate your development by diving under the hood. Explore low level EVM aspects to figure out complex bugs quickly.",
+        icon: FeatureCardIcons.CCIcon,
+        cta: {
+          url: "/hardhat-network/#console.log",
+          title: "Learn more about the Hardhat Debugger",
+        },
+      },
+      articleTwo: {
+        title: "Run Solidity locally on a Rust-powered runtime",
+        text: "Deploy your contracts, run tests, and debug your code without dealing with live networks. Hardhat’s Ethereum simulation engine, EDR, is written in Rust for great performance.",
+        icon: FeatureCardIcons.CAIcon,
+        cta: {
+          url: "/hardhat-network/#console.log",
+          title: "Learn more about EDR",
+        },
+      },
+    },
+    {
+      image: {
+        lg: ComprehensiveTestingImage,
+        md: ComprehensiveTestingImageMd,
+        sm: ComprehensiveTestingImageSm,
+      },
+      imageDark: {
+        lg: ComprehensiveTestingImageDark,
+        md: ComprehensiveTestingImageDarkMd,
+        sm: ComprehensiveTestingImageDarkSm,
+      },
+
+      articleOne: {
+        title: "Comprehensive testing approach",
+        text: "Write unit tests in Solidity for speed and conciseness, integration tests in TypeScript for expressiveness and complexity, or fuzzing tests to push the edges. Decide on a case by case basis.",
+        icon: FeatureCardIcons.CubIcon,
+        cta: {
+          url: "/hardhat-network/#console.log",
+          title: "Learn more about testing",
+        },
+      },
+      articleTwo: {
+        title:
+          "Multi-chain ready: Optimism’s OP Stack and Base simulation support",
+        text: "Manage multiple networks at the same time and confidently deploy on OP Stack knowing your code was tested on an accurate simulation.",
+        icon: FeatureCardIcons.DCDIcon,
+        cta: {
+          url: "/hardhat-network/#console.log",
+          title: "Learn more about simulating Base",
+        },
+      },
+    },
+    {
+      image: {
+        lg: SimpleDeploymentsImage,
+        md: SimpleDeploymentsImageMd,
+        sm: SimpleDeploymentsImageSm,
+      },
+      imageDark: {
+        lg: SimpleDeploymentsImageDark,
+        md: SimpleDeploymentsImageDarkMd,
+        sm: SimpleDeploymentsImageDarkSm,
+      },
+
+      articleOne: {
+        title: "Simple and reliable deployments",
+        text: "Define your contract instances, their operations, and Hardhat Ignition will drive the complex details and parallelize execution.",
+        icon: FeatureCardIcons.CDIcon,
+        cta: {
+          url: "/hardhat-network/#console.log",
+          title: "Get started with Hardhat Ignition",
+        },
+      },
+      articleTwo: {
+        title: "TypeScript extensibility",
+        text: "A tooling platform designed to be extended, Hardhat has all the utilities you need to address your project-specific needs. Change anything you like. Even entire built-in tasks, or just parts of them.",
+        icon: FeatureCardIcons.LayoutIcon,
+        cta: {
+          url: "/hardhat-network/#console.log",
+          title: "Learn more about extending Hardhat",
+        },
+      },
+    },
+    {
+      image: {
+        lg: PluginEcosystemImage,
+        md: PluginEcosystemImageMd,
+        sm: PluginEcosystemImageSm,
+      },
+      imageDark: {
+        lg: PluginEcosystemImageDark,
+        md: PluginEcosystemImageDarkMd,
+        sm: PluginEcosystemImageDarkSm,
+      },
+
+      articleOne: {
+        title: "Plugin ecosystem",
+        text: "Extend Hardhat with a composable ecosystem of plugins that add functionality and integrate your existing tools into a smooth workflow.",
+        icon: FeatureCardIcons.CCReverseIcon,
+        cta: {
+          url: "/hardhat-network/#console.log",
+          title: "Learn started about simulating Base",
+        },
+      },
+      articleTwo: {
+        title: "For teams and projects of any scale",
+        text: "From single hacker quickly iterating on a proof of concept to full blown engineering organization dealing with ad-hoc needs at scale, Hardhat adapts as your needs change",
+        icon: FeatureCardIcons.CCIcon,
+        cta: {
+          url: "/hardhat-network/#console.log",
+          title: "Get started with plugins",
+        },
+      },
+    },
+  ],
 };
 
 const getStartedBlockContent = {
@@ -160,10 +215,9 @@ const whatIsNewBlockContent = {
   title: "What`s new in Hardhat",
   news: [
     {
-      // imageUrl: HardhatNews,
-      imageUrl: vibrantCommunityImage,
+      imageUrl: HardhatNewsImage,
       title:
-        "Hardhat v2.22.19 released",
+        "Lorem Ipsum dolor sit amet lorem Lorem Ipsum dolor sit amet lorem",
       text: "Accelerate your development by diving under the hood. Explore low level EVM aspects to figure out complex bugs quickly.Explore low level EVM aspects to figure out complex bugs quickly.",
       cta: {
         title: "Learn more about Hardhat v2.22.19",
@@ -298,24 +352,27 @@ const hardhatNewsContent = {
   title: "Hardhat News",
   cards: [
     {
-      image: "https://blog.nomic.foundation/content/images/size/w1000/2024/08/EDR-announcement-blogpost-image.png",
+      image:
+        "https://blog.nomic.foundation/content/images/size/w1000/2024/08/EDR-announcement-blogpost-image.png",
       title: "Hardhat v2.19.0: Introducing Configuration Variables",
       text: "Handling configuration settings is a common situation in Ethereum development, and it often involves sensitive information that could cause…",
-      link: "https://blog.nomic.foundation/hardhat-v2-19-0-introducing-configuration-variables-b528c0c9a7c0/"
+      link: "https://blog.nomic.foundation/hardhat-v2-19-0-introducing-configuration-variables-b528c0c9a7c0/",
     },
     {
-      image: "https://blog.nomic.foundation/content/images/size/w2000/max/1200/1-tnfkli2xqvyeaqrtxl7dya.png",
+      image:
+        "https://blog.nomic.foundation/content/images/size/w2000/max/1200/1-tnfkli2xqvyeaqrtxl7dya.png",
       title: "Migrating to Hardhat Ignition from hardhat-deploy",
       text: "Migrating from hardhat-deploy to Hardhat Ignition For several years, the hardhat-deploy",
-      link: "https://blog.nomic.foundation/migrating-to-hardhat-ignition-from-hardhat-deploy-c17311bb658f/"
+      link: "https://blog.nomic.foundation/migrating-to-hardhat-ignition-from-hardhat-deploy-c17311bb658f/",
     },
     {
-      image: "https://blog.nomic.foundation/content/images/size/w2000/max/800/1-9dqzkhempnzywwkzleayew.png",
+      image:
+        "https://blog.nomic.foundation/content/images/size/w2000/max/800/1-9dqzkhempnzywwkzleayew.png",
       title: "Hardhat + Viem",
       text: "We're happy to announce the newest addition to our official plugins - hardhat-viem. This plugin smoothly integrates the Viem library into…",
-      link: "https://blog.nomic.foundation/hardhat-viem-808a536dcfe6/"
-    }
-  ]
+      link: "https://blog.nomic.foundation/hardhat-viem-808a536dcfe6/",
+    },
+  ],
 };
 
 const emailFormContent = {
@@ -324,7 +381,6 @@ const emailFormContent = {
 
 const homepageContent = {
   whyHardhatContent,
-  featureCardsContent,
   heroBlockContent,
   getStartedBlockContent,
   vibrantCommunityBlockContent,

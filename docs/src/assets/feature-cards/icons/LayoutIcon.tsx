@@ -8,6 +8,7 @@ const LayoutIcon = (props: SVGProps<SVGSVGElement>) => (
     height="46"
     viewBox="0 0 37 46"
     fill="none"
+    className="feature-icon"
     {...props}
   >
     <rect
@@ -16,8 +17,6 @@ const LayoutIcon = (props: SVGProps<SVGSVGElement>) => (
       width="27.5"
       height="35.8262"
       transform="rotate(-90 0.500977 45.3506)"
-      fill="#FBFBFB"
-      stroke="#B0B2B5"
     />
     <rect
       x="0.500977"
@@ -25,8 +24,6 @@ const LayoutIcon = (props: SVGProps<SVGSVGElement>) => (
       width="11.5"
       height="35.8262"
       transform="rotate(-90 0.500977 12.8506)"
-      fill="#FBFBFB"
-      stroke="#B0B2B5"
     />
   </svg>
 );

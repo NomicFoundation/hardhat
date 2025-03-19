@@ -30,7 +30,6 @@ const Container = styled.div`
 `;
 
 const Main = styled.main`
-  padding-top: 136px;
   flex: 1 1 auto;
   display: flex;
   justify-content: flex-start;
@@ -48,7 +47,7 @@ const Main = styled.main`
       background-color: ${tmDark(({ colors }) => colors.neutral0)};
     }
   }
-  ${media.md} {
+  ${media.laptop} {
     & aside {
       display: none;
     }

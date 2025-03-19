@@ -2,8 +2,10 @@ import React, { useState, FormEvent } from "react";
 import { styled } from "linaria/react";
 import Section from "../Section";
 import LandingContainer from "../LandingContainer";
-import { media, tm, tmSelectors } from "../../themes";
+import { media, tm, tmDark, tmSelectors } from "../../themes";
 import backgroundImageLight from "../../assets/email-form/bg-light-big.svg";
+import backgroundImageDark from "../../assets/email-form/bg-dark-big.svg";
+import Lines from "../../assets/email-form/lines";
 
 // Props interface for the component
 interface EmailFormProps {
@@ -14,22 +16,49 @@ interface EmailFormProps {
 const FormSection = styled.section`
   position: relative;
   width: 100%;
-  padding: 690px 0 690px;
+
+  padding: 162px 0;
   background: transparent;
   overflow: hidden;
+  margin-top: 100px;
+  ${media.tablet} {
+    padding: 242px 0;
+  }
+  ${media.laptop} {
+    padding: 529px 0;
+    margin-top: 0;
+  }
+  ${media.desktop} {
+    padding: 690px 0;
+  }
 `;
 
-const BackgroundImage = styled.div<{ image: string }>`
+const BackgroundImage = styled.div<{ image: string; imageDark: string }>`
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
   z-index: 0;
+  pointer-events: none;
   background-image: ${(props) => `url(${props.image})`};
-  background-size: cover;
+  background-size: auto 660px;
   background-position: center;
   background-repeat: no-repeat;
+  ${tmSelectors.dark} {
+    background-image: ${(props) => `url(${props.imageDark})`};
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      background-image: ${(props) => `url(${props.imageDark})`};
+    }
+  }
+  ${media.tablet} {
+    background-size: auto 860px;
+  }
+  ${media.laptop} {
+    background-size: auto 100%;
+  }
 `;
 
 const FormContainer = styled.div`
@@ -38,31 +67,47 @@ const FormContainer = styled.div`
   justify-content: center;
   align-items: center;
   width: 100%;
-  max-width: 665px;
+  max-width: 352px;
   margin: 0 auto;
-  gap: 32px;
-
-  ${media.sm} {
-    gap: 24px;
-  }
-
+  gap: 16px;
+  padding-top: 48px;
   ${media.tablet} {
-    padding: 0;
+    gap: 32px;
+    max-width: 377px;
+  }
+  ${media.laptop} {
+    max-width: 665px;
+    padding-top: 0;
   }
 `;
 
 const FormTitle = styled.h2`
   font-family: "Source Code Pro", monospace;
-  font-size: 39px;
+  font-size: 18px;
   font-weight: 500;
-  line-height: 54.6px;
-  letter-spacing: 0.05em;
-  text-align: center;
+  line-height: 1.35;
+  letter-spacing: 0.045em;
   margin: 0;
-  color: ${tm(({ colors }) => colors.base100)};
+  text-align: center;
+  color: ${tm(({ colors }) => colors.gray9)};
 
   ${tmSelectors.dark} {
-    color: ${tm(({ colors }) => colors.base100)};
+    color: ${tmDark(({ colors }) => colors.gray8b)};
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      color: ${tmDark(({ colors }) => colors.gray8b)};
+    }
+  }
+  ${media.tablet} {
+    font-size: 20px;
+  }
+  ${media.laptop} {
+    text-align: left;
+    font-size: 31px;
+  }
+  ${media.desktop} {
+    font-size: 39px;
   }
 `;
 
@@ -71,11 +116,21 @@ const FormRow = styled.form`
   width: 100%;
   max-width: 665px;
   gap: 32px;
+  flex-direction: column;
+  align-items: center;
+  ${media.laptop} {
+    flex-direction: row;
+  }
 `;
 
 const InputContainer = styled.div`
-  flex: 1;
   position: relative;
+  width: 100%;
+
+  ${media.laptop} {
+    flex: 1;
+    width: auto;
+  }
 `;
 
 const Input = styled.input`
@@ -85,9 +140,9 @@ const Input = styled.input`
   background-color: ${tm(({ colors }) => colors.neutral100)};
   border: 1px solid ${tm(({ colors }) => colors.neutral700)};
   font-family: "Source Code Pro", monospace;
-  font-size: 20px;
+  font-size: 16px;
   line-height: 30px;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.03em;
   color: ${tm(({ colors }) => colors.base100)};
   box-sizing: border-box;
   outline: none;
@@ -98,34 +153,51 @@ const Input = styled.input`
   }
 
   &:focus {
-    border-color: ${tm(({ colors }) => colors.accent800)};
+    border-color: #5e21ff !important;
+    background-color: #5e21ff !important;
+    color: #fff !important;
+    &::placeholder {
+      opacity: 0;
+    }
   }
 
   ${tmSelectors.dark} {
-    background-color: ${tm(({ colors }) => colors.neutral200)};
-    color: ${tm(({ colors }) => colors.base100)};
+    background-color: ${tmDark(({ colors }) => colors.gray3)};
+    color: #fbfbfb;
+    border-color: #4a4d54;
 
     &::placeholder {
-      color: ${tm(({ colors }) => colors.base400)};
+      color: ${tmDark(({ colors }) => colors.gray5)};
     }
+  }
 
-    &:focus {
-      border-color: ${tm(({ colors }) => colors.accent800)};
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      background-color: ${tmDark(({ colors }) => colors.gray3)};
+      color: #fbfbfb;
+      border-color: #4a4d54;
+
+      &::placeholder {
+        color: ${tmDark(({ colors }) => colors.gray5)};
+      }
     }
+  }
+  ${media.tablet} {
+    font-size: 20px;
   }
 `;
 
 const Button = styled.button`
-  height: 56px;
-  min-width: 140px;
+  height: 44px;
+  min-width: 120px;
   padding: 0 28px;
   background-color: ${tm(({ colors }) => colors.accent800)};
   color: ${tm(({ colors }) => colors.base100)};
   font-family: "Roboto", sans-serif;
-  font-size: 16px;
+  font-size: 12px;
   font-weight: 600;
   line-height: 24px;
-  letter-spacing: -0.01em;
+  letter-spacing: 0.01em;
   border: none;
   cursor: pointer;
   transition: background-color 0.2s ease;
@@ -147,6 +219,11 @@ const Button = styled.button`
       background-color: ${tm(({ colors }) => colors.accent600)};
     }
   }
+  ${media.laptop} {
+    height: 56px;
+    font-size: 16px;
+    min-width: 140px;
+  }
 `;
 
 const ErrorMessage = styled.div`
@@ -164,6 +241,31 @@ const SuccessMessage = styled.div`
   font-size: 16px;
   font-family: "Source Code Pro", monospace;
   text-align: center;
+`;
+
+const LinesContainer = styled.div`
+  margin-left: auto;
+  margin-right: auto;
+  width: max-content;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  margin-left: -24px;
+  .lines {
+    stroke: #ededee;
+  }
+  ${tmSelectors.dark} {
+    .lines {
+      stroke: #1c1f23;
+    }
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      .lines {
+        stroke: #1c1f23;
+      }
+    }
+  }
 `;
 
 const EmailForm: React.FC<EmailFormProps> = ({ endpoint }) => {
@@ -223,9 +325,15 @@ const EmailForm: React.FC<EmailFormProps> = ({ endpoint }) => {
 
   return (
     <Section clearPadding>
+      <LinesContainer>
+        <Lines />
+      </LinesContainer>
       <FormSection>
         <LandingContainer>
-          <BackgroundImage image={backgroundImageLight.src} />
+          <BackgroundImage
+            image={backgroundImageLight.src}
+            imageDark={backgroundImageDark.src}
+          />
           <FormContainer>
             <FormTitle>
               Tell me about new product features as they come out
@@ -241,15 +349,14 @@ const EmailForm: React.FC<EmailFormProps> = ({ endpoint }) => {
                   aria-label="Email address"
                 />
                 {error && <ErrorMessage>{error}</ErrorMessage>}
-
               </InputContainer>
               <Button
-                  type="button"
-                  onClick={handleSubmit}
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? "Submitting..." : "Get started"}
-                </Button>
+                type="button"
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Submitting..." : "Get started"}
+              </Button>
             </FormRow>
             {isSuccess && (
               <SuccessMessage>

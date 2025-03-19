@@ -38,8 +38,7 @@ const Container = styled.div`
 `;
 
 const Main = styled.main`
-  overflow-x: hidden;
-  padding-top: 136px;
+  overflow-x: clip;
   flex: 1 1 auto;
   display: flex;
   flex-direction: column;

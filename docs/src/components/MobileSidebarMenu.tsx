@@ -39,13 +39,15 @@ interface ModalProps {
 const MobileSidebarContainer = styled.section`
   display: flex;
   flex-direction: column;
+  height: 100%;
 `;
 
 const MobileNavigationContainer = styled.ul`
   list-style-type: none;
   display: flex;
   flex-direction: column;
-  padding: 16px 0;
+  gap: 20px;
+  padding: 40px 32px;
   color: ${tm(({ colors }) => colors.neutral900)};
   ${tmSelectors.dark} {
     color: ${tmDark(({ colors }) => colors.neutral900)};
@@ -58,27 +60,18 @@ const MobileNavigationContainer = styled.ul`
 `;
 
 const MenuItem = styled.li`
-  padding: 8px 32px;
   display: flex;
   align-items: center;
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 400;
-  text-transform: uppercase;
-  font-family: ChivoRegular, sans-serif;
+  font-family: SourceCodePro, sans-serif;
   cursor: pointer;
-  margin-top: 8px;
 
-  &:first-child {
-    margin-top: unset;
-  }
   &:hover {
     color: ${tm(({ colors }) => colors.accent700)};
     & svg {
       stroke: ${tm(({ colors }) => colors.accent700)};
       fill: ${tm(({ colors }) => colors.accent700)};
-    }
-    & a:after {
-      background-color: ${tm(({ colors }) => colors.accent700)};
     }
 
     ${tmSelectors.dark} {
@@ -86,9 +79,6 @@ const MenuItem = styled.li`
       & svg {
         stroke: ${tmDark(({ colors }) => colors.accent700)};
         fill: ${tmDark(({ colors }) => colors.accent700)};
-      }
-      & a:after {
-        background-color: ${tmDark(({ colors }) => colors.accent700)};
       }
     }
     ${media.mqDark} {
@@ -98,41 +88,35 @@ const MenuItem = styled.li`
           stroke: ${tmDark(({ colors }) => colors.accent700)};
           fill: ${tmDark(({ colors }) => colors.accent700)};
         }
-        & a:after {
-          background-color: ${tmDark(({ colors }) => colors.accent700)};
-        }
       }
     }
   }
   & > a {
     position: relative;
-    &:after {
-      transition: all ease-in-out 0.2s;
-      position: absolute;
-      bottom: -8px;
-      left: 0;
-      content: " ";
-      width: 0;
-      height: 1px;
-      background-color: ${tm(({ colors }) => colors.neutral800)};
+    padding: 2px 8px;
+    border-radius: 3px;
+  }
 
-      ${tmSelectors.dark} {
-        background-color: ${tmDark(({ colors }) => colors.neutral800)};
-      }
-      ${media.mqDark} {
-        ${tmSelectors.auto} {
-          background-color: ${tmDark(({ colors }) => colors.neutral800)};
-        }
+  &[data-current="true"] > a {
+    background-color: ${tm(({ colors }) => colors.gray6)};
+    color: ${tm(({ colors }) => colors.gray1)};
+  }
+
+  ${tmSelectors.dark} {
+    &[data-current="true"] > a {
+      background-color: ${tmDark(({ colors }) => colors.gray6)};
+      color: ${tmDark(({ colors }) => colors.neutral200)};
+    }
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      &[data-current="true"] > a {
+        background-color: ${tmDark(({ colors }) => colors.gray6)};
+        color: ${tmDark(({ colors }) => colors.neutral200)};
       }
     }
   }
-  &[data-current="true"] {
-    & > a {
-      &:after {
-        width: 100%;
-      }
-    }
-  }
+
   & svg {
     margin-left: 4px;
     stroke: ${tm(({ colors }) => colors.neutral900)};
@@ -156,33 +140,16 @@ const MobileMenuFooter = styled.div<{ isRelative?: boolean }>`
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  padding: 16px 40px 32px;
-  position: ${({ isRelative }) => (isRelative ? "relative" : "absolute")};
+  padding: 16px 40px;
+  position: relative;
   bottom: 0;
-  &::before {
-    content: " ";
-    height: 1px;
-    width: 200px;
-    position: absolute;
-    top: 0;
-    left: 32px;
-    background-color: ${tm(({ colors }) => colors.border)};
-    ${tmSelectors.dark} {
-      background-color: ${tmDark(({ colors }) => colors.border)};
-    }
-    ${media.mqDark} {
-      ${tmSelectors.auto} {
-        background-color: ${tmDark(({ colors }) => colors.border)};
-      }
-    }
-  }
+  margin-top: auto;
 `;
 
 const ModalContainer = styled.div<{ isModalOpen: boolean }>`
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 136px);
-  padding: 32px 0;
+  height: calc(100vh - 120px);
   position: absolute;
   width: 100%;
   top: 0px;
@@ -205,11 +172,15 @@ const ModalContainer = styled.div<{ isModalOpen: boolean }>`
   }
 `;
 
+const ModalHeader = styled.div`
+  padding: 32px 32px 16px;
+`;
+
 const ModalBackToMenuButton = styled.button`
-  margin-left: 32px;
   display: flex;
   align-items: center;
-  font-size: 15px;
+  font-size: 14px;
+  font-family: Roboto, sans-serif;
   line-height: 20px;
   width: fit-content;
   background-color: ${tm(({ colors }) => colors.transparent)};
@@ -220,14 +191,15 @@ const ModalBackToMenuButton = styled.button`
     opacity: 0.8;
   }
   & svg {
-    margin-right: 6px;
-    stroke: ${tm(({ colors }) => colors.backButton)};
+    width: 16px;
+    height: 16px;
+    margin-right: 8px;
+
     fill: ${tm(({ colors }) => colors.backButton)};
   }
   ${tmSelectors.dark} {
     color: ${tmDark(({ colors }) => colors.backButton)};
     & svg {
-      stroke: ${tmDark(({ colors }) => colors.backButton)};
       fill: ${tmDark(({ colors }) => colors.backButton)};
     }
   }
@@ -235,7 +207,6 @@ const ModalBackToMenuButton = styled.button`
     ${tmSelectors.auto} {
       color: ${tmDark(({ colors }) => colors.backButton)};
       & svg {
-        stroke: ${tmDark(({ colors }) => colors.backButton)};
         fill: ${tmDark(({ colors }) => colors.backButton)};
       }
     }
@@ -243,38 +214,28 @@ const ModalBackToMenuButton = styled.button`
 `;
 
 const ModalTitle = styled.h4`
-  margin: 16px 32px 8px;
-  font-size: 24px;
+  margin: 16px 0 0;
+  font-size: 20px;
   font-weight: 400;
   width: fit-content;
-  text-transform: uppercase;
+  font-family: SourceCodePro, sans-serif;
+  text-transform: lowercase;
+  line-height: 33px;
+  white-space: nowrap;
+  padding: 0 8px;
+  border-radius: 3px;
   position: relative;
-  color: ${tm(({ colors }) => colors.neutral900)};
+  background-color: ${tm(({ colors }) => colors.gray6)};
+  color: ${tm(({ colors }) => colors.gray1)};
+
   ${tmSelectors.dark} {
-    color: ${tmDark(({ colors }) => colors.neutral900)};
+    background-color: ${tmDark(({ colors }) => colors.gray6)};
+    color: ${tmDark(({ colors }) => colors.neutral200)};
   }
   ${media.mqDark} {
     ${tmSelectors.auto} {
-      color: ${tmDark(({ colors }) => colors.neutral900)};
-    }
-  }
-  &:after {
-    transition: all ease-in-out 0.2s;
-    position: absolute;
-    bottom: -8px;
-    left: 0;
-    content: " ";
-    width: 100%;
-    height: 1px;
-    background-color: ${tm(({ colors }) => colors.neutral900)};
-
-    ${tmSelectors.dark} {
-      background-color: ${tmDark(({ colors }) => colors.neutral900)};
-    }
-    ${media.mqDark} {
-      ${tmSelectors.auto} {
-        background-color: ${tmDark(({ colors }) => colors.neutral900)};
-      }
+      background-color: ${tmDark(({ colors }) => colors.gray6)};
+      color: ${tmDark(({ colors }) => colors.neutral200)};
     }
   }
 `;
@@ -284,16 +245,28 @@ const ToolsList = styled.ul`
   flex-direction: column;
   user-select: none;
   list-style-type: none;
-  font-size: 16.5px;
+  font-size: 16px;
   line-height: 150%;
-  font-weight: 400;
-  padding: 19.5px 32px;
+  font-weight: 500;
+  ont-family: SourceCodePro, sans-serif;
+  padding: 16px 32px;
+  gap: 16px;
 `;
 
 const ToolsListItem = styled.li`
-  margin-top: 15px;
-  &:first-child {
-    margin-top: unset;
+  a {
+    padding: 2px 8px;
+    border-radius: 3px;
+    color: ${tm(({ colors }) => colors.gray7)};
+
+    ${tmSelectors.dark} {
+      color: ${tmDark(({ colors }) => colors.gray7)};
+    }
+    ${media.mqDark} {
+      ${tmSelectors.auto} {
+        color: ${tmDark(({ colors }) => colors.gray7)};
+      }
+    }
   }
 `;
 
@@ -358,12 +331,15 @@ const MobileSidebarMenuModal: FC<ModalProps> = ({
 
   return (
     <ModalContainer isModalOpen={modalState !== null}>
-      <ModalBackToMenuButton onClick={() => setModalState(null)}>
-        <MobileMenuArrowBack />
-        Back
-      </ModalBackToMenuButton>
-      <ModalTitle>{modalState?.label}</ModalTitle>
+      <ModalHeader>
+        <ModalBackToMenuButton onClick={() => setModalState(null)}>
+          <MobileMenuArrowBack />
+          Menu
+        </ModalBackToMenuButton>
+        <ModalTitle>{modalState?.label}</ModalTitle>
+      </ModalHeader>
       {modalState !== null && renderModalContent(modalState.href)}
+
       <MobileMenuFooter isRelative>
         <SocialsList socialsItems={socialsItems} isMobile />
         <ThemeSwitchButton isMobile />

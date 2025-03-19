@@ -28,25 +28,10 @@ const Home: NextPage = () => {
 
       {/* <ToolsBlock content={homepageContent.toolsBlockContent} /> */}
 
-      <WhyHardhatBlock content={homepageContent.whyHardhatContent}>
-        <FeatureCard
-          content={homepageContent.featureCardsContent.featureCardOne}
-        />
-        <FeatureCard
-          content={homepageContent.featureCardsContent.featureCardTwo}
-        />
-        <FeatureCard
-          content={homepageContent.featureCardsContent.featureCardThree}
-        />
-        <FeatureCard
-          content={homepageContent.featureCardsContent.featureCardFour}
-        />
-      </WhyHardhatBlock>
+      <WhyHardhatBlock content={homepageContent.whyHardhatContent} />
       <WhatIsNewBlock content={homepageContent.whatIsNewBlockContent} />
       <HardhatNews content={homepageContent.hardhatNewsContent} />
-      <EmailForm 
-        endpoint={homepageContent.emailFormContent.endpoint} 
-      />
+      <EmailForm endpoint={homepageContent.emailFormContent.endpoint} />
 
       {/* <VibrantCommunityBlock
         content={homepageContent.vibrantCommunityBlockContent}

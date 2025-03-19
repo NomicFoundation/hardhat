@@ -8,42 +8,40 @@ interface HamburgerProps {
 }
 
 const HamburgerContainer = styled.button`
-  width: 44px;
-  height: 32px;
+  width: 24px;
+  height: 24px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 8px;
+  padding: 4px;
   border: none;
-  border-radius: 4px;
   background-color: ${tm(({ colors }) => colors.transparent)};
   cursor: pointer;
-  ${media.md} {
+  ${media.laptop} {
     display: none;
   }
 `;
 
 const HamburgerLine = styled.div<{ isOpen: boolean }>`
   background-color: ${tm(({ colors }) => colors.neutral900)};
-  height: 2px;
-  width: 28px;
+  height: 1px;
+  width: ${({ isOpen }: { isOpen: boolean }) => (isOpen ? "23px" : "17px")};
   transform-origin: left;
   user-select: none;
   transition: all 0.25s ease-in-out;
   &.mid {
-    width: 19px;
     transition: all 0.1s ease-out;
   }
   &.top {
     transform: ${({ isOpen }: { isOpen: boolean }) =>
-      isOpen ? "rotate(45deg) translate(1px, -5px)" : "none"};
+      isOpen ? "rotate(45deg) translate(-1px, -1px) " : "none"};
   }
   &.mid {
     opacity: ${({ isOpen }: { isOpen: boolean }) => (isOpen ? "0" : "1")};
   }
   &.bot {
     transform: ${({ isOpen }: { isOpen: boolean }) =>
-      isOpen ? "rotate(-45deg) translate(1px, 5px)" : "none"};
+      isOpen ? "rotate(-45deg) translate(0, 0px)" : "none"};
   }
 
   ${tmSelectors.dark} {

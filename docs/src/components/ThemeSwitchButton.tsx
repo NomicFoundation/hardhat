@@ -21,9 +21,13 @@ const ThemeButton = styled.button`
   background-color: ${tm(({ colors }) => colors.transparent)};
   color: ${tm(({ colors }) => colors.neutral900)};
   border: none;
+  gap: 8px;
   cursor: pointer;
   transform-origin: center;
-  min-width: 45px;
+  min-width: 80px;
+  height: 50px;
+  font-family: SourceCodePro, sans-serif;
+  font-size: 18px;
   transition: transform ease-in-out 0.25s;
   &:hover {
     opacity: 0.8;
@@ -36,7 +40,7 @@ const ThemeButton = styled.button`
       color: ${tmDark(({ colors }) => colors.autoThemeButton)};
     }
   }
-  ${media.md} {
+  ${media.laptop} {
     display: flex;
   }
   &[data-mobile="true"] {
@@ -51,7 +55,6 @@ const ThemeIconWrapper = styled.div`
   }
   & > .theme-switcher {
     position: relative;
-    bottom: -3px;
   }
   & > .light {
     display: inline;

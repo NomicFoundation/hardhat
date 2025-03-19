@@ -12,11 +12,9 @@ const MenuContainer = styled.section`
   display: none;
   background-color: ${tm(({ colors }) => colors.transparent)};
 
-  ${media.md} {
+  ${media.laptop} {
     display: flex;
     align-items: center;
-    justify-content: space-evenly;
-    margin-left: -130px;
   }
 `;
 
@@ -25,60 +23,55 @@ const MenuList = styled.ul`
   list-style-type: none;
   align-items: center;
   margin-right: 65px;
+  gap: 30px;
 `;
 
 const MenuItem = styled.li`
-  margin-left: 32px;
   padding: 8px 0;
   position: relative;
-  &:first-child {
-    margin-left: unset;
+  &:hover > a:not([data-current="true"]) {
+    color: #5e21ff !important;
   }
 `;
 
 const MenuButton = styled.a`
-  text-transform: uppercase;
   text-align: center;
   border: none;
   color: ${tm(({ colors }) => colors.neutral900)};
   background-color: ${tm(({ colors }) => colors.transparent)};
-  font-size: 15px;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 0 8px;
+  height: 27px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  font-family: SourceCodePro, sans-serif;
   line-height: 15px;
-  letter-spacing: 0.07em;
+  letter-spacing: 0.06em;
   position: relative;
   cursor: pointer;
-  &:after {
-    transition: all ease-in-out 0.2s;
-    position: absolute;
-    bottom: -8px;
-    left: 0;
-    content: " ";
-    width: 0;
-    height: 1px;
-    background-color: ${tm(({ colors }) => colors.neutral900)};
-  }
-  &:hover {
-    &:after {
-      width: 100%;
-    }
-  }
+  border-radius: 3px;
+
   &[data-current="true"] {
-    &:after {
-      width: 100%;
-    }
+    background-color: ${tm(({ colors }) => colors.gray6)};
+    color: ${tm(({ colors }) => colors.gray1)};
   }
 
   ${tmSelectors.dark} {
-    color: ${tmDark(({ colors }) => colors.neutral900)};
-    &:after {
-      background-color: ${tmDark(({ colors }) => colors.neutral900)};
+    color: ${tmDark(({ colors }) => colors.gray4)};
+    &[data-current="true"] {
+      background-color: ${tmDark(({ colors }) => colors.gray6)};
+      color: ${tmDark(({ colors }) => colors.neutral200)};
     }
   }
   ${media.mqDark} {
     ${tmSelectors.auto} {
-      color: ${tmDark(({ colors }) => colors.neutral900)};
-      &:after {
-        background-color: ${tmDark(({ colors }) => colors.neutral900)};
+      color: ${tmDark(({ colors }) => colors.gray4)};
+      &[data-current="true"] {
+        background-color: ${tmDark(({ colors }) => colors.gray6)};
+        color: ${tmDark(({ colors }) => colors.neutral200)};
       }
     }
   }
@@ -86,35 +79,41 @@ const MenuButton = styled.a`
 
 const MenuSocialsList = styled.ul`
   min-width: 80px;
-  width: 80px;
+  gap: 24px;
   display: flex;
   height: 32px;
   align-items: center;
   list-style-type: none;
   justify-content: space-between;
+  margin-right: 40px;
 `;
 
 const SocialLink = styled.a`
   display: flex;
   align-items: center;
   & svg {
-    fill: ${tm(({ colors }) => colors.neutral900)};
+    fill: ${tm(({ colors }) => colors.gray4)};
     ${tmSelectors.dark} {
-      fill: ${tmDark(({ colors }) => colors.neutral900)};
+      fill: #6c6f74;
     }
     ${media.mqDark} {
       ${tmSelectors.auto} {
-        fill: ${tmDark(({ colors }) => colors.neutral900)};
+        fill: #6c6f74;
       }
     }
   }
-  &:hover svg {
-    cursor: pointer;
-    opacity: 0.8;
-  }
+  &:hover svg,
   &:focus svg {
     cursor: pointer;
-    opacity: 0.5;
+    fill: ${tm(({ colors }) => colors.gray6)};
+    ${tmSelectors.dark} {
+      fill: ${tmDark(({ colors }) => colors.gray7)};
+    }
+    ${media.mqDark} {
+      ${tmSelectors.auto} {
+        fill: ${tmDark(({ colors }) => colors.gray7)};
+      }
+    }
   }
 `;
 
@@ -123,46 +122,42 @@ const SocialLinksItem = styled.li`
   align-items: center;
   justify-content: center;
   & svg {
-    width: 22px;
-    height: 22px;
+    width: 32px;
+    height: 32px;
   }
-  &[data-mobile="true"] {
-    width: 30px;
-    height: 30px;
+  &[data-mobile="true"] svg {
+    width: 24px;
+    height: 24px;
   }
 `;
 
 const MenuItemDropDownWrapper = styled.div`
-  width: 494px;
-  height: 200px;
   position: absolute;
-  top: 25px;
+  top: calc(100% + 1px);
   left: 50%;
   transform: translateX(-50%);
+  &:before {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 100%;
+    width: 100%;
+    height: 10px;
+  }
 `;
 
 const MenuItemDropdown = styled.div`
-  width: 494px;
-  height: 176px;
-  box-shadow: 0px 9px 28px 8px rgba(0, 0, 0, 0.05);
-  filter: drop-shadow(0px 6px 50px rgba(10, 11, 13, 0.41));
-  border-radius: 4px;
-  background-color: ${tm(({ colors }) => colors.neutral0)};
-  padding: 24px 32px;
-  position: relative;
-  top: 25px;
-  left: 50%;
-  transform: translateX(-50%);
+  width: 180px;
+  box-shadow: 0px 0px 6px 0px rgba(210, 211, 213, 0.5);
+  background-color: ${tm(({ colors }) => colors.gray1)};
+  padding: 24px;
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 6px;
   z-index: 1;
-  & svg {
-    border-radius: 4px;
-    width: 42px;
-    height: 42px;
-  }
+
   &::after {
-    z-index: -1;
+    z-index: 1;
     position: absolute;
     top: -6px;
     left: 50%;
@@ -175,96 +170,37 @@ const MenuItemDropdown = styled.div`
   }
 
   ${tmSelectors.dark} {
-    background-color: ${tmDark(({ colors }) => colors.neutral0)};
+    background-color: ${tmDark(({ colors }) => colors.neutral200)};
+    box-shadow: 0px 0px 6px 0px rgba(74, 77, 84, 0.5);
   }
   ${media.mqDark} {
     ${tmSelectors.auto} {
-      background-color: ${tmDark(({ colors }) => colors.neutral0)};
+      background-color: ${tmDark(({ colors }) => colors.neutral200)};
+      box-shadow: 0px 0px 6px 0px rgba(74, 77, 84, 0.5);
     }
   }
 `;
 
 const DropdownItem = styled.a`
-  width: 214px;
-  height: 58px;
-  padding: 10.5px 20.5px;
-  display: flex;
-  align-items: center;
-  .icon.dark {
-    display: none;
-  }
-
+  display: block;
+  line-height: 1.5;
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: SourceCodePro, sans-serif;
+  color: ${tm(({ colors }) => colors.gray7)};
   ${tmSelectors.dark} {
-    .light {
-      display: none;
-    }
-    .dark {
-      display: inline;
-    }
+    color: ${tmDark(({ colors }) => colors.neutral800)};
   }
   ${media.mqDark} {
     ${tmSelectors.auto} {
-      .light {
-        display: none;
-      }
-      .dark {
-        display: inline;
-      }
+      color: ${tmDark(({ colors }) => colors.neutral800)};
     }
   }
-`;
-
-const ButtonNameContainer = styled.div`
-  display: flex;
-  align-items: center;
-  margin-left: 12px;
-  position: relative;
-  color: ${tm(({ colors }) => colors.neutral900)};
-  &:after {
-    transition: all ease-in-out 0.2s;
-    position: absolute;
-    bottom: -8px;
-    left: 0;
-    content: " ";
-    width: 0;
-    height: 1px;
-    background-color: ${tm(({ colors }) => colors.neutral900)};
+  &:hover,
+  &:focus-visible {
+    color: #5e21ff !important;
   }
-  ${DropdownItem}:hover > &:after {
-    width: 100%;
-  }
-
-  ${tmSelectors.dark} {
-    color: ${tmDark(({ colors }) => colors.neutral900)};
-    &:after {
-      background-color: ${tmDark(({ colors }) => colors.neutral900)};
-    }
-  }
-  ${media.mqDark} {
-    ${tmSelectors.auto} {
-      color: ${tmDark(({ colors }) => colors.neutral900)};
-      &:after {
-        background-color: ${tmDark(({ colors }) => colors.neutral900)};
-      }
-    }
-  }
-`;
-
-const ButtonCompanyName = styled.span`
-  font-size: 15px;
-  font-family: ChivoLight, sans-serif;
-  color: ${tm(({ colors }) => colors.neutral600)};
-  font-weight: 800;
-`;
-
-const ButtonToolName = styled.span`
-  margin-left: 4px;
-  font-size: 15px;
-  font-family: ChivoLight, sans-serif;
-  color: inherit;
-  line-height: 24px;
-  font-weight: 800;
-  white-space: nowrap;
 `;
 
 export const SocialsList = ({
@@ -302,9 +238,9 @@ const DesktopMenu = ({ menuItems, socialsItems }: MenuProps) => {
   return (
     <MenuContainer>
       <MenuList>
-        <MenuItem>
+        {/* <MenuItem>
           <Searching />
-        </MenuItem>
+        </MenuItem> */}
 
         {menuItems.map((menuItem: MenuItemType) => {
           const isSelected =
@@ -340,18 +276,7 @@ const DesktopMenu = ({ menuItems, socialsItems }: MenuProps) => {
                           scroll={false}
                         >
                           <DropdownItem>
-                            {subItem.icon && (
-                              <subItem.icon className="icon light" />
-                            )}
-                            {subItem.iconDark && (
-                              <subItem.iconDark className="icon dark" />
-                            )}
-                            <ButtonNameContainer>
-                              <ButtonCompanyName>
-                                {subItem.prefix}
-                              </ButtonCompanyName>
-                              <ButtonToolName>{subItem.label}</ButtonToolName>
-                            </ButtonNameContainer>
+                            {subItem.prefix} {subItem.label}
                           </DropdownItem>
                         </Link>
                       );

@@ -45,7 +45,6 @@ const Container = styled.div`
 `;
 
 const Main = styled.main`
-  padding-top: 136px;
   flex: 1 1 auto;
   display: flex;
   justify-content: flex-start;
@@ -88,21 +87,21 @@ export const SidebarContainer = styled.aside<{ isSidebarOpen: boolean }>`
   flex-direction: column;
   width: min(366px, 100%);
   position: fixed;
-  top: 136px;
+  top: 120px;
   left: ${({ isSidebarOpen }) => (isSidebarOpen ? "0px" : "-120vw")};
-  height: calc(100vh - 136px);
+  height: calc(100vh - 120px);
   display: flex;
   overflow-y: auto;
   transition: all ease-out 0.25s;
   z-index: 50;
   background-color: ${tm(({ colors }) => colors.neutral0)};
 
-  ${media.md} {
+  ${media.laptop} {
     left: 0;
   }
 
   .landing & {
-    ${media.md} {
+    ${media.laptop} {
       display: none;
     }
     pointer-events: ${({ isSidebarOpen }) => (isSidebarOpen ? "auto" : "none")};
@@ -133,13 +132,13 @@ export const SidebarContainer = styled.aside<{ isSidebarOpen: boolean }>`
 
   ${SidebarMask} {
     display: none;
-    ${media.md} {
+    ${media.laptop} {
       display: flex;
     }
   }
   ${MobileSidebarMenuMask} {
     display: flex;
-    ${media.md} {
+    ${media.laptop} {
       display: none;
     }
   }
@@ -150,7 +149,7 @@ export const SidebarContainer = styled.aside<{ isSidebarOpen: boolean }>`
 `;
 
 export const Header = styled.header`
-  position: fixed;
+  position: sticky;
   width: 100%;
   top: 0;
   left: 0;
@@ -169,7 +168,7 @@ const View = styled.section`
   height: calc(100vh - 136px);
   overflow-y: scroll;
   scroll-behavior: smooth;
-  ${media.md} {
+  ${media.laptop} {
     padding-left: 366px;
   }
 `;
