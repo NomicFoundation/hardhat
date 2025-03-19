@@ -5,7 +5,6 @@ description: Documentation about Hardhat, the Ethereum development environment
 
 > 🚀 **Hardhat 3 alpha release is out! [Learn more.](/hardhat3-alpha)**
 
-
 Hardhat is a development environment for Ethereum software. It consists of different components for editing, compiling, debugging and deploying your smart contracts and dApps, all of which work together to create a complete development environment.
 
 To get started check out these sections:
