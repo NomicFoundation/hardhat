@@ -13,7 +13,6 @@ Hardhat 3 is a complete overhaul. This is an alpha release and there’s still a
 
 :::
 
-
 Hardhat is a development environment for Ethereum software. It consists of different components for editing, compiling, debugging and deploying your smart contracts and dApps, all of which work together to create a complete development environment.
 
 To get started check out these sections:
