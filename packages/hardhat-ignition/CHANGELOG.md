@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.15.11
+
+### Patch Changes
+
+- Updated dependencies [a5419a7]
+- Updated dependencies [cf16afa]
+- Updated dependencies [4ad0bc0]
+- Updated dependencies [9d6f713]
+  - hardhat@2.22.20
+  - @nomicfoundation/ignition-ui@0.15.11
+
 ## 0.15.10
 
 ### Patch Changes
