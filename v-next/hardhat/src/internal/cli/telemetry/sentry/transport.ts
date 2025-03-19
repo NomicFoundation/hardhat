@@ -1,18 +1,41 @@
-import type { Event, Response } from "@sentry/node";
+import type {
+  BaseTransportOptions,
+  Transport,
+  TransportMakeRequestResponse,
+  TransportRequest,
+} from "@sentry/core";
 
 import { spawnDetachedSubProcess } from "@nomicfoundation/hardhat-utils/subprocess";
+import { createTransport, type Event } from "@sentry/node";
 import debug from "debug";
 
 const log = debug("hardhat:cli:telemetry:sentry:transport");
 
-// This class is wrapped in a function to avoid having to
-// import @sentry/node just for the BaseTransport base class
-export async function getSubprocessTransport(): Promise<any> {
-  const { Status, Transports } = await import("@sentry/node");
+export function makeSubprocessTransport(
+  options: BaseTransportOptions,
+): Transport {
+  async function makeRequest(
+    request: TransportRequest,
+  ): Promise<TransportMakeRequestResponse> {
+    // Any error thrown here will not be propagated to the main process
+    try {
+      // From Sentry v7 onwards, the handler receives Envelopes instead of Events.
+      // We extract the Event from the Envelope by iterating over the newline-separated objects
+      const body = ensureString(request.body);
+      const event: Event = body
+        .split("\n")
+        .map((result) => JSON.parse(result))
+        .find(
+          (e: any) => e.event_id !== undefined && e.timestamp !== undefined,
+        );
 
-  class SubprocessTransport extends Transports.BaseTransport {
-    public override async sendEvent(event: Event): Promise<Response> {
-      // Be aware that any error thrown here will not be propagated to the main process
+      if (event === undefined) {
+        log(`No event found in the request body: ${body}`);
+
+        return {
+          statusCode: 200,
+        };
+      }
 
       const extra: { configPath?: string } = event.extra ?? {};
       const { configPath } = extra;
@@ -51,12 +74,23 @@ export async function getSubprocessTransport(): Promise<any> {
       await spawnDetachedSubProcess(subprocessFile, args, env);
 
       log("Exception sent to detached subprocess");
-
-      return {
-        status: Status.Success,
-      };
+    } catch (error) {
+      log("Error sending event to subprocess", error);
     }
+
+    return {
+      statusCode: 200,
+    };
   }
 
-  return SubprocessTransport;
+  // `createTransport` takes care of rate limiting and flushing
+  return createTransport(options, makeRequest);
+}
+
+export function ensureString(input: string | Uint8Array): string {
+  if (typeof input === "string") {
+    return input;
+  } else {
+    return new TextDecoder().decode(input);
+  }
 }

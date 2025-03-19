@@ -1,5 +1,4 @@
 import type { SolidityBuildSystem } from "../../../types/solidity/build-system.js";
-import type { CompilationJob } from "../../../types/solidity.js";
 
 import "../../../types/config.js";
 declare module "../../../types/config.js" {
@@ -99,19 +98,20 @@ declare module "../../../types/hooks.js" {
 
   export interface SolidityHooks {
     /**
-     * Provide a handler for this hook to retrieve all artifacts created by a compilation job.
+     * Hook triggered during the cleanup process of Solidity compilation artifacts.
+     * This hook runs after unused artifacts and build-info files have been removed.
      *
      * @param context The hook context.
-     * @param artifacts A map of the artifacts created by each compilation job.
+     * @param artifactPaths The file paths of artifacts that remain after cleanup.
      * @param next A function to call the next handler for this hook, or the
-     * default implementation if there are no more handlers.
+     * default implementation if no more handlers exist.
      */
-    onAllArtifactsEmitted: (
+    onCleanUpArtifacts: (
       context: HookContext,
-      artifacts: Map<CompilationJob, ReadonlyMap<string, string[]>>,
+      artifactPaths: string[],
       next: (
         nextContext: HookContext,
-        artifacts: Map<CompilationJob, ReadonlyMap<string, string[]>>,
+        artifactPaths: string[],
       ) => Promise<void>,
     ) => Promise<void>;
   }

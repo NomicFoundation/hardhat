@@ -12,7 +12,7 @@ import {
 import { getHardhatVersion } from "../../../utils/package.js";
 import { isTelemetryAllowed } from "../telemetry-permissions.js";
 
-import { getSubprocessTransport } from "./transport.js";
+import { makeSubprocessTransport } from "./transport.js";
 
 const log = debug("hardhat:cli:telemetry:sentry:reporter");
 
@@ -63,18 +63,22 @@ class Reporter {
 
     log("Initializing Reporter instance");
 
-    const { Integrations, init, setExtra } = await import("@sentry/node");
+    const { init, setExtra, linkedErrorsIntegration, contextLinesIntegration } =
+      await import("@sentry/node");
 
-    const linkedErrorsIntegration = new Integrations.LinkedErrors({
+    const linkedErrorsIntegrationInstance = linkedErrorsIntegration({
       key: "cause",
     });
 
-    const transport = await getSubprocessTransport();
+    const contextLinesIntegrationInstance = contextLinesIntegration();
 
     init({
       dsn: SENTRY_DSN,
-      transport,
-      integrations: () => [linkedErrorsIntegration],
+      transport: makeSubprocessTransport,
+      integrations: () => [
+        linkedErrorsIntegrationInstance,
+        contextLinesIntegrationInstance,
+      ],
     });
 
     setExtra("nodeVersion", process.version);

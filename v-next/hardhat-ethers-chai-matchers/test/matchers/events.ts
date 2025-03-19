@@ -11,7 +11,7 @@ import { before, beforeEach, describe, it } from "node:test";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   assertRejectsWithHardhatError,
-  useFixtureProject,
+  useEphemeralFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
 import { expect, AssertionError } from "chai";
 import { id } from "ethers/hash";
@@ -31,7 +31,7 @@ describe(".to.emit (contract events)", { timeout: 60000 }, () => {
   let matchers: MatchersContract;
 
   describe("with the in-process hardhat network", () => {
-    useFixtureProject("hardhat-project");
+    useEphemeralFixtureProject("hardhat-project");
     runTests();
   });
 
