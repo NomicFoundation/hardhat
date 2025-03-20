@@ -1227,7 +1227,7 @@ describe("network-manager/hook-handlers/config", () => {
           gasPrice: "auto",
           accounts: "remote",
           url: new FixedValueConfigurationVariable("http://localhost:8545"),
-          timeout: 20_000,
+          timeout: 300_000,
           httpHeaders: {},
         },
       });
