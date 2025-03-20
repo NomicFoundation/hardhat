@@ -22,8 +22,10 @@ import type {
 } from "../../types/network-interaction.js";
 
 import { IgnitionError } from "../../../../errors.js";
+import { DeploymentLoader } from "../../../deployment-loader/types.js";
 import { ERRORS } from "../../../errors-list.js";
 import { assertIgnitionInvariant } from "../../../utils/assertions.js";
+import { JournalMessageType } from "../../types/messages.js";
 
 /**
  * Runs a StaticCall NetworkInteraction to completion, returning its raw result.
@@ -108,12 +110,14 @@ export async function sendTransactionForOnchainInteraction(
     | StrategySimulationErrorExecutionResult
     | undefined
   >,
+  deploymentLoader: DeploymentLoader,
+  futureId: string,
 ): Promise<
   | SimulationErrorExecutionResult
   | StrategySimulationErrorExecutionResult
   | {
       type: typeof TRANSACTION_SENT_TYPE;
-      transaction: Transaction;
+      transaction: Pick<Transaction, "hash" | "fees">;
       nonce: number;
     }
 > {
@@ -200,6 +204,13 @@ export async function sendTransactionForOnchainInteraction(
   if (decodedSimulationResult !== undefined) {
     return decodedSimulationResult;
   }
+
+  await deploymentLoader.recordToJournal({
+    type: JournalMessageType.TRANSACTION_PREPARE_SEND,
+    futureId,
+    networkInteractionId: onchainInteraction.id,
+    nonce: transactionParams.nonce,
+  });
 
   const txHash = await client.sendTransaction(transactionParams);
 
