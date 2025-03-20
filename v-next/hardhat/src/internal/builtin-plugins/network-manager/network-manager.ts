@@ -2,6 +2,7 @@ import type { ArtifactManager } from "../../../types/artifacts.js";
 import type {
   NetworkConfig,
   NetworkConfigOverride,
+  NetworkUserConfig,
 } from "../../../types/config.js";
 import type { HookManager } from "../../../types/hooks.js";
 import type {
@@ -21,11 +22,7 @@ import { readBinaryFile } from "@nomicfoundation/hardhat-utils/fs";
 
 import { resolveConfigurationVariable } from "../../core/configuration-variables.js";
 
-import {
-  mergeConfigOverride,
-  normalizeNetworkConfigOverride,
-} from "./config-override.js";
-import { resolveNetworkConfigOverride } from "./config-resolution.js";
+import { resolveNetworkConfig } from "./config-resolution.js";
 import { EdrProvider } from "./edr/edr-provider.js";
 import { isEdrSupportedChainType } from "./edr/utils/chain-type.js";
 import { HttpProvider } from "./http-provider.js";
@@ -43,6 +40,7 @@ export class NetworkManagerImplementation implements NetworkManager {
   readonly #networkConfigs: Readonly<Record<string, Readonly<NetworkConfig>>>;
   readonly #hookManager: Readonly<HookManager>;
   readonly #artifactsManager: Readonly<ArtifactManager>;
+  readonly #userConfigNetworks: Readonly<Record<string, NetworkUserConfig>>;
 
   #nextConnectionId = 0;
 
@@ -52,12 +50,14 @@ export class NetworkManagerImplementation implements NetworkManager {
     networkConfigs: Record<string, NetworkConfig>,
     hookManager: HookManager,
     artifactsManager: ArtifactManager,
+    userConfigNetworks: Record<string, NetworkUserConfig>,
   ) {
     this.#defaultNetwork = defaultNetwork;
     this.#defaultChainType = defaultChainType;
     this.#networkConfigs = networkConfigs;
     this.#hookManager = hookManager;
     this.#artifactsManager = artifactsManager;
+    this.#userConfigNetworks = userConfigNetworks;
   }
 
   public async connect<
@@ -96,7 +96,7 @@ export class NetworkManagerImplementation implements NetworkManager {
       });
     }
 
-    let resolvedNetworkConfigOverride: Partial<NetworkConfig> | undefined;
+    let resolvedNetworkConfigOverride: NetworkConfig | undefined;
     if (networkConfigOverride !== undefined) {
       if (
         "type" in networkConfigOverride &&
@@ -111,17 +111,15 @@ export class NetworkManagerImplementation implements NetworkManager {
         );
       }
 
-      const normalizedNetworkConfigOverride =
-        await normalizeNetworkConfigOverride(
-          networkConfigOverride,
-          this.#networkConfigs[resolvedNetworkName],
-        );
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/consistent-type-assertions -- tmp
+      const newConfig: NetworkUserConfig = {
+        ...this.#userConfigNetworks[resolvedNetworkName],
+        ...networkConfigOverride,
+      } as unknown as NetworkUserConfig;
 
       // As normalizeNetworkConfigOverride is not type-safe, we validate the
       // normalized network config override immediately after normalizing it.
-      const validationErrors = await validateNetworkConfigOverride(
-        normalizedNetworkConfigOverride,
-      );
+      const validationErrors = await validateNetworkConfigOverride(newConfig);
       if (validationErrors.length > 0) {
         throw new HardhatError(
           HardhatError.ERRORS.NETWORK.INVALID_CONFIG_OVERRIDE,
@@ -137,17 +135,16 @@ export class NetworkManagerImplementation implements NetworkManager {
         );
       }
 
-      resolvedNetworkConfigOverride = resolveNetworkConfigOverride(
-        normalizedNetworkConfigOverride,
+      resolvedNetworkConfigOverride = resolveNetworkConfig(
+        newConfig,
         (strOrConfigVar) =>
           resolveConfigurationVariable(this.#hookManager, strOrConfigVar),
       );
     }
 
-    const resolvedNetworkConfig = mergeConfigOverride(
-      this.#networkConfigs[resolvedNetworkName],
-      resolvedNetworkConfigOverride,
-    );
+    const resolvedNetworkConfig =
+      resolvedNetworkConfigOverride ??
+      this.#networkConfigs[resolvedNetworkName];
 
     /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     -- Cast to ChainTypeT because we know it's valid */

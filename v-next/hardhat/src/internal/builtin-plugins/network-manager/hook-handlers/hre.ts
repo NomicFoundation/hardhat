@@ -5,6 +5,10 @@ export default async (): Promise<Partial<HardhatRuntimeEnvironmentHooks>> => ({
   created: async (context, hre) => {
     let networkManager: NetworkManager | undefined;
 
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- TMP
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- TMP
+    const userConfigNetworks = (hre as any).userConfig.networks;
+
     hre.network = {
       async connect(networkName, chainType, networkConfigOverride) {
         const { NetworkManagerImplementation } = await import(
@@ -20,6 +24,7 @@ export default async (): Promise<Partial<HardhatRuntimeEnvironmentHooks>> => ({
             hre.config.networks,
             context.hooks,
             context.artifacts,
+            userConfigNetworks,
           );
         }
 

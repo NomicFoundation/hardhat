@@ -149,6 +149,28 @@ export function resolveNetworkConfigOverride(
   );
 }
 
+export function resolveNetworkConfig(
+  networkUserConfigOverride: NetworkUserConfig,
+  resolveConfigurationVariable: ConfigurationVariableResolver,
+): NetworkConfig {
+  let resolvedConfigOverride: NetworkConfig;
+
+  if (networkUserConfigOverride.type === "http") {
+    resolvedConfigOverride = resolveHttpNetwork(
+      networkUserConfigOverride,
+      resolveConfigurationVariable,
+    );
+  } else {
+    resolvedConfigOverride = resolveEdrNetwork(
+      networkUserConfigOverride,
+      "",
+      resolveConfigurationVariable,
+    );
+  }
+
+  return resolvedConfigOverride;
+}
+
 function pickResolvedFromOverrides<
   TResolved extends object,
   TOverride extends object,
