@@ -21,9 +21,12 @@ export class HDWalletHandler extends LocalAccountsHandler {
       passphrase,
     );
 
-    return new HDWalletHandler(provider, privateKeys);
+    const hdWalletHandler = new HDWalletHandler(provider);
+    await hdWalletHandler.initializePrivateKeys(privateKeys);
+
+    return hdWalletHandler;
   }
-  private constructor(provider: EthereumProvider, privateKeys: string[]) {
-    super(provider, privateKeys);
+  private constructor(provider: EthereumProvider) {
+    super(provider);
   }
 }

@@ -73,7 +73,7 @@ describe("LocalAccountsHandler", () => {
     "0xec02c2b7019e75378a05018adc30a0252ba705670acb383a1d332e57b0b792d2",
   ];
 
-  beforeEach(() => {
+  beforeEach(async () => {
     mockedProvider = new EthereumMockedProvider();
 
     mockedProvider.setReturnValue(
@@ -86,7 +86,8 @@ describe("LocalAccountsHandler", () => {
     );
     mockedProvider.setReturnValue("eth_accounts", []);
 
-    localAccountsHandler = new LocalAccountsHandler(mockedProvider, accounts);
+    localAccountsHandler = new LocalAccountsHandler(mockedProvider);
+    await localAccountsHandler.initializePrivateKeys(accounts);
   });
 
   describe("resolveRequest", () => {
@@ -141,7 +142,8 @@ describe("LocalAccountsHandler", () => {
       it("should be compatible with parity's implementation", async () => {
         // This test was created by using Parity Ethereum
         // v2.2.5-beta-7fbcdfeed-20181213 and calling eth_sign
-        localAccountsHandler = new LocalAccountsHandler(mockedProvider, [
+        localAccountsHandler = new LocalAccountsHandler(mockedProvider);
+        await localAccountsHandler.initializePrivateKeys([
           "0x6e59a6617c48d76d3b21d722eaba867e16ecf54ab3da7a93724f51812bc6d1aa",
         ]);
 
@@ -163,7 +165,8 @@ describe("LocalAccountsHandler", () => {
 
       it("should be compatible with ganache-cli's implementation", async () => {
         // This test was created by using Ganache CLI v6.1.6 (ganache-core: 2.1.5)
-        localAccountsHandler = new LocalAccountsHandler(mockedProvider, [
+        localAccountsHandler = new LocalAccountsHandler(mockedProvider);
+        await localAccountsHandler.initializePrivateKeys([
           "0xf159c85082f4dd4ee472583a37a1b5683c727ec99708f3d94ff05faa7a7a70ce",
         ]);
 
@@ -194,7 +197,8 @@ describe("LocalAccountsHandler", () => {
 
       it("should be compatible with geth's implementation", async () => {
         // This test was created by using Geth 1.8.20-stable
-        localAccountsHandler = new LocalAccountsHandler(mockedProvider, [
+        localAccountsHandler = new LocalAccountsHandler(mockedProvider);
+        await localAccountsHandler.initializePrivateKeys([
           "0xf2d19e944851ea0faa9440e24a22ddab850210cae46b306a3fde4c98b22a0dcb",
         ]);
 
@@ -251,7 +255,8 @@ describe("LocalAccountsHandler", () => {
         // This test was taken from the `eth_signTypedData` example from the
         // EIP-712 specification.
         // <https://eips.ethereum.org/EIPS/eip-712#eth_signtypeddata>
-        localAccountsHandler = new LocalAccountsHandler(mockedProvider, [
+        localAccountsHandler = new LocalAccountsHandler(mockedProvider);
+        await localAccountsHandler.initializePrivateKeys([
           // keccak256("cow")
           "0xc85ef7d79691fe79573b1a7064c19c1a9819ebdbd1faaab1a8ec92344438aaf4",
         ]);
@@ -309,7 +314,8 @@ describe("LocalAccountsHandler", () => {
       });
 
       it("should be compatible with stringified JSON input", async () => {
-        localAccountsHandler = new LocalAccountsHandler(mockedProvider, [
+        localAccountsHandler = new LocalAccountsHandler(mockedProvider);
+        await localAccountsHandler.initializePrivateKeys([
           // keccak256("cow")
           "0xc85ef7d79691fe79573b1a7064c19c1a9819ebdbd1faaab1a8ec92344438aaf4",
         ]);
@@ -406,7 +412,8 @@ describe("LocalAccountsHandler", () => {
     describe("personal_sign", () => {
       it("should be compatible with geth's implementation", async () => {
         // This test was created by using Geth 1.10.12-unstable and calling personal_sign
-        localAccountsHandler = new LocalAccountsHandler(mockedProvider, [
+        localAccountsHandler = new LocalAccountsHandler(mockedProvider);
+        await localAccountsHandler.initializePrivateKeys([
           "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
         ]);
 
@@ -428,7 +435,8 @@ describe("LocalAccountsHandler", () => {
 
       it("should be compatible with metamask's implementation", async () => {
         // This test was created by using Metamask 10.3.0
-        localAccountsHandler = new LocalAccountsHandler(mockedProvider, [
+        localAccountsHandler = new LocalAccountsHandler(mockedProvider);
+        await localAccountsHandler.initializePrivateKeys([
           "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
         ]);
 

@@ -106,10 +106,12 @@ export async function createHandlersArray<
       const resolvedAccounts = await Promise.all(
         accounts.map((acc) => acc.getHexString()),
       );
-
-      requestHandlers.push(
-        new LocalAccountsHandler(networkConnection.provider, resolvedAccounts),
+      const localAccountsHandler = new LocalAccountsHandler(
+        networkConnection.provider,
       );
+      await localAccountsHandler.initializePrivateKeys(resolvedAccounts);
+
+      requestHandlers.push(localAccountsHandler);
     } else if (isHttpNetworkHdAccountsConfig(accounts)) {
       const { HDWalletHandler } = await import(
         "./handlers/accounts/hd-wallet-handler.js"
