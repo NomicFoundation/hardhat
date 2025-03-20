@@ -3,4 +3,4 @@
 "hardhat": patch
 ---
 
-Replaced the hook for emitting compiled artifacts and updated its usage in the `hardhat-typechain` plugin.
+Don't generate `hardhat-typechain` types for Solidity test files ([#6392](https://github.com/NomicFoundation/hardhat/issues/6392))
