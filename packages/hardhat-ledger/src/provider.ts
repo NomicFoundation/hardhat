@@ -120,7 +120,20 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
     }
 
     if (args.method === "eth_accounts") {
-      const accounts = (await this._wrappedProvider.request(args)) as string[];
+      // some rpcs return "the method has been deprecated: eth_accounts" error
+      let accounts: string[];
+      try {
+        accounts = (await this._wrappedProvider.request(args)) as string[];
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          error.message.includes("deprecated: eth_accounts")
+        ) {
+          accounts = [];
+        } else {
+          throw error;
+        }
+      }
       return [...accounts, ...this.options.accounts];
     }
 
@@ -304,6 +317,10 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
     }
     if (txRequest.data !== undefined) {
       baseTx.data = toHex(txRequest.data);
+    }
+    // force legacy tx type if EIP-1559 fields are not present
+    if (!hasEip1559Fields) {
+      baseTx.type = 0;
     }
 
     const txToSign =
