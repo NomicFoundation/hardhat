@@ -963,8 +963,8 @@ jobs:
       - name: Run ${{ matrix.command }}
         id: run
         env:
-          DEBUG: ${{ runner.debug && '*' || '' }}
-          NODE_OPTIONS: ${{ runner.debug && '--trace-warnings --trace-deprecation --trace-exit' || '' }}
+          DEBUG: ${{ true && '*' || '' }}
+          NODE_OPTIONS: ${{ true && '--trace-warnings --trace-deprecation --trace-exit' || '' }}
           ENV_SOURCE: ${{ fromJSON(steps.config.outputs.repository).env }}
         run: |
           source <(echo "$ENV_SOURCE")

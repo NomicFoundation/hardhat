@@ -107,9 +107,13 @@ export async function main(
       return;
     }
 
+    log("Quit");
+
     if (options.registerTsx === true) {
       register();
     }
+
+    log("Register");
 
     const userConfig = await importUserConfig(configPath);
 

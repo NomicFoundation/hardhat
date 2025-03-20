@@ -71,7 +71,13 @@ export async function importUserConfig(
 ): Promise<HardhatUserConfig> {
   const normalizedPath = await normalizeConfigPath(configPath);
 
+  log(normalizeConfigPath);
+
+  log(pathToFileURL(normalizedPath).href);
+
   const imported = await import(pathToFileURL(normalizedPath).href);
+
+  log("Imported");
 
   if (!("default" in imported)) {
     throw new HardhatError(HardhatError.ERRORS.GENERAL.NO_CONFIG_EXPORTED, {
