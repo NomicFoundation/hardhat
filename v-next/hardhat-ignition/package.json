@@ -1,21 +1,11 @@
 {
   "name": "@nomicfoundation/hardhat-ignition",
   "version": "3.0.0-next.2",
-  "license": "MIT",
-  "author": "Nomic Foundation",
-  "homepage": "https://hardhat.org",
   "description": "Hardhat Ignition is a declarative system for deploying smart contracts on Ethereum. It enables you to define smart contract instances you want to deploy, and any operation you want to run on them. By taking over the deployment and execution, Hardhat Ignition lets you focus on your project instead of getting caught up in the deployment details.",
+  "homepage": "https://hardhat.org",
   "repository": "github:NomicFoundation/hardhat-ignition",
-  "keywords": [
-    "ethereum",
-    "smart-contracts",
-    "hardhat",
-    "blockchain",
-    "dapps",
-    "tooling",
-    "solidity",
-    "deployment"
-  ],
+  "author": "Nomic Foundation",
+  "license": "MIT",
   "type": "module",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
@@ -34,6 +24,16 @@
       ]
     }
   },
+  "keywords": [
+    "ethereum",
+    "smart-contracts",
+    "hardhat",
+    "blockchain",
+    "dapps",
+    "tooling",
+    "solidity",
+    "deployment"
+  ],
   "scripts": {
     "lint": "pnpm prettier --check && pnpm eslint",
     "lint:fix": "pnpm prettier --write && pnpm eslint --fix",
@@ -80,9 +80,6 @@
     "typescript-eslint": "7.7.1",
     "viem": "^2.21.42"
   },
-  "peerDependencies": {
-    "hardhat": "workspace:^3.0.0-next.2"
-  },
   "dependencies": {
     "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.2",
     "@nomicfoundation/ignition-core": "workspace:^3.0.0-next.2",
@@ -92,5 +89,8 @@
     "debug": "^4.3.2",
     "prompts": "^2.4.2",
     "json5": "^2.2.3"
+  },
+  "peerDependencies": {
+    "hardhat": "workspace:^3.0.0-next.2"
   }
 }
