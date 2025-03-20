@@ -4,11 +4,7 @@
 
 ### Patch Changes
 
-- Hardhat 3 Alpha release (2025-03-20T08:38:27.809Z)
 - Updated dependencies [c9d81f9]
-- Updated dependencies
-  - @nomicfoundation/hardhat-utils@3.0.0-next.2
-  - @nomicfoundation/hardhat-errors@3.0.0-next.2
 
 ## 3.0.0-next.1
 
