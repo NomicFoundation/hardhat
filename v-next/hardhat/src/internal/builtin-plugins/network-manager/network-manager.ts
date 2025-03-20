@@ -115,7 +115,7 @@ export class NetworkManagerImplementation implements NetworkManager {
       const newConfig: NetworkUserConfig = {
         ...this.#userConfigNetworks[resolvedNetworkName],
         ...networkConfigOverride,
-      } as unknown as NetworkUserConfig;
+      } as NetworkUserConfig;
 
       // As normalizeNetworkConfigOverride is not type-safe, we validate the
       // normalized network config override immediately after normalizing it.
