@@ -1,5 +1,30 @@
 # hardhat
 
+## 3.0.0-next.2
+
+### Patch Changes
+
+- 739f6b3: Don't generate `hardhat-typechain` types for Solidity test files ([#6392](https://github.com/NomicFoundation/hardhat/issues/6392))
+- 1e625dc: Fix to ensure we don't generate stack traces if EVM execution is indeterministic.
+- aab6d99: Speed up Solidity Tests when forking by setting an rpc cache path ([#6459](https://github.com/NomicFoundation/hardhat/issues/6459))
+- c9d81f9: Fixed errors in compiler list downloads with a synchronization mutex ([#6437](https://github.com/NomicFoundation/hardhat/issues/6437))
+- 89f95f9: Added support for the `attach` method in `hardhat-typechain` ([#6315](https://github.com/NomicFoundation/hardhat/issues/6315))
+
+## 3.0.0-next.2
+
+### Patch Changes
+
+- 739f6b3: Don't generate `hardhat-typechain` types for Solidity test files ([#6392](https://github.com/NomicFoundation/hardhat/issues/6392))
+- 1e625dc: Fix to ensure we don't generate stack traces if EVM execution is indeterministic.
+- aab6d99: Speed up Solidity Tests when forking by setting an rpc cache path ([#6459](https://github.com/NomicFoundation/hardhat/issues/6459))
+- c9d81f9: Fixed errors in compiler list downloads with a synchronization mutex ([#6437](https://github.com/NomicFoundation/hardhat/issues/6437))
+- 89f95f9: Added support for the `attach` method in `hardhat-typechain` ([#6315](https://github.com/NomicFoundation/hardhat/issues/6315))
+- Updated dependencies [c9d81f9]
+- Updated dependencies
+  - @nomicfoundation/hardhat-utils@3.0.0-next.2
+  - @nomicfoundation/hardhat-errors@3.0.0-next.2
+  - @nomicfoundation/hardhat-zod-utils@3.0.0-next.2
+
 ## 3.0.0-next.1
 
 ### Patch Changes
