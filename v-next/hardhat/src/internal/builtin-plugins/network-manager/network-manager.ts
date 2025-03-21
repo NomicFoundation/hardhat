@@ -22,7 +22,8 @@ import { readBinaryFile } from "@nomicfoundation/hardhat-utils/fs";
 
 import { resolveConfigurationVariable } from "../../core/configuration-variables.js";
 
-import { resolveNetworkConfig } from "./config-resolution.js";
+import { mergeConfigOverride } from "./config-override.js";
+import { resolveEdrNetwork, resolveHttpNetwork } from "./config-resolution.js";
 import { EdrProvider } from "./edr/edr-provider.js";
 import { isEdrSupportedChainType } from "./edr/utils/chain-type.js";
 import { HttpProvider } from "./http-provider.js";
@@ -50,14 +51,14 @@ export class NetworkManagerImplementation implements NetworkManager {
     networkConfigs: Record<string, NetworkConfig>,
     hookManager: HookManager,
     artifactsManager: ArtifactManager,
-    userConfigNetworks: Record<string, NetworkUserConfig>,
+    userConfigNetworks: Record<string, NetworkUserConfig> | undefined,
   ) {
     this.#defaultNetwork = defaultNetwork;
     this.#defaultChainType = defaultChainType;
     this.#networkConfigs = networkConfigs;
     this.#hookManager = hookManager;
     this.#artifactsManager = artifactsManager;
-    this.#userConfigNetworks = userConfigNetworks;
+    this.#userConfigNetworks = userConfigNetworks ?? {};
   }
 
   public async connect<
@@ -111,11 +112,10 @@ export class NetworkManagerImplementation implements NetworkManager {
         );
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/consistent-type-assertions -- tmp
-      const newConfig: NetworkUserConfig = {
-        ...this.#userConfigNetworks[resolvedNetworkName],
-        ...networkConfigOverride,
-      } as NetworkUserConfig;
+      const newConfig = mergeConfigOverride(
+        this.#userConfigNetworks[resolvedNetworkName],
+        networkConfigOverride,
+      );
 
       // As normalizeNetworkConfigOverride is not type-safe, we validate the
       // normalized network config override immediately after normalizing it.
@@ -135,11 +135,14 @@ export class NetworkManagerImplementation implements NetworkManager {
         );
       }
 
-      resolvedNetworkConfigOverride = resolveNetworkConfig(
-        newConfig,
-        (strOrConfigVar) =>
-          resolveConfigurationVariable(this.#hookManager, strOrConfigVar),
-      );
+      resolvedNetworkConfigOverride =
+        newConfig.type === "http"
+          ? resolveHttpNetwork(newConfig, (strOrConfigVar) =>
+              resolveConfigurationVariable(this.#hookManager, strOrConfigVar),
+            )
+          : resolveEdrNetwork(newConfig, "", (strOrConfigVar) =>
+              resolveConfigurationVariable(this.#hookManager, strOrConfigVar),
+            );
     }
 
     const resolvedNetworkConfig =
