@@ -271,8 +271,7 @@ describe("NetworkManagerImplementation", () => {
 
     it("should throw an error if the specified network config override has mixed properties from http and edr networks", async () => {
       await assertRejectsWithHardhatError(
-        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-            -- Cast to test validation error */
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- Cast to test validation error */
         networkManager.connect("myNetwork", OPTIMISM_CHAIN_TYPE, {
           url: "http://localhost:8545",
           hardfork: "cancun",
