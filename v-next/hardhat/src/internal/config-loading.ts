@@ -3,6 +3,7 @@ import type { HardhatUserConfig } from "../types/config.js";
 import { pathToFileURL } from "node:url";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { exists, findUp } from "@nomicfoundation/hardhat-utils/fs";
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
@@ -71,7 +72,9 @@ export async function importUserConfig(
 ): Promise<HardhatUserConfig> {
   const normalizedPath = await normalizeConfigPath(configPath);
 
-  const imported = await import(pathToFileURL(normalizedPath).href);
+  const imported = await importConfigFileWithTsxFallback(
+    pathToFileURL(normalizedPath).href,
+  );
 
   if (!("default" in imported)) {
     throw new HardhatError(HardhatError.ERRORS.GENERAL.NO_CONFIG_EXPORTED, {
@@ -91,7 +94,7 @@ export async function importUserConfig(
 }
 
 /**
- * Returns an abolute version of the config path, throwing if the path
+ * Returns an absolute version of the config path, throwing if the path
  * doesn't exist.
  *
  * @param configPath The path to the config file.
@@ -108,4 +111,29 @@ async function normalizeConfigPath(configPath: string): Promise<string> {
   }
 
   return normalizedPath;
+}
+
+/**
+ * Handles the runtime import of ".ts" files. This is necessary in situations such as when using "vitest",
+ * where files are expected to be compiled before execution.
+ * If a ".ts" file is loaded at runtime without prior compilation, it will throw an error.
+ * This function compiles any ".ts" file on the fly to prevent such issues.
+ */
+async function importConfigFileWithTsxFallback(configPath: string) {
+  try {
+    return await import(configPath);
+  } catch (error) {
+    ensureError(error);
+
+    if (
+      "code" in error &&
+      error.code === "ERR_UNKNOWN_FILE_EXTENSION" &&
+      configPath.endsWith(".ts")
+    ) {
+      const { tsImport } = await import("tsx/esm/api");
+      return tsImport(configPath, import.meta.url);
+    }
+
+    throw error;
+  }
 }
