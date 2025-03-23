@@ -3,7 +3,14 @@ import { styled } from "linaria/react";
 
 import SEO from "./SEO";
 import LandingFooter from "./LandingFooter";
-import { media, ThemeProvider, tm, tmDark, tmSelectors } from "../themes";
+import {
+  headerTotalHeight,
+  media,
+  ThemeProvider,
+  tm,
+  tmDark,
+  tmSelectors,
+} from "../themes";
 import { menuItemsList, socialsItems } from "../config";
 import GDPRNotice from "./GDPRNotice";
 import DocsNavigation from "./DocsNavigation";
@@ -38,7 +45,7 @@ const Container = styled.div`
 
 const Main = styled.main`
   overflow-x: hidden;
-  padding-top: 136px;
+  padding-top: ${headerTotalHeight};
   flex: 1 1 auto;
   display: flex;
   flex-direction: column;

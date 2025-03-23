@@ -4,7 +4,14 @@ import { useRouter } from "next/router";
 
 import SEO from "./SEO";
 import DocsNavigation from "./DocsNavigation";
-import { tm, tmSelectors, tmDark, media, ThemeProvider } from "../themes";
+import {
+  tm,
+  tmSelectors,
+  tmDark,
+  media,
+  ThemeProvider,
+  headerTotalHeight,
+} from "../themes";
 import { IDocumentationSidebarStructure, ISeo } from "./types";
 import { menuItemsList, socialsItems } from "../config";
 import {
@@ -29,7 +36,7 @@ const Container = styled.div`
 `;
 
 const Main = styled.main`
-  padding-top: 136px;
+  padding-top: ${headerTotalHeight};
   flex: 1 1 auto;
   display: flex;
   justify-content: flex-start;
@@ -60,7 +67,7 @@ const View = styled.section`
   align-items: center;
   padding-top: 24px;
   width: 100%;
-  height: calc(100vh - 136px);
+  height: calc(100vh - ${headerTotalHeight});
   overflow-y: scroll;
 `;
 const Content = styled.section`

@@ -5,7 +5,14 @@ import { MDXRemote, MDXRemoteSerializeResult } from "next-mdx-remote";
 
 import SEO from "./SEO";
 import DocsNavigation from "./DocsNavigation";
-import { tm, tmSelectors, tmDark, media, ThemeProvider } from "../themes";
+import {
+  tm,
+  tmSelectors,
+  tmDark,
+  media,
+  ThemeProvider,
+  headerTotalHeight,
+} from "../themes";
 import {
   FooterNavigation,
   IDocumentationSidebarStructure,
@@ -44,7 +51,7 @@ const Container = styled.div`
 `;
 
 const Main = styled.main`
-  padding-top: 136px;
+  padding-top: ${headerTotalHeight};
   flex: 1 1 auto;
   display: flex;
   justify-content: flex-start;
@@ -87,9 +94,9 @@ export const SidebarContainer = styled.aside<{ isSidebarOpen: boolean }>`
   flex-direction: column;
   width: min(366px, 100%);
   position: fixed;
-  top: 136px;
+  top: ${headerTotalHeight};
   left: ${({ isSidebarOpen }) => (isSidebarOpen ? "0px" : "-120vw")};
-  height: calc(100vh - 136px);
+  height: calc(100vh - ${headerTotalHeight});
   display: flex;
   overflow-y: auto;
   transition: all ease-out 0.25s;
@@ -165,7 +172,7 @@ const View = styled.section`
   justify-content: space-between;
   padding-top: 24px;
   width: 100%;
-  height: calc(100vh - 136px);
+  height: calc(100vh - ${headerTotalHeight});
   overflow-y: scroll;
   scroll-behavior: smooth;
   ${media.md} {
