@@ -19,7 +19,8 @@ export const breakpoints = {
 };
 
 // The total effective heigh of the Header componet, which is used to configure different other components
-export const headerTotalHeight = "136px" as const;
+// This value is 136px if using the usual Banner, and 168px with the AlphaBanner.
+export const headerTotalHeight = "168px" as const;
 
 export const media = {
   xxs: `@media screen and (min-width: ${breakpoints.xxs}px)`,
