@@ -5,16 +5,14 @@ import { MDXRemote, MDXRemoteSerializeResult } from "next-mdx-remote";
 
 import SEO from "./SEO";
 import DocsNavigation from "./DocsNavigation";
-import Banner, { DefaultBanner } from "./ui/Banner";
 import { tm, tmSelectors, tmDark, media, ThemeProvider } from "../themes";
-import { DefaultBannerProps } from "./ui/types";
 import {
   FooterNavigation,
   IDocumentationSidebarStructure,
   ISeo,
 } from "./types";
 import Sidebar from "./Sidebar";
-import { menuItemsList, socialsItems, bannerContent } from "../config";
+import { menuItemsList, socialsItems } from "../config";
 import MobileSidebarMenu from "./MobileSidebarMenu";
 import DocumentationFooter from "./DocumentationFooter";
 import Title from "./mdxComponents/Title";
@@ -30,6 +28,7 @@ import OrderedList from "./mdxComponents/OrderedList";
 import TabsGroup from "./mdxComponents/TabsGroup";
 import Tab from "./mdxComponents/Tab";
 import GDPRNotice from "./GDPRNotice";
+import AlphaBanner from "./ui/AlphaBanner";
 
 const Container = styled.div`
   position: relative;
@@ -267,16 +266,11 @@ const DocumentationLayout = ({
     <ThemeProvider>
       <Container>
         <Header>
-          <Banner
-            content={bannerContent}
-            renderContent={({ content }: DefaultBannerProps) => (
-              <DefaultBanner content={content} />
-            )}
-          />
           <DocsNavigation
             isSidebarOpen={isSidebarOpen}
             onSidebarOpen={setIsSidebarOpen}
           />
+          <AlphaBanner />
         </Header>
 
         <SEO seo={seo} />

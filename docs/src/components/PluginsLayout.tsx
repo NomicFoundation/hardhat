@@ -4,17 +4,16 @@ import { useRouter } from "next/router";
 
 import SEO from "./SEO";
 import DocsNavigation from "./DocsNavigation";
-import Banner, { DefaultBanner } from "./ui/Banner";
 import { tm, tmSelectors, tmDark, media, ThemeProvider } from "../themes";
-import { DefaultBannerProps } from "./ui/types";
 import { IDocumentationSidebarStructure, ISeo } from "./types";
-import { bannerContent, menuItemsList, socialsItems } from "../config";
+import { menuItemsList, socialsItems } from "../config";
 import {
   Header,
   MobileSidebarMenuMask,
   SidebarContainer,
 } from "./DocumentationLayout";
 import MobileSidebarMenu from "./MobileSidebarMenu";
+import AlphaBanner from "./ui/AlphaBanner";
 
 const Container = styled.div`
   position: relative;
@@ -135,16 +134,11 @@ const PluginsLayout = ({ children, seo, sidebarLayout }: Props) => {
     <ThemeProvider>
       <Container>
         <Header>
-          <Banner
-            content={bannerContent}
-            renderContent={({ content }: DefaultBannerProps) => (
-              <DefaultBanner content={content} />
-            )}
-          />
           <DocsNavigation
             isSidebarOpen={isSidebarOpen}
             onSidebarOpen={setIsSidebarOpen}
           />
+          <AlphaBanner />
         </Header>
 
         <SEO seo={seo} />

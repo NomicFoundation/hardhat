@@ -3,10 +3,8 @@ import { styled } from "linaria/react";
 
 import SEO from "./SEO";
 import LandingFooter from "./LandingFooter";
-import Banner, { DefaultBanner } from "./ui/Banner";
 import { media, ThemeProvider, tm, tmDark, tmSelectors } from "../themes";
-import { DefaultBannerProps } from "./ui/types";
-import { bannerContent, menuItemsList, socialsItems } from "../config";
+import { menuItemsList, socialsItems } from "../config";
 import GDPRNotice from "./GDPRNotice";
 import DocsNavigation from "./DocsNavigation";
 import {
@@ -16,6 +14,7 @@ import {
 } from "./DocumentationLayout";
 import MobileSidebarMenu from "./MobileSidebarMenu";
 import { IDocumentationSidebarStructure, ISeo } from "./types";
+import AlphaBanner from "./ui/AlphaBanner";
 
 const Container = styled.div`
   position: relative;
@@ -84,16 +83,11 @@ const LandingLayout = ({ children, seo, sidebarLayout }: Props) => {
     <ThemeProvider>
       <Container className="landing">
         <Header>
-          <Banner
-            content={bannerContent}
-            renderContent={({ content }: DefaultBannerProps) => (
-              <DefaultBanner content={content} />
-            )}
-          />
           <DocsNavigation
             isSidebarOpen={isSidebarOpen}
             onSidebarOpen={setIsSidebarOpen}
           />
+          <AlphaBanner />
         </Header>
 
         <SEO seo={seo} />
