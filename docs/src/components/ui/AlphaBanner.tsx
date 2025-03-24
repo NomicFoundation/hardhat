@@ -88,10 +88,9 @@ const AlphaBanner = () => {
       <AlphaBannerContainer>
         <span className="braket">[</span>
         <span className="bannerContent">
-          <b>Hardhat 3 alpha</b> has been released.
+          <b>Hardhat 3 alpha</b>: Rust rewrite, Solidity tests, multi-chain, and more
           {/* We don't pass href because the Link already does it */}
           {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-          <a className="CTA">Check it out</a>
         </span>
 
         <span className="braket">]</span>
