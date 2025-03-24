@@ -15,7 +15,7 @@ const path = require("path");
  */
 function createConfig(
   configFilePath,
-  options = { onlyHardhatError: true, enforceHardhatTestUtils: true }
+  options = { onlyHardhatError: true, enforceHardhatTestUtils: true },
 ) {
   /**
    * @type {import("eslint").Linter.Config}
@@ -372,7 +372,9 @@ function createConfig(
                 "Don't import from the src folder, use the package entry point instead.",
             },
             {
-              group: require("module").builtinModules.map((m) => `/${m}`),
+              group: require("module")
+                .builtinModules.filter((m) => !m.startsWith("node:")) // avoid blocking correct imports
+                .map((m) => `/${m}`),
               message:
                 "Use the 'node:' prefix to import built-in Node.js modules.",
             },
@@ -389,7 +391,7 @@ function createConfig(
               importNames: [
                 "default",
                 ...Object.keys(require("node:assert")).filter(
-                  (k) => k !== "AssertionError"
+                  (k) => k !== "AssertionError",
                 ),
               ],
               message: "Use node:assert/strict instead.",
@@ -451,7 +453,7 @@ function createConfig(
         selector:
           "CallExpression[callee.object.name='assert'][callee.property.name=rejects]",
         message: "Don't use assert.rejects. Use our test helpers instead.",
-      }
+      },
     );
   }
 
