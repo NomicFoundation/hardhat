@@ -347,10 +347,10 @@ describe("SolcConfigSelector", () => {
         dependencyGraph,
       );
 
-      const config =
+      const configOrError =
         selector.selectBestSolcConfigForSingleRootGraph(dependencyGraph);
 
-      console.log({ config });
+      assert.ok("reason" in configOrError, "Error expected");
     });
   });
 });
