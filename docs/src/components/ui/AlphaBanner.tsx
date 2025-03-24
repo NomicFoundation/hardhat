@@ -13,7 +13,7 @@ const alphaBannerBraket = "#EDCF00" as const;
 const AlphaBannerContainer = styled.section`
   font-family: ChivoRegular, sans-serif;
   user-select: none;
-  z-index: 100;
+  z-index: 5;
   width: 100%;
   height: 72px;
   display: flex;
