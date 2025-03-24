@@ -248,6 +248,43 @@ jobs:
               runner: runnerConfig,
               command: commandConfig,
             });
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Download Hardhat
+        if: (startsWith(matrix.command, 'hardhat') && inputs.hardhat-ref != 'next' && !startsWith(inputs.hardhat-ref, '3'))
+        uses: actions/download-artifact@v4
+        with:
+          name: hardhat
+      - name: Fix Hardhat on Windows
+        if: (startsWith(matrix.command, 'hardhat') && inputs.hardhat-ref != 'next' && !startsWith(inputs.hardhat-ref, '3')) && matrix.runner == 'windows-latest'
+        run: |
+          npm init -y
+          npm install esbuild
+          rm package.json package-lock.json
+          tar -xzf hardhat-*.tgz
+          rm -rf package/node_modules/esbuild package/node_modules/@esbuild
+          mv node_modules/esbuild package/node_modules
+          mv node_modules/@esbuild package/node_modules
+          tar -czf hardhat-*.tgz package
+          rm -rf package
+      - name: Install Hardhat from source
+        if: (startsWith(matrix.command, 'hardhat') && inputs.hardhat-ref != 'next' && !startsWith(inputs.hardhat-ref, '3'))
+        run: |
+          npm install -g hardhat-*.tgz
+          rm hardhat-*.tgz
+      - name: Install Hardhat
+        if: (startsWith(matrix.command, 'hardhat') && (inputs.hardhat-ref == 'next' || startsWith(inputs.hardhat-ref, '3')))
+        run: |
+          npm install -g hardhat@${{ inputs.hardhat-ref }}
+          hardhat --version
+      - name: Install Forge
+        if: startsWith(matrix.command, 'forge')
+        uses: foundry-rs/foundry-toolchain@de808b1eea699e761c404bda44ba8f21aba30b2c
+        with:
+          version: ${{ fromJSON(steps.config.outputs.repository).forge-version }}
+          cache: false
       - name: Checkout the repository
         uses: actions/checkout@v4
         with:
@@ -262,48 +299,6 @@ jobs:
           echo "$IGNORE" >> .gitignore
           git rm --cached -r $(git ls-files -i -c --exclude-from=.gitignore)
           git clean -fdX
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - name: Download Hardhat
-        if: (startsWith(matrix.command, 'hardhat') && inputs.hardhat-ref != 'next' && !startsWith(inputs.hardhat-ref, '3'))
-        uses: actions/download-artifact@v4
-        with:
-          name: hardhat
-      - name: Fix Hardhat on Windows (unpack Hardhat)
-        if: (startsWith(matrix.command, 'hardhat') && inputs.hardhat-ref != 'next' && !startsWith(inputs.hardhat-ref, '3')) && matrix.runner == 'windows-latest'
-        run: tar -xzf hardhat-*.tgz
-      - name: Fix Hardhat on Windows (download EDR)
-        if: (startsWith(matrix.command, 'hardhat') && inputs.hardhat-ref != 'next' && !startsWith(inputs.hardhat-ref, '3')) && matrix.runner == 'windows-latest' && inputs.edr-ref != ''
-        uses: actions/download-artifact@v4
-        with:
-          name: edr
-          path: package
-      - name: Fix Hardhat on Windows (patch Hardhat)
-        if: (startsWith(matrix.command, 'hardhat') && inputs.hardhat-ref != 'next' && !startsWith(inputs.hardhat-ref, '3')) && matrix.runner == 'windows-latest'
-        working-directory: package
-        run: |
-          shopt -s globstar
-          sed -i 's/workspace://' **/package.json
-          jq 'del(.devDependencies)' package.json > package.json.tmp && mv package.json.tmp package.json
-          npm install esbuild --force
-      - name: Fix Hardhat on Windows (pack Hardhat)
-        if: (startsWith(matrix.command, 'hardhat') && inputs.hardhat-ref != 'next' && !startsWith(inputs.hardhat-ref, '3')) && matrix.runner == 'windows-latest'
-        run: |
-          rm package/*.tgz || true
-          tar -czf hardhat-*.tgz package
-          rm -rf package
-      - name: Install Hardhat from source
-        if: (startsWith(matrix.command, 'hardhat') && inputs.hardhat-ref != 'next' && !startsWith(inputs.hardhat-ref, '3'))
-        run: |
-          npm install -g hardhat-*.tgz
-          rm hardhat-*.tgz
-      - name: Install Hardhat
-        if: (startsWith(matrix.command, 'hardhat') && (inputs.hardhat-ref == 'next' || startsWith(inputs.hardhat-ref, '3')))
-        run: |
-          npm install -g hardhat@${{ inputs.hardhat-ref }}
-          hardhat --version
       - name: Configure Hardhat
         if: startsWith(matrix.command, 'hardhat')
         env:
@@ -334,12 +329,6 @@ jobs:
         run: |
           npm install -g bun
           bun install --frozen-lockfile
-      - name: Install Forge
-        if: startsWith(matrix.command, 'forge')
-        uses: foundry-rs/foundry-toolchain@de808b1eea699e761c404bda44ba8f21aba30b2c
-        with:
-          version: ${{ fromJSON(steps.config.outputs.repository).forge-version }}
-          cache: false
       - name: Run ${{ matrix.command }}
         id: run
         env:
@@ -449,7 +438,6 @@ jobs:
                   return command;
                 }
               })(),
-              command,
               (() => {
                 switch (runner) {
                   case 'ubuntu-latest':
