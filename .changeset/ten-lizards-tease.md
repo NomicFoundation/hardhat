@@ -2,4 +2,4 @@
 "hardhat": patch
 ---
 
-Added support for Node v23.
+Added support for Node v24.
