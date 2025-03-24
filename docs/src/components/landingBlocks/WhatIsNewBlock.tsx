@@ -9,11 +9,11 @@ import { CTAType } from "../ui/types";
 import ArrowRight from "../../assets/icons/arrow-right";
 import BracketsImage from "../../assets/why-we/Brackets";
 
-type Props = React.PropsWithChildren<{
+type Props = {
   content: { title: string; news: NewsType[] };
-}>;
+};
 
-type NewsType = {
+export type NewsType = {
   imageUrl?: string;
   title: string;
   text: string;
@@ -388,7 +388,7 @@ const WhatIsNewBlock = ({ content }: Props) => {
           </Brackets>
           <Title>{content.title}</Title>
           <ListNews>
-            {content.news.map((item) => (
+            {content?.news.map((item: NewsType) => (
               <NewsCard key={item.title} {...item} />
             ))}
           </ListNews>

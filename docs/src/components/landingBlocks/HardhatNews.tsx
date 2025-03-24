@@ -270,7 +270,7 @@ const Line = styled.div`
 const NewsCard: React.FC<NewsCardProps> = ({ image, title, text, link }) => {
   return (
     <Card>
-      {link && <CardLink href={link}></CardLink>}
+      {link && <CardLink href={link} />}
       <ImageContainer>
         <CardImage src={image} alt={title} />
       </ImageContainer>

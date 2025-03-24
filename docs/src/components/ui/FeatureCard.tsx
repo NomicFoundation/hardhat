@@ -3,11 +3,10 @@ import Image, { StaticImageData } from "next/image";
 import { styled } from "linaria/react";
 import { CTAType } from "./types";
 import CTA from "./CTA";
-import { breakpoints, media, tm, tmDark, tmSelectors } from "../../themes";
+import { media, tm, tmDark, tmSelectors } from "../../themes";
 import ImageMask from "../../assets/why-we/grid.svg";
 import ImageMaskDark from "../../assets/why-we/gridDark.svg";
 import ArrowRight from "../../assets/icons/arrow-right";
-import useWindowSize from "../../hooks/useWindowSize";
 
 interface ArticleType {
   title: string;
@@ -362,5 +361,6 @@ const FeatureCard = forwardRef<HTMLDivElement, Props>(
     );
   }
 );
+FeatureCard.displayName = "FeatureCard";
 
 export default FeatureCard;

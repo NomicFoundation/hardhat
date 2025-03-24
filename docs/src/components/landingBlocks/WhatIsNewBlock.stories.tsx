@@ -8,5 +8,5 @@ export default {
 };
 
 export const Default = () => (
-  <WhatIsNewBlock content={homepageContent.whyHardhatContent} />
+  <WhatIsNewBlock content={homepageContent.whatIsNewBlockContent} />
 );

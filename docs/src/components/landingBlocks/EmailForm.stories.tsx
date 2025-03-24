@@ -1,6 +1,5 @@
-import React from "react";
 import { Meta, StoryObj } from "@storybook/react";
-import EmailForm from "./EmailForm";
+import EmailForm, { EmailFormProps } from "./EmailForm";
 
 const meta: Meta<typeof EmailForm> = {
   title: "Landing Blocks/EmailForm",
@@ -11,9 +10,8 @@ const meta: Meta<typeof EmailForm> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof EmailForm>;
 
-export const Default: Story = {
+export const Default: StoryObj<EmailFormProps> = {
   args: {
     endpoint: "/api/subscribe",
   },

@@ -1,13 +1,7 @@
 import type { NextPage } from "next";
 import HeroBlock from "../components/landingBlocks/HeroBlock";
-import FeatureCard from "../components/ui/FeatureCard";
-import GetStartedBlock from "../components/landingBlocks/GetStartedBlock";
 import WhyHardhatBlock from "../components/landingBlocks/WhyHardhatBlock";
-import VibrantCommunityBlock from "../components/landingBlocks/VibrantCommunityBlock";
-import TrustedTeamsBlock from "../components/landingBlocks/TrustedTeamsBlock";
-import BuiltByBlock from "../components/landingBlocks/BuiltByBlock";
-import ReviewsBlock from "../components/landingBlocks/ReviewsBlock";
-import ToolsBlock from "../components/landingBlocks/ToolsBlock";
+
 import EmailForm from "../components/landingBlocks/EmailForm";
 import homepageContent from "../content/home";
 import LandingLayout from "../components/LandingLayout";

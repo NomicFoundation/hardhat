@@ -8,7 +8,7 @@ import backgroundImageDark from "../../assets/email-form/bg-dark-big.svg";
 import Lines from "../../assets/email-form/lines";
 
 // Props interface for the component
-interface EmailFormProps {
+export interface EmailFormProps {
   endpoint: string;
 }
 

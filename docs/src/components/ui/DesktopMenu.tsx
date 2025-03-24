@@ -4,7 +4,6 @@ import { useRouter } from "next/router";
 import Link from "next/link";
 import { MenuProps, MenuItemType, SocialsItem } from "./types";
 import { media, tm, tmDark, tmSelectors } from "../../themes";
-import Searching from "../Searching";
 
 const MenuContainer = styled.section`
   font-family: ChivoRegular, sans-serif;

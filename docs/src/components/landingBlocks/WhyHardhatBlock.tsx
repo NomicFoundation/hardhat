@@ -373,6 +373,21 @@ const BottomWrapperText = styled.div`
   }
 `;
 
+function getImage(card: any, screenWidth: number, type: string) {
+  const isLarge = screenWidth > 1279;
+  const isSmall = screenWidth < 768;
+
+  if (type === "light") {
+    if (isLarge) return card.image.lg;
+    if (isSmall) return card.image.sm;
+    return card.image.md;
+  }
+
+  if (isLarge) return card.imageDark.lg;
+  if (isSmall) return card.imageDark.sm;
+  return card.imageDark.md;
+}
+
 const WhyHardhatBlock = ({ content }: Props) => {
   const { width } = useWindowSize();
   const [activeImageLight, setActiveImageLight] = useState(
@@ -383,6 +398,12 @@ const WhyHardhatBlock = ({ content }: Props) => {
   );
   const [activeIndex, setActiveIndex] = useState(0);
   const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
+
+  const updateImage = (index: number) => {
+    setActiveImageLight(getImage(content.featureCards[index], width, "light"));
+    setActiveImageDark(getImage(content.featureCards[index], width, "dark"));
+    setActiveIndex(index);
+  };
 
   useEffect(() => {
     const triggers = content.featureCards.map((_, index) => {
@@ -400,27 +421,6 @@ const WhyHardhatBlock = ({ content }: Props) => {
     };
   }, [width, content.featureCards]);
 
-  const updateImage = (index: number) => {
-    setActiveImageLight(getImage(content.featureCards[index], width, "light"));
-    setActiveImageDark(getImage(content.featureCards[index], width, "dark"));
-    setActiveIndex(index);
-  };
-
-  function getImage(card: any, screenWidth: number, type: string) {
-    if (type === "light") {
-      return screenWidth > 1279
-        ? card.image.lg
-        : screenWidth < 768
-        ? card.image.sm
-        : card.image.md;
-    } else {
-      return screenWidth > 1279
-        ? card.imageDark.lg
-        : screenWidth < 768
-        ? card.imageDark.sm
-        : card.imageDark.md;
-    }
-  }
   return (
     <Section clearPadding>
       <Container>
@@ -440,7 +440,11 @@ const WhyHardhatBlock = ({ content }: Props) => {
                 key={index}
                 content={item}
                 index={index}
-                ref={(el) => (cardsRef.current[index] = el)}
+                ref={(el) => {
+                  if (el) {
+                    cardsRef.current[index] = el;
+                  }
+                }}
               />
             ))}
             <ImageContainer

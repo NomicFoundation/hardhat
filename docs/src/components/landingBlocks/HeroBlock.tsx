@@ -277,19 +277,18 @@ const BlockText = styled.p`
 const HeroBlock = ({ content }: Props) => {
   const { width } = useWindowSize();
 
-  const imageSrc =
-    width > 1279
-      ? heroGraphicDesktop
-      : width < 768
-      ? heroGraphicMobile
-      : heroGraphicTablet;
-
-  const imageDarkSrc =
-    width > 1279
-      ? heroGraphicDesktopDark
-      : width < 768
-      ? heroGraphicDarkMobile
-      : heroGraphicDarkTablet;
+  let imageSrc;
+  let imageDarkSrc;
+  if (width > 1279) {
+    imageSrc = heroGraphicDesktop;
+    imageDarkSrc = heroGraphicDesktopDark;
+  } else if (width < 768) {
+    imageSrc = heroGraphicMobile;
+    imageDarkSrc = heroGraphicDarkMobile;
+  } else {
+    imageSrc = heroGraphicTablet;
+    imageDarkSrc = heroGraphicDarkTablet;
+  }
 
   return (
     <Section clearPadding>
