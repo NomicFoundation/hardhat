@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+
 import { styled } from "linaria/react";
 import Image, { StaticImageData } from "next/image";
 import Section from "../Section";
@@ -14,6 +13,8 @@ import useWindowSize from "../../hooks/useWindowSize";
 import { CTAType } from "../ui/types";
 import FeatureCard from "../ui/FeatureCard";
 
+const gsap = require("gsap").default;
+const ScrollTrigger = require("gsap/ScrollTrigger").default;
 gsap.registerPlugin(ScrollTrigger);
 
 interface ArticleType {
@@ -375,16 +376,13 @@ const BottomWrapperText = styled.div`
 
 function getImage(card: any, screenWidth: number, type: string) {
   const isLarge = screenWidth > 1279;
-  const isSmall = screenWidth < 768;
 
   if (type === "light") {
     if (isLarge) return card.image.lg;
-    if (isSmall) return card.image.sm;
     return card.image.md;
   }
 
   if (isLarge) return card.imageDark.lg;
-  if (isSmall) return card.imageDark.sm;
   return card.imageDark.md;
 }
 
@@ -406,6 +404,7 @@ const WhyHardhatBlock = ({ content }: Props) => {
   };
 
   useEffect(() => {
+    updateImage(0);
     const triggers = content.featureCards.map((_, index) => {
       return ScrollTrigger.create({
         trigger: cardsRef.current[index],
