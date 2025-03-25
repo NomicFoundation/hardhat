@@ -177,6 +177,8 @@ export class SolcConfigSelector {
         continue;
       }
 
+      visited.add(dependency);
+
       yield {
         fsPath: [dependency.fsPath],
         versionPragmasPath: [dependency.content.versionPragmas],
