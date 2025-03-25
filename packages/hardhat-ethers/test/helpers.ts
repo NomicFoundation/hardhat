@@ -1,5 +1,6 @@
 import { assert } from "chai";
-import { ContractRunner, Signer } from "ethers";
+// eslint-disable-next-line prettier/prettier
+import { type ContractRunner, type Signer } from "ethers";
 
 export function assertWithin(
   value: number | bigint,
