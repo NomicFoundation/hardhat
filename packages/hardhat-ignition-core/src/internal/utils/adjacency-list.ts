@@ -32,6 +32,16 @@ export class AdjacencyList {
     this._list.set(from, toSet);
   }
 
+  public hasDependency({ from, to }: { from: string; to: string }): boolean {
+    const toSet = this._list.get(from);
+
+    if (toSet === undefined) {
+      return false;
+    }
+
+    return toSet.has(to);
+  }
+
   public deleteDependency({ from, to }: { from: string; to: string }) {
     const toSet = this._list.get(from) ?? new Set<string>();
 
