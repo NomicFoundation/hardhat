@@ -127,12 +127,14 @@ jobs:
       - name: Build
         run: pnpm build
       - name: Deploy
+        env:
+          PACKAGE_NAME: ${{ matrix.package }}
         run: |
-          pnpm deploy --config.shamefully-hoist=true --config.hoist=true --config.node-linker=true --config.shared-workspace-lockfile=false --filter="$(jq -r .name package.json)" --prod --no-optional bundle.tmp
+          pnpm deploy --config.node-linker=hoisted --filter="$PACKAGE_NAME" --prod bundle.tmp
 
           # We use rsync to replace the symlinks in the node_modules folder with the actual files
           rsync -a --exclude node_modules/.pnpm/ --exclude node_modules/.modules.yaml --exclude node_modules/.bin --copy-links bundle.tmp/ bundle
-          rm -rf bundle.tmp
+          rm -rf **/bundle.tmp
 
           # We count all the dependencies in the node_modules folder first
           dependency_count=0
@@ -163,6 +165,9 @@ jobs:
             tar -cf $dir $dir.tmp
             rm -rf $dir.tmp
           done
+
+          mv bundle "v-next/$PACKAGE_NAME"
+        working-directory: ${{ github.workspace }}
       - name: Upload bundle
         env:
           BUNDLE_NAME: ${{ matrix.package }}
