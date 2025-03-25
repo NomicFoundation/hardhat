@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import { styled } from "linaria/react";
 import Image, { StaticImageData } from "next/image";
