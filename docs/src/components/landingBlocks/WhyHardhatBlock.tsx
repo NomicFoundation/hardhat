@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React from "react";
 import { styled } from "linaria/react";
 import Image, { StaticImageData } from "next/image";
 import Section from "../Section";
@@ -11,11 +11,7 @@ import LinesDesktop from "../../assets/why-we/linesDesktop";
 import useWindowSize from "../../hooks/useWindowSize";
 import { CTAType } from "../ui/types";
 import FeatureCard from "../ui/FeatureCard";
-
-const gsap = require("gsap").default;
-const ScrollTrigger = require("gsap/ScrollTrigger").default;
-
-gsap.registerPlugin(ScrollTrigger);
+import useImageAnimation from "../../hooks/useImageAnimation";
 
 interface ArticleType {
   title: string;
@@ -374,51 +370,11 @@ const BottomWrapperText = styled.div`
   }
 `;
 
-function getImage(card: any, screenWidth: number, type: string) {
-  const isLarge = screenWidth > 1279;
-
-  if (type === "light") {
-    if (isLarge) return card.image.lg;
-    return card.image.md;
-  }
-
-  if (isLarge) return card.imageDark.lg;
-  return card.imageDark.md;
-}
-
 const WhyHardhatBlock = ({ content }: Props) => {
   const { width } = useWindowSize();
-  const [activeImageLight, setActiveImageLight] = useState(
-    getImage(content.featureCards[0], width, "light")
-  );
-  const [activeImageDark, setActiveImageDark] = useState(
-    getImage(content.featureCards[0], width, "dark")
-  );
-  const [activeIndex, setActiveIndex] = useState(0);
-  const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
 
-  const updateImage = (index: number) => {
-    setActiveImageLight(getImage(content.featureCards[index], width, "light"));
-    setActiveImageDark(getImage(content.featureCards[index], width, "dark"));
-    setActiveIndex(index);
-  };
-
-  useEffect(() => {
-    updateImage(0);
-    const triggers = content.featureCards.map((_, index) => {
-      return ScrollTrigger.create({
-        trigger: cardsRef.current[index],
-        start: "top center",
-        end: "bottom center",
-        onEnter: () => updateImage(index),
-        onEnterBack: () => updateImage(index),
-      });
-    });
-
-    return () => {
-      triggers.forEach((trigger) => trigger.kill());
-    };
-  }, [width, content.featureCards]);
+  const { activeImageLight, activeImageDark, activeIndex, cardsRef } =
+    useImageAnimation(content, width);
 
   return (
     <Section clearPadding>
@@ -447,7 +403,7 @@ const WhyHardhatBlock = ({ content }: Props) => {
               />
             ))}
             <ImageContainer
-              className={`image-container image-container-${activeIndex}`} // Динамический класс
+              className={`image-container image-container-${activeIndex}`}
               background={ImageMask.src}
               backgroundDark={ImageMaskDark.src}
             >
