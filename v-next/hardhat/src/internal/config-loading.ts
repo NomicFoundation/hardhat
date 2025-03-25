@@ -1,15 +1,21 @@
 import type { HardhatUserConfig } from "../types/config.js";
 
-import { pathToFileURL } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
-import { exists, findUp } from "@nomicfoundation/hardhat-utils/fs";
+import { exists, findUp, getRealPath } from "@nomicfoundation/hardhat-utils/fs";
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
 import debug from "debug";
 
 const log = debug("hardhat:core:config-loading");
+
+/**
+ * This cache stores any `.ts` files compiled using `tsImport`.
+ * Since this method does not cache compiled files by default, we implement our own caching mechanism.
+ */
+const compiledConfigFile = new Map<string, any>();
 
 /**
  * Resolves the path to the Hardhat config file using these rules:
@@ -114,10 +120,16 @@ async function normalizeConfigPath(configPath: string): Promise<string> {
 }
 
 /**
- * Handles the runtime import of ".ts" files. This is necessary in situations such as when using "vitest",
- * where files are expected to be compiled before execution.
+ * Handles the runtime import of ".ts" files. This is necessary in situations such as plain
+ * Node.js, where files are expected to be compiled before execution, or when using tools
+ * like "vitest", which support TypeScript only when importing from local/user files (i.e.
+ * not from the "node_modules" folder).
+ *
  * If a ".ts" file is loaded at runtime without prior compilation, it will throw an error.
  * This function compiles any ".ts" file on the fly to prevent such issues.
+ *
+ * This function uses `tsx`'s `tsImport`, which doesn't cache the compiled files, so we
+ * implement our own caching mechanism.
  */
 async function importConfigFileWithTsxFallback(configPath: string) {
   try {
@@ -130,8 +142,18 @@ async function importConfigFileWithTsxFallback(configPath: string) {
       error.code === "ERR_UNKNOWN_FILE_EXTENSION" &&
       configPath.endsWith(".ts")
     ) {
+      const realPath = await getRealPath(fileURLToPath(configPath));
+
+      if (compiledConfigFile.has(realPath)) {
+        return compiledConfigFile.get(realPath);
+      }
+
       const { tsImport } = await import("tsx/esm/api");
-      return tsImport(configPath, import.meta.url);
+      const config = tsImport(configPath, import.meta.url);
+
+      compiledConfigFile.set(realPath, config);
+
+      return config;
     }
 
     throw error;
