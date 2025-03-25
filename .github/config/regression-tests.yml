@@ -409,7 +409,10 @@ repositories:
     hardhat-config: |
       export default {
         "paths": {
-          "sources": "src"
+          "sources": "src",
+          "tests": {
+            "solidity": "src/test"
+          }
         },
         "solidity": {
           "version": "0.8.12",
@@ -592,7 +595,7 @@ repositories:
         "paths": {
           "sources": "src",
           "tests": {
-            "solidity": "tests/unit/fuzz"
+            "solidity": "tests"
           }
         },
         "solidity": {
@@ -757,7 +760,10 @@ repositories:
     hardhat-config: |
       export default {
         "paths": {
-          "sources": "src"
+          "sources": "src",
+          "tests": {
+            "solidity": "src/test"
+          }
         },
         "solidity": {
           "version": "0.8.15",
@@ -777,15 +783,6 @@ repositories:
           "testFail": true
         }
       };
-    ignore: |
-      # ERC20Test.invariantMetadata(): failed to set up invariant testing environment: No contracts to fuzz.
-      src/test/ERC20.t.sol
-
-      # ERC4626Test.invariantMetadata(): failed to set up invariant testing environment: No contracts to fuzz.
-      src/test/ERC4626.t.sol
-
-      # ERC721Test.invariantMetadata(): failed to set up invariant testing environment: No contracts to fuzz.
-      src/test/ERC721.t.sol
     ref: c93f7716c9909175d45f6ef80a34a650e2d24e56
 
 runners:
