@@ -360,7 +360,7 @@ importers:
         specifier: workspace:^3.0.0-next.2
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-ethers':
-        specifier: workspace:^4.0.0-next.0
+        specifier: workspace:^4.0.0-next.2
         version: link:../hardhat-ethers
       '@nomicfoundation/hardhat-utils':
         specifier: workspace:^3.0.0-next.2
@@ -381,7 +381,7 @@ importers:
         specifier: ^6.13.4
         version: 6.13.5
       hardhat:
-        specifier: workspace:^3.0.0-next.0
+        specifier: workspace:^3.0.0-next.2
         version: link:../hardhat
     devDependencies:
       '@eslint-community/eslint-plugin-eslint-comments':
@@ -1010,13 +1010,13 @@ importers:
         specifier: 1.7.1
         version: 1.7.1
       '@nomicfoundation/hardhat-errors':
-        specifier: workspace:^3.0.0-next.0
+        specifier: workspace:^3.0.0-next.2
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^3.0.0-next.0
+        specifier: workspace:^3.0.0-next.2
         version: link:../hardhat-utils
       '@nomicfoundation/hardhat-zod-utils':
-        specifier: workspace:^3.0.0-next.0
+        specifier: workspace:^3.0.0-next.2
         version: link:../hardhat-zod-utils
       chalk:
         specifier: ^5.3.0
@@ -1430,7 +1430,7 @@ importers:
         specifier: workspace:^3.0.0-next.2
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-ethers':
-        specifier: workspace:^4.0.0-next.0
+        specifier: workspace:^4.0.0-next.2
         version: link:../hardhat-ethers
       '@nomicfoundation/hardhat-utils':
         specifier: workspace:^3.0.0-next.2
@@ -1448,7 +1448,7 @@ importers:
         specifier: ^6.13.4
         version: 6.13.5
       hardhat:
-        specifier: workspace:^3.0.0-next.0
+        specifier: workspace:^3.0.0-next.2
         version: link:../hardhat
       typechain:
         specifier: ^8.3.1
