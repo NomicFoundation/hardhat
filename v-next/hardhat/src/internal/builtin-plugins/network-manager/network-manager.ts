@@ -19,10 +19,10 @@ import type {
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { readBinaryFile } from "@nomicfoundation/hardhat-utils/fs";
+import { deepMerge } from "@nomicfoundation/hardhat-utils/lang";
 
 import { resolveConfigurationVariable } from "../../core/configuration-variables.js";
 
-import { mergeConfigOverride } from "./config-override.js";
 import { resolveEdrNetwork, resolveHttpNetwork } from "./config-resolution.js";
 import { EdrProvider } from "./edr/edr-provider.js";
 import { isEdrSupportedChainType } from "./edr/utils/chain-type.js";
@@ -112,7 +112,7 @@ export class NetworkManagerImplementation implements NetworkManager {
         );
       }
 
-      const newConfig = mergeConfigOverride(
+      const newConfig = deepMerge(
         this.#userConfigNetworks[resolvedNetworkName],
         networkConfigOverride,
       );
