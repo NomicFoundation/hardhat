@@ -4,6 +4,10 @@ import { derivePrivateKeys } from "../../../accounts/derive-private-keys.js";
 
 import { LocalAccountsHandler } from "./local-accounts.js";
 
+/**
+ * This handler takes a long time to load because it imports LocalAccountsHandler.
+ * Currently, it is only used in the handlers array where it is imported dynamically.
+ */
 export class HDWalletHandler extends LocalAccountsHandler {
   public static async create(
     provider: EthereumProvider,
