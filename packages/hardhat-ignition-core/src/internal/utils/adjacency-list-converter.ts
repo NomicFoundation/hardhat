@@ -2,6 +2,7 @@ import { isFuture } from "../../type-guards";
 import { Future } from "../../types/module";
 
 import { AdjacencyList } from "./adjacency-list";
+import { getFuturesFromModule } from "./get-futures-from-module";
 
 export class AdjacencyListConverter {
   public static buildAdjacencyListFromFutures(
@@ -19,6 +20,15 @@ export class AdjacencyListConverter {
             future,
             dependency
           );
+        } else {
+          const futures = getFuturesFromModule(dependency);
+
+          for (const moduleDep of futures) {
+            dependencyGraph.addDependency({
+              from: future.id,
+              to: moduleDep.id,
+            });
+          }
         }
       }
     }
