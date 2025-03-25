@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from "react";
-
 import { styled } from "linaria/react";
 import Image, { StaticImageData } from "next/image";
 import Section from "../Section";
@@ -15,6 +14,7 @@ import FeatureCard from "../ui/FeatureCard";
 
 const gsap = require("gsap").default;
 const ScrollTrigger = require("gsap/ScrollTrigger").default;
+
 gsap.registerPlugin(ScrollTrigger);
 
 interface ArticleType {
