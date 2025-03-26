@@ -30,6 +30,15 @@ import {
 import { validateParams } from "../../../rpc/validate-params.js";
 import { ChainId } from "../chain-id/chain-id.js";
 
+/**
+ * This handler takes a long time to load. Currently, it is only used in the handlers array,
+ * where it is imported dynamically, and in the HDWalletHandler, which itself is only loaded
+ * dynamically.
+ * If we ever need to import this handler elsewhere, we should either import it dynamically
+ * or import some of the dependencies of this handler dynamically.
+ * It has been identified that micro-eth-signer is one of the most expensive dependencies here.
+ * See https://github.com/NomicFoundation/hardhat/pull/6481 for more details.
+ */
 export class LocalAccountsHandler extends ChainId implements RequestHandler {
   readonly #addressToPrivateKey: Map<string, Uint8Array> = new Map();
 
