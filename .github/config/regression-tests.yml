@@ -213,7 +213,7 @@ repositories:
         }
       };
     ignore: |
-      # Invalid hex bytecode for contract
+      # Invalid hex bytecode for contract (this is caused by the lack of support for dynamic linking)
       test/foundry
     ref: 585b2ef8376dd979171522027bbdb048c2a4999c
   Uniswap/UniswapX:
@@ -369,9 +369,11 @@ repositories:
     ignore: |
       # test_DeriveRememberKey(): unknown cheatcode with selector 0x6229498b (deriveKey(string,uint32))
       test/StdCheats.t.sol
-      # StdUtilsForkTest.setUp(): Could not instantiate forked environment. Fork host: 'eth-mainnet.alchemyapi.io'
+      
+      # StdUtilsForkTest.setUp(): Could not instantiate forked environment. Fork host: 'eth-mainnet.alchemyapi.io' (this is caused by using an invalid mainnet rpc endpoint)
       test/StdUtils.t.sol
-      # test_RevertIf_ChainBubbleUp(): call did not revert as expected
+      
+      # test_RevertIf_ChainBubbleUp(): call did not revert as expected (this is caused by using an invalid mainnet rpc endpoint)
       # test_ChainRpcInitialization(): assertion failed: https://eth-mainnet.alchemyapi.io/v2/WV407BEiBmjNJfKo9Uo_55u0z0ITyCOX != https://eth.merkle.io
       test/StdChains.t.sol
     ref: 8ba9031ffcbe25aa0d1224d3ca263a995026e477
@@ -676,7 +678,7 @@ repositories:
         }
       };
     ignore: |
-      # Invalid hex bytecode for contract
+      # Invalid hex bytecode for contract (this is caused by the lack of support for dynamic linking)
       tests
     ref: a8528a6d0ca25f4f36eb9327fc87e08dc78ad0a6
   sablier-labs/v2-periphery:
@@ -751,7 +753,7 @@ repositories:
       # unknown cheatcode with selector 0x6229498b (deriveKey(string,uint32))
       test/utils/BaseScript.t.sol
 
-      # Could not instantiate forked environment. Received invalid url.
+      # Could not instantiate forked environment. Received invalid url. (this is caused by using an invalid url for one of the rpc endpoints)
       test/fork/assets/USDC.t.sol
       test/fork/assets/USDT.t.sol
     ref: c3ea8d7f7aab4cb33c6b4517ba38d32ca35b1257
