@@ -1,5 +1,15 @@
 # hardhat
 
+## 3.0.0-next.3
+
+### Patch Changes
+
+- 7515911: Always support typescript config files, even when not running Hardhat from the CLI
+- 7e55eb2: Increase http timeout
+- c31b112: Started using streams when handling the solc compiler outputs to support compilation of very large codebases where the compilation outputs might exceed the maximum buffer size/string length.
+- 5fc2540: Fix infinite loop that could happen when no solc config was available to build your project.
+- 9804974: Warn when using a low interval mining value and mismatching timestamp
+
 ## 3.0.0-next.2
 
 ### Patch Changes
