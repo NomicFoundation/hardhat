@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { cpSync } from "node:fs";
+import { cp } from "node:fs/promises";
 import path from "node:path";
 import { before, after } from "node:test";
 
@@ -40,24 +40,26 @@ export function useFixtureProject(
  * @param projectName The base name of the folder with the project to use.
  */
 export function useEphemeralFixtureProject(projectName: string): void {
-  const basePath = path.join(process.cwd(), "test", "fixture-projects");
-  const tmpProjectPath = path.join("tmp", randomUUID());
+  let projectPath: string;
+  let prevWorkingDir: string;
 
-  before(() => {
-    cpSync(
-      path.join(basePath, projectName),
-      path.join(basePath, tmpProjectPath),
-      {
-        recursive: true,
-        force: true,
-      },
+  before(async () => {
+    const sourceProjectPath = await getFixtureProjectPath(projectName);
+    projectPath = path.join(
+      process.cwd(),
+      "test",
+      "fixture-projects",
+      "tmp",
+      randomUUID(),
     );
+    await cp(sourceProjectPath, projectPath, { recursive: true, force: true });
+    prevWorkingDir = process.cwd();
+    process.chdir(projectPath);
   });
 
-  useFixtureProject(tmpProjectPath);
-
   after(async () => {
-    await remove(path.join(basePath, tmpProjectPath));
+    process.chdir(prevWorkingDir);
+    await remove(projectPath);
   });
 }
 
