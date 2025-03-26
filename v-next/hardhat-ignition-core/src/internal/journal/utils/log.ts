@@ -113,6 +113,12 @@ export function logJournalableMessage(message: JournalMessage): void {
       }
       break;
 
+    case JournalMessageType.TRANSACTION_PREPARE_SEND:
+      console.log(
+        `Transaction about to be sent for onchain interaction ${message.networkInteractionId} of future ${message.futureId}`,
+      );
+      break;
+
     case JournalMessageType.TRANSACTION_SEND:
       console.log(
         `Transaction ${message.transaction.hash} sent for onchain interaction ${message.networkInteractionId} of future ${message.futureId}`,

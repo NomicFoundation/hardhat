@@ -124,6 +124,22 @@ const hardhatIgnitionPlugin: HardhatPlugin = {
       })
       .setAction(import.meta.resolve("./internal/tasks/verify.js"))
       .build(),
+    task(
+      ["ignition", "track-tx"],
+      "Track a transaction that is missing from a given deployment. Only use if a Hardhat Ignition error message suggests to do so.",
+    )
+      .addPositionalArgument({
+        name: "txHash",
+        type: ArgumentType.STRING,
+        description: "The hash of the transaction to track",
+      })
+      .addPositionalArgument({
+        name: "deploymentId",
+        type: ArgumentType.STRING,
+        description: "The id of the deployment to add the tx to",
+      })
+      .setAction(import.meta.resolve("./internal/tasks/track-tx.js"))
+      .build(),
   ],
 };
 
