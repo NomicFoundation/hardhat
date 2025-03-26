@@ -51,7 +51,7 @@ repositories:
         }
       };
     ignore: |
-      # unknown cheatcode with selector 0xce817d47
+      # unknown cheatcode with selector 0xce817d47 (startBroadcast(uint256))
       test/hooks/2fa/Crypto2FAHook.t.sol
       test/automation/ClaimInterest.t.sol
       test/modules/socialRecovery/SocialRecoveryModule.t.sol
@@ -255,12 +255,12 @@ repositories:
     ignore: |
       */integration/*
 
-      # unknown cheatcode with selector 0x7fb5297f
+      # unknown cheatcode with selector 0x7fb5297f (startBroadcast())
       test/script/DeployDutch.t.sol
       test/script/DeployExclusiveDutch.t.sol
       test/script/DeployPriorityOrderReactor.t.sol
 
-      # unknown cheatcode with selector 0x3cad9d7b
+      # unknown cheatcode with selector 0x3cad9d7b (startSnapshotGas(string))
       test/base/EthOutput.t.sol
       test/validation-contracts/ExclusiveFillerValidation.t.sol
       test/lib/NonLinearDutchDecayLib.t.sol
@@ -268,7 +268,7 @@ repositories:
       test/fill-macros/DirectTakerFillMacro.t.sol
       test/executors/SwapRouter02Executor.t.sol
 
-      # unknown cheatcode with selector 0xdd9fca12
+      # unknown cheatcode with selector 0xdd9fca12 (snapshotGasLastCall(string))
       test/base/BaseReactor.t.sol
       test/reactors/PriorityOrderReactor.t.sol
       test/reactors/V3DutchOrderReactor.t.sol
@@ -323,7 +323,7 @@ repositories:
       */ext/ithaca/*
       */ext/zksync/*
 
-      # testP256Normalized(uint256,bytes32): unknown cheatcode with selector 0xc453949e
+      # testP256Normalized(uint256,bytes32): unknown cheatcode with selector 0xc453949e (publicKeyP256(uint256))
       test/P256.t.sol
       test/WebAuthn.t.sol
 
@@ -367,7 +367,7 @@ repositories:
         }
       };
     ignore: |
-      # test_DeriveRememberKey(): unknown cheatcode with selector 0x6229498b; you may have a mismatch between the `Vm` interface (likely in `forge-std`) and the `edr_solidity_tests` version
+      # test_DeriveRememberKey(): unknown cheatcode with selector 0x6229498b (deriveKey(string,uint32))
       test/StdCheats.t.sol
       # StdUtilsForkTest.setUp(): Could not instantiate forked environment. Fork host: 'eth-mainnet.alchemyapi.io'
       test/StdUtils.t.sol
@@ -496,7 +496,7 @@ repositories:
       # TickMathTestTest.test_getSqrtRatioAtTick_matchesJavaScriptImplByOneHundrethOfABip(): EvmError: Revert
       test/pool-cl/libraries/TickMath.t.sol
 
-      # unknown cheatcode with selector 0x3cad9d7b
+      # unknown cheatcode with selector 0x3cad9d7b (startSnapshotGas(string))
       test/pool-cl/libraries/BitMath.t.sol
       test/pool-cl/libraries/CLPosition.t.sol
       test/pool-cl/libraries/LiquidityMath.t.sol
@@ -504,12 +504,12 @@ repositories:
       test/pool-cl/libraries/SwapMath.t.sol
       test/pool-cl/libraries/Tick.t.sol
 
-      # unknown cheatcode with selector 0x51db805a
+      # unknown cheatcode with selector 0x51db805a (snapshotValue(string,uint256))
       test/pool-bin/BinPoolManager.t.sol
       test/pool-cl/CLPoolManager.t.sol
       test/vault/Vault.t.sol
 
-      # unknown cheatcode with selector 0xdd9fca12
+      # unknown cheatcode with selector 0xdd9fca12 (snapshotGasLastCall(string))
       test/Extsload.t.sol
       test/pool-bin/BinCustomCurveHook.t.sol
       test/pool-bin/BinHook.t.sol
@@ -567,7 +567,7 @@ repositories:
         }
       };
     ignore: |
-      # unknown cheatcode with selector 0x9cd23835
+      # unknown cheatcode with selector 0x9cd23835 (snapshotState())
       test/public/CREATE2/CreateX.deployCreate2AndInit_4Args_CustomiseSalt.t.sol
       test/public/CREATE2/CreateX.deployCreate2AndInit_4Args_CustomiseSalt.t.sol
       test/public/CREATE2/CreateX.deployCreate2AndInit_5Args.t.sol
@@ -748,7 +748,7 @@ repositories:
         }
       };
     ignore: |
-      # unknown cheatcode with selector 0x6229498b
+      # unknown cheatcode with selector 0x6229498b (deriveKey(string,uint32))
       test/utils/BaseScript.t.sol
 
       # Could not instantiate forked environment. Received invalid url.
