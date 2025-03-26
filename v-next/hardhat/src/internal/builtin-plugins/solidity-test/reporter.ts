@@ -126,7 +126,9 @@ export async function* testReporter(
 
       let reason: string | undefined;
       if (stackTrace?.kind === "StackTrace") {
-        reason = getMessageFromLastStackTraceEntry(stackTrace.entries[stackTrace.entries.length - 1]);
+        reason = getMessageFromLastStackTraceEntry(
+          stackTrace.entries[stackTrace.entries.length - 1],
+        );
       }
       if (reason === undefined || reason === "") {
         reason = failure.reason ?? "Unknown error";
