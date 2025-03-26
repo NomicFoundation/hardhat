@@ -5,6 +5,8 @@ export default async (): Promise<Partial<HardhatRuntimeEnvironmentHooks>> => ({
   created: async (context, hre) => {
     let networkManager: NetworkManager | undefined;
 
+    const userConfigNetworks = hre.userConfig.networks;
+
     hre.network = {
       async connect(networkName, chainType, networkConfigOverride) {
         const { NetworkManagerImplementation } = await import(
@@ -20,6 +22,7 @@ export default async (): Promise<Partial<HardhatRuntimeEnvironmentHooks>> => ({
             hre.config.networks,
             context.hooks,
             context.artifacts,
+            userConfigNetworks,
           );
         }
 

@@ -1,4 +1,4 @@
-import { getDeepCloneFunction } from "./internal/lang.js";
+import { deepMergeImpl, getDeepCloneFunction } from "./internal/lang.js";
 
 /**
  * Creates a deep clone of the provided value.
@@ -23,6 +23,31 @@ export async function deepEqual<T>(x: T, y: T): Promise<boolean> {
   const { deepEqual: _deepEqual } = await import("fast-equals");
 
   return _deepEqual(x, y);
+}
+
+/**
+ * Deeply merges two objects.
+ *
+ * @remarks
+ * - Arrays or `undefined` values are not valid inputs.
+ * - Functions: If a function exists in both the target and source, the source function overwrites the target.
+ * - Symbol properties: Symbol-keyed properties are merged just like string keys.
+ * - Class instances: Class instances are not merged recursively. If a class instance exists in the source, it will replace the one in the target.
+ *
+ * @param target The target object to merge into.
+ * @param source The source object to merge from.
+ * @returns A new object containing the deeply merged properties.
+ *
+ * @example
+ * deepMerge({ a: { b: 1 } }, { a: { c: 2 } }) // => { a: { b: 1, c: 2 } }
+ *
+ * deepMerge({ a: { fn: () => "from target" } }, { a: { fn: () => "from source" } }) // => { a: { fn: () => "from source" } }
+ */
+export function deepMerge<T extends object, U extends object>(
+  target: T,
+  source: U,
+): T & U {
+  return deepMergeImpl(target, source);
 }
 
 /**

@@ -1,6 +1,6 @@
 import type { GlobalOptions } from "./global-options.js";
 import type { UserInterruptionManager } from "./user-interruptions.js";
-import type { HardhatConfig } from "../types/config.js";
+import type { HardhatConfig, HardhatUserConfig } from "../types/config.js";
 
 /**
  * The Hardhat Runtime Environment (HRE) is an object that exposes
@@ -8,6 +8,7 @@ import type { HardhatConfig } from "../types/config.js";
  */
 export interface HardhatRuntimeEnvironment {
   readonly config: HardhatConfig;
+  readonly userConfig: HardhatUserConfig;
   readonly globalOptions: GlobalOptions;
   readonly interruptions: UserInterruptionManager;
   // These fields are defined using module agumentation despite being part of

@@ -326,4 +326,31 @@ describe("SolcConfigSelector", () => {
       });
     });
   });
+
+  describe("Edge cases", () => {
+    it("Should return an error in the presence of cycles", () => {
+      const dependency1 = createProjectResolvedFile("dependency1.sol", [
+        "^0.8.0",
+      ]);
+
+      const dependency2 = createProjectResolvedFile("dependency2.sol", [
+        "0.8.1",
+      ]);
+
+      dependencyGraph.addDependency(root, dependency1);
+      dependencyGraph.addDependency(dependency1, dependency2);
+      dependencyGraph.addDependency(dependency2, dependency1);
+
+      const selector = new SolcConfigSelector(
+        buildProfileName,
+        { compilers: [{ version: "0.8.0", settings: {} }], overrides: {} },
+        dependencyGraph,
+      );
+
+      const configOrError =
+        selector.selectBestSolcConfigForSingleRootGraph(dependencyGraph);
+
+      assert.ok("reason" in configOrError, "Error expected");
+    });
+  });
 });

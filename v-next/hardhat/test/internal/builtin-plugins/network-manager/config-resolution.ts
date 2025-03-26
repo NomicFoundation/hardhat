@@ -27,7 +27,6 @@ import {
   resolveHttpNetworkAccounts,
   resolveInitialBaseFeePerGas,
   resolveMiningConfig,
-  resolveNetworkConfigOverride,
 } from "../../../../src/internal/builtin-plugins/network-manager/config-resolution.js";
 import {
   DEFAULT_EDR_NETWORK_HD_ACCOUNTS_CONFIG_PARAMS,
@@ -222,53 +221,6 @@ describe("config-resolution", () => {
       );
 
       assert.equal(edrNetworkConfig.networkId, userConfig.chainId);
-    });
-  });
-
-  describe("resolveNetworkConfigOverride", () => {
-    it("should resolve to an http network with only the provided fields", async () => {
-      const userConfig: HttpNetworkUserConfig = {
-        type: "http",
-        url: "http://localhost:8545",
-        timeout: 25_000,
-      };
-      const networkConfig = resolveNetworkConfigOverride(
-        userConfig,
-        configVarResolver,
-      );
-      assert.equal(Object.keys(networkConfig).length, 3);
-      assert.equal(networkConfig.type, userConfig.type);
-      assert.equal(await networkConfig.url?.getUrl(), userConfig.url);
-      assert.equal(networkConfig.timeout, userConfig.timeout);
-    });
-
-    it("should resolve to an edr network with only the provided fields", async () => {
-      const userConfig: EdrNetworkUserConfig = {
-        type: "edr",
-        blockGasLimit: 40_000_000,
-        forking: {
-          enabled: true,
-          url: "http://localhost:8545",
-          httpHeaders: { "X-Header": "value" },
-        },
-      };
-      const networkConfig = resolveNetworkConfigOverride(
-        userConfig,
-        configVarResolver,
-      );
-      assert.equal(Object.keys(networkConfig).length, 3);
-      assert.equal(networkConfig.type, userConfig.type);
-      assert.equal(networkConfig.blockGasLimit, 40_000_000n);
-      assert.ok(networkConfig.forking !== undefined, "forking is not defined");
-      assert.equal(Object.keys(networkConfig.forking).length, 3);
-      assert.equal(networkConfig.forking.enabled, true);
-      assert.equal(
-        await networkConfig.forking.url.getUrl(),
-        "http://localhost:8545",
-      );
-      assert.deepEqual(networkConfig.forking.httpHeaders, {
-        "X-Header": "value",
-      });
     });
   });
 

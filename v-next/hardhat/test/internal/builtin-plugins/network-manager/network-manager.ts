@@ -5,6 +5,7 @@ import type {
   HttpNetworkConfigOverride,
   HttpNetworkUserConfig,
   NetworkConfig,
+  NetworkUserConfig,
 } from "../../../../src/types/config.js";
 import type { NetworkHooks } from "../../../../src/types/hooks.js";
 import type { HardhatRuntimeEnvironment } from "../../../../src/types/hre.js";
@@ -46,10 +47,40 @@ import {
 describe("NetworkManagerImplementation", () => {
   let hre: HardhatRuntimeEnvironment;
   let networkManager: NetworkManager;
+  let userNetworks: Record<string, NetworkUserConfig>;
   let networks: Record<string, NetworkConfig>;
 
   before(async () => {
+    const initialDate = new Date();
+
     hre = await createHardhatRuntimeEnvironment({});
+
+    userNetworks = {
+      localhost: {
+        type: "http",
+        url: "http://localhost:8545",
+      },
+      customNetwork: {
+        type: "http",
+        url: "http://node.customNetwork.com",
+      },
+      myNetwork: {
+        type: "http",
+        chainType: OPTIMISM_CHAIN_TYPE,
+        url: "http://node.myNetwork.com",
+      },
+      edrNetwork: {
+        type: "edr",
+        chainType: OPTIMISM_CHAIN_TYPE,
+        initialDate,
+        mining: {
+          auto: true,
+          mempool: {
+            order: "priority",
+          },
+        },
+      },
+    };
 
     networks = {
       localhost: resolveHttpNetwork(
@@ -78,6 +109,7 @@ describe("NetworkManagerImplementation", () => {
         {
           type: "edr",
           chainType: OPTIMISM_CHAIN_TYPE,
+          initialDate,
           mining: {
             auto: true,
             mempool: {
@@ -96,6 +128,7 @@ describe("NetworkManagerImplementation", () => {
       networks,
       hre.hooks,
       hre.artifacts,
+      userNetworks,
     );
   });
 
@@ -178,6 +211,7 @@ describe("NetworkManagerImplementation", () => {
         OPTIMISM_CHAIN_TYPE,
         edrConfigOverride,
       );
+
       assert.equal(networkConnection.networkName, "edrNetwork");
       assert.equal(networkConnection.chainType, OPTIMISM_CHAIN_TYPE);
       assert.equal(networks.edrNetwork.type, "edr"); // this is for the type assertion
@@ -245,8 +279,7 @@ describe("NetworkManagerImplementation", () => {
 
     it("should throw an error if the specified network config override has mixed properties from http and edr networks", async () => {
       await assertRejectsWithHardhatError(
-        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-        -- Cast to test validation error */
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- Cast to test validation error */
         networkManager.connect("myNetwork", OPTIMISM_CHAIN_TYPE, {
           url: "http://localhost:8545",
           hardfork: "cancun",
