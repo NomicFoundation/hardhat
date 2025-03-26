@@ -8,7 +8,10 @@ import type { TestResult } from "@ignored/edr";
 import { bytesToHexString } from "@nomicfoundation/hardhat-utils/hex";
 import chalk from "chalk";
 
-import { encodeStackTraceEntry } from "../network-manager/edr/stack-traces/stack-trace-solidity-errors.js";
+import {
+  encodeStackTraceEntry,
+  getMessageFromLastStackTraceEntry,
+} from "../network-manager/edr/stack-traces/stack-trace-solidity-errors.js";
 
 import { formatArtifactId } from "./formatters.js";
 
@@ -119,33 +122,46 @@ export async function* testReporter(
     for (const [index, failure] of failures.entries()) {
       yield `\n${chalk.bold(chalk.red(`Failure (${index + 1})`))}: ${failure.name}\n`;
 
-      if (
-        failure.reason !== undefined &&
-        failure.reason !== null &&
-        failure.reason !== ""
-      ) {
-        yield `Reason: ${chalk.grey(failure.reason)}\n`;
+      const stackTrace = failure.stackTrace();
+
+      let reason: string | undefined;
+      if (stackTrace?.kind === "StackTrace") {
+        reason = getMessageFromLastStackTraceEntry(stackTrace.entries[0]);
+      }
+      if (reason === undefined || reason === "") {
+        reason = failure.reason ?? "Unknown error";
       }
 
-      const stackTrace = failure.stackTrace();
-      // TODO handle `UnexpectedError` and `UnsafeToReplay` variants
-      if (
-        stackTrace !== undefined &&
-        stackTrace !== null &&
-        stackTrace.kind === "StackTrace" &&
-        stackTrace.entries.length > 0
-      ) {
-        const stackTraceStack: string[] = [];
-        for (const entry of stackTrace.entries.reverse()) {
-          const callsite = encodeStackTraceEntry(entry);
-          if (callsite !== undefined) {
-            stackTraceStack.push(`  at ${callsite.toString()}`);
-          }
-        }
+      yield `Reason: ${chalk.grey(reason)}\n`;
 
-        if (stackTraceStack.length > 0) {
-          yield `${chalk.grey(stackTraceStack.join("\n"))}\n`;
-        }
+      switch (stackTrace?.kind) {
+        case "StackTrace":
+          const stackTraceStack: string[] = [];
+          for (const entry of stackTrace.entries.reverse()) {
+            const callsite = encodeStackTraceEntry(entry);
+            if (callsite !== undefined) {
+              stackTraceStack.push(`  at ${callsite.toString()}`);
+            }
+          }
+
+          if (stackTraceStack.length > 0) {
+            yield `${chalk.grey(stackTraceStack.join("\n"))}\n`;
+          }
+          break;
+        case "UnexpectedError":
+          yield `Stack Trace Warning: ${chalk.grey(stackTrace.errorMessage)}\n`;
+          break;
+        case "UnsafeToReplay":
+          if (stackTrace.globalForkLatest === true) {
+            yield `Stack Trace Warning: ${chalk.grey("The test is not safe to replay because a fork url without a fork block number was provided.")}\n`;
+          }
+          if (stackTrace.impureCheatcodes.length > 0) {
+            yield `Stack Trace Warning: ${chalk.grey(`The test is not safe to replay because it uses impure cheatcodes: ${stackTrace.impureCheatcodes.join(", ")}`)}\n`;
+          }
+          break;
+        case "HeuristicFailed":
+        default:
+          break;
       }
 
       if (

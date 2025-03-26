@@ -181,7 +181,7 @@ function sourceReferenceToSolidityCallsite(
   );
 }
 
-function getMessageFromLastStackTraceEntry(
+export function getMessageFromLastStackTraceEntry(
   stackTraceEntry: SolidityStackTraceEntry,
 ): string | undefined {
   switch (stackTraceEntry.type) {
