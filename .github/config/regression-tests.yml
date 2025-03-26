@@ -327,10 +327,10 @@ repositories:
       test/P256.t.sol
       test/WebAuthn.t.sol
 
-      # testBumpSlot(bytes32,uint256)
+      # testBumpSlot(bytes32,uint256): Unknown error
       test/LibStorage.t.sol
 
-      # testTargetGenerate(): EvmError: Revert
+      # testTargetGenerate(): Transaction reverted: contract call run out of gas and made the transaction revert
       test/DeploylessPredeployQueryer.t.sol
     ref: c9e079c0ca836dcc52777a1fa7227ef28e3537b3
   foundry-rs/forge-std:
@@ -369,10 +369,10 @@ repositories:
     ignore: |
       # test_DeriveRememberKey(): unknown cheatcode with selector 0x6229498b (deriveKey(string,uint32))
       test/StdCheats.t.sol
-      
+
       # StdUtilsForkTest.setUp(): Could not instantiate forked environment. Fork host: 'eth-mainnet.alchemyapi.io' (this is caused by using an invalid mainnet rpc endpoint)
       test/StdUtils.t.sol
-      
+
       # test_RevertIf_ChainBubbleUp(): call did not revert as expected (this is caused by using an invalid mainnet rpc endpoint)
       # test_ChainRpcInitialization(): assertion failed: https://eth-mainnet.alchemyapi.io/v2/WV407BEiBmjNJfKo9Uo_55u0z0ITyCOX != https://eth.merkle.io
       test/StdChains.t.sol
@@ -487,13 +487,10 @@ repositories:
         }
       };
     ignore: |
-      # TokenLocker.setUp(): EvmError: Revert
+      # TokenLocker.setUp(): Transaction reverted without a reason string
       test/vault/VaultReentrancy.t.sol
 
-      # VaultTest.testVault_clear_successWithZeroExistingDelta(): EvmError: Revert
-      # VaultTest.testVault_clear_successWithNonZeroExistingDelta(): EvmError: Revert
-      test/vault/Vault.t.sol
-
+      # The test is not safe to replay because it uses impure cheatcodes: function ffi(string[] calldata commandInput) external returns (bytes memory result);
       # TickMathTestTest.test_getTickAtSqrtRatio_matchesJavascriptImplWithin1(): EvmError: Revert
       # TickMathTestTest.test_getSqrtRatioAtTick_matchesJavaScriptImplByOneHundrethOfABip(): EvmError: Revert
       test/pool-cl/libraries/TickMath.t.sol
@@ -520,9 +517,7 @@ repositories:
       test/pool-bin/libraries/BinPoolSwap.t.sol
       test/pool-cl/CLCustomCurveHook.t.sol
       test/pool-cl/CLMintBurnFeeHook.t.sol
-      test/pool-cl/CLPoolManager.t.sol
       test/pool-cl/libraries/TickBitmap.t.sol
-      test/vault/Vault.t.sol
     ref: 9a050c44cdf801fd19753409e6a03a8026a1fd09
   pcaversaccio/createx:
     forge-version: v0.3.0
