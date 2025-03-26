@@ -1,11 +1,10 @@
-import { Common } from "@ethereumjs/common";
-import { AccessListEIP2930Transaction } from "@ethereumjs/tx";
 import { assert } from "chai";
 import {
   bytesToHex as bufferToHex,
   privateToAddress,
   toBytes,
 } from "@ethereumjs/util";
+import { Transaction } from "micro-eth-signer";
 
 import { ERRORS } from "../../../../src/internal/core/errors-list";
 import { numberToRpcQuantity } from "../../../../src/internal/core/jsonrpc/types/base-types";
@@ -308,8 +307,7 @@ describe("Local accounts provider", () => {
     validateRawEIP2930Transaction(expectedRaw, tx);
   });
 
-  // TODO: enable this test once prague is supported
-  it.skip("should send EIP-7702 transactions", async () => {
+  it("should send EIP-7702 transactions", async () => {
     const tx = {
       from: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
       to: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
@@ -337,7 +335,13 @@ describe("Local accounts provider", () => {
     const rawTransaction = mock.getLatestParams("eth_sendRawTransaction")[0];
 
     const expectedRaw =
-      "0x04f8ca7b80843b9aca008502540be400830186a094f39fd6e51aad88f6f4ce6ab8827279cfffb922668080c0f85cf85a7b9412345678901234567890123456789012345678900101a0d4c36a32c935f7abf3950062024b08ee85a707cd725274a5b017865ea6e989ada06218f33b32f2f26783db21cde75e6b72bcacfedbac4c1a1af438e3e5c755918a80a09ae0f9ac575ff45f38805f7101455b397d248166a2a5771122a66e6c279c279ba0234d80d08a6f369a134b0058b74076e608db10da97ec3660ad829c8d4246098f";
+      "0x04f8ca7b80843b9aca008502540be400830186a094f39fd6e51aad88f6" +
+      "f4ce6ab8827279cfffb922668080c0f85cf85a7b94123456789012345678" +
+      "90123456789012345678900101a0d4c36a32c935f7abf3950062024b08ee" +
+      "85a707cd725274a5b017865ea6e989ada06218f33b32f2f26783db21cde7" +
+      "5e6b72bcacfedbac4c1a1af438e3e5c755918a80a09ae0f9ac575ff45f38" +
+      "805f7101455b397d248166a2a5771122a66e6c279c279ba0234d80d08a6f" +
+      "369a134b0058b74076e608db10da97ec3660ad829c8d4246098f";
 
     assert.equal(rawTransaction, expectedRaw);
   });
@@ -859,26 +863,26 @@ describe("Sender providers", () => {
  * the same values as `tx`
  */
 function validateRawEIP2930Transaction(rawTx: string, tx: any) {
-  const common = Common.custom({ chainId: MOCK_PROVIDER_CHAIN_ID });
+  const sentTx = Transaction.fromHex(rawTx);
 
-  const sentTx = AccessListEIP2930Transaction.fromSerializedTx(
-    toBuffer(rawTx),
-    { common }
+  assert.equal(sentTx.type, "eip2930");
+
+  // We need to cast as the type assertion isn't narrowing the type
+  const parsedTx = sentTx as Transaction<"eip2930">;
+
+  assert.equal(parsedTx.sender.toLowerCase(), tx.from);
+  assert.equal(parsedTx.raw.to.toLowerCase(), tx.to);
+
+  const parsedTxAccessList = parsedTx.raw.accessList.map(
+    ({ address, storageKeys }) => ({
+      address: address.toLowerCase(),
+      storageKeys,
+    })
   );
 
-  const accessList = sentTx.accessList.map(([address, storageKeys]) => {
-    return {
-      address: bufferToHex(address),
-      storageKeys: storageKeys.map(bufferToHex),
-    };
-  });
-
-  assert.equal(sentTx.getSenderAddress().toString(), tx.from);
-  assert.equal(sentTx.to?.toString(), tx.to);
-
-  assert.equal(numberToRpcQuantity(sentTx.gasLimit), tx.gas);
-  assert.equal(numberToRpcQuantity(sentTx.gasPrice), tx.gasPrice);
-  assert.equal(numberToRpcQuantity(sentTx.nonce), tx.nonce);
-  assert.equal(numberToRpcQuantity(sentTx.value), tx.value);
-  assert.deepEqual(accessList, tx.accessList);
+  assert.equal(numberToRpcQuantity(parsedTx.raw.gasLimit), tx.gas);
+  assert.equal(numberToRpcQuantity(parsedTx.raw.gasPrice), tx.gasPrice);
+  assert.equal(numberToRpcQuantity(parsedTx.raw.nonce), tx.nonce);
+  assert.equal(numberToRpcQuantity(parsedTx.raw.value), tx.value);
+  assert.deepEqual(parsedTxAccessList, tx.accessList);
 }

@@ -97,11 +97,8 @@
     "typescript": "~5.0.0"
   },
   "dependencies": {
-    "@ethereumjs/common": "^4.4.0",
-    "@ethereumjs/tx": "^5.4.0",
     "@ethereumjs/util": "^9.1.0",
     "@ethersproject/abi": "^5.1.2",
-    "@metamask/eth-sig-util": "^4.0.0",
     "@nomicfoundation/edr": "^0.10.0",
     "@nomicfoundation/solidity-analyzer": "^0.1.0",
     "@sentry/node": "^5.18.1",
@@ -125,6 +122,7 @@
     "json-stream-stringify": "^3.1.4",
     "keccak": "^3.0.2",
     "lodash": "^4.17.11",
+    "micro-eth-signer": "^0.14.0",
     "mnemonist": "^0.38.0",
     "mocha": "^10.0.0",
     "p-map": "^4.0.0",

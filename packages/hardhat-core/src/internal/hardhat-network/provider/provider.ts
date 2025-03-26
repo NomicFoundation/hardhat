@@ -14,7 +14,6 @@ import type {
   HttpHeader,
   TracingConfigWithBuffers,
 } from "@nomicfoundation/edr";
-import { Common } from "@ethereumjs/common";
 import picocolors from "picocolors";
 import debug from "debug";
 import { EventEmitter } from "events";
@@ -42,8 +41,6 @@ import {
   GenesisAccount,
   IntervalMiningConfig,
   MempoolOrder,
-  NodeConfig,
-  TracingConfig,
 } from "./node-types";
 import {
   edrRpcDebugTraceToHardhat,
@@ -54,7 +51,6 @@ import {
   ethereumjsMempoolOrderToEdrMineOrdering,
   ethereumsjsHardforkToEdrSpecId,
 } from "./utils/convertToEdr";
-import { makeCommon } from "./utils/makeCommon";
 import { LoggerConfig, printLine, replaceLastLine } from "./modules/logger";
 import { MinimalEthereumJsVm, getMinimalEthereumJsVm } from "./vm/minimal-vm";
 
@@ -104,33 +100,6 @@ interface HardhatNetworkProviderConfig {
   enableRip7212: boolean;
 }
 
-export function getNodeConfig(
-  config: HardhatNetworkProviderConfig,
-  tracingConfig?: TracingConfig
-): NodeConfig {
-  return {
-    automine: config.automine,
-    blockGasLimit: config.blockGasLimit,
-    minGasPrice: config.minGasPrice,
-    genesisAccounts: config.genesisAccounts,
-    allowUnlimitedContractSize: config.allowUnlimitedContractSize,
-    tracingConfig,
-    initialBaseFeePerGas: config.initialBaseFeePerGas,
-    mempoolOrder: config.mempoolOrder,
-    hardfork: config.hardfork,
-    chainId: config.chainId,
-    networkId: config.networkId,
-    initialDate: config.initialDate,
-    forkConfig: config.forkConfig,
-    forkCachePath:
-      config.forkConfig !== undefined ? config.forkCachePath : undefined,
-    coinbase: config.coinbase ?? DEFAULT_COINBASE,
-    chains: config.chains,
-    allowBlocksWithSameTimestamp: config.allowBlocksWithSameTimestamp,
-    enableTransientStorage: config.enableTransientStorage,
-  };
-}
-
 class EdrProviderEventAdapter extends EventEmitter {}
 
 type CallOverrideCallback = (
@@ -154,9 +123,7 @@ export class EdrProviderWrapper
     // we add this for backwards-compatibility with plugins like solidity-coverage
     private readonly _node: {
       _vm: MinimalEthereumJsVm;
-    },
-    // The common configuration for EthereumJS VM is not used by EDR, but tests expect it as part of the provider.
-    private readonly _common: Common
+    }
   ) {
     super();
   }
@@ -285,12 +252,7 @@ export class EdrProviderWrapper
       _vm: getMinimalEthereumJsVm(provider),
     };
 
-    const common = makeCommon(getNodeConfig(config));
-    const wrapper = new EdrProviderWrapper(
-      provider,
-      minimalEthereumJsNode,
-      common
-    );
+    const wrapper = new EdrProviderWrapper(provider, minimalEthereumJsNode);
 
     // Pass through all events from the provider
     eventAdapter.addListener(
