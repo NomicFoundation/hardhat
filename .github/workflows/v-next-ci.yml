@@ -40,7 +40,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 23
       - name: Run check
         run: node scripts/check-v-next-dependencies.js
 
@@ -53,7 +53,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 23
       - name: Run check
         run: node scripts/check-v-next-npm-scripts.js
 
@@ -69,7 +69,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 23
       - run: yq -p yaml -o json pnpm-lock.yaml | tee pnpm-lock.json
       - id: generate
         env:
@@ -121,7 +121,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-env
         with:
-          node-version: 22
+          node-version: 23
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --prefer-offline
       - name: Build
@@ -206,7 +206,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-env
         with:
-          node-version: 22
+          node-version: 23
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --prefer-offline
       - name: Build
@@ -241,7 +241,7 @@ jobs:
       matrix:
         package: ${{ fromJson(needs.list-packages.outputs.packages) }}
         os: [ubuntu-latest, macos-13, macos-latest, windows-latest]
-        node: [22]
+        node: [23]
 
     name: "[${{ matrix.package }}] ci on ${{ matrix.os }} (Node ${{ matrix.node }})"
     runs-on: ${{ matrix.os }}
