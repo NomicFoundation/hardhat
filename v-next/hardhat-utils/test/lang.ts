@@ -448,6 +448,113 @@ describe("lang", () => {
 
       assert.deepEqual(result, { a: null });
     });
+
+    it("Should overwrite a root-level function and preserve other properties", () => {
+      const target = {
+        fn: () => "from target",
+        a: 1,
+      };
+
+      const source = {
+        fn: () => "from source",
+        b: 2,
+      };
+
+      const result = deepMerge(target, source);
+
+      assert.equal(result.fn(), source.fn());
+      assert.equal(result.a, 1);
+      assert.equal(result.b, 2);
+    });
+
+    it("Should overwrite a nested object function with a function from the source", () => {
+      const target = {
+        nested: {
+          fn: () => "from target",
+          a: 1,
+        },
+      };
+
+      const source = {
+        nested: {
+          fn: () => "from source",
+          b: 2,
+        },
+      };
+
+      const result = deepMerge(target, source);
+
+      assert.equal(result.nested.fn(), source.nested.fn());
+      assert.equal(result.nested.a, 1);
+      assert.equal(result.nested.b, 2);
+    });
+
+    it("Should merge symbol-keyed properties from the source into the target", () => {
+      const symA = Symbol("a");
+      const symB = Symbol("b");
+
+      const target = {
+        [symA]: "value from target",
+      };
+
+      const source = {
+        [symA]: "value from source",
+        [symB]: "another value from source",
+      };
+
+      const result = deepMerge(target, source);
+
+      assert.equal(result[symA], "value from source");
+      assert.equal(result[symB], "another value from source");
+    });
+
+    it("Should merge symbol-keyed properties nested inside objects", () => {
+      const symA = Symbol("a");
+      const symB = Symbol("b");
+
+      const target = {
+        nested: {
+          [symA]: "target A",
+          common: "target common",
+        },
+      };
+
+      const source = {
+        nested: {
+          [symA]: "source A",
+          [symB]: "source B",
+        },
+      };
+
+      const result = deepMerge(target, source);
+
+      assert.equal(result.nested[symA], "source A");
+      assert.equal(result.nested[symB], "source B");
+      assert.equal(result.nested.common, "target common");
+    });
+
+    it("Should overwrite class instances instead of merging them", () => {
+      class Person {
+        constructor(public name: string) {}
+      }
+
+      const target = {
+        person: new Person("Alice"),
+        role: "admin",
+      };
+
+      const source = {
+        person: new Person("Bob"),
+        active: true,
+      };
+
+      const result = deepMerge(target, source);
+
+      assert.equal(result.person.constructor, Person);
+      assert.equal(result.person.name, "Bob"); // source overrides target
+      assert.equal(result.role, "admin"); // preserved from target
+      assert.equal(result.active, true); // added from source
+    });
   });
 
   describe("isObject", () => {

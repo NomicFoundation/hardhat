@@ -18,10 +18,18 @@ export function deepMergeImpl<T extends object, U extends object>(
   source: U,
 ): T & U {
   /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-   -- The result is expected to include properties from both target and source, but initially only target is spread in, so a cast is needed. */
+  -- The result is expected to include properties from both target and source,
+  but initially only target is spread in, so a cast is needed. */
   const result = { ...target } as T & U;
 
-  for (const key in source) {
+  /*  eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+  -- TypeScript cannot infer the correct union of string and symbol keys, but all keys come from U */
+  const keys = [
+    ...Object.keys(source),
+    ...Object.getOwnPropertySymbols(source),
+  ] as Array<keyof U>;
+
+  for (const key of keys) {
     if (
       isObject(source[key]) &&
       // Only merge recursively objects that are not class instances
