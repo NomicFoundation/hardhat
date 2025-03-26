@@ -8,12 +8,10 @@ import type { TestResult } from "@ignored/edr";
 import { bytesToHexString } from "@nomicfoundation/hardhat-utils/hex";
 import chalk from "chalk";
 
-import {
-  encodeStackTraceEntry,
-  getMessageFromLastStackTraceEntry,
-} from "../network-manager/edr/stack-traces/stack-trace-solidity-errors.js";
+import { encodeStackTraceEntry } from "../network-manager/edr/stack-traces/stack-trace-solidity-errors.js";
 
 import { formatArtifactId } from "./formatters.js";
+import { getMessageFromLastStackTraceEntry } from "./stack-trace-solidity-errors.js";
 
 /**
  * This is a solidity test reporter. It is intended to be composed with the
