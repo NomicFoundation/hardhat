@@ -56,7 +56,7 @@ repositories:
       test/automation/ClaimInterest.t.sol
       test/modules/socialRecovery/SocialRecoveryModule.t.sol
 
-      # unknown cheatcode with selector 0xf0259e92
+      # unknown cheatcode with selector 0xf0259e92 (breakpoint(string))
       test/paymaster/ERC20Paymaster.t.sol
     ref: fc7cc084563ad1bda870df841b77caa9ee3a3661
   PaulRBerg/prb-math:
