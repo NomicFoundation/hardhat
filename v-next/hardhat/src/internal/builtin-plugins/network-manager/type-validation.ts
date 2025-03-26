@@ -268,6 +268,24 @@ function refineEdrNetworkUserConfig(
         message: `'enableTransientStorage' must be enabled for hardforks 'cancun' or later. To disable this feature, use a hardfork before 'cancun'.`,
       });
     }
+
+    if (
+      typeof networkConfig.mining?.interval === "number" ||
+      Array.isArray(networkConfig.mining?.interval)
+    ) {
+      const interval = networkConfig.mining.interval;
+      const minInterval =
+        typeof interval === "number" ? interval : Math.min(...interval);
+      if (
+        minInterval < 1000 &&
+        networkConfig.allowBlocksWithSameTimestamp !== true
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `mining.interval is set to less than 1000 ms. To avoid the block timestamp diverging from clock time, please set allowBlocksWithSameTimestamp: true on the network config`,
+        });
+      }
+    }
   }
 }
 

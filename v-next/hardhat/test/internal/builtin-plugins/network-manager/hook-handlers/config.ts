@@ -452,6 +452,65 @@ describe("network-manager/hook-handlers/config", () => {
       ]);
     });
 
+    it("should throw when mining interval is below 1000ms and allowBlocksWithSameTimestamp is false", async () => {
+      const makeConfig = (
+        interval: number | [number, number],
+        allowBlocksWithSameTimestamp: boolean,
+      ): HardhatUserConfig => ({
+        networks: {
+          test: {
+            type: "edr",
+            chainType: "l1",
+            allowBlocksWithSameTimestamp,
+            mining: {
+              interval,
+            },
+          },
+        },
+      });
+
+      const errorMessage =
+        "mining.interval is set to less than 1000 ms. To avoid the block timestamp diverging from clock time, please set allowBlocksWithSameTimestamp: true on the network config";
+
+      // Interval < 1000, allowBlocksWithSameTimestamp = false, error
+      let validationErrors = await validateNetworkUserConfig(
+        makeConfig(999, false),
+      );
+      assertValidationErrors(validationErrors, [
+        {
+          path: ["networks", "test"],
+          message: errorMessage,
+        },
+      ]);
+
+      // Interval < 1000, allowBlocksWithSameTimestamp = true, no error
+      validationErrors = await validateNetworkUserConfig(makeConfig(999, true));
+      assert.equal(validationErrors.length, 0);
+
+      // Interval >= 1000, allowBlocksWithSameTimestamp = false, no error
+      validationErrors = await validateNetworkUserConfig(
+        makeConfig(1000, false),
+      );
+      assert.equal(validationErrors.length, 0);
+
+      // Interval range with min < 1000, allowBlocksWithSameTimestamp = false, error
+      validationErrors = await validateNetworkUserConfig(
+        makeConfig([1000, 999], false),
+      );
+      assertValidationErrors(validationErrors, [
+        {
+          path: ["networks", "test"],
+          message: errorMessage,
+        },
+      ]);
+
+      // // Interval range with min >= 1000, allowBlocksWithSameTimestamp = false, no error
+      validationErrors = await validateNetworkUserConfig(
+        makeConfig([1000, 1000], true),
+      );
+      assert.equal(validationErrors.length, 0);
+    });
+
     describe("http network specific fields", () => {
       it("should throw if the url is missing", async () => {
         const config = {
@@ -1185,9 +1244,15 @@ describe("network-manager/hook-handlers/config", () => {
 
   describe("resolveUserConfig", () => {
     let hre: HardhatRuntimeEnvironment;
+    let next: (nextUserConfig: HardhatUserConfig) => Promise<HardhatConfig>;
 
     before(async () => {
       hre = await createHardhatRuntimeEnvironment({});
+      next = async (
+        nextUserConfig: HardhatUserConfig,
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+        -- Cast for simplicity as we won't test this */
+      ) => nextUserConfig as unknown as HardhatConfig;
     });
 
     it("should resolve an empty user config with the defaults", async () => {
@@ -1201,12 +1266,6 @@ describe("network-manager/hook-handlers/config", () => {
           },
         },
       };
-
-      const next = async (
-        nextUserConfig: HardhatUserConfig,
-        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-        -- Cast for simplicity as we won't test this */
-      ) => nextUserConfig as unknown as HardhatConfig;
 
       const resolvedConfig = await resolveUserConfig(
         extendedConfig,
@@ -1257,12 +1316,6 @@ describe("network-manager/hook-handlers/config", () => {
           },
         },
       };
-
-      const next = async (
-        nextUserConfig: HardhatUserConfig,
-        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-        -- Cast for simplicity as we won't test this */
-      ) => nextUserConfig as unknown as HardhatConfig;
 
       const resolvedConfig = await resolveUserConfig(
         userConfig,
@@ -1322,12 +1375,6 @@ describe("network-manager/hook-handlers/config", () => {
             },
           },
         };
-
-        const next = async (
-          nextUserConfig: HardhatUserConfig,
-          /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-          -- Cast for simplicity as we won't test this */
-        ) => nextUserConfig as unknown as HardhatConfig;
 
         const resolvedConfig = await resolveUserConfig(
           userConfig,
@@ -1392,12 +1439,6 @@ describe("network-manager/hook-handlers/config", () => {
             },
           },
         };
-
-        const next = async (
-          nextUserConfig: HardhatUserConfig,
-          /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-          -- Cast for simplicity as we won't test this */
-        ) => nextUserConfig as unknown as HardhatConfig;
 
         const resolvedConfig = await resolveUserConfig(
           userConfig,

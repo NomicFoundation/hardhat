@@ -2157,7 +2157,7 @@ describe("NetworkManagerImplementation", () => {
             edrConfig({
               mining: {
                 auto: true,
-                interval: 123,
+                interval: 1234,
                 mempool: {
                   order: "fifo",
                 },
@@ -2171,7 +2171,7 @@ describe("NetworkManagerImplementation", () => {
             edrConfig({
               mining: {
                 auto: true,
-                interval: [123, 456],
+                interval: [1234, 4567],
                 mempool: {
                   order: "priority",
                 },
@@ -2201,7 +2201,7 @@ describe("NetworkManagerImplementation", () => {
           validationErrors = await validateNetworkUserConfig(
             edrConfig({
               mining: {
-                interval: "123",
+                interval: "1234",
               },
             }),
           );
