@@ -44,6 +44,7 @@ const useImageAnimation = (content: any, screenWidth: number) => {
     return () => {
       triggers.forEach((trigger) => trigger.kill());
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [screenWidth, content.featureCards]);
 
   return { activeImageLight, activeImageDark, activeIndex, cardsRef };

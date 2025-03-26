@@ -37,6 +37,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.17.5",
+    "@babel/plugin-transform-runtime": "^7.26.10",
     "@babel/preset-env": "^7.16.11",
     "@next/bundle-analyzer": "^12.1.5",
     "@react-theming/storybook-addon": "^1.1.5",
