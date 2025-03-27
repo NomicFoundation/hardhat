@@ -2,4 +2,4 @@
 "hardhat": patch
 ---
 
-Display solidity stack trace generation warnings to the users and try to infer better error messages from said stack traces
+Infer and display better error messages from stack traces ([#6505](https://github.com/NomicFoundation/hardhat/issues/6505))
