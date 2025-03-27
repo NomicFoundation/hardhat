@@ -175,7 +175,7 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
       }
 
       const privateKey = this._getPrivateKeyForAddress(txRequest.from!);
-      console.log("privateKey", bufferToHex(privateKey));
+
       const chainId = await this._getChainId();
 
       const rawTransaction = await this._getSignedTransaction(
