@@ -221,7 +221,9 @@ export async function download(
     }
 
     const tempFilePath = await generateTempFilePath(destination);
-    const fileStream = fs.createWriteStream(tempFilePath);
+    const fileStream = fs.createWriteStream(tempFilePath, {
+      mode: 0o755,
+    });
     await stream.pipeline(body, fileStream);
     await move(tempFilePath, destination);
   } catch (e) {

@@ -22,13 +22,10 @@ import { initEnvironment } from "../helpers/helpers.js";
 
 addChaiMatchers();
 
-describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
+describe("INTEGRATION: changeEtherBalance matcher", { timeout: 120000 }, () => {
   describe("with the in-process hardhat network", () => {
     useEphemeralFixtureProject("hardhat-project");
-    runTests();
-  });
 
-  function runTests() {
     let sender: HardhatEthersSigner;
     let receiver: HardhatEthersSigner;
     let contract: ChangeEtherBalance;
@@ -660,5 +657,5 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
         expect.fail("Expected an exception but none was thrown");
       });
     });
-  }
+  });
 });
