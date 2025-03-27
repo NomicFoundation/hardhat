@@ -15,6 +15,7 @@ import debug from "debug";
 
 import { ensureError } from "./error.js";
 import { FileSystemAccessError } from "./errors/fs.js";
+import { MutexTimeoutError } from "./errors/synchronization.js";
 import { sleep } from "./lang.js";
 
 const log = debug("hardhat:util:multi-process-mutex");
@@ -76,14 +77,36 @@ export class MultiProcessMutex {
   async #executeFunctionAndReleaseMutex<T>(f: () => Promise<T>): Promise<T> {
     log(`Mutex acquired at path '${this.#mutexFilePath}'`);
 
+    const controller = new AbortController();
+
     try {
-      return await f();
+      // `Promise.race` returns as soon as the first promise settles (resolves or rejects).
+      // This means `f()` will continue running in the background even if `#throwOnMutexTimeout`
+      // finishes first and causes the race to resolve. The `await` only waits for the *first*
+      // completed promise, not for all of them to finish.
+      return await Promise.race([
+        f(),
+        this.#throwOnMutexTimeout(controller.signal),
+      ]);
     } finally {
+      controller.abort(); // Cancel the timeout if still pending
+
       // Release the mutex
-      log(`Mutex released at path '${this.#mutexFilePath}'`);
       this.#deleteMutexFile();
       log(`Mutex released at path '${this.#mutexFilePath}'`);
     }
+  }
+
+  async #throwOnMutexTimeout(signal: AbortSignal): Promise<never> {
+    return new Promise<never>((_, reject) => {
+      const timeout = setTimeout(() => {
+        reject(new MutexTimeoutError(this.#mutexLifespanInMs));
+      }, this.#mutexLifespanInMs);
+
+      signal.addEventListener("abort", () => {
+        clearTimeout(timeout);
+      });
+    });
   }
 
   #isMutexFileTooOld(): boolean {
