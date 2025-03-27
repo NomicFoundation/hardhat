@@ -295,7 +295,6 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
 
     let transaction;
     if (authorizationList !== undefined) {
-      console.log("eip7702");
       assertHardhatInvariant(
         txData.maxFeePerGas !== undefined,
         "maxFeePerGas should be defined"
@@ -315,7 +314,6 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
         authorizationList: authorizationList ?? [],
       });
     } else if (txData.maxFeePerGas !== undefined) {
-      console.log("eip1559");
       transaction = Transaction.prepare({
         type: "eip1559",
         to: checksummedAddress,
@@ -329,7 +327,6 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
         accessList: accessList ?? [],
       });
     } else if (accessList !== undefined) {
-      console.log("eip2930");
       transaction = Transaction.prepare({
         type: "eip2930",
         to: checksummedAddress,
@@ -342,7 +339,6 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
         accessList,
       });
     } else {
-      console.log("legacy");
       transaction = Transaction.prepare({
         type: "legacy",
         to: checksummedAddress,
