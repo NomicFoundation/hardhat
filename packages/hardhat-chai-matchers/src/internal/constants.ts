@@ -9,5 +9,7 @@ export const EMIT_MATCHER = "emit";
 export const REVERTED_MATCHER = "reverted";
 export const REVERTED_WITH_MATCHER = "revertedWith";
 export const REVERTED_WITH_CUSTOM_ERROR_MATCHER = "revertedWithCustomError";
+export const REVERTED_WITH_CUSTOM_ERROR_SIG_MATCHER =
+  "revertedWithCustomErrorSig";
 export const REVERTED_WITH_PANIC_MATCHER = "revertedWithPanic";
 export const REVERTED_WITHOUT_REASON_MATCHER = "revertedWithoutReason";
