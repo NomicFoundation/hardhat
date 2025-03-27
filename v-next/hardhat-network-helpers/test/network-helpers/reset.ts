@@ -21,7 +21,7 @@ describe("network-helpers - reset", () => {
     assert.equal(await networkHelpers.time.latestBlock(), 0);
   });
 
-  it("should reset with a url", { timeout: 60000 }, async (t) => {
+  it("should reset with a url", { timeout: 120000 }, async (t) => {
     if (INFURA_URL === undefined) {
       t.skip("INFURA_URL environment variable is not set");
       return;
@@ -47,7 +47,7 @@ describe("network-helpers - reset", () => {
 
   it(
     "should reset with a url and block number",
-    { timeout: 60000 },
+    { timeout: 120000 },
     async (t) => {
       if (INFURA_URL === undefined) {
         t.skip("INFURA_URL environment variable is not set");

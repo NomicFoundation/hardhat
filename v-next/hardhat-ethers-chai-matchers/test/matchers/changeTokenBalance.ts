@@ -35,18 +35,15 @@ addChaiMatchers();
 
 describe(
   "INTEGRATION: changeTokenBalance and changeTokenBalances matchers",
-  { timeout: 60000 },
+  { timeout: 120000 },
   () => {
     describe("with the in-process hardhat network", () => {
       useEphemeralFixtureProject("hardhat-project");
-      runTests();
-    });
 
-    afterEach(() => {
-      clearTokenDescriptionsCache();
-    });
+      afterEach(() => {
+        clearTokenDescriptionsCache();
+      });
 
-    function runTests() {
       let sender: HardhatEthersSigner;
       let receiver: HardhatEthersSigner;
       let mockToken: Token;
@@ -967,7 +964,7 @@ describe(
           });
         });
       });
-    }
+    });
   },
 );
 

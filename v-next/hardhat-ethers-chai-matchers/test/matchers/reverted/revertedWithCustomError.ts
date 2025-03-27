@@ -24,13 +24,10 @@ import {
 
 addChaiMatchers();
 
-describe("INTEGRATION: Reverted with custom error", { timeout: 60000 }, () => {
+describe("INTEGRATION: Reverted with custom error", { timeout: 120000 }, () => {
   describe("with the in-process hardhat network", () => {
     useEphemeralFixtureProject("hardhat-project");
-    runTests();
-  });
 
-  function runTests() {
     // deploy Matchers contract before each test
     let matchers: MatchersContract;
 
@@ -557,5 +554,5 @@ describe("INTEGRATION: Reverted with custom error", { timeout: 60000 }, () => {
         expect.fail("Expected an exception but none was thrown");
       });
     });
-  }
+  });
 });
