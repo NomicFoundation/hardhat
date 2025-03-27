@@ -274,6 +274,7 @@ jobs:
       - name: Run tests
         env:
           __DO_NOT_USE_IS_HARDHAT_CI: true
+          DEBUG: ${{ runner.debug && '*' || '' }}
         run: pnpm run test:ci
       - name: Upload coverage
         if: ${{ github.event_name != 'merge_group' && matrix.os == 'ubuntu-latest' && matrix.node == '22' && hashFiles(format('v-next/{0}/reports/lcov.info', matrix.package)) != '' }}
