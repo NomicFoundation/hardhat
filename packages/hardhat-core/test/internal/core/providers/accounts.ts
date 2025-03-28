@@ -28,7 +28,7 @@ function toBuffer(x: Parameters<typeof toBytes>[0]) {
 }
 
 function privateKeyToAddress(privateKey: string): string {
-  return bufferToHex(privateToAddress(toBuffer(privateKey))).toLowerCase();
+  return bufferToHex(privateToAddress(toBuffer(privateKey)));
 }
 
 const MOCK_PROVIDER_CHAIN_ID = 123;
@@ -344,6 +344,110 @@ describe("Local accounts provider", () => {
       "369a134b0058b74076e608db10da97ec3660ad829c8d4246098f";
 
     assert.equal(rawTransaction, expectedRaw);
+  });
+
+  it("should allow 'to' to be undefined (contract deployment)", async () => {
+    const tx = {
+      from: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
+      gas: numberToRpcQuantity(100000),
+      nonce: numberToRpcQuantity(0),
+      value: numberToRpcQuantity(1),
+      data: "0x1234",
+      chainId: numberToRpcQuantity(MOCK_PROVIDER_CHAIN_ID),
+      maxFeePerGas: numberToRpcQuantity(12),
+      maxPriorityFeePerGas: numberToRpcQuantity(2),
+    };
+    await wrapper.request({
+      method: "eth_sendTransaction",
+      params: [tx],
+    });
+
+    const rawTransaction = mock.getLatestParams("eth_sendRawTransaction")[0];
+
+    const expectedRaw =
+      "0x02f8517b80020c830186a08001821234c080a0299e6b620a0a42fa7d56" +
+      "42c657975df33974289d58ad3ea45d2eccf9172a5d66a05e408d8d43eba4" +
+      "8edf9da2a833ed4bd6ddaec11f62bcbf8ccb03177f296e0c9b";
+
+    assert.equal(rawTransaction, expectedRaw);
+  });
+
+  it("should allow 'data' to be undefined (regular tx)", async () => {
+    const tx = {
+      from: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
+      to: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
+      gas: numberToRpcQuantity(100000),
+      nonce: numberToRpcQuantity(0),
+      value: numberToRpcQuantity(1),
+      chainId: numberToRpcQuantity(MOCK_PROVIDER_CHAIN_ID),
+      maxFeePerGas: numberToRpcQuantity(12),
+      maxPriorityFeePerGas: numberToRpcQuantity(2),
+    };
+    await wrapper.request({
+      method: "eth_sendTransaction",
+      params: [tx],
+    });
+
+    const rawTransaction = mock.getLatestParams("eth_sendRawTransaction")[0];
+
+    const expectedRaw =
+      "0x02f8637b80020c830186a094b5bc06d4548a3ac17d72b372ae1e416bf6" +
+      "5b8ead0180c001a0db0f3cf6ea38dc6f9da98bbaf7dd1476ad86278eb56d" +
+      "d6173253689481b021fea01b4c3f357eb05a54913fd832c1450b0e169007" +
+      "56a74a7ee82fc78271f1ff19df";
+
+    assert.equal(rawTransaction, expectedRaw);
+  });
+
+  it("should throw if both 'to' and 'data' are undefined", async () => {
+    await expectHardhatErrorAsync(
+      () =>
+        wrapper.request({
+          method: "eth_sendTransaction",
+          params: [
+            {
+              from: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
+              gas: numberToRpcQuantity(100000),
+              nonce: numberToRpcQuantity(0),
+              value: numberToRpcQuantity(1),
+              chainId: numberToRpcQuantity(MOCK_PROVIDER_CHAIN_ID),
+              maxFeePerGas: numberToRpcQuantity(12),
+              maxPriorityFeePerGas: numberToRpcQuantity(2),
+            },
+          ],
+        }),
+      ERRORS.NETWORK.DATA_FIELD_CANNOT_BE_NULL_WITH_NULL_ADDRESS
+    );
+  });
+
+  it("should throw if 'authorizationList' and 'gasPrice' are defined", async () => {
+    await expectHardhatErrorAsync(
+      () =>
+        wrapper.request({
+          method: "eth_sendTransaction",
+          params: [
+            {
+              from: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
+              gas: numberToRpcQuantity(100000),
+              nonce: numberToRpcQuantity(0),
+              value: numberToRpcQuantity(1),
+              chainId: numberToRpcQuantity(MOCK_PROVIDER_CHAIN_ID),
+              gasPrice: numberToRpcQuantity(1),
+              authorizationList: [
+                {
+                  chainId: numberToRpcQuantity(MOCK_PROVIDER_CHAIN_ID),
+                  nonce: numberToRpcQuantity(1),
+                  address: "0x1234567890123456789012345678901234567890",
+                  yParity: "0x1",
+                  r: "0xd4c36a32c935f7abf3950062024b08ee85a707cd725274a5b017865ea6e989ad",
+                  s: "0x6218f33b32f2f26783db21cde75e6b72bcacfedbac4c1a1af438e3e5c755918a",
+                },
+              ],
+            },
+          ],
+        }),
+      ERRORS.NETWORK.INCOMPATIBLE_EIP7702_FIELDS
+    );
   });
 
   it("should add the chainId value if it's missing", async () => {

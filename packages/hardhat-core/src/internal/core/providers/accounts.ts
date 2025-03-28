@@ -117,6 +117,7 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
       // if we don't manage the address, the method is forwarded
       const privateKey = this._getPrivateKeyForAddressOrNull(address);
       if (privateKey !== null) {
+        // Explicitly set extraEntropy to false to make the signing result deterministic
         return signTyped(typedMessage, privateKey, false);
       }
     }
@@ -167,6 +168,12 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
         throw new HardhatError(
           ERRORS.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
           { param: "maxPriorityFeePerGas" }
+        );
+      }
+
+      if (txRequest.to === undefined && txRequest.data === undefined) {
+        throw new HardhatError(
+          ERRORS.NETWORK.DATA_FIELD_CANNOT_BE_NULL_WITH_NULL_ADDRESS
         );
       }
 
@@ -277,16 +284,10 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
       }
     );
 
-    let checksummedAddress;
-    if (txData.to === undefined || txData.to === null) {
-      // This scenario arises during contract deployment. The npm package "micro-eth-signer" does not support
-      // null or undefined addresses. Therefore, these values must be converted to "0x", the expected format.
-      checksummedAddress = "0x";
-    } else {
-      checksummedAddress = addr.addChecksum(
-        bytesToHex(txData.to).toLowerCase()
-      );
-    }
+    const checksummedAddress = addr.addChecksum(
+      bytesToHex(txData.to ?? new Uint8Array()),
+      true
+    );
 
     assertHardhatInvariant(
       txData.nonce !== undefined,
@@ -294,6 +295,14 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
     );
 
     let transaction;
+    const baseTxParams = {
+      to: checksummedAddress,
+      nonce: txData.nonce,
+      chainId: txData.chainId ?? normalizeToBigInt(chainId),
+      value: txData.value ?? 0n,
+      data: bytesToHex(txData.data ?? new Uint8Array()),
+      gasLimit: txData.gasLimit,
+    };
     if (authorizationList !== undefined) {
       assertHardhatInvariant(
         txData.maxFeePerGas !== undefined,
@@ -302,12 +311,7 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
 
       transaction = Transaction.prepare({
         type: "eip7702",
-        to: checksummedAddress,
-        nonce: txData.nonce,
-        chainId: txData.chainId ?? normalizeToBigInt(chainId),
-        value: txData.value !== undefined ? txData.value : 0n,
-        data: txData.data !== undefined ? bytesToHex(txData.data) : "",
-        gasLimit: txData.gasLimit,
+        ...baseTxParams,
         maxFeePerGas: txData.maxFeePerGas,
         maxPriorityFeePerGas: txData.maxPriorityFeePerGas,
         accessList: accessList ?? [],
@@ -316,12 +320,7 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
     } else if (txData.maxFeePerGas !== undefined) {
       transaction = Transaction.prepare({
         type: "eip1559",
-        to: checksummedAddress,
-        nonce: txData.nonce,
-        chainId: txData.chainId ?? normalizeToBigInt(chainId),
-        value: txData.value !== undefined ? txData.value : 0n,
-        data: txData.data !== undefined ? bytesToHex(txData.data) : "",
-        gasLimit: txData.gasLimit,
+        ...baseTxParams,
         maxFeePerGas: txData.maxFeePerGas,
         maxPriorityFeePerGas: txData.maxPriorityFeePerGas,
         accessList: accessList ?? [],
@@ -329,28 +328,19 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
     } else if (accessList !== undefined) {
       transaction = Transaction.prepare({
         type: "eip2930",
-        to: checksummedAddress,
-        nonce: txData.nonce,
-        chainId: txData.chainId ?? normalizeToBigInt(chainId),
-        value: txData.value !== undefined ? txData.value : 0n,
-        data: txData.data !== undefined ? bytesToHex(txData.data) : "",
+        ...baseTxParams,
         gasPrice: txData.gasPrice ?? 0n,
-        gasLimit: txData.gasLimit,
         accessList,
       });
     } else {
       transaction = Transaction.prepare({
         type: "legacy",
-        to: checksummedAddress,
-        nonce: txData.nonce,
-        chainId: txData.chainId ?? normalizeToBigInt(chainId),
-        value: txData.value !== undefined ? txData.value : 0n,
-        data: txData.data !== undefined ? bytesToHex(txData.data) : "",
+        ...baseTxParams,
         gasPrice: txData.gasPrice ?? 0n,
-        gasLimit: txData.gasLimit,
       });
     }
 
+    // Explicitly set extraEntropy to false to make the signing result deterministic
     const signedTransaction = transaction.signBy(privateKey, false);
 
     return signedTransaction.toRawBytes();
