@@ -43,17 +43,21 @@ export interface TypeChainViemContractByName {
 export class TestIgnitionHelper {
   public type = "test";
 
-  private _provider: EIP1193Provider;
-  private _deploymentDir: string | undefined;
+  #hre: HardhatRuntimeEnvironment;
+  #config?: Partial<DeployConfig>;
+  #provider: EIP1193Provider;
+  #deploymentDir: string | undefined;
 
   constructor(
-    private _hre: HardhatRuntimeEnvironment,
-    private _config?: Partial<DeployConfig>,
+    hre: HardhatRuntimeEnvironment,
+    config?: Partial<DeployConfig>,
     provider?: EIP1193Provider,
     deploymentDir?: string
   ) {
-    this._provider = provider ?? this._hre.network.provider;
-    this._deploymentDir = deploymentDir;
+    this.#hre = hre;
+    this.#config = config;
+    this.#provider = provider ?? this.#hre.network.provider;
+    this.#deploymentDir = deploymentDir;
   }
 
   public async deploy<
@@ -86,21 +90,21 @@ export class TestIgnitionHelper {
   ): Promise<
     IgnitionModuleResultsTToViemContracts<ContractNameT, IgnitionModuleResultsT>
   > {
-    const accounts = (await this._hre.network.provider.request({
+    const accounts = (await this.#hre.network.provider.request({
       method: "eth_accounts",
     })) as string[];
 
-    const artifactResolver = new HardhatArtifactResolver(this._hre);
+    const artifactResolver = new HardhatArtifactResolver(this.#hre);
 
     const resolvedConfig: Partial<DeployConfig> = {
-      ...this._config,
+      ...this.#config,
       ...perDeployConfig,
     };
 
     const result = await deploy({
       config: resolvedConfig,
-      provider: this._provider,
-      deploymentDir: this._deploymentDir,
+      provider: this.#provider,
+      deploymentDir: this.#deploymentDir,
       artifactResolver,
       ignitionModule,
       deploymentParameters: parameters,
@@ -118,11 +122,11 @@ export class TestIgnitionHelper {
 
     const publicClient = createPublicClient({
       chain: hardhat,
-      transport: custom(this._hre.network.provider),
+      transport: custom(this.#hre.network.provider),
     });
 
     return this._toViemContracts(
-      this._hre,
+      this.#hre,
       ignitionModule,
       result,
       publicClient
