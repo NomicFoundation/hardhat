@@ -3,27 +3,14 @@
 import { useState, useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/dist/ScrollTrigger";
-import getImage from "../utils";
 
 gsap.registerPlugin(ScrollTrigger);
 
 const useImageAnimation = (content: any, screenWidth: number) => {
-  const [activeImageLight, setActiveImageLight] = useState(
-    getImage(content.featureCards[0], screenWidth, "light")
-  );
-  const [activeImageDark, setActiveImageDark] = useState(
-    getImage(content.featureCards[0], screenWidth, "dark")
-  );
   const [activeIndex, setActiveIndex] = useState(0);
   const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
 
   const updateImage = (index: number) => {
-    setActiveImageLight(
-      getImage(content.featureCards[index], screenWidth, "light")
-    );
-    setActiveImageDark(
-      getImage(content.featureCards[index], screenWidth, "dark")
-    );
     setActiveIndex(index);
   };
 
@@ -47,7 +34,7 @@ const useImageAnimation = (content: any, screenWidth: number) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [screenWidth, content.featureCards]);
 
-  return { activeImageLight, activeImageDark, activeIndex, cardsRef };
+  return { activeIndex, cardsRef };
 };
 
 export default useImageAnimation;
