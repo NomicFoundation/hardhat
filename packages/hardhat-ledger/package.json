@@ -35,11 +35,11 @@
     "README.md"
   ],
   "dependencies": {
+    "@ethereumjs/util": "^9.1.0",
     "@ledgerhq/errors": "^6.12.6",
     "@ledgerhq/hw-app-eth": "6.33.6",
     "@ledgerhq/hw-transport": "^6.28.4",
     "@ledgerhq/hw-transport-node-hid": "^6.27.13",
-    "@nomicfoundation/ethereumjs-util": "9.0.4",
     "chalk": "^2.4.2",
     "debug": "^4.1.1",
     "env-paths": "^2.2.0",
