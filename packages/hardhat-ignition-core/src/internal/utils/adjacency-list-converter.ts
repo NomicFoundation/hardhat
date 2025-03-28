@@ -1,7 +1,12 @@
 import { isFuture } from "../../type-guards";
-import { Future } from "../../types/module";
+import {
+  Future,
+  IgnitionModule,
+  IgnitionModuleResult,
+} from "../../types/module";
 
 import { AdjacencyList } from "./adjacency-list";
+import { getFuturesFromModule } from "./get-futures-from-module";
 
 export class AdjacencyListConverter {
   public static buildAdjacencyListFromFutures(
@@ -13,13 +18,11 @@ export class AdjacencyListConverter {
       for (const dependency of future.dependencies) {
         dependencyGraph.addDependency({ from: future.id, to: dependency.id });
 
-        if (isFuture(dependency)) {
-          this._optionallyAddDependenciesSubmoduleSiblings(
-            dependencyGraph,
-            future,
-            dependency
-          );
-        }
+        this._optionallyAddDependenciesFromSubmodules(
+          dependencyGraph,
+          future,
+          dependency
+        );
       }
     }
 
@@ -29,18 +32,25 @@ export class AdjacencyListConverter {
   /**
    * The famed Malaga rule, if a future's dependency is in a submodule,
    * then that future should not be executed until all futures in the
-   * submodule have been run.
+   * submodule and its submodules (recursive) have been run.
    */
-  private static _optionallyAddDependenciesSubmoduleSiblings(
+  private static _optionallyAddDependenciesFromSubmodules(
     dependencyGraph: AdjacencyList,
     future: Future,
-    dependency: Future
+    dependency:
+      | Future
+      | IgnitionModule<string, string, IgnitionModuleResult<string>>
   ): void {
-    if (future.module === dependency.module) {
+    // we only need to worry about this case if the dependency is a future
+    if (isFuture(dependency) && future.module === dependency.module) {
       return;
     }
 
-    for (const moduleDep of dependency.module.futures) {
+    const futures = getFuturesFromModule(
+      isFuture(dependency) ? dependency.module : dependency
+    );
+
+    for (const moduleDep of futures) {
       dependencyGraph.addDependency({
         from: future.id,
         to: moduleDep.id,
