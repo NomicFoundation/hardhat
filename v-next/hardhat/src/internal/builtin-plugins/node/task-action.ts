@@ -1,18 +1,28 @@
+import type { BuildInfo } from "../../../types/artifacts.js";
 import type { EdrNetworkConfigOverride } from "../../../types/config.js";
+import type { SolidityBuildInfoOutput } from "../../../types/solidity.js";
 import type { NewTaskActionFunction } from "../../../types/tasks.js";
+import type { WatcherEvent } from "@nomicfoundation/hardhat-utils/watch";
+
+import path from "node:path";
 
 import {
   assertHardhatInvariant,
   HardhatError,
 } from "@nomicfoundation/hardhat-errors";
-import { exists } from "@nomicfoundation/hardhat-utils/fs";
+import { exists, readJsonFile } from "@nomicfoundation/hardhat-utils/fs";
+import { Watcher } from "@nomicfoundation/hardhat-utils/watch";
 import chalk from "chalk";
+import debug from "debug";
 
 import { DEFAULT_NETWORK_NAME } from "../../constants.js";
 import { isSupportedChainType } from "../../edr/chain-type.js";
+import { BUILD_INFO_DIR_NAME } from "../artifacts/artifact-manager.js";
 
 import { formatEdrNetworkConfigAccounts } from "./helpers.js";
 import { JsonRpcServerImplementation } from "./json-rpc/server.js";
+
+const log = debug("hardhat:core:tasks:node");
 
 interface NodeActionArguments {
   hostname?: string;
@@ -128,7 +138,58 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
 
   console.log();
 
-  // TODO(https://github.com/NomicFoundation/hardhat/issues/6040): Add build info watcher here
+  const buildInfoPath = path.join(
+    hre.config.paths.artifacts,
+    BUILD_INFO_DIR_NAME,
+  );
+  const watcher = new Watcher(
+    buildInfoPath,
+    async ({ eventType, filename }: WatcherEvent) => {
+      console.log(filename);
+
+      if (filename === null) {
+        return;
+      }
+
+      log(`Detected ${eventType} in ${filename}`);
+
+      // NOTE: We're ignoring the output file here, because the build info files
+      // are modified after the output files
+      if (filename.endsWith(".output.json") === true) {
+        return;
+      }
+
+      const filenamePath = path.join(buildInfoPath, filename);
+      if (!(await exists(filenamePath))) {
+        return;
+      }
+
+      const filenameOutput = filename.replace(".json", ".output.json");
+      const filenameOutputPath = path.join(buildInfoPath, filenameOutput);
+      if (!(await exists(filenameOutputPath))) {
+        return;
+      }
+
+      try {
+        const buildInfo: BuildInfo = await readJsonFile(filenamePath);
+        const buildInfoOutput: SolidityBuildInfoOutput =
+          await readJsonFile(filenameOutputPath);
+
+        await provider.request({
+          method: "hardhat_addCompilationResult",
+          params: [
+            buildInfo.solcVersion,
+            buildInfo.input,
+            buildInfoOutput.output,
+          ],
+        });
+
+        log(`Added compilation result for ${filename}`);
+      } catch (error) {
+        log(error);
+      }
+    },
+  );
 
   // NOTE: Before creating the node, we check if the input network config is of type edr.
   // We only proceed if it is. Hence, we can assume that the output network config is of type edr as well.
@@ -140,6 +201,7 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
   console.log(await formatEdrNetworkConfigAccounts(networkConfig.accounts));
 
   await server.afterClosed();
+  await watcher.close();
 };
 
 export default nodeAction;
