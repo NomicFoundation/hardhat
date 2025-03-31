@@ -1,6 +1,7 @@
 name: Regression Tests
 
 on:
+  # TODO: Add a workflow_call trigger to allow running this workflow from EDR
   workflow_dispatch:
     inputs:
       hardhat-ref:
