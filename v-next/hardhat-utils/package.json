@@ -35,7 +35,8 @@
     "./string": "./dist/src/string.js",
     "./stream": "./dist/src/stream.js",
     "./subprocess": "./dist/src/subprocess.js",
-    "./synchronization": "./dist/src/synchronization.js"
+    "./synchronization": "./dist/src/synchronization.js",
+    "./watch": "./dist/src/watch.js"
   },
   "keywords": [
     "ethereum",
