@@ -1430,6 +1430,79 @@ importers:
         specifier: 7.7.1
         version: 7.7.1(eslint@8.57.0)(typescript@5.5.4)
 
+  v-next/hardhat-toolbox-viem:
+    dependencies:
+      '@nomicfoundation/hardhat-ignition-viem':
+        specifier: workspace:^3.0.0-next.3
+        version: link:../hardhat-ignition-viem
+      '@nomicfoundation/hardhat-keystore':
+        specifier: workspace:^3.0.0-next.3
+        version: link:../hardhat-keystore
+      '@nomicfoundation/hardhat-network-helpers':
+        specifier: workspace:^3.0.0-next.3
+        version: link:../hardhat-network-helpers
+      '@nomicfoundation/hardhat-node-test-runner':
+        specifier: workspace:^3.0.0-next.3
+        version: link:../hardhat-node-test-runner
+      '@nomicfoundation/hardhat-viem':
+        specifier: workspace:^3.0.0-next.3
+        version: link:../hardhat-viem
+    devDependencies:
+      '@eslint-community/eslint-plugin-eslint-comments':
+        specifier: ^4.3.0
+        version: 4.4.1(eslint@8.57.0)
+      '@nomicfoundation/hardhat-node-test-reporter':
+        specifier: workspace:^3.0.0-next.3
+        version: link:../hardhat-node-test-reporter
+      '@nomicfoundation/hardhat-test-utils':
+        specifier: workspace:^
+        version: link:../hardhat-test-utils
+      '@types/node':
+        specifier: ^20.14.9
+        version: 20.17.16
+      '@typescript-eslint/eslint-plugin':
+        specifier: ^7.7.1
+        version: 7.18.0(@typescript-eslint/parser@7.18.0(eslint@8.57.0)(typescript@5.5.4))(eslint@8.57.0)(typescript@5.5.4)
+      '@typescript-eslint/parser':
+        specifier: ^7.7.1
+        version: 7.18.0(eslint@8.57.0)(typescript@5.5.4)
+      c8:
+        specifier: ^9.1.0
+        version: 9.1.0
+      eslint:
+        specifier: 8.57.0
+        version: 8.57.0
+      eslint-config-prettier:
+        specifier: 9.1.0
+        version: 9.1.0(eslint@8.57.0)
+      eslint-import-resolver-typescript:
+        specifier: ^3.6.1
+        version: 3.7.0(eslint-plugin-import@2.29.1)(eslint@8.57.0)
+      eslint-plugin-import:
+        specifier: 2.29.1
+        version: 2.29.1(@typescript-eslint/parser@7.18.0(eslint@8.57.0)(typescript@5.5.4))(eslint-import-resolver-typescript@3.7.0)(eslint@8.57.0)
+      eslint-plugin-no-only-tests:
+        specifier: 3.1.0
+        version: 3.1.0
+      expect-type:
+        specifier: ^0.19.0
+        version: 0.19.0
+      prettier:
+        specifier: 3.2.5
+        version: 3.2.5
+      rimraf:
+        specifier: ^5.0.5
+        version: 5.0.10
+      tsx:
+        specifier: ^4.19.3
+        version: 4.19.3
+      typescript:
+        specifier: ~5.5.0
+        version: 5.5.4
+      typescript-eslint:
+        specifier: 7.7.1
+        version: 7.7.1(eslint@8.57.0)(typescript@5.5.4)
+
   v-next/hardhat-typechain:
     dependencies:
       '@nomicfoundation/hardhat-errors':
@@ -5144,11 +5217,6 @@ packages:
     resolution: {integrity: sha512-GbK2cP9nraSSUF9N2XwUwqfzlAFlMNYYl+ShE/V+H8a9uNl/oUqB1w2EL54Jh0OlyRSd8RfWYJ3coVS4TROP2w==}
     engines: {node: '>=6.0.0'}
 
-  prettier@2.4.1:
-    resolution: {integrity: sha512-9fbDAXSBcc6Bs1mZrDYb3XKzDLm4EXXL9sC1LqKP5rZkT6KRr/rf9amVUcODVXgguK/isJz0d0hP72WeaKWsvA==}
-    engines: {node: '>=10.13.0'}
-    hasBin: true
-
   prettier@2.8.8:
     resolution: {integrity: sha512-tdN8qQGvNjw4CHbY+XXk0JgCXn9QiF21a55rBe5LJAU+kDyC4WQn4+awm2Xfk2lQMk5fKup9XgzTZtGkjBdP9Q==}
     engines: {node: '>=10.13.0'}
@@ -7176,7 +7244,7 @@ snapshots:
 
   '@types/adm-zip@0.5.7':
     dependencies:
-      '@types/node': 20.17.16
+      '@types/node': 22.10.10
 
   '@types/argparse@1.0.38': {}
 
@@ -7335,7 +7403,7 @@ snapshots:
 
   '@types/ws@8.5.14':
     dependencies:
-      '@types/node': 20.17.16
+      '@types/node': 22.10.10
 
   '@typescript-eslint/eslint-plugin@7.18.0(@typescript-eslint/parser@7.18.0(eslint@8.57.0)(typescript@5.5.4))(eslint@8.57.0)(typescript@5.5.4)':
     dependencies:
@@ -9636,8 +9704,6 @@ snapshots:
     dependencies:
       fast-diff: 1.3.0
 
-  prettier@2.4.1: {}
-
   prettier@2.8.8: {}
 
   prettier@3.2.5: {}
@@ -10184,7 +10250,7 @@ snapshots:
       js-sha3: 0.8.0
       lodash: 4.17.21
       mkdirp: 1.0.4
-      prettier: 2.4.1
+      prettier: 2.8.8
       ts-command-line-args: 2.5.1
       ts-essentials: 7.0.3(typescript@5.5.4)
       typescript: 5.5.4

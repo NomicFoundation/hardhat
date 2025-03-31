@@ -1,0 +1,20 @@
+{
+  "extends": "../../config-v-next/tsconfig.json",
+  "references": [
+    {
+      "path": "../hardhat-ignition-viem"
+    },
+    {
+      "path": "../hardhat-keystore"
+    },
+    {
+      "path": "../hardhat-network-helpers"
+    },
+    {
+      "path": "../hardhat-node-test-runner"
+    },
+    {
+      "path": "../hardhat-viem"
+    }
+  ]
+}
