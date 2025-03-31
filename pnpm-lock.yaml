@@ -1432,6 +1432,13 @@ importers:
 
   v-next/hardhat-toolbox-viem:
     dependencies:
+      hardhat:
+        specifier: workspace:^3.0.0-next.3
+        version: link:../hardhat
+    devDependencies:
+      '@eslint-community/eslint-plugin-eslint-comments':
+        specifier: ^4.3.0
+        version: 4.4.1(eslint@8.57.0)
       '@nomicfoundation/hardhat-ignition-viem':
         specifier: workspace:^3.0.0-next.3
         version: link:../hardhat-ignition-viem
@@ -1441,22 +1448,18 @@ importers:
       '@nomicfoundation/hardhat-network-helpers':
         specifier: workspace:^3.0.0-next.3
         version: link:../hardhat-network-helpers
-      '@nomicfoundation/hardhat-node-test-runner':
-        specifier: workspace:^3.0.0-next.3
-        version: link:../hardhat-node-test-runner
-      '@nomicfoundation/hardhat-viem':
-        specifier: workspace:^3.0.0-next.3
-        version: link:../hardhat-viem
-    devDependencies:
-      '@eslint-community/eslint-plugin-eslint-comments':
-        specifier: ^4.3.0
-        version: 4.4.1(eslint@8.57.0)
       '@nomicfoundation/hardhat-node-test-reporter':
         specifier: workspace:^3.0.0-next.3
         version: link:../hardhat-node-test-reporter
+      '@nomicfoundation/hardhat-node-test-runner':
+        specifier: workspace:^3.0.0-next.3
+        version: link:../hardhat-node-test-runner
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
         version: link:../hardhat-test-utils
+      '@nomicfoundation/hardhat-viem':
+        specifier: workspace:^3.0.0-next.3
+        version: link:../hardhat-viem
       '@types/node':
         specifier: ^20.14.9
         version: 20.17.16
