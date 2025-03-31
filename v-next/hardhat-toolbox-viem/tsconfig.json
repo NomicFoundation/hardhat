@@ -2,6 +2,12 @@
   "extends": "../../config-v-next/tsconfig.json",
   "references": [
     {
+      "path": "../hardhat-ignition-core"
+    },
+    {
+      "path": "../hardhat-ignition"
+    },
+    {
       "path": "../hardhat-ignition-viem"
     },
     {
@@ -11,7 +17,13 @@
       "path": "../hardhat-network-helpers"
     },
     {
+      "path": "../hardhat-node-test-reporter"
+    },
+    {
       "path": "../hardhat-node-test-runner"
+    },
+    {
+      "path": "../hardhat-utils"
     },
     {
       "path": "../hardhat-viem"
