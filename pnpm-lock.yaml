@@ -1827,24 +1827,9 @@ importers:
 
   v-next/hardhat/templates/01-node-test-runner-viem:
     devDependencies:
-      '@nomicfoundation/hardhat-ignition':
+      '@nomicfoundation/hardhat-toolbox-viem':
         specifier: workspace:^3.0.0-next.3
-        version: link:../../../hardhat-ignition
-      '@nomicfoundation/hardhat-ignition-viem':
-        specifier: workspace:^3.0.0-next.3
-        version: link:../../../hardhat-ignition-viem
-      '@nomicfoundation/hardhat-keystore':
-        specifier: workspace:^3.0.0-next.3
-        version: link:../../../hardhat-keystore
-      '@nomicfoundation/hardhat-network-helpers':
-        specifier: workspace:^3.0.0-next.3
-        version: link:../../../hardhat-network-helpers
-      '@nomicfoundation/hardhat-node-test-runner':
-        specifier: workspace:^3.0.0-next.3
-        version: link:../../../hardhat-node-test-runner
-      '@nomicfoundation/hardhat-viem':
-        specifier: workspace:^3.0.0-next.3
-        version: link:../../../hardhat-viem
+        version: link:../../../hardhat-toolbox-viem
       '@types/node':
         specifier: ^22.8.5
         version: 22.10.10
