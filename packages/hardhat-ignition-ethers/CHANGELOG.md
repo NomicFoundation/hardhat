@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.15.11
+
+### Patch Changes
+
+- Updated dependencies [aa09462]
+- Updated dependencies [a5419a7]
+- Updated dependencies [23280b8]
+- Updated dependencies [4ad0bc0]
+- Updated dependencies [9d6f713]
+- Updated dependencies [b61cdd8]
+- Updated dependencies [1a6203d]
+  - hardhat@2.23.0
+  - @nomicfoundation/ignition-core@0.15.11
+  - @nomicfoundation/hardhat-ignition@0.15.11
+
 ## 0.15.10
 
 ### Patch Changes

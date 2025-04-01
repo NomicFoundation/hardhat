@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.15.11
+
+### Patch Changes
+
+- 23280b8: Resolve all dependencies when using submodules in `after`
+- 1a6203d: Add arbitrum sepolia to chain config
+
 ## 0.15.10
 
 ### Patch Changes
