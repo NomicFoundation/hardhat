@@ -1,3 +1,4 @@
+import assert from "node:assert/strict";
 import path from "node:path";
 import { describe, it } from "node:test";
 import { pathToFileURL } from "node:url";
@@ -17,16 +18,16 @@ describe("hardhat-toolbox-viem", function () {
       const hre = await createHardhatRuntimeEnvironment(hardhatConfig.default);
 
       // This will check that the node test runner is available
-      hre.tasks.getTask(["test", "node"]);
+      assert.notEqual(hre.tasks.getTask(["test", "node"]), undefined);
 
       // This will check that network helpers and viem are available
       await hre.tasks.getTask(["run"]).run({ script: "scripts/script.ts" });
 
       // This will check that ignition is available
-      hre.tasks.getTask(["ignition"]);
+      assert.notEqual(hre.tasks.getTask(["ignition"]), undefined);
 
       // This will check that the keystore is available
-      hre.tasks.getTask(["keystore"]);
+      assert.notEqual(hre.tasks.getTask(["keystore"]), undefined);
     });
   });
 });
