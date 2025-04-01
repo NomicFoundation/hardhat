@@ -182,14 +182,22 @@ function setupIgnitionHelperRiggedToThrow(
 }
 
 export class TestChainHelper {
+  #hre: HardhatRuntimeEnvironment;
+  #deployPromise: Promise<any>;
+  #exitFn: () => void;
+
   constructor(
-    private _hre: HardhatRuntimeEnvironment,
-    private _deployPromise: Promise<any>,
-    private _exitFn: () => void
-  ) {}
+    hre: HardhatRuntimeEnvironment,
+    deployPromise: Promise<any>,
+    exitFn: () => void
+  ) {
+    this.#hre = hre;
+    this.#deployPromise = deployPromise;
+    this.#exitFn = exitFn;
+  }
 
   public async waitForPendingTxs(expectedCount: number) {
-    await waitForPendingTxs(this._hre, expectedCount, this._deployPromise);
+    await waitForPendingTxs(this.#hre, expectedCount, this.#deployPromise);
   }
 
   /**
@@ -201,24 +209,24 @@ export class TestChainHelper {
    */
   public async mineBlock(pendingTxToAwait: number = 0) {
     if (pendingTxToAwait > 0) {
-      await waitForPendingTxs(this._hre, pendingTxToAwait, this._deployPromise);
+      await waitForPendingTxs(this.#hre, pendingTxToAwait, this.#deployPromise);
     }
 
-    return this._hre.network.provider.send("evm_mine");
+    return this.#hre.network.provider.send("evm_mine");
   }
 
   public async clearMempool(pendingTxToAwait: number = 0) {
     if (pendingTxToAwait > 0) {
-      await waitForPendingTxs(this._hre, pendingTxToAwait, this._deployPromise);
+      await waitForPendingTxs(this.#hre, pendingTxToAwait, this.#deployPromise);
     }
 
-    return clearPendingTransactionsFromMemoryPool(this._hre);
+    return clearPendingTransactionsFromMemoryPool(this.#hre);
   }
 
   /**
    * Exit from the deploy on the next block tick.
    */
   public exitDeploy() {
-    this._exitFn();
+    this.#exitFn();
   }
 }

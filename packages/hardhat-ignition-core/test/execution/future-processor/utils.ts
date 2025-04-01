@@ -93,14 +93,17 @@ function setupMockJsonRpcClient(
 }
 
 class MockJsonRpcClient implements JsonRpcClient {
-  private _blockNumber = 10;
+  #blockNumber = 10;
+  #transactions: { [key: string]: TransactionReceipt };
+  #sendTransaction: (transactionParams: TransactionParams) => Promise<string>;
 
   constructor(
-    private _sendTransaction: (
-      transactionParams: TransactionParams
-    ) => Promise<string>,
-    private _transactions: { [key: string]: TransactionReceipt }
-  ) {}
+    sendTransaction: (transactionParams: TransactionParams) => Promise<string>,
+    transactions: { [key: string]: TransactionReceipt }
+  ) {
+    this.#sendTransaction = sendTransaction;
+    this.#transactions = transactions;
+  }
 
   public async getChainId(): Promise<number> {
     return 31337;
@@ -113,7 +116,7 @@ class MockJsonRpcClient implements JsonRpcClient {
   }
 
   public async getLatestBlock(): Promise<Block> {
-    const blockNumber = this._blockNumber++;
+    const blockNumber = this.#blockNumber++;
 
     return {
       hash: `0xblockhash-${blockNumber}`,
@@ -152,7 +155,7 @@ class MockJsonRpcClient implements JsonRpcClient {
   public async sendTransaction(
     transactionParams: TransactionParams
   ): Promise<string> {
-    return this._sendTransaction(transactionParams);
+    return this.#sendTransaction(transactionParams);
   }
 
   public async sendRawTransaction(_presignedTx: string): Promise<string> {
@@ -181,11 +184,11 @@ class MockJsonRpcClient implements JsonRpcClient {
     txHash: string
   ): Promise<TransactionReceipt | undefined> {
     assertIgnitionInvariant(
-      txHash in this._transactions,
+      txHash in this.#transactions,
       `No transaction registered in test for the hash ${txHash}`
     );
 
-    return this._transactions[txHash];
+    return this.#transactions[txHash];
   }
 
   public async getCode(_address: string): Promise<string> {

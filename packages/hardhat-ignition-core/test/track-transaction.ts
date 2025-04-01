@@ -4,6 +4,7 @@ import path from "path";
 import { EIP1193Provider, RequestArguments, trackTransaction } from "../src";
 import { NetworkTransaction } from "../src/internal/execution/types/jsonrpc";
 import { JournalMessageType } from "../src/internal/execution/types/messages";
+import { ERRORS } from "../src/internal/errors-list";
 
 const mockFullTx = {
   hash: "0x1a3eb512e21fc849f8e8733b250ce49b61178c9c4a670063f969db59eda4a59f",
@@ -23,10 +24,16 @@ const mockFullTx = {
 };
 
 class MockEIP1193Provider implements EIP1193Provider {
+  public fullTx: NetworkTransaction | null = null;
+  public confirmations: number = 6;
+
   constructor(
-    public fullTx: NetworkTransaction | null = null,
-    public confirmations: number = 6
-  ) {}
+    fullTx: NetworkTransaction | null = null,
+    confirmations: number = 6
+  ) {
+    this.fullTx = fullTx;
+    this.confirmations = confirmations;
+  }
 
   public async request(args: RequestArguments): Promise<any> {
     if (args.method === "eth_getTransactionByHash") {
@@ -218,9 +225,7 @@ If this is not the expected behavior, please edit your Hardhat Ignition module a
           mockFullTx.hash,
           new MockEIP1193Provider(mockFullTx)
         ),
-        `The transaction hash that you provided was already present in your deployment. 
-
-Please double check the error you are getting when running Hardhat Ignition, and the instructions it's providing.`
+        ERRORS.TRACK_TRANSACTION.KNOWN_TRANSACTION.message
       );
     });
 
@@ -238,9 +243,7 @@ Please double check the error you are getting when running Hardhat Ignition, and
           hash,
           new MockEIP1193Provider({ ...mockFullTx, hash }, 2)
         ),
-        `The transaction you provided doesn't have enough confirmations yet. 
-
-Please try again later.`
+        ERRORS.TRACK_TRANSACTION.INSUFFICIENT_CONFIRMATIONS.message
       );
     });
 
@@ -274,9 +277,7 @@ Please double check the error you are getting when running Hardhat Ignition, and
           mockFullTx.hash,
           new MockEIP1193Provider({ ...mockFullTx, value: "0x11" }, 2)
         ),
-        `The transaction you provided doesn't have enough confirmations yet. 
-
-Please try again later.`
+        ERRORS.TRACK_TRANSACTION.INSUFFICIENT_CONFIRMATIONS.message
       );
     });
   });
