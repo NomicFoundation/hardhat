@@ -166,10 +166,10 @@ export const defaultHardhatNetworkParams: Omit<
     [
       43114, // avalanche
       {
-          hardforkHistory: new Map([
-              [HardforkName.SHANGHAI, 11404279],
-              [HardforkName.CANCUN, 41263126]
-          ]),
+        hardforkHistory: new Map([
+          [HardforkName.SHANGHAI, 11404279],
+          [HardforkName.CANCUN, 41263126],
+        ]),
       },
     ],
     [
