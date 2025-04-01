@@ -7,11 +7,11 @@ on:
       hardhat-ref:
         required: true
         type: string
-        default: 'v-next'
+        default: "v-next"
       edr-ref:
         required: false
         type: string
-        default: ''
+        default: ""
       repositories:
         required: false
         type: string
@@ -400,7 +400,7 @@ jobs:
       - name: Download the results
         uses: actions/download-artifact@v4
         with:
-          pattern: 'repository-*;command-*;runner-*'
+          pattern: "repository-*;command-*;runner-*"
       - name: Summarize the results
         id: summary
         env:
