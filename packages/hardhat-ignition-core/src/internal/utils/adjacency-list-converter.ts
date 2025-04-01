@@ -16,7 +16,11 @@ export class AdjacencyListConverter {
 
     for (const future of futures) {
       for (const dependency of future.dependencies) {
-        dependencyGraph.addDependency({ from: future.id, to: dependency.id });
+        if (isFuture(dependency)) {
+          // We only add Futures to the dependency graph, modules are handled
+          // in the method call below, by adding their futures to the graph.
+          dependencyGraph.addDependency({ from: future.id, to: dependency.id });
+        }
 
         this._optionallyAddDependenciesFromSubmodules(
           dependencyGraph,
