@@ -21,6 +21,7 @@ export type ExecutionEvent =
   | ReadEventArgExecutionStateInitializeEvent
   | EncodeFunctionCallExecutionStateInitializeEvent
   | NetworkInteractionRequestEvent
+  | TransactionPrepareSendEvent
   | TransactionSendEvent
   | TransactionConfirmEvent
   | StaticCallCompleteEvent
@@ -54,6 +55,7 @@ export enum ExecutionEventType {
   READ_EVENT_ARGUMENT_EXECUTION_STATE_INITIALIZE = "READ_EVENT_ARGUMENT_EXECUTION_STATE_INITIALIZE",
   ENCODE_FUNCTION_CALL_EXECUTION_STATE_INITIALIZE = "ENCODE_FUNCTION_CALL_EXECUTION_STATE_INITIALIZE",
   NETWORK_INTERACTION_REQUEST = "NETWORK_INTERACTION_REQUEST",
+  TRANSACTION_PREPARE_SEND = "TRANSACTION_PREPARE_SEND",
   TRANSACTION_SEND = "TRANSACTION_SEND",
   TRANSACTION_CONFIRM = "TRANSACTION_CONFIRM",
   STATIC_CALL_COMPLETE = "STATIC_CALL_COMPLETE",
@@ -298,6 +300,16 @@ export interface NetworkInteractionRequestEvent {
 }
 
 /**
+ * An event indicating that a transaction is about to be sent to the network.
+ *
+ * @beta
+ */
+export interface TransactionPrepareSendEvent {
+  type: ExecutionEventType.TRANSACTION_PREPARE_SEND;
+  futureId: string;
+}
+
+/**
  * An event indicating that a transaction has been sent to the network.
  *
  * @beta
@@ -475,6 +487,7 @@ export interface ExecutionEventTypeMap {
   [ExecutionEventType.READ_EVENT_ARGUMENT_EXECUTION_STATE_INITIALIZE]: ReadEventArgExecutionStateInitializeEvent;
   [ExecutionEventType.ENCODE_FUNCTION_CALL_EXECUTION_STATE_INITIALIZE]: EncodeFunctionCallExecutionStateInitializeEvent;
   [ExecutionEventType.NETWORK_INTERACTION_REQUEST]: NetworkInteractionRequestEvent;
+  [ExecutionEventType.TRANSACTION_PREPARE_SEND]: TransactionPrepareSendEvent;
   [ExecutionEventType.TRANSACTION_SEND]: TransactionSendEvent;
   [ExecutionEventType.TRANSACTION_CONFIRM]: TransactionConfirmEvent;
   [ExecutionEventType.STATIC_CALL_COMPLETE]: StaticCallCompleteEvent;

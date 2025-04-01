@@ -80,3 +80,50 @@ export interface Transaction {
   // Only available after the transaction has confirmed, with enough confirmations.
   receipt?: TransactionReceipt;
 }
+
+/**
+ * This interface represents a transaction with all of its available fields.
+ */
+export interface FullTransaction {
+  hash: string;
+  blockNumber: bigint | null;
+  blockHash: string | null;
+  nonce: number;
+  chainId: number;
+  from: string;
+  to: string | undefined;
+  value: bigint;
+  data: string;
+  gasLimit?: bigint;
+  gasPrice?: bigint;
+  maxPriorityFeePerGas?: bigint;
+  maxFeePerGas?: bigint;
+}
+
+interface BaseNetworkTransaction {
+  hash: string;
+  blockNumber: string | null;
+  blockHash: string | null;
+  nonce: string;
+  chainId: string;
+  from: string;
+  to: string | null;
+  value: string;
+  input: string;
+  gas?: string;
+}
+
+type LegacyNetworkTransaction = BaseNetworkTransaction & {
+  [P in keyof LegacyNetworkFees]: string;
+};
+
+type EIP1559NetworkTransaction = BaseNetworkTransaction & {
+  [P in keyof EIP1559NetworkFees]: string;
+};
+
+/**
+ * This type represents a transaction that was retrieved from the network.
+ */
+export type NetworkTransaction =
+  | LegacyNetworkTransaction
+  | EIP1559NetworkTransaction;
