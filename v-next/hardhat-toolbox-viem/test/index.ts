@@ -16,10 +16,10 @@ describe("hardhat-toolbox-viem", function () {
     console.log = originalConsoleLog;
   });
 
-  describe("only-toolbox", function () {
+  describe("all the expected plugins are available", function () {
     useFixtureProject("toolbox");
 
-    it("has all the expected things in the HRE", async function () {
+    it("should expose all the expected plugins", async function () {
       const hardhatConfig = await import(
         path.join(process.cwd(), "hardhat.config.js")
       );
