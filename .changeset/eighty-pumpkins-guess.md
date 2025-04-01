@@ -1,5 +1,6 @@
 ---
 "@nomicfoundation/ignition-core": patch
+"hardhat": patch
 ---
 
-Add arbitrum sepolia to chain config (v-next)
+Add Arbitrum Sepolia to chain config in Ignition ([#6518](https://github.com/NomicFoundation/hardhat/pull/6518))
