@@ -64,7 +64,6 @@
     "README.md"
   ],
   "devDependencies": {
-    "@eslint-community/eslint-plugin-eslint-comments": "^4.3.0",
     "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0-next.3",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
     "@types/adm-zip": "^0.5.5",
@@ -72,19 +71,12 @@
     "@types/node": "^20.14.9",
     "@types/semver": "^7.5.8",
     "@types/ws": "^8.5.13",
-    "@typescript-eslint/eslint-plugin": "^7.7.1",
-    "@typescript-eslint/parser": "^7.7.1",
     "c8": "^9.1.0",
-    "eslint": "8.57.0",
+    "eslint": "9.23.0",
     "eslint-config-prettier": "9.1.0",
-    "eslint-import-resolver-typescript": "^3.6.1",
-    "eslint-plugin-import": "2.29.1",
-    "eslint-plugin-no-only-tests": "3.1.0",
     "expect-type": "^0.19.0",
     "prettier": "3.2.5",
-    "rimraf": "^5.0.5",
-    "typescript": "~5.5.0",
-    "typescript-eslint": "7.7.1"
+    "rimraf": "^5.0.5"
   },
   "dependencies": {
     "@ignored/edr": "0.10.0-alpha.1",
