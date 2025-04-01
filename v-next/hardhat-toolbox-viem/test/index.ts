@@ -17,7 +17,7 @@ describe("hardhat-toolbox-viem", function () {
       const hre = await createHardhatRuntimeEnvironment(hardhatConfig.default);
 
       // This will check that the node test runner is available
-      hre.tasks.getTask(["test"]);
+      hre.tasks.getTask(["test", "node"]);
 
       // This will check that network helpers and viem are available
       await hre.tasks.getTask(["run"]).run({ script: "scripts/script.ts" });
