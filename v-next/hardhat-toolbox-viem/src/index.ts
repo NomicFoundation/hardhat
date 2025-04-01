@@ -1,13 +1,40 @@
-import hardhatIgnitionViemPlugin from "@nomicfoundation/hardhat-ignition-viem";
-import hardhatKeystorePlugin from "@nomicfoundation/hardhat-keystore";
-import hardhatNetworkHelpersPlugin from "@nomicfoundation/hardhat-network-helpers";
-import hardhatNodeTestRunnerPlugin from "@nomicfoundation/hardhat-node-test-runner";
-import hardhatViemPlugin from "@nomicfoundation/hardhat-viem";
+import type { HardhatPlugin } from "hardhat/types/plugins";
 
-export {
-  hardhatIgnitionViemPlugin,
-  hardhatKeystorePlugin,
-  hardhatNetworkHelpersPlugin,
-  hardhatNodeTestRunnerPlugin,
-  hardhatViemPlugin,
+const hardhatToolboxViemPlugin: HardhatPlugin = {
+  id: "hardhat-toolbox-viem",
+  dependencies: [
+    async () => {
+      const { default: hardhatIgnitionViemPlugin } = await import(
+        "@nomicfoundation/hardhat-ignition-viem"
+      );
+      return hardhatIgnitionViemPlugin;
+    },
+    async () => {
+      const { default: hardhatKeystorePlugin } = await import(
+        "@nomicfoundation/hardhat-keystore"
+      );
+      return hardhatKeystorePlugin;
+    },
+    async () => {
+      const { default: hardhatNetworkHelpersPlugin } = await import(
+        "@nomicfoundation/hardhat-network-helpers"
+      );
+      return hardhatNetworkHelpersPlugin;
+    },
+    async () => {
+      const { default: hardhatNodeTestRunnerPlugin } = await import(
+        "@nomicfoundation/hardhat-node-test-runner"
+      );
+      return hardhatNodeTestRunnerPlugin;
+    },
+    async () => {
+      const { default: hardhatViemPlugin } = await import(
+        "@nomicfoundation/hardhat-viem"
+      );
+      return hardhatViemPlugin;
+    },
+  ],
+  npmPackage: "@nomicfoundation/hardhat-toolbox-viem",
 };
+
+export default hardhatToolboxViemPlugin;
