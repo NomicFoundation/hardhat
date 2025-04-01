@@ -49,6 +49,8 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     return;
   }
 
+  await hre.tasks.getTask("compile").run();
+
   if (testFiles.length > 0) {
     rootFilePaths = testFiles.map((f) =>
       resolveFromRoot(hre.config.paths.root, f),
@@ -81,9 +83,14 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
 
   throwIfSolidityBuildFailed(results);
 
-  const buildInfos = await getBuildInfos(results, hre.artifacts);
-  const artifacts = await getArtifacts(results);
+  const buildInfos = await getBuildInfos(hre.artifacts);
+  const artifacts = await getArtifacts(hre.artifacts);
   const testSuiteIds = artifacts
+    .filter((artifact) =>
+      rootFilePaths.includes(
+        resolveFromRoot(hre.config.paths.root, artifact.id.source),
+      ),
+    )
     .filter(isTestSuiteArtifact)
     .map((artifact) => artifact.id);
 
