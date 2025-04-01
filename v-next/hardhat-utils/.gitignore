@@ -7,8 +7,8 @@
 # pnpm deploy output
 /bundle
 
-# test coverage output
-coverage
+# test:ci output
+/reports
 
 # all the tmp folders in the fixture projects
 /test/fixture-projects/tmp/

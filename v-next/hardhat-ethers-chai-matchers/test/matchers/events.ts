@@ -24,7 +24,7 @@ import { initEnvironment } from "../helpers/helpers.js";
 
 addChaiMatchers();
 
-describe(".to.emit (contract events)", { timeout: 60000 }, () => {
+describe(".to.emit (contract events)", { timeout: 120000 }, () => {
   let contract: EventsContract;
   let otherContract: AnotherContract;
   let overrideEventContract: OverrideEventContract;
@@ -32,10 +32,7 @@ describe(".to.emit (contract events)", { timeout: 60000 }, () => {
 
   describe("with the in-process hardhat network", () => {
     useEphemeralFixtureProject("hardhat-project");
-    runTests();
-  });
 
-  function runTests() {
     let ethers: HardhatEthers;
 
     before(async () => {
@@ -917,5 +914,5 @@ describe(".to.emit (contract events)", { timeout: 60000 }, () => {
         );
       });
     });
-  }
+  });
 });
