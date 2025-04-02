@@ -1,10 +1,6 @@
 import { HardhatUserConfig, configVariable } from "hardhat/config";
 
-import HardhatNodeTestRunner from "@nomicfoundation/hardhat-node-test-runner";
-import HardhatViem from "@nomicfoundation/hardhat-viem";
-import HardhatNetworkHelpers from "@nomicfoundation/hardhat-network-helpers";
-import HardhatKeystore from "@nomicfoundation/hardhat-keystore";
-import HardhatIgnitionViem from "@nomicfoundation/hardhat-ignition-viem";
+import hardhatToolboxViemPlugin from "@nomicfoundation/hardhat-toolbox-viem";
 
 const config: HardhatUserConfig = {
   /*
@@ -14,13 +10,7 @@ const config: HardhatUserConfig = {
    * Note: A `hardhat-toolbox` like plugin for Hardhat 3 hasn't been defined yet,
    * so this list is larger than what you would normally have.
    */
-  plugins: [
-    HardhatNodeTestRunner,
-    HardhatViem,
-    HardhatNetworkHelpers,
-    HardhatKeystore,
-    HardhatIgnitionViem,
-  ],
+  plugins: [hardhatToolboxViemPlugin],
   solidity: {
     /*
      * Hardhat 3 supports different build profiles, allowing you to configure
