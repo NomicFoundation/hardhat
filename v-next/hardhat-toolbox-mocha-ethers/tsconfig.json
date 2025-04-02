@@ -8,10 +8,16 @@
       "path": "../hardhat-ethers-chai-matchers"
     },
     {
+      "path": "../hardhat-ignition"
+    },
+    {
       "path": "../hardhat-ignition-core"
     },
     {
-      "path": "../hardhat-ignition"
+      "path": "../hardhat-ignition-ethers"
+    },
+    {
+      "path": "../hardhat-keystore"
     },
     {
       "path": "../hardhat-mocha"
@@ -24,6 +30,9 @@
     },
     {
       "path": "../hardhat-test-utils"
+    },
+    {
+      "path": "../hardhat-typechain"
     }
   ]
 }
