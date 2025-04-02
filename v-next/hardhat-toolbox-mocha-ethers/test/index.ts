@@ -23,6 +23,9 @@ describe("hardhat-toolbox-mocha-ethers", function () {
       // This will check that ethers, chai and network helpers are available
       await hre.tasks.getTask(["run"]).run({ script: "scripts/script.ts" });
 
+      // This will check that the keystore is available
+      assert.notEqual(hre.tasks.getTask(["keystore", "list"]), undefined);
+
       // This will check that ignition is available
       assert.notEqual(hre.tasks.getTask(["ignition"]), undefined);
     });

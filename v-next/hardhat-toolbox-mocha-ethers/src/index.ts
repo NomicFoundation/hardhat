@@ -18,10 +18,16 @@ const hardhatToolboxMochaEthersPlugin: HardhatPlugin = {
       return hardhatEthersChaiMatchersPlugin;
     },
     async () => {
-      const { default: hardhatIgnitionPlugin } = await import(
-        "@nomicfoundation/hardhat-ignition"
+      const { default: hardhatIgnitionEthersPlugin } = await import(
+        "@nomicfoundation/hardhat-ignition-ethers"
       );
-      return hardhatIgnitionPlugin;
+      return hardhatIgnitionEthersPlugin;
+    },
+    async () => {
+      const { default: hardhatKeystorePlugin } = await import(
+        "@nomicfoundation/hardhat-keystore"
+      );
+      return hardhatKeystorePlugin;
     },
     async () => {
       const { default: hardhatMochaPlugin } = await import(
@@ -34,6 +40,12 @@ const hardhatToolboxMochaEthersPlugin: HardhatPlugin = {
         "@nomicfoundation/hardhat-network-helpers"
       );
       return hardhatNetworkHelpersPlugin;
+    },
+    async () => {
+      const { default: HardhatTypechainPlugin } = await import(
+        "@nomicfoundation/hardhat-typechain"
+      );
+      return HardhatTypechainPlugin;
     },
   ],
   npmPackage: "@nomicfoundation/hardhat-toolbox-mocha-ethers",

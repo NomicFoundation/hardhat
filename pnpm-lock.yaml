@@ -1448,6 +1448,12 @@ importers:
       '@nomicfoundation/hardhat-ignition':
         specifier: workspace:^3.0.0-next.3
         version: link:../hardhat-ignition
+      '@nomicfoundation/hardhat-ignition-ethers':
+        specifier: workspace:^3.0.0-next.3
+        version: link:../hardhat-ignition-ethers
+      '@nomicfoundation/hardhat-keystore':
+        specifier: workspace:^3.0.0-next.3
+        version: link:../hardhat-keystore
       '@nomicfoundation/hardhat-mocha':
         specifier: workspace:^3.0.0-next.3
         version: link:../hardhat-mocha
@@ -1460,6 +1466,9 @@ importers:
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
         version: link:../hardhat-test-utils
+      '@nomicfoundation/hardhat-typechain':
+        specifier: workspace:^3.0.0-next.3
+        version: link:../hardhat-typechain
       '@nomicfoundation/ignition-core':
         specifier: workspace:^3.0.0-next.3
         version: link:../hardhat-ignition-core
@@ -1866,18 +1875,9 @@ importers:
 
   v-next/hardhat/templates/02-mocha-ethers:
     devDependencies:
-      '@nomicfoundation/hardhat-ignition-ethers':
-        specifier: workspace:^3.0.0-next.3
-        version: link:../../../hardhat-ignition-ethers
-      '@nomicfoundation/hardhat-keystore':
-        specifier: workspace:^3.0.0-next.3
-        version: link:../../../hardhat-keystore
       '@nomicfoundation/hardhat-toolbox-mocha-ethers':
         specifier: workspace:^3.0.0-next.3
         version: link:../../../hardhat-toolbox-mocha-ethers
-      '@nomicfoundation/hardhat-typechain':
-        specifier: workspace:^3.0.0-next.3
-        version: link:../../../hardhat-typechain
       '@types/chai':
         specifier: ^4.2.0
         version: 4.3.20
