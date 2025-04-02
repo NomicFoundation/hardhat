@@ -1,10 +1,7 @@
 import { configVariable, HardhatUserConfig } from "hardhat/config";
 
-import HardhatMochaTestRunner from "@nomicfoundation/hardhat-mocha";
-import HardhatEthers from "@nomicfoundation/hardhat-ethers";
-import HardhatNetworkHelpers from "@nomicfoundation/hardhat-network-helpers";
+import hardhatToolboxMochaEthersPlugin from "@nomicfoundation/hardhat-toolbox-mocha-ethers";
 import HardhatKeystore from "@nomicfoundation/hardhat-keystore";
-import HardhatChaiMatchers from "@nomicfoundation/hardhat-ethers-chai-matchers";
 import HardhatTypechain from "@nomicfoundation/hardhat-typechain";
 import HardhatIgnitionEthers from "@nomicfoundation/hardhat-ignition-ethers";
 
@@ -17,11 +14,8 @@ const config: HardhatUserConfig = {
    * so this list is larger than what you would normally have.
    */
   plugins: [
-    HardhatMochaTestRunner,
-    HardhatEthers,
-    HardhatNetworkHelpers,
     HardhatKeystore,
-    HardhatChaiMatchers,
+    hardhatToolboxMochaEthersPlugin,
     HardhatTypechain,
     HardhatIgnitionEthers,
   ],

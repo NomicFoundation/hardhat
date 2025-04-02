@@ -1,0 +1,29 @@
+{
+  "extends": "../../config-v-next/tsconfig.json",
+  "references": [
+    {
+      "path": "../hardhat-ethers"
+    },
+    {
+      "path": "../hardhat-ethers-chai-matchers"
+    },
+    {
+      "path": "../hardhat-ignition-core"
+    },
+    {
+      "path": "../hardhat-ignition"
+    },
+    {
+      "path": "../hardhat-mocha"
+    },
+    {
+      "path": "../hardhat-network-helpers"
+    },
+    {
+      "path": "../hardhat-node-test-reporter"
+    },
+    {
+      "path": "../hardhat-test-utils"
+    }
+  ]
+}
