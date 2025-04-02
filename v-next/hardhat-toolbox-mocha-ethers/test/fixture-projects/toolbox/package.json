@@ -3,6 +3,8 @@
   "private": "true",
   "type": "module",
   "dependencies": {
+    "@types/chai": "*",
+    "chai": "*",
     "hardhat": "*"
   }
 }
