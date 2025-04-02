@@ -23,7 +23,7 @@
       "path": "../hardhat-node-test-runner"
     },
     {
-      "path": "../hardhat-utils"
+      "path": "../hardhat-test-utils"
     },
     {
       "path": "../hardhat-viem"
