@@ -1,5 +1,7 @@
 import type { HardhatPlugin } from "hardhat/types/plugins";
 
+import "./type-extensions.js";
+
 const hardhatToolboxViemPlugin: HardhatPlugin = {
   id: "hardhat-toolbox-viem",
   dependencies: [
