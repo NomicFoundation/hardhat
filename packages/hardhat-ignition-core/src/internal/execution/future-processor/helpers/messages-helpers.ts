@@ -9,7 +9,7 @@ import {
   CallExecutionState,
   SendDataExecutionState,
   StaticCallExecutionState,
-  ExecutionSateType,
+  ExecutionStateType,
 } from "../../types/execution-state";
 import {
   DeploymentExecutionStateCompleteMessage,
@@ -45,7 +45,7 @@ export function createExecutionStateCompleteMessage(
   | CallExecutionStateCompleteMessage
   | SendDataExecutionStateCompleteMessage
   | StaticCallExecutionStateCompleteMessage {
-  if (exState.type === ExecutionSateType.STATIC_CALL_EXECUTION_STATE) {
+  if (exState.type === ExecutionStateType.STATIC_CALL_EXECUTION_STATE) {
     return {
       type: JournalMessageType.STATIC_CALL_EXECUTION_STATE_COMPLETE,
       futureId: exState.id,
@@ -84,21 +84,21 @@ export function createExecutionStateCompleteMessageForExecutionsWithOnchainInter
   | CallExecutionStateCompleteMessage
   | SendDataExecutionStateCompleteMessage {
   switch (exState.type) {
-    case ExecutionSateType.DEPLOYMENT_EXECUTION_STATE:
+    case ExecutionStateType.DEPLOYMENT_EXECUTION_STATE:
       return {
         type: JournalMessageType.DEPLOYMENT_EXECUTION_STATE_COMPLETE,
         futureId: exState.id,
         result: result as DeploymentExecutionResult,
       };
 
-    case ExecutionSateType.CALL_EXECUTION_STATE:
+    case ExecutionStateType.CALL_EXECUTION_STATE:
       return {
         type: JournalMessageType.CALL_EXECUTION_STATE_COMPLETE,
         futureId: exState.id,
         result: result as CallExecutionResult,
       };
 
-    case ExecutionSateType.SEND_DATA_EXECUTION_STATE:
+    case ExecutionStateType.SEND_DATA_EXECUTION_STATE:
       return {
         type: JournalMessageType.SEND_DATA_EXECUTION_STATE_COMPLETE,
         futureId: exState.id,

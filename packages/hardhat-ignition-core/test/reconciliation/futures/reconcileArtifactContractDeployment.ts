@@ -4,7 +4,7 @@ import { buildModule } from "../../../src/build-module";
 import { ExecutionResultType } from "../../../src/internal/execution/types/execution-result";
 import {
   DeploymentExecutionState,
-  ExecutionSateType,
+  ExecutionStateType,
   ExecutionStatus,
 } from "../../../src/internal/execution/types/execution-state";
 import { FutureType } from "../../../src/types/module";
@@ -24,7 +24,7 @@ describe("Reconciliation - artifact contract", () => {
   const exampleDeploymentState: DeploymentExecutionState = {
     id: "Example",
     futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
-    type: ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
+    type: ExecutionStateType.DEPLOYMENT_EXECUTION_STATE,
     strategy: "basic",
     strategyConfig: {},
     status: ExecutionStatus.STARTED,

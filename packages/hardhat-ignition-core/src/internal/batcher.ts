@@ -130,29 +130,7 @@ export class Batcher {
   ): boolean {
     const dependencies = batchState.adjacencyList.getDependenciesFor(futureId);
 
-    return [...dependencies].every((depId) => {
-      // We distinguish between module and future ids here, as the future's always have `#` and the modules don't.
-      if (/#/.test(depId)) {
-        return batchState.visitState[depId] === VisitStatus.VISITED;
-      }
-
-      return this._checkModuleDependencyIsComplete(depId, batchState);
-    });
-  }
-
-  /**
-   * This is needed because moduleIds are not present in the visit state
-   * causing an infinite loop when checking whether a depenedency is visited if that dependency is a module.
-   */
-  private static _checkModuleDependencyIsComplete(
-    moduleId: string,
-    batchState: BatchState
-  ) {
-    const dependencies = Object.keys(batchState.visitState).filter((futureId) =>
-      futureId.startsWith(moduleId)
-    );
-
-    return dependencies.every(
+    return [...dependencies].every(
       (depId) => batchState.visitState[depId] === VisitStatus.VISITED
     );
   }

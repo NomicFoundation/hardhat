@@ -1020,6 +1020,22 @@ const communityPlugins: IPlugin[] = [
       "transaction",
     ],
   },
+  {
+    name: "@adisakboonmark/hardhat-task-gen",
+    author: "ADISAKBOONMARK",
+    npmPackage: "@adisakboonmark/hardhat-task-gen",
+    authorUrl: "https://github.com/ADISAKBOONMARK",
+    description:
+      "Hardhat plugin for automatically generates tasks from ABI files",
+    tags: [
+      "ethereum",
+      "smart-contracts",
+      "hardhat",
+      "hardhat-plugin",
+      "task",
+      "script",
+    ],
+  },
 ];
 
 const officialPlugins: IPlugin[] = [

@@ -5,16 +5,21 @@ import { MDXRemote, MDXRemoteSerializeResult } from "next-mdx-remote";
 
 import SEO from "./SEO";
 import DocsNavigation from "./DocsNavigation";
-import Banner, { DefaultBanner } from "./ui/Banner";
-import { tm, tmSelectors, tmDark, media, ThemeProvider } from "../themes";
-import { DefaultBannerProps } from "./ui/types";
+import {
+  tm,
+  tmSelectors,
+  tmDark,
+  media,
+  ThemeProvider,
+  headerTotalHeight,
+} from "../themes";
 import {
   FooterNavigation,
   IDocumentationSidebarStructure,
   ISeo,
 } from "./types";
 import Sidebar from "./Sidebar";
-import { menuItemsList, socialsItems, bannerContent } from "../config";
+import { menuItemsList, socialsItems } from "../config";
 import MobileSidebarMenu from "./MobileSidebarMenu";
 import DocumentationFooter from "./DocumentationFooter";
 import Title from "./mdxComponents/Title";
@@ -30,6 +35,7 @@ import OrderedList from "./mdxComponents/OrderedList";
 import TabsGroup from "./mdxComponents/TabsGroup";
 import Tab from "./mdxComponents/Tab";
 import GDPRNotice from "./GDPRNotice";
+import AlphaBanner from "./ui/AlphaBanner";
 
 const Container = styled.div`
   position: relative;
@@ -45,7 +51,7 @@ const Container = styled.div`
 `;
 
 const Main = styled.main`
-  padding-top: 136px;
+  padding-top: ${headerTotalHeight};
   flex: 1 1 auto;
   display: flex;
   justify-content: flex-start;
@@ -88,9 +94,9 @@ export const SidebarContainer = styled.aside<{ isSidebarOpen: boolean }>`
   flex-direction: column;
   width: min(366px, 100%);
   position: fixed;
-  top: 136px;
+  top: ${headerTotalHeight};
   left: ${({ isSidebarOpen }) => (isSidebarOpen ? "0px" : "-120vw")};
-  height: calc(100vh - 136px);
+  height: calc(100vh - ${headerTotalHeight});
   display: flex;
   overflow-y: auto;
   transition: all ease-out 0.25s;
@@ -166,7 +172,7 @@ const View = styled.section`
   justify-content: space-between;
   padding-top: 24px;
   width: 100%;
-  height: calc(100vh - 136px);
+  height: calc(100vh - ${headerTotalHeight});
   overflow-y: scroll;
   scroll-behavior: smooth;
   ${media.md} {
@@ -267,16 +273,11 @@ const DocumentationLayout = ({
     <ThemeProvider>
       <Container>
         <Header>
-          <Banner
-            content={bannerContent}
-            renderContent={({ content }: DefaultBannerProps) => (
-              <DefaultBanner content={content} />
-            )}
-          />
           <DocsNavigation
             isSidebarOpen={isSidebarOpen}
             onSidebarOpen={setIsSidebarOpen}
           />
+          <AlphaBanner />
         </Header>
 
         <SEO seo={seo} />

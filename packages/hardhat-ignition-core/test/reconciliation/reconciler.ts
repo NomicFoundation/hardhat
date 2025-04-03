@@ -4,7 +4,7 @@ import { assert } from "chai";
 import { buildModule } from "../../src/build-module";
 import {
   DeploymentExecutionState,
-  ExecutionSateType,
+  ExecutionStateType,
   ExecutionStatus,
 } from "../../src/internal/execution/types/execution-state";
 import { getDefaultSender } from "../../src/internal/execution/utils/get-default-sender";
@@ -24,7 +24,7 @@ import {
 describe("Reconciliation", () => {
   const exampleDeploymentState: DeploymentExecutionState = {
     id: "Module1#Contract1",
-    type: ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
+    type: ExecutionStateType.DEPLOYMENT_EXECUTION_STATE,
     futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
     strategy: "basic",
     strategyConfig: {},

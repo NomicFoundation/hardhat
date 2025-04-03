@@ -9,7 +9,7 @@ import React, {
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { styled } from "linaria/react";
-import { media, tm, tmDark, tmSelectors } from "../themes";
+import { headerTotalHeight, media, tm, tmDark, tmSelectors } from "../themes";
 import Sidebar from "./Sidebar";
 import { menuItemsList, socialsItems as defaultSocialItems } from "../config";
 import ExternalLinkIcon from "../assets/icons/external-link-icon";
@@ -181,7 +181,7 @@ const MobileMenuFooter = styled.div<{ isRelative?: boolean }>`
 const ModalContainer = styled.div<{ isModalOpen: boolean }>`
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 136px);
+  height: calc(100vh - ${headerTotalHeight});
   padding: 32px 0;
   position: absolute;
   width: 100%;

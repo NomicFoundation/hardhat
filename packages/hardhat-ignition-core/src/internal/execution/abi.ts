@@ -666,7 +666,7 @@ function getEventNameWithParams(eventFragment: EventFragment): string {
 }
 
 /**
- * Returtns the bare name of a function or event name. The bare name is the
+ * Returns the bare name of a function or event name. The bare name is the
  * function or event name without the parameter types.
  *
  * @param functionOrEventName The name, either with or without parames.

@@ -67,3 +67,9 @@ tutorial:
   title: tutorial
   folders:
     - tutorial
+
+hardhat3-alpha:
+  title: Hardhat 3 Alpha Tutorial
+  folders:
+    - hardhat3-alpha
+    - hardhat3-alpha/learn-more

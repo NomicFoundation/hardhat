@@ -8,7 +8,7 @@ import { ExecutionResultType } from "../../../../src/internal/execution/types/ex
 import {
   ContractAtExecutionState,
   DeploymentExecutionState,
-  ExecutionSateType,
+  ExecutionStateType,
   ReadEventArgumentExecutionState,
   StaticCallExecutionState,
 } from "../../../../src/internal/execution/types/execution-state";
@@ -334,7 +334,7 @@ describe("buildInitializeMessageFor", () => {
     };
 
     const safeMathExState: Partial<DeploymentExecutionState> = {
-      type: ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
+      type: ExecutionStateType.DEPLOYMENT_EXECUTION_STATE,
       futureType: FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT,
       result: {
         type: ExecutionResultType.SUCCESS,
@@ -346,7 +346,7 @@ describe("buildInitializeMessageFor", () => {
       safeMathExState as any;
 
     const anotherContractExState: Partial<DeploymentExecutionState> = {
-      type: ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
+      type: ExecutionStateType.DEPLOYMENT_EXECUTION_STATE,
       networkInteractions: [exampleOnchainInteraction],
       result: {
         type: ExecutionResultType.SUCCESS,
@@ -883,7 +883,7 @@ describe("buildInitializeMessageFor", () => {
     describe("resolving address from another contractAt", () => {
       beforeEach(() => {
         const namedContractAtExState: Partial<ContractAtExecutionState> = {
-          type: ExecutionSateType.CONTRACT_AT_EXECUTION_STATE,
+          type: ExecutionStateType.CONTRACT_AT_EXECUTION_STATE,
           futureType: FutureType.NAMED_ARTIFACT_CONTRACT_AT,
           contractAddress: differentAddress,
         };
@@ -930,7 +930,7 @@ describe("buildInitializeMessageFor", () => {
     describe("resolving address from read event argument future", () => {
       beforeEach(() => {
         const readEventArgExState: Partial<ReadEventArgumentExecutionState> = {
-          type: ExecutionSateType.READ_EVENT_ARGUMENT_EXECUTION_STATE,
+          type: ExecutionStateType.READ_EVENT_ARGUMENT_EXECUTION_STATE,
           result: differentAddress,
         };
 
@@ -976,7 +976,7 @@ describe("buildInitializeMessageFor", () => {
     describe("resolving address from static call", () => {
       beforeEach(() => {
         const staticCallExState: Partial<StaticCallExecutionState> = {
-          type: ExecutionSateType.STATIC_CALL_EXECUTION_STATE,
+          type: ExecutionStateType.STATIC_CALL_EXECUTION_STATE,
           result: {
             type: ExecutionResultType.SUCCESS,
             value: differentAddress,

@@ -5,6 +5,16 @@ description: Getting started with Hardhat, a development environment to compile,
 
 ## Overview
 
+:::tip
+
+**🚀 Hardhat 3 alpha release is out!**
+
+This new major version introduces Solidity tests, a rewrite of performance critical components in Rust, adds multichain support across the board, implements OP Stack simulation, revamps the build system, modernizes our TS CLI and plugin system, and a lot more.
+
+Hardhat 3 is a complete overhaul. This is an alpha release and there’s still a lot of work ahead towards stability, but you can already take it for a spin. [Learn more.](/hardhat3-alpha)
+
+:::
+
 Hardhat is a development environment for Ethereum software. It consists of different components for editing, compiling, debugging and deploying your smart contracts and dApps, all of which work together to create a complete development environment.
 
 Hardhat Runner is the main component you interact with when using Hardhat. It's a flexible and extensible task runner that helps you manage and automate the recurring tasks inherent to developing smart contracts and dApps.

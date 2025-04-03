@@ -6,7 +6,7 @@ import { ExecutionResultType } from "../../../src/internal/execution/types/execu
 import {
   CallExecutionState,
   DeploymentExecutionState,
-  ExecutionSateType,
+  ExecutionStateType,
   ExecutionStatus,
 } from "../../../src/internal/execution/types/execution-state";
 import { FutureType } from "../../../src/types/module";
@@ -25,7 +25,7 @@ describe("Reconciliation - named contract call", () => {
 
   const exampleDeploymentState: DeploymentExecutionState = {
     id: "Example",
-    type: ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
+    type: ExecutionStateType.DEPLOYMENT_EXECUTION_STATE,
     futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
     strategy: "basic",
     strategyConfig: {},
@@ -42,7 +42,7 @@ describe("Reconciliation - named contract call", () => {
 
   const exampleContractCallState: CallExecutionState = {
     id: "Example",
-    type: ExecutionSateType.CALL_EXECUTION_STATE,
+    type: ExecutionStateType.CALL_EXECUTION_STATE,
     futureType: FutureType.CONTRACT_CALL,
     strategy: "basic",
     strategyConfig: {},

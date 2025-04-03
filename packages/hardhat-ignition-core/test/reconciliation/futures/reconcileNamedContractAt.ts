@@ -6,7 +6,7 @@ import { ExecutionResultType } from "../../../src/internal/execution/types/execu
 import {
   ContractAtExecutionState,
   DeploymentExecutionState,
-  ExecutionSateType,
+  ExecutionStateType,
   ExecutionStatus,
   StaticCallExecutionState,
 } from "../../../src/internal/execution/types/execution-state";
@@ -24,7 +24,7 @@ describe("Reconciliation - named contract at", () => {
 
   const exampleContractAtState: ContractAtExecutionState = {
     id: "Example",
-    type: ExecutionSateType.CONTRACT_AT_EXECUTION_STATE,
+    type: ExecutionStateType.CONTRACT_AT_EXECUTION_STATE,
     futureType: FutureType.NAMED_ARTIFACT_CONTRACT_AT,
     strategy: "basic",
     strategyConfig: {},
@@ -37,7 +37,7 @@ describe("Reconciliation - named contract at", () => {
 
   const exampleDeploymentState: DeploymentExecutionState = {
     id: "Example",
-    type: ExecutionSateType.DEPLOYMENT_EXECUTION_STATE,
+    type: ExecutionStateType.DEPLOYMENT_EXECUTION_STATE,
     futureType: FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT,
     strategy: "basic",
     strategyConfig: {},
@@ -54,7 +54,7 @@ describe("Reconciliation - named contract at", () => {
 
   const exampleStaticCallState: StaticCallExecutionState = {
     id: "Example",
-    type: ExecutionSateType.STATIC_CALL_EXECUTION_STATE,
+    type: ExecutionStateType.STATIC_CALL_EXECUTION_STATE,
     futureType: FutureType.STATIC_CALL,
     strategy: "basic",
     strategyConfig: {},
