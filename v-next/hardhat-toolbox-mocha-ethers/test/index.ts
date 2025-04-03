@@ -31,9 +31,10 @@ describe("hardhat-toolbox-mocha-ethers", function () {
       assert.notEqual(hre.tasks.getTask(["ignition"]), undefined);
 
       // This will check that typechain is available
-      await remove(path.join(process.cwd(), "types"));
+      await remove(path.join(process.cwd(), "types")); // Be sure the folder doesn't exist
       await hre.tasks.getTask(["compile"]).run();
       await exists(path.join(process.cwd(), "types"));
+      await remove(path.join(process.cwd(), "types"));
     });
   });
 });
