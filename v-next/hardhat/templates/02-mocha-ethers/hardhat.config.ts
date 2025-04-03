@@ -1,9 +1,6 @@
 import { configVariable, HardhatUserConfig } from "hardhat/config";
 
 import hardhatToolboxMochaEthersPlugin from "@nomicfoundation/hardhat-toolbox-mocha-ethers";
-import HardhatKeystore from "@nomicfoundation/hardhat-keystore";
-import HardhatTypechain from "@nomicfoundation/hardhat-typechain";
-import HardhatIgnitionEthers from "@nomicfoundation/hardhat-ignition-ethers";
 
 const config: HardhatUserConfig = {
   /*
@@ -13,12 +10,7 @@ const config: HardhatUserConfig = {
    * Note: A `hardhat-toolbox` like plugin for Hardhat 3 hasn't been defined yet,
    * so this list is larger than what you would normally have.
    */
-  plugins: [
-    HardhatKeystore,
-    hardhatToolboxMochaEthersPlugin,
-    HardhatTypechain,
-    HardhatIgnitionEthers,
-  ],
+  plugins: [hardhatToolboxMochaEthersPlugin],
   solidity: {
     /*
      * Hardhat 3 supports different build profiles, allowing you to configure
