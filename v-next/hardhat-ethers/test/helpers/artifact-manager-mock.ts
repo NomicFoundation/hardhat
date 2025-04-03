@@ -1,7 +1,7 @@
 import type {
   Artifact,
   ArtifactManager,
-  GetAtifactByName,
+  GetArtifactByName,
 } from "hardhat/types/artifacts";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
@@ -31,7 +31,7 @@ export class MockArtifactManager implements ArtifactManager {
 
   public async readArtifact<ContractNameT extends string>(
     contractNameOrFullyQualifiedName: ContractNameT,
-  ): Promise<GetAtifactByName<ContractNameT>> {
+  ): Promise<GetArtifactByName<ContractNameT>> {
     const artifactFileName = this.#artifactsPaths.get(
       contractNameOrFullyQualifiedName,
     );

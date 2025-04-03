@@ -1,6 +1,6 @@
 import type {
   ArtifactManager,
-  GetAtifactByName,
+  GetArtifactByName,
 } from "../../../types/artifacts.js";
 
 import { EOL } from "node:os";
@@ -48,7 +48,7 @@ export class ArtifactManagerImplementation implements ArtifactManager {
 
   public async readArtifact<ContractNameT extends string>(
     contractNameOrFullyQualifiedName: ContractNameT,
-  ): Promise<GetAtifactByName<ContractNameT>> {
+  ): Promise<GetArtifactByName<ContractNameT>> {
     const artifactPath = await this.getArtifactPath(
       contractNameOrFullyQualifiedName,
     );
