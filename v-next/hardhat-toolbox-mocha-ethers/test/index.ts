@@ -4,6 +4,7 @@ import { describe, it } from "node:test";
 import { pathToFileURL } from "node:url";
 
 import { useFixtureProject } from "@nomicfoundation/hardhat-test-utils";
+import { exists, remove } from "@nomicfoundation/hardhat-utils/fs";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 describe("hardhat-toolbox-mocha-ethers", function () {
@@ -28,6 +29,11 @@ describe("hardhat-toolbox-mocha-ethers", function () {
 
       // This will check that ignition is available
       assert.notEqual(hre.tasks.getTask(["ignition"]), undefined);
+
+      // This will check that typechain is available
+      await remove(path.join(process.cwd(), "types"));
+      await hre.tasks.getTask(["compile"]).run();
+      await exists(path.join(process.cwd(), "types"));
     });
   });
 });

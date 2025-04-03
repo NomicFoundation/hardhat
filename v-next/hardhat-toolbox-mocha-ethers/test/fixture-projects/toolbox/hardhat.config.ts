@@ -4,6 +4,7 @@ import type { HardhatUserConfig } from "hardhat/types/config";
 import hardhatToolboxMochaEthersPlugin from "../../../src/index.js";
 
 const config: HardhatUserConfig = {
+  solidity: "0.8.28",
   plugins: [hardhatToolboxMochaEthersPlugin],
 };
 
