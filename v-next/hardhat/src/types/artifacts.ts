@@ -12,7 +12,7 @@ export interface ArtifactMap {}
 /**
  * Returns the artifact type for the bare or fully qualified contract name.
  */
-export type GetAtifactByName<ContractNameT extends string> =
+export type GetArtifactByName<ContractNameT extends string> =
   ContractNameT extends keyof ArtifactMap
     ? ArtifactMap[ContractNameT]
     : Artifact;
@@ -36,7 +36,7 @@ export interface ArtifactManager {
    */
   readArtifact<ContractNameT extends string>(
     contractNameOrFullyQualifiedName: ContractNameT,
-  ): Promise<GetAtifactByName<ContractNameT>>;
+  ): Promise<GetArtifactByName<ContractNameT>>;
 
   /**
    * Returns the absolute path to the given artifact.

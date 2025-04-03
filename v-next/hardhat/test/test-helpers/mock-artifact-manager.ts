@@ -1,7 +1,7 @@
 import type {
   ArtifactManager,
   Artifact,
-  GetAtifactByName,
+  GetArtifactByName,
 } from "../../src/types/artifacts.js";
 
 import {
@@ -22,7 +22,7 @@ export class MockArtifactManager implements ArtifactManager {
 
   public async readArtifact<ContractNameT extends string>(
     contractNameOrFullyQualifiedName: ContractNameT,
-  ): Promise<GetAtifactByName<ContractNameT>> {
+  ): Promise<GetArtifactByName<ContractNameT>> {
     const artifact = this.#artifacts.get(contractNameOrFullyQualifiedName);
 
     assertHardhatInvariant(
@@ -34,7 +34,7 @@ export class MockArtifactManager implements ArtifactManager {
     /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
     We are asserting that the artifact is of the correct type, which won't be
     really used during tests. */
-    return artifact as GetAtifactByName<ContractNameT>;
+    return artifact as GetArtifactByName<ContractNameT>;
   }
 
   public async getArtifactPath(
