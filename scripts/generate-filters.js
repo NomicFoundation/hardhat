@@ -41,12 +41,14 @@ function main() {
   // Add transitive internal dependencies
   for (const dependencies of Object.values(internalDependenciesMap)) {
     const dependencyQueue = [...dependencies];
+    const visited = new Set(dependencies);
     while (dependencyQueue.length !== 0) {
       const dependency = dependencyQueue.pop();
       for (const transitiveDependency of internalDependenciesMap[dependency]) {
         if (!dependencies.includes(transitiveDependency)) {
           dependencies.push(transitiveDependency);
           dependencyQueue.push(transitiveDependency);
+          visited.add(transitiveDependency);
         }
       }
     }
