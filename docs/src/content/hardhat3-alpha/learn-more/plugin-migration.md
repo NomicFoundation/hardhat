@@ -159,6 +159,24 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
 });
 ```
 
+Like tasks, hooks must be registeredon your `HardhatPlugin` object:
+
+```typescript
+// index.ts
+import type { HardhatPlugin } from "hardhat/types/plugins";
+import newTask from "./tasks/new-task.js";
+
+const plugin: HardhatPlugin = {
+  id: "plugin-name",
+  tasks: [newTask],
+  hookHandlers: {
+    solidity: import.meta.resolve("./hook_handlers/solidity.js"),
+  },
+};
+
+export default plugin;
+```
+
 ### Config Hooks
 
 The `extendConfig` function no longer exists in Hardhat 3. Instead, use one of the `ConfigHooks`:
