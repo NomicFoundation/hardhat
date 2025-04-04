@@ -49,6 +49,7 @@ import {
   isHardhatVSCodeInstalled,
 } from "./hardhat-vscode-installation";
 import { handleVars } from "./vars";
+import { Hardhat3BannerManager } from "./beta-notifier";
 
 const log = debug("hardhat:core:cli");
 
@@ -275,6 +276,8 @@ async function main() {
       taskName
     );
 
+    const hardhat3BannerManager = Hardhat3BannerManager.getInstance();
+
     let taskArguments: TaskArguments;
 
     // --help is an also special case
@@ -334,6 +337,11 @@ async function main() {
       } else {
         abortAnalytics();
       }
+
+      const [abortBannerConfigRequest, bannerConfigRequest] =
+        await hardhat3BannerManager.sendBannerConfigRequest();
+      setTimeout(abortBannerConfigRequest, 100);
+      await bannerConfigRequest;
     } finally {
       if (hardhatArguments.flamegraph === true) {
         assertHardhatInvariant(
@@ -380,6 +388,10 @@ async function main() {
           // ignore possible version notifier errors
         }
       }
+    }
+
+    if (!isRunningOnCiServer() && process.stdout.isTTY === true) {
+      hardhat3BannerManager.showBanner();
     }
 
     log(`Killing Hardhat after successfully running task ${taskName}`);
