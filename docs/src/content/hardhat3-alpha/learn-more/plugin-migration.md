@@ -129,7 +129,7 @@ export default action;
 Reference it in your task builder:
 
 ```typescript
-// index.ts
+// tasks/new-task.ts
 import { task } from "hardhat/config";
 import { NewTaskDefinition } from "hardhat/types/tasks";
 
