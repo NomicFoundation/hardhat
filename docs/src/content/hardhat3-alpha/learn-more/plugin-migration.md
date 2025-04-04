@@ -7,6 +7,7 @@ Hardhat 3 introduces many new features available to plugin developers, as well a
 Hardhat 3 supports ESM. To make use of this, update your `package.json` to declare that your package is a module:
 
 ```json
+// package.json
 {
     "type": "module",
     ...
@@ -16,6 +17,7 @@ Hardhat 3 supports ESM. To make use of this, update your `package.json` to decla
 If you're using TypeScript, make sure that your `tsconfig` is set to support ESM:
 
 ```json
+// tsconfig.json
 {
   "compilerOptions": {
     "module": "node16",
@@ -30,6 +32,7 @@ If you're using TypeScript, make sure that your `tsconfig` is set to support ESM
 Update your dependencies to the new version of Hardhat. Make sure that Hardhat is a peer dependency:
 
 ```json
+// package.json
 {
     "peerDependencies": {
         "hardhat": "3.0.0-next.3",
@@ -48,6 +51,7 @@ Update your dependencies to the new version of Hardhat. Make sure that Hardhat i
 Plugins for Hardhat 2 were largely configured through import side effects. In Hardhat 3, this process is declarative. Your plugin will now need to export a `HardhatPlugin` object for users to register in their Hardhat coniguration files.
 
 ```typescript
+// index.ts
 import type { HardhatPlugin } from 'hardhat/types/plugins';
 
 const plugin: HardhatPlugin = {
@@ -71,6 +75,7 @@ Hardhat 3 no longer includes subtasks. Existing subtasks should be converted to 
 Tasks still exist, but are now defined using a builder pattern rather than declared as a side effect of the `task` function. Take note of the API changes to some of the builder functions, and finalize your task with `.build()`. If it's not declared in the same file as your `HardhatPlugin`, export it.
 
 ```typescript
+// tasks/new-task.ts
 import { task } from "hardhat/config";
 import { NewTaskDefinition } from "hardhat/types/tasks";
 
@@ -88,6 +93,7 @@ export default newTask;
 Register your task with your `HardhatPlugin` object:
 
 ```typescript
+// index.ts
 import type { HardhatPlugin } from 'hardhat/types/plugins';
 import newTask from './tasks/new-task.js';
 
@@ -105,6 +111,7 @@ export default plugin;
 Inline task action declaration is supported only for development purposes. For production, move your action to a separate file:
 
 ```typescript
+// actions/new-task.ts
 export interface TaskActionArguments {
   taskOption: boolean;
 }
@@ -122,12 +129,13 @@ export default action;
 Reference it in your task builder:
 
 ```typescript
+// index.ts
 import { task } from "hardhat/config";
 import { NewTaskDefinition } from "hardhat/types/tasks";
 
 const newTask: NewTaskDefinition = task("task-name")
   .setDescription("A Hardhat 3 task")
-  .setAction(import.meta.resolve("./actions/task.js"))
+  .setAction(import.meta.resolve("./actions/new-task.js"))
   .addFlag({ name: "taskOption", description: "a boolean CLI flag" })
   .build();
 
@@ -139,6 +147,7 @@ export default newTask;
 Some processes that were previously handled exclusively by tasks might be better served by hooks. Generally task overrides will still work, but here's an example of a post-compilation action which uses a hook instead:
 
 ```typescript
+// hook-handlers/solidity.ts
 import type { SolidityHooks } from "hardhat/types/hooks";
 
 export default async (): Promise<Partial<SolidityHooks>> => ({
@@ -155,6 +164,7 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
 The `extendConfig` function no longer exists in Hardhat 3. Instead, use one of the `ConfigHooks`:
 
 ```typescript
+// hook-handlers/config.ts
 import type { ConfigHooks } from "hardhat/types/hooks";
 
 export default async (): Promise<Partial<ConfigHooks>> => ({
@@ -179,6 +189,7 @@ export default async (): Promise<Partial<ConfigHooks>> => ({
 ### Global Options
 
 ```typescript
+// index.ts
 import { globalOption } from 'hardhat/config';
 import { ArgumentType } from 'hardhat/types/arguments';
 import type { HardhatPlugin } from 'hardhat/types/plugins';
