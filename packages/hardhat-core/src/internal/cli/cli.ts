@@ -340,7 +340,7 @@ async function main() {
 
       const [abortBannerConfigRequest, bannerConfigRequest] =
         await hardhat3BannerManager.sendBannerConfigRequest();
-      setTimeout(abortBannerConfigRequest, 100);
+      setTimeout(abortBannerConfigRequest, 200);
       await bannerConfigRequest;
     } finally {
       if (hardhatArguments.flamegraph === true) {

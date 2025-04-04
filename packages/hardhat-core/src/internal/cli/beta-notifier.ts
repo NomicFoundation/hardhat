@@ -26,7 +26,7 @@ export class Hardhat3BannerManager {
     const controller = new AbortController();
 
     const bannerConfigRequest = request(
-      "https://raw.githubusercontent.com/schaable/hardhat/refs/heads/main/beta-banner.json",
+      "https://raw.githubusercontent.com/NomicFoundation/hardhat/refs/heads/main/beta-banner.json",
       {
         method: "GET",
         signal: controller.signal,
