@@ -538,11 +538,11 @@ export async function createProject() {
   showStarOnGitHubMessage();
   showSoliditySurveyMessage();
 
-  const hardhat3BannerManager = Hardhat3BannerManager.getInstance();
+  const hardhat3BannerManager = await Hardhat3BannerManager.getInstance();
   const [_, bannerConfigRequest] =
     await hardhat3BannerManager.sendBannerConfigRequest();
   await bannerConfigRequest;
-  hardhat3BannerManager.showBanner();
+  await hardhat3BannerManager.showBanner();
 }
 
 async function canInstallRecommendedDeps() {

@@ -276,7 +276,7 @@ async function main() {
       taskName
     );
 
-    const hardhat3BannerManager = Hardhat3BannerManager.getInstance();
+    const hardhat3BannerManager = await Hardhat3BannerManager.getInstance();
 
     let taskArguments: TaskArguments;
 
@@ -391,7 +391,7 @@ async function main() {
     }
 
     if (!isRunningOnCiServer() && process.stdout.isTTY === true) {
-      hardhat3BannerManager.showBanner();
+      await hardhat3BannerManager.showBanner();
     }
 
     log(`Killing Hardhat after successfully running task ${taskName}`);
