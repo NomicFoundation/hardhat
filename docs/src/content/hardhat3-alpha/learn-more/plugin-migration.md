@@ -159,6 +159,8 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
 });
 ```
 
+Note that the `context` parameter is a subset of the `hre`. Th task runner is excluded, to discourage tight coupling of tasks.
+
 Like tasks, hooks must be registeredon your `HardhatPlugin` object:
 
 ```typescript
