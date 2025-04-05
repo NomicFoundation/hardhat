@@ -214,6 +214,12 @@ import { globalOption } from 'hardhat/config';
 import { ArgumentType } from 'hardhat/types/arguments';
 import type { HardhatPlugin } from 'hardhat/types/plugins';
 
+declare module 'hardhat/types/global-options' {
+  interface GlobalOptions {
+    globalOption: boolean;
+  }
+}
+
 const plugin: HardhatPlugin = {
     globalOptions: [
         globalOption({
