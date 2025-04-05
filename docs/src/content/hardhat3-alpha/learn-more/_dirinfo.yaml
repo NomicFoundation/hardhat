@@ -7,3 +7,5 @@ order:
     href: /alpha-limitations
   # - title: Solidity Tests
   #   href: /solidity-tests
+  # - title: Plugin Migration
+  #   href: /plugin-migration
