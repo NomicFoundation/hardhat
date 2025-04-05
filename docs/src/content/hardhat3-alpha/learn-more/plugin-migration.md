@@ -9,8 +9,8 @@ Hardhat 3 supports ESM. To make use of this, update your `package.json` to decla
 ```json
 // package.json
 {
-    "type": "module",
-    ...
+  "type": "module"
+  // ...
 }
 ```
 
@@ -20,10 +20,10 @@ If you're using TypeScript, make sure that your `tsconfig` is set to support ESM
 // tsconfig.json
 {
   "compilerOptions": {
-    "module": "node16",
-    ...
-  },
-  ...
+    "module": "node16"
+    // ...
+  }
+  // ...
 }
 ```
 
@@ -34,15 +34,15 @@ Update your dependencies to the new version of Hardhat. Make sure that Hardhat i
 ```json
 // package.json
 {
-    "peerDependencies": {
-        "hardhat": "3.0.0-next.3",
-        ...
-    },
-    "devDependencies": {
-        "hardhat": "3.0.0-next.3",
-        ...
-    },
-    ...
+  "peerDependencies": {
+    "hardhat": "3.0.0-next.3"
+    // ...
+  },
+  "devDependencies": {
+    "hardhat": "3.0.0-next.3"
+    // ...
+  }
+  // ...
 }
 ```
 
@@ -52,11 +52,11 @@ Plugins for Hardhat 2 were largely configured through import side effects. In Ha
 
 ```typescript
 // index.ts
-import type { HardhatPlugin } from 'hardhat/types/plugins';
+import type { HardhatPlugin } from "hardhat/types/plugins";
 
 const plugin: HardhatPlugin = {
-    id: 'plugin-name',
-    ...
+  id: "plugin-name",
+  // ...
 };
 
 export default plugin;
@@ -94,13 +94,13 @@ Register your task with your `HardhatPlugin` object:
 
 ```typescript
 // index.ts
-import type { HardhatPlugin } from 'hardhat/types/plugins';
-import newTask from './tasks/new-task.js';
+import type { HardhatPlugin } from "hardhat/types/plugins";
+import newTask from "./tasks/new-task.js";
 
 const plugin: HardhatPlugin = {
-    id: 'plugin-name',
-    tasks: [newTask],
-    ...
+  id: "plugin-name",
+  tasks: [newTask],
+  // ...
 };
 
 export default plugin;
@@ -210,26 +210,26 @@ export default async (): Promise<Partial<ConfigHooks>> => ({
 
 ```typescript
 // index.ts
-import { globalOption } from 'hardhat/config';
-import { ArgumentType } from 'hardhat/types/arguments';
-import type { HardhatPlugin } from 'hardhat/types/plugins';
+import { globalOption } from "hardhat/config";
+import { ArgumentType } from "hardhat/types/arguments";
+import type { HardhatPlugin } from "hardhat/types/plugins";
 
-declare module 'hardhat/types/global-options' {
+declare module "hardhat/types/global-options" {
   interface GlobalOptions {
     globalOption: boolean;
   }
 }
 
 const plugin: HardhatPlugin = {
-    globalOptions: [
-        globalOption({
-            name: 'globalOption',
-            description: "A global option available for all tasks on the CLI",
-            defaultValue: false,
-            type: ArgumentType.BOOLEAN,
-        }),
-    ],
-    ...
+  globalOptions: [
+    globalOption({
+      name: "globalOption",
+      description: "A global option available for all tasks on the CLI",
+      defaultValue: false,
+      type: ArgumentType.BOOLEAN,
+    }),
+  ],
+  // ...
 };
 
 export default plugin;
