@@ -1068,6 +1068,29 @@ describe("File system utils", () => {
         name: "FileSystemAccessError",
       });
     });
+
+    it("Should throw busy error on windows platform", async () => {
+      const dirPath = path.join(getTmpDir(), "lockTest");
+      await mkdir(dirPath);
+      const filePath = path.join(dirPath, "file.txt");
+      await createFile(filePath);
+      const UV_FS_O_EXLOCK = 0x10000000;
+      // eslint-disable-next-line no-bitwise -- Using bitwise OR to combine file open flags
+      const fd = await fsPromises.open(
+        filePath,
+        fsPromises.constants.O_RDONLY | UV_FS_O_EXLOCK,
+      );
+
+      if (process.platform === "win32") {
+        await assert.rejects(remove(filePath), {
+          name: "FileSystemAccessError",
+          message: /EBUSY: resource busy or locked, unlink/,
+        });
+      }
+      await fd.close();
+      await remove(dirPath);
+      assert.ok(!(await exists(dirPath)), "Should remove a directory");
+    });
   });
 
   describe("chmod", () => {
