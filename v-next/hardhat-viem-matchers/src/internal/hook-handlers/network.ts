@@ -13,6 +13,10 @@ export default async (): Promise<Partial<NetworkHooks>> => {
     ) {
       const connection: NetworkConnection<ChainTypeT> = await next(context);
 
+      connection.viem.assertions = await initializeViemMatchers(
+        connection.viem,
+      );
+
       connection.viemMatchers = await initializeViemMatchers(connection.viem);
 
       return connection;

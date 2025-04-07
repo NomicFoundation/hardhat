@@ -7,7 +7,7 @@ import { viemExpect } from "../src/index-alternative-2.js";
 import hardhatPlugin from "../src/index.js";
 
 describe("changeEtherBalance", () => {
-  it("alternative-1: should change the balance of an address", async () => {
+  it("alternative-1: viemMatchers.expect", async () => {
     const hre = await createHardhatRuntimeEnvironment({
       plugins: [HardhatViem, hardhatPlugin],
     });
@@ -18,8 +18,6 @@ describe("changeEtherBalance", () => {
 
     await viemMatchers
       .expect(async () => {
-        console.log("run f");
-
         const hash = await bobWalletClient.sendTransaction({
           to: aliceWalletClient.account.address,
           value: 1000000000000000000000n,
@@ -34,7 +32,32 @@ describe("changeEtherBalance", () => {
       );
   });
 
-  it("alternative-2: should change the balance of an address", async () => {
+  it("alternative-2: viem.assertions", async () => {
+    const hre = await createHardhatRuntimeEnvironment({
+      plugins: [HardhatViem, hardhatPlugin],
+    });
+
+    const { viem } = await hre.network.connect();
+
+    const [bobWalletClient, aliceWalletClient] = await viem.getWalletClients();
+
+    await viem.assertions
+      .expect(async () => {
+        const hash = await bobWalletClient.sendTransaction({
+          to: aliceWalletClient.account.address,
+          value: 1000000000000000000000n,
+        });
+
+        const publicClient = await viem.getPublicClient();
+        await publicClient.waitForTransactionReceipt({ hash });
+      })
+      .to.changeEtherBalance(
+        aliceWalletClient.account.address,
+        1000000000000000000000n,
+      );
+  });
+
+  it("alternative-3: viemExpect as standalone imported function", async () => {
     const hre = await createHardhatRuntimeEnvironment({
       plugins: [HardhatViem],
     });
@@ -44,8 +67,6 @@ describe("changeEtherBalance", () => {
     const [bobWalletClient, aliceWalletClient] = await viem.getWalletClients();
 
     await viemExpect(async () => {
-      console.log("run f");
-
       const hash = await bobWalletClient.sendTransaction({
         to: aliceWalletClient.account.address,
         value: 1000000000000000000000n,
