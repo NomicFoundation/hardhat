@@ -79,17 +79,16 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   // the tests.solidity paths and the sources paths
   rootFilePaths = Array.from(new Set(rootFilePaths));
 
-  if (noCompile === false) {
-    const buildOptions: BuildOptions = {
-      force: false,
-      buildProfile: hre.globalOptions.buildProfile,
-      quiet: true,
-    };
-
-    const results = await hre.solidity.build(rootFilePaths, buildOptions);
-
-    throwIfSolidityBuildFailed(results);
-  }
+  // NOTE: We are not skipping the test compilation even if the noCompile flag is set
+  // because the user cannot run test compilation outside of the test task yet.
+  // TODO: Allow users to run test compilation outside of the test task.
+  const buildOptions: BuildOptions = {
+    force: false,
+    buildProfile: hre.globalOptions.buildProfile,
+    quiet: true,
+  };
+  const results = await hre.solidity.build(rootFilePaths, buildOptions);
+  throwIfSolidityBuildFailed(results);
 
   const buildInfos = await getBuildInfos(hre.artifacts);
   const artifacts = await getArtifacts(hre.artifacts);
