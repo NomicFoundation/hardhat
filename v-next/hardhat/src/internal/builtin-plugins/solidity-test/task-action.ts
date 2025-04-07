@@ -49,6 +49,9 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     return;
   }
 
+  // NOTE: We run the compile task first to ensure all the artifacts for them are generated
+  // Then, we compile just the test sources. We don't do it in one go because the user
+  // is likely to use different compilation options for the tests and the sources.
   await hre.tasks.getTask("compile").run();
 
   if (testFiles.length > 0) {
