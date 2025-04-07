@@ -76,7 +76,11 @@ export class Hardhat3BannerManager {
   }
 
   public async showBanner() {
-    if (this._bannerConfig === undefined || !this._bannerConfig.enabled) {
+    if (
+      this._bannerConfig === undefined ||
+      !this._bannerConfig.enabled ||
+      this._bannerConfig.formattedMessages.length === 0
+    ) {
       return;
     }
 
