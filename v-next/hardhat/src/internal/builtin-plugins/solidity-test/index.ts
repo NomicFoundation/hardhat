@@ -21,6 +21,10 @@ const hardhatPlugin: HardhatPlugin = {
         description: "Not implemented yet - The chain type to use",
         defaultValue: "l1",
       })
+      .addFlag({
+        name: "noCompile",
+        description: "Don't compile the project before running the tests",
+      })
       .setAction(import.meta.resolve("./task-action.js"))
       .build(),
   ],

@@ -31,10 +31,11 @@ import { run } from "./runner.js";
 interface TestActionArguments {
   testFiles: string[];
   chainType: string;
+  noCompile: boolean;
 }
 
 const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
-  { testFiles, chainType },
+  { testFiles, chainType, noCompile },
   hre,
 ) => {
   let rootFilePaths: string[];
@@ -52,7 +53,9 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   // NOTE: We run the compile task first to ensure all the artifacts for them are generated
   // Then, we compile just the test sources. We don't do it in one go because the user
   // is likely to use different compilation options for the tests and the sources.
-  await hre.tasks.getTask("compile").run();
+  if (noCompile === false) {
+    await hre.tasks.getTask("compile").run();
+  }
 
   if (testFiles.length > 0) {
     rootFilePaths = testFiles.map((f) =>
@@ -76,15 +79,17 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   // the tests.solidity paths and the sources paths
   rootFilePaths = Array.from(new Set(rootFilePaths));
 
-  const buildOptions: BuildOptions = {
-    force: false,
-    buildProfile: hre.globalOptions.buildProfile,
-    quiet: true,
-  };
+  if (noCompile === false) {
+    const buildOptions: BuildOptions = {
+      force: false,
+      buildProfile: hre.globalOptions.buildProfile,
+      quiet: true,
+    };
 
-  const results = await hre.solidity.build(rootFilePaths, buildOptions);
+    const results = await hre.solidity.build(rootFilePaths, buildOptions);
 
-  throwIfSolidityBuildFailed(results);
+    throwIfSolidityBuildFailed(results);
+  }
 
   const buildInfos = await getBuildInfos(hre.artifacts);
   const artifacts = await getArtifacts(hre.artifacts);
