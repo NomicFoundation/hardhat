@@ -155,7 +155,7 @@ export async function getArtifacts(
     const id = {
       name: artifact.contractName,
       solcVersion,
-      source: artifact.sourceName,
+      source: artifact.inputSourceName ?? artifact.sourceName,
     };
 
     const contract = {
