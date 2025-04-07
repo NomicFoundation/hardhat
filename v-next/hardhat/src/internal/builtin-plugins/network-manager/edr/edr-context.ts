@@ -4,8 +4,8 @@ import {
   genericChainProviderFactory,
   L1_CHAIN_TYPE,
   l1ProviderFactory,
-  OPTIMISM_CHAIN_TYPE,
-  optimismProviderFactory,
+  OP_CHAIN_TYPE,
+  opProviderFactory,
 } from "@ignored/edr-optimism";
 
 let _globalEdrContext: EdrContext | undefined;
@@ -22,8 +22,8 @@ export async function getGlobalEdrContext(): Promise<EdrContext> {
       l1ProviderFactory(),
     );
     await _globalEdrContext.registerProviderFactory(
-      OPTIMISM_CHAIN_TYPE,
-      optimismProviderFactory(),
+      OP_CHAIN_TYPE,
+      opProviderFactory(),
     );
   }
 
