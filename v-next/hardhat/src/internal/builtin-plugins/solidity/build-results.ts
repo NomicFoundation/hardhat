@@ -161,7 +161,9 @@ export async function getArtifacts(
     const contract = {
       abi: JSON.stringify(artifact.abi),
       bytecode: artifact.bytecode,
+      linkReferences: artifact.linkReferences,
       deployedBytecode: artifact.deployedBytecode,
+      deployedLinkReferences: artifact.deployedLinkReferences,
     };
 
     return {
