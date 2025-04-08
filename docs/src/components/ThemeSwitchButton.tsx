@@ -19,7 +19,7 @@ const ThemeButton = styled.button`
   justify-content: flex-end;
   align-items: center;
   background-color: ${tm(({ colors }) => colors.transparent)};
-  color: ${tm(({ colors }) => colors.neutral900)};
+  color: ${tm(({ colors }) => colors.gray6)};
   border: none;
   gap: 8px;
   cursor: pointer;

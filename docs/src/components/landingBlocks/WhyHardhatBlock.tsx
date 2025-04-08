@@ -4,8 +4,14 @@ import React from "react";
 import Image, { StaticImageData } from "next/image";
 import Section from "../Section";
 import LandingContainer from "../LandingContainer";
-import ImageMask from "../../assets/why-we/grid.svg";
-import ImageMaskDark from "../../assets/why-we/gridDark.svg";
+import ImageMaskDesktop from "../../assets/why-we/gridDesktop.svg";
+import ImageMaskLaptop from "../../assets/why-we/gridLaptop.svg";
+import ImageMaskTablet from "../../assets/why-we/gridTablet.svg";
+import ImageMaskMobile from "../../assets/why-we/gridMobile.svg";
+import ImageMaskDarkDesktop from "../../assets/why-we/gridDarkDesktop.svg";
+import ImageMaskDarkLaptop from "../../assets/why-we/gridDarkLaptop.svg";
+import ImageMaskDarkTablet from "../../assets/why-we/gridDarkTablet.svg";
+import ImageMaskDarkMobile from "../../assets/why-we/gridDarkMobile.svg";
 import LinesMobile from "../../assets/why-we/linesMobile";
 import LinesDesktop from "../../assets/why-we/linesDesktop";
 import useWindowSize from "../../hooks/useWindowSize";
@@ -36,11 +42,13 @@ interface ArticleType {
 interface ContentProps {
   image: {
     lg: StaticImageData;
+    m?: StaticImageData;
     md: StaticImageData;
     sm: StaticImageData;
   };
   imageDark: {
     lg: StaticImageData;
+    m?: StaticImageData;
     md: StaticImageData;
     sm: StaticImageData;
   };
@@ -55,6 +63,19 @@ type Props = React.PropsWithChildren<{
     featureCards: ContentProps[];
   };
 }>;
+
+function ImageMask(width: number, dark?: boolean): string {
+  if (width >= 1700) {
+    return dark ? ImageMaskDarkDesktop.src : ImageMaskDesktop.src;
+  }
+  if (width >= 1280) {
+    return dark ? ImageMaskDarkLaptop.src : ImageMaskLaptop.src;
+  }
+  if (width >= 768) {
+    return dark ? ImageMaskDarkTablet.src : ImageMaskTablet.src;
+  }
+  return dark ? ImageMaskDarkMobile.src : ImageMaskMobile.src;
+}
 
 const WhyHardhatBlock = ({ content }: Props) => {
   const { width } = useWindowSize();
@@ -90,8 +111,8 @@ const WhyHardhatBlock = ({ content }: Props) => {
             {width >= 768 && (
               <ImageContainer
                 className={`image-container image-container-${activeIndex}`}
-                background={ImageMask.src}
-                backgroundDark={ImageMaskDark.src}
+                background={ImageMask(width, false)}
+                backgroundDark={ImageMask(width, true)}
               >
                 {content.featureCards.map((item, index) => {
                   const lightImage = getImage(item, width, "light");
@@ -108,6 +129,7 @@ const WhyHardhatBlock = ({ content }: Props) => {
                           src={lightImage}
                           alt="Feature card picture"
                           quality={100}
+                          layout="intrinsic"
                         />
                       </ImageWrapper>
                       <ImageWrapper
@@ -119,6 +141,7 @@ const WhyHardhatBlock = ({ content }: Props) => {
                           src={darkImage}
                           alt="Feature card picture"
                           quality={100}
+                          layout="intrinsic"
                         />
                       </ImageWrapper>
                     </>

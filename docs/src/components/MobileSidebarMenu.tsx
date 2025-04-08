@@ -57,6 +57,9 @@ const MobileNavigationContainer = styled.ul`
       color: ${tmDark(({ colors }) => colors.neutral900)};
     }
   }
+  ${media.tablet} {
+    padding: 40px 44px;
+  }
 `;
 
 const MenuItem = styled.li`
@@ -70,14 +73,12 @@ const MenuItem = styled.li`
   &:hover {
     color: ${tm(({ colors }) => colors.accent700)};
     & svg {
-      stroke: ${tm(({ colors }) => colors.accent700)};
       fill: ${tm(({ colors }) => colors.accent700)};
     }
 
     ${tmSelectors.dark} {
       color: ${tmDark(({ colors }) => colors.accent700)};
       & svg {
-        stroke: ${tmDark(({ colors }) => colors.accent700)};
         fill: ${tmDark(({ colors }) => colors.accent700)};
       }
     }
@@ -85,7 +86,6 @@ const MenuItem = styled.li`
       ${tmSelectors.auto} {
         color: ${tmDark(({ colors }) => colors.accent700)};
         & svg {
-          stroke: ${tmDark(({ colors }) => colors.accent700)};
           fill: ${tmDark(({ colors }) => colors.accent700)};
         }
       }
@@ -95,6 +95,7 @@ const MenuItem = styled.li`
     position: relative;
     padding: 2px 8px;
     border-radius: 3px;
+    text-transform: lowercase;
   }
 
   &[data-current="true"] > a {
@@ -119,17 +120,15 @@ const MenuItem = styled.li`
 
   & svg {
     margin-left: 4px;
-    stroke: ${tm(({ colors }) => colors.neutral900)};
-    fill: ${tm(({ colors }) => colors.neutral900)};
+
+    fill: ${tm(({ colors }) => colors.gray7)};
 
     ${tmSelectors.dark} {
-      stroke: ${tmDark(({ colors }) => colors.neutral900)};
-      fill: ${tmDark(({ colors }) => colors.neutral900)};
+      fill: ${tmDark(({ colors }) => colors.gray2)};
     }
     ${media.mqDark} {
       ${tmSelectors.auto} {
-        stroke: ${tmDark(({ colors }) => colors.neutral900)};
-        fill: ${tmDark(({ colors }) => colors.neutral900)};
+        fill: ${tmDark(({ colors }) => colors.gray2)};
       }
     }
   }

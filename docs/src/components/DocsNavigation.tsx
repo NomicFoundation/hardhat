@@ -14,6 +14,7 @@ import ThemeSwitchButton from "./ThemeSwitchButton";
 interface Props {
   isSidebarOpen: boolean;
   onSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  className?: string;
 }
 
 const NavigationStyled = styled.nav`
@@ -24,10 +25,12 @@ const NavigationStyled = styled.nav`
   align-items: center;
   box-sizing: border-box;
   padding: 0 16px;
-  transition: all ease-in-out 0.25s;
+
   background-color: ${tm(({ colors }) => colors.neutral0)};
   z-index: 10;
-
+  &.is-at-top {
+    background-color: transparent !important;
+  }
   ${tmSelectors.dark} {
     background-color: ${tmDark(({ colors }) => colors.neutral0)};
   }
@@ -61,18 +64,23 @@ const LogoContainer = styled.a`
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 4px 0;
   box-sizing: border-box;
   background-color: ${tm(({ colors }) => colors.transparent)};
   border: none;
   cursor: pointer;
-
+  width: 132px;
   & .dark-logo {
     display: none;
   }
+  img {
+    width: 100%;
+  }
+  .light-logo {
+    display: block;
+  }
   ${tmSelectors.dark} {
     & .dark-logo {
-      display: inline;
+      display: block;
     }
     & .light-logo {
       display: none;
@@ -81,12 +89,15 @@ const LogoContainer = styled.a`
   ${media.mqDark} {
     ${tmSelectors.auto} {
       & .dark-logo {
-        display: inline;
+        display: block;
       }
       & .light-logo {
         display: none;
       }
     }
+  }
+  ${media.laptop} {
+    width: 165px;
   }
 `;
 
@@ -101,11 +112,15 @@ const HamburgerWrapper = styled.div`
   }
 `;
 
-const DocsNavigation: FC<Props> = ({ isSidebarOpen, onSidebarOpen }) => {
+const DocsNavigation: FC<Props> = ({
+  isSidebarOpen,
+  onSidebarOpen,
+  className,
+}) => {
   const { theme } = useContext(ThemeContext);
 
   return (
-    <NavigationStyled data-theme={theme}>
+    <NavigationStyled data-theme={theme} className={className}>
       <ControlsContainer>
         <HamburgerLogoWrapper>
           <Link href="/" passHref>

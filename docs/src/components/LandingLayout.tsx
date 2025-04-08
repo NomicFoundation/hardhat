@@ -54,6 +54,7 @@ type Props = React.PropsWithChildren<{
 
 const LandingLayout = ({ children, seo, sidebarLayout }: Props) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isScrolledTop, setIsScrolledTop] = useState(true);
 
   useEffect(() => {
     const body = document.querySelector("body");
@@ -69,20 +70,31 @@ const LandingLayout = ({ children, seo, sidebarLayout }: Props) => {
   }, [isSidebarOpen]);
 
   useEffect(() => {
-    const listener = () => {
+    const handleScroll = () => {
+      const scrollTop = window.scrollY || document.documentElement.scrollTop;
+      setIsScrolledTop(scrollTop <= 0);
+    };
+
+    const handleClick = () => {
       if (isSidebarOpen) {
         setIsSidebarOpen(false);
       }
     };
 
-    document.addEventListener("click", listener);
+    window.addEventListener("scroll", handleScroll);
+    document.addEventListener("click", handleClick);
+    handleScroll();
 
-    return () => document.removeEventListener("click", listener);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      document.removeEventListener("click", handleClick);
+    };
   }, [isSidebarOpen]);
+
   return (
     <ThemeProvider>
       <Container className="landing">
-        <Header>
+        <Header className={`${isSidebarOpen ? "is-sidebar-open" : ""} `}>
           <Banner
             content={bannerContent}
             renderContent={({ content }: DefaultBannerProps) => (
@@ -90,6 +102,7 @@ const LandingLayout = ({ children, seo, sidebarLayout }: Props) => {
             )}
           />
           <DocsNavigation
+            className={`${isScrolledTop ? "is-at-top" : ""}`}
             isSidebarOpen={isSidebarOpen}
             onSidebarOpen={setIsSidebarOpen}
           />

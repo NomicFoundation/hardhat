@@ -36,7 +36,7 @@ const MenuItem = styled.li`
 const MenuButton = styled.a`
   text-align: center;
   border: none;
-  color: ${tm(({ colors }) => colors.neutral900)};
+  color: ${tm(({ colors }) => colors.gray7)};
   background-color: ${tm(({ colors }) => colors.transparent)};
   font-size: 16px;
   font-weight: 600;
@@ -52,6 +52,7 @@ const MenuButton = styled.a`
   position: relative;
   cursor: pointer;
   border-radius: 3px;
+  text-transform: lowercase;
 
   &[data-current="true"] {
     background-color: ${tm(({ colors }) => colors.gray6)};

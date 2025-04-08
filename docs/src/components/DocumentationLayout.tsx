@@ -117,14 +117,14 @@ export const SidebarContainer = styled.aside<{ isSidebarOpen: boolean }>`
   }
 
   :not(&[data-no-border="true"]) {
-    border-right: 1px solid ${tm(({ colors }) => colors.neutral400)};
+    border-right: 1px solid ${tm(({ colors }) => colors.gray2)};
     ${tmSelectors.dark} {
-      border-right: 1px solid ${tmDark(({ colors }) => colors.border)};
+      border-right: 1px solid ${tmDark(({ colors }) => colors.gray3)};
       background-color: ${tmDark(({ colors }) => colors.neutral0)};
     }
     ${media.mqDark} {
       ${tmSelectors.auto} {
-        border-right: 1px solid ${tmDark(({ colors }) => colors.border)};
+        border-right: 1px solid ${tmDark(({ colors }) => colors.gray3)};
         background-color: ${tmDark(({ colors }) => colors.neutral0)};
       }
     }
@@ -156,6 +156,37 @@ export const Header = styled.header`
   display: flex;
   flex-direction: column;
   z-index: 199;
+  &:before {
+    content: "";
+    position: absolute;
+    bottom: 1px;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background-color: ${tm(({ colors }) => colors.gray2)};
+    display: none;
+    z-index: 11;
+    pointer-events: none;
+  }
+
+  &.is-sidebar-open {
+    &:before {
+      display: block;
+    }
+  }
+
+  ${tmSelectors.dark} {
+    &.is-sidebar-open:before {
+      background-color: ${tmDark(({ colors }) => colors.gray3)};
+    }
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      &.is-sidebar-open:before {
+        border-color: ${tmDark(({ colors }) => colors.gray3)};
+      }
+    }
+  }
 `;
 
 const View = styled.section`
@@ -265,7 +296,7 @@ const DocumentationLayout = ({
   return (
     <ThemeProvider>
       <Container>
-        <Header>
+        <Header className={`${isSidebarOpen ? "is-sidebar-open" : ""}`}>
           <Banner
             content={bannerContent}
             renderContent={({ content }: DefaultBannerProps) => (

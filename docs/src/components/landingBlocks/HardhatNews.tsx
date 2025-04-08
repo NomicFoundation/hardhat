@@ -171,8 +171,10 @@ const TextContainer = styled.div`
   align-items: flex-start;
   gap: 12px;
   flex: 1;
+  padding-top: 8px;
   ${media.laptop} {
     gap: 16px;
+    padding-top: 0;
   }
 `;
 

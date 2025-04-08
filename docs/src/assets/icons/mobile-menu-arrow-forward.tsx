@@ -2,9 +2,15 @@ import * as React from "react";
 import { SVGProps } from "react";
 
 const MobileMenuArrowForward = (props: SVGProps<SVGSVGElement>) => (
-  <svg width={16} height={16} xmlns="http://www.w3.org/2000/svg" {...props}>
-    <path d="m9 3 5 5-5 5" strokeLinecap="round" strokeLinejoin="round" />
-    <path d="M2 7.5a.5.5 0 0 0 0 1v-1Zm12 0H2v1h12v-1Z" />
+  <svg
+    width={16}
+    height={16}
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 16 17"
+    fill="none"
+    {...props}
+  >
+    <path d="M9.19698 15.2297C8.93636 15.4903 8.51418 15.4915 8.25211 15.2323L7.84129 14.8261C7.57714 14.5649 7.57595 14.1386 7.83863 13.8759L12.0971 9.61748H0.873124C0.503094 9.61748 0.203125 9.31751 0.203125 8.94748V8.31779C0.203125 7.94776 0.503094 7.64779 0.873125 7.64779H12.0971L7.83806 3.3956C7.57554 3.13349 7.57596 2.70796 7.839 2.44638L8.25209 2.03558C8.51396 1.77517 8.93716 1.77576 9.1983 2.0369L15.3203 8.15887C15.5819 8.42053 15.5819 8.84475 15.3203 9.1064L9.19698 15.2297Z" />
   </svg>
 );
 

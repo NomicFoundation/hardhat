@@ -117,12 +117,13 @@ const News = styled.article`
   grid-template-rows: auto 1fr;
   &:first-child {
     .news-header {
-      padding: 31px 23px;
+      padding: 23px;
       border-bottom: none;
       border-color: #6C6F74
       background-color: #FFF100;
       border-right-width: 1px;
       border-right-style: solid;
+      gap: 20px;
     }
     .news-title {
       font-weight: 700;
@@ -134,6 +135,7 @@ const News = styled.article`
       border-color: #edcf00;
       border-left-width: 1px;
       border-left-style: solid;
+      gap: 14px;
 
     }
   }
@@ -160,6 +162,17 @@ const News = styled.article`
         .news-content {
           border-color: #CCB200;
         }
+      }
+    }
+  }
+  ${media.sm} {
+    &:first-child {
+      .news-header {
+        padding: 31px 23px;
+        gap: 24px;
+      }
+      .news-content {
+        gap: 14px;
       }
     }
   }

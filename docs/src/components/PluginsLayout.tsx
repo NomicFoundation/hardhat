@@ -133,7 +133,7 @@ const PluginsLayout = ({ children, seo, sidebarLayout }: Props) => {
   return (
     <ThemeProvider>
       <Container>
-        <Header>
+        <Header className={`${isSidebarOpen ? "is-sidebar-open" : ""}`}>
           <Banner
             content={bannerContent}
             renderContent={({ content }: DefaultBannerProps) => (

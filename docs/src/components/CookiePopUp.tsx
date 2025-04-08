@@ -6,60 +6,59 @@ import CTA from "./ui/CTA";
 const Container = styled.section`
   z-index: 100;
   position: fixed;
-  bottom: 24px;
-  right: 0px;
-  width: auto;
-  padding: 16px 20px;
-  border-radius: 4px;
-  margin: 0px 24px;
+  bottom: 16px;
+  right: 0;
+  margin: 0 16px;
+  width: calc(100% - 32px);
+  padding: 24px 24px 16px;
   background-color: ${tm(({ colors }) => colors.cookiePopUpBackground)};
-  box-shadow: 0px 6px 50px ${tm(({ colors }) => colors.cookieShadow)};
-  filter: drop-shadow(
-    0px 6px 50px ${tm(({ colors }) => colors.cookieDropShadow)}
-  );
+  box-shadow: 0px 0px 6px 0px ${tm(({ colors }) => colors.cookieShadow)};
   display: flex;
   flex-direction: column;
-  max-width: 332px;
-  ${media.md} {
-    width: 332px;
-    margin: 0px 24px;
-    left: unset;
+  max-width: 100%;
+  font-family: "Source Code Pro", monospace;
+  ${media.smd} {
+    margin: 0 24px;
+    bottom: 24px;
+    max-width: 332px;
   }
   ${tmSelectors.dark} {
     background-color: ${tmDark(({ colors }) => colors.cookiePopUpBackground)};
+    box-shadow: 0px 0px 6px 0px ${tmDark(({ colors }) => colors.cookieShadow)};
   }
   ${media.mqDark} {
     ${tmSelectors.auto} {
       background-color: ${tmDark(({ colors }) => colors.cookiePopUpBackground)};
+      box-shadow: 0px 0px 6px 0px ${tmDark(({ colors }) => colors.cookieShadow)};
     }
   }
 `;
 
 const Title = styled.h3`
-  font-weight: 400;
+  font-weight: 700;
   font-size: 12px;
-  line-height: 24px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: ${tm(({ colors }) => colors.neutral900)};
-  mix-blend-mode: normal;
+  line-height: 1.5;
+  letter-spacing: 0.05em;
+  color: ${tm(({ colors }) => colors.gray8b)};
+
   ${tmSelectors.dark} {
-    color: ${tmDark(({ colors }) => colors.neutral900)};
+    color: ${tmDark(({ colors }) => colors.gray2)};
   }
 
   ${media.mqDark} {
     ${tmSelectors.auto} {
-      color: ${tmDark(({ colors }) => colors.neutral900)};
+      color: ${tmDark(({ colors }) => colors.gray2)};
     }
   }
 `;
 
 const Text = styled.p`
-  font-family: ChivoLight, sans-serif;
-  margin-top: 16px;
+  margin-top: 8px;
   font-weight: 400;
-  font-size: 12px;
-  line-height: 140%;
+  font-size: 10px;
+  line-height: 1.5;
+  font-family: Roboto, sans-serif;
+  letter-spacing: 0.045em;
   color: ${tm(({ colors }) => colors.cookieTextColor)};
 
   ${tmSelectors.dark} {
@@ -91,32 +90,16 @@ const ButtonsContainer = styled.div`
 `;
 
 const CTAWrapper = styled.div`
-  & > button {
-    font-size: 10px;
-    padding: 10px 12px;
-    height: 32px;
-  }
   &:first-child {
     margin-right: 16px;
   }
 `;
 
 const ReadMoreLink = styled.a`
-  font-family: ChivoRegular, sans-serif;
-  color: ${tm(({ colors }) => colors.neutral900)};
-  font-weight: 800;
-  margin-left: 6px;
+  margin-left: 4px;
   cursor: pointer;
   &:hover {
     opacity: 0.8;
-  }
-  ${tmSelectors.dark} {
-    color: ${tmDark(({ colors }) => colors.neutral900)};
-  }
-  ${media.mqDark} {
-    ${tmSelectors.auto} {
-      color: ${tmDark(({ colors }) => colors.neutral900)};
-    }
   }
 `;
 
@@ -144,12 +127,14 @@ const CookiePopUp = ({
       </Text>
       <ButtonsContainer>
         <CTAWrapper>
-          <CTA variant="secondary" onClick={onReject}>
+          <CTA variant="secondary sm" onClick={onReject}>
             Reject all
           </CTA>
         </CTAWrapper>
         <CTAWrapper>
-          <CTA onClick={onAccept}>Accept all</CTA>
+          <CTA variant="sm" onClick={onAccept}>
+            Accept all
+          </CTA>
         </CTAWrapper>
       </ButtonsContainer>
     </Container>

@@ -7,13 +7,13 @@ import { media, tm, tmDark, tmSelectors } from "../../themes";
 import { CTAType } from "../ui/types";
 
 import LandingContainer from "../LandingContainer";
-import heroGraphicDesktop from "../../assets/hero/hero.svg";
-import heroGraphicTablet from "../../assets/hero/hero-tablet.svg";
-import heroGraphicMobile from "../../assets/hero/heroMobile.svg";
+import heroGraphicDesktop from "../../assets/hero/hero.png";
+import heroGraphicTablet from "../../assets/hero/heroTablet.png";
+import heroGraphicMobile from "../../assets/hero/heroMobile.png";
 
-import heroGraphicDesktopDark from "../../assets/hero/heroDark.svg";
-import heroGraphicDarkTablet from "../../assets/hero/heroDark-tablet.svg";
-import heroGraphicDarkMobile from "../../assets/hero/heroDarkMobile.svg";
+import heroGraphicDesktopDark from "../../assets/hero/heroDark.png";
+import heroGraphicDarkTablet from "../../assets/hero/heroDarkTablet.png";
+import heroGraphicDarkMobile from "../../assets/hero/heroDarkMobile.png";
 
 import heroTexture from "../../assets/hero/hero-texture.svg";
 import heroDarkTexture from "../../assets/hero/heroDark-texture.svg";
@@ -68,8 +68,11 @@ const Container = styled.div<{ bgImage: string; bgImageDark: string }>`
       pointer-events: none;
     }
   }
-  ${media.laptop} {
+  ${media.desktop} {
     padding: 102px 0 148px;
+    &:before {
+      top: 40px;
+    }
   }
 `;
 
@@ -82,17 +85,17 @@ const Content = styled.div`
   max-width: 520px;
   margin: 0 auto;
   margin-bottom: 425px;
-  a.md {
-    height: 44px;
+  a.lg {
+    height: 42px;
     font-size: 12px;
     padding-left: 20px;
     padding-right: 20px;
-    border-radius: 0;
   }
   ${media.tablet} {
     gap: 32px;
     margin-bottom: 206px;
-    a.md {
+    a.lg {
+      height: 44px;
       padding-left: 28px;
       padding-right: 28px;
     }
@@ -103,8 +106,7 @@ const Content = styled.div`
     gap: 40px;
     margin-bottom: 373px;
 
-    a.md {
-      height: 56px;
+    a.lg {
       font-size: 16px;
     }
   }
@@ -116,12 +118,13 @@ const Content = styled.div`
 const GraphicContainer = styled.div`
   height: auto;
   position: absolute;
-  top: -2px;
+  top: -33px;
   left: 50%;
   width: 993px;
   pointer-events: none;
   transform: translateX(-50%);
   z-index: -1;
+
   &.dark {
     display: none;
   }
@@ -298,7 +301,7 @@ const HeroBlock = ({ content }: Props) => {
             <TagLine dangerouslySetInnerHTML={{ __html: content.tagline }} />
             <Title>{content.title}</Title>
 
-            <CTA href={content.cta.url} variant="md">
+            <CTA href={content.cta.url} variant="lg">
               {content.cta.title}
             </CTA>
           </Content>
@@ -313,10 +316,24 @@ const HeroBlock = ({ content }: Props) => {
           </Block>
         </LandingContainer>
         <GraphicContainer className="light">
-          <Image src={imageSrc} alt="" role="presentation" />
+          <Image
+            src={imageSrc}
+            alt=""
+            role="presentation"
+            quality={100}
+            layout="intrinsic"
+            priority
+          />
         </GraphicContainer>
         <GraphicContainer className="dark">
-          <Image src={imageDarkSrc} alt="" role="presentation" />
+          <Image
+            src={imageDarkSrc}
+            alt=""
+            role="presentation"
+            quality={100}
+            layout="intrinsic"
+            priority
+          />
         </GraphicContainer>
       </Container>
     </Section>

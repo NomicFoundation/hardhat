@@ -4,8 +4,8 @@ import { styled } from "linaria/react";
 import { CTAType } from "./types";
 import CTA from "./CTA";
 import { media, tm, tmDark, tmSelectors } from "../../themes";
-import ImageMask from "../../assets/why-we/grid.svg";
-import ImageMaskDark from "../../assets/why-we/gridDark.svg";
+import ImageMask from "../../assets/why-we/gridMobile.svg";
+import ImageMaskDark from "../../assets/why-we/gridDarkMobile.svg";
 import ArrowRight from "../../assets/icons/arrow-right";
 
 interface ArticleType {
@@ -43,12 +43,40 @@ const Container = styled.section`
   gap: 30px;
   grid-column: 1/2;
   margin: 0 -16px;
-
+  &:nth-child(1) {
+    .light,
+    .dark {
+      margin-left: 12px;
+      max-width: 322px;
+    }
+  }
   &:nth-child(2) {
     .light,
     .dark {
-      margin-right: 24px;
+      margin-right: 23px;
+      margin-top: -4px;
+      max-width: 310px;
     }
+  }
+  &:nth-child(3) {
+    .light,
+    .dark {
+      margin-left: -12px;
+      margin-top: 31px;
+      max-width: 347px;
+    }
+  }
+  &:nth-child(4) {
+    .light,
+    .dark {
+      margin-top: 5px;
+      max-width: 288px;
+    }
+  }
+
+  &:nth-child(4) *:after,
+  &:nth-child(4) *:after {
+    z-index: 0;
   }
   ${media.tablet} {
     flex-direction: row;
@@ -73,6 +101,32 @@ const ImageContainer = styled.div<{
   background-size: contain;
   background-position: center;
   background-repeat: no-repeat;
+  &:after {
+    content: "";
+    position: absolute;
+    top: 1px;
+    left: 1px;
+    right: 1px;
+    bottom: 1px;
+    border: 1px solid #d5d5d5;
+    z-index: 3;
+  }
+
+  ${tmSelectors.dark} {
+    background-image: ${(props) => `url(${props.backgroundDark})`};
+    &:after {
+      border-color: #333538;
+    }
+  }
+  ${media.mqDark} {
+    ${tmSelectors.auto} {
+      background-image: ${(props) => `url(${props.backgroundDark})`};
+      &:after {
+        border-color: #333538;
+      }
+    }
+  }
+
   ${tmSelectors.dark} {
     background-image: ${(props) => `url(${props.backgroundDark})`};
   }
@@ -234,47 +288,36 @@ const CTAWrapper = styled.div`
     height: 12px;
   }
   .primary {
-    padding: 9px 16px;
+    height: 36px;
+    padding: 0 16px;
     font-size: 12px;
     gap: 6px;
   }
-  ${tmSelectors.dark} {
-    .primary {
-      background-color: #333538;
-      color: #b0b2b5;
-    }
-  }
-  ${media.mqDark} {
-    ${tmSelectors.auto} {
-      .primary {
-        background-color: #333538;
-        color: #b0b2b5;
-      }
-    }
-  }
+
   ${media.tablet} {
     .icon {
       width: 16px;
       height: 16px;
     }
     .primary {
-      padding: 13px 16px;
-      gap: 6px;
+      height: 44px;
+      padding: 0 16px;
     }
   }
   ${media.laptop} {
     margin-top: 28px;
     .primary {
-      font-size: 14px;
-      padding: 16px 20px;
       gap: 12px;
+      font-size: 14px;
+      padding: 0 20px;
+      height: 56px;
     }
   }
   ${media.desktop} {
     .primary {
-      padding: 19px 24px;
+      height: 64px;
+      padding: 0 24px;
       font-size: 16px;
-      letter-spacing: 0.02em;
     }
   }
 `;
@@ -322,7 +365,7 @@ const Article = ({ title, text, cta, icon: Icon }: ArticleType) => {
       <Title>{title}</Title>
       <Text>{text}</Text>
       <CTAWrapper>
-        <CTA href={cta.url} variant="primary">
+        <CTA href={cta.url} variant="primary xl">
           {cta.title}
           <ArrowRight />
         </CTA>

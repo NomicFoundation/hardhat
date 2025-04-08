@@ -94,7 +94,7 @@ const SupportedByTitle = styled.h2`
 const Subtitle = styled.h2`
   color: ${tm(({ colors }) => colors.gray9)};
   font-family: Roboto, sans-serif;
-  font-size: 14px;
+  font-size: 12px;
   font-style: normal;
   font-weight: 400;
   line-height: 1.4;
@@ -109,7 +109,9 @@ const Subtitle = styled.h2`
       color: ${tmDark(({ colors }) => colors.gray2)};
     }
   }
-
+  ${media.tablet} {
+    font-size: 14px;
+  }
   ${media.laptop} {
     margin-bottom: unset;
     font-size: 16px;
@@ -130,7 +132,7 @@ const LandingFooter = () => {
       <LandingContainer>
         <Wrapper>
           <SupportedBy>
-            <SupportedByTitle>Build with</SupportedByTitle>
+            <SupportedByTitle>Build by</SupportedByTitle>
             <Logo className="light">
               <Image src={ethereumFoundationLogo} alt="logo" />
             </Logo>

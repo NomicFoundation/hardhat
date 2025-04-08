@@ -15,7 +15,7 @@ const BannerContainer = styled.section`
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background-color: ${tm(({ colors }) => colors.neutral900)};
+  background-color: ${tm(({ colors }) => colors.gray8b)};
   color: ${tm(({ colors }) => colors.neutral0)};
   font-size: 10px;
   font-weight: 600;
@@ -26,8 +26,11 @@ const BannerContainer = styled.section`
   & span {
     margin-right: 2px;
   }
-  ${media.md} {
+  ${media.tablet} {
     font-size: 16px;
+  }
+  ${media.laptop} {
+    font-size: 20px;
   }
   ${tmSelectors.dark} {
     background-color: ${tmDark(({ colors }) => colors.neutral900)};
@@ -45,12 +48,14 @@ const BracesContainer = styled.div`
   display: flex;
 
   flex-wrap: nowrap;
-  align-items: baseline;
+  align-items: center;
+  font-size: 10px;
   & > .braces {
     color: ${tm(({ colors }) => colors.accent900)};
     display: inline;
     transition: color ease-out 0.5s;
     margin: 0 8px;
+    vertical-align: middle;
   }
   & .reversed {
     transform: rotate(180deg);
@@ -59,6 +64,9 @@ const BracesContainer = styled.div`
     ${media.md} {
       padding: 0px 16px;
     }
+  }
+  ${media.tablet} {
+    font-size: 16px;
   }
 `;
 
@@ -82,9 +90,8 @@ const Brace = styled.div<{
 `;
 
 const getBracesCount = (windowSize: WindowSizeState) => {
-  if (windowSize.width >= breakpoints.md) return 6;
-  if (windowSize.width >= breakpoints.sm) return 3;
-  return 2;
+  if (windowSize.width >= breakpoints.tablet) return 5;
+  return 3;
 };
 
 const BracesAnimation: React.FC<React.PropsWithChildren<{}>> = ({

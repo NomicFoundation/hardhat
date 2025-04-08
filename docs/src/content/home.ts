@@ -4,32 +4,40 @@ import IgnitionIcon from "../assets/tools/ignition";
 import NetworkIcon from "../assets/tools/network";
 
 import SolidityDebuggerImage from "../assets/feature-cards/Desktop/SolidityDebuggerImage.svg";
+import SolidityDebuggerImageLg from "../assets/feature-cards/Desktop/SolidityDebuggerImageLg.svg";
 import SolidityDebuggerImageMd from "../assets/feature-cards/Desktop/SolidityDebuggerImageMd.svg";
 import SolidityDebuggerImageSm from "../assets/feature-cards/Desktop/SolidityDebuggerImageSm.svg";
 import SolidityDebuggerImageDark from "../assets/feature-cards/Desktop/SolidityDebuggerImageDark.svg";
+import SolidityDebuggerImageDarkLg from "../assets/feature-cards/Desktop/SolidityDebuggerImageDarkLg.svg";
 import SolidityDebuggerImageDarkMd from "../assets/feature-cards/Desktop/SolidityDebuggerImageDarkMd.svg";
 import SolidityDebuggerImageDarkSm from "../assets/feature-cards/Desktop/SolidityDebuggerImageDarkSm.svg";
 
 import ComprehensiveTestingImage from "../assets/feature-cards/Desktop/ComprehensiveTestingImage.svg";
+import ComprehensiveTestingImageLg from "../assets/feature-cards/Desktop/ComprehensiveTestingImageLg.svg";
 import ComprehensiveTestingImageMd from "../assets/feature-cards/Desktop/ComprehensiveTestingImageMd.svg";
 import ComprehensiveTestingImageSm from "../assets/feature-cards/Desktop/ComprehensiveTestingImageSm.svg";
 import ComprehensiveTestingImageDark from "../assets/feature-cards/Desktop/ComprehensiveTestingImageDark.svg";
+import ComprehensiveTestingImageDarkLg from "../assets/feature-cards/Desktop/ComprehensiveTestingImageDarkLg.svg";
 import ComprehensiveTestingImageDarkMd from "../assets/feature-cards/Desktop/ComprehensiveTestingImageDarkMd.svg";
 import ComprehensiveTestingImageDarkSm from "../assets/feature-cards/Desktop/ComprehensiveTestingImageDarkSm.svg";
 
 import SimpleDeploymentsImage from "../assets/feature-cards/Desktop/SimpleDeploymentsImage.svg";
+import SimpleDeploymentsImageLg from "../assets/feature-cards/Desktop/SimpleDeploymentsImageLg.svg";
 import SimpleDeploymentsImageMd from "../assets/feature-cards/Desktop/SimpleDeploymentsImageMd.svg";
 import SimpleDeploymentsImageSm from "../assets/feature-cards/Desktop/SimpleDeploymentsImageSm.svg";
 import SimpleDeploymentsImageDark from "../assets/feature-cards/Desktop/SimpleDeploymentsImageDark.svg";
+import SimpleDeploymentsImageDarkLg from "../assets/feature-cards/Desktop/SimpleDeploymentsImageDarkLg.svg";
 import SimpleDeploymentsImageDarkMd from "../assets/feature-cards/Desktop/SimpleDeploymentsImageDarkMd.svg";
 import SimpleDeploymentsImageDarkSm from "../assets/feature-cards/Desktop/SimpleDeploymentsImageDarkSm.svg";
 
-import PluginEcosystemImage from "../assets/feature-cards/Desktop/PluginEcosystemImage.svg";
-import PluginEcosystemImageMd from "../assets/feature-cards/Desktop/PluginEcosystemImageMd.svg";
-import PluginEcosystemImageSm from "../assets/feature-cards/Desktop/PluginEcosystemImageSm.svg";
-import PluginEcosystemImageDark from "../assets/feature-cards/Desktop/PluginEcosystemImageDark.svg";
-import PluginEcosystemImageDarkMd from "../assets/feature-cards/Desktop/PluginEcosystemImageDarkMd.svg";
-import PluginEcosystemImageDarkSm from "../assets/feature-cards/Desktop/PluginEcosystemImageDarkSm.svg";
+import PluginEcosystemImage from "../assets/feature-cards/Desktop/PluginEcosystemImage.png";
+import PluginEcosystemImageLg from "../assets/feature-cards/Desktop/PluginEcosystemImageLg.png";
+import PluginEcosystemImageMd from "../assets/feature-cards/Desktop/PluginEcosystemImageMd.png";
+import PluginEcosystemImageSm from "../assets/feature-cards/Desktop/PluginEcosystemImageSm.png";
+import PluginEcosystemImageDark from "../assets/feature-cards/Desktop/PluginEcosystemImageDark.png";
+import PluginEcosystemImageDarkLg from "../assets/feature-cards/Desktop/PluginEcosystemImageDarkLg.png";
+import PluginEcosystemImageDarkMd from "../assets/feature-cards/Desktop/PluginEcosystemImageDarkMd.png";
+import PluginEcosystemImageDarkSm from "../assets/feature-cards/Desktop/PluginEcosystemImageDarkSm.png";
 
 import vibrantCommunityImage from "../assets/vibrantCommunityImage.svg";
 import vibrantCommunityImageDark from "../assets/vibrantCommunityImageDark.svg";
@@ -44,6 +52,8 @@ import NetworkIconDark from "../assets/tools/network-dark";
 import SolidityIconDark from "../assets/tools/solidity-dark";
 
 import FeatureCardIcons from "../assets/feature-cards/icons";
+
+import HardHatNewsImage from "../assets/hardHatNewsImg-1.png";
 
 const heroBlockContent = {
   title: "Ethereum development environment for professionals",
@@ -64,11 +74,13 @@ const whyHardhatContent = {
     {
       image: {
         lg: SolidityDebuggerImage,
+        m: SolidityDebuggerImageLg,
         md: SolidityDebuggerImageMd,
         sm: SolidityDebuggerImageSm,
       },
       imageDark: {
         lg: SolidityDebuggerImageDark,
+        m: SolidityDebuggerImageDarkLg,
         md: SolidityDebuggerImageDarkMd,
         sm: SolidityDebuggerImageDarkSm,
       },
@@ -95,11 +107,13 @@ const whyHardhatContent = {
     {
       image: {
         lg: ComprehensiveTestingImage,
+        m: ComprehensiveTestingImageLg,
         md: ComprehensiveTestingImageMd,
         sm: ComprehensiveTestingImageSm,
       },
       imageDark: {
         lg: ComprehensiveTestingImageDark,
+        m: ComprehensiveTestingImageDarkLg,
         md: ComprehensiveTestingImageDarkMd,
         sm: ComprehensiveTestingImageDarkSm,
       },
@@ -127,11 +141,13 @@ const whyHardhatContent = {
     {
       image: {
         lg: SimpleDeploymentsImage,
+        m: SimpleDeploymentsImageLg,
         md: SimpleDeploymentsImageMd,
         sm: SimpleDeploymentsImageSm,
       },
       imageDark: {
         lg: SimpleDeploymentsImageDark,
+        m: SimpleDeploymentsImageDarkLg,
         md: SimpleDeploymentsImageDarkMd,
         sm: SimpleDeploymentsImageDarkSm,
       },
@@ -158,11 +174,13 @@ const whyHardhatContent = {
     {
       image: {
         lg: PluginEcosystemImage,
+        m: PluginEcosystemImageLg,
         md: PluginEcosystemImageMd,
         sm: PluginEcosystemImageSm,
       },
       imageDark: {
         lg: PluginEcosystemImageDark,
+        m: PluginEcosystemImageDarkLg,
         md: PluginEcosystemImageDarkMd,
         sm: PluginEcosystemImageDarkSm,
       },
@@ -190,7 +208,7 @@ const whyHardhatContent = {
 };
 
 const getStartedBlockContent = {
-  title: "Hardhat is next- generation Ethereum tooling",
+  title: "Hardhat is next - generation Ethereum tooling",
   subtitle: "Experience the new way of building Ethereum software.",
   cta: {
     title: "Get started",
@@ -212,7 +230,7 @@ const vibrantCommunityBlockContent = {
 };
 
 const whatIsNewBlockContent = {
-  title: "What`s new in Hardhat",
+  title: "What's new in Hardhat",
   news: [
     {
       imageUrl: HardhatNewsImage,
@@ -352,8 +370,7 @@ const hardhatNewsContent = {
   title: "Hardhat News",
   cards: [
     {
-      image:
-        "https://blog.nomic.foundation/content/images/size/w1000/2024/08/EDR-announcement-blogpost-image.png",
+      image: HardHatNewsImage.src,
       title: "Hardhat v2.19.0: Introducing Configuration Variables",
       text: "Handling configuration settings is a common situation in Ethereum development, and it often involves sensitive information that could cause…",
       link: "https://blog.nomic.foundation/hardhat-v2-19-0-introducing-configuration-variables-b528c0c9a7c0/",

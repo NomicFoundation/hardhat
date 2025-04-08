@@ -1,4 +1,4 @@
-import React, { useState, FormEvent } from "react";
+import React, { useState } from "react";
 import { styled } from "linaria/react";
 import Section from "../Section";
 import LandingContainer from "../LandingContainer";
@@ -6,6 +6,7 @@ import { media, tm, tmDark, tmSelectors } from "../../themes";
 import backgroundImageLight from "../../assets/email-form/bg-light-big.svg";
 import backgroundImageDark from "../../assets/email-form/bg-dark-big.svg";
 import Lines from "../../assets/email-form/lines";
+import CTA from "../ui/CTA";
 
 // Props interface for the component
 export interface EmailFormProps {
@@ -118,8 +119,23 @@ const FormRow = styled.form`
   gap: 32px;
   flex-direction: column;
   align-items: center;
+
+  button.lg {
+    height: 44px;
+    font-size: 12px;
+  }
+
   ${media.laptop} {
     flex-direction: row;
+    button.lg {
+      height: 56px;
+      font-size: 14px;
+    }
+  }
+  ${media.desktop} {
+    button.lg {
+      font-size: 16px;
+    }
   }
 `;
 
@@ -183,46 +199,7 @@ const Input = styled.input`
     }
   }
   ${media.tablet} {
-    font-size: 20px;
-  }
-`;
-
-const Button = styled.button`
-  height: 44px;
-  min-width: 120px;
-  padding: 0 28px;
-  background-color: ${tm(({ colors }) => colors.accent800)};
-  color: ${tm(({ colors }) => colors.base100)};
-  font-family: "Roboto", sans-serif;
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 24px;
-  letter-spacing: 0.01em;
-  border: none;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-  position: relative;
-
-  &:hover {
-    background-color: ${tm(({ colors }) => colors.accent600)};
-  }
-
-  &:disabled {
-    background-color: ${tm(({ colors }) => colors.neutral400)};
-    cursor: not-allowed;
-  }
-
-  ${tmSelectors.dark} {
-    color: ${tm(({ colors }) => colors.base100)};
-
-    &:hover {
-      background-color: ${tm(({ colors }) => colors.accent600)};
-    }
-  }
-  ${media.laptop} {
-    height: 56px;
-    font-size: 16px;
-    min-width: 140px;
+    font-size: 18px;
   }
 `;
 
@@ -279,7 +256,7 @@ const EmailForm: React.FC<EmailFormProps> = ({ endpoint }) => {
     return emailRegex.test(e);
   };
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
 
     // Reset states
@@ -350,13 +327,13 @@ const EmailForm: React.FC<EmailFormProps> = ({ endpoint }) => {
                 />
                 {error && <ErrorMessage>{error}</ErrorMessage>}
               </InputContainer>
-              <Button
-                type="button"
-                onClick={handleSubmit}
+              <CTA
+                variant="lg"
                 disabled={isSubmitting}
+                onClick={(e) => handleSubmit(e)}
               >
                 {isSubmitting ? "Submitting..." : "Get started"}
-              </Button>
+              </CTA>
             </FormRow>
             {isSuccess && (
               <SuccessMessage>

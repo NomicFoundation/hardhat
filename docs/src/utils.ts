@@ -1,11 +1,14 @@
 export default function getImage(card: any, screenWidth: number, type: string) {
-  const isLarge = screenWidth > 1279;
+  const isDesktop = screenWidth >= 1700;
+  const isLaptop = screenWidth >= 1280;
 
   if (type === "light") {
-    if (isLarge) return card.image.lg;
+    if (isDesktop) return card.image.lg;
+    if (isLaptop) return card.image.m;
     return card.image.md;
   }
 
-  if (isLarge) return card.imageDark.lg;
+  if (isDesktop) return card.imageDark.lg;
+  if (isLaptop) return card.imageDark.m;
   return card.imageDark.md;
 }
