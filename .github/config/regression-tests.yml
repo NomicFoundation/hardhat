@@ -213,8 +213,54 @@ repositories:
         }
       };
     ignore: |
-      # Invalid hex bytecode for contract (this is caused by the lack of support for dynamic linking)
-      test/foundry
+      # No matching artifact found
+      # These tests are trying to use getCode from optimized-out artifacts directory which does not exist
+      # See https://github.com/ProjectOpenSea/seaport/blob/585b2ef8376dd979171522027bbdb048c2a4999c/test/foundry/new/helpers/BaseSeaportTest.sol#L119
+      # To work with Hardhat 3 setup, they should be rewritten to just request the code from artifacts
+      test/foundry/BulkSignature.t.sol
+      test/foundry/conduit/ConduitExecute.t.sol
+      test/foundry/conduit/ConduitExecuteBatch1155.t.sol
+      test/foundry/conduit/ConduitExecuteWithBatch1155.t.sol
+      test/foundry/ConsiderationErrors.t.sol
+      test/foundry/ConstantsTest.t.sol
+      test/foundry/FulfillAdvancedOrder.t.sol
+      test/foundry/FulfillAdvancedOrderCriteria.t.sol
+      test/foundry/FulfillAvailableAdvancedOrder.t.sol
+      test/foundry/FulfillAvailableAdvancedOrderCriteria.t.sol
+      test/foundry/FulfillBasicOrderTest.t.sol
+      test/foundry/FulfillOrderTest.t.sol
+      test/foundry/FullfillAvailableOrder.t.sol
+      test/foundry/GetterTests.t.sol
+      test/foundry/MatchAdvancedOrder.t.sol
+      test/foundry/MatchOrders.t.sol
+      test/foundry/new/FuzzCoverage.t.sol
+      test/foundry/new/FuzzEngine.t.sol
+      test/foundry/new/FuzzGenerators.t.sol
+      test/foundry/new/FuzzHelpers.t.sol
+      test/foundry/new/FuzzInscribers.t.sol
+      test/foundry/new/FuzzMain.t.sol
+      test/foundry/new/FuzzSetup.t.sol
+      test/foundry/new/helpers/sol/MatchFulfillmentHelper.t.sol
+      test/foundry/new/SeaportNavigator.t.sol
+      test/foundry/new/SeaportValidator.t.sol
+      test/foundry/new/SelfRestricted.t.sol
+      test/foundry/new/SelfRestrictedContractOfferer.t.sol
+      test/foundry/NonReentrant.t.sol
+      test/foundry/offerers/AdjustedAmountOfferer.t.sol
+      test/foundry/offerers/BadOfferer.t.sol
+      test/foundry/offerers/ContractOffersNativeTokenOfferItems.t.sol
+      test/foundry/offerers/OffererCriteriaAdvanced.t.sol
+      test/foundry/offerers/StatefulOfferer.t.sol
+      test/foundry/offerers/TestPoolOffererTest.t.sol
+      test/foundry/SignatureVerification.t.sol
+      test/foundry/TestNewHelpers.t.sol
+      test/foundry/TokenTransferrer.t.sol
+      test/foundry/TransferHelperMultipleRecipientsTest.sol
+      test/foundry/TransferHelperSingleRecipientTest.sol
+      test/foundry/zone/PreAndPostFulfillmentCheck.t.sol
+      test/foundry/zone/TestTransferValidationZoneFuzz.t.sol
+      test/foundry/zone/TestZoneCalldataFidelity.t.sol
+      test/foundry/zone/UnauthorizedOrderSkip.t.sol
     ref: 585b2ef8376dd979171522027bbdb048c2a4999c
   Uniswap/UniswapX:
     forge-version: v0.3.0
