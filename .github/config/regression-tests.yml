@@ -261,6 +261,36 @@ repositories:
       test/foundry/zone/TestTransferValidationZoneFuzz.t.sol
       test/foundry/zone/TestZoneCalldataFidelity.t.sol
       test/foundry/zone/UnauthorizedOrderSkip.t.sol
+
+      # These need to be ignored because ignoring the tests above uncovers a weird issue with a circular dependency between:
+      #   FuzzEngine -> FuzzSetup -> ExpectedEventsUtil -> FuzzEngine
+      # It shows up in our compilation output as:
+      # TypeError: Definition of base has to precede definition of derived contract
+      #   --> test/foundry/new/helpers/FuzzEngine.sol:204:5:
+      #     |
+      # 204 |     FuzzSetup,
+      #     |     ^^^^^^^^^
+      test/foundry/new/helpers/DebugUtil.sol
+      test/foundry/new/helpers/FuzzAmendments.sol
+      test/foundry/new/helpers/FuzzChecks.sol
+      test/foundry/new/helpers/FuzzDerivers.sol
+      test/foundry/new/helpers/FuzzEngine.sol
+      test/foundry/new/helpers/FuzzEngineLib.sol
+      test/foundry/new/helpers/FuzzExecutor.sol
+      test/foundry/new/helpers/FuzzGeneratorContextLib.sol
+      test/foundry/new/helpers/FuzzGenerators.sol
+      test/foundry/new/helpers/FuzzHelpers.sol
+      test/foundry/new/helpers/FuzzMutationHelpers.sol
+      test/foundry/new/helpers/FuzzMutationSelectorLib.sol
+      test/foundry/new/helpers/FuzzMutations.sol
+      test/foundry/new/helpers/FuzzSetup.sol
+      test/foundry/new/helpers/FuzzTestContextLib.sol
+      test/foundry/new/helpers/Searializer.sol
+      test/foundry/new/helpers/event-utils/ExecutionsFlattener.sol
+      test/foundry/new/helpers/event-utils/ExpectedEventsUtil.sol
+      test/foundry/new/helpers/event-utils/OrderFulfilledEventsLib.sol
+      test/foundry/new/helpers/event-utils/OrdersMatchedEventsLib.sol
+      test/foundry/new/helpers/event-utils/TransferEventsLib.sol
     ref: 585b2ef8376dd979171522027bbdb048c2a4999c
   Uniswap/UniswapX:
     forge-version: v0.3.0
