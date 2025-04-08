@@ -24,7 +24,7 @@ const hardhatPlugin: HardhatPlugin = {
       })
       .addFlag({
         name: "noCompile",
-        description: "Don't compile the project before running the test",
+        description: "Don't compile the project before running the tests",
       })
       .setAction(import.meta.resolve("./task-action.js"))
       .build(),
