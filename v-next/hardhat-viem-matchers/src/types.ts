@@ -1,12 +1,15 @@
-import type { ChainType, DefaultChainType } from "hardhat/types/network";
-
-export interface HardhatViemMatchers<
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO
-  ChainTypeT extends ChainType | string = DefaultChainType,
-> {
+export interface HardhatViemMatchers {
   expect: (fn: any) => Prefix;
 }
 
+// This is the alternative not using `expect`:
+export interface HardhatViemMatchers2 {
+  balanceShouldChange: (
+    fn: GenericFunction,
+    address: string,
+    amount: bigint,
+  ) => Promise<void>;
+}
 export interface Prefix {
   to: Matchers;
 }

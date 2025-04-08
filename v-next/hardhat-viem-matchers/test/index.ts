@@ -59,6 +59,30 @@ describe("changeEtherBalance", () => {
 
   it("alternative-3: viemExpect as standalone imported function", async () => {
     const hre = await createHardhatRuntimeEnvironment({
+      plugins: [HardhatViem, hardhatPlugin],
+    });
+
+    const { viem } = await hre.network.connect();
+
+    const [bobWalletClient, aliceWalletClient] = await viem.getWalletClients();
+
+    await viem.assertions2.balanceShouldChange(
+      async () => {
+        const hash = await bobWalletClient.sendTransaction({
+          to: aliceWalletClient.account.address,
+          value: 1000000000000000000000n,
+        });
+
+        const publicClient = await viem.getPublicClient();
+        await publicClient.waitForTransactionReceipt({ hash });
+      },
+      aliceWalletClient.account.address,
+      1000000000000000000000n,
+    );
+  });
+
+  it("alternative-4: viemExpect as standalone imported function", async () => {
+    const hre = await createHardhatRuntimeEnvironment({
       plugins: [HardhatViem],
     });
 
