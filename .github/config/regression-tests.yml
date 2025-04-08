@@ -670,8 +670,22 @@ repositories:
         }
       };
     ignore: |
-      # Invalid hex bytecode for contract (this is caused by the lack of support for dynamic linking)
-      tests
+      # cheatcode 'deriveKey(string,uint32)' is not supported
+      tests/utils/BaseScript.t.sol
+
+      # Could not instantiate forked environment. Received invalid url.
+      tests/fork/tokens/DAI.t.sol
+      tests/fork/tokens/EURS.t.sol
+      tests/fork/tokens/SHIB.t.sol
+      tests/fork/tokens/USDC.t.sol
+      tests/fork/tokens/USDT.t.sol
+
+      # Reason: call reverted as expected, but without data
+      # Stack Trace Warning: The test is not safe to replay because it uses impure cheatcodes: function envOr(string calldata name, string calldata defaultValue) external view returns (string memory value);
+      # Counterexample:
+      #   calldata: 0x436f32710000000000000000000000000000000000000000000000000000aa3685b35e0f
+      #   args: 187151148080655 [1.871e14]
+      tests/integration/fuzz/lockup-tranched/createWithTimestampsLT.t.sol
     ref: a8528a6d0ca25f4f36eb9327fc87e08dc78ad0a6
   sablier-labs/v2-periphery:
     env: |
