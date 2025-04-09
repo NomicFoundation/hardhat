@@ -108,7 +108,7 @@ describe("time - increaseTo", () => {
 
   //     await assertRejectsWithHardhatError(
   //       async () => time.increaseTo(initialTimestamp - 1),
-  //       HardhatError.ERRORS.NETWORK_HELPERS.INVALID_TIMESTAMP_TOO_LOW,
+  //       HardhatError.ERRORS.NETWORK_HELPERS.GENERAL.INVALID_TIMESTAMP_TOO_LOW,
   //       {},
   //     );
   //   });

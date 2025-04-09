@@ -10,16 +10,15 @@ import type {
   OnchainInteractionReplacedByUserMessage,
 } from "../types/messages.js";
 
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { uniq } from "lodash-es";
 
-import { IgnitionError } from "../../../errors.js";
 import {
   isArtifactContractAtFuture,
   isEncodeFunctionCallFuture,
   isNamedContractAtFuture,
   isReadEventArgumentFuture,
 } from "../../../type-guards.js";
-import { ERRORS } from "../../errors-list.js";
 import { getFuturesFromModule } from "../../utils/get-futures-from-module.js";
 import { getPendingOnchainInteraction } from "../../views/execution-state/get-pending-onchain-interaction.js";
 import { resolveFutureFrom } from "../future-processor/helpers/future-resolvers.js";
@@ -119,10 +118,13 @@ export async function getNonceSyncMessages(
     // Case 0: We don't have any pending Ignition transactions
     if (pendingIgnitionTransactions.length === 0) {
       if (hasOnchainUnconfirmedPendingTransactions) {
-        throw new IgnitionError(ERRORS.EXECUTION.WAITING_FOR_CONFIRMATIONS, {
-          sender,
-          requiredConfirmations,
-        });
+        throw new HardhatError(
+          HardhatError.ERRORS.IGNITION.EXECUTION.WAITING_FOR_CONFIRMATIONS,
+          {
+            sender,
+            requiredConfirmations,
+          },
+        );
       }
     }
 
@@ -165,11 +167,14 @@ export async function getNonceSyncMessages(
         // transaction has at least one confirmation.
         // We don't continue until the user's transactions have enough confirmations
         if (!hasEnoughConfirmations) {
-          throw new IgnitionError(ERRORS.EXECUTION.WAITING_FOR_NONCE, {
-            sender,
-            nonce,
-            requiredConfirmations,
-          });
+          throw new HardhatError(
+            HardhatError.ERRORS.IGNITION.EXECUTION.WAITING_FOR_NONCE,
+            {
+              sender,
+              nonce,
+              requiredConfirmations,
+            },
+          );
         }
 
         messages.push({
@@ -193,11 +198,14 @@ export async function getNonceSyncMessages(
       // The pending count will show as larger than the nonce, and we know
       // from the test above that it has not been confirmed
       if (pendingCount > nonce) {
-        throw new IgnitionError(ERRORS.EXECUTION.WAITING_FOR_NONCE, {
-          sender,
-          nonce,
-          requiredConfirmations,
-        });
+        throw new HardhatError(
+          HardhatError.ERRORS.IGNITION.EXECUTION.WAITING_FOR_NONCE,
+          {
+            sender,
+            nonce,
+            requiredConfirmations,
+          },
+        );
       }
 
       // Case 3: There's no transaction sent by the user with this nonce, but ours were still dropped
@@ -218,11 +226,14 @@ export async function getNonceSyncMessages(
       // If they have enough confirmation we continue, otherwise we throw
       // and wait for further confirmations
       if (hasOnchainUnconfirmedPendingTransactions) {
-        throw new IgnitionError(ERRORS.EXECUTION.WAITING_FOR_NONCE, {
-          sender,
-          nonce: pendingCount - 1,
-          requiredConfirmations,
-        });
+        throw new HardhatError(
+          HardhatError.ERRORS.IGNITION.EXECUTION.WAITING_FOR_NONCE,
+          {
+            sender,
+            nonce: pendingCount - 1,
+            requiredConfirmations,
+          },
+        );
       }
     }
   }

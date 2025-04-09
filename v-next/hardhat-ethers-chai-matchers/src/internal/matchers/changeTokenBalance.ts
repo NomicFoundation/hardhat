@@ -191,7 +191,7 @@ function validateInput(
       accounts.length !== balanceChanges.length
     ) {
       throw new HardhatError(
-        HardhatError.ERRORS.CHAI_MATCHERS.ACCOUNTS_NUMBER_DIFFERENT_FROM_BALANCE_CHANGES,
+        HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.ACCOUNTS_NUMBER_DIFFERENT_FROM_BALANCE_CHANGES,
         {
           accounts: accounts.length,
           balanceChanges: balanceChanges.length,
@@ -209,7 +209,7 @@ function validateInput(
 function checkToken(token: unknown, method: string) {
   if (!isObject(token) || token === null || !("interface" in token)) {
     throw new HardhatError(
-      HardhatError.ERRORS.CHAI_MATCHERS.FIRST_ARGUMENT_MUST_BE_A_CONTRACT_INSTANCE,
+      HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.FIRST_ARGUMENT_MUST_BE_A_CONTRACT_INSTANCE,
       {
         method,
       },
@@ -223,7 +223,7 @@ function checkToken(token: unknown, method: string) {
     token.interface.getFunction("balanceOf") === null
   ) {
     throw new HardhatError(
-      HardhatError.ERRORS.CHAI_MATCHERS.CONTRACT_IS_NOT_AN_ERC20_TOKEN,
+      HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.CONTRACT_IS_NOT_AN_ERC20_TOKEN,
     );
   }
 }

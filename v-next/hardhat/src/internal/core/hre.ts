@@ -75,7 +75,7 @@ export class HardhatRuntimeEnvironmentImplementation
     );
 
     if (userConfigValidationErrors.length > 0) {
-      throw new HardhatError(HardhatError.ERRORS.GENERAL.INVALID_CONFIG, {
+      throw new HardhatError(HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG, {
         errors: `\t${userConfigValidationErrors
           .map(
             (error) =>

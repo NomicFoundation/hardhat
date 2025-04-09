@@ -84,7 +84,7 @@ describe(".to.emit (contract events)", { timeout: 60000 }, () => {
         () =>
           // @ts-expect-error -- force error scenario: emit should not be called with more than two arguments
           expect(contract.emitUint(1)).not.to.emit(contract, "WithoutArgs", 1),
-        HardhatError.ERRORS.CHAI_MATCHERS.EMIT_EXPECTS_TWO_ARGUMENTS,
+        HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.EMIT_EXPECTS_TWO_ARGUMENTS,
         {},
       );
     });

@@ -22,7 +22,7 @@ export async function readDeploymentParameters(
 
     if (e instanceof Error) {
       throw new HardhatError(
-        HardhatError.ERRORS.IGNITION.FAILED_TO_PARSE_DEPLOYMENT_PARAMETERS,
+        HardhatError.ERRORS.IGNITION.INTERNAL.FAILED_TO_PARSE_DEPLOYMENT_PARAMETERS,
         {
           filepath,
         },

@@ -26,9 +26,12 @@ export function resolveDeploymentId(
     givenDeploymentId !== undefined &&
     !_isValidDeploymentIdentifier(givenDeploymentId)
   ) {
-    throw new HardhatError(HardhatError.ERRORS.IGNITION.INVALID_DEPLOYMENT_ID, {
-      deploymentId: givenDeploymentId,
-    });
+    throw new HardhatError(
+      HardhatError.ERRORS.IGNITION.INTERNAL.INVALID_DEPLOYMENT_ID,
+      {
+        deploymentId: givenDeploymentId,
+      },
+    );
   }
 
   return givenDeploymentId ?? `chain-${chainId}`;

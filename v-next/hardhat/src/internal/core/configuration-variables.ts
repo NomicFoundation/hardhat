@@ -48,7 +48,7 @@ abstract class BaseResolvedConfigurationVariable
       new URL(value);
       return value;
     } catch (e) {
-      throw new HardhatError(HardhatError.ERRORS.GENERAL.INVALID_URL, {
+      throw new HardhatError(HardhatError.ERRORS.CORE.GENERAL.INVALID_URL, {
         url: value,
       });
     }
@@ -60,7 +60,7 @@ abstract class BaseResolvedConfigurationVariable
     try {
       return BigInt(value);
     } catch (e) {
-      throw new HardhatError(HardhatError.ERRORS.GENERAL.INVALID_BIGINT, {
+      throw new HardhatError(HardhatError.ERRORS.CORE.GENERAL.INVALID_BIGINT, {
         value,
       });
     }
@@ -71,9 +71,12 @@ abstract class BaseResolvedConfigurationVariable
     try {
       return normalizeHexString(value);
     } catch {
-      throw new HardhatError(HardhatError.ERRORS.GENERAL.INVALID_HEX_STRING, {
-        value,
-      });
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.GENERAL.INVALID_HEX_STRING,
+        {
+          value,
+        },
+      );
     }
   }
 }
@@ -114,7 +117,7 @@ export class LazyResolvedConfigurationVariable extends BaseResolvedConfiguration
 
           if (typeof value !== "string") {
             throw new HardhatError(
-              HardhatError.ERRORS.GENERAL.ENV_VAR_NOT_FOUND,
+              HardhatError.ERRORS.CORE.GENERAL.ENV_VAR_NOT_FOUND,
               { name: v.name },
             );
           }

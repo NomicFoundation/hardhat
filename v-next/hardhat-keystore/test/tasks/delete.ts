@@ -199,7 +199,8 @@ describe("tasks - delete", () => {
           mockRequestSecret,
           mockConsoleLog,
         ),
-        HardhatError.ERRORS.KEYSTORE.INVALID_PASSWORD_OR_CORRUPTED_KEYSTORE,
+        HardhatError.ERRORS.HARDHAT_KEYSTORE.GENERAL
+          .INVALID_PASSWORD_OR_CORRUPTED_KEYSTORE,
         {},
       );
     });

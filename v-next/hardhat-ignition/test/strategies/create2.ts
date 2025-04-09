@@ -1,6 +1,8 @@
 import type { NetworkConnection } from "hardhat/types/network";
 
-import { buildModule, IgnitionError } from "@nomicfoundation/ignition-core";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
+import { buildModule } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
 import { presignedTx } from "../test-helpers/createX-tx.js";
@@ -228,24 +230,18 @@ describe("create2", function () {
 
     it("should throw if salt is not defined in Hardhat config", async function () {
       // TODO: HH3 can this pattern be improved on with utils?
-      let threwException = false;
-      try {
-        await this.hre.tasks.getTask(["ignition", "deploy"]).run({
+
+      await assertRejectsWithHardhatError(
+        this.hre.tasks.getTask(["ignition", "deploy"]).run({
           modulePath: "./ignition/modules/MyModule.js",
           strategy: "create2",
-        });
-      } catch (error) {
-        threwException = true;
-
-        assert.instanceOf(error, IgnitionError);
-        assert.include(
-          error.message,
-          "IGN1102: Missing required strategy configuration parameter 'salt' for the strategy 'create2'",
-        );
-        assert.equal(error.errorNumber, 1102);
-      }
-
-      assert.isTrue(threwException);
+        }),
+        HardhatError.ERRORS.IGNITION.STRATEGIES.MISSING_CONFIG_PARAM,
+        {
+          requiredParam: "salt",
+          strategyName: "create2",
+        },
+      );
     });
   });
 });

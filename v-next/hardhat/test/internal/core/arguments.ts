@@ -137,7 +137,7 @@ describe("Arguments", () => {
           () => {
             parseArgumentValue("foo", ArgumentType.INT, "name");
           },
-          HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+          HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
           { value: "foo", name: "name", type: ArgumentType.INT },
         );
       });
@@ -147,7 +147,7 @@ describe("Arguments", () => {
           () => {
             parseArgumentValue("foo", ArgumentType.FLOAT, "name");
           },
-          HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+          HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
           { value: "foo", name: "name", type: ArgumentType.FLOAT },
         );
       });
@@ -157,7 +157,7 @@ describe("Arguments", () => {
           () => {
             parseArgumentValue("foo", ArgumentType.BIGINT, "name");
           },
-          HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+          HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
           { value: "foo", name: "name", type: ArgumentType.BIGINT },
         );
       });
@@ -167,7 +167,7 @@ describe("Arguments", () => {
           () => {
             parseArgumentValue("foo", ArgumentType.BOOLEAN, "name");
           },
-          HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+          HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
           { value: "foo", name: "name", type: ArgumentType.BOOLEAN },
         );
       });

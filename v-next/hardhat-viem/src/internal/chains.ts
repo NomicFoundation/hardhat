@@ -63,9 +63,12 @@ export async function getChain(
     } else if (chain === undefined) {
       // If the chain couldn't be found and we can't detect the development
       // network we throw an error.
-      throw new HardhatError(HardhatError.ERRORS.VIEM.NETWORK_NOT_FOUND, {
-        chainId,
-      });
+      throw new HardhatError(
+        HardhatError.ERRORS.HARDHAT_VIEM.GENERAL.NETWORK_NOT_FOUND,
+        {
+          chainId,
+        },
+      );
     } else {
       assertHardhatInvariant(
         false,
@@ -143,7 +146,7 @@ export async function getMode(
     return "anvil";
   }
   throw new HardhatError(
-    HardhatError.ERRORS.VIEM.UNSUPPORTED_DEVELOPMENT_NETWORK,
+    HardhatError.ERRORS.HARDHAT_VIEM.GENERAL.UNSUPPORTED_DEVELOPMENT_NETWORK,
   );
 }
 

@@ -92,9 +92,12 @@ export class NetworkManagerImplementation implements NetworkManager {
   ): Promise<NetworkConnection<ChainTypeT>> {
     const resolvedNetworkName = networkName ?? this.#defaultNetwork;
     if (this.#networkConfigs[resolvedNetworkName] === undefined) {
-      throw new HardhatError(HardhatError.ERRORS.NETWORK.NETWORK_NOT_FOUND, {
-        networkName: resolvedNetworkName,
-      });
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.NETWORK.NETWORK_NOT_FOUND,
+        {
+          networkName: resolvedNetworkName,
+        },
+      );
     }
 
     let resolvedNetworkConfigOverride: NetworkConfig | undefined;
@@ -105,7 +108,7 @@ export class NetworkManagerImplementation implements NetworkManager {
           this.#networkConfigs[resolvedNetworkName].type
       ) {
         throw new HardhatError(
-          HardhatError.ERRORS.NETWORK.INVALID_CONFIG_OVERRIDE,
+          HardhatError.ERRORS.CORE.NETWORK.INVALID_CONFIG_OVERRIDE,
           {
             errors: `\t* The type of the network cannot be changed.`,
           },
@@ -122,7 +125,7 @@ export class NetworkManagerImplementation implements NetworkManager {
       const validationErrors = await validateNetworkConfigOverride(newConfig);
       if (validationErrors.length > 0) {
         throw new HardhatError(
-          HardhatError.ERRORS.NETWORK.INVALID_CONFIG_OVERRIDE,
+          HardhatError.ERRORS.CORE.NETWORK.INVALID_CONFIG_OVERRIDE,
           {
             errors: `\t${validationErrors
               .map((error) =>
@@ -165,11 +168,14 @@ export class NetworkManagerImplementation implements NetworkManager {
       resolvedNetworkConfig.chainType !== undefined &&
       resolvedChainType !== resolvedNetworkConfig.chainType
     ) {
-      throw new HardhatError(HardhatError.ERRORS.NETWORK.INVALID_CHAIN_TYPE, {
-        networkName: resolvedNetworkName,
-        chainType: resolvedChainType,
-        networkChainType: resolvedNetworkConfig.chainType,
-      });
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.NETWORK.INVALID_CHAIN_TYPE,
+        {
+          networkName: resolvedNetworkName,
+          chainType: resolvedChainType,
+          networkChainType: resolvedNetworkConfig.chainType,
+        },
+      );
     }
 
     /* Capture the hook manager in a local variable to avoid retaining a
@@ -194,7 +200,7 @@ export class NetworkManagerImplementation implements NetworkManager {
       if (resolvedNetworkConfig.type === "edr") {
         if (!isEdrSupportedChainType(resolvedChainType)) {
           throw new HardhatError(
-            HardhatError.ERRORS.GENERAL.UNSUPPORTED_OPERATION,
+            HardhatError.ERRORS.CORE.GENERAL.UNSUPPORTED_OPERATION,
             { operation: `Simulating chain type ${resolvedChainType}` },
           );
         }

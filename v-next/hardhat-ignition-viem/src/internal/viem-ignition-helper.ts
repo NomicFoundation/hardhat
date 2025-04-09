@@ -187,9 +187,12 @@ export class ViemIgnitionHelperImpl<ChainTypeT extends ChainType | string>
     if (result.type !== DeploymentResultType.SUCCESSFUL_DEPLOYMENT) {
       const message = errorDeploymentResultToExceptionMessage(result);
 
-      throw new HardhatError(HardhatError.ERRORS.IGNITION.DEPLOYMENT_ERROR, {
-        message,
-      });
+      throw new HardhatError(
+        HardhatError.ERRORS.IGNITION.INTERNAL.DEPLOYMENT_ERROR,
+        {
+          message,
+        },
+      );
     }
 
     return this.#toViemContracts(this.#connection, ignitionModule, result);
@@ -295,7 +298,7 @@ export class ViemIgnitionHelperImpl<ChainTypeT extends ChainType | string>
 
     if (walletClient === undefined) {
       throw new HardhatError(
-        HardhatError.ERRORS.IGNITION.NO_DEFAULT_VIEM_WALLET_CLIENT,
+        HardhatError.ERRORS.IGNITION.INTERNAL.NO_DEFAULT_VIEM_WALLET_CLIENT,
       );
     }
 

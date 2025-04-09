@@ -105,7 +105,7 @@ function validateInput(
   try {
     if (Boolean(this.__flags.negate)) {
       throw new HardhatError(
-        HardhatError.ERRORS.CHAI_MATCHERS.WITH_ARGS_CANNOT_BE_COMBINED_WITH_NOT,
+        HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.WITH_ARGS_CANNOT_BE_COMBINED_WITH_NOT,
       );
     }
 
@@ -116,13 +116,13 @@ function validateInput(
 
     if (!emitCalled && !revertedWithCustomErrorCalled) {
       throw new HardhatError(
-        HardhatError.ERRORS.CHAI_MATCHERS.WITH_ARGS_WRONG_COMBINATION,
+        HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.WITH_ARGS_WRONG_COMBINATION,
       );
     }
 
     if (emitCalled && revertedWithCustomErrorCalled) {
       throw new HardhatError(
-        HardhatError.ERRORS.CHAI_MATCHERS.WITH_ARGS_COMBINED_WITH_INCOMPATIBLE_ASSERTIONS,
+        HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.WITH_ARGS_COMBINED_WITH_INCOMPATIBLE_ASSERTIONS,
       );
     }
 

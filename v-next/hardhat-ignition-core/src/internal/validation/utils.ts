@@ -7,13 +7,13 @@ import type {
   SolidityParameterType,
 } from "../../types/module.js";
 
-import { IgnitionError } from "../../errors.js";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+
 import {
   isAccountRuntimeValue,
   isFuture,
   isRuntimeValue,
 } from "../../type-guards.js";
-import { ERRORS } from "../errors-list.js";
 
 /**
  * Given the deployment parameters and a ModuleParameterRuntimeValue,
@@ -40,19 +40,26 @@ export function resolvePotentialModuleParameterValueFrom(
 export function validateAccountRuntimeValue(
   arv: AccountRuntimeValue,
   accounts: string[],
-): IgnitionError[] {
-  const errors: IgnitionError[] = [];
+): HardhatError[] {
+  const errors: HardhatError[] = [];
 
   if (arv.accountIndex < 0) {
-    errors.push(new IgnitionError(ERRORS.VALIDATION.NEGATIVE_ACCOUNT_INDEX));
+    errors.push(
+      new HardhatError(
+        HardhatError.ERRORS.IGNITION.VALIDATION.NEGATIVE_ACCOUNT_INDEX,
+      ),
+    );
   }
 
   if (arv.accountIndex >= accounts.length) {
     errors.push(
-      new IgnitionError(ERRORS.VALIDATION.ACCOUNT_INDEX_TOO_HIGH, {
-        accountIndex: arv.accountIndex,
-        accountsLength: accounts.length,
-      }),
+      new HardhatError(
+        HardhatError.ERRORS.IGNITION.VALIDATION.ACCOUNT_INDEX_TOO_HIGH,
+        {
+          accountIndex: arv.accountIndex,
+          accountsLength: accounts.length,
+        },
+      ),
     );
   }
 

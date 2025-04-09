@@ -84,7 +84,9 @@ export class ArtifactManagerImplementation implements ArtifactManager {
       return true;
     } catch (error) {
       if (HardhatError.isHardhatError(error)) {
-        if (error.number === HardhatError.ERRORS.ARTIFACTS.NOT_FOUND.number) {
+        if (
+          error.number === HardhatError.ERRORS.CORE.ARTIFACTS.NOT_FOUND.number
+        ) {
           return false;
         }
       }
@@ -168,10 +170,13 @@ export class ArtifactManagerImplementation implements ArtifactManager {
     }
 
     if (fqns.size !== 1) {
-      throw new HardhatError(HardhatError.ERRORS.ARTIFACTS.MULTIPLE_FOUND, {
-        contractName: contractNameOrFullyQualifiedName,
-        candidates: Array.from(fqns).join(EOL),
-      });
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.ARTIFACTS.MULTIPLE_FOUND,
+        {
+          contractName: contractNameOrFullyQualifiedName,
+          candidates: Array.from(fqns).join(EOL),
+        },
+      );
     }
 
     const [fqn] = fqns;
@@ -198,7 +203,7 @@ export class ArtifactManagerImplementation implements ArtifactManager {
       similarNames,
     );
 
-    throw new HardhatError(HardhatError.ERRORS.ARTIFACTS.NOT_FOUND, {
+    throw new HardhatError(HardhatError.ERRORS.CORE.ARTIFACTS.NOT_FOUND, {
       contractName: contractNameOrFullyQualifiedName,
       suggestion,
     });

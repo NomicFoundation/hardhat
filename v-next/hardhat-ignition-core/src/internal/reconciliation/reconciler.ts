@@ -15,8 +15,8 @@ import type {
   ExecutionState,
 } from "../execution/types/execution-state.js";
 
-import { IgnitionError } from "../../errors.js";
-import { ERRORS } from "../errors-list.js";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+
 import { ExecutionStatus } from "../execution/types/execution-state.js";
 import { AdjacencyListConverter } from "../utils/adjacency-list-converter.js";
 import { AdjacencyList } from "../utils/adjacency-list.js";
@@ -93,9 +93,12 @@ export class Reconciler {
       return `The previous run of the future ${exState.id} timed out, and will need wiped before running again`;
     }
 
-    throw new IgnitionError(ERRORS.RECONCILIATION.INVALID_EXECUTION_STATUS, {
-      status: exState.status,
-    });
+    throw new HardhatError(
+      HardhatError.ERRORS.IGNITION.RECONCILIATION.INVALID_EXECUTION_STATUS,
+      {
+        status: exState.status,
+      },
+    );
   }
 
   private static async _reconcileEachFutureInModule(

@@ -1,4 +1,5 @@
-/* eslint-disable import/no-unused-modules */
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { assert } from "chai";
 
 import { buildModule } from "../src/build-module.js";
@@ -6,9 +7,12 @@ import { buildModule } from "../src/build-module.js";
 describe("buildModule", () => {
   describe("error handling", () => {
     it("should error on passing async callback", async function () {
-      assert.throws(
+      assertThrowsHardhatError(
         () => buildModule("AsyncModule", (async () => {}) as any),
-        /The callback passed to 'buildModule' for AsyncModule returns a Promise; async callbacks are not allowed in 'buildModule'./,
+        HardhatError.ERRORS.IGNITION.MODULE.ASYNC_MODULE_DEFINITION_FUNCTION,
+        {
+          moduleDefinitionId: "AsyncModule",
+        },
       );
     });
 

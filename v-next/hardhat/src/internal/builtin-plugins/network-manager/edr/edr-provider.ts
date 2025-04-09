@@ -211,7 +211,7 @@ export class EdrProvider extends BaseProvider {
     requestArguments: RequestArguments,
   ): Promise<SuccessfulJsonRpcResponse["result"]> {
     if (this.#provider === undefined) {
-      throw new HardhatError(HardhatError.ERRORS.NETWORK.PROVIDER_CLOSED);
+      throw new HardhatError(HardhatError.ERRORS.CORE.NETWORK.PROVIDER_CLOSED);
     }
 
     const { method, params } = requestArguments;

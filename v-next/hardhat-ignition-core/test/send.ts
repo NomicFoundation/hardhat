@@ -1,4 +1,5 @@
-/* eslint-disable import/no-unused-modules */
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { assert } from "chai";
 
 import { buildModule } from "../src/build-module.js";
@@ -302,7 +303,7 @@ describe("send", () => {
     });
 
     it("should throw if the same function is called twice without differentiating ids", () => {
-      assert.throws(
+      assertThrowsHardhatError(
         () =>
           buildModule("Module1", (m) => {
             m.send("test_send", exampleAddress, 0n, "test");
@@ -310,19 +311,27 @@ describe("send", () => {
 
             return {};
           }),
-        'The future id "test_send" is already used, please provide a different one.',
+        HardhatError.ERRORS.IGNITION.VALIDATION.INVALID_MODULE,
+        {
+          message:
+            'The future id "test_send" is already used, please provide a different one.',
+        },
       );
     });
 
     it("should throw if a call tries to pass the same id twice", () => {
-      assert.throws(
+      assertThrowsHardhatError(
         () =>
           buildModule("Module1", (m) => {
             m.send("first", exampleAddress, 0n, "test");
             m.send("first", exampleAddress, 0n, "test");
             return {};
           }),
-        'The future id "first" is already used, please provide a different one.',
+        HardhatError.ERRORS.IGNITION.VALIDATION.INVALID_MODULE,
+        {
+          message:
+            'The future id "first" is already used, please provide a different one.',
+        },
       );
     });
   });
@@ -330,7 +339,7 @@ describe("send", () => {
   describe("validation", () => {
     describe("module stage", () => {
       it("should not validate a non-bignumber value option", () => {
-        assert.throws(
+        assertThrowsHardhatError(
           () =>
             buildModule("Module1", (m) => {
               const another = m.contract("Another", []);
@@ -338,12 +347,16 @@ describe("send", () => {
 
               return { another };
             }),
-          /IGN702: Module validation failed with reason: Invalid option "value" received. It should be a bigint, a module parameter, or a value obtained from an event or static call./,
+          HardhatError.ERRORS.IGNITION.VALIDATION.INVALID_MODULE,
+          {
+            message:
+              'Invalid option "value" received. It should be a bigint, a module parameter, or a value obtained from an event or static call.',
+          },
         );
       });
 
       it("should not validate a non-string data option", () => {
-        assert.throws(
+        assertThrowsHardhatError(
           () =>
             buildModule("Module1", (m) => {
               const another = m.contract("Another", []);
@@ -351,12 +364,15 @@ describe("send", () => {
 
               return { another };
             }),
-          /Invalid data given/,
+          HardhatError.ERRORS.IGNITION.VALIDATION.INVALID_MODULE,
+          {
+            message: "Invalid data given",
+          },
         );
       });
 
       it("should not validate a non-address from option", () => {
-        assert.throws(
+        assertThrowsHardhatError(
           () =>
             buildModule("Module1", (m) => {
               const another = m.contract("Another", []);
@@ -364,12 +380,15 @@ describe("send", () => {
 
               return { another };
             }),
-          /IGN702: Module validation failed with reason: Invalid type for option "from": number/,
+          HardhatError.ERRORS.IGNITION.VALIDATION.INVALID_MODULE,
+          {
+            message: 'Invalid type for option "from": number',
+          },
         );
       });
 
       it("should not validate an invalid address", () => {
-        assert.throws(
+        assertThrowsHardhatError(
           () =>
             buildModule("Module1", (m) => {
               const another = m.contract("Another", []);
@@ -379,31 +398,40 @@ describe("send", () => {
 
               return { another };
             }),
-          /Invalid address given/,
+          HardhatError.ERRORS.IGNITION.VALIDATION.INVALID_MODULE,
+          {
+            message: "Invalid address given",
+          },
         );
       });
 
       it("should not validate a `to` as a string that is not an address", () => {
-        assert.throws(
+        assertThrowsHardhatError(
           () =>
             buildModule("Module1", (m) => {
               m.send("id", "0xnot-an-address", 0n, "");
 
               return {};
             }),
-          /Invalid address given/,
+          HardhatError.ERRORS.IGNITION.VALIDATION.INVALID_MODULE,
+          {
+            message: "Invalid address given",
+          },
         );
       });
 
       it("should not allow the from and to address to be the same", () => {
-        assert.throws(
+        assertThrowsHardhatError(
           () =>
             buildModule("Module1", (m) => {
               m.send("id", m.getAccount(1), 0n, "", { from: m.getAccount(1) });
 
               return {};
             }),
-          /The "to" and "from" addresses are the same/,
+          HardhatError.ERRORS.IGNITION.VALIDATION.INVALID_MODULE,
+          {
+            message: 'The "to" and "from" addresses are the same',
+          },
         );
       });
     });

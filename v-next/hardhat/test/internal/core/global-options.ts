@@ -104,7 +104,7 @@ describe("Global Options", () => {
             },
           ]),
 
-        HardhatError.ERRORS.GENERAL.GLOBAL_OPTION_ALREADY_DEFINED,
+        HardhatError.ERRORS.CORE.GENERAL.GLOBAL_OPTION_ALREADY_DEFINED,
         {
           plugin: "plugin2",
           globalOption: "globalOption1",
@@ -129,7 +129,7 @@ describe("Global Options", () => {
               ],
             },
           ]),
-        HardhatError.ERRORS.ARGUMENTS.INVALID_NAME,
+        HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_NAME,
         {
           name: "foo bar",
         },
@@ -153,7 +153,7 @@ describe("Global Options", () => {
                 ],
               },
             ]),
-          HardhatError.ERRORS.ARGUMENTS.RESERVED_NAME,
+          HardhatError.ERRORS.CORE.ARGUMENTS.RESERVED_NAME,
           {
             name,
           },
@@ -179,7 +179,7 @@ describe("Global Options", () => {
               ],
             },
           ]),
-        HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+        HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
         {
           value: "bar",
           name: "defaultValue",
@@ -224,7 +224,7 @@ describe("Global Options", () => {
             description: "Foo description",
             defaultValue: "bar",
           }),
-        HardhatError.ERRORS.ARGUMENTS.INVALID_NAME,
+        HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_NAME,
         {
           name: "foo bar",
         },
@@ -240,7 +240,7 @@ describe("Global Options", () => {
               description: "Foo description",
               defaultValue: "bar",
             }),
-          HardhatError.ERRORS.ARGUMENTS.RESERVED_NAME,
+          HardhatError.ERRORS.CORE.ARGUMENTS.RESERVED_NAME,
           {
             name,
           },
@@ -259,7 +259,7 @@ describe("Global Options", () => {
             Intentionally testing an invalid type */
             defaultValue: "bar" as any,
           }),
-        HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+        HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
         {
           value: "bar",
           name: "defaultValue",
@@ -437,7 +437,7 @@ describe("Global Options", () => {
 
       assertThrowsHardhatError(
         () => resolveGlobalOptions({}, globalOptionDefinitions),
-        HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+        HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
         {
           value: "not a boolean",
           name: "globalOption1",

@@ -3,8 +3,7 @@ import type { ChainType, NetworkConnection } from "hardhat/types/network";
 import type { HardhatPlugin } from "hardhat/types/plugins";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { assertRejects } from "@nomicfoundation/hardhat-test-utils";
-import { assert } from "chai";
+import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 import hardhatIgnitionViemPlugin from "../src/index.js";
@@ -41,7 +40,7 @@ describe("ignition helper mutual exclusivity", () => {
   };
 
   it("should error when loaded in conjunction with hardhat-ignition-ethers", async function () {
-    await assertRejects(
+    await assertRejectsWithHardhatError(
       async () => {
         const hre = await createHardhatRuntimeEnvironment({
           plugins: [fakeHardhatIgnitionEthersPlugin, hardhatIgnitionViemPlugin],
@@ -49,16 +48,9 @@ describe("ignition helper mutual exclusivity", () => {
 
         return hre.network.connect();
       },
-      (error: Error) => {
-        assert.instanceOf(error, HardhatError);
-        assert.equal(
-          error.number,
-          HardhatError.ERRORS.IGNITION
-            .ONLY_ONE_IGNITION_EXTENSION_PLUGIN_ALLOWED.number,
-        );
-        return true;
-      },
-      "The `hardhat-viem-plugin` did not detect the presence of the fake `hardhat-ignition-ethers-plugin`",
+      HardhatError.ERRORS.IGNITION.INTERNAL
+        .ONLY_ONE_IGNITION_EXTENSION_PLUGIN_ALLOWED,
+      {},
     );
   });
 });

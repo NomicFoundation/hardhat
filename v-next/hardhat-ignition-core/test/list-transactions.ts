@@ -1,3 +1,5 @@
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { assert } from "chai";
 import path from "path";
 
@@ -104,9 +106,12 @@ describe("listTransactions", () => {
   it("should throw an error if the deployment is not initialized", async () => {
     const artifactResolver = setupMockArtifactResolver();
 
-    await assert.isRejected(
+    await assertRejectsWithHardhatError(
       listTransactions("fake", artifactResolver),
-      /IGN1200: Cannot list transactions for nonexistant deployment at fake/,
+      HardhatError.ERRORS.IGNITION.LIST_TRANSACTIONS.UNINITIALIZED_DEPLOYMENT,
+      {
+        deploymentDir: "fake",
+      },
     );
   });
 });

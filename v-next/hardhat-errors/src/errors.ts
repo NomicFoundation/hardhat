@@ -224,7 +224,7 @@ export function assertHardhatInvariant(
   message: string,
 ): asserts invariant {
   if (!invariant) {
-    throw new HardhatError(ERRORS.INTERNAL.ASSERTION_ERROR, { message });
+    throw new HardhatError(ERRORS.CORE.INTERNAL.ASSERTION_ERROR, { message });
   }
 }
 

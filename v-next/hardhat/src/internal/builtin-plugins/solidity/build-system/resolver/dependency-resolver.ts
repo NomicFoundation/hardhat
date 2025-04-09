@@ -173,7 +173,7 @@ export class ResolverImplementation implements Resolver {
     return this.#mutex.exclusiveRun(async () => {
       if (!absoluteFilePath.startsWith(this.#projectRoot)) {
         throw new HardhatError(
-          HardhatError.ERRORS.SOLIDITY.RESOLVING_INCORRECT_FILE_AS_PROJECT_FILE,
+          HardhatError.ERRORS.CORE.SOLIDITY.RESOLVING_INCORRECT_FILE_AS_PROJECT_FILE,
           {
             file: shortenPath(absoluteFilePath),
           },
@@ -215,7 +215,7 @@ export class ResolverImplementation implements Resolver {
         ensureError(error, FileNotFoundError);
 
         throw new HardhatError(
-          HardhatError.ERRORS.SOLIDITY.RESOLVING_NONEXISTENT_PROJECT_FILE,
+          HardhatError.ERRORS.CORE.SOLIDITY.RESOLVING_NONEXISTENT_PROJECT_FILE,
           { file: shortenPath(absoluteFilePath) },
           error,
         );
@@ -260,7 +260,7 @@ export class ResolverImplementation implements Resolver {
 
       if (parsedNpmModule === undefined) {
         throw new HardhatError(
-          HardhatError.ERRORS.SOLIDITY.RESOLVE_NPM_FILE_WITH_INVALID_FORMAT,
+          HardhatError.ERRORS.CORE.SOLIDITY.RESOLVE_NPM_FILE_WITH_INVALID_FORMAT,
           { module: npmModule },
         );
       }
@@ -270,7 +270,7 @@ export class ResolverImplementation implements Resolver {
           this.#getDirectImportLocalDesambiguationPrefix(npmModule);
 
         throw new HardhatError(
-          HardhatError.ERRORS.SOLIDITY.RESOLVE_NPM_FILE_CLASHES_WITH_LOCAL_FILES,
+          HardhatError.ERRORS.CORE.SOLIDITY.RESOLVE_NPM_FILE_CLASHES_WITH_LOCAL_FILES,
           {
             module: npmModule,
             directory,
@@ -304,7 +304,7 @@ export class ResolverImplementation implements Resolver {
         ensureError(error, FileNotFoundError);
 
         throw new HardhatError(
-          HardhatError.ERRORS.SOLIDITY.RESOLVE_NON_EXISTENT_NPM_ROOT,
+          HardhatError.ERRORS.CORE.SOLIDITY.RESOLVE_NON_EXISTENT_NPM_ROOT,
           { module: npmModule },
           error,
         );
@@ -312,7 +312,7 @@ export class ResolverImplementation implements Resolver {
 
       if (relativeFsPath !== trueCaseFsPath) {
         throw new HardhatError(
-          HardhatError.ERRORS.SOLIDITY.RESOLVE_WRONG_CASING_NPM_ROOT,
+          HardhatError.ERRORS.CORE.SOLIDITY.RESOLVE_WRONG_CASING_NPM_ROOT,
           { module: npmModule },
         );
       }
@@ -356,7 +356,7 @@ export class ResolverImplementation implements Resolver {
 
       if (path.sep !== "/" && importPath.includes(path.sep)) {
         throw new HardhatError(
-          HardhatError.ERRORS.SOLIDITY.IMPORT_PATH_WITH_WINDOWS_SEPARATOR,
+          HardhatError.ERRORS.CORE.SOLIDITY.IMPORT_PATH_WITH_WINDOWS_SEPARATOR,
           {
             importPath,
             from: shortenPath(from.fsPath),
@@ -373,7 +373,7 @@ export class ResolverImplementation implements Resolver {
         if (from.type === ResolvedFileType.NPM_PACKAGE_FILE) {
           if (!directImport.startsWith(from.package.rootSourceName)) {
             throw new HardhatError(
-              HardhatError.ERRORS.SOLIDITY.ILLEGAL_PACKAGE_IMPORT,
+              HardhatError.ERRORS.CORE.SOLIDITY.ILLEGAL_PACKAGE_IMPORT,
               {
                 importPath,
                 from: shortenPath(from.fsPath),
@@ -383,7 +383,7 @@ export class ResolverImplementation implements Resolver {
         } else {
           if (directImport.startsWith("../")) {
             throw new HardhatError(
-              HardhatError.ERRORS.SOLIDITY.ILEGALL_PROJECT_IMPORT,
+              HardhatError.ERRORS.CORE.SOLIDITY.ILEGALL_PROJECT_IMPORT,
               {
                 importPath,
                 from: shortenPath(from.fsPath),
@@ -621,7 +621,7 @@ export class ResolverImplementation implements Resolver {
       ))
     ) {
       throw new HardhatError(
-        HardhatError.ERRORS.SOLIDITY.ILLEGAL_PROJECT_IMPORT_AFTER_REMAPPING,
+        HardhatError.ERRORS.CORE.SOLIDITY.ILLEGAL_PROJECT_IMPORT_AFTER_REMAPPING,
         {
           importPath,
           from: shortenPath(from.fsPath),
@@ -729,10 +729,13 @@ export class ResolverImplementation implements Resolver {
     const parsedDirectImport = this.#parseNpmDirectImport(directImport);
 
     if (parsedDirectImport === undefined) {
-      throw new HardhatError(HardhatError.ERRORS.SOLIDITY.INVALID_NPM_IMPORT, {
-        importPath,
-        from: shortenPath(from.fsPath),
-      });
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.SOLIDITY.INVALID_NPM_IMPORT,
+        {
+          importPath,
+          from: shortenPath(from.fsPath),
+        },
+      );
     }
 
     const dependency = await this.#resolveNpmPackageForImport({
@@ -1103,7 +1106,7 @@ export class ResolverImplementation implements Resolver {
 
     if (packageJsonPath === undefined) {
       throw new HardhatError(
-        HardhatError.ERRORS.SOLIDITY.NPM_DEPEDNDENCY_NOT_INSTALLED,
+        HardhatError.ERRORS.CORE.SOLIDITY.NPM_DEPEDNDENCY_NOT_INSTALLED,
         {
           from:
             from === PROJECT_ROOT_SENTINEL
@@ -1178,11 +1181,11 @@ export class ResolverImplementation implements Resolver {
       if (
         HardhatError.isHardhatError(
           error,
-          HardhatError.ERRORS.SOLIDITY.NPM_DEPEDNDENCY_NOT_INSTALLED,
+          HardhatError.ERRORS.CORE.SOLIDITY.NPM_DEPEDNDENCY_NOT_INSTALLED,
         )
       ) {
         throw new HardhatError(
-          HardhatError.ERRORS.SOLIDITY.IMPORTED_NPM_DEPENDENCY_NOT_INSTALLED,
+          HardhatError.ERRORS.CORE.SOLIDITY.IMPORTED_NPM_DEPENDENCY_NOT_INSTALLED,
           {
             from: shortenPath(from.fsPath),
             importPath,
@@ -1281,7 +1284,7 @@ export class ResolverImplementation implements Resolver {
       ensureError(error, FileNotFoundError);
 
       throw new HardhatError(
-        HardhatError.ERRORS.SOLIDITY.IMPORTED_FILE_DOESNT_EXIST,
+        HardhatError.ERRORS.CORE.SOLIDITY.IMPORTED_FILE_DOESNT_EXIST,
         { importPath, from: shortenPath(from.fsPath) },
         error,
       );
@@ -1292,7 +1295,7 @@ export class ResolverImplementation implements Resolver {
       // as we can't compute the correct casing.
       if (usingPackageExports === true) {
         throw new HardhatError(
-          HardhatError.ERRORS.SOLIDITY.IMPORTED_PACKAGE_EXPORTS_FILE_WITH_INCORRECT_CASING,
+          HardhatError.ERRORS.CORE.SOLIDITY.IMPORTED_PACKAGE_EXPORTS_FILE_WITH_INCORRECT_CASING,
           {
             importPath,
             from: shortenPath(from.fsPath),
@@ -1301,7 +1304,7 @@ export class ResolverImplementation implements Resolver {
       }
 
       throw new HardhatError(
-        HardhatError.ERRORS.SOLIDITY.IMPORTED_FILE_WITH_INCORRECT_CASING,
+        HardhatError.ERRORS.CORE.SOLIDITY.IMPORTED_FILE_WITH_INCORRECT_CASING,
         {
           importPath,
           from: shortenPath(from.fsPath),
@@ -1350,7 +1353,7 @@ async function validateAndResolveUserRemapping(
 
   if (remapping === undefined) {
     throw new HardhatError(
-      HardhatError.ERRORS.SOLIDITY.REMAPPING_WITH_INVALID_SYNTAX,
+      HardhatError.ERRORS.CORE.SOLIDITY.REMAPPING_WITH_INVALID_SYNTAX,
       {
         remapping: remappingString,
       },
@@ -1359,7 +1362,7 @@ async function validateAndResolveUserRemapping(
 
   if (remapping.context.startsWith("npm/")) {
     throw new HardhatError(
-      HardhatError.ERRORS.SOLIDITY.USER_REMAPPING_WITH_NPM_CONTEXT,
+      HardhatError.ERRORS.CORE.SOLIDITY.USER_REMAPPING_WITH_NPM_CONTEXT,
       { remapping: remappingString },
     );
   }
@@ -1372,7 +1375,7 @@ async function validateAndResolveUserRemapping(
 
   if (parsed === undefined) {
     throw new HardhatError(
-      HardhatError.ERRORS.SOLIDITY.REMAPPING_WITH_INVALID_SYNTAX,
+      HardhatError.ERRORS.CORE.SOLIDITY.REMAPPING_WITH_INVALID_SYNTAX,
       { remapping: remappingString },
     );
   }
@@ -1386,7 +1389,7 @@ async function validateAndResolveUserRemapping(
 
   if (dependencyPackageJsonPath === undefined) {
     throw new HardhatError(
-      HardhatError.ERRORS.SOLIDITY.REMAPPING_TO_UNINSTALLED_PACKAGE,
+      HardhatError.ERRORS.CORE.SOLIDITY.REMAPPING_TO_UNINSTALLED_PACKAGE,
       { remapping: remappingString, package: packageName },
     );
   }
@@ -1394,7 +1397,7 @@ async function validateAndResolveUserRemapping(
   if (isPackageJsonFromMonorepo(dependencyPackageJsonPath, projectRoot)) {
     if (packageVersion !== "local") {
       throw new HardhatError(
-        HardhatError.ERRORS.SOLIDITY.REMAPPING_NPM_PACKAGE_AS_MONOREPO,
+        HardhatError.ERRORS.CORE.SOLIDITY.REMAPPING_NPM_PACKAGE_AS_MONOREPO,
         {
           remapping: remappingString,
           pacakge: packageName,
@@ -1406,7 +1409,7 @@ async function validateAndResolveUserRemapping(
 
   if (isPackageJsonFromProject(dependencyPackageJsonPath, projectRoot)) {
     throw new HardhatError(
-      HardhatError.ERRORS.SOLIDITY.REMAPPING_HARDHAT_PROJECT_AS_MONOREPO_PACKAGE,
+      HardhatError.ERRORS.CORE.SOLIDITY.REMAPPING_HARDHAT_PROJECT_AS_MONOREPO_PACKAGE,
       { remapping: remappingString, package: packageName },
     );
   }
@@ -1426,7 +1429,7 @@ async function validateAndResolveUserRemapping(
 
     if (dependencyPackageJson.version !== packageVersion) {
       throw new HardhatError(
-        HardhatError.ERRORS.SOLIDITY.REMAPPING_INCORRECT_VERSION,
+        HardhatError.ERRORS.CORE.SOLIDITY.REMAPPING_INCORRECT_VERSION,
         {
           remapping: remappingString,
           package: packageName,
@@ -1591,7 +1594,7 @@ function resolveSubpath(
     ensureError(error, Error);
 
     throw new HardhatError(
-      HardhatError.ERRORS.SOLIDITY.RESOLVE_NOT_EXPORTED_NPM_FILE,
+      HardhatError.ERRORS.CORE.SOLIDITY.RESOLVE_NOT_EXPORTED_NPM_FILE,
       { module: `${npmPackage.name}/${subpath}` },
       error,
     );
