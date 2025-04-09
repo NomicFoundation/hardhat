@@ -31,11 +31,15 @@ export async function requestJson(
     const jsonResponse = await response.body.json();
 
     return jsonResponse;
-  } catch (error: any) {
+  } catch (error) {
     if (error === requestAborted) {
       log(`Request to ${url} aborted after ${timeout!}ms`);
     } else {
-      log(`Request to ${url} failed: ${error}`);
+      log(
+        `Request to ${url} failed: ${
+          error instanceof Error ? error.message : JSON.stringify(error)
+        }`
+      );
     }
   } finally {
     if (timeoutId !== undefined) {

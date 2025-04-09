@@ -1,7 +1,10 @@
 import path from "node:path";
 import fs from "node:fs/promises";
+import debug from "debug";
 import { getCacheDir } from "../util/global-dir";
 import { requestJson } from "../util/request";
+
+const log = debug("hardhat:util:banner-manager");
 
 interface BannerConfig {
   enabled: boolean;
@@ -12,6 +15,8 @@ interface BannerConfig {
 
 const BANNER_CONFIG_URL =
   "https://raw.githubusercontent.com/NomicFoundation/hardhat/refs/heads/main/banner-config.json";
+
+const BANNER_CACHE_FILE_NAME = "banner-config.json";
 
 export class BannerManager {
   private static _instance: BannerManager | undefined;
@@ -24,6 +29,7 @@ export class BannerManager {
 
   public static async getInstance(): Promise<BannerManager> {
     if (this._instance === undefined) {
+      log("Initializing BannerManager");
       const { bannerConfig, lastDisplayTime, lastRequestTime } =
         await readCache();
       this._instance = new BannerManager(
@@ -43,6 +49,9 @@ export class BannerManager {
         timeSinceLastRequest <
         this._bannerConfig.minSecondsBetweenRequests * 1000
       ) {
+        log(
+          `Skipping banner config request. Time since last request: ${timeSinceLastRequest}ms`
+        );
         return;
       }
     }
@@ -51,6 +60,7 @@ export class BannerManager {
       const bannerConfig = await requestJson(BANNER_CONFIG_URL, timeout);
 
       if (!this._isBannerConfig(bannerConfig)) {
+        log(`Invalid banner config received:`, bannerConfig);
         return;
       }
 
@@ -63,7 +73,11 @@ export class BannerManager {
         lastRequestTime: this._lastRequestTime,
       });
     } catch (error) {
-      // do nothing
+      log(
+        `Error requesting banner config: ${
+          error instanceof Error ? error.message : JSON.stringify(error)
+        }`
+      );
     }
   }
 
@@ -94,6 +108,7 @@ export class BannerManager {
       !this._bannerConfig.enabled ||
       this._bannerConfig.formattedMessages.length === 0
     ) {
+      log("Banner is disabled or no messages available.");
       return;
     }
 
@@ -101,6 +116,9 @@ export class BannerManager {
 
     const timeSinceLastDisplay = Date.now() - this._lastDisplayTime;
     if (timeSinceLastDisplay < minSecondsBetweenDisplays * 1000) {
+      log(
+        `Skipping banner display. Time since last display: ${timeSinceLastDisplay}ms`
+      );
       return;
     }
 
@@ -126,7 +144,7 @@ interface BannerCache {
 
 async function readCache(): Promise<BannerCache> {
   const cacheDir = await getCacheDir();
-  const versionNotifierCachePath = path.join(cacheDir, "banner-config.json");
+  const versionNotifierCachePath = path.join(cacheDir, BANNER_CACHE_FILE_NAME);
 
   let cache: BannerCache = {
     bannerConfig: undefined,
@@ -136,8 +154,12 @@ async function readCache(): Promise<BannerCache> {
   try {
     const fileContents = await fs.readFile(versionNotifierCachePath, "utf-8");
     cache = JSON.parse(fileContents);
-  } catch {
-    // do nothing
+  } catch (error) {
+    log(
+      `Error reading cache file: ${
+        error instanceof Error ? error.message : JSON.stringify(error)
+      }`
+    );
   }
 
   return cache;
@@ -145,7 +167,7 @@ async function readCache(): Promise<BannerCache> {
 
 async function writeCache(cache: BannerCache) {
   const cacheDir = await getCacheDir();
-  const versionNotifierCachePath = path.join(cacheDir, "banner-config.json");
+  const versionNotifierCachePath = path.join(cacheDir, BANNER_CACHE_FILE_NAME);
 
   try {
     await fs.mkdir(cacheDir, { recursive: true });
@@ -153,7 +175,11 @@ async function writeCache(cache: BannerCache) {
       versionNotifierCachePath,
       JSON.stringify(cache, null, 2)
     );
-  } catch {
-    // do nothing
+  } catch (error) {
+    log(
+      `Error writing cache file:  ${
+        error instanceof Error ? error.message : JSON.stringify(error)
+      }`
+    );
   }
 }
