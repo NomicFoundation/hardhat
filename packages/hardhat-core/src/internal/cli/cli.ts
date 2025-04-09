@@ -49,7 +49,7 @@ import {
   isHardhatVSCodeInstalled,
 } from "./hardhat-vscode-installation";
 import { handleVars } from "./vars";
-import { Hardhat3BannerManager } from "./beta-notifier";
+import { BannerManager } from "./banner-manager";
 
 const log = debug("hardhat:core:cli");
 
@@ -276,7 +276,7 @@ async function main() {
       taskName
     );
 
-    const hardhat3BannerManager = await Hardhat3BannerManager.getInstance();
+    const hardhat3BannerManager = await BannerManager.getInstance();
 
     let taskArguments: TaskArguments;
 

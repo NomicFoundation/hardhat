@@ -23,7 +23,7 @@ import {
 import { emoji } from "./emoji";
 import { Dependencies, PackageManager } from "./types";
 import { requestTelemetryConsent } from "./analytics";
-import { Hardhat3BannerManager } from "./beta-notifier";
+import { BannerManager } from "./banner-manager";
 
 enum Action {
   CREATE_JAVASCRIPT_PROJECT_ACTION = "Create a JavaScript project",
@@ -538,7 +538,7 @@ export async function createProject() {
   showStarOnGitHubMessage();
   showSoliditySurveyMessage();
 
-  const hardhat3BannerManager = await Hardhat3BannerManager.getInstance();
+  const hardhat3BannerManager = await BannerManager.getInstance();
   const [_, bannerConfigRequest] =
     await hardhat3BannerManager.sendBannerConfigRequest();
   await bannerConfigRequest;

@@ -2,27 +2,27 @@ import path from "node:path";
 import fs from "node:fs/promises";
 import { getCacheDir } from "../util/global-dir";
 
-interface Hardhat3Banner {
+interface BannerConfig {
   enabled: boolean;
   formattedMessages: string[];
   minSecondsBetweenDisplays: number;
   minSecondsBetweenRequests: number;
 }
 
-export class Hardhat3BannerManager {
-  private static _instance: Hardhat3BannerManager | undefined;
+export class BannerManager {
+  private static _instance: BannerManager | undefined;
 
   private constructor(
-    private _bannerConfig: Hardhat3Banner | undefined,
+    private _bannerConfig: BannerConfig | undefined,
     private _lastDisplayTime: number,
     private _lastRequestTime: number
   ) {}
 
-  public static async getInstance(): Promise<Hardhat3BannerManager> {
+  public static async getInstance(): Promise<BannerManager> {
     if (this._instance === undefined) {
       const { bannerConfig, lastDisplayTime, lastRequestTime } =
         await readCache();
-      this._instance = new Hardhat3BannerManager(
+      this._instance = new BannerManager(
         bannerConfig,
         lastDisplayTime,
         lastRequestTime
@@ -48,7 +48,7 @@ export class Hardhat3BannerManager {
     }
 
     const bannerConfigRequest = request(
-      "https://raw.githubusercontent.com/NomicFoundation/hardhat/refs/heads/main/beta-banner.json",
+      "https://raw.githubusercontent.com/NomicFoundation/hardhat/refs/heads/main/banner-config.json",
       {
         method: "GET",
         signal: controller.signal,
@@ -57,7 +57,7 @@ export class Hardhat3BannerManager {
       .then(async (githubResponse) => {
         if (githubResponse.statusCode === 200) {
           const bannerConfig =
-            (await githubResponse.body.json()) as Hardhat3Banner;
+            (await githubResponse.body.json()) as BannerConfig;
 
           this._bannerConfig = bannerConfig;
           this._lastRequestTime = Date.now();
@@ -105,17 +105,17 @@ export class Hardhat3BannerManager {
   }
 }
 
-interface Hardhat3BannerCache {
-  bannerConfig: Hardhat3Banner | undefined;
+interface BannerCache {
+  bannerConfig: BannerConfig | undefined;
   lastDisplayTime: number;
   lastRequestTime: number;
 }
 
-async function readCache(): Promise<Hardhat3BannerCache> {
+async function readCache(): Promise<BannerCache> {
   const cacheDir = await getCacheDir();
-  const versionNotifierCachePath = path.join(cacheDir, "beta-banner.json");
+  const versionNotifierCachePath = path.join(cacheDir, "banner-config.json");
 
-  let cache: Hardhat3BannerCache = {
+  let cache: BannerCache = {
     bannerConfig: undefined,
     lastDisplayTime: 0,
     lastRequestTime: 0,
@@ -130,9 +130,9 @@ async function readCache(): Promise<Hardhat3BannerCache> {
   return cache;
 }
 
-async function writeCache(cache: Hardhat3BannerCache) {
+async function writeCache(cache: BannerCache) {
   const cacheDir = await getCacheDir();
-  const versionNotifierCachePath = path.join(cacheDir, "beta-banner.json");
+  const versionNotifierCachePath = path.join(cacheDir, "banner-config.json");
 
   try {
     await fs.mkdir(cacheDir, { recursive: true });
