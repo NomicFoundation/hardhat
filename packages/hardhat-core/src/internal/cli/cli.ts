@@ -276,8 +276,6 @@ async function main() {
       taskName
     );
 
-    const hardhat3BannerManager = await BannerManager.getInstance();
-
     let taskArguments: TaskArguments;
 
     // --help is an also special case
@@ -337,11 +335,6 @@ async function main() {
       } else {
         abortAnalytics();
       }
-
-      const [abortBannerConfigRequest, bannerConfigRequest] =
-        await hardhat3BannerManager.sendBannerConfigRequest();
-      setTimeout(abortBannerConfigRequest, 200);
-      await bannerConfigRequest;
     } finally {
       if (hardhatArguments.flamegraph === true) {
         assertHardhatInvariant(
@@ -391,7 +384,8 @@ async function main() {
     }
 
     if (!isRunningOnCiServer() && process.stdout.isTTY === true) {
-      await hardhat3BannerManager.showBanner();
+      const hardhat3BannerManager = await BannerManager.getInstance();
+      await hardhat3BannerManager.showBanner(200);
     }
 
     log(`Killing Hardhat after successfully running task ${taskName}`);

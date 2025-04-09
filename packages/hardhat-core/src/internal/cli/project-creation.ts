@@ -539,9 +539,6 @@ export async function createProject() {
   showSoliditySurveyMessage();
 
   const hardhat3BannerManager = await BannerManager.getInstance();
-  const [_, bannerConfigRequest] =
-    await hardhat3BannerManager.sendBannerConfigRequest();
-  await bannerConfigRequest;
   await hardhat3BannerManager.showBanner();
 }
 

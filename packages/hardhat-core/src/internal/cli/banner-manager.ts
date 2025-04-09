@@ -1,6 +1,7 @@
 import path from "node:path";
 import fs from "node:fs/promises";
 import { getCacheDir } from "../util/global-dir";
+import { requestJson } from "../util/request";
 
 interface BannerConfig {
   enabled: boolean;
@@ -8,6 +9,9 @@ interface BannerConfig {
   minSecondsBetweenDisplays: number;
   minSecondsBetweenRequests: number;
 }
+
+const BANNER_CONFIG_URL =
+  "https://raw.githubusercontent.com/NomicFoundation/hardhat/refs/heads/main/banner-config.json";
 
 export class BannerManager {
   private static _instance: BannerManager | undefined;
@@ -32,50 +36,59 @@ export class BannerManager {
     return this._instance;
   }
 
-  public async sendBannerConfigRequest(): Promise<[() => void, Promise<void>]> {
-    const { request } = await import("undici");
-
-    const controller = new AbortController();
-
+  private async _requestBannerConfig(timeout?: number): Promise<void> {
     if (this._bannerConfig !== undefined) {
       const timeSinceLastRequest = Date.now() - this._lastRequestTime;
       if (
         timeSinceLastRequest <
         this._bannerConfig.minSecondsBetweenRequests * 1000
       ) {
-        return [() => {}, Promise.resolve()];
+        return;
       }
     }
 
-    const bannerConfigRequest = request(
-      "https://raw.githubusercontent.com/NomicFoundation/hardhat/refs/heads/main/banner-config.json",
-      {
-        method: "GET",
-        signal: controller.signal,
+    try {
+      const bannerConfig = await requestJson(BANNER_CONFIG_URL, timeout);
+
+      if (!this._isBannerConfig(bannerConfig)) {
+        return;
       }
-    )
-      .then(async (githubResponse) => {
-        if (githubResponse.statusCode === 200) {
-          const bannerConfig =
-            (await githubResponse.body.json()) as BannerConfig;
 
-          this._bannerConfig = bannerConfig;
-          this._lastRequestTime = Date.now();
-          await writeCache({
-            bannerConfig: this._bannerConfig,
-            lastDisplayTime: this._lastDisplayTime,
-            lastRequestTime: this._lastRequestTime,
-          });
-        }
-      })
-      .catch(() => {
-        // do nothing
+      this._bannerConfig = bannerConfig;
+      this._lastRequestTime = Date.now();
+
+      await writeCache({
+        bannerConfig: this._bannerConfig,
+        lastDisplayTime: this._lastDisplayTime,
+        lastRequestTime: this._lastRequestTime,
       });
-
-    return [() => controller.abort(), bannerConfigRequest];
+    } catch (error) {
+      // do nothing
+    }
   }
 
-  public async showBanner() {
+  private _isBannerConfig(value: unknown): value is BannerConfig {
+    if (typeof value !== "object" || value === null || Array.isArray(value)) {
+      return false;
+    }
+
+    return (
+      Object.getOwnPropertyNames(value).length === 4 &&
+      "enabled" in value &&
+      typeof value.enabled === "boolean" &&
+      "formattedMessages" in value &&
+      Array.isArray(value.formattedMessages) &&
+      value.formattedMessages.every((message) => typeof message === "string") &&
+      "minSecondsBetweenDisplays" in value &&
+      typeof value.minSecondsBetweenDisplays === "number" &&
+      "minSecondsBetweenRequests" in value &&
+      typeof value.minSecondsBetweenRequests === "number"
+    );
+  }
+
+  public async showBanner(timeout?: number): Promise<void> {
+    await this._requestBannerConfig(timeout);
+
     if (
       this._bannerConfig === undefined ||
       !this._bannerConfig.enabled ||
