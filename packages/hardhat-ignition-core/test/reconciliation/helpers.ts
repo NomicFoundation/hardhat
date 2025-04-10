@@ -92,26 +92,30 @@ class MockArtifactResolver implements ArtifactResolver {
 }
 
 export class ArtifactMapResolver extends MockArtifactResolver {
-  constructor(
-    private readonly _artifactMap: { [artifactId: string]: Artifact } = {}
-  ) {
+  readonly #artifactMap: { [artifactId: string]: Artifact };
+
+  constructor(artifactMap: { [artifactId: string]: Artifact } = {}) {
     super();
+
+    this.#artifactMap = artifactMap;
   }
 
   public async loadArtifact(contractName: string): Promise<Artifact> {
-    return this._artifactMap[contractName];
+    return this.#artifactMap[contractName];
   }
 }
 
 export class ArtifactMapDeploymentLoader extends MockDeploymentLoader {
-  constructor(
-    private readonly _artifactMap: { [artifactId: string]: Artifact } = {}
-  ) {
+  readonly #artifactMap: { [artifactId: string]: Artifact };
+
+  constructor(artifactMap: { [artifactId: string]: Artifact } = {}) {
     super();
+
+    this.#artifactMap = artifactMap;
   }
 
   public async loadArtifact(contractName: string): Promise<Artifact> {
-    return this._artifactMap[contractName];
+    return this.#artifactMap[contractName];
   }
 }
 
