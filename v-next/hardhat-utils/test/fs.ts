@@ -1075,9 +1075,9 @@ describe("File system utils", () => {
       const filePath = path.join(dirPath, "file.txt");
       await createFile(filePath);
       const UV_FS_O_EXLOCK = 0x10000000;
-      // eslint-disable-next-line no-bitwise -- Using bitwise OR to combine file open flags
       const fd = await fsPromises.open(
         filePath,
+        // eslint-disable-next-line no-bitwise -- Using bitwise OR to combine file open flags
         fsPromises.constants.O_RDONLY | UV_FS_O_EXLOCK,
       );
 
