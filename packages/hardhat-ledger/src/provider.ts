@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 import * as t from "io-ts";
 
-import { isValidAddress } from "@nomicfoundation/ethereumjs-util";
+import { isValidAddress } from "@ethereumjs/util";
 
 import { isEIP712Message, ledgerService } from "@ledgerhq/hw-app-eth";
 import TransportNodeHid from "@ledgerhq/hw-transport-node-hid";
@@ -424,9 +424,7 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
   }
 
   private async _toRpcSig(signature: Signature): Promise<string> {
-    const { toRpcSig, toBytes } = await import(
-      "@nomicfoundation/ethereumjs-util"
-    );
+    const { toRpcSig, toBytes } = await import("@ethereumjs/util");
 
     return toRpcSig(
       BigInt(signature.v - 27),
@@ -436,7 +434,7 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
   }
 
   private async _getNonce(address: Buffer): Promise<bigint> {
-    const { bytesToHex } = await import("@nomicfoundation/ethereumjs-util");
+    const { bytesToHex } = await import("@ethereumjs/util");
 
     const response = (await this._wrappedProvider.request({
       method: "eth_getTransactionCount",

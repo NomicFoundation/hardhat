@@ -23,6 +23,7 @@ import {
 import { emoji } from "./emoji";
 import { Dependencies, PackageManager } from "./types";
 import { requestTelemetryConsent } from "./analytics";
+import { BannerManager } from "./banner-manager";
 
 enum Action {
   CREATE_JAVASCRIPT_PROJECT_ACTION = "Create a JavaScript project",
@@ -536,6 +537,9 @@ export async function createProject() {
   console.log();
   showStarOnGitHubMessage();
   showSoliditySurveyMessage();
+
+  const hardhat3BannerManager = await BannerManager.getInstance();
+  await hardhat3BannerManager.showBanner();
 }
 
 async function canInstallRecommendedDeps() {
@@ -554,12 +558,24 @@ function isInstalled(dep: string) {
   return dep in allDependencies;
 }
 
+function getProjectTypeFromUserAgent() {
+  const userAgent = process.env.npm_config_user_agent;
+  // Get first part of user agent string
+  const [projectType] = userAgent?.split("/") ?? [];
+  return projectType;
+}
+
 async function isYarnProject() {
-  return fsExtra.pathExists("yarn.lock");
+  return (
+    getProjectTypeFromUserAgent() === "yarn" || fsExtra.pathExists("yarn.lock")
+  );
 }
 
 async function isPnpmProject() {
-  return fsExtra.pathExists("pnpm-lock.yaml");
+  return (
+    getProjectTypeFromUserAgent() === "pnpm" ||
+    fsExtra.pathExists("pnpm-lock.yaml")
+  );
 }
 
 async function getProjectPackageManager(): Promise<PackageManager> {

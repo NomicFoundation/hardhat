@@ -49,6 +49,7 @@ import {
   isHardhatVSCodeInstalled,
 } from "./hardhat-vscode-installation";
 import { handleVars } from "./vars";
+import { BannerManager } from "./banner-manager";
 
 const log = debug("hardhat:core:cli");
 
@@ -380,6 +381,11 @@ async function main() {
           // ignore possible version notifier errors
         }
       }
+    }
+
+    if (!isRunningOnCiServer() && process.stdout.isTTY === true) {
+      const hardhat3BannerManager = await BannerManager.getInstance();
+      await hardhat3BannerManager.showBanner(200);
     }
 
     log(`Killing Hardhat after successfully running task ${taskName}`);

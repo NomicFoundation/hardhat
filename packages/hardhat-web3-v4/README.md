@@ -28,7 +28,7 @@ Or, if you are using TypeScript, add this to your `hardhat.config.ts`:
 import "@nomicfoundation/hardhat-web3-v4";
 ```
 
-By default, contract invocations will not be typesafe. Consider installing [@chainsafe/hardhat-ts-artifact-plugin](https://www.npmjs.com/package/@chainsafe/hardhat-ts-artifact-plugin) to obtain available contract methods and events. Read more about inferring types [here](https://docs.web3js.org/guides/smart_contracts/infer_contract_types_guide/).
+By default, contract invocations will not be typesafe. Consider installing [@chainsafe/hardhat-ts-artifact-plugin](https://www.npmjs.com/package/@chainsafe/hardhat-ts-artifact-plugin) to obtain available contract methods and events. Read more about inferring types [here](https://docs.web3js.org/guides/smart_contracts/infer_contract_types/).
 
 ## Tasks
 

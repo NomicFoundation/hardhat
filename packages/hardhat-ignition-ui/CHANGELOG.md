@@ -1,8 +1,16 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+## 0.15.11
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
+### Patch Changes
+
+- cf16afa: Override max-width to fix ignition graph centering
+
+## 0.15.10
+
+### Patch Changes
+
+- d96c003: Fix for bug when we fail to save transaction hash
 
 ## 0.15.9 - 2024-12-18
 
