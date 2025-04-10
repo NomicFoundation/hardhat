@@ -31,7 +31,7 @@ runs:
         node-version: ${{ inputs.node-version }}
         cache: ${{ inputs.cache-save == 'true' && 'pnpm' || '' }}
         cache-dependency-path: "**/pnpm-lock.yaml"
-        registry-url: https://npm.pkg.github.com
+        registry-url: https://registry.npmjs.org
     - id: pnpm
       if: inputs.cache-save == 'false'
       run: pnpm store path --silent | xargs -I {} -0 echo "path={}" | tee -a $GITHUB_OUTPUT

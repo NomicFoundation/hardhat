@@ -55,7 +55,7 @@ jobs:
         id: publish
         if: steps.pr.outputs.hasChangesets == 'false'
         env:
-          NODE_AUTH_TOKEN: ${{ github.token }}
+          NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
         run: |
           echo "stdout<<EOF" >> $GITHUB_OUTPUT
