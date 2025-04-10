@@ -1,6 +1,6 @@
 # ENS Example for Hardhat Ignition
 
-This Hardhat project is an example of using ignition to deploy the ENS system of contracts, based on the [Deploying ens on a private chain](https://docs.ens.domains/deploying-ens-on-a-private-chain#migration-file-example) from the ens docs.
+This Hardhat project is an example of using ignition to deploy the ENS system of contracts, based on the [Deploying ens on a private chain](https://docs.ens.domains/contracts) from the ens docs.
 
 ## Deploying
 
