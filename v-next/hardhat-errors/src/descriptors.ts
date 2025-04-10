@@ -8,11 +8,6 @@ export interface ErrorDescriptor {
   number: number;
 
   /**
-   * The id of the plugin that throws this error.
-   */
-  pluginId?: string;
-
-  /**
    * A tempalte of the message of the error.
    *
    * This should be a short description. If possible, it should tell the user
@@ -44,6 +39,7 @@ export const ERROR_CATEGORIES: {
   [packageName: string]: {
     min: number;
     max: number;
+    pluginId: string | undefined;
     websiteTitle: string;
     CATEGORIES: {
       [categoryName: string]: {
@@ -57,6 +53,7 @@ export const ERROR_CATEGORIES: {
   CORE: {
     min: 1,
     max: 9999,
+    pluginId: undefined,
     websiteTitle: "Hardhat Core",
     CATEGORIES: {
       GENERAL: {
@@ -124,6 +121,7 @@ export const ERROR_CATEGORIES: {
   IGNITION: {
     min: 10000,
     max: 19999,
+    pluginId: "hardhat-ignition",
     websiteTitle: "Hardhat Ignition",
     CATEGORIES: {
       GENERAL: {
@@ -196,6 +194,7 @@ export const ERROR_CATEGORIES: {
   HARDHAT_ETHERS: {
     min: 20000,
     max: 29999,
+    pluginId: "hardhat-ethers",
     websiteTitle: "Hardhat Ethers",
     CATEGORIES: {
       GENERAL: {
@@ -208,6 +207,7 @@ export const ERROR_CATEGORIES: {
   HARDHAT_MOCHA: {
     min: 30000,
     max: 39999,
+    pluginId: "hardhat-mocha",
     websiteTitle: "Hardhat Mocha",
     CATEGORIES: {
       GENERAL: {
@@ -220,6 +220,7 @@ export const ERROR_CATEGORIES: {
   HARDHAT_VIEM: {
     min: 40000,
     max: 49999,
+    pluginId: "hardhat-viem",
     websiteTitle: "Hardhat Viem",
     CATEGORIES: {
       GENERAL: {
@@ -232,6 +233,7 @@ export const ERROR_CATEGORIES: {
   HARDHAT_KEYSTORE: {
     min: 50000,
     max: 59999,
+    pluginId: "hardhat-keystore",
     websiteTitle: "Hardhat Keystore",
     CATEGORIES: {
       GENERAL: {
@@ -244,6 +246,7 @@ export const ERROR_CATEGORIES: {
   NETWORK_HELPERS: {
     min: 60000,
     max: 69999,
+    pluginId: "hardhat-network-helpers",
     websiteTitle: "Hardhat Network Helpers",
     CATEGORIES: {
       GENERAL: {
@@ -256,6 +259,7 @@ export const ERROR_CATEGORIES: {
   CHAI_MATCHERS: {
     min: 70000,
     max: 79999,
+    pluginId: "hardhat-ethers-chai-matchers",
     websiteTitle: "Hardhat Chai Matchers",
     CATEGORIES: {
       GENERAL: {

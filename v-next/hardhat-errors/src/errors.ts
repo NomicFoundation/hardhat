@@ -3,7 +3,7 @@ import type { ErrorDescriptor } from "./descriptors.js";
 import { CustomError } from "@nomicfoundation/hardhat-utils/error";
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 
-import { ERRORS } from "./descriptors.js";
+import { ERRORS, ERROR_CATEGORIES } from "./descriptors.js";
 
 export type ErrorMessageTemplateValue =
   | string
@@ -154,7 +154,17 @@ export class HardhatError<
   }
 
   public get pluginId(): string | undefined {
-    return this.#descriptor.pluginId;
+    for (const category of Object.values(ERROR_CATEGORIES)) {
+      const isWithinCategoryRange =
+        this.#descriptor.number >= category.min &&
+        this.#descriptor.number <= category.max;
+
+      if (isWithinCategoryRange) {
+        return category.pluginId;
+      }
+    }
+
+    return undefined;
   }
 
   public get descriptor(): ErrorDescriptor {

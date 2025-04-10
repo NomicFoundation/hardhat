@@ -154,6 +154,17 @@ describe("HardhatError", () => {
       assert.equal(error.message, "HHE12: a b 123");
     });
   });
+
+  describe("pluginId", () => {
+    it("Should return the plugin id if its dscriptor is in a category that uses one", () => {
+      assert.equal(
+        new HardhatError(
+          HardhatError.ERRORS.HARDHAT_KEYSTORE.GENERAL.INVALID_PASSWORD_OR_CORRUPTED_KEYSTORE,
+        ).pluginId,
+        ERROR_CATEGORIES.HARDHAT_KEYSTORE.pluginId,
+      );
+    });
+  });
 });
 
 describe("HardhatPluginError", () => {
