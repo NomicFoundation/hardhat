@@ -46,6 +46,12 @@ Update your dependencies to the new version of Hardhat. Make sure that Hardhat i
 }
 ```
 
+Some dependencies are no lnoger required and can be removed:
+
+```bash
+npm remove @types/mocha
+```
+
 ## `HardhatPlugin` export
 
 Plugins for Hardhat 2 were largely configured through import side effects. In Hardhat 3, this process is declarative. Your plugin will now need to export a `HardhatPlugin` object for users to register in their Hardhat coniguration files.
