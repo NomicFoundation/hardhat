@@ -1,4 +1,3 @@
-import type { StatusResult } from "@nomicfoundation/ignition-core";
 import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 import type { NewTaskActionFunction } from "hardhat/types/tasks";
 
@@ -25,17 +24,7 @@ const taskStatus: NewTaskActionFunction<TaskStatusArguments> = async (
 
   const artifactResolver = new HardhatArtifactResolver(hre.artifacts);
 
-  let statusResult: StatusResult;
-  try {
-    statusResult = await status(deploymentDir, artifactResolver);
-  } catch (_e) {
-    // Disabled for the alpha release
-    // if (e instanceof IgnitionError && shouldBeHardhatPluginError(e)) {
-    //   throw new HardhatError(HardhatError.ERRORS.IGNITION.INTERNAL_ERROR, e);
-    // }
-
-    throw _e;
-  }
+  const statusResult = await status(deploymentDir, artifactResolver);
 
   console.log(calculateDeploymentStatusDisplay(deploymentId, statusResult));
 };

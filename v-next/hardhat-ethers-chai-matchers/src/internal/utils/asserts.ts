@@ -119,7 +119,7 @@ function innerAssertArgEqual(
     if (actualArg.hash !== undefined && actualArg._isIndexed === true) {
       if (assertionType !== "event") {
         throw new HardhatError(
-          HardhatError.ERRORS.CHAI_MATCHERS.INDEXED_EVENT_FORBIDDEN,
+          HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.INDEXED_EVENT_FORBIDDEN,
         );
       }
 

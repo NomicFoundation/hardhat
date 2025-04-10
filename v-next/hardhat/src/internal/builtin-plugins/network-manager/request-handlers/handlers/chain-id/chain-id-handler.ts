@@ -43,7 +43,7 @@ export class ChainIdValidatorHandler extends ChainId implements RequestHandler {
 
     if (actualChainId !== this.#expectedChainId) {
       throw new HardhatError(
-        HardhatError.ERRORS.NETWORK.INVALID_GLOBAL_CHAIN_ID,
+        HardhatError.ERRORS.CORE.NETWORK.INVALID_GLOBAL_CHAIN_ID,
         {
           configChainId: this.#expectedChainId,
           connectionChainId: actualChainId,

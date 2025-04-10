@@ -77,11 +77,14 @@ export async function resolveUserConfig(
 
   for (const [networkName, networkConfig] of Object.entries(networks)) {
     if (networkConfig.type !== "http" && networkConfig.type !== "edr") {
-      throw new HardhatError(HardhatError.ERRORS.NETWORK.INVALID_NETWORK_TYPE, {
-        networkName,
-        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- we want to show the type
-        networkType: (networkConfig as any).type,
-      });
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.NETWORK.INVALID_NETWORK_TYPE,
+        {
+          networkName,
+          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- we want to show the type
+          networkType: (networkConfig as any).type,
+        },
+      );
     }
 
     resolvedNetworks[networkName] =

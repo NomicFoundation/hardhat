@@ -1,4 +1,3 @@
-/* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
 import { Artifact, DeploymentResultType } from "../src/index.js";
@@ -208,7 +207,7 @@ describe("useModule", () => {
         type: DeploymentResultType.VALIDATION_ERROR,
         errors: {
           "Submodule1#Contract1": [
-            "IGN725: Module parameter 'param1' requires a value but was given none",
+            "HHE10725: Module parameter 'param1' requires a value but was given none",
           ],
         },
       });

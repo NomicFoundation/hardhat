@@ -24,10 +24,9 @@ import type {
   Result,
 } from "ethers";
 
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { ethers } from "ethers";
 
-import { IgnitionError } from "../../errors.js";
-import { ERRORS } from "../errors-list.js";
 import { assertIgnitionInvariant } from "../utils/assertions.js";
 
 import { linkLibraries } from "./libraries.js";
@@ -173,8 +172,8 @@ export function validateContractConstructorArgsLength(
   artifact: Artifact,
   contractName: string,
   args: ArgumentType[],
-): IgnitionError[] {
-  const errors: IgnitionError[] = [];
+): HardhatError[] {
+  const errors: HardhatError[] = [];
 
   const argsLength = args.length;
 
@@ -183,11 +182,14 @@ export function validateContractConstructorArgsLength(
 
   if (argsLength !== expectedArgsLength) {
     errors.push(
-      new IgnitionError(ERRORS.VALIDATION.INVALID_CONSTRUCTOR_ARGS_LENGTH, {
-        contractName,
-        argsLength,
-        expectedArgsLength,
-      }),
+      new HardhatError(
+        HardhatError.ERRORS.IGNITION.VALIDATION.INVALID_CONSTRUCTOR_ARGS_LENGTH,
+        {
+          contractName,
+          argsLength,
+          expectedArgsLength,
+        },
+      ),
     );
   }
 
@@ -212,19 +214,19 @@ export function validateArtifactFunction(
   functionName: string,
   args: ArgumentType[],
   isStaticCall: boolean,
-): IgnitionError[] {
+): HardhatError[] {
   try {
     validateOverloadedName(artifact, functionName, false);
   } catch (e) {
     assertIgnitionInvariant(
-      e instanceof IgnitionError,
-      "validateOverloadedName should only throw IgnitionErrors",
+      e instanceof HardhatError,
+      "validateOverloadedName should only throw HardhatErrors",
     );
 
     return [e];
   }
 
-  const errors: IgnitionError[] = [];
+  const errors: HardhatError[] = [];
 
   const iface = new ethers.Interface(artifact.abi);
   const fragment = getFunctionFragment(iface, functionName);
@@ -232,22 +234,28 @@ export function validateArtifactFunction(
   // Check that the number of arguments is correct
   if (fragment.inputs.length !== args.length) {
     errors.push(
-      new IgnitionError(ERRORS.VALIDATION.INVALID_FUNCTION_ARGS_LENGTH, {
-        functionName,
-        contractName,
-        argsLength: args.length,
-        expectedLength: fragment.inputs.length,
-      }),
+      new HardhatError(
+        HardhatError.ERRORS.IGNITION.VALIDATION.INVALID_FUNCTION_ARGS_LENGTH,
+        {
+          functionName,
+          contractName,
+          argsLength: args.length,
+          expectedLength: fragment.inputs.length,
+        },
+      ),
     );
   }
 
   // Check that the function is pure or view, which is required for a static call
   if (isStaticCall && !fragment.constant) {
     errors.push(
-      new IgnitionError(ERRORS.VALIDATION.INVALID_STATIC_CALL, {
-        functionName,
-        contractName,
-      }),
+      new HardhatError(
+        HardhatError.ERRORS.IGNITION.VALIDATION.INVALID_STATIC_CALL,
+        {
+          functionName,
+          contractName,
+        },
+      ),
     );
   }
 
@@ -265,13 +273,13 @@ export function validateArtifactFunction(
 export function validateArtifactFunctionName(
   artifact: Artifact,
   functionName: string,
-): IgnitionError[] {
+): HardhatError[] {
   try {
     validateOverloadedName(artifact, functionName, false);
   } catch (e) {
     assertIgnitionInvariant(
-      e instanceof IgnitionError,
-      "validateOverloadedName should only throw IgnitionError",
+      e instanceof HardhatError,
+      "validateOverloadedName should only throw HardhatError",
     );
 
     return [e];
@@ -292,13 +300,13 @@ export function validateArtifactEventArgumentParams(
   emitterArtifact: Artifact,
   eventName: string,
   argument: string | number,
-): IgnitionError[] {
+): HardhatError[] {
   try {
     validateOverloadedName(emitterArtifact, eventName, true);
   } catch (e) {
     assertIgnitionInvariant(
-      e instanceof IgnitionError,
-      "validateOverloadedName should only throw IgnitionError",
+      e instanceof HardhatError,
+      "validateOverloadedName should only throw HardhatError",
     );
 
     return [e];
@@ -311,8 +319,8 @@ export function validateArtifactEventArgumentParams(
     eventFragment = getEventFragment(iface, eventName);
   } catch (e) {
     assertIgnitionInvariant(
-      e instanceof IgnitionError,
-      "getEventFragment should only throw IgnitionError",
+      e instanceof HardhatError,
+      "getEventFragment should only throw HardhatError",
     );
 
     return [e];
@@ -328,8 +336,8 @@ export function validateArtifactEventArgumentParams(
     );
   } catch (e) {
     assertIgnitionInvariant(
-      e instanceof IgnitionError,
-      "getEventArgumentParamType should only throw IgnitionError",
+      e instanceof HardhatError,
+      "getEventArgumentParamType should only throw HardhatError",
     );
 
     return [e];
@@ -341,11 +349,14 @@ export function validateArtifactEventArgumentParams(
     // anywhere
     if (hasDynamicSize(paramType)) {
       return [
-        new IgnitionError(ERRORS.VALIDATION.INDEXED_EVENT_ARG, {
-          eventName,
-          argument,
-          contractName: emitterArtifact.contractName,
-        }),
+        new HardhatError(
+          HardhatError.ERRORS.IGNITION.VALIDATION.INDEXED_EVENT_ARG,
+          {
+            eventName,
+            argument,
+            contractName: emitterArtifact.contractName,
+          },
+        ),
       ];
     }
   }
@@ -563,10 +574,13 @@ function ethersValueIntoEvmValue(
     return ethersResultIntoEvmTuple(ethersValue, paramType.components);
   }
 
-  throw new IgnitionError(ERRORS.GENERAL.UNSUPPORTED_DECODE, {
-    type: paramType.type,
-    value: JSON.stringify(ethersValue, undefined, 2),
-  });
+  throw new HardhatError(
+    HardhatError.ERRORS.IGNITION.GENERAL.UNSUPPORTED_DECODE,
+    {
+      type: paramType.type,
+      value: JSON.stringify(ethersValue, undefined, 2),
+    },
+  );
 }
 
 function ethersResultIntoEvmValueArray(
@@ -684,10 +698,13 @@ function validateOverloadedName(
   const bareName = getBareName(name);
 
   if (bareName === undefined) {
-    throw new IgnitionError(ERRORS.VALIDATION.INVALID_OVERLOAD_NAME, {
-      eventOrFunction,
-      name,
-    });
+    throw new HardhatError(
+      HardhatError.ERRORS.IGNITION.VALIDATION.INVALID_OVERLOAD_NAME,
+      {
+        eventOrFunction,
+        name,
+      },
+    );
   }
 
   const iface = new ethers.Interface(artifact.abi);
@@ -703,22 +720,28 @@ function validateOverloadedName(
     .filter((fragment) => fragment.name === bareName);
 
   if (fragments.length === 0) {
-    throw new IgnitionError(ERRORS.VALIDATION.OVERLOAD_NOT_FOUND, {
-      name,
-      eventOrFunction: eventOrFunctionCapitalized,
-      contractName: artifact.contractName,
-    });
+    throw new HardhatError(
+      HardhatError.ERRORS.IGNITION.VALIDATION.OVERLOAD_NOT_FOUND,
+      {
+        name,
+        eventOrFunction: eventOrFunctionCapitalized,
+        contractName: artifact.contractName,
+      },
+    );
   } else if (fragments.length === 1) {
     // If it is not overloaded we force the user to use the bare name
     // because having a single representation is more friendly with our reconciliation
     // process.
     if (bareName !== name) {
-      throw new IgnitionError(ERRORS.VALIDATION.REQUIRE_BARE_NAME, {
-        name,
-        bareName,
-        eventOrFunction: eventOrFunctionCapitalized,
-        contractName: artifact.contractName,
-      });
+      throw new HardhatError(
+        HardhatError.ERRORS.IGNITION.VALIDATION.REQUIRE_BARE_NAME,
+        {
+          name,
+          bareName,
+          eventOrFunction: eventOrFunctionCapitalized,
+          contractName: artifact.contractName,
+        },
+      );
     }
   } else {
     // If it's overloaded, we force the user to use the full name
@@ -735,22 +758,28 @@ function validateOverloadedName(
       .join("\n");
 
     if (bareName === name) {
-      throw new IgnitionError(ERRORS.VALIDATION.OVERLOAD_NAME_REQUIRED, {
-        name,
-        normalizedNameList,
-        eventOrFunction: eventOrFunctionCapitalized,
-        contractName: artifact.contractName,
-      });
+      throw new HardhatError(
+        HardhatError.ERRORS.IGNITION.VALIDATION.OVERLOAD_NAME_REQUIRED,
+        {
+          name,
+          normalizedNameList,
+          eventOrFunction: eventOrFunctionCapitalized,
+          contractName: artifact.contractName,
+        },
+      );
     }
 
     if (!normalizedNames.includes(name)) {
-      throw new IgnitionError(ERRORS.VALIDATION.INVALID_OVERLOAD_GIVEN, {
-        name,
-        bareName,
-        normalizedNameList,
-        eventOrFunction: eventOrFunctionCapitalized,
-        contractName: artifact.contractName,
-      });
+      throw new HardhatError(
+        HardhatError.ERRORS.IGNITION.VALIDATION.INVALID_OVERLOAD_GIVEN,
+        {
+          name,
+          bareName,
+          normalizedNameList,
+          eventOrFunction: eventOrFunctionCapitalized,
+          contractName: artifact.contractName,
+        },
+      );
     }
   }
 }
@@ -773,22 +802,28 @@ function getEventArgumentParamType(
       }
     }
 
-    throw new IgnitionError(ERRORS.VALIDATION.EVENT_ARG_NOT_FOUND, {
-      eventName,
-      argument,
-      contractName,
-    });
+    throw new HardhatError(
+      HardhatError.ERRORS.IGNITION.VALIDATION.EVENT_ARG_NOT_FOUND,
+      {
+        eventName,
+        argument,
+        contractName,
+      },
+    );
   }
 
   const paramType = eventFragment.inputs[argument];
 
   if (paramType === undefined) {
-    throw new IgnitionError(ERRORS.VALIDATION.INVALID_EVENT_ARG_INDEX, {
-      eventName,
-      argument,
-      contractName,
-      expectedLength: eventFragment.inputs.length,
-    });
+    throw new HardhatError(
+      HardhatError.ERRORS.IGNITION.VALIDATION.INVALID_EVENT_ARG_INDEX,
+      {
+        eventName,
+        argument,
+        contractName,
+        expectedLength: eventFragment.inputs.length,
+      },
+    );
   }
 
   return paramType;
@@ -802,15 +837,15 @@ export function validateFunctionArgumentParamType(
   functionName: string,
   artifact: Artifact,
   argument: string | number,
-): IgnitionError[] {
+): HardhatError[] {
   const iface = new ethers.Interface(artifact.abi);
   let functionFragment: FunctionFragment;
   try {
     functionFragment = getFunctionFragment(iface, functionName);
   } catch (e) {
     assertIgnitionInvariant(
-      e instanceof IgnitionError,
-      "getFunctionFragment should only throw IgnitionError",
+      e instanceof HardhatError,
+      "getFunctionFragment should only throw HardhatError",
     );
     return [e];
   }
@@ -825,11 +860,14 @@ export function validateFunctionArgumentParamType(
 
     if (!hasArg) {
       return [
-        new IgnitionError(ERRORS.VALIDATION.FUNCTION_ARG_NOT_FOUND, {
-          functionName,
-          argument,
-          contractName,
-        }),
+        new HardhatError(
+          HardhatError.ERRORS.IGNITION.VALIDATION.FUNCTION_ARG_NOT_FOUND,
+          {
+            functionName,
+            argument,
+            contractName,
+          },
+        ),
       ];
     }
   } else {
@@ -837,12 +875,15 @@ export function validateFunctionArgumentParamType(
 
     if (paramType === undefined) {
       return [
-        new IgnitionError(ERRORS.VALIDATION.INVALID_FUNCTION_ARG_INDEX, {
-          functionName,
-          argument,
-          contractName,
-          expectedLength: functionFragment.outputs.length,
-        }),
+        new HardhatError(
+          HardhatError.ERRORS.IGNITION.VALIDATION.INVALID_FUNCTION_ARG_INDEX,
+          {
+            functionName,
+            argument,
+            contractName,
+            expectedLength: functionFragment.outputs.length,
+          },
+        ),
       ];
     }
   }

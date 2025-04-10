@@ -21,11 +21,11 @@ export interface EIP1193Provider extends EventEmitter {
    * {@link JsonRpcResponse}.
    * @throws {ProviderError} If the JSON-RPC response indicates a failure.
    * @throws {HardhatError} with descriptor:
-   * - {@link HardhatError.ERRORS.NETWORK.INVALID_REQUEST_PARAMS} if the
+   * - {@link HardhatError.ERRORS.CORE.NETWORK.INVALID_REQUEST_PARAMS} if the
    * params are not an array.
-   * - {@link HardhatError.ERRORS.NETWORK.CONNECTION_REFUSED} if the
+   * - {@link HardhatError.ERRORS.CORE.NETWORK.CONNECTION_REFUSED} if the
    * connection is refused.
-   * - {@link HardhatError.ERRORS.NETWORK.NETWORK_TIMEOUT} if the request
+   * - {@link HardhatError.ERRORS.CORE.NETWORK.NETWORK_TIMEOUT} if the request
    * times out.
    */
   request(requestArguments: RequestArguments): Promise<unknown>;
@@ -62,11 +62,11 @@ export interface EthereumProvider extends EIP1193Provider {
    * {@link JsonRpcResponse}.
    * @throws {ProviderError} If the JSON-RPC response indicates a failure.
    * @throws {HardhatError} with descriptor:
-   * - {@link HardhatError.ERRORS.NETWORK.INVALID_REQUEST_PARAMS} if the
+   * - {@link HardhatError.ERRORS.CORE.NETWORK.INVALID_REQUEST_PARAMS} if the
    * params are not an array.
-   * - {@link HardhatError.ERRORS.NETWORK.CONNECTION_REFUSED} if the
+   * - {@link HardhatError.ERRORS.CORE.NETWORK.CONNECTION_REFUSED} if the
    * connection is refused.
-   * - {@link HardhatError.ERRORS.NETWORK.NETWORK_TIMEOUT} if the request
+   * - {@link HardhatError.ERRORS.CORE.NETWORK.NETWORK_TIMEOUT} if the request
    * times out.
    */
   send(method: string, params?: unknown[]): Promise<unknown>;

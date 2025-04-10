@@ -126,14 +126,16 @@ describe("Resolver", () => {
       let file = "foo.sol";
       await assertRejectsWithHardhatError(
         () => resolver.resolveProjectFile(file),
-        HardhatError.ERRORS.SOLIDITY.RESOLVING_INCORRECT_FILE_AS_PROJECT_FILE,
+        HardhatError.ERRORS.CORE.SOLIDITY
+          .RESOLVING_INCORRECT_FILE_AS_PROJECT_FILE,
         { file },
       );
 
       file = "/asd/asd/foo.sol";
       await assertRejectsWithHardhatError(
         () => resolver.resolveProjectFile(file),
-        HardhatError.ERRORS.SOLIDITY.RESOLVING_INCORRECT_FILE_AS_PROJECT_FILE,
+        HardhatError.ERRORS.CORE.SOLIDITY
+          .RESOLVING_INCORRECT_FILE_AS_PROJECT_FILE,
         { file },
       );
     });
@@ -176,7 +178,7 @@ describe("Resolver", () => {
         resolver.resolveProjectFile(
           path.join(FIXTURE_HARDHAT_PROJECT_ROOT, "nope.sol"),
         ),
-        HardhatError.ERRORS.SOLIDITY.RESOLVING_NONEXISTENT_PROJECT_FILE,
+        HardhatError.ERRORS.CORE.SOLIDITY.RESOLVING_NONEXISTENT_PROJECT_FILE,
         {
           file: "nope.sol",
         },
@@ -220,7 +222,7 @@ describe("Resolver", () => {
             it("Should validate that the files exists with the right casing", async () => {
               await assertRejectsWithHardhatError(
                 resolver.resolveImport(contractsFileSol, "./nope.sol"),
-                HardhatError.ERRORS.SOLIDITY.IMPORTED_FILE_DOESNT_EXIST,
+                HardhatError.ERRORS.CORE.SOLIDITY.IMPORTED_FILE_DOESNT_EXIST,
                 {
                   importPath: "./nope.sol",
                   from: path.join("contracts", "File.sol"),
@@ -229,7 +231,7 @@ describe("Resolver", () => {
 
               await assertRejectsWithHardhatError(
                 resolver.resolveImport(contractsFileSol, "../file.sol"),
-                HardhatError.ERRORS.SOLIDITY
+                HardhatError.ERRORS.CORE.SOLIDITY
                   .IMPORTED_FILE_WITH_INCORRECT_CASING,
                 {
                   importPath: "../file.sol",
@@ -279,7 +281,7 @@ describe("Resolver", () => {
 
               await assertRejectsWithHardhatError(
                 resolver.resolveImport(contractsFileSol, "contracts/nope.sol"),
-                HardhatError.ERRORS.SOLIDITY.IMPORTED_FILE_DOESNT_EXIST,
+                HardhatError.ERRORS.CORE.SOLIDITY.IMPORTED_FILE_DOESNT_EXIST,
                 {
                   importPath: "contracts/nope.sol",
                   from: path.join("contracts", "File.sol"),
@@ -288,7 +290,7 @@ describe("Resolver", () => {
 
               await assertRejectsWithHardhatError(
                 resolver.resolveImport(contractsFileSol, "contracts/file2.sol"),
-                HardhatError.ERRORS.SOLIDITY
+                HardhatError.ERRORS.CORE.SOLIDITY
                   .IMPORTED_FILE_WITH_INCORRECT_CASING,
                 {
                   importPath: "contracts/file2.sol",
@@ -308,7 +310,7 @@ describe("Resolver", () => {
 
               await assertRejectsWithHardhatError(
                 resolver.resolveImport(contractsFileSol, "nope.sol"),
-                HardhatError.ERRORS.SOLIDITY.IMPORTED_FILE_DOESNT_EXIST,
+                HardhatError.ERRORS.CORE.SOLIDITY.IMPORTED_FILE_DOESNT_EXIST,
                 {
                   importPath: "nope.sol",
                   from: path.join("contracts", "File.sol"),
@@ -329,7 +331,7 @@ describe("Resolver", () => {
 
               await assertRejectsWithHardhatError(
                 resolver.resolveImport(contractsFileSol, "npm/nope.sol"),
-                HardhatError.ERRORS.SOLIDITY.IMPORTED_FILE_DOESNT_EXIST,
+                HardhatError.ERRORS.CORE.SOLIDITY.IMPORTED_FILE_DOESNT_EXIST,
                 {
                   importPath: "npm/nope.sol",
                   from: path.join("contracts", "File.sol"),
@@ -384,7 +386,7 @@ describe("Resolver", () => {
                 contractsFileSol,
                 "uninstalled-package/File.sol",
               ),
-              HardhatError.ERRORS.SOLIDITY
+              HardhatError.ERRORS.CORE.SOLIDITY
                 .IMPORTED_NPM_DEPENDENCY_NOT_INSTALLED,
               {
                 from: path.join("contracts", "File.sol"),
@@ -396,7 +398,7 @@ describe("Resolver", () => {
           it("Should validate that the files exist with the right casing", async () => {
             await assertRejectsWithHardhatError(
               resolver.resolveImport(contractsFileSol, "dependency/nope.sol"),
-              HardhatError.ERRORS.SOLIDITY.IMPORTED_FILE_DOESNT_EXIST,
+              HardhatError.ERRORS.CORE.SOLIDITY.IMPORTED_FILE_DOESNT_EXIST,
               {
                 from: path.join("contracts", "File.sol"),
                 importPath: "dependency/nope.sol",
@@ -405,7 +407,8 @@ describe("Resolver", () => {
 
             await assertRejectsWithHardhatError(
               resolver.resolveImport(contractsFileSol, "dependency/file.sol"),
-              HardhatError.ERRORS.SOLIDITY.IMPORTED_FILE_WITH_INCORRECT_CASING,
+              HardhatError.ERRORS.CORE.SOLIDITY
+                .IMPORTED_FILE_WITH_INCORRECT_CASING,
               {
                 from: path.join("contracts", "File.sol"),
                 importPath: "dependency/file.sol",
@@ -559,7 +562,7 @@ describe("Resolver", () => {
                   contractsFileSol,
                   "real-name/contracts/File.sol",
                 ),
-                HardhatError.ERRORS.SOLIDITY
+                HardhatError.ERRORS.CORE.SOLIDITY
                   .IMPORTED_NPM_DEPENDENCY_NOT_INSTALLED,
                 {
                   from: path.join("contracts", "File.sol"),
@@ -957,7 +960,7 @@ describe("Resolver", () => {
           resolver.resolveNpmDependencyFileAsRoot(
             "exports/contracts/Exported.sol",
           ),
-          HardhatError.ERRORS.SOLIDITY.RESOLVE_NON_EXISTENT_NPM_ROOT,
+          HardhatError.ERRORS.CORE.SOLIDITY.RESOLVE_NON_EXISTENT_NPM_ROOT,
           {
             module: "exports/contracts/Exported.sol",
           },
@@ -974,7 +977,7 @@ describe("Resolver", () => {
           resolver.resolveNpmDependencyFileAsRoot(
             "exports/ResolvesButDoesntExist.sol",
           ),
-          HardhatError.ERRORS.SOLIDITY.RESOLVE_NON_EXISTENT_NPM_ROOT,
+          HardhatError.ERRORS.CORE.SOLIDITY.RESOLVE_NON_EXISTENT_NPM_ROOT,
           {
             module: "exports/ResolvesButDoesntExist.sol",
           },
@@ -989,7 +992,7 @@ describe("Resolver", () => {
 
         await assertRejectsWithHardhatError(
           resolver.resolveNpmDependencyFileAsRoot("exports/NotExported"),
-          HardhatError.ERRORS.SOLIDITY.RESOLVE_NOT_EXPORTED_NPM_FILE,
+          HardhatError.ERRORS.CORE.SOLIDITY.RESOLVE_NOT_EXPORTED_NPM_FILE,
           {
             module: "exports/NotExported", // not using .sol, because that would match the *.sol rule
           },
@@ -1063,7 +1066,7 @@ describe("Resolver", () => {
         it("requires correct casing, and uses a special error", async () => {
           await assertRejectsWithHardhatError(
             resolver.resolveImport(file, "exports/exported.sol"),
-            HardhatError.ERRORS.SOLIDITY
+            HardhatError.ERRORS.CORE.SOLIDITY
               .IMPORTED_PACKAGE_EXPORTS_FILE_WITH_INCORRECT_CASING,
             {
               importPath: "exports/exported.sol",
@@ -1075,7 +1078,7 @@ describe("Resolver", () => {
         it("requires the file to be exported", async () => {
           await assertRejectsWithHardhatError(
             resolver.resolveImport(file, "exports/NotExported"),
-            HardhatError.ERRORS.SOLIDITY.RESOLVE_NOT_EXPORTED_NPM_FILE,
+            HardhatError.ERRORS.CORE.SOLIDITY.RESOLVE_NOT_EXPORTED_NPM_FILE,
             { module: "exports/NotExported" },
           );
         });
@@ -1084,7 +1087,7 @@ describe("Resolver", () => {
           it("doesn't resolve with the 'node' condition", async () => {
             assertRejectsWithHardhatError(
               resolver.resolveImport(file, "exports/Condition-node.sol"),
-              HardhatError.ERRORS.SOLIDITY.RESOLVE_NOT_EXPORTED_NPM_FILE,
+              HardhatError.ERRORS.CORE.SOLIDITY.RESOLVE_NOT_EXPORTED_NPM_FILE,
               { module: "exports/Condition-node.sol" },
             );
           });
@@ -1092,7 +1095,7 @@ describe("Resolver", () => {
           it("does not resolve with the 'import' condition", async () => {
             await assertRejectsWithHardhatError(
               resolver.resolveImport(file, "exports/Condition-import.sol"),
-              HardhatError.ERRORS.SOLIDITY.RESOLVE_NOT_EXPORTED_NPM_FILE,
+              HardhatError.ERRORS.CORE.SOLIDITY.RESOLVE_NOT_EXPORTED_NPM_FILE,
               { module: "exports/Condition-import.sol" },
             );
           });
@@ -1148,7 +1151,7 @@ describe("Resolver", () => {
           it("doesnt resolve with the 'require' condition", async () => {
             assertRejectsWithHardhatError(
               resolver.resolveImport(file, "exports/Condition-require.sol"),
-              HardhatError.ERRORS.SOLIDITY.RESOLVE_NOT_EXPORTED_NPM_FILE,
+              HardhatError.ERRORS.CORE.SOLIDITY.RESOLVE_NOT_EXPORTED_NPM_FILE,
               { module: "exports/Condition-require.sol" },
             );
           });
@@ -1222,7 +1225,7 @@ describe("Resolver", () => {
 
           await assertRejectsWithHardhatError(
             resolver.resolveImport(file, "remapped_pkg/NonExistent.sol"),
-            HardhatError.ERRORS.SOLIDITY.IMPORTED_FILE_DOESNT_EXIST,
+            HardhatError.ERRORS.CORE.SOLIDITY.IMPORTED_FILE_DOESNT_EXIST,
             {
               importPath: "remapped_pkg/NonExistent.sol",
               from: path.join("contracts", "File.sol"),

@@ -97,7 +97,7 @@ describe("network-helpers - setNonce", () => {
   it("should throw because the address is invalid", async () => {
     await assertRejectsWithHardhatError(
       async () => networkHelpers.setNonce("0xCF", 1),
-      HardhatError.ERRORS.NETWORK_HELPERS.INVALID_ADDRESS,
+      HardhatError.ERRORS.NETWORK_HELPERS.GENERAL.INVALID_ADDRESS,
       {
         value: "0xCF",
       },
@@ -107,7 +107,8 @@ describe("network-helpers - setNonce", () => {
   it("should throw because the nonce is invalid", async () => {
     await assertRejectsWithHardhatError(
       async () => networkHelpers.setNonce(account, "CF"),
-      HardhatError.ERRORS.NETWORK_HELPERS.ONLY_ALLOW_0X_PREFIXED_STRINGS,
+      HardhatError.ERRORS.NETWORK_HELPERS.GENERAL
+        .ONLY_ALLOW_0X_PREFIXED_STRINGS,
       {},
     );
   });

@@ -1,3 +1,5 @@
+import { ErrorDescriptor, HardhatError } from "@nomicfoundation/hardhat-errors";
+import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { assert } from "chai";
 
 import {
@@ -130,7 +132,11 @@ describe("execution - getNonceSyncMessages", () => {
             },
           },
         },
-        `IGN403: You have sent transactions from ${exampleAccounts[1]} and they interfere with Hardhat Ignition. Please wait until they get 5 confirmations before running Hardhat Ignition again.`,
+        HardhatError.ERRORS.IGNITION.EXECUTION.WAITING_FOR_CONFIRMATIONS,
+        {
+          sender: exampleAccounts[1],
+          requiredConfirmations: 5,
+        },
       );
     });
 
@@ -153,7 +159,11 @@ describe("execution - getNonceSyncMessages", () => {
             },
           },
         },
-        `IGN403: You have sent transactions from ${exampleAccounts[1]} and they interfere with Hardhat Ignition. Please wait until they get 5 confirmations before running Hardhat Ignition again.`,
+        HardhatError.ERRORS.IGNITION.EXECUTION.WAITING_FOR_CONFIRMATIONS,
+        {
+          sender: exampleAccounts[1],
+          requiredConfirmations: 5,
+        },
       );
     });
 
@@ -231,7 +241,11 @@ describe("execution - getNonceSyncMessages", () => {
             },
             latestBlockNumber: 3,
           },
-          `IGN403: You have sent transactions from ${exampleAccounts[1]} and they interfere with Hardhat Ignition. Please wait until they get 5 confirmations before running Hardhat Ignition again.`,
+          HardhatError.ERRORS.IGNITION.EXECUTION.WAITING_FOR_CONFIRMATIONS,
+          {
+            sender: exampleAccounts[1],
+            requiredConfirmations: 5,
+          },
         );
       });
     });
@@ -443,7 +457,12 @@ describe("execution - getNonceSyncMessages", () => {
               },
               latestBlockNumber,
             },
-            `IGN404: You have sent transactions from ${exampleAccounts[1]} with nonce 16 and it interferes with Hardhat Ignition. Please wait until they get 5 confirmations before running Hardhat Ignition again.`,
+            HardhatError.ERRORS.IGNITION.EXECUTION.WAITING_FOR_NONCE,
+            {
+              sender: exampleAccounts[1],
+              nonce: 16,
+              requiredConfirmations: 5,
+            },
           );
         });
 
@@ -471,7 +490,12 @@ describe("execution - getNonceSyncMessages", () => {
               },
               latestBlockNumber,
             },
-            `IGN404: You have sent transactions from ${exampleAccounts[1]} with nonce 30 and it interferes with Hardhat Ignition. Please wait until they get 5 confirmations before running Hardhat Ignition again.`,
+            HardhatError.ERRORS.IGNITION.EXECUTION.WAITING_FOR_NONCE,
+            {
+              sender: exampleAccounts[1],
+              nonce: 30,
+              requiredConfirmations: 5,
+            },
           );
         });
 
@@ -523,7 +547,12 @@ describe("execution - getNonceSyncMessages", () => {
               },
               latestBlockNumber,
             },
-            `IGN404: You have sent transactions from ${exampleAccounts[1]} with nonce 11 and it interferes with Hardhat Ignition. Please wait until they get 5 confirmations before running Hardhat Ignition again.`,
+            HardhatError.ERRORS.IGNITION.EXECUTION.WAITING_FOR_NONCE,
+            {
+              sender: exampleAccounts[1],
+              nonce: 11,
+              requiredConfirmations: 5,
+            },
           );
         });
 
@@ -657,7 +686,9 @@ describe("execution - getNonceSyncMessages", () => {
   });
 });
 
-async function assertGetNonceSyncThrows(
+async function assertGetNonceSyncThrows<
+  ErrorDescriptorT extends ErrorDescriptor,
+>(
   ctx: {
     ignitionModule: IgnitionModule<
       string,
@@ -675,9 +706,14 @@ async function assertGetNonceSyncThrows(
     getTransaction?: (txHash: string) => any;
     latestBlockNumber?: number;
   },
-  errorMessage: string,
+  errorMessage: ErrorDescriptorT,
+  messageArguments: HardhatError<ErrorDescriptorT>["messageArguments"],
 ) {
-  await assert.isRejected(assertGetNonceSyncResult(ctx, []), errorMessage);
+  await assertRejectsWithHardhatError(
+    assertGetNonceSyncResult(ctx, []),
+    errorMessage,
+    messageArguments,
+  );
 }
 
 async function assertNoSyncMessageNeeded(ctx: {

@@ -80,7 +80,7 @@ describe("DependencyGraphImplementation", () => {
         () => {
           dependencyGraph.addRootFile(file.sourceName, file);
         },
-        HardhatError.ERRORS.INTERNAL.ASSERTION_ERROR,
+        HardhatError.ERRORS.CORE.INTERNAL.ASSERTION_ERROR,
         {
           message: `File ${file.sourceName} already present`,
         },
@@ -100,7 +100,7 @@ describe("DependencyGraphImplementation", () => {
             downstreamDependency,
           );
         },
-        HardhatError.ERRORS.INTERNAL.ASSERTION_ERROR,
+        HardhatError.ERRORS.CORE.INTERNAL.ASSERTION_ERROR,
         {
           message: "File `from` from not present",
         },
@@ -424,7 +424,7 @@ describe("DependencyGraphImplementation", () => {
         () => {
           dependencyGraph.getSubgraph("root.sol");
         },
-        HardhatError.ERRORS.INTERNAL.ASSERTION_ERROR,
+        HardhatError.ERRORS.CORE.INTERNAL.ASSERTION_ERROR,
         {
           message: "We should have a root for every root public source name",
         },

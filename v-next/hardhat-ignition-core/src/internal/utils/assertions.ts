@@ -1,11 +1,13 @@
-import { IgnitionError } from "../../errors.js";
-import { ERRORS } from "../errors-list.js";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
 export function assertIgnitionInvariant(
   invariant: boolean,
   description: string,
 ): asserts invariant {
   if (!invariant) {
-    throw new IgnitionError(ERRORS.GENERAL.ASSERTION_ERROR, { description });
+    throw new HardhatError(
+      HardhatError.ERRORS.IGNITION.GENERAL.ASSERTION_ERROR,
+      { description },
+    );
   }
 }

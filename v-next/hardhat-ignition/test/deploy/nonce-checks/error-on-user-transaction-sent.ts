@@ -1,6 +1,7 @@
-/* eslint-disable import/no-unused-modules */
 import type { TestChainHelper } from "../../test-helpers/use-ignition-project.js";
 
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { buildModule } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 import { createWalletClient, custom } from "viem";
@@ -38,7 +39,7 @@ describe("execution - error on user transaction sent", () => {
 
     // The deploy should exception when the additional user interfering
     // transaction is detected
-    await assert.isRejected(
+    await assertRejectsWithHardhatError(
       this.runControlledDeploy(moduleDefinition, async (c: TestChainHelper) => {
         // wait for foo1 to be submitted
         await c.waitForPendingTxs(1);
@@ -73,7 +74,12 @@ describe("execution - error on user transaction sent", () => {
           "0xc460a0b29b312aab7cfe6196aaf8d2ee991428c0c01fc7ab185f70041b7526a0",
         );
       }),
-      "IGN405: The next nonce for 0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc should be 1, but is 2. Please make sure not to send transactions from 0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc while running this deployment and try again.",
+      HardhatError.ERRORS.IGNITION.EXECUTION.INVALID_NONCE,
+      {
+        sender: "0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc",
+        expectedNonce: 1,
+        pendingCount: 2,
+      },
     );
   });
 });

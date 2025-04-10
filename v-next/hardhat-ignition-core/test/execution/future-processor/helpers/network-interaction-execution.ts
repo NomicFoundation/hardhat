@@ -1,3 +1,5 @@
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { assert } from "chai";
 
 import {
@@ -279,7 +281,7 @@ describe("Network interactions", () => {
         ],
       };
 
-      await assert.isRejected(
+      await assertRejectsWithHardhatError(
         monitorOnchainInteraction(
           deploymentExecutionState,
           mockClient,
@@ -290,7 +292,11 @@ describe("Network interactions", () => {
           testGetTransactionRetryConfig,
           false,
         ),
-        /IGN401: Error while executing test: all the transactions of its network interaction 1 were dropped\. Please try rerunning Hardhat Ignition\./,
+        HardhatError.ERRORS.IGNITION.EXECUTION.DROPPED_TRANSACTION,
+        {
+          futureId: "test",
+          networkInteractionId: 1,
+        },
       );
 
       assert.equal(mockClient.calls, 10);
@@ -653,7 +659,7 @@ describe("Network interactions", () => {
                 shouldBeResent: false,
               };
 
-              await assert.isRejected(
+              await assertRejectsWithHardhatError(
                 sendTransactionForOnchainInteraction(
                   client,
                   exampleAccounts[0],
@@ -661,7 +667,12 @@ describe("Network interactions", () => {
                   nonceManager,
                   async () => undefined,
                 ),
-                /^IGN408/,
+                HardhatError.ERRORS.IGNITION.EXECUTION
+                  .INSUFFICIENT_FUNDS_FOR_TRANSFER,
+                {
+                  sender: exampleAccounts[0],
+                  amount: "0",
+                },
               );
             });
           });
@@ -683,7 +694,7 @@ describe("Network interactions", () => {
                 shouldBeResent: false,
               };
 
-              await assert.isRejected(
+              await assertRejectsWithHardhatError(
                 sendTransactionForOnchainInteraction(
                   client,
                   exampleAccounts[0],
@@ -691,7 +702,11 @@ describe("Network interactions", () => {
                   nonceManager,
                   async () => undefined,
                 ),
-                /^IGN409/,
+                HardhatError.ERRORS.IGNITION.EXECUTION
+                  .INSUFFICIENT_FUNDS_FOR_DEPLOY,
+                {
+                  sender: exampleAccounts[0],
+                },
               );
             });
           });
@@ -711,7 +726,7 @@ describe("Network interactions", () => {
                 shouldBeResent: false,
               };
 
-              await assert.isRejected(
+              await assertRejectsWithHardhatError(
                 sendTransactionForOnchainInteraction(
                   client,
                   exampleAccounts[0],
@@ -719,7 +734,10 @@ describe("Network interactions", () => {
                   nonceManager,
                   async () => undefined,
                 ),
-                /^IGN410/,
+                HardhatError.ERRORS.IGNITION.EXECUTION.GAS_ESTIMATION_FAILED,
+                {
+                  error: "unknown error",
+                },
               );
             });
           });

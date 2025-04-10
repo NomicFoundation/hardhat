@@ -1,10 +1,8 @@
-/* eslint-disable import/no-unused-modules */
 import type { DeploymentResult } from "@nomicfoundation/ignition-core";
 
-import {
-  DeploymentResultType,
-  IgnitionError,
-} from "@nomicfoundation/ignition-core";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
+import { DeploymentResultType } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
 import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";
@@ -13,25 +11,16 @@ describe("default sender", function () {
   useEphemeralIgnitionProject("minimal");
 
   it("should throw if default sender is not in configured accounts", async function () {
-    // TODO: HH3 can this pattern be improved on with utils?
-    let threwException = false;
-    try {
-      await this.hre.tasks.getTask(["ignition", "deploy"]).run({
+    await assertRejectsWithHardhatError(
+      this.hre.tasks.getTask(["ignition", "deploy"]).run({
         modulePath: "ignition/modules/OwnModule.js",
         defaultSender: "0x1234567890abcdef1234567890abcdef12345678",
-      });
-    } catch (error) {
-      threwException = true;
-
-      assert.instanceOf(error, IgnitionError);
-      assert.include(
-        error.message,
-        "IGN700: Default sender 0x1234567890abcdef1234567890abcdef12345678 is not part of the configured accounts.",
-      );
-      assert.equal(error.errorNumber, 700);
-    }
-
-    assert.isTrue(threwException);
+      }),
+      HardhatError.ERRORS.IGNITION.VALIDATION.INVALID_DEFAULT_SENDER,
+      {
+        defaultSender: "0x1234567890abcdef1234567890abcdef12345678",
+      },
+    );
   });
 
   it("should allow setting default sender via cli", async function () {

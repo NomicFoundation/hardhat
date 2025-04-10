@@ -10,7 +10,7 @@ export function validateParams<TypesT extends ReadonlyArray<ZodType<any>>>(
 } {
   if (types === undefined && params.length > 0) {
     throw new HardhatError(
-      HardhatError.ERRORS.NETWORK.WRONG_VALIDATION_PARAMS,
+      HardhatError.ERRORS.CORE.NETWORK.WRONG_VALIDATION_PARAMS,
       {
         reason: `No argument was expected and got ${params.length}`,
       },
@@ -29,7 +29,7 @@ export function validateParams<TypesT extends ReadonlyArray<ZodType<any>>>(
   if (optionalParams === 0) {
     if (params.length !== types.length) {
       throw new HardhatError(
-        HardhatError.ERRORS.NETWORK.WRONG_VALIDATION_PARAMS,
+        HardhatError.ERRORS.CORE.NETWORK.WRONG_VALIDATION_PARAMS,
         {
           reason: `Expected exactly ${types.length} arguments and got ${params.length}`,
         },
@@ -41,7 +41,7 @@ export function validateParams<TypesT extends ReadonlyArray<ZodType<any>>>(
       params.length < types.length - optionalParams
     ) {
       throw new HardhatError(
-        HardhatError.ERRORS.NETWORK.WRONG_VALIDATION_PARAMS,
+        HardhatError.ERRORS.CORE.NETWORK.WRONG_VALIDATION_PARAMS,
         {
           reason: `Expected between ${types.length - optionalParams} and ${
             types.length

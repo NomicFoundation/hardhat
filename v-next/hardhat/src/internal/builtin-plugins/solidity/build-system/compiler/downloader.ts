@@ -168,7 +168,7 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
           ensureError(e);
 
           throw new HardhatError(
-            HardhatError.ERRORS.SOLIDITY.VERSION_LIST_DOWNLOAD_FAILED,
+            HardhatError.ERRORS.CORE.SOLIDITY.VERSION_LIST_DOWNLOAD_FAILED,
             e,
           );
         }
@@ -205,7 +205,7 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
         ensureError(e);
 
         throw new HardhatError(
-          HardhatError.ERRORS.SOLIDITY.DOWNLOAD_FAILED,
+          HardhatError.ERRORS.CORE.SOLIDITY.DOWNLOAD_FAILED,
           {
             remoteVersion: build.longVersion,
           },
@@ -215,9 +215,12 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
 
       const verified = await this.#verifyCompilerDownload(build, downloadPath);
       if (!verified) {
-        throw new HardhatError(HardhatError.ERRORS.SOLIDITY.INVALID_DOWNLOAD, {
-          remoteVersion: build.longVersion,
-        });
+        throw new HardhatError(
+          HardhatError.ERRORS.CORE.SOLIDITY.INVALID_DOWNLOAD,
+          {
+            remoteVersion: build.longVersion,
+          },
+        );
       }
 
       return this.#postProcessCompilerDownload(build, downloadPath);
@@ -263,7 +266,7 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
 
     if (build === undefined) {
       throw new HardhatError(
-        HardhatError.ERRORS.SOLIDITY.INVALID_SOLC_VERSION,
+        HardhatError.ERRORS.CORE.SOLIDITY.INVALID_SOLC_VERSION,
         {
           version,
         },

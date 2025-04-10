@@ -40,8 +40,8 @@ import type {
   SerializedSendDataFuture,
 } from "./types/serialization.js";
 
-import { IgnitionError } from "./errors.js";
-import { ERRORS } from "./internal/errors-list.js";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+
 import {
   AccountRuntimeValueImplementation,
   ArtifactContractAtFutureImplementation,
@@ -600,18 +600,24 @@ export class IgnitionModuleDeserializer {
       const swappedFuture = this._lookup(futureLookup, arg.futureId);
 
       if (swappedFuture === undefined) {
-        throw new IgnitionError(ERRORS.SERIALIZATION.INVALID_FUTURE_ID, {
-          futureId: arg.futureId,
-        });
+        throw new HardhatError(
+          HardhatError.ERRORS.IGNITION.SERIALIZATION.INVALID_FUTURE_ID,
+          {
+            futureId: arg.futureId,
+          },
+        );
       }
 
       if (
         swappedFuture.type === FutureType.CONTRACT_CALL ||
         swappedFuture.type === FutureType.SEND_DATA
       ) {
-        throw new IgnitionError(ERRORS.SERIALIZATION.INVALID_FUTURE_TYPE, {
-          type: FutureType[swappedFuture.type],
-        });
+        throw new HardhatError(
+          HardhatError.ERRORS.IGNITION.SERIALIZATION.INVALID_FUTURE_TYPE,
+          {
+            type: FutureType[swappedFuture.type],
+          },
+        );
       }
 
       return swappedFuture;
@@ -936,9 +942,12 @@ export class IgnitionModuleDeserializer {
     const value = lookupTable.get(key);
 
     if (value === undefined) {
-      throw new IgnitionError(ERRORS.SERIALIZATION.LOOKAHEAD_NOT_FOUND, {
-        key,
-      });
+      throw new HardhatError(
+        HardhatError.ERRORS.IGNITION.SERIALIZATION.LOOKAHEAD_NOT_FOUND,
+        {
+          key,
+        },
+      );
     }
 
     return value;

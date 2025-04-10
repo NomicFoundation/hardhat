@@ -41,7 +41,7 @@ describe("Hardhat Mocha plugin", () => {
 
       await assertRejectsWithHardhatError(
         createHardhatRuntimeEnvironment(hardhatConfig.default),
-        HardhatError.ERRORS.GENERAL.INVALID_CONFIG,
+        HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG,
         { errors },
       );
     });

@@ -432,7 +432,7 @@ describe("TaskManagerImplementation", () => {
           {},
         ),
 
-        HardhatError.ERRORS.TASK_DEFINITIONS.TASK_OPTION_ALREADY_DEFINED,
+        HardhatError.ERRORS.CORE.TASK_DEFINITIONS.TASK_OPTION_ALREADY_DEFINED,
         {
           actorFragment: "Plugin plugin1 is",
           task: "task1",
@@ -472,7 +472,7 @@ describe("TaskManagerImplementation", () => {
           {},
         ),
 
-        HardhatError.ERRORS.TASK_DEFINITIONS.TASK_OPTION_ALREADY_DEFINED,
+        HardhatError.ERRORS.CORE.TASK_DEFINITIONS.TASK_OPTION_ALREADY_DEFINED,
         {
           actorFragment: "Plugin plugin1 is",
           task: "task1",
@@ -505,7 +505,7 @@ describe("TaskManagerImplementation", () => {
           },
           {},
         ),
-        HardhatError.ERRORS.TASK_DEFINITIONS.EMPTY_TASK_ID,
+        HardhatError.ERRORS.CORE.TASK_DEFINITIONS.EMPTY_TASK_ID,
         {},
       );
     });
@@ -531,7 +531,7 @@ describe("TaskManagerImplementation", () => {
           },
           {},
         ),
-        HardhatError.ERRORS.TASK_DEFINITIONS.SUBTASK_WITHOUT_PARENT,
+        HardhatError.ERRORS.CORE.TASK_DEFINITIONS.SUBTASK_WITHOUT_PARENT,
         {
           task: "task1",
           subtask: "task1 subtask1",
@@ -566,7 +566,7 @@ describe("TaskManagerImplementation", () => {
           },
           {},
         ),
-        HardhatError.ERRORS.TASK_DEFINITIONS.TASK_ALREADY_DEFINED,
+        HardhatError.ERRORS.CORE.TASK_DEFINITIONS.TASK_ALREADY_DEFINED,
         {
           actorFragment: "Plugin plugin2 is",
           task: "task1",
@@ -593,7 +593,7 @@ describe("TaskManagerImplementation", () => {
           },
           {},
         ),
-        HardhatError.ERRORS.TASK_DEFINITIONS.TASK_NOT_FOUND,
+        HardhatError.ERRORS.CORE.TASK_DEFINITIONS.TASK_NOT_FOUND,
         {
           task: "task1",
         },
@@ -628,7 +628,7 @@ describe("TaskManagerImplementation", () => {
           },
           {},
         ),
-        HardhatError.ERRORS.TASK_DEFINITIONS
+        HardhatError.ERRORS.CORE.TASK_DEFINITIONS
           .TASK_OVERRIDE_OPTION_ALREADY_DEFINED,
         {
           actorFragment: "Plugin plugin2 is",
@@ -664,7 +664,7 @@ describe("TaskManagerImplementation", () => {
           },
           {},
         ),
-        HardhatError.ERRORS.TASK_DEFINITIONS
+        HardhatError.ERRORS.CORE.TASK_DEFINITIONS
           .TASK_OVERRIDE_OPTION_ALREADY_DEFINED,
         {
           actorFragment: "Plugin plugin2 is",
@@ -702,7 +702,7 @@ describe("TaskManagerImplementation", () => {
           },
           {},
         ),
-        HardhatError.ERRORS.TASK_DEFINITIONS
+        HardhatError.ERRORS.CORE.TASK_DEFINITIONS
           .TASK_OVERRIDE_OPTION_ALREADY_DEFINED,
         {
           actorFragment: "Plugin plugin2 is",
@@ -738,7 +738,7 @@ describe("TaskManagerImplementation", () => {
           },
           {},
         ),
-        HardhatError.ERRORS.TASK_DEFINITIONS
+        HardhatError.ERRORS.CORE.TASK_DEFINITIONS
           .TASK_OVERRIDE_OPTION_ALREADY_DEFINED,
         {
           actorFragment: "Plugin plugin2 is",
@@ -776,7 +776,7 @@ describe("TaskManagerImplementation", () => {
           },
           {},
         ),
-        HardhatError.ERRORS.TASK_DEFINITIONS
+        HardhatError.ERRORS.CORE.TASK_DEFINITIONS
           .TASK_OVERRIDE_OPTION_ALREADY_DEFINED,
         {
           actorFragment: "Plugin plugin2 is",
@@ -812,7 +812,7 @@ describe("TaskManagerImplementation", () => {
           },
           {},
         ),
-        HardhatError.ERRORS.TASK_DEFINITIONS
+        HardhatError.ERRORS.CORE.TASK_DEFINITIONS
           .TASK_OVERRIDE_OPTION_ALREADY_DEFINED,
         {
           actorFragment: "Plugin plugin2 is",
@@ -850,7 +850,7 @@ describe("TaskManagerImplementation", () => {
           },
           {},
         ),
-        HardhatError.ERRORS.TASK_DEFINITIONS
+        HardhatError.ERRORS.CORE.TASK_DEFINITIONS
           .TASK_OVERRIDE_OPTION_ALREADY_DEFINED,
         {
           actorFragment: "Plugin plugin2 is",
@@ -886,7 +886,7 @@ describe("TaskManagerImplementation", () => {
           },
           {},
         ),
-        HardhatError.ERRORS.TASK_DEFINITIONS
+        HardhatError.ERRORS.CORE.TASK_DEFINITIONS
           .TASK_OVERRIDE_OPTION_ALREADY_DEFINED,
         {
           actorFragment: "Plugin plugin2 is",
@@ -920,7 +920,7 @@ describe("TaskManagerImplementation", () => {
           },
           {},
         ),
-        HardhatError.ERRORS.TASK_DEFINITIONS.TASK_NOT_FOUND,
+        HardhatError.ERRORS.CORE.TASK_DEFINITIONS.TASK_NOT_FOUND,
         {
           task: "task1",
         },
@@ -947,7 +947,7 @@ describe("TaskManagerImplementation", () => {
             },
             {},
           ),
-          HardhatError.ERRORS.TASK_DEFINITIONS.EMPTY_TASK_ID,
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.EMPTY_TASK_ID,
           {},
         );
 
@@ -972,7 +972,7 @@ describe("TaskManagerImplementation", () => {
             },
             {},
           ),
-          HardhatError.ERRORS.TASK_DEFINITIONS.EMPTY_TASK_ID,
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.EMPTY_TASK_ID,
           {},
         );
 
@@ -996,7 +996,7 @@ describe("TaskManagerImplementation", () => {
             },
             {},
           ),
-          HardhatError.ERRORS.TASK_DEFINITIONS.EMPTY_TASK_ID,
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.EMPTY_TASK_ID,
           {},
         );
       });
@@ -1024,7 +1024,7 @@ describe("TaskManagerImplementation", () => {
             },
             {},
           ),
-          HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_FILE_ACTION,
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INVALID_FILE_ACTION,
           {
             action: invalidActionFileUrl,
           },
@@ -1050,7 +1050,7 @@ describe("TaskManagerImplementation", () => {
             },
             {},
           ),
-          HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_FILE_ACTION,
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INVALID_FILE_ACTION,
           {
             action: invalidActionFileUrl,
           },
@@ -1087,7 +1087,7 @@ describe("TaskManagerImplementation", () => {
             },
             {},
           ),
-          HardhatError.ERRORS.ARGUMENTS.INVALID_NAME,
+          HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_NAME,
           {
             name: invalidName,
           },
@@ -1120,7 +1120,7 @@ describe("TaskManagerImplementation", () => {
             },
             {},
           ),
-          HardhatError.ERRORS.ARGUMENTS.INVALID_NAME,
+          HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_NAME,
           {
             name: invalidName,
           },
@@ -1157,7 +1157,7 @@ describe("TaskManagerImplementation", () => {
               },
               {},
             ),
-            HardhatError.ERRORS.ARGUMENTS.RESERVED_NAME,
+            HardhatError.ERRORS.CORE.ARGUMENTS.RESERVED_NAME,
             {
               name: reservedName,
             },
@@ -1190,7 +1190,7 @@ describe("TaskManagerImplementation", () => {
               },
               {},
             ),
-            HardhatError.ERRORS.ARGUMENTS.RESERVED_NAME,
+            HardhatError.ERRORS.CORE.ARGUMENTS.RESERVED_NAME,
             {
               name: reservedName,
             },
@@ -1235,7 +1235,7 @@ describe("TaskManagerImplementation", () => {
             },
             {},
           ),
-          HardhatError.ERRORS.ARGUMENTS.DUPLICATED_NAME,
+          HardhatError.ERRORS.CORE.ARGUMENTS.DUPLICATED_NAME,
           {
             name: duplicatedName,
           },
@@ -1275,7 +1275,7 @@ describe("TaskManagerImplementation", () => {
             },
             {},
           ),
-          HardhatError.ERRORS.ARGUMENTS.DUPLICATED_NAME,
+          HardhatError.ERRORS.CORE.ARGUMENTS.DUPLICATED_NAME,
           {
             name: duplicatedName,
           },
@@ -1312,7 +1312,7 @@ describe("TaskManagerImplementation", () => {
             },
             {},
           ),
-          HardhatError.ERRORS.ARGUMENTS.INVALID_NAME,
+          HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_NAME,
           {
             name: invalidName,
           },
@@ -1349,7 +1349,7 @@ describe("TaskManagerImplementation", () => {
               },
               {},
             ),
-            HardhatError.ERRORS.ARGUMENTS.RESERVED_NAME,
+            HardhatError.ERRORS.CORE.ARGUMENTS.RESERVED_NAME,
             {
               name: reservedName,
             },
@@ -1393,7 +1393,7 @@ describe("TaskManagerImplementation", () => {
             },
             {},
           ),
-          HardhatError.ERRORS.TASK_DEFINITIONS.REQUIRED_ARG_AFTER_OPTIONAL,
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.REQUIRED_ARG_AFTER_OPTIONAL,
           {
             name: "posArg2",
           },
@@ -1439,7 +1439,7 @@ describe("TaskManagerImplementation", () => {
       // task1 will not be found as it's not defined
       assertThrowsHardhatError(
         () => hre.tasks.getTask("task1"),
-        HardhatError.ERRORS.TASK_DEFINITIONS.TASK_NOT_FOUND,
+        HardhatError.ERRORS.CORE.TASK_DEFINITIONS.TASK_NOT_FOUND,
         {
           task: "task1",
         },
@@ -1858,7 +1858,7 @@ describe("TaskManagerImplementation", () => {
         const task1 = hre.tasks.getTask("task1");
         await assertRejectsWithHardhatError(
           task1.run(),
-          HardhatError.ERRORS.TASK_DEFINITIONS.EMPTY_TASK,
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.EMPTY_TASK,
           {
             task: "task1",
           },
@@ -1885,7 +1885,7 @@ describe("TaskManagerImplementation", () => {
         const task1 = hre.tasks.getTask("task1");
         await assertRejectsWithHardhatError(
           task1.run({ otherArg: "otherArgValue" }),
-          HardhatError.ERRORS.TASK_DEFINITIONS.UNRECOGNIZED_TASK_OPTION,
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.UNRECOGNIZED_TASK_OPTION,
           {
             option: "otherArg",
             task: "task1",
@@ -1920,7 +1920,8 @@ describe("TaskManagerImplementation", () => {
             option: "arg1Value",
             varArg: ["varValue1", "varValue2"],
           }),
-          HardhatError.ERRORS.TASK_DEFINITIONS.MISSING_VALUE_FOR_TASK_ARGUMENT,
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS
+            .MISSING_VALUE_FOR_TASK_ARGUMENT,
           {
             argument: "posArg",
             task: "task1",
@@ -1933,7 +1934,8 @@ describe("TaskManagerImplementation", () => {
             option: "arg1Value",
             posArg: "posValue",
           }),
-          HardhatError.ERRORS.TASK_DEFINITIONS.MISSING_VALUE_FOR_TASK_ARGUMENT,
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS
+            .MISSING_VALUE_FOR_TASK_ARGUMENT,
           {
             argument: "varArg",
             task: "task1",
@@ -1980,7 +1982,7 @@ describe("TaskManagerImplementation", () => {
             posArg: 10,
             varArg: ["file1", "file2", "file3"],
           }),
-          HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
           {
             value: "not a bigint",
             name: "option",
@@ -1996,7 +1998,7 @@ describe("TaskManagerImplementation", () => {
             posArg: true,
             varArg: ["file1", "file2", "file3"],
           }),
-          HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
           {
             value: true,
             name: "posArg",
@@ -2012,7 +2014,7 @@ describe("TaskManagerImplementation", () => {
             posArg: 10,
             varArg: "not an array",
           }),
-          HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
           {
             value: "not an array",
             name: "varArg",
@@ -2028,7 +2030,7 @@ describe("TaskManagerImplementation", () => {
             posArg: 10,
             varArg: ["file1", 5, "file3"],
           }),
-          HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
           {
             value: ["file1", 5, "file3"],
             name: "varArg",
@@ -2058,7 +2060,7 @@ describe("TaskManagerImplementation", () => {
         const task1 = hre.tasks.getTask("task1");
         await assertRejectsWithHardhatError(
           task1.run(),
-          HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_ACTION_URL,
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INVALID_ACTION_URL,
           {
             action: "file://not-a-module",
             task: "task1",
@@ -2096,7 +2098,7 @@ describe("TaskManagerImplementation", () => {
 
         await assertRejectsWithHardhatError(
           hre.tasks.getTask("task1").run(),
-          HardhatError.ERRORS.PLUGINS.PLUGIN_NOT_INSTALLED,
+          HardhatError.ERRORS.CORE.PLUGINS.PLUGIN_NOT_INSTALLED,
           {
             pluginId: "plugin1",
           },
@@ -2130,7 +2132,7 @@ describe("TaskManagerImplementation", () => {
 
         await assertRejectsWithHardhatError(
           hre.tasks.getTask("task1").run(),
-          HardhatError.ERRORS.PLUGINS.PLUGIN_NOT_INSTALLED,
+          HardhatError.ERRORS.CORE.PLUGINS.PLUGIN_NOT_INSTALLED,
           {
             pluginId: "plugin2",
           },
@@ -2161,7 +2163,7 @@ describe("TaskManagerImplementation", () => {
         const task1 = hre.tasks.getTask("task1");
         await assertRejectsWithHardhatError(
           task1.run(),
-          HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_ACTION,
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INVALID_ACTION,
           {
             action: actionUrl,
             task: "task1",
@@ -2193,7 +2195,7 @@ describe("TaskManagerImplementation", () => {
         const task1 = hre.tasks.getTask("task1");
         await assertRejectsWithHardhatError(
           task1.run(),
-          HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_ACTION,
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INVALID_ACTION,
           {
             action: actionUrl,
             task: "task1",

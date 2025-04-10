@@ -7,7 +7,7 @@ export function bigintReviver(key: string, value: any): any {
 
   if (typeof value === "number" && value > Number.MAX_SAFE_INTEGER) {
     throw new HardhatError(
-      HardhatError.ERRORS.IGNITION.PARAMETER_EXCEEDS_MAXIMUM_SAFE_INTEGER,
+      HardhatError.ERRORS.IGNITION.INTERNAL.PARAMETER_EXCEEDS_MAXIMUM_SAFE_INTEGER,
       { parameter: key, value },
     );
   }

@@ -24,7 +24,7 @@ export function preventAsyncMatcherChaining(
   }
 
   throw new HardhatError(
-    HardhatError.ERRORS.CHAI_MATCHERS.MATCHER_CANNOT_BE_CHAINED_AFTER,
+    HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.MATCHER_CANNOT_BE_CHAINED_AFTER,
     {
       matcher: matcherName,
       previousMatcher: previousMatcherName,

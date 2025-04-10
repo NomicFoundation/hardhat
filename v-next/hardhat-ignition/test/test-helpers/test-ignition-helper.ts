@@ -115,7 +115,7 @@ export class TestIgnitionHelper {
       const message = errorDeploymentResultToExceptionMessage(result);
 
       throw new HardhatError(
-        HardhatError.ERRORS.IGNITION.VIEM_TEST_HELPER_ERROR,
+        HardhatError.ERRORS.IGNITION.INTERNAL.VIEM_TEST_HELPER_ERROR,
         {
           message,
         },
@@ -176,7 +176,7 @@ export class TestIgnitionHelper {
   ): Promise<GetContractReturnType> {
     if (!isContractFuture(future)) {
       throw new HardhatError(
-        HardhatError.ERRORS.IGNITION.VIEM_TEST_HELPER_ERROR,
+        HardhatError.ERRORS.IGNITION.INTERNAL.VIEM_TEST_HELPER_ERROR,
         {
           message: `Expected contract future but got ${future.id} with type ${future.type} instead`,
         },

@@ -35,7 +35,7 @@ export function throwIfSolidityBuildFailed(
 ): asserts results is SuccessfulSolidityBuildResults {
   if ("reason" in results) {
     throw new HardhatError(
-      HardhatError.ERRORS.SOLIDITY.COMPILATION_JOB_CREATION_ERROR,
+      HardhatError.ERRORS.CORE.SOLIDITY.COMPILATION_JOB_CREATION_ERROR,
       {
         reason: results.formattedReason,
         rootFilePath: results.rootFilePath,
@@ -51,7 +51,7 @@ export function throwIfSolidityBuildFailed(
   );
 
   if (!sucessful) {
-    throw new HardhatError(HardhatError.ERRORS.SOLIDITY.BUILD_FAILED);
+    throw new HardhatError(HardhatError.ERRORS.CORE.SOLIDITY.BUILD_FAILED);
   }
 }
 

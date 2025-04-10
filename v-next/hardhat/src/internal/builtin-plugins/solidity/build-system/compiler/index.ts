@@ -66,9 +66,12 @@ export async function downloadConfiguredCompilers(
       const success = await wasmCompilerDownloader.downloadCompiler(version);
 
       if (!success) {
-        throw new HardhatError(HardhatError.ERRORS.SOLIDITY.DOWNLOAD_FAILED, {
-          remoteVersion: version,
-        });
+        throw new HardhatError(
+          HardhatError.ERRORS.CORE.SOLIDITY.DOWNLOAD_FAILED,
+          {
+            remoteVersion: version,
+          },
+        );
       }
     }
   }

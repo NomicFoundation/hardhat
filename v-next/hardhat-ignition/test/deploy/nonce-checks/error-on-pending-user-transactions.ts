@@ -1,6 +1,7 @@
-/* eslint-disable import/no-unused-modules */
 import type { TestChainHelper } from "../../test-helpers/use-ignition-project.js";
 
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { buildModule } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 import { createWalletClient, custom } from "viem";
@@ -55,12 +56,16 @@ describe("execution - error on pending user transactions", () => {
     await waitForPendingTxs(this.connection, 1, deployPromise);
 
     // Deploying the module that uses accounts[2] throws with a warning
-    await assert.isRejected(
+    await assertRejectsWithHardhatError(
       this.runControlledDeploy(
         moduleDefinition,
         async (_c: TestChainHelper) => {},
       ),
-      "IGN403: You have sent transactions from 0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc and they interfere with Hardhat Ignition. Please wait until they get 1 confirmations before running Hardhat Ignition again.",
+      HardhatError.ERRORS.IGNITION.EXECUTION.WAITING_FOR_CONFIRMATIONS,
+      {
+        sender: "0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc",
+        requiredConfirmations: 1,
+      },
     );
 
     // Now mine the user interference transaction

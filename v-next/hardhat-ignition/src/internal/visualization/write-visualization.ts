@@ -28,7 +28,7 @@ export async function writeVisualization(
 
   if (!templateDirExists) {
     throw new HardhatError(
-      HardhatError.ERRORS.IGNITION.VISUALIZATION_TEMPLATE_DIR_NOT_FOUND,
+      HardhatError.ERRORS.IGNITION.INTERNAL.VISUALIZATION_TEMPLATE_DIR_NOT_FOUND,
       {
         templateDir,
       },
