@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.15.11
+
+### Patch Changes
+
+- cf16afa: Override max-width to fix ignition graph centering
+
 ## 0.15.10
 
 ### Patch Changes
