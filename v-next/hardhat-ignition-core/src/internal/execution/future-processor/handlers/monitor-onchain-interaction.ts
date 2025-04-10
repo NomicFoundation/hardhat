@@ -36,7 +36,7 @@ export interface GetTransactionRetryConfig {
  * timed out.
  *
  * If all of the transactions of the latest network interaction have been dropped, this
- * method throws an HardhatError.
+ * method throws a HardhatError.
  *
  * SIDE EFFECTS: This function doesn't have any side effects.
  *
