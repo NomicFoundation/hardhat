@@ -44,16 +44,16 @@ jobs:
           version: pnpm run version
 
       - name: Build All Packages
-        if: steps.pr.outputs.hasChangesets == ''
+        if: steps.pr.outputs.hasChangesets == 'false'
         run: pnpm run --recursive -no-bail --filter './v-next/**' --if-present build
 
       - name: Publish All Packages (dry-run)
-        if: steps.pr.outputs.hasChangesets == ''
+        if: steps.pr.outputs.hasChangesets == 'false'
         run: pnpm publish --filter "./v-next/**" -r --no-git-checks --tag next --access public --dry-run
 
       - name: Publish All Packages
         id: publish
-        if: steps.pr.outputs.hasChangesets == ''
+        if: steps.pr.outputs.hasChangesets == 'false'
         env:
           NODE_AUTH_TOKEN: ${{ github.token }}
           NPM_CONFIG_PROVENANCE: true
@@ -64,7 +64,7 @@ jobs:
 
       - name: Check if hardhat was published
         id: hardhat
-        if: steps.pr.outputs.hasChangesets == ''
+        if: steps.pr.outputs.hasChangesets == 'false'
         env:
           STDOUT: ${{ steps.publish.outputs.stdout }}
           PREFIX: 'New tag: hardhat@'
