@@ -1,5 +1,21 @@
 # hardhat
 
+## 2.23.0
+
+### Minor Changes
+
+- aa09462: Add support for the Prague hardfork
+
+### Patch Changes
+
+- a5419a7: Use `npm_config_user_agent` to determine what package manager to use for project creation
+- 4ad0bc0: Upgraded EDR to [v0.9.0](https://github.com/NomicFoundation/edr/releases/tag/%40nomicfoundation%2Fedr%400.9.0):
+  - Added support for the Prague hardfork
+- 9d6f713: Upgraded EDR to [v0.10.0](https://github.com/NomicFoundation/edr/releases/tag/%40nomicfoundation%2Fedr%400.10.0):
+  - Add Prague hardfork to the list of supported `SpecId`s
+- b61cdd8: Add hardfork activation history for avalanche network
+- 2f27ee8: Display configurable banner on project creation and task execution
+
 ## 2.22.19
 
 ### Patch Changes
