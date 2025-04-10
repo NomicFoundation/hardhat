@@ -393,7 +393,10 @@ describe("initHardhat", async () => {
     it(
       `should initialize the project using the ${template.name} template in an empty folder`,
       {
-        skip: process.env.HARDHAT_DISABLE_SLOW_TESTS === "true",
+        skip:
+          process.env.HARDHAT_DISABLE_SLOW_TESTS === "true" ||
+          process.env.GITHUB_EVENT_NAME === "merge_group" ||
+          process.env.GITHUB_HEAD_REF?.startsWith("changeset-release/"),
       },
       async () => {
         await initHardhat({

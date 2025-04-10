@@ -25,12 +25,13 @@ runs:
     - uses: pnpm/action-setup@v4
       with:
         version: ${{ inputs.pnpm-version }}
-    - uses: actions/setup-node@v4
-      id: setup-node
+    - id: setup-node
+      uses: actions/setup-node@v4
       with:
         node-version: ${{ inputs.node-version }}
         cache: ${{ inputs.cache-save == 'true' && 'pnpm' || '' }}
         cache-dependency-path: "**/pnpm-lock.yaml"
+        registry-url: https://npm.pkg.github.com
     - id: pnpm
       if: inputs.cache-save == 'false'
       run: pnpm store path --silent | xargs -I {} -0 echo "path={}" | tee -a $GITHUB_OUTPUT
