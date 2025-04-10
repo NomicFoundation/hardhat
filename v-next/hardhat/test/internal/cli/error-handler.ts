@@ -14,11 +14,18 @@ import {
   HARDHAT_WEBSITE_URL,
 } from "../../../src/internal/constants.js";
 
-const mockErrorDescriptor = {
+const mockCoreErrorDescriptor = {
   number: 123,
   messageTemplate: "error message",
   websiteTitle: "Mock error",
   websiteDescription: "This is a mock error",
+} as const;
+
+const mockPluginErrorDescriptor = {
+  number: 50000,
+  messageTemplate: "plugin error message",
+  websiteTitle: "Mock error",
+  websiteDescription: "This is a mock error in the range of a plugin",
 } as const;
 
 describe("error-handler", () => {
@@ -26,7 +33,7 @@ describe("error-handler", () => {
     describe("with a Hardhat error", () => {
       it("should print the error message", () => {
         const lines: string[] = [];
-        const error = new HardhatError(mockErrorDescriptor);
+        const error = new HardhatError(mockCoreErrorDescriptor);
 
         printErrorMessages(error, false, (msg: string) => {
           lines.push(msg);
@@ -47,7 +54,7 @@ describe("error-handler", () => {
 
       it("should print the stack trace", () => {
         const lines: string[] = [];
-        const error = new HardhatError(mockErrorDescriptor);
+        const error = new HardhatError(mockCoreErrorDescriptor);
 
         printErrorMessages(error, true, (msg: string) => {
           lines.push(msg);
@@ -66,10 +73,7 @@ describe("error-handler", () => {
     describe("with a Hardhat plugin error", () => {
       it("should print the error message", () => {
         const lines: string[] = [];
-        const error = new HardhatError({
-          pluginId: "example-plugin",
-          ...mockErrorDescriptor,
-        });
+        const error = new HardhatError(mockPluginErrorDescriptor);
 
         printErrorMessages(error, false, (msg: string) => {
           lines.push(msg);
@@ -90,10 +94,7 @@ describe("error-handler", () => {
 
       it("should print the stack trace", () => {
         const lines: string[] = [];
-        const error = new HardhatError({
-          pluginId: "example-plugin",
-          ...mockErrorDescriptor,
-        });
+        const error = new HardhatError(mockPluginErrorDescriptor);
 
         printErrorMessages(error, true, (msg: string) => {
           lines.push(msg);
