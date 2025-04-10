@@ -144,7 +144,7 @@ interface BannerCache {
 
 async function readCache(): Promise<BannerCache> {
   const cacheDir = await getCacheDir();
-  const versionNotifierCachePath = path.join(cacheDir, BANNER_CACHE_FILE_NAME);
+  const bannerCacheFilePath = path.join(cacheDir, BANNER_CACHE_FILE_NAME);
 
   let cache: BannerCache = {
     bannerConfig: undefined,
@@ -152,7 +152,7 @@ async function readCache(): Promise<BannerCache> {
     lastRequestTime: 0,
   };
   try {
-    const fileContents = await fs.readFile(versionNotifierCachePath, "utf-8");
+    const fileContents = await fs.readFile(bannerCacheFilePath, "utf-8");
     cache = JSON.parse(fileContents);
   } catch (error) {
     log(
@@ -167,14 +167,11 @@ async function readCache(): Promise<BannerCache> {
 
 async function writeCache(cache: BannerCache) {
   const cacheDir = await getCacheDir();
-  const versionNotifierCachePath = path.join(cacheDir, BANNER_CACHE_FILE_NAME);
+  const bannerCacheFilePath = path.join(cacheDir, BANNER_CACHE_FILE_NAME);
 
   try {
     await fs.mkdir(cacheDir, { recursive: true });
-    await fs.writeFile(
-      versionNotifierCachePath,
-      JSON.stringify(cache, null, 2)
-    );
+    await fs.writeFile(bannerCacheFilePath, JSON.stringify(cache, null, 2));
   } catch (error) {
     log(
       `Error writing cache file:  ${
