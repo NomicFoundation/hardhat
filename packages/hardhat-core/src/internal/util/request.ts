@@ -25,7 +25,9 @@ export async function requestJson(
     });
 
     if (response.statusCode !== 200) {
-      return;
+      /* eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
+      -- this is going to be captured by the catch block and logged */
+      throw new Error(`Request failed with status code ${response.statusCode}`);
     }
 
     const jsonResponse = await response.body.json();
