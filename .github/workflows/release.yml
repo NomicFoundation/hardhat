@@ -1,17 +1,22 @@
 name: Release
 
 on:
+  workflow_dispatch:
   push:
     branches:
-      - main
+      - v-next
+
+defaults:
+  run:
+    shell: bash
 
 jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
     permissions:
-      contents: write
-      pull-requests: write
+      contents: write # This allows us to push to the repository and create GitHub releases
+      pull-requests: write # This allows us to create pull requests
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
@@ -19,12 +24,119 @@ jobs:
           # This makes Actions fetch all Git history so that Changesets can generate changelogs with the correct commits
           fetch-depth: 0
 
-      - uses: ./.github/actions/setup-env
+      - name: Set up the environment
+        uses: ./.github/actions/setup-env
 
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile --prefer-offline
 
       - name: Create Release Pull Request
-        uses: changesets/action@v1
+        id: pr
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
+        uses: changesets/action@v1
+
+      - name: Build All Packages
+        if: steps.pr.outputs.hasChangesets == ''
+        run: pnpm run --recursive -no-bail --filter './v-next/**' --if-present build
+
+      - name: Publish All Packages (dry-run)
+        if: steps.pr.outputs.hasChangesets == ''
+        run: pnpm publish --filter "./v-next/**" -r --no-git-checks --tag next --access public --dry-run
+
+      - name: Publish All Packages
+        id: publish
+        if: steps.pr.outputs.hasChangesets == ''
+        env:
+          NODE_AUTH_TOKEN: ${{ github.token }}
+          NPM_CONFIG_PROVENANCE: true
+        run: |
+          echo "stdout<<EOF" >> $GITHUB_OUTPUT
+          pnpm publish --filter "./v-next/**" -r --no-git-checks --tag next --access public | tee -a $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Check if hardhat was published
+        id: hardhat
+        if: steps.pr.outputs.hasChangesets == ''
+        env:
+          STDOUT: ${{ steps.publish.outputs.stdout }}
+          PREFIX: 'New tag: hardhat@'
+        run: echo "$STDOUT" | grep "$PREFIX" | tr -d "$PREFIX" | xargs -I {} -0 echo "version={}" | tee -a $GITHUB_OUTPUT
+
+      - name: Find the changelog entry
+        id: changelog
+        if: steps.hardhat.outputs.version != ''
+        env:
+          VERSION: steps.hardhat.outputs.version
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs')
+
+            const changelog = fs.readFileSync('./v-next/hardhat/CHANGELOG.md')
+            core.debug(`Changelog: ${changelog}`)
+
+            core.info('Parsing changelog...')
+            const lines = changelog.split('\n')
+            const headerIndex = lines.findIndex((line) => line == `## ${process.env.VERSION}`)
+
+            if (headerIndex == -1) {
+              core.error(`Changelog entry for version ${process.env.VERSION} not found in ./v-next/hardhat/CHANGELOG.md`)
+              process.exit(1)
+            }
+
+            const entryLines = [];
+
+            for (const line of lines.slice(headerIndex + 1)) {
+              if (line.startsWith('## ')) {
+                break
+              }
+              entryLines.push(line)
+            }
+
+            const entry = entryLines.join('\n').trim()
+
+            core.debug(`Entry: ${entry}`)
+            core.setOutput('entry', entry)
+
+      - name: Retrieve the current latest version
+        id: latest
+        if: steps.hardhat.outputs.version != ''
+        run: gh release view --json tagName --jq .tagName | tr -d 'hardhat@' | xargs -I {} -0 echo "version={}" | tee -a $GITHUB_OUTPUT
+
+      - name: Check version
+        id: version
+        if: steps.hardhat.outputs.version != ''
+        env:
+          VERSION: steps.hardhat.outputs.version
+          LATEST: steps.latest.outputs.version
+        run: |
+          # NOTE: This check would mark non-prerelease versions with - in the build tag as prereleases
+          [[ "$VERSION" == *-* ]] && echo "true" || echo "false" | xargs -I {} -0 echo "prerelease={}" | tee -a $GITHUB_OUTPUT
+          latest="$((echo "$VERSION" && echo "$LATEST") | sort -V | tail -n1)"
+          [[ "$VERSION" == "$latest" ]] && echo "true" || echo "false" | xargs -I {} -0 echo "latest={}" | tee -a $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        if: steps.hardhat.outputs.version != ''
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        # NOTE: The action updates the release if it already exists
+        uses: galargh/action-gh-release@571276229e7c9e6ea18f99bad24122a4c3ec813f # https://github.com/galargh/action-gh-release/pull/1
+        with:
+          draft: false
+          tag_name: hardhat@${{ steps.hardhat.outputs.version }}
+          generate_release_notes: false
+          target_commitish: ${{ github.sha }}
+          make_latest: ${{ steps.version.outputs.prerelease == 'false' && steps.version.outputs.latest == 'true' }}
+          prerelease: ${{ steps.version.outputs.prerelease == 'true' }}
+          body: |
+            # ${{ steps.hardhat.outputs.version }}
+
+            ### Changes
+
+            ${{ steps.changelog.outputs.entry }}
+
+            ---
+            > 💡 **The Nomic Foundation is hiring! Check [our open positions](https://www.nomic.foundation/jobs).**
+            ---
+          token: ${{ github.token }}

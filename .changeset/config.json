@@ -1,6 +1,6 @@
 {
   "$schema": "https://unpkg.com/@changesets/config@1.6.0/schema.json",
-  "changelog": false,
+  "changelog": "@changesets/cli/changelog",
   "commit": false,
   "linked": [],
   "access": "public",
@@ -10,6 +10,29 @@
     "@nomicfoundation/example-project",
     "@nomicfoundation/template-package",
     "template-*"
+  ],
+  "fixed": [
+    [
+      "hardhat",
+      "@nomicfoundation/hardhat-errors",
+      "@nomicfoundation/hardhat-ethers",
+      "@nomicfoundation/hardhat-ethers-chai-matchers",
+      "@nomicfoundation/hardhat-ignition",
+      "@nomicfoundation/ignition-core",
+      "@nomicfoundation/hardhat-ignition-ethers",
+      "@nomicfoundation/ignition-ui",
+      "@nomicfoundation/hardhat-ignition-viem",
+      "@nomicfoundation/hardhat-keystore",
+      "@nomicfoundation/hardhat-mocha",
+      "@nomicfoundation/hardhat-network-helpers",
+      "@nomicfoundation/hardhat-node-test-reporter",
+      "@nomicfoundation/hardhat-node-test-runner",
+      "@nomicfoundation/hardhat-test-utils",
+      "@nomicfoundation/hardhat-typechain",
+      "@nomicfoundation/hardhat-utils",
+      "@nomicfoundation/hardhat-viem",
+      "@nomicfoundation/hardhat-zod-utils"
+    ]
   ],
   "___experimentalUnsafeOptions_WILL_CHANGE_IN_PATCH": {
     "onlyUpdatePeerDependentsWhenOutOfRange": true
