@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
+import { ensureError } from "../src/error.js";
+import { MutexTimeoutError } from "../src/errors/synchronization.js";
 import { sleep } from "../src/lang.js";
 import { MultiProcessMutex } from "../src/synchronization.js";
 
@@ -36,29 +38,39 @@ describe("multi-process-mutex", () => {
     );
   });
 
-  it("should overwrite the current mutex locked by another function because the function took to long to finish", async () => {
+  it("should execute the second function, as the first function encountered a mutex timeout", async () => {
     const mutexLifeSpanMs = 500;
     const mutex = new MultiProcessMutex(mutexName, mutexLifeSpanMs);
 
-    const res: number[] = [];
+    let errThrown = false;
+    let secondFnExecuted = false;
 
     await Promise.all([
-      mutex.use(async () => {
-        await sleep(2);
-        res.push(1);
-      }),
+      mutex
+        .use(async () => {
+          await sleep(2);
+        })
+        .catch((e: unknown) => {
+          ensureError(e);
+          assert.equal(
+            e.message,
+            new MutexTimeoutError(mutexLifeSpanMs).message,
+          );
+          errThrown = true;
+        }),
       new Promise((resolve) =>
         setTimeout(async () => {
           await mutex.use(async () => {
             await sleep(0.2);
-            res.push(2);
+            secondFnExecuted = true;
           });
           resolve(true);
         }, 200),
       ),
     ]);
 
-    assert.deepEqual(res, [2, 1]);
+    assert.equal(errThrown, true);
+    assert.equal(secondFnExecuted, true);
   });
 
   it("should get the mutex lock because the first function to own it failed", async () => {
@@ -75,7 +87,9 @@ describe("multi-process-mutex", () => {
         .use(async () => {
           throw new Error("Expected error");
         })
-        .catch(() => {
+        .catch((e: unknown) => {
+          ensureError(e);
+          assert.equal(e.message, "Expected error");
           errThrown = true;
         }),
       new Promise((resolve) =>
