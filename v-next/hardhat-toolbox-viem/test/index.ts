@@ -12,7 +12,7 @@ describe("hardhat-toolbox-viem", function () {
 
     it("should not throw because all the plugins should exist", async function () {
       const hardhatConfig = await import(
-        pathToFileURL(path.join(process.cwd(), "hardhat.config.js")).href
+        pathToFileURL(path.join(process.cwd(), "hardhat.config.ts")).href
       );
 
       const hre = await createHardhatRuntimeEnvironment(hardhatConfig.default);
