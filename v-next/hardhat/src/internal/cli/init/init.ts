@@ -191,9 +191,12 @@ export async function getWorkspace(workspace?: string): Promise<string> {
   workspace = resolveFromRoot(process.cwd(), workspace);
 
   if (!(await exists(workspace)) || !(await isDirectory(workspace))) {
-    throw new HardhatError(HardhatError.ERRORS.GENERAL.WORKSPACE_NOT_FOUND, {
-      workspace,
-    });
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.GENERAL.WORKSPACE_NOT_FOUND,
+      {
+        workspace,
+      },
+    );
   }
 
   // Validate that the workspace is not already initialized
@@ -201,7 +204,7 @@ export async function getWorkspace(workspace?: string): Promise<string> {
     const configFilePath = await findClosestHardhatConfig(workspace);
 
     throw new HardhatError(
-      HardhatError.ERRORS.GENERAL.HARDHAT_PROJECT_ALREADY_CREATED,
+      HardhatError.ERRORS.CORE.GENERAL.HARDHAT_PROJECT_ALREADY_CREATED,
       {
         hardhatProjectRootPath: configFilePath,
       },
@@ -209,7 +212,8 @@ export async function getWorkspace(workspace?: string): Promise<string> {
   } catch (err) {
     if (
       HardhatError.isHardhatError(err) &&
-      err.number === HardhatError.ERRORS.GENERAL.NO_CONFIG_FILE_FOUND.number
+      err.number ===
+        HardhatError.ERRORS.CORE.GENERAL.NO_CONFIG_FILE_FOUND.number
     ) {
       // If a configuration file is not found, it is possible to initialize a new project,
       // hence continuing code execution
@@ -246,7 +250,7 @@ export async function getTemplate(template?: string): Promise<Template> {
     }
   }
 
-  throw new HardhatError(HardhatError.ERRORS.GENERAL.TEMPLATE_NOT_FOUND, {
+  throw new HardhatError(HardhatError.ERRORS.CORE.GENERAL.TEMPLATE_NOT_FOUND, {
     template,
   });
 }
@@ -287,7 +291,7 @@ export async function validatePackageJson(
   }
 
   if (!migrateToEsm) {
-    throw new HardhatError(HardhatError.ERRORS.GENERAL.ONLY_ESM_SUPPORTED);
+    throw new HardhatError(HardhatError.ERRORS.CORE.GENERAL.ONLY_ESM_SUPPORTED);
   }
 
   const packageManager = await getPackageManager(workspace);

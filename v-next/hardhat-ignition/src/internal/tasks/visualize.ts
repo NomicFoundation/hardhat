@@ -6,13 +6,11 @@ import path from "node:path";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   batches,
-  IgnitionError,
   IgnitionModuleSerializer,
 } from "@nomicfoundation/ignition-core";
 
 import { loadModule } from "../utils/load-module.js";
 import { open } from "../utils/open.js";
-import { shouldBeHardhatPluginError } from "../utils/shouldBeHardhatPluginError.js";
 import { writeVisualization } from "../visualization/write-visualization.js";
 
 interface TaskVisualizeArguments {
@@ -29,7 +27,9 @@ const visualizeTask: NewTaskActionFunction<TaskVisualizeArguments> = async (
   const userModule = await loadModule(hre.config.paths.ignition, modulePath);
 
   if (userModule === undefined) {
-    throw new HardhatError(HardhatError.ERRORS.IGNITION.NO_MODULES_FOUND);
+    throw new HardhatError(
+      HardhatError.ERRORS.IGNITION.INTERNAL.NO_MODULES_FOUND,
+    );
   }
 
   try {
@@ -45,8 +45,11 @@ const visualizeTask: NewTaskActionFunction<TaskVisualizeArguments> = async (
       },
     );
   } catch (e) {
-    if (e instanceof IgnitionError && shouldBeHardhatPluginError(e)) {
-      throw new HardhatError(HardhatError.ERRORS.IGNITION.INTERNAL_ERROR, e);
+    if (e instanceof Error) {
+      throw new HardhatError(
+        HardhatError.ERRORS.IGNITION.INTERNAL.INTERNAL_ERROR,
+        e,
+      );
     }
 
     throw e;

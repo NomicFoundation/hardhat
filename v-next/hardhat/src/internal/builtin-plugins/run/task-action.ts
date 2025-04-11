@@ -19,7 +19,7 @@ const runScriptWithHardhat: NewTaskActionFunction<RunActionArguments> = async (
 
   if (!(await exists(normalizedPath))) {
     throw new HardhatError(
-      HardhatError.ERRORS.BUILTIN_TASKS.RUN_FILE_NOT_FOUND,
+      HardhatError.ERRORS.CORE.BUILTIN_TASKS.RUN_FILE_NOT_FOUND,
       { script },
     );
   }

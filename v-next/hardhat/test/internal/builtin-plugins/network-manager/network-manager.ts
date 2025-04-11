@@ -232,7 +232,7 @@ describe("NetworkManagerImplementation", () => {
     it("should throw an error if the specified network doesn't exist", async () => {
       await assertRejectsWithHardhatError(
         networkManager.connect("unknownNetwork"),
-        HardhatError.ERRORS.NETWORK.NETWORK_NOT_FOUND,
+        HardhatError.ERRORS.CORE.NETWORK.NETWORK_NOT_FOUND,
         { networkName: "unknownNetwork" },
       );
     });
@@ -244,7 +244,7 @@ describe("NetworkManagerImplementation", () => {
         networkManager.connect("myNetwork", OPTIMISM_CHAIN_TYPE, {
           type: "edr",
         } as any),
-        HardhatError.ERRORS.NETWORK.INVALID_CONFIG_OVERRIDE,
+        HardhatError.ERRORS.CORE.NETWORK.INVALID_CONFIG_OVERRIDE,
         {
           errors: `\t* The type of the network cannot be changed.`,
         },
@@ -256,7 +256,7 @@ describe("NetworkManagerImplementation", () => {
         networkManager.connect("myNetwork", OPTIMISM_CHAIN_TYPE, {
           type: undefined,
         } as any),
-        HardhatError.ERRORS.NETWORK.INVALID_CONFIG_OVERRIDE,
+        HardhatError.ERRORS.CORE.NETWORK.INVALID_CONFIG_OVERRIDE,
         {
           errors: `\t* The type of the network cannot be changed.`,
         },
@@ -270,7 +270,7 @@ describe("NetworkManagerImplementation", () => {
         networkManager.connect("myNetwork", OPTIMISM_CHAIN_TYPE, {
           chainId: "1234",
         } as any),
-        HardhatError.ERRORS.NETWORK.INVALID_CONFIG_OVERRIDE,
+        HardhatError.ERRORS.CORE.NETWORK.INVALID_CONFIG_OVERRIDE,
         {
           errors: `\t* Error in chainId: Expected number, received string`,
         },
@@ -284,7 +284,7 @@ describe("NetworkManagerImplementation", () => {
           url: "http://localhost:8545",
           hardfork: "cancun",
         } as any),
-        HardhatError.ERRORS.NETWORK.INVALID_CONFIG_OVERRIDE,
+        HardhatError.ERRORS.CORE.NETWORK.INVALID_CONFIG_OVERRIDE,
         {
           errors: `\t* Unrecognized key(s) in object: 'hardfork'`,
         },
@@ -294,7 +294,7 @@ describe("NetworkManagerImplementation", () => {
     it("should throw an error if the specified chain type doesn't match the network's chain type", async () => {
       await assertRejectsWithHardhatError(
         networkManager.connect("myNetwork", L1_CHAIN_TYPE),
-        HardhatError.ERRORS.NETWORK.INVALID_CHAIN_TYPE,
+        HardhatError.ERRORS.CORE.NETWORK.INVALID_CHAIN_TYPE,
         {
           networkName: "myNetwork",
           chainType: L1_CHAIN_TYPE,

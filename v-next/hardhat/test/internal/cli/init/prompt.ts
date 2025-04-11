@@ -15,7 +15,7 @@ describe("promptForWorkspace", () => {
     if (!process.stdout.isTTY) {
       await assertRejectsWithHardhatError(
         async () => promptForWorkspace(),
-        HardhatError.ERRORS.GENERAL.NOT_IN_INTERACTIVE_SHELL,
+        HardhatError.ERRORS.CORE.GENERAL.NOT_IN_INTERACTIVE_SHELL,
         {},
       );
     }
@@ -27,7 +27,7 @@ describe("promptForTemplate", () => {
     if (!process.stdout.isTTY) {
       await assertRejectsWithHardhatError(
         async () => promptForTemplate([]),
-        HardhatError.ERRORS.GENERAL.NOT_IN_INTERACTIVE_SHELL,
+        HardhatError.ERRORS.CORE.GENERAL.NOT_IN_INTERACTIVE_SHELL,
         {},
       );
     }
@@ -39,7 +39,7 @@ describe("promptForForce", () => {
     if (!process.stdout.isTTY) {
       await assertRejectsWithHardhatError(
         async () => promptForForce([]),
-        HardhatError.ERRORS.GENERAL.NOT_IN_INTERACTIVE_SHELL,
+        HardhatError.ERRORS.CORE.GENERAL.NOT_IN_INTERACTIVE_SHELL,
         {},
       );
     }
@@ -51,7 +51,7 @@ describe("promptForInstall", () => {
     if (!process.stdout.isTTY) {
       await assertRejectsWithHardhatError(
         async () => promptForInstall("foo"),
-        HardhatError.ERRORS.GENERAL.NOT_IN_INTERACTIVE_SHELL,
+        HardhatError.ERRORS.CORE.GENERAL.NOT_IN_INTERACTIVE_SHELL,
         {},
       );
     }

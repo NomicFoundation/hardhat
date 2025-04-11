@@ -184,9 +184,12 @@ export class EthersIgnitionHelperImpl<ChainTypeT extends ChainType | string>
     if (result.type !== DeploymentResultType.SUCCESSFUL_DEPLOYMENT) {
       const message = errorDeploymentResultToExceptionMessage(result);
 
-      throw new HardhatError(HardhatError.ERRORS.IGNITION.DEPLOYMENT_ERROR, {
-        message,
-      });
+      throw new HardhatError(
+        HardhatError.ERRORS.IGNITION.INTERNAL.DEPLOYMENT_ERROR,
+        {
+          message,
+        },
+      );
     }
 
     return this.#toEthersContracts(this.#connection, ignitionModule, result);

@@ -1,8 +1,8 @@
 import type { IgnitionModuleBuilder } from "./types/module-builder.js";
 import type { IgnitionModule, IgnitionModuleResult } from "./types/module.js";
 
-import { IgnitionError } from "./errors.js";
-import { ERRORS } from "./internal/errors-list.js";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+
 import { ModuleConstructor } from "./internal/module-builder.js";
 import { isValidIgnitionIdentifier } from "./internal/utils/identifier-validators.js";
 
@@ -25,17 +25,24 @@ export function buildModule<
   moduleDefintionFunction: (m: IgnitionModuleBuilder) => IgnitionModuleResultsT,
 ): IgnitionModule<ModuleIdT, ContractNameT, IgnitionModuleResultsT> {
   if (typeof moduleId !== "string") {
-    throw new IgnitionError(ERRORS.MODULE.INVALID_MODULE_ID);
+    throw new HardhatError(
+      HardhatError.ERRORS.IGNITION.MODULE.INVALID_MODULE_ID,
+    );
   }
 
   if (!isValidIgnitionIdentifier(moduleId)) {
-    throw new IgnitionError(ERRORS.MODULE.INVALID_MODULE_ID_CHARACTERS, {
-      moduleId,
-    });
+    throw new HardhatError(
+      HardhatError.ERRORS.IGNITION.MODULE.INVALID_MODULE_ID_CHARACTERS,
+      {
+        moduleId,
+      },
+    );
   }
 
   if (typeof moduleDefintionFunction !== "function") {
-    throw new IgnitionError(ERRORS.MODULE.INVALID_MODULE_DEFINITION_FUNCTION);
+    throw new HardhatError(
+      HardhatError.ERRORS.IGNITION.MODULE.INVALID_MODULE_DEFINITION_FUNCTION,
+    );
   }
 
   const constructor = new ModuleConstructor();
@@ -69,7 +76,10 @@ function _checkForDuplicateModuleIds(
     return;
   }
 
-  throw new IgnitionError(ERRORS.MODULE.DUPLICATE_MODULE_ID, {
-    duplicateModuleIds: duplicateModuleIds.join(", "),
-  });
+  throw new HardhatError(
+    HardhatError.ERRORS.IGNITION.MODULE.DUPLICATE_MODULE_ID,
+    {
+      duplicateModuleIds: duplicateModuleIds.join(", "),
+    },
+  );
 }

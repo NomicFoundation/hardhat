@@ -1,3 +1,5 @@
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { assert } from "chai";
 
 import { ExecutionResultType } from "../../../src/internal/execution/types/execution-result.js";
@@ -38,7 +40,14 @@ describe("find result by future by", () => {
       },
     } as any;
 
-    assert.throws(() => findResultForFutureById(deploymentState, futureId));
+    assertThrowsHardhatError(
+      () => findResultForFutureById(deploymentState, futureId),
+      HardhatError.ERRORS.IGNITION.GENERAL.ASSERTION_ERROR,
+      {
+        description:
+          "Expected execution state for MyFuture to be support result lookup, but instead it was CALL_EXECUTION_STATE",
+      },
+    );
   });
 
   it("should resolve to the result of a static call", () => {
@@ -71,7 +80,14 @@ describe("find result by future by", () => {
       },
     } as any;
 
-    assert.throws(() => findResultForFutureById(deploymentState, futureId));
+    assertThrowsHardhatError(
+      () => findResultForFutureById(deploymentState, futureId),
+      HardhatError.ERRORS.IGNITION.GENERAL.ASSERTION_ERROR,
+      {
+        description:
+          "Expected execution state for MyFuture to be support result lookup, but instead it was SEND_DATA_EXECUTION_STATE",
+      },
+    );
   });
 
   it("should resolve to the address of a contract at", () => {

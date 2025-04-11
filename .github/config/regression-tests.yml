@@ -213,8 +213,84 @@ repositories:
         }
       };
     ignore: |
-      # Invalid hex bytecode for contract (this is caused by the lack of support for dynamic linking)
-      test/foundry
+      # No matching artifact found
+      # These tests are trying to use getCode from optimized-out artifacts directory which does not exist
+      # See https://github.com/ProjectOpenSea/seaport/blob/585b2ef8376dd979171522027bbdb048c2a4999c/test/foundry/new/helpers/BaseSeaportTest.sol#L119
+      # To work with Hardhat 3 setup, they should be rewritten to just request the code from artifacts
+      test/foundry/BulkSignature.t.sol
+      test/foundry/conduit/ConduitExecute.t.sol
+      test/foundry/conduit/ConduitExecuteBatch1155.t.sol
+      test/foundry/conduit/ConduitExecuteWithBatch1155.t.sol
+      test/foundry/ConsiderationErrors.t.sol
+      test/foundry/ConstantsTest.t.sol
+      test/foundry/FulfillAdvancedOrder.t.sol
+      test/foundry/FulfillAdvancedOrderCriteria.t.sol
+      test/foundry/FulfillAvailableAdvancedOrder.t.sol
+      test/foundry/FulfillAvailableAdvancedOrderCriteria.t.sol
+      test/foundry/FulfillBasicOrderTest.t.sol
+      test/foundry/FulfillOrderTest.t.sol
+      test/foundry/FullfillAvailableOrder.t.sol
+      test/foundry/GetterTests.t.sol
+      test/foundry/MatchAdvancedOrder.t.sol
+      test/foundry/MatchOrders.t.sol
+      test/foundry/new/FuzzCoverage.t.sol
+      test/foundry/new/FuzzEngine.t.sol
+      test/foundry/new/FuzzGenerators.t.sol
+      test/foundry/new/FuzzHelpers.t.sol
+      test/foundry/new/FuzzInscribers.t.sol
+      test/foundry/new/FuzzMain.t.sol
+      test/foundry/new/FuzzSetup.t.sol
+      test/foundry/new/helpers/sol/MatchFulfillmentHelper.t.sol
+      test/foundry/new/SeaportNavigator.t.sol
+      test/foundry/new/SeaportValidator.t.sol
+      test/foundry/new/SelfRestricted.t.sol
+      test/foundry/new/SelfRestrictedContractOfferer.t.sol
+      test/foundry/NonReentrant.t.sol
+      test/foundry/offerers/AdjustedAmountOfferer.t.sol
+      test/foundry/offerers/BadOfferer.t.sol
+      test/foundry/offerers/ContractOffersNativeTokenOfferItems.t.sol
+      test/foundry/offerers/OffererCriteriaAdvanced.t.sol
+      test/foundry/offerers/StatefulOfferer.t.sol
+      test/foundry/offerers/TestPoolOffererTest.t.sol
+      test/foundry/SignatureVerification.t.sol
+      test/foundry/TestNewHelpers.t.sol
+      test/foundry/TokenTransferrer.t.sol
+      test/foundry/TransferHelperMultipleRecipientsTest.sol
+      test/foundry/TransferHelperSingleRecipientTest.sol
+      test/foundry/zone/PreAndPostFulfillmentCheck.t.sol
+      test/foundry/zone/TestTransferValidationZoneFuzz.t.sol
+      test/foundry/zone/TestZoneCalldataFidelity.t.sol
+      test/foundry/zone/UnauthorizedOrderSkip.t.sol
+
+      # These need to be ignored because ignoring the tests above uncovers a weird issue with a circular dependency between:
+      #   FuzzEngine -> FuzzSetup -> ExpectedEventsUtil -> FuzzEngine
+      # It shows up in our compilation output as:
+      # TypeError: Definition of base has to precede definition of derived contract
+      #   --> test/foundry/new/helpers/FuzzEngine.sol:204:5:
+      #     |
+      # 204 |     FuzzSetup,
+      #     |     ^^^^^^^^^
+      test/foundry/new/helpers/DebugUtil.sol
+      test/foundry/new/helpers/FuzzAmendments.sol
+      test/foundry/new/helpers/FuzzChecks.sol
+      test/foundry/new/helpers/FuzzDerivers.sol
+      test/foundry/new/helpers/FuzzEngine.sol
+      test/foundry/new/helpers/FuzzEngineLib.sol
+      test/foundry/new/helpers/FuzzExecutor.sol
+      test/foundry/new/helpers/FuzzGeneratorContextLib.sol
+      test/foundry/new/helpers/FuzzGenerators.sol
+      test/foundry/new/helpers/FuzzHelpers.sol
+      test/foundry/new/helpers/FuzzMutationHelpers.sol
+      test/foundry/new/helpers/FuzzMutationSelectorLib.sol
+      test/foundry/new/helpers/FuzzMutations.sol
+      test/foundry/new/helpers/FuzzSetup.sol
+      test/foundry/new/helpers/FuzzTestContextLib.sol
+      test/foundry/new/helpers/Searializer.sol
+      test/foundry/new/helpers/event-utils/ExecutionsFlattener.sol
+      test/foundry/new/helpers/event-utils/ExpectedEventsUtil.sol
+      test/foundry/new/helpers/event-utils/OrderFulfilledEventsLib.sol
+      test/foundry/new/helpers/event-utils/OrdersMatchedEventsLib.sol
+      test/foundry/new/helpers/event-utils/TransferEventsLib.sol
     ref: 585b2ef8376dd979171522027bbdb048c2a4999c
   Uniswap/UniswapX:
     forge-version: v0.3.0
@@ -601,13 +677,6 @@ repositories:
         },
         "solidity": {
           "version": "0.8.26",
-          "remappings": [
-            "@openzeppelin/contracts/=node_modules/@openzeppelin/contracts/",
-            "@prb/math/=node_modules/@prb/math/",
-            "forge-std/=node_modules/forge-std/",
-            "solady/=node_modules/solady/",
-            "solarray/=node_modules/solarray/"
-          ],
           "settings": {
             "optimizer": {
               "enabled": true,
@@ -677,8 +746,22 @@ repositories:
         }
       };
     ignore: |
-      # Invalid hex bytecode for contract (this is caused by the lack of support for dynamic linking)
-      tests
+      # cheatcode 'deriveKey(string,uint32)' is not supported
+      tests/utils/BaseScript.t.sol
+
+      # Could not instantiate forked environment. Received invalid url.
+      tests/fork/tokens/DAI.t.sol
+      tests/fork/tokens/EURS.t.sol
+      tests/fork/tokens/SHIB.t.sol
+      tests/fork/tokens/USDC.t.sol
+      tests/fork/tokens/USDT.t.sol
+
+      # Reason: call reverted as expected, but without data
+      # Stack Trace Warning: The test is not safe to replay because it uses impure cheatcodes: function envOr(string calldata name, string calldata defaultValue) external view returns (string memory value);
+      # Counterexample:
+      #   calldata: 0x436f32710000000000000000000000000000000000000000000000000000aa3685b35e0f
+      #   args: 187151148080655 [1.871e14]
+      tests/integration/fuzz/lockup-tranched/createWithTimestampsLT.t.sol
     ref: a8528a6d0ca25f4f36eb9327fc87e08dc78ad0a6
   sablier-labs/v2-periphery:
     env: |
@@ -694,13 +777,6 @@ repositories:
         },
         "solidity": {
           "version": "0.8.26",
-          "remappings": [
-            "@openzeppelin/contracts/=node_modules/@openzeppelin/contracts/",
-            "@prb/math/=node_modules/@prb/math/",
-            "@sablier/v2-core/=node_modules/@sablier/v2-core/",
-            "forge-std/=node_modules/forge-std/",
-            "solady/=node_modules/solady/"
-          ],
           "settings": {
             "optimizer": {
               "enabled": true,

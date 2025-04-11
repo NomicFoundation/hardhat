@@ -133,7 +133,7 @@ export class HardhatEthersProvider implements HardhatEthersProviderI {
       const accounts: string[] = await accountsPromise;
       if (address >= accounts.length) {
         throw new HardhatError(
-          HardhatError.ERRORS.ETHERS.ACCOUNT_INDEX_OUT_OF_RANGE,
+          HardhatError.ERRORS.HARDHAT_ETHERS.GENERAL.ACCOUNT_INDEX_OUT_OF_RANGE,
           {
             accountIndex: address,
             accountsLength: accounts.length,
@@ -157,9 +157,12 @@ export class HardhatEthersProvider implements HardhatEthersProviderI {
       );
     }
 
-    throw new HardhatError(HardhatError.ERRORS.ETHERS.CANNOT_GET_ACCOUNT, {
-      address,
-    });
+    throw new HardhatError(
+      HardhatError.ERRORS.HARDHAT_ETHERS.GENERAL.CANNOT_GET_ACCOUNT,
+      {
+        address,
+      },
+    );
   }
 
   public async getBlockNumber(): Promise<number> {
@@ -358,7 +361,7 @@ export class HardhatEthersProvider implements HardhatEthersProviderI {
 
     if (tx.hash !== hash) {
       throw new HardhatError(
-        HardhatError.ERRORS.ETHERS.BROADCASTED_TX_DIFFERENT_HASH,
+        HardhatError.ERRORS.HARDHAT_ETHERS.GENERAL.BROADCASTED_TX_DIFFERENT_HASH,
         {
           txHash: tx.hash,
           broadcastedTxHash: hash,
@@ -422,9 +425,12 @@ export class HardhatEthersProvider implements HardhatEthersProviderI {
   }
 
   public async getTransactionResult(_hash: string): Promise<string | null> {
-    throw new HardhatError(HardhatError.ERRORS.ETHERS.METHOD_NOT_IMPLEMENTED, {
-      method: "HardhatEthersProvider.getTransactionResult",
-    });
+    throw new HardhatError(
+      HardhatError.ERRORS.HARDHAT_ETHERS.GENERAL.METHOD_NOT_IMPLEMENTED,
+      {
+        method: "HardhatEthersProvider.getTransactionResult",
+      },
+    );
   }
 
   public async getLogs(
@@ -443,15 +449,21 @@ export class HardhatEthersProvider implements HardhatEthersProviderI {
   }
 
   public async resolveName(_ensName: string): Promise<string | null> {
-    throw new HardhatError(HardhatError.ERRORS.ETHERS.METHOD_NOT_IMPLEMENTED, {
-      method: "HardhatEthersProvider.resolveName",
-    });
+    throw new HardhatError(
+      HardhatError.ERRORS.HARDHAT_ETHERS.GENERAL.METHOD_NOT_IMPLEMENTED,
+      {
+        method: "HardhatEthersProvider.resolveName",
+      },
+    );
   }
 
   public async lookupAddress(_address: string): Promise<string | null> {
-    throw new HardhatError(HardhatError.ERRORS.ETHERS.METHOD_NOT_IMPLEMENTED, {
-      method: "HardhatEthersProvider.lookupAddress",
-    });
+    throw new HardhatError(
+      HardhatError.ERRORS.HARDHAT_ETHERS.GENERAL.METHOD_NOT_IMPLEMENTED,
+      {
+        method: "HardhatEthersProvider.lookupAddress",
+      },
+    );
   }
 
   public async waitForTransaction(
@@ -459,17 +471,23 @@ export class HardhatEthersProvider implements HardhatEthersProviderI {
     _confirms?: number | undefined,
     _timeout?: number | undefined,
   ): Promise<ethers.TransactionReceipt | null> {
-    throw new HardhatError(HardhatError.ERRORS.ETHERS.METHOD_NOT_IMPLEMENTED, {
-      method: "HardhatEthersProvider.waitForTransaction",
-    });
+    throw new HardhatError(
+      HardhatError.ERRORS.HARDHAT_ETHERS.GENERAL.METHOD_NOT_IMPLEMENTED,
+      {
+        method: "HardhatEthersProvider.waitForTransaction",
+      },
+    );
   }
 
   public async waitForBlock(
     _blockTag?: BlockTag | undefined,
   ): Promise<ethers.Block> {
-    throw new HardhatError(HardhatError.ERRORS.ETHERS.METHOD_NOT_IMPLEMENTED, {
-      method: "HardhatEthersProvider.waitForBlock",
-    });
+    throw new HardhatError(
+      HardhatError.ERRORS.HARDHAT_ETHERS.GENERAL.METHOD_NOT_IMPLEMENTED,
+      {
+        method: "HardhatEthersProvider.waitForBlock",
+      },
+    );
   }
 
   // -------------------------------------- //
@@ -542,7 +560,7 @@ export class HardhatEthersProvider implements HardhatEthersProviderI {
       return this.#emitTransactionHash(event.txHash, ...args);
     } else if (event.kind === "event") {
       throw new HardhatError(
-        HardhatError.ERRORS.ETHERS.METHOD_NOT_IMPLEMENTED,
+        HardhatError.ERRORS.HARDHAT_ETHERS.GENERAL.METHOD_NOT_IMPLEMENTED,
         {
           method: "emit(event)",
         },
@@ -566,7 +584,7 @@ export class HardhatEthersProvider implements HardhatEthersProviderI {
   ): Promise<Listener[]> {
     if (ethersEvent === undefined) {
       throw new HardhatError(
-        HardhatError.ERRORS.ETHERS.METHOD_NOT_IMPLEMENTED,
+        HardhatError.ERRORS.HARDHAT_ETHERS.GENERAL.METHOD_NOT_IMPLEMENTED,
         {
           method: "listeners()",
         },
@@ -731,9 +749,12 @@ export class HardhatEthersProvider implements HardhatEthersProviderI {
       );
     }
 
-    throw new HardhatError(HardhatError.ERRORS.ETHERS.INVALID_BLOCK_TAG, {
-      blockTag,
-    });
+    throw new HardhatError(
+      HardhatError.ERRORS.HARDHAT_ETHERS.GENERAL.INVALID_BLOCK_TAG,
+      {
+        blockTag,
+      },
+    );
   }
 
   #getTransactionRequest(
@@ -1328,15 +1349,21 @@ function ethersToHardhatEvent(
     } else if (isTransactionHash(event)) {
       return { kind: "transactionHash", txHash: event };
     } else {
-      throw new HardhatError(HardhatError.ERRORS.ETHERS.EVENT_NOT_SUPPORTED, {
-        event,
-      });
+      throw new HardhatError(
+        HardhatError.ERRORS.HARDHAT_ETHERS.GENERAL.EVENT_NOT_SUPPORTED,
+        {
+          event,
+        },
+      );
     }
   } else if (isEventFilter(event)) {
     return { kind: "event", eventFilter: event };
   } else {
-    throw new HardhatError(HardhatError.ERRORS.ETHERS.EVENT_NOT_SUPPORTED, {
-      event,
-    });
+    throw new HardhatError(
+      HardhatError.ERRORS.HARDHAT_ETHERS.GENERAL.EVENT_NOT_SUPPORTED,
+      {
+        event,
+      },
+    );
   }
 }

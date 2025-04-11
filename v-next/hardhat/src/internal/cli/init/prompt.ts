@@ -128,7 +128,7 @@ export async function promptForUpdate(
 function ensureTTY(): void {
   if (process.stdout.isTTY !== true) {
     throw new HardhatError(
-      HardhatError.ERRORS.GENERAL.NOT_IN_INTERACTIVE_SHELL,
+      HardhatError.ERRORS.CORE.GENERAL.NOT_IN_INTERACTIVE_SHELL,
     );
   }
 }

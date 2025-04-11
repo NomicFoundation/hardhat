@@ -1,4 +1,3 @@
-/* eslint-disable import/no-unused-modules */
 import path from "node:path";
 
 import { emptyDir, readdir } from "@nomicfoundation/hardhat-utils/fs";

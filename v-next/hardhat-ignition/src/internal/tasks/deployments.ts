@@ -11,19 +11,10 @@ const taskDeployments: NewTaskActionFunction<{}> = async (
 ) => {
   const deploymentDir = path.join(hre.config.paths.ignition, "deployments");
 
-  try {
-    const deployments = await listDeployments(deploymentDir);
+  const deployments = await listDeployments(deploymentDir);
 
-    for (const deploymentId of deployments) {
-      console.log(deploymentId);
-    }
-  } catch (_e) {
-    // Disabled for the alpha release
-    // if (e instanceof IgnitionError && shouldBeHardhatPluginError(e)) {
-    //   throw new HardhatError(HardhatError.ERRORS.IGNITION.INTERNAL_ERROR, e);
-    // }
-
-    throw _e;
+  for (const deploymentId of deployments) {
+    console.log(deploymentId);
   }
 };
 

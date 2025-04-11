@@ -12,7 +12,7 @@ export async function loadFixture<T>(
 }> {
   if (fixture.name === "") {
     throw new HardhatError(
-      HardhatError.ERRORS.NETWORK_HELPERS.FIXTURE_ANONYMOUS_FUNCTION_ERROR,
+      HardhatError.ERRORS.NETWORK_HELPERS.GENERAL.FIXTURE_ANONYMOUS_FUNCTION_ERROR,
     );
   }
 
@@ -29,10 +29,11 @@ export async function loadFixture<T>(
     } catch (e) {
       if (
         HardhatError.isHardhatError(e) &&
-        e.number === HardhatError.ERRORS.NETWORK_HELPERS.INVALID_SNAPSHOT.number
+        e.number ===
+          HardhatError.ERRORS.NETWORK_HELPERS.GENERAL.INVALID_SNAPSHOT.number
       ) {
         throw new HardhatError(
-          HardhatError.ERRORS.NETWORK_HELPERS.FIXTURE_SNAPSHOT_ERROR,
+          HardhatError.ERRORS.NETWORK_HELPERS.GENERAL.FIXTURE_SNAPSHOT_ERROR,
         );
       }
 

@@ -1,4 +1,3 @@
-/* eslint-disable import/no-unused-modules */
 export type ForbiddenExcessProperties<K extends keyof any> = {
   [P in K]: never;
 };

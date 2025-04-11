@@ -43,7 +43,7 @@ describe("config validation", () => {
         },
         plugins: [hardhatTypechain],
       }),
-      HardhatError.ERRORS.GENERAL.INVALID_CONFIG,
+      HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG,
       {
         errors: [
           "\t* Config error in config.outDir: It should be an absolute path specifying where to store the generated types",

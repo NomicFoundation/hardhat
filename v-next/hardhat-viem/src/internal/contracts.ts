@@ -36,15 +36,21 @@ export async function deployContract<ContractName extends string>(
   } = deployContractConfig;
 
   if (confirmations < 0) {
-    throw new HardhatError(HardhatError.ERRORS.VIEM.INVALID_CONFIRMATIONS, {
-      error: "Confirmations must be greather than 0.",
-    });
+    throw new HardhatError(
+      HardhatError.ERRORS.HARDHAT_VIEM.GENERAL.INVALID_CONFIRMATIONS,
+      {
+        error: "Confirmations must be greather than 0.",
+      },
+    );
   }
   if (confirmations === 0) {
-    throw new HardhatError(HardhatError.ERRORS.VIEM.INVALID_CONFIRMATIONS, {
-      error:
-        "deployContract does not support 0 confirmations. Use sendDeploymentTransaction if you want to handle the deployment transaction yourself.",
-    });
+    throw new HardhatError(
+      HardhatError.ERRORS.HARDHAT_VIEM.GENERAL.INVALID_CONFIRMATIONS,
+      {
+        error:
+          "deployContract does not support 0 confirmations. Use sendDeploymentTransaction if you want to handle the deployment transaction yourself.",
+      },
+    );
   }
 
   const [publicClient, walletClient, { abi, bytecode }] = await Promise.all([
@@ -84,10 +90,13 @@ export async function deployContract<ContractName extends string>(
     const transaction = await publicClient.getTransaction({
       hash: deploymentTxHash,
     });
-    throw new HardhatError(HardhatError.ERRORS.VIEM.DEPLOY_CONTRACT_ERROR, {
-      txHash: deploymentTxHash,
-      blockNumber: transaction.blockNumber,
-    });
+    throw new HardhatError(
+      HardhatError.ERRORS.HARDHAT_VIEM.GENERAL.DEPLOY_CONTRACT_ERROR,
+      {
+        txHash: deploymentTxHash,
+        blockNumber: transaction.blockNumber,
+      },
+    );
   }
 
   const contract = createContractInstance(
@@ -221,7 +230,7 @@ async function getContractAbiAndBytecode(
     ensureError(error);
 
     throw new HardhatError(
-      HardhatError.ERRORS.VIEM.LINKING_CONTRACT_ERROR,
+      HardhatError.ERRORS.HARDHAT_VIEM.GENERAL.LINKING_CONTRACT_ERROR,
       {
         contractName,
         error: error.message,

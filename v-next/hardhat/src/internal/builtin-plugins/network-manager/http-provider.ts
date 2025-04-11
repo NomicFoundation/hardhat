@@ -72,7 +72,7 @@ export class HttpProvider extends BaseProvider {
     testDispatcher,
   }: HttpProviderConfig): Promise<HttpProvider> {
     if (!isValidUrl(url)) {
-      throw new HardhatError(HardhatError.ERRORS.NETWORK.INVALID_URL, {
+      throw new HardhatError(HardhatError.ERRORS.CORE.NETWORK.INVALID_URL, {
         value: url,
       });
     }
@@ -118,7 +118,7 @@ export class HttpProvider extends BaseProvider {
     requestArguments: RequestArguments,
   ): Promise<SuccessfulJsonRpcResponse["result"]> {
     if (this.#dispatcher === undefined) {
-      throw new HardhatError(HardhatError.ERRORS.NETWORK.PROVIDER_CLOSED);
+      throw new HardhatError(HardhatError.ERRORS.CORE.NETWORK.PROVIDER_CLOSED);
     }
 
     const { method, params } = requestArguments;
@@ -190,14 +190,17 @@ export class HttpProvider extends BaseProvider {
 
       if (e instanceof ConnectionRefusedError) {
         throw new HardhatError(
-          HardhatError.ERRORS.NETWORK.CONNECTION_REFUSED,
+          HardhatError.ERRORS.CORE.NETWORK.CONNECTION_REFUSED,
           { network: this.#networkName },
           e,
         );
       }
 
       if (e instanceof RequestTimeoutError) {
-        throw new HardhatError(HardhatError.ERRORS.NETWORK.NETWORK_TIMEOUT, e);
+        throw new HardhatError(
+          HardhatError.ERRORS.CORE.NETWORK.NETWORK_TIMEOUT,
+          e,
+        );
       }
 
       /**

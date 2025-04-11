@@ -81,7 +81,7 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   // in that case
   if (testsAlreadyRun) {
     throw new HardhatError(
-      HardhatError.ERRORS.BUILTIN_TASKS.TEST_TASK_ESM_TESTS_RUN_TWICE,
+      HardhatError.ERRORS.HARDHAT_MOCHA.GENERAL.TEST_TASK_ESM_TESTS_RUN_TWICE,
     );
   }
   testsAlreadyRun = true;

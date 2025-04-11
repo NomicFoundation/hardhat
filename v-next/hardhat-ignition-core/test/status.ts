@@ -1,3 +1,5 @@
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { assert } from "chai";
 import path from "path";
 
@@ -257,9 +259,12 @@ describe("status", () => {
   });
 
   it("should throw an error if the deployment is not initialized", async () => {
-    await assert.isRejected(
+    await assertRejectsWithHardhatError(
       status("fake"),
-      /IGN800: Cannot get status for nonexistant deployment at fake/,
+      HardhatError.ERRORS.IGNITION.STATUS.UNINITIALIZED_DEPLOYMENT,
+      {
+        deploymentDir: "fake",
+      },
     );
   });
 });

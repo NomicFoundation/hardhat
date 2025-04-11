@@ -43,7 +43,7 @@ export abstract class SenderHandler implements RequestHandler {
           tx.from = senderAccount;
         } else if (method === "eth_sendTransaction") {
           throw new HardhatError(
-            HardhatError.ERRORS.NETWORK.NO_REMOTE_ACCOUNT_AVAILABLE,
+            HardhatError.ERRORS.CORE.NETWORK.NO_REMOTE_ACCOUNT_AVAILABLE,
           );
         }
       }

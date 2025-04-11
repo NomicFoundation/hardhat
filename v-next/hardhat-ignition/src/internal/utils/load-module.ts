@@ -5,7 +5,6 @@ import { pathToFileURL } from "node:url";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { exists } from "@nomicfoundation/hardhat-utils/fs";
-import { IgnitionError } from "@nomicfoundation/ignition-core";
 import setupDebug from "debug";
 
 const debug = setupDebug("hardhat-ignition:modules");
@@ -32,7 +31,7 @@ export async function loadModule(
 
   if (!(await exists(fullpathToModule))) {
     throw new HardhatError(
-      HardhatError.ERRORS.IGNITION.MODULE_NOT_FOUND_AT_PATH,
+      HardhatError.ERRORS.IGNITION.INTERNAL.MODULE_NOT_FOUND_AT_PATH,
       {
         modulePath,
       },
@@ -41,7 +40,7 @@ export async function loadModule(
 
   if (!isInModuleDirectory(fullModulesDirectoryName, fullpathToModule)) {
     throw new HardhatError(
-      HardhatError.ERRORS.IGNITION.MODULE_OUTSIDE_MODULE_DIRECTORY,
+      HardhatError.ERRORS.IGNITION.INTERNAL.MODULE_OUTSIDE_MODULE_DIRECTORY,
       {
         modulePath,
         shortModulesDirectoryName,
@@ -55,26 +54,21 @@ export async function loadModule(
   try {
     module = await import(pathToFileURL(fullpathToModule).href);
   } catch (e) {
-    if (e instanceof IgnitionError) {
+    if (HardhatError.isHardhatError(e)) {
       /**
-       * Errors thrown from within ModuleBuilder use this errorNumber.
+       * Errors thrown from within ModuleBuilder use this error number.
        *
        * They have a stack trace that's useful to the user, so we display it here, instead of
        * wrapping the error in a HardhatError.
        */
-      if (e.errorNumber === 702) {
+      if (e.number === 10702) {
         console.error(e);
 
         throw new HardhatError(
-          HardhatError.ERRORS.IGNITION.MODULE_VALIDATION_FAILED,
+          HardhatError.ERRORS.IGNITION.INTERNAL.MODULE_VALIDATION_FAILED,
           e,
         );
       }
-
-      // Disabled for the alpha release
-      // if (e instanceof IgnitionError && shouldBeHardhatPluginError(e)) {
-      //   throw new HardhatError(HardhatError.ERRORS.IGNITION.INTERNAL_ERROR, e);
-      // }
     }
 
     throw e;

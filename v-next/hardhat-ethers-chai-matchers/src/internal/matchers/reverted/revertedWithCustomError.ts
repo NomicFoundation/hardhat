@@ -161,14 +161,14 @@ function validateInput(
     if (typeof contract === "string" || contract?.interface === undefined) {
       // discard subject since it could potentially be a rejected promise
       throw new HardhatError(
-        HardhatError.ERRORS.CHAI_MATCHERS.FIRST_ARGUMENT_MUST_BE_A_CONTRACT,
+        HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.FIRST_ARGUMENT_MUST_BE_A_CONTRACT,
       );
     }
 
     // validate custom error name
     if (typeof expectedCustomErrorName !== "string") {
       throw new HardhatError(
-        HardhatError.ERRORS.CHAI_MATCHERS.STRING_EXPECTED_AS_CUSTOM_ERROR_NAME,
+        HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.STRING_EXPECTED_AS_CUSTOM_ERROR_NAME,
       );
     }
 
@@ -178,7 +178,7 @@ function validateInput(
     // check that interface contains the given custom error
     if (expectedCustomError === null) {
       throw new HardhatError(
-        HardhatError.ERRORS.CHAI_MATCHERS.CONTRACT_DOES_NOT_HAVE_CUSTOM_ERROR,
+        HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.CONTRACT_DOES_NOT_HAVE_CUSTOM_ERROR,
         {
           customErrorName: expectedCustomErrorName,
         },
@@ -187,7 +187,7 @@ function validateInput(
 
     if (args.length > 0) {
       throw new HardhatError(
-        HardhatError.ERRORS.CHAI_MATCHERS.REVERT_INVALID_ARGUMENTS_LENGTH,
+        HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.REVERT_INVALID_ARGUMENTS_LENGTH,
       );
     }
 
@@ -215,7 +215,7 @@ export async function revertedWithCustomErrorWithArgs(
 
   if (customErrorAssertionData === undefined) {
     throw new HardhatError(
-      HardhatError.ERRORS.CHAI_MATCHERS.WITH_ARGS_FORBIDDEN,
+      HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.WITH_ARGS_FORBIDDEN,
     );
   }
 

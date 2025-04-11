@@ -183,7 +183,7 @@ export class NetworkHelpers implements NetworkHelpersI {
     if (!this.#isDevelopmentNetwork) {
       if (this.#version !== undefined) {
         throw new HardhatError(
-          HardhatError.ERRORS.NETWORK_HELPERS.CAN_ONLY_BE_USED_WITH_HARDHAT_NETWORK_VERSIONED,
+          HardhatError.ERRORS.NETWORK_HELPERS.GENERAL.CAN_ONLY_BE_USED_WITH_HARDHAT_NETWORK_VERSIONED,
           {
             networkName: this.#networkName,
             version: this.#version,
@@ -192,7 +192,7 @@ export class NetworkHelpers implements NetworkHelpersI {
       }
 
       throw new HardhatError(
-        HardhatError.ERRORS.NETWORK_HELPERS.CAN_ONLY_BE_USED_WITH_HARDHAT_NETWORK,
+        HardhatError.ERRORS.NETWORK_HELPERS.GENERAL.CAN_ONLY_BE_USED_WITH_HARDHAT_NETWORK,
         {
           networkName: this.#networkName,
         },

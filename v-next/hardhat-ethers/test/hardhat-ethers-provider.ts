@@ -93,7 +93,7 @@ describe("hardhat ethers provider", () => {
     it("should throw if the index doesn't match an account", async () => {
       await assertRejectsWithHardhatError(
         ethers.provider.getSigner(100),
-        HardhatError.ERRORS.ETHERS.ACCOUNT_INDEX_OUT_OF_RANGE,
+        HardhatError.ERRORS.HARDHAT_ETHERS.GENERAL.ACCOUNT_INDEX_OUT_OF_RANGE,
         {
           accountIndex: 100,
           accountsLength: 20,

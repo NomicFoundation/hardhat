@@ -17,7 +17,7 @@ export default async (): Promise<Partial<NetworkHooks>> => {
 
       if (connection.ignition !== undefined) {
         throw new HardhatError(
-          HardhatError.ERRORS.IGNITION.ONLY_ONE_IGNITION_EXTENSION_PLUGIN_ALLOWED,
+          HardhatError.ERRORS.IGNITION.INTERNAL.ONLY_ONE_IGNITION_EXTENSION_PLUGIN_ALLOWED,
         );
       }
 
