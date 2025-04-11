@@ -5,6 +5,7 @@ This package is a recommended bundle of Hardhat plugins.
 ## Plugins included
 
 - @nomicfoundation/hardhat-ignition
+- @nomicfoundation/hardhat-ignition-viem
 - @nomicfoundation/hardhat-keystore
 - @nomicfoundation/hardhat-network-helpers
 - @nomicfoundation/hardhat-node-test-runner
