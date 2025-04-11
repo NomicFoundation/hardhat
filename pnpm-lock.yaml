@@ -1539,6 +1539,91 @@ importers:
         specifier: 7.7.1
         version: 7.7.1(eslint@8.57.0)(typescript@5.5.4)
 
+  v-next/hardhat-toolbox-viem:
+    dependencies:
+      hardhat:
+        specifier: workspace:^3.0.0-next.3
+        version: link:../hardhat
+    devDependencies:
+      '@eslint-community/eslint-plugin-eslint-comments':
+        specifier: ^4.3.0
+        version: 4.4.1(eslint@8.57.0)
+      '@nomicfoundation/hardhat-ignition':
+        specifier: workspace:^3.0.0-next.3
+        version: link:../hardhat-ignition
+      '@nomicfoundation/hardhat-ignition-viem':
+        specifier: workspace:^3.0.0-next.3
+        version: link:../hardhat-ignition-viem
+      '@nomicfoundation/hardhat-keystore':
+        specifier: workspace:^3.0.0-next.3
+        version: link:../hardhat-keystore
+      '@nomicfoundation/hardhat-network-helpers':
+        specifier: workspace:^3.0.0-next.3
+        version: link:../hardhat-network-helpers
+      '@nomicfoundation/hardhat-node-test-reporter':
+        specifier: workspace:^3.0.0-next.3
+        version: link:../hardhat-node-test-reporter
+      '@nomicfoundation/hardhat-node-test-runner':
+        specifier: workspace:^3.0.0-next.3
+        version: link:../hardhat-node-test-runner
+      '@nomicfoundation/hardhat-test-utils':
+        specifier: workspace:^
+        version: link:../hardhat-test-utils
+      '@nomicfoundation/hardhat-viem':
+        specifier: workspace:^3.0.0-next.3
+        version: link:../hardhat-viem
+      '@nomicfoundation/ignition-core':
+        specifier: workspace:^3.0.0-next.3
+        version: link:../hardhat-ignition-core
+      '@types/node':
+        specifier: ^20.14.9
+        version: 20.17.16
+      '@typescript-eslint/eslint-plugin':
+        specifier: ^7.7.1
+        version: 7.18.0(@typescript-eslint/parser@7.18.0(eslint@8.57.0)(typescript@5.5.4))(eslint@8.57.0)(typescript@5.5.4)
+      '@typescript-eslint/parser':
+        specifier: ^7.7.1
+        version: 7.18.0(eslint@8.57.0)(typescript@5.5.4)
+      c8:
+        specifier: ^9.1.0
+        version: 9.1.0
+      eslint:
+        specifier: 8.57.0
+        version: 8.57.0
+      eslint-config-prettier:
+        specifier: 9.1.0
+        version: 9.1.0(eslint@8.57.0)
+      eslint-import-resolver-typescript:
+        specifier: ^3.6.1
+        version: 3.7.0(eslint-plugin-import@2.29.1)(eslint@8.57.0)
+      eslint-plugin-import:
+        specifier: 2.29.1
+        version: 2.29.1(@typescript-eslint/parser@7.18.0(eslint@8.57.0)(typescript@5.5.4))(eslint-import-resolver-typescript@3.7.0)(eslint@8.57.0)
+      eslint-plugin-no-only-tests:
+        specifier: 3.1.0
+        version: 3.1.0
+      expect-type:
+        specifier: ^0.19.0
+        version: 0.19.0
+      prettier:
+        specifier: 3.2.5
+        version: 3.2.5
+      rimraf:
+        specifier: ^5.0.5
+        version: 5.0.10
+      tsx:
+        specifier: ^4.19.3
+        version: 4.19.3
+      typescript:
+        specifier: ~5.5.0
+        version: 5.5.4
+      typescript-eslint:
+        specifier: 7.7.1
+        version: 7.7.1(eslint@8.57.0)(typescript@5.5.4)
+      viem:
+        specifier: ^2.21.42
+        version: 2.22.13(typescript@5.5.4)(zod@3.24.1)
+
   v-next/hardhat-typechain:
     dependencies:
       '@nomicfoundation/hardhat-errors':
@@ -1851,24 +1936,9 @@ importers:
 
   v-next/hardhat/templates/01-node-test-runner-viem:
     devDependencies:
-      '@nomicfoundation/hardhat-ignition':
+      '@nomicfoundation/hardhat-toolbox-viem':
         specifier: workspace:^3.0.0-next.3
-        version: link:../../../hardhat-ignition
-      '@nomicfoundation/hardhat-ignition-viem':
-        specifier: workspace:^3.0.0-next.3
-        version: link:../../../hardhat-ignition-viem
-      '@nomicfoundation/hardhat-keystore':
-        specifier: workspace:^3.0.0-next.3
-        version: link:../../../hardhat-keystore
-      '@nomicfoundation/hardhat-network-helpers':
-        specifier: workspace:^3.0.0-next.3
-        version: link:../../../hardhat-network-helpers
-      '@nomicfoundation/hardhat-node-test-runner':
-        specifier: workspace:^3.0.0-next.3
-        version: link:../../../hardhat-node-test-runner
-      '@nomicfoundation/hardhat-viem':
-        specifier: workspace:^3.0.0-next.3
-        version: link:../../../hardhat-viem
+        version: link:../../../hardhat-toolbox-viem
       '@types/node':
         specifier: ^22.8.5
         version: 22.10.10
@@ -7259,7 +7329,7 @@ snapshots:
 
   '@types/adm-zip@0.5.7':
     dependencies:
-      '@types/node': 20.17.16
+      '@types/node': 22.10.10
 
   '@types/argparse@1.0.38': {}
 
@@ -7418,7 +7488,7 @@ snapshots:
 
   '@types/ws@8.5.14':
     dependencies:
-      '@types/node': 20.17.16
+      '@types/node': 22.10.10
 
   '@typescript-eslint/eslint-plugin@7.18.0(@typescript-eslint/parser@7.18.0(eslint@8.57.0)(typescript@5.5.4))(eslint@8.57.0)(typescript@5.5.4)':
     dependencies:
