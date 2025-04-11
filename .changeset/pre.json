@@ -17,7 +17,7 @@
     "@nomicfoundation/hardhat-node-test-reporter": "2.0.0",
     "@nomicfoundation/hardhat-node-test-runner": "2.0.0",
     "@nomicfoundation/hardhat-test-utils": "2.0.0",
-    "@nomicfoundation/hardhat-toolbox-viem": "2.0.0",
+    "@nomicfoundation/hardhat-toolbox-viem": "3.0.0",
     "@nomicfoundation/hardhat-typechain": "2.0.0",
     "@nomicfoundation/hardhat-utils": "2.0.0",
     "@nomicfoundation/hardhat-toolbox-mocha-ethers": "2.0.0",
