@@ -36,7 +36,8 @@ import type {
 
 import { inspect } from "node:util";
 
-import { IgnitionError } from "../errors.js";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+
 import {
   isAccountRuntimeValue,
   isAddressResolvableFuture,
@@ -51,7 +52,6 @@ import {
 } from "../type-guards.js";
 import { FutureType } from "../types/module.js";
 
-import { ERRORS } from "./errors-list.js";
 import { equalAddresses, isAddress } from "./execution/utils/address.js";
 import {
   AccountRuntimeValueImplementation,
@@ -141,9 +141,12 @@ export class ModuleConstructor {
     );
 
     if ((mod as any).results instanceof Promise) {
-      throw new IgnitionError(ERRORS.MODULE.ASYNC_MODULE_DEFINITION_FUNCTION, {
-        moduleDefinitionId: moduleDefintion.id,
-      });
+      throw new HardhatError(
+        HardhatError.ERRORS.IGNITION.MODULE.ASYNC_MODULE_DEFINITION_FUNCTION,
+        {
+          moduleDefinitionId: moduleDefintion.id,
+        },
+      );
     }
 
     this._modules.set(moduleDefintion.id, mod);
@@ -891,7 +894,9 @@ class IgnitionModuleBuilderImplementation<
       futureToReadFrom.type === FutureType.SEND_DATA &&
       options.emitter === undefined
     ) {
-      throw new IgnitionError(ERRORS.VALIDATION.MISSING_EMITTER);
+      throw new HardhatError(
+        HardhatError.ERRORS.IGNITION.VALIDATION.MISSING_EMITTER,
+      );
     }
 
     const contractToReadFrom =
@@ -1032,8 +1037,8 @@ class IgnitionModuleBuilderImplementation<
     message: string,
     func: (...[]: any[]) => any,
   ): never {
-    const validationError = new IgnitionError(
-      ERRORS.VALIDATION.INVALID_MODULE,
+    const validationError = new HardhatError(
+      HardhatError.ERRORS.IGNITION.VALIDATION.INVALID_MODULE,
       { message },
     );
 

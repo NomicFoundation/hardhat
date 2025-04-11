@@ -30,7 +30,7 @@ export function supportRevertedWithPanic(
         Promise.resolve(this._obj).catch(() => {});
 
         throw new HardhatError(
-          HardhatError.ERRORS.CHAI_MATCHERS.PANIC_CODE_EXPECTED,
+          HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.PANIC_CODE_EXPECTED,
           {
             panicCode: expectedCodeArg,
           },

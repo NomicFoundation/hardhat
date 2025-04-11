@@ -462,7 +462,7 @@ describe("INTEGRATION: Reverted with custom error", { timeout: 60000 }, () => {
         assertThrowsHardhatError(
           // @ts-expect-error -- force error scenario: reason should be a string or a regular expression
           () => expect(hash).to.be.revertedWith(10),
-          HardhatError.ERRORS.CHAI_MATCHERS
+          HardhatError.ERRORS.CHAI_MATCHERS.GENERAL
             .EXPECT_STRING_OR_REGEX_AS_REVERT_REASON,
           {},
         );
@@ -475,7 +475,8 @@ describe("INTEGRATION: Reverted with custom error", { timeout: 60000 }, () => {
               matchers.revertWithSomeCustomError(),
               // @ts-expect-error -- force error scenario: contract should be specified
             ).to.be.revertedWithCustomError("SomeCustomError"),
-          HardhatError.ERRORS.CHAI_MATCHERS.FIRST_ARGUMENT_MUST_BE_A_CONTRACT,
+          HardhatError.ERRORS.CHAI_MATCHERS.GENERAL
+            .FIRST_ARGUMENT_MUST_BE_A_CONTRACT,
           {},
         );
       });
@@ -486,7 +487,8 @@ describe("INTEGRATION: Reverted with custom error", { timeout: 60000 }, () => {
             expect(
               matchers.revertWithSomeCustomError(),
             ).to.be.revertedWithCustomError(matchers, "SomeCustmError"),
-          HardhatError.ERRORS.CHAI_MATCHERS.CONTRACT_DOES_NOT_HAVE_CUSTOM_ERROR,
+          HardhatError.ERRORS.CHAI_MATCHERS.GENERAL
+            .CONTRACT_DOES_NOT_HAVE_CUSTOM_ERROR,
           { customErrorName: "SomeCustmError" },
         );
       });
@@ -526,7 +528,8 @@ describe("INTEGRATION: Reverted with custom error", { timeout: 60000 }, () => {
               // @ts-expect-error -- force error scenario: extra arguments should not be specified
               "extraArgument",
             ),
-          HardhatError.ERRORS.CHAI_MATCHERS.REVERT_INVALID_ARGUMENTS_LENGTH,
+          HardhatError.ERRORS.CHAI_MATCHERS.GENERAL
+            .REVERT_INVALID_ARGUMENTS_LENGTH,
           {},
         );
       });

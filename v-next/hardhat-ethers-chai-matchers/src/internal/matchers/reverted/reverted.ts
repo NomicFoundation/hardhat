@@ -41,7 +41,7 @@ export function supportReverted(
 
           if (!isValidTransactionHash(hash)) {
             throw new HardhatError(
-              HardhatError.ERRORS.CHAI_MATCHERS.EXPECTED_VALID_TRANSACTION_HASH,
+              HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.EXPECTED_VALID_TRANSACTION_HASH,
               {
                 hash,
               },

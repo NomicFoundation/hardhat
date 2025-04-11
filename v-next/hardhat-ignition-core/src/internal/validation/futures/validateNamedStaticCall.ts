@@ -2,13 +2,13 @@ import type { ArtifactResolver } from "../../../types/artifact.js";
 import type { DeploymentParameters } from "../../../types/deploy.js";
 import type { StaticCallFuture } from "../../../types/module.js";
 
-import { IgnitionError } from "../../../errors.js";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+
 import {
   isAccountRuntimeValue,
   isArtifactType,
   isModuleParameterRuntimeValue,
 } from "../../../type-guards.js";
-import { ERRORS } from "../../errors-list.js";
 import {
   validateArtifactFunction,
   validateFunctionArgumentParamType,
@@ -26,7 +26,7 @@ export async function validateNamedStaticCall(
   deploymentParameters: DeploymentParameters,
   accounts: string[],
 ): Promise<string[]> {
-  const errors: IgnitionError[] = [];
+  const errors: HardhatError[] = [];
 
   /* stage one */
 
@@ -37,9 +37,12 @@ export async function validateNamedStaticCall(
 
   if (!isArtifactType(artifact)) {
     errors.push(
-      new IgnitionError(ERRORS.VALIDATION.INVALID_ARTIFACT, {
-        contractName: future.contract.contractName,
-      }),
+      new HardhatError(
+        HardhatError.ERRORS.IGNITION.VALIDATION.INVALID_ARTIFACT,
+        {
+          contractName: future.contract.contractName,
+        },
+      ),
     );
   } else {
     errors.push(
@@ -85,9 +88,12 @@ export async function validateNamedStaticCall(
 
   if (missingParams.length > 0) {
     errors.push(
-      new IgnitionError(ERRORS.VALIDATION.MISSING_MODULE_PARAMETER, {
-        name: missingParams[0].name,
-      }),
+      new HardhatError(
+        HardhatError.ERRORS.IGNITION.VALIDATION.MISSING_MODULE_PARAMETER,
+        {
+          name: missingParams[0].name,
+        },
+      ),
     );
   }
 

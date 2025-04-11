@@ -1,3 +1,5 @@
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { assert } from "chai";
 import path from "path";
 
@@ -13,9 +15,12 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 describe("verify", () => {
   it("should not verify an unitialized deployment", async () => {
-    await assert.isRejected(
+    await assertRejectsWithHardhatError(
       getVerificationInformation("test").next(),
-      /IGN1000: Cannot verify contracts for nonexistant deployment at test/,
+      HardhatError.ERRORS.IGNITION.VERIFY.UNINITIALIZED_DEPLOYMENT,
+      {
+        deploymentDir: "test",
+      },
     );
   });
 
@@ -27,9 +32,12 @@ describe("verify", () => {
       "no-contracts",
     );
 
-    await assert.isRejected(
+    await assertRejectsWithHardhatError(
       getVerificationInformation(deploymentDir).next(),
-      /IGN1001: Cannot verify deployment/,
+      HardhatError.ERRORS.IGNITION.VERIFY.NO_CONTRACTS_DEPLOYED,
+      {
+        deploymentDir,
+      },
     );
   });
 
@@ -41,9 +49,12 @@ describe("verify", () => {
       "unsupported-chain",
     );
 
-    await assert.isRejected(
+    await assertRejectsWithHardhatError(
       getVerificationInformation(deploymentDir).next(),
-      /IGN1002: Verification not natively supported for chainId 123456789\. Please use a custom chain configuration to add support\./,
+      HardhatError.ERRORS.IGNITION.VERIFY.UNSUPPORTED_CHAIN,
+      {
+        chainId: 123456789,
+      },
     );
   });
 

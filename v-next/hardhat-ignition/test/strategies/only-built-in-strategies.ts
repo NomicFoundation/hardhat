@@ -1,4 +1,5 @@
-import { assert } from "chai";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";
 
@@ -6,12 +7,15 @@ describe("strategies - only built in strategies", function () {
   useEphemeralIgnitionProject("minimal");
 
   it("should throw if a non-recognized strategy is specified", async function () {
-    await assert.isRejected(
+    await assertRejectsWithHardhatError(
       this.hre.tasks.getTask(["ignition", "deploy"]).run({
         modulePath: "./ignition/modules/MyModule.js",
         strategy: "non-recognized-strategy",
       }),
-      /HHE1703: Invalid strategy name "non-recognized-strategy", must be either 'basic' or 'create2'/,
+      HardhatError.ERRORS.IGNITION.STRATEGIES.UNKNOWN_STRATEGY,
+      {
+        strategyName: "non-recognized-strategy",
+      },
     );
   });
 });

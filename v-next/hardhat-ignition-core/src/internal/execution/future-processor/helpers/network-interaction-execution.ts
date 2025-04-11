@@ -21,8 +21,8 @@ import type {
   StaticCall,
 } from "../../types/network-interaction.js";
 
-import { IgnitionError } from "../../../../errors.js";
-import { ERRORS } from "../../../errors-list.js";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+
 import { assertIgnitionInvariant } from "../../../utils/assertions.js";
 
 /**
@@ -166,22 +166,28 @@ export async function sendTransactionForOnchainInteraction(
 
     // If the user has tried to transfer funds (i.e. m.send(...)) and they have insufficient funds
     if (/insufficient funds for transfer/.test(error.message)) {
-      throw new IgnitionError(
-        ERRORS.EXECUTION.INSUFFICIENT_FUNDS_FOR_TRANSFER,
+      throw new HardhatError(
+        HardhatError.ERRORS.IGNITION.EXECUTION.INSUFFICIENT_FUNDS_FOR_TRANSFER,
         { sender, amount: estimateGasPrams.value.toString() },
       );
     }
     // if the user has insufficient funds to deploy the contract they're trying to deploy
     else if (/contract creation code storage out of gas/.test(error.message)) {
-      throw new IgnitionError(ERRORS.EXECUTION.INSUFFICIENT_FUNDS_FOR_DEPLOY, {
-        sender,
-      });
+      throw new HardhatError(
+        HardhatError.ERRORS.IGNITION.EXECUTION.INSUFFICIENT_FUNDS_FOR_DEPLOY,
+        {
+          sender,
+        },
+      );
     }
     // catch-all error for all other errors
     else {
-      throw new IgnitionError(ERRORS.EXECUTION.GAS_ESTIMATION_FAILED, {
-        error: error.message,
-      });
+      throw new HardhatError(
+        HardhatError.ERRORS.IGNITION.EXECUTION.GAS_ESTIMATION_FAILED,
+        {
+          error: error.message,
+        },
+      );
     }
   }
 

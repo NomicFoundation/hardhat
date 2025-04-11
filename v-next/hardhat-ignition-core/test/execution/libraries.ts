@@ -1,3 +1,5 @@
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { assert } from "chai";
 
 import {
@@ -77,11 +79,19 @@ describe("Libraries handling", () => {
 
   describe("linkLibraries", () => {
     it("Should validate that the librearies addressses are valid", () => {
-      assert.throws(() => {
-        linkLibraries(deploymentFixturesArtifacts.WithLibrary, {
-          Lib: "asd",
-        });
-      }, `Invalid address asd for library Lib of contract WithLibrary`);
+      assertThrowsHardhatError(
+        () => {
+          linkLibraries(deploymentFixturesArtifacts.WithLibrary, {
+            Lib: "asd",
+          });
+        },
+        HardhatError.ERRORS.IGNITION.VALIDATION.INVALID_LIBRARY_ADDRESS,
+        {
+          libraryName: "Lib",
+          address: "asd",
+          contractName: "WithLibrary",
+        },
+      );
     });
 
     it("Should link ambigous libraries correctly", () => {

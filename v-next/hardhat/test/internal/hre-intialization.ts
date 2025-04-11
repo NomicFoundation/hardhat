@@ -149,7 +149,7 @@ describe("HRE intialization", () => {
         it("should throw if the config file is not found", async () => {
           await assertRejectsWithHardhatError(
             resolveHardhatConfigPath("non-existent.config.js"),
-            HardhatError.ERRORS.GENERAL.INVALID_CONFIG_PATH,
+            HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG_PATH,
             {
               configPath: "non-existent.config.js",
             },
@@ -160,7 +160,7 @@ describe("HRE intialization", () => {
       it("should throw if the config file is not found", async () => {
         await assertRejectsWithHardhatError(
           resolveHardhatConfigPath(),
-          HardhatError.ERRORS.GENERAL.NO_CONFIG_FILE_FOUND,
+          HardhatError.ERRORS.CORE.GENERAL.NO_CONFIG_FILE_FOUND,
           {},
         );
       });

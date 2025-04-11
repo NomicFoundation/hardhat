@@ -64,7 +64,7 @@ describe("SolcConfigSelector", () => {
         async () => {
           selector.selectBestSolcConfigForSingleRootGraph(dependencyGraph);
         },
-        HardhatError.ERRORS.INTERNAL.ASSERTION_ERROR,
+        HardhatError.ERRORS.CORE.INTERNAL.ASSERTION_ERROR,
         {
           message: "This method only works for single root graphs",
         },
@@ -84,7 +84,7 @@ describe("SolcConfigSelector", () => {
         async () => {
           selector.selectBestSolcConfigForSingleRootGraph(emptyDependencyGraph);
         },
-        HardhatError.ERRORS.INTERNAL.ASSERTION_ERROR,
+        HardhatError.ERRORS.CORE.INTERNAL.ASSERTION_ERROR,
         {
           message: "This method only works for single root graphs",
         },

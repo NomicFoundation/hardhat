@@ -1,7 +1,6 @@
 import type { JsonRpcClient } from "../jsonrpc-client.js";
 
-import { IgnitionError } from "../../../errors.js";
-import { ERRORS } from "../../errors-list.js";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
 /**
  * This interface is meant to be used to fetch new nonces for transactions.
@@ -49,11 +48,14 @@ export class JsonRpcNonceManager implements NonceManager {
         : pendingCount;
 
     if (expectedNonce !== pendingCount) {
-      throw new IgnitionError(ERRORS.EXECUTION.INVALID_NONCE, {
-        sender,
-        expectedNonce,
-        pendingCount,
-      });
+      throw new HardhatError(
+        HardhatError.ERRORS.IGNITION.EXECUTION.INVALID_NONCE,
+        {
+          sender,
+          expectedNonce,
+          pendingCount,
+        },
+      );
     }
 
     // The nonce hasn't been used yet, but we update as

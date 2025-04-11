@@ -17,7 +17,7 @@ export function assertValidationError(
   expectedError: string,
 ): void {
   assert.includeMembers(
-    errors.map((e) => e.split(/IGN\d+: /)[1]),
+    errors.map((e) => e.split(/^\w+\d+: /)[1]),
     [expectedError],
   );
 }

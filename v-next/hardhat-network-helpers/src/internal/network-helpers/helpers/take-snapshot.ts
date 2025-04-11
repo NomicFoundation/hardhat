@@ -12,7 +12,7 @@ export async function takeSnapshot(
 
   if (typeof snapshotId !== "string") {
     throw new HardhatError(
-      HardhatError.ERRORS.NETWORK_HELPERS.EVM_SNAPSHOT_VALUE_NOT_A_STRING,
+      HardhatError.ERRORS.NETWORK_HELPERS.GENERAL.EVM_SNAPSHOT_VALUE_NOT_A_STRING,
     );
   }
 
@@ -25,13 +25,13 @@ export async function takeSnapshot(
 
       if (typeof reverted !== "boolean") {
         throw new HardhatError(
-          HardhatError.ERRORS.NETWORK_HELPERS.EVM_REVERT_VALUE_NOT_A_BOOLEAN,
+          HardhatError.ERRORS.NETWORK_HELPERS.GENERAL.EVM_REVERT_VALUE_NOT_A_BOOLEAN,
         );
       }
 
       if (!reverted) {
         throw new HardhatError(
-          HardhatError.ERRORS.NETWORK_HELPERS.INVALID_SNAPSHOT,
+          HardhatError.ERRORS.NETWORK_HELPERS.GENERAL.INVALID_SNAPSHOT,
         );
       }
 

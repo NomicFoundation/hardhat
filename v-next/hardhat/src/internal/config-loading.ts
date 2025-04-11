@@ -65,7 +65,7 @@ export async function findClosestHardhatConfig(from?: string): Promise<string> {
     return hardhatConfigPath;
   }
 
-  throw new HardhatError(HardhatError.ERRORS.GENERAL.NO_CONFIG_FILE_FOUND);
+  throw new HardhatError(HardhatError.ERRORS.CORE.GENERAL.NO_CONFIG_FILE_FOUND);
 }
 
 /**
@@ -83,17 +83,23 @@ export async function importUserConfig(
   );
 
   if (!("default" in imported)) {
-    throw new HardhatError(HardhatError.ERRORS.GENERAL.NO_CONFIG_EXPORTED, {
-      configPath,
-    });
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.GENERAL.NO_CONFIG_EXPORTED,
+      {
+        configPath,
+      },
+    );
   }
 
   const config = imported.default;
 
   if (!isObject(config)) {
-    throw new HardhatError(HardhatError.ERRORS.GENERAL.INVALID_CONFIG_OBJECT, {
-      configPath,
-    });
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG_OBJECT,
+      {
+        configPath,
+      },
+    );
   }
 
   return config;
@@ -111,9 +117,12 @@ async function normalizeConfigPath(configPath: string): Promise<string> {
   const normalizedPath = resolveFromRoot(process.cwd(), configPath);
 
   if (!(await exists(normalizedPath))) {
-    throw new HardhatError(HardhatError.ERRORS.GENERAL.INVALID_CONFIG_PATH, {
-      configPath,
-    });
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG_PATH,
+      {
+        configPath,
+      },
+    );
   }
 
   return normalizedPath;

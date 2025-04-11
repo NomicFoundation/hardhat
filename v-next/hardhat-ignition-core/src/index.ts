@@ -1,7 +1,6 @@
 export { batches } from "./batches.js";
 export { buildModule } from "./build-module.js";
 export { deploy } from "./deploy.js";
-export * from "./errors.js";
 export { IgnitionModuleSerializer } from "./ignition-module-serializer.js";
 export { formatSolidityParameter } from "./internal/formatters.js";
 export { listDeployments } from "./list-deployments.js";
@@ -10,7 +9,6 @@ export { status } from "./status.js";
 export * from "./type-guards.js";
 export * from "./types/artifact.js";
 export * from "./types/deploy.js";
-export * from "./types/errors.js";
 export * from "./types/execution-events.js";
 export * from "./types/list-transactions.js";
 export * from "./types/module.js";

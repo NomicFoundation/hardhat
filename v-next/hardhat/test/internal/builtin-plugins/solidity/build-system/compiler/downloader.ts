@@ -38,7 +38,7 @@ describe(
       it("should throw when version is bad", async function () {
         await assertRejectsWithHardhatError(
           () => wasmDownloader.isCompilerDownloaded("0.4.12a"),
-          HardhatError.ERRORS.SOLIDITY.INVALID_SOLC_VERSION,
+          HardhatError.ERRORS.CORE.SOLIDITY.INVALID_SOLC_VERSION,
           {
             version: "0.4.12a",
           },
@@ -78,7 +78,7 @@ describe(
       it("should throw when version is bad", async function () {
         await assertRejectsWithHardhatError(
           () => downloader.isCompilerDownloaded("0.4.12a"),
-          HardhatError.ERRORS.SOLIDITY.INVALID_SOLC_VERSION,
+          HardhatError.ERRORS.CORE.SOLIDITY.INVALID_SOLC_VERSION,
           {
             version: "0.4.12a",
           },
@@ -122,7 +122,7 @@ describe(
 
         await assertRejectsWithHardhatError(
           () => downloader.downloadCompiler("asd"),
-          HardhatError.ERRORS.SOLIDITY.INVALID_SOLC_VERSION,
+          HardhatError.ERRORS.CORE.SOLIDITY.INVALID_SOLC_VERSION,
           {
             version: "asd",
           },
@@ -130,7 +130,7 @@ describe(
 
         await assertRejectsWithHardhatError(
           () => downloader.downloadCompiler("100.0.0"),
-          HardhatError.ERRORS.SOLIDITY.INVALID_SOLC_VERSION,
+          HardhatError.ERRORS.CORE.SOLIDITY.INVALID_SOLC_VERSION,
           {
             version: "100.0.0",
           },
@@ -148,7 +148,7 @@ describe(
 
         await assertRejectsWithHardhatError(
           () => mockDownloader.updateCompilerListIfNeeded(new Set(["0.4.12"])),
-          HardhatError.ERRORS.SOLIDITY.VERSION_LIST_DOWNLOAD_FAILED,
+          HardhatError.ERRORS.CORE.SOLIDITY.VERSION_LIST_DOWNLOAD_FAILED,
           {},
         );
       });
@@ -176,7 +176,7 @@ describe(
 
         await assertRejectsWithHardhatError(
           () => mockDownloader.downloadCompiler("0.4.12"),
-          HardhatError.ERRORS.SOLIDITY.DOWNLOAD_FAILED,
+          HardhatError.ERRORS.CORE.SOLIDITY.DOWNLOAD_FAILED,
           {
             remoteVersion: "0.4.12+commit.194ff033",
           },
@@ -247,7 +247,7 @@ describe(
 
         await assertRejectsWithHardhatError(
           () => mockDownloader.downloadCompiler("0.4.12"),
-          HardhatError.ERRORS.SOLIDITY.INVALID_DOWNLOAD,
+          HardhatError.ERRORS.CORE.SOLIDITY.INVALID_DOWNLOAD,
           {
             remoteVersion: "0.4.12+commit.194ff033",
           },
@@ -368,7 +368,7 @@ describe(
 
         await assertRejectsWithHardhatError(
           () => downloader.getCompiler("0.4.12"),
-          HardhatError.ERRORS.INTERNAL.ASSERTION_ERROR,
+          HardhatError.ERRORS.CORE.INTERNAL.ASSERTION_ERROR,
           {
             message: "Trying to get a compiler 0.4.12 before it was downloaded",
           },
@@ -384,7 +384,7 @@ describe(
 
         await assertRejectsWithHardhatError(
           () => downloader.getCompiler("0.4.13"),
-          HardhatError.ERRORS.INTERNAL.ASSERTION_ERROR,
+          HardhatError.ERRORS.CORE.INTERNAL.ASSERTION_ERROR,
           {
             message: "Trying to get a compiler 0.4.13 before it was downloaded",
           },
@@ -437,7 +437,7 @@ describe(
 
         await assertRejectsWithHardhatError(
           () => mockDownloader.downloadCompiler("0.4.12"),
-          HardhatError.ERRORS.SOLIDITY.INVALID_DOWNLOAD,
+          HardhatError.ERRORS.CORE.SOLIDITY.INVALID_DOWNLOAD,
           {
             remoteVersion: "0.4.12+commit.194ff033",
           },

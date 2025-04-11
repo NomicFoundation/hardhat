@@ -126,7 +126,7 @@ export async function getDefaultWalletClient<
 
   if (defaultAccount === undefined) {
     throw new HardhatError(
-      HardhatError.ERRORS.VIEM.DEFAULT_WALLET_CLIENT_NOT_FOUND,
+      HardhatError.ERRORS.HARDHAT_VIEM.GENERAL.DEFAULT_WALLET_CLIENT_NOT_FOUND,
       {
         chainId: chain.id,
       },

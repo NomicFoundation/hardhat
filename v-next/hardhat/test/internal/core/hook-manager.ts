@@ -475,7 +475,7 @@ describe("HookManager", () => {
                 return {};
               },
             ),
-          HardhatError.ERRORS.HOOKS.INVALID_HOOK_FACTORY_PATH,
+          HardhatError.ERRORS.CORE.HOOKS.INVALID_HOOK_FACTORY_PATH,
           {
             hookCategoryName: "config",
             pluginId: "example",

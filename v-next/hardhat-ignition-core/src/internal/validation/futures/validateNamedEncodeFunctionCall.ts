@@ -2,12 +2,12 @@ import type { ArtifactResolver } from "../../../types/artifact.js";
 import type { DeploymentParameters } from "../../../types/deploy.js";
 import type { EncodeFunctionCallFuture } from "../../../types/module.js";
 
-import { IgnitionError } from "../../../errors.js";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+
 import {
   isArtifactType,
   isModuleParameterRuntimeValue,
 } from "../../../type-guards.js";
-import { ERRORS } from "../../errors-list.js";
 import { validateArtifactFunction } from "../../execution/abi.js";
 import {
   filterToAccountRuntimeValues,
@@ -22,7 +22,7 @@ export async function validateNamedEncodeFunctionCall(
   deploymentParameters: DeploymentParameters,
   accounts: string[],
 ): Promise<string[]> {
-  const errors: IgnitionError[] = [];
+  const errors: HardhatError[] = [];
 
   /* stage one */
 
@@ -33,9 +33,12 @@ export async function validateNamedEncodeFunctionCall(
 
   if (!isArtifactType(artifact)) {
     errors.push(
-      new IgnitionError(ERRORS.VALIDATION.INVALID_ARTIFACT, {
-        contractName: future.contract.contractName,
-      }),
+      new HardhatError(
+        HardhatError.ERRORS.IGNITION.VALIDATION.INVALID_ARTIFACT,
+        {
+          contractName: future.contract.contractName,
+        },
+      ),
     );
   } else {
     errors.push(
@@ -69,9 +72,12 @@ export async function validateNamedEncodeFunctionCall(
 
   if (missingParams.length > 0) {
     errors.push(
-      new IgnitionError(ERRORS.VALIDATION.MISSING_MODULE_PARAMETER, {
-        name: missingParams[0].name,
-      }),
+      new HardhatError(
+        HardhatError.ERRORS.IGNITION.VALIDATION.MISSING_MODULE_PARAMETER,
+        {
+          name: missingParams[0].name,
+        },
+      ),
     );
   }
 

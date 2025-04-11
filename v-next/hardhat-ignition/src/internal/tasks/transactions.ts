@@ -1,4 +1,3 @@
-import type { ListTransactionsResult } from "@nomicfoundation/ignition-core";
 import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 import type { NewTaskActionFunction } from "hardhat/types/tasks";
 
@@ -24,20 +23,10 @@ const taskTransactions: NewTaskActionFunction<
 
   const artifactResolver = new HardhatArtifactResolver(hre.artifacts);
 
-  let listTransactionsResult: ListTransactionsResult;
-
-  try {
-    listTransactionsResult = await listTransactions(
-      deploymentDir,
-      artifactResolver,
-    );
-  } catch (e) {
-    // Disabled for the alpha release
-    // if (e instanceof IgnitionError && shouldBeHardhatPluginError(e)) {
-    //   throw new HardhatError(HardhatError.ERRORS.IGNITION.INTERNAL_ERROR, e);
-    // }
-    throw e;
-  }
+  const listTransactionsResult = await listTransactions(
+    deploymentDir,
+    artifactResolver,
+  );
 
   // TODO: HH3 revisit looking up the network name for display
   const networkName = (await hre.network.connect()).networkName;

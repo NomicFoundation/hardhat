@@ -67,7 +67,8 @@ describe("network-helpers - setBlockGasLimit", () => {
     it("should not accept strings that are not 0x-prefixed", async () => {
       await assertRejectsWithHardhatError(
         async () => networkHelpers.setBlockGasLimit("3"),
-        HardhatError.ERRORS.NETWORK_HELPERS.ONLY_ALLOW_0X_PREFIXED_STRINGS,
+        HardhatError.ERRORS.NETWORK_HELPERS.GENERAL
+          .ONLY_ALLOW_0X_PREFIXED_STRINGS,
         {},
       );
     });

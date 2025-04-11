@@ -150,7 +150,7 @@ const taskDeploy: NewTaskActionFunction<TaskDeployArguments> = async (
   if (reset) {
     if (deploymentDir === undefined) {
       throw new HardhatError(
-        HardhatError.ERRORS.IGNITION.CANNOT_RESET_EPHEMERAL_NETWORK,
+        HardhatError.ERRORS.IGNITION.INTERNAL.CANNOT_RESET_EPHEMERAL_NETWORK,
       );
     } else {
       await remove(deploymentDir);
@@ -158,9 +158,12 @@ const taskDeploy: NewTaskActionFunction<TaskDeployArguments> = async (
   }
 
   if (strategyName !== "basic" && strategyName !== "create2") {
-    throw new HardhatError(HardhatError.ERRORS.IGNITION.UNKNOWN_STRATEGY, {
-      strategyName,
-    });
+    throw new HardhatError(
+      HardhatError.ERRORS.IGNITION.STRATEGIES.UNKNOWN_STRATEGY,
+      {
+        strategyName,
+      },
+    );
   }
 
   await hre.tasks.getTask("compile").run({ quiet: true });
@@ -168,7 +171,9 @@ const taskDeploy: NewTaskActionFunction<TaskDeployArguments> = async (
   const userModule = await loadModule(hre.config.paths.ignition, modulePath);
 
   if (userModule === undefined) {
-    throw new HardhatError(HardhatError.ERRORS.IGNITION.NO_MODULES_FOUND);
+    throw new HardhatError(
+      HardhatError.ERRORS.IGNITION.INTERNAL.NO_MODULES_FOUND,
+    );
   }
 
   let parameters: DeploymentParameters | undefined;
@@ -197,52 +202,43 @@ const taskDeploy: NewTaskActionFunction<TaskDeployArguments> = async (
 
   const strategyConfig = hre.config.ignition.strategyConfig?.[strategyName];
 
-  try {
-    const result = await deploy({
-      config: hre.config.ignition,
-      provider: connection.provider,
-      executionEventListener,
-      artifactResolver,
-      deploymentDir,
-      ignitionModule: userModule,
-      deploymentParameters: parameters ?? {},
-      accounts,
-      defaultSender: defaultSender === "" ? undefined : defaultSender,
-      strategy: strategyName,
-      strategyConfig,
-      maxFeePerGasLimit:
-        hre.config.networks[connection.networkName]?.ignition.maxFeePerGasLimit,
-      maxPriorityFeePerGas:
-        hre.config.networks[connection.networkName]?.ignition
-          .maxPriorityFeePerGas,
-      gasPrice: hre.config.networks[connection.networkName]?.ignition.gasPrice,
-      disableFeeBumping:
-        hre.config.ignition.disableFeeBumping ??
-        hre.config.networks[connection.networkName]?.ignition.disableFeeBumping,
-    });
+  const result = await deploy({
+    config: hre.config.ignition,
+    provider: connection.provider,
+    executionEventListener,
+    artifactResolver,
+    deploymentDir,
+    ignitionModule: userModule,
+    deploymentParameters: parameters ?? {},
+    accounts,
+    defaultSender: defaultSender === "" ? undefined : defaultSender,
+    strategy: strategyName,
+    strategyConfig,
+    maxFeePerGasLimit:
+      hre.config.networks[connection.networkName]?.ignition.maxFeePerGasLimit,
+    maxPriorityFeePerGas:
+      hre.config.networks[connection.networkName]?.ignition
+        .maxPriorityFeePerGas,
+    gasPrice: hre.config.networks[connection.networkName]?.ignition.gasPrice,
+    disableFeeBumping:
+      hre.config.ignition.disableFeeBumping ??
+      hre.config.networks[connection.networkName]?.ignition.disableFeeBumping,
+  });
 
-    // TODO: HH3 Bring back with the port of hardhat-verify
-    // if (result.type === "SUCCESSFUL_DEPLOYMENT" && verify) {
-    //   console.log("");
-    //   console.log(chalk.bold("Verifying deployed contracts"));
-    //   console.log("");
+  // TODO: HH3 Bring back with the port of hardhat-verify
+  // if (result.type === "SUCCESSFUL_DEPLOYMENT" && verify) {
+  //   console.log("");
+  //   console.log(chalk.bold("Verifying deployed contracts"));
+  //   console.log("");
 
-    //   await hre.run({ scope: "ignition", task: "verify" }, { deploymentId });
-    // }
+  //   await hre.run({ scope: "ignition", task: "verify" }, { deploymentId });
+  // }
 
-    if (result.type !== "SUCCESSFUL_DEPLOYMENT") {
-      process.exitCode = 1;
-    }
-
-    return result;
-  } catch (_e) {
-    // Disabled for the alpha release
-    // if (e instanceof IgnitionError && shouldBeHardhatPluginError(e)) {
-    //   throw new HardhatError(HardhatError.ERRORS.IGNITION.INTERNAL_ERROR, e);
-    // }
-
-    throw _e;
+  if (result.type !== "SUCCESSFUL_DEPLOYMENT") {
+    process.exitCode = 1;
   }
+
+  return result;
 };
 
 async function resolveParametersFromModuleName(
@@ -281,7 +277,7 @@ async function resolveParametersString(
 
     if (e instanceof Error) {
       throw new HardhatError(
-        HardhatError.ERRORS.IGNITION.FAILED_TO_PARSE_JSON,
+        HardhatError.ERRORS.IGNITION.INTERNAL.FAILED_TO_PARSE_JSON,
         e,
       );
     }

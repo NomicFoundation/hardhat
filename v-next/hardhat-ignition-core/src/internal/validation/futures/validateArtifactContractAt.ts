@@ -2,9 +2,9 @@ import type { ArtifactResolver } from "../../../types/artifact.js";
 import type { DeploymentParameters } from "../../../types/deploy.js";
 import type { ContractAtFuture } from "../../../types/module.js";
 
-import { IgnitionError } from "../../../errors.js";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+
 import { isModuleParameterRuntimeValue } from "../../../type-guards.js";
-import { ERRORS } from "../../errors-list.js";
 import { resolvePotentialModuleParameterValueFrom } from "../utils.js";
 
 export async function validateArtifactContractAt(
@@ -13,7 +13,7 @@ export async function validateArtifactContractAt(
   deploymentParameters: DeploymentParameters,
   _accounts: string[],
 ): Promise<string[]> {
-  const errors: IgnitionError[] = [];
+  const errors: HardhatError[] = [];
 
   /* stage two */
 
@@ -25,17 +25,23 @@ export async function validateArtifactContractAt(
 
     if (param === undefined) {
       errors.push(
-        new IgnitionError(ERRORS.VALIDATION.MISSING_MODULE_PARAMETER, {
-          name: future.address.name,
-        }),
+        new HardhatError(
+          HardhatError.ERRORS.IGNITION.VALIDATION.MISSING_MODULE_PARAMETER,
+          {
+            name: future.address.name,
+          },
+        ),
       );
     } else if (typeof param !== "string") {
       errors.push(
-        new IgnitionError(ERRORS.VALIDATION.INVALID_MODULE_PARAMETER_TYPE, {
-          name: future.address.name,
-          expectedType: "string",
-          actualType: typeof param,
-        }),
+        new HardhatError(
+          HardhatError.ERRORS.IGNITION.VALIDATION.INVALID_MODULE_PARAMETER_TYPE,
+          {
+            name: future.address.name,
+            expectedType: "string",
+            actualType: typeof param,
+          },
+        ),
       );
     }
   }

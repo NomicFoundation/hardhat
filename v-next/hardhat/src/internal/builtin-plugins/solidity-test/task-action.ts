@@ -31,10 +31,11 @@ import { run } from "./runner.js";
 interface TestActionArguments {
   testFiles: string[];
   chainType: string;
+  noCompile: boolean;
 }
 
 const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
-  { testFiles, chainType },
+  { testFiles, chainType, noCompile },
   hre,
 ) => {
   let rootFilePaths: string[];
@@ -47,6 +48,13 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     );
     process.exitCode = 1;
     return;
+  }
+
+  // NOTE: We run the compile task first to ensure all the artifacts for them are generated
+  // Then, we compile just the test sources. We don't do it in one go because the user
+  // is likely to use different compilation options for the tests and the sources.
+  if (noCompile === false) {
+    await hre.tasks.getTask("compile").run();
   }
 
   if (testFiles.length > 0) {
@@ -71,19 +79,25 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   // the tests.solidity paths and the sources paths
   rootFilePaths = Array.from(new Set(rootFilePaths));
 
+  // NOTE: We are not skipping the test compilation even if the noCompile flag is set
+  // because the user cannot run test compilation outside of the test task yet.
+  // TODO: Allow users to run test compilation outside of the test task.
   const buildOptions: BuildOptions = {
     force: false,
     buildProfile: hre.globalOptions.buildProfile,
     quiet: true,
   };
-
   const results = await hre.solidity.build(rootFilePaths, buildOptions);
-
   throwIfSolidityBuildFailed(results);
 
-  const buildInfos = await getBuildInfos(results, hre.artifacts);
-  const artifacts = await getArtifacts(results);
+  const buildInfos = await getBuildInfos(hre.artifacts);
+  const artifacts = await getArtifacts(hre.artifacts);
   const testSuiteIds = artifacts
+    .filter((artifact) =>
+      rootFilePaths.includes(
+        resolveFromRoot(hre.config.paths.root, artifact.id.source),
+      ),
+    )
     .filter(isTestSuiteArtifact)
     .map((artifact) => artifact.id);
 

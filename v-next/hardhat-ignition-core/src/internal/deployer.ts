@@ -19,13 +19,13 @@ import type {
 import type { ExecutionEventListener } from "../types/execution-events.js";
 import type { IgnitionModule, IgnitionModuleResult } from "../types/module.js";
 
-import { IgnitionError } from "../errors.js";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+
 import { isContractFuture } from "../type-guards.js";
 import { DeploymentResultType } from "../types/deploy.js";
 import { ExecutionEventType } from "../types/execution-events.js";
 
 import { Batcher } from "./batcher.js";
-import { ERRORS } from "./errors-list.js";
 import {
   initializeDeploymentState,
   loadDeploymentState,
@@ -261,10 +261,13 @@ export class Deployer {
     // TODO: this should be moved out, it is not obvious that a significant
     // check is being done in an init method
     if (deploymentState.chainId !== chainId) {
-      throw new IgnitionError(ERRORS.DEPLOY.CHANGED_CHAINID, {
-        previousChainId: deploymentState.chainId,
-        currentChainId: chainId,
-      });
+      throw new HardhatError(
+        HardhatError.ERRORS.IGNITION.DEPLOY.CHANGED_CHAINID,
+        {
+          previousChainId: deploymentState.chainId,
+          currentChainId: chainId,
+        },
+      );
     }
 
     return { deploymentState, isResumed: true };

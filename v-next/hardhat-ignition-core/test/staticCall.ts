@@ -1,4 +1,5 @@
-/* eslint-disable import/no-unused-modules */
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { assert } from "chai";
 
 import { Artifact } from "../src/index.js";
@@ -454,7 +455,7 @@ m.staticCall(..., { id: "MyUniqueId"})`,
   describe("validation", () => {
     describe("module stage", () => {
       it("should not validate a non-address from option", () => {
-        assert.throws(
+        assertThrowsHardhatError(
           () =>
             buildModule("Module1", (m) => {
               const another = m.contract("Another", []);
@@ -462,12 +463,15 @@ m.staticCall(..., { id: "MyUniqueId"})`,
 
               return { another };
             }),
-          /IGN702: Module validation failed with reason: Invalid type for option "from": number/,
+          HardhatError.ERRORS.IGNITION.VALIDATION.INVALID_MODULE,
+          {
+            message: 'Invalid type for option "from": number',
+          },
         );
       });
 
       it("should not validate a nameOrIndex that is not a number or string", () => {
-        assert.throws(
+        assertThrowsHardhatError(
           () =>
             buildModule("Module1", (m) => {
               const another = m.contract("Another", []);
@@ -475,12 +479,15 @@ m.staticCall(..., { id: "MyUniqueId"})`,
 
               return { another };
             }),
-          /Invalid nameOrIndex given/,
+          HardhatError.ERRORS.IGNITION.VALIDATION.INVALID_MODULE,
+          {
+            message: "Invalid nameOrIndex given",
+          },
         );
       });
 
       it("should not validate a non-contract", () => {
-        assert.throws(
+        assertThrowsHardhatError(
           () =>
             buildModule("Module1", (m) => {
               const another = m.contract("Another", []);
@@ -490,12 +497,15 @@ m.staticCall(..., { id: "MyUniqueId"})`,
 
               return { another };
             }),
-          /Invalid contract given/,
+          HardhatError.ERRORS.IGNITION.VALIDATION.INVALID_MODULE,
+          {
+            message: "Invalid contract given",
+          },
         );
       });
 
       it("should not validate a library", () => {
-        assert.throws(
+        assertThrowsHardhatError(
           () =>
             buildModule("Module1", (m) => {
               const another = m.library("Another");
@@ -504,7 +514,10 @@ m.staticCall(..., { id: "MyUniqueId"})`,
 
               return { another };
             }),
-          /Invalid contract given/,
+          HardhatError.ERRORS.IGNITION.VALIDATION.INVALID_MODULE,
+          {
+            message: "Invalid contract given",
+          },
         );
       });
     });

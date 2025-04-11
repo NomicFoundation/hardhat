@@ -14,9 +14,9 @@ import type {
   StaticCallStrategyGenerator,
 } from "../internal/execution/types/execution-strategy.js";
 
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { ethers } from "ethers";
 
-import { NomicIgnitionPluginError } from "../errors.js";
 import {
   decodeArtifactCustomError,
   decodeArtifactFunctionCallResult,
@@ -109,9 +109,9 @@ export class Create2Strategy implements ExecutionStrategy {
 
     // Otherwise if we're not on a local hardhat node, throw an error
     if (chainId !== 31337) {
-      throw new NomicIgnitionPluginError(
-        "create2",
-        `CreateX not deployed on current network ${chainId}`,
+      throw new HardhatError(
+        HardhatError.ERRORS.IGNITION.STRATEGIES.CREATE_X_NOT_DEPLOYED,
+        { chainId },
       );
     }
 
