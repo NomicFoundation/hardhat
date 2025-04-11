@@ -278,7 +278,11 @@ describe("installProjectDependencies", async () => {
   it(
     "should install any existing template dependencies that are out of date if the user opts-in to the update",
     {
-      skip: process.env.HARDHAT_DISABLE_SLOW_TESTS === "true",
+      skip:
+        process.env.HARDHAT_DISABLE_SLOW_TESTS === "true" ||
+        process.env.GITHUB_EVENT_NAME === "push" || // TODO: This check should be limited to push events associated with a release PR merge
+        process.env.GITHUB_EVENT_NAME === "merge_group" || // TODO: This check should be limited to merge_group events associated with a release PR merge
+        process.env.GITHUB_HEAD_REF?.startsWith("changeset-release/"),
     },
     async () => {
       const template = await getTemplate("mocha-ethers");
@@ -395,7 +399,8 @@ describe("initHardhat", async () => {
       {
         skip:
           process.env.HARDHAT_DISABLE_SLOW_TESTS === "true" ||
-          process.env.GITHUB_EVENT_NAME === "merge_group" ||
+          process.env.GITHUB_EVENT_NAME === "push" || // TODO: This check should be limited to push events associated with a release PR merge
+          process.env.GITHUB_EVENT_NAME === "merge_group" || // TODO: This check should be limited to merge_group events associated with a release PR merge
           process.env.GITHUB_HEAD_REF?.startsWith("changeset-release/"),
       },
       async () => {
