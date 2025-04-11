@@ -21,7 +21,7 @@ importers:
         specifier: workspace:^3.0.0-next.3
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-ethers':
-        specifier: workspace:^4.0.0-next.3
+        specifier: workspace:^3.0.0-next.3
         version: link:../hardhat-ethers
       '@nomicfoundation/hardhat-ethers-chai-matchers':
         specifier: workspace:^3.0.0-next.3
@@ -360,7 +360,7 @@ importers:
         specifier: workspace:^3.0.0-next.3
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-ethers':
-        specifier: workspace:^4.0.0-next.3
+        specifier: workspace:^3.0.0-next.3
         version: link:../hardhat-ethers
       '@nomicfoundation/hardhat-utils':
         specifier: workspace:^3.0.0-next.3
@@ -712,7 +712,7 @@ importers:
         specifier: 1.0.2
         version: 1.0.2(nyc@15.1.0)
       '@nomicfoundation/hardhat-ethers':
-        specifier: workspace:^4.0.0-next.3
+        specifier: workspace:^3.0.0-next.3
         version: link:../hardhat-ethers
       '@nomicfoundation/hardhat-ignition':
         specifier: workspace:^3.0.0-next.3
@@ -1445,7 +1445,7 @@ importers:
         specifier: workspace:^3.0.0-next.3
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-ethers':
-        specifier: workspace:^4.0.0-next.3
+        specifier: workspace:^3.0.0-next.3
         version: link:../hardhat-ethers
       '@nomicfoundation/hardhat-utils':
         specifier: workspace:^3.0.0-next.3
@@ -1788,7 +1788,7 @@ importers:
   v-next/hardhat/templates/02-mocha-ethers:
     devDependencies:
       '@nomicfoundation/hardhat-ethers':
-        specifier: workspace:^4.0.0-next.3
+        specifier: workspace:^3.0.0-next.3
         version: link:../../../hardhat-ethers
       '@nomicfoundation/hardhat-ethers-chai-matchers':
         specifier: workspace:^3.0.0-next.3
