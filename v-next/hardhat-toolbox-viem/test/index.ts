@@ -12,7 +12,8 @@ describe("hardhat-toolbox-viem", function () {
 
     it("should not throw because all the plugins should exist", async function () {
       const hardhatConfig = await import(
-        pathToFileURL(path.join(process.cwd(), "hardhat.config.ts")).href
+        // eslint-disable-next-line import/no-relative-packages -- allow in tests
+        "./fixture-projects/toolbox/hardhat.config.js"
       );
 
       const hre = await createHardhatRuntimeEnvironment(hardhatConfig.default);

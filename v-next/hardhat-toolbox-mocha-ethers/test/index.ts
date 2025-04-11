@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import path from "node:path";
 import { describe, it } from "node:test";
-import { pathToFileURL } from "node:url";
 
 import { useFixtureProject } from "@nomicfoundation/hardhat-test-utils";
 import { exists, remove } from "@nomicfoundation/hardhat-utils/fs";
@@ -13,7 +12,8 @@ describe("hardhat-toolbox-mocha-ethers", function () {
 
     it("should not throw because all the plugins should exist", async function () {
       const hardhatConfig = await import(
-        pathToFileURL(path.join(process.cwd(), "hardhat.config.ts")).href
+        // eslint-disable-next-line import/no-relative-packages -- allow in tests
+        "./fixture-projects/toolbox/hardhat.config.js"
       );
 
       const hre = await createHardhatRuntimeEnvironment(hardhatConfig.default);
