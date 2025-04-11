@@ -67,10 +67,80 @@ jobs:
         if: steps.pr.outputs.hasChangesets == 'false'
         env:
           STDOUT: ${{ steps.publish.outputs.stdout }}
-          PREFIX: 'New tag: hardhat@'
-        run: echo "$STDOUT" | grep "$PREFIX" | tr -d "$PREFIX" | xargs -I {} -0 echo "version={}" | tee -a $GITHUB_OUTPUT
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const lines = process.env.STDOUT.split('\n')
 
-      - name: Find the changelog entry
+            core.info('Checking if Hardhat was published')
+
+            const line = lines.find(line => line.startsWith('+ hardhat@'))
+
+            if (line === undefined) {
+              core.info('Hardhat was not published')
+              core.setOutput('version', '')
+              process.exit(0)
+            }
+
+            const version = line.split('@')[1]
+            core.info(`Hardhat was published with version ${version}`)
+            core.setOutput('version', version)
+
+      - name: Check the version of the published package
+        id: version
+        if: steps.hardhat.outputs.version != ''
+        env:
+          VERSION: steps.hardhat.outputs.version
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const version = process.env.VERSION
+
+            core.info('Checking if Hardhat was published as a prerelease')
+
+            // NOTE: This check would mark non-prerelease versions with - in the build tag as prereleases
+            const prerelease = version.includes('-')
+            if (prerelease) {
+              core.info('Hardhat was published as a prerelease')
+              core.setOutput('prerelease', true)
+            } else {
+              core.info('Hardhat was not published as a prerelease')
+              core.setOutput('prerelease', false)
+            }
+
+            core.info('Checking if this is the latest version')
+
+            if (prerelease) {
+              core.info('This is a prerelease, so this is not the latest version')
+              core.setOutput('latest', false)
+              process.exit(0)
+            }
+
+            const { data: release } = await github.rest.repos.getLatestRelease(context.repo)
+
+            if (release === undefined) {
+              core.info('No existing latest release found, so this is the latest version')
+              core.setOutput('latest', true)
+              process.exit(0)
+            }
+
+            const latestVersion = release.tag_name.split('@')[1]
+            core.info(`Current latest version is ${latestVersion}`)
+
+            const ([major, minor, patch]) = version.split('.')
+            const ([latestMajor, latestMinor, latestPatch]) = latestVersion.split('.')
+
+            if (parseInt(major, 10) > parseInt(latestMajor, 10) ||
+                parseInt(minor, 10) > parseInt(latestMinor, 10) ||
+                parseInt(patch, 10) > parseInt(latestPatch, 10)) {
+              core.info('This is a new latest version')
+              core.setOutput('latest', true)
+            } else {
+              core.info('This is not a new latest version')
+              core.setOutput('latest', false)
+            }
+
+      - name: Find the relevant changelog entry
         id: changelog
         if: steps.hardhat.outputs.version != ''
         env:
@@ -106,23 +176,6 @@ jobs:
             core.debug(`Entry: ${entry}`)
             core.setOutput('entry', entry)
 
-      - name: Retrieve the current latest version
-        id: latest
-        if: steps.hardhat.outputs.version != ''
-        run: gh release view --json tagName --jq .tagName | tr -d 'hardhat@' | xargs -I {} -0 echo "version={}" | tee -a $GITHUB_OUTPUT
-
-      - name: Check version
-        id: version
-        if: steps.hardhat.outputs.version != ''
-        env:
-          VERSION: steps.hardhat.outputs.version
-          LATEST: steps.latest.outputs.version
-        run: |
-          # NOTE: This check would mark non-prerelease versions with - in the build tag as prereleases
-          [[ "$VERSION" == *-* ]] && echo "true" || echo "false" | xargs -I {} -0 echo "prerelease={}" | tee -a $GITHUB_OUTPUT
-          latest="$((echo "$VERSION" && echo "$LATEST") | sort -V | tail -n1)"
-          [[ "$VERSION" == "$latest" ]] && echo "true" || echo "false" | xargs -I {} -0 echo "latest={}" | tee -a $GITHUB_OUTPUT
-
       - name: Create GitHub Release
         if: steps.hardhat.outputs.version != ''
         env:
@@ -134,7 +187,7 @@ jobs:
           tag_name: hardhat@${{ steps.hardhat.outputs.version }}
           generate_release_notes: false
           target_commitish: ${{ github.sha }}
-          make_latest: ${{ steps.version.outputs.prerelease == 'false' && steps.version.outputs.latest == 'true' }}
+          make_latest: ${{ steps.version.outputs.latest == 'true' }}
           prerelease: ${{ steps.version.outputs.prerelease == 'true' }}
           body: |
             # ${{ steps.hardhat.outputs.version }}
