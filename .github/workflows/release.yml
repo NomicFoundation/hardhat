@@ -51,6 +51,8 @@ jobs:
         if: steps.pr.outputs.hasChangesets == 'false'
         run: pnpm publish --filter "./v-next/**" -r --no-git-checks --tag next --access public --dry-run
 
+      # NOTE: When running publish on an already published package we expect it to succeed but not to release anything and not include + hardhat@ in the output.
+      # If it does, however, include + hardhat@ in the output, it's OK, because we'll just update the release without moving the release tag forward.
       - name: Publish All Packages
         id: publish
         if: steps.pr.outputs.hasChangesets == 'false'
@@ -90,7 +92,7 @@ jobs:
         id: version
         if: steps.hardhat.outputs.version != ''
         env:
-          VERSION: steps.hardhat.outputs.version
+          VERSION: ${{ steps.hardhat.outputs.version }}
         uses: actions/github-script@v7
         with:
           script: |
@@ -116,41 +118,44 @@ jobs:
               process.exit(0)
             }
 
-            const { data: release } = await github.rest.repos.getLatestRelease(context.repo)
+            try {
+              const { data: release } = await github.rest.repos.getLatestRelease(context.repo)
 
-            if (release === undefined) {
-              core.info('No existing latest release found, so this is the latest version')
-              core.setOutput('latest', true)
-              process.exit(0)
-            }
+              const latestVersion = release.tag_name.split('@')[1]
+              core.info(`Current latest version is ${latestVersion}`)
 
-            const latestVersion = release.tag_name.split('@')[1]
-            core.info(`Current latest version is ${latestVersion}`)
+              const [major, minor, patch] = version.split('.')
+              const [latestMajor, latestMinor, latestPatch] = latestVersion.split('.')
 
-            const ([major, minor, patch]) = version.split('.')
-            const ([latestMajor, latestMinor, latestPatch]) = latestVersion.split('.')
-
-            if (parseInt(major, 10) > parseInt(latestMajor, 10) ||
-                parseInt(minor, 10) > parseInt(latestMinor, 10) ||
-                parseInt(patch, 10) > parseInt(latestPatch, 10)) {
-              core.info('This is a new latest version')
-              core.setOutput('latest', true)
-            } else {
-              core.info('This is not a new latest version')
-              core.setOutput('latest', false)
+              if (parseInt(major, 10) > parseInt(latestMajor, 10) ||
+                  parseInt(minor, 10) > parseInt(latestMinor, 10) ||
+                  parseInt(patch, 10) > parseInt(latestPatch, 10)) {
+                core.info('This is a new latest version')
+                core.setOutput('latest', true)
+              } else {
+                core.info('This is not a new latest version')
+                core.setOutput('latest', false)
+              }
+            } catch (error) {
+              if (error.status === 404) {
+                core.info('No existing latest release found, so this is the latest version')
+                core.setOutput('latest', true)
+                process.exit(0)
+              }
+              throw error
             }
 
       - name: Find the relevant changelog entry
         id: changelog
         if: steps.hardhat.outputs.version != ''
         env:
-          VERSION: steps.hardhat.outputs.version
+          VERSION: ${{ steps.hardhat.outputs.version }}
         uses: actions/github-script@v7
         with:
           script: |
             const fs = require('fs')
 
-            const changelog = fs.readFileSync('./v-next/hardhat/CHANGELOG.md')
+            const changelog = fs.readFileSync('./v-next/hardhat/CHANGELOG.md').toString()
             core.debug(`Changelog: ${changelog}`)
 
             core.info('Parsing changelog...')
@@ -192,7 +197,7 @@ jobs:
           body: |
             # ${{ steps.hardhat.outputs.version }}
 
-            ### Changes
+            ## Changes
 
             ${{ steps.changelog.outputs.entry }}
 
