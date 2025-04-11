@@ -13,4 +13,3 @@ This package is a recommended bundle of Hardhat plugins.
 - @nomicfoundation/hardhat-network-helpers
 - @nomicfoundation/hardhat-typechain
 - @nomicfoundation/hardhat-verify (not available yet)
-- @nomicfoundation/ignition-core
