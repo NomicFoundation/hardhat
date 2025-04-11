@@ -153,10 +153,12 @@ const GraphicContainer = styled.div`
   ${media.laptop} {
     top: 15px;
     width: 1743px;
+    left: calc(50% - 3px);
   }
   ${media.desktop} {
     top: 96px;
     width: 1831px;
+    left: calc(50% - 4px);
   }
 `;
 

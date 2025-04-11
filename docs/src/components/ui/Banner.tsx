@@ -17,7 +17,7 @@ const BannerContainer = styled.section`
   align-items: center;
   background-color: ${tm(({ colors }) => colors.gray8b)};
   color: ${tm(({ colors }) => colors.neutral0)};
-  font-size: 10px;
+
   font-weight: 600;
   line-height: 1.2;
   letter-spacing: 0.044em;
@@ -26,12 +26,7 @@ const BannerContainer = styled.section`
   & span {
     margin-right: 2px;
   }
-  ${media.tablet} {
-    font-size: 16px;
-  }
-  ${media.laptop} {
-    font-size: 20px;
-  }
+
   ${tmSelectors.dark} {
     background-color: ${tmDark(({ colors }) => colors.neutral900)};
     color: ${tmDark(({ colors }) => colors.neutral0)};
@@ -52,7 +47,7 @@ const BracesContainer = styled.div`
   font-size: 10px;
   & > .braces {
     color: ${tm(({ colors }) => colors.accent900)};
-    display: inline;
+    display: inline-block;
     transition: color ease-out 0.5s;
     margin: 0 8px;
     vertical-align: middle;
@@ -61,12 +56,23 @@ const BracesContainer = styled.div`
     transform: rotate(180deg);
   }
   & .text {
+    font-size: 10px;
+
+    ${media.tablet} {
+      font-size: 12px;
+    }
     ${media.md} {
       padding: 0px 16px;
+    }
+    ${media.laptop} {
+      font-size: 20px;
     }
   }
   ${media.tablet} {
     font-size: 16px;
+  }
+  ${media.laptop} {
+    font-size: 20px;
   }
 `;
 
@@ -74,7 +80,8 @@ const Brace = styled.div<{
   fullAnimationDuration: number;
   braceNumber: number;
 }>`
-  display: inline;
+  display: inline-block;
+  vertical-align: middle;
   animation: highlight ease-out ${(props) => `${props.fullAnimationDuration}s`};
   animation-iteration-count: 3;
   animation-delay: ${(props) => `${props.braceNumber * 0.5}s`};

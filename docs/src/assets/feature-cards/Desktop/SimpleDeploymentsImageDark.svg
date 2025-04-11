@@ -21,14 +21,14 @@
 <rect width="55.3998" height="18.0051" transform="matrix(0.866023 0.500004 0 1 0.501953 542.055)" fill="#181A1F" stroke="#333538" stroke-width="0.75" stroke-linejoin="round"/>
 <rect width="55.3998" height="18.0051" transform="matrix(0.866023 -0.500004 0 1 48.4766 569.75)" fill="#181A1F" stroke="#333538" stroke-width="0.75" stroke-linejoin="round"/>
 <path d="M480.241 253.197L480.241 110.461L417.873 147.096L480.241 253.197Z" fill="#181A1F" stroke="#333538" stroke-width="0.75" stroke-linejoin="round"/>
-<path d="M542.427 146.989L480.287 183.127L418.146 146.989L480.287 110.41L542.427 146.989Z" fill="#181A1F" stroke="url(#paint0_linear_2673_269805)" stroke-width="0.75" stroke-linejoin="round"/>
+<path d="M542.427 146.989L480.287 183.127L418.146 146.989L480.287 110.41L542.427 146.989Z" fill="#181A1F" stroke="url(#paint0_linear_2417_283843)" stroke-width="0.75" stroke-linejoin="round"/>
 <path d="M480.241 253.197L480.241 110.456L542.609 147.096L480.241 253.197Z" fill="#333538" stroke="#333538" stroke-width="0.75" stroke-linejoin="round"/>
 <path d="M542.432 146.987L480.289 183.127L418.146 146.987L480.289 110.407L542.432 146.987Z" fill="#181A1F" stroke="#333538" stroke-width="0.752692" stroke-linejoin="round"/>
-<path d="M542.432 108.21L480.289 72.0703L418.146 108.21L480.289 144.79L542.432 108.21Z" fill="#181A1F" stroke="url(#paint1_linear_2673_269805)" stroke-width="0.75" stroke-linejoin="round"/>
+<path d="M542.432 108.21L480.289 72.0703L418.146 108.21L480.289 144.79L542.432 108.21Z" fill="#181A1F" stroke="url(#paint1_linear_2417_283843)" stroke-width="0.75" stroke-linejoin="round"/>
 <path d="M480.241 2.00001L480.241 144.736L417.873 108.101L480.241 2.00001Z" fill="#1A1C21" stroke="#333538" stroke-width="0.75"/>
 <path d="M542.427 108.208L480.287 72.0703L418.146 108.208L480.287 144.787L542.427 108.208Z" fill="#181A1F" stroke="#333538" stroke-width="0.752692" stroke-linejoin="round"/>
 <path d="M480.241 1.99999L480.241 144.742L542.609 108.101L480.241 1.99999Z" fill="#181A1F" stroke="#333538" stroke-width="0.75"/>
-<g clip-path="url(#clip0_2673_269805)">
+<g clip-path="url(#clip0_2417_283843)">
 <path d="M288.318 341.57V287.398" stroke="#D2D3D5" stroke-width="0.752692" stroke-linejoin="round"/>
 <rect width="55.3998" height="55.3998" transform="matrix(0.866023 0.500004 -0.866023 0.500004 240.363 332.355)" fill="#15171C" stroke="#333538" stroke-width="0.75" stroke-linejoin="round"/>
 <rect width="55.3998" height="18.0051" transform="matrix(0.866023 0.500004 0 1 192.389 360.057)" fill="#16181D" stroke="#333538" stroke-width="0.75" stroke-linejoin="round"/>
@@ -151,33 +151,34 @@
 <rect width="55.3998" height="18.0051" transform="matrix(0.866023 0.500004 0 1 288.326 415.465)" fill="#16181D" stroke="#333538" stroke-width="0.75" stroke-linejoin="round"/>
 <rect width="55.3998" height="18.0051" transform="matrix(0.866023 -0.500004 0 1 336.303 443.166)" fill="#16181D" stroke="#333538" stroke-width="0.75" stroke-linejoin="round"/>
 <path d="M480.241 253.197L480.241 110.461L417.873 147.096L480.241 253.197Z" fill="#1A1C21" stroke="#333538" stroke-width="0.75"/>
-<path d="M542.427 146.989L480.287 183.127L418.146 146.989L480.287 110.41L542.427 146.989Z" fill="#FBFBFB" stroke="url(#paint2_linear_2673_269805)" stroke-width="0.75" stroke-linejoin="round"/>
+<path d="M542.427 146.989L480.287 183.127L418.146 146.989L480.287 110.41L542.427 146.989Z" fill="#FBFBFB" stroke="url(#paint2_linear_2417_283843)" stroke-width="0.75" stroke-linejoin="round"/>
 <path d="M480.241 253.197L480.241 110.456L542.609 147.096L480.241 253.197Z" fill="#181A1F" stroke="#333538" stroke-width="0.75"/>
 <path d="M542.432 146.987L480.289 183.127L418.146 146.987L480.289 110.407L542.432 146.987Z" fill="#15171C" stroke="#333538" stroke-width="0.75" stroke-linejoin="round"/>
-<path d="M542.432 108.21L480.289 72.0703L418.146 108.21L480.289 144.79L542.432 108.21Z" fill="#FBFBFB" stroke="url(#paint3_linear_2673_269805)" stroke-width="0.75" stroke-linejoin="round"/>
+<path d="M542.432 108.21L480.289 72.0703L418.146 108.21L480.289 144.79L542.432 108.21Z" fill="#FBFBFB" stroke="url(#paint3_linear_2417_283843)" stroke-width="0.75" stroke-linejoin="round"/>
 <path d="M480.241 2.00001L480.241 144.736L417.873 108.101L480.241 2.00001Z" fill="#1A1C21" stroke="#333538" stroke-width="0.75"/>
 <path d="M542.427 108.208L480.287 72.0703L418.146 108.208L480.287 144.787L542.427 108.208Z" fill="#15171C" stroke="#333538" stroke-width="0.75" stroke-linejoin="round"/>
 <path d="M480.241 1.99999L480.241 144.742L542.609 108.101L480.241 1.99999Z" fill="#1A1C21" stroke="#333538" stroke-width="0.75"/>
 </g>
+<rect x="72.3008" y="33.5156" width="576" height="528" stroke="#333538" stroke-width="0.75"/>
 <defs>
-<linearGradient id="paint0_linear_2673_269805" x1="495.573" y1="142.551" x2="496.34" y2="107.397" gradientUnits="userSpaceOnUse">
+<linearGradient id="paint0_linear_2417_283843" x1="495.573" y1="142.551" x2="496.34" y2="107.397" gradientUnits="userSpaceOnUse">
 <stop stop-color="#FB7E51"/>
 <stop offset="1" stop-color="#FF8F66"/>
 </linearGradient>
-<linearGradient id="paint1_linear_2673_269805" x1="495.577" y1="112.648" x2="496.343" y2="147.804" gradientUnits="userSpaceOnUse">
+<linearGradient id="paint1_linear_2417_283843" x1="495.577" y1="112.648" x2="496.343" y2="147.804" gradientUnits="userSpaceOnUse">
 <stop stop-color="#FB7E51"/>
 <stop offset="1" stop-color="#FF8F66"/>
 </linearGradient>
-<linearGradient id="paint2_linear_2673_269805" x1="495.573" y1="142.551" x2="496.34" y2="107.397" gradientUnits="userSpaceOnUse">
+<linearGradient id="paint2_linear_2417_283843" x1="495.573" y1="142.551" x2="496.34" y2="107.397" gradientUnits="userSpaceOnUse">
 <stop stop-color="#FB7E51"/>
 <stop offset="1" stop-color="#FF8F66"/>
 </linearGradient>
-<linearGradient id="paint3_linear_2673_269805" x1="495.577" y1="112.648" x2="496.343" y2="147.804" gradientUnits="userSpaceOnUse">
+<linearGradient id="paint3_linear_2417_283843" x1="495.577" y1="112.648" x2="496.343" y2="147.804" gradientUnits="userSpaceOnUse">
 <stop stop-color="#FB7E51"/>
 <stop offset="1" stop-color="#FF8F66"/>
 </linearGradient>
-<clipPath id="clip0_2673_269805">
-<rect width="576" height="528" fill="white" transform="translate(72.3008 33.5156)"/>
+<clipPath id="clip0_2417_283843">
+<rect x="72.3008" y="33.5156" width="576" height="528" fill="white"/>
 </clipPath>
 </defs>
 </svg>

@@ -46,8 +46,9 @@ const Container = styled.section`
   &:nth-child(1) {
     .light,
     .dark {
-      margin-left: 12px;
-      max-width: 322px;
+      margin-left: 11px;
+      max-width: 324px;
+      margin-top: 4px;
     }
   }
   &:nth-child(2) {
@@ -55,7 +56,7 @@ const Container = styled.section`
     .dark {
       margin-right: 23px;
       margin-top: -4px;
-      max-width: 310px;
+      max-width: 312px;
     }
   }
   &:nth-child(3) {
@@ -69,8 +70,13 @@ const Container = styled.section`
   &:nth-child(4) {
     .light,
     .dark {
-      margin-top: 5px;
-      max-width: 288px;
+      margin-top: 3px;
+      width: 288px;
+      height: 351px;
+      span {
+        max-height: 100%;
+        max-width: 100%;
+      }
     }
   }
 
@@ -101,32 +107,6 @@ const ImageContainer = styled.div<{
   background-size: contain;
   background-position: center;
   background-repeat: no-repeat;
-  &:after {
-    content: "";
-    position: absolute;
-    top: 1px;
-    left: 1px;
-    right: 1px;
-    bottom: 1px;
-    border: 1px solid #d5d5d5;
-    z-index: 3;
-  }
-
-  ${tmSelectors.dark} {
-    background-image: ${(props) => `url(${props.backgroundDark})`};
-    &:after {
-      border-color: #333538;
-    }
-  }
-  ${media.mqDark} {
-    ${tmSelectors.auto} {
-      background-image: ${(props) => `url(${props.backgroundDark})`};
-      &:after {
-        border-color: #333538;
-      }
-    }
-  }
-
   ${tmSelectors.dark} {
     background-image: ${(props) => `url(${props.backgroundDark})`};
   }
@@ -135,6 +115,7 @@ const ImageContainer = styled.div<{
       background-image: ${(props) => `url(${props.backgroundDark})`};
     }
   }
+
   ${media.tablet} {
     order: 1;
     width: 335px;

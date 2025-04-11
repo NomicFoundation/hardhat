@@ -165,6 +165,7 @@
 <path d="M271.461 54.1042L240.39 36.0352L209.32 54.1042L240.39 72.3936L271.461 54.1042Z" fill="#FBFBFB" stroke="#B6B6B7" stroke-width="0.376346" stroke-linejoin="round"/>
 <path d="M240.369 0.999997L240.369 72.3708L271.553 54.0504L240.369 0.999997Z" fill="white" stroke="#B6B6B7" stroke-width="0.375" stroke-linejoin="round"/>
 </g>
+<rect x="36.3984" y="16.7578" width="288" height="264" stroke="#B6B6B7" stroke-width="0.38"/>
 <defs>
 <linearGradient id="paint0_linear_2417_311535" x1="248.034" y1="71.2745" x2="248.417" y2="53.6974" gradientUnits="userSpaceOnUse">
 <stop stop-color="#FB7E51"/>
@@ -183,7 +184,7 @@
 <stop offset="1" stop-color="#FF8F66"/>
 </linearGradient>
 <clipPath id="clip0_2417_311535">
-<rect width="288" height="264" fill="white" transform="translate(36.3984 16.7578)"/>
+<rect x="36.3984" y="16.7578" width="288" height="264" fill="white"/>
 </clipPath>
 </defs>
 </svg>

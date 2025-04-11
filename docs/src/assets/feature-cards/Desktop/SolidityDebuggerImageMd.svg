@@ -110,7 +110,7 @@
 <rect width="38.7799" height="38.7799" transform="matrix(0.866023 0.500004 -0.866023 0.500004 68.3555 339.898)" fill="#FBFBFB" stroke="#B6B6B7" stroke-width="0.526885" stroke-linejoin="round"/>
 <rect width="38.7799" height="12.6035" transform="matrix(0.866023 0.500004 0 1 34.7734 359.289)" fill="white" stroke="#B6B6B7" stroke-width="0.526884" stroke-linejoin="round"/>
 <rect width="38.7799" height="12.6035" transform="matrix(0.866023 -0.500004 0 1 68.3555 378.676)" fill="white" stroke="#B6B6B7" stroke-width="0.526884" stroke-linejoin="round"/>
-<g clip-path="url(#clip0_3009_337945)">
+<g clip-path="url(#clip0_4002_276656)">
 <rect width="38.7799" height="12.6035" transform="matrix(0.866023 0.500004 0 1 1.08984 117.355)" fill="#FBFBFB" stroke="#B6B6B7" stroke-width="0.526884" stroke-linejoin="round"/>
 <rect width="38.7799" height="12.6035" transform="matrix(0.866023 -0.500004 0 1 34.6719 136.748)" fill="white" stroke="#B6B6B7" stroke-width="0.526884" stroke-linejoin="round"/>
 <path d="M303.41 340.092V110.467" stroke="#D2D3D5" stroke-width="0.526884" stroke-linejoin="round"/>
@@ -179,9 +179,10 @@
 <rect width="38.7799" height="12.6035" transform="matrix(0.866023 0.500004 0 1 135.383 417.51)" fill="#FBFBFB" stroke="#B6B6B7" stroke-width="0.526884" stroke-linejoin="round"/>
 <rect width="38.7799" height="12.6035" transform="matrix(0.866023 -0.500004 0 1 168.965 436.9)" fill="white" stroke="#B6B6B7" stroke-width="0.526884" stroke-linejoin="round"/>
 </g>
+<rect x="18.5" y="145" width="335" height="302" stroke="#B6B6B7" stroke-width="0.525"/>
 <defs>
-<clipPath id="clip0_3009_337945">
-<rect width="335" height="302" fill="white" transform="translate(18.5 145)"/>
+<clipPath id="clip0_4002_276656">
+<rect x="18.5" y="145" width="335" height="302" fill="white"/>
 </clipPath>
 </defs>
 </svg>

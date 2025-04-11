@@ -70,6 +70,8 @@ export const lightPalette = {
   accent800: "#FFF100",
   accent900: "#EDCF00",
   yellow: "#FCFCF1",
+  yellow200: "#F8ECB4",
+  yellow900: "#B29C00",
   violet500: "#5E21FF",
   border: "#4B4D4D",
   secondaryCTAHover: "#4F00A30D",

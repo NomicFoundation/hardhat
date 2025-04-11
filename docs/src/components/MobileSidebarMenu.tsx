@@ -153,7 +153,7 @@ const ModalContainer = styled.div<{ isModalOpen: boolean }>`
   width: 100%;
   top: 0px;
   transition: all ease-out 0.25s;
-  font-family: ChivoRegular, sans-serif;
+  font-family: Roboto, sans-serif;
   z-index: 50;
   left: ${({ isModalOpen }) => (isModalOpen ? "0px" : "-120vw")};
   color: ${tm(({ colors }) => colors.neutral800)};
@@ -213,13 +213,14 @@ const ModalBackToMenuButton = styled.button`
 `;
 
 const ModalTitle = styled.h4`
-  margin: 16px 0 0;
+  margin: 6px 0 0;
   font-size: 20px;
   font-weight: 400;
   width: fit-content;
   font-family: SourceCodePro, sans-serif;
   text-transform: lowercase;
   line-height: 33px;
+  letter-spacing: 0.05em;
   white-space: nowrap;
   padding: 0 8px;
   border-radius: 3px;

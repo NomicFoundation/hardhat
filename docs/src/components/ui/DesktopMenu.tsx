@@ -39,7 +39,7 @@ const MenuButton = styled.a`
   color: ${tm(({ colors }) => colors.gray7)};
   background-color: ${tm(({ colors }) => colors.transparent)};
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 500;
   padding: 0 8px;
   height: 27px;
   display: flex;

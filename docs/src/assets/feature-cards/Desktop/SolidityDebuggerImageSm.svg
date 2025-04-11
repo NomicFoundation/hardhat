@@ -223,9 +223,10 @@
 <rect width="27.6999" height="9.00254" transform="matrix(0.866023 0.500004 0 1 144.479 265.578)" fill="#FBFBFB" stroke="#B6B6B7" stroke-width="0.376346" stroke-linejoin="round"/>
 <rect width="27.6999" height="9.00254" transform="matrix(0.866023 -0.500004 0 1 168.465 279.428)" fill="white" stroke="#B6B6B7" stroke-width="0.376346" stroke-linejoin="round"/>
 </g>
+<rect x="12.5" y="45" width="288" height="264" stroke="#B6B6B7" stroke-width="0.38"/>
 <defs>
 <clipPath id="clip0_2417_305357">
-<rect width="288" height="264" fill="white" transform="translate(12.5 45)"/>
+<rect x="12.5" y="45" width="288" height="264" fill="white"/>
 </clipPath>
 </defs>
 </svg>

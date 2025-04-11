@@ -141,38 +141,14 @@ const ImageContainer = styled.div<{
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  &:after {
-    content: "";
-    position: absolute;
-    top: 1px;
-    left: 1px;
-    right: 1px;
-    bottom: 1px;
-    border: 1px solid #d5d5d5;
-    z-index: 3;
-  }
+
   ${tmSelectors.dark} {
     background-image: ${(props) => `url(${props.backgroundDark})`};
-    &:after {
-      border-color: #333538;
-    }
-    &.image-container-0:before {
-      background: #292a2b;
-    }
   }
   ${media.mqDark} {
     ${tmSelectors.auto} {
       background-image: ${(props) => `url(${props.backgroundDark})`};
-      &:after {
-        border-color: #333538;
-      }
-      &.image-container-0:before {
-        background: #292a2b;
-      }
     }
-  }
-  &.image-container-3:after {
-    z-index: 0;
   }
 
   ${media.tablet} {
@@ -181,77 +157,70 @@ const ImageContainer = styled.div<{
     width: 335px;
     height: 302px;
     top: calc(50vh - (302px / 2) + 60px);
-    &.image-container-1 {
-      .light,
-      .dark {
-        margin-left: 0;
-      }
-    }
-    &.image-container-1:after {
-      display: none;
-    }
 
     .image-wrapper-0 {
-      margin-left: -3px !important;
-      margin-top: 10px !important;
+      left: -18px;
+      bottom: -165px;
+    }
+    .image-wrapper-1 {
+      left: 50%;
+      bottom: auto;
+      top: 50%;
+      transform: translate(-50%, -50%);
     }
     .image-wrapper-2 {
-      margin-top: 9px !important;
+      left: -34px;
+      bottom: -162px;
+    }
+    .image-wrapper-3 {
+      left: -119px;
+      bottom: -138px;
     }
   }
   ${media.laptop} {
     width: 528px;
     height: 480px;
     top: calc(50vh - (480px / 2) + 70px);
-    &.image-container-0 {
-      &:before {
-        content: "";
-        position: absolute;
-        bottom: calc(100% + 28px);
-        left: 383px;
-        width: 1px;
-        background: linear-gradient(to bottom, #f3f3f3, #e0e0e0);
-        height: 647px;
-      }
-    }
-    &.image-container-1:after {
-      display: block;
-    }
+
     .image-wrapper-0 {
-      margin-left: 12px !important;
-      margin-top: 2px;
+      left: -46px;
+      bottom: -118px;
     }
     .image-wrapper-1 {
-      margin-top: -4px !important;
+      left: -23px;
+      top: auto;
+      bottom: -101px;
+      transform: none;
     }
-
     .image-wrapper-2 {
-      margin-left: 1px !important;
-      margin-top: 30px !important;
+      left: -47px;
+      bottom: -116px;
     }
     .image-wrapper-3 {
-      margin-top: 4px !important;
+      left: 0;
+      bottom: -113px;
     }
   }
   ${media.desktop} {
     height: 528px;
     width: 576px;
     top: calc(50vh - (528px / 2) + 70px);
-    &.image-container-0:before {
-      bottom: calc(100% + 45px);
-      left: 314px;
-      height: 564px;
+    .image-wrapper-0 {
+      left: calc(50% + 12px);
+      bottom: -94px;
+      transform: translateX(-50%);
     }
-
-    &.image-container-2 {
-      margin-left: 0;
-    }
-
     .image-wrapper-1 {
-      margin-left: -24px !important;
+      left: -48px;
+      bottom: -77px;
     }
     .image-wrapper-2 {
-      margin-left: -13px !important;
+      left: -73px;
+      bottom: -93px;
+    }
+    .image-wrapper-3 {
+      left: 0;
+      bottom: -89px;
     }
   }
 
@@ -263,9 +232,7 @@ const ImageContainer = styled.div<{
 
 const ImageWrapper = styled.div`
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+
   z-index: 1;
   opacity: 0;
   transition: opacity 0.2s linear;
@@ -306,26 +273,39 @@ const ImageWrapper = styled.div`
   &.image-wrapper-2 {
     max-width: 402px;
   }
+  &.image-wrapper-3 {
+    width: 572px;
+    height: 579px;
+    span {
+      max-width: 100%;
+      max-height: 100%;
+    }
+  }
   ${media.laptop} {
     &.image-wrapper-0 {
       max-width: 646px;
     }
     &.image-wrapper-1 {
-      max-width: 574px;
+      max-width: 576px;
     }
     &.image-wrapper-2 {
       max-width: 646px;
     }
+    &.image-wrapper-3 {
+      width: 528px;
+      height: 702px;
+    }
   }
   ${media.desktop} {
     &.image-wrapper-1 {
-      max-width: 623px;
+      max-width: 624px;
     }
     &.image-wrapper-2 {
       max-width: 696px;
     }
     &.image-wrapper-3 {
-      max-width: 576px;
+      width: 576px;
+      height: 702px;
     }
   }
 `;

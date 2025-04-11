@@ -38,38 +38,38 @@ const SidebarLinkWrapper = styled.a`
   width: 100%;
 
   &:hover {
-    color: ${tm(({ colors }) => colors.accent700)};
+    color: ${tm(({ colors }) => colors.yellow900)};
   }
 
   &[data-active="true"] {
-    color: ${tm(({ colors }) => colors.accent700)};
+    color: ${tm(({ colors }) => colors.yellow900)};
     &.heading {
       border-left: 4px solid ${tm(({ colors }) => colors.transparent)};
     }
   }
   &[data-anchor="true"][data-active="true"] {
-    color: ${tm(({ colors }) => colors.accent700)};
+    color: ${tm(({ colors }) => colors.yellow900)};
     background-color: ${tm(({ colors }) => colors.accent200)};
   }
 
   ${tmSelectors.dark} {
     &[data-active="true"] {
-      color: ${tmDark(({ colors }) => colors.accent700)};
+      color: ${tm(({ colors }) => colors.yellow200)};
       border-color: ${tmDark(({ colors }) => colors.accent700)};
     }
     &[data-anchor="true"][data-active="true"] {
-      color: ${tmDark(({ colors }) => colors.accent700)};
+      color: ${tm(({ colors }) => colors.yellow200)};
       background-color: ${tmDark(({ colors }) => colors.accent200)};
     }
   }
   ${media.mqDark} {
     ${tmSelectors.auto} {
       &[data-active="true"] {
-        color: ${tmDark(({ colors }) => colors.accent700)};
+        color: ${tm(({ colors }) => colors.yellow200)};
         border-color: ${tmDark(({ colors }) => colors.accent700)};
       }
       &[data-anchor="true"][data-active="true"] {
-        color: ${tmDark(({ colors }) => colors.accent700)};
+        color: ${tm(({ colors }) => colors.yellow200)};
         background-color: ${tmDark(({ colors }) => colors.accent200)};
       }
     }
@@ -80,21 +80,21 @@ const SidebarItem = styled.li`
   display: flex;
   flex-direction: column;
   & ${SidebarLinkWrapper} {
-    padding: 4px 28px;
+    padding: 4px 32px;
     &[data-active="true"] {
       background-color: ${tm(({ colors }) => colors.accent200)};
       &.heading {
         background-color: unset;
       }
       ${tmSelectors.dark} {
-        background-color: ${tmDark(({ colors }) => colors.accent200)};
+        background-color: rgba(178, 156, 0, 0.4);
         &.heading {
           background-color: unset;
         }
       }
       ${media.mqDark} {
         ${tmSelectors.auto} {
-          background-color: ${tmDark(({ colors }) => colors.accent200)};
+          background-color: rgba(178, 156, 0, 0.4);
           &.heading {
             background-color: unset;
           }
@@ -103,28 +103,29 @@ const SidebarItem = styled.li`
     }
   }
   &.group:not(:first-child) {
-    margin-top: 16px;
+    margin-top: 8px;
   }
 `;
 
 const SidebarHeading = styled.p`
-  font-weight: 700;
-  font-size: 17px;
+  font-weight: 600;
+  font-size: 16px;
   line-height: 25px;
-  padding: 4px 32px;
+  padding: 2px 32px 2px 28px;
   border-left: 4px solid ${tm(({ colors }) => colors.transparent)};
 
   &[data-child-active="true"] {
-    color: ${tm(({ colors }) => colors.accent700)};
+    color: ${tm(({ colors }) => colors.yellow900)};
     border-color: ${tm(({ colors }) => colors.accent700)};
+    font-weight: 700;
 
     ${tmSelectors.dark} {
-      color: ${tmDark(({ colors }) => colors.accent700)};
+      color: ${tmDark(({ colors }) => colors.accent800)};
       border-color: ${tmDark(({ colors }) => colors.accent700)};
     }
     ${media.mqDark} {
       ${tmSelectors.auto} {
-        color: ${tmDark(({ colors }) => colors.accent700)};
+        color: ${tmDark(({ colors }) => colors.accent800)};
         border-color: ${tmDark(({ colors }) => colors.accent700)};
       }
     }
@@ -136,12 +137,18 @@ const SidebarSubLinksList = styled.ul`
   flex-direction: column;
   line-height: 28px;
   list-style-type: none;
-  & li > a {
-    width: 100%;
-    display: block;
+  margin-bottom: 5px;
+  & li {
+    margin-top: 3px;
+    & > a {
+      width: 100%;
+      display: block;
+      line-height: 1.5;
+      letter-spacing: 0.05em;
+    }
   }
   & ${SidebarLinkWrapper} {
-    padding: 0.5px 16px 0.5px 64px;
+    padding: 0 16px 0 64px;
   }
 `;
 

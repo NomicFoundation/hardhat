@@ -315,21 +315,30 @@ const NewsText = styled.div`
 `;
 
 const NewsLink = styled.a`
-  display: inline-flex;
-  align-items: center;
   gap: 8px;
-
   font-family: Roboto, sans-serif;
   font-size: 12px;
   font-weight: 600;
   margin-top: auto;
   letter-spacing: 0.02em;
+
   color: ${tm(({ colors }) => colors.gray8b)};
+  span {
+    display: inline;
+  }
+
+  span:nth-child(2) {
+    white-space: nowrap;
+  }
   .icon {
     color: #edcf00;
     fill: currentColor;
     width: 12px;
     height: 12px;
+    display: inline-block;
+    margin-left: 4px;
+    top: 2px;
+    position: relative;
   }
   &:hover {
     color: #ccb200 !important;
@@ -360,6 +369,7 @@ const NewsLink = styled.a`
   ${media.laptop} {
     margin-top: 0;
     font-size: 14px;
+
     .icon {
       width: 16px;
       height: 16px;
@@ -383,8 +393,11 @@ const NewsCard = ({ title, text, cta, imageUrl }: NewsType) => {
       <NewsContent className="news-content">
         <NewsText>{text}</NewsText>
         <NewsLink href={cta.url}>
-          {cta.title}
-          <ArrowRight />
+          <span>{cta.title}</span>
+          <span>
+            &nbsp;
+            <ArrowRight />
+          </span>
         </NewsLink>
       </NewsContent>
     </News>
