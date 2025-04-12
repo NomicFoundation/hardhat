@@ -1,0 +1,26 @@
+  Top-lvel describe 1
+    [90m[32m✔[39m[90m test 1[39m
+    Empty describe inside a top-lvel one
+    Non-empty describe inside a top-lvel one
+      [90m[32m✔[39m[90m test 2[39m
+      Empty describe inside a non-empty top-lvel one
+
+  Top-lvel describe 2
+    [36m- Skipped describe inside a top-lvel one[39m
+    [36m- test[39m
+
+  [36m- Skipped top-lvel describe[39m
+
+  Empty top-lvel describe
+
+  Empty top-lvel describe 2, right next to the other
+
+  Non-empty-non-skipped-describe
+    [90m[32m✔[39m[90m test[39m
+    Inside Non-empty-non-skipped-describe
+      [90m[32m✔[39m[90m test[39m
+
+
+[32m4 passing[39m[90m (139ms)[39m[36m[39m
+[36m1 skipped[39m
+

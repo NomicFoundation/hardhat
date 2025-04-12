@@ -20,7 +20,7 @@
         [31m7) level 0[39m
 
 
-[32m3 passing[39m[90m (144ms)[39m[31m[39m
+[32m3 passing[39m[90m (127ms)[39m[31m[39m
 [31m7 failing[39m[90m[39m
 [90m1 cancelled[39m
 
@@ -65,8 +65,8 @@
    
    [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/nested-test/test.ts:29:22)[39m
    [90m    at Test.runInAsyncScope (node:async_hooks:211:14)[39m
-   [90m    at Test.run (node:internal/test_runner/test:934:25)[39m
-   [90m    at Test.start (node:internal/test_runner/test:833:17)[39m
+   [90m    at Test.run (node:internal/test_runner/test:979:25)[39m
+   [90m    at Test.start (node:internal/test_runner/test:877:17)[39m
    [90m    at startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)[39m
    [90m    at run (node:internal/test_runner/harness:307:12)[39m
    [90m    at test (node:internal/test_runner/harness:316:12)[39m
@@ -83,8 +83,8 @@
    [31mError: error with cause[39m
    [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/nested-test/test.ts:33:21)[39m
    [90m    at Test.runInAsyncScope (node:async_hooks:211:14)[39m
-   [90m    at Test.run (node:internal/test_runner/test:934:25)[39m
-   [90m    at Test.start (node:internal/test_runner/test:833:17)[39m
+   [90m    at Test.run (node:internal/test_runner/test:979:25)[39m
+   [90m    at Test.start (node:internal/test_runner/test:877:17)[39m
    [90m    at startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)[39m
    [90m    at run (node:internal/test_runner/harness:307:12)[39m
    [90m    at test (node:internal/test_runner/harness:316:12)[39m
@@ -92,8 +92,8 @@
      [90m[cause]: Error: cause[39m
      [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/nested-test/test.ts:34:24)[39m
      [90m    at Test.runInAsyncScope (node:async_hooks:211:14)[39m
-     [90m    at Test.run (node:internal/test_runner/test:934:25)[39m
-     [90m    at Test.start (node:internal/test_runner/test:833:17)[39m
+     [90m    at Test.run (node:internal/test_runner/test:979:25)[39m
+     [90m    at Test.start (node:internal/test_runner/test:877:17)[39m
      [90m    at startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)[39m
      [90m    at run (node:internal/test_runner/harness:307:12)[39m
      [90m    at test (node:internal/test_runner/harness:316:12)[39m
