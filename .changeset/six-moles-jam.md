@@ -1,5 +1,7 @@
 ---
 "@nomicfoundation/hardhat-node-test-reporter": patch
+"@nomicfoundation/hardhat-node-test-runner": patch
+"hardhat": patch
 ---
 
-Add skipped test names to report
+Display skipped and empty `describe` blocks correctly
