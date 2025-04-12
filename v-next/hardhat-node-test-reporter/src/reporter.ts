@@ -156,6 +156,12 @@ export function hardhatTestReporter(
             // describes.
             if (event.data.nesting === 0) {
               lastPrintedIndex = undefined;
+              // If the suite is a skip test, print its name.
+              if (event.data.skip) {
+                yield formatTestContext(stack.slice(0, 1));
+                yield "\n";
+              }
+
               yield "\n";
             } else {
               if (lastPrintedIndex !== undefined) {
