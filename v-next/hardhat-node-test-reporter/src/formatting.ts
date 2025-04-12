@@ -18,6 +18,7 @@ export function formatTestContext(
   contextStack: Array<TestEventData["test:start"]>,
   prefix = "",
   suffix = "",
+  isSkipped = false,
 ): string {
   const contextFragments: string[] = [];
 
@@ -33,7 +34,11 @@ export function formatTestContext(
       contextFragments.push(indent("", indentation + prefixLength));
     }
 
-    contextFragments.push(parentTest.name);
+    if (isSkipped && i === contextStack.length - 1) {
+      contextFragments.push(chalk.cyan(`- ${parentTest.name}`));
+    } else {
+      contextFragments.push(parentTest.name);
+    }
   }
 
   contextFragments.push(suffix);
