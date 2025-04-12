@@ -150,7 +150,7 @@ export function hardhatTestReporter(
             }
 
             if (event.data.nesting === 0) {
-              // If last pritned index is undefined it means that we haven't
+              // If last printed index is undefined it means that we haven't
               // printed anything related to the top of the stack yet. If we
               // would have, lastPrintedIndex would be 0 instead.
               // This means that it's an empty or skipped describe.
