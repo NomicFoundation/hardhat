@@ -8,7 +8,7 @@
   [31m3) error with nested cause in top level test[39m
 
 
-[32m1 passing[39m[90m (127ms)[39m[31m[39m
+[32m1 passing[39m[90m (123ms)[39m[31m[39m
 [31m3 failing[39m
 
   1) assertion error in top level test:

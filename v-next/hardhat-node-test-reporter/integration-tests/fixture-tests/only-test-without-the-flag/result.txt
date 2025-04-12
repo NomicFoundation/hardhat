@@ -11,7 +11,7 @@
     [90m[32m✔[39m[90m it[39m
 
 
-[32m2 passing[39m[90m (117ms)[39m[31m[39m
+[32m2 passing[39m[90m (119ms)[39m[31m[39m
 [31m3 failing[39m
 [34mℹ[39m 'only' and 'runOnly' require the --test-only command-line option.
 

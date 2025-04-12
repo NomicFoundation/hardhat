@@ -4,7 +4,7 @@
   [34m+ todo without a callback[39m
 
 
-[32m0 passing[39m[90m (118ms)[39m[34m[39m
+[32m0 passing[39m[90m (125ms)[39m[34m[39m
 [34m2 todo[39m
 
   1) todo with a callback:
