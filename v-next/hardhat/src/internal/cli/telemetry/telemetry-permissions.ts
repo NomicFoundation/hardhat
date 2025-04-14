@@ -9,38 +9,33 @@ import {
 import { getTelemetryDir } from "@nomicfoundation/hardhat-utils/global-dir";
 import debug from "debug";
 
-import { sendTelemetryConsentAnalytics } from "./analytics/analytics.js";
+import { sendTelemetryConfigAnalytics } from "./analytics/analytics.js";
 
 const log = debug("hardhat:cli:telemetry:telemetry-permissions");
 
-interface TelemetryConsent {
-  consent: boolean;
+interface TelemetryConfig {
+  enabled: boolean;
 }
 
 /**
- * Checks whether telemetry is supported in the current environment and whether the user did not explicitly revoke consent.
+ * Checks whether telemetry is supported in the current environment and whether the user did not explicitly disable it.
  *
- * @param telemetryConsentFilePath - The path to the telemetry consent file, which should only be provided in tests.
- * @returns True if the user consents to telemetry (default) and if current environment supports telemetry, false otherwise.
+ * @param telemetryConfigFilePath - The path to the telemetry config file, which should only be provided in tests.
+ * @returns True if the user did not explicitly disable telemetry and if current environment supports it, false otherwise.
  */
 export async function isTelemetryAllowed(
-  telemetryConsentFilePath?: string,
+  telemetryConfigFilePath?: string,
 ): Promise<boolean> {
   if (!isTelemetryAllowedInEnvironment()) {
     return false;
   }
 
   // ATTENTION: only for testing
-  if (process.env.HARDHAT_TEST_TELEMETRY_CONSENT_VALUE !== undefined) {
-    return process.env.HARDHAT_TEST_TELEMETRY_CONSENT_VALUE === "true"
-      ? true
-      : false;
+  if (process.env.HARDHAT_TEST_TELEMETRY_ENABLED !== undefined) {
+    return process.env.HARDHAT_TEST_TELEMETRY_ENABLED === "true" ? true : false;
   }
 
-  const consent = await getTelemetryConsent(telemetryConsentFilePath);
-  log(`Telemetry consent value: ${consent}`);
-
-  return consent !== undefined ? consent : true;
+  return isTelemetryEnabled(telemetryConfigFilePath);
 }
 
 /**
@@ -55,7 +50,7 @@ export function isTelemetryAllowedInEnvironment(): boolean {
   const allowed =
     (!isCi() &&
       process.stdout.isTTY === true &&
-      process.env.HARDHAT_DISABLE_TELEMETRY_PROMPT !== "true") ||
+      process.env.HARDHAT_DISABLE_TELEMETRY !== "true") ||
     // ATTENTION: used in tests to force telemetry execution
     process.env.HARDHAT_TEST_INTERACTIVE_ENV === "true";
 
@@ -65,45 +60,44 @@ export function isTelemetryAllowedInEnvironment(): boolean {
 }
 
 /**
- * Retrieves the user's telemetry consent status from the consent file.
+ * Retrieves the user's telemetry enabled status from the config file.
  *
- * @param telemetryConsentFilePath - The path to the telemetry consent file,
- * which should only be provided in tests.
- * @returns True if the user consents to telemetry, false if they do not consent,
- * and undefined if no consent has been provided.
+ * @param telemetryConfigFilePath - The path to the telemetry config file, which should only be provided in tests.
+ * @returns True if the user did not explicitly disable telemetry, false otherwise.
  */
-async function getTelemetryConsent(telemetryConsentFilePath?: string) {
-  telemetryConsentFilePath ??= await getTelemetryConsentFilePath();
+async function isTelemetryEnabled(
+  telemetryConfigFilePath?: string,
+): Promise<boolean> {
+  telemetryConfigFilePath ??= await getTelemetryConfigFilePath();
 
-  log(`Looking for telemetry consent file at ${telemetryConsentFilePath}`);
+  log(`Looking for telemetry config file at ${telemetryConfigFilePath}`);
 
-  if (await exists(telemetryConsentFilePath)) {
-    // Telemetry consent was already provided, hence return the answer
-    const consent = (
-      await readJsonFile<TelemetryConsent>(telemetryConsentFilePath)
-    ).consent;
+  if (await exists(telemetryConfigFilePath)) {
+    // Telemetry enabled value was explicitly set, hence return the answer
+    const { enabled } = await readJsonFile<TelemetryConfig>(
+      telemetryConfigFilePath,
+    );
+    log(`Telemetry enabeld value: ${enabled}`);
 
-    log(`Telemetry consent value: ${consent}`);
-
-    return consent;
+    return enabled;
   }
 
-  log("No telemetry consent file found");
+  log("No telemetry config file found, assuming telemetry is enabled");
 
-  return undefined;
+  return true;
 }
 
-async function getTelemetryConsentFilePath() {
+async function getTelemetryConfigFilePath() {
   const configDir = await getTelemetryDir();
-  return path.join(configDir, "telemetry-consent.json");
+  return path.join(configDir, "telemetry-config.json");
 }
 
-export async function setTelemetryConsent(consent: boolean): Promise<boolean> {
-  log(`Storing telemetry consent with value: ${consent}`);
+export async function setTelemetryEnabled(value: boolean): Promise<boolean> {
+  log(`Storing telemetry enabled value: ${value}`);
 
-  await writeJsonFile(await getTelemetryConsentFilePath(), { consent });
+  await writeJsonFile(await getTelemetryConfigFilePath(), { enabled: value });
 
-  await sendTelemetryConsentAnalytics(consent);
+  await sendTelemetryConfigAnalytics(value);
 
-  return consent;
+  return value;
 }
