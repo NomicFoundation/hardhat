@@ -9,8 +9,6 @@ import {
 import { getTelemetryDir } from "@nomicfoundation/hardhat-utils/global-dir";
 import debug from "debug";
 
-import { confirmationPromptWithTimeout } from "../prompt/prompt.js";
-
 import { sendTelemetryConsentAnalytics } from "./analytics/analytics.js";
 
 const log = debug("hardhat:cli:telemetry:telemetry-permissions");
@@ -131,10 +129,6 @@ async function getTelemetryConsentFilePath() {
 async function requestTelemetryConsent(): Promise<boolean> {
   const consent = await confirmTelemetryConsent();
 
-  if (consent === undefined) {
-    return false;
-  }
-
   log(`Storing telemetry consent with value: ${consent}`);
 
   await writeJsonFile(await getTelemetryConsentFilePath(), { consent });
@@ -144,9 +138,19 @@ async function requestTelemetryConsent(): Promise<boolean> {
   return consent;
 }
 
-async function confirmTelemetryConsent(): Promise<boolean | undefined> {
-  return confirmationPromptWithTimeout(
-    "telemetryConsent",
-    "Help us improve Hardhat with anonymous crash reports & basic usage data?",
+async function confirmTelemetryConsent(): Promise<boolean> {
+  const { default: enquirer } = await import("enquirer");
+
+  const telemetryConsentResponse = await enquirer.prompt<{ telemetryConsent: boolean }>(
+    [
+      {
+        name: "telemetryConsent",
+        type: "confirm",
+        message: "Help us improve Hardhat with anonymous crash reports & basic usage data?",
+        initial: true,
+      },
+    ],
   );
+
+  return telemetryConsentResponse.telemetryConsent;
 }
