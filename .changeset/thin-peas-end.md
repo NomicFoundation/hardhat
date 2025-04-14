@@ -2,4 +2,4 @@
 "hardhat": patch
 ---
 
-Removed timeout from the telemetry consent prompt and anonymized server name tag on events sent to Sentry
+Removed telemetry consent prompt, made telemetry enabled by default, added a task through which telemetry can be explicitly enabled/disabled, and anonymized server name tag on events sent to Sentry
