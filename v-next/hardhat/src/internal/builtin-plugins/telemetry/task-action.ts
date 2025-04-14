@@ -10,7 +10,7 @@ interface TelemetryActionArguments {
   disable: boolean;
 }
 
-const showTelemetryConsent: NewTaskActionFunction<
+const configureTelemetry: NewTaskActionFunction<
   TelemetryActionArguments
 > = async ({ enable, disable }) => {
   if (enable && disable) {
@@ -42,4 +42,4 @@ const showTelemetryConsent: NewTaskActionFunction<
   }
 };
 
-export default showTelemetryConsent;
+export default configureTelemetry;
