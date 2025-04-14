@@ -77,7 +77,7 @@ async function isTelemetryEnabled(
     const { enabled } = await readJsonFile<TelemetryConfig>(
       telemetryConfigFilePath,
     );
-    log(`Telemetry enabeld value: ${enabled}`);
+    log(`Telemetry enabled value: ${enabled}`);
 
     return enabled;
   }
