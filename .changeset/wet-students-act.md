@@ -2,4 +2,4 @@
 "hardhat": patch
 ---
 
-Compile all sources and pass all generated artifacts to EDR when executing solidity tests
+Fix getCode/getDeployedCode cheatcodes in Solidity Test by compiling all sources ([#6522](https://github.com/NomicFoundation/hardhat/issues/6522))

@@ -689,6 +689,7 @@ export async function remove(absolutePath: string): Promise<void> {
       recursive: true,
       force: true,
       maxRetries: 3,
+      retryDelay: 300,
     });
   } catch (e) {
     ensureError<NodeJS.ErrnoException>(e);
