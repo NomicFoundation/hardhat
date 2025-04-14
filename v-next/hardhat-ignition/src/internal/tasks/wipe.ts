@@ -22,20 +22,11 @@ const taskWipe: NewTaskActionFunction<TaskWipeArguments> = async (
     deploymentId,
   );
 
-  try {
-    await wipe(
-      deploymentDir,
-      new HardhatArtifactResolver(hre.artifacts),
-      futureId,
-    );
-  } catch (e) {
-    // Disabled for the alpha release
-    // if (e instanceof IgnitionError && shouldBeHardhatPluginError(e)) {
-    //   throw new HardhatError(HardhatError.ERRORS.IGNITION.INTERNAL_ERROR, e);
-    // }
-
-    throw e;
-  }
+  await wipe(
+    deploymentDir,
+    new HardhatArtifactResolver(hre.artifacts),
+    futureId,
+  );
 
   console.log(`${futureId} state has been cleared`);
 };

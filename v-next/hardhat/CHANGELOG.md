@@ -1,5 +1,20 @@
 # hardhat
 
+## 3.0.0-next.4
+
+### Patch Changes
+
+- b3982a2: Add Arbitrum Sepolia to chain config in Ignition ([#6518](https://github.com/NomicFoundation/hardhat/pull/6518))
+- 688a233: Fix invalid hex bytecode error in Solidity Test by automatically linking libraries ([#6339](https://github.com/NomicFoundation/hardhat/issues/6339))
+- 8d30be9: Add new toolbox `hardhat-mocha-ethers`, that uses Mocha Test Runner, `chai-matchers` and `ethers` ([#5644](https://github.com/NomicFoundation/hardhat/issues/5644))
+- 7c9ad25: Infer and display better error messages from stack traces ([#6505](https://github.com/NomicFoundation/hardhat/issues/6505))
+- 7e55eb2: Fix remove() on windows ([#5602](https://github.com/NomicFoundation/hardhat/issues/5602))
+- 5fbea0d: Improve error categories and add support for subcategories ([#6552](https://github.com/NomicFoundation/hardhat/pull/6552))
+- ec8895e: Fix a typo in Hardhat's type `GetArtifactByName` ([#6534](https://github.com/NomicFoundation/hardhat/pull/6534))
+- 0a96da8: Generate better error messages when invoking unsupported cheatcodes. Previously we'd just return "unknown selector 0xafc98040", now we return "cheatcode 'broadcast()' is not supported" instead.
+- e366bf7: Add new toolbox `hardhat-toolbox-viem`, that uses Node Test Runner and `viem` ([#5643](https://github.com/NomicFoundation/hardhat/issues/5643))
+- fc34b96: Fix getCode/getDeployedCode cheatcodes in Solidity Test by compiling all sources ([#6522](https://github.com/NomicFoundation/hardhat/issues/6522))
+
 ## 3.0.0-next.3
 
 ### Patch Changes

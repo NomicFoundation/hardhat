@@ -121,7 +121,7 @@ function validateInput(
       accounts.length !== balanceChanges.length
     ) {
       throw new HardhatError(
-        HardhatError.ERRORS.CHAI_MATCHERS.ACCOUNTS_NUMBER_DIFFERENT_FROM_BALANCE_CHANGES,
+        HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.ACCOUNTS_NUMBER_DIFFERENT_FROM_BALANCE_CHANGES,
         {
           accounts: accounts.length,
           balanceChanges: balanceChanges.length,

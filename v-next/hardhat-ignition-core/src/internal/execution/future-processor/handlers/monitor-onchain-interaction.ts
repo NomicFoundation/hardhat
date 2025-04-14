@@ -13,10 +13,9 @@ import type {
 } from "../../types/messages.js";
 import type { OnchainInteraction } from "../../types/network-interaction.js";
 
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import setupDebug from "debug";
 
-import { IgnitionError } from "../../../../errors.js";
-import { ERRORS } from "../../../errors-list.js";
 import { assertIgnitionInvariant } from "../../../utils/assertions.js";
 import { JournalMessageType } from "../../types/messages.js";
 import { NetworkInteractionType } from "../../types/network-interaction.js";
@@ -37,7 +36,7 @@ export interface GetTransactionRetryConfig {
  * timed out.
  *
  * If all of the transactions of the latest network interaction have been dropped, this
- * method throws an IgnitionError.
+ * method throws a HardhatError.
  *
  * SIDE EFFECTS: This function doesn't have any side effects.
  *
@@ -104,10 +103,13 @@ export async function monitorOnchainInteraction(
 
   // We do not try to recover from dopped transactions mid-execution
   if (transaction === undefined) {
-    throw new IgnitionError(ERRORS.EXECUTION.DROPPED_TRANSACTION, {
-      futureId: exState.id,
-      networkInteractionId: lastNetworkInteraction.id,
-    });
+    throw new HardhatError(
+      HardhatError.ERRORS.IGNITION.EXECUTION.DROPPED_TRANSACTION,
+      {
+        futureId: exState.id,
+        networkInteractionId: lastNetworkInteraction.id,
+      },
+    );
   }
 
   const [block, receipt] = await Promise.all([

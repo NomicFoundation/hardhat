@@ -82,7 +82,8 @@ describe("INTEGRATION: Reverted", { timeout: 60000 }, () => {
       it("invalid string", async () => {
         await assertRejectsWithHardhatError(
           () => expect("0x123").to.be.reverted(ethers),
-          HardhatError.ERRORS.CHAI_MATCHERS.EXPECTED_VALID_TRANSACTION_HASH,
+          HardhatError.ERRORS.CHAI_MATCHERS.GENERAL
+            .EXPECTED_VALID_TRANSACTION_HASH,
           {
             hash: "0x123",
           },
@@ -90,7 +91,8 @@ describe("INTEGRATION: Reverted", { timeout: 60000 }, () => {
 
         await assertRejectsWithHardhatError(
           () => expect("0x123").to.not.be.reverted(ethers),
-          HardhatError.ERRORS.CHAI_MATCHERS.EXPECTED_VALID_TRANSACTION_HASH,
+          HardhatError.ERRORS.CHAI_MATCHERS.GENERAL
+            .EXPECTED_VALID_TRANSACTION_HASH,
           {
             hash: "0x123",
           },
@@ -122,7 +124,8 @@ describe("INTEGRATION: Reverted", { timeout: 60000 }, () => {
       it("promise of an invalid string", async () => {
         await assertRejectsWithHardhatError(
           () => expect(Promise.resolve("0x123")).to.be.reverted(ethers),
-          HardhatError.ERRORS.CHAI_MATCHERS.EXPECTED_VALID_TRANSACTION_HASH,
+          HardhatError.ERRORS.CHAI_MATCHERS.GENERAL
+            .EXPECTED_VALID_TRANSACTION_HASH,
           {
             hash: "0x123",
           },
@@ -130,7 +133,8 @@ describe("INTEGRATION: Reverted", { timeout: 60000 }, () => {
 
         await assertRejectsWithHardhatError(
           () => expect(Promise.resolve("0x123")).to.not.be.reverted(ethers),
-          HardhatError.ERRORS.CHAI_MATCHERS.EXPECTED_VALID_TRANSACTION_HASH,
+          HardhatError.ERRORS.CHAI_MATCHERS.GENERAL
+            .EXPECTED_VALID_TRANSACTION_HASH,
           {
             hash: "0x123",
           },
@@ -193,7 +197,8 @@ describe("INTEGRATION: Reverted", { timeout: 60000 }, () => {
             expect(matchers.revertsWith("bar"))
               .to.be.revertedWith("bar")
               .and.to.be.reverted(ethers),
-          HardhatError.ERRORS.CHAI_MATCHERS.MATCHER_CANNOT_BE_CHAINED_AFTER,
+          HardhatError.ERRORS.CHAI_MATCHERS.GENERAL
+            .MATCHER_CANNOT_BE_CHAINED_AFTER,
           {
             matcher: "reverted",
             previousMatcher: "revertedWith",
@@ -207,7 +212,8 @@ describe("INTEGRATION: Reverted", { timeout: 60000 }, () => {
             expect(matchers.revertWithCustomErrorWithInt(1))
               .to.be.revertedWithCustomError(matchers, "CustomErrorWithInt")
               .and.to.be.revertedWith("an error message"),
-          HardhatError.ERRORS.CHAI_MATCHERS.MATCHER_CANNOT_BE_CHAINED_AFTER,
+          HardhatError.ERRORS.CHAI_MATCHERS.GENERAL
+            .MATCHER_CANNOT_BE_CHAINED_AFTER,
           {
             matcher: "revertedWith",
             previousMatcher: "revertedWithCustomError",
@@ -221,7 +227,8 @@ describe("INTEGRATION: Reverted", { timeout: 60000 }, () => {
             expect(matchers.revertsWithoutReason())
               .to.be.revertedWithoutReason(ethers)
               .and.to.be.revertedWithCustomError(matchers, "SomeCustomError"),
-          HardhatError.ERRORS.CHAI_MATCHERS.MATCHER_CANNOT_BE_CHAINED_AFTER,
+          HardhatError.ERRORS.CHAI_MATCHERS.GENERAL
+            .MATCHER_CANNOT_BE_CHAINED_AFTER,
           {
             matcher: "revertedWithCustomError",
             previousMatcher: "revertedWithoutReason",
@@ -235,7 +242,8 @@ describe("INTEGRATION: Reverted", { timeout: 60000 }, () => {
             expect(matchers.panicAssert())
               .to.be.revertedWithPanic()
               .and.to.be.revertedWithoutReason(ethers),
-          HardhatError.ERRORS.CHAI_MATCHERS.MATCHER_CANNOT_BE_CHAINED_AFTER,
+          HardhatError.ERRORS.CHAI_MATCHERS.GENERAL
+            .MATCHER_CANNOT_BE_CHAINED_AFTER,
           {
             matcher: "revertedWithoutReason",
             previousMatcher: "revertedWithPanic",
@@ -256,7 +264,8 @@ describe("INTEGRATION: Reverted", { timeout: 60000 }, () => {
             )
               .to.changeEtherBalance(provider, sender, "-200")
               .and.to.be.revertedWithPanic(),
-          HardhatError.ERRORS.CHAI_MATCHERS.MATCHER_CANNOT_BE_CHAINED_AFTER,
+          HardhatError.ERRORS.CHAI_MATCHERS.GENERAL
+            .MATCHER_CANNOT_BE_CHAINED_AFTER,
           {
             matcher: "revertedWithPanic",
             previousMatcher: "changeEtherBalance",

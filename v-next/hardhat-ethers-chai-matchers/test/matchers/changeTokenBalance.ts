@@ -665,7 +665,8 @@ describe(
                 expect(contract.emitWithoutArgs())
                   .to.emit(contract, "WithoutArgs")
                   .and.to.changeTokenBalance(provider, mockToken, receiver, 0),
-              HardhatError.ERRORS.CHAI_MATCHERS.MATCHER_CANNOT_BE_CHAINED_AFTER,
+              HardhatError.ERRORS.CHAI_MATCHERS.GENERAL
+                .MATCHER_CANNOT_BE_CHAINED_AFTER,
               {
                 matcher: "changeTokenBalance",
                 previousMatcher: "emit",
@@ -684,7 +685,8 @@ describe(
                     [sender, receiver],
                     [-50, 100],
                   ),
-              HardhatError.ERRORS.CHAI_MATCHERS.MATCHER_CANNOT_BE_CHAINED_AFTER,
+              HardhatError.ERRORS.CHAI_MATCHERS.GENERAL
+                .MATCHER_CANNOT_BE_CHAINED_AFTER,
               {
                 matcher: "changeTokenBalances",
                 previousMatcher: "reverted",
@@ -703,7 +705,7 @@ describe(
                   mockToken.transfer(receiver.address, 50),
                   // @ts-expect-error -- force error scenario: token should be specified
                 ).to.changeTokenBalance(provider, receiver, 50),
-              HardhatError.ERRORS.CHAI_MATCHERS
+              HardhatError.ERRORS.CHAI_MATCHERS.GENERAL
                 .FIRST_ARGUMENT_MUST_BE_A_CONTRACT_INSTANCE,
               {
                 method: CHANGE_TOKEN_BALANCE_MATCHER,
@@ -717,7 +719,7 @@ describe(
                   mockToken.transfer(receiver.address, 50),
                   // @ts-expect-error -- force error scenario: token should be specified
                 ).to.changeTokenBalance(provider, receiver.address, 50),
-              HardhatError.ERRORS.CHAI_MATCHERS
+              HardhatError.ERRORS.CHAI_MATCHERS.GENERAL
                 .FIRST_ARGUMENT_MUST_BE_A_CONTRACT_INSTANCE,
               {
                 method: CHANGE_TOKEN_BALANCE_MATCHER,
@@ -790,7 +792,7 @@ describe(
                   [sender, receiver],
                   [-50, 50],
                 ),
-              HardhatError.ERRORS.CHAI_MATCHERS
+              HardhatError.ERRORS.CHAI_MATCHERS.GENERAL
                 .FIRST_ARGUMENT_MUST_BE_A_CONTRACT_INSTANCE,
               {
                 method: CHANGE_TOKEN_BALANCES_MATCHER,

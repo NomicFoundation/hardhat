@@ -31,7 +31,7 @@ async function waitForPendingTransaction(
 
   if (hash === null) {
     throw new HardhatError(
-      HardhatError.ERRORS.CHAI_MATCHERS.INVALID_TRANSACTION,
+      HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.INVALID_TRANSACTION,
       { transaction: JSON.stringify(tx) },
     );
   }
@@ -90,13 +90,13 @@ export function supportEmit(
         const contractAddress = contract.target;
         if (typeof contractAddress !== "string") {
           throw new HardhatError(
-            HardhatError.ERRORS.CHAI_MATCHERS.CONTRACT_TARGET_MUST_BE_A_STRING,
+            HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.CONTRACT_TARGET_MUST_BE_A_STRING,
           );
         }
 
         if (args.length > 0) {
           throw new HardhatError(
-            HardhatError.ERRORS.CHAI_MATCHERS.EMIT_EXPECTS_TWO_ARGUMENTS,
+            HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.EMIT_EXPECTS_TWO_ARGUMENTS,
           );
         }
 
@@ -125,7 +125,7 @@ export function supportEmit(
 
         if (contract.runner === null || contract.runner.provider === null) {
           throw new HardhatError(
-            HardhatError.ERRORS.CHAI_MATCHERS.CONTRACT_RUNNER_PROVIDER_NOT_NULL,
+            HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.CONTRACT_RUNNER_PROVIDER_NOT_NULL,
           );
         }
 

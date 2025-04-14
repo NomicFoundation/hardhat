@@ -174,9 +174,12 @@ export class NewTaskDefinitionBuilderImplementation<
 
   public build(): NewTaskDefinition {
     if (this.#action === undefined) {
-      throw new HardhatError(HardhatError.ERRORS.TASK_DEFINITIONS.NO_ACTION, {
-        task: formatTaskId(this.#id),
-      });
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.TASK_DEFINITIONS.NO_ACTION,
+        {
+          task: formatTaskId(this.#id),
+        },
+      );
     }
 
     return {
@@ -321,9 +324,12 @@ export class TaskOverrideDefinitionBuilderImplementation<
 
   public build(): TaskOverrideDefinition {
     if (this.#action === undefined) {
-      throw new HardhatError(HardhatError.ERRORS.TASK_DEFINITIONS.NO_ACTION, {
-        task: formatTaskId(this.#id),
-      });
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.TASK_DEFINITIONS.NO_ACTION,
+        {
+          task: formatTaskId(this.#id),
+        },
+      );
     }
 
     return {

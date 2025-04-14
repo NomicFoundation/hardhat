@@ -1,8 +1,8 @@
-/* eslint-disable import/no-unused-modules */
 import type { TestChainHelper } from "../../test-helpers/use-ignition-project.js";
 
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { buildModule } from "@nomicfoundation/ignition-core";
-import { assert } from "chai";
 import { createWalletClient, custom, parseEther } from "viem";
 import { hardhat } from "viem/chains";
 
@@ -74,9 +74,13 @@ describe("execution - error on rerun with replaced pending user transaction", ()
 
     // On the second run, we should detect the user interference
     // and error
-    await assert.isRejected(
+    await assertRejectsWithHardhatError(
       this.ignition.deploy(moduleDefinition),
-      "IGN403: You have sent transactions from 0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc and they interfere with Hardhat Ignition. Please wait until they get 5 confirmations before running Hardhat Ignition again.",
+      HardhatError.ERRORS.IGNITION.EXECUTION.WAITING_FOR_CONFIRMATIONS,
+      {
+        sender: "0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc",
+        requiredConfirmations: 5,
+      },
     );
   });
 });

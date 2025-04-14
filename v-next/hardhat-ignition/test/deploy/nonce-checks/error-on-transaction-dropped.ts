@@ -1,8 +1,8 @@
-/* eslint-disable import/no-unused-modules */
 import type { TestChainHelper } from "../../test-helpers/use-ignition-project.js";
 
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { buildModule } from "@nomicfoundation/ignition-core";
-import { assert } from "chai";
 
 import { useFileIgnitionProject } from "../../test-helpers/use-ignition-project.js";
 
@@ -37,7 +37,7 @@ describe("execution - error on transaction dropped", () => {
     // The deploy should exception once the dropped transaction for foo2
     // is detected
 
-    await assert.isRejected(
+    await assertRejectsWithHardhatError(
       this.runControlledDeploy(moduleDefinition, async (c: TestChainHelper) => {
         // Process block 1 confirming foo1
         await c.mineBlock(1);
@@ -48,7 +48,11 @@ describe("execution - error on transaction dropped", () => {
         // Mine further block allowing foo2 to be checked again
         await c.mineBlock();
       }),
-      "IGN401: Error while executing FooModule#Foo2: all the transactions of its network interaction 1 were dropped. Please try rerunning Hardhat Ignition.",
+      HardhatError.ERRORS.IGNITION.EXECUTION.DROPPED_TRANSACTION,
+      {
+        futureId: "FooModule#Foo2",
+        networkInteractionId: 1,
+      },
     );
   });
 });

@@ -15,8 +15,8 @@
 
 import type { Artifact } from "../../types/artifact.js";
 
-import { IgnitionError } from "../../errors.js";
-import { ERRORS } from "../errors-list.js";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+
 import { assertIgnitionInvariant } from "../utils/assertions.js";
 
 /**
@@ -29,8 +29,8 @@ import { assertIgnitionInvariant } from "../utils/assertions.js";
 export function validateLibraryNames(
   artifact: Artifact,
   libraryNames: string[],
-): IgnitionError[] {
-  const errors: IgnitionError[] = [];
+): HardhatError[] {
+  const errors: HardhatError[] = [];
 
   errors.push(...validateNotRepeatedLibraries(artifact, libraryNames));
 
@@ -58,16 +58,19 @@ export function validateLibraryNames(
         .join("\n");
 
       errors.push(
-        new IgnitionError(ERRORS.VALIDATION.MISSING_LIBRARIES, {
-          fullyQualifiedNames,
-          contractName: artifact.contractName,
-        }),
+        new HardhatError(
+          HardhatError.ERRORS.IGNITION.VALIDATION.MISSING_LIBRARIES,
+          {
+            fullyQualifiedNames,
+            contractName: artifact.contractName,
+          },
+        ),
       );
     }
   } catch (e) {
     assertIgnitionInvariant(
-      e instanceof IgnitionError,
-      "Error must be of type IgnitionError",
+      e instanceof HardhatError,
+      "Error must be of type HardhatError",
     );
 
     errors.push(e);
@@ -118,8 +121,8 @@ function linkReference(
 function validateNotRepeatedLibraries(
   artifact: Artifact,
   libraryNames: string[],
-): IgnitionError[] {
-  const errors: IgnitionError[] = [];
+): HardhatError[] {
+  const errors: HardhatError[] = [];
 
   for (const inputName of libraryNames) {
     try {
@@ -130,17 +133,20 @@ function validateNotRepeatedLibraries(
 
       if (sourceName !== undefined && libraryNames.includes(libName)) {
         errors.push(
-          new IgnitionError(ERRORS.VALIDATION.CONFLICTING_LIBRARY_NAMES, {
-            inputName,
-            libName,
-            contractName: artifact.contractName,
-          }),
+          new HardhatError(
+            HardhatError.ERRORS.IGNITION.VALIDATION.CONFLICTING_LIBRARY_NAMES,
+            {
+              inputName,
+              libName,
+              contractName: artifact.contractName,
+            },
+          ),
         );
       }
     } catch (e) {
       assertIgnitionInvariant(
-        e instanceof IgnitionError,
-        `Error must be of type IgnitionError`,
+        e instanceof HardhatError,
+        `Error must be of type HardhatError`,
       );
 
       errors.push(e);
@@ -163,10 +169,13 @@ function parseLibraryName(
   const parts = libraryName.split(":");
 
   if (parts.length > 2) {
-    throw new IgnitionError(ERRORS.VALIDATION.INVALID_LIBRARY_NAME, {
-      libraryName,
-      contractName,
-    });
+    throw new HardhatError(
+      HardhatError.ERRORS.IGNITION.VALIDATION.INVALID_LIBRARY_NAME,
+      {
+        libraryName,
+        contractName,
+      },
+    );
   }
 
   if (parts.length === 1) {
@@ -198,10 +207,13 @@ function getActualNameForArtifactLibrary(
       artifact.linkReferences[sourceName] === undefined ||
       artifact.linkReferences[sourceName][libName] === undefined
     ) {
-      throw new IgnitionError(ERRORS.VALIDATION.LIBRARY_NOT_NEEDED, {
-        libraryName,
-        contractName: artifact.contractName,
-      });
+      throw new HardhatError(
+        HardhatError.ERRORS.IGNITION.VALIDATION.LIBRARY_NOT_NEEDED,
+        {
+          libraryName,
+          contractName: artifact.contractName,
+        },
+      );
     }
 
     return { sourceName, libName };
@@ -226,10 +238,13 @@ function getActualNameForArtifactLibrary(
     bareNameToParsedNames[libName] === undefined ||
     bareNameToParsedNames[libName].length === 0
   ) {
-    throw new IgnitionError(ERRORS.VALIDATION.LIBRARY_NOT_NEEDED, {
-      libraryName,
-      contractName: artifact.contractName,
-    });
+    throw new HardhatError(
+      HardhatError.ERRORS.IGNITION.VALIDATION.LIBRARY_NOT_NEEDED,
+      {
+        libraryName,
+        contractName: artifact.contractName,
+      },
+    );
   }
 
   if (bareNameToParsedNames[libName].length > 1) {
@@ -240,11 +255,14 @@ function getActualNameForArtifactLibrary(
       )
       .join("\n");
 
-    throw new IgnitionError(ERRORS.VALIDATION.AMBIGUOUS_LIBRARY_NAME, {
-      fullyQualifiedNames,
-      libraryName,
-      contractName: artifact.contractName,
-    });
+    throw new HardhatError(
+      HardhatError.ERRORS.IGNITION.VALIDATION.AMBIGUOUS_LIBRARY_NAME,
+      {
+        fullyQualifiedNames,
+        libraryName,
+        contractName: artifact.contractName,
+      },
+    );
   }
 
   return bareNameToParsedNames[libName][0];
@@ -259,11 +277,14 @@ function validateAddresses(
 ) {
   for (const [libraryName, address] of Object.entries(libraries)) {
     if (address.match(/^0x[0-9a-fA-F]{40}$/) === null) {
-      throw new IgnitionError(ERRORS.VALIDATION.INVALID_LIBRARY_ADDRESS, {
-        address,
-        libraryName,
-        contractName: artifact.contractName,
-      });
+      throw new HardhatError(
+        HardhatError.ERRORS.IGNITION.VALIDATION.INVALID_LIBRARY_ADDRESS,
+        {
+          address,
+          libraryName,
+          contractName: artifact.contractName,
+        },
+      );
     }
   }
 }

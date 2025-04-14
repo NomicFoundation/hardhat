@@ -330,7 +330,7 @@ export class HookManagerImplementation implements HookManager {
   ): Promise<Partial<HardhatHooks[HookCategoryNameT]>> {
     if (!path.startsWith("file://")) {
       throw new HardhatError(
-        HardhatError.ERRORS.HOOKS.INVALID_HOOK_FACTORY_PATH,
+        HardhatError.ERRORS.CORE.HOOKS.INVALID_HOOK_FACTORY_PATH,
         {
           pluginId: plugin.id,
           hookCategoryName,

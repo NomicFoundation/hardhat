@@ -611,39 +611,48 @@ describe("lang", () => {
   });
 
   describe("sleep", () => {
-    it("should wait for the specified time", async () => {
-      const start = Date.now();
-      await sleep(1);
-      const end = Date.now();
+    // The precision we'd use for the tests, in milliseconds.
+    // This means that if an expected values is +/- within the
+    // TESTS_PRECISION_MS, we consider it to have passed.
+    const TESTS_PRECISION_MS = 30;
 
-      assert.ok(end - start >= 1000, "sleep did not wait for 1 second");
+    async function assertSleep(
+      sleepSeconds: number,
+      { minMillis, maxMillis }: { minMillis?: number; maxMillis?: number } = {},
+    ) {
+      const start = Date.now();
+      await sleep(sleepSeconds);
+      const diff = Date.now() - start;
+
+      if (maxMillis !== undefined) {
+        assert.ok(
+          diff <= maxMillis + TESTS_PRECISION_MS,
+          `sleep exceeded the expected ${maxMillis} milliseconds (comparison precision: ${TESTS_PRECISION_MS} ms). It slept for ${diff} milliseconds.`,
+        );
+      }
+
+      if (minMillis !== undefined) {
+        assert.ok(
+          diff >= minMillis - TESTS_PRECISION_MS,
+          `sleep did not wait for the expected ${minMillis} milliseconds (comparison precision: ${TESTS_PRECISION_MS} ms). It slept for ${diff} milliseconds.`,
+        );
+      }
+    }
+
+    it("should wait for the specified time", async () => {
+      await assertSleep(1, { minMillis: 1000 });
     });
 
     it("should handle zero delay", async () => {
-      const start = Date.now();
-      await sleep(0);
-      const end = Date.now();
-
-      assert.ok(end - start < 100, "sleep did not handle zero delay correctly");
+      await assertSleep(0, { maxMillis: 30 });
     });
 
     it("should handle negative delay", async () => {
-      const start = Date.now();
-      await sleep(-1);
-      const end = Date.now();
-
-      assert.ok(
-        end - start < 100,
-        "sleep did not handle negative delay correctly",
-      );
+      await assertSleep(-1, { maxMillis: 30 });
     });
 
     it("should handle non-integer delay", async () => {
-      const start = Date.now();
-      await sleep(0.5);
-      const end = Date.now();
-
-      assert.ok(end - start >= 500, "sleep did not wait for 0.5 seconds");
+      await assertSleep(1.5, { minMillis: 1500 });
     });
   });
 });

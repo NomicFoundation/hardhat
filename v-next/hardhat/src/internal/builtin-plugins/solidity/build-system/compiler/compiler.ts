@@ -154,7 +154,7 @@ export class SolcJsCompiler implements Compiler {
 
       // We pack any error encountered during the compilation process into a HardhatError
       throw new HardhatError(
-        HardhatError.ERRORS.SOLIDITY.CANT_RUN_SOLCJS_COMPILER,
+        HardhatError.ERRORS.CORE.SOLIDITY.CANT_RUN_SOLCJS_COMPILER,
         e,
       );
     }
@@ -195,7 +195,7 @@ export class NativeCompiler implements Compiler {
 
       // We pack any error encountered during the compilation process into a HardhatError
       throw new HardhatError(
-        HardhatError.ERRORS.SOLIDITY.CANT_RUN_NATIVE_COMPILER,
+        HardhatError.ERRORS.CORE.SOLIDITY.CANT_RUN_NATIVE_COMPILER,
         e,
       );
     }

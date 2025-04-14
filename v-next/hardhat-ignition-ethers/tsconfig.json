@@ -5,7 +5,8 @@
     { "path": "../hardhat-errors" },
     { "path": "../hardhat-ethers" },
     { "path": "../hardhat-ignition" },
-    { "path": "../hardhat-ignition-core" }
+    { "path": "../hardhat-ignition-core" },
+    { "path": "../hardhat-test-utils" }
   ],
   "exclude": ["${configDir}/dist", "${configDir}/node_modules"]
 }

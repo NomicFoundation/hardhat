@@ -369,7 +369,7 @@ describe("provider events", () => {
     it("should throw if .on is called with an unsupported event type", async () => {
       await assertRejectsWithHardhatError(
         ethers.provider.on([], () => {}),
-        HardhatError.ERRORS.ETHERS.EVENT_NOT_SUPPORTED,
+        HardhatError.ERRORS.HARDHAT_ETHERS.GENERAL.EVENT_NOT_SUPPORTED,
         {
           event: [],
         },
@@ -379,7 +379,7 @@ describe("provider events", () => {
     it("should throw if .once is called with an unsupported event type", async () => {
       await assertRejectsWithHardhatError(
         ethers.provider.once([], () => {}),
-        HardhatError.ERRORS.ETHERS.EVENT_NOT_SUPPORTED,
+        HardhatError.ERRORS.HARDHAT_ETHERS.GENERAL.EVENT_NOT_SUPPORTED,
         {
           event: [],
         },

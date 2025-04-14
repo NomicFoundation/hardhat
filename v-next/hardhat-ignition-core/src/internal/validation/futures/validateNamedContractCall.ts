@@ -2,13 +2,13 @@ import type { ArtifactResolver } from "../../../types/artifact.js";
 import type { DeploymentParameters } from "../../../types/deploy.js";
 import type { ContractCallFuture } from "../../../types/module.js";
 
-import { IgnitionError } from "../../../errors.js";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+
 import {
   isAccountRuntimeValue,
   isArtifactType,
   isModuleParameterRuntimeValue,
 } from "../../../type-guards.js";
-import { ERRORS } from "../../errors-list.js";
 import { validateArtifactFunction } from "../../execution/abi.js";
 import {
   filterToAccountRuntimeValues,
@@ -23,7 +23,7 @@ export async function validateNamedContractCall(
   deploymentParameters: DeploymentParameters,
   accounts: string[],
 ): Promise<string[]> {
-  const errors: IgnitionError[] = [];
+  const errors: HardhatError[] = [];
 
   /* stage one */
 
@@ -34,9 +34,12 @@ export async function validateNamedContractCall(
 
   if (!isArtifactType(artifact)) {
     errors.push(
-      new IgnitionError(ERRORS.VALIDATION.INVALID_ARTIFACT, {
-        contractName: future.contract.contractName,
-      }),
+      new HardhatError(
+        HardhatError.ERRORS.IGNITION.VALIDATION.INVALID_ARTIFACT,
+        {
+          contractName: future.contract.contractName,
+        },
+      ),
     );
   } else {
     errors.push(
@@ -73,9 +76,12 @@ export async function validateNamedContractCall(
 
   if (missingParams.length > 0) {
     errors.push(
-      new IgnitionError(ERRORS.VALIDATION.MISSING_MODULE_PARAMETER, {
-        name: missingParams[0].name,
-      }),
+      new HardhatError(
+        HardhatError.ERRORS.IGNITION.VALIDATION.MISSING_MODULE_PARAMETER,
+        {
+          name: missingParams[0].name,
+        },
+      ),
     );
   }
 
@@ -87,17 +93,23 @@ export async function validateNamedContractCall(
 
     if (param === undefined) {
       errors.push(
-        new IgnitionError(ERRORS.VALIDATION.MISSING_MODULE_PARAMETER, {
-          name: future.value.name,
-        }),
+        new HardhatError(
+          HardhatError.ERRORS.IGNITION.VALIDATION.MISSING_MODULE_PARAMETER,
+          {
+            name: future.value.name,
+          },
+        ),
       );
     } else if (typeof param !== "bigint") {
       errors.push(
-        new IgnitionError(ERRORS.VALIDATION.INVALID_MODULE_PARAMETER_TYPE, {
-          name: future.value.name,
-          expectedType: "bigint",
-          actualType: typeof param,
-        }),
+        new HardhatError(
+          HardhatError.ERRORS.IGNITION.VALIDATION.INVALID_MODULE_PARAMETER_TYPE,
+          {
+            name: future.value.name,
+            expectedType: "bigint",
+            actualType: typeof param,
+          },
+        ),
       );
     }
   }

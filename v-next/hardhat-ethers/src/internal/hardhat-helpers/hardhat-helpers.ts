@@ -133,7 +133,7 @@ export class HardhatHelpers {
 
     if (!this.#isArtifact(artifact)) {
       throw new HardhatError(
-        HardhatError.ERRORS.ETHERS.INVALID_ARTIFACT_FOR_FACTORY,
+        HardhatError.ERRORS.HARDHAT_ETHERS.GENERAL.INVALID_ARTIFACT_FOR_FACTORY,
       );
     }
 
@@ -146,7 +146,7 @@ export class HardhatHelpers {
 
     if (artifact.bytecode === "0x") {
       throw new HardhatError(
-        HardhatError.ERRORS.ETHERS.INVALID_ABSTRACT_CONTRACT_FOR_FACTORY,
+        HardhatError.ERRORS.HARDHAT_ETHERS.GENERAL.INVALID_ABSTRACT_CONTRACT_FOR_FACTORY,
         { contractName: artifact.contractName },
       );
     }
@@ -205,7 +205,7 @@ export class HardhatHelpers {
 
     if (!this.#isArtifact(artifact)) {
       throw new HardhatError(
-        HardhatError.ERRORS.ETHERS.INVALID_ARTIFACT_FOR_FACTORY,
+        HardhatError.ERRORS.HARDHAT_ETHERS.GENERAL.INVALID_ARTIFACT_FOR_FACTORY,
       );
     }
 
@@ -337,7 +337,7 @@ export class HardhatHelpers {
 
       if (!ethers.isAddress(resolvedAddress)) {
         throw new HardhatError(
-          HardhatError.ERRORS.ETHERS.INVALID_ADDRESS_TO_LINK_CONTRACT_TO_LIBRARY,
+          HardhatError.ERRORS.HARDHAT_ETHERS.GENERAL.INVALID_ADDRESS_TO_LINK_CONTRACT_TO_LIBRARY,
           {
             contractName: artifact.contractName,
             linkedLibraryName,
@@ -367,7 +367,7 @@ export class HardhatHelpers {
         }
 
         throw new HardhatError(
-          HardhatError.ERRORS.ETHERS.LIBRARY_NOT_AMONG_CONTRACT_LIBRARIES,
+          HardhatError.ERRORS.HARDHAT_ETHERS.GENERAL.LIBRARY_NOT_AMONG_CONTRACT_LIBRARIES,
           {
             contractName: artifact.contractName,
             linkedLibraryName,
@@ -383,7 +383,7 @@ export class HardhatHelpers {
           .join("\n");
 
         throw new HardhatError(
-          HardhatError.ERRORS.ETHERS.AMBIGUOUS_LIBRARY_NAME,
+          HardhatError.ERRORS.HARDHAT_ETHERS.GENERAL.AMBIGUOUS_LIBRARY_NAME,
           {
             contractName: artifact.contractName,
             linkedLibraryName,
@@ -401,7 +401,7 @@ export class HardhatHelpers {
       // once as a library name and another as a fully qualified library name.
       if (linksToApply.has(neededLibraryFQN)) {
         throw new HardhatError(
-          HardhatError.ERRORS.ETHERS.REFERENCE_TO_SAME_LIBRARY,
+          HardhatError.ERRORS.HARDHAT_ETHERS.GENERAL.REFERENCE_TO_SAME_LIBRARY,
           {
             linkedLibraryName1: neededLibrary.libName,
             linkedLibraryName2: neededLibraryFQN,
@@ -424,7 +424,7 @@ export class HardhatHelpers {
         .join("\n");
 
       throw new HardhatError(
-        HardhatError.ERRORS.ETHERS.MISSING_LINK_FOR_LIBRARY,
+        HardhatError.ERRORS.HARDHAT_ETHERS.GENERAL.MISSING_LINK_FOR_LIBRARY,
         {
           contractName: artifact.contractName,
           missingLibraries,

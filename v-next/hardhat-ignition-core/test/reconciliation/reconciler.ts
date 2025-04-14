@@ -1,4 +1,3 @@
-/* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
 import { buildModule } from "../../src/build-module.js";
@@ -20,7 +19,6 @@ import {
   createDeploymentState,
   reconcile,
 } from "./helpers.js";
-import { deploy } from "../../src/deploy.js";
 
 describe("Reconciliation", () => {
   const exampleDeploymentState: DeploymentExecutionState = {

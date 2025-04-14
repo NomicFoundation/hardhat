@@ -66,7 +66,7 @@ export class TaskManagerImplementation implements TaskManager {
     taskId = Array.isArray(taskId) ? taskId : [taskId];
     if (taskId.length === 0) {
       throw new HardhatError(
-        HardhatError.ERRORS.TASK_DEFINITIONS.TASK_NOT_FOUND,
+        HardhatError.ERRORS.CORE.TASK_DEFINITIONS.TASK_NOT_FOUND,
         {
           task: formatTaskId(taskId),
         },
@@ -80,7 +80,7 @@ export class TaskManagerImplementation implements TaskManager {
       const currentTask = tasks.get(idFragment);
       if (currentTask === undefined) {
         throw new HardhatError(
-          HardhatError.ERRORS.TASK_DEFINITIONS.TASK_NOT_FOUND,
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.TASK_NOT_FOUND,
           {
             task: formatTaskId(taskId.slice(0, i + 1)),
           },
@@ -102,7 +102,7 @@ export class TaskManagerImplementation implements TaskManager {
   #insertTask(taskId: string[], task: Task, pluginId?: string) {
     if (taskId.length === 0) {
       throw new HardhatError(
-        HardhatError.ERRORS.TASK_DEFINITIONS.EMPTY_TASK_ID,
+        HardhatError.ERRORS.CORE.TASK_DEFINITIONS.EMPTY_TASK_ID,
       );
     }
 
@@ -113,7 +113,7 @@ export class TaskManagerImplementation implements TaskManager {
       const currentTask = tasks.get(idFragment);
       if (currentTask === undefined) {
         throw new HardhatError(
-          HardhatError.ERRORS.TASK_DEFINITIONS.SUBTASK_WITHOUT_PARENT,
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.SUBTASK_WITHOUT_PARENT,
           {
             task: formatTaskId(taskId.slice(0, i + 1)),
             subtask: formatTaskId(taskId),
@@ -130,7 +130,7 @@ export class TaskManagerImplementation implements TaskManager {
     if (existingTask !== undefined) {
       const exPluginId = existingTask.pluginId;
       throw new HardhatError(
-        HardhatError.ERRORS.TASK_DEFINITIONS.TASK_ALREADY_DEFINED,
+        HardhatError.ERRORS.CORE.TASK_DEFINITIONS.TASK_ALREADY_DEFINED,
         {
           actorFragment: getActorFragment(pluginId),
           task: formatTaskId(taskId),
@@ -209,7 +209,7 @@ export class TaskManagerImplementation implements TaskManager {
       const globalOptionEntry = globalOptionDefinitions.get(argName);
       if (globalOptionEntry !== undefined) {
         throw new HardhatError(
-          HardhatError.ERRORS.TASK_DEFINITIONS.TASK_OPTION_ALREADY_DEFINED,
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.TASK_OPTION_ALREADY_DEFINED,
           {
             actorFragment: getActorFragment(pluginId),
             task: formatTaskId(taskDefinition.id),
@@ -234,7 +234,7 @@ export class TaskManagerImplementation implements TaskManager {
         task.positionalArguments.some((p) => p.name === optionName);
       if (hasArgument) {
         throw new HardhatError(
-          HardhatError.ERRORS.TASK_DEFINITIONS.TASK_OVERRIDE_OPTION_ALREADY_DEFINED,
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.TASK_OVERRIDE_OPTION_ALREADY_DEFINED,
           {
             actorFragment: getActorFragment(pluginId),
             option: optionName,

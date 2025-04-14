@@ -45,9 +45,12 @@ export function parseJsonRpcResponse(text: string): JsonRpcResponse {
 
     return json;
   } catch {
-    throw new HardhatError(HardhatError.ERRORS.NETWORK.INVALID_JSON_RESPONSE, {
-      response: text,
-    });
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.NETWORK.INVALID_JSON_RESPONSE,
+      {
+        response: text,
+      },
+    );
   }
 }
 
@@ -138,5 +141,7 @@ export function getRequestParams(
     return requestArguments.params;
   }
 
-  throw new HardhatError(HardhatError.ERRORS.NETWORK.INVALID_REQUEST_PARAMS);
+  throw new HardhatError(
+    HardhatError.ERRORS.CORE.NETWORK.INVALID_REQUEST_PARAMS,
+  );
 }

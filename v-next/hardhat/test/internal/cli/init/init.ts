@@ -49,7 +49,7 @@ describe("getWorkspace", () => {
     // TODO: We shouldn't be testing the exact error message
     await assertRejectsWithHardhatError(
       async () => getWorkspace("non-existent-workspace"),
-      HardhatError.ERRORS.GENERAL.WORKSPACE_NOT_FOUND,
+      HardhatError.ERRORS.CORE.GENERAL.WORKSPACE_NOT_FOUND,
       {
         workspace: path.resolve("non-existent-workspace"),
       },
@@ -60,7 +60,7 @@ describe("getWorkspace", () => {
     await writeUtf8File("hardhat.config.ts", "");
     await assertRejectsWithHardhatError(
       async () => getWorkspace("hardhat-project"),
-      HardhatError.ERRORS.GENERAL.HARDHAT_PROJECT_ALREADY_CREATED,
+      HardhatError.ERRORS.CORE.GENERAL.HARDHAT_PROJECT_ALREADY_CREATED,
       {
         hardhatProjectRootPath: path.join(process.cwd(), "hardhat.config.ts"),
       },
@@ -73,7 +73,7 @@ describe("getTemplate", () => {
   it("should throw if the provided template does not exist", async () => {
     await assertRejectsWithHardhatError(
       async () => getTemplate("non-existent-template"),
-      HardhatError.ERRORS.GENERAL.TEMPLATE_NOT_FOUND,
+      HardhatError.ERRORS.CORE.GENERAL.TEMPLATE_NOT_FOUND,
       {
         template: "non-existent-template",
       },
@@ -110,7 +110,7 @@ describe("validatePackageJson", () => {
     await writeUtf8File("package.json", "{}");
     await assertRejectsWithHardhatError(
       async () => validatePackageJson(process.cwd(), false),
-      HardhatError.ERRORS.GENERAL.ONLY_ESM_SUPPORTED,
+      HardhatError.ERRORS.CORE.GENERAL.ONLY_ESM_SUPPORTED,
       {},
     );
   });

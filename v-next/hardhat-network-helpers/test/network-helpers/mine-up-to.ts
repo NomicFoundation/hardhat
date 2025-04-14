@@ -32,7 +32,8 @@ describe("network-helpers - mineUpTo", () => {
 
     await assertRejectsWithHardhatError(
       async () => networkHelpers.mineUpTo(initialHeight),
-      HardhatError.ERRORS.NETWORK_HELPERS.BLOCK_NUMBER_SMALLER_THAN_CURRENT,
+      HardhatError.ERRORS.NETWORK_HELPERS.GENERAL
+        .BLOCK_NUMBER_SMALLER_THAN_CURRENT,
       {
         newValue: await toBigInt(initialHeight),
         currentValue: await toBigInt(initialHeight),
