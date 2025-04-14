@@ -20,15 +20,13 @@ const showTelemetryConsent: NewTaskActionFunction<
   }
 
   if (enable) {
-    console.log("Enabling telemetry");
+    console.log("Enabling telemetry...");
     await setTelemetryEnabled(true);
-    return;
   }
 
   if (disable) {
-    console.log("Disabling telemetry");
+    console.log("Disabling telemetry...");
     await setTelemetryEnabled(false);
-    return;
   }
 
   const consent = await isTelemetryAllowed();
