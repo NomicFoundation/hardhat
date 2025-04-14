@@ -240,3 +240,18 @@ const plugin: HardhatPlugin = {
 
 export default plugin;
 ```
+
+## Readme
+
+The installation process for plugins has changed in Hardhat 3.  Users must now register them in their Hardhat configuration files.  Update any installation instructions to reflect this:
+
+```typescript
+import MyPlugin from 'hardhat-my-plugin';
+import type { HardhatUserConfig } from 'hardhat/config';
+
+const config: HardhatUserConfig = {
+  plugins: [MyPlugin],
+};
+
+export default config;
+```
