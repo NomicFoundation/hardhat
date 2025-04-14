@@ -38,7 +38,6 @@ import { getGlobalHelpString } from "./help/get-global-help-string.js";
 import { getHelpString } from "./help/get-help-string.js";
 import { sendTaskAnalytics } from "./telemetry/analytics/analytics.js";
 import { sendErrorTelemetry } from "./telemetry/sentry/reporter.js";
-import { ensureTelemetryConsent } from "./telemetry/telemetry-permissions.js";
 import { printVersionMessage } from "./version.js";
 
 export interface MainOptions {
@@ -80,10 +79,6 @@ export async function main(
       const { initHardhat } = await import("./init/init.js");
       return await initHardhat();
     }
-
-    await ensureTelemetryConsent();
-
-    log("Retrieved telemetry consent");
 
     configPath = await resolveHardhatConfigPath(
       builtinGlobalOptions.configPath,

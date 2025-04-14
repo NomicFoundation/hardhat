@@ -18,38 +18,10 @@ interface TelemetryConsent {
 }
 
 /**
- * Ensure that the user's telemetry consent is set. If the consent is already provided, returns the answer.
- * If not, prompts the user to provide it.
- * Consent is only asked in interactive environments.
+ * Checks whether telemetry is supported in the current environment and whether the user did not explicitly revoke consent.
  *
- * @param telemetryConsentFilePath - The path to the telemetry consent file,
- * which should only be provided in tests.
- * @returns True if the user consents to telemetry and if current environment supports telemetry, false otherwise.
- */
-export async function ensureTelemetryConsent(
-  telemetryConsentFilePath?: string,
-): Promise<boolean> {
-  log("Ensuring that user has provided telemetry consent");
-
-  if (!isTelemetryAllowedInEnvironment()) {
-    return false;
-  }
-
-  const consent = await getTelemetryConsent(telemetryConsentFilePath);
-  if (consent !== undefined) {
-    return consent;
-  }
-
-  // Telemetry consent not provided yet, ask for it
-  return requestTelemetryConsent();
-}
-
-/**
- * Checks whether telemetry is supported in the current environment and whether the user has provided consent.
- *
- * @param telemetryConsentFilePath - The path to the telemetry consent file,
- * which should only be provided in tests.
- * @returns True if the user consents to telemetry and if current environment supports telemetry, false otherwise.
+ * @param telemetryConsentFilePath - The path to the telemetry consent file, which should only be provided in tests.
+ * @returns True if the user consents to telemetry (default) and if current environment supports telemetry, false otherwise.
  */
 export async function isTelemetryAllowed(
   telemetryConsentFilePath?: string,
@@ -68,7 +40,7 @@ export async function isTelemetryAllowed(
   const consent = await getTelemetryConsent(telemetryConsentFilePath);
   log(`Telemetry consent value: ${consent}`);
 
-  return consent !== undefined ? consent : false;
+  return consent !== undefined ? consent : true;
 }
 
 /**
@@ -126,9 +98,7 @@ async function getTelemetryConsentFilePath() {
   return path.join(configDir, "telemetry-consent.json");
 }
 
-async function requestTelemetryConsent(): Promise<boolean> {
-  const consent = await confirmTelemetryConsent();
-
+export async function setTelemetryConsent(consent: boolean): Promise<boolean> {
   log(`Storing telemetry consent with value: ${consent}`);
 
   await writeJsonFile(await getTelemetryConsentFilePath(), { consent });
@@ -136,22 +106,4 @@ async function requestTelemetryConsent(): Promise<boolean> {
   await sendTelemetryConsentAnalytics(consent);
 
   return consent;
-}
-
-async function confirmTelemetryConsent(): Promise<boolean> {
-  const { default: enquirer } = await import("enquirer");
-
-  const telemetryConsentResponse = await enquirer.prompt<{
-    telemetryConsent: boolean;
-  }>([
-    {
-      name: "telemetryConsent",
-      type: "confirm",
-      message:
-        "Help us improve Hardhat with anonymous crash reports & basic usage data?",
-      initial: true,
-    },
-  ]);
-
-  return telemetryConsentResponse.telemetryConsent;
 }
