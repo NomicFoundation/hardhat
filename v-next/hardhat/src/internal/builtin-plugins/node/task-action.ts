@@ -6,7 +6,6 @@ import type { WatcherEvent } from "@nomicfoundation/hardhat-utils/watch";
 
 import path from "node:path";
 
-
 import {
   assertHardhatInvariant,
   HardhatError,
@@ -141,7 +140,7 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
 
   console.log();
 
-  const buildInfoPath = path.join(
+  const buildInfoDirPath = path.join(
     hre.config.paths.artifacts,
     BUILD_INFO_DIR_NAME,
   );
@@ -154,20 +153,20 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
       return;
     }
 
-    const artifactPath = path.join(buildInfoPath, modifiedPath);
-    if (!(await exists(artifactPath))) {
+    const buildInfoPath = path.join(buildInfoDirPath, modifiedPath);
+    if (!(await exists(buildInfoPath))) {
       return;
     }
 
-    const outputPath = artifactPath.replace(".json", ".output.json");
-    if (!(await exists(outputPath))) {
+    const buildInfoOutputPath = buildInfoPath.replace(".json", ".output.json");
+    if (!(await exists(buildInfoOutputPath))) {
       return;
     }
 
     try {
-      const buildInfo: BuildInfo = await readJsonFile(artifactPath);
+      const buildInfo: BuildInfo = await readJsonFile(buildInfoPath);
       const buildInfoOutput: SolidityBuildInfoOutput =
-        await readJsonFile(outputPath);
+        await readJsonFile(buildInfoOutputPath);
 
       await provider.request({
         method: "hardhat_addCompilationResult",
@@ -184,7 +183,7 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
     }
   };
 
-  const watcher = chokidar.watch(buildInfoPath, {
+  const watcher = chokidar.watch(buildInfoDirPath, {
     ignoreInitial: true,
     awaitWriteFinish: {
       stabilityThreshold: 250,
