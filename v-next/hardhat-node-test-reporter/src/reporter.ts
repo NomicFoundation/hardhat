@@ -194,7 +194,7 @@ export function hardhatTestReporter(
             // As we are about to pop the a frame from the stack, we decrease
             // the lastPrintedIndex, because it now becomes invalid.
             // If we pop the last frame, we'd change it to `undefined`, to
-            // signal that we haven't printed antyhing related to the top of
+            // signal that we haven't printed anything related to the top of
             // the (now empty) stack.
             if (lastPrintedIndex !== undefined) {
               lastPrintedIndex = lastPrintedIndex - 1;
