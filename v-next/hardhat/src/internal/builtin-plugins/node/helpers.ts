@@ -6,6 +6,7 @@ import { addr } from "micro-eth-signer";
 
 import { isDefaultEdrNetworkHDAccountsConfig } from "../network-manager/edr/edr-provider.js";
 import { normalizeEdrNetworkAccountsConfig } from "../network-manager/edr/utils/convert-to-edr.js";
+import path from "node:path";
 
 export async function formatEdrNetworkConfigAccounts(
   config: EdrNetworkAccountsConfig,
