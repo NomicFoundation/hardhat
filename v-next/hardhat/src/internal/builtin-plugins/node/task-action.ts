@@ -6,6 +6,7 @@ import type { WatcherEvent } from "@nomicfoundation/hardhat-utils/watch";
 
 import path from "node:path";
 
+
 import {
   assertHardhatInvariant,
   HardhatError,
@@ -13,6 +14,7 @@ import {
 import { exists, readJsonFile } from "@nomicfoundation/hardhat-utils/fs";
 import { Watcher } from "@nomicfoundation/hardhat-utils/watch";
 import chalk from "chalk";
+import chokidar from "chokidar";
 import debug from "debug";
 
 import { DEFAULT_NETWORK_NAME } from "../../constants.js";
@@ -142,54 +144,54 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
     hre.config.paths.artifacts,
     BUILD_INFO_DIR_NAME,
   );
-  const watcher = new Watcher(
-    buildInfoPath,
-    async ({ eventType, filename }: WatcherEvent) => {
-      console.log(filename);
+  const addCompilationResult = async (modifiedPath: string) => {
+    log(`Detected change in ${modifiedPath}`);
 
-      if (filename === null) {
-        return;
-      }
+    // NOTE: We're ignoring the output file here, because the build info files
+    // are modified after the output files
+    if (modifiedPath.endsWith(".output.json") === true) {
+      return;
+    }
 
-      log(`Detected ${eventType} in ${filename}`);
+    const artifactPath = path.join(buildInfoPath, modifiedPath);
+    if (!(await exists(artifactPath))) {
+      return;
+    }
 
-      // NOTE: We're ignoring the output file here, because the build info files
-      // are modified after the output files
-      if (filename.endsWith(".output.json") === true) {
-        return;
-      }
+    const outputPath = artifactPath.replace(".json", ".output.json");
+    if (!(await exists(outputPath))) {
+      return;
+    }
 
-      const filenamePath = path.join(buildInfoPath, filename);
-      if (!(await exists(filenamePath))) {
-        return;
-      }
+    try {
+      const buildInfo: BuildInfo = await readJsonFile(artifactPath);
+      const buildInfoOutput: SolidityBuildInfoOutput =
+        await readJsonFile(outputPath);
 
-      const filenameOutput = filename.replace(".json", ".output.json");
-      const filenameOutputPath = path.join(buildInfoPath, filenameOutput);
-      if (!(await exists(filenameOutputPath))) {
-        return;
-      }
+      await provider.request({
+        method: "hardhat_addCompilationResult",
+        params: [
+          buildInfo.solcVersion,
+          buildInfo.input,
+          buildInfoOutput.output,
+        ],
+      });
 
-      try {
-        const buildInfo: BuildInfo = await readJsonFile(filenamePath);
-        const buildInfoOutput: SolidityBuildInfoOutput =
-          await readJsonFile(filenameOutputPath);
+      log(`Added compilation result for ${modifiedPath}`);
+    } catch (error) {
+      log(error);
+    }
+  };
 
-        await provider.request({
-          method: "hardhat_addCompilationResult",
-          params: [
-            buildInfo.solcVersion,
-            buildInfo.input,
-            buildInfoOutput.output,
-          ],
-        });
-
-        log(`Added compilation result for ${filename}`);
-      } catch (error) {
-        log(error);
-      }
+  const watcher = chokidar.watch(buildInfoPath, {
+    ignoreInitial: true,
+    awaitWriteFinish: {
+      stabilityThreshold: 250,
+      pollInterval: 50,
     },
-  );
+  });
+  watcher.on("add", addCompilationResult);
+  watcher.on("change", addCompilationResult);
 
   // NOTE: Before creating the node, we check if the input network config is of type edr.
   // We only proceed if it is. Hence, we can assume that the output network config is of type edr as well.
