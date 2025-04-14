@@ -1,5 +1,6 @@
 import type { BuildInfo } from "../../../types/artifacts.js";
 import type { EdrNetworkConfigOverride } from "../../../types/config.js";
+import type { SolidityBuildInfoOutput } from "../../../types/solidity.js";
 import type { NewTaskActionFunction } from "../../../types/tasks.js";
 import type { WatcherEvent } from "@nomicfoundation/hardhat-utils/watch";
 
@@ -19,7 +20,6 @@ import { isEdrSupportedChainType } from "../network-manager/edr/utils/chain-type
 
 import { formatEdrNetworkConfigAccounts } from "./helpers.js";
 import { JsonRpcServerImplementation } from "./json-rpc/server.js";
-import { SolidityBuildInfoOutput } from "../../../types/solidity.js";
 
 const log = debug("hardhat:core:tasks:node");
 
@@ -139,7 +139,10 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
 
   console.log();
 
-  const buildInfoPath = path.join(hre.config.paths.artifacts, BUILD_INFO_DIR_NAME);
+  const buildInfoPath = path.join(
+    hre.config.paths.artifacts,
+    BUILD_INFO_DIR_NAME,
+  );
   const watcher = new Watcher(
     buildInfoPath,
     async ({ eventType, filename }: WatcherEvent) => {
@@ -170,11 +173,16 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
 
       try {
         const buildInfo: BuildInfo = await readJsonFile(filenamePath);
-        const buildInfoOutput: SolidityBuildInfoOutput = await readJsonFile(filenameOutputPath);
+        const buildInfoOutput: SolidityBuildInfoOutput =
+          await readJsonFile(filenameOutputPath);
 
         await provider.request({
           method: "hardhat_addCompilationResult",
-          params: [buildInfo.solcVersion, buildInfo.input, buildInfoOutput.output],
+          params: [
+            buildInfo.solcVersion,
+            buildInfo.input,
+            buildInfoOutput.output,
+          ],
         });
 
         log(`Added compilation result for ${filename}`);
