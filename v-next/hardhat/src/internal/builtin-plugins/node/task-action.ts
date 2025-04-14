@@ -1,5 +1,6 @@
 import type { BuildInfo } from "../../../types/artifacts.js";
 import type { EdrNetworkConfigOverride } from "../../../types/config.js";
+import type { SolidityBuildInfoOutput } from "../../../types/solidity.js";
 import type { NewTaskActionFunction } from "../../../types/tasks.js";
 import type { WatcherEvent } from "@nomicfoundation/hardhat-utils/watch";
 
@@ -20,7 +21,6 @@ import { BUILD_INFO_DIR_NAME } from "../artifacts/artifact-manager.js";
 
 import { formatEdrNetworkConfigAccounts } from "./helpers.js";
 import { JsonRpcServerImplementation } from "./json-rpc/server.js";
-import { SolidityBuildInfoOutput } from "../../../types/solidity.js";
 
 const log = debug("hardhat:core:tasks:node");
 
