@@ -2,7 +2,6 @@ import type { BuildInfo } from "../../../types/artifacts.js";
 import type { EdrNetworkConfigOverride } from "../../../types/config.js";
 import type { SolidityBuildInfoOutput } from "../../../types/solidity.js";
 import type { NewTaskActionFunction } from "../../../types/tasks.js";
-import type { WatcherEvent } from "@nomicfoundation/hardhat-utils/watch";
 
 import path from "node:path";
 
@@ -11,7 +10,6 @@ import {
   HardhatError,
 } from "@nomicfoundation/hardhat-errors";
 import { exists, readJsonFile } from "@nomicfoundation/hardhat-utils/fs";
-import { Watcher } from "@nomicfoundation/hardhat-utils/watch";
 import chalk from "chalk";
 import chokidar from "chokidar";
 import debug from "debug";
