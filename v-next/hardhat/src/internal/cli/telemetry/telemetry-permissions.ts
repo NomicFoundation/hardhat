@@ -141,16 +141,17 @@ async function requestTelemetryConsent(): Promise<boolean> {
 async function confirmTelemetryConsent(): Promise<boolean> {
   const { default: enquirer } = await import("enquirer");
 
-  const telemetryConsentResponse = await enquirer.prompt<{ telemetryConsent: boolean }>(
-    [
-      {
-        name: "telemetryConsent",
-        type: "confirm",
-        message: "Help us improve Hardhat with anonymous crash reports & basic usage data?",
-        initial: true,
-      },
-    ],
-  );
+  const telemetryConsentResponse = await enquirer.prompt<{
+    telemetryConsent: boolean;
+  }>([
+    {
+      name: "telemetryConsent",
+      type: "confirm",
+      message:
+        "Help us improve Hardhat with anonymous crash reports & basic usage data?",
+      initial: true,
+    },
+  ]);
 
   return telemetryConsentResponse.telemetryConsent;
 }
