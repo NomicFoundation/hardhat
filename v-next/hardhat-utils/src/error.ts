@@ -79,6 +79,31 @@ export function ensureError<ErrorT extends Error>(
 }
 
 /**
+ * Ensures that the provided value is a NodeJS.ErrnoException with a string 'code'.
+ * @param thrown The value to check.
+ * @throws The value if its not an error or if it doesn't have a code property.
+ * @example
+ * ```ts
+ * try {
+ *   await fs.promises.readFile("non-existing-file.txt");
+ * } catch (error) {
+ *   ensureNodeErrnoExceptionError(error);
+ *   console.error(error.code);
+ * }
+ * ```
+ */
+
+export function ensureNodeErrnoExceptionError(
+  thrown: unknown,
+): asserts thrown is NodeJS.ErrnoException & Error & { code: string } {
+  ensureError(thrown);
+
+  if (!("code" in thrown) || typeof thrown.code !== "string") {
+    throw thrown;
+  }
+}
+
+/**
  * Throws an error for an unreachable code path. This function is typically
  * used in a default case of a switch statement where all possible values of
  * the switched variable should be handled in other cases. If the default case

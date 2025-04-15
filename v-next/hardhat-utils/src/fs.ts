@@ -8,7 +8,7 @@ import { pipeline } from "node:stream/promises";
 import { JSONParser } from "@streamparser/json-node";
 import { JsonStreamStringify } from "json-stream-stringify";
 
-import { ensureError } from "./error.js";
+import { ensureNodeErrnoExceptionError } from "./error.js";
 import {
   FileNotFoundError,
   FileSystemAccessError,
@@ -31,7 +31,7 @@ export async function getRealPath(absolutePath: string): Promise<string> {
   try {
     return await fsPromises.realpath(path.normalize(absolutePath));
   } catch (e) {
-    ensureError<NodeJS.ErrnoException>(e);
+    ensureNodeErrnoExceptionError(e);
     if (e.code === "ENOENT") {
       throw new FileNotFoundError(absolutePath, e);
     }
@@ -165,7 +165,7 @@ export async function isDirectory(absolutePath: string): Promise<boolean> {
   try {
     return (await fsPromises.lstat(absolutePath)).isDirectory();
   } catch (e) {
-    ensureError<NodeJS.ErrnoException>(e);
+    ensureNodeErrnoExceptionError(e);
     if (e.code === "ENOENT") {
       throw new FileNotFoundError(absolutePath, e);
     }
@@ -189,7 +189,7 @@ export async function readJsonFile<T>(absolutePathToFile: string): Promise<T> {
   try {
     return JSON.parse(content.toString());
   } catch (e) {
-    ensureError<NodeJS.ErrnoException>(e);
+    ensureNodeErrnoExceptionError(e);
     throw new InvalidFileFormatError(absolutePathToFile, e);
   }
 }
@@ -241,7 +241,7 @@ export async function readJsonFileAsStream<T>(
 
     return result;
   } catch (e) {
-    ensureError<NodeJS.ErrnoException>(e);
+    ensureNodeErrnoExceptionError(e);
 
     if (e.code === "ENOENT") {
       throw new FileNotFoundError(absolutePathToFile, e);
@@ -281,7 +281,7 @@ export async function writeJsonFile<T>(
   try {
     content = JSON.stringify(object, null, 2);
   } catch (e) {
-    ensureError<NodeJS.ErrnoException>(e);
+    ensureNodeErrnoExceptionError(e);
     throw new JsonSerializationError(absolutePathToFile, e);
   }
 
@@ -318,7 +318,7 @@ export async function writeJsonFileAsStream<T>(
 
     await pipeline(jsonStream, fileWriteStream);
   } catch (e) {
-    ensureError<NodeJS.ErrnoException>(e);
+    ensureNodeErrnoExceptionError(e);
     // if the directory was created, we should remove it
     if (dirExists === false) {
       try {
@@ -356,7 +356,7 @@ export async function readUtf8File(
   try {
     return await fsPromises.readFile(absolutePathToFile, { encoding: "utf8" });
   } catch (e) {
-    ensureError<NodeJS.ErrnoException>(e);
+    ensureNodeErrnoExceptionError(e);
 
     if (e.code === "ENOENT") {
       throw new FileNotFoundError(absolutePathToFile, e);
@@ -398,7 +398,7 @@ export async function writeUtf8File(
       flag,
     });
   } catch (e) {
-    ensureError<NodeJS.ErrnoException>(e);
+    ensureNodeErrnoExceptionError(e);
     // if the directory was created, we should remove it
     if (dirExists === false) {
       try {
@@ -436,7 +436,7 @@ export async function readBinaryFile(
     const buffer = await fsPromises.readFile(absolutePathToFile);
     return new Uint8Array(buffer);
   } catch (e) {
-    ensureError<NodeJS.ErrnoException>(e);
+    ensureNodeErrnoExceptionError(e);
 
     if (e.code === "ENOENT") {
       throw new FileNotFoundError(absolutePathToFile, e);
@@ -463,7 +463,7 @@ export async function readdir(absolutePathToDir: string): Promise<string[]> {
   try {
     return await fsPromises.readdir(absolutePathToDir);
   } catch (e) {
-    ensureError<NodeJS.ErrnoException>(e);
+    ensureNodeErrnoExceptionError(e);
     if (e.code === "ENOENT") {
       throw new FileNotFoundError(absolutePathToDir, e);
     }
@@ -503,7 +503,7 @@ export async function mkdir(absolutePath: string): Promise<void> {
   try {
     await fsPromises.mkdir(absolutePath, { recursive: true });
   } catch (e) {
-    ensureError<NodeJS.ErrnoException>(e);
+    ensureNodeErrnoExceptionError(e);
     throw new FileSystemAccessError(e.message, e);
   }
 }
@@ -528,7 +528,7 @@ export async function getChangeTime(absolutePath: string): Promise<Date> {
     const stats = await fsPromises.stat(absolutePath);
     return stats.ctime;
   } catch (e) {
-    ensureError<NodeJS.ErrnoException>(e);
+    ensureNodeErrnoExceptionError(e);
     if (e.code === "ENOENT") {
       throw new FileNotFoundError(absolutePath, e);
     }
@@ -550,7 +550,7 @@ export async function getAccessTime(absolutePath: string): Promise<Date> {
     const stats = await fsPromises.stat(absolutePath);
     return stats.atime;
   } catch (e) {
-    ensureError<NodeJS.ErrnoException>(e);
+    ensureNodeErrnoExceptionError(e);
     if (e.code === "ENOENT") {
       throw new FileNotFoundError(absolutePath, e);
     }
@@ -572,7 +572,7 @@ export async function getFileSize(absolutePath: string): Promise<number> {
     const stats = await fsPromises.stat(absolutePath);
     return stats.size;
   } catch (e) {
-    ensureError<NodeJS.ErrnoException>(e);
+    ensureNodeErrnoExceptionError(e);
     if (e.code === "ENOENT") {
       throw new FileNotFoundError(absolutePath, e);
     }
@@ -610,7 +610,7 @@ export async function copy(source: string, destination: string): Promise<void> {
   try {
     await fsPromises.copyFile(source, destination);
   } catch (e) {
-    ensureError<NodeJS.ErrnoException>(e);
+    ensureNodeErrnoExceptionError(e);
     if (e.code === "ENOENT") {
       if (!(await exists(source))) {
         throw new FileNotFoundError(source, e);
@@ -654,7 +654,7 @@ export async function move(source: string, destination: string): Promise<void> {
   try {
     await fsPromises.rename(source, destination);
   } catch (e) {
-    ensureError<NodeJS.ErrnoException>(e);
+    ensureNodeErrnoExceptionError(e);
     if (e.code === "ENOENT") {
       if (!(await exists(source))) {
         throw new FileNotFoundError(source, e);
@@ -692,7 +692,7 @@ export async function remove(absolutePath: string): Promise<void> {
       retryDelay: 300,
     });
   } catch (e) {
-    ensureError<NodeJS.ErrnoException>(e);
+    ensureNodeErrnoExceptionError(e);
     throw new FileSystemAccessError(e.message, e);
   }
 }
@@ -712,7 +712,7 @@ export async function chmod(
   try {
     await fsPromises.chmod(absolutePath, mode);
   } catch (e) {
-    ensureError<NodeJS.ErrnoException>(e);
+    ensureNodeErrnoExceptionError(e);
     if (e.code === "ENOENT") {
       throw new FileNotFoundError(absolutePath, e);
     }
@@ -749,7 +749,7 @@ export async function emptyDir(absolutePath: string): Promise<void> {
     isDir = stats.isDirectory();
     mode = stats.mode;
   } catch (e) {
-    ensureError<NodeJS.ErrnoException>(e);
+    ensureNodeErrnoExceptionError(e);
     if (e.code === "ENOENT") {
       await mkdir(absolutePath);
       return;
