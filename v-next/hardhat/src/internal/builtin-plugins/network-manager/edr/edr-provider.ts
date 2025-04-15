@@ -158,27 +158,42 @@ export class EdrProvider extends BaseProvider {
     try {
       const context = await getGlobalEdrContext();
 
+      const chainType = hardhatChainTypeToEdrChainType(networkConfig.chainType);
+      const edrLoggerConfig = {
+        enable: loggerConfig.enabled,
+        decodeConsoleLogInputsCallback: ConsoleLogger.getDecodedLogs,
+        printLineCallback: (message: string, replace: boolean) => {
+          if (replace) {
+            replaceLastLineFn(message);
+          } else {
+            printLineFn(message);
+          }
+        },
+      };
+      const subscriptionConfig = {
+        subscriptionCallback: (event: SubscriptionEvent) => {
+          edrProvider.onSubscriptionEvent(event);
+        },
+      };
+
       // console.log here
+      console.log(`chainType: ${chainType}`);
+      console.log(
+        `providerConfig: ${JSON.stringify(providerConfig, (key, value) => {
+          if (typeof value === "bigint") return value.toString() + "n";
+          if (value === undefined) return "[undefined]";
+
+          return value;
+        })}`,
+      );
+      console.log(`edrLoggerConfig: ${edrLoggerConfig.enable}`);
+      console.log(`tracingConfig: ${JSON.stringify(tracingConfig)}`);
 
       const provider = await context.createProvider(
-        hardhatChainTypeToEdrChainType(networkConfig.chainType),
+        chainType,
         providerConfig,
-        {
-          enable: loggerConfig.enabled,
-          decodeConsoleLogInputsCallback: ConsoleLogger.getDecodedLogs,
-          printLineCallback: (message: string, replace: boolean) => {
-            if (replace) {
-              replaceLastLineFn(message);
-            } else {
-              printLineFn(message);
-            }
-          },
-        },
-        {
-          subscriptionCallback: (event: SubscriptionEvent) => {
-            edrProvider.onSubscriptionEvent(event);
-          },
-        },
+        edrLoggerConfig,
+        subscriptionConfig,
         tracingConfig,
       );
 
