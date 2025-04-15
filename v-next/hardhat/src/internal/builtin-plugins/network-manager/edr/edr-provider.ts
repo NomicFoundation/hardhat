@@ -157,6 +157,9 @@ export class EdrProvider extends BaseProvider {
     // and we want to make sure such a crash is propagated as a ProviderError.
     try {
       const context = await getGlobalEdrContext();
+
+      // console.log here
+
       const provider = await context.createProvider(
         hardhatChainTypeToEdrChainType(networkConfig.chainType),
         providerConfig,
