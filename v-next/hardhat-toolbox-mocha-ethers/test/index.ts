@@ -1,4 +1,4 @@
-// import assert from "node:assert/strict";
+import assert from "node:assert/strict";
 // import path from "node:path";
 import { describe, it } from "node:test";
 
@@ -16,10 +16,10 @@ describe("hardhat-toolbox-mocha-ethers", function () {
         "./fixture-projects/toolbox/hardhat.config.js"
       );
 
-      const _hre = await createHardhatRuntimeEnvironment(hardhatConfig.default);
+      const hre = await createHardhatRuntimeEnvironment(hardhatConfig.default);
 
-      // // This will check that the node test runner is available
-      // assert.notEqual(hre.tasks.getTask(["test", "mocha"]), undefined);
+      // This will check that the node test runner is available
+      assert.notEqual(hre.tasks.getTask(["test", "mocha"]), undefined);
 
       // // This will check that ethers, chai and network helpers are available
       // await hre.tasks.getTask(["run"]).run({ script: "scripts/script.ts" });
