@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
-// import path from "node:path";
+import path from "node:path";
 import { describe, it } from "node:test";
 
 import { useFixtureProject } from "@nomicfoundation/hardhat-test-utils";
-// import { exists, remove } from "@nomicfoundation/hardhat-utils/fs";
+import { remove } from "@nomicfoundation/hardhat-utils/fs";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 describe("hardhat-toolbox-mocha-ethers", function () {
@@ -31,7 +31,7 @@ describe("hardhat-toolbox-mocha-ethers", function () {
       assert.notEqual(hre.tasks.getTask(["ignition"]), undefined);
 
       // This will check that typechain is available
-      // await remove(path.join(process.cwd(), "types")); // Be sure the folder doesn't exist
+      await remove(path.join(process.cwd(), "types")); // Be sure the folder doesn't exist
       await hre.tasks.getTask(["compile"]).run();
       // await exists(path.join(process.cwd(), "types"));
       // await remove(path.join(process.cwd(), "types"));
