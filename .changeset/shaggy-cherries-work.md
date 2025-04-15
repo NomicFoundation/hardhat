@@ -2,7 +2,7 @@
 "@nomicfoundation/hardhat-errors": patch
 "@nomicfoundation/hardhat-ethers-chai-matchers": patch
 "@nomicfoundation/hardhat-ethers": patch
-"@nomicfoundation/hardhat-ignition-core": patch
+"@nomicfoundation/ignition-core": patch
 "@nomicfoundation/hardhat-ignition-ethers": patch
 "@nomicfoundation/hardhat-ignition-viem": patch
 "@nomicfoundation/hardhat-ignition": patch
@@ -13,4 +13,4 @@
 "hardhat": patch
 ---
 
-Refactor error categories to support subcategories ([#6552](https://github.com/NomicFoundation/hardhat/pull/6552))
+Improve error categories and add support for subcategories ([#6552](https://github.com/NomicFoundation/hardhat/pull/6552))
