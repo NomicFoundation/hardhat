@@ -2,6 +2,8 @@ import type { ContractReturnType } from "@nomicfoundation/hardhat-viem/types";
 import type { Abi, ContractEventName } from "viem";
 
 export interface HardhatViemMatchers {
+  utils: HardhatViemMatchersUtils;
+
   balancesHaveChanged: (
     fn: GenericFunction,
     changes: Array<{
@@ -30,6 +32,11 @@ export interface HardhatViemMatchers {
     eventName: ContractEventName<abi>,
     args: any[],
   ): Promise<void>;
+}
+
+export interface HardhatViemMatchersUtils {
+  properAddress: (address: string) => void;
+  properChecksumAddress: (address: string) => Promise<void>;
 }
 
 export type GenericFunction = () => Promise<any>;

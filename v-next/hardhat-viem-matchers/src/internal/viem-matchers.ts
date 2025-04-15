@@ -1,4 +1,8 @@
-import type { GenericFunction, HardhatViemMatchers } from "../types.js";
+import type {
+  GenericFunction,
+  HardhatViemMatchers,
+  HardhatViemMatchersUtils,
+} from "../types.js";
 import type {
   ContractReturnType,
   HardhatViemHelpers,
@@ -7,12 +11,16 @@ import type { Abi, ContractEventName } from "viem";
 
 import { balancesHaveChanged } from "./matchers/balances-have-changed.js";
 import { emit, emitWithArgs } from "./matchers/emit.js";
+import { HardhatViemMatchersUtilsImpl } from "./viem-matchers-utils.js";
 
 export class HardhatViemMatchersImpl implements HardhatViemMatchers {
   readonly #viem: HardhatViemHelpers;
 
+  public readonly utils: HardhatViemMatchersUtils;
+
   constructor(viem: HardhatViemHelpers) {
     this.#viem = viem;
+    this.utils = new HardhatViemMatchersUtilsImpl();
   }
 
   public async balancesHaveChanged(
