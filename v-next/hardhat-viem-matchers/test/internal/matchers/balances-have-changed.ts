@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 
-import HardhatViem from "@nomicfoundation/hardhat-viem";
+import hardhatViem from "@nomicfoundation/hardhat-viem";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 import hardhatViemMatchers from "../../../src/index.js";
@@ -10,7 +10,7 @@ describe("balancesHaveChanged", () => {
 
   it("should check that multiple balances have changed", async () => {
     const hre = await createHardhatRuntimeEnvironment({
-      plugins: [HardhatViem, hardhatViemMatchers],
+      plugins: [hardhatViem, hardhatViemMatchers],
     });
 
     const { viem } = await hre.network.connect();
