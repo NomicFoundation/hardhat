@@ -149,16 +149,24 @@ export function hardhatTestReporter(
               }
             }
 
+            // If the nesting is 0, it means we are dealing with top-level entities
             if (event.data.nesting === 0) {
               // If last printed index is undefined it means that we haven't
               // printed anything related to the top of the stack yet. If we
               // would have, lastPrintedIndex would be 0 instead.
               // This means that it's an empty or skipped describe.
               if (lastPrintedIndex === undefined) {
-                const top = stack.slice(0, 1);
+                const top = stack[0];
 
-                yield formatTestContext(top, "", "", event.data.skip === true);
+                yield formatTestContext(
+                  [top],
+                  "",
+                  "",
+                  event.data.skip === true,
+                );
                 yield "\n";
+              } else {
+                lastPrintedIndex = undefined;
               }
 
               // If the describe nesting was 0, we print an empty line to separate
@@ -168,16 +176,12 @@ export function hardhatTestReporter(
               // If we are in this situation, we haven't printed anything
               // related to the describe of the top of the stack yet, so it's
               // an empty/skipped describe. Hence, we print it.
-              if (
-                lastPrintedIndex === undefined ||
-                lastPrintedIndex < stack.length - 1
-              ) {
-                const unprinted = stack.slice(
-                  lastPrintedIndex !== undefined ? lastPrintedIndex + 1 : 0,
-                );
+              const topStackIndex = stack.length - 1;
+              if (lastPrintedIndex !== topStackIndex) {
+                const unprinted = stack[topStackIndex];
 
                 yield formatTestContext(
-                  unprinted,
+                  [unprinted],
                   "",
                   "",
                   event.data.skip === true,
@@ -187,7 +191,7 @@ export function hardhatTestReporter(
 
                 // We update the newly printed index, as we just printed
                 // all the context related to the empty/skipped describe.
-                lastPrintedIndex = stack.length - 1;
+                lastPrintedIndex = topStackIndex;
               }
             }
 
