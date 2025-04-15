@@ -1,4 +1,7 @@
-import { describe, it } from "node:test";
+import type { HardhatViemMatchers } from "../../../src/types.js";
+import type { HardhatViemHelpers } from "@nomicfoundation/hardhat-viem/types";
+
+import { beforeEach, describe, it } from "node:test";
 
 import hardhatViem from "@nomicfoundation/hardhat-viem";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
@@ -6,15 +9,21 @@ import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 import hardhatViemMatchers from "../../../src/index.js";
 
 describe("balancesHaveChanged", () => {
-  it("should check that a single balances has changed", async () => {}); // TODO
+  let viem: HardhatViemHelpers & {
+    assertions: HardhatViemMatchers;
+  };
 
-  it("should check that multiple balances have changed", async () => {
+  beforeEach(async () => {
     const hre = await createHardhatRuntimeEnvironment({
       plugins: [hardhatViem, hardhatViemMatchers],
     });
 
-    const { viem } = await hre.network.connect();
+    ({ viem } = await hre.network.connect());
+  });
 
+  it("should check that a single balances has changed", async () => {}); // TODO
+
+  it("should check that multiple balances have changed", async () => {
     const [bobWalletClient, aliceWalletClient] = await viem.getWalletClients();
 
     await viem.assertions.balancesHaveChanged(async () => {

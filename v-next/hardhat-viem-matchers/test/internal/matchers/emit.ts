@@ -1,6 +1,8 @@
+import type { HardhatViemMatchers } from "../../../src/types.js";
+import type { HardhatViemHelpers } from "@nomicfoundation/hardhat-viem/types";
 import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 
-import { before, describe, it } from "node:test";
+import { before, beforeEach, describe, it } from "node:test";
 
 import { useEphemeralFixtureProject } from "@nomicfoundation/hardhat-test-utils";
 import hardhatViem from "@nomicfoundation/hardhat-viem";
@@ -10,6 +12,9 @@ import hardhatViemMatchers from "../../../src/index.js";
 
 describe("balancesHaveChanged", () => {
   let hre: HardhatRuntimeEnvironment;
+  let viem: HardhatViemHelpers & {
+    assertions: HardhatViemMatchers;
+  };
 
   useEphemeralFixtureProject("hardhat-project");
 
@@ -22,9 +27,11 @@ describe("balancesHaveChanged", () => {
     await hre.tasks.getTask("compile").run({});
   });
 
-  it("should check that the event was emitted", async () => {
-    const { viem } = await hre.network.connect();
+  beforeEach(async () => {
+    ({ viem } = await hre.network.connect());
+  });
 
+  it("should check that the event was emitted", async () => {
     const contract = await viem.deployContract("Events");
 
     await viem.assertions.emit(
@@ -35,8 +42,6 @@ describe("balancesHaveChanged", () => {
   });
 
   it("should check that the event was emitted with the correct single argument", async () => {
-    const { viem } = await hre.network.connect();
-
     const contract = await viem.deployContract("Events");
 
     await viem.assertions.emitWithArgs(
@@ -50,8 +55,6 @@ describe("balancesHaveChanged", () => {
   });
 
   it("should check that the event was emitted with the correct multiple arguments", async () => {
-    const { viem } = await hre.network.connect();
-
     const contract = await viem.deployContract("Events");
 
     await viem.assertions.emitWithArgs(
