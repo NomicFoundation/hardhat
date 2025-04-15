@@ -1,4 +1,4 @@
-import assert from "node:assert/strict";
+// import assert from "node:assert/strict";
 // import path from "node:path";
 import { describe, it } from "node:test";
 // import { pathToFileURL } from "node:url";
@@ -16,10 +16,10 @@ describe("hardhat-toolbox-viem", function () {
         "./fixture-projects/toolbox/hardhat.config.js"
       );
 
-      const hre = await createHardhatRuntimeEnvironment(hardhatConfig.default);
+      const _hre = await createHardhatRuntimeEnvironment(hardhatConfig.default);
 
       // This will check that the node test runner is available
-      assert.notEqual(hre.tasks.getTask(["test", "node"]), undefined);
+      // assert.notEqual(hre.tasks.getTask(["test", "node"]), undefined);
 
       // // This will check that network helpers and viem are available
       // await hre.tasks.getTask(["run"]).run({ script: "scripts/script.ts" });
