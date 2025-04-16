@@ -114,5 +114,11 @@ declare module "../../../types/hooks.js" {
         artifactPaths: string[],
       ) => Promise<void>,
     ) => Promise<void>;
+
+    readSourceFile: (
+      context: HookContext,
+      absPath: string,
+      next: (nextContext: HookContext, absPath: string) => Promise<string>,
+    ) => Promise<string>;
   }
 }

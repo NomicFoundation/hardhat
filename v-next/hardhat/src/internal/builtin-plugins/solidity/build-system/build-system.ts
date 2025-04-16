@@ -303,6 +303,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       rootFilePaths.toSorted(), // We sort them to have a deterministic order
       this.#options.projectRoot,
       this.#options.solidityConfig.remappings,
+      this.#hooks,
     );
 
     const buildProfileName = options?.buildProfile ?? DEFAULT_BUILD_PROFILE;

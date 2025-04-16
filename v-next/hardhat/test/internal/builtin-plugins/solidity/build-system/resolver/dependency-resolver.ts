@@ -20,6 +20,8 @@ import {
   ResolverImplementation,
 } from "../../../../../../src/internal/builtin-plugins/solidity/build-system/resolver/dependency-resolver.js";
 import { ResolvedFileType } from "../../../../../../src/types/solidity/resolved-file.js";
+import { createHardhatRuntimeEnvironment } from "../../../../../../src/internal/hre-intialization.js";
+import { HardhatRuntimeEnvironment } from "../../../../../../src/types/hre.js";
 
 const TEST_FIXTURES_ROOT = path.resolve(import.meta.dirname, "test-fixtures");
 
@@ -106,10 +108,12 @@ describe("Resolver", () => {
   // Some of the error messages in the resolver use a file path based on the
   // CWD, so we set it for these tests
   let originalCwd: string;
+  let hre: HardhatRuntimeEnvironment;
 
-  before(() => {
+  before(async () => {
     originalCwd = process.cwd();
     process.chdir(FIXTURE_HARDHAT_PROJECT_ROOT);
+    hre = await createHardhatRuntimeEnvironment({});
   });
 
   after(() => {
@@ -121,6 +125,7 @@ describe("Resolver", () => {
       const resolver = await ResolverImplementation.create(
         FIXTURE_HARDHAT_PROJECT_ROOT,
         [],
+        hre.hooks,
       );
 
       let file = "foo.sol";
@@ -142,6 +147,7 @@ describe("Resolver", () => {
       const resolver = await ResolverImplementation.create(
         FIXTURE_HARDHAT_PROJECT_ROOT,
         [],
+        hre.hooks,
       );
 
       assertResolvedProjectFile(
@@ -170,6 +176,7 @@ describe("Resolver", () => {
       const resolver = await ResolverImplementation.create(
         FIXTURE_HARDHAT_PROJECT_ROOT,
         [],
+        hre.hooks,
       );
 
       await assertRejectsWithHardhatError(
@@ -193,6 +200,7 @@ describe("Resolver", () => {
         resolver = await ResolverImplementation.create(
           FIXTURE_HARDHAT_PROJECT_ROOT,
           [],
+          hre.hooks,
         );
 
         contractsFileSol = await resolver.resolveProjectFile(
@@ -927,6 +935,7 @@ describe("Resolver", () => {
         const resolver = await ResolverImplementation.create(
           FIXTURE_HARDHAT_PROJECT_ROOT,
           [],
+          hre.hooks,
         );
         const file = await resolver.resolveNpmDependencyFileAsRoot(
           "exports/Exported.sol",
@@ -951,6 +960,7 @@ describe("Resolver", () => {
         const resolver = await ResolverImplementation.create(
           FIXTURE_HARDHAT_PROJECT_ROOT,
           [],
+          hre.hooks,
         );
 
         await assertRejectsWithHardhatError(
@@ -968,6 +978,7 @@ describe("Resolver", () => {
         const resolver = await ResolverImplementation.create(
           FIXTURE_HARDHAT_PROJECT_ROOT,
           [],
+          hre.hooks,
         );
 
         await assertRejectsWithHardhatError(
@@ -985,6 +996,7 @@ describe("Resolver", () => {
         const resolver = await ResolverImplementation.create(
           FIXTURE_HARDHAT_PROJECT_ROOT,
           [],
+          hre.hooks,
         );
 
         await assertRejectsWithHardhatError(
@@ -1005,6 +1017,7 @@ describe("Resolver", () => {
         resolver = await ResolverImplementation.create(
           FIXTURE_HARDHAT_PROJECT_ROOT,
           [],
+          hre.hooks,
         );
         file = await resolver.resolveProjectFile(
           path.resolve(FIXTURE_HARDHAT_PROJECT_ROOT, "contracts/File.sol"),
@@ -1160,6 +1173,7 @@ describe("Resolver", () => {
           resolver = await ResolverImplementation.create(
             FIXTURE_HARDHAT_PROJECT_ROOT,
             ["remapped_pkg/=npm/exports@3.0.0/"],
+            hre.hooks,
           );
 
           const resolvedFile = await resolver.resolveImport(
@@ -1189,6 +1203,7 @@ describe("Resolver", () => {
           const resolver = await ResolverImplementation.create(
             FIXTURE_HARDHAT_PROJECT_ROOT,
             ["remapped_file=npm/exports@3.0.0/SingleExport.sol"],
+            hre.hooks,
           );
 
           const resolvedFile = await resolver.resolveImport(
@@ -1218,6 +1233,7 @@ describe("Resolver", () => {
           const resolver = await ResolverImplementation.create(
             FIXTURE_HARDHAT_PROJECT_ROOT,
             ["remapped_pkg/=npm/exports@3.0.0/"],
+            hre.hooks,
           );
 
           await assertRejectsWithHardhatError(
