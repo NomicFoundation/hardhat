@@ -15,6 +15,9 @@
     },
     {
       "path": "../hardhat-utils"
+    },
+    {
+      "path": "../hardhat-viem"
     }
   ]
 }

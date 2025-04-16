@@ -1878,9 +1878,6 @@ importers:
       '@nomicfoundation/hardhat-utils':
         specifier: workspace:^3.0.0-next.3
         version: link:../hardhat-utils
-      '@nomicfoundation/hardhat-viem':
-        specifier: workspace:^3.0.0-next.3
-        version: link:../hardhat-viem
       hardhat:
         specifier: workspace:^3.0.0-next.3
         version: link:../hardhat
@@ -1894,6 +1891,9 @@ importers:
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
         version: link:../hardhat-test-utils
+      '@nomicfoundation/hardhat-viem':
+        specifier: workspace:^3.0.0-next.3
+        version: link:../hardhat-viem
       '@types/node':
         specifier: ^20.14.9
         version: 20.17.16
