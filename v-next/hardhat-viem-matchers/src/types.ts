@@ -35,6 +35,7 @@ export interface HardhatViemMatchers {
 }
 
 export interface HardhatViemMatchersUtils {
+  areApproximatelyEqual(n1: bigint, n2: bigint, variance: bigint): void;
   properAddress: (address: string) => void;
   properChecksumAddress: (address: string) => Promise<void>;
 }
