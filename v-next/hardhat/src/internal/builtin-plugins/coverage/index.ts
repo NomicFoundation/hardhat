@@ -16,7 +16,7 @@ const hardhatPlugin: HardhatPlugin = {
       defaultValue: false,
     }),
   ],
-  npmPackage: "hardhat"
+  npmPackage: "hardhat",
 };
 
 export default hardhatPlugin;
