@@ -32,6 +32,10 @@ export interface HardhatViemMatchers {
     eventName: ContractEventName<abi>,
     args: any[],
   ): Promise<void>;
+
+  revert(fn: GenericFunction): Promise<void>;
+
+  revertWith(fn: GenericFunction, expectedReason: string): Promise<void>;
 }
 
 export interface HardhatViemMatchersUtils {

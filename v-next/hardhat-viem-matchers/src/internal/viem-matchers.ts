@@ -11,6 +11,7 @@ import type { Abi, ContractEventName } from "viem";
 
 import { balancesHaveChanged } from "./matchers/balances-have-changed.js";
 import { emit, emitWithArgs } from "./matchers/emit.js";
+import { revert, revertWith } from "./matchers/revert.js";
 import { HardhatViemMatchersUtilsImpl } from "./viem-matchers-utils.js";
 
 export class HardhatViemMatchersImpl implements HardhatViemMatchers {
@@ -56,5 +57,16 @@ export class HardhatViemMatchersImpl implements HardhatViemMatchers {
     args: any[],
   ): Promise<void> {
     return emitWithArgs(this.#viem, fn, contract, eventName, args);
+  }
+
+  public async revert(fn: GenericFunction): Promise<void> {
+    return revert(fn);
+  }
+
+  public async revertWith(
+    fn: GenericFunction,
+    expectedReason: string,
+  ): Promise<void> {
+    return revertWith(fn, expectedReason);
   }
 }
