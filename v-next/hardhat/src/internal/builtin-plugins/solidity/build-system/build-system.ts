@@ -49,6 +49,7 @@ import {
 import {
   getArtifactsDeclarationFile,
   getBuildInfo,
+  getBuildInfoCoverage,
   getBuildInfoOutput,
   getContractArtifact,
   getDuplicatedContractNamesDeclarationFile,
@@ -548,8 +549,19 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       `${buildInfoId}.output.json`,
     );
 
-    // BuildInfo and BuildInfoOutput files are large, so we write them
-    // concurrently, and keep their lifetimes sperated and small.
+    // NOTE: We write build info coverage even when coverage is not enable. In
+    // that case the saved metadata will be an empty object, which is correct
+    // becase the compiled code is not instrumented. Thanks to this, we also
+    // do not have to worry about cleaning up the coverage files as they are
+    // simply overwritten.
+    const buildInfoCoveragePath = path.join(
+      this.#options.artifactsPath,
+      `build-info`,
+      `${buildInfoId}.coverage.json`,
+    );
+
+    // BuildInfo, BuildInfoOutput and BuildInfoCoverage files are large, so
+    // we write them concurrently, and keep their lifetimes sperated and small.
     await Promise.all([
       (async () => {
         const buildInfo = await getBuildInfo(compilationJob);
@@ -570,6 +582,11 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         // Compiler.  Instead of creating them again, we should consider copying/moving them.
         // This would require changing the format of the build info output file.
         await writeJsonFileAsStream(buildInfoOutputPath, buildInfoOutput);
+      })(),
+      (async () => {
+        const buildInfoCoverage = await getBuildInfoCoverage(compilationJob);
+
+        await writeJsonFile(buildInfoCoveragePath, buildInfoCoverage);
       })(),
     ]);
 

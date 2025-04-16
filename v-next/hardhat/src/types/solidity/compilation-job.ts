@@ -1,6 +1,7 @@
 import type { CompilerInput } from "./compiler-io.js";
 import type { DependencyGraph } from "./dependency-graph.js";
 import type { SolcConfig } from "../config.js";
+import type { CoverageMetadata } from "../coverage/types.js";
 
 /**
  * A compilation job to be run using solc.
@@ -26,6 +27,11 @@ export interface CompilationJob {
    * Returns the solc input to be used.
    */
   getSolcInput(): CompilerInput;
+
+  /**
+   * Returns the coverage metadata for the instrumented sources.
+   */
+  getCoverageMetadata(): CoverageMetadata;
 
   /**
    * Returns the build id of the compilation job.
