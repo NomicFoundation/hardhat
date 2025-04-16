@@ -24,6 +24,7 @@ describe("CompilationJobImplementation", () => {
   let solcLongVersion: string;
   let remappings: Remapping[];
   let compilationJob: CompilationJobImplementation;
+  const coverage: boolean = false;
 
   beforeEach(() => {
     dependencyGraph = new DependencyGraphImplementation();
@@ -74,6 +75,7 @@ describe("CompilationJobImplementation", () => {
       solcConfig,
       solcLongVersion,
       remappings,
+      coverage,
     );
   });
 
@@ -85,6 +87,7 @@ describe("CompilationJobImplementation", () => {
           solcConfig,
           "0.8.0-df193b1",
           remappings,
+          coverage,
         );
         assert.notEqual(
           await compilationJob.getBuildId(),
@@ -105,6 +108,7 @@ describe("CompilationJobImplementation", () => {
           },
           solcLongVersion,
           remappings,
+          coverage,
         );
         assert.notEqual(
           await compilationJob.getBuildId(),
@@ -123,6 +127,7 @@ describe("CompilationJobImplementation", () => {
               target: "test",
             },
           ],
+          coverage,
         );
         assert.notEqual(
           await compilationJob.getBuildId(),
@@ -144,6 +149,7 @@ describe("CompilationJobImplementation", () => {
           solcConfig,
           solcLongVersion,
           remappings,
+          coverage,
         );
         assert.notEqual(
           await compilationJob.getBuildId(),
@@ -165,6 +171,7 @@ describe("CompilationJobImplementation", () => {
           solcConfig,
           solcLongVersion,
           remappings,
+          coverage,
         );
         assert.notEqual(
           await compilationJob.getBuildId(),
@@ -188,6 +195,7 @@ describe("CompilationJobImplementation", () => {
           solcConfig,
           solcLongVersion,
           remappings,
+          coverage,
         );
         assert.notEqual(
           await compilationJob.getBuildId(),
@@ -211,6 +219,7 @@ describe("CompilationJobImplementation", () => {
           solcConfig,
           solcLongVersion,
           remappings,
+          coverage,
         );
         assert.notEqual(
           compilationJob.getBuildId(),
@@ -231,6 +240,7 @@ describe("CompilationJobImplementation", () => {
           solcConfig,
           solcLongVersion,
           remappings,
+          coverage,
         );
         assert.notEqual(
           await compilationJob.getBuildId(),
@@ -251,6 +261,7 @@ describe("CompilationJobImplementation", () => {
           solcConfig,
           solcLongVersion,
           remappings,
+          coverage,
         );
         assert.notEqual(
           await compilationJob.getBuildId(),
@@ -276,6 +287,7 @@ describe("CompilationJobImplementation", () => {
           solcConfig,
           solcLongVersion,
           remappings,
+          coverage,
         );
         assert.equal(
           await compilationJob.getBuildId(),
@@ -292,6 +304,7 @@ describe("CompilationJobImplementation", () => {
           solcConfig,
           solcLongVersion,
           remappings,
+          coverage,
         );
         assert.equal(
           await compilationJob.getBuildId(),

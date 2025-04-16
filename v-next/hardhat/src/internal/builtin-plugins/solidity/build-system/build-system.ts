@@ -374,6 +374,8 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       subgraphsWithConfig = [...mergedSubgraphsByConfig.entries()];
     }
 
+    const coverage = options?.coverage ?? false;
+
     const solcVersionToLongVersion = new Map<string, string>();
 
     const compilationJobsPerFile = new Map<string, CompilationJob>();
@@ -391,6 +393,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         solcConfig,
         solcLongVersion,
         resolver.getRemappings(), // TODO: Only get the ones relevant to the subgraph?
+        coverage,
       );
 
       for (const [publicSourceName, root] of subgraph.getRoots().entries()) {

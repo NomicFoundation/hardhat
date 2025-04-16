@@ -18,6 +18,7 @@ export class CompilationJobImplementation implements CompilationJob {
   public readonly solcLongVersion: string;
 
   readonly #remappings: Remapping[];
+  readonly #coverage: boolean;
 
   #buildId: string | undefined;
   #solcInput: CompilerInput | undefined;
@@ -29,11 +30,13 @@ export class CompilationJobImplementation implements CompilationJob {
     solcConfig: SolcConfig,
     solcLongVersion: string,
     remappings: Remapping[],
+    coverage: boolean,
   ) {
     this.dependencyGraph = dependencyGraph;
     this.solcConfig = solcConfig;
     this.solcLongVersion = solcLongVersion;
     this.#remappings = remappings;
+    this.#coverage = coverage;
   }
 
   public getSolcInput(): CompilerInput {
@@ -140,6 +143,10 @@ export class CompilationJobImplementation implements CompilationJob {
     await Promise.all(
       resolvedFiles.map(async (file) => {
         sources[file.sourceName] = {
+          // NOTE: We use the hash of the original content regardless whether
+          // the file is instrumented for coverage or not. This is OK because
+          // we use the coverage flag itself as part of the build ID and the
+          // instrumentation process is deterministic.
           hash: await file.getContentHash(),
         };
       }),
@@ -154,12 +161,14 @@ export class CompilationJobImplementation implements CompilationJob {
     // The preimage should include all the information that makes this
     // compilation job unique, and as this is used to identify the build info
     // file, it also includes its format string.
-    const preimage =
-      format +
-      this.solcLongVersion +
-      JSON.stringify(this.#getSolcInputWithoutSources()) +
-      JSON.stringify(sortedSources) +
-      JSON.stringify(this.solcConfig);
+    const preimage = JSON.stringify({
+      format,
+      solcLongVersion: this.solcLongVersion,
+      solcInput: this.#getSolcInputWithoutSources(),
+      sources: sortedSources,
+      solcConfig: this.solcConfig,
+      coverage: this.#coverage,
+    });
 
     return createNonCryptographicHashId(preimage);
   }
