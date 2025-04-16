@@ -243,7 +243,6 @@ AVAILABLE TASKS:
   clean                    Clears the cache and deletes all artifacts
   compile                  Compiles your project
   console                  Opens a hardhat console
-  coverage                 Not implemented yet - to be available soon
   flatten                  Flattens and prints contracts and their dependencies
   node                     Starts a JSON-RPC server on top of Hardhat Network
   run                      Runs a user-defined script after compiling the project
@@ -259,6 +258,7 @@ GLOBAL OPTIONS:
 
   --build-profile          The build profile to use
   --config                 A Hardhat config file.
+  --coverage               Enables code coverage
   --help                   Shows this message, or a task's help if its name is provided.
   --init                   Initializes a Hardhat project.
   --network                The network to connect to
