@@ -68,21 +68,20 @@ describe("balancesHaveChanged", () => {
     const [bobWalletClient, aliceWalletClient] = await viem.getWalletClients();
 
     await assertRejects(
-      () =>
-        viem.assertions.balancesHaveChanged(async () => {
-          const hash = await bobWalletClient.sendTransaction({
-            to: aliceWalletClient.account.address,
-            value: 1000000000000000000000n,
-          });
+      viem.assertions.balancesHaveChanged(async () => {
+        const hash = await bobWalletClient.sendTransaction({
+          to: aliceWalletClient.account.address,
+          value: 1000000000000000000000n,
+        });
 
-          const publicClient = await viem.getPublicClient();
-          await publicClient.waitForTransactionReceipt({ hash });
-        }, [
-          {
-            address: aliceWalletClient.account.address,
-            amount: 10n,
-          },
-        ]),
+        const publicClient = await viem.getPublicClient();
+        await publicClient.waitForTransactionReceipt({ hash });
+      }, [
+        {
+          address: aliceWalletClient.account.address,
+          amount: 10n,
+        },
+      ]),
       (error) =>
         error.message ===
         `For address "${aliceWalletClient.account.address}", expected balance to change by 10 (from 10000000000000000000000 to 10000000000000000000010), but got 11000000000000000000000 instead.`,

@@ -1,4 +1,4 @@
-import type { HardhatViemMatchers } from "../../../src/types.js";
+import type { HardhatViemMatchers } from "../../../../src/types.js";
 import type { HardhatViemHelpers } from "@nomicfoundation/hardhat-viem/types";
 import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 
@@ -8,7 +8,7 @@ import { useEphemeralFixtureProject } from "@nomicfoundation/hardhat-test-utils"
 import hardhatViem from "@nomicfoundation/hardhat-viem";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
-import hardhatViemMatchers from "../../../src/index.js";
+import hardhatViemMatchers from "../../../../src/index.js";
 
 describe("balancesHaveChanged", () => {
   let hre: HardhatRuntimeEnvironment;
@@ -38,32 +38,6 @@ describe("balancesHaveChanged", () => {
       contract.write.emitWithoutArgs,
       contract,
       "WithoutArgs",
-    );
-  });
-
-  it("should check that the event was emitted with the correct single argument", async () => {
-    const contract = await viem.deployContract("Events");
-
-    await viem.assertions.emitWithArgs(
-      async () => {
-        await contract.write.emitInt([1]);
-      },
-      contract,
-      "WithIntArg",
-      [1],
-    );
-  });
-
-  it("should check that the event was emitted with the correct multiple arguments", async () => {
-    const contract = await viem.deployContract("Events");
-
-    await viem.assertions.emitWithArgs(
-      async () => {
-        await contract.write.emitTwoUints([1, 2]);
-      },
-      contract,
-      "WithTwoUintArgs",
-      [1, 2],
     );
   });
 

@@ -10,8 +10,10 @@ import type {
 import type { Abi, ContractEventName } from "viem";
 
 import { balancesHaveChanged } from "./matchers/balances-have-changed.js";
-import { emit, emitWithArgs } from "./matchers/emit.js";
-import { revert, revertWith } from "./matchers/revert.js";
+import { emitWithArgs } from "./matchers/emit/emit-with-args.js";
+import { emit } from "./matchers/emit/emit.js";
+import { revertWith } from "./matchers/revert/revert-with.js";
+import { revert } from "./matchers/revert/revert.js";
 import { HardhatViemMatchersUtilsImpl } from "./viem-matchers-utils.js";
 
 export class HardhatViemMatchersImpl implements HardhatViemMatchers {

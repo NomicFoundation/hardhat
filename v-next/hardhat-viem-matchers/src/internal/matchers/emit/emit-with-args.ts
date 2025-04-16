@@ -1,4 +1,4 @@
-import type { GenericFunction } from "../../types.js";
+import type { GenericFunction } from "../../../types.js";
 import type {
   ContractReturnType,
   HardhatViemHelpers,
@@ -10,27 +10,8 @@ import { inspect } from "node:util";
 
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { deepEqual } from "@nomicfoundation/hardhat-utils/lang";
-import { parseEventLogs } from "viem";
 
-export type ContractAbi = Abi | readonly unknown[];
-
-// TODO: Is a new block mined after every transaction? Based on the parsed log, it seems so.
-// This means that multiple checks using `emit` will correctly verify if an event was emitted,
-// even if it was supposed to be triggered twice. In the second scenario, the logs will refer
-// to the second emit, not the first one.
-
-export async function emit<
-  // eslint-disable-next-line @typescript-eslint/naming-convention -- TODO
-  const abi extends Abi | readonly unknown[],
-  ContractName,
->(
-  viem: HardhatViemHelpers,
-  fn: GenericFunction,
-  contract: ContractReturnType<ContractName>,
-  eventName: ContractEventName<abi>,
-): Promise<void> {
-  await checkEmitted(viem, fn, contract, eventName);
-}
+import { checkEmitted } from "./utils.js";
 
 export async function emitWithArgs<
   // eslint-disable-next-line @typescript-eslint/naming-convention -- TODO
@@ -91,37 +72,4 @@ Expected: ${inspect(parsedLogs[0].args, { depth: null, colors: false })}
 Got: ${inspect(argsToCheck, { depth: null, colors: false })}`,
     );
   }
-}
-
-async function checkEmitted<
-  // eslint-disable-next-line @typescript-eslint/naming-convention -- TODO
-  const abi extends Abi | readonly unknown[],
-  ContractName,
->(
-  viem: HardhatViemHelpers,
-  fn: GenericFunction,
-  contract: ContractReturnType<ContractName>,
-  eventName: ContractEventName<abi>,
-) {
-  await fn();
-
-  const publicClient = await viem.getPublicClient();
-
-  const logs = await publicClient.getLogs({
-    address: contract.address,
-  });
-
-  const parsedLogs = parseEventLogs({
-    abi: contract.abi,
-    eventName,
-    logs,
-  });
-
-  assert.notEqual(
-    parsedLogs.length,
-    0,
-    `No events were emitted for contract with address "${contract.address}" and event name "${eventName}"`,
-  );
-
-  return parsedLogs;
 }

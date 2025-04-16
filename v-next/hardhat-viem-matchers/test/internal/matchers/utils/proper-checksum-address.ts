@@ -30,17 +30,16 @@ describe("properChecksumAddress", () => {
 
   it("should throw because the address is invalid: too short", async () => {
     await assertRejects(
-      () => viem.assertions.utils.properChecksumAddress("0x1"),
+      viem.assertions.utils.properChecksumAddress("0x1"),
       (error) => error.message === `Address "0x1" is not valid`,
     );
   });
 
   it("should throw because the address is invalid: wrong checksum", async () => {
     await assertRejects(
-      () =>
-        viem.assertions.utils.properChecksumAddress(
-          "0x2f015c60e0be116b1f0cd534704db9c92118fb6a",
-        ),
+      viem.assertions.utils.properChecksumAddress(
+        "0x2f015c60e0be116b1f0cd534704db9c92118fb6a",
+      ),
       (error) =>
         error.message ===
         `The address "0x2f015c60e0be116b1f0cd534704db9c92118fb6a" has the correct format, but its checksum is incorrect`,
