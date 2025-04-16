@@ -1,6 +1,8 @@
 import type { GenericFunction } from "../../types.js";
 import type { HardhatViemHelpers } from "@nomicfoundation/hardhat-viem/types";
 
+import assert from "node:assert/strict";
+
 /**
  * Validates that the balance for each specified address has changed by the provided amount
  * after executing the given asynchronous function.
@@ -37,11 +39,10 @@ export async function balancesHaveChanged(
     const balanceBefore = preBalances[index];
     const balanceAfter = postBalances[index];
 
-    if (balanceBefore + amount !== balanceAfter) {
-      // eslint-disable-next-line no-restricted-syntax -- TODO
-      throw new Error(
-        `For address ${address}, expected a change of ${amount} (from ${balanceBefore} to ${balanceBefore + amount}), but found ${balanceAfter}.`,
-      );
-    }
+    assert.equal(
+      balanceBefore + amount,
+      balanceAfter,
+      `For address "${address}", expected balance to change by ${amount} (from ${balanceBefore} to ${balanceBefore + amount}), but got ${balanceAfter} instead.`,
+    );
   });
 }

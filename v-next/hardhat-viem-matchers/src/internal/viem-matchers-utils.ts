@@ -1,6 +1,6 @@
 import type { HardhatViemMatchersUtils } from "../types.js";
 
-import { areApproximatelyEqual } from "./matchers/utils/big-number/approximately.js";
+import { areApproximatelyEqual } from "./matchers/utils/big-number/are-approximately-equal.js";
 import { properAddress } from "./matchers/utils/proper-address.js";
 import { properChecksumAddress } from "./matchers/utils/proper-checksum-address.js";
 
