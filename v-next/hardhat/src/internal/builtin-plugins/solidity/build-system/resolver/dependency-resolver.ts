@@ -41,6 +41,7 @@ import {
   parseRemappingString,
   selectBestRemapping,
 } from "./remappings.js";
+import { HookManager } from "../../../../../types/hooks.js";
 
 // Things to note:
 //  - This resolver assumes that the root of the project is the folder with the
@@ -92,6 +93,7 @@ const PROJECT_ROOT_SENTINEL: unique symbol = Symbol();
 export class ResolverImplementation implements Resolver {
   readonly #projectRoot: string;
   readonly #userRemappings: ResolvedUserRemapping[];
+  readonly #hooks: HookManager;
 
   /**
    * IMPORTANT: This mutex must be acquired before writing to any of the mutable
@@ -148,6 +150,7 @@ export class ResolverImplementation implements Resolver {
   public static async create(
     projectRoot: string,
     userRemappingStrings: string[],
+    hooks: HookManager,
   ): Promise<Resolver> {
     const userRemappings = await Promise.all(
       userRemappingStrings.map((remappingString) =>
@@ -155,16 +158,18 @@ export class ResolverImplementation implements Resolver {
       ),
     );
 
-    return new ResolverImplementation(projectRoot, userRemappings);
+    return new ResolverImplementation(projectRoot, userRemappings, hooks);
   }
 
   private constructor(
     projectRoot: string,
     userRemappings: ResolvedUserRemapping[],
+    hooks: HookManager,
   ) {
     this.#projectRoot = projectRoot;
     this.#userRemappings = userRemappings;
     this.#dependencyMaps.set(PROJECT_ROOT_SENTINEL, new Map());
+    this.#hooks = hooks;
   }
 
   public async resolveProjectFile(
@@ -243,7 +248,7 @@ export class ResolverImplementation implements Resolver {
         new ProjectResolvedFileImplementation({
           sourceName,
           fsPath: fsPathWithTheRightCasing,
-          content: await readFileContent(fsPathWithTheRightCasing),
+          content: await this.#readFileContent(fsPathWithTheRightCasing),
         });
 
       this.#resolvedFileBySourceName.set(sourceName, resolvedFile);
@@ -337,7 +342,7 @@ export class ResolverImplementation implements Resolver {
         new NpmPackageResolvedFileImplementation({
           sourceName,
           fsPath,
-          content: await readFileContent(fsPath),
+          content: await this.#readFileContent(fsPath),
           package: npmPackage,
         });
 
@@ -820,7 +825,7 @@ export class ResolverImplementation implements Resolver {
       new ProjectResolvedFileImplementation({
         sourceName,
         fsPath,
-        content: await readFileContent(fsPath),
+        content: await this.#readFileContent(fsPath),
       });
 
     this.#resolvedFileBySourceName.set(sourceName, resolvedFile);
@@ -885,7 +890,7 @@ export class ResolverImplementation implements Resolver {
       new NpmPackageResolvedFileImplementation({
         sourceName,
         fsPath,
-        content: await readFileContent(fsPath),
+        content: await this.#readFileContent(fsPath),
         package: remapping.targetNpmPackage,
       });
 
@@ -938,7 +943,7 @@ export class ResolverImplementation implements Resolver {
       new NpmPackageResolvedFileImplementation({
         sourceName,
         fsPath: filePath,
-        content: await readFileContent(filePath),
+        content: await this.#readFileContent(filePath),
         package: from.package,
       });
 
@@ -993,7 +998,7 @@ export class ResolverImplementation implements Resolver {
       new NpmPackageResolvedFileImplementation({
         sourceName,
         fsPath,
-        content: await readFileContent(fsPath),
+        content: await this.#readFileContent(fsPath),
         package: from.package,
       });
 
@@ -1053,7 +1058,7 @@ export class ResolverImplementation implements Resolver {
       new NpmPackageResolvedFileImplementation({
         sourceName,
         fsPath,
-        content: await readFileContent(fsPath),
+        content: await this.#readFileContent(fsPath),
         package: importedPackage,
       });
 
@@ -1343,6 +1348,25 @@ export class ResolverImplementation implements Resolver {
 
     return { package: match.groups.package, subpath: match.groups.path };
   }
+
+  /**
+   * Reads and analyzes the file at the given absolute path.
+   */
+  async #readFileContent(absolutePath: string): Promise<FileContent> {
+    const text = await this.#hooks.runHandlerChain(
+      "solidity",
+      "readSourceFile",
+      [absolutePath],
+      async (_context, absPath) => await readUtf8File(absPath),
+    );
+    const { imports, versionPragmas } = analyze(text);
+
+    return {
+      text,
+      importPaths: imports,
+      versionPragmas,
+    };
+  }
 }
 
 async function validateAndResolveUserRemapping(
@@ -1540,20 +1564,6 @@ export function sourceNamePathToFsPath(sourceNamePath: string): string {
  */
 function sourceNamePathJoin(...parts: string[]): string {
   return fsPathToSourceNamePath(path.join(...parts));
-}
-
-/**
- * Reads and analyzes the file at the given absolute path.
- */
-async function readFileContent(absolutePath: string): Promise<FileContent> {
-  const text = await readUtf8File(absolutePath);
-  const { imports, versionPragmas } = analyze(text);
-
-  return {
-    text,
-    importPaths: imports,
-    versionPragmas,
-  };
 }
 
 /**

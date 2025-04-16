@@ -37,7 +37,7 @@ export interface FlattenMetadata {
 
 const flattenAction: NewTaskActionFunction<FlattenActionArguments> = async (
   { files, logFunction, warnFunction },
-  { solidity, config },
+  { solidity, config, hooks },
 ): Promise<FlattenActionResult> => {
   const log = logFunction ?? console.log;
   const warn = warnFunction ?? console.warn;
@@ -59,6 +59,7 @@ const flattenAction: NewTaskActionFunction<FlattenActionArguments> = async (
     rootPaths.toSorted(), // We sort them to have a deterministic order
     config.paths.root,
     config.solidity.remappings,
+    hooks,
   );
 
   let flattened = "";
