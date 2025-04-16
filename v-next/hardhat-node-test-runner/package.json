@@ -60,6 +60,7 @@
   },
   "dependencies": {
     "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.4",
+    "@nomicfoundation/hardhat-node-test-coverage": "workspace:3.0.0-next.4",
     "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0-next.4",
     "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.4",
     "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.0-next.4",

@@ -67,7 +67,16 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   }
 
   const tsx = new URL(import.meta.resolve("tsx/esm"));
-  process.env.NODE_OPTIONS = `--import "${tsx.href}"`;
+  const imports = [tsx.href];
+
+  if (hre.globalOptions.coverage === true) {
+    const coverage = new URL(
+      import.meta.resolve("@nomicfoundation/hardhat-node-test-coverage"),
+    );
+    imports.push(coverage.href);
+  }
+
+  process.env.NODE_OPTIONS = imports.map((i) => `--import ${i}`).join(" ");
 
   async function runTests(): Promise<number> {
     let failures = 0;

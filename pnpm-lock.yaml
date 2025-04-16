@@ -1358,6 +1358,9 @@ importers:
       '@nomicfoundation/hardhat-errors':
         specifier: workspace:^3.0.0-next.4
         version: link:../hardhat-errors
+      '@nomicfoundation/hardhat-node-test-coverage':
+        specifier: workspace:3.0.0-next.4
+        version: link:../hardhat-node-test-coverage
       '@nomicfoundation/hardhat-node-test-reporter':
         specifier: workspace:^3.0.0-next.4
         version: link:../hardhat-node-test-reporter
