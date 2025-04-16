@@ -39,6 +39,12 @@ const hardhatPlugin: HardhatPlugin = {
       const { default: testBuiltinPlugin } = await import("../test/index.js");
       return testBuiltinPlugin;
     },
+    async () => {
+      const { default: coverageBuiltinPlugin } = await import(
+        "../coverage/index.js"
+      );
+      return coverageBuiltinPlugin;
+    },
   ],
   npmPackage: "hardhat",
 };

@@ -45,6 +45,11 @@ export interface BuildOptions {
    * If `true`, the build process doesn't print any output.
    */
   quiet?: boolean;
+
+  /**
+   * If `true`, the root files will be instrumented before compilation.
+   */
+  coverage?: boolean;
 }
 
 /**
