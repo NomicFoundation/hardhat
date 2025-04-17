@@ -23,6 +23,7 @@
     "./types/arguments": "./dist/src/types/arguments.js",
     "./types/artifacts": "./dist/src/types/artifacts.js",
     "./types/config": "./dist/src/types/config.js",
+    "./types/coverage": "./dist/src/types/coverage.js",
     "./types/global-options": "./dist/src/types/global-options.js",
     "./types/hooks": "./dist/src/types/hooks.js",
     "./types/hre": "./dist/src/types/hre.js",

@@ -8,3 +8,7 @@ export interface CoverageMetadata {
     };
   };
 }
+
+export interface CoverageReport {
+  markerIds: string[];
+}
