@@ -413,7 +413,7 @@ export function getEventArgumentFromReceipt(
  * @param decodeCustomError A function that decodes custom errors, returning
  *  `RevertWithCustomError` if succesfully decoded, `RevertWithInvalidData`
  *  if a custom error was recognized but couldn't be decoded, and `undefined`
- *  it it wasn't recognized.
+ *  it wasn't recognized.
  * @returns A `FailedEvmExecutionResult` with the decoded error.
  */
 export function decodeError(
