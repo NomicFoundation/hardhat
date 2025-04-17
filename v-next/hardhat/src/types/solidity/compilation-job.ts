@@ -1,7 +1,7 @@
 import type { CompilerInput } from "./compiler-io.js";
 import type { DependencyGraph } from "./dependency-graph.js";
 import type { SolcConfig } from "../config.js";
-import type { CoverageMetadata } from "../coverage/types.js";
+import type { CoverageMetadata } from "../coverage.js";
 
 /**
  * A compilation job to be run using solc.

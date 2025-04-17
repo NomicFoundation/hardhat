@@ -1,5 +1,5 @@
 import type { CompilerInput, CompilerOutput } from "./compiler-io.js";
-import type { CoverageMetadata } from "../coverage/types.js";
+import type { CoverageMetadata } from "../coverage.js";
 
 /**
  * A SolidityBuildInfo is a file that contains all the information of a solc

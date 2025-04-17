@@ -2,7 +2,7 @@ import type { DependencyGraphImplementation } from "./dependency-graph.js";
 import type { Remapping } from "./resolver/types.js";
 import type { BuildInfo } from "../../../../types/artifacts.js";
 import type { SolcConfig } from "../../../../types/config.js";
-import type { CoverageMetadata } from "../../../../types/coverage/types.js";
+import type { CoverageMetadata } from "../../../../types/coverage.js";
 import type { CompilationJob } from "../../../../types/solidity/compilation-job.js";
 import type { CompilerInput } from "../../../../types/solidity/compiler-io.js";
 import type { DependencyGraph } from "../../../../types/solidity/dependency-graph.js";
