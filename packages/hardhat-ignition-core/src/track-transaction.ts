@@ -237,7 +237,7 @@ async function checkConfirmations(
      *
      * i.e., if the broken transaction was for a future sending 100 ETH to an address, and the user decided to just send it
      * themselves after the deployment failed, we tell them that the future sending 100 ETH will be executed upon re-running
-     * the deployment. It is not obvious to the user that that is the case, and it could result in a double send if they assume
+     * the deployment. It is not obvious to the user that is the case, and it could result in a double send if they assume
      * the opposite.
      */
     return `Your deployment has been fixed and will continue with the execution of the "${exState.id}" future.
