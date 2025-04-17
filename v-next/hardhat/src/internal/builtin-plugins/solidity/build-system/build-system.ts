@@ -551,7 +551,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
     // NOTE: We write build info coverage even when coverage is not enable. In
     // that case the saved metadata will be an empty object, which is correct
-    // becase the compiled code is not instrumented. Thanks to this, we also
+    // because the compiled code is not instrumented. Thanks to this, we also
     // do not have to worry about cleaning up the coverage files as they are
     // simply overwritten.
     const buildInfoCoveragePath = path.join(
