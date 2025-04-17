@@ -2,12 +2,18 @@ import type { HardhatConfig } from "hardhat/types/config";
 import type { NewTaskActionFunction } from "hardhat/types/tasks";
 import type { LastParameter } from "hardhat/types/utils";
 
+import os from "node:os";
+import path from "node:path";
 import { pipeline } from "node:stream/promises";
 import { run } from "node:test";
 import { URL } from "node:url";
 
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { hardhatTestReporter } from "@nomicfoundation/hardhat-node-test-reporter";
-import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
+import {
+  getAllFilesMatching,
+  readJsonFile,
+} from "@nomicfoundation/hardhat-utils/fs";
 import { createNonClosingWriter } from "@nomicfoundation/hardhat-utils/stream";
 
 interface TestActionArguments {
@@ -17,12 +23,12 @@ interface TestActionArguments {
   noCompile: boolean;
 }
 
-function isTypescriptFile(path: string): boolean {
-  return /\.(ts|cts|mts)$/i.test(path);
+function isTypescriptFile(filePath: string): boolean {
+  return /\.(ts|cts|mts)$/i.test(filePath);
 }
 
-function isJavascriptFile(path: string): boolean {
-  return /\.(js|cjs|mjs)$/i.test(path);
+function isJavascriptFile(filePath: string): boolean {
+  return /\.(js|cjs|mjs)$/i.test(filePath);
 }
 
 function isSubtestFailedError(error: Error): boolean {
@@ -74,6 +80,10 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
       import.meta.resolve("@nomicfoundation/hardhat-node-test-coverage"),
     );
     imports.push(coverage.href);
+    process.env.HARDHAT_NODE_TEST_COVERAGE_PATH = path.join(
+      os.tmpdir(),
+      "coverage.json",
+    );
   }
 
   process.env.NODE_OPTIONS = imports.map((i) => `--import ${i}`).join(" ");
@@ -111,6 +121,17 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
       .compose(customReporter);
 
     await pipeline(reporterStream, createNonClosingWriter(process.stdout));
+
+    if (hre.globalOptions.coverage === true) {
+      assertHardhatInvariant(
+        process.env.HARDHAT_NODE_TEST_COVERAGE_PATH !== undefined,
+        "HARDHAT_NODE_TEST_COVERAGE_PATH should be defined",
+      );
+      const coverage = readJsonFile(
+        process.env.HARDHAT_NODE_TEST_COVERAGE_PATH,
+      );
+      console.log(coverage);
+    }
 
     return failures;
   }
