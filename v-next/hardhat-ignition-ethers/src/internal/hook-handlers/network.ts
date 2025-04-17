@@ -24,7 +24,7 @@ export default async (): Promise<Partial<NetworkHooks>> => {
         context,
         networkName,
         chainType,
-        networkConfigOverride
+        networkConfigOverride,
       );
 
       if (connection.ignition !== undefined) {

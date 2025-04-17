@@ -33,7 +33,7 @@ describe("ignition helper mutual exclusivity", () => {
               context,
               networkName,
               chainType,
-              networkConfigOverride
+              networkConfigOverride,
             );
 
             // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- we are using a fake intentionally for the test

@@ -22,7 +22,7 @@ export default async (): Promise<Partial<NetworkHooks>> => {
         context,
         networkName,
         chainType,
-        networkConfigOverride
+        networkConfigOverride,
       );
 
       connection.networkHelpers = new NetworkHelpers(
