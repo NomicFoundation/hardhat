@@ -111,7 +111,10 @@ export class ArtifactManagerImplementation implements ArtifactManager {
   public async getAllBuildInfoIds(): Promise<ReadonlySet<string>> {
     const paths = await getAllFilesMatching(
       path.join(this.#artifactsPath, BUILD_INFO_DIR_NAME),
-      (p) => p.endsWith(".json") && !p.endsWith(".output.json"),
+      (p) =>
+        p.endsWith(".json") &&
+        !p.endsWith(".output.json") &&
+        !p.endsWith(".coverage.json"),
     );
 
     return new Set(paths.map((p) => path.basename(p, ".json")));
