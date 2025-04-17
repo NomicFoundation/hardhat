@@ -92,7 +92,6 @@ export function ensureError<ErrorT extends Error>(
  * }
  * ```
  */
-
 export function ensureNodeErrnoExceptionError(
   thrown: unknown,
 ): asserts thrown is NodeJS.ErrnoException & Error & { code: string } {
