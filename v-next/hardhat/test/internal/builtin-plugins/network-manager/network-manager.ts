@@ -1599,10 +1599,10 @@ describe("NetworkManagerImplementation", () => {
           const validationErrors = await validateNetworkUserConfig(
             edrConfig({
               chains: new Map()
-                .set(123, {
+                .set(1, {
                   hardforkHistory: new Map().set("london", 456),
                 })
-                .set(123, {
+                .set(2, {
                   chainType: OPTIMISM_CHAIN_TYPE,
                   hardforkHistory: new Map().set("bedrock", 456),
                 }),
