@@ -307,9 +307,15 @@ describe("NetworkManagerImplementation", () => {
       it("should call the newConnection hook when connecting to a network", async () => {
         let hookCalled = false;
         const networkHooks: Partial<NetworkHooks> = {
-          newConnection: async (context, next) => {
+          newConnection: async (
+            context,
+            networkName,
+            chainType,
+            networkConfigOverride,
+            next,
+          ) => {
             hookCalled = true;
-            return next(context);
+            return next(context, networkName, chainType, networkConfigOverride);
           },
         };
 

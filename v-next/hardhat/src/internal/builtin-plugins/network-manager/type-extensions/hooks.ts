@@ -1,3 +1,4 @@
+import type { NetworkConfigOverride } from "../../../../types/config.js";
 import type {
   ChainType,
   NetworkConnection,
@@ -16,8 +17,14 @@ declare module "../../../../types/hooks.js" {
   export interface NetworkHooks {
     newConnection<ChainTypeT extends ChainType | string>(
       context: HookContext,
+      networkName: string | undefined,
+      chainType: ChainTypeT | undefined,
+      networkConfigOverride: NetworkConfigOverride | undefined,
       next: (
         nextContext: HookContext,
+        nextNetworkName: string | undefined,
+        nextChainType: ChainTypeT | undefined,
+        nextNetworkConfigOverride: NetworkConfigOverride | undefined,
       ) => Promise<NetworkConnection<ChainTypeT>>,
     ): Promise<NetworkConnection<ChainTypeT>>;
 
