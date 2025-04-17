@@ -1,4 +1,5 @@
 import type { HardhatConfig } from "hardhat/types/config";
+import type { CoverageReport } from "hardhat/types/coverage";
 import type { NewTaskActionFunction } from "hardhat/types/tasks";
 import type { LastParameter } from "hardhat/types/utils";
 
@@ -13,8 +14,12 @@ import { hardhatTestReporter } from "@nomicfoundation/hardhat-node-test-reporter
 import {
   getAllFilesMatching,
   readJsonFile,
+  writeJsonFile,
 } from "@nomicfoundation/hardhat-utils/fs";
 import { createNonClosingWriter } from "@nomicfoundation/hardhat-utils/stream";
+import debug from "debug";
+
+const log = debug("hardhat:node-test-runner");
 
 interface TestActionArguments {
   testFiles: string[];
@@ -84,6 +89,10 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
       os.tmpdir(),
       "coverage.json",
     );
+    const report: CoverageReport = {
+      markerIds: [],
+    };
+    await writeJsonFile(process.env.HARDHAT_NODE_TEST_COVERAGE_PATH, report);
   }
 
   process.env.NODE_OPTIONS = imports.map((i) => `--import ${i}`).join(" ");
@@ -127,10 +136,10 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
         process.env.HARDHAT_NODE_TEST_COVERAGE_PATH !== undefined,
         "HARDHAT_NODE_TEST_COVERAGE_PATH should be defined",
       );
-      const coverage = readJsonFile(
+      const report: CoverageReport = await readJsonFile(
         process.env.HARDHAT_NODE_TEST_COVERAGE_PATH,
       );
-      console.log(coverage);
+      log("Coverage report", report);
     }
 
     return failures;
