@@ -19,9 +19,8 @@
     "watch": "tsc --build --watch packages/hardhat-core/src packages/hardhat-ethers packages/hardhat-verify packages/hardhat-solhint packages/hardhat-solpp packages/hardhat-truffle4 packages/hardhat-truffle5 packages/hardhat-vyper packages/hardhat-web3 packages/hardhat-web3-v4 packages/hardhat-web3-legacy packages/hardhat-chai-matchers packages/hardhat-network-helpers packages/hardhat-toolbox packages/hardhat-foundry packages/hardhat-ledger packages/hardhat-viem packages/hardhat-toolbox-viem",
     "clean": "pnpm run --recursive clean",
     "test": "node scripts/run-tests.js",
-    "lint": "pnpm run --recursive lint && pnpm prettier --check",
-    "lint:fix": "pnpm run --recursive lint:fix && pnpm prettier --write",
-    "prettier": "prettier *.md \"{docs,.github}/**/*.{md,yml,ts,js}\" \"scripts/**/*.js\""
+    "lint": "pnpm run --recursive lint && pnpm prettier --check '{.github,scripts}/**/*.{md,yml,ts,js}'",
+    "lint:fix": "pnpm run --recursive lint:fix && pnpm prettier --write '{.github,scripts}/**/*.{md,yml,ts,js}'"
   },
   "dependencies": {}
 }
