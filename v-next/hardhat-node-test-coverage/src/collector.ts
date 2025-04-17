@@ -1,11 +1,12 @@
 import type { CoverageReport } from "hardhat/types/coverage";
 import type { NetworkHooks } from "hardhat/types/hooks";
 
+import { randomUUID } from "node:crypto";
+import path from "node:path";
 import { after, before } from "node:test";
 
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
-import { readJsonFile, writeJsonFile } from "@nomicfoundation/hardhat-utils/fs";
-import { MultiProcessMutex } from "@nomicfoundation/hardhat-utils/synchronization";
+import { writeJsonFile } from "@nomicfoundation/hardhat-utils/fs";
 import hre from "hardhat";
 
 const report: CoverageReport = {
@@ -31,22 +32,13 @@ before(() => {
 });
 
 after(async () => {
-  const mutex = new MultiProcessMutex("coverage");
-
-  await mutex.use(async () => {
-    assertHardhatInvariant(
-      process.env.HARDHAT_NODE_TEST_COVERAGE_PATH !== undefined,
-      "HARDHAT_NODE_TEST_COVERAGE_PATH should be defined",
-    );
-    const currentReport: CoverageReport = await readJsonFile(
-      process.env.HARDHAT_NODE_TEST_COVERAGE_PATH,
-    );
-    const updatedReport: CoverageReport = {
-      markerIds: [...currentReport.markerIds, ...report.markerIds],
-    };
-    await writeJsonFile(
-      process.env.HARDHAT_NODE_TEST_COVERAGE_PATH,
-      updatedReport,
-    );
-  });
+  assertHardhatInvariant(
+    process.env.HARDHAT_NODE_TEST_COVERAGE_DIR_PATH !== undefined,
+    "HARDHAT_NODE_TEST_COVERAGE_DIR_PATH should be defined",
+  );
+  const reportPath = path.join(
+    process.env.HARDHAT_NODE_TEST_COVERAGE_DIR_PATH,
+    `${randomUUID()}.json`,
+  );
+  await writeJsonFile(reportPath, report);
 });

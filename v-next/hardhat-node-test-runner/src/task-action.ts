@@ -3,6 +3,7 @@ import type { CoverageReport } from "hardhat/types/coverage";
 import type { NewTaskActionFunction } from "hardhat/types/tasks";
 import type { LastParameter } from "hardhat/types/utils";
 
+import { randomUUID } from "node:crypto";
 import os from "node:os";
 import path from "node:path";
 import { pipeline } from "node:stream/promises";
@@ -12,9 +13,9 @@ import { URL } from "node:url";
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { hardhatTestReporter } from "@nomicfoundation/hardhat-node-test-reporter";
 import {
+  ensureDir,
   getAllFilesMatching,
   readJsonFile,
-  writeJsonFile,
 } from "@nomicfoundation/hardhat-utils/fs";
 import { createNonClosingWriter } from "@nomicfoundation/hardhat-utils/stream";
 import debug from "debug";
@@ -85,14 +86,11 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
       import.meta.resolve("@nomicfoundation/hardhat-node-test-coverage"),
     );
     imports.push(coverage.href);
-    process.env.HARDHAT_NODE_TEST_COVERAGE_PATH = path.join(
+    process.env.HARDHAT_NODE_TEST_COVERAGE_DIR_PATH = path.join(
       os.tmpdir(),
-      "coverage.json",
+      randomUUID(),
     );
-    const report: CoverageReport = {
-      markerIds: [],
-    };
-    await writeJsonFile(process.env.HARDHAT_NODE_TEST_COVERAGE_PATH, report);
+    await ensureDir(process.env.HARDHAT_NODE_TEST_COVERAGE_DIR_PATH);
   }
 
   process.env.NODE_OPTIONS = imports.map((i) => `--import ${i}`).join(" ");
@@ -133,12 +131,20 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
 
     if (hre.globalOptions.coverage === true) {
       assertHardhatInvariant(
-        process.env.HARDHAT_NODE_TEST_COVERAGE_PATH !== undefined,
-        "HARDHAT_NODE_TEST_COVERAGE_PATH should be defined",
+        process.env.HARDHAT_NODE_TEST_COVERAGE_DIR_PATH !== undefined,
+        "HARDHAT_NODE_TEST_COVERAGE_DIR_PATH should be defined",
       );
-      const report: CoverageReport = await readJsonFile(
-        process.env.HARDHAT_NODE_TEST_COVERAGE_PATH,
+      const reportPaths = await getAllFilesMatching(
+        process.env.HARDHAT_NODE_TEST_COVERAGE_DIR_PATH,
+        (filePath) => path.extname(filePath) === ".json",
       );
+      const report: CoverageReport = {
+        markerIds: [],
+      };
+      for (const reportPath of reportPaths) {
+        const { markerIds } = await readJsonFile<CoverageReport>(reportPath);
+        report.markerIds.push(...markerIds);
+      }
       log("Coverage report", report);
     }
 
