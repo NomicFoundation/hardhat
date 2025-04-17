@@ -14,7 +14,7 @@ import { assertIgnitionInvariant } from "../../utils/assertions";
  *
  * @param exState The execution state to check.
  * @returns Returns the pending nonce and sender if the last network interaction
- *  was a transaction, and it hasn't been been confirmed yet.
+ *  was a transaction, and it hasn't been confirmed yet.
  */
 export function getPendingOnchainInteraction(
   exState: ExecutionState
