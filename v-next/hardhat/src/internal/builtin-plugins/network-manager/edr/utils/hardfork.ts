@@ -10,7 +10,7 @@ export function getL1HardforkName(name: string): L1HardforkName {
 
   assertHardhatInvariant(
     hardforkName !== undefined,
-    `Invalid harfork name ${name}`,
+    `Invalid hardfork name ${name}`,
   );
 
   return hardforkName;
@@ -24,7 +24,7 @@ export function getOpHardforkName(name: string): OpHardforkName {
 
   assertHardhatInvariant(
     hardforkName !== undefined,
-    `Invalid harfork name ${name}`,
+    `Invalid hardfork name ${name}`,
   );
 
   return hardforkName;
