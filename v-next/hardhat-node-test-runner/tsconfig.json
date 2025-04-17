@@ -8,6 +8,9 @@
       "path": "../hardhat-errors"
     },
     {
+      "path": "../hardhat-node-test-coverage"
+    },
+    {
       "path": "../hardhat-node-test-reporter"
     },
     {

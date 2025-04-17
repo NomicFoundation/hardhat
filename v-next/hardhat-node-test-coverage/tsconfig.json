@@ -1,4 +1,14 @@
 {
   "extends": "../../config-v-next/tsconfig.json",
-  "references": []
+  "references": [
+    {
+      "path": "../hardhat"
+    },
+    {
+      "path": "../hardhat-errors"
+    },
+    {
+      "path": "../hardhat-utils"
+    }
+  ]
 }
