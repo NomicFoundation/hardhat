@@ -153,6 +153,12 @@ export class EdrProvider extends BaseProvider {
 
     let edrProvider: EdrProvider;
 
+    // The chainType can't be undefined, as it's always set on connect()
+    assertHardhatInvariant(
+      networkConfig.chainType !== undefined,
+      "The chain type is undefined",
+    );
+
     // We need to catch errors here, as the provider creation can panic unexpectedly,
     // and we want to make sure such a crash is propagated as a ProviderError.
     try {
@@ -384,21 +390,23 @@ export class EdrProvider extends BaseProvider {
 async function getProviderConfig(
   networkConfig: EdrNetworkConfig,
 ): Promise<ProviderConfig> {
+  // The chainType can't be undefined, as it's always set on connect()
+  assertHardhatInvariant(
+    networkConfig.chainType !== undefined,
+    "The chain type is undefined",
+  );
+
+  const specId = hardhatHardforkToEdrSpecId(
+    networkConfig.hardfork,
+    networkConfig.chainType,
+  );
+
   const genesisState =
     networkConfig.forking !== undefined
       ? [] // TODO: Add support for overriding remote fork state when the local fork is different
       : networkConfig.chainType === "optimism"
-        ? opGenesisState(
-            opHardforkFromString(
-              // TODO: OP conversion is not implemented yet
-              hardhatHardforkToEdrSpecId(networkConfig.hardfork),
-            ),
-          )
-        : l1GenesisState(
-            l1HardforkFromString(
-              hardhatHardforkToEdrSpecId(networkConfig.hardfork),
-            ),
-          );
+        ? opGenesisState(opHardforkFromString(specId))
+        : l1GenesisState(l1HardforkFromString(specId));
 
   return {
     allowBlocksWithSameTimestamp: networkConfig.allowBlocksWithSameTimestamp,
@@ -408,13 +416,16 @@ async function getProviderConfig(
     blockGasLimit: networkConfig.blockGasLimit,
     cacheDir: networkConfig.forking?.cacheDir,
     chainId: BigInt(networkConfig.chainId),
-    chains: hardhatChainsToEdrChains(networkConfig.chains),
+    chains: hardhatChainsToEdrChains(
+      networkConfig.chains,
+      networkConfig.chainType,
+    ),
     // TODO: remove this cast when EDR updates the interface to accept Uint8Array
     coinbase: Buffer.from(networkConfig.coinbase),
     enableRip7212: networkConfig.enableRip7212,
     fork: await hardhatForkingConfigToEdrForkConfig(networkConfig.forking),
     genesisState,
-    hardfork: hardhatHardforkToEdrSpecId(networkConfig.hardfork),
+    hardfork: specId,
     initialBaseFeePerGas: networkConfig.initialBaseFeePerGas,
     initialDate: BigInt(toSeconds(networkConfig.initialDate)),
     minGasPrice: networkConfig.minGasPrice,

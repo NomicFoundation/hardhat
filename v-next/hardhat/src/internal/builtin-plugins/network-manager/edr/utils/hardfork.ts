@@ -1,11 +1,25 @@
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 
-import { HardforkName } from "../types/hardfork.js";
+import { L1HardforkName, OpHardforkName } from "../types/hardfork.js";
 
-export function getHardforkName(name: string): HardforkName {
+export function getL1HardforkName(name: string): L1HardforkName {
   const hardforkName =
-    Object.values(HardforkName)[
-      Object.values<string>(HardforkName).indexOf(name)
+    Object.values(L1HardforkName)[
+      Object.values<string>(L1HardforkName).indexOf(name)
+    ];
+
+  assertHardhatInvariant(
+    hardforkName !== undefined,
+    `Invalid harfork name ${name}`,
+  );
+
+  return hardforkName;
+}
+
+export function getOpHardforkName(name: string): OpHardforkName {
+  const hardforkName =
+    Object.values(OpHardforkName)[
+      Object.values<string>(OpHardforkName).indexOf(name)
     ];
 
   assertHardhatInvariant(

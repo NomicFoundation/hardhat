@@ -28,6 +28,7 @@ export interface HardhatUserConfigValidationError {
  * If you have a type that's complex, like an object or array, you must use
  * {@link conditionalUnionType}.
  */
+// TODO: improve the return type of this function to be more specific
 export const unionType = (
   types: Parameters<typeof z.union>[0],
   errorMessage: string,
@@ -79,6 +80,7 @@ export const unionType = (
  * returns true.
  * @returns The conditional union ZodType.
  */
+// TODO: improve the return type of this function to be more specific
 export const conditionalUnionType = (
   cases: Array<[predicate: (data: unknown) => boolean, zodType: ZodType<any>]>,
   noMatchMessage: string,
@@ -164,7 +166,9 @@ export const resolvedConfigurationVariableSchema = z.object({
 /**
  * A Zod type to validate Hardhat's SensitiveString values.
  */
-export const sensitiveStringSchema = unionType(
+export const sensitiveStringSchema: z.ZodType<
+  string | z.infer<typeof configurationVariableSchema>
+> = unionType(
   [z.string(), configurationVariableSchema],
   "Expected a string or a Configuration Variable",
 );
@@ -178,7 +182,9 @@ export const sensitiveStringSchema = unionType(
  * As a workaround, we provide the error message directly in the url() call.
  * We should remove this when the issue is fixed.
  */
-export const sensitiveUrlSchema = unionType(
+export const sensitiveUrlSchema: z.ZodType<
+  string | z.infer<typeof configurationVariableSchema>
+> = unionType(
   [
     z.string().url("Expected a URL or a Configuration Variable"),
     configurationVariableSchema,

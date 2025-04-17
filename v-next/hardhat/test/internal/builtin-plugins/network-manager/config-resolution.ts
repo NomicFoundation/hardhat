@@ -1,5 +1,6 @@
 import type {
   ConfigurationVariableResolver,
+  EdrNetworkChainsUserConfig,
   EdrNetworkMiningUserConfig,
   EdrNetworkUserConfig,
   HttpNetworkUserConfig,
@@ -33,8 +34,8 @@ import {
   EDR_NETWORK_DEFAULT_COINBASE,
 } from "../../../../src/internal/builtin-plugins/network-manager/edr/edr-provider.js";
 import {
-  HardforkName,
-  LATEST_HARDFORK,
+  L1HardforkName,
+  getLatestHardfork,
 } from "../../../../src/internal/builtin-plugins/network-manager/edr/types/hardfork.js";
 import {
   isEdrNetworkForkingConfig,
@@ -42,7 +43,11 @@ import {
   isEdrNetworkMiningConfig,
   isHttpNetworkHdAccountsConfig,
 } from "../../../../src/internal/builtin-plugins/network-manager/type-validation.js";
-import { L1_CHAIN_TYPE } from "../../../../src/internal/constants.js";
+import {
+  GENERIC_CHAIN_TYPE,
+  L1_CHAIN_TYPE,
+  OPTIMISM_CHAIN_TYPE,
+} from "../../../../src/internal/constants.js";
 import { resolveConfigurationVariable } from "../../../../src/internal/core/configuration-variables.js";
 
 describe("config-resolution", () => {
@@ -575,13 +580,14 @@ describe("config-resolution", () => {
 
   describe("resolveChains", () => {
     it("should return the resolved chains with the provided chains overriding the defaults", () => {
-      const chainsUserConfig = new Map([
+      const chainsUserConfig: EdrNetworkChainsUserConfig = new Map([
         [
           1,
           {
+            chainType: L1_CHAIN_TYPE,
             hardforkHistory: new Map([
-              [HardforkName.BYZANTIUM, 1],
-              [HardforkName.CONSTANTINOPLE, 2],
+              [L1HardforkName.BYZANTIUM, 1],
+              [L1HardforkName.CONSTANTINOPLE, 2],
               ["newHardfork", 3],
             ]),
           },
@@ -589,7 +595,7 @@ describe("config-resolution", () => {
         [
           31337,
           {
-            hardforkHistory: new Map([[HardforkName.BYZANTIUM, 1]]),
+            hardforkHistory: new Map([[L1HardforkName.BYZANTIUM, 1]]),
           },
         ],
       ]);
@@ -597,8 +603,12 @@ describe("config-resolution", () => {
 
       const mainnet = chainsConfig.get(1);
       assert.ok(mainnet !== undefined, "chain 1 is not in the resolved chains");
-      assert.equal(mainnet.hardforkHistory.get(HardforkName.BYZANTIUM), 1);
-      assert.equal(mainnet.hardforkHistory.get(HardforkName.CONSTANTINOPLE), 2);
+      assert.equal(mainnet.chainType, L1_CHAIN_TYPE);
+      assert.equal(mainnet.hardforkHistory.get(L1HardforkName.BYZANTIUM), 1);
+      assert.equal(
+        mainnet.hardforkHistory.get(L1HardforkName.CONSTANTINOPLE),
+        2,
+      );
       assert.equal(mainnet.hardforkHistory.get("newHardfork"), 3);
 
       const myNetwork = chainsConfig.get(31337);
@@ -606,7 +616,8 @@ describe("config-resolution", () => {
         myNetwork !== undefined,
         "chain 31337 is not in the resolved chains",
       );
-      assert.equal(myNetwork.hardforkHistory.get(HardforkName.BYZANTIUM), 1);
+      assert.equal(myNetwork.chainType, GENERIC_CHAIN_TYPE);
+      assert.equal(myNetwork.hardforkHistory.get(L1HardforkName.BYZANTIUM), 1);
     });
 
     it("should return the default chains if no chains are provided", () => {
@@ -616,19 +627,19 @@ describe("config-resolution", () => {
       const mainnet = chainsConfig.get(1);
       assert.ok(mainnet !== undefined, "chain 1 is not in the resolved chains");
       assert.equal(
-        mainnet.hardforkHistory.get(HardforkName.BYZANTIUM),
+        mainnet.hardforkHistory.get(L1HardforkName.BYZANTIUM),
         4_370_000,
       );
       assert.equal(
-        mainnet.hardforkHistory.get(HardforkName.CONSTANTINOPLE),
+        mainnet.hardforkHistory.get(L1HardforkName.CONSTANTINOPLE),
         7_280_000,
       );
       assert.equal(
-        mainnet.hardforkHistory.get(HardforkName.SHANGHAI),
+        mainnet.hardforkHistory.get(L1HardforkName.SHANGHAI),
         17_034_870,
       );
       assert.equal(
-        mainnet.hardforkHistory.get(HardforkName.CANCUN),
+        mainnet.hardforkHistory.get(L1HardforkName.CANCUN),
         19_426_589,
       );
       const myNetwork = chainsConfig.get(31337);
@@ -641,16 +652,26 @@ describe("config-resolution", () => {
 
   describe("resolveHardfork", () => {
     it("should return the hardfork if it is provided", () => {
-      let hardfork = resolveHardfork(HardforkName.LONDON, true);
-      assert.equal(hardfork, HardforkName.LONDON);
+      let hardfork = resolveHardfork(
+        L1HardforkName.LONDON,
+        L1_CHAIN_TYPE,
+        true,
+      );
+      assert.equal(hardfork, L1HardforkName.LONDON);
 
-      hardfork = resolveHardfork(HardforkName.LONDON, false);
-      assert.equal(hardfork, HardforkName.LONDON);
+      hardfork = resolveHardfork(L1HardforkName.LONDON, L1_CHAIN_TYPE, false);
+      assert.equal(hardfork, L1HardforkName.LONDON);
     });
 
     it("should return the latest hardfork if no hardfork is provided", () => {
-      const hardfork = resolveHardfork(undefined, true);
-      assert.equal(hardfork, LATEST_HARDFORK);
+      let hardfork = resolveHardfork(undefined, L1_CHAIN_TYPE, true);
+      assert.equal(hardfork, getLatestHardfork(L1_CHAIN_TYPE));
+
+      hardfork = resolveHardfork(undefined, undefined, true);
+      assert.equal(hardfork, getLatestHardfork(L1_CHAIN_TYPE));
+
+      hardfork = resolveHardfork(undefined, OPTIMISM_CHAIN_TYPE, true);
+      assert.equal(hardfork, getLatestHardfork(OPTIMISM_CHAIN_TYPE));
     });
   });
 
