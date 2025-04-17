@@ -246,6 +246,7 @@ describe("HRE intialization", () => {
         assert.deepEqual(hre.globalOptions, {
           buildProfile: "default",
           config: configPath,
+          coverage: false,
           help: false,
           init: false,
           showStackTraces: false,
