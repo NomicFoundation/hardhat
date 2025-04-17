@@ -24,7 +24,7 @@ describe("CompilationJobImplementation", () => {
   let solcLongVersion: string;
   let remappings: Remapping[];
   let compilationJob: CompilationJobImplementation;
-  const coverage: boolean = false;
+  let coverage: boolean;
 
   beforeEach(() => {
     dependencyGraph = new DependencyGraphImplementation();
@@ -70,6 +70,7 @@ describe("CompilationJobImplementation", () => {
     };
     solcLongVersion = "0.8.0-c7dfd78";
     remappings = [];
+    coverage = false;
     compilationJob = new CompilationJobImplementation(
       dependencyGraph,
       solcConfig,
@@ -262,6 +263,19 @@ describe("CompilationJobImplementation", () => {
           solcLongVersion,
           remappings,
           coverage,
+        );
+        assert.notEqual(
+          await compilationJob.getBuildId(),
+          await newCompilationJob.getBuildId(),
+        );
+      });
+      it("the coverage flag changes", async () => {
+        const newCompilationJob = new CompilationJobImplementation(
+          dependencyGraph,
+          solcConfig,
+          solcLongVersion,
+          remappings,
+          !coverage,
         );
         assert.notEqual(
           await compilationJob.getBuildId(),
