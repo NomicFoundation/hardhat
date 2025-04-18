@@ -8,6 +8,7 @@ import type {
   TestPathsConfig,
   SourcePathsConfig,
 } from "../../types/config.js";
+import type { CoverageManager } from "../../types/coverage.js";
 import type {
   GlobalOptions,
   GlobalOptionDefinitions,
@@ -23,6 +24,7 @@ import type { UserInterruptionManager } from "../../types/user-interruptions.js"
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { findClosestPackageRoot } from "@nomicfoundation/hardhat-utils/package";
 import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
+
 
 import { validateUserConfig } from "./config-validation.js";
 import { resolveConfigurationVariable } from "./configuration-variables.js";
@@ -44,6 +46,7 @@ export class HardhatRuntimeEnvironmentImplementation
   public network!: NetworkManager;
   public artifacts!: ArtifactManager;
   public solidity!: SolidityBuildSystem;
+  public coverage!: CoverageManager;
 
   public static async create(
     inputUserConfig: HardhatUserConfig,

@@ -1,19 +1,13 @@
 import type { HardhatConfig } from "hardhat/types/config";
-import type { CoverageReport } from "hardhat/types/coverage";
 import type { NewTaskActionFunction } from "hardhat/types/tasks";
 import type { LastParameter } from "hardhat/types/utils";
 
-import path from "node:path";
 import { pipeline } from "node:stream/promises";
 import { run } from "node:test";
 import { URL } from "node:url";
 
 import { hardhatTestReporter } from "@nomicfoundation/hardhat-node-test-reporter";
-import {
-  getAllFilesMatching,
-  getEmptyTmpDir,
-  readJsonFile,
-} from "@nomicfoundation/hardhat-utils/fs";
+import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
 import { createNonClosingWriter } from "@nomicfoundation/hardhat-utils/stream";
 import debug from "debug";
 
@@ -80,9 +74,6 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
 
   if (hre.globalOptions.coverage === true) {
     process.env.HARDHAT_COVERAGE = "true";
-    process.env.HARDHAT_COVERAGE_DIR_PATH = await getEmptyTmpDir(
-      "hardhat-node-test-runner-coverage",
-    );
     const runner = new URL(
       import.meta.resolve("@nomicfoundation/hardhat-node-test-runner/coverage"),
     );
@@ -125,21 +116,8 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
 
     await pipeline(reporterStream, createNonClosingWriter(process.stdout));
 
-    if (
-      hre.globalOptions.coverage === true &&
-      process.env.HARDHAT_COVERAGE_DIR_PATH !== undefined
-    ) {
-      const reportPaths = await getAllFilesMatching(
-        process.env.HARDHAT_COVERAGE_DIR_PATH,
-        (filePath) => path.extname(filePath) === ".json",
-      );
-      const report: CoverageReport = {
-        markerIds: [],
-      };
-      for (const reportPath of reportPaths) {
-        const { markerIds } = await readJsonFile<CoverageReport>(reportPath);
-        report.markerIds.push(...markerIds);
-      }
+    if (hre.globalOptions.coverage === true) {
+      const report = await hre.coverage.read();
       log("Coverage report", report);
     }
 
