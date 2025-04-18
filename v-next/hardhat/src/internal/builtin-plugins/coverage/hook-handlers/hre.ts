@@ -27,19 +27,12 @@ export class LazyCoverageManager implements CoverageManager {
 
   async #getCoverageManager(): Promise<CoverageManager> {
     if (this.#coverageManager === undefined) {
-      const {
-        CoverageManagerImplementation: PublicCoverageManagerImplementation,
-      } = await import("../coverage-manager.js");
-      const {
-        CoverageManagerImplementation: InternalCoverageManagerImplementation,
-      } = await import("../internal/coverage-manager.js");
-      const internalCoverageManager =
-        InternalCoverageManagerImplementation.getOrCreate();
-      const publicCoverageManager = new PublicCoverageManagerImplementation(
-        internalCoverageManager,
+      const { CoverageManagerImplementation } = await import(
+        "../coverage-manager.js"
+      );
+      this.#coverageManager = new CoverageManagerImplementation(
         this.#coveragePath,
       );
-      this.#coverageManager = publicCoverageManager;
     }
 
     return this.#coverageManager;

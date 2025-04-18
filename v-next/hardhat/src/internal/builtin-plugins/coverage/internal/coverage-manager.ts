@@ -1,19 +1,17 @@
-import type { CoverageManager } from "./types.js";
+import type { InternalCoverageManager } from "./types.js";
 import type { CoverageHits } from "../../../../types/coverage.js";
 import type { EdrProvider } from "../../network-manager/edr/edr-provider.js";
 
-export class CoverageManagerImplementation implements CoverageManager {
-  static #coverageManager?: CoverageManager;
+let internalCoverageManager: InternalCoverageManager | undefined;
 
-  public static getOrCreate(): CoverageManager {
-    if (this.#coverageManager === undefined) {
-      this.#coverageManager = new CoverageManagerImplementation();
-    }
-    return this.#coverageManager;
+export async function getOrCreateInternalCoverageManager(): Promise<InternalCoverageManager> {
+  if (internalCoverageManager === undefined) {
+    internalCoverageManager = new InternalCoverageManagerImplementation();
   }
+  return internalCoverageManager;
+}
 
-  private constructor() {}
-
+class InternalCoverageManagerImplementation implements InternalCoverageManager {
   readonly #providers: Record<string, EdrProvider> = {};
   readonly #hits: CoverageHits = {};
 

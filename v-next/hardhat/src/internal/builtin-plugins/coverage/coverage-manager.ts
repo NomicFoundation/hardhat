@@ -1,4 +1,3 @@
-import type { CoverageManager as InternalCoverageManager } from "./internal/types.js";
 import type {
   CoverageManager as PublicCoverageManager,
   CoverageHits,
@@ -14,23 +13,24 @@ import {
   writeJsonFile,
 } from "@nomicfoundation/hardhat-utils/fs";
 
+import { getOrCreateInternalCoverageManager } from "./internal/coverage-manager.js";
+
 export class CoverageManagerImplementation implements PublicCoverageManager {
-  readonly #coverageManager: InternalCoverageManager;
   readonly #coveragePath: string;
 
-  constructor(coverageManager: InternalCoverageManager, coveragePath: string) {
-    this.#coverageManager = coverageManager;
+  constructor(coveragePath: string) {
     this.#coveragePath = coveragePath;
   }
 
   public async saveProviderHits(): Promise<void> {
-    const hits = await this.#coverageManager.getProviderHits();
+    const internal = await getOrCreateInternalCoverageManager();
+    const hits = await internal.getProviderHits();
     const hitsPath = path.join(this.#coveragePath, `${randomUUID()}.json`);
     await writeJsonFile(hitsPath, hits);
 
     // NOTE: After we dump the provider hits to disk, we remove them from the internal
     // coverage manager; this allows collecting coverage from succesive tasks
-    await this.#coverageManager.clearProviderHits();
+    await internal.clearProviderHits();
   }
 
   public async loadProviderHits(): Promise<CoverageHits> {
