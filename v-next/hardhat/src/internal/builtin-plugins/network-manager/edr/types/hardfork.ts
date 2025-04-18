@@ -46,7 +46,7 @@ const L1_LATEST_HARDFORK: L1HardforkName =
 const OP_LATEST_HARDFORK: OpHardforkName =
   OP_HARDFORK_ORDER[OP_HARDFORK_ORDER.length - 1];
 
-export function getLatestHardfork(chainType: ChainType): string {
+export function getCurrentHardfork(chainType: ChainType): string {
   return chainType === OPTIMISM_CHAIN_TYPE
     ? OP_LATEST_HARDFORK
     : L1_LATEST_HARDFORK;

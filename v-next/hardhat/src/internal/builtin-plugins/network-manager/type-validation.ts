@@ -36,7 +36,7 @@ import {
   L1HardforkName,
   isValidHardforkName,
   getHardforks,
-  getLatestHardfork,
+  getCurrentHardfork,
 } from "./edr/types/hardfork.js";
 
 const nonnegativeNumberSchema = z.number().nonnegative();
@@ -276,7 +276,7 @@ function refineEdrNetworkUserConfig(
       }
     }
 
-    const resolvedHardfork = hardfork ?? getLatestHardfork(chainType);
+    const resolvedHardfork = hardfork ?? getCurrentHardfork(chainType);
     if (chainType === L1_CHAIN_TYPE || chainType === GENERIC_CHAIN_TYPE) {
       if (hardforkGte(resolvedHardfork, L1HardforkName.LONDON, chainType)) {
         if (minGasPrice !== undefined) {

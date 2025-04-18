@@ -39,7 +39,7 @@ import {
   EDR_NETWORK_DEFAULT_COINBASE,
 } from "./edr/edr-provider.js";
 import {
-  getLatestHardfork,
+  getCurrentHardfork,
   L1HardforkName,
   OpHardforkName,
 } from "./edr/types/hardfork.js";
@@ -374,7 +374,7 @@ export function resolveHardfork(
     return hardfork;
   }
 
-  return getLatestHardfork(chainType);
+  return getCurrentHardfork(chainType);
 }
 
 export function resolveInitialBaseFeePerGas(

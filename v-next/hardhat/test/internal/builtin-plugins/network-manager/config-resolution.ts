@@ -35,7 +35,7 @@ import {
 } from "../../../../src/internal/builtin-plugins/network-manager/edr/edr-provider.js";
 import {
   L1HardforkName,
-  getLatestHardfork,
+  getCurrentHardfork,
 } from "../../../../src/internal/builtin-plugins/network-manager/edr/types/hardfork.js";
 import {
   isEdrNetworkForkingConfig,
@@ -663,15 +663,15 @@ describe("config-resolution", () => {
       assert.equal(hardfork, L1HardforkName.LONDON);
     });
 
-    it("should return the latest hardfork if no hardfork is provided", () => {
+    it("should return the current hardfork if no hardfork is provided", () => {
       let hardfork = resolveHardfork(undefined, L1_CHAIN_TYPE, true);
-      assert.equal(hardfork, getLatestHardfork(L1_CHAIN_TYPE));
+      assert.equal(hardfork, getCurrentHardfork(L1_CHAIN_TYPE));
 
       hardfork = resolveHardfork(undefined, undefined, true);
-      assert.equal(hardfork, getLatestHardfork(L1_CHAIN_TYPE));
+      assert.equal(hardfork, getCurrentHardfork(L1_CHAIN_TYPE));
 
       hardfork = resolveHardfork(undefined, OPTIMISM_CHAIN_TYPE, true);
-      assert.equal(hardfork, getLatestHardfork(OPTIMISM_CHAIN_TYPE));
+      assert.equal(hardfork, getCurrentHardfork(OPTIMISM_CHAIN_TYPE));
     });
   });
 
