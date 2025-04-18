@@ -78,7 +78,7 @@ describe("Reporter", () => {
     await remove(RESULT_FILE_PATH);
 
     process.env.HARDHAT_TEST_INTERACTIVE_ENV = "true";
-    process.env.HARDHAT_TEST_TELEMETRY_CONSENT_VALUE = "true";
+    delete process.env.HARDHAT_TEST_TELEMETRY_ENABLED;
   });
 
   afterEach(async () => {
@@ -88,7 +88,7 @@ describe("Reporter", () => {
     await remove(RESULT_FILE_PATH);
 
     delete process.env.HARDHAT_TEST_INTERACTIVE_ENV;
-    delete process.env.HARDHAT_TEST_TELEMETRY_CONSENT_VALUE;
+    delete process.env.HARDHAT_TEST_TELEMETRY_ENABLED;
   });
 
   describe("reportError", () => {
@@ -100,8 +100,8 @@ describe("Reporter", () => {
       assert.equal(wasSent, false);
     });
 
-    it("should not report the error because telemetry consent is not given", async () => {
-      process.env.HARDHAT_TEST_TELEMETRY_CONSENT_VALUE = "false";
+    it("should not report the error because the user explicitly opted out of telemetry", async () => {
+      process.env.HARDHAT_TEST_TELEMETRY_ENABLED = "false";
 
       const wasSent = await sendErrorTelemetry(TEST_HARDHAT_ERROR);
 

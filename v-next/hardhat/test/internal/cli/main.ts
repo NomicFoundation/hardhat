@@ -247,6 +247,7 @@ AVAILABLE TASKS:
   node                     Starts a JSON-RPC server on top of Hardhat Network
   run                      Runs a user-defined script after compiling the project
   task                     A task that uses arg1
+  telemetry                Displays and modifies your telemetry settings
   test                     Runs all your tests
   verify                   Not implemented yet - to be available soon
 

@@ -6,15 +6,14 @@ import { writeJsonFile } from "@nomicfoundation/hardhat-utils/fs";
 
 import { isTelemetryAllowed } from "../../../../src/internal/cli/telemetry/telemetry-permissions.js";
 
-async function setTelemetryConsentFile(filePath: string, consent: boolean) {
-  await writeJsonFile(filePath, { consent });
+async function setTelemetryConfigFile(filePath: string, enabled: boolean) {
+  await writeJsonFile(filePath, { enabled });
 }
 
 describe("telemetry-permissions", () => {
-  // We use a tmp dir and store the telemetry consent file there, using a
-  // relative path
+  // We use a tmp dir and store the telemetry config file there, using a relative path
   useTmpDir("telemetry-permissions");
-  const CONSENT_FILE_PATH = "./telemetry-consent.json";
+  const CONFIG_FILE_PATH = "./telemetry-config.json";
 
   beforeEach(async () => {
     delete process.env.HARDHAT_TEST_INTERACTIVE_ENV;
@@ -26,32 +25,32 @@ describe("telemetry-permissions", () => {
 
   describe("isTelemetryAllowed", () => {
     it("should return false because not an interactive environment", async () => {
-      await setTelemetryConsentFile(CONSENT_FILE_PATH, true);
+      await setTelemetryConfigFile(CONFIG_FILE_PATH, true);
 
-      const res = await isTelemetryAllowed(CONSENT_FILE_PATH);
+      const res = await isTelemetryAllowed(CONFIG_FILE_PATH);
       assert.equal(res, false);
     });
 
-    it("should return false because the user did not give telemetry consent", async () => {
+    it("should return false because the user explicitly opted out of telemetry", async () => {
       process.env.HARDHAT_TEST_INTERACTIVE_ENV = "true";
-      await setTelemetryConsentFile(CONSENT_FILE_PATH, false);
+      await setTelemetryConfigFile(CONFIG_FILE_PATH, false);
 
-      const res = await isTelemetryAllowed(CONSENT_FILE_PATH);
+      const res = await isTelemetryAllowed(CONFIG_FILE_PATH);
       assert.equal(res, false);
     });
 
-    it("should return false because the telemetry consent is not set", async () => {
+    it("should return true because the user did not explicitly opt out of telemetry", async () => {
       process.env.HARDHAT_TEST_INTERACTIVE_ENV = "true";
 
-      const res = await isTelemetryAllowed(CONSENT_FILE_PATH);
-      assert.equal(res, false);
+      const res = await isTelemetryAllowed(CONFIG_FILE_PATH);
+      assert.equal(res, true);
     });
 
-    it("should return true because the user gave telemetry consent", async () => {
+    it("should return true because the user explicitly opted in to telemetry", async () => {
       process.env.HARDHAT_TEST_INTERACTIVE_ENV = "true";
-      await setTelemetryConsentFile(CONSENT_FILE_PATH, true);
+      await setTelemetryConfigFile(CONFIG_FILE_PATH, true);
 
-      const res = await isTelemetryAllowed(CONSENT_FILE_PATH);
+      const res = await isTelemetryAllowed(CONFIG_FILE_PATH);
       assert.equal(res, true);
     });
   });

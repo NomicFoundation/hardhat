@@ -8,7 +8,7 @@ import { readJsonFile, remove } from "@nomicfoundation/hardhat-utils/fs";
 
 import {
   sendTaskAnalytics,
-  sendTelemetryConsentAnalytics,
+  sendTelemetryConfigAnalytics,
 } from "../../../../../src/internal/cli/telemetry/analytics/analytics.js";
 import { getHardhatVersion } from "../../../../../src/internal/utils/package.js";
 import {
@@ -30,16 +30,16 @@ const RESULT_FILE_PATH = path.join(
 
 describe("analytics", () => {
   beforeEach(async () => {
-    process.env.HARDHAT_TEST_TELEMETRY_CONSENT_VALUE = "true";
+    delete process.env.HARDHAT_TEST_TELEMETRY_ENABLED;
   });
 
   afterEach(async () => {
-    delete process.env.HARDHAT_TEST_TELEMETRY_CONSENT_VALUE;
+    delete process.env.HARDHAT_TEST_TELEMETRY_ENABLED;
   });
 
   describe("running in non interactive environment", () => {
-    it("should not send consent because the environment is non interactive", async () => {
-      const wasSent = await sendTelemetryConsentAnalytics(true);
+    it("should not send telemetry config because the environment is non interactive", async () => {
+      const wasSent = await sendTelemetryConfigAnalytics(true);
       assert.equal(wasSent, false);
     });
 
@@ -67,44 +67,44 @@ describe("analytics", () => {
       await remove(RESULT_FILE_PATH);
     });
 
-    it("should create the correct payload for the telemetry consent (positive consent)", async () => {
-      await sendTelemetryConsentAnalytics(true);
+    it("should create the correct payload for the telemetry config (telemetry enabled)", async () => {
+      await sendTelemetryConfigAnalytics(true);
 
       await checkIfSubprocessWasExecuted(RESULT_FILE_PATH);
 
       const result = await readJsonFile(RESULT_FILE_PATH);
 
       assert.deepEqual(result, {
-        client_id: "hardhat_telemetry_consent",
-        user_id: "hardhat_telemetry_consent",
+        client_id: "hardhat_telemetry_config",
+        user_id: "hardhat_telemetry_config",
         user_properties: {},
         events: [
           {
-            name: "TelemetryConsentResponse",
+            name: "TelemetryConfig",
             params: {
-              userConsent: "yes",
+              enabled: true,
             },
           },
         ],
       });
     });
 
-    it("should create the correct payload for the telemetry consent (negative consent)", async () => {
-      await sendTelemetryConsentAnalytics(false);
+    it("should create the correct payload for the telemetry config (telemetry disabled)", async () => {
+      await sendTelemetryConfigAnalytics(false);
 
       await checkIfSubprocessWasExecuted(RESULT_FILE_PATH);
 
       const result = await readJsonFile(RESULT_FILE_PATH);
 
       assert.deepEqual(result, {
-        client_id: "hardhat_telemetry_consent",
-        user_id: "hardhat_telemetry_consent",
+        client_id: "hardhat_telemetry_config",
+        user_id: "hardhat_telemetry_config",
         user_properties: {},
         events: [
           {
-            name: "TelemetryConsentResponse",
+            name: "TelemetryConfig",
             params: {
-              userConsent: "no",
+              enabled: false,
             },
           },
         ],
@@ -136,8 +136,8 @@ describe("analytics", () => {
       assert.equal(result.events[0].params.task, "task, subtask");
     });
 
-    it("should not send analytics because the consent is not given", async () => {
-      process.env.HARDHAT_TEST_TELEMETRY_CONSENT_VALUE = "false";
+    it("should not send analytics because the user explicitly opted out of telemetry", async () => {
+      process.env.HARDHAT_TEST_TELEMETRY_ENABLED = "false";
 
       const wasSent = await sendTaskAnalytics(["task", "subtask"]);
       assert.equal(wasSent, false);
