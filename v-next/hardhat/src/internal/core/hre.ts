@@ -25,7 +25,6 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { findClosestPackageRoot } from "@nomicfoundation/hardhat-utils/package";
 import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
 
-
 import { validateUserConfig } from "./config-validation.js";
 import { resolveConfigurationVariable } from "./configuration-variables.js";
 import {

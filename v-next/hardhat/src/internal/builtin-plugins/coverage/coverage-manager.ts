@@ -22,7 +22,7 @@ export class CoverageManagerImplementation implements CoverageManager {
     if (this.#coverageManager === undefined) {
       const coveragePath =
         process.env.HARDHAT_COVERAGE_PATH ??
-        (await getEmptyTmpDir("hardhat:builtin:coverage"));
+        (await getEmptyTmpDir("hardhat-coverage"));
       // NOTE: Saving the environment variable so that any subprocesses that
       // inherit the env will operate inside the same coverage path
       process.env.HARDHAT_COVERAGE_PATH = coveragePath;
