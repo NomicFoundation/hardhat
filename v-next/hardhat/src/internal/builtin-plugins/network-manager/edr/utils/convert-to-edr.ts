@@ -69,11 +69,9 @@ export function hardhatHardforkToEdrSpecId(
   hardfork: string,
   chainType: ChainType,
 ): string {
-  if (chainType === OPTIMISM_CHAIN_TYPE) {
-    return hardhatOpHardforkToEdrSpecId(hardfork);
-  } else {
-    return hardhatL1HardforkToEdrSpecId(hardfork);
-  }
+  return chainType === OPTIMISM_CHAIN_TYPE
+    ? hardhatOpHardforkToEdrSpecId(hardfork)
+    : hardhatL1HardforkToEdrSpecId(hardfork);
 }
 
 function hardhatOpHardforkToEdrSpecId(hardfork: string): string {
