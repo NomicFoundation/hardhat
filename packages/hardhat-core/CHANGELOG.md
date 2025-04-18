@@ -1,5 +1,12 @@
 # hardhat
 
+## 2.23.1
+
+### Patch Changes
+
+- a7aa6d6: Upgraded EDR to (https://github.com/NomicFoundation/edr/releases/tag/%40nomicfoundation%2Fedr%400.11.0):
+  - Replaced const enums with non-const enums in \*.d.ts files
+
 ## 2.23.0
 
 ### Minor Changes
