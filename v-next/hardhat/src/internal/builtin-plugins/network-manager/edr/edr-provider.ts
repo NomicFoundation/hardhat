@@ -11,6 +11,7 @@ import type {
   RequestArguments,
   SuccessfulJsonRpcResponse,
 } from "../../../../types/providers.js";
+import type { RequireField } from "../../../../types/utils.js";
 import type { DefaultHDAccountsConfigParams } from "../accounts/constants.js";
 import type { JsonRpcRequestWrapperFunction } from "../network-manager.js";
 import type {
@@ -125,7 +126,7 @@ export const EDR_NETWORK_DEFAULT_PRIVATE_KEYS: string[] = [
 ];
 
 interface EdrProviderConfig {
-  networkConfig: EdrNetworkConfig;
+  networkConfig: RequireField<EdrNetworkConfig, "chainType">;
   loggerConfig?: LoggerConfig;
   tracingConfig?: TracingConfigWithBuffers;
   jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction;
@@ -152,12 +153,6 @@ export class EdrProvider extends BaseProvider {
     const providerConfig = await getProviderConfig(networkConfig);
 
     let edrProvider: EdrProvider;
-
-    // The chainType can't be undefined, as it's always set on connect()
-    assertHardhatInvariant(
-      networkConfig.chainType !== undefined,
-      "The chain type is undefined",
-    );
 
     // We need to catch errors here, as the provider creation can panic unexpectedly,
     // and we want to make sure such a crash is propagated as a ProviderError.
@@ -388,14 +383,8 @@ export class EdrProvider extends BaseProvider {
 }
 
 async function getProviderConfig(
-  networkConfig: EdrNetworkConfig,
+  networkConfig: RequireField<EdrNetworkConfig, "chainType">,
 ): Promise<ProviderConfig> {
-  // The chainType can't be undefined, as it's always set on connect()
-  assertHardhatInvariant(
-    networkConfig.chainType !== undefined,
-    "The chain type is undefined",
-  );
-
   const specId = hardhatHardforkToEdrSpecId(
     networkConfig.hardfork,
     networkConfig.chainType,
