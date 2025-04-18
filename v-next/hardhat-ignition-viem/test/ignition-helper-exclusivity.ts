@@ -1,4 +1,3 @@
-import type { NetworkConfigOverride } from "hardhat/types/config";
 import type { HookContext, NetworkHooks } from "hardhat/types/hooks";
 import type { ChainType, NetworkConnection } from "hardhat/types/network";
 import type { HardhatPlugin } from "hardhat/types/plugins";
@@ -19,22 +18,12 @@ describe("ignition helper mutual exclusivity", () => {
         const handlers: Partial<NetworkHooks> = {
           async newConnection<ChainTypeT extends ChainType | string>(
             context: HookContext,
-            networkName: string | undefined,
-            chainType: ChainTypeT | undefined,
-            networkConfigOverride: NetworkConfigOverride | undefined,
             next: (
               context: HookContext,
-              networkName: string | undefined,
-              chainType: ChainTypeT | undefined,
-              networkConfigOverride: NetworkConfigOverride | undefined,
             ) => Promise<NetworkConnection<ChainTypeT>>,
           ) {
-            const connection: NetworkConnection<ChainTypeT> = await next(
-              context,
-              networkName,
-              chainType,
-              networkConfigOverride,
-            );
+            const connection: NetworkConnection<ChainTypeT> =
+              await next(context);
 
             // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- we are using a fake intentionally for the test
             connection.ignition = {

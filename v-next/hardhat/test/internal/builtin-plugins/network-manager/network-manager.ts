@@ -5,7 +5,6 @@ import type {
   HttpNetworkConfigOverride,
   HttpNetworkUserConfig,
   NetworkConfig,
-  NetworkConfigOverride,
   NetworkUserConfig,
 } from "../../../../src/types/config.js";
 import type { NetworkHooks } from "../../../../src/types/hooks.js";
@@ -308,15 +307,9 @@ describe("NetworkManagerImplementation", () => {
       it("should call the newConnection hook when connecting to a network", async () => {
         let hookCalled = false;
         const networkHooks: Partial<NetworkHooks> = {
-          newConnection: async (
-            context,
-            networkName,
-            chainType,
-            networkConfigOverride,
-            next,
-          ) => {
+          newConnection: async (context, next) => {
             hookCalled = true;
-            return next(context, networkName, chainType, networkConfigOverride);
+            return next(context);
           },
         };
 
@@ -327,83 +320,6 @@ describe("NetworkManagerImplementation", () => {
         hre.hooks.unregisterHandlers("network", networkHooks);
 
         assert.ok(hookCalled, "The newConnection hook was not called");
-      });
-
-      it("should allow modifying the network name, type, and config in the newConnection hook", async () => {
-        let originalNetworkName: string | undefined;
-        let originalChainType: any | undefined;
-        let originalNetworkConfigOverride: NetworkConfigOverride | undefined;
-
-        const expectedNetworkName: string = "test";
-        const expectedChainType: any = GENERIC_CHAIN_TYPE;
-        const expectedNetworkConfigOverride: NetworkConfigOverride = {
-          url: "http://localhost:8545",
-          accounts: ["0x1234567890123456789012345678901234567890"],
-        };
-
-        let actualNetworkName: string | undefined;
-        let actualChainType: any | undefined;
-        let actualNetworkConfigOverride: NetworkConfigOverride | undefined;
-
-        const networkHooks: Array<Partial<NetworkHooks>> = [
-          {
-            newConnection: async (
-              context,
-              networkName,
-              chainType,
-              networkConfigOverride,
-              next,
-            ) => {
-              originalNetworkName = networkName;
-              originalChainType = chainType;
-              originalNetworkConfigOverride = networkConfigOverride;
-
-              return next(
-                context,
-                expectedNetworkName,
-                expectedChainType,
-                expectedNetworkConfigOverride,
-              );
-            },
-          },
-          {
-            newConnection: async (
-              context,
-              networkName,
-              chainType,
-              networkConfigOverride,
-              next,
-            ) => {
-              actualNetworkName = networkName;
-              actualChainType = chainType;
-              actualNetworkConfigOverride = networkConfigOverride;
-
-              return next(
-                context,
-                originalNetworkName,
-                originalChainType,
-                originalNetworkConfigOverride,
-              );
-            },
-          },
-        ];
-
-        for (const hooks of networkHooks.reverse()) {
-          hre.hooks.registerHandlers("network", hooks);
-        }
-
-        await networkManager.connect();
-
-        for (const hooks of networkHooks) {
-          hre.hooks.unregisterHandlers("network", hooks);
-        }
-
-        assert.equal(actualNetworkName, expectedNetworkName);
-        assert.equal(actualChainType, expectedChainType);
-        assert.deepEqual(
-          actualNetworkConfigOverride,
-          expectedNetworkConfigOverride,
-        );
       });
     });
 

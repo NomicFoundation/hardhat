@@ -1,4 +1,3 @@
-import type { NetworkConfigOverride } from "hardhat/types/config";
 import type { HookContext, NetworkHooks } from "hardhat/types/hooks";
 import type { ChainType, NetworkConnection } from "hardhat/types/network";
 
@@ -8,26 +7,9 @@ export default async (): Promise<Partial<NetworkHooks>> => {
   const handlers: Partial<NetworkHooks> = {
     async newConnection<ChainTypeT extends ChainType | string>(
       context: HookContext,
-      networkName: string | undefined,
-      chainType: ChainTypeT | undefined,
-      networkConfigOverride: NetworkConfigOverride | undefined,
-      next: (
-        context: HookContext,
-        networkName: string | undefined,
-        chainType: ChainTypeT | undefined,
-        networkConfigOverride: NetworkConfigOverride | undefined,
-      ) => Promise<NetworkConnection<ChainTypeT>>,
+      next: (context: HookContext) => Promise<NetworkConnection<ChainTypeT>>,
     ) {
-      if (context.globalOptions.coverage === true) {
-        // TODO: Enable coverage if network config override exposes a coverage toggle
-      }
-
-      const connection = await next(
-        context,
-        networkName,
-        chainType,
-        networkConfigOverride,
-      );
+      const connection = await next(context);
 
       if (context.globalOptions.coverage === true) {
         if (connection.provider instanceof EdrProvider) {

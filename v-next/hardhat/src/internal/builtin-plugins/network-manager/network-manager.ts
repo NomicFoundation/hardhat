@@ -71,17 +71,12 @@ export class NetworkManagerImplementation implements NetworkManager {
     const networkConnection = await this.#hookManager.runHandlerChain(
       "network",
       "newConnection",
-      [networkName, chainType, networkConfigOverride],
-      async (
-        _nextContext,
-        nextNetworkName,
-        nextChainType,
-        nextNetworkConfigOverride,
-      ) =>
+      [],
+      async (_nextContext) =>
         this.#initializeNetworkConnection(
-          nextNetworkName,
-          nextChainType,
-          nextNetworkConfigOverride,
+          networkName,
+          chainType,
+          networkConfigOverride,
         ),
     );
 
