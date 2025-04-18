@@ -47,7 +47,7 @@ export interface BuildOptions {
   quiet?: boolean;
 
   /**
-   * If `true`, the root files will be instrumented before compilation.
+   * If `true`, the project files will be instrumented before compilation.
    */
   coverage?: boolean;
 }
