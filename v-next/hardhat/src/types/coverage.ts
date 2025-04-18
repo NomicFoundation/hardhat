@@ -4,5 +4,5 @@ export interface CoverageReport {
 
 export interface CoverageManager {
   save(): Promise<void>;
-  read(): Promise<CoverageReport>;
+  load(): Promise<CoverageReport>;
 }

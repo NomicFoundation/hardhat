@@ -1,7 +1,8 @@
-import type { InternalCoverageManager } from "../types.js";
 import type { NetworkConfigOverride } from "hardhat/types/config";
 import type { HookContext, NetworkHooks } from "hardhat/types/hooks";
 import type { ChainType, NetworkConnection } from "hardhat/types/network";
+
+import { EdrProvider } from "../../network-manager/edr/edr-provider.js";
 
 export default async (): Promise<Partial<NetworkHooks>> => {
   const handlers: Partial<NetworkHooks> = {
@@ -29,9 +30,16 @@ export default async (): Promise<Partial<NetworkHooks>> => {
       );
 
       if (context.globalOptions.coverage === true) {
-        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- We need to access internal coverage manager methods
-        const coverageManager = context.coverage as InternalCoverageManager;
-        await coverageManager.handleNewConnection(connection);
+        if (connection.provider instanceof EdrProvider) {
+          const { CoverageManagerImplementation } = await import(
+            "../internal/coverage-manager.js"
+          );
+          const coverageManager = CoverageManagerImplementation.getOrCreate();
+          await coverageManager.addProvider(
+            connection.id.toString(),
+            connection.provider,
+          );
+        }
       }
 
       return connection;
@@ -45,9 +53,16 @@ export default async (): Promise<Partial<NetworkHooks>> => {
       ) => Promise<void>,
     ) {
       if (context.globalOptions.coverage === true) {
-        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- We need to access internal coverage manager methods
-        const coverageManager = context.coverage as InternalCoverageManager;
-        await coverageManager.handleCloseConnection(connection);
+        if (connection.provider instanceof EdrProvider) {
+          const { CoverageManagerImplementation } = await import(
+            "../internal/coverage-manager.js"
+          );
+          const coverageManager = CoverageManagerImplementation.getOrCreate();
+          await coverageManager.addProvider(
+            connection.id.toString(),
+            connection.provider,
+          );
+        }
       }
 
       await next(context, connection);

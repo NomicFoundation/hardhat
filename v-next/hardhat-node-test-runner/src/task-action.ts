@@ -73,6 +73,8 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   const imports = [tsx.href];
 
   if (hre.globalOptions.coverage === true) {
+    // NOTE: Saving the environment variable to ensure node:test workers operate
+    // with the information that the global --coverage option is enabled
     process.env.HARDHAT_COVERAGE = "true";
     const runner = new URL(
       import.meta.resolve("@nomicfoundation/hardhat-node-test-runner/coverage"),
@@ -117,7 +119,7 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
     await pipeline(reporterStream, createNonClosingWriter(process.stdout));
 
     if (hre.globalOptions.coverage === true) {
-      const report = await hre.coverage.read();
+      const report = await hre.coverage.load();
       log("Coverage report", report);
     }
 
