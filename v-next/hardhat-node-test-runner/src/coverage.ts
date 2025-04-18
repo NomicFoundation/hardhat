@@ -14,6 +14,16 @@ const report: CoverageReport = {
 };
 const providers: Record<number, EthereumProvider> = {};
 
+// NOTE: If close connection hooks were triggered for all the connections before
+// a process exits, we could move this entire logic to the builtin:coverage plugin
+// We would then write a report to disk for each closed connection
+// NOTE: Similarly, if EDR exposed callback push API, we could also move this entire
+// logic to the builtin:coverage plugin.
+// We would then write a report to disk for each* received callback
+// *We could debounce callbacks to produce fewer disk writes
+// NOTE: Otherwise, we need to know exectly when all the tests are complete
+// and we need to use test runner specific constructs - i.e. an after block
+
 before(async () => {
   const networkHooks: Partial<NetworkHooks> = {
     newConnection: async (
@@ -39,10 +49,6 @@ before(async () => {
 
       return connection;
     },
-    // NOTE: If close connection hooks were triggered for all the connections before
-    // a process exits, we could move this entire logic to the builtin:coverage plugin
-    // Otherwise, we need to rely on test runner specific after block as an indication
-    // for when all the tests are done
     closeConnection: async (context, connection, next) => {
       if (connection.networkConfig.type === "edr") {
         // TODO: Get the coverage data from the EDR provider before it is closed
