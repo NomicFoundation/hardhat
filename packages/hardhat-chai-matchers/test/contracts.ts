@@ -1,9 +1,12 @@
 import {
   BaseContract,
-  BaseContractMethod,
+  // eslint-disable-next-line prettier/prettier
+  type BaseContractMethod,
   ContractTransactionResponse,
-  BigNumberish,
-  AddressLike,
+  // eslint-disable-next-line prettier/prettier
+  type BigNumberish,
+  // eslint-disable-next-line prettier/prettier
+  type AddressLike,
 } from "ethers";
 
 export type MatchersContract = BaseContract & {
