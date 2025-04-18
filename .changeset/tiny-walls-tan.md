@@ -1,6 +1,4 @@
 ---
-"@nomicfoundation/hardhat-ethers-chai-matchers": patch
-"@nomicfoundation/hardhat-node-test-coverage": patch
 "@nomicfoundation/hardhat-node-test-runner": patch
 "hardhat": patch
 ---
