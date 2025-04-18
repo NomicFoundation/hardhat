@@ -244,36 +244,31 @@ function refineEdrNetworkUserConfig(
     }
 
     if (chains !== undefined) {
-      let chainIdx = 0;
-      for (const [chainId, chainConfig] of chains) {
+      Array.from(chains).forEach(([chainId, chainConfig], chainIdx) => {
         if (chainConfig.hardforkHistory === undefined) {
-          chainIdx++;
-          continue;
+          return;
         }
 
-        const chainLevelChainType = chainConfig.chainType ?? GENERIC_CHAIN_TYPE;
-        let hardforkHistoryIdx = 0;
-        for (const [hardforkName] of chainConfig.hardforkHistory) {
-          if (!isValidHardforkName(hardforkName, chainLevelChainType)) {
-            ctx.addIssue({
-              code: z.ZodIssueCode.custom,
-              path: [
-                "chains",
-                chainIdx,
-                "value",
-                "hardforkHistory",
-                hardforkHistoryIdx,
-                "value",
-              ],
-              message: `Invalid hardfork name ${hardforkName} found in chain ${chainId}. Expected ${getHardforks(
-                chainLevelChainType,
-              ).join(" | ")}.`,
-            });
-          }
-          hardforkHistoryIdx++;
-        }
-        chainIdx++;
-      }
+        const type = chainConfig.chainType ?? GENERIC_CHAIN_TYPE;
+        Array.from(chainConfig.hardforkHistory).forEach(
+          ([name], hardforkIdx) => {
+            if (!isValidHardforkName(name, type)) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: [
+                  "chains",
+                  chainIdx,
+                  "value",
+                  "hardforkHistory",
+                  hardforkIdx,
+                  "value",
+                ],
+                message: `Invalid hardfork name ${name} found in chain ${chainId}. Expected ${getHardforks(type).join(" | ")}.`,
+              });
+            }
+          },
+        );
+      });
     }
 
     const resolvedHardfork = hardfork ?? getCurrentHardfork(chainType);
