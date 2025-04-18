@@ -12,6 +12,8 @@ describe("hardhat-toolbox-mocha-ethers", function () {
     useFixtureProject("toolbox");
 
     it("should not throw because all the plugins should exist", async function () {
+      // This is the flaky test
+
       const hardhatConfig = await import(
         pathToFileURL(path.join(process.cwd(), "hardhat.config.js")).href
       );
