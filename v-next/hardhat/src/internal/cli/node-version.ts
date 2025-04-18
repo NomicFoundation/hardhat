@@ -3,7 +3,7 @@
 
 import chalk from "chalk";
 
-export const MIN_SUPPORTED_NODE_VERSION: number[] = [22, 10, 0];
+export const MIN_SUPPORTED_NODE_VERSION: number[] = [23, 10, 0];
 
 export function isNodeVersionSupported(): boolean {
   try {
