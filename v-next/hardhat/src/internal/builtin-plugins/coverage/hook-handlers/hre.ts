@@ -1,6 +1,6 @@
 import type {
   CoverageManager,
-  CoverageReport,
+  CoverageHits,
 } from "../../../../types/coverage.js";
 import type { HardhatRuntimeEnvironmentHooks } from "../../../../types/hooks.js";
 
@@ -15,14 +15,14 @@ export class LazyCoverageManager implements CoverageManager {
     this.#coveragePath = coveragePath;
   }
 
-  public async save(): Promise<void> {
+  public async saveProviderHits(): Promise<void> {
     const coverageManager = await this.#getCoverageManager();
-    return coverageManager.save();
+    return coverageManager.saveProviderHits();
   }
 
-  public async load(): Promise<CoverageReport> {
+  public async loadProviderHits(): Promise<CoverageHits> {
     const coverageManager = await this.#getCoverageManager();
-    return coverageManager.load();
+    return coverageManager.loadProviderHits();
   }
 
   async #getCoverageManager(): Promise<CoverageManager> {
