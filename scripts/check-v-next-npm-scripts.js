@@ -20,11 +20,6 @@ for (const dir of dirs) {
     continue;
   }
 
-  // Same with the coverage collector, we don't use the same scripts
-  if (dir.name === "hardhat-node-test-coverage") {
-    continue;
-  }
-
   // Same with the example project, we don't use the same scripts
   if (dir.name === "example-project") {
     continue;

@@ -1247,64 +1247,6 @@ importers:
         specifier: 7.7.1
         version: 7.7.1(eslint@8.57.0)(typescript@5.5.4)
 
-  v-next/hardhat-node-test-coverage:
-    dependencies:
-      '@nomicfoundation/hardhat-errors':
-        specifier: workspace:3.0.0-next.4
-        version: link:../hardhat-errors
-      '@nomicfoundation/hardhat-utils':
-        specifier: workspace:3.0.0-next.4
-        version: link:../hardhat-utils
-      hardhat:
-        specifier: workspace:^3.0.0-next.4
-        version: link:../hardhat
-    devDependencies:
-      '@types/node':
-        specifier: ^20.14.9
-        version: 20.17.16
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^7.7.1
-        version: 7.18.0(@typescript-eslint/parser@7.18.0(eslint@8.57.0)(typescript@5.5.4))(eslint@8.57.0)(typescript@5.5.4)
-      '@typescript-eslint/parser':
-        specifier: ^7.7.1
-        version: 7.18.0(eslint@8.57.0)(typescript@5.5.4)
-      c8:
-        specifier: ^9.1.0
-        version: 9.1.0
-      eslint:
-        specifier: 8.57.0
-        version: 8.57.0
-      eslint-config-prettier:
-        specifier: 9.1.0
-        version: 9.1.0(eslint@8.57.0)
-      eslint-import-resolver-typescript:
-        specifier: ^3.6.1
-        version: 3.7.0(eslint-plugin-import@2.29.1)(eslint@8.57.0)
-      eslint-plugin-import:
-        specifier: 2.29.1
-        version: 2.29.1(@typescript-eslint/parser@7.18.0(eslint@8.57.0)(typescript@5.5.4))(eslint-import-resolver-typescript@3.7.0)(eslint@8.57.0)
-      eslint-plugin-no-only-tests:
-        specifier: 3.1.0
-        version: 3.1.0
-      expect-type:
-        specifier: ^0.19.0
-        version: 0.19.0
-      prettier:
-        specifier: 3.2.5
-        version: 3.2.5
-      rimraf:
-        specifier: ^5.0.5
-        version: 5.0.10
-      tsx:
-        specifier: ^4.19.3
-        version: 4.19.3
-      typescript:
-        specifier: ~5.5.0
-        version: 5.5.4
-      typescript-eslint:
-        specifier: 7.7.1
-        version: 7.7.1(eslint@8.57.0)(typescript@5.5.4)
-
   v-next/hardhat-node-test-reporter:
     dependencies:
       '@actions/core':
@@ -1368,9 +1310,6 @@ importers:
       '@nomicfoundation/hardhat-errors':
         specifier: workspace:^3.0.0-next.4
         version: link:../hardhat-errors
-      '@nomicfoundation/hardhat-node-test-coverage':
-        specifier: workspace:3.0.0-next.4
-        version: link:../hardhat-node-test-coverage
       '@nomicfoundation/hardhat-node-test-reporter':
         specifier: workspace:^3.0.0-next.4
         version: link:../hardhat-node-test-reporter
