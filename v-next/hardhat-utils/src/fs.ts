@@ -8,7 +8,7 @@ import { pipeline } from "node:stream/promises";
 import { JSONParser } from "@streamparser/json-node";
 import { JsonStreamStringify } from "json-stream-stringify";
 
-import { ensureNodeErrnoExceptionError } from "./error.js";
+import { ensureError, ensureNodeErrnoExceptionError } from "./error.js";
 import {
   FileNotFoundError,
   FileSystemAccessError,
@@ -189,7 +189,7 @@ export async function readJsonFile<T>(absolutePathToFile: string): Promise<T> {
   try {
     return JSON.parse(content.toString());
   } catch (e) {
-    ensureNodeErrnoExceptionError(e);
+    ensureError(e);
     throw new InvalidFileFormatError(absolutePathToFile, e);
   }
 }
@@ -241,19 +241,22 @@ export async function readJsonFileAsStream<T>(
 
     return result;
   } catch (e) {
-    ensureNodeErrnoExceptionError(e);
-
-    if (e.code === "ENOENT") {
-      throw new FileNotFoundError(absolutePathToFile, e);
-    }
-
-    if (e.code === "EISDIR") {
-      throw new IsDirectoryError(absolutePathToFile, e);
-    }
+    ensureError(e);
 
     // If the code is defined, we assume the error to be related to the file system
-    if (e.code !== undefined) {
-      throw new FileSystemAccessError(absolutePathToFile, e);
+    if ("code" in e) {
+      if (e.code === "ENOENT") {
+        throw new FileNotFoundError(absolutePathToFile, e);
+      }
+
+      if (e.code === "EISDIR") {
+        throw new IsDirectoryError(absolutePathToFile, e);
+      }
+
+      // If the code is defined, we assume the error to be related to the file system
+      if (e.code !== undefined) {
+        throw new FileSystemAccessError(absolutePathToFile, e);
+      }
     }
 
     // Otherwise, we assume the error to be related to the file formatting
@@ -281,7 +284,7 @@ export async function writeJsonFile<T>(
   try {
     content = JSON.stringify(object, null, 2);
   } catch (e) {
-    ensureNodeErrnoExceptionError(e);
+    ensureError(e);
     throw new JsonSerializationError(absolutePathToFile, e);
   }
 
@@ -318,7 +321,7 @@ export async function writeJsonFileAsStream<T>(
 
     await pipeline(jsonStream, fileWriteStream);
   } catch (e) {
-    ensureNodeErrnoExceptionError(e);
+    ensureError(e);
     // if the directory was created, we should remove it
     if (dirExists === false) {
       try {
@@ -328,7 +331,7 @@ export async function writeJsonFileAsStream<T>(
     }
 
     // If the code is defined, we assume the error to be related to the file system
-    if (e.code !== undefined) {
+    if ("code" in e && e.code !== undefined) {
       throw new FileSystemAccessError(e.message, e);
     }
 
