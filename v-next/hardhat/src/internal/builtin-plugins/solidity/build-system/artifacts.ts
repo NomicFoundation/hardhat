@@ -6,6 +6,7 @@ import type {
 } from "../../../../types/solidity/compiler-io.js";
 import type {
   SolidityBuildInfo,
+  SolidityBuildInfoCoverage,
   SolidityBuildInfoOutput,
 } from "../../../../types/solidity/solidity-artifacts.js";
 
@@ -136,4 +137,15 @@ export async function getBuildInfoOutput(
   };
 
   return buildInfoOutput;
+}
+
+export async function getBuildInfoCoverage(
+  compilationJob: CompilationJob,
+): Promise<SolidityBuildInfoCoverage> {
+  const buildInfoCoverage: Required<SolidityBuildInfoCoverage> = {
+    _format: "hh3-sol-build-info-coverage-1",
+    metadata: compilationJob.getCoverageMetadata(),
+  };
+
+  return buildInfoCoverage;
 }

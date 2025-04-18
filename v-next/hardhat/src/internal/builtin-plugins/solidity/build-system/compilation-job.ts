@@ -2,12 +2,15 @@ import type { DependencyGraphImplementation } from "./dependency-graph.js";
 import type { Remapping } from "./resolver/types.js";
 import type { BuildInfo } from "../../../../types/artifacts.js";
 import type { SolcConfig } from "../../../../types/config.js";
+import type { CoverageMetadata } from "../../../../types/coverage.js";
 import type { CompilationJob } from "../../../../types/solidity/compilation-job.js";
 import type { CompilerInput } from "../../../../types/solidity/compiler-io.js";
 import type { DependencyGraph } from "../../../../types/solidity/dependency-graph.js";
 import type { ResolvedFile } from "../../../../types/solidity.js";
 
 import { createNonCryptographicHashId } from "@nomicfoundation/hardhat-utils/crypto";
+
+import { ResolvedFileType } from "../../../../types/solidity.js";
 
 import { formatRemapping } from "./resolver/remappings.js";
 import { getEvmVersionFromSolcVersion } from "./solc-info.js";
@@ -18,27 +21,41 @@ export class CompilationJobImplementation implements CompilationJob {
   public readonly solcLongVersion: string;
 
   readonly #remappings: Remapping[];
+  readonly #coverage: boolean;
 
   #buildId: string | undefined;
   #solcInput: CompilerInput | undefined;
   #solcInputWithoutSources: Omit<CompilerInput, "sources"> | undefined;
   #resolvedFiles: ResolvedFile[] | undefined;
+  #coverageMetadata: CoverageMetadata | undefined;
 
   constructor(
     dependencyGraph: DependencyGraphImplementation,
     solcConfig: SolcConfig,
     solcLongVersion: string,
     remappings: Remapping[],
+    coverage: boolean,
   ) {
     this.dependencyGraph = dependencyGraph;
     this.solcConfig = solcConfig;
     this.solcLongVersion = solcLongVersion;
     this.#remappings = remappings;
+    this.#coverage = coverage;
+  }
+
+  public getCoverageMetadata(): CoverageMetadata {
+    if (this.#coverageMetadata === undefined) {
+      [this.#solcInput, this.#coverageMetadata] =
+        this.#buildSolcInputAndCoverageMetadata();
+    }
+
+    return this.#coverageMetadata;
   }
 
   public getSolcInput(): CompilerInput {
     if (this.#solcInput === undefined) {
-      this.#solcInput = this.#buildSolcInput();
+      [this.#solcInput, this.#coverageMetadata] =
+        this.#buildSolcInputAndCoverageMetadata();
     }
 
     return this.#solcInput;
@@ -71,23 +88,41 @@ export class CompilationJobImplementation implements CompilationJob {
     return this.#resolvedFiles;
   }
 
-  #buildSolcInput(): CompilerInput {
+  #buildSolcInputAndCoverageMetadata(): [CompilerInput, CoverageMetadata] {
     const solcInputWithoutSources = this.#getSolcInputWithoutSources();
 
     const sources: { [sourceName: string]: { content: string } } = {};
+    let coverageMetadata: CoverageMetadata = {};
 
     const resolvedFiles = this.#getResolvedFiles();
 
     for (const file of resolvedFiles) {
-      sources[file.sourceName] = {
-        content: file.content.text,
-      };
+      if (this.#coverage && file.type === ResolvedFileType.PROJECT_FILE) {
+        // TODO: Call EDR to instrument the content of the file and obtain the metadata
+        const { content, metadata } = {
+          content: file.content.text,
+          metadata: {},
+        };
+        sources[file.sourceName] = {
+          content,
+        };
+        coverageMetadata = {
+          ...coverageMetadata,
+          ...metadata,
+        };
+      } else {
+        sources[file.sourceName] = {
+          content: file.content.text,
+        };
+      }
     }
 
-    return {
+    const solcInput = {
       ...solcInputWithoutSources,
       sources,
     };
+
+    return [solcInput, coverageMetadata];
   }
 
   #buildSolcInputWithoutSources(): Omit<CompilerInput, "sources"> {
@@ -140,6 +175,10 @@ export class CompilationJobImplementation implements CompilationJob {
     await Promise.all(
       resolvedFiles.map(async (file) => {
         sources[file.sourceName] = {
+          // NOTE: We use the hash of the original content regardless whether
+          // the file is instrumented for coverage or not. This is OK because
+          // we use the coverage flag itself as part of the build ID and the
+          // instrumentation process is deterministic.
           hash: await file.getContentHash(),
         };
       }),
@@ -154,12 +193,14 @@ export class CompilationJobImplementation implements CompilationJob {
     // The preimage should include all the information that makes this
     // compilation job unique, and as this is used to identify the build info
     // file, it also includes its format string.
-    const preimage =
-      format +
-      this.solcLongVersion +
-      JSON.stringify(this.#getSolcInputWithoutSources()) +
-      JSON.stringify(sortedSources) +
-      JSON.stringify(this.solcConfig);
+    const preimage = JSON.stringify({
+      format,
+      solcLongVersion: this.solcLongVersion,
+      solcInput: this.#getSolcInputWithoutSources(),
+      sources: sortedSources,
+      solcConfig: this.solcConfig,
+      coverage: this.#coverage,
+    });
 
     return createNonCryptographicHashId(preimage);
   }

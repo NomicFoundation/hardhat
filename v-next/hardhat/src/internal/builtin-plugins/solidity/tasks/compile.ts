@@ -27,8 +27,9 @@ const compileAction: NewTaskActionFunction<CompileActionArguments> = async (
         });
 
   const results = await solidity.build(rootPaths, {
-    force,
     buildProfile: globalOptions.buildProfile,
+    coverage: globalOptions.coverage,
+    force,
     quiet,
   });
 

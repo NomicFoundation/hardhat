@@ -32,6 +32,7 @@ export type * from "./verify/index.js";
 // plugins.
 export const builtinPlugins: HardhatPlugin[] = [
   artifacts,
+  coverage,
   solidity,
   test,
   solidityTest,
@@ -41,6 +42,5 @@ export const builtinPlugins: HardhatPlugin[] = [
   run,
   node,
   flatten,
-  coverage,
   verify,
 ];

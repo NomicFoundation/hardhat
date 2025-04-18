@@ -13,6 +13,13 @@ const hardhatPlugin: HardhatPlugin = {
       );
       return artifactsPlugin;
     },
+    async () => {
+      // NOTE: builtin:solidity depends on buitin:coverage because it needs to
+      // read the coverage global option in order to know how to generate the
+      // compilation jobs.
+      const { default: coveragePlugin } = await import("../coverage/index.js");
+      return coveragePlugin;
+    },
   ],
   hookHandlers: {
     config: import.meta.resolve("./hook-handlers/config.js"),
