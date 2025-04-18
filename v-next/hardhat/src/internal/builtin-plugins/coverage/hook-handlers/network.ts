@@ -1,8 +1,7 @@
+import type { InternalCoverageManager } from "../types.js";
 import type { NetworkConfigOverride } from "hardhat/types/config";
 import type { HookContext, NetworkHooks } from "hardhat/types/hooks";
 import type { ChainType, NetworkConnection } from "hardhat/types/network";
-
-import { CoverageManagerImplementation } from "../coverage-manager.js";
 
 export default async (): Promise<Partial<NetworkHooks>> => {
   const handlers: Partial<NetworkHooks> = {
@@ -18,8 +17,9 @@ export default async (): Promise<Partial<NetworkHooks>> => {
         networkConfigOverride: NetworkConfigOverride | undefined,
       ) => Promise<NetworkConnection<ChainTypeT>>,
     ) {
-      // TODO: Register for callbacks either with the EDR provider or the network
-      // manager if EDR exposes callback push API
+      if (context.globalOptions.coverage === true) {
+        // TODO: Enable coverage if network config override exposes a coverage toggle
+      }
 
       const connection = await next(
         context,
@@ -28,8 +28,11 @@ export default async (): Promise<Partial<NetworkHooks>> => {
         networkConfigOverride,
       );
 
-      const coverageManager = await CoverageManagerImplementation.getOrCreate();
-      await coverageManager.handleNewConnection(connection);
+      if (context.globalOptions.coverage === true) {
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- We need to access internal coverage manager methods
+        const coverageManager = context.coverage as InternalCoverageManager;
+        await coverageManager.handleNewConnection(connection);
+      }
 
       return connection;
     },
@@ -41,8 +44,11 @@ export default async (): Promise<Partial<NetworkHooks>> => {
         connection: NetworkConnection<ChainTypeT>,
       ) => Promise<void>,
     ) {
-      const coverageManager = await CoverageManagerImplementation.getOrCreate();
-      await coverageManager.handleCloseConnection(connection);
+      if (context.globalOptions.coverage === true) {
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- We need to access internal coverage manager methods
+        const coverageManager = context.coverage as InternalCoverageManager;
+        await coverageManager.handleCloseConnection(connection);
+      }
 
       await next(context, connection);
     },
