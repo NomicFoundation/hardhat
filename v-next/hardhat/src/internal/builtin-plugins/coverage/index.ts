@@ -16,6 +16,10 @@ const hardhatPlugin: HardhatPlugin = {
       defaultValue: false,
     }),
   ],
+  hookHandlers: {
+    hre: import.meta.resolve("./hook-handlers/hre.js"),
+    network: import.meta.resolve("./hook-handlers/network.js"),
+  },
   npmPackage: "hardhat",
 };
 

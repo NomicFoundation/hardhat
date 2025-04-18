@@ -9,6 +9,9 @@ import { URL } from "node:url";
 import { hardhatTestReporter } from "@nomicfoundation/hardhat-node-test-reporter";
 import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
 import { createNonClosingWriter } from "@nomicfoundation/hardhat-utils/stream";
+import debug from "debug";
+
+const log = debug("hardhat:node-test-runner");
 
 interface TestActionArguments {
   testFiles: string[];
@@ -17,12 +20,12 @@ interface TestActionArguments {
   noCompile: boolean;
 }
 
-function isTypescriptFile(path: string): boolean {
-  return /\.(ts|cts|mts)$/i.test(path);
+function isTypescriptFile(filePath: string): boolean {
+  return /\.(ts|cts|mts)$/i.test(filePath);
 }
 
-function isJavascriptFile(path: string): boolean {
-  return /\.(js|cjs|mjs)$/i.test(path);
+function isJavascriptFile(filePath: string): boolean {
+  return /\.(js|cjs|mjs)$/i.test(filePath);
 }
 
 function isSubtestFailedError(error: Error): boolean {
@@ -67,7 +70,19 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   }
 
   const tsx = new URL(import.meta.resolve("tsx/esm"));
-  process.env.NODE_OPTIONS = `--import "${tsx.href}"`;
+  const imports = [tsx.href];
+
+  if (hre.globalOptions.coverage === true) {
+    // NOTE: Saving the environment variable to ensure node:test workers operate
+    // with the information that the global --coverage option is enabled
+    process.env.HARDHAT_COVERAGE = "true";
+    const runner = new URL(
+      import.meta.resolve("@nomicfoundation/hardhat-node-test-runner/coverage"),
+    );
+    imports.push(runner.href);
+  }
+
+  process.env.NODE_OPTIONS = imports.map((i) => `--import ${i}`).join(" ");
 
   async function runTests(): Promise<number> {
     let failures = 0;
@@ -102,6 +117,11 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
       .compose(customReporter);
 
     await pipeline(reporterStream, createNonClosingWriter(process.stdout));
+
+    if (hre.globalOptions.coverage === true) {
+      const hits = await hre.coverage.loadProviderHits();
+      log("Coverage hits", hits);
+    }
 
     return failures;
   }
