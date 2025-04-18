@@ -1,14 +1,19 @@
-import { buildModule } from "@nomicfoundation/ignition-core";
-import { assert } from "chai";
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
 
-import { useIgnitionProject } from "./test-helpers/use-ignition-project.js";
+import { useEphemeralFixtureProject } from "@nomicfoundation/hardhat-test-utils";
+import { buildModule } from "@nomicfoundation/ignition-core";
+
+import { createConnection } from "./test-helpers/create-hre.js";
 import "@nomicfoundation/hardhat-ethers";
 
 describe("support changing default sender", () => {
-  useIgnitionProject("minimal");
+  useEphemeralFixtureProject("minimal");
 
   it("should deploy on the first HH account by default", async function () {
-    const [defaultAccount] = await this.connection.ethers.getSigners();
+    const connection = await createConnection();
+
+    const [defaultAccount] = await connection.ethers.getSigners();
     const defaultAccountAddress = defaultAccount.address;
 
     const moduleDefinition = buildModule("Module", (m) => {
@@ -17,7 +22,7 @@ describe("support changing default sender", () => {
       return { ownerSender };
     });
 
-    const result = await this.connection.ignition.deploy(moduleDefinition, {
+    const result = await connection.ignition.deploy(moduleDefinition, {
       defaultSender: undefined,
     });
 
@@ -28,7 +33,9 @@ describe("support changing default sender", () => {
   });
 
   it("should allow changing the default sender that the ignition deployment runs against", async function () {
-    const [, notTheDefaultAccount] = await this.connection.ethers.getSigners();
+    const connection = await createConnection();
+
+    const [, notTheDefaultAccount] = await connection.ethers.getSigners();
     const differentAccountAddress = notTheDefaultAccount.address;
 
     const moduleDefinition = buildModule("Module", (m) => {
@@ -37,7 +44,7 @@ describe("support changing default sender", () => {
       return { ownerSender };
     });
 
-    const result = await this.connection.ignition.deploy(moduleDefinition, {
+    const result = await connection.ignition.deploy(moduleDefinition, {
       defaultSender: differentAccountAddress,
     });
 

@@ -1,10 +1,13 @@
-import { buildModule } from "@nomicfoundation/ignition-core";
-import { assert } from "chai";
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
 
-import { useIgnitionProject } from "./test-helpers/use-ignition-project.js";
+import { useEphemeralFixtureProject } from "@nomicfoundation/hardhat-test-utils";
+import { buildModule } from "@nomicfoundation/ignition-core";
+
+import { createConnection } from "./test-helpers/create-hre.js";
 
 describe("viem results should work across useModule boundaries", () => {
-  useIgnitionProject("minimal");
+  useEphemeralFixtureProject("minimal");
 
   it("should only return properties for the properties of the module results", async function () {
     const submoduleDefinition = buildModule("Submodule", (m) => {
@@ -19,7 +22,9 @@ describe("viem results should work across useModule boundaries", () => {
       return { foo };
     });
 
-    const result = await this.connection.ignition.deploy(moduleDefinition);
+    const connection = await createConnection();
+
+    const result = await connection.ignition.deploy(moduleDefinition);
 
     assert.equal(await result.foo.read.x(), 1n);
 
