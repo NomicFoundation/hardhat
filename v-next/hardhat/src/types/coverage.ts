@@ -1,8 +1,8 @@
-export interface CoverageReport {
-  markerIds: string[];
+export interface CoverageHits {
+  [markerIds: string]: number;
 }
 
 export interface CoverageManager {
-  save(): Promise<void>;
-  load(): Promise<CoverageReport>;
+  saveProviderHits(): Promise<void>;
+  loadProviderHits(): Promise<CoverageHits>;
 }

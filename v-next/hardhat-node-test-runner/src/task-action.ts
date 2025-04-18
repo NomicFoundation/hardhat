@@ -119,8 +119,8 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
     await pipeline(reporterStream, createNonClosingWriter(process.stdout));
 
     if (hre.globalOptions.coverage === true) {
-      const report = await hre.coverage.load();
-      log("Coverage report", report);
+      const hits = await hre.coverage.loadProviderHits();
+      log("Coverage hits", hits);
     }
 
     return failures;

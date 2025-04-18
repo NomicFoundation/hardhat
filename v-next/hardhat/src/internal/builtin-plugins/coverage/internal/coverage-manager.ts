@@ -1,5 +1,5 @@
 import type { CoverageManager } from "./types.js";
-import type { CoverageReport } from "../../../../types/coverage.js";
+import type { CoverageHits } from "../../../../types/coverage.js";
 import type { EdrProvider } from "../../network-manager/edr/edr-provider.js";
 
 export class CoverageManagerImplementation implements CoverageManager {
@@ -15,9 +15,7 @@ export class CoverageManagerImplementation implements CoverageManager {
   private constructor() {}
 
   readonly #providers: Record<string, EdrProvider> = {};
-  readonly #report: CoverageReport = {
-    markerIds: [],
-  };
+  readonly #hits: CoverageHits = {};
 
   public async addProvider(id: string, provider: EdrProvider): Promise<void> {
     this.#providers[id] = provider;
@@ -30,11 +28,19 @@ export class CoverageManagerImplementation implements CoverageManager {
     delete this.#providers[id];
   }
 
-  public async getReport(): Promise<CoverageReport> {
-    // NOTE: Draining the providers first to ensure all the coverage data is in the report
+  public async getProviderHits(): Promise<CoverageHits> {
+    // NOTE: Draining the providers first to ensure all the hits were collected
     await Promise.all(
       Object.keys(this.#providers).map((id) => this.removeProvider(id)),
     );
-    return this.#report;
+    return this.#hits;
+  }
+
+  public async clearProviderHits(): Promise<void> {
+    await Promise.all(
+      Object.keys(this.#hits).map((id) => {
+        delete this.#hits[id];
+      }),
+    );
   }
 }
