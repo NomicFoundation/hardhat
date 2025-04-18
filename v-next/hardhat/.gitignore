@@ -11,7 +11,6 @@
 coverage
 !src/internal/builtin-plugins/coverage
 !test/internal/builtin-plugins/coverage
-!src/types/coverage
 
 # all the tmp folders in the fixture projects
 /test/fixture-projects/tmp/

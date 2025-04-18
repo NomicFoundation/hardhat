@@ -72,7 +72,7 @@ export class NetworkManagerImplementation implements NetworkManager {
       "network",
       "newConnection",
       [],
-      async (_nextContext) =>
+      async (_context) =>
         this.#initializeNetworkConnection(
           networkName,
           chainType,
