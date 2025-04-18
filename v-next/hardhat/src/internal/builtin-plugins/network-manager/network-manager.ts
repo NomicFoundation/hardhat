@@ -210,6 +210,8 @@ export class NetworkManagerImplementation implements NetworkManager {
           );
         }
 
+        // TODO: If coverage is not exposed via hardhat network configuration, then
+        // enable it here if the global --coverage option is set
         return EdrProvider.create({
           // The resolvedNetworkConfig can have its chainType set to `undefined`
           // so we default to the default chain type here.
