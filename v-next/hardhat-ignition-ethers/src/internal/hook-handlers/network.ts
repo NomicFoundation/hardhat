@@ -9,7 +9,9 @@ export default async (): Promise<Partial<NetworkHooks>> => {
   const handlers: Partial<NetworkHooks> = {
     async newConnection<ChainTypeT extends ChainType | string>(
       context: HookContext,
-      next: (context: HookContext) => Promise<NetworkConnection<ChainTypeT>>,
+      next: (
+        nextContext: HookContext,
+      ) => Promise<NetworkConnection<ChainTypeT>>,
     ) {
       const connection: NetworkConnection<ChainTypeT> = await next(context);
 

@@ -19,7 +19,7 @@ describe("ignition helper mutual exclusivity", () => {
           async newConnection<ChainTypeT extends ChainType | string>(
             context: HookContext,
             next: (
-              context: HookContext,
+              nextContext: HookContext,
             ) => Promise<NetworkConnection<ChainTypeT>>,
           ) {
             const connection: NetworkConnection<ChainTypeT> =
