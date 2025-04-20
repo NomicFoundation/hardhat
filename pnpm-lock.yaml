@@ -183,6 +183,9 @@ importers:
         specifier: ^3.23.8
         version: 3.24.1
     devDependencies:
+      '@eslint-community/eslint-plugin-eslint-comments':
+        specifier: ^4.3.0
+        version: 4.4.1(eslint@9.23.0)
       '@nomicfoundation/hardhat-node-test-reporter':
         specifier: workspace:^3.0.0-next.4
         version: link:../hardhat-node-test-reporter
@@ -229,6 +232,9 @@ importers:
         specifier: workspace:^3.0.0-next.4
         version: link:../hardhat-utils
     devDependencies:
+      '@eslint-community/eslint-plugin-eslint-comments':
+        specifier: ^4.3.0
+        version: 4.4.1(eslint@9.23.0)
       '@nomicfoundation/hardhat-node-test-reporter':
         specifier: workspace:^3.0.0-next.4
         version: link:../hardhat-node-test-reporter
@@ -278,6 +284,9 @@ importers:
         specifier: workspace:^3.0.0-next.4
         version: link:../hardhat
     devDependencies:
+      '@eslint-community/eslint-plugin-eslint-comments':
+        specifier: ^4.3.0
+        version: 4.4.1(eslint@9.23.0)
       '@nomicfoundation/hardhat-node-test-reporter':
         specifier: workspace:^3.0.0-next.4
         version: link:../hardhat-node-test-reporter
@@ -345,6 +354,9 @@ importers:
         specifier: workspace:^3.0.0-next.4
         version: link:../hardhat
     devDependencies:
+      '@eslint-community/eslint-plugin-eslint-comments':
+        specifier: ^4.3.0
+        version: 4.4.1(eslint@9.23.0)
       '@nomicfoundation/hardhat-mocha':
         specifier: workspace:^3.0.0-next.4
         version: link:../hardhat-mocha
@@ -884,6 +896,9 @@ importers:
         specifier: ^3.23.8
         version: 3.24.1
     devDependencies:
+      '@eslint-community/eslint-plugin-eslint-comments':
+        specifier: ^4.3.0
+        version: 4.4.1(eslint@9.23.0)
       '@nomicfoundation/hardhat-node-test-reporter':
         specifier: workspace:^3.0.0-next.4
         version: link:../hardhat-node-test-reporter
@@ -945,6 +960,9 @@ importers:
         specifier: ^3.23.8
         version: 3.24.1
     devDependencies:
+      '@eslint-community/eslint-plugin-eslint-comments':
+        specifier: ^4.3.0
+        version: 4.4.1(eslint@9.23.0)
       '@nomicfoundation/hardhat-node-test-reporter':
         specifier: workspace:^3.0.0-next.4
         version: link:../hardhat-node-test-reporter
@@ -988,6 +1006,9 @@ importers:
         specifier: workspace:^3.0.0-next.4
         version: link:../hardhat
     devDependencies:
+      '@eslint-community/eslint-plugin-eslint-comments':
+        specifier: ^4.3.0
+        version: 4.4.1(eslint@9.23.0)
       '@nomicfoundation/hardhat-node-test-reporter':
         specifier: workspace:^3.0.0-next.4
         version: link:../hardhat-node-test-reporter
@@ -1126,6 +1147,9 @@ importers:
         specifier: workspace:^3.0.0-next.4
         version: link:../hardhat-utils
     devDependencies:
+      '@eslint-community/eslint-plugin-eslint-comments':
+        specifier: ^4.3.0
+        version: 4.4.1(eslint@9.23.0)
       '@nomicfoundation/hardhat-node-test-reporter':
         specifier: workspace:^3.0.0-next.4
         version: link:../hardhat-node-test-reporter
@@ -1163,9 +1187,6 @@ importers:
         specifier: workspace:^3.0.0-next.4
         version: link:../hardhat
     devDependencies:
-      '@eslint-community/eslint-plugin-eslint-comments':
-        specifier: ^4.3.0
-        version: 4.4.1(eslint@8.57.0)
       '@nomicfoundation/hardhat-ethers':
         specifier: workspace:^4.0.0-next.4
         version: link:../hardhat-ethers
@@ -1208,12 +1229,6 @@ importers:
       '@types/node':
         specifier: ^20.14.9
         version: 20.17.16
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^7.7.1
-        version: 7.18.0(@typescript-eslint/parser@7.18.0(eslint@8.57.0)(typescript@5.5.4))(eslint@8.57.0)(typescript@5.5.4)
-      '@typescript-eslint/parser':
-        specifier: ^7.7.1
-        version: 7.18.0(eslint@8.57.0)(typescript@5.5.4)
       c8:
         specifier: ^9.1.0
         version: 9.1.0
@@ -1221,20 +1236,11 @@ importers:
         specifier: ^5.1.2
         version: 5.1.2
       eslint:
-        specifier: 8.57.0
-        version: 8.57.0
+        specifier: ^9.23.0
+        version: 9.23.0
       eslint-config-prettier:
         specifier: 9.1.0
-        version: 9.1.0(eslint@8.57.0)
-      eslint-import-resolver-typescript:
-        specifier: ^3.6.1
-        version: 3.7.0(eslint-plugin-import@2.29.1)(eslint@8.57.0)
-      eslint-plugin-import:
-        specifier: 2.29.1
-        version: 2.29.1(@typescript-eslint/parser@7.18.0(eslint@8.57.0)(typescript@5.5.4))(eslint-import-resolver-typescript@3.7.0)(eslint@8.57.0)
-      eslint-plugin-no-only-tests:
-        specifier: 3.1.0
-        version: 3.1.0
+        version: 9.1.0(eslint@9.23.0)
       ethers:
         specifier: ^6.13.4
         version: 6.13.5
@@ -1253,9 +1259,6 @@ importers:
       typescript:
         specifier: ~5.5.0
         version: 5.5.4
-      typescript-eslint:
-        specifier: 7.7.1
-        version: 7.7.1(eslint@8.57.0)(typescript@5.5.4)
 
   v-next/hardhat-toolbox-viem:
     dependencies:
@@ -1263,9 +1266,6 @@ importers:
         specifier: workspace:^3.0.0-next.4
         version: link:../hardhat
     devDependencies:
-      '@eslint-community/eslint-plugin-eslint-comments':
-        specifier: ^4.3.0
-        version: 4.4.1(eslint@8.57.0)
       '@nomicfoundation/hardhat-ignition':
         specifier: workspace:^3.0.0-next.4
         version: link:../hardhat-ignition
@@ -1296,30 +1296,15 @@ importers:
       '@types/node':
         specifier: ^20.14.9
         version: 20.17.16
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^7.7.1
-        version: 7.18.0(@typescript-eslint/parser@7.18.0(eslint@8.57.0)(typescript@5.5.4))(eslint@8.57.0)(typescript@5.5.4)
-      '@typescript-eslint/parser':
-        specifier: ^7.7.1
-        version: 7.18.0(eslint@8.57.0)(typescript@5.5.4)
       c8:
         specifier: ^9.1.0
         version: 9.1.0
       eslint:
-        specifier: 8.57.0
-        version: 8.57.0
+        specifier: ^9.23.0
+        version: 9.23.0
       eslint-config-prettier:
         specifier: 9.1.0
-        version: 9.1.0(eslint@8.57.0)
-      eslint-import-resolver-typescript:
-        specifier: ^3.6.1
-        version: 3.7.0(eslint-plugin-import@2.29.1)(eslint@8.57.0)
-      eslint-plugin-import:
-        specifier: 2.29.1
-        version: 2.29.1(@typescript-eslint/parser@7.18.0(eslint@8.57.0)(typescript@5.5.4))(eslint-import-resolver-typescript@3.7.0)(eslint@8.57.0)
-      eslint-plugin-no-only-tests:
-        specifier: 3.1.0
-        version: 3.1.0
+        version: 9.1.0(eslint@9.23.0)
       expect-type:
         specifier: ^0.19.0
         version: 0.19.0
@@ -1335,9 +1320,6 @@ importers:
       typescript:
         specifier: ~5.5.0
         version: 5.5.4
-      typescript-eslint:
-        specifier: 7.7.1
-        version: 7.7.1(eslint@8.57.0)(typescript@5.5.4)
       viem:
         specifier: ^2.21.42
         version: 2.22.13(typescript@5.5.4)(zod@3.24.1)
@@ -1375,6 +1357,9 @@ importers:
         specifier: ^3.23.8
         version: 3.24.1
     devDependencies:
+      '@eslint-community/eslint-plugin-eslint-comments':
+        specifier: ^4.3.0
+        version: 4.4.1(eslint@9.23.0)
       '@nomicfoundation/hardhat-node-test-reporter':
         specifier: workspace:^3.0.0-next.4
         version: link:../hardhat-node-test-reporter
@@ -1439,6 +1424,9 @@ importers:
         specifier: ^6.16.1
         version: 6.21.1
     devDependencies:
+      '@eslint-community/eslint-plugin-eslint-comments':
+        specifier: ^4.3.0
+        version: 4.4.1(eslint@9.23.0)
       '@nomicfoundation/hardhat-node-test-reporter':
         specifier: workspace:^3.0.0-next.4
         version: link:../hardhat-node-test-reporter
@@ -1488,6 +1476,9 @@ importers:
         specifier: workspace:^3.0.0-next.4
         version: link:../hardhat
     devDependencies:
+      '@eslint-community/eslint-plugin-eslint-comments':
+        specifier: ^4.3.0
+        version: 4.4.1(eslint@9.23.0)
       '@nomicfoundation/hardhat-node-test-reporter':
         specifier: workspace:^3.0.0-next.4
         version: link:../hardhat-node-test-reporter
@@ -1531,6 +1522,9 @@ importers:
         specifier: workspace:^3.0.0-next.4
         version: link:../hardhat-utils
     devDependencies:
+      '@eslint-community/eslint-plugin-eslint-comments':
+        specifier: ^4.3.0
+        version: 4.4.1(eslint@9.23.0)
       '@nomicfoundation/hardhat-node-test-reporter':
         specifier: workspace:^3.0.0-next.4
         version: link:../hardhat-node-test-reporter
@@ -1627,6 +1621,9 @@ importers:
 
   v-next/template-package:
     devDependencies:
+      '@eslint-community/eslint-plugin-eslint-comments':
+        specifier: ^4.3.0
+        version: 4.4.1(eslint@9.23.0)
       '@nomicfoundation/hardhat-node-test-reporter':
         specifier: workspace:^3.0.0-next.4
         version: link:../hardhat-node-test-reporter
@@ -4960,10 +4957,6 @@ packages:
   prelude-ls@1.2.1:
     resolution: {integrity: sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g==}
     engines: {node: '>= 0.8.0'}
-
-  prettier-linter-helpers@1.0.0:
-    resolution: {integrity: sha512-GbK2cP9nraSSUF9N2XwUwqfzlAFlMNYYl+ShE/V+H8a9uNl/oUqB1w2EL54Jh0OlyRSd8RfWYJ3coVS4TROP2w==}
-    engines: {node: '>=6.0.0'}
 
   prettier@2.8.8:
     resolution: {integrity: sha512-tdN8qQGvNjw4CHbY+XXk0JgCXn9QiF21a55rBe5LJAU+kDyC4WQn4+awm2Xfk2lQMk5fKup9XgzTZtGkjBdP9Q==}
@@ -9447,10 +9440,6 @@ snapshots:
       xtend: 4.0.2
 
   prelude-ls@1.2.1: {}
-
-  prettier-linter-helpers@1.0.0:
-    dependencies:
-      fast-diff: 1.3.0
 
   prettier@2.8.8: {}
 
