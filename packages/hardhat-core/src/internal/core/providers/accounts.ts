@@ -303,41 +303,65 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
       data: bytesToHex(txData.data ?? new Uint8Array()),
       gasLimit: txData.gasLimit,
     };
+
+    let strictMode = true;
+
+    // If the chainId is greater than 2^32 - 1, we need to disable strict mode
+    // See: https://github.com/paulmillr/micro-eth-signer/issues/34
+    if (
+      baseTxParams.chainId !== undefined &&
+      baseTxParams.chainId > BigInt(2 ** 32 - 1)
+    ) {
+      strictMode = false;
+    }
+
     if (authorizationList !== undefined) {
       assertHardhatInvariant(
         txData.maxFeePerGas !== undefined,
         "maxFeePerGas should be defined"
       );
 
-      transaction = Transaction.prepare({
-        type: "eip7702",
-        ...baseTxParams,
-        maxFeePerGas: txData.maxFeePerGas,
-        maxPriorityFeePerGas: txData.maxPriorityFeePerGas,
-        accessList: accessList ?? [],
-        authorizationList: authorizationList ?? [],
-      });
+      transaction = Transaction.prepare(
+        {
+          type: "eip7702",
+          ...baseTxParams,
+          maxFeePerGas: txData.maxFeePerGas,
+          maxPriorityFeePerGas: txData.maxPriorityFeePerGas,
+          accessList: accessList ?? [],
+          authorizationList: authorizationList ?? [],
+        },
+        strictMode
+      );
     } else if (txData.maxFeePerGas !== undefined) {
-      transaction = Transaction.prepare({
-        type: "eip1559",
-        ...baseTxParams,
-        maxFeePerGas: txData.maxFeePerGas,
-        maxPriorityFeePerGas: txData.maxPriorityFeePerGas,
-        accessList: accessList ?? [],
-      });
+      transaction = Transaction.prepare(
+        {
+          type: "eip1559",
+          ...baseTxParams,
+          maxFeePerGas: txData.maxFeePerGas,
+          maxPriorityFeePerGas: txData.maxPriorityFeePerGas,
+          accessList: accessList ?? [],
+        },
+        strictMode
+      );
     } else if (accessList !== undefined) {
-      transaction = Transaction.prepare({
-        type: "eip2930",
-        ...baseTxParams,
-        gasPrice: txData.gasPrice ?? 0n,
-        accessList,
-      });
+      transaction = Transaction.prepare(
+        {
+          type: "eip2930",
+          ...baseTxParams,
+          gasPrice: txData.gasPrice ?? 0n,
+          accessList,
+        },
+        strictMode
+      );
     } else {
-      transaction = Transaction.prepare({
-        type: "legacy",
-        ...baseTxParams,
-        gasPrice: txData.gasPrice ?? 0n,
-      });
+      transaction = Transaction.prepare(
+        {
+          type: "legacy",
+          ...baseTxParams,
+          gasPrice: txData.gasPrice ?? 0n,
+        },
+        strictMode
+      );
     }
 
     // Explicitly set extraEntropy to false to make the signing result deterministic
