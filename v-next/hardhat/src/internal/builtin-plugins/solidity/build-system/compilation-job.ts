@@ -113,8 +113,45 @@ export class CompilationJobImplementation implements CompilationJob {
         },
       };
 
-    // TODO: Deep merge the user output selection with the default one
     const outputSelection = defaultOutputSelection;
+
+    const configOutputSelection = settings.outputSelection ?? {};
+
+    for (const fileKey in configOutputSelection) {
+      if (
+        !Object.prototype.hasOwnProperty.call(configOutputSelection, fileKey)
+      ) {
+        continue;
+      }
+
+      const configFileOutputSelection = configOutputSelection[fileKey] ?? {};
+      outputSelection[fileKey] ??= {};
+
+      for (const contractKey in configFileOutputSelection) {
+        if (
+          !Object.prototype.hasOwnProperty.call(
+            configFileOutputSelection,
+            contractKey,
+          )
+        ) {
+          continue;
+        }
+
+        const configContractOutputSelection =
+          configFileOutputSelection[contractKey] ?? [];
+        outputSelection[fileKey][contractKey] ??= [];
+
+        const values = Array.from(
+          new Set([
+            ...outputSelection[fileKey][contractKey],
+            ...configContractOutputSelection,
+          ]),
+        );
+        values.sort();
+
+        outputSelection[fileKey][contractKey] = values;
+      }
+    }
 
     return {
       language: "Solidity",
