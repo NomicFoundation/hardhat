@@ -2,12 +2,12 @@ import type { ArtifactResolver } from "../../../types/artifact.js";
 import type { DeploymentParameters } from "../../../types/deploy.js";
 import type { NamedArtifactContractAtFuture } from "../../../types/module.js";
 
-import { IgnitionError } from "../../../errors.js";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+
 import {
   isArtifactType,
   isModuleParameterRuntimeValue,
 } from "../../../type-guards.js";
-import { ERRORS } from "../../errors-list.js";
 import { resolvePotentialModuleParameterValueFrom } from "../utils.js";
 
 export async function validateNamedContractAt(
@@ -16,7 +16,7 @@ export async function validateNamedContractAt(
   deploymentParameters: DeploymentParameters,
   _accounts: string[],
 ): Promise<string[]> {
-  const errors: IgnitionError[] = [];
+  const errors: HardhatError[] = [];
 
   /* stage one */
 
@@ -24,9 +24,12 @@ export async function validateNamedContractAt(
 
   if (!isArtifactType(artifact)) {
     errors.push(
-      new IgnitionError(ERRORS.VALIDATION.INVALID_ARTIFACT, {
-        contractName: future.contractName,
-      }),
+      new HardhatError(
+        HardhatError.ERRORS.IGNITION.VALIDATION.INVALID_ARTIFACT,
+        {
+          contractName: future.contractName,
+        },
+      ),
     );
   }
 
@@ -40,17 +43,23 @@ export async function validateNamedContractAt(
 
     if (param === undefined) {
       errors.push(
-        new IgnitionError(ERRORS.VALIDATION.MISSING_MODULE_PARAMETER, {
-          name: future.address.name,
-        }),
+        new HardhatError(
+          HardhatError.ERRORS.IGNITION.VALIDATION.MISSING_MODULE_PARAMETER,
+          {
+            name: future.address.name,
+          },
+        ),
       );
     } else if (typeof param !== "string") {
       errors.push(
-        new IgnitionError(ERRORS.VALIDATION.INVALID_MODULE_PARAMETER_TYPE, {
-          name: future.address.name,
-          expectedType: "string",
-          actualType: typeof param,
-        }),
+        new HardhatError(
+          HardhatError.ERRORS.IGNITION.VALIDATION.INVALID_MODULE_PARAMETER_TYPE,
+          {
+            name: future.address.name,
+            expectedType: "string",
+            actualType: typeof param,
+          },
+        ),
       );
     }
   }

@@ -32,13 +32,13 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
       : hre.config.defaultNetwork;
 
   if (!(network in hre.config.networks)) {
-    throw new HardhatError(HardhatError.ERRORS.NETWORK.NETWORK_NOT_FOUND, {
+    throw new HardhatError(HardhatError.ERRORS.CORE.NETWORK.NETWORK_NOT_FOUND, {
       networkName: network,
     });
   }
 
   if (hre.config.networks[network].type !== "edr") {
-    throw new HardhatError(HardhatError.ERRORS.NODE.INVALID_NETWORK_TYPE, {
+    throw new HardhatError(HardhatError.ERRORS.CORE.NODE.INVALID_NETWORK_TYPE, {
       networkType: hre.config.networks[network].type,
       networkName: network,
     });
@@ -53,7 +53,7 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
     if (!isEdrSupportedChainType(args.chainType)) {
       // NOTE: We could make the error more specific here.
       throw new HardhatError(
-        HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+        HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
         {
           value: args.chainType,
           type: "ChainType",
@@ -80,7 +80,7 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
   } else if (args.forkBlockNumber !== -1) {
     // NOTE: We could make the error more specific here.
     throw new HardhatError(
-      HardhatError.ERRORS.ARGUMENTS.MISSING_VALUE_FOR_ARGUMENT,
+      HardhatError.ERRORS.CORE.ARGUMENTS.MISSING_VALUE_FOR_ARGUMENT,
       {
         argument: "fork",
       },

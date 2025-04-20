@@ -42,7 +42,7 @@ export default function wrapper(solc: Solc): SolcWrapper {
 
   if (compile === undefined) {
     throw new HardhatError(
-      HardhatError.ERRORS.SOLIDITY.INVALID_SOLCJS_COMPILER,
+      HardhatError.ERRORS.CORE.SOLIDITY.INVALID_SOLCJS_COMPILER,
       {
         version: version(),
       },

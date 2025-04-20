@@ -64,7 +64,7 @@ function transactionTypeToDisplayType(type: string): string {
       return "Generic Transaction";
     default:
       throw new HardhatError(
-        HardhatError.ERRORS.IGNITION.UNKNOWN_TRANSACTION_TYPE,
+        HardhatError.ERRORS.IGNITION.INTERNAL.UNKNOWN_TRANSACTION_TYPE,
         { type },
       );
   }

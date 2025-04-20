@@ -1,4 +1,3 @@
-/* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
 import { EphemeralDeploymentLoader } from "../../src/internal/deployment-loader/ephemeral-deployment-loader.js";

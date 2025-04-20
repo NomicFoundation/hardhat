@@ -1,9 +1,9 @@
 import type { ArtifactResolver } from "./types/artifact.js";
 import type { StatusResult } from "./types/status.js";
 
-import { IgnitionError } from "./errors.js";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+
 import { FileDeploymentLoader } from "./internal/deployment-loader/file-deployment-loader.js";
-import { ERRORS } from "./internal/errors-list.js";
 import { loadDeploymentState } from "./internal/execution/deployment-state-helpers.js";
 import { findDeployedContracts } from "./internal/views/find-deployed-contracts.js";
 import { findStatus } from "./internal/views/find-status.js";
@@ -25,9 +25,12 @@ export async function status(
   const deploymentState = await loadDeploymentState(deploymentLoader);
 
   if (deploymentState === undefined) {
-    throw new IgnitionError(ERRORS.STATUS.UNINITIALIZED_DEPLOYMENT, {
-      deploymentDir,
-    });
+    throw new HardhatError(
+      HardhatError.ERRORS.IGNITION.STATUS.UNINITIALIZED_DEPLOYMENT,
+      {
+        deploymentDir,
+      },
+    );
   }
 
   const futureStatuses = findStatus(deploymentState);

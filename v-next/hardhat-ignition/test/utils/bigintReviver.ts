@@ -1,3 +1,5 @@
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { assert } from "chai";
 
 import { bigintReviver } from "../../src/internal/utils/bigintReviver.js";
@@ -8,9 +10,17 @@ describe("bigintReviver", function () {
   });
 
   it("should throw if a number is bigger than Number.MAX_SAFE_INTEGER", function () {
-    assert.throws(() => {
-      JSON.parse('{"a":9007199254740992}', bigintReviver);
-    }, `HHE1709: Parameter "a" exceeds maximum safe integer size. Encode the value as a string using bigint notation: "9007199254740992n"`);
+    assertThrowsHardhatError(
+      () => {
+        JSON.parse('{"a":9007199254740992}', bigintReviver);
+      },
+      HardhatError.ERRORS.IGNITION.INTERNAL
+        .PARAMETER_EXCEEDS_MAXIMUM_SAFE_INTEGER,
+      {
+        parameter: "a",
+        value: 9007199254740992,
+      },
+    );
   });
 
   it("should not convert regular numbers", function () {

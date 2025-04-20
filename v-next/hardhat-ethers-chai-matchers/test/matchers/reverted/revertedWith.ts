@@ -203,7 +203,7 @@ describe("INTEGRATION: Reverted with", { timeout: 60000 }, () => {
         assertThrowsHardhatError(
           // @ts-expect-error -- force error scenario: reason should be a string or a regular expression
           () => expect(hash).to.be.revertedWith(10),
-          HardhatError.ERRORS.CHAI_MATCHERS
+          HardhatError.ERRORS.CHAI_MATCHERS.GENERAL
             .EXPECT_STRING_OR_REGEX_AS_REVERT_REASON,
           {},
         );
@@ -215,7 +215,7 @@ describe("INTEGRATION: Reverted with", { timeout: 60000 }, () => {
         assertThrowsHardhatError(
           // @ts-expect-error -- force error scenario: reason should be a string or a regular expression
           () => expect(tx).to.be.revertedWith(10),
-          HardhatError.ERRORS.CHAI_MATCHERS
+          HardhatError.ERRORS.CHAI_MATCHERS.GENERAL
             .EXPECT_STRING_OR_REGEX_AS_REVERT_REASON,
           {},
         );

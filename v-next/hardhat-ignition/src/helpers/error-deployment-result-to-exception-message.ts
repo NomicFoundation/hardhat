@@ -135,7 +135,7 @@ function _toText({
     return "holds";
   }
 
-  throw new HardhatError(HardhatError.ERRORS.INTERNAL.ASSERTION_ERROR, {
+  throw new HardhatError(HardhatError.ERRORS.CORE.INTERNAL.ASSERTION_ERROR, {
     message: "Invariant violated: neither timeouts or failures",
   });
 }

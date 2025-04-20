@@ -11,7 +11,8 @@ import type { ExecutionEventListener } from "./types/execution-events.js";
 import type { IgnitionModule, IgnitionModuleResult } from "./types/module.js";
 import type { EIP1193Provider } from "./types/provider.js";
 
-import { IgnitionError } from "./errors.js";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+
 import {
   DEFAULT_AUTOMINE_REQUIRED_CONFIRMATIONS,
   defaultConfig,
@@ -19,7 +20,6 @@ import {
 import { Deployer } from "./internal/deployer.js";
 import { EphemeralDeploymentLoader } from "./internal/deployment-loader/ephemeral-deployment-loader.js";
 import { FileDeploymentLoader } from "./internal/deployment-loader/file-deployment-loader.js";
-import { ERRORS } from "./internal/errors-list.js";
 import { EIP1193JsonRpcClient } from "./internal/execution/jsonrpc-client.js";
 import { equalAddresses } from "./internal/execution/utils/address.js";
 import { getDefaultSender } from "./internal/execution/utils/get-default-sender.js";
@@ -163,9 +163,12 @@ function _resolveDefaultSender(
     );
 
     if (!isDefaultSenderInAccounts) {
-      throw new IgnitionError(ERRORS.VALIDATION.INVALID_DEFAULT_SENDER, {
-        defaultSender: givenDefaultSender,
-      });
+      throw new HardhatError(
+        HardhatError.ERRORS.IGNITION.VALIDATION.INVALID_DEFAULT_SENDER,
+        {
+          defaultSender: givenDefaultSender,
+        },
+      );
     }
 
     defaultSender = givenDefaultSender;

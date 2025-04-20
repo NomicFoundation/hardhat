@@ -259,7 +259,7 @@ describe("edr-provider", () => {
         connection.provider.request({
           method: "eth_chainId",
         }),
-        HardhatError.ERRORS.NETWORK.PROVIDER_CLOSED,
+        HardhatError.ERRORS.CORE.NETWORK.PROVIDER_CLOSED,
         {},
       );
     });

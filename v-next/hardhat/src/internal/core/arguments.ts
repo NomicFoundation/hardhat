@@ -17,21 +17,21 @@ const VALID_ARGUMENT_NAME_PATTERN = /^[a-z][a-zA-Z0-9]*$/;
  *
  * @param name The name of the argument.
  * @throws {HardhatError} with descriptor:
- * - {@link HardhatError.ERRORS.ARGUMENTS.INVALID_NAME} if the name is invalid.
+ * - {@link HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_NAME} if the name is invalid.
  * A valid name must start with a lowercase letter and contain only
  * alphanumeric characters.
- * - {@link HardhatError.ERRORS.ARGUMENTS.RESERVED_NAME} if the name is
+ * - {@link HardhatError.ERRORS.CORE.ARGUMENTS.RESERVED_NAME} if the name is
  * reserved. See {@link RESERVED_ARGUMENT_NAMES}.
  */
 export function validateArgumentName(name: string): void {
   if (!isArgumentNameValid(name)) {
-    throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.INVALID_NAME, {
+    throw new HardhatError(HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_NAME, {
       name,
     });
   }
 
   if (RESERVED_ARGUMENT_NAMES.has(name)) {
-    throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.RESERVED_NAME, {
+    throw new HardhatError(HardhatError.ERRORS.CORE.ARGUMENTS.RESERVED_NAME, {
       name,
     });
   }
@@ -51,7 +51,7 @@ export function isArgumentNameValid(name: string): boolean {
  * @param expectedType The expected type of the argument. One of {@link ArgumentType}.
  * @param value The value of the argument.
  * @param isVariadic Whether the argument is variadic.
- * @throws {HardhatError} with descriptor {@link HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE}
+ * @throws {HardhatError} with descriptor {@link HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE_FOR_TYPE}
  * if the value is invalid for the expected type.
  */
 export function validateArgumentValue(
@@ -62,7 +62,7 @@ export function validateArgumentValue(
 ): void {
   if (!isArgumentValueValid(expectedType, value, isVariadic)) {
     throw new HardhatError(
-      HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+      HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
       {
         name,
         type: expectedType,
@@ -141,7 +141,7 @@ function validateAndParseInt(name: string, value: string): number {
 
   if (!decimalPattern.test(value) && !hexPattern.test(value)) {
     throw new HardhatError(
-      HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+      HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
       {
         value,
         name,
@@ -159,7 +159,7 @@ function validateAndParseFloat(name: string, value: string): number {
 
   if (!decimalPattern.test(value) && !hexPattern.test(value)) {
     throw new HardhatError(
-      HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+      HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
       {
         value,
         name,
@@ -177,7 +177,7 @@ function validateAndParseBigInt(name: string, value: string): bigint {
 
   if (!decimalPattern.test(value) && !hexPattern.test(value)) {
     throw new HardhatError(
-      HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+      HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
       {
         value,
         name,
@@ -194,7 +194,7 @@ function validateAndParseBoolean(name: string, value: string): boolean {
 
   if (normalizedValue !== "true" && normalizedValue !== "false") {
     throw new HardhatError(
-      HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+      HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
       {
         value,
         name,

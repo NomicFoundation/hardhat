@@ -1,7 +1,8 @@
-import type { IgnitionError } from "../../../errors.js";
 import type { ArtifactResolver } from "../../../types/artifact.js";
 import type { DeploymentParameters } from "../../../types/deploy.js";
 import type { LibraryDeploymentFuture } from "../../../types/module.js";
+
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
 import { isAccountRuntimeValue } from "../../../type-guards.js";
 import { validateLibraryNames } from "../../execution/libraries.js";
@@ -13,7 +14,7 @@ export async function validateArtifactLibraryDeployment(
   _deploymentParameters: DeploymentParameters,
   accounts: string[],
 ): Promise<string[]> {
-  const errors: IgnitionError[] = [];
+  const errors: HardhatError[] = [];
 
   /* stage two */
 

@@ -16,7 +16,7 @@ export async function getAddressOf(
   }
 
   throw new HardhatError(
-    HardhatError.ERRORS.CHAI_MATCHERS.EXPECTED_STRING_OR_ADDRESSABLE,
+    HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.EXPECTED_STRING_OR_ADDRESSABLE,
     {
       account,
     },

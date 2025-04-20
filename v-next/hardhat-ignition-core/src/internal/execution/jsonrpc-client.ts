@@ -7,8 +7,7 @@ import type {
 } from "./types/jsonrpc.js";
 import type { EIP1193Provider } from "../../types/provider.js";
 
-import { IgnitionError } from "../../errors.js";
-import { ERRORS } from "../errors-list.js";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
 import { TransactionReceiptStatus } from "./types/jsonrpc.js";
 import { toChecksumFormat } from "./utils/address.js";
@@ -216,8 +215,8 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
       this._config?.maxFeePerGasLimit !== undefined &&
       maxFees > this._config.maxFeePerGasLimit
     ) {
-      throw new IgnitionError(
-        ERRORS.EXECUTION.MAX_FEE_PER_GAS_EXCEEDS_GAS_LIMIT,
+      throw new HardhatError(
+        HardhatError.ERRORS.IGNITION.EXECUTION.MAX_FEE_PER_GAS_EXCEEDS_GAS_LIMIT,
       );
     }
 
@@ -374,7 +373,9 @@ export class EIP1193JsonRpcClient implements JsonRpcClient {
         }
 
         if (error.message.includes("base fee exceeds gas limit")) {
-          throw new IgnitionError(ERRORS.EXECUTION.BASE_FEE_EXCEEDS_GAS_LIMIT);
+          throw new HardhatError(
+            HardhatError.ERRORS.IGNITION.EXECUTION.BASE_FEE_EXCEEDS_GAS_LIMIT,
+          );
         }
       }
 
@@ -815,10 +816,13 @@ function assertResponseType(
   assertion: boolean,
 ): asserts assertion {
   if (!assertion) {
-    throw new IgnitionError(ERRORS.EXECUTION.INVALID_JSON_RPC_RESPONSE, {
-      method,
-      response: JSON.stringify(response),
-    });
+    throw new HardhatError(
+      HardhatError.ERRORS.IGNITION.EXECUTION.INVALID_JSON_RPC_RESPONSE,
+      {
+        method,
+        response: JSON.stringify(response),
+      },
+    );
   }
 }
 

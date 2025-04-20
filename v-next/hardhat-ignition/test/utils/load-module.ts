@@ -1,4 +1,3 @@
-/* eslint-disable import/no-unused-modules */
 import { assert } from "chai";
 
 import { loadModule } from "../../src/internal/utils/load-module.js";

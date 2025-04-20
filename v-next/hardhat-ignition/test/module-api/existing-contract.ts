@@ -1,4 +1,3 @@
-/* eslint-disable import/no-unused-modules */
 import { buildModule } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 

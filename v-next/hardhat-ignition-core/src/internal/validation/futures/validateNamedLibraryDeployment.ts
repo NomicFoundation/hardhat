@@ -2,9 +2,9 @@ import type { ArtifactResolver } from "../../../types/artifact.js";
 import type { DeploymentParameters } from "../../../types/deploy.js";
 import type { NamedArtifactLibraryDeploymentFuture } from "../../../types/module.js";
 
-import { IgnitionError } from "../../../errors.js";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+
 import { isAccountRuntimeValue, isArtifactType } from "../../../type-guards.js";
-import { ERRORS } from "../../errors-list.js";
 import { validateLibraryNames } from "../../execution/libraries.js";
 import { validateAccountRuntimeValue } from "../utils.js";
 
@@ -14,7 +14,7 @@ export async function validateNamedLibraryDeployment(
   _deploymentParameters: DeploymentParameters,
   accounts: string[],
 ): Promise<string[]> {
-  const errors: IgnitionError[] = [];
+  const errors: HardhatError[] = [];
 
   /* stage one */
 
@@ -22,9 +22,12 @@ export async function validateNamedLibraryDeployment(
 
   if (!isArtifactType(artifact)) {
     errors.push(
-      new IgnitionError(ERRORS.VALIDATION.INVALID_ARTIFACT, {
-        contractName: future.contractName,
-      }),
+      new HardhatError(
+        HardhatError.ERRORS.IGNITION.VALIDATION.INVALID_ARTIFACT,
+        {
+          contractName: future.contractName,
+        },
+      ),
     );
   } else {
     errors.push(

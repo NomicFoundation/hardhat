@@ -35,7 +35,7 @@ describe("ChainIdValidatorHandler", () => {
 
     await assertRejectsWithHardhatError(
       chainIdValidatorHandler.handle(jsonRpcRequest),
-      HardhatError.ERRORS.NETWORK.INVALID_GLOBAL_CHAIN_ID,
+      HardhatError.ERRORS.CORE.NETWORK.INVALID_GLOBAL_CHAIN_ID,
       {
         configChainId: 123,
         connectionChainId: 1,

@@ -78,11 +78,14 @@ export function decodeReturnData(returnData: string): DecodedReturnData {
     } catch (e) {
       ensureError(e);
 
-      throw new HardhatError(HardhatError.ERRORS.CHAI_MATCHERS.DECODING_ERROR, {
-        encodedData: encodedReason,
-        type: "string",
-        reason: e.message,
-      });
+      throw new HardhatError(
+        HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.DECODING_ERROR,
+        {
+          encodedData: encodedReason,
+          type: "string",
+          reason: e.message,
+        },
+      );
     }
 
     return {
@@ -97,11 +100,14 @@ export function decodeReturnData(returnData: string): DecodedReturnData {
     } catch (e) {
       ensureError(e);
 
-      throw new HardhatError(HardhatError.ERRORS.CHAI_MATCHERS.DECODING_ERROR, {
-        encodedData: encodedReason,
-        type: "uint256",
-        reason: e.message,
-      });
+      throw new HardhatError(
+        HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.DECODING_ERROR,
+        {
+          encodedData: encodedReason,
+          type: "uint256",
+          reason: e.message,
+        },
+      );
     }
 
     const description = panicErrorCodeToReason(code) ?? "unknown panic code";

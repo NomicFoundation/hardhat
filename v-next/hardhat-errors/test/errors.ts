@@ -154,6 +154,17 @@ describe("HardhatError", () => {
       assert.equal(error.message, "HHE12: a b 123");
     });
   });
+
+  describe("pluginId", () => {
+    it("Should return the plugin id if its descriptor is in a category that uses one", () => {
+      assert.equal(
+        new HardhatError(
+          HardhatError.ERRORS.HARDHAT_KEYSTORE.GENERAL.INVALID_PASSWORD_OR_CORRUPTED_KEYSTORE,
+        ).pluginId,
+        ERROR_CATEGORIES.HARDHAT_KEYSTORE.pluginId,
+      );
+    });
+  });
 });
 
 describe("HardhatPluginError", () => {
@@ -235,8 +246,19 @@ describe("HardhatPluginError", () => {
 describe("Error categories", () => {
   it("Should have max > min", () => {
     for (const errorGroup of Object.keys(ERROR_CATEGORIES)) {
-      const range = ERROR_CATEGORIES[errorGroup];
-      assert.ok(range.min < range.max, `Range of ${errorGroup} is invalid`);
+      const packageInfo = ERROR_CATEGORIES[errorGroup];
+      assert.ok(
+        packageInfo.min < packageInfo.max,
+        `Range of ${errorGroup} is invalid`,
+      );
+
+      for (const categoryGroup of Object.keys(packageInfo.CATEGORIES)) {
+        const categoryInfo = packageInfo.CATEGORIES[categoryGroup];
+        assert.ok(
+          categoryInfo.min < categoryInfo.max,
+          `Range of ${errorGroup}.CATEGORIES.${categoryGroup} is invalid`,
+        );
+      }
     }
   });
 
@@ -260,6 +282,40 @@ describe("Error categories", () => {
           `Ranges of ${errorGroup} and ${errorGroup2} overlap`,
         );
       }
+
+      for (const categoryGroup of Object.keys(
+        ERROR_CATEGORIES[errorGroup].CATEGORIES,
+      )) {
+        const categoryRange =
+          ERROR_CATEGORIES[errorGroup].CATEGORIES[categoryGroup];
+
+        for (const categoryGroup2 of Object.keys(
+          ERROR_CATEGORIES[errorGroup].CATEGORIES,
+        )) {
+          const categoryRange2 =
+            ERROR_CATEGORIES[errorGroup].CATEGORIES[categoryGroup2];
+
+          if (categoryGroup === categoryGroup2) {
+            continue;
+          }
+
+          const rangesHaveOverlap =
+            (categoryRange.min >= categoryRange2.min &&
+              categoryRange.min <= categoryRange2.max) ||
+            (categoryRange.max >= categoryRange2.min &&
+              categoryRange.max <= categoryRange2.max);
+
+          assert.ok(
+            !rangesHaveOverlap,
+            `Ranges of ${errorGroup}.CATEGORIES.${categoryGroup} and ${errorGroup}.CATEGORIES.${categoryGroup2} overlap`,
+          );
+        }
+
+        assert.ok(
+          categoryRange.min >= range.min && categoryRange.max <= range.max,
+          `Range of ${errorGroup}.CATEGORIES.${categoryGroup} is out of range`,
+        );
+      }
     }
   });
 });
@@ -267,47 +323,58 @@ describe("Error categories", () => {
 describe("Error descriptors", () => {
   it("Should have all errors inside their ranges", () => {
     /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
-    We kwow that this is correct */
-    for (const errorGroup of Object.keys(HardhatError.ERRORS) as Array<
+    We know that this is correct */
+    for (const packageName of Object.keys(HardhatError.ERRORS) as Array<
       keyof typeof HardhatError.ERRORS
     >) {
-      const range = ERROR_CATEGORIES[errorGroup];
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
+    We know that this is correct */
+      for (const categoryName of Object.keys(
+        HardhatError.ERRORS[packageName],
+      ) as Array<keyof (typeof HardhatError.ERRORS)[typeof packageName]>) {
+        const range = ERROR_CATEGORIES[packageName].CATEGORIES[categoryName];
+        const category = ERRORS[packageName][categoryName];
 
-      for (const [name, errorDescriptor] of Object.entries<ErrorDescriptor>(
-        HardhatError.ERRORS[errorGroup],
-      )) {
-        assert.ok(
-          errorDescriptor.number >= range.min,
-          `ERRORS.${errorGroup}.${name}'s number is out of range`,
-        );
+        for (const [name, errorDescriptor] of Object.entries<ErrorDescriptor>(
+          category,
+        )) {
+          assert.ok(
+            errorDescriptor.number >= range.min,
+            `ERRORS.${packageName}.${categoryName}.${name}'s number is out of range`,
+          );
 
-        assert.ok(
-          errorDescriptor.number <= range.max - 1,
-          `ERRORS.${errorGroup}.${name}'s number is out of range`,
-        );
+          assert.ok(
+            errorDescriptor.number <= range.max - 1,
+            `ERRORS.${packageName}.${categoryName}.${name}'s number is out of range`,
+          );
+        }
       }
     }
   });
 
   it("Shouldn't repeat error numbers", () => {
+    const usedNumbers = new Set<number>();
+
     /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
-    We kwow that this is correct */
-    for (const errorGroup of Object.keys(HardhatError.ERRORS) as Array<
+    We know that this is correct */
+    for (const packageName of Object.keys(HardhatError.ERRORS) as Array<
       keyof typeof HardhatError.ERRORS
     >) {
-      for (const [name, errorDescriptor] of Object.entries<ErrorDescriptor>(
-        HardhatError.ERRORS[errorGroup],
-      )) {
-        for (const [name2, errorDescriptor2] of Object.entries<ErrorDescriptor>(
-          HardhatError.ERRORS[errorGroup],
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
+    We know that this is correct */
+      for (const categoryName of Object.keys(
+        HardhatError.ERRORS[packageName],
+      ) as Array<keyof (typeof HardhatError.ERRORS)[typeof packageName]>) {
+        for (const [name, errorDescriptor] of Object.entries<ErrorDescriptor>(
+          HardhatError.ERRORS[packageName][categoryName],
         )) {
-          if (name !== name2) {
-            assert.notEqual(
-              errorDescriptor.number,
-              errorDescriptor2.number,
-              `ERRORS.${errorGroup}.${name} and ${errorGroup}.${name2} have repeated numbers`,
+          if (usedNumbers.has(errorDescriptor.number)) {
+            assert.fail(
+              `ERRORS.${packageName}.${categoryName}.${name}'s number is repeated`,
             );
           }
+
+          usedNumbers.add(errorDescriptor.number);
         }
       }
     }
@@ -315,23 +382,31 @@ describe("Error descriptors", () => {
 
   it("Should keep the numbers in order, without gaps", () => {
     /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
-    We kwow that this is correct */
-    for (const errorGroup of Object.keys(HardhatError.ERRORS) as Array<
+    We know that this is correct */
+    for (const packageName of Object.keys(HardhatError.ERRORS) as Array<
       keyof typeof HardhatError.ERRORS
     >) {
-      const range = ERROR_CATEGORIES[errorGroup];
-      let expectedErrorNumber = range.min;
+      const packageRange = ERROR_CATEGORIES[packageName];
 
-      for (const [name, errorDescriptor] of Object.entries<ErrorDescriptor>(
-        HardhatError.ERRORS[errorGroup],
-      )) {
-        assert.equal(
-          errorDescriptor.number,
-          expectedErrorNumber,
-          `ERRORS.${errorGroup}.${name}'s number is out of range`,
-        );
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
+    We know that this is correct */
+      for (const categoryName of Object.keys(
+        HardhatError.ERRORS[packageName],
+      ) as Array<keyof (typeof HardhatError.ERRORS)[typeof packageName]>) {
+        const categoryRange = packageRange.CATEGORIES[categoryName];
+        let expectedErrorNumber = categoryRange.min;
 
-        expectedErrorNumber += 1;
+        for (const [name, errorDescriptor] of Object.entries<ErrorDescriptor>(
+          HardhatError.ERRORS[packageName][categoryName],
+        )) {
+          assert.equal(
+            errorDescriptor.number,
+            expectedErrorNumber,
+            `ERRORS.${packageName}.${categoryName}.${name}'s number is out of range`,
+          );
+
+          expectedErrorNumber += 1;
+        }
       }
     }
   });
@@ -424,8 +499,10 @@ describe("Type tests", () => {
   describe("ErrorDescriptor types", () => {
     it("should have the right type", () => {
       const _descriptors: {
-        [category in keyof typeof ERROR_CATEGORIES]: {
-          [name: string]: ErrorDescriptor;
+        [packageName in keyof typeof ERROR_CATEGORIES]: {
+          [categoryName in keyof (typeof ERROR_CATEGORIES)[packageName]["CATEGORIES"]]: {
+            [name: string]: ErrorDescriptor;
+          };
         };
       } = ERRORS;
     });

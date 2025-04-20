@@ -388,7 +388,7 @@ describe(
             quiet: true,
             buildProfile: "not-defined",
           }),
-          HardhatError.ERRORS.SOLIDITY.BUILD_PROFILE_NOT_FOUND,
+          HardhatError.ERRORS.CORE.SOLIDITY.BUILD_PROFILE_NOT_FOUND,
           {
             buildProfileName: "not-defined",
           },

@@ -17,7 +17,7 @@ export function toRpcQuantity(x: NumberLike): string {
   if (typeof x === "number" || typeof x === "bigint") {
     if (x < 0) {
       throw new HardhatError(
-        HardhatError.ERRORS.NETWORK_HELPERS.CANNOT_CONVERT_NEGATIVE_NUMBER_TO_RPC_QUANTITY,
+        HardhatError.ERRORS.NETWORK_HELPERS.GENERAL.CANNOT_CONVERT_NEGATIVE_NUMBER_TO_RPC_QUANTITY,
         {
           value: x,
         },
@@ -28,13 +28,13 @@ export function toRpcQuantity(x: NumberLike): string {
   } else if (typeof x === "string") {
     if (!x.startsWith("0x")) {
       throw new HardhatError(
-        HardhatError.ERRORS.NETWORK_HELPERS.ONLY_ALLOW_0X_PREFIXED_STRINGS,
+        HardhatError.ERRORS.NETWORK_HELPERS.GENERAL.ONLY_ALLOW_0X_PREFIXED_STRINGS,
       );
     }
     hex = x;
   } else {
     throw new HardhatError(
-      HardhatError.ERRORS.NETWORK_HELPERS.CANNOT_CONVERT_TO_RPC_QUANTITY,
+      HardhatError.ERRORS.NETWORK_HELPERS.GENERAL.CANNOT_CONVERT_TO_RPC_QUANTITY,
       {
         value: x,
       },

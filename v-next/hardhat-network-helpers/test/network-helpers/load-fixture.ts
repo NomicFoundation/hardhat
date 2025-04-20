@@ -141,7 +141,8 @@ describe("network-helpers - loadFixture", () => {
   it("should throw when an anonymous regular function is used", async function () {
     await assertRejectsWithHardhatError(
       async () => networkHelpers.loadFixture(async function () {}),
-      HardhatError.ERRORS.NETWORK_HELPERS.FIXTURE_ANONYMOUS_FUNCTION_ERROR,
+      HardhatError.ERRORS.NETWORK_HELPERS.GENERAL
+        .FIXTURE_ANONYMOUS_FUNCTION_ERROR,
       {},
     );
   });
@@ -149,7 +150,8 @@ describe("network-helpers - loadFixture", () => {
   it("should throw when an anonymous arrow function is used", async function () {
     await assertRejectsWithHardhatError(
       async () => networkHelpers.loadFixture(async () => {}),
-      HardhatError.ERRORS.NETWORK_HELPERS.FIXTURE_ANONYMOUS_FUNCTION_ERROR,
+      HardhatError.ERRORS.NETWORK_HELPERS.GENERAL
+        .FIXTURE_ANONYMOUS_FUNCTION_ERROR,
       {},
     );
   });

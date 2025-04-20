@@ -68,7 +68,7 @@ describe("chains", () => {
 
       await assertRejectsWithHardhatError(
         getChain(provider, "generic"),
-        HardhatError.ERRORS.VIEM.NETWORK_NOT_FOUND,
+        HardhatError.ERRORS.HARDHAT_VIEM.GENERAL.NETWORK_NOT_FOUND,
         { chainId: 0 },
       );
     });
@@ -371,7 +371,8 @@ describe("chains", () => {
 
       await assertRejectsWithHardhatError(
         getMode(provider),
-        HardhatError.ERRORS.VIEM.UNSUPPORTED_DEVELOPMENT_NETWORK,
+        HardhatError.ERRORS.HARDHAT_VIEM.GENERAL
+          .UNSUPPORTED_DEVELOPMENT_NETWORK,
         {},
       );
     });

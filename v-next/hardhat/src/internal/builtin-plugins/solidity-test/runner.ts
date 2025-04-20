@@ -67,7 +67,7 @@ export function run(
         timeout = setTimeout(() => {
           controller.error(
             new HardhatError(
-              HardhatError.ERRORS.SOLIDITY_TESTS.RUNNER_TIMEOUT,
+              HardhatError.ERRORS.CORE.SOLIDITY_TESTS.RUNNER_TIMEOUT,
               {
                 duration: options.timeout,
                 suites: Array.from(remainingSuites).join(", "),

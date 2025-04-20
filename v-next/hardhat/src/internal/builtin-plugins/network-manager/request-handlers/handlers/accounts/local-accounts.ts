@@ -85,7 +85,7 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
         if (address !== undefined) {
           if (data === undefined) {
             throw new HardhatError(
-              HardhatError.ERRORS.NETWORK.ETHSIGN_MISSING_DATA_PARAM,
+              HardhatError.ERRORS.CORE.NETWORK.ETHSIGN_MISSING_DATA_PARAM,
             );
           }
 
@@ -105,7 +105,7 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
         if (data !== undefined) {
           if (address === undefined) {
             throw new HardhatError(
-              HardhatError.ERRORS.NETWORK.PERSONALSIGN_MISSING_ADDRESS_PARAM,
+              HardhatError.ERRORS.CORE.NETWORK.PERSONALSIGN_MISSING_ADDRESS_PARAM,
             );
           }
 
@@ -123,7 +123,7 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
 
       if (data === undefined) {
         throw new HardhatError(
-          HardhatError.ERRORS.NETWORK.ETHSIGN_MISSING_DATA_PARAM,
+          HardhatError.ERRORS.CORE.NETWORK.ETHSIGN_MISSING_DATA_PARAM,
         );
       }
 
@@ -133,7 +133,7 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
           typedMessage = JSON.parse(data);
         } catch {
           throw new HardhatError(
-            HardhatError.ERRORS.NETWORK.ETHSIGN_TYPED_DATA_V4_INVALID_DATA_PARAM,
+            HardhatError.ERRORS.CORE.NETWORK.ETHSIGN_TYPED_DATA_V4_INVALID_DATA_PARAM,
           );
         }
       }
@@ -159,14 +159,14 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
 
       if (txRequest.gas === undefined) {
         throw new HardhatError(
-          HardhatError.ERRORS.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
+          HardhatError.ERRORS.CORE.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
           { param: "gas" },
         );
       }
 
       if (txRequest.from === undefined) {
         throw new HardhatError(
-          HardhatError.ERRORS.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
+          HardhatError.ERRORS.CORE.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
           { param: "from" },
         );
       }
@@ -178,26 +178,26 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
 
       if (!hasGasPrice && !hasEip1559Fields) {
         throw new HardhatError(
-          HardhatError.ERRORS.NETWORK.MISSING_FEE_PRICE_FIELDS,
+          HardhatError.ERRORS.CORE.NETWORK.MISSING_FEE_PRICE_FIELDS,
         );
       }
 
       if (hasGasPrice && hasEip1559Fields) {
         throw new HardhatError(
-          HardhatError.ERRORS.NETWORK.INCOMPATIBLE_FEE_PRICE_FIELDS,
+          HardhatError.ERRORS.CORE.NETWORK.INCOMPATIBLE_FEE_PRICE_FIELDS,
         );
       }
 
       if (hasEip1559Fields && txRequest.maxFeePerGas === undefined) {
         throw new HardhatError(
-          HardhatError.ERRORS.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
+          HardhatError.ERRORS.CORE.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
           { param: "maxFeePerGas" },
         );
       }
 
       if (hasEip1559Fields && txRequest.maxPriorityFeePerGas === undefined) {
         throw new HardhatError(
-          HardhatError.ERRORS.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
+          HardhatError.ERRORS.CORE.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
           { param: "maxPriorityFeePerGas" },
         );
       }
@@ -235,9 +235,12 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
   #getPrivateKeyForAddress(address: Uint8Array): Uint8Array {
     const pk = this.#addressToPrivateKey.get(bytesToHexString(address));
     if (pk === undefined) {
-      throw new HardhatError(HardhatError.ERRORS.NETWORK.NOT_LOCAL_ACCOUNT, {
-        account: bytesToHexString(address),
-      });
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.NETWORK.NOT_LOCAL_ACCOUNT,
+        {
+          account: bytesToHexString(address),
+        },
+      );
     }
 
     return pk;
@@ -290,7 +293,7 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
       txData.data === undefined
     ) {
       throw new HardhatError(
-        HardhatError.ERRORS.NETWORK.DATA_FIELD_CANNOT_BE_NULL_WITH_NULL_ADDRESS,
+        HardhatError.ERRORS.CORE.NETWORK.DATA_FIELD_CANNOT_BE_NULL_WITH_NULL_ADDRESS,
       );
     }
 

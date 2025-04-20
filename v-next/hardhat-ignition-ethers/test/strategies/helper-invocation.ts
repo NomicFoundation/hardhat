@@ -1,3 +1,5 @@
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { buildModule } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
@@ -37,7 +39,7 @@ describe("strategies - invocation via helper", () => {
         return { foo };
       });
 
-      await assert.isRejected(
+      await assertRejectsWithHardhatError(
         this.connection.ignition.deploy(moduleDefinition, {
           strategy: "create2",
           strategyConfig: {
@@ -45,7 +47,11 @@ describe("strategies - invocation via helper", () => {
             salt: undefined as any,
           },
         }),
-        /IGN1102: Missing required strategy configuration parameter 'salt' for the strategy 'create2'/,
+        HardhatError.ERRORS.IGNITION.STRATEGIES.MISSING_CONFIG_PARAM,
+        {
+          strategyName: "create2",
+          requiredParam: "salt",
+        },
       );
     });
   });

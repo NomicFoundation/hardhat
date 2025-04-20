@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-network-helpers",
-  "version": "3.0.0-next.3",
+  "version": "3.0.0-next.4",
   "description": "Hardhat utils for testing",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-network-helpers",
   "repository": {
@@ -44,7 +44,8 @@
     "README.md"
   ],
   "devDependencies": {
-    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0-next.3",
+    "@eslint-community/eslint-plugin-eslint-comments": "^4.3.0",
+    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0-next.4",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
     "@types/debug": "^4.1.7",
     "@types/node": "^20.14.9",
@@ -58,10 +59,10 @@
     "typescript": "~5.5.0"
   },
   "dependencies": {
-    "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.3",
-    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.3"
+    "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.4",
+    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.4"
   },
   "peerDependencies": {
-    "hardhat": "workspace:^3.0.0-next.3"
+    "hardhat": "workspace:^3.0.0-next.4"
   }
 }

@@ -27,7 +27,7 @@ export function supportRevertedWith(
         Promise.resolve(this._obj).catch(() => {});
 
         throw new HardhatError(
-          HardhatError.ERRORS.CHAI_MATCHERS.EXPECT_STRING_OR_REGEX_AS_REVERT_REASON,
+          HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.EXPECT_STRING_OR_REGEX_AS_REVERT_REASON,
         );
       }
 

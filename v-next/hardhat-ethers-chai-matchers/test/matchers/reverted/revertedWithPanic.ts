@@ -274,7 +274,7 @@ describe("INTEGRATION: Reverted with panic", { timeout: 60000 }, () => {
 
         assertThrowsHardhatError(
           () => expect(hash).to.be.revertedWithPanic("invalid"),
-          HardhatError.ERRORS.CHAI_MATCHERS.PANIC_CODE_EXPECTED,
+          HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.PANIC_CODE_EXPECTED,
           {
             panicCode: "invalid",
           },
@@ -286,7 +286,7 @@ describe("INTEGRATION: Reverted with panic", { timeout: 60000 }, () => {
 
         assertThrowsHardhatError(
           () => expect(tx).to.be.revertedWithPanic("invalid"),
-          HardhatError.ERRORS.CHAI_MATCHERS.PANIC_CODE_EXPECTED,
+          HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.PANIC_CODE_EXPECTED,
           {
             panicCode: "invalid",
           },

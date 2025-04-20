@@ -28,7 +28,7 @@ export function buildAssert(negated: boolean, ssfi: Ssfi) {
     if (!negated && !condition) {
       if (messageFalse === undefined) {
         throw new HardhatError(
-          HardhatError.ERRORS.CHAI_MATCHERS.ASSERTION_WITHOUT_ERROR_MESSAGE,
+          HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.ASSERTION_WITHOUT_ERROR_MESSAGE,
         );
       }
 
@@ -41,7 +41,7 @@ export function buildAssert(negated: boolean, ssfi: Ssfi) {
     if (negated && condition) {
       if (messageTrue === undefined) {
         throw new HardhatError(
-          HardhatError.ERRORS.CHAI_MATCHERS.ASSERTION_WITHOUT_ERROR_MESSAGE,
+          HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.ASSERTION_WITHOUT_ERROR_MESSAGE,
         );
       }
 

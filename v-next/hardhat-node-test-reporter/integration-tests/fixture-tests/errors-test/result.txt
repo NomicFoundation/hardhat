@@ -4,7 +4,7 @@
   [31m2) error with circular cause in top level test[39m
 
 
-[32m0 passing[39m[90m (524ms)[39m[31m[39m
+[32m0 passing[39m[90m (576ms)[39m[31m[39m
 [31m2 failing[39m
 
   1) aggregate error in top level test:

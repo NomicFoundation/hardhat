@@ -121,7 +121,7 @@ function overwriteBigNumberFunction(
         return lhs <= rhs;
       } else {
         throw new HardhatError(
-          HardhatError.ERRORS.CHAI_MATCHERS.UNKNOWN_COMPARISON_OPERATION,
+          HardhatError.ERRORS.CHAI_MATCHERS.GENERAL.UNKNOWN_COMPARISON_OPERATION,
           {
             method,
           },

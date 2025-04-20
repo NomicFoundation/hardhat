@@ -2,9 +2,8 @@ import type { DeploymentLoader } from "./deployment-loader/types.js";
 import type { DeploymentState } from "./execution/types/deployment-state.js";
 import type { WipeExecutionStateMessage } from "./execution/types/messages.js";
 
-import { IgnitionError } from "../errors.js";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
-import { ERRORS } from "./errors-list.js";
 import {
   applyNewMessage,
   loadDeploymentState,
@@ -18,15 +17,21 @@ export class Wiper {
     const deploymentState = await loadDeploymentState(this._deploymentLoader);
 
     if (deploymentState === undefined) {
-      throw new IgnitionError(ERRORS.WIPE.UNINITIALIZED_DEPLOYMENT, {
-        futureId,
-      });
+      throw new HardhatError(
+        HardhatError.ERRORS.IGNITION.WIPE.UNINITIALIZED_DEPLOYMENT,
+        {
+          futureId,
+        },
+      );
     }
 
     const executionState = deploymentState.executionStates[futureId];
 
     if (executionState === undefined) {
-      throw new IgnitionError(ERRORS.WIPE.NO_STATE_FOR_FUTURE, { futureId });
+      throw new HardhatError(
+        HardhatError.ERRORS.IGNITION.WIPE.NO_STATE_FOR_FUTURE,
+        { futureId },
+      );
     }
 
     const dependents = Object.values(deploymentState.executionStates).filter(
@@ -34,10 +39,13 @@ export class Wiper {
     );
 
     if (dependents.length > 0) {
-      throw new IgnitionError(ERRORS.WIPE.DEPENDENT_FUTURES, {
-        futureId,
-        dependents: dependents.map((d) => d.id).join(", "),
-      });
+      throw new HardhatError(
+        HardhatError.ERRORS.IGNITION.WIPE.DEPENDENT_FUTURES,
+        {
+          futureId,
+          dependents: dependents.map((d) => d.id).join(", "),
+        },
+      );
     }
 
     const wipeMessage: WipeExecutionStateMessage = {

@@ -1,11 +1,10 @@
 import type { ArtifactResolver } from "./types/artifact.js";
 
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { findLastIndex } from "lodash-es";
 
-import { IgnitionError } from "./errors.js";
 import { builtinChains } from "./internal/chain-config.js";
 import { FileDeploymentLoader } from "./internal/deployment-loader/file-deployment-loader.js";
-import { ERRORS } from "./internal/errors-list.js";
 import { loadDeploymentState } from "./internal/execution/deployment-state-helpers.js";
 import { ExecutionResultType } from "./internal/execution/types/execution-result.js";
 import {
@@ -44,9 +43,12 @@ export async function listTransactions(
   const deploymentState = await loadDeploymentState(deploymentLoader);
 
   if (deploymentState === undefined) {
-    throw new IgnitionError(ERRORS.LIST_TRANSACTIONS.UNINITIALIZED_DEPLOYMENT, {
-      deploymentDir,
-    });
+    throw new HardhatError(
+      HardhatError.ERRORS.IGNITION.LIST_TRANSACTIONS.UNINITIALIZED_DEPLOYMENT,
+      {
+        deploymentDir,
+      },
+    );
   }
 
   const transactions: ListTransactionsResult = [];

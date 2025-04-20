@@ -309,7 +309,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
     if (this.#options.solidityConfig.profiles[buildProfileName] === undefined) {
       throw new HardhatError(
-        HardhatError.ERRORS.SOLIDITY.BUILD_PROFILE_NOT_FOUND,
+        HardhatError.ERRORS.CORE.SOLIDITY.BUILD_PROFILE_NOT_FOUND,
         {
           buildProfileName,
         },

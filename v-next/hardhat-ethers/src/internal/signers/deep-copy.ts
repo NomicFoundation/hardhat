@@ -47,7 +47,7 @@ export async function deepCopy<T = any>(value: T): Promise<T> {
   }
 
   throw new HardhatError(
-    HardhatError.ERRORS.ETHERS.UNSUPPORTED_TYPE_FOR_DEEP_COPY,
+    HardhatError.ERRORS.HARDHAT_ETHERS.GENERAL.UNSUPPORTED_TYPE_FOR_DEEP_COPY,
     {
       value,
       type: typeof value,
