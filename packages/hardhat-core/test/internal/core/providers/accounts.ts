@@ -399,7 +399,7 @@ describe("Local accounts provider", () => {
     assert.equal(rawTransaction, expectedRaw);
   });
 
-  it("should allow 'chainId' to be larger than 2^32 - 1 ", async () => {
+  it("should allow 'chainId' to be larger than 2^32 - 1", async () => {
     const tx = {
       from: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
       to: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",

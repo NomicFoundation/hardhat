@@ -304,16 +304,15 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
       gasLimit: txData.gasLimit,
     };
 
-    let strictMode = true;
-
-    // If the chainId is greater than 2^32 - 1, we need to disable strict mode
-    // See: https://github.com/paulmillr/micro-eth-signer/issues/34
-    if (
-      baseTxParams.chainId !== undefined &&
-      baseTxParams.chainId > BigInt(2 ** 32 - 1)
-    ) {
-      strictMode = false;
-    }
+    // Disable strict mode for chainIds > 2 ** 32 - 1.
+    //
+    // micro-eth-signer throws if strict mode is enabled with a chainId above 2 ** 32 - 1
+    // (see: https://github.com/paulmillr/micro-eth-signer/blob/baa4b8c922c3253b125e3f46b1fce6dee7c33853/src/tx.ts#L500).
+    //
+    // As a workaround we disable strict mode for larger chains. This also bypasses
+    // other internal checks enforced by the library, which is not ideal.
+    const strictMode =
+      txData.chainId === undefined || txData.chainId <= BigInt(2 ** 32 - 1);
 
     if (authorizationList !== undefined) {
       assertHardhatInvariant(
