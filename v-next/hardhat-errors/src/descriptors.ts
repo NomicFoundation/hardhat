@@ -558,7 +558,7 @@ Please ensure that an action is defined for each task.`,
       INVALID_ACTION_URL: {
         number: 411,
         messageTemplate:
-          'Unable to import the module specified by the action "{action}" of task "{task}"',
+          'Unable to import the action specified by task "{task}" from the module "{action}"',
         websiteTitle: "Invalid action URL",
         websiteDescription:
           "The action URL is invalid. Please ensure that the URL is correct.",
