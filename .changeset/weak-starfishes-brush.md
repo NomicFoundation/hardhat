@@ -3,4 +3,4 @@
 "hardhat": patch
 ---
 
-Make the hardforks dependent on the chain type.
+Upgrade edr-optimism to 0.10.0-alpha.1 and make the hardforks dependent on the chain type.
