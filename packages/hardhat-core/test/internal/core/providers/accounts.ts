@@ -399,6 +399,34 @@ describe("Local accounts provider", () => {
     assert.equal(rawTransaction, expectedRaw);
   });
 
+  it("should allow 'chainId' to be larger than 2^32 - 1", async () => {
+    const tx = {
+      from: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
+      to: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
+      gas: numberToRpcQuantity(100000),
+      nonce: numberToRpcQuantity(0),
+      value: numberToRpcQuantity(1),
+      chainId: numberToRpcQuantity(BigInt(2 ** 32)),
+      maxFeePerGas: numberToRpcQuantity(12),
+      maxPriorityFeePerGas: numberToRpcQuantity(2),
+    };
+    await wrapper.request({
+      method: "eth_sendTransaction",
+      params: [tx],
+    });
+
+    const rawTransaction = mock.getLatestParams("eth_sendRawTransaction")[0];
+
+    // BigInt(2 ** 32) is 0x + 100000000
+    const expectedRaw =
+      "0x02f86885010000000080020c830186a094b5bc06d4548a3ac17d72b372" +
+      "ae1e416bf65b8ead0180c001a0d2dc2ca1503a8e440849a4c87bd971d3f9" +
+      "9060fc0d12c7557cce964ec465f3faa017b976a4ec68cc1e03a4f14b342b" +
+      "e7666a76318a802cc1197a3bb88a36549bc8";
+
+    assert.equal(rawTransaction, expectedRaw);
+  });
+
   it("should throw if both 'to' and 'data' are undefined", async () => {
     await expectHardhatErrorAsync(
       () =>
