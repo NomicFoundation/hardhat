@@ -20,7 +20,7 @@ export class LazyCoverageManager implements CoverageManager {
       const { getOrCreateCoverageManager } = await import(
         "../coverage-manager.js"
       );
-      this.#coverageManager = await getOrCreateCoverageManager();
+      this.#coverageManager = getOrCreateCoverageManager();
     }
 
     return this.#coverageManager;
