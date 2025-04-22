@@ -15,10 +15,10 @@ export default async (): Promise<Partial<NetworkHooks>> => {
 
       if (context.globalOptions.coverage === true) {
         if (connection.provider instanceof EdrProvider) {
-          const { getOrCreateInternalCoverageManager } = await import(
-            "../internal/coverage-manager.js"
+          const { getOrCreateCoverageManager } = await import(
+            "../coverage-manager.js"
           );
-          const coverageManager = getOrCreateInternalCoverageManager();
+          const coverageManager = await getOrCreateCoverageManager();
           await coverageManager.addProvider(
             connection.id.toString(),
             connection.provider,
@@ -38,10 +38,10 @@ export default async (): Promise<Partial<NetworkHooks>> => {
     ) {
       if (context.globalOptions.coverage === true) {
         if (connection.provider instanceof EdrProvider) {
-          const { getOrCreateInternalCoverageManager } = await import(
-            "../internal/coverage-manager.js"
+          const { getOrCreateCoverageManager } = await import(
+            "../coverage-manager.js"
           );
-          const coverageManager = getOrCreateInternalCoverageManager();
+          const coverageManager = await getOrCreateCoverageManager();
           await coverageManager.removeProvider(connection.id.toString());
         }
       }
