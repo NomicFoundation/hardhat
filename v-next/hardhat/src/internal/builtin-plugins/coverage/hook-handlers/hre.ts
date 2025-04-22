@@ -15,9 +15,9 @@ export class LazyCoverageManager implements CoverageManager {
     this.#coveragePath = coveragePath;
   }
 
-  public async saveProviderHits(): Promise<void> {
+  public async save(): Promise<void> {
     const coverageManager = await this.#getCoverageManager();
-    return coverageManager.saveProviderHits();
+    return coverageManager.save();
   }
 
   public async loadProviderHits(): Promise<CoverageHits> {
