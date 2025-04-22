@@ -46,8 +46,8 @@ export class CoverageManagerImplementation implements CoverageManager {
       }
     }
 
-    // NOTE: After we load all the provider hits from disk, we remove them from
-    // the disk; this allows collecting coverage from succesive tasks
+    // NOTE: After we load all the provider hits from disk, we remove them from the disk
+    // This ensures the same data is not read twice
     for (const hitsPath of hitsPaths) {
       await remove(hitsPath);
     }
@@ -64,8 +64,8 @@ export class CoverageManagerImplementation implements CoverageManager {
     );
     await writeJsonFile(hitsPath, hits);
 
-    // NOTE: After we dump the provider hits to disk, we remove them from the internal
-    // coverage manager; this allows collecting coverage from succesive tasks
+    // NOTE: After we dump the provider hits to disk, we remove them from the internal coverage manager
+    // This ensures the same data is not written twice
     await internal.clearProviderHits();
   }
 }
