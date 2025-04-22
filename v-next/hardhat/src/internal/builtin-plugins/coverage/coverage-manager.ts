@@ -109,7 +109,7 @@ export class CoverageManagerImplementation implements CoverageManager {
     delete this.#providers[id];
   }
 
-  public async updateMetadata(metadata: CoverageMetadata): Promise<void> {
+  public updateMetadata(metadata: CoverageMetadata): void {
     for (const markerId of Object.keys(metadata)) {
       this.#metadata[markerId] = metadata[markerId];
     }

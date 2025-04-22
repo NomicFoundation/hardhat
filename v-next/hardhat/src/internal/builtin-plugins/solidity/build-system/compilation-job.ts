@@ -42,9 +42,9 @@ export class CompilationJobImplementation implements CompilationJob {
     this.#coverage = coverage;
   }
 
-  public async getSolcInput(): Promise<CompilerInput> {
+  public getSolcInput(): CompilerInput {
     if (this.#solcInput === undefined) {
-      this.#solcInput = await this.#buildSolcInput();
+      this.#solcInput = this.#buildSolcInput();
     }
 
     return this.#solcInput;
@@ -77,11 +77,11 @@ export class CompilationJobImplementation implements CompilationJob {
     return this.#resolvedFiles;
   }
 
-  async #buildSolcInput(): Promise<CompilerInput> {
+  #buildSolcInput(): CompilerInput {
     const solcInputWithoutSources = this.#getSolcInputWithoutSources();
 
     const sources: { [sourceName: string]: { content: string } } = {};
-    const coverageManager = await getOrCreateCoverageManager();
+    const coverageManager = getOrCreateCoverageManager();
 
     const resolvedFiles = this.#getResolvedFiles();
 
@@ -95,7 +95,7 @@ export class CompilationJobImplementation implements CompilationJob {
         sources[file.sourceName] = {
           content,
         };
-        await coverageManager.updateMetadata(metadata);
+        coverageManager.updateMetadata(metadata);
       } else {
         sources[file.sourceName] = {
           content: file.content.text,

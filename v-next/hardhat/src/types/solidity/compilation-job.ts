@@ -25,7 +25,7 @@ export interface CompilationJob {
   /**
    * Returns the solc input to be used.
    */
-  getSolcInput(): Promise<CompilerInput>;
+  getSolcInput(): CompilerInput;
 
   /**
    * Returns the build id of the compilation job.
