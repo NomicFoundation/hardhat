@@ -93,7 +93,7 @@ describe("deploy with ethers result", () => {
     assert.equal(await result.bar.isBar(), true);
 
     // A function on the abi will not be defined on the ethers contract,
-    // but more importantly should how up as a type error.
+    // but more importantly should show up as a type error.
 
     // TODO: add @ts-expect-error when we have typescript support
     assert.equal(result.foo.isBar, undefined);

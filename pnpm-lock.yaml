@@ -707,9 +707,6 @@ importers:
       '@nomicfoundation/hardhat-errors':
         specifier: workspace:^3.0.0-next.4
         version: link:../hardhat-errors
-      tsx:
-        specifier: ^4.19.3
-        version: 4.19.3
     devDependencies:
       '@istanbuljs/nyc-config-typescript':
         specifier: 1.0.2
@@ -738,6 +735,9 @@ importers:
       '@typescript-eslint/parser':
         specifier: ^7.7.1
         version: 7.18.0(eslint@8.57.0)(typescript@5.5.4)
+      c8:
+        specifier: ^9.1.0
+        version: 9.1.0
       cross-env:
         specifier: 7.0.3
         version: 7.0.3
@@ -774,6 +774,9 @@ importers:
       ts-node:
         specifier: 10.9.2
         version: 10.9.2(@types/node@20.17.16)(typescript@5.5.4)
+      tsx:
+        specifier: ^4.19.3
+        version: 4.19.3
       typescript:
         specifier: ~5.5.0
         version: 5.5.4
@@ -894,9 +897,6 @@ importers:
       '@nomicfoundation/hardhat-errors':
         specifier: workspace:^3.0.0-next.4
         version: link:../hardhat-errors
-      tsx:
-        specifier: ^4.19.3
-        version: 4.19.3
     devDependencies:
       '@istanbuljs/nyc-config-typescript':
         specifier: 1.0.2
@@ -925,6 +925,9 @@ importers:
       '@typescript-eslint/parser':
         specifier: ^7.7.1
         version: 7.18.0(eslint@8.57.0)(typescript@5.5.4)
+      c8:
+        specifier: ^9.1.0
+        version: 9.1.0
       cross-env:
         specifier: 7.0.3
         version: 7.0.3
@@ -958,6 +961,9 @@ importers:
       ts-node:
         specifier: 10.9.2
         version: 10.9.2(@types/node@20.17.16)(typescript@5.5.4)
+      tsx:
+        specifier: ^4.19.3
+        version: 4.19.3
       typescript:
         specifier: ~5.5.0
         version: 5.5.4

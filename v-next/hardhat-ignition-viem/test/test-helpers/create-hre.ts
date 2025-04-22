@@ -9,7 +9,7 @@ import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 import hardhatIgnitionViem from "../../src/index.js";
 
 export async function createConnection(): Promise<NetworkConnection> {
-  const hre = await createHRE();
+  const hre = await createHre();
   const connection = await hre.network.connect();
 
   await connection.provider.request({
@@ -20,7 +20,7 @@ export async function createConnection(): Promise<NetworkConnection> {
   return connection;
 }
 
-export async function createHRE(): Promise<HardhatRuntimeEnvironment> {
+async function createHre(): Promise<HardhatRuntimeEnvironment> {
   const configPath = path.join(process.cwd(), "hardhat.config.js");
   const { default: userConfig } = await import(pathToFileURL(configPath).href);
 
