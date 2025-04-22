@@ -1,9 +1,10 @@
-import type { CoverageHits } from "./internal/types.js";
-import type { CoverageManager } from "../../../types/coverage.js";
+import type { CoverageHits, CoverageManager } from "./types.js";
+import type { EdrProvider } from "../network-manager/edr/edr-provider.js";
 
 import { randomUUID } from "node:crypto";
 import path from "node:path";
 
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import {
   ensureDir,
   getAllFilesMatching,
@@ -12,10 +13,25 @@ import {
   writeJsonFile,
 } from "@nomicfoundation/hardhat-utils/fs";
 
-import { getOrCreateInternalCoverageManager } from "./internal/coverage-manager.js";
+let coverageManager: CoverageManager | undefined;
+
+export async function getOrCreateCoverageManager(): Promise<CoverageManager> {
+  if (coverageManager === undefined) {
+    const coveragePath = process.env.HARDHAT_COVERAGE_PATH;
+    assertHardhatInvariant(
+      coveragePath !== undefined,
+      "HARDHAT_COVERAGE_PATH was not set",
+    );
+    coverageManager = new CoverageManagerImplementation(coveragePath);
+  }
+
+  return coverageManager;
+}
 
 export class CoverageManagerImplementation implements CoverageManager {
   readonly #coveragePath: string;
+  readonly #providers: Record<string, EdrProvider> = {};
+  readonly #hits: CoverageHits = {};
 
   #hitsPath?: string;
 
@@ -31,18 +47,38 @@ export class CoverageManagerImplementation implements CoverageManager {
     return this.#hitsPath;
   }
 
+  public async save(): Promise<void> {
+    // NOTE: Draining the providers first to ensure all the hits were collected
+    await Promise.all(
+      Object.keys(this.#providers).map((id) => this.removeProvider(id)),
+    );
+    const hitsPath = path.join(
+      await this.#getHitsPath(),
+      `${randomUUID()}.json`,
+    );
+    await writeJsonFile(hitsPath, this.#hits);
+
+    // NOTE: After we dump the provider hits to disk, we remove them from the internal coverage manager
+    // This ensures the same data is not written twice
+    await Promise.all(
+      Object.keys(this.#hits).map((id) => {
+        delete this.#hits[id];
+      }),
+    );
+  }
+
   // NOTE: This function will remain unused until we attempt to create
   // a coverage report from hits and accompanying metadata
-  async #getHits(): Promise<CoverageHits> {
+  async #load(): Promise<void> {
     const hitsPaths = await getAllFilesMatching(
       await this.#getHitsPath(),
       (filePath) => path.extname(filePath) === ".json",
     );
-    const hits: CoverageHits = {};
+    const _hits: CoverageHits = {};
     for (const hitsPath of hitsPaths) {
       const intermediateHits = await readJsonFile<CoverageHits>(hitsPath);
       for (const [k, v] of Object.entries(intermediateHits)) {
-        hits[k] = (hits[k] ?? 0) + v;
+        _hits[k] = (_hits[k] ?? 0) + v;
       }
     }
 
@@ -52,20 +88,17 @@ export class CoverageManagerImplementation implements CoverageManager {
       await remove(hitsPath);
     }
 
-    return hits;
+    // TODO: Continue processing _hits to produce the report
   }
 
-  public async save(): Promise<void> {
-    const internal = await getOrCreateInternalCoverageManager();
-    const hits = await internal.getProviderHits();
-    const hitsPath = path.join(
-      await this.#getHitsPath(),
-      `${randomUUID()}.json`,
-    );
-    await writeJsonFile(hitsPath, hits);
+  public async addProvider(id: string, provider: EdrProvider): Promise<void> {
+    this.#providers[id] = provider;
+  }
 
-    // NOTE: After we dump the provider hits to disk, we remove them from the internal coverage manager
-    // This ensures the same data is not written twice
-    await internal.clearProviderHits();
+  public async removeProvider(id: string): Promise<void> {
+    const _provider = this.#providers[id];
+    // TODO: Get the coverage data from the EDR provider before it is closed
+
+    delete this.#providers[id];
   }
 }
