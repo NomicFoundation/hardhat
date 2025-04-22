@@ -232,6 +232,10 @@ function resolvePaths(
         ? resolveFromRoot(projectRoot, configPath)
         : undefined,
     cache: resolveFromRoot(projectRoot, userProvidedPaths.cache ?? "cache"),
+    coverage: resolveFromRoot(
+      projectRoot,
+      userProvidedPaths.coverage ?? "coverage",
+    ),
     artifacts: resolveFromRoot(
       projectRoot,
       userProvidedPaths.artifacts ?? "artifacts",

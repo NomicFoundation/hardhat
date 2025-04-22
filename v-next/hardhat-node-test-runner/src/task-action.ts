@@ -73,10 +73,14 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
     // NOTE: Saving the environment variable to ensure node:test workers operate
     // with the information that the global --coverage option is enabled
     process.env.HARDHAT_COVERAGE = "true";
+    // NOTE: We need to import the coverage collector inside the node:test workers
     const runner = new URL(
       import.meta.resolve("@nomicfoundation/hardhat-node-test-runner/coverage"),
     );
     imports.push(runner.href);
+    // NOTE: Finally, we clear the coverage manager to ensure we only catch
+    // the hits created during this test run
+    await hre.coverage.clear();
   }
 
   process.env.NODE_OPTIONS = imports.map((i) => `--import ${i}`).join(" ");
@@ -117,6 +121,7 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
 
     if (hre.globalOptions.coverage === true) {
       // TODO: Retrieve the coverage report from the coverage manager
+      // e.g. await hre.coverage.load()
     }
 
     return failures;

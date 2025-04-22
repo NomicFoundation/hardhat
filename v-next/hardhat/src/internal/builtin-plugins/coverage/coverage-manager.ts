@@ -4,7 +4,6 @@ import type { EdrProvider } from "../network-manager/edr/edr-provider.js";
 import { randomUUID } from "node:crypto";
 import path from "node:path";
 
-import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import {
   ensureDir,
   getAllFilesMatching,
@@ -13,37 +12,20 @@ import {
   writeJsonFile,
 } from "@nomicfoundation/hardhat-utils/fs";
 
-let coverageManager: CoverageManager | undefined;
-
-export function getOrCreateCoverageManager(): CoverageManager {
-  if (coverageManager === undefined) {
-    coverageManager = new CoverageManagerImplementation();
-  }
-  return coverageManager;
-}
-
 export class CoverageManagerImplementation implements CoverageManager {
   readonly #providers: Record<string, EdrProvider> = {};
   readonly #hits: CoverageHits = {};
+  readonly #coveragePath: string;
 
-  #coveragePath?: string;
   #hitsPath?: string;
 
-  #getCoveragePath(): string {
-    if (this.#coveragePath === undefined) {
-      const coveragePath = process.env.HARDHAT_COVERAGE_PATH;
-      assertHardhatInvariant(
-        coveragePath !== undefined,
-        "HARDHAT_COVERAGE_PATH was not set",
-      );
-      this.#coveragePath = coveragePath;
-    }
-    return this.#coveragePath;
+  constructor(coveragePath: string) {
+    this.#coveragePath = coveragePath;
   }
 
   async #getHitsPath(): Promise<string> {
     if (this.#hitsPath === undefined) {
-      this.#hitsPath = path.join(this.#getCoveragePath(), "hits");
+      this.#hitsPath = path.join(this.#coveragePath, "hits");
       await ensureDir(this.#hitsPath);
     }
     return this.#hitsPath;
@@ -67,6 +49,16 @@ export class CoverageManagerImplementation implements CoverageManager {
         delete this.#hits[id];
       }),
     );
+  }
+
+  public async clear(): Promise<void> {
+    for (const markerId of Object.keys(this.#hits)) {
+      delete this.#hits[markerId];
+    }
+
+    const hitsPath = await this.#getHitsPath();
+    await remove(hitsPath);
+    await ensureDir(hitsPath);
   }
 
   // NOTE: This function will remain unused until we attempt to create

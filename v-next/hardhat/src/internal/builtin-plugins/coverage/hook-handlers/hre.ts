@@ -1,12 +1,14 @@
-import type { CoverageManager } from "../../../../types/coverage.js";
 import type { HardhatRuntimeEnvironmentHooks } from "../../../../types/hooks.js";
-
-import { getEmptyTmpDir } from "@nomicfoundation/hardhat-utils/fs";
+import type { EdrProvider } from "../../network-manager/edr/edr-provider.js";
+import type { CoverageManager } from "../types.js";
 
 export class LazyCoverageManager implements CoverageManager {
+  readonly #coveragePath: string;
+
   #coverageManager: CoverageManager | undefined;
 
-  constructor() {
+  constructor(coveragePath: string) {
+    this.#coveragePath = coveragePath;
     this.#coverageManager = undefined;
   }
 
@@ -15,12 +17,29 @@ export class LazyCoverageManager implements CoverageManager {
     return coverageManager.save();
   }
 
+  public async clear(): Promise<void> {
+    const coverageManager = await this.#getCoverageManager();
+    return coverageManager.clear();
+  }
+
+  public async addProvider(id: string, provider: EdrProvider): Promise<void> {
+    const coverageManager = await this.#getCoverageManager();
+    return coverageManager.addProvider(id, provider);
+  }
+
+  public async removeProvider(id: string): Promise<void> {
+    const coverageManager = await this.#getCoverageManager();
+    return coverageManager.removeProvider(id);
+  }
+
   async #getCoverageManager(): Promise<CoverageManager> {
     if (this.#coverageManager === undefined) {
-      const { getOrCreateCoverageManager } = await import(
+      const { CoverageManagerImplementation } = await import(
         "../coverage-manager.js"
       );
-      this.#coverageManager = getOrCreateCoverageManager();
+      this.#coverageManager = new CoverageManagerImplementation(
+        this.#coveragePath,
+      );
     }
 
     return this.#coverageManager;
@@ -30,13 +49,7 @@ export class LazyCoverageManager implements CoverageManager {
 export default async (): Promise<Partial<HardhatRuntimeEnvironmentHooks>> => {
   const handlers: Partial<HardhatRuntimeEnvironmentHooks> = {
     created: async (_context, hre): Promise<void> => {
-      if (process.env.HARDHAT_COVERAGE_PATH === undefined) {
-        // NOTE: Saving the environment variable so that any subprocesses that
-        // inherit the env will operate within the same coverage path
-        process.env.HARDHAT_COVERAGE_PATH =
-          await getEmptyTmpDir("hardhat-coverage");
-      }
-      hre.coverage = new LazyCoverageManager();
+      hre.coverage = new LazyCoverageManager(hre.config.paths.coverage);
     },
   };
 
