@@ -15,33 +15,35 @@ import {
 
 let coverageManager: CoverageManager | undefined;
 
-export async function getOrCreateCoverageManager(): Promise<CoverageManager> {
+export function getOrCreateCoverageManager(): CoverageManager {
   if (coverageManager === undefined) {
-    const coveragePath = process.env.HARDHAT_COVERAGE_PATH;
-    assertHardhatInvariant(
-      coveragePath !== undefined,
-      "HARDHAT_COVERAGE_PATH was not set",
-    );
-    coverageManager = new CoverageManagerImplementation(coveragePath);
+    coverageManager = new CoverageManagerImplementation();
   }
-
   return coverageManager;
 }
 
 export class CoverageManagerImplementation implements CoverageManager {
-  readonly #coveragePath: string;
   readonly #providers: Record<string, EdrProvider> = {};
   readonly #hits: CoverageHits = {};
 
+  #coveragePath?: string;
   #hitsPath?: string;
 
-  constructor(coveragePath: string) {
-    this.#coveragePath = coveragePath;
+  #getCoveragePath(): string {
+    if (this.#coveragePath === undefined) {
+      const coveragePath = process.env.HARDHAT_COVERAGE_PATH;
+      assertHardhatInvariant(
+        coveragePath !== undefined,
+        "HARDHAT_COVERAGE_PATH was not set",
+      );
+      this.#coveragePath = coveragePath;
+    }
+    return this.#coveragePath;
   }
 
   async #getHitsPath(): Promise<string> {
     if (this.#hitsPath === undefined) {
-      this.#hitsPath = path.join(this.#coveragePath, "hits");
+      this.#hitsPath = path.join(this.#getCoveragePath(), "hits");
       await ensureDir(this.#hitsPath);
     }
     return this.#hitsPath;
