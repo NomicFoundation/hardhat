@@ -10,7 +10,7 @@ import type { ResolvedFile } from "../../../../types/solidity.js";
 import { createNonCryptographicHashId } from "@nomicfoundation/hardhat-utils/crypto";
 
 import { ResolvedFileType } from "../../../../types/solidity.js";
-import { getOrCreateCoverageManager } from "../../coverage/internal/coverage-manager.js";
+import { getOrCreateCoverageManager } from "../../coverage/coverage-manager.js";
 
 import { formatRemapping } from "./resolver/remappings.js";
 import { getEvmVersionFromSolcVersion } from "./solc-info.js";
