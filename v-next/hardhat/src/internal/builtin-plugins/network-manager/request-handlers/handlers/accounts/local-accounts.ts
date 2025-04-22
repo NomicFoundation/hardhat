@@ -313,43 +313,62 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
       "nonce should be defined",
     );
 
+    // Disable strict mode for chainIds > 2 ** 32 - 1.
+    //
+    // micro-eth-signer throws if strict mode is enabled with a chainId above 2 ** 32 - 1
+    // (see: https://github.com/paulmillr/micro-eth-signer/blob/baa4b8c922c3253b125e3f46b1fce6dee7c33853/src/tx.ts#L500).
+    //
+    // As a workaround we disable strict mode for larger chains. This also bypasses
+    // other internal checks enforced by the library, which is not ideal.
+    const strictMode =
+      txData.chainId === undefined || txData.chainId <= BigInt(2 ** 32 - 1);
+
     let transaction;
     if (txData.maxFeePerGas !== undefined) {
-      transaction = Transaction.prepare({
-        type: "eip1559",
-        to: checksummedAddress,
-        nonce: txData.nonce,
-        chainId: txData.chainId ?? toBigInt(chainId),
-        value: txData.value !== undefined ? txData.value : 0n,
-        data: txData.data !== undefined ? bytesToHexString(txData.data) : "",
-        gasLimit: txData.gasLimit,
-        maxFeePerGas: txData.maxFeePerGas,
-        maxPriorityFeePerGas: txData.maxPriorityFeePerGas,
-        accessList: accessList ?? [],
-      });
+      transaction = Transaction.prepare(
+        {
+          type: "eip1559",
+          to: checksummedAddress,
+          nonce: txData.nonce,
+          chainId: txData.chainId ?? toBigInt(chainId),
+          value: txData.value !== undefined ? txData.value : 0n,
+          data: txData.data !== undefined ? bytesToHexString(txData.data) : "",
+          gasLimit: txData.gasLimit,
+          maxFeePerGas: txData.maxFeePerGas,
+          maxPriorityFeePerGas: txData.maxPriorityFeePerGas,
+          accessList: accessList ?? [],
+        },
+        strictMode,
+      );
     } else if (accessList !== undefined) {
-      transaction = Transaction.prepare({
-        type: "eip2930",
-        to: checksummedAddress,
-        nonce: txData.nonce,
-        chainId: txData.chainId ?? toBigInt(chainId),
-        value: txData.value !== undefined ? txData.value : 0n,
-        data: txData.data !== undefined ? bytesToHexString(txData.data) : "",
-        gasPrice: txData.gasPrice ?? 0n,
-        gasLimit: txData.gasLimit,
-        accessList,
-      });
+      transaction = Transaction.prepare(
+        {
+          type: "eip2930",
+          to: checksummedAddress,
+          nonce: txData.nonce,
+          chainId: txData.chainId ?? toBigInt(chainId),
+          value: txData.value !== undefined ? txData.value : 0n,
+          data: txData.data !== undefined ? bytesToHexString(txData.data) : "",
+          gasPrice: txData.gasPrice ?? 0n,
+          gasLimit: txData.gasLimit,
+          accessList,
+        },
+        strictMode,
+      );
     } else {
-      transaction = Transaction.prepare({
-        type: "legacy",
-        to: checksummedAddress,
-        nonce: txData.nonce,
-        chainId: txData.chainId ?? toBigInt(chainId),
-        value: txData.value !== undefined ? txData.value : 0n,
-        data: txData.data !== undefined ? bytesToHexString(txData.data) : "",
-        gasPrice: txData.gasPrice ?? 0n,
-        gasLimit: txData.gasLimit,
-      });
+      transaction = Transaction.prepare(
+        {
+          type: "legacy",
+          to: checksummedAddress,
+          nonce: txData.nonce,
+          chainId: txData.chainId ?? toBigInt(chainId),
+          value: txData.value !== undefined ? txData.value : 0n,
+          data: txData.data !== undefined ? bytesToHexString(txData.data) : "",
+          gasPrice: txData.gasPrice ?? 0n,
+          gasLimit: txData.gasLimit,
+        },
+        strictMode,
+      );
     }
 
     const signedTransaction = transaction.signBy(privateKey);
