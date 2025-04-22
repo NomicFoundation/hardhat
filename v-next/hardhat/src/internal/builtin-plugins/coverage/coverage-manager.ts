@@ -1,12 +1,10 @@
-import type {
-  CoverageManager as PublicCoverageManager,
-  CoverageHits,
-} from "../../../types/coverage.js";
+import type {CoverageManager, CoverageHits} from "../../../types/coverage.js";
 
 import { randomUUID } from "node:crypto";
 import path from "node:path";
 
 import {
+  ensureDir,
   getAllFilesMatching,
   readJsonFile,
   remove,
@@ -15,17 +13,27 @@ import {
 
 import { getOrCreateInternalCoverageManager } from "./internal/coverage-manager.js";
 
-export class CoverageManagerImplementation implements PublicCoverageManager {
+export class CoverageManagerImplementation implements CoverageManager {
   readonly #coveragePath: string;
+
+  #hitsPath?: string;
 
   constructor(coveragePath: string) {
     this.#coveragePath = coveragePath;
   }
 
+  async #getHitsPath(): Promise<string> {
+    if (this.#hitsPath === undefined) {
+      this.#hitsPath = path.join(this.#coveragePath, "hits");
+      await ensureDir(this.#hitsPath);
+    }
+    return this.#hitsPath;
+  }
+
   public async saveProviderHits(): Promise<void> {
     const internal = await getOrCreateInternalCoverageManager();
     const hits = await internal.getProviderHits();
-    const hitsPath = path.join(this.#coveragePath, `${randomUUID()}.json`);
+    const hitsPath = path.join(await this.#getHitsPath(), `${randomUUID()}.json`);
     await writeJsonFile(hitsPath, hits);
 
     // NOTE: After we dump the provider hits to disk, we remove them from the internal
@@ -35,7 +43,7 @@ export class CoverageManagerImplementation implements PublicCoverageManager {
 
   public async loadProviderHits(): Promise<CoverageHits> {
     const hitsPaths = await getAllFilesMatching(
-      this.#coveragePath,
+      await this.#getHitsPath(),
       (filePath) => path.extname(filePath) === ".json",
     );
     const hits: CoverageHits = {};
