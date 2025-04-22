@@ -1,4 +1,5 @@
-import type {CoverageManager, CoverageHits} from "../../../types/coverage.js";
+import type { CoverageHits } from "./internal/types.js";
+import type { CoverageManager } from "../../../types/coverage.js";
 
 import { randomUUID } from "node:crypto";
 import path from "node:path";
@@ -30,18 +31,9 @@ export class CoverageManagerImplementation implements CoverageManager {
     return this.#hitsPath;
   }
 
-  public async saveProviderHits(): Promise<void> {
-    const internal = await getOrCreateInternalCoverageManager();
-    const hits = await internal.getProviderHits();
-    const hitsPath = path.join(await this.#getHitsPath(), `${randomUUID()}.json`);
-    await writeJsonFile(hitsPath, hits);
-
-    // NOTE: After we dump the provider hits to disk, we remove them from the internal
-    // coverage manager; this allows collecting coverage from succesive tasks
-    await internal.clearProviderHits();
-  }
-
-  public async loadProviderHits(): Promise<CoverageHits> {
+  // NOTE: This function will remain unused until we attempt to create
+  // a coverage report from hits and accompanying metadata
+  async #getHits(): Promise<CoverageHits> {
     const hitsPaths = await getAllFilesMatching(
       await this.#getHitsPath(),
       (filePath) => path.extname(filePath) === ".json",
@@ -56,14 +48,24 @@ export class CoverageManagerImplementation implements CoverageManager {
 
     // NOTE: After we load all the provider hits from disk, we remove them from
     // the disk; this allows collecting coverage from succesive tasks
-    await this.#clearProviderHits(hitsPaths);
+    for (const hitsPath of hitsPaths) {
+      await remove(hitsPath);
+    }
 
     return hits;
   }
 
-  async #clearProviderHits(hitsPaths: string[]): Promise<void> {
-    for (const hitsPath of hitsPaths) {
-      await remove(hitsPath);
-    }
+  public async save(): Promise<void> {
+    const internal = await getOrCreateInternalCoverageManager();
+    const hits = await internal.getProviderHits();
+    const hitsPath = path.join(
+      await this.#getHitsPath(),
+      `${randomUUID()}.json`,
+    );
+    await writeJsonFile(hitsPath, hits);
+
+    // NOTE: After we dump the provider hits to disk, we remove them from the internal
+    // coverage manager; this allows collecting coverage from succesive tasks
+    await internal.clearProviderHits();
   }
 }

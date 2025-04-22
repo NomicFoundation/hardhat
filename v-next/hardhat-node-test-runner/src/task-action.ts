@@ -9,9 +9,6 @@ import { URL } from "node:url";
 import { hardhatTestReporter } from "@nomicfoundation/hardhat-node-test-reporter";
 import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
 import { createNonClosingWriter } from "@nomicfoundation/hardhat-utils/stream";
-import debug from "debug";
-
-const log = debug("hardhat:node-test-runner");
 
 interface TestActionArguments {
   testFiles: string[];
@@ -119,8 +116,7 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
     await pipeline(reporterStream, createNonClosingWriter(process.stdout));
 
     if (hre.globalOptions.coverage === true) {
-      const hits = await hre.coverage.loadProviderHits();
-      log("Coverage hits", hits);
+      // TODO: Retrieve the coverage report from the coverage manager
     }
 
     return failures;
