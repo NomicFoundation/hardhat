@@ -1,4 +1,4 @@
-import type {CoverageManager, CoverageHits} from "../../../types/coverage.js";
+import type { CoverageManager, CoverageHits } from "../../../types/coverage.js";
 
 import { randomUUID } from "node:crypto";
 import path from "node:path";
@@ -31,9 +31,12 @@ export class CoverageManagerImplementation implements CoverageManager {
   }
 
   public async saveProviderHits(): Promise<void> {
-    const internal = await getOrCreateInternalCoverageManager();
+    const internal = getOrCreateInternalCoverageManager();
     const hits = await internal.getProviderHits();
-    const hitsPath = path.join(await this.#getHitsPath(), `${randomUUID()}.json`);
+    const hitsPath = path.join(
+      await this.#getHitsPath(),
+      `${randomUUID()}.json`,
+    );
     await writeJsonFile(hitsPath, hits);
 
     // NOTE: After we dump the provider hits to disk, we remove them from the internal

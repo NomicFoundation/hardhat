@@ -18,7 +18,7 @@ export default async (): Promise<Partial<NetworkHooks>> => {
           const { getOrCreateInternalCoverageManager } = await import(
             "../internal/coverage-manager.js"
           );
-          const coverageManager = await getOrCreateInternalCoverageManager();
+          const coverageManager = getOrCreateInternalCoverageManager();
           await coverageManager.addProvider(
             connection.id.toString(),
             connection.provider,
@@ -41,7 +41,7 @@ export default async (): Promise<Partial<NetworkHooks>> => {
           const { getOrCreateInternalCoverageManager } = await import(
             "../internal/coverage-manager.js"
           );
-          const coverageManager = await getOrCreateInternalCoverageManager();
+          const coverageManager = getOrCreateInternalCoverageManager();
           await coverageManager.removeProvider(connection.id.toString());
         }
       }

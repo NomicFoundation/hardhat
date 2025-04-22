@@ -2,7 +2,6 @@ import type { DependencyGraphImplementation } from "./dependency-graph.js";
 import type { Remapping } from "./resolver/types.js";
 import type { BuildInfo } from "../../../../types/artifacts.js";
 import type { SolcConfig } from "../../../../types/config.js";
-import type { CoverageMetadata } from "../../../../types/coverage.js";
 import type { CompilationJob } from "../../../../types/solidity/compilation-job.js";
 import type { CompilerInput } from "../../../../types/solidity/compiler-io.js";
 import type { DependencyGraph } from "../../../../types/solidity/dependency-graph.js";
@@ -11,6 +10,7 @@ import type { ResolvedFile } from "../../../../types/solidity.js";
 import { createNonCryptographicHashId } from "@nomicfoundation/hardhat-utils/crypto";
 
 import { ResolvedFileType } from "../../../../types/solidity.js";
+import { getOrCreateInternalCoverageManager } from "../../coverage/internal/coverage-manager.js";
 
 import { formatRemapping } from "./resolver/remappings.js";
 import { getEvmVersionFromSolcVersion } from "./solc-info.js";
@@ -27,7 +27,6 @@ export class CompilationJobImplementation implements CompilationJob {
   #solcInput: CompilerInput | undefined;
   #solcInputWithoutSources: Omit<CompilerInput, "sources"> | undefined;
   #resolvedFiles: ResolvedFile[] | undefined;
-  #coverageMetadata: CoverageMetadata | undefined;
 
   constructor(
     dependencyGraph: DependencyGraphImplementation,
@@ -43,19 +42,9 @@ export class CompilationJobImplementation implements CompilationJob {
     this.#coverage = coverage;
   }
 
-  public getCoverageMetadata(): CoverageMetadata {
-    if (this.#coverageMetadata === undefined) {
-      [this.#solcInput, this.#coverageMetadata] =
-        this.#buildSolcInputAndCoverageMetadata();
-    }
-
-    return this.#coverageMetadata;
-  }
-
   public getSolcInput(): CompilerInput {
     if (this.#solcInput === undefined) {
-      [this.#solcInput, this.#coverageMetadata] =
-        this.#buildSolcInputAndCoverageMetadata();
+      this.#solcInput = this.#buildSolcInput();
     }
 
     return this.#solcInput;
@@ -88,11 +77,11 @@ export class CompilationJobImplementation implements CompilationJob {
     return this.#resolvedFiles;
   }
 
-  #buildSolcInputAndCoverageMetadata(): [CompilerInput, CoverageMetadata] {
+  #buildSolcInput(): CompilerInput {
     const solcInputWithoutSources = this.#getSolcInputWithoutSources();
 
     const sources: { [sourceName: string]: { content: string } } = {};
-    let coverageMetadata: CoverageMetadata = {};
+    const coverageManager = getOrCreateInternalCoverageManager();
 
     const resolvedFiles = this.#getResolvedFiles();
 
@@ -106,10 +95,7 @@ export class CompilationJobImplementation implements CompilationJob {
         sources[file.sourceName] = {
           content,
         };
-        coverageMetadata = {
-          ...coverageMetadata,
-          ...metadata,
-        };
+        coverageManager.updateMetadata(metadata);
       } else {
         sources[file.sourceName] = {
           content: file.content.text,
@@ -122,7 +108,7 @@ export class CompilationJobImplementation implements CompilationJob {
       sources,
     };
 
-    return [solcInput, coverageMetadata];
+    return solcInput;
   }
 
   #buildSolcInputWithoutSources(): Omit<CompilerInput, "sources"> {

@@ -1,10 +1,10 @@
-import type { InternalCoverageManager } from "./types.js";
+import type { CoverageMetadata, InternalCoverageManager } from "./types.js";
 import type { CoverageHits } from "../../../../types/coverage.js";
 import type { EdrProvider } from "../../network-manager/edr/edr-provider.js";
 
 let internalCoverageManager: InternalCoverageManager | undefined;
 
-export async function getOrCreateInternalCoverageManager(): Promise<InternalCoverageManager> {
+export function getOrCreateInternalCoverageManager(): InternalCoverageManager {
   if (internalCoverageManager === undefined) {
     internalCoverageManager = new InternalCoverageManagerImplementation();
   }
@@ -14,6 +14,7 @@ export async function getOrCreateInternalCoverageManager(): Promise<InternalCove
 class InternalCoverageManagerImplementation implements InternalCoverageManager {
   readonly #providers: Record<string, EdrProvider> = {};
   readonly #hits: CoverageHits = {};
+  readonly #metadata: CoverageMetadata = {};
 
   public async addProvider(id: string, provider: EdrProvider): Promise<void> {
     this.#providers[id] = provider;
@@ -40,5 +41,11 @@ class InternalCoverageManagerImplementation implements InternalCoverageManager {
         delete this.#hits[id];
       }),
     );
+  }
+
+  public updateMetadata(metadata: CoverageMetadata): void {
+    for (const markerId of Object.keys(metadata)) {
+      this.#metadata[markerId] = metadata[markerId];
+    }
   }
 }

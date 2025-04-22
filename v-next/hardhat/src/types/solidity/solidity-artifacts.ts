@@ -1,5 +1,4 @@
 import type { CompilerInput, CompilerOutput } from "./compiler-io.js";
-import type { CoverageMetadata } from "../coverage.js";
 
 /**
  * A SolidityBuildInfo is a file that contains all the information of a solc
@@ -60,19 +59,4 @@ export interface SolidityBuildInfoOutput {
    * The `solc` output, verbatim (i.e. as returned by `solc`).
    */
   readonly output: CompilerOutput;
-}
-
-/**
- * The metadata produced during instrumentation of Solidity build info.
- */
-export interface SolidityBuildInfoCoverage {
-  /**
-   * The version identifier of this format.
-   */
-  readonly _format: "hh3-sol-build-info-coverage-1";
-
-  /**
-   * The metadata produced during project files content instrumentation.
-   */
-  readonly metadata: CoverageMetadata;
 }
