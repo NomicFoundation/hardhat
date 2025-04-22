@@ -8,6 +8,7 @@ import type {
   TestPathsConfig,
   SourcePathsConfig,
 } from "../../types/config.js";
+import type { CoverageManager } from "../../types/coverage.js";
 import type {
   GlobalOptions,
   GlobalOptionDefinitions,
@@ -44,6 +45,7 @@ export class HardhatRuntimeEnvironmentImplementation
   public network!: NetworkManager;
   public artifacts!: ArtifactManager;
   public solidity!: SolidityBuildSystem;
+  public coverage!: CoverageManager;
 
   public static async create(
     inputUserConfig: HardhatUserConfig,
