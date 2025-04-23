@@ -9,7 +9,7 @@ import type {
 import EventEmitter from "node:events";
 import util from "node:util";
 
-import { ensureError } from "@nomicfoundation/hardhat-utils/error";
+import { ensureNodeErrnoExceptionError } from "@nomicfoundation/hardhat-utils/error";
 
 export abstract class BaseProvider
   extends EventEmitter
@@ -44,12 +44,7 @@ export abstract class BaseProvider
           result,
         };
       } catch (error) {
-        ensureError(error);
-
-        if (!("code" in error) || error.code === undefined) {
-          throw error;
-        }
-
+        ensureNodeErrnoExceptionError(error);
         /* eslint-disable-next-line @typescript-eslint/restrict-template-expressions
         -- Allow string interpolation of unknown `error.code`. It will be converted
         to a number, and we will handle NaN cases appropriately afterwards. */

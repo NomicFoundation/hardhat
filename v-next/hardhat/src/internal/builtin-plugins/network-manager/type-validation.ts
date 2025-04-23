@@ -33,8 +33,10 @@ import {
 
 import {
   hardforkGte,
-  HardforkName,
-  LATEST_HARDFORK,
+  L1HardforkName,
+  isValidHardforkName,
+  getHardforks,
+  getCurrentHardfork,
 } from "./edr/types/hardfork.js";
 
 const nonnegativeNumberSchema = z.number().nonnegative();
@@ -43,7 +45,6 @@ const nonnegativeBigIntSchema = z.bigint().nonnegative();
 
 const blockNumberSchema = nonnegativeIntSchema;
 const chainIdSchema = nonnegativeIntSchema;
-const hardforkNameSchema = z.nativeEnum(HardforkName);
 
 const accountsPrivateKeyUserConfigSchema = unionType(
   [
@@ -139,12 +140,10 @@ const edrNetworkAccountsUserConfigSchema = conditionalUnionType(
   `Expected an array with with objects with private key and balance or Configuration Variables, or an object with HD account details`,
 );
 
-const hardforkHistoryUserConfigSchema = z.map(
-  hardforkNameSchema,
-  blockNumberSchema,
-);
+const hardforkHistoryUserConfigSchema = z.map(z.string(), blockNumberSchema);
 
 const edrNetworkChainUserConfigSchema = z.object({
+  chainType: z.optional(chainTypeUserConfigSchema),
   hardforkHistory: z.optional(hardforkHistoryUserConfigSchema),
 });
 
@@ -202,7 +201,7 @@ const edrNetworkUserConfigSchema = z.object({
   enableRip7212: z.optional(z.boolean()),
   enableTransientStorage: z.optional(z.boolean()),
   forking: z.optional(edrNetworkForkingUserConfigSchema),
-  hardfork: z.optional(hardforkNameSchema),
+  hardfork: z.optional(z.string()),
   initialBaseFeePerGas: z.optional(gasUnitUserConfigSchema),
   initialDate: z.optional(
     unionType([z.string(), z.instanceof(Date)], "Expected a string or a Date"),
@@ -221,52 +220,95 @@ const baseNetworkUserConfigSchema = z.discriminatedUnion("type", [
 ]);
 
 function refineEdrNetworkUserConfig(
-  networkConfig: z.infer<typeof baseNetworkUserConfigSchema>,
+  networkConfig: NetworkUserConfig,
   ctx: RefinementCtx,
 ): void {
   if (networkConfig.type === "edr") {
     const {
-      hardfork = LATEST_HARDFORK,
+      chainType = GENERIC_CHAIN_TYPE,
+      hardfork,
+      chains,
       minGasPrice,
       initialBaseFeePerGas,
       enableTransientStorage,
     } = networkConfig;
 
-    if (hardforkGte(hardfork, HardforkName.LONDON)) {
-      if (minGasPrice !== undefined) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message:
-            "minGasPrice is not valid for networks with EIP-1559. Try an older hardfork or remove it.",
-        });
-      }
-    } else {
-      if (initialBaseFeePerGas !== undefined) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message:
-            "initialBaseFeePerGas is only valid for networks with EIP-1559. Try a newer hardfork or remove it.",
-        });
-      }
+    if (hardfork !== undefined && !isValidHardforkName(hardfork, chainType)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["hardfork"],
+        message: `Invalid hardfork name ${hardfork} for chainType ${chainType}. Expected ${getHardforks(
+          chainType,
+        ).join(" | ")}.`,
+      });
     }
 
-    if (
-      !hardforkGte(hardfork, HardforkName.CANCUN) &&
-      enableTransientStorage === true
-    ) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: `'enableTransientStorage' is not supported for hardforks before 'cancun'. Please use a hardfork from 'cancun' onwards to enable this feature.`,
+    if (chains !== undefined) {
+      Array.from(chains).forEach(([chainId, chainConfig], chainIdx) => {
+        if (chainConfig.hardforkHistory === undefined) {
+          return;
+        }
+
+        const type = chainConfig.chainType ?? GENERIC_CHAIN_TYPE;
+        Array.from(chainConfig.hardforkHistory).forEach(
+          ([name], hardforkIdx) => {
+            if (!isValidHardforkName(name, type)) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: [
+                  "chains",
+                  chainIdx,
+                  "value",
+                  "hardforkHistory",
+                  hardforkIdx,
+                  "value",
+                ],
+                message: `Invalid hardfork name ${name} found in chain ${chainId}. Expected ${getHardforks(type).join(" | ")}.`,
+              });
+            }
+          },
+        );
       });
     }
-    if (
-      hardforkGte(hardfork, HardforkName.CANCUN) &&
-      enableTransientStorage === false
-    ) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: `'enableTransientStorage' must be enabled for hardforks 'cancun' or later. To disable this feature, use a hardfork before 'cancun'.`,
-      });
+
+    const resolvedHardfork = hardfork ?? getCurrentHardfork(chainType);
+    if (chainType === L1_CHAIN_TYPE || chainType === GENERIC_CHAIN_TYPE) {
+      if (hardforkGte(resolvedHardfork, L1HardforkName.LONDON, chainType)) {
+        if (minGasPrice !== undefined) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message:
+              "minGasPrice is not valid for networks with EIP-1559. Try an older hardfork or remove it.",
+          });
+        }
+      } else {
+        if (initialBaseFeePerGas !== undefined) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message:
+              "initialBaseFeePerGas is only valid for networks with EIP-1559. Try a newer hardfork or remove it.",
+          });
+        }
+      }
+
+      if (
+        !hardforkGte(resolvedHardfork, L1HardforkName.CANCUN, chainType) &&
+        enableTransientStorage === true
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `'enableTransientStorage' is not supported for hardforks before 'cancun'. Please use a hardfork from 'cancun' onwards to enable this feature.`,
+        });
+      }
+      if (
+        hardforkGte(resolvedHardfork, L1HardforkName.CANCUN, chainType) &&
+        enableTransientStorage === false
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `'enableTransientStorage' must be enabled for hardforks 'cancun' or later. To disable this feature, use a hardfork before 'cancun'.`,
+        });
+      }
     }
 
     if (
