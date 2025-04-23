@@ -4,7 +4,10 @@ import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 
 import { before, beforeEach, describe, it } from "node:test";
 
-import { useEphemeralFixtureProject } from "@nomicfoundation/hardhat-test-utils";
+import {
+  assertRejects,
+  useEphemeralFixtureProject,
+} from "@nomicfoundation/hardhat-test-utils";
 import hardhatViem from "@nomicfoundation/hardhat-viem";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
@@ -54,6 +57,27 @@ describe("balancesHaveChanged", () => {
       contract,
       "WithTwoUintArgs",
       [1, 2],
+    );
+  });
+
+  it("should throw because the event was not emitted with the correct single argument", async () => {
+    const contract = await viem.deployContract("Events");
+
+    await assertRejects(
+      viem.assertions.emitWithArgs(
+        async () => {
+          await contract.write.emitInt([1]);
+        },
+        contract,
+        "WithIntArg",
+        [2],
+      ),
+      (error) =>
+        error.message.includes(
+          `The event arguments do not match the expected ones.
+Expected: { i: 2n }
+Got: { i: 1n }`,
+        ),
     );
   });
 

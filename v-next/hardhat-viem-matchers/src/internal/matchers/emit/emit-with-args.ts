@@ -73,7 +73,7 @@ export async function emitWithArgs<
     areEqual,
     true,
     `The event arguments do not match the expected ones.
-Expected: ${inspect(parsedLogs[0].args, { depth: null, colors: false })}
-Got: ${inspect(argsToCheck, { depth: null, colors: false })}`,
+Expected: ${inspect(argsToCheck, { depth: null, colors: false })}
+Got: ${inspect(parsedLogs[0].args, { depth: null, colors: false })}`,
   );
 }
