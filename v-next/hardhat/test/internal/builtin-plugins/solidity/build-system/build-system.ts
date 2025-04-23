@@ -22,8 +22,10 @@ import {
   remove,
 } from "@nomicfoundation/hardhat-utils/fs";
 
+import { createHardhatRuntimeEnvironment } from "../../../../../src/hre.js";
 import { SolidityBuildSystemImplementation } from "../../../../../src/internal/builtin-plugins/solidity/build-system/build-system.js";
 import { HookManagerImplementation } from "../../../../../src/internal/core/hook-manager.js";
+import { setGlobalHardhatRuntimeEnvironment } from "../../../../../src/internal/global-hre-instance.js";
 
 async function emitArtifacts(solidity: SolidityBuildSystem): Promise<void> {
   const rootFilePaths = await solidity.getRootFilePaths();
@@ -85,6 +87,8 @@ describe(
     };
 
     before(async () => {
+      const hre = await createHardhatRuntimeEnvironment({});
+      setGlobalHardhatRuntimeEnvironment(hre);
       expectedArtifactsPath = path.join(process.cwd(), "artifacts");
       expectedCachePath = path.join(process.cwd(), "cache");
       await remove(expectedArtifactsPath);
