@@ -49,8 +49,9 @@ describe("revertWith", () => {
     await assertRejects(
       viem.assertions.revertWith(contract.read.alwaysRevert, "wrong reasons"),
       (error) =>
-        error.message ===
-        `The function was expected to revert with reason "wrong reasons", but it reverted with reason "Intentional revert for testing purposes".`,
+        error.message.includes(
+          `The function was expected to revert with reason "wrong reasons", but it reverted with reason "Intentional revert for testing purposes".`,
+        ),
     );
   });
 

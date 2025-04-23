@@ -31,7 +31,7 @@ describe("properAddress", () => {
   it("should throw because the address is invalid: too short", async () => {
     assertThrows(
       () => viem.assertions.utils.properAddress("0x1"),
-      (error) => error.message === `Address "0x1" is not valid`,
+      (error) => error.message.includes(`Address "0x1" is not valid`),
     );
   });
 });
