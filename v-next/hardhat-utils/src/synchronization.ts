@@ -13,7 +13,7 @@ import path from "node:path";
 
 import debug from "debug";
 
-import { ensureError } from "./error.js";
+import { ensureNodeErrnoExceptionError } from "./error.js";
 import { FileSystemAccessError } from "./errors/fs.js";
 import { sleep } from "./lang.js";
 
@@ -62,7 +62,7 @@ export class MultiProcessMutex {
       fs.writeFileSync(this.#mutexFilePath, "", { flag: "wx+" });
       return true;
     } catch (e) {
-      ensureError<NodeJS.ErrnoException>(e);
+      ensureNodeErrnoExceptionError(e);
 
       if (e.code === "EEXIST") {
         // File already exists, so the mutex is already acquired
@@ -91,7 +91,7 @@ export class MultiProcessMutex {
     try {
       fileStat = fs.statSync(this.#mutexFilePath);
     } catch (e) {
-      ensureError<NodeJS.ErrnoException>(e);
+      ensureNodeErrnoExceptionError(e);
 
       if (e.code === "ENOENT") {
         // The file might have been deleted by another process while this function was trying to access it.
@@ -113,7 +113,7 @@ export class MultiProcessMutex {
       log(`Deleting mutex file at path '${this.#mutexFilePath}'`);
       fs.unlinkSync(this.#mutexFilePath);
     } catch (e) {
-      ensureError<NodeJS.ErrnoException>(e);
+      ensureNodeErrnoExceptionError(e);
 
       if (e.code === "ENOENT") {
         // The file might have been deleted by another process while this function was trying to access it.
