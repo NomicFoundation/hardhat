@@ -80,7 +80,7 @@ export function buildGlobalOptionDefinition<T extends ArgumentType>({
   type?: T;
   defaultValue: ArgumentTypeToValueType<T>;
 }): OptionDefinition {
-  const argumentType = type ?? ArgumentType.STRING;
+  const argumentType = type ?? ArgumentType.STRING_WITHOUT_DEFAULT;
 
   validateArgumentName(name);
 

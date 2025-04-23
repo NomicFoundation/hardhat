@@ -202,7 +202,7 @@ describe("Global Options", () => {
       assert.deepEqual(globalOptionDefinition, options);
     });
 
-    it("should build a global option definition with a default type of STRING", () => {
+    it("should build a global option definition with a default type of STRING_WITHOUT_DEFAULT", () => {
       const options = {
         name: "foo",
         description: "Foo description",
@@ -212,7 +212,7 @@ describe("Global Options", () => {
 
       assert.deepEqual(globalOptionDefinition, {
         ...options,
-        type: ArgumentType.STRING,
+        type: ArgumentType.STRING_WITHOUT_DEFAULT,
       });
     });
 

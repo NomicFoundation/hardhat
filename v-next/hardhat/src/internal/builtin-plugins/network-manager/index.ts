@@ -18,7 +18,7 @@ const hardhatPlugin: HardhatPlugin = {
     globalOption({
       name: "network",
       description: "The network to connect to",
-      defaultValue: "",
+      defaultValue: undefined,
     }),
   ],
   npmPackage: "hardhat",

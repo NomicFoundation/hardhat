@@ -8,6 +8,7 @@ export enum ArgumentType {
   BIGINT = "BIGINT",
   FLOAT = "FLOAT",
   FILE = "FILE",
+  STRING_WITHOUT_DEFAULT = "STRING_WITHOUT_DEFAULT",
 }
 
 /**
@@ -20,6 +21,7 @@ export interface ArgumentValueTypes {
   [ArgumentType.BIGINT]: bigint;
   [ArgumentType.FLOAT]: number;
   [ArgumentType.FILE]: string;
+  [ArgumentType.STRING_WITHOUT_DEFAULT]: string | undefined;
 }
 
 /**

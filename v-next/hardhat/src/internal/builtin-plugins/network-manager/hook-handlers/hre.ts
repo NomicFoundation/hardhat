@@ -15,7 +15,7 @@ export default async (): Promise<Partial<HardhatRuntimeEnvironmentHooks>> => ({
 
         if (networkManager === undefined) {
           networkManager = new NetworkManagerImplementation(
-            hre.globalOptions.network !== ""
+            hre.globalOptions.network !== undefined
               ? hre.globalOptions.network
               : hre.config.defaultNetwork,
             hre.config.defaultChainType,

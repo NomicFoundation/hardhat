@@ -29,19 +29,19 @@ const hardhatIgnitionPlugin: HardhatPlugin = {
         type: ArgumentType.FILE,
         description:
           "A relative path to a JSON file to use for the module parameters",
-        defaultValue: "", // TODO: HH3 check this comes through correctly
+        defaultValue: "", // TODO: should this also be STRING_WITHOUT_DEFAULT?
       })
       .addOption({
         name: "deploymentId",
-        type: ArgumentType.STRING,
+        type: ArgumentType.STRING_WITHOUT_DEFAULT,
         description: "Set the id of the deployment",
-        defaultValue: "", // TODO: HH3 check this comes through correctly
+        defaultValue: undefined,
       })
       .addOption({
         name: "defaultSender",
-        type: ArgumentType.STRING,
+        type: ArgumentType.STRING_WITHOUT_DEFAULT,
         description: "Set the default sender for the deployment",
-        defaultValue: "", // TODO: HH3 check this comes through correctly
+        defaultValue: undefined,
       })
       .addOption({
         name: "strategy",
