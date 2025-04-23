@@ -2,7 +2,6 @@ import type { JsonTypes, ParsedElementInfo } from "@streamparser/json-node";
 import type { FileHandle } from "node:fs/promises";
 
 import fsPromises from "node:fs/promises";
-import os from "node:os";
 import path from "node:path";
 import { pipeline } from "node:stream/promises";
 
@@ -798,16 +797,6 @@ export async function findUp(
 
     currentDir = parentDir;
   }
-}
-
-export async function getEmptyTmpDir(nameHint: string): Promise<string> {
-  const tmpDirContainer = await getRealPath(os.tmpdir());
-
-  const tmpDir = path.join(tmpDirContainer, nameHint);
-  await remove(tmpDir);
-  await mkdir(tmpDir);
-
-  return tmpDir;
 }
 
 export {
