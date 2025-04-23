@@ -29,6 +29,15 @@ describe("properChecksumAddress", () => {
   });
 
   it("should throw because the address is invalid: too short", async () => {
+    try {
+      await viem.assertions.utils.properChecksumAddress("0x1");
+    } catch (error) {
+      console.log("----------------------- TMP:");
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- TODO
+      console.log((error as any).message);
+      console.log("----------------------- TMP:");
+    }
+
     await assertRejects(
       viem.assertions.utils.properChecksumAddress("0x1"),
       (error) => error.message === `Address "0x1" is not valid`,
