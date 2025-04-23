@@ -12,24 +12,16 @@ export interface HardhatViemMatchers {
     }>,
   ) => Promise<void>;
 
-  emit<
-    // eslint-disable-next-line @typescript-eslint/naming-convention -- TODO
-    const abi extends Abi | readonly unknown[],
-    ContractName,
-  >(
+  emit<const ViemAbi extends Abi | readonly unknown[], ContractName>(
     fn: GenericFunction,
     contract: ContractReturnType<ContractName>,
-    eventName: ContractEventName<abi>,
+    eventName: ContractEventName<ViemAbi>,
   ): Promise<void>;
 
-  emitWithArgs<
-    // eslint-disable-next-line @typescript-eslint/naming-convention -- TODO
-    const abi extends Abi | readonly unknown[],
-    ContractName,
-  >(
+  emitWithArgs<const ViemAbi extends Abi | readonly unknown[], ContractName>(
     fn: GenericFunction,
     contract: ContractReturnType<ContractName>,
-    eventName: ContractEventName<abi>,
+    eventName: ContractEventName<ViemAbi>,
     args: any[],
   ): Promise<void>;
 

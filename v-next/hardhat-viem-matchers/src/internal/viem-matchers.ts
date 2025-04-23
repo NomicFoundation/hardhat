@@ -36,26 +36,21 @@ export class HardhatViemMatchersImpl implements HardhatViemMatchers {
     return balancesHaveChanged(this.#viem, fn, changes);
   }
 
-  public async emit<
-    // eslint-disable-next-line @typescript-eslint/naming-convention -- TODO
-    const abi extends Abi | readonly unknown[],
-    ContractName,
-  >(
+  public async emit<const AbiT extends Abi | readonly unknown[], ContractName>(
     fn: GenericFunction,
     contract: ContractReturnType<ContractName>,
-    eventName: ContractEventName<abi>,
+    eventName: ContractEventName<AbiT>,
   ): Promise<void> {
     return emit(this.#viem, fn, contract, eventName);
   }
 
   public async emitWithArgs<
-    // eslint-disable-next-line @typescript-eslint/naming-convention -- TODO
-    const abi extends Abi | readonly unknown[],
+    const ViemAbi extends Abi | readonly unknown[],
     ContractName,
   >(
     fn: GenericFunction,
     contract: ContractReturnType<ContractName>,
-    eventName: ContractEventName<abi>,
+    eventName: ContractEventName<ViemAbi>,
     args: any[],
   ): Promise<void> {
     return emitWithArgs(this.#viem, fn, contract, eventName, args);

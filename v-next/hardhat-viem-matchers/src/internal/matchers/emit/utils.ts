@@ -10,14 +10,13 @@ import assert from "node:assert/strict";
 import { parseEventLogs } from "viem";
 
 export async function checkEmitted<
-  // eslint-disable-next-line @typescript-eslint/naming-convention -- TODO
-  const abi extends Abi | readonly unknown[],
+  const ViemAbi extends Abi | readonly unknown[],
   ContractName,
 >(
   viem: HardhatViemHelpers,
   fn: GenericFunction,
   contract: ContractReturnType<ContractName>,
-  eventName: ContractEventName<abi>,
+  eventName: ContractEventName<ViemAbi>,
 ): Promise<Array<{ args?: Record<string, any> }>> {
   await fn();
 

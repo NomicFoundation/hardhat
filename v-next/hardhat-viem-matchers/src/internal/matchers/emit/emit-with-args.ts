@@ -14,14 +14,13 @@ import { deepEqual } from "@nomicfoundation/hardhat-utils/lang";
 import { checkEmitted } from "./utils.js";
 
 export async function emitWithArgs<
-  // eslint-disable-next-line @typescript-eslint/naming-convention -- TODO
-  const abi extends Abi | readonly unknown[],
+  const ViemAbi extends Abi | readonly unknown[],
   ContractName,
 >(
   viem: HardhatViemHelpers,
   fn: GenericFunction,
   contract: ContractReturnType<ContractName>,
-  eventName: ContractEventName<abi>,
+  eventName: ContractEventName<ViemAbi>,
   args: any[],
 ): Promise<void> {
   const parsedLogs = await checkEmitted(viem, fn, contract, eventName);
