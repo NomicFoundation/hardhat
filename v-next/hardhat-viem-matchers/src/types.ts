@@ -7,7 +7,7 @@ export interface HardhatViemMatchers {
   balancesHaveChanged: (
     fn: GenericFunction,
     changes: Array<{
-      address: `0x${string}`; // TODO: create a type?
+      address: `0x${string}`;
       amount: bigint;
     }>,
   ) => Promise<void>;
