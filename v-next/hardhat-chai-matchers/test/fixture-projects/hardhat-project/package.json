@@ -1,9 +1,0 @@
-{
-  "name": "hardhat-project",
-  "private": "true",
-  "type": "module",
-  "dependencies": {
-    "@ignored/hardhat-vnext": "*",
-    "@ignored/hardhat-vnext-ethers": "*"
-  }
-}

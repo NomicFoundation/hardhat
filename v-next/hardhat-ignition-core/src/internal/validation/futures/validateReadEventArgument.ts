@@ -2,9 +2,9 @@ import type { ArtifactResolver } from "../../../types/artifact.js";
 import type { DeploymentParameters } from "../../../types/deploy.js";
 import type { ReadEventArgumentFuture } from "../../../types/module.js";
 
-import { IgnitionError } from "../../../errors.js";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+
 import { isArtifactType } from "../../../type-guards.js";
-import { ERRORS } from "../../errors-list.js";
 import { validateArtifactEventArgumentParams } from "../../execution/abi.js";
 
 export async function validateReadEventArgument(
@@ -13,7 +13,7 @@ export async function validateReadEventArgument(
   _deploymentParameters: DeploymentParameters,
   _accounts: string[],
 ): Promise<string[]> {
-  const errors: IgnitionError[] = [];
+  const errors: HardhatError[] = [];
 
   /* stage one */
 
@@ -24,9 +24,12 @@ export async function validateReadEventArgument(
 
   if (!isArtifactType(artifact)) {
     errors.push(
-      new IgnitionError(ERRORS.VALIDATION.INVALID_ARTIFACT, {
-        contractName: future.emitter.contractName,
-      }),
+      new HardhatError(
+        HardhatError.ERRORS.IGNITION.VALIDATION.INVALID_ARTIFACT,
+        {
+          contractName: future.emitter.contractName,
+        },
+      ),
     );
   } else {
     errors.push(

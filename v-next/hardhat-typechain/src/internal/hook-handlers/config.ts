@@ -1,4 +1,4 @@
-import type { ConfigHooks } from "@ignored/hardhat-vnext/types/hooks";
+import type { ConfigHooks } from "hardhat/types/hooks";
 
 import { getConfig } from "../config/get-config.js";
 import { validateTypechainUserConfig } from "../config/validation.js";

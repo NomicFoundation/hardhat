@@ -1,0 +1,8 @@
+{
+  "name": "hardhat-project",
+  "private": "true",
+  "type": "module",
+  "dependencies": {
+    "@nomicfoundation/hardhat-mocha": "*"
+  }
+}

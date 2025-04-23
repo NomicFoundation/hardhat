@@ -14,13 +14,13 @@ import assert from "node:assert/strict";
 import { afterEach, before, describe, it, mock } from "node:test";
 import { pathToFileURL } from "node:url";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { isCi } from "@ignored/hardhat-vnext-utils/ci";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   assertThrowsHardhatError,
   assertRejectsWithHardhatError,
   useFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
+import { isCi } from "@nomicfoundation/hardhat-utils/ci";
 import chalk from "chalk";
 import debug from "debug";
 
@@ -210,6 +210,23 @@ describe("main", function () {
       });
     });
 
+    describe("task with non existing subtask", function () {
+      useFixtureProject("cli/parsing/tasks-and-subtasks");
+
+      it("should throw because the subtask does not exist", async function () {
+        const command = "npx hardhat task-default-3 nonExistingTask";
+
+        await assertRejectsWithHardhatError(
+          () => runMain(command),
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.UNRECOGNIZED_SUBTASK,
+          {
+            task: "task-default-3",
+            invalidSubtask: "nonExistingTask",
+          },
+        );
+      });
+    });
+
     describe("global help", function () {
       useFixtureProject("cli/parsing/base-project");
 
@@ -226,8 +243,7 @@ AVAILABLE TASKS:
   clean                    Clears the cache and deletes all artifacts
   compile                  Compiles your project
   console                  Opens a hardhat console
-  coverage                 Not implemented yet - to be available soon
-  flatten                  Flattens and prints contracts and their dependencies. If no file is passed, all the contracts in the project will be flattened.
+  flatten                  Flattens and prints contracts and their dependencies
   node                     Starts a JSON-RPC server on top of Hardhat Network
   run                      Runs a user-defined script after compiling the project
   task                     A task that uses arg1
@@ -242,6 +258,7 @@ GLOBAL OPTIONS:
 
   --build-profile          The build profile to use
   --config                 A Hardhat config file.
+  --coverage               Enables code coverage
   --help                   Shows this message, or a task's help if its name is provided.
   --init                   Initializes a Hardhat project.
   --network                The network to connect to
@@ -269,6 +286,23 @@ Usage: hardhat [GLOBAL OPTIONS] empty-task <SUBTASK> [SUBTASK OPTIONS] [--] [SUB
 `;
 
           assert.equal(lines.join(""), expected);
+        });
+      });
+
+      describe("subtask does not exist", () => {
+        useFixtureProject("cli/parsing/tasks-and-subtasks");
+
+        it("should throw because the help option cannot be used on a non-existent subtask", async function () {
+          const command = "npx hardhat task-default-3 nonExistingTask --help";
+
+          await assertRejectsWithHardhatError(
+            () => runMain(command),
+            HardhatError.ERRORS.CORE.TASK_DEFINITIONS.UNRECOGNIZED_SUBTASK,
+            {
+              task: "task-default-3",
+              invalidSubtask: "nonExistingTask",
+            },
+          );
         });
       });
 
@@ -407,7 +441,7 @@ For global options help run: hardhat --help`;
 
       await assertRejectsWithHardhatError(
         async () => parseBuiltinGlobalOptions(cliArguments, usedCliArguments),
-        HardhatError.ERRORS.ARGUMENTS.CANNOT_COMBINE_INIT_AND_CONFIG_PATH,
+        HardhatError.ERRORS.CORE.ARGUMENTS.CANNOT_COMBINE_INIT_AND_CONFIG_PATH,
         {},
       );
     });
@@ -420,7 +454,7 @@ For global options help run: hardhat --help`;
 
       await assertRejectsWithHardhatError(
         async () => parseBuiltinGlobalOptions(cliArguments, usedCliArguments),
-        HardhatError.ERRORS.ARGUMENTS.DUPLICATED_NAME,
+        HardhatError.ERRORS.CORE.ARGUMENTS.DUPLICATED_NAME,
         {
           name: "--config",
         },
@@ -435,7 +469,7 @@ For global options help run: hardhat --help`;
 
       await assertRejectsWithHardhatError(
         async () => parseBuiltinGlobalOptions(cliArguments, usedCliArguments),
-        HardhatError.ERRORS.ARGUMENTS.MISSING_CONFIG_FILE,
+        HardhatError.ERRORS.CORE.ARGUMENTS.MISSING_CONFIG_FILE,
         {},
       );
     });
@@ -765,7 +799,7 @@ For global options help run: hardhat --help`;
 
         assertThrowsHardhatError(
           () => parseTaskAndArguments(cliArguments, usedCliArguments, hre),
-          HardhatError.ERRORS.ARGUMENTS.UNRECOGNIZED_OPTION,
+          HardhatError.ERRORS.CORE.ARGUMENTS.UNRECOGNIZED_OPTION,
           {
             option: "--undefinedArg",
           },
@@ -780,7 +814,7 @@ For global options help run: hardhat --help`;
 
         assertThrowsHardhatError(
           () => parseTaskAndArguments(cliArguments, usedCliArguments, hre),
-          HardhatError.ERRORS.ARGUMENTS.UNRECOGNIZED_OPTION,
+          HardhatError.ERRORS.CORE.ARGUMENTS.UNRECOGNIZED_OPTION,
           {
             option: "--arg",
           },
@@ -795,7 +829,7 @@ For global options help run: hardhat --help`;
 
         assertThrowsHardhatError(
           () => parseTaskAndArguments(cliArguments, usedCliArguments, hre),
-          HardhatError.ERRORS.ARGUMENTS.MISSING_VALUE_FOR_ARGUMENT,
+          HardhatError.ERRORS.CORE.ARGUMENTS.MISSING_VALUE_FOR_ARGUMENT,
           {
             argument: "--arg",
           },
@@ -810,7 +844,7 @@ For global options help run: hardhat --help`;
 
         assertThrowsHardhatError(
           () => parseTaskAndArguments(cliArguments, usedCliArguments, hre),
-          HardhatError.ERRORS.ARGUMENTS.MISSING_VALUE_FOR_ARGUMENT,
+          HardhatError.ERRORS.CORE.ARGUMENTS.MISSING_VALUE_FOR_ARGUMENT,
           {
             argument: "--arg",
           },
@@ -977,7 +1011,7 @@ For global options help run: hardhat --help`;
 
         assertThrowsHardhatError(
           () => parseTaskAndArguments(cliArguments, usedCliArguments, hre),
-          HardhatError.ERRORS.ARGUMENTS.MISSING_VALUE_FOR_ARGUMENT,
+          HardhatError.ERRORS.CORE.ARGUMENTS.MISSING_VALUE_FOR_ARGUMENT,
           {
             argument: "arg",
           },
@@ -1050,7 +1084,7 @@ For global options help run: hardhat --help`;
 
         assertThrowsHardhatError(
           () => parseTaskAndArguments(cliArguments, usedCliArguments, hre),
-          HardhatError.ERRORS.ARGUMENTS.MISSING_VALUE_FOR_ARGUMENT,
+          HardhatError.ERRORS.CORE.ARGUMENTS.MISSING_VALUE_FOR_ARGUMENT,
           {
             argument: "arg",
           },
@@ -1378,7 +1412,7 @@ For global options help run: hardhat --help`;
         // Throws because the flag argument does not expect values, so the "false" argument will not be consumed
         assertThrowsHardhatError(
           () => parseTaskAndArguments(cliArguments, usedCliArguments, hre),
-          HardhatError.ERRORS.ARGUMENTS.UNUSED_ARGUMENT,
+          HardhatError.ERRORS.CORE.ARGUMENTS.UNUSED_ARGUMENT,
           {
             value: "<value>",
           },

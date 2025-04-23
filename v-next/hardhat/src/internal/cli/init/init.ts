@@ -1,9 +1,12 @@
 import type { Template } from "./template.js";
-import type { PackageJson } from "@ignored/hardhat-vnext-utils/package";
+import type { PackageJson } from "@nomicfoundation/hardhat-utils/package";
 
 import path from "node:path";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import {
+  assertHardhatInvariant,
+  HardhatError,
+} from "@nomicfoundation/hardhat-errors";
 import {
   copy,
   ensureDir,
@@ -12,8 +15,8 @@ import {
   isDirectory,
   readJsonFile,
   writeJsonFile,
-} from "@ignored/hardhat-vnext-utils/fs";
-import { resolveFromRoot } from "@ignored/hardhat-vnext-utils/path";
+} from "@nomicfoundation/hardhat-utils/fs";
+import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
 import chalk from "chalk";
 import * as semver from "semver";
 
@@ -28,6 +31,7 @@ import {
   installsPeerDependenciesByDefault,
 } from "./package-manager.js";
 import {
+  promptForMigrateToEsm,
   promptForForce,
   promptForInstall,
   promptForTemplate,
@@ -39,6 +43,7 @@ import { getTemplates } from "./template.js";
 
 export interface InitHardhatOptions {
   workspace?: string;
+  migrateToEsm?: boolean;
   template?: string;
   force?: boolean;
   install?: boolean;
@@ -63,15 +68,16 @@ export interface InitHardhatOptions {
  * 1. Print the ascii logo.
  * 2. Print the welcome message.
  * 3. Optionally, ask the user for the workspace to initialize the project in.
- * 4. Validate that the package.json file is an esm package if it exists; otherwise, create it.
- * 5. Optionally, ask the user for the template to use for the project initialization.
- * 6. Optionally, ask the user if files should be overwritten.
- * 7. Copy the template files to the workspace.
- * 8. Ensure telemetry consent.
- * 9. Print the commands to install the project dependencies.
- * 10. Optionally, ask the user if the project dependencies should be installed.
- * 11. Optionally, run the commands to install the project dependencies.
- * 12. Print a message to star the project on GitHub.
+ * 4. Validate that the package.json exists; otherwise, create it.
+ * 5. Validate that the package.json is an esm package; otherwise, ask the user if they want to set it.
+ * 6. Optionally, ask the user for the template to use for the project initialization.
+ * 7. Optionally, ask the user if files should be overwritten.
+ * 8. Copy the template files to the workspace.
+ * 9. Ensure telemetry consent.
+ * 10. Print the commands to install the project dependencies.
+ * 11. Optionally, ask the user if the project dependencies should be installed.
+ * 12. Optionally, run the commands to install the project dependencies.
+ * 13. Print a message to star the project on GitHub.
  */
 export async function initHardhat(options?: InitHardhatOptions): Promise<void> {
   try {
@@ -85,7 +91,7 @@ export async function initHardhat(options?: InitHardhatOptions): Promise<void> {
 
     // Create the package.json file if it does not exist
     // and validate that it is an esm package
-    await ensureProjectPackageJson(workspace);
+    await validatePackageJson(workspace, options?.migrateToEsm);
 
     // Ask the user for the template to use for the project initialization
     // if it was not provided, and validate that it exists
@@ -114,20 +120,27 @@ export async function initHardhat(options?: InitHardhatOptions): Promise<void> {
   }
 }
 
-// generated with the "colossal" font
+// generated based on the "DOS Rebel" font
 function printAsciiLogo() {
   const logoLines = `
-888    888                      888 888               888
-888    888                      888 888               888
-888    888                      888 888               888
-8888888888  8888b.  888d888 .d88888 88888b.   8888b.  888888
-888    888     "88b 888P"  d88" 888 888 "88b     "88b 888
-888    888 .d888888 888    888  888 888  888 .d888888 888
-888    888 888  888 888    Y88b 888 888  888 888  888 Y88b.
-888    888 "Y888888 888     "Y88888 888  888 "Y888888  "Y888
-`.trim();
+ █████  █████                         ███  ███                  ███      ██████
+░░███  ░░███                         ░███ ░███                 ░███     ███░░███
+ ░███   ░███   ██████  ████████   ███████ ░███████    ██████  ███████  ░░░  ░███
+ ░██████████  ░░░░░███░░███░░███ ███░░███ ░███░░███  ░░░░░███░░░███░      ████░
+ ░███░░░░███   ███████ ░███ ░░░ ░███ ░███ ░███ ░███   ███████  ░███      ░░░░███
+ ░███   ░███  ███░░███ ░███     ░███ ░███ ░███ ░███  ███░░███  ░███ ███ ███ ░███
+ █████  █████░░███████ █████    ░░███████ ████ █████░░███████  ░░█████ ░░██████
+░░░░░  ░░░░░  ░░░░░░░ ░░░░░      ░░░░░░░ ░░░░ ░░░░░  ░░░░░░░    ░░░░░   ░░░░░░
+ `;
+
+  // Print an ansi escape sequence to disable auto-wrapping of text in case the
+  // logo doesn't fit
+  process.stdout.write("\x1b[?7l");
 
   console.log(chalk.blue(logoLines));
+
+  // Re-enable auto-wapping
+  process.stdout.write("\x1b[?7h");
 }
 
 // NOTE: This function is exported for testing purposes
@@ -178,9 +191,12 @@ export async function getWorkspace(workspace?: string): Promise<string> {
   workspace = resolveFromRoot(process.cwd(), workspace);
 
   if (!(await exists(workspace)) || !(await isDirectory(workspace))) {
-    throw new HardhatError(HardhatError.ERRORS.GENERAL.WORKSPACE_NOT_FOUND, {
-      workspace,
-    });
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.GENERAL.WORKSPACE_NOT_FOUND,
+      {
+        workspace,
+      },
+    );
   }
 
   // Validate that the workspace is not already initialized
@@ -188,7 +204,7 @@ export async function getWorkspace(workspace?: string): Promise<string> {
     const configFilePath = await findClosestHardhatConfig(workspace);
 
     throw new HardhatError(
-      HardhatError.ERRORS.GENERAL.HARDHAT_PROJECT_ALREADY_CREATED,
+      HardhatError.ERRORS.CORE.GENERAL.HARDHAT_PROJECT_ALREADY_CREATED,
       {
         hardhatProjectRootPath: configFilePath,
       },
@@ -196,7 +212,8 @@ export async function getWorkspace(workspace?: string): Promise<string> {
   } catch (err) {
     if (
       HardhatError.isHardhatError(err) &&
-      err.number === HardhatError.ERRORS.GENERAL.NO_CONFIG_FILE_FOUND.number
+      err.number ===
+        HardhatError.ERRORS.CORE.GENERAL.NO_CONFIG_FILE_FOUND.number
     ) {
       // If a configuration file is not found, it is possible to initialize a new project,
       // hence continuing code execution
@@ -233,13 +250,13 @@ export async function getTemplate(template?: string): Promise<Template> {
     }
   }
 
-  throw new HardhatError(HardhatError.ERRORS.GENERAL.TEMPLATE_NOT_FOUND, {
+  throw new HardhatError(HardhatError.ERRORS.CORE.GENERAL.TEMPLATE_NOT_FOUND, {
     template,
   });
 }
 
 /**
- * ensureProjectPackageJson creates the package.json file if it does not exist
+ * validatePackageJson creates the package.json file if it does not exist
  * in the workspace.
  *
  * It also validates that the package.json file is an esm package.
@@ -248,25 +265,49 @@ export async function getTemplate(template?: string): Promise<Template> {
  *
  * @param workspace The path to the workspace to initialize the project in.
  */
-export async function ensureProjectPackageJson(
+export async function validatePackageJson(
   workspace: string,
+  migrateToEsm?: boolean,
 ): Promise<void> {
-  const pathToPackageJson = path.join(workspace, "package.json");
+  const absolutePathToPackageJson = path.join(workspace, "package.json");
 
   // Create the package.json file if it does not exist
-  if (!(await exists(pathToPackageJson))) {
-    await writeJsonFile(pathToPackageJson, {
+  if (!(await exists(absolutePathToPackageJson))) {
+    await writeJsonFile(absolutePathToPackageJson, {
       name: "hardhat-project",
       type: "module",
     });
   }
 
-  const pkg: PackageJson = await readJsonFile(pathToPackageJson);
+  const pkg: PackageJson = await readJsonFile(absolutePathToPackageJson);
 
   // Validate that the package.json file is an esm package
-  if (pkg.type === undefined || pkg.type !== "module") {
-    throw new HardhatError(HardhatError.ERRORS.GENERAL.ONLY_ESM_SUPPORTED);
+  if (pkg.type === "module") {
+    return;
   }
+
+  if (migrateToEsm === undefined) {
+    migrateToEsm = await promptForMigrateToEsm(absolutePathToPackageJson);
+  }
+
+  if (!migrateToEsm) {
+    throw new HardhatError(HardhatError.ERRORS.CORE.GENERAL.ONLY_ESM_SUPPORTED);
+  }
+
+  const packageManager = await getPackageManager(workspace);
+
+  // We know this works with npm, pnpm, but not with yarn. If, so we use
+  // pnpm or npm exclusively.
+  // If you read this comment and wonder if this is outdated, you can
+  // answer it by checking if the most popular versions of yarn and other
+  // package managers support `<package manager> pkg set type=module`.
+  const packageManagerToUse = packageManager === "pnpm" ? "pnpm" : "npm";
+
+  await spawn(packageManagerToUse, ["pkg", "set", "type=module"], {
+    cwd: workspace,
+    shell: true,
+    stdio: "inherit",
+  });
 }
 
 /**
@@ -446,13 +487,9 @@ export async function installProjectDependencies(
 
   // Finding the installed dependencies that have an incompatible version
   const dependenciesToUpdate = templateDependencyEntries
-    .filter(([name, version]) => {
-      const workspaceVersion = workspaceDependencies[name];
-      return (
-        workspaceVersion !== undefined &&
-        !semver.satisfies(version, workspaceVersion) &&
-        !semver.intersects(version, workspaceVersion)
-      );
+    .filter(([dependencyName, templateVersion]) => {
+      const workspaceVersion = workspaceDependencies[dependencyName];
+      return shouldUpdateDependency(workspaceVersion, templateVersion);
     })
     .map(([name, version]) => `${name}@${version}`);
 
@@ -494,4 +531,35 @@ function showStarOnGitHubMessage() {
   );
   console.log();
   console.log(chalk.cyan("     https://github.com/NomicFoundation/hardhat"));
+}
+
+// NOTE: This function is exported for testing purposes only.
+export function shouldUpdateDependency(
+  workspaceVersion: string | undefined,
+  templateVersion: string,
+): boolean {
+  // We should not update the dependency if it is not yet installed in the workspace.
+  if (workspaceVersion === undefined) {
+    return false;
+  }
+  // NOTE: a specific version also a valid range that includes itself only
+  const workspaceRange = semver.validRange(workspaceVersion, {
+    includePrerelease: true,
+  });
+  const templateRange = semver.validRange(templateVersion, {
+    includePrerelease: true,
+  });
+  assertHardhatInvariant(
+    templateRange !== null,
+    "All dependencies of the template should have valid versions",
+  );
+  // We should update the dependency if the workspace version could not be parsed.
+  if (workspaceRange === null) {
+    return true;
+  }
+  // We should update the dependency if the workspace range (or, in particular, a specific version) is not
+  // a strict subset of the template range/does not equal the template version.
+  return !semver.subset(workspaceRange, templateRange, {
+    includePrerelease: true,
+  });
 }

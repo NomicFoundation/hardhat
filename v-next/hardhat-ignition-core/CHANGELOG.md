@@ -1,8 +1,16 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+## 3.0.0-next.2
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
+### Patch Changes
+
+- Hardhat 3 Alpha release (2025-03-20T08:38:27.809Z)
+
+## 3.0.0-next.1
+
+### Patch Changes
+
+- 5fbea0d: A small bug fix release for the Hardhat 3 Alpha.
 
 ## 0.15.9 - 2024-12-18
 

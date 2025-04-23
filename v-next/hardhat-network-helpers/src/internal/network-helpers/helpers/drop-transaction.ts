@@ -1,6 +1,6 @@
-import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
+import type { EthereumProvider } from "hardhat/types/providers";
 
-import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 
 import { assertTxHash } from "../../assertions.js";
 

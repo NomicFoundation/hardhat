@@ -4,8 +4,8 @@
 // ATTENTION: in the current implementation, there's still a risk of two processes running simultaneously.
 // For example, if processA has locked the mutex and is running, processB will wait.
 // During this wait, processB continuously checks the elapsed time since the mutex lock file was created.
-// If an excessive amount of time has passed, processB will assume ownership of the mutex to avoid stale locks.
-// However, there's a possibility that processB might take ownership because the mutex creation file is outdated, even though processA is still running
+// If an excessive amount of time has passed, processB will assume ownership of the mutex to prevent stale locks, even if processA is still running.
+// As a result, two processes will be running simultaneously in what is theoretically a mutex-locked section.
 
 import fs from "node:fs";
 import os from "node:os";
@@ -13,7 +13,7 @@ import path from "node:path";
 
 import debug from "debug";
 
-import { ensureError } from "./error.js";
+import { ensureNodeErrnoExceptionError } from "./error.js";
 import { FileSystemAccessError } from "./errors/fs.js";
 import { sleep } from "./lang.js";
 
@@ -62,7 +62,7 @@ export class MultiProcessMutex {
       fs.writeFileSync(this.#mutexFilePath, "", { flag: "wx+" });
       return true;
     } catch (e) {
-      ensureError<NodeJS.ErrnoException>(e);
+      ensureNodeErrnoExceptionError(e);
 
       if (e.code === "EEXIST") {
         // File already exists, so the mutex is already acquired
@@ -91,7 +91,7 @@ export class MultiProcessMutex {
     try {
       fileStat = fs.statSync(this.#mutexFilePath);
     } catch (e) {
-      ensureError<NodeJS.ErrnoException>(e);
+      ensureNodeErrnoExceptionError(e);
 
       if (e.code === "ENOENT") {
         // The file might have been deleted by another process while this function was trying to access it.
@@ -113,7 +113,7 @@ export class MultiProcessMutex {
       log(`Deleting mutex file at path '${this.#mutexFilePath}'`);
       fs.unlinkSync(this.#mutexFilePath);
     } catch (e) {
-      ensureError<NodeJS.ErrnoException>(e);
+      ensureNodeErrnoExceptionError(e);
 
       if (e.code === "ENOENT") {
         // The file might have been deleted by another process while this function was trying to access it.

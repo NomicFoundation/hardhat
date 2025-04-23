@@ -1,7 +1,7 @@
-import type { HardhatUserConfig } from "@ignored/hardhat-vnext/config";
-import type { HardhatUserConfigValidationError } from "@ignored/hardhat-vnext-zod-utils";
+import type { HardhatUserConfigValidationError } from "@nomicfoundation/hardhat-zod-utils";
+import type { HardhatUserConfig } from "hardhat/config";
 
-import { validateUserConfigZodType } from "@ignored/hardhat-vnext-zod-utils";
+import { validateUserConfigZodType } from "@nomicfoundation/hardhat-zod-utils";
 import { z } from "zod";
 
 const typechainUserConfigSchema = z

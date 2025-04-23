@@ -1,5 +1,5 @@
 import type { NetworkHelpers } from "../../src/types.js";
-import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
+import type { EthereumProvider } from "hardhat/types/providers";
 
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";

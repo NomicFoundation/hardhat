@@ -2,13 +2,15 @@ import type { HardhatUserConfig } from "../../../config.js";
 import type { HardhatConfig } from "../../../types/config.js";
 import type { HardhatUserConfigValidationError } from "../../../types/hooks.js";
 
-import { isObject } from "@ignored/hardhat-vnext-utils/lang";
-import { resolveFromRoot } from "@ignored/hardhat-vnext-utils/path";
+import path from "node:path";
+
+import { isObject } from "@nomicfoundation/hardhat-utils/lang";
+import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
 import {
   conditionalUnionType,
   unionType,
   validateUserConfigZodType,
-} from "@ignored/hardhat-vnext-zod-utils";
+} from "@nomicfoundation/hardhat-zod-utils";
 import { z } from "zod";
 
 const solidityTestUserConfigType = z.object({
@@ -121,6 +123,13 @@ export async function resolveSolidityTestUserConfig(
   testsPath = typeof testsPath === "object" ? testsPath.solidity : testsPath;
   testsPath ??= "test";
 
+  const defaultRpcCachePath = path.join(resolvedConfig.paths.cache, "edr");
+
+  const solidityTest = {
+    rpcCachePath: defaultRpcCachePath,
+    ...userConfig.solidityTest,
+  };
+
   return {
     ...resolvedConfig,
     paths: {
@@ -130,6 +139,6 @@ export async function resolveSolidityTestUserConfig(
         solidity: resolveFromRoot(resolvedConfig.paths.root, testsPath),
       },
     },
-    solidityTest: userConfig.solidityTest ?? {},
+    solidityTest,
   };
 }

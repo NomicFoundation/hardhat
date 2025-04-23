@@ -3,7 +3,7 @@ import util from "node:util";
 import {
   HardhatError,
   HardhatPluginError,
-} from "@ignored/hardhat-vnext-errors";
+} from "@nomicfoundation/hardhat-errors";
 import chalk from "chalk";
 
 import { HARDHAT_NAME, HARDHAT_WEBSITE_URL } from "../constants.js";
@@ -132,12 +132,14 @@ function getErrorMessages(error: unknown): ErrorMessages {
     case ErrorCategory.HARDHAT:
       return {
         formattedErrorMessage: `${chalk.red.bold(`Error ${categorizedError.errorCode}:`)} ${categorizedError.formattedMessage}`,
-        showMoreInfoMessage: `For more info go to ${HARDHAT_WEBSITE_URL}${categorizedError.errorCode} or run ${HARDHAT_NAME} with --show-stack-traces`,
+        // Commented out until we have the new website
+        // showMoreInfoMessage: `For more info go to ${HARDHAT_WEBSITE_URL}${categorizedError.errorCode} or run ${HARDHAT_NAME} with --show-stack-traces`,
       };
     case ErrorCategory.PLUGIN:
       return {
         formattedErrorMessage: `${chalk.red.bold(`Error ${categorizedError.errorCode} in plugin ${categorizedError.pluginId}:`)} ${categorizedError.formattedMessage}`,
-        showMoreInfoMessage: `For more info go to ${HARDHAT_WEBSITE_URL}${categorizedError.errorCode} or run ${HARDHAT_NAME} with --show-stack-traces`,
+        // Commented out until we have the new website
+        // showMoreInfoMessage: `For more info go to ${HARDHAT_WEBSITE_URL}${categorizedError.errorCode} or run ${HARDHAT_NAME} with --show-stack-traces`,
       };
     case ErrorCategory.COMMUNITY_PLUGIN:
       return {

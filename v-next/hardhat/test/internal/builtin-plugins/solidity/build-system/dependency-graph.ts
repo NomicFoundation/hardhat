@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import { beforeEach, describe, it } from "node:test";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import { DependencyGraphImplementation } from "../../../../../src/internal/builtin-plugins/solidity/build-system/dependency-graph.js";
@@ -80,9 +80,9 @@ describe("DependencyGraphImplementation", () => {
         () => {
           dependencyGraph.addRootFile(file.sourceName, file);
         },
-        HardhatError.ERRORS.INTERNAL.ASSERTION_ERROR,
+        HardhatError.ERRORS.CORE.INTERNAL.ASSERTION_ERROR,
         {
-          message: "File already present",
+          message: `File ${file.sourceName} already present`,
         },
       );
     });
@@ -100,7 +100,7 @@ describe("DependencyGraphImplementation", () => {
             downstreamDependency,
           );
         },
-        HardhatError.ERRORS.INTERNAL.ASSERTION_ERROR,
+        HardhatError.ERRORS.CORE.INTERNAL.ASSERTION_ERROR,
         {
           message: "File `from` from not present",
         },
@@ -424,7 +424,7 @@ describe("DependencyGraphImplementation", () => {
         () => {
           dependencyGraph.getSubgraph("root.sol");
         },
-        HardhatError.ERRORS.INTERNAL.ASSERTION_ERROR,
+        HardhatError.ERRORS.CORE.INTERNAL.ASSERTION_ERROR,
         {
           message: "We should have a root for every root public source name",
         },

@@ -2,7 +2,7 @@ import type { HardhatPlugin } from "../../../../src/types/plugins.js";
 
 import { describe, it } from "node:test";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import { detectPluginNpmDependencyProblems } from "../../../../src/internal/core/plugins/detect-plugin-npm-dependency-problems.js";
@@ -47,7 +47,7 @@ describe("Plugins - detect npm dependency problems", () => {
             nonInstalledPackageProjectFixture,
             plugin,
           ),
-        HardhatError.ERRORS.PLUGINS.PLUGIN_NOT_INSTALLED,
+        HardhatError.ERRORS.CORE.PLUGINS.PLUGIN_NOT_INSTALLED,
         {
           pluginId: "example-plugin",
         },
@@ -75,7 +75,7 @@ describe("Plugins - detect npm dependency problems", () => {
 
         await assertRejectsWithHardhatError(
           detectPluginNpmDependencyProblems(notInstalledPeerDepFixture, plugin),
-          HardhatError.ERRORS.PLUGINS.PLUGIN_MISSING_DEPENDENCY,
+          HardhatError.ERRORS.CORE.PLUGINS.PLUGIN_MISSING_DEPENDENCY,
           { pluginId: "example-plugin", peerDependencyName: "peer2" },
         );
       });
@@ -107,7 +107,7 @@ describe("Plugins - detect npm dependency problems", () => {
             peerDepWithWrongVersionFixture,
             plugin,
           ),
-        HardhatError.ERRORS.PLUGINS.DEPENDENCY_VERSION_MISMATCH,
+        HardhatError.ERRORS.CORE.PLUGINS.DEPENDENCY_VERSION_MISMATCH,
         {
           pluginId: "example-plugin",
           peerDependencyName: "peer2",

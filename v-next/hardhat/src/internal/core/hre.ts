@@ -20,9 +20,9 @@ import type { SolidityBuildSystem } from "../../types/solidity/build-system.js";
 import type { TaskManager } from "../../types/tasks.js";
 import type { UserInterruptionManager } from "../../types/user-interruptions.js";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { findClosestPackageRoot } from "@ignored/hardhat-vnext-utils/package";
-import { resolveFromRoot } from "@ignored/hardhat-vnext-utils/path";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { findClosestPackageRoot } from "@nomicfoundation/hardhat-utils/package";
+import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
 
 import { validateUserConfig } from "./config-validation.js";
 import { resolveConfigurationVariable } from "./configuration-variables.js";
@@ -75,7 +75,7 @@ export class HardhatRuntimeEnvironmentImplementation
     );
 
     if (userConfigValidationErrors.length > 0) {
-      throw new HardhatError(HardhatError.ERRORS.GENERAL.INVALID_CONFIG, {
+      throw new HardhatError(HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG, {
         errors: `\t${userConfigValidationErrors
           .map(
             (error) =>
@@ -205,6 +205,7 @@ async function resolveUserConfig(
     plugins: sortedPlugins,
     tasks: config.tasks ?? [],
     paths: resolvePaths(projectRoot, configPath, config.paths),
+    defaultNetwork: config.defaultNetwork ?? "hardhat",
   } as HardhatConfig;
 
   return hooks.runHandlerChain(

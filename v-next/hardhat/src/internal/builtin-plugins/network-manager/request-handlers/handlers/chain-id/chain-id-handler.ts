@@ -5,7 +5,7 @@ import type {
 } from "../../../../../../types/providers.js";
 import type { RequestHandler } from "../../types.js";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
 import { ChainId } from "./chain-id.js";
 
@@ -43,7 +43,7 @@ export class ChainIdValidatorHandler extends ChainId implements RequestHandler {
 
     if (actualChainId !== this.#expectedChainId) {
       throw new HardhatError(
-        HardhatError.ERRORS.NETWORK.INVALID_GLOBAL_CHAIN_ID,
+        HardhatError.ERRORS.CORE.NETWORK.INVALID_GLOBAL_CHAIN_ID,
         {
           configChainId: this.#expectedChainId,
           connectionChainId: actualChainId,

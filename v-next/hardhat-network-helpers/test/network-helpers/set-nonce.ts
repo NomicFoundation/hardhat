@@ -1,5 +1,5 @@
 import type { NetworkHelpers, NumberLike } from "../../src/types.js";
-import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
+import type { EthereumProvider } from "hardhat/types/providers";
 
 import assert from "node:assert/strict";
 import { before, beforeEach, describe, it } from "node:test";
@@ -7,7 +7,7 @@ import { before, beforeEach, describe, it } from "node:test";
 import {
   assertHardhatInvariant,
   HardhatError,
-} from "@ignored/hardhat-vnext-errors";
+} from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import { initializeNetwork, rpcQuantityToNumber } from "../helpers/helpers.js";
@@ -97,7 +97,7 @@ describe("network-helpers - setNonce", () => {
   it("should throw because the address is invalid", async () => {
     await assertRejectsWithHardhatError(
       async () => networkHelpers.setNonce("0xCF", 1),
-      HardhatError.ERRORS.NETWORK_HELPERS.INVALID_ADDRESS,
+      HardhatError.ERRORS.NETWORK_HELPERS.GENERAL.INVALID_ADDRESS,
       {
         value: "0xCF",
       },
@@ -107,7 +107,8 @@ describe("network-helpers - setNonce", () => {
   it("should throw because the nonce is invalid", async () => {
     await assertRejectsWithHardhatError(
       async () => networkHelpers.setNonce(account, "CF"),
-      HardhatError.ERRORS.NETWORK_HELPERS.ONLY_ALLOW_0X_PREFIXED_STRINGS,
+      HardhatError.ERRORS.NETWORK_HELPERS.GENERAL
+        .ONLY_ALLOW_0X_PREFIXED_STRINGS,
       {},
     );
   });

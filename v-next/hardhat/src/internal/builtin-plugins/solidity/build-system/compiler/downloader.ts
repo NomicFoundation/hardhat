@@ -8,10 +8,10 @@ import { promisify } from "node:util";
 import {
   HardhatError,
   assertHardhatInvariant,
-} from "@ignored/hardhat-vnext-errors";
-import { bytesToHexString } from "@ignored/hardhat-vnext-utils/bytes";
-import { keccak256 } from "@ignored/hardhat-vnext-utils/crypto";
-import { ensureError } from "@ignored/hardhat-vnext-utils/error";
+} from "@nomicfoundation/hardhat-errors";
+import { bytesToHexString } from "@nomicfoundation/hardhat-utils/bytes";
+import { keccak256 } from "@nomicfoundation/hardhat-utils/crypto";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import {
   chmod,
   createFile,
@@ -20,9 +20,9 @@ import {
   readBinaryFile,
   readJsonFile,
   remove,
-} from "@ignored/hardhat-vnext-utils/fs";
-import { download } from "@ignored/hardhat-vnext-utils/request";
-import { MultiProcessMutex } from "@ignored/hardhat-vnext-utils/synchronization";
+} from "@nomicfoundation/hardhat-utils/fs";
+import { download } from "@nomicfoundation/hardhat-utils/request";
+import { MultiProcessMutex } from "@nomicfoundation/hardhat-utils/synchronization";
 import debug from "debug";
 
 import { NativeCompiler, SolcJsCompiler } from "./compiler.js";
@@ -138,7 +138,8 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
   readonly #compilersDir: string;
   readonly #downloadFunction: typeof download;
 
-  readonly #mutex = new MultiProcessMutex("compiler-download");
+  readonly #mutexCompiler = new MultiProcessMutex("compiler-download");
+  readonly #mutexCompilerList = new MultiProcessMutex("compiler-download-list");
 
   /**
    * Use CompilerDownloader.getConcurrencySafeDownloader instead
@@ -156,21 +157,23 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
   public async updateCompilerListIfNeeded(
     versions: Set<string>,
   ): Promise<void> {
-    if (await this.#shouldDownloadCompilerList(versions)) {
-      try {
-        log(
-          `Downloading the list of solc builds for platform ${this.#platform}`,
-        );
-        await this.#downloadCompilerList();
-      } catch (e) {
-        ensureError(e);
+    await this.#mutexCompilerList.use(async () => {
+      if (await this.#shouldDownloadCompilerList(versions)) {
+        try {
+          log(
+            `Downloading the list of solc builds for platform ${this.#platform}`,
+          );
+          await this.#downloadCompilerList();
+        } catch (e) {
+          ensureError(e);
 
-        throw new HardhatError(
-          HardhatError.ERRORS.SOLIDITY.VERSION_LIST_DOWNLOAD_FAILED,
-          e,
-        );
+          throw new HardhatError(
+            HardhatError.ERRORS.CORE.SOLIDITY.VERSION_LIST_DOWNLOAD_FAILED,
+            e,
+          );
+        }
       }
-    }
+    });
   }
 
   public async isCompilerDownloaded(version: string): Promise<boolean> {
@@ -186,7 +189,7 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
     // This is because the mutex blocks access until a compiler has been fully downloaded, preventing any new process
     // from checking whether that version of the compiler exists. Without mutex it might incorrectly
     // return false, indicating that the compiler isn't present, even though it is currently being downloaded.
-    return this.#mutex.use(async () => {
+    return this.#mutexCompiler.use(async () => {
       const isCompilerDownloaded = await this.isCompilerDownloaded(version);
 
       if (isCompilerDownloaded === true) {
@@ -202,7 +205,7 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
         ensureError(e);
 
         throw new HardhatError(
-          HardhatError.ERRORS.SOLIDITY.DOWNLOAD_FAILED,
+          HardhatError.ERRORS.CORE.SOLIDITY.DOWNLOAD_FAILED,
           {
             remoteVersion: build.longVersion,
           },
@@ -212,9 +215,12 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
 
       const verified = await this.#verifyCompilerDownload(build, downloadPath);
       if (!verified) {
-        throw new HardhatError(HardhatError.ERRORS.SOLIDITY.INVALID_DOWNLOAD, {
-          remoteVersion: build.longVersion,
-        });
+        throw new HardhatError(
+          HardhatError.ERRORS.CORE.SOLIDITY.INVALID_DOWNLOAD,
+          {
+            remoteVersion: build.longVersion,
+          },
+        );
       }
 
       return this.#postProcessCompilerDownload(build, downloadPath);
@@ -260,7 +266,7 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
 
     if (build === undefined) {
       throw new HardhatError(
-        HardhatError.ERRORS.SOLIDITY.INVALID_SOLC_VERSION,
+        HardhatError.ERRORS.CORE.SOLIDITY.INVALID_SOLC_VERSION,
         {
           version,
         },

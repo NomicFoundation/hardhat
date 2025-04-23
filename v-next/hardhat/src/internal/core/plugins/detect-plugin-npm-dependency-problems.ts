@@ -2,12 +2,12 @@ import type { HardhatPlugin } from "../../../types/plugins.js";
 
 import path from "node:path";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { readJsonFile } from "@ignored/hardhat-vnext-utils/fs";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { readJsonFile } from "@nomicfoundation/hardhat-utils/fs";
 import {
   findDependencyPackageJson,
   type PackageJson,
-} from "@ignored/hardhat-vnext-utils/package";
+} from "@nomicfoundation/hardhat-utils/package";
 
 /**
  * Validate that a plugin is installed and that its peer dependencies are
@@ -16,11 +16,11 @@ import {
  * @param basePathForNpmResolution the dir path for node module resolution
  * @param plugin the plugin to be validated
  * @throws {HardhatError} with descriptor:
- * - {@link HardhatError.ERRORS.PLUGINS.PLUGIN_NOT_INSTALLED} if the plugin is
+ * - {@link HardhatError.ERRORS.CORE.PLUGINS.PLUGIN_NOT_INSTALLED} if the plugin is
  * not installed as an npm package
- * - {@link HardhatError.ERRORS.PLUGINS.PLUGIN_MISSING_DEPENDENCY} if the
+ * - {@link HardhatError.ERRORS.CORE.PLUGINS.PLUGIN_MISSING_DEPENDENCY} if the
  * plugin's package peer dependency is not installed
- * - {@link HardhatError.ERRORS.PLUGINS.DEPENDENCY_VERSION_MISMATCH} if the
+ * - {@link HardhatError.ERRORS.CORE.PLUGINS.DEPENDENCY_VERSION_MISMATCH} if the
  * plugin's package peer dependency is installed but has the wrong version
  */
 export async function detectPluginNpmDependencyProblems(
@@ -37,9 +37,12 @@ export async function detectPluginNpmDependencyProblems(
   );
 
   if (pluginPackageJsonPath === undefined) {
-    throw new HardhatError(HardhatError.ERRORS.PLUGINS.PLUGIN_NOT_INSTALLED, {
-      pluginId: plugin.id,
-    });
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.PLUGINS.PLUGIN_NOT_INSTALLED,
+      {
+        pluginId: plugin.id,
+      },
+    );
   }
 
   const pluginPackageJson = await readJsonFile<PackageJson>(
@@ -62,7 +65,7 @@ export async function detectPluginNpmDependencyProblems(
 
     if (dependencyPackageJsonPath === undefined) {
       throw new HardhatError(
-        HardhatError.ERRORS.PLUGINS.PLUGIN_MISSING_DEPENDENCY,
+        HardhatError.ERRORS.CORE.PLUGINS.PLUGIN_MISSING_DEPENDENCY,
         {
           pluginId: plugin.id,
           peerDependencyName: dependencyName,
@@ -78,9 +81,9 @@ export async function detectPluginNpmDependencyProblems(
 
     const { satisfies } = await import("semver");
 
-    if (!satisfies(installedVersion, versionSpec)) {
+    if (!satisfies(installedVersion, versionSpec.replace("workspace:", ""))) {
       throw new HardhatError(
-        HardhatError.ERRORS.PLUGINS.DEPENDENCY_VERSION_MISMATCH,
+        HardhatError.ERRORS.CORE.PLUGINS.DEPENDENCY_VERSION_MISMATCH,
         {
           pluginId: plugin.id,
           peerDependencyName: dependencyName,

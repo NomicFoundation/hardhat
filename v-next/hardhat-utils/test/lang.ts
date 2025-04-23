@@ -3,7 +3,13 @@ import { describe, it } from "node:test";
 
 import { expectTypeOf } from "expect-type";
 
-import { deepClone, deepEqual, isObject, sleep } from "../src/lang.js";
+import {
+  deepClone,
+  deepEqual,
+  deepMerge,
+  isObject,
+  sleep,
+} from "../src/lang.js";
 
 describe("lang", () => {
   describe("deepClone", () => {
@@ -340,6 +346,217 @@ describe("lang", () => {
     });
   });
 
+  describe("deepMerge", () => {
+    it("Should overwrite a nested object with a primitive value from the source", () => {
+      const target = { a: { b: 1 } };
+      const source = { a: 1 };
+
+      const result = deepMerge(target, source);
+
+      assert.deepEqual(result, { a: 1 });
+    });
+
+    it("Should merge multiple top-level keys", () => {
+      const target = { x: 1, y: { z: 2 } };
+      const source = { y: { w: 3 }, k: 4 };
+
+      const result = deepMerge(target, source);
+
+      assert.deepEqual(result, { x: 1, y: { z: 2, w: 3 }, k: 4 });
+    });
+
+    it("Should deeply merge nested objects when keys do not overlap", () => {
+      const target = { a: { b: 1 } };
+      const source = { a: { c: 2 } };
+
+      const result = deepMerge(target, source);
+
+      assert.deepEqual(result, { a: { b: 1, c: 2 } });
+    });
+
+    it("Should overwrite matching nested keys with values from the source", () => {
+      const target = { a: { b: 1 } };
+      const source = { a: { b: 2 } };
+
+      const result = deepMerge(target, source);
+
+      assert.deepEqual(result, { a: { b: 2 } });
+    });
+
+    it("Should merge deeply nested objects", () => {
+      const target = { a: { b: { c: 1 } } };
+      const source = { a: { b: { d: 2 } } };
+
+      const result = deepMerge(target, source);
+
+      assert.deepEqual(result, { a: { b: { c: 1, d: 2 } } });
+    });
+
+    it("Should merge nested objects and add new root-level keys", () => {
+      const target = { a: { b: 1 } };
+      const source = { a: { b: 2 }, d: 4 };
+
+      const result = deepMerge(target, source);
+
+      assert.deepEqual(result, { a: { b: 2 }, d: 4 });
+    });
+
+    it("Should replace arrays in nested objects instead of merging them", () => {
+      const target = { a: { b: [1, 2] } };
+      const source = { a: { b: [3, 4] } };
+
+      const result = deepMerge(target, source);
+
+      assert.deepEqual(result, { a: { b: [3, 4] } });
+    });
+
+    it("Should preserve existing arrays and add new keys with array values in nested objects", () => {
+      const target = { a: { b: [1, 2] } };
+      const source = { a: { c: [3, 4] } };
+
+      const result = deepMerge(target, source);
+
+      assert.deepEqual(result, { a: { b: [1, 2], c: [3, 4] } });
+    });
+
+    it("Should replace arrays of objects in nested structures with those from the source", () => {
+      const target = {
+        a: {
+          b: [{ a: 1 }, { c: 3, d: 4 }],
+        },
+      };
+      const source = {
+        a: {
+          b: [{ a: 11 }, { c: { cc: 1 }, d: "value" }],
+        },
+      };
+
+      const result = deepMerge(target, source);
+
+      assert.deepEqual(result, {
+        a: {
+          b: [{ a: 11 }, { c: { cc: 1 }, d: "value" }],
+        },
+      });
+    });
+
+    it("Should overwrite with null values from source", () => {
+      const target = { a: { b: 1 } };
+      const source = { a: null };
+
+      const result = deepMerge(target, source);
+
+      assert.deepEqual(result, { a: null });
+    });
+
+    it("Should overwrite a root-level function and preserve other properties", () => {
+      const target = {
+        fn: () => "from target",
+        a: 1,
+      };
+
+      const source = {
+        fn: () => "from source",
+        b: 2,
+      };
+
+      const result = deepMerge(target, source);
+
+      assert.equal(result.fn(), source.fn());
+      assert.equal(result.a, 1);
+      assert.equal(result.b, 2);
+    });
+
+    it("Should overwrite a nested object function with a function from the source", () => {
+      const target = {
+        nested: {
+          fn: () => "from target",
+          a: 1,
+        },
+      };
+
+      const source = {
+        nested: {
+          fn: () => "from source",
+          b: 2,
+        },
+      };
+
+      const result = deepMerge(target, source);
+
+      assert.equal(result.nested.fn(), source.nested.fn());
+      assert.equal(result.nested.a, 1);
+      assert.equal(result.nested.b, 2);
+    });
+
+    it("Should merge symbol-keyed properties from the source into the target", () => {
+      const symA = Symbol("a");
+      const symB = Symbol("b");
+
+      const target = {
+        [symA]: "value from target",
+      };
+
+      const source = {
+        [symA]: "value from source",
+        [symB]: "another value from source",
+      };
+
+      const result = deepMerge(target, source);
+
+      assert.equal(result[symA], "value from source");
+      assert.equal(result[symB], "another value from source");
+    });
+
+    it("Should merge symbol-keyed properties nested inside objects", () => {
+      const symA = Symbol("a");
+      const symB = Symbol("b");
+
+      const target = {
+        nested: {
+          [symA]: "target A",
+          common: "target common",
+        },
+      };
+
+      const source = {
+        nested: {
+          [symA]: "source A",
+          [symB]: "source B",
+        },
+      };
+
+      const result = deepMerge(target, source);
+
+      assert.equal(result.nested[symA], "source A");
+      assert.equal(result.nested[symB], "source B");
+      assert.equal(result.nested.common, "target common");
+    });
+
+    it("Should overwrite class instances instead of merging them", () => {
+      class Person {
+        constructor(public name: string) {}
+      }
+
+      const target = {
+        person: new Person("Alice"),
+        role: "admin",
+      };
+
+      const source = {
+        person: new Person("Bob"),
+        active: true,
+      };
+
+      const result = deepMerge(target, source);
+
+      assert.equal(result.person.constructor, Person);
+      assert.equal(result.person.name, "Bob"); // source overrides target
+      assert.equal(result.role, "admin"); // preserved from target
+      assert.equal(result.active, true); // added from source
+    });
+  });
+
   describe("isObject", () => {
     it("Should return true for objects", () => {
       assert.ok(isObject({}), "{} is an object, but isObject returned false");
@@ -394,39 +611,48 @@ describe("lang", () => {
   });
 
   describe("sleep", () => {
-    it("should wait for the specified time", async () => {
-      const start = Date.now();
-      await sleep(1);
-      const end = Date.now();
+    // The precision we'd use for the tests, in milliseconds.
+    // This means that if an expected values is +/- within the
+    // TESTS_PRECISION_MS, we consider it to have passed.
+    const TESTS_PRECISION_MS = 30;
 
-      assert.ok(end - start >= 1000, "sleep did not wait for 1 second");
+    async function assertSleep(
+      sleepSeconds: number,
+      { minMillis, maxMillis }: { minMillis?: number; maxMillis?: number } = {},
+    ) {
+      const start = Date.now();
+      await sleep(sleepSeconds);
+      const diff = Date.now() - start;
+
+      if (maxMillis !== undefined) {
+        assert.ok(
+          diff <= maxMillis + TESTS_PRECISION_MS,
+          `sleep exceeded the expected ${maxMillis} milliseconds (comparison precision: ${TESTS_PRECISION_MS} ms). It slept for ${diff} milliseconds.`,
+        );
+      }
+
+      if (minMillis !== undefined) {
+        assert.ok(
+          diff >= minMillis - TESTS_PRECISION_MS,
+          `sleep did not wait for the expected ${minMillis} milliseconds (comparison precision: ${TESTS_PRECISION_MS} ms). It slept for ${diff} milliseconds.`,
+        );
+      }
+    }
+
+    it("should wait for the specified time", async () => {
+      await assertSleep(1, { minMillis: 1000 });
     });
 
     it("should handle zero delay", async () => {
-      const start = Date.now();
-      await sleep(0);
-      const end = Date.now();
-
-      assert.ok(end - start < 100, "sleep did not handle zero delay correctly");
+      await assertSleep(0, { maxMillis: 30 });
     });
 
     it("should handle negative delay", async () => {
-      const start = Date.now();
-      await sleep(-1);
-      const end = Date.now();
-
-      assert.ok(
-        end - start < 100,
-        "sleep did not handle negative delay correctly",
-      );
+      await assertSleep(-1, { maxMillis: 30 });
     });
 
     it("should handle non-integer delay", async () => {
-      const start = Date.now();
-      await sleep(0.5);
-      const end = Date.now();
-
-      assert.ok(end - start >= 500, "sleep did not wait for 0.5 seconds");
+      await assertSleep(1.5, { minMillis: 1500 });
     });
   });
 });

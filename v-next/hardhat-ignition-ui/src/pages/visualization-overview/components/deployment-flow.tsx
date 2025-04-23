@@ -2,7 +2,7 @@ import {
   IgnitionModule,
   IgnitionModuleResult,
   isDeploymentFuture,
-} from "@ignored/hardhat-vnext-ignition-core/ui-helpers";
+} from "@nomicfoundation/ignition-core/ui-helpers";
 import React, { useState } from "react";
 import { Tooltip } from "react-tooltip";
 import styled, { css } from "styled-components";

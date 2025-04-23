@@ -4,8 +4,8 @@ import type { NewTaskActionFunction } from "../../../types/tasks.js";
 import {
   assertHardhatInvariant,
   HardhatError,
-} from "@ignored/hardhat-vnext-errors";
-import { exists } from "@ignored/hardhat-vnext-utils/fs";
+} from "@nomicfoundation/hardhat-errors";
+import { exists } from "@nomicfoundation/hardhat-utils/fs";
 import chalk from "chalk";
 
 import { isEdrSupportedChainType } from "../network-manager/edr/utils/chain-type.js";
@@ -32,13 +32,13 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
       : hre.config.defaultNetwork;
 
   if (!(network in hre.config.networks)) {
-    throw new HardhatError(HardhatError.ERRORS.NETWORK.NETWORK_NOT_FOUND, {
+    throw new HardhatError(HardhatError.ERRORS.CORE.NETWORK.NETWORK_NOT_FOUND, {
       networkName: network,
     });
   }
 
   if (hre.config.networks[network].type !== "edr") {
-    throw new HardhatError(HardhatError.ERRORS.NODE.INVALID_NETWORK_TYPE, {
+    throw new HardhatError(HardhatError.ERRORS.CORE.NODE.INVALID_NETWORK_TYPE, {
       networkType: hre.config.networks[network].type,
       networkName: network,
     });
@@ -53,7 +53,7 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
     if (!isEdrSupportedChainType(args.chainType)) {
       // NOTE: We could make the error more specific here.
       throw new HardhatError(
-        HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+        HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
         {
           value: args.chainType,
           type: "ChainType",
@@ -71,6 +71,7 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
   // NOTE: --fork-block-number is only valid if --fork is specified
   if (args.fork !== "") {
     networkConfigOverride.forking = {
+      enabled: true,
       url: args.fork,
       ...(args.forkBlockNumber !== -1
         ? { blockNumber: args.forkBlockNumber }
@@ -79,7 +80,7 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
   } else if (args.forkBlockNumber !== -1) {
     // NOTE: We could make the error more specific here.
     throw new HardhatError(
-      HardhatError.ERRORS.ARGUMENTS.MISSING_VALUE_FOR_ARGUMENT,
+      HardhatError.ERRORS.CORE.ARGUMENTS.MISSING_VALUE_FOR_ARGUMENT,
       {
         argument: "fork",
       },

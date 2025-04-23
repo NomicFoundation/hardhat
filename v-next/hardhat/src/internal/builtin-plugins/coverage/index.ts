@@ -1,23 +1,22 @@
 import type { HardhatPlugin } from "../../../types/plugins.js";
 
-import chalk from "chalk";
+import { ArgumentType } from "../../../types/arguments.js";
+import { globalOption } from "../../core/config.js";
 
-import { task } from "../../core/config.js";
+import "./type-extensions.js";
 
 const hardhatPlugin: HardhatPlugin = {
   id: "builtin:coverage",
-  tasks: [
-    task("coverage")
-      .setDescription("Not implemented yet - to be available soon")
-      .setAction(() =>
-        console.log(
-          chalk.yellow(
-            "This task will be implemented soon. Please check our communication channels for updates.",
-          ),
-        ),
-      )
-      .build(),
+  tasks: [],
+  globalOptions: [
+    globalOption({
+      name: "coverage",
+      description: "Enables code coverage",
+      type: ArgumentType.BOOLEAN,
+      defaultValue: false,
+    }),
   ],
+  npmPackage: "hardhat",
 };
 
 export default hardhatPlugin;

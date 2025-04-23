@@ -15,8 +15,8 @@ import type {
 import {
   HardhatError,
   assertHardhatInvariant,
-} from "@ignored/hardhat-vnext-errors";
-import { ensureError } from "@ignored/hardhat-vnext-utils/error";
+} from "@nomicfoundation/hardhat-errors";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 
 import { SHOULD_WARN_ABOUT_INLINE_TASK_ACTIONS_AND_HOOK_HANDLERS } from "../inline-functions-warning.js";
 import { detectPluginNpmDependencyProblems } from "../plugins/detect-plugin-npm-dependency-problems.js";
@@ -95,9 +95,12 @@ export class ResolvedTask implements Task {
    */
   public async run(taskArguments: TaskArguments = {}): Promise<any> {
     if (this.isEmpty) {
-      throw new HardhatError(HardhatError.ERRORS.TASK_DEFINITIONS.EMPTY_TASK, {
-        task: formatTaskId(this.id),
-      });
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.TASK_DEFINITIONS.EMPTY_TASK,
+        {
+          task: formatTaskId(this.id),
+        },
+      );
     }
 
     const providedArgumentNames = new Set(Object.keys(taskArguments));
@@ -194,7 +197,7 @@ export class ResolvedTask implements Task {
   ) {
     if (argument.defaultValue === undefined && value === undefined) {
       throw new HardhatError(
-        HardhatError.ERRORS.TASK_DEFINITIONS.MISSING_VALUE_FOR_TASK_ARGUMENT,
+        HardhatError.ERRORS.CORE.TASK_DEFINITIONS.MISSING_VALUE_FOR_TASK_ARGUMENT,
         {
           argument: argument.name,
           task: formatTaskId(this.id),
@@ -212,7 +215,7 @@ export class ResolvedTask implements Task {
   #validateExtraArguments(providedArgumentNames: Set<string>) {
     if (providedArgumentNames.size > 0) {
       throw new HardhatError(
-        HardhatError.ERRORS.TASK_DEFINITIONS.UNRECOGNIZED_TASK_OPTION,
+        HardhatError.ERRORS.CORE.TASK_DEFINITIONS.UNRECOGNIZED_TASK_OPTION,
         {
           option: [...providedArgumentNames][0],
           task: formatTaskId(this.id),
@@ -255,7 +258,7 @@ export class ResolvedTask implements Task {
       }
 
       throw new HardhatError(
-        HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_ACTION_URL,
+        HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INVALID_ACTION_URL,
         {
           action: actionFileUrl,
           task: formatTaskId(this.id),
@@ -266,7 +269,7 @@ export class ResolvedTask implements Task {
 
     if (typeof resolvedActionFn.default !== "function") {
       throw new HardhatError(
-        HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_ACTION,
+        HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INVALID_ACTION,
         {
           action: actionFileUrl,
           task: formatTaskId(this.id),

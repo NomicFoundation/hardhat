@@ -3,7 +3,7 @@ import type { Time } from "../../src/types.js";
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
 
-import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
+import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
 
 import { toBigInt } from "../../src/internal/conversion.js";
 import { initializeNetwork } from "../helpers/helpers.js";
@@ -108,7 +108,7 @@ describe("time - increaseTo", () => {
 
   //     await assertRejectsWithHardhatError(
   //       async () => time.increaseTo(initialTimestamp - 1),
-  //       HardhatError.ERRORS.NETWORK_HELPERS.INVALID_TIMESTAMP_TOO_LOW,
+  //       HardhatError.ERRORS.NETWORK_HELPERS.GENERAL.INVALID_TIMESTAMP_TOO_LOW,
   //       {},
   //     );
   //   });

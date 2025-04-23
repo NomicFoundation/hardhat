@@ -1,4 +1,4 @@
-import type { HardhatUserConfig } from "@ignored/hardhat-vnext/config";
+import type { HardhatUserConfig } from "hardhat/config";
 
 // eslint-disable-next-line import/no-relative-packages -- allow in fixture projects
 import hardhatTypechain from "../../../src/index.js";

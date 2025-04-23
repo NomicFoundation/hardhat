@@ -1,5 +1,5 @@
 import type { NetworkHelpers } from "../../src/types.js";
-import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
+import type { EthereumProvider } from "hardhat/types/providers";
 
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
@@ -7,7 +7,7 @@ import { before, describe, it } from "node:test";
 import {
   assertHardhatInvariant,
   HardhatError,
-} from "@ignored/hardhat-vnext-errors";
+} from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import { initializeNetwork } from "../helpers/helpers.js";
@@ -104,7 +104,7 @@ describe("network-helpers - dropTransaction", () => {
   it(`should throw because the transaction hash is invalid`, async function () {
     await assertRejectsWithHardhatError(
       async () => networkHelpers.dropTransaction("0xaaa"),
-      HardhatError.ERRORS.NETWORK_HELPERS.INVALID_TX_HASH,
+      HardhatError.ERRORS.NETWORK_HELPERS.GENERAL.INVALID_TX_HASH,
       {
         value: "0xaaa",
       },

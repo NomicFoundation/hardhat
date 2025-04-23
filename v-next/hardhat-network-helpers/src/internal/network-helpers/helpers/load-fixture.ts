@@ -1,16 +1,18 @@
 import type { Fixture, NetworkHelpers, Snapshot } from "../../../types.js";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-
-let snapshots: Array<Snapshot<any>> = [];
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
 export async function loadFixture<T>(
   networkHelpers: NetworkHelpers,
   fixture: Fixture<T>,
-): Promise<T> {
+  snapshots: Array<Snapshot<T>>,
+): Promise<{
+  snapshots: Array<Snapshot<T>>;
+  snapshotData: T;
+}> {
   if (fixture.name === "") {
     throw new HardhatError(
-      HardhatError.ERRORS.NETWORK_HELPERS.FIXTURE_ANONYMOUS_FUNCTION_ERROR,
+      HardhatError.ERRORS.NETWORK_HELPERS.GENERAL.FIXTURE_ANONYMOUS_FUNCTION_ERROR,
     );
   }
 
@@ -27,17 +29,21 @@ export async function loadFixture<T>(
     } catch (e) {
       if (
         HardhatError.isHardhatError(e) &&
-        e.number === HardhatError.ERRORS.NETWORK_HELPERS.INVALID_SNAPSHOT.number
+        e.number ===
+          HardhatError.ERRORS.NETWORK_HELPERS.GENERAL.INVALID_SNAPSHOT.number
       ) {
         throw new HardhatError(
-          HardhatError.ERRORS.NETWORK_HELPERS.FIXTURE_SNAPSHOT_ERROR,
+          HardhatError.ERRORS.NETWORK_HELPERS.GENERAL.FIXTURE_SNAPSHOT_ERROR,
         );
       }
 
       throw e;
     }
 
-    return snapshot.data;
+    return {
+      snapshots,
+      snapshotData: snapshot.data,
+    };
   } else {
     const data = await fixture();
     const restorer = await networkHelpers.takeSnapshot();
@@ -48,10 +54,9 @@ export async function loadFixture<T>(
       data,
     });
 
-    return data;
+    return {
+      snapshots,
+      snapshotData: data,
+    };
   }
-}
-
-export function clearSnapshots(): void {
-  snapshots = [];
 }

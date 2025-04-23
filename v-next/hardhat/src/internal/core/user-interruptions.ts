@@ -1,7 +1,7 @@
 import type { HookContext, HookManager } from "../../types/hooks.js";
 import type { UserInterruptionManager } from "../../types/user-interruptions.js";
 
-import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 
 import { AsyncMutex } from "./async-mutex.js";
 

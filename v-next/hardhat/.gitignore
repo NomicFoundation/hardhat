@@ -7,4 +7,10 @@
 # pnpm deploy output
 /bundle
 
-!coverage
+# test coverage output
+coverage
+!src/internal/builtin-plugins/coverage
+!test/internal/builtin-plugins/coverage
+
+# all the tmp folders in the fixture projects
+/test/fixture-projects/tmp/

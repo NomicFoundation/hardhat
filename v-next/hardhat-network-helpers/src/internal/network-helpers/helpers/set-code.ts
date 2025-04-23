@@ -1,4 +1,4 @@
-import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
+import type { EthereumProvider } from "hardhat/types/providers";
 
 import { assertValidAddress, assertHexString } from "../../assertions.js";
 

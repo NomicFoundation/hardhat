@@ -8,11 +8,11 @@ import type {
 import type {
   Dispatcher,
   RequestOptions,
-} from "@ignored/hardhat-vnext-utils/request";
+} from "@nomicfoundation/hardhat-utils/request";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { ensureError } from "@ignored/hardhat-vnext-utils/error";
-import { sleep, isObject } from "@ignored/hardhat-vnext-utils/lang";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
+import { sleep, isObject } from "@nomicfoundation/hardhat-utils/lang";
 import {
   getDispatcher,
   isValidUrl,
@@ -21,7 +21,7 @@ import {
   ConnectionRefusedError,
   RequestTimeoutError,
   ResponseStatusCodeError,
-} from "@ignored/hardhat-vnext-utils/request";
+} from "@nomicfoundation/hardhat-utils/request";
 
 import { EDR_NETWORK_REVERT_SNAPSHOT_EVENT } from "../../constants.js";
 import { getHardhatVersion } from "../../utils/package.js";
@@ -72,7 +72,7 @@ export class HttpProvider extends BaseProvider {
     testDispatcher,
   }: HttpProviderConfig): Promise<HttpProvider> {
     if (!isValidUrl(url)) {
-      throw new HardhatError(HardhatError.ERRORS.NETWORK.INVALID_URL, {
+      throw new HardhatError(HardhatError.ERRORS.CORE.NETWORK.INVALID_URL, {
         value: url,
       });
     }
@@ -118,7 +118,7 @@ export class HttpProvider extends BaseProvider {
     requestArguments: RequestArguments,
   ): Promise<SuccessfulJsonRpcResponse["result"]> {
     if (this.#dispatcher === undefined) {
-      throw new HardhatError(HardhatError.ERRORS.NETWORK.PROVIDER_CLOSED);
+      throw new HardhatError(HardhatError.ERRORS.CORE.NETWORK.PROVIDER_CLOSED);
     }
 
     const { method, params } = requestArguments;
@@ -190,14 +190,17 @@ export class HttpProvider extends BaseProvider {
 
       if (e instanceof ConnectionRefusedError) {
         throw new HardhatError(
-          HardhatError.ERRORS.NETWORK.CONNECTION_REFUSED,
+          HardhatError.ERRORS.CORE.NETWORK.CONNECTION_REFUSED,
           { network: this.#networkName },
           e,
         );
       }
 
       if (e instanceof RequestTimeoutError) {
-        throw new HardhatError(HardhatError.ERRORS.NETWORK.NETWORK_TIMEOUT, e);
+        throw new HardhatError(
+          HardhatError.ERRORS.CORE.NETWORK.NETWORK_TIMEOUT,
+          e,
+        );
       }
 
       /**

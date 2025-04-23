@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
-import { describe, it } from "node:test";
+import { afterEach, beforeEach, describe, it } from "node:test";
 
-import { writeUtf8File } from "@ignored/hardhat-vnext-utils/fs";
 import { useTmpDir } from "@nomicfoundation/hardhat-test-utils";
+import { writeUtf8File } from "@nomicfoundation/hardhat-utils/fs";
 
 import {
   getDevDependenciesInstallationCommand,
@@ -13,10 +13,28 @@ import {
 describe("getPackageManager", () => {
   useTmpDir("getPackageManager");
 
+  let originalUserAgent: string | undefined;
+  beforeEach(() => {
+    originalUserAgent = process.env.npm_config_user_agent;
+    process.env.npm_config_user_agent = "npm"; // assume we are running npm by default
+  });
+
+  afterEach(() => {
+    process.env.npm_config_user_agent = originalUserAgent;
+  });
+
   it("should return pnpm if pnpm-lock.yaml exists", async () => {
     await writeUtf8File("pnpm-lock.yaml", "");
     assert.equal(await getPackageManager(process.cwd()), "pnpm");
   });
+
+  it("should return pnpm if invoked from pnpx", async () => {
+    assert.equal(await getPackageManager(process.cwd()), "npm");
+    process.env.npm_config_user_agent =
+      "pnpm/10.4.1 npm/? node/v23.2.0 linux x64";
+    assert.equal(await getPackageManager(process.cwd()), "pnpm");
+  });
+
   it("should return npm if package-lock.json exists", async () => {
     await writeUtf8File("package-lock.json", "");
     assert.equal(await getPackageManager(process.cwd()), "npm");

@@ -2,7 +2,7 @@
 subprocess, so we need to allow of top-level await here */
 import type { Event } from "@sentry/node";
 
-import { writeJsonFile } from "@ignored/hardhat-vnext-utils/fs";
+import { writeJsonFile } from "@nomicfoundation/hardhat-utils/fs";
 import { captureEvent, captureMessage, init } from "@sentry/node";
 
 import { Anonymizer } from "./anonymizer.js";

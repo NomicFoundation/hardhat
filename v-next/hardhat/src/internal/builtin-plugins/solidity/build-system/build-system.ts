@@ -21,22 +21,30 @@ import type { SolidityBuildInfo } from "../../../../types/solidity.js";
 import os from "node:os";
 import path from "node:path";
 
-import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
+import {
+  assertHardhatInvariant,
+  HardhatError,
+} from "@nomicfoundation/hardhat-errors";
 import {
   getAllDirectoriesMatching,
   getAllFilesMatching,
   readJsonFile,
   remove,
+  writeJsonFile,
+  writeJsonFileAsStream,
   writeUtf8File,
-} from "@ignored/hardhat-vnext-utils/fs";
-import { shortenPath } from "@ignored/hardhat-vnext-utils/path";
-import { pluralize } from "@ignored/hardhat-vnext-utils/string";
+} from "@nomicfoundation/hardhat-utils/fs";
+import { shortenPath } from "@nomicfoundation/hardhat-utils/path";
+import { pluralize } from "@nomicfoundation/hardhat-utils/string";
 import chalk from "chalk";
 import debug from "debug";
 import pMap from "p-map";
 
 import { FileBuildResultType } from "../../../../types/solidity/build-system.js";
-import { DEFAULT_BUILD_PROFILE } from "../build-profiles.js";
+import {
+  DEFAULT_BUILD_PROFILE,
+  shouldMergeCompilationJobs,
+} from "../build-profiles.js";
 
 import {
   getArtifactsDeclarationFile,
@@ -211,13 +219,6 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
           );
         }),
       );
-
-      await this.#hooks.runHandlerChain(
-        "solidity",
-        "onAllArtifactsEmitted",
-        [contractArtifactsGeneratedByCompilationJob],
-        async () => {},
-      );
     }
 
     const resultsMap: Map<string, FileBuildResult> = new Map();
@@ -306,6 +307,15 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
     const buildProfileName = options?.buildProfile ?? DEFAULT_BUILD_PROFILE;
 
+    if (this.#options.solidityConfig.profiles[buildProfileName] === undefined) {
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.SOLIDITY.BUILD_PROFILE_NOT_FOUND,
+        {
+          buildProfileName,
+        },
+      );
+    }
+
     log(`Using build profile ${buildProfileName}`);
 
     const solcConfigSelector = new SolcConfigSelector(
@@ -334,7 +344,10 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       subgraphsWithConfig.push([configOrError, subgraph]);
     }
 
-    if (options?.mergeCompilationJobs === true) {
+    if (
+      options?.mergeCompilationJobs ??
+      shouldMergeCompilationJobs(buildProfileName)
+    ) {
       log(`Merging compilation jobs`);
 
       const mergedSubgraphsByConfig: Map<
@@ -538,12 +551,9 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       (async () => {
         const buildInfo = await getBuildInfo(compilationJob);
 
-        await writeUtf8File(
-          buildInfoPath,
-          // TODO: Maybe formatting the build info is slow, but it's mostly
-          // strings, so it probably shouldn't be a problem.
-          JSON.stringify(buildInfo, undefined, 2),
-        );
+        // TODO: Maybe formatting the build info is slow, but it's mostly
+        // strings, so it probably shouldn't be a problem.
+        await writeJsonFile(buildInfoPath, buildInfo);
       })(),
       (async () => {
         const buildInfoOutput = await getBuildInfoOutput(
@@ -551,10 +561,12 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
           compilerOutput,
         );
 
-        await writeUtf8File(
-          buildInfoOutputPath,
-          JSON.stringify(buildInfoOutput),
-        );
+        // NOTE: We use writeJsonFileAsStream here because the build info output might exceed
+        // the maximum string length.
+        // TODO: Earlier in the build process, very similar files are created on disk by the
+        // Compiler.  Instead of creating them again, we should consider copying/moving them.
+        // This would require changing the format of the build info output file.
+        await writeJsonFileAsStream(buildInfoOutputPath, buildInfoOutput);
       })(),
     ]);
 
@@ -645,6 +657,13 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       duplicatedContractNamesDeclarationFilePath,
       getDuplicatedContractNamesDeclarationFile(duplicatedNames),
     );
+
+    await this.#hooks.runHandlerChain(
+      "solidity",
+      "onCleanUpArtifacts",
+      [artifactPaths],
+      async () => {},
+    );
   }
 
   public async compileBuildInfo(
@@ -713,6 +732,10 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     return `${error.type}: ${error.message}`.replace(/[:\s]*$/g, "").trim();
   }
 
+  // TODO: Saving the compilation results in the cache, currently, involves stringifying
+  // the compilation output objects and writing them to disk. Such files are already
+  // created earlier in the build process by the Compiler. Instead of creating them
+  // again, we should consider copying/moving them to the cache.
   #cacheCompilationResults(
     compilationResults: CompilationResult[],
   ): Promise<void> {

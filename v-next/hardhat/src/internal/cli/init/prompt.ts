@@ -1,6 +1,7 @@
 import type { Template } from "./template.js";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { shortenPath } from "@nomicfoundation/hardhat-utils/path";
 import chalk from "chalk";
 
 export async function promptForWorkspace(): Promise<string> {
@@ -18,6 +19,27 @@ export async function promptForWorkspace(): Promise<string> {
   ]);
 
   return workspaceResponse.workspace;
+}
+
+export async function promptForMigrateToEsm(
+  absolutePathToPackageJson: string,
+): Promise<boolean> {
+  ensureTTY();
+
+  const { default: enquirer } = await import("enquirer");
+
+  const migrateToEsmResponse = await enquirer.prompt<{ migrateToEsm: boolean }>(
+    [
+      {
+        name: "migrateToEsm",
+        type: "confirm",
+        message: `Hardhat only supports ESM projects. Would you like to change "${shortenPath(absolutePathToPackageJson)}" to turn your project into ESM?`,
+        initial: true,
+      },
+    ],
+  );
+
+  return migrateToEsmResponse.migrateToEsm;
 }
 
 export async function promptForTemplate(
@@ -72,7 +94,7 @@ export async function promptForInstall(
     {
       name: "install",
       type: "confirm",
-      message: `You need to install the following dependencies using the following command:\n${chalk.italic(safelyFormattedCommand)}\n\nDo you want to run it now?`,
+      message: `You need to install the necessary dependencies using the following command:\n${chalk.italic(safelyFormattedCommand)}\n\nDo you want to run it now?`,
       initial: true,
     },
   ]);
@@ -106,7 +128,7 @@ export async function promptForUpdate(
 function ensureTTY(): void {
   if (process.stdout.isTTY !== true) {
     throw new HardhatError(
-      HardhatError.ERRORS.GENERAL.NOT_IN_INTERACTIVE_SHELL,
+      HardhatError.ERRORS.CORE.GENERAL.NOT_IN_INTERACTIVE_SHELL,
     );
   }
 }

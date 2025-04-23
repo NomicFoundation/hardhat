@@ -8,13 +8,13 @@ import type { RequestHandler } from "../../types.js";
 import {
   assertHardhatInvariant,
   HardhatError,
-} from "@ignored/hardhat-vnext-errors";
-import { toBigInt } from "@ignored/hardhat-vnext-utils/bigint";
+} from "@nomicfoundation/hardhat-errors";
+import { toBigInt } from "@nomicfoundation/hardhat-utils/bigint";
 import {
   bytesToHexString,
   hexStringToBigInt,
   hexStringToBytes,
-} from "@ignored/hardhat-vnext-utils/hex";
+} from "@nomicfoundation/hardhat-utils/hex";
 import { addr, Transaction } from "micro-eth-signer";
 import * as typed from "micro-eth-signer/typed-data";
 import { signTyped } from "micro-eth-signer/typed-data";
@@ -30,6 +30,15 @@ import {
 import { validateParams } from "../../../rpc/validate-params.js";
 import { ChainId } from "../chain-id/chain-id.js";
 
+/**
+ * This handler takes a long time to load. Currently, it is only used in the handlers array,
+ * where it is imported dynamically, and in the HDWalletHandler, which itself is only loaded
+ * dynamically.
+ * If we ever need to import this handler elsewhere, we should either import it dynamically
+ * or import some of the dependencies of this handler dynamically.
+ * It has been identified that micro-eth-signer is one of the most expensive dependencies here.
+ * See https://github.com/NomicFoundation/hardhat/pull/6481 for more details.
+ */
 export class LocalAccountsHandler extends ChainId implements RequestHandler {
   readonly #addressToPrivateKey: Map<string, Uint8Array> = new Map();
 
@@ -76,7 +85,7 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
         if (address !== undefined) {
           if (data === undefined) {
             throw new HardhatError(
-              HardhatError.ERRORS.NETWORK.ETHSIGN_MISSING_DATA_PARAM,
+              HardhatError.ERRORS.CORE.NETWORK.ETHSIGN_MISSING_DATA_PARAM,
             );
           }
 
@@ -96,7 +105,7 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
         if (data !== undefined) {
           if (address === undefined) {
             throw new HardhatError(
-              HardhatError.ERRORS.NETWORK.PERSONALSIGN_MISSING_ADDRESS_PARAM,
+              HardhatError.ERRORS.CORE.NETWORK.PERSONALSIGN_MISSING_ADDRESS_PARAM,
             );
           }
 
@@ -114,7 +123,7 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
 
       if (data === undefined) {
         throw new HardhatError(
-          HardhatError.ERRORS.NETWORK.ETHSIGN_MISSING_DATA_PARAM,
+          HardhatError.ERRORS.CORE.NETWORK.ETHSIGN_MISSING_DATA_PARAM,
         );
       }
 
@@ -124,7 +133,7 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
           typedMessage = JSON.parse(data);
         } catch {
           throw new HardhatError(
-            HardhatError.ERRORS.NETWORK.ETHSIGN_TYPED_DATA_V4_INVALID_DATA_PARAM,
+            HardhatError.ERRORS.CORE.NETWORK.ETHSIGN_TYPED_DATA_V4_INVALID_DATA_PARAM,
           );
         }
       }
@@ -150,14 +159,14 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
 
       if (txRequest.gas === undefined) {
         throw new HardhatError(
-          HardhatError.ERRORS.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
+          HardhatError.ERRORS.CORE.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
           { param: "gas" },
         );
       }
 
       if (txRequest.from === undefined) {
         throw new HardhatError(
-          HardhatError.ERRORS.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
+          HardhatError.ERRORS.CORE.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
           { param: "from" },
         );
       }
@@ -169,26 +178,26 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
 
       if (!hasGasPrice && !hasEip1559Fields) {
         throw new HardhatError(
-          HardhatError.ERRORS.NETWORK.MISSING_FEE_PRICE_FIELDS,
+          HardhatError.ERRORS.CORE.NETWORK.MISSING_FEE_PRICE_FIELDS,
         );
       }
 
       if (hasGasPrice && hasEip1559Fields) {
         throw new HardhatError(
-          HardhatError.ERRORS.NETWORK.INCOMPATIBLE_FEE_PRICE_FIELDS,
+          HardhatError.ERRORS.CORE.NETWORK.INCOMPATIBLE_FEE_PRICE_FIELDS,
         );
       }
 
       if (hasEip1559Fields && txRequest.maxFeePerGas === undefined) {
         throw new HardhatError(
-          HardhatError.ERRORS.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
+          HardhatError.ERRORS.CORE.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
           { param: "maxFeePerGas" },
         );
       }
 
       if (hasEip1559Fields && txRequest.maxPriorityFeePerGas === undefined) {
         throw new HardhatError(
-          HardhatError.ERRORS.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
+          HardhatError.ERRORS.CORE.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
           { param: "maxPriorityFeePerGas" },
         );
       }
@@ -226,9 +235,12 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
   #getPrivateKeyForAddress(address: Uint8Array): Uint8Array {
     const pk = this.#addressToPrivateKey.get(bytesToHexString(address));
     if (pk === undefined) {
-      throw new HardhatError(HardhatError.ERRORS.NETWORK.NOT_LOCAL_ACCOUNT, {
-        account: bytesToHexString(address),
-      });
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.NETWORK.NOT_LOCAL_ACCOUNT,
+        {
+          account: bytesToHexString(address),
+        },
+      );
     }
 
     return pk;
@@ -281,7 +293,7 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
       txData.data === undefined
     ) {
       throw new HardhatError(
-        HardhatError.ERRORS.NETWORK.DATA_FIELD_CANNOT_BE_NULL_WITH_NULL_ADDRESS,
+        HardhatError.ERRORS.CORE.NETWORK.DATA_FIELD_CANNOT_BE_NULL_WITH_NULL_ADDRESS,
       );
     }
 
@@ -301,43 +313,62 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
       "nonce should be defined",
     );
 
+    // Disable strict mode for chainIds > 2 ** 32 - 1.
+    //
+    // micro-eth-signer throws if strict mode is enabled with a chainId above 2 ** 32 - 1
+    // (see: https://github.com/paulmillr/micro-eth-signer/blob/baa4b8c922c3253b125e3f46b1fce6dee7c33853/src/tx.ts#L500).
+    //
+    // As a workaround we disable strict mode for larger chains. This also bypasses
+    // other internal checks enforced by the library, which is not ideal.
+    const strictMode =
+      txData.chainId === undefined || txData.chainId <= BigInt(2 ** 32 - 1);
+
     let transaction;
     if (txData.maxFeePerGas !== undefined) {
-      transaction = Transaction.prepare({
-        type: "eip1559",
-        to: checksummedAddress,
-        nonce: txData.nonce,
-        chainId: txData.chainId ?? toBigInt(chainId),
-        value: txData.value !== undefined ? txData.value : 0n,
-        data: txData.data !== undefined ? bytesToHexString(txData.data) : "",
-        gasLimit: txData.gasLimit,
-        maxFeePerGas: txData.maxFeePerGas,
-        maxPriorityFeePerGas: txData.maxPriorityFeePerGas,
-        accessList: accessList ?? [],
-      });
+      transaction = Transaction.prepare(
+        {
+          type: "eip1559",
+          to: checksummedAddress,
+          nonce: txData.nonce,
+          chainId: txData.chainId ?? toBigInt(chainId),
+          value: txData.value !== undefined ? txData.value : 0n,
+          data: txData.data !== undefined ? bytesToHexString(txData.data) : "",
+          gasLimit: txData.gasLimit,
+          maxFeePerGas: txData.maxFeePerGas,
+          maxPriorityFeePerGas: txData.maxPriorityFeePerGas,
+          accessList: accessList ?? [],
+        },
+        strictMode,
+      );
     } else if (accessList !== undefined) {
-      transaction = Transaction.prepare({
-        type: "eip2930",
-        to: checksummedAddress,
-        nonce: txData.nonce,
-        chainId: txData.chainId ?? toBigInt(chainId),
-        value: txData.value !== undefined ? txData.value : 0n,
-        data: txData.data !== undefined ? bytesToHexString(txData.data) : "",
-        gasPrice: txData.gasPrice ?? 0n,
-        gasLimit: txData.gasLimit,
-        accessList,
-      });
+      transaction = Transaction.prepare(
+        {
+          type: "eip2930",
+          to: checksummedAddress,
+          nonce: txData.nonce,
+          chainId: txData.chainId ?? toBigInt(chainId),
+          value: txData.value !== undefined ? txData.value : 0n,
+          data: txData.data !== undefined ? bytesToHexString(txData.data) : "",
+          gasPrice: txData.gasPrice ?? 0n,
+          gasLimit: txData.gasLimit,
+          accessList,
+        },
+        strictMode,
+      );
     } else {
-      transaction = Transaction.prepare({
-        type: "legacy",
-        to: checksummedAddress,
-        nonce: txData.nonce,
-        chainId: txData.chainId ?? toBigInt(chainId),
-        value: txData.value !== undefined ? txData.value : 0n,
-        data: txData.data !== undefined ? bytesToHexString(txData.data) : "",
-        gasPrice: txData.gasPrice ?? 0n,
-        gasLimit: txData.gasLimit,
-      });
+      transaction = Transaction.prepare(
+        {
+          type: "legacy",
+          to: checksummedAddress,
+          nonce: txData.nonce,
+          chainId: txData.chainId ?? toBigInt(chainId),
+          value: txData.value !== undefined ? txData.value : 0n,
+          data: txData.data !== undefined ? bytesToHexString(txData.data) : "",
+          gasPrice: txData.gasPrice ?? 0n,
+          gasLimit: txData.gasLimit,
+        },
+        strictMode,
+      );
     }
 
     const signedTransaction = transaction.signBy(privateKey);

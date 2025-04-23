@@ -1,7 +1,7 @@
 import { execSync } from "node:child_process";
 import path from "node:path";
 
-import { exists } from "@ignored/hardhat-vnext-utils/fs";
+import { exists } from "@nomicfoundation/hardhat-utils/fs";
 import semver from "semver";
 
 type PackageManager = "npm" | "yarn" | "pnpm";
@@ -19,10 +19,14 @@ export async function getPackageManager(
   const pathToYarnLock = path.join(workspace, "yarn.lock");
   const pathToPnpmLock = path.join(workspace, "pnpm-lock.yaml");
 
+  const invokedFromPnpm = (process.env.npm_config_user_agent ?? "").includes(
+    "pnpm",
+  );
+
   if (await exists(pathToYarnLock)) {
     return "yarn";
   }
-  if (await exists(pathToPnpmLock)) {
+  if ((await exists(pathToPnpmLock)) || invokedFromPnpm) {
     return "pnpm";
   }
   return "npm";

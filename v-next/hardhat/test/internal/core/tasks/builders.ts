@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { after, before, describe, it } from "node:test";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import { RESERVED_ARGUMENT_NAMES } from "../../../../src/internal/core/arguments.js";
@@ -56,7 +56,7 @@ describe("Task builders", () => {
       it("should throw if the id is an empty string", () => {
         assertThrowsHardhatError(
           () => new EmptyTaskDefinitionBuilderImplementation(""),
-          HardhatError.ERRORS.TASK_DEFINITIONS.EMPTY_TASK_ID,
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.EMPTY_TASK_ID,
           {},
         );
       });
@@ -66,7 +66,7 @@ describe("Task builders", () => {
 
         assertThrowsHardhatError(
           () => new EmptyTaskDefinitionBuilderImplementation(ids),
-          HardhatError.ERRORS.TASK_DEFINITIONS.EMPTY_TASK_ID,
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.EMPTY_TASK_ID,
           {},
         );
       });
@@ -154,7 +154,7 @@ describe("Task builders", () => {
       it("should throw if the id is an empty string", () => {
         assertThrowsHardhatError(
           () => new NewTaskDefinitionBuilderImplementation(""),
-          HardhatError.ERRORS.TASK_DEFINITIONS.EMPTY_TASK_ID,
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.EMPTY_TASK_ID,
           {},
         );
       });
@@ -164,7 +164,7 @@ describe("Task builders", () => {
 
         assertThrowsHardhatError(
           () => new NewTaskDefinitionBuilderImplementation(ids),
-          HardhatError.ERRORS.TASK_DEFINITIONS.EMPTY_TASK_ID,
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.EMPTY_TASK_ID,
           {},
         );
       });
@@ -205,7 +205,7 @@ describe("Task builders", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
         assertThrowsHardhatError(
           () => builder.build(),
-          HardhatError.ERRORS.TASK_DEFINITIONS.NO_ACTION,
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.NO_ACTION,
           {
             task: "task-id",
           },
@@ -217,12 +217,12 @@ describe("Task builders", () => {
 
         assertThrowsHardhatError(
           () => builder.setAction("not-a-valid-file-url"),
-          HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_FILE_ACTION,
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INVALID_FILE_ACTION,
           { action: "not-a-valid-file-url" },
         );
         assertThrowsHardhatError(
           () => builder.setAction("file://"),
-          HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_FILE_ACTION,
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INVALID_FILE_ACTION,
           {
             action: "file://",
           },
@@ -669,7 +669,7 @@ describe("Task builders", () => {
                 name,
                 defaultValue: "default",
               }),
-            HardhatError.ERRORS.ARGUMENTS.INVALID_NAME,
+            HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_NAME,
             {
               name,
             },
@@ -680,7 +680,7 @@ describe("Task builders", () => {
               builder.addFlag({
                 name,
               }),
-            HardhatError.ERRORS.ARGUMENTS.INVALID_NAME,
+            HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_NAME,
             {
               name,
             },
@@ -691,7 +691,7 @@ describe("Task builders", () => {
               builder.addPositionalArgument({
                 name,
               }),
-            HardhatError.ERRORS.ARGUMENTS.INVALID_NAME,
+            HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_NAME,
             {
               name,
             },
@@ -702,7 +702,7 @@ describe("Task builders", () => {
               builder.addVariadicArgument({
                 name,
               }),
-            HardhatError.ERRORS.ARGUMENTS.INVALID_NAME,
+            HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_NAME,
             {
               name,
             },
@@ -724,7 +724,7 @@ describe("Task builders", () => {
         names.forEach((name) => {
           assertThrowsHardhatError(
             () => builder.addOption({ name, defaultValue: "default" }),
-            HardhatError.ERRORS.ARGUMENTS.DUPLICATED_NAME,
+            HardhatError.ERRORS.CORE.ARGUMENTS.DUPLICATED_NAME,
             {
               name,
             },
@@ -732,7 +732,7 @@ describe("Task builders", () => {
 
           assertThrowsHardhatError(
             () => builder.addFlag({ name }),
-            HardhatError.ERRORS.ARGUMENTS.DUPLICATED_NAME,
+            HardhatError.ERRORS.CORE.ARGUMENTS.DUPLICATED_NAME,
             {
               name,
             },
@@ -740,7 +740,7 @@ describe("Task builders", () => {
 
           assertThrowsHardhatError(
             () => builder.addPositionalArgument({ name }),
-            HardhatError.ERRORS.ARGUMENTS.DUPLICATED_NAME,
+            HardhatError.ERRORS.CORE.ARGUMENTS.DUPLICATED_NAME,
             {
               name,
             },
@@ -748,7 +748,7 @@ describe("Task builders", () => {
 
           assertThrowsHardhatError(
             () => builder.addVariadicArgument({ name }),
-            HardhatError.ERRORS.ARGUMENTS.DUPLICATED_NAME,
+            HardhatError.ERRORS.CORE.ARGUMENTS.DUPLICATED_NAME,
             {
               name,
             },
@@ -762,7 +762,7 @@ describe("Task builders", () => {
         RESERVED_ARGUMENT_NAMES.forEach((name) => {
           assertThrowsHardhatError(
             () => builder.addOption({ name, defaultValue: "default" }),
-            HardhatError.ERRORS.ARGUMENTS.RESERVED_NAME,
+            HardhatError.ERRORS.CORE.ARGUMENTS.RESERVED_NAME,
             {
               name,
             },
@@ -787,7 +787,7 @@ describe("Task builders", () => {
                 defaultValue: 123 as any,
                 type: ArgumentType.STRING,
               }),
-            HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
+            HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
             {
               value: 123,
               name: "defaultValue",
@@ -806,7 +806,7 @@ describe("Task builders", () => {
               defaultValue: [123, 456, 789] as any,
               type: ArgumentType.STRING,
             }),
-          HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
           {
             value: [123, 456, 789],
             name: "defaultValue",
@@ -828,12 +828,12 @@ describe("Task builders", () => {
 
         assertThrowsHardhatError(
           () => builder.addPositionalArgument({ name: "arg2" }),
-          HardhatError.ERRORS.TASK_DEFINITIONS.REQUIRED_ARG_AFTER_OPTIONAL,
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.REQUIRED_ARG_AFTER_OPTIONAL,
           { name: "arg2" },
         );
         assertThrowsHardhatError(
           () => builder.addVariadicArgument({ name: "arg3" }),
-          HardhatError.ERRORS.TASK_DEFINITIONS.REQUIRED_ARG_AFTER_OPTIONAL,
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.REQUIRED_ARG_AFTER_OPTIONAL,
           { name: "arg3" },
         );
       });
@@ -845,13 +845,15 @@ describe("Task builders", () => {
 
         assertThrowsHardhatError(
           () => builder.addPositionalArgument({ name: "arg2" }),
-          HardhatError.ERRORS.TASK_DEFINITIONS.POSITIONAL_ARG_AFTER_VARIADIC,
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS
+            .POSITIONAL_ARG_AFTER_VARIADIC,
           { name: "arg2" },
         );
 
         assertThrowsHardhatError(
           () => builder.addVariadicArgument({ name: "arg3" }),
-          HardhatError.ERRORS.TASK_DEFINITIONS.POSITIONAL_ARG_AFTER_VARIADIC,
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS
+            .POSITIONAL_ARG_AFTER_VARIADIC,
           { name: "arg3" },
         );
       });
@@ -894,7 +896,7 @@ describe("Task builders", () => {
       it("should throw if the id is an empty string", () => {
         assertThrowsHardhatError(
           () => new TaskOverrideDefinitionBuilderImplementation(""),
-          HardhatError.ERRORS.TASK_DEFINITIONS.EMPTY_TASK_ID,
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.EMPTY_TASK_ID,
           {},
         );
       });
@@ -904,7 +906,7 @@ describe("Task builders", () => {
 
         assertThrowsHardhatError(
           () => new TaskOverrideDefinitionBuilderImplementation(ids),
-          HardhatError.ERRORS.TASK_DEFINITIONS.EMPTY_TASK_ID,
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.EMPTY_TASK_ID,
           {},
         );
       });
@@ -949,7 +951,7 @@ describe("Task builders", () => {
         );
         assertThrowsHardhatError(
           () => builder.build(),
-          HardhatError.ERRORS.TASK_DEFINITIONS.NO_ACTION,
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.NO_ACTION,
           {
             task: "task-id",
           },
@@ -963,12 +965,12 @@ describe("Task builders", () => {
 
         assertThrowsHardhatError(
           () => builder.setAction("not-a-valid-file-url"),
-          HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_FILE_ACTION,
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INVALID_FILE_ACTION,
           { action: "not-a-valid-file-url" },
         );
         assertThrowsHardhatError(
           () => builder.setAction("file://"),
-          HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_FILE_ACTION,
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INVALID_FILE_ACTION,
           { action: "file://" },
         );
       });
@@ -1155,7 +1157,7 @@ describe("Task builders", () => {
                 name,
                 defaultValue: "default",
               }),
-            HardhatError.ERRORS.ARGUMENTS.INVALID_NAME,
+            HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_NAME,
             {
               name,
             },
@@ -1166,7 +1168,7 @@ describe("Task builders", () => {
               builder.addFlag({
                 name,
               }),
-            HardhatError.ERRORS.ARGUMENTS.INVALID_NAME,
+            HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_NAME,
             {
               name,
             },
@@ -1188,7 +1190,7 @@ describe("Task builders", () => {
         names.forEach((name) => {
           assertThrowsHardhatError(
             () => builder.addOption({ name, defaultValue: "default" }),
-            HardhatError.ERRORS.ARGUMENTS.DUPLICATED_NAME,
+            HardhatError.ERRORS.CORE.ARGUMENTS.DUPLICATED_NAME,
             {
               name,
             },
@@ -1196,7 +1198,7 @@ describe("Task builders", () => {
 
           assertThrowsHardhatError(
             () => builder.addFlag({ name }),
-            HardhatError.ERRORS.ARGUMENTS.DUPLICATED_NAME,
+            HardhatError.ERRORS.CORE.ARGUMENTS.DUPLICATED_NAME,
             {
               name,
             },
@@ -1212,7 +1214,7 @@ describe("Task builders", () => {
         RESERVED_ARGUMENT_NAMES.forEach((name) => {
           assertThrowsHardhatError(
             () => builder.addOption({ name, defaultValue: "default" }),
-            HardhatError.ERRORS.ARGUMENTS.RESERVED_NAME,
+            HardhatError.ERRORS.CORE.ARGUMENTS.RESERVED_NAME,
             {
               name,
             },
@@ -1236,7 +1238,7 @@ describe("Task builders", () => {
               defaultValue: 123 as any,
               type: ArgumentType.STRING,
             }),
-          HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
           {
             value: 123,
             name: "defaultValue",

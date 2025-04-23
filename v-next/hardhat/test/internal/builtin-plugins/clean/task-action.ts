@@ -4,15 +4,15 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import { before, beforeEach, describe, it } from "node:test";
 
+import { useFixtureProject } from "@nomicfoundation/hardhat-test-utils";
 import {
   exists,
   mkdir,
   readdir,
   remove,
   writeUtf8File,
-} from "@ignored/hardhat-vnext-utils/fs";
-import { getCacheDir } from "@ignored/hardhat-vnext-utils/global-dir";
-import { useFixtureProject } from "@nomicfoundation/hardhat-test-utils";
+} from "@nomicfoundation/hardhat-utils/fs";
+import { getCacheDir } from "@nomicfoundation/hardhat-utils/global-dir";
 
 import cleanAction from "../../../../src/internal/builtin-plugins/clean/task-action.js";
 import { createHardhatRuntimeEnvironment } from "../../../../src/internal/hre-intialization.js";

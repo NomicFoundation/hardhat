@@ -4,18 +4,23 @@ import type { Mock } from "node:test";
 import assert from "node:assert/strict";
 import { beforeEach, describe, it, mock } from "node:test";
 
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import chalk from "chalk";
 
 import { KeystoreFileLoader } from "../../src/internal/loaders/keystore-file-loader.js";
 import { get } from "../../src/internal/tasks/get.js";
 import { assertOutputIncludes } from "../helpers/assert-output-includes.js";
 import { MockFileManager } from "../helpers/mock-file-manager.js";
+import { mockRequestSecretFn } from "../helpers/mock-request-secret.js";
+import { TEST_PASSWORD } from "../helpers/test-password.js";
 
 const fakeKeystoreFilePath = "./fake-keystore-path.json";
 
 describe("tasks - get", () => {
   let mockFileManager: MockFileManager;
   let mockConsoleLog: Mock<(text: string) => void>;
+  let mockRequestSecret: Mock<(text: string) => Promise<string>>;
 
   let keystoreLoader: KeystoreLoader;
 
@@ -34,12 +39,14 @@ describe("tasks - get", () => {
       mockFileManager.setupExistingKeystoreFile({
         myKey: "myValue",
       });
+      mockRequestSecret = mockRequestSecretFn([TEST_PASSWORD]);
 
       await get(
         {
           key: "myKey",
         },
         keystoreLoader,
+        mockRequestSecret,
         mockConsoleLog,
       );
     });
@@ -60,12 +67,14 @@ describe("tasks - get", () => {
   describe("a `get` when the keystore file does not exist", () => {
     beforeEach(async () => {
       mockFileManager.setupNoKeystoreFile();
+      mockRequestSecret = mockRequestSecretFn([TEST_PASSWORD]);
 
       await get(
         {
           key: "key",
         },
         keystoreLoader,
+        mockRequestSecret,
         mockConsoleLog,
       );
 
@@ -94,12 +103,14 @@ describe("tasks - get", () => {
       mockFileManager.setupExistingKeystoreFile({
         known: "value",
       });
+      mockRequestSecret = mockRequestSecretFn([TEST_PASSWORD]);
 
       await get(
         {
           key: "unknown",
         },
         keystoreLoader,
+        mockRequestSecret,
         mockConsoleLog,
       );
 
@@ -116,6 +127,29 @@ describe("tasks - get", () => {
         mockFileManager.writeJsonFile.mock.calls.length,
         0,
         "keystore should not have been saved",
+      );
+    });
+  });
+
+  describe("a `get` with the wrong password", () => {
+    it("should throw an error", async () => {
+      mockFileManager.setupExistingKeystoreFile({
+        myKey: "myValue",
+      });
+      mockRequestSecret = mockRequestSecretFn(["wrong password"]);
+
+      await assertRejectsWithHardhatError(
+        get(
+          {
+            key: "myKey",
+          },
+          keystoreLoader,
+          mockRequestSecret,
+          mockConsoleLog,
+        ),
+        HardhatError.ERRORS.HARDHAT_KEYSTORE.GENERAL
+          .INVALID_PASSWORD_OR_CORRUPTED_KEYSTORE,
+        {},
       );
     });
   });

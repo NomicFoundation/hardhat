@@ -17,24 +17,32 @@ import type {
   HttpNetworkAccountsUserConfig,
   HttpNetworkConfig,
   HttpNetworkUserConfig,
-  NetworkConfig,
-  NetworkUserConfig,
 } from "../../../types/config.js";
+import type { ChainType } from "../../../types/network.js";
 
 import path from "node:path";
 
 import {
   hexStringToBytes,
   normalizeHexString,
-} from "@ignored/hardhat-vnext-utils/hex";
-import { isObject } from "@ignored/hardhat-vnext-utils/lang";
+} from "@nomicfoundation/hardhat-utils/hex";
+
+import {
+  L1_CHAIN_TYPE,
+  OPTIMISM_CHAIN_TYPE,
+  GENERIC_CHAIN_TYPE,
+} from "../../constants.js";
 
 import { DEFAULT_HD_ACCOUNTS_CONFIG_PARAMS } from "./accounts/constants.js";
 import {
   DEFAULT_EDR_NETWORK_HD_ACCOUNTS_CONFIG_PARAMS,
   EDR_NETWORK_DEFAULT_COINBASE,
 } from "./edr/edr-provider.js";
-import { HardforkName, LATEST_HARDFORK } from "./edr/types/hardfork.js";
+import {
+  getCurrentHardfork,
+  L1HardforkName,
+  OpHardforkName,
+} from "./edr/types/hardfork.js";
 import { isHttpNetworkHdAccountsUserConfig } from "./type-validation.js";
 
 export function resolveHttpNetwork(
@@ -54,7 +62,7 @@ export function resolveHttpNetwork(
     gasMultiplier: networkConfig.gasMultiplier ?? 1,
     gasPrice: resolveGasConfig(networkConfig.gasPrice),
     url: resolveConfigurationVariable(networkConfig.url),
-    timeout: networkConfig.timeout ?? 20_000,
+    timeout: networkConfig.timeout ?? 300_000,
     httpHeaders: networkConfig.httpHeaders ?? {},
   };
 }
@@ -93,6 +101,7 @@ export function resolveEdrNetwork(
     ),
     hardfork: resolveHardfork(
       networkConfig.hardfork,
+      networkConfig.chainType,
       networkConfig.enableTransientStorage,
     ),
     initialBaseFeePerGas: resolveInitialBaseFeePerGas(
@@ -107,82 +116,6 @@ export function resolveEdrNetwork(
     throwOnTransactionFailures:
       networkConfig.throwOnTransactionFailures ?? true,
   };
-}
-
-/**
- * Resolves a NetworkUserConfig into a Partial<NetworkConfig> object.
- * This function processes the network configuration override using the appropriate
- * resolver (either HTTP or EDR) and ensures only the values explicitly specified
- * in the override are included in the final result, preventing defaults from
- * overwriting the user's configuration.
- *
- * @param networkUserConfigOverride The user's network configuration override.
- * @param resolveConfigurationVariable A function to resolve configuration variables.
- * @returns A Partial<NetworkConfig> containing the resolved values from the override.
- */
-export function resolveNetworkConfigOverride(
-  networkUserConfigOverride: NetworkUserConfig,
-  resolveConfigurationVariable: ConfigurationVariableResolver,
-): Partial<NetworkConfig> {
-  let resolvedConfigOverride: NetworkConfig;
-
-  if (networkUserConfigOverride.type === "http") {
-    resolvedConfigOverride = resolveHttpNetwork(
-      networkUserConfigOverride,
-      resolveConfigurationVariable,
-    );
-  } else {
-    resolvedConfigOverride = resolveEdrNetwork(
-      networkUserConfigOverride,
-      "",
-      resolveConfigurationVariable,
-    );
-  }
-
-  /* Return only the resolved config of the values overridden by the user. This
-  ensures that only the overridden values are merged into the config and
-  indirectly removes cacheDir from the resolved forking config, as cacheDir
-  is not part of the NetworkUserConfig. */
-  return pickResolvedFromOverrides(
-    resolvedConfigOverride,
-    networkUserConfigOverride,
-  );
-}
-
-function pickResolvedFromOverrides<
-  TResolved extends object,
-  TOverride extends object,
->(resolvedConfig: TResolved, overrides: TOverride): Partial<TResolved> {
-  const result: Partial<TResolved> = {};
-
-  for (const key of Object.keys(overrides)) {
-    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    -- As TResolved and TOverride are objects share the same keys, we can
-    safely cast the key */
-    const resolvedKey = key as keyof TResolved;
-    const resolvedValue = resolvedConfig[resolvedKey];
-    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    -- As TResolved and TOverride are objects share the same keys, we can
-    safely cast the key */
-    const overrideValue = overrides[key as keyof TOverride];
-
-    if (!(isObject(resolvedValue) && isObject(overrideValue))) {
-      result[resolvedKey] = resolvedValue;
-      continue;
-    }
-
-    /* Some properties in NetworkConfig, such as accounts, forking, and mining,
-    are objects themselves. To handle these, we process them recursively. */
-    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    -- The return type adheres to TResolved[keyof TResolved], but TS can't
-    infer it */
-    result[resolvedKey] = pickResolvedFromOverrides(
-      resolvedValue,
-      overrideValue,
-    ) as TResolved[keyof TResolved];
-  }
-
-  return result;
 }
 
 export function resolveGasConfig(value: GasUserConfig = "auto"): GasConfig {
@@ -298,117 +231,116 @@ export function resolveCoinbase(
 export function resolveChains(
   chains: EdrNetworkChainsUserConfig | undefined,
 ): EdrNetworkChainsConfig {
+  /**
+   * Block numbers / timestamps were taken from:
+   *
+   * L1 / Generic:
+   * https://github.com/ethereumjs/ethereumjs-monorepo/tree/master/packages/common/src/chains.ts
+   * Op:
+   * https://github.com/ethereum-optimism/superchain-registry/tree/main/superchain/configs/mainnet
+   *
+   * To find hardfork activation blocks by timestamp, use:
+   * https://api-TESTNET.etherscan.io/api?module=block&action=getblocknobytime&timestamp=TIMESTAMP&closest=before&apikey=APIKEY
+   */
   const resolvedChains: EdrNetworkChainsConfig = new Map([
     [
-      // block numbers below were taken from https://github.com/ethereumjs/ethereumjs-monorepo/tree/master/packages/common/src/chains
       1, // mainnet
       {
+        chainType: L1_CHAIN_TYPE,
         hardforkHistory: new Map([
-          [HardforkName.FRONTIER, 0],
-          [HardforkName.HOMESTEAD, 1_150_000],
-          [HardforkName.DAO, 1_920_000],
-          [HardforkName.TANGERINE_WHISTLE, 2_463_000],
-          [HardforkName.SPURIOUS_DRAGON, 2_675_000],
-          [HardforkName.BYZANTIUM, 4_370_000],
-          [HardforkName.CONSTANTINOPLE, 7_280_000],
-          [HardforkName.PETERSBURG, 7_280_000],
-          [HardforkName.ISTANBUL, 9_069_000],
-          [HardforkName.MUIR_GLACIER, 9_200_000],
-          [HardforkName.BERLIN, 1_2244_000],
-          [HardforkName.LONDON, 12_965_000],
-          [HardforkName.ARROW_GLACIER, 13_773_000],
-          [HardforkName.GRAY_GLACIER, 15_050_000],
-          [HardforkName.MERGE, 15_537_394],
-          [HardforkName.SHANGHAI, 17_034_870],
-          [HardforkName.CANCUN, 19_426_589],
-        ]),
-      },
-    ],
-    [
-      3, // ropsten
-      {
-        hardforkHistory: new Map([
-          [HardforkName.BYZANTIUM, 1700000],
-          [HardforkName.CONSTANTINOPLE, 4230000],
-          [HardforkName.PETERSBURG, 4939394],
-          [HardforkName.ISTANBUL, 6485846],
-          [HardforkName.MUIR_GLACIER, 7117117],
-          [HardforkName.BERLIN, 9812189],
-          [HardforkName.LONDON, 10499401],
-        ]),
-      },
-    ],
-    [
-      4, // rinkeby
-      {
-        hardforkHistory: new Map([
-          [HardforkName.BYZANTIUM, 1035301],
-          [HardforkName.CONSTANTINOPLE, 3660663],
-          [HardforkName.PETERSBURG, 4321234],
-          [HardforkName.ISTANBUL, 5435345],
-          [HardforkName.BERLIN, 8290928],
-          [HardforkName.LONDON, 8897988],
+          [L1HardforkName.FRONTIER, 0],
+          [L1HardforkName.HOMESTEAD, 1_150_000],
+          [L1HardforkName.DAO, 1_920_000],
+          [L1HardforkName.TANGERINE_WHISTLE, 2_463_000],
+          [L1HardforkName.SPURIOUS_DRAGON, 2_675_000],
+          [L1HardforkName.BYZANTIUM, 4_370_000],
+          [L1HardforkName.CONSTANTINOPLE, 7_280_000],
+          [L1HardforkName.PETERSBURG, 7_280_000],
+          [L1HardforkName.ISTANBUL, 9_069_000],
+          [L1HardforkName.MUIR_GLACIER, 9_200_000],
+          [L1HardforkName.BERLIN, 1_2244_000],
+          [L1HardforkName.LONDON, 12_965_000],
+          [L1HardforkName.ARROW_GLACIER, 13_773_000],
+          [L1HardforkName.GRAY_GLACIER, 15_050_000],
+          [L1HardforkName.MERGE, 15_537_394],
+          [L1HardforkName.SHANGHAI, 17_034_870],
+          [L1HardforkName.CANCUN, 19_426_589],
         ]),
       },
     ],
     [
       5, // goerli
       {
+        chainType: L1_CHAIN_TYPE,
         hardforkHistory: new Map([
-          [HardforkName.ISTANBUL, 1561651],
-          [HardforkName.BERLIN, 4460644],
-          [HardforkName.LONDON, 5062605],
+          [L1HardforkName.ISTANBUL, 1_561_651],
+          [L1HardforkName.BERLIN, 4_460_644],
+          [L1HardforkName.LONDON, 5_062_605],
         ]),
       },
     ],
     [
-      42, // kovan
+      17000, // holesky
       {
+        chainType: L1_CHAIN_TYPE,
         hardforkHistory: new Map([
-          [HardforkName.BYZANTIUM, 5067000],
-          [HardforkName.CONSTANTINOPLE, 9200000],
-          [HardforkName.PETERSBURG, 10255201],
-          [HardforkName.ISTANBUL, 14111141],
-          [HardforkName.BERLIN, 24770900],
-          [HardforkName.LONDON, 26741100],
+          [L1HardforkName.MERGE, 0],
+          [L1HardforkName.SHANGHAI, 6_698],
+          [L1HardforkName.CANCUN, 894_732],
+        ]),
+      },
+    ],
+    [
+      560048, // hoodi
+      {
+        chainType: L1_CHAIN_TYPE,
+        hardforkHistory: new Map([
+          [L1HardforkName.MERGE, 0],
+          [L1HardforkName.SHANGHAI, 0],
+          [L1HardforkName.CANCUN, 0],
         ]),
       },
     ],
     [
       11155111, // sepolia
       {
+        chainType: L1_CHAIN_TYPE,
         hardforkHistory: new Map([
-          [HardforkName.GRAY_GLACIER, 0],
-          [HardforkName.MERGE, 1_450_409],
-          [HardforkName.SHANGHAI, 2_990_908],
-          [HardforkName.CANCUN, 5_187_023],
+          [L1HardforkName.GRAY_GLACIER, 0],
+          [L1HardforkName.MERGE, 1_450_409],
+          [L1HardforkName.SHANGHAI, 2_990_908],
+          [L1HardforkName.CANCUN, 5_187_023],
         ]),
       },
     ],
-    // TODO: the rest of this config is a temporary workaround,
-    // see https://github.com/NomicFoundation/edr/issues/522
     [
-      10, // optimism mainnet
+      10, // op mainnet
       {
-        hardforkHistory: new Map([[HardforkName.SHANGHAI, 0]]),
+        chainType: OPTIMISM_CHAIN_TYPE,
+        hardforkHistory: new Map([
+          [OpHardforkName.BEDROCK, 105_235_063],
+          [OpHardforkName.REGOLITH, 105_235_063],
+          [OpHardforkName.CANYON, 114_696_812],
+          [OpHardforkName.ECOTONE, 117_387_812],
+          [OpHardforkName.FJORD, 122_514_212],
+          [OpHardforkName.GRANITE, 125_235_812],
+          [OpHardforkName.HOLOCENE, 130_423_412],
+        ]),
       },
     ],
     [
-      11155420, // optimism sepolia
+      11155420, // op sepolia
       {
-        hardforkHistory: new Map([[HardforkName.SHANGHAI, 0]]),
-      },
-    ],
-    [
-      42161, // arbitrum one
-      {
-        hardforkHistory: new Map([[HardforkName.SHANGHAI, 0]]),
-      },
-    ],
-    [
-      421614, // arbitrum sepolia
-      {
-        hardforkHistory: new Map([[HardforkName.SHANGHAI, 0]]),
+        chainType: OPTIMISM_CHAIN_TYPE,
+        hardforkHistory: new Map([
+          [OpHardforkName.BEDROCK, 0],
+          [OpHardforkName.REGOLITH, 0],
+          [OpHardforkName.CANYON, 4_089_330],
+          [OpHardforkName.ECOTONE, 8_366_130],
+          [OpHardforkName.FJORD, 12_597_930],
+          [OpHardforkName.GRANITE, 15_837_930],
+          [OpHardforkName.HOLOCENE, 20_415_330],
+        ]),
       },
     ],
   ]);
@@ -419,6 +351,7 @@ export function resolveChains(
 
   chains.forEach((chainConfig, chainId) => {
     const resolvedChainConfig: EdrNetworkChainConfig = {
+      chainType: chainConfig.chainType ?? GENERIC_CHAIN_TYPE,
       hardforkHistory: new Map(),
     };
     if (chainConfig.hardforkHistory !== undefined) {
@@ -434,17 +367,14 @@ export function resolveChains(
 
 export function resolveHardfork(
   hardfork: string | undefined,
-  enableTransientStorage: boolean | undefined,
+  chainType: ChainType | undefined = GENERIC_CHAIN_TYPE,
+  _enableTransientStorage: boolean | undefined,
 ): string {
   if (hardfork !== undefined) {
     return hardfork;
   }
 
-  if (enableTransientStorage === true) {
-    return LATEST_HARDFORK;
-  } else {
-    return HardforkName.SHANGHAI;
-  }
+  return getCurrentHardfork(chainType);
 }
 
 export function resolveInitialBaseFeePerGas(

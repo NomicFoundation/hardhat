@@ -1,10 +1,10 @@
 import type { NetworkHelpers } from "../../src/types.js";
-import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
+import type { EthereumProvider } from "hardhat/types/providers";
 
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import { initializeNetwork } from "../helpers/helpers.js";
@@ -39,7 +39,7 @@ describe("network-helpers - setCode", () => {
     it("should not accept strings that are not 0x-prefixed", async () => {
       await assertRejectsWithHardhatError(
         async () => networkHelpers.setCode(recipient, "a1a2a3"),
-        HardhatError.ERRORS.NETWORK_HELPERS.INVALID_HEX_STRING,
+        HardhatError.ERRORS.NETWORK_HELPERS.GENERAL.INVALID_HEX_STRING,
         { value: "a1a2a3" },
       );
     });
@@ -47,7 +47,7 @@ describe("network-helpers - setCode", () => {
     it("should not accept invalid addresses", async () => {
       await assertRejectsWithHardhatError(
         async () => networkHelpers.setCode("0x123", "0xaaa"),
-        HardhatError.ERRORS.NETWORK_HELPERS.INVALID_ADDRESS,
+        HardhatError.ERRORS.NETWORK_HELPERS.GENERAL.INVALID_ADDRESS,
         {
           value: "0x123",
         },

@@ -4,18 +4,24 @@ import type { Mock } from "node:test";
 import assert from "node:assert/strict";
 import { beforeEach, describe, it, mock } from "node:test";
 
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import chalk from "chalk";
 
+import { decryptSecret } from "../../src/internal/keystores/encryption.js";
 import { KeystoreFileLoader } from "../../src/internal/loaders/keystore-file-loader.js";
 import { remove } from "../../src/internal/tasks/delete.js";
 import { assertOutputIncludes } from "../helpers/assert-output-includes.js";
 import { MockFileManager } from "../helpers/mock-file-manager.js";
+import { mockRequestSecretFn } from "../helpers/mock-request-secret.js";
+import { TEST_PASSWORD } from "../helpers/test-password.js";
 
 const fakeKeystoreFilePath = "./fake-keystore-path.json";
 
 describe("tasks - delete", () => {
   let mockFileManager: MockFileManager;
   let mockConsoleLog: Mock<(text: string) => void>;
+  let mockRequestSecret: Mock<(text: string) => Promise<string>>;
 
   let keystoreLoader: KeystoreLoader;
 
@@ -35,6 +41,7 @@ describe("tasks - delete", () => {
         myKey: "myValue",
         myOtherKey: "myOtherValue",
       });
+      mockRequestSecret = mockRequestSecretFn([TEST_PASSWORD]);
 
       await remove(
         {
@@ -42,6 +49,7 @@ describe("tasks - delete", () => {
           force: false,
         },
         keystoreLoader,
+        mockRequestSecret,
         mockConsoleLog,
       );
     });
@@ -55,8 +63,8 @@ describe("tasks - delete", () => {
         await mockFileManager.readJsonFile(fakeKeystoreFilePath);
 
       assert.deepEqual(
-        keystoreFile.keys,
-        { myOtherKey: "myOtherValue" },
+        Object.keys(keystoreFile.secrets),
+        ["myOtherKey"],
         "keystore should have been saved with update",
       );
     });
@@ -65,6 +73,7 @@ describe("tasks - delete", () => {
   describe("a `delete` when the keystore file does not exist", () => {
     beforeEach(async () => {
       mockFileManager.setupNoKeystoreFile();
+      mockRequestSecret = mockRequestSecretFn([TEST_PASSWORD]);
 
       await remove(
         {
@@ -72,6 +81,7 @@ describe("tasks - delete", () => {
           force: false,
         },
         keystoreLoader,
+        mockRequestSecret,
         mockConsoleLog,
       );
 
@@ -97,6 +107,7 @@ describe("tasks - delete", () => {
   describe("a `delete` with a key that is not in the keystore and the force flag is not set", () => {
     beforeEach(async () => {
       mockFileManager.setupExistingKeystoreFile({ key: "value" });
+      mockRequestSecret = mockRequestSecretFn([TEST_PASSWORD]);
 
       await remove(
         {
@@ -104,6 +115,7 @@ describe("tasks - delete", () => {
           force: false,
         },
         keystoreLoader,
+        mockRequestSecret,
         mockConsoleLog,
       );
 
@@ -123,8 +135,8 @@ describe("tasks - delete", () => {
         await mockFileManager.readJsonFile(fakeKeystoreFilePath);
 
       assert.deepEqual(
-        keystoreFile.keys,
-        { key: "value" },
+        Object.keys(keystoreFile.secrets),
+        ["key"],
         "keystore should not have been saved",
       );
     });
@@ -133,6 +145,7 @@ describe("tasks - delete", () => {
   describe("a `delete` with a key that is not in the keystore and the force flag is set", () => {
     beforeEach(async () => {
       mockFileManager.setupExistingKeystoreFile({ key: "value" });
+      mockRequestSecret = mockRequestSecretFn([TEST_PASSWORD]);
 
       await remove(
         {
@@ -140,6 +153,7 @@ describe("tasks - delete", () => {
           force: true,
         },
         keystoreLoader,
+        mockRequestSecret,
         mockConsoleLog,
       );
     });
@@ -160,9 +174,65 @@ describe("tasks - delete", () => {
         await mockFileManager.readJsonFile(fakeKeystoreFilePath);
 
       assert.deepEqual(
-        keystoreFile.keys,
-        { key: "value" },
+        Object.keys(keystoreFile.secrets),
+        ["key"],
         "keystore should not have been saved",
+      );
+    });
+  });
+
+  describe("a `delete` with the wrong password", () => {
+    beforeEach(async () => {
+      mockFileManager.setupExistingKeystoreFile({
+        myKey: "myValue",
+        myOtherKey: "myOtherValue",
+      });
+      mockRequestSecret = mockRequestSecretFn(["wrong password"]);
+
+      await assertRejectsWithHardhatError(
+        remove(
+          {
+            key: "myKey",
+            force: false,
+          },
+          keystoreLoader,
+          mockRequestSecret,
+          mockConsoleLog,
+        ),
+        HardhatError.ERRORS.HARDHAT_KEYSTORE.GENERAL
+          .INVALID_PASSWORD_OR_CORRUPTED_KEYSTORE,
+        {},
+      );
+    });
+
+    it("should not have deleted the key", async () => {
+      const keystoreFile =
+        await mockFileManager.readJsonFile(fakeKeystoreFilePath);
+
+      assert.deepEqual(
+        Object.keys(keystoreFile.secrets),
+        ["myKey", "myOtherKey"],
+        "keystore should not have been saved with update",
+      );
+
+      // Check that the keys have not being changed or corrupted
+      assert.deepEqual(
+        decryptSecret({
+          masterKey: mockFileManager.masterKey,
+          encryptedKeystore: keystoreFile,
+          key: "myKey",
+        }),
+        "myValue",
+        "keystore should not have been saved with update",
+      );
+      assert.deepEqual(
+        decryptSecret({
+          masterKey: mockFileManager.masterKey,
+          encryptedKeystore: keystoreFile,
+          key: "myOtherKey",
+        }),
+        "myOtherValue",
+        "keystore should not have been saved with update",
       );
     });
   });

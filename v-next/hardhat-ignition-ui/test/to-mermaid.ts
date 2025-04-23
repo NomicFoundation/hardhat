@@ -2,7 +2,7 @@ import {
   type Artifact,
   type IgnitionModule,
   buildModule,
-} from "@ignored/hardhat-vnext-ignition-core";
+} from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 
 import { toMermaid } from "../src/utils/to-mermaid.js";

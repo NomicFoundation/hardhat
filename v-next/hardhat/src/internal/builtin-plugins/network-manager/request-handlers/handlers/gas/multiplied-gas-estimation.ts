@@ -1,11 +1,11 @@
 import type { EthereumProvider } from "../../../../../../types/providers.js";
 
-import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
-import { ensureError } from "@ignored/hardhat-vnext-utils/error";
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import {
   hexStringToNumber,
   numberToHexString,
-} from "@ignored/hardhat-vnext-utils/hex";
+} from "@nomicfoundation/hardhat-utils/hex";
 
 /**
  * This class handles gas estimation for transactions by applying a multiplier to the estimated gas value.

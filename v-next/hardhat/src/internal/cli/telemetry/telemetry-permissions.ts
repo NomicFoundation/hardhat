@@ -1,12 +1,12 @@
 import path from "node:path";
 
-import { isCi } from "@ignored/hardhat-vnext-utils/ci";
+import { isCi } from "@nomicfoundation/hardhat-utils/ci";
 import {
   exists,
   readJsonFile,
   writeJsonFile,
-} from "@ignored/hardhat-vnext-utils/fs";
-import { getTelemetryDir } from "@ignored/hardhat-vnext-utils/global-dir";
+} from "@nomicfoundation/hardhat-utils/fs";
+import { getTelemetryDir } from "@nomicfoundation/hardhat-utils/global-dir";
 import debug from "debug";
 
 import { confirmationPromptWithTimeout } from "../prompt/prompt.js";

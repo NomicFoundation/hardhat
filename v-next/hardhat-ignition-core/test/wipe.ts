@@ -1,3 +1,5 @@
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { assert } from "chai";
 
 import { ArtifactResolver } from "../src/index.js";
@@ -87,9 +89,12 @@ describe("wipe", () => {
     );
 
     const wiper = new Wiper(deploymentLoader);
-    await assert.isRejected(
+    await assertRejectsWithHardhatError(
       wiper.wipe("whatever"),
-      "hasn't been intialialized yet",
+      HardhatError.ERRORS.IGNITION.WIPE.UNINITIALIZED_DEPLOYMENT,
+      {
+        futureId: "whatever",
+      },
     );
   });
 
@@ -101,9 +106,12 @@ describe("wipe", () => {
     await initializeDeploymentState(123, deploymentLoader);
 
     const wiper = new Wiper(deploymentLoader);
-    await assert.isRejected(
+    await assertRejectsWithHardhatError(
       wiper.wipe("Module1:Nonexistant"),
-      "IGN601: Cannot wipe Module1:Nonexistant as it has no previous execution recorded",
+      HardhatError.ERRORS.IGNITION.WIPE.NO_STATE_FOR_FUTURE,
+      {
+        futureId: "Module1:Nonexistant",
+      },
     );
   });
 
@@ -134,9 +142,13 @@ describe("wipe", () => {
 
     const wiper = new Wiper(deploymentLoader);
 
-    await assert.isRejected(
+    await assertRejectsWithHardhatError(
       wiper.wipe(contract1Id),
-      `IGN602: Cannot wipe ${contract1Id} as there are dependent futures that have previous executions recorded. Consider wiping these first: ${contract2Id}`,
+      HardhatError.ERRORS.IGNITION.WIPE.DEPENDENT_FUTURES,
+      {
+        futureId: contract1Id,
+        dependents: contract2Id,
+      },
     );
   });
 });

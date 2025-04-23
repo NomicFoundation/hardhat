@@ -126,23 +126,9 @@ jobs:
         run: pnpm install --frozen-lockfile --prefer-offline
       - name: Build
         run: pnpm build
-      # https://github.com/pnpm/pnpm/issues/6166
       - name: Deploy
         run: |
           pnpm deploy --config.shamefully-hoist=true --config.hoist=true --config.node-linker=true --config.shared-workspace-lockfile=false --filter="$(jq -r .name package.json)" --prod --no-optional bundle
-          # We need to move the node_modules links from v-next/hardhat/bundle to bundle because
-          # https://github.com/pnpm/pnpm/pull/8465 broke modules generation with the set of options we provide
-          for old_link in $(find v-next/hardhat/bundle -type l); do
-            echo "Processing link $old_link"
-            new_link="${old_link#v-next/hardhat/}"
-            new_link_dir="$(dirname "$new_link")"
-            old_link_target="$(readlink -f "$old_link")"
-            mkdir -p "$new_link_dir"
-            ln -rs "$old_link_target" "$new_link"
-            new_link_target="$(readlink "$new_link")"
-            echo "Created link $new_link -> $new_link_target"
-          done
-          rm -rf v-next
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.package }}

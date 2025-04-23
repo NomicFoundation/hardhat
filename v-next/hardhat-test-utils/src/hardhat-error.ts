@@ -1,9 +1,9 @@
-import type { ErrorDescriptor } from "@ignored/hardhat-vnext-errors";
+import type { ErrorDescriptor } from "@nomicfoundation/hardhat-errors";
 
 import assert from "node:assert/strict";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { ensureError } from "@ignored/hardhat-vnext-utils/error";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 
 /**
  * Asserts that an error is a HardhatError with a certain descriptor and message

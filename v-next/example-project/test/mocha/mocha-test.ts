@@ -3,9 +3,9 @@ import { describe, it } from "mocha";
 
 import { expect } from "chai";
 
-import { anyUint } from "@ignored/hardhat-vnext-chai-matchers/withArgs";
-import { PANIC_CODES } from "@ignored/hardhat-vnext-chai-matchers/panic";
-import hre from "@ignored/hardhat-vnext";
+import { anyUint } from "@nomicfoundation/hardhat-ethers-chai-matchers/withArgs";
+import { PANIC_CODES } from "@nomicfoundation/hardhat-ethers-chai-matchers/panic";
+import hre from "hardhat";
 
 describe("Mocha test", () => {
   it("should work", () => {

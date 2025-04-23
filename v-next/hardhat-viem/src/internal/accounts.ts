@@ -1,4 +1,4 @@
-import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
+import type { EthereumProvider } from "hardhat/types/providers";
 import type { Address as ViemAddress } from "viem";
 
 const accountsCache = new WeakMap<EthereumProvider, ViemAddress[]>();

@@ -1,7 +1,7 @@
 import type { HardhatEthers } from "../types.js";
-import type { ArtifactManager } from "@ignored/hardhat-vnext/types/artifacts";
-import type { NetworkConfig } from "@ignored/hardhat-vnext/types/config";
-import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
+import type { ArtifactManager } from "hardhat/types/artifacts";
+import type { NetworkConfig } from "hardhat/types/config";
+import type { EthereumProvider } from "hardhat/types/providers";
 
 import { HardhatEthersProvider } from "./hardhat-ethers-provider/hardhat-ethers-provider.js";
 import { HardhatHelpers } from "./hardhat-helpers/hardhat-helpers.js";

@@ -9,12 +9,11 @@ import type {
 
 import { finished } from "node:stream/promises";
 
-import { getAllFilesMatching } from "@ignored/hardhat-vnext-utils/fs";
-import { resolveFromRoot } from "@ignored/hardhat-vnext-utils/path";
-import { createNonClosingWriter } from "@ignored/hardhat-vnext-utils/stream";
+import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
+import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
+import { createNonClosingWriter } from "@nomicfoundation/hardhat-utils/stream";
 import chalk from "chalk";
 
-import { shouldMergeCompilationJobs } from "../solidity/build-profiles.js";
 import {
   getArtifacts,
   getBuildInfos,
@@ -22,6 +21,7 @@ import {
 } from "../solidity/build-results.js";
 
 import {
+  isTestSuiteArtifact,
   solidityTestConfigToRunOptions,
   solidityTestConfigToSolidityTestRunnerConfigArgs,
 } from "./helpers.js";
@@ -31,10 +31,11 @@ import { run } from "./runner.js";
 interface TestActionArguments {
   testFiles: string[];
   chainType: string;
+  noCompile: boolean;
 }
 
 const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
-  { testFiles, chainType },
+  { testFiles, chainType, noCompile },
   hre,
 ) => {
   let rootFilePaths: string[];
@@ -47,6 +48,13 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     );
     process.exitCode = 1;
     return;
+  }
+
+  // NOTE: We run the compile task first to ensure all the artifacts for them are generated
+  // Then, we compile just the test sources. We don't do it in one go because the user
+  // is likely to use different compilation options for the tests and the sources.
+  if (noCompile === false) {
+    await hre.tasks.getTask("compile").run();
   }
 
   if (testFiles.length > 0) {
@@ -67,23 +75,31 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
       ])
     ).flat(1);
   }
+  // NOTE: We remove duplicates in case there is an intersection between
+  // the tests.solidity paths and the sources paths
+  rootFilePaths = Array.from(new Set(rootFilePaths));
 
+  // NOTE: We are not skipping the test compilation even if the noCompile flag is set
+  // because the user cannot run test compilation outside of the test task yet.
+  // TODO: Allow users to run test compilation outside of the test task.
   const buildOptions: BuildOptions = {
     force: false,
     buildProfile: hre.globalOptions.buildProfile,
-    mergeCompilationJobs: shouldMergeCompilationJobs(
-      hre.globalOptions.buildProfile,
-    ),
     quiet: true,
   };
-
   const results = await hre.solidity.build(rootFilePaths, buildOptions);
-
   throwIfSolidityBuildFailed(results);
 
-  const buildInfos = await getBuildInfos(results, hre.artifacts);
-  const artifacts = await getArtifacts(results);
-  const testSuiteIds = artifacts.map((artifact) => artifact.id);
+  const buildInfos = await getBuildInfos(hre.artifacts);
+  const artifacts = await getArtifacts(hre.artifacts);
+  const testSuiteIds = artifacts
+    .filter((artifact) =>
+      rootFilePaths.includes(
+        resolveFromRoot(hre.config.paths.root, artifact.id.source),
+      ),
+    )
+    .filter(isTestSuiteArtifact)
+    .map((artifact) => artifact.id);
 
   console.log("Running Solidity tests");
   console.log();

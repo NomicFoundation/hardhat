@@ -4,7 +4,7 @@ import type {
   NetworkConnection,
 } from "../../../../types/network.js";
 
-import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
+import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
 
 import { isHttpNetworkHdAccountsConfig } from "../type-validation.js";
 
@@ -12,6 +12,9 @@ import { isHttpNetworkHdAccountsConfig } from "../type-validation.js";
  * This function returns an handlers array based on the values in the NetworkConnection and NetworkConfig.
  * The order of the handlers, if all are present, is: chain handler, gas handlers (gasPrice first, then gas), sender handler and accounts handler.
  * The order is important to get a correct result when the handlers are executed.
+ * The handlers are imported dynamically because some might take a long time to load.
+ * Out of the currently supported handlers, LocalAccountsHandler and, consequently, HDWalletHandler have been identified as the most expensive.
+ * See https://github.com/NomicFoundation/hardhat/pull/6481 for more details.
  */
 export async function createHandlersArray<
   ChainTypeT extends ChainType | string,

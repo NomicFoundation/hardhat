@@ -1,19 +1,19 @@
-import type { NetworkHooks } from "@ignored/hardhat-vnext/types/hooks";
-import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
+import type { NetworkHooks } from "hardhat/types/hooks";
+import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 import type { TransactionReceipt as ViemTransactionReceipt } from "viem";
 
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
 
-import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { ensureError } from "@ignored/hardhat-vnext-utils/error";
-import { sleep } from "@ignored/hardhat-vnext-utils/lang";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   assertIsHardhatError,
   assertRejectsWithHardhatError,
   useFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
+import { sleep } from "@nomicfoundation/hardhat-utils/lang";
+import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 import { getAddress, parseEther } from "viem";
 
 import HardhatViem from "../src/index.js";
@@ -244,7 +244,7 @@ describe("contracts", () => {
           ensureError(error);
           assertIsHardhatError(
             error,
-            HardhatError.ERRORS.VIEM.DEPLOY_CONTRACT_ERROR,
+            HardhatError.ERRORS.HARDHAT_VIEM.GENERAL.DEPLOY_CONTRACT_ERROR,
             {
               txHash: await deployContractSpy.mock.calls[0].result,
               blockNumber: prevBlockNumber + 1n,
@@ -279,7 +279,8 @@ describe("contracts", () => {
 
         await assertRejectsWithHardhatError(
           networkConnection.viem.deployContract("WithoutConstructorArgs"),
-          HardhatError.ERRORS.VIEM.DEFAULT_WALLET_CLIENT_NOT_FOUND,
+          HardhatError.ERRORS.HARDHAT_VIEM.GENERAL
+            .DEFAULT_WALLET_CLIENT_NOT_FOUND,
           {
             chainId: 31337,
           },
@@ -350,7 +351,7 @@ describe("contracts", () => {
           networkConnection.viem.deployContract("WithoutConstructorArgs", [], {
             confirmations: -1,
           }),
-          HardhatError.ERRORS.VIEM.INVALID_CONFIRMATIONS,
+          HardhatError.ERRORS.HARDHAT_VIEM.GENERAL.INVALID_CONFIRMATIONS,
           {
             error: "Confirmations must be greather than 0.",
           },
@@ -364,7 +365,7 @@ describe("contracts", () => {
           networkConnection.viem.deployContract("WithoutConstructorArgs", [], {
             confirmations: 0,
           }),
-          HardhatError.ERRORS.VIEM.INVALID_CONFIRMATIONS,
+          HardhatError.ERRORS.HARDHAT_VIEM.GENERAL.INVALID_CONFIRMATIONS,
           {
             error:
               "deployContract does not support 0 confirmations. Use sendDeploymentTransaction if you want to handle the deployment transaction yourself.",
@@ -377,7 +378,7 @@ describe("contracts", () => {
 
         await assertRejectsWithHardhatError(
           networkConnection.viem.deployContract("OnlyNormalLib"),
-          HardhatError.ERRORS.VIEM.LINKING_CONTRACT_ERROR,
+          HardhatError.ERRORS.HARDHAT_VIEM.GENERAL.LINKING_CONTRACT_ERROR,
           {
             contractName: "OnlyNormalLib",
             error:
@@ -402,7 +403,7 @@ describe("contracts", () => {
               ConstructorLib: constructorLibContract.address,
             },
           }),
-          HardhatError.ERRORS.VIEM.LINKING_CONTRACT_ERROR,
+          HardhatError.ERRORS.HARDHAT_VIEM.GENERAL.LINKING_CONTRACT_ERROR,
           {
             contractName: "NormalLib",
             error:
@@ -423,7 +424,7 @@ describe("contracts", () => {
               NormalLib: normalLibContract.address,
             },
           }),
-          HardhatError.ERRORS.VIEM.LINKING_CONTRACT_ERROR,
+          HardhatError.ERRORS.HARDHAT_VIEM.GENERAL.LINKING_CONTRACT_ERROR,
           {
             contractName: "OnlyConstructorLib",
             error:
@@ -454,7 +455,7 @@ describe("contracts", () => {
               ConstructorLib: withLibsConstructorLibContract.address,
             },
           }),
-          HardhatError.ERRORS.VIEM.LINKING_CONTRACT_ERROR,
+          HardhatError.ERRORS.HARDHAT_VIEM.GENERAL.LINKING_CONTRACT_ERROR,
           {
             contractName: "BothConstructorLibs",
             error:
@@ -477,7 +478,7 @@ describe("contracts", () => {
               ConstructorLib: withLibsConstructorLibContract.address,
             },
           }),
-          HardhatError.ERRORS.VIEM.LINKING_CONTRACT_ERROR,
+          HardhatError.ERRORS.HARDHAT_VIEM.GENERAL.LINKING_CONTRACT_ERROR,
           {
             contractName: "BothConstructorLibs",
             error:
@@ -526,7 +527,7 @@ describe("contracts", () => {
                 constructorLibContract.address,
             },
           }),
-          HardhatError.ERRORS.VIEM.LINKING_CONTRACT_ERROR,
+          HardhatError.ERRORS.HARDHAT_VIEM.GENERAL.LINKING_CONTRACT_ERROR,
           {
             contractName: "OnlyConstructorLib",
             error:
@@ -547,7 +548,7 @@ describe("contracts", () => {
               NormalLib: "0x123",
             },
           }),
-          HardhatError.ERRORS.VIEM.LINKING_CONTRACT_ERROR,
+          HardhatError.ERRORS.HARDHAT_VIEM.GENERAL.LINKING_CONTRACT_ERROR,
           {
             contractName: "OnlyNormalLib",
             error:

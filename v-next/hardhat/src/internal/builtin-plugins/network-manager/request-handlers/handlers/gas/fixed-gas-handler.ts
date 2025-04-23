@@ -3,9 +3,9 @@ import type {
   JsonRpcResponse,
 } from "../../../../../../types/providers.js";
 import type { RequestHandler } from "../../types.js";
-import type { PrefixedHexString } from "@ignored/hardhat-vnext-utils/hex";
+import type { PrefixedHexString } from "@nomicfoundation/hardhat-utils/hex";
 
-import { isObject } from "@ignored/hardhat-vnext-utils/lang";
+import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 
 import { getRequestParams } from "../../../json-rpc.js";
 

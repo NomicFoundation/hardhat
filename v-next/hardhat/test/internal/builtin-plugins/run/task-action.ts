@@ -2,7 +2,7 @@ import type { HardhatRuntimeEnvironment } from "../../../../src/types/hre.js";
 
 import { before, describe, it } from "node:test";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   assertRejects,
   assertRejectsWithHardhatError,
@@ -28,7 +28,7 @@ describe("run/task-action", function () {
           { script: "./scripts/non-existent.js", noCompile: true },
           hre,
         ),
-        HardhatError.ERRORS.BUILTIN_TASKS.RUN_FILE_NOT_FOUND,
+        HardhatError.ERRORS.CORE.BUILTIN_TASKS.RUN_FILE_NOT_FOUND,
         {
           script: "./scripts/non-existent.js",
         },
@@ -61,7 +61,7 @@ describe("run/task-action", function () {
           { script: "./scripts/non-existent.ts", noCompile: true },
           hre,
         ),
-        HardhatError.ERRORS.BUILTIN_TASKS.RUN_FILE_NOT_FOUND,
+        HardhatError.ERRORS.CORE.BUILTIN_TASKS.RUN_FILE_NOT_FOUND,
         {
           script: "./scripts/non-existent.ts",
         },

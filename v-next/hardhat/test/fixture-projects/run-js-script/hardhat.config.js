@@ -1,4 +1,4 @@
-import { task } from "@ignored/hardhat-vnext/config";
+import { task } from "hardhat/config";
 
 export default {
   tasks: [

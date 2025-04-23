@@ -28,6 +28,8 @@ import {
   readBinaryFile,
   getAccessTime,
   getFileSize,
+  readJsonFileAsStream,
+  writeJsonFileAsStream,
 } from "../src/fs.js";
 
 import { useTmpDir } from "./helpers/fs.js";
@@ -461,6 +463,137 @@ describe("File system utils", () => {
       } finally {
         await chmod(filePath, 0o666);
       }
+    });
+  });
+
+  describe("readJsonFileAsStream", () => {
+    it("Should read and parse a JSON file", async () => {
+      const expectedObject = { a: 1, b: 2 };
+      const filePath = path.join(getTmpDir(), "file.json");
+      await writeUtf8File(filePath, JSON.stringify(expectedObject));
+
+      assert.deepEqual(await readJsonFileAsStream(filePath), expectedObject);
+      expectTypeOf(await readJsonFileAsStream(filePath)).toBeUnknown();
+      expectTypeOf(
+        await readJsonFileAsStream<{ a: number; b: number }>(filePath),
+      ).toMatchTypeOf<{ a: number; b: number }>();
+    });
+
+    it("Should throw InvalidFileFormatError if the file is not valid JSON", async () => {
+      const filePath = path.join(getTmpDir(), "file.json");
+      await writeUtf8File(filePath, "not-json");
+
+      await assert.rejects(readJsonFileAsStream(filePath), {
+        name: "InvalidFileFormatError",
+        message: `Invalid file format: ${filePath}`,
+      });
+    });
+
+    it("Should throw InvalidFileFormatError if the file is empty", async () => {
+      const filePath = path.join(getTmpDir(), "file.json");
+      await writeUtf8File(filePath, "");
+
+      await assert.rejects(readJsonFileAsStream(filePath), {
+        name: "InvalidFileFormatError",
+        message: `Invalid file format: ${filePath}`,
+      });
+    });
+
+    it("Should throw FileNotFoundError if the file doesn't exist", async () => {
+      const filePath = path.join(getTmpDir(), "not-exists.json");
+
+      await assert.rejects(readJsonFileAsStream(filePath), {
+        name: "FileNotFoundError",
+        message: `File ${filePath} not found`,
+      });
+    });
+
+    it("Should throw IsDirectoryError if the file is a directory", async () => {
+      const filePath = path.join(getTmpDir());
+
+      await assert.rejects(readJsonFileAsStream(filePath), {
+        name: "IsDirectoryError",
+        message: `Path ${filePath} is a directory`,
+      });
+    });
+
+    it("Should throw FileSystemAccessError if a different error is thrown", async () => {
+      const invalidPath = "\0";
+
+      await assert.rejects(readJsonFileAsStream(invalidPath), {
+        name: "FileSystemAccessError",
+      });
+    });
+  });
+
+  describe("writeJsonFileAsStream", () => {
+    it("Should write an object to a JSON file", async () => {
+      const expectedObject = { a: 1, b: 2 };
+      const filePath = path.join(getTmpDir(), "file.json");
+
+      await writeJsonFileAsStream(filePath, expectedObject);
+
+      assert.deepEqual(
+        JSON.parse(await readUtf8File(filePath)),
+        expectedObject,
+      );
+      expectTypeOf(
+        writeJsonFile<{ a: number; b: number }>(filePath, expectedObject),
+      );
+    });
+
+    it("Should write an object tto a JSON file even if part of the path doesn't exist", async () => {
+      const expectedObject = { a: 1, b: 2 };
+      const filePath = path.join(getTmpDir(), "not-exists", "file.json");
+
+      await writeJsonFileAsStream(filePath, expectedObject);
+
+      assert.deepEqual(
+        JSON.parse(await readUtf8File(filePath)),
+        expectedObject,
+      );
+    });
+
+    it("Should throw JsonSerializationError if the object can't be serialized to JSON", async () => {
+      const filePath = path.join(getTmpDir(), "file.json");
+      // create an object with a circular reference
+      const circularObject: { self?: {} } = {};
+      circularObject.self = circularObject;
+
+      await assert.rejects(writeJsonFileAsStream(filePath, circularObject), {
+        name: "JsonSerializationError",
+        message: `Error serializing JSON file ${filePath}`,
+      });
+    });
+
+    it("Should throw FileSystemAccessError if a different error is thrown", async () => {
+      const filePath = path.join(getTmpDir(), "protected-file.json");
+      await createFile(filePath);
+
+      try {
+        await chmod(filePath, 0o444);
+
+        await assert.rejects(writeJsonFileAsStream(filePath, {}), {
+          name: "FileSystemAccessError",
+        });
+      } finally {
+        await chmod(filePath, 0o666);
+      }
+    });
+
+    it("Should remove the part of the path that didn't exist before if an error is thrown", async () => {
+      const dirPath = path.join(getTmpDir(), "not-exists");
+      const filePath = path.join(dirPath, "protected-file.json");
+      // create an object with a circular reference
+      const circularObject: { self?: {} } = {};
+      circularObject.self = circularObject;
+
+      await assert.rejects(writeJsonFileAsStream(filePath, circularObject), {
+        name: "JsonSerializationError",
+        message: `Error serializing JSON file ${filePath}`,
+      });
+
+      assert.ok(!(await exists(dirPath)), "The directory should not exist");
     });
   });
 
@@ -934,6 +1067,29 @@ describe("File system utils", () => {
       await assert.rejects(remove(invalidPath), {
         name: "FileSystemAccessError",
       });
+    });
+
+    it("Should throw busy error on windows platform", async () => {
+      const dirPath = path.join(getTmpDir(), "lockTest");
+      await mkdir(dirPath);
+      const filePath = path.join(dirPath, "file.txt");
+      await createFile(filePath);
+      const UV_FS_O_EXLOCK = 0x10000000;
+      const fd = await fsPromises.open(
+        filePath,
+        // eslint-disable-next-line no-bitwise -- Using bitwise OR to combine file open flags
+        fsPromises.constants.O_RDONLY | UV_FS_O_EXLOCK,
+      );
+
+      if (process.platform === "win32") {
+        await assert.rejects(remove(filePath), {
+          name: "FileSystemAccessError",
+          message: /EBUSY: resource busy or locked, unlink/,
+        });
+      }
+      await fd.close();
+      await remove(dirPath);
+      assert.ok(!(await exists(dirPath)), "Should remove a directory");
     });
   });
 

@@ -1,6 +1,6 @@
 {
-  "name": "@ignored/hardhat-vnext-network-helpers",
-  "version": "3.0.0-next.13",
+  "name": "@nomicfoundation/hardhat-network-helpers",
+  "version": "3.0.0-next.4",
   "description": "Hardhat utils for testing",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-network-helpers",
   "repository": {
@@ -27,9 +27,9 @@
     "lint:fix": "pnpm prettier --write && pnpm eslint --fix",
     "eslint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
     "prettier": "prettier \"**/*.{ts,js,md,json}\"",
-    "test": "node --import tsx/esm --test --test-reporter=@ignored/hardhat-vnext-node-test-reporter \"test/*.ts\" \"test/!(fixture-projects|helpers)/**/*.ts\"",
-    "test:only": "node --import tsx/esm --test --test-only --test-reporter=@ignored/hardhat-vnext-node-test-reporter \"test/*.ts\" \"test/!(fixture-projects|helpers)/**/*.ts\"",
-    "test:coverage": "c8 --reporter html --reporter text --all --exclude test --exclude src/internal/types.ts --exclude src/internal/ui/direct-user-interruption-manager.ts --src src node --import tsx/esm --test --test-reporter=@ignored/hardhat-vnext-node-test-reporter \"test/!(fixture-projects|helpers)/**/*.ts\"",
+    "test": "node --import tsx/esm --test --test-reporter=@nomicfoundation/hardhat-node-test-reporter \"test/*.ts\" \"test/!(fixture-projects|helpers)/**/*.ts\"",
+    "test:only": "node --import tsx/esm --test --test-only --test-reporter=@nomicfoundation/hardhat-node-test-reporter \"test/*.ts\" \"test/!(fixture-projects|helpers)/**/*.ts\"",
+    "test:coverage": "c8 --reporter html --reporter text --all --exclude test --exclude \"src/**/{types,type-extensions}.ts\" --src src node --import tsx/esm --test --test-reporter=@nomicfoundation/hardhat-node-test-reporter \"test/*.ts\" \"test/!(fixture-projects|helpers)/**/*.ts\"",
     "pretest": "pnpm build",
     "pretest:only": "pnpm build",
     "build": "tsc --build .",
@@ -45,7 +45,7 @@
   ],
   "devDependencies": {
     "@eslint-community/eslint-plugin-eslint-comments": "^4.3.0",
-    "@ignored/hardhat-vnext-node-test-reporter": "workspace:^3.0.0-next.16",
+    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0-next.4",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
     "@types/debug": "^4.1.7",
     "@types/node": "^20.14.9",
@@ -60,15 +60,15 @@
     "expect-type": "^0.19.0",
     "prettier": "3.2.5",
     "rimraf": "^5.0.5",
-    "tsx": "^4.11.0",
+    "tsx": "^4.19.3",
     "typescript": "~5.5.0",
     "typescript-eslint": "7.7.1"
   },
   "dependencies": {
-    "@ignored/hardhat-vnext-errors": "workspace:^3.0.0-next.16",
-    "@ignored/hardhat-vnext-utils": "workspace:^3.0.0-next.16"
+    "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.4",
+    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.4"
   },
   "peerDependencies": {
-    "@ignored/hardhat-vnext": "workspace:^3.0.0-next.17"
+    "hardhat": "workspace:^3.0.0-next.4"
   }
 }

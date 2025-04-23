@@ -1,9 +1,9 @@
-import type { HardhatPlugin } from "@ignored/hardhat-vnext/types/plugins";
+import type { HardhatPlugin } from "hardhat/types/plugins";
 
 import "./internal/type-extensions.js";
 
-import { emptyTask, task } from "@ignored/hardhat-vnext/config";
-import { ArgumentType } from "@ignored/hardhat-vnext/types/arguments";
+import { emptyTask, task } from "hardhat/config";
+import { ArgumentType } from "hardhat/types/arguments";
 
 import { PLUGIN_ID } from "./internal/constants.js";
 
@@ -61,7 +61,7 @@ const hardhatKeystorePlugin: HardhatPlugin = {
       .setAction(import.meta.resolve("./internal/tasks/delete.js"))
       .build(),
   ],
-  npmPackage: "@ignored/hardhat-vnext-keystore",
+  npmPackage: "@nomicfoundation/hardhat-keystore",
 };
 
 export default hardhatKeystorePlugin;

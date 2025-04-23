@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { ensureError } from "@ignored/hardhat-vnext-utils/error";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 
 import { assertRejects, assertThrows } from "../src/errors.js";
 

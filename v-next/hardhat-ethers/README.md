@@ -1,18 +1,48 @@
-# hardhat-ethers
+# Hardhat Ethers plugin
 
-[Hardhat](https://hardhat.org) plugin for integration with [ethers.js](https://github.com/ethers-io/ethers.js/).
+This plugin integrates [ethers.js](https://ethers.org/) into Hardhat, adding a `ethers` object to each network connection.
 
-### Usage
+## Installation
+
+To install this plugin, run the following command:
+
+```bash
+npm install --save-dev @nomicfoundation/hardhat-ethers@next
+```
+
+and add the following statements to your `hardhat.config.ts` file:
+
+```typescript
+// ...
+import ethersPlugin from "@nomicfoundation/hardhat-ethers";
+
+// ...
+
+export default {
+  // ...
+  plugins: [
+    // ...
+    ethersPlugin,
+  ],
+
+  // ...
+};
+```
+
+## Usage
+
+This plugin defines a new `ethers` property on every `NetworkConnection` object.
 
 ```ts
 const { ethers } = await hre.network.connect();
 
-// ethers functionalities
+// ethers functionality is available
 ethers.isAddress("0x1234567890123456789012345678901234567890");
 
-// ethers.Provider
-await ethers.provider.getBlockNumber();
+// ethers.provider gives you access to the underlying provider
+const blockNumber = await ethers.provider.getBlockNumber();
 
-// Hardhat helper methods
-await ethers.getSigners();
+// hardhat-ethers helper methods are available
+const signers = await ethers.getSigners();
+const Counter = await ethers.getContractFactory("Counter");
 ```

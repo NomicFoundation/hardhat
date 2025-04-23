@@ -3,7 +3,7 @@ import type { JsonRpcResponse } from "../../../../../../../src/types/providers.j
 import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import {
@@ -138,37 +138,37 @@ describe("HDWalletHandler", () => {
     it("should throw if the path is invalid", async () => {
       await assertRejectsWithHardhatError(
         HDWalletHandler.create(mockedProvider, mnemonic, ""),
-        HardhatError.ERRORS.NETWORK.INVALID_HD_PATH,
+        HardhatError.ERRORS.CORE.NETWORK.INVALID_HD_PATH,
         { path: "" },
       );
 
       await assertRejectsWithHardhatError(
         HDWalletHandler.create(mockedProvider, mnemonic, "m/"),
-        HardhatError.ERRORS.NETWORK.INVALID_HD_PATH,
+        HardhatError.ERRORS.CORE.NETWORK.INVALID_HD_PATH,
         { path: "m/" },
       );
 
       await assertRejectsWithHardhatError(
         HDWalletHandler.create(mockedProvider, mnemonic, "m//"),
-        HardhatError.ERRORS.NETWORK.INVALID_HD_PATH,
+        HardhatError.ERRORS.CORE.NETWORK.INVALID_HD_PATH,
         { path: "m//" },
       );
 
       await assertRejectsWithHardhatError(
         HDWalletHandler.create(mockedProvider, mnemonic, "m/'"),
-        HardhatError.ERRORS.NETWORK.INVALID_HD_PATH,
+        HardhatError.ERRORS.CORE.NETWORK.INVALID_HD_PATH,
         { path: "m/'" },
       );
 
       await assertRejectsWithHardhatError(
         HDWalletHandler.create(mockedProvider, mnemonic, "m/0''"),
-        HardhatError.ERRORS.NETWORK.INVALID_HD_PATH,
+        HardhatError.ERRORS.CORE.NETWORK.INVALID_HD_PATH,
         { path: "m/0''" },
       );
 
       await assertRejectsWithHardhatError(
         HDWalletHandler.create(mockedProvider, mnemonic, "ghj"),
-        HardhatError.ERRORS.NETWORK.INVALID_HD_PATH,
+        HardhatError.ERRORS.CORE.NETWORK.INVALID_HD_PATH,
         { path: "ghj" },
       );
     });

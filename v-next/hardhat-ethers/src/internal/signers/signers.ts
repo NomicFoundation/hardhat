@@ -1,9 +1,9 @@
 import type { HardhatEthersSigner as HardhatEthersSignerI } from "../../types.js";
 import type { HardhatEthersProvider } from "../hardhat-ethers-provider/hardhat-ethers-provider.js";
-import type { NetworkConfig } from "@ignored/hardhat-vnext/types/config";
 import type { BlockTag, TransactionRequest, ethers } from "ethers";
+import type { NetworkConfig } from "hardhat/types/config";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   assertArgument,
   getAddress,
@@ -92,9 +92,12 @@ export class HardhatEthersSigner implements HardhatEthersSignerI {
     // TODO if we split the signer for the in-process and json-rpc networks,
     // we can enable this method when using the in-process network or when the
     // json-rpc network has a private key
-    throw new HardhatError(HardhatError.ERRORS.ETHERS.METHOD_NOT_IMPLEMENTED, {
-      method: "HardhatEthersSigner.signTransaction",
-    });
+    throw new HardhatError(
+      HardhatError.ERRORS.HARDHAT_ETHERS.GENERAL.METHOD_NOT_IMPLEMENTED,
+      {
+        method: "HardhatEthersSigner.signTransaction",
+      },
+    );
   }
 
   public async sendTransaction(

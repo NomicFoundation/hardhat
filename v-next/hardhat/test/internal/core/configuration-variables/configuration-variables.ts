@@ -3,7 +3,7 @@ import type { HardhatRuntimeEnvironment } from "../../../../src/types/hre.js";
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import {
@@ -46,7 +46,7 @@ describe("ResolvedConfigurationVariable", () => {
 
     await assertRejectsWithHardhatError(
       variable.get(),
-      HardhatError.ERRORS.GENERAL.ENV_VAR_NOT_FOUND,
+      HardhatError.ERRORS.CORE.GENERAL.ENV_VAR_NOT_FOUND,
       { name: variable.name },
     );
   });
@@ -91,7 +91,7 @@ describe("ResolvedConfigurationVariable", () => {
 
     await assertRejectsWithHardhatError(
       variable.getUrl(),
-      HardhatError.ERRORS.GENERAL.INVALID_URL,
+      HardhatError.ERRORS.CORE.GENERAL.INVALID_URL,
       {
         url: "not a url",
       },
@@ -123,7 +123,7 @@ describe("ResolvedConfigurationVariable", () => {
 
     await assertRejectsWithHardhatError(
       variable.getBigInt(),
-      HardhatError.ERRORS.GENERAL.INVALID_BIGINT,
+      HardhatError.ERRORS.CORE.GENERAL.INVALID_BIGINT,
       {
         value: "not a bigint",
       },
@@ -137,7 +137,7 @@ describe("ResolvedConfigurationVariable", () => {
 
     await assertRejectsWithHardhatError(
       variable.getHexString(),
-      HardhatError.ERRORS.GENERAL.INVALID_HEX_STRING,
+      HardhatError.ERRORS.CORE.GENERAL.INVALID_HEX_STRING,
       {
         value: "not a hex string",
       },

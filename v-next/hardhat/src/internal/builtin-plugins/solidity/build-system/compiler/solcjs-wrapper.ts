@@ -1,7 +1,7 @@
 // This wrapper was created by extracting the parts of the solc-js package
 // (https://github.com/ethereum/solc-js) that we need to perform compilation.
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import * as semver from "semver";
 
 interface Solc {
@@ -42,7 +42,7 @@ export default function wrapper(solc: Solc): SolcWrapper {
 
   if (compile === undefined) {
     throw new HardhatError(
-      HardhatError.ERRORS.SOLIDITY.INVALID_SOLCJS_COMPILER,
+      HardhatError.ERRORS.CORE.SOLIDITY.INVALID_SOLCJS_COMPILER,
       {
         version: version(),
       },

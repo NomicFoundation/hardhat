@@ -6,8 +6,8 @@ import type { CompilationJobCreationError } from "../../../../types/solidity/bui
 import type { ResolvedFile } from "../../../../types/solidity/resolved-file.js";
 import type { DependencyGraph } from "../../../../types/solidity.js";
 
-import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
-import { shortenPath } from "@ignored/hardhat-vnext-utils/path";
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
+import { shortenPath } from "@nomicfoundation/hardhat-utils/path";
 import { intersects, maxSatisfying, satisfies } from "semver";
 
 import { CompilationJobCreationErrorReason } from "../../../../types/solidity/build-system.js";
@@ -18,7 +18,7 @@ export class SolcConfigSelector {
 
   /**
    * Creates a new SolcConfigSelector that can be used to select the best solc
-   * configuration for subragraphs of the given dependency graph.
+   * configuration for subgraphs of the given dependency graph.
    *
    * All the queries are done in the context of the given dependency graph, and
    * using the same build profile.
@@ -176,6 +176,8 @@ export class SolcConfigSelector {
       if (visited.has(dependency)) {
         continue;
       }
+
+      visited.add(dependency);
 
       yield {
         fsPath: [dependency.fsPath],

@@ -5,7 +5,7 @@ import type {
   PositionalArgumentDefinition,
 } from "../../../types/arguments.js";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
 import { validateArgumentName, validateArgumentValue } from "../arguments.js";
 
@@ -13,14 +13,16 @@ import { formatTaskId } from "./utils.js";
 
 export function validateId(id: string | string[]): void {
   if (id.length === 0) {
-    throw new HardhatError(HardhatError.ERRORS.TASK_DEFINITIONS.EMPTY_TASK_ID);
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.TASK_DEFINITIONS.EMPTY_TASK_ID,
+    );
   }
 }
 
 export function validateAction(action: unknown): void {
   if (typeof action === "string" && !isValidActionUrl(action)) {
     throw new HardhatError(
-      HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_FILE_ACTION,
+      HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INVALID_FILE_ACTION,
       {
         action,
       },
@@ -36,7 +38,7 @@ export function validateOption(
   validateArgumentName(name);
 
   if (usedNames.has(name)) {
-    throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.DUPLICATED_NAME, {
+    throw new HardhatError(HardhatError.ERRORS.CORE.ARGUMENTS.DUPLICATED_NAME, {
       name,
     });
   }
@@ -55,7 +57,7 @@ export function validatePositionalArgument(
   validateArgumentName(name);
 
   if (usedNames.has(name)) {
-    throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.DUPLICATED_NAME, {
+    throw new HardhatError(HardhatError.ERRORS.CORE.ARGUMENTS.DUPLICATED_NAME, {
       name,
     });
   }
@@ -72,7 +74,7 @@ export function validatePositionalArgument(
 
   if (lastArg !== undefined && lastArg.isVariadic) {
     throw new HardhatError(
-      HardhatError.ERRORS.TASK_DEFINITIONS.POSITIONAL_ARG_AFTER_VARIADIC,
+      HardhatError.ERRORS.CORE.TASK_DEFINITIONS.POSITIONAL_ARG_AFTER_VARIADIC,
       {
         name,
       },
@@ -85,7 +87,7 @@ export function validatePositionalArgument(
     defaultValue === undefined
   ) {
     throw new HardhatError(
-      HardhatError.ERRORS.TASK_DEFINITIONS.REQUIRED_ARG_AFTER_OPTIONAL,
+      HardhatError.ERRORS.CORE.TASK_DEFINITIONS.REQUIRED_ARG_AFTER_OPTIONAL,
       {
         name,
       },
@@ -114,11 +116,11 @@ export function validateTaskArgumentValue(
     if (
       HardhatError.isHardhatError(
         error,
-        HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+        HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
       )
     ) {
       throw new HardhatError(
-        HardhatError.ERRORS.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
+        HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INVALID_VALUE_FOR_TYPE,
         {
           name,
           type: expectedType,

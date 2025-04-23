@@ -3,9 +3,9 @@ import type { JsonRpcRequestWrapperFunction } from "../../../../src/internal/bui
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
+import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
 
 import {
   HttpProvider,
@@ -40,7 +40,7 @@ describe("http-provider", () => {
           networkName: "exampleNetwork",
           timeout: 20_000,
         }),
-        HardhatError.ERRORS.NETWORK.INVALID_URL,
+        HardhatError.ERRORS.CORE.NETWORK.INVALID_URL,
         { value: "invalid url" },
       );
     });
@@ -156,7 +156,7 @@ describe("http-provider", () => {
           method: "eth_chainId",
           params: {},
         }),
-        HardhatError.ERRORS.NETWORK.INVALID_REQUEST_PARAMS,
+        HardhatError.ERRORS.CORE.NETWORK.INVALID_REQUEST_PARAMS,
         {},
       );
     });
@@ -176,7 +176,7 @@ describe("http-provider", () => {
         provider.request({
           method: "eth_chainId",
         }),
-        HardhatError.ERRORS.NETWORK.CONNECTION_REFUSED,
+        HardhatError.ERRORS.CORE.NETWORK.CONNECTION_REFUSED,
         { network: "exampleNetwork" },
       );
     });
@@ -377,7 +377,7 @@ describe("http-provider", () => {
         provider.request({
           method: "eth_chainId",
         }),
-        HardhatError.ERRORS.NETWORK.INVALID_JSON_RESPONSE,
+        HardhatError.ERRORS.CORE.NETWORK.INVALID_JSON_RESPONSE,
         {
           response: JSON.stringify(invalidResponse),
         },
@@ -554,7 +554,7 @@ describe("http-provider", () => {
         provider.request({
           method: "eth_chainId",
         }),
-        HardhatError.ERRORS.NETWORK.PROVIDER_CLOSED,
+        HardhatError.ERRORS.CORE.NETWORK.PROVIDER_CLOSED,
         {},
       );
     });

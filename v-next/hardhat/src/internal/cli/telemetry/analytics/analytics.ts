@@ -7,7 +7,7 @@ import type {
 
 import os from "node:os";
 
-import { spawnDetachedSubProcess } from "@ignored/hardhat-vnext-utils/subprocess";
+import { spawnDetachedSubProcess } from "@nomicfoundation/hardhat-utils/subprocess";
 import debug from "debug";
 
 import { getHardhatVersion } from "../../../utils/package.js";

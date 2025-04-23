@@ -13,8 +13,8 @@ import type { RefinementCtx } from "zod";
 import {
   getUnprefixedHexString,
   isHexString,
-} from "@ignored/hardhat-vnext-utils/hex";
-import { isObject } from "@ignored/hardhat-vnext-utils/lang";
+} from "@nomicfoundation/hardhat-utils/hex";
+import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 import {
   conditionalUnionType,
   configurationVariableSchema,
@@ -22,7 +22,7 @@ import {
   sensitiveUrlSchema,
   unionType,
   validateUserConfigZodType,
-} from "@ignored/hardhat-vnext-zod-utils";
+} from "@nomicfoundation/hardhat-zod-utils";
 import { z } from "zod";
 
 import {
@@ -33,8 +33,10 @@ import {
 
 import {
   hardforkGte,
-  HardforkName,
-  LATEST_HARDFORK,
+  L1HardforkName,
+  isValidHardforkName,
+  getHardforks,
+  getCurrentHardfork,
 } from "./edr/types/hardfork.js";
 
 const nonnegativeNumberSchema = z.number().nonnegative();
@@ -43,7 +45,6 @@ const nonnegativeBigIntSchema = z.bigint().nonnegative();
 
 const blockNumberSchema = nonnegativeIntSchema;
 const chainIdSchema = nonnegativeIntSchema;
-const hardforkNameSchema = z.nativeEnum(HardforkName);
 
 const accountsPrivateKeyUserConfigSchema = unionType(
   [
@@ -139,12 +140,10 @@ const edrNetworkAccountsUserConfigSchema = conditionalUnionType(
   `Expected an array with with objects with private key and balance or Configuration Variables, or an object with HD account details`,
 );
 
-const hardforkHistoryUserConfigSchema = z.map(
-  hardforkNameSchema,
-  blockNumberSchema,
-);
+const hardforkHistoryUserConfigSchema = z.map(z.string(), blockNumberSchema);
 
 const edrNetworkChainUserConfigSchema = z.object({
+  chainType: z.optional(chainTypeUserConfigSchema),
   hardforkHistory: z.optional(hardforkHistoryUserConfigSchema),
 });
 
@@ -202,7 +201,7 @@ const edrNetworkUserConfigSchema = z.object({
   enableRip7212: z.optional(z.boolean()),
   enableTransientStorage: z.optional(z.boolean()),
   forking: z.optional(edrNetworkForkingUserConfigSchema),
-  hardfork: z.optional(hardforkNameSchema),
+  hardfork: z.optional(z.string()),
   initialBaseFeePerGas: z.optional(gasUnitUserConfigSchema),
   initialDate: z.optional(
     unionType([z.string(), z.instanceof(Date)], "Expected a string or a Date"),
@@ -221,52 +220,113 @@ const baseNetworkUserConfigSchema = z.discriminatedUnion("type", [
 ]);
 
 function refineEdrNetworkUserConfig(
-  networkConfig: z.infer<typeof baseNetworkUserConfigSchema>,
+  networkConfig: NetworkUserConfig,
   ctx: RefinementCtx,
 ): void {
   if (networkConfig.type === "edr") {
     const {
-      hardfork = LATEST_HARDFORK,
+      chainType = GENERIC_CHAIN_TYPE,
+      hardfork,
+      chains,
       minGasPrice,
       initialBaseFeePerGas,
       enableTransientStorage,
     } = networkConfig;
 
-    if (hardforkGte(hardfork, HardforkName.LONDON)) {
-      if (minGasPrice !== undefined) {
+    if (hardfork !== undefined && !isValidHardforkName(hardfork, chainType)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["hardfork"],
+        message: `Invalid hardfork name ${hardfork} for chainType ${chainType}. Expected ${getHardforks(
+          chainType,
+        ).join(" | ")}.`,
+      });
+    }
+
+    if (chains !== undefined) {
+      Array.from(chains).forEach(([chainId, chainConfig], chainIdx) => {
+        if (chainConfig.hardforkHistory === undefined) {
+          return;
+        }
+
+        const type = chainConfig.chainType ?? GENERIC_CHAIN_TYPE;
+        Array.from(chainConfig.hardforkHistory).forEach(
+          ([name], hardforkIdx) => {
+            if (!isValidHardforkName(name, type)) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: [
+                  "chains",
+                  chainIdx,
+                  "value",
+                  "hardforkHistory",
+                  hardforkIdx,
+                  "value",
+                ],
+                message: `Invalid hardfork name ${name} found in chain ${chainId}. Expected ${getHardforks(type).join(" | ")}.`,
+              });
+            }
+          },
+        );
+      });
+    }
+
+    const resolvedHardfork = hardfork ?? getCurrentHardfork(chainType);
+    if (chainType === L1_CHAIN_TYPE || chainType === GENERIC_CHAIN_TYPE) {
+      if (hardforkGte(resolvedHardfork, L1HardforkName.LONDON, chainType)) {
+        if (minGasPrice !== undefined) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message:
+              "minGasPrice is not valid for networks with EIP-1559. Try an older hardfork or remove it.",
+          });
+        }
+      } else {
+        if (initialBaseFeePerGas !== undefined) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message:
+              "initialBaseFeePerGas is only valid for networks with EIP-1559. Try a newer hardfork or remove it.",
+          });
+        }
+      }
+
+      if (
+        !hardforkGte(resolvedHardfork, L1HardforkName.CANCUN, chainType) &&
+        enableTransientStorage === true
+      ) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message:
-            "minGasPrice is not valid for networks with EIP-1559. Try an older hardfork or remove it.",
+          message: `'enableTransientStorage' is not supported for hardforks before 'cancun'. Please use a hardfork from 'cancun' onwards to enable this feature.`,
         });
       }
-    } else {
-      if (initialBaseFeePerGas !== undefined) {
+      if (
+        hardforkGte(resolvedHardfork, L1HardforkName.CANCUN, chainType) &&
+        enableTransientStorage === false
+      ) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message:
-            "initialBaseFeePerGas is only valid for networks with EIP-1559. Try a newer hardfork or remove it.",
+          message: `'enableTransientStorage' must be enabled for hardforks 'cancun' or later. To disable this feature, use a hardfork before 'cancun'.`,
         });
       }
     }
 
     if (
-      !hardforkGte(hardfork, HardforkName.CANCUN) &&
-      enableTransientStorage === true
+      typeof networkConfig.mining?.interval === "number" ||
+      Array.isArray(networkConfig.mining?.interval)
     ) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: `'enableTransientStorage' is not supported for hardforks before 'cancun'. Please use a hardfork from 'cancun' onwards to enable this feature.`,
-      });
-    }
-    if (
-      hardforkGte(hardfork, HardforkName.CANCUN) &&
-      enableTransientStorage === false
-    ) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: `'enableTransientStorage' must be enabled for hardforks 'cancun' or later. To disable this feature, use a hardfork before 'cancun'.`,
-      });
+      const interval = networkConfig.mining.interval;
+      const minInterval =
+        typeof interval === "number" ? interval : Math.min(...interval);
+      if (
+        minInterval < 1000 &&
+        networkConfig.allowBlocksWithSameTimestamp !== true
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `mining.interval is set to less than 1000 ms. To avoid the block timestamp diverging from clock time, please set allowBlocksWithSameTimestamp: true on the network config`,
+        });
+      }
     }
   }
 }

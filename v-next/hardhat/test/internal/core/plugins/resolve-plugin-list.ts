@@ -3,7 +3,7 @@ import type { HardhatPlugin } from "../../../../src/types/plugins.js";
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import { resolvePluginList } from "../../../../src/internal/core/plugins/resolve-plugin-list.js";
@@ -152,7 +152,7 @@ describe("Plugins - resolve plugin list", () => {
 
     await assertRejectsWithHardhatError(
       async () => resolvePluginList(installedPackageFixture, [a, copy]),
-      HardhatError.ERRORS.GENERAL.DUPLICATED_PLUGIN_ID,
+      HardhatError.ERRORS.CORE.GENERAL.DUPLICATED_PLUGIN_ID,
       {
         id: "dup",
       },
@@ -173,7 +173,7 @@ describe("Plugins - resolve plugin list", () => {
 
       await assertRejectsWithHardhatError(
         async () => resolvePluginList(installedPackageFixture, [plugin]),
-        HardhatError.ERRORS.PLUGINS.PLUGIN_DEPENDENCY_FAILED_LOAD,
+        HardhatError.ERRORS.CORE.PLUGINS.PLUGIN_DEPENDENCY_FAILED_LOAD,
         { pluginId: plugin.id },
       );
     });
@@ -195,7 +195,7 @@ describe("Plugins - resolve plugin list", () => {
 
       await assertRejectsWithHardhatError(
         async () => resolvePluginList(notInstalledPackageFixture, [plugin]),
-        HardhatError.ERRORS.PLUGINS.PLUGIN_NOT_INSTALLED,
+        HardhatError.ERRORS.CORE.PLUGINS.PLUGIN_NOT_INSTALLED,
         {
           pluginId: "example",
         },

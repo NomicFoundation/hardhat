@@ -14,7 +14,7 @@
       "path": "../hardhat-node-test-runner"
     },
     {
-      "path": "../hardhat-mocha-test-runner"
+      "path": "../hardhat-mocha"
     },
     {
       "path": "../hardhat-keystore"
@@ -26,10 +26,16 @@
       "path": "../hardhat-viem"
     },
     {
-      "path": "../hardhat-chai-matchers"
+      "path": "../hardhat-ethers-chai-matchers"
     },
     {
       "path": "../hardhat-typechain"
+    },
+    {
+      "path": "../hardhat-ignition"
+    },
+    {
+      "path": "../hardhat-ignition-viem"
     }
   ]
 }

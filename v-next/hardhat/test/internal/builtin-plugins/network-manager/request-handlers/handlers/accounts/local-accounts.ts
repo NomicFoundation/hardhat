@@ -1,15 +1,15 @@
 import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import {
-  hexStringToBytes,
-  numberToHexString,
-} from "@ignored/hardhat-vnext-utils/hex";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   assertRejects,
   assertRejectsWithHardhatError,
 } from "@nomicfoundation/hardhat-test-utils";
+import {
+  hexStringToBytes,
+  numberToHexString,
+} from "@nomicfoundation/hardhat-utils/hex";
 import { addr } from "micro-eth-signer";
 
 import { getJsonRpcRequest } from "../../../../../../../src/internal/builtin-plugins/network-manager/json-rpc.js";
@@ -230,7 +230,7 @@ describe("LocalAccountsHandler", () => {
 
         await assertRejectsWithHardhatError(
           () => localAccountsHandler.handle(jsonRpcRequest),
-          HardhatError.ERRORS.NETWORK.NOT_LOCAL_ACCOUNT,
+          HardhatError.ERRORS.CORE.NETWORK.NOT_LOCAL_ACCOUNT,
           {
             account: "0x000006d4548a3ac17d72b372ae1e416bf65b8ead",
           },
@@ -374,7 +374,8 @@ describe("LocalAccountsHandler", () => {
 
         await assertRejectsWithHardhatError(
           () => localAccountsHandler.handle(jsonRpcRequest),
-          HardhatError.ERRORS.NETWORK.ETHSIGN_TYPED_DATA_V4_INVALID_DATA_PARAM,
+          HardhatError.ERRORS.CORE.NETWORK
+            .ETHSIGN_TYPED_DATA_V4_INVALID_DATA_PARAM,
           {},
         );
       });
@@ -386,7 +387,7 @@ describe("LocalAccountsHandler", () => {
 
         await assertRejectsWithHardhatError(
           () => localAccountsHandler.handle(jsonRpcRequest),
-          HardhatError.ERRORS.NETWORK.ETHSIGN_MISSING_DATA_PARAM,
+          HardhatError.ERRORS.CORE.NETWORK.ETHSIGN_MISSING_DATA_PARAM,
           {},
         );
       });
@@ -503,7 +504,7 @@ describe("LocalAccountsHandler", () => {
 
           assertRejectsWithHardhatError(
             () => localAccountsHandler.handle(jsonRpcRequest),
-            HardhatError.ERRORS.NETWORK
+            HardhatError.ERRORS.CORE.NETWORK
               .DATA_FIELD_CANNOT_BE_NULL_WITH_NULL_ADDRESS,
             {},
           );
@@ -636,6 +637,38 @@ describe("LocalAccountsHandler", () => {
       validateRawEIP2930Transaction(tx);
     });
 
+    it("should allow the chainId to be larger than 2 ** 32 - 1", async () => {
+      const tx = {
+        from: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
+        to: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
+        gas: numberToHexString(100000),
+        nonce: numberToHexString(0),
+        value: numberToHexString(1),
+        chainId: numberToHexString(BigInt(2 ** 32)),
+        maxFeePerGas: numberToHexString(12),
+        maxPriorityFeePerGas: numberToHexString(2),
+      };
+      const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [tx]);
+
+      await localAccountsHandler.handle(jsonRpcRequest);
+
+      assert.ok(
+        Array.isArray(jsonRpcRequest.params),
+        "params should be an array",
+      );
+
+      const rawTransaction = jsonRpcRequest.params[0];
+
+      // BigInt(2 ** 32) is 0x + 100000000
+      const expectedRaw =
+        "0x02f86885010000000080020c830186a094b5bc06d4548a3ac17d72b372" +
+        "ae1e416bf65b8ead0180c001a0d2dc2ca1503a8e440849a4c87bd971d3f9" +
+        "9060fc0d12c7557cce964ec465f3faa017b976a4ec68cc1e03a4f14b342b" +
+        "e7666a76318a802cc1197a3bb88a36549bc8";
+
+      assert.equal(rawTransaction, expectedRaw);
+    });
+
     it("should get the nonce if not provided", async () => {
       const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
         {
@@ -667,7 +700,7 @@ describe("LocalAccountsHandler", () => {
 
       await assertRejectsWithHardhatError(
         () => localAccountsHandler.handle(jsonRpcRequest),
-        HardhatError.ERRORS.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
+        HardhatError.ERRORS.CORE.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
         { param: "gas" },
       );
     });
@@ -684,7 +717,7 @@ describe("LocalAccountsHandler", () => {
 
       await assertRejectsWithHardhatError(
         () => localAccountsHandler.handle(jsonRpcRequest),
-        HardhatError.ERRORS.NETWORK.MISSING_FEE_PRICE_FIELDS,
+        HardhatError.ERRORS.CORE.NETWORK.MISSING_FEE_PRICE_FIELDS,
         {},
       );
     });
@@ -714,13 +747,13 @@ describe("LocalAccountsHandler", () => {
 
       await assertRejectsWithHardhatError(
         () => localAccountsHandler.handle(jsonRpcRequest1),
-        HardhatError.ERRORS.NETWORK.INCOMPATIBLE_FEE_PRICE_FIELDS,
+        HardhatError.ERRORS.CORE.NETWORK.INCOMPATIBLE_FEE_PRICE_FIELDS,
         {},
       );
 
       await assertRejectsWithHardhatError(
         () => localAccountsHandler.handle(jsonRpcRequest2),
-        HardhatError.ERRORS.NETWORK.INCOMPATIBLE_FEE_PRICE_FIELDS,
+        HardhatError.ERRORS.CORE.NETWORK.INCOMPATIBLE_FEE_PRICE_FIELDS,
         {},
       );
     });
@@ -748,13 +781,13 @@ describe("LocalAccountsHandler", () => {
 
       await assertRejectsWithHardhatError(
         () => localAccountsHandler.handle(jsonRpcRequest1),
-        HardhatError.ERRORS.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
+        HardhatError.ERRORS.CORE.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
         { param: "maxPriorityFeePerGas" },
       );
 
       await assertRejectsWithHardhatError(
         () => localAccountsHandler.handle(jsonRpcRequest2),
-        HardhatError.ERRORS.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
+        HardhatError.ERRORS.CORE.NETWORK.MISSING_TX_PARAM_TO_SIGN_LOCALLY,
         { param: "maxFeePerGas" },
       );
     });
@@ -773,7 +806,7 @@ describe("LocalAccountsHandler", () => {
 
       await assertRejectsWithHardhatError(
         () => localAccountsHandler.handle(jsonRpcRequest),
-        HardhatError.ERRORS.NETWORK.NOT_LOCAL_ACCOUNT,
+        HardhatError.ERRORS.CORE.NETWORK.NOT_LOCAL_ACCOUNT,
         { account: "0x000006d4548a3ac17d72b372ae1e416bf65b8ead" },
       );
     });

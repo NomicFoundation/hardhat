@@ -1,7 +1,7 @@
-import "@ignored/hardhat-vnext/types/config";
+import "hardhat/types/config";
 import type { TypechainConfig, TypechainUserConfig } from "./types.js";
 
-declare module "@ignored/hardhat-vnext/types/config" {
+declare module "hardhat/types/config" {
   export interface HardhatUserConfig {
     typechain?: TypechainUserConfig;
   }
@@ -11,8 +11,8 @@ declare module "@ignored/hardhat-vnext/types/config" {
   }
 }
 
-import "@ignored/hardhat-vnext/types/global-options";
-declare module "@ignored/hardhat-vnext/types/global-options" {
+import "hardhat/types/global-options";
+declare module "hardhat/types/global-options" {
   interface GlobalOptions {
     noTypechain: boolean;
   }

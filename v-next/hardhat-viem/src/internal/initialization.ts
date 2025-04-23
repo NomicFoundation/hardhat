@@ -1,7 +1,7 @@
 import type { HardhatViemHelpers } from "../types.js";
-import type { ArtifactManager } from "@ignored/hardhat-vnext/types/artifacts";
-import type { ChainType } from "@ignored/hardhat-vnext/types/network";
-import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
+import type { ArtifactManager } from "hardhat/types/artifacts";
+import type { ChainType } from "hardhat/types/network";
+import type { EthereumProvider } from "hardhat/types/providers";
 
 import {
   getPublicClient,

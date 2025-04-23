@@ -1,11 +1,11 @@
 import type { NetworkHelpers } from "../src/types.js";
-import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
+import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 
 import { beforeEach, describe, it } from "node:test";
 
-import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
+import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 import hardhatNetworkHelpersPlugin from "../src/index.js";
 
@@ -70,7 +70,7 @@ describe("hardhat-network-helpers plugin initialization", () => {
     it("should throw when using a method from the network-helpers class", async () => {
       assertRejectsWithHardhatError(
         () => networkHelpers.takeSnapshot(),
-        HardhatError.ERRORS.NETWORK_HELPERS
+        HardhatError.ERRORS.NETWORK_HELPERS.GENERAL
           .CAN_ONLY_BE_USED_WITH_HARDHAT_NETWORK_VERSIONED,
         {
           networkName: "non-test",
@@ -82,7 +82,7 @@ describe("hardhat-network-helpers plugin initialization", () => {
     it("should throw when using a method from the time class", async () => {
       assertRejectsWithHardhatError(
         () => networkHelpers.time.latest(),
-        HardhatError.ERRORS.NETWORK_HELPERS
+        HardhatError.ERRORS.NETWORK_HELPERS.GENERAL
           .CAN_ONLY_BE_USED_WITH_HARDHAT_NETWORK_VERSIONED,
         {
           networkName: "non-test",

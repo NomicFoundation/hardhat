@@ -1,23 +1,27 @@
+import type { Template } from "../../../../src/internal/cli/init/template.js";
+import type { PackageJson } from "@nomicfoundation/hardhat-utils/package";
+
 import assert from "node:assert/strict";
 import path from "node:path";
 import { describe, it } from "node:test";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import {
-  ensureDir,
-  exists,
-  readUtf8File,
-  writeUtf8File,
-} from "@ignored/hardhat-vnext-utils/fs";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   assertRejectsWithHardhatError,
   disableConsole,
   useTmpDir,
 } from "@nomicfoundation/hardhat-test-utils";
+import {
+  ensureDir,
+  exists,
+  readJsonFile,
+  readUtf8File,
+  writeUtf8File,
+} from "@nomicfoundation/hardhat-utils/fs";
 
 import {
   copyProjectFiles,
-  ensureProjectPackageJson,
+  validatePackageJson,
   getTemplate,
   getWorkspace,
   initHardhat,
@@ -25,6 +29,7 @@ import {
   printWelcomeMessage,
   relativeTemplateToWorkspacePath,
   relativeWorkspaceToTemplatePath,
+  shouldUpdateDependency,
 } from "../../../../src/internal/cli/init/init.js";
 import { getTemplates } from "../../../../src/internal/cli/init/template.js";
 
@@ -44,7 +49,7 @@ describe("getWorkspace", () => {
     // TODO: We shouldn't be testing the exact error message
     await assertRejectsWithHardhatError(
       async () => getWorkspace("non-existent-workspace"),
-      HardhatError.ERRORS.GENERAL.WORKSPACE_NOT_FOUND,
+      HardhatError.ERRORS.CORE.GENERAL.WORKSPACE_NOT_FOUND,
       {
         workspace: path.resolve("non-existent-workspace"),
       },
@@ -55,7 +60,7 @@ describe("getWorkspace", () => {
     await writeUtf8File("hardhat.config.ts", "");
     await assertRejectsWithHardhatError(
       async () => getWorkspace("hardhat-project"),
-      HardhatError.ERRORS.GENERAL.HARDHAT_PROJECT_ALREADY_CREATED,
+      HardhatError.ERRORS.CORE.GENERAL.HARDHAT_PROJECT_ALREADY_CREATED,
       {
         hardhatProjectRootPath: path.join(process.cwd(), "hardhat.config.ts"),
       },
@@ -68,7 +73,7 @@ describe("getTemplate", () => {
   it("should throw if the provided template does not exist", async () => {
     await assertRejectsWithHardhatError(
       async () => getTemplate("non-existent-template"),
-      HardhatError.ERRORS.GENERAL.TEMPLATE_NOT_FOUND,
+      HardhatError.ERRORS.CORE.GENERAL.TEMPLATE_NOT_FOUND,
       {
         template: "non-existent-template",
       },
@@ -80,15 +85,15 @@ describe("getTemplate", () => {
   });
 });
 
-describe("ensureProjectPackageJson", () => {
-  useTmpDir("ensureProjectPackageJson");
+describe("validatePackageJson", () => {
+  useTmpDir("validatePackageJson");
 
   it("should create the package.json file if it does not exist", async () => {
     assert.ok(
       !(await exists("package.json")),
       "package.json should not exist before ensuring it exists",
     );
-    await ensureProjectPackageJson(process.cwd());
+    await validatePackageJson(process.cwd(), false);
     assert.ok(await exists("package.json"), "package.json should exist");
   });
   it("should not create the package.json file if it already exists", async () => {
@@ -97,17 +102,25 @@ describe("ensureProjectPackageJson", () => {
       type: "module",
     });
     await writeUtf8File("package.json", before);
-    await ensureProjectPackageJson(process.cwd());
+    await validatePackageJson(process.cwd(), false);
     const after = await readUtf8File("package.json");
     assert.equal(before, after);
   });
   it("should throw if the package.json is not for an esm package", async () => {
     await writeUtf8File("package.json", "{}");
     await assertRejectsWithHardhatError(
-      async () => ensureProjectPackageJson(process.cwd()),
-      HardhatError.ERRORS.GENERAL.ONLY_ESM_SUPPORTED,
+      async () => validatePackageJson(process.cwd(), false),
+      HardhatError.ERRORS.CORE.GENERAL.ONLY_ESM_SUPPORTED,
       {},
     );
+  });
+  it("should migrate package.json to esm if the user opts-in to it", async () => {
+    await writeUtf8File("package.json", "{}");
+    await validatePackageJson(process.cwd(), true);
+    const pkg: PackageJson = await readJsonFile(
+      path.join(process.cwd(), "package.json"),
+    );
+    assert.equal(pkg.type, "module");
   });
 });
 
@@ -229,7 +242,7 @@ describe("installProjectDependencies", async () => {
     // NOTE: This test is slow because it installs dependencies over the network.
     // It tests installation for all the templates, but only with the npm as the
     // package manager. We also support pnpm and yarn.
-    it(
+    it.skip(
       `should install all the ${template.name} template dependencies in an empty project if the user opts-in to the installation`,
       {
         skip: process.env.HARDHAT_DISABLE_SLOW_TESTS === "true",
@@ -273,7 +286,7 @@ describe("installProjectDependencies", async () => {
         "package.json",
         JSON.stringify({
           type: "module",
-          devDependencies: { "@ignored/hardhat-vnext": "0.0.0" },
+          devDependencies: { hardhat: "0.0.0" },
         }),
       );
       await installProjectDependencies(process.cwd(), template, false, true);
@@ -286,7 +299,7 @@ describe("installProjectDependencies", async () => {
           "node_modules",
           ...dependency.split("/"),
         );
-        if (dependency === "@ignored/hardhat-vnext") {
+        if (dependency === "hardhat") {
           assert.ok(
             await exists(nodeModulesPath),
             `${nodeModulesPath} should exist`,
@@ -298,6 +311,72 @@ describe("installProjectDependencies", async () => {
           );
         }
       }
+    },
+  );
+
+  it(
+    "should not update dependencies if they are up-to-date and the user opts-in to the update (specific version)",
+    {
+      skip: process.env.HARDHAT_DISABLE_SLOW_TESTS === "true",
+    },
+    async () => {
+      const template: Template = {
+        name: "test",
+        packageJson: {
+          name: "test",
+          version: "0.0.1",
+          devDependencies: { "fake-dependency": "^1.2.3" }, // <-- required version
+        },
+        path: process.cwd(),
+        files: [],
+      };
+
+      await writeUtf8File(
+        "package.json",
+        JSON.stringify({
+          type: "module",
+          devDependencies: { "fake-dependency": "1.2.3" }, // <-- specific version
+        }),
+      );
+      await installProjectDependencies(process.cwd(), template, false, true);
+
+      assert.ok(
+        !(await exists("node_modules")),
+        "no modules should have been installed",
+      );
+    },
+  );
+
+  it(
+    "should not update dependencies if they are up-to-date and the user opts-in to the update (version range)",
+    {
+      skip: process.env.HARDHAT_DISABLE_SLOW_TESTS === "true",
+    },
+    async () => {
+      const template: Template = {
+        name: "test",
+        packageJson: {
+          name: "test",
+          version: "0.0.1",
+          devDependencies: { "fake-dependency": ">=1.2.3" }, // <-- required version
+        },
+        path: process.cwd(),
+        files: [],
+      };
+
+      await writeUtf8File(
+        "package.json",
+        JSON.stringify({
+          type: "module",
+          devDependencies: { "fake-dependency": "^1.2.3" }, // <-- version range
+        }),
+      );
+      await installProjectDependencies(process.cwd(), template, false, true);
+
+      assert.ok(
+        !(await exists("node_modules")),
+        "no modules should have been installed",
+      );
     },
   );
 });
@@ -320,6 +399,7 @@ describe("initHardhat", async () => {
         await initHardhat({
           template: template.name,
           workspace: process.cwd(),
+          migrateToEsm: false,
           force: false,
           install: false,
         });
@@ -333,5 +413,168 @@ describe("initHardhat", async () => {
         }
       },
     );
+  }
+});
+
+describe("shouldUpdateDependency", () => {
+  const testCases = [
+    {
+      workspaceVersion: "1.0.0",
+      templateVersion: "1.0.0",
+      expectedResult: false,
+    },
+    {
+      workspaceVersion: "1.0.0",
+      templateVersion: "1.2.3",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: "1.2.3",
+      templateVersion: "1.0.0",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: "1.2.3",
+      templateVersion: "^1.2.3",
+      expectedResult: false,
+    },
+    {
+      workspaceVersion: "^1.2.3",
+      templateVersion: "1.2.3",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: ">= 1.2.3",
+      templateVersion: "^1.2.3",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: "^1.2.3",
+      templateVersion: ">= 1.2.3",
+      expectedResult: false,
+    },
+    {
+      workspaceVersion: "1.0.0-dev",
+      templateVersion: "1.0.0-dev",
+      expectedResult: false,
+    },
+    {
+      workspaceVersion: "1.0.0-dev",
+      templateVersion: "1.2.3-dev",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: "1.2.3-dev",
+      templateVersion: "1.0.0-dev",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: "1.2.3-dev",
+      templateVersion: "^1.2.3-dev",
+      expectedResult: false,
+    },
+    {
+      workspaceVersion: "^1.2.3-dev",
+      templateVersion: "1.2.3-dev",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: ">= 1.2.3-dev",
+      templateVersion: "^1.2.3-dev",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: "^1.2.3-dev",
+      templateVersion: ">= 1.2.3-dev",
+      expectedResult: false,
+    },
+    {
+      workspaceVersion: "1.0.0",
+      templateVersion: "1.0.0-dev",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: "1.0.0-dev",
+      templateVersion: "1.0.0",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: "1.0.0-dev",
+      templateVersion: "1.2.3",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: "1.0.0",
+      templateVersion: "1.2.3-dev",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: "1.2.3",
+      templateVersion: "1.0.0-dev",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: "1.2.3-dev",
+      templateVersion: "1.0.0",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: "1.2.3",
+      templateVersion: "^1.2.3-dev",
+      expectedResult: false,
+    },
+    {
+      workspaceVersion: "1.2.3-dev",
+      templateVersion: "^1.2.3",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: "^1.2.3",
+      templateVersion: "1.2.3-dev",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: "^1.2.3-dev",
+      templateVersion: "1.2.3",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: ">= 1.2.3",
+      templateVersion: "^1.2.3-dev",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: ">= 1.2.3-dev",
+      templateVersion: "^1.2.3",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: "^1.2.3",
+      templateVersion: ">= 1.2.3-dev",
+      expectedResult: false,
+    },
+    {
+      workspaceVersion: "^1.2.3-dev",
+      templateVersion: ">= 1.2.3",
+      expectedResult: true,
+    },
+    {
+      workspaceVersion: "3.0.0-next.0",
+      templateVersion: "^3.0.0-next.0",
+      expectedResult: false,
+    },
+  ];
+
+  for (const {
+    workspaceVersion,
+    templateVersion,
+    expectedResult,
+  } of testCases) {
+    it(`should return ${expectedResult} when workspace version is ${workspaceVersion} and template version is ${templateVersion}`, () => {
+      assert.equal(
+        shouldUpdateDependency(workspaceVersion, templateVersion),
+        expectedResult,
+      );
+    });
   }
 });

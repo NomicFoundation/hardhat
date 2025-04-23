@@ -1,15 +1,15 @@
 import type { ExampleContract } from "./helpers/example-contracts.js";
 import type { HardhatEthers } from "../src/types.js";
-import type { NetworkConfig } from "@ignored/hardhat-vnext/types/config";
+import type { NetworkConfig } from "hardhat/types/config";
 import type {
   EthereumProvider,
   RequestArguments,
-} from "@ignored/hardhat-vnext/types/providers";
+} from "hardhat/types/providers";
 
 import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import { HardhatEthersProvider } from "../src/internal/hardhat-ethers-provider/hardhat-ethers-provider.js";
@@ -93,7 +93,7 @@ describe("hardhat ethers provider", () => {
     it("should throw if the index doesn't match an account", async () => {
       await assertRejectsWithHardhatError(
         ethers.provider.getSigner(100),
-        HardhatError.ERRORS.ETHERS.ACCOUNT_INDEX_OUT_OF_RANGE,
+        HardhatError.ERRORS.HARDHAT_ETHERS.GENERAL.ACCOUNT_INDEX_OUT_OF_RANGE,
         {
           accountIndex: 100,
           accountsLength: 20,

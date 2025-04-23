@@ -11,6 +11,7 @@ import type {
   RequestArguments,
   SuccessfulJsonRpcResponse,
 } from "../../../../types/providers.js";
+import type { RequireField } from "../../../../types/utils.js";
 import type { DefaultHDAccountsConfigParams } from "../accounts/constants.js";
 import type { JsonRpcRequestWrapperFunction } from "../network-manager.js";
 import type {
@@ -22,19 +23,19 @@ import type {
 } from "@ignored/edr-optimism";
 
 import {
-  optimismGenesisState,
-  optimismHardforkFromString,
+  opGenesisState,
+  opHardforkFromString,
   l1GenesisState,
   l1HardforkFromString,
 } from "@ignored/edr-optimism";
 import {
   assertHardhatInvariant,
   HardhatError,
-} from "@ignored/hardhat-vnext-errors";
-import { toSeconds } from "@ignored/hardhat-vnext-utils/date";
-import { ensureError } from "@ignored/hardhat-vnext-utils/error";
-import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
-import { deepEqual } from "@ignored/hardhat-vnext-utils/lang";
+} from "@nomicfoundation/hardhat-errors";
+import { toSeconds } from "@nomicfoundation/hardhat-utils/date";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
+import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
+import { deepEqual } from "@nomicfoundation/hardhat-utils/lang";
 import debug from "debug";
 
 import { EDR_NETWORK_REVERT_SNAPSHOT_EVENT } from "../../../constants.js";
@@ -125,7 +126,7 @@ export const EDR_NETWORK_DEFAULT_PRIVATE_KEYS: string[] = [
 ];
 
 interface EdrProviderConfig {
-  networkConfig: EdrNetworkConfig;
+  networkConfig: RequireField<EdrNetworkConfig, "chainType">;
   loggerConfig?: LoggerConfig;
   tracingConfig?: TracingConfigWithBuffers;
   jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction;
@@ -211,7 +212,7 @@ export class EdrProvider extends BaseProvider {
     requestArguments: RequestArguments,
   ): Promise<SuccessfulJsonRpcResponse["result"]> {
     if (this.#provider === undefined) {
-      throw new HardhatError(HardhatError.ERRORS.NETWORK.PROVIDER_CLOSED);
+      throw new HardhatError(HardhatError.ERRORS.CORE.NETWORK.PROVIDER_CLOSED);
     }
 
     const { method, params } = requestArguments;
@@ -382,23 +383,19 @@ export class EdrProvider extends BaseProvider {
 }
 
 async function getProviderConfig(
-  networkConfig: EdrNetworkConfig,
+  networkConfig: RequireField<EdrNetworkConfig, "chainType">,
 ): Promise<ProviderConfig> {
+  const specId = hardhatHardforkToEdrSpecId(
+    networkConfig.hardfork,
+    networkConfig.chainType,
+  );
+
   const genesisState =
     networkConfig.forking !== undefined
       ? [] // TODO: Add support for overriding remote fork state when the local fork is different
       : networkConfig.chainType === "optimism"
-        ? optimismGenesisState(
-            optimismHardforkFromString(
-              // TODO: Optimism conversion is not implemented yet
-              hardhatHardforkToEdrSpecId(networkConfig.hardfork),
-            ),
-          )
-        : l1GenesisState(
-            l1HardforkFromString(
-              hardhatHardforkToEdrSpecId(networkConfig.hardfork),
-            ),
-          );
+        ? opGenesisState(opHardforkFromString(specId))
+        : l1GenesisState(l1HardforkFromString(specId));
 
   return {
     allowBlocksWithSameTimestamp: networkConfig.allowBlocksWithSameTimestamp,
@@ -408,13 +405,16 @@ async function getProviderConfig(
     blockGasLimit: networkConfig.blockGasLimit,
     cacheDir: networkConfig.forking?.cacheDir,
     chainId: BigInt(networkConfig.chainId),
-    chains: hardhatChainsToEdrChains(networkConfig.chains),
+    chains: hardhatChainsToEdrChains(
+      networkConfig.chains,
+      networkConfig.chainType,
+    ),
     // TODO: remove this cast when EDR updates the interface to accept Uint8Array
     coinbase: Buffer.from(networkConfig.coinbase),
     enableRip7212: networkConfig.enableRip7212,
     fork: await hardhatForkingConfigToEdrForkConfig(networkConfig.forking),
     genesisState,
-    hardfork: hardhatHardforkToEdrSpecId(networkConfig.hardfork),
+    hardfork: specId,
     initialBaseFeePerGas: networkConfig.initialBaseFeePerGas,
     initialDate: BigInt(toSeconds(networkConfig.initialDate)),
     minGasPrice: networkConfig.minGasPrice,

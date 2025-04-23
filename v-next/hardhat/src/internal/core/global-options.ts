@@ -9,8 +9,8 @@ import type {
 } from "../../types/global-options.js";
 import type { HardhatPlugin } from "../../types/plugins.js";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { camelToSnakeCase } from "@ignored/hardhat-vnext-utils/string";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { camelToSnakeCase } from "@nomicfoundation/hardhat-utils/string";
 
 import { ArgumentType } from "../../types/arguments.js";
 
@@ -42,7 +42,7 @@ export function buildGlobalOptionDefinitions(
       const existingByName = globalOptionDefinitions.get(option.name);
       if (existingByName !== undefined) {
         throw new HardhatError(
-          HardhatError.ERRORS.GENERAL.GLOBAL_OPTION_ALREADY_DEFINED,
+          HardhatError.ERRORS.CORE.GENERAL.GLOBAL_OPTION_ALREADY_DEFINED,
           {
             plugin: plugin.id,
             globalOption: option.name,
@@ -110,7 +110,7 @@ export function buildGlobalOptionDefinition<T extends ArgumentType>({
  * @returns {GlobalOptions} An object containing the resolved global options,
  * with each option adhering to its definition in the globalOptionDefinitions.
  * @throws {HardhatError} with descriptor
- * {@link HardhatError.ERRORS.ARGUMENTS.INVALID_VALUE_FOR_TYPE} if a user-provided
+ * {@link HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE_FOR_TYPE} if a user-provided
  * option has an invalid value for its type.
  */
 export function resolveGlobalOptions(

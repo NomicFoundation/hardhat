@@ -1,5 +1,5 @@
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { bytesToHexString } from "@ignored/hardhat-vnext-utils/bytes";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { bytesToHexString } from "@nomicfoundation/hardhat-utils/bytes";
 
 const HD_PATH_REGEX = /^m(:?\/\d+'?)+\/?$/;
 
@@ -11,7 +11,7 @@ export async function derivePrivateKeys(
   passphrase: string,
 ): Promise<string[]> {
   if (!HD_PATH_REGEX.test(hdpath)) {
-    throw new HardhatError(HardhatError.ERRORS.NETWORK.INVALID_HD_PATH, {
+    throw new HardhatError(HardhatError.ERRORS.CORE.NETWORK.INVALID_HD_PATH, {
       path: hdpath,
     });
   }
@@ -30,7 +30,7 @@ export async function derivePrivateKeys(
     );
 
     if (privateKey === undefined) {
-      throw new HardhatError(HardhatError.ERRORS.NETWORK.CANT_DERIVE_KEY, {
+      throw new HardhatError(HardhatError.ERRORS.CORE.NETWORK.CANT_DERIVE_KEY, {
         mnemonic,
         path: hdpath,
       });

@@ -1,5 +1,5 @@
-import type { Abi, Artifact } from "@ignored/hardhat-vnext/types/artifacts";
 import type * as ethers from "ethers";
+import type { Abi, Artifact } from "hardhat/types/artifacts";
 
 export type HardhatEthers = typeof ethers & HardhatEthersHelpers;
 
@@ -41,11 +41,11 @@ export interface HardhatEthersHelpers {
     signerOrOptions?: ethers.Signer | FactoryOptions,
   ): Promise<ethers.ContractFactory<A, I>>;
 
-  getContractAt: (
+  getContractAt(
     nameOrAbi: string | any[] | Abi,
     address: string | ethers.Addressable,
     signer?: ethers.Signer,
-  ) => Promise<ethers.Contract>;
+  ): Promise<ethers.Contract>;
 
   getContractAtFromArtifact: (
     artifact: Artifact,

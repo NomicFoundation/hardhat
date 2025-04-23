@@ -5,8 +5,8 @@ import path from "node:path";
 import {
   assertHardhatInvariant,
   HardhatError,
-} from "@ignored/hardhat-vnext-errors";
-import { getCacheDir } from "@ignored/hardhat-vnext-utils/global-dir";
+} from "@nomicfoundation/hardhat-errors";
+import { getCacheDir } from "@nomicfoundation/hardhat-utils/global-dir";
 
 import {
   CompilerDownloaderImplementation,
@@ -66,9 +66,12 @@ export async function downloadConfiguredCompilers(
       const success = await wasmCompilerDownloader.downloadCompiler(version);
 
       if (!success) {
-        throw new HardhatError(HardhatError.ERRORS.SOLIDITY.DOWNLOAD_FAILED, {
-          remoteVersion: version,
-        });
+        throw new HardhatError(
+          HardhatError.ERRORS.CORE.SOLIDITY.DOWNLOAD_FAILED,
+          {
+            remoteVersion: version,
+          },
+        );
       }
     }
   }

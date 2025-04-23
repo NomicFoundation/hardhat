@@ -1,5 +1,5 @@
 import type { NetworkHelpers, NumberLike } from "../../src/types.js";
-import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
+import type { EthereumProvider } from "hardhat/types/providers";
 
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
@@ -7,7 +7,7 @@ import { before, describe, it } from "node:test";
 import {
   assertHardhatInvariant,
   HardhatError,
-} from "@ignored/hardhat-vnext-errors";
+} from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import { initializeNetwork } from "../helpers/helpers.js";
@@ -64,7 +64,8 @@ describe("network-helpers - setPrevRandao", () => {
     it("should not accept strings that are not 0x-prefixed", async () => {
       await assertRejectsWithHardhatError(
         async () => networkHelpers.setPrevRandao("3"),
-        HardhatError.ERRORS.NETWORK_HELPERS.ONLY_ALLOW_0X_PREFIXED_STRINGS,
+        HardhatError.ERRORS.NETWORK_HELPERS.GENERAL
+          .ONLY_ALLOW_0X_PREFIXED_STRINGS,
         {},
       );
     });

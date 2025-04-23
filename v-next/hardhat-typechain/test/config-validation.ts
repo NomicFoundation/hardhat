@@ -1,8 +1,8 @@
 import { describe, it } from "node:test";
 
-import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
+import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 import hardhatTypechain from "../src/index.js";
 
@@ -43,7 +43,7 @@ describe("config validation", () => {
         },
         plugins: [hardhatTypechain],
       }),
-      HardhatError.ERRORS.GENERAL.INVALID_CONFIG,
+      HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG,
       {
         errors: [
           "\t* Config error in config.outDir: It should be an absolute path specifying where to store the generated types",

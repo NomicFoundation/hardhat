@@ -1,6 +1,6 @@
 {
-  "name": "@ignored/hardhat-vnext-utils",
-  "version": "3.0.0-next.16",
+  "name": "@nomicfoundation/hardhat-utils",
+  "version": "3.0.0-next.4",
   "description": "Utilities for Hardhat and its plugins",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-utils",
   "repository": {
@@ -45,11 +45,13 @@
     "lint:fix": "pnpm prettier --write && pnpm eslint --fix",
     "eslint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
     "prettier": "prettier \"**/*.{ts,js,md,json}\"",
-    "test": "node --import tsx/esm --test --test-reporter=@ignored/hardhat-vnext-node-test-reporter \"test/*.ts\" \"test/!(fixture-projects|helpers)/**/*.ts\"",
-    "test:only": "node --import tsx/esm --test --test-only --test-reporter=@ignored/hardhat-vnext-node-test-reporter \"test/*.ts\" \"test/!(fixture-projects|helpers)/**/*.ts\"",
+    "test": "node --import tsx/esm --test --test-reporter=@nomicfoundation/hardhat-node-test-reporter \"test/*.ts\" \"test/!(fixture-projects|helpers)/**/*.ts\"",
+    "test:only": "node --import tsx/esm --test --test-only --test-reporter=@nomicfoundation/hardhat-node-test-reporter \"test/*.ts\" \"test/!(fixture-projects|helpers)/**/*.ts\"",
+    "test:coverage": "c8 --reporter html --reporter text --all --exclude test --exclude \"src/**/{types,type-extensions}.ts\" --src src node --import tsx/esm --test --test-reporter=@nomicfoundation/hardhat-node-test-reporter \"test/*.ts\" \"test/!(fixture-projects|helpers)/**/*.ts\"",
     "pretest": "pnpm build",
     "pretest:only": "pnpm build",
     "build": "tsc --build .",
+    "prepublishOnly": "pnpm build",
     "clean": "rimraf dist"
   },
   "files": [
@@ -61,12 +63,13 @@
   ],
   "devDependencies": {
     "@eslint-community/eslint-plugin-eslint-comments": "^4.3.0",
-    "@ignored/hardhat-vnext-node-test-reporter": "workspace:^3.0.0-next.16",
+    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0-next.4",
     "@types/bn.js": "^5.1.5",
     "@types/debug": "^4.1.7",
     "@types/node": "^20.14.9",
     "@typescript-eslint/eslint-plugin": "^7.7.1",
     "@typescript-eslint/parser": "^7.7.1",
+    "c8": "^9.1.0",
     "eslint": "8.57.0",
     "eslint-config-prettier": "9.1.0",
     "eslint-import-resolver-typescript": "^3.6.1",
@@ -75,15 +78,17 @@
     "expect-type": "^0.19.0",
     "prettier": "3.2.5",
     "rimraf": "^5.0.5",
-    "tsx": "^4.11.0",
+    "tsx": "^4.19.3",
     "typescript": "~5.5.0",
     "typescript-eslint": "7.7.1"
   },
   "dependencies": {
+    "@streamparser/json-node": "^0.0.22",
     "debug": "^4.3.2",
     "env-paths": "^2.2.0",
     "ethereum-cryptography": "^2.2.1",
     "fast-equals": "^5.0.1",
+    "json-stream-stringify": "^3.1.6",
     "rfdc": "^1.3.1",
     "undici": "^6.16.1"
   }

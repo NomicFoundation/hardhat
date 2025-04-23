@@ -1,17 +1,21 @@
 import type { KeystoreLoader } from "../types.js";
-import type { ConfigurationVariable } from "@ignored/hardhat-vnext/types/config";
+import type { ConfigurationVariable } from "hardhat/types/config";
 import type {
   ConfigurationVariableHooks,
   HookContext,
-} from "@ignored/hardhat-vnext/types/hooks";
+} from "hardhat/types/hooks";
 
-import { isCi } from "@ignored/hardhat-vnext-utils/ci";
+import { isCi } from "@nomicfoundation/hardhat-utils/ci";
 
+import { deriveMasterKeyFromKeystore } from "../keystores/encryption.js";
+import { askPassword } from "../keystores/password.js";
 import { setupKeystoreLoaderFrom } from "../utils/setup-keystore-loader-from.js";
 
 export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
   // Use a cache with hooks since they may be called multiple times consecutively.
   let keystoreLoader: KeystoreLoader | undefined;
+  // Caching the masterKey prevents repeated password prompts when retrieving multiple configuration variables.
+  let masterKey: Uint8Array | undefined;
 
   const handlers: Partial<ConfigurationVariableHooks> = {
     fetchValue: async (
@@ -35,11 +39,22 @@ export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
 
       const keystore = await keystoreLoader.loadKeystore();
 
-      if (!(await keystore.hasKey(variable.name))) {
+      if (masterKey === undefined) {
+        const password = await askPassword(
+          context.interruptions.requestSecretInput.bind(context.interruptions),
+        );
+
+        masterKey = deriveMasterKeyFromKeystore({
+          encryptedKeystore: keystore.toJSON(),
+          password,
+        });
+      }
+
+      if (!(await keystore.hasKey(variable.name, masterKey))) {
         return next(context, variable);
       }
 
-      return keystore.readValue(variable.name);
+      return keystore.readValue(variable.name, masterKey);
     },
   };
 

@@ -10,13 +10,12 @@ import type {
 
 import path from "node:path";
 
-import { FileNotFoundError } from "@ignored/hardhat-vnext-utils/fs";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { FileNotFoundError } from "@nomicfoundation/hardhat-utils/fs";
 import { analyze } from "@nomicfoundation/solidity-analyzer";
 
-import { IgnitionError } from "./errors.js";
 import { builtinChains } from "./internal/chain-config.js";
 import { FileDeploymentLoader } from "./internal/deployment-loader/file-deployment-loader.js";
-import { ERRORS } from "./internal/errors-list.js";
 import { encodeDeploymentArguments } from "./internal/execution/abi.js";
 import { loadDeploymentState } from "./internal/execution/deployment-state-helpers.js";
 import { ExecutionResultType } from "./internal/execution/types/execution-result.js";
@@ -45,9 +44,12 @@ export async function* getVerificationInformation(
   const deploymentState = await loadDeploymentState(deploymentLoader);
 
   if (deploymentState === undefined) {
-    throw new IgnitionError(ERRORS.VERIFY.UNINITIALIZED_DEPLOYMENT, {
-      deploymentDir,
-    });
+    throw new HardhatError(
+      HardhatError.ERRORS.IGNITION.VERIFY.UNINITIALIZED_DEPLOYMENT,
+      {
+        deploymentDir,
+      },
+    );
   }
 
   const chainConfig = resolveChainConfig(deploymentState, customChains);
@@ -58,9 +60,12 @@ export async function* getVerificationInformation(
   ).filter((exState) => exState.status === ExecutionStatus.SUCCESS);
 
   if (deploymentExStates.length === 0) {
-    throw new IgnitionError(ERRORS.VERIFY.NO_CONTRACTS_DEPLOYED, {
-      deploymentDir,
-    });
+    throw new HardhatError(
+      HardhatError.ERRORS.IGNITION.VERIFY.NO_CONTRACTS_DEPLOYED,
+      {
+        deploymentDir,
+      },
+    );
   }
 
   for (const exState of deploymentExStates) {
@@ -93,9 +98,12 @@ function resolveChainConfig(
   );
 
   if (chainConfig === undefined) {
-    throw new IgnitionError(ERRORS.VERIFY.UNSUPPORTED_CHAIN, {
-      chainId: deploymentState.chainId,
-    });
+    throw new HardhatError(
+      HardhatError.ERRORS.IGNITION.VERIFY.UNSUPPORTED_CHAIN,
+      {
+        chainId: deploymentState.chainId,
+      },
+    );
   }
 
   return chainConfig;

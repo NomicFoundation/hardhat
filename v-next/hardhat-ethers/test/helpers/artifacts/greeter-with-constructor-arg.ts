@@ -1,4 +1,4 @@
-import type { Artifact } from "@ignored/hardhat-vnext/types/artifacts";
+import type { Artifact } from "hardhat/types/artifacts";
 
 export const CONTRACT: Artifact = {
   _format: "hh3-artifact-1",

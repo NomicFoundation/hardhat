@@ -6,8 +6,8 @@ import {
   exists,
   readJsonFile,
   writeJsonFile,
-} from "@ignored/hardhat-vnext-utils/fs";
-import { getTelemetryDir } from "@ignored/hardhat-vnext-utils/global-dir";
+} from "@nomicfoundation/hardhat-utils/fs";
+import { getTelemetryDir } from "@nomicfoundation/hardhat-utils/global-dir";
 import debug from "debug";
 
 const log = debug("hardhat:cli:telemetry:analytics:utils");

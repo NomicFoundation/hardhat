@@ -3,7 +3,7 @@ import {
   FutureType,
   IgnitionModule,
   IgnitionModuleResult,
-} from "@ignored/hardhat-vnext-ignition-core/ui-helpers";
+} from "@nomicfoundation/ignition-core/ui-helpers";
 import { useMemo, useRef, useState, createRef } from "react";
 import { Tooltip } from "react-tooltip";
 import styled from "styled-components";

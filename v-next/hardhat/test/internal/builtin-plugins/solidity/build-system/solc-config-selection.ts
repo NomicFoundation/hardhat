@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import { beforeEach, describe, it } from "node:test";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import { DependencyGraphImplementation } from "../../../../../src/internal/builtin-plugins/solidity/build-system/dependency-graph.js";
@@ -64,7 +64,7 @@ describe("SolcConfigSelector", () => {
         async () => {
           selector.selectBestSolcConfigForSingleRootGraph(dependencyGraph);
         },
-        HardhatError.ERRORS.INTERNAL.ASSERTION_ERROR,
+        HardhatError.ERRORS.CORE.INTERNAL.ASSERTION_ERROR,
         {
           message: "This method only works for single root graphs",
         },
@@ -84,7 +84,7 @@ describe("SolcConfigSelector", () => {
         async () => {
           selector.selectBestSolcConfigForSingleRootGraph(emptyDependencyGraph);
         },
-        HardhatError.ERRORS.INTERNAL.ASSERTION_ERROR,
+        HardhatError.ERRORS.CORE.INTERNAL.ASSERTION_ERROR,
         {
           message: "This method only works for single root graphs",
         },
@@ -324,6 +324,33 @@ describe("SolcConfigSelector", () => {
           });
         });
       });
+    });
+  });
+
+  describe("Edge cases", () => {
+    it("Should return an error in the presence of cycles", () => {
+      const dependency1 = createProjectResolvedFile("dependency1.sol", [
+        "^0.8.0",
+      ]);
+
+      const dependency2 = createProjectResolvedFile("dependency2.sol", [
+        "0.8.1",
+      ]);
+
+      dependencyGraph.addDependency(root, dependency1);
+      dependencyGraph.addDependency(dependency1, dependency2);
+      dependencyGraph.addDependency(dependency2, dependency1);
+
+      const selector = new SolcConfigSelector(
+        buildProfileName,
+        { compilers: [{ version: "0.8.0", settings: {} }], overrides: {} },
+        dependencyGraph,
+      );
+
+      const configOrError =
+        selector.selectBestSolcConfigForSingleRootGraph(dependencyGraph);
+
+      assert.ok("reason" in configOrError, "Error expected");
     });
   });
 });

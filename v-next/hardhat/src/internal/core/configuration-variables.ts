@@ -4,8 +4,13 @@ import type {
 } from "../../types/config.js";
 import type { HookManager } from "../../types/hooks.js";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { normalizeHexString } from "@ignored/hardhat-vnext-utils/hex";
+import {
+  assertHardhatInvariant,
+  HardhatError,
+} from "@nomicfoundation/hardhat-errors";
+import { normalizeHexString } from "@nomicfoundation/hardhat-utils/hex";
+
+import { AsyncMutex } from "./async-mutex.js";
 
 export function resolveConfigurationVariable(
   hooks: HookManager,
@@ -43,7 +48,7 @@ abstract class BaseResolvedConfigurationVariable
       new URL(value);
       return value;
     } catch (e) {
-      throw new HardhatError(HardhatError.ERRORS.GENERAL.INVALID_URL, {
+      throw new HardhatError(HardhatError.ERRORS.CORE.GENERAL.INVALID_URL, {
         url: value,
       });
     }
@@ -55,7 +60,7 @@ abstract class BaseResolvedConfigurationVariable
     try {
       return BigInt(value);
     } catch (e) {
-      throw new HardhatError(HardhatError.ERRORS.GENERAL.INVALID_BIGINT, {
+      throw new HardhatError(HardhatError.ERRORS.CORE.GENERAL.INVALID_BIGINT, {
         value,
       });
     }
@@ -66,14 +71,22 @@ abstract class BaseResolvedConfigurationVariable
     try {
       return normalizeHexString(value);
     } catch {
-      throw new HardhatError(HardhatError.ERRORS.GENERAL.INVALID_HEX_STRING, {
-        value,
-      });
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.GENERAL.INVALID_HEX_STRING,
+        {
+          value,
+        },
+      );
     }
   }
 }
 
 export class LazyResolvedConfigurationVariable extends BaseResolvedConfigurationVariable {
+  // We want to serialize the calls to the configurationVariables#fetchValue
+  // hook for each HRE. We don't have the HRE here, so we create a mutex per
+  // HookManager, which is equivalent.
+  static readonly #mutexes: WeakMap<HookManager, AsyncMutex> = new WeakMap();
+
   readonly #hooks: HookManager;
   readonly #variable: ConfigurationVariable;
 
@@ -84,25 +97,34 @@ export class LazyResolvedConfigurationVariable extends BaseResolvedConfiguration
     this.name = variable.name;
     this.#hooks = hooks;
     this.#variable = variable;
+
+    if (!LazyResolvedConfigurationVariable.#mutexes.has(hooks)) {
+      LazyResolvedConfigurationVariable.#mutexes.set(hooks, new AsyncMutex());
+    }
   }
 
   protected async _getRawValue(): Promise<string> {
-    return this.#hooks.runHandlerChain(
-      "configurationVariables",
-      "fetchValue",
-      [this.#variable],
-      async (_context, v) => {
-        const value = process.env[v.name];
+    const mutex = LazyResolvedConfigurationVariable.#mutexes.get(this.#hooks);
+    assertHardhatInvariant(mutex !== undefined, "Mutex must be defined");
 
-        if (typeof value !== "string") {
-          throw new HardhatError(
-            HardhatError.ERRORS.GENERAL.ENV_VAR_NOT_FOUND,
-            { name: v.name },
-          );
-        }
+    return mutex.exclusiveRun(async () =>
+      this.#hooks.runHandlerChain(
+        "configurationVariables",
+        "fetchValue",
+        [this.#variable],
+        async (_context, v) => {
+          const value = process.env[v.name];
 
-        return value;
-      },
+          if (typeof value !== "string") {
+            throw new HardhatError(
+              HardhatError.ERRORS.CORE.GENERAL.ENV_VAR_NOT_FOUND,
+              { name: v.name },
+            );
+          }
+
+          return value;
+        },
+      ),
     );
   }
 }

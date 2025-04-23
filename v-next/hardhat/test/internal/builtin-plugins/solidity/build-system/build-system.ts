@@ -9,16 +9,18 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import { before, beforeEach, describe, it, mock } from "node:test";
 
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import {
+  assertRejectsWithHardhatError,
+  getTmpDir,
+  useFixtureProject,
+} from "@nomicfoundation/hardhat-test-utils";
 import {
   exists,
   getAllFilesMatching,
   readJsonFile,
   remove,
-} from "@ignored/hardhat-vnext-utils/fs";
-import {
-  getTmpDir,
-  useFixtureProject,
-} from "@nomicfoundation/hardhat-test-utils";
+} from "@nomicfoundation/hardhat-utils/fs";
 
 import { SolidityBuildSystemImplementation } from "../../../../../src/internal/builtin-plugins/solidity/build-system/build-system.js";
 import { HookManagerImplementation } from "../../../../../src/internal/core/hook-manager.js";
@@ -374,6 +376,23 @@ describe(
         );
 
         assert.equal(runCompilationJobSpy.mock.callCount(), 0);
+      });
+
+      it("should throw when given a build profile that is not defined", async () => {
+        const rootFilePaths = await solidity.getRootFilePaths();
+
+        await assertRejectsWithHardhatError(
+          solidity.build(rootFilePaths, {
+            force: false,
+            mergeCompilationJobs: true,
+            quiet: true,
+            buildProfile: "not-defined",
+          }),
+          HardhatError.ERRORS.CORE.SOLIDITY.BUILD_PROFILE_NOT_FOUND,
+          {
+            buildProfileName: "not-defined",
+          },
+        );
       });
     });
   },

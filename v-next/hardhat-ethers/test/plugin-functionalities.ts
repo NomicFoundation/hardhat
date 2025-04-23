@@ -3,16 +3,13 @@ import type {
   TestContractLib,
 } from "./helpers/example-contracts.js";
 import type { HardhatEthers, HardhatEthersSigner } from "../src/types.js";
-import type {
-  Artifact,
-  ArtifactManager,
-} from "@ignored/hardhat-vnext/types/artifacts";
 import type * as EthersT from "ethers";
+import type { Artifact, ArtifactManager } from "hardhat/types/artifacts";
 
 import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import {
@@ -259,7 +256,8 @@ describe("Ethers plugin", () => {
           it("should fail to return a contract factory for an interface", async () => {
             await assertRejectsWithHardhatError(
               ethers.getContractFactory("IGreeter"),
-              HardhatError.ERRORS.ETHERS.INVALID_ABSTRACT_CONTRACT_FOR_FACTORY,
+              HardhatError.ERRORS.HARDHAT_ETHERS.GENERAL
+                .INVALID_ABSTRACT_CONTRACT_FOR_FACTORY,
               {
                 contractName: "IGreeter",
               },
@@ -308,7 +306,8 @@ describe("Ethers plugin", () => {
                     await library.getAddress(),
                 },
               }),
-              HardhatError.ERRORS.ETHERS.REFERENCE_TO_SAME_LIBRARY,
+              HardhatError.ERRORS.HARDHAT_ETHERS.GENERAL
+                .REFERENCE_TO_SAME_LIBRARY,
               {
                 linkedLibraryName1: "TestLibrary",
                 linkedLibraryName2: "contracts/TestContractLib.sol:TestLibrary",
@@ -353,7 +352,7 @@ describe("Ethers plugin", () => {
                     await library2.getAddress(),
                 },
               }),
-              HardhatError.ERRORS.ETHERS.AMBIGUOUS_LIBRARY_NAME,
+              HardhatError.ERRORS.HARDHAT_ETHERS.GENERAL.AMBIGUOUS_LIBRARY_NAME,
               {
                 linkedLibraryName: "AmbiguousLibrary",
                 contractName: "TestAmbiguousLib",
@@ -366,7 +365,8 @@ describe("Ethers plugin", () => {
           it("should fail to create a contract factory with missing libraries", async () => {
             await assertRejectsWithHardhatError(
               ethers.getContractFactory("TestContractLib"),
-              HardhatError.ERRORS.ETHERS.MISSING_LINK_FOR_LIBRARY,
+              HardhatError.ERRORS.HARDHAT_ETHERS.GENERAL
+                .MISSING_LINK_FOR_LIBRARY,
               {
                 contractName: "TestContractLib",
                 missingLibraries: "* contracts/TestContractLib.sol:TestLibrary",
@@ -381,7 +381,7 @@ describe("Ethers plugin", () => {
               ethers.getContractFactory("TestContractLib", {
                 libraries: { TestLibrary: notAnAddress },
               }),
-              HardhatError.ERRORS.ETHERS
+              HardhatError.ERRORS.HARDHAT_ETHERS.GENERAL
                 .INVALID_ADDRESS_TO_LINK_CONTRACT_TO_LIBRARY,
               {
                 contractName: "TestContractLib",

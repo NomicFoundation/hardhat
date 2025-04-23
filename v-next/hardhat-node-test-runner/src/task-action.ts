@@ -1,14 +1,14 @@
-import type { HardhatConfig } from "@ignored/hardhat-vnext/types/config";
-import type { NewTaskActionFunction } from "@ignored/hardhat-vnext/types/tasks";
-import type { LastParameter } from "@ignored/hardhat-vnext/types/utils";
+import type { HardhatConfig } from "hardhat/types/config";
+import type { NewTaskActionFunction } from "hardhat/types/tasks";
+import type { LastParameter } from "hardhat/types/utils";
 
 import { pipeline } from "node:stream/promises";
 import { run } from "node:test";
 import { URL } from "node:url";
 
-import { hardhatTestReporter } from "@ignored/hardhat-vnext-node-test-reporter";
-import { getAllFilesMatching } from "@ignored/hardhat-vnext-utils/fs";
-import { createNonClosingWriter } from "@ignored/hardhat-vnext-utils/stream";
+import { hardhatTestReporter } from "@nomicfoundation/hardhat-node-test-reporter";
+import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
+import { createNonClosingWriter } from "@nomicfoundation/hardhat-utils/stream";
 
 interface TestActionArguments {
   testFiles: string[];

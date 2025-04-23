@@ -3,7 +3,7 @@ import type { NetworkHelpers, BlockTag, NumberLike } from "../../src/types.js";
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import { initializeNetwork } from "../helpers/helpers.js";
@@ -69,7 +69,7 @@ describe("network-helpers - getStorageAt", () => {
   it("should throw because the address is not valid", async () => {
     await assertRejectsWithHardhatError(
       async () => networkHelpers.getStorageAt("0xaa", "0x1", "0xbeef"),
-      HardhatError.ERRORS.NETWORK_HELPERS.INVALID_ADDRESS,
+      HardhatError.ERRORS.NETWORK_HELPERS.GENERAL.INVALID_ADDRESS,
       {
         value: "0xaa",
       },

@@ -4,15 +4,15 @@ import type {
   PublicClient,
   WalletClient,
 } from "../src/types.js";
-import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
+import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
 
-import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { expectTypeOf } from "expect-type";
+import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 import { parseEther } from "viem";
 
 import HardhatViem from "../src/index.js";
@@ -317,7 +317,8 @@ describe("clients", () => {
 
       await assertRejectsWithHardhatError(
         getDefaultWalletClient(provider, "l1"),
-        HardhatError.ERRORS.VIEM.DEFAULT_WALLET_CLIENT_NOT_FOUND,
+        HardhatError.ERRORS.HARDHAT_VIEM.GENERAL
+          .DEFAULT_WALLET_CLIENT_NOT_FOUND,
         {
           chainId: 1,
         },

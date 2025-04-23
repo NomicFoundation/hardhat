@@ -1,4 +1,4 @@
-import { numberToHexString } from "@ignored/hardhat-vnext-utils/hex";
+import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
 
 export function panicErrorCodeToMessage(errorCode: bigint): string {
   const reason = panicErrorCodeToReason(errorCode);

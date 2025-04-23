@@ -6,8 +6,6 @@ import type {
   NetworkUserConfig,
 } from "../../../types/config.js";
 
-import { isObject } from "@ignored/hardhat-vnext-utils/lang";
-
 /**
  * Converts the NetworkConfigOverride into a valid NetworkUserConfig. This
  * function determines the network type based on the provided `networkConfig`
@@ -55,44 +53,4 @@ export async function normalizeNetworkConfigOverride(
   }
 
   return networkConfigOverrideWithType;
-}
-
-/**
- * Merges two network configurations. This function is used to merge the
- * network configuration with the network configuration override. It recursively
- * merges nested objects.
- *
- * @param target The resolved network configuration.
- * @param source The partial network configuration override provided by the user. It
- * should be resolved and contain only the properties that the user wants to
- * override.
- * @returns A new network configuration object with the override applied.
- */
-export function mergeConfigOverride<T extends object>(
-  target: T,
-  source: Partial<T> = {},
-): T {
-  const result = { ...target };
-
-  for (const key in source) {
-    if (
-      isObject(source[key]) &&
-      // Only merge recursively objects that are not class instances
-      Object.getPrototypeOf(source[key]) === Object.prototype
-    ) {
-      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-      -- result[key] is either an object or undefined, so we default it to {} */
-      result[key] = mergeConfigOverride(
-        result[key] ?? {},
-        source[key],
-      ) as T[Extract<keyof T, string>];
-    } else {
-      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-      -- source[key] could be undefined, but as it is a resolved config as well,
-      result[key] should allow it */
-      result[key] = source[key] as T[Extract<keyof T, string>];
-    }
-  }
-
-  return result;
 }

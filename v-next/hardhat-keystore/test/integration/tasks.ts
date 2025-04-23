@@ -1,5 +1,4 @@
-import type { UnencryptedKeystoreFile } from "../../src/internal/types.js";
-import type { HardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/types/hre";
+import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 
 import assert from "node:assert/strict";
 import path from "node:path";
@@ -7,37 +6,68 @@ import { Readable } from "node:stream";
 import { afterEach, beforeEach, describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 
-import { createHardhatRuntimeEnvironment } from "@ignored/hardhat-vnext/hre";
-import { remove, writeJsonFile } from "@ignored/hardhat-vnext-utils/fs";
+import { remove, writeJsonFile } from "@nomicfoundation/hardhat-utils/fs";
+import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 import hardhatKeystorePlugin from "../../src/index.js";
-import { UnencryptedKeystore } from "../../src/internal/keystores/unencrypted-keystore.js";
-import { PRINT_UNENCRYPTED_KEYSTORE_FILE_MESSAGE } from "../../src/internal/tasks/set.js";
+import {
+  addSecretToKeystore,
+  createEmptyEncryptedKeystore,
+  createMasterKey,
+  type EncryptedKeystore,
+} from "../../src/internal/keystores/encryption.js";
+import { setupKeystorePassword } from "../helpers/insert-password-hook.js";
 import { setupKeystoreFileLocationOverrideAt } from "../helpers/setup-keystore-file-location-override-at.js";
+import { TEST_PASSWORD } from "../helpers/test-password.js";
 
 const keystoreFilePath = path.join(
   fileURLToPath(import.meta.url),
   "..",
   "..",
   "fixture-projects",
-  "unencrypted-keystore",
+  "keystore",
   "keystore.json",
 );
 
 /**
- * These tests are writing to the filesystem within `./test/fixture-projects/unencrypted-keystore`.
+ * These tests are writing to the filesystem within `./test/fixture-projects/keystore`.
  *
  * They test the end to end keystore task runs by monkey patching `process.stdin` and `process.stdout`.
  */
 describe("integration tests for the keystore tasks", () => {
   let hre: HardhatRuntimeEnvironment;
+  let masterKey: Uint8Array;
+  let salt: Uint8Array;
 
   beforeEach(async () => {
-    const keystoreFile: UnencryptedKeystoreFile =
-      UnencryptedKeystore.createEmptyUnencryptedKeystoreFile();
+    ({ masterKey, salt } = createMasterKey({
+      password: TEST_PASSWORD,
+    }));
 
-    keystoreFile.keys.myKey1 = "myValue1";
-    keystoreFile.keys.myKey2 = "myValue2";
+    let keystoreFile: EncryptedKeystore = createEmptyEncryptedKeystore({
+      masterKey,
+      salt,
+    });
+
+    const secrets = [
+      {
+        key: "myKey1",
+        value: "myValue1",
+      },
+      {
+        key: "myKey2",
+        value: "myValue2",
+      },
+    ];
+
+    for (const secret of secrets) {
+      keystoreFile = addSecretToKeystore({
+        masterKey,
+        encryptedKeystore: keystoreFile,
+        key: secret.key,
+        value: secret.value,
+      });
+    }
 
     await _overwriteKeystoreFileWith(keystoreFilePath, keystoreFile);
 
@@ -45,6 +75,7 @@ describe("integration tests for the keystore tasks", () => {
       plugins: [
         hardhatKeystorePlugin,
         setupKeystoreFileLocationOverrideAt(keystoreFilePath),
+        setupKeystorePassword([TEST_PASSWORD, "newSecret"]),
       ],
     });
   });
@@ -74,21 +105,17 @@ describe("integration tests for the keystore tasks", () => {
     );
   });
 
-  // Skipping as it doesn't pass because of a message
-  if (PRINT_UNENCRYPTED_KEYSTORE_FILE_MESSAGE !== true) {
-    it("should display the setting of the key on `npx hardhat keystore set myNewKey`", async () => {
-      await _assertConsoleOutputMatchesFor(
-        () => hre.tasks.getTask(["keystore", "set"]).run({ key: "myNewKey" }),
-        "Enter secret to store: " + 'Key "myNewKey" set\n',
-        ["myNewValue\n"],
-      );
-    });
-  }
+  it("should set a value on a `npx hardhat keystore set`", async () => {
+    await _assertConsoleOutputMatchesFor(
+      () => hre.tasks.getTask(["keystore", "set"]).run({ key: "myNewKey" }),
+      `Key "myNewKey" set\n`,
+    );
+  });
 });
 
 async function _overwriteKeystoreFileWith(
   filePath: string,
-  keystoreFile: UnencryptedKeystoreFile,
+  keystoreFile: EncryptedKeystore,
 ) {
   await remove(filePath);
 

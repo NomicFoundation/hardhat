@@ -1,6 +1,6 @@
 import type { HardhatRuntimeEnvironment } from "../types/hre.js";
 
-import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 
 let hre: HardhatRuntimeEnvironment | undefined;
 

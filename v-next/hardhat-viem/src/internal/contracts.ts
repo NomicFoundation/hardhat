@@ -8,15 +8,15 @@ import type {
   SendDeploymentTransactionConfig,
   WalletClient,
 } from "../types.js";
-import type { ArtifactManager } from "@ignored/hardhat-vnext/types/artifacts";
-import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
-import type { PrefixedHexString } from "@ignored/hardhat-vnext-utils/hex";
+import type { PrefixedHexString } from "@nomicfoundation/hardhat-utils/hex";
+import type { ArtifactManager } from "hardhat/types/artifacts";
+import type { EthereumProvider } from "hardhat/types/providers";
 import type { Abi as ViemAbi, Address as ViemAddress } from "viem";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { toBigInt } from "@ignored/hardhat-vnext-utils/bigint";
-import { resolveLinkedBytecode } from "@ignored/hardhat-vnext-utils/bytecode";
-import { ensureError } from "@ignored/hardhat-vnext-utils/error";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { toBigInt } from "@nomicfoundation/hardhat-utils/bigint";
+import { resolveLinkedBytecode } from "@nomicfoundation/hardhat-utils/bytecode";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { getContractAddress, getContract } from "viem";
 
 import { getDefaultWalletClient } from "./clients.js";
@@ -37,15 +37,21 @@ export async function deployContract<ContractName extends string>(
   } = deployContractConfig;
 
   if (confirmations < 0) {
-    throw new HardhatError(HardhatError.ERRORS.VIEM.INVALID_CONFIRMATIONS, {
-      error: "Confirmations must be greather than 0.",
-    });
+    throw new HardhatError(
+      HardhatError.ERRORS.HARDHAT_VIEM.GENERAL.INVALID_CONFIRMATIONS,
+      {
+        error: "Confirmations must be greather than 0.",
+      },
+    );
   }
   if (confirmations === 0) {
-    throw new HardhatError(HardhatError.ERRORS.VIEM.INVALID_CONFIRMATIONS, {
-      error:
-        "deployContract does not support 0 confirmations. Use sendDeploymentTransaction if you want to handle the deployment transaction yourself.",
-    });
+    throw new HardhatError(
+      HardhatError.ERRORS.HARDHAT_VIEM.GENERAL.INVALID_CONFIRMATIONS,
+      {
+        error:
+          "deployContract does not support 0 confirmations. Use sendDeploymentTransaction if you want to handle the deployment transaction yourself.",
+      },
+    );
   }
 
   const publicClient = client?.public ?? defaultPublicClient;
@@ -85,10 +91,13 @@ export async function deployContract<ContractName extends string>(
     const transaction = await publicClient.getTransaction({
       hash: deploymentTxHash,
     });
-    throw new HardhatError(HardhatError.ERRORS.VIEM.DEPLOY_CONTRACT_ERROR, {
-      txHash: deploymentTxHash,
-      blockNumber: transaction.blockNumber,
-    });
+    throw new HardhatError(
+      HardhatError.ERRORS.HARDHAT_VIEM.GENERAL.DEPLOY_CONTRACT_ERROR,
+      {
+        txHash: deploymentTxHash,
+        blockNumber: transaction.blockNumber,
+      },
+    );
   }
 
   const contract = createContractInstance(
@@ -225,7 +234,7 @@ async function getContractAbiAndBytecode(
     ensureError(error);
 
     throw new HardhatError(
-      HardhatError.ERRORS.VIEM.LINKING_CONTRACT_ERROR,
+      HardhatError.ERRORS.HARDHAT_VIEM.GENERAL.LINKING_CONTRACT_ERROR,
       {
         contractName,
         error: error.message,

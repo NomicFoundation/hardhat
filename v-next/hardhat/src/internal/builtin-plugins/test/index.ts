@@ -21,7 +21,7 @@ const hardhatPlugin: HardhatPlugin = {
       return solidityBuiltinPlugin;
     },
   ],
-  npmPackage: "@ignored/hardhat-vnext",
+  npmPackage: "hardhat",
 };
 
 export default hardhatPlugin;

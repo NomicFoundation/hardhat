@@ -1,4 +1,4 @@
-import type { HardhatPlugin } from "@ignored/hardhat-vnext/types/plugins";
+import type { HardhatPlugin } from "hardhat/types/plugins";
 
 export const setupKeystoreFileLocationOverrideAt = (
   keystoreFilePath: string,

@@ -91,7 +91,7 @@ describe("time - setNextBlockTimestamp", () => {
   //     await assertRejectsWithHardhatError(
   //       async () =>
   //         time.setNextBlockTimestamp(initialTimestamp - 1),
-  //       HardhatError.ERRORS.NETWORK_HELPERS.INVALID_TIMESTAMP_TOO_LOW,
+  //       HardhatError.ERRORS.NETWORK_HELPERS.GENERAL.INVALID_TIMESTAMP_TOO_LOW,
   //       {},
   //     );
 

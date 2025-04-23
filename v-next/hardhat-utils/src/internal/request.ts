@@ -3,7 +3,6 @@ import type EventEmitter from "node:events";
 import type UndiciT from "undici";
 
 import path from "node:path";
-import url from "node:url";
 
 import { mkdir } from "../fs.js";
 import { isObject } from "../lang.js";
@@ -137,7 +136,8 @@ export function getBaseDispatcherOptions(
 
 export function sanitizeUrl(requestUrl: string): string {
   const parsedUrl = new URL(requestUrl);
-  return url.format(parsedUrl, { auth: false, search: false, fragment: false });
+  // Return only the origin to avoid leaking sensitive information
+  return parsedUrl.origin;
 }
 
 export function handleError(e: Error, requestUrl: string): void {

@@ -16,7 +16,7 @@ import type {
   TaskArguments,
 } from "../../../types/tasks.js";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
 import { ArgumentType } from "../../../types/arguments.js";
 import { TaskDefinitionType } from "../../../types/tasks.js";
@@ -174,9 +174,12 @@ export class NewTaskDefinitionBuilderImplementation<
 
   public build(): NewTaskDefinition {
     if (this.#action === undefined) {
-      throw new HardhatError(HardhatError.ERRORS.TASK_DEFINITIONS.NO_ACTION, {
-        task: formatTaskId(this.#id),
-      });
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.TASK_DEFINITIONS.NO_ACTION,
+        {
+          task: formatTaskId(this.#id),
+        },
+      );
     }
 
     return {
@@ -321,9 +324,12 @@ export class TaskOverrideDefinitionBuilderImplementation<
 
   public build(): TaskOverrideDefinition {
     if (this.#action === undefined) {
-      throw new HardhatError(HardhatError.ERRORS.TASK_DEFINITIONS.NO_ACTION, {
-        task: formatTaskId(this.#id),
-      });
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.TASK_DEFINITIONS.NO_ACTION,
+        {
+          task: formatTaskId(this.#id),
+        },
+      );
     }
 
     return {

@@ -5,7 +5,7 @@ import type {
 import type { GlobalOptionDefinitions } from "../../../types/global-options.js";
 import type { Task } from "../../../types/tasks.js";
 
-import { camelToKebabCase } from "@ignored/hardhat-vnext-utils/string";
+import { camelToKebabCase } from "@nomicfoundation/hardhat-utils/string";
 
 export const GLOBAL_NAME_PADDING = 6;
 

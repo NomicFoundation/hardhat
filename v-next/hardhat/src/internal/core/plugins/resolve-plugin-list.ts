@@ -1,7 +1,7 @@
 import type { HardhatPlugin } from "../../../types/plugins.js";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { ensureError } from "@ignored/hardhat-vnext-utils/error";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 
 import { detectPluginNpmDependencyProblems } from "./detect-plugin-npm-dependency-problems.js";
 
@@ -36,7 +36,7 @@ async function reverseTopologicalSort(
     if (visited !== undefined) {
       if (visited !== plugin) {
         throw new HardhatError(
-          HardhatError.ERRORS.GENERAL.DUPLICATED_PLUGIN_ID,
+          HardhatError.ERRORS.CORE.GENERAL.DUPLICATED_PLUGIN_ID,
           { id: plugin.id },
         );
       }
@@ -86,7 +86,7 @@ async function loadDependency(
     await detectPluginNpmDependencyProblems(projectRoot, plugin);
 
     throw new HardhatError(
-      HardhatError.ERRORS.PLUGINS.PLUGIN_DEPENDENCY_FAILED_LOAD,
+      HardhatError.ERRORS.CORE.PLUGINS.PLUGIN_DEPENDENCY_FAILED_LOAD,
       {
         pluginId: plugin.id,
       },

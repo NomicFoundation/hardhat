@@ -3,7 +3,7 @@ import type { Time, NumberLike } from "../../src/types.js";
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import { initializeNetwork } from "../helpers/helpers.js";
@@ -40,7 +40,7 @@ describe("time - increase", () => {
   it("should throw if given a negative number of seconds", async () => {
     await assertRejectsWithHardhatError(
       async () => time.increase(-1),
-      HardhatError.ERRORS.NETWORK_HELPERS
+      HardhatError.ERRORS.NETWORK_HELPERS.GENERAL
         .CANNOT_CONVERT_NEGATIVE_NUMBER_TO_RPC_QUANTITY,
       {
         value: -1,
@@ -94,7 +94,7 @@ describe("time - increase", () => {
   //   it("should throw if given a negative number of seconds", async () => {
   //     await assertRejectsWithHardhatError(
   //       async () => time.increase(-1),
-  //       HardhatError.ERRORS.NETWORK_HELPERS.INVALID_TIMESTAMP_INCREMENT,
+  //       HardhatError.ERRORS.NETWORK_HELPERS.GENERAL.INVALID_TIMESTAMP_INCREMENT,
   //       {},
   //     );
   //   });

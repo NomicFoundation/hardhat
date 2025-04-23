@@ -9,7 +9,7 @@ import type {
 import { Readable } from "node:stream";
 
 import { runSolidityTests, EdrContext } from "@ignored/edr";
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
 import { formatArtifactId } from "./formatters.js";
 
@@ -67,7 +67,7 @@ export function run(
         timeout = setTimeout(() => {
           controller.error(
             new HardhatError(
-              HardhatError.ERRORS.SOLIDITY_TESTS.RUNNER_TIMEOUT,
+              HardhatError.ERRORS.CORE.SOLIDITY_TESTS.RUNNER_TIMEOUT,
               {
                 duration: options.timeout,
                 suites: Array.from(remainingSuites).join(", "),

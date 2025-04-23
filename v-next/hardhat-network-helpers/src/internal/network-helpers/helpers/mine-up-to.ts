@@ -1,6 +1,6 @@
 import type { NumberLike } from "../../../types.js";
 import type { Time } from "../time/time.js";
-import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
+import type { EthereumProvider } from "hardhat/types/providers";
 
 import { assertLargerThan } from "../../assertions.js";
 import { toBigInt, toRpcQuantity } from "../../conversion.js";

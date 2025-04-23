@@ -1,10 +1,10 @@
 import type { HardhatEthers } from "../src/types.js";
-import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
+import type { EthereumProvider } from "hardhat/types/providers";
 
 import assert from "node:assert/strict";
 import { beforeEach, describe, it, mock } from "node:test";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import { initializeTestEthers, sleep, tryUntil } from "./helpers/helpers.js";
@@ -369,7 +369,7 @@ describe("provider events", () => {
     it("should throw if .on is called with an unsupported event type", async () => {
       await assertRejectsWithHardhatError(
         ethers.provider.on([], () => {}),
-        HardhatError.ERRORS.ETHERS.EVENT_NOT_SUPPORTED,
+        HardhatError.ERRORS.HARDHAT_ETHERS.GENERAL.EVENT_NOT_SUPPORTED,
         {
           event: [],
         },
@@ -379,7 +379,7 @@ describe("provider events", () => {
     it("should throw if .once is called with an unsupported event type", async () => {
       await assertRejectsWithHardhatError(
         ethers.provider.once([], () => {}),
-        HardhatError.ERRORS.ETHERS.EVENT_NOT_SUPPORTED,
+        HardhatError.ERRORS.HARDHAT_ETHERS.GENERAL.EVENT_NOT_SUPPORTED,
         {
           event: [],
         },

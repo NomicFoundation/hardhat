@@ -1,10 +1,10 @@
 import type { NetworkHelpers } from "../../src/types.js";
-import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
+import type { EthereumProvider } from "hardhat/types/providers";
 
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import { getBlockNumber, initializeNetwork } from "../helpers/helpers.js";
@@ -56,7 +56,7 @@ describe("network-helpers - takeSnapshot", () => {
 
     await assertRejectsWithHardhatError(
       async () => snapshot2.restore(),
-      HardhatError.ERRORS.NETWORK_HELPERS.INVALID_SNAPSHOT,
+      HardhatError.ERRORS.NETWORK_HELPERS.GENERAL.INVALID_SNAPSHOT,
       {},
     );
   });

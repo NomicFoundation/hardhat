@@ -1,10 +1,10 @@
 import type { NetworkHelpers } from "../../src/types.js";
-import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
+import type { EthereumProvider } from "hardhat/types/providers";
 
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import { getBalance, initializeNetwork } from "../helpers/helpers.js";
@@ -45,7 +45,7 @@ describe("network-helpers - setBalance", () => {
   it("should throw because the address is invalid", async function () {
     await assertRejectsWithHardhatError(
       async () => networkHelpers.setBalance("0xCF", 1),
-      HardhatError.ERRORS.NETWORK_HELPERS.INVALID_ADDRESS,
+      HardhatError.ERRORS.NETWORK_HELPERS.GENERAL.INVALID_ADDRESS,
       {
         value: "0xCF",
       },

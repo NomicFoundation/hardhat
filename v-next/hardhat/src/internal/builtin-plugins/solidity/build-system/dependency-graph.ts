@@ -1,7 +1,7 @@
 import type { DependencyGraph } from "../../../../types/solidity/dependency-graph.js";
 import type { ResolvedFile } from "../../../../types/solidity/resolved-file.js";
 
-import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 
 export class DependencyGraphImplementation implements DependencyGraph {
   readonly #fileBySourceName = new Map<string, ResolvedFile>();
@@ -133,11 +133,14 @@ export class DependencyGraphImplementation implements DependencyGraph {
   }
 
   #addFile(file: ResolvedFile): void {
-    assertHardhatInvariant(!this.hasFile(file), "File already present");
+    assertHardhatInvariant(
+      !this.hasFile(file),
+      `File ${file.sourceName} already present`,
+    );
 
     assertHardhatInvariant(
       this.#fileBySourceName.get(file.sourceName) === undefined,
-      "File already present",
+      `File "${file.sourceName}" already present`,
     );
 
     this.#fileBySourceName.set(file.sourceName, file);

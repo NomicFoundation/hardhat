@@ -8,10 +8,10 @@ import type { Task, TaskArguments } from "../../types/tasks.js";
 import {
   HardhatError,
   assertHardhatInvariant,
-} from "@ignored/hardhat-vnext-errors";
-import { isCi } from "@ignored/hardhat-vnext-utils/ci";
-import { readClosestPackageJson } from "@ignored/hardhat-vnext-utils/package";
-import { kebabToCamelCase } from "@ignored/hardhat-vnext-utils/string";
+} from "@nomicfoundation/hardhat-errors";
+import { isCi } from "@nomicfoundation/hardhat-utils/ci";
+import { readClosestPackageJson } from "@nomicfoundation/hardhat-utils/package";
+import { kebabToCamelCase } from "@nomicfoundation/hardhat-utils/string";
 import debug from "debug";
 import { register } from "tsx/esm/api";
 
@@ -36,6 +36,7 @@ import { createHardhatRuntimeEnvironment } from "../hre-intialization.js";
 import { printErrorMessages } from "./error-handler.js";
 import { getGlobalHelpString } from "./help/get-global-help-string.js";
 import { getHelpString } from "./help/get-help-string.js";
+import { sendTaskAnalytics } from "./telemetry/analytics/analytics.js";
 import { sendErrorTelemetry } from "./telemetry/sentry/reporter.js";
 import { ensureTelemetryConsent } from "./telemetry/telemetry-permissions.js";
 import { printVersionMessage } from "./version.js";
@@ -160,12 +161,24 @@ export async function main(
       }
 
       throw new HardhatError(
-        HardhatError.ERRORS.TASK_DEFINITIONS.TASK_NOT_FOUND,
+        HardhatError.ERRORS.CORE.TASK_DEFINITIONS.TASK_NOT_FOUND,
         { task: taskOrId.join(" ") },
       );
     }
 
     const task = taskOrId;
+
+    if (task.isEmpty && usedCliArguments.includes(false)) {
+      const invalidSubtask = cliArguments[usedCliArguments.indexOf(false)];
+
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.TASK_DEFINITIONS.UNRECOGNIZED_SUBTASK,
+        {
+          task: task.id.join(" "),
+          invalidSubtask,
+        },
+      );
+    }
 
     if (builtinGlobalOptions.help || task.isEmpty) {
       const taskHelp = await getHelpString(task);
@@ -182,7 +195,7 @@ export async function main(
 
     log(`Running task "${task.id.join(" ")}"`);
 
-    await task.run(taskArguments);
+    await Promise.all([task.run(taskArguments), sendTaskAnalytics(task.id)]);
   } catch (error) {
     printErrorMessages(error, builtinGlobalOptions?.showStackTraces);
 
@@ -231,9 +244,12 @@ export async function parseBuiltinGlobalOptions(
       usedCliArguments[i] = true;
 
       if (configPath !== undefined) {
-        throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.DUPLICATED_NAME, {
-          name: "--config",
-        });
+        throw new HardhatError(
+          HardhatError.ERRORS.CORE.ARGUMENTS.DUPLICATED_NAME,
+          {
+            name: "--config",
+          },
+        );
       }
 
       if (
@@ -241,7 +257,7 @@ export async function parseBuiltinGlobalOptions(
         usedCliArguments[i + 1] === true
       ) {
         throw new HardhatError(
-          HardhatError.ERRORS.ARGUMENTS.MISSING_CONFIG_FILE,
+          HardhatError.ERRORS.CORE.ARGUMENTS.MISSING_CONFIG_FILE,
         );
       }
 
@@ -279,7 +295,7 @@ export async function parseBuiltinGlobalOptions(
 
   if (init && configPath !== undefined) {
     throw new HardhatError(
-      HardhatError.ERRORS.ARGUMENTS.CANNOT_COMBINE_INIT_AND_CONFIG_PATH,
+      HardhatError.ERRORS.CORE.ARGUMENTS.CANNOT_COMBINE_INIT_AND_CONFIG_PATH,
     );
   }
 
@@ -353,7 +369,7 @@ function getTaskFromCliArguments(
        * is defined, it means that the option is not assigned to any task, and it's
        * an error. */
       throw new HardhatError(
-        HardhatError.ERRORS.ARGUMENTS.UNRECOGNIZED_OPTION,
+        HardhatError.ERRORS.CORE.ARGUMENTS.UNRECOGNIZED_OPTION,
         {
           option: arg,
         },
@@ -407,7 +423,7 @@ export function parseTaskArguments(
   const unusedIndex = usedCliArguments.indexOf(false);
 
   if (unusedIndex !== -1) {
-    throw new HardhatError(HardhatError.ERRORS.ARGUMENTS.UNUSED_ARGUMENT, {
+    throw new HardhatError(HardhatError.ERRORS.CORE.ARGUMENTS.UNUSED_ARGUMENT, {
       value: cliArguments[unusedIndex],
     });
   }
@@ -452,7 +468,7 @@ function parseOptions(
       // Only throw an error when the argument is not a global option, because
       // it might be a option related to a task
       throw new HardhatError(
-        HardhatError.ERRORS.ARGUMENTS.UNRECOGNIZED_OPTION,
+        HardhatError.ERRORS.CORE.ARGUMENTS.UNRECOGNIZED_OPTION,
         {
           option: arg,
         },
@@ -503,7 +519,7 @@ function parseOptions(
     }
 
     throw new HardhatError(
-      HardhatError.ERRORS.ARGUMENTS.MISSING_VALUE_FOR_ARGUMENT,
+      HardhatError.ERRORS.CORE.ARGUMENTS.MISSING_VALUE_FOR_ARGUMENT,
       {
         argument: arg,
       },
@@ -583,7 +599,7 @@ function validateRequiredArguments(
   }
 
   throw new HardhatError(
-    HardhatError.ERRORS.ARGUMENTS.MISSING_VALUE_FOR_ARGUMENT,
+    HardhatError.ERRORS.CORE.ARGUMENTS.MISSING_VALUE_FOR_ARGUMENT,
     { argument: missingRequiredArgument.name },
   );
 }

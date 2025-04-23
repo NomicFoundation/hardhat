@@ -1,5 +1,5 @@
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { deepClone, isObject } from "@ignored/hardhat-vnext-utils/lang";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { deepClone, isObject } from "@nomicfoundation/hardhat-utils/lang";
 
 const PRIMITIVE = [
   "bigint",
@@ -47,7 +47,7 @@ export async function deepCopy<T = any>(value: T): Promise<T> {
   }
 
   throw new HardhatError(
-    HardhatError.ERRORS.ETHERS.UNSUPPORTED_TYPE_FOR_DEEP_COPY,
+    HardhatError.ERRORS.HARDHAT_ETHERS.GENERAL.UNSUPPORTED_TYPE_FOR_DEEP_COPY,
     {
       value,
       type: typeof value,

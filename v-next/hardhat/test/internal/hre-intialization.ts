@@ -2,12 +2,12 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import { afterEach, describe, it } from "node:test";
 
-import { HardhatError } from "@ignored/hardhat-vnext-errors";
-import { getRealPath } from "@ignored/hardhat-vnext-utils/fs";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   assertRejectsWithHardhatError,
   useFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
+import { getRealPath } from "@nomicfoundation/hardhat-utils/fs";
 
 import { builtinPlugins } from "../../src/internal/builtin-plugins/index.js";
 import { resolveHardhatConfigPath } from "../../src/internal/config-loading.js";
@@ -149,7 +149,7 @@ describe("HRE intialization", () => {
         it("should throw if the config file is not found", async () => {
           await assertRejectsWithHardhatError(
             resolveHardhatConfigPath("non-existent.config.js"),
-            HardhatError.ERRORS.GENERAL.INVALID_CONFIG_PATH,
+            HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG_PATH,
             {
               configPath: "non-existent.config.js",
             },
@@ -160,7 +160,7 @@ describe("HRE intialization", () => {
       it("should throw if the config file is not found", async () => {
         await assertRejectsWithHardhatError(
           resolveHardhatConfigPath(),
-          HardhatError.ERRORS.GENERAL.NO_CONFIG_FILE_FOUND,
+          HardhatError.ERRORS.CORE.GENERAL.NO_CONFIG_FILE_FOUND,
           {},
         );
       });
@@ -246,6 +246,7 @@ describe("HRE intialization", () => {
         assert.deepEqual(hre.globalOptions, {
           buildProfile: "default",
           config: configPath,
+          coverage: false,
           help: false,
           init: false,
           showStackTraces: false,

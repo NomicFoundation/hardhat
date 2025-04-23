@@ -1,17 +1,17 @@
 import path from "node:path";
 
-import { assertHardhatInvariant } from "@ignored/hardhat-vnext-errors";
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import {
   exists,
   getAllFilesMatching,
   isDirectory,
   readdir,
   readJsonFile,
-} from "@ignored/hardhat-vnext-utils/fs";
+} from "@nomicfoundation/hardhat-utils/fs";
 import {
   findClosestPackageRoot,
   type PackageJson,
-} from "@ignored/hardhat-vnext-utils/package";
+} from "@nomicfoundation/hardhat-utils/package";
 
 /**
  * This type describes a hardhat project template. It consists of:
@@ -43,10 +43,12 @@ export async function getTemplates(): Promise<Template[]> {
   }
 
   const pathsToTemplates = await readdir(pathToTemplates);
+  pathsToTemplates.sort();
 
   const templates = await Promise.all(
-    pathsToTemplates.map(async (name) => {
-      const pathToTemplate = path.join(pathToTemplates, name);
+    pathsToTemplates.map(async (dirName) => {
+      const name = dirName.replace(/^\d+-/, "");
+      const pathToTemplate = path.join(pathToTemplates, dirName);
       const pathToPackageJson = path.join(pathToTemplate, "package.json");
 
       if (!(await isDirectory(pathToTemplate))) {

@@ -1,6 +1,6 @@
 import type { ExampleContract } from "./helpers/example-contracts.js";
 import type { HardhatEthers } from "../src/types.js";
-import type { EthereumProvider } from "@ignored/hardhat-vnext/types/providers";
+import type { EthereumProvider } from "hardhat/types/providers";
 
 import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
