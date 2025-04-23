@@ -6,11 +6,12 @@ import type { CompilationJob } from "../../../../types/solidity/compilation-job.
 import type { CompilerInput } from "../../../../types/solidity/compiler-io.js";
 import type { DependencyGraph } from "../../../../types/solidity/dependency-graph.js";
 import type { ResolvedFile } from "../../../../types/solidity.js";
+import type { CoverageManager } from "../../coverage/types.js";
 
 import { createNonCryptographicHashId } from "@nomicfoundation/hardhat-utils/crypto";
 
 import { ResolvedFileType } from "../../../../types/solidity.js";
-import { getOrCreateCoverageManager } from "../../coverage/coverage-manager.js";
+import { getOrCreateGlobalHardhatRuntimeEnvironment } from "../../../hre-intialization.js";
 
 import { formatRemapping } from "./resolver/remappings.js";
 import { getEvmVersionFromSolcVersion } from "./solc-info.js";
@@ -42,9 +43,9 @@ export class CompilationJobImplementation implements CompilationJob {
     this.#coverage = coverage;
   }
 
-  public getSolcInput(): CompilerInput {
+  public async getSolcInput(): Promise<CompilerInput> {
     if (this.#solcInput === undefined) {
-      this.#solcInput = this.#buildSolcInput();
+      this.#solcInput = await this.#buildSolcInput();
     }
 
     return this.#solcInput;
@@ -77,11 +78,15 @@ export class CompilationJobImplementation implements CompilationJob {
     return this.#resolvedFiles;
   }
 
-  #buildSolcInput(): CompilerInput {
+  async #buildSolcInput(): Promise<CompilerInput> {
     const solcInputWithoutSources = this.#getSolcInputWithoutSources();
 
     const sources: { [sourceName: string]: { content: string } } = {};
-    const coverageManager = getOrCreateCoverageManager();
+
+    const hre = await getOrCreateGlobalHardhatRuntimeEnvironment();
+    const coverageManager: CoverageManager =
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- We want to access internal coverage manager methods
+      hre.coverage as unknown as CoverageManager;
 
     const resolvedFiles = this.#getResolvedFiles();
 
@@ -95,7 +100,7 @@ export class CompilationJobImplementation implements CompilationJob {
         sources[file.sourceName] = {
           content,
         };
-        coverageManager.updateMetadata(metadata);
+        await coverageManager.updateMetadata(metadata);
       } else {
         sources[file.sourceName] = {
           content: file.content.text,

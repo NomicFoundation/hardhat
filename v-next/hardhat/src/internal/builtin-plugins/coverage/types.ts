@@ -19,5 +19,5 @@ export interface CoverageMetadata {
 export interface CoverageManager extends PublicCoverageManager {
   addProvider(id: string, provider: EdrProvider): Promise<void>;
   removeProvider(id: string): Promise<void>;
-  updateMetadata(metadata: CoverageMetadata): void;
+  updateMetadata(metadata: CoverageMetadata): Promise<void>;
 }

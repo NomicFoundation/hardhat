@@ -1,3 +1,4 @@
+import type { CoverageManager } from "../types.js";
 import type { HookContext, NetworkHooks } from "hardhat/types/hooks";
 import type { ChainType, NetworkConnection } from "hardhat/types/network";
 
@@ -15,10 +16,9 @@ export default async (): Promise<Partial<NetworkHooks>> => {
 
       if (context.globalOptions.coverage === true) {
         if (connection.provider instanceof EdrProvider) {
-          const { getOrCreateCoverageManager } = await import(
-            "../coverage-manager.js"
-          );
-          const coverageManager = getOrCreateCoverageManager();
+          const coverageManager: CoverageManager =
+            // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- We want to access internal coverage manager methods
+            context.coverage as unknown as CoverageManager;
           await coverageManager.addProvider(
             connection.id.toString(),
             connection.provider,
@@ -38,10 +38,9 @@ export default async (): Promise<Partial<NetworkHooks>> => {
     ) {
       if (context.globalOptions.coverage === true) {
         if (connection.provider instanceof EdrProvider) {
-          const { getOrCreateCoverageManager } = await import(
-            "../coverage-manager.js"
-          );
-          const coverageManager = getOrCreateCoverageManager();
+          const coverageManager: CoverageManager =
+            // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- We want to access internal coverage manager methods
+            context.coverage as unknown as CoverageManager;
           await coverageManager.removeProvider(connection.id.toString());
         }
       }
