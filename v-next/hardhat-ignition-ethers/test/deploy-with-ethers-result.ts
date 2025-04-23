@@ -1,19 +1,14 @@
-import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
 
+import { useEphemeralFixtureProject } from "@nomicfoundation/hardhat-test-utils";
 import { buildModule } from "@nomicfoundation/ignition-core";
-import { assert } from "chai";
 
+import { createConnection } from "./test-helpers/create-hre.js";
 import { externallyLoadedContractArtifact } from "./test-helpers/externally-loaded-contract.js";
-import { useIgnitionProject } from "./test-helpers/use-ignition-project.js";
-
-declare module "mocha" {
-  interface Context {
-    hre: HardhatRuntimeEnvironment;
-  }
-}
 
 describe("deploy with ethers result", () => {
-  useIgnitionProject("minimal");
+  useEphemeralFixtureProject("minimal");
 
   it("should get return ethers result from deploy", async function () {
     const moduleDefinition = buildModule("Module", (m) => {
@@ -23,7 +18,9 @@ describe("deploy with ethers result", () => {
       return { foo, fooAt };
     });
 
-    const result = await this.connection.ignition.deploy(moduleDefinition);
+    const connection = await createConnection();
+
+    const result = await connection.ignition.deploy(moduleDefinition);
 
     assert.equal(await result.foo.x(), 1n);
     assert.equal(await result.fooAt.x(), 1n);
@@ -36,7 +33,9 @@ describe("deploy with ethers result", () => {
       return { foo };
     });
 
-    const result = await this.connection.ignition.deploy(moduleDefinition);
+    const connection = await createConnection();
+
+    const result = await connection.ignition.deploy(moduleDefinition);
 
     assert.equal(await result.foo.x(), 1n);
   });
@@ -49,7 +48,9 @@ describe("deploy with ethers result", () => {
       return { contractAtFoo };
     });
 
-    const result = await this.connection.ignition.deploy(moduleDefinition);
+    const connection = await createConnection();
+
+    const result = await connection.ignition.deploy(moduleDefinition);
 
     assert.equal(await result.contractAtFoo.x(), 1n);
   });
@@ -66,9 +67,14 @@ describe("deploy with ethers result", () => {
       return { externallyLoadedContract };
     });
 
-    const result = await this.connection.ignition.deploy(moduleDefinition);
+    const connection = await createConnection();
 
-    assert.isTrue(await result.externallyLoadedContract.isExternallyLoaded());
+    const result = await connection.ignition.deploy(moduleDefinition);
+
+    assert.equal(
+      await result.externallyLoadedContract.isExternallyLoaded(),
+      true,
+    );
   });
 
   it("should differentiate between different contracts in the type system", async function () {
@@ -79,16 +85,18 @@ describe("deploy with ethers result", () => {
       return { foo, bar };
     });
 
-    const result = await this.connection.ignition.deploy(moduleDefinition);
+    const connection = await createConnection();
 
-    assert.isTrue(await result.foo.isFoo());
-    assert.isTrue(await result.bar.isBar());
+    const result = await connection.ignition.deploy(moduleDefinition);
+
+    assert.equal(await result.foo.isFoo(), true);
+    assert.equal(await result.bar.isBar(), true);
 
     // A function on the abi will not be defined on the ethers contract,
-    // but more importantly this should how up as a type error.
+    // but more importantly should show up as a type error.
 
     // TODO: add @ts-expect-error when we have typescript support
-    assert.isUndefined(result.foo.isBar);
-    assert.isUndefined(result.bar.isFoo);
+    assert.equal(result.foo.isBar, undefined);
+    assert.equal(result.bar.isFoo, undefined);
   });
 });

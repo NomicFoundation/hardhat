@@ -2,6 +2,8 @@ import type { HookContext, NetworkHooks } from "hardhat/types/hooks";
 import type { ChainType, NetworkConnection } from "hardhat/types/network";
 import type { HardhatPlugin } from "hardhat/types/plugins";
 
+import { describe, it } from "node:test";
+
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
