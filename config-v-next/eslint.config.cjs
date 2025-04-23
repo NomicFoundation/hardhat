@@ -3,6 +3,8 @@ const path = require("path");
 const eslintImport = require("eslint-plugin-import");
 const tseslint = require("typescript-eslint");
 const globals = require("globals");
+const pluginNoOnlyTests = require("eslint-plugin-no-only-tests");
+const pluginEslintComments = require("@eslint-community/eslint-plugin-eslint-comments");
 
 /**
  * Creates a predefined config that every package inside this monorepo should use.
@@ -83,6 +85,19 @@ function createConfig(
         "CallExpression[callee.object.name='z'][callee.property.name=union]",
       message:
         "Use the conditionalUnionType or unionType helpers from the zod utils package instead, as it provides better error messages.",
+    },
+  ];
+
+  const forceHardhatTestUtils = [
+    {
+      selector:
+        "CallExpression[callee.object.name='assert'][callee.property.name=throws]",
+      message: "Don't use assert.throws. Use our test helpers instead.",
+    },
+    {
+      selector:
+        "CallExpression[callee.object.name='assert'][callee.property.name=rejects]",
+      message: "Don't use assert.rejects. Use our test helpers instead.",
     },
   ];
 
@@ -388,18 +403,24 @@ function createConfig(
 
     plugins: {
       import: eslintImport,
-      "no-only-tests": require("eslint-plugin-no-only-tests"),
+      "no-only-tests": pluginNoOnlyTests,
       "@typescript-eslint": tseslint.plugin,
-      "@eslint-community/eslint-comments": require("@eslint-community/eslint-plugin-eslint-comments"),
+      "@eslint-community/eslint-comments": pluginEslintComments,
     },
     rules,
+    files: ["src/**/*.ts", "test/**/*.ts", "integration-tests/**/*.ts"],
+    ignores: ["/test/**/fixture-projects"]
   };
 
   /**
    * @type {import("eslint").Linter.Config}
    */
   const testFilesConfig = {
-    files: ["test/**/*.ts"],
+    files: ["test/**/*.ts", "integration-tests/**/*.ts"],
+    ignores: ["/test/**/fixture-projects"],
+    plugins: {
+      import: eslintImport,
+    },
     rules: {
       "import/no-extraneous-dependencies": [
         "error",
@@ -433,24 +454,16 @@ function createConfig(
   };
 
   if (options.enforceHardhatTestUtils) {
-    config.rules["no-restricted-syntax"].push(
-      {
-        selector:
-          "CallExpression[callee.object.name='assert'][callee.property.name=throws]",
-        message: "Don't use assert.throws. Use our test helpers instead.",
-      },
-      {
-        selector:
-          "CallExpression[callee.object.name='assert'][callee.property.name=rejects]",
-        message: "Don't use assert.rejects. Use our test helpers instead.",
-      }
-    );
+    config.rules["no-restricted-syntax"].push(...forceHardhatTestUtils);
   }
 
   /**
    * @type {import("eslint").Linter.Config[]}
    */
-  const configArray = [config, testFilesConfig];
+  const configArray = [
+    config,
+    testFilesConfig,
+  ];
 
   if (options.onlyHardhatError) {
     configArray.push(onlyHardhatErrorConfig);

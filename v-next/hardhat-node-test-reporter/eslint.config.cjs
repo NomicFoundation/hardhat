@@ -6,7 +6,6 @@ const configs = createConfig(__filename);
  * * @type {import("eslint").Linter.Config}
  */
 const overrideConfig = {
-  files: ["integration-tests/**/*.ts"],
   rules: {
     "import/no-extraneous-dependencies": [
       "error",

@@ -47,7 +47,6 @@
     "chai-as-promised": "^8.0.0",
     "cross-env": "7.0.3",
     "eslint": "^9.23.0",
-    "eslint-plugin-mocha": "^10.0.0",
     "ethers": "^6.13.4",
     "mocha": "^11.0.0",
     "nyc": "15.1.0",

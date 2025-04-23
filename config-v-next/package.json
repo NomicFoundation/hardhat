@@ -1,7 +1,7 @@
 {
   "name": "@nomicfoundation/config-v-next",
   "version": "0.0.0",
-  "description": "",
+  "description": "Shared ESLint config for the Hardhat monorepo",
   "main": "index.js",
   "private": true,
   "scripts": {
