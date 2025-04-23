@@ -1227,7 +1227,6 @@ describe("config validation", function () {
       it("should work when all the paths are strings", async function () {
         const paths: Required<ProjectPathsUserConfig> = {
           cache: "./cache",
-          coverage: "./coverage",
           artifacts: "./artifacts",
           tests: "./tests",
           sources: "./sources",

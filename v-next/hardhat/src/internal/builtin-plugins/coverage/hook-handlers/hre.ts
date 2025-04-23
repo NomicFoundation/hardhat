@@ -2,6 +2,8 @@ import type { HardhatRuntimeEnvironmentHooks } from "../../../../types/hooks.js"
 import type { EdrProvider } from "../../network-manager/edr/edr-provider.js";
 import type { CoverageManager } from "../types.js";
 
+import path from "node:path";
+
 export class LazyCoverageManager implements CoverageManager {
   readonly #coveragePath: string;
 
@@ -49,7 +51,9 @@ export class LazyCoverageManager implements CoverageManager {
 export default async (): Promise<Partial<HardhatRuntimeEnvironmentHooks>> => {
   const handlers: Partial<HardhatRuntimeEnvironmentHooks> = {
     created: async (_context, hre): Promise<void> => {
-      hre.coverage = new LazyCoverageManager(hre.config.paths.coverage);
+      hre.coverage = new LazyCoverageManager(
+        path.join(hre.config.paths.cache, "coverage"),
+      );
     },
   };
 

@@ -73,7 +73,6 @@ export interface HardhatUserConfig {
 export interface ProjectPathsUserConfig {
   cache?: string;
   artifacts?: string;
-  coverage?: string;
   tests?: string | TestPathsUserConfig;
   sources?: string | string[] | SourcePathsUserConfig;
 }
@@ -116,7 +115,6 @@ export interface ProjectPathsConfig {
   config?: string;
   cache: string;
   artifacts: string;
-  coverage: string;
   tests: TestPathsConfig;
   sources: SourcePathsConfig;
 }
