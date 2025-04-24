@@ -62,7 +62,7 @@
     "chai": "^5.1.2",
     "chai-as-promised": "^8.0.0",
     "cross-env": "7.0.3",
-    "eslint": "^9.23.0",
+    "eslint": "9.25.1",
     "mocha": "^11.0.0",
     "nyc": "15.1.0",
     "prettier": "3.2.5",
