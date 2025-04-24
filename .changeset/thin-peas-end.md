@@ -2,4 +2,4 @@
 "hardhat": patch
 ---
 
-Removed telemetry consent prompt, made telemetry enabled by default, added a task through which telemetry can be explicitly enabled/disabled, and anonymized server name tag on events sent to Sentry
+Replace telemetry consent prompt with a task through which telemetry can be explicitly enabled/disabled ([#6573](https://github.com/NomicFoundation/hardhat/pull/6573))
