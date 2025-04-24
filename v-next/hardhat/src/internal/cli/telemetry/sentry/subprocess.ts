@@ -11,6 +11,7 @@ import { SENTRY_DSN } from "./reporter.js";
 try {
   init({
     dsn: SENTRY_DSN,
+    serverName: "<user-server>",
   });
 } catch (error) {
   process.exit(1);
