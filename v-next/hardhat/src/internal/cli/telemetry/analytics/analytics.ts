@@ -2,7 +2,7 @@ import type {
   EventNames,
   Payload,
   TaskParams,
-  TelemetryConsentPayload,
+  TelemetryConfigPayload,
 } from "./types.js";
 
 import os from "node:os";
@@ -24,25 +24,25 @@ const SESSION_ID = Math.random().toString();
 const ENGAGEMENT_TIME_MSEC = "10000";
 
 // Return a boolean for testing purposes to verify that analytics are not sent in CI environments
-export async function sendTelemetryConsentAnalytics(
-  consent: boolean,
+export async function sendTelemetryConfigAnalytics(
+  enabled: boolean,
 ): Promise<boolean> {
-  // This is a special scenario where only the consent is sent, all the other analytics info
-  // (like node version, hardhat version, etc.) are stripped.
+  // This is a special scenario where only the telemetry config is sent,
+  // all the other analytics info (like node version, hardhat version, etc.) are stripped.
 
   if (!isTelemetryAllowedInEnvironment()) {
     return false;
   }
 
-  const payload: TelemetryConsentPayload = {
-    client_id: "hardhat_telemetry_consent",
-    user_id: "hardhat_telemetry_consent",
+  const payload: TelemetryConfigPayload = {
+    client_id: "hardhat_telemetry_config",
+    user_id: "hardhat_telemetry_config",
     user_properties: {},
     events: [
       {
-        name: "TelemetryConsentResponse",
+        name: "TelemetryConfig",
         params: {
-          userConsent: consent ? "yes" : "no",
+          enabled,
         },
       },
     ],
@@ -78,7 +78,7 @@ async function sendAnalytics(
 }
 
 async function createSubprocessToSendAnalytics(
-  payload: TelemetryConsentPayload | Payload,
+  payload: TelemetryConfigPayload | Payload,
 ): Promise<void> {
   log(
     `Sending analytics for '${payload.events[0].name}'. Payload: ${JSON.stringify(payload)}`,

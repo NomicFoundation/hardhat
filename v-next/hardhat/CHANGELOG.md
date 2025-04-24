@@ -1,5 +1,16 @@
 # hardhat
 
+## 3.0.0-next.5
+
+### Patch Changes
+
+- bfb708c: Fix HHE411 with improved error message ([#6604](https://github.com/NomicFoundation/hardhat/pull/6604))
+- 84b625c: Improve internal error handling for nodejs errors ([#5605](https://github.com/NomicFoundation/hardhat/issues/5605))
+- deaaffc: Display skipped and empty `describe` blocks correctly ([#5905](https://github.com/NomicFoundation/hardhat/issues/5905))
+- 43418a0: Replace telemetry consent prompt with a task through which telemetry can be explicitly enabled/disabled ([#6573](https://github.com/NomicFoundation/hardhat/pull/6573))
+- 3f55677: Support chainId values above 2^32 - 1 for local account transactions ([#6603](https://github.com/NomicFoundation/hardhat/issues/6603))
+- 0579708: Upgrade edr-optimism to 0.10.0-alpha.1 and make the hardforks dependent on the chain type ([#6609](https://github.com/NomicFoundation/hardhat/pull/6609))
+
 ## 3.0.0-next.4
 
 ### Patch Changes
