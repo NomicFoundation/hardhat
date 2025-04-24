@@ -4,4 +4,4 @@
 "hardhat": patch
 ---
 
-Display skipped and empty `describe` blocks correctly
+Display skipped and empty `describe` blocks correctly ([#5905](https://github.com/NomicFoundation/hardhat/issues/5905))
