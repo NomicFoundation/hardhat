@@ -594,33 +594,21 @@ importers:
       '@nomicfoundation/hardhat-ignition':
         specifier: workspace:^3.0.0-next.4
         version: link:../hardhat-ignition
+      '@nomicfoundation/hardhat-node-test-reporter':
+        specifier: workspace:^3.0.0-next.4
+        version: link:../hardhat-node-test-reporter
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
         version: link:../hardhat-test-utils
       '@nomicfoundation/ignition-core':
         specifier: workspace:^3.0.0-next.4
         version: link:../hardhat-ignition-core
-      '@types/chai':
-        specifier: ^4.2.0
-        version: 4.3.20
-      '@types/chai-as-promised':
-        specifier: ^8.0.1
-        version: 8.0.1
-      '@types/mocha':
-        specifier: '>=10.0.10'
-        version: 10.0.10
       '@types/node':
         specifier: ^20.14.9
         version: 20.17.16
-      '@types/sinon':
-        specifier: ^10.0.13
-        version: 10.0.20
-      chai:
-        specifier: ^5.1.2
-        version: 5.1.2
-      chai-as-promised:
-        specifier: ^8.0.0
-        version: 8.0.1(chai@5.1.2)
+      c8:
+        specifier: ^9.1.0
+        version: 9.1.0
       cross-env:
         specifier: 7.0.3
         version: 7.0.3
@@ -633,9 +621,6 @@ importers:
       hardhat:
         specifier: workspace:^3.0.0-next.4
         version: link:../hardhat
-      mocha:
-        specifier: ^11.0.0
-        version: 11.1.0
       nyc:
         specifier: 15.1.0
         version: 15.1.0
@@ -645,12 +630,12 @@ importers:
       rimraf:
         specifier: ^5.0.5
         version: 5.0.10
-      sinon:
-        specifier: ^14.0.0
-        version: 14.0.2
       ts-node:
         specifier: 10.9.2
         version: 10.9.2(@types/node@20.17.16)(typescript@5.5.4)
+      tsx:
+        specifier: ^4.19.3
+        version: 4.19.3
       typescript:
         specifier: ~5.5.0
         version: 5.5.4
@@ -748,6 +733,9 @@ importers:
       '@nomicfoundation/hardhat-ignition':
         specifier: workspace:^3.0.0-next.4
         version: link:../hardhat-ignition
+      '@nomicfoundation/hardhat-node-test-reporter':
+        specifier: workspace:^3.0.0-next.4
+        version: link:../hardhat-node-test-reporter
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
         version: link:../hardhat-test-utils
@@ -757,27 +745,12 @@ importers:
       '@nomicfoundation/ignition-core':
         specifier: workspace:^3.0.0-next.4
         version: link:../hardhat-ignition-core
-      '@types/chai':
-        specifier: ^4.2.0
-        version: 4.3.20
-      '@types/chai-as-promised':
-        specifier: ^8.0.1
-        version: 8.0.1
-      '@types/mocha':
-        specifier: '>=10.0.10'
-        version: 10.0.10
       '@types/node':
         specifier: ^20.14.9
         version: 20.17.16
-      '@types/sinon':
-        specifier: ^10.0.13
-        version: 10.0.20
-      chai:
-        specifier: ^5.1.2
-        version: 5.1.2
-      chai-as-promised:
-        specifier: ^8.0.0
-        version: 8.0.1(chai@5.1.2)
+      c8:
+        specifier: ^9.1.0
+        version: 9.1.0
       cross-env:
         specifier: 7.0.3
         version: 7.0.3
@@ -787,9 +760,6 @@ importers:
       hardhat:
         specifier: workspace:^3.0.0-next.4
         version: link:../hardhat
-      mocha:
-        specifier: ^11.0.0
-        version: 11.1.0
       nyc:
         specifier: 15.1.0
         version: 15.1.0
@@ -799,12 +769,12 @@ importers:
       rimraf:
         specifier: ^5.0.5
         version: 5.0.10
-      sinon:
-        specifier: ^14.0.0
-        version: 14.0.2
       ts-node:
         specifier: 10.9.2
         version: 10.9.2(@types/node@20.17.16)(typescript@5.5.4)
+      tsx:
+        specifier: ^4.19.3
+        version: 4.19.3
       typescript:
         specifier: ~5.5.0
         version: 5.5.4
