@@ -69,7 +69,7 @@ declare module "../../../../types/config.js" {
     allowBlocksWithSameTimestamp?: boolean;
     allowUnlimitedContractSize?: boolean;
     blockGasLimit?: number | bigint;
-    chains?: EdrNetworkChainsUserConfig;
+    chainDescriptors?: ChainDescriptorsUserConfig;
     coinbase?: string;
     enableRip7212?: boolean;
     enableTransientStorage?: boolean;
@@ -103,12 +103,12 @@ declare module "../../../../types/config.js" {
     path?: string;
   }
 
-  export type EdrNetworkChainsUserConfig = Map<
+  export type ChainDescriptorsUserConfig = Map<
     number /* chainId */,
-    EdrNetworkChainUserConfig
+    ChainDescriptorUserConfig
   >;
 
-  export interface EdrNetworkChainUserConfig {
+  export interface ChainDescriptorUserConfig {
     chainType?: ChainType;
     hardforkHistory?: HardforkHistoryUserConfig;
   }
@@ -188,7 +188,7 @@ declare module "../../../../types/config.js" {
     allowBlocksWithSameTimestamp: boolean;
     allowUnlimitedContractSize: boolean;
     blockGasLimit: bigint;
-    chains: EdrNetworkChainsConfig;
+    chainDescriptors: ChainDescriptorsConfig;
     coinbase: Uint8Array;
     enableRip7212: boolean;
     enableTransientStorage: boolean;
@@ -222,12 +222,12 @@ declare module "../../../../types/config.js" {
     path: string;
   }
 
-  export type EdrNetworkChainsConfig = Map<
+  export type ChainDescriptorsConfig = Map<
     number /* chainId */,
-    EdrNetworkChainConfig
+    ChainDescriptorConfig
   >;
 
-  export interface EdrNetworkChainConfig {
+  export interface ChainDescriptorConfig {
     chainType: ChainType;
     hardforkHistory: HardforkHistoryConfig;
   }

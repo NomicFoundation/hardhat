@@ -2,9 +2,9 @@ import type {
   ConfigurationVariableResolver,
   EdrNetworkAccountsConfig,
   EdrNetworkAccountsUserConfig,
-  EdrNetworkChainConfig,
-  EdrNetworkChainsConfig,
-  EdrNetworkChainsUserConfig,
+  ChainDescriptorConfig,
+  ChainDescriptorsConfig,
+  ChainDescriptorsUserConfig,
   EdrNetworkConfig,
   EdrNetworkForkingConfig,
   EdrNetworkForkingUserConfig,
@@ -90,7 +90,7 @@ export function resolveEdrNetwork(
     allowUnlimitedContractSize:
       networkConfig.allowUnlimitedContractSize ?? false,
     blockGasLimit: BigInt(networkConfig.blockGasLimit ?? 30_000_000n),
-    chains: resolveChains(networkConfig.chains),
+    chainDescriptors: resolveChainDescriptors(networkConfig.chainDescriptors),
     coinbase: resolveCoinbase(networkConfig.coinbase),
     enableRip7212: networkConfig.enableRip7212 ?? false,
     enableTransientStorage: networkConfig.enableTransientStorage ?? false,
@@ -228,9 +228,9 @@ export function resolveCoinbase(
   return hexStringToBytes(coinbase);
 }
 
-export function resolveChains(
-  chains: EdrNetworkChainsUserConfig | undefined,
-): EdrNetworkChainsConfig {
+export function resolveChainDescriptors(
+  chainDescriptors: ChainDescriptorsUserConfig | undefined,
+): ChainDescriptorsConfig {
   /**
    * Block numbers / timestamps were taken from:
    *
@@ -242,7 +242,7 @@ export function resolveChains(
    * To find hardfork activation blocks by timestamp, use:
    * https://api-TESTNET.etherscan.io/api?module=block&action=getblocknobytime&timestamp=TIMESTAMP&closest=before&apikey=APIKEY
    */
-  const resolvedChains: EdrNetworkChainsConfig = new Map([
+  const resolvedChainDescriptors: ChainDescriptorsConfig = new Map([
     [
       1, // mainnet
       {
@@ -345,24 +345,24 @@ export function resolveChains(
     ],
   ]);
 
-  if (chains === undefined) {
-    return resolvedChains;
+  if (chainDescriptors === undefined) {
+    return resolvedChainDescriptors;
   }
 
-  chains.forEach((chainConfig, chainId) => {
-    const resolvedChainConfig: EdrNetworkChainConfig = {
-      chainType: chainConfig.chainType ?? GENERIC_CHAIN_TYPE,
+  chainDescriptors.forEach((chainDescriptor, chainId) => {
+    const resolvedChainDescriptor: ChainDescriptorConfig = {
+      chainType: chainDescriptor.chainType ?? GENERIC_CHAIN_TYPE,
       hardforkHistory: new Map(),
     };
-    if (chainConfig.hardforkHistory !== undefined) {
-      chainConfig.hardforkHistory.forEach((block, name) => {
-        resolvedChainConfig.hardforkHistory.set(name, block);
+    if (chainDescriptor.hardforkHistory !== undefined) {
+      chainDescriptor.hardforkHistory.forEach((block, name) => {
+        resolvedChainDescriptor.hardforkHistory.set(name, block);
       });
     }
-    resolvedChains.set(chainId, resolvedChainConfig);
+    resolvedChainDescriptors.set(chainId, resolvedChainDescriptor);
   });
 
-  return resolvedChains;
+  return resolvedChainDescriptors;
 }
 
 export function resolveHardfork(

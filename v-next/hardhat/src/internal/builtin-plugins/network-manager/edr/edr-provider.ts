@@ -62,7 +62,7 @@ import {
   hardhatMempoolOrderToEdrMineOrdering,
   hardhatHardforkToEdrSpecId,
   hardhatAccountsToEdrOwnedAccounts,
-  hardhatChainsToEdrChains,
+  hardhatChainDescriptorsToEdrChains,
   hardhatForkingConfigToEdrForkConfig,
   hardhatChainTypeToEdrChainType,
 } from "./utils/convert-to-edr.js";
@@ -405,8 +405,8 @@ async function getProviderConfig(
     blockGasLimit: networkConfig.blockGasLimit,
     cacheDir: networkConfig.forking?.cacheDir,
     chainId: BigInt(networkConfig.chainId),
-    chains: hardhatChainsToEdrChains(
-      networkConfig.chains,
+    chains: hardhatChainDescriptorsToEdrChains(
+      networkConfig.chainDescriptors,
       networkConfig.chainType,
     ),
     // TODO: remove this cast when EDR updates the interface to accept Uint8Array

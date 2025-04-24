@@ -1,6 +1,6 @@
 import type {
   ConfigurationVariableResolver,
-  EdrNetworkChainsUserConfig,
+  ChainDescriptorsUserConfig,
   EdrNetworkMiningUserConfig,
   EdrNetworkUserConfig,
   HttpNetworkUserConfig,
@@ -17,7 +17,7 @@ import { configVariable } from "../../../../src/config.js";
 import { createHardhatRuntimeEnvironment } from "../../../../src/hre.js";
 import { DEFAULT_HD_ACCOUNTS_CONFIG_PARAMS } from "../../../../src/internal/builtin-plugins/network-manager/accounts/constants.js";
 import {
-  resolveChains,
+  resolveChainDescriptors,
   resolveCoinbase,
   resolveEdrNetwork,
   resolveEdrNetworkAccounts,
@@ -578,9 +578,9 @@ describe("config-resolution", () => {
     });
   });
 
-  describe("resolveChains", () => {
-    it("should return the resolved chains with the provided chains overriding the defaults", () => {
-      const chainsUserConfig: EdrNetworkChainsUserConfig = new Map([
+  describe("resolveChainDescriptors", () => {
+    it("should return the resolved chain descriptors with the provided chainDescriptors overriding the defaults", () => {
+      const chainDescriptorsUserConfig: ChainDescriptorsUserConfig = new Map([
         [
           1,
           {
@@ -599,10 +599,15 @@ describe("config-resolution", () => {
           },
         ],
       ]);
-      const chainsConfig = resolveChains(chainsUserConfig);
+      const chainDescriptorsConfig = resolveChainDescriptors(
+        chainDescriptorsUserConfig,
+      );
 
-      const mainnet = chainsConfig.get(1);
-      assert.ok(mainnet !== undefined, "chain 1 is not in the resolved chains");
+      const mainnet = chainDescriptorsConfig.get(1);
+      assert.ok(
+        mainnet !== undefined,
+        "chain 1 is not in the resolved chain descriptors",
+      );
       assert.equal(mainnet.chainType, L1_CHAIN_TYPE);
       assert.equal(mainnet.hardforkHistory.get(L1HardforkName.BYZANTIUM), 1);
       assert.equal(
@@ -611,21 +616,24 @@ describe("config-resolution", () => {
       );
       assert.equal(mainnet.hardforkHistory.get("newHardfork"), 3);
 
-      const myNetwork = chainsConfig.get(31337);
+      const myNetwork = chainDescriptorsConfig.get(31337);
       assert.ok(
         myNetwork !== undefined,
-        "chain 31337 is not in the resolved chains",
+        "chain 31337 is not in the resolved chain descriptors",
       );
       assert.equal(myNetwork.chainType, GENERIC_CHAIN_TYPE);
       assert.equal(myNetwork.hardforkHistory.get(L1HardforkName.BYZANTIUM), 1);
     });
 
-    it("should return the default chains if no chains are provided", () => {
-      const chainsConfig = resolveChains(undefined);
+    it("should return the default chain descriptors if no value is provided", () => {
+      const chainDescriptors = resolveChainDescriptors(undefined);
 
       // Check some of the default values
-      const mainnet = chainsConfig.get(1);
-      assert.ok(mainnet !== undefined, "chain 1 is not in the resolved chains");
+      const mainnet = chainDescriptors.get(1);
+      assert.ok(
+        mainnet !== undefined,
+        "chain 1 is not in the resolved chain descriptors",
+      );
       assert.equal(
         mainnet.hardforkHistory.get(L1HardforkName.BYZANTIUM),
         4_370_000,
@@ -642,10 +650,10 @@ describe("config-resolution", () => {
         mainnet.hardforkHistory.get(L1HardforkName.CANCUN),
         19_426_589,
       );
-      const myNetwork = chainsConfig.get(31337);
+      const myNetwork = chainDescriptors.get(31337);
       assert.ok(
         myNetwork === undefined,
-        "chain 31337 is in the resolved chains",
+        "chain 31337 is in the resolved chain descriptors",
       );
     });
   });

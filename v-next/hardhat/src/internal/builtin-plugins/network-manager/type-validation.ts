@@ -142,14 +142,14 @@ const edrNetworkAccountsUserConfigSchema = conditionalUnionType(
 
 const hardforkHistoryUserConfigSchema = z.map(z.string(), blockNumberSchema);
 
-const edrNetworkChainUserConfigSchema = z.object({
+const chainDescriptorUserConfigSchema = z.object({
   chainType: z.optional(chainTypeUserConfigSchema),
   hardforkHistory: z.optional(hardforkHistoryUserConfigSchema),
 });
 
-const edrNetworkChainsUserConfigSchema = z.map(
+const chainDescriptorsUserConfigSchema = z.map(
   chainIdSchema,
-  edrNetworkChainUserConfigSchema,
+  chainDescriptorUserConfigSchema,
 );
 
 const edrNetworkForkingUserConfigSchema = z.object({
@@ -196,7 +196,7 @@ const edrNetworkUserConfigSchema = z.object({
   allowBlocksWithSameTimestamp: z.optional(z.boolean()),
   allowUnlimitedContractSize: z.optional(z.boolean()),
   blockGasLimit: z.optional(gasUnitUserConfigSchema),
-  chains: z.optional(edrNetworkChainsUserConfigSchema),
+  chainDescriptors: z.optional(chainDescriptorsUserConfigSchema),
   coinbase: z.optional(z.string()),
   enableRip7212: z.optional(z.boolean()),
   enableTransientStorage: z.optional(z.boolean()),
@@ -227,7 +227,7 @@ function refineEdrNetworkUserConfig(
     const {
       chainType = GENERIC_CHAIN_TYPE,
       hardfork,
-      chains,
+      chainDescriptors,
       minGasPrice,
       initialBaseFeePerGas,
       enableTransientStorage,
@@ -243,32 +243,34 @@ function refineEdrNetworkUserConfig(
       });
     }
 
-    if (chains !== undefined) {
-      Array.from(chains).forEach(([chainId, chainConfig], chainIdx) => {
-        if (chainConfig.hardforkHistory === undefined) {
-          return;
-        }
+    if (chainDescriptors !== undefined) {
+      Array.from(chainDescriptors).forEach(
+        ([chainId, chainDescriptor], chainIdx) => {
+          if (chainDescriptor.hardforkHistory === undefined) {
+            return;
+          }
 
-        const type = chainConfig.chainType ?? GENERIC_CHAIN_TYPE;
-        Array.from(chainConfig.hardforkHistory).forEach(
-          ([name], hardforkIdx) => {
-            if (!isValidHardforkName(name, type)) {
-              ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                path: [
-                  "chains",
-                  chainIdx,
-                  "value",
-                  "hardforkHistory",
-                  hardforkIdx,
-                  "value",
-                ],
-                message: `Invalid hardfork name ${name} found in chain ${chainId}. Expected ${getHardforks(type).join(" | ")}.`,
-              });
-            }
-          },
-        );
-      });
+          const type = chainDescriptor.chainType ?? GENERIC_CHAIN_TYPE;
+          Array.from(chainDescriptor.hardforkHistory).forEach(
+            ([name], hardforkIdx) => {
+              if (!isValidHardforkName(name, type)) {
+                ctx.addIssue({
+                  code: z.ZodIssueCode.custom,
+                  path: [
+                    "chainDescriptors",
+                    chainIdx,
+                    "value",
+                    "hardforkHistory",
+                    hardforkIdx,
+                    "value",
+                  ],
+                  message: `Invalid hardfork name "${name}" found in chain descriptor for chain ${chainId}. Expected ${getHardforks(type).join(" | ")}.`,
+                });
+              }
+            },
+          );
+        },
+      );
     }
 
     const resolvedHardfork = hardfork ?? getCurrentHardfork(chainType);

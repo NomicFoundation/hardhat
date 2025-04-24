@@ -2,7 +2,7 @@
 import type {
   EdrNetworkAccountConfig,
   EdrNetworkAccountsConfig,
-  EdrNetworkChainsConfig,
+  ChainDescriptorsConfig,
   EdrNetworkForkingConfig,
   EdrNetworkMempoolConfig,
   EdrNetworkMiningConfig,
@@ -277,30 +277,30 @@ export async function normalizeEdrNetworkAccountsConfig(
   }));
 }
 
-export function hardhatChainsToEdrChains(
-  chains: EdrNetworkChainsConfig,
+export function hardhatChainDescriptorsToEdrChains(
+  chainDescriptors: ChainDescriptorsConfig,
   chainType: ChainType,
 ): ChainConfig[] {
   return (
-    Array.from(chains)
-      // Skip chains that don't match the expected chain type
-      .filter(([_, config]) => {
+    Array.from(chainDescriptors)
+      // Skip chain descriptors that don't match the expected chain type
+      .filter(([_, descriptor]) => {
         if (chainType === GENERIC_CHAIN_TYPE) {
           // When "generic" is requested, include both "generic" and "l1" chains
           return (
-            config.chainType === GENERIC_CHAIN_TYPE ||
-            config.chainType === L1_CHAIN_TYPE
+            descriptor.chainType === GENERIC_CHAIN_TYPE ||
+            descriptor.chainType === L1_CHAIN_TYPE
           );
         }
 
-        return config.chainType === chainType;
+        return descriptor.chainType === chainType;
       })
-      .map(([chainId, config]) => ({
+      .map(([chainId, descriptor]) => ({
         chainId: BigInt(chainId),
-        hardforks: Array.from(config.hardforkHistory).map(
+        hardforks: Array.from(descriptor.hardforkHistory).map(
           ([hardfork, blockNumber]) => ({
             blockNumber: BigInt(blockNumber),
-            specId: hardhatHardforkToEdrSpecId(hardfork, config.chainType),
+            specId: hardhatHardforkToEdrSpecId(hardfork, descriptor.chainType),
           }),
         ),
       }))
