@@ -20,6 +20,7 @@
     "./config": "./dist/src/config.js",
     "./hre": "./dist/src/hre.js",
     "./plugins": "./dist/src/plugins.js",
+    "./dependency-resolver": "./dist/src/dependency-resolver.js",
     "./types/arguments": "./dist/src/types/arguments.js",
     "./types/artifacts": "./dist/src/types/artifacts.js",
     "./types/config": "./dist/src/types/config.js",
