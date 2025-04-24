@@ -579,7 +579,7 @@ describe("config-resolution", () => {
   });
 
   describe("resolveChainDescriptors", () => {
-    it("should return the resolved chain descriptors with the provided chainDescriptors overriding the defaults", () => {
+    it("should return the resolved chain descriptors with the provided chainDescriptors overriding the defaults", async () => {
       const chainDescriptorsUserConfig: ChainDescriptorsUserConfig = new Map([
         [
           1,
@@ -599,7 +599,7 @@ describe("config-resolution", () => {
           },
         ],
       ]);
-      const chainDescriptorsConfig = resolveChainDescriptors(
+      const chainDescriptorsConfig = await resolveChainDescriptors(
         chainDescriptorsUserConfig,
       );
 
@@ -625,8 +625,8 @@ describe("config-resolution", () => {
       assert.equal(myNetwork.hardforkHistory.get(L1HardforkName.BYZANTIUM), 1);
     });
 
-    it("should return the default chain descriptors if no value is provided", () => {
-      const chainDescriptors = resolveChainDescriptors(undefined);
+    it("should return the default chain descriptors if no value is provided", async () => {
+      const chainDescriptors = await resolveChainDescriptors(undefined);
 
       // Check some of the default values
       const mainnet = chainDescriptors.get(1);

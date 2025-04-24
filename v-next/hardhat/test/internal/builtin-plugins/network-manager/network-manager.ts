@@ -128,7 +128,7 @@ describe("NetworkManagerImplementation", () => {
       ),
     };
 
-    chainDescriptors = resolveChainDescriptors(undefined);
+    chainDescriptors = await resolveChainDescriptors(undefined);
 
     networkManager = new NetworkManagerImplementation(
       "localhost",
