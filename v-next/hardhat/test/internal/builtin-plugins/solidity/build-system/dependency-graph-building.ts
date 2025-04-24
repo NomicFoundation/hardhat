@@ -1,27 +1,21 @@
 import assert from "node:assert/strict";
 import path from "node:path";
-import { before, describe, it } from "node:test";
+import { describe, it } from "node:test";
 
 import { useFixtureProject } from "@nomicfoundation/hardhat-test-utils";
+import { readUtf8File } from "@nomicfoundation/hardhat-utils/fs";
 
 import { buildDependencyGraph } from "../../../../../src/internal/builtin-plugins/solidity/build-system/dependency-graph-building.js";
-import { HardhatRuntimeEnvironment } from "../../../../../src/types/hre.js";
-import { createHardhatRuntimeEnvironment } from "../../../../../src/internal/hre-intialization.js";
 
 describe("buildDependencyGraph", () => {
   useFixtureProject("solidity/example-project");
-  let hre: HardhatRuntimeEnvironment;
-
-  before(async () => {
-    hre = await createHardhatRuntimeEnvironment({});
-  });
 
   it("should return an empty graph if no files are provided", async () => {
     const { dependencyGraph, resolver } = await buildDependencyGraph(
       [],
       process.cwd(),
       [],
-      hre.hooks,
+      readUtf8File,
     );
 
     assert.equal(dependencyGraph.getRoots().size, 0);
@@ -47,7 +41,7 @@ describe("buildDependencyGraph", () => {
       rootSourceNames.map((sourceName) => path.join(process.cwd(), sourceName)),
       process.cwd(),
       ["remapped/=npm/@openzeppelin/contracts@5.1.0/access/"],
-      hre.hooks,
+      readUtf8File,
     );
 
     const roots = dependencyGraph.getRoots();

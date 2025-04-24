@@ -57,6 +57,7 @@ import { ObjectCache } from "./cache.js";
 import { CompilationJobImplementation } from "./compilation-job.js";
 import { downloadConfiguredCompilers, getCompiler } from "./compiler/index.js";
 import { buildDependencyGraph } from "./dependency-graph-building.js";
+import { readSourceFileFactory } from "./read-source-file.js";
 import {
   formatRootPath,
   isNpmParsedRootPath,
@@ -303,7 +304,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       rootFilePaths.toSorted(), // We sort them to have a deterministic order
       this.#options.projectRoot,
       this.#options.solidityConfig.remappings,
-      this.#hooks,
+      readSourceFileFactory(this.#hooks),
     );
 
     const buildProfileName = options?.buildProfile ?? DEFAULT_BUILD_PROFILE;

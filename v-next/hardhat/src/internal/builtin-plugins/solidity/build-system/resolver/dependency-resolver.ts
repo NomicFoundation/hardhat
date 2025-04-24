@@ -41,7 +41,6 @@ import {
   parseRemappingString,
   selectBestRemapping,
 } from "./remappings.js";
-import { HookManager } from "../../../../../types/hooks.js";
 
 // Things to note:
 //  - This resolver assumes that the root of the project is the folder with the
@@ -93,7 +92,7 @@ const PROJECT_ROOT_SENTINEL: unique symbol = Symbol();
 export class ResolverImplementation implements Resolver {
   readonly #projectRoot: string;
   readonly #userRemappings: ResolvedUserRemapping[];
-  readonly #hooks: HookManager;
+  readonly #readFile: (absPath: string) => Promise<string>;
 
   /**
    * IMPORTANT: This mutex must be acquired before writing to any of the mutable
@@ -150,7 +149,7 @@ export class ResolverImplementation implements Resolver {
   public static async create(
     projectRoot: string,
     userRemappingStrings: string[],
-    hooks: HookManager,
+    readFile: (absPath: string) => Promise<string> = readUtf8File,
   ): Promise<Resolver> {
     const userRemappings = await Promise.all(
       userRemappingStrings.map((remappingString) =>
@@ -158,18 +157,18 @@ export class ResolverImplementation implements Resolver {
       ),
     );
 
-    return new ResolverImplementation(projectRoot, userRemappings, hooks);
+    return new ResolverImplementation(projectRoot, userRemappings, readFile);
   }
 
   private constructor(
     projectRoot: string,
     userRemappings: ResolvedUserRemapping[],
-    hooks: HookManager,
+    readFile: (absPath: string) => Promise<string>,
   ) {
     this.#projectRoot = projectRoot;
     this.#userRemappings = userRemappings;
     this.#dependencyMaps.set(PROJECT_ROOT_SENTINEL, new Map());
-    this.#hooks = hooks;
+    this.#readFile = readFile;
   }
 
   public async resolveProjectFile(
@@ -1353,12 +1352,7 @@ export class ResolverImplementation implements Resolver {
    * Reads and analyzes the file at the given absolute path.
    */
   async #readFileContent(absolutePath: string): Promise<FileContent> {
-    const text = await this.#hooks.runHandlerChain(
-      "solidity",
-      "readSourceFile",
-      [absolutePath],
-      async (_context, absPath) => await readUtf8File(absPath),
-    );
+    const text = await this.#readFile(absolutePath);
     const { imports, versionPragmas } = analyze(text);
 
     return {

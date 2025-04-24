@@ -1,0 +1,3 @@
+export { importUserConfig } from "./internal/config-loading.js";
+export { readSourceFileFactory } from "./internal/builtin-plugins/solidity/build-system/read-source-file.js";
+export { ResolverImplementation } from "./internal/builtin-plugins/solidity/build-system/resolver/dependency-resolver.js";

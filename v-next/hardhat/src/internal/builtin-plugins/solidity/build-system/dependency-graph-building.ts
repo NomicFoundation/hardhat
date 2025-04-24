@@ -4,13 +4,12 @@ import type { ResolvedFile } from "../../../../types/solidity/resolved-file.js";
 import { DependencyGraphImplementation } from "./dependency-graph.js";
 import { ResolverImplementation } from "./resolver/dependency-resolver.js";
 import { isNpmParsedRootPath, parseRootPath } from "./root-paths-utils.js";
-import { HookManager } from "../../../../types/hooks.js";
 
 export async function buildDependencyGraph(
   rootFiles: string[],
   projectRoot: string,
   userRemappings: string[],
-  hooks: HookManager,
+  readFile: (absPath: string) => Promise<string>,
 ): Promise<{
   dependencyGraph: DependencyGraphImplementation;
   resolver: Resolver;
@@ -18,7 +17,7 @@ export async function buildDependencyGraph(
   const resolver = await ResolverImplementation.create(
     projectRoot,
     userRemappings,
-    hooks,
+    readFile,
   );
 
   const dependencyGraph = new DependencyGraphImplementation();
