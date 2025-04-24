@@ -90,7 +90,6 @@ export function resolveEdrNetwork(
     allowUnlimitedContractSize:
       networkConfig.allowUnlimitedContractSize ?? false,
     blockGasLimit: BigInt(networkConfig.blockGasLimit ?? 30_000_000n),
-    chainDescriptors: resolveChainDescriptors(networkConfig.chainDescriptors),
     coinbase: resolveCoinbase(networkConfig.coinbase),
     enableRip7212: networkConfig.enableRip7212 ?? false,
     enableTransientStorage: networkConfig.enableTransientStorage ?? false,

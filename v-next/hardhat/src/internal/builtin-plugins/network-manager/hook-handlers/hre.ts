@@ -23,6 +23,7 @@ export default async (): Promise<Partial<HardhatRuntimeEnvironmentHooks>> => ({
             context.hooks,
             context.artifacts,
             userConfigNetworks,
+            hre.config.chainDescriptors,
           );
         }
 

@@ -3,10 +3,26 @@ import type { ChainType, DefaultChainType } from "../../../../types/network.js";
 import "../../../../types/config.js";
 declare module "../../../../types/config.js" {
   export interface HardhatUserConfig {
+    chainDescriptors?: ChainDescriptorsUserConfig;
     defaultChainType?: DefaultChainType;
     defaultNetwork?: string;
     networks?: Record<string, NetworkUserConfig>;
   }
+
+  export type ChainDescriptorsUserConfig = Map<
+    number /* chainId */,
+    ChainDescriptorUserConfig
+  >;
+
+  export interface ChainDescriptorUserConfig {
+    chainType?: ChainType;
+    hardforkHistory?: HardforkHistoryUserConfig;
+  }
+
+  export type HardforkHistoryUserConfig = Map<
+    string /* hardforkName */,
+    number /* blockNumber */
+  >;
 
   export type NetworkUserConfig = HttpNetworkUserConfig | EdrNetworkUserConfig;
 
@@ -69,7 +85,6 @@ declare module "../../../../types/config.js" {
     allowBlocksWithSameTimestamp?: boolean;
     allowUnlimitedContractSize?: boolean;
     blockGasLimit?: number | bigint;
-    chainDescriptors?: ChainDescriptorsUserConfig;
     coinbase?: string;
     enableRip7212?: boolean;
     enableTransientStorage?: boolean;
@@ -103,21 +118,6 @@ declare module "../../../../types/config.js" {
     path?: string;
   }
 
-  export type ChainDescriptorsUserConfig = Map<
-    number /* chainId */,
-    ChainDescriptorUserConfig
-  >;
-
-  export interface ChainDescriptorUserConfig {
-    chainType?: ChainType;
-    hardforkHistory?: HardforkHistoryUserConfig;
-  }
-
-  export type HardforkHistoryUserConfig = Map<
-    string /* hardforkName */,
-    number /* blockNumber */
-  >;
-
   export interface EdrNetworkForkingUserConfig {
     enabled?: boolean;
     url: SensitiveString;
@@ -136,10 +136,26 @@ declare module "../../../../types/config.js" {
   }
 
   export interface HardhatConfig {
+    chainDescriptors: ChainDescriptorsConfig;
     defaultChainType: DefaultChainType;
     defaultNetwork: string;
     networks: Record<string, NetworkConfig>;
   }
+
+  export type ChainDescriptorsConfig = Map<
+    number /* chainId */,
+    ChainDescriptorConfig
+  >;
+
+  export interface ChainDescriptorConfig {
+    chainType: ChainType;
+    hardforkHistory: HardforkHistoryConfig;
+  }
+
+  export type HardforkHistoryConfig = Map<
+    string /* hardforkName */,
+    number /* blockNumber */
+  >;
 
   export type NetworkConfig = HttpNetworkConfig | EdrNetworkConfig;
 
@@ -188,7 +204,6 @@ declare module "../../../../types/config.js" {
     allowBlocksWithSameTimestamp: boolean;
     allowUnlimitedContractSize: boolean;
     blockGasLimit: bigint;
-    chainDescriptors: ChainDescriptorsConfig;
     coinbase: Uint8Array;
     enableRip7212: boolean;
     enableTransientStorage: boolean;
@@ -221,21 +236,6 @@ declare module "../../../../types/config.js" {
     passphrase: ResolvedConfigurationVariable;
     path: string;
   }
-
-  export type ChainDescriptorsConfig = Map<
-    number /* chainId */,
-    ChainDescriptorConfig
-  >;
-
-  export interface ChainDescriptorConfig {
-    chainType: ChainType;
-    hardforkHistory: HardforkHistoryConfig;
-  }
-
-  export type HardforkHistoryConfig = Map<
-    string /* hardforkName */,
-    number /* blockNumber */
-  >;
 
   export interface EdrNetworkForkingConfig {
     enabled: boolean;

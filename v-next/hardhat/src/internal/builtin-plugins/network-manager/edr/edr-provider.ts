@@ -1,6 +1,7 @@
 import type { SolidityStackTrace } from "./stack-traces/solidity-stack-trace.js";
 import type { LoggerConfig } from "./types/logger.js";
 import type {
+  ChainDescriptorsConfig,
   EdrNetworkConfig,
   EdrNetworkHDAccountsConfig,
 } from "../../../../types/config.js";
@@ -126,6 +127,7 @@ export const EDR_NETWORK_DEFAULT_PRIVATE_KEYS: string[] = [
 ];
 
 interface EdrProviderConfig {
+  chainDescriptors: ChainDescriptorsConfig;
   networkConfig: RequireField<EdrNetworkConfig, "chainType">;
   loggerConfig?: LoggerConfig;
   tracingConfig?: TracingConfigWithBuffers;
@@ -142,6 +144,7 @@ export class EdrProvider extends BaseProvider {
    * Creates a new instance of `EdrProvider`.
    */
   public static async create({
+    chainDescriptors,
     networkConfig,
     loggerConfig = { enabled: false },
     tracingConfig = {},
@@ -150,7 +153,10 @@ export class EdrProvider extends BaseProvider {
     const printLineFn = loggerConfig.printLineFn ?? printLine;
     const replaceLastLineFn = loggerConfig.replaceLastLineFn ?? replaceLastLine;
 
-    const providerConfig = await getProviderConfig(networkConfig);
+    const providerConfig = await getProviderConfig(
+      networkConfig,
+      chainDescriptors,
+    );
 
     let edrProvider: EdrProvider;
 
@@ -384,6 +390,7 @@ export class EdrProvider extends BaseProvider {
 
 async function getProviderConfig(
   networkConfig: RequireField<EdrNetworkConfig, "chainType">,
+  chainDescriptors: ChainDescriptorsConfig,
 ): Promise<ProviderConfig> {
   const specId = hardhatHardforkToEdrSpecId(
     networkConfig.hardfork,
@@ -406,7 +413,7 @@ async function getProviderConfig(
     cacheDir: networkConfig.forking?.cacheDir,
     chainId: BigInt(networkConfig.chainId),
     chains: hardhatChainDescriptorsToEdrChains(
-      networkConfig.chainDescriptors,
+      chainDescriptors,
       networkConfig.chainType,
     ),
     // TODO: remove this cast when EDR updates the interface to accept Uint8Array

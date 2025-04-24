@@ -46,6 +46,56 @@ const nonnegativeBigIntSchema = z.bigint().nonnegative();
 const blockNumberSchema = nonnegativeIntSchema;
 const chainIdSchema = nonnegativeIntSchema;
 
+const chainTypeUserConfigSchema = unionType(
+  [
+    z.literal(L1_CHAIN_TYPE),
+    z.literal(OPTIMISM_CHAIN_TYPE),
+    z.literal(GENERIC_CHAIN_TYPE),
+  ],
+  `Expected '${L1_CHAIN_TYPE}', '${OPTIMISM_CHAIN_TYPE}', or '${GENERIC_CHAIN_TYPE}'`,
+);
+
+const hardforkHistoryUserConfigSchema = z.map(z.string(), blockNumberSchema);
+
+const chainDescriptorUserConfigSchema = z.object({
+  chainType: z.optional(chainTypeUserConfigSchema),
+  hardforkHistory: z.optional(hardforkHistoryUserConfigSchema),
+});
+
+const chainDescriptorsUserConfigSchema = z
+  .map(chainIdSchema, chainDescriptorUserConfigSchema)
+  .superRefine((chainDescriptors, ctx) => {
+    if (chainDescriptors !== undefined) {
+      Array.from(chainDescriptors).forEach(
+        ([chainId, chainDescriptor], chainIdx) => {
+          if (chainDescriptor.hardforkHistory === undefined) {
+            return;
+          }
+
+          const type = chainDescriptor.chainType ?? GENERIC_CHAIN_TYPE;
+          Array.from(chainDescriptor.hardforkHistory).forEach(
+            ([name], hardforkIdx) => {
+              if (!isValidHardforkName(name, type)) {
+                ctx.addIssue({
+                  code: z.ZodIssueCode.custom,
+                  path: [
+                    "chainDescriptors",
+                    chainIdx,
+                    "value",
+                    "hardforkHistory",
+                    hardforkIdx,
+                    "value",
+                  ],
+                  message: `Invalid hardfork name "${name}" found in chain descriptor for chain ${chainId}. Expected ${getHardforks(type).join(" | ")}.`,
+                });
+              }
+            },
+          );
+        },
+      );
+    }
+  });
+
 const accountsPrivateKeyUserConfigSchema = unionType(
   [
     configurationVariableSchema,
@@ -76,15 +126,6 @@ const httpNetworkAccountsUserConfigSchema = conditionalUnionType(
     [isObject, httpNetworkHDAccountsUserConfigSchema],
   ],
   `Expected 'remote', an array with private keys or Configuration Variables, or an object with HD account details`,
-);
-
-const chainTypeUserConfigSchema = unionType(
-  [
-    z.literal(L1_CHAIN_TYPE),
-    z.literal(OPTIMISM_CHAIN_TYPE),
-    z.literal(GENERIC_CHAIN_TYPE),
-  ],
-  `Expected '${L1_CHAIN_TYPE}', '${OPTIMISM_CHAIN_TYPE}', or '${GENERIC_CHAIN_TYPE}'`,
 );
 
 const gasUnitUserConfigSchema = unionType(
@@ -140,18 +181,6 @@ const edrNetworkAccountsUserConfigSchema = conditionalUnionType(
   `Expected an array with with objects with private key and balance or Configuration Variables, or an object with HD account details`,
 );
 
-const hardforkHistoryUserConfigSchema = z.map(z.string(), blockNumberSchema);
-
-const chainDescriptorUserConfigSchema = z.object({
-  chainType: z.optional(chainTypeUserConfigSchema),
-  hardforkHistory: z.optional(hardforkHistoryUserConfigSchema),
-});
-
-const chainDescriptorsUserConfigSchema = z.map(
-  chainIdSchema,
-  chainDescriptorUserConfigSchema,
-);
-
 const edrNetworkForkingUserConfigSchema = z.object({
   enabled: z.optional(z.boolean()),
   url: sensitiveUrlSchema,
@@ -196,7 +225,6 @@ const edrNetworkUserConfigSchema = z.object({
   allowBlocksWithSameTimestamp: z.optional(z.boolean()),
   allowUnlimitedContractSize: z.optional(z.boolean()),
   blockGasLimit: z.optional(gasUnitUserConfigSchema),
-  chainDescriptors: z.optional(chainDescriptorsUserConfigSchema),
   coinbase: z.optional(z.string()),
   enableRip7212: z.optional(z.boolean()),
   enableTransientStorage: z.optional(z.boolean()),
@@ -227,7 +255,6 @@ function refineEdrNetworkUserConfig(
     const {
       chainType = GENERIC_CHAIN_TYPE,
       hardfork,
-      chainDescriptors,
       minGasPrice,
       initialBaseFeePerGas,
       enableTransientStorage,
@@ -241,36 +268,6 @@ function refineEdrNetworkUserConfig(
           chainType,
         ).join(" | ")}.`,
       });
-    }
-
-    if (chainDescriptors !== undefined) {
-      Array.from(chainDescriptors).forEach(
-        ([chainId, chainDescriptor], chainIdx) => {
-          if (chainDescriptor.hardforkHistory === undefined) {
-            return;
-          }
-
-          const type = chainDescriptor.chainType ?? GENERIC_CHAIN_TYPE;
-          Array.from(chainDescriptor.hardforkHistory).forEach(
-            ([name], hardforkIdx) => {
-              if (!isValidHardforkName(name, type)) {
-                ctx.addIssue({
-                  code: z.ZodIssueCode.custom,
-                  path: [
-                    "chainDescriptors",
-                    chainIdx,
-                    "value",
-                    "hardforkHistory",
-                    hardforkIdx,
-                    "value",
-                  ],
-                  message: `Invalid hardfork name "${name}" found in chain descriptor for chain ${chainId}. Expected ${getHardforks(type).join(" | ")}.`,
-                });
-              }
-            },
-          );
-        },
-      );
     }
 
     const resolvedHardfork = hardfork ?? getCurrentHardfork(chainType);
@@ -344,6 +341,7 @@ const networkUserConfigSchema = baseNetworkUserConfigSchema.superRefine(
 );
 
 const userConfigSchema = z.object({
+  chainDescriptors: z.optional(chainDescriptorsUserConfigSchema),
   defaultChainType: z.optional(chainTypeUserConfigSchema),
   defaultNetwork: z.optional(z.string()),
   networks: z.optional(z.record(networkUserConfigSchema)),
