@@ -1,6 +1,10 @@
 import type { ChainDescriptorsConfig } from "../../../types/config.js";
 
-import { L1_CHAIN_TYPE, OPTIMISM_CHAIN_TYPE } from "../../constants.js";
+import {
+  GENERIC_CHAIN_TYPE,
+  L1_CHAIN_TYPE,
+  OPTIMISM_CHAIN_TYPE,
+} from "../../constants.js";
 
 import { L1HardforkName, OpHardforkName } from "./edr/types/hardfork.js";
 
@@ -13,7 +17,7 @@ import { L1HardforkName, OpHardforkName } from "./edr/types/hardfork.js";
  * https://github.com/ethereum-optimism/superchain-registry/tree/main/superchain/configs/mainnet
  *
  * To find hardfork activation blocks by timestamp, use:
- * https://api-TESTNET.etherscan.io/api?module=block&action=getblocknobytime&timestamp=TIMESTAMP&closest=before&apikey=APIKEY
+ * https://api-[TESTNET].[BASE_EXPLORER_URL]/api?module=block&action=getblocknobytime&timestamp=TIMESTAMP&closest=before&apikey=APIKEY
  */
 export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
   [
@@ -53,7 +57,7 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
     },
   ],
   [
-    17000, // holesky
+    17_000, // holesky
     {
       chainType: L1_CHAIN_TYPE,
       hardforkHistory: new Map([
@@ -64,7 +68,7 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
     },
   ],
   [
-    560048, // hoodi
+    560_048, // hoodi
     {
       chainType: L1_CHAIN_TYPE,
       hardforkHistory: new Map([
@@ -75,7 +79,7 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
     },
   ],
   [
-    11155111, // sepolia
+    11_155_111, // sepolia
     {
       chainType: L1_CHAIN_TYPE,
       hardforkHistory: new Map([
@@ -102,7 +106,7 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
     },
   ],
   [
-    11155420, // op sepolia
+    11_155_420, // op sepolia
     {
       chainType: OPTIMISM_CHAIN_TYPE,
       hardforkHistory: new Map([
@@ -115,5 +119,79 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
         [OpHardforkName.HOLOCENE, 20_415_330],
       ]),
     },
+  ],
+  [
+    42_161, // arbitrum one
+    { chainType: GENERIC_CHAIN_TYPE, hardforkHistory: new Map() },
+  ],
+  [
+    42_170, // arbitrum nova
+    { chainType: GENERIC_CHAIN_TYPE, hardforkHistory: new Map() },
+  ],
+  [
+    42_170, // arbitrum sepolia
+    { chainType: GENERIC_CHAIN_TYPE, hardforkHistory: new Map() },
+  ],
+  [
+    8_453, // base mainnet
+    {
+      chainType: OPTIMISM_CHAIN_TYPE,
+      hardforkHistory: new Map([
+        [OpHardforkName.BEDROCK, 0],
+        [OpHardforkName.REGOLITH, 0],
+        [OpHardforkName.CANYON, 9_101_527],
+        [OpHardforkName.ECOTONE, 11_792_527],
+        [OpHardforkName.FJORD, 16_918_927],
+        [OpHardforkName.GRANITE, 19_640_527],
+        [OpHardforkName.HOLOCENE, 24_828_127],
+      ]),
+    },
+  ],
+  [
+    84_532, // base sepolia
+    {
+      chainType: OPTIMISM_CHAIN_TYPE,
+      hardforkHistory: new Map([
+        [OpHardforkName.BEDROCK, 0],
+        [OpHardforkName.REGOLITH, 0],
+        [OpHardforkName.CANYON, 2_106_456],
+        [OpHardforkName.ECOTONE, 6_383_256],
+        [OpHardforkName.FJORD, 10_615_056],
+        [OpHardforkName.GRANITE, 13_855_056],
+        [OpHardforkName.HOLOCENE, 18_432_456],
+      ]),
+    },
+  ],
+  [
+    43_114, // avalanche c-chain
+    { chainType: L1_CHAIN_TYPE, hardforkHistory: new Map() },
+  ],
+  [
+    43_113, // avalanche fuji
+    { chainType: L1_CHAIN_TYPE, hardforkHistory: new Map() },
+  ],
+  [
+    137, // polygon pos mainnet
+    { chainType: GENERIC_CHAIN_TYPE, hardforkHistory: new Map() },
+  ],
+  [
+    80_001, // polygon pos mumbai
+    { chainType: GENERIC_CHAIN_TYPE, hardforkHistory: new Map() },
+  ],
+  [
+    1_101, // polygon zkevm mainnet
+    { chainType: GENERIC_CHAIN_TYPE, hardforkHistory: new Map() },
+  ],
+  [
+    2_442, // polygon zkevm cardona
+    { chainType: GENERIC_CHAIN_TYPE, hardforkHistory: new Map() },
+  ],
+  [
+    324, // zksync mainnet
+    { chainType: GENERIC_CHAIN_TYPE, hardforkHistory: new Map() },
+  ],
+  [
+    300, // zksync sepolia
+    { chainType: GENERIC_CHAIN_TYPE, hardforkHistory: new Map() },
   ],
 ]);
