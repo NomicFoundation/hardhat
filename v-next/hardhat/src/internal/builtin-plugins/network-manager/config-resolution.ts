@@ -232,18 +232,39 @@ export async function resolveChainDescriptors(
     return resolvedChainDescriptors;
   }
 
-  chainDescriptors.forEach((chainDescriptor, chainId) => {
-    const resolvedChainDescriptor: ChainDescriptorConfig = {
-      chainType: chainDescriptor.chainType ?? GENERIC_CHAIN_TYPE,
-      hardforkHistory: new Map(),
-    };
-    if (chainDescriptor.hardforkHistory !== undefined) {
-      chainDescriptor.hardforkHistory.forEach((block, name) => {
-        resolvedChainDescriptor.hardforkHistory.set(name, block);
-      });
+  // Loop over the user-provided chain descriptors
+  // and merge them with the default ones
+  for (const [chainId, userDescriptor] of chainDescriptors) {
+    const existingDescriptor: ChainDescriptorConfig =
+      resolvedChainDescriptors.get(chainId) ?? {
+        name: "unknown",
+        chainType: GENERIC_CHAIN_TYPE,
+        hardforkHistory: new Map(),
+        blockExplorers: {},
+      };
+
+    if (userDescriptor.name !== undefined) {
+      existingDescriptor.name = userDescriptor.name;
     }
-    resolvedChainDescriptors.set(chainId, resolvedChainDescriptor);
-  });
+
+    if (userDescriptor.chainType !== undefined) {
+      existingDescriptor.chainType = userDescriptor.chainType;
+    }
+
+    if (userDescriptor.hardforkHistory !== undefined) {
+      existingDescriptor.hardforkHistory = new Map(
+        userDescriptor.hardforkHistory,
+      );
+    }
+
+    if (userDescriptor.blockExplorers !== undefined) {
+      existingDescriptor.blockExplorers = await deepClone(
+        userDescriptor.blockExplorers,
+      );
+    }
+
+    resolvedChainDescriptors.set(chainId, existingDescriptor);
+  }
 
   return resolvedChainDescriptors;
 }

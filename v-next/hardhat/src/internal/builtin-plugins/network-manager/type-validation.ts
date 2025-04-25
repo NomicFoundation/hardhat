@@ -57,9 +57,22 @@ const chainTypeUserConfigSchema = unionType(
 
 const hardforkHistoryUserConfigSchema = z.map(z.string(), blockNumberSchema);
 
+const blockExplorerUserConfigSchema = z.object({
+  name: z.optional(z.string()),
+  url: z.string(),
+  apiUrl: z.string(),
+});
+
+const blockExplorersUserConfigSchema = z.object({
+  etherscan: z.optional(blockExplorerUserConfigSchema),
+  blockscout: z.optional(blockExplorerUserConfigSchema),
+});
+
 const chainDescriptorUserConfigSchema = z.object({
+  name: z.optional(z.string()),
   chainType: z.optional(chainTypeUserConfigSchema),
   hardforkHistory: z.optional(hardforkHistoryUserConfigSchema),
+  blockExplorers: z.optional(blockExplorersUserConfigSchema),
 });
 
 const chainDescriptorsUserConfigSchema = z
@@ -79,14 +92,13 @@ const chainDescriptorsUserConfigSchema = z
                 ctx.addIssue({
                   code: z.ZodIssueCode.custom,
                   path: [
-                    "chainDescriptors",
                     chainIdx,
                     "value",
                     "hardforkHistory",
                     hardforkIdx,
                     "value",
                   ],
-                  message: `Invalid hardfork name "${name}" found in chain descriptor for chain ${chainId}. Expected ${getHardforks(type).join(" | ")}.`,
+                  message: `Invalid hardfork name ${name} found in chain descriptor for chain ${chainId}. Expected ${getHardforks(type).join(" | ")}.`,
                 });
               }
             },

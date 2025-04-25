@@ -15,14 +15,27 @@ declare module "../../../../types/config.js" {
   >;
 
   export interface ChainDescriptorUserConfig {
+    name?: string;
     chainType?: ChainType;
     hardforkHistory?: HardforkHistoryUserConfig;
+    blockExplorers?: BlockExplorersUserConfig;
   }
 
   export type HardforkHistoryUserConfig = Map<
     string /* hardforkName */,
     number /* blockNumber */
   >;
+
+  export interface BlockExplorersUserConfig {
+    etherscan?: BlockExplorerUserConfig;
+    blockscout?: BlockExplorerUserConfig;
+  }
+
+  export interface BlockExplorerUserConfig {
+    name?: string;
+    url: string;
+    apiUrl: string;
+  }
 
   export type NetworkUserConfig = HttpNetworkUserConfig | EdrNetworkUserConfig;
 
@@ -148,14 +161,27 @@ declare module "../../../../types/config.js" {
   >;
 
   export interface ChainDescriptorConfig {
+    name: string;
     chainType: ChainType;
     hardforkHistory: HardforkHistoryConfig;
+    blockExplorers: BlockExplorersConfig;
   }
 
   export type HardforkHistoryConfig = Map<
     string /* hardforkName */,
     number /* blockNumber */
   >;
+
+  export interface BlockExplorersConfig {
+    etherscan?: BlockExplorerConfig;
+    blockscout?: BlockExplorerConfig;
+  }
+
+  export interface BlockExplorerConfig {
+    name?: string;
+    url: string;
+    apiUrl: string;
+  }
 
   export type NetworkConfig = HttpNetworkConfig | EdrNetworkConfig;
 

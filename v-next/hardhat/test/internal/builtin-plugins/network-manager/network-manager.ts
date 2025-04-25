@@ -514,7 +514,7 @@ describe("NetworkManagerImplementation", () => {
               "value",
             ],
             message:
-              "Invalid hardfork name random string found in chain 2. Expected chainstart | homestead | dao | tangerineWhistle | spuriousDragon | byzantium | constantinople | petersburg | istanbul | muirGlacier | berlin | london | arrowGlacier | grayGlacier | merge | shanghai | cancun.",
+              "Invalid hardfork name random string found in chain descriptor for chain 2. Expected chainstart | homestead | dao | tangerineWhistle | spuriousDragon | byzantium | constantinople | petersburg | istanbul | muirGlacier | berlin | london | arrowGlacier | grayGlacier | merge | shanghai | cancun.",
           },
         ]);
 
