@@ -14,6 +14,11 @@ for (const dir of dirs) {
     continue;
   }
 
+  // This config package don't have same scripts.
+  if (dir.name === "config"){
+    continue;
+  }
+
   // The test reporter is a special case, as it doesn't use itself as test
   // reporter
   if (dir.name === "hardhat-node-test-reporter") {
