@@ -58,7 +58,9 @@ export function nextActionForExecutionState(
       if (interaction.transactions.length === 0) {
         return NextAction.SEND_TRANSACTION;
       } else {
-        const receipt = interaction.transactions.find((tx) => tx.receipt !== undefined);
+        const receipt = interaction.transactions.find(
+          (tx) => tx.receipt !== undefined,
+        );
 
         if (receipt !== undefined) {
           // We got a confirmed transaction

@@ -1,4 +1,4 @@
-const { createConfig } = require("../../config-v-next/eslint.config.cjs");
+const { createConfig } = require("../config/eslint.config.cjs");
 
 const configs = createConfig(__filename);
 

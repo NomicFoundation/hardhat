@@ -1,4 +1,3 @@
 packages:
   - "v-next/*"
   - "v-next/hardhat/templates/*"
-  - "config-v-next"

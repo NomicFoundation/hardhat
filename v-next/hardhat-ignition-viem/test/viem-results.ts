@@ -43,9 +43,7 @@ describe("viem results", () => {
 
     const result = await connection.ignition.deploy(moduleDefinition);
 
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions -- This function return boolean
     assert.ok(await result.foo.read.isFoo(), "foo should be foo");
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions -- This function return boolean
     assert.ok(await result.bar.read.isBar(), "bar should be bar");
     assert.ok(await result.baz.read.isExternallyLoaded(), "baz should be baz");
 

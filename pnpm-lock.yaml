@@ -15,14 +15,20 @@ importers:
         specifier: ~5.5.0
         version: 5.5.4
 
-  config-v-next:
+  v-next/config:
     devDependencies:
       '@eslint-community/eslint-plugin-eslint-comments':
         specifier: 4.5.0
         version: 4.5.0(eslint@9.25.1)
+      '@types/debug':
+        specifier: ^4.1.7
+        version: 4.1.12
       '@types/eslint':
         specifier: 9.6.1
         version: 9.6.1
+      '@types/node':
+        specifier: ^20.14.9
+        version: 20.17.16
       eslint:
         specifier: 9.25.1
         version: 9.25.1
@@ -38,6 +44,12 @@ importers:
       globals:
         specifier: 16.0.0
         version: 16.0.0
+      prettier:
+        specifier: 3.2.5
+        version: 3.2.5
+      rimraf:
+        specifier: ^5.0.5
+        version: 5.0.10
       typescript-eslint:
         specifier: 8.31.0
         version: 8.31.0(eslint@9.25.1)(typescript@5.7.2)

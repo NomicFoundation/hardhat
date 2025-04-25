@@ -1,4 +1,4 @@
-const { createConfig } = require("../../config-v-next/eslint.config.cjs");
+const { createConfig } = require("../config/eslint.config.cjs");
 
 const configs = createConfig(__filename);
 
@@ -11,6 +11,8 @@ const overrideConfig = {
     "@typescript-eslint/naming-convention": "off",
     "@typescript-eslint/switch-exhaustiveness-check": "off",
     "@typescript-eslint/use-unknown-in-catch-callback-variable": "off",
+    // hardhat-ignition-ui/src/queries/futures.ts use the @nomicfoundation/ignition-core but this package in devDependencies
+    "import/no-extraneous-dependencies": "off",
   },
 };
 

@@ -1,4 +1,4 @@
 {
-  "extends": "../../config-v-next/tsconfig.json",
+  "extends": "../config/tsconfig.json",
   "references": []
 }

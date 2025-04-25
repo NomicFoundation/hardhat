@@ -1,0 +1,35 @@
+{
+  "name": "@nomicfoundation/config",
+  "version": "0.0.0",
+  "description": "Shared ESLint config for the Hardhat monorepo",
+  "main": "index.js",
+  "private": true,
+  "scripts": {
+    "lint": "pnpm prettier --check && pnpm eslint",
+    "lint:fix": "pnpm prettier --write",
+    "eslint": "true",
+    "prettier": "prettier \"**/*.{ts,js,md,json}\"",
+    "test": "true",
+    "test:only": "true",
+    "test:coverage": "true",
+    "pretest": "true",
+    "pretest:only": "true",
+    "build": "true",
+    "prepublishOnly": "true",
+    "clean": "rimraf dist"
+  },
+  "devDependencies": {
+    "@eslint-community/eslint-plugin-eslint-comments": "4.5.0",
+    "@types/eslint": "9.6.1",
+    "@types/debug": "^4.1.7",
+    "@types/node": "^20.14.9",
+    "eslint": "9.25.1",
+    "eslint-import-resolver-typescript": "4.3.4",
+    "eslint-plugin-import": "2.31.0",
+    "eslint-plugin-no-only-tests": "3.3.0",
+    "globals": "16.0.0",
+    "typescript-eslint": "8.31.0",
+    "prettier": "3.2.5",
+    "rimraf": "^5.0.5"
+  }
+}

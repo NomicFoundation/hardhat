@@ -1,3 +1,3 @@
-const { createConfig } = require("../../config-v-next/eslint.config.cjs");
+const { createConfig } = require("../config/eslint.config.cjs");
 
 module.exports = createConfig(__filename, { enforceHardhatTestUtils: false });

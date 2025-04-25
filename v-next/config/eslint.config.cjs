@@ -20,7 +20,7 @@ const pluginEslintComments = require("@eslint-community/eslint-plugin-eslint-com
  */
 function createConfig(
   configFilePath,
-  options = { onlyHardhatError: true, enforceHardhatTestUtils: true }
+  options = { onlyHardhatError: true, enforceHardhatTestUtils: true },
 ) {
   /**
    * @type {import("eslint").Linter.RuleEntry}
@@ -362,7 +362,7 @@ function createConfig(
             importNames: [
               "default",
               ...Object.keys(require("node:assert")).filter(
-                (k) => k !== "AssertionError"
+                (k) => k !== "AssertionError",
               ),
             ],
             message: "Use node:assert/strict instead.",
@@ -410,7 +410,7 @@ function createConfig(
     },
     rules,
     files: ["src/**/*.ts", "test/**/*.ts", "integration-tests/**/*.ts"],
-    ignores: ["/test/**/fixture-projects"],
+    ignores: ["test/**/fixture-projects/**"],
   };
 
   /**
@@ -418,7 +418,7 @@ function createConfig(
    */
   const testFilesConfig = {
     files: ["test/**/*.ts", "integration-tests/**/*.ts"],
-    ignores: ["/test/**/fixture-projects"],
+    ignores: ["test/**/fixture-projects/**"],
     plugins: {
       import: eslintImport,
     },
