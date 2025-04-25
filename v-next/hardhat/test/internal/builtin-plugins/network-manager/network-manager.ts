@@ -391,7 +391,7 @@ describe("NetworkManagerImplementation", () => {
         await connection.provider.request({
           method: "eth_chainId",
         });
-      } catch (error) {}
+      } catch (_error) {}
 
       hre.hooks.unregisterHandlers("network", networkHooks);
 

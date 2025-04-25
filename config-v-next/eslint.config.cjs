@@ -227,6 +227,7 @@ function createConfig(
       {
         argsIgnorePattern: "^_",
         varsIgnorePattern: "^_",
+        caughtErrorsIgnorePattern: "^_",
       },
     ],
     "@typescript-eslint/prefer-for-of": "error",
@@ -409,7 +410,7 @@ function createConfig(
     },
     rules,
     files: ["src/**/*.ts", "test/**/*.ts", "integration-tests/**/*.ts"],
-    ignores: ["/test/**/fixture-projects"]
+    ignores: ["/test/**/fixture-projects"],
   };
 
   /**
@@ -460,10 +461,7 @@ function createConfig(
   /**
    * @type {import("eslint").Linter.Config[]}
    */
-  const configArray = [
-    config,
-    testFilesConfig,
-  ];
+  const configArray = [config, testFilesConfig];
 
   if (options.onlyHardhatError) {
     configArray.push(onlyHardhatErrorConfig);

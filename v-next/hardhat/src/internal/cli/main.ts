@@ -374,7 +374,7 @@ function getTaskFromCliArguments(
     if (task === undefined) {
       try {
         task = hre.tasks.getTask(arg);
-      } catch (error) {
+      } catch (_error) {
         return [arg]; // No task found
       }
     } else {
