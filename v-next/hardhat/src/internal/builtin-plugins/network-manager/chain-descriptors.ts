@@ -6,8 +6,6 @@ import {
   OPTIMISM_CHAIN_TYPE,
 } from "../../constants.js";
 
-import { L1HardforkName, OpHardforkName } from "./edr/types/hardfork.js";
-
 /**
  * Block numbers / timestamps were taken from:
  *
@@ -26,25 +24,7 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
     {
       name: "Ethereum",
       chainType: L1_CHAIN_TYPE,
-      hardforkHistory: new Map([
-        [L1HardforkName.FRONTIER, 0],
-        [L1HardforkName.HOMESTEAD, 1_150_000],
-        [L1HardforkName.DAO, 1_920_000],
-        [L1HardforkName.TANGERINE_WHISTLE, 2_463_000],
-        [L1HardforkName.SPURIOUS_DRAGON, 2_675_000],
-        [L1HardforkName.BYZANTIUM, 4_370_000],
-        [L1HardforkName.CONSTANTINOPLE, 7_280_000],
-        [L1HardforkName.PETERSBURG, 7_280_000],
-        [L1HardforkName.ISTANBUL, 9_069_000],
-        [L1HardforkName.MUIR_GLACIER, 9_200_000],
-        [L1HardforkName.BERLIN, 1_2244_000],
-        [L1HardforkName.LONDON, 12_965_000],
-        [L1HardforkName.ARROW_GLACIER, 13_773_000],
-        [L1HardforkName.GRAY_GLACIER, 15_050_000],
-        [L1HardforkName.MERGE, 15_537_394],
-        [L1HardforkName.SHANGHAI, 17_034_870],
-        [L1HardforkName.CANCUN, 19_426_589],
-      ]),
+      hardforkHistory: new Map(),
       blockExplorers: {
         etherscan: {
           url: "https://etherscan.io",
@@ -63,11 +43,7 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
     {
       name: "Holesky",
       chainType: L1_CHAIN_TYPE,
-      hardforkHistory: new Map([
-        [L1HardforkName.MERGE, 0],
-        [L1HardforkName.SHANGHAI, 6_698],
-        [L1HardforkName.CANCUN, 894_732],
-      ]),
+      hardforkHistory: new Map(),
       blockExplorers: {
         etherscan: {
           url: "https://holesky.etherscan.io",
@@ -86,11 +62,7 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
     {
       name: "Hoodi",
       chainType: L1_CHAIN_TYPE,
-      hardforkHistory: new Map([
-        [L1HardforkName.MERGE, 0],
-        [L1HardforkName.SHANGHAI, 0],
-        [L1HardforkName.CANCUN, 0],
-      ]),
+      hardforkHistory: new Map(),
       blockExplorers: {
         etherscan: {
           url: "https://hoodi.etherscan.io",
@@ -109,12 +81,7 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
     {
       name: "Sepolia",
       chainType: L1_CHAIN_TYPE,
-      hardforkHistory: new Map([
-        [L1HardforkName.GRAY_GLACIER, 0],
-        [L1HardforkName.MERGE, 1_450_409],
-        [L1HardforkName.SHANGHAI, 2_990_908],
-        [L1HardforkName.CANCUN, 5_187_023],
-      ]),
+      hardforkHistory: new Map(),
       blockExplorers: {
         etherscan: {
           url: "https://sepolia.etherscan.io",
@@ -133,15 +100,7 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
     {
       name: "OP Mainnet",
       chainType: OPTIMISM_CHAIN_TYPE,
-      hardforkHistory: new Map([
-        [OpHardforkName.BEDROCK, 105_235_063],
-        [OpHardforkName.REGOLITH, 105_235_063],
-        [OpHardforkName.CANYON, 114_696_812],
-        [OpHardforkName.ECOTONE, 117_387_812],
-        [OpHardforkName.FJORD, 122_514_212],
-        [OpHardforkName.GRANITE, 125_235_812],
-        [OpHardforkName.HOLOCENE, 130_423_412],
-      ]),
+      hardforkHistory: new Map(),
       blockExplorers: {
         etherscan: {
           url: "https://optimistic.etherscan.io",
@@ -160,15 +119,7 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
     {
       name: "OP Sepolia",
       chainType: OPTIMISM_CHAIN_TYPE,
-      hardforkHistory: new Map([
-        [OpHardforkName.BEDROCK, 0],
-        [OpHardforkName.REGOLITH, 0],
-        [OpHardforkName.CANYON, 4_089_330],
-        [OpHardforkName.ECOTONE, 8_366_130],
-        [OpHardforkName.FJORD, 12_597_930],
-        [OpHardforkName.GRANITE, 15_837_930],
-        [OpHardforkName.HOLOCENE, 20_415_330],
-      ]),
+      hardforkHistory: new Map(),
       blockExplorers: {
         etherscan: {
           url: "https://sepolia-optimism.etherscan.io",
@@ -247,15 +198,7 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
     {
       name: "Base",
       chainType: OPTIMISM_CHAIN_TYPE,
-      hardforkHistory: new Map([
-        [OpHardforkName.BEDROCK, 0],
-        [OpHardforkName.REGOLITH, 0],
-        [OpHardforkName.CANYON, 9_101_527],
-        [OpHardforkName.ECOTONE, 11_792_527],
-        [OpHardforkName.FJORD, 16_918_927],
-        [OpHardforkName.GRANITE, 19_640_527],
-        [OpHardforkName.HOLOCENE, 24_828_127],
-      ]),
+      hardforkHistory: new Map(),
       blockExplorers: {
         etherscan: {
           name: "Basescan",
@@ -275,15 +218,7 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
     {
       name: "Base Sepolia",
       chainType: OPTIMISM_CHAIN_TYPE,
-      hardforkHistory: new Map([
-        [OpHardforkName.BEDROCK, 0],
-        [OpHardforkName.REGOLITH, 0],
-        [OpHardforkName.CANYON, 2_106_456],
-        [OpHardforkName.ECOTONE, 6_383_256],
-        [OpHardforkName.FJORD, 10_615_056],
-        [OpHardforkName.GRANITE, 13_855_056],
-        [OpHardforkName.HOLOCENE, 18_432_456],
-      ]),
+      hardforkHistory: new Map(),
       blockExplorers: {
         etherscan: {
           name: "Basescan",
