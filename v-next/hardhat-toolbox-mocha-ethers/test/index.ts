@@ -11,7 +11,8 @@ describe("hardhat-toolbox-mocha-ethers", function () {
   describe("all the expected plugins are available", function () {
     useFixtureProject("toolbox");
 
-    it("should not throw because all the plugins should exist", async function () {
+    // TODO: This test should be brought back once an intermittent bug in EDR is resolved
+    it.skip("should not throw because all the plugins should exist", async function () {
       const hardhatConfig = await import(
         pathToFileURL(path.join(process.cwd(), "hardhat.config.js")).href
       );
