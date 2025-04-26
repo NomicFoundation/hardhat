@@ -502,11 +502,7 @@ subtask(TASK_COMPILE_SOLIDITY_COMPILE_JOBS)
   );
 
 /**
- * Receives a compilation job and returns a CompilerInput.
- *
- * It's not recommended to override this task to modify the solc
- * configuration, override
- * TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOB_FOR_FILE instead.
+ * Receives a compilation job and returns the compiler input for solc.
  */
 subtask(TASK_COMPILE_SOLIDITY_GET_COMPILER_INPUT)
   .addParam("compilationJob", undefined, undefined, types.any)
@@ -516,7 +512,28 @@ subtask(TASK_COMPILE_SOLIDITY_GET_COMPILER_INPUT)
     }: {
       compilationJob: CompilationJob;
     }): Promise<CompilerInput> => {
-      return getInputFromCompilationJob(compilationJob);
+      // Hypothetical instrumentation function (replace with actual implementation)
+      async function instrument(sourceCode: string): Promise<string> {
+        console.warn(
+          "WARN: Using hypothetical 'instrument' function for coverage. Replace with actual 'slang' integration."
+        );
+        // In a real scenario, this would invoke the 'slang' tool
+        // For now, just return the original code
+        return sourceCode;
+        // Example placeholder for actual instrumentation logic:
+        // return instrumentWithSlangTool(sourceCode);
+      }
+
+      const sources: { [sourceName: string]: { content: string } } = {};
+      for (const file of compilationJob.getResolvedFiles()) {
+        // Instrument the content before adding it to the sources object
+        const instrumentedContent = await instrument(file.content.rawContent);
+        sources[file.sourceName] = {
+          content: instrumentedContent, // Use instrumented content
+        };
+      }
+
+      return getInputFromCompilationJob(compilationJob, sources); // Pass instrumented sources
     }
   );
 
@@ -818,7 +835,7 @@ subtask(TASK_COMPILE_SOLIDITY_LOG_COMPILATION_ERRORS)
     if (hasConsoleErrors) {
       console.error(
         picocolors.red(
-          `The console.log call you made isn’t supported. See https://hardhat.org/console-log for the list of supported methods.`
+          `The console.log call you made isn't supported. See https://hardhat.org/console-log for the list of supported methods.`
         )
       );
       console.log();
