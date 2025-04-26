@@ -7,7 +7,9 @@
   "scripts": {
     "lint": "pnpm prettier --check",
     "lint:fix": "pnpm prettier --write",
-    "prettier": "prettier \"**/*.{ts,js,md,json}\""
+    "prettier": "prettier \"**/*.{ts,js,md,json}\"",
+    "build": "echo 'Skipping build for @nomicfoundation/config package as it has no build step' && true",
+    "test": "echo 'Skipping tests for @nomicfoundation/config package as it has no tests' && true"
   },
   "devDependencies": {
     "@eslint-community/eslint-plugin-eslint-comments": "4.5.0",
