@@ -194,6 +194,8 @@ const config: HardhatUserConfig = {
     },
     dependenciesToCompile: [
       "@openzeppelin/contracts/token/ERC20/ERC20.sol",
+      // Remapped npm root due to a remapping in the remappings.txt file
+      // of this project
       "forge-std/Test.sol",
     ],
     remappings: ["remapped/=@openzeppelin/contracts/access/"],

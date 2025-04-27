@@ -666,6 +666,7 @@ export class RemappedNpmPackagesMap {
       version: dependencyVersion,
       rootFsPath: path.dirname(dependencyPackageJsonPath),
       rootSourceName,
+      exports: dependencyPackageJson.exports,
     };
 
     this.#insertNewPackage(newDependencyNpmPackage);

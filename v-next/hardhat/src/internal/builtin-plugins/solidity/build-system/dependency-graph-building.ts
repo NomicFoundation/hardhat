@@ -4,7 +4,6 @@ import type { ResolvedFile } from "../../../../types/solidity/resolved-file.js";
 import { DependencyGraphImplementation } from "./dependency-graph.js";
 import { ResolverImplementation } from "./resolver/dependency-resolver.js";
 import { isNpmParsedRootPath, parseRootPath } from "./root-paths-utils.js";
-import { printDependencyGraphAndRemappingsSummary } from "./debug-utils.js";
 
 export async function buildDependencyGraph(
   rootFiles: string[],
@@ -55,8 +54,6 @@ export async function buildDependencyGraph(
       dependencyGraph.addDependency(fileToProcess, importedFile);
     }
   }
-
-  printDependencyGraphAndRemappingsSummary(dependencyGraph, resolver);
 
   return { dependencyGraph, resolver };
 }
