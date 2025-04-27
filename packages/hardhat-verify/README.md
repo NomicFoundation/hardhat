@@ -6,7 +6,7 @@
 
 ## What
 
-This plugin helps you verify the source code for your Solidity contracts. At the moment, it supports [Etherscan](https://etherscan.io)-based explorers, explorers compatible with its API like [Blockscout](https://www.blockscout.com/) and [Sourcify](https://sourcify.dev/).
+This plugin helps you verify the source code for your Solidity contracts. At the moment, it supports [Etherscan](https://etherscan.io)-based explorers, explorers compatible with its API like [Blockscout](https://www.blockscout.com/) and [Sourcify](https://github.com/sourcifyeth/sourcify).
 
 It's smart and it tries to do as much as possible to facilitate the process:
 
