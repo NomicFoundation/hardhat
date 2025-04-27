@@ -249,10 +249,12 @@ export class RemappedNpmPackagesMap {
 
     // TODO: Cache this
 
+    const context = this.#getContextForNpmPackage(fromNpmPackage);
+
     return {
-      context: fromNpmPackage.rootSourceName,
+      context,
       prefix,
-      target: fromNpmPackage.rootSourceName + directImport,
+      target: sourceNamePathJoin(context, prefix),
     };
   }
 
@@ -503,8 +505,9 @@ export class RemappedNpmPackagesMap {
       npmPackageRemappings.push({
         context:
           remapping.context === ""
-            ? npmPackage.rootSourceName
-            : sourceNamePathJoin(npmPackage.rootSourceName, remapping.context),
+            ? this.#getContextForNpmPackage(npmPackage)
+            : sourceNamePathJoin(npmPackage.rootSourceName, remapping.context) +
+              "/",
         prefix: sourceNamePathJoin(npmPackage.rootSourceName, remapping.prefix),
         target: sourceNamePathJoin(npmPackage.rootSourceName, remapping.target),
         originalFormat: remappingString,
@@ -515,7 +518,7 @@ export class RemappedNpmPackagesMap {
       npmPackageRemappings.push({
         context:
           remapping.context === ""
-            ? npmPackage.rootSourceName
+            ? this.#getContextForNpmPackage(npmPackage)
             : sourceNamePathJoin(npmPackage.rootSourceName, remapping.context),
         prefix: remapping.prefix,
         target: sourceNamePathJoin(npmPackage.rootSourceName, remapping.target),
@@ -546,7 +549,7 @@ export class RemappedNpmPackagesMap {
     npmPackageRemappings.push({
       context:
         remapping.context === ""
-          ? npmPackage.rootSourceName
+          ? this.#getContextForNpmPackage(npmPackage)
           : sourceNamePathJoin(npmPackage.rootSourceName, remapping.context),
       prefix: remapping.prefix,
       originalFormat: remappingString,
@@ -692,7 +695,7 @@ export class RemappedNpmPackagesMap {
     to: ResolvedNpmPackage,
   ): Remapping {
     return {
-      context: from.rootSourceName === "" ? "" : from.rootSourceName + "/",
+      context: this.#getContextForNpmPackage(from),
       prefix: installationName + "/",
       target: to.rootSourceName + "/",
     };
@@ -705,6 +708,14 @@ export class RemappedNpmPackagesMap {
         this.hardhatProjectPackage.rootFsPath + path.sep,
       )
     );
+  }
+
+  #getContextForNpmPackage(npmPackage: ResolvedNpmPackage): string {
+    if (npmPackage === this.hardhatProjectPackage) {
+      return "";
+    }
+
+    return npmPackage.rootSourceName + "/";
   }
 }
 

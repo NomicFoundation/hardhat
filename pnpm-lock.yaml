@@ -65,6 +65,9 @@ importers:
       '@types/node':
         specifier: ^20.14.9
         version: 20.17.16
+      '@uniswap/v4-core':
+        specifier: ^1.0.1
+        version: 1.0.1
       chai:
         specifier: ^5.1.2
         version: 5.1.2
@@ -3439,6 +3442,9 @@ packages:
 
   '@ungap/structured-clone@1.3.0':
     resolution: {integrity: sha512-WmoN8qaIAo7WTYWbAZuG8PYEhn5fkz7dZrqTBZ7dtt//lL2Gwms1IcnQ5yHqjDfX8Ft5j4YzDM23f87zBfDe9g==}
+
+  '@uniswap/v4-core@1.0.1':
+    resolution: {integrity: sha512-+UITeH0s/EXJ698nKFoWX6ZW2dOnIDjhUI3AJ0Hg3v+w/Sy4JIDsgmsQSeNu1FAEc72xm4muKY6YuXu9bR2X4Q==}
 
   '@vitejs/plugin-react@4.3.4':
     resolution: {integrity: sha512-SCCPBJtYLdE8PX/7ZQAs1QAZ8Jqwih+0VBLum1EGqmCCQal+MIUqLCzj3ZUy8ufbC0cAM4LRlSTm7IQJwWT4ug==}
@@ -7622,6 +7628,8 @@ snapshots:
       eslint-visitor-keys: 3.4.3
 
   '@ungap/structured-clone@1.3.0': {}
+
+  '@uniswap/v4-core@1.0.1': {}
 
   '@vitejs/plugin-react@4.3.4(vite@5.4.14(@types/node@22.10.10))':
     dependencies:

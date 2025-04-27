@@ -69,10 +69,15 @@ Dependencies:
 
   const remappings = resolver.getRemappings();
 
-  if (remappings.length > 0) {
+  // TODO: Now we have duplicates, because we are getting all the remappings
+  // ever used by the resolved (e.g. if a remappign was used to resolve two
+  // imports its here twice).
+  const remappingsWithoutDuplicates = [...new Set(remappings)];
+
+  if (remappingsWithoutDuplicates.length > 0) {
     console.log(`
 Remappings:
-  ${remappings.map((r) => `- ${formatRemapping(r)}`).join("\n  ")}
+  ${remappingsWithoutDuplicates.map((r) => `- ${formatRemapping(r)}`).join("\n  ")}
 `);
 
     console.log("\n\n");
