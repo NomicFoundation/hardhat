@@ -191,13 +191,9 @@ const config: HardhatUserConfig = {
     },
     dependenciesToCompile: [
       "@openzeppelin/contracts/token/ERC20/ERC20.sol",
-      "forge-std/src/Test.sol",
+      "forge-std/Test.sol",
     ],
-    remappings: [
-      "remapped/=@openzeppelin/contracts/access/",
-      // This is necessary because most people import forge-std/Test.sol, and not forge-std/src/Test.sol
-      "forge-std/=forge-std@1.9.4/src/",
-    ],
+    remappings: ["remapped/=@openzeppelin/contracts/access/"],
   },
   solidityTest: {
     testFail: true,

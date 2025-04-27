@@ -256,85 +256,6 @@ export class RemappedNpmPackagesMap {
     };
   }
 
-  public getLegacyRemappings(): Remapping[] {
-    const hardhatProjectRemappings = this.getUserRemappings(
-      this.hardhatProjectPackage,
-    );
-
-    const userRemappings = hardhatProjectRemappings.map((remapping) => ({
-      context: remapping.context,
-      prefix: remapping.prefix,
-      target: remapping.target,
-    }));
-
-    const remappings: Remapping[] = [];
-
-    for (const [
-      thePackage,
-      dependenciesMap,
-    ] of this.#installationMap.entries()) {
-      let context: string;
-
-      if (thePackage === this.hardhatProjectPackage) {
-        context = "";
-      } else {
-        context = thePackage.rootSourceName;
-      }
-
-      for (const [importedPackage, dependency] of dependenciesMap.entries()) {
-        // As `hardhat/console.sol` is always resolved through npm, even if the
-        // `hardhat/` folder exists in the root of the package/project, we
-        // only remap that file.
-        //
-        // We should revisit this if we exported more solidity files in the
-        // hardhat package in the future.
-        //
-        // Also note that we are using the importedPackageName here, and not
-        // the dependency's name, and that's because we always resolve 'hardhat'
-        // as the hh package itself. If someone installs another package as
-        // "hardhat", it may break.
-        if (
-          dependency.package !== this.hardhatProjectPackage &&
-          importedPackage === "hardhat"
-        ) {
-          const prefix = importedPackage + "/console.sol";
-          const target = dependency.package.rootSourceName + "/console.sol";
-
-          remappings.push({ context, prefix, target });
-        } else {
-          const prefix = importedPackage + "/";
-
-          const target =
-            dependency.package === this.hardhatProjectPackage
-              ? ""
-              : dependency.package.rootSourceName + "/";
-
-          // If a dependency is being remapped by the user using the same
-          // prefix, we don't want to override it, as it can cause problems
-          // when a file from that dependency is also treated as a root.
-          //
-          // For example, if the user sets this remapping
-          // "forge-std/=npm/forge-std@1.9.4/src/" and for some reason also
-          // compiles "forge-std/src/Test.sol" as a root.
-          //
-          // Without this check, we would have two remappings in the solc input:
-          //    "forge-std/=npm/forge-std@1.9.4/src/"
-          //    "forge-std/=npm/forge-std@1.9.4/"
-          // and the latter would win, leading to a compilation error.
-          if (thePackage === this.hardhatProjectPackage) {
-            if (hardhatProjectRemappings.some((r) => r.prefix === prefix)) {
-              continue;
-            }
-          }
-
-          remappings.push({ context, prefix, target });
-        }
-      }
-    }
-
-    return [...userRemappings, ...remappings];
-  }
-
   public toJSON(): any {
     return {
       hardhatProjectPackage: this.hardhatProjectPackage,
@@ -413,7 +334,7 @@ export class RemappedNpmPackagesMap {
       for (const userRemapping of this.#configUserRemappings) {
         const error = await this.#validateAndResolveUserRemapping(
           this.hardhatProjectPackage,
-          npmPackage.rootFsPath,
+          "HardhatConfig",
           userRemapping,
         );
 
@@ -437,7 +358,8 @@ export class RemappedNpmPackagesMap {
 
       const rawUserRemappings = packageRemappingsTxtContents
         .split("\n")
-        .map((line) => line.trim());
+        .map((line) => line.trim())
+        .filter((line) => line !== "");
 
       for (const userRemapping of rawUserRemappings) {
         const error = await this.#validateAndResolveUserRemapping(
@@ -567,8 +489,7 @@ export class RemappedNpmPackagesMap {
       //
       // At the same time, if the npm package is the hardhat project itself,
       // we don't need to update it.
-
-      if (npmPackage !== this.hardhatProjectPackage) {
+      if (npmPackage === this.hardhatProjectPackage) {
         npmPackageRemappings.push({
           ...remapping,
           originalFormat: remappingString,
@@ -580,10 +501,10 @@ export class RemappedNpmPackagesMap {
 
       // Remapping for the full source name after relative imports
       npmPackageRemappings.push({
-        context: sourceNamePathJoin(
-          npmPackage.rootSourceName,
-          remapping.context,
-        ),
+        context:
+          remapping.context === ""
+            ? npmPackage.rootSourceName
+            : sourceNamePathJoin(npmPackage.rootSourceName, remapping.context),
         prefix: sourceNamePathJoin(npmPackage.rootSourceName, remapping.prefix),
         target: sourceNamePathJoin(npmPackage.rootSourceName, remapping.target),
         originalFormat: remappingString,
@@ -592,10 +513,10 @@ export class RemappedNpmPackagesMap {
 
       // Remapping for the direct import
       npmPackageRemappings.push({
-        context: sourceNamePathJoin(
-          npmPackage.rootSourceName,
-          remapping.context,
-        ),
+        context:
+          remapping.context === ""
+            ? npmPackage.rootSourceName
+            : sourceNamePathJoin(npmPackage.rootSourceName, remapping.context),
         prefix: remapping.prefix,
         target: sourceNamePathJoin(npmPackage.rootSourceName, remapping.target),
         originalFormat: remappingString,
@@ -623,7 +544,10 @@ export class RemappedNpmPackagesMap {
     // If the remapping is into an npm dependency, we don't need to change
     // its prefix, but just its context.
     npmPackageRemappings.push({
-      context: sourceNamePathJoin(npmPackage.rootSourceName, remapping.context),
+      context:
+        remapping.context === ""
+          ? npmPackage.rootSourceName
+          : sourceNamePathJoin(npmPackage.rootSourceName, remapping.context),
       prefix: remapping.prefix,
       originalFormat: remappingString,
       source: sourceOfTheRemapping,
@@ -768,7 +692,7 @@ export class RemappedNpmPackagesMap {
     to: ResolvedNpmPackage,
   ): Remapping {
     return {
-      context: from.rootSourceName + "/",
+      context: from.rootSourceName === "" ? "" : from.rootSourceName + "/",
       prefix: installationName + "/",
       target: to.rootSourceName + "/",
     };

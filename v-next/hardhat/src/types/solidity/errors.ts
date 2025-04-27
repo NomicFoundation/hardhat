@@ -1,10 +1,8 @@
-import { ResolvedFile } from "./resolved-file.js";
-
 export enum RootResolutionErrorType {
   /**
    * Trying to resolve a project file as root, but it's not part of the project.
    */
-  PROJECT_ROOT_FILE_NOT_IN_PROJECT = "RESOLVED_PROJECT_FILE_NOT_IN_PROJECT",
+  PROJECT_ROOT_FILE_NOT_IN_PROJECT = "PROJECT_ROOT_FILE_NOT_IN_PROJECT",
 
   /**
    * Trying to resolve a project file as root, but it doesn't exist.
@@ -18,15 +16,37 @@ export enum RootResolutionErrorType {
   NPM_ROOT_FILE_NAME_WITH_INVALID_FORMAT = "NPM_ROOT_FILE_NAME_WITH_INVALID_FORMAT",
 
   /**
+   * Trying to resolve an npm file as root, but its module name clashes with a
+   * project file, which is ambiguous.
+   *
+   * For example, if you were to try to resolve `package/File.sol` as an npm
+   * root, and you have a folder called `pacakge/` in the root of your project,
+   * you'd get this error.
+   *
+   * The reason for this is that if we would resolve it to an npm file, it would
+   * behave differently as if we had `import "package/File.sol";` in one of the
+   * project files.
+   */
+  NPM_ROOT_FILE_NAME_CLASHES_WITH_PROJECT_FILE = "NPM_ROOT_FILE_NAME_CLASHES_WITH_PROJECT_FILE",
+
+  /**
+   * Trying to resolve an npm file as root resolves into a project file, either
+   * because the user is trying to use project's own files as npm roots
+   * (e.g. `<package-name>/File.sol`), or because its being affected by a user
+   * remapping which resolves into a project file.
+   */
+  NPM_ROOT_FILE_RESOLVES_TO_PROJECT_FILE = "NPM_ROOT_FILE_RESOLVES_TO_PROJECT_FILE",
+
+  /**
    * Trying to resolve an npm file as root, but it's package is not installed.
    */
   NPM_ROOT_FILE_OF_UNINSTALLED_PACKAGE = "NPM_ROOT_FILE_OF_UNINSTALLED_PACKAGE",
 
   /**
-   * Trying to resolve an npm file as root, but its module name clashes with a
-   * project file, which is ambiguous.
+   * Trying to resolve an npm file as root, but when loading its package we
+   * encountered remapping errors.
    */
-  NPM_ROOT_FILE_NAME_CLASHES_WITH_PROJECT_FILE = "NPM_ROOT_FILE_NAME_CLASHES_WITH_PROJECT_FILE",
+  NPM_ROOT_FILE_OF_PACKAGE_WITH_REMAPPING_ERRORS = "NPM_ROOT_FILE_OF_PACKAGE_WITH_REMAPPING_ERRORS",
 
   /**
    * Trying to resolve an npm file as root, but it doesn't exist within its
@@ -39,91 +59,227 @@ export enum RootResolutionErrorType {
    * incorrect.
    */
   NPM_ROOT_FILE_WITH_INCORRRECT_CASING = "NPM_ROOT_FILE_WITH_INCORRRECT_CASING",
-
-  // TODO: What about the remapped roots?
 }
 
+export interface ProjectRootFileNotInProjectError {
+  type: RootResolutionErrorType.PROJECT_ROOT_FILE_NOT_IN_PROJECT;
+  absoluteFilePath: string;
+}
+
+export interface ProjectRootFileDoesntExistError {
+  type: RootResolutionErrorType.PROJECT_ROOT_FILE_DOESNT_EXIST;
+  absoluteFilePath: string;
+}
+
+export interface NpmRootFileNameWithInvalidFormatError {
+  type: RootResolutionErrorType.NPM_ROOT_FILE_NAME_WITH_INVALID_FORMAT;
+  npmModule: string;
+}
+
+export interface NpmRootFileClashesWithProjectFileError {
+  type: RootResolutionErrorType.NPM_ROOT_FILE_NAME_CLASHES_WITH_PROJECT_FILE;
+  npmModule: string;
+  directory: string;
+}
+
+export interface NpmRootFileResolvesToProjectFileError {
+  type: RootResolutionErrorType.NPM_ROOT_FILE_RESOLVES_TO_PROJECT_FILE;
+  npmModule: string;
+  userRemapping?: {
+    originalUserRemapping: string;
+    actualUserRemapping: string;
+    remappingSource: "HardhatConfig" | string;
+  };
+}
+
+export interface NpmRootFileOfUninstalledPackageError {
+  type: RootResolutionErrorType.NPM_ROOT_FILE_OF_UNINSTALLED_PACKAGE;
+  npmModule: string;
+  packageName: string;
+}
+
+export interface NpmRootFileOfPackageWithRemappingErrors {
+  type: RootResolutionErrorType.NPM_ROOT_FILE_OF_PACKAGE_WITH_REMAPPING_ERRORS;
+  npmModule: string;
+  installationName: string;
+  packageName: string;
+  remappingErrors: UserRemappingError[];
+}
+
+export interface NpmRootFileDoesntExistWithinPackageError {
+  type: RootResolutionErrorType.NPM_ROOT_FILE_DOESNT_EXIST_WITHIN_ITS_PACKAGE;
+  npmModule: string;
+  userRemapping?: {
+    originalUserRemapping: string;
+    actualUserRemapping: string;
+    remappingSource: "HardhatConfig" | string;
+  };
+  target: {
+    // Only present if the import isn't into a project file
+    npmPackage: { name: string; version: string; rootFsPath: string };
+    // The file we are trying to import
+    subpath: string;
+    // The file we were expecting to see in the file system after applying
+    // pacakge.exports
+    resolvedSubpath?: string;
+  };
+}
+
+export interface NpmRootFileWithIncorrectCasingError {
+  type: RootResolutionErrorType.NPM_ROOT_FILE_WITH_INCORRRECT_CASING;
+  npmModule: string;
+  userRemapping?: {
+    originalUserRemapping: string;
+    actualUserRemapping: string;
+    remappingSource: "HardhatConfig" | string;
+  };
+  target: {
+    // Only present if the import isn't into a project file
+    npmPackage: { name: string; version: string; rootFsPath: string };
+    // The file we are trying to import
+    subpath: string;
+    // The file we were expecting to see in the file system after applying
+    // pacakge.exports
+    resolvedSubpath?: string;
+  };
+  correctCasing: string;
+}
+
+export type ProjectRootResolutionError =
+  | ProjectRootFileNotInProjectError
+  | ProjectRootFileDoesntExistError;
+
+export type NpmRootResolutionError =
+  | NpmRootFileNameWithInvalidFormatError
+  | NpmRootFileClashesWithProjectFileError
+  | NpmRootFileResolvesToProjectFileError
+  | NpmRootFileOfUninstalledPackageError
+  | NpmRootFileOfPackageWithRemappingErrors
+  | NpmRootFileDoesntExistWithinPackageError
+  | NpmRootFileWithIncorrectCasingError;
+
+export type RootResolutionError =
+  | ProjectRootResolutionError
+  | NpmRootResolutionError;
+
 /**
- * The different types of errors that can happen when resolving a file or import.
+ * The different types of errors that can happen when resolving an import.
  */
 export enum ImportResolutionErrorType {
   /**
-   * Trying to import a file using windows path separators, instead of /.
+   * An import has windows path separators.
    */
-  IMPORT_PATH_WITH_WINDOWS_SEPARATOR = "IMPORT_PATH_WITH_WINDOWS_SEPARATOR",
-
+  IMPORT_WITH_WINDOWS_PATH_SEPARATORS = "IMPORT_WITH_WINDOWS_PATH_SEPARATORS",
   /**
-   * Trying to import a file that doesn't exist.
+   * A relative import gets outside of its package/project.
    */
-  IMPORTED_FILE_DOESNT_EXIST = "IMPORTED_FILE_DOESNT_EXIST",
-
+  ILLEGAL_RELATIVE_IMPORT = "ILLEGAL_RELATIVE_IMPORT",
   /**
-   * Trying to import a file that exists, but the casing you are using is incorrect.
+   * The improted file doesn't exist.
    */
-  IMPORTED_FILE_WITH_INCORRECT_CASING = "IMPORTED_FILE_WITH_INCORRECT_CASING",
-
+  IMPORT_DOESNT_EXIST = "IMPORT_DOESNT_EXIST",
   /**
-   * Trying to import a file of an npm package that uses package exports, but
-   * the file isn't exported.
+   * The imported file exists, but the casing you are using is incorrect.
    */
-  IMPORTED_NON_EXISTENT_PACKAGE_EXPORTS_FILE = "IMPORTED_NON_EXISTENT_PACKAGE_EXPORTS_FILE",
-
+  IMPORT_INVALID_CASING = "IMPORT_INVALID_CASING",
   /**
-   * Trying to import a file of an npm package that uses package exports, but
-   * the casing you are using is incorrect.
+   * Trying to import a file via npm, but the import sintax is invalid.
    */
-  IMPORTED_PACKAGE_EXPORTS_FILE_WITH_INCORRECT_CASING = "IMPORTED_PACKAGE_EXPORTS_FILE_WITH_INCORRECT_CASING",
-
+  IMPORT_WITH_INVALID_NPM_SYNTAX = "IMPORT_WITH_INVALID_NPM_SYNTAX",
   /**
-   * You are trying to import a file from an npm package, but the package is
-   * not installed.
+   * Importing an uninstalled npm package.
    */
-  IMPORTED_NPM_DEPENDENCY_NOT_INSTALLED = "IMPORTED_NPM_DEPENDENCY_NOT_INSTALLED",
-
+  IMPORT_OF_UNINSTALLED_PACKAGE = "IMPORT_OF_UNINSTALLED_PACKAGE",
   /**
-   * You are importing a file from an npm package, and the package has
-   * remappings that are not valid.
+   * Importing an npm package and when loading it one ore more remapping errors
+   * were found.
    */
-  IMPORTED_NPM_DEPENDENCY_WITH_INVALID_REMAPPINGS = "IMPORTED_NPM_DEPENDENCY_WITH_INVALID_REMAPPINGS",
-
-  /**
-   * Trying to import a file with a relative import path, from an npm package,
-   * but the file doesn't belong to the package.
-   */
-  ILLEGAL_RELATIVE_IMPORT_FROM_NPM_PACKAGE = "ILLEGAL_RELATIVE_IMPORT_FROM_NPM_PACKAGE",
-
-  /**
-   * Trying to import a file with a relative import path, from a project file,
-   * but the file doesn't belong to the project.
-   */
-  ILLEGAL_RELATIVE_IMPORT_FROM_PROJECT_FILE = "ILLEGAL_RELATIVE_IMPORT_FROM_PROJECT_FILE",
-
-  // Trying to import a file, which gets remapped by a user remapping into a
-  // project file, but the file doesn't belong to the project.
-  ILLEGAL_IMPORT_AFTER_APPLYING_NON_NPM_USER_REMAPPING = "ILLEGAL_IMPORT_AFTER_APPLYING_NON_NPM_USER_REMAPPING",
-
-  // TODO: We probably need the same for npm package imports ^
-
-  /**
-   * Trying to import a file from an npm package, but the import path doesn't
-   * have a valid npm module format.
-   */
-  IMPORTED_NPM_FILE_WITH_INVALID_FORMAT = "IMPORTED_NPM_FILE_WITH_INVALID_FORMAT",
+  IMPORT_OF_NPM_PACKAGE_WITH_REMAPPING_ERRORS = "IMPORT_OF_NPM_PACKAGE_WITH_REMAPPING_ERRORS",
 }
 
-export interface ImportResolutionError {
-  type: ImportResolutionErrorType;
-  from: ResolvedFile;
+export interface ImportWithWindowsPathSeparatorsError {
+  type: ImportResolutionErrorType.IMPORT_WITH_WINDOWS_PATH_SEPARATORS;
+  fromFsPath: string;
   importPath: string;
-  // If the import was affected by a user remapping, this will be present.
-  userRemappingInfo?: {
-    remapping: string;
-    // The source of the remapping. Either "HardhatConfig" or the absolute path
-    // to the remappings.txt file.
-    source: "HardhatConfig" | string;
-    remappedDirectImport: string;
+}
+
+export interface IllegalRelativeImportError {
+  type: ImportResolutionErrorType.ILLEGAL_RELATIVE_IMPORT;
+  fromFsPath: string;
+  importPath: string;
+}
+
+export interface ImportDoesntExistError {
+  type: ImportResolutionErrorType.IMPORT_DOESNT_EXIST;
+  fromFsPath: string;
+  importPath: string;
+  userRemapping?: {
+    originalUserRemapping: string;
+    actualUserRemapping: string;
+    remappingSource: "HardhatConfig" | string;
+  };
+  target: {
+    // Only present if the import isn't into a project file
+    npmPackage?: { name: string; version: string; rootFsPath: string };
+    // The file we are trying to import
+    subpath: string;
+    // The file we were expecting to see in the file system after applying
+    // pacakge.exports
+    resolvedSubpath?: string;
   };
 }
+
+export interface ImportInvalidCasingError {
+  type: ImportResolutionErrorType.IMPORT_INVALID_CASING;
+  fromFsPath: string;
+  importPath: string;
+  userRemapping?: {
+    originalUserRemapping: string;
+    actualUserRemapping: string;
+    remappingSource: "HardhatConfig" | string;
+  };
+  target: {
+    // Only present if the import isn't into a project file
+    npmPackage?: { name: string; version: string; rootFsPath: string };
+    // The file we are trying to import
+    subpath: string;
+    // The file we were expecting to see in the file system after applying
+    // pacakge.exports
+    resolvedSubpath?: string;
+  };
+  correctCasing: string;
+}
+
+export interface ImportWithInvalidNpmSyntaxError {
+  type: ImportResolutionErrorType.IMPORT_WITH_INVALID_NPM_SYNTAX;
+  fromFsPath: string;
+  importPath: string;
+}
+
+export interface ImportOfUninstalledPackageError {
+  type: ImportResolutionErrorType.IMPORT_OF_UNINSTALLED_PACKAGE;
+  fromFsPath: string;
+  importPath: string;
+  packageName: string;
+}
+
+export interface ImportOfNpmPackageWithRemappingErrorsError {
+  type: ImportResolutionErrorType.IMPORT_OF_NPM_PACKAGE_WITH_REMAPPING_ERRORS;
+  fromFsPath: string;
+  importPath: string;
+  installationName: string;
+  packageName: string;
+  remappingErrors: UserRemappingError[];
+}
+
+export type ImportResolutionError =
+  | ImportWithWindowsPathSeparatorsError
+  | IllegalRelativeImportError
+  | ImportDoesntExistError
+  | ImportInvalidCasingError
+  | ImportWithInvalidNpmSyntaxError
+  | ImportOfUninstalledPackageError
+  | ImportOfNpmPackageWithRemappingErrorsError;
 
 /**
  * The different types of errors that can happen when processing a user
