@@ -194,9 +194,9 @@ const config: HardhatUserConfig = {
       "forge-std/src/Test.sol",
     ],
     remappings: [
-      "remapped/=npm/@openzeppelin/contracts@5.1.0/access/",
+      "remapped/=@openzeppelin/contracts/access/",
       // This is necessary because most people import forge-std/Test.sol, and not forge-std/src/Test.sol
-      "forge-std/=npm/forge-std@1.9.4/src/",
+      "forge-std/=forge-std@1.9.4/src/",
     ],
   },
   solidityTest: {

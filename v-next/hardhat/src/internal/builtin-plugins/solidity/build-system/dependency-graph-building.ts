@@ -13,7 +13,7 @@ export async function buildDependencyGraph(
   dependencyGraph: DependencyGraphImplementation;
   resolver: Resolver;
 }> {
-  const resolver = await ResolverImplementation.create(
+  const resolver = await ResolverImplementation.legacyCreate(
     projectRoot,
     userRemappings,
   );

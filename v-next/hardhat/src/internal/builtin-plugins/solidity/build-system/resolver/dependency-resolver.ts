@@ -1,3 +1,4 @@
+import type { ResolvedUserRemapping } from "./remapped-npm-packages-map.js";
 import type { Remapping, Resolver } from "./types.js";
 import type {
   ResolvedNpmPackage,
@@ -6,6 +7,8 @@ import type {
   ProjectResolvedFile,
   NpmPackageResolvedFile,
 } from "../../../../../types/solidity/resolved-file.js";
+import type { UserRemappingError } from "../../../../../types/solidity.js";
+import type { Result } from "../../../../../types/utils.js";
 
 import path from "node:path";
 
@@ -16,15 +19,9 @@ import {
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import {
   FileNotFoundError,
-  exists,
   getFileTrueCase,
-  readJsonFile,
   readUtf8File,
 } from "@nomicfoundation/hardhat-utils/fs";
-import {
-  findClosestPackageJson,
-  findDependencyPackageJson,
-} from "@nomicfoundation/hardhat-utils/package";
 import { shortenPath } from "@nomicfoundation/hardhat-utils/path";
 import { analyze } from "@nomicfoundation/solidity-analyzer";
 import * as resolve from "resolve.exports";
@@ -37,10 +34,20 @@ import {
 } from "../resolved-file.js";
 
 import {
+  getDirectImportLocalDesambiguationPrefix,
+  isLocalDirectImport,
+} from "./imports-clasification.js";
+import { parseNpmDirectImport } from "./npm-moudles-parsing.js";
+import { RemappedNpmPackagesMap } from "./remapped-npm-packages-map.js";
+import {
   applyValidRemapping,
-  parseRemappingString,
+  formatRemapping,
   selectBestRemapping,
 } from "./remappings.js";
+import {
+  sourceNamePathJoin,
+  sourceNamePathToFsPath,
+} from "./source-name-utils.js";
 
 // Things to note:
 //  - This resolver assumes that the root of the project is the folder with the
@@ -73,25 +80,71 @@ import {
 //  - Direct local improts within npm package are always remapped by the
 //    resolver.
 
-/**
- * A user remapping, parsed, and with its npm package resolved, if any.
- */
-interface ResolvedUserRemapping {
-  rawFormat: string;
-  context: string;
-  prefix: string;
-  target: string;
-  targetNpmPackage?: ResolvedNpmPackage;
+interface ImportDoesntExistError {
+  type: "IMPORT_DOESNT_EXIST";
+  fromFsPath: string;
+  importPath: string;
+  userRemapping?: {
+    originalUserRemapping: string;
+    actualUserRemapping: string;
+    remappingSource: "HardhatConfig" | string;
+  };
+  target: {
+    // Only present if the import isn't into a project file
+    npmPackage?: { name: string; version: string; rootFsPath: string };
+    // The file we are trying to import
+    subpath: string;
+    // The file we were expecting to see in the file system after applying
+    // pacakge.exports
+    resolvedSubpath?: string;
+  };
 }
 
-/**
- * A sentinel value that represents the root of the Hardhat project.
- */
-const PROJECT_ROOT_SENTINEL: unique symbol = Symbol();
+interface ImportInvalidCasingError {
+  type: "IMPORT_INVALID_CASING";
+  fromFsPath: string;
+  importPath: string;
+  userRemapping?: {
+    originalUserRemapping: string;
+    actualUserRemapping: string;
+    remappingSource: "HardhatConfig" | string;
+  };
+  target: {
+    // Only present if the import isn't into a project file
+    npmPackage?: { name: string; version: string; rootFsPath: string };
+    // The file we are trying to import
+    subpath: string;
+    // The file we were expecting to see in the file system after applying
+    // pacakge.exports
+    resolvedSubpath?: string;
+  };
+  correctCasing: string;
+}
+
+interface ImportWithInvalidNpmSyntaxError {
+  type: "IMPORT_WITH_INVALID_NPM_SYNTAX";
+  fromFsPath: string;
+  importPath: string;
+}
+
+interface ImportOfUninstalledPackageError {
+  type: "IMPORT_OF_UNINSTALLED_PACKAGE";
+  fromFsPath: string;
+  importPath: string;
+  packageName: string;
+}
+
+interface ImportOfNpmPackageWithRemappingErrorsError {
+  type: "IMPORT_OF_NPM_PACKAGE_WITH_REMAPPING_ERRORS";
+  fromFsPath: string;
+  importPath: string;
+  packageName: string;
+  remappingErrors: UserRemappingError[];
+}
 
 export class ResolverImplementation implements Resolver {
   readonly #projectRoot: string;
-  readonly #userRemappings: ResolvedUserRemapping[];
+  readonly #npmPackageMap: RemappedNpmPackagesMap;
 
   /**
    * IMPORTANT: This mutex must be acquired before writing to any of the mutable
@@ -101,29 +154,14 @@ export class ResolverImplementation implements Resolver {
   readonly #mutex = new AsyncMutex();
 
   /**
-   * A map of all the npm dependencies used in the project, and their
-   * dependencies.
-   *
-   * This is more complex than you may expect, as we have to handle:
-   *
-   *   - The Hardhat project itself, which is treated differently than npm
-   *     packages, and is represented by the value `PROJECT_ROOT_SENTINEL`.
-   *   - The case where a package is installed with a different name than the
-   *     package's name in its `package.json`. We refer to the name with which
-   *     the package is installed as the "installation name".
-   *   - Imports from monorepo packages into the Hardhat project.
-   */
-  readonly #dependencyMaps: Map<
-    ResolvedNpmPackage | typeof PROJECT_ROOT_SENTINEL,
-    Map<
-      string, // The installation-name of the package that is being imported
-      ResolvedNpmPackage | typeof PROJECT_ROOT_SENTINEL // The package imported with that name
-    >
-  > = new Map();
+   * We use this map to ensure that we only resolve each file once.
+   **/
+  readonly #resolvedFileBySourceName: Map<string, ResolvedFile> = new Map();
 
   /**
    * A map of all the prefixes that an npm package needs to set as remappings
-   * to avoid being affected by a user remapping.
+   * to avoid being affected by a remapping coming from the Hardhat config as
+   * those normally don't have any context.
    *
    * For example, if a package `foo` has an import `import "dep/File.sol";`,
    * and the user remaps `dep/=nope/`, it could break `foo`'s import.
@@ -135,36 +173,62 @@ export class ResolverImplementation implements Resolver {
     new Map();
 
   /**
-   * We use this map to ensure that we only resolve each file once.
-   **/
-  readonly #resolvedFileBySourceName: Map<string, ResolvedFile> = new Map();
-
-  /**
    * Creates a new Resolver.
    *
    * @param projectRoot The absolute path to the Hardhat project root.
-   * @param userRemappingStrings The remappings provided by the user.
+   * @param configUserRemappings The remappings provided by the user in their
+   *  Hardhat config.
    */
   public static async create(
     projectRoot: string,
-    userRemappingStrings: string[],
-  ): Promise<Resolver> {
-    const userRemappings = await Promise.all(
-      userRemappingStrings.map((remappingString) =>
-        validateAndResolveUserRemapping(projectRoot, remappingString),
-      ),
+    configUserRemappings: string[],
+  ): Promise<Result<Resolver, UserRemappingError[]>> {
+    const result = await RemappedNpmPackagesMap.create(
+      projectRoot,
+      configUserRemappings,
     );
 
-    return new ResolverImplementation(projectRoot, userRemappings);
+    if (result.success === false) {
+      return result;
+    }
+
+    return {
+      success: true,
+      value: new ResolverImplementation(projectRoot, result.value),
+    };
+  }
+
+  /**
+   * Legacy version of the create method to make this compile while we work
+   * on bubbling the errors.
+   * @param projectRoot
+   * @param configUserRemappings
+   */
+  public static async legacyCreate(
+    projectRoot: string,
+    configUserRemappings: string[],
+  ): Promise<Resolver> {
+    const result = await ResolverImplementation.create(
+      projectRoot,
+      configUserRemappings,
+    );
+
+    if (result.success === true) {
+      return result.value;
+    }
+
+    throw new Error(
+      "TODO: Remapping errors while creating a resolver: " +
+        JSON.stringify(result.error, null, 2),
+    );
   }
 
   private constructor(
     projectRoot: string,
-    userRemappings: ResolvedUserRemapping[],
+    npmPackagesMap: RemappedNpmPackagesMap,
   ) {
     this.#projectRoot = projectRoot;
-    this.#userRemappings = userRemappings;
-    this.#dependencyMaps.set(PROJECT_ROOT_SENTINEL, new Map());
+    this.#npmPackageMap = npmPackagesMap;
   }
 
   public async resolveProjectFile(
@@ -256,7 +320,7 @@ export class ResolverImplementation implements Resolver {
     npmModule: string,
   ): Promise<NpmPackageResolvedFile> {
     return this.#mutex.exclusiveRun(async () => {
-      const parsedNpmModule = this.#parseNpmDirectImport(npmModule);
+      const parsedNpmModule = parseNpmDirectImport(npmModule);
 
       if (parsedNpmModule === undefined) {
         throw new HardhatError(
@@ -265,9 +329,8 @@ export class ResolverImplementation implements Resolver {
         );
       }
 
-      if (await this.#isDirectImportLocal(this.#projectRoot, npmModule)) {
-        const directory =
-          this.#getDirectImportLocalDesambiguationPrefix(npmModule);
+      if (await isLocalDirectImport(this.#projectRoot, npmModule)) {
+        const directory = getDirectImportLocalDesambiguationPrefix(npmModule);
 
         throw new HardhatError(
           HardhatError.ERRORS.CORE.SOLIDITY.RESOLVE_NPM_FILE_CLASHES_WITH_LOCAL_FILES,
@@ -278,20 +341,28 @@ export class ResolverImplementation implements Resolver {
         );
       }
 
+      // TODO: Apply remappings here
+
+      const hardhatProejctNpmPackage =
+        this.#npmPackageMap.getHardhatProjectPackage();
+
       const modulePackageName = parsedNpmModule.package;
 
       const npmPackage = await this.#resolveNpmPackage({
-        from: PROJECT_ROOT_SENTINEL,
-        packageName: modulePackageName,
+        from: hardhatProejctNpmPackage,
+        installationName: modulePackageName,
       });
 
       assertHardhatInvariant(
-        npmPackage !== PROJECT_ROOT_SENTINEL,
+        npmPackage !== hardhatProejctNpmPackage,
         "Resolving a local file as if it were an npm module",
       );
 
       const subpath = parsedNpmModule.subpath;
-      const resolvedSubpath = resolveSubpath(npmPackage, subpath);
+      const resolvedSubpath = resolveSubpathWithPackageExports(
+        npmPackage,
+        subpath,
+      );
 
       const relativeFsPath = sourceNamePathToFsPath(resolvedSubpath);
       let trueCaseFsPath: string;
@@ -318,7 +389,7 @@ export class ResolverImplementation implements Resolver {
       }
 
       const sourceName = sourceNamePathJoin(
-        npmPackageToRootSourceName(npmPackage.name, npmPackage.version),
+        npmPackage.rootSourceName,
         // We use the subpath (pre-resolution) to create source names
         subpath,
       );
@@ -354,6 +425,8 @@ export class ResolverImplementation implements Resolver {
     return this.#mutex.exclusiveRun(async () => {
       let directImport = importPath;
 
+      // We first validate that the import path doesn't include a windows
+      // separator.
       if (path.sep !== "/" && importPath.includes(path.sep)) {
         throw new HardhatError(
           HardhatError.ERRORS.CORE.SOLIDITY.IMPORT_PATH_WITH_WINDOWS_SEPARATOR,
@@ -364,12 +437,21 @@ export class ResolverImplementation implements Resolver {
         );
       }
 
-      if (importPath.startsWith("./") || importPath.startsWith("../")) {
+      const isRelativeImport =
+        importPath.startsWith("./") || importPath.startsWith("../");
+
+      // For relative imports, we first resolve the import path into a direct
+      // import, as solc would do.
+      //
+      // We also need to validate that it doesn't abuse the import path syntax.
+      if (isRelativeImport) {
         directImport = sourceNamePathJoin(
           path.dirname(from.sourceName),
           importPath,
         );
 
+        // We also check that resolving the import paths into direct imports
+        // doesn't result in accessing a file outside of the npm package/project
         if (from.type === ResolvedFileType.NPM_PACKAGE_FILE) {
           if (!directImport.startsWith(from.package.rootSourceName)) {
             throw new HardhatError(
@@ -393,95 +475,478 @@ export class ResolverImplementation implements Resolver {
         }
       }
 
-      switch (from.type) {
-        case ResolvedFileType.PROJECT_FILE:
-          return this.#resolveImportFromProjectFile({
-            from,
-            importPath,
-            directImport,
-          });
+      const fromNpmPackage =
+        from.type === ResolvedFileType.NPM_PACKAGE_FILE
+          ? from.package
+          : this.#npmPackageMap.hardhatProjectPackage;
 
-        case ResolvedFileType.NPM_PACKAGE_FILE:
-          return this.#resolveImportFromNpmPackageFile({
-            from,
-            importPath,
-            directImport,
-          });
+      // While the remappings get presedence over local imports, we need
+      // to compute if an import could have been considered local before
+      // applying the remappings, as it can affect how they are applied.
+      //
+      // There are two cases in which an import is considered local:
+      //  - If it's a relative import
+      //  - If it's a direct import and isLocalDirectImport evaluates to true
+
+      const isDirectImportFromPackageRoot =
+        !isRelativeImport &&
+        (await isLocalDirectImport(fromNpmPackage.rootFsPath, directImport));
+
+      const isLocalImport = isRelativeImport || isDirectImportFromPackageRoot;
+
+      // Now, we get the user remappings for the package/project, and select
+      // the best user remapping. If there's any, we prioritize that.
+      const packageUserRemappigns =
+        this.#npmPackageMap.getUserRemappings(fromNpmPackage);
+
+      const bestUserRemapping = selectBestRemapping(
+        from.sourceName,
+        directImport,
+        packageUserRemappigns,
+      );
+
+      if (bestUserRemapping !== undefined) {
+        const remappedDirectImport = applyValidRemapping(
+          directImport,
+          bestUserRemapping,
+        );
+
+        // Resolve based on the remappings
+        return this.#newResolveUserRemappedImport({
+          from,
+          importPath,
+          directImport,
+          remappedDirectImport,
+          remapping: bestUserRemapping,
+          isLocalImport,
+        });
       }
+
+      // After user remappings, local imports take presedence
+
+      if (isLocalImport) {
+        return this.#newResolveLocalImport({
+          from,
+          importPath,
+          directImport,
+          isRelativeImport,
+        });
+      }
+
+      return this.#newResolveImportThroughNpm({
+        from,
+        importPath,
+        directImport,
+      });
+    });
+  }
+
+  async #newResolveUserRemappedImport({
+    from,
+    importPath,
+    directImport,
+    remappedDirectImport,
+    remapping,
+    isLocalImport,
+  }: {
+    from: ResolvedFile;
+    importPath: string;
+    directImport: string;
+    isLocalImport: boolean;
+    remappedDirectImport: string;
+    remapping: ResolvedUserRemapping;
+  }): Promise<
+    Result<ResolvedFile, ImportDoesntExistError | ImportInvalidCasingError>
+  > {
+    const sourceName = remappedDirectImport;
+    const existing = this.#resolvedFileBySourceName.get(remappedDirectImport);
+    if (existing !== undefined) {
+      return { success: true, value: existing };
+    }
+
+    const fromNpmPackage =
+      from.type === ResolvedFileType.NPM_PACKAGE_FILE
+        ? from.package
+        : this.#npmPackageMap.hardhatProjectPackage;
+
+    // We get the npm package that's the target of the remapping. If none
+    // is present, that's because it's remapping to a local file, so it's
+    // the fromNpmPackage.
+    const targetNpmPackage =
+      remapping.targetNpmPackage?.package ?? fromNpmPackage;
+
+    // We get the relative path from the root, normally referred to as
+    // `subpath` in npm land.
+    // We create the source names using this pre-package.exports resolution
+    // subpath.
+    const subpath = path.relative(targetNpmPackage.rootSourceName, sourceName);
+
+    // We apply the package.exports resolution in every case, except
+    // when a package is importing itself with a direct import.
+    // E.g. `import "contracts/File.sol";`
+    //
+    // We don't do that, because if you were in that same package, that would
+    // be considered a local import and package.exports would be ignored.
+    //
+    // We want to match that behavior here.
+    const applyPackageExportsResolution =
+      targetNpmPackage.exports !== undefined &&
+      (targetNpmPackage !== fromNpmPackage || !isLocalImport);
+
+    const resolvedSubpath = applyPackageExportsResolution
+      ? resolveSubpathWithPackageExports(targetNpmPackage, subpath)
+      : subpath;
+
+    const pathValidation = await validateFsPath(
+      targetNpmPackage.rootFsPath,
+      resolvedSubpath,
+    );
+
+    if (pathValidation.success === false) {
+      if (pathValidation.error.type === "DOESNT_EXIST") {
+        return {
+          success: false,
+          error: {
+            type: "IMPORT_DOESNT_EXIST",
+            fromFsPath: from.fsPath,
+            importPath,
+            userRemapping: {
+              originalUserRemapping: remapping.originalFormat,
+              actualUserRemapping: formatRemapping(remapping),
+              remappingSource: remapping.source,
+            },
+            target: {
+              npmPackage:
+                targetNpmPackage !== this.#npmPackageMap.hardhatProjectPackage
+                  ? targetNpmPackage
+                  : undefined,
+              subpath,
+              resolvedSubpath: applyPackageExportsResolution
+                ? resolvedSubpath
+                : undefined,
+            },
+          },
+        };
+      }
+
+      return {
+        success: false,
+        error: {
+          type: "IMPORT_INVALID_CASING",
+          fromFsPath: from.fsPath,
+          importPath,
+          userRemapping: {
+            originalUserRemapping: remapping.originalFormat,
+            actualUserRemapping: formatRemapping(remapping),
+            remappingSource: remapping.source,
+          },
+          target: {
+            npmPackage:
+              targetNpmPackage !== this.#npmPackageMap.hardhatProjectPackage
+                ? targetNpmPackage
+                : undefined,
+            subpath,
+            resolvedSubpath: applyPackageExportsResolution
+              ? resolvedSubpath
+              : undefined,
+          },
+          correctCasing: pathValidation.error.correctCasing,
+        },
+      };
+    }
+
+    const fsPath = path.join(targetNpmPackage.rootFsPath, resolvedSubpath);
+
+    const resolvedFile = await this.#buildResolvedFile(
+      sourceName,
+      fsPath,
+      targetNpmPackage,
+    );
+
+    this.#resolvedFileBySourceName.set(sourceName, resolvedFile);
+
+    return { success: true, value: resolvedFile };
+  }
+
+  async #newResolveLocalImport({
+    from,
+    importPath,
+    directImport,
+    isRelativeImport,
+  }: {
+    from: ResolvedFile;
+    importPath: string;
+    directImport: string;
+    isRelativeImport: boolean;
+  }): Promise<
+    Result<
+      { file: ResolvedFile; generatedRemapping?: Remapping },
+      ImportDoesntExistError | ImportInvalidCasingError
+    >
+  > {
+    const fromNpmPackage =
+      from.type === ResolvedFileType.NPM_PACKAGE_FILE
+        ? from.package
+        : this.#npmPackageMap.hardhatProjectPackage;
+
+    const sourceName = isRelativeImport
+      ? directImport
+      : sourceNamePathJoin(fromNpmPackage.rootSourceName, directImport);
+
+    const generatedRemapping: Remapping | undefined = isRelativeImport
+      ? undefined
+      : this.#npmPackageMap.generateRemappingForLocalDirectImport(
+          fromNpmPackage,
+          directImport,
+        );
+
+    const existing = this.#resolvedFileBySourceName.get(sourceName);
+    if (existing !== undefined) {
+      return { success: true, value: { file: existing, generatedRemapping } };
+    }
+
+    const fsPath = sourceNamePathToFsPath(sourceName);
+    const relativeFsPath = path.relative(fromNpmPackage.rootFsPath, fsPath);
+
+    const pathValidation = await validateFsPath(
+      fromNpmPackage.rootFsPath,
+      relativeFsPath,
+    );
+
+    if (pathValidation.success === false) {
+      if (pathValidation.error.type === "DOESNT_EXIST") {
+        return {
+          success: false,
+          error: {
+            type: "IMPORT_DOESNT_EXIST",
+            fromFsPath: from.fsPath,
+            importPath,
+            target: {
+              npmPackage:
+                fromNpmPackage !== this.#npmPackageMap.hardhatProjectPackage
+                  ? fromNpmPackage
+                  : undefined,
+              subpath: relativeFsPath,
+            },
+          },
+        };
+      }
+
+      if (pathValidation.error.type === "CASING_ERROR") {
+        return {
+          success: false,
+          error: {
+            type: "IMPORT_INVALID_CASING",
+            fromFsPath: from.fsPath,
+            importPath,
+            target: {
+              npmPackage:
+                fromNpmPackage !== this.#npmPackageMap.hardhatProjectPackage
+                  ? fromNpmPackage
+                  : undefined,
+              subpath: relativeFsPath,
+            },
+            correctCasing: pathValidation.error.correctCasing,
+          },
+        };
+      }
+    }
+
+    const resolvedFile = await this.#buildResolvedFile(
+      sourceName,
+      fsPath,
+      fromNpmPackage,
+    );
+
+    this.#resolvedFileBySourceName.set(sourceName, resolvedFile);
+
+    return { success: true, value: { file: resolvedFile, generatedRemapping } };
+  }
+
+  async #newResolveImportThroughNpm({
+    from,
+    importPath,
+    directImport,
+  }: {
+    from: ResolvedFile;
+    importPath: string;
+    directImport: string;
+  }): Promise<
+    Result<
+      { file: ResolvedFile; generatedRemapping?: Remapping },
+      | ImportDoesntExistError
+      | ImportInvalidCasingError
+      | ImportWithInvalidNpmSyntaxError
+      | ImportOfUninstalledPackageError
+      | ImportOfNpmPackageWithRemappingErrorsError
+    >
+  > {
+    const parsedDirectImport = parseNpmDirectImport(directImport);
+
+    if (parsedDirectImport === undefined) {
+      return {
+        success: false,
+        error: {
+          type: "IMPORT_WITH_INVALID_NPM_SYNTAX",
+          fromFsPath: from.fsPath,
+          importPath,
+        },
+      };
+    }
+
+    const fromNpmPackage =
+      from.type === ResolvedFileType.NPM_PACKAGE_FILE
+        ? from.package
+        : this.#npmPackageMap.hardhatProjectPackage;
+
+    const installationName = parsedDirectImport.package;
+
+    const dependencyResolution =
+      await this.#npmPackageMap.resolveDependencyByInstallationName(
+        fromNpmPackage,
+        installationName,
+      );
+
+    if (dependencyResolution === undefined) {
+      return {
+        success: false,
+        error: {
+          type: "IMPORT_OF_UNINSTALLED_PACKAGE",
+          fromFsPath: from.fsPath,
+          importPath,
+          packageName: parsedDirectImport.package,
+        },
+      };
+    }
+
+    if (dependencyResolution.remappingErrros !== undefined) {
+      return {
+        success: false,
+        error: {
+          type: "IMPORT_OF_NPM_PACKAGE_WITH_REMAPPING_ERRORS",
+          fromFsPath: from.fsPath,
+          importPath,
+          packageName: parsedDirectImport.package,
+          remappingErrors: dependencyResolution.remappingErrros,
+        },
+      };
+    }
+
+    const dependency = dependencyResolution.package;
+
+    const sourceName = sourceNamePathJoin(
+      dependency.rootSourceName,
+      parsedDirectImport.subpath,
+    );
+
+    const existing = this.#resolvedFileBySourceName.get(sourceName);
+    if (existing !== undefined) {
+      return {
+        success: true,
+        value: {
+          file: existing,
+          generatedRemapping: dependencyResolution.generatedRemapping,
+        },
+      };
+    }
+
+    const subpath = parsedDirectImport.subpath;
+
+    // We use the subpath (pre-resolution) to create source names
+    const resolvedSubpath = resolveSubpathWithPackageExports(
+      dependency,
+      parsedDirectImport.subpath,
+    );
+
+    const pathValidation = await validateFsPath(
+      dependency.rootFsPath,
+      resolvedSubpath,
+    );
+
+    if (pathValidation.success === false) {
+      if (pathValidation.error.type === "DOESNT_EXIST") {
+        return {
+          success: false,
+          error: {
+            type: "IMPORT_DOESNT_EXIST",
+            fromFsPath: from.fsPath,
+            importPath,
+            target: {
+              npmPackage:
+                dependency !== this.#npmPackageMap.hardhatProjectPackage
+                  ? dependency
+                  : undefined,
+              subpath,
+              resolvedSubpath:
+                dependency.exports !== undefined ? resolvedSubpath : undefined,
+            },
+          },
+        };
+      }
+
+      return {
+        success: false,
+        error: {
+          type: "IMPORT_INVALID_CASING",
+          fromFsPath: from.fsPath,
+          importPath,
+          target: {
+            npmPackage:
+              dependency !== this.#npmPackageMap.hardhatProjectPackage
+                ? dependency
+                : undefined,
+            subpath,
+            resolvedSubpath:
+              dependency.exports !== undefined ? resolvedSubpath : undefined,
+          },
+          correctCasing: pathValidation.error.correctCasing,
+        },
+      };
+    }
+
+    const fsPath = path.join(dependency.rootFsPath, resolvedSubpath);
+
+    const resolvedFile = await this.#buildResolvedFile(
+      sourceName,
+      fsPath,
+      dependency,
+    );
+
+    this.#resolvedFileBySourceName.set(sourceName, resolvedFile);
+
+    return {
+      success: true,
+      value: {
+        file: resolvedFile,
+        generatedRemapping: dependencyResolution.generatedRemapping,
+      },
+    };
+  }
+
+  async #buildResolvedFile(
+    sourceName: string,
+    fsPath: string,
+    npmPackage: ResolvedNpmPackage,
+  ): Promise<ResolvedFile> {
+    const content = await readFileContent(fsPath);
+    if (npmPackage === this.#npmPackageMap.hardhatProjectPackage) {
+      return new ProjectResolvedFileImplementation({
+        sourceName,
+        fsPath,
+        content,
+      });
+    }
+
+    return new NpmPackageResolvedFileImplementation({
+      sourceName,
+      fsPath,
+      content: await readFileContent(fsPath),
+      package: npmPackage,
     });
   }
 
   public getRemappings(): Remapping[] {
-    const userRemappings = this.#userRemappings.map((remapping) => ({
-      context: remapping.context,
-      prefix: remapping.prefix,
-      target: remapping.target,
-    }));
-
-    const remappings: Remapping[] = [];
-
-    for (const [
-      thePackage,
-      dependenciesMap,
-    ] of this.#dependencyMaps.entries()) {
-      let context: string;
-
-      if (thePackage === PROJECT_ROOT_SENTINEL) {
-        context = "";
-      } else {
-        context = thePackage.rootSourceName;
-      }
-
-      for (const [importedPackage, dependency] of dependenciesMap.entries()) {
-        // As `hardhat/console.sol` is always resolved through npm, even if the
-        // `hardhat/` folder exists in the root of the package/project, we
-        // only remap that file.
-        //
-        // We should revisit this if we exported more solidity files in the
-        // hardhat package in the future.
-        //
-        // Also note that we are using the importedPackageName here, and not
-        // the dependency's name, and that's because we always resolve 'hardhat'
-        // as the hh package itself. If someone installs another package as
-        // "hardhat", it may break.
-        if (
-          dependency !== PROJECT_ROOT_SENTINEL &&
-          importedPackage === "hardhat"
-        ) {
-          const prefix = importedPackage + "/console.sol";
-          const target = dependency.rootSourceName + "console.sol";
-
-          remappings.push({ context, prefix, target });
-        } else {
-          const prefix = importedPackage + "/";
-
-          const target =
-            dependency === PROJECT_ROOT_SENTINEL
-              ? ""
-              : dependency.rootSourceName;
-
-          // If a dependency is being remapped by the user using the same
-          // prefix, we don't want to override it, as it can cause problems
-          // when a file from that dependency is also treated as a root.
-          //
-          // For example, if the user sets this remapping
-          // "forge-std/=npm/forge-std@1.9.4/src/" and for some reason also
-          // compiles "forge-std/src/Test.sol" as a root.
-          //
-          // Without this check, we would have two remappings in the solc input:
-          //    "forge-std/=npm/forge-std@1.9.4/src/"
-          //    "forge-std/=npm/forge-std@1.9.4/"
-          // and the latter would win, leading to a compilation error.
-          if (thePackage === PROJECT_ROOT_SENTINEL) {
-            if (this.#userRemappings.some((r) => r.prefix === prefix)) {
-              continue;
-            }
-          }
-
-          remappings.push({ context, prefix, target });
-        }
-      }
-    }
+    const remappings: Remapping[] = this.#npmPackageMap.getLegacyRemappings();
 
     // TODO: Always order this in a consistent way
     for (const [packageSourceName, prefixes] of this.#localPrefixesByPackage) {
@@ -504,7 +969,7 @@ export class ResolverImplementation implements Resolver {
       .sort((a, b) => a.context.localeCompare(b.context))
       .sort((a, b) => a.context.length - b.context.length);
 
-    return [...userRemappings, ...remappings];
+    return remappings;
   }
 
   // >>>>>>>>>> BEGIN SECTION: Import resolution selection
@@ -542,10 +1007,17 @@ export class ResolverImplementation implements Resolver {
     directImport: string;
     importPath: string;
   }): Promise<ResolvedFile> {
+    const hardhatProjectNpmPackage =
+      this.#npmPackageMap.getHardhatProjectPackage();
+
+    const remappings = this.#npmPackageMap.getUserRemappings(
+      hardhatProjectNpmPackage,
+    );
+
     const bestUserRemapping = selectBestRemapping(
       from.sourceName,
       directImport,
-      this.#userRemappings,
+      remappings,
     );
 
     if (bestUserRemapping !== undefined) {
@@ -557,7 +1029,7 @@ export class ResolverImplementation implements Resolver {
       });
     }
 
-    if (await this.#isDirectImportLocal(this.#projectRoot, directImport)) {
+    if (await isLocalDirectImport(this.#projectRoot, directImport)) {
       return this.#resolveImportToProjectFile({
         from,
         importPath,
@@ -614,18 +1086,14 @@ export class ResolverImplementation implements Resolver {
       });
     }
 
-    if (
-      !(await this.#isDirectImportLocal(
-        this.#projectRoot,
-        remappedDirectImport,
-      ))
-    ) {
+    // Otherwise, the file should be a local file included in the project
+    if (remappedDirectImport.startsWith("../")) {
       throw new HardhatError(
         HardhatError.ERRORS.CORE.SOLIDITY.ILLEGAL_PROJECT_IMPORT_AFTER_REMAPPING,
         {
           importPath,
           from: shortenPath(from.fsPath),
-          remapping: remapping.rawFormat,
+          remapping: remapping.originalFormat,
           remappedDirectImport,
         },
       );
@@ -672,9 +1140,7 @@ export class ResolverImplementation implements Resolver {
     // As we allow this imports in the local project files, we should also allow
     // them on npm packages. If we don't projects won't be easily distributable
     // through npm, even if they don't use remappings.
-    if (
-      await this.#isDirectImportLocal(from.package.rootFsPath, directImport)
-    ) {
+    if (await isLocalDirectImport(from.package.rootFsPath, directImport)) {
       const resolvedFile = await this.#resolveLocalImportFromNpmPackage({
         from,
         importPath,
@@ -691,7 +1157,7 @@ export class ResolverImplementation implements Resolver {
       }
 
       prefixesNeededByPackage.add(
-        this.#getDirectImportLocalDesambiguationPrefix(directImport),
+        getDirectImportLocalDesambiguationPrefix(directImport),
       );
 
       return resolvedFile;
@@ -726,7 +1192,7 @@ export class ResolverImplementation implements Resolver {
     importPath: string;
     directImport: string;
   }): Promise<ResolvedFile> {
-    const parsedDirectImport = this.#parseNpmDirectImport(directImport);
+    const parsedDirectImport = parseNpmDirectImport(directImport);
 
     if (parsedDirectImport === undefined) {
       throw new HardhatError(
@@ -744,7 +1210,7 @@ export class ResolverImplementation implements Resolver {
       importPackageName: parsedDirectImport.package,
     });
 
-    if (dependency === PROJECT_ROOT_SENTINEL) {
+    if (dependency === this.#npmPackageMap.getHardhatProjectPackage()) {
       return this.#resolveImportToProjectFile({
         from,
         importPath,
@@ -859,10 +1325,13 @@ export class ResolverImplementation implements Resolver {
     }
 
     const subpath = path.relative(
-      remapping.targetNpmPackage.rootSourceName,
+      remapping.targetNpmPackage.package.rootSourceName,
       directImport,
     );
-    const resolvedSubpath = resolveSubpath(remapping.targetNpmPackage, subpath);
+    const resolvedSubpath = resolveSubpathWithPackageExports(
+      remapping.targetNpmPackage.package,
+      subpath,
+    );
 
     // We don't add the dependency to `this.#dependencyMaps` because we
     // don't need a new remapping for this package, as it's already
@@ -872,12 +1341,14 @@ export class ResolverImplementation implements Resolver {
       from,
       importPath,
       relativeFsPathToValidate: sourceNamePathToFsPath(resolvedSubpath),
-      absoluteFsPathToValidateFrom: remapping.targetNpmPackage.rootFsPath,
-      usingPackageExports: remapping.targetNpmPackage.exports !== undefined,
+      absoluteFsPathToValidateFrom:
+        remapping.targetNpmPackage.package.rootFsPath,
+      usingPackageExports:
+        remapping.targetNpmPackage.package.exports !== undefined,
     });
 
     const fsPath = path.join(
-      remapping.targetNpmPackage.rootFsPath,
+      remapping.targetNpmPackage.package.rootFsPath,
       resolvedSubpath,
     );
 
@@ -886,7 +1357,7 @@ export class ResolverImplementation implements Resolver {
         sourceName,
         fsPath,
         content: await readFileContent(fsPath),
-        package: remapping.targetNpmPackage,
+        package: remapping.targetNpmPackage.package,
       });
 
     this.#resolvedFileBySourceName.set(sourceName, resolvedFile);
@@ -970,7 +1441,7 @@ export class ResolverImplementation implements Resolver {
     directImport: string;
     importPath: string;
   }): Promise<NpmPackageResolvedFile> {
-    const sourceName = from.package.rootSourceName + directImport;
+    const sourceName = from.package.rootSourceName + "/" + directImport;
     const existing = this.#resolvedFileBySourceName.get(sourceName);
     if (existing !== undefined) {
       /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
@@ -1027,7 +1498,7 @@ export class ResolverImplementation implements Resolver {
     importedPackage: ResolvedNpmPackage;
     subpath: string;
   }): Promise<NpmPackageResolvedFile> {
-    const sourceName = importedPackage.rootSourceName + subpath;
+    const sourceName = importedPackage.rootSourceName + "/" + subpath;
 
     const existing = this.#resolvedFileBySourceName.get(sourceName);
     if (existing !== undefined) {
@@ -1037,7 +1508,10 @@ export class ResolverImplementation implements Resolver {
     }
 
     // We use the subpath (pre-resolution) to create source names
-    const resolvedSubpath = resolveSubpath(importedPackage, subpath);
+    const resolvedSubpath = resolveSubpathWithPackageExports(
+      importedPackage,
+      subpath,
+    );
 
     await this.#validateExistanceAndCasingOfImport({
       from,
@@ -1068,84 +1542,44 @@ export class ResolverImplementation implements Resolver {
    * Resolves an npm package as a dependency of another one.
    *
    * @param from The package to resolve the dependency from.
-   * @param packageName The name of the package that should be resolved as a
-   * dependency.
+   * @param installationName The installation name of the package that should be
+   * resolved as a dependency.
    * @returns A ResolvedNpmPackage or PROJECT_ROOT_SENTINEL.
    */
   async #resolveNpmPackage({
     from,
-    packageName,
+    installationName,
   }: {
-    from: ResolvedNpmPackage | typeof PROJECT_ROOT_SENTINEL;
-    packageName: string;
-  }): Promise<ResolvedNpmPackage | typeof PROJECT_ROOT_SENTINEL> {
-    let dependenciesMap = this.#dependencyMaps.get(from);
-    if (dependenciesMap === undefined) {
-      dependenciesMap = new Map();
-      this.#dependencyMaps.set(from, dependenciesMap);
-    }
+    from: ResolvedNpmPackage;
+    installationName: string;
+  }): Promise<ResolvedNpmPackage> {
+    const result =
+      await this.#npmPackageMap.resolveDependencyByInstallationName(
+        from,
+        installationName,
+      );
 
-    const dependency = dependenciesMap.get(packageName);
-    if (dependency !== undefined) {
-      return dependency;
-    }
-
-    const baseResolutionDirectory =
-      from === PROJECT_ROOT_SENTINEL ? this.#projectRoot : from.rootFsPath;
-
-    // TODO: This is a quick fix for Hardhat's own package.json, for the alpha
-    // release. We should find a better way to handle this.
-    // We also need to figure out a way to test this inside the monorepo,
-    // without the package `hardhat` in the top-level `node_modules` folder
-    // interfering with the resolution.
-
-    const packageJsonPath =
-      packageName === "hardhat"
-        ? await findClosestPackageJson(import.meta.dirname)
-        : await findDependencyPackageJson(baseResolutionDirectory, packageName);
-
-    if (packageJsonPath === undefined) {
+    if (result === undefined) {
       throw new HardhatError(
         HardhatError.ERRORS.CORE.SOLIDITY.NPM_DEPEDNDENCY_NOT_INSTALLED,
         {
           from:
-            from === PROJECT_ROOT_SENTINEL
+            from === this.#npmPackageMap.getHardhatProjectPackage()
               ? "your project"
               : `"${shortenPath(from.rootFsPath)}"`,
-          packageName,
+          packageName: installationName,
         },
       );
     }
 
-    if (isPackageJsonFromProject(packageJsonPath, this.#projectRoot)) {
-      dependenciesMap.set(packageName, PROJECT_ROOT_SENTINEL);
-      return PROJECT_ROOT_SENTINEL;
+    if (result.remappingErrros !== undefined) {
+      throw new Error(
+        "TODO: Remapping errors while resolving an npm package: " +
+          JSON.stringify(result.remappingErrros, null, 2),
+      );
     }
 
-    const packageJson = await readJsonFile<{
-      name: string;
-      version: string;
-      exports?: resolve.Exports;
-    }>(packageJsonPath);
-
-    const name = packageJson.name;
-    const version = isPackageJsonFromMonorepo(
-      packageJsonPath,
-      this.#projectRoot,
-    )
-      ? "local"
-      : packageJson.version;
-
-    const npmPackage: ResolvedNpmPackage = {
-      name,
-      version,
-      exports: packageJson.exports,
-      rootFsPath: path.dirname(packageJsonPath),
-      rootSourceName: npmPackageToRootSourceName(name, version),
-    };
-
-    dependenciesMap.set(packageName, npmPackage);
-    return npmPackage;
+    return result.dependency;
   }
 
   /**
@@ -1166,14 +1600,14 @@ export class ResolverImplementation implements Resolver {
     from: ResolvedFile;
     importPath: string;
     importPackageName: string;
-  }): Promise<ResolvedNpmPackage | typeof PROJECT_ROOT_SENTINEL> {
+  }): Promise<ResolvedNpmPackage> {
     try {
       return await this.#resolveNpmPackage({
         from:
           from.type === ResolvedFileType.PROJECT_FILE
-            ? PROJECT_ROOT_SENTINEL
+            ? this.#npmPackageMap.getHardhatProjectPackage()
             : from.package,
-        packageName: importPackageName,
+        installationName: importPackageName,
       });
     } catch (error) {
       ensureError(error);
@@ -1196,53 +1630,6 @@ export class ResolverImplementation implements Resolver {
 
       throw error;
     }
-  }
-
-  /**
-   * This method returns true if a direct import should be considered an import
-   * to a local file when evaluated in the context of the Hardhat project.
-   */
-  async #isDirectImportLocal(
-    projectOrPackageRootFsPath: string,
-    directImport: string,
-  ): Promise<boolean> {
-    if (directImport === "hardhat/console.sol") {
-      return false;
-    }
-
-    const slash = directImport.indexOf("/");
-
-    // If it's a file in the root directory
-    if (slash === -1) {
-      return true;
-    }
-
-    const firstDirectory = directImport.substring(0, slash);
-
-    // TODO: Cache this?
-    return exists(path.join(projectOrPackageRootFsPath, firstDirectory));
-  }
-
-  /**
-   * Returns the prefix used to desambiguate a directImport by
-   * #isDirectImportLocal to determine if its local.
-   *
-   * For example, the prefix for `foo/bar/File.sol`, this returns `foo/`.
-   *
-   * NOTE: This method does not support `hardhat/console.sol`, as that's a
-   * special case, which is never considered local.
-   */
-  #getDirectImportLocalDesambiguationPrefix(directImport: string): string {
-    const slash = directImport.indexOf("/");
-
-    // If it's a file in the root directory
-    if (slash === -1) {
-      return directImport;
-    }
-
-    const firstDirectory = directImport.substring(0, slash + 1);
-
-    return firstDirectory;
   }
 
   /**
@@ -1313,233 +1700,6 @@ export class ResolverImplementation implements Resolver {
       );
     }
   }
-
-  /**
-   * Parses a direct import as if it were an npm import, returning `undefined`
-   * if the format is invalid.
-   *
-   * Note: The returned subpath is not an fs path, and always use path.posix.sep
-   */
-  #parseNpmDirectImport(directImport: string):
-    | {
-        package: string;
-        subpath: string;
-      }
-    | undefined {
-    // NOTE: We assume usage of path.posix.sep in the direct import
-    const directImportPattern =
-      /^(?<package>(?:@[a-z0-9-~._]+\/)?[a-z0-9-~][a-z0-9-~._]*)\/(?<path>.*)$/;
-
-    const match = directImportPattern.exec(directImport);
-
-    if (match === null) {
-      return undefined;
-    }
-
-    assertHardhatInvariant(
-      match.groups !== undefined,
-      "Groups should be defined because they are part of the pattern",
-    );
-
-    return { package: match.groups.package, subpath: match.groups.path };
-  }
-}
-
-async function validateAndResolveUserRemapping(
-  projectRoot: string,
-  remappingString: string,
-): Promise<ResolvedUserRemapping> {
-  const remapping = parseRemappingString(remappingString);
-
-  if (remapping === undefined) {
-    throw new HardhatError(
-      HardhatError.ERRORS.CORE.SOLIDITY.REMAPPING_WITH_INVALID_SYNTAX,
-      {
-        remapping: remappingString,
-      },
-    );
-  }
-
-  if (remapping.context.startsWith("npm/")) {
-    throw new HardhatError(
-      HardhatError.ERRORS.CORE.SOLIDITY.USER_REMAPPING_WITH_NPM_CONTEXT,
-      { remapping: remappingString },
-    );
-  }
-
-  if (!remapping.target.startsWith("npm/")) {
-    return { ...remapping, rawFormat: remappingString };
-  }
-
-  const parsed = parseNpmRemappingTarget(remapping.target);
-
-  if (parsed === undefined) {
-    throw new HardhatError(
-      HardhatError.ERRORS.CORE.SOLIDITY.REMAPPING_WITH_INVALID_SYNTAX,
-      { remapping: remappingString },
-    );
-  }
-
-  const { packageName, packageVersion } = parsed;
-
-  const dependencyPackageJsonPath = await findDependencyPackageJson(
-    projectRoot,
-    packageName,
-  );
-
-  if (dependencyPackageJsonPath === undefined) {
-    throw new HardhatError(
-      HardhatError.ERRORS.CORE.SOLIDITY.REMAPPING_TO_UNINSTALLED_PACKAGE,
-      { remapping: remappingString, package: packageName },
-    );
-  }
-
-  if (isPackageJsonFromMonorepo(dependencyPackageJsonPath, projectRoot)) {
-    if (packageVersion !== "local") {
-      throw new HardhatError(
-        HardhatError.ERRORS.CORE.SOLIDITY.REMAPPING_NPM_PACKAGE_AS_MONOREPO,
-        {
-          remapping: remappingString,
-          pacakge: packageName,
-          version: packageVersion,
-        },
-      );
-    }
-  }
-
-  if (isPackageJsonFromProject(dependencyPackageJsonPath, projectRoot)) {
-    throw new HardhatError(
-      HardhatError.ERRORS.CORE.SOLIDITY.REMAPPING_HARDHAT_PROJECT_AS_MONOREPO_PACKAGE,
-      { remapping: remappingString, package: packageName },
-    );
-  }
-
-  const npmPackage: ResolvedNpmPackage = {
-    name: packageName,
-    version: packageVersion,
-    rootFsPath: path.dirname(dependencyPackageJsonPath),
-    rootSourceName: npmPackageToRootSourceName(packageName, packageVersion),
-  };
-
-  if (isPackageJsonFromNpmPackage(dependencyPackageJsonPath)) {
-    const dependencyPackageJson = await readJsonFile<{
-      version: string;
-      exports: resolve.Exports;
-    }>(dependencyPackageJsonPath);
-
-    if (dependencyPackageJson.version !== packageVersion) {
-      throw new HardhatError(
-        HardhatError.ERRORS.CORE.SOLIDITY.REMAPPING_INCORRECT_VERSION,
-        {
-          remapping: remappingString,
-          package: packageName,
-          expectedVersion: packageVersion,
-          actualVersion: dependencyPackageJson.version,
-        },
-      );
-    }
-
-    npmPackage.exports = dependencyPackageJson.exports;
-  }
-
-  return {
-    ...remapping,
-    targetNpmPackage: npmPackage,
-    rawFormat: remappingString,
-  };
-}
-
-function parseNpmRemappingTarget(remappingTarget: string):
-  | {
-      packageName: string;
-      packageVersion: string;
-    }
-  | undefined {
-  const npmTargetPattern =
-    /^npm\/(?<package>(?:@[a-z0-9-~._]+\/)?[a-z0-9-~][a-z0-9-~._]*)@(?<version>local|\d+\.\d+\.\d+)\//;
-
-  const match = npmTargetPattern.exec(remappingTarget);
-
-  if (match === null) {
-    return undefined;
-  }
-
-  assertHardhatInvariant(
-    match.groups !== undefined,
-    "Groups should be defined because they are part of the pattern",
-  );
-
-  return {
-    packageName: match.groups.package,
-    packageVersion: match.groups.version,
-  };
-}
-
-function npmPackageToRootSourceName(name: string, version: string): string {
-  return `npm/${name}@${version}/`;
-}
-
-function isPackageJsonFromMonorepo(
-  packageJsonFsPath: string,
-  projectRoot: string,
-): boolean {
-  return (
-    !packageJsonFsPath.includes("node_modules") &&
-    !packageJsonFsPath.startsWith(projectRoot)
-  );
-}
-
-function isPackageJsonFromProject(
-  packageJsonFsPath: string,
-  projectRoot: string,
-): boolean {
-  return (
-    !packageJsonFsPath.includes("node_modules") &&
-    packageJsonFsPath.startsWith(projectRoot)
-  );
-}
-
-function isPackageJsonFromNpmPackage(packageJsonFsPath: string): boolean {
-  return packageJsonFsPath.includes("node_modules");
-}
-
-/**
- * Transforms an fs path into a sourceName or import path, by normalizing their
- * path separators to /.
- *
- * Note that source
- *
- * Note: This function is exported for testing purposes, but it's not meant to
- * be used outside of the resolver.
- */
-export function fsPathToSourceNamePath(fsPath: string): string {
-  if (path.sep === "/") {
-    return fsPath;
-  }
-
-  return fsPath.replace(/\\/g, "/");
-}
-
-/**
- * Transforms a sourceName or import path into an fs path, by normalizing their
- * path separators to /.
- *
- * Note: This function is exported for testing purposes, but it's not meant to
- * be used outside of the resolver.
- */
-export function sourceNamePathToFsPath(sourceNamePath: string): string {
-  if (path.sep === "/") {
-    return sourceNamePath;
-  }
-
-  return sourceNamePath.replace(/\//g, "\\");
-}
-
-/**
- * The equivalent of path.join but for sourceName or import paths, not fs paths.
- */
-function sourceNamePathJoin(...parts: string[]): string {
-  return fsPathToSourceNamePath(path.join(...parts));
 }
 
 /**
@@ -1562,7 +1722,7 @@ async function readFileContent(absolutePath: string): Promise<FileContent> {
  * @param subpath
  * @returns
  */
-function resolveSubpath(
+function resolveSubpathWithPackageExports(
   npmPackage: ResolvedNpmPackage,
   subpath: string,
 ): string {
@@ -1599,4 +1759,32 @@ function resolveSubpath(
       error,
     );
   }
+}
+
+async function validateFsPath(
+  from: string,
+  relative: string,
+): Promise<
+  Result<
+    undefined,
+    { type: "DOESNT_EXIST" } | { type: "CASING_ERROR"; correctCasing: string }
+  >
+> {
+  let trueCaseFsPath: string;
+  try {
+    trueCaseFsPath = await getFileTrueCase(from, relative);
+  } catch (error) {
+    ensureError(error, FileNotFoundError);
+
+    return { success: false, error: { type: "DOESNT_EXIST" } };
+  }
+
+  if (relative !== trueCaseFsPath) {
+    return {
+      success: false,
+      error: { type: "CASING_ERROR", correctCasing: trueCaseFsPath },
+    };
+  }
+
+  return { success: true, value: undefined };
 }

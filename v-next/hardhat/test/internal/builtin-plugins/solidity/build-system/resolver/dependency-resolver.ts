@@ -118,7 +118,7 @@ describe("Resolver", () => {
 
   describe("Project files resolution", () => {
     it("Should throw if the file isn't part of the project", async () => {
-      const resolver = await ResolverImplementation.create(
+      const resolver = await ResolverImplementation.legacyCreate(
         FIXTURE_HARDHAT_PROJECT_ROOT,
         [],
       );
@@ -141,7 +141,7 @@ describe("Resolver", () => {
     });
 
     it("Should resolve them to project files with their path from the project root as sourceName", async () => {
-      const resolver = await ResolverImplementation.create(
+      const resolver = await ResolverImplementation.legacyCreate(
         FIXTURE_HARDHAT_PROJECT_ROOT,
         [],
       );
@@ -169,7 +169,7 @@ describe("Resolver", () => {
     });
 
     it("Should validate that the files exists", async () => {
-      const resolver = await ResolverImplementation.create(
+      const resolver = await ResolverImplementation.legacyCreate(
         FIXTURE_HARDHAT_PROJECT_ROOT,
         [],
       );
@@ -192,7 +192,7 @@ describe("Resolver", () => {
       let contractsFileSol: ProjectResolvedFile;
 
       beforeEach(async () => {
-        resolver = await ResolverImplementation.create(
+        resolver = await ResolverImplementation.legacyCreate(
           FIXTURE_HARDHAT_PROJECT_ROOT,
           [],
         );
@@ -927,7 +927,7 @@ describe("Resolver", () => {
   describe("NPM with package exports handling", function () {
     describe("resolving dependenciesAsRoot for packages that use exports", function () {
       it("resolves the exported dependency contract correctly", async () => {
-        const resolver = await ResolverImplementation.create(
+        const resolver = await ResolverImplementation.legacyCreate(
           FIXTURE_HARDHAT_PROJECT_ROOT,
           [],
         );
@@ -951,7 +951,7 @@ describe("Resolver", () => {
       });
 
       it("throws RESOLVE_NON_EXISTENT_NPM_FILE when trying to use the real path instead of the exported path", async () => {
-        const resolver = await ResolverImplementation.create(
+        const resolver = await ResolverImplementation.legacyCreate(
           FIXTURE_HARDHAT_PROJECT_ROOT,
           [],
         );
@@ -968,7 +968,7 @@ describe("Resolver", () => {
       });
 
       it("throws RESOLVE_NON_EXISTENT_NPM_FILE when trying to use a path that resolves exports but the file doesnt exist", async () => {
-        const resolver = await ResolverImplementation.create(
+        const resolver = await ResolverImplementation.legacyCreate(
           FIXTURE_HARDHAT_PROJECT_ROOT,
           [],
         );
@@ -985,7 +985,7 @@ describe("Resolver", () => {
       });
 
       it("throws RESOLVE_NOT_EXPORTED_NPM_FILE for non-exported files", async () => {
-        const resolver = await ResolverImplementation.create(
+        const resolver = await ResolverImplementation.legacyCreate(
           FIXTURE_HARDHAT_PROJECT_ROOT,
           [],
         );
@@ -1005,7 +1005,7 @@ describe("Resolver", () => {
       let resolver: Resolver;
 
       beforeEach(async () => {
-        resolver = await ResolverImplementation.create(
+        resolver = await ResolverImplementation.legacyCreate(
           FIXTURE_HARDHAT_PROJECT_ROOT,
           [],
         );
@@ -1160,7 +1160,7 @@ describe("Resolver", () => {
 
       describe("with remappings", function () {
         it("resolves exported file when remapping part of the path", async () => {
-          resolver = await ResolverImplementation.create(
+          resolver = await ResolverImplementation.legacyCreate(
             FIXTURE_HARDHAT_PROJECT_ROOT,
             ["remapped_pkg/=npm/exports@3.0.0/"],
           );
@@ -1189,7 +1189,7 @@ describe("Resolver", () => {
         });
 
         it("resolves the exported file when remapping the whole path", async () => {
-          const resolver = await ResolverImplementation.create(
+          const resolver = await ResolverImplementation.legacyCreate(
             FIXTURE_HARDHAT_PROJECT_ROOT,
             ["remapped_file=npm/exports@3.0.0/SingleExport.sol"],
           );
@@ -1218,7 +1218,7 @@ describe("Resolver", () => {
         });
 
         it("throws an error when the remapped file doesnt exist", async () => {
-          const resolver = await ResolverImplementation.create(
+          const resolver = await ResolverImplementation.legacyCreate(
             FIXTURE_HARDHAT_PROJECT_ROOT,
             ["remapped_pkg/=npm/exports@3.0.0/"],
           );
