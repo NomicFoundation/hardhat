@@ -9,6 +9,8 @@ import {
 import { NetworkTransaction } from "../src/internal/execution/types/jsonrpc.js";
 import { JournalMessageType } from "../src/internal/execution/types/messages.js";
 import { fileURLToPath } from "url";
+import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
 const mockFullTx = {
   hash: "0x1a3eb512e21fc849f8e8733b250ce49b61178c9c4a670063f969db59eda4a59f",
@@ -179,13 +181,17 @@ If this is not the expected behavior, please edit your Hardhat Ignition module a
 
   describe("errors", () => {
     it("should throw an error if the deploymentDir does not exist", async () => {
-      await assert.isRejected(
+      await assertRejectsWithHardhatError(
         trackTransaction(
           "non-existent-dir",
           "txHash",
           new MockEIP1193Provider(),
         ),
-        "Deployment directory non-existent-dir not found",
+        HardhatError.ERRORS.IGNITION.TRACK_TRANSACTIONS
+          .DEPLOYMENT_DIR_NOT_FOUND,
+        {
+          deploymentDir: "non-existent-dir",
+        },
       );
     });
 
@@ -195,9 +201,13 @@ If this is not the expected behavior, please edit your Hardhat Ignition module a
         "./mocks/trackTransaction/uninitialized",
       );
 
-      await assert.isRejected(
+      await assertRejectsWithHardhatError(
         trackTransaction(deploymentDir, "txHash", new MockEIP1193Provider()),
-        `Cannot track transaction for nonexistant deployment at ${deploymentDir}`,
+        HardhatError.ERRORS.IGNITION.TRACK_TRANSACTIONS
+          .UNINITIALIZED_DEPLOYMENT,
+        {
+          deploymentDir,
+        },
       );
     });
 
@@ -207,9 +217,12 @@ If this is not the expected behavior, please edit your Hardhat Ignition module a
         "./mocks/trackTransaction/success",
       );
 
-      await assert.isRejected(
+      await assertRejectsWithHardhatError(
         trackTransaction(deploymentDir, "txHash", new MockEIP1193Provider()),
-        `Transaction txHash not found. Please double check the transaction hash and try again.`,
+        HardhatError.ERRORS.IGNITION.TRACK_TRANSACTIONS.TRANSACTION_NOT_FOUND,
+        {
+          txHash: "txHash",
+        },
       );
     });
 
@@ -219,13 +232,14 @@ If this is not the expected behavior, please edit your Hardhat Ignition module a
         "./mocks/trackTransaction/known-tx",
       );
 
-      await assert.isRejected(
+      await assertRejectsWithHardhatError(
         trackTransaction(
           deploymentDir,
           mockFullTx.hash,
           new MockEIP1193Provider(mockFullTx),
         ),
-        /^IGN1304/,
+        HardhatError.ERRORS.IGNITION.TRACK_TRANSACTIONS.KNOWN_TRANSACTION,
+        {},
       );
     });
 
@@ -237,13 +251,15 @@ If this is not the expected behavior, please edit your Hardhat Ignition module a
 
       const hash = "0x1234";
 
-      await assert.isRejected(
+      await assertRejectsWithHardhatError(
         trackTransaction(
           deploymentDir,
           hash,
           new MockEIP1193Provider({ ...mockFullTx, hash }, 2),
         ),
-        /^IGN1305/,
+        HardhatError.ERRORS.IGNITION.TRACK_TRANSACTIONS
+          .INSUFFICIENT_CONFIRMATIONS,
+        {},
       );
     });
 
@@ -253,13 +269,15 @@ If this is not the expected behavior, please edit your Hardhat Ignition module a
         "./mocks/trackTransaction/success",
       );
 
-      await assert.isRejected(
+      await assertRejectsWithHardhatError(
         trackTransaction(
           deploymentDir,
           mockFullTx.hash,
           new MockEIP1193Provider({ ...mockFullTx, nonce: "0x4" }),
         ),
-        /^IGN1303/,
+        HardhatError.ERRORS.IGNITION.TRACK_TRANSACTIONS
+          .MATCHING_NONCE_NOT_FOUND,
+        {},
       );
     });
 
@@ -269,13 +287,15 @@ If this is not the expected behavior, please edit your Hardhat Ignition module a
         "./mocks/trackTransaction/success",
       );
 
-      await assert.isRejected(
+      await assertRejectsWithHardhatError(
         trackTransaction(
           deploymentDir,
           mockFullTx.hash,
           new MockEIP1193Provider({ ...mockFullTx, value: "0x11" }, 2),
         ),
-        /^IGN1305/,
+        HardhatError.ERRORS.IGNITION.TRACK_TRANSACTIONS
+          .INSUFFICIENT_CONFIRMATIONS,
+        {},
       );
     });
   });

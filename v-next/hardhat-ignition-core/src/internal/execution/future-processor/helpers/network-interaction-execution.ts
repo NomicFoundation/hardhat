@@ -23,9 +23,9 @@ import type {
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
+import { DeploymentLoader } from "../../../deployment-loader/types.js";
 import { assertIgnitionInvariant } from "../../../utils/assertions.js";
 import { JournalMessageType } from "../../types/messages.js";
-import { DeploymentLoader } from "../../../deployment-loader/types.js";
 
 /**
  * Runs a StaticCall NetworkInteraction to completion, returning its raw result.

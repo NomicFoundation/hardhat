@@ -11,11 +11,10 @@ import type {
 } from "../../types/module.js";
 import type { DeploymentLoader } from "../deployment-loader/types.js";
 
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import sortBy from "lodash-es/sortBy.js";
 
-import { IgnitionError } from "../../errors.js";
 import { ExecutionEventType } from "../../types/execution-events.js";
-import { ERRORS } from "../errors-list.js";
 import { assertIgnitionInvariant } from "../utils/assertions.js";
 import { getFuturesFromModule } from "../utils/get-futures-from-module.js";
 import { getNetworkExecutionStates } from "../views/execution-state/get-network-execution-states.js";
@@ -221,11 +220,14 @@ export class ExecutionEngine {
           ni.nonce !== undefined &&
           ni.transactions.length === 0
         ) {
-          throw new IgnitionError(ERRORS.EXECUTION.TRANSACTION_LOST, {
-            futureId: exState.id,
-            nonce: ni.nonce,
-            sender: exState.from,
-          });
+          throw new HardhatError(
+            HardhatError.ERRORS.IGNITION.EXECUTION.TRANSACTION_LOST,
+            {
+              futureId: exState.id,
+              nonce: ni.nonce,
+              sender: exState.from,
+            },
+          );
         }
       }
     }

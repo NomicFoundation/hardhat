@@ -1,3 +1,5 @@
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { assert } from "chai";
 import path from "path";
 
@@ -33,9 +35,14 @@ describe("ExecutionEngine", () => {
 
       assert(deploymentState !== undefined, "deploymentState is undefined");
 
-      await assert.isRejected(
+      await assertRejectsWithHardhatError(
         engine.executeModule(deploymentState, {} as any, [], [], {}, "0x"),
-        /^IGN411:/,
+        HardhatError.ERRORS.IGNITION.EXECUTION.TRANSACTION_LOST,
+        {
+          futureId: "LockModule#Lock",
+          nonce: 1,
+          sender: "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+        },
       );
     });
   });

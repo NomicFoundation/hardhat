@@ -1,9 +1,8 @@
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { exists } from "@nomicfoundation/hardhat-utils/fs";
 
-import { IgnitionError } from "./errors.js";
 import { defaultConfig } from "./internal/defaultConfig.js";
 import { FileDeploymentLoader } from "./internal/deployment-loader/file-deployment-loader.js";
-import { ERRORS } from "./internal/errors-list.js";
 import {
   applyNewMessage,
   loadDeploymentState,
@@ -56,18 +55,24 @@ export async function trackTransaction(
   ) => Promise<any> = applyNewMessage,
 ): Promise<string | void> {
   if (!(await exists(deploymentDir))) {
-    throw new IgnitionError(ERRORS.TRACK_TRANSACTION.DEPLOYMENT_DIR_NOT_FOUND, {
-      deploymentDir,
-    });
+    throw new HardhatError(
+      HardhatError.ERRORS.IGNITION.TRACK_TRANSACTIONS.DEPLOYMENT_DIR_NOT_FOUND,
+      {
+        deploymentDir,
+      },
+    );
   }
   const deploymentLoader = new FileDeploymentLoader(deploymentDir);
 
   const deploymentState = await loadDeploymentState(deploymentLoader);
 
   if (deploymentState === undefined) {
-    throw new IgnitionError(ERRORS.TRACK_TRANSACTION.UNINITIALIZED_DEPLOYMENT, {
-      deploymentDir,
-    });
+    throw new HardhatError(
+      HardhatError.ERRORS.IGNITION.TRACK_TRANSACTIONS.UNINITIALIZED_DEPLOYMENT,
+      {
+        deploymentDir,
+      },
+    );
   }
 
   const jsonRpcClient = new EIP1193JsonRpcClient(provider);
@@ -75,9 +80,12 @@ export async function trackTransaction(
   const transaction = await jsonRpcClient.getFullTransaction(txHash);
 
   if (transaction === undefined) {
-    throw new IgnitionError(ERRORS.TRACK_TRANSACTION.TRANSACTION_NOT_FOUND, {
-      txHash,
-    });
+    throw new HardhatError(
+      HardhatError.ERRORS.IGNITION.TRACK_TRANSACTIONS.TRANSACTION_NOT_FOUND,
+      {
+        txHash,
+      },
+    );
   }
 
   const exStates = getNetworkExecutionStates(deploymentState);
@@ -167,7 +175,9 @@ export async function trackTransaction(
         else {
           // case 3: the txHash matches the one we have saved in the journal for the same nonce
           if (networkInteraction.transactions[0].hash === transaction.hash) {
-            throw new IgnitionError(ERRORS.TRACK_TRANSACTION.KNOWN_TRANSACTION);
+            throw new HardhatError(
+              HardhatError.ERRORS.IGNITION.TRACK_TRANSACTIONS.KNOWN_TRANSACTION,
+            );
           }
 
           // case 4: the user sent a different transaction that replaced ours
@@ -188,7 +198,9 @@ export async function trackTransaction(
   }
 
   // case 5: the txHash doesn't match any nonce we've allocated
-  throw new IgnitionError(ERRORS.TRACK_TRANSACTION.MATCHING_NONCE_NOT_FOUND);
+  throw new HardhatError(
+    HardhatError.ERRORS.IGNITION.TRACK_TRANSACTIONS.MATCHING_NONCE_NOT_FOUND,
+  );
 }
 
 async function checkConfirmations(
@@ -244,8 +256,8 @@ async function checkConfirmations(
 
 If this is not the expected behavior, please edit your Hardhat Ignition module accordingly before re-running your deployment.`;
   } else {
-    throw new IgnitionError(
-      ERRORS.TRACK_TRANSACTION.INSUFFICIENT_CONFIRMATIONS,
+    throw new HardhatError(
+      HardhatError.ERRORS.IGNITION.TRACK_TRANSACTIONS.INSUFFICIENT_CONFIRMATIONS,
     );
   }
 }
