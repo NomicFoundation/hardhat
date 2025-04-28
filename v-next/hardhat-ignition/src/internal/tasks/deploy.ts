@@ -166,7 +166,10 @@ const taskDeploy: NewTaskActionFunction<TaskDeployArguments> = async (
     );
   }
 
-  await hre.tasks.getTask("compile").run({ quiet: true });
+  await hre.tasks.getTask("compile").run({
+    quiet: true,
+    defaultBuildProfile: "production",
+  });
 
   const userModule = await loadModule(hre.config.paths.ignition, modulePath);
 

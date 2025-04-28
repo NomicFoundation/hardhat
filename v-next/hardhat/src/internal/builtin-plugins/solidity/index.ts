@@ -1,5 +1,6 @@
 import type { HardhatPlugin } from "../../../types/plugins.js";
 
+import { ArgumentType } from "../../../types/arguments.js";
 import { globalOption, task } from "../../core/config.js";
 
 import "./type-extensions.js";
@@ -27,6 +28,12 @@ const hardhatPlugin: HardhatPlugin = {
       .addFlag({
         name: "quiet",
         description: "Makes the compilation process less verbose",
+      })
+      .addOption({
+        name: "defaultBuildProfile",
+        description: "The default build profile to use",
+        type: ArgumentType.STRING_WITHOUT_DEFAULT,
+        defaultValue: undefined,
       })
       .addVariadicArgument({
         name: "files",
