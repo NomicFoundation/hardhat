@@ -96,8 +96,8 @@ importers:
   v-next/hardhat:
     dependencies:
       '@ignored/edr':
-        specifier: 0.10.0-alpha.2
-        version: 0.10.0-alpha.2
+        specifier: 0.10.0-alpha.3
+        version: 0.10.0-alpha.3
       '@ignored/edr-optimism':
         specifier: 0.13.0-alpha.0
         version: 0.13.0-alpha.0
@@ -2565,28 +2565,28 @@ packages:
     resolution: {integrity: sha512-93zYdMES/c1D69yZiKDBj0V24vqNzB/koF26KPaagAfd3P/4gUlh3Dys5ogAK+Exi9QyzlD8x/08Zt7wIKcDcA==}
     deprecated: Use @eslint/object-schema instead
 
-  '@ignored/edr-darwin-arm64@0.10.0-alpha.2':
-    resolution: {integrity: sha512-wDvMxkF1dBIudSKvHSMD3ob3y13ori5YbheblzmWmtXOgOFc3kuVHGClWI+0EVGfdAMa9TcrBfyqOueHkNk/Aw==}
+  '@ignored/edr-darwin-arm64@0.10.0-alpha.3':
+    resolution: {integrity: sha512-9lIibFcMAKymO1aLS5HQ1Ro1+J5kOmKT9NUfd1IyDviQu4j8AnFdTgrZpCBDBtKw135S8LPnyLwghTMsPJ1QPQ==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr-darwin-x64@0.10.0-alpha.2':
-    resolution: {integrity: sha512-dutjK8/uKpKV295u/pjJFb3PzfToXCvb3cl7wVvUWH1l0xR3igjp8pxAT5uIiBmR8EE0prRZewZjT/9lEEFTMQ==}
+  '@ignored/edr-darwin-x64@0.10.0-alpha.3':
+    resolution: {integrity: sha512-8X/0TAc3y8hHq//sXQObd50UwrylaPcRLdu8sazN/VKgiamIQxiVSKJlSbJ7oVOny0Qrv6LmYIQ1O4uBIceKyw==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr-linux-arm64-gnu@0.10.0-alpha.2':
-    resolution: {integrity: sha512-EGqVRZ0GkmCaQine+3BSKBR6QNn6kjk667FTyUaS/gGDw0DElV00alu9jv7u2eCLyP3BXhlq3h2WmVEbfAflow==}
+  '@ignored/edr-linux-arm64-gnu@0.10.0-alpha.3':
+    resolution: {integrity: sha512-jNPUFYhdmBaXfeev6uDn/Kf6eADDfDZFpyoeKBL+gj6k599cP1yD9pO4y9NhBYSPNEEMJFYY9reXJ+wm/Ewdlg==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr-linux-arm64-musl@0.10.0-alpha.2':
-    resolution: {integrity: sha512-V0FTEsfgaoK7ohCR22551N810inFlWlbKNgBforUYOF0yi4Zm746EacR3MswhwoQFyBdrSf7sbAfDO/Ad1xOvg==}
+  '@ignored/edr-linux-arm64-musl@0.10.0-alpha.3':
+    resolution: {integrity: sha512-QoEiAAuoo44Zi4Xq2VHy4Kp0JuX/tweNMrfS5IsemgWKksg91smPxkPVI+3BrgHqnsqTN2l6MI5R+A1CW/mshQ==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr-linux-x64-gnu@0.10.0-alpha.2':
-    resolution: {integrity: sha512-UEXARRmTD2jsPIZMsaKHEjOOkCmXczhq5I2SKClggkm54n35ffgw4u9OEMpDrzzjrSDUwy2fgzz44Wu0n/5eag==}
+  '@ignored/edr-linux-x64-gnu@0.10.0-alpha.3':
+    resolution: {integrity: sha512-xW3NzFk8+3dR+QVLQnn4SFxsc92puFJes2nlWI7BxGrEenIqzVsUuZaQc0hThILSsqp+sxdNgFDtHqR44QqGyA==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr-linux-x64-musl@0.10.0-alpha.2':
-    resolution: {integrity: sha512-f97X4qu11aW4St+X42AywIIAX3sOW4mta/HFdd/7jmLuXBFSUxrIcc1kjDcElHxNHFj4sNVOSlbC5Sm5WLCM+g==}
+  '@ignored/edr-linux-x64-musl@0.10.0-alpha.3':
+    resolution: {integrity: sha512-QSYHXEB1BvAsC0H1jb1FJLMgov/4BVCNvI/2+WI8b0r3Ft9ss+2q2ofWFKAz9sQgRM7klROeEBtsCfP731flsA==}
     engines: {node: '>= 18'}
 
   '@ignored/edr-optimism-darwin-arm64@0.13.0-alpha.0':
@@ -2621,12 +2621,12 @@ packages:
     resolution: {integrity: sha512-XTsokbC+7tQGeTnU+o7qbrng9WMRbDwm4PtSGmKmrdcT9ZpbQT8dH11pomMBEF7mtGmj4uRfCZSlpkG08LpgBw==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr-win32-x64-msvc@0.10.0-alpha.2':
-    resolution: {integrity: sha512-mjgD5ksjXfLSK+77x0KsODenjZQJ8IDoUzsyxBNMiBRYDJAM1ER0iVnIB0S0STshqzs+1rmKSY/xX7jBgvPqog==}
+  '@ignored/edr-win32-x64-msvc@0.10.0-alpha.3':
+    resolution: {integrity: sha512-8M5JwzpLB6zJZsExRuqwyR8inE2QLU0YPggZE5b+IHzAiZvZfdz6vRc8PVBJlNxKMDnbG1TzOok+YnvDOKsI5A==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr@0.10.0-alpha.2':
-    resolution: {integrity: sha512-nQXrl0ml2GVJ69oQR2pNJgTk//KkcMx6zEbg9M2KPGuq4P+nja9Skda/walVtwYxlgEhxf6SKfKcfOj7WasMog==}
+  '@ignored/edr@0.10.0-alpha.3':
+    resolution: {integrity: sha512-VJGcd2Z51RdhAn+sSW/2wOplOUGgUienHp57TuGpbjZI/YD4qBDRFOe6uvqUrgsOjRLf+YEIkILck0LMH+mB8A==}
     engines: {node: '>= 18'}
 
   '@isaacs/cliui@8.0.2':
@@ -6585,22 +6585,22 @@ snapshots:
 
   '@humanwhocodes/object-schema@2.0.3': {}
 
-  '@ignored/edr-darwin-arm64@0.10.0-alpha.2':
+  '@ignored/edr-darwin-arm64@0.10.0-alpha.3':
     optional: true
 
-  '@ignored/edr-darwin-x64@0.10.0-alpha.2':
+  '@ignored/edr-darwin-x64@0.10.0-alpha.3':
     optional: true
 
-  '@ignored/edr-linux-arm64-gnu@0.10.0-alpha.2':
+  '@ignored/edr-linux-arm64-gnu@0.10.0-alpha.3':
     optional: true
 
-  '@ignored/edr-linux-arm64-musl@0.10.0-alpha.2':
+  '@ignored/edr-linux-arm64-musl@0.10.0-alpha.3':
     optional: true
 
-  '@ignored/edr-linux-x64-gnu@0.10.0-alpha.2':
+  '@ignored/edr-linux-x64-gnu@0.10.0-alpha.3':
     optional: true
 
-  '@ignored/edr-linux-x64-musl@0.10.0-alpha.2':
+  '@ignored/edr-linux-x64-musl@0.10.0-alpha.3':
     optional: true
 
   '@ignored/edr-optimism-darwin-arm64@0.13.0-alpha.0': {}
@@ -6627,18 +6627,18 @@ snapshots:
       '@ignored/edr-optimism-linux-x64-musl': 0.13.0-alpha.0
       '@ignored/edr-optimism-win32-x64-msvc': 0.13.0-alpha.0
 
-  '@ignored/edr-win32-x64-msvc@0.10.0-alpha.2':
+  '@ignored/edr-win32-x64-msvc@0.10.0-alpha.3':
     optional: true
 
-  '@ignored/edr@0.10.0-alpha.2':
+  '@ignored/edr@0.10.0-alpha.3':
     optionalDependencies:
-      '@ignored/edr-darwin-arm64': 0.10.0-alpha.2
-      '@ignored/edr-darwin-x64': 0.10.0-alpha.2
-      '@ignored/edr-linux-arm64-gnu': 0.10.0-alpha.2
-      '@ignored/edr-linux-arm64-musl': 0.10.0-alpha.2
-      '@ignored/edr-linux-x64-gnu': 0.10.0-alpha.2
-      '@ignored/edr-linux-x64-musl': 0.10.0-alpha.2
-      '@ignored/edr-win32-x64-msvc': 0.10.0-alpha.2
+      '@ignored/edr-darwin-arm64': 0.10.0-alpha.3
+      '@ignored/edr-darwin-x64': 0.10.0-alpha.3
+      '@ignored/edr-linux-arm64-gnu': 0.10.0-alpha.3
+      '@ignored/edr-linux-arm64-musl': 0.10.0-alpha.3
+      '@ignored/edr-linux-x64-gnu': 0.10.0-alpha.3
+      '@ignored/edr-linux-x64-musl': 0.10.0-alpha.3
+      '@ignored/edr-win32-x64-msvc': 0.10.0-alpha.3
 
   '@isaacs/cliui@8.0.2':
     dependencies:
