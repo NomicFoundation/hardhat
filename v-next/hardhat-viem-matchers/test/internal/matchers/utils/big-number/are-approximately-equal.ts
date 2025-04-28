@@ -1,4 +1,3 @@
-import type { HardhatViemMatchers } from "../../../../../src/types.js";
 import type { HardhatViemHelpers } from "@nomicfoundation/hardhat-viem/types";
 
 import { beforeEach, describe, it } from "node:test";
@@ -10,9 +9,7 @@ import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 import hardhatViemMatchers from "../../../../../src/index.js";
 
 describe("areApproximatelyEqual", () => {
-  let viem: HardhatViemHelpers & {
-    assertions: HardhatViemMatchers;
-  };
+  let viem: HardhatViemHelpers;
 
   beforeEach(async () => {
     const hre = await createHardhatRuntimeEnvironment({

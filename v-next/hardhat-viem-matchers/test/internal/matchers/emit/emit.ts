@@ -1,4 +1,3 @@
-import type { HardhatViemMatchers } from "../../../../src/types.js";
 import type { HardhatViemHelpers } from "@nomicfoundation/hardhat-viem/types";
 import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 
@@ -12,9 +11,7 @@ import hardhatViemMatchers from "../../../../src/index.js";
 
 describe("balancesHaveChanged", () => {
   let hre: HardhatRuntimeEnvironment;
-  let viem: HardhatViemHelpers & {
-    assertions: HardhatViemMatchers;
-  };
+  let viem: HardhatViemHelpers;
 
   useEphemeralFixtureProject("hardhat-project");
 

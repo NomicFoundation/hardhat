@@ -1,10 +1,13 @@
 import type { GenericFunction } from "../../types.js";
 import type { HardhatViemHelpers } from "@nomicfoundation/hardhat-viem/types";
+import type { ChainType } from "hardhat/types/network";
 
 import assert from "node:assert/strict";
 
-export async function balancesHaveChanged(
-  viem: HardhatViemHelpers,
+export async function balancesHaveChanged<
+  ChainTypeT extends ChainType | string = "generic",
+>(
+  viem: HardhatViemHelpers<ChainTypeT>,
   fn: GenericFunction,
   changes: Array<{
     address: `0x${string}`;

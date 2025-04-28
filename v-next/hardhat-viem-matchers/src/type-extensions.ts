@@ -1,13 +1,8 @@
-import "hardhat/types/network";
+import "@nomicfoundation/hardhat-viem";
 import type { HardhatViemMatchers } from "./types.js";
-import type { HardhatViemHelpers } from "@nomicfoundation/hardhat-viem/types";
 
-declare module "hardhat/types/network" {
-  interface NetworkConnection<
-    ChainTypeT extends ChainType | string = DefaultChainType,
-  > {
-    viem: HardhatViemHelpers<ChainTypeT> & {
-      assertions: HardhatViemMatchers;
-    };
+declare module "@nomicfoundation/hardhat-viem/types" {
+  interface HardhatViemHelpers {
+    assertions: HardhatViemMatchers;
   }
 }

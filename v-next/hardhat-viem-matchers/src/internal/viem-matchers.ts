@@ -7,6 +7,7 @@ import type {
   ContractReturnType,
   HardhatViemHelpers,
 } from "@nomicfoundation/hardhat-viem/types";
+import type { ChainType } from "hardhat/types/network";
 import type { Abi, ContractEventName } from "viem";
 
 import { balancesHaveChanged } from "./matchers/balances-have-changed.js";
@@ -16,12 +17,15 @@ import { revertWith } from "./matchers/revert/revert-with.js";
 import { revert } from "./matchers/revert/revert.js";
 import { HardhatViemMatchersUtilsImpl } from "./viem-matchers-utils.js";
 
-export class HardhatViemMatchersImpl implements HardhatViemMatchers {
-  readonly #viem: HardhatViemHelpers;
+export class HardhatViemMatchersImpl<
+  ChainTypeT extends ChainType | string = "generic",
+> implements HardhatViemMatchers
+{
+  readonly #viem: HardhatViemHelpers<ChainTypeT>;
 
   public readonly utils: HardhatViemMatchersUtils;
 
-  constructor(viem: HardhatViemHelpers) {
+  constructor(viem: HardhatViemHelpers<ChainTypeT>) {
     this.#viem = viem;
     this.utils = new HardhatViemMatchersUtilsImpl();
   }
