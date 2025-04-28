@@ -4,6 +4,7 @@ import type {
   HardhatViemMatchersUtils,
 } from "../types.js";
 import type {
+  ContractAbis,
   ContractReturnType,
   HardhatViemHelpers,
 } from "@nomicfoundation/hardhat-viem/types";
@@ -40,7 +41,10 @@ export class HardhatViemMatchersImpl<
     return balancesHaveChanged(this.#viem, fn, changes);
   }
 
-  public async emit<const AbiT extends Abi | readonly unknown[], ContractName>(
+  public async emit<
+    const AbiT extends Abi | readonly unknown[],
+    ContractName extends keyof ContractAbis,
+  >(
     fn: GenericFunction,
     contract: ContractReturnType<ContractName>,
     eventName: ContractEventName<AbiT>,
@@ -50,7 +54,7 @@ export class HardhatViemMatchersImpl<
 
   public async emitWithArgs<
     const ViemAbi extends Abi | readonly unknown[],
-    ContractName,
+    ContractName extends keyof ContractAbis,
   >(
     fn: GenericFunction,
     contract: ContractReturnType<ContractName>,

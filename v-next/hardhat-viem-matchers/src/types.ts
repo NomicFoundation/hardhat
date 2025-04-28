@@ -1,4 +1,7 @@
-import type { ContractReturnType } from "@nomicfoundation/hardhat-viem/types";
+import type {
+  ContractAbis,
+  ContractReturnType,
+} from "@nomicfoundation/hardhat-viem/types";
 import type { Abi, ContractEventName } from "viem";
 
 export interface HardhatViemMatchers {
@@ -12,13 +15,19 @@ export interface HardhatViemMatchers {
     }>,
   ) => Promise<void>;
 
-  emit<const ViemAbi extends Abi | readonly unknown[], ContractName>(
+  emit<
+    const ViemAbi extends Abi | readonly unknown[],
+    ContractName extends keyof ContractAbis,
+  >(
     fn: GenericFunction,
     contract: ContractReturnType<ContractName>,
     eventName: ContractEventName<ViemAbi>,
   ): Promise<void>;
 
-  emitWithArgs<const ViemAbi extends Abi | readonly unknown[], ContractName>(
+  emitWithArgs<
+    const ViemAbi extends Abi | readonly unknown[],
+    ContractName extends keyof ContractAbis,
+  >(
     fn: GenericFunction,
     contract: ContractReturnType<ContractName>,
     eventName: ContractEventName<ViemAbi>,

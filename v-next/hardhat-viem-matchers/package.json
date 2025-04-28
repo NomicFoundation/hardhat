@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-viem-matchers",
-  "version": "3.0.0-next.3",
+  "version": "3.0.0-next.5",
   "description": "A Hardhat plugin that adds matchers for Viem",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-viem-matchers",
   "repository": {
@@ -68,12 +68,12 @@
     "viem": "^2.21.42"
   },
   "dependencies": {
-    "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.3",
-    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.3"
+    "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.5",
+    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.5"
   },
   "peerDependencies": {
-    "@nomicfoundation/hardhat-viem": "workspace:^3.0.0-next.3",
-    "hardhat": "workspace:^3.0.0-next.3",
+    "@nomicfoundation/hardhat-viem": "workspace:^3.0.0-next.5",
+    "hardhat": "workspace:^3.0.0-next.5",
     "viem": "^2.21.42"
   }
 }

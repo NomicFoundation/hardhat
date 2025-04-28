@@ -1837,13 +1837,13 @@ importers:
   v-next/hardhat-viem-matchers:
     dependencies:
       '@nomicfoundation/hardhat-errors':
-        specifier: workspace:^3.0.0-next.3
+        specifier: workspace:^3.0.0-next.5
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^3.0.0-next.3
+        specifier: workspace:^3.0.0-next.5
         version: link:../hardhat-utils
       hardhat:
-        specifier: workspace:^3.0.0-next.3
+        specifier: workspace:^3.0.0-next.5
         version: link:../hardhat
     devDependencies:
       '@eslint-community/eslint-plugin-eslint-comments':

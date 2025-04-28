@@ -1,5 +1,6 @@
 import type { GenericFunction } from "../../../types.js";
 import type {
+  ContractAbis,
   ContractReturnType,
   HardhatViemHelpers,
 } from "@nomicfoundation/hardhat-viem/types";
@@ -16,7 +17,7 @@ import { checkEmitted } from "./utils.js";
 
 export async function emitWithArgs<
   const ViemAbi extends Abi | readonly unknown[],
-  ContractName,
+  ContractName extends keyof ContractAbis,
   ChainTypeT extends ChainType | string = "generic",
 >(
   viem: HardhatViemHelpers<ChainTypeT>,
