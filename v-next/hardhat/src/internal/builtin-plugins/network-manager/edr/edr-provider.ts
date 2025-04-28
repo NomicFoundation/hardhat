@@ -430,6 +430,10 @@ async function getProviderConfig(
       },
     },
     networkId: BigInt(networkConfig.networkId),
+    observability: {
+      // TODO: add configuration of code coverage
+      codeCoverage: undefined,
+    },
     ownedAccounts: await hardhatAccountsToEdrOwnedAccounts(
       networkConfig.accounts,
     ),
