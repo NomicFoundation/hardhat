@@ -30,10 +30,12 @@ export async function balancesHaveChanged<
     const balanceBefore = preBalances[index];
     const balanceAfter = postBalances[index];
 
+    const actualChange = balanceAfter - balanceBefore;
+
     assert.equal(
-      balanceBefore + amount,
-      balanceAfter,
-      `For address "${address}", expected balance to change by ${amount} (from ${balanceBefore} to ${balanceBefore + amount}), but got ${balanceAfter} instead.`,
+      actualChange,
+      amount,
+      `For address "${address}", expected balance to change by ${amount} (from ${balanceBefore} to ${balanceBefore + amount}), but got a change of ${actualChange} instead.`,
     );
   });
 }

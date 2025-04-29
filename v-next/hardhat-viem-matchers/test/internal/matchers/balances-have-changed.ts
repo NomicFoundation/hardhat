@@ -81,7 +81,7 @@ describe("balancesHaveChanged", () => {
       ]),
       (error) =>
         error.message.includes(
-          `For address "${aliceWalletClient.account.address}", expected balance to change by 10 (from 10000000000000000000000 to 10000000000000000000010), but got 11000000000000000000000 instead.`,
+          `For address "${aliceWalletClient.account.address}", expected balance to change by 10 (from 10000000000000000000000 to 10000000000000000000010), but got a change of 1000000000000000000000 instead.`,
         ),
     );
   });
