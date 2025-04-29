@@ -9,7 +9,7 @@ import type {
   HardhatViemHelpers,
 } from "@nomicfoundation/hardhat-viem/types";
 import type { ChainType } from "hardhat/types/network";
-import type { Abi, ContractEventName } from "viem";
+import type { ContractEventName } from "viem";
 
 import { balancesHaveChanged } from "./matchers/balances-have-changed.js";
 import { emitWithArgs } from "./matchers/emit/emit-with-args.js";
@@ -42,23 +42,23 @@ export class HardhatViemMatchersImpl<
   }
 
   public async emit<
-    const AbiT extends Abi | readonly unknown[],
     ContractName extends keyof ContractAbis,
+    EventName extends ContractEventName<ContractAbis[ContractName]>,
   >(
     fn: GenericFunction,
     contract: ContractReturnType<ContractName>,
-    eventName: ContractEventName<AbiT>,
+    eventName: EventName,
   ): Promise<void> {
     return emit(this.#viem, fn, contract, eventName);
   }
 
   public async emitWithArgs<
-    const ViemAbi extends Abi | readonly unknown[],
     ContractName extends keyof ContractAbis,
+    EventName extends ContractEventName<ContractAbis[ContractName]>,
   >(
     fn: GenericFunction,
     contract: ContractReturnType<ContractName>,
-    eventName: ContractEventName<ViemAbi>,
+    eventName: EventName,
     args: any[],
   ): Promise<void> {
     return emitWithArgs(this.#viem, fn, contract, eventName, args);

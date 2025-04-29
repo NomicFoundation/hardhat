@@ -5,7 +5,7 @@ import type {
   HardhatViemHelpers,
 } from "@nomicfoundation/hardhat-viem/types";
 import type { ChainType } from "hardhat/types/network";
-import type { Abi, ContractEventName } from "viem";
+import type { ContractEventName } from "viem";
 
 import assert from "node:assert/strict";
 import { inspect } from "node:util";
@@ -16,14 +16,14 @@ import { deepEqual } from "@nomicfoundation/hardhat-utils/lang";
 import { checkEmitted } from "./utils.js";
 
 export async function emitWithArgs<
-  const ViemAbi extends Abi | readonly unknown[],
   ContractName extends keyof ContractAbis,
+  EventName extends ContractEventName<ContractAbis[ContractName]>,
   ChainTypeT extends ChainType | string = "generic",
 >(
   viem: HardhatViemHelpers<ChainTypeT>,
   fn: GenericFunction,
   contract: ContractReturnType<ContractName>,
-  eventName: ContractEventName<ViemAbi>,
+  eventName: EventName,
   args: any[],
 ): Promise<void> {
   const parsedLogs = await checkEmitted(viem, fn, contract, eventName);

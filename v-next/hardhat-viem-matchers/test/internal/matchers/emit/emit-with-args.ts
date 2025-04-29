@@ -36,7 +36,7 @@ describe("balancesHaveChanged", () => {
 
     await viem.assertions.emitWithArgs(
       async () => {
-        await contract.write.emitInt([1]);
+        await contract.write.emitInt([1n]);
       },
       contract,
       "WithIntArg",
@@ -49,7 +49,7 @@ describe("balancesHaveChanged", () => {
 
     await viem.assertions.emitWithArgs(
       async () => {
-        await contract.write.emitTwoUints([1, 2]);
+        await contract.write.emitTwoUints([1n, 2n]);
       },
       contract,
       "WithTwoUintArgs",
@@ -63,7 +63,7 @@ describe("balancesHaveChanged", () => {
     await assertRejects(
       viem.assertions.emitWithArgs(
         async () => {
-          await contract.write.emitInt([1]);
+          await contract.write.emitInt([1n]);
         },
         contract,
         "WithIntArg",
