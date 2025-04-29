@@ -46,13 +46,15 @@ export function getMessageFromLastStackTraceEntry(
     case StackTraceEntryType.DIRECT_LIBRARY_CALL_ERROR:
       return `Library was called directly`;
 
+    /* These types are not associate with a more detailed error message */
     case StackTraceEntryType.UNRECOGNIZED_CREATE_ERROR:
     case StackTraceEntryType.UNRECOGNIZED_CONTRACT_ERROR: {
-      return "Contract reverted without a reason string";
+      return undefined;
     }
 
+    /* These types are not associate with a more detailed error message */
     case StackTraceEntryType.REVERT_ERROR: {
-      return "Contract reverted without a reason string";
+      return undefined;
     }
 
     case StackTraceEntryType.PANIC_ERROR:
