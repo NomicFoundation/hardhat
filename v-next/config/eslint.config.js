@@ -1,10 +1,14 @@
 // @ts-check
-const path = require("path");
-const eslintImport = require("eslint-plugin-import");
-const tseslint = require("typescript-eslint");
-const globals = require("globals");
-const pluginNoOnlyTests = require("eslint-plugin-no-only-tests");
-const pluginEslintComments = require("@eslint-community/eslint-plugin-eslint-comments");
+
+import path from "node:path";
+import { builtinModules } from "node:module";
+import assert from "node:assert";
+
+import globals from "globals";
+import tseslint from "typescript-eslint";
+import * as importPlugin from "eslint-plugin-import";
+import noOnlyTestsPlugin from "eslint-plugin-no-only-tests";
+import eslintCommentsPlugin from "@eslint-community/eslint-plugin-eslint-comments";
 
 /**
  * Creates a predefined config that every package inside this monorepo should use.
@@ -14,11 +18,14 @@ const pluginEslintComments = require("@eslint-community/eslint-plugin-eslint-com
  *
  * The only packages that should not use this config are our own eslint plugins/rules.
  *
+ * Note regarding types:
+ * https://github.com/typescript-eslint/typescript-eslint/issues/9110#issuecomment-2118469163
+ *
  * @param {string} configFilePath The path to the config file that is using this function.
  * @param {{ onlyHardhatError?: boolean, enforceHardhatTestUtils?: boolean }} options An object with options to enable/disable certain rules.
- * @returns {import("eslint").Linter.Config[]}
+ * @returns {import("typescript-eslint").ConfigArray}
  */
-function createConfig(
+export function createConfig(
   configFilePath,
   options = { onlyHardhatError: true, enforceHardhatTestUtils: true },
 ) {
@@ -86,22 +93,23 @@ function createConfig(
       message:
         "Use the conditionalUnionType or unionType helpers from the zod utils package instead, as it provides better error messages.",
     },
+    ...(options.enforceHardhatTestUtils
+      ? [
+          {
+            selector:
+              "CallExpression[callee.object.name='assert'][callee.property.name=throws]",
+            message: "Don't use assert.throws. Use our test helpers instead.",
+          },
+          {
+            selector:
+              "CallExpression[callee.object.name='assert'][callee.property.name=rejects]",
+            message: "Don't use assert.rejects. Use our test helpers instead.",
+          },
+        ]
+      : []),
   ];
 
-  const forceHardhatTestUtils = [
-    {
-      selector:
-        "CallExpression[callee.object.name='assert'][callee.property.name=throws]",
-      message: "Don't use assert.throws. Use our test helpers instead.",
-    },
-    {
-      selector:
-        "CallExpression[callee.object.name='assert'][callee.property.name=rejects]",
-      message: "Don't use assert.rejects. Use our test helpers instead.",
-    },
-  ];
-
-  /**`
+  /**
    * @type {import("eslint").Linter.RulesRecord}
    */
   const rules = {
@@ -345,7 +353,7 @@ function createConfig(
               "Don't import from the src folder, use the package entry point instead.",
           },
           {
-            group: require("module").builtinModules.map((m) => `/${m}`),
+            group: builtinModules.map((m) => `/${m}`),
             message:
               "Use the 'node:' prefix to import built-in Node.js modules.",
           },
@@ -361,9 +369,7 @@ function createConfig(
             name: "node:assert",
             importNames: [
               "default",
-              ...Object.keys(require("node:assert")).filter(
-                (k) => k !== "AssertionError",
-              ),
+              ...Object.keys(assert).filter((k) => k !== "AssertionError"),
             ],
             message: "Use node:assert/strict instead.",
           },
@@ -379,7 +385,7 @@ function createConfig(
   };
 
   /**
-   * @type {import("eslint").Linter.Config}
+   * @type {import("typescript-eslint").ConfigWithExtends}
    */
   const config = {
     languageOptions: {
@@ -401,12 +407,11 @@ function createConfig(
         node: true,
       },
     },
-
     plugins: {
-      import: eslintImport,
-      "no-only-tests": pluginNoOnlyTests,
+      import: importPlugin,
+      "no-only-tests": noOnlyTestsPlugin,
       "@typescript-eslint": tseslint.plugin,
-      "@eslint-community/eslint-comments": pluginEslintComments,
+      "@eslint-community/eslint-comments": eslintCommentsPlugin,
     },
     rules,
     files: ["src/**/*.ts", "test/**/*.ts", "integration-tests/**/*.ts"],
@@ -414,13 +419,13 @@ function createConfig(
   };
 
   /**
-   * @type {import("eslint").Linter.Config}
+   * @type {import("typescript-eslint").ConfigWithExtends}
    */
   const testFilesConfig = {
     files: ["test/**/*.ts", "integration-tests/**/*.ts"],
     ignores: ["test/**/fixture-projects/**"],
     plugins: {
-      import: eslintImport,
+      import: importPlugin,
     },
     rules: {
       "import/no-extraneous-dependencies": [
@@ -435,7 +440,7 @@ function createConfig(
   };
 
   /**
-   * @type {import("eslint").Linter.Config}
+   * @type {import("typescript-eslint").ConfigWithExtends}
    */
   const onlyHardhatErrorConfig = {
     files: ["src/**/*.ts"],
@@ -454,20 +459,9 @@ function createConfig(
     },
   };
 
-  if (options.enforceHardhatTestUtils) {
-    config.rules["no-restricted-syntax"].push(...forceHardhatTestUtils);
-  }
-
-  /**
-   * @type {import("eslint").Linter.Config[]}
-   */
-  const configArray = [config, testFilesConfig];
-
-  if (options.onlyHardhatError) {
-    configArray.push(onlyHardhatErrorConfig);
-  }
-
-  return configArray;
+  return tseslint.config(
+    config,
+    testFilesConfig,
+    options.onlyHardhatError ? onlyHardhatErrorConfig : {},
+  );
 }
-
-module.exports.createConfig = createConfig;

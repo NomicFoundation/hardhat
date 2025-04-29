@@ -1,6 +1,6 @@
-const { createConfig } = require("../config/eslint.config.cjs");
+import { createConfig } from "../config/eslint.config.js";
 
-const configs = createConfig(__filename);
+const configs = createConfig(import.meta.filename);
 
 /**
  * * @type {import("eslint").Linter.Config}
@@ -19,4 +19,5 @@ const overrideConfig = {
 };
 
 configs.push(overrideConfig);
-module.exports = configs;
+
+export default configs;
