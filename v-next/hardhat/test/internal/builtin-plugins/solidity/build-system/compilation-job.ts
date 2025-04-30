@@ -17,7 +17,7 @@ import {
 } from "../../../../../src/internal/builtin-plugins/solidity/build-system/resolved-file.js";
 import { HookManagerImplementation } from "../../../../../src/internal/core/hook-manager.js";
 
-describe.only("CompilationJobImplementation", () => {
+describe("CompilationJobImplementation", () => {
   let dependencyGraph: DependencyGraphImplementation;
   let rootFile: ProjectResolvedFile;
   let npmDependencyFile: NpmPackageResolvedFile;
