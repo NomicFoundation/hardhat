@@ -5,8 +5,6 @@ import type {
   ResolvedNpmPackage,
 } from "../../../../types/solidity.js";
 
-import { createNonCryptographicHashId } from "@nomicfoundation/hardhat-utils/crypto";
-
 import { ResolvedFileType } from "../../../../types/solidity.js";
 
 export class ProjectResolvedFileImplementation implements ProjectResolvedFile {
@@ -17,20 +15,10 @@ export class ProjectResolvedFileImplementation implements ProjectResolvedFile {
   public readonly fsPath: string;
   public readonly content: FileContent;
 
-  #contentHash?: string;
-
-  constructor(options: Omit<ProjectResolvedFile, "type" | "getContentHash">) {
+  constructor(options: Omit<ProjectResolvedFile, "type">) {
     this.sourceName = options.sourceName;
     this.fsPath = options.fsPath;
     this.content = options.content;
-  }
-
-  public async getContentHash(): Promise<string> {
-    if (this.#contentHash === undefined) {
-      this.#contentHash = await createNonCryptographicHashId(this.content.text);
-    }
-
-    return this.#contentHash;
   }
 }
 
@@ -45,22 +33,12 @@ export class NpmPackageResolvedFileImplementation
   public readonly content: FileContent;
   public readonly package: ResolvedNpmPackage;
 
-  #contentHash?: string;
-
   constructor(
-    options: Omit<NpmPackageResolvedFile, "type" | "getContentHash">,
+    options: Omit<NpmPackageResolvedFile, "type">,
   ) {
     this.sourceName = options.sourceName;
     this.fsPath = options.fsPath;
     this.content = options.content;
     this.package = options.package;
-  }
-
-  public async getContentHash(): Promise<string> {
-    if (this.#contentHash === undefined) {
-      this.#contentHash = await createNonCryptographicHashId(this.content.text);
-    }
-
-    return this.#contentHash;
   }
 }
