@@ -2,22 +2,29 @@ import type { DependencyGraphImplementation } from "./dependency-graph.js";
 import type { Remapping } from "./resolver/types.js";
 import type { BuildInfo } from "../../../../types/artifacts.js";
 import type { SolcConfig } from "../../../../types/config.js";
+import type { HookManager } from "../../../../types/hooks.js";
 import type { CompilationJob } from "../../../../types/solidity/compilation-job.js";
 import type { CompilerInput } from "../../../../types/solidity/compiler-io.js";
 import type { DependencyGraph } from "../../../../types/solidity/dependency-graph.js";
-import type { ResolvedFile } from "../../../../types/solidity.js";
 
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { createNonCryptographicHashId } from "@nomicfoundation/hardhat-utils/crypto";
+
+import { ResolvedFileType, type ResolvedFile } from "../../../../types/solidity.js";
 
 import { formatRemapping } from "./resolver/remappings.js";
 import { getEvmVersionFromSolcVersion } from "./solc-info.js";
 
 export class CompilationJobImplementation implements CompilationJob {
+  static readonly #fileContents: Record<string, string> = {};
+	static readonly #fileContentHashes: Record<string, string> = {}
+
   public readonly dependencyGraph: DependencyGraph;
   public readonly solcConfig: SolcConfig;
   public readonly solcLongVersion: string;
 
   readonly #remappings: Remapping[];
+  readonly #hooks: HookManager;
 
   #buildId: string | undefined;
   #solcInput: CompilerInput | undefined;
@@ -29,16 +36,18 @@ export class CompilationJobImplementation implements CompilationJob {
     solcConfig: SolcConfig,
     solcLongVersion: string,
     remappings: Remapping[],
+    hooks: HookManager,
   ) {
     this.dependencyGraph = dependencyGraph;
     this.solcConfig = solcConfig;
     this.solcLongVersion = solcLongVersion;
     this.#remappings = remappings;
+    this.#hooks = hooks;
   }
 
-  public getSolcInput(): CompilerInput {
+  public async getSolcInput(): Promise<CompilerInput> {
     if (this.#solcInput === undefined) {
-      this.#solcInput = this.#buildSolcInput();
+      this.#solcInput = await this.#buildSolcInput();
     }
 
     return this.#solcInput;
@@ -71,7 +80,35 @@ export class CompilationJobImplementation implements CompilationJob {
     return this.#resolvedFiles;
   }
 
-  #buildSolcInput(): CompilerInput {
+  async #getFileContent(file: ResolvedFile): Promise<string> {
+	  if (file.type === ResolvedFileType.NPM_PACKAGE_FILE) {
+		  return file.content.text;
+	  }
+		if (CompilationJobImplementation.#fileContents[file.sourceName] === undefined) {
+			const solcVersion = this.solcConfig.version;
+			CompilationJobImplementation.#fileContents[file.sourceName] = await this.#hooks.runHandlerChain(
+        "solidity",
+        "preprocessProjectFileBeforeBuilding",
+        [file.sourceName, file.content.text, solcVersion],
+        async (_context, nextSourceName, nextFileContent, nextSolcVersion) => {
+	        assertHardhatInvariant(file.sourceName === nextSourceName, "Cannot modify source name in preprocessProjectFileBeforeBuilding");
+	        assertHardhatInvariant(solcVersion === nextSolcVersion, "Cannot modify solc version in preprocessProjectFileBeforeBuilding");
+          return nextFileContent;
+        }
+      )
+		}
+		return CompilationJobImplementation.#fileContents[file.sourceName];
+	}
+
+  async #getFileContentHash(file: ResolvedFile): Promise<string> {
+		if (CompilationJobImplementation.#fileContentHashes[file.sourceName] === undefined) {
+			const fileContent = await this.#getFileContent(file);
+			CompilationJobImplementation.#fileContentHashes[file.sourceName] = await createNonCryptographicHashId(fileContent);
+		}
+		return CompilationJobImplementation.#fileContentHashes[file.sourceName];
+	}
+
+  async #buildSolcInput(): Promise<CompilerInput> {
     const solcInputWithoutSources = this.#getSolcInputWithoutSources();
 
     const sources: { [sourceName: string]: { content: string } } = {};
@@ -79,8 +116,9 @@ export class CompilationJobImplementation implements CompilationJob {
     const resolvedFiles = this.#getResolvedFiles();
 
     for (const file of resolvedFiles) {
+      const content = await this.#getFileContent(file);
       sources[file.sourceName] = {
-        content: file.content.text,
+        content,
       };
     }
 
@@ -139,8 +177,9 @@ export class CompilationJobImplementation implements CompilationJob {
 
     await Promise.all(
       resolvedFiles.map(async (file) => {
+        const hash = await this.#getFileContentHash(file);
         sources[file.sourceName] = {
-          hash: await file.getContentHash(),
+          hash,
         };
       }),
     );

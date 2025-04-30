@@ -119,7 +119,7 @@ export async function getBuildInfo(
     solcVersion: compilationJob.solcConfig.version,
     solcLongVersion: compilationJob.solcLongVersion,
     publicSourceNameMap,
-    input: compilationJob.getSolcInput(),
+    input: await compilationJob.getSolcInput(),
   };
 
   return buildInfo;

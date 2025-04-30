@@ -1,5 +1,6 @@
 import type { Remapping } from "../../../../../src/internal/builtin-plugins/solidity/build-system/resolver/types.js";
 import type { SolcConfig } from "../../../../../src/types/config.js";
+import type { HookManager } from "../../../../../src/types/hooks.js";
 import type {
   NpmPackageResolvedFile,
   ProjectResolvedFile,
@@ -14,6 +15,7 @@ import {
   NpmPackageResolvedFileImplementation,
   ProjectResolvedFileImplementation,
 } from "../../../../../src/internal/builtin-plugins/solidity/build-system/resolved-file.js";
+import { HookManagerImplementation } from "../../../../../src/internal/core/hook-manager.js";
 
 describe("CompilationJobImplementation", () => {
   let dependencyGraph: DependencyGraphImplementation;
@@ -23,6 +25,7 @@ describe("CompilationJobImplementation", () => {
   let solcConfig: SolcConfig;
   let solcLongVersion: string;
   let remappings: Remapping[];
+  let hooks: HookManager;
   let compilationJob: CompilationJobImplementation;
 
   beforeEach(() => {
@@ -69,11 +72,13 @@ describe("CompilationJobImplementation", () => {
     };
     solcLongVersion = "0.8.0-c7dfd78";
     remappings = [];
+    hooks = new HookManagerImplementation(process.cwd(), []);
     compilationJob = new CompilationJobImplementation(
       dependencyGraph,
       solcConfig,
       solcLongVersion,
       remappings,
+      hooks,
     );
   });
 
@@ -85,6 +90,7 @@ describe("CompilationJobImplementation", () => {
           solcConfig,
           "0.8.0-df193b1",
           remappings,
+          hooks,
         );
         assert.notEqual(
           await compilationJob.getBuildId(),
@@ -105,6 +111,7 @@ describe("CompilationJobImplementation", () => {
           },
           solcLongVersion,
           remappings,
+          hooks,
         );
         assert.notEqual(
           await compilationJob.getBuildId(),
@@ -123,6 +130,7 @@ describe("CompilationJobImplementation", () => {
               target: "test",
             },
           ],
+          hooks,
         );
         assert.notEqual(
           await compilationJob.getBuildId(),
@@ -144,6 +152,7 @@ describe("CompilationJobImplementation", () => {
           solcConfig,
           solcLongVersion,
           remappings,
+          hooks,
         );
         assert.notEqual(
           await compilationJob.getBuildId(),
@@ -165,6 +174,7 @@ describe("CompilationJobImplementation", () => {
           solcConfig,
           solcLongVersion,
           remappings,
+          hooks,
         );
         assert.notEqual(
           await compilationJob.getBuildId(),
@@ -188,6 +198,7 @@ describe("CompilationJobImplementation", () => {
           solcConfig,
           solcLongVersion,
           remappings,
+          hooks,
         );
         assert.notEqual(
           await compilationJob.getBuildId(),
@@ -211,6 +222,7 @@ describe("CompilationJobImplementation", () => {
           solcConfig,
           solcLongVersion,
           remappings,
+          hooks,
         );
         assert.notEqual(
           compilationJob.getBuildId(),
@@ -231,6 +243,7 @@ describe("CompilationJobImplementation", () => {
           solcConfig,
           solcLongVersion,
           remappings,
+          hooks,
         );
         assert.notEqual(
           await compilationJob.getBuildId(),
@@ -251,6 +264,7 @@ describe("CompilationJobImplementation", () => {
           solcConfig,
           solcLongVersion,
           remappings,
+          hooks,
         );
         assert.notEqual(
           await compilationJob.getBuildId(),
@@ -276,6 +290,7 @@ describe("CompilationJobImplementation", () => {
           solcConfig,
           solcLongVersion,
           remappings,
+          hooks,
         );
         assert.equal(
           await compilationJob.getBuildId(),
@@ -292,6 +307,7 @@ describe("CompilationJobImplementation", () => {
           solcConfig,
           solcLongVersion,
           remappings,
+          hooks,
         );
         assert.equal(
           await compilationJob.getBuildId(),
