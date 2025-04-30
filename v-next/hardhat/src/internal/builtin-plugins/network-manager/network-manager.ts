@@ -205,15 +205,27 @@ export class NetworkManagerImplementation implements NetworkManager {
           );
         }
 
+        const networkConfig = {
+          ...resolvedNetworkConfig,
+          /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
+          This case is safe because we have a check above */
+          chainType: resolvedChainType as ChainType,
+        };
+
+        const shouldEnableCoverage = await hookManager.hasHandlers("network", "onCoverageData");
+        if (shouldEnableCoverage) {
+          // TODO: Add the lines:
+          // networkConfig.observability.codeCoverage = {
+          //   onCollectedCoverageCallback: (coverageData: CoverageData) => {
+          //     void hookManager.runParallelHandlers("network", "onCoverageData", [coverageData])
+          //   }
+          // };
+        }
+
         return EdrProvider.create({
           // The resolvedNetworkConfig can have its chainType set to `undefined`
           // so we default to the default chain type here.
-          networkConfig: {
-            ...resolvedNetworkConfig,
-            /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
-            This case is safe because we have a check above */
-            chainType: resolvedChainType as ChainType,
-          },
+          networkConfig,
           jsonRpcRequestWrapper,
           tracingConfig: {
             buildInfos: await this.#getBuildInfosAndOutputsAsBuffers(),
