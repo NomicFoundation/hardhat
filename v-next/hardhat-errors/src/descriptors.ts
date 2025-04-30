@@ -1208,7 +1208,7 @@ Please use the fully qualified name of the contract to disambiguate it.`,
         websiteTitle: "Source file not instrumented for coverage",
         websiteDescription: `The source file could not be instrumented for coverage.`,
       },
-    }
+    },
   },
   IGNITION: {
     GENERAL: {
