@@ -19,14 +19,8 @@ import { formatRemapping } from "./resolver/remappings.js";
 import { getEvmVersionFromSolcVersion } from "./solc-info.js";
 
 export class CompilationJobImplementation implements CompilationJob {
-  static #fileContents: Record<string, string> = {};
-  static #fileContentHashes: Record<string, string> = {};
-
-  // NOTE: This method is exported for testing purposes only.
-  public static clearCaches(): void {
-    CompilationJobImplementation.#fileContents = {};
-    CompilationJobImplementation.#fileContentHashes = {};
-  }
+  static readonly #fileContents: Record<string, string> = {};
+  static readonly #fileContentHashes: Record<string, string> = {};
 
   public readonly dependencyGraph: DependencyGraph;
   public readonly solcConfig: SolcConfig;
