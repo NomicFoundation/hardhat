@@ -114,5 +114,18 @@ declare module "../../../types/hooks.js" {
         artifactPaths: string[],
       ) => Promise<void>,
     ) => Promise<void>;
+
+    preprocessProjectFileBeforeBuilding(
+      context: HookContext,
+      sourceName: string,
+      fileContent: string,
+      solcVersion: string,
+      next: (
+        nextContext: HookContext,
+        nextSourceName: string,
+        nextFileContent: string,
+        nextSolcVersion: string,
+      ) => Promise<string>,
+    ): Promise<string>;
   }
 }
