@@ -116,6 +116,11 @@ export const ERROR_CATEGORIES: {
         max: 1199,
         websiteSubTitle: "Hardhat node errors",
       },
+      COVERAGE: {
+        min: 1200,
+        max: 1299,
+        websiteSubTitle: "Hardhat coverage errors",
+      },
     },
   },
   IGNITION: {
