@@ -13,6 +13,9 @@ import {
   remove,
   writeJsonFile,
 } from "@nomicfoundation/hardhat-utils/fs";
+import debug from "debug";
+
+const log = debug("hardhat:core:coverage:coverage-manager")
 
 export class CoverageManagerImplementation implements CoverageManager {
   readonly #metadata: CoverageMetadata = [];
@@ -37,12 +40,15 @@ export class CoverageManagerImplementation implements CoverageManager {
 
   public async addData(data: CoverageData): Promise<void> {
     this.#data.push(...data);
+    log("Added data", JSON.stringify(data, null, 2));
   }
 
   public async saveData(): Promise<void> {
     const dataPath = await this.#getDataPath();
     const filePath = path.join(dataPath, `${crypto.randomUUID()}.json`);
-    await writeJsonFile(filePath, this.#data);
+    const data = this.#data;
+    await writeJsonFile(filePath, data);
+    log(`Saved data to ${filePath}`, JSON.stringify(data, null, 2));
   }
 
   public async loadData(): Promise<void> {
@@ -52,8 +58,10 @@ export class CoverageManagerImplementation implements CoverageManager {
     for (const filePath of filePaths) {
       const partialData = await readJsonFile<CoverageData>(filePath);
       data.push(...partialData);
+      log(`Loaded data from ${filePath}`, JSON.stringify(partialData, null, 2));
     }
     this.#data = data;
+    log("Loaded data", JSON.stringify(data, null, 2));
   }
 
   public async clearData(): Promise<void> {
@@ -61,9 +69,11 @@ export class CoverageManagerImplementation implements CoverageManager {
     await remove(dataPath);
     await ensureDir(dataPath);
     this.#data = [];
+    log("Cleared data");
   }
 
   public async addMetadata(metadata: CoverageMetadata): Promise<void> {
     this.#metadata.push(...metadata);
+    log("Added metadata", JSON.stringify(metadata, null, 2));
   }
 }
