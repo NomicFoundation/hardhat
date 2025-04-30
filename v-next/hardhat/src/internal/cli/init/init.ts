@@ -13,6 +13,7 @@ import {
   exists,
   getAllFilesMatching,
   isDirectory,
+  mkdir,
   readJsonFile,
   writeJsonFile,
 } from "@nomicfoundation/hardhat-utils/fs";
@@ -185,14 +186,17 @@ export async function getWorkspace(workspace?: string): Promise<string> {
 
   workspace = resolveFromRoot(process.cwd(), workspace);
 
-  if (!(await exists(workspace)) || !(await isDirectory(workspace))) {
+  if ((await exists(workspace)) && !(await isDirectory(workspace))) {
     throw new HardhatError(
-      HardhatError.ERRORS.CORE.GENERAL.WORKSPACE_NOT_FOUND,
+      HardhatError.ERRORS.CORE.GENERAL.WORKSPACE_MUST_BE_A_DIRECTORY,
       {
         workspace,
       },
     );
   }
+
+  // If the path points to a non-existent folder, create it; otherwise, do nothing
+  await mkdir(workspace);
 
   // Validate that the workspace is not already initialized
   try {

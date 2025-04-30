@@ -45,16 +45,24 @@ describe("printWelcomeMessage", () => {
 describe("getWorkspace", () => {
   useTmpDir("getWorkspace");
 
-  it("should throw if the provided workspace does not exist", async () => {
-    // TODO: We shouldn't be testing the exact error message
-    await assertRejectsWithHardhatError(
-      async () => getWorkspace("non-existent-workspace"),
-      HardhatError.ERRORS.CORE.GENERAL.WORKSPACE_NOT_FOUND,
-      {
-        workspace: path.resolve("non-existent-workspace"),
-      },
-    );
+  describe("workspace is not a directory", async () => {
+    useTmpDir("invalidDirectory");
+
+    it("should throw if the provided workspace is not a directory", async () => {
+      const filePath = path.join(process.cwd(), "file.txt");
+
+      await writeUtf8File(filePath, "some content");
+
+      await assertRejectsWithHardhatError(
+        async () => getWorkspace(filePath),
+        HardhatError.ERRORS.CORE.GENERAL.WORKSPACE_MUST_BE_A_DIRECTORY,
+        {
+          workspace: path.resolve(filePath),
+        },
+      );
+    });
   });
+
   it("should throw if the provided workspace is within an already initlized hardhat project", async () => {
     await ensureDir("hardhat-project");
     await writeUtf8File("hardhat.config.ts", "");
@@ -389,30 +397,38 @@ describe("initHardhat", async () => {
   const templates = await getTemplates();
 
   for (const template of templates) {
-    // NOTE: This test uses network to access the npm registry
-    it(
-      `should initialize the project using the ${template.name} template in an empty folder`,
-      {
-        skip: process.env.HARDHAT_DISABLE_SLOW_TESTS === "true",
-      },
-      async () => {
-        await initHardhat({
-          template: template.name,
-          workspace: process.cwd(),
-          migrateToEsm: false,
-          force: false,
-          install: false,
-        });
-        assert.ok(await exists("package.json"), "package.json should exist");
-        const workspaceFiles = template.files.map(
-          relativeTemplateToWorkspacePath,
-        );
-        for (const file of workspaceFiles) {
-          const pathToFile = path.join(process.cwd(), file);
-          assert.ok(await exists(pathToFile), `File ${file} should exist`);
-        }
-      },
-    );
+    // Verifies that non-existent folders are created during initialization instead of throwing an error
+    for (const folderPath of [".", "nonExistingFolder"]) {
+      // NOTE: This test uses network to access the npm registry
+      it(
+        `should initialize the project using the ${template.name} template in an empty folder with folder path "${folderPath}"`,
+        {
+          skip: process.env.HARDHAT_DISABLE_SLOW_TESTS === "true",
+        },
+        async () => {
+          const workspacePath = path.join(process.cwd(), folderPath);
+
+          await initHardhat({
+            template: template.name,
+            workspace: workspacePath,
+            migrateToEsm: false,
+            force: false,
+            install: false,
+          });
+          assert.ok(
+            await exists(path.join(workspacePath, "package.json")),
+            "package.json should exist",
+          );
+          const workspaceFiles = template.files.map(
+            relativeTemplateToWorkspacePath,
+          );
+          for (const file of workspaceFiles) {
+            const pathToFile = path.join(workspacePath, file);
+            assert.ok(await exists(pathToFile), `File ${file} should exist`);
+          }
+        },
+      );
+    }
   }
 });
 
