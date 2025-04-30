@@ -5,3 +5,10 @@ export type CoverageMetadata = Array<{
   endUtf16: number
 }>;
 export type CoverageData = Buffer[];
+export interface CoverageManager {
+	addData(data: CoverageData): Promise<void>;
+	saveData(): Promise<void>;
+	loadData(): Promise<void>;
+	clearData(): Promise<void>;
+	addMetadata(metadata: CoverageMetadata): Promise<void>;
+}
