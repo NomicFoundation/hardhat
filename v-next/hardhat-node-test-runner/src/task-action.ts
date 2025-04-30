@@ -79,11 +79,15 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
 
     await clearCoverageData();
 
-    const coverage = new URL(import.meta.resolve("@nomicfoundation/hardhat-node-test-runner/coverage"));
+    const coverage = new URL(
+      import.meta.resolve("@nomicfoundation/hardhat-node-test-runner/coverage"),
+    );
     imports.push(coverage.href);
   }
 
-  process.env.NODE_OPTIONS = imports.map((href) => `import "${href}"`).join(" ");
+  process.env.NODE_OPTIONS = imports
+    .map((href) => `import "${href}"`)
+    .join(" ");
 
   async function runTests(): Promise<number> {
     let failures = 0;
