@@ -7,7 +7,7 @@ import type {
 } from "../../../../../src/types/solidity.js";
 
 import assert from "node:assert/strict";
-import { beforeEach, describe, it } from "node:test";
+import { after, before, beforeEach, describe, it } from "node:test";
 
 import { CompilationJobImplementation } from "../../../../../src/internal/builtin-plugins/solidity/build-system/compilation-job.js";
 import { DependencyGraphImplementation } from "../../../../../src/internal/builtin-plugins/solidity/build-system/dependency-graph.js";
@@ -17,7 +17,7 @@ import {
 } from "../../../../../src/internal/builtin-plugins/solidity/build-system/resolved-file.js";
 import { HookManagerImplementation } from "../../../../../src/internal/core/hook-manager.js";
 
-describe("CompilationJobImplementation", () => {
+describe.only("CompilationJobImplementation", () => {
   let dependencyGraph: DependencyGraphImplementation;
   let rootFile: ProjectResolvedFile;
   let npmDependencyFile: NpmPackageResolvedFile;
@@ -27,6 +27,19 @@ describe("CompilationJobImplementation", () => {
   let remappings: Remapping[];
   let hooks: HookManagerImplementation;
   let compilationJob: CompilationJobImplementation;
+
+  let hardhatTestCompilationJobImplementationCache: string | undefined;
+
+  before(() => {
+    hardhatTestCompilationJobImplementationCache =
+      process.env.HARDHAT_TEST_COMPILATION_JOB_IMPLEMENTATION_CACHE;
+    process.env.HARDHAT_TEST_COMPILATION_JOB_IMPLEMENTATION_CACHE = "false";
+  });
+
+  after(() => {
+    process.env.HARDHAT_TEST_COMPILATION_JOB_IMPLEMENTATION_CACHE =
+      hardhatTestCompilationJobImplementationCache;
+  });
 
   beforeEach(() => {
     dependencyGraph = new DependencyGraphImplementation();
@@ -202,10 +215,10 @@ describe("CompilationJobImplementation", () => {
           remappings,
           hooks,
         );
-        const before = await compilationJob.getBuildId();
-        CompilationJobImplementation.clearCaches();
-        const after = await newCompilationJob.getBuildId();
-        assert.notEqual(before, after);
+        assert.notEqual(
+          await compilationJob.getBuildId(),
+          await newCompilationJob.getBuildId(),
+        );
       });
       it("the content of one of the dependencies changes", async () => {
         const newDependencyGraph = new DependencyGraphImplementation();

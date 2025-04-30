@@ -108,6 +108,9 @@ export function useFileIgnitionProject(
   let projectPath: string;
   let prevWorkingDir: string;
 
+  // NOTE: We disable the cache because different tests use files with same source names but different contents
+  process.env.HARDHAT_TEST_COMPILATION_JOB_IMPLEMENTATION_CACHE = "false";
+
   beforeEach("Load environment", async function () {
     projectPath = path.join(
       __dirname,
