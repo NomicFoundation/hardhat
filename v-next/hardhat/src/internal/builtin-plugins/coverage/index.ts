@@ -16,6 +16,9 @@ const hardhatPlugin: HardhatPlugin = {
       defaultValue: false,
     }),
   ],
+  hookHandlers: {
+    solidity: import.meta.resolve("./hook-handlers/solidity.js")
+  },
   npmPackage: "hardhat",
 };
 
