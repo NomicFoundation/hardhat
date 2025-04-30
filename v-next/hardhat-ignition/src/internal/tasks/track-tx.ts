@@ -22,26 +22,12 @@ const taskTransactions: NewTaskActionFunction<TrackTxArguments> = async (
 
   const connection = await hre.network.connect();
 
-  let output: string | void;
-  try {
-    output = await trackTransaction(
-      deploymentDir,
-      txHash,
-      connection.provider,
-      hre.config.ignition.requiredConfirmations,
-    );
-  } catch (e) {
-    // Disabled for the alpha release
-    // if (e instanceof IgnitionError && shouldBeHardhatPluginError(e)) {
-    //   throw new NomicLabsHardhatPluginError(
-    //     "hardhat-ignition",
-    //     e.message,
-    //     e
-    //   );
-    // }
-
-    throw e;
-  }
+  const output = await trackTransaction(
+    deploymentDir,
+    txHash,
+    connection.provider,
+    hre.config.ignition.requiredConfirmations,
+  );
 
   console.log(
     output ??
