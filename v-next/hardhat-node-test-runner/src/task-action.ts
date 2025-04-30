@@ -67,15 +67,23 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
     return 0;
   }
 
+  const imports = [];
+
+  const tsx = new URL(import.meta.resolve("tsx/esm"));
+  imports.push(tsx.href);
+
   if (hre.globalOptions.coverage === true) {
     // NOTE: We set the HARDHAT_COVERAGE environment variable here because, as of now,
     // the global options are not automatically passed to the child processes.
     process.env.HARDHAT_COVERAGE = "true";
+
     await clearCoverageData();
+
+    const coverage = new URL(import.meta.resolve("@nomicfoundation/hardhat-node-test-runner/coverage"));
+    imports.push(coverage.href);
   }
 
-  const tsx = new URL(import.meta.resolve("tsx/esm"));
-  process.env.NODE_OPTIONS = `--import "${tsx.href}"`;
+  process.env.NODE_OPTIONS = imports.map((href) => `import "${href}"`).join(" ");
 
   async function runTests(): Promise<number> {
     let failures = 0;
