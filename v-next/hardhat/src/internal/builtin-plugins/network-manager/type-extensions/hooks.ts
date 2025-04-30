@@ -6,6 +6,7 @@ import type {
   JsonRpcRequest,
   JsonRpcResponse,
 } from "../../../../types/providers.js";
+import type { CoverageData } from "../../coverage/types.js";
 
 import "../../../../types/hooks.js";
 declare module "../../../../types/hooks.js" {
@@ -40,5 +41,10 @@ declare module "../../../../types/hooks.js" {
         nextJsonRpcRequest: JsonRpcRequest,
       ) => Promise<JsonRpcResponse>,
     ): Promise<JsonRpcResponse>;
+
+    onCoverageData(
+      context: HookContext,
+      coverageData: CoverageData,
+    ): Promise<void>;
   }
 }
