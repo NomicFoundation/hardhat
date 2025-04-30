@@ -1,0 +1,36 @@
+import type { HardhatRuntimeEnvironment } from "../../../types/hre.js";
+import type { HardhatRuntimeEnvironmentImplementation } from "../../core/hre.js";
+
+import { getOrCreateGlobalHardhatRuntimeEnvironment } from "../../hre-intialization.js";
+
+export function unsafelyCastHardhatRuntimeEnvironmentImplementation(hre: HardhatRuntimeEnvironment): HardhatRuntimeEnvironmentImplementation {
+  const hreImplementation =
+    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- we know this is the right implementation */
+    hre as HardhatRuntimeEnvironmentImplementation;
+  return hreImplementation;
+}
+
+// NOTE: These helpers interact with the global HRE instance only; This is OK because:
+// 1. They are intended for the internal use only
+// 2. We know the HRE has been initialized by the time these helpers are used
+
+export async function clearCoverageData(): Promise<void> {
+  const hre = await getOrCreateGlobalHardhatRuntimeEnvironment();
+  const hreImplementation = unsafelyCastHardhatRuntimeEnvironmentImplementation(hre);
+
+  await hreImplementation._coverage.clearData();
+}
+
+export async function saveCoverageData(): Promise<void> {
+  const hre = await getOrCreateGlobalHardhatRuntimeEnvironment();
+  const hreImplementation = unsafelyCastHardhatRuntimeEnvironmentImplementation(hre);
+
+  await hreImplementation._coverage.saveData();
+}
+
+export async function loadCoverageData(): Promise<void> {
+  const hre = await getOrCreateGlobalHardhatRuntimeEnvironment();
+  const hreImplementation = unsafelyCastHardhatRuntimeEnvironmentImplementation(hre);
+
+  await hreImplementation._coverage.loadData();
+}
