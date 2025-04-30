@@ -398,7 +398,11 @@ describe("initHardhat", async () => {
 
   for (const template of templates) {
     // Verifies that non-existent folders are created during initialization instead of throwing an error
-    for (const folderPath of [".", "nonExistingFolder"]) {
+    for (const folderPath of [
+      ".",
+      "nonExistingFolder",
+      path.join("nestedFolder", "nonExistingFolder"),
+    ]) {
       // NOTE: This test uses network to access the npm registry
       it(
         `should initialize the project using the ${template.name} template in an empty folder with folder path "${folderPath}"`,
