@@ -200,6 +200,22 @@ export class HookManagerImplementation implements HookManager {
     );
   }
 
+  public async hasHandlers<
+    HookCategoryNameT extends keyof HardhatHooks,
+    HookNameT extends keyof HardhatHooks[HookCategoryNameT],
+  >(
+    hookCategoryName: HookCategoryNameT,
+    hookName: HookNameT,
+  ): Promise<boolean> {
+    // The ordering of handlers is unimportant here, as we only check if any exist
+    const handlers = await this.#getHandlersInChainedRunningOrder(
+      hookCategoryName,
+      hookName,
+    );
+
+    return handlers.length > 0;
+  }
+
   async #getHandlersInChainedRunningOrder<
     HookCategoryNameT extends keyof HardhatHooks,
     HookNameT extends keyof HardhatHooks[HookCategoryNameT],
