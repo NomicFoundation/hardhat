@@ -86,7 +86,7 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   }
 
   process.env.NODE_OPTIONS = imports
-    .map((href) => `import "${href}"`)
+    .map((href) => `--import "${href}"`)
     .join(" ");
 
   async function runTests(): Promise<number> {
