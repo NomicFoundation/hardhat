@@ -22,6 +22,12 @@ export class CompilationJobImplementation implements CompilationJob {
   static #fileContents: Record<string, string> = {};
   static #fileContentHashes: Record<string, string> = {};
 
+  // NOTE: This method is exported for testing purposes only.
+  public static clearCaches(): void {
+    CompilationJobImplementation.#fileContents = {};
+    CompilationJobImplementation.#fileContentHashes = {};
+  }
+
   public readonly dependencyGraph: DependencyGraph;
   public readonly solcConfig: SolcConfig;
   public readonly solcLongVersion: string;
@@ -87,58 +93,46 @@ export class CompilationJobImplementation implements CompilationJob {
     if (file.type === ResolvedFileType.NPM_PACKAGE_FILE) {
       return file.content.text;
     }
-
-    let fileContent: string | undefined;
-
     if (
-      process.env.HARDHAT_TEST_COMPILATION_JOB_IMPLEMENTATION_CACHE ===
-        "false" ||
       CompilationJobImplementation.#fileContents[file.sourceName] === undefined
     ) {
       const solcVersion = this.solcConfig.version;
-      fileContent = await this.#hooks.runHandlerChain(
-        "solidity",
-        "preprocessProjectFileBeforeBuilding",
-        [file.sourceName, file.content.text, solcVersion],
-        async (_context, nextSourceName, nextFileContent, nextSolcVersion) => {
-          assertHardhatInvariant(
-            file.sourceName === nextSourceName,
-            "Cannot modify source name in preprocessProjectFileBeforeBuilding",
-          );
-          assertHardhatInvariant(
-            solcVersion === nextSolcVersion,
-            "Cannot modify solc version in preprocessProjectFileBeforeBuilding",
-          );
-          return nextFileContent;
-        },
-      );
-      CompilationJobImplementation.#fileContents[file.sourceName] = fileContent;
-    } else {
-      fileContent = CompilationJobImplementation.#fileContents[file.sourceName];
+      CompilationJobImplementation.#fileContents[file.sourceName] =
+        await this.#hooks.runHandlerChain(
+          "solidity",
+          "preprocessProjectFileBeforeBuilding",
+          [file.sourceName, file.content.text, solcVersion],
+          async (
+            _context,
+            nextSourceName,
+            nextFileContent,
+            nextSolcVersion,
+          ) => {
+            assertHardhatInvariant(
+              file.sourceName === nextSourceName,
+              "Cannot modify source name in preprocessProjectFileBeforeBuilding",
+            );
+            assertHardhatInvariant(
+              solcVersion === nextSolcVersion,
+              "Cannot modify solc version in preprocessProjectFileBeforeBuilding",
+            );
+            return nextFileContent;
+          },
+        );
     }
-
-    return fileContent;
+    return CompilationJobImplementation.#fileContents[file.sourceName];
   }
 
   async #getFileContentHash(file: ResolvedFile): Promise<string> {
-    let fileContentHash: string | undefined;
-
     if (
-      process.env.HARDHAT_TEST_COMPILATION_JOB_IMPLEMENTATION_CACHE ===
-        "false" ||
       CompilationJobImplementation.#fileContentHashes[file.sourceName] ===
-        undefined
+      undefined
     ) {
       const fileContent = await this.#getFileContent(file);
-      fileContentHash = await createNonCryptographicHashId(fileContent);
       CompilationJobImplementation.#fileContentHashes[file.sourceName] =
-        fileContentHash;
-    } else {
-      fileContentHash =
-        CompilationJobImplementation.#fileContentHashes[file.sourceName];
+        await createNonCryptographicHashId(fileContent);
     }
-
-    return fileContentHash;
+    return CompilationJobImplementation.#fileContentHashes[file.sourceName];
   }
 
   async #buildSolcInput(): Promise<CompilerInput> {

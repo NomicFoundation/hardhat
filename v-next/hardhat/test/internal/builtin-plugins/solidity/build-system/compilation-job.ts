@@ -7,7 +7,7 @@ import type {
 } from "../../../../../src/types/solidity.js";
 
 import assert from "node:assert/strict";
-import { after, before, beforeEach, describe, it } from "node:test";
+import { beforeEach, describe, it } from "node:test";
 
 import { CompilationJobImplementation } from "../../../../../src/internal/builtin-plugins/solidity/build-system/compilation-job.js";
 import { DependencyGraphImplementation } from "../../../../../src/internal/builtin-plugins/solidity/build-system/dependency-graph.js";
@@ -27,19 +27,6 @@ describe("CompilationJobImplementation", () => {
   let remappings: Remapping[];
   let hooks: HookManagerImplementation;
   let compilationJob: CompilationJobImplementation;
-
-  let hardhatTestCompilationJobImplementationCache: string | undefined;
-
-  before(() => {
-    hardhatTestCompilationJobImplementationCache =
-      process.env.HARDHAT_TEST_COMPILATION_JOB_IMPLEMENTATION_CACHE;
-    process.env.HARDHAT_TEST_COMPILATION_JOB_IMPLEMENTATION_CACHE = "false";
-  });
-
-  after(() => {
-    process.env.HARDHAT_TEST_COMPILATION_JOB_IMPLEMENTATION_CACHE =
-      hardhatTestCompilationJobImplementationCache;
-  });
 
   beforeEach(() => {
     dependencyGraph = new DependencyGraphImplementation();
@@ -215,10 +202,10 @@ describe("CompilationJobImplementation", () => {
           remappings,
           hooks,
         );
-        assert.notEqual(
-          await compilationJob.getBuildId(),
-          await newCompilationJob.getBuildId(),
-        );
+        const before = await compilationJob.getBuildId();
+        CompilationJobImplementation.clearCaches();
+        const after = await newCompilationJob.getBuildId();
+        assert.notEqual(before, after);
       });
       it("the content of one of the dependencies changes", async () => {
         const newDependencyGraph = new DependencyGraphImplementation();
