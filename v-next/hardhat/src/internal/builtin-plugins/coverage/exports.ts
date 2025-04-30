@@ -1,1 +1,5 @@
-export { clearCoverageData, loadCoverageData, saveCoverageData } from "./helpers.js";
+export {
+  clearCoverageData,
+  loadCoverageData,
+  saveCoverageData,
+} from "./helpers.js";

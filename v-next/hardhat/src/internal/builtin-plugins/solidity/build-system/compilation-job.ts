@@ -10,14 +10,17 @@ import type { DependencyGraph } from "../../../../types/solidity/dependency-grap
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { createNonCryptographicHashId } from "@nomicfoundation/hardhat-utils/crypto";
 
-import { ResolvedFileType, type ResolvedFile } from "../../../../types/solidity.js";
+import {
+  ResolvedFileType,
+  type ResolvedFile,
+} from "../../../../types/solidity.js";
 
 import { formatRemapping } from "./resolver/remappings.js";
 import { getEvmVersionFromSolcVersion } from "./solc-info.js";
 
 export class CompilationJobImplementation implements CompilationJob {
   static readonly #fileContents: Record<string, string> = {};
-	static readonly #fileContentHashes: Record<string, string> = {}
+  static readonly #fileContentHashes: Record<string, string> = {};
 
   public readonly dependencyGraph: DependencyGraph;
   public readonly solcConfig: SolcConfig;
@@ -81,32 +84,50 @@ export class CompilationJobImplementation implements CompilationJob {
   }
 
   async #getFileContent(file: ResolvedFile): Promise<string> {
-	  if (file.type === ResolvedFileType.NPM_PACKAGE_FILE) {
-		  return file.content.text;
-	  }
-		if (CompilationJobImplementation.#fileContents[file.sourceName] === undefined) {
-			const solcVersion = this.solcConfig.version;
-			CompilationJobImplementation.#fileContents[file.sourceName] = await this.#hooks.runHandlerChain(
-        "solidity",
-        "preprocessProjectFileBeforeBuilding",
-        [file.sourceName, file.content.text, solcVersion],
-        async (_context, nextSourceName, nextFileContent, nextSolcVersion) => {
-	        assertHardhatInvariant(file.sourceName === nextSourceName, "Cannot modify source name in preprocessProjectFileBeforeBuilding");
-	        assertHardhatInvariant(solcVersion === nextSolcVersion, "Cannot modify solc version in preprocessProjectFileBeforeBuilding");
-          return nextFileContent;
-        }
-      )
-		}
-		return CompilationJobImplementation.#fileContents[file.sourceName];
-	}
+    if (file.type === ResolvedFileType.NPM_PACKAGE_FILE) {
+      return file.content.text;
+    }
+    if (
+      CompilationJobImplementation.#fileContents[file.sourceName] === undefined
+    ) {
+      const solcVersion = this.solcConfig.version;
+      CompilationJobImplementation.#fileContents[file.sourceName] =
+        await this.#hooks.runHandlerChain(
+          "solidity",
+          "preprocessProjectFileBeforeBuilding",
+          [file.sourceName, file.content.text, solcVersion],
+          async (
+            _context,
+            nextSourceName,
+            nextFileContent,
+            nextSolcVersion,
+          ) => {
+            assertHardhatInvariant(
+              file.sourceName === nextSourceName,
+              "Cannot modify source name in preprocessProjectFileBeforeBuilding",
+            );
+            assertHardhatInvariant(
+              solcVersion === nextSolcVersion,
+              "Cannot modify solc version in preprocessProjectFileBeforeBuilding",
+            );
+            return nextFileContent;
+          },
+        );
+    }
+    return CompilationJobImplementation.#fileContents[file.sourceName];
+  }
 
   async #getFileContentHash(file: ResolvedFile): Promise<string> {
-		if (CompilationJobImplementation.#fileContentHashes[file.sourceName] === undefined) {
-			const fileContent = await this.#getFileContent(file);
-			CompilationJobImplementation.#fileContentHashes[file.sourceName] = await createNonCryptographicHashId(fileContent);
-		}
-		return CompilationJobImplementation.#fileContentHashes[file.sourceName];
-	}
+    if (
+      CompilationJobImplementation.#fileContentHashes[file.sourceName] ===
+      undefined
+    ) {
+      const fileContent = await this.#getFileContent(file);
+      CompilationJobImplementation.#fileContentHashes[file.sourceName] =
+        await createNonCryptographicHashId(fileContent);
+    }
+    return CompilationJobImplementation.#fileContentHashes[file.sourceName];
+  }
 
   async #buildSolcInput(): Promise<CompilerInput> {
     const solcInputWithoutSources = this.#getSolcInputWithoutSources();

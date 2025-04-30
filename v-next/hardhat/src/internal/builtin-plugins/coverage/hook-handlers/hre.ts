@@ -11,7 +11,8 @@ export default async (): Promise<Partial<HardhatRuntimeEnvironmentHooks>> => ({
       const coveragePath = path.join(hre.config.paths.root, "coverage");
       const coverageManager = new CoverageManagerImplementation(coveragePath);
 
-      const hreImplementation = unsafelyCastHardhatRuntimeEnvironmentImplementation(hre);
+      const hreImplementation =
+        unsafelyCastHardhatRuntimeEnvironmentImplementation(hre);
       hreImplementation._coverage = coverageManager;
 
       hre.hooks.registerHandlers("network", {
@@ -20,9 +21,9 @@ export default async (): Promise<Partial<HardhatRuntimeEnvironmentHooks>> => ({
           // const hreImplementation = unsafelyCastHardhatRuntimeEnvironmentImplementation(context.hre);
           // await hreImplementation._coverage.addData(coverageData);
 
-		      return;
-        }
+          return;
+        },
       });
     }
-  }
+  },
 });

@@ -212,7 +212,10 @@ export class NetworkManagerImplementation implements NetworkManager {
           chainType: resolvedChainType as ChainType,
         };
 
-        const shouldEnableCoverage = await hookManager.hasHandlers("network", "onCoverageData");
+        const shouldEnableCoverage = await hookManager.hasHandlers(
+          "network",
+          "onCoverageData",
+        );
         if (shouldEnableCoverage) {
           // TODO: Add the lines:
           // networkConfig.observability.codeCoverage = {

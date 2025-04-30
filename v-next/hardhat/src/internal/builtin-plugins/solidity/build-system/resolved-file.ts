@@ -33,9 +33,7 @@ export class NpmPackageResolvedFileImplementation
   public readonly content: FileContent;
   public readonly package: ResolvedNpmPackage;
 
-  constructor(
-    options: Omit<NpmPackageResolvedFile, "type">,
-  ) {
+  constructor(options: Omit<NpmPackageResolvedFile, "type">) {
     this.sourceName = options.sourceName;
     this.fsPath = options.fsPath;
     this.content = options.content;

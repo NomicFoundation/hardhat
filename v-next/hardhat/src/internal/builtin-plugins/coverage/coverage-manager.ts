@@ -1,8 +1,18 @@
-import type { CoverageData, CoverageManager, CoverageMetadata } from "./types.js";
+import type {
+  CoverageData,
+  CoverageManager,
+  CoverageMetadata,
+} from "./types.js";
 
 import path from "node:path";
 
-import { ensureDir, getAllFilesMatching, readJsonFile, remove, writeJsonFile } from "@nomicfoundation/hardhat-utils/fs";
+import {
+  ensureDir,
+  getAllFilesMatching,
+  readJsonFile,
+  remove,
+  writeJsonFile,
+} from "@nomicfoundation/hardhat-utils/fs";
 
 export class CoverageManagerImplementation implements CoverageManager {
   readonly #metadata: CoverageMetadata = [];
@@ -31,7 +41,7 @@ export class CoverageManagerImplementation implements CoverageManager {
 
   public async saveData(): Promise<void> {
     const dataPath = await this.#getDataPath();
-    const filePath = path.join(dataPath, `${crypto.randomUUID()}.json`)
+    const filePath = path.join(dataPath, `${crypto.randomUUID()}.json`);
     await writeJsonFile(filePath, this.#data);
   }
 
