@@ -390,22 +390,56 @@ describe("installProjectDependencies", async () => {
 });
 
 describe("initHardhat", async () => {
-  useTmpDir("initHardhat");
+  describe("templates", async () => {
+    useTmpDir("initHardhat");
 
-  disableConsole();
+    disableConsole();
 
-  const templates = await getTemplates();
+    const templates = await getTemplates();
 
-  for (const template of templates) {
+    for (const template of templates) {
+      // NOTE: This test uses network to access the npm registry
+      it(
+        `should initialize the project using the ${template.name} template in an empty folder`,
+        {
+          skip: process.env.HARDHAT_DISABLE_SLOW_TESTS === "true",
+        },
+        async () => {
+          await initHardhat({
+            template: template.name,
+            workspace: process.cwd(),
+            migrateToEsm: false,
+            force: false,
+            install: false,
+          });
+          assert.ok(await exists("package.json"), "package.json should exist");
+          const workspaceFiles = template.files.map(
+            relativeTemplateToWorkspacePath,
+          );
+          for (const file of workspaceFiles) {
+            const pathToFile = path.join(process.cwd(), file);
+            assert.ok(await exists(pathToFile), `File ${file} should exist`);
+          }
+        },
+      );
+    }
+  });
+
+  describe("folder creation when non existent", async () => {
+    useTmpDir("initHardhat");
+
+    disableConsole();
+
+    const template = (await getTemplates())[0];
+
     // Verifies that non-existent folders are created during initialization instead of throwing an error
     for (const folderPath of [
-      ".",
       "nonExistingFolder",
       path.join("nestedFolder", "nonExistingFolder"),
     ]) {
       // NOTE: This test uses network to access the npm registry
       it(
-        `should initialize the project using the ${template.name} template in an empty folder with folder path "${folderPath}"`,
+        `should initialize the project in a non existing folder with path "${folderPath}"`,
         {
           skip: process.env.HARDHAT_DISABLE_SLOW_TESTS === "true",
         },
@@ -433,7 +467,7 @@ describe("initHardhat", async () => {
         },
       );
     }
-  }
+  });
 });
 
 describe("shouldUpdateDependency", () => {
