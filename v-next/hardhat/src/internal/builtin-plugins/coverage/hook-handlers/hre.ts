@@ -3,7 +3,7 @@ import type { HardhatRuntimeEnvironmentHooks } from "../../../../types/hooks.js"
 import path from "node:path";
 
 import { CoverageManagerImplementation } from "../coverage-manager.js";
-import { unsafelyCastHardhatRuntimeEnvironmentImplementation } from "../helpers.js";
+import { unsafelyCastAsHardhatRuntimeEnvironmentImplementation } from "../helpers.js";
 
 export default async (): Promise<Partial<HardhatRuntimeEnvironmentHooks>> => ({
   created: async (context, hre) => {
@@ -12,14 +12,12 @@ export default async (): Promise<Partial<HardhatRuntimeEnvironmentHooks>> => ({
       const coverageManager = new CoverageManagerImplementation(coveragePath);
 
       const hreImplementation =
-        unsafelyCastHardhatRuntimeEnvironmentImplementation(hre);
+        unsafelyCastAsHardhatRuntimeEnvironmentImplementation(hre);
       hreImplementation._coverage = coverageManager;
 
       hre.hooks.registerHandlers("network", {
-        onCoverageData: async (_context, _coverageData) => {
-          // TODO: Add the lines:
-          // const hreImplementation = unsafelyCastHardhatRuntimeEnvironmentImplementation(context.hre);
-          // await hreImplementation._coverage.addData(coverageData);
+        onCoverageData: async (_context, coverageData) => {
+          await hreImplementation._coverage.addData(coverageData);
 
           return;
         },

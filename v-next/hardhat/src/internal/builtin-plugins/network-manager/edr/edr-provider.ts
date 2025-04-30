@@ -1,4 +1,5 @@
 import type { SolidityStackTrace } from "./stack-traces/solidity-stack-trace.js";
+import type { CoverageConfig } from "./types/coverage.js";
 import type { LoggerConfig } from "./types/logger.js";
 import type {
   EdrNetworkConfig,
@@ -130,6 +131,7 @@ interface EdrProviderConfig {
   loggerConfig?: LoggerConfig;
   tracingConfig?: TracingConfigWithBuffers;
   jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction;
+  coverageConfig?: CoverageConfig;
 }
 
 export class EdrProvider extends BaseProvider {
@@ -146,11 +148,15 @@ export class EdrProvider extends BaseProvider {
     loggerConfig = { enabled: false },
     tracingConfig = {},
     jsonRpcRequestWrapper,
+    coverageConfig,
   }: EdrProviderConfig): Promise<EdrProvider> {
     const printLineFn = loggerConfig.printLineFn ?? printLine;
     const replaceLastLineFn = loggerConfig.replaceLastLineFn ?? replaceLastLine;
 
-    const providerConfig = await getProviderConfig(networkConfig);
+    const providerConfig = await getProviderConfig(
+      networkConfig,
+      coverageConfig,
+    );
 
     let edrProvider: EdrProvider;
 
@@ -384,6 +390,7 @@ export class EdrProvider extends BaseProvider {
 
 async function getProviderConfig(
   networkConfig: RequireField<EdrNetworkConfig, "chainType">,
+  coverageConfig: CoverageConfig | undefined,
 ): Promise<ProviderConfig> {
   const specId = hardhatHardforkToEdrSpecId(
     networkConfig.hardfork,
@@ -433,5 +440,8 @@ async function getProviderConfig(
     ownedAccounts: await hardhatAccountsToEdrOwnedAccounts(
       networkConfig.accounts,
     ),
+    observability: {
+      codeCoverage: coverageConfig,
+    },
   };
 }

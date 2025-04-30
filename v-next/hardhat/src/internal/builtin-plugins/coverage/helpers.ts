@@ -1,15 +1,15 @@
-import type { HardhatRuntimeEnvironment } from "../../../types/hre.js";
+import type { HookContext } from "../../../types/hooks.js";
 import type { HardhatRuntimeEnvironmentImplementation } from "../../core/hre.js";
 
 import { getOrCreateGlobalHardhatRuntimeEnvironment } from "../../hre-intialization.js";
 
-export function unsafelyCastHardhatRuntimeEnvironmentImplementation(
-  hre: HardhatRuntimeEnvironment,
+export function unsafelyCastAsHardhatRuntimeEnvironmentImplementation(
+  context: HookContext,
 ): HardhatRuntimeEnvironmentImplementation {
-  const hreImplementation =
+  const hre =
     /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- we know this is the right implementation */
-    hre as HardhatRuntimeEnvironmentImplementation;
-  return hreImplementation;
+    context as HardhatRuntimeEnvironmentImplementation;
+  return hre;
 }
 
 // NOTE: These helpers interact with the global HRE instance only; This is OK because:
@@ -19,7 +19,7 @@ export function unsafelyCastHardhatRuntimeEnvironmentImplementation(
 export async function clearCoverageData(): Promise<void> {
   const hre = await getOrCreateGlobalHardhatRuntimeEnvironment();
   const hreImplementation =
-    unsafelyCastHardhatRuntimeEnvironmentImplementation(hre);
+    unsafelyCastAsHardhatRuntimeEnvironmentImplementation(hre);
 
   await hreImplementation._coverage.clearData();
 }
@@ -27,7 +27,7 @@ export async function clearCoverageData(): Promise<void> {
 export async function saveCoverageData(): Promise<void> {
   const hre = await getOrCreateGlobalHardhatRuntimeEnvironment();
   const hreImplementation =
-    unsafelyCastHardhatRuntimeEnvironmentImplementation(hre);
+    unsafelyCastAsHardhatRuntimeEnvironmentImplementation(hre);
 
   await hreImplementation._coverage.saveData();
 }
@@ -35,7 +35,7 @@ export async function saveCoverageData(): Promise<void> {
 export async function loadCoverageData(): Promise<void> {
   const hre = await getOrCreateGlobalHardhatRuntimeEnvironment();
   const hreImplementation =
-    unsafelyCastHardhatRuntimeEnvironmentImplementation(hre);
+    unsafelyCastAsHardhatRuntimeEnvironmentImplementation(hre);
 
   await hreImplementation._coverage.loadData();
 }

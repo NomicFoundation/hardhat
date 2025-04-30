@@ -1,5 +1,9 @@
 import type { SolidityHooks } from "../../../../types/hooks.js";
 
+import { addStatementCoverageInstrumentation } from "@ignored/edr-optimism";
+
+import { unsafelyCastAsHardhatRuntimeEnvironmentImplementation } from "../helpers.js";
+
 export default async (): Promise<Partial<SolidityHooks>> => ({
   preprocessProjectFileBeforeBuilding: async (
     context,
@@ -9,13 +13,16 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
     next,
   ) => {
     if (context.globalOptions.coverage) {
-      // TODO: Add the lines:
-      // const {source, metadata} = await addStatementCoverageInstrumentation(sourceName, fileContent, solcVersion);
-      // const hreImplementation = unsafelyCastHardhatRuntimeEnvironmentImplementation(context.hre);
-      // await context.addMetadata(metadata);
-      //
-      // return next(context, sourceName, source, solcVersion);
-      return next(context, sourceName, fileContent, solcVersion);
+      const { source, metadata } = addStatementCoverageInstrumentation(
+        sourceName,
+        fileContent,
+        solcVersion,
+      );
+      const hreImplementation =
+        unsafelyCastAsHardhatRuntimeEnvironmentImplementation(context);
+      await hreImplementation._coverage.addMetadata(metadata);
+
+      return next(context, sourceName, source, solcVersion);
     } else {
       return next(context, sourceName, fileContent, solcVersion);
     }

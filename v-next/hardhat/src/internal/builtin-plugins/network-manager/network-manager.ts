@@ -1,3 +1,4 @@
+import type { CoverageConfig } from "./edr/types/coverage.js";
 import type { ArtifactManager } from "../../../types/artifacts.js";
 import type {
   NetworkConfig,
@@ -16,6 +17,7 @@ import type {
   JsonRpcRequest,
   JsonRpcResponse,
 } from "../../../types/providers.js";
+import type { CoverageData } from "../coverage/types.js";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { readBinaryFile } from "@nomicfoundation/hardhat-utils/fs";
@@ -205,35 +207,39 @@ export class NetworkManagerImplementation implements NetworkManager {
           );
         }
 
-        const networkConfig = {
-          ...resolvedNetworkConfig,
-          /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
-          This case is safe because we have a check above */
-          chainType: resolvedChainType as ChainType,
-        };
+        let coverageConfig: CoverageConfig | undefined;
 
         const shouldEnableCoverage = await hookManager.hasHandlers(
           "network",
           "onCoverageData",
         );
         if (shouldEnableCoverage) {
-          // TODO: Add the lines:
-          // networkConfig.observability.codeCoverage = {
-          //   onCollectedCoverageCallback: (coverageData: CoverageData) => {
-          //     void hookManager.runParallelHandlers("network", "onCoverageData", [coverageData])
-          //   }
-          // };
+          coverageConfig = {
+            onCollectedCoverageCallback: (coverageData: CoverageData) => {
+              void hookManager.runParallelHandlers(
+                "network",
+                "onCoverageData",
+                [coverageData],
+              );
+            },
+          };
         }
 
         return EdrProvider.create({
           // The resolvedNetworkConfig can have its chainType set to `undefined`
           // so we default to the default chain type here.
-          networkConfig,
+          networkConfig: {
+            ...resolvedNetworkConfig,
+            /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
+            This case is safe because we have a check above */
+            chainType: resolvedChainType as ChainType,
+          },
           jsonRpcRequestWrapper,
           tracingConfig: {
             buildInfos: await this.#getBuildInfosAndOutputsAsBuffers(),
             ignoreContracts: false,
           },
+          coverageConfig,
         });
       }
 
