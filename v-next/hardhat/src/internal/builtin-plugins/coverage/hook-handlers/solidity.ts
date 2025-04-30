@@ -1,6 +1,8 @@
 import type { SolidityHooks } from "../../../../types/hooks.js";
 
 import { addStatementCoverageInstrumentation } from "@ignored/edr-optimism";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 
 import { unsafelyCastAsHardhatRuntimeEnvironmentImplementation } from "../helpers.js";
 
@@ -13,16 +15,28 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
     next,
   ) => {
     if (context.globalOptions.coverage) {
-      const { source, metadata } = addStatementCoverageInstrumentation(
-        sourceName,
-        fileContent,
-        solcVersion,
-      );
-      const hreImplementation =
-        unsafelyCastAsHardhatRuntimeEnvironmentImplementation(context);
-      await hreImplementation._coverage.addMetadata(metadata);
+      try {
+        const { source, metadata } = addStatementCoverageInstrumentation(
+          fileContent,
+          sourceName,
+          solcVersion,
+        );
+        const hreImplementation =
+          unsafelyCastAsHardhatRuntimeEnvironmentImplementation(context);
+        await hreImplementation._coverage.addMetadata(metadata);
 
-      return next(context, sourceName, source, solcVersion);
+        return await next(context, sourceName, source, solcVersion);
+      } catch (e) {
+        ensureError(e);
+
+        throw new HardhatError(
+          HardhatError.ERRORS.CORE.COVERAGE.SOURCE_NOT_INSTRUMENTED,
+          {
+            sourceName,
+          },
+          e,
+        );
+      }
     } else {
       return next(context, sourceName, fileContent, solcVersion);
     }

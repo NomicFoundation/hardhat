@@ -1201,6 +1201,14 @@ Please use the fully qualified name of the contract to disambiguate it.`,
         websiteDescription: `The node only supports the 'edr' network type.`,
       },
     },
+    COVERAGE: {
+      SOURCE_NOT_INSTRUMENTED: {
+        number: 1200,
+        messageTemplate: `The source file "{sourceName}" could not be instrumented for coverage.`,
+        websiteTitle: "Source file not instrumented for coverage",
+        websiteDescription: `The source file could not be instrumented for coverage.`,
+      },
+    }
   },
   IGNITION: {
     GENERAL: {

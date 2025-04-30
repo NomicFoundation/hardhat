@@ -15,7 +15,7 @@ import {
 } from "@nomicfoundation/hardhat-utils/fs";
 import debug from "debug";
 
-const log = debug("hardhat:core:coverage:coverage-manager")
+const log = debug("hardhat:core:coverage:coverage-manager");
 
 export class CoverageManagerImplementation implements CoverageManager {
   readonly #metadata: CoverageMetadata = [];
