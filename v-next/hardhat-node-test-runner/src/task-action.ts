@@ -9,6 +9,7 @@ import { URL } from "node:url";
 import { hardhatTestReporter } from "@nomicfoundation/hardhat-node-test-reporter";
 import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
 import { createNonClosingWriter } from "@nomicfoundation/hardhat-utils/stream";
+import { clearCoverageData, loadCoverageData } from "hardhat/internal/coverage";
 
 interface TestActionArguments {
   testFiles: string[];
@@ -66,6 +67,13 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
     return 0;
   }
 
+  if (hre.globalOptions.coverage === true) {
+    // NOTE: We set the HARDHAT_COVERAGE environment variable here because, as of now,
+    // the global options are not automatically passed to the child processes.
+    process.env.HARDHAT_COVERAGE = "true";
+    await clearCoverageData();
+  }
+
   const tsx = new URL(import.meta.resolve("tsx/esm"));
   process.env.NODE_OPTIONS = `--import "${tsx.href}"`;
 
@@ -107,6 +115,10 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   }
 
   const testFailures = await runTests();
+
+  if (hre.globalOptions.coverage === true) {
+    await loadCoverageData();
+  }
 
   if (testFailures > 0) {
     process.exitCode = 1;
