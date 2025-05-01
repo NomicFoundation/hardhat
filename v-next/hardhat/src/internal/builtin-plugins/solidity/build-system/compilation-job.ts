@@ -135,8 +135,8 @@ export class CompilationJobImplementation implements CompilationJob {
         for (const contractKey of contractKeys) {
           const values = Array.from(
             new Set([
-              ...Object.keys(selectionA[fileKey]?.[contractKey] ?? []),
-              ...Object.keys(selectionB[fileKey]?.[contractKey] ?? []),
+              ...(selectionA[fileKey]?.[contractKey] ?? []),
+              ...(selectionB[fileKey]?.[contractKey] ?? []),
             ]),
           ).sort();
 
