@@ -118,12 +118,10 @@ export class CompilationJobImplementation implements CompilationJob {
     const configOutputSelection = settings.outputSelection ?? {};
 
     for (const fileKey of Object.keys(configOutputSelection)) {
-
       const configFileOutputSelection = configOutputSelection[fileKey] ?? {};
       outputSelection[fileKey] ??= {};
 
       for (const contractKey of Object.keys(configFileOutputSelection)) {
-
         const configContractOutputSelection =
           configFileOutputSelection[contractKey] ?? [];
         outputSelection[fileKey][contractKey] ??= [];
