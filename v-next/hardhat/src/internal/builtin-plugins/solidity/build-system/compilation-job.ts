@@ -113,24 +113,38 @@ export class CompilationJobImplementation implements CompilationJob {
         },
       };
 
-    const outputSelection = defaultOutputSelection;
     const configOutputSelection = settings.outputSelection ?? {};
+    const outputSelection: typeof defaultOutputSelection = {};
 
-    for (const fileKey of Object.keys(configOutputSelection).sort()) {
-      outputSelection[fileKey] ??= {};
-      const configFileOutputSelection = configOutputSelection[fileKey] ?? {};
+    const fileKeys = Array.from(
+      new Set([
+        ...Object.keys(defaultOutputSelection),
+        ...Object.keys(configOutputSelection),
+      ]),
+    ).sort();
 
-      for (const contractKey of Object.keys(configFileOutputSelection).sort()) {
-        outputSelection[fileKey][contractKey] ??= [];
-        const configContractOutputSelection =
-          configFileOutputSelection[contractKey] ?? [];
+    for (const fileKey of fileKeys) {
+      const contractKeys = Array.from(
+        new Set([
+          ...Object.keys(defaultOutputSelection[fileKey] ?? {}),
+          ...Object.keys(configOutputSelection[fileKey] ?? {}),
+        ]),
+      ).sort();
 
-        outputSelection[fileKey][contractKey] = Array.from(
+      for (const contractKey of contractKeys) {
+        const values = Array.from(
           new Set([
-            ...outputSelection[fileKey][contractKey],
-            ...configContractOutputSelection,
+            ...Object.keys(
+              defaultOutputSelection[fileKey]?.[contractKey] ?? [],
+            ),
+            ...Object.keys(configOutputSelection[fileKey]?.[contractKey] ?? []),
           ]),
         ).sort();
+
+        if (values.length > 0) {
+          outputSelection[fileKey] = {};
+          outputSelection[fileKey][contractKey] = values;
+        }
       }
     }
 
