@@ -177,9 +177,10 @@ export async function* testReporter(
         failure.counterexample !== undefined &&
         failure.counterexample !== null
       ) {
-        const counterexamples = Array.isArray(failure.counterexample)
-          ? failure.counterexample
-          : [failure.counterexample];
+        const counterexamples =
+          "sequence" in failure.counterexample
+            ? failure.counterexample.sequence
+            : [failure.counterexample];
 
         for (const counterexample of counterexamples) {
           const details = Object.entries(counterexample).map(

@@ -1,5 +1,18 @@
 # hardhat
 
+## 3.0.0-next.6
+
+### Patch Changes
+
+- 49b0ff8: Relax validations for transaction signing introduced in the previous version by disabling strict mode in `Transaction.prepare` ([#6644](https://github.com/NomicFoundation/hardhat/pull/6644))
+- 8896353: Replace "Contract reverted without a reason string" message with a more detailed failure reason in solidity tests ([#6647](https://github.com/NomicFoundation/hardhat/issues/6647))
+- ca95b8f: Fix supporting different solc versions for libs and contracts in linker
+- ca95b8f: Fuzz and invariant Solidity testing improvements, notably:
+  - Significant performance improvements
+  - Support for afterInvariant function
+  - Support for linked artifacts in get*Code cheatcodes
+  - Various bug fixes
+
 ## 3.0.0-next.5
 
 ### Patch Changes
