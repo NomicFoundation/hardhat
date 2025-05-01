@@ -30,6 +30,7 @@ import {
   getFileSize,
   readJsonFileAsStream,
   writeJsonFileAsStream,
+  mkdtemp,
 } from "../src/fs.js";
 
 import { useTmpDir } from "./helpers/fs.js";
@@ -836,6 +837,21 @@ describe("File system utils", () => {
       await assert.rejects(mkdir(invalidPath), {
         name: "FileSystemAccessError",
       });
+    });
+  });
+
+  describe("mkdtemp", () => {
+    it("Should create a temporary directory", async () => {
+      const tempDir = await mkdtemp("test-");
+      assert.ok(await isDirectory(tempDir), "Should create a directory");
+    });
+
+    it("Should create a temporary directory with a prefix", async () => {
+      const tempDir = await mkdtemp("prefix-");
+      assert.ok(
+        tempDir.includes("prefix-"),
+        "Should create a directory with the prefix",
+      );
     });
   });
 
