@@ -115,8 +115,8 @@ export class CompilationJobImplementation implements CompilationJob {
 
     // TODO: export this function somewhere as helper
     const mergeOutputSelection = (
-      selectionA: OutputSelection,
-      selectionB: OutputSelection,
+      selectionA: OutputSelection = {},
+      selectionB: OutputSelection = {},
     ): OutputSelection => {
       const result: OutputSelection = {};
 
