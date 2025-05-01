@@ -1,11 +1,11 @@
 export type CoverageMetadata = Array<{
   sourceName: string;
-  tag: Buffer;
+  tag: string;
   kind: string;
   startUtf16: number;
   endUtf16: number;
 }>;
-export type CoverageData = Buffer[];
+export type CoverageData = string[];
 export interface CoverageManager {
   addData(data: CoverageData): Promise<void>;
   saveData(): Promise<void>;

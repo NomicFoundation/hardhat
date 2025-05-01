@@ -17,7 +17,6 @@ import type {
   JsonRpcRequest,
   JsonRpcResponse,
 } from "../../../types/providers.js";
-import type { CoverageData } from "../coverage/types.js";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { readBinaryFile } from "@nomicfoundation/hardhat-utils/fs";
@@ -215,11 +214,12 @@ export class NetworkManagerImplementation implements NetworkManager {
         );
         if (shouldEnableCoverage) {
           coverageConfig = {
-            onCollectedCoverageCallback: (coverageData: CoverageData) => {
+            onCollectedCoverageCallback: (coverageData: Buffer[]) => {
+              const tags = coverageData.map((tag) => tag.toString("hex"));
               void hookManager.runParallelHandlers(
                 "network",
                 "onCoverageData",
-                [coverageData],
+                [tags],
               );
             },
           };
