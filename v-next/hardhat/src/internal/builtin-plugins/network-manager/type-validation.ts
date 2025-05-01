@@ -1,4 +1,6 @@
 import type {
+  ActivationBlockNumberUserConfig,
+  ActivationTimestampUserConfig,
   EdrNetworkForkingConfig,
   EdrNetworkHDAccountsConfig,
   EdrNetworkMiningConfig,
@@ -55,7 +57,29 @@ const chainTypeUserConfigSchema = unionType(
   `Expected '${L1_CHAIN_TYPE}', '${OPTIMISM_CHAIN_TYPE}', or '${GENERIC_CHAIN_TYPE}'`,
 );
 
-const hardforkHistoryUserConfigSchema = z.map(z.string(), blockNumberSchema);
+const hardforkHistoryUserConfigSchema: z.ZodRecord<
+  z.ZodString,
+  | z.ZodType<ActivationBlockNumberUserConfig>
+  | z.ZodType<ActivationTimestampUserConfig>
+> = z.record(
+  conditionalUnionType(
+    [
+      [
+        (data) => isObject(data) && typeof data.blockNumber === "number",
+        z.strictObject({
+          blockNumber: blockNumberSchema,
+        }),
+      ],
+      [
+        (data) => isObject(data) && typeof data.timestamp === "number",
+        z.strictObject({
+          timestamp: nonnegativeIntSchema,
+        }),
+      ],
+    ],
+    "Expected an object with either a blockNumber or a timestamp",
+  ),
+);
 
 const blockExplorerUserConfigSchema = z.object({
   name: z.optional(z.string()),
@@ -69,42 +93,84 @@ const blockExplorersUserConfigSchema = z.object({
 });
 
 const chainDescriptorUserConfigSchema = z.object({
-  name: z.optional(z.string()),
+  name: z.string(),
   chainType: z.optional(chainTypeUserConfigSchema),
   hardforkHistory: z.optional(hardforkHistoryUserConfigSchema),
   blockExplorers: z.optional(blockExplorersUserConfigSchema),
 });
 
 const chainDescriptorsUserConfigSchema = z
-  .map(chainIdSchema, chainDescriptorUserConfigSchema)
+  .record(
+    // Allow both numbers and strings for chainId to support larger chainIds
+    unionType([chainIdSchema, z.string()], "Expected a number or a string"),
+    chainDescriptorUserConfigSchema,
+  )
   .superRefine((chainDescriptors, ctx) => {
     if (chainDescriptors !== undefined) {
-      Array.from(chainDescriptors).forEach(
-        ([chainId, chainDescriptor], chainIdx) => {
-          if (chainDescriptor.hardforkHistory === undefined) {
-            return;
-          }
+      Object.entries(chainDescriptors).forEach(([chainId, chainDescriptor]) => {
+        if (chainDescriptor.hardforkHistory === undefined) {
+          return;
+        }
 
-          const type = chainDescriptor.chainType ?? GENERIC_CHAIN_TYPE;
-          Array.from(chainDescriptor.hardforkHistory).forEach(
-            ([name], hardforkIdx) => {
-              if (!isValidHardforkName(name, type)) {
+        const type = chainDescriptor.chainType ?? GENERIC_CHAIN_TYPE;
+        let previousKind: "block" | "timestamp" = "block";
+        let previousValue = 0;
+        Object.entries(chainDescriptor.hardforkHistory).forEach(
+          ([name, activation]) => {
+            const errorPath = [chainId, "hardforkHistory", name];
+
+            if (!isValidHardforkName(name, type)) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: errorPath,
+                message: `Invalid hardfork name ${name} found in chain descriptor for chain ${chainId}. Expected ${getHardforks(type).join(" | ")}.`,
+              });
+            }
+
+            if (activation.blockNumber !== undefined) {
+              // Block numbers must be in ascending order
+              if (
+                previousKind === "block" &&
+                activation.blockNumber < previousValue
+              ) {
                 ctx.addIssue({
                   code: z.ZodIssueCode.custom,
-                  path: [
-                    chainIdx,
-                    "value",
-                    "hardforkHistory",
-                    hardforkIdx,
-                    "value",
-                  ],
-                  message: `Invalid hardfork name ${name} found in chain descriptor for chain ${chainId}. Expected ${getHardforks(type).join(" | ")}.`,
+                  path: errorPath,
+                  message: `Invalid block number ${activation.blockNumber} found in chain descriptor for chain ${chainId}. Block numbers must be in ascending order.`,
                 });
               }
-            },
-          );
-        },
-      );
+
+              // Block numbers must be defined before timestamps
+              if (previousKind === "timestamp") {
+                ctx.addIssue({
+                  code: z.ZodIssueCode.custom,
+                  path: errorPath,
+                  message: `Invalid block number ${activation.blockNumber} found in chain descriptor for chain ${chainId}. Block number cannot be defined after a timestamp.`,
+                });
+              }
+
+              previousKind = "block";
+              previousValue = activation.blockNumber;
+            }
+            // Timestamps must be in ascending order
+            else if (activation.timestamp !== undefined) {
+              if (
+                previousKind === "timestamp" &&
+                activation.timestamp < previousValue
+              ) {
+                ctx.addIssue({
+                  code: z.ZodIssueCode.custom,
+                  path: errorPath,
+                  message: `Invalid timestamp ${activation.timestamp} found in chain descriptor for chain ${chainId}. Timestamps must be in ascending order.`,
+                });
+              }
+
+              previousKind = "timestamp";
+              previousValue = activation.timestamp;
+            }
+          },
+        );
+      });
     }
   });
 

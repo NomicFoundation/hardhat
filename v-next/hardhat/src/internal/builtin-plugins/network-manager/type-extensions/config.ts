@@ -9,22 +9,32 @@ declare module "../../../../types/config.js" {
     networks?: Record<string, NetworkUserConfig>;
   }
 
-  export type ChainDescriptorsUserConfig = Map<
-    number /* chainId */,
-    ChainDescriptorUserConfig
-  >;
+  export interface ChainDescriptorsUserConfig {
+    [chainId: number | string]: ChainDescriptorUserConfig;
+  }
 
   export interface ChainDescriptorUserConfig {
-    name?: string;
+    name: string;
     chainType?: ChainType;
     hardforkHistory?: HardforkHistoryUserConfig;
     blockExplorers?: BlockExplorersUserConfig;
   }
 
-  export type HardforkHistoryUserConfig = Map<
-    string /* hardforkName */,
-    number /* blockNumber */
-  >;
+  export interface HardforkHistoryUserConfig {
+    [hardforkName: string]:
+      | ActivationBlockNumberUserConfig
+      | ActivationTimestampUserConfig;
+  }
+
+  export interface ActivationBlockNumberUserConfig {
+    blockNumber: number;
+    timestamp?: never;
+  }
+
+  export interface ActivationTimestampUserConfig {
+    timestamp: number;
+    blockNumber?: never;
+  }
 
   export interface BlockExplorersUserConfig {
     etherscan?: BlockExplorerUserConfig;
@@ -156,21 +166,31 @@ declare module "../../../../types/config.js" {
   }
 
   export type ChainDescriptorsConfig = Map<
-    number /* chainId */,
+    bigint /* chainId */,
     ChainDescriptorConfig
   >;
 
   export interface ChainDescriptorConfig {
     name: string;
     chainType: ChainType;
-    hardforkHistory: HardforkHistoryConfig;
+    hardforkHistory?: HardforkHistoryConfig;
     blockExplorers: BlockExplorersConfig;
   }
 
   export type HardforkHistoryConfig = Map<
     string /* hardforkName */,
-    number /* blockNumber */
+    ActivationBlockNumberConfig | ActivationTimestampConfig
   >;
+
+  export interface ActivationBlockNumberConfig {
+    blockNumber: number;
+    timestamp?: never;
+  }
+
+  export interface ActivationTimestampConfig {
+    timestamp: number;
+    blockNumber?: never;
+  }
 
   export interface BlockExplorersConfig {
     etherscan?: BlockExplorerConfig;

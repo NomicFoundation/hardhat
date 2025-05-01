@@ -104,7 +104,7 @@ export async function resolveUserConfig(
   return {
     ...resolvedConfig,
     chainDescriptors: await resolveChainDescriptors(
-      resolvedConfig.chainDescriptors,
+      userConfig.chainDescriptors,
     ),
     defaultChainType: resolvedConfig.defaultChainType ?? GENERIC_CHAIN_TYPE,
     defaultNetwork: resolvedConfig.defaultNetwork ?? "hardhat",

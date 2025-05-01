@@ -22,6 +22,7 @@ import type { ChainType } from "../../../types/network.js";
 
 import path from "node:path";
 
+import { toBigInt } from "@nomicfoundation/hardhat-utils/bigint";
 import {
   hexStringToBytes,
   normalizeHexString,
@@ -234,18 +235,15 @@ export async function resolveChainDescriptors(
 
   // Loop over the user-provided chain descriptors
   // and merge them with the default ones
-  for (const [chainId, userDescriptor] of chainDescriptors) {
+  for (const [chainId, userDescriptor] of Object.entries(chainDescriptors)) {
     const existingDescriptor: ChainDescriptorConfig =
-      resolvedChainDescriptors.get(chainId) ?? {
-        name: "unknown",
+      resolvedChainDescriptors.get(toBigInt(chainId)) ?? {
+        name: userDescriptor.name,
         chainType: GENERIC_CHAIN_TYPE,
-        hardforkHistory: new Map(),
         blockExplorers: {},
       };
 
-    if (userDescriptor.name !== undefined) {
-      existingDescriptor.name = userDescriptor.name;
-    }
+    existingDescriptor.name = userDescriptor.name;
 
     if (userDescriptor.chainType !== undefined) {
       existingDescriptor.chainType = userDescriptor.chainType;
@@ -253,17 +251,23 @@ export async function resolveChainDescriptors(
 
     if (userDescriptor.hardforkHistory !== undefined) {
       existingDescriptor.hardforkHistory = new Map(
-        userDescriptor.hardforkHistory,
+        Object.entries(userDescriptor.hardforkHistory),
       );
     }
 
-    if (userDescriptor.blockExplorers !== undefined) {
-      existingDescriptor.blockExplorers = await deepClone(
-        userDescriptor.blockExplorers,
+    if (userDescriptor.blockExplorers?.etherscan !== undefined) {
+      existingDescriptor.blockExplorers.etherscan = await deepClone(
+        userDescriptor.blockExplorers.etherscan,
       );
     }
 
-    resolvedChainDescriptors.set(chainId, existingDescriptor);
+    if (userDescriptor.blockExplorers?.blockscout !== undefined) {
+      existingDescriptor.blockExplorers.blockscout = await deepClone(
+        userDescriptor.blockExplorers.blockscout,
+      );
+    }
+
+    resolvedChainDescriptors.set(toBigInt(chainId), existingDescriptor);
   }
 
   return resolvedChainDescriptors;

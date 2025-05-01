@@ -6,25 +6,13 @@ import {
   OPTIMISM_CHAIN_TYPE,
 } from "../../constants.js";
 
-/**
- * Block numbers / timestamps were taken from:
- *
- * L1 / Generic:
- * https://github.com/ethereumjs/ethereumjs-monorepo/tree/master/packages/common/src/chains.ts
- * Op:
- * https://github.com/ethereum-optimism/superchain-registry/tree/main/superchain/configs/mainnet
- *
- * To find hardfork activation blocks by timestamp, use:
- * https://api-[TESTNET].[BASE_EXPLORER_URL]/api?module=block&action=getblocknobytime&timestamp=TIMESTAMP&closest=before&apikey=APIKEY
- */
 export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
   // ethereum mainnet
   [
-    1,
+    1n,
     {
       name: "Ethereum",
       chainType: L1_CHAIN_TYPE,
-      hardforkHistory: new Map(),
       blockExplorers: {
         etherscan: {
           url: "https://etherscan.io",
@@ -39,11 +27,10 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
   ],
   // holesky testnet
   [
-    17_000,
+    17_000n,
     {
       name: "Holesky",
       chainType: L1_CHAIN_TYPE,
-      hardforkHistory: new Map(),
       blockExplorers: {
         etherscan: {
           url: "https://holesky.etherscan.io",
@@ -58,11 +45,10 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
   ],
   // hoodi testnet
   [
-    560_048,
+    560_048n,
     {
       name: "Hoodi",
       chainType: L1_CHAIN_TYPE,
-      hardforkHistory: new Map(),
       blockExplorers: {
         etherscan: {
           url: "https://hoodi.etherscan.io",
@@ -77,11 +63,10 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
   ],
   // sepolia testnet
   [
-    11_155_111,
+    11_155_111n,
     {
       name: "Sepolia",
       chainType: L1_CHAIN_TYPE,
-      hardforkHistory: new Map(),
       blockExplorers: {
         etherscan: {
           url: "https://sepolia.etherscan.io",
@@ -96,11 +81,10 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
   ],
   // optimism mainnet
   [
-    10,
+    10n,
     {
       name: "OP Mainnet",
       chainType: OPTIMISM_CHAIN_TYPE,
-      hardforkHistory: new Map(),
       blockExplorers: {
         etherscan: {
           url: "https://optimistic.etherscan.io",
@@ -115,11 +99,10 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
   ],
   // optimism sepolia testnet
   [
-    11_155_420,
+    11_155_420n,
     {
       name: "OP Sepolia",
       chainType: OPTIMISM_CHAIN_TYPE,
-      hardforkHistory: new Map(),
       blockExplorers: {
         etherscan: {
           url: "https://sepolia-optimism.etherscan.io",
@@ -134,11 +117,10 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
   ],
   // arbitrum one mainnet
   [
-    42_161,
+    42_161n,
     {
       name: "Arbitrum One",
       chainType: GENERIC_CHAIN_TYPE,
-      hardforkHistory: new Map(),
       blockExplorers: {
         etherscan: {
           name: "Arbiscan",
@@ -154,11 +136,10 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
   ],
   // arbitrum nova mainnet
   [
-    42_170,
+    42_170n,
     {
       name: "Arbitrum Nova",
       chainType: GENERIC_CHAIN_TYPE,
-      hardforkHistory: new Map(),
       blockExplorers: {
         etherscan: {
           name: "Arbiscan",
@@ -174,11 +155,10 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
   ],
   // arbitrum sepolia testnet
   [
-    42_170,
+    42_170n,
     {
       name: "Arbitrum Sepolia",
       chainType: GENERIC_CHAIN_TYPE,
-      hardforkHistory: new Map(),
       blockExplorers: {
         etherscan: {
           name: "Arbiscan",
@@ -194,11 +174,10 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
   ],
   // base mainnet
   [
-    8_453,
+    8_453n,
     {
       name: "Base",
       chainType: OPTIMISM_CHAIN_TYPE,
-      hardforkHistory: new Map(),
       blockExplorers: {
         etherscan: {
           name: "Basescan",
@@ -214,11 +193,10 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
   ],
   // base sepolia testnet
   [
-    84_532,
+    84_532n,
     {
       name: "Base Sepolia",
       chainType: OPTIMISM_CHAIN_TYPE,
-      hardforkHistory: new Map(),
       blockExplorers: {
         etherscan: {
           name: "Basescan",
@@ -234,11 +212,10 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
   ],
   // avalanche mainnet
   [
-    43_114,
+    43_114n,
     {
       name: "Avalanche",
       chainType: GENERIC_CHAIN_TYPE,
-      hardforkHistory: new Map(),
       blockExplorers: {
         etherscan: {
           name: "SnowTrace",
@@ -250,11 +227,10 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
   ],
   // avalanche fuji testnet
   [
-    43_113,
+    43_113n,
     {
       name: "Avalanche Fuji",
       chainType: GENERIC_CHAIN_TYPE,
-      hardforkHistory: new Map(),
       blockExplorers: {
         etherscan: {
           name: "SnowTrace",
@@ -266,11 +242,10 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
   ],
   // polygon mainnet
   [
-    137,
+    137n,
     {
       name: "Polygon",
       chainType: GENERIC_CHAIN_TYPE,
-      hardforkHistory: new Map(),
       blockExplorers: {
         etherscan: {
           name: "PolygonScan",
@@ -286,11 +261,10 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
   ],
   // polygon amoy testnet
   [
-    80_002,
+    80_002n,
     {
       name: "Polygon Amoy",
       chainType: GENERIC_CHAIN_TYPE,
-      hardforkHistory: new Map(),
       blockExplorers: {
         etherscan: {
           name: "PolygonScan",
@@ -302,11 +276,10 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
   ],
   // polygon zkevm mainnet
   [
-    1_101,
+    1_101n,
     {
       name: "Polygon zkEVM",
       chainType: GENERIC_CHAIN_TYPE,
-      hardforkHistory: new Map(),
       blockExplorers: {
         etherscan: {
           name: "PolygonScan",
@@ -322,11 +295,10 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
   ],
   // polygon zkevm cardona testnet
   [
-    2_442,
+    2_442n,
     {
       name: "Polygon zkEVM Cardona",
       chainType: GENERIC_CHAIN_TYPE,
-      hardforkHistory: new Map(),
       blockExplorers: {
         etherscan: {
           name: "PolygonScan",
@@ -338,11 +310,10 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
   ],
   // zksync era mainnet
   [
-    324,
+    324n,
     {
       name: "ZKsync Era",
       chainType: GENERIC_CHAIN_TYPE,
-      hardforkHistory: new Map(),
       blockExplorers: {
         etherscan: {
           name: "zkSync Era Explorer",
@@ -358,11 +329,10 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
   ],
   // zksync sepolia testnet
   [
-    300,
+    300n,
     {
       name: "ZKsync Sepolia Testnet",
       chainType: GENERIC_CHAIN_TYPE,
-      hardforkHistory: new Map(),
       blockExplorers: {
         etherscan: {
           name: "zkSync Era Explorer",
@@ -376,13 +346,12 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
       },
     },
   ],
-  // bnb smart chain mainnet
+  // binance smart chain mainnet
   [
-    56,
+    56n,
     {
-      name: "BNB Smart Chain",
+      name: "Binance Smart Chain",
       chainType: GENERIC_CHAIN_TYPE,
-      hardforkHistory: new Map(),
       blockExplorers: {
         etherscan: {
           name: "BscScan",
@@ -392,13 +361,12 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
       },
     },
   ],
-  // bnb smart chain testnet
+  // binance smart chain testnet
   [
-    97,
+    97n,
     {
-      name: "BNB Smart Chain Testnet",
+      name: "Binance Smart Chain Testnet",
       chainType: GENERIC_CHAIN_TYPE,
-      hardforkHistory: new Map(),
       blockExplorers: {
         etherscan: {
           name: "BscScan",
@@ -410,11 +378,10 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
   ],
   // gnosis mainnet
   [
-    100,
+    100n,
     {
       name: "Gnosis",
       chainType: GENERIC_CHAIN_TYPE,
-      hardforkHistory: new Map(),
       blockExplorers: {
         etherscan: {
           name: "Gnosisscan",
@@ -430,11 +397,10 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
   ],
   // gnosis chiado testnet
   [
-    10_200,
+    10_200n,
     {
       name: "Gnosis Chiado",
       chainType: GENERIC_CHAIN_TYPE,
-      hardforkHistory: new Map(),
       blockExplorers: {
         blockscout: {
           url: "https://gnosis-chiado.blockscout.com",
@@ -445,11 +411,10 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
   ],
   // fantom mainnet
   [
-    250,
+    250n,
     {
       name: "Fantom",
       chainType: GENERIC_CHAIN_TYPE,
-      hardforkHistory: new Map(),
       blockExplorers: {
         blockscout: {
           name: "FTMScout",
@@ -461,11 +426,10 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
   ],
   // moonbeam mainnet
   [
-    1_284,
+    1_284n,
     {
       name: "Moonbeam",
       chainType: GENERIC_CHAIN_TYPE,
-      hardforkHistory: new Map(),
       blockExplorers: {
         etherscan: {
           name: "Moonscan",
@@ -477,11 +441,10 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
   ],
   // moonbeam moonbase alpha testnet
   [
-    1_287,
+    1_287n,
     {
       name: "Moonbase Alpha",
       chainType: GENERIC_CHAIN_TYPE,
-      hardforkHistory: new Map(),
       blockExplorers: {
         etherscan: {
           name: "Moonscan",
@@ -493,11 +456,10 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
   ],
   // moonriver mainnet
   [
-    1_285,
+    1_285n,
     {
       name: "Moonriver",
       chainType: GENERIC_CHAIN_TYPE,
-      hardforkHistory: new Map(),
       blockExplorers: {
         etherscan: {
           name: "Moonscan",
@@ -509,11 +471,10 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
   ],
   // ink mainnet
   [
-    57_073,
+    57_073n,
     {
       name: "Ink",
       chainType: GENERIC_CHAIN_TYPE,
-      hardforkHistory: new Map(),
       blockExplorers: {
         blockscout: {
           url: "https://explorer.inkonchain.com",
@@ -524,11 +485,10 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
   ],
   // ink sepolia testnet
   [
-    763_373,
+    763_373n,
     {
       name: "Ink Sepolia",
       chainType: GENERIC_CHAIN_TYPE,
-      hardforkHistory: new Map(),
       blockExplorers: {
         blockscout: {
           url: "https://explorer-sepolia.inkonchain.com",
@@ -539,11 +499,10 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
   ],
   // aurora mainnet
   [
-    1_313_161_554,
+    1_313_161_554n,
     {
       name: "Aurora",
       chainType: GENERIC_CHAIN_TYPE,
-      hardforkHistory: new Map(),
       blockExplorers: {
         blockscout: {
           url: "https://explorer.mainnet.aurora.dev",
@@ -554,11 +513,10 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
   ],
   // aurora testnet
   [
-    1_313_161_555,
+    1_313_161_555n,
     {
       name: "Aurora Testnet",
       chainType: GENERIC_CHAIN_TYPE,
-      hardforkHistory: new Map(),
       blockExplorers: {
         blockscout: {
           url: "https://explorer.testnet.aurora.dev",
@@ -569,11 +527,10 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
   ],
   // harmony one mainnet
   [
-    1_666_600_000,
+    1_666_600_000n,
     {
       name: "Harmony One",
       chainType: GENERIC_CHAIN_TYPE,
-      hardforkHistory: new Map(),
       blockExplorers: {
         blockscout: {
           url: "https://explorer.harmony.one",
@@ -584,11 +541,10 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
   ],
   // harmony testnet
   [
-    1_666_700_000,
+    1_666_700_000n,
     {
       name: "Harmony Testnet",
       chainType: GENERIC_CHAIN_TYPE,
-      hardforkHistory: new Map(),
       blockExplorers: {
         blockscout: {
           url: "https://explorer.testnet.harmony.one",
