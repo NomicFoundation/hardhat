@@ -102,6 +102,7 @@ export class CompilationJobImplementation implements CompilationJob {
     const defaultOutputSelection: CompilerInput["settings"]["outputSelection"] =
       {
         "*": {
+          "": ["ast"],
           "*": [
             "abi",
             "evm.bytecode",
@@ -109,7 +110,6 @@ export class CompilationJobImplementation implements CompilationJob {
             "evm.methodIdentifiers",
             "metadata",
           ],
-          "": ["ast"],
         },
       };
 
