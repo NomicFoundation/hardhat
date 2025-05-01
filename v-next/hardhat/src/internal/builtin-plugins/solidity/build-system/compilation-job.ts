@@ -117,11 +117,11 @@ export class CompilationJobImplementation implements CompilationJob {
 
     const configOutputSelection = settings.outputSelection ?? {};
 
-    for (const fileKey of Object.keys(configOutputSelection)) {
+    for (const fileKey of Object.keys(configOutputSelection).sort()) {
       const configFileOutputSelection = configOutputSelection[fileKey] ?? {};
       outputSelection[fileKey] ??= {};
 
-      for (const contractKey of Object.keys(configFileOutputSelection)) {
+      for (const contractKey of Object.keys(configFileOutputSelection).sort()) {
         const configContractOutputSelection =
           configFileOutputSelection[contractKey] ?? [];
         outputSelection[fileKey][contractKey] ??= [];
