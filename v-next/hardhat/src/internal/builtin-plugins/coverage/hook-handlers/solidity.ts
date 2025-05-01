@@ -23,7 +23,12 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
         );
         const hreImplementation =
           unsafelyCastAsHardhatRuntimeEnvironmentImplementation(context);
-        await hreImplementation._coverage.addMetadata(metadata);
+        await hreImplementation._coverage.addMetadata(
+          metadata.map((m) => ({
+            ...m,
+            sourceName,
+          })),
+        );
 
         return await next(context, sourceName, source, solcVersion);
       } catch (e) {

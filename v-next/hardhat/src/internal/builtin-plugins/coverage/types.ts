@@ -1,4 +1,5 @@
 export type CoverageMetadata = Array<{
+  sourceName: string;
   tag: Buffer;
   kind: string;
   startUtf16: number;
