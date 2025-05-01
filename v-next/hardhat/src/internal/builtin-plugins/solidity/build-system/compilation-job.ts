@@ -99,54 +99,56 @@ export class CompilationJobImplementation implements CompilationJob {
     // from other files (e.g. new Foo()), and it won't output its bytecode if
     // it's not asked for. This would prevent EDR from doing any runtime
     // analysis.
-    const defaultOutputSelection: CompilerInput["settings"]["outputSelection"] =
-      {
-        "*": {
-          "": ["ast"],
-          "*": [
-            "abi",
-            "evm.bytecode",
-            "evm.deployedBytecode",
-            "evm.methodIdentifiers",
-            "metadata",
-          ],
-        },
-      };
+    type OutputSelection = CompilerInput["settings"]["outputSelection"];
+    const defaultOutputSelection: OutputSelection = {
+      "*": {
+        "": ["ast"],
+        "*": [
+          "abi",
+          "evm.bytecode",
+          "evm.deployedBytecode",
+          "evm.methodIdentifiers",
+          "metadata",
+        ],
+      },
+    };
 
-    const configOutputSelection = settings.outputSelection ?? {};
-    const outputSelection: typeof defaultOutputSelection = {};
+    // TODO: export this function somewhere as helper
+    const mergeOutputSelection = (
+      selectionA: OutputSelection,
+      selectionB: OutputSelection,
+    ): OutputSelection => {
+      const result: OutputSelection = {};
 
-    const fileKeys = Array.from(
-      new Set([
-        ...Object.keys(defaultOutputSelection),
-        ...Object.keys(configOutputSelection),
-      ]),
-    ).sort();
-
-    for (const fileKey of fileKeys) {
-      const contractKeys = Array.from(
-        new Set([
-          ...Object.keys(defaultOutputSelection[fileKey] ?? {}),
-          ...Object.keys(configOutputSelection[fileKey] ?? {}),
-        ]),
+      const fileKeys = Array.from(
+        new Set([...Object.keys(selectionA), ...Object.keys(selectionB)]),
       ).sort();
 
-      for (const contractKey of contractKeys) {
-        const values = Array.from(
+      for (const fileKey of fileKeys) {
+        const contractKeys = Array.from(
           new Set([
-            ...Object.keys(
-              defaultOutputSelection[fileKey]?.[contractKey] ?? [],
-            ),
-            ...Object.keys(configOutputSelection[fileKey]?.[contractKey] ?? []),
+            ...Object.keys(selectionA[fileKey] ?? {}),
+            ...Object.keys(selectionB[fileKey] ?? {}),
           ]),
         ).sort();
 
-        if (values.length > 0) {
-          outputSelection[fileKey] = {};
-          outputSelection[fileKey][contractKey] = values;
+        for (const contractKey of contractKeys) {
+          const values = Array.from(
+            new Set([
+              ...Object.keys(selectionA[fileKey]?.[contractKey] ?? []),
+              ...Object.keys(selectionB[fileKey]?.[contractKey] ?? []),
+            ]),
+          ).sort();
+
+          if (values.length > 0) {
+            result[fileKey] = {};
+            result[fileKey][contractKey] = values;
+          }
         }
       }
-    }
+
+      return result;
+    };
 
     return {
       language: "Solidity",
@@ -155,7 +157,10 @@ export class CompilationJobImplementation implements CompilationJob {
         evmVersion:
           settings.evmVersion ??
           getEvmVersionFromSolcVersion(this.solcConfig.version),
-        outputSelection,
+        outputSelection: mergeOutputSelection(
+          defaultOutputSelection,
+          settings.outputSelection,
+        ),
         remappings: this.#remappings.map(formatRemapping),
       },
     };
