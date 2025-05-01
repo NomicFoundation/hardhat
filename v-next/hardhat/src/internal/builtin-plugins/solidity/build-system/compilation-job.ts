@@ -131,8 +131,7 @@ export class CompilationJobImplementation implements CompilationJob {
             ...outputSelection[fileKey][contractKey],
             ...configContractOutputSelection,
           ]),
-        );
-        values.sort();
+        ).sort();
 
         outputSelection[fileKey][contractKey] = values;
       }
