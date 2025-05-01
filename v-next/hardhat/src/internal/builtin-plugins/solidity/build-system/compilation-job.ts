@@ -114,26 +114,23 @@ export class CompilationJobImplementation implements CompilationJob {
       };
 
     const outputSelection = defaultOutputSelection;
-
     const configOutputSelection = settings.outputSelection ?? {};
 
     for (const fileKey of Object.keys(configOutputSelection).sort()) {
-      const configFileOutputSelection = configOutputSelection[fileKey] ?? {};
       outputSelection[fileKey] ??= {};
+      const configFileOutputSelection = configOutputSelection[fileKey] ?? {};
 
       for (const contractKey of Object.keys(configFileOutputSelection).sort()) {
+        outputSelection[fileKey][contractKey] ??= [];
         const configContractOutputSelection =
           configFileOutputSelection[contractKey] ?? [];
-        outputSelection[fileKey][contractKey] ??= [];
 
-        const values = Array.from(
+        outputSelection[fileKey][contractKey] = Array.from(
           new Set([
             ...outputSelection[fileKey][contractKey],
             ...configContractOutputSelection,
           ]),
         ).sort();
-
-        outputSelection[fileKey][contractKey] = values;
       }
     }
 
