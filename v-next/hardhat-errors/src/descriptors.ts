@@ -402,11 +402,11 @@ Please add the property "type" with the value "module" in your package.json to e
         websiteTitle: "Template not found",
         websiteDescription: `The template you provided is not found. Please check the documentation to learn which templates are available.`,
       },
-      WORKSPACE_NOT_FOUND: {
+      WORKSPACE_MUST_BE_A_DIRECTORY: {
         number: 17,
-        messageTemplate: `Workspace "{workspace}" not found`,
-        websiteTitle: "Workspace not found",
-        websiteDescription: `The workspace you provided does not exist. Please ensure that the workspace exists and try again.`,
+        messageTemplate: `Workspace "{workspace}" must be a directory`,
+        websiteTitle: "Workspace must be a directory",
+        websiteDescription: `The workspace you provided is not a directory. Please ensure that the workspace is a directory and try again.`,
       },
       INVALID_HEX_STRING: {
         number: 18,

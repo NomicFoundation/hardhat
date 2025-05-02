@@ -1,7 +1,7 @@
 {
   "name": "@nomicfoundation/hardhat-test-utils",
   "private": true,
-  "version": "3.0.0-next.5",
+  "version": "3.0.0-next.6",
   "description": "Test utilities used to develop and test Hardhat",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-test-utils",
   "repository": {
@@ -38,7 +38,7 @@
   ],
   "devDependencies": {
     "@eslint-community/eslint-plugin-eslint-comments": "^4.3.0",
-    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0-next.5",
+    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0-next.6",
     "@types/node": "^20.14.9",
     "@typescript-eslint/eslint-plugin": "^7.7.1",
     "@typescript-eslint/parser": "^7.7.1",
@@ -56,7 +56,7 @@
     "typescript-eslint": "7.7.1"
   },
   "dependencies": {
-    "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.5",
-    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.5"
+    "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.6",
+    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.6"
   }
 }
