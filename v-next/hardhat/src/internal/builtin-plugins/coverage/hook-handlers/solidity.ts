@@ -3,7 +3,10 @@ import type { SolidityHooks } from "../../../../types/hooks.js";
 import path from "node:path";
 
 import { addStatementCoverageInstrumentation } from "@ignored/edr-optimism";
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import {
+  assertHardhatInvariant,
+  HardhatError,
+} from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { readUtf8File } from "@nomicfoundation/hardhat-utils/fs";
 
@@ -55,6 +58,11 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
   },
   preprocessSolcInputSourcesBeforeBuilding: async (context, sources, next) => {
     if (context.globalOptions.coverage) {
+      assertHardhatInvariant(
+        sources["hardhat/coverage.sol"] === undefined,
+        'The "hardhat/coverage.sol" entry should not exist in the sources.',
+      );
+
       const content = await readUtf8File(
         path.join(import.meta.dirname, "../../../../../../coverage.sol"),
       );

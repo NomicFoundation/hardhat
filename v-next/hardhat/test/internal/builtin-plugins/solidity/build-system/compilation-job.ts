@@ -1,6 +1,6 @@
 import type { Remapping } from "../../../../../src/internal/builtin-plugins/solidity/build-system/resolver/types.js";
 import type { SolcConfig } from "../../../../../src/types/config.js";
-import type { HookManager } from "../../../../../src/types/hooks.js";
+import type { HookContext } from "../../../../../src/types/hooks.js";
 import type {
   NpmPackageResolvedFile,
   ProjectResolvedFile,
@@ -25,7 +25,7 @@ describe("CompilationJobImplementation", () => {
   let solcConfig: SolcConfig;
   let solcLongVersion: string;
   let remappings: Remapping[];
-  let hooks: HookManager;
+  let hooks: HookManagerImplementation;
   let compilationJob: CompilationJobImplementation;
 
   beforeEach(() => {
@@ -73,6 +73,8 @@ describe("CompilationJobImplementation", () => {
     solcLongVersion = "0.8.0-c7dfd78";
     remappings = [];
     hooks = new HookManagerImplementation(process.cwd(), []);
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- We don't care about hooks in this context
+    hooks.setContext({} as HookContext);
     compilationJob = new CompilationJobImplementation(
       dependencyGraph,
       solcConfig,
