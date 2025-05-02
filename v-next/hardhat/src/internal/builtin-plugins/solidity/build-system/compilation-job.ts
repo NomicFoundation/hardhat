@@ -10,7 +10,10 @@ import type { DependencyGraph } from "../../../../types/solidity/dependency-grap
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { createNonCryptographicHashId } from "@nomicfoundation/hardhat-utils/crypto";
 
-import { type ResolvedFile } from "../../../../types/solidity.js";
+import {
+  ResolvedFileType,
+  type ResolvedFile,
+} from "../../../../types/solidity.js";
 
 import { formatRemapping } from "./resolver/remappings.js";
 import { getEvmVersionFromSolcVersion } from "./solc-info.js";
@@ -93,12 +96,15 @@ export class CompilationJobImplementation implements CompilationJob {
     return this.#roots;
   }
 
-  #isRoot(file: ResolvedFile): boolean {
-    return this.#getRoots().has(file.sourceName);
+  #isRootProjectFile(file: ResolvedFile): boolean {
+    return (
+      file.type === ResolvedFileType.PROJECT_FILE &&
+      this.#getRoots().has(file.sourceName)
+    );
   }
 
   async #getFileContent(file: ResolvedFile): Promise<string> {
-    if (!this.#isRoot(file)) {
+    if (!this.#isRootProjectFile(file)) {
       return file.content.text;
     }
 
@@ -106,16 +112,16 @@ export class CompilationJobImplementation implements CompilationJob {
       const solcVersion = this.solcConfig.version;
       this.#fileContents[file.sourceName] = await this.#hooks.runHandlerChain(
         "solidity",
-        "preprocessRootBeforeBuilding",
+        "preprocessRootProjectFileBeforeBuilding",
         [file.sourceName, file.content.text, solcVersion],
         async (_context, nextSourceName, nextFileContent, nextSolcVersion) => {
           assertHardhatInvariant(
             file.sourceName === nextSourceName,
-            "Cannot modify source name in preprocessRootBeforeBuilding",
+            "Cannot modify source name in preprocessRootProjectFileBeforeBuilding",
           );
           assertHardhatInvariant(
             solcVersion === nextSolcVersion,
-            "Cannot modify solc version in preprocessRootBeforeBuilding",
+            "Cannot modify solc version in preprocessRootProjectFileBeforeBuilding",
           );
           return nextFileContent;
         },
@@ -125,7 +131,7 @@ export class CompilationJobImplementation implements CompilationJob {
   }
 
   async #getFileContentHash(file: ResolvedFile): Promise<string> {
-    if (!this.#isRoot(file)) {
+    if (!this.#isRootProjectFile(file)) {
       return file.getContentHash();
     }
 
@@ -151,9 +157,18 @@ export class CompilationJobImplementation implements CompilationJob {
       };
     }
 
+    const preprocessedSources = await this.#hooks.runHandlerChain(
+      "solidity",
+      "preprocessSolcInputSourcesBeforeBuilding",
+      [sources],
+      async (_context, nextSources) => {
+        return nextSources;
+      },
+    );
+
     return {
       ...solcInputWithoutSources,
-      sources,
+      sources: preprocessedSources,
     };
   }
 

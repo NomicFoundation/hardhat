@@ -1,13 +1,16 @@
 import type { SolidityHooks } from "../../../../types/hooks.js";
 
+import path from "node:path";
+
 import { addStatementCoverageInstrumentation } from "@ignored/edr-optimism";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
+import { readUtf8File } from "@nomicfoundation/hardhat-utils/fs";
 
 import { unsafelyCastAsHardhatRuntimeEnvironmentImplementation } from "../helpers.js";
 
 export default async (): Promise<Partial<SolidityHooks>> => ({
-  preprocessRootBeforeBuilding: async (
+  preprocessRootProjectFileBeforeBuilding: async (
     context,
     sourceName,
     fileContent,
@@ -49,5 +52,15 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
     } else {
       return next(context, sourceName, fileContent, solcVersion);
     }
+  },
+  preprocessSolcInputSourcesBeforeBuilding: async (context, sources, next) => {
+    if (context.globalOptions.coverage) {
+      const content = await readUtf8File(
+        path.join(import.meta.dirname, "../../../../../../coverage.sol"),
+      );
+      sources["hardhat/coverage.sol"] = { content };
+    }
+
+    return next(context, sources);
   },
 });

@@ -115,7 +115,7 @@ declare module "../../../types/hooks.js" {
       ) => Promise<void>,
     ) => Promise<void>;
 
-    preprocessRootBeforeBuilding(
+    preprocessRootProjectFileBeforeBuilding(
       context: HookContext,
       sourceName: string,
       fileContent: string,
@@ -127,5 +127,14 @@ declare module "../../../types/hooks.js" {
         nextSolcVersion: string,
       ) => Promise<string>,
     ): Promise<string>;
+
+    preprocessSolcInputSourcesBeforeBuilding(
+      context: HookContext,
+      sources: Record<string, { content: string }>,
+      next: (
+        nextContext: HookContext,
+        nextSources: Record<string, { content: string }>,
+      ) => Promise<Record<string, { content: string }>>,
+    ): Promise<Record<string, { content: string }>>;
   }
 }
