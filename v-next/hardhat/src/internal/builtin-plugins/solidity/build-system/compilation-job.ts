@@ -7,7 +7,7 @@ import type { CompilationJob } from "../../../../types/solidity/compilation-job.
 import type { CompilerInput } from "../../../../types/solidity/compiler-io.js";
 import type { DependencyGraph } from "../../../../types/solidity/dependency-graph.js";
 
-import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { createNonCryptographicHashId } from "@nomicfoundation/hardhat-utils/crypto";
 
 import {
@@ -115,14 +115,28 @@ export class CompilationJobImplementation implements CompilationJob {
         "preprocessRootProjectFileBeforeBuilding",
         [file.sourceName, file.content.text, solcVersion],
         async (_context, nextSourceName, nextFileContent, nextSolcVersion) => {
-          assertHardhatInvariant(
-            file.sourceName === nextSourceName,
-            "Cannot modify source name in preprocessRootProjectFileBeforeBuilding",
-          );
-          assertHardhatInvariant(
-            solcVersion === nextSolcVersion,
-            "Cannot modify solc version in preprocessRootProjectFileBeforeBuilding",
-          );
+          if (file.sourceName !== nextSourceName) {
+            throw new HardhatError(
+              HardhatError.ERRORS.CORE.HOOKS.UNEXPECTED_HOOK_PARAM_MODIFICATION,
+              {
+                hookCategoryName: "solidity",
+                hookName: "preprocessRootProjectFileBeforeBuilding",
+                paramName: "sourceName",
+              },
+            );
+          }
+
+          if (solcVersion !== nextSolcVersion) {
+            throw new HardhatError(
+              HardhatError.ERRORS.CORE.HOOKS.UNEXPECTED_HOOK_PARAM_MODIFICATION,
+              {
+                hookCategoryName: "solidity",
+                hookName: "preprocessRootProjectFileBeforeBuilding",
+                paramName: "solcVersion",
+              },
+            );
+          }
+
           return nextFileContent;
         },
       );

@@ -473,6 +473,12 @@ Please install a version of the peer dependency that meets the plugin's requirem
         websiteTitle: "Plugin hook factory is not a valid file URL",
         websiteDescription: `The loading of a plugin's hook factory failed as the import path is not a valid file:// URL.`,
       },
+      UNEXPECTED_HOOK_PARAM_MODIFICATION: {
+        number: 301,
+        messageTemplate: `Parameter "{paramName}" of hook "{hookCategoryName}#{hookName}" is not allowed to be modified`,
+        websiteTitle: "Unexpected hook parameter modification",
+        websiteDescription: `The parameter is not allowed to be modified`,
+      },
     },
     TASK_DEFINITIONS: {
       INVALID_FILE_ACTION: {
@@ -1212,6 +1218,12 @@ Please use the fully qualified name of the contract to disambiguate it.`,
         messageTemplate: `The source file "{sourceName}" could not be instrumented for coverage.`,
         websiteTitle: "Source file not instrumented for coverage",
         websiteDescription: `The source file could not be instrumented for coverage.`,
+      },
+      IMPORT_PATH_ALREADY_DEFINED: {
+        number: 1201,
+        messageTemplate: `The import path "{importPath}" is already defined in the compilation sources`,
+        websiteTitle: "Import path already defined in compilation sources",
+        websiteDescription: `The import path is already defined in the compilation sources`,
       },
     },
   },
