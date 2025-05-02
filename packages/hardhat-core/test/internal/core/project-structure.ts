@@ -45,19 +45,8 @@ describe("project structure", () => {
       let configPath: string;
 
       before("get root path", async () => {
-        // TODO: This is no longer needed once PR #71 gets merged
-        const pathToFixtureRoot = await getRealPath(
-          path.join(
-            __dirname,
-            "..",
-            "..",
-            "fixture-projects",
-            "default-config-project"
-          )
-        );
-
         configPath = await getRealPath(
-          path.join(pathToFixtureRoot, "hardhat.config.js")
+          path.join(process.cwd(), "hardhat.config.js")
         );
       });
 
