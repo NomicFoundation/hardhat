@@ -13,7 +13,7 @@ import { inspect } from "node:util";
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { deepEqual } from "@nomicfoundation/hardhat-utils/lang";
 
-import { checkEmitted } from "./utils.js";
+import { handleEmit } from "./core.js";
 
 export async function emitWithArgs<
   ContractName extends keyof ContractAbis,
@@ -26,7 +26,7 @@ export async function emitWithArgs<
   eventName: EventName,
   args: any[],
 ): Promise<void> {
-  const parsedLogs = await checkEmitted(viem, fn, contract, eventName);
+  const parsedLogs = await handleEmit(viem, fn, contract, eventName);
 
   assert.equal(
     "args" in parsedLogs[0],

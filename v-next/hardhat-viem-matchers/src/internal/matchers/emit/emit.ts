@@ -7,7 +7,7 @@ import type {
 import type { ChainType } from "hardhat/types/network";
 import type { ContractEventName } from "viem";
 
-import { checkEmitted } from "./utils.js";
+import { handleEmit } from "./core.js";
 
 export async function emit<
   ContractName extends keyof ContractAbis,
@@ -19,5 +19,5 @@ export async function emit<
   contract: ContractReturnType<ContractName>,
   eventName: EventName,
 ): Promise<void> {
-  await checkEmitted(viem, fn, contract, eventName);
+  await handleEmit(viem, fn, contract, eventName);
 }

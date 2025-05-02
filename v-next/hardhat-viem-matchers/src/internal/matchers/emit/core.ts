@@ -11,7 +11,7 @@ import assert from "node:assert/strict";
 
 import { parseEventLogs } from "viem";
 
-export async function checkEmitted<
+export async function handleEmit<
   ContractName extends keyof ContractAbis,
   EventName extends ContractEventName<ContractAbis[ContractName]>,
   ChainTypeT extends ChainType | string = "generic",

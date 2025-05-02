@@ -1,7 +1,7 @@
 import type { GenericFunction } from "../../../types.js";
 
-import { checkRevert } from "./utils.js";
+import { handleRevert } from "./core.js";
 
 export async function revert(fn: GenericFunction): Promise<void> {
-  await checkRevert(fn);
+  await handleRevert(fn);
 }
