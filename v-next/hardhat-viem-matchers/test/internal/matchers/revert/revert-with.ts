@@ -40,6 +40,15 @@ describe("revertWith", () => {
     );
   });
 
+  it("should check that the function reverts when called within nested contracts", async () => {
+    const contract = await viem.deployContract("RevertWithNestedError");
+
+    await viem.assertions.revertWith(
+      contract.read.nestedRevert,
+      "Intentional revert for testing purposes",
+    );
+  });
+
   it("should throw because the function reverts with a different reason", async () => {
     const contract = await viem.deployContract("Revert");
 

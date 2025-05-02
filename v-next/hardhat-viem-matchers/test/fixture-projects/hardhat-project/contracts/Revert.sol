@@ -8,3 +8,15 @@ contract Revert {
 
   function doNotRevert() external pure {}
 }
+
+contract RevertWithNestedError {
+  Revert public revertContract;
+
+  constructor() {
+    revertContract = new Revert();
+  }
+
+  function nestedRevert() external view {
+    revertContract.alwaysRevert();
+  }
+}
