@@ -5,16 +5,18 @@ library __HardhatCoverage {
   address constant COVERAGE_ADDRESS =
     0xc0bEc0BEc0BeC0bEC0beC0bEC0bEC0beC0beC0BE;
 
-  function _sendHitImplementation(bytes memory coverageId) private view {
+  function _sendHitImplementation(uint256 coverageId) private view {
     address coverageAddress = COVERAGE_ADDRESS;
     /// @solidity memory-safe-assembly
     assembly {
+      let ptr := mload(0x40)           // Get free memory pointer
+      mstore(ptr, coverageId)          // Store coverageId at free memory
       pop(
         staticcall(
           gas(),
           coverageAddress,
-          add(coverageId, 32),
-          mload(coverageId),
+          ptr,
+          32,                          // Size of uint256 is 32 bytes
           0,
           0
         )
@@ -23,14 +25,14 @@ library __HardhatCoverage {
   }
 
   function _castToPure(
-    function(bytes memory) internal view fnIn
-  ) private pure returns (function(bytes memory) pure fnOut) {
+    function(uint256) internal view fnIn
+  ) private pure returns (function(uint256) pure fnOut) {
     assembly {
       fnOut := fnIn
     }
   }
 
-  function sendHit(bytes memory coverageId) internal pure {
+  function sendHit(uint256 coverageId) internal pure {
     _castToPure(_sendHitImplementation)(coverageId);
   }
 }
