@@ -8,7 +8,7 @@ import { unsafelyCastAsHardhatRuntimeEnvironmentImplementation } from "../helper
 export default async (): Promise<Partial<HardhatRuntimeEnvironmentHooks>> => ({
   created: async (context, hre) => {
     if (context.globalOptions.coverage) {
-      const coveragePath = path.join(hre.config.paths.root, "coverage");
+      const coveragePath = path.join(hre.config.paths.cache, "coverage");
       const coverageManager = new CoverageManagerImplementation(coveragePath);
 
       const hreImplementation =
