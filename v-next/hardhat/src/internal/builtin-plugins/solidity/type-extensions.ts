@@ -115,7 +115,7 @@ declare module "../../../types/hooks.js" {
       ) => Promise<void>,
     ) => Promise<void>;
 
-    preprocessProjectFileBeforeBuilding(
+    preprocessRootBeforeBuilding(
       context: HookContext,
       sourceName: string,
       fileContent: string,

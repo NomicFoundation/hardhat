@@ -10,17 +10,14 @@ import type { DependencyGraph } from "../../../../types/solidity/dependency-grap
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { createNonCryptographicHashId } from "@nomicfoundation/hardhat-utils/crypto";
 
-import {
-  ResolvedFileType,
-  type ResolvedFile,
-} from "../../../../types/solidity.js";
+import { type ResolvedFile } from "../../../../types/solidity.js";
 
 import { formatRemapping } from "./resolver/remappings.js";
 import { getEvmVersionFromSolcVersion } from "./solc-info.js";
 
 export class CompilationJobImplementation implements CompilationJob {
-  static readonly #fileContents: Record<string, string> = {};
-  static readonly #fileContentHashes: Record<string, string> = {};
+  readonly #fileContents: Record<string, string> = {};
+  readonly #fileContentHashes: Record<string, string> = {};
 
   public readonly dependencyGraph: DependencyGraph;
   public readonly solcConfig: SolcConfig;
@@ -33,6 +30,7 @@ export class CompilationJobImplementation implements CompilationJob {
   #solcInput: CompilerInput | undefined;
   #solcInputWithoutSources: Omit<CompilerInput, "sources"> | undefined;
   #resolvedFiles: ResolvedFile[] | undefined;
+  #roots: Set<string> | undefined;
 
   constructor(
     dependencyGraph: DependencyGraphImplementation,
@@ -83,50 +81,60 @@ export class CompilationJobImplementation implements CompilationJob {
     return this.#resolvedFiles;
   }
 
+  #getRoots(): Set<string> {
+    if (this.#roots === undefined) {
+      this.#roots = new Set(
+        [...this.dependencyGraph.getRoots().values()].map(
+          (root) => root.sourceName,
+        ),
+      );
+    }
+
+    return this.#roots;
+  }
+
+  #isRoot(file: ResolvedFile): boolean {
+    return this.#getRoots().has(file.sourceName);
+  }
+
   async #getFileContent(file: ResolvedFile): Promise<string> {
-    if (file.type === ResolvedFileType.NPM_PACKAGE_FILE) {
+    if (!this.#isRoot(file)) {
       return file.content.text;
     }
-    if (
-      CompilationJobImplementation.#fileContents[file.sourceName] === undefined
-    ) {
+
+    if (this.#fileContents[file.sourceName] === undefined) {
       const solcVersion = this.solcConfig.version;
-      CompilationJobImplementation.#fileContents[file.sourceName] =
-        await this.#hooks.runHandlerChain(
-          "solidity",
-          "preprocessProjectFileBeforeBuilding",
-          [file.sourceName, file.content.text, solcVersion],
-          async (
-            _context,
-            nextSourceName,
-            nextFileContent,
-            nextSolcVersion,
-          ) => {
-            assertHardhatInvariant(
-              file.sourceName === nextSourceName,
-              "Cannot modify source name in preprocessProjectFileBeforeBuilding",
-            );
-            assertHardhatInvariant(
-              solcVersion === nextSolcVersion,
-              "Cannot modify solc version in preprocessProjectFileBeforeBuilding",
-            );
-            return nextFileContent;
-          },
-        );
+      this.#fileContents[file.sourceName] = await this.#hooks.runHandlerChain(
+        "solidity",
+        "preprocessRootBeforeBuilding",
+        [file.sourceName, file.content.text, solcVersion],
+        async (_context, nextSourceName, nextFileContent, nextSolcVersion) => {
+          assertHardhatInvariant(
+            file.sourceName === nextSourceName,
+            "Cannot modify source name in preprocessRootBeforeBuilding",
+          );
+          assertHardhatInvariant(
+            solcVersion === nextSolcVersion,
+            "Cannot modify solc version in preprocessRootBeforeBuilding",
+          );
+          return nextFileContent;
+        },
+      );
     }
-    return CompilationJobImplementation.#fileContents[file.sourceName];
+    return this.#fileContents[file.sourceName];
   }
 
   async #getFileContentHash(file: ResolvedFile): Promise<string> {
-    if (
-      CompilationJobImplementation.#fileContentHashes[file.sourceName] ===
-      undefined
-    ) {
+    if (!this.#isRoot(file)) {
+      return file.getContentHash();
+    }
+
+    if (this.#fileContentHashes[file.sourceName] === undefined) {
       const fileContent = await this.#getFileContent(file);
-      CompilationJobImplementation.#fileContentHashes[file.sourceName] =
+      this.#fileContentHashes[file.sourceName] =
         await createNonCryptographicHashId(fileContent);
     }
-    return CompilationJobImplementation.#fileContentHashes[file.sourceName];
+    return this.#fileContentHashes[file.sourceName];
   }
 
   async #buildSolcInput(): Promise<CompilerInput> {

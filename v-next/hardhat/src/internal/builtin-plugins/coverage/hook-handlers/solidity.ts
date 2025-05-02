@@ -7,7 +7,7 @@ import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { unsafelyCastAsHardhatRuntimeEnvironmentImplementation } from "../helpers.js";
 
 export default async (): Promise<Partial<SolidityHooks>> => ({
-  preprocessProjectFileBeforeBuilding: async (
+  preprocessRootBeforeBuilding: async (
     context,
     sourceName,
     fileContent,
