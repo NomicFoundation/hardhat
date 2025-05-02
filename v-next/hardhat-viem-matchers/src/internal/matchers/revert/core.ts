@@ -14,7 +14,6 @@ export async function handleRevert(fn: GenericFunction): Promise<string> {
     ensureError(error);
 
     const data = extractRevertData(error);
-    assertHardhatInvariant(data !== undefined, "No revert data found on error");
 
     const { args } = decodeErrorResult({ data });
 
@@ -26,7 +25,7 @@ export async function handleRevert(fn: GenericFunction): Promise<string> {
 
 function extractRevertData(
   error: Error & { data?: unknown; cause?: unknown },
-): `0x${string}` | undefined {
+): `0x${string}` {
   let errorData: `0x${string}` | undefined;
   let current: typeof error | undefined = error;
 
@@ -41,6 +40,12 @@ function extractRevertData(
     -- all the nested errors might contain a `cause` field */
     current = current.cause as typeof error | undefined;
   }
+
+  // In a revert scenario, a data field containing the revert reason is always expected
+  assertHardhatInvariant(
+    errorData !== undefined,
+    "No revert data found on error",
+  );
 
   return errorData;
 }
