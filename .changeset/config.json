@@ -15,7 +15,6 @@
     [
       "hardhat",
       "@nomicfoundation/hardhat-errors",
-      "@nomicfoundation/hardhat-ethers",
       "@nomicfoundation/hardhat-ethers-chai-matchers",
       "@nomicfoundation/hardhat-ignition",
       "@nomicfoundation/ignition-core",
