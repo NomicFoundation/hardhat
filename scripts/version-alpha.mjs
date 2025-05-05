@@ -1,4 +1,6 @@
-import { readdir, readFile, writeFile, stat } from "node:fs/promises";
+// @ts-check
+
+import { readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { exec } from "node:child_process";
 import { promisify } from "node:util";

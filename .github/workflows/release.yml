@@ -1,10 +1,6 @@
 name: Release
 
 on:
-  # TODO: When a release PR is merged we should run a merge_group check to ensure:
-  # 1. The release PR is the only one in the merge group
-  # 2. The release PR is up-to-date with the target branch
-  #    i.e. no other PR has been merged since the release PR was added to the merge queue
   workflow_dispatch:
   push:
     branches:

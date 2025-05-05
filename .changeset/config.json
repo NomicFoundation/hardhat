@@ -7,6 +7,7 @@
   "baseBranch": "v-next",
   "updateInternalDependencies": "patch",
   "ignore": [
+    "@nomicfoundation/config",
     "@nomicfoundation/example-project",
     "@nomicfoundation/template-package",
     "template-*"

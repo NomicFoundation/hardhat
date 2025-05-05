@@ -17,54 +17,82 @@ on:
       - unlabeled
 
 jobs:
-  check-if-changeset:
+  merge-group:
+    if: github.event_name == 'merge_group'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/github-script@v7
+        with:
+          script: |
+              // NOTE: If we ever need to, we could access the PR number from the merge_group event like so:
+              // const headRef = context.payload.merge_group.head_ref; // E.g. refs/heads/gh-readonly-queue/master/pr-6-90b00e094e6de7fc4f3fac9a0087c01cf48acad8
+              // const [, baseRefName, pullNumber, headSha] = headRef.match(/^refs\/heads\/gh-readonly-queue\/([^\/]+)\/pr-(\d+)-([a-z0-9]+)$/);
+
+              const fs = require('fs');
+              const path = require('path');
+
+              const {changesets: knownChangesets} = JSON.parse(fs.readFileSync('./.changeset/pre.json', 'utf-8'));
+              const allChangesets = fs.readdirSync('./.changeset')
+                .filter(file => file.endsWith('.md'))
+                .map(file => file.replace('.md', ''));
+              const newChangests = allChangesets.filter(changeset => !knownChangesets.includes(changeset));
+
+              if (newChangests.length === 0) {
+                console.log('No new changesets found');
+                return;
+              }
+
+              const packages = fs.readdirSync('./v-next')
+                .filter(file => ['config', 'example-project', 'template-package'].includes(file))
+                .map(file => `./v-next/${file}/package.json`)
+                .map(path => JSON.parse(fs.readFileSync(path, 'utf-8')));
+
+              for (const package of packages) {
+                const url = `https://registry.npmjs.org/${package.name}/${package.version}`;
+                const response = await fetch(url);
+                if (response.status !== 200) {
+                  throw new Error(`Package ${package.name} is not released to npm`);
+                }
+              }
+
+              console.log('All packages are released to npm');
+              return;
+  pull-request:
     name: Check that PR has a changeset
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/github-script@v7
         with:
           script: |
-            const isMergeGroup = context.eventName === "merge_group";
-
-            if (isMergeGroup) {
-              console.log("Ignore changeset check for merge group.");
-              return;
-            }
-
             const isReleasePr = process.env.GITHUB_HEAD_REF.startsWith("changeset-release/");
+
             if (isReleasePr) {
               console.log("Ignore changeset check for release PR.");
               return;
             }
 
-            // Single PR context
-            const pullNumber = context.issue.number;
+            const noChangesetNeeded = context.payload.pull_request.labels
+              .some(l => l.name === "no changeset needed");
 
+            if (noChangesetNeeded) {
+              console.log("The PR is labeled as 'no changeset needed'");
+              return;
+            }
+
+            const pullNumber = context.payload.pull_request.number;
             const { data: files } = await github.rest.pulls.listFiles({
-              ...context.issue,
+              ...context.repo,
               pull_number: pullNumber
             });
             const changeset = files.find(
               file => file.status === "added" && file.filename.startsWith(".changeset/")
             );
+
             if (changeset !== undefined) {
-              console.log("Changeset found:", changeset.filename);
+              console.log(`Changeset found: ${changeset.filename}`);
               return;
             }
 
-            console.log("No changeset found");
-
-            const { data: pull } = await github.rest.pulls.get({
-              ...context.issue,
-              pull_number: pullNumber
-            });
-            const noChangesetNeededLabel = pull.labels
-              .some(l => l.name === "no changeset needed");
-            if (noChangesetNeededLabel) {
-              console.log('The PR is labeled as "no changeset needed"');
-              return;
-            }
-
-            console.log('The PR is not labeled as "no changeset needed"');
-
-            process.exit(1);
+            throw new Error("No changeset found");
