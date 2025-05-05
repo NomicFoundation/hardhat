@@ -37,7 +37,7 @@
   "scripts": {
     "lint": "pnpm prettier --check && pnpm eslint",
     "lint:fix": "pnpm prettier --write && pnpm eslint --fix",
-    "eslint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
+    "eslint": "eslint \"src/**/*.ts\" \"test/**/*.ts\" --ignore-pattern \"**/*.d.ts\"",
     "prettier": "prettier \"**/*.{ts,js,md,json}\"",
     "pretest": "pnpm run --dir ../hardhat-ignition-ui build",
     "test": "cross-env TS_NODE_COMPILER_OPTIONS=\"{\\\"isolatedDeclarations\\\":false}\" mocha --recursive \"test/**/*.ts\"",
