@@ -1,9 +1,11 @@
-const { createConfig } = require("../../config-v-next/eslint.cjs");
+import { createConfig } from "../config/eslint.config.js";
 
-module.exports = createConfig(__filename);
+const configs = createConfig(import.meta.filename);
 
-module.exports.overrides.push({
-  files: ["integration-tests/**/*.ts"],
+/**
+ * * @type {import("eslint").Linter.Config}
+ */
+const overrideConfig = {
   rules: {
     "import/no-extraneous-dependencies": [
       "error",
@@ -14,4 +16,8 @@ module.exports.overrides.push({
     // Disabled until this gets resolved https://github.com/nodejs/node/issues/51292
     "@typescript-eslint/no-floating-promises": "off",
   },
-});
+};
+
+configs.push(overrideConfig);
+
+export default configs;

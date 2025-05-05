@@ -13,7 +13,7 @@ try {
     dsn: SENTRY_DSN,
     serverName: "<user-server>",
   });
-} catch (error) {
+} catch (_error) {
   process.exit(1);
 }
 

@@ -175,8 +175,8 @@ export class NetworkHelpers implements NetworkHelpersI {
 
       this.#version = version;
 
-      this.#isDevelopmentNetwork = SUPPORTED_TEST_NETWORKS.some((network) =>
-        this.#version?.toLowerCase().startsWith(network),
+      this.#isDevelopmentNetwork = SUPPORTED_TEST_NETWORKS.some(
+        (network) => this.#version?.toLowerCase().startsWith(network) === true,
       );
     }
 

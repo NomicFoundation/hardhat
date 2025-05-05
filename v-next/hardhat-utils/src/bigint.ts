@@ -38,6 +38,7 @@ export function max(x: bigint, y: bigint): bigint {
  * @throws InvalidParameterError If the input value cannot be converted to a bigint.
  */
 export function toBigInt(value: number | string | bigint): bigint {
+  // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- The other types will throw an error
   switch (typeof value) {
     case "number":
       if (!Number.isInteger(value)) {

@@ -210,9 +210,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --prefer-offline
       - name: Build
-        run: pnpm build
+        run: pnpm run --if-present build
       - name: Lint
-        run: pnpm lint
+        run: pnpm run --if-present lint
 
   lint-aggregate:
     needs: lint
@@ -257,11 +257,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --prefer-offline
       - name: Build
-        run: pnpm build
+        run: pnpm run --if-present build
       - name: Run tests
         env:
           __DO_NOT_USE_IS_HARDHAT_CI: true
-        run: pnpm run test
+        run: pnpm run --if-present test
 
   ci-aggregate:
     needs: ci
