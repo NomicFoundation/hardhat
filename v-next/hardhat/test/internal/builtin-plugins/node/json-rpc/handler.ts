@@ -7,8 +7,8 @@ import { before, describe, it } from "node:test";
 
 import { exists } from "@nomicfoundation/hardhat-utils/fs";
 
+import { createHardhatRuntimeEnvironment } from "../../../../../src/hre.js";
 import { JsonRpcServerImplementation } from "../../../../../src/internal/builtin-plugins/node/json-rpc/server.js";
-import { createHardhatRuntimeEnvironment } from "../../../../../src/internal/hre-intialization.js";
 
 describe("JSON-RPC handler", function () {
   let hre: HardhatRuntimeEnvironment;
