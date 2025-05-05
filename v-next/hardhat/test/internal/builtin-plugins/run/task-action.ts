@@ -10,7 +10,7 @@ import {
 } from "@nomicfoundation/hardhat-test-utils";
 
 import runScriptWithHardhat from "../../../../src/internal/builtin-plugins/run/task-action.js";
-import { createHardhatRuntimeEnvironment } from "../../../../src/internal/hre-intialization.js";
+import { createHardhatRuntimeEnvironment } from "../../../../src/internal/hre-initialization.js";
 
 describe("run/task-action", function () {
   let hre: HardhatRuntimeEnvironment;
