@@ -142,6 +142,13 @@ export function emitExecutionEvent(
       });
       break;
     }
+    case JournalMessageType.TRANSACTION_PREPARE_SEND: {
+      executionEventListener.transactionPrepareSend({
+        type: ExecutionEventType.TRANSACTION_PREPARE_SEND,
+        futureId: message.futureId,
+      });
+      break;
+    }
     case JournalMessageType.TRANSACTION_SEND: {
       executionEventListener.transactionSend({
         type: ExecutionEventType.TRANSACTION_SEND,

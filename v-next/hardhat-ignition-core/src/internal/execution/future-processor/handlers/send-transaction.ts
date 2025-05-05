@@ -18,6 +18,7 @@ import type {
   TransactionSendMessage,
 } from "../../types/messages.js";
 
+import { DeploymentLoader } from "../../../deployment-loader/types.js";
 import { assertIgnitionInvariant } from "../../../utils/assertions.js";
 import { ExecutionResultType } from "../../types/execution-result.js";
 import { JournalMessageType } from "../../types/messages.js";
@@ -58,6 +59,7 @@ export async function sendTransaction(
   jsonRpcClient: JsonRpcClient,
   nonceManager: NonceManager,
   transactionTrackingTimer: TransactionTrackingTimer,
+  deploymentLoader: DeploymentLoader,
 ): Promise<
   | TransactionSendMessage
   | DeploymentExecutionStateCompleteMessage
@@ -89,6 +91,8 @@ export async function sendTransaction(
     lastNetworkInteraction,
     nonceManager,
     decodeSimulationResult(strategyGenerator, exState),
+    deploymentLoader,
+    exState.id,
   );
 
   // If the transaction failed during simulation, we need to revert the nonce allocation
