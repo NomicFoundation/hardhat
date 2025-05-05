@@ -99,7 +99,15 @@ export function run(
         },
         (error) => {
           clearTimeout(timeout);
-          controller.error(error);
+
+          controller.error(
+            new HardhatError(
+              HardhatError.ERRORS.CORE.SOLIDITY_TESTS.UNHANDLED_EDR_EXCEPTION_SOLIDITY_TESTS,
+              {
+                error: error.message,
+              },
+            ),
+          );
         },
       );
     },

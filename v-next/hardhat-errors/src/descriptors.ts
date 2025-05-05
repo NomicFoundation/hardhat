@@ -899,6 +899,14 @@ Remaining test suites: {suites}`,
         websiteTitle: `Runner timed out`,
         websiteDescription: `Runner timed out while running Solidity tests.`,
       },
+      UNHANDLED_EDR_ERROR_SOLIDITY_TESTS: {
+        number: 802,
+        shouldBeReported: true,
+        messageTemplate:
+          "Unhandled EDR error while running Solidity tests: {error}",
+        websiteTitle: "Unhandled EDR error in Solidity tests",
+        websiteDescription: "Unhandled EDR error while running Solidity tests.",
+      },
     },
     SOLIDITY: {
       RESOLVING_INCORRECT_FILE_AS_PROJECT_FILE: {
