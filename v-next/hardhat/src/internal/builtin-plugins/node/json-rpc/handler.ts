@@ -143,6 +143,8 @@ export class JsonRpcHandler {
   }
 
   async #handleRequest(req: JsonRpcRequest): Promise<JsonRpcResponse> {
+    req.params = req.params ?? [];
+
     if (!isJsonRpcRequest(req)) {
       return _handleError(new InvalidRequestError());
     }
