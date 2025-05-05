@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-keystore",
-  "version": "3.0.0-next.3",
+  "version": "3.0.0-next.6",
   "description": "A module for managing keystore files that store a map from IDs to encrypted string values.",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-keystore",
   "repository": {
@@ -41,30 +41,22 @@
     "README.md"
   ],
   "devDependencies": {
-    "@eslint-community/eslint-plugin-eslint-comments": "^4.3.0",
-    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0-next.3",
+    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0-next.6",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
     "@types/debug": "^4.1.7",
     "@types/node": "^20.14.9",
-    "@typescript-eslint/eslint-plugin": "^7.7.1",
-    "@typescript-eslint/parser": "^7.7.1",
     "c8": "^9.1.0",
-    "eslint": "8.57.0",
-    "eslint-config-prettier": "9.1.0",
-    "eslint-import-resolver-typescript": "^3.6.1",
-    "eslint-plugin-import": "2.29.1",
-    "eslint-plugin-no-only-tests": "3.1.0",
+    "eslint": "9.25.1",
     "expect-type": "^0.19.0",
     "prettier": "3.2.5",
     "rimraf": "^5.0.5",
     "tsx": "^4.19.3",
-    "typescript": "~5.5.0",
-    "typescript-eslint": "7.7.1"
+    "typescript": "~5.5.0"
   },
   "dependencies": {
-    "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.3",
-    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.3",
-    "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.0-next.3",
+    "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.6",
+    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.6",
+    "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.0-next.6",
     "@noble/ciphers": "1.2.1",
     "@noble/hashes": "1.7.1",
     "chalk": "^5.3.0",
@@ -72,6 +64,6 @@
     "zod": "^3.23.8"
   },
   "peerDependencies": {
-    "hardhat": "workspace:^3.0.0-next.3"
+    "hardhat": "workspace:^3.0.0-next.6"
   }
 }

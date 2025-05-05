@@ -45,16 +45,24 @@ describe("printWelcomeMessage", () => {
 describe("getWorkspace", () => {
   useTmpDir("getWorkspace");
 
-  it("should throw if the provided workspace does not exist", async () => {
-    // TODO: We shouldn't be testing the exact error message
-    await assertRejectsWithHardhatError(
-      async () => getWorkspace("non-existent-workspace"),
-      HardhatError.ERRORS.CORE.GENERAL.WORKSPACE_NOT_FOUND,
-      {
-        workspace: path.resolve("non-existent-workspace"),
-      },
-    );
+  describe("workspace is not a directory", async () => {
+    useTmpDir("invalidDirectory");
+
+    it("should throw if the provided workspace is not a directory", async () => {
+      const filePath = path.join(process.cwd(), "file.txt");
+
+      await writeUtf8File(filePath, "some content");
+
+      await assertRejectsWithHardhatError(
+        async () => getWorkspace(filePath),
+        HardhatError.ERRORS.CORE.GENERAL.WORKSPACE_MUST_BE_A_DIRECTORY,
+        {
+          workspace: path.resolve(filePath),
+        },
+      );
+    });
   });
+
   it("should throw if the provided workspace is within an already initlized hardhat project", async () => {
     await ensureDir("hardhat-project");
     await writeUtf8File("hardhat.config.ts", "");
@@ -242,10 +250,14 @@ describe("installProjectDependencies", async () => {
     // NOTE: This test is slow because it installs dependencies over the network.
     // It tests installation for all the templates, but only with the npm as the
     // package manager. We also support pnpm and yarn.
-    it.skip(
+    it(
       `should install all the ${template.name} template dependencies in an empty project if the user opts-in to the installation`,
       {
-        skip: process.env.HARDHAT_DISABLE_SLOW_TESTS === "true",
+        skip:
+          process.env.HARDHAT_DISABLE_SLOW_TESTS === "true" ||
+          process.env.GITHUB_EVENT_NAME === "push" || // TODO: This check should be limited to push events associated with a release PR merge
+          process.env.GITHUB_EVENT_NAME === "merge_group" || // TODO: This check should be limited to merge_group events associated with a release PR merge
+          process.env.GITHUB_HEAD_REF?.startsWith("changeset-release/"),
       },
       async () => {
         await writeUtf8File("package.json", JSON.stringify({ type: "module" }));
@@ -386,42 +398,84 @@ describe("installProjectDependencies", async () => {
 });
 
 describe("initHardhat", async () => {
-  useTmpDir("initHardhat");
+  describe("templates", async () => {
+    useTmpDir("initHardhat");
 
-  disableConsole();
+    disableConsole();
 
-  const templates = await getTemplates();
+    const templates = await getTemplates();
 
-  for (const template of templates) {
-    // NOTE: This test uses network to access the npm registry
-    it(
-      `should initialize the project using the ${template.name} template in an empty folder`,
-      {
-        skip:
-          process.env.HARDHAT_DISABLE_SLOW_TESTS === "true" ||
-          process.env.GITHUB_EVENT_NAME === "push" || // TODO: This check should be limited to push events associated with a release PR merge
-          process.env.GITHUB_EVENT_NAME === "merge_group" || // TODO: This check should be limited to merge_group events associated with a release PR merge
-          process.env.GITHUB_HEAD_REF?.startsWith("changeset-release/"),
-      },
-      async () => {
-        await initHardhat({
-          template: template.name,
-          workspace: process.cwd(),
-          migrateToEsm: false,
-          force: false,
-          install: false,
-        });
-        assert.ok(await exists("package.json"), "package.json should exist");
-        const workspaceFiles = template.files.map(
-          relativeTemplateToWorkspacePath,
-        );
-        for (const file of workspaceFiles) {
-          const pathToFile = path.join(process.cwd(), file);
-          assert.ok(await exists(pathToFile), `File ${file} should exist`);
-        }
-      },
-    );
-  }
+    for (const template of templates) {
+      // NOTE: This test uses network to access the npm registry
+      it(
+        `should initialize the project using the ${template.name} template in an empty folder`,
+        {
+          skip: process.env.HARDHAT_DISABLE_SLOW_TESTS === "true",
+        },
+        async () => {
+          await initHardhat({
+            template: template.name,
+            workspace: process.cwd(),
+            migrateToEsm: false,
+            force: false,
+            install: false,
+          });
+          assert.ok(await exists("package.json"), "package.json should exist");
+          const workspaceFiles = template.files.map(
+            relativeTemplateToWorkspacePath,
+          );
+          for (const file of workspaceFiles) {
+            const pathToFile = path.join(process.cwd(), file);
+            assert.ok(await exists(pathToFile), `File ${file} should exist`);
+          }
+        },
+      );
+    }
+  });
+
+  describe("folder creation when non existent", async () => {
+    useTmpDir("initHardhat");
+
+    disableConsole();
+
+    const template = (await getTemplates())[0];
+
+    // Verifies that non-existent folders are created during initialization instead of throwing an error
+    for (const folderPath of [
+      "nonExistingFolder",
+      path.join("nestedFolder", "nonExistingFolder"),
+    ]) {
+      // NOTE: This test uses network to access the npm registry
+      it(
+        `should initialize the project in a non existing folder with path "${folderPath}"`,
+        {
+          skip: process.env.HARDHAT_DISABLE_SLOW_TESTS === "true",
+        },
+        async () => {
+          const workspacePath = path.join(process.cwd(), folderPath);
+
+          await initHardhat({
+            template: template.name,
+            workspace: workspacePath,
+            migrateToEsm: false,
+            force: false,
+            install: false,
+          });
+          assert.ok(
+            await exists(path.join(workspacePath, "package.json")),
+            "package.json should exist",
+          );
+          const workspaceFiles = template.files.map(
+            relativeTemplateToWorkspacePath,
+          );
+          for (const file of workspaceFiles) {
+            const pathToFile = path.join(workspacePath, file);
+            assert.ok(await exists(pathToFile), `File ${file} should exist`);
+          }
+        },
+      );
+    }
+  });
 });
 
 describe("shouldUpdateDependency", () => {

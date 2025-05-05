@@ -20,6 +20,7 @@ import type {
   StaticCallExecutionStateCompleteMessage,
   StaticCallExecutionStateInitializeMessage,
   TransactionConfirmMessage,
+  TransactionPrepareSendMessage,
   TransactionSendMessage,
 } from "../types/messages.js";
 
@@ -40,6 +41,7 @@ import {
 import {
   appendNetworkInteraction,
   appendTransactionToOnchainInteraction,
+  applyNonceToOnchainInteraction,
   bumpOnchainInteractionFees,
   completeStaticCall,
   confirmTransaction,
@@ -83,6 +85,7 @@ export function executionStateReducer(
     | ReadEventArgExecutionStateInitializeMessage
     | EncodeFunctionCallExecutionStateInitializeMessage
     | NetworkInteractionRequestMessage
+    | TransactionPrepareSendMessage
     | TransactionSendMessage
     | TransactionConfirmMessage
     | StaticCallCompleteMessage
@@ -147,6 +150,13 @@ export function executionStateReducer(
         action,
         exStateTypesThatSupportOnchainInteractionsAndStaticCalls,
         completeStaticCall,
+      );
+    case JournalMessageType.TRANSACTION_PREPARE_SEND:
+      return _ensureStateThen(
+        state,
+        action,
+        exStateTypesThatSupportOnchainInteractions,
+        applyNonceToOnchainInteraction,
       );
     case JournalMessageType.TRANSACTION_SEND:
       return _ensureStateThen(

@@ -13,6 +13,7 @@ import {
   exists,
   getAllFilesMatching,
   isDirectory,
+  mkdir,
   readJsonFile,
   writeJsonFile,
 } from "@nomicfoundation/hardhat-utils/fs";
@@ -23,7 +24,6 @@ import * as semver from "semver";
 import { findClosestHardhatConfig } from "../../config-loading.js";
 import { HARDHAT_NAME } from "../../constants.js";
 import { getHardhatVersion } from "../../utils/package.js";
-import { ensureTelemetryConsent } from "../telemetry/telemetry-permissions.js";
 
 import {
   getDevDependenciesInstallationCommand,
@@ -100,10 +100,6 @@ export async function initHardhat(options?: InitHardhatOptions): Promise<void> {
     // Copy the template files to the workspace
     // Overwrite existing files only if the user opts-in to it
     await copyProjectFiles(workspace, template, options?.force);
-
-    // Ensure telemetry consent first so that we are allowed to also track
-    // the unfinished init flows
-    await ensureTelemetryConsent();
 
     // Print the commands to install the project dependencies
     // Run them only if the user opts-in to it
@@ -190,14 +186,17 @@ export async function getWorkspace(workspace?: string): Promise<string> {
 
   workspace = resolveFromRoot(process.cwd(), workspace);
 
-  if (!(await exists(workspace)) || !(await isDirectory(workspace))) {
+  if ((await exists(workspace)) && !(await isDirectory(workspace))) {
     throw new HardhatError(
-      HardhatError.ERRORS.CORE.GENERAL.WORKSPACE_NOT_FOUND,
+      HardhatError.ERRORS.CORE.GENERAL.WORKSPACE_MUST_BE_A_DIRECTORY,
       {
         workspace,
       },
     );
   }
+
+  // If the path points to a non-existent folder, create it; otherwise, do nothing
+  await mkdir(workspace);
 
   // Validate that the workspace is not already initialized
   try {

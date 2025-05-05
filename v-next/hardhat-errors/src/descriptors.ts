@@ -189,6 +189,11 @@ export const ERROR_CATEGORIES: {
         max: 11299,
         websiteSubTitle: "List transactions errors",
       },
+      TRACK_TRANSACTIONS: {
+        min: 11300,
+        max: 11399,
+        websiteSubTitle: "Track transactions errors",
+      },
     },
   },
   HARDHAT_ETHERS: {
@@ -397,11 +402,11 @@ Please add the property "type" with the value "module" in your package.json to e
         websiteTitle: "Template not found",
         websiteDescription: `The template you provided is not found. Please check the documentation to learn which templates are available.`,
       },
-      WORKSPACE_NOT_FOUND: {
+      WORKSPACE_MUST_BE_A_DIRECTORY: {
         number: 17,
-        messageTemplate: `Workspace "{workspace}" not found`,
-        websiteTitle: "Workspace not found",
-        websiteDescription: `The workspace you provided does not exist. Please ensure that the workspace exists and try again.`,
+        messageTemplate: `Workspace "{workspace}" must be a directory`,
+        websiteTitle: "Workspace must be a directory",
+        websiteDescription: `The workspace you provided is not a directory. Please ensure that the workspace is a directory and try again.`,
       },
       INVALID_HEX_STRING: {
         number: 18,
@@ -558,7 +563,7 @@ Please ensure that an action is defined for each task.`,
       INVALID_ACTION_URL: {
         number: 411,
         messageTemplate:
-          'Unable to import the module specified by the action "{action}" of task "{task}"',
+          'Unable to import the action specified by task "{task}" from the module "{action}"',
         websiteTitle: "Invalid action URL",
         websiteDescription:
           "The action URL is invalid. Please ensure that the URL is correct.",
@@ -1506,6 +1511,14 @@ Please review the error message and try again.`,
         websiteTitle: "Gas estimation failed",
         websiteDescription: `Gas estimation failed`,
       },
+      TRANSACTION_LOST: {
+        number: 10410,
+        messageTemplate: `An error occured while trying to send a transaction for future {futureId}.
+Please use a block explorer to find the hash of the transaction with nonce {nonce} sent from account {sender} and use the following command to add it to your deployment:
+npx hardhat ignition track-tx <txHash> <deploymentId> --network <networkName>`,
+        websiteTitle: "Transaction lost",
+        websiteDescription: `An error occured while trying to send a transaction`,
+      },
     },
     RECONCILIATION: {
       INVALID_EXECUTION_STATUS: {
@@ -1807,6 +1820,48 @@ Please review the error message and try again.`,
           "Cannot list transactions for nonexistant deployment at {deploymentDir}",
         websiteTitle: "Uninitialized deployment",
         websiteDescription: `Cannot list transactions for nonexistant deployment`,
+      },
+    },
+    TRACK_TRANSACTIONS: {
+      DEPLOYMENT_DIR_NOT_FOUND: {
+        number: 11300,
+        messageTemplate: "Deployment directory {deploymentDir} not found",
+        websiteTitle: "Deployment directory not found",
+        websiteDescription: `The deployment directory was not found`,
+      },
+      UNINITIALIZED_DEPLOYMENT: {
+        number: 11301,
+        messageTemplate:
+          "Cannot track transaction for nonexistant deployment at {deploymentDir}",
+        websiteTitle: "Uninitialized deployment",
+        websiteDescription: `Cannot track transaction for nonexistant deployment`,
+      },
+      TRANSACTION_NOT_FOUND: {
+        number: 11302,
+        messageTemplate: `Transaction {txHash} not found. Please double check the transaction hash and try again.`,
+        websiteTitle: "Transaction not found",
+        websiteDescription: `The transaction hash you provided was not found on the network.`,
+      },
+      MATCHING_NONCE_NOT_FOUND: {
+        number: 11303,
+        messageTemplate: `The transaction you provided doesn't seem to belong to your deployment.
+Please double check the error you are getting when running Hardhat Ignition, and the instructions it's providing.`,
+        websiteTitle: "Matching nonce not found",
+        websiteDescription: `The transaction you provided doesn't seem to belong to your deployment.`,
+      },
+      KNOWN_TRANSACTION: {
+        number: 11304,
+        messageTemplate: `The transaction hash that you provided was already present in your deployment. 
+Please double check the error you are getting when running Hardhat Ignition, and the instructions it's providing.`,
+        websiteTitle: "Known transaction",
+        websiteDescription: `The transaction hash that you provided was already present in your deployment.`,
+      },
+      INSUFFICIENT_CONFIRMATIONS: {
+        number: 11305,
+        messageTemplate: `The transaction you provided doesn't have enough confirmations yet. 
+Please try again later.`,
+        websiteTitle: "Insufficient confirmations",
+        websiteDescription: `The transaction you provided doesn't have enough confirmations yet.`,
       },
     },
   },

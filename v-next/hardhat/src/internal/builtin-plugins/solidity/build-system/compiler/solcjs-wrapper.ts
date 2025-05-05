@@ -11,9 +11,9 @@ interface Solc {
   _solidity_reset?: Reset | null;
   // eslint-disable-next-line @typescript-eslint/naming-convention -- this is a C function
   _solidity_version?: Version | null;
-  // eslint-disable-next-line @typescript-eslint/naming-convention -- this is a C function
+
   _version?: Version | null;
-  // eslint-disable-next-line @typescript-eslint/naming-convention -- this is a C function
+
   _compileStandard?: Compile | null;
   // eslint-disable-next-line @typescript-eslint/naming-convention -- this is a C function
   _solidity_compile?: Compile | null;

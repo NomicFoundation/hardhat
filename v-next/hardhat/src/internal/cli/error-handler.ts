@@ -85,9 +85,6 @@ export function printErrorMessages(
   print("");
 
   if (showStackTraces) {
-    /* eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-    -- As we don't know the type of error we are printing, we can't know if it
-    has a `stack` property or not, so we print it as a string. */
     print(error instanceof Error ? `${error.stack}` : `${util.inspect(error)}`);
     if (postErrorStackTraceMessage !== undefined) {
       print("");

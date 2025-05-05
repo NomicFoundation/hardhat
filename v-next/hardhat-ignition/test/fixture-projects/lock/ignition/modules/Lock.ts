@@ -3,7 +3,6 @@ import type {
   NamedArtifactContractDeploymentFuture,
 } from "@nomicfoundation/ignition-core";
 
-// eslint-disable-next-line import/no-extraneous-dependencies
 import { buildModule } from "@nomicfoundation/ignition-core";
 
 const LockModule: IgnitionModule<

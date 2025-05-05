@@ -109,6 +109,7 @@ declare module "../../../../types/config.js" {
   >;
 
   export interface EdrNetworkChainUserConfig {
+    chainType?: ChainType;
     hardforkHistory?: HardforkHistoryUserConfig;
   }
 
@@ -227,6 +228,7 @@ declare module "../../../../types/config.js" {
   >;
 
   export interface EdrNetworkChainConfig {
+    chainType: ChainType;
     hardforkHistory: HardforkHistoryConfig;
   }
 

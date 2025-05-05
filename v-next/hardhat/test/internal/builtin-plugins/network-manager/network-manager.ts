@@ -31,7 +31,10 @@ import {
   resolveEdrNetwork,
   resolveHttpNetwork,
 } from "../../../../src/internal/builtin-plugins/network-manager/config-resolution.js";
-import { HardforkName } from "../../../../src/internal/builtin-plugins/network-manager/edr/types/hardfork.js";
+import {
+  L1HardforkName,
+  OpHardforkName,
+} from "../../../../src/internal/builtin-plugins/network-manager/edr/types/hardfork.js";
 import { NetworkManagerImplementation } from "../../../../src/internal/builtin-plugins/network-manager/network-manager.js";
 import { validateNetworkUserConfig } from "../../../../src/internal/builtin-plugins/network-manager/type-validation.js";
 import {
@@ -388,7 +391,7 @@ describe("NetworkManagerImplementation", () => {
         await connection.provider.request({
           method: "eth_chainId",
         });
-      } catch (error) {}
+      } catch (_error) {}
 
       hre.hooks.unregisterHandlers("network", networkHooks);
 
@@ -1595,9 +1598,14 @@ describe("NetworkManagerImplementation", () => {
         it("should validate a valid network config", async () => {
           const validationErrors = await validateNetworkUserConfig(
             edrConfig({
-              chains: new Map().set(123, {
-                hardforkHistory: new Map().set("london", 456),
-              }),
+              chains: new Map()
+                .set(1, {
+                  hardforkHistory: new Map().set("london", 456),
+                })
+                .set(2, {
+                  chainType: OPTIMISM_CHAIN_TYPE,
+                  hardforkHistory: new Map().set("bedrock", 456),
+                }),
             }),
           );
 
@@ -1657,9 +1665,47 @@ describe("NetworkManagerImplementation", () => {
 
           validationErrors = await validateNetworkUserConfig(
             edrConfig({
-              chains: new Map().set(123, {
-                hardforkHistory: new Map().set("random string", 456),
-              }),
+              chains: new Map()
+                .set(1, {
+                  hardforkHistory: new Map().set("london", 123),
+                })
+                .set(2, {
+                  hardforkHistory: new Map()
+                    .set("shanghai", 456)
+                    .set("random string", 789),
+                }),
+            }),
+          );
+
+          assertValidationErrors(validationErrors, [
+            {
+              path: [
+                "networks",
+                "hardhat",
+                "chains",
+                1,
+                "value",
+                "hardforkHistory",
+                1,
+                "value",
+              ],
+              message:
+                "Invalid hardfork name random string found in chain 2. Expected chainstart | homestead | dao | tangerineWhistle | spuriousDragon | byzantium | constantinople | petersburg | istanbul | muirGlacier | berlin | london | arrowGlacier | grayGlacier | merge | shanghai | cancun.",
+            },
+          ]);
+
+          validationErrors = await validateNetworkUserConfig(
+            edrConfig({
+              chains: new Map()
+                .set(1, {
+                  chainType: OPTIMISM_CHAIN_TYPE,
+                  hardforkHistory: new Map()
+                    .set("random string", 456)
+                    .set("bedrock", 789),
+                })
+                .set(2, {
+                  hardforkHistory: new Map().set("london", 123),
+                }),
             }),
           );
 
@@ -1673,10 +1719,10 @@ describe("NetworkManagerImplementation", () => {
                 "value",
                 "hardforkHistory",
                 0,
-                "key",
+                "value",
               ],
               message:
-                "Invalid enum value. Expected 'chainstart' | 'homestead' | 'dao' | 'tangerineWhistle' | 'spuriousDragon' | 'byzantium' | 'constantinople' | 'petersburg' | 'istanbul' | 'muirGlacier' | 'berlin' | 'london' | 'arrowGlacier' | 'grayGlacier' | 'merge' | 'shanghai' | 'cancun', received 'random string'",
+                "Invalid hardfork name random string found in chain 1. Expected bedrock | regolith | canyon | ecotone | fjord | granite | holocene.",
             },
           ]);
 
@@ -1933,9 +1979,17 @@ describe("NetworkManagerImplementation", () => {
     describe("hardfork", () => {
       describe("edr config", () => {
         it("should validate a valid network config", async () => {
-          for (const hardfork of Object.values(HardforkName)) {
+          for (const hardfork of Object.values(L1HardforkName)) {
             const validationErrors = await validateNetworkUserConfig(
               edrConfig({ hardfork }),
+            );
+
+            assertValidationErrors(validationErrors, []);
+          }
+
+          for (const hardfork of Object.values(OpHardforkName)) {
+            const validationErrors = await validateNetworkUserConfig(
+              edrConfig({ hardfork, chainType: OPTIMISM_CHAIN_TYPE }),
             );
 
             assertValidationErrors(validationErrors, []);
@@ -1943,7 +1997,7 @@ describe("NetworkManagerImplementation", () => {
         });
 
         it("should not validate an invalid network config", async () => {
-          const validationErrors = await validateNetworkUserConfig(
+          let validationErrors = await validateNetworkUserConfig(
             edrConfig({ hardfork: "anything else" }),
           );
 
@@ -1951,7 +2005,22 @@ describe("NetworkManagerImplementation", () => {
             {
               path: ["networks", "hardhat", "hardfork"],
               message:
-                "Invalid enum value. Expected 'chainstart' | 'homestead' | 'dao' | 'tangerineWhistle' | 'spuriousDragon' | 'byzantium' | 'constantinople' | 'petersburg' | 'istanbul' | 'muirGlacier' | 'berlin' | 'london' | 'arrowGlacier' | 'grayGlacier' | 'merge' | 'shanghai' | 'cancun', received 'anything else'",
+                "Invalid hardfork name anything else for chainType generic. Expected chainstart | homestead | dao | tangerineWhistle | spuriousDragon | byzantium | constantinople | petersburg | istanbul | muirGlacier | berlin | london | arrowGlacier | grayGlacier | merge | shanghai | cancun.",
+            },
+          ]);
+
+          validationErrors = await validateNetworkUserConfig(
+            edrConfig({
+              chainType: OPTIMISM_CHAIN_TYPE,
+              hardfork: "anything else",
+            }),
+          );
+
+          assertValidationErrors(validationErrors, [
+            {
+              path: ["networks", "hardhat", "hardfork"],
+              message:
+                "Invalid hardfork name anything else for chainType optimism. Expected bedrock | regolith | canyon | ecotone | fjord | granite | holocene.",
             },
           ]);
         });
