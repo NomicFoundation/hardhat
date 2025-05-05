@@ -21,7 +21,7 @@ import {
 } from "./global-hre-instance.js";
 
 /**
- * Creates an instances of the Hardhat Runtime Environment.
+ * Creates an instance of the Hardhat Runtime Environment.
  *
  * @param config - The user's Hardhat configuration. Note that the config
  * doesn't have to come from a file, but if it does, you should provide its

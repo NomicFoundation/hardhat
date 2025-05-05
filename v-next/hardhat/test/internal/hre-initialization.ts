@@ -19,9 +19,9 @@ import {
 import {
   createHardhatRuntimeEnvironment,
   getOrCreateGlobalHardhatRuntimeEnvironment,
-} from "../../src/internal/hre-intialization.js";
+} from "../../src/internal/hre-initialization.js";
 
-describe("HRE intialization", () => {
+describe("HRE initialization", () => {
   afterEach(() => {
     resetGlobalHardhatRuntimeEnvironment();
   });

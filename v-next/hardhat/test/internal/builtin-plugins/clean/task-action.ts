@@ -15,7 +15,7 @@ import {
 import { getCacheDir } from "@nomicfoundation/hardhat-utils/global-dir";
 
 import cleanAction from "../../../../src/internal/builtin-plugins/clean/task-action.js";
-import { createHardhatRuntimeEnvironment } from "../../../../src/internal/hre-intialization.js";
+import { createHardhatRuntimeEnvironment } from "../../../../src/internal/hre-initialization.js";
 
 let hre: HardhatRuntimeEnvironment;
 let globalCacheDir: string;
