@@ -2,6 +2,7 @@ import { readdir, readFile, writeFile, stat } from "node:fs/promises";
 import path from "node:path";
 import { exec } from "node:child_process";
 import { promisify } from "node:util";
+import { randomUUID } from "node:crypto";
 
 const execAsync = promisify(exec);
 
@@ -9,47 +10,41 @@ const changesetDir = ".changeset";
 const packagesDir = "v-next";
 
 /**
- * This script applies changesets and creates a new Alpha version,
- * based on changesets pre-release versioning.
+ * This script applies changesets based on changesets pre-release versioning.
  *
  * It reads all the new changesets and validates that:
- *  - they patch the main Hardhat package
  *  - there are no major or minor changesets
  *
  * It then combines the new changesets to create a new changelog
  * section for the new version.
  *
- * The next step is to create a release changeset that patches all of the
- * packages (except Hardhat, which by definition is already covered).
- * By applying a changeset to all packages we eliminate issues
- * with peer depenendencies not being updated.
+ * The next step is to create a changeset for hardhat-ethers if it does not
+ * already exists. This is necessary because the hardhat-ethers package
+ * is one major version ahead of the rest of the packages so we cannot include
+ * it in the fixed packages set.
  *
  * The release changeset is then applied, bumping versions across
  * the packages (including the template packages).
  *
  * Finally the Hardhat packages changelog is updated with the
  * prepared changelog section.
- *
- * It is up to the user to commit and push the changes as a release
- * branch.
  */
 async function versionAlpha() {
   const changesets = await readAllNewChangsets();
 
   validateChangesets(changesets);
 
-  const currentHardhatAlphaVersion = await readCurrentHardhatAlphaVersion();
-  const nextHardhatAlphaVersion = incrementHardhatAlphaVersion(
-    currentHardhatAlphaVersion
-  );
-
-  await createAllPackageChangesetFor(nextHardhatAlphaVersion);
+  if (shouldCreateHardhatEthersPackageChangeset(changesets)) {
+    await createHardhatEthersPackageChangeset();
+  }
 
   await executeChangesetVersion();
 
-  await updateHardhatChangelog(nextHardhatAlphaVersion, changesets);
+  const hardhatVersion = await readHardhatVersion();
 
-  printFollowupInstructions(nextHardhatAlphaVersion, changesets);
+  await updateHardhatChangelog(hardhatVersion, changesets);
+
+  printFollowupInstructions(hardhatVersion, changesets);
 }
 
 /**
@@ -95,25 +90,17 @@ async function readAllNewChangsets() {
  * changeset, logging and killing the script otherwise.
  *
  * The validations are:
- * - every changeset must include a `"hardhat": patch` entry
  * - no major or minor changesets are allowed
  */
 function validateChangesets(changesets) {
   if (changesets.length === 0) {
-    console.log("Error: No new changesets found.");
-    process.exit(1);
+    console.log("No new changesets found.");
+    process.exit(0);
   }
 
   let validationFailed = false;
 
   for (const { frontMatter, path: changesetPath } of changesets) {
-    if (!/^\s*"hardhat": patch$/m.test(frontMatter)) {
-      validationFailed = true;
-      console.log(
-        `Error: ${changesetPath}: No "hardhat: patch", every Alpha changeset must include hardhat`
-      );
-    }
-
     if (/: (major|minor)\s*$/m.test(frontMatter)) {
       validationFailed = true;
       console.log(
@@ -130,7 +117,7 @@ function validateChangesets(changesets) {
 /**
  * Read the current Alpha version based on the hardhat package.json
  */
-async function readCurrentHardhatAlphaVersion() {
+async function readHardhatVersion() {
   const hardhatPackageJson = JSON.parse(
     await readFile(path.join("v-next", "hardhat", "package.json"))
   );
@@ -139,47 +126,41 @@ async function readCurrentHardhatAlphaVersion() {
 }
 
 /**
- * Increment the Alpha version by 1. We assume that the `next`
- * tag is always used.
+ * Checks whether the hardhat-ethers package changeset should be created.
  */
-function incrementHardhatAlphaVersion(version) {
-  const match = version.match(/(\d+\.\d+\.\d+)-next\.(\d+)/);
-
-  if (!match) {
-    console.log(`Unsupported version format: ${version}`);
-    process.exit(1);
+function shouldCreateHardhatEthersPackageChangeset(changesets) {
+  if (changesets.length === 0) {
+    return false;
   }
 
-  const [, base, num] = match;
-  const nextNum = Number(num) + 1;
+  for (const { frontMatter } of changesets) {
+    if (/"@nomicfoundation\/hardhat-ethers": patch$/.test(frontMatter)) {
+      return false;
+    }
+  }
 
-  return `${base}-next.${nextNum}`;
+  return true;
 }
 
 /**
- * Write a changeset file that has one entry for every package
- * under `./v-next` excluding the hardhat package (this is
- * covered definitionally because of the validation rules).
+ * Write a hardhat-ethers changeset file that has a patch entry for the package.
  */
-async function createAllPackageChangesetFor(nextHardhatAlphaVersion) {
-  const releaseChangesetPath = path.join(
+async function createHardhatEthersPackageChangeset() {
+  const changesetPath = path.join(
     changesetDir,
-    `release-${nextHardhatAlphaVersion}.md`
+    `${randomUUID()}.md`
   );
 
-  const packageNames = await readAllPackageNames();
+  const packageName = '@nomicfoundation/hardhat-ethers';
 
-  const releaseChangesetContent = `---
-${packageNames
-  .filter((name) => name !== "hardhat")
-  .map((name) => `"${name}": patch`)
-  .join("\n")}
----
+  const releaseChangesetContent = [
+    '---',
+    `"${packageName}": patch`,
+    '---',
+    '',
+  ].join('\n');
 
-Hardhat 3 Alpha release (${new Date().toISOString()})
-`;
-
-  await writeFile(releaseChangesetPath, releaseChangesetContent);
+  await writeFile(changesetPath, releaseChangesetContent);
 }
 
 /**
@@ -188,16 +169,16 @@ Hardhat 3 Alpha release (${new Date().toISOString()})
  */
 async function executeChangesetVersion() {
   await execAsync("pnpm changeset version");
-  await execAsync("pnpm install");
+  await execAsync("pnpm install --lockfile-only");
 }
 
 /**
  * Prepend a new changelog section to the Hardhat package's
  * changelog based on the new changesets.
  */
-async function updateHardhatChangelog(nextHardhatAlphaVersion, changesets) {
+async function updateHardhatChangelog(hardhatVersion, changesets) {
   const newChangelogSection = generateChangelogFrom(
-    nextHardhatAlphaVersion,
+    hardhatVersion,
     changesets
   );
 
@@ -217,54 +198,19 @@ async function updateHardhatChangelog(nextHardhatAlphaVersion, changesets) {
   await writeFile(hardhatChangelogPath, newChangelog);
 }
 
-function printFollowupInstructions(nextHardhatAlphaVersion, changesets) {
+function printFollowupInstructions(hardhatVersion, changesets) {
   console.log(`
 
-# ${nextHardhatAlphaVersion}
+# ${hardhatVersion}
 
 ${generateReleaseMessage(changesets)}
 `);
 }
 
-async function readAllPackageNames() {
-  const ignoredChangesetPackages = JSON.parse(
-    await readFile(path.join(changesetDir, "config.json"))
-  ).ignore;
-
-  const subdirs = await readdir(packagesDir);
-
-  const packageNames = [];
-
-  for (const dir of subdirs) {
-    const packageJsonPath = path.join(packagesDir, dir, "package.json");
-
-    try {
-      const stats = await stat(packageJsonPath);
-
-      if (!stats.isFile()) {
-        continue;
-      }
-
-      const pkgJson = JSON.parse(await readFile(packageJsonPath, "utf8"));
-
-      if (ignoredChangesetPackages.includes(pkgJson.name)) {
-        continue;
-      }
-
-      packageNames.push(pkgJson.name);
-    } catch (error) {
-      console.log(error);
-      process.exit(1);
-    }
-  }
-
-  return packageNames.sort();
-}
-
-function generateChangelogFrom(nextHardhatAlphaVersion, changesets) {
+function generateChangelogFrom(hardhatVersion, changesets) {
   return `# hardhat
 
-## ${nextHardhatAlphaVersion}
+## ${hardhatVersion}
 
 ### Patch Changes
 

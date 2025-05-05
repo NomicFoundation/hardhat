@@ -9,7 +9,7 @@
     "typescript": "~5.5.0"
   },
   "scripts": {
-    "version": "changeset version && pnpm install --lockfile-only",
+    "version": "node scripts/version.mjs",
     "build": "pnpm run --recursive --if-present build",
     "clean": "pnpm run --recursive --if-present clean",
     "test": "pnpm run --recursive --if-present test",
