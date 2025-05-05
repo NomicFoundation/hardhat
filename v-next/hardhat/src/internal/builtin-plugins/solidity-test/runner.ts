@@ -102,7 +102,7 @@ export function run(
 
           controller.error(
             new HardhatError(
-              HardhatError.ERRORS.CORE.SOLIDITY_TESTS.UNHANDLED_EDR_EXCEPTION_SOLIDITY_TESTS,
+              HardhatError.ERRORS.CORE.SOLIDITY_TESTS.UNHANDLED_EDR_ERROR_SOLIDITY_TESTS,
               {
                 error: error.message,
               },
