@@ -117,8 +117,11 @@ declare module "../../../types/hooks.js" {
 
     readSourceFile: (
       context: HookContext,
-      absPath: string,
-      next: (nextContext: HookContext, absPath: string) => Promise<string>,
+      absolutePath: string,
+      next: (
+        nextContext: HookContext,
+        nextAbsolutePath: string,
+      ) => Promise<string>,
     ) => Promise<string>;
   }
 }
