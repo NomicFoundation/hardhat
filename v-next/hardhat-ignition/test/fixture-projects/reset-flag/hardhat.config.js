@@ -8,7 +8,7 @@ export default {
         version: "0.8.19",
         settings: {
           metadata: {
-            // We disable the metadata to keep the fixtures more stables
+            // We disable the metadata to keep the fixtures more stable
             appendCBOR: false,
           },
         },
