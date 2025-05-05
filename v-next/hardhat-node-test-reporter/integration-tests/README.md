@@ -10,7 +10,7 @@ You can run all the tests by running `npm run test:integration`.
 
 ## Running a single test
 
-You can run a single test by running `npm run test:integration --test-only example-test`.
+You can run a single test by running `npm run test:integration -- --test-only example-test`.
 
 ## Running each test manually
 
@@ -22,4 +22,10 @@ If you want to re-generate all the expected results, you can run the following s
 
 ```bash
 bash scripts/regenerate-fixtures.sh
+```
+
+To re-generate only a single fixture, you can run the following script from the package root:
+
+```bash
+bash scripts/regenerate-fixture.sh <fixture-name>
 ```
