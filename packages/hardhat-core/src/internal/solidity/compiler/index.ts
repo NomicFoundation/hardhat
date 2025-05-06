@@ -31,7 +31,7 @@ export class Compiler implements ICompiler {
 
       output = stdout;
     } catch (e: any) {
-      throw new HardhatError(ERRORS.SOLC.CANT_RUN_NATIVE_COMPILER, {}, e);
+      throw new HardhatError(ERRORS.SOLC.SOLCJS_ERROR, {}, e);
     }
 
     return JSON.parse(output);
@@ -72,7 +72,7 @@ export class NativeCompiler implements ICompiler {
 
       output = stdout;
     } catch (e: any) {
-      throw new HardhatError(ERRORS.SOLC.SOLCJS_ERROR, {}, e);
+      throw new HardhatError(ERRORS.SOLC.CANT_RUN_NATIVE_COMPILER, {}, e);
     }
 
     return JSON.parse(output);
