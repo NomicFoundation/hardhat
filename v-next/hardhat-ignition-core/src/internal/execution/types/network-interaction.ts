@@ -28,6 +28,11 @@ export enum NetworkInteractionType {
  * All the transactions of an OnchainInteraction are sent with the same nonce, so that
  * only one of them can be confirmed.
  *
+ * The `nonce` field is only available if we have tried to send at least one transaction.
+ *
+ * Ideally, we should have sent it, and be tracking its progress. In practice, Ignition
+ * can fail when trying to send it, so we can have the nonce but no transaction.
+ *
  * The `nonce` field is only available if we have sent at least one transaction, and we
  * are tracking its progress.
  *

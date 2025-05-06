@@ -1,3 +1,4 @@
+import type { SolidityParameterType } from "../types/module.js";
 import type {
   EvmTuple,
   FailedEvmExecutionResult,
@@ -9,7 +10,6 @@ import type {
   StrategyErrorExecutionResult,
   StrategySimulationErrorExecutionResult,
 } from "./execution/types/execution-result.js";
-import type { SolidityParameterType } from "../types/module.js";
 
 import { EvmExecutionResultTypes } from "./execution/types/evm-execution.js";
 import { ExecutionResultType } from "./execution/types/execution-result.js";

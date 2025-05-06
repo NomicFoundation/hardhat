@@ -136,5 +136,14 @@ declare module "../../../types/hooks.js" {
         nextSources: Record<string, { content: string }>,
       ) => Promise<Record<string, { content: string }>>,
     ): Promise<Record<string, { content: string }>>;
+
+    readSourceFile: (
+      context: HookContext,
+      absolutePath: string,
+      next: (
+        nextContext: HookContext,
+        nextAbsolutePath: string,
+      ) => Promise<string>,
+    ) => Promise<string>;
   }
 }

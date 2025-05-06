@@ -1,0 +1,19 @@
+{
+  "extends": "@tsconfig/node22/tsconfig.json",
+  "compilerOptions": {
+    "outDir": "${configDir}/dist",
+    "declaration": true,
+    "declarationMap": true,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
+    "isolatedDeclarations": true,
+    "noEmitOnError": true,
+    "noImplicitOverride": true,
+    "skipDefaultLibCheck": true,
+    "sourceMap": true,
+    "composite": true,
+    "incremental": true,
+    "typeRoots": ["${configDir}/node_modules/@types"]
+  },
+  "exclude": ["${configDir}/dist", "${configDir}/node_modules"]
+}

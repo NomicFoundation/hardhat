@@ -109,6 +109,7 @@ export function hardhatTestReporter(
     let topLevelFilePassCount = 0;
 
     for await (const event of source) {
+      // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- The other case will be ignored
       switch (event.type) {
         case "test:diagnostic": {
           diagnostics.push(event.data);

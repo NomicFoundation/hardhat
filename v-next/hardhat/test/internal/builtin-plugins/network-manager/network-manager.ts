@@ -1,4 +1,5 @@
 import type {
+  ChainDescriptorsConfig,
   EdrNetworkConfigOverride,
   EdrNetworkUserConfig,
   HardhatUserConfig,
@@ -28,6 +29,7 @@ import { expectTypeOf } from "expect-type";
 
 import { createHardhatRuntimeEnvironment } from "../../../../src/hre.js";
 import {
+  resolveChainDescriptors,
   resolveEdrNetwork,
   resolveHttpNetwork,
 } from "../../../../src/internal/builtin-plugins/network-manager/config-resolution.js";
@@ -52,6 +54,7 @@ describe("NetworkManagerImplementation", () => {
   let networkManager: NetworkManager;
   let userNetworks: Record<string, NetworkUserConfig>;
   let networks: Record<string, NetworkConfig>;
+  let chainDescriptors: ChainDescriptorsConfig;
 
   before(async () => {
     const initialDate = new Date();
@@ -125,6 +128,8 @@ describe("NetworkManagerImplementation", () => {
       ),
     };
 
+    chainDescriptors = await resolveChainDescriptors(undefined);
+
     networkManager = new NetworkManagerImplementation(
       "localhost",
       GENERIC_CHAIN_TYPE,
@@ -132,6 +137,7 @@ describe("NetworkManagerImplementation", () => {
       hre.hooks,
       hre.artifacts,
       userNetworks,
+      chainDescriptors,
     );
   });
 
@@ -391,7 +397,7 @@ describe("NetworkManagerImplementation", () => {
         await connection.provider.request({
           method: "eth_chainId",
         });
-      } catch (error) {}
+      } catch (_error) {}
 
       hre.hooks.unregisterHandlers("network", networkHooks);
 
@@ -430,6 +436,236 @@ describe("NetworkManagerImplementation", () => {
         },
       };
     }
+
+    describe("chainDescriptors", () => {
+      it("should validate a valid network config", async () => {
+        const validationErrors = await validateNetworkUserConfig({
+          chainDescriptors: {
+            1: {
+              name: "Ethereum",
+              hardforkHistory: {
+                london: { blockNumber: 456 },
+              },
+            },
+            2: {
+              name: "My Optimism Chain",
+              chainType: OPTIMISM_CHAIN_TYPE,
+              hardforkHistory: {
+                bedrock: { blockNumber: 123 },
+                regolith: { blockNumber: 456 },
+                canyon: { timestamp: 1 },
+              },
+            },
+          },
+        });
+
+        assertValidationErrors(validationErrors, []);
+      });
+
+      it("should not validate an invalid network config", async () => {
+        let validationErrors = await validateNetworkUserConfig({
+          chainDescriptors: {
+            /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+            -- Cast to test validation error */
+            123: true as any,
+          },
+        });
+
+        assertValidationErrors(validationErrors, [
+          {
+            path: ["chainDescriptors", "123"],
+            message: "Expected object, received boolean",
+          },
+        ]);
+
+        validationErrors = await validateNetworkUserConfig({
+          chainDescriptors: {
+            123: {
+              name: "My Network",
+              /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+              -- Cast to test validation error */
+              hardforkHistory: true as any,
+            },
+          },
+        });
+
+        assertValidationErrors(validationErrors, [
+          {
+            path: ["chainDescriptors", "123", "hardforkHistory"],
+            message: "Expected object, received boolean",
+          },
+        ]);
+
+        validationErrors = await validateNetworkUserConfig({
+          chainDescriptors: {
+            1: {
+              name: "Ethereum",
+              hardforkHistory: {
+                london: { blockNumber: 123 },
+              },
+            },
+            2: {
+              name: "My Chain",
+              hardforkHistory: {
+                shanghai: { blockNumber: 456 },
+                "random string": { blockNumber: 789 },
+              },
+            },
+          },
+        });
+
+        assertValidationErrors(validationErrors, [
+          {
+            path: ["chainDescriptors", "2", "hardforkHistory", "random string"],
+            message:
+              "Invalid hardfork name random string found in chain descriptor for chain 2. Expected chainstart | homestead | dao | tangerineWhistle | spuriousDragon | byzantium | constantinople | petersburg | istanbul | muirGlacier | berlin | london | arrowGlacier | grayGlacier | merge | shanghai | cancun.",
+          },
+        ]);
+
+        validationErrors = await validateNetworkUserConfig({
+          chainDescriptors: {
+            1: {
+              name: "My Optimism Chain",
+              chainType: OPTIMISM_CHAIN_TYPE,
+              hardforkHistory: {
+                "random string": { blockNumber: 456 },
+                bedrock: { blockNumber: 789 },
+              },
+            },
+            2: {
+              name: "My Chain",
+              hardforkHistory: {
+                london: { blockNumber: 123 },
+              },
+            },
+          },
+        });
+
+        assertValidationErrors(validationErrors, [
+          {
+            path: ["chainDescriptors", "1", "hardforkHistory", "random string"],
+            message:
+              "Invalid hardfork name random string found in chain descriptor for chain 1. Expected bedrock | regolith | canyon | ecotone | fjord | granite | holocene.",
+          },
+        ]);
+
+        validationErrors = await validateNetworkUserConfig({
+          chainDescriptors: {
+            123: {
+              name: "My Network",
+              hardforkHistory: {
+                /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+                -- Cast to test validation error */
+                london: true as any,
+              },
+            },
+          },
+        });
+
+        assertValidationErrors(validationErrors, [
+          {
+            path: ["chainDescriptors", "123", "hardforkHistory", "london"],
+            message:
+              "Expected an object with either a blockNumber or a timestamp",
+          },
+        ]);
+
+        validationErrors = await validateNetworkUserConfig({
+          chainDescriptors: {
+            123: {
+              name: "My Network",
+              hardforkHistory: {
+                /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+                -- Cast to test validation error */
+                london: {
+                  blockNumber: 123,
+                  timestamp: 123,
+                } as any,
+              },
+            },
+          },
+        });
+
+        assertValidationErrors(validationErrors, [
+          {
+            path: ["chainDescriptors", "123", "hardforkHistory", "london"],
+            message: "Unrecognized key(s) in object: 'timestamp'",
+          },
+        ]);
+
+        validationErrors = await validateNetworkUserConfig({
+          chainDescriptors: {
+            123: {
+              name: "My Network",
+              hardforkHistory: {
+                london: {
+                  blockNumber: 456,
+                },
+                cancun: {
+                  blockNumber: 123,
+                },
+              },
+            },
+          },
+        });
+
+        assertValidationErrors(validationErrors, [
+          {
+            path: ["chainDescriptors", "123", "hardforkHistory", "cancun"],
+            message:
+              "Invalid block number 123 found in chain descriptor for chain 123. Block numbers must be in ascending order.",
+          },
+        ]);
+
+        validationErrors = await validateNetworkUserConfig({
+          chainDescriptors: {
+            123: {
+              name: "My Network",
+              hardforkHistory: {
+                london: {
+                  timestamp: 456,
+                },
+                cancun: {
+                  timestamp: 123,
+                },
+              },
+            },
+          },
+        });
+
+        assertValidationErrors(validationErrors, [
+          {
+            path: ["chainDescriptors", "123", "hardforkHistory", "cancun"],
+            message:
+              "Invalid timestamp 123 found in chain descriptor for chain 123. Timestamps must be in ascending order.",
+          },
+        ]);
+
+        validationErrors = await validateNetworkUserConfig({
+          chainDescriptors: {
+            123: {
+              name: "My Network",
+              hardforkHistory: {
+                london: {
+                  timestamp: 456,
+                },
+                cancun: {
+                  blockNumber: 123,
+                },
+              },
+            },
+          },
+        });
+
+        assertValidationErrors(validationErrors, [
+          {
+            path: ["chainDescriptors", "123", "hardforkHistory", "cancun"],
+            message:
+              "Invalid block number 123 found in chain descriptor for chain 123. Block number cannot be defined after a timestamp.",
+          },
+        ]);
+      });
+    });
 
     describe("accounts", () => {
       describe("http config", async () => {
@@ -1587,185 +1823,6 @@ describe("NetworkManagerImplementation", () => {
             {
               path: ["networks", "hardhat", "blockGasLimit"],
               message: "Expected a positive safe int or a positive bigint",
-            },
-          ]);
-        });
-      });
-    });
-
-    describe("chains", () => {
-      describe("edr config", () => {
-        it("should validate a valid network config", async () => {
-          const validationErrors = await validateNetworkUserConfig(
-            edrConfig({
-              chains: new Map()
-                .set(1, {
-                  hardforkHistory: new Map().set("london", 456),
-                })
-                .set(2, {
-                  chainType: OPTIMISM_CHAIN_TYPE,
-                  hardforkHistory: new Map().set("bedrock", 456),
-                }),
-            }),
-          );
-
-          assertValidationErrors(validationErrors, []);
-        });
-
-        it("should not validate an invalid network config", async () => {
-          let validationErrors = await validateNetworkUserConfig(
-            edrConfig({
-              chains: new Map().set("123", {
-                hardforkHistory: new Map().set("london", 456),
-              }),
-            }),
-          );
-
-          assertValidationErrors(validationErrors, [
-            {
-              path: ["networks", "hardhat", "chains", 0, "key"],
-              message: "Expected number, received string",
-            },
-          ]);
-
-          validationErrors = await validateNetworkUserConfig(
-            edrConfig({
-              chains: new Map().set(123, true),
-            }),
-          );
-
-          assertValidationErrors(validationErrors, [
-            {
-              path: ["networks", "hardhat", "chains", 0, "value"],
-              message: "Expected object, received boolean",
-            },
-          ]);
-
-          validationErrors = await validateNetworkUserConfig(
-            edrConfig({
-              chains: new Map().set(123, {
-                hardforkHistory: true,
-              }),
-            }),
-          );
-
-          assertValidationErrors(validationErrors, [
-            {
-              path: [
-                "networks",
-                "hardhat",
-                "chains",
-                0,
-                "value",
-                "hardforkHistory",
-              ],
-              message: "Expected map, received boolean",
-            },
-          ]);
-
-          validationErrors = await validateNetworkUserConfig(
-            edrConfig({
-              chains: new Map()
-                .set(1, {
-                  hardforkHistory: new Map().set("london", 123),
-                })
-                .set(2, {
-                  hardforkHistory: new Map()
-                    .set("shanghai", 456)
-                    .set("random string", 789),
-                }),
-            }),
-          );
-
-          assertValidationErrors(validationErrors, [
-            {
-              path: [
-                "networks",
-                "hardhat",
-                "chains",
-                1,
-                "value",
-                "hardforkHistory",
-                1,
-                "value",
-              ],
-              message:
-                "Invalid hardfork name random string found in chain 2. Expected chainstart | homestead | dao | tangerineWhistle | spuriousDragon | byzantium | constantinople | petersburg | istanbul | muirGlacier | berlin | london | arrowGlacier | grayGlacier | merge | shanghai | cancun.",
-            },
-          ]);
-
-          validationErrors = await validateNetworkUserConfig(
-            edrConfig({
-              chains: new Map()
-                .set(1, {
-                  chainType: OPTIMISM_CHAIN_TYPE,
-                  hardforkHistory: new Map()
-                    .set("random string", 456)
-                    .set("bedrock", 789),
-                })
-                .set(2, {
-                  hardforkHistory: new Map().set("london", 123),
-                }),
-            }),
-          );
-
-          assertValidationErrors(validationErrors, [
-            {
-              path: [
-                "networks",
-                "hardhat",
-                "chains",
-                0,
-                "value",
-                "hardforkHistory",
-                0,
-                "value",
-              ],
-              message:
-                "Invalid hardfork name random string found in chain 1. Expected bedrock | regolith | canyon | ecotone | fjord | granite | holocene.",
-            },
-          ]);
-
-          validationErrors = await validateNetworkUserConfig(
-            edrConfig({
-              chains: new Map().set(123, {
-                hardforkHistory: new Map().set("london", true),
-              }),
-            }),
-          );
-
-          assertValidationErrors(validationErrors, [
-            {
-              path: [
-                "networks",
-                "hardhat",
-                "chains",
-                0,
-                "value",
-                "hardforkHistory",
-                0,
-                "value",
-              ],
-              message: "Expected number, received boolean",
-            },
-          ]);
-
-          validationErrors = await validateNetworkUserConfig(
-            edrConfig({
-              chains: {
-                123: {
-                  hardforkHistory: {
-                    london: 456,
-                  },
-                },
-              },
-            }),
-          );
-
-          assertValidationErrors(validationErrors, [
-            {
-              path: ["networks", "hardhat", "chains"],
-              message: "Expected map, received object",
             },
           ]);
         });

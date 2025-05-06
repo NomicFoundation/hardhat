@@ -10,7 +10,7 @@ describe("errors", () => {
     it("Should throw if the operation does not throw", async () => {
       try {
         await assertRejects(async () => {});
-      } catch (error) {
+      } catch (_error) {
         return;
       }
 
@@ -108,7 +108,7 @@ describe("errors", () => {
           },
           (error) => error.message === "bar",
         );
-      } catch (error) {
+      } catch (_error) {
         return;
       }
 
@@ -143,7 +143,7 @@ describe("errors", () => {
           // eslint-disable-next-line no-throw-literal -- Intentional for the test
           throw "foo";
         });
-      } catch (error) {
+      } catch (_error) {
         return;
       }
 

@@ -31,7 +31,7 @@ import { buildGlobalOptionDefinitions } from "../core/global-options.js";
 import { resolveProjectRoot } from "../core/hre.js";
 import { resolvePluginList } from "../core/plugins/resolve-plugin-list.js";
 import { setGlobalHardhatRuntimeEnvironment } from "../global-hre-instance.js";
-import { createHardhatRuntimeEnvironment } from "../hre-intialization.js";
+import { createHardhatRuntimeEnvironment } from "../hre-initialization.js";
 
 import { printErrorMessages } from "./error-handler.js";
 import { getGlobalHelpString } from "./help/get-global-help-string.js";
@@ -374,7 +374,7 @@ function getTaskFromCliArguments(
     if (task === undefined) {
       try {
         task = hre.tasks.getTask(arg);
-      } catch (error) {
+      } catch (_error) {
         return [arg]; // No task found
       }
     } else {

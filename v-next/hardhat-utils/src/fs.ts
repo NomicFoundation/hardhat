@@ -327,7 +327,7 @@ export async function writeJsonFileAsStream<T>(
       try {
         await remove(dirPath);
         // we don't want to override the original error
-      } catch (err) {}
+      } catch (_error) {}
     }
 
     // If the code is defined, we assume the error to be related to the file system
@@ -407,7 +407,7 @@ export async function writeUtf8File(
       try {
         await remove(dirPath);
         // we don't want to override the original error
-      } catch (err) {}
+      } catch (_error) {}
     }
 
     if (e.code === "ENOENT") {
@@ -594,7 +594,7 @@ export async function exists(absolutePath: string): Promise<boolean> {
   try {
     await fsPromises.access(absolutePath);
     return true;
-  } catch (e) {
+  } catch (_error) {
     return false;
   }
 }
@@ -767,7 +767,7 @@ export async function emptyDir(absolutePath: string): Promise<void> {
 
   await remove(absolutePath);
   await mkdir(absolutePath);
-  // eslint-disable-next-line no-bitwise -- Bitwise as common in fs permissions
+  // eslint-disable-next-line no-bitwise -- Bitwise is common in fs permissions
   await chmod(absolutePath, mode & 0o777);
 }
 

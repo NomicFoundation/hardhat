@@ -86,19 +86,19 @@ describe("deploy converts ignition named contract to viem instance", () => {
 
   it("should enforce the type is constrained to the contracts functions", async function () {
     await assertRejects(
-      // @ts-expect-error
+      // @ts-expect-error -- Expect an error
       result.foo.write.nonexistantWrite(),
     );
     await assertRejects(
-      // @ts-expect-error
+      // @ts-expect-error -- Expect an error
       result.foo.read.nonexistantRead(),
     );
     await assertRejects(
-      // @ts-expect-error
+      // @ts-expect-error -- Expect an error
       result.foo.estimateGas.nonexistantEstimate(),
     );
     await assertRejects(
-      // @ts-expect-error
+      // @ts-expect-error -- Expect an error
       result.foo.simulate.nonexistantEstimate(),
     );
   });

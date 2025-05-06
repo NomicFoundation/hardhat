@@ -9,6 +9,7 @@ import type { DependencyGraph } from "../../../../types/solidity/dependency-grap
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { createNonCryptographicHashId } from "@nomicfoundation/hardhat-utils/crypto";
+import { deepClone } from "@nomicfoundation/hardhat-utils/lang";
 
 import {
   ResolvedFileType,
@@ -65,9 +66,10 @@ export class CompilationJobImplementation implements CompilationJob {
     return this.#buildId;
   }
 
-  #getSolcInputWithoutSources(): Omit<CompilerInput, "sources"> {
+  async #getSolcInputWithoutSources(): Promise<Omit<CompilerInput, "sources">> {
     if (this.#solcInputWithoutSources === undefined) {
-      this.#solcInputWithoutSources = this.#buildSolcInputWithoutSources();
+      this.#solcInputWithoutSources =
+        await this.#buildSolcInputWithoutSources();
     }
 
     return this.#solcInputWithoutSources;
@@ -158,7 +160,7 @@ export class CompilationJobImplementation implements CompilationJob {
   }
 
   async #buildSolcInput(): Promise<CompilerInput> {
-    const solcInputWithoutSources = this.#getSolcInputWithoutSources();
+    const solcInputWithoutSources = await this.#getSolcInputWithoutSources();
 
     const sources: { [sourceName: string]: { content: string } } = {};
 
@@ -186,7 +188,9 @@ export class CompilationJobImplementation implements CompilationJob {
     };
   }
 
-  #buildSolcInputWithoutSources(): Omit<CompilerInput, "sources"> {
+  async #buildSolcInputWithoutSources(): Promise<
+    Omit<CompilerInput, "sources">
+  > {
     const settings = this.solcConfig.settings;
 
     // Ideally we would be more selective with the output selection, so that
@@ -195,22 +199,19 @@ export class CompilationJobImplementation implements CompilationJob {
     // from other files (e.g. new Foo()), and it won't output its bytecode if
     // it's not asked for. This would prevent EDR from doing any runtime
     // analysis.
-    const defaultOutputSelection: CompilerInput["settings"]["outputSelection"] =
-      {
-        "*": {
-          "*": [
-            "abi",
-            "evm.bytecode",
-            "evm.deployedBytecode",
-            "evm.methodIdentifiers",
-            "metadata",
-          ],
-          "": ["ast"],
-        },
-      };
+    const outputSelection = await deepClone(settings.outputSelection ?? {});
+    outputSelection["*"] ??= {};
+    outputSelection["*"][""] ??= [];
+    outputSelection["*"]["*"] ??= [];
 
-    // TODO: Deep merge the user output selection with the default one
-    const outputSelection = defaultOutputSelection;
+    outputSelection["*"][""].push("ast");
+    outputSelection["*"]["*"].push(
+      "abi",
+      "evm.bytecode",
+      "evm.deployedBytecode",
+      "evm.methodIdentifiers",
+      "metadata",
+    );
 
     return {
       language: "Solidity",
@@ -254,7 +255,7 @@ export class CompilationJobImplementation implements CompilationJob {
     const preimage =
       format +
       this.solcLongVersion +
-      JSON.stringify(this.#getSolcInputWithoutSources()) +
+      JSON.stringify(await this.#getSolcInputWithoutSources()) +
       JSON.stringify(sortedSources) +
       JSON.stringify(this.solcConfig);
 

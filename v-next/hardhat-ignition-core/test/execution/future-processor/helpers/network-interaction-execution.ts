@@ -41,7 +41,10 @@ import {
   TransactionReceipt,
   TransactionReceiptStatus,
 } from "../../../../src/internal/execution/types/jsonrpc.js";
-import { JournalMessageType } from "../../../../src/internal/execution/types/messages.js";
+import {
+  JournalMessage,
+  JournalMessageType,
+} from "../../../../src/internal/execution/types/messages.js";
 import {
   NetworkInteractionType,
   OnchainInteraction,
@@ -49,6 +52,7 @@ import {
 } from "../../../../src/internal/execution/types/network-interaction.js";
 import { FutureType } from "../../../../src/types/module.js";
 import { exampleAccounts } from "../../../helpers.js";
+import { DeploymentLoader } from "../../../../src/internal/deployment-loader/types.js";
 
 class StubJsonRpcClient implements JsonRpcClient {
   public async getChainId(): Promise<number> {
@@ -120,6 +124,49 @@ class StubJsonRpcClient implements JsonRpcClient {
   }
 
   public async getCode(_address: string): Promise<string> {
+    throw new Error("Method not implemented.");
+  }
+}
+
+class StubDeploymentLoader implements DeploymentLoader {
+  public async recordToJournal(_message: JournalMessage): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+
+  public async *readFromJournal(): AsyncGenerator<JournalMessage, any, any> {
+    throw new Error("Method not implemented.");
+  }
+
+  public async loadArtifact(_artifactId: string): Promise<any> {
+    throw new Error("Method not implemented.");
+  }
+
+  public async storeUserProvidedArtifact(
+    _futureId: string,
+    _artifact: any,
+  ): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+
+  public async storeNamedArtifact(
+    _futureId: string,
+    _contractName: string,
+    _artifact: any,
+  ): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+
+  public async storeBuildInfo(
+    _futureId: string,
+    _buildInfo: any,
+  ): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+
+  public async recordDeployedAddress(
+    _futureId: string,
+    _contractAddress: string,
+  ): Promise<void> {
     throw new Error("Method not implemented.");
   }
 }
@@ -351,6 +398,16 @@ describe("Network interactions", () => {
         }
       }
 
+      class MockDeploymentLoader extends StubDeploymentLoader {
+        public message: JournalMessage | undefined;
+
+        public override async recordToJournal(
+          _message: JournalMessage,
+        ): Promise<void> {
+          this.message = _message;
+        }
+      }
+
       it("Should use the recommended network fees", async () => {
         class LocalMockJsonRpcClient extends MockJsonRpcClient {
           public storedFees: EIP1559NetworkFees = {} as EIP1559NetworkFees;
@@ -372,6 +429,7 @@ describe("Network interactions", () => {
 
         const client = new LocalMockJsonRpcClient();
         const nonceManager = new MockNonceManager();
+        const deploymentLoader = new MockDeploymentLoader();
 
         const onchainInteraction: OnchainInteraction = {
           to: exampleAccounts[1],
@@ -389,6 +447,8 @@ describe("Network interactions", () => {
           onchainInteraction,
           nonceManager,
           async () => undefined,
+          deploymentLoader,
+          "test",
         );
 
         assert.equal(client.storedFees.maxFeePerGas, 100n);
@@ -399,6 +459,7 @@ describe("Network interactions", () => {
         it("Should allocate a nonce when the onchainInteraction doesn't have one", async () => {
           const client = new MockJsonRpcClient();
           const nonceManager = new MockNonceManager();
+          const deploymentLoader = new MockDeploymentLoader();
 
           const onchainInteraction: OnchainInteraction = {
             to: exampleAccounts[1],
@@ -416,6 +477,8 @@ describe("Network interactions", () => {
             onchainInteraction,
             nonceManager,
             async () => undefined,
+            deploymentLoader,
+            "test",
           );
 
           assert.equal(nonceManager.calls[exampleAccounts[0]], 1);
@@ -435,6 +498,7 @@ describe("Network interactions", () => {
 
           const client = new LocalMockJsonRpcClient();
           const nonceManager = new MockNonceManager();
+          const deploymentLoader = new MockDeploymentLoader();
 
           const onchainInteraction: OnchainInteraction = {
             to: exampleAccounts[1],
@@ -453,6 +517,8 @@ describe("Network interactions", () => {
             onchainInteraction,
             nonceManager,
             async () => undefined,
+            deploymentLoader,
+            "test",
           );
 
           assert.equal(nonceManager.calls[exampleAccounts[0]], undefined);
@@ -478,6 +544,7 @@ describe("Network interactions", () => {
 
             const client = new LocalMockJsonRpcClient();
             const nonceManager = new MockNonceManager();
+            const deploymentLoader = new MockDeploymentLoader();
 
             const onchainInteraction: OnchainInteraction = {
               to: exampleAccounts[1],
@@ -513,6 +580,8 @@ describe("Network interactions", () => {
               onchainInteraction,
               nonceManager,
               decodeSimulationResult(mockStrategyGenerator, mockExecutionState),
+              deploymentLoader,
+              "test",
             );
 
             // type casting
@@ -528,9 +597,10 @@ describe("Network interactions", () => {
         });
 
         describe("When the simulation succeeds", () => {
-          it("Should send the transaction and return its hash and nonce", async () => {
+          it("Should write a TRANSACTION_PREPARE_SEND message to the journal, then send the transaction and return its hash and nonce", async () => {
             const client = new MockJsonRpcClient();
             const nonceManager = new MockNonceManager();
+            const deploymentLoader = new MockDeploymentLoader();
 
             const onchainInteraction: OnchainInteraction = {
               to: exampleAccounts[1],
@@ -548,6 +618,8 @@ describe("Network interactions", () => {
               onchainInteraction,
               nonceManager,
               async () => undefined,
+              deploymentLoader,
+              "test",
             );
 
             // type casting
@@ -555,6 +627,10 @@ describe("Network interactions", () => {
               return assert.fail("Unexpected result type");
             }
 
+            assert.equal(
+              deploymentLoader.message?.type,
+              JournalMessageType.TRANSACTION_PREPARE_SEND,
+            );
             assert.equal(result.nonce, 0);
             assert.equal(result.transaction.hash, "0x1234");
           });
@@ -592,6 +668,7 @@ describe("Network interactions", () => {
           it("Should return the decoded simulation error", async () => {
             const client = new LocalMockJsonRpcClient();
             const nonceManager = new MockNonceManager();
+            const deploymentLoader = new MockDeploymentLoader();
 
             const onchainInteraction: OnchainInteraction = {
               to: exampleAccounts[1],
@@ -627,6 +704,8 @@ describe("Network interactions", () => {
               onchainInteraction,
               nonceManager,
               decodeSimulationResult(mockStrategyGenerator, mockExecutionState),
+              deploymentLoader,
+              "test",
             );
 
             // type casting
@@ -648,6 +727,7 @@ describe("Network interactions", () => {
                 "insufficient funds for transfer",
               );
               const nonceManager = new MockNonceManager();
+              const deploymentLoader = new MockDeploymentLoader();
 
               const onchainInteraction: OnchainInteraction = {
                 to: exampleAccounts[1],
@@ -666,6 +746,8 @@ describe("Network interactions", () => {
                   onchainInteraction,
                   nonceManager,
                   async () => undefined,
+                  deploymentLoader,
+                  "test",
                 ),
                 HardhatError.ERRORS.IGNITION.EXECUTION
                   .INSUFFICIENT_FUNDS_FOR_TRANSFER,
@@ -683,6 +765,7 @@ describe("Network interactions", () => {
                 "contract creation code storage out of gas",
               );
               const nonceManager = new MockNonceManager();
+              const deploymentLoader = new MockDeploymentLoader();
 
               const onchainInteraction: OnchainInteraction = {
                 to: exampleAccounts[1],
@@ -701,6 +784,8 @@ describe("Network interactions", () => {
                   onchainInteraction,
                   nonceManager,
                   async () => undefined,
+                  deploymentLoader,
+                  "test",
                 ),
                 HardhatError.ERRORS.IGNITION.EXECUTION
                   .INSUFFICIENT_FUNDS_FOR_DEPLOY,
@@ -715,6 +800,7 @@ describe("Network interactions", () => {
             it("Should throw an error", async () => {
               const client = new LocalMockJsonRpcClient("unknown error");
               const nonceManager = new MockNonceManager();
+              const deploymentLoader = new MockDeploymentLoader();
 
               const onchainInteraction: OnchainInteraction = {
                 to: exampleAccounts[1],
@@ -733,6 +819,8 @@ describe("Network interactions", () => {
                   onchainInteraction,
                   nonceManager,
                   async () => undefined,
+                  deploymentLoader,
+                  "test",
                 ),
                 HardhatError.ERRORS.IGNITION.EXECUTION.GAS_ESTIMATION_FAILED,
                 {

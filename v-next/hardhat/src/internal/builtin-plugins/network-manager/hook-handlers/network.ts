@@ -25,7 +25,7 @@ export default async (): Promise<Partial<NetworkHooks>> => {
     RequestHandler[]
   > = new Map();
 
-  const intializationMutex = new AsyncMutex();
+  const initializationMutex = new AsyncMutex();
 
   const handlers: Partial<NetworkHooks> = {
     async onRequest<ChainTypeT extends ChainType | string>(
@@ -42,7 +42,7 @@ export default async (): Promise<Partial<NetworkHooks>> => {
         "../request-handlers/handlers-array.js"
       );
 
-      const requestHandlers = await intializationMutex.exclusiveRun(
+      const requestHandlers = await initializationMutex.exclusiveRun(
         async () => {
           let handlersPerConnection =
             requestHandlersPerConnection.get(networkConnection);

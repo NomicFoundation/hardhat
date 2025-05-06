@@ -106,6 +106,10 @@ const argumentTypeValidators: Record<
   [ArgumentType.BIGINT]: (value): value is bigint => typeof value === "bigint",
   [ArgumentType.FLOAT]: (value): value is number => typeof value === "number",
   [ArgumentType.FILE]: (value): value is string => typeof value === "string",
+  [ArgumentType.STRING_WITHOUT_DEFAULT]: (value): value is string | undefined =>
+    typeof value === "string" || value === undefined,
+  [ArgumentType.FILE_WITHOUT_DEFAULT]: (value): value is string | undefined =>
+    typeof value === "string" || value === undefined,
 };
 
 /**
@@ -121,6 +125,8 @@ export function parseArgumentValue(
   name: string,
 ): ArgumentValue {
   switch (type) {
+    case ArgumentType.STRING_WITHOUT_DEFAULT:
+    case ArgumentType.FILE_WITHOUT_DEFAULT:
     case ArgumentType.STRING:
     case ArgumentType.FILE:
       return value;

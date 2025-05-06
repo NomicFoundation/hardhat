@@ -84,7 +84,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   // TODO: Allow users to run test compilation outside of the test task.
   const buildOptions: BuildOptions = {
     force: false,
-    buildProfile: hre.globalOptions.buildProfile,
+    buildProfile: hre.globalOptions.buildProfile ?? "default",
     quiet: true,
   };
   const results = await hre.solidity.build(rootFilePaths, buildOptions);

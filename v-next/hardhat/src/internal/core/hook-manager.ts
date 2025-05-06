@@ -35,7 +35,7 @@ export class HookManagerImplementation implements HookManager {
   #context: HookContext | undefined;
 
   /**
-   * The intialized handler categories for each plugin.
+   * The initialized handler categories for each plugin.
    */
   readonly #staticHookHandlerCategories: Map<
     string,

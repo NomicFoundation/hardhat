@@ -318,4 +318,38 @@ describe("CompilationJobImplementation", () => {
       });
     });
   });
+
+  describe("getSolcInput", () => {
+    it("should merge the user's outputSelection with our defaults", async () => {
+      const newCompilationJob = new CompilationJobImplementation(
+        dependencyGraph,
+        {
+          ...solcConfig,
+          settings: {
+            outputSelection: {
+              "*": {
+                "*": ["storageLayout"],
+              },
+            },
+          },
+        },
+        solcLongVersion,
+        remappings,
+      );
+      const solcInput = await newCompilationJob.getSolcInput();
+      assert.deepEqual(solcInput.settings.outputSelection, {
+        "*": {
+          "*": [
+            "storageLayout",
+            "abi",
+            "evm.bytecode",
+            "evm.deployedBytecode",
+            "evm.methodIdentifiers",
+            "metadata",
+          ],
+          "": ["ast"],
+        },
+      });
+    });
+  });
 });
