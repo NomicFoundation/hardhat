@@ -30,7 +30,7 @@ function getPullNumber(headRef) {
  */
 async function readAllReleasedPackages() {
   const allPackageNames = (await readdir(packagesDir))
-    .filter(file => ['config', 'example-project', 'template-package'].includes(file));
+    .filter(file => !['config', 'example-project', 'template-package', 'hardhat-test-utils'].includes(file));
 
   const allPackages = allPackageNames
     .map(file => `./v-next/${file}/package.json`)
