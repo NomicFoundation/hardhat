@@ -1,10 +1,12 @@
 // @ts-check
 
-import { readdir, readFile, writeFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { exec } from "node:child_process";
 import { promisify } from "node:util";
 import { randomUUID } from "node:crypto";
+
+import { readAllNewChangsets } from "./lib/changesets.mjs";
 
 const execAsync = promisify(exec);
 
@@ -50,44 +52,6 @@ async function versionAlpha() {
 }
 
 /**
- * Read all the changesets that have not yet been applied
- * based on the pre.json file.
- */
-async function readAllNewChangsets() {
-  const allChangesetNames = (await readdir(changesetDir))
-    .filter((file) => file.endsWith(".md"))
-    .map((file) => file.slice(0, -3));
-
-  const alreadyAppliedChangesetNames = JSON.parse(
-    await readFile(path.join(changesetDir, "pre.json"))
-  );
-
-  const newChangesetNames = allChangesetNames.filter(
-    (name) => !alreadyAppliedChangesetNames.changesets.includes(name)
-  );
-
-  const changesets = [];
-
-  for (const newChangeSetName of newChangesetNames) {
-    const changesetFilePath = path.join(changesetDir, `${newChangeSetName}.md`);
-
-    const changesetContent = await readFile(changesetFilePath, "utf-8");
-
-    const { content, frontMatter } = parseFrontMatter(changesetContent);
-    const commitHash = await getAddingCommit(changesetFilePath);
-
-    changesets.push({
-      frontMatter,
-      content,
-      path: changesetFilePath,
-      commitHash,
-    });
-  }
-
-  return changesets;
-}
-
-/**
  * Validate that the changesets meet our rules for an Alpha release
  * changeset, logging and killing the script otherwise.
  *
@@ -121,7 +85,7 @@ function validateChangesets(changesets) {
  */
 async function readHardhatVersion() {
   const hardhatPackageJson = JSON.parse(
-    await readFile(path.join("v-next", "hardhat", "package.json"))
+    (await readFile(path.join("v-next", "hardhat", "package.json"))).toString()
   );
 
   return hardhatPackageJson.version;
@@ -248,29 +212,6 @@ function generateChangesTextFrom(changesets) {
         .join("\n")
     )
     .join("\n");
-}
-
-function parseFrontMatter(markdown) {
-  const match = markdown.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
-  if (!match) {
-    return { frontMatter: null, content: markdown };
-  }
-
-  return {
-    frontMatter: match[1],
-    content: match[2],
-  };
-}
-
-async function getAddingCommit(filePath) {
-  try {
-    const { stdout } = await execAsync(
-      `git log --diff-filter=A --follow --format=%h -- "${filePath}"`
-    );
-    return stdout.trim() || null;
-  } catch {
-    return null;
-  }
 }
 
 await versionAlpha();

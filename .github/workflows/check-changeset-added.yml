@@ -22,84 +22,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the repository
-        if: github.event_name == 'merge_group'
         uses: actions/checkout@v4
 
       - name: Check if merge group is valid
         if: github.event_name == 'merge_group'
-        uses: actions/github-script@v7
-        with:
-          # NOTE: A merge group is valid if it contains no new changesets or all the
-          # versions of the packages are released to npm. The former is an indication
-          # that the merge group consists of a release PR and/or PRs that don't need
-          # a changeset. The latter is an indication that the merge group does not
-          # contain a release PR.
-          script: |
-            // NOTE: If we ever need to, we could access the PR number from the merge_group event like so:
-            // const headRef = context.payload.merge_group.head_ref; // E.g. refs/heads/gh-readonly-queue/master/pr-6-90b00e094e6de7fc4f3fac9a0087c01cf48acad8
-            // const [, baseRefName, pullNumber, headSha] = headRef.match(/^refs\/heads\/gh-readonly-queue\/([^\/]+)\/pr-(\d+)-([a-z0-9]+)$/);
+        run: node scripts/validate-merge-group.mjs
 
-            const fs = require('fs');
-            const path = require('path');
-
-            const {changesets: knownChangesets} = JSON.parse(fs.readFileSync('./.changeset/pre.json', 'utf-8'));
-            const allChangesets = fs.readdirSync('./.changeset')
-              .filter(file => file.endsWith('.md'))
-              .map(file => file.replace('.md', ''));
-            const newChangests = allChangesets.filter(changeset => !knownChangesets.includes(changeset));
-
-            if (newChangests.length === 0) {
-              console.log('No new changesets found');
-              return;
-            }
-
-            const packages = fs.readdirSync('./v-next')
-              .filter(file => ['config', 'example-project', 'template-package'].includes(file))
-              .map(file => `./v-next/${file}/package.json`)
-              .map(path => JSON.parse(fs.readFileSync(path, 'utf-8')));
-
-            for (const package of packages) {
-              const url = `https://registry.npmjs.org/${package.name}/${package.version}`;
-              const response = await fetch(url);
-              if (response.status !== 200) {
-                throw new Error(`Package ${package.name} is not released to npm`);
-              }
-            }
-
-            console.log('All packages are released to npm');
-            return;
       - name: Check if PR has a changeset
         if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const isReleasePr = process.env.GITHUB_HEAD_REF.startsWith("changeset-release/");
-
-            if (isReleasePr) {
-              console.log("Ignore changeset check for release PR.");
-              return;
-            }
-
-            const noChangesetNeeded = context.payload.pull_request.labels
-              .some(l => l.name === "no changeset needed");
-
-            if (noChangesetNeeded) {
-              console.log("The PR is labeled as 'no changeset needed'");
-              return;
-            }
-
-            const pullNumber = context.payload.pull_request.number;
-            const { data: files } = await github.rest.pulls.listFiles({
-              ...context.repo,
-              pull_number: pullNumber
-            });
-            const changeset = files.find(
-              file => file.status === "added" && file.filename.startsWith(".changeset/")
-            );
-
-            if (changeset !== undefined) {
-              console.log(`Changeset found: ${changeset.filename}`);
-              return;
-            }
-
-            throw new Error("No changeset found");
+        env:
+          GITHUB_EVENT_PULL_REQUEST_LABELS: ${{ toJson(github.event.pull_request.labels) }}
+        run: node scripts/validate-pull-request.mjs
