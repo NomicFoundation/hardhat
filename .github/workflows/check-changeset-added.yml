@@ -24,6 +24,8 @@ jobs:
       - name: Checkout the repository
         uses: actions/checkout@v4
 
+      - run: git fetch origin "$GITHUB_BASE_REF":"$GITHUB_BASE_REF"
+
       - name: Check if merge group is valid
         if: github.event_name == 'merge_group'
         run: node scripts/validate-merge-group.mjs
