@@ -12,7 +12,7 @@ import { unsafelyCastAsHardhatRuntimeEnvironmentImplementation } from "../helper
 const COVERAGE_LIBRARY_IMPORT_PATH = "hardhat/coverage.sol";
 
 export default async (): Promise<Partial<SolidityHooks>> => ({
-  preprocessRootProjectFileBeforeBuilding: async (
+  preprocessFileBeforeBuilding: async (
     context,
     sourceName,
     fileContent,

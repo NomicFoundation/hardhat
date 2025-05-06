@@ -114,7 +114,7 @@ export class CompilationJobImplementation implements CompilationJob {
       const solcVersion = this.solcConfig.version;
       this.#fileContents[file.sourceName] = await this.#hooks.runHandlerChain(
         "solidity",
-        "preprocessRootProjectFileBeforeBuilding",
+        "preprocessFileBeforeBuilding",
         [file.sourceName, file.content.text, solcVersion],
         async (_context, nextSourceName, nextFileContent, nextSolcVersion) => {
           if (file.sourceName !== nextSourceName) {
@@ -122,7 +122,7 @@ export class CompilationJobImplementation implements CompilationJob {
               HardhatError.ERRORS.CORE.HOOKS.UNEXPECTED_HOOK_PARAM_MODIFICATION,
               {
                 hookCategoryName: "solidity",
-                hookName: "preprocessRootProjectFileBeforeBuilding",
+                hookName: "preprocessFileBeforeBuilding",
                 paramName: "sourceName",
               },
             );
@@ -133,7 +133,7 @@ export class CompilationJobImplementation implements CompilationJob {
               HardhatError.ERRORS.CORE.HOOKS.UNEXPECTED_HOOK_PARAM_MODIFICATION,
               {
                 hookCategoryName: "solidity",
-                hookName: "preprocessRootProjectFileBeforeBuilding",
+                hookName: "preprocessFileBeforeBuilding",
                 paramName: "solcVersion",
               },
             );
