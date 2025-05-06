@@ -841,17 +841,21 @@ describe("File system utils", () => {
   });
 
   describe("mkdtemp", () => {
-    it("Should create a temporary directory", async () => {
+    it("Should create a temporary directory with the given prefix", async () => {
       const tempDir = await mkdtemp("test-");
       assert.ok(await isDirectory(tempDir), "Should create a directory");
+      assert.ok(
+        path.basename(tempDir).startsWith("test-"),
+        "The directory name should start with the prefix",
+      );
     });
 
-    it("Should create a temporary directory with a prefix", async () => {
-      const tempDir = await mkdtemp("prefix-");
-      assert.ok(
-        tempDir.includes("prefix-"),
-        "Should create a directory with the prefix",
-      );
+    it("Should throw FileSystemAccessError for any error", async () => {
+      const invalidPath = "\0";
+
+      await assert.rejects(mkdtemp(invalidPath), {
+        name: "FileSystemAccessError",
+      });
     });
   });
 

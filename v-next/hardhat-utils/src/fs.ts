@@ -519,12 +519,12 @@ export async function mkdir(absolutePath: string): Promise<void> {
 export const ensureDir: typeof mkdir = mkdir;
 
 /**
- * Creates a temporary directory with a specified prefix.
+ * Creates a temporary directory with the specified prefix.
+ *
  * @param prefix The prefix to use for the temporary directory.
  * @returns The absolute path to the created temporary directory.
  * @throws FileSystemAccessError for any error.
  */
-
 export async function mkdtemp(prefix: string): Promise<string> {
   try {
     return await fsPromises.mkdtemp(path.join(tmpdir(), prefix));
