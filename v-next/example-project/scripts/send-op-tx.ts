@@ -1,6 +1,9 @@
 import { network } from "hardhat";
 
-const { provider } = await network.connect("op", "optimism");
+const { provider } = await network.connect({
+  networkName: "op",
+  chainType: "optimism",
+});
 
 const accounts = (await provider.request({
   method: "eth_accounts",

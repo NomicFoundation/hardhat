@@ -64,7 +64,9 @@ describe("hardhat-network-helpers plugin initialization", () => {
         ],
       });
 
-      ({ networkHelpers } = await hre.network.connect("non-test"));
+      ({ networkHelpers } = await hre.network.connect({
+        networkName: "non-test",
+      }));
     });
 
     it("should throw when using a method from the network-helpers class", async () => {

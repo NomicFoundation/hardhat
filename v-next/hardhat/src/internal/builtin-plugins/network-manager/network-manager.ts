@@ -10,6 +10,7 @@ import type {
   ChainType,
   DefaultChainType,
   NetworkConnection,
+  NetworkConnectionParams,
   NetworkManager,
 } from "../../../types/network.js";
 import type {
@@ -68,10 +69,13 @@ export class NetworkManagerImplementation implements NetworkManager {
   public async connect<
     ChainTypeT extends ChainType | string = DefaultChainType,
   >(
-    networkName?: string,
-    chainType?: ChainTypeT,
-    networkConfigOverride?: NetworkConfigOverride,
+    networkConnectionParams?: NetworkConnectionParams<ChainTypeT>,
   ): Promise<NetworkConnection<ChainTypeT>> {
+    const { networkName, chainType } = networkConnectionParams ?? {};
+
+    delete networkConnectionParams?.networkName;
+    delete networkConnectionParams?.chainType;
+
     const networkConnection = await this.#hookManager.runHandlerChain(
       "network",
       "newConnection",
@@ -80,7 +84,7 @@ export class NetworkManagerImplementation implements NetworkManager {
         this.#initializeNetworkConnection(
           networkName,
           chainType,
-          networkConfigOverride,
+          networkConnectionParams,
         ),
     );
 

@@ -3,10 +3,10 @@ import { network } from "hardhat";
 async function sendL2Transaction(networkConfigName: string) {
   console.log("Sending transaction using network", networkConfigName);
 
-  const { viem, networkConfig } = await network.connect(
-    networkConfigName,
-    "optimism",
-  );
+  const { viem, networkConfig } = await network.connect({
+    networkName: networkConfigName,
+    chainType: "optimism",
+  });
 
   if (networkConfig.type === "edr") {
     console.log("Using an EDR network simulating Optimism, forking it");

@@ -3,13 +3,19 @@ import { parseEther } from "viem";
 
 async function testL2Extensions() {
   // This network connection has access to an optimism-specific viem api
-  const optimism = await hre.network.connect("localhost", "optimism");
+  const optimism = await hre.network.connect({
+    networkName: "localhost",
+    chainType: "optimism",
+  });
   const opPublicClient = await optimism.viem.getPublicClient();
   const l1BaseFee = await opPublicClient.getL1BaseFee();
   console.log("L1 base fee:", l1BaseFee);
 
   // This one doesn't
-  const mainnet = await hre.network.connect("localhost", "l1");
+  const mainnet = await hre.network.connect({
+    networkName: "localhost",
+    chainType: "l1",
+  });
   const l1PublicClient = await mainnet.viem.getPublicClient();
   try {
     // @ts-expect-error

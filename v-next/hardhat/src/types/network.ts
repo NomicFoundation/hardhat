@@ -40,11 +40,16 @@ export type DefaultChainType = ChainTypeConfig extends {
 interface to allow the user to change the default chain type. */
 export interface ChainTypeConfig {}
 
+export type NetworkConnectionParams<
+  ChainTypeT extends ChainType | string = DefaultChainType,
+> = NetworkConfigOverride & {
+  networkName?: string;
+  chainType?: ChainTypeT;
+};
+
 export interface NetworkManager {
-  connect<ChainTypeT extends ChainType = DefaultChainType>(
-    networkName?: string,
-    chainType?: ChainTypeT,
-    networkConfigOverride?: NetworkConfigOverride,
+  connect<ChainTypeT extends ChainType | string = DefaultChainType>(
+    networkConnectionParams?: NetworkConnectionParams<ChainTypeT>,
   ): Promise<NetworkConnection<ChainTypeT>>;
 }
 

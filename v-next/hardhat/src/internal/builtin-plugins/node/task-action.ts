@@ -89,11 +89,10 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
 
   // NOTE: This is where we initialize the network; the connect method returns
   // a fully resolved networkConfig object which might be useful for display
-  const { networkConfig, provider } = await hre.network.connect(
-    network,
-    undefined,
-    networkConfigOverride,
-  );
+  const { networkConfig, provider } = await hre.network.connect({
+    networkName: network,
+    ...networkConfigOverride,
+  });
 
   // NOTE: We enable logging for the node
   await provider.request({
