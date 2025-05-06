@@ -99,22 +99,56 @@ export class CompilationJobImplementation implements CompilationJob {
     // from other files (e.g. new Foo()), and it won't output its bytecode if
     // it's not asked for. This would prevent EDR from doing any runtime
     // analysis.
-    const defaultOutputSelection: CompilerInput["settings"]["outputSelection"] =
-      {
-        "*": {
-          "*": [
-            "abi",
-            "evm.bytecode",
-            "evm.deployedBytecode",
-            "evm.methodIdentifiers",
-            "metadata",
-          ],
-          "": ["ast"],
-        },
-      };
+    type OutputSelection = CompilerInput["settings"]["outputSelection"];
+    const defaultOutputSelection: OutputSelection = {
+      "*": {
+        "": ["ast"],
+        "*": [
+          "abi",
+          "evm.bytecode",
+          "evm.deployedBytecode",
+          "evm.methodIdentifiers",
+          "metadata",
+        ],
+      },
+    };
 
-    // TODO: Deep merge the user output selection with the default one
-    const outputSelection = defaultOutputSelection;
+    // TODO: export this function somewhere as helper
+    const mergeOutputSelection = (
+      selectionA: OutputSelection = {},
+      selectionB: OutputSelection = {},
+    ): OutputSelection => {
+      const result: OutputSelection = {};
+
+      const fileKeys = Array.from(
+        new Set([...Object.keys(selectionA), ...Object.keys(selectionB)]),
+      ).sort();
+
+      for (const fileKey of fileKeys) {
+        const contractKeys = Array.from(
+          new Set([
+            ...Object.keys(selectionA[fileKey] ?? {}),
+            ...Object.keys(selectionB[fileKey] ?? {}),
+          ]),
+        ).sort();
+
+        for (const contractKey of contractKeys) {
+          const values = Array.from(
+            new Set([
+              ...(selectionA[fileKey]?.[contractKey] ?? []),
+              ...(selectionB[fileKey]?.[contractKey] ?? []),
+            ]),
+          ).sort();
+
+          if (values.length > 0) {
+            result[fileKey] = {};
+            result[fileKey][contractKey] = values;
+          }
+        }
+      }
+
+      return result;
+    };
 
     return {
       language: "Solidity",
@@ -123,7 +157,10 @@ export class CompilationJobImplementation implements CompilationJob {
         evmVersion:
           settings.evmVersion ??
           getEvmVersionFromSolcVersion(this.solcConfig.version),
-        outputSelection,
+        outputSelection: mergeOutputSelection(
+          defaultOutputSelection,
+          settings.outputSelection,
+        ),
         remappings: this.#remappings.map(formatRemapping),
       },
     };
