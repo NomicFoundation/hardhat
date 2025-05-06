@@ -3,6 +3,7 @@ import path from "node:path";
 import { describe, it } from "node:test";
 
 import { useFixtureProject } from "@nomicfoundation/hardhat-test-utils";
+import { readUtf8File } from "@nomicfoundation/hardhat-utils/fs";
 
 import { buildDependencyGraph } from "../../../../../src/internal/builtin-plugins/solidity/build-system/dependency-graph-building.js";
 
@@ -14,6 +15,7 @@ describe("buildDependencyGraph", () => {
       [],
       process.cwd(),
       [],
+      readUtf8File,
     );
 
     assert.equal(dependencyGraph.getRoots().size, 0);
@@ -39,6 +41,7 @@ describe("buildDependencyGraph", () => {
       rootSourceNames.map((sourceName) => path.join(process.cwd(), sourceName)),
       process.cwd(),
       ["remapped/=npm/@openzeppelin/contracts@5.1.0/access/"],
+      readUtf8File,
     );
 
     const roots = dependencyGraph.getRoots();

@@ -11,7 +11,8 @@ const hardhatPlugin: HardhatPlugin = {
         name: "hostname",
         description:
           "The host to which to bind to for new connections (Defaults to 127.0.0.1 running locally, and 0.0.0.0 in Docker)",
-        defaultValue: "",
+        type: ArgumentType.STRING_WITHOUT_DEFAULT,
+        defaultValue: undefined,
       })
       .addOption({
         name: "port",
@@ -23,7 +24,8 @@ const hardhatPlugin: HardhatPlugin = {
         name: "chainType",
         description:
           "The chain type to connect to. If not specified, the default chain type will be used.",
-        defaultValue: "",
+        type: ArgumentType.STRING_WITHOUT_DEFAULT,
+        defaultValue: undefined,
       })
       .addOption({
         name: "chainId",
@@ -35,7 +37,8 @@ const hardhatPlugin: HardhatPlugin = {
       .addOption({
         name: "fork",
         description: "The URL of the JSON-RPC server to fork from",
-        defaultValue: "",
+        type: ArgumentType.STRING_WITHOUT_DEFAULT,
+        defaultValue: undefined,
       })
       .addOption({
         name: "forkBlockNumber",

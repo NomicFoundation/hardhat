@@ -27,7 +27,7 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
   hre,
 ) => {
   const network =
-    hre.globalOptions.network !== ""
+    hre.globalOptions.network !== undefined
       ? hre.globalOptions.network
       : hre.config.defaultNetwork;
 
@@ -49,7 +49,7 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
   // as much as needed.
   const networkConfigOverride: EdrNetworkConfigOverride = {};
 
-  if (args.chainType !== "") {
+  if (args.chainType !== undefined) {
     if (!isEdrSupportedChainType(args.chainType)) {
       // NOTE: We could make the error more specific here.
       throw new HardhatError(
@@ -69,7 +69,7 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
   }
 
   // NOTE: --fork-block-number is only valid if --fork is specified
-  if (args.fork !== "") {
+  if (args.fork !== undefined) {
     networkConfigOverride.forking = {
       enabled: true,
       url: args.fork,
@@ -104,7 +104,7 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
   // the default hostname is "127.0.0.1" unless we are inside a docker
   // container, in that case we use "0.0.0.0"
   let hostname = args.hostname;
-  if (hostname === "") {
+  if (hostname === undefined) {
     const insideDocker = await exists("/.dockerenv");
     if (insideDocker) {
       hostname = "0.0.0.0";

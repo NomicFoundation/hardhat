@@ -135,7 +135,7 @@ async function getVersion(
       encoding: "utf8",
     });
     return semver.parse(versionString) ?? undefined;
-  } catch (e) {
+  } catch (_error) {
     return undefined;
   }
 }
@@ -154,7 +154,7 @@ async function getFromConfig(
       cwd: workspace,
       encoding: "utf8",
     });
-  } catch (e) {
+  } catch (_error) {
     return undefined;
   }
 }

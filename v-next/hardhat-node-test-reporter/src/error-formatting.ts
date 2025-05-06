@@ -243,6 +243,10 @@ function getErrorDiff(error: Error): string | undefined {
     return undefined;
   }
 
+  if (typeof error.expected !== typeof error.actual) {
+    return undefined;
+  }
+
   return getDiff(error.expected, error.actual) ?? undefined;
 }
 

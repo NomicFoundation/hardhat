@@ -27,6 +27,7 @@ import type {
   StaticCallExecutionStateCompleteEvent,
   StaticCallExecutionStateInitializeEvent,
   TransactionConfirmEvent,
+  TransactionPrepareSendEvent,
   TransactionSendEvent,
   WipeApplyEvent,
 } from "@nomicfoundation/ignition-core";
@@ -202,6 +203,12 @@ export class VerboseEventHandler implements ExecutionEventListener {
     } else {
       console.log(`New static call requested for future ${event.futureId}`);
     }
+  }
+
+  public transactionPrepareSend(event: TransactionPrepareSendEvent): void {
+    console.log(
+      `Transaction about to be sent for onchain interaction of future ${event.futureId}`,
+    );
   }
 
   public transactionSend(event: TransactionSendEvent): void {

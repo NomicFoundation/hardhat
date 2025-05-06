@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/no-extraneous-dependencies -- this dependency is used to generate the build output
 import {
   type Future,
   FutureType,

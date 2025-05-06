@@ -17,5 +17,6 @@ export * from "./types/provider.js";
 export * from "./types/serialization.js";
 export * from "./types/status.js";
 export * from "./types/verify.js";
+export { trackTransaction } from "./track-transaction.js";
 export { getVerificationInformation } from "./verify.js";
 export { wipe } from "./wipe.js";

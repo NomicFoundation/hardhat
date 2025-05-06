@@ -122,6 +122,8 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
     //  On top of that, AppleSillicon with Rosetta2 makes things even more
     //  complicated, as it allows x86 binaries to run on ARM, not on MacOS but
     //  on Linux Docker containers too!
+
+    // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- Ignore other platforms
     switch (os.platform()) {
       case "win32":
         return CompilerPlatform.WINDOWS;

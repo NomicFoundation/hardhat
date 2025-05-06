@@ -1,4 +1,3 @@
-/* eslint-disable no-restricted-syntax */
 import type {
   UiBatches,
   UiFuture,
@@ -40,6 +39,7 @@ import type {
   StaticCallExecutionStateCompleteEvent,
   StaticCallExecutionStateInitializeEvent,
   TransactionConfirmEvent,
+  TransactionPrepareSendEvent,
   TransactionSendEvent,
   WipeApplyEvent,
 } from "@nomicfoundation/ignition-core";
@@ -258,6 +258,8 @@ export class PrettyEventHandler implements ExecutionEventListener {
   public networkInteractionRequest(
     _event: NetworkInteractionRequestEvent,
   ): void {}
+
+  public transactionPrepareSend(_event: TransactionPrepareSendEvent): void {}
 
   public transactionSend(_event: TransactionSendEvent): void {}
 

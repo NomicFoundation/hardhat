@@ -37,7 +37,7 @@ import {
   task,
 } from "../../../src/internal/core/config.js";
 import { resetGlobalHardhatRuntimeEnvironment } from "../../../src/internal/global-hre-instance.js";
-import { createHardhatRuntimeEnvironment } from "../../../src/internal/hre-intialization.js";
+import { createHardhatRuntimeEnvironment } from "../../../src/internal/hre-initialization.js";
 import { getHardhatVersion } from "../../../src/internal/utils/package.js";
 import { ArgumentType } from "../../../src/types/arguments.js";
 

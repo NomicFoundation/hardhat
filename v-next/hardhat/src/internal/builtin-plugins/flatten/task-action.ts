@@ -6,6 +6,7 @@ import chalk from "chalk";
 
 import { getHardhatVersion } from "../../utils/package.js";
 import { buildDependencyGraph } from "../solidity/build-system/dependency-graph-building.js";
+import { readSourceFileFactory } from "../solidity/build-system/read-source-file.js";
 import { isNpmRootPath } from "../solidity/build-system/root-paths-utils.js";
 
 // Match every group where a SPDX license is defined. The first captured group is the license.
@@ -37,7 +38,7 @@ export interface FlattenMetadata {
 
 const flattenAction: NewTaskActionFunction<FlattenActionArguments> = async (
   { files, logFunction, warnFunction },
-  { solidity, config },
+  { solidity, config, hooks },
 ): Promise<FlattenActionResult> => {
   const log = logFunction ?? console.log;
   const warn = warnFunction ?? console.warn;
@@ -59,6 +60,7 @@ const flattenAction: NewTaskActionFunction<FlattenActionArguments> = async (
     rootPaths.toSorted(), // We sort them to have a deterministic order
     config.paths.root,
     config.solidity.remappings,
+    readSourceFileFactory(hooks),
   );
 
   let flattened = "";

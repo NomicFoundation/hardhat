@@ -272,7 +272,7 @@ function deepEqualComparator(a: any, b: any): boolean | null {
     const normalizedA = toBigInt(a);
     const normalizedB = toBigInt(b);
     return normalizedA === normalizedB;
-  } catch (e) {
+  } catch (_error) {
     // use default comparator
     return null;
   }

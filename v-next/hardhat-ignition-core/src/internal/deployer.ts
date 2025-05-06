@@ -1,12 +1,5 @@
 import type { DeploymentLoader } from "./deployment-loader/types.js";
 import type { JsonRpcClient } from "./execution/jsonrpc-client.js";
-import type { DeploymentState } from "./execution/types/deployment-state.js";
-import type {
-  ContractAtExecutionState,
-  DeploymentExecutionState,
-  ExecutionState,
-} from "./execution/types/execution-state.js";
-import type { ExecutionStrategy } from "./execution/types/execution-strategy.js";
 import type { ArtifactResolver } from "../types/artifact.js";
 import type {
   DeployConfig,
@@ -18,6 +11,13 @@ import type {
 } from "../types/deploy.js";
 import type { ExecutionEventListener } from "../types/execution-events.js";
 import type { IgnitionModule, IgnitionModuleResult } from "../types/module.js";
+import type { DeploymentState } from "./execution/types/deployment-state.js";
+import type {
+  ContractAtExecutionState,
+  DeploymentExecutionState,
+  ExecutionState,
+} from "./execution/types/execution-state.js";
+import type { ExecutionStrategy } from "./execution/types/execution-strategy.js";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 

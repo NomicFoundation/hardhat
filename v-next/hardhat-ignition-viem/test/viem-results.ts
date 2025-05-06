@@ -26,7 +26,7 @@ describe("viem results", () => {
 
     assert.notEqual(result.foo, undefined);
 
-    // @ts-expect-error
+    // @ts-expect-error -- Expect an error
     assert.equal(result.nonexistant, undefined);
   });
 
