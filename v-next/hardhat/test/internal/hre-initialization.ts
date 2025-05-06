@@ -244,7 +244,7 @@ describe("HRE initialization", () => {
         const configPath = await getRealPath("hardhat.config.ts");
 
         assert.deepEqual(hre.globalOptions, {
-          buildProfile: "default",
+          buildProfile: undefined,
           config: configPath,
           coverage: false,
           help: false,

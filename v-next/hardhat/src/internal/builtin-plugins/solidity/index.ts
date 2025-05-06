@@ -32,8 +32,7 @@ const hardhatPlugin: HardhatPlugin = {
       .addOption({
         name: "defaultBuildProfile",
         description: "The default build profile to use",
-        type: ArgumentType.STRING_WITHOUT_DEFAULT,
-        defaultValue: undefined,
+        defaultValue: "default",
       })
       .addVariadicArgument({
         name: "files",
@@ -47,7 +46,8 @@ const hardhatPlugin: HardhatPlugin = {
     globalOption({
       name: "buildProfile",
       description: "The build profile to use",
-      defaultValue: "default",
+      type: ArgumentType.STRING_WITHOUT_DEFAULT,
+      defaultValue: undefined,
     }),
   ],
   npmPackage: "hardhat",

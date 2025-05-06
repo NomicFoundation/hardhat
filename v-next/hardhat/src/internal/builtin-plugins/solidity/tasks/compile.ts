@@ -27,10 +27,7 @@ const compileAction: NewTaskActionFunction<CompileActionArguments> = async (
           return resolveFromRoot(process.cwd(), file);
         });
 
-  const buildProfile =
-    globalOptions.buildProfile === "default"
-      ? defaultBuildProfile ?? globalOptions.buildProfile
-      : globalOptions.buildProfile;
+  const buildProfile = globalOptions.buildProfile ?? defaultBuildProfile;
 
   const results = await solidity.build(rootPaths, {
     force,
