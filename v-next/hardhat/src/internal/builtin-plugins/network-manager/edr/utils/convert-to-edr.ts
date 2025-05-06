@@ -2,7 +2,7 @@
 import type {
   EdrNetworkAccountConfig,
   EdrNetworkAccountsConfig,
-  EdrNetworkChainsConfig,
+  ChainDescriptorsConfig,
   EdrNetworkForkingConfig,
   EdrNetworkMempoolConfig,
   EdrNetworkMiningConfig,
@@ -277,30 +277,34 @@ export async function normalizeEdrNetworkAccountsConfig(
   }));
 }
 
-export function hardhatChainsToEdrChains(
-  chains: EdrNetworkChainsConfig,
+export function hardhatChainDescriptorsToEdrChains(
+  chainDescriptors: ChainDescriptorsConfig,
   chainType: ChainType,
 ): ChainConfig[] {
   return (
-    Array.from(chains)
-      // Skip chains that don't match the expected chain type
-      .filter(([_, config]) => {
+    Array.from(chainDescriptors)
+      // Skip chain descriptors that don't match the expected chain type
+      .filter(([_, descriptor]) => {
         if (chainType === GENERIC_CHAIN_TYPE) {
           // When "generic" is requested, include both "generic" and "l1" chains
           return (
-            config.chainType === GENERIC_CHAIN_TYPE ||
-            config.chainType === L1_CHAIN_TYPE
+            descriptor.chainType === GENERIC_CHAIN_TYPE ||
+            descriptor.chainType === L1_CHAIN_TYPE
           );
         }
 
-        return config.chainType === chainType;
+        return descriptor.chainType === chainType;
       })
-      .map(([chainId, config]) => ({
-        chainId: BigInt(chainId),
-        hardforks: Array.from(config.hardforkHistory).map(
-          ([hardfork, blockNumber]) => ({
-            blockNumber: BigInt(blockNumber),
-            specId: hardhatHardforkToEdrSpecId(hardfork, config.chainType),
+      .map(([chainId, descriptor]) => ({
+        chainId,
+        hardforks: Array.from(descriptor.hardforkHistory ?? new Map()).map(
+          ([hardfork, { blockNumber, timestamp }]) => ({
+            specId: hardhatHardforkToEdrSpecId(hardfork, descriptor.chainType),
+            ...(blockNumber !== undefined
+              ? { blockNumber: BigInt(blockNumber) }
+              : // { timestamp: BigInt(timestamp) }),
+                // TODO: remplace this line with the one above when EDR supports it
+                { blockNumber: BigInt(timestamp) }),
           }),
         ),
       }))
