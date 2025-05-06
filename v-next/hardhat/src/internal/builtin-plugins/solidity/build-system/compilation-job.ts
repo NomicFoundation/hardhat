@@ -12,7 +12,6 @@ import { createNonCryptographicHashId } from "@nomicfoundation/hardhat-utils/cry
 import { deepClone } from "@nomicfoundation/hardhat-utils/lang";
 
 import {
-  ResolvedFileType,
   type ResolvedFile,
 } from "../../../../types/solidity.js";
 
@@ -34,7 +33,6 @@ export class CompilationJobImplementation implements CompilationJob {
   #solcInput: CompilerInput | undefined;
   #solcInputWithoutSources: Omit<CompilerInput, "sources"> | undefined;
   #resolvedFiles: ResolvedFile[] | undefined;
-  #roots: Set<string> | undefined;
 
   constructor(
     dependencyGraph: DependencyGraphImplementation,
@@ -86,30 +84,7 @@ export class CompilationJobImplementation implements CompilationJob {
     return this.#resolvedFiles;
   }
 
-  #getRoots(): Set<string> {
-    if (this.#roots === undefined) {
-      this.#roots = new Set(
-        [...this.dependencyGraph.getRoots().values()].map(
-          (root) => root.sourceName,
-        ),
-      );
-    }
-
-    return this.#roots;
-  }
-
-  #isRootProjectFile(file: ResolvedFile): boolean {
-    return (
-      file.type === ResolvedFileType.PROJECT_FILE &&
-      this.#getRoots().has(file.sourceName)
-    );
-  }
-
   async #getFileContent(file: ResolvedFile): Promise<string> {
-    if (!this.#isRootProjectFile(file)) {
-      return file.content.text;
-    }
-
     if (this.#fileContents[file.sourceName] === undefined) {
       const solcVersion = this.solcConfig.version;
       this.#fileContents[file.sourceName] = await this.#hooks.runHandlerChain(
@@ -147,10 +122,6 @@ export class CompilationJobImplementation implements CompilationJob {
   }
 
   async #getFileContentHash(file: ResolvedFile): Promise<string> {
-    if (!this.#isRootProjectFile(file)) {
-      return file.getContentHash();
-    }
-
     if (this.#fileContentHashes[file.sourceName] === undefined) {
       const fileContent = await this.#getFileContent(file);
       this.#fileContentHashes[file.sourceName] =
