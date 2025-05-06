@@ -2,4 +2,4 @@
 "hardhat": patch
 ---
 
-Move the chains config to the top level of the network config, rename it to chainDescriptors, and refactor it to include blockExplorers and name.
+Rename chains config in network config to chainDescriptors and add extra information including name and blocker explorer ([#6612](https://github.com/NomicFoundation/hardhat/issues/6612))
