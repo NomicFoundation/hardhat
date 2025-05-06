@@ -47,8 +47,6 @@ async function versionAlpha() {
   const hardhatVersion = await readHardhatVersion();
 
   await updateHardhatChangelog(hardhatVersion, changesets);
-
-  printFollowupInstructions(hardhatVersion, changesets);
 }
 
 /**
@@ -164,15 +162,6 @@ async function updateHardhatChangelog(hardhatVersion, changesets) {
   await writeFile(hardhatChangelogPath, newChangelog);
 }
 
-function printFollowupInstructions(hardhatVersion, changesets) {
-  console.log(`
-
-# ${hardhatVersion}
-
-${generateReleaseMessage(changesets)}
-`);
-}
-
 function generateChangelogFrom(hardhatVersion, changesets) {
   return `# hardhat
 
@@ -181,19 +170,6 @@ function generateChangelogFrom(hardhatVersion, changesets) {
 ### Patch Changes
 
 ${generateChangesTextFrom(changesets)}
-`;
-}
-
-function generateReleaseMessage(changesets) {
-  return `This Hardhat 3 Alpha release [short summary of the changes].
-
-### Changes
-
-${generateChangesTextFrom(changesets)}
-
----
-> 💡 **The Nomic Foundation is hiring! Check [our open positions](https://www.nomic.foundation/jobs).**
----
 `;
 }
 

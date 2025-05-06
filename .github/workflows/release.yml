@@ -37,7 +37,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         uses: changesets/action@v1
         with:
-          version: pnpm run version
+          version: node scripts/version-alpha.mjs
 
       - name: Build All Packages
         if: steps.pr.outputs.hasChangesets == 'false'
@@ -60,144 +60,25 @@ jobs:
           pnpm publish --filter "./v-next/**" -r --no-git-checks --tag next --access public | tee -a $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Check if hardhat was published
-        id: hardhat
+      - name: Prepare GitHub release
+        id: release
         if: steps.pr.outputs.hasChangesets == 'false'
         env:
-          STDOUT: ${{ steps.publish.outputs.stdout }}
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const lines = process.env.STDOUT.split('\n')
-
-            core.info('Checking if Hardhat was published')
-
-            const line = lines.find(line => line.startsWith('+ hardhat@'))
-
-            if (line === undefined) {
-              core.info('Hardhat was not published')
-              core.setOutput('version', '')
-              process.exit(0)
-            }
-
-            const version = line.split('@')[1]
-            core.info(`Hardhat was published with version ${version}`)
-            core.setOutput('version', version)
-
-      - name: Check the version of the published package
-        id: version
-        if: steps.hardhat.outputs.version != ''
-        env:
-          VERSION: ${{ steps.hardhat.outputs.version }}
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const version = process.env.VERSION
-
-            core.info('Checking if Hardhat was published as a prerelease')
-
-            // NOTE: This check would mark non-prerelease versions with - in the build tag as prereleases
-            const prerelease = version.includes('-')
-            if (prerelease) {
-              core.info('Hardhat was published as a prerelease')
-              core.setOutput('prerelease', true)
-            } else {
-              core.info('Hardhat was not published as a prerelease')
-              core.setOutput('prerelease', false)
-            }
-
-            core.info('Checking if this is the latest version')
-
-            if (prerelease) {
-              core.info('This is a prerelease, so this is not the latest version')
-              core.setOutput('latest', false)
-              process.exit(0)
-            }
-
-            try {
-              const { data: release } = await github.rest.repos.getLatestRelease(context.repo)
-
-              const latestVersion = release.tag_name.split('@')[1]
-              core.info(`Current latest version is ${latestVersion}`)
-
-              const [major, minor, patch] = version.split('.')
-              const [latestMajor, latestMinor, latestPatch] = latestVersion.split('.')
-
-              if (parseInt(major, 10) > parseInt(latestMajor, 10) ||
-                  parseInt(minor, 10) > parseInt(latestMinor, 10) ||
-                  parseInt(patch, 10) > parseInt(latestPatch, 10)) {
-                core.info('This is a new latest version')
-                core.setOutput('latest', true)
-              } else {
-                core.info('This is not a new latest version')
-                core.setOutput('latest', false)
-              }
-            } catch (error) {
-              if (error.status === 404) {
-                core.info('No existing latest release found, so this is the latest version')
-                core.setOutput('latest', true)
-                process.exit(0)
-              }
-              throw error
-            }
-
-      - name: Find the relevant changelog entry
-        id: changelog
-        if: steps.hardhat.outputs.version != ''
-        env:
-          VERSION: ${{ steps.hardhat.outputs.version }}
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const fs = require('fs')
-
-            const changelog = fs.readFileSync('./v-next/hardhat/CHANGELOG.md').toString()
-            core.debug(`Changelog: ${changelog}`)
-
-            core.info('Parsing changelog...')
-            const lines = changelog.split('\n')
-            const headerIndex = lines.findIndex((line) => line == `## ${process.env.VERSION}`)
-
-            if (headerIndex == -1) {
-              core.error(`Changelog entry for version ${process.env.VERSION} not found in ./v-next/hardhat/CHANGELOG.md`)
-              process.exit(1)
-            }
-
-            const entryLines = [];
-
-            for (const line of lines.slice(headerIndex + 1)) {
-              if (line.startsWith('## ')) {
-                break
-              }
-              entryLines.push(line)
-            }
-
-            const entry = entryLines.join('\n').trim()
-
-            core.debug(`Entry: ${entry}`)
-            core.setOutput('entry', entry)
+          STEPS_PUBLISH_OUTPUTS_STDOUT: ${{ steps.publish.outputs.stdout }}
+        run: node scripts/prepare-github-release.mjs
 
       - name: Create GitHub Release
-        if: steps.hardhat.outputs.version != ''
+        if: steps.release.outputs.published == 'true'
         env:
           GITHUB_TOKEN: ${{ github.token }}
         # NOTE: The action updates the release if it already exists
         uses: galargh/action-gh-release@571276229e7c9e6ea18f99bad24122a4c3ec813f # https://github.com/galargh/action-gh-release/pull/1
         with:
           draft: false
-          tag_name: hardhat@${{ steps.hardhat.outputs.version }}
+          tag_name: hardhat@${{ steps.release.outputs.version }}
           generate_release_notes: false
           target_commitish: ${{ github.sha }}
-          make_latest: ${{ steps.version.outputs.latest == 'true' }}
-          prerelease: ${{ steps.version.outputs.prerelease == 'true' }}
-          body: |
-            # ${{ steps.hardhat.outputs.version }}
-
-            ## Changes
-
-            ${{ steps.changelog.outputs.entry }}
-
-            ---
-            > 💡 **The Nomic Foundation is hiring! Check [our open positions](https://www.nomic.foundation/jobs).**
-            ---
+          make_latest: ${{ steps.release.outputs.latest == 'true' }}
+          prerelease: ${{ steps.release.outputs.prerelease == 'true' }}
+          body: ${{ steps.release.outputs.body }}
           token: ${{ github.token }}
