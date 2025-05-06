@@ -253,7 +253,7 @@ describe("HRE initialization", () => {
           verbose: false,
           version: false,
           myGlobalOption: "default",
-          network: "",
+          network: undefined,
         });
       });
     });

@@ -19,7 +19,7 @@ describe("JSON-RPC handler", function () {
 
   it("should respond to a request with undefined params", async function () {
     const hostname = (await exists("/.dockerenv")) ? "0.0.0.0" : "127.0.0.1";
-    const port = 8545;
+    const port = 8546;
 
     const connection = await hre.network.connect();
     const server = new JsonRpcServerImplementation({

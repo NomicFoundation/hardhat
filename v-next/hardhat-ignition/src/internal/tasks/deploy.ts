@@ -177,8 +177,7 @@ const taskDeploy: NewTaskActionFunction<TaskDeployArguments> = async (
   }
 
   let parameters: DeploymentParameters | undefined;
-  // TODO: HH3 Remove the use of "" as a default value
-  if (parametersInput === undefined || parametersInput === "") {
+  if (parametersInput === undefined) {
     parameters = await resolveParametersFromModuleName(
       userModule.id,
       hre.config.paths.ignition,
