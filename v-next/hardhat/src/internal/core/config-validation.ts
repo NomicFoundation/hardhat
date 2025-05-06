@@ -377,6 +377,7 @@ export function validateOptions(
 
     if (
       option.type !== ArgumentType.STRING_WITHOUT_DEFAULT &&
+      option.type !== ArgumentType.FILE_WITHOUT_DEFAULT &&
       option.defaultValue === undefined
     ) {
       validationErrors.push({
@@ -395,6 +396,7 @@ export function validateOptions(
           }
           break;
         }
+        case ArgumentType.FILE_WITHOUT_DEFAULT:
         case ArgumentType.STRING_WITHOUT_DEFAULT: {
           if (
             typeof option.defaultValue !== "string" &&
@@ -473,6 +475,7 @@ export function validatePositionalArguments(
     if (arg.defaultValue !== undefined) {
       switch (arg.type) {
         case ArgumentType.STRING_WITHOUT_DEFAULT:
+        case ArgumentType.FILE_WITHOUT_DEFAULT:
         case ArgumentType.STRING:
         case ArgumentType.FILE: {
           if (

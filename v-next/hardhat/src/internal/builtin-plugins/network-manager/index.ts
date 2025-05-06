@@ -1,5 +1,6 @@
 import type { HardhatPlugin } from "../../../types/plugins.js";
 
+import { ArgumentType } from "../../../types/arguments.js";
 import { globalOption } from "../../core/config.js";
 
 import "./type-extensions/config.js";
@@ -18,6 +19,7 @@ const hardhatPlugin: HardhatPlugin = {
     globalOption({
       name: "network",
       description: "The network to connect to",
+      type: ArgumentType.STRING_WITHOUT_DEFAULT,
       defaultValue: undefined,
     }),
   ],

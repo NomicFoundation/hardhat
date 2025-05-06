@@ -26,10 +26,10 @@ const hardhatIgnitionPlugin: HardhatPlugin = {
       })
       .addOption({
         name: "parameters",
-        type: ArgumentType.FILE,
+        type: ArgumentType.FILE_WITHOUT_DEFAULT,
         description:
           "A relative path to a JSON file to use for the module parameters",
-        defaultValue: "", // TODO: should this also be STRING_WITHOUT_DEFAULT?
+        defaultValue: undefined,
       })
       .addOption({
         name: "deploymentId",

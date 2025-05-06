@@ -9,6 +9,7 @@ export enum ArgumentType {
   FLOAT = "FLOAT",
   FILE = "FILE",
   STRING_WITHOUT_DEFAULT = "STRING_WITHOUT_DEFAULT",
+  FILE_WITHOUT_DEFAULT = "FILE_WITHOUT_DEFAULT",
 }
 
 /**
@@ -22,6 +23,7 @@ export interface ArgumentValueTypes {
   [ArgumentType.FLOAT]: number;
   [ArgumentType.FILE]: string;
   [ArgumentType.STRING_WITHOUT_DEFAULT]: string | undefined;
+  [ArgumentType.FILE_WITHOUT_DEFAULT]: string | undefined;
 }
 
 /**

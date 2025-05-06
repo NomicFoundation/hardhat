@@ -122,7 +122,7 @@ function getDefaultValueString(
     if (defaultValue.length === 0) {
       return "";
     } else {
-      return ` (default: ${defaultValue.join(", ")})`;
+      return ` (default: ${JSON.stringify(defaultValue)})`;
     }
   }
 

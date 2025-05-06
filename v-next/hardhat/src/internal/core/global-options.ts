@@ -69,7 +69,9 @@ export function buildGlobalOptionDefinitions(
  * Builds a global option definition, validating the name, type, and default
  * value.
  */
-export function buildGlobalOptionDefinition<T extends ArgumentType>({
+export function buildGlobalOptionDefinition<
+  T extends ArgumentType = ArgumentType.STRING,
+>({
   name,
   description,
   type,
@@ -80,7 +82,7 @@ export function buildGlobalOptionDefinition<T extends ArgumentType>({
   type?: T;
   defaultValue: ArgumentTypeToValueType<T>;
 }): OptionDefinition {
-  const argumentType = type ?? ArgumentType.STRING_WITHOUT_DEFAULT;
+  const argumentType = type ?? ArgumentType.STRING;
 
   validateArgumentName(name);
 
