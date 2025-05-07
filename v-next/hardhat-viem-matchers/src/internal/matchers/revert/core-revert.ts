@@ -15,7 +15,8 @@ export async function handleRevert(promise: Promise<unknown>): Promise<string> {
 
     const { args } = decodeErrorResult({ data });
 
-    return args.map(String).join(", ");
+    // In the case of default ETH errors, the array contains only a single element
+    return String(args[0]);
   }
 
   assert.fail("The function was expected to revert, but it did not.");
