@@ -64,6 +64,10 @@ async function prepareGitHubRelease() {
 
   const hardhat = await readPackage("hardhat");
 
+  const version = hardhat.version;
+  console.log(`version: ${version}`);
+  await appendFile(process.env.GITHUB_OUTPUT, `version=${version}\n`);
+
   const prerelease = isPrerelease(hardhat.version);
   console.log(`prerelease: ${prerelease}`);
   await appendFile(process.env.GITHUB_OUTPUT, `prerelease=${prerelease}\n`);
