@@ -263,16 +263,16 @@ export class LocalAccountsProvider extends ProviderWrapperWithChainId {
       gasLimit: transactionRequest.gas,
     };
 
-    const accessList = txData.accessList?.map(({ address, storageKeys }) => {
+    const accessList = txData.accessList?.map(({ address, storageKeys }: { address: any; storageKeys: any[] | null }) => {
       return {
         address: addr.addChecksum(bytesToHex(address)),
         storageKeys:
-          storageKeys !== null ? storageKeys.map((k) => bytesToHex(k)) : [],
+          storageKeys !== null ? storageKeys.map((k: any) => bytesToHex(k)) : [],
       };
     });
 
     const authorizationList = txData.authorizationList?.map(
-      ({ chainId: authChainId, address, nonce, yParity, r, s }) => {
+      ({ chainId: authChainId, address, nonce, yParity, r, s }: any) => {
         return {
           chainId: authChainId,
           address: addr.addChecksum(bytesToHex(address)),
@@ -392,6 +392,9 @@ abstract class SenderProvider extends ProviderWrapper {
   public async request(args: RequestArguments): Promise<unknown> {
     const method = args.method;
     const params = this._getParams(args);
+    console.log( // LOGGING
+      `[SenderProvider.request] Method: ${method}, Params: ${JSON.stringify(params)}`
+    ); // LOGGING
 
     if (
       method === "eth_sendTransaction" ||
@@ -400,15 +403,25 @@ abstract class SenderProvider extends ProviderWrapper {
     ) {
       // TODO: Should we validate this type?
       const tx: JsonRpcTransactionData = params[0];
+      console.log(`[SenderProvider.request] Matched method ${method}. Tx: ${JSON.stringify(tx)}`); // LOGGING
 
       if (tx !== undefined && tx.from === undefined) {
+        console.log(`[SenderProvider.request] 'from' is undefined for method '${method}'. Attempting to get sender.`); // LOGGING
         const senderAccount = await this._getSender();
+        console.log(`[SenderProvider.request] Obtained sender: ${senderAccount} for method '${method}'`); // LOGGING
 
         if (senderAccount !== undefined) {
           tx.from = senderAccount;
         } else if (method === "eth_sendTransaction") {
+          console.error(`[SenderProvider.request] No sender account available for eth_sendTransaction.`); // LOGGING
           throw new HardhatError(ERRORS.NETWORK.NO_REMOTE_ACCOUNT_AVAILABLE);
+        } else { // LOGGING
+            console.log(`[SenderProvider.request] No sender account found for ${method}, but not throwing as it's not eth_sendTransaction.`); // LOGGING
         }
+      } else if (tx !== undefined) { // LOGGING
+        console.log(`[SenderProvider.request] 'from' is defined: ${tx.from} for method '${method}'.`); // LOGGING
+      } else { // LOGGING
+        console.log(`[SenderProvider.request] Transaction object 'tx' is undefined for method '${method}'.`); // LOGGING
       }
     }
 
@@ -422,15 +435,38 @@ export class AutomaticSenderProvider extends SenderProvider {
   private _firstAccount: string | undefined;
 
   protected async _getSender(): Promise<string | undefined> {
-    if (this._firstAccount === undefined) {
-      const accounts = (await this._wrappedProvider.request({
-        method: "eth_accounts",
-      })) as string[];
-
-      this._firstAccount = accounts[0];
+    console.log("[AutomaticSenderProvider._getSender] Entered _getSender."); // LOGGING
+    if (this._firstAccount !== undefined) {
+      console.log( // LOGGING
+        `[AutomaticSenderProvider._getSender] Using cached address: ${this._firstAccount}`
+      ); // LOGGING
+      return this._firstAccount;
     }
 
-    return this._firstAccount;
+    console.log( // LOGGING
+      "[AutomaticSenderProvider._getSender] No cached address. Attempting to call eth_accounts."
+    ); // LOGGING
+    const accounts = (await this._wrappedProvider.request({
+      method: "eth_accounts",
+    })) as string[];
+    console.log( // LOGGING
+      `[AutomaticSenderProvider._getSender] eth_accounts returned: ${JSON.stringify(
+        accounts
+      )}`
+    ); // LOGGING
+
+    if (Array.isArray(accounts) && accounts.length > 0) {
+      this._firstAccount = accounts[0];
+      console.log( // LOGGING
+        `[AutomaticSenderProvider._getSender] Setting address to: ${this._firstAccount}`
+      ); // LOGGING
+      return this._firstAccount;
+    }
+
+    console.warn( // LOGGING
+      "[AutomaticSenderProvider._getSender] eth_accounts returned no accounts or invalid response. Returning undefined."
+    ); // LOGGING
+    return undefined;
   }
 }
 
