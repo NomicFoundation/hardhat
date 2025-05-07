@@ -1,8 +1,8 @@
 ---
-"@nomicfoundation/hardhat-ethers-chai-matchers": major
-"@nomicfoundation/hardhat-network-helpers": major
-"@nomicfoundation/hardhat-viem": major
-"hardhat": major
+"@nomicfoundation/hardhat-ethers-chai-matchers": patch
+"@nomicfoundation/hardhat-network-helpers": patch
+"@nomicfoundation/hardhat-viem": patch
+"hardhat": patch
 ---
 
 Update `network.connect` to take a params object ([#6672](https://github.com/NomicFoundation/hardhat/issues/6672))
