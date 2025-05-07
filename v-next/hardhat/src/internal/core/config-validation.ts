@@ -375,7 +375,11 @@ export function validateOptions(
       });
     }
 
-    if (option.defaultValue === undefined) {
+    if (
+      option.type !== ArgumentType.STRING_WITHOUT_DEFAULT &&
+      option.type !== ArgumentType.FILE_WITHOUT_DEFAULT &&
+      option.defaultValue === undefined
+    ) {
       validationErrors.push({
         path: [...path, name, "defaultValue"],
         message: "option defaultValue must be defined",
@@ -388,6 +392,19 @@ export function validateOptions(
             validationErrors.push({
               path: [...path, name, "defaultValue"],
               message: "option defaultValue must be a string",
+            });
+          }
+          break;
+        }
+        case ArgumentType.FILE_WITHOUT_DEFAULT:
+        case ArgumentType.STRING_WITHOUT_DEFAULT: {
+          if (
+            typeof option.defaultValue !== "string" &&
+            option.defaultValue !== undefined
+          ) {
+            validationErrors.push({
+              path: [...path, name, "defaultValue"],
+              message: "option defaultValue must be a string or undefined",
             });
           }
           break;
@@ -457,6 +474,8 @@ export function validatePositionalArguments(
 
     if (arg.defaultValue !== undefined) {
       switch (arg.type) {
+        case ArgumentType.STRING_WITHOUT_DEFAULT:
+        case ArgumentType.FILE_WITHOUT_DEFAULT:
         case ArgumentType.STRING:
         case ArgumentType.FILE: {
           if (

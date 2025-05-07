@@ -180,7 +180,7 @@ jobs:
             echo '' | tee -a $GITHUB_OUTPUT
           done
           echo 'EOF' >> $GITHUB_OUTPUT
-      - if: github.event_name == 'pull_request' && steps.download.outputs.count != '0'
+      - if: github.event_name == 'pull_request' && github.repository == github.event.pull_request.head.repo.full_name && steps.download.outputs.count != '0'
         uses: marocchino/sticky-pull-request-comment@331f8f5b4215f0445d3c07b4967662a32a2d3e31 # v2.9.0
         with:
           header: bundle

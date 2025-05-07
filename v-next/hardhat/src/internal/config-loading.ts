@@ -32,10 +32,8 @@ const compiledConfigFile = new Map<string, any>();
 export async function resolveHardhatConfigPath(
   userProvidedPath?: string,
 ): Promise<string> {
-  const configPath = userProvidedPath ?? process.env.HARDHAT_CONFIG;
-
-  if (configPath !== undefined) {
-    return normalizeConfigPath(configPath);
+  if (userProvidedPath !== undefined) {
+    return normalizeConfigPath(userProvidedPath);
   }
 
   if (process.env.HARDHAT_CONFIG !== undefined) {
