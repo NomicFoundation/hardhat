@@ -69,41 +69,47 @@ export class CompilationJobImplementation implements CompilationJob {
   }
 
   async #getFileContent(file: ResolvedFile): Promise<string> {
-    if (file.type === ResolvedFileType.NPM_PACKAGE_FILE) {
-      return file.content.text;
+    switch (file.type) {
+      case ResolvedFileType.NPM_PACKAGE_FILE:
+        return file.content.text;
+      case ResolvedFileType.PROJECT_FILE:
+        const solcVersion = this.solcConfig.version;
+        return this.#hooks.runHandlerChain(
+          "solidity",
+          "preprocessProjectFileBeforeBuilding",
+          [file.sourceName, file.content.text, this.solcConfig.version],
+          async (
+            _context,
+            nextSourceName,
+            nextFileContent,
+            nextSolcVersion,
+          ) => {
+            if (file.sourceName !== nextSourceName) {
+              throw new HardhatError(
+                HardhatError.ERRORS.CORE.HOOKS.UNEXPECTED_HOOK_PARAM_MODIFICATION,
+                {
+                  hookCategoryName: "solidity",
+                  hookName: "preprocessProjectFileBeforeBuilding",
+                  paramName: "sourceName",
+                },
+              );
+            }
+
+            if (solcVersion !== nextSolcVersion) {
+              throw new HardhatError(
+                HardhatError.ERRORS.CORE.HOOKS.UNEXPECTED_HOOK_PARAM_MODIFICATION,
+                {
+                  hookCategoryName: "solidity",
+                  hookName: "preprocessProjectFileBeforeBuilding",
+                  paramName: "solcVersion",
+                },
+              );
+            }
+
+            return nextFileContent;
+          },
+        );
     }
-
-    const solcVersion = this.solcConfig.version;
-    return this.#hooks.runHandlerChain(
-      "solidity",
-      "preprocessProjectFileBeforeBuilding",
-      [file.sourceName, file.content.text, solcVersion],
-      async (_context, nextSourceName, nextFileContent, nextSolcVersion) => {
-        if (file.sourceName !== nextSourceName) {
-          throw new HardhatError(
-            HardhatError.ERRORS.CORE.HOOKS.UNEXPECTED_HOOK_PARAM_MODIFICATION,
-            {
-              hookCategoryName: "solidity",
-              hookName: "preprocessProjectFileBeforeBuilding",
-              paramName: "sourceName",
-            },
-          );
-        }
-
-        if (solcVersion !== nextSolcVersion) {
-          throw new HardhatError(
-            HardhatError.ERRORS.CORE.HOOKS.UNEXPECTED_HOOK_PARAM_MODIFICATION,
-            {
-              hookCategoryName: "solidity",
-              hookName: "preprocessProjectFileBeforeBuilding",
-              paramName: "solcVersion",
-            },
-          );
-        }
-
-        return nextFileContent;
-      },
-    );
   }
 
   async #buildSolcInput(): Promise<CompilerInput> {
