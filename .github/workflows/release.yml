@@ -34,7 +34,7 @@ jobs:
         id: pr
         env:
           # NOTE: If we use the GITHUB_TOKEN to create the release PR, the checks will not be triggered automatically
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_GITHUB_TOKEN || github.token }}
         uses: changesets/action@v1
         with:
           version: node scripts/version-alpha.mjs
