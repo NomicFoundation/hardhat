@@ -2,13 +2,17 @@ import type {
   ContractAbis,
   ContractReturnType,
 } from "@nomicfoundation/hardhat-viem/types";
-import type { ContractEventName } from "viem";
+import type {
+  ContractEventName,
+  ReadContractReturnType,
+  WriteContractReturnType,
+} from "viem";
 
 export interface HardhatViemMatchers {
   utils: HardhatViemMatchersUtils;
 
   balancesHaveChanged: (
-    fn: GenericFunction,
+    promise: Promise<`0x${string}`>,
     changes: Array<{
       address: `0x${string}`;
       amount: bigint;
@@ -21,7 +25,7 @@ export interface HardhatViemMatchers {
       ? ContractEventName<ContractAbis[ContractName]>
       : string,
   >(
-    fn: GenericFunction,
+    promise: Promise<ReadContractReturnType | WriteContractReturnType>,
     contract: ContractReturnType<ContractName>,
     eventName: EventName,
   ): Promise<void>;
@@ -32,15 +36,20 @@ export interface HardhatViemMatchers {
       ? ContractEventName<ContractAbis[ContractName]>
       : string,
   >(
-    fn: GenericFunction,
+    promise: Promise<ReadContractReturnType | WriteContractReturnType>,
     contract: ContractReturnType<ContractName>,
     eventName: EventName,
     args: any[],
   ): Promise<void>;
 
-  revert(fn: GenericFunction): Promise<void>;
+  revert(
+    promise: Promise<ReadContractReturnType | WriteContractReturnType>,
+  ): Promise<void>;
 
-  revertWith(fn: GenericFunction, expectedReason: string): Promise<void>;
+  revertWith(
+    promise: Promise<ReadContractReturnType | WriteContractReturnType>,
+    expectedReason: string,
+  ): Promise<void>;
 }
 
 export interface HardhatViemMatchersUtils {
@@ -48,8 +57,6 @@ export interface HardhatViemMatchersUtils {
   properAddress: (address: string) => void;
   properChecksumAddress: (address: string) => Promise<void>;
 }
-
-export type GenericFunction = () => Promise<any>;
 
 type CompiledContractName = [keyof ContractAbis] extends [never]
   ? string

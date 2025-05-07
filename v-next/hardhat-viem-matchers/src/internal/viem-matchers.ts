@@ -1,5 +1,4 @@
 import type {
-  GenericFunction,
   HardhatViemMatchers,
   HardhatViemMatchersUtils,
 } from "../types.js";
@@ -9,7 +8,11 @@ import type {
   HardhatViemHelpers,
 } from "@nomicfoundation/hardhat-viem/types";
 import type { ChainType } from "hardhat/types/network";
-import type { ContractEventName } from "viem";
+import type {
+  ContractEventName,
+  ReadContractReturnType,
+  WriteContractReturnType,
+} from "viem";
 
 import { balancesHaveChanged } from "./matchers/balances-have-changed.js";
 import { emitWithArgs } from "./matchers/emit/emit-with-args.js";
@@ -32,46 +35,48 @@ export class HardhatViemMatchersImpl<
   }
 
   public async balancesHaveChanged(
-    fn: GenericFunction,
+    promise: Promise<`0x${string}`>,
     changes: Array<{
       address: `0x${string}`;
       amount: bigint;
     }>,
   ): Promise<void> {
-    return balancesHaveChanged(this.#viem, fn, changes);
+    return balancesHaveChanged(this.#viem, promise, changes);
   }
 
   public async emit<
     ContractName extends keyof ContractAbis,
     EventName extends ContractEventName<ContractAbis[ContractName]>,
   >(
-    fn: GenericFunction,
+    promise: Promise<ReadContractReturnType | WriteContractReturnType>,
     contract: ContractReturnType<ContractName>,
     eventName: EventName,
   ): Promise<void> {
-    return emit(this.#viem, fn, contract, eventName);
+    return emit(this.#viem, promise, contract, eventName);
   }
 
   public async emitWithArgs<
     ContractName extends keyof ContractAbis,
     EventName extends ContractEventName<ContractAbis[ContractName]>,
   >(
-    fn: GenericFunction,
+    promise: Promise<ReadContractReturnType | WriteContractReturnType>,
     contract: ContractReturnType<ContractName>,
     eventName: EventName,
     args: any[],
   ): Promise<void> {
-    return emitWithArgs(this.#viem, fn, contract, eventName, args);
+    return emitWithArgs(this.#viem, promise, contract, eventName, args);
   }
 
-  public async revert(fn: GenericFunction): Promise<void> {
-    return revert(fn);
+  public async revert(
+    promise: Promise<ReadContractReturnType | WriteContractReturnType>,
+  ): Promise<void> {
+    return revert(promise);
   }
 
   public async revertWith(
-    fn: GenericFunction,
+    promise: Promise<ReadContractReturnType | WriteContractReturnType>,
     expectedReason: string,
   ): Promise<void> {
-    return revertWith(fn, expectedReason);
+    return revertWith(promise, expectedReason);
   }
 }

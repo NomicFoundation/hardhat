@@ -1,11 +1,14 @@
-import type { GenericFunction } from "../../../types.js";
 import type {
   ContractAbis,
   ContractReturnType,
   HardhatViemHelpers,
 } from "@nomicfoundation/hardhat-viem/types";
 import type { ChainType } from "hardhat/types/network";
-import type { ContractEventName } from "viem";
+import type {
+  ContractEventName,
+  ReadContractReturnType,
+  WriteContractReturnType,
+} from "viem";
 
 import { handleEmit } from "./core.js";
 
@@ -15,9 +18,9 @@ export async function emit<
   ChainTypeT extends ChainType | string = "generic",
 >(
   viem: HardhatViemHelpers<ChainTypeT>,
-  fn: GenericFunction,
+  promise: Promise<ReadContractReturnType | WriteContractReturnType>,
   contract: ContractReturnType<ContractName>,
   eventName: EventName,
 ): Promise<void> {
-  await handleEmit(viem, fn, contract, eventName);
+  await handleEmit(viem, promise, contract, eventName);
 }

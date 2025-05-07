@@ -32,7 +32,7 @@ describe("balancesHaveChanged", () => {
     const contract = await viem.deployContract("Events");
 
     await viem.assertions.emit(
-      contract.write.emitWithoutArgs,
+      contract.write.emitWithoutArgs(),
       contract,
       "WithoutArgs",
     );

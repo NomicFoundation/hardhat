@@ -1,7 +1,9 @@
-import type { GenericFunction } from "../../../types.js";
+import type { ReadContractReturnType, WriteContractReturnType } from "viem";
 
 import { handleRevert } from "./core.js";
 
-export async function revert(fn: GenericFunction): Promise<void> {
-  await handleRevert(fn);
+export async function revert(
+  promise: Promise<ReadContractReturnType | WriteContractReturnType>,
+): Promise<void> {
+  await handleRevert(promise);
 }

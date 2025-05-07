@@ -34,14 +34,14 @@ describe("revert", () => {
   it("should check that the function reverts", async () => {
     const contract = await viem.deployContract("Revert");
 
-    await viem.assertions.revert(contract.read.alwaysRevert);
+    await viem.assertions.revert(contract.read.alwaysRevert());
   });
 
   it("should throw because the function does not revert", async () => {
     const contract = await viem.deployContract("Revert");
 
     await assertRejects(
-      viem.assertions.revert(contract.read.doNotRevert),
+      viem.assertions.revert(contract.read.doNotRevert()),
       (error) =>
         error.message ===
         "The function was expected to revert, but it did not.",

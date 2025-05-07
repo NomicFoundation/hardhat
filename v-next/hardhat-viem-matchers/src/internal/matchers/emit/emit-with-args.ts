@@ -1,11 +1,14 @@
-import type { GenericFunction } from "../../../types.js";
 import type {
   ContractAbis,
   ContractReturnType,
   HardhatViemHelpers,
 } from "@nomicfoundation/hardhat-viem/types";
 import type { ChainType } from "hardhat/types/network";
-import type { ContractEventName } from "viem";
+import type {
+  ContractEventName,
+  ReadContractReturnType,
+  WriteContractReturnType,
+} from "viem";
 
 import assert from "node:assert/strict";
 import { inspect } from "node:util";
@@ -21,12 +24,12 @@ export async function emitWithArgs<
   ChainTypeT extends ChainType | string = "generic",
 >(
   viem: HardhatViemHelpers<ChainTypeT>,
-  fn: GenericFunction,
+  promise: Promise<ReadContractReturnType | WriteContractReturnType>,
   contract: ContractReturnType<ContractName>,
   eventName: EventName,
   args: any[],
 ): Promise<void> {
-  const parsedLogs = await handleEmit(viem, fn, contract, eventName);
+  const parsedLogs = await handleEmit(viem, promise, contract, eventName);
 
   assert.equal(
     "args" in parsedLogs[0],
@@ -66,9 +69,7 @@ export async function emitWithArgs<
       `The event parameter at index ${index} does not have a name`,
     );
 
-    // Convert to bigint because the values in the logs are always bigInt
-    argsToCheck[param.name] =
-      typeof args[index] === "number" ? BigInt(args[index]) : args[index];
+    argsToCheck[param.name] = args[index];
   }
 
   const areEqual = await deepEqual(parsedLogs[0].args, argsToCheck);

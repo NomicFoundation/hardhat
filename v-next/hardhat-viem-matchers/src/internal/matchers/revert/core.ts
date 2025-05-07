@@ -1,5 +1,3 @@
-import type { GenericFunction } from "../../../types.js";
-
 import assert from "node:assert/strict";
 
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
@@ -7,9 +5,9 @@ import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { isPrefixedHexString } from "@nomicfoundation/hardhat-utils/hex";
 import { decodeErrorResult } from "viem";
 
-export async function handleRevert(fn: GenericFunction): Promise<string> {
+export async function handleRevert(promise: Promise<unknown>): Promise<string> {
   try {
-    await fn();
+    await promise;
   } catch (error) {
     ensureError(error);
 

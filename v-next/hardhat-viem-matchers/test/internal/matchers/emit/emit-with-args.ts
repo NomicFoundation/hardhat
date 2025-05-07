@@ -35,12 +35,10 @@ describe("balancesHaveChanged", () => {
     const contract = await viem.deployContract("Events");
 
     await viem.assertions.emitWithArgs(
-      async () => {
-        await contract.write.emitInt([1n]);
-      },
+      contract.write.emitInt([1n]),
       contract,
       "WithIntArg",
-      [1],
+      [1n],
     );
   });
 
@@ -48,12 +46,10 @@ describe("balancesHaveChanged", () => {
     const contract = await viem.deployContract("Events");
 
     await viem.assertions.emitWithArgs(
-      async () => {
-        await contract.write.emitTwoUints([1n, 2n]);
-      },
+      contract.write.emitTwoUints([1n, 2n]),
       contract,
       "WithTwoUintArgs",
-      [1, 2],
+      [1n, 2n],
     );
   });
 
@@ -62,12 +58,10 @@ describe("balancesHaveChanged", () => {
 
     await assertRejects(
       viem.assertions.emitWithArgs(
-        async () => {
-          await contract.write.emitInt([1n]);
-        },
+        contract.write.emitInt([1n]),
         contract,
         "WithIntArg",
-        [2],
+        [2n],
       ),
       (error) =>
         error.message.includes(

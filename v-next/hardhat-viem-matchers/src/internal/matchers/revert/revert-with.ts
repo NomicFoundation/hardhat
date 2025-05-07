@@ -1,14 +1,14 @@
-import type { GenericFunction } from "../../../types.js";
+import type { ReadContractReturnType, WriteContractReturnType } from "viem";
 
 import assert from "node:assert/strict";
 
 import { handleRevert } from "./core.js";
 
 export async function revertWith(
-  fn: GenericFunction,
+  promise: Promise<ReadContractReturnType | WriteContractReturnType>,
   expectedReason: string,
 ): Promise<void> {
-  const reason = await handleRevert(fn);
+  const reason = await handleRevert(promise);
 
   assert.equal(
     reason,

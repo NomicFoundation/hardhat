@@ -35,7 +35,7 @@ describe("revertWith", () => {
     const contract = await viem.deployContract("Revert");
 
     await viem.assertions.revertWith(
-      contract.read.alwaysRevert,
+      contract.read.alwaysRevert(),
       "Intentional revert for testing purposes",
     );
   });
@@ -44,7 +44,7 @@ describe("revertWith", () => {
     const contract = await viem.deployContract("RevertWithNestedError");
 
     await viem.assertions.revertWith(
-      contract.read.nestedRevert,
+      contract.read.nestedRevert(),
       "Intentional revert for testing purposes",
     );
   });
@@ -53,7 +53,7 @@ describe("revertWith", () => {
     const contract = await viem.deployContract("Revert");
 
     await assertRejects(
-      viem.assertions.revertWith(contract.read.alwaysRevert, "wrong reasons"),
+      viem.assertions.revertWith(contract.read.alwaysRevert(), "wrong reasons"),
       (error) =>
         error.message.includes(
           `The function was expected to revert with reason "wrong reasons", but it reverted with reason "Intentional revert for testing purposes".`,
@@ -66,7 +66,7 @@ describe("revertWith", () => {
 
     await assertRejects(
       viem.assertions.revertWith(
-        contract.read.doNotRevert,
+        contract.read.doNotRevert(),
         "Intentional revert for testing purposes",
       ),
       (error) =>
