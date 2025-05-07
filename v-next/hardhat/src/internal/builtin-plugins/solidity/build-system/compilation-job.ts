@@ -12,6 +12,7 @@ import { createNonCryptographicHashId } from "@nomicfoundation/hardhat-utils/cry
 import { deepClone } from "@nomicfoundation/hardhat-utils/lang";
 
 import {
+  ResolvedFileType,
   type ResolvedFile,
 } from "../../../../types/solidity.js";
 
@@ -19,9 +20,6 @@ import { formatRemapping } from "./resolver/remappings.js";
 import { getEvmVersionFromSolcVersion } from "./solc-info.js";
 
 export class CompilationJobImplementation implements CompilationJob {
-  readonly #fileContents: Record<string, string> = {};
-  readonly #fileContentHashes: Record<string, string> = {};
-
   public readonly dependencyGraph: DependencyGraph;
   public readonly solcConfig: SolcConfig;
   public readonly solcLongVersion: string;
@@ -31,8 +29,6 @@ export class CompilationJobImplementation implements CompilationJob {
 
   #buildId: string | undefined;
   #solcInput: CompilerInput | undefined;
-  #solcInputWithoutSources: Omit<CompilerInput, "sources"> | undefined;
-  #resolvedFiles: ResolvedFile[] | undefined;
 
   constructor(
     dependencyGraph: DependencyGraphImplementation,
@@ -50,7 +46,15 @@ export class CompilationJobImplementation implements CompilationJob {
 
   public async getSolcInput(): Promise<CompilerInput> {
     if (this.#solcInput === undefined) {
-      this.#solcInput = await this.#buildSolcInput();
+      const solcInput = await this.#buildSolcInput();
+      this.#solcInput = await this.#hooks.runHandlerChain(
+        "solidity",
+        "preprocessSolcInputBeforeBuilding",
+        [solcInput],
+        async (_context, nextSolcInput) => {
+          return nextSolcInput;
+        },
+      );
     }
 
     return this.#solcInput;
@@ -64,104 +68,45 @@ export class CompilationJobImplementation implements CompilationJob {
     return this.#buildId;
   }
 
-  async #getSolcInputWithoutSources(): Promise<Omit<CompilerInput, "sources">> {
-    if (this.#solcInputWithoutSources === undefined) {
-      this.#solcInputWithoutSources =
-        await this.#buildSolcInputWithoutSources();
-    }
-
-    return this.#solcInputWithoutSources;
-  }
-
-  #getResolvedFiles(): ResolvedFile[] {
-    if (this.#resolvedFiles === undefined) {
-      // we sort the files so that we always get the same compilation input
-      this.#resolvedFiles = [...this.dependencyGraph.getAllFiles()].sort(
-        (a, b) => a.sourceName.localeCompare(b.sourceName),
-      );
-    }
-
-    return this.#resolvedFiles;
-  }
-
   async #getFileContent(file: ResolvedFile): Promise<string> {
-    if (this.#fileContents[file.sourceName] === undefined) {
-      const solcVersion = this.solcConfig.version;
-      this.#fileContents[file.sourceName] = await this.#hooks.runHandlerChain(
-        "solidity",
-        "preprocessFileBeforeBuilding",
-        [file.sourceName, file.content.text, solcVersion],
-        async (_context, nextSourceName, nextFileContent, nextSolcVersion) => {
-          if (file.sourceName !== nextSourceName) {
-            throw new HardhatError(
-              HardhatError.ERRORS.CORE.HOOKS.UNEXPECTED_HOOK_PARAM_MODIFICATION,
-              {
-                hookCategoryName: "solidity",
-                hookName: "preprocessFileBeforeBuilding",
-                paramName: "sourceName",
-              },
-            );
-          }
-
-          if (solcVersion !== nextSolcVersion) {
-            throw new HardhatError(
-              HardhatError.ERRORS.CORE.HOOKS.UNEXPECTED_HOOK_PARAM_MODIFICATION,
-              {
-                hookCategoryName: "solidity",
-                hookName: "preprocessFileBeforeBuilding",
-                paramName: "solcVersion",
-              },
-            );
-          }
-
-          return nextFileContent;
-        },
-      );
+    if (file.type === ResolvedFileType.NPM_PACKAGE_FILE) {
+      return file.content.text;
     }
-    return this.#fileContents[file.sourceName];
-  }
 
-  async #getFileContentHash(file: ResolvedFile): Promise<string> {
-    if (this.#fileContentHashes[file.sourceName] === undefined) {
-      const fileContent = await this.#getFileContent(file);
-      this.#fileContentHashes[file.sourceName] =
-        await createNonCryptographicHashId(fileContent);
-    }
-    return this.#fileContentHashes[file.sourceName];
+    const solcVersion = this.solcConfig.version;
+    return this.#hooks.runHandlerChain(
+      "solidity",
+      "preprocessProjectFileBeforeBuilding",
+      [file.sourceName, file.content.text, solcVersion],
+      async (_context, nextSourceName, nextFileContent, nextSolcVersion) => {
+        if (file.sourceName !== nextSourceName) {
+          throw new HardhatError(
+            HardhatError.ERRORS.CORE.HOOKS.UNEXPECTED_HOOK_PARAM_MODIFICATION,
+            {
+              hookCategoryName: "solidity",
+              hookName: "preprocessProjectFileBeforeBuilding",
+              paramName: "sourceName",
+            },
+          );
+        }
+
+        if (solcVersion !== nextSolcVersion) {
+          throw new HardhatError(
+            HardhatError.ERRORS.CORE.HOOKS.UNEXPECTED_HOOK_PARAM_MODIFICATION,
+            {
+              hookCategoryName: "solidity",
+              hookName: "preprocessProjectFileBeforeBuilding",
+              paramName: "solcVersion",
+            },
+          );
+        }
+
+        return nextFileContent;
+      },
+    );
   }
 
   async #buildSolcInput(): Promise<CompilerInput> {
-    const solcInputWithoutSources = await this.#getSolcInputWithoutSources();
-
-    const sources: { [sourceName: string]: { content: string } } = {};
-
-    const resolvedFiles = this.#getResolvedFiles();
-
-    for (const file of resolvedFiles) {
-      const content = await this.#getFileContent(file);
-      sources[file.sourceName] = {
-        content,
-      };
-    }
-
-    const preprocessedSources = await this.#hooks.runHandlerChain(
-      "solidity",
-      "preprocessSolcInputSourcesBeforeBuilding",
-      [sources],
-      async (_context, nextSources) => {
-        return nextSources;
-      },
-    );
-
-    return {
-      ...solcInputWithoutSources,
-      sources: preprocessedSources,
-    };
-  }
-
-  async #buildSolcInputWithoutSources(): Promise<
-    Omit<CompilerInput, "sources">
-  > {
     const settings = this.solcConfig.settings;
 
     // Ideally we would be more selective with the output selection, so that
@@ -184,6 +129,20 @@ export class CompilationJobImplementation implements CompilationJob {
       "metadata",
     );
 
+    const sources: { [sourceName: string]: { content: string } } = {};
+
+    // we sort the files so that we always get the same compilation input
+    const resolvedFiles = [...this.dependencyGraph.getAllFiles()].sort((a, b) =>
+      a.sourceName.localeCompare(b.sourceName),
+    );
+
+    for (const file of resolvedFiles) {
+      const content = await this.#getFileContent(file);
+      sources[file.sourceName] = {
+        content,
+      };
+    }
+
     return {
       language: "Solidity",
       settings: {
@@ -194,6 +153,7 @@ export class CompilationJobImplementation implements CompilationJob {
         outputSelection,
         remappings: this.#remappings.map(formatRemapping),
       },
+      sources,
     };
   }
 
@@ -202,33 +162,17 @@ export class CompilationJobImplementation implements CompilationJob {
     // the format of the BuildInfo type.
     const format: BuildInfo["_format"] = "hh3-sol-build-info-1";
 
-    const sources: { [sourceName: string]: { hash: string } } = {};
-    const resolvedFiles = this.#getResolvedFiles();
-
-    await Promise.all(
-      resolvedFiles.map(async (file) => {
-        const hash = await this.#getFileContentHash(file);
-        sources[file.sourceName] = {
-          hash,
-        };
-      }),
-    );
-
-    // NOTE: We need to sort the sources because the sources map might be
-    // populated out of order which does affect serialisation.
-    const sortedSources = Object.fromEntries(
-      Object.entries(sources).sort((a, b) => a[0].localeCompare(b[0])),
-    );
+    const solcInput = await this.getSolcInput();
 
     // The preimage should include all the information that makes this
     // compilation job unique, and as this is used to identify the build info
     // file, it also includes its format string.
-    const preimage =
-      format +
-      this.solcLongVersion +
-      JSON.stringify(await this.#getSolcInputWithoutSources()) +
-      JSON.stringify(sortedSources) +
-      JSON.stringify(this.solcConfig);
+    const preimage = JSON.stringify({
+      format,
+      solcLongVersion: this.solcLongVersion,
+      solcInput,
+      solcConfig: this.solcConfig,
+    });
 
     return createNonCryptographicHashId(preimage);
   }

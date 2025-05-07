@@ -1,7 +1,7 @@
 import type { HookContext } from "../../../types/hooks.js";
 import type { HardhatRuntimeEnvironmentImplementation } from "../../core/hre.js";
 
-import { getOrCreateGlobalHardhatRuntimeEnvironment } from "../../hre-intialization.js";
+import { getOrCreateGlobalHardhatRuntimeEnvironment } from "../../hre-initialization.js";
 
 export function unsafelyCastAsHardhatRuntimeEnvironmentImplementation(
   context: HookContext,

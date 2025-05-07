@@ -1,4 +1,5 @@
 import type { SolidityBuildSystem } from "../../../types/solidity/build-system.js";
+import type { CompilerInput } from "../../../types/solidity.js";
 
 import "../../../types/config.js";
 declare module "../../../types/config.js" {
@@ -115,7 +116,7 @@ declare module "../../../types/hooks.js" {
       ) => Promise<void>,
     ) => Promise<void>;
 
-    preprocessFileBeforeBuilding(
+    preprocessProjectFileBeforeBuilding(
       context: HookContext,
       sourceName: string,
       fileContent: string,
@@ -128,14 +129,14 @@ declare module "../../../types/hooks.js" {
       ) => Promise<string>,
     ): Promise<string>;
 
-    preprocessSolcInputSourcesBeforeBuilding(
+    preprocessSolcInputBeforeBuilding(
       context: HookContext,
-      sources: Record<string, { content: string }>,
+      solcInput: CompilerInput,
       next: (
         nextContext: HookContext,
-        nextSources: Record<string, { content: string }>,
-      ) => Promise<Record<string, { content: string }>>,
-    ): Promise<Record<string, { content: string }>>;
+        nextSolcInput: CompilerInput,
+      ) => Promise<CompilerInput>,
+    ): Promise<CompilerInput>;
 
     readSourceFile: (
       context: HookContext,

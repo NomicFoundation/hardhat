@@ -12,7 +12,7 @@ import { unsafelyCastAsHardhatRuntimeEnvironmentImplementation } from "../helper
 const COVERAGE_LIBRARY_IMPORT_PATH = "hardhat/coverage.sol";
 
 export default async (): Promise<Partial<SolidityHooks>> => ({
-  preprocessFileBeforeBuilding: async (
+  preprocessProjectFileBeforeBuilding: async (
     context,
     sourceName,
     fileContent,
@@ -55,9 +55,9 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
       return next(context, sourceName, fileContent, solcVersion);
     }
   },
-  preprocessSolcInputSourcesBeforeBuilding: async (context, sources, next) => {
+  preprocessSolcInputBeforeBuilding: async (context, solcInput, next) => {
     if (context.globalOptions.coverage) {
-      if (sources[COVERAGE_LIBRARY_IMPORT_PATH] !== undefined) {
+      if (solcInput.sources[COVERAGE_LIBRARY_IMPORT_PATH] !== undefined) {
         throw new HardhatError(
           HardhatError.ERRORS.CORE.COVERAGE.IMPORT_PATH_ALREADY_DEFINED,
           {
@@ -69,9 +69,9 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
       const content = await readUtf8File(
         path.join(import.meta.dirname, "../../../../../../coverage.sol"),
       );
-      sources[COVERAGE_LIBRARY_IMPORT_PATH] = { content };
+      solcInput.sources[COVERAGE_LIBRARY_IMPORT_PATH] = { content };
     }
 
-    return next(context, sources);
+    return next(context, solcInput);
   },
 });
