@@ -1,5 +1,18 @@
 # hardhat
 
+## 2.24.0
+
+### Minor Changes
+
+- 82feaae: Set prague as the default hardfork in Hardhat network
+
+### Patch Changes
+
+- a7aa6d6: Upgraded EDR to (https://github.com/NomicFoundation/edr/releases/tag/%40nomicfoundation%2Fedr%400.11.0):
+  - Replaced const enums with non-const enums in \*.d.ts files
+- 2ab8103: Relax validations for transaction signing introduced in the previous version by disabling strict mode in `Transaction.prepare`.
+- 67f1e95: Support chainId values above 2^32 - 1 for local account transactions
+
 ## 2.23.0
 
 ### Minor Changes
