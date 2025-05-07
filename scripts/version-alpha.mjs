@@ -171,7 +171,7 @@ async function createAllPackageChangesetFor(nextHardhatAlphaVersion) {
 
   const releaseChangesetContent = `---
 ${packageNames
-  .filter((name) => name !== "hardhat")
+  .filter((name) => name !== "hardhat" && name !== "@nomicfoundation/config")
   .map((name) => `"${name}": patch`)
   .join("\n")}
 ---
