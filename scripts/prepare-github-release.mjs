@@ -1,33 +1,12 @@
+// @ts-check
+
 import { appendFile } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
+
+import { getLatestPackageVersionFromNpm, readPackage } from "./lib/packages.mjs";
 
 // The regex was taken from https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string
 const semverRegex = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
-
-function wasHardhatPublished() {
-  if (process.env.STEPS_PUBLISH_OUTPUTS_STDOUT === undefined) {
-    throw new Error("STEPS_PUBLISH_OUTPUTS_STDOUT is not defined");
-  }
-
-  const lines = process.env.STEPS_PUBLISH_OUTPUTS_STDOUT.split("\n");
-
-  return lines.some((line) => line.startsWith("+ hardhat@"));
-}
-
-async function getHardhatPackageVersion() {
-  const pkg = await readFile("v-next/hardhat/package.json", "utf-8");
-  const { version } = JSON.parse(pkg);
-  return version;
-}
-
-async function getHardhatNpmVersion() {
-  const url = `https://registry.npmjs.org/hardhat/latest`;
-  const response = await fetch(url);
-  if (response.status !== 200) {
-    throw new Error(`Failed to fetch ${url}: ${response.statusText}`);
-  }
-  const json = await response.json();
-  return json.version;
-}
 
 function isPrerelease(version) {
   const [, , , , prerelease] = version.match(semverRegex);
@@ -35,8 +14,8 @@ function isPrerelease(version) {
 }
 
 async function isLatest(version) {
-  const npm = await getHardhatNpmVersion();
-  return version === npm;
+  const latestVersion = await getLatestPackageVersionFromNpm("hardhat");
+  return version === latestVersion;
 }
 
 async function getHardhatChangelogEntry(version) {
@@ -83,35 +62,19 @@ async function prepareGitHubRelease() {
     throw new Error("GITHUB_OUTPUT is not defined");
   }
 
-  const published = wasHardhatPublished();
-  console.log(`published: ${published}`);
+  const hardhat = await readPackage("hardhat");
 
-  await appendFile(process.env.GITHUB_OUTPUT, `published=${published}\n`);
-
-  if (!published) {
-    return;
-  }
-
-  const version = await getHardhatPackageVersion();
-  console.log(`version: ${version}`);
-
-  const prerelease = isPrerelease(version);
+  const prerelease = isPrerelease(hardhat.version);
   console.log(`prerelease: ${prerelease}`);
-
-  const latest = await isLatest(version);
-  console.log(`latest: ${latest}`);
-
-  const releaseBody = await getReleaseBody(version);
-  console.log(`releaseBody: ${releaseBody}`);
-
-  await appendFile(process.env.GITHUB_OUTPUT, `version=${version}\n`)
   await appendFile(process.env.GITHUB_OUTPUT, `prerelease=${prerelease}\n`);
+
+  const latest = await isLatest(hardhat.version);
+  console.log(`latest: ${latest}`);
   await appendFile(process.env.GITHUB_OUTPUT, `latest=${latest}\n`);
-  await appendFile(process.env.GITHUB_OUTPUT, [
-    "body<<EOF",
-    releaseBody,
-    "EOF",
-  ]);
+
+  const body = await getReleaseBody(hardhat.version);
+  console.log(`body: ${body}`);
+  await appendFile(process.env.GITHUB_OUTPUT, `body<<EOF\n${body}\nEOF\n`);
 }
 
 await prepareGitHubRelease();

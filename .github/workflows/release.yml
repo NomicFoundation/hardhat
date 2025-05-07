@@ -23,6 +23,8 @@ jobs:
         with:
           # This makes Actions fetch all Git history so that Changesets can generate changelogs with the correct commits
           fetch-depth: 0
+          # NOTE: If we use the GITHUB_TOKEN to create the release PR, the checks on the release PR will not be triggered automatically
+          token: ${{ secrets.RELEASE_GITHUB_TOKEN || github.token }}
 
       - name: Set up the environment
         uses: ./.github/actions/setup-env
@@ -30,51 +32,52 @@ jobs:
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile --prefer-offline
 
-      - name: Create Release Pull Request
+      - name: Create release Pull Request
         id: pr
         env:
-          # NOTE: If we use the GITHUB_TOKEN to create the release PR, the checks will not be triggered automatically
-          GITHUB_TOKEN: ${{ secrets.RELEASE_GITHUB_TOKEN || github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
         uses: changesets/action@v1
         with:
           version: node scripts/version-alpha.mjs
 
-      - name: Build All Packages
+      - name: Check if release needs to be published
+        id: before
         if: steps.pr.outputs.hasChangesets == 'false'
+        run: node scripts/check-release.mjs
+
+      - name: Build All Packages
+        if: steps.before.outputs.released == 'false'
         run: pnpm run --recursive -no-bail --filter './v-next/**' --if-present build
 
       - name: Publish All Packages (dry-run)
-        if: steps.pr.outputs.hasChangesets == 'false'
+        if: steps.before.outputs.released == 'false'
         run: pnpm publish --filter "./v-next/**" -r --no-git-checks --tag next --access public --dry-run
 
-      # NOTE: When running publish on an already published package we expect it to succeed but not to release anything and not include + hardhat@ in the output.
-      # If it does, however, include + hardhat@ in the output, it's OK, because we'll just update the release without moving the release tag forward.
       - name: Publish All Packages
         id: publish
-        if: steps.pr.outputs.hasChangesets == 'false'
+        if: steps.before.outputs.released == 'false'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
-        run: |
-          echo "stdout<<EOF" >> $GITHUB_OUTPUT
-          pnpm publish --filter "./v-next/**" -r --no-git-checks --tag next --access public | tee -a $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+        run: pnpm publish --filter "./v-next/**" -r --no-git-checks --tag next --access public
+
+      - name: Check if release was published
+        id: after
+        if: steps.before.outputs.released == 'false'
+        run: node scripts/check-release.mjs
 
       - name: Prepare GitHub release
         id: release
-        if: steps.pr.outputs.hasChangesets == 'false'
-        env:
-          STEPS_PUBLISH_OUTPUTS_STDOUT: ${{ steps.publish.outputs.stdout }}
+        if: steps.before.outputs.released == 'false' && steps.after.outputs.released == 'true'
         run: node scripts/prepare-github-release.mjs
 
       - name: Create GitHub Release
-        if: steps.release.outputs.published == 'true'
+        if: steps.before.outputs.released == 'false' && steps.after.outputs.released == 'true'
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        # NOTE: The action updates the release if it already exists
         uses: galargh/action-gh-release@571276229e7c9e6ea18f99bad24122a4c3ec813f # https://github.com/galargh/action-gh-release/pull/1
         with:
-          draft: false
+          draft: true
           tag_name: hardhat@${{ steps.release.outputs.version }}
           generate_release_notes: false
           target_commitish: ${{ github.sha }}

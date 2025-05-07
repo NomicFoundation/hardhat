@@ -8,11 +8,8 @@
  * merge group does notcontain a release PR.
  */
 
-import { readdir, readFile } from "node:fs/promises";
-
 import { readAllNewChangsets } from './lib/changesets.mjs';
-
-const packagesDir = "v-next";
+import { isPackageReleasedToNpm, readAllReleasablePackages } from './lib/packages.mjs';
 
 // NOTE: This function is currently unused but it could be useful to preserve
 // the information about how to do it.
@@ -25,26 +22,6 @@ function getPullNumber(headRef) {
   return parseInt(pullNumber, 10);
 }
 
-/**
- * Read all the package.json files of the packages that we release to npm.
- */
-async function readAllReleasedPackages() {
-  const allPackageNames = (await readdir(packagesDir))
-    .filter(file => !['config', 'example-project', 'template-package', 'hardhat-test-utils'].includes(file));
-
-  const allPackages = allPackageNames
-    .map(file => `./v-next/${file}/package.json`)
-    .map(async (path) => JSON.parse(await readFile(path, 'utf-8')));
-
-  return Promise.all(allPackages);
-}
-
-async function isPackageReleasedToNpm(pkg) {
-  const url = `https://registry.npmjs.org/${pkg.name}/${pkg.version}`;
-  const response = await fetch(url);
-  return response.status === 200;
-}
-
 async function validateMergeGroup() {
   const changesets = await readAllNewChangsets();
 
@@ -53,10 +30,10 @@ async function validateMergeGroup() {
     return;
   }
 
-  const packages = await readAllReleasedPackages();
+  const packages = await readAllReleasablePackages();
 
   for (const pkg of packages) {
-    if (!(await isPackageReleasedToNpm(pkg))) {
+    if (!(await isPackageReleasedToNpm(pkg.name, pkg.version))) {
       throw new Error(`Package ${pkg.name} is not released to npm`);
     }
   }
