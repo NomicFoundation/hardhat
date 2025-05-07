@@ -38,8 +38,10 @@ async function versionAlpha() {
 
   validateChangesets(changesets);
 
-  if (shouldCreateHardhatEthersPackageChangeset(changesets)) {
-    await createHardhatEthersPackageChangeset();
+  for (const packageName of ["@nomicfoundation/hardhat-ethers", "@nomicfoundation/hardhat-toolbox-viem"]) {
+    if (shouldCreateChangeset(changesets, packageName)) {
+      await createChangeset(packageName);
+    }
   }
 
   await executeChangesetVersion();
@@ -92,13 +94,13 @@ async function readHardhatVersion() {
 /**
  * Checks whether the hardhat-ethers package changeset should be created.
  */
-function shouldCreateHardhatEthersPackageChangeset(changesets) {
+function shouldCreateChangeset(changesets, packageName) {
   if (changesets.length === 0) {
     return false;
   }
 
   for (const { frontMatter } of changesets) {
-    if (/"@nomicfoundation\/hardhat-ethers": patch$/.test(frontMatter)) {
+    if (frontMatter.split("\n").some((line) => line.startsWith(`"${packageName}": patch`))) {
       return false;
     }
   }
@@ -109,13 +111,11 @@ function shouldCreateHardhatEthersPackageChangeset(changesets) {
 /**
  * Write a hardhat-ethers changeset file that has a patch entry for the package.
  */
-async function createHardhatEthersPackageChangeset() {
+async function createChangeset(packageName) {
   const changesetPath = path.join(
     changesetDir,
     `${randomUUID()}.md`
   );
-
-  const packageName = '@nomicfoundation/hardhat-ethers';
 
   const releaseChangesetContent = [
     '---',

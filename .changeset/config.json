@@ -30,8 +30,15 @@
       "@nomicfoundation/hardhat-test-utils",
       "@nomicfoundation/hardhat-typechain",
       "@nomicfoundation/hardhat-utils",
+      "@nomicfoundation/hardhat-toolbox-mocha-ethers",
       "@nomicfoundation/hardhat-viem",
       "@nomicfoundation/hardhat-zod-utils"
+    ],
+    [
+      "@nomicfoundation/hardhat-toolbox-viem"
+    ],
+    [
+      "@nomicfoundation/hardhat-ethers"
     ]
   ],
   "___experimentalUnsafeOptions_WILL_CHANGE_IN_PATCH": {
