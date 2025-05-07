@@ -23,6 +23,8 @@ jobs:
         with:
           # This makes Actions fetch all Git history so that Changesets can generate changelogs with the correct commits
           fetch-depth: 0
+          # NOTE: If we use the GITHUB_TOKEN to create the release PR, the checks on the release PR will not be triggered automatically
+          token: ${{ secrets.RELEASE_GITHUB_TOKEN || github.token }}
 
       - name: Set up the environment
         uses: ./.github/actions/setup-env
@@ -38,7 +40,6 @@ jobs:
         uses: changesets/action@v1
         with:
           version: node scripts/version-alpha.mjs
-          commitMode: ${{ secrets.RELEASE_GITHUB_TOKEN && 'github-api' || 'git-cli' }}
 
       - name: Check if release needs to be published
         id: before
