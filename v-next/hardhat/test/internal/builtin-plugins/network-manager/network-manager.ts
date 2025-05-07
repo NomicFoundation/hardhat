@@ -151,7 +151,7 @@ describe("NetworkManagerImplementation", () => {
 
     it("should connect to the specified network and default chain type if none are provided and the network doesn't have a chain type", async () => {
       const networkConnection = await networkManager.connect({
-        networkName: "customNetwork",
+        network: "customNetwork",
       });
       assert.equal(networkConnection.networkName, "customNetwork");
       assert.equal(networkConnection.chainType, GENERIC_CHAIN_TYPE);
@@ -160,7 +160,7 @@ describe("NetworkManagerImplementation", () => {
 
     it("should connect to the specified network and use it's chain type if none is provided and the network has a chain type", async () => {
       const networkConnection = await networkManager.connect({
-        networkName: "myNetwork",
+        network: "myNetwork",
       });
       assert.equal(networkConnection.networkName, "myNetwork");
       assert.equal(networkConnection.chainType, OPTIMISM_CHAIN_TYPE);
@@ -169,7 +169,7 @@ describe("NetworkManagerImplementation", () => {
 
     it("should connect to the specified network and chain type", async () => {
       const networkConnection = await networkManager.connect({
-        networkName: "myNetwork",
+        network: "myNetwork",
         chainType: OPTIMISM_CHAIN_TYPE,
       });
       assert.equal(networkConnection.networkName, "myNetwork");
@@ -183,9 +183,9 @@ describe("NetworkManagerImplementation", () => {
         timeout: 30_000, // specific to http networks
       };
       let networkConnection = await networkManager.connect({
-        networkName: "myNetwork",
+        network: "myNetwork",
         chainType: OPTIMISM_CHAIN_TYPE,
-        ...httpConfigOverride,
+        override: httpConfigOverride,
       });
       assert.equal(networkConnection.networkName, "myNetwork");
       assert.equal(networkConnection.chainType, OPTIMISM_CHAIN_TYPE);
@@ -197,9 +197,11 @@ describe("NetworkManagerImplementation", () => {
       // Overriding the url is handled differently
       // so we need to test it separately
       networkConnection = await networkManager.connect({
-        networkName: "myNetwork",
+        network: "myNetwork",
         chainType: OPTIMISM_CHAIN_TYPE,
-        url: "http://localhost:8545",
+        override: {
+          url: "http://localhost:8545",
+        },
       });
       assert.equal(networkConnection.networkName, "myNetwork");
       assert.equal(networkConnection.chainType, OPTIMISM_CHAIN_TYPE);
@@ -218,9 +220,9 @@ describe("NetworkManagerImplementation", () => {
         },
       };
       const networkConnection = await networkManager.connect({
-        networkName: "edrNetwork",
+        network: "edrNetwork",
         chainType: OPTIMISM_CHAIN_TYPE,
-        ...edrConfigOverride,
+        override: edrConfigOverride,
       });
 
       assert.equal(networkConnection.networkName, "edrNetwork");
@@ -242,7 +244,7 @@ describe("NetworkManagerImplementation", () => {
 
     it("should throw an error if the specified network doesn't exist", async () => {
       await assertRejectsWithHardhatError(
-        networkManager.connect({ networkName: "unknownNetwork" }),
+        networkManager.connect({ network: "unknownNetwork" }),
         HardhatError.ERRORS.CORE.NETWORK.NETWORK_NOT_FOUND,
         { networkName: "unknownNetwork" },
       );
@@ -251,11 +253,13 @@ describe("NetworkManagerImplementation", () => {
     it("should throw an error if the specified network config override tries to change the network's type", async () => {
       await assertRejectsWithHardhatError(
         networkManager.connect({
-          networkName: "myNetwork",
+          network: "myNetwork",
           chainType: OPTIMISM_CHAIN_TYPE,
-          ...{
+          /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+          -- Cast to test validation error */
+          override: {
             type: "edr",
-          },
+          } as any,
         }),
         HardhatError.ERRORS.CORE.NETWORK.INVALID_CONFIG_OVERRIDE,
         {
@@ -265,11 +269,13 @@ describe("NetworkManagerImplementation", () => {
 
       await assertRejectsWithHardhatError(
         networkManager.connect({
-          networkName: "myNetwork",
+          network: "myNetwork",
           chainType: OPTIMISM_CHAIN_TYPE,
-          ...{
+          /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+          -- Cast to test validation error */
+          override: {
             type: undefined,
-          },
+          } as any,
         }),
         HardhatError.ERRORS.CORE.NETWORK.INVALID_CONFIG_OVERRIDE,
         {
@@ -281,13 +287,13 @@ describe("NetworkManagerImplementation", () => {
     it("should throw an error if the specified network config override is invalid", async () => {
       await assertRejectsWithHardhatError(
         networkManager.connect({
-          networkName: "myNetwork",
+          network: "myNetwork",
           chainType: OPTIMISM_CHAIN_TYPE,
           /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
           -- Cast to test validation error */
-          ...({
+          override: {
             chainId: "1234",
-          } as any),
+          } as any,
         }),
         HardhatError.ERRORS.CORE.NETWORK.INVALID_CONFIG_OVERRIDE,
         {
@@ -299,9 +305,9 @@ describe("NetworkManagerImplementation", () => {
     it("should throw an error if the specified network config override has mixed properties from http and edr networks", async () => {
       await assertRejectsWithHardhatError(
         networkManager.connect({
-          networkName: "myNetwork",
+          network: "myNetwork",
           chainType: OPTIMISM_CHAIN_TYPE,
-          ...{
+          override: {
             url: "http://localhost:8545",
             hardfork: "cancun",
           },
@@ -316,7 +322,7 @@ describe("NetworkManagerImplementation", () => {
     it("should throw an error if the specified chain type doesn't match the network's chain type", async () => {
       await assertRejectsWithHardhatError(
         networkManager.connect({
-          networkName: "myNetwork",
+          network: "myNetwork",
           chainType: L1_CHAIN_TYPE,
         }),
         HardhatError.ERRORS.CORE.NETWORK.INVALID_CHAIN_TYPE,
@@ -351,7 +357,7 @@ describe("NetworkManagerImplementation", () => {
     describe("types", () => {
       it("should create a NetworkConnection with the default chain type when no chain type is provided", async () => {
         const networkConnection = await networkManager.connect({
-          networkName: "localhost",
+          network: "localhost",
         });
         expectTypeOf(networkConnection).toEqualTypeOf<
           NetworkConnection<GenericChainType>
@@ -360,7 +366,7 @@ describe("NetworkManagerImplementation", () => {
 
       it("should create a NetworkConnection with the provided chain type", async () => {
         const networkConnection = await networkManager.connect({
-          networkName: "localhost",
+          network: "localhost",
           chainType: L1_CHAIN_TYPE,
         });
         expectTypeOf(networkConnection).toEqualTypeOf<

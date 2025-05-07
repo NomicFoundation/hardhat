@@ -497,7 +497,7 @@ describe("clients", () => {
       });
 
       const networkConnection = await hre.network.connect({
-        networkName: "edrOptimism",
+        network: "edrOptimism",
         chainType: "optimism",
       });
       const publicClient = await networkConnection.viem.getPublicClient();

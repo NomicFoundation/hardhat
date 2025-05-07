@@ -4,7 +4,7 @@ import { parseEther } from "viem";
 async function testL2Extensions() {
   // This network connection has access to an optimism-specific viem api
   const optimism = await hre.network.connect({
-    networkName: "localhost",
+    network: "localhost",
     chainType: "optimism",
   });
   const opPublicClient = await optimism.viem.getPublicClient();
@@ -13,7 +13,7 @@ async function testL2Extensions() {
 
   // This one doesn't
   const mainnet = await hre.network.connect({
-    networkName: "localhost",
+    network: "localhost",
     chainType: "l1",
   });
   const l1PublicClient = await mainnet.viem.getPublicClient();

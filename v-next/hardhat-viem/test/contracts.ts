@@ -198,7 +198,7 @@ describe("contracts", () => {
         });
 
         const networkConnection = await hre.network.connect({
-          networkName: "edrOptimism",
+          network: "edrOptimism",
           chainType: "optimism",
         });
         const contract = await networkConnection.viem.deployContract(

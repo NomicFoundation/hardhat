@@ -69,23 +69,26 @@ export class NetworkManagerImplementation implements NetworkManager {
   public async connect<
     ChainTypeT extends ChainType | string = DefaultChainType,
   >(
-    networkConnectionParams?: NetworkConnectionParams<ChainTypeT>,
+    networkOrParams?: NetworkConnectionParams<ChainTypeT> | string,
   ): Promise<NetworkConnection<ChainTypeT>> {
-    const { networkName, chainType } = networkConnectionParams ?? {};
+    let networkName: string | undefined;
+    let chainType: ChainTypeT | undefined;
+    let override: NetworkConfigOverride | undefined;
 
-    delete networkConnectionParams?.networkName;
-    delete networkConnectionParams?.chainType;
+    if (typeof networkOrParams === "string") {
+      networkName = networkOrParams;
+    } else if (networkOrParams !== undefined) {
+      networkName = networkOrParams.network;
+      chainType = networkOrParams.chainType;
+      override = networkOrParams.override;
+    }
 
     const networkConnection = await this.#hookManager.runHandlerChain(
       "network",
       "newConnection",
       [],
       async (_context) =>
-        this.#initializeNetworkConnection(
-          networkName,
-          chainType,
-          networkConnectionParams,
-        ),
+        this.#initializeNetworkConnection(networkName, chainType, override),
     );
 
     /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions

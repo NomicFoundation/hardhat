@@ -41,7 +41,7 @@ describe("request-handlers - e2e", () => {
       },
     );
 
-    const connection = await hre.network.connect({ networkName: "localhost" });
+    const connection = await hre.network.connect({ network: "localhost" });
 
     const res = await connection.provider.request({
       method: "eth_sendTransaction",
@@ -102,7 +102,7 @@ describe("request-handlers - e2e", () => {
       },
     );
 
-    const connection = await hre.network.connect({ networkName: "localhost" });
+    const connection = await hre.network.connect({ network: "localhost" });
 
     const res = await connection.provider.request({
       method: "eth_sendTransaction",
@@ -172,7 +172,7 @@ describe("request-handlers - e2e", () => {
       );
 
       const connection = await hre.network.connect({
-        networkName: "localhost",
+        network: "localhost",
       });
 
       const tx = {
@@ -242,7 +242,7 @@ describe("request-handlers - e2e", () => {
       );
 
       const connection = await hre.network.connect({
-        networkName: "localhost",
+        network: "localhost",
       });
 
       const tx = {

@@ -4,7 +4,7 @@ async function sendL2Transaction(networkConfigName: string) {
   console.log("Sending transaction using network", networkConfigName);
 
   const { viem, networkConfig } = await network.connect({
-    networkName: networkConfigName,
+    network: networkConfigName,
     chainType: "optimism",
   });
 
