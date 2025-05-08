@@ -22,10 +22,9 @@ const packagesDir = "v-next";
  * It then combines the new changesets to create a new changelog
  * section for the new version.
  *
- * The next step is to create a changeset for hardhat-ethers if it does not
- * already exists. This is necessary because the hardhat-ethers package
- * is one major version ahead of the rest of the packages so we cannot include
- * it in the fixed packages set.
+ * The next step is to create a changeset for packages which are one major
+ * version ahead of all the others (v4 vs v3) if they don't exist yet. The major
+ * version mismatch is the reason why we cannot include them in the fixed set.
  *
  * The release changeset is then applied, bumping versions across
  * the packages (including the template packages).
@@ -92,7 +91,7 @@ async function readHardhatVersion() {
 }
 
 /**
- * Checks whether the hardhat-ethers package changeset should be created.
+ * Checks whether a new changeset should be created for the package.
  */
 function shouldCreateChangeset(changesets, packageName) {
   if (changesets.length === 0) {
@@ -109,7 +108,7 @@ function shouldCreateChangeset(changesets, packageName) {
 }
 
 /**
- * Write a hardhat-ethers changeset file that has a patch entry for the package.
+ * Creates a new patch changeset file for the pacakge.
  */
 async function createChangeset(packageName) {
   const changesetPath = path.join(

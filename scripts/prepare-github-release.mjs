@@ -57,6 +57,11 @@ async function getReleaseBody(version) {
   return lines.join("\n");
 }
 
+/**
+ * The function calculates the information that we need to create a new GitHub Release. Namely, the hardhat version
+ * whether the release should be marked as prerelease and latest, and the body that should be used for the release.
+ * It appends this information to the GITHUB_OUTPUT file (this is an env variable available in the GitHub Actions environment) 
+ */
 async function prepareGitHubRelease() {
   if (process.env.GITHUB_OUTPUT === undefined) {
     throw new Error("GITHUB_OUTPUT is not defined");

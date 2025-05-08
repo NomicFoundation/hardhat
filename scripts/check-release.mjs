@@ -4,6 +4,10 @@ import { appendFile } from "node:fs/promises";
 
 import { readPackage, isPackageReleasedToNpm } from "./lib/packages.mjs";
 
+/**
+ * The function checks whether the version of hardhat from its' package.json is available in the NPM registry
+ * It appends this information to the GITHUB_OUTPUT file (this is an env variable available in the GitHub Actions environment)
+ */
 async function checkRelease() {
   if (process.env.GITHUB_OUTPUT === undefined) {
     throw new Error("GITHUB_OUTPUT is not defined");
