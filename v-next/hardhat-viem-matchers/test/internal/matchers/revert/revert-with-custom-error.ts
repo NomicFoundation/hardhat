@@ -59,11 +59,27 @@ describe("revertWithCustomError", () => {
       viem.assertions.revertWithCustomError(
         contract.read.revertWithCustomError(),
         contract,
+        "CustomErrorWithInt",
+      ),
+      (error) =>
+        error.message.includes(
+          `Expected error name: "CustomErrorWithInt", but found "CustomError".`,
+        ),
+    );
+  });
+
+  it("should throw when the expected error is not in the abi", async () => {
+    const contract = await viem.deployContract("Revert");
+
+    await assertRejects(
+      viem.assertions.revertWithCustomError(
+        contract.read.revertWithCustomError(),
+        contract,
         "NonExistingCustomError",
       ),
       (error) =>
         error.message.includes(
-          `Expected error name: "NonExistingCustomError", but found "CustomError".`,
+          `The error "NonExistingCustomError" does not exists in the abi.`,
         ),
     );
   });
