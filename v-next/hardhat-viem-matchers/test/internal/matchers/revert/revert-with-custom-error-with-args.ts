@@ -12,7 +12,7 @@ import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 import hardhatViemMatchers from "../../../../src/index.js";
 
-describe("revert", () => {
+describe("revertWithCustomErrorWithArgs", () => {
   let hre: HardhatRuntimeEnvironment;
   let viem: HardhatViemHelpers;
 
@@ -34,20 +34,47 @@ describe("revert", () => {
   it("should check that the function reverts", async () => {
     const contract = await viem.deployContract("Revert");
 
-    await viem.assertions.revert(contract.read.alwaysRevert());
+    await viem.assertions.revertWithCustomErrorWithArgs(
+      contract.read.revertWithCustomErrorWithInt([1n]),
+      contract,
+      "CustomErrorWithInt",
+      [1n],
+    );
+  });
+
+  it("should check that the function reverts with multiple args", async () => {
+    const contract = await viem.deployContract("Revert");
+
+    await viem.assertions.revertWithCustomErrorWithArgs(
+      contract.read.revertWithCustomErrorWithUintAndString([1n, "test"]),
+      contract,
+      "CustomErrorWithUintAndString",
+      [1n, "test"],
+    );
   });
 
   it("should check that the function reverts when called within nested contracts", async () => {
-    const contract = await viem.deployContract("RevertWithNestedError");
+    const contract = await viem.deployContract("Revert");
+    const contractThatThrows = await viem.deployContract("Revert");
 
-    await viem.assertions.revert(contract.read.nestedRevert());
+    await viem.assertions.revertWithCustomErrorWithArgs(
+      contract.read.revertWithCustomErrorWithInt([1n]),
+      contractThatThrows,
+      "CustomErrorWithInt",
+      [1n],
+    );
   });
 
   it("should throw because the function does not revert", async () => {
     const contract = await viem.deployContract("Revert");
 
     await assertRejects(
-      viem.assertions.revert(contract.read.doNotRevert()),
+      viem.assertions.revertWithCustomErrorWithArgs(
+        contract.read.doNotRevert(),
+        contract,
+        "CustomErrorWithInt",
+        [1n],
+      ),
       (error) =>
         error.message ===
         "The function was expected to revert, but it did not.",

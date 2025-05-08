@@ -50,6 +50,19 @@ export interface HardhatViemMatchers {
     promise: Promise<ReadContractReturnType | WriteContractReturnType>,
     expectedReason: string,
   ): Promise<void>;
+
+  revertWithCustomError<ContractName extends CompiledContractName>(
+    promise: Promise<ReadContractReturnType | WriteContractReturnType>,
+    contract: ContractReturnType<ContractName>,
+    customErrorName: string,
+  ): Promise<void>;
+
+  revertWithCustomErrorWithArgs<ContractName extends CompiledContractName>(
+    promise: Promise<ReadContractReturnType | WriteContractReturnType>,
+    contract: ContractReturnType<ContractName>,
+    customErrorName: string,
+    args: any[],
+  ): Promise<void>;
 }
 
 export interface HardhatViemMatchersUtils {

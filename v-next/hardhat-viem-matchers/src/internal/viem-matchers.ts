@@ -17,6 +17,8 @@ import type {
 import { balancesHaveChanged } from "./matchers/balances-have-changed.js";
 import { emitWithArgs } from "./matchers/emit/emit-with-args.js";
 import { emit } from "./matchers/emit/emit.js";
+import { revertWithCustomErrorWithArgs } from "./matchers/revert/revert-with-custom-error-with-args.js";
+import { revertWithCustomError } from "./matchers/revert/revert-with-custom-error.js";
 import { revertWith } from "./matchers/revert/revert-with.js";
 import { revert } from "./matchers/revert/revert.js";
 import { HardhatViemMatchersUtilsImpl } from "./viem-matchers-utils.js";
@@ -78,5 +80,29 @@ export class HardhatViemMatchersImpl<
     expectedReason: string,
   ): Promise<void> {
     return revertWith(promise, expectedReason);
+  }
+
+  public async revertWithCustomError<ContractName extends keyof ContractAbis>(
+    promise: Promise<ReadContractReturnType | WriteContractReturnType>,
+    contract: ContractReturnType<ContractName>,
+    customErrorName: string,
+  ): Promise<void> {
+    return revertWithCustomError(promise, contract, customErrorName);
+  }
+
+  public async revertWithCustomErrorWithArgs<
+    ContractName extends keyof ContractAbis,
+  >(
+    promise: Promise<ReadContractReturnType | WriteContractReturnType>,
+    contract: ContractReturnType<ContractName>,
+    customErrorName: string,
+    args: any[],
+  ): Promise<void> {
+    return revertWithCustomErrorWithArgs(
+      promise,
+      contract,
+      customErrorName,
+      args,
+    );
   }
 }

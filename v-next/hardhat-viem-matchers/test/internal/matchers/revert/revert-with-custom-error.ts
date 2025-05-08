@@ -12,7 +12,7 @@ import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 import hardhatViemMatchers from "../../../../src/index.js";
 
-describe("revert", () => {
+describe("revertWithCustomError", () => {
   let hre: HardhatRuntimeEnvironment;
   let viem: HardhatViemHelpers;
 
@@ -34,20 +34,49 @@ describe("revert", () => {
   it("should check that the function reverts", async () => {
     const contract = await viem.deployContract("Revert");
 
-    await viem.assertions.revert(contract.read.alwaysRevert());
+    await viem.assertions.revertWithCustomError(
+      contract.read.revertWithCustomError(),
+      contract,
+      "CustomError",
+    );
   });
 
   it("should check that the function reverts when called within nested contracts", async () => {
     const contract = await viem.deployContract("RevertWithNestedError");
+    const contractThatThrows = await viem.deployContract("Revert");
 
-    await viem.assertions.revert(contract.read.nestedRevert());
+    await viem.assertions.revertWithCustomError(
+      contract.read.nestedCustomRevert(),
+      contractThatThrows,
+      "CustomError",
+    );
+  });
+
+  it("should throw because the function revert with a different error", async () => {
+    const contract = await viem.deployContract("Revert");
+
+    await assertRejects(
+      viem.assertions.revertWithCustomError(
+        contract.read.revertWithCustomError(),
+        contract,
+        "NonExistingCustomError",
+      ),
+      (error) =>
+        error.message.includes(
+          `Expected error name: "NonExistingCustomError", but found "CustomError".`,
+        ),
+    );
   });
 
   it("should throw because the function does not revert", async () => {
     const contract = await viem.deployContract("Revert");
 
     await assertRejects(
-      viem.assertions.revert(contract.read.doNotRevert()),
+      viem.assertions.revertWithCustomError(
+        contract.read.doNotRevert(),
+        contract,
+        "CustomError",
+      ),
       (error) =>
         error.message ===
         "The function was expected to revert, but it did not.",
