@@ -1,13 +1,21 @@
+import type {
+  ReadContractReturnType,
+  WriteContractReturnType} from "viem";
+
 import assert from "node:assert/strict";
 
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
-import { decodeErrorResult } from "viem";
+import {
+  decodeErrorResult
+} from "viem";
 
 import { extractRevertData } from "./extract-revert-data.js";
 
-export async function handleRevert(promise: Promise<unknown>): Promise<string> {
+export async function handleRevert(
+  contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
+): Promise<string> {
   try {
-    await promise;
+    await contractFn;
   } catch (error) {
     ensureError(error);
 

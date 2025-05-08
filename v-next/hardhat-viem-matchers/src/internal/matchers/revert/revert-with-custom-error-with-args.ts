@@ -11,13 +11,13 @@ import { handleRevertWithCustomError } from "./core-revert-with-custom-error.js"
 export async function revertWithCustomErrorWithArgs<
   ContractName extends keyof ContractAbis,
 >(
-  promise: Promise<ReadContractReturnType | WriteContractReturnType>,
+  contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
   contract: ContractReturnType<ContractName>,
   customErrorName: string,
   args: any[],
 ): Promise<void> {
   const errorArgs = await handleRevertWithCustomError(
-    promise,
+    contractFn,
     contract,
     customErrorName,
   );

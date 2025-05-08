@@ -18,9 +18,9 @@ export async function emit<
   ChainTypeT extends ChainType | string = "generic",
 >(
   viem: HardhatViemHelpers<ChainTypeT>,
-  promise: Promise<ReadContractReturnType | WriteContractReturnType>,
+  contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
   contract: ContractReturnType<ContractName>,
   eventName: EventName,
 ): Promise<void> {
-  await handleEmit(viem, promise, contract, eventName);
+  await handleEmit(viem, contractFn, contract, eventName);
 }

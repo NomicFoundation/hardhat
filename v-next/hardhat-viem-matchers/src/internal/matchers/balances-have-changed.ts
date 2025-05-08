@@ -9,23 +9,23 @@ export async function balancesHaveChanged<
   ChainTypeT extends ChainType | string = "generic",
 >(
   viem: HardhatViemHelpers<ChainTypeT>,
-  promise: Promise<`0x${string}`>,
+  txHash: Promise<`0x${string}`>,
   changes: Array<{
     address: `0x${string}`;
     amount: bigint;
   }>,
 ): Promise<void> {
-  const txHash = await promise;
+  const resolvedTxHash = await txHash;
 
   assert.ok(
-    isHash(txHash),
-    `The promise should return a transaction hash, but it returned: ${String(txHash)}`,
+    isHash(resolvedTxHash),
+    `The promise should return a transaction hash, but it returned: ${String(resolvedTxHash)}`,
   );
 
   const publicClient = await viem.getPublicClient();
 
   const receipt = await publicClient.waitForTransactionReceipt({
-    hash: txHash,
+    hash: resolvedTxHash,
   });
 
   const senderAddress = receipt.from;

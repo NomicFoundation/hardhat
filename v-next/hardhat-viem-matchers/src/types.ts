@@ -12,7 +12,7 @@ export interface HardhatViemMatchers {
   utils: HardhatViemMatchersUtils;
 
   balancesHaveChanged: (
-    promise: Promise<`0x${string}`>,
+    resolvedTxHash: Promise<`0x${string}`>,
     changes: Array<{
       address: `0x${string}`;
       amount: bigint;
@@ -25,7 +25,7 @@ export interface HardhatViemMatchers {
       ? ContractEventName<ContractAbis[ContractName]>
       : string,
   >(
-    promise: Promise<ReadContractReturnType | WriteContractReturnType>,
+    contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
     contract: ContractReturnType<ContractName>,
     eventName: EventName,
   ): Promise<void>;
@@ -36,29 +36,29 @@ export interface HardhatViemMatchers {
       ? ContractEventName<ContractAbis[ContractName]>
       : string,
   >(
-    promise: Promise<ReadContractReturnType | WriteContractReturnType>,
+    contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
     contract: ContractReturnType<ContractName>,
     eventName: EventName,
     args: any[],
   ): Promise<void>;
 
   revert(
-    promise: Promise<ReadContractReturnType | WriteContractReturnType>,
+    contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
   ): Promise<void>;
 
   revertWith(
-    promise: Promise<ReadContractReturnType | WriteContractReturnType>,
+    contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
     expectedReason: string,
   ): Promise<void>;
 
   revertWithCustomError<ContractName extends CompiledContractName>(
-    promise: Promise<ReadContractReturnType | WriteContractReturnType>,
+    contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
     contract: ContractReturnType<ContractName>,
     customErrorName: string,
   ): Promise<void>;
 
   revertWithCustomErrorWithArgs<ContractName extends CompiledContractName>(
-    promise: Promise<ReadContractReturnType | WriteContractReturnType>,
+    contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
     contract: ContractReturnType<ContractName>,
     customErrorName: string,
     args: any[],

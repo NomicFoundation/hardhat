@@ -20,11 +20,11 @@ export async function handleEmit<
   ChainTypeT extends ChainType | string = "generic",
 >(
   viem: HardhatViemHelpers<ChainTypeT>,
-  promise: Promise<ReadContractReturnType | WriteContractReturnType>,
+  contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
   contract: ContractReturnType<ContractName>,
   eventName: EventName,
 ): Promise<Array<{ args?: Record<string, any> }>> {
-  await promise;
+  await contractFn;
 
   const publicClient = await viem.getPublicClient();
 

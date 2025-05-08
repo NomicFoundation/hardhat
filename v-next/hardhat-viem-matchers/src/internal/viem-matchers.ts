@@ -37,69 +37,69 @@ export class HardhatViemMatchersImpl<
   }
 
   public async balancesHaveChanged(
-    promise: Promise<`0x${string}`>,
+    resolvedTxHash: Promise<`0x${string}`>,
     changes: Array<{
       address: `0x${string}`;
       amount: bigint;
     }>,
   ): Promise<void> {
-    return balancesHaveChanged(this.#viem, promise, changes);
+    return balancesHaveChanged(this.#viem, resolvedTxHash, changes);
   }
 
   public async emit<
     ContractName extends keyof ContractAbis,
     EventName extends ContractEventName<ContractAbis[ContractName]>,
   >(
-    promise: Promise<ReadContractReturnType | WriteContractReturnType>,
+    contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
     contract: ContractReturnType<ContractName>,
     eventName: EventName,
   ): Promise<void> {
-    return emit(this.#viem, promise, contract, eventName);
+    return emit(this.#viem, contractFn, contract, eventName);
   }
 
   public async emitWithArgs<
     ContractName extends keyof ContractAbis,
     EventName extends ContractEventName<ContractAbis[ContractName]>,
   >(
-    promise: Promise<ReadContractReturnType | WriteContractReturnType>,
+    contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
     contract: ContractReturnType<ContractName>,
     eventName: EventName,
     args: any[],
   ): Promise<void> {
-    return emitWithArgs(this.#viem, promise, contract, eventName, args);
+    return emitWithArgs(this.#viem, contractFn, contract, eventName, args);
   }
 
   public async revert(
-    promise: Promise<ReadContractReturnType | WriteContractReturnType>,
+    contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
   ): Promise<void> {
-    return revert(promise);
+    return revert(contractFn);
   }
 
   public async revertWith(
-    promise: Promise<ReadContractReturnType | WriteContractReturnType>,
+    contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
     expectedReason: string,
   ): Promise<void> {
-    return revertWith(promise, expectedReason);
+    return revertWith(contractFn, expectedReason);
   }
 
   public async revertWithCustomError<ContractName extends keyof ContractAbis>(
-    promise: Promise<ReadContractReturnType | WriteContractReturnType>,
+    contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
     contract: ContractReturnType<ContractName>,
     customErrorName: string,
   ): Promise<void> {
-    return revertWithCustomError(promise, contract, customErrorName);
+    return revertWithCustomError(contractFn, contract, customErrorName);
   }
 
   public async revertWithCustomErrorWithArgs<
     ContractName extends keyof ContractAbis,
   >(
-    promise: Promise<ReadContractReturnType | WriteContractReturnType>,
+    contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
     contract: ContractReturnType<ContractName>,
     customErrorName: string,
     args: any[],
   ): Promise<void> {
     return revertWithCustomErrorWithArgs(
-      promise,
+      contractFn,
       contract,
       customErrorName,
       args,

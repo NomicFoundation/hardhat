@@ -24,12 +24,12 @@ export async function emitWithArgs<
   ChainTypeT extends ChainType | string = "generic",
 >(
   viem: HardhatViemHelpers<ChainTypeT>,
-  promise: Promise<ReadContractReturnType | WriteContractReturnType>,
+  contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
   contract: ContractReturnType<ContractName>,
   eventName: EventName,
   args: any[],
 ): Promise<void> {
-  const parsedLogs = await handleEmit(viem, promise, contract, eventName);
+  const parsedLogs = await handleEmit(viem, contractFn, contract, eventName);
 
   assert.equal(
     "args" in parsedLogs[0],

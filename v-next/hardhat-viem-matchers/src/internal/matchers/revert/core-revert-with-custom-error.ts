@@ -15,12 +15,12 @@ import { extractRevertData } from "./extract-revert-data.js";
 export async function handleRevertWithCustomError<
   ContractName extends keyof ContractAbis,
 >(
-  promise: Promise<ReadContractReturnType | WriteContractReturnType>,
+  contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
   contract: ContractReturnType<ContractName>,
   customErrorName: string,
 ): Promise<unknown[]> {
   try {
-    await promise;
+    await contractFn;
   } catch (error) {
     ensureError(error);
 
