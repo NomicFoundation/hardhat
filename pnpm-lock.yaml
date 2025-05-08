@@ -1403,13 +1403,13 @@ importers:
         version: link:../hardhat
     devDependencies:
       '@nomicfoundation/hardhat-node-test-reporter':
-        specifier: workspace:^3.0.0-next.5
+        specifier: workspace:^3.0.0-next.7
         version: link:../hardhat-node-test-reporter
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
         version: link:../hardhat-test-utils
       '@nomicfoundation/hardhat-viem':
-        specifier: workspace:^3.0.0-next.5
+        specifier: workspace:^3.0.0-next.7
         version: link:../hardhat-viem
       '@types/node':
         specifier: ^20.14.9
