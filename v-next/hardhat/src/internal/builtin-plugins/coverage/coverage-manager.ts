@@ -73,6 +73,9 @@ export class CoverageManagerImplementation implements CoverageManager {
   }
 
   public async addMetadata(metadata: CoverageMetadata): Promise<void> {
+    // NOTE: The received metadata might contain duplicates. For now, we're OK
+    // with this. Once we implement report generation, we should decide at which
+    // stage we should deduplicate the metadata.
     this.#metadata.push(...metadata);
     log("Added metadata", JSON.stringify(metadata, null, 2));
   }

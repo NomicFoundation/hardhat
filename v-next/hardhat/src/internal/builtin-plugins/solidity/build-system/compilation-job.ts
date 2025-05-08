@@ -47,6 +47,10 @@ export class CompilationJobImplementation implements CompilationJob {
   public async getSolcInput(): Promise<CompilerInput> {
     if (this.#solcInput === undefined) {
       const solcInput = await this.#buildSolcInput();
+      // NOTE: We run the solc input via the hook handler chain to allow plugins
+      // to modify it before it is passed to solc. Originally, we use it to
+      // insert the coverage.sol file into the solc input sources when coverage
+      // feature is enabled.
       this.#solcInput = await this.#hooks.runHandlerChain(
         "solidity",
         "preprocessSolcInputBeforeBuilding",
@@ -71,9 +75,16 @@ export class CompilationJobImplementation implements CompilationJob {
   async #getFileContent(file: ResolvedFile): Promise<string> {
     switch (file.type) {
       case ResolvedFileType.NPM_PACKAGE_FILE:
+        // NOTE: We currently don't allow custom npm package file preprocessing
+        // because we don't have a use case for it yet.
         return file.content.text;
       case ResolvedFileType.PROJECT_FILE:
         const solcVersion = this.solcConfig.version;
+        // NOTE: We run the project file content via the hook handler chain to allow
+        // plugins to modify it before it is passed to solc. Originally, we use it to
+        // instrument the project file content when coverage feature is enabled.
+        // We pass some additional data via the chain - i.e. source name and solc
+        // version - but we expect any handlers to pass them on as-is without modification.
         return this.#hooks.runHandlerChain(
           "solidity",
           "preprocessProjectFileBeforeBuilding",
@@ -168,6 +179,12 @@ export class CompilationJobImplementation implements CompilationJob {
     // the format of the BuildInfo type.
     const format: BuildInfo["_format"] = "hh3-sol-build-info-1";
 
+    // NOTE: Historically, we used the source content hashes instead of the full
+    // source contents inside the solc input used to compute the build id here.
+    // This was an optimization that sped up the build ID computation in a case
+    // where multiple compilation jobs share some source files. We decided to
+    // remove it once the code coverage was added because it simplified the
+    // implementation and because we expect the caching logic to change.
     const solcInput = await this.getSolcInput();
 
     // The preimage should include all the information that makes this

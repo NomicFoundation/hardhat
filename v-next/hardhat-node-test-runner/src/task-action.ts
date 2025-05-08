@@ -77,6 +77,8 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
     // the global options are not automatically passed to the child processes.
     process.env.HARDHAT_COVERAGE = "true";
 
+    // NOTE: Coverage data needs to be cleared before the test run to ensure
+    // we collect only the data for this test run.
     await clearCoverageData();
 
     const coverage = new URL(
@@ -129,6 +131,9 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   const testFailures = await runTests();
 
   if (hre.globalOptions.coverage === true) {
+    // NOTE: For now, we only load the coverage data from all the test workers
+    // into the memory. The next step would be to request and display the report
+    // built from the loaded data.
     await loadCoverageData();
   }
 

@@ -3,6 +3,18 @@ import type { HardhatRuntimeEnvironmentImplementation } from "../../core/hre.js"
 
 import { getOrCreateGlobalHardhatRuntimeEnvironment } from "../../hre-initialization.js";
 
+/**
+ * This function unsafely casts HardhatRuntimeEnvironment to the internal
+ * HardhatRuntimeEnvironmentImplementation. We use it to access hre fields
+ * that we don't want to be exposed publicly through the HardhatRuntimeEnvironment
+ * interface.
+ *
+ * The use of this function should be limited to a minimum as it is inherently
+ * unsafe.
+ *
+ * @param context An instance of HookContext i.e. HardhatRuntimeEnvironment
+ * @returns A typed instance of HardhatRuntimeEnvironmentImplementation
+ */
 export function unsafelyCastAsHardhatRuntimeEnvironmentImplementation(
   context: HookContext,
 ): HardhatRuntimeEnvironmentImplementation {
@@ -12,9 +24,13 @@ export function unsafelyCastAsHardhatRuntimeEnvironmentImplementation(
   return hre;
 }
 
-// NOTE: These helpers interact with the global HRE instance only; This is OK because:
-// 1. They are intended for the internal use only
-// 2. We know the HRE has been initialized by the time these helpers are used
+/**
+ * NOTE: The following helpers interact with the global HRE instance only;
+ * This is OK because:
+ * - They are intended for the internal use only. They are exposed via the
+ *   internal public API only.
+ * - We know the HRE has been initialized by the time they are used.
+ */
 
 export async function clearCoverageData(): Promise<void> {
   const hre = await getOrCreateGlobalHardhatRuntimeEnvironment();

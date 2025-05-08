@@ -42,6 +42,12 @@ declare module "../../../../types/hooks.js" {
       ) => Promise<JsonRpcResponse>,
     ): Promise<JsonRpcResponse>;
 
+    /**
+     * Hook triggered when the coverage data is received from EDR.
+     *
+     * @param context The hook context.
+     * @param coverageData The coverage data.
+     */
     onCoverageData(
       context: HookContext,
       coverageData: CoverageData,

@@ -46,7 +46,7 @@ export class HardhatRuntimeEnvironmentImplementation
   public artifacts!: ArtifactManager;
   public solidity!: SolidityBuildSystem;
 
-  // NOTE: This is another architectural violation, as this is intended for the
+  // NOTE: This is slight architectural violation, as this is intended for the
   // internal use only. It is set up by the coverage plugin in the `created` hook.
   public _coverage!: CoverageManager;
 
