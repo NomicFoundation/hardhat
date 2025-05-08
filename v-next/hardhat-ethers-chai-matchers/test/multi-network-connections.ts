@@ -41,10 +41,13 @@ describe("handle multiple connections", () => {
       },
     });
 
-    ({ ethers, provider } = await hre.network.connect("test1"));
+    ({ ethers, provider } = await hre.network.connect({
+      network: "test1",
+    }));
 
-    ({ ethers: ethers2, provider: provider2 } =
-      await hre.network.connect("test2"));
+    ({ ethers: ethers2, provider: provider2 } = await hre.network.connect({
+      network: "test2",
+    }));
   });
 
   beforeEach(async () => {

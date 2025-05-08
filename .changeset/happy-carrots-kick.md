@@ -2,4 +2,4 @@
 "hardhat": patch
 ---
 
-Merge user's solc output selection with our defaults ([#6551](https://github.com/NomicFoundation/hardhat/issues/6551))
+Fix to allow user's to configure their own solc output selection in Hardhat config ([#6551](https://github.com/NomicFoundation/hardhat/issues/6551))

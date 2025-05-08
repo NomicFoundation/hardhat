@@ -8,7 +8,7 @@ export default async (): Promise<Partial<HardhatRuntimeEnvironmentHooks>> => ({
     const userConfigNetworks = hre.userConfig.networks;
 
     hre.network = {
-      async connect(networkName, chainType, networkConfigOverride) {
+      async connect(networkConnectionParams) {
         const { NetworkManagerImplementation } = await import(
           "../network-manager.js"
         );
@@ -27,11 +27,7 @@ export default async (): Promise<Partial<HardhatRuntimeEnvironmentHooks>> => ({
           );
         }
 
-        return networkManager.connect(
-          networkName,
-          chainType,
-          networkConfigOverride,
-        );
+        return networkManager.connect(networkConnectionParams);
       },
     };
   },
