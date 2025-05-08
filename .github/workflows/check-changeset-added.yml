@@ -20,49 +20,19 @@ jobs:
   check-if-changeset:
     name: Check that PR has a changeset
     runs-on: ubuntu-latest
-    # don't run this check in the changesets PR
-    if: github.head_ref != 'changeset-release/main'
     steps:
-      - uses: actions/github-script@v7
-        with:
-          script: |
-            const isMergeGroup = context.eventName === "merge_group";
+      - name: Checkout the repository
+        uses: actions/checkout@v4
 
-            // Merge group context
-            if (isMergeGroup) {
-              console.log("Ignore changeset check for merge group.");
-              return;
-            }
+      # We need to fetch the base ref because the pull request check inspects the diff between the head and the base ref
+      - run: git fetch origin "$GITHUB_BASE_REF":"$GITHUB_BASE_REF"
 
-            // Single PR context
-            const pullNumber = context.issue.number;
+      - name: Check if merge group is valid
+        if: github.event_name == 'merge_group'
+        run: node scripts/validate-merge-group.mjs
 
-            const { data: files } = await github.rest.pulls.listFiles({
-              ...context.issue,
-              pull_number: pullNumber
-            });
-            const changeset = files.find(
-              file => file.status === "added" && file.filename.startsWith(".changeset/")
-            );
-            if (changeset !== undefined) {
-              console.log("Changeset found:", changeset.filename);
-              return;
-            }
-
-            console.log("No changeset found");
-
-
-            const { data: pull } = await github.rest.pulls.get({
-              ...context.issue,
-              pull_number: pullNumber
-            });
-            const noChangesetNeededLabel = pull.labels
-              .some(l => l.name === "no changeset needed");
-            if (noChangesetNeededLabel) {
-              console.log('The PR is labeled as "no changeset needed"');
-              return;
-            }
-
-            console.log('The PR is not labeled as "no changeset needed"');
-
-            process.exit(1);
+      - name: Check if PR has a changeset
+        if: github.event_name == 'pull_request'
+        env:
+          GITHUB_EVENT_PULL_REQUEST_LABELS: ${{ toJson(github.event.pull_request.labels) }}
+        run: node scripts/validate-pull-request.mjs
