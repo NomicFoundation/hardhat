@@ -1,0 +1,36 @@
+{
+  "name": "@nomicfoundation/config",
+  "version": "0.0.1",
+  "description": "Shared ESLint config for the Hardhat monorepo",
+  "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/config",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NomicFoundation/hardhat",
+    "directory": "v-next/config"
+  },
+  "author": "Nomic Foundation",
+  "license": "MIT",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "lint": "pnpm prettier --check",
+    "lint:fix": "pnpm prettier --write",
+    "prettier": "prettier \"**/*.{ts,js,md,json}\""
+  },
+  "devDependencies": {
+    "@eslint-community/eslint-plugin-eslint-comments": "4.5.0",
+    "@tsconfig/node22": "^22.0.1",
+    "@types/eslint": "9.6.1",
+    "eslint": "9.25.1",
+    "eslint-import-resolver-typescript": "4.3.4",
+    "eslint-plugin-import": "2.31.0",
+    "eslint-plugin-no-only-tests": "3.3.0",
+    "globals": "16.0.0",
+    "prettier": "3.2.5",
+    "rimraf": "^5.0.5",
+    "typescript-eslint": "8.31.0"
+  },
+  "peerDependencies": {
+    "eslint": "9.25.1"
+  }
+}

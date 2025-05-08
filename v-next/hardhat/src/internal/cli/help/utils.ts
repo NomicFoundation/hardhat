@@ -109,11 +109,28 @@ export function getSection(
   return `\n${title}:\n\n${items
     .sort((a, b) => a.name.localeCompare(b.name))
     .map(({ name, description, defaultValue }) => {
-      const defaultValueStr =
-        defaultValue !== undefined ? ` (default: ${defaultValue})` : "";
+      const defaultValueStr = getDefaultValueString(defaultValue);
       return `  ${name.padEnd(namePadding)}${description}${defaultValueStr}`;
     })
     .join("\n")}\n`;
+}
+
+function getDefaultValueString(
+  defaultValue: ArgumentTypeToValueType<ArgumentType>,
+): string {
+  if (Array.isArray(defaultValue)) {
+    if (defaultValue.length === 0) {
+      return "";
+    } else {
+      return ` (default: ${JSON.stringify(defaultValue)})`;
+    }
+  }
+
+  if (defaultValue === undefined) {
+    return "";
+  }
+
+  return ` (default: ${defaultValue})`;
 }
 
 export function getUsageString(

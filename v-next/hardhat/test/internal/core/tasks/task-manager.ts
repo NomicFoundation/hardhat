@@ -55,8 +55,8 @@ describe("TaskManagerImplementation", () => {
               globalOption({
                 name: "globalOption1",
                 description: "",
-                type: ArgumentType.STRING,
-                defaultValue: "",
+                type: ArgumentType.STRING_WITHOUT_DEFAULT,
+                defaultValue: undefined,
               }),
             ],
           },
@@ -422,8 +422,8 @@ describe("TaskManagerImplementation", () => {
                   globalOption({
                     name: "arg1",
                     description: "",
-                    type: ArgumentType.STRING,
-                    defaultValue: "",
+                    type: ArgumentType.STRING_WITHOUT_DEFAULT,
+                    defaultValue: undefined,
                   }),
                 ],
               },
@@ -462,8 +462,8 @@ describe("TaskManagerImplementation", () => {
                   globalOption({
                     name: "arg1",
                     description: "",
-                    type: ArgumentType.STRING,
-                    defaultValue: "",
+                    type: ArgumentType.STRING_WITHOUT_DEFAULT,
+                    defaultValue: undefined,
                   }),
                 ],
               },

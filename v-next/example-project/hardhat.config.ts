@@ -13,6 +13,7 @@ import hardhatEthersPlugin from "@nomicfoundation/hardhat-ethers";
 import hardhatChaiMatchersPlugin from "@nomicfoundation/hardhat-ethers-chai-matchers";
 import hardhatTypechain from "@nomicfoundation/hardhat-typechain";
 import hardhatIgnitionViem from "@nomicfoundation/hardhat-ignition-viem";
+import { ArgumentType } from "hardhat/types/arguments";
 
 util.inspect.defaultOptions.depth = null;
 
@@ -50,7 +51,8 @@ const exampleTaskOverride = task("example2")
   .addOption({
     name: "grep",
     description: "Only run tests matching the given string or regexp",
-    defaultValue: "",
+    type: ArgumentType.STRING_WITHOUT_DEFAULT,
+    defaultValue: undefined,
   })
   .build();
 

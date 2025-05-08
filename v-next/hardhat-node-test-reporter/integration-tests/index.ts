@@ -19,6 +19,8 @@ const testOnly: string[] = [];
 const argv = process.argv.slice(2);
 while (argv.length > 0) {
   const key = argv.shift();
+
+  // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- Ignore Cases not matched: undefined
   switch (key) {
     case "--show-output":
       SHOW_OUTPUT = true;

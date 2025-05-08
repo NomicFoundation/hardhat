@@ -47,7 +47,7 @@ abstract class BaseResolvedConfigurationVariable
     try {
       new URL(value);
       return value;
-    } catch (e) {
+    } catch (_error) {
       throw new HardhatError(HardhatError.ERRORS.CORE.GENERAL.INVALID_URL, {
         url: value,
       });
@@ -59,7 +59,7 @@ abstract class BaseResolvedConfigurationVariable
 
     try {
       return BigInt(value);
-    } catch (e) {
+    } catch (_error) {
       throw new HardhatError(HardhatError.ERRORS.CORE.GENERAL.INVALID_BIGINT, {
         value,
       });

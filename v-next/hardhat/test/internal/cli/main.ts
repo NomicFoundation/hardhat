@@ -30,6 +30,7 @@ import {
   parseBuiltinGlobalOptions,
   parseTask,
   parseTaskArguments,
+  parseRawArguments,
 } from "../../../src/internal/cli/main.js";
 import {
   globalOption,
@@ -37,7 +38,7 @@ import {
   task,
 } from "../../../src/internal/core/config.js";
 import { resetGlobalHardhatRuntimeEnvironment } from "../../../src/internal/global-hre-instance.js";
-import { createHardhatRuntimeEnvironment } from "../../../src/internal/hre-intialization.js";
+import { createHardhatRuntimeEnvironment } from "../../../src/internal/hre-initialization.js";
 import { getHardhatVersion } from "../../../src/internal/utils/package.js";
 import { ArgumentType } from "../../../src/types/arguments.js";
 
@@ -1419,6 +1420,29 @@ For global options help run: hardhat --help`;
           },
         );
       });
+    });
+  });
+
+  describe("parseRawArguments", function () {
+    it("should parse arguments with = and multiple =", function () {
+      const command =
+        "npx hardhat task --arg1=value1 --arg2=value2=value3 --arg3 value4 variadic1 variadic2";
+
+      const cliArguments = command.split(" ").slice(2);
+
+      const parsedArgs = parseRawArguments(cliArguments);
+
+      assert.deepEqual(parsedArgs, [
+        "task",
+        "--arg1",
+        "value1",
+        "--arg2",
+        "value2=value3",
+        "--arg3",
+        "value4",
+        "variadic1",
+        "variadic2",
+      ]);
     });
   });
 });

@@ -24,3 +24,6 @@ dist-ssr
 *.sw?
 
 public/deployment.json
+
+vite.config.d.ts
+vite.config.js

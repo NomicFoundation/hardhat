@@ -496,10 +496,10 @@ describe("clients", () => {
         },
       });
 
-      const networkConnection = await hre.network.connect(
-        "edrOptimism",
-        "optimism",
-      );
+      const networkConnection = await hre.network.connect({
+        network: "edrOptimism",
+        chainType: "optimism",
+      });
       const publicClient = await networkConnection.viem.getPublicClient();
       const l1BaseFee = await publicClient.getL1BaseFee();
       const latestBlock = await publicClient.getBlock(); // should still have access to L1 actions

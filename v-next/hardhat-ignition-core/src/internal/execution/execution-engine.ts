@@ -11,11 +11,13 @@ import type {
 } from "../../types/module.js";
 import type { DeploymentLoader } from "../deployment-loader/types.js";
 
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import sortBy from "lodash-es/sortBy.js";
 
 import { ExecutionEventType } from "../../types/execution-events.js";
 import { assertIgnitionInvariant } from "../utils/assertions.js";
 import { getFuturesFromModule } from "../utils/get-futures-from-module.js";
+import { getNetworkExecutionStates } from "../views/execution-state/get-network-execution-states.js";
 import { getPendingNonceAndSender } from "../views/execution-state/get-pending-nonce-and-sender.js";
 import { hasExecutionSucceeded } from "../views/has-execution-succeeded.js";
 import { isBatchFinished } from "../views/is-batch-finished.js";
@@ -26,6 +28,7 @@ import { getMaxNonceUsedBySender } from "./nonce-management/get-max-nonce-used-b
 import { getNonceSyncMessages } from "./nonce-management/get-nonce-sync-messages.js";
 import { JsonRpcNonceManager } from "./nonce-management/json-rpc-nonce-manager.js";
 import { TransactionTrackingTimer } from "./transaction-tracking-timer.js";
+import { NetworkInteractionType } from "./types/network-interaction.js";
 
 /**
  * This class is used to execute a module to completion, returning the new
@@ -69,6 +72,8 @@ export class ExecutionEngine {
     deploymentParameters: DeploymentParameters,
     defaultSender: string,
   ): Promise<DeploymentState> {
+    await this._checkForMissingTransactions(deploymentState);
+
     deploymentState = await this._syncNonces(
       deploymentState,
       module,
@@ -195,6 +200,35 @@ export class ExecutionEngine {
       const newBlock = await this._jsonRpcClient.getLatestBlock();
       if (newBlock.number > previousBlock.number) {
         return newBlock;
+      }
+    }
+  }
+
+  /**
+   * Checks the journal for missing transactions, throws if any are found
+   * and asks the user to track the missing transaction via the `track-tx` command.
+   */
+  private async _checkForMissingTransactions(
+    deploymentState: DeploymentState,
+  ): Promise<void> {
+    const exStates = getNetworkExecutionStates(deploymentState);
+
+    for (const exState of exStates) {
+      for (const ni of exState.networkInteractions) {
+        if (
+          ni.type === NetworkInteractionType.ONCHAIN_INTERACTION &&
+          ni.nonce !== undefined &&
+          ni.transactions.length === 0
+        ) {
+          throw new HardhatError(
+            HardhatError.ERRORS.IGNITION.EXECUTION.TRANSACTION_LOST,
+            {
+              futureId: exState.id,
+              nonce: ni.nonce,
+              sender: exState.from,
+            },
+          );
+        }
       }
     }
   }

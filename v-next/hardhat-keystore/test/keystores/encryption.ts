@@ -123,7 +123,6 @@ describe("Serialization utilities", () => {
     });
 
     it("deterministicJsonStringify throws for null values", async () => {
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- Assertion for testing purposes.
       const obj = { a: null };
       assertThrows(
         () => deterministicJsonStringify(obj),
