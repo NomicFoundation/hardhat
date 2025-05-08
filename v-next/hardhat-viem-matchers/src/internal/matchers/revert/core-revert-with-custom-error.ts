@@ -54,5 +54,7 @@ export async function handleRevertWithCustomError<
     }
   }
 
-  assert.fail("The function was expected to revert, but it did not.");
+  assert.fail(
+    `The function was expected to revert with "${customErrorName}", but it did not.`,
+  );
 }

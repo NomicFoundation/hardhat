@@ -79,7 +79,7 @@ describe("revertWithCustomError", () => {
       ),
       (error) =>
         error.message ===
-        "The function was expected to revert, but it did not.",
+        `The function was expected to revert with "CustomError", but it did not.`,
     );
   });
 });
