@@ -420,6 +420,7 @@ describe("CompilationJobImplementation", () => {
         },
         solcLongVersion,
         remappings,
+        hooks,
       );
       const solcInput = await newCompilationJob.getSolcInput();
       assert.deepEqual(solcInput.settings.outputSelection, {
