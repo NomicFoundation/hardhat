@@ -53,4 +53,17 @@ describe("revert", () => {
         "The function was expected to revert, but it did not.",
     );
   });
+
+  it("should handle when the thrown error is a custom error", async () => {
+    const contract = await viem.deployContract("Revert");
+
+    await assertRejects(
+      viem.assertions.revert(
+        contract.read.revertWithCustomError(), // A custom error
+      ),
+      (error) =>
+        error.message ===
+        `Expected default error revert, but got a custom error selector "0x09caebf3" with data "0x09caebf3"`,
+    );
+  });
 });

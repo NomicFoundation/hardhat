@@ -1,15 +1,12 @@
-import type {
-  ReadContractReturnType,
-  WriteContractReturnType} from "viem";
+import type { ReadContractReturnType, WriteContractReturnType } from "viem";
 
 import assert from "node:assert/strict";
 
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
-import {
-  decodeErrorResult
-} from "viem";
+import { decodeErrorResult } from "viem";
 
 import { extractRevertData } from "./extract-revert-data.js";
+import { isDefaultRevert } from "./is-default-revert.js";
 
 export async function handleRevert(
   contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
@@ -20,6 +17,12 @@ export async function handleRevert(
     ensureError(error);
 
     const data = extractRevertData(error);
+
+    if (isDefaultRevert(data) === false) {
+      assert.fail(
+        `Expected default error revert, but got a custom error selector "${data.slice(0, 10)}" with data "${data}"`,
+      );
+    }
 
     const { args } = decodeErrorResult({ data });
 

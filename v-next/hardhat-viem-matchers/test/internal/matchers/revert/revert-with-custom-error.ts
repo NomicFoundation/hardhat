@@ -98,4 +98,19 @@ describe("revertWithCustomError", () => {
         `The function was expected to revert with "CustomError", but it did not.`,
     );
   });
+
+  it("should handle when the thrown error is not a custom error", async () => {
+    const contract = await viem.deployContract("Revert");
+
+    await assertRejects(
+      viem.assertions.revertWithCustomError(
+        contract.read.alwaysRevert(), // Not a custom error
+        contract,
+        "CustomError",
+      ),
+      (error) =>
+        error.message ===
+        `Expected a custom error with name "CustomError", but got non custom error`,
+    );
+  });
 });
