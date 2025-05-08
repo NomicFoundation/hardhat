@@ -7,6 +7,7 @@ import { promisify } from "node:util";
 import { randomUUID } from "node:crypto";
 
 import { readAllNewChangsets } from "./lib/changesets.mjs";
+import { readPackage } from "./lib/packages.mjs";
 
 const execAsync = promisify(exec);
 
@@ -45,9 +46,9 @@ async function versionAlpha() {
 
   await executeChangesetVersion();
 
-  const hardhatVersion = await readHardhatVersion();
+  const hardhat = await readPackage("hardhat");
 
-  await updateHardhatChangelog(hardhatVersion, changesets);
+  await updateHardhatChangelog(hardhat.version, changesets);
 }
 
 /**
@@ -77,17 +78,6 @@ function validateChangesets(changesets) {
   if (validationFailed) {
     process.exit(1);
   }
-}
-
-/**
- * Read the current Alpha version based on the hardhat package.json
- */
-async function readHardhatVersion() {
-  const hardhatPackageJson = JSON.parse(
-    (await readFile(path.join("v-next", "hardhat", "package.json"))).toString()
-  );
-
-  return hardhatPackageJson.version;
 }
 
 /**
