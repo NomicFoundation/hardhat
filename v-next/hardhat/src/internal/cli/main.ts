@@ -47,7 +47,7 @@ export interface MainOptions {
 }
 
 export async function main(
-  cliArguments: string[],
+  rawArguments: string[],
   options: MainOptions = {},
 ): Promise<void> {
   const print = options.print ?? console.log;
@@ -60,6 +60,8 @@ export async function main(
   log("Hardhat CLI started");
 
   try {
+    const cliArguments = parseRawArguments(rawArguments);
+
     const usedCliArguments: boolean[] = new Array(cliArguments.length).fill(
       false,
     );
@@ -424,6 +426,25 @@ export function parseTaskArguments(
   }
 
   return taskArguments;
+}
+
+/**
+ * Parses the raw arguments from the command line, returning an array of
+ * arguments. If an argument starts with "--" and contains "=" (i.e. "--option=123")
+ * it is split into two separate arguments: the option name and the option value.
+ */
+export function parseRawArguments(rawArguments: string[]): string[] {
+  return rawArguments.flatMap((arg) => {
+    if (arg.startsWith("--") && arg.includes("=")) {
+      const index = arg.indexOf("=");
+      const optionName = arg.substring(0, index);
+      const optionValue = arg.substring(index + 1);
+
+      return [optionName, optionValue];
+    }
+
+    return arg;
+  });
 }
 
 function parseOptions(

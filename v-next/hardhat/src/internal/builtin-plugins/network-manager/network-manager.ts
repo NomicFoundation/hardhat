@@ -11,6 +11,7 @@ import type {
   ChainType,
   DefaultChainType,
   NetworkConnection,
+  NetworkConnectionParams,
   NetworkManager,
 } from "../../../types/network.js";
 import type {
@@ -69,20 +70,26 @@ export class NetworkManagerImplementation implements NetworkManager {
   public async connect<
     ChainTypeT extends ChainType | string = DefaultChainType,
   >(
-    networkName?: string,
-    chainType?: ChainTypeT,
-    networkConfigOverride?: NetworkConfigOverride,
+    networkOrParams?: NetworkConnectionParams<ChainTypeT> | string,
   ): Promise<NetworkConnection<ChainTypeT>> {
+    let networkName: string | undefined;
+    let chainType: ChainTypeT | undefined;
+    let override: NetworkConfigOverride | undefined;
+
+    if (typeof networkOrParams === "string") {
+      networkName = networkOrParams;
+    } else if (networkOrParams !== undefined) {
+      networkName = networkOrParams.network;
+      chainType = networkOrParams.chainType;
+      override = networkOrParams.override;
+    }
+
     const networkConnection = await this.#hookManager.runHandlerChain(
       "network",
       "newConnection",
       [],
       async (_context) =>
-        this.#initializeNetworkConnection(
-          networkName,
-          chainType,
-          networkConfigOverride,
-        ),
+        this.#initializeNetworkConnection(networkName, chainType, override),
     );
 
     /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions

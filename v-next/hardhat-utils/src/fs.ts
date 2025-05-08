@@ -2,6 +2,7 @@ import type { JsonTypes, ParsedElementInfo } from "@streamparser/json-node";
 import type { FileHandle } from "node:fs/promises";
 
 import fsPromises from "node:fs/promises";
+import { tmpdir } from "node:os";
 import path from "node:path";
 import { pipeline } from "node:stream/promises";
 
@@ -516,6 +517,22 @@ export async function mkdir(absolutePath: string): Promise<void> {
  * @see mkdir
  */
 export const ensureDir: typeof mkdir = mkdir;
+
+/**
+ * Creates a temporary directory with the specified prefix.
+ *
+ * @param prefix The prefix to use for the temporary directory.
+ * @returns The absolute path to the created temporary directory.
+ * @throws FileSystemAccessError for any error.
+ */
+export async function mkdtemp(prefix: string): Promise<string> {
+  try {
+    return await fsPromises.mkdtemp(path.join(tmpdir(), prefix));
+  } catch (e) {
+    ensureNodeErrnoExceptionError(e);
+    throw new FileSystemAccessError(e.message, e);
+  }
+}
 
 /**
  * Retrieves the last change time of a file or directory's properties.

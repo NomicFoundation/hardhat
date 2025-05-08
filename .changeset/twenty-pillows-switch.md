@@ -1,5 +1,4 @@
 ---
-"@nomicfoundation/example-project": patch
 "@nomicfoundation/hardhat-ignition": patch
 "@nomicfoundation/hardhat-mocha": patch
 "@nomicfoundation/hardhat-node-test-runner": patch

@@ -167,11 +167,33 @@ export class CompilationJobImplementation implements CompilationJob {
         evmVersion:
           settings.evmVersion ??
           getEvmVersionFromSolcVersion(this.solcConfig.version),
-        outputSelection,
+        outputSelection: this.#dedupeAndSortOutputSelection(outputSelection),
         remappings: this.#remappings.map(formatRemapping),
       },
       sources,
     };
+  }
+
+  #dedupeAndSortOutputSelection(
+    outputSelection: CompilerInput["settings"]["outputSelection"],
+  ): CompilerInput["settings"]["outputSelection"] {
+    const dedupedOutputSelection: CompilerInput["settings"]["outputSelection"] =
+      {};
+
+    for (const sourceName of Object.keys(outputSelection).sort()) {
+      dedupedOutputSelection[sourceName] = {};
+      const contracts = outputSelection[sourceName];
+
+      for (const contractName of Object.keys(contracts).sort()) {
+        const selectors = contracts[contractName];
+
+        dedupedOutputSelection[sourceName][contractName] = Array.from(
+          new Set(selectors),
+        ).sort();
+      }
+    }
+
+    return dedupedOutputSelection;
   }
 
   async #computeBuildId(): Promise<string> {
