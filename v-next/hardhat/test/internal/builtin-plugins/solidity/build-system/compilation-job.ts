@@ -9,6 +9,9 @@ import type {
 import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
 
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
+
 import { CompilationJobImplementation } from "../../../../../src/internal/builtin-plugins/solidity/build-system/compilation-job.js";
 import { DependencyGraphImplementation } from "../../../../../src/internal/builtin-plugins/solidity/build-system/dependency-graph.js";
 import {
@@ -273,6 +276,55 @@ describe("CompilationJobImplementation", () => {
           await newCompilationJob.getBuildId(),
         );
       });
+      it("the solc input is modified via the preprocessSolcInputBeforeBuilding hook", async () => {
+        await compilationJob.getSolcInput();
+        const newCompilationJob = new CompilationJobImplementation(
+          dependencyGraph,
+          solcConfig,
+          solcLongVersion,
+          remappings,
+          hooks,
+        );
+        hooks.registerHandlers("solidity", {
+          preprocessSolcInputBeforeBuilding: async (
+            context,
+            solcInput,
+            next,
+          ) => {
+            solcInput.sources.test = { content: "test" };
+            return next(context, solcInput);
+          },
+        });
+        assert.notEqual(
+          await compilationJob.getBuildId(),
+          await newCompilationJob.getBuildId(),
+        );
+      });
+      it("the project file is modified via the preprocessProjectFileBeforeBuilding hook", async () => {
+        await compilationJob.getSolcInput();
+        const newCompilationJob = new CompilationJobImplementation(
+          dependencyGraph,
+          solcConfig,
+          solcLongVersion,
+          remappings,
+          hooks,
+        );
+        hooks.registerHandlers("solidity", {
+          preprocessProjectFileBeforeBuilding: async (
+            context,
+            sourceName,
+            _fileContent,
+            solcVersion,
+            next,
+          ) => {
+            return next(context, sourceName, "test", solcVersion);
+          },
+        });
+        assert.notEqual(
+          await compilationJob.getBuildId(),
+          await newCompilationJob.getBuildId(),
+        );
+      });
     });
     describe("should not change when", () => {
       it("the version of one of the dependencies changes without it being reflected in the source name", async () => {
@@ -350,6 +402,109 @@ describe("CompilationJobImplementation", () => {
           ],
           "": ["ast"],
         },
+      });
+    });
+
+    describe("with preprocessSolcInputBeforeBuilding hook", () => {
+      let content: string;
+
+      beforeEach(() => {
+        content = "test";
+        hooks.registerHandlers("solidity", {
+          preprocessSolcInputBeforeBuilding: async (
+            context,
+            solcInput,
+            next,
+          ) => {
+            solcInput.sources.test = { content };
+            return next(context, solcInput);
+          },
+        });
+      });
+
+      it("should apply the transformation", async () => {
+        const solcInput = await compilationJob.getSolcInput();
+        assert.equal(solcInput.sources.test.content, "test");
+      });
+
+      it("should apply the transformation only once", async () => {
+        const solcInput = await compilationJob.getSolcInput();
+        assert.equal(solcInput.sources.test.content, "test");
+        content = "test2";
+        const solcInput2 = await compilationJob.getSolcInput();
+        assert.equal(solcInput2.sources.test.content, "test");
+      });
+    });
+
+    describe("with preprocessProjectFileBeforeBuilding hook", () => {
+      let name: string | undefined;
+      let content: string;
+      let version: string | undefined;
+
+      beforeEach(() => {
+        name = undefined;
+        content = "test";
+        version = undefined;
+
+        hooks.registerHandlers("solidity", {
+          preprocessProjectFileBeforeBuilding: async (
+            context,
+            sourceName,
+            _fileContent,
+            solcVersion,
+            next,
+          ) => {
+            return next(
+              context,
+              name ?? sourceName,
+              content,
+              version ?? solcVersion,
+            );
+          },
+        });
+      });
+
+      it("should apply the transformation on all project files", async () => {
+        const solcInput = await compilationJob.getSolcInput();
+        for (const file of [rootFile, projectDependencyFile]) {
+          assert.equal(solcInput.sources[file.sourceName].content, "test");
+        }
+      });
+
+      it("should not apply the transformation on npm dependency files", async () => {
+        const solcInput = await compilationJob.getSolcInput();
+        assert.equal(
+          solcInput.sources[npmDependencyFile.sourceName].content,
+          npmDependencyFile.content.text,
+        );
+      });
+
+      it("should throw when the name is modified", async () => {
+        name = "newName";
+
+        await assertRejectsWithHardhatError(
+          compilationJob.getSolcInput(),
+          HardhatError.ERRORS.CORE.HOOKS.UNEXPECTED_HOOK_PARAM_MODIFICATION,
+          {
+            hookCategoryName: "solidity",
+            hookName: "preprocessProjectFileBeforeBuilding",
+            paramName: "sourceName",
+          },
+        );
+      });
+
+      it("should throw when the solc version is modified", async () => {
+        version = "0.0.0";
+
+        await assertRejectsWithHardhatError(
+          compilationJob.getSolcInput(),
+          HardhatError.ERRORS.CORE.HOOKS.UNEXPECTED_HOOK_PARAM_MODIFICATION,
+          {
+            hookCategoryName: "solidity",
+            hookName: "preprocessProjectFileBeforeBuilding",
+            paramName: "solcVersion",
+          },
+        );
       });
     });
   });
