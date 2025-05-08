@@ -136,10 +136,13 @@ export class CompilationJobImplementation implements CompilationJob {
     const dedupedOutputSelection: CompilerInput["settings"]["outputSelection"] =
       {};
 
-    for (const [sourceName, contracts] of Object.entries(outputSelection)) {
+    for (const sourceName of Object.keys(outputSelection).sort()) {
       dedupedOutputSelection[sourceName] = {};
+      const contracts = outputSelection[sourceName];
 
-      for (const [contractName, selectors] of Object.entries(contracts)) {
+      for (const contractName of Object.keys(contracts).sort()) {
+        const selectors = contracts[contractName];
+
         dedupedOutputSelection[sourceName][contractName] = Array.from(
           new Set(selectors),
         ).sort();
