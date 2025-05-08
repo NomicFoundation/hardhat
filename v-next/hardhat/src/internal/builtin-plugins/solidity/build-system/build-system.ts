@@ -393,6 +393,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         solcConfig,
         solcLongVersion,
         resolver.getRemappings(), // TODO: Only get the ones relevant to the subgraph?
+        this.#hooks,
       );
 
       for (const [publicSourceName, root] of subgraph.getRoots().entries()) {

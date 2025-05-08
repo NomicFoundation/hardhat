@@ -34,7 +34,8 @@
     "./types/user-interruptions": "./dist/src/types/user-interruptions.js",
     "./types/utils": "./dist/src/types/utils.js",
     "./types/solidity": "./dist/src/types/solidity.js",
-    "./console.sol": "./console.sol"
+    "./console.sol": "./console.sol",
+    "./internal/coverage": "./dist/src/internal/builtin-plugins/coverage/exports.js"
   },
   "keywords": [
     "ethereum",
@@ -60,6 +61,7 @@
     "src/",
     "templates/",
     "console.sol",
+    "coverage.sol",
     "CHANGELOG.md",
     "LICENSE",
     "README.md"
@@ -81,7 +83,7 @@
   },
   "dependencies": {
     "@ignored/edr": "0.10.0-alpha.3",
-    "@ignored/edr-optimism": "0.13.0-alpha.0",
+    "@ignored/edr-optimism": "0.13.0-alpha.1",
     "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.7",
     "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.7",
     "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.0-next.7",
