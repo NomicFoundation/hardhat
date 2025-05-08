@@ -322,12 +322,44 @@ describe("CompilationJobImplementation", () => {
       assert.deepEqual(solcInput.settings.outputSelection, {
         "*": {
           "*": [
-            "storageLayout",
             "abi",
             "evm.bytecode",
             "evm.deployedBytecode",
             "evm.methodIdentifiers",
             "metadata",
+            "storageLayout",
+          ],
+          "": ["ast"],
+        },
+      });
+    });
+
+    it("should dedupe and sort the merged outputSelection", async () => {
+      const newCompilationJob = new CompilationJobImplementation(
+        dependencyGraph,
+        {
+          ...solcConfig,
+          settings: {
+            outputSelection: {
+              "*": {
+                "*": ["storageLayout", "storageLayout", "abi", "abi"],
+              },
+            },
+          },
+        },
+        solcLongVersion,
+        remappings,
+      );
+      const solcInput = await newCompilationJob.getSolcInput();
+      assert.deepEqual(solcInput.settings.outputSelection, {
+        "*": {
+          "*": [
+            "abi",
+            "evm.bytecode",
+            "evm.deployedBytecode",
+            "evm.methodIdentifiers",
+            "metadata",
+            "storageLayout",
           ],
           "": ["ast"],
         },
