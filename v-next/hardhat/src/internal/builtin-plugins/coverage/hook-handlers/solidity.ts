@@ -37,13 +37,13 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
 
         // NOTE: This is not the most efficient implementation of line number
         // tracking. We should optimise this in the future.
-        let lineNumber = 0;
+        let lineNumber = 1;
         const lineNumbers = [];
         for (const character of fileContent) {
+          lineNumbers.push(lineNumber);
           if (character === "\n") {
             lineNumber++;
           }
-          lineNumbers.push(lineNumber);
         }
 
         const coverageMetadata: CoverageMetadata = [];
@@ -53,7 +53,7 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
             case "statement":
               const tag = m.tag.toString("hex");
               const startLine = lineNumbers[m.startUtf16];
-              const endLine = lineNumbers[m.endUtf16];
+              const endLine = lineNumbers[m.endUtf16 - 1];
               coverageMetadata.push({
                 sourceName,
                 tag,
