@@ -44,18 +44,16 @@ describe("CoverageManagerImplementation", () => {
       {
         sourceName: "test1",
         tag: "test1",
-        kind: "test",
-        startUtf16: 1,
-        endUtf16: 1,
+        startLine: 1,
+        endLine: 1,
       },
     ];
     const metadata2: CoverageMetadata = [
       {
         sourceName: "test2",
         tag: "test2",
-        kind: "test",
-        startUtf16: 1,
-        endUtf16: 1,
+        startLine: 1,
+        endLine: 1,
       },
     ];
 
@@ -106,9 +104,8 @@ describe("CoverageManagerImplementation", () => {
       {
         sourceName: "test",
         tag: "test",
-        kind: "test",
-        startUtf16: 1,
-        endUtf16: 1,
+        startLine: 1,
+        endLine: 1,
       },
     ]);
 

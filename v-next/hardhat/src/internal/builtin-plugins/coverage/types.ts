@@ -1,9 +1,8 @@
 export type CoverageMetadata = Array<{
   sourceName: string;
   tag: string;
-  kind: string;
-  startUtf16: number;
-  endUtf16: number;
+  startLine: number;
+  endLine: number;
 }>;
 export type CoverageData = string[];
 export interface CoverageManager {

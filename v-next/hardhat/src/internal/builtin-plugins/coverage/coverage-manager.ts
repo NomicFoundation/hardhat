@@ -91,6 +91,9 @@ export class CoverageManagerImplementation implements CoverageManager {
     return this.#metadata;
   }
 
+  // NOTE: This is a very inefficient implementation of the LCOV report generation.
+  // It should and will be optimised with appropriate data preprocessing and data
+  // structure usage.
   async #getLcovInfo(): Promise<string> {
     // NOTE: Format follows the guidelines set out in:
     // https://github.com/linux-test-project/lcov/blob/df03ba434eee724bfc2b27716f794d0122951404/man/geninfo.1#L1409
@@ -109,82 +112,66 @@ export class CoverageManagerImplementation implements CoverageManager {
       this.#metadata.map(({ sourceName }) => sourceName),
     );
 
+    // For each source file referenced in the .gcda file, there is a section
+    // containing filename and coverage data:
+    // SF:<path to the source file>
+
     for (const sourceName of sourceNames) {
-      // For each source file referenced in the .gcda file, there is a section
-      // containing filename and coverage data:
-      // SF:<path to the source file>
       lcov += `SF:${sourceName}\n`;
 
-      const statements = this.#metadata.filter(
+      // Then there is a list of execution counts for each instrumented line
+      // (i.e. a line which resulted in executable code):
+      // DA:<line number>,<execution count>[,<checksum>]
+
+      // At the end of a section, there is a summary about how many lines
+      // were found and how many were actually instrumented:
+      // LH:<number of lines with a non\-zero execution count>
+      // LF:<number of instrumented lines>
+
+      const allStatements: CoverageMetadata = this.#metadata.filter(
         (m) => m.sourceName === sourceName,
       );
-      const tags = new Set();
 
-      // Function coverage data follows.
-      // Note that the format of the function coverage data has changed from
-      // LCOV 2.2 onward. The tool continues to be able to read the old format
-      // but now writes only the new format. This change was made so that function
-      // filter outcome is persistent in the generated tracefile.
-
-      // Functions and their aliases are recorded contiguously:
-
-      // First, the leader:
-      // FNL:<index>,<line number of function start>[,line number of function end>]
-
-      // Then the aliases of the function; there will be at least one alias.  All aliases of a particular function share the same index.
-      // FNA:<index>,<execution count>,<name>
-
-      // The now-obsolete function data format is:
-
-      for (const statement of statements) {
-        const { tag, startUtf16, endUtf16 } = statement;
-        if (!tags.has(tag)) {
-          tags.add(tag);
-          // Function coverage data follows.
-          // Note that the format of the function coverage data has changed from
-          // LCOV 2.2 onward. The tool continues to be able to read the old
-          // format but now writes only the new format. This change was made so
-          // that function filter outcome is persistent in the generated tracefile.
-
-          // Functions and their aliases are recorded contiguously:
-
-          // First, the leader:
-          // FNL:<index>,<line number of function start>[,line number of function end>]
-
-          // Then the aliases of the function; there will be at least one alias.
-          // All aliases of a particular function share the same index.
-          // FNA:<index>,<execution count>,<name>
-
-          // The now-obsolete function data format is:
-          // FN:<line number of function start>,[<line number of function end>,]<function name>
-
-          // NOTE: We implement the now-obsolete format because we care more about
-          // backward compatibility than about the function filter support.
-          lcov += `FN:${startUtf16},${endUtf16},${tag}\n`;
+      const executedStatements: CoverageMetadata = [];
+      for (const tag of this.#data) {
+        const statement = allStatements.find((s) => s.tag === tag);
+        if (statement !== undefined) {
+          executedStatements.push(statement);
         }
       }
 
-      const executedTags = this.#data.filter((tag) => tags.has(tag));
-      const executionCounts = new Map<string, number>();
-      for (const tag of executedTags) {
-        const executionCount = executionCounts.get(tag) ?? 0;
-        executionCounts.set(tag, executionCount + 1);
+      const lineExecutionCounts = new Map<number, number>();
+      for (const statement of executedStatements) {
+        const { startLine, endLine } = statement;
+        for (let line = startLine; line <= endLine; line++) {
+          const count = lineExecutionCounts.get(line) ?? 0;
+          lineExecutionCounts.set(line, count + 1);
+        }
       }
 
-      for (const tag of executedTags) {
-        const executionCount = executionCounts.get(tag) ?? 0;
-        // Next, there is a list of execution counts for each instrumented function:
-        // FNDA:<execution count>,<function name>
-        lcov += `FNDA:${executionCount},${tag}\n`;
+      const executedLineCount = lineExecutionCounts.size;
+
+      for (const statement of allStatements) {
+        const executedStatement = executedStatements.find(
+          (s) => s.tag === statement.tag,
+        );
+        if (executedStatement === undefined) {
+          const { startLine, endLine } = statement;
+          for (let line = startLine; line <= endLine; line++) {
+            if (!lineExecutionCounts.has(line)) {
+              lineExecutionCounts.set(line, 0);
+            }
+          }
+        }
       }
 
-      // This list is followed by two lines containing the number of functions found
-      // and hit:
-      // FNF:<number of functions found>
-      // FNH:<number of function hit>
-      // Note that, as of LCOV 2.2, these numbers count function groups - not the individual aliases.
-      lcov += `FNF:${tags.size}\n`;
-      lcov += `FNH:${executionCounts.size}\n`;
+      const totalLineCount = lineExecutionCounts.size;
+
+      for (const [line, executionCount] of lineExecutionCounts) {
+        lcov += `DA:${line},${executionCount}\n`;
+      }
+      lcov += `LH:${executedLineCount}\n`;
+      lcov += `LF:${totalLineCount}\n`;
 
       // Each sections ends with:
       // end_of_record

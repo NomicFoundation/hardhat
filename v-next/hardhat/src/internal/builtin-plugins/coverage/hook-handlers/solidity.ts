@@ -1,4 +1,5 @@
 import type { SolidityHooks } from "../../../../types/hooks.js";
+import type { CoverageMetadata } from "../types.js";
 
 import path from "node:path";
 
@@ -6,8 +7,11 @@ import { addStatementCoverageInstrumentation } from "@ignored/edr-optimism";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { readUtf8File } from "@nomicfoundation/hardhat-utils/fs";
+import debug from "debug";
 
 import { unsafelyCastAsHardhatRuntimeEnvironmentImplementation } from "../helpers.js";
+
+const log = debug("hardhat:core:coverage:hook-handlers:solidity");
 
 // TODO: Change this value to a highly unlikely name instead. Ensure the name
 // does NOT start with hardhat/ to avoid potential conflicts.
@@ -30,22 +34,47 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
           sourceName,
           solcVersion,
         );
+
+        // NOTE: This is not the most efficient implementation of line number
+        // tracking. We should optimise this in the future.
+        let lineNumber = 0;
+        const lineNumbers = [];
+        for (const character of fileContent) {
+          if (character === "\n") {
+            lineNumber++;
+          }
+          lineNumbers.push(lineNumber);
+        }
+
+        const coverageMetadata: CoverageMetadata = [];
+
+        for (const m of metadata) {
+          switch (m.kind) {
+            case "statement":
+              const tag = m.tag.toString("hex");
+              const startLine = lineNumbers[m.startUtf16];
+              const endLine = lineNumbers[m.endUtf16];
+              coverageMetadata.push({
+                sourceName,
+                tag,
+                startLine,
+                endLine,
+              });
+              break;
+            default:
+              // NOTE: We don't support other kinds of metadata yet; we don't
+              // want to start throwing errors if/when EDR adds support for
+              // new kinds of coverage metadata though.
+              log("Unsupported coverage metadata kind", m.kind);
+              break;
+          }
+        }
+
         // NOTE: We need to cast the hre to the internal HardhatRuntimeEnvironmentImplementation
         // because the coverage manager (hre._coverage) is not exposed via the public interface
         const hreImplementation =
           unsafelyCastAsHardhatRuntimeEnvironmentImplementation(context);
-        await hreImplementation._coverage.addMetadata(
-          metadata.map((m) => {
-            // NOTE: We cast the tag we receive from EDR to a hex string to make
-            // it easier to debug.
-            const tag = m.tag.toString("hex");
-            return {
-              ...m,
-              tag,
-              sourceName,
-            };
-          }),
-        );
+        await hreImplementation._coverage.addMetadata(coverageMetadata);
 
         return await next(context, sourceName, source, solcVersion);
       } catch (e) {
