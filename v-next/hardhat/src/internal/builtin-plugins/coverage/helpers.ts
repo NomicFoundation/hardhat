@@ -55,3 +55,11 @@ export async function loadCoverageData(): Promise<void> {
 
   await hreImplementation._coverage.loadData();
 }
+
+export async function saveLcovInfo(): Promise<void> {
+  const hre = await getOrCreateGlobalHardhatRuntimeEnvironment();
+  const hreImplementation =
+    unsafelyCastAsHardhatRuntimeEnvironmentImplementation(hre);
+
+  await hreImplementation._coverage.saveLcovInfo();
+}

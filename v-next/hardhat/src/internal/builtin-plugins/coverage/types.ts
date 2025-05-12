@@ -12,4 +12,5 @@ export interface CoverageManager {
   loadData(): Promise<void>;
   clearData(): Promise<void>;
   addMetadata(metadata: CoverageMetadata): Promise<void>;
+  saveLcovInfo(): Promise<void>;
 }

@@ -9,7 +9,11 @@ import { URL } from "node:url";
 import { hardhatTestReporter } from "@nomicfoundation/hardhat-node-test-reporter";
 import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
 import { createNonClosingWriter } from "@nomicfoundation/hardhat-utils/stream";
-import { clearCoverageData, loadCoverageData } from "hardhat/internal/coverage";
+import {
+  clearCoverageData,
+  loadCoverageData,
+  saveLcovInfo,
+} from "hardhat/internal/coverage";
 
 interface TestActionArguments {
   testFiles: string[];
@@ -135,6 +139,7 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
     // into the memory. The next step would be to request and display the report
     // built from the loaded data.
     await loadCoverageData();
+    await saveLcovInfo();
   }
 
   if (testFailures > 0) {
