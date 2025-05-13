@@ -11,7 +11,10 @@ import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { decodeErrorResult } from "viem";
 
 import { extractRevertData } from "./extract-revert-data.js";
-import { isDefaultRevert } from "./is-default-revert.js";
+import {
+  DEFAULT_REVERT_REASON_SELECTOR,
+  isDefaultRevert,
+} from "./is-default-revert.js";
 
 export async function handleRevertWithCustomError<
   ContractName extends keyof ContractAbis,
@@ -44,7 +47,7 @@ export async function handleRevertWithCustomError<
     try {
       if (isDefaultRevert(data)) {
         assert.fail(
-          `Expected a custom error with name "${customErrorName}", but got non custom error`,
+          `Expected a custom error with name "${customErrorName}", but got a non custom error with default revert selector ${DEFAULT_REVERT_REASON_SELECTOR}`,
         );
       }
 

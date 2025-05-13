@@ -11,10 +11,8 @@ import type {
 } from "viem";
 
 import assert from "node:assert/strict";
-import { inspect } from "node:util";
 
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
-import { deepEqual } from "@nomicfoundation/hardhat-utils/lang";
 
 import { handleEmit } from "./core.js";
 
@@ -60,24 +58,27 @@ export async function emitWithArgs<
     `No args in the event abi, are you sure you are targeting an event with args?`,
   );
 
-  // Map the expected arguments using the same structure as used in the viem logs.
-  // Retrieve the parameter names from the ABI and assign each its expected value.
-  const argsToCheck: Record<string, any> = {};
-  for (const [index, param] of abiEvent.inputs.entries()) {
+  const emittedArgs: any[] = [];
+
+  if (args.length > 0) {
     assertHardhatInvariant(
-      param.name !== undefined,
-      `The event parameter at index ${index} does not have a name`,
+      parsedLogs[0].args !== undefined,
+      `There should be args in the event logs`,
     );
 
-    argsToCheck[param.name] = args[index];
+    for (const [index, param] of abiEvent.inputs.entries()) {
+      assertHardhatInvariant(
+        param.name !== undefined,
+        `The event parameter at index ${index} does not have a name`,
+      );
+
+      emittedArgs.push(parsedLogs[0].args[param.name]);
+    }
   }
 
-  const areEqual = await deepEqual(parsedLogs[0].args, argsToCheck);
-  assert.equal(
-    areEqual,
-    true,
-    `The event arguments do not match the expected ones.
-Expected: ${inspect(argsToCheck, { depth: null, colors: false })}
-Got: ${inspect(parsedLogs[0].args, { depth: null, colors: false })}`,
+  assert.deepEqual(
+    emittedArgs,
+    args,
+    "The event arguments do not match the expected ones.",
   );
 }

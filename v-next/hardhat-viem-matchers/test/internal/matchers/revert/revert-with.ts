@@ -11,6 +11,7 @@ import hardhatViem from "@nomicfoundation/hardhat-viem";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 import hardhatViemMatchers from "../../../../src/index.js";
+import { getErrMsgWithoutColors } from "../../../helpers/err-msg-without-colors.js";
 
 describe("revertWith", () => {
   let hre: HardhatRuntimeEnvironment;
@@ -55,9 +56,12 @@ describe("revertWith", () => {
     await assertRejects(
       viem.assertions.revertWith(contract.read.alwaysRevert(), "wrong reasons"),
       (error) =>
-        error.message.includes(
-          `The function was expected to revert with reason "wrong reasons", but it reverted with reason "Intentional revert for testing purposes".`,
-        ),
+        getErrMsgWithoutColors(error.message) ===
+        `The function was expected to revert with reason "wrong reasons", but it reverted with reason "Intentional revert for testing purposes".
+actual expected
+
+'Intentional wrevert for testing purposeasons'
+`,
     );
   });
 

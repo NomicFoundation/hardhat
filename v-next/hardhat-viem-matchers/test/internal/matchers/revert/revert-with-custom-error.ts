@@ -11,6 +11,8 @@ import hardhatViem from "@nomicfoundation/hardhat-viem";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 import hardhatViemMatchers from "../../../../src/index.js";
+import { DEFAULT_REVERT_REASON_SELECTOR } from "../../../../src/internal/matchers/revert/is-default-revert.js";
+import { getErrMsgWithoutColors } from "../../../helpers/err-msg-without-colors.js";
 
 describe("revertWithCustomError", () => {
   let hre: HardhatRuntimeEnvironment;
@@ -62,9 +64,12 @@ describe("revertWithCustomError", () => {
         "CustomErrorWithInt",
       ),
       (error) =>
-        error.message.includes(
-          `Expected error name: "CustomErrorWithInt", but found "CustomError".`,
-        ),
+        getErrMsgWithoutColors(error.message) ===
+        `Expected error name: "CustomErrorWithInt", but found "CustomError".
+actual expected
+
+'CustomErrorWithInt'
+`,
     );
   });
 
@@ -78,9 +83,8 @@ describe("revertWithCustomError", () => {
         "NonExistingCustomError",
       ),
       (error) =>
-        error.message.includes(
-          `The error "NonExistingCustomError" does not exists in the abi.`,
-        ),
+        error.message ===
+        `The error "NonExistingCustomError" does not exists in the abi.`,
     );
   });
 
@@ -110,7 +114,7 @@ describe("revertWithCustomError", () => {
       ),
       (error) =>
         error.message ===
-        `Expected a custom error with name "CustomError", but got non custom error`,
+        `Expected a custom error with name "CustomError", but got a non custom error with default revert selector ${DEFAULT_REVERT_REASON_SELECTOR}`,
     );
   });
 });

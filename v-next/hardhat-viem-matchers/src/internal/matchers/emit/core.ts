@@ -38,9 +38,9 @@ export async function handleEmit<
     logs,
   });
 
-  assert.notEqual(
-    parsedLogs.length,
-    0,
+  assert.equal(
+    parsedLogs.length > 0,
+    true,
     `No events were emitted for contract with address "${contract.address}" and event name "${eventName}"`,
   );
 

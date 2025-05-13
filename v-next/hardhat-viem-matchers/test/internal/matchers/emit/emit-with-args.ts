@@ -11,8 +11,9 @@ import hardhatViem from "@nomicfoundation/hardhat-viem";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 import hardhatViemMatchers from "../../../../src/index.js";
+import { getErrMsgWithoutColors } from "../../../helpers/err-msg-without-colors.js";
 
-describe("balancesHaveChanged", () => {
+describe("emitWithArgs", () => {
   let hre: HardhatRuntimeEnvironment;
   let viem: HardhatViemHelpers;
 
@@ -53,6 +54,17 @@ describe("balancesHaveChanged", () => {
     );
   });
 
+  it("should not throw if no args are passed and nothing is emitted", async () => {
+    const contract = await viem.deployContract("Events");
+
+    await viem.assertions.emitWithArgs(
+      contract.write.emitWithoutArgs(),
+      contract,
+      "WithoutArgs",
+      [],
+    );
+  });
+
   it("should throw because the event was not emitted with the correct single argument", async () => {
     const contract = await viem.deployContract("Events");
 
@@ -64,13 +76,39 @@ describe("balancesHaveChanged", () => {
         [2n],
       ),
       (error) =>
-        error.message.includes(
-          `The event arguments do not match the expected ones.
-Expected: { i: 2n }
-Got: { i: 1n }`,
-        ),
+        getErrMsgWithoutColors(error.message) ===
+        `The event arguments do not match the expected ones.
++ actual - expected
+
+  [
++   1n
+-   2n
+  ]
+`,
     );
   });
 
-  // TODO: check that one emit is isolated from the following emit
+  it("should throw because the event was not emitted with the correct multiple arguments", async () => {
+    const contract = await viem.deployContract("Events");
+
+    await assertRejects(
+      viem.assertions.emitWithArgs(
+        contract.write.emitTwoUints([1n, 2n]),
+        contract,
+        "WithTwoUintArgs",
+        [2n, "hello"],
+      ),
+      (error) =>
+        getErrMsgWithoutColors(error.message) ===
+        `The event arguments do not match the expected ones.
++ actual - expected
+
+  [
++   1n,
+    2n,
+-   'hello'
+  ]
+`,
+    );
+  });
 });
