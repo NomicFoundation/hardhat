@@ -112,7 +112,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        # TODO: Currently there is no @types/node for Node 23,
+        # TODO: Currently there is no @types/node for Node 24,
         # include it when it is available.
         node: [20, 22]
     steps:
