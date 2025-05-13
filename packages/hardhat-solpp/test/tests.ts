@@ -102,7 +102,7 @@ describe("Solpp plugin", function () {
     });
 
     // This test skipped because solpp won't fail if a contract has an non-defined symbol.
-    // The test is commented out because otherwise it will fail the test suite in WIndows after the update to node 24
+    // The test is commented out because it causes the test suite to fail on Windows after the update to Node 24
     // describe.skip("fail-project", function () {
     //   useEnvironment("fail-project");
 
