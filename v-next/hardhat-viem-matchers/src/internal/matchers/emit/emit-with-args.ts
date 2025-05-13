@@ -29,14 +29,13 @@ export async function emitWithArgs<
 ): Promise<void> {
   const parsedLogs = await handleEmit(viem, contractFn, contract, eventName);
 
-  assert.equal(
+  assert.ok(
     "args" in parsedLogs[0],
-    true,
     `No args in the event logs, are you sure you are targeting an event with args?`,
   );
 
   const abiEvents = contract.abi.filter(
-    (abi) => "name" in abi && abi.name === eventName,
+    (item) => item.type === "event" && item.name === eventName,
   );
 
   assert.notEqual(

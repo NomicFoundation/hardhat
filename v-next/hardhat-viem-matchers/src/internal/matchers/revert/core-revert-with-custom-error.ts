@@ -28,15 +28,13 @@ export async function handleRevertWithCustomError<
   } catch (error) {
     ensureError(error);
 
-    let found = false;
     const contractAbi = Array.isArray(contract.abi)
       ? contract.abi
       : Object.values(contract.abi);
-    for (const abiItem of contractAbi) {
-      if (abiItem.type === "error" && abiItem.name === customErrorName) {
-        found = true;
-      }
-    }
+
+    const found = contractAbi.some(
+      (abiItem) => abiItem.type === "error" && abiItem.name === customErrorName,
+    );
 
     if (found === false) {
       assert.fail(`The error "${customErrorName}" does not exists in the abi.`);
