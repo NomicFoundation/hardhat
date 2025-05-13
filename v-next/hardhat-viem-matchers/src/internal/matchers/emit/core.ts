@@ -44,6 +44,6 @@ export async function handleEmit<
     `No events were emitted for contract with address "${contract.address}" and event name "${eventName}"`,
   );
 
-  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- TODO
+  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- logs generated from emitted events have the `args` field
   return parsedLogs as unknown as Array<{ args?: Record<string, any> }>;
 }
