@@ -50,7 +50,7 @@ export interface HardhatViemMatchers {
 
   revertWith(
     contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
-    expectedReason: string,
+    expectedRevertReason: string,
   ): Promise<void>;
 
   revertWithCustomError<ContractName extends CompiledContractName>(

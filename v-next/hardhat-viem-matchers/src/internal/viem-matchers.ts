@@ -79,9 +79,9 @@ export class HardhatViemMatchersImpl<
 
   public async revertWith(
     contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
-    expectedReason: string,
+    expectedRevertReason: string,
   ): Promise<void> {
-    return revertWith(contractFn, expectedReason);
+    return revertWith(contractFn, expectedRevertReason);
   }
 
   public async revertWithCustomError<ContractName extends keyof ContractAbis>(
