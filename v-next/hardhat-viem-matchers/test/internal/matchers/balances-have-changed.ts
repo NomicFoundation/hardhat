@@ -8,7 +8,7 @@ import hardhatViem from "@nomicfoundation/hardhat-viem";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 import hardhatViemMatchers from "../../../src/index.js";
-import { getErrMsgWithoutColors } from "../../helpers/err-msg-without-colors.js";
+import { isExpectedError } from "../../helpers/is-expected-error.js";
 
 describe("balancesHaveChanged", () => {
   let viem: HardhatViemHelpers;
@@ -83,13 +83,12 @@ describe("balancesHaveChanged", () => {
       ),
 
       (error) =>
-        getErrMsgWithoutColors(error.message) ===
-        `For address "${aliceWalletClient.account.address}", expected balance to change by 10 (from 10000000000000000000000 to 10000000000000000000010), but got a change of 3333333333333333 instead.
-+ actual - expected
-
-+ 3333333333333333n
-- 10n
-`,
+        isExpectedError(
+          error,
+          `For address "${aliceWalletClient.account.address}", expected balance to change by 10 (from 10000000000000000000000 to 10000000000000000000010), but got a change of 3333333333333333 instead.`,
+          3333333333333333n,
+          10n,
+        ),
     );
   });
 });

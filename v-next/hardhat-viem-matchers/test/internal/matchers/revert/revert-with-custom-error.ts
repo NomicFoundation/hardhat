@@ -12,7 +12,7 @@ import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 import hardhatViemMatchers from "../../../../src/index.js";
 import { DEFAULT_REVERT_REASON_SELECTOR } from "../../../../src/internal/matchers/revert/is-default-revert.js";
-import { getErrMsgWithoutColors } from "../../../helpers/err-msg-without-colors.js";
+import { isExpectedError } from "../../../helpers/is-expected-error.js";
 
 describe("revertWithCustomError", () => {
   let hre: HardhatRuntimeEnvironment;
@@ -64,12 +64,12 @@ describe("revertWithCustomError", () => {
         "CustomErrorWithInt",
       ),
       (error) =>
-        getErrMsgWithoutColors(error.message) ===
-        `Expected error name: "CustomErrorWithInt", but found "CustomError".
-actual expected
-
-'CustomErrorWithInt'
-`,
+        isExpectedError(
+          error,
+          `Expected error name: "CustomErrorWithInt", but found "CustomError".`,
+          "CustomError",
+          "CustomErrorWithInt",
+        ),
     );
   });
 

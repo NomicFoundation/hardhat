@@ -11,7 +11,7 @@ import hardhatViem from "@nomicfoundation/hardhat-viem";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 import hardhatViemMatchers from "../../../../src/index.js";
-import { getErrMsgWithoutColors } from "../../../helpers/err-msg-without-colors.js";
+import { isExpectedError } from "../../../helpers/is-expected-error.js";
 
 describe("emit", () => {
   let hre: HardhatRuntimeEnvironment;
@@ -48,11 +48,12 @@ describe("emit", () => {
     await assertRejects(
       viem.assertions.emit(contract.write.doNotEmit(), contract, "WithoutArgs"),
       (error) =>
-        getErrMsgWithoutColors(error.message) ===
-        `No events were emitted for contract with address "${contract.address}" and event name "WithoutArgs"
-
-false !== true
-`,
+        isExpectedError(
+          error,
+          `No events were emitted for contract with address "${contract.address}" and event name "WithoutArgs"`,
+          false,
+          true,
+        ),
     );
   });
 
@@ -70,11 +71,12 @@ false !== true
     await assertRejects(
       viem.assertions.emit(contract.write.doNotEmit(), contract, "WithoutArgs"),
       (error) =>
-        getErrMsgWithoutColors(error.message) ===
-        `No events were emitted for contract with address "${contract.address}" and event name "WithoutArgs"
-
-false !== true
-`,
+        isExpectedError(
+          error,
+          `No events were emitted for contract with address "${contract.address}" and event name "WithoutArgs"`,
+          false,
+          true,
+        ),
     );
   });
 });

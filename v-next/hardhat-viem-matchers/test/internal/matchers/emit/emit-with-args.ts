@@ -11,7 +11,7 @@ import hardhatViem from "@nomicfoundation/hardhat-viem";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 import hardhatViemMatchers from "../../../../src/index.js";
-import { getErrMsgWithoutColors } from "../../../helpers/err-msg-without-colors.js";
+import { isExpectedError } from "../../../helpers/is-expected-error.js";
 
 describe("emitWithArgs", () => {
   let hre: HardhatRuntimeEnvironment;
@@ -76,15 +76,12 @@ describe("emitWithArgs", () => {
         [2n],
       ),
       (error) =>
-        getErrMsgWithoutColors(error.message) ===
-        `The event arguments do not match the expected ones.
-+ actual - expected
-
-  [
-+   1n
--   2n
-  ]
-`,
+        isExpectedError(
+          error,
+          `The event arguments do not match the expected ones.`,
+          [1n],
+          [2n],
+        ),
     );
   });
 
@@ -99,16 +96,12 @@ describe("emitWithArgs", () => {
         [2n, "hello"],
       ),
       (error) =>
-        getErrMsgWithoutColors(error.message) ===
-        `The event arguments do not match the expected ones.
-+ actual - expected
-
-  [
-+   1n,
-    2n,
--   'hello'
-  ]
-`,
+        isExpectedError(
+          error,
+          `The event arguments do not match the expected ones.`,
+          [1n, 2n],
+          [2n, "hello"],
+        ),
     );
   });
 });
