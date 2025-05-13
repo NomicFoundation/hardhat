@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-ledger
 
+## 1.1.0
+
+### Minor Changes
+
+- aa09462: Add support for the Prague hardfork
+
 ## 1.0.3
 
 ### Patch Changes

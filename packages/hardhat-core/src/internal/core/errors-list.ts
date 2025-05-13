@@ -486,6 +486,24 @@ Please check that you are sending an \`address\` parameter.`,
 Please check that you are sending a non-empty string for network or forking \`URL\` parameter.`,
       shouldBeReported: false,
     },
+    INCOMPATIBLE_EIP7702_FIELDS: {
+      number: 118,
+      message: "An incompatible transaction with gasPrice and EIP-7702 fields.",
+      title: "Incompatible EIP-7702 parameters",
+      description: `You are trying to send a transaction with a locally managed
+account, and its parameters are incompatible. You sent both gasPrice and authorizationList.
+
+Please double check your transactions' parameters.`,
+      shouldBeReported: false,
+    },
+    DATA_FIELD_CANNOT_BE_NULL_WITH_NULL_ADDRESS: {
+      number: 119,
+      message: `The "to" field is undefined, and the "data" field is also undefined; however, a transaction to the null address cannot have an undefined "data" field.`,
+      title: "Transaction to null address cannot have undefined data",
+      description:
+        "The transaction to the null address cannot have undefined data",
+      shouldBeReported: false,
+    },
   },
   TASK_DEFINITIONS: {
     PARAM_AFTER_VARIADIC: {

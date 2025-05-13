@@ -1,11 +1,10 @@
-import { Common } from "@nomicfoundation/ethereumjs-common";
-import { AccessListEIP2930Transaction } from "@nomicfoundation/ethereumjs-tx";
 import { assert } from "chai";
 import {
   bytesToHex as bufferToHex,
   privateToAddress,
   toBytes,
-} from "@nomicfoundation/ethereumjs-util";
+} from "@ethereumjs/util";
+import { Transaction } from "micro-eth-signer";
 
 import { ERRORS } from "../../../../src/internal/core/errors-list";
 import { numberToRpcQuantity } from "../../../../src/internal/core/jsonrpc/types/base-types";
@@ -29,7 +28,7 @@ function toBuffer(x: Parameters<typeof toBytes>[0]) {
 }
 
 function privateKeyToAddress(privateKey: string): string {
-  return bufferToHex(privateToAddress(toBuffer(privateKey))).toLowerCase();
+  return bufferToHex(privateToAddress(toBuffer(privateKey)));
 }
 
 const MOCK_PROVIDER_CHAIN_ID = 123;
@@ -42,6 +41,7 @@ describe("Local accounts provider", () => {
     "0x6d7229c1db5892730b84b4bc10543733b72cabf4cd3130d910faa8e459bb8eca",
     "0x6d4ec871d9b5469119bbfc891e958b6220d076a6849006098c370c8af5fc7776",
     "0xec02c2b7019e75378a05018adc30a0252ba705670acb383a1d332e57b0b792d2",
+    "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
   ];
 
   beforeEach(() => {
@@ -305,6 +305,177 @@ describe("Local accounts provider", () => {
     assert.equal(rawTransaction, expectedRaw);
 
     validateRawEIP2930Transaction(expectedRaw, tx);
+  });
+
+  it("should send EIP-7702 transactions", async () => {
+    const tx = {
+      from: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+      to: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+      gas: numberToRpcQuantity(100000),
+      maxFeePerGas: numberToRpcQuantity(10n * 10n ** 9n),
+      maxPriorityFeePerGas: numberToRpcQuantity(10n ** 9n),
+      chainId: numberToRpcQuantity(MOCK_PROVIDER_CHAIN_ID),
+      nonce: numberToRpcQuantity(0),
+      authorizationList: [
+        {
+          chainId: numberToRpcQuantity(MOCK_PROVIDER_CHAIN_ID),
+          nonce: numberToRpcQuantity(1),
+          address: "0x1234567890123456789012345678901234567890",
+          yParity: "0x1",
+          r: "0xd4c36a32c935f7abf3950062024b08ee85a707cd725274a5b017865ea6e989ad",
+          s: "0x6218f33b32f2f26783db21cde75e6b72bcacfedbac4c1a1af438e3e5c755918a",
+        },
+      ],
+    };
+    await wrapper.request({
+      method: "eth_sendTransaction",
+      params: [tx],
+    });
+
+    const rawTransaction = mock.getLatestParams("eth_sendRawTransaction")[0];
+
+    const expectedRaw =
+      "0x04f8ca7b80843b9aca008502540be400830186a094f39fd6e51aad88f6" +
+      "f4ce6ab8827279cfffb922668080c0f85cf85a7b94123456789012345678" +
+      "90123456789012345678900101a0d4c36a32c935f7abf3950062024b08ee" +
+      "85a707cd725274a5b017865ea6e989ada06218f33b32f2f26783db21cde7" +
+      "5e6b72bcacfedbac4c1a1af438e3e5c755918a80a09ae0f9ac575ff45f38" +
+      "805f7101455b397d248166a2a5771122a66e6c279c279ba0234d80d08a6f" +
+      "369a134b0058b74076e608db10da97ec3660ad829c8d4246098f";
+
+    assert.equal(rawTransaction, expectedRaw);
+  });
+
+  it("should allow 'to' to be undefined (contract deployment)", async () => {
+    const tx = {
+      from: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
+      gas: numberToRpcQuantity(100000),
+      nonce: numberToRpcQuantity(0),
+      value: numberToRpcQuantity(1),
+      data: "0x1234",
+      chainId: numberToRpcQuantity(MOCK_PROVIDER_CHAIN_ID),
+      maxFeePerGas: numberToRpcQuantity(12),
+      maxPriorityFeePerGas: numberToRpcQuantity(2),
+    };
+    await wrapper.request({
+      method: "eth_sendTransaction",
+      params: [tx],
+    });
+
+    const rawTransaction = mock.getLatestParams("eth_sendRawTransaction")[0];
+
+    const expectedRaw =
+      "0x02f8517b80020c830186a08001821234c080a0299e6b620a0a42fa7d56" +
+      "42c657975df33974289d58ad3ea45d2eccf9172a5d66a05e408d8d43eba4" +
+      "8edf9da2a833ed4bd6ddaec11f62bcbf8ccb03177f296e0c9b";
+
+    assert.equal(rawTransaction, expectedRaw);
+  });
+
+  it("should allow 'data' to be undefined (regular tx)", async () => {
+    const tx = {
+      from: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
+      to: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
+      gas: numberToRpcQuantity(100000),
+      nonce: numberToRpcQuantity(0),
+      value: numberToRpcQuantity(1),
+      chainId: numberToRpcQuantity(MOCK_PROVIDER_CHAIN_ID),
+      maxFeePerGas: numberToRpcQuantity(12),
+      maxPriorityFeePerGas: numberToRpcQuantity(2),
+    };
+    await wrapper.request({
+      method: "eth_sendTransaction",
+      params: [tx],
+    });
+
+    const rawTransaction = mock.getLatestParams("eth_sendRawTransaction")[0];
+
+    const expectedRaw =
+      "0x02f8637b80020c830186a094b5bc06d4548a3ac17d72b372ae1e416bf6" +
+      "5b8ead0180c001a0db0f3cf6ea38dc6f9da98bbaf7dd1476ad86278eb56d" +
+      "d6173253689481b021fea01b4c3f357eb05a54913fd832c1450b0e169007" +
+      "56a74a7ee82fc78271f1ff19df";
+
+    assert.equal(rawTransaction, expectedRaw);
+  });
+
+  it("should allow 'chainId' to be larger than 2^32 - 1", async () => {
+    const tx = {
+      from: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
+      to: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
+      gas: numberToRpcQuantity(100000),
+      nonce: numberToRpcQuantity(0),
+      value: numberToRpcQuantity(1),
+      chainId: numberToRpcQuantity(BigInt(2 ** 32)),
+      maxFeePerGas: numberToRpcQuantity(12),
+      maxPriorityFeePerGas: numberToRpcQuantity(2),
+    };
+    await wrapper.request({
+      method: "eth_sendTransaction",
+      params: [tx],
+    });
+
+    const rawTransaction = mock.getLatestParams("eth_sendRawTransaction")[0];
+
+    // BigInt(2 ** 32) is 0x + 100000000
+    const expectedRaw =
+      "0x02f86885010000000080020c830186a094b5bc06d4548a3ac17d72b372" +
+      "ae1e416bf65b8ead0180c001a0d2dc2ca1503a8e440849a4c87bd971d3f9" +
+      "9060fc0d12c7557cce964ec465f3faa017b976a4ec68cc1e03a4f14b342b" +
+      "e7666a76318a802cc1197a3bb88a36549bc8";
+
+    assert.equal(rawTransaction, expectedRaw);
+  });
+
+  it("should throw if both 'to' and 'data' are undefined", async () => {
+    await expectHardhatErrorAsync(
+      () =>
+        wrapper.request({
+          method: "eth_sendTransaction",
+          params: [
+            {
+              from: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
+              gas: numberToRpcQuantity(100000),
+              nonce: numberToRpcQuantity(0),
+              value: numberToRpcQuantity(1),
+              chainId: numberToRpcQuantity(MOCK_PROVIDER_CHAIN_ID),
+              maxFeePerGas: numberToRpcQuantity(12),
+              maxPriorityFeePerGas: numberToRpcQuantity(2),
+            },
+          ],
+        }),
+      ERRORS.NETWORK.DATA_FIELD_CANNOT_BE_NULL_WITH_NULL_ADDRESS
+    );
+  });
+
+  it("should throw if 'authorizationList' and 'gasPrice' are defined", async () => {
+    await expectHardhatErrorAsync(
+      () =>
+        wrapper.request({
+          method: "eth_sendTransaction",
+          params: [
+            {
+              from: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
+              gas: numberToRpcQuantity(100000),
+              nonce: numberToRpcQuantity(0),
+              value: numberToRpcQuantity(1),
+              chainId: numberToRpcQuantity(MOCK_PROVIDER_CHAIN_ID),
+              gasPrice: numberToRpcQuantity(1),
+              authorizationList: [
+                {
+                  chainId: numberToRpcQuantity(MOCK_PROVIDER_CHAIN_ID),
+                  nonce: numberToRpcQuantity(1),
+                  address: "0x1234567890123456789012345678901234567890",
+                  yParity: "0x1",
+                  r: "0xd4c36a32c935f7abf3950062024b08ee85a707cd725274a5b017865ea6e989ad",
+                  s: "0x6218f33b32f2f26783db21cde75e6b72bcacfedbac4c1a1af438e3e5c755918a",
+                },
+              ],
+            },
+          ],
+        }),
+      ERRORS.NETWORK.INCOMPATIBLE_EIP7702_FIELDS
+    );
   });
 
   it("should add the chainId value if it's missing", async () => {
@@ -824,26 +995,26 @@ describe("Sender providers", () => {
  * the same values as `tx`
  */
 function validateRawEIP2930Transaction(rawTx: string, tx: any) {
-  const common = Common.custom({ chainId: MOCK_PROVIDER_CHAIN_ID });
+  const sentTx = Transaction.fromHex(rawTx);
 
-  const sentTx = AccessListEIP2930Transaction.fromSerializedTx(
-    toBuffer(rawTx),
-    { common }
+  assert.equal(sentTx.type, "eip2930");
+
+  // We need to cast as the type assertion isn't narrowing the type
+  const parsedTx = sentTx as Transaction<"eip2930">;
+
+  assert.equal(parsedTx.sender.toLowerCase(), tx.from);
+  assert.equal(parsedTx.raw.to.toLowerCase(), tx.to);
+
+  const parsedTxAccessList = parsedTx.raw.accessList.map(
+    ({ address, storageKeys }) => ({
+      address: address.toLowerCase(),
+      storageKeys,
+    })
   );
 
-  const accessList = sentTx.accessList.map(([address, storageKeys]) => {
-    return {
-      address: bufferToHex(address),
-      storageKeys: storageKeys.map(bufferToHex),
-    };
-  });
-
-  assert.equal(sentTx.getSenderAddress().toString(), tx.from);
-  assert.equal(sentTx.to?.toString(), tx.to);
-
-  assert.equal(numberToRpcQuantity(sentTx.gasLimit), tx.gas);
-  assert.equal(numberToRpcQuantity(sentTx.gasPrice), tx.gasPrice);
-  assert.equal(numberToRpcQuantity(sentTx.nonce), tx.nonce);
-  assert.equal(numberToRpcQuantity(sentTx.value), tx.value);
-  assert.deepEqual(accessList, tx.accessList);
+  assert.equal(numberToRpcQuantity(parsedTx.raw.gasLimit), tx.gas);
+  assert.equal(numberToRpcQuantity(parsedTx.raw.gasPrice), tx.gasPrice);
+  assert.equal(numberToRpcQuantity(parsedTx.raw.nonce), tx.nonce);
+  assert.equal(numberToRpcQuantity(parsedTx.raw.value), tx.value);
+  assert.deepEqual(parsedTxAccessList, tx.accessList);
 }

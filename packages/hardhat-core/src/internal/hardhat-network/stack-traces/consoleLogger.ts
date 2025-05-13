@@ -3,7 +3,7 @@ import {
   bytesToHex as bufferToHex,
   bytesToInt,
   fromSigned,
-} from "@nomicfoundation/ethereumjs-util";
+} from "@ethereumjs/util";
 import util from "util";
 
 import {

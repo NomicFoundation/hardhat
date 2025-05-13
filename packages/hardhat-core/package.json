@@ -1,6 +1,6 @@
 {
   "name": "hardhat",
-  "version": "2.22.19",
+  "version": "2.24.0",
   "author": "Nomic Labs LLC",
   "license": "MIT",
   "homepage": "https://hardhat.org",
@@ -59,7 +59,6 @@
   "devDependencies": {
     "@nomicfoundation/eslint-plugin-hardhat-internal-rules": "workspace:^",
     "@nomicfoundation/eslint-plugin-slow-imports": "workspace:^",
-    "@nomicfoundation/ethereumjs-block": "5.0.4",
     "@types/async-eventemitter": "^0.2.1",
     "@types/bn.js": "^5.1.0",
     "@types/chai": "^4.2.0",
@@ -98,12 +97,9 @@
     "typescript": "~5.0.0"
   },
   "dependencies": {
+    "@ethereumjs/util": "^9.1.0",
     "@ethersproject/abi": "^5.1.2",
-    "@metamask/eth-sig-util": "^4.0.0",
-    "@nomicfoundation/edr": "^0.10.0",
-    "@nomicfoundation/ethereumjs-common": "4.0.4",
-    "@nomicfoundation/ethereumjs-tx": "5.0.4",
-    "@nomicfoundation/ethereumjs-util": "9.0.4",
+    "@nomicfoundation/edr": "^0.11.0",
     "@nomicfoundation/solidity-analyzer": "^0.1.0",
     "@sentry/node": "^5.18.1",
     "@types/bn.js": "^5.1.0",
@@ -118,7 +114,6 @@
     "enquirer": "^2.3.0",
     "env-paths": "^2.2.0",
     "ethereum-cryptography": "^1.0.3",
-    "ethereumjs-abi": "^0.6.8",
     "find-up": "^5.0.0",
     "fp-ts": "1.19.3",
     "fs-extra": "^7.0.1",
@@ -127,6 +122,7 @@
     "json-stream-stringify": "^3.1.4",
     "keccak": "^3.0.2",
     "lodash": "^4.17.11",
+    "micro-eth-signer": "^0.14.0",
     "mnemonist": "^0.38.0",
     "mocha": "^10.0.0",
     "p-map": "^4.0.0",

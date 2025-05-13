@@ -1,5 +1,5 @@
 import { expect, AssertionError } from "chai";
-import { BigNumber as BigNumberJs } from "bignumber.js";
+import { default as BigNumberJs } from "bignumber.js";
 import BN from "bn.js";
 
 import { HardhatError } from "hardhat/internal/core/errors";

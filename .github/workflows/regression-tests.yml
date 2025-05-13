@@ -1,0 +1,473 @@
+name: Regression Tests
+
+on:
+  # TODO: Add a workflow_call trigger to allow running this workflow from EDR
+  workflow_dispatch:
+    inputs:
+      hardhat-ref:
+        required: true
+        type: string
+        default: "v-next"
+      edr-ref:
+        required: false
+        type: string
+        default: ""
+      repositories:
+        required: false
+        type: string
+        default: '["Elytro-eth/soul-wallet-contract", "foundry-rs/forge-std", "kalidao/keep", "mds1/multicall", "pancakeswap/infinity-core", "PaulRBerg/prb-math", "PaulRBerg/prb-proxy", "PaulRBerg/prb-test", "pcaversaccio/createx", "ProjectOpenSea/seaport", "sablier-labs/lockup", "sablier-labs/v2-periphery", "transmissions11/solmate", "Uniswap/UniswapX", "Vectorized/solady"]'
+      runners:
+        required: false
+        type: string
+        default: '["ubuntu-latest"]'
+      commands:
+        required: false
+        type: string
+        default: '["hardhat compile", "hardhat test solidity"]'
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build-edr:
+    name: Build EDR
+    if: inputs.edr-ref
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: ${{ fromJSON(inputs.runners) }}
+    defaults:
+      run:
+        shell: bash
+        working-directory: crates/edr_napi
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: NomicFoundation/edr
+          ref: ${{ inputs.edr-ref }}
+      - id: target
+        env:
+          RUNNER: ${{ matrix.runner }}
+        run: |
+          if [[ "$RUNNER" == "ubuntu-latest" ]]; then
+            echo "target=x86_64-unknown-linux-gnu" >> $GITHUB_OUTPUT
+          elif [[ "$RUNNER" == "macos-latest" ]]; then
+            echo "target=aarch64-apple-darwin" >> $GITHUB_OUTPUT
+          elif [[ "$RUNNER" == "windows-latest" ]]; then
+            echo "target=x86_64-pc-windows-msvc" >> $GITHUB_OUTPUT
+          else
+            exit 1
+          fi
+      - uses: ./.github/actions/setup-node
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+      - name: Add Rust cross-compilation target
+        run: rustup target add ${{ steps.target.outputs.target }}
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --prefer-offline
+      - name: Build
+        run: pnpm build --target ${{ steps.target.outputs.target }}
+      - name: Remove symbols
+        if: runner.os != 'MacOS'
+        run: strip *.node
+      - name: Remove symbols (macOS)
+        if: runner.os == 'MacOS'
+        run: strip -x *.node
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: edr-${{ matrix.runner }}
+          path: crates/edr_napi/edr.*.node
+          if-no-files-found: error
+
+  publish-edr:
+    name: Publish EDR
+    needs: [build-edr]
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: crates/edr_napi
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: NomicFoundation/edr
+          ref: ${{ inputs.edr-ref }}
+      - uses: ./.github/actions/setup-node
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --prefer-offline
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: crates/edr_napi/artifacts
+      - name: Install sponge
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y moreutils
+      - name: Move artifacts
+        run: pnpm artifacts
+      - name: Install artifacts
+        run: |
+          for artifact in npm/*/*.node; do
+            pnpm install --save "./$(dirname $artifact)"
+          done
+      - name: Modify package.json
+        env:
+          JSON: |
+            {
+              "bundleDependencies": true
+            }
+        run: jq --argjson json "$JSON" '. + $json' package.json > package.json.tmp && mv package.json.tmp package.json
+      - name: Create the package
+        run: pnpm pack --config.node-linker=hoisted
+      - name: Upload the package
+        uses: actions/upload-artifact@v4
+        with:
+          name: edr
+          path: crates/edr_napi/*.tgz
+          if-no-files-found: error
+
+  build-and-publish-hardhat:
+    name: Build and publish Hardhat
+    needs: [publish-edr]
+    if: (!cancelled() && inputs.hardhat-ref != 'next' && !startsWith(inputs.hardhat-ref, '3') && inputs.edr-ref == '' || needs.publish-edr.result == 'success')
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: v-next/hardhat
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: NomicFoundation/hardhat
+          ref: ${{ inputs.hardhat-ref }}
+      - uses: ./.github/actions/setup-env
+      - name: Install dependencies
+        run: |
+          pnpm install --frozen-lockfile --prefer-offline
+      - name: Download EDR
+        if: inputs.edr-ref != ''
+        uses: actions/download-artifact@v4
+        with:
+          name: edr
+          path: v-next/hardhat
+      - name: Install EDR
+        if: inputs.edr-ref != ''
+        run: pnpm install ./*.tgz
+      - name: Build
+        run: pnpm build
+      - name: Modify package.json
+        env:
+          JSON: |
+            {
+              "bundleDependencies": true
+            }
+        run: jq --argjson json "$JSON" '. + $json' package.json > package.json.tmp && mv package.json.tmp package.json
+      - name: Modify top-level package.json
+        env:
+          JSON: |
+            {
+              "pnpm": {
+                "supportedArchitectures": {
+                  "os": ["win32", "darwin", "linux"],
+                  "cpu": ["x64", "arm64"]
+                }
+              }
+            }
+        run: jq --argjson json "$JSON" '. + $json' package.json > package.json.tmp && mv package.json.tmp package.json
+        working-directory: ${{ github.workspace }}
+      - name: Deploy
+        run: |
+          pnpm deploy --config.node-linker=hoisted --filter=hardhat --prod bundle.tmp
+          rsync -a --copy-links bundle.tmp/ bundle
+          rm -rf **/bundle.tmp
+        working-directory: ${{ github.workspace }}
+      - name: Pack
+        run: npm pack
+        working-directory: bundle
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hardhat
+          path: bundle/hardhat-*.tgz
+          if-no-files-found: error
+
+  test:
+    name: Run the test command
+    needs: [build-and-publish-hardhat]
+    if: (!cancelled() && (inputs.hardhat-ref == 'next' || startsWith(inputs.hardhat-ref, '3')) || needs.build-and-publish-hardhat.result == 'success')
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        repository: ${{ fromJSON(inputs.repositories) }}
+        runner: ${{ fromJSON(inputs.runners) }}
+        command: ${{ fromJSON(inputs.commands) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: ${{ github.repository }}
+      - if: runner.os == 'Windows'
+        run: choco install yq
+      - id: workflow
+        run: |
+          echo "config<<EOF" >> $GITHUB_OUTPUT
+          yq -o json . .github/config/regression-tests.yml >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+        working-directory: ${{ github.repository }}
+      - id: config
+        env:
+          REPOSITORY: ${{ matrix.repository }}
+          RUNNER: ${{ matrix.runner }}
+          COMMAND: ${{ matrix.command }}
+          CONFIG: ${{ toJSON(fromJSON(steps.workflow.outputs.config)) }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const config = JSON.parse(process.env.CONFIG);
+            const repositoryConfig = config.repositories[process.env.REPOSITORY];
+            const runnerConfig = config.runners[process.env.RUNNER];
+            const commandConfig = config.commands[process.env.COMMAND];
+            if (!repositoryConfig) {
+              core.setFailed(`Unsupported repository: ${process.env.REPOSITORY}`);
+            }
+            if (!runnerConfig) {
+              core.setFailed(`Unsupported runner: ${process.env.RUNNER}`);
+            }
+            if (!commandConfig) {
+              core.setFailed(`Unsupported command: ${process.env.COMMAND}`);
+            }
+            core.setOutput('repository', JSON.stringify(repositoryConfig));
+            core.setOutput('runner', JSON.stringify(runnerConfig));
+            core.setOutput('command', JSON.stringify(commandConfig));
+            console.log({
+              repository: repositoryConfig,
+              runner: runnerConfig,
+              command: commandConfig,
+            });
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Download Hardhat
+        if: (startsWith(matrix.command, 'hardhat') && inputs.hardhat-ref != 'next' && !startsWith(inputs.hardhat-ref, '3'))
+        uses: actions/download-artifact@v4
+        with:
+          name: hardhat
+      - name: Fix Hardhat on Windows
+        if: (startsWith(matrix.command, 'hardhat') && inputs.hardhat-ref != 'next' && !startsWith(inputs.hardhat-ref, '3')) && matrix.runner == 'windows-latest'
+        run: |
+          npm init -y
+          npm install esbuild
+          rm package.json package-lock.json
+          tar -xzf hardhat-*.tgz
+          rm -rf package/node_modules/esbuild package/node_modules/@esbuild
+          mv node_modules/esbuild package/node_modules
+          mv node_modules/@esbuild package/node_modules
+          tar -czf hardhat-*.tgz package
+          rm -rf package
+      - name: Install Hardhat from source
+        if: (startsWith(matrix.command, 'hardhat') && inputs.hardhat-ref != 'next' && !startsWith(inputs.hardhat-ref, '3'))
+        run: |
+          npm install -g hardhat-*.tgz
+          rm hardhat-*.tgz
+      - name: Install Hardhat
+        if: (startsWith(matrix.command, 'hardhat') && (inputs.hardhat-ref == 'next' || startsWith(inputs.hardhat-ref, '3')))
+        run: |
+          npm install -g hardhat@${{ inputs.hardhat-ref }}
+          hardhat --version
+      - name: Install Forge
+        if: startsWith(matrix.command, 'forge')
+        uses: foundry-rs/foundry-toolchain@de808b1eea699e761c404bda44ba8f21aba30b2c
+        with:
+          version: ${{ fromJSON(steps.config.outputs.repository).forge-version }}
+          cache: false
+      - name: Checkout the repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          repository: ${{ matrix.repository }}
+          ref: ${{ fromJSON(steps.config.outputs.repository).ref }}
+      - name: Update the .gitignore
+        if: fromJSON(steps.config.outputs.repository).ignore != ''
+        env:
+          IGNORE: ${{ fromJSON(steps.config.outputs.repository).ignore }}
+        run: |
+          echo "$IGNORE" >> .gitignore
+          git rm --cached -r $(git ls-files -i -c --exclude-from=.gitignore)
+          git clean -fdX
+      - name: Configure Hardhat
+        if: startsWith(matrix.command, 'hardhat')
+        env:
+          CONFIG: ${{ fromJSON(steps.config.outputs.repository).hardhat-config }}
+        run: |
+          rm hardhat.config.* || true
+          echo "$CONFIG" > hardhat.config.js
+      - name: Initialize the package
+        if: startsWith(matrix.command, 'hardhat')
+        run: |
+          npm init -y
+          npm pkg set type="module"
+      - name: Install dependencies (npm)
+        if: hashFiles('package-lock.json') != ''
+        run: npm ci
+      - name: Install dependencies (pnpm)
+        if: hashFiles('pnpm-lock.yaml') != ''
+        run: |
+          npm install -g pnpm
+          pnpm install --frozen-lockfile --prefer-offline || pnpm install
+      - name: Install dependencies (yarn)
+        if: hashFiles('yarn.lock') != ''
+        run: |
+          npm install -g yarn
+          yarn install --immutable
+      - name: Install dependencies (bun)
+        if: hashFiles('bun.lockb') != ''
+        run: |
+          npm install -g bun
+          bun install --frozen-lockfile
+      - name: Run ${{ matrix.command }}
+        id: run
+        env:
+          DEBUG: ${{ runner.debug && '*' || '' }}
+          ENV_SOURCE: ${{ fromJSON(steps.config.outputs.repository).env }}
+        run: |
+          source <(echo "$ENV_SOURCE")
+          set +e
+          before=$(date +%s)
+          ${{ matrix.command }} 2>&1 | tee -a run.output
+          status=${PIPESTATUS[0]}
+          after=$(date +%s)
+          set -e
+          echo '{"status": '"$status"', "time": '"$((after - before))"'}' > run.result
+      - name: Run the command post-hook
+        uses: actions/github-script@v7
+        env:
+          PATTERN: ${{ fromJSON(steps.config.outputs.command).pattern }}
+          TEMPLATE: ${{ fromJSON(steps.config.outputs.command).template }}
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const output = fs.readFileSync('run.output').toString();
+            const matches = output.matchAll(new RegExp(process.env.PATTERN, 'g'));
+            const sums = [];
+            for (const groups of matches) {
+              for (let i = 1; i < groups.length; i++) {
+                while (sums.length < i) {
+                  sums.push(0);
+                }
+                sums[i - 1] += parseInt(groups[i]);
+              }
+            }
+            let details = process.env.TEMPLATE;
+            for (let i = 0; i < sums.length; i++) {
+              details = details.replaceAll(`\${${i}}`, sums[i]);
+            }
+            fs.writeFileSync('run.details', details);
+      - id: upload
+        env:
+          REPOSITORY: ${{ matrix.repository }}
+          CONTEXT: |
+            {
+              "repository": "${{ matrix.repository }}",
+              "runner": "${{ matrix.runner }}",
+              "command": "${{ matrix.command }}"
+            }
+        run: |
+          echo "repository=${REPOSITORY//\//_}" | tee -a $GITHUB_OUTPUT
+          echo "$CONTEXT" > run.context
+      - name: Upload the result
+        uses: actions/upload-artifact@v4
+        with:
+          name: repository-${{ steps.upload.outputs.repository }};command-${{ matrix.command }};runner-${{ matrix.runner }}
+          path: |
+            run.context
+            run.output
+            run.result
+            run.details
+
+  summarize:
+    name: Summarize the test results
+    if: (!cancelled())
+    needs: [test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download the results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: "repository-*;command-*;runner-*"
+      - name: Summarize the results
+        id: summary
+        env:
+          HARDHAT_REF: ${{ inputs.hardhat-ref }}
+          EDR_REF: ${{ inputs.edr-ref }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const artifacts = fs.readdirSync(process.env.GITHUB_WORKSPACE);
+            const results = [];
+            for (const artifact of artifacts) {
+              const context = JSON.parse(fs.readFileSync(path.join(artifact, 'run.context')).toString());
+              const result = JSON.parse(fs.readFileSync(path.join(artifact, 'run.result')).toString());
+              const details = fs.readFileSync(path.join(artifact, 'run.details')).toString();
+              results.push({
+                repository: context.repository,
+                command: context.command,
+                runner: context.runner,
+                result: result.status,
+                time: result.time,
+                details,
+              });
+            }
+            console.log(results);
+            const header = ['Repository 📦', 'Command 👾', 'Runner 💨', 'Result 🧪', 'Wall-clock Time ⏰', 'Details 🔎'].map(data => ({data, header: true}));
+            const rows = results.map(({repository, command, runner, result, time, details}) => ([
+              repository,
+              (() => {
+                if (command.startsWith('hardhat')) {
+                  return `👷 ${command}`;
+                } else if (command.startsWith('forge')) {
+                  return `⚙️ ${command}`;
+                } else {
+                  return command;
+                }
+              })(),
+              (() => {
+                switch (runner) {
+                  case 'ubuntu-latest':
+                    return '🐧 Ubuntu';
+                  case 'macos-latest':
+                    return '🍎 macOS';
+                  case 'windows-latest':
+                    return '🪟 Windows';
+                }
+              })(),
+              (() => {
+                switch (result) {
+                  case 0:
+                    return '✅ Passed';
+                  case 1:
+                    return '❌ Failed';
+                  default:
+                    return `⚠️ Unknown (${result})`;
+                }
+              })(),
+              `${time} s`,
+              details,
+            ]));
+            console.log(header);
+            console.log(rows);
+            await core.summary
+              .addHeading('Test Results')
+              .addTable([
+                header,
+                ...rows,
+              ])
+              .write()
