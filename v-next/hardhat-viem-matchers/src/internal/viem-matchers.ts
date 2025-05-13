@@ -9,7 +9,9 @@ import type {
 } from "@nomicfoundation/hardhat-viem/types";
 import type { ChainType } from "hardhat/types/network";
 import type {
+  Address,
   ContractEventName,
+  Hash,
   ReadContractReturnType,
   WriteContractReturnType,
 } from "viem";
@@ -37,9 +39,9 @@ export class HardhatViemMatchersImpl<
   }
 
   public async balancesHaveChanged(
-    resolvedTxHash: Promise<`0x${string}`>,
+    resolvedTxHash: Promise<Hash>,
     changes: Array<{
-      address: `0x${string}`;
+      address: Address;
       amount: bigint;
     }>,
   ): Promise<void> {

@@ -1,3 +1,5 @@
+import type { Hex } from "viem";
+
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { isPrefixedHexString } from "@nomicfoundation/hardhat-utils/hex";
 
@@ -17,8 +19,8 @@ import { isPrefixedHexString } from "@nomicfoundation/hardhat-utils/hex";
  */
 export function extractRevertData(
   error: Error & { data?: unknown; cause?: unknown },
-): `0x${string}` {
-  let errorData: `0x${string}` | undefined;
+): Hex {
+  let errorData: Hex | undefined;
   let current: typeof error | undefined = error;
 
   while (current !== undefined) {

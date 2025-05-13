@@ -1,5 +1,6 @@
 import type { HardhatViemHelpers } from "@nomicfoundation/hardhat-viem/types";
 import type { ChainType } from "hardhat/types/network";
+import type { Address, Hash } from "viem";
 
 import assert from "node:assert/strict";
 
@@ -9,9 +10,9 @@ export async function balancesHaveChanged<
   ChainTypeT extends ChainType | string = "generic",
 >(
   viem: HardhatViemHelpers<ChainTypeT>,
-  txHash: Promise<`0x${string}`>,
+  txHash: Promise<Hash>,
   changes: Array<{
-    address: `0x${string}`;
+    address: Address;
     amount: bigint;
   }>,
 ): Promise<void> {

@@ -3,7 +3,9 @@ import type {
   ContractReturnType,
 } from "@nomicfoundation/hardhat-viem/types";
 import type {
+  Address,
   ContractEventName,
+  Hash,
   ReadContractReturnType,
   WriteContractReturnType,
 } from "viem";
@@ -12,9 +14,9 @@ export interface HardhatViemMatchers {
   utils: HardhatViemMatchersUtils;
 
   balancesHaveChanged: (
-    resolvedTxHash: Promise<`0x${string}`>,
+    resolvedTxHash: Promise<Hash>,
     changes: Array<{
-      address: `0x${string}`;
+      address: Address;
       amount: bigint;
     }>,
   ) => Promise<void>;
