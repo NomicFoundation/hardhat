@@ -9,6 +9,7 @@ import { URL } from "node:url";
 import { hardhatTestReporter } from "@nomicfoundation/hardhat-node-test-reporter";
 import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
 import { createNonClosingWriter } from "@nomicfoundation/hardhat-utils/stream";
+import { clearCoverageData, loadCoverageData } from "hardhat/internal/coverage";
 
 interface TestActionArguments {
   testFiles: string[];
@@ -66,8 +67,29 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
     return 0;
   }
 
+  const imports = [];
+
   const tsx = new URL(import.meta.resolve("tsx/esm"));
-  process.env.NODE_OPTIONS = `--import "${tsx.href}"`;
+  imports.push(tsx.href);
+
+  if (hre.globalOptions.coverage === true) {
+    // NOTE: We set the HARDHAT_COVERAGE environment variable here because, as of now,
+    // the global options are not automatically passed to the child processes.
+    process.env.HARDHAT_COVERAGE = "true";
+
+    // NOTE: Coverage data needs to be cleared before the test run to ensure
+    // we collect only the data for this test run.
+    await clearCoverageData();
+
+    const coverage = new URL(
+      import.meta.resolve("@nomicfoundation/hardhat-node-test-runner/coverage"),
+    );
+    imports.push(coverage.href);
+  }
+
+  process.env.NODE_OPTIONS = imports
+    .map((href) => `--import "${href}"`)
+    .join(" ");
 
   async function runTests(): Promise<number> {
     let failures = 0;
@@ -107,6 +129,13 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   }
 
   const testFailures = await runTests();
+
+  if (hre.globalOptions.coverage === true) {
+    // NOTE: For now, we only load the coverage data from all the test workers
+    // into the memory. The next step would be to request and display the report
+    // built from the loaded data.
+    await loadCoverageData();
+  }
 
   if (testFailures > 0) {
     process.exitCode = 1;

@@ -64,11 +64,6 @@ export interface ProjectResolvedFile {
    * The file contents.
    */
   content: FileContent;
-
-  /**
-   * Return the non-cryptographic hash id of the file contents.
-   */
-  getContentHash(): Promise<string>;
 }
 
 /**
@@ -96,11 +91,6 @@ export interface NpmPackageResolvedFile {
    * The package this file belongs to.
    */
   package: ResolvedNpmPackage;
-
-  /**
-   * Return the non-cryptographic hash id of the file contents.
-   */
-  getContentHash(): Promise<string>;
 }
 
 /**
