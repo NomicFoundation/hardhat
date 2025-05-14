@@ -1,11 +1,13 @@
+import type {
+  SpecId,
+  MineOrdering,
+  IntervalRange,
+  DebugTraceResult,
+  TracingMessage,
+  TracingMessageResult,
+  TracingStep,
+} from "@nomicfoundation/edr";
 import {
-  type SpecId,
-  type MineOrdering,
-  type IntervalRange,
-  type DebugTraceResult,
-  type TracingMessage,
-  type TracingMessageResult,
-  type TracingStep,
   FRONTIER,
   HOMESTEAD,
   DAO_FORK,
@@ -209,7 +211,7 @@ export function edrRpcDebugTraceToHardhat(
     structLogs.shift();
   }
 
-  let returnValue = rpcDebugTrace.output?.toString("hex") ?? "";
+  let returnValue = rpcDebugTrace.output?.toString() ?? "";
   if (returnValue === "0x") {
     returnValue = "";
   }
@@ -262,10 +264,10 @@ export function edrTracingMessageResultToMinimalEVMResult(
   }
   if ("output" in result) {
     const { output } = result;
-    if (Buffer.isBuffer(output)) {
-      minimalEVMResult.execResult.output = output;
+    if (output instanceof Uint8Array) {
+      minimalEVMResult.execResult.output = Buffer.from(output);
     } else {
-      minimalEVMResult.execResult.output = output.returnValue;
+      minimalEVMResult.execResult.output = Buffer.from(output.returnValue);
     }
   }
 
