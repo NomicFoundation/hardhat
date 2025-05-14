@@ -3,6 +3,7 @@ import * as fs from "fs";
 import os from "node:os";
 import path from "node:path";
 import * as semver from "semver";
+import { ExecFileOptions } from "node:child_process";
 import { CompilerInput, CompilerOutput } from "../../../types";
 import { HardhatError } from "../../core/errors";
 import { ERRORS } from "../../core/errors-list";
@@ -17,32 +18,21 @@ export class Compiler implements ICompiler {
   public async compile(input: CompilerInput) {
     const scriptPath = path.join(__dirname, "./solcjs-runner.js");
 
-    const output: string = await new Promise((resolve, reject) => {
-      try {
-        const subprocess = execFile(
-          process.execPath,
-          [scriptPath, this._pathToSolcJs],
-          {
-            maxBuffer: 1024 * 1024 * 500,
-          },
-          (err, stdout) => {
-            if (err !== null) {
-              return reject(err);
-            }
-            resolve(stdout);
-          }
-        );
+    let output: string;
+    try {
+      const { stdout } = await execFileWithInput(
+        process.execPath,
+        [scriptPath, this._pathToSolcJs],
+        JSON.stringify(input),
+        {
+          maxBuffer: 1024 * 1024 * 500,
+        }
+      );
 
-        subprocess.stdin!.write(JSON.stringify(input));
-        subprocess.stdin!.end();
-      } catch (e: any) {
-        throw new HardhatError(
-          ERRORS.SOLC.SOLCJS_ERROR,
-          { error: e.message },
-          e
-        );
-      }
-    });
+      output = stdout;
+    } catch (e: any) {
+      throw new HardhatError(ERRORS.SOLC.SOLCJS_ERROR, {}, e);
+    }
 
     return JSON.parse(output);
   }
@@ -69,29 +59,78 @@ export class NativeCompiler implements ICompiler {
       }
     }
 
-    const output: string = await new Promise((resolve, reject) => {
-      try {
-        const process = execFile(
-          this._pathToSolc,
-          args,
-          {
-            maxBuffer: 1024 * 1024 * 500,
-          },
-          (err, stdout) => {
-            if (err !== null) {
-              return reject(err);
-            }
-            resolve(stdout);
-          }
-        );
+    let output: string;
+    try {
+      const { stdout } = await execFileWithInput(
+        this._pathToSolc,
+        args,
+        JSON.stringify(input),
+        {
+          maxBuffer: 1024 * 1024 * 500,
+        }
+      );
 
-        process.stdin!.write(JSON.stringify(input));
-        process.stdin!.end();
-      } catch (e: any) {
-        throw new HardhatError(ERRORS.SOLC.CANT_RUN_NATIVE_COMPILER, {}, e);
-      }
-    });
+      output = stdout;
+    } catch (e: any) {
+      throw new HardhatError(ERRORS.SOLC.CANT_RUN_NATIVE_COMPILER, {}, e);
+    }
 
     return JSON.parse(output);
   }
+}
+
+/**
+ * Executes a command using execFile, writes provided input to stdin,
+ * and returns a Promise that resolves with stdout and stderr.
+ *
+ * @param {string} file - The file to execute.
+ * @param {readonly string[]} args - The arguments to pass to the file.
+ * @param {ExecFileOptions} options - The options to pass to the exec function.
+ * @returns {Promise<{stdout: string, stderr: string}>}
+ */
+export async function execFileWithInput(
+  file: string,
+  args: readonly string[],
+  input: string,
+  options: ExecFileOptions = {}
+): Promise<{ stdout: string; stderr: string }> {
+  return new Promise((resolve, reject) => {
+    const child = execFile(file, args, options, (error, stdout, stderr) => {
+      // `error` is any execution error. e.g. command not found, non-zero exit code, etc.
+      if (error !== null) {
+        reject(error);
+      } else {
+        resolve({ stdout, stderr });
+      }
+    });
+
+    // This could be triggered if node fails to spawn the child process
+    child.on("error", (err) => {
+      reject(err);
+    });
+
+    const stdin = child.stdin;
+
+    if (stdin !== null) {
+      stdin.on("error", (err) => {
+        // This captures EPIPE error
+        reject(err);
+      });
+
+      child.once("spawn", () => {
+        if (!stdin.writable || child.killed) {
+          return reject(new Error("Failed to write to unwritable stdin"));
+        }
+
+        stdin.write(input, (error) => {
+          if (error !== null && error !== undefined) {
+            reject(error);
+          }
+          stdin.end();
+        });
+      });
+    } else {
+      reject(new Error("No stdin on child process"));
+    }
+  });
 }
