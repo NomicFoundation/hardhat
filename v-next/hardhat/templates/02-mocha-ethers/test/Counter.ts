@@ -1,6 +1,7 @@
 import { network } from "hardhat";
-import { HardhatEthers } from "@nomicfoundation/hardhat-ethers/types";
 import { expect } from "chai";
+
+const { ethers } = await network.connect();
 
 describe("Counter", function () {
   /*
@@ -43,11 +44,6 @@ describe("Counter", function () {
    * Each network connection object has a `provider` property and other
    * network-related fields added by plugins, like `ethers` and `networkHelpers`.
    */
-  let ethers: HardhatEthers;
-  beforeEach(async function () {
-    const connection = await network.connect();
-    ethers = connection.ethers;
-  });
 
   it("The sum of the Increment events should match the current value", async function () {
     const counter = await ethers.deployContract("Counter");
