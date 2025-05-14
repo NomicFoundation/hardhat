@@ -2,6 +2,11 @@
   "name": "@nomicfoundation/ignition-ui",
   "version": "3.0.0-next.8",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NomicFoundation/hardhat",
+    "directory": "v-next/hardhat-ignition-ui"
+  },
   "scripts": {
     "predev": "pnpm regenerate-deployment-example",
     "dev": "vite --force",
