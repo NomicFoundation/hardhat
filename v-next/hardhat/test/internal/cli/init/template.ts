@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { describe, it } from "node:test";
-import { spawnSync } from "node:child_process";
 
 import { exists } from "@nomicfoundation/hardhat-utils/fs";
 
@@ -34,7 +34,7 @@ describe("getTemplates", () => {
   });
 });
 
-describe.only("template contents", () => {
+describe("template contents", () => {
   describe("templates should have valid typescript", async () => {
     const templates = await getTemplates();
 
@@ -44,13 +44,28 @@ describe.only("template contents", () => {
         try {
           process.chdir(template.path);
 
-          // We run tsc --noEmit in the template, which will throw it it fails
-          const result = spawnSync("pnpm tsc --noEmit", {
+          const resultHardhatBuild = spawnSync("pnpm hardhat compile", {
             stdio: "inherit",
             shell: true,
           });
 
-          assert.equal(result.status, 0, "Template failed to compile");
+          assert.equal(
+            resultHardhatBuild.status,
+            0,
+            "Template failed to compile contracts",
+          );
+
+          // We run tsc --noEmit in the template, which will throw it it fails
+          const resultTscBuild = spawnSync("pnpm tsc --noEmit", {
+            stdio: "inherit",
+            shell: true,
+          });
+
+          assert.equal(
+            resultTscBuild.status,
+            0,
+            "Template failed to compile its TypeScript",
+          );
         } finally {
           process.chdir(previousCwd);
         }
