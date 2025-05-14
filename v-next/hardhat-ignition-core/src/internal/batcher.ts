@@ -46,7 +46,7 @@ export class Batcher {
   ): BatchState {
     const allFutures = getFuturesFromModule(module);
 
-    const visitState = this._intializeVisitStateFrom(
+    const visitState = this._initializeVisitStateFrom(
       allFutures,
       deploymentState,
     );
@@ -59,7 +59,7 @@ export class Batcher {
     return { adjacencyList, visitState };
   }
 
-  private static _intializeVisitStateFrom(
+  private static _initializeVisitStateFrom(
     futures: Future[],
     deploymentState: DeploymentState,
   ): VisitStatusMap {

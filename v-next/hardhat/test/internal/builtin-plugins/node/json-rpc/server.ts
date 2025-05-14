@@ -7,7 +7,7 @@ import { exists } from "@nomicfoundation/hardhat-utils/fs";
 
 import { HttpProvider } from "../../../../../src/internal/builtin-plugins/network-manager/http-provider.js";
 import { JsonRpcServerImplementation } from "../../../../../src/internal/builtin-plugins/node/json-rpc/server.js";
-import { createHardhatRuntimeEnvironment } from "../../../../../src/internal/hre-intialization.js";
+import { createHardhatRuntimeEnvironment } from "../../../../../src/internal/hre-initialization.js";
 
 describe("JSON-RPC server", function () {
   let hre: HardhatRuntimeEnvironment;

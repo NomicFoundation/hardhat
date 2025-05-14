@@ -90,6 +90,7 @@ export function isFuture(potential: unknown): potential is Future {
 export function isContractFuture(
   future: Future,
 ): future is ContractFuture<string> {
+  // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- The other case will return false
   switch (future.type) {
     case FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT:
     case FutureType.CONTRACT_DEPLOYMENT:
@@ -112,6 +113,7 @@ export function isContractFuture(
 export function isCallableContractFuture(
   future: Future,
 ): future is CallableContractFuture<string> {
+  // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- The other case will return false
   switch (future.type) {
     case FutureType.NAMED_ARTIFACT_CONTRACT_DEPLOYMENT:
     case FutureType.CONTRACT_DEPLOYMENT:

@@ -8,7 +8,7 @@ import type { SolidityBuildSystem } from "./types/solidity/build-system.js";
 import type { TaskManager } from "./types/tasks.js";
 import type { UserInterruptionManager } from "./types/user-interruptions.js";
 
-import { getOrCreateGlobalHardhatRuntimeEnvironment } from "./internal/hre-intialization.js";
+import { getOrCreateGlobalHardhatRuntimeEnvironment } from "./internal/hre-initialization.js";
 
 // NOTE: We import the builtin plugins in this module, so that their
 // type-extensions are loaded when the user imports `hardhat`.

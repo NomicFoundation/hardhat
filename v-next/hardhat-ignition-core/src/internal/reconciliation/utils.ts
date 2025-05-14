@@ -29,7 +29,7 @@ function isValidMetadata(data: Buffer): boolean {
   try {
     decode(data);
     return true;
-  } catch (e) {
+  } catch (_error) {
     return false;
   }
 }

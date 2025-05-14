@@ -1,5 +1,6 @@
 import type { ArtifactManager } from "../../../types/artifacts.js";
 import type {
+  ChainDescriptorsConfig,
   NetworkConfig,
   NetworkConfigOverride,
   NetworkUserConfig,
@@ -9,6 +10,7 @@ import type {
   ChainType,
   DefaultChainType,
   NetworkConnection,
+  NetworkConnectionParams,
   NetworkManager,
 } from "../../../types/network.js";
 import type {
@@ -42,6 +44,7 @@ export class NetworkManagerImplementation implements NetworkManager {
   readonly #hookManager: Readonly<HookManager>;
   readonly #artifactsManager: Readonly<ArtifactManager>;
   readonly #userConfigNetworks: Readonly<Record<string, NetworkUserConfig>>;
+  readonly #chainDescriptors: Readonly<ChainDescriptorsConfig>;
 
   #nextConnectionId = 0;
 
@@ -52,6 +55,7 @@ export class NetworkManagerImplementation implements NetworkManager {
     hookManager: HookManager,
     artifactsManager: ArtifactManager,
     userConfigNetworks: Record<string, NetworkUserConfig> | undefined,
+    chainDescriptors: ChainDescriptorsConfig,
   ) {
     this.#defaultNetwork = defaultNetwork;
     this.#defaultChainType = defaultChainType;
@@ -59,25 +63,32 @@ export class NetworkManagerImplementation implements NetworkManager {
     this.#hookManager = hookManager;
     this.#artifactsManager = artifactsManager;
     this.#userConfigNetworks = userConfigNetworks ?? {};
+    this.#chainDescriptors = chainDescriptors;
   }
 
   public async connect<
     ChainTypeT extends ChainType | string = DefaultChainType,
   >(
-    networkName?: string,
-    chainType?: ChainTypeT,
-    networkConfigOverride?: NetworkConfigOverride,
+    networkOrParams?: NetworkConnectionParams<ChainTypeT> | string,
   ): Promise<NetworkConnection<ChainTypeT>> {
+    let networkName: string | undefined;
+    let chainType: ChainTypeT | undefined;
+    let override: NetworkConfigOverride | undefined;
+
+    if (typeof networkOrParams === "string") {
+      networkName = networkOrParams;
+    } else if (networkOrParams !== undefined) {
+      networkName = networkOrParams.network;
+      chainType = networkOrParams.chainType;
+      override = networkOrParams.override;
+    }
+
     const networkConnection = await this.#hookManager.runHandlerChain(
       "network",
       "newConnection",
       [],
       async (_context) =>
-        this.#initializeNetworkConnection(
-          networkName,
-          chainType,
-          networkConfigOverride,
-        ),
+        this.#initializeNetworkConnection(networkName, chainType, override),
     );
 
     /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
@@ -206,6 +217,7 @@ export class NetworkManagerImplementation implements NetworkManager {
         }
 
         return EdrProvider.create({
+          chainDescriptors: this.#chainDescriptors,
           // The resolvedNetworkConfig can have its chainType set to `undefined`
           // so we default to the default chain type here.
           networkConfig: {

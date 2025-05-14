@@ -3,5 +3,5 @@
 /CHANGELOG.md
 /templates/*/artifacts
 /templates/*/cache
-/test/fixture-projects/*/artifacts
-/test/fixture-projects/*/cache
+/test/fixture-projects/**/artifacts
+/test/fixture-projects/**/cache

@@ -2,6 +2,7 @@ import type { JsonTypes, ParsedElementInfo } from "@streamparser/json-node";
 import type { FileHandle } from "node:fs/promises";
 
 import fsPromises from "node:fs/promises";
+import { tmpdir } from "node:os";
 import path from "node:path";
 import { pipeline } from "node:stream/promises";
 
@@ -327,7 +328,7 @@ export async function writeJsonFileAsStream<T>(
       try {
         await remove(dirPath);
         // we don't want to override the original error
-      } catch (err) {}
+      } catch (_error) {}
     }
 
     // If the code is defined, we assume the error to be related to the file system
@@ -407,7 +408,7 @@ export async function writeUtf8File(
       try {
         await remove(dirPath);
         // we don't want to override the original error
-      } catch (err) {}
+      } catch (_error) {}
     }
 
     if (e.code === "ENOENT") {
@@ -518,6 +519,22 @@ export async function mkdir(absolutePath: string): Promise<void> {
 export const ensureDir: typeof mkdir = mkdir;
 
 /**
+ * Creates a temporary directory with the specified prefix.
+ *
+ * @param prefix The prefix to use for the temporary directory.
+ * @returns The absolute path to the created temporary directory.
+ * @throws FileSystemAccessError for any error.
+ */
+export async function mkdtemp(prefix: string): Promise<string> {
+  try {
+    return await fsPromises.mkdtemp(path.join(tmpdir(), prefix));
+  } catch (e) {
+    ensureNodeErrnoExceptionError(e);
+    throw new FileSystemAccessError(e.message, e);
+  }
+}
+
+/**
  * Retrieves the last change time of a file or directory's properties.
  * This includes changes to the file's metadata or contents.
  *
@@ -594,7 +611,7 @@ export async function exists(absolutePath: string): Promise<boolean> {
   try {
     await fsPromises.access(absolutePath);
     return true;
-  } catch (e) {
+  } catch (_error) {
     return false;
   }
 }
@@ -767,7 +784,7 @@ export async function emptyDir(absolutePath: string): Promise<void> {
 
   await remove(absolutePath);
   await mkdir(absolutePath);
-  // eslint-disable-next-line no-bitwise -- Bitwise as common in fs permissions
+  // eslint-disable-next-line no-bitwise -- Bitwise is common in fs permissions
   await chmod(absolutePath, mode & 0o777);
 }
 

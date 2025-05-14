@@ -65,7 +65,6 @@ declare global {
     }
 
     interface Length extends Assertion {
-      // eslint-disable-next-line -- the interface must follow the original definition pattern
       (length: any, message?: string): Assertion;
     }
 

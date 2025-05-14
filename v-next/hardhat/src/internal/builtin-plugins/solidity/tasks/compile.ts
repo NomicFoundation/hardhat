@@ -9,10 +9,11 @@ interface CompileActionArguments {
   force: boolean;
   files: string[];
   quiet: boolean;
+  defaultBuildProfile: string | undefined;
 }
 
 const compileAction: NewTaskActionFunction<CompileActionArguments> = async (
-  { force, files, quiet },
+  { force, files, quiet, defaultBuildProfile },
   { solidity, globalOptions },
 ) => {
   const rootPaths =
@@ -26,9 +27,11 @@ const compileAction: NewTaskActionFunction<CompileActionArguments> = async (
           return resolveFromRoot(process.cwd(), file);
         });
 
+  const buildProfile = globalOptions.buildProfile ?? defaultBuildProfile;
+
   const results = await solidity.build(rootPaths, {
     force,
-    buildProfile: globalOptions.buildProfile,
+    buildProfile,
     quiet,
   });
 

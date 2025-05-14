@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-ignition-ethers",
-  "version": "3.0.0-next.5",
+  "version": "3.0.0-next.7",
   "description": "The Ethers extension to Hardhat Ignition. Hardhat Ignition is a declarative system for deploying smart contracts on Ethereum. It enables you to define smart contract instances you want to deploy, and any operation you want to run on them. By taking over the deployment and execution, Hardhat Ignition lets you focus on your project instead of getting caught up in the deployment details.",
   "homepage": "https://hardhat.org",
   "repository": "github:NomicFoundation/hardhat-ignition",
@@ -36,39 +36,32 @@
   },
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "1.0.2",
-    "hardhat": "workspace:^3.0.0-next.5",
-    "@nomicfoundation/hardhat-ethers": "workspace:^4.0.0-next.5",
-    "@nomicfoundation/hardhat-ignition": "workspace:^3.0.0-next.5",
-    "@nomicfoundation/ignition-core": "workspace:^3.0.0-next.5",
-    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0-next.5",
+    "hardhat": "workspace:^3.0.0-next.7",
+    "@nomicfoundation/hardhat-ethers": "workspace:^4.0.0-next.7",
+    "@nomicfoundation/hardhat-ignition": "workspace:^3.0.0-next.7",
+    "@nomicfoundation/ignition-core": "workspace:^3.0.0-next.7",
+    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0-next.7",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
     "@types/node": "^20.14.9",
-    "@typescript-eslint/eslint-plugin": "^7.7.1",
-    "@typescript-eslint/parser": "^7.7.1",
     "c8": "^9.1.0",
     "cross-env": "7.0.3",
-    "eslint": "8.57.0",
-    "eslint-config-prettier": "9.1.0",
-    "eslint-import-resolver-typescript": "^3.6.1",
-    "eslint-plugin-import": "2.29.1",
-    "eslint-plugin-no-only-tests": "3.1.0",
+    "eslint": "9.25.1",
     "ethers": "^6.13.4",
     "nyc": "15.1.0",
     "prettier": "3.2.5",
     "rimraf": "^5.0.5",
     "ts-node": "10.9.2",
     "tsx": "^4.19.3",
-    "typescript": "~5.5.0",
-    "typescript-eslint": "7.7.1"
+    "typescript": "~5.5.0"
   },
   "dependencies": {
-    "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.5"
+    "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.7"
   },
   "peerDependencies": {
-    "hardhat": "workspace:^3.0.0-next.5",
-    "@nomicfoundation/hardhat-ethers": "workspace:^4.0.0-next.5",
-    "@nomicfoundation/hardhat-ignition": "workspace:^3.0.0-next.5",
-    "@nomicfoundation/ignition-core": "workspace:^3.0.0-next.5",
+    "hardhat": "workspace:^3.0.0-next.7",
+    "@nomicfoundation/hardhat-ethers": "workspace:^4.0.0-next.7",
+    "@nomicfoundation/hardhat-ignition": "workspace:^3.0.0-next.7",
+    "@nomicfoundation/ignition-core": "workspace:^3.0.0-next.7",
     "ethers": "^6.13.4"
   }
 }
