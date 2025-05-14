@@ -1,5 +1,20 @@
 # hardhat
 
+## 3.0.0-next.7
+
+### Patch Changes
+
+- 4ce9fe9: Fix to allow undefined params in JSON RPC handler ([#6532](https://github.com/NomicFoundation/hardhat/issues/6532))
+- 726fe76: Port transaction hash bug fix to v3 ([#6429](https://github.com/NomicFoundation/hardhat/pull/6429))
+- 6103a9e: Fix to allow user's to configure their own solc output selection in Hardhat config ([#6551](https://github.com/NomicFoundation/hardhat/issues/6551))
+- 51a6d55: Update `network.connect` to take a params object ([#6672](https://github.com/NomicFoundation/hardhat/issues/6672))
+- 0119377: Default to production builds for ignition deploy ([#6313](https://github.com/NomicFoundation/hardhat/issues/6313))
+- ce8493c: Improve the error message produced by hardhat node test reporter for failing regex match assertions ([#6658](https://github.com/NomicFoundation/hardhat/pull/6658))
+- c934f8f: Support options using the equals sign (e.g. `--option=123`) at the Hardhat command line ([#6671](https://github.com/NomicFoundation/hardhat/issues/6671))
+- bb48c11: Fix for `init` task where Hardhat project folder will be created if it does not exist ([#6545](https://github.com/NomicFoundation/hardhat/issues/6545))
+- bd1bf8f: Allow undefined for default values in global options and other argument types ([#6596](https://github.com/NomicFoundation/hardhat/issues/6596)
+- 9506fb4: Rename chains config in network config to chainDescriptors and add extra information including name and blocker explorer ([#6612](https://github.com/NomicFoundation/hardhat/issues/6612))
+
 ## 3.0.0-next.6
 
 ### Patch Changes

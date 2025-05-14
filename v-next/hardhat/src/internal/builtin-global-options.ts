@@ -12,8 +12,8 @@ export const BUILTIN_GLOBAL_OPTIONS_DEFINITIONS: GlobalOptionDefinitions =
         option: globalOption({
           name: "config",
           description: "A Hardhat config file.",
-          type: ArgumentType.STRING,
-          defaultValue: "",
+          type: ArgumentType.STRING_WITHOUT_DEFAULT,
+          defaultValue: undefined,
         }),
       },
     ],

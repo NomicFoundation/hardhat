@@ -284,7 +284,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
     if (options?.quiet !== true) {
       if (isSuccessfulBuild) {
-        this.#printCompilationResult(compilationJobs);
+        await this.#printCompilationResult(compilationJobs);
       }
     }
 
@@ -430,7 +430,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       "The long version of the compiler should match the long version of the compilation job",
     );
 
-    return compiler.compile(compilationJob.getSolcInput());
+    return compiler.compile(await compilationJob.getSolcInput());
   }
 
   public async remapCompilerError(
@@ -789,7 +789,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     }
   }
 
-  #printCompilationResult(compilationJobs: CompilationJob[]) {
+  async #printCompilationResult(compilationJobs: CompilationJob[]) {
     const jobsPerVersionAndEvmVersion = new Map<
       string,
       Map<string, CompilationJob[]>
@@ -797,7 +797,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
     for (const job of compilationJobs) {
       const solcVersion = job.solcConfig.version;
-      const solcInput = job.getSolcInput();
+      const solcInput = await job.getSolcInput();
       const evmVersion =
         solcInput.settings.evmVersion ??
         `Check solc ${solcVersion}'s doc for its default evm version`;

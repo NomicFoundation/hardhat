@@ -1,6 +1,7 @@
 import type { HardhatPlugin } from "hardhat/types/plugins";
 
 import { task } from "hardhat/config";
+import { ArgumentType } from "hardhat/types/arguments";
 
 import "./type-extensions.js";
 
@@ -20,7 +21,8 @@ const hardhatPlugin: HardhatPlugin = {
       .addOption({
         name: "grep",
         description: "Only run tests matching the given string or regexp",
-        defaultValue: "",
+        type: ArgumentType.STRING_WITHOUT_DEFAULT,
+        defaultValue: undefined,
       })
       .addFlag({
         name: "noCompile",
