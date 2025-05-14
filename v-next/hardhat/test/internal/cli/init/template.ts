@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import path from "node:path";
 import { describe, it } from "node:test";
+import { spawnSync } from "node:child_process";
 
 import { exists } from "@nomicfoundation/hardhat-utils/fs";
 
@@ -29,6 +30,31 @@ describe("getTemplates", () => {
           `Template file ${file} does not exist`,
         );
       }
+    }
+  });
+});
+
+describe.only("template contents", () => {
+  describe("templates should have valid typescript", async () => {
+    const templates = await getTemplates();
+
+    for (const template of templates) {
+      it(`template ${template.name} should compile with tsc`, async () => {
+        const previousCwd = process.cwd();
+        try {
+          process.chdir(template.path);
+
+          // We run tsc --noEmit in the template, which will throw it it fails
+          const result = spawnSync("pnpm tsc --noEmit", {
+            stdio: "inherit",
+            shell: true,
+          });
+
+          assert.equal(result.status, 0, "Template failed to compile");
+        } finally {
+          process.chdir(previousCwd);
+        }
+      });
     }
   });
 });
