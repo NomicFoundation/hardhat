@@ -14,6 +14,8 @@ import type {
   HttpHeader,
   TracingConfigWithBuffers,
 } from "@nomicfoundation/edr";
+import { privateToAddress } from "@ethereumjs/util";
+import { precompileP256Verify } from "@nomicfoundation/edr";
 import picocolors from "picocolors";
 import debug from "debug";
 import { EventEmitter } from "events";
@@ -162,12 +164,13 @@ export class EdrProviderWrapper
       }
 
       fork = {
-        jsonRpcUrl: config.forkConfig.jsonRpcUrl,
         blockNumber:
           config.forkConfig.blockNumber !== undefined
             ? BigInt(config.forkConfig.blockNumber)
             : undefined,
+        cacheDir: config.forkCachePath,
         httpHeaders,
+        url: config.forkConfig.jsonRpcUrl,
       };
     }
 
@@ -192,6 +195,17 @@ export class EdrProviderWrapper
             l1HardforkFromString(ethereumsjsHardforkToEdrSpecId(hardforkName))
           );
 
+    for (const account of config.genesisAccounts) {
+      const privateKey = Uint8Array.from(
+        Buffer.from(account.privateKey.slice(2), "hex")
+      );
+
+      genesisState.push({
+        address: privateToAddress(privateKey),
+        balance: BigInt(account.balance),
+      });
+    }
+
     const context = await getGlobalEdrContext();
     const provider = await context.createProvider(
       GENERIC_CHAIN_TYPE,
@@ -203,25 +217,30 @@ export class EdrProviderWrapper
         bailOnTransactionFailure: config.throwOnTransactionFailures,
         blockGasLimit: BigInt(config.blockGasLimit),
         chainId: BigInt(config.chainId),
-        chains: Array.from(config.chains, ([chainId, hardforkConfig]) => {
-          return {
-            chainId: BigInt(chainId),
-            hardforks: Array.from(
-              hardforkConfig.hardforkHistory,
-              ([hardfork, blockNumber]) => {
-                return {
-                  blockNumber: BigInt(blockNumber),
-                  specId: ethereumsjsHardforkToEdrSpecId(
-                    getHardforkName(hardfork)
-                  ),
-                };
-              }
-            ),
-          };
-        }),
-        cacheDir: config.forkCachePath,
+        chainOverrides: Array.from(
+          config.chains,
+          ([chainId, hardforkConfig]) => {
+            return {
+              chainId: BigInt(chainId),
+              name: "Unknown",
+              hardforks: Array.from(
+                hardforkConfig.hardforkHistory,
+                ([hardfork, blockNumber]) => {
+                  return {
+                    condition: { blockNumber: BigInt(blockNumber) },
+                    hardfork: ethereumsjsHardforkToEdrSpecId(
+                      getHardforkName(hardfork)
+                    ),
+                  };
+                }
+              ),
+            };
+          }
+        ),
         coinbase: Buffer.from(coinbase.slice(2), "hex"),
-        enableRip7212: config.enableRip7212,
+        precompileOverrides: config.enableRip7212
+          ? [precompileP256Verify()]
+          : [],
         fork,
         genesisState,
         hardfork: ethereumsjsHardforkToEdrSpecId(hardforkName),
@@ -239,16 +258,20 @@ export class EdrProviderWrapper
           },
         },
         networkId: BigInt(config.networkId),
+        observability: {},
         ownedAccounts: config.genesisAccounts.map((account) => {
-          return {
-            secretKey: account.privateKey,
-            balance: BigInt(account.balance),
-          };
+          return account.privateKey;
         }),
       },
       {
         enable: loggerConfig.enabled,
-        decodeConsoleLogInputsCallback: ConsoleLogger.getDecodedLogs,
+        decodeConsoleLogInputsCallback: (inputs: ArrayBuffer[]) => {
+          return ConsoleLogger.getDecodedLogs(
+            inputs.map((input) => {
+              return Buffer.from(input);
+            })
+          );
+        },
         printLineCallback: (message: string, replace: boolean) => {
           if (replace) {
             replaceLastLineFn(message);
@@ -318,7 +341,7 @@ export class EdrProviderWrapper
       const rawTraces = responseObject.traces;
       for (const rawTrace of rawTraces) {
         // For other consumers in JS we need to marshall the entire trace over FFI
-        const trace = rawTrace.trace();
+        const trace = rawTrace.trace;
 
         // beforeTx event
         if (this._node._vm.events.listenerCount("beforeTx") > 0) {
@@ -421,8 +444,11 @@ export class EdrProviderWrapper
     this._callOverrideCallback = callback;
 
     await this._provider.setCallOverrideCallback(
-      async (address: Buffer, data: Buffer) => {
-        return this._callOverrideCallback?.(address, data);
+      async (address: ArrayBuffer, data: ArrayBuffer) => {
+        return this._callOverrideCallback?.(
+          Buffer.from(address),
+          Buffer.from(data)
+        );
       }
     );
   }
