@@ -17,6 +17,7 @@ jobs:
     permissions:
       contents: write # This allows us to push to the repository and create GitHub releases
       pull-requests: write # This allows us to create pull requests
+      id-token: write # Provenance generation in GitHub Actions requires "write" access to the "id-token" permission
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
