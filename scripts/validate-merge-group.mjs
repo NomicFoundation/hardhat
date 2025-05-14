@@ -1,11 +1,13 @@
 // @ts-check
 
 /**
- * A merge group is valid if it contains no new changesets or all the
- * currently checked-in versions of the packages are released to npm.
- * The former is an indicationthat the merge group consists of a release PR
- * and/or PRs that don't needa changeset. The latter is an indication that the
- * merge group does notcontain a release PR.
+ * A merge group can contain multiple PRs at once - to proceed the merge group should be either:
+ * 1. Only a release PR (+ no changeset changes PRs)
+ * 2. A collection of standard feature PRs (+ no changeset changes PRs)
+ *
+ * If the merge group has no changesets but there are unreleased packages (version locally is higher than NPM), we know we have only a Release PR.
+ * If the there are changesets, but all versions locally match NPM, then we have a collection of standard feature PRs - and no Release PR.
+ * We are only invalid if we have both changesets and unreleased packages. This indicates a Release PR is being unintentionally mixed with a new Feature PR - we throw on this case.
  */
 
 import { readAllNewChangsets } from './lib/changesets.mjs';
