@@ -12,7 +12,6 @@ import { createNonClosingWriter } from "@nomicfoundation/hardhat-utils/stream";
 import {
   clearCoverageData,
   loadCoverageData,
-  saveLcovInfo,
 } from "hardhat/internal/coverage";
 
 interface TestActionArguments {
@@ -135,11 +134,9 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   const testFailures = await runTests();
 
   if (hre.globalOptions.coverage === true) {
-    // NOTE: For now, we only load the coverage data from all the test workers
-    // into the memory. The next step would be to request and display the report
-    // built from the loaded data.
+    // NOTE: Loading coverage data into the memory has a side effect of saving
+    // the lcov report in the coverage directory and printing the markdown report.
     await loadCoverageData();
-    await saveLcovInfo();
   }
 
   if (testFailures > 0) {

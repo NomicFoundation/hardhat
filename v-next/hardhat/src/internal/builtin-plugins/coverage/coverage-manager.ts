@@ -2,10 +2,13 @@ import type {
   CoverageData,
   CoverageManager,
   CoverageMetadata,
+  Statement,
+  Tag,
 } from "./types.js";
 
 import path from "node:path";
 
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import {
   ensureDir,
   getAllFilesMatching,
@@ -18,12 +21,26 @@ import debug from "debug";
 
 const log = debug("hardhat:core:coverage:coverage-manager");
 
+interface Report {
+  [sourceName: string]: {
+    tagExecutionCounts: Map<Tag, number>;
+    lineExecutionCounts: Map<number, number>;
+    executedTags: Set<Tag>;
+    unexecutedTags: Set<Tag>;
+    executedLines: Set<number>;
+    partiallyExecutedLines: Set<number>;
+    unexecutedLines: Set<number>;
+  };
+}
+
 export class CoverageManagerImplementation implements CoverageManager {
   readonly #metadata: CoverageMetadata = [];
   readonly #coveragePath: string;
 
   #data: CoverageData = [];
   #dataPath: string | undefined;
+
+  #report: Report | undefined;
 
   constructor(coveragePath: string) {
     this.#coveragePath = coveragePath;
@@ -70,6 +87,7 @@ export class CoverageManagerImplementation implements CoverageManager {
     await remove(dataPath);
     await ensureDir(dataPath);
     this.#data = [];
+    this.#report = undefined;
     log("Cleared data");
   }
 
@@ -91,10 +109,123 @@ export class CoverageManagerImplementation implements CoverageManager {
     return this.#metadata;
   }
 
-  // NOTE: This is a very inefficient implementation of the LCOV report generation.
-  // It should and will be optimised with appropriate data preprocessing and data
-  // structure usage.
-  async #getLcovInfo(): Promise<string> {
+  #getReport(): Report {
+    if (this.#report === undefined) {
+      const report: Report = {};
+
+      const sourceNames = this.#metadata.map(({ sourceName }) => sourceName);
+
+      const allStatements = this.#metadata;
+
+      // NOTE: We preserve only the last statement per tag in the statementsByTag map.
+      const statementsByTag = new Map<string, Statement>();
+      for (const statement of allStatements) {
+        statementsByTag.set(statement.tag, statement);
+      }
+
+      const allExecutedTags = this.#data;
+
+      const allExecutedStatementsBySource = new Map<string, Statement[]>();
+      for (const tag of allExecutedTags) {
+        // NOTE: We should not encounter an executed tag we don't have metadata for.
+        const statement = statementsByTag.get(tag);
+        assertHardhatInvariant(statement !== undefined, "Expected a statement");
+
+        const source = statement.sourceName;
+        const allExecutedStatements =
+          allExecutedStatementsBySource.get(source) ?? [];
+        allExecutedStatements.push(statement);
+        allExecutedStatementsBySource.set(source, allExecutedStatements);
+      }
+
+      const uniqueExecutedTags = new Set(allExecutedTags);
+      const uniqueUnexecutedTags = Array.from(statementsByTag.keys()).filter(
+        (tag) => !uniqueExecutedTags.has(tag),
+      );
+
+      const uniqueUnexecutedStatementsBySource = new Map<string, Statement[]>();
+      for (const tag of uniqueUnexecutedTags) {
+        // NOTE: We cannot encounter an executed tag we don't have metadata for.
+        const statement = statementsByTag.get(tag);
+        assertHardhatInvariant(statement !== undefined, "Expected a statement");
+
+        const source = statement.sourceName;
+        const unexecutedStatements =
+          uniqueUnexecutedStatementsBySource.get(source) ?? [];
+        unexecutedStatements.push(statement);
+        uniqueUnexecutedStatementsBySource.set(source, unexecutedStatements);
+      }
+
+      for (const source of sourceNames) {
+        const allExecutedStatements =
+          allExecutedStatementsBySource.get(source) ?? [];
+        const uniqueUnexecutedStatements =
+          uniqueUnexecutedStatementsBySource.get(source) ?? [];
+
+        const tagExecutionCounts = new Map<Tag, number>();
+        const lineExecutionCounts = new Map<number, number>();
+
+        for (const statement of allExecutedStatements) {
+          const tagExecutionCount = tagExecutionCounts.get(statement.tag) ?? 0;
+          tagExecutionCounts.set(statement.tag, tagExecutionCount + 1);
+
+          for (
+            let line = statement.startLine;
+            line <= statement.endLine;
+            line++
+          ) {
+            const lineExecutionCount = lineExecutionCounts.get(line) ?? 0;
+            lineExecutionCounts.set(line, lineExecutionCount + 1);
+          }
+        }
+
+        const executedTags = new Set<Tag>(tagExecutionCounts.keys());
+        const unexecutedTags = new Set<Tag>();
+
+        const executedLines = new Set<number>(lineExecutionCounts.keys());
+        const partiallyExecutedLines = new Set<number>();
+        const unexecutedLines = new Set<number>();
+
+        for (const statement of uniqueUnexecutedStatements) {
+          if (!tagExecutionCounts.has(statement.tag)) {
+            tagExecutionCounts.set(statement.tag, 0);
+            unexecutedTags.add(statement.tag);
+          }
+
+          for (
+            let line = statement.startLine;
+            line <= statement.endLine;
+            line++
+          ) {
+            if (!lineExecutionCounts.has(line)) {
+              lineExecutionCounts.set(line, 0);
+              unexecutedLines.add(line);
+            } else {
+              partiallyExecutedLines.add(line);
+            }
+          }
+        }
+
+        report[source] = {
+          tagExecutionCounts,
+          lineExecutionCounts,
+          executedTags,
+          unexecutedTags,
+          executedLines,
+          partiallyExecutedLines,
+          unexecutedLines,
+        };
+      }
+
+      this.#report = report;
+    }
+
+    return this.#report;
+  }
+
+  #getLcovReport(): string {
+    const report = this.#getReport();
+
     // NOTE: Format follows the guidelines set out in:
     // https://github.com/linux-test-project/lcov/blob/df03ba434eee724bfc2b27716f794d0122951404/man/geninfo.1#L1409
 
@@ -108,16 +239,15 @@ export class CoverageManagerImplementation implements CoverageManager {
     // TN:<test name>
     lcov += "TN:\n";
 
-    const sourceNames = new Set(
-      this.#metadata.map(({ sourceName }) => sourceName),
-    );
-
     // For each source file referenced in the .gcda file, there is a section
     // containing filename and coverage data:
     // SF:<path to the source file>
 
-    for (const sourceName of sourceNames) {
-      lcov += `SF:${sourceName}\n`;
+    for (const [
+      source,
+      { lineExecutionCounts, executedLines },
+    ] of Object.entries(report)) {
+      lcov += `SF:${source}\n`;
 
       // Then there is a list of execution counts for each instrumented line
       // (i.e. a line which resulted in executable code):
@@ -128,50 +258,11 @@ export class CoverageManagerImplementation implements CoverageManager {
       // LH:<number of lines with a non\-zero execution count>
       // LF:<number of instrumented lines>
 
-      const allStatements: CoverageMetadata = this.#metadata.filter(
-        (m) => m.sourceName === sourceName,
-      );
-
-      const executedStatements: CoverageMetadata = [];
-      for (const tag of this.#data) {
-        const statement = allStatements.find((s) => s.tag === tag);
-        if (statement !== undefined) {
-          executedStatements.push(statement);
-        }
-      }
-
-      const lineExecutionCounts = new Map<number, number>();
-      for (const statement of executedStatements) {
-        const { startLine, endLine } = statement;
-        for (let line = startLine; line <= endLine; line++) {
-          const count = lineExecutionCounts.get(line) ?? 0;
-          lineExecutionCounts.set(line, count + 1);
-        }
-      }
-
-      const executedLineCount = lineExecutionCounts.size;
-
-      for (const statement of allStatements) {
-        const executedStatement = executedStatements.find(
-          (s) => s.tag === statement.tag,
-        );
-        if (executedStatement === undefined) {
-          const { startLine, endLine } = statement;
-          for (let line = startLine; line <= endLine; line++) {
-            if (!lineExecutionCounts.has(line)) {
-              lineExecutionCounts.set(line, 0);
-            }
-          }
-        }
-      }
-
-      const totalLineCount = lineExecutionCounts.size;
-
       for (const [line, executionCount] of lineExecutionCounts) {
         lcov += `DA:${line},${executionCount}\n`;
       }
-      lcov += `LH:${executedLineCount}\n`;
-      lcov += `LF:${totalLineCount}\n`;
+      lcov += `LH:${executedLines.size}\n`;
+      lcov += `LF:${lineExecutionCounts.size}\n`;
 
       // Each sections ends with:
       // end_of_record
@@ -181,8 +272,114 @@ export class CoverageManagerImplementation implements CoverageManager {
     return lcov;
   }
 
-  public async saveLcovInfo(): Promise<void> {
-    const lcovInfoPath = path.join(this.#coveragePath, "lcov.info");
-    await writeUtf8File(lcovInfoPath, await this.#getLcovInfo());
+  public async saveLcovReport(): Promise<void> {
+    const lcovReportPath = path.join(this.#coveragePath, "lcov.info");
+    await writeUtf8File(lcovReportPath, this.#getLcovReport());
+  }
+
+  #getMarkdownReport(): string {
+    const report = this.#getReport();
+
+    let totalExecutedLines = 0;
+    let totalExecutableLines = 0;
+
+    let totalExecutedStatements = 0;
+    let totalExecutableStatements = 0;
+
+    const headerRow = [
+      "Source Name 📦",
+      "Line % 📈",
+      "Statement % 📈",
+      "Uncovered Lines 🔍",
+      "Partially Covered Lines 🔍",
+    ];
+
+    const rows = Object.entries(report).map(
+      ([
+        source,
+        {
+          tagExecutionCounts,
+          lineExecutionCounts,
+          executedTags,
+          executedLines,
+          unexecutedLines,
+          partiallyExecutedLines,
+        },
+      ]) => {
+        const lineCoverage =
+          lineExecutionCounts.size === 0
+            ? 0
+            : executedLines.size * 100.0 / lineExecutionCounts.size;
+        const statementCoverage =
+          tagExecutionCounts.size === 0
+            ? 0
+            : executedTags.size * 100.0 / tagExecutionCounts.size;
+
+        totalExecutedLines += executedLines.size;
+        totalExecutableLines += lineExecutionCounts.size;
+
+        totalExecutedStatements += executedTags.size;
+        totalExecutableStatements += tagExecutionCounts.size;
+
+        const row: string[] = [
+          source,
+          lineCoverage.toFixed(2).toString(),
+          statementCoverage.toFixed(2).toString(),
+          Array.from(unexecutedLines).toSorted((a, b) => a - b).join(", "),
+          Array.from(partiallyExecutedLines).toSorted((a, b) => a - b).join(", "),
+        ];
+
+        return row;
+      },
+    );
+
+    const totalLineCoverage =
+      totalExecutableLines === 0
+        ? 0
+        : totalExecutedLines * 100.0 / totalExecutableLines;
+    const totalStatementCoverage =
+      totalExecutableStatements === 0
+        ? 0
+        : totalExecutedStatements * 100.0 / totalExecutableStatements;
+
+    const footerRow = [
+      "Total",
+      totalLineCoverage.toFixed(2).toString(),
+      totalStatementCoverage.toFixed(2).toString(),
+      "",
+      "",
+    ];
+
+    const widths = headerRow.map((header) => header.length);
+
+    for (const row of rows) {
+      for (let i = 0; i < row.length; i++) {
+        widths[i] = Math.max(widths[i], row[i].length);
+      }
+    }
+
+    for (let i = 0; i < footerRow.length; i++) {
+      widths[i] = Math.max(widths[i], footerRow[i].length);
+    }
+
+    const dividerRow = widths.map((width) => "-".repeat(width));
+
+    rows.unshift(dividerRow);
+    rows.unshift(headerRow);
+
+    rows.push(dividerRow);
+    rows.push(footerRow);
+
+    rows.forEach((row) => {
+      for (let i = 0; i < row.length; i++) {
+        row[i] = row[i].padEnd(widths[i]);
+      }
+    });
+
+    return rows.map((row) => `| ${row.join(" | ")} |`).join("\n");
+  }
+
+  public async printMarkdownReport(): Promise<void> {
+    console.log(this.#getMarkdownReport());
   }
 }
