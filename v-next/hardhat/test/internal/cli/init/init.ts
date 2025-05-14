@@ -250,10 +250,14 @@ describe("installProjectDependencies", async () => {
     // NOTE: This test is slow because it installs dependencies over the network.
     // It tests installation for all the templates, but only with the npm as the
     // package manager. We also support pnpm and yarn.
-    it.skip(
+    it(
       `should install all the ${template.name} template dependencies in an empty project if the user opts-in to the installation`,
       {
-        skip: process.env.HARDHAT_DISABLE_SLOW_TESTS === "true",
+        skip:
+          process.env.HARDHAT_DISABLE_SLOW_TESTS === "true" ||
+          process.env.GITHUB_EVENT_NAME === "push" || // TODO: This check should be limited to push events associated with a release PR merge
+          process.env.GITHUB_EVENT_NAME === "merge_group" || // TODO: This check should be limited to merge_group events associated with a release PR merge
+          process.env.GITHUB_HEAD_REF?.startsWith("changeset-release/"),
       },
       async () => {
         await writeUtf8File("package.json", JSON.stringify({ type: "module" }));
@@ -286,7 +290,11 @@ describe("installProjectDependencies", async () => {
   it(
     "should install any existing template dependencies that are out of date if the user opts-in to the update",
     {
-      skip: process.env.HARDHAT_DISABLE_SLOW_TESTS === "true",
+      skip:
+        process.env.HARDHAT_DISABLE_SLOW_TESTS === "true" ||
+        process.env.GITHUB_EVENT_NAME === "push" || // TODO: This check should be limited to push events associated with a release PR merge
+        process.env.GITHUB_EVENT_NAME === "merge_group" || // TODO: This check should be limited to merge_group events associated with a release PR merge
+        process.env.GITHUB_HEAD_REF?.startsWith("changeset-release/"),
     },
     async () => {
       const template = await getTemplate("mocha-ethers");
