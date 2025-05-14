@@ -1,6 +1,7 @@
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { HookManager } from "../../../types/hooks.js";
+import type { HookManager } from "../../../types/hooks.js";
 import type { NewTaskActionFunction, Task } from "../../../types/tasks.js";
+
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
 interface TestActionArguments {
   testFiles: string[];
@@ -53,7 +54,7 @@ async function registerTestRunnersForFiles(
 ): Promise<Record<string, string[]>> {
   const subtasksToFiles: Record<string, string[]> = {};
 
-  let notFound: string[] = [];
+  const notFound: string[] = [];
 
   for (const file of testFiles) {
     const subtaskName = await hooks.runHandlerChain(
