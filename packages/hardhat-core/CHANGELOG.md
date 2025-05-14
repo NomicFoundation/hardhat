@@ -1,5 +1,11 @@
 # hardhat
 
+## 2.24.1
+
+### Patch Changes
+
+- a8ad44c: Added support for Node v24.
+
 ## 2.24.0
 
 ### Minor Changes
