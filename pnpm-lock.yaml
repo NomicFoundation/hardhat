@@ -1432,6 +1432,9 @@ importers:
 
   v-next/hardhat/templates/01-node-test-runner-viem:
     devDependencies:
+      '@nomicfoundation/hardhat-ignition':
+        specifier: workspace:^3.0.0-next.7
+        version: link:../../../hardhat-ignition
       '@nomicfoundation/hardhat-toolbox-viem':
         specifier: workspace:^4.0.0-next.7
         version: link:../../../hardhat-toolbox-viem
@@ -1453,6 +1456,12 @@ importers:
 
   v-next/hardhat/templates/02-mocha-ethers:
     devDependencies:
+      '@nomicfoundation/hardhat-ethers':
+        specifier: workspace:^4.0.0-next.7
+        version: link:../../../hardhat-ethers
+      '@nomicfoundation/hardhat-ignition':
+        specifier: workspace:^3.0.0-next.7
+        version: link:../../../hardhat-ignition
       '@nomicfoundation/hardhat-toolbox-mocha-ethers':
         specifier: workspace:^3.0.0-next.7
         version: link:../../../hardhat-toolbox-mocha-ethers

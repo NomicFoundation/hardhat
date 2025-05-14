@@ -7,6 +7,8 @@
   "devDependencies": {
     "hardhat": "workspace:^3.0.0-next.7",
     "@nomicfoundation/hardhat-toolbox-mocha-ethers": "workspace:^3.0.0-next.7",
+    "@nomicfoundation/hardhat-ignition": "workspace:^3.0.0-next.7",
+    "@nomicfoundation/hardhat-ethers": "workspace:^4.0.0-next.7",
     "@types/chai": "^4.2.0",
     "@types/chai-as-promised": "^8.0.1",
     "@types/mocha": ">=10.0.10",
