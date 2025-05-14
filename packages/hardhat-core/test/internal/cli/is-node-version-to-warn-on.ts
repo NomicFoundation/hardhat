@@ -11,11 +11,14 @@ describe("isNodeVersionToWarnOn", function () {
 
     assert.isFalse(isNodeVersionToWarnOn("v22.0.0"));
     assert.isFalse(isNodeVersionToWarnOn("v22.3.0"));
+
+    assert.isFalse(isNodeVersionToWarnOn("v24.0.0"));
+    assert.isFalse(isNodeVersionToWarnOn("v24.3.0"));
   });
 
   it("Should not warn on even newer versions even if they are unsupported", function () {
-    assert.isFalse(isNodeVersionToWarnOn("v24.0.0"));
-    assert.isFalse(isNodeVersionToWarnOn("v24.3.0"));
+    assert.isFalse(isNodeVersionToWarnOn("v26.0.0"));
+    assert.isFalse(isNodeVersionToWarnOn("v26.3.0"));
   });
 
   it("Should warn on unsupported older node versions", function () {
