@@ -33,11 +33,11 @@ const configureTelemetry: NewTaskActionFunction<
 
   if (consent) {
     console.log(
-      "Telemetry is now enabled, to disable it run `npx hardhat telemetry --disable`",
+      "Telemetry is enabled, to disable it run `npx hardhat telemetry --disable`",
     );
   } else {
     console.log(
-      "Telemetry is now disabled, to enable it run `npx hardhat telemetry --enable`",
+      "Telemetry is disabled, to enable it run `npx hardhat telemetry --enable`",
     );
   }
 };
