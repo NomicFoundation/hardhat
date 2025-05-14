@@ -2,7 +2,10 @@ import { network } from "hardhat";
 
 const chainType = "optimism";
 
-const { viem } = await network.connect("hardhatOp", chainType);
+const { viem } = await network.connect({
+  network: "hardhatOp",
+  chainType,
+});
 
 console.log("Sending transaction using the OP chain type");
 
