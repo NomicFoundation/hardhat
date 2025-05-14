@@ -297,14 +297,17 @@ export function hardhatChainDescriptorsToEdrChains(
       })
       .map(([chainId, descriptor]) => ({
         chainId,
+        name: descriptor.name,
         hardforks: Array.from(descriptor.hardforkHistory ?? new Map()).map(
           ([hardfork, { blockNumber, timestamp }]) => ({
-            specId: hardhatHardforkToEdrSpecId(hardfork, descriptor.chainType),
-            ...(blockNumber !== undefined
-              ? { blockNumber: BigInt(blockNumber) }
-              : // { timestamp: BigInt(timestamp) }),
-                // TODO: remplace this line with the one above when EDR supports it
-                { blockNumber: BigInt(timestamp) }),
+            condition:
+              blockNumber !== undefined
+                ? { blockNumber: BigInt(blockNumber) }
+                : { timestamp: BigInt(timestamp) },
+            hardfork: hardhatHardforkToEdrSpecId(
+              hardfork,
+              descriptor.chainType,
+            ),
           }),
         ),
       }))
