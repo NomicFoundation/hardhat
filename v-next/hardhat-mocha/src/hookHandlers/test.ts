@@ -7,12 +7,7 @@ export default async (): Promise<Partial<TestHooks>> => {
     registerFileForTestRunner: async (context, filePath, next) => {
       const absoluteFilePath = resolveFromRoot(process.cwd(), filePath);
 
-      const absoluteNodeTestsPath = resolveFromRoot(
-        process.cwd(),
-        context.config.paths.tests.mocha,
-      );
-
-      if (absoluteFilePath.includes(absoluteNodeTestsPath)) {
+      if (absoluteFilePath.includes(context.config.paths.tests.mocha)) {
         return "mocha";
       }
 
