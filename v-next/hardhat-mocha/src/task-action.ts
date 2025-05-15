@@ -7,6 +7,11 @@ import { fileURLToPath } from "node:url";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
+import {
+  makrTestRunDone,
+  markTestRunStart,
+  markTestWorkerDone,
+} from "hardhat/internal/coverage";
 
 interface TestActionArguments {
   testFiles: string[];
@@ -60,6 +65,10 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   const tsx = fileURLToPath(import.meta.resolve("tsx/esm"));
   process.env.NODE_OPTIONS = `--import ${tsx}`;
 
+  if (hre.globalOptions.coverage === true) {
+    await markTestRunStart("hardhat-mocha");
+  }
+
   const { default: Mocha } = await import("mocha");
 
   const mochaConfig: MochaOptions = { ...hre.config.mocha };
@@ -96,6 +105,11 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   const testFailures = await new Promise<number>((resolve) => {
     mocha.run(resolve);
   });
+
+  if (hre.globalOptions.coverage === true) {
+    await markTestWorkerDone("hardhat-mocha");
+    await makrTestRunDone("hardhat-mocha");
+  }
 
   if (testFailures > 0) {
     process.exitCode = 1;
