@@ -158,7 +158,20 @@ export class Artifacts implements IArtifacts {
       this._isArtifactPath(f)
     );
 
-    const result = paths.sort();
+    // Validate JSON content for Hardhat artifact format
+    const validPaths = [];
+    for (const filePath of paths) {
+      try {
+        const content = await fsExtra.readJson(filePath);
+        if (content._format && content._format.startsWith("hh-")) {
+          validPaths.push(filePath);
+        }
+      } catch (error) {
+        log(`Skipping invalid JSON file: ${filePath}`);
+      }
+    }
+
+    const result = validPaths.sort();
 
     if (this._cache !== undefined) {
       this._cache.artifactPaths = result;
@@ -561,7 +574,20 @@ export class Artifacts implements IArtifacts {
       this._isArtifactPath(f)
     );
 
-    const result = paths.sort();
+    // Validate JSON content for Hardhat artifact format
+    const validPaths = [];
+    for (const filePath of paths) {
+      try {
+        const content = fsExtra.readJsonSync(filePath);
+        if (content._format && content._format.startsWith("hh-")) {
+          validPaths.push(filePath);
+        }
+      } catch (error) {
+        log(`Skipping invalid JSON file: ${filePath}`);
+      }
+    }
+
+    const result = validPaths.sort();
 
     if (this._cache !== undefined) {
       this._cache.artifactPaths = result;
@@ -928,7 +954,9 @@ Please replace "${contractName}" for the correct contract name wherever you are 
       file.endsWith(".json") &&
       file !== path.join(this._artifactsPath, "package.json") &&
       !file.startsWith(path.join(this._artifactsPath, BUILD_INFO_DIR_NAME)) &&
-      !file.endsWith(".dbg.json")
+      !file.endsWith(".dbg.json") &&
+      // Ensure file is in a subdirectory (not in artifacts/ root)
+      path.dirname(file) !== this._artifactsPath
     );
   }
 }
