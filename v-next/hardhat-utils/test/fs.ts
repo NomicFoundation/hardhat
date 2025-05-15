@@ -227,8 +227,6 @@ describe("File system utils", () => {
         await writeUtf8File(path.join(skipPath, "skip.txt"), "skip");
         await writeUtf8File(path.join(dirPath, "dir.txt"), "dir");
 
-        console.log("hola");
-
         const files = await getAllFilesMatching(
           from,
           undefined,
