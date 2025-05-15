@@ -6,7 +6,7 @@ import type {
 import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
 
-import { useTmpDir } from "@nomicfoundation/hardhat-test-utils";
+import { disableConsole, useTmpDir } from "@nomicfoundation/hardhat-test-utils";
 import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
 
 import { CoverageManagerImplementation } from "../../../../src/internal/builtin-plugins/coverage/coverage-manager.js";
@@ -17,6 +17,7 @@ describe("CoverageManagerImplementation", () => {
   let coverageManager: CoverageManagerImplementation;
 
   useTmpDir();
+  disableConsole();
 
   beforeEach(async () => {
     coverageManager = new CoverageManagerImplementation(process.cwd());
@@ -88,7 +89,7 @@ describe("CoverageManagerImplementation", () => {
     }
   });
 
-  it("should not clear the data from memory", async () => {
+  it("should clear the data from memory", async () => {
     await coverageManager.addData(["a", "b", "c"]);
 
     let data = coverageManager.data;
@@ -99,7 +100,7 @@ describe("CoverageManagerImplementation", () => {
 
     data = coverageManager.data;
 
-    assert.ok(data.length !== 0, "The data should not be cleared from memory");
+    assert.ok(data.length === 0, "The data should be cleared from memory");
   });
 
   it("should clear the data from disk", async () => {
