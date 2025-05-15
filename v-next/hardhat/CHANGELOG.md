@@ -1,5 +1,14 @@
 # hardhat
 
+## 3.0.0-next.9
+
+### Patch Changes
+
+- 33dd827: Bump @ignored/edr to 0.10.0-alpha.3 which adds the ability to filter Solidity tests.
+- d460644: Add the ability to filter Solidity tests with `--grep`.
+- 918df12: Fix an issue with abstract contracts' factories
+- 267c11a: Add a `directoryFilter` param to `getAllFilesMatching`
+
 ## 3.0.0-next.8
 
 ### Patch Changes
