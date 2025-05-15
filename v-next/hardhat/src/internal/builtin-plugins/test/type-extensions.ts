@@ -1,4 +1,3 @@
-import { TestPathsConfig } from "../../../types/config.js";
 import "../../../types/hooks.js";
 declare module "../../../types/hooks.js" {
   export interface HardhatHooks {
