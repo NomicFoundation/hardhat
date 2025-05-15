@@ -32,26 +32,26 @@ export function unsafelyCastAsHardhatRuntimeEnvironmentImplementation(
  * - We know the HRE has been initialized by the time they are used.
  */
 
-export async function markTestRunStart(): Promise<void> {
+export async function markTestRunStart(id: string): Promise<void> {
   const hre = await getOrCreateGlobalHardhatRuntimeEnvironment();
   const hreImplementation =
     unsafelyCastAsHardhatRuntimeEnvironmentImplementation(hre);
 
-  await hreImplementation._coverage.handleTestRunStart();
+  await hreImplementation._coverage.handleTestRunStart(id);
 }
 
-export async function markTestWorkerDone(): Promise<void> {
+export async function markTestWorkerDone(id: string): Promise<void> {
   const hre = await getOrCreateGlobalHardhatRuntimeEnvironment();
   const hreImplementation =
     unsafelyCastAsHardhatRuntimeEnvironmentImplementation(hre);
 
-  await hreImplementation._coverage.handleTestWorkerDone();
+  await hreImplementation._coverage.handleTestWorkerDone(id);
 }
 
-export async function makrTestRunDone(): Promise<void> {
+export async function makrTestRunDone(id: string): Promise<void> {
   const hre = await getOrCreateGlobalHardhatRuntimeEnvironment();
   const hreImplementation =
     unsafelyCastAsHardhatRuntimeEnvironmentImplementation(hre);
 
-  await hreImplementation._coverage.handleTestRunDone();
+  await hreImplementation._coverage.handleTestRunDone(id);
 }

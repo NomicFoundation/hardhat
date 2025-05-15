@@ -40,21 +40,21 @@ export class CoverageManagerImplementation implements CoverageManager {
 
   readonly #coveragePath: string;
 
-  #dataPath: string | undefined;
   #report: Report | undefined;
 
   constructor(coveragePath: string) {
     this.#coveragePath = coveragePath;
   }
 
-  async #getDataPath(): Promise<string> {
-    if (this.#dataPath === undefined) {
-      const dataPath = path.join(this.#coveragePath, "data");
-      await ensureDir(dataPath);
-      this.#dataPath = dataPath;
-    }
+  async #getDataPath(id: string): Promise<string> {
+    const dataPath = path.join(this.#coveragePath, "data", id);
+    await ensureDir(dataPath);
+    return dataPath;
+  }
 
-    return this.#dataPath;
+  #setData(data: CoverageData): void {
+    this.data = data;
+    this.#report = undefined;
   }
 
   public async handleData(data: CoverageData): Promise<void> {
@@ -70,18 +70,18 @@ export class CoverageManagerImplementation implements CoverageManager {
     log("Added metadata", JSON.stringify(metadata, null, 2));
   }
 
-  public async handleTestRunStart(): Promise<void> {
-    await this.#clearData();
+  public async handleTestRunStart(id: string): Promise<void> {
+    await this.#clearData(id);
     log("Cleared data");
   }
 
-  public async handleTestWorkerDone(): Promise<void> {
-    await this.#saveData();
+  public async handleTestWorkerDone(id: string): Promise<void> {
+    await this.#saveData(id);
     log("Saved data");
   }
 
-  public async handleTestRunDone(): Promise<void> {
-    await this.#loadData();
+  public async handleTestRunDone(id: string): Promise<void> {
+    await this.#loadData(id);
     log("Loaded data");
 
     const lcovReport = this.#getLcovReport();
@@ -95,30 +95,27 @@ export class CoverageManagerImplementation implements CoverageManager {
     log("Printed markdown report");
   }
 
-  async #saveData(): Promise<void> {
-    const dataPath = await this.#getDataPath();
+  async #saveData(id: string): Promise<void> {
+    const dataPath = await this.#getDataPath(id);
     const filePath = path.join(dataPath, `${crypto.randomUUID()}.json`);
     const data = this.data;
     await writeJsonFile(filePath, data);
   }
 
-  async #loadData(): Promise<void> {
-    const dataPath = await this.#getDataPath();
+  async #loadData(id: string): Promise<void> {
+    const dataPath = await this.#getDataPath(id);
     const filePaths = await getAllFilesMatching(dataPath);
     const data = [];
     for (const filePath of filePaths) {
       const partialData = await readJsonFile<CoverageData>(filePath);
       data.push(...partialData);
     }
-    this.data = data;
+    this.#setData(data);
   }
 
-  async #clearData(): Promise<void> {
-    const dataPath = await this.#getDataPath();
+  async #clearData(id: string): Promise<void> {
+    const dataPath = await this.#getDataPath(id);
     await remove(dataPath);
-    await ensureDir(dataPath);
-    this.data = [];
-    this.#report = undefined;
   }
 
   #getReport(): Report {

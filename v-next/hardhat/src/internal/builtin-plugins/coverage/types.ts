@@ -11,7 +11,7 @@ export interface CoverageManager {
   handleData(data: CoverageData): Promise<void>;
   handleMetadata(metadata: CoverageMetadata): Promise<void>;
 
-  handleTestRunStart(): Promise<void>;
-  handleTestWorkerDone(): Promise<void>;
-  handleTestRunDone(): Promise<void>;
+  handleTestRunStart(id: string): Promise<void>;
+  handleTestWorkerDone(id: string): Promise<void>;
+  handleTestRunDone(id: string): Promise<void>;
 }

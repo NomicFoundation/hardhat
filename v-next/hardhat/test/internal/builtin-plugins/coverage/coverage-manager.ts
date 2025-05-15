@@ -1,4 +1,7 @@
-import type { CoverageMetadata } from "../../../../src/internal/builtin-plugins/coverage/types.js";
+import type {
+  CoverageData,
+  CoverageMetadata,
+} from "../../../../src/internal/builtin-plugins/coverage/types.js";
 
 import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
@@ -9,6 +12,8 @@ import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
 import { CoverageManagerImplementation } from "../../../../src/internal/builtin-plugins/coverage/coverage-manager.js";
 
 describe("CoverageManagerImplementation", () => {
+  const id = "test";
+
   let coverageManager: CoverageManagerImplementation;
 
   useTmpDir();
@@ -18,19 +23,32 @@ describe("CoverageManagerImplementation", () => {
   });
 
   it("should load all the saved data", async () => {
-    const data1 = ["a", "b", "c"];
-    const data2 = ["1", "2", "3"];
+    const data1: CoverageData = ["a", "b", "c"];
+    const data2: CoverageData = ["1", "2", "3"];
+
+    const metadata: CoverageMetadata = [];
+
+    for (const item of [...data1, ...data2]) {
+      metadata.push({
+        sourceName: "test",
+        tag: item,
+        startLine: 1,
+        endLine: 1,
+      });
+    }
+
+    await coverageManager.handleMetadata(metadata);
 
     const coverageManager1 = new CoverageManagerImplementation(process.cwd());
     const coverageManager2 = new CoverageManagerImplementation(process.cwd());
 
     await coverageManager1.handleData(data1);
-    await coverageManager1.handleTestWorkerDone();
+    await coverageManager1.handleTestWorkerDone(id);
 
     await coverageManager2.handleData(data2);
-    await coverageManager2.handleTestWorkerDone();
+    await coverageManager2.handleTestWorkerDone(id);
 
-    await coverageManager.handleTestRunDone();
+    await coverageManager.handleTestRunDone(id);
 
     const data = coverageManager.data;
 
@@ -70,29 +88,29 @@ describe("CoverageManagerImplementation", () => {
     }
   });
 
-  it("should clear the data from memory", async () => {
+  it("should not clear the data from memory", async () => {
     await coverageManager.handleData(["a", "b", "c"]);
 
     let data = coverageManager.data;
 
     assert.ok(data.length !== 0, "The data should be saved to memory");
 
-    await coverageManager.handleTestRunStart();
+    await coverageManager.handleTestRunStart(id);
 
     data = coverageManager.data;
 
-    assert.ok(data.length === 0, "The data should be cleared from memory");
+    assert.ok(data.length !== 0, "The data should not be cleared from memory");
   });
 
   it("should clear the data from disk", async () => {
     await coverageManager.handleData(["a", "b", "c"]);
-    await coverageManager.handleTestWorkerDone();
+    await coverageManager.handleTestWorkerDone(id);
 
     let data = await getAllFilesMatching(process.cwd());
 
     assert.ok(data.length !== 0, "The data should be saved to disk");
 
-    await coverageManager.handleTestRunStart();
+    await coverageManager.handleTestRunStart(id);
 
     data = await getAllFilesMatching(process.cwd());
 
@@ -113,7 +131,7 @@ describe("CoverageManagerImplementation", () => {
 
     assert.ok(metadata.length !== 0, "The metadata should be saved to memory");
 
-    await coverageManager.handleTestRunStart();
+    await coverageManager.handleTestRunStart(id);
 
     metadata = coverageManager.metadata;
 

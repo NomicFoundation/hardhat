@@ -77,7 +77,7 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
     // the global options are not automatically passed to the child processes.
     process.env.HARDHAT_COVERAGE = "true";
 
-    await markTestRunStart();
+    await markTestRunStart("hardhat-node-test-runner");
 
     const coverage = new URL(
       import.meta.resolve("@nomicfoundation/hardhat-node-test-runner/coverage"),
@@ -129,7 +129,7 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   const testFailures = await runTests();
 
   if (hre.globalOptions.coverage === true) {
-    await makrTestRunDone();
+    await makrTestRunDone("hardhat-node-test-runner");
   }
 
   if (testFailures > 0) {
