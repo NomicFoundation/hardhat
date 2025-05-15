@@ -13,7 +13,8 @@ import { unsafelyCastAsHardhatRuntimeEnvironmentImplementation } from "../helper
 
 const log = debug("hardhat:core:coverage:hook-handlers:solidity");
 
-const COVERAGE_LIBRARY_PATH = "__hardhat_coverage_library_a3e9cfe2-41b4-4a1f-ad9e-ac62dd82979e.sol";
+const COVERAGE_LIBRARY_PATH =
+  "__hardhat_coverage_library_a3e9cfe2-41b4-4a1f-ad9e-ac62dd82979e.sol";
 
 export default async (): Promise<Partial<SolidityHooks>> => ({
   preprocessProjectFileBeforeBuilding: async (
@@ -39,7 +40,7 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
           fileContent,
           sourceName,
           solcVersion,
-          COVERAGE_LIBRARY_PATH
+          COVERAGE_LIBRARY_PATH,
         );
 
         // TODO: Remove this once EDR starts returning line information as part

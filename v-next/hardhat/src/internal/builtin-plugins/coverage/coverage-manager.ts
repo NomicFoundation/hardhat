@@ -21,15 +21,21 @@ import debug from "debug";
 
 const log = debug("hardhat:core:coverage:coverage-manager");
 
+type Line = number;
+type Branch = [Line, Tag];
+
 interface Report {
   [sourceName: string]: {
     tagExecutionCounts: Map<Tag, number>;
-    lineExecutionCounts: Map<number, number>;
-    executedTags: Set<Tag>;
-    unexecutedTags: Set<Tag>;
-    executedLines: Set<number>;
-    partiallyExecutedLines: Set<number>;
-    unexecutedLines: Set<number>;
+    lineExecutionCounts: Map<Line, number>;
+    branchExecutionCounts: Map<Branch, number>;
+
+    executedTagsCount: number;
+    executedLinesCount: number;
+    executedBranchesCount: number;
+
+    partiallyExecutedLines: Set<Line>;
+    unexecutedLines: Set<Line>;
   };
 }
 
@@ -189,11 +195,21 @@ export class CoverageManagerImplementation implements CoverageManager {
           uniqueUnexecutedStatementsBySource.get(source) ?? [];
 
         const tagExecutionCounts = new Map<Tag, number>();
-        const lineExecutionCounts = new Map<number, number>();
 
         for (const statement of allExecutedStatements) {
           const tagExecutionCount = tagExecutionCounts.get(statement.tag) ?? 0;
           tagExecutionCounts.set(statement.tag, tagExecutionCount + 1);
+        }
+
+        const lineExecutionCounts = new Map<number, number>();
+        const branchExecutionCounts = new Map<Branch, number>();
+
+        for (const [tag, executionCount] of tagExecutionCounts) {
+          const statement = statementsByTag.get(tag);
+          assertHardhatInvariant(
+            statement !== undefined,
+            "Expected a statement",
+          );
 
           for (
             let line = statement.startLine;
@@ -201,21 +217,27 @@ export class CoverageManagerImplementation implements CoverageManager {
             line++
           ) {
             const lineExecutionCount = lineExecutionCounts.get(line) ?? 0;
-            lineExecutionCounts.set(line, lineExecutionCount + 1);
+            lineExecutionCounts.set(line, lineExecutionCount + executionCount);
+
+            const branchExecutionCount =
+              branchExecutionCounts.get([line, tag]) ?? 0;
+            branchExecutionCounts.set(
+              [line, tag],
+              branchExecutionCount + executionCount,
+            );
           }
         }
 
-        const executedTags = new Set<Tag>(tagExecutionCounts.keys());
-        const unexecutedTags = new Set<Tag>();
+        const executedTagsCount = tagExecutionCounts.size;
+        const executedLinesCount = lineExecutionCounts.size;
+        const executedBranchesCount = branchExecutionCounts.size;
 
-        const executedLines = new Set<number>(lineExecutionCounts.keys());
         const partiallyExecutedLines = new Set<number>();
         const unexecutedLines = new Set<number>();
 
         for (const statement of uniqueUnexecutedStatements) {
           if (!tagExecutionCounts.has(statement.tag)) {
             tagExecutionCounts.set(statement.tag, 0);
-            unexecutedTags.add(statement.tag);
           }
 
           for (
@@ -229,15 +251,22 @@ export class CoverageManagerImplementation implements CoverageManager {
             } else {
               partiallyExecutedLines.add(line);
             }
+
+            if (!branchExecutionCounts.has([line, statement.tag])) {
+              branchExecutionCounts.set([line, statement.tag], 0);
+            }
           }
         }
 
         report[source] = {
           tagExecutionCounts,
           lineExecutionCounts,
-          executedTags,
-          unexecutedTags,
-          executedLines,
+          branchExecutionCounts,
+
+          executedTagsCount,
+          executedLinesCount,
+          executedBranchesCount,
+
           partiallyExecutedLines,
           unexecutedLines,
         };
@@ -271,9 +300,32 @@ export class CoverageManagerImplementation implements CoverageManager {
 
     for (const [
       source,
-      { lineExecutionCounts, executedLines },
+      {
+        branchExecutionCounts,
+        executedBranchesCount,
+        lineExecutionCounts,
+        executedLinesCount,
+      },
     ] of Object.entries(report)) {
       lcov += `SF:${source}\n`;
+
+      // NOTE: We report statement coverage as branches to get partial line coverage
+      // data in tools parsing the lcov files. This is because the lcov format
+      // does not support statement coverage.
+      // WARN: This feature is highly experimental and should not be relied upon.
+
+      // Branch coverage information is stored one line per branch:
+      // BRDA:<line_number>,[<exception>]<block>,<branch>,<taken>
+
+      // Branch coverage summaries are stored in two lines:
+      // BRF:<number of branches found>
+      // BRH:<number of branches hit>
+
+      for (const [[line, tag], executionCount] of branchExecutionCounts) {
+        lcov += `BRDA:${line},0,${tag},${executionCount === 0 ? "-" : executionCount}\n`;
+      }
+      lcov += `BRF:${executedBranchesCount}\n`;
+      lcov += `BRH:${branchExecutionCounts.size}\n`;
 
       // Then there is a list of execution counts for each instrumented line
       // (i.e. a line which resulted in executable code):
@@ -287,7 +339,7 @@ export class CoverageManagerImplementation implements CoverageManager {
       for (const [line, executionCount] of lineExecutionCounts) {
         lcov += `DA:${line},${executionCount}\n`;
       }
-      lcov += `LH:${executedLines.size}\n`;
+      lcov += `LH:${executedLinesCount}\n`;
       lcov += `LF:${lineExecutionCounts.size}\n`;
 
       // Each sections ends with:
@@ -321,8 +373,8 @@ export class CoverageManagerImplementation implements CoverageManager {
         {
           tagExecutionCounts,
           lineExecutionCounts,
-          executedTags,
-          executedLines,
+          executedTagsCount,
+          executedLinesCount,
           unexecutedLines,
           partiallyExecutedLines,
         },
@@ -330,16 +382,16 @@ export class CoverageManagerImplementation implements CoverageManager {
         const lineCoverage =
           lineExecutionCounts.size === 0
             ? 0
-            : (executedLines.size * 100.0) / lineExecutionCounts.size;
+            : (executedLinesCount * 100.0) / lineExecutionCounts.size;
         const statementCoverage =
           tagExecutionCounts.size === 0
             ? 0
-            : (executedTags.size * 100.0) / tagExecutionCounts.size;
+            : (executedTagsCount * 100.0) / tagExecutionCounts.size;
 
-        totalExecutedLines += executedLines.size;
+        totalExecutedLines += executedLinesCount;
         totalExecutableLines += lineExecutionCounts.size;
 
-        totalExecutedStatements += executedTags.size;
+        totalExecutedStatements += executedTagsCount;
         totalExecutableStatements += tagExecutionCounts.size;
 
         const uncoveredLines =
