@@ -348,16 +348,25 @@ export class CoverageManagerImplementation implements CoverageManager {
         totalExecutedStatements += executedTags.size;
         totalExecutableStatements += tagExecutionCounts.size;
 
+        const uncoveredLines =
+          unexecutedLines.size === 0
+            ? "-"
+            : Array.from(unexecutedLines)
+                .toSorted((a, b) => a - b)
+                .join(", ");
+        const partiallyCoveredLines =
+          partiallyExecutedLines.size === 0
+            ? "-"
+            : Array.from(partiallyExecutedLines)
+                .toSorted((a, b) => a - b)
+                .join(", ");
+
         const row: string[] = [
           source,
           lineCoverage.toFixed(2).toString(),
           statementCoverage.toFixed(2).toString(),
-          Array.from(unexecutedLines)
-            .toSorted((a, b) => a - b)
-            .join(", "),
-          Array.from(partiallyExecutedLines)
-            .toSorted((a, b) => a - b)
-            .join(", "),
+          uncoveredLines,
+          partiallyCoveredLines,
         ];
 
         return row;
