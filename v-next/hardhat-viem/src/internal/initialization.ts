@@ -15,12 +15,16 @@ import {
   sendDeploymentTransaction,
 } from "./contracts.js";
 
-export function initializeViem<ChainTypeT extends ChainType | string>(
+export async function initializeViem<ChainTypeT extends ChainType | string>(
   chainType: ChainTypeT,
   provider: EthereumProvider,
   artifactManager: ArtifactManager,
-): HardhatViemHelpers<ChainTypeT> {
+): Promise<HardhatViemHelpers<ChainTypeT>> {
+  const defaultPublicClient = await getPublicClient(provider, chainType);
+
   return {
+    publicClient: defaultPublicClient,
+
     getPublicClient: (publicClientConfig) =>
       getPublicClient(provider, chainType, publicClientConfig),
 
@@ -37,6 +41,7 @@ export function initializeViem<ChainTypeT extends ChainType | string>(
       deployContract(
         provider,
         artifactManager,
+        defaultPublicClient,
         contractName,
         constructorArgs,
         deployContractConfig,
@@ -50,6 +55,7 @@ export function initializeViem<ChainTypeT extends ChainType | string>(
       sendDeploymentTransaction(
         provider,
         artifactManager,
+        defaultPublicClient,
         contractName,
         constructorArgs,
         sendDeploymentTransactionConfig,
@@ -59,6 +65,7 @@ export function initializeViem<ChainTypeT extends ChainType | string>(
       getContractAt(
         provider,
         artifactManager,
+        defaultPublicClient,
         contractName,
         address,
         getContractAtConfig,
