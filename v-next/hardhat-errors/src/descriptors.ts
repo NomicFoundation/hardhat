@@ -1222,9 +1222,9 @@ Please use the fully qualified name of the contract to disambiguate it.`,
     TEST_PLUGIN: {
       CANNOT_DETERMINE_TEST_RUNNER: {
         number: 1200,
-        messageTemplate: `Cannot determine a test runner for files: {files}. This indicates an issue with an installed test plugin.`,
+        messageTemplate: `Cannot determine a test runner for the following files: {files}. Please check whether these files are correctly included in the test paths defined by your test plugins in the Hardhat configuration. If they are, this likely indicates an issue with a plugin not correctly detecting the files.`,
         websiteTitle: "Cannot determine a test runner for files",
-        websiteDescription: `Cannot determine a test runner for files. This indicates an issue with an installed test plugin.`,
+        websiteDescription: `Cannot determine a test runner for the test files. This may be because the files are not correctly included in the test paths defined by the test plugins in the Hardhat configuration. If they are correctly included, this likely indicates an issue with a plugin failing to detect the files.`,
       },
     },
   },
