@@ -107,6 +107,7 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   });
 
   if (hre.globalOptions.coverage === true) {
+    // NOTE: We execute mocha tests in the main process.
     await markTestWorkerDone("mocha");
     await makrTestRunDone("mocha");
   }

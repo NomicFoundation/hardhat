@@ -53,30 +53,16 @@ export class CoverageManagerImplementation implements CoverageManager {
     return dataPath;
   }
 
-  #setData(data: CoverageData): void {
-    this.data = data;
-    this.#report = undefined;
-  }
-
   public async addData(data: CoverageData): Promise<void> {
     this.data.push(...data);
     log("Added data", JSON.stringify(data, null, 2));
   }
 
   public async addMetadata(metadata: CoverageMetadata): Promise<void> {
-    // NOTE: The received metadata might contain duplicates. For now, we're OK
-    // with this. Once we implement report generation, we should decide at which
-    // stage we should deduplicate the metadata.
+    // NOTE: The received metadata might contain duplicates. We deduplicate it
+    // when we generate the report.
     this.metadata.push(...metadata);
     log("Added metadata", JSON.stringify(metadata, null, 2));
-  }
-
-  public disableTestRunDoneHandler(): void {
-    this.#testRunDoneHandlerEnabled = false;
-  }
-
-  public enableTestRunDoneHandler(): void {
-    this.#testRunDoneHandlerEnabled = true;
   }
 
   public async handleTestRunStart(id: string): Promise<void> {
@@ -112,6 +98,14 @@ export class CoverageManagerImplementation implements CoverageManager {
 
     console.log(markdownReport);
     log("Printed markdown report");
+  }
+
+  public disableTestRunDoneHandler(): void {
+    this.#testRunDoneHandlerEnabled = false;
+  }
+
+  public enableTestRunDoneHandler(): void {
+    this.#testRunDoneHandlerEnabled = true;
   }
 
   async #saveData(id: string): Promise<void> {

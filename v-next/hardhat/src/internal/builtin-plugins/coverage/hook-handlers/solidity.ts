@@ -23,6 +23,8 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
     solcVersion,
     next,
   ) => {
+    // NOTE: We do not want to instrument the test project files as we don't
+    // want to report coverage for them.
     const isTestSource =
       sourceName.startsWith(
         path.relative(
