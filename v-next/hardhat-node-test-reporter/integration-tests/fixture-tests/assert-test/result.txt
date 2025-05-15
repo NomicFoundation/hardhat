@@ -1,0 +1,123 @@
+  assert
+    equal
+      [31m1) should compare numbers[39m
+      [31m2) should compare booleans[39m
+      [31m3) should compare strings[39m
+      [31m4) should compare numbers and strings[39m
+    deepEqual
+      [31m5) should compare objects[39m
+      [31m6) should compare arrays[39m
+    match
+      [31m7) should match strings[39m
+
+
+[32m0 passing[39m[90m (136ms)[39m[31m[39m
+[31m7 failing[39m
+
+  1) assert
+       equal
+         should compare numbers:
+
+   [31mAssertionError: Expected values to be strictly equal[39m
+   [32m- Expected[39m
+   [31m+ Received[39m
+   
+   [32m- 2[39m
+   [31m+ 1[39m
+   
+   [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/assert-test/assert.ts:7:14)[39m
+
+  2) assert
+       equal
+         should compare booleans:
+
+   [31mAssertionError: Expected values to be strictly equal[39m
+   [32m- Expected[39m
+   [31m+ Received[39m
+   
+   [32m- false[39m
+   [31m+ true[39m
+   
+   [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/assert-test/assert.ts:10:14)[39m
+
+  3) assert
+       equal
+         should compare strings:
+
+   [31mAssertionError: Expected values to be strictly equal[39m
+   [32m- Expected[39m
+   [31m+ Received[39m
+   
+   [32m- world[39m
+   [31m+ hello[39m
+   
+   [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/assert-test/assert.ts:13:14)[39m
+
+  4) assert
+       equal
+         should compare numbers and strings:
+
+   [31mAssertionError: Expected values to be strictly equal:[39m
+   [31m[39m
+   [31m1 !== '1'[39m
+   [31m[39m
+   [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/assert-test/assert.ts:16:14)[39m
+
+  5) assert
+       deepEqual
+         should compare objects:
+
+   [31mAssertionError: Expected values to be strictly deep-equal[39m
+   [32m- Expected[39m
+   [31m+ Received[39m
+   
+   [2m  Object {[22m
+   [32m-   "a": 2,[39m
+   [31m+   "a": 1,[39m
+   [2m    "b": Object {[22m
+   [32m-     "c": false,[39m
+   [32m-     "d": "world",[39m
+   [31m+     "c": true,[39m
+   [31m+     "d": "hello",[39m
+   [2m    },[22m
+   [2m  }[22m
+   
+   [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/assert-test/assert.ts:21:14)[39m
+
+  6) assert
+       deepEqual
+         should compare arrays:
+
+   [31mAssertionError: Expected values to be strictly deep-equal[39m
+   [32m- Expected[39m
+   [31m+ Received[39m
+   
+   [2m  Array [[22m
+   [32m-   2,[39m
+   [32m-   false,[39m
+   [32m-   "world",[39m
+   [31m+   1,[39m
+   [31m+   true,[39m
+   [31m+   "hello",[39m
+   [2m    Object {[22m
+   [32m-     "a": 2,[39m
+   [31m+     "a": 1,[39m
+   [2m      "b": Object {[22m
+   [32m-       "c": 2,[39m
+   [31m+       "c": 1,[39m
+   [2m      },[22m
+   [2m    },[22m
+   [2m  ][22m
+   
+   [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/assert-test/assert.ts:27:14)[39m
+
+  7) assert
+       match
+         should match strings:
+
+   [31mAssertionError: The input did not match the regular expression /world/. Input:[39m
+   [31m[39m
+   [31m'hello'[39m
+   [31m[39m
+   [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/assert-test/assert.ts:35:14)[39m
+
