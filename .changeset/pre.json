@@ -34,8 +34,11 @@
     "@nomicfoundation/config": "0.0.1"
   },
   "changesets": [
+    "242be992-0f33-40a2-b3fb-9bcaf6e14249",
     "angry-panthers-brush",
     "angry-rules-cheat",
+    "b4fed7af-8bd1-401f-8763-1c165f5b8085",
+    "bright-planes-talk",
     "calm-clouds-work",
     "chatty-rocks-reply",
     "cool-waves-wonder",
@@ -66,6 +69,7 @@
     "release-3.0.0-next.5",
     "release-3.0.0-next.6",
     "release-3.0.0-next.7",
+    "rude-wolves-lay",
     "selfish-worms-remain",
     "serious-rice-invent",
     "shaggy-cherries-work",

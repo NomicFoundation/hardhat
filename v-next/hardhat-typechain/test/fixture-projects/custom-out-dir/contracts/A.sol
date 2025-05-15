@@ -6,3 +6,9 @@ contract A {
     return "Hello from A contract!";
   }
 }
+
+abstract contract B {
+  function getMessage() external pure returns (string memory) {
+    return "Hello from A contract!";
+  }
+}
