@@ -25,7 +25,15 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
     solcVersion,
     next,
   ) => {
-    if (context.globalOptions.coverage) {
+    const isTestSource =
+      sourceName.startsWith(
+        path.relative(
+          context.config.paths.root,
+          context.config.paths.tests.solidity,
+        ),
+      ) || sourceName.endsWith(".t.sol");
+
+    if (context.globalOptions.coverage && !isTestSource) {
       try {
         // TODO: Pass the COVERAGE_LIBRARY_IMPORT_PATH as the next argument here
         // once the EDR supports it.
