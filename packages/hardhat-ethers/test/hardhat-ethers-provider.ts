@@ -30,6 +30,16 @@ describe("hardhat ethers provider", function () {
   });
 
   describe("getSigner", function () {
+    let originalSend: any;
+
+    beforeEach(async function () {
+      originalSend = this.env.ethers.provider.send;
+    });
+
+    afterEach(async function () {
+      this.env.ethers.provider.send = originalSend;
+    });
+
     it("should get a signer using an index", async function () {
       const signer = await this.env.ethers.provider.getSigner(0);
 
@@ -99,6 +109,24 @@ describe("hardhat ethers provider", function () {
         to: s.address,
         value: this.env.ethers.parseEther("0.1"),
       });
+    });
+
+    it("gracefully handles providers that don't support the eth_accounts method", async function () {
+      this.env.ethers.provider.send = async function (
+        method: string,
+        params: any
+      ) {
+        if (method === "eth_accounts") {
+          throw new Error("the method has been deprecated: eth_accounts");
+        }
+
+        return originalSend.call(this, method, params);
+      };
+
+      await assert.isRejected(
+        this.env.ethers.provider.getSigner(0),
+        "Tried to get account with index 0 but there are 0 accounts"
+      );
     });
   });
 

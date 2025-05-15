@@ -987,6 +987,20 @@ describe("Sender providers", () => {
         "0x000006d4548a3ac17d72b372ae1e416bf65b8ead"
       );
     });
+
+    it("Defaults to no accounts if the provider doesn't support the eth_accounts method", async () => {
+      mock.setReturnValue("eth_accounts", () => {
+        throw new Error(
+          "ProviderError: the method has been deprecated: eth_accounts"
+        );
+      });
+
+      tx.value = "asd";
+      await wrapper.request({ method: "eth_call", params: [tx] });
+
+      const params = mock.getLatestParams("eth_call");
+      assert.equal(params[0].value, "asd");
+    });
   });
 });
 

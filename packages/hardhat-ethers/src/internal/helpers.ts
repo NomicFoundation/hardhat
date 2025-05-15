@@ -45,13 +45,9 @@ export async function getSigners(
   try {
     accounts = await hre.ethers.provider.send("eth_accounts", []);
   } catch (error) {
-    if (
-      error instanceof Error &&
-      /the method has been deprecated: eth_accounts/.test(error.message)
-    ) {
+    if (isDeprecatedMethodError(error)) {
       return [];
     }
-
     throw error;
   }
 
@@ -447,4 +443,15 @@ function linkBytecode(artifact: Artifact, libraries: Link[]): string {
   }
 
   return bytecode;
+}
+
+export function isDeprecatedMethodError(error: unknown): boolean {
+  if (
+    error instanceof Error &&
+    /the method has been deprecated: eth_accounts/.test(error.message)
+  ) {
+    return true;
+  }
+
+  return false;
 }

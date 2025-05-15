@@ -120,7 +120,20 @@ export class LedgerProvider extends ProviderWrapperWithChainId {
     }
 
     if (args.method === "eth_accounts") {
-      const accounts = (await this._wrappedProvider.request(args)) as string[];
+      let accounts: string[];
+      try {
+        accounts = (await this._wrappedProvider.request(args)) as string[];
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          /the method has been deprecated: eth_accounts/.test(error.message)
+        ) {
+          accounts = [];
+        } else {
+          throw error;
+        }
+      }
+
       return [...accounts, ...this.options.accounts];
     }
 

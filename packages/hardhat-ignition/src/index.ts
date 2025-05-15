@@ -257,9 +257,21 @@ ignitionScope
         parameters = resolveParametersString(parametersInput);
       }
 
-      const accounts = (await hre.network.provider.request({
-        method: "eth_accounts",
-      })) as string[];
+      let accounts: string[];
+      try {
+        accounts = (await hre.network.provider.request({
+          method: "eth_accounts",
+        })) as string[];
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          /the method has been deprecated: eth_accounts/.test(error.message)
+        ) {
+          accounts = [];
+        } else {
+          throw error;
+        }
+      }
 
       const artifactResolver = new HardhatArtifactResolver(hre);
 
