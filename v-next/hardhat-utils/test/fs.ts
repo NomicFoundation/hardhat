@@ -212,6 +212,37 @@ describe("File system utils", () => {
         name: "FileSystemAccessError",
       });
     });
+
+    describe("With directoryFilter", () => {
+      it("Should return an empty array if directoryFilter returns false", async () => {
+        const from = path.join(getTmpDir(), "from");
+
+        const skipPath = path.join(from, "skip");
+        await mkdir(skipPath);
+
+        const dirPath = path.join(from, "dir");
+        await mkdir(dirPath);
+
+        await writeUtf8File(path.join(from, "from.txt"), "from");
+        await writeUtf8File(path.join(skipPath, "skip.txt"), "skip");
+        await writeUtf8File(path.join(dirPath, "dir.txt"), "dir");
+
+        console.log("hola");
+
+        const files = await getAllFilesMatching(
+          from,
+          undefined,
+          (absolutePathToDir) => {
+            return !absolutePathToDir.endsWith("skip");
+          },
+        );
+
+        assert.deepEqual(
+          new Set(files),
+          new Set([path.join(from, "from.txt"), path.join(dirPath, "dir.txt")]),
+        );
+      });
+    });
   });
 
   describe("getFileTrueCase", () => {
