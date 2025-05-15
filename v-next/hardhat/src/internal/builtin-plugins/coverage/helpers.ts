@@ -32,29 +32,26 @@ export function unsafelyCastAsHardhatRuntimeEnvironmentImplementation(
  * - We know the HRE has been initialized by the time they are used.
  */
 
-export async function clearCoverageData(): Promise<void> {
+export async function markTestRunStart(): Promise<void> {
   const hre = await getOrCreateGlobalHardhatRuntimeEnvironment();
   const hreImplementation =
     unsafelyCastAsHardhatRuntimeEnvironmentImplementation(hre);
 
-  await hreImplementation._coverage.clearData();
+  await hreImplementation._coverage.handleTestRunStart();
 }
 
-export async function saveCoverageData(): Promise<void> {
+export async function markTestWorkerDone(): Promise<void> {
   const hre = await getOrCreateGlobalHardhatRuntimeEnvironment();
   const hreImplementation =
     unsafelyCastAsHardhatRuntimeEnvironmentImplementation(hre);
 
-  await hreImplementation._coverage.saveData();
+  await hreImplementation._coverage.handleTestWorkerDone();
 }
 
-export async function loadCoverageData(): Promise<void> {
+export async function makrTestRunDone(): Promise<void> {
   const hre = await getOrCreateGlobalHardhatRuntimeEnvironment();
   const hreImplementation =
     unsafelyCastAsHardhatRuntimeEnvironmentImplementation(hre);
 
-  await hreImplementation._coverage.loadData();
-  // NOTE: These currently are implemented as side-effects of loading the coverage data.
-  await hreImplementation._coverage.saveLcovReport();
-  await hreImplementation._coverage.printMarkdownReport();
+  await hreImplementation._coverage.handleTestRunDone();
 }

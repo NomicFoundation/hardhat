@@ -74,7 +74,7 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
         // because the coverage manager (hre._coverage) is not exposed via the public interface
         const hreImplementation =
           unsafelyCastAsHardhatRuntimeEnvironmentImplementation(context);
-        await hreImplementation._coverage.addMetadata(coverageMetadata);
+        await hreImplementation._coverage.handleMetadata(coverageMetadata);
 
         return await next(context, sourceName, source, solcVersion);
       } catch (e) {

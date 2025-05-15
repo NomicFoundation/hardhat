@@ -34,12 +34,13 @@ interface Report {
 }
 
 export class CoverageManagerImplementation implements CoverageManager {
-  readonly #metadata: CoverageMetadata = [];
+  // NOTE: These are exposed for testing only
+  public metadata: CoverageMetadata = [];
+  public data: CoverageData = [];
+
   readonly #coveragePath: string;
 
-  #data: CoverageData = [];
   #dataPath: string | undefined;
-
   #report: Report | undefined;
 
   constructor(coveragePath: string) {
@@ -56,66 +57,77 @@ export class CoverageManagerImplementation implements CoverageManager {
     return this.#dataPath;
   }
 
-  public async addData(data: CoverageData): Promise<void> {
-    this.#data.push(...data);
+  public async handleData(data: CoverageData): Promise<void> {
+    this.data.push(...data);
     log("Added data", JSON.stringify(data, null, 2));
   }
 
-  public async saveData(): Promise<void> {
-    const dataPath = await this.#getDataPath();
-    const filePath = path.join(dataPath, `${crypto.randomUUID()}.json`);
-    const data = this.#data;
-    await writeJsonFile(filePath, data);
-    log(`Saved data to ${filePath}`, JSON.stringify(data, null, 2));
+  public async handleMetadata(metadata: CoverageMetadata): Promise<void> {
+    // NOTE: The received metadata might contain duplicates. For now, we're OK
+    // with this. Once we implement report generation, we should decide at which
+    // stage we should deduplicate the metadata.
+    this.metadata.push(...metadata);
+    log("Added metadata", JSON.stringify(metadata, null, 2));
   }
 
-  public async loadData(): Promise<void> {
+  public async handleTestRunStart(): Promise<void> {
+    await this.#clearData();
+    log("Cleared data");
+  }
+
+  public async handleTestWorkerDone(): Promise<void> {
+    await this.#saveData();
+    log("Saved data");
+  }
+
+  public async handleTestRunDone(): Promise<void> {
+    await this.#loadData();
+    log("Loaded data");
+
+    const lcovReport = this.#getLcovReport();
+    const markdownReport = this.#getMarkdownReport();
+
+    const lcovReportPath = path.join(this.#coveragePath, "lcov.info");
+    await writeUtf8File(lcovReportPath, lcovReport);
+    log(`Saved lcov report to ${lcovReportPath}`);
+
+    console.log(markdownReport);
+    log("Printed markdown report");
+  }
+
+  async #saveData(): Promise<void> {
+    const dataPath = await this.#getDataPath();
+    const filePath = path.join(dataPath, `${crypto.randomUUID()}.json`);
+    const data = this.data;
+    await writeJsonFile(filePath, data);
+  }
+
+  async #loadData(): Promise<void> {
     const dataPath = await this.#getDataPath();
     const filePaths = await getAllFilesMatching(dataPath);
     const data = [];
     for (const filePath of filePaths) {
       const partialData = await readJsonFile<CoverageData>(filePath);
       data.push(...partialData);
-      log(`Loaded data from ${filePath}`, JSON.stringify(partialData, null, 2));
     }
-    this.#data = data;
-    log("Loaded data", JSON.stringify(data, null, 2));
+    this.data = data;
   }
 
-  public async clearData(): Promise<void> {
+  async #clearData(): Promise<void> {
     const dataPath = await this.#getDataPath();
     await remove(dataPath);
     await ensureDir(dataPath);
-    this.#data = [];
+    this.data = [];
     this.#report = undefined;
-    log("Cleared data");
-  }
-
-  // NOTE: This function is exposed for testing only
-  public async getData(): Promise<CoverageData> {
-    return this.#data;
-  }
-
-  public async addMetadata(metadata: CoverageMetadata): Promise<void> {
-    // NOTE: The received metadata might contain duplicates. For now, we're OK
-    // with this. Once we implement report generation, we should decide at which
-    // stage we should deduplicate the metadata.
-    this.#metadata.push(...metadata);
-    log("Added metadata", JSON.stringify(metadata, null, 2));
-  }
-
-  // NOTE: This function is exposed for testing only
-  public async getMetadata(): Promise<CoverageMetadata> {
-    return this.#metadata;
   }
 
   #getReport(): Report {
     if (this.#report === undefined) {
       const report: Report = {};
 
-      const sourceNames = this.#metadata.map(({ sourceName }) => sourceName);
+      const sourceNames = this.metadata.map(({ sourceName }) => sourceName);
 
-      const allStatements = this.#metadata;
+      const allStatements = this.metadata;
 
       // NOTE: We preserve only the last statement per tag in the statementsByTag map.
       const statementsByTag = new Map<string, Statement>();
@@ -123,7 +135,7 @@ export class CoverageManagerImplementation implements CoverageManager {
         statementsByTag.set(statement.tag, statement);
       }
 
-      const allExecutedTags = this.#data;
+      const allExecutedTags = this.data;
 
       const allExecutedStatementsBySource = new Map<string, Statement[]>();
       for (const tag of allExecutedTags) {
@@ -272,11 +284,6 @@ export class CoverageManagerImplementation implements CoverageManager {
     return lcov;
   }
 
-  public async saveLcovReport(): Promise<void> {
-    const lcovReportPath = path.join(this.#coveragePath, "lcov.info");
-    await writeUtf8File(lcovReportPath, this.#getLcovReport());
-  }
-
   #getMarkdownReport(): string {
     const report = this.#getReport();
 
@@ -309,11 +316,11 @@ export class CoverageManagerImplementation implements CoverageManager {
         const lineCoverage =
           lineExecutionCounts.size === 0
             ? 0
-            : executedLines.size * 100.0 / lineExecutionCounts.size;
+            : (executedLines.size * 100.0) / lineExecutionCounts.size;
         const statementCoverage =
           tagExecutionCounts.size === 0
             ? 0
-            : executedTags.size * 100.0 / tagExecutionCounts.size;
+            : (executedTags.size * 100.0) / tagExecutionCounts.size;
 
         totalExecutedLines += executedLines.size;
         totalExecutableLines += lineExecutionCounts.size;
@@ -325,8 +332,12 @@ export class CoverageManagerImplementation implements CoverageManager {
           source,
           lineCoverage.toFixed(2).toString(),
           statementCoverage.toFixed(2).toString(),
-          Array.from(unexecutedLines).toSorted((a, b) => a - b).join(", "),
-          Array.from(partiallyExecutedLines).toSorted((a, b) => a - b).join(", "),
+          Array.from(unexecutedLines)
+            .toSorted((a, b) => a - b)
+            .join(", "),
+          Array.from(partiallyExecutedLines)
+            .toSorted((a, b) => a - b)
+            .join(", "),
         ];
 
         return row;
@@ -336,11 +347,11 @@ export class CoverageManagerImplementation implements CoverageManager {
     const totalLineCoverage =
       totalExecutableLines === 0
         ? 0
-        : totalExecutedLines * 100.0 / totalExecutableLines;
+        : (totalExecutedLines * 100.0) / totalExecutableLines;
     const totalStatementCoverage =
       totalExecutableStatements === 0
         ? 0
-        : totalExecutedStatements * 100.0 / totalExecutableStatements;
+        : (totalExecutedStatements * 100.0) / totalExecutableStatements;
 
     const footerRow = [
       "Total",
@@ -377,9 +388,5 @@ export class CoverageManagerImplementation implements CoverageManager {
     });
 
     return rows.map((row) => `| ${row.join(" | ")} |`).join("\n");
-  }
-
-  public async printMarkdownReport(): Promise<void> {
-    console.log(this.#getMarkdownReport());
   }
 }

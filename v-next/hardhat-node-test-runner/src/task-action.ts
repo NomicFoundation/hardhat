@@ -9,10 +9,7 @@ import { URL } from "node:url";
 import { hardhatTestReporter } from "@nomicfoundation/hardhat-node-test-reporter";
 import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
 import { createNonClosingWriter } from "@nomicfoundation/hardhat-utils/stream";
-import {
-  clearCoverageData,
-  loadCoverageData,
-} from "hardhat/internal/coverage";
+import { markTestRunStart, makrTestRunDone } from "hardhat/internal/coverage";
 
 interface TestActionArguments {
   testFiles: string[];
@@ -80,9 +77,7 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
     // the global options are not automatically passed to the child processes.
     process.env.HARDHAT_COVERAGE = "true";
 
-    // NOTE: Coverage data needs to be cleared before the test run to ensure
-    // we collect only the data for this test run.
-    await clearCoverageData();
+    await markTestRunStart();
 
     const coverage = new URL(
       import.meta.resolve("@nomicfoundation/hardhat-node-test-runner/coverage"),
@@ -134,9 +129,7 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   const testFailures = await runTests();
 
   if (hre.globalOptions.coverage === true) {
-    // NOTE: Loading coverage data into the memory has a side effect of saving
-    // the lcov report in the coverage directory and printing the markdown report.
-    await loadCoverageData();
+    await makrTestRunDone();
   }
 
   if (testFailures > 0) {

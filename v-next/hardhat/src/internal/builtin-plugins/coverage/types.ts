@@ -8,11 +8,10 @@ export interface Statement {
 export type CoverageMetadata = Statement[];
 export type CoverageData = Tag[];
 export interface CoverageManager {
-  addData(data: CoverageData): Promise<void>;
-  saveData(): Promise<void>;
-  loadData(): Promise<void>;
-  clearData(): Promise<void>;
-  addMetadata(metadata: CoverageMetadata): Promise<void>;
-  saveLcovReport(): Promise<void>;
-  printMarkdownReport(): Promise<void>;
+  handleData(data: CoverageData): Promise<void>;
+  handleMetadata(metadata: CoverageMetadata): Promise<void>;
+
+  handleTestRunStart(): Promise<void>;
+  handleTestWorkerDone(): Promise<void>;
+  handleTestRunDone(): Promise<void>;
 }
