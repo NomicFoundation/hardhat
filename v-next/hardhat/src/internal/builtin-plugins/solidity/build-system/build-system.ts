@@ -598,11 +598,19 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       }
     }
 
+    const buildInfosDir = path.join(this.#options.artifactsPath, `build-info`);
+
+    // TODO: This logic is duplicated with respect to the artifacts manager
     const artifactPaths = await getAllFilesMatching(
       this.#options.artifactsPath,
-      (f) =>
-        !f.startsWith(path.join(this.#options.artifactsPath, "build-info")) &&
-        f.endsWith(".json"),
+      (p) =>
+        p.endsWith(".json") && // Only consider json files
+        // Ignore top level json files
+        p.indexOf(
+          path.sep,
+          this.#options.artifactsPath.length + path.sep.length,
+        ) !== -1,
+      (dir) => dir !== buildInfosDir,
     );
 
     const reachableBuildInfoIds = await Promise.all(
@@ -617,9 +625,8 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     );
 
     // Get all the reachable build info files
-    const buildInfoFiles = await getAllFilesMatching(
-      this.#options.artifactsPath,
-      (f) => f.startsWith(path.join(this.#options.artifactsPath, "build-info")),
+    const buildInfoFiles = await getAllFilesMatching(buildInfosDir, (f) =>
+      f.startsWith(buildInfosDir),
     );
 
     for (const buildInfoFile of buildInfoFiles) {
