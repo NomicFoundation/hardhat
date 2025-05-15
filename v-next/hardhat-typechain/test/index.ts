@@ -64,7 +64,7 @@ describe("hardhat-typechain", () => {
       assert.equal(content.includes(`import { ethers } from 'ethers'`), true);
     });
 
-    it("should generated types for the contracts and add the support for the `attach` method", async () => {
+    it("should generated types for the contracts and add the support for the `attach` method for concrete contracts", async () => {
       const content = await readUtf8File(
         path.join(
           process.cwd(),
@@ -85,6 +85,30 @@ describe("hardhat-typechain", () => {
       assert.equal(
         content.includes(`override attach(address: string | Addressable): A {`),
         true,
+      );
+    });
+
+    it("should notgenerated types for the contracts and do not add the support for the `attach` method for abstract contracts", async () => {
+      const content = await readUtf8File(
+        path.join(
+          process.cwd(),
+          "types",
+          "ethers-contracts",
+          "factories",
+          "A__factory.ts",
+        ),
+      );
+
+      // The "Addressable" type should be imported
+      assert.equal(
+        content.includes(`import type { Addressable } from "ethers";`),
+        true,
+      );
+
+      // The "attach" method should not be added to the factory of an abstract contract
+      assert.equal(
+        content.includes(`override attach(address: string | Addressable): B {`),
+        false,
       );
     });
   });
