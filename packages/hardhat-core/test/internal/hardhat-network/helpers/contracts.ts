@@ -190,7 +190,7 @@ contract Example {
       type: "event",
     },
   ],
-  // Computed with https://abitopic.now.sh/
+  // Computed with https://abitopic.io/
   selectors: {
     i: "0xe5aa3d58",
     j: "0xb582ec5f",
