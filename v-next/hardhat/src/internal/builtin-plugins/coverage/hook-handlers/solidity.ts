@@ -13,9 +13,7 @@ import { unsafelyCastAsHardhatRuntimeEnvironmentImplementation } from "../helper
 
 const log = debug("hardhat:core:coverage:hook-handlers:solidity");
 
-// TODO: Change this value to a highly unlikely name instead. Ensure the name
-// does NOT start with hardhat/ to avoid potential conflicts.
-const COVERAGE_LIBRARY_IMPORT_PATH = "hardhat/coverage.sol";
+const COVERAGE_LIBRARY_PATH = "__hardhat_coverage_library_a3e9cfe2-41b4-4a1f-ad9e-ac62dd82979e.sol";
 
 export default async (): Promise<Partial<SolidityHooks>> => ({
   preprocessProjectFileBeforeBuilding: async (
@@ -35,16 +33,15 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
 
     if (context.globalOptions.coverage && !isTestSource) {
       try {
-        // TODO: Pass the COVERAGE_LIBRARY_IMPORT_PATH as the next argument here
-        // once the EDR supports it.
         const { source, metadata } = addStatementCoverageInstrumentation(
           fileContent,
           sourceName,
           solcVersion,
+          COVERAGE_LIBRARY_PATH
         );
 
-        // NOTE: This is not the most efficient implementation of line number
-        // tracking. We should optimise this in the future.
+        // TODO: Remove this once EDR starts returning line information as part
+        // of the metadata.
         let lineNumber = 1;
         const lineNumbers = [];
         for (const character of fileContent) {
@@ -70,9 +67,9 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
               });
               break;
             default:
-              // NOTE: We don't support other kinds of metadata yet; we don't
-              // want to start throwing errors if/when EDR adds support for
-              // new kinds of coverage metadata though.
+              // NOTE: We don't support other kinds of metadata yet; however,
+              // we don't want to start throwing errors if/when EDR adds support
+              // for new kinds of coverage metadata.
               log("Unsupported coverage metadata kind", m.kind);
               break;
           }
@@ -107,11 +104,11 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
       // NOTE: We check for a source name clash here. It could happen if the user
       // wanted to compile a source with our highly unlikely name by chance or
       // if we accidentally tried to preprocess the same solc input twice.
-      if (solcInput.sources[COVERAGE_LIBRARY_IMPORT_PATH] !== undefined) {
+      if (solcInput.sources[COVERAGE_LIBRARY_PATH] !== undefined) {
         throw new HardhatError(
           HardhatError.ERRORS.CORE.COVERAGE.IMPORT_PATH_ALREADY_DEFINED,
           {
-            importPath: COVERAGE_LIBRARY_IMPORT_PATH,
+            importPath: COVERAGE_LIBRARY_PATH,
           },
         );
       }
@@ -122,7 +119,7 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
       const content = await readUtf8File(
         path.join(import.meta.dirname, "../../../../../../coverage.sol"),
       );
-      solcInput.sources[COVERAGE_LIBRARY_IMPORT_PATH] = { content };
+      solcInput.sources[COVERAGE_LIBRARY_PATH] = { content };
     }
 
     return next(context, solcInput);
