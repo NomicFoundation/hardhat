@@ -37,15 +37,15 @@ describe("CoverageManagerImplementation", () => {
       });
     }
 
-    await coverageManager.handleMetadata(metadata);
+    await coverageManager.addMetadata(metadata);
 
     const coverageManager1 = new CoverageManagerImplementation(process.cwd());
     const coverageManager2 = new CoverageManagerImplementation(process.cwd());
 
-    await coverageManager1.handleData(data1);
+    await coverageManager1.addData(data1);
     await coverageManager1.handleTestWorkerDone(id);
 
-    await coverageManager2.handleData(data2);
+    await coverageManager2.addData(data2);
     await coverageManager2.handleTestWorkerDone(id);
 
     await coverageManager.handleTestRunDone(id);
@@ -75,8 +75,8 @@ describe("CoverageManagerImplementation", () => {
       },
     ];
 
-    await coverageManager.handleMetadata(metadata1);
-    await coverageManager.handleMetadata(metadata2);
+    await coverageManager.addMetadata(metadata1);
+    await coverageManager.addMetadata(metadata2);
 
     const metadata = coverageManager.metadata;
 
@@ -89,7 +89,7 @@ describe("CoverageManagerImplementation", () => {
   });
 
   it("should not clear the data from memory", async () => {
-    await coverageManager.handleData(["a", "b", "c"]);
+    await coverageManager.addData(["a", "b", "c"]);
 
     let data = coverageManager.data;
 
@@ -103,7 +103,7 @@ describe("CoverageManagerImplementation", () => {
   });
 
   it("should clear the data from disk", async () => {
-    await coverageManager.handleData(["a", "b", "c"]);
+    await coverageManager.addData(["a", "b", "c"]);
     await coverageManager.handleTestWorkerDone(id);
 
     let data = await getAllFilesMatching(process.cwd());
@@ -118,7 +118,7 @@ describe("CoverageManagerImplementation", () => {
   });
 
   it("should not clear the metadata", async () => {
-    await coverageManager.handleMetadata([
+    await coverageManager.addMetadata([
       {
         sourceName: "test",
         tag: "test",

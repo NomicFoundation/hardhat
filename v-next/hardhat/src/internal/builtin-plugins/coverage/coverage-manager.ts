@@ -40,6 +40,7 @@ export class CoverageManagerImplementation implements CoverageManager {
 
   readonly #coveragePath: string;
 
+  #testRunDoneHandlerEnabled = true;
   #report: Report | undefined;
 
   constructor(coveragePath: string) {
@@ -57,12 +58,12 @@ export class CoverageManagerImplementation implements CoverageManager {
     this.#report = undefined;
   }
 
-  public async handleData(data: CoverageData): Promise<void> {
+  public async addData(data: CoverageData): Promise<void> {
     this.data.push(...data);
     log("Added data", JSON.stringify(data, null, 2));
   }
 
-  public async handleMetadata(metadata: CoverageMetadata): Promise<void> {
+  public async addMetadata(metadata: CoverageMetadata): Promise<void> {
     // NOTE: The received metadata might contain duplicates. For now, we're OK
     // with this. Once we implement report generation, we should decide at which
     // stage we should deduplicate the metadata.
@@ -70,9 +71,18 @@ export class CoverageManagerImplementation implements CoverageManager {
     log("Added metadata", JSON.stringify(metadata, null, 2));
   }
 
+  public disableTestRunDoneHandler(): void {
+    this.#testRunDoneHandlerEnabled = false;
+  }
+
+  public enableTestRunDoneHandler(): void {
+    this.#testRunDoneHandlerEnabled = true;
+  }
+
   public async handleTestRunStart(id: string): Promise<void> {
-    await this.#clearData(id);
-    log("Cleared data");
+    await this.#clearDataFromDisk(id);
+    this.#clearDataFromMemory();
+    log("Cleared data from disk and memory");
   }
 
   public async handleTestWorkerDone(id: string): Promise<void> {
@@ -80,9 +90,18 @@ export class CoverageManagerImplementation implements CoverageManager {
     log("Saved data");
   }
 
-  public async handleTestRunDone(id: string): Promise<void> {
-    await this.#loadData(id);
-    log("Loaded data");
+  public async handleTestRunDone(...ids: string[]): Promise<void> {
+    if (!this.#testRunDoneHandlerEnabled) {
+      return;
+    }
+
+    this.#clearDataFromMemory();
+    log("Cleared data from memory");
+
+    for (const id of ids) {
+      await this.#loadData(id);
+      log("Loaded data");
+    }
 
     const lcovReport = this.#getLcovReport();
     const markdownReport = this.#getMarkdownReport();
@@ -110,12 +129,16 @@ export class CoverageManagerImplementation implements CoverageManager {
       const partialData = await readJsonFile<CoverageData>(filePath);
       data.push(...partialData);
     }
-    this.#setData(data);
+    this.data.push(...data);
   }
 
-  async #clearData(id: string): Promise<void> {
+  async #clearDataFromDisk(id: string): Promise<void> {
     const dataPath = await this.#getDataPath(id);
     await remove(dataPath);
+  }
+
+  #clearDataFromMemory(): void {
+    this.data = [];
   }
 
   #getReport(): Report {

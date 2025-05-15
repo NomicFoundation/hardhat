@@ -8,10 +8,13 @@ export interface Statement {
 export type CoverageMetadata = Statement[];
 export type CoverageData = Tag[];
 export interface CoverageManager {
-  handleData(data: CoverageData): Promise<void>;
-  handleMetadata(metadata: CoverageMetadata): Promise<void>;
+  addData(data: CoverageData): Promise<void>;
+  addMetadata(metadata: CoverageMetadata): Promise<void>;
 
   handleTestRunStart(id: string): Promise<void>;
   handleTestWorkerDone(id: string): Promise<void>;
-  handleTestRunDone(id: string): Promise<void>;
+  handleTestRunDone(...ids: string[]): Promise<void>;
+
+  disableTestRunDoneHandler(): void;
+  enableTestRunDoneHandler(): void;
 }

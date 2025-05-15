@@ -66,7 +66,7 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   process.env.NODE_OPTIONS = `--import ${tsx}`;
 
   if (hre.globalOptions.coverage === true) {
-    await markTestRunStart("hardhat-mocha");
+    await markTestRunStart("mocha");
   }
 
   const { default: Mocha } = await import("mocha");
@@ -107,8 +107,8 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   });
 
   if (hre.globalOptions.coverage === true) {
-    await markTestWorkerDone("hardhat-mocha");
-    await makrTestRunDone("hardhat-mocha");
+    await markTestWorkerDone("mocha");
+    await makrTestRunDone("mocha");
   }
 
   if (testFailures > 0) {

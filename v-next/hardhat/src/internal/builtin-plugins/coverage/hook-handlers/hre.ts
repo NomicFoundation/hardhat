@@ -22,7 +22,7 @@ export default async (): Promise<Partial<HardhatRuntimeEnvironmentHooks>> => ({
       // is enabled or not.
       hre.hooks.registerHandlers("network", {
         onCoverageData: async (_context, coverageData) => {
-          await hreImplementation._coverage.handleData(coverageData);
+          await hreImplementation._coverage.addData(coverageData);
 
           return;
         },
