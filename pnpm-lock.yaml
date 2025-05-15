@@ -309,8 +309,8 @@ importers:
         specifier: 0.0.1
         version: 0.0.1
       undici:
-        specifier: ^5.14.0
-        version: 5.28.4
+        specifier: ^5.29.0
+        version: 5.29.0
       uuid:
         specifier: ^8.3.2
         version: 8.3.2
@@ -1888,8 +1888,8 @@ importers:
         specifier: ^6.8.0
         version: 6.8.2
       undici:
-        specifier: ^5.14.0
-        version: 5.28.4
+        specifier: ^5.29.0
+        version: 5.29.0
     devDependencies:
       '@nomicfoundation/eslint-plugin-hardhat-internal-rules':
         specifier: workspace:^
@@ -4077,8 +4077,8 @@ packages:
   bignumber.js@9.1.2:
     resolution: {integrity: sha512-2/mKyZH9K85bzOEfhXDBFZTGd1CTs+5IHpeFQo9luiBG7hghdC851Pj2WAhb6E3R6b9tZj/XKhbg4fum+Kepug==}
 
-  bignumber.js@9.2.1:
-    resolution: {integrity: sha512-+NzaKgOUvInq9TIUZ1+DRspzf/HApkCwD4btfuasFTdrfnOxqx853TgDpMolp+uv4RpRp7bPcEU2zKr9+fRmyw==}
+  bignumber.js@9.3.0:
+    resolution: {integrity: sha512-EM7aMFTXbptt/wZdMlBv2t8IViwQL+h6SLHosp8Yf0dqJMTnY6iL32opnAB6kAdL0SZPuvcAzFr31o0c/R3/RA==}
 
   bignumber.js@https://codeload.github.com/frozeman/bignumber.js-nolookahead/tar.gz/57692b3ecfc98bbdd6b3a516cb2353652ea49934:
     resolution: {tarball: https://codeload.github.com/frozeman/bignumber.js-nolookahead/tar.gz/57692b3ecfc98bbdd6b3a516cb2353652ea49934}
@@ -8080,12 +8080,12 @@ packages:
   undici-types@6.19.8:
     resolution: {integrity: sha512-ve2KP6f/JnbPBFyobGHuerC9g1FYGn/F8n1LWTwNxCEzd6IfqTwUQcNXgEtmmQ6DlRrC1hrSrBnCZPokRrDHjw==}
 
-  undici@5.28.4:
-    resolution: {integrity: sha512-72RFADWFqKmUb2hmmvNODKL3p9hcB6Gt2DOQMis1SEBaV6a4MH8soBvzg+95CYhCKPFedut2JY9bMfrDl9D23g==}
+  undici@5.29.0:
+    resolution: {integrity: sha512-raqeBD6NQK4SkWhQzeYKd1KmIG6dllBOTt55Rmkt4HtI9mwdWtJljnrXjAFUBLTSN67HWrOIZ3EPF4kjUw80Bg==}
     engines: {node: '>=14.0'}
 
-  undici@6.20.1:
-    resolution: {integrity: sha512-AjQF1QsmqfJys+LXfGTNum+qw4S88CojRInG/6t31W/1fk6G59s92bnAvGz5Cmur+kQv2SURXEvvudLmbrE8QA==}
+  undici@6.21.3:
+    resolution: {integrity: sha512-gBLkYIlEnSp8pFbT64yFgGE6UIB9tAkhukC23PmMDCe5Nd+cRqKxSjw5y54MK2AZMgZfJWMaNE4nYUHgi1XEOw==}
     engines: {node: '>=18.17'}
 
   unist-util-stringify-position@3.0.3:
@@ -9717,7 +9717,7 @@ snapshots:
 
   '@ledgerhq/types-live@6.52.3':
     dependencies:
-      bignumber.js: 9.2.1
+      bignumber.js: 9.3.0
       rxjs: 7.8.1
 
   '@manypkg/find-root@1.1.0':
@@ -10937,7 +10937,7 @@ snapshots:
 
   bignumber.js@9.1.2: {}
 
-  bignumber.js@9.2.1: {}
+  bignumber.js@9.3.0: {}
 
   bignumber.js@https://codeload.github.com/frozeman/bignumber.js-nolookahead/tar.gz/57692b3ecfc98bbdd6b3a516cb2353652ea49934: {}
 
@@ -11135,7 +11135,7 @@ snapshots:
 
   cbor@5.2.0:
     dependencies:
-      bignumber.js: 9.2.1
+      bignumber.js: 9.3.0
       nofilter: 1.0.4
 
   cbor@8.1.0:
@@ -11234,7 +11234,7 @@ snapshots:
       parse5: 7.2.0
       parse5-htmlparser2-tree-adapter: 7.1.0
       parse5-parser-stream: 7.1.2
-      undici: 6.20.1
+      undici: 6.21.3
       whatwg-mimetype: 4.0.0
 
   chokidar@3.5.3:
@@ -15755,11 +15755,11 @@ snapshots:
 
   undici-types@6.19.8: {}
 
-  undici@5.28.4:
+  undici@5.29.0:
     dependencies:
       '@fastify/busboy': 2.1.1
 
-  undici@6.20.1: {}
+  undici@6.21.3: {}
 
   unist-util-stringify-position@3.0.3:
     dependencies:
@@ -15980,7 +15980,7 @@ snapshots:
     dependencies:
       '@types/bn.js': 5.1.6
       '@types/node': 12.20.55
-      bignumber.js: 9.2.1
+      bignumber.js: 9.3.0
       web3-core-helpers: 1.10.0
       web3-core-method: 1.10.0
       web3-core-requestmanager: 1.10.0
