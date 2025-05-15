@@ -7,7 +7,10 @@ export default async (): Promise<Partial<TestHooks>> => {
     registerFileForTestRunner: async (context, filePath, next) => {
       const absoluteFilePath = resolveFromRoot(process.cwd(), filePath);
 
-      if (absoluteFilePath.includes(context.config.paths.tests.solidity)) {
+      if (
+        absoluteFilePath.includes(context.config.paths.tests.solidity) &&
+        filePath.endsWith(".t.sol")
+      ) {
         return "solidity";
       }
 
