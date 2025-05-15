@@ -353,7 +353,9 @@ export function createConfig(
               "Don't import from the src folder, use the package entry point instead.",
           },
           {
-            group: builtinModules.map((m) => `/${m}`),
+            group: builtinModules
+              .filter((m) => !m.startsWith("node:"))
+              .map((m) => `/${m}`),
             message:
               "Use the 'node:' prefix to import built-in Node.js modules.",
           },
