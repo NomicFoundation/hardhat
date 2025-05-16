@@ -2,6 +2,8 @@ import type { HardhatPlugin } from "../../../types/plugins.js";
 
 import { task } from "../../core/config.js";
 
+import { ArgumentType } from "hardhat/types/arguments";
+
 import "./type-extensions.js";
 
 const hardhatPlugin: HardhatPlugin = {
@@ -20,6 +22,12 @@ const hardhatPlugin: HardhatPlugin = {
         name: "chainType",
         description: "Not implemented yet - The chain type to use",
         defaultValue: "l1",
+      })
+      .addOption({
+        name: "grep",
+        description: "Only run tests matching the given string or regexp",
+        type: ArgumentType.STRING_WITHOUT_DEFAULT,
+        defaultValue: undefined,
       })
       .addFlag({
         name: "noCompile",
