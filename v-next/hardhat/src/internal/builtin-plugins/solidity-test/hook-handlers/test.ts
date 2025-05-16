@@ -8,7 +8,7 @@ export default async (): Promise<Partial<TestHooks>> => {
       const absoluteFilePath = resolveFromRoot(process.cwd(), filePath);
 
       if (
-        absoluteFilePath.includes(context.config.paths.tests.solidity) &&
+        absoluteFilePath.startsWith(context.config.paths.tests.solidity) ||
         filePath.endsWith(".t.sol")
       ) {
         return "solidity";

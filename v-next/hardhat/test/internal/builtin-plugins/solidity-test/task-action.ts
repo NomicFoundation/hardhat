@@ -74,17 +74,26 @@ describe("solidity-test/task-action", function () {
       });
     });
 
+    it("should run even if test is not in test config path because it ends in .t.sol", async () => {
+      hre = await createHardhatRuntimeEnvironment(hardhatConfigPartialTests);
+
+      await hre.tasks.getTask(["test"]).run({
+        noCompile: true,
+        testFiles: ["./test/not-in-test-path.t.sol"],
+      });
+    });
+
     it("should throw because the file cannot be assigned to a test runner", async () => {
       hre = await createHardhatRuntimeEnvironment(hardhatConfigPartialTests);
 
       await assertRejectsWithHardhatError(
         hre.tasks.getTask(["test"]).run({
           noCompile: true,
-          testFiles: ["./test/not-in-test-path.t.sol"],
+          testFiles: ["./test/not-in-test-path.ts"],
         }),
         HardhatError.ERRORS.CORE.TEST_PLUGIN.CANNOT_DETERMINE_TEST_RUNNER,
         {
-          files: "./test/not-in-test-path.t.sol",
+          files: "./test/not-in-test-path.ts",
         },
       );
     });
