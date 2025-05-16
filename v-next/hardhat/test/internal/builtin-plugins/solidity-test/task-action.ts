@@ -53,7 +53,7 @@ describe("solidity-test/task-action", function () {
 
       await hre.tasks.getTask(["test", "solidity"]).run({
         noCompile: true,
-        testFiles: ["./test/contracts/partial/Counter-1.t.sol"],
+        testFiles: ["./test/contracts/partial/Counter-1.sol"],
       });
     });
   });
@@ -67,25 +67,36 @@ describe("solidity-test/task-action", function () {
 
     it("should run only the specified test file", async () => {
       hre = await createHardhatRuntimeEnvironment(hardhatConfigPartialTests);
-
       await hre.tasks.getTask(["test"]).run({
         noCompile: true,
-        testFiles: ["./test/contracts/partial/Counter-1.t.sol"],
+        testFiles: ["./test/contracts/partial/Counter-1.sol"],
       });
     });
 
     it("should run even if test is not in test config path because it ends in .t.sol", async () => {
       hre = await createHardhatRuntimeEnvironment(hardhatConfigPartialTests);
-
       await hre.tasks.getTask(["test"]).run({
         noCompile: true,
         testFiles: ["./test/not-in-test-path.t.sol"],
       });
     });
 
+    it("should throw because the file ends in .sol and is not in the test path", async () => {
+      hre = await createHardhatRuntimeEnvironment(hardhatConfigPartialTests);
+      await assertRejectsWithHardhatError(
+        hre.tasks.getTask(["test"]).run({
+          noCompile: true,
+          testFiles: ["./test/not-in-test-path.sol"],
+        }),
+        HardhatError.ERRORS.CORE.TEST_PLUGIN.CANNOT_DETERMINE_TEST_RUNNER,
+        {
+          files: "./test/not-in-test-path.sol",
+        },
+      );
+    });
+
     it("should throw because the file cannot be assigned to a test runner", async () => {
       hre = await createHardhatRuntimeEnvironment(hardhatConfigPartialTests);
-
       await assertRejectsWithHardhatError(
         hre.tasks.getTask(["test"]).run({
           noCompile: true,
