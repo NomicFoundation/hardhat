@@ -14,7 +14,6 @@ import type {
   DebugTraceResult,
   ChainConfig,
   ForkConfig,
-  OwnedAccount,
 } from "@ignored/edr-optimism";
 
 import {
@@ -242,7 +241,7 @@ export function edrRpcDebugTraceToHardhat(
 
 export async function hardhatAccountsToEdrOwnedAccounts(
   accounts: EdrNetworkAccountsConfig,
-): Promise<OwnedAccount[]> {
+): Promise<Array<{ secretKey: string; balance: bigint }>> {
   const normalizedAccounts = await normalizeEdrNetworkAccountsConfig(accounts);
 
   const accountPromises = normalizedAccounts.map(async (account) => ({
@@ -328,9 +327,10 @@ export async function hardhatForkingConfigToEdrForkConfig(
         : undefined;
 
     fork = {
-      jsonRpcUrl: await forkingConfig.url.getUrl(),
       blockNumber: forkingConfig.blockNumber,
+      cacheDir: forkingConfig.cacheDir,
       httpHeaders,
+      url: await forkingConfig.url.getUrl(),
     };
   }
 
