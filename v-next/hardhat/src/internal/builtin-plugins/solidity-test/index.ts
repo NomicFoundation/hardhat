@@ -10,6 +10,7 @@ const hardhatPlugin: HardhatPlugin = {
   id: "builtin:solidity-tests",
   hookHandlers: {
     config: import.meta.resolve("./hook-handlers/config.js"),
+    test: import.meta.resolve("./hook-handlers/test.js"),
   },
   tasks: [
     task(["test", "solidity"], "Run the Solidity tests")

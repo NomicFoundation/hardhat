@@ -116,6 +116,11 @@ export const ERROR_CATEGORIES: {
         max: 1199,
         websiteSubTitle: "Hardhat node errors",
       },
+      TEST_PLUGIN: {
+        min: 1200,
+        max: 1299,
+        websiteSubTitle: "Hardhat test plugin errors",
+      },
     },
   },
   IGNITION: {
@@ -1214,6 +1219,14 @@ Please use the fully qualified name of the contract to disambiguate it.`,
         websiteDescription: `The node only supports the 'edr' network type.`,
       },
     },
+    TEST_PLUGIN: {
+      CANNOT_DETERMINE_TEST_RUNNER: {
+        number: 1200,
+        messageTemplate: `Cannot determine a test runner for the following files: {files}. Please check whether these files are correctly included in the test paths defined by your test plugins in the Hardhat configuration. If they are, this likely indicates an issue with a plugin not correctly detecting the files.`,
+        websiteTitle: "Cannot determine a test runner for files",
+        websiteDescription: `Cannot determine a test runner for the test files. This may be because the files are not correctly included in the test paths defined by the test plugins in the Hardhat configuration. If they are correctly included, this likely indicates an issue with a plugin failing to detect the files.`,
+      },
+    },
   },
   IGNITION: {
     GENERAL: {
@@ -1859,14 +1872,14 @@ Please double check the error you are getting when running Hardhat Ignition, and
       },
       KNOWN_TRANSACTION: {
         number: 11304,
-        messageTemplate: `The transaction hash that you provided was already present in your deployment. 
+        messageTemplate: `The transaction hash that you provided was already present in your deployment.
 Please double check the error you are getting when running Hardhat Ignition, and the instructions it's providing.`,
         websiteTitle: "Known transaction",
         websiteDescription: `The transaction hash that you provided was already present in your deployment.`,
       },
       INSUFFICIENT_CONFIRMATIONS: {
         number: 11305,
-        messageTemplate: `The transaction you provided doesn't have enough confirmations yet. 
+        messageTemplate: `The transaction you provided doesn't have enough confirmations yet.
 Please try again later.`,
         websiteTitle: "Insufficient confirmations",
         websiteDescription: `The transaction you provided doesn't have enough confirmations yet.`,
