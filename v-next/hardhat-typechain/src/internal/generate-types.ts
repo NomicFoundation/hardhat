@@ -152,7 +152,10 @@ export function addJsExtensionsIfNeeded(content: string): string {
 //   ...
 // }
 function addSupportForAttachMethod(modifiedContent: string): string {
-  const pattern = /class\s+(\w+)__factory/; // Pattern to find the contract name in factory files
+  // Pattern to find the contract name in factory files
+  // Factories of abstract contracts don't extend ContractFactory, so we skip
+  // them by adding "extends"
+  const pattern = /class\s+(\w+)__factory extends/;
   const match = modifiedContent.match(pattern);
 
   if (match === null) {
