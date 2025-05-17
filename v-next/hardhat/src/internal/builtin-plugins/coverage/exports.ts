@@ -1,5 +1,5 @@
 export {
-  clearCoverageData,
-  loadCoverageData,
-  saveCoverageData,
+  markTestRunStart,
+  makrTestRunDone,
+  markTestWorkerDone,
 } from "./helpers.js";

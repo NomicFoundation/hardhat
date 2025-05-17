@@ -27,3 +27,16 @@ describe("Mocha test with chai-matchers", () => {
     expect("0x0000010AB").to.not.hexEqual("0x0010abc");
   });
 });
+
+describe("Rocket test", () => {
+  it("should launch the Apollo 11 rocket", async () => {
+    const connection = await hre.network.connect();
+
+    const Rocket = await connection.ethers.getContractFactory("Rocket");
+    const rocket = await Rocket.deploy("Apollo 11");
+
+    await rocket.launch();
+
+    expect(await rocket.status()).to.equal("lift-off");
+  });
+});

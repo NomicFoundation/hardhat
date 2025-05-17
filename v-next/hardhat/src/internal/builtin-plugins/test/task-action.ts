@@ -1,5 +1,7 @@
 import type { NewTaskActionFunction } from "../../../types/tasks.js";
 
+import { unsafelyCastAsHardhatRuntimeEnvironmentImplementation } from "../coverage/helpers.js";
+
 interface TestActionArguments {
   noCompile: boolean;
 }
@@ -15,12 +17,27 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
     console.log();
   }
 
+  if (hre.globalOptions.coverage === true) {
+    const hreImplementation =
+      unsafelyCastAsHardhatRuntimeEnvironmentImplementation(hre);
+    hreImplementation._coverage.disableTestRunDoneHandler();
+  }
+
   for (const subtask of thisTask.subtasks.values()) {
     if (subtask.options.has("noCompile")) {
       await subtask.run({ noCompile: true });
     } else {
       await subtask.run({});
     }
+  }
+
+  if (hre.globalOptions.coverage === true) {
+    const hreImplementation =
+      unsafelyCastAsHardhatRuntimeEnvironmentImplementation(hre);
+    const ids = Array.from(thisTask.subtasks.keys());
+    hreImplementation._coverage.enableTestRunDoneHandler();
+    await hreImplementation._coverage.handleTestRunDone(...ids);
+    console.log();
   }
 
   if (process.exitCode !== undefined && process.exitCode !== 0) {
