@@ -324,8 +324,8 @@ export class CoverageManagerImplementation implements CoverageManager {
       for (const [[line, tag], executionCount] of branchExecutionCounts) {
         lcov += `BRDA:${line},0,${tag},${executionCount === 0 ? "-" : executionCount}\n`;
       }
-      lcov += `BRF:${executedBranchesCount}\n`;
-      lcov += `BRH:${branchExecutionCounts.size}\n`;
+      lcov += `BRH:${executedBranchesCount}\n`;
+      lcov += `BRF:${branchExecutionCounts.size}\n`;
 
       // Then there is a list of execution counts for each instrumented line
       // (i.e. a line which resulted in executable code):
