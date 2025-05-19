@@ -34,24 +34,27 @@ export function unsafelyCastAsHardhatRuntimeEnvironmentImplementation(
 
 export async function markTestRunStart(id: string): Promise<void> {
   const hre = await getOrCreateGlobalHardhatRuntimeEnvironment();
-  const hreImplementation =
-    unsafelyCastAsHardhatRuntimeEnvironmentImplementation(hre);
-
-  await hreImplementation._coverage.clearData(id);
+  if (hre.globalOptions.coverage === true) {
+    const hreImplementation =
+      unsafelyCastAsHardhatRuntimeEnvironmentImplementation(hre);
+    await hreImplementation._coverage.clearData(id);
+  }
 }
 
 export async function markTestWorkerDone(id: string): Promise<void> {
   const hre = await getOrCreateGlobalHardhatRuntimeEnvironment();
-  const hreImplementation =
-    unsafelyCastAsHardhatRuntimeEnvironmentImplementation(hre);
-
-  await hreImplementation._coverage.saveData(id);
+  if (hre.globalOptions.coverage === true) {
+    const hreImplementation =
+      unsafelyCastAsHardhatRuntimeEnvironmentImplementation(hre);
+    await hreImplementation._coverage.saveData(id);
+  }
 }
 
 export async function markTestRunDone(id: string): Promise<void> {
   const hre = await getOrCreateGlobalHardhatRuntimeEnvironment();
-  const hreImplementation =
-    unsafelyCastAsHardhatRuntimeEnvironmentImplementation(hre);
-
-  await hreImplementation._coverage.report(id);
+  if (hre.globalOptions.coverage === true) {
+    const hreImplementation =
+      unsafelyCastAsHardhatRuntimeEnvironmentImplementation(hre);
+    await hreImplementation._coverage.report(id);
+  }
 }

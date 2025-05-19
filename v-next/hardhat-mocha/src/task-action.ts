@@ -65,10 +65,6 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   const tsx = fileURLToPath(import.meta.resolve("tsx/esm"));
   process.env.NODE_OPTIONS = `--import ${tsx}`;
 
-  if (hre.globalOptions.coverage === true) {
-    await markTestRunStart("mocha");
-  }
-
   const { default: Mocha } = await import("mocha");
 
   const mochaConfig: MochaOptions = { ...hre.config.mocha };
@@ -102,15 +98,16 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   // which supports both ESM and CJS
   await mocha.loadFilesAsync();
 
+  await markTestRunStart("mocha");
+
   const testFailures = await new Promise<number>((resolve) => {
     mocha.run(resolve);
   });
 
-  if (hre.globalOptions.coverage === true) {
-    // NOTE: We execute mocha tests in the main process.
-    await markTestWorkerDone("mocha");
-    await markTestRunDone("mocha");
-  }
+  // NOTE: We execute mocha tests in the main process.
+  await markTestWorkerDone("mocha");
+  // NOTE: This might print a coverage report.
+  await markTestRunDone("mocha");
 
   if (testFailures > 0) {
     process.exitCode = 1;
