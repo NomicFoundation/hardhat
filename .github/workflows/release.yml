@@ -1,30 +1,90 @@
 name: Release
 
 on:
+  workflow_dispatch:
   push:
     branches:
-      - main
+      - v-next
+
+defaults:
+  run:
+    shell: bash
 
 jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
     permissions:
-      contents: write
-      pull-requests: write
+      contents: write # This allows us to push to the repository and create GitHub releases
+      pull-requests: write # This allows us to create pull requests
+      id-token: write # Provenance generation in GitHub Actions requires "write" access to the "id-token" permission
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
         with:
           # This makes Actions fetch all Git history so that Changesets can generate changelogs with the correct commits
           fetch-depth: 0
+          # NOTE: If we use default GITHUB_TOKEN to create the release PR, the checks on the release PR will not be triggered automatically
+          token: ${{ secrets.RELEASE_GITHUB_TOKEN || github.token }}
 
-      - uses: ./.github/actions/setup-env
+      - name: Set up the environment
+        uses: ./.github/actions/setup-env
 
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile --prefer-offline
 
-      - name: Create Release Pull Request
-        uses: changesets/action@v1
+      - name: Create release Pull Request
+        id: pr
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # NOTE: If we use the default GITHUB_TOKEN to create the release PR, the checks on the release PR will not be triggered automatically
+          GITHUB_TOKEN: ${{ secrets.RELEASE_GITHUB_TOKEN || github.token }}
+        uses: changesets/action@v1
+        with:
+          version: node scripts/version-alpha.mjs
+
+      - name: Check if release needs to be published
+        id: before
+        if: steps.pr.outputs.hasChangesets == 'false'
+        run: node scripts/check-release.mjs
+
+      - name: Build All Packages
+        if: steps.before.outputs.released == 'false'
+        run: pnpm run --recursive -no-bail --filter './v-next/**' --if-present build
+
+      - name: Publish All Packages (dry-run)
+        if: steps.before.outputs.released == 'false'
+        run: pnpm publish --filter "./v-next/**" -r --no-git-checks --tag next --access public --dry-run
+
+      - name: Publish All Packages
+        id: publish
+        if: steps.before.outputs.released == 'false'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
+          NPM_CONFIG_PROVENANCE: true
+        run: pnpm publish --filter "./v-next/**" -r --no-git-checks --tag next --access public
+
+      - name: Check if release was published
+        id: after
+        if: steps.before.outputs.released == 'false'
+        run: node scripts/check-release.mjs
+
+      - name: Prepare GitHub release
+        id: release
+        if: steps.before.outputs.released == 'false' && steps.after.outputs.released == 'true'
+        run: node scripts/prepare-github-release.mjs
+
+      - name: Create GitHub Release
+        if: steps.before.outputs.released == 'false' && steps.after.outputs.released == 'true'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        uses: galargh/action-gh-release@571276229e7c9e6ea18f99bad24122a4c3ec813f # https://github.com/galargh/action-gh-release/pull/1
+        with:
+          # We want the GitHub releases to be verified and published by a human because they are automatically pulled into the website
+          draft: true
+          tag_name: hardhat@${{ steps.release.outputs.version }}
+          generate_release_notes: false
+          target_commitish: ${{ github.sha }}
+          make_latest: ${{ steps.release.outputs.latest == 'true' }}
+          prerelease: ${{ steps.release.outputs.prerelease == 'true' }}
+          body: ${{ steps.release.outputs.body }}
+          token: ${{ github.token }}
