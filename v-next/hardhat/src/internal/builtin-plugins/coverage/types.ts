@@ -11,10 +11,11 @@ export interface CoverageManager {
   addData(data: CoverageData): Promise<void>;
   addMetadata(metadata: CoverageMetadata): Promise<void>;
 
-  handleTestRunStart(id: string): Promise<void>;
-  handleTestWorkerDone(id: string): Promise<void>;
-  handleTestRunDone(...ids: string[]): Promise<void>;
+  clearData(id: string): Promise<void>;
+  saveData(id: string): Promise<void>;
 
-  disableTestRunDoneHandler(): void;
-  enableTestRunDoneHandler(): void;
+  report(...ids: string[]): Promise<void>;
+
+  enableReport(): void;
+  disableReport(): void;
 }

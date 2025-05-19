@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
 import {
-  makrTestRunDone,
+  markTestRunDone,
   markTestRunStart,
   markTestWorkerDone,
 } from "hardhat/internal/coverage";
@@ -109,7 +109,7 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   if (hre.globalOptions.coverage === true) {
     // NOTE: We execute mocha tests in the main process.
     await markTestWorkerDone("mocha");
-    await makrTestRunDone("mocha");
+    await markTestRunDone("mocha");
   }
 
   if (testFailures > 0) {

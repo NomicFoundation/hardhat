@@ -46,7 +46,7 @@ export class CoverageManagerImplementation implements CoverageManager {
 
   readonly #coveragePath: string;
 
-  #testRunDoneHandlerEnabled = true;
+  #reportEnabled = true;
   #report: Report | undefined;
 
   constructor(coveragePath: string) {
@@ -71,29 +71,27 @@ export class CoverageManagerImplementation implements CoverageManager {
     log("Added metadata", JSON.stringify(metadata, null, 2));
   }
 
-  public async handleTestRunStart(id: string): Promise<void> {
-    await this.#clearDataFromDisk(id);
-    this.#clearDataFromMemory();
+  public async clearData(id: string): Promise<void> {
+    const dataPath = await this.#getDataPath(id);
+    await remove(dataPath);
+    this.data = [];
     log("Cleared data from disk and memory");
   }
 
-  public async handleTestWorkerDone(id: string): Promise<void> {
-    await this.#saveData(id);
+  public async saveData(id: string): Promise<void> {
+    const dataPath = await this.#getDataPath(id);
+    const filePath = path.join(dataPath, `${crypto.randomUUID()}.json`);
+    const data = this.data;
+    await writeJsonFile(filePath, data);
     log("Saved data");
   }
 
-  public async handleTestRunDone(...ids: string[]): Promise<void> {
-    if (!this.#testRunDoneHandlerEnabled) {
+  public async report(...ids: string[]): Promise<void> {
+    if (!this.#reportEnabled) {
       return;
     }
 
-    this.#clearDataFromMemory();
-    log("Cleared data from memory");
-
-    for (const id of ids) {
-      await this.#loadData(id);
-      log("Loaded data");
-    }
+    await this.loadData(...ids);
 
     const lcovReport = this.#getLcovReport();
     const markdownReport = this.#getMarkdownReport();
@@ -106,39 +104,27 @@ export class CoverageManagerImplementation implements CoverageManager {
     log("Printed markdown report");
   }
 
-  public disableTestRunDoneHandler(): void {
-    this.#testRunDoneHandlerEnabled = false;
+  public enableReport(): void {
+    this.#reportEnabled = true;
   }
 
-  public enableTestRunDoneHandler(): void {
-    this.#testRunDoneHandlerEnabled = true;
+  public disableReport(): void {
+    this.#reportEnabled = false;
   }
 
-  async #saveData(id: string): Promise<void> {
-    const dataPath = await this.#getDataPath(id);
-    const filePath = path.join(dataPath, `${crypto.randomUUID()}.json`);
-    const data = this.data;
-    await writeJsonFile(filePath, data);
-  }
-
-  async #loadData(id: string): Promise<void> {
-    const dataPath = await this.#getDataPath(id);
-    const filePaths = await getAllFilesMatching(dataPath);
-    const data = [];
-    for (const filePath of filePaths) {
-      const partialData = await readJsonFile<CoverageData>(filePath);
-      data.push(...partialData);
-    }
-    this.data.push(...data);
-  }
-
-  async #clearDataFromDisk(id: string): Promise<void> {
-    const dataPath = await this.#getDataPath(id);
-    await remove(dataPath);
-  }
-
-  #clearDataFromMemory(): void {
+  // NOTE: This is exposed for testing only
+  public async loadData(...ids: string[]): Promise<void> {
     this.data = [];
+    for (const id of ids) {
+      const dataPath = await this.#getDataPath(id);
+      const filePaths = await getAllFilesMatching(dataPath);
+      const data = [];
+      for (const filePath of filePaths) {
+        const partialData = await readJsonFile<CoverageData>(filePath);
+        data.push(...partialData);
+      }
+      this.data.push(...data);
+    }
   }
 
   #getReport(): Report {

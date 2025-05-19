@@ -9,7 +9,7 @@ import { URL } from "node:url";
 import { hardhatTestReporter } from "@nomicfoundation/hardhat-node-test-reporter";
 import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
 import { createNonClosingWriter } from "@nomicfoundation/hardhat-utils/stream";
-import { markTestRunStart, makrTestRunDone } from "hardhat/internal/coverage";
+import { markTestRunStart, markTestRunDone } from "hardhat/internal/coverage";
 
 interface TestActionArguments {
   testFiles: string[];
@@ -129,7 +129,7 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   const testFailures = await runTests();
 
   if (hre.globalOptions.coverage === true) {
-    await makrTestRunDone("node");
+    await markTestRunDone("node");
   }
 
   if (testFailures > 0) {

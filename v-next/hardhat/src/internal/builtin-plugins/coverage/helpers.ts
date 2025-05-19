@@ -37,7 +37,7 @@ export async function markTestRunStart(id: string): Promise<void> {
   const hreImplementation =
     unsafelyCastAsHardhatRuntimeEnvironmentImplementation(hre);
 
-  await hreImplementation._coverage.handleTestRunStart(id);
+  await hreImplementation._coverage.clearData(id);
 }
 
 export async function markTestWorkerDone(id: string): Promise<void> {
@@ -45,13 +45,13 @@ export async function markTestWorkerDone(id: string): Promise<void> {
   const hreImplementation =
     unsafelyCastAsHardhatRuntimeEnvironmentImplementation(hre);
 
-  await hreImplementation._coverage.handleTestWorkerDone(id);
+  await hreImplementation._coverage.saveData(id);
 }
 
-export async function makrTestRunDone(id: string): Promise<void> {
+export async function markTestRunDone(id: string): Promise<void> {
   const hre = await getOrCreateGlobalHardhatRuntimeEnvironment();
   const hreImplementation =
     unsafelyCastAsHardhatRuntimeEnvironmentImplementation(hre);
 
-  await hreImplementation._coverage.handleTestRunDone(id);
+  await hreImplementation._coverage.report(id);
 }

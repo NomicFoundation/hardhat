@@ -20,7 +20,7 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
   if (hre.globalOptions.coverage === true) {
     const hreImplementation =
       unsafelyCastAsHardhatRuntimeEnvironmentImplementation(hre);
-    hreImplementation._coverage.disableTestRunDoneHandler();
+    hreImplementation._coverage.disableReport();
   }
 
   for (const subtask of thisTask.subtasks.values()) {
@@ -35,8 +35,8 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
     const hreImplementation =
       unsafelyCastAsHardhatRuntimeEnvironmentImplementation(hre);
     const ids = Array.from(thisTask.subtasks.keys());
-    hreImplementation._coverage.enableTestRunDoneHandler();
-    await hreImplementation._coverage.handleTestRunDone(...ids);
+    hreImplementation._coverage.enableReport();
+    await hreImplementation._coverage.report(...ids);
     console.log();
   }
 

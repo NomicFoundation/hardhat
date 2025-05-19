@@ -44,12 +44,12 @@ describe("CoverageManagerImplementation", () => {
     const coverageManager2 = new CoverageManagerImplementation(process.cwd());
 
     await coverageManager1.addData(data1);
-    await coverageManager1.handleTestWorkerDone(id);
+    await coverageManager1.saveData(id);
 
     await coverageManager2.addData(data2);
-    await coverageManager2.handleTestWorkerDone(id);
+    await coverageManager2.saveData(id);
 
-    await coverageManager.handleTestRunDone(id);
+    await coverageManager.loadData(id);
 
     const data = coverageManager.data;
 
@@ -96,7 +96,7 @@ describe("CoverageManagerImplementation", () => {
 
     assert.ok(data.length !== 0, "The data should be saved to memory");
 
-    await coverageManager.handleTestRunStart(id);
+    await coverageManager.clearData(id);
 
     data = coverageManager.data;
 
@@ -105,13 +105,13 @@ describe("CoverageManagerImplementation", () => {
 
   it("should clear the data from disk", async () => {
     await coverageManager.addData(["a", "b", "c"]);
-    await coverageManager.handleTestWorkerDone(id);
+    await coverageManager.saveData(id);
 
     let data = await getAllFilesMatching(process.cwd());
 
     assert.ok(data.length !== 0, "The data should be saved to disk");
 
-    await coverageManager.handleTestRunStart(id);
+    await coverageManager.clearData(id);
 
     data = await getAllFilesMatching(process.cwd());
 
@@ -132,7 +132,7 @@ describe("CoverageManagerImplementation", () => {
 
     assert.ok(metadata.length !== 0, "The metadata should be saved to memory");
 
-    await coverageManager.handleTestRunStart(id);
+    await coverageManager.clearData(id);
 
     metadata = coverageManager.metadata;
 

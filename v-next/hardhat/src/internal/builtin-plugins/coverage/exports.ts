@@ -1,5 +1,5 @@
 export {
   markTestRunStart,
-  makrTestRunDone,
+  markTestRunDone,
   markTestWorkerDone,
 } from "./helpers.js";
