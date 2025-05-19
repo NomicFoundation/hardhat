@@ -11,7 +11,7 @@ export default async (): Promise<Partial<NetworkHooks>> => {
         nextContext: HookContext,
       ) => Promise<NetworkConnection<ChainTypeT>>,
     ) {
-      const connection: NetworkConnection<ChainTypeT> = await next(context);
+      const connection = await next(context);
 
       connection.viem.assertions = await initializeViemMatchers(
         connection.viem,
