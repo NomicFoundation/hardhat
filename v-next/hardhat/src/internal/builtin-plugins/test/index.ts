@@ -2,6 +2,8 @@ import type { HardhatPlugin } from "../../../types/plugins.js";
 
 import { task } from "../../core/config.js";
 
+import "./type-extensions.js";
+
 const hardhatPlugin: HardhatPlugin = {
   id: "builtin:test",
   tasks: [
@@ -9,6 +11,11 @@ const hardhatPlugin: HardhatPlugin = {
       .addFlag({
         name: "noCompile",
         description: "Don't compile the project before running the tests",
+      })
+      .addVariadicArgument({
+        name: "testFiles",
+        description: "List of specific files to run tests on",
+        defaultValue: [],
       })
       .setAction(import.meta.resolve("./task-action.js"))
       .build(),

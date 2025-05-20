@@ -26,6 +26,7 @@ export function solidityTestConfigToRunOptions(
 export function solidityTestConfigToSolidityTestRunnerConfigArgs(
   projectRoot: string,
   config: SolidityTestConfig,
+  testPattern?: string,
 ): SolidityTestRunnerConfigArgs {
   const fsPermissions: PathPermission[] | undefined = [
     config.fsPermissions?.readWrite?.map((p) => ({ access: 0, path: p })) ?? [],
@@ -98,6 +99,7 @@ export function solidityTestConfigToSolidityTestRunnerConfigArgs(
     txOrigin,
     blockCoinbase,
     rpcStorageCaching,
+    testPattern,
   };
 }
 

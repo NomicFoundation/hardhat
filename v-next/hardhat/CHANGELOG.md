@@ -1,5 +1,12 @@
 # hardhat
 
+## 3.0.0-next.8
+
+### Patch Changes
+
+- 6c27bd3: Fix to the template project scripts to match the new signature of `network.connect(...)` ([#6691](https://github.com/NomicFoundation/hardhat/issues/6691))
+- 11e4652: Dedupe and sort merged solc outputSelection ([#6678](https://github.com/NomicFoundation/hardhat/pull/6678))
+
 ## 3.0.0-next.7
 
 ### Patch Changes

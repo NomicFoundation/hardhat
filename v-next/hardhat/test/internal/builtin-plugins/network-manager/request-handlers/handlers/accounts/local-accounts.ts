@@ -71,6 +71,7 @@ describe("LocalAccountsHandler", () => {
     "0x6d7229c1db5892730b84b4bc10543733b72cabf4cd3130d910faa8e459bb8eca",
     "0x6d4ec871d9b5469119bbfc891e958b6220d076a6849006098c370c8af5fc7776",
     "0xec02c2b7019e75378a05018adc30a0252ba705670acb383a1d332e57b0b792d2",
+    "0xec02c2b7019e75378a05018adc30a0252ba705670acb383a1d332e57b0b792d2", // Duplicated account
   ];
 
   beforeEach(() => {
@@ -98,6 +99,8 @@ describe("LocalAccountsHandler", () => {
       assert.ok(res !== null, "res should not be null");
       assert.ok("result" in res, "res should have the property 'result'");
       assert.ok(Array.isArray(res.result), "res.result should be an array");
+
+      assert.equal(res.result.length, accounts.length);
 
       assert.equal(
         res.result[0],

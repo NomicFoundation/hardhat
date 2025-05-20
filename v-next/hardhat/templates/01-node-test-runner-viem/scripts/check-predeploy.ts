@@ -4,7 +4,10 @@ import { network } from "hardhat";
 const OP_GAS_PRICE_ORACLE = "0x420000000000000000000000000000000000000F";
 
 async function mainnetExample() {
-  const { viem } = await network.connect("hardhatMainnet", "l1");
+  const { viem } = await network.connect({
+    network: "hardhatMainnet",
+    chainType: "l1",
+  });
 
   const publicClient = await viem.getPublicClient();
   const gasPriceOracleCode = await publicClient.getCode({
@@ -18,7 +21,10 @@ async function mainnetExample() {
 }
 
 async function opExample() {
-  const { viem } = await network.connect("hardhatOp", "optimism");
+  const { viem } = await network.connect({
+    network: "hardhatOp",
+    chainType: "optimism",
+  });
 
   const publicClient = await viem.getPublicClient();
   const gasPriceOracleCode = await publicClient.getCode({
