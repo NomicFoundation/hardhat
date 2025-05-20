@@ -105,8 +105,8 @@ importers:
         specifier: ^5.1.2
         version: 5.1.2
       ethers:
-        specifier: ^6.13.4
-        version: 6.13.5
+        specifier: ^6.14.0
+        version: 6.14.1
       forge-std:
         specifier: foundry-rs/forge-std#v1.9.4
         version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/1eea5bae12ae557d589f9f0f0edae2faa47cb262
@@ -515,8 +515,8 @@ importers:
         specifier: ^4.3.2
         version: 4.4.0(supports-color@5.5.0)
       ethers:
-        specifier: ^6.13.4
-        version: 6.13.5
+        specifier: ^6.14.0
+        version: 6.14.1
       immer:
         specifier: 10.0.2
         version: 10.0.2
@@ -1137,8 +1137,8 @@ importers:
         specifier: 9.25.1
         version: 9.25.1
       ethers:
-        specifier: ^6.13.4
-        version: 6.13.5
+        specifier: ^6.14.0
+        version: 6.14.1
       expect-type:
         specifier: ^0.19.0
         version: 0.19.0
@@ -1481,8 +1481,8 @@ importers:
         specifier: ^5.1.2
         version: 5.1.2
       ethers:
-        specifier: ^6.13.4
-        version: 6.13.5
+        specifier: ^6.14.0
+        version: 6.14.1
       forge-std:
         specifier: foundry-rs/forge-std#v1.9.4
         version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/1eea5bae12ae557d589f9f0f0edae2faa47cb262
