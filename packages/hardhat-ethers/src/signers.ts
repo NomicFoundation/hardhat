@@ -1,4 +1,9 @@
-import type { BlockTag, TransactionRequest } from "ethers";
+import type {
+  Authorization,
+  AuthorizationRequest,
+  BlockTag,
+  TransactionRequest,
+} from "ethers";
 import {
   assertArgument,
   ethers,
@@ -78,6 +83,16 @@ export class HardhatEthersSigner implements ethers.Signer {
     provider: ethers.JsonRpcProvider | HardhatEthersProvider
   ): ethers.Signer {
     return new HardhatEthersSigner(this.address, provider);
+  }
+
+  public authorize(auth: AuthorizationRequest): Promise<Authorization> {
+    return this.authorize(auth);
+  }
+
+  public populateAuthorization(
+    auth: AuthorizationRequest
+  ): Promise<AuthorizationRequest> {
+    return this.populateAuthorization(auth);
   }
 
   public getNonce(blockTag?: BlockTag | undefined): Promise<number> {
