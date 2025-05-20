@@ -21,6 +21,8 @@ import debug from "debug";
 
 const log = debug("hardhat:core:coverage:coverage-manager");
 
+const MAX_COLUMN_WIDTH = 80;
+
 type Line = number;
 type Branch = [Line, Tag];
 
@@ -336,6 +338,100 @@ export class CoverageManagerImplementation implements CoverageManager {
     return lcov;
   }
 
+  #formatSource(source: string): string {
+    if (source.length <= MAX_COLUMN_WIDTH) {
+      return source;
+    }
+
+    const prefix = "…";
+
+    const sourceParts = source.split(path.sep);
+
+    const parts = [sourceParts[sourceParts.length - 1]];
+    let partsLength = parts[0].length;
+
+    for (let i = sourceParts.length - 2; i >= 0; i--) {
+      const part = sourceParts[i];
+      if (
+        partsLength +
+          part.length +
+          prefix.length +
+          (parts.length + 2) * path.sep.length <=
+        MAX_COLUMN_WIDTH
+      ) {
+        parts.push(part);
+        partsLength += part.length;
+      } else {
+        break;
+      }
+    }
+
+    parts.push(prefix);
+
+    return parts.reverse().join(path.sep);
+  }
+
+  #formatCoverage(coverage: number): string {
+    return coverage.toFixed(2).toString();
+  }
+
+  #formatLines(lines: Set<number>): string {
+    if (lines.size === 0) {
+      return "-";
+    }
+
+    const sortedLines = Array.from(lines).toSorted((a, b) => a - b);
+
+    const intervals = [];
+    let intervalsLength = 0;
+
+    let startLine = sortedLines[0];
+    let endLine = sortedLines[0];
+    for (let i = 1; i <= sortedLines.length; i++) {
+      if (i < sortedLines.length && sortedLines[i] === endLine + 1) {
+        endLine = sortedLines[i];
+      } else {
+        let interval: string;
+        if (startLine === endLine) {
+          interval = startLine.toString();
+        } else {
+          interval = `${startLine}-${endLine}`;
+        }
+        intervals.push(interval);
+        intervalsLength += interval.length;
+        if (i < sortedLines.length) {
+          startLine = sortedLines[i];
+          endLine = sortedLines[i];
+        }
+      }
+    }
+
+    const sep = ", ";
+    const suffixSep = ",";
+    const suffix = "…";
+
+    if (intervalsLength + intervals.length * sep.length <= MAX_COLUMN_WIDTH) {
+      return intervals.join(sep);
+    }
+
+    while (
+      intervalsLength +
+        intervals.length * sep.length +
+        suffix.length +
+        suffixSep.length >
+      MAX_COLUMN_WIDTH
+    ) {
+      const interval = intervals.pop();
+      if (interval !== undefined) {
+        intervalsLength -= interval.length;
+      } else {
+        break;
+      }
+    }
+
+    return [intervals.join(sep), suffix].join(suffixSep);
+  }
+
   #getMarkdownReport(): string {
     const report = this.#getReport();
 
@@ -380,25 +476,12 @@ export class CoverageManagerImplementation implements CoverageManager {
         totalExecutedStatements += executedTagsCount;
         totalExecutableStatements += tagExecutionCounts.size;
 
-        const uncoveredLines =
-          unexecutedLines.size === 0
-            ? "-"
-            : Array.from(unexecutedLines)
-                .toSorted((a, b) => a - b)
-                .join(", ");
-        const partiallyCoveredLines =
-          partiallyExecutedLines.size === 0
-            ? "-"
-            : Array.from(partiallyExecutedLines)
-                .toSorted((a, b) => a - b)
-                .join(", ");
-
         const row: string[] = [
-          source,
-          lineCoverage.toFixed(2).toString(),
-          statementCoverage.toFixed(2).toString(),
-          uncoveredLines,
-          partiallyCoveredLines,
+          this.#formatSource(source),
+          this.#formatCoverage(lineCoverage),
+          this.#formatCoverage(statementCoverage),
+          this.#formatLines(unexecutedLines),
+          this.#formatLines(partiallyExecutedLines),
         ];
 
         return row;
