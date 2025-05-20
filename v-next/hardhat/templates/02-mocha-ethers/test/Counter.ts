@@ -1,6 +1,7 @@
 import { network } from "hardhat";
-import { HardhatEthers } from "@nomicfoundation/hardhat-ethers/types";
 import { expect } from "chai";
+
+const { ethers } = await network.connect();
 
 describe("Counter", function () {
   /*
@@ -30,11 +31,12 @@ describe("Counter", function () {
    *
    * Examples:
    *
-   * - `await network.connect("sepolia", "l1")`: Connects to the
-   *   `sepolia` network config, treating it as an "l1" network.
+   * - `await network.connect({network: "sepolia", chainType: "l1"})`: Connects
+   *   to the `sepolia` network config, treating it as an "l1" network.
    *
-   * - `await network.connect("hardhatOp", "optimism")`: Creates a new EDR
-   *   instance in Optimism mode, using the `hardhatOp` network config.
+   * - `await network.connect(network: "hardhatOp", chainType: "optimism"})`:
+   *   Creates a new EDR instance in Optimism mode, using the `hardhatOp`
+   *   network config.
    *
    * - `await network.connect()`: Creates a new EDR instance with the default
    *    network config (i.e. `hardhat`) and the `generic` chain type.
@@ -42,11 +44,6 @@ describe("Counter", function () {
    * Each network connection object has a `provider` property and other
    * network-related fields added by plugins, like `ethers` and `networkHelpers`.
    */
-  let ethers: HardhatEthers;
-  beforeEach(async function () {
-    const connection = await network.connect();
-    ethers = connection.ethers;
-  });
 
   it("The sum of the Increment events should match the current value", async function () {
     const counter = await ethers.deployContract("Counter");

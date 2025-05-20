@@ -39,12 +39,13 @@ describe("Counter", async function () {
    *
    * Examples:
    *
-   * - `await network.connect("sepolia", "l1")`: Connects to the
-   *   `sepolia` network config, treating it as an "l1" network with the
+   * - `await network.connect({network: "sepolia", chainType: "l1"})`: Connects
+   *   to the `sepolia` network config, treating it as an "l1" network with the
    *   appropriate viem extensions.
    *
-   * - `await network.connect("hardhatOp", "optimism")`: Creates a new EDR
-   *   instance in Optimism mode, using the `hardhatOp` network config.
+   * - `await network.connect({network: "hardhatOp", chainType: "optimism"})`:
+   *   Creates a new EDR instance in Optimism mode, using the `hardhatOp`
+   *   network config.
    *
    * - `await network.connect()`: Creates a new EDR instance with the default
    *    network config (i.e. `hardhat`), the `generic` chain type, and no

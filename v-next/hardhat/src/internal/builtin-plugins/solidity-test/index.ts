@@ -2,12 +2,15 @@ import type { HardhatPlugin } from "../../../types/plugins.js";
 
 import { task } from "../../core/config.js";
 
+import { ArgumentType } from "hardhat/types/arguments";
+
 import "./type-extensions.js";
 
 const hardhatPlugin: HardhatPlugin = {
   id: "builtin:solidity-tests",
   hookHandlers: {
     config: import.meta.resolve("./hook-handlers/config.js"),
+    test: import.meta.resolve("./hook-handlers/test.js"),
   },
   tasks: [
     task(["test", "solidity"], "Run the Solidity tests")
@@ -20,6 +23,12 @@ const hardhatPlugin: HardhatPlugin = {
         name: "chainType",
         description: "Not implemented yet - The chain type to use",
         defaultValue: "l1",
+      })
+      .addOption({
+        name: "grep",
+        description: "Only run tests matching the given string or regexp",
+        type: ArgumentType.STRING_WITHOUT_DEFAULT,
+        defaultValue: undefined,
       })
       .addFlag({
         name: "noCompile",
