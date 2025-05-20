@@ -168,8 +168,8 @@ importers:
         specifier: 3.4.0
         version: 3.4.0(eslint-config-prettier@8.3.0(eslint@8.57.1))(eslint@8.57.1)(prettier@2.4.1)
       ethers:
-        specifier: ^6.1.0
-        version: 6.13.4(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+        specifier: ^6.14.0
+        version: 6.14.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
       get-port:
         specifier: ^5.1.1
         version: 5.1.1
@@ -896,8 +896,8 @@ importers:
         specifier: 4.0.0
         version: 4.0.0(eslint-config-prettier@8.3.0(eslint@8.57.1))(eslint@8.57.1)(prettier@2.8.8)
       ethers:
-        specifier: ^6.7.0
-        version: 6.13.4(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+        specifier: ^6.14.0
+        version: 6.14.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
       hardhat:
         specifier: workspace:^2.18.0
         version: link:../hardhat-core
