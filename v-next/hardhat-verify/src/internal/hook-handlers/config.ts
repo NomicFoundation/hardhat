@@ -2,33 +2,42 @@ import type {
   ConfigurationVariableResolver,
   HardhatConfig,
   HardhatUserConfig,
+  VerificationProviderConfig,
+  VerificationProviderUserConfig,
 } from "hardhat/types/config";
 import type {
   ConfigHooks,
   HardhatUserConfigValidationError,
 } from "hardhat/types/hooks";
 
+import {
+  sensitiveStringSchema,
+  validateUserConfigZodType,
+} from "@nomicfoundation/hardhat-zod-utils";
+import { z } from "zod";
+
 export default async (): Promise<Partial<ConfigHooks>> => ({
-  extendUserConfig,
   validateUserConfig,
   resolveUserConfig,
 });
 
-export async function extendUserConfig(
-  config: HardhatUserConfig,
-  next: (nextConfig: HardhatUserConfig) => Promise<HardhatUserConfig>,
-): Promise<HardhatUserConfig> {
-  const extendedConfig = await next(config);
-
-  return {
-    ...extendedConfig,
-  };
-}
+const userConfigType = z.object({
+  verify: z
+    .object({
+      etherscan: z
+        .object({
+          apiKey: sensitiveStringSchema,
+          enabled: z.boolean().optional(),
+        })
+        .optional(),
+    })
+    .optional(),
+});
 
 export async function validateUserConfig(
-  _userConfig: HardhatUserConfig,
+  userConfig: HardhatUserConfig,
 ): Promise<HardhatUserConfigValidationError[]> {
-  return [];
+  return validateUserConfigZodType(userConfig, userConfigType);
 }
 
 export async function resolveUserConfig(
@@ -43,5 +52,25 @@ export async function resolveUserConfig(
 
   return {
     ...resolvedConfig,
+    verify: {
+      ...resolvedConfig.verify,
+      etherscan: resolveEtherscanConfig(
+        userConfig.verify?.etherscan,
+        resolveConfigurationVariable,
+      ),
+    },
+  };
+}
+
+function resolveEtherscanConfig(
+  etherscanConfig: VerificationProviderUserConfig | undefined = {
+    apiKey: "",
+    enabled: false,
+  },
+  resolveConfigurationVariable: ConfigurationVariableResolver,
+): VerificationProviderConfig {
+  return {
+    apiKey: resolveConfigurationVariable(etherscanConfig.apiKey),
+    enabled: etherscanConfig.enabled ?? true,
   };
 }

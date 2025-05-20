@@ -1,8 +1,28 @@
 import "hardhat/types/config";
 declare module "hardhat/types/config" {
-  // eslint-disable-next-line @typescript-eslint/no-empty-interface -- TODO
-  export interface HardhatUserConfig {}
+  export interface HardhatUserConfig {
+    verify?: VerificationProvidersUserConfig;
+  }
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-interface -- TODO
-  export interface HardhatConfig {}
+  export interface VerificationProvidersUserConfig {
+    etherscan?: VerificationProviderUserConfig;
+  }
+
+  export interface VerificationProviderUserConfig {
+    apiKey: SensitiveString;
+    enabled?: boolean;
+  }
+
+  export interface HardhatConfig {
+    verify: VerificationProvidersConfig;
+  }
+
+  export interface VerificationProvidersConfig {
+    etherscan: VerificationProviderConfig;
+  }
+
+  export interface VerificationProviderConfig {
+    apiKey: ResolvedConfigurationVariable;
+    enabled: boolean;
+  }
 }

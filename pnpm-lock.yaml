@@ -1346,12 +1346,18 @@ importers:
 
   v-next/hardhat-verify:
     dependencies:
+      '@nomicfoundation/hardhat-zod-utils':
+        specifier: workspace:^3.0.0-next.8
+        version: link:../hardhat-zod-utils
       hardhat:
-        specifier: workspace:^3.0.0-next.6
+        specifier: workspace:^3.0.0-next.8
         version: link:../hardhat
+      zod:
+        specifier: ^3.23.8
+        version: 3.24.1
     devDependencies:
       '@nomicfoundation/hardhat-node-test-reporter':
-        specifier: workspace:^3.0.0-next.6
+        specifier: workspace:^3.0.0-next.8
         version: link:../hardhat-node-test-reporter
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^

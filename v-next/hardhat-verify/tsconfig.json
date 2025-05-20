@@ -9,6 +9,9 @@
     },
     {
       "path": "../hardhat-test-utils"
+    },
+    {
+      "path": "../hardhat-zod-utils"
     }
   ]
 }
