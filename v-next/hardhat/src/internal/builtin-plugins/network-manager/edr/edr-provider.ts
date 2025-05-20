@@ -67,7 +67,6 @@ import {
   hardhatMempoolOrderToEdrMineOrdering,
   hardhatHardforkToEdrSpecId,
   hardhatAccountsToEdrOwnedAccounts,
-  hardhatChainDescriptorsToEdrChainOverrides,
   hardhatForkingConfigToEdrForkConfig,
   hardhatChainTypeToEdrChainType,
 } from "./utils/convert-to-edr.js";
