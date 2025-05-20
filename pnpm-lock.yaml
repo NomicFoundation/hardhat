@@ -403,8 +403,8 @@ importers:
         specifier: 3.4.0
         version: 3.4.0(eslint-config-prettier@8.3.0(eslint@8.57.1))(eslint@8.57.1)(prettier@2.4.1)
       ethers:
-        specifier: ^6.1.0
-        version: 6.13.4(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+        specifier: ^6.14.0
+        version: 6.14.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
       ethers-v5:
         specifier: npm:ethers@5
         version: ethers@5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10)
@@ -721,8 +721,8 @@ importers:
         specifier: ^4.3.2
         version: 4.3.7(supports-color@5.5.0)
       ethers:
-        specifier: ^6.7.0
-        version: 6.13.4(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+        specifier: ^6.14.0
+        version: 6.14.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
       fs-extra:
         specifier: ^10.0.0
         version: 10.1.0
@@ -1130,8 +1130,8 @@ importers:
         specifier: ^2.2.0
         version: 2.2.1
       ethers:
-        specifier: ^6.1.0
-        version: 6.13.4(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+        specifier: ^6.14.0
+        version: 6.14.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
       fs-extra:
         specifier: ^7.0.1
         version: 7.0.1
@@ -1535,10 +1535,10 @@ importers:
         version: link:../hardhat-verify
       '@typechain/ethers-v6':
         specifier: ^0.5.0
-        version: 0.5.1(ethers@6.13.4(bufferutil@4.0.8)(utf-8-validate@5.0.10))(typechain@8.3.2(typescript@5.0.4))(typescript@5.0.4)
+        version: 0.5.1(ethers@6.14.1(bufferutil@4.0.8)(utf-8-validate@5.0.10))(typechain@8.3.2(typescript@5.0.4))(typescript@5.0.4)
       '@typechain/hardhat':
         specifier: ^9.0.0
-        version: 9.1.0(@typechain/ethers-v6@0.5.1(ethers@6.13.4(bufferutil@4.0.8)(utf-8-validate@5.0.10))(typechain@8.3.2(typescript@5.0.4))(typescript@5.0.4))(ethers@6.13.4(bufferutil@4.0.8)(utf-8-validate@5.0.10))(hardhat@packages+hardhat-core)(typechain@8.3.2(typescript@5.0.4))
+        version: 9.1.0(@typechain/ethers-v6@0.5.1(ethers@6.14.1(bufferutil@4.0.8)(utf-8-validate@5.0.10))(typechain@8.3.2(typescript@5.0.4))(typescript@5.0.4))(ethers@6.14.1(bufferutil@4.0.8)(utf-8-validate@5.0.10))(hardhat@packages+hardhat-core)(typechain@8.3.2(typescript@5.0.4))
       '@types/chai':
         specifier: ^4.2.0
         version: 4.3.20
@@ -1573,8 +1573,8 @@ importers:
         specifier: 3.4.0
         version: 3.4.0(eslint-config-prettier@8.3.0(eslint@8.57.1))(eslint@8.57.1)(prettier@2.4.1)
       ethers:
-        specifier: ^6.4.0
-        version: 6.13.4(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+        specifier: ^6.14.0
+        version: 6.14.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
       hardhat:
         specifier: workspace:^2.11.0
         version: link:../hardhat-core
@@ -5329,10 +5329,6 @@ packages:
 
   ethers@5.7.2:
     resolution: {integrity: sha512-wswUsmWo1aOK8rR7DIKiWSw9DbLWe6x98Jrn8wcTflTVvaXhAMaB5zGAXy0GYQEQp9iO1iSHWVyARQm11zUtyg==}
-
-  ethers@6.13.4:
-    resolution: {integrity: sha512-21YtnZVg4/zKkCQPjrDj38B1r4nQvTZLopUGMLQ1ePU2zV/joCfDC3t3iKQjWRzjjjbzR+mdAIoikeBRNkdllA==}
-    engines: {node: '>=14.0.0'}
 
   ethers@6.14.1:
     resolution: {integrity: sha512-JnFiPFi3sK2Z6y7jZ3qrafDMwiXmU+6cNZ0M+kPq+mTy9skqEzwqAdFW3nb/em2xjlIVXX6Lz8ID6i3LmS4+fQ==}
@@ -10243,18 +10239,18 @@ snapshots:
 
   '@tsconfig/node16@1.0.4': {}
 
-  '@typechain/ethers-v6@0.5.1(ethers@6.13.4(bufferutil@4.0.8)(utf-8-validate@5.0.10))(typechain@8.3.2(typescript@5.0.4))(typescript@5.0.4)':
+  '@typechain/ethers-v6@0.5.1(ethers@6.14.1(bufferutil@4.0.8)(utf-8-validate@5.0.10))(typechain@8.3.2(typescript@5.0.4))(typescript@5.0.4)':
     dependencies:
-      ethers: 6.13.4(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+      ethers: 6.14.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
       lodash: 4.17.21
       ts-essentials: 7.0.3(typescript@5.0.4)
       typechain: 8.3.2(typescript@5.0.4)
       typescript: 5.0.4
 
-  '@typechain/hardhat@9.1.0(@typechain/ethers-v6@0.5.1(ethers@6.13.4(bufferutil@4.0.8)(utf-8-validate@5.0.10))(typechain@8.3.2(typescript@5.0.4))(typescript@5.0.4))(ethers@6.13.4(bufferutil@4.0.8)(utf-8-validate@5.0.10))(hardhat@packages+hardhat-core)(typechain@8.3.2(typescript@5.0.4))':
+  '@typechain/hardhat@9.1.0(@typechain/ethers-v6@0.5.1(ethers@6.14.1(bufferutil@4.0.8)(utf-8-validate@5.0.10))(typechain@8.3.2(typescript@5.0.4))(typescript@5.0.4))(ethers@6.14.1(bufferutil@4.0.8)(utf-8-validate@5.0.10))(hardhat@packages+hardhat-core)(typechain@8.3.2(typescript@5.0.4))':
     dependencies:
-      '@typechain/ethers-v6': 0.5.1(ethers@6.13.4(bufferutil@4.0.8)(utf-8-validate@5.0.10))(typechain@8.3.2(typescript@5.0.4))(typescript@5.0.4)
-      ethers: 6.13.4(bufferutil@4.0.8)(utf-8-validate@5.0.10)
+      '@typechain/ethers-v6': 0.5.1(ethers@6.14.1(bufferutil@4.0.8)(utf-8-validate@5.0.10))(typechain@8.3.2(typescript@5.0.4))(typescript@5.0.4)
+      ethers: 6.14.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
       fs-extra: 9.1.0
       hardhat: link:packages/hardhat-core
       typechain: 8.3.2(typescript@5.0.4)
@@ -12565,19 +12561,6 @@ snapshots:
       '@ethersproject/wallet': 5.7.0
       '@ethersproject/web': 5.7.1
       '@ethersproject/wordlists': 5.7.0
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
-
-  ethers@6.13.4(bufferutil@4.0.8)(utf-8-validate@5.0.10):
-    dependencies:
-      '@adraffy/ens-normalize': 1.10.1
-      '@noble/curves': 1.2.0
-      '@noble/hashes': 1.3.2
-      '@types/node': 22.7.5
-      aes-js: 4.0.0-beta.5
-      tslib: 2.7.0
-      ws: 8.17.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate

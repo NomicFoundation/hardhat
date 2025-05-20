@@ -86,7 +86,7 @@
     "eslint-plugin-import": "2.27.5",
     "eslint-plugin-mocha": "10.4.1",
     "eslint-plugin-prettier": "3.4.0",
-    "ethers": "^6.1.0",
+    "ethers": "^6.14.0",
     "ethers-v5": "npm:ethers@5",
     "mocha": "^10.0.0",
     "prettier": "2.4.1",
