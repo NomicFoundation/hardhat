@@ -73,6 +73,6 @@
     "hardhat": "workspace:^3.0.0-next.8",
     "@nomicfoundation/hardhat-ethers": "workspace:^4.0.0-next.8",
     "chai": "^5.1.2",
-    "ethers": "^6.13.4"
+    "ethers": "^6.14.0"
   }
 }

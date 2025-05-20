@@ -278,8 +278,8 @@ importers:
         specifier: ^4.3.2
         version: 4.4.0(supports-color@5.5.0)
       ethers:
-        specifier: ^6.13.4
-        version: 6.13.5
+        specifier: ^6.14.0
+        version: 6.14.1
       hardhat:
         specifier: workspace:^3.0.0-next.8
         version: link:../hardhat
@@ -342,8 +342,8 @@ importers:
         specifier: ^5.0.1
         version: 5.0.2
       ethers:
-        specifier: ^6.13.4
-        version: 6.13.5
+        specifier: ^6.14.0
+        version: 6.14.1
       hardhat:
         specifier: workspace:^3.0.0-next.8
         version: link:../hardhat
@@ -625,8 +625,8 @@ importers:
         specifier: 9.25.1
         version: 9.25.1
       ethers:
-        specifier: ^6.13.4
-        version: 6.13.5
+        specifier: ^6.14.0
+        version: 6.14.1
       hardhat:
         specifier: workspace:^3.0.0-next.8
         version: link:../hardhat
@@ -3821,6 +3821,10 @@ packages:
 
   ethers@6.13.5:
     resolution: {integrity: sha512-+knKNieu5EKRThQJWwqaJ10a6HE9sSehGeqWN65//wE7j47ZpFhKAnHB/JJFibwwg61I/koxaPsXbXpD/skNOQ==}
+    engines: {node: '>=14.0.0'}
+
+  ethers@6.14.1:
+    resolution: {integrity: sha512-JnFiPFi3sK2Z6y7jZ3qrafDMwiXmU+6cNZ0M+kPq+mTy9skqEzwqAdFW3nb/em2xjlIVXX6Lz8ID6i3LmS4+fQ==}
     engines: {node: '>=14.0.0'}
 
   eventemitter3@5.0.1:
@@ -8147,6 +8151,19 @@ snapshots:
       '@scure/bip39': 1.3.0
 
   ethers@6.13.5:
+    dependencies:
+      '@adraffy/ens-normalize': 1.10.1
+      '@noble/curves': 1.2.0
+      '@noble/hashes': 1.3.2
+      '@types/node': 22.7.5
+      aes-js: 4.0.0-beta.5
+      tslib: 2.7.0
+      ws: 8.17.1
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+
+  ethers@6.14.1:
     dependencies:
       '@adraffy/ens-normalize': 1.10.1
       '@noble/curves': 1.2.0

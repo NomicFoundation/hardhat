@@ -59,7 +59,7 @@
     "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.8",
     "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.8",
     "debug": "^4.3.2",
-    "ethers": "^6.13.4"
+    "ethers": "^6.14.0"
   },
   "peerDependencies": {
     "hardhat": "workspace:^3.0.0-next.8"

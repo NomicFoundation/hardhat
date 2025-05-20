@@ -17,6 +17,8 @@ import { getRpcTransaction } from "../ethers-utils/ethers-utils.js";
 
 import { deepCopy } from "./deep-copy.js";
 import { populate } from "./populate.js";
+import { AuthorizationRequest } from "ethers";
+import { Authorization } from "ethers";
 
 export class HardhatEthersSigner implements HardhatEthersSignerI {
   readonly #gasLimit: bigint | undefined;
@@ -58,6 +60,16 @@ export class HardhatEthersSigner implements HardhatEthersSignerI {
     provider: ethers.JsonRpcProvider | HardhatEthersProvider,
   ): ethers.Signer {
     return new HardhatEthersSigner(this.address, provider);
+  }
+
+  public authorize(auth: AuthorizationRequest): Promise<Authorization> {
+    return this.authorize(auth);
+  }
+
+  public populateAuthorization(
+    auth: AuthorizationRequest,
+  ): Promise<AuthorizationRequest> {
+    return this.populateAuthorization(auth);
   }
 
   public getNonce(blockTag?: BlockTag | undefined): Promise<number> {
