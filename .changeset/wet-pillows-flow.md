@@ -4,4 +4,4 @@
 "@nomicfoundation/hardhat-ignition-ethers": patch
 ---
 
-Update hardhat-ethers to latest ethers (v6.14.0) with Pectra support
+Update ethers to v6.14.0 with Pectra support
