@@ -9,9 +9,8 @@ import { readUtf8File } from "@nomicfoundation/hardhat-utils/fs";
 
 import { unsafelyCastAsHardhatRuntimeEnvironmentImplementation } from "../helpers.js";
 
-// TODO: Change this value to a highly unlikely name instead. Ensure the name
-// does NOT start with hardhat/ to avoid potential conflicts.
-const COVERAGE_LIBRARY_IMPORT_PATH = "hardhat/coverage.sol";
+const COVERAGE_LIBRARY_PATH =
+  "__hardhat_coverage_library_a3e9cfe2-41b4-4a1f-ad9e-ac62dd82979e.sol";
 
 export default async (): Promise<Partial<SolidityHooks>> => ({
   preprocessProjectFileBeforeBuilding: async (
@@ -29,6 +28,7 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
           fileContent,
           sourceName,
           solcVersion,
+          COVERAGE_LIBRARY_PATH,
         );
         // NOTE: We need to cast the hre to the internal HardhatRuntimeEnvironmentImplementation
         // because the coverage manager (hre._coverage) is not exposed via the public interface
@@ -70,11 +70,11 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
       // NOTE: We check for a source name clash here. It could happen if the user
       // wanted to compile a source with our highly unlikely name by chance or
       // if we accidentally tried to preprocess the same solc input twice.
-      if (solcInput.sources[COVERAGE_LIBRARY_IMPORT_PATH] !== undefined) {
+      if (solcInput.sources[COVERAGE_LIBRARY_PATH] !== undefined) {
         throw new HardhatError(
           HardhatError.ERRORS.CORE.COVERAGE.IMPORT_PATH_ALREADY_DEFINED,
           {
-            importPath: COVERAGE_LIBRARY_IMPORT_PATH,
+            importPath: COVERAGE_LIBRARY_PATH,
           },
         );
       }
@@ -85,7 +85,7 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
       const content = await readUtf8File(
         path.join(import.meta.dirname, "../../../../../../coverage.sol"),
       );
-      solcInput.sources[COVERAGE_LIBRARY_IMPORT_PATH] = { content };
+      solcInput.sources[COVERAGE_LIBRARY_PATH] = { content };
     }
 
     return next(context, solcInput);
