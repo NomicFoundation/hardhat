@@ -26,7 +26,8 @@ const MAX_COLUMN_WIDTH = 80;
 type Line = number;
 type Branch = [Line, Tag];
 
-interface Report {
+// NOTE: This is exposed for testing only
+export interface Report {
   [sourceName: string]: {
     tagExecutionCounts: Map<Tag, number>;
     lineExecutionCounts: Map<Line, number>;
@@ -49,7 +50,6 @@ export class CoverageManagerImplementation implements CoverageManager {
   readonly #coveragePath: string;
 
   #reportEnabled = true;
-  #report: Report | undefined;
 
   constructor(coveragePath: string) {
     this.#coveragePath = coveragePath;
@@ -95,8 +95,9 @@ export class CoverageManagerImplementation implements CoverageManager {
 
     await this.loadData(...ids);
 
-    const lcovReport = this.#getLcovReport();
-    const markdownReport = this.#getMarkdownReport();
+    const report = this.getReport();
+    const lcovReport = this.formatLcovReport(report);
+    const markdownReport = this.formatMarkdownReport(report);
 
     const lcovReportPath = path.join(this.#coveragePath, "lcov.info");
     await writeUtf8File(lcovReportPath, lcovReport);
@@ -129,146 +130,139 @@ export class CoverageManagerImplementation implements CoverageManager {
     }
   }
 
-  #getReport(): Report {
-    if (this.#report === undefined) {
-      const report: Report = {};
+  // NOTE: This is exposed for testing only
+  public getReport(): Report {
+    const report: Report = {};
 
-      const sourceNames = this.metadata.map(({ sourceName }) => sourceName);
+    const sourceNames = this.metadata.map(({ sourceName }) => sourceName);
 
-      const allStatements = this.metadata;
+    const allStatements = this.metadata;
 
-      // NOTE: We preserve only the last statement per tag in the statementsByTag map.
-      const statementsByTag = new Map<string, Statement>();
-      for (const statement of allStatements) {
-        statementsByTag.set(statement.tag, statement);
-      }
-
-      const allExecutedTags = this.data;
-
-      const allExecutedStatementsBySource = new Map<string, Statement[]>();
-      for (const tag of allExecutedTags) {
-        // NOTE: We should not encounter an executed tag we don't have metadata for.
-        const statement = statementsByTag.get(tag);
-        assertHardhatInvariant(statement !== undefined, "Expected a statement");
-
-        const source = statement.sourceName;
-        const allExecutedStatements =
-          allExecutedStatementsBySource.get(source) ?? [];
-        allExecutedStatements.push(statement);
-        allExecutedStatementsBySource.set(source, allExecutedStatements);
-      }
-
-      const uniqueExecutedTags = new Set(allExecutedTags);
-      const uniqueUnexecutedTags = Array.from(statementsByTag.keys()).filter(
-        (tag) => !uniqueExecutedTags.has(tag),
-      );
-
-      const uniqueUnexecutedStatementsBySource = new Map<string, Statement[]>();
-      for (const tag of uniqueUnexecutedTags) {
-        // NOTE: We cannot encounter an executed tag we don't have metadata for.
-        const statement = statementsByTag.get(tag);
-        assertHardhatInvariant(statement !== undefined, "Expected a statement");
-
-        const source = statement.sourceName;
-        const unexecutedStatements =
-          uniqueUnexecutedStatementsBySource.get(source) ?? [];
-        unexecutedStatements.push(statement);
-        uniqueUnexecutedStatementsBySource.set(source, unexecutedStatements);
-      }
-
-      for (const source of sourceNames) {
-        const allExecutedStatements =
-          allExecutedStatementsBySource.get(source) ?? [];
-        const uniqueUnexecutedStatements =
-          uniqueUnexecutedStatementsBySource.get(source) ?? [];
-
-        const tagExecutionCounts = new Map<Tag, number>();
-
-        for (const statement of allExecutedStatements) {
-          const tagExecutionCount = tagExecutionCounts.get(statement.tag) ?? 0;
-          tagExecutionCounts.set(statement.tag, tagExecutionCount + 1);
-        }
-
-        const lineExecutionCounts = new Map<number, number>();
-        const branchExecutionCounts = new Map<Branch, number>();
-
-        for (const [tag, executionCount] of tagExecutionCounts) {
-          const statement = statementsByTag.get(tag);
-          assertHardhatInvariant(
-            statement !== undefined,
-            "Expected a statement",
-          );
-
-          for (
-            let line = statement.startLine;
-            line <= statement.endLine;
-            line++
-          ) {
-            const lineExecutionCount = lineExecutionCounts.get(line) ?? 0;
-            lineExecutionCounts.set(line, lineExecutionCount + executionCount);
-
-            const branchExecutionCount =
-              branchExecutionCounts.get([line, tag]) ?? 0;
-            branchExecutionCounts.set(
-              [line, tag],
-              branchExecutionCount + executionCount,
-            );
-          }
-        }
-
-        const executedTagsCount = tagExecutionCounts.size;
-        const executedLinesCount = lineExecutionCounts.size;
-        const executedBranchesCount = branchExecutionCounts.size;
-
-        const partiallyExecutedLines = new Set<number>();
-        const unexecutedLines = new Set<number>();
-
-        for (const statement of uniqueUnexecutedStatements) {
-          if (!tagExecutionCounts.has(statement.tag)) {
-            tagExecutionCounts.set(statement.tag, 0);
-          }
-
-          for (
-            let line = statement.startLine;
-            line <= statement.endLine;
-            line++
-          ) {
-            if (!lineExecutionCounts.has(line)) {
-              lineExecutionCounts.set(line, 0);
-              unexecutedLines.add(line);
-            } else {
-              partiallyExecutedLines.add(line);
-            }
-
-            if (!branchExecutionCounts.has([line, statement.tag])) {
-              branchExecutionCounts.set([line, statement.tag], 0);
-            }
-          }
-        }
-
-        report[source] = {
-          tagExecutionCounts,
-          lineExecutionCounts,
-          branchExecutionCounts,
-
-          executedTagsCount,
-          executedLinesCount,
-          executedBranchesCount,
-
-          partiallyExecutedLines,
-          unexecutedLines,
-        };
-      }
-
-      this.#report = report;
+    // NOTE: We preserve only the last statement per tag in the statementsByTag map.
+    const statementsByTag = new Map<string, Statement>();
+    for (const statement of allStatements) {
+      statementsByTag.set(statement.tag, statement);
     }
 
-    return this.#report;
+    const allExecutedTags = this.data;
+
+    const allExecutedStatementsBySource = new Map<string, Statement[]>();
+    for (const tag of allExecutedTags) {
+      // NOTE: We should not encounter an executed tag we don't have metadata for.
+      const statement = statementsByTag.get(tag);
+      assertHardhatInvariant(statement !== undefined, "Expected a statement");
+
+      const source = statement.sourceName;
+      const allExecutedStatements =
+        allExecutedStatementsBySource.get(source) ?? [];
+      allExecutedStatements.push(statement);
+      allExecutedStatementsBySource.set(source, allExecutedStatements);
+    }
+
+    const uniqueExecutedTags = new Set(allExecutedTags);
+    const uniqueUnexecutedTags = Array.from(statementsByTag.keys()).filter(
+      (tag) => !uniqueExecutedTags.has(tag),
+    );
+
+    const uniqueUnexecutedStatementsBySource = new Map<string, Statement[]>();
+    for (const tag of uniqueUnexecutedTags) {
+      // NOTE: We cannot encounter an executed tag we don't have metadata for.
+      const statement = statementsByTag.get(tag);
+      assertHardhatInvariant(statement !== undefined, "Expected a statement");
+
+      const source = statement.sourceName;
+      const unexecutedStatements =
+        uniqueUnexecutedStatementsBySource.get(source) ?? [];
+      unexecutedStatements.push(statement);
+      uniqueUnexecutedStatementsBySource.set(source, unexecutedStatements);
+    }
+
+    for (const source of sourceNames) {
+      const allExecutedStatements =
+        allExecutedStatementsBySource.get(source) ?? [];
+      const uniqueUnexecutedStatements =
+        uniqueUnexecutedStatementsBySource.get(source) ?? [];
+
+      const tagExecutionCounts = new Map<Tag, number>();
+
+      for (const statement of allExecutedStatements) {
+        const tagExecutionCount = tagExecutionCounts.get(statement.tag) ?? 0;
+        tagExecutionCounts.set(statement.tag, tagExecutionCount + 1);
+      }
+
+      const lineExecutionCounts = new Map<number, number>();
+      const branchExecutionCounts = new Map<Branch, number>();
+
+      for (const [tag, executionCount] of tagExecutionCounts) {
+        const statement = statementsByTag.get(tag);
+        assertHardhatInvariant(statement !== undefined, "Expected a statement");
+
+        for (
+          let line = statement.startLine;
+          line <= statement.endLine;
+          line++
+        ) {
+          const lineExecutionCount = lineExecutionCounts.get(line) ?? 0;
+          lineExecutionCounts.set(line, lineExecutionCount + executionCount);
+
+          const branchExecutionCount =
+            branchExecutionCounts.get([line, tag]) ?? 0;
+          branchExecutionCounts.set(
+            [line, tag],
+            branchExecutionCount + executionCount,
+          );
+        }
+      }
+
+      const executedTagsCount = tagExecutionCounts.size;
+      const executedLinesCount = lineExecutionCounts.size;
+      const executedBranchesCount = branchExecutionCounts.size;
+
+      const partiallyExecutedLines = new Set<number>();
+      const unexecutedLines = new Set<number>();
+
+      for (const statement of uniqueUnexecutedStatements) {
+        if (!tagExecutionCounts.has(statement.tag)) {
+          tagExecutionCounts.set(statement.tag, 0);
+        }
+
+        for (
+          let line = statement.startLine;
+          line <= statement.endLine;
+          line++
+        ) {
+          if (!lineExecutionCounts.has(line)) {
+            lineExecutionCounts.set(line, 0);
+            unexecutedLines.add(line);
+          } else {
+            partiallyExecutedLines.add(line);
+          }
+
+          if (!branchExecutionCounts.has([line, statement.tag])) {
+            branchExecutionCounts.set([line, statement.tag], 0);
+          }
+        }
+      }
+
+      report[source] = {
+        tagExecutionCounts,
+        lineExecutionCounts,
+        branchExecutionCounts,
+
+        executedTagsCount,
+        executedLinesCount,
+        executedBranchesCount,
+
+        partiallyExecutedLines,
+        unexecutedLines,
+      };
+    }
+
+    return report;
   }
 
-  #getLcovReport(): string {
-    const report = this.#getReport();
-
+  // NOTE: This is exposed for testing only
+  public formatLcovReport(report: Report): string {
     // NOTE: Format follows the guidelines set out in:
     // https://github.com/linux-test-project/lcov/blob/df03ba434eee724bfc2b27716f794d0122951404/man/geninfo.1#L1409
 
@@ -338,7 +332,8 @@ export class CoverageManagerImplementation implements CoverageManager {
     return lcov;
   }
 
-  #formatSource(source: string): string {
+  // NOTE: This is exposed for testing only
+  public formatSource(source: string): string {
     if (source.length <= MAX_COLUMN_WIDTH) {
       return source;
     }
@@ -371,11 +366,13 @@ export class CoverageManagerImplementation implements CoverageManager {
     return parts.reverse().join(path.sep);
   }
 
-  #formatCoverage(coverage: number): string {
+  // NOTE: This is exposed for testing only
+  public formatCoverage(coverage: number): string {
     return coverage.toFixed(2).toString();
   }
 
-  #formatLines(lines: Set<number>): string {
+  // NOTE: This is exposed for testing only
+  public formatLines(lines: Set<number>): string {
     if (lines.size === 0) {
       return "-";
     }
@@ -432,9 +429,8 @@ export class CoverageManagerImplementation implements CoverageManager {
     return [intervals.join(sep), suffix].join(suffixSep);
   }
 
-  #getMarkdownReport(): string {
-    const report = this.#getReport();
-
+  // NOTE: This is exposed for testing only
+  public formatMarkdownReport(report: Report): string {
     let totalExecutedLines = 0;
     let totalExecutableLines = 0;
 
@@ -477,11 +473,11 @@ export class CoverageManagerImplementation implements CoverageManager {
         totalExecutableStatements += tagExecutionCounts.size;
 
         const row: string[] = [
-          this.#formatSource(source),
-          this.#formatCoverage(lineCoverage),
-          this.#formatCoverage(statementCoverage),
-          this.#formatLines(unexecutedLines),
-          this.#formatLines(partiallyExecutedLines),
+          this.formatSource(source),
+          this.formatCoverage(lineCoverage),
+          this.formatCoverage(statementCoverage),
+          this.formatLines(unexecutedLines),
+          this.formatLines(partiallyExecutedLines),
         ];
 
         return row;

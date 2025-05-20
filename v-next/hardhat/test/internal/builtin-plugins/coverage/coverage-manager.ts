@@ -1,3 +1,4 @@
+import type { Report } from "../../../../src/internal/builtin-plugins/coverage/coverage-manager.js";
 import type {
   CoverageData,
   CoverageMetadata,
@@ -13,6 +14,87 @@ import { CoverageManagerImplementation } from "../../../../src/internal/builtin-
 
 describe("CoverageManagerImplementation", () => {
   const id = "test";
+  const metadata: CoverageMetadata = [
+    {
+      sourceName: "test",
+      tag: "a",
+      startLine: 1,
+      endLine: 3,
+    },
+    {
+      sourceName: "test",
+      tag: "b",
+      startLine: 5,
+      endLine: 5,
+    },
+    {
+      sourceName: "test",
+      tag: "c",
+      startLine: 5,
+      endLine: 6,
+    },
+    {
+      sourceName: "test",
+      tag: "d",
+      startLine: 1,
+      endLine: 2,
+    },
+    {
+      sourceName: "other",
+      tag: "e",
+      startLine: 1,
+      endLine: 2,
+    },
+  ];
+  const data: CoverageData = ["a", "b", "d", "a", "a", "d"];
+  const report: Report = {
+    test: {
+      tagExecutionCounts: new Map([
+        ["a", 3],
+        ["b", 1],
+        ["d", 2],
+        ["c", 0],
+      ]),
+      lineExecutionCounts: new Map([
+        [1, 5],
+        [2, 5],
+        [3, 3],
+        [5, 1],
+        [6, 0],
+      ]),
+      branchExecutionCounts: new Map([
+        [[1, "a"], 3],
+        [[2, "a"], 3],
+        [[3, "a"], 3],
+        [[5, "b"], 1],
+        [[1, "d"], 2],
+        [[2, "d"], 2],
+        [[5, "c"], 0],
+        [[6, "c"], 0],
+      ]),
+      executedTagsCount: 3,
+      executedLinesCount: 4,
+      executedBranchesCount: 6,
+      partiallyExecutedLines: new Set([5]),
+      unexecutedLines: new Set([6]),
+    },
+    other: {
+      tagExecutionCounts: new Map([["e", 0]]),
+      lineExecutionCounts: new Map([
+        [1, 0],
+        [2, 0],
+      ]),
+      branchExecutionCounts: new Map([
+        [[1, "e"], 0],
+        [[2, "e"], 0],
+      ]),
+      executedTagsCount: 0,
+      executedLinesCount: 0,
+      executedBranchesCount: 0,
+      partiallyExecutedLines: new Set(),
+      unexecutedLines: new Set([1, 2]),
+    },
+  };
 
   let coverageManager: CoverageManagerImplementation;
 
@@ -27,10 +109,10 @@ describe("CoverageManagerImplementation", () => {
     const data1: CoverageData = ["a", "b", "c"];
     const data2: CoverageData = ["1", "2", "3"];
 
-    const metadata: CoverageMetadata = [];
+    const allMetadata: CoverageMetadata = [];
 
     for (const item of [...data1, ...data2]) {
-      metadata.push({
+      allMetadata.push({
         sourceName: "test",
         tag: item,
         startLine: 1,
@@ -38,7 +120,7 @@ describe("CoverageManagerImplementation", () => {
       });
     }
 
-    await coverageManager.addMetadata(metadata);
+    await coverageManager.addMetadata(allMetadata);
 
     const coverageManager1 = new CoverageManagerImplementation(process.cwd());
     const coverageManager2 = new CoverageManagerImplementation(process.cwd());
@@ -51,10 +133,13 @@ describe("CoverageManagerImplementation", () => {
 
     await coverageManager.loadData(id);
 
-    const data = coverageManager.data;
+    const allData = coverageManager.data;
 
     for (const item of [...data1, ...data2]) {
-      assert.ok(data.includes(item), `The loaded data should include ${item}`);
+      assert.ok(
+        allData.includes(item),
+        `The loaded data should include ${item}`,
+      );
     }
   });
 
@@ -79,66 +164,176 @@ describe("CoverageManagerImplementation", () => {
     await coverageManager.addMetadata(metadata1);
     await coverageManager.addMetadata(metadata2);
 
-    const metadata = coverageManager.metadata;
+    const allMetadata = coverageManager.metadata;
 
     for (const item of [...metadata1, ...metadata2]) {
       assert.ok(
-        metadata.some((i) => i.tag === item.tag),
+        allMetadata.some((i) => i.tag === item.tag),
         `The loaded metadata should include ${item.tag}`,
       );
     }
   });
 
   it("should clear the data from memory", async () => {
-    await coverageManager.addData(["a", "b", "c"]);
+    await coverageManager.addData(data);
 
-    let data = coverageManager.data;
+    let allData = coverageManager.data;
 
-    assert.ok(data.length !== 0, "The data should be saved to memory");
+    assert.ok(allData.length !== 0, "The data should be saved to memory");
 
     await coverageManager.clearData(id);
 
-    data = coverageManager.data;
+    allData = coverageManager.data;
 
-    assert.ok(data.length === 0, "The data should be cleared from memory");
+    assert.ok(allData.length === 0, "The data should be cleared from memory");
   });
 
   it("should clear the data from disk", async () => {
-    await coverageManager.addData(["a", "b", "c"]);
+    await coverageManager.addData(data);
     await coverageManager.saveData(id);
 
-    let data = await getAllFilesMatching(process.cwd());
+    let allData = await getAllFilesMatching(process.cwd());
 
-    assert.ok(data.length !== 0, "The data should be saved to disk");
+    assert.ok(allData.length !== 0, "The data should be saved to disk");
 
     await coverageManager.clearData(id);
 
-    data = await getAllFilesMatching(process.cwd());
+    allData = await getAllFilesMatching(process.cwd());
 
-    assert.ok(data.length === 0, "The data should be cleared from disk");
+    assert.ok(allData.length === 0, "The data should be cleared from disk");
   });
 
   it("should not clear the metadata", async () => {
-    await coverageManager.addMetadata([
-      {
-        sourceName: "test",
-        tag: "test",
-        startLine: 1,
-        endLine: 1,
-      },
-    ]);
+    await coverageManager.addMetadata(metadata);
 
-    let metadata = coverageManager.metadata;
+    let allMetadata = coverageManager.metadata;
 
-    assert.ok(metadata.length !== 0, "The metadata should be saved to memory");
+    assert.ok(
+      allMetadata.length !== 0,
+      "The metadata should be saved to memory",
+    );
 
     await coverageManager.clearData(id);
 
-    metadata = coverageManager.metadata;
+    allMetadata = coverageManager.metadata;
 
     assert.ok(
-      metadata.length !== 0,
+      allMetadata.length !== 0,
       "The metadata should not be cleared from memory",
     );
   });
+
+  it("should process data and metadata", async () => {
+    await coverageManager.addMetadata(metadata);
+    await coverageManager.addData(data);
+
+    const actual = coverageManager.getReport();
+
+    assert.deepEqual(actual, report);
+  });
+
+  it("should format the lcov report", async () => {
+    const actual = coverageManager.formatLcovReport(report);
+    const expected = [
+      "TN:",
+      "SF:test",
+      "BRDA:1,0,a,3",
+      "BRDA:2,0,a,3",
+      "BRDA:3,0,a,3",
+      "BRDA:5,0,b,1",
+      "BRDA:1,0,d,2",
+      "BRDA:2,0,d,2",
+      "BRDA:5,0,c,-",
+      "BRDA:6,0,c,-",
+      "BRH:6",
+      "BRF:8",
+      "DA:1,5",
+      "DA:2,5",
+      "DA:3,3",
+      "DA:5,1",
+      "DA:6,0",
+      "LH:4",
+      "LF:5",
+      "end_of_record",
+      "SF:other",
+      "BRDA:1,0,e,-",
+      "BRDA:2,0,e,-",
+      "BRH:0",
+      "BRF:2",
+      "DA:1,0",
+      "DA:2,0",
+      "LH:0",
+      "LF:2",
+      "end_of_record",
+      "",
+    ].join("\n");
+    assert.equal(actual, expected);
+  });
+
+  it("should format the markdown report", async () => {
+    const actual = coverageManager.formatMarkdownReport(report);
+    const expected = [
+      "| Source Name 📦 | Line % 📈 | Statement % 📈 | Uncovered Lines 🔍 | Partially Covered Lines 🔍 |",
+      "| -------------- | --------- | -------------- | ------------------ | -------------------------- |",
+      "| test           | 80.00     | 75.00          | 6                  | 5                          |",
+      "| other          | 0.00      | 0.00           | 1-2                | -                          |",
+      "| -------------- | --------- | -------------- | ------------------ | -------------------------- |",
+      "| Total          | 57.14     | 60.00          |                    |                            |",
+    ].join("\n");
+    assert.equal(actual, expected);
+  });
+
+  const expectedSource: Array<[string, string]> = [
+    ["", ""],
+    ["test.sol", "test.sol"],
+    ["contracts/test.sol", "contracts/test.sol"],
+    [
+      "a/very/very/very/very/long/path/that/should/be/truncated/to/fit/in/the/table/test.sol",
+      "…/very/very/long/path/that/should/be/truncated/to/fit/in/the/table/test.sol",
+    ],
+  ];
+
+  for (const [source, expected] of expectedSource) {
+    it(`should format the source (${source})`, async () => {
+      const actual = coverageManager.formatSource(source);
+      assert.equal(actual, expected);
+    });
+  }
+
+  const expectedCoverage: Array<[number, string]> = [
+    [0, "0.00"],
+    [12.5, "12.50"],
+    [20.75, "20.75"],
+    [33.333, "33.33"],
+    [66.666, "66.67"],
+    [100, "100.00"],
+  ];
+
+  for (const [coverage, expected] of expectedCoverage) {
+    it(`should format the coverage (${coverage})`, async () => {
+      const actual = coverageManager.formatCoverage(coverage);
+      assert.equal(actual, expected);
+    });
+  }
+
+  const expectedLines: Array<[Set<number>, string]> = [
+    [new Set(), "-"],
+    [new Set([1, 2, 3]), "1-3"],
+    [new Set([1, 2, 3, 5, 7, 8, 9]), "1-3, 5, 7-9"],
+    [new Set([1, 3, 5]), "1, 3, 5"],
+    [
+      new Set([
+        1, 2, 4, 5, 7, 8, 10, 11, 13, 14, 16, 17, 19, 20, 22, 23, 25, 26, 28,
+        29, 31, 32, 34, 35, 37, 38, 40, 41,
+      ]),
+      "1-2, 4-5, 7-8, 10-11, 13-14, 16-17, 19-20, 22-23, 25-26, 28-29, 31-32, 34-35,…",
+    ],
+  ];
+
+  for (const [lines, expected] of expectedLines) {
+    it(`should format the lines (${Array.from(lines).join(", ")})`, async () => {
+      const actual = coverageManager.formatLines(lines);
+      assert.equal(actual, expected);
+    });
+  }
 });
