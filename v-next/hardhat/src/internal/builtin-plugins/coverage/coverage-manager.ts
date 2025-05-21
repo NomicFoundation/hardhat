@@ -360,7 +360,7 @@ export class CoverageManagerImplementation implements CoverageManager {
         partsLength +
           part.length +
           prefix.length +
-          (parts.length + 2) * path.sep.length <=
+          (parts.length + 1) * path.sep.length <=
         MAX_COLUMN_WIDTH
       ) {
         parts.push(part);
@@ -416,13 +416,13 @@ export class CoverageManagerImplementation implements CoverageManager {
     const suffixSep = ",";
     const suffix = "…";
 
-    if (intervalsLength + intervals.length * sep.length <= MAX_COLUMN_WIDTH) {
+    if (intervalsLength + (intervals.length - 1) * sep.length <= MAX_COLUMN_WIDTH) {
       return intervals.join(sep);
     }
 
     while (
       intervalsLength +
-        intervals.length * sep.length +
+        (intervals.length - 1) * sep.length +
         suffix.length +
         suffixSep.length >
       MAX_COLUMN_WIDTH
