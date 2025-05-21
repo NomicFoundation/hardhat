@@ -34,7 +34,8 @@
     "./types/user-interruptions": "./dist/src/types/user-interruptions.js",
     "./types/utils": "./dist/src/types/utils.js",
     "./types/solidity": "./dist/src/types/solidity.js",
-    "./console.sol": "./console.sol"
+    "./console.sol": "./console.sol",
+    "./utils/contract-names": "./dist/src/utils/contract-names.js"
   },
   "keywords": [
     "ethereum",
