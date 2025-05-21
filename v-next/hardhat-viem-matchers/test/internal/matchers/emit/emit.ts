@@ -42,6 +42,21 @@ describe("emit", () => {
     );
   });
 
+  it("should throw because the event does not exists in the ABI", async () => {
+    const contract = await viem.deployContract("Events");
+
+    await assertRejects(
+      viem.assertions.emit(contract.write.doNotEmit(), contract, "NotExists"),
+      (error) =>
+        isExpectedError(
+          error,
+          `Event "NotExists" not found in the contract ABI`,
+          false,
+          true,
+        ),
+    );
+  });
+
   it("should throw because no event was emitted", async () => {
     const contract = await viem.deployContract("Events");
 

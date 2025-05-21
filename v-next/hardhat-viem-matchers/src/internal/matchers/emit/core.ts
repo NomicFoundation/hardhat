@@ -5,6 +5,7 @@ import type {
 } from "@nomicfoundation/hardhat-viem/types";
 import type { ChainType } from "hardhat/types/network";
 import type {
+  AbiEvent,
   ContractEventName,
   ReadContractReturnType,
   WriteContractReturnType,
@@ -24,6 +25,16 @@ export async function handleEmit<
   contract: ContractReturnType<ContractName>,
   eventName: EventName,
 ): Promise<Array<{ args?: Record<string, any> }>> {
+  const abiEvents: AbiEvent[] = contract.abi.filter(
+    (item): item is AbiEvent =>
+      item.type === "event" && item.name === eventName,
+  );
+
+  assert.ok(
+    abiEvents.length !== 0,
+    `Event "${eventName}" not found in the contract ABI`,
+  );
+
   await contractFn;
 
   const publicClient = await viem.getPublicClient();

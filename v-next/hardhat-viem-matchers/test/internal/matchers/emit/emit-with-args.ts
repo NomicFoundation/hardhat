@@ -54,6 +54,70 @@ describe("emitWithArgs", () => {
     );
   });
 
+  describe("same events with different args", () => {
+    it("should handle same events with one uint as args", async () => {
+      const contract = await viem.deployContract("Events");
+
+      await viem.assertions.emitWithArgs(
+        contract.write.emitSameEventDifferentArgs1([1n]),
+        contract,
+        "SameEventDifferentArgs",
+        [1n],
+      );
+    });
+
+    it("should handle same events with two uint and one string as args", async () => {
+      const contract = await viem.deployContract("Events");
+
+      await viem.assertions.emitWithArgs(
+        contract.write.emitSameEventDifferentArgs3([1n, 2n, "hello"]),
+        contract,
+        "SameEventDifferentArgs",
+        [1n, 2n, "hello"],
+      );
+    });
+
+    it("should throw because we do not support same events with multiple args", async () => {
+      const contract = await viem.deployContract("Events");
+
+      await assertRejects(
+        viem.assertions.emitWithArgs(
+          contract.write.emitSameEventDifferentArgs2([1n, 2n]),
+          contract,
+          "SameEventDifferentArgs",
+          [1n, 2n],
+        ),
+        (error) =>
+          isExpectedError(
+            error,
+            `There are multiple events named "SameEventDifferentArgs" that accepts 2 input arguments. This scenario is currently not supported.`,
+            false,
+            true,
+          ),
+      );
+    });
+
+    it("should throw because the expected args length does not match with the event", async () => {
+      const contract = await viem.deployContract("Events");
+
+      await assertRejects(
+        viem.assertions.emitWithArgs(
+          contract.write.emitSameEventDifferentArgs3([1n, 2n, "hello"]),
+          contract,
+          "SameEventDifferentArgs",
+          [1n, 2n, 3n, 4n],
+        ),
+        (error) =>
+          isExpectedError(
+            error,
+            `Event "SameEventDifferentArgs" with argument count 4 not found in the contract ABI`,
+            false,
+            true,
+          ),
+      );
+    });
+  });
+
   it("should not throw if no args are passed and nothing is emitted", async () => {
     const contract = await viem.deployContract("Events");
 
@@ -78,7 +142,7 @@ describe("emitWithArgs", () => {
       (error) =>
         isExpectedError(
           error,
-          `The event arguments do not match the expected ones.`,
+          "The event arguments do not match the expected ones.",
           [1n],
           [2n],
         ),
@@ -98,7 +162,7 @@ describe("emitWithArgs", () => {
       (error) =>
         isExpectedError(
           error,
-          `The event arguments do not match the expected ones.`,
+          "The event arguments do not match the expected ones.",
           [1n, 2n],
           [2n, "hello"],
         ),

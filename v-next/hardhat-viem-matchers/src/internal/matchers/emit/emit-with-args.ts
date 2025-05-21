@@ -5,6 +5,7 @@ import type {
 } from "@nomicfoundation/hardhat-viem/types";
 import type { ChainType } from "hardhat/types/network";
 import type {
+  AbiEvent,
   ContractEventName,
   ReadContractReturnType,
   WriteContractReturnType,
@@ -27,51 +28,51 @@ export async function emitWithArgs<
   eventName: EventName,
   args: any[],
 ): Promise<void> {
-  const parsedLogs = await handleEmit(viem, contractFn, contract, eventName);
+  let abiEvents: AbiEvent[] = contract.abi.filter(
+    (item): item is AbiEvent =>
+      item.type === "event" &&
+      item.name === eventName &&
+      item.inputs.length === args.length,
+  );
 
   assert.ok(
-    "args" in parsedLogs[0],
-    `No args in the event logs, are you sure you are targeting an event with args?`,
+    abiEvents.length !== 0,
+    `Event "${eventName}" with argument count ${args.length} not found in the contract ABI`,
   );
 
-  const abiEvents = contract.abi.filter(
-    (item) => item.type === "event" && item.name === eventName,
+  assert.ok(
+    abiEvents.length === 1,
+    `There are multiple events named "${eventName}" that accepts ${args.length} input arguments. This scenario is currently not supported.`,
   );
 
-  assert.notEqual(
-    abiEvents.length,
-    0,
-    `Event "${eventName}" not found in the contract ABI`,
-  );
-
-  assert.equal(
-    abiEvents.length,
-    1,
-    `There should be only one event named "${eventName}" in the contract ABI`,
-  );
-
-  const abiEvent = abiEvents[0];
-
-  assertHardhatInvariant(
-    "inputs" in abiEvent,
-    `No args in the event abi, are you sure you are targeting an event with args?`,
-  );
+  const parsedLogs = await handleEmit(viem, contractFn, contract, eventName);
 
   const emittedArgs: any[] = [];
-
   if (args.length > 0) {
-    assertHardhatInvariant(
-      parsedLogs[0].args !== undefined,
-      `There should be args in the event logs`,
+    const parsedLog = parsedLogs[0].args;
+    assert.ok(
+      parsedLog !== undefined,
+      `No arguments in the event logs, are you sure you are targeting an event with arguments?`,
     );
 
+    const abiEvent = abiEvents[0];
+
+    let parsedLogCount = 0;
     for (const [index, param] of abiEvent.inputs.entries()) {
       assertHardhatInvariant(
         param.name !== undefined,
         `The event parameter at index ${index} does not have a name`,
       );
 
-      emittedArgs.push(parsedLogs[0].args[param.name]);
+      emittedArgs.push(parsedLog[param.name]);
+
+      parsedLogCount++;
+    }
+
+    if (parsedLogCount !== Object.keys(parsedLog).length) {
+      assert.fail(
+        `The provided event "${eventName}" expects ${args.length} arguments, but the emitted event contains ${Object.keys(parsedLog).length}.`,
+      );
     }
   }
 

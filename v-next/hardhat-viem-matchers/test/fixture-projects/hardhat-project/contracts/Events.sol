@@ -5,6 +5,10 @@ contract Events {
   event WithoutArgs();
   event WithIntArg(int i);
   event WithTwoUintArgs(uint u, uint v);
+  event SameEventDifferentArgs(uint u);
+  event SameEventDifferentArgs(uint u, uint v);
+  event SameEventDifferentArgs(uint u, string s);
+  event SameEventDifferentArgs(uint u, uint v, string s);
 
   constructor() {}
 
@@ -20,5 +24,17 @@ contract Events {
 
   function emitTwoUints(uint u, uint v) public {
     emit WithTwoUintArgs(u, v);
+  }
+
+  function emitSameEventDifferentArgs1(uint u) public {
+    emit SameEventDifferentArgs(u);
+  }
+
+  function emitSameEventDifferentArgs2(uint u, string memory s) public {
+    emit SameEventDifferentArgs(u, s);
+  }
+
+  function emitSameEventDifferentArgs3(uint u, uint v, string memory s) public {
+    emit SameEventDifferentArgs(u, v, s);
   }
 }
