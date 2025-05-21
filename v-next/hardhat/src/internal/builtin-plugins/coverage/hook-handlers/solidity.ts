@@ -56,12 +56,15 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
         for (const m of metadata) {
           switch (m.kind) {
             case "statement":
+              const relativePath = path.relative(
+                context.config.paths.root,
+                fsPath,
+              );
               const tag = m.tag.toString("hex");
               const startLine = lineNumbers[m.startUtf16];
               const endLine = lineNumbers[m.endUtf16 - 1];
               coverageMetadata.push({
-                sourceName,
-                fsPath,
+                relativePath,
                 tag,
                 startLine,
                 endLine,

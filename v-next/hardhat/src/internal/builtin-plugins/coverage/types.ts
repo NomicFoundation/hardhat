@@ -1,7 +1,6 @@
 export type Tag = string;
 export interface Statement {
-  sourceName: string;
-  fsPath: string;
+  relativePath: string;
   tag: Tag;
   startLine: number;
   endLine: number;

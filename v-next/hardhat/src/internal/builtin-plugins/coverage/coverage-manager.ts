@@ -28,7 +28,7 @@ type Branch = [Line, Tag];
 
 // NOTE: This is exposed for testing only
 export interface Report {
-  [sourceName: string]: {
+  [relativePath: string]: {
     tagExecutionCounts: Map<Tag, number>;
     lineExecutionCounts: Map<Line, number>;
     branchExecutionCounts: Map<Branch, number>;
@@ -134,7 +134,7 @@ export class CoverageManagerImplementation implements CoverageManager {
   public getReport(): Report {
     const report: Report = {};
 
-    const sourceNames = this.metadata.map(({ sourceName }) => sourceName);
+    const relativePaths = this.metadata.map(({ relativePath }) => relativePath);
 
     const allStatements = this.metadata;
 
@@ -146,17 +146,20 @@ export class CoverageManagerImplementation implements CoverageManager {
 
     const allExecutedTags = this.data;
 
-    const allExecutedStatementsBySource = new Map<string, Statement[]>();
+    const allExecutedStatementsByRelativePath = new Map<string, Statement[]>();
     for (const tag of allExecutedTags) {
       // NOTE: We should not encounter an executed tag we don't have metadata for.
       const statement = statementsByTag.get(tag);
       assertHardhatInvariant(statement !== undefined, "Expected a statement");
 
-      const source = statement.sourceName;
+      const relativePath = statement.relativePath;
       const allExecutedStatements =
-        allExecutedStatementsBySource.get(source) ?? [];
+        allExecutedStatementsByRelativePath.get(relativePath) ?? [];
       allExecutedStatements.push(statement);
-      allExecutedStatementsBySource.set(source, allExecutedStatements);
+      allExecutedStatementsByRelativePath.set(
+        relativePath,
+        allExecutedStatements,
+      );
     }
 
     const uniqueExecutedTags = new Set(allExecutedTags);
@@ -164,24 +167,30 @@ export class CoverageManagerImplementation implements CoverageManager {
       (tag) => !uniqueExecutedTags.has(tag),
     );
 
-    const uniqueUnexecutedStatementsBySource = new Map<string, Statement[]>();
+    const uniqueUnexecutedStatementsByRelativePath = new Map<
+      string,
+      Statement[]
+    >();
     for (const tag of uniqueUnexecutedTags) {
       // NOTE: We cannot encounter an executed tag we don't have metadata for.
       const statement = statementsByTag.get(tag);
       assertHardhatInvariant(statement !== undefined, "Expected a statement");
 
-      const source = statement.sourceName;
+      const relativePath = statement.relativePath;
       const unexecutedStatements =
-        uniqueUnexecutedStatementsBySource.get(source) ?? [];
+        uniqueUnexecutedStatementsByRelativePath.get(relativePath) ?? [];
       unexecutedStatements.push(statement);
-      uniqueUnexecutedStatementsBySource.set(source, unexecutedStatements);
+      uniqueUnexecutedStatementsByRelativePath.set(
+        relativePath,
+        unexecutedStatements,
+      );
     }
 
-    for (const source of sourceNames) {
+    for (const relativePath of relativePaths) {
       const allExecutedStatements =
-        allExecutedStatementsBySource.get(source) ?? [];
+        allExecutedStatementsByRelativePath.get(relativePath) ?? [];
       const uniqueUnexecutedStatements =
-        uniqueUnexecutedStatementsBySource.get(source) ?? [];
+        uniqueUnexecutedStatementsByRelativePath.get(relativePath) ?? [];
 
       const tagExecutionCounts = new Map<Tag, number>();
 
@@ -244,7 +253,7 @@ export class CoverageManagerImplementation implements CoverageManager {
         }
       }
 
-      report[source] = {
+      report[relativePath] = {
         tagExecutionCounts,
         lineExecutionCounts,
         branchExecutionCounts,
@@ -281,7 +290,7 @@ export class CoverageManagerImplementation implements CoverageManager {
     // SF:<path to the source file>
 
     for (const [
-      source,
+      relativePath,
       {
         branchExecutionCounts,
         executedBranchesCount,
@@ -289,7 +298,7 @@ export class CoverageManagerImplementation implements CoverageManager {
         executedLinesCount,
       },
     ] of Object.entries(report)) {
-      lcov += `SF:${source}\n`;
+      lcov += `SF:${relativePath}\n`;
 
       // NOTE: We report statement coverage as branches to get partial line coverage
       // data in tools parsing the lcov files. This is because the lcov format
@@ -333,20 +342,20 @@ export class CoverageManagerImplementation implements CoverageManager {
   }
 
   // NOTE: This is exposed for testing only
-  public formatSource(source: string): string {
-    if (source.length <= MAX_COLUMN_WIDTH) {
-      return source;
+  public formatRelativePath(relativePath: string): string {
+    if (relativePath.length <= MAX_COLUMN_WIDTH) {
+      return relativePath;
     }
 
     const prefix = "…";
 
-    const sourceParts = source.split(path.sep);
+    const pathParts = relativePath.split(path.sep);
 
-    const parts = [sourceParts[sourceParts.length - 1]];
+    const parts = [pathParts[pathParts.length - 1]];
     let partsLength = parts[0].length;
 
-    for (let i = sourceParts.length - 2; i >= 0; i--) {
-      const part = sourceParts[i];
+    for (let i = pathParts.length - 2; i >= 0; i--) {
+      const part = pathParts[i];
       if (
         partsLength +
           part.length +
@@ -438,7 +447,7 @@ export class CoverageManagerImplementation implements CoverageManager {
     let totalExecutableStatements = 0;
 
     const headerRow = [
-      "Source Name 📦",
+      "File Path 📦",
       "Line % 📈",
       "Statement % 📈",
       "Uncovered Lines 🔍",
@@ -447,7 +456,7 @@ export class CoverageManagerImplementation implements CoverageManager {
 
     const rows = Object.entries(report).map(
       ([
-        source,
+        relativePath,
         {
           tagExecutionCounts,
           lineExecutionCounts,
@@ -473,7 +482,7 @@ export class CoverageManagerImplementation implements CoverageManager {
         totalExecutableStatements += tagExecutionCounts.size;
 
         const row: string[] = [
-          this.formatSource(source),
+          this.formatRelativePath(relativePath),
           this.formatCoverage(lineCoverage),
           this.formatCoverage(statementCoverage),
           this.formatLines(unexecutedLines),

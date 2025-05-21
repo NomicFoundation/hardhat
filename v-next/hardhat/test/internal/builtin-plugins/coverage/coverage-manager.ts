@@ -16,36 +16,31 @@ describe("CoverageManagerImplementation", () => {
   const id = "test";
   const metadata: CoverageMetadata = [
     {
-      sourceName: "test",
-      fsPath: "test",
+      relativePath: "contracts/test.sol",
       tag: "a",
       startLine: 1,
       endLine: 3,
     },
     {
-      sourceName: "test",
-      fsPath: "test",
+      relativePath: "contracts/test.sol",
       tag: "b",
       startLine: 5,
       endLine: 5,
     },
     {
-      sourceName: "test",
-      fsPath: "test",
+      relativePath: "contracts/test.sol",
       tag: "c",
       startLine: 5,
       endLine: 6,
     },
     {
-      sourceName: "test",
-      fsPath: "test",
+      relativePath: "contracts/test.sol",
       tag: "d",
       startLine: 1,
       endLine: 2,
     },
     {
-      sourceName: "other",
-      fsPath: "other",
+      relativePath: "contracts/other.sol",
       tag: "e",
       startLine: 1,
       endLine: 2,
@@ -53,7 +48,7 @@ describe("CoverageManagerImplementation", () => {
   ];
   const data: CoverageData = ["a", "b", "d", "a", "a", "d"];
   const report: Report = {
-    test: {
+    "contracts/test.sol": {
       tagExecutionCounts: new Map([
         ["a", 3],
         ["b", 1],
@@ -83,7 +78,7 @@ describe("CoverageManagerImplementation", () => {
       partiallyExecutedLines: new Set([5]),
       unexecutedLines: new Set([6]),
     },
-    other: {
+    "contracts/other.sol": {
       tagExecutionCounts: new Map([["e", 0]]),
       lineExecutionCounts: new Map([
         [1, 0],
@@ -118,8 +113,7 @@ describe("CoverageManagerImplementation", () => {
 
     for (const item of [...data1, ...data2]) {
       allMetadata.push({
-        sourceName: "test",
-        fsPath: "test",
+        relativePath: "contracts/test.sol",
         tag: item,
         startLine: 1,
         endLine: 1,
@@ -152,8 +146,7 @@ describe("CoverageManagerImplementation", () => {
   it("should store all the metadata", async () => {
     const metadata1: CoverageMetadata = [
       {
-        sourceName: "test1",
-        fsPath: "test1",
+        relativePath: "contracts/test1.sol",
         tag: "test1",
         startLine: 1,
         endLine: 1,
@@ -161,8 +154,7 @@ describe("CoverageManagerImplementation", () => {
     ];
     const metadata2: CoverageMetadata = [
       {
-        sourceName: "test2",
-        fsPath: "test2",
+        relativePath: "contracts/test2.sol",
         tag: "test2",
         startLine: 1,
         endLine: 1,
@@ -244,7 +236,7 @@ describe("CoverageManagerImplementation", () => {
     const actual = coverageManager.formatLcovReport(report);
     const expected = [
       "TN:",
-      "SF:test",
+      "SF:contracts/test.sol",
       "BRDA:1,0,a,3",
       "BRDA:2,0,a,3",
       "BRDA:3,0,a,3",
@@ -263,7 +255,7 @@ describe("CoverageManagerImplementation", () => {
       "LH:4",
       "LF:5",
       "end_of_record",
-      "SF:other",
+      "SF:contracts/other.sol",
       "BRDA:1,0,e,-",
       "BRDA:2,0,e,-",
       "BRH:0",
@@ -281,17 +273,17 @@ describe("CoverageManagerImplementation", () => {
   it("should format the markdown report", async () => {
     const actual = coverageManager.formatMarkdownReport(report);
     const expected = [
-      "| Source Name 📦 | Line % 📈 | Statement % 📈 | Uncovered Lines 🔍 | Partially Covered Lines 🔍 |",
-      "| -------------- | --------- | -------------- | ------------------ | -------------------------- |",
-      "| test           | 80.00     | 75.00          | 6                  | 5                          |",
-      "| other          | 0.00      | 0.00           | 1-2                | -                          |",
-      "| -------------- | --------- | -------------- | ------------------ | -------------------------- |",
-      "| Total          | 57.14     | 60.00          |                    |                            |",
+      "| File Path 📦        | Line % 📈 | Statement % 📈 | Uncovered Lines 🔍 | Partially Covered Lines 🔍 |",
+      "| ------------------- | --------- | -------------- | ------------------ | -------------------------- |",
+      "| contracts/test.sol  | 80.00     | 75.00          | 6                  | 5                          |",
+      "| contracts/other.sol | 0.00      | 0.00           | 1-2                | -                          |",
+      "| ------------------- | --------- | -------------- | ------------------ | -------------------------- |",
+      "| Total               | 57.14     | 60.00          |                    |                            |",
     ].join("\n");
     assert.equal(actual, expected);
   });
 
-  const expectedSource: Array<[string, string]> = [
+  const expectedRelativePath: Array<[string, string]> = [
     ["", ""],
     ["test.sol", "test.sol"],
     ["contracts/test.sol", "contracts/test.sol"],
@@ -301,9 +293,9 @@ describe("CoverageManagerImplementation", () => {
     ],
   ];
 
-  for (const [source, expected] of expectedSource) {
-    it(`should format the source (${source})`, async () => {
-      const actual = coverageManager.formatSource(source);
+  for (const [relativePath, expected] of expectedRelativePath) {
+    it(`should format the relative path (${relativePath})`, async () => {
+      const actual = coverageManager.formatRelativePath(relativePath);
       assert.equal(actual, expected);
     });
   }
