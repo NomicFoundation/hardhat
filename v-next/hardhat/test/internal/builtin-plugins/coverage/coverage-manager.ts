@@ -5,6 +5,7 @@ import type {
 } from "../../../../src/internal/builtin-plugins/coverage/types.js";
 
 import assert from "node:assert/strict";
+import path from "node:path";
 import { beforeEach, describe, it } from "node:test";
 
 import { disableConsole, useTmpDir } from "@nomicfoundation/hardhat-test-utils";
@@ -295,8 +296,10 @@ describe("CoverageManagerImplementation", () => {
 
   for (const [relativePath, expected] of expectedRelativePath) {
     it(`should format the relative path (${relativePath})`, async () => {
-      const actual = coverageManager.formatRelativePath(relativePath);
-      assert.equal(actual, expected);
+      const actual = coverageManager.formatRelativePath(
+        relativePath.replaceAll("/", path.sep),
+      );
+      assert.equal(actual, expected.replaceAll("/", path.sep));
     });
   }
 
