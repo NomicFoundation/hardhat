@@ -313,11 +313,12 @@ describe("CompilationJobImplementation", () => {
           preprocessProjectFileBeforeBuilding: async (
             context,
             sourceName,
+            fsPath,
             _fileContent,
             solcVersion,
             next,
           ) => {
-            return next(context, sourceName, "test", solcVersion);
+            return next(context, sourceName, fsPath, "test", solcVersion);
           },
         });
         assert.notEqual(
@@ -471,6 +472,7 @@ describe("CompilationJobImplementation", () => {
 
     describe("with preprocessProjectFileBeforeBuilding hook", () => {
       let name: string | undefined;
+      let path: string | undefined;
       let content: string;
       let version: string | undefined;
 
@@ -483,6 +485,7 @@ describe("CompilationJobImplementation", () => {
           preprocessProjectFileBeforeBuilding: async (
             context,
             sourceName,
+            fsPath,
             _fileContent,
             solcVersion,
             next,
@@ -490,6 +493,7 @@ describe("CompilationJobImplementation", () => {
             return next(
               context,
               name ?? sourceName,
+              path ?? fsPath,
               content,
               version ?? solcVersion,
             );
@@ -522,6 +526,20 @@ describe("CompilationJobImplementation", () => {
             hookCategoryName: "solidity",
             hookName: "preprocessProjectFileBeforeBuilding",
             paramName: "sourceName",
+          },
+        );
+      });
+
+      it("should throw when the fs path is modified", async () => {
+        path = "newPath";
+
+        await assertRejectsWithHardhatError(
+          compilationJob.getSolcInput(),
+          HardhatError.ERRORS.CORE.HOOKS.UNEXPECTED_HOOK_PARAM_MODIFICATION,
+          {
+            hookCategoryName: "solidity",
+            hookName: "preprocessProjectFileBeforeBuilding",
+            paramName: "fsPath",
           },
         );
       });

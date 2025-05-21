@@ -20,6 +20,7 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
   preprocessProjectFileBeforeBuilding: async (
     context,
     sourceName,
+    fsPath,
     fileContent,
     solcVersion,
     next,
@@ -27,12 +28,8 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
     // NOTE: We do not want to instrument the test project files as we don't
     // want to report coverage for them.
     const isTestSource =
-      sourceName.startsWith(
-        path.relative(
-          context.config.paths.root,
-          context.config.paths.tests.solidity,
-        ),
-      ) || sourceName.endsWith(".t.sol");
+      fsPath.startsWith(context.config.paths.tests.solidity) ||
+      fsPath.endsWith(".t.sol");
 
     if (context.globalOptions.coverage && !isTestSource) {
       try {
@@ -84,7 +81,7 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
           unsafelyCastAsHardhatRuntimeEnvironmentImplementation(context);
         await hreImplementation._coverage.addMetadata(coverageMetadata);
 
-        return await next(context, sourceName, source, solcVersion);
+        return await next(context, sourceName, fsPath, source, solcVersion);
       } catch (e) {
         ensureError(e);
 
@@ -99,7 +96,7 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
         );
       }
     } else {
-      return next(context, sourceName, fileContent, solcVersion);
+      return next(context, sourceName, fsPath, fileContent, solcVersion);
     }
   },
   preprocessSolcInputBeforeBuilding: async (context, solcInput, next) => {
