@@ -478,6 +478,7 @@ describe("CompilationJobImplementation", () => {
 
       beforeEach(() => {
         name = undefined;
+        path = undefined;
         content = "test";
         version = undefined;
 

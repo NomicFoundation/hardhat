@@ -289,7 +289,7 @@ describe("CoverageManagerImplementation", () => {
     ["contracts/test.sol", "contracts/test.sol"],
     [
       "a/very/very/very/very/long/path/that/should/be/truncated/to/fit/in/the/table/test.sol",
-      "…/very/very/long/path/that/should/be/truncated/to/fit/in/the/table/test.sol",
+      "…/very/very/very/long/path/that/should/be/truncated/to/fit/in/the/table/test.sol",
     ],
   ];
 

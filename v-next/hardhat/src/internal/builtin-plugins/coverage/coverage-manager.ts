@@ -416,7 +416,10 @@ export class CoverageManagerImplementation implements CoverageManager {
     const suffixSep = ",";
     const suffix = "…";
 
-    if (intervalsLength + (intervals.length - 1) * sep.length <= MAX_COLUMN_WIDTH) {
+    if (
+      intervalsLength + (intervals.length - 1) * sep.length <=
+      MAX_COLUMN_WIDTH
+    ) {
       return intervals.join(sep);
     }
 
