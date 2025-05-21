@@ -28,7 +28,7 @@ export async function emitWithArgs<
   eventName: EventName,
   args: any[],
 ): Promise<void> {
-  let abiEvents: AbiEvent[] = contract.abi.filter(
+  const abiEvents: AbiEvent[] = contract.abi.filter(
     (item): item is AbiEvent =>
       item.type === "event" &&
       item.name === eventName &&
