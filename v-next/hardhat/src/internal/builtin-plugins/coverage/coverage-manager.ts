@@ -504,8 +504,8 @@ export class CoverageManagerImplementation implements CoverageManager {
 
     const footerRow = [
       "Total",
-      totalLineCoverage.toFixed(2).toString(),
-      totalStatementCoverage.toFixed(2).toString(),
+      this.formatCoverage(totalLineCoverage),
+      this.formatCoverage(totalStatementCoverage),
       "",
       "",
     ];
