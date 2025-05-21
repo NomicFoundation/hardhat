@@ -17,30 +17,35 @@ describe("CoverageManagerImplementation", () => {
   const metadata: CoverageMetadata = [
     {
       sourceName: "test",
+      fsPath: "test",
       tag: "a",
       startLine: 1,
       endLine: 3,
     },
     {
       sourceName: "test",
+      fsPath: "test",
       tag: "b",
       startLine: 5,
       endLine: 5,
     },
     {
       sourceName: "test",
+      fsPath: "test",
       tag: "c",
       startLine: 5,
       endLine: 6,
     },
     {
       sourceName: "test",
+      fsPath: "test",
       tag: "d",
       startLine: 1,
       endLine: 2,
     },
     {
       sourceName: "other",
+      fsPath: "other",
       tag: "e",
       startLine: 1,
       endLine: 2,
@@ -114,6 +119,7 @@ describe("CoverageManagerImplementation", () => {
     for (const item of [...data1, ...data2]) {
       allMetadata.push({
         sourceName: "test",
+        fsPath: "test",
         tag: item,
         startLine: 1,
         endLine: 1,
@@ -147,6 +153,7 @@ describe("CoverageManagerImplementation", () => {
     const metadata1: CoverageMetadata = [
       {
         sourceName: "test1",
+        fsPath: "test1",
         tag: "test1",
         startLine: 1,
         endLine: 1,
@@ -155,6 +162,7 @@ describe("CoverageManagerImplementation", () => {
     const metadata2: CoverageMetadata = [
       {
         sourceName: "test2",
+        fsPath: "test2",
         tag: "test2",
         startLine: 1,
         endLine: 1,

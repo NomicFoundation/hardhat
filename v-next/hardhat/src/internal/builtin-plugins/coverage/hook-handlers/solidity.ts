@@ -61,6 +61,7 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
               const endLine = lineNumbers[m.endUtf16 - 1];
               coverageMetadata.push({
                 sourceName,
+                fsPath,
                 tag,
                 startLine,
                 endLine,
