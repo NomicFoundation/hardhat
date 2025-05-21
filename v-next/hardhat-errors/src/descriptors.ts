@@ -274,6 +274,24 @@ export const ERROR_CATEGORIES: {
       },
     },
   },
+  HARDHAT_VERIFY: {
+    min: 80000,
+    max: 89999,
+    pluginId: "hardhat-verify",
+    websiteTitle: "Hardhat Verify",
+    CATEGORIES: {
+      GENERAL: {
+        min: 80000,
+        max: 80099,
+        websiteSubTitle: "General errors",
+      },
+      VALIDATION: {
+        min: 80100,
+        max: 80199,
+        websiteSubTitle: "Validation errors",
+      },
+    },
+  },
 };
 
 export const ERRORS = {
@@ -413,6 +431,14 @@ Please add the property "type" with the value "module" in your package.json to e
         messageTemplate: `Invalid hex string "{value}"`,
         websiteTitle: "Invalid hex string",
         websiteDescription: `Given value was not a valid hex string.`,
+      },
+      INVALID_FULLY_QUALIFIED_NAME: {
+        number: 19,
+        messageTemplate: `Invalid fully qualified contract name "{name}"`,
+        websiteTitle: "Invalid fully qualified contract name",
+        websiteDescription: `A contract name was expected to be in fully qualified form, but it's not.
+
+A fully qualified name should look like file.sol:Contract`,
       },
     },
     INTERNAL: {
@@ -1859,14 +1885,14 @@ Please double check the error you are getting when running Hardhat Ignition, and
       },
       KNOWN_TRANSACTION: {
         number: 11304,
-        messageTemplate: `The transaction hash that you provided was already present in your deployment. 
+        messageTemplate: `The transaction hash that you provided was already present in your deployment.
 Please double check the error you are getting when running Hardhat Ignition, and the instructions it's providing.`,
         websiteTitle: "Known transaction",
         websiteDescription: `The transaction hash that you provided was already present in your deployment.`,
       },
       INSUFFICIENT_CONFIRMATIONS: {
         number: 11305,
-        messageTemplate: `The transaction you provided doesn't have enough confirmations yet. 
+        messageTemplate: `The transaction you provided doesn't have enough confirmations yet.
 Please try again later.`,
         websiteTitle: "Insufficient confirmations",
         websiteDescription: `The transaction you provided doesn't have enough confirmations yet.`,
@@ -2339,6 +2365,65 @@ This might be caused by using hardhat_reset and loadFixture calls in a testcase.
           "withArgs called with both .emit and .revertedWithCustomError, but these assertions cannot be combined",
         websiteDescription:
           "withArgs called with both .emit and .revertedWithCustomError, but these assertions cannot be combined",
+      },
+    },
+  },
+  HARDHAT_VERIFY: {
+    GENERAL: {},
+    VALIDATION: {
+      INVALID_ADDRESS: {
+        number: 80100,
+        messageTemplate: `"{value}" is not a valid address`,
+        websiteTitle: "Invalid address",
+        websiteDescription: "The value is not a valid address",
+      },
+      MUTUALLY_EXCLUSIVE_CONSTRUCTOR_ARGS: {
+        number: 80101,
+        messageTemplate:
+          "The parameters constructorArgs and constructorArgsPath are mutually exclusive.",
+        websiteTitle: "Mutually exclusive constructor arguments",
+        websiteDescription:
+          "The parameters constructorArgs and constructorArgsPath are mutually exclusive. Please provide only one of them.",
+      },
+      INVALID_CONSTRUCTOR_ARGS_MODULE_EXPORT: {
+        number: 80102,
+        messageTemplate: `The module specified by "{constructorArgsPath}" must default export an array of constructor arguments.`,
+        websiteTitle: "Invalid constructor arguments module",
+        websiteDescription: `The module specified by the constructorArgsPath parameter must default export an array of constructor arguments.
+
+Example:
+
+export default ["arg1", "arg2", ...];`,
+      },
+      MODULE_NOT_FOUND: {
+        number: 80103,
+        messageTemplate: `The module specified by "{modulePath}" could not be found.`,
+        websiteTitle: "Module not found",
+        websiteDescription:
+          "The specified module could not be found. Please check the path and try again.",
+      },
+      MODULE_SYNTAX_ERROR: {
+        number: 80104,
+        messageTemplate: `The module specified by "{modulePath}" has a syntax error: {errorMessage}`,
+        websiteTitle: "Module syntax error",
+        websiteDescription:
+          "The specified module has a syntax error. Please fix the error and try again.",
+      },
+      IMPORT_MODULE_FAILED: {
+        number: 80105,
+        messageTemplate: `The module specified by "{modulePath}" could not be imported: {errorMessage}`,
+        websiteTitle: "Import module failed",
+        websiteDescription: "The specified module could not be imported.",
+      },
+      INVALID_LIBRARIES_MODULE_EXPORT: {
+        number: 80106,
+        messageTemplate: `The module specified by "{librariesPath}" must default export a record of libraries.`,
+        websiteTitle: "Invalid libraries module",
+        websiteDescription: `The module specified by the librariesPath parameter must default export a record of libraries.
+
+Example:
+
+export default { lib1: "0x...", lib2: "0x...", ... };`,
       },
     },
   },

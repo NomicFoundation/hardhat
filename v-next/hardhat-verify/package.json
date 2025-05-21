@@ -58,6 +58,8 @@
     "typescript": "~5.5.0"
   },
   "dependencies": {
+    "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.8",
+    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.8",
     "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.0-next.8",
     "zod": "^3.23.8"
   },

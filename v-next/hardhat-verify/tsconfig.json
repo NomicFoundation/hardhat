@@ -5,10 +5,16 @@
       "path": "../hardhat"
     },
     {
+      "path": "../hardhat-errors"
+    },
+    {
       "path": "../hardhat-node-test-reporter"
     },
     {
       "path": "../hardhat-test-utils"
+    },
+    {
+      "path": "../hardhat-utils"
     },
     {
       "path": "../hardhat-zod-utils"

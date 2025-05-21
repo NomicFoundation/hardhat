@@ -1,7 +1,7 @@
-import type { VerifyActionArguments } from "./types.js";
+import type { VerifyActionArgs } from "./types.js";
 import type { NewTaskActionFunction } from "hardhat/types/tasks";
 
-const verifyAction: NewTaskActionFunction<VerifyActionArguments> = async (
+const verifyAction: NewTaskActionFunction<VerifyActionArgs> = async (
   taskArgs,
   hre,
 ) => {

@@ -1,9 +1,18 @@
-export interface VerifyActionArguments {
+export interface VerifyActionArgs {
   address: string;
+  constructorArgs: string[];
   constructorArgsPath?: string;
-  constructorArgs?: string[];
   contract?: string;
   librariesPath?: string;
   force?: boolean;
-  listNetworks?: boolean;
+  // TODO: M5
+  // listNetworks?: boolean;
+}
+
+export interface VerifyActionResolvedArgs {
+  address: string;
+  constructorArgs: string[];
+  contract?: string;
+  libraries: Record<string, string>;
+  force?: boolean;
 }
