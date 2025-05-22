@@ -11,6 +11,6 @@
     "@types/node": "^22.8.5",
     "forge-std": "foundry-rs/forge-std#v1.9.4",
     "typescript": "~5.5.0",
-    "viem": "^2.21.42"
+    "viem": "^2.30.0"
   }
 }
