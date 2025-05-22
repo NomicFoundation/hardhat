@@ -9,6 +9,7 @@ import { URL } from "node:url";
 import { hardhatTestReporter } from "@nomicfoundation/hardhat-node-test-reporter";
 import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
 import { createNonClosingWriter } from "@nomicfoundation/hardhat-utils/stream";
+import { markTestRunStart, markTestRunDone } from "hardhat/internal/coverage";
 
 interface TestActionArguments {
   testFiles: string[];
@@ -66,8 +67,25 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
     return 0;
   }
 
+  const imports = [];
+
   const tsx = new URL(import.meta.resolve("tsx/esm"));
-  process.env.NODE_OPTIONS = `--import "${tsx.href}"`;
+  imports.push(tsx.href);
+
+  if (hre.globalOptions.coverage === true) {
+    // NOTE: We set the HARDHAT_COVERAGE environment variable here because, as of now,
+    // the global options are not automatically passed to the child processes.
+    process.env.HARDHAT_COVERAGE = "true";
+
+    const coverage = new URL(
+      import.meta.resolve("@nomicfoundation/hardhat-node-test-runner/coverage"),
+    );
+    imports.push(coverage.href);
+  }
+
+  process.env.NODE_OPTIONS = imports
+    .map((href) => `--import "${href}"`)
+    .join(" ");
 
   async function runTests(): Promise<number> {
     let failures = 0;
@@ -106,7 +124,12 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
     return failures;
   }
 
+  await markTestRunStart("node");
+
   const testFailures = await runTests();
+
+  // NOTE: This might print a coverage report.
+  await markTestRunDone("node");
 
   if (testFailures > 0) {
     process.exitCode = 1;

@@ -7,6 +7,11 @@ import { fileURLToPath } from "node:url";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
+import {
+  markTestRunDone,
+  markTestRunStart,
+  markTestWorkerDone,
+} from "hardhat/internal/coverage";
 
 interface TestActionArguments {
   testFiles: string[];
@@ -93,9 +98,16 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   // which supports both ESM and CJS
   await mocha.loadFilesAsync();
 
+  await markTestRunStart("mocha");
+
   const testFailures = await new Promise<number>((resolve) => {
     mocha.run(resolve);
   });
+
+  // NOTE: We execute mocha tests in the main process.
+  await markTestWorkerDone("mocha");
+  // NOTE: This might print a coverage report.
+  await markTestRunDone("mocha");
 
   if (testFailures > 0) {
     process.exitCode = 1;

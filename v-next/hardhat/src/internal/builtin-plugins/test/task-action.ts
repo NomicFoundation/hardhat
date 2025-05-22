@@ -1,7 +1,12 @@
 import type { HookManager } from "../../../types/hooks.js";
 import type { NewTaskActionFunction, Task } from "../../../types/tasks.js";
 
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import {
+  assertHardhatInvariant,
+  HardhatError,
+} from "@nomicfoundation/hardhat-errors";
+
+import { HardhatRuntimeEnvironmentImplementation } from "../../core/hre.js";
 
 interface TestActionArguments {
   testFiles: string[];
@@ -27,6 +32,14 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
     console.log();
   }
 
+  if (hre.globalOptions.coverage === true) {
+    assertHardhatInvariant(
+      hre instanceof HardhatRuntimeEnvironmentImplementation,
+      "Expected HRE to be an instance of HardhatRuntimeEnvironmentImplementation",
+    );
+    hre._coverage.disableReport();
+  }
+
   for (const subtask of thisTask.subtasks.values()) {
     const files = getTestFilesForSubtask(subtask, testFiles, subtasksToFiles);
 
@@ -41,6 +54,17 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
     } else {
       await subtask.run({ testFiles: files });
     }
+  }
+
+  if (hre.globalOptions.coverage === true) {
+    assertHardhatInvariant(
+      hre instanceof HardhatRuntimeEnvironmentImplementation,
+      "Expected HRE to be an instance of HardhatRuntimeEnvironmentImplementation",
+    );
+    const ids = Array.from(thisTask.subtasks.keys());
+    hre._coverage.enableReport();
+    await hre._coverage.report(...ids);
+    console.log();
   }
 
   if (process.exitCode !== undefined && process.exitCode !== 0) {
