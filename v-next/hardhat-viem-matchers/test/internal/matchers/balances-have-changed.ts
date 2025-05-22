@@ -1,5 +1,4 @@
 import type { HardhatViemHelpers } from "@nomicfoundation/hardhat-viem/types";
-import type { EthereumProvider } from "hardhat/types/providers";
 
 import { beforeEach, describe, it } from "node:test";
 
@@ -12,19 +11,13 @@ import { isExpectedError } from "../../helpers/is-expected-error.js";
 
 describe("balancesHaveChanged", () => {
   let viem: HardhatViemHelpers;
-  let provider: EthereumProvider;
 
   beforeEach(async () => {
     const hre = await createHardhatRuntimeEnvironment({
       plugins: [hardhatViem, hardhatViemMatchers],
     });
 
-    ({ viem, provider } = await hre.network.connect());
-
-    // There is a bug in Viem where block 0 does not function properly. To avoid this issue, start from a non-zero block
-    await provider.request({
-      method: "hardhat_mine",
-    });
+    ({ viem } = await hre.network.connect());
   });
 
   it("should check that a single balances has changed", async () => {
