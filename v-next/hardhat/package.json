@@ -61,7 +61,6 @@
     "src/",
     "templates/",
     "console.sol",
-    "coverage.sol",
     "CHANGELOG.md",
     "LICENSE",
     "README.md"
