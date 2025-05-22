@@ -1,17 +1,20 @@
 /* eslint-disable no-restricted-syntax -- This is the entry point of a
 subprocess, so we need to allow of top-level await here */
-import type { Event } from "@sentry/node";
+import type { Event } from "@sentry/core";
 
 import { writeJsonFile } from "@nomicfoundation/hardhat-utils/fs";
-import { captureEvent, captureMessage, init } from "@sentry/node";
+import { captureEvent, captureMessage } from "@sentry/core";
 
 import { Anonymizer } from "./anonymizer.js";
+import { init } from "./init.js";
 import { SENTRY_DSN } from "./reporter.js";
+import { makeFetchTransport } from "./transports/fetch.js";
 
 try {
   init({
     dsn: SENTRY_DSN,
     serverName: "<user-server>",
+    transport: makeFetchTransport,
   });
 } catch (_error) {
   process.exit(1);
