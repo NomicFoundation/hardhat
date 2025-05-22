@@ -1,28 +1,6 @@
-import type { HookContext } from "../../../types/hooks.js";
-import type { HardhatRuntimeEnvironmentImplementation } from "../../core/hre.js";
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 
-import { getOrCreateGlobalHardhatRuntimeEnvironment } from "../../hre-initialization.js";
-
-/**
- * This function unsafely casts HardhatRuntimeEnvironment to the internal
- * HardhatRuntimeEnvironmentImplementation. We use it to access hre fields
- * that we don't want to be exposed publicly through the HardhatRuntimeEnvironment
- * interface.
- *
- * The use of this function should be limited to a minimum as it is inherently
- * unsafe.
- *
- * @param context An instance of HookContext i.e. HardhatRuntimeEnvironment
- * @returns A typed instance of HardhatRuntimeEnvironmentImplementation
- */
-export function unsafelyCastAsHardhatRuntimeEnvironmentImplementation(
-  context: HookContext,
-): HardhatRuntimeEnvironmentImplementation {
-  const hre =
-    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- we know this is the right implementation */
-    context as HardhatRuntimeEnvironmentImplementation;
-  return hre;
-}
+import { HardhatRuntimeEnvironmentImplementation } from "../../core/hre.js";
 
 /**
  * NOTE: The following helpers interact with the global HRE instance only;
@@ -33,28 +11,34 @@ export function unsafelyCastAsHardhatRuntimeEnvironmentImplementation(
  */
 
 export async function markTestRunStart(id: string): Promise<void> {
-  const hre = await getOrCreateGlobalHardhatRuntimeEnvironment();
+  const { default: hre } = await import("../../../index.js");
   if (hre.globalOptions.coverage === true) {
-    const hreImplementation =
-      unsafelyCastAsHardhatRuntimeEnvironmentImplementation(hre);
-    await hreImplementation._coverage.clearData(id);
+    assertHardhatInvariant(
+      hre instanceof HardhatRuntimeEnvironmentImplementation,
+      "Expected HRE to be an instance of HardhatRuntimeEnvironmentImplementation",
+    );
+    await hre._coverage.clearData(id);
   }
 }
 
 export async function markTestWorkerDone(id: string): Promise<void> {
-  const hre = await getOrCreateGlobalHardhatRuntimeEnvironment();
+  const { default: hre } = await import("../../../index.js");
   if (hre.globalOptions.coverage === true) {
-    const hreImplementation =
-      unsafelyCastAsHardhatRuntimeEnvironmentImplementation(hre);
-    await hreImplementation._coverage.saveData(id);
+    assertHardhatInvariant(
+      hre instanceof HardhatRuntimeEnvironmentImplementation,
+      "Expected HRE to be an instance of HardhatRuntimeEnvironmentImplementation",
+    );
+    await hre._coverage.saveData(id);
   }
 }
 
 export async function markTestRunDone(id: string): Promise<void> {
-  const hre = await getOrCreateGlobalHardhatRuntimeEnvironment();
+  const { default: hre } = await import("../../../index.js");
   if (hre.globalOptions.coverage === true) {
-    const hreImplementation =
-      unsafelyCastAsHardhatRuntimeEnvironmentImplementation(hre);
-    await hreImplementation._coverage.report(id);
+    assertHardhatInvariant(
+      hre instanceof HardhatRuntimeEnvironmentImplementation,
+      "Expected HRE to be an instance of HardhatRuntimeEnvironmentImplementation",
+    );
+    await hre._coverage.report(id);
   }
 }

@@ -1,9 +1,12 @@
 import type { HookManager } from "../../../types/hooks.js";
 import type { NewTaskActionFunction, Task } from "../../../types/tasks.js";
 
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import {
+  assertHardhatInvariant,
+  HardhatError,
+} from "@nomicfoundation/hardhat-errors";
 
-import { unsafelyCastAsHardhatRuntimeEnvironmentImplementation } from "../coverage/helpers.js";
+import { HardhatRuntimeEnvironmentImplementation } from "../../core/hre.js";
 
 interface TestActionArguments {
   testFiles: string[];
@@ -30,9 +33,11 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
   }
 
   if (hre.globalOptions.coverage === true) {
-    const hreImplementation =
-      unsafelyCastAsHardhatRuntimeEnvironmentImplementation(hre);
-    hreImplementation._coverage.disableReport();
+    assertHardhatInvariant(
+      hre instanceof HardhatRuntimeEnvironmentImplementation,
+      "Expected HRE to be an instance of HardhatRuntimeEnvironmentImplementation",
+    );
+    hre._coverage.disableReport();
   }
 
   for (const subtask of thisTask.subtasks.values()) {
@@ -52,11 +57,13 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
   }
 
   if (hre.globalOptions.coverage === true) {
-    const hreImplementation =
-      unsafelyCastAsHardhatRuntimeEnvironmentImplementation(hre);
+    assertHardhatInvariant(
+      hre instanceof HardhatRuntimeEnvironmentImplementation,
+      "Expected HRE to be an instance of HardhatRuntimeEnvironmentImplementation",
+    );
     const ids = Array.from(thisTask.subtasks.keys());
-    hreImplementation._coverage.enableReport();
-    await hreImplementation._coverage.report(...ids);
+    hre._coverage.enableReport();
+    await hre._coverage.report(...ids);
     console.log();
   }
 

@@ -4,12 +4,15 @@ import type { CoverageMetadata } from "../types.js";
 import path from "node:path";
 
 import { addStatementCoverageInstrumentation } from "@ignored/edr-optimism";
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import {
+  assertHardhatInvariant,
+  HardhatError,
+} from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { readUtf8File } from "@nomicfoundation/hardhat-utils/fs";
 import debug from "debug";
 
-import { unsafelyCastAsHardhatRuntimeEnvironmentImplementation } from "../helpers.js";
+import { CoverageManagerImplementation } from "../coverage-manager.js";
 
 const log = debug("hardhat:core:coverage:hook-handlers:solidity");
 
@@ -79,11 +82,13 @@ export default async (): Promise<Partial<SolidityHooks>> => ({
           }
         }
 
-        // NOTE: We need to cast the hre to the internal HardhatRuntimeEnvironmentImplementation
-        // because the coverage manager (hre._coverage) is not exposed via the public interface
-        const hreImplementation =
-          unsafelyCastAsHardhatRuntimeEnvironmentImplementation(context);
-        await hreImplementation._coverage.addMetadata(coverageMetadata);
+        assertHardhatInvariant(
+          "_coverage" in context &&
+            context._coverage instanceof CoverageManagerImplementation,
+          "Expected _coverage to be defined in the HookContext, as it's should be defined in the HRE",
+        );
+
+        await context._coverage.addMetadata(coverageMetadata);
 
         return await next(context, sourceName, fsPath, source, solcVersion);
       } catch (e) {
