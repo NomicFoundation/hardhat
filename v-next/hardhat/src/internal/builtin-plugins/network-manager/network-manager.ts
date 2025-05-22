@@ -225,10 +225,12 @@ export class NetworkManagerImplementation implements NetworkManager {
         );
         if (shouldEnableCoverage) {
           coverageConfig = {
-            onCollectedCoverageCallback: (coverageData: Buffer[]) => {
+            onCollectedCoverageCallback: (coverageData: Uint8Array[]) => {
               // NOTE: We cast the tag we receive from EDR to a hex string to
               // make it easier to debug.
-              const tags = coverageData.map((tag) => tag.toString("hex"));
+              const tags = coverageData.map((tag) =>
+                Buffer.from(tag).toString("hex"),
+              );
               void hookManager.runParallelHandlers(
                 "network",
                 "onCoverageData",

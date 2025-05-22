@@ -1,3 +1,3 @@
 export interface CoverageConfig {
-  onCollectedCoverageCallback: (coverageData: Buffer[]) => void;
+  onCollectedCoverageCallback: (coverageData: Uint8Array[]) => void;
 }
