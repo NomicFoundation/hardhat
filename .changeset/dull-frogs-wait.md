@@ -5,4 +5,4 @@
 "hardhat": patch
 ---
 
-Implemented a mechanism to automatically run tests using the appropriate test runner when none is explicitly specified
+Delegate from `npx hardhat test` to appropriate test runner when file test path provided ([#6616](https://github.com/NomicFoundation/hardhat/issues/6616))
