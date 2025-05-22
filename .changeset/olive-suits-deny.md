@@ -2,4 +2,4 @@
 "hardhat": patch
 ---
 
-Ignore top-level `.json` files the `artifacts` folder, as those are never actual artifacts.
+Fix to ignore top-level `.json` files in the `artifacts` folder, as those are never actual artifacts ([#6613](https://github.com/NomicFoundation/hardhat/issues/6613))
