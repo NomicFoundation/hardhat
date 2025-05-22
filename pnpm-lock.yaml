@@ -1185,6 +1185,9 @@ importers:
       '@nomicfoundation/hardhat-viem':
         specifier: workspace:^3.0.0-next.11
         version: link:../hardhat-viem
+      '@nomicfoundation/hardhat-viem-matchers':
+        specifier: workspace:^3.0.0-next.11
+        version: link:../hardhat-viem-matchers
       '@nomicfoundation/ignition-core':
         specifier: workspace:^3.0.0-next.11
         version: link:../hardhat-ignition-core
