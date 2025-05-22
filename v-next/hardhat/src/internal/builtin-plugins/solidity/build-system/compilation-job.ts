@@ -88,33 +88,29 @@ export class CompilationJobImplementation implements CompilationJob {
         return this.#hooks.runHandlerChain(
           "solidity",
           "preprocessProjectFileBeforeBuilding",
-          [file.sourceName, file.content.text, this.solcConfig.version],
+          [file.sourceName, file.fsPath, file.content.text, solcVersion],
           async (
             _context,
             nextSourceName,
+            nextFsPath,
             nextFileContent,
             nextSolcVersion,
           ) => {
-            if (file.sourceName !== nextSourceName) {
-              throw new HardhatError(
-                HardhatError.ERRORS.CORE.HOOKS.UNEXPECTED_HOOK_PARAM_MODIFICATION,
-                {
-                  hookCategoryName: "solidity",
-                  hookName: "preprocessProjectFileBeforeBuilding",
-                  paramName: "sourceName",
-                },
-              );
-            }
-
-            if (solcVersion !== nextSolcVersion) {
-              throw new HardhatError(
-                HardhatError.ERRORS.CORE.HOOKS.UNEXPECTED_HOOK_PARAM_MODIFICATION,
-                {
-                  hookCategoryName: "solidity",
-                  hookName: "preprocessProjectFileBeforeBuilding",
-                  paramName: "solcVersion",
-                },
-              );
+            for (const [paramName, expectedParamValue, actualParamValue] of [
+              ["sourceName", file.sourceName, nextSourceName],
+              ["fsPath", file.fsPath, nextFsPath],
+              ["solcVersion", solcVersion, nextSolcVersion],
+            ]) {
+              if (expectedParamValue !== actualParamValue) {
+                throw new HardhatError(
+                  HardhatError.ERRORS.CORE.HOOKS.UNEXPECTED_HOOK_PARAM_MODIFICATION,
+                  {
+                    hookCategoryName: "solidity",
+                    hookName: "preprocessProjectFileBeforeBuilding",
+                    paramName,
+                  },
+                );
+              }
             }
 
             return nextFileContent;

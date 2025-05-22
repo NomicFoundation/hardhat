@@ -32,26 +32,29 @@ export function unsafelyCastAsHardhatRuntimeEnvironmentImplementation(
  * - We know the HRE has been initialized by the time they are used.
  */
 
-export async function clearCoverageData(): Promise<void> {
+export async function markTestRunStart(id: string): Promise<void> {
   const hre = await getOrCreateGlobalHardhatRuntimeEnvironment();
-  const hreImplementation =
-    unsafelyCastAsHardhatRuntimeEnvironmentImplementation(hre);
-
-  await hreImplementation._coverage.clearData();
+  if (hre.globalOptions.coverage === true) {
+    const hreImplementation =
+      unsafelyCastAsHardhatRuntimeEnvironmentImplementation(hre);
+    await hreImplementation._coverage.clearData(id);
+  }
 }
 
-export async function saveCoverageData(): Promise<void> {
+export async function markTestWorkerDone(id: string): Promise<void> {
   const hre = await getOrCreateGlobalHardhatRuntimeEnvironment();
-  const hreImplementation =
-    unsafelyCastAsHardhatRuntimeEnvironmentImplementation(hre);
-
-  await hreImplementation._coverage.saveData();
+  if (hre.globalOptions.coverage === true) {
+    const hreImplementation =
+      unsafelyCastAsHardhatRuntimeEnvironmentImplementation(hre);
+    await hreImplementation._coverage.saveData(id);
+  }
 }
 
-export async function loadCoverageData(): Promise<void> {
+export async function markTestRunDone(id: string): Promise<void> {
   const hre = await getOrCreateGlobalHardhatRuntimeEnvironment();
-  const hreImplementation =
-    unsafelyCastAsHardhatRuntimeEnvironmentImplementation(hre);
-
-  await hreImplementation._coverage.loadData();
+  if (hre.globalOptions.coverage === true) {
+    const hreImplementation =
+      unsafelyCastAsHardhatRuntimeEnvironmentImplementation(hre);
+    await hreImplementation._coverage.report(id);
+  }
 }

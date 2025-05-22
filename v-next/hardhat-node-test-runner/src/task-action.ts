@@ -9,7 +9,7 @@ import { URL } from "node:url";
 import { hardhatTestReporter } from "@nomicfoundation/hardhat-node-test-reporter";
 import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
 import { createNonClosingWriter } from "@nomicfoundation/hardhat-utils/stream";
-import { clearCoverageData, loadCoverageData } from "hardhat/internal/coverage";
+import { markTestRunStart, markTestRunDone } from "hardhat/internal/coverage";
 
 interface TestActionArguments {
   testFiles: string[];
@@ -77,10 +77,6 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
     // the global options are not automatically passed to the child processes.
     process.env.HARDHAT_COVERAGE = "true";
 
-    // NOTE: Coverage data needs to be cleared before the test run to ensure
-    // we collect only the data for this test run.
-    await clearCoverageData();
-
     const coverage = new URL(
       import.meta.resolve("@nomicfoundation/hardhat-node-test-runner/coverage"),
     );
@@ -128,14 +124,12 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
     return failures;
   }
 
+  await markTestRunStart("node");
+
   const testFailures = await runTests();
 
-  if (hre.globalOptions.coverage === true) {
-    // NOTE: For now, we only load the coverage data from all the test workers
-    // into the memory. The next step would be to request and display the report
-    // built from the loaded data.
-    await loadCoverageData();
-  }
+  // NOTE: This might print a coverage report.
+  await markTestRunDone("node");
 
   if (testFailures > 0) {
     process.exitCode = 1;

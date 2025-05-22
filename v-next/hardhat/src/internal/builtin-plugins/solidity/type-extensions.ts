@@ -131,11 +131,13 @@ declare module "../../../types/hooks.js" {
     preprocessProjectFileBeforeBuilding(
       context: HookContext,
       sourceName: string,
+      fsPath: string,
       fileContent: string,
       solcVersion: string,
       next: (
         nextContext: HookContext,
         nextSourceName: string,
+        nextFsPath: string,
         nextFileContent: string,
         nextSolcVersion: string,
       ) => Promise<string>,

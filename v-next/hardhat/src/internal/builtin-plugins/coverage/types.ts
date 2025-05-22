@@ -1,15 +1,21 @@
-export type CoverageMetadata = Array<{
-  sourceName: string;
-  tag: string;
-  kind: string;
-  startUtf16: number;
-  endUtf16: number;
-}>;
-export type CoverageData = string[];
+export type Tag = string;
+export interface Statement {
+  relativePath: string;
+  tag: Tag;
+  startLine: number;
+  endLine: number;
+}
+export type CoverageMetadata = Statement[];
+export type CoverageData = Tag[];
 export interface CoverageManager {
   addData(data: CoverageData): Promise<void>;
-  saveData(): Promise<void>;
-  loadData(): Promise<void>;
-  clearData(): Promise<void>;
   addMetadata(metadata: CoverageMetadata): Promise<void>;
+
+  clearData(id: string): Promise<void>;
+  saveData(id: string): Promise<void>;
+
+  report(...ids: string[]): Promise<void>;
+
+  enableReport(): void;
+  disableReport(): void;
 }

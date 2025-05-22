@@ -3,6 +3,8 @@ import type { NewTaskActionFunction, Task } from "../../../types/tasks.js";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
+import { unsafelyCastAsHardhatRuntimeEnvironmentImplementation } from "../coverage/helpers.js";
+
 interface TestActionArguments {
   testFiles: string[];
   noCompile: boolean;
@@ -27,6 +29,12 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
     console.log();
   }
 
+  if (hre.globalOptions.coverage === true) {
+    const hreImplementation =
+      unsafelyCastAsHardhatRuntimeEnvironmentImplementation(hre);
+    hreImplementation._coverage.disableReport();
+  }
+
   for (const subtask of thisTask.subtasks.values()) {
     const files = getTestFilesForSubtask(subtask, testFiles, subtasksToFiles);
 
@@ -41,6 +49,15 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
     } else {
       await subtask.run({ testFiles: files });
     }
+  }
+
+  if (hre.globalOptions.coverage === true) {
+    const hreImplementation =
+      unsafelyCastAsHardhatRuntimeEnvironmentImplementation(hre);
+    const ids = Array.from(thisTask.subtasks.keys());
+    hreImplementation._coverage.enableReport();
+    await hreImplementation._coverage.report(...ids);
+    console.log();
   }
 
   if (process.exitCode !== undefined && process.exitCode !== 0) {
