@@ -2369,7 +2369,18 @@ This might be caused by using hardhat_reset and loadFixture calls in a testcase.
     },
   },
   HARDHAT_VERIFY: {
-    GENERAL: {},
+    GENERAL: {
+      NETWORK_NOT_SUPPORTED: {
+        number: 80000,
+        messageTemplate: `The network "{networkName}" with chain id "{chainId}" is not supported.`,
+        websiteTitle: "Network not supported",
+        websiteDescription: `The network is not supported by hardhat-verify. To see the list of supported networks, run:
+
+  npx hardhat verify --list-networks
+
+To add support for a new network, see https://hardhat.org/verify-custom-networks`,
+      },
+    },
     VALIDATION: {
       INVALID_ADDRESS: {
         number: 80100,
