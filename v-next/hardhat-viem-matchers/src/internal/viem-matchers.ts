@@ -1,7 +1,4 @@
-import type {
-  HardhatViemMatchers,
-  HardhatViemMatchersUtils,
-} from "../types.js";
+import type { HardhatViemMatchers } from "../types.js";
 import type {
   ContractAbis,
   ContractReturnType,
@@ -23,7 +20,6 @@ import { revertWithCustomErrorWithArgs } from "./matchers/revert/revert-with-cus
 import { revertWithCustomError } from "./matchers/revert/revert-with-custom-error.js";
 import { revertWith } from "./matchers/revert/revert-with.js";
 import { revert } from "./matchers/revert/revert.js";
-import { HardhatViemMatchersUtilsImpl } from "./viem-matchers-utils.js";
 
 export class HardhatViemMatchersImpl<
   ChainTypeT extends ChainType | string = "generic",
@@ -31,11 +27,8 @@ export class HardhatViemMatchersImpl<
 {
   readonly #viem: HardhatViemHelpers<ChainTypeT>;
 
-  public readonly utils: HardhatViemMatchersUtils;
-
   constructor(viem: HardhatViemHelpers<ChainTypeT>) {
     this.#viem = viem;
-    this.utils = new HardhatViemMatchersUtilsImpl();
   }
 
   public async balancesHaveChanged(

@@ -11,8 +11,6 @@ import type {
 } from "viem";
 
 export interface HardhatViemMatchers {
-  utils: HardhatViemMatchersUtils;
-
   balancesHaveChanged: (
     resolvedTxHash: Promise<Hash>,
     changes: Array<{
@@ -65,12 +63,6 @@ export interface HardhatViemMatchers {
     customErrorName: string,
     args: any[],
   ): Promise<void>;
-}
-
-export interface HardhatViemMatchersUtils {
-  areApproximatelyEqual(n1: bigint, n2: bigint, variance: bigint): void;
-  properAddress: (address: string) => void;
-  properChecksumAddress: (address: string) => Promise<void>;
 }
 
 type CompiledContractName = [keyof ContractAbis] extends [never]
