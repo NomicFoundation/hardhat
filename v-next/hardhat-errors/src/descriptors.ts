@@ -121,6 +121,11 @@ export const ERROR_CATEGORIES: {
         max: 1299,
         websiteSubTitle: "Hardhat test plugin errors",
       },
+      COVERAGE: {
+        min: 1300,
+        max: 1399,
+        websiteSubTitle: "Hardhat coverage errors",
+      },
     },
   },
   IGNITION: {
@@ -477,6 +482,12 @@ Please install a version of the peer dependency that meets the plugin's requirem
           'Plugin "{pluginId}" hook factory for "{hookCategoryName}" is not a valid file:// URL: {path}.',
         websiteTitle: "Plugin hook factory is not a valid file URL",
         websiteDescription: `The loading of a plugin's hook factory failed as the import path is not a valid file:// URL.`,
+      },
+      UNEXPECTED_HOOK_PARAM_MODIFICATION: {
+        number: 301,
+        messageTemplate: `Parameter "{paramName}" of hook "{hookCategoryName}#{hookName}" is not allowed to be modified`,
+        websiteTitle: "Unexpected hook parameter modification",
+        websiteDescription: `The parameter is not allowed to be modified`,
       },
     },
     TASK_DEFINITIONS: {
@@ -1225,6 +1236,20 @@ Please use the fully qualified name of the contract to disambiguate it.`,
         messageTemplate: `Cannot determine a test runner for the following files: {files}. Please check whether these files are correctly included in the test paths defined by your test plugins in the Hardhat configuration. If they are, this likely indicates an issue with a plugin not correctly detecting the files.`,
         websiteTitle: "Cannot determine a test runner for files",
         websiteDescription: `Cannot determine a test runner for the test files. This may be because the files are not correctly included in the test paths defined by the test plugins in the Hardhat configuration. If they are correctly included, this likely indicates an issue with a plugin failing to detect the files.`,
+      },
+    },
+    COVERAGE: {
+      SOURCE_NOT_INSTRUMENTED: {
+        number: 1300,
+        messageTemplate: `The source file "{sourceName}" could not be instrumented for coverage.`,
+        websiteTitle: "Source file not instrumented for coverage",
+        websiteDescription: `The source file could not be instrumented for coverage.`,
+      },
+      IMPORT_PATH_ALREADY_DEFINED: {
+        number: 1301,
+        messageTemplate: `The import path "{importPath}" is already defined in the compilation sources`,
+        websiteTitle: "Import path already defined in compilation sources",
+        websiteDescription: `The import path is already defined in the compilation sources`,
       },
     },
   },

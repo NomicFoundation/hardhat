@@ -335,6 +335,21 @@ export interface HookManager {
     hookName: HookNameT,
     params: InitialHookParams<HookCategoryNameT, HookT>,
   ): Promise<Array<Awaited<Return<HookT>>>>;
+
+  /**
+   * Check if any handlers are defined for a hook.
+   *
+   * @param hookCategoryName The name of the category of the hook whose
+   *  handlers should be checked.
+   * @param hookName The name of the hook to check.
+   */
+  hasHandlers<
+    HookCategoryNameT extends keyof HardhatHooks,
+    HookNameT extends keyof HardhatHooks[HookCategoryNameT],
+  >(
+    hookCategoryName: HookCategoryNameT,
+    hookName: HookNameT,
+  ): Promise<boolean>;
 }
 
 /**
