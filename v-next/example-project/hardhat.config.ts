@@ -8,6 +8,7 @@ import HardhatNodeTestRunner from "@nomicfoundation/hardhat-node-test-runner";
 import HardhatMochaTestRunner from "@nomicfoundation/hardhat-mocha";
 import HardhatKeystore from "@nomicfoundation/hardhat-keystore";
 import HardhatViem from "@nomicfoundation/hardhat-viem";
+import HardhatViemMatchers from "@nomicfoundation/hardhat-viem-matchers";
 import hardhatNetworkHelpersPlugin from "@nomicfoundation/hardhat-network-helpers";
 import hardhatEthersPlugin from "@nomicfoundation/hardhat-ethers";
 import hardhatChaiMatchersPlugin from "@nomicfoundation/hardhat-ethers-chai-matchers";
@@ -156,6 +157,7 @@ const config: HardhatUserConfig = {
     hardhatNetworkHelpersPlugin,
     HardhatNodeTestRunner,
     HardhatViem,
+    HardhatViemMatchers,
     hardhatChaiMatchersPlugin,
     hardhatTypechain,
     hardhatIgnitionViem,

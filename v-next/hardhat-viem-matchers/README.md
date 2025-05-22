@@ -65,9 +65,7 @@ Several matchers are included to assert that a transaction reverted, and the rea
 Assert that a transaction reverted for any reason, without checking the cause of the revert:
 
 ```ts
-revert(
-  contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
-): Promise<void>;
+await viem.assertions.revert(token.write.transfer([address, 0n]));
 ```
 
 #### `.revertWith`
@@ -75,16 +73,10 @@ revert(
 Assert that a transaction reverted with a specific reason string:
 
 ```ts
-revertWith(
-  contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
-  expectedRevertReason: string,
-): Promise<void>;
-```
-
-You can also use regular expressions:
-
-```ts
-xxxx;
+await viem.assertions.revertWith(
+  token.write.transfer([address, 0n]),
+  "transfer value must be positive",
+);
 ```
 
 #### `.revertWithCustomError`
@@ -92,30 +84,26 @@ xxxx;
 Assert that a transaction reverted with a specific custom error:
 
 ```ts
-revertWithCustomError<ContractName extends CompiledContractName>(
-  contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
-  contract: ContractReturnType<ContractName>,
-  customErrorName: string,
-): Promise<void>;
+await viem.assertions.revertWithCustomError(
+  token.write.transfer([address, 0n]),
+  token,
+  "InvalidTransferValue",
+);
 ```
 
-The first argument must be the contract that defines the error. The contract is used to determine the full signature of the expected error. The matcher does not check whether the error was emitted by the contract.
-
-If the error has arguments, the .withArgs matcher can be added:
-
-xxx
+The second argument must be the contract that defines the error. The contract is used to determine the full signature of the expected error. The matcher does not check whether the error was emitted by the contract.
 
 #### `.revertWithCustomErrorWithArgs`
 
 Assert that a transaction reverted with a custom error and specific arguments:
 
 ```ts
-revertWithCustomErrorWithArgs<ContractName extends CompiledContractName>(
-  contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
-  contract: ContractReturnType<ContractName>,
-  customErrorName: string,
-  args: any[],
-): Promise<void>;
+await viem.assertions.revertWithCustomErrorWithArgs(
+  token.write.transfer([address, 0n]),
+  token,
+  "InvalidTransferValue",
+  [0n],
+);
 ```
 
 ### Events
@@ -125,16 +113,11 @@ revertWithCustomErrorWithArgs<ContractName extends CompiledContractName>(
 Assert that a transaction emits a specific event:
 
 ```ts
-emit<
-  ContractName extends CompiledContractName,
-  EventName extends ContractName extends keyof ContractAbis
-    ? ContractEventName<ContractAbis[ContractName]>
-    : string,
->(
-  contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
-  contract: ContractReturnType<ContractName>,
-  eventName: EventName,
-): Promise<void>;
+await viem.assertions.emit(
+  rocketContract.write.launch(),
+  rocketContract,
+  "LaunchEvent",
+);
 ```
 
 #### `.emitWithArgs`
@@ -142,17 +125,12 @@ emit<
 Assert that a transaction emits an event with specific arguments:
 
 ```ts
-emitWithArgs<
-  ContractName extends CompiledContractName,
-  EventName extends ContractName extends keyof ContractAbis
-    ? ContractEventName<ContractAbis[ContractName]>
-    : string,
->(
-  contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
-  contract: ContractReturnType<ContractName>,
-  eventName: EventName,
-  args: any[],
-): Promise<void>;
+await viem.assertions.emitWithArgs(
+  rocketContract.write.launch(),
+  rocketContract,
+  "LaunchEventWithArgs",
+  ["Apollo", "lift-off"],
+);
 ```
 
 ### Balance change
@@ -164,11 +142,20 @@ These matchers can be used to assert how a given transaction affects the ether b
 Assert that a transaction changes the balance of specific addresses:
 
 ```ts
-balancesHaveChanged: (
-  resolvedTxHash: Promise<Hash>,
-  changes: Array<{
-    address: Address;
-    amount: bigint;
-  }>,
-) => Promise<void>;
+await viem.assertions.balancesHaveChanged(
+  bobWalletClient.sendTransaction({
+    to: aliceWalletClient.account.address,
+    value: 3333333333333333n,
+  }),
+  [
+    {
+      address: aliceWalletClient.account.address,
+      amount: 3333333333333333n,
+    },
+    {
+      address: bobWalletClient.account.address,
+      amount: -3333333333333333n,
+    },
+  ],
+);
 ```

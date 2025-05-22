@@ -36,6 +36,7 @@
     "@nomicfoundation/hardhat-node-test-runner": "workspace:^3.0.0-next.11",
     "@nomicfoundation/hardhat-typechain": "workspace:^3.0.0-next.11",
     "@nomicfoundation/hardhat-viem": "workspace:^3.0.0-next.11",
+    "@nomicfoundation/hardhat-viem-matchers": "workspace:^3.0.0-next.11",
     "@openzeppelin/contracts": "5.1.0",
     "@types/chai": "^4.2.0",
     "@types/mocha": ">=10.0.10",
