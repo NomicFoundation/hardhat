@@ -2,4 +2,4 @@
 "hardhat": patch
 ---
 
-Fixed an issue that prevented the creation of multiple duplicate accounts
+Fixed unintended deduplication of accounts ([#6707](https://github.com/NomicFoundation/hardhat/issues/6707))
