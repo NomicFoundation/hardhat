@@ -62,13 +62,13 @@
     "eslint-plugin-mocha": "10.4.1",
     "eslint-plugin-prettier": "3.4.0",
     "hardhat": "workspace:^2.11.0",
-    "hardhat-gas-reporter": "^1.0.8",
+    "hardhat-gas-reporter": "^2.0.0",
     "mocha": "^10.0.0",
     "prettier": "2.4.1",
     "rimraf": "^3.0.2",
     "solidity-coverage": "^0.8.1",
     "ts-node": "^10.8.0",
-    "typescript": "~5.0.4",
+    "typescript": "~5.4.0",
     "viem": "^2.7.6"
   },
   "peerDependencies": {
@@ -82,10 +82,10 @@
     "@types/node": ">=18.0.0",
     "chai": "^4.2.0",
     "hardhat": "workspace:^2.11.0",
-    "hardhat-gas-reporter": "^1.0.8",
+    "hardhat-gas-reporter": "^2.0.0",
     "solidity-coverage": "^0.8.1",
     "ts-node": ">=8.0.0",
-    "typescript": "^5.0.4",
+    "typescript": "^5.4.0",
     "viem": "^2.7.6"
   },
   "bugs": {
