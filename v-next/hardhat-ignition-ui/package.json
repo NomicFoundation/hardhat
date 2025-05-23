@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/ignition-ui",
-  "version": "3.0.0-next.9",
+  "version": "3.0.0-next.11",
   "type": "module",
   "repository": {
     "type": "git",
@@ -24,7 +24,7 @@
   },
   "devDependencies": {
     "@fontsource/roboto": "^5.0.8",
-    "@nomicfoundation/ignition-core": "workspace:^3.0.0-next.9",
+    "@nomicfoundation/ignition-core": "workspace:^3.0.0-next.11",
     "@types/chai": "^4.2.0",
     "@types/chai-as-promised": "^8.0.1",
     "@types/mocha": ">=10.0.10",

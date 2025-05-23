@@ -1,5 +1,23 @@
 # hardhat
 
+## 3.0.0-next.11
+
+### Patch Changes
+
+- 54ba870: Distribute coverage.sol as a part of the hardhat package
+
+## 3.0.0-next.10
+
+### Patch Changes
+
+- 6b84f1a: Implemented coverage data collection from the test node task
+- 6b84f1a: Added the definitions for Hardhat coverage related errors
+- a8dc331: Update Viem to latest version
+- d485fd3: Implemented coverage markdown and lcov reporting
+- 6b84f1a: Implemented source instrumentation for the coverage data collection
+- d485fd3: Implemented coverage data collection from the test mocha task
+- 6b84f1a: Implemented coverage plugin to enable coverage data collection from the test tasks
+
 ## 3.0.0-next.9
 
 ### Patch Changes
