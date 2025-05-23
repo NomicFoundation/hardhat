@@ -3,7 +3,7 @@ import { assert } from "chai";
 import { getApiKeyAndUrls } from "../../src/utils/getApiKeyAndUrls";
 
 describe("getApiKeyAndUrls", function () {
-  it("should return the correct API URLs when given a string", function () {
+  it("should return the correct API URLs and chain id when given a string", function () {
     const apiKeyList = getApiKeyAndUrls("testApiKey", {
       network: "mainnet",
       chainId: 1,
@@ -17,10 +17,11 @@ describe("getApiKeyAndUrls", function () {
       "testApiKey",
       "https://api.etherscan.io/api",
       "https://etherscan.io",
+      1,
     ]);
   });
 
-  it("should return the correct API URLs when given an apiKey object", function () {
+  it("should return the correct API URLs without chain id when given an apiKey object", function () {
     const apiKeyList = getApiKeyAndUrls(
       {
         goerli: "goerliApiKey",
@@ -40,10 +41,11 @@ describe("getApiKeyAndUrls", function () {
       "goerliApiKey",
       "https://api-goerli.etherscan.io/api",
       "https://goerli.etherscan.io",
+      undefined,
     ]);
   });
 
-  it("should return the correct API URLs when given a string and the network is not mainnet", function () {
+  it("should return the correct API URLs and chain id when given a string and the network is not mainnet", function () {
     const apiKeyList = getApiKeyAndUrls("goerliApiKey", {
       network: "goerli",
       chainId: 5,
@@ -57,6 +59,7 @@ describe("getApiKeyAndUrls", function () {
       "goerliApiKey",
       "https://api-goerli.etherscan.io/api",
       "https://goerli.etherscan.io",
+      5,
     ]);
   });
 

@@ -5,11 +5,19 @@ import { NomicLabsHardhatPluginError } from "hardhat/plugins";
 export function getApiKeyAndUrls(
   etherscanApiKey: string | Record<string, string>,
   chainConfig: ChainConfig
-): [apiKey: string, apiUrl: string, webUrl: string] {
+): [
+  apiKey: string,
+  apiUrl: string,
+  webUrl: string,
+  chainId: number | undefined
+] {
   const apiKey: string =
     typeof etherscanApiKey === "string"
       ? etherscanApiKey
       : etherscanApiKey[chainConfig.network];
+
+  const chainId =
+    typeof etherscanApiKey === "string" ? chainConfig.chainId : undefined;
 
   if (apiKey === undefined) {
     throw new NomicLabsHardhatPluginError(
@@ -18,5 +26,10 @@ export function getApiKeyAndUrls(
     );
   }
 
-  return [apiKey, chainConfig.urls.apiURL, chainConfig.urls.browserURL];
+  return [
+    apiKey,
+    chainConfig.urls.apiURL,
+    chainConfig.urls.browserURL,
+    chainId,
+  ];
 }
