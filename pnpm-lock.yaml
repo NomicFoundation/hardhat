@@ -1390,6 +1390,55 @@ importers:
         specifier: ^2.30.0
         version: 2.30.0(typescript@5.5.4)(zod@3.24.1)
 
+  v-next/hardhat-viem-matchers:
+    dependencies:
+      '@nomicfoundation/hardhat-errors':
+        specifier: workspace:^3.0.0-next.11
+        version: link:../hardhat-errors
+      '@nomicfoundation/hardhat-utils':
+        specifier: workspace:^3.0.0-next.11
+        version: link:../hardhat-utils
+      hardhat:
+        specifier: workspace:^3.0.0-next.11
+        version: link:../hardhat
+    devDependencies:
+      '@nomicfoundation/hardhat-node-test-reporter':
+        specifier: workspace:^3.0.0-next.11
+        version: link:../hardhat-node-test-reporter
+      '@nomicfoundation/hardhat-test-utils':
+        specifier: workspace:^
+        version: link:../hardhat-test-utils
+      '@nomicfoundation/hardhat-viem':
+        specifier: workspace:^3.0.0-next.11
+        version: link:../hardhat-viem
+      '@types/node':
+        specifier: ^20.14.9
+        version: 20.17.16
+      c8:
+        specifier: ^9.1.0
+        version: 9.1.0
+      eslint:
+        specifier: 9.25.1
+        version: 9.25.1
+      expect-type:
+        specifier: ^0.19.0
+        version: 0.19.0
+      prettier:
+        specifier: 3.2.5
+        version: 3.2.5
+      rimraf:
+        specifier: ^5.0.5
+        version: 5.0.10
+      tsx:
+        specifier: ^4.19.3
+        version: 4.19.3
+      typescript:
+        specifier: ~5.5.0
+        version: 5.5.4
+      viem:
+        specifier: ^2.30.0
+        version: 2.30.0(typescript@5.5.4)(zod@3.24.1)
+
   v-next/hardhat-zod-utils:
     dependencies:
       '@nomicfoundation/hardhat-utils':
