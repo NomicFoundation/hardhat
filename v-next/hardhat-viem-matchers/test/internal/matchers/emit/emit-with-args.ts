@@ -54,6 +54,28 @@ describe("emitWithArgs", () => {
     );
   });
 
+  it("should check that the event was emitted with the correct multiple arguments, one with param name, one without", async () => {
+    const contract = await viem.deployContract("Events");
+
+    await viem.assertions.emitWithArgs(
+      contract.write.emitTwoUintsMixedParamName([1n, 2n]),
+      contract,
+      "WithTwoUintArgsMixedParamName",
+      [1n, 2n],
+    );
+  });
+
+  it("should check that the event was emitted with the correct multiple arguments that have no name", async () => {
+    const contract = await viem.deployContract("Events");
+
+    await viem.assertions.emitWithArgs(
+      contract.write.emitTwoUintsNoParamName([1n, 2n]),
+      contract,
+      "WithTwoUintArgsNoParamName",
+      [1n, 2n],
+    );
+  });
+
   describe("same events with different args", () => {
     it("should handle same events with one uint as args", async () => {
       const contract = await viem.deployContract("Events");

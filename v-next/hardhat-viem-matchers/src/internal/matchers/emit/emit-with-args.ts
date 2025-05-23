@@ -47,7 +47,7 @@ export async function emitWithArgs<
 
   const parsedLogs = await handleEmit(viem, contractFn, contract, eventName);
 
-  const emittedArgs: any[] = [];
+  let emittedArgs: any[] = [];
   if (args.length > 0) {
     const parsedLog = parsedLogs[0].args;
     assert.ok(
@@ -57,22 +57,31 @@ export async function emitWithArgs<
 
     const abiEvent = abiEvents[0];
 
-    let parsedLogCount = 0;
-    for (const [index, param] of abiEvent.inputs.entries()) {
-      assertHardhatInvariant(
-        param.name !== undefined,
-        `The event parameter at index ${index} does not have a name`,
-      );
+    if (Array.isArray(parsedLog)) {
+      // All the args are listed in an array, this happens when some of the event parameters do not have parameter names.
+      // Example: event EventX(uint u, uint) -> mapped to -> [bigin, bigint]
+      emittedArgs = parsedLog;
+    } else {
+      // The event parameters have names, so they are represented as an object.
+      // They must be mapped into a sorted array that matches the order of the ABI event parameters.
+      // Example: event EventY(uint u, uint v) -> mapped to -> { u: bigint, v: bigint }
+      let parsedLogCount = 0;
+      for (const [index, param] of abiEvent.inputs.entries()) {
+        assertHardhatInvariant(
+          param.name !== undefined,
+          `The event parameter at index ${index} does not have a name`,
+        );
 
-      emittedArgs.push(parsedLog[param.name]);
+        emittedArgs.push(parsedLog[param.name]);
 
-      parsedLogCount++;
-    }
+        parsedLogCount++;
+      }
 
-    if (parsedLogCount !== Object.keys(parsedLog).length) {
-      assert.fail(
-        `The provided event "${eventName}" expects ${args.length} arguments, but the emitted event contains ${Object.keys(parsedLog).length}.`,
-      );
+      if (parsedLogCount !== Object.keys(parsedLog).length) {
+        assert.fail(
+          `The provided event "${eventName}" expects ${args.length} arguments, but the emitted event contains ${Object.keys(parsedLog).length}.`,
+        );
+      }
     }
   }
 

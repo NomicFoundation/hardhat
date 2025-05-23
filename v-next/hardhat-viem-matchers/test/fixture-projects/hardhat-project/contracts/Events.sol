@@ -5,6 +5,8 @@ contract Events {
   event WithoutArgs();
   event WithIntArg(int i);
   event WithTwoUintArgs(uint u, uint v);
+  event WithTwoUintArgsNoParamName(uint, uint);
+  event WithTwoUintArgsMixedParamName(uint u, uint);
   event SameEventDifferentArgs(uint u);
   event SameEventDifferentArgs(uint u, uint v);
   event SameEventDifferentArgs(uint u, string s);
@@ -24,6 +26,14 @@ contract Events {
 
   function emitTwoUints(uint u, uint v) public {
     emit WithTwoUintArgs(u, v);
+  }
+
+  function emitTwoUintsNoParamName(uint u, uint v) public {
+    emit WithTwoUintArgsNoParamName(u, v);
+  }
+
+  function emitTwoUintsMixedParamName(uint u, uint v) public {
+    emit WithTwoUintArgsMixedParamName(u, v);
   }
 
   function emitSameEventDifferentArgs1(uint u) public {
