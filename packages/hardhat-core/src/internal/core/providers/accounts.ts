@@ -423,11 +423,23 @@ export class AutomaticSenderProvider extends SenderProvider {
 
   protected async _getSender(): Promise<string | undefined> {
     if (this._firstAccount === undefined) {
-      const accounts = (await this._wrappedProvider.request({
-        method: "eth_accounts",
-      })) as string[];
+      try {
+        const accounts = (await this._wrappedProvider.request({
+          method: "eth_accounts",
+        })) as string[];
 
-      this._firstAccount = accounts[0];
+        this._firstAccount = accounts[0];
+      } catch (error) {
+        if (
+          !(
+            error instanceof Error &&
+            /the method has been deprecated: eth_accounts/.test(error.message)
+          )
+        ) {
+          // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
+          throw error;
+        }
+      }
     }
 
     return this._firstAccount;

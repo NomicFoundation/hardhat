@@ -49,6 +49,7 @@ import {
   UnsupportedEventError,
   NotImplementedError,
 } from "./errors";
+import { isDeprecatedMethodError } from "./helpers";
 
 const log = debug("hardhat:hardhat-ethers:provider");
 
@@ -112,7 +113,9 @@ export class HardhatEthersProvider implements ethers.Provider {
       address = 0;
     }
 
-    const accountsPromise = this.send("eth_accounts", []);
+    const accountsPromise = this.send("eth_accounts", []).catch((error) =>
+      isDeprecatedMethodError(error) ? [] : Promise.reject(error)
+    );
 
     // Account index
     if (typeof address === "number") {

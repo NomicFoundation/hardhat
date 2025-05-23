@@ -409,6 +409,21 @@ describe("LedgerProvider", () => {
         sinon.assert.notCalled(initSpy);
       });
 
+      it("defaults to empty array of signers if `eth_accounts` is deprecated", async () => {
+        // deprecated method error -> fallback to empty array
+        sinon.stub(mockedProvider, "request").callsFake(async (args) => {
+          if (args.method === "eth_accounts") {
+            throw new Error("the method has been deprecated: eth_accounts");
+          }
+        });
+
+        const resultAccounts = await provider.request({
+          method: "eth_accounts",
+        });
+
+        assert.deepEqual(accounts, resultAccounts);
+      });
+
       it("should call the ledger's signPersonalMessage method when the JSONRPC personal_sign method is called", async () => {
         const stub = ethInstanceStub.signPersonalMessage.returns(
           Promise.resolve(rsv)
