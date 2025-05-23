@@ -27,6 +27,9 @@
     },
     {
       "path": "../hardhat-viem"
+    },
+    {
+      "path": "../hardhat-viem-matchers"
     }
   ]
 }
