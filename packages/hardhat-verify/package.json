@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-verify",
-  "version": "2.0.13",
+  "version": "2.0.14",
   "description": "Hardhat plugin for verifying contracts",
   "keywords": [
     "ethereum",
@@ -72,7 +72,7 @@
     "eslint-plugin-mocha": "10.4.1",
     "eslint-plugin-prettier": "3.4.0",
     "ethers": "^5.0.0",
-    "hardhat": "workspace:^2.0.4",
+    "hardhat": "workspace:^2.24.1",
     "mocha": "^10.0.0",
     "nyc": "^15.1.0",
     "prettier": "2.4.1",
@@ -83,6 +83,6 @@
     "typescript": "~5.0.0"
   },
   "peerDependencies": {
-    "hardhat": "workspace:^2.0.4"
+    "hardhat": "workspace:^2.24.1"
   }
 }
