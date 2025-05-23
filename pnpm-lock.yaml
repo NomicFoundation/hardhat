@@ -1393,23 +1393,23 @@ importers:
   v-next/hardhat-viem-matchers:
     dependencies:
       '@nomicfoundation/hardhat-errors':
-        specifier: workspace:^3.0.0-next.9
+        specifier: workspace:^3.0.0-next.11
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^3.0.0-next.9
+        specifier: workspace:^3.0.0-next.11
         version: link:../hardhat-utils
       hardhat:
-        specifier: workspace:^3.0.0-next.9
+        specifier: workspace:^3.0.0-next.11
         version: link:../hardhat
     devDependencies:
       '@nomicfoundation/hardhat-node-test-reporter':
-        specifier: workspace:^3.0.0-next.9
+        specifier: workspace:^3.0.0-next.11
         version: link:../hardhat-node-test-reporter
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
         version: link:../hardhat-test-utils
       '@nomicfoundation/hardhat-viem':
-        specifier: workspace:^3.0.0-next.9
+        specifier: workspace:^3.0.0-next.11
         version: link:../hardhat-viem
       '@types/node':
         specifier: ^20.14.9
