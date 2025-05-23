@@ -1958,7 +1958,7 @@ importers:
         specifier: ^5.0.0
         version: 5.7.2(bufferutil@4.0.8)(utf-8-validate@5.0.10)
       hardhat:
-        specifier: workspace:^2.0.4
+        specifier: workspace:^2.24.1
         version: link:../hardhat-core
       mocha:
         specifier: ^10.0.0
