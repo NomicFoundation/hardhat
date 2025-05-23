@@ -10,19 +10,22 @@ import {
 } from "@nomicfoundation/hardhat-errors";
 import { toBigInt } from "@nomicfoundation/hardhat-utils/bigint";
 
-export async function getChainDescriptor(
-  networkName: string,
-  provider: EthereumProvider,
-  chainDescriptors: ChainDescriptorsConfig,
-): Promise<ChainDescriptorConfig> {
+// TODO: cache the chainId
+export async function getChainId(provider: EthereumProvider): Promise<number> {
   const response = await provider.request({ method: "eth_chainId" });
   assertHardhatInvariant(
     typeof response === "string",
     "eth_chainId response is not a string",
   );
-  const chainId = toBigInt(response);
+  return Number(response);
+}
 
-  const chainDescriptor = chainDescriptors.get(chainId);
+export async function getChainDescriptor(
+  networkName: string,
+  chainId: number,
+  chainDescriptors: ChainDescriptorsConfig,
+): Promise<ChainDescriptorConfig> {
+  const chainDescriptor = chainDescriptors.get(toBigInt(chainId));
 
   if (chainDescriptor === undefined) {
     /*

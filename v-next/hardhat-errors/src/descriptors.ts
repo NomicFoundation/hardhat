@@ -2380,6 +2380,24 @@ This might be caused by using hardhat_reset and loadFixture calls in a testcase.
 
 To add support for a new network, see https://hardhat.org/verify-custom-networks`,
       },
+      EXPLORER_REQUEST_FAILED: {
+        number: 80001,
+        messageTemplate: `The request to {url} failed with the message "{errorMessage}". This error comes from {name}, not Hardhat.`,
+        websiteTitle: "Explorer request failed",
+        websiteDescription: `The request to the explorer failed.
+- Verify that the URL is correct.
+- Ensure the {name} service is up and reachable.
+- Check your network connection and try again.`,
+      },
+      EXPLORER_REQUEST_STATUS_CODE_ERROR: {
+        number: 80002,
+        messageTemplate: `The request to {url} returned a non-success status code {statusCode}: "{errorMessage}". (This response comes from {name}, not Hardhat.)`,
+        websiteTitle: "Explorer request status code error",
+        websiteDescription: `The request to the explorer returned a non-success status code.
+- Verify that the URL is correct.
+- Ensure the {name} service is up and reachable.
+- Check your network connection and try again.`,
+      },
     },
     VALIDATION: {
       INVALID_ADDRESS: {

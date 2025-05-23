@@ -46,7 +46,7 @@ export async function resolveArgs({
     constructorArgs: resolvedConstructorArgs,
     contract,
     libraries: resolvedLibraries,
-    force,
+    force: force ?? false,
   };
 }
 

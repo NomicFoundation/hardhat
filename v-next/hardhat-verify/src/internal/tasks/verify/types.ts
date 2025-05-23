@@ -14,5 +14,5 @@ export interface VerifyActionResolvedArgs {
   constructorArgs: string[];
   contract?: string;
   libraries: Record<string, string>;
-  force?: boolean;
+  force: boolean;
 }
