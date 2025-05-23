@@ -2,7 +2,7 @@ import type { ReadContractReturnType, WriteContractReturnType } from "viem";
 
 import assert from "node:assert/strict";
 
-import { handleRevert } from "./core-revert.js";
+import { handleRevert } from "./handle-revert.js";
 
 export async function revertWith(
   contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,

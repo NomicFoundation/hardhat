@@ -1,6 +1,6 @@
 import type { ReadContractReturnType, WriteContractReturnType } from "viem";
 
-import { handleRevert } from "./core-revert.js";
+import { handleRevert } from "./handle-revert.js";
 
 export async function revert(
   contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,

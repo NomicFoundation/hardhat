@@ -6,7 +6,7 @@ import type { ReadContractReturnType, WriteContractReturnType } from "viem";
 
 import assert from "node:assert/strict";
 
-import { handleRevertWithCustomError } from "./core-revert-with-custom-error.js";
+import { handleRevertWithCustomError } from "./handle-revert-with-custom-error.js";
 
 export async function revertWithCustomErrorWithArgs<
   ContractName extends keyof ContractAbis,
