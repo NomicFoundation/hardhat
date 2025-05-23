@@ -61,7 +61,7 @@
     "eslint-plugin-import": "2.27.5",
     "eslint-plugin-mocha": "10.4.1",
     "eslint-plugin-prettier": "3.4.0",
-    "ethers": "^6.1.0",
+    "ethers": "^6.14.0",
     "hardhat": "workspace:^2.0.0",
     "mocha": "^10.0.0",
     "picocolors": "^1.1.0",
@@ -72,7 +72,7 @@
     "typescript": "~5.0.0"
   },
   "peerDependencies": {
-    "ethers": "^6.1.0",
+    "ethers": "^6.14.0",
     "hardhat": "workspace:^2.0.0"
   }
 }
