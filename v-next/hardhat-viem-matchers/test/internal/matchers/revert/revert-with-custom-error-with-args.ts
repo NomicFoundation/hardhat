@@ -53,6 +53,21 @@ describe("revertWithCustomErrorWithArgs", () => {
     );
   });
 
+  it("should check that the function reverts with multiple args with named parameters", async () => {
+    const contract = await viem.deployContract("Revert");
+
+    await viem.assertions.revertWithCustomErrorWithArgs(
+      contract.read.revertWithCustomErrorWithUintAndStringNamedParam([
+        1n,
+        2n,
+        "test",
+      ]),
+      contract,
+      "CustomErrorWithUintAndStringNamedParam",
+      [1n, 2n, "test"],
+    );
+  });
+
   it("should check that the function reverts when called within nested contracts", async () => {
     const contract = await viem.deployContract("Revert");
     const contractThatThrows = await viem.deployContract("Revert");

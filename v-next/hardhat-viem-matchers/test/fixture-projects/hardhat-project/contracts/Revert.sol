@@ -8,6 +8,7 @@ contract Revert {
   error CustomError();
   error CustomErrorWithInt(int);
   error CustomErrorWithUintAndString(uint, string);
+  error CustomErrorWithUintAndStringNamedParam(uint u, uint v, string s);
 
   function alwaysRevert() external pure {
     revert("Intentional revert for testing purposes");
@@ -28,6 +29,14 @@ contract Revert {
     string memory s
   ) external pure {
     revert CustomErrorWithUintAndString(n, s);
+  }
+
+  function revertWithCustomErrorWithUintAndStringNamedParam(
+    uint u,
+    uint v,
+    string memory s
+  ) external pure {
+    revert CustomErrorWithUintAndStringNamedParam(u, v, s);
   }
 }
 

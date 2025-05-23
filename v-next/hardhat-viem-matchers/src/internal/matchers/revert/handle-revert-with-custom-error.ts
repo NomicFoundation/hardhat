@@ -62,7 +62,7 @@ export async function handleRevertWithCustomError<
         `Expected error name: "${customErrorName}", but found "${abiItem.name}".`,
       );
 
-      return Array.isArray(args) ? [...args] : [];
+      return Array.isArray(args) ? args : [];
     } catch (decodeError) {
       ensureError(decodeError);
 
