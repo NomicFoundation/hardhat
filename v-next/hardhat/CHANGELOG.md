@@ -1,5 +1,11 @@
 # hardhat
 
+## 3.0.0-next.11
+
+### Patch Changes
+
+- 54ba870: Distribute coverage.sol as a part of the hardhat package
+
 ## 3.0.0-next.10
 
 ### Patch Changes
