@@ -48,6 +48,7 @@
   "devDependencies": {
     "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0-next.8",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
+    "@types/debug": "^4.1.7",
     "@types/node": "^20.14.9",
     "@types/semver": "^7.5.8",
     "c8": "^9.1.0",
@@ -62,6 +63,7 @@
     "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.8",
     "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.8",
     "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.0-next.8",
+    "debug": "^4.3.2",
     "semver": "^7.6.3",
     "zod": "^3.23.8"
   },

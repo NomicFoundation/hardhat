@@ -1355,6 +1355,9 @@ importers:
       '@nomicfoundation/hardhat-zod-utils':
         specifier: workspace:^3.0.0-next.8
         version: link:../hardhat-zod-utils
+      debug:
+        specifier: ^4.3.2
+        version: 4.4.0(supports-color@5.5.0)
       hardhat:
         specifier: workspace:^3.0.0-next.8
         version: link:../hardhat
@@ -1371,6 +1374,9 @@ importers:
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
         version: link:../hardhat-test-utils
+      '@types/debug':
+        specifier: ^4.1.7
+        version: 4.1.12
       '@types/node':
         specifier: ^20.14.9
         version: 20.17.16
