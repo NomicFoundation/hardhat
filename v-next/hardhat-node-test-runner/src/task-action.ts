@@ -126,7 +126,14 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
 
   await markTestRunStart("node");
 
+  // Disable colors so test failure errors don't include ansi escape codes
+  const originalColorsFlag = process.env.NODE_DISABLE_COLORS;
+  process.env.NODE_DISABLE_COLORS = "1";
+
   const testFailures = await runTests();
+
+  // Restore color flag
+  process.env.NODE_DISABLE_COLORS = originalColorsFlag;
 
   // NOTE: This might print a coverage report.
   await markTestRunDone("node");
