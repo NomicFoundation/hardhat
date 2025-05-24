@@ -3,14 +3,19 @@ import type { NewTaskActionFunction } from "hardhat/types/tasks";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
+import { Bytecode } from "../../../bytecode.js";
 import { getChainDescriptor, getChainId } from "../../../chains.js";
+import {
+  filterVersionsByRange,
+  resolveSupportedCompilerVersions,
+} from "../../../compiler-versions.js";
 import { Etherscan } from "../../../etherscan.js";
 
 import { resolveArgs } from "./arg-resolution.js";
 
 const verifyEtherscanAction: NewTaskActionFunction<VerifyActionArgs> = async (
   taskArgs,
-  { config, network },
+  { config, network, globalOptions: { buildProfile: buildProfileName } },
 ) => {
   if (config.verify.etherscan.enabled === false) {
     // eslint-disable-next-line no-restricted-syntax -- TODO: throw
@@ -20,12 +25,22 @@ const verifyEtherscanAction: NewTaskActionFunction<VerifyActionArgs> = async (
   const { address, constructorArgs, libraries, contract, force } =
     await resolveArgs(taskArgs);
 
+  const buildProfile = config.solidity.profiles[buildProfileName];
+  if (buildProfile === undefined) {
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.SOLIDITY.BUILD_PROFILE_NOT_FOUND,
+      {
+        buildProfileName,
+      },
+    );
+  }
+
   const { provider, networkName } = await network.connect();
   const chainId = await getChainId(provider);
   const chainDescriptor = await getChainDescriptor(
-    networkName,
     chainId,
     config.chainDescriptors,
+    networkName,
   );
 
   if (chainDescriptor.blockExplorers.etherscan === undefined) {
@@ -57,6 +72,35 @@ const verifyEtherscanAction: NewTaskActionFunction<VerifyActionArgs> = async (
 ${etherscan.getContractUrl(address)}
 `);
     return;
+  }
+
+  const supportedCompilerVersions =
+    await resolveSupportedCompilerVersions(buildProfile);
+
+  const deployedBytecode = await Bytecode.getDeployedContractBytecode(
+    provider,
+    address,
+    networkName,
+  );
+
+  const matchingCompilerVersions = await filterVersionsByRange(
+    supportedCompilerVersions,
+    deployedBytecode.compilerVersion,
+  );
+  if (matchingCompilerVersions.length === 0) {
+    const configuredCompilerVersionSummary =
+      supportedCompilerVersions.length > 1
+        ? `versions are: ${supportedCompilerVersions.join(", ")}`
+        : `version is: ${supportedCompilerVersions[0]}`;
+
+    throw new HardhatError(
+      HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.COMPILER_VERSION_MISMATCH,
+      {
+        configuredCompilerVersionSummary,
+        deployedCompilerVersion: deployedBytecode.compilerVersion,
+        networkName,
+      },
+    );
   }
 };
 

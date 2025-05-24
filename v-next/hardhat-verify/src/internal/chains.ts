@@ -21,9 +21,9 @@ export async function getChainId(provider: EthereumProvider): Promise<number> {
 }
 
 export async function getChainDescriptor(
-  networkName: string,
   chainId: number,
   chainDescriptors: ChainDescriptorsConfig,
+  networkName: string,
 ): Promise<ChainDescriptorConfig> {
   const chainDescriptor = chainDescriptors.get(toBigInt(chainId));
 

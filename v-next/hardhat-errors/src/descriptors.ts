@@ -2398,6 +2398,32 @@ To add support for a new network, see https://hardhat.org/verify-custom-networks
 - Ensure the {name} service is up and reachable.
 - Check your network connection and try again.`,
       },
+      SOLC_VERSION_NOT_SUPPORTED: {
+        number: 80003,
+        messageTemplate: `The following Solidity compiler versions are not supported by the Etherscan API: {unsupportedVersions}.`,
+        websiteTitle: "Unsupported solidity compiler version",
+        websiteDescription: `The specified Solidity compiler version is not supported by the Etherscan API. Only versions 0.4.11 and above are supported.
+For a full list of supported versions, visit: https://etherscan.io/solcversions`,
+      },
+      DEPLOYED_BYTECODE_NOT_FOUND: {
+        number: 80004,
+        messageTemplate: `No bytecode found at address "{address}". Is the contract deployed on the "{networkName}" network?`,
+        websiteTitle: "Deployed bytecode not found",
+        websiteDescription: `No bytecode was found at the specified address. This usually means the contract is not deployed or was deployed to a different network.
+Please verify the address and selected network, and try again.`,
+      },
+      COMPILER_VERSION_MISMATCH: {
+        number: 80005,
+        messageTemplate: `The contract deployed to the "{networkName}" network was compiled with Solidity {deployedCompilerVersion}, but the configured compiler {configuredCompilerVersionSummary}.`,
+        websiteTitle: "Compiler version mismatch",
+        websiteDescription: `The Solidity compiler version used to compile the deployed contract does not match any of the versions configured in your Hardhat project.
+
+This mismatch may indicate:
+- You're not on the same commit that was used to deploy the contract.
+- The compiler version in your Hardhat config is incorrect.
+- The address provided is not the deployed contract.
+- The selected network is incorrect.`,
+      },
     },
     VALIDATION: {
       INVALID_ADDRESS: {
