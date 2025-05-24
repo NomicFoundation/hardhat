@@ -16,6 +16,8 @@ import { hardhatTestReporter } from "../src/reporter.js";
 let SHOW_OUTPUT = false;
 const testOnly: string[] = [];
 
+process.env.NODE_DISABLE_COLORS = "1";
+
 const argv = process.argv.slice(2);
 while (argv.length > 0) {
   const key = argv.shift();
