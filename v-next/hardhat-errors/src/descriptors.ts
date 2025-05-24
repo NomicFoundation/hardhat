@@ -2400,7 +2400,7 @@ To add support for a new network, see https://hardhat.org/verify-custom-networks
       },
       SOLC_VERSION_NOT_SUPPORTED: {
         number: 80003,
-        messageTemplate: `The following Solidity compiler versions are not supported by the Etherscan API: {unsupportedVersions}.`,
+        messageTemplate: `The following Solidity compiler versions are not supported by the Etherscan API: {unsupportedSolcVersions}.`,
         websiteTitle: "Unsupported solidity compiler version",
         websiteDescription: `The specified Solidity compiler version is not supported by the Etherscan API. Only versions 0.4.11 and above are supported.
 For a full list of supported versions, visit: https://etherscan.io/solcversions`,
@@ -2412,9 +2412,9 @@ For a full list of supported versions, visit: https://etherscan.io/solcversions`
         websiteDescription: `No bytecode was found at the specified address. This usually means the contract is not deployed or was deployed to a different network.
 Please verify the address and selected network, and try again.`,
       },
-      COMPILER_VERSION_MISMATCH: {
+      SOLC_VERSION_MISMATCH: {
         number: 80005,
-        messageTemplate: `The contract deployed to the "{networkName}" network was compiled with Solidity {deployedCompilerVersion}, but the configured compiler {configuredCompilerVersionSummary}.`,
+        messageTemplate: `The contract deployed to the "{networkName}" network was compiled with Solidity {deployedSolcVersion}, but the configured compiler {configuredSolcVersionSummary}.`,
         websiteTitle: "Compiler version mismatch",
         websiteDescription: `The Solidity compiler version used to compile the deployed contract does not match any of the versions configured in your Hardhat project.
 
@@ -2422,6 +2422,28 @@ This mismatch may indicate:
 - You're not on the same commit that was used to deploy the contract.
 - The compiler version in your Hardhat config is incorrect.
 - The address provided is not the deployed contract.
+- The selected network is incorrect.`,
+      },
+      CONTRACT_NOT_FOUND: {
+        number: 80006,
+        messageTemplate: `The contract "{contract}" is not present in your project's artifacts.`,
+        websiteTitle: "Contract not found",
+        websiteDescription: `The specified contract is not present in your project's artifacts. Please ensure the contract is compiled and the name is correct.`,
+      },
+      BUILD_INFO_NOT_FOUND: {
+        number: 80007,
+        messageTemplate: `The contract "{contract}" is present in your project, but its build info is missing.`,
+        websiteTitle: "Build info not found",
+        websiteDescription: `The specified contract is present in your project, but its build info is missing. Please ensure the contract is compiled by Hardhat and that it is written in Solidity.`,
+      },
+      BUILD_INFO_SOLC_VERSION_MISMATCH: {
+        number: 80008,
+        messageTemplate: `The contract "{contract}" build info specifies Solidity {buildInfoSolcVersion}, but the deployed bytecode on the "{networkName}" network indicates {versionDetails}.`,
+        websiteTitle: "Build info compiler version mismatch",
+        websiteDescription: `The compiler version in the build info does not match the version encoded in the deployed bytecode.
+Possible causes:
+- Compiler settings were changed after deployment.
+- The contract address is incorrect.
 - The selected network is incorrect.`,
       },
     },

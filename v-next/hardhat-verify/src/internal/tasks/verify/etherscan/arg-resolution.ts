@@ -1,3 +1,4 @@
+import type { LibraryAddresses } from "../../../artifacts.js";
 import type { VerifyActionArgs, VerifyActionResolvedArgs } from "../types.js";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
@@ -30,6 +31,10 @@ export async function resolveArgs({
     constructorArgsPath,
   );
 
+  // TODO: we could use a more sophisticated validation here, like
+  // in #getFullyQualifiedName within the artifacts manager.
+  // This would allow us to skip the validation in the
+  // resolveContractInformation function.
   if (contract !== undefined && !isFullyQualifiedName(contract)) {
     throw new HardhatError(
       HardhatError.ERRORS.CORE.GENERAL.INVALID_FULLY_QUALIFIED_NAME,
@@ -99,7 +104,7 @@ async function resolveConstructorArgs(
 
 async function resolveLibraries(
   librariesPath?: string,
-): Promise<Record<string, string>> {
+): Promise<LibraryAddresses> {
   if (librariesPath === undefined) {
     return {};
   }
@@ -123,5 +128,5 @@ async function resolveLibraries(
   }
 
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- TODO
-  return importedLibraries.default as Record<string, string>;
+  return importedLibraries.default as LibraryAddresses;
 }

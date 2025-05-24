@@ -1,3 +1,4 @@
+import type { ContractWithLibraries } from "../../../artifacts.js";
 import type { VerifyActionArgs } from "../types.js";
 import type { NewTaskActionFunction } from "hardhat/types/tasks";
 
@@ -5,17 +6,23 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
 import { Bytecode } from "../../../bytecode.js";
 import { getChainDescriptor, getChainId } from "../../../chains.js";
+import { resolveContractInformation } from "../../../contract-information.js";
+import { Etherscan } from "../../../etherscan.js";
 import {
   filterVersionsByRange,
-  resolveSupportedCompilerVersions,
-} from "../../../compiler-versions.js";
-import { Etherscan } from "../../../etherscan.js";
+  resolveSupportedSolcVersions,
+} from "../../../solc-versions.js";
 
 import { resolveArgs } from "./arg-resolution.js";
 
 const verifyEtherscanAction: NewTaskActionFunction<VerifyActionArgs> = async (
   taskArgs,
-  { config, network, globalOptions: { buildProfile: buildProfileName } },
+  {
+    config,
+    network,
+    artifacts,
+    globalOptions: { buildProfile: buildProfileName },
+  },
 ) => {
   if (config.verify.etherscan.enabled === false) {
     // eslint-disable-next-line no-restricted-syntax -- TODO: throw
@@ -74,8 +81,8 @@ ${etherscan.getContractUrl(address)}
     return;
   }
 
-  const supportedCompilerVersions =
-    await resolveSupportedCompilerVersions(buildProfile);
+  const supportedSolcVersions =
+    await resolveSupportedSolcVersions(buildProfile);
 
   const deployedBytecode = await Bytecode.getDeployedContractBytecode(
     provider,
@@ -83,25 +90,36 @@ ${etherscan.getContractUrl(address)}
     networkName,
   );
 
-  const matchingCompilerVersions = await filterVersionsByRange(
-    supportedCompilerVersions,
-    deployedBytecode.compilerVersion,
+  const compatibleSolcVersions = await filterVersionsByRange(
+    supportedSolcVersions,
+    deployedBytecode.solcVersion,
   );
-  if (matchingCompilerVersions.length === 0) {
-    const configuredCompilerVersionSummary =
-      supportedCompilerVersions.length > 1
-        ? `versions are: ${supportedCompilerVersions.join(", ")}`
-        : `version is: ${supportedCompilerVersions[0]}`;
+  if (compatibleSolcVersions.length === 0) {
+    const configuredSolcVersionSummary =
+      supportedSolcVersions.length > 1
+        ? `versions are: ${supportedSolcVersions.join(", ")}`
+        : `version is: ${supportedSolcVersions[0]}`;
 
     throw new HardhatError(
-      HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.COMPILER_VERSION_MISMATCH,
+      HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.SOLC_VERSION_MISMATCH,
       {
-        configuredCompilerVersionSummary,
-        deployedCompilerVersion: deployedBytecode.compilerVersion,
+        configuredSolcVersionSummary,
+        deployedSolcVersion: deployedBytecode.solcVersion,
         networkName,
       },
     );
   }
+
+  const contractInformation: ContractWithLibraries =
+    await resolveContractInformation(
+      artifacts,
+      provider,
+      deployedBytecode,
+      compatibleSolcVersions,
+      libraries,
+      contract,
+      networkName,
+    );
 };
 
 export default verifyEtherscanAction;

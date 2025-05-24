@@ -22,12 +22,10 @@ export const MISSING_METADATA_VERSION_RANGE = "<0.4.7";
  * See https://docs.soliditylang.org/en/v0.5.9/metadata.html#encoding-of-the-metadata-hash-in-the-bytecode
  *
  * @param bytecode The deployed bytecode as a Uint8Array.
- * @returns The inferred compiler version (e.g., "0.8.17"), or a fallback
+ * @returns The inferred solc version (e.g., "0.8.17"), or a fallback
  * version range constant if the version cannot be inferred.
  */
-export async function inferCompilerVersion(
-  bytecode: Uint8Array,
-): Promise<string> {
+export async function inferSolcVersion(bytecode: Uint8Array): Promise<string> {
   let solcMetadata: unknown;
   try {
     solcMetadata = await decodeSolcMetadata(bytecode);

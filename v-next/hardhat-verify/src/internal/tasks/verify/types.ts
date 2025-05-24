@@ -1,3 +1,5 @@
+import type { LibraryAddresses } from "../../artifacts.js";
+
 export interface VerifyActionArgs {
   address: string;
   constructorArgs: string[];
@@ -13,6 +15,6 @@ export interface VerifyActionResolvedArgs {
   address: string;
   constructorArgs: string[];
   contract?: string;
-  libraries: Record<string, string>;
+  libraries: LibraryAddresses;
   force: boolean;
 }

@@ -8,7 +8,9 @@ import { hexStringToBytes } from "@nomicfoundation/hardhat-utils/hex";
 
 import {
   getMetadataSectionBytesLength,
-  inferCompilerVersion,
+  inferSolcVersion,
+  MISSING_METADATA_VERSION_RANGE,
+  SOLC_NOT_FOUND_IN_METADATA_VERSION_RANGE,
 } from "./metadata.js";
 
 export class Bytecode {
@@ -16,7 +18,7 @@ export class Bytecode {
 
   private constructor(
     public readonly bytecode: string,
-    public readonly compilerVersion: string,
+    public readonly solcVersion: string,
     executableSection: string,
   ) {
     this.#executableSection = executableSection;
@@ -25,13 +27,13 @@ export class Bytecode {
   static async #parse(bytecode: string): Promise<Bytecode> {
     const bytecodeBytes = hexStringToBytes(bytecode);
 
-    const compilerVersion = await inferCompilerVersion(bytecodeBytes);
+    const solcVersion = await inferSolcVersion(bytecodeBytes);
     const executableSection = bytecode.slice(
       0,
       bytecode.length - getMetadataSectionBytesLength(bytecodeBytes) * 2,
     );
 
-    return new Bytecode(bytecode, compilerVersion, executableSection);
+    return new Bytecode(bytecode, solcVersion, executableSection);
   }
 
   public static async getDeployedContractBytecode(
@@ -60,5 +62,12 @@ export class Bytecode {
     }
 
     return Bytecode.#parse(deployedBytecode);
+  }
+
+  public hasVersionRange(): boolean {
+    return (
+      this.solcVersion === MISSING_METADATA_VERSION_RANGE ||
+      this.solcVersion === SOLC_NOT_FOUND_IN_METADATA_VERSION_RANGE
+    );
   }
 }

@@ -19,34 +19,34 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
  * `compilers` and `overrides`.
  * @throws HardhatError if any version is not supported by Etherscan.
  */
-export async function resolveSupportedCompilerVersions({
+export async function resolveSupportedSolcVersions({
   compilers,
   overrides,
 }: SolidityBuildProfileConfig): Promise<string[]> {
-  const compilerVersions = compilers.map(({ version }) => version);
+  const solcVersions = compilers.map(({ version }) => version);
   if (overrides !== undefined) {
     for (const { version } of Object.values(overrides)) {
-      compilerVersions.push(version);
+      solcVersions.push(version);
     }
   }
 
   // Etherscan only supports solidity versions higher than or equal to v0.4.11.
   // See https://etherscan.io/solcversions
-  const supportedSolcVersionRange = ">=0.4.11";
+  const SUPPORTED_SOLC_VERSION_RANGE = ">=0.4.11";
   const semver = await import("semver");
-  const unsupportedVersions = compilerVersions.filter(
-    (version) => !semver.satisfies(version, supportedSolcVersionRange),
+  const unsupportedSolcVersions = solcVersions.filter(
+    (version) => !semver.satisfies(version, SUPPORTED_SOLC_VERSION_RANGE),
   );
-  if (unsupportedVersions.length > 0) {
+  if (unsupportedSolcVersions.length > 0) {
     throw new HardhatError(
       HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.SOLC_VERSION_NOT_SUPPORTED,
       {
-        unsupportedVersions,
+        unsupportedSolcVersions,
       },
     );
   }
 
-  return compilerVersions;
+  return solcVersions;
 }
 
 /**
