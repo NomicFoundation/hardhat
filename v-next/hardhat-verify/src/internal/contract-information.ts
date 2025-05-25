@@ -1,4 +1,5 @@
 import type {
+  BuildInfoAndOutput,
   ContractInformation,
   ContractWithLibraries,
   LibraryAddresses,
@@ -8,8 +9,9 @@ import type { ArtifactManager } from "hardhat/types/artifacts";
 import type { EthereumProvider } from "hardhat/types/providers";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { parseFullyQualifiedName } from "hardhat/utils/contract-names";
 
-import { getBuildInfo } from "./artifacts.js";
+import { getBuildInfoAndOutput } from "./artifacts.js";
 
 export async function resolveContractInformation(
   artifacts: ArtifactManager,
@@ -20,11 +22,84 @@ export async function resolveContractInformation(
   contract: string | undefined,
   networkName: string,
 ): Promise<ContractWithLibraries> {
-  let contractInformation: ContractInformation | null;
+  const contractInformationResolver = new ContractInformationResolver(
+    artifacts,
+    compatibleSolcVersions,
+    networkName,
+  );
+  const contractInformation = await contractInformationResolver.resolve(
+    contract,
+    deployedBytecode,
+  );
 
-  if (contract !== undefined) {
-    const artifactExists = await artifacts.artifactExists(contract);
+  // map contractInformation libraries
+  /*   const libraryInformation = await getLibraryInformation(
+    contractInformation,
+    libraries,
+  );*/
 
+  return {
+    ...contractInformation,
+    ...libraryInformation,
+  };
+}
+
+/**
+ * Resolves on-chain bytecode back to a locally compiled contract,
+ * either by explicit FQN or by scanning all artifacts.
+ *
+ * Throws if:
+ *  - no build info is found;
+ *  - the compiler versions are incompatible;
+ *  - the deployed bytecode doesn’t match;
+ *  - zero or multiple matches in inference mode.
+ */
+class ContractInformationResolver {
+  readonly #artifacts: ArtifactManager;
+  readonly #compatibleSolcVersions: string[];
+  readonly #networkName: string;
+
+  constructor(
+    artifacts: ArtifactManager,
+    compatibleSolcVersions: string[],
+    networkName: string,
+  ) {
+    this.#artifacts = artifacts;
+    this.#compatibleSolcVersions = compatibleSolcVersions;
+    this.#networkName = networkName;
+  }
+
+  public async resolve(
+    contract: string | undefined,
+    deployedBytecode: Bytecode,
+  ): Promise<ContractInformation> {
+    if (contract !== undefined) {
+      return this.#resolveByFqn(contract, deployedBytecode);
+    } else {
+      return this.#resolveByBytecodeLookup(deployedBytecode);
+    }
+  }
+
+  /**
+   * Resolves a contract by its fully qualified name by comparing its compiled
+   * build info against the on-chain bytecode.
+   *
+   * @param contract The fully qualified contract name (e.g. "contracts/Token.sol:Token").
+   * @param deployedBytecode The on-chain bytecode wrapped in a Bytecode instance.
+   * @returns The matching ContractInformation.
+   * @throws {HardhatError}
+   *   - CONTRACT_NOT_FOUND if the artifact for the contract does not exist.
+   *   - BUILD_INFO_NOT_FOUND if no build info is found for the contract.
+   *   - BUILD_INFO_SOLC_VERSION_MISMATCH if the build info’s solc version
+   *     is incompatible with the deployed bytecode.
+   *   - DEPLOYED_BYTECODE_MISMATCH if the compiled and deployed bytecodes
+   *     do not match.
+   */
+  async #resolveByFqn(
+    contract: string,
+    deployedBytecode: Bytecode,
+  ): Promise<ContractInformation> {
+    const artifactExists = await this.#artifacts.artifactExists(contract);
     if (!artifactExists) {
       // TODO: we could use HardhatError.ERRORS.CORE.ARTIFACTS.NOT_FOUND
       // but we need to build the "suggestion" string, like in #throwNotFoundError
@@ -37,8 +112,11 @@ export async function resolveContractInformation(
       );
     }
 
-    const buildInfo = await getBuildInfo(artifacts, contract);
-    if (buildInfo === undefined) {
+    const buildInfoAndOutput = await getBuildInfoAndOutput(
+      this.#artifacts,
+      contract,
+    );
+    if (buildInfoAndOutput === undefined) {
       throw new HardhatError(
         HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.BUILD_INFO_NOT_FOUND,
         {
@@ -47,7 +125,10 @@ export async function resolveContractInformation(
       );
     }
 
-    if (!compatibleSolcVersions.includes(buildInfo.solcVersion)) {
+    const isSolcVersionCompatible = this.#compatibleSolcVersions.includes(
+      buildInfoAndOutput.buildInfo.solcVersion,
+    );
+    if (!isSolcVersionCompatible) {
       const versionDetails = deployedBytecode.hasVersionRange()
         ? `a Solidity version in the range ${deployedBytecode.solcVersion}`
         : `the Solidity version ${deployedBytecode.solcVersion}`;
@@ -56,39 +137,139 @@ export async function resolveContractInformation(
         HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.BUILD_INFO_SOLC_VERSION_MISMATCH,
         {
           contract,
-          buildInfoSolcVersion: buildInfo.solcVersion,
-          networkName,
+          buildInfoSolcVersion: buildInfoAndOutput.buildInfo.solcVersion,
+          networkName: this.#networkName,
           versionDetails,
         },
       );
     }
 
-    /*     contractInformation = extractMatchingContractInformation(
+    const contractInformation = this.#matchAndBuild(
       contract,
-      buildInfo,
+      buildInfoAndOutput,
       deployedBytecode,
     );
-
     if (contractInformation === null) {
-      throw new DeployedBytecodeMismatchError(networkName, contract);
-    } */
-  } else {
-    /*     contractInformation = await extractInferredContractInformation(
-      artifacts,
-      provider,
-      compatibleSolcVersions,
-      deployedBytecode,
-    ); */
+      throw new HardhatError(
+        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.DEPLOYED_BYTECODE_MISMATCH,
+        { contractDescription: `the contract ${contract}.` },
+      );
+    }
+
+    return contractInformation;
   }
 
-  // map contractInformation libraries
-  /*   const libraryInformation = await getLibraryInformation(
-    contractInformation,
-    libraries,
-  );
+  /**
+   * Infers a contract by scanning all artifacts and matching their compiled
+   * bytecode against the on-chain bytecode.
+   *
+   * @param deployedBytecode The on-chain bytecode wrapped in a Bytecode instance.
+   * @returns The matching ContractInformation.
+   * @throws {HardhatError}
+   *   - DEPLOYED_BYTECODE_MISMATCH if no matching contracts are found.
+   *   - DEPLOYED_BYTECODE_MULTIPLE_MATCHES if more than one matching contract
+   *     is found.
+   */
+  async #resolveByBytecodeLookup(
+    deployedBytecode: Bytecode,
+  ): Promise<ContractInformation> {
+    const candidates = await this.#artifacts.getAllFullyQualifiedNames();
+    const matches: ContractInformation[] = [];
 
-  return {
-    ...contractInformation,
-    ...libraryInformation,
-  }; */
+    for (const contract of candidates) {
+      const buildInfoAndOutput = await getBuildInfoAndOutput(
+        this.#artifacts,
+        contract,
+      );
+      if (buildInfoAndOutput === undefined) {
+        // TODO: can this happen? should we throw an error?
+        continue;
+      }
+
+      const isSolcVersionCompatible = this.#compatibleSolcVersions.includes(
+        buildInfoAndOutput.buildInfo.solcVersion,
+      );
+      if (!isSolcVersionCompatible) {
+        continue;
+      }
+
+      const contractInformation = this.#matchAndBuild(
+        contract,
+        buildInfoAndOutput,
+        deployedBytecode,
+      );
+      if (contractInformation !== null) {
+        matches.push(contractInformation);
+      }
+    }
+
+    if (matches.length === 0) {
+      throw new HardhatError(
+        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.DEPLOYED_BYTECODE_MISMATCH,
+        { contractDescription: "any of your local contracts." },
+      );
+    }
+
+    if (matches.length > 1) {
+      const fqnList = matches
+        .map((c) => `  * ${c.sourceName}:${c.contractName}`)
+        .join("\n");
+
+      throw new HardhatError(
+        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.DEPLOYED_BYTECODE_MULTIPLE_MATCHES,
+        { fqnList },
+      );
+    }
+
+    return matches[0];
+  }
+
+  /**
+   * Compares on-chain bytecode against the compiled deployedBytecode in the
+   * build output, and assembles a ContractInformation object if they match.
+   *
+   * @param contract The fully qualified contract name (e.g. "src/A.sol:MyA").
+   * @param buildInfoAndOutput An object containing the compiler’s BuildInfo
+   * and its Output.
+   * @param deployedBytecode The on-chain bytecode wrapped in a Bytecode instance.
+   * @returns A ContractInformation object when the compiled and deployed bytecodes
+   * match, or `null` otherwise.
+   * @throws {HardhatError} If the compiled contract output or its deployedBytecode
+   * is missing in the build output.
+   */
+  #matchAndBuild(
+    contract: string,
+    { buildInfo, buildInfoOutput }: BuildInfoAndOutput,
+    deployedBytecode: Bytecode,
+  ): ContractInformation | null {
+    const { sourceName, contractName } = parseFullyQualifiedName(contract);
+
+    const compiledContract =
+      buildInfoOutput.output.contracts?.[sourceName][contractName];
+    if (compiledContract === undefined) {
+      /* eslint-disable-next-line no-restricted-syntax -- TODO: can this happen after
+      validating the artifact and build info? what should be the error? */
+      throw new Error();
+    }
+
+    const compiledDeployedBytecode = compiledContract?.evm?.deployedBytecode;
+    if (compiledDeployedBytecode === undefined) {
+      /* eslint-disable-next-line no-restricted-syntax -- TODO: can this happen after
+      validating the artifact and build info? what should be the error? */
+      throw new Error();
+    }
+
+    if (deployedBytecode.compare(compiledDeployedBytecode)) {
+      return {
+        compilerInput: buildInfo.input,
+        solcLongVersion: buildInfo.solcLongVersion,
+        sourceName,
+        contractName,
+        compiledContract,
+        deployedBytecode: deployedBytecode.bytecode,
+      };
+    }
+
+    return null;
+  }
 }

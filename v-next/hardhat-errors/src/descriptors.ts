@@ -2446,6 +2446,30 @@ Possible causes:
 - The contract address is incorrect.
 - The selected network is incorrect.`,
       },
+      DEPLOYED_BYTECODE_MISMATCH: {
+        number: 80009,
+        messageTemplate: `The address contains a contract whose bytecode does not match {contractDescription}.`,
+        websiteTitle: "Deployed bytecode mismatch",
+        websiteDescription: `The bytecode at the specified address did not match the expected contract.
+
+Possible causes:
+- Your artifacts are outdated or missing; try running \`hardhat compile --force\`.
+- The contract code was modified after deployment.
+- Compiler settings (optimizer, EVM version, etc.) changed after deployment.
+- The provided address is incorrect.
+- The selected network is incorrect.`,
+      },
+      DEPLOYED_BYTECODE_MULTIPLE_MATCHES: {
+        number: 80010,
+        messageTemplate: `More than one contract matches the deployed bytecode:
+{fqnList}
+
+Specify the exact contract using the "--contract" flag.`,
+        websiteTitle: "Multiple contract matches",
+        websiteDescription: `The deployed bytecode matches multiple compiled contracts. Specify the exact contract using the "--contract" flag. For example:
+
+npx hardhat verify --contract contracts/Example.sol:ExampleContract <other args>`,
+      },
     },
     VALIDATION: {
       INVALID_ADDRESS: {

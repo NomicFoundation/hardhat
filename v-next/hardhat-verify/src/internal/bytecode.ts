@@ -1,4 +1,5 @@
 import type { EthereumProvider } from "hardhat/types/providers";
+import type { CompilerOutputBytecode } from "hardhat/types/solidity";
 
 import {
   assertHardhatInvariant,
@@ -69,5 +70,36 @@ export class Bytecode {
       this.solcVersion === MISSING_METADATA_VERSION_RANGE ||
       this.solcVersion === SOLC_NOT_FOUND_IN_METADATA_VERSION_RANGE
     );
+  }
+
+  public compare(compiledDeployedBytecode: CompilerOutputBytecode): boolean {
+    // Ignore metadata since Etherscan performs a partial match.
+    // See: https://ethereum.org/es/developers/docs/smart-contracts/verifying/#etherscan
+    const executableSection = this._getExecutableSection();
+    let referenceExecutableSection = inferExecutableSection(
+      compiledDeployedBytecode.object,
+    );
+
+    if (executableSection.length !== referenceExecutableSection.length) {
+      return false;
+    }
+
+    const normalizedBytecode = nullifyBytecodeOffsets(
+      executableSection,
+      compiledDeployedBytecode,
+    );
+
+    // Library hash placeholders are embedded into the bytes where the library addresses are linked.
+    // We need to zero them out to compare them.
+    const normalizedReferenceBytecode = nullifyBytecodeOffsets(
+      referenceExecutableSection,
+      compiledDeployedBytecode,
+    );
+
+    if (normalizedBytecode === normalizedReferenceBytecode) {
+      return true;
+    }
+
+    return false;
   }
 }
