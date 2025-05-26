@@ -26,11 +26,13 @@ export interface ResolvedNpmPackage {
    * The prefix that represents the source name of the package's files.
    *
    * For example, package 'foo' with version '1.2.3' would have a root source
-   * name of 'npm/foo@1.2.3/'. If the package is part of the monorepo, the root
-   * source name would be 'npm/package@local/'.
+   * name of 'npm/foo@1.2.3'. If the package is part of the monorepo, the root
+   * source name would be 'npm/package@local'.
    *
-   * Note that this can be derived from the rest of the fields, but it's
-   * cached here for performance reasons.
+   * If this package represents the Hardhat project itself, the root source
+   * name is an empty string.
+   *
+   * Note that this doesn't include a trailing slash.
    */
   rootSourceName: string;
 }
@@ -64,6 +66,11 @@ export interface ProjectResolvedFile {
    * The file contents.
    */
   content: FileContent;
+
+  /**
+   * The package of the Hardhat project itself.
+   */
+  package: ResolvedNpmPackage;
 }
 
 /**

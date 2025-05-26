@@ -14,11 +14,13 @@ export class ProjectResolvedFileImplementation implements ProjectResolvedFile {
   public readonly sourceName: string;
   public readonly fsPath: string;
   public readonly content: FileContent;
+  public readonly package: ResolvedNpmPackage;
 
   constructor(options: Omit<ProjectResolvedFile, "type">) {
     this.sourceName = options.sourceName;
     this.fsPath = options.fsPath;
     this.content = options.content;
+    this.package = options.package;
   }
 }
 
