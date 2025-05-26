@@ -45,7 +45,7 @@ export class ImportsClassifier {
     from: ResolvedFile,
     importPath: string,
     directImport: string,
-  ): Promise<Result<boolean>> {
+  ): Promise<boolean> {
     const slash = directImport.indexOf("/");
 
     // If there's no slash, it's a file in the root directory of the package,
