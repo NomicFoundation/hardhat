@@ -108,5 +108,24 @@ describe("HttpProvider", function () {
         "hardhat_setLedgerOutputEnabled - Method not supported"
       );
     });
+
+    it("handles deprecated eth_accounts method by returning empty array", async function () {
+      const mockPool = makeMockPool(url);
+      const mockResponse = {
+        jsonrpc: "2.0",
+        id: 3,
+        error: {
+          code: -32000,
+          message: "the method has been deprecated: eth_accounts",
+        },
+      };
+      mockPool
+        .intercept({ method: "POST", path: "/" })
+        .reply(200, mockResponse);
+
+      const provider = new HttpProvider(url, networkName, {}, 20000, mockPool);
+
+      expect(await provider.request({ method: "eth_accounts" })).to.deep.eq([]);
+    });
   });
 });
