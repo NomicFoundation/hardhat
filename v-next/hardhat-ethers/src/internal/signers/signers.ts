@@ -66,14 +66,24 @@ export class HardhatEthersSigner implements HardhatEthersSignerI {
     return new HardhatEthersSigner(this.address, provider);
   }
 
-  public authorize(auth: AuthorizationRequest): Promise<Authorization> {
-    return this.authorize(auth);
+  public authorize(_auth: AuthorizationRequest): Promise<Authorization> {
+    throw new HardhatError(
+      HardhatError.ERRORS.HARDHAT_ETHERS.GENERAL.METHOD_NOT_IMPLEMENTED,
+      {
+        method: "HardhatEthersSigner.authorize",
+      },
+    );
   }
 
   public populateAuthorization(
-    auth: AuthorizationRequest,
+    _auth: AuthorizationRequest,
   ): Promise<AuthorizationRequest> {
-    return this.populateAuthorization(auth);
+    throw new HardhatError(
+      HardhatError.ERRORS.HARDHAT_ETHERS.GENERAL.METHOD_NOT_IMPLEMENTED,
+      {
+        method: "HardhatEthersSigner.populateAuthorization",
+      },
+    );
   }
 
   public getNonce(blockTag?: BlockTag | undefined): Promise<number> {
