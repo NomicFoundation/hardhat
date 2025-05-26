@@ -85,14 +85,14 @@ export class HardhatEthersSigner implements ethers.Signer {
     return new HardhatEthersSigner(this.address, provider);
   }
 
-  public authorize(auth: AuthorizationRequest): Promise<Authorization> {
-    return this.authorize(auth);
+  public authorize(_auth: AuthorizationRequest): Promise<Authorization> {
+    throw new NotImplementedError("HardhatEthersSigner.authorize");
   }
 
   public populateAuthorization(
-    auth: AuthorizationRequest
+    _auth: AuthorizationRequest
   ): Promise<AuthorizationRequest> {
-    return this.populateAuthorization(auth);
+    throw new NotImplementedError("HardhatEthersSigner.populateAuthorization");
   }
 
   public getNonce(blockTag?: BlockTag | undefined): Promise<number> {
