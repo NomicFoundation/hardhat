@@ -252,14 +252,14 @@ class ContractInformationResolver {
       throw new Error();
     }
 
-    const compiledDeployedBytecode = compiledContract?.evm?.deployedBytecode;
-    if (compiledDeployedBytecode === undefined) {
+    const compilerOutputBytecode = compiledContract?.evm?.deployedBytecode;
+    if (compilerOutputBytecode === undefined) {
       /* eslint-disable-next-line no-restricted-syntax -- TODO: can this happen after
       validating the artifact and build info? what should be the error? */
       throw new Error();
     }
 
-    if (deployedBytecode.compare(compiledDeployedBytecode)) {
+    if (deployedBytecode.compare(compilerOutputBytecode)) {
       return {
         compilerInput: buildInfo.input,
         solcLongVersion: buildInfo.solcLongVersion,
