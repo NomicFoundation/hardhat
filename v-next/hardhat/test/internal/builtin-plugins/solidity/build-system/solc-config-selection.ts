@@ -1,5 +1,8 @@
 import type { SolidityBuildProfileConfig } from "../../../../../src/types/config.js";
-import type { ProjectResolvedFile } from "../../../../../src/types/solidity.js";
+import type {
+  ProjectResolvedFile,
+  ResolvedNpmPackage,
+} from "../../../../../src/types/solidity.js";
 
 import assert from "node:assert/strict";
 import path from "node:path";
@@ -13,6 +16,13 @@ import { ProjectResolvedFileImplementation } from "../../../../../src/internal/b
 import { SolcConfigSelector } from "../../../../../src/internal/builtin-plugins/solidity/build-system/solc-config-selection.js";
 import { CompilationJobCreationErrorReason } from "../../../../../src/types/solidity.js";
 
+const testHardhatProjectNpmPackage: ResolvedNpmPackage = {
+  name: "hardhat-project",
+  version: "1.2.3",
+  rootFsPath: "/Users/root/",
+  rootSourceName: "project",
+};
+
 function createProjectResolvedFile(
   sourceName: string,
   versionPragmas: string[],
@@ -25,6 +35,7 @@ function createProjectResolvedFile(
       importPaths: [],
       versionPragmas,
     },
+    package: testHardhatProjectNpmPackage,
   });
 }
 

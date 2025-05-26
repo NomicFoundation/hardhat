@@ -1,4 +1,7 @@
-import type { ProjectResolvedFile } from "../../../../../src/types/solidity.js";
+import type {
+  ProjectResolvedFile,
+  ResolvedNpmPackage,
+} from "../../../../../src/types/solidity.js";
 
 import assert from "node:assert/strict";
 import path from "node:path";
@@ -10,6 +13,13 @@ import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { DependencyGraphImplementation } from "../../../../../src/internal/builtin-plugins/solidity/build-system/dependency-graph.js";
 import { ProjectResolvedFileImplementation } from "../../../../../src/internal/builtin-plugins/solidity/build-system/resolved-file.js";
 
+const testHardhatProjectNpmPackage: ResolvedNpmPackage = {
+  name: "hardhat-project",
+  version: "1.2.3",
+  rootFsPath: "/Users/root/",
+  rootSourceName: "project",
+};
+
 function createProjectResolvedFile(sourceName: string): ProjectResolvedFile {
   return new ProjectResolvedFileImplementation({
     sourceName,
@@ -19,6 +29,7 @@ function createProjectResolvedFile(sourceName: string): ProjectResolvedFile {
       importPaths: [],
       versionPragmas: [],
     },
+    package: testHardhatProjectNpmPackage,
   });
 }
 

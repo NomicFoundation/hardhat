@@ -1,5 +1,8 @@
 import type { ParsedRootPath } from "../../../../../src/internal/builtin-plugins/solidity/build-system/root-paths-utils.js";
-import type { ResolvedFile } from "../../../../../src/types/solidity.js";
+import type {
+  ResolvedFile,
+  ResolvedNpmPackage,
+} from "../../../../../src/types/solidity.js";
 
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
@@ -24,6 +27,13 @@ interface TestRootPath {
   publicSourceName: string;
   resolvedFile: ResolvedFile;
 }
+
+const testHardhatProjectNpmPackage: ResolvedNpmPackage = {
+  name: "hardhat-project",
+  version: "1.2.3",
+  rootFsPath: "/Users/root/",
+  rootSourceName: "project",
+};
 
 const testRootPaths: TestRootPath[] = [
   {
@@ -115,6 +125,7 @@ const testRootPaths: TestRootPath[] = [
         importPaths: [],
         versionPragmas: [],
       },
+      package: testHardhatProjectNpmPackage,
     }),
   },
   {
@@ -133,6 +144,7 @@ const testRootPaths: TestRootPath[] = [
         importPaths: [],
         versionPragmas: [],
       },
+      package: testHardhatProjectNpmPackage,
     }),
   },
 ];
