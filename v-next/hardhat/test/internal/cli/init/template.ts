@@ -3,7 +3,7 @@ import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { describe, it } from "node:test";
 
-import { exists } from "@nomicfoundation/hardhat-utils/fs";
+import { exists, remove } from "@nomicfoundation/hardhat-utils/fs";
 
 import { getTemplates } from "../../../../src/internal/cli/init/template.js";
 
@@ -41,9 +41,9 @@ describe("template contents", () => {
     for (const template of templates) {
       it(`template ${template.name} should compile with tsc`, async () => {
         const previousCwd = process.cwd();
-        try {
-          process.chdir(template.path);
+        process.chdir(template.path);
 
+        try {
           const resultHardhatBuild = spawnSync("pnpm hardhat compile", {
             stdio: "inherit",
             shell: true,
@@ -67,6 +67,11 @@ describe("template contents", () => {
             "Template failed to compile its TypeScript",
           );
         } finally {
+          // Remove all the files that `hardhat compile` may have created
+          await remove(path.join(template.path, "artifacts"));
+          await remove(path.join(template.path, "cache"));
+          await remove(path.join(template.path, "types"));
+
           process.chdir(previousCwd);
         }
       });
