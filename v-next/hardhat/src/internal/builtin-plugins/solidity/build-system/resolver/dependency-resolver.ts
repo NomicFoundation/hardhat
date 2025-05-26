@@ -24,6 +24,7 @@ import {
 import {
   findClosestPackageJson,
   findDependencyPackageJson,
+  readClosestPackageJson,
 } from "@nomicfoundation/hardhat-utils/package";
 import { shortenPath } from "@nomicfoundation/hardhat-utils/path";
 import { analyze } from "@nomicfoundation/solidity-analyzer";
@@ -91,6 +92,7 @@ const PROJECT_ROOT_SENTINEL: unique symbol = Symbol();
 
 export class ResolverImplementation implements Resolver {
   readonly #projectRoot: string;
+  readonly #hardhatProjectPackage: ResolvedNpmPackage;
   readonly #userRemappings: ResolvedUserRemapping[];
   readonly #readFile: (absPath: string) => Promise<string>;
 
@@ -157,15 +159,32 @@ export class ResolverImplementation implements Resolver {
       ),
     );
 
-    return new ResolverImplementation(projectRoot, userRemappings, readFile);
+    const hardhatProjectPackagePackageJson =
+      await readClosestPackageJson(projectRoot);
+
+    const hardhatProjectPackage: ResolvedNpmPackage = {
+      name: hardhatProjectPackagePackageJson.name,
+      version: hardhatProjectPackagePackageJson.version,
+      rootFsPath: projectRoot,
+      rootSourceName: "",
+    };
+
+    return new ResolverImplementation(
+      projectRoot,
+      hardhatProjectPackage,
+      userRemappings,
+      readFile,
+    );
   }
 
   private constructor(
     projectRoot: string,
+    hardhatProjectPackage: ResolvedNpmPackage,
     userRemappings: ResolvedUserRemapping[],
     readFile: (absPath: string) => Promise<string>,
   ) {
     this.#projectRoot = projectRoot;
+    this.#hardhatProjectPackage = hardhatProjectPackage;
     this.#userRemappings = userRemappings;
     this.#dependencyMaps.set(PROJECT_ROOT_SENTINEL, new Map());
     this.#readFile = readFile;
@@ -248,6 +267,7 @@ export class ResolverImplementation implements Resolver {
           sourceName,
           fsPath: fsPathWithTheRightCasing,
           content: await this.#readFileContent(fsPathWithTheRightCasing),
+          package: this.#hardhatProjectPackage,
         });
 
       this.#resolvedFileBySourceName.set(sourceName, resolvedFile);
@@ -825,6 +845,7 @@ export class ResolverImplementation implements Resolver {
         sourceName,
         fsPath,
         content: await this.#readFileContent(fsPath),
+        package: this.#hardhatProjectPackage,
       });
 
     this.#resolvedFileBySourceName.set(sourceName, resolvedFile);

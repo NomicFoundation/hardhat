@@ -4,6 +4,7 @@ import type { HookContext } from "../../../../../src/types/hooks.js";
 import type {
   NpmPackageResolvedFile,
   ProjectResolvedFile,
+  ResolvedNpmPackage,
 } from "../../../../../src/types/solidity.js";
 
 import assert from "node:assert/strict";
@@ -32,6 +33,13 @@ describe("CompilationJobImplementation", () => {
   let compilationJob: CompilationJobImplementation;
 
   beforeEach(() => {
+    const testHardhatProjectNpmPackage: ResolvedNpmPackage = {
+      name: "hardhat-project",
+      version: "1.2.3",
+      rootFsPath: "/Users/root/",
+      rootSourceName: "project",
+    };
+
     dependencyGraph = new DependencyGraphImplementation();
     rootFile = new ProjectResolvedFileImplementation({
       sourceName: "root.sol",
@@ -41,7 +49,9 @@ describe("CompilationJobImplementation", () => {
         importPaths: [],
         versionPragmas: [],
       },
+      package: testHardhatProjectNpmPackage,
     });
+
     npmDependencyFile = new NpmPackageResolvedFileImplementation({
       sourceName: "npm:dependency/1.0.0/dependency.sol",
       fsPath: "dependency.sol",
@@ -65,6 +75,7 @@ describe("CompilationJobImplementation", () => {
         importPaths: [],
         versionPragmas: [],
       },
+      package: testHardhatProjectNpmPackage,
     });
     dependencyGraph.addRootFile(rootFile.sourceName, rootFile);
     dependencyGraph.addDependency(rootFile, npmDependencyFile);
