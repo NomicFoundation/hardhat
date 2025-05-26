@@ -104,6 +104,15 @@ export class HttpProvider extends EventEmitter implements EIP1193Provider {
     const jsonRpcResponse = await this._fetchJsonRpcResponse(jsonRpcRequest);
 
     if (isErrorResponse(jsonRpcResponse)) {
+      // Handle deprecated eth_accounts method, defaulting to empty array
+      if (
+        /the method has been deprecated: eth_accounts/.test(
+          jsonRpcResponse.error.message
+        )
+      ) {
+        return [];
+      }
+
       const error = new ProviderError(
         jsonRpcResponse.error.message,
         jsonRpcResponse.error.code
