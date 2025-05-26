@@ -23,19 +23,20 @@
     "test": "hardhat test node && hardhat test mocha"
   },
   "devDependencies": {
-    "hardhat": "workspace:^3.0.0-next.9",
-    "@nomicfoundation/hardhat-ethers-chai-matchers": "workspace:^3.0.0-next.9",
-    "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.9",
-    "@nomicfoundation/hardhat-ethers": "workspace:^4.0.0-next.9",
-    "@nomicfoundation/hardhat-ignition": "workspace:^3.0.0-next.9",
-    "@nomicfoundation/ignition-core": "workspace:^3.0.0-next.9",
-    "@nomicfoundation/hardhat-ignition-viem": "workspace:^3.0.0-next.9",
-    "@nomicfoundation/hardhat-keystore": "workspace:^3.0.0-next.9",
-    "@nomicfoundation/hardhat-mocha": "workspace:^3.0.0-next.9",
-    "@nomicfoundation/hardhat-network-helpers": "workspace:^3.0.0-next.9",
-    "@nomicfoundation/hardhat-node-test-runner": "workspace:^3.0.0-next.9",
-    "@nomicfoundation/hardhat-typechain": "workspace:^3.0.0-next.9",
-    "@nomicfoundation/hardhat-viem": "workspace:^3.0.0-next.9",
+    "hardhat": "workspace:^3.0.0-next.11",
+    "@nomicfoundation/hardhat-ethers-chai-matchers": "workspace:^3.0.0-next.11",
+    "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.11",
+    "@nomicfoundation/hardhat-ethers": "workspace:^4.0.0-next.11",
+    "@nomicfoundation/hardhat-ignition": "workspace:^3.0.0-next.11",
+    "@nomicfoundation/ignition-core": "workspace:^3.0.0-next.11",
+    "@nomicfoundation/hardhat-ignition-viem": "workspace:^3.0.0-next.11",
+    "@nomicfoundation/hardhat-keystore": "workspace:^3.0.0-next.11",
+    "@nomicfoundation/hardhat-mocha": "workspace:^3.0.0-next.11",
+    "@nomicfoundation/hardhat-network-helpers": "workspace:^3.0.0-next.11",
+    "@nomicfoundation/hardhat-node-test-runner": "workspace:^3.0.0-next.11",
+    "@nomicfoundation/hardhat-typechain": "workspace:^3.0.0-next.11",
+    "@nomicfoundation/hardhat-viem": "workspace:^3.0.0-next.11",
+    "@nomicfoundation/hardhat-viem-matchers": "workspace:^3.0.0-next.11",
     "@openzeppelin/contracts": "5.1.0",
     "@types/chai": "^4.2.0",
     "@types/mocha": ">=10.0.10",
@@ -47,6 +48,6 @@
     "prettier": "3.2.5",
     "rimraf": "^5.0.5",
     "typescript": "~5.5.0",
-    "viem": "^2.21.42"
+    "viem": "^2.30.0"
   }
 }

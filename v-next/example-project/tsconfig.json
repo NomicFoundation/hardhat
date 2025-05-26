@@ -26,6 +26,9 @@
       "path": "../hardhat-viem"
     },
     {
+      "path": "../hardhat-viem-matchers"
+    },
+    {
       "path": "../hardhat-ethers-chai-matchers"
     },
     {

@@ -19,6 +19,7 @@ import type { HardhatPlugin } from "../../types/plugins.js";
 import type { SolidityBuildSystem } from "../../types/solidity/build-system.js";
 import type { TaskManager } from "../../types/tasks.js";
 import type { UserInterruptionManager } from "../../types/user-interruptions.js";
+import type { CoverageManager } from "../builtin-plugins/coverage/types.js";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { findClosestPackageRoot } from "@nomicfoundation/hardhat-utils/package";
@@ -44,6 +45,10 @@ export class HardhatRuntimeEnvironmentImplementation
   public network!: NetworkManager;
   public artifacts!: ArtifactManager;
   public solidity!: SolidityBuildSystem;
+
+  // NOTE: This is slight architectural violation, as this is intended for the
+  // internal use only. It is set up by the coverage plugin in the `created` hook.
+  public _coverage!: CoverageManager;
 
   public static async create(
     inputUserConfig: HardhatUserConfig,
