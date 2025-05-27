@@ -60,6 +60,7 @@
     "typescript": "~5.5.0"
   },
   "dependencies": {
+    "@ethersproject/abi": "^5.8.0",
     "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.8",
     "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.8",
     "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.0-next.8",
