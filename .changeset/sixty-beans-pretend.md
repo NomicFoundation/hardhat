@@ -4,4 +4,4 @@
 "hardhat": patch
 ---
 
-Add a new Hardhat assertion plugin for `viem` ([#6574](https://github.com/NomicFoundation/hardhat/pull/6574))
+Add a new Hardhat plugin providing assertion testing helpers for `viem` ([#6574](https://github.com/NomicFoundation/hardhat/pull/6574))
