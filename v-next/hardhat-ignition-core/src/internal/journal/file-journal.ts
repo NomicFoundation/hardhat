@@ -24,8 +24,8 @@ export class FileJournal implements Journal {
       | undefined,
   ) {}
 
-  public record(message: JournalMessage): void {
-    this._log(message);
+  public async record(message: JournalMessage): Promise<void> {
+    await this._log(message);
 
     this._appendJsonLine(this._filePath, message);
   }
@@ -66,9 +66,9 @@ export class FileJournal implements Journal {
     closeSync(fd);
   }
 
-  private _log(message: JournalMessage): void {
+  private async _log(message: JournalMessage): Promise<void> {
     if (this._executionEventListener !== undefined) {
-      emitExecutionEvent(message, this._executionEventListener);
+      await emitExecutionEvent(message, this._executionEventListener);
     }
   }
 }

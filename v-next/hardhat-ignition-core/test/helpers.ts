@@ -78,7 +78,7 @@ export function setupMockDeploymentLoader(
 
   return {
     recordToJournal: async (message) => {
-      journal.record(message);
+      await journal.record(message);
     },
     readFromJournal: () => {
       return journal.read();
