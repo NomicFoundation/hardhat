@@ -1,4 +1,4 @@
-import type { LibraryAddresses } from "../../artifacts.js";
+import type { LibraryAddresses } from "../../libraries.js";
 
 export interface VerifyActionArgs {
   address: string;

@@ -1,4 +1,3 @@
-import type { ContractWithLibraries } from "../../../artifacts.js";
 import type { VerifyActionArgs } from "../types.js";
 import type { NewTaskActionFunction } from "hardhat/types/tasks";
 
@@ -6,8 +5,9 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
 import { Bytecode } from "../../../bytecode.js";
 import { getChainDescriptor, getChainId } from "../../../chains.js";
-import { resolveContractInformation } from "../../../contract-information.js";
+import { ContractInformationResolver } from "../../../contract.js";
 import { Etherscan } from "../../../etherscan.js";
+import { resolveLibraryInformation } from "../../../libraries.js";
 import {
   filterVersionsByRange,
   resolveSupportedSolcVersions,
@@ -110,16 +110,20 @@ ${etherscan.getContractUrl(address)}
     );
   }
 
-  const contractInformation: ContractWithLibraries =
-    await resolveContractInformation(
-      artifacts,
-      provider,
-      deployedBytecode,
-      compatibleSolcVersions,
-      libraries,
-      contract,
-      networkName,
-    );
+  const contractInformationResolver = new ContractInformationResolver(
+    artifacts,
+    compatibleSolcVersions,
+    networkName,
+  );
+  const contractInformation = await contractInformationResolver.resolve(
+    contract,
+    deployedBytecode,
+  );
+
+  const libraryInformation = resolveLibraryInformation(
+    contractInformation,
+    libraries,
+  );
 };
 
 export default verifyEtherscanAction;

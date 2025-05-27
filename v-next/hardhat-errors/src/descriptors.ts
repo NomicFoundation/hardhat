@@ -2470,6 +2470,75 @@ Specify the exact contract using the "--contract" flag.`,
 
 npx hardhat verify --contract contracts/Example.sol:ExampleContract <other args>`,
       },
+      INVALID_LIBRARY_ADDRESS: {
+        number: 80011,
+        messageTemplate: `The library "{library}" provided for the contract "{contract}" has an invalid address: {address}.`,
+        websiteTitle: "Invalid library address",
+        websiteDescription: `The address provided for a linked library is invalid. Please make sure the address is a valid Ethereum address.`,
+      },
+      UNUSED_LIBRARY: {
+        number: 80012,
+        messageTemplate: `The library "{library}" was specified for the contract "{contract}" in the "--libraries" option, but this contract does not use it.
+
+{suggestion}`,
+        websiteTitle: "Library not found in contract",
+        websiteDescription: `A library was specified using the "--libraries" option, but the selected contract does not use it.
+
+If the contract uses external libraries, verify that the provided name matches the fully qualified name (FQN) of one of them, such as:
+
+  contracts/Math.sol:SafeMath`,
+      },
+      LIBRARY_MULTIPLE_MATCHES: {
+        number: 80013,
+        messageTemplate: `The library name "{library}" is ambiguous for the contract "{contract}".
+It matches multiple libraries:
+{fqnList}
+
+To fix this, specify one of these fully qualified library names in the "--libraries" option.`,
+        websiteTitle: "Library name is ambiguous",
+        websiteDescription: `The specified library name matches multiple libraries used by the contract.
+
+To resolve the ambiguity, provide the fully qualified library name in the format:
+
+  path/to/LibraryFile.sol:LibraryName`,
+      },
+      DUPLICATED_LIBRARY: {
+        number: 80014,
+        messageTemplate: `The library "{library}" and the fully qualified name "{libraryFqn}" refer to the same library, but both were specified in the "--libraries" option.
+
+Remove one of them and try again.`,
+        websiteTitle: "Duplicated library entry",
+        websiteDescription: `The same library was specified more than once using both its short name and fully qualified name (FQN) in the "--libraries" option.
+
+Only one form should be used for each library. Remove one of the entries and try again.`,
+      },
+      LIBRARY_ADDRESSES_MISMATCH: {
+        number: 80015,
+        messageTemplate: `The following detected library addresses differ from those you provided:
+{conflictList}
+
+You can either fix these addresses in your libraries, or remove them to let the plugin autodetect them.`,
+        websiteTitle: "Library address mismatch",
+        websiteDescription: `Some libraries have conflicting addresses between what you provided and what was detected in the deployed bytecode.
+
+Please ensure each library address is correct. You can remove entries from your input to use autodetection instead.`,
+      },
+      MISSING_LIBRARY_ADDRESSES: {
+        number: 80016,
+        messageTemplate: `The contract "{contract}" has one or more library addresses that cannot be detected from the deployed bytecode.
+This can occur if a library is only used in the contract's constructor. The missing libraries are:
+{missingList}
+
+{solution}`,
+        websiteTitle: "Missing library addresses",
+        websiteDescription: `One or more libraries required by the contract could not be detected from the deployed bytecode.
+
+This usually happens when a library is only referenced in the contract's constructor. To resolve this, provide the missing library addresses using the "--libraries" option.
+
+For more information, see:
+https://hardhat.org/hardhat-runner/plugins/nomicfoundation-hardhat-verify#libraries-with-undetectable-addresses
+`,
+      },
     },
     VALIDATION: {
       INVALID_ADDRESS: {

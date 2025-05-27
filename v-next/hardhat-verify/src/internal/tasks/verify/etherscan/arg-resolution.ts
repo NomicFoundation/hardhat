@@ -1,4 +1,4 @@
-import type { LibraryAddresses } from "../../../artifacts.js";
+import type { LibraryAddresses } from "../../../libraries.js";
 import type { VerifyActionArgs, VerifyActionResolvedArgs } from "../types.js";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";

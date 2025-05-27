@@ -1,47 +1,24 @@
-import type {
-  BuildInfoAndOutput,
-  ContractInformation,
-  ContractWithLibraries,
-  LibraryAddresses,
-} from "./artifacts.js";
+import type { BuildInfoAndOutput } from "./artifacts.js";
 import type { Bytecode } from "./bytecode.js";
 import type { ArtifactManager } from "hardhat/types/artifacts";
-import type { EthereumProvider } from "hardhat/types/providers";
+import type {
+  CompilerInput,
+  CompilerOutputContract,
+} from "hardhat/types/solidity";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { parseFullyQualifiedName } from "hardhat/utils/contract-names";
 
 import { getBuildInfoAndOutput } from "./artifacts.js";
 
-export async function resolveContractInformation(
-  artifacts: ArtifactManager,
-  provider: EthereumProvider,
-  deployedBytecode: Bytecode,
-  compatibleSolcVersions: string[],
-  libraries: LibraryAddresses,
-  contract: string | undefined,
-  networkName: string,
-): Promise<ContractWithLibraries> {
-  const contractInformationResolver = new ContractInformationResolver(
-    artifacts,
-    compatibleSolcVersions,
-    networkName,
-  );
-  const contractInformation = await contractInformationResolver.resolve(
-    contract,
-    deployedBytecode,
-  );
-
-  // map contractInformation libraries
-  /*   const libraryInformation = await getLibraryInformation(
-    contractInformation,
-    libraries,
-  );*/
-
-  return {
-    ...contractInformation,
-    ...libraryInformation,
-  };
+export interface ContractInformation {
+  compilerInput: CompilerInput;
+  solcLongVersion: string;
+  contract: string;
+  sourceName: string;
+  contractName: string;
+  compilerOutputContract: CompilerOutputContract;
+  deployedBytecode: string;
 }
 
 /**
@@ -54,7 +31,7 @@ export async function resolveContractInformation(
  *  - the deployed bytecode doesn’t match;
  *  - zero or multiple matches in inference mode.
  */
-class ContractInformationResolver {
+export class ContractInformationResolver {
   readonly #artifacts: ArtifactManager;
   readonly #compatibleSolcVersions: string[];
   readonly #networkName: string;
@@ -87,7 +64,7 @@ class ContractInformationResolver {
    * @param contract The fully qualified contract name (e.g. "contracts/Token.sol:Token").
    * @param deployedBytecode The on-chain bytecode wrapped in a Bytecode instance.
    * @returns The matching ContractInformation.
-   * @throws {HardhatError}
+   * @throws {HardhatError} with the descriptor:
    *   - CONTRACT_NOT_FOUND if the artifact for the contract does not exist.
    *   - BUILD_INFO_NOT_FOUND if no build info is found for the contract.
    *   - BUILD_INFO_SOLC_VERSION_MISMATCH if the build info’s solc version
@@ -165,7 +142,7 @@ class ContractInformationResolver {
    *
    * @param deployedBytecode The on-chain bytecode wrapped in a Bytecode instance.
    * @returns The matching ContractInformation.
-   * @throws {HardhatError}
+   * @throws {HardhatError} with the descriptor:
    *   - DEPLOYED_BYTECODE_MISMATCH if no matching contracts are found.
    *   - DEPLOYED_BYTECODE_MULTIPLE_MATCHES if more than one matching contract
    *     is found.
@@ -244,15 +221,16 @@ class ContractInformationResolver {
   ): ContractInformation | null {
     const { sourceName, contractName } = parseFullyQualifiedName(contract);
 
-    const compiledContract =
+    const compilerOutputContract =
       buildInfoOutput.output.contracts?.[sourceName][contractName];
-    if (compiledContract === undefined) {
+    if (compilerOutputContract === undefined) {
       /* eslint-disable-next-line no-restricted-syntax -- TODO: can this happen after
       validating the artifact and build info? what should be the error? */
       throw new Error();
     }
 
-    const compilerOutputBytecode = compiledContract?.evm?.deployedBytecode;
+    const compilerOutputBytecode =
+      compilerOutputContract?.evm?.deployedBytecode;
     if (compilerOutputBytecode === undefined) {
       /* eslint-disable-next-line no-restricted-syntax -- TODO: can this happen after
       validating the artifact and build info? what should be the error? */
@@ -263,9 +241,10 @@ class ContractInformationResolver {
       return {
         compilerInput: buildInfo.input,
         solcLongVersion: buildInfo.solcLongVersion,
+        contract,
         sourceName,
         contractName,
-        compiledContract,
+        compilerOutputContract,
         deployedBytecode: deployedBytecode.bytecode,
       };
     }

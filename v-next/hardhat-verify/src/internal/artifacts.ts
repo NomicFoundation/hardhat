@@ -1,37 +1,7 @@
 import type { ArtifactManager, BuildInfo } from "hardhat/types/artifacts";
-import type {
-  CompilerInput,
-  CompilerOutputContract,
-  SolidityBuildInfoOutput,
-} from "hardhat/types/solidity";
+import type { SolidityBuildInfoOutput } from "hardhat/types/solidity";
 
 import { readJsonFile } from "@nomicfoundation/hardhat-utils/fs";
-
-export type ContractWithLibraries = ContractInformation & LibraryInformation;
-
-export interface ContractInformation {
-  compilerInput: CompilerInput;
-  solcLongVersion: string;
-  sourceName: string;
-  contractName: string;
-  compiledContract: CompilerOutputContract;
-  deployedBytecode: string;
-}
-
-interface LibraryInformation {
-  libraries: SourceLibraries;
-  undetectableLibraries: string[];
-}
-
-export type SourceLibraries = Record<
-  /* source file name */ string,
-  LibraryAddresses
->;
-
-export type LibraryAddresses = Record<
-  /* library name */ string,
-  /* address */ string
->;
 
 export interface BuildInfoAndOutput {
   buildInfo: BuildInfo;
