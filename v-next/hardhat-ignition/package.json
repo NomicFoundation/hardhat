@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-ignition",
-  "version": "3.0.0-next.11",
+  "version": "3.0.0-next.12",
   "description": "Hardhat Ignition is a declarative system for deploying smart contracts on Ethereum. It enables you to define smart contract instances you want to deploy, and any operation you want to run on them. By taking over the deployment and execution, Hardhat Ignition lets you focus on your project instead of getting caught up in the deployment details.",
   "homepage": "https://hardhat.org",
   "repository": {
@@ -53,8 +53,8 @@
   },
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "1.0.2",
-    "hardhat": "workspace:^3.0.0-next.11",
-    "@nomicfoundation/hardhat-network-helpers": "workspace:^3.0.0-next.11",
+    "hardhat": "workspace:^3.0.0-next.12",
+    "@nomicfoundation/hardhat-network-helpers": "workspace:^3.0.0-next.12",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
     "@types/chai": "^4.2.0",
     "@types/chai-as-promised": "^8.0.1",
@@ -77,16 +77,16 @@
     "viem": "^2.30.0"
   },
   "dependencies": {
-    "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.11",
-    "@nomicfoundation/ignition-core": "workspace:^3.0.0-next.11",
-    "@nomicfoundation/ignition-ui": "workspace:^3.0.0-next.11",
-    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.11",
+    "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.12",
+    "@nomicfoundation/ignition-core": "workspace:^3.0.0-next.12",
+    "@nomicfoundation/ignition-ui": "workspace:^3.0.0-next.12",
+    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.12",
     "chalk": "^5.3.0",
     "debug": "^4.3.2",
     "prompts": "^2.4.2",
     "json5": "^2.2.3"
   },
   "peerDependencies": {
-    "hardhat": "workspace:^3.0.0-next.11"
+    "hardhat": "workspace:^3.0.0-next.12"
   }
 }
