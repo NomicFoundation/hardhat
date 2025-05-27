@@ -1,5 +1,11 @@
 # hardhat
 
+## 3.0.0-next.12
+
+### Patch Changes
+
+- b86a3a1: Add a new Hardhat plugin providing assertion testing helpers for `viem` ([#6574](https://github.com/NomicFoundation/hardhat/pull/6574))
+
 ## 3.0.0-next.11
 
 ### Patch Changes
