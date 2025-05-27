@@ -1,5 +1,11 @@
 # hardhat
 
+## 2.24.2
+
+### Patch Changes
+
+- 2bbb705: Wrap eth_accounts usage on http provider to handle method deprecation
+
 ## 2.24.1
 
 ### Patch Changes
