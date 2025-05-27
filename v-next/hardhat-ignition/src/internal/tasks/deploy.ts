@@ -24,6 +24,7 @@ import { HardhatArtifactResolver } from "../../helpers/hardhat-artifact-resolver
 import { PrettyEventHandler } from "../../helpers/pretty-event-handler.js";
 import { readDeploymentParameters } from "../../helpers/read-deployment-parameters.js";
 import { resolveDeploymentId } from "../../helpers/resolve-deployment-id.js";
+import { getUserInterruptionsHandlers } from "../hook-handlers/user-interruptions.js";
 import { bigintReviver } from "../utils/bigintReviver.js";
 import { loadModule } from "../utils/load-module.js";
 import { verifyArtifactsVersion } from "../utils/verifyArtifactsVersion.js";
@@ -188,47 +189,60 @@ const taskDeploy: NewTaskActionFunction<TaskDeployArguments> = async (
 
   const executionEventListener = new PrettyEventHandler(hre.interruptions);
 
-  const strategyConfig = hre.config.ignition.strategyConfig?.[strategyName];
-
-  const result = await deploy({
-    config: hre.config.ignition,
-    provider: connection.provider,
+  const userInterruptionsHandlers = getUserInterruptionsHandlers(
     executionEventListener,
-    artifactResolver,
-    deploymentDir,
-    ignitionModule: userModule,
-    deploymentParameters: parameters ?? {},
-    accounts,
-    defaultSender:
-      defaultSender === undefined || defaultSender === ""
-        ? undefined
-        : defaultSender,
-    strategy: strategyName,
-    strategyConfig,
-    maxFeePerGasLimit:
-      hre.config.networks[connection.networkName]?.ignition.maxFeePerGasLimit,
-    maxPriorityFeePerGas:
-      hre.config.networks[connection.networkName]?.ignition
-        .maxPriorityFeePerGas,
-    gasPrice: hre.config.networks[connection.networkName]?.ignition.gasPrice,
-    disableFeeBumping:
-      hre.config.ignition.disableFeeBumping ??
-      hre.config.networks[connection.networkName]?.ignition.disableFeeBumping,
-  });
+  );
 
-  if (result.type === "SUCCESSFUL_DEPLOYMENT" && verify) {
-    console.log("");
-    console.log(chalk.bold("Verifying deployed contracts"));
-    console.log("");
+  hre.hooks.registerHandlers("userInterruptions", userInterruptionsHandlers);
 
-    await hre.tasks.getTask(["ignition", "verify"]).run({ deploymentId });
+  try {
+    const strategyConfig = hre.config.ignition.strategyConfig?.[strategyName];
+
+    const result = await deploy({
+      config: hre.config.ignition,
+      provider: connection.provider,
+      executionEventListener,
+      artifactResolver,
+      deploymentDir,
+      ignitionModule: userModule,
+      deploymentParameters: parameters ?? {},
+      accounts,
+      defaultSender:
+        defaultSender === undefined || defaultSender === ""
+          ? undefined
+          : defaultSender,
+      strategy: strategyName,
+      strategyConfig,
+      maxFeePerGasLimit:
+        hre.config.networks[connection.networkName]?.ignition.maxFeePerGasLimit,
+      maxPriorityFeePerGas:
+        hre.config.networks[connection.networkName]?.ignition
+          .maxPriorityFeePerGas,
+      gasPrice: hre.config.networks[connection.networkName]?.ignition.gasPrice,
+      disableFeeBumping:
+        hre.config.ignition.disableFeeBumping ??
+        hre.config.networks[connection.networkName]?.ignition.disableFeeBumping,
+    });
+
+    if (result.type === "SUCCESSFUL_DEPLOYMENT" && verify) {
+      console.log("");
+      console.log(chalk.bold("Verifying deployed contracts"));
+      console.log("");
+
+      await hre.tasks.getTask(["ignition", "verify"]).run({ deploymentId });
+    }
+
+    if (result.type !== "SUCCESSFUL_DEPLOYMENT") {
+      process.exitCode = 1;
+    }
+
+    return result;
+  } finally {
+    hre.hooks.unregisterHandlers(
+      "userInterruptions",
+      userInterruptionsHandlers,
+    );
   }
-
-  if (result.type !== "SUCCESSFUL_DEPLOYMENT") {
-    process.exitCode = 1;
-  }
-
-  return result;
 };
 
 async function resolveParametersFromModuleName(

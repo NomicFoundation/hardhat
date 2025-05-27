@@ -1,6 +1,5 @@
 import type { UiState } from "../types.js";
 import type {
-  DeploymentCompleteEvent,
   ExecutionErrorDeploymentResult,
   PreviousRunErrorDeploymentResult,
   ReconciliationErrorDeploymentResult,
@@ -8,6 +7,7 @@ import type {
   ValidationErrorDeploymentResult,
 } from "@nomicfoundation/ignition-core";
 
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { DeploymentResultType } from "@nomicfoundation/ignition-core";
 import chalk from "chalk";
 
@@ -15,37 +15,39 @@ import { pathFromCwd } from "./cwd-relative-path.js";
 import { wasAnythingExecuted } from "./was-anything-executed.js";
 
 export function calculateDeploymentCompleteDisplay(
-  event: DeploymentCompleteEvent,
   uiState: Pick<
     UiState,
-    "moduleName" | "isResumed" | "batches" | "deploymentDir"
+    "moduleName" | "isResumed" | "batches" | "deploymentDir" | "result"
   >,
 ): string {
   const moduleName = uiState.moduleName ?? "unknown";
   const isResumed = uiState.isResumed ?? false;
 
-  switch (event.result.type) {
+  // type inference
+  assertHardhatInvariant(uiState.result !== null, "Result is null");
+
+  switch (uiState.result.type) {
     case DeploymentResultType.SUCCESSFUL_DEPLOYMENT: {
       const isRerunWithNoChanges: boolean =
         isResumed && !wasAnythingExecuted(uiState);
 
-      return _displaySuccessfulDeployment(event.result, {
+      return _displaySuccessfulDeployment(uiState.result, {
         moduleName,
         isRerunWithNoChanges,
         deploymentDir: uiState.deploymentDir,
       });
     }
     case DeploymentResultType.VALIDATION_ERROR: {
-      return _displayValidationErrors(event.result, { moduleName });
+      return _displayValidationErrors(uiState.result, { moduleName });
     }
     case DeploymentResultType.RECONCILIATION_ERROR: {
-      return _displayReconciliationErrors(event.result, { moduleName });
+      return _displayReconciliationErrors(uiState.result, { moduleName });
     }
     case DeploymentResultType.PREVIOUS_RUN_ERROR: {
-      return _displayPreviousRunErrors(event.result, { moduleName });
+      return _displayPreviousRunErrors(uiState.result, { moduleName });
     }
     case DeploymentResultType.EXECUTION_ERROR: {
-      return _displayExecutionErrors(event.result, { moduleName });
+      return _displayExecutionErrors(uiState.result, { moduleName });
     }
   }
 }
