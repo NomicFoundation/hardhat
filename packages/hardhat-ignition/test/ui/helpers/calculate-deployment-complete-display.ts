@@ -1,16 +1,13 @@
 import type { UiBatches } from "../../../src/internal/ui/types.js";
 import type {
-  DeploymentCompleteEvent,
+  DeploymentResult,
   ExecutionErrorDeploymentResult,
   PreviousRunErrorDeploymentResult,
   ReconciliationErrorDeploymentResult,
   ValidationErrorDeploymentResult,
 } from "@nomicfoundation/ignition-core";
 
-import {
-  DeploymentResultType,
-  ExecutionEventType,
-} from "@nomicfoundation/ignition-core";
+import { DeploymentResultType } from "@nomicfoundation/ignition-core";
 import { assert } from "chai";
 import chalk from "chalk";
 
@@ -47,26 +44,24 @@ describe("ui - calculate deployment complete display", () => {
         MyModule#Token - 0x1F98431c8aD98523631AE4a59f267346ea31F984
         MyModule#AnotherToken - 0x0011223344556677889900112233445566778899`);
 
-      const event: DeploymentCompleteEvent = {
-        type: ExecutionEventType.DEPLOYMENT_COMPLETE,
-        result: {
-          type: DeploymentResultType.SUCCESSFUL_DEPLOYMENT,
-          contracts: {
-            "MyModule#Token": {
-              id: "MyModule#Token",
-              address: exampleAddress,
-              contractName: "Token",
-            },
-            "MyModule#AnotherToken": {
-              id: "MyModule#AnotherToken",
-              address: differentAddress,
-              contractName: "AnotherToken",
-            },
+      const result: DeploymentResult = {
+        type: DeploymentResultType.SUCCESSFUL_DEPLOYMENT,
+        contracts: {
+          "MyModule#Token": {
+            id: "MyModule#Token",
+            address: exampleAddress,
+            contractName: "Token",
+          },
+          "MyModule#AnotherToken": {
+            id: "MyModule#AnotherToken",
+            address: differentAddress,
+            contractName: "AnotherToken",
           },
         },
       };
 
-      const actualText = calculateDeploymentCompleteDisplay(event, {
+      const actualText = calculateDeploymentCompleteDisplay({
+        result,
         moduleName: "MyModule",
         isResumed: false,
         batches: exampleMultipleBatches,
@@ -84,15 +79,13 @@ describe("ui - calculate deployment complete display", () => {
 
         ${chalk.italic("No contracts were deployed")}`);
 
-      const event: DeploymentCompleteEvent = {
-        type: ExecutionEventType.DEPLOYMENT_COMPLETE,
-        result: {
-          type: DeploymentResultType.SUCCESSFUL_DEPLOYMENT,
-          contracts: {},
-        },
+      const result: DeploymentResult = {
+        type: DeploymentResultType.SUCCESSFUL_DEPLOYMENT,
+        contracts: {},
       };
 
-      const actualText = calculateDeploymentCompleteDisplay(event, {
+      const actualText = calculateDeploymentCompleteDisplay({
+        result,
         moduleName: "MyModule",
         isResumed: false,
         batches: exampleMultipleBatches,
@@ -110,15 +103,13 @@ describe("ui - calculate deployment complete display", () => {
 
         ${chalk.italic("No contracts were deployed")}`);
 
-      const event: DeploymentCompleteEvent = {
-        type: ExecutionEventType.DEPLOYMENT_COMPLETE,
-        result: {
-          type: DeploymentResultType.SUCCESSFUL_DEPLOYMENT,
-          contracts: {},
-        },
+      const result: DeploymentResult = {
+        type: DeploymentResultType.SUCCESSFUL_DEPLOYMENT,
+        contracts: {},
       };
 
-      const actualText = calculateDeploymentCompleteDisplay(event, {
+      const actualText = calculateDeploymentCompleteDisplay({
+        result,
         moduleName: "MyModule",
         isResumed: true,
         batches: exampleNoBatches,
@@ -156,12 +147,8 @@ describe("ui - calculate deployment complete display", () => {
         },
       };
 
-      const event: DeploymentCompleteEvent = {
-        type: ExecutionEventType.DEPLOYMENT_COMPLETE,
+      const actualText = calculateDeploymentCompleteDisplay({
         result,
-      };
-
-      const actualText = calculateDeploymentCompleteDisplay(event, {
         moduleName: "MyModule",
         isResumed: false,
         batches: exampleMultipleBatches,
@@ -199,12 +186,8 @@ describe("ui - calculate deployment complete display", () => {
         },
       };
 
-      const event: DeploymentCompleteEvent = {
-        type: ExecutionEventType.DEPLOYMENT_COMPLETE,
+      const actualText = calculateDeploymentCompleteDisplay({
         result,
-      };
-
-      const actualText = calculateDeploymentCompleteDisplay(event, {
         moduleName: "MyModule",
         isResumed: false,
         batches: exampleMultipleBatches,
@@ -234,12 +217,8 @@ describe("ui - calculate deployment complete display", () => {
         },
       };
 
-      const event: DeploymentCompleteEvent = {
-        type: ExecutionEventType.DEPLOYMENT_COMPLETE,
+      const actualText = calculateDeploymentCompleteDisplay({
         result,
-      };
-
-      const actualText = calculateDeploymentCompleteDisplay(event, {
         moduleName: "MyModule",
         isResumed: false,
         batches: exampleMultipleBatches,
@@ -303,12 +282,8 @@ describe("ui - calculate deployment complete display", () => {
         successful: [],
       };
 
-      const event: DeploymentCompleteEvent = {
-        type: ExecutionEventType.DEPLOYMENT_COMPLETE,
+      const actualText = calculateDeploymentCompleteDisplay({
         result,
-      };
-
-      const actualText = calculateDeploymentCompleteDisplay(event, {
         moduleName: "MyModule",
         isResumed: false,
         batches: exampleMultipleBatches,
