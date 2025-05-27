@@ -424,6 +424,12 @@ Please add the property "type" with the value "module" in your package.json to e
         websiteTitle: "Invalid hex string",
         websiteDescription: `Given value was not a valid hex string.`,
       },
+      CONFIG_VARIABLE_FORMAT_MUST_INCLUDE_VARIABLE: {
+        number: 19,
+        messageTemplate: `The format string "{format}" must include {marker} marker`,
+        websiteTitle: "Config variable format must include {marker}",
+        websiteDescription: `The config variable format must include the string {marker}, which will be replaced with the actual value of the variable.`,
+      },
     },
     INTERNAL: {
       ASSERTION_ERROR: {
