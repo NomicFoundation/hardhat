@@ -2571,6 +2571,56 @@ This error occurs when a numeric value exceeds JavaScript's safe integer range. 
 
 Please convert any large numeric values to strings.`,
       },
+      CONTRACT_VERIFICATION_MISSING_BYTECODE: {
+        number: 80020,
+        messageTemplate: `The request to {url} failed because the address "{address}" does not have bytecode.`,
+        websiteTitle: "Missing bytecode at address",
+        websiteDescription: `The explorer responded that the specified address does not contain bytecode. This usually means the contract was deployed recently and the explorer's backend has not yet indexed it.
+
+Please wait a short time (e.g., 30-60 seconds) and try again. If you're running this from a script, wait for at least five confirmations before verifying.`,
+      },
+      CONTRACT_ALREADY_VERIFIED: {
+        number: 80021,
+        messageTemplate: `The contract "{contract}" at address "{address}" is already verified.`,
+        websiteTitle: "Contract already verified",
+        websiteDescription: `The block explorer responded that the contract is already verified.
+
+This typically occurs if you used the "--force" flag and the explorer does not support re-verification, or if the contract was previously verified with a full match.`,
+      },
+      CONTRACT_VERIFICATION_REQUEST_FAILED: {
+        number: 80022,
+        messageTemplate: `The contract verification request failed: "{message}".`,
+        websiteTitle: "Contract verification request failed",
+        websiteDescription: `The block explorer returned an error when attempting to verify the contract's source code.
+
+Please check the returned message for details.`,
+      },
+      CONTRACT_VERIFICATION_STATUS_POLLING_FAILED: {
+        number: 80023,
+        messageTemplate: `The contract verification status polling encountered an error: "{message}". Verification may still succeed.`,
+        websiteTitle: "Contract verification status polling failed",
+        websiteDescription:
+          "The block explorer returned a failure status when checking the verification status. Verification may still succeed; please check manually.",
+      },
+      CONTRACT_VERIFICATION_UNEXPECTED_RESPONSE: {
+        number: 80024,
+        messageTemplate: `The block explorer API returned an unexpected message: "{message}". Please report this issue to the Hardhat team.`,
+        shouldBeReported: true,
+        websiteTitle: "Unexpected API response during contract verification",
+        websiteDescription: `The block explorer API returned a message that doesn't match the expected format. This may indicate a change in the API or an issue with the request.
+
+Please report this issue to the Hardhat team.`,
+      },
+      CONTRACT_VERIFICATION_FAILED: {
+        number: 80025,
+        messageTemplate: `The contract verification failed.
+Reason: "{reason}".
+{librariesWarning}`,
+        websiteTitle: "Contract verification failed",
+        websiteDescription: `Unable to verify the contract on the block explorer.
+
+If your contract uses libraries whose addresses cannot be detected automatically, make sure you are providing the correct address for each undetectable library.`,
+      },
     },
     VALIDATION: {
       INVALID_ADDRESS: {

@@ -16,6 +16,7 @@ import {
   filterVersionsByRange,
   resolveSupportedSolcVersions,
 } from "../../../solc-versions.js";
+import { attemptVerification } from "../../../verification.js";
 
 import { resolveArgs } from "./arg-resolution.js";
 
@@ -142,12 +143,12 @@ ${etherscan.getContractUrl(address)}
     throw new Error();
   }
 
-  const compilerInput = await compilationJob
+  const minimalCompilerInput = await compilationJob
     .get(contractInformation.sourceName)
     ?.getSolcInput();
 
   assertHardhatInvariant(
-    compilerInput !== undefined,
+    minimalCompilerInput !== undefined,
     "The compilation job for the contract source was not found.",
   );
 
@@ -155,6 +156,82 @@ ${etherscan.getContractUrl(address)}
     contractInformation.compilerOutputContract.abi,
     constructorArgs,
     contractInformation.contract,
+  );
+
+  const { success: minimalInputVerificationSuccess } =
+    await attemptVerification({
+      verificationProvider: etherscan,
+      address,
+      encodedConstructorArgs,
+      contractInformation: {
+        ...contractInformation,
+        // Use the minimal compiler input for the first verification attempt
+        compilerInput: {
+          ...minimalCompilerInput,
+          settings: {
+            ...minimalCompilerInput.settings,
+            // Ensure the libraries are included in the compiler input
+            libraries: libraryInformation.libraries,
+          },
+        },
+      },
+    });
+
+  if (minimalInputVerificationSuccess) {
+    console.log(`Successfully verified contract ${contractInformation.contract} on ${etherscan.name}.
+${etherscan.getContractUrl(address)}
+`);
+    return;
+  }
+
+  console.log(`We tried verifying your contract ${contractInformation.contract} without including any unrelated one, but it failed.
+Trying again with the full solc input used to compile and deploy it.
+This means that unrelated contracts may be displayed on ${etherscan.name}...
+`);
+
+  // If verifying with the minimal input failed, try again with the full compiler input
+  const {
+    success: fullCompilerInputVerificationSuccess,
+    message: verificationMessage,
+  } = await attemptVerification({
+    verificationProvider: etherscan,
+    address,
+    encodedConstructorArgs,
+    contractInformation: {
+      ...contractInformation,
+      compilerInput: {
+        ...contractInformation.compilerInput,
+        settings: {
+          ...contractInformation.compilerInput.settings,
+          // Ensure the libraries are included in the compiler input
+          libraries: libraryInformation.libraries,
+        },
+      },
+    },
+  });
+
+  if (fullCompilerInputVerificationSuccess) {
+    console.log(`Successfully verified contract ${contractInformation.contract} on ${etherscan.name}.
+${etherscan.getContractUrl(address)}
+`);
+    return;
+  }
+
+  const librariesWarning =
+    libraryInformation.undetectableLibraries.length > 0
+      ? `
+This contract makes use of libraries whose addresses are undetectable by the plugin.
+Keep in mind that this verification failure may be due to passing in the wrong
+address for one of these libraries:
+${libraryInformation.undetectableLibraries.map((x) => `  * ${x}`).join("\n")}`
+      : "";
+
+  throw new HardhatError(
+    HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.CONTRACT_VERIFICATION_FAILED,
+    {
+      reason: verificationMessage,
+      librariesWarning,
+    },
   );
 };
 

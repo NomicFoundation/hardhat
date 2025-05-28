@@ -1,3 +1,7 @@
+export type EtherscanGetSourceCodeResponse =
+  | EtherscanGetSourceCodeNotOkResponse
+  | EtherscanGetSourceCodeOkResponse;
+
 interface EtherscanGetSourceCodeNotOkResponse {
   status: "0";
   message: "NOTOK";
@@ -29,6 +33,18 @@ interface EtherscanContract {
   SimilarMatch: string;
 }
 
-export type EtherscanGetSourceCodeResponse =
-  | EtherscanGetSourceCodeNotOkResponse
-  | EtherscanGetSourceCodeOkResponse;
+export type EtherscanVerifySourceCodeResponse =
+  | EtherscanVerifySourceCodeNotOkResponse
+  | EtherscanVerifySourceCodeOkResponse;
+
+interface EtherscanVerifySourceCodeNotOkResponse {
+  status: "0";
+  message: "NOTOK";
+  result: string;
+}
+
+interface EtherscanVerifySourceCodeOkResponse {
+  status: "1";
+  message: "OK";
+  result: string;
+}
