@@ -82,7 +82,7 @@
     "typescript": "~5.5.0"
   },
   "dependencies": {
-    "@ignored/edr": "0.10.0-alpha.4",
+    "@ignored/edr": "0.10.0-alpha.5",
     "@ignored/edr-optimism": "0.13.0-alpha.3",
     "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.12",
     "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.12",
