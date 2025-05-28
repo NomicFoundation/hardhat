@@ -76,7 +76,7 @@ class Reporter {
 
     const contextLinesIntegrationInstance = contextLinesIntegration();
 
-    init({
+    await init({
       dsn: SENTRY_DSN,
       transport: makeSubprocessTransport,
       integrations: () => [

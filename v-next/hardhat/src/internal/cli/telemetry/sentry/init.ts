@@ -20,6 +20,7 @@ import { nodeContextIntegration } from "./vendor/integrations/context.js";
 import { contextLinesIntegration } from "./vendor/integrations/contextlines.js";
 import { onUncaughtExceptionIntegration } from "./integrations/onuncaughtexception.js";
 import { onUnhandledRejectionIntegration } from "./integrations/onunhandledrejection.js";
+import { getHardhatVersion } from "../../../utils/package.js";
 
 interface InitOptions {
   dsn: string;
@@ -31,7 +32,7 @@ interface InitOptions {
 /**
  * Initialize Sentry for Node, without performance instrumentation.
  */
-export function init(options: InitOptions): void {
+export async function init(options: InitOptions): Promise<void> {
   const stackParser = stackParserFromStackParserOptions(
     createStackParser(nodeStackLineParser(createGetModuleFromFilename())),
   );
@@ -61,6 +62,12 @@ export function init(options: InitOptions): void {
     },
     stackParser,
     integrations: getIntegrationsToSetup(integrationOptions),
+    _metadata: {
+      sdk: {
+        name: "hardhat",
+        version: await getHardhatVersion(),
+      },
+    },
   };
 
   initAndBind(ServerRuntimeClient, clientOptions);

@@ -11,7 +11,7 @@ import { SENTRY_DSN } from "./reporter.js";
 import { makeFetchTransport } from "./transports/fetch.js";
 
 try {
-  init({
+  await init({
     dsn: SENTRY_DSN,
     serverName: "<user-server>",
     transport: makeFetchTransport,
