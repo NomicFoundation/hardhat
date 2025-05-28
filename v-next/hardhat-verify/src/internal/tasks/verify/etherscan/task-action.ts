@@ -1,10 +1,14 @@
 import type { VerifyActionArgs } from "../types.js";
 import type { NewTaskActionFunction } from "hardhat/types/tasks";
 
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import {
+  assertHardhatInvariant,
+  HardhatError,
+} from "@nomicfoundation/hardhat-errors";
 
 import { Bytecode } from "../../../bytecode.js";
 import { getChainDescriptor, getChainId } from "../../../chains.js";
+import { encodeConstructorArgs } from "../../../constructor-args.js";
 import { ContractInformationResolver } from "../../../contract.js";
 import { Etherscan } from "../../../etherscan.js";
 import { resolveLibraryInformation } from "../../../libraries.js";
@@ -18,10 +22,11 @@ import { resolveArgs } from "./arg-resolution.js";
 const verifyEtherscanAction: NewTaskActionFunction<VerifyActionArgs> = async (
   taskArgs,
   {
-    config,
-    network,
     artifacts,
+    config,
     globalOptions: { buildProfile: buildProfileName },
+    network,
+    solidity,
   },
 ) => {
   if (config.verify.etherscan.enabled === false) {
@@ -123,6 +128,33 @@ ${etherscan.getContractUrl(address)}
   const libraryInformation = resolveLibraryInformation(
     contractInformation,
     libraries,
+  );
+
+  const compilationJob = await solidity.getCompilationJobs(
+    [contractInformation.sourceName],
+    {
+      quiet: true,
+    },
+  );
+
+  if (!(compilationJob instanceof Map) || compilationJob.size !== 1) {
+    // eslint-disable-next-line no-restricted-syntax -- TODO
+    throw new Error();
+  }
+
+  const compilerInput = await compilationJob
+    .get(contractInformation.sourceName)
+    ?.getSolcInput();
+
+  assertHardhatInvariant(
+    compilerInput !== undefined,
+    "The compilation job for the contract source was not found.",
+  );
+
+  const encodedConstructorArgs = await encodeConstructorArgs(
+    contractInformation.compilerOutputContract.abi,
+    constructorArgs,
+    contractInformation.contract,
   );
 };
 

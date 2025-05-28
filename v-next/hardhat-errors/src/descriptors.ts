@@ -2539,6 +2539,38 @@ For more information, see:
 https://hardhat.org/hardhat-runner/plugins/nomicfoundation-hardhat-verify#libraries-with-undetectable-addresses
 `,
       },
+      INVALID_CONSTRUCTOR_ARGUMENT_TYPE: {
+        number: 80017,
+        messageTemplate: `The value "{value}" for constructor parameter "{argument}" cannot be encoded.
+Reason: {reason}.`,
+        websiteTitle: "Invalid constructor argument type",
+        websiteDescription: `One of the arguments passed to the contract's constructor has an invalid JavaScript type.
+
+This error occurs when you supply a value whose runtime type doesn't match the expected Solidity type. For example, you must pass a JS string for a Solidity string parameter.
+
+Please verify that each constructor argument is the correct JS type.`,
+      },
+      INVALID_CONSTRUCTOR_ARGUMENTS_LENGTH: {
+        number: 80018,
+        messageTemplate: `The constructor for "{contract}" has {requiredArgs} parameters but {providedArgs} arguments were provided instead.`,
+        websiteTitle: "Invalid constructor argument count",
+        websiteDescription: `The number of arguments provided to the contract's constructor doesn't match the number of parameters defined in its ABI.
+
+This error occurs when you supply a different number of arguments than the constructor expects. For example, if the constructor expects two parameters but you provided three.
+
+Please verify that you pass the exact number of arguments required by the constructor.`,
+      },
+      CONSTRUCTOR_ARGUMENT_OVERFLOW: {
+        number: 80019,
+        messageTemplate: `The value "{value}" is not a safe integer and cannot be encoded. Use a string instead of a plain number.
+Reason: {reason}; fault in {operation}.`,
+        websiteTitle: "Invalid constructor argument value",
+        websiteDescription: `One of the arguments passed to the contract's constructor isn't a safe integer and can't be encoded as a JavaScript number.
+
+This error occurs when a numeric value exceeds JavaScript's safe integer range. To encode large integers, provide them as strings instead.
+
+Please convert any large numeric values to strings.`,
+      },
     },
     VALIDATION: {
       INVALID_ADDRESS: {
