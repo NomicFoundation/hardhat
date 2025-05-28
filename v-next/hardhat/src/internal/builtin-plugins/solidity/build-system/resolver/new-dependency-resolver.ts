@@ -2,6 +2,7 @@ import type { ResolvedUserRemapping } from "./remapped-npm-packages-map.js";
 import type { Remapping, Resolver } from "./types.js";
 import type {
   ImportResolutionError,
+  NpmRootResolutionError,
   ProjectRootResolutionError,
   ResolvedFileReference,
   RootResolutionError,
@@ -41,10 +42,6 @@ import {
   ProjectResolvedFileImplementation,
 } from "../resolved-file.js";
 
-import {
-  getDirectImportLocalDesambiguationPrefix,
-  isLocalDirectImportFromPackageRoot,
-} from "./imports-clasification.js";
 import { parseNpmDirectImport } from "./npm-moudles-parsing.js";
 import {
   isResolvedUserRemapping,
@@ -61,7 +58,29 @@ import {
   sourceNamePathToFsPath,
 } from "./source-name-utils.js";
 
-export class ResolverImplementation implements Resolver {
+export interface NewResolver {
+  resolveProjectFile(
+    absoluteFilePath: string,
+  ): Promise<Result<ProjectResolvedFile, ProjectRootResolutionError>>;
+
+  resolveNpmDependencyFileAsRoot(
+    npmModule: string,
+  ): Promise<
+    Result<
+      { file: NpmPackageResolvedFile; remapping?: Remapping },
+      NpmRootResolutionError
+    >
+  >;
+
+  resolveImport(
+    from: ResolvedFile,
+    importPath: string,
+  ): Promise<
+    Result<{ file: ResolvedFile; remapping?: Remapping }, ImportResolutionError>
+  >;
+}
+
+export class NewResolverImplementation implements NewResolver {
   readonly #projectRoot: string;
   readonly #npmPackageMap: RemappedNpmPackagesMap;
 
@@ -85,44 +104,18 @@ export class ResolverImplementation implements Resolver {
    */
   readonly #fakeRootFile: ProjectResolvedFile;
 
-  // TODO: This is just a temporary workaround, where we store every remapping
-  // we use, and then return them all in getRemappings.
-  //
-  // Instead, we should keep track of the remappings in the dependency graph.
-  readonly #remappings: Remapping[] = [];
-
   /**
-   * Legacy version of the create method to make this compile while we work
-   * on bubbling the errors.
-   * @param projectRoot
-   * @param configUserRemappings
+   * Creates a new resolver.
+   *
+   * The resolver will read and process all the remappings.txt files in the
+   * project, and any npm package referenced by those (recursively).
+   *
+   * @param projectRoot The absolute path to the Hardhat project root.
+   * @returns The resolver or the user remapping errors found.
    */
   public static async create(
     projectRoot: string,
-    _configUserRemappings: string[],
-  ): Promise<Resolver> {
-    const result = await ResolverImplementation.newCreate(projectRoot);
-
-    if (result.success === true) {
-      return result.value;
-    }
-
-    throw new Error(
-      "TODO: Remapping errors while creating a resolver: " +
-        JSON.stringify(result.error, null, 2),
-    );
-  }
-
-  /**
-   * Creates a new Resolver.
-   *
-   * @param projectRoot The absolute path to the Hardhat project root.
-   * @param configUserRemappings The remappings provided by the user in their
-   *  Hardhat config.
-   */
-  public static async newCreate(
-    projectRoot: string,
-  ): Promise<Result<Resolver, UserRemappingError[]>> {
+  ): Promise<Result<NewResolver, UserRemappingError[]>> {
     const result = await RemappedNpmPackagesMap.create(projectRoot);
 
     if (result.success === false) {
@@ -131,7 +124,7 @@ export class ResolverImplementation implements Resolver {
 
     return {
       success: true,
-      value: new ResolverImplementation(projectRoot, result.value),
+      value: new NewResolverImplementation(projectRoot, result.value),
     };
   }
 
@@ -157,55 +150,6 @@ export class ResolverImplementation implements Resolver {
   }
 
   public async resolveProjectFile(
-    absoluteFilePath: string,
-  ): Promise<ProjectResolvedFile> {
-    const result = await this.newResolveProjectFile(absoluteFilePath);
-    if (result.success === false) {
-      throw new Error(
-        "Error resolving project file:" + JSON.stringify(result.error, null, 2),
-      );
-    }
-
-    return result.value;
-  }
-
-  public async resolveNpmDependencyFileAsRoot(
-    npmModule: string,
-  ): Promise<NpmPackageResolvedFile> {
-    const result = await this.newNewResolveNpmPackageFileAsRoot(npmModule);
-    if (result.success === false) {
-      throw new Error(
-        "Error resolving npm root:" + JSON.stringify(result.error, null, 2),
-      );
-    }
-
-    if (result.value.remapping !== undefined) {
-      this.#remappings.push(result.value.remapping);
-    }
-
-    return result.value.file;
-  }
-
-  public async resolveImport(
-    from: ResolvedFile,
-    importPath: string,
-  ): Promise<ResolvedFile> {
-    const result = await this.newResolveImport(from, importPath);
-
-    if (result.success === false) {
-      throw new Error(
-        "Error resolving import:" + JSON.stringify(result.error, null, 2),
-      );
-    }
-
-    if (result.value.remapping !== undefined) {
-      this.#remappings.push(result.value.remapping);
-    }
-
-    return result.value.file;
-  }
-
-  public async newResolveProjectFile(
     absoluteFilePath: string,
   ): Promise<Result<ProjectResolvedFile, ProjectRootResolutionError>> {
     return this.#mutex.exclusiveRun(async () => {
@@ -337,12 +281,12 @@ export class ResolverImplementation implements Resolver {
     });
   }
 
-  public async newNewResolveNpmPackageFileAsRoot(
+  public async resolveNpmDependencyFileAsRoot(
     npmModule: string,
   ): Promise<
     Result<
       { file: NpmPackageResolvedFile; remapping?: Remapping },
-      RootResolutionError
+      NpmRootResolutionError
     >
   > {
     return this.#mutex.exclusiveRun(async () => {
@@ -486,10 +430,6 @@ export class ResolverImplementation implements Resolver {
         };
       }
 
-      if (remapping !== undefined) {
-        this.#remappings.push(remapping);
-      }
-
       return {
         success: true,
         value: {
@@ -500,7 +440,7 @@ export class ResolverImplementation implements Resolver {
     });
   }
 
-  public async newResolveImport(
+  public async resolveImport(
     from: ResolvedFile,
     importPath: string,
   ): Promise<
@@ -517,9 +457,8 @@ export class ResolverImplementation implements Resolver {
   ): Promise<
     Result<{ file: ResolvedFile; remapping?: Remapping }, ImportResolutionError>
   > {
-    // We first validate that the import path doesn't include a windows
-    // separator.
-    if (path.sep !== "/" && importPath.includes(path.sep)) {
+    // Imports shouldn't include windows separators
+    if (importPath.includes("\\")) {
       return {
         success: false,
         error: {
@@ -537,7 +476,7 @@ export class ResolverImplementation implements Resolver {
       ? sourceNamePathJoin(path.dirname(from.sourceName), importPath)
       : importPath;
 
-    // We validate that relative imports aren't leaving the its package
+    // If the import is relative, it shouldn't leave its package
     if (isRelativeImport) {
       if (!directImport.startsWith(from.package.rootSourceName)) {
         return {
@@ -564,18 +503,22 @@ export class ResolverImplementation implements Resolver {
     );
 
     if (isRelativeImport) {
+      // Relative imports should be resolved based on the file system, so
+      // they should not be affected by user remapping.
       if (bestUserRemapping !== undefined) {
         throw new Error("Invalid relative import and remapping");
       }
 
-      // If the file exists, we use that one.
-
-      throw new Error("Invalid relative import");
-      // Otherwise we fail
+      return this.#resolveRelativeImport({
+        from,
+        importPath,
+        directImport,
+      });
     } else {
       if (bestUserRemapping !== undefined) {
-        // Resolve based on the remappings
-        return this.#newResolveUserRemappedImport({
+        // If the import isn't relative, and there's a user remapping, we
+        // prioritize that.
+        return this.#resolveUserRemappedImport({
           from,
           importPath,
           directImport,
@@ -583,7 +526,8 @@ export class ResolverImplementation implements Resolver {
         });
       }
 
-      const npmResolutionResult = await this.#newResolveImportThroughNpm({
+      // Otherwise it should be resolved through npm
+      const npmResolutionResult = await this.#resolveImportThroughNpm({
         from,
         importPath,
         directImport,
@@ -593,20 +537,29 @@ export class ResolverImplementation implements Resolver {
         return { success: true, value: npmResolutionResult.value };
       }
 
+      // If the npm resolution fails because the package was not installed, or
+      // because the import was invalid, we try to detect if the user was
+      // trying to use a direct import (i.e. not relative) to import a local
+      // file.
+      //
+      // We do this to improve the error message that we generate, and suggest
+      // a user remapping if they insist on using direct imports.
       if (
         npmResolutionResult.error.type ===
           ImportResolutionErrorType.IMPORT_OF_UNINSTALLED_PACKAGE ||
         npmResolutionResult.error.type ===
           ImportResolutionErrorType.IMPORT_WITH_INVALID_NPM_SYNTAX
       ) {
-        let baseDir = path.dirname(from.fsPath);
-        while (baseDir.startsWith(from.package.rootFsPath)) {
-          if (await exists(path.join(baseDir, directImport))) {
-            // TODO: Generate the remapping that would fix it
-            throw new Error("Invalid direct import");
-          }
+        const improvedError = await this.#tryToGenerateDirectLocalImportError({
+          from,
+          importPath,
+        });
 
-          baseDir = path.dirname(baseDir);
+        if (improvedError !== undefined) {
+          return {
+            success: false,
+            error: improvedError,
+          };
         }
       }
 
@@ -614,7 +567,19 @@ export class ResolverImplementation implements Resolver {
     }
   }
 
-  async #newResolveUserRemappedImport({
+  async #resolveRelativeImport({
+    from,
+    importPath,
+    directImport,
+  }: {
+    from: ResolvedFile;
+    importPath: string;
+    directImport: string;
+  }): Promise<
+    Result<{ file: ResolvedFile; remapping?: Remapping }, ImportResolutionError>
+  > {}
+
+  async #resolveUserRemappedImport({
     from,
     importPath,
     directImport,
@@ -707,118 +672,7 @@ export class ResolverImplementation implements Resolver {
     return { success: true, value: { file: resolvedFile, remapping } };
   }
 
-  async #newResolveLocalImport({
-    from,
-    importPath,
-    directImport,
-    isRelativeImport,
-  }: {
-    from: ResolvedFile;
-    importPath: string;
-    directImport: string;
-    isRelativeImport: boolean;
-  }): Promise<
-    Result<{ file: ResolvedFile; remapping?: Remapping }, ImportResolutionError>
-  > {
-    const fromNpmPackage =
-      from.type === ResolvedFileType.NPM_PACKAGE_FILE
-        ? from.package
-        : this.#npmPackageMap.hardhatProjectPackage;
-
-    const sourceName = isRelativeImport
-      ? directImport
-      : sourceNamePathJoin(fromNpmPackage.rootSourceName, directImport);
-
-    // When we have a relative import, solidity will resolve that into
-    // something equivalent to
-    // `path.join(path.dirname(from.sourceName), importPath)`, which already
-    // results in the full source name that we need.
-    //
-    // If it's a direct import, like `import "contract/A.sol";` we need to
-    // generate a remapping that would remap it into
-    // `path.join(path.dirname(from.sourceName), "contracts/A.sol")`.
-    //
-    // When `from` is a Project File, we don't need to do that, because that
-    // already happens naturally.
-    const generatedRemapping: Remapping | undefined =
-      isRelativeImport ||
-      fromNpmPackage === this.#npmPackageMap.hardhatProjectPackage
-        ? undefined
-        : await this.#npmPackageMap.generateRemappingForLocalDirectImport(
-            fromNpmPackage,
-            directImport,
-          );
-
-    const existing = this.#resolvedFileBySourceName.get(sourceName);
-    if (existing !== undefined) {
-      return {
-        success: true,
-        value: { file: existing, remapping: generatedRemapping },
-      };
-    }
-
-    const relativeSourceNamePath = this.#getRelativeSourceNamePath(
-      fromNpmPackage,
-      sourceName,
-    );
-
-    const relativeFsPath = sourceNamePathToFsPath(relativeSourceNamePath);
-
-    const fsPath = path.join(fromNpmPackage.rootFsPath, relativeFsPath);
-
-    const pathValidation = await validateFsPath(
-      fromNpmPackage.rootFsPath,
-      relativeFsPath,
-    );
-
-    if (pathValidation.success === false) {
-      if (pathValidation.error.type === PathValidationErrorType.DOESNT_EXIST) {
-        return {
-          success: false,
-          error: {
-            type: ImportResolutionErrorType.IMPORT_DOESNT_EXIST,
-            fromFsPath: from.fsPath,
-            importPath,
-            ...this.#buildResolvedFileReference(
-              fromNpmPackage,
-              relativeSourceNamePath,
-            ),
-          },
-        };
-      }
-
-      if (pathValidation.error.type === PathValidationErrorType.CASING_ERROR) {
-        return {
-          success: false,
-          error: {
-            type: ImportResolutionErrorType.IMPORT_INVALID_CASING,
-            fromFsPath: from.fsPath,
-            importPath,
-            ...this.#buildResolvedFileReference(
-              fromNpmPackage,
-              relativeSourceNamePath,
-            ),
-            correctCasing: pathValidation.error.correctCasing,
-          },
-        };
-      }
-    }
-
-    const resolvedFile = await this.#buildResolvedFile(
-      sourceName,
-      fsPath,
-      fromNpmPackage,
-    );
-
-    this.#resolvedFileBySourceName.set(sourceName, resolvedFile);
-
-    return {
-      success: true,
-      value: { file: resolvedFile, remapping: generatedRemapping },
-    };
-  }
-
-  async #newResolveImportThroughNpm({
+  async #resolveImportThroughNpm({
     from,
     importPath,
     directImport,
@@ -1006,6 +860,26 @@ export class ResolverImplementation implements Resolver {
     };
   }
 
+  async #tryToGenerateDirectLocalImportError({
+    from,
+    importPath,
+  }: {
+    from: ResolvedFile;
+    importPath: string;
+  }): Promise<ImportResolutionError | undefined> {
+    let baseDir = path.dirname(from.fsPath);
+    while (baseDir.startsWith(from.package.rootFsPath)) {
+      if (await exists(path.join(baseDir, importPath))) {
+        // TODO: Generate the remapping that would fix it
+        throw new Error("Invalid direct import");
+      }
+
+      baseDir = path.dirname(baseDir);
+    }
+
+    return undefined;
+  }
+
   async #buildResolvedFile(
     sourceName: string,
     fsPath: string,
@@ -1017,6 +891,7 @@ export class ResolverImplementation implements Resolver {
         sourceName,
         fsPath,
         content,
+        package: this.#npmPackageMap.hardhatProjectPackage,
       });
     }
 
@@ -1026,17 +901,6 @@ export class ResolverImplementation implements Resolver {
       content: await readFileContent(fsPath),
       package: npmPackage,
     });
-  }
-
-  // TODO: Remove this, the remappings should stored in the dependency graph.
-  public getRemappings(): Remapping[] {
-    return [...this.#remappings]
-      .sort((a, b) => a.target.localeCompare(b.target))
-      .sort((a, b) => a.target.length - b.target.length)
-      .sort((a, b) => a.prefix.localeCompare(b.prefix))
-      .sort((a, b) => a.prefix.length - b.prefix.length)
-      .sort((a, b) => a.context.localeCompare(b.context))
-      .sort((a, b) => a.context.length - b.context.length);
   }
 
   #buildResolvedFileReference(
@@ -1083,6 +947,117 @@ export class ResolverImplementation implements Resolver {
     }
 
     return fileSourceName.substring(nmpPackage.rootSourceName.length + 1);
+  }
+
+  async #newResolveLocalImport({
+    from,
+    importPath,
+    directImport,
+    isRelativeImport,
+  }: {
+    from: ResolvedFile;
+    importPath: string;
+    directImport: string;
+    isRelativeImport: boolean;
+  }): Promise<
+    Result<{ file: ResolvedFile; remapping?: Remapping }, ImportResolutionError>
+  > {
+    const fromNpmPackage =
+      from.type === ResolvedFileType.NPM_PACKAGE_FILE
+        ? from.package
+        : this.#npmPackageMap.hardhatProjectPackage;
+
+    const sourceName = isRelativeImport
+      ? directImport
+      : sourceNamePathJoin(fromNpmPackage.rootSourceName, directImport);
+
+    // When we have a relative import, solidity will resolve that into
+    // something equivalent to
+    // `path.join(path.dirname(from.sourceName), importPath)`, which already
+    // results in the full source name that we need.
+    //
+    // If it's a direct import, like `import "contract/A.sol";` we need to
+    // generate a remapping that would remap it into
+    // `path.join(path.dirname(from.sourceName), "contracts/A.sol")`.
+    //
+    // When `from` is a Project File, we don't need to do that, because that
+    // already happens naturally.
+    const generatedRemapping: Remapping | undefined =
+      isRelativeImport ||
+      fromNpmPackage === this.#npmPackageMap.hardhatProjectPackage
+        ? undefined
+        : await this.#npmPackageMap.generateRemappingForLocalDirectImport(
+            fromNpmPackage,
+            directImport,
+          );
+
+    const existing = this.#resolvedFileBySourceName.get(sourceName);
+    if (existing !== undefined) {
+      return {
+        success: true,
+        value: { file: existing, remapping: generatedRemapping },
+      };
+    }
+
+    const relativeSourceNamePath = this.#getRelativeSourceNamePath(
+      fromNpmPackage,
+      sourceName,
+    );
+
+    const relativeFsPath = sourceNamePathToFsPath(relativeSourceNamePath);
+
+    const fsPath = path.join(fromNpmPackage.rootFsPath, relativeFsPath);
+
+    const pathValidation = await validateFsPath(
+      fromNpmPackage.rootFsPath,
+      relativeFsPath,
+    );
+
+    if (pathValidation.success === false) {
+      if (pathValidation.error.type === PathValidationErrorType.DOESNT_EXIST) {
+        return {
+          success: false,
+          error: {
+            type: ImportResolutionErrorType.IMPORT_DOESNT_EXIST,
+            fromFsPath: from.fsPath,
+            importPath,
+            ...this.#buildResolvedFileReference(
+              fromNpmPackage,
+              relativeSourceNamePath,
+            ),
+          },
+        };
+      }
+
+      if (pathValidation.error.type === PathValidationErrorType.CASING_ERROR) {
+        return {
+          success: false,
+          error: {
+            type: ImportResolutionErrorType.IMPORT_INVALID_CASING,
+            fromFsPath: from.fsPath,
+            importPath,
+            ...this.#buildResolvedFileReference(
+              fromNpmPackage,
+              relativeSourceNamePath,
+            ),
+            correctCasing: pathValidation.error.correctCasing,
+          },
+        };
+      }
+    }
+
+    const resolvedFile = await this.#buildResolvedFile(
+      sourceName,
+      fsPath,
+      fromNpmPackage,
+    );
+
+    this.#resolvedFileBySourceName.set(sourceName, resolvedFile);
+
+    return {
+      success: true,
+      value: { file: resolvedFile, remapping: generatedRemapping },
+    };
   }
 }
 
