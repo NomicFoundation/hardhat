@@ -115,7 +115,8 @@ export async function getRequest(
  * @param body The body of the request, represented as an object.
  * @param requestOptions The options to configure the request. See {@link RequestOptions}.
  * @param dispatcherOrDispatcherOptions Either a dispatcher or dispatcher options. See {@link DispatcherOptions}.
- * @returns The response data object. See {@link https://undici.nodejs.org/#/docs/api/Dispatcher?id=parameter-responsedata}.
+ * @returns An object containing the status code and the response body. The body can be accessed as JSON or text.
+ * `body` can not be consumed twice. For example, calling `text()` after `json()` throws `TypeError`.
  * @throws ConnectionRefusedError If the connection is refused by the server.
  * @throws RequestTimeoutError If the request times out.
  * @throws RequestError If the request fails for any other reason.
@@ -125,7 +126,7 @@ export async function postJsonRequest(
   body: unknown,
   requestOptions: RequestOptions = {},
   dispatcherOrDispatcherOptions?: UndiciT.Dispatcher | DispatcherOptions,
-): Promise<UndiciT.Dispatcher.ResponseData> {
+): Promise<HttpResponse> {
   const { request } = await import("undici");
 
   try {
@@ -159,7 +160,8 @@ export async function postJsonRequest(
  * @param body The body of the request, represented as an object.
  * @param requestOptions The options to configure the request. See {@link RequestOptions}.
  * @param dispatcherOrDispatcherOptions Either a dispatcher or dispatcher options. See {@link DispatcherOptions}.
- * @returns The response data object. See {@link https://undici.nodejs.org/#/docs/api/Dispatcher?id=parameter-responsedata}.
+ * @returns An object containing the status code and the response body. The body can be accessed as JSON or text.
+ * `body` can not be consumed twice. For example, calling `text()` after `json()` throws `TypeError`.
  * @throws ConnectionRefusedError If the connection is refused by the server.
  * @throws RequestTimeoutError If the request times out.
  * @throws RequestError If the request fails for any other reason.
@@ -169,7 +171,7 @@ export async function postFormRequest(
   body: unknown,
   requestOptions: RequestOptions = {},
   dispatcherOrDispatcherOptions?: UndiciT.Dispatcher | DispatcherOptions,
-): Promise<UndiciT.Dispatcher.ResponseData> {
+): Promise<HttpResponse> {
   const { request } = await import("undici");
 
   try {
