@@ -88,7 +88,7 @@ export async function verifyContract(
     // provider
   } = verifyContractArgs;
 
-  const buildProfile = config.solidity.profiles[buildProfileName];
+  const buildProfile = config.solidity.profiles[buildProfileName ?? "default"];
   if (buildProfile === undefined) {
     throw new HardhatError(
       HardhatError.ERRORS.CORE.SOLIDITY.BUILD_PROFILE_NOT_FOUND,
@@ -131,8 +131,12 @@ export async function verifyContract(
   }
 
   if (!force && isVerified) {
-    console.log(`The contract ${address} has already been verified on ${etherscan.name}. If you're trying to verify a partially verified contract, please use the --force flag.
-${etherscan.getContractUrl(address)}
+    console.log(`
+The contract at ${address} has already been verified on ${etherscan.name}.
+
+If you need to verify a partially verified contract, please use the --force flag.
+
+Explorer: ${etherscan.getContractUrl(address)}
 `);
     return true;
   }
@@ -189,8 +193,14 @@ ${etherscan.getContractUrl(address)}
 
   const minimalCompilerInput = await getCompilerInput(
     solidity,
+    config.paths.root,
     contractInformation.sourceName,
   );
+
+  if (minimalCompilerInput === undefined) {
+    // eslint-disable-next-line no-restricted-syntax -- asd
+    throw new Error();
+  }
 
   const { success: minimalInputVerificationSuccess } =
     await attemptVerification({
@@ -212,15 +222,20 @@ ${etherscan.getContractUrl(address)}
     });
 
   if (minimalInputVerificationSuccess) {
-    console.log(`Successfully verified contract ${contractInformation.contract} on ${etherscan.name}.
-${etherscan.getContractUrl(address)}
+    console.log(`
+🎉 Contract verified successfully on ${etherscan.name}!
+
+  ${contractInformation.contract}
+  Explorer: ${etherscan.getContractUrl(address)}
 `);
     return true;
   }
 
-  console.log(`We tried verifying your contract ${contractInformation.contract} without including any unrelated one, but it failed.
-Trying again with the full solc input used to compile and deploy it.
-This means that unrelated contracts may be displayed on ${etherscan.name}...
+  console.log(`
+The initial verification attempt for ${contractInformation.contract} failed using the minimal compiler input.
+
+Trying again with the full solc input used to compile and deploy the contract.
+Unrelated contracts may be displayed on ${etherscan.name} as a result.
 `);
 
   // If verifying with the minimal input failed, try again with the full compiler input
@@ -245,8 +260,11 @@ This means that unrelated contracts may be displayed on ${etherscan.name}...
   });
 
   if (fullCompilerInputVerificationSuccess) {
-    console.log(`Successfully verified contract ${contractInformation.contract} on ${etherscan.name}.
-${etherscan.getContractUrl(address)}
+    console.log(`
+🎉 Contract verified successfully on ${etherscan.name}!
+
+  ${contractInformation.contract}
+  Explorer: ${etherscan.getContractUrl(address)}
 `);
     return true;
   }
@@ -315,9 +333,13 @@ async function attemptVerification({
     encodedConstructorArgs,
   );
 
-  console.log(`Successfully submitted source code for contract
-${contractInformation.contract} at ${address}
-for verification on ${verificationProvider.name}. Waiting for verification result...
+  console.log(`
+✅ Submitted source code for verification on ${verificationProvider.name}:
+
+  ${contractInformation.contract}
+  Address: ${address}
+
+⏳ Waiting for verification result...
 `);
 
   await sleep(0.5); // Wait half a second before polling

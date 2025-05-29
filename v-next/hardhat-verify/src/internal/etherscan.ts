@@ -1,6 +1,6 @@
 import type {
   EtherscanGetSourceCodeResponse,
-  EtherscanVerifySourceCodeResponse,
+  EtherscanResponse,
 } from "./etherscan.types.js";
 import type { HttpResponse } from "@nomicfoundation/hardhat-utils/request";
 
@@ -12,14 +12,27 @@ import {
   postFormRequest,
 } from "@nomicfoundation/hardhat-utils/request";
 
-interface VerificationResponse {
+interface VerificationStatusResponse {
   isPending(): boolean;
   isFailure(): boolean;
   isSuccess(): boolean;
+  isAlreadyVerified(): boolean;
+  isOk(): boolean;
+}
+
+interface VerificationResponse {
+  isBytecodeMissingInNetworkError(): boolean;
+  isAlreadyVerified(): boolean;
   isOk(): boolean;
 }
 
 const VERIFICATION_STATUS_POLLING_SECONDS = 3;
+
+// TODO: we need to remove the apiUrl from the chain descriptors in
+// v-next/hardhat/src/internal/builtin-plugins/network-manager/chain-descriptors.ts
+// and use this as the default API URL for Etherscan v2
+// this.apiUrl = etherscanConfig.apiUrl ?? ETHERSCAN_API_URL;
+const ETHERSCAN_API_URL = "https://api.etherscan.io/v2/api";
 
 export class Etherscan {
   public chainId: string;
@@ -36,9 +49,9 @@ export class Etherscan {
     apiKey: string;
   }) {
     this.chainId = String(etherscanConfig.chainId);
-    this.name = etherscanConfig.name ?? "the block explorer";
+    this.name = etherscanConfig.name ?? "Etherscan";
     this.url = etherscanConfig.url;
-    this.apiUrl = etherscanConfig.apiUrl; // TODO: etherscan v2 uses a fixed API URL
+    this.apiUrl = ETHERSCAN_API_URL;
     this.apiKey = etherscanConfig.apiKey;
   }
 
@@ -107,28 +120,30 @@ export class Etherscan {
     compilerVersion: string,
     constructorArguments: string,
   ): Promise<string> {
+    const body = {
+      contractaddress: contractAddress,
+      sourceCode,
+      codeformat: "solidity-standard-json-input",
+      contractname: contractName,
+      compilerversion: compilerVersion,
+      constructorArguments,
+    };
     let response: HttpResponse;
-    let responseBody: EtherscanVerifySourceCodeResponse | undefined;
+    let responseBody: EtherscanResponse | undefined;
     try {
-      response = await postFormRequest(this.apiUrl, {
+      response = await postFormRequest(this.apiUrl, body, {
         queryParams: {
           module: "contract",
           action: "verifysourcecode",
           chainid: this.chainId,
           apikey: this.apiKey,
-          contractaddress: contractAddress,
-          sourceCode,
-          codeformat: "solidity-standard-json-input",
-          contractname: contractName,
-          compilerversion: compilerVersion,
-          constructorArguments,
         },
       });
       responseBody =
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
         -- Cast to EtherscanVerifySourceCodeResponse because that's what we expect from the API
         TODO: check if the API returns a different type and throw an error if it does */
-        (await response.body.json()) as EtherscanVerifySourceCodeResponse;
+        (await response.body.json()) as EtherscanResponse;
     } catch (error) {
       ensureError(error);
 
@@ -157,7 +172,7 @@ export class Etherscan {
       );
     }
 
-    const etherscanResponse = new EtherscanResponse(responseBody);
+    const etherscanResponse = new EtherscanVerificationResponse(responseBody);
 
     if (etherscanResponse.isBytecodeMissingInNetworkError()) {
       throw new HardhatError(
@@ -186,15 +201,6 @@ export class Etherscan {
       );
     }
 
-    // TODO: is etherscanResponse.isPending() also a valid state here?
-    if (!(etherscanResponse.isFailure() || etherscanResponse.isSuccess())) {
-      // Reaching this point shouldn't be possible unless the API is behaving in a new way.
-      throw new HardhatError(
-        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.CONTRACT_VERIFICATION_UNEXPECTED_RESPONSE,
-        { message: etherscanResponse.message },
-      );
-    }
-
     return etherscanResponse.message;
   }
 
@@ -203,9 +209,9 @@ export class Etherscan {
     guid: string,
     contractAddress: string,
     contractName: string,
-  ): Promise<EtherscanResponse> {
+  ): Promise<EtherscanVerificationStatusResponse> {
     let response: HttpResponse;
-    let responseBody: EtherscanVerifySourceCodeResponse | undefined;
+    let responseBody: EtherscanResponse | undefined;
     try {
       response = await getRequest(this.apiUrl, {
         queryParams: {
@@ -220,7 +226,7 @@ export class Etherscan {
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
         -- Cast to EtherscanVerifySourceCodeResponse because that's what we expect from the API
         TODO: check if the API returns a different type and throw an error if it does */
-        (await response.body.json()) as EtherscanVerifySourceCodeResponse;
+        (await response.body.json()) as EtherscanResponse;
     } catch (error) {
       ensureError(error);
 
@@ -249,7 +255,9 @@ export class Etherscan {
       );
     }
 
-    const etherscanResponse = new EtherscanResponse(responseBody);
+    const etherscanResponse = new EtherscanVerificationStatusResponse(
+      responseBody,
+    );
 
     if (etherscanResponse.isPending()) {
       await sleep(VERIFICATION_STATUS_POLLING_SECONDS);
@@ -286,11 +294,38 @@ export class Etherscan {
   }
 }
 
-class EtherscanResponse implements VerificationResponse {
+class EtherscanVerificationResponse implements VerificationResponse {
   public readonly status: number;
   public readonly message: string;
 
-  constructor(response: EtherscanVerifySourceCodeResponse) {
+  constructor(response: EtherscanResponse) {
+    this.status = Number(response.status);
+    this.message = response.result;
+  }
+
+  public isBytecodeMissingInNetworkError(): boolean {
+    return this.message.startsWith("Unable to locate ContractCode at");
+  }
+
+  public isAlreadyVerified(): boolean {
+    return (
+      this.message.startsWith("Contract source code already verified") ||
+      this.message.startsWith("Already Verified")
+    );
+  }
+
+  public isOk(): boolean {
+    return this.status === 1;
+  }
+}
+
+class EtherscanVerificationStatusResponse
+  implements VerificationStatusResponse
+{
+  public readonly status: number;
+  public readonly message: string;
+
+  constructor(response: EtherscanResponse) {
     this.status = Number(response.status);
     this.message = response.result;
   }
@@ -307,18 +342,14 @@ class EtherscanResponse implements VerificationResponse {
     return this.message === "Pass - Verified";
   }
 
-  public isOk(): boolean {
-    return this.status === 1;
-  }
-
-  public isBytecodeMissingInNetworkError(): boolean {
-    return this.message.startsWith("Unable to locate ContractCode at");
-  }
-
   public isAlreadyVerified(): boolean {
     return (
       this.message.startsWith("Contract source code already verified") ||
       this.message.startsWith("Already Verified")
     );
+  }
+
+  public isOk(): boolean {
+    return this.status === 1;
   }
 }

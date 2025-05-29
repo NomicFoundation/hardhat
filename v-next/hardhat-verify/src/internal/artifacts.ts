@@ -5,6 +5,8 @@ import type {
   SolidityBuildSystem,
 } from "hardhat/types/solidity";
 
+import path from "node:path";
+
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { readJsonFile } from "@nomicfoundation/hardhat-utils/fs";
 
@@ -58,11 +60,15 @@ export async function getBuildInfoAndOutput(
 // TODO: consider moving this to the solidity build system as a helper function
 export async function getCompilerInput(
   solidity: SolidityBuildSystem,
+  rootFilePath: string,
   sourceName: string,
 ): Promise<CompilerInput> {
-  const compilationJob = await solidity.getCompilationJobs([sourceName], {
-    quiet: true,
-  });
+  const compilationJob = await solidity.getCompilationJobs(
+    [path.join(rootFilePath, sourceName)],
+    {
+      quiet: true,
+    },
+  );
 
   if (!(compilationJob instanceof Map) || compilationJob.size !== 1) {
     // eslint-disable-next-line no-restricted-syntax -- TODO

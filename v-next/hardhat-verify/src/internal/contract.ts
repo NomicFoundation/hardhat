@@ -220,9 +220,11 @@ export class ContractInformationResolver {
     deployedBytecode: Bytecode,
   ): ContractInformation | null {
     const { sourceName, contractName } = parseFullyQualifiedName(contract);
+    const inputSourceName = buildInfo.publicSourceNameMap[sourceName];
 
     const compilerOutputContract =
-      buildInfoOutput.output.contracts?.[sourceName][contractName];
+      buildInfoOutput.output.contracts?.[inputSourceName][contractName];
+
     if (compilerOutputContract === undefined) {
       /* eslint-disable-next-line no-restricted-syntax -- TODO: can this happen after
       validating the artifact and build info? what should be the error? */
