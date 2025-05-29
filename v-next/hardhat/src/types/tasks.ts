@@ -145,11 +145,6 @@ export type ExtendTaskArguments<
  */
 export interface EmptyTaskDefinitionBuilder {
   /**
-   * Sets the description of the task.
-   */
-  setDescription(description: string): this;
-
-  /**
    * Builds the EmptyTaskDefinition.
    */
   build(): EmptyTaskDefinition;

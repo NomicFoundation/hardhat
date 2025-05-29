@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/ignition-core",
-  "version": "3.0.0-next.8",
+  "version": "3.0.0-next.12",
   "description": "Hardhat Ignition is a declarative system for deploying smart contracts on Ethereum. It enables you to define smart contract instances you want to deploy, and any operation you want to run on them. By taking over the deployment and execution, Hardhat Ignition lets you focus on your project instead of getting caught up in the deployment details.",
   "homepage": "https://hardhat.org",
   "repository": {
@@ -74,8 +74,8 @@
   },
   "dependencies": {
     "@ethersproject/address": "5.6.1",
-    "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.8",
-    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.8",
+    "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.12",
+    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.12",
     "@nomicfoundation/solidity-analyzer": "^0.1.1",
     "cbor2": "^1.9.0",
     "debug": "^4.3.2",

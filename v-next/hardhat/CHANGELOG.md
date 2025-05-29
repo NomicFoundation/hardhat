@@ -1,5 +1,39 @@
 # hardhat
 
+## 3.0.0-next.12
+
+### Patch Changes
+
+- b86a3a1: Add a new Hardhat plugin providing assertion testing helpers for `viem` ([#6574](https://github.com/NomicFoundation/hardhat/pull/6574))
+
+## 3.0.0-next.11
+
+### Patch Changes
+
+- 54ba870: Distribute coverage.sol as a part of the hardhat package
+
+## 3.0.0-next.10
+
+### Patch Changes
+
+- 6b84f1a: Implemented coverage data collection from the test node task
+- 6b84f1a: Added the definitions for Hardhat coverage related errors
+- a8dc331: Update Viem to latest version
+- d485fd3: Implemented coverage markdown and lcov reporting
+- 6b84f1a: Implemented source instrumentation for the coverage data collection
+- d485fd3: Implemented coverage data collection from the test mocha task
+- 6b84f1a: Implemented coverage plugin to enable coverage data collection from the test tasks
+
+## 3.0.0-next.9
+
+### Patch Changes
+
+- 458cc89: Delegate from `npx hardhat test` to appropriate test runner when file test path provided ([#6616](https://github.com/NomicFoundation/hardhat/issues/6616))
+- d460644: Add the ability to filter Solidity tests with `--grep` ([#6690](https://github.com/NomicFoundation/hardhat/pull/6690))
+- 918df12: Fix an issue with abstract contracts' factories ([#6703](https://github.com/NomicFoundation/hardhat/pull/6703))
+- ad1d08b: Fix to ignore top-level `.json` files in the `artifacts` folder, as those are never actual artifacts ([#6613](https://github.com/NomicFoundation/hardhat/issues/6613))
+- 624ba10: Fixed unintended deduplication of accounts ([#6707](https://github.com/NomicFoundation/hardhat/issues/6707))
+
 ## 3.0.0-next.8
 
 ### Patch Changes

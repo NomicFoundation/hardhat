@@ -32,14 +32,11 @@
       "@nomicfoundation/hardhat-utils",
       "@nomicfoundation/hardhat-toolbox-mocha-ethers",
       "@nomicfoundation/hardhat-viem",
+      "@nomicfoundation/hardhat-viem-matchers",
       "@nomicfoundation/hardhat-zod-utils"
     ],
-    [
-      "@nomicfoundation/hardhat-toolbox-viem"
-    ],
-    [
-      "@nomicfoundation/hardhat-ethers"
-    ]
+    ["@nomicfoundation/hardhat-toolbox-viem"],
+    ["@nomicfoundation/hardhat-ethers"]
   ],
   "___experimentalUnsafeOptions_WILL_CHANGE_IN_PATCH": {
     "onlyUpdatePeerDependentsWhenOutOfRange": true

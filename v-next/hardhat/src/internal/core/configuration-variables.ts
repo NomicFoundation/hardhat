@@ -12,6 +12,8 @@ import { normalizeHexString } from "@nomicfoundation/hardhat-utils/hex";
 
 import { AsyncMutex } from "./async-mutex.js";
 
+export const CONFIGURATION_VARIABLE_MARKER = "{variable}";
+
 export function resolveConfigurationVariable(
   hooks: HookManager,
   variable: ConfigurationVariable | string,
@@ -33,12 +35,22 @@ abstract class BaseResolvedConfigurationVariable
 
   protected abstract _getRawValue(): Promise<string>;
 
+  constructor(public readonly format: string) {
+    assertHardhatInvariant(
+      this.format.includes(CONFIGURATION_VARIABLE_MARKER),
+      "The format must include the variable marker",
+    );
+  }
+
   public async get(): Promise<string> {
     if (this.#cachedValue === undefined) {
       this.#cachedValue = await this._getRawValue();
     }
 
-    return this.#cachedValue;
+    return this.format.replaceAll(
+      CONFIGURATION_VARIABLE_MARKER,
+      this.#cachedValue,
+    );
   }
 
   public async getUrl(): Promise<string> {
@@ -93,7 +105,7 @@ export class LazyResolvedConfigurationVariable extends BaseResolvedConfiguration
   public readonly name: string;
 
   constructor(hooks: HookManager, variable: ConfigurationVariable) {
-    super();
+    super(variable.format ?? CONFIGURATION_VARIABLE_MARKER);
     this.name = variable.name;
     this.#hooks = hooks;
     this.#variable = variable;
@@ -133,7 +145,7 @@ export class FixedValueConfigurationVariable extends BaseResolvedConfigurationVa
   readonly #value: string;
 
   constructor(value: string) {
-    super();
+    super(CONFIGURATION_VARIABLE_MARKER);
     this.#value = value;
   }
 

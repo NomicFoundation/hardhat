@@ -41,6 +41,7 @@ import { ChainId } from "../chain-id/chain-id.js";
  */
 export class LocalAccountsHandler extends ChainId implements RequestHandler {
   readonly #addressToPrivateKey: Map<string, Uint8Array> = new Map();
+  readonly #addresses: string[] = [];
 
   constructor(
     provider: EthereumProvider,
@@ -72,7 +73,7 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
       jsonRpcRequest.method === "eth_requestAccounts"
     ) {
       return this.#createJsonRpcResponse(jsonRpcRequest.id, [
-        ...this.#addressToPrivateKey.keys(),
+        ...this.#addresses,
       ]);
     }
 
@@ -229,11 +230,13 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
     for (const pk of privateKeys) {
       const address = addr.fromPrivateKey(pk).toLowerCase();
       this.#addressToPrivateKey.set(address, pk);
+      this.#addresses.push(address);
     }
   }
 
   #getPrivateKeyForAddress(address: Uint8Array): Uint8Array {
     const pk = this.#addressToPrivateKey.get(bytesToHexString(address));
+
     if (pk === undefined) {
       throw new HardhatError(
         HardhatError.ERRORS.CORE.NETWORK.NOT_LOCAL_ACCOUNT,

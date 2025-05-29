@@ -1,5 +1,6 @@
 import type { Remapping } from "../../../../../src/internal/builtin-plugins/solidity/build-system/resolver/types.js";
 import type { SolcConfig } from "../../../../../src/types/config.js";
+import type { HookContext } from "../../../../../src/types/hooks.js";
 import type {
   NpmPackageResolvedFile,
   ProjectResolvedFile,
@@ -8,12 +9,16 @@ import type {
 import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
 
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
+
 import { CompilationJobImplementation } from "../../../../../src/internal/builtin-plugins/solidity/build-system/compilation-job.js";
 import { DependencyGraphImplementation } from "../../../../../src/internal/builtin-plugins/solidity/build-system/dependency-graph.js";
 import {
   NpmPackageResolvedFileImplementation,
   ProjectResolvedFileImplementation,
 } from "../../../../../src/internal/builtin-plugins/solidity/build-system/resolved-file.js";
+import { HookManagerImplementation } from "../../../../../src/internal/core/hook-manager.js";
 
 describe("CompilationJobImplementation", () => {
   let dependencyGraph: DependencyGraphImplementation;
@@ -23,6 +28,7 @@ describe("CompilationJobImplementation", () => {
   let solcConfig: SolcConfig;
   let solcLongVersion: string;
   let remappings: Remapping[];
+  let hooks: HookManagerImplementation;
   let compilationJob: CompilationJobImplementation;
 
   beforeEach(() => {
@@ -69,11 +75,15 @@ describe("CompilationJobImplementation", () => {
     };
     solcLongVersion = "0.8.0-c7dfd78";
     remappings = [];
+    hooks = new HookManagerImplementation(process.cwd(), []);
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- We don't care about hooks in this context
+    hooks.setContext({} as HookContext);
     compilationJob = new CompilationJobImplementation(
       dependencyGraph,
       solcConfig,
       solcLongVersion,
       remappings,
+      hooks,
     );
   });
 
@@ -85,6 +95,7 @@ describe("CompilationJobImplementation", () => {
           solcConfig,
           "0.8.0-df193b1",
           remappings,
+          hooks,
         );
         assert.notEqual(
           await compilationJob.getBuildId(),
@@ -105,6 +116,7 @@ describe("CompilationJobImplementation", () => {
           },
           solcLongVersion,
           remappings,
+          hooks,
         );
         assert.notEqual(
           await compilationJob.getBuildId(),
@@ -123,6 +135,7 @@ describe("CompilationJobImplementation", () => {
               target: "test",
             },
           ],
+          hooks,
         );
         assert.notEqual(
           await compilationJob.getBuildId(),
@@ -144,6 +157,7 @@ describe("CompilationJobImplementation", () => {
           solcConfig,
           solcLongVersion,
           remappings,
+          hooks,
         );
         assert.notEqual(
           await compilationJob.getBuildId(),
@@ -165,6 +179,7 @@ describe("CompilationJobImplementation", () => {
           solcConfig,
           solcLongVersion,
           remappings,
+          hooks,
         );
         assert.notEqual(
           await compilationJob.getBuildId(),
@@ -188,6 +203,7 @@ describe("CompilationJobImplementation", () => {
           solcConfig,
           solcLongVersion,
           remappings,
+          hooks,
         );
         assert.notEqual(
           await compilationJob.getBuildId(),
@@ -211,6 +227,7 @@ describe("CompilationJobImplementation", () => {
           solcConfig,
           solcLongVersion,
           remappings,
+          hooks,
         );
         assert.notEqual(
           compilationJob.getBuildId(),
@@ -231,6 +248,7 @@ describe("CompilationJobImplementation", () => {
           solcConfig,
           solcLongVersion,
           remappings,
+          hooks,
         );
         assert.notEqual(
           await compilationJob.getBuildId(),
@@ -251,7 +269,58 @@ describe("CompilationJobImplementation", () => {
           solcConfig,
           solcLongVersion,
           remappings,
+          hooks,
         );
+        assert.notEqual(
+          await compilationJob.getBuildId(),
+          await newCompilationJob.getBuildId(),
+        );
+      });
+      it("the solc input is modified via the preprocessSolcInputBeforeBuilding hook", async () => {
+        await compilationJob.getSolcInput();
+        const newCompilationJob = new CompilationJobImplementation(
+          dependencyGraph,
+          solcConfig,
+          solcLongVersion,
+          remappings,
+          hooks,
+        );
+        hooks.registerHandlers("solidity", {
+          preprocessSolcInputBeforeBuilding: async (
+            context,
+            solcInput,
+            next,
+          ) => {
+            solcInput.sources.test = { content: "test" };
+            return next(context, solcInput);
+          },
+        });
+        assert.notEqual(
+          await compilationJob.getBuildId(),
+          await newCompilationJob.getBuildId(),
+        );
+      });
+      it("the project file is modified via the preprocessProjectFileBeforeBuilding hook", async () => {
+        await compilationJob.getSolcInput();
+        const newCompilationJob = new CompilationJobImplementation(
+          dependencyGraph,
+          solcConfig,
+          solcLongVersion,
+          remappings,
+          hooks,
+        );
+        hooks.registerHandlers("solidity", {
+          preprocessProjectFileBeforeBuilding: async (
+            context,
+            sourceName,
+            fsPath,
+            _fileContent,
+            solcVersion,
+            next,
+          ) => {
+            return next(context, sourceName, fsPath, "test", solcVersion);
+          },
+        });
         assert.notEqual(
           await compilationJob.getBuildId(),
           await newCompilationJob.getBuildId(),
@@ -276,6 +345,7 @@ describe("CompilationJobImplementation", () => {
           solcConfig,
           solcLongVersion,
           remappings,
+          hooks,
         );
         assert.equal(
           await compilationJob.getBuildId(),
@@ -292,6 +362,7 @@ describe("CompilationJobImplementation", () => {
           solcConfig,
           solcLongVersion,
           remappings,
+          hooks,
         );
         assert.equal(
           await compilationJob.getBuildId(),
@@ -317,6 +388,7 @@ describe("CompilationJobImplementation", () => {
         },
         solcLongVersion,
         remappings,
+        hooks,
       );
       const solcInput = await newCompilationJob.getSolcInput();
       assert.deepEqual(solcInput.settings.outputSelection, {
@@ -349,6 +421,7 @@ describe("CompilationJobImplementation", () => {
         },
         solcLongVersion,
         remappings,
+        hooks,
       );
       const solcInput = await newCompilationJob.getSolcInput();
       assert.deepEqual(solcInput.settings.outputSelection, {
@@ -363,6 +436,127 @@ describe("CompilationJobImplementation", () => {
           ],
           "": ["ast"],
         },
+      });
+    });
+
+    describe("with preprocessSolcInputBeforeBuilding hook", () => {
+      let content: string;
+
+      beforeEach(() => {
+        content = "test";
+        hooks.registerHandlers("solidity", {
+          preprocessSolcInputBeforeBuilding: async (
+            context,
+            solcInput,
+            next,
+          ) => {
+            solcInput.sources.test = { content };
+            return next(context, solcInput);
+          },
+        });
+      });
+
+      it("should apply the transformation", async () => {
+        const solcInput = await compilationJob.getSolcInput();
+        assert.equal(solcInput.sources.test.content, "test");
+      });
+
+      it("should apply the transformation only once", async () => {
+        const solcInput = await compilationJob.getSolcInput();
+        assert.equal(solcInput.sources.test.content, "test");
+        content = "test2";
+        const solcInput2 = await compilationJob.getSolcInput();
+        assert.equal(solcInput2.sources.test.content, "test");
+      });
+    });
+
+    describe("with preprocessProjectFileBeforeBuilding hook", () => {
+      let name: string | undefined;
+      let path: string | undefined;
+      let content: string;
+      let version: string | undefined;
+
+      beforeEach(() => {
+        name = undefined;
+        path = undefined;
+        content = "test";
+        version = undefined;
+
+        hooks.registerHandlers("solidity", {
+          preprocessProjectFileBeforeBuilding: async (
+            context,
+            sourceName,
+            fsPath,
+            _fileContent,
+            solcVersion,
+            next,
+          ) => {
+            return next(
+              context,
+              name ?? sourceName,
+              path ?? fsPath,
+              content,
+              version ?? solcVersion,
+            );
+          },
+        });
+      });
+
+      it("should apply the transformation on all project files", async () => {
+        const solcInput = await compilationJob.getSolcInput();
+        for (const file of [rootFile, projectDependencyFile]) {
+          assert.equal(solcInput.sources[file.sourceName].content, "test");
+        }
+      });
+
+      it("should not apply the transformation on npm dependency files", async () => {
+        const solcInput = await compilationJob.getSolcInput();
+        assert.equal(
+          solcInput.sources[npmDependencyFile.sourceName].content,
+          npmDependencyFile.content.text,
+        );
+      });
+
+      it("should throw when the name is modified", async () => {
+        name = "newName";
+
+        await assertRejectsWithHardhatError(
+          compilationJob.getSolcInput(),
+          HardhatError.ERRORS.CORE.HOOKS.UNEXPECTED_HOOK_PARAM_MODIFICATION,
+          {
+            hookCategoryName: "solidity",
+            hookName: "preprocessProjectFileBeforeBuilding",
+            paramName: "sourceName",
+          },
+        );
+      });
+
+      it("should throw when the fs path is modified", async () => {
+        path = "newPath";
+
+        await assertRejectsWithHardhatError(
+          compilationJob.getSolcInput(),
+          HardhatError.ERRORS.CORE.HOOKS.UNEXPECTED_HOOK_PARAM_MODIFICATION,
+          {
+            hookCategoryName: "solidity",
+            hookName: "preprocessProjectFileBeforeBuilding",
+            paramName: "fsPath",
+          },
+        );
+      });
+
+      it("should throw when the solc version is modified", async () => {
+        version = "0.0.0";
+
+        await assertRejectsWithHardhatError(
+          compilationJob.getSolcInput(),
+          HardhatError.ERRORS.CORE.HOOKS.UNEXPECTED_HOOK_PARAM_MODIFICATION,
+          {
+            hookCategoryName: "solidity",
+            hookName: "preprocessProjectFileBeforeBuilding",
+            paramName: "solcVersion",
+          },
+        );
       });
     });
   });
