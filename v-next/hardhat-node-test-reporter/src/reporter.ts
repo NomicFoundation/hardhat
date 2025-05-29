@@ -59,6 +59,10 @@ export function hardhatTestReporter(
   options: TestRunOptions,
   config: HardhatTestReporterConfig = {},
 ): TestReporter {
+  // Disable force color flag to ensure that the reporter does not receive
+  // colored error messages as we color them ourselves.
+  // process.env.FORCE_COLOR = undefined;
+
   return async function* (source: TestEventSource): TestReporterResult {
     /**
      * The test reporter works by keeping a stack of the currently executing[1]

@@ -77,6 +77,10 @@ for (const entry of entries) {
 
     options = { ...options, files: testFiles };
 
+    // Force color output even in CI environments to test whether the reporter
+    // correctly disables colors.
+    process.env.FORCE_COLOR = "1";
+
     const reporter = hardhatTestReporter(options);
 
     // We disable github actions annotations, as they are misleading on PRs
