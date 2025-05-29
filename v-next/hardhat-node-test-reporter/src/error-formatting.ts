@@ -1,5 +1,6 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { stripVTControlCharacters } from "node:util";
 
 import chalk from "chalk";
 import { diff as getDiff } from "jest-diff";
@@ -130,6 +131,7 @@ export function formatSingleError(
     .replace(" [ERR_TEST_FAILURE]", "");
 
   const diff = getErrorDiff(error);
+  message = stripVTControlCharacters(message);
 
   // If we detect a falsy expression error message, we remove any extra information
   // as it is unreliable; see https://github.com/NomicFoundation/hardhat/issues/6608.
@@ -144,8 +146,8 @@ export function formatSingleError(
     // If we got a diff, we try to remove any diff from the message, which can
     // have different formats.
 
-    // Format 1: A line starting with "+ actual - expected".
-    let match = message.match(/^(.*?)\n\s*?\+\sactual\s-\sexpected/s);
+    // Format 1: A line starting with "+ actual - expected" or "actual expected".
+    let match = message.match(/^(.*?)\n\s*?[\+\s]*actual[\s-]*expected/s);
 
     // Format 2: A line starting with "{error.actual} !==".
     if (match === null && "actual" in error) {

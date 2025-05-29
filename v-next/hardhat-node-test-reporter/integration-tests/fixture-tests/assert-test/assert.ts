@@ -12,6 +12,9 @@ describe("assert", () => {
     it("should compare strings", () => {
       assert.equal("hello", "world");
     });
+    it("should compare strings (with substring matching)", () => {
+      assert.equal("CustomError1", "CustomErrorWithInt1");
+    });
     it("should compare numbers and strings", () => {
       assert.equal(1, "1");
     });
