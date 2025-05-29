@@ -2,16 +2,13 @@
     [31m1) b[39m
 
 
-[32m0 passing[39m[90m (130ms)[39m[31m[39m
+[32m0 passing[39m[90m (152ms)[39m[31m[39m
 [31m1 failing[39m
 
   1) a
        b:
 
-   [31mAssertionError: The expression evaluated to a falsy value:[39m
-   [31m[39m
-   [31m  console.log("SomethingSomethingSomething")[39m
-   [31m[39m
+   [31mAssertionError: The expression evaluated to a falsy value[39m
    [32m- Expected[39m
    [31m+ Received[39m
    
