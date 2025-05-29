@@ -30,6 +30,9 @@
     },
     {
       "path": "../hardhat-viem-matchers"
+    },
+    {
+      "path": "../hardhat-verify"
     }
   ]
 }
