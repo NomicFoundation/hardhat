@@ -71,8 +71,9 @@ export async function verifyContract(
     solidity,
   } = hre;
   if (config.verify.etherscan.enabled === false) {
-    // eslint-disable-next-line no-restricted-syntax -- TODO: throw
-    throw new Error("Etherscan verification is disabled in your config.");
+    throw new HardhatError(
+      HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.ETHERSCAN_VERIFICATION_DISABLED_IN_CONFIG,
+    );
   }
 
   validateArgs(verifyContractArgs);

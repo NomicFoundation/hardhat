@@ -2665,6 +2665,14 @@ Reason: "{reason}".
 
 If your contract uses libraries whose addresses cannot be detected automatically, make sure you are providing the correct address for each undetectable library.`,
       },
+      ETHERSCAN_VERIFICATION_DISABLED_IN_CONFIG: {
+        number: 80026,
+        messageTemplate:
+          "Etherscan verification is disabled in your config. Please add an Etherscan configuration section to your Hardhat config.",
+        websiteTitle: "Etherscan verification disabled",
+        websiteDescription:
+          "No Etherscan verfication configuration set in Hardhat config",
+      },
     },
     VALIDATION: {
       INVALID_ADDRESS: {
