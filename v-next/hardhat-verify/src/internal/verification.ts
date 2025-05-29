@@ -107,8 +107,12 @@ export async function verifyContract(
   );
 
   if (chainDescriptor.blockExplorers.etherscan === undefined) {
-    // eslint-disable-next-line no-restricted-syntax -- TODO: throw
-    throw new Error();
+    throw new HardhatError(
+      HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.ETHERSCAN_BLOCK_EXPLORER_NOT_CONFIGURED,
+      {
+        chainId,
+      },
+    );
   }
 
   const etherscan = new Etherscan({
@@ -196,11 +200,6 @@ Explorer: ${etherscan.getContractUrl(address)}
     config.paths.root,
     contractInformation.sourceName,
   );
-
-  if (minimalCompilerInput === undefined) {
-    // eslint-disable-next-line no-restricted-syntax -- asd
-    throw new Error();
-  }
 
   const { success: minimalInputVerificationSuccess } =
     await attemptVerification({

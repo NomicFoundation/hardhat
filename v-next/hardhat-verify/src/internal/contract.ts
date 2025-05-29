@@ -6,7 +6,10 @@ import type {
   CompilerOutputContract,
 } from "hardhat/types/solidity";
 
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import {
+  assertHardhatInvariant,
+  HardhatError,
+} from "@nomicfoundation/hardhat-errors";
 import { parseFullyQualifiedName } from "hardhat/utils/contract-names";
 
 import { getBuildInfoAndOutput } from "./artifacts.js";
@@ -225,19 +228,20 @@ export class ContractInformationResolver {
     const compilerOutputContract =
       buildInfoOutput.output.contracts?.[inputSourceName][contractName];
 
-    if (compilerOutputContract === undefined) {
-      /* eslint-disable-next-line no-restricted-syntax -- TODO: can this happen after
-      validating the artifact and build info? what should be the error? */
-      throw new Error();
-    }
+    // TODO: can this happen after validating the artifact and build info? should we throw an error?
+    assertHardhatInvariant(
+      compilerOutputContract !== undefined,
+      "The compiled contract output was not found in the build info.",
+    );
 
     const compilerOutputBytecode =
       compilerOutputContract?.evm?.deployedBytecode;
-    if (compilerOutputBytecode === undefined) {
-      /* eslint-disable-next-line no-restricted-syntax -- TODO: can this happen after
-      validating the artifact and build info? what should be the error? */
-      throw new Error();
-    }
+
+    // TODO: can this happen after validating the artifact and build info? should we throw an error?
+    assertHardhatInvariant(
+      compilerOutputBytecode !== undefined,
+      "The deployed bytecode of the compiled contract was not found in the build info.",
+    );
 
     if (deployedBytecode.compare(compilerOutputBytecode)) {
       return {

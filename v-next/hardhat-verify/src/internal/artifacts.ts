@@ -70,16 +70,18 @@ export async function getCompilerInput(
     },
   );
 
-  if (!(compilationJob instanceof Map) || compilationJob.size !== 1) {
-    // eslint-disable-next-line no-restricted-syntax -- TODO
-    throw new Error();
-  }
+  // TODO: should this be an error instead?
+  assertHardhatInvariant(
+    compilationJob instanceof Map && compilationJob.size === 1,
+    "The compilation job for the contract source was not found.",
+  );
 
   const compilerInput = await compilationJob.get(sourceName)?.getSolcInput();
 
+  // TODO: should this be an error instead?
   assertHardhatInvariant(
     compilerInput !== undefined,
-    "The compilation job for the contract source was not found.",
+    "The compiler input for the contract source was not found.",
   );
 
   return compilerInput;

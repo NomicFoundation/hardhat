@@ -2673,6 +2673,28 @@ If your contract uses libraries whose addresses cannot be detected automatically
         websiteDescription:
           "No Etherscan verfication configuration set in Hardhat config",
       },
+      ETHERSCAN_BLOCK_EXPLORER_NOT_CONFIGURED: {
+        number: 80027,
+        messageTemplate:
+          "No Etherscan block explorer is configured for the {chainId} chain in the chain descriptors.",
+        websiteTitle: "Etherscan block explorer not configured",
+        websiteDescription: `
+Etherscan block explorer information is missing in your chain descriptor configuration.
+
+To enable contract verification on Etherscan, add an etherscan entry in the blockExplorers field of the relevant chain descriptor.
+You can override the default chain descriptor by providing your own chainDescriptors object in the Hardhat config, with the following structure:
+
+chainDescriptors: {
+  <chainId>: {
+    name: <name>,
+    blockExplorers: {
+      etherscan: { name: "Etherscan", url: <etherscan-url> apiUrl: <etherscan-api-url> };
+    }
+  }
+}
+
+`,
+      },
     },
     VALIDATION: {
       INVALID_ADDRESS: {
