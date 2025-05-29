@@ -13,7 +13,7 @@ export interface VerifyActionArgs {
 
 export interface VerifyActionResolvedArgs {
   address: string;
-  constructorArgs: string[];
+  constructorArgs: unknown[];
   contract?: string;
   libraries: LibraryAddresses;
   force: boolean;

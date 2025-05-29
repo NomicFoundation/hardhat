@@ -1,64 +1,14 @@
 import type { LibraryAddresses } from "../../../libraries.js";
-import type { VerifyActionArgs, VerifyActionResolvedArgs } from "../types.js";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { isAddress } from "@nomicfoundation/hardhat-utils/eth";
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
-import { isFullyQualifiedName } from "hardhat/utils/contract-names";
 
 import { loadModule } from "../../../utils.js";
 
-// TODO: split validation and resolution
-export async function resolveArgs({
-  address,
-  constructorArgs,
-  constructorArgsPath,
-  contract,
-  librariesPath,
-  force,
-}: VerifyActionArgs): Promise<VerifyActionResolvedArgs> {
-  if (!isAddress(address)) {
-    throw new HardhatError(
-      HardhatError.ERRORS.HARDHAT_VERIFY.VALIDATION.INVALID_ADDRESS,
-      {
-        value: address,
-      },
-    );
-  }
-
-  const resolvedConstructorArgs = await resolveConstructorArgs(
-    constructorArgs,
-    constructorArgsPath,
-  );
-
-  // TODO: we could use a more sophisticated validation here, like
-  // in #getFullyQualifiedName within the artifacts manager.
-  // This would allow us to skip the validation in the
-  // resolveContractInformation function.
-  if (contract !== undefined && !isFullyQualifiedName(contract)) {
-    throw new HardhatError(
-      HardhatError.ERRORS.CORE.GENERAL.INVALID_FULLY_QUALIFIED_NAME,
-      {
-        name: contract,
-      },
-    );
-  }
-
-  const resolvedLibraries = await resolveLibraries(librariesPath);
-
-  return {
-    address,
-    constructorArgs: resolvedConstructorArgs,
-    contract,
-    libraries: resolvedLibraries,
-    force: force ?? false,
-  };
-}
-
-async function resolveConstructorArgs(
+export async function resolveConstructorArgs(
   constructorArgs: string[],
   constructorArgsPath?: string,
-): Promise<string[]> {
+): Promise<unknown[]> {
   const hasArgs = constructorArgs.length > 0;
   const hasPath = constructorArgsPath !== undefined;
 
@@ -102,7 +52,7 @@ async function resolveConstructorArgs(
   return importedConstructorArgs.default;
 }
 
-async function resolveLibraries(
+export async function resolveLibraries(
   librariesPath?: string,
 ): Promise<LibraryAddresses> {
   if (librariesPath === undefined) {

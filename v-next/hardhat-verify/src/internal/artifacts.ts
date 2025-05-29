@@ -1,6 +1,11 @@
 import type { ArtifactManager, BuildInfo } from "hardhat/types/artifacts";
-import type { SolidityBuildInfoOutput } from "hardhat/types/solidity";
+import type {
+  CompilerInput,
+  SolidityBuildInfoOutput,
+  SolidityBuildSystem,
+} from "hardhat/types/solidity";
 
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { readJsonFile } from "@nomicfoundation/hardhat-utils/fs";
 
 export interface BuildInfoAndOutput {
@@ -48,4 +53,28 @@ export async function getBuildInfoAndOutput(
     buildInfo,
     buildInfoOutput,
   };
+}
+
+// TODO: consider moving this to the solidity build system as a helper function
+export async function getCompilerInput(
+  solidity: SolidityBuildSystem,
+  sourceName: string,
+): Promise<CompilerInput> {
+  const compilationJob = await solidity.getCompilationJobs([sourceName], {
+    quiet: true,
+  });
+
+  if (!(compilationJob instanceof Map) || compilationJob.size !== 1) {
+    // eslint-disable-next-line no-restricted-syntax -- TODO
+    throw new Error();
+  }
+
+  const compilerInput = await compilationJob.get(sourceName)?.getSolcInput();
+
+  assertHardhatInvariant(
+    compilerInput !== undefined,
+    "The compilation job for the contract source was not found.",
+  );
+
+  return compilerInput;
 }
