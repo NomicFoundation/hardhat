@@ -250,7 +250,6 @@ AVAILABLE TASKS:
   task                     A task that uses arg1
   telemetry                Displays and modifies your telemetry settings
   test                     Runs all your tests
-  verify                   Not implemented yet - to be available soon
 
 AVAILABLE SUBTASKS:
 
