@@ -1,4 +1,5 @@
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
@@ -24,10 +25,8 @@ export async function loadModule(
   const moduleAbsolutePath = path.resolve(process.cwd(), modulePath);
 
   try {
-    // TODO: check that this works in windows
-    const importedModule: Record<string, unknown> = await import(
-      moduleAbsolutePath
-    );
+    const moduleUrl = pathToFileURL(moduleAbsolutePath).href;
+    const importedModule: Record<string, unknown> = await import(moduleUrl);
 
     return importedModule;
   } catch (error) {
