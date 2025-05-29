@@ -2,7 +2,7 @@
     [31m1) b[39m
 
 
-[32m0 passing[39m[90m (152ms)[39m[31m[39m
+[32m0 passing[39m[90m (131ms)[39m[31m[39m
 [31m1 failing[39m
 
   1) a
@@ -15,5 +15,5 @@
    [32m- true[39m
    [31m+ false[39m
    
-   [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/falsy-expression-test/test.ts:10:9)[39m
+   [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/falsy-expression-test/test.ts:12:9)[39m
 

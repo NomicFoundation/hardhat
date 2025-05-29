@@ -1,3 +1,5 @@
+/* eslint-disable -- This test is sensitive to the formatting of the input */
+
 import assert from "node:assert";
 import { describe, it } from "node:test";
 
