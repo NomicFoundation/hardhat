@@ -1356,13 +1356,13 @@ importers:
         specifier: ^5.8.0
         version: 5.8.0
       '@nomicfoundation/hardhat-errors':
-        specifier: workspace:^3.0.0-next.12
+        specifier: workspace:^3.0.0-next.13
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^3.0.0-next.12
+        specifier: workspace:^3.0.0-next.13
         version: link:../hardhat-utils
       '@nomicfoundation/hardhat-zod-utils':
-        specifier: workspace:^3.0.0-next.12
+        specifier: workspace:^3.0.0-next.13
         version: link:../hardhat-zod-utils
       cbor2:
         specifier: ^1.9.0
@@ -1371,7 +1371,7 @@ importers:
         specifier: ^4.3.2
         version: 4.4.0(supports-color@5.5.0)
       hardhat:
-        specifier: workspace:^3.0.0-next.12
+        specifier: workspace:^3.0.0-next.13
         version: link:../hardhat
       semver:
         specifier: ^7.6.3
@@ -1381,7 +1381,7 @@ importers:
         version: 3.24.1
     devDependencies:
       '@nomicfoundation/hardhat-node-test-reporter':
-        specifier: workspace:^3.0.0-next.12
+        specifier: workspace:^3.0.0-next.13
         version: link:../hardhat-node-test-reporter
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
