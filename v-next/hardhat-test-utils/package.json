@@ -1,7 +1,7 @@
 {
   "name": "@nomicfoundation/hardhat-test-utils",
   "private": true,
-  "version": "3.0.0-next.12",
+  "version": "3.0.0-next.13",
   "description": "Test utilities used to develop and test Hardhat",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-test-utils",
   "repository": {
@@ -37,7 +37,7 @@
     "README.md"
   ],
   "devDependencies": {
-    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0-next.12",
+    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0-next.13",
     "@types/node": "^20.14.9",
     "c8": "^9.1.0",
     "eslint": "9.25.1",
@@ -48,7 +48,7 @@
     "typescript": "~5.5.0"
   },
   "dependencies": {
-    "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.12",
-    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.12"
+    "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.13",
+    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.13"
   }
 }

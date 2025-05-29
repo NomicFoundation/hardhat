@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-toolbox-viem",
-  "version": "4.0.0-next.12",
+  "version": "4.0.0-next.13",
   "description": "Nomic Foundation's recommended bundle of Hardhat plugins",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-toolbox-viem",
   "repository": {
@@ -45,16 +45,16 @@
     "README.md"
   ],
   "devDependencies": {
-    "@nomicfoundation/hardhat-ignition": "workspace:^3.0.0-next.12",
-    "@nomicfoundation/hardhat-ignition-viem": "workspace:^3.0.0-next.12",
-    "@nomicfoundation/hardhat-keystore": "workspace:^3.0.0-next.12",
-    "@nomicfoundation/hardhat-network-helpers": "workspace:^3.0.0-next.12",
-    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0-next.12",
-    "@nomicfoundation/hardhat-node-test-runner": "workspace:^3.0.0-next.12",
+    "@nomicfoundation/hardhat-ignition": "workspace:^3.0.0-next.13",
+    "@nomicfoundation/hardhat-ignition-viem": "workspace:^3.0.0-next.13",
+    "@nomicfoundation/hardhat-keystore": "workspace:^3.0.0-next.13",
+    "@nomicfoundation/hardhat-network-helpers": "workspace:^3.0.0-next.13",
+    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0-next.13",
+    "@nomicfoundation/hardhat-node-test-runner": "workspace:^3.0.0-next.13",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
-    "@nomicfoundation/hardhat-viem": "workspace:^3.0.0-next.12",
-    "@nomicfoundation/hardhat-viem-matchers": "workspace:^3.0.0-next.12",
-    "@nomicfoundation/ignition-core": "workspace:^3.0.0-next.12",
+    "@nomicfoundation/hardhat-viem": "workspace:^3.0.0-next.13",
+    "@nomicfoundation/hardhat-viem-matchers": "workspace:^3.0.0-next.13",
+    "@nomicfoundation/ignition-core": "workspace:^3.0.0-next.13",
     "@types/node": "^20.14.9",
     "c8": "^9.1.0",
     "eslint": "9.25.1",
@@ -66,15 +66,15 @@
     "viem": "^2.30.0"
   },
   "peerDependencies": {
-    "@nomicfoundation/hardhat-ignition": "workspace:^3.0.0-next.12",
-    "@nomicfoundation/hardhat-ignition-viem": "workspace:^3.0.0-next.12",
-    "@nomicfoundation/hardhat-keystore": "workspace:^3.0.0-next.12",
-    "@nomicfoundation/hardhat-network-helpers": "workspace:^3.0.0-next.12",
-    "@nomicfoundation/hardhat-node-test-runner": "workspace:^3.0.0-next.12",
-    "@nomicfoundation/hardhat-viem": "workspace:^3.0.0-next.12",
-    "@nomicfoundation/hardhat-viem-matchers": "workspace:^3.0.0-next.12",
-    "@nomicfoundation/ignition-core": "workspace:^3.0.0-next.12",
-    "hardhat": "workspace:^3.0.0-next.12",
+    "@nomicfoundation/hardhat-ignition": "workspace:^3.0.0-next.13",
+    "@nomicfoundation/hardhat-ignition-viem": "workspace:^3.0.0-next.13",
+    "@nomicfoundation/hardhat-keystore": "workspace:^3.0.0-next.13",
+    "@nomicfoundation/hardhat-network-helpers": "workspace:^3.0.0-next.13",
+    "@nomicfoundation/hardhat-node-test-runner": "workspace:^3.0.0-next.13",
+    "@nomicfoundation/hardhat-viem": "workspace:^3.0.0-next.13",
+    "@nomicfoundation/hardhat-viem-matchers": "workspace:^3.0.0-next.13",
+    "@nomicfoundation/ignition-core": "workspace:^3.0.0-next.13",
+    "hardhat": "workspace:^3.0.0-next.13",
     "viem": "^2.30.0"
   }
 }
