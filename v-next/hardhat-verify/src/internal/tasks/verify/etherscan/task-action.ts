@@ -1,10 +1,11 @@
 import type { VerifyActionArgs } from "../types.js";
 import type { NewTaskActionFunction } from "hardhat/types/tasks";
 
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+
 import { verifyContract } from "../../../verification.js";
 
 import { resolveConstructorArgs, resolveLibraries } from "./arg-resolution.js";
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
 const verifyEtherscanAction: NewTaskActionFunction<VerifyActionArgs> = async (
   { constructorArgs, constructorArgsPath, librariesPath, ...verifyActionArgs },
