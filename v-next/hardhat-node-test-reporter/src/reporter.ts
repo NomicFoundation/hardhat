@@ -61,7 +61,7 @@ export function hardhatTestReporter(
 ): TestReporter {
   // Disable force color flag to ensure that the reporter does not receive
   // colored error messages as we color them ourselves.
-  // process.env.FORCE_COLOR = undefined;
+  process.env.FORCE_COLOR = undefined;
 
   return async function* (source: TestEventSource): TestReporterResult {
     /**
