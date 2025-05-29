@@ -131,7 +131,16 @@ export function formatSingleError(
 
   const diff = getErrorDiff(error);
 
-  if (diff !== undefined) {
+  // If we detect a falsy expression error message, we remove any extra information
+  // as it is unreliable; see https://github.com/NomicFoundation/hardhat/issues/6608.
+  // Otherwise, we try to remove any existing diff from the message.
+  if (
+    message.startsWith(
+      "AssertionError: The expression evaluated to a falsy value:",
+    )
+  ) {
+    message = "AssertionError: The expression evaluated to a falsy value";
+  } else if (diff !== undefined) {
     // If we got a diff, we try to remove any diff from the message, which can
     // have different formats.
 
