@@ -199,6 +199,7 @@ Explorer: ${etherscan.getContractUrl(address)}
     solidity,
     config.paths.root,
     contractInformation.sourceName,
+    buildProfileName,
   );
 
   const { success: minimalInputVerificationSuccess } =
