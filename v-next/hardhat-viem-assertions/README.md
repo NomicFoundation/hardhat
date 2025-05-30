@@ -1,20 +1,20 @@
 # Hardhat Viem Matchers plugin
 
-This plugin adds an Ethereum-specific matchers assertion library that integrate with [viem](https://viem.sh/), making your smart contract tests easy to write and read.
+This plugin adds an Ethereum-specific assertions library that integrate with [viem](https://viem.sh/), making your smart contract tests easy to write and read.
 
 ## Installation
 
 To install this plugin, run the following command:
 
 ```bash
-npm install --save-dev @nomicfoundation/hardhat-viem-matchers@next
+npm install --save-dev @nomicfoundation/hardhat-viem-assertions@next
 ```
 
 and add the following statements to your `hardhat.config.ts` file:
 
 ```typescript
 // ...
-import viemMatchersPlugin from "@nomicfoundation/hardhat-viem-matchers";
+import hardhatViemAssertions from "@nomicfoundation/hardhat-viem-assertions";
 
 // ...
 
@@ -22,7 +22,7 @@ export default {
   // ...
   plugins: [
     // ...
-    viemMatchersPlugin,
+    hardhatViemAssertions,
   ],
 
   // ...
@@ -31,9 +31,9 @@ export default {
 
 ## Usage
 
-You don't need to do anything else to use this plugin. Whenever you run your tests with Hardhat, it will automatically add the matchers to the `viem` object.
+You don't need to do anything else to use this plugin. Whenever you run your tests with Hardhat, it will automatically add the assertions to the `viem` object.
 
-Here is an example of using the `balancesHaveChanged` matcher:
+Here is an example of using the `balancesHaveChanged` assertion:
 
 ```ts
 const { viem } = await hre.network.connect();
@@ -58,7 +58,7 @@ await viem.assertions.balancesHaveChanged(
 
 ### Reverted transactions
 
-Several matchers are included to assert that a transaction reverted, and the reason of the revert.
+Several assertions are included to check that a transaction reverted, and the reason of the revert.
 
 #### `.revert`
 
@@ -91,7 +91,7 @@ await viem.assertions.revertWithCustomError(
 );
 ```
 
-The second argument must be the contract that defines the error. The contract is used to determine the full signature of the expected error. The matcher does not check whether the error was emitted by the contract.
+The second argument must be the contract that defines the error. The contract is used to determine the full signature of the expected error. The assertion does not check whether the error was emitted by the contract.
 
 #### `.revertWithCustomErrorWithArgs`
 
@@ -135,7 +135,7 @@ await viem.assertions.emitWithArgs(
 
 ### Balance change
 
-These matchers can be used to assert how a given transaction affects the ether balance of a specific address.
+These assertions can be used to check how a given transaction affects the ether balance of a specific address.
 
 #### `.balancesHaveChanged`
 
