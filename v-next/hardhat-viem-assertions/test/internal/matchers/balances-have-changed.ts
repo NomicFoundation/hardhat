@@ -6,7 +6,7 @@ import { assertRejects } from "@nomicfoundation/hardhat-test-utils";
 import hardhatViem from "@nomicfoundation/hardhat-viem";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
-import hardhatViemMatchers from "../../../src/index.js";
+import hardhatViemAssertions from "../../../src/index.js";
 import { isExpectedError } from "../../helpers/is-expected-error.js";
 
 describe("balancesHaveChanged", () => {
@@ -14,7 +14,7 @@ describe("balancesHaveChanged", () => {
 
   beforeEach(async () => {
     const hre = await createHardhatRuntimeEnvironment({
-      plugins: [hardhatViem, hardhatViemMatchers],
+      plugins: [hardhatViem, hardhatViemAssertions],
     });
 
     ({ viem } = await hre.network.connect());

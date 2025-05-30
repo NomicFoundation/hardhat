@@ -1,4 +1,4 @@
-import type { HardhatViemMatchers } from "../types.js";
+import type { HardhatViemAssertions } from "../types.js";
 import type {
   ContractAbis,
   ContractReturnType,
@@ -21,9 +21,9 @@ import { revertWithCustomError } from "./matchers/revert/revert-with-custom-erro
 import { revertWith } from "./matchers/revert/revert-with.js";
 import { revert } from "./matchers/revert/revert.js";
 
-export class HardhatViemMatchersImpl<
+export class HardhatViemAssertionsImpl<
   ChainTypeT extends ChainType | string = "generic",
-> implements HardhatViemMatchers
+> implements HardhatViemAssertions
 {
   readonly #viem: HardhatViemHelpers<ChainTypeT>;
 
