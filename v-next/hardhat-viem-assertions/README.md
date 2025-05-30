@@ -1,4 +1,4 @@
-# Hardhat Viem Matchers plugin
+# Hardhat Viem Assertions plugin
 
 This plugin adds an Ethereum-specific assertions library that integrate with [viem](https://viem.sh/), making your smart contract tests easy to write and read.
 
