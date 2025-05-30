@@ -5,4 +5,3 @@ export type * from "@nomicfoundation/hardhat-keystore";
 export type * from "@nomicfoundation/hardhat-mocha";
 export type * from "@nomicfoundation/hardhat-network-helpers";
 export type * from "@nomicfoundation/hardhat-typechain";
-export type * from "@nomicfoundation/hardhat-verify";
