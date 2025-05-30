@@ -22,7 +22,7 @@
     "@nomicfoundation/hardhat-utils": "2.0.0",
     "@nomicfoundation/hardhat-toolbox-mocha-ethers": "2.0.0",
     "@nomicfoundation/hardhat-viem": "2.0.6",
-    "@nomicfoundation/hardhat-viem-matchers": "2.0.0",
+    "@nomicfoundation/hardhat-viem-assertions": "2.0.0",
     "@nomicfoundation/hardhat-zod-utils": "2.0.0",
     "@nomicfoundation/template-package": "3.0.0",
     "template-empty-javascript": "0.0.1",

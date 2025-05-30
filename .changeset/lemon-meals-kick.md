@@ -1,5 +1,5 @@
 ---
-"@nomicfoundation/hardhat-viem-matchers": patch
+"@nomicfoundation/hardhat-viem-assertions": patch
 "@nomicfoundation/hardhat-toolbox-viem": patch
 "hardhat": patch
 ---
