@@ -29,7 +29,7 @@
       "path": "../hardhat-viem"
     },
     {
-      "path": "../hardhat-viem-matchers"
+      "path": "../hardhat-viem-assertions"
     }
   ]
 }
