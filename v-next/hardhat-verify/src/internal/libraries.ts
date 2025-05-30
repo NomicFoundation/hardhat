@@ -226,16 +226,25 @@ function lookupLibrary(
   );
 
   if (matchingLibraries.length === 0) {
+    const lines = [];
+
+    if (undetectableLibraryFqns.length > 0) {
+      lines.push(...undetectableLibraryFqns.map((x) => `  * ${x}`));
+    }
+
+    if (detectableLibraryFqns.length > 0) {
+      lines.push(
+        ...detectableLibraryFqns.map((x) => `  * ${x} (optional)`),
+        "Libraries marked as optional don't need to be specified since their addresses are autodetected by the plugin.",
+      );
+    }
+
     const suggestion =
       allLibraryFqns.length > 0
-        ? `This contract uses the following external libraries:
-${undetectableLibraryFqns.map((x) => `  * ${x}`).join("\n")}
-${detectableLibraryFqns.map((x) => `  * ${x} (optional)`).join("\n")}
-${
-  detectableLibraryFqns.length > 0
-    ? "Libraries marked as optional don't need to be specified since their addresses are autodetected by the plugin."
-    : ""
-}`
+        ? [
+            "This contract uses the following external libraries:",
+            ...lines,
+          ].join("\n")
         : "This contract doesn't use any external libraries.";
 
     throw new HardhatError(

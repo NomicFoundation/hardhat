@@ -2516,13 +2516,13 @@ npx hardhat verify --contract contracts/Example.sol:ExampleContract <other args>
       },
       INVALID_LIBRARY_ADDRESS: {
         number: 80011,
-        messageTemplate: `The library "{library}" provided for the contract "{contract}" has an invalid address: {address}.`,
+        messageTemplate: `The library "{library}" provided for the contract "{contract}" has an invalid address: "{address}".`,
         websiteTitle: "Invalid library address",
         websiteDescription: `The address provided for a linked library is invalid. Please make sure the address is a valid Ethereum address.`,
       },
       UNUSED_LIBRARY: {
         number: 80012,
-        messageTemplate: `The library "{library}" was specified for the contract "{contract}" in the "--libraries" option, but this contract does not use it.
+        messageTemplate: `The library "{library}" provided for the contract "{contract}" is not used by the contract.
 
 {suggestion}`,
         websiteTitle: "Library not found in contract",
@@ -2534,11 +2534,11 @@ If the contract uses external libraries, verify that the provided name matches t
       },
       LIBRARY_MULTIPLE_MATCHES: {
         number: 80013,
-        messageTemplate: `The library name "{library}" is ambiguous for the contract "{contract}".
+        messageTemplate: `The library "{library}" provided for the contract "{contract}" is ambiguous.
 It matches multiple libraries:
 {fqnList}
 
-To fix this, specify one of these fully qualified library names in the "--libraries" option.`,
+To fix this, specify one of these fully qualified library names and try again.`,
         websiteTitle: "Library name is ambiguous",
         websiteDescription: `The specified library name matches multiple libraries used by the contract.
 
@@ -2548,9 +2548,9 @@ To resolve the ambiguity, provide the fully qualified library name in the format
       },
       DUPLICATED_LIBRARY: {
         number: 80014,
-        messageTemplate: `The library "{library}" and the fully qualified name "{libraryFqn}" refer to the same library, but both were specified in the "--libraries" option.
+        messageTemplate: `The library name "{library}" and its fully qualified name "{libraryFqn}" refer to the same library.
 
-Remove one of them and try again.`,
+To fix this, remove one of them and try again.`,
         websiteTitle: "Duplicated library entry",
         websiteDescription: `The same library was specified more than once using both its short name and fully qualified name (FQN) in the "--libraries" option.
 

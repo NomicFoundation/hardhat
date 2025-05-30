@@ -132,7 +132,7 @@ export class ContractInformationResolver {
     if (contractInformation === null) {
       throw new HardhatError(
         HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.DEPLOYED_BYTECODE_MISMATCH,
-        { contractDescription: `the contract ${contract}.` },
+        { contractDescription: `the contract "${contract}"` },
       );
     }
 
@@ -186,7 +186,7 @@ export class ContractInformationResolver {
     if (matches.length === 0) {
       throw new HardhatError(
         HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.DEPLOYED_BYTECODE_MISMATCH,
-        { contractDescription: "any of your local contracts." },
+        { contractDescription: "any of your local contracts" },
       );
     }
 
