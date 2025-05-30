@@ -1,47 +1,29 @@
 {
-  "name": "hardhat",
+  "name": "@nomicfoundation/hardhat-verify",
   "version": "3.0.0-next.13",
-  "description": "Hardhat is an extensible developer tool that helps smart contract developers increase productivity by reliably bringing together the tools they want.",
-  "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat",
+  "description": "Hardhat plugin for verifying contracts",
+  "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-verify",
   "repository": {
     "type": "git",
     "url": "https://github.com/NomicFoundation/hardhat",
-    "directory": "v-next/hardhat"
+    "directory": "v-next/hardhat-verify"
   },
   "author": "Nomic Foundation",
   "license": "MIT",
   "type": "module",
   "types": "dist/src/index.d.ts",
-  "bin": {
-    "hardhat": "./dist/src/cli.js"
-  },
   "exports": {
     ".": "./dist/src/index.js",
-    "./config": "./dist/src/config.js",
-    "./hre": "./dist/src/hre.js",
-    "./plugins": "./dist/src/plugins.js",
-    "./internal/lsp-helpers": "./dist/src/lsp-helpers.js",
-    "./types/arguments": "./dist/src/types/arguments.js",
-    "./types/artifacts": "./dist/src/types/artifacts.js",
-    "./types/config": "./dist/src/types/config.js",
-    "./types/global-options": "./dist/src/types/global-options.js",
-    "./types/hooks": "./dist/src/types/hooks.js",
-    "./types/hre": "./dist/src/types/hre.js",
-    "./types/network": "./dist/src/types/network.js",
-    "./types/plugins": "./dist/src/types/plugins.js",
-    "./types/providers": "./dist/src/types/providers.js",
-    "./types/tasks": "./dist/src/types/tasks.js",
-    "./types/user-interruptions": "./dist/src/types/user-interruptions.js",
-    "./types/utils": "./dist/src/types/utils.js",
-    "./types/solidity": "./dist/src/types/solidity.js",
-    "./console.sol": "./console.sol",
-    "./internal/coverage": "./dist/src/internal/builtin-plugins/coverage/exports.js",
-    "./utils/contract-names": "./dist/src/utils/contract-names.js"
+    "./verify": "./dist/src/verify.js"
   },
   "keywords": [
     "ethereum",
     "smart-contracts",
-    "hardhat"
+    "hardhat",
+    "verify",
+    "etherscan",
+    "blockscout",
+    "sourcify"
   ],
   "scripts": {
     "lint": "pnpm prettier --check && pnpm eslint",
@@ -60,9 +42,6 @@
   "files": [
     "dist/src/",
     "src/",
-    "templates/",
-    "console.sol",
-    "coverage.sol",
     "CHANGELOG.md",
     "LICENSE",
     "README.md"
@@ -70,38 +49,28 @@
   "devDependencies": {
     "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0-next.13",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
-    "@types/adm-zip": "^0.5.5",
     "@types/debug": "^4.1.7",
     "@types/node": "^20.14.9",
     "@types/semver": "^7.5.8",
-    "@types/ws": "^8.5.13",
     "c8": "^9.1.0",
     "eslint": "9.25.1",
     "expect-type": "^0.19.0",
     "prettier": "3.2.5",
     "rimraf": "^5.0.5",
+    "tsx": "^4.19.3",
     "typescript": "~5.5.0"
   },
   "dependencies": {
-    "@ignored/edr": "0.10.0-alpha.5",
-    "@ignored/edr-optimism": "0.13.0-alpha.4",
+    "@ethersproject/abi": "^5.8.0",
     "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.13",
     "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.13",
     "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.0-next.13",
-    "@nomicfoundation/solidity-analyzer": "^0.1.1",
-    "@sentry/core": "^9.4.0",
-    "@sentry/node": "^9.4.0",
-    "adm-zip": "^0.4.16",
-    "chalk": "^5.3.0",
+    "cbor2": "^1.9.0",
     "debug": "^4.3.2",
-    "enquirer": "^2.3.0",
-    "ethereum-cryptography": "^2.2.1",
-    "micro-eth-signer": "^0.13.0",
-    "p-map": "^7.0.2",
-    "resolve.exports": "^2.0.3",
     "semver": "^7.6.3",
-    "tsx": "^4.19.3",
-    "ws": "^8.18.0",
     "zod": "^3.23.8"
+  },
+  "peerDependencies": {
+    "hardhat": "workspace:^3.0.0-next.13"
   }
 }

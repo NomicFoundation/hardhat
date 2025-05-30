@@ -23,6 +23,9 @@
       "path": "../hardhat-ethers"
     },
     {
+      "path": "../hardhat-verify"
+    },
+    {
       "path": "../hardhat-viem"
     },
     {

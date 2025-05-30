@@ -14,6 +14,7 @@ import hardhatEthersPlugin from "@nomicfoundation/hardhat-ethers";
 import hardhatChaiMatchersPlugin from "@nomicfoundation/hardhat-ethers-chai-matchers";
 import hardhatTypechain from "@nomicfoundation/hardhat-typechain";
 import hardhatIgnitionViem from "@nomicfoundation/hardhat-ignition-viem";
+import hardhatVerify from "@nomicfoundation/hardhat-verify";
 import { ArgumentType } from "hardhat/types/arguments";
 
 util.inspect.defaultOptions.depth = null;
@@ -156,6 +157,7 @@ const config: HardhatUserConfig = {
     HardhatMochaTestRunner,
     hardhatNetworkHelpersPlugin,
     HardhatNodeTestRunner,
+    hardhatVerify,
     HardhatViem,
     HardhatViemAssertions,
     hardhatChaiMatchersPlugin,

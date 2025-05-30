@@ -31,6 +31,7 @@
       "@nomicfoundation/hardhat-typechain",
       "@nomicfoundation/hardhat-utils",
       "@nomicfoundation/hardhat-toolbox-mocha-ethers",
+      "@nomicfoundation/hardhat-verify",
       "@nomicfoundation/hardhat-viem",
       "@nomicfoundation/hardhat-viem-assertions",
       "@nomicfoundation/hardhat-zod-utils"
