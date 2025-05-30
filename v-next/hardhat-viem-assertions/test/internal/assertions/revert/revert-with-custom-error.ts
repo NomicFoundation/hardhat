@@ -10,8 +10,8 @@ import {
 import hardhatViem from "@nomicfoundation/hardhat-viem";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
-import hardhatViemMatchers from "../../../../src/index.js";
-import { DEFAULT_REVERT_REASON_SELECTOR } from "../../../../src/internal/matchers/revert/is-default-revert.js";
+import hardhatViemAssertions from "../../../../src/index.js";
+import { DEFAULT_REVERT_REASON_SELECTOR } from "../../../../src/internal/assertions/revert/is-default-revert.js";
 import { isExpectedError } from "../../../helpers/is-expected-error.js";
 
 describe("revertWithCustomError", () => {
@@ -23,7 +23,7 @@ describe("revertWithCustomError", () => {
   before(async () => {
     hre = await createHardhatRuntimeEnvironment({
       solidity: "0.8.24",
-      plugins: [hardhatViem, hardhatViemMatchers],
+      plugins: [hardhatViem, hardhatViemAssertions],
     });
 
     await hre.tasks.getTask("compile").run({});

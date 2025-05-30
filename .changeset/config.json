@@ -33,7 +33,7 @@
       "@nomicfoundation/hardhat-toolbox-mocha-ethers",
       "@nomicfoundation/hardhat-verify",
       "@nomicfoundation/hardhat-viem",
-      "@nomicfoundation/hardhat-viem-matchers",
+      "@nomicfoundation/hardhat-viem-assertions",
       "@nomicfoundation/hardhat-zod-utils"
     ],
     ["@nomicfoundation/hardhat-toolbox-viem"],

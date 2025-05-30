@@ -10,7 +10,7 @@ import type {
   WriteContractReturnType,
 } from "viem";
 
-export interface HardhatViemMatchers {
+export interface HardhatViemAssertions {
   balancesHaveChanged: (
     resolvedTxHash: Promise<Hash>,
     changes: Array<{

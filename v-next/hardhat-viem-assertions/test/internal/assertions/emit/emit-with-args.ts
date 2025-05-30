@@ -10,7 +10,7 @@ import {
 import hardhatViem from "@nomicfoundation/hardhat-viem";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
-import hardhatViemMatchers from "../../../../src/index.js";
+import hardhatViemAssertions from "../../../../src/index.js";
 import { isExpectedError } from "../../../helpers/is-expected-error.js";
 
 describe("emitWithArgs", () => {
@@ -22,7 +22,7 @@ describe("emitWithArgs", () => {
   before(async () => {
     hre = await createHardhatRuntimeEnvironment({
       solidity: "0.8.24",
-      plugins: [hardhatViem, hardhatViemMatchers],
+      plugins: [hardhatViem, hardhatViemAssertions],
     });
 
     await hre.tasks.getTask("compile").run({});

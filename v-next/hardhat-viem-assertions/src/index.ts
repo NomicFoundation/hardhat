@@ -3,7 +3,7 @@ import type { HardhatPlugin } from "hardhat/types/plugins";
 import "./type-extensions.js";
 
 const hardhatPlugin: HardhatPlugin = {
-  id: "hardhat-viem-matchers",
+  id: "hardhat-viem-assertions",
   dependencies: [
     async () => {
       const { default: viemPlugin } = await import(
@@ -16,7 +16,7 @@ const hardhatPlugin: HardhatPlugin = {
   hookHandlers: {
     network: import.meta.resolve("./internal/hook-handlers/network.js"),
   },
-  npmPackage: "@nomicfoundation/hardhat-viem-matchers",
+  npmPackage: "@nomicfoundation/hardhat-viem-assertions",
 };
 
 export default hardhatPlugin;

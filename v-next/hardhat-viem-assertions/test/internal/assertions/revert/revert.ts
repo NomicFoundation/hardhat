@@ -10,10 +10,9 @@ import {
 import hardhatViem from "@nomicfoundation/hardhat-viem";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
-import hardhatViemMatchers from "../../../../src/index.js";
-import { isExpectedError } from "../../../helpers/is-expected-error.js";
+import hardhatViemAssertions from "../../../../src/index.js";
 
-describe("revertWith", () => {
+describe("revert", () => {
   let hre: HardhatRuntimeEnvironment;
   let viem: HardhatViemHelpers;
 
@@ -22,7 +21,7 @@ describe("revertWith", () => {
   before(async () => {
     hre = await createHardhatRuntimeEnvironment({
       solidity: "0.8.24",
-      plugins: [hardhatViem, hardhatViemMatchers],
+      plugins: [hardhatViem, hardhatViemAssertions],
     });
 
     await hre.tasks.getTask("compile").run({});
@@ -35,47 +34,36 @@ describe("revertWith", () => {
   it("should check that the function reverts", async () => {
     const contract = await viem.deployContract("Revert");
 
-    await viem.assertions.revertWith(
-      contract.read.alwaysRevert(),
-      "Intentional revert for testing purposes",
-    );
+    await viem.assertions.revert(contract.read.alwaysRevert());
   });
 
   it("should check that the function reverts when called within nested contracts", async () => {
     const contract = await viem.deployContract("RevertWithNestedError");
 
-    await viem.assertions.revertWith(
-      contract.read.nestedRevert(),
-      "Intentional revert for testing purposes",
-    );
-  });
-
-  it("should throw because the function reverts with a different reason", async () => {
-    const contract = await viem.deployContract("Revert");
-
-    await assertRejects(
-      viem.assertions.revertWith(contract.read.alwaysRevert(), "wrong reasons"),
-      (error) =>
-        isExpectedError(
-          error,
-          `The function was expected to revert with reason "wrong reasons", but it reverted with reason "Intentional revert for testing purposes".`,
-          "Intentional revert for testing purposes",
-          "wrong reasons",
-        ),
-    );
+    await viem.assertions.revert(contract.read.nestedRevert());
   });
 
   it("should throw because the function does not revert", async () => {
     const contract = await viem.deployContract("Revert");
 
     await assertRejects(
-      viem.assertions.revertWith(
-        contract.read.doNotRevert(),
-        "Intentional revert for testing purposes",
-      ),
+      viem.assertions.revert(contract.read.doNotRevert()),
       (error) =>
         error.message ===
         "The function was expected to revert, but it did not.",
+    );
+  });
+
+  it("should handle when the thrown error is a custom error", async () => {
+    const contract = await viem.deployContract("Revert");
+
+    await assertRejects(
+      viem.assertions.revert(
+        contract.read.revertWithCustomError(), // A custom error
+      ),
+      (error) =>
+        error.message ===
+        `Expected default error revert, but got a custom error selector "0x09caebf3" with data "0x09caebf3"`,
     );
   });
 });
