@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-utils",
-  "version": "3.0.0-next.13",
+  "version": "3.0.0-next.14",
   "description": "Utilities for Hardhat and its plugins",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-utils",
   "repository": {
@@ -62,7 +62,7 @@
     "README.md"
   ],
   "devDependencies": {
-    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0-next.13",
+    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0-next.14",
     "@types/bn.js": "^5.1.5",
     "@types/debug": "^4.1.7",
     "@types/node": "^20.14.9",
