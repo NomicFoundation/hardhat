@@ -33,6 +33,9 @@
     },
     {
       "path": "../hardhat-typechain"
+    },
+    {
+      "path": "../hardhat-verify"
     }
   ]
 }

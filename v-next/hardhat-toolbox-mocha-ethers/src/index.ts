@@ -47,6 +47,12 @@ const hardhatToolboxMochaEthersPlugin: HardhatPlugin = {
       );
       return HardhatTypechainPlugin;
     },
+    async () => {
+      const { default: HardhatVerifyPlugin } = await import(
+        "@nomicfoundation/hardhat-verify"
+      );
+      return HardhatVerifyPlugin;
+    },
   ],
   npmPackage: "@nomicfoundation/hardhat-toolbox-mocha-ethers",
 };

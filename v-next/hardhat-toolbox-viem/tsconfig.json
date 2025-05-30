@@ -30,6 +30,9 @@
     },
     {
       "path": "../hardhat-viem-assertions"
+    },
+    {
+      "path": "../hardhat-verify"
     }
   ]
 }
