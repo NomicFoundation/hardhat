@@ -13,13 +13,13 @@ import type {
   WriteContractReturnType,
 } from "viem";
 
-import { balancesHaveChanged } from "./matchers/balances-have-changed.js";
-import { emitWithArgs } from "./matchers/emit/emit-with-args.js";
-import { emit } from "./matchers/emit/emit.js";
-import { revertWithCustomErrorWithArgs } from "./matchers/revert/revert-with-custom-error-with-args.js";
-import { revertWithCustomError } from "./matchers/revert/revert-with-custom-error.js";
-import { revertWith } from "./matchers/revert/revert-with.js";
-import { revert } from "./matchers/revert/revert.js";
+import { balancesHaveChanged } from "./assertions/balances-have-changed.js";
+import { emitWithArgs } from "./assertions/emit/emit-with-args.js";
+import { emit } from "./assertions/emit/emit.js";
+import { revertWithCustomErrorWithArgs } from "./assertions/revert/revert-with-custom-error-with-args.js";
+import { revertWithCustomError } from "./assertions/revert/revert-with-custom-error.js";
+import { revertWith } from "./assertions/revert/revert-with.js";
+import { revert } from "./assertions/revert/revert.js";
 
 export class HardhatViemAssertionsImpl<
   ChainTypeT extends ChainType | string = "generic",
