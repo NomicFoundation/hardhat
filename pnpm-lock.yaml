@@ -86,7 +86,7 @@ importers:
       '@nomicfoundation/hardhat-viem':
         specifier: workspace:^3.0.0-next.13
         version: link:../hardhat-viem
-      '@nomicfoundation/hardhat-viem-matchers':
+      '@nomicfoundation/hardhat-viem-assertions':
         specifier: workspace:^3.0.0-next.13
         version: link:../hardhat-viem-assertions
       '@nomicfoundation/ignition-core':
@@ -1188,7 +1188,7 @@ importers:
       '@nomicfoundation/hardhat-viem':
         specifier: workspace:^3.0.0-next.13
         version: link:../hardhat-viem
-      '@nomicfoundation/hardhat-viem-matchers':
+      '@nomicfoundation/hardhat-viem-assertions':
         specifier: workspace:^3.0.0-next.13
         version: link:../hardhat-viem-assertions
       '@nomicfoundation/ignition-core':
