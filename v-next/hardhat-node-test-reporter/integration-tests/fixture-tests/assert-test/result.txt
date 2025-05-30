@@ -3,16 +3,17 @@
       [31m1) should compare numbers[39m
       [31m2) should compare booleans[39m
       [31m3) should compare strings[39m
-      [31m4) should compare numbers and strings[39m
+      [31m4) should compare strings (with substring matching)[39m
+      [31m5) should compare numbers and strings[39m
     deepEqual
-      [31m5) should compare objects[39m
-      [31m6) should compare arrays[39m
+      [31m6) should compare objects[39m
+      [31m7) should compare arrays[39m
     match
-      [31m7) should match strings[39m
+      [31m8) should match strings[39m
 
 
-[32m0 passing[39m[90m (136ms)[39m[31m[39m
-[31m7 failing[39m
+[32m0 passing[39m[90m (164ms)[39m[31m[39m
+[31m8 failing[39m
 
   1) assert
        equal
@@ -55,15 +56,28 @@
 
   4) assert
        equal
+         should compare strings (with substring matching):
+
+   [31mAssertionError: Expected values to be strictly equal[39m
+   [32m- Expected[39m
+   [31m+ Received[39m
+   
+   [32m- CustomErrorWithInt1[39m
+   [31m+ CustomError1[39m
+   
+   [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/assert-test/assert.ts:16:14)[39m
+
+  5) assert
+       equal
          should compare numbers and strings:
 
    [31mAssertionError: Expected values to be strictly equal:[39m
    [31m[39m
    [31m1 !== '1'[39m
    [31m[39m
-   [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/assert-test/assert.ts:16:14)[39m
+   [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/assert-test/assert.ts:19:14)[39m
 
-  5) assert
+  6) assert
        deepEqual
          should compare objects:
 
@@ -82,9 +96,9 @@
    [2m    },[22m
    [2m  }[22m
    
-   [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/assert-test/assert.ts:21:14)[39m
+   [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/assert-test/assert.ts:24:14)[39m
 
-  6) assert
+  7) assert
        deepEqual
          should compare arrays:
 
@@ -109,9 +123,9 @@
    [2m    },[22m
    [2m  ][22m
    
-   [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/assert-test/assert.ts:27:14)[39m
+   [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/assert-test/assert.ts:30:14)[39m
 
-  7) assert
+  8) assert
        match
          should match strings:
 
@@ -119,5 +133,5 @@
    [31m[39m
    [31m'hello'[39m
    [31m[39m
-   [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/assert-test/assert.ts:35:14)[39m
+   [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/assert-test/assert.ts:38:14)[39m
 
