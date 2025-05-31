@@ -100,4 +100,6 @@ export class HardhatViemAssertionsImpl<
       args,
     );
   }
+
+  anyValue: 'ANY' = 'ANY';
 }

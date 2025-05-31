@@ -17,6 +17,8 @@ import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 
 import { handleEmit } from "./core.js";
 
+import { cleanupAnyValueArg } from "../anyvalue.js";
+
 export async function emitWithArgs<
   ContractName extends keyof ContractAbis,
   EventName extends ContractEventName<ContractAbis[ContractName]>,
@@ -86,8 +88,8 @@ export async function emitWithArgs<
   }
 
   assert.deepEqual(
-    emittedArgs,
+    cleanupAnyValueArg(emittedArgs, args),
     args,
-    "The event arguments do not match the expected ones.",
+    `Event "${eventName}" expected with arguments "${args.join(", ")}",\n but emitted with arguments "${emittedArgs.join(", ")}".`,
   );
 }
