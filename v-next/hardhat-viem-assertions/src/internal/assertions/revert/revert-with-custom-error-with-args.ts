@@ -1,4 +1,4 @@
-import { cleanupAnyValue } from "../anyvalue.js";
+import { cleanupAnyValueArg } from "../anyvalue.js";
 
 import type {
   ContractAbis,
@@ -24,10 +24,8 @@ export async function revertWithCustomErrorWithArgs<
     customErrorName,
   );
 
-  cleanupAnyValue(args, errorArgs)
-
   assert.deepEqual(
-    errorArgs,
+    cleanupAnyValueArg(errorArgs, args),
     args,
     `Error "${customErrorName}" expected with arguments "${args.join(", ")}",\n but it reverted with arguments "${errorArgs.join(", ")}".`,
   );

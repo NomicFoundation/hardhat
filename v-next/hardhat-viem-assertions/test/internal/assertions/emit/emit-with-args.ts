@@ -54,6 +54,18 @@ describe("emitWithArgs", () => {
     );
   });
 
+  it("should check that the event was emitted with wildcard 'anyValue'", async () => {
+    const contract = await viem.deployContract("Events");
+
+    const anyValue = viem.assertions.anyValue;
+    await viem.assertions.emitWithArgs(
+      contract.write.emitTwoUints([3n, 4n]),
+      contract,
+      "WithTwoUintArgs",
+      [3n, anyValue],
+    );
+  });
+
   it("should check that the event was emitted with the correct multiple arguments, one with param name, one without", async () => {
     const contract = await viem.deployContract("Events");
 

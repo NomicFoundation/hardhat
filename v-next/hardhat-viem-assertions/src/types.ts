@@ -63,6 +63,8 @@ export interface HardhatViemAssertions {
     customErrorName: string,
     args: any[],
   ): Promise<void>;
+
+  anyValue: 'ANY';
 }
 
 type CompiledContractName = [keyof ContractAbis] extends [never]

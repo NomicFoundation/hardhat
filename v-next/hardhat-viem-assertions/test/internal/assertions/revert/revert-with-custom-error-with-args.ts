@@ -53,6 +53,18 @@ describe("revertWithCustomErrorWithArgs", () => {
     );
   });
 
+  it("should check that the function reverts with multiple args and wildard 'anyValue'", async () => {
+    const contract = await viem.deployContract("Revert");
+
+    const anyValue = viem.assertions.anyValue;
+    await viem.assertions.revertWithCustomErrorWithArgs(
+      contract.read.revertWithCustomErrorWithUintAndString([1n, "test"]),
+      contract,
+      "CustomErrorWithUintAndString",
+      [1n, anyValue],
+    );
+  });
+
   it("should check that the function reverts with multiple args with named parameters", async () => {
     const contract = await viem.deployContract("Revert");
 
