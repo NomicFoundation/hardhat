@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-toolbox-mocha-ethers",
-  "version": "3.0.0-next.12",
+  "version": "3.0.0-next.13",
   "description": "Nomic Foundation's recommended bundle of Hardhat plugins",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-toolbox-mocha-ethers",
   "repository": {
@@ -44,18 +44,18 @@
     "README.md"
   ],
   "devDependencies": {
-    "@nomicfoundation/hardhat-ethers": "workspace:^4.0.0-next.12",
-    "@nomicfoundation/hardhat-ethers-chai-matchers": "workspace:^3.0.0-next.12",
-    "@nomicfoundation/hardhat-ignition": "workspace:^3.0.0-next.12",
-    "@nomicfoundation/hardhat-ignition-ethers": "workspace:^3.0.0-next.12",
-    "@nomicfoundation/hardhat-keystore": "workspace:^3.0.0-next.12",
-    "@nomicfoundation/hardhat-mocha": "workspace:^3.0.0-next.12",
-    "@nomicfoundation/hardhat-network-helpers": "workspace:^3.0.0-next.12",
-    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0-next.12",
+    "@nomicfoundation/hardhat-ethers": "workspace:^4.0.0-next.13",
+    "@nomicfoundation/hardhat-ethers-chai-matchers": "workspace:^3.0.0-next.13",
+    "@nomicfoundation/hardhat-ignition": "workspace:^3.0.0-next.13",
+    "@nomicfoundation/hardhat-ignition-ethers": "workspace:^3.0.0-next.13",
+    "@nomicfoundation/hardhat-keystore": "workspace:^3.0.0-next.13",
+    "@nomicfoundation/hardhat-mocha": "workspace:^3.0.0-next.13",
+    "@nomicfoundation/hardhat-network-helpers": "workspace:^3.0.0-next.13",
+    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0-next.13",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
-    "@nomicfoundation/hardhat-typechain": "workspace:^3.0.0-next.12",
-    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.12",
-    "@nomicfoundation/ignition-core": "workspace:^3.0.0-next.12",
+    "@nomicfoundation/hardhat-typechain": "workspace:^3.0.0-next.13",
+    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.13",
+    "@nomicfoundation/ignition-core": "workspace:^3.0.0-next.13",
     "@types/chai": "^4.2.0",
     "@types/node": "^20.14.9",
     "c8": "^9.1.0",
@@ -69,17 +69,17 @@
     "typescript": "~5.5.0"
   },
   "peerDependencies": {
-    "@nomicfoundation/hardhat-ethers": "workspace:^4.0.0-next.12",
-    "@nomicfoundation/hardhat-ethers-chai-matchers": "workspace:^3.0.0-next.12",
-    "@nomicfoundation/hardhat-ignition": "workspace:^3.0.0-next.12",
-    "@nomicfoundation/hardhat-ignition-ethers": "workspace:^3.0.0-next.12",
-    "@nomicfoundation/hardhat-keystore": "workspace:^3.0.0-next.12",
-    "@nomicfoundation/hardhat-mocha": "workspace:^3.0.0-next.12",
-    "@nomicfoundation/hardhat-network-helpers": "workspace:^3.0.0-next.12",
-    "@nomicfoundation/hardhat-typechain": "workspace:^3.0.0-next.12",
-    "@nomicfoundation/ignition-core": "workspace:^3.0.0-next.12",
+    "@nomicfoundation/hardhat-ethers": "workspace:^4.0.0-next.13",
+    "@nomicfoundation/hardhat-ethers-chai-matchers": "workspace:^3.0.0-next.13",
+    "@nomicfoundation/hardhat-ignition": "workspace:^3.0.0-next.13",
+    "@nomicfoundation/hardhat-ignition-ethers": "workspace:^3.0.0-next.13",
+    "@nomicfoundation/hardhat-keystore": "workspace:^3.0.0-next.13",
+    "@nomicfoundation/hardhat-mocha": "workspace:^3.0.0-next.13",
+    "@nomicfoundation/hardhat-network-helpers": "workspace:^3.0.0-next.13",
+    "@nomicfoundation/hardhat-typechain": "workspace:^3.0.0-next.13",
+    "@nomicfoundation/ignition-core": "workspace:^3.0.0-next.13",
     "chai": "^5.1.2",
     "ethers": "^6.13.4",
-    "hardhat": "workspace:^3.0.0-next.12"
+    "hardhat": "workspace:^3.0.0-next.13"
   }
 }
