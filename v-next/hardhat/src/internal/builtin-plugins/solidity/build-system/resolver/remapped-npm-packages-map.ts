@@ -313,11 +313,10 @@ export class RemappedNpmPackagesMap {
 
     const errors: UserRemappingError[] = [];
 
-    // TODO: Update to use the new API so that we don't recurse into
-    // node_modules
     const remappingsTxtFiles = await getAllFilesMatching(
-      path.join(npmPackage.rootFsPath, "remappings.txt"),
-      (f) => f.endsWith("remappings.txt") && f.includes("node_modules"),
+      npmPackage.rootFsPath,
+      (f) => path.basename(f) === "remappings.txt",
+      (f) => !f.endsWith("node_modules"),
     );
 
     for (const remappingsTxtFsPath of remappingsTxtFiles) {
@@ -408,41 +407,17 @@ export class RemappedNpmPackagesMap {
       };
     }
 
-    // If the remapping's target starts with `node_modules/`, we remove it,
-    // so that it's resolved through the acutal npm resolution rules.
-    if (remapping.target.startsWith("node_modules/")) {
-      remapping.target = remapping.target.substring("node_modules/".length);
-
-      // If after doing that the prefix and target are the same, we skip it
-      // so that it doesn't even go through the remappings rules.
-      if (remapping.prefix === remapping.target) {
-        return;
-      }
-    }
-
     const relativeFsPathToRemappingsFile = path.relative(
       npmPackage.rootFsPath,
       path.dirname(sourceOfTheRemapping),
     );
 
-    // If we are treating it as remapping into an npm package, we use the
-    // same syntax as an npm module would (i.e. `<package-name>/<file-path>`),
-    // except that `<file-path>` here could be a prefix, and not a file path.
-    //
-    // Note that that package name is the installation name of the dependency
-    // within the npm package, not the actual dependency name.
-    const installationName = getNpmPackageName(remapping.target);
+    // If the remapping's target starts with `node_modules/`, we remove treat
+    // it as trying to laod an npm dependency, otherwise we treat it as a local
+    // remapping.
 
-    // If the remapping seems to point to a local folder from the remapping
-    // source, or if we can't parse its installation name from the target, we
-    // treat the remapping as a local import.
-
-    const firstTargetDir = path.join(
-      path.dirname(sourceOfTheRemapping),
-      remapping.target.substring(0, remapping.target.indexOf("/")),
-    );
-
-    if (installationName === undefined || (await exists(firstTargetDir))) {
+    // Local remapping case
+    if (!remapping.target.startsWith("node_modules/")) {
       npmPackageRemappings.push({
         context: this.#updateRemappingsTxFragment(
           npmPackage,
@@ -460,6 +435,34 @@ export class RemappedNpmPackagesMap {
       });
 
       return;
+    }
+
+    // npm remapping case:
+
+    // We remove the prefix from the actual target.
+    const target = remapping.target.substring("node_modules/".length);
+
+    // If after doing that the prefix and target are the same, we skip it
+    // so that it doesn't even go unnecesarly go through a user remapping.
+    if (remapping.prefix === target) {
+      return;
+    }
+
+    // If we are treating it as remapping into an npm package, it's syntax,
+    // after removing the `node_modules/` prefix, should be similar to
+    // an npm module's (i.e. `<package-name>/<file-path>`), except that
+    // `<file-path>` here could be a prefix, and not a file path.
+    //
+    // Note that that package name is the installation name of the dependency
+    // within the npm package, not the actual dependency name.
+    const installationName = getNpmPackageName(target);
+
+    if (installationName === undefined) {
+      return {
+        type: UserRemappingErrorType.REMAPPING_WITH_INVALID_SYNTAX,
+        source: sourceOfTheRemapping,
+        remapping: remappingString,
+      };
     }
 
     const dependencyNpmPackage =
@@ -490,7 +493,7 @@ export class RemappedNpmPackagesMap {
       source: sourceOfTheRemapping,
       target:
         dependencyNpmPackage.package.rootSourceName +
-        remapping.target.substring(installationName.length),
+        target.substring(installationName.length),
       targetNpmPackage: {
         installationName,
         package: dependencyNpmPackage.package,
@@ -668,8 +671,12 @@ export class RemappedNpmPackagesMap {
     }
 
     return sourceNamePathJoin(
-      from.rootSourceName,
-      relativeFsPathToRemappingsFileFromPackage,
+      // We add a slash here so that it mains it if the rest of the path is empty
+      from.rootSourceName + "/",
+      // We add the slash here if necessary
+      relativeFsPathToRemappingsFileFromPackage.endsWith("/")
+        ? relativeFsPathToRemappingsFileFromPackage
+        : relativeFsPathToRemappingsFileFromPackage + "/",
       remappingFragment,
     );
   }
