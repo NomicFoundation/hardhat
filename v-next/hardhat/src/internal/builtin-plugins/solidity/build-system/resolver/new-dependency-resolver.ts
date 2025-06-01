@@ -577,7 +577,9 @@ export class NewResolverImplementation implements NewResolver {
     directImport: string;
   }): Promise<
     Result<{ file: ResolvedFile; remapping?: Remapping }, ImportResolutionError>
-  > {}
+  > {
+    return 1 as any;
+  }
 
   async #resolveUserRemappedImport({
     from,
@@ -949,116 +951,116 @@ export class NewResolverImplementation implements NewResolver {
     return fileSourceName.substring(nmpPackage.rootSourceName.length + 1);
   }
 
-  async #newResolveLocalImport({
-    from,
-    importPath,
-    directImport,
-    isRelativeImport,
-  }: {
-    from: ResolvedFile;
-    importPath: string;
-    directImport: string;
-    isRelativeImport: boolean;
-  }): Promise<
-    Result<{ file: ResolvedFile; remapping?: Remapping }, ImportResolutionError>
-  > {
-    const fromNpmPackage =
-      from.type === ResolvedFileType.NPM_PACKAGE_FILE
-        ? from.package
-        : this.#npmPackageMap.hardhatProjectPackage;
+  // async #newResolveLocalImport({
+  //   from,
+  //   importPath,
+  //   directImport,
+  //   isRelativeImport,
+  // }: {
+  //   from: ResolvedFile;
+  //   importPath: string;
+  //   directImport: string;
+  //   isRelativeImport: boolean;
+  // }): Promise<
+  //   Result<{ file: ResolvedFile; remapping?: Remapping }, ImportResolutionError>
+  // > {
+  //   const fromNpmPackage =
+  //     from.type === ResolvedFileType.NPM_PACKAGE_FILE
+  //       ? from.package
+  //       : this.#npmPackageMap.hardhatProjectPackage;
 
-    const sourceName = isRelativeImport
-      ? directImport
-      : sourceNamePathJoin(fromNpmPackage.rootSourceName, directImport);
+  //   const sourceName = isRelativeImport
+  //     ? directImport
+  //     : sourceNamePathJoin(fromNpmPackage.rootSourceName, directImport);
 
-    // When we have a relative import, solidity will resolve that into
-    // something equivalent to
-    // `path.join(path.dirname(from.sourceName), importPath)`, which already
-    // results in the full source name that we need.
-    //
-    // If it's a direct import, like `import "contract/A.sol";` we need to
-    // generate a remapping that would remap it into
-    // `path.join(path.dirname(from.sourceName), "contracts/A.sol")`.
-    //
-    // When `from` is a Project File, we don't need to do that, because that
-    // already happens naturally.
-    const generatedRemapping: Remapping | undefined =
-      isRelativeImport ||
-      fromNpmPackage === this.#npmPackageMap.hardhatProjectPackage
-        ? undefined
-        : await this.#npmPackageMap.generateRemappingForLocalDirectImport(
-            fromNpmPackage,
-            directImport,
-          );
+  //   // When we have a relative import, solidity will resolve that into
+  //   // something equivalent to
+  //   // `path.join(path.dirname(from.sourceName), importPath)`, which already
+  //   // results in the full source name that we need.
+  //   //
+  //   // If it's a direct import, like `import "contract/A.sol";` we need to
+  //   // generate a remapping that would remap it into
+  //   // `path.join(path.dirname(from.sourceName), "contracts/A.sol")`.
+  //   //
+  //   // When `from` is a Project File, we don't need to do that, because that
+  //   // already happens naturally.
+  //   const generatedRemapping: Remapping | undefined =
+  //     isRelativeImport ||
+  //     fromNpmPackage === this.#npmPackageMap.hardhatProjectPackage
+  //       ? undefined
+  //       : await this.#npmPackageMap.generateRemappingForLocalDirectImport(
+  //           fromNpmPackage,
+  //           directImport,
+  //         );
 
-    const existing = this.#resolvedFileBySourceName.get(sourceName);
-    if (existing !== undefined) {
-      return {
-        success: true,
-        value: { file: existing, remapping: generatedRemapping },
-      };
-    }
+  //   const existing = this.#resolvedFileBySourceName.get(sourceName);
+  //   if (existing !== undefined) {
+  //     return {
+  //       success: true,
+  //       value: { file: existing, remapping: generatedRemapping },
+  //     };
+  //   }
 
-    const relativeSourceNamePath = this.#getRelativeSourceNamePath(
-      fromNpmPackage,
-      sourceName,
-    );
+  //   const relativeSourceNamePath = this.#getRelativeSourceNamePath(
+  //     fromNpmPackage,
+  //     sourceName,
+  //   );
 
-    const relativeFsPath = sourceNamePathToFsPath(relativeSourceNamePath);
+  //   const relativeFsPath = sourceNamePathToFsPath(relativeSourceNamePath);
 
-    const fsPath = path.join(fromNpmPackage.rootFsPath, relativeFsPath);
+  //   const fsPath = path.join(fromNpmPackage.rootFsPath, relativeFsPath);
 
-    const pathValidation = await validateFsPath(
-      fromNpmPackage.rootFsPath,
-      relativeFsPath,
-    );
+  //   const pathValidation = await validateFsPath(
+  //     fromNpmPackage.rootFsPath,
+  //     relativeFsPath,
+  //   );
 
-    if (pathValidation.success === false) {
-      if (pathValidation.error.type === PathValidationErrorType.DOESNT_EXIST) {
-        return {
-          success: false,
-          error: {
-            type: ImportResolutionErrorType.IMPORT_DOESNT_EXIST,
-            fromFsPath: from.fsPath,
-            importPath,
-            ...this.#buildResolvedFileReference(
-              fromNpmPackage,
-              relativeSourceNamePath,
-            ),
-          },
-        };
-      }
+  //   if (pathValidation.success === false) {
+  //     if (pathValidation.error.type === PathValidationErrorType.DOESNT_EXIST) {
+  //       return {
+  //         success: false,
+  //         error: {
+  //           type: ImportResolutionErrorType.IMPORT_DOESNT_EXIST,
+  //           fromFsPath: from.fsPath,
+  //           importPath,
+  //           ...this.#buildResolvedFileReference(
+  //             fromNpmPackage,
+  //             relativeSourceNamePath,
+  //           ),
+  //         },
+  //       };
+  //     }
 
-      if (pathValidation.error.type === PathValidationErrorType.CASING_ERROR) {
-        return {
-          success: false,
-          error: {
-            type: ImportResolutionErrorType.IMPORT_INVALID_CASING,
-            fromFsPath: from.fsPath,
-            importPath,
-            ...this.#buildResolvedFileReference(
-              fromNpmPackage,
-              relativeSourceNamePath,
-            ),
-            correctCasing: pathValidation.error.correctCasing,
-          },
-        };
-      }
-    }
+  //     if (pathValidation.error.type === PathValidationErrorType.CASING_ERROR) {
+  //       return {
+  //         success: false,
+  //         error: {
+  //           type: ImportResolutionErrorType.IMPORT_INVALID_CASING,
+  //           fromFsPath: from.fsPath,
+  //           importPath,
+  //           ...this.#buildResolvedFileReference(
+  //             fromNpmPackage,
+  //             relativeSourceNamePath,
+  //           ),
+  //           correctCasing: pathValidation.error.correctCasing,
+  //         },
+  //       };
+  //     }
+  //   }
 
-    const resolvedFile = await this.#buildResolvedFile(
-      sourceName,
-      fsPath,
-      fromNpmPackage,
-    );
+  //   const resolvedFile = await this.#buildResolvedFile(
+  //     sourceName,
+  //     fsPath,
+  //     fromNpmPackage,
+  //   );
 
-    this.#resolvedFileBySourceName.set(sourceName, resolvedFile);
+  //   this.#resolvedFileBySourceName.set(sourceName, resolvedFile);
 
-    return {
-      success: true,
-      value: { file: resolvedFile, remapping: generatedRemapping },
-    };
-  }
+  //   return {
+  //     success: true,
+  //     value: { file: resolvedFile, remapping: generatedRemapping },
+  //   };
+  // }
 }
 
 /**
