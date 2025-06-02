@@ -34,6 +34,7 @@ describe("clients", () => {
 
       assert.equal(client.type, "publicClient");
       assert.equal(client.chain.id, 1);
+      assert.equal(client.transport.retryCount, 3);
       expectTypeOf(client).toEqualTypeOf<PublicClient>();
       // L2 actions should not be available
       expectTypeOf(client).not.toHaveProperty("buildDepositTransaction");
@@ -74,6 +75,7 @@ describe("clients", () => {
 
       assert.equal(client.pollingInterval, 50);
       assert.equal(client.cacheTime, 0);
+      assert.equal(client.transport.retryCount, 0);
 
       const provider2 = new MockEthereumProvider({
         eth_chainId: "0x7a69", // 31337
@@ -83,6 +85,7 @@ describe("clients", () => {
 
       assert.equal(client2.pollingInterval, 50);
       assert.equal(client2.cacheTime, 0);
+      assert.equal(client2.transport.retryCount, 0);
     });
   });
 
@@ -103,6 +106,7 @@ describe("clients", () => {
       clients.forEach((client) => {
         assert.equal(client.type, "walletClient");
         assert.equal(client.chain.id, 1);
+        assert.equal(client.transport.retryCount, 3);
         expectTypeOf(client).toEqualTypeOf<WalletClient>();
         // L2 actions should not be available
         expectTypeOf(client).not.toHaveProperty("initiateWithdrawal");
@@ -193,6 +197,7 @@ describe("clients", () => {
       clients.forEach((client) => {
         assert.equal(client.pollingInterval, 50);
         assert.equal(client.cacheTime, 0);
+        assert.equal(client.transport.retryCount, 0);
       });
 
       const provider2 = new MockEthereumProvider({
@@ -211,6 +216,7 @@ describe("clients", () => {
       clients2.forEach((client) => {
         assert.equal(client.pollingInterval, 50);
         assert.equal(client.cacheTime, 0);
+        assert.equal(client.transport.retryCount, 0);
       });
     });
   });
@@ -270,6 +276,7 @@ describe("clients", () => {
 
       assert.equal(client.pollingInterval, 50);
       assert.equal(client.cacheTime, 0);
+      assert.equal(client.transport.retryCount, 0);
 
       const provider2 = new MockEthereumProvider({
         eth_chainId: "0x7a69", // 31337
@@ -279,6 +286,7 @@ describe("clients", () => {
 
       assert.equal(client2.pollingInterval, 50);
       assert.equal(client2.cacheTime, 0);
+      assert.equal(client2.transport.retryCount, 0);
     });
   });
 
@@ -349,6 +357,7 @@ describe("clients", () => {
 
       assert.equal(client.pollingInterval, 50);
       assert.equal(client.cacheTime, 0);
+      assert.equal(client.transport.retryCount, 0);
 
       const provider2 = new MockEthereumProvider({
         eth_chainId: "0x7a69", // 31337
@@ -359,6 +368,7 @@ describe("clients", () => {
 
       assert.equal(client2.pollingInterval, 50);
       assert.equal(client2.cacheTime, 0);
+      assert.equal(client2.transport.retryCount, 0);
     });
   });
 
@@ -375,6 +385,7 @@ describe("clients", () => {
       assert.equal(client.mode, "hardhat");
       assert.equal(client.pollingInterval, 50);
       assert.equal(client.cacheTime, 0);
+      assert.equal(client.transport.retryCount, 0);
     });
 
     it("should return a test client with anvil mode", async () => {
@@ -389,6 +400,7 @@ describe("clients", () => {
       assert.equal(client.mode, "anvil");
       assert.equal(client.pollingInterval, 50);
       assert.equal(client.cacheTime, 0);
+      assert.equal(client.transport.retryCount, 0);
     });
 
     it("should return a test client with custom parameters", async () => {
