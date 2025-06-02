@@ -31,15 +31,14 @@ export async function getPublicClient<ChainTypeT extends ChainType | string>(
 ): Promise<GetPublicClientReturnType<ChainTypeT>> {
   const chain =
     publicClientConfig?.chain ?? (await getChain(provider, chainType));
-  const { clientParameters, transportParameters } = await getDefaultParameters(
-    provider,
-    publicClientConfig,
-  );
+  const { defaultClientParams, defaultTransportParams } =
+    await getDefaultParams(provider);
 
   let publicClient = createPublicClient({
     chain,
-    transport: customTransport(provider, transportParameters),
-    ...clientParameters,
+    transport: customTransport(provider, defaultTransportParams),
+    ...defaultClientParams,
+    ...publicClientConfig,
   });
 
   if (chainType === "optimism") {
@@ -59,17 +58,16 @@ export async function getWalletClients<ChainTypeT extends ChainType | string>(
   const chain =
     walletClientConfig?.chain ?? (await getChain(provider, chainType));
   const accounts = await getAccounts(provider);
-  const { clientParameters, transportParameters } = await getDefaultParameters(
-    provider,
-    walletClientConfig,
-  );
+  const { defaultClientParams, defaultTransportParams } =
+    await getDefaultParams(provider);
 
   let walletClients = accounts.map((account) =>
     createWalletClient({
       chain,
       account,
-      transport: customTransport(provider, transportParameters),
-      ...clientParameters,
+      transport: customTransport(provider, defaultTransportParams),
+      ...defaultClientParams,
+      ...walletClientConfig,
     }),
   );
 
@@ -92,16 +90,15 @@ export async function getWalletClient<ChainTypeT extends ChainType | string>(
 ): Promise<GetWalletClientReturnType<ChainTypeT>> {
   const chain =
     walletClientConfig?.chain ?? (await getChain(provider, chainType));
-  const { clientParameters, transportParameters } = await getDefaultParameters(
-    provider,
-    walletClientConfig,
-  );
+  const { defaultClientParams, defaultTransportParams } =
+    await getDefaultParams(provider);
 
   let walletClient = createWalletClient({
     chain,
     account: address,
-    transport: customTransport(provider, transportParameters),
-    ...clientParameters,
+    transport: customTransport(provider, defaultTransportParams),
+    ...defaultClientParams,
+    ...walletClientConfig,
   });
 
   if (chainType === "optimism") {
@@ -149,28 +146,27 @@ export async function getTestClient<ChainTypeT extends ChainType | string>(
   const chain =
     testClientConfig?.chain ?? (await getChain(provider, chainType));
   const mode = await getMode(provider);
-  const parameters = { ...DEFAULT_CLIENT_PARAMETERS, ...testClientConfig };
 
   const testClient = createTestClient({
     chain,
     mode,
-    transport: customTransport(provider, DEFAULT_TRANSPORT_PARAMETERS),
-    ...parameters,
+    transport: customTransport(provider, DEFAULT_DEVELOPMENT_TRANSPORT_PARAMS),
+    ...DEFAULT_DEVELOPMENT_CLIENT_PARAMS,
+    ...testClientConfig,
   });
 
   return testClient;
 }
 
-const DEFAULT_CLIENT_PARAMETERS = { pollingInterval: 50, cacheTime: 0 };
-const DEFAULT_TRANSPORT_PARAMETERS = { retryCount: 0 };
+const DEFAULT_DEVELOPMENT_CLIENT_PARAMS = { pollingInterval: 50, cacheTime: 0 };
+const DEFAULT_DEVELOPMENT_TRANSPORT_PARAMS = { retryCount: 0 };
 
-async function getDefaultParameters<TConfig extends {} | undefined>(
-  provider: EthereumProvider,
-  config: TConfig,
-) {
+async function getDefaultParams(provider: EthereumProvider) {
   const isDevelopment = await isDevelopmentNetwork(provider);
-  return {
-    clientParameters: { ...DEFAULT_CLIENT_PARAMETERS, ...config },
-    transportParameters: isDevelopment ? DEFAULT_TRANSPORT_PARAMETERS : {},
-  };
+  return isDevelopment
+    ? {
+        defaultClientParams: DEFAULT_DEVELOPMENT_CLIENT_PARAMS,
+        defaultTransportParams: DEFAULT_DEVELOPMENT_TRANSPORT_PARAMS,
+      }
+    : {};
 }

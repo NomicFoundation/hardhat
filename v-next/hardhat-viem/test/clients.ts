@@ -35,6 +35,8 @@ describe("clients", () => {
       assert.equal(client.type, "publicClient");
       assert.equal(client.chain.id, 1);
       assert.equal(client.transport.retryCount, 3);
+      assert.equal(client.pollingInterval, 4_000);
+      assert.equal(client.cacheTime, 4_000);
       expectTypeOf(client).toEqualTypeOf<PublicClient>();
       // L2 actions should not be available
       expectTypeOf(client).not.toHaveProperty("buildDepositTransaction");
@@ -107,6 +109,8 @@ describe("clients", () => {
         assert.equal(client.type, "walletClient");
         assert.equal(client.chain.id, 1);
         assert.equal(client.transport.retryCount, 3);
+        assert.equal(client.pollingInterval, 4_000);
+        assert.equal(client.cacheTime, 4_000);
         expectTypeOf(client).toEqualTypeOf<WalletClient>();
         // L2 actions should not be available
         expectTypeOf(client).not.toHaveProperty("initiateWithdrawal");
@@ -231,6 +235,8 @@ describe("clients", () => {
       assert.equal(client.type, "walletClient");
       assert.equal(client.chain.id, 1);
       assert.equal(client.account.address, "0x123");
+      assert.equal(client.pollingInterval, 4_000);
+      assert.equal(client.cacheTime, 4_000);
       expectTypeOf(client).toEqualTypeOf<WalletClient>();
       // L2 actions should not be available
       expectTypeOf(client).not.toHaveProperty("initiateWithdrawal");
@@ -247,6 +253,8 @@ describe("clients", () => {
       assert.equal(client.type, "walletClient");
       assert.equal(client.chain.id, 10);
       assert.equal(client.account.address, "0x123");
+      assert.equal(client.pollingInterval, 4_000);
+      assert.equal(client.cacheTime, 4_000);
       expectTypeOf(client).toEqualTypeOf<OpWalletClient>();
       // L2 actions should be available
       expectTypeOf(client).toHaveProperty("initiateWithdrawal");
