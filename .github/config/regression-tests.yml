@@ -938,7 +938,24 @@ repositories:
     ref: c93f7716c9909175d45f6ef80a34a650e2d24e56
   OpenZeppelin/openzeppelin-contracts:
     commands:
+      - hardhat compile
       - hardhat2 compile
+    hardhat-config: |
+      export default {
+        "solidity": {
+          "version": "0.8.27",
+          "optimizer": {
+            "enabled": true,
+            "runs": 200,
+          },
+          "evmVersion": "prague",
+          "outputSelection": {
+            "*": {
+              "*": ["storageLayout"]
+            }
+          },
+        }
+      };
     hardhat2-version: 2.24.1
     ref: 88962fb5ab6965d224dc6e6757f34e4f301160c5
 runners:
