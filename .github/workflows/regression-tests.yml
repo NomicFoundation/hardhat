@@ -354,6 +354,7 @@ jobs:
         env:
           DEBUG: ${{ runner.debug && '*' || '' }}
           ENV_SOURCE: ${{ fromJSON(steps.config.outputs.repository).env }}
+          HARDHAT_EXPERIMENTAL_ALLOW_NON_LOCAL_INSTALLATION: ${{ startsWith(matrix.command, 'hardhat2') && 'true' || '' }}
         run: |
           source <(echo "$ENV_SOURCE")
           set +e
