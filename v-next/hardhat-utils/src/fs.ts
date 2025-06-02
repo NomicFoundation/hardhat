@@ -93,7 +93,7 @@ export async function getAllFilesMatching(
  * satisfy the specified condition, returning their absolute paths. Once a
  * directory is found, its subdirectories are not searched.
  *
- * Note: dirFrom is never returned, nor `matches` is called on it.
+ * Note: dirFrom is never returned, nor is `matches` called on it.
  *
  * @param dirFrom The absolute path of the directory to start the search from.
  * @param matches A function to filter directories (not files).
