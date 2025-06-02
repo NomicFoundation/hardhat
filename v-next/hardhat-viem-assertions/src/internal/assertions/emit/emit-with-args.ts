@@ -14,6 +14,7 @@ import type {
 import assert from "node:assert/strict";
 
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
+import { deepEqual } from "@nomicfoundation/hardhat-utils/lang";
 
 import { handleEmit } from "./core.js";
 
@@ -47,20 +48,31 @@ export async function emitWithArgs<
 
   const parsedLogs = await handleEmit(viem, contractFn, contract, eventName);
 
-  let emittedArgs: any[] = [];
-  if (args.length > 0) {
-    const parsedLog = parsedLogs[0].args;
-    assert.ok(
-      parsedLog !== undefined,
-      `No arguments in the event logs, are you sure you are targeting an event with arguments?`,
-    );
+  const abiEvent = abiEvents[0];
 
-    const abiEvent = abiEvents[0];
+  for (const { args: logArgs } of parsedLogs) {
+    let emittedArgs: unknown[] = [];
 
-    if (Array.isArray(parsedLog)) {
+    if (logArgs === undefined) {
+      if (args.length === 0) {
+        // If the logs contain no arguments and none are expected, we can return, this is a valid match
+        return;
+      }
+
+      if (parsedLogs.length === 1) {
+        // If only one event was emitted, provide more details
+        assert.fail(
+          "No arguments in the event logs, are you sure you are targeting an event with arguments?",
+        );
+      }
+
+      continue;
+    }
+
+    if (Array.isArray(logArgs)) {
       // All the args are listed in an array, this happens when some of the event parameters do not have parameter names.
-      // Example: event EventX(uint u, uint) -> mapped to -> [bigin, bigint]
-      emittedArgs = parsedLog;
+      // Example: event EventX(uint u, uint) -> mapped to -> [bigint, bigint]
+      emittedArgs = logArgs;
     } else {
       // The event parameters have names, so they are represented as an object.
       // They must be mapped into a sorted array that matches the order of the ABI event parameters.
@@ -72,22 +84,38 @@ export async function emitWithArgs<
           `The event parameter at index ${index} does not have a name`,
         );
 
-        emittedArgs.push(parsedLog[param.name]);
+        emittedArgs.push(logArgs[param.name]);
 
         parsedLogCount++;
       }
 
-      if (parsedLogCount !== Object.keys(parsedLog).length) {
-        assert.fail(
-          `The provided event "${eventName}" expects ${args.length} arguments, but the emitted event contains ${Object.keys(parsedLog).length}.`,
-        );
+      if (parsedLogCount !== Object.keys(logArgs).length) {
+        if (parsedLogs.length === 1) {
+          // If only one event was emitted, provide more details
+          assert.fail(
+            `The provided event "${eventName}" expects ${args.length} arguments, but the emitted event contains ${Object.keys(logArgs).length}.`,
+          );
+        }
+
+        continue;
       }
+    }
+
+    if ((await deepEqual(emittedArgs, args)) === true) {
+      return;
+    }
+
+    if (parsedLogs.length === 1) {
+      // If only one event was emitted, provide more details
+      assert.deepEqual(
+        emittedArgs,
+        args,
+        "The event arguments do not match the expected ones.",
+      );
     }
   }
 
-  assert.deepEqual(
-    emittedArgs,
-    args,
-    "The event arguments do not match the expected ones.",
+  assert.fail(
+    "Multiple events were emitted, but none of them match the expected arguments.",
   );
 }
