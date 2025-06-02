@@ -250,22 +250,8 @@ jobs:
             if (!commandConfig) {
               core.setFailed(`Unsupported command: ${process.env.COMMAND}`);
             }
-            switch (process.env.COMMAND.split(' ')[0]) {
-              case 'hardhat':
-                if (repositoryConfig.hardhat-config === undefined) {
-                  core.setFailed(`Unsupported repository: ${process.env.REPOSITORY}`);
-                }
-                break;
-              case 'hardhat2':
-                if (repositoryConfig.hardhat2-version === undefined) {
-                  core.setFailed(`Unsupported repository: ${process.env.REPOSITORY}`);
-                }
-                break;
-              case 'forge':
-                if (repositoryConfig.forge-version === undefined) {
-                  core.setFailed(`Unsupported repository: ${process.env.REPOSITORY}`);
-                }
-                break;
+            if (repositoryConfig.commands === undefined || !repositoryConfig.commands.includes(process.env.COMMAND)) {
+              core.setFailed(`Unsupported command: ${process.env.COMMAND}`);
             }
             core.setOutput('repository', JSON.stringify(repositoryConfig));
             core.setOutput('runner', JSON.stringify(runnerConfig));

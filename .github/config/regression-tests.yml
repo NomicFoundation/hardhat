@@ -1,5 +1,10 @@
 repositories:
   Elytro-eth/soul-wallet-contract:
+    commands:
+      - forge build
+      - forge test
+      - hardhat compile
+      - hardhat test solidity
     forge-version: v0.3.0
     hardhat-config: |
       export default {
@@ -60,6 +65,11 @@ repositories:
       test/paymaster/ERC20Paymaster.t.sol
     ref: fc7cc084563ad1bda870df841b77caa9ee3a3661
   PaulRBerg/prb-math:
+    commands:
+      - forge build
+      - forge test
+      - hardhat compile
+      - hardhat test solidity
     forge-version: v0.3.0
     hardhat-config: |
       export default {
@@ -87,6 +97,11 @@ repositories:
       };
     ref: 93be53541f39a0c1e80818a9183b2acb3908ae74
   PaulRBerg/prb-proxy:
+    commands:
+      - forge build
+      - forge test
+      - hardhat compile
+      - hardhat test solidity
     forge-version: v0.3.0
     hardhat-config: |
       export default {
@@ -136,6 +151,11 @@ repositories:
       };
     ref: e45f5325d4b6003227a6c4bdaefac9453f89de2e
   PaulRBerg/prb-test:
+    commands:
+      - forge build
+      - forge test
+      - hardhat compile
+      - hardhat test solidity
     forge-version: v0.3.0
     hardhat-config: |
       export default {
@@ -163,6 +183,11 @@ repositories:
       };
     ref: cd07166bdd12c7c4a899cb53951653b53939a644
   ProjectOpenSea/seaport:
+    commands:
+      - forge build
+      - forge test
+      - hardhat compile
+      - hardhat test solidity
     forge-version: v0.3.0
     hardhat-config: |
       export default {
@@ -293,6 +318,11 @@ repositories:
       test/foundry/new/helpers/event-utils/TransferEventsLib.sol
     ref: 585b2ef8376dd979171522027bbdb048c2a4999c
   Uniswap/UniswapX:
+    commands:
+      - forge build
+      - forge test
+      - hardhat compile
+      - hardhat test solidity
     forge-version: v0.3.0
     hardhat-config: |
       export default {
@@ -355,6 +385,11 @@ repositories:
       test/reactors/DutchOrderReactor.t.sol
     ref: 4013dfa4bc53b823b406b035a9b5eb579607eb99
   Vectorized/solady:
+    commands:
+      - forge build
+      - forge test
+      - hardhat compile
+      - hardhat test solidity
     forge-version: v0.3.0
     hardhat-config: |
       export default {
@@ -412,6 +447,11 @@ repositories:
       test/DeploylessPredeployQueryer.t.sol
     ref: c9e079c0ca836dcc52777a1fa7227ef28e3537b3
   foundry-rs/forge-std:
+    commands:
+      - forge build
+      - forge test
+      - hardhat compile
+      - hardhat test solidity
     forge-version: v0.3.0
     hardhat-config: |
       export default {
@@ -456,6 +496,11 @@ repositories:
       test/StdChains.t.sol
     ref: 8ba9031ffcbe25aa0d1224d3ca263a995026e477
   kalidao/keep:
+    commands:
+      - forge build
+      - forge test
+      - hardhat compile
+      - hardhat test solidity
     forge-version: v0.3.0
     hardhat-config: |
       export default {
@@ -485,6 +530,11 @@ repositories:
       };
     ref: 21213d34042b8a5a68afeb590f43018f08c81a58
   mds1/multicall:
+    commands:
+      - forge build
+      - forge test
+      - hardhat compile
+      - hardhat test solidity
     forge-version: v0.3.0
     hardhat-config: |
       export default {
@@ -515,6 +565,11 @@ repositories:
       };
     ref: 19da7a56668b7b284901ef0551edb23905c6cd53
   pancakeswap/infinity-core:
+    commands:
+      - forge build
+      - forge test
+      - hardhat compile
+      - hardhat test solidity
     forge-version: v0.3.0
     hardhat-config: |
       export default {
@@ -600,6 +655,11 @@ repositories:
       test/pool-cl/libraries/TickBitmap.t.sol
     ref: 9a050c44cdf801fd19753409e6a03a8026a1fd09
   pcaversaccio/createx:
+    commands:
+      - forge build
+      - forge test
+      - hardhat compile
+      - hardhat test solidity
     forge-version: v0.3.0
     hardhat-config: |
       export default {
@@ -666,6 +726,11 @@ repositories:
   sablier-labs/lockup:
     env: |
       RPC_URL_MAINNET="https://eth-mainnet.g.alchemy.com/v2/<api-key>"
+    commands:
+      - forge build
+      - forge test
+      - hardhat compile
+      - hardhat test solidity
     forge-version: v0.3.0
     hardhat-config: |
       export default {
@@ -766,6 +831,11 @@ repositories:
   sablier-labs/v2-periphery:
     env: |
       RPC_URL_MAINNET="https://eth-mainnet.g.alchemy.com/v2/<api-key>"
+    commands:
+      - forge build
+      - forge test
+      - hardhat compile
+      - hardhat test solidity
     forge-version: v0.3.0
     hardhat-config: |
       export default {
@@ -833,6 +903,11 @@ repositories:
       test/fork/assets/USDT.t.sol
     ref: c3ea8d7f7aab4cb33c6b4517ba38d32ca35b1257
   transmissions11/solmate:
+    commands:
+      - forge build
+      - forge test
+      - hardhat compile
+      - hardhat test solidity
     forge-version: v0.3.0
     hardhat-config: |
       export default {
@@ -862,9 +937,10 @@ repositories:
       };
     ref: c93f7716c9909175d45f6ef80a34a650e2d24e56
   OpenZeppelin/openzeppelin-contracts:
+    commands:
+      - hardhat2 compile
     hardhat2-version: 2.24.1
     ref: 88962fb5ab6965d224dc6e6757f34e4f301160c5
-
 runners:
   ubuntu-latest: {}
   windows-latest: {}
