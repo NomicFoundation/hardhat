@@ -324,8 +324,10 @@ jobs:
         env:
           CONFIG: ${{ fromJSON(steps.config.outputs.repository).hardhat-config }}
         run: |
-          rm hardhat.config.* || true
-          echo "$CONFIG" > hardhat.config.js
+          if [[ -n "$CONFIG" ]]; then
+            rm hardhat.config.* || true
+            echo "$CONFIG" > hardhat.config.js
+          fi
       - name: Initialize the package
         if: startsWith(matrix.command, 'hardhat ')
         run: |
