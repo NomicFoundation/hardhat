@@ -2,25 +2,34 @@ name: Regression Tests
 
 on:
   # TODO: Add a workflow_call trigger to allow running this workflow from EDR
+  # and to allow more specialised regression test workflows within hardhat to
+  # specify their own defaults; e.g. one to compare solidity tests performance
+  # with forge, and a separate one to compare solidity compilation performance
+  # with hardhat 2
   workflow_dispatch:
     inputs:
       hardhat-ref:
+        description: 'The branch, tag or SHA of hardhat to test against'
         required: true
         type: string
         default: 'v-next'
       edr-ref:
+        description: 'The branch, tag or SHA of edr to test against'
         required: false
         type: string
         default: ''
       repositories:
+        description: 'A list of repositories to test against'
         required: false
         type: string
         default: '["Elytro-eth/soul-wallet-contract", "foundry-rs/forge-std", "kalidao/keep", "mds1/multicall", "pancakeswap/infinity-core", "PaulRBerg/prb-math", "PaulRBerg/prb-proxy", "PaulRBerg/prb-test", "pcaversaccio/createx", "ProjectOpenSea/seaport", "sablier-labs/lockup", "sablier-labs/v2-periphery", "transmissions11/solmate", "Uniswap/UniswapX", "Vectorized/solady"]'
       runners:
+        description: 'A list of runners to test against'
         required: false
         type: string
         default: '["ubuntu-latest"]'
       commands:
+        description: 'A list of commands to test against'
         required: false
         type: string
         default: '["hardhat compile", "hardhat test solidity"]'
@@ -241,6 +250,23 @@ jobs:
             if (!commandConfig) {
               core.setFailed(`Unsupported command: ${process.env.COMMAND}`);
             }
+            switch (process.env.COMMAND.split(' ')[0]) {
+              case 'hardhat':
+                if (repositoryConfig.hardhat-config === undefined) {
+                  core.setFailed(`Unsupported repository: ${process.env.REPOSITORY}`);
+                }
+                break;
+              case 'hardhat2':
+                if (repositoryConfig.hardhat2-version === undefined) {
+                  core.setFailed(`Unsupported repository: ${process.env.REPOSITORY}`);
+                }
+                break;
+              case 'forge':
+                if (repositoryConfig.forge-version === undefined) {
+                  core.setFailed(`Unsupported repository: ${process.env.REPOSITORY}`);
+                }
+                break;
+            }
             core.setOutput('repository', JSON.stringify(repositoryConfig));
             core.setOutput('runner', JSON.stringify(runnerConfig));
             core.setOutput('command', JSON.stringify(commandConfig));
@@ -254,12 +280,12 @@ jobs:
         with:
           node-version: 22
       - name: Download Hardhat
-        if: (startsWith(matrix.command, 'hardhat') && inputs.hardhat-ref != 'next' && !startsWith(inputs.hardhat-ref, '3'))
+        if: (startsWith(matrix.command, 'hardhat ') && inputs.hardhat-ref != 'next' && !startsWith(inputs.hardhat-ref, '3'))
         uses: actions/download-artifact@v4
         with:
           name: hardhat
       - name: Fix Hardhat on Windows
-        if: (startsWith(matrix.command, 'hardhat') && inputs.hardhat-ref != 'next' && !startsWith(inputs.hardhat-ref, '3')) && matrix.runner == 'windows-latest'
+        if: (startsWith(matrix.command, 'hardhat ') && inputs.hardhat-ref != 'next' && !startsWith(inputs.hardhat-ref, '3')) && matrix.runner == 'windows-latest'
         run: |
           npm init -y
           npm install esbuild
@@ -271,14 +297,21 @@ jobs:
           tar -czf hardhat-*.tgz package
           rm -rf package
       - name: Install Hardhat from source
-        if: (startsWith(matrix.command, 'hardhat') && inputs.hardhat-ref != 'next' && !startsWith(inputs.hardhat-ref, '3'))
+        if: (startsWith(matrix.command, 'hardhat ') && inputs.hardhat-ref != 'next' && !startsWith(inputs.hardhat-ref, '3'))
         run: |
           npm install -g hardhat-*.tgz
           rm hardhat-*.tgz
       - name: Install Hardhat
-        if: (startsWith(matrix.command, 'hardhat') && (inputs.hardhat-ref == 'next' || startsWith(inputs.hardhat-ref, '3')))
+        if: (startsWith(matrix.command, 'hardhat ') && (inputs.hardhat-ref == 'next' || startsWith(inputs.hardhat-ref, '3')))
         run: |
           npm install -g hardhat@${{ inputs.hardhat-ref }}
+          hardhat --version
+      - name: Install Hardhat 2
+        if: startsWith(matrix.command, 'hardhat2')
+        env:
+          VERSION: ${{ fromJSON(steps.config.outputs.repository).hardhat2-version }}
+        run: |
+          npm install -g hardhat@$VERSION
           hardhat --version
       - name: Install Forge
         if: startsWith(matrix.command, 'forge')
@@ -301,14 +334,14 @@ jobs:
           git rm --cached -r $(git ls-files -i -c --exclude-from=.gitignore)
           git clean -fdX
       - name: Configure Hardhat
-        if: startsWith(matrix.command, 'hardhat')
+        if: startsWith(matrix.command, 'hardhat ')
         env:
           CONFIG: ${{ fromJSON(steps.config.outputs.repository).hardhat-config }}
         run: |
           rm hardhat.config.* || true
           echo "$CONFIG" > hardhat.config.js
       - name: Initialize the package
-        if: startsWith(matrix.command, 'hardhat')
+        if: startsWith(matrix.command, 'hardhat ')
         run: |
           npm init -y
           npm pkg set type="module"
@@ -339,7 +372,7 @@ jobs:
           source <(echo "$ENV_SOURCE")
           set +e
           before=$(date +%s)
-          ${{ matrix.command }} 2>&1 | tee -a run.output
+          ${{ fromJSON(steps.config.outputs.command).command }} 2>&1 | tee -a run.output
           status=${PIPESTATUS[0]}
           after=$(date +%s)
           set -e
@@ -431,8 +464,10 @@ jobs:
             const rows = results.map(({repository, command, runner, result, time, details}) => ([
               repository,
               (() => {
-                if (command.startsWith('hardhat')) {
+                if (command.startsWith('hardhat ')) {
                   return `👷 ${command}`;
+                } else if (command.startsWith('hardhat2')) {
+                  return `🔨 ${command}`;
                 } else if (command.startsWith('forge')) {
                   return `⚙️ ${command}`;
                 } else {

@@ -869,14 +869,22 @@ runners:
 
 commands:
   forge build:
+    command: 'forge build'
     pattern: 'Compiling (\d+) files with Solc \d+\.\d+'
     template: 'Compiled ${0} file(s)'
   forge test:
+    command: 'forge test'
     pattern: 'Ran \d+ test suites in \d+\.\d+m?s \(\d+\.\d+m?s CPU time\): (\d+) tests passed, (\d+) failed, (\d+) skipped \((\d+) total tests\)'
     template: 'Ran ${3} tests (${0} passed, ${1} failed, ${2} skipped)'
   hardhat compile:
+    command: 'hardhat compile'
     pattern: 'Compiled (\d+) Solidity files with solc \d+\.\d+'
     template: 'Compiled ${0} file(s)'
   hardhat test solidity:
+    command: 'hardhat test solidity'
     pattern: 'Run (?:Failed|Passed): (\d+) tests, (\d+) passed, (\d+) failed, (\d+) skipped \(duration: \d+ ms\)'
     template: 'Ran ${0} tests (${1} passed, ${2} failed, ${3} skipped)'
+  hardhat2 compile:
+    command: 'hardhat compile'
+    pattern: 'Compiled (\d+) Solidity files with solc \d+\.\d+'
+    template: 'Compiled ${0} file(s)'
