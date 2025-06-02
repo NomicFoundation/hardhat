@@ -56,7 +56,7 @@ export async function getRealPath(absolutePath: string): Promise<string> {
  */
 export async function getAllFilesMatching(
   dirFrom: string,
-  matches?: (absolutePathToFile: string) => boolean,
+  matches?: (absolutePathToFile: string) => Promise<boolean>,
   directoryFilter?: (absolutePathToDir: string) => boolean,
 ): Promise<string[]> {
   const dirContent = await readdirOrEmpty(dirFrom);
@@ -77,7 +77,7 @@ export async function getAllFilesMatching(
         }
 
         return [];
-      } else if (matches === undefined || matches(absolutePathToFile)) {
+      } else if (matches === undefined || (await matches(absolutePathToFile))) {
         return absolutePathToFile;
       } else {
         return [];
@@ -105,7 +105,7 @@ export async function getAllFilesMatching(
  */
 export async function getAllDirectoriesMatching(
   dirFrom: string,
-  matches?: (absolutePathToDir: string) => boolean,
+  matches?: (absolutePathToDir: string) => Promise<boolean>,
 ): Promise<string[]> {
   const dirContent = await readdirOrEmpty(dirFrom);
 
@@ -116,7 +116,7 @@ export async function getAllDirectoriesMatching(
         return [];
       }
 
-      if (matches === undefined || matches(absolutePathToFile)) {
+      if (matches === undefined || (await matches(absolutePathToFile))) {
         return absolutePathToFile;
       }
 
