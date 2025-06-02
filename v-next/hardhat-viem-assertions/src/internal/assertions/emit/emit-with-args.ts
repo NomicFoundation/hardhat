@@ -60,7 +60,7 @@ export async function emitWithArgs<
       }
 
       if (parsedLogs.length === 1) {
-        // If only one event was emitted, provide more details
+        // Provide additional error details only if a single event was emitted
         assert.fail(
           "No arguments in the event logs, are you sure you are targeting an event with arguments?",
         );
@@ -91,7 +91,7 @@ export async function emitWithArgs<
 
       if (parsedLogCount !== Object.keys(logArgs).length) {
         if (parsedLogs.length === 1) {
-          // If only one event was emitted, provide more details
+          // Provide additional error details only if a single event was emitted
           assert.fail(
             `The provided event "${eventName}" expects ${args.length} arguments, but the emitted event contains ${Object.keys(logArgs).length}.`,
           );
@@ -106,7 +106,7 @@ export async function emitWithArgs<
     }
 
     if (parsedLogs.length === 1) {
-      // If only one event was emitted, provide more details
+      // Provide additional error details only if a single event was emitted
       assert.deepEqual(
         emittedArgs,
         args,
