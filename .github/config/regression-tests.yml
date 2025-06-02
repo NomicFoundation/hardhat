@@ -965,5 +965,5 @@ commands:
     template: 'Ran ${0} tests (${1} passed, ${2} failed, ${3} skipped)'
   hardhat2 compile:
     command: 'hardhat compile'
-    pattern: 'Compiled (\d+) Solidity files with solc \d+\.\d+'
+    pattern: 'Compiled (\d+) Solidity files successfully'
     template: 'Compiled ${0} file(s)'
