@@ -62,12 +62,12 @@ export async function getCompilerInput(
   solidity: SolidityBuildSystem,
   rootFilePath: string,
   sourceName: string,
-  buildProfile: string,
+  buildProfileName: string,
 ): Promise<CompilerInput> {
   const compilationJob = await solidity.getCompilationJobs(
     [path.join(rootFilePath, sourceName)],
     {
-      buildProfile,
+      buildProfile: buildProfileName,
       quiet: true,
     },
   );
