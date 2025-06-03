@@ -30,6 +30,7 @@ import {
   getFileSize,
   readJsonFileAsStream,
   writeJsonFileAsStream,
+  mkdtemp,
 } from "../src/fs.js";
 
 import { useTmpDir } from "./helpers/fs.js";
@@ -209,6 +210,35 @@ describe("File system utils", () => {
 
       await assert.rejects(getAllFilesMatching(linkPath), {
         name: "FileSystemAccessError",
+      });
+    });
+
+    describe("With directoryFilter", () => {
+      it("Should return an empty array if directoryFilter returns false", async () => {
+        const from = path.join(getTmpDir(), "from");
+
+        const skipPath = path.join(from, "skip");
+        await mkdir(skipPath);
+
+        const dirPath = path.join(from, "dir");
+        await mkdir(dirPath);
+
+        await writeUtf8File(path.join(from, "from.txt"), "from");
+        await writeUtf8File(path.join(skipPath, "skip.txt"), "skip");
+        await writeUtf8File(path.join(dirPath, "dir.txt"), "dir");
+
+        const files = await getAllFilesMatching(
+          from,
+          undefined,
+          (absolutePathToDir) => {
+            return !absolutePathToDir.endsWith("skip");
+          },
+        );
+
+        assert.deepEqual(
+          new Set(files),
+          new Set([path.join(from, "from.txt"), path.join(dirPath, "dir.txt")]),
+        );
       });
     });
   });
@@ -834,6 +864,25 @@ describe("File system utils", () => {
       const invalidPath = "\0";
 
       await assert.rejects(mkdir(invalidPath), {
+        name: "FileSystemAccessError",
+      });
+    });
+  });
+
+  describe("mkdtemp", () => {
+    it("Should create a temporary directory with the given prefix", async () => {
+      const tempDir = await mkdtemp("test-");
+      assert.ok(await isDirectory(tempDir), "Should create a directory");
+      assert.ok(
+        path.basename(tempDir).startsWith("test-"),
+        "The directory name should start with the prefix",
+      );
+    });
+
+    it("Should throw FileSystemAccessError for any error", async () => {
+      const invalidPath = "\0";
+
+      await assert.rejects(mkdtemp(invalidPath), {
         name: "FileSystemAccessError",
       });
     });

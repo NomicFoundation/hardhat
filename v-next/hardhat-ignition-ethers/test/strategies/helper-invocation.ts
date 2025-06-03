@@ -1,16 +1,21 @@
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
-import { buildModule } from "@nomicfoundation/ignition-core";
-import { assert } from "chai";
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
 
-import { useIgnitionProject } from "../test-helpers/use-ignition-project.js";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import {
+  assertRejectsWithHardhatError,
+  useEphemeralFixtureProject,
+} from "@nomicfoundation/hardhat-test-utils";
+import { buildModule } from "@nomicfoundation/ignition-core";
+
+import { createConnection } from "../test-helpers/create-hre.js";
 
 describe("strategies - invocation via helper", () => {
   const example32ByteSalt =
     "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
 
   describe("no Hardhat config setup", () => {
-    useIgnitionProject("minimal");
+    useEphemeralFixtureProject("minimal");
 
     it("should execute create2 when passed config programmatically via helper", async function () {
       const moduleDefinition = buildModule("Module", (m) => {
@@ -19,7 +24,9 @@ describe("strategies - invocation via helper", () => {
         return { foo };
       });
 
-      const result = await this.connection.ignition.deploy(moduleDefinition, {
+      const connection = await createConnection();
+
+      const result = await connection.ignition.deploy(moduleDefinition, {
         strategy: "create2",
         strategyConfig: {
           salt: example32ByteSalt,
@@ -39,8 +46,10 @@ describe("strategies - invocation via helper", () => {
         return { foo };
       });
 
+      const connection = await createConnection();
+
       await assertRejectsWithHardhatError(
-        this.connection.ignition.deploy(moduleDefinition, {
+        connection.ignition.deploy(moduleDefinition, {
           strategy: "create2",
           strategyConfig: {
             // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- we're testing a bad config
@@ -57,7 +66,7 @@ describe("strategies - invocation via helper", () => {
   });
 
   describe("Hardhat config setup with create2 config", () => {
-    useIgnitionProject("create2");
+    useEphemeralFixtureProject("create2");
 
     it("should execute create2 with the helper loading the Hardhat config", async function () {
       const moduleDefinition = buildModule("Module", (m) => {
@@ -66,7 +75,9 @@ describe("strategies - invocation via helper", () => {
         return { foo };
       });
 
-      const result = await this.connection.ignition.deploy(moduleDefinition, {
+      const connection = await createConnection();
+
+      const result = await connection.ignition.deploy(moduleDefinition, {
         strategy: "create2",
       });
 

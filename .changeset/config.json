@@ -7,9 +7,37 @@
   "baseBranch": "v-next",
   "updateInternalDependencies": "patch",
   "ignore": [
+    "@nomicfoundation/config",
     "@nomicfoundation/example-project",
     "@nomicfoundation/template-package",
     "template-*"
+  ],
+  "fixed": [
+    [
+      "hardhat",
+      "@nomicfoundation/hardhat-errors",
+      "@nomicfoundation/hardhat-ethers-chai-matchers",
+      "@nomicfoundation/hardhat-ignition",
+      "@nomicfoundation/ignition-core",
+      "@nomicfoundation/hardhat-ignition-ethers",
+      "@nomicfoundation/ignition-ui",
+      "@nomicfoundation/hardhat-ignition-viem",
+      "@nomicfoundation/hardhat-keystore",
+      "@nomicfoundation/hardhat-mocha",
+      "@nomicfoundation/hardhat-network-helpers",
+      "@nomicfoundation/hardhat-node-test-reporter",
+      "@nomicfoundation/hardhat-node-test-runner",
+      "@nomicfoundation/hardhat-test-utils",
+      "@nomicfoundation/hardhat-typechain",
+      "@nomicfoundation/hardhat-utils",
+      "@nomicfoundation/hardhat-toolbox-mocha-ethers",
+      "@nomicfoundation/hardhat-verify",
+      "@nomicfoundation/hardhat-viem",
+      "@nomicfoundation/hardhat-viem-assertions",
+      "@nomicfoundation/hardhat-zod-utils"
+    ],
+    ["@nomicfoundation/hardhat-toolbox-viem"],
+    ["@nomicfoundation/hardhat-ethers"]
   ],
   "___experimentalUnsafeOptions_WILL_CHANGE_IN_PATCH": {
     "onlyUpdatePeerDependentsWhenOutOfRange": true

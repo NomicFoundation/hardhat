@@ -9,6 +9,7 @@ export async function buildDependencyGraph(
   rootFiles: string[],
   projectRoot: string,
   userRemappings: string[],
+  readFile: (absPath: string) => Promise<string>,
 ): Promise<{
   dependencyGraph: DependencyGraphImplementation;
   resolver: Resolver;
@@ -16,6 +17,7 @@ export async function buildDependencyGraph(
   const resolver = await ResolverImplementation.create(
     projectRoot,
     userRemappings,
+    readFile,
   );
 
   const dependencyGraph = new DependencyGraphImplementation();

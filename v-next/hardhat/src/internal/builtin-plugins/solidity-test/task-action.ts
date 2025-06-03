@@ -31,11 +31,12 @@ import { run } from "./runner.js";
 interface TestActionArguments {
   testFiles: string[];
   chainType: string;
+  grep?: string;
   noCompile: boolean;
 }
 
 const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
-  { testFiles, chainType, noCompile },
+  { testFiles, chainType, grep, noCompile },
   hre,
 ) => {
   let rootFilePaths: string[];
@@ -84,7 +85,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   // TODO: Allow users to run test compilation outside of the test task.
   const buildOptions: BuildOptions = {
     force: false,
-    buildProfile: hre.globalOptions.buildProfile,
+    buildProfile: hre.globalOptions.buildProfile ?? "default",
     quiet: true,
   };
   const results = await hre.solidity.build(rootFilePaths, buildOptions);
@@ -113,6 +114,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     solidityTestConfigToSolidityTestRunnerConfigArgs(
       hre.config.paths.root,
       solidityTestConfig,
+      grep,
     );
   const tracingConfig: TracingConfigWithBuffers = {
     buildInfos,

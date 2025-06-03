@@ -41,6 +41,7 @@ import { ChainId } from "../chain-id/chain-id.js";
  */
 export class LocalAccountsHandler extends ChainId implements RequestHandler {
   readonly #addressToPrivateKey: Map<string, Uint8Array> = new Map();
+  readonly #addresses: string[] = [];
 
   constructor(
     provider: EthereumProvider,
@@ -72,7 +73,7 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
       jsonRpcRequest.method === "eth_requestAccounts"
     ) {
       return this.#createJsonRpcResponse(jsonRpcRequest.id, [
-        ...this.#addressToPrivateKey.keys(),
+        ...this.#addresses,
       ]);
     }
 
@@ -229,11 +230,13 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
     for (const pk of privateKeys) {
       const address = addr.fromPrivateKey(pk).toLowerCase();
       this.#addressToPrivateKey.set(address, pk);
+      this.#addresses.push(address);
     }
   }
 
   #getPrivateKeyForAddress(address: Uint8Array): Uint8Array {
     const pk = this.#addressToPrivateKey.get(bytesToHexString(address));
+
     if (pk === undefined) {
       throw new HardhatError(
         HardhatError.ERRORS.CORE.NETWORK.NOT_LOCAL_ACCOUNT,
@@ -313,17 +316,9 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
       "nonce should be defined",
     );
 
-    // Disable strict mode for chainIds > 2 ** 32 - 1.
-    //
-    // micro-eth-signer throws if strict mode is enabled with a chainId above 2 ** 32 - 1
-    // (see: https://github.com/paulmillr/micro-eth-signer/blob/baa4b8c922c3253b125e3f46b1fce6dee7c33853/src/tx.ts#L500).
-    //
-    // As a workaround we disable strict mode for larger chains. This also bypasses
-    // other internal checks enforced by the library, which is not ideal.
-    const strictMode =
-      txData.chainId === undefined || txData.chainId <= BigInt(2 ** 32 - 1);
-
     let transaction;
+    // strict mode is not meant to be used in the context of hardhat
+    const strictMode = false;
     if (txData.maxFeePerGas !== undefined) {
       transaction = Transaction.prepare(
         {

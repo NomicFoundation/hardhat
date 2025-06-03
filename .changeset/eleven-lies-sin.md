@@ -3,4 +3,4 @@
 "hardhat": patch
 ---
 
-Add ensureNodeErrnoExceptionError function to assert nodejs errors
+Improve internal error handling for nodejs errors ([#5605](https://github.com/NomicFoundation/hardhat/issues/5605))

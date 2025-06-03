@@ -136,7 +136,7 @@ describe("BigNumber matchers", () => {
       }
     });
 
-    const operators = [
+    const _operators = [
       "above",
       "below",
       "gt",
@@ -150,7 +150,7 @@ describe("BigNumber matchers", () => {
       "greaterThanOrEqual",
       "lessThanOrEqual",
     ] as const;
-    type Operator = (typeof operators)[number];
+    type Operator = (typeof _operators)[number];
 
     interface SuccessCaseWithOperator extends SuccessCase {
       operator: Operator;

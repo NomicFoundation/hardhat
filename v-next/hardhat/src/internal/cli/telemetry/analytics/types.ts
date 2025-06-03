@@ -22,11 +22,11 @@ export interface BasePayload {
   }>;
 }
 
-export interface TelemetryConsentPayload extends BasePayload {
+export interface TelemetryConfigPayload extends BasePayload {
   events: Array<{
-    name: "TelemetryConsentResponse";
+    name: "TelemetryConfig";
     params: {
-      userConsent: "yes" | "no";
+      enabled: boolean;
       session_id?: string;
     };
   }>;

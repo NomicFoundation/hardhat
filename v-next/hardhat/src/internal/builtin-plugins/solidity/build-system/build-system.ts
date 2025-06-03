@@ -57,6 +57,7 @@ import { ObjectCache } from "./cache.js";
 import { CompilationJobImplementation } from "./compilation-job.js";
 import { downloadConfiguredCompilers, getCompiler } from "./compiler/index.js";
 import { buildDependencyGraph } from "./dependency-graph-building.js";
+import { readSourceFileFactory } from "./read-source-file.js";
 import {
   formatRootPath,
   isNpmParsedRootPath,
@@ -283,7 +284,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
     if (options?.quiet !== true) {
       if (isSuccessfulBuild) {
-        this.#printCompilationResult(compilationJobs);
+        await this.#printCompilationResult(compilationJobs);
       }
     }
 
@@ -303,6 +304,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       rootFilePaths.toSorted(), // We sort them to have a deterministic order
       this.#options.projectRoot,
       this.#options.solidityConfig.remappings,
+      readSourceFileFactory(this.#hooks),
     );
 
     const buildProfileName = options?.buildProfile ?? DEFAULT_BUILD_PROFILE;
@@ -391,6 +393,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         solcConfig,
         solcLongVersion,
         resolver.getRemappings(), // TODO: Only get the ones relevant to the subgraph?
+        this.#hooks,
       );
 
       for (const [publicSourceName, root] of subgraph.getRoots().entries()) {
@@ -428,7 +431,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       "The long version of the compiler should match the long version of the compilation job",
     );
 
-    return compiler.compile(compilationJob.getSolcInput());
+    return compiler.compile(await compilationJob.getSolcInput());
   }
 
   public async remapCompilerError(
@@ -596,11 +599,19 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       }
     }
 
+    const buildInfosDir = path.join(this.#options.artifactsPath, `build-info`);
+
+    // TODO: This logic is duplicated with respect to the artifacts manager
     const artifactPaths = await getAllFilesMatching(
       this.#options.artifactsPath,
-      (f) =>
-        !f.startsWith(path.join(this.#options.artifactsPath, "build-info")) &&
-        f.endsWith(".json"),
+      (p) =>
+        p.endsWith(".json") && // Only consider json files
+        // Ignore top level json files
+        p.indexOf(
+          path.sep,
+          this.#options.artifactsPath.length + path.sep.length,
+        ) !== -1,
+      (dir) => dir !== buildInfosDir,
     );
 
     const reachableBuildInfoIds = await Promise.all(
@@ -615,9 +626,8 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     );
 
     // Get all the reachable build info files
-    const buildInfoFiles = await getAllFilesMatching(
-      this.#options.artifactsPath,
-      (f) => f.startsWith(path.join(this.#options.artifactsPath, "build-info")),
+    const buildInfoFiles = await getAllFilesMatching(buildInfosDir, (f) =>
+      f.startsWith(buildInfosDir),
     );
 
     for (const buildInfoFile of buildInfoFiles) {
@@ -787,7 +797,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     }
   }
 
-  #printCompilationResult(compilationJobs: CompilationJob[]) {
+  async #printCompilationResult(compilationJobs: CompilationJob[]) {
     const jobsPerVersionAndEvmVersion = new Map<
       string,
       Map<string, CompilationJob[]>
@@ -795,7 +805,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
     for (const job of compilationJobs) {
       const solcVersion = job.solcConfig.version;
-      const solcInput = job.getSolcInput();
+      const solcInput = await job.getSolcInput();
       const evmVersion =
         solcInput.settings.evmVersion ??
         `Check solc ${solcVersion}'s doc for its default evm version`;

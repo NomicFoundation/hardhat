@@ -2,7 +2,7 @@
 import type {
   EdrNetworkAccountConfig,
   EdrNetworkAccountsConfig,
-  EdrNetworkChainsConfig,
+  ChainDescriptorsConfig,
   EdrNetworkForkingConfig,
   EdrNetworkMempoolConfig,
   EdrNetworkMiningConfig,
@@ -12,9 +12,8 @@ import type { RpcDebugTraceOutput, RpcStructLog } from "../types/output.js";
 import type {
   IntervalRange,
   DebugTraceResult,
-  ChainConfig,
+  ChainOverride,
   ForkConfig,
-  OwnedAccount,
 } from "@ignored/edr-optimism";
 
 import {
@@ -242,7 +241,7 @@ export function edrRpcDebugTraceToHardhat(
 
 export async function hardhatAccountsToEdrOwnedAccounts(
   accounts: EdrNetworkAccountsConfig,
-): Promise<OwnedAccount[]> {
+): Promise<Array<{ secretKey: string; balance: bigint }>> {
   const normalizedAccounts = await normalizeEdrNetworkAccountsConfig(accounts);
 
   const accountPromises = normalizedAccounts.map(async (account) => ({
@@ -277,38 +276,44 @@ export async function normalizeEdrNetworkAccountsConfig(
   }));
 }
 
-export function hardhatChainsToEdrChains(
-  chains: EdrNetworkChainsConfig,
+export function hardhatChainDescriptorsToEdrChainOverrides(
+  chainDescriptors: ChainDescriptorsConfig,
   chainType: ChainType,
-): ChainConfig[] {
+): ChainOverride[] {
   return (
-    Array.from(chains)
-      // Skip chains that don't match the expected chain type
-      .filter(([_, config]) => {
+    Array.from(chainDescriptors)
+      // Skip chain descriptors that don't match the expected chain type
+      .filter(([_, descriptor]) => {
         if (chainType === GENERIC_CHAIN_TYPE) {
           // When "generic" is requested, include both "generic" and "l1" chains
           return (
-            config.chainType === GENERIC_CHAIN_TYPE ||
-            config.chainType === L1_CHAIN_TYPE
+            descriptor.chainType === GENERIC_CHAIN_TYPE ||
+            descriptor.chainType === L1_CHAIN_TYPE
           );
         }
 
-        return config.chainType === chainType;
+        return descriptor.chainType === chainType;
       })
-      .map(([chainId, config]) => ({
-        chainId: BigInt(chainId),
-        hardforks: Array.from(config.hardforkHistory).map(
-          ([hardfork, blockNumber]) => ({
-            blockNumber: BigInt(blockNumber),
-            specId: hardhatHardforkToEdrSpecId(hardfork, config.chainType),
-          }),
-        ),
+      .map(([chainId, descriptor]) => ({
+        chainId,
+        name: descriptor.name,
+        hardforkActivationOverrides: Array.from(
+          descriptor.hardforkHistory ?? new Map(),
+        ).map(([hardfork, { blockNumber, timestamp }]) => ({
+          condition:
+            blockNumber !== undefined
+              ? { blockNumber: BigInt(blockNumber) }
+              : { timestamp: BigInt(timestamp) },
+          hardfork: hardhatHardforkToEdrSpecId(hardfork, descriptor.chainType),
+        })),
       }))
   );
 }
 
 export async function hardhatForkingConfigToEdrForkConfig(
   forkingConfig: EdrNetworkForkingConfig | undefined,
+  chainDescriptors: ChainDescriptorsConfig,
+  chainType: ChainType,
 ): Promise<ForkConfig | undefined> {
   let fork: ForkConfig | undefined;
   if (forkingConfig !== undefined && forkingConfig.enabled === true) {
@@ -321,9 +326,14 @@ export async function hardhatForkingConfigToEdrForkConfig(
         : undefined;
 
     fork = {
-      jsonRpcUrl: await forkingConfig.url.getUrl(),
       blockNumber: forkingConfig.blockNumber,
+      cacheDir: forkingConfig.cacheDir,
+      chainOverrides: hardhatChainDescriptorsToEdrChainOverrides(
+        chainDescriptors,
+        chainType,
+      ),
       httpHeaders,
+      url: await forkingConfig.url.getUrl(),
     };
   }
 

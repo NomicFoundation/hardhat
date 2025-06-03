@@ -279,7 +279,12 @@ Please replace "${contractNameOrFullyQualifiedName}" with the correct ${contract
 
     const allArtifactPaths = await getAllFilesMatching(
       this.#artifactsPath,
-      (p) => !p.startsWith(buildInfosDir) && p.endsWith(".json"),
+      (p) =>
+        p.endsWith(".json") && // Only consider json files
+        // Ignore top level json files
+        p.indexOf(path.sep, this.#artifactsPath.length + path.sep.length) !==
+          -1,
+      (dir) => dir !== buildInfosDir, // Ignore build infos directory
     );
 
     const allFullyQualifiedNames = new Set<string>();

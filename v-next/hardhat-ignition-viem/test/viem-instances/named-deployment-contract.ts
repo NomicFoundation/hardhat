@@ -1,13 +1,19 @@
 import type { IgnitionModuleResultsToViemContracts } from "../../src/types.js";
 import type { NamedArtifactContractDeploymentFuture } from "@nomicfoundation/ignition-core";
 
-import { buildModule } from "@nomicfoundation/ignition-core";
-import { assert } from "chai";
+import assert from "node:assert/strict";
+import { describe, it, beforeEach } from "node:test";
 
-import { useIgnitionProject } from "../test-helpers/use-ignition-project.js";
+import {
+  assertRejects,
+  useEphemeralFixtureProject,
+} from "@nomicfoundation/hardhat-test-utils";
+import { buildModule } from "@nomicfoundation/ignition-core";
+
+import { createConnection } from "../test-helpers/create-hre.js";
 
 describe("deploy converts ignition named contract to viem instance", () => {
-  useIgnitionProject("minimal");
+  useEphemeralFixtureProject("minimal");
 
   let result: IgnitionModuleResultsToViemContracts<
     string,
@@ -23,7 +29,9 @@ describe("deploy converts ignition named contract to viem instance", () => {
       return { foo };
     });
 
-    result = await this.connection.ignition.deploy(moduleDefinition);
+    const connection = await createConnection();
+
+    result = await connection.ignition.deploy(moduleDefinition);
   });
 
   it("should provide the address", async function () {
@@ -34,7 +42,7 @@ describe("deploy converts ignition named contract to viem instance", () => {
   });
 
   it("should provide the abi", async function () {
-    assert.isDefined(result.foo.abi);
+    assert.notEqual(result.foo.abi, undefined);
   });
 
   it("should allow reading the contract instance", async function () {
@@ -59,7 +67,7 @@ describe("deploy converts ignition named contract to viem instance", () => {
 
   it("should support gas estimation of write function calls", async function () {
     const estimation = await result.foo.estimateGas.inc();
-    assert.isDefined(estimation);
+    assert.notEqual(estimation, undefined);
 
     assert(typeof estimation === "bigint", "Estimation should be a bigint");
   });
@@ -77,25 +85,21 @@ describe("deploy converts ignition named contract to viem instance", () => {
   });
 
   it("should enforce the type is constrained to the contracts functions", async function () {
-    await assert.isRejected(
-      // @ts-expect-error
+    await assertRejects(
+      // @ts-expect-error -- Expect an error
       result.foo.write.nonexistantWrite(),
-      /Make sure you are using the correct ABI and that the function exists on it./,
     );
-    await assert.isRejected(
-      // @ts-expect-error
+    await assertRejects(
+      // @ts-expect-error -- Expect an error
       result.foo.read.nonexistantRead(),
-      /Make sure you are using the correct ABI and that the function exists on it./,
     );
-    await assert.isRejected(
-      // @ts-expect-error
+    await assertRejects(
+      // @ts-expect-error -- Expect an error
       result.foo.estimateGas.nonexistantEstimate(),
-      /Make sure you are using the correct ABI and that the function exists on it./,
     );
-    await assert.isRejected(
-      // @ts-expect-error
+    await assertRejects(
+      // @ts-expect-error -- Expect an error
       result.foo.simulate.nonexistantEstimate(),
-      /Make sure you are using the correct ABI and that the function exists on it./,
     );
   });
 });

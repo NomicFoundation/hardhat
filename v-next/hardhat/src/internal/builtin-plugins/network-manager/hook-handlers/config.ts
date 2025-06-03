@@ -12,7 +12,11 @@ import type { ConfigHooks } from "../../../../types/hooks.js";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
 import { GENERIC_CHAIN_TYPE } from "../../../constants.js";
-import { resolveEdrNetwork, resolveHttpNetwork } from "../config-resolution.js";
+import {
+  resolveChainDescriptors,
+  resolveEdrNetwork,
+  resolveHttpNetwork,
+} from "../config-resolution.js";
 import { validateNetworkUserConfig } from "../type-validation.js";
 
 export default async (): Promise<Partial<ConfigHooks>> => ({
@@ -99,6 +103,9 @@ export async function resolveUserConfig(
 
   return {
     ...resolvedConfig,
+    chainDescriptors: await resolveChainDescriptors(
+      userConfig.chainDescriptors,
+    ),
     defaultChainType: resolvedConfig.defaultChainType ?? GENERIC_CHAIN_TYPE,
     defaultNetwork: resolvedConfig.defaultNetwork ?? "hardhat",
     networks: resolvedNetworks,

@@ -277,10 +277,10 @@ async function getTokenDescription(token: Token): Promise<string> {
     let tokenDescription = `<token at ${tokenAddress}>`;
     try {
       tokenDescription = await token.symbol();
-    } catch (e) {
+    } catch (_error) {
       try {
         tokenDescription = await token.name();
-      } catch (e2) {}
+      } catch (_error2) {}
     }
 
     tokenDescriptionsCache[tokenAddress] = tokenDescription;

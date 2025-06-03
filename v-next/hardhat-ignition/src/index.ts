@@ -26,22 +26,22 @@ const hardhatIgnitionPlugin: HardhatPlugin = {
       })
       .addOption({
         name: "parameters",
-        type: ArgumentType.FILE,
+        type: ArgumentType.FILE_WITHOUT_DEFAULT,
         description:
           "A relative path to a JSON file to use for the module parameters",
-        defaultValue: "", // TODO: HH3 check this comes through correctly
+        defaultValue: undefined,
       })
       .addOption({
         name: "deploymentId",
-        type: ArgumentType.STRING,
+        type: ArgumentType.STRING_WITHOUT_DEFAULT,
         description: "Set the id of the deployment",
-        defaultValue: "", // TODO: HH3 check this comes through correctly
+        defaultValue: undefined,
       })
       .addOption({
         name: "defaultSender",
-        type: ArgumentType.STRING,
+        type: ArgumentType.STRING_WITHOUT_DEFAULT,
         description: "Set the default sender for the deployment",
-        defaultValue: "", // TODO: HH3 check this comes through correctly
+        defaultValue: undefined,
       })
       .addOption({
         name: "strategy",
@@ -123,6 +123,22 @@ const hardhatIgnitionPlugin: HardhatPlugin = {
         description: "Include all compiled contracts in the verification",
       })
       .setAction(import.meta.resolve("./internal/tasks/verify.js"))
+      .build(),
+    task(
+      ["ignition", "track-tx"],
+      "Track a transaction that is missing from a given deployment. Only use if a Hardhat Ignition error message suggests to do so.",
+    )
+      .addPositionalArgument({
+        name: "txHash",
+        type: ArgumentType.STRING,
+        description: "The hash of the transaction to track",
+      })
+      .addPositionalArgument({
+        name: "deploymentId",
+        type: ArgumentType.STRING,
+        description: "The id of the deployment to add the tx to",
+      })
+      .setAction(import.meta.resolve("./internal/tasks/track-tx.js"))
       .build(),
   ],
 };

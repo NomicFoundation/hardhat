@@ -3,4 +3,4 @@
 "hardhat": patch
 ---
 
-fix HHE411 error message
+Fix HHE411 with improved error message ([#6604](https://github.com/NomicFoundation/hardhat/pull/6604))

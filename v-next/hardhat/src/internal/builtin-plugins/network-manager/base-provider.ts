@@ -45,9 +45,6 @@ export abstract class BaseProvider
         };
       } catch (error) {
         ensureNodeErrnoExceptionError(error);
-        /* eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-        -- Allow string interpolation of unknown `error.code`. It will be converted
-        to a number, and we will handle NaN cases appropriately afterwards. */
         const errorCode = parseInt(`${error.code}`, 10);
         jsonRpcResponse = {
           jsonrpc: "2.0",

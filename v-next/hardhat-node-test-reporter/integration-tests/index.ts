@@ -19,6 +19,8 @@ const testOnly: string[] = [];
 const argv = process.argv.slice(2);
 while (argv.length > 0) {
   const key = argv.shift();
+
+  // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- Ignore Cases not matched: undefined
   switch (key) {
     case "--show-output":
       SHOW_OUTPUT = true;
@@ -80,6 +82,7 @@ for (const entry of entries) {
     // We disable github actions annotations, as they are misleading on PRs
     // otherwise.
     process.env.NO_GITHUB_ACTIONS_ANNOTATIONS = "true";
+    process.env.FORCE_COLOR = "1";
     const reporterStream = run(options).compose(reporter);
 
     for await (const chunk of reporterStream) {

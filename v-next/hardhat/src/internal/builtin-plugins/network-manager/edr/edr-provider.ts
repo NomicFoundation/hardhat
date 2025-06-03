@@ -1,6 +1,8 @@
 import type { SolidityStackTrace } from "./stack-traces/solidity-stack-trace.js";
+import type { CoverageConfig } from "./types/coverage.js";
 import type { LoggerConfig } from "./types/logger.js";
 import type {
+  ChainDescriptorsConfig,
   EdrNetworkConfig,
   EdrNetworkHDAccountsConfig,
 } from "../../../../types/config.js";
@@ -20,6 +22,7 @@ import type {
   Provider,
   ProviderConfig,
   TracingConfigWithBuffers,
+  AccountOverride,
 } from "@ignored/edr-optimism";
 
 import {
@@ -27,6 +30,7 @@ import {
   opHardforkFromString,
   l1GenesisState,
   l1HardforkFromString,
+  precompileP256Verify,
 } from "@ignored/edr-optimism";
 import {
   assertHardhatInvariant,
@@ -37,6 +41,8 @@ import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
 import { deepEqual } from "@nomicfoundation/hardhat-utils/lang";
 import debug from "debug";
+import { hexToBytes } from "ethereum-cryptography/utils";
+import { addr } from "micro-eth-signer";
 
 import { EDR_NETWORK_REVERT_SNAPSHOT_EVENT } from "../../../constants.js";
 import { DEFAULT_HD_ACCOUNTS_CONFIG_PARAMS } from "../accounts/constants.js";
@@ -62,7 +68,6 @@ import {
   hardhatMempoolOrderToEdrMineOrdering,
   hardhatHardforkToEdrSpecId,
   hardhatAccountsToEdrOwnedAccounts,
-  hardhatChainsToEdrChains,
   hardhatForkingConfigToEdrForkConfig,
   hardhatChainTypeToEdrChainType,
 } from "./utils/convert-to-edr.js";
@@ -126,10 +131,12 @@ export const EDR_NETWORK_DEFAULT_PRIVATE_KEYS: string[] = [
 ];
 
 interface EdrProviderConfig {
+  chainDescriptors: ChainDescriptorsConfig;
   networkConfig: RequireField<EdrNetworkConfig, "chainType">;
   loggerConfig?: LoggerConfig;
   tracingConfig?: TracingConfigWithBuffers;
   jsonRpcRequestWrapper?: JsonRpcRequestWrapperFunction;
+  coverageConfig?: CoverageConfig;
 }
 
 export class EdrProvider extends BaseProvider {
@@ -142,15 +149,21 @@ export class EdrProvider extends BaseProvider {
    * Creates a new instance of `EdrProvider`.
    */
   public static async create({
+    chainDescriptors,
     networkConfig,
     loggerConfig = { enabled: false },
     tracingConfig = {},
     jsonRpcRequestWrapper,
+    coverageConfig,
   }: EdrProviderConfig): Promise<EdrProvider> {
     const printLineFn = loggerConfig.printLineFn ?? printLine;
     const replaceLastLineFn = loggerConfig.replaceLastLineFn ?? replaceLastLine;
 
-    const providerConfig = await getProviderConfig(networkConfig);
+    const providerConfig = await getProviderConfig(
+      networkConfig,
+      coverageConfig,
+      chainDescriptors,
+    );
 
     let edrProvider: EdrProvider;
 
@@ -163,7 +176,13 @@ export class EdrProvider extends BaseProvider {
         providerConfig,
         {
           enable: loggerConfig.enabled,
-          decodeConsoleLogInputsCallback: ConsoleLogger.getDecodedLogs,
+          decodeConsoleLogInputsCallback: (inputs: ArrayBuffer[]) => {
+            return ConsoleLogger.getDecodedLogs(
+              inputs.map((input) => {
+                return Buffer.from(input);
+              }),
+            );
+          },
           printLineCallback: (message: string, replace: boolean) => {
             if (replace) {
               replaceLastLineFn(message);
@@ -384,18 +403,49 @@ export class EdrProvider extends BaseProvider {
 
 async function getProviderConfig(
   networkConfig: RequireField<EdrNetworkConfig, "chainType">,
+  coverageConfig: CoverageConfig | undefined,
+  chainDescriptors: ChainDescriptorsConfig,
 ): Promise<ProviderConfig> {
   const specId = hardhatHardforkToEdrSpecId(
     networkConfig.hardfork,
     networkConfig.chainType,
   );
 
-  const genesisState =
+  const ownedAccounts = await hardhatAccountsToEdrOwnedAccounts(
+    networkConfig.accounts,
+  );
+
+  const genesisState: Map<Uint8Array, AccountOverride> = new Map(
+    ownedAccounts.map(({ secretKey, balance }) => {
+      const address = hexToBytes(addr.fromPrivateKey(secretKey));
+      const accountOverride: AccountOverride = {
+        address,
+        balance: BigInt(balance),
+      };
+
+      return [address, accountOverride];
+    }),
+  );
+
+  const chainGenesisState =
     networkConfig.forking !== undefined
       ? [] // TODO: Add support for overriding remote fork state when the local fork is different
       : networkConfig.chainType === "optimism"
         ? opGenesisState(opHardforkFromString(specId))
         : l1GenesisState(l1HardforkFromString(specId));
+
+  for (const account of chainGenesisState) {
+    const existingOverride = genesisState.get(account.address);
+    if (existingOverride !== undefined) {
+      // Favor the genesis state specified by the user
+      account.balance = account.balance ?? existingOverride.balance;
+      account.nonce = account.nonce ?? existingOverride.nonce;
+      account.code = account.code ?? existingOverride.code;
+      account.storage = account.storage ?? existingOverride.storage;
+    } else {
+      genesisState.set(account.address, account);
+    }
+  }
 
   return {
     allowBlocksWithSameTimestamp: networkConfig.allowBlocksWithSameTimestamp,
@@ -403,17 +453,14 @@ async function getProviderConfig(
     bailOnCallFailure: networkConfig.throwOnCallFailures,
     bailOnTransactionFailure: networkConfig.throwOnTransactionFailures,
     blockGasLimit: networkConfig.blockGasLimit,
-    cacheDir: networkConfig.forking?.cacheDir,
     chainId: BigInt(networkConfig.chainId),
-    chains: hardhatChainsToEdrChains(
-      networkConfig.chains,
+    coinbase: networkConfig.coinbase,
+    fork: await hardhatForkingConfigToEdrForkConfig(
+      networkConfig.forking,
+      chainDescriptors,
       networkConfig.chainType,
     ),
-    // TODO: remove this cast when EDR updates the interface to accept Uint8Array
-    coinbase: Buffer.from(networkConfig.coinbase),
-    enableRip7212: networkConfig.enableRip7212,
-    fork: await hardhatForkingConfigToEdrForkConfig(networkConfig.forking),
-    genesisState,
+    genesisState: Array.from(genesisState.values()),
     hardfork: specId,
     initialBaseFeePerGas: networkConfig.initialBaseFeePerGas,
     initialDate: BigInt(toSeconds(networkConfig.initialDate)),
@@ -430,8 +477,12 @@ async function getProviderConfig(
       },
     },
     networkId: BigInt(networkConfig.networkId),
-    ownedAccounts: await hardhatAccountsToEdrOwnedAccounts(
-      networkConfig.accounts,
-    ),
+    observability: {
+      codeCoverage: coverageConfig,
+    },
+    ownedAccounts: ownedAccounts.map((account) => account.secretKey),
+    precompileOverrides: networkConfig.enableRip7212
+      ? [precompileP256Verify()]
+      : [],
   };
 }

@@ -3,9 +3,48 @@ import type { ChainType, DefaultChainType } from "../../../../types/network.js";
 import "../../../../types/config.js";
 declare module "../../../../types/config.js" {
   export interface HardhatUserConfig {
+    chainDescriptors?: ChainDescriptorsUserConfig;
     defaultChainType?: DefaultChainType;
     defaultNetwork?: string;
     networks?: Record<string, NetworkUserConfig>;
+  }
+
+  export interface ChainDescriptorsUserConfig {
+    [chainId: number | string]: ChainDescriptorUserConfig;
+  }
+
+  export interface ChainDescriptorUserConfig {
+    name: string;
+    chainType?: ChainType;
+    hardforkHistory?: HardforkHistoryUserConfig;
+    blockExplorers?: BlockExplorersUserConfig;
+  }
+
+  export interface HardforkHistoryUserConfig {
+    [hardforkName: string]:
+      | ActivationBlockNumberUserConfig
+      | ActivationTimestampUserConfig;
+  }
+
+  export interface ActivationBlockNumberUserConfig {
+    blockNumber: number;
+    timestamp?: never;
+  }
+
+  export interface ActivationTimestampUserConfig {
+    timestamp: number;
+    blockNumber?: never;
+  }
+
+  export interface BlockExplorersUserConfig {
+    etherscan?: BlockExplorerUserConfig;
+    blockscout?: BlockExplorerUserConfig;
+  }
+
+  export interface BlockExplorerUserConfig {
+    name?: string;
+    url: string;
+    apiUrl: string;
   }
 
   export type NetworkUserConfig = HttpNetworkUserConfig | EdrNetworkUserConfig;
@@ -69,7 +108,6 @@ declare module "../../../../types/config.js" {
     allowBlocksWithSameTimestamp?: boolean;
     allowUnlimitedContractSize?: boolean;
     blockGasLimit?: number | bigint;
-    chains?: EdrNetworkChainsUserConfig;
     coinbase?: string;
     enableRip7212?: boolean;
     enableTransientStorage?: boolean;
@@ -103,21 +141,6 @@ declare module "../../../../types/config.js" {
     path?: string;
   }
 
-  export type EdrNetworkChainsUserConfig = Map<
-    number /* chainId */,
-    EdrNetworkChainUserConfig
-  >;
-
-  export interface EdrNetworkChainUserConfig {
-    chainType?: ChainType;
-    hardforkHistory?: HardforkHistoryUserConfig;
-  }
-
-  export type HardforkHistoryUserConfig = Map<
-    string /* hardforkName */,
-    number /* blockNumber */
-  >;
-
   export interface EdrNetworkForkingUserConfig {
     enabled?: boolean;
     url: SensitiveString;
@@ -136,9 +159,48 @@ declare module "../../../../types/config.js" {
   }
 
   export interface HardhatConfig {
+    chainDescriptors: ChainDescriptorsConfig;
     defaultChainType: DefaultChainType;
     defaultNetwork: string;
     networks: Record<string, NetworkConfig>;
+  }
+
+  export type ChainDescriptorsConfig = Map<
+    bigint /* chainId */,
+    ChainDescriptorConfig
+  >;
+
+  export interface ChainDescriptorConfig {
+    name: string;
+    chainType: ChainType;
+    hardforkHistory?: HardforkHistoryConfig;
+    blockExplorers: BlockExplorersConfig;
+  }
+
+  export type HardforkHistoryConfig = Map<
+    string /* hardforkName */,
+    ActivationBlockNumberConfig | ActivationTimestampConfig
+  >;
+
+  export interface ActivationBlockNumberConfig {
+    blockNumber: number;
+    timestamp?: never;
+  }
+
+  export interface ActivationTimestampConfig {
+    timestamp: number;
+    blockNumber?: never;
+  }
+
+  export interface BlockExplorersConfig {
+    etherscan?: BlockExplorerConfig;
+    blockscout?: BlockExplorerConfig;
+  }
+
+  export interface BlockExplorerConfig {
+    name?: string;
+    url: string;
+    apiUrl: string;
   }
 
   export type NetworkConfig = HttpNetworkConfig | EdrNetworkConfig;
@@ -188,7 +250,6 @@ declare module "../../../../types/config.js" {
     allowBlocksWithSameTimestamp: boolean;
     allowUnlimitedContractSize: boolean;
     blockGasLimit: bigint;
-    chains: EdrNetworkChainsConfig;
     coinbase: Uint8Array;
     enableRip7212: boolean;
     enableTransientStorage: boolean;
@@ -221,21 +282,6 @@ declare module "../../../../types/config.js" {
     passphrase: ResolvedConfigurationVariable;
     path: string;
   }
-
-  export type EdrNetworkChainsConfig = Map<
-    number /* chainId */,
-    EdrNetworkChainConfig
-  >;
-
-  export interface EdrNetworkChainConfig {
-    chainType: ChainType;
-    hardforkHistory: HardforkHistoryConfig;
-  }
-
-  export type HardforkHistoryConfig = Map<
-    string /* hardforkName */,
-    number /* blockNumber */
-  >;
 
   export interface EdrNetworkForkingConfig {
     enabled: boolean;
