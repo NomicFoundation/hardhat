@@ -1,11 +1,9 @@
 
   [31m1) aggregate error in top level test[39m
 
-  [31m2) error with circular cause in top level test[39m
 
-
-[32m0 passing[39m[90m (576ms)[39m[31m[39m
-[31m2 failing[39m
+[32m0 passing[39m[90m (172ms)[39m[31m[39m
+[31m1 failing[39m
 
   1) aggregate error in top level test:
 
@@ -18,14 +16,4 @@
          [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/errors-test/test.ts:7:16)[39m
      [31m[inner]: Error: Promise 2 failed[39m
      [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/errors-test/test.ts:11:35)[39m
-
-  2) error with circular cause in top level test:
-
-   [31mError: circular error[39m
-   [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/errors-test/test.ts:17:17)[39m
-     [90m[cause]: Error: circular error[39m
-     [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/errors-test/test.ts:17:17)[39m
-       [90m[cause]: Error: circular error[39m
-       [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/errors-test/test.ts:17:17)[39m
-         [90m[cause]: The error chain has been truncated because it's too long (limit: 3)[39m
 

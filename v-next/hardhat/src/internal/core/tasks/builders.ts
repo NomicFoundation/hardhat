@@ -34,18 +34,13 @@ export class EmptyTaskDefinitionBuilderImplementation
 {
   readonly #id: string[];
 
-  #description: string;
+  readonly #description: string;
 
   constructor(id: string | string[], description: string = "") {
     validateId(id);
 
     this.#id = Array.isArray(id) ? id : [id];
     this.#description = description;
-  }
-
-  public setDescription(description: string): this {
-    this.#description = description;
-    return this;
   }
 
   public build(): EmptyTaskDefinition {

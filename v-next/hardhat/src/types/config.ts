@@ -9,6 +9,7 @@ import "../internal/builtin-plugins/index.js";
 export interface ConfigurationVariable {
   _type: "ConfigurationVariable";
   name: string;
+  format?: string;
 }
 
 /**
@@ -16,6 +17,7 @@ export interface ConfigurationVariable {
  */
 export interface ResolvedConfigurationVariable {
   _type: "ResolvedConfigurationVariable";
+  format: string;
 
   /**
    * Returns the raw value of the configuration variable.

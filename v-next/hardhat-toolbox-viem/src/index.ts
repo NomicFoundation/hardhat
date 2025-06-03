@@ -36,10 +36,16 @@ const hardhatToolboxViemPlugin: HardhatPlugin = {
       return hardhatViemPlugin;
     },
     async () => {
-      const { default: hardhatViemMatchers } = await import(
-        "@nomicfoundation/hardhat-viem-matchers"
+      const { default: hardhatViemAssertions } = await import(
+        "@nomicfoundation/hardhat-viem-assertions"
       );
-      return hardhatViemMatchers;
+      return hardhatViemAssertions;
+    },
+    async () => {
+      const { default: HardhatVerifyPlugin } = await import(
+        "@nomicfoundation/hardhat-verify"
+      );
+      return HardhatVerifyPlugin;
     },
   ],
   npmPackage: "@nomicfoundation/hardhat-toolbox-viem",
