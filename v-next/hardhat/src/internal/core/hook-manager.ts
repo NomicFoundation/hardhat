@@ -35,7 +35,7 @@ export class HookManagerImplementation implements HookManager {
   #context: HookContext | undefined;
 
   /**
-   * The intialized handler categories for each plugin.
+   * The initialized handler categories for each plugin.
    */
   readonly #staticHookHandlerCategories: Map<
     string,
@@ -198,6 +198,22 @@ export class HookManagerImplementation implements HookManager {
     return Promise.all(
       handlers.map((handler) => (handler as any)(...handlerParams)),
     );
+  }
+
+  public async hasHandlers<
+    HookCategoryNameT extends keyof HardhatHooks,
+    HookNameT extends keyof HardhatHooks[HookCategoryNameT],
+  >(
+    hookCategoryName: HookCategoryNameT,
+    hookName: HookNameT,
+  ): Promise<boolean> {
+    // The ordering of handlers is unimportant here, as we only check if any exist
+    const handlers = await this.#getHandlersInChainedRunningOrder(
+      hookCategoryName,
+      hookName,
+    );
+
+    return handlers.length > 0;
   }
 
   async #getHandlersInChainedRunningOrder<

@@ -1,11 +1,17 @@
-import { buildModule } from "@nomicfoundation/ignition-core";
-import { assert } from "chai";
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
 
+import {
+  assertRejects,
+  useEphemeralFixtureProject,
+} from "@nomicfoundation/hardhat-test-utils";
+import { buildModule } from "@nomicfoundation/ignition-core";
+
+import { createConnection } from "./test-helpers/create-hre.js";
 import { externallyLoadedContractArtifact } from "./test-helpers/externally-loaded-contract.js";
-import { useIgnitionProject } from "./test-helpers/use-ignition-project.js";
 
 describe("viem results", () => {
-  useIgnitionProject("minimal");
+  useEphemeralFixtureProject("minimal");
 
   it("should only return properties for the properties of the module results", async function () {
     const moduleDefinition = buildModule("Module", (m) => {
@@ -14,12 +20,14 @@ describe("viem results", () => {
       return { foo };
     });
 
-    const result = await this.connection.ignition.deploy(moduleDefinition);
+    const connection = await createConnection();
 
-    assert.isDefined(result.foo);
+    const result = await connection.ignition.deploy(moduleDefinition);
 
-    // @ts-expect-error
-    assert.isUndefined(result.nonexistant);
+    assert.notEqual(result.foo, undefined);
+
+    // @ts-expect-error -- Expect an error
+    assert.equal(result.nonexistant, undefined);
   });
 
   it("should differentiate between different contracts in the type system", async function () {
@@ -31,49 +39,45 @@ describe("viem results", () => {
       return { foo, bar, baz };
     });
 
-    const result = await this.connection.ignition.deploy(moduleDefinition);
+    const connection = await createConnection();
 
-    assert.isTrue(await result.foo.read.isFoo());
-    assert.isTrue(await result.bar.read.isBar());
-    assert.isTrue(await result.baz.read.isExternallyLoaded());
+    const result = await connection.ignition.deploy(moduleDefinition);
+
+    assert.ok(await result.foo.read.isFoo(), "foo should be foo");
+    assert.ok(await result.bar.read.isBar(), "bar should be bar");
+    assert.ok(await result.baz.read.isExternallyLoaded(), "baz should be baz");
 
     // Calling the wrong method on a viem instance should throw, but more
     // importantly give a type error.
 
     // foo shouldn't have bar or baz methods
-    await assert.isRejected(
+    await assertRejects(
       // @ts-expect-error - isBar is not a method on Foo
       result.foo.read.isBar(),
-      /Make sure you are using the correct ABI and that the function exists on it./,
     );
-    await assert.isRejected(
+    await assertRejects(
       // @ts-expect-error - isBar is not a method on Foo
       result.foo.read.isExternallyLoaded(),
-      /Make sure you are using the correct ABI and that the function exists on it./,
     );
 
     // bar shouldn't have foo or baz methods
-    await assert.isRejected(
+    await assertRejects(
       // @ts-expect-error - isFoo is not a method on Bar
       result.bar.read.isFoo(),
-      /Make sure you are using the correct ABI and that the function exists on it./,
     );
-    await assert.isRejected(
+    await assertRejects(
       // @ts-expect-error - isExternallyLoaded is not a method on Bar
       result.bar.read.isExternallyLoaded(),
-      /Make sure you are using the correct ABI and that the function exists on it./,
     );
 
     // baz shouldn't have foo or bar methods
-    await assert.isRejected(
+    await assertRejects(
       // @ts-expect-error - isFoo is not a method on the externally loaded contract
       result.baz.read.isFoo(),
-      /Make sure you are using the correct ABI and that the function exists on it./,
     );
-    await assert.isRejected(
+    await assertRejects(
       // @ts-expect-error - isBar is not a method on the externally loaded contract
       result.baz.read.isBar(),
-      /Make sure you are using the correct ABI and that the function exists on it./,
     );
   });
 });

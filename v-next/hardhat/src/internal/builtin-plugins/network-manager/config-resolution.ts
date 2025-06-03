@@ -2,9 +2,9 @@ import type {
   ConfigurationVariableResolver,
   EdrNetworkAccountsConfig,
   EdrNetworkAccountsUserConfig,
-  EdrNetworkChainConfig,
-  EdrNetworkChainsConfig,
-  EdrNetworkChainsUserConfig,
+  ChainDescriptorConfig,
+  ChainDescriptorsConfig,
+  ChainDescriptorsUserConfig,
   EdrNetworkConfig,
   EdrNetworkForkingConfig,
   EdrNetworkForkingUserConfig,
@@ -18,20 +18,26 @@ import type {
   HttpNetworkConfig,
   HttpNetworkUserConfig,
 } from "../../../types/config.js";
+import type { ChainType } from "../../../types/network.js";
 
 import path from "node:path";
 
+import { toBigInt } from "@nomicfoundation/hardhat-utils/bigint";
 import {
   hexStringToBytes,
   normalizeHexString,
 } from "@nomicfoundation/hardhat-utils/hex";
+import { deepClone } from "@nomicfoundation/hardhat-utils/lang";
+
+import { GENERIC_CHAIN_TYPE } from "../../constants.js";
 
 import { DEFAULT_HD_ACCOUNTS_CONFIG_PARAMS } from "./accounts/constants.js";
+import { DEFAULT_CHAIN_DESCRIPTORS } from "./chain-descriptors.js";
 import {
   DEFAULT_EDR_NETWORK_HD_ACCOUNTS_CONFIG_PARAMS,
   EDR_NETWORK_DEFAULT_COINBASE,
 } from "./edr/edr-provider.js";
-import { HardforkName, LATEST_HARDFORK } from "./edr/types/hardfork.js";
+import { getCurrentHardfork } from "./edr/types/hardfork.js";
 import { isHttpNetworkHdAccountsUserConfig } from "./type-validation.js";
 
 export function resolveHttpNetwork(
@@ -79,7 +85,6 @@ export function resolveEdrNetwork(
     allowUnlimitedContractSize:
       networkConfig.allowUnlimitedContractSize ?? false,
     blockGasLimit: BigInt(networkConfig.blockGasLimit ?? 30_000_000n),
-    chains: resolveChains(networkConfig.chains),
     coinbase: resolveCoinbase(networkConfig.coinbase),
     enableRip7212: networkConfig.enableRip7212 ?? false,
     enableTransientStorage: networkConfig.enableTransientStorage ?? false,
@@ -90,6 +95,7 @@ export function resolveEdrNetwork(
     ),
     hardfork: resolveHardfork(
       networkConfig.hardfork,
+      networkConfig.chainType,
       networkConfig.enableTransientStorage,
     ),
     initialBaseFeePerGas: resolveInitialBaseFeePerGas(
@@ -216,152 +222,67 @@ export function resolveCoinbase(
   return hexStringToBytes(coinbase);
 }
 
-export function resolveChains(
-  chains: EdrNetworkChainsUserConfig | undefined,
-): EdrNetworkChainsConfig {
-  const resolvedChains: EdrNetworkChainsConfig = new Map([
-    [
-      // block numbers below were taken from https://github.com/ethereumjs/ethereumjs-monorepo/tree/master/packages/common/src/chains
-      1, // mainnet
-      {
-        hardforkHistory: new Map([
-          [HardforkName.FRONTIER, 0],
-          [HardforkName.HOMESTEAD, 1_150_000],
-          [HardforkName.DAO, 1_920_000],
-          [HardforkName.TANGERINE_WHISTLE, 2_463_000],
-          [HardforkName.SPURIOUS_DRAGON, 2_675_000],
-          [HardforkName.BYZANTIUM, 4_370_000],
-          [HardforkName.CONSTANTINOPLE, 7_280_000],
-          [HardforkName.PETERSBURG, 7_280_000],
-          [HardforkName.ISTANBUL, 9_069_000],
-          [HardforkName.MUIR_GLACIER, 9_200_000],
-          [HardforkName.BERLIN, 1_2244_000],
-          [HardforkName.LONDON, 12_965_000],
-          [HardforkName.ARROW_GLACIER, 13_773_000],
-          [HardforkName.GRAY_GLACIER, 15_050_000],
-          [HardforkName.MERGE, 15_537_394],
-          [HardforkName.SHANGHAI, 17_034_870],
-          [HardforkName.CANCUN, 19_426_589],
-        ]),
-      },
-    ],
-    [
-      3, // ropsten
-      {
-        hardforkHistory: new Map([
-          [HardforkName.BYZANTIUM, 1700000],
-          [HardforkName.CONSTANTINOPLE, 4230000],
-          [HardforkName.PETERSBURG, 4939394],
-          [HardforkName.ISTANBUL, 6485846],
-          [HardforkName.MUIR_GLACIER, 7117117],
-          [HardforkName.BERLIN, 9812189],
-          [HardforkName.LONDON, 10499401],
-        ]),
-      },
-    ],
-    [
-      4, // rinkeby
-      {
-        hardforkHistory: new Map([
-          [HardforkName.BYZANTIUM, 1035301],
-          [HardforkName.CONSTANTINOPLE, 3660663],
-          [HardforkName.PETERSBURG, 4321234],
-          [HardforkName.ISTANBUL, 5435345],
-          [HardforkName.BERLIN, 8290928],
-          [HardforkName.LONDON, 8897988],
-        ]),
-      },
-    ],
-    [
-      5, // goerli
-      {
-        hardforkHistory: new Map([
-          [HardforkName.ISTANBUL, 1561651],
-          [HardforkName.BERLIN, 4460644],
-          [HardforkName.LONDON, 5062605],
-        ]),
-      },
-    ],
-    [
-      42, // kovan
-      {
-        hardforkHistory: new Map([
-          [HardforkName.BYZANTIUM, 5067000],
-          [HardforkName.CONSTANTINOPLE, 9200000],
-          [HardforkName.PETERSBURG, 10255201],
-          [HardforkName.ISTANBUL, 14111141],
-          [HardforkName.BERLIN, 24770900],
-          [HardforkName.LONDON, 26741100],
-        ]),
-      },
-    ],
-    [
-      11155111, // sepolia
-      {
-        hardforkHistory: new Map([
-          [HardforkName.GRAY_GLACIER, 0],
-          [HardforkName.MERGE, 1_450_409],
-          [HardforkName.SHANGHAI, 2_990_908],
-          [HardforkName.CANCUN, 5_187_023],
-        ]),
-      },
-    ],
-    // TODO: the rest of this config is a temporary workaround,
-    // see https://github.com/NomicFoundation/edr/issues/522
-    [
-      10, // optimism mainnet
-      {
-        hardforkHistory: new Map([[HardforkName.SHANGHAI, 0]]),
-      },
-    ],
-    [
-      11155420, // optimism sepolia
-      {
-        hardforkHistory: new Map([[HardforkName.SHANGHAI, 0]]),
-      },
-    ],
-    [
-      42161, // arbitrum one
-      {
-        hardforkHistory: new Map([[HardforkName.SHANGHAI, 0]]),
-      },
-    ],
-    [
-      421614, // arbitrum sepolia
-      {
-        hardforkHistory: new Map([[HardforkName.SHANGHAI, 0]]),
-      },
-    ],
-  ]);
+export async function resolveChainDescriptors(
+  chainDescriptors: ChainDescriptorsUserConfig | undefined,
+): Promise<ChainDescriptorsConfig> {
+  const resolvedChainDescriptors: ChainDescriptorsConfig = await deepClone(
+    DEFAULT_CHAIN_DESCRIPTORS,
+  );
 
-  if (chains === undefined) {
-    return resolvedChains;
+  if (chainDescriptors === undefined) {
+    return resolvedChainDescriptors;
   }
 
-  chains.forEach((chainConfig, chainId) => {
-    const resolvedChainConfig: EdrNetworkChainConfig = {
-      hardforkHistory: new Map(),
-    };
-    if (chainConfig.hardforkHistory !== undefined) {
-      chainConfig.hardforkHistory.forEach((block, name) => {
-        resolvedChainConfig.hardforkHistory.set(name, block);
-      });
-    }
-    resolvedChains.set(chainId, resolvedChainConfig);
-  });
+  // Loop over the user-provided chain descriptors
+  // and merge them with the default ones
+  for (const [chainId, userDescriptor] of Object.entries(chainDescriptors)) {
+    const existingDescriptor: ChainDescriptorConfig =
+      resolvedChainDescriptors.get(toBigInt(chainId)) ?? {
+        name: userDescriptor.name,
+        chainType: GENERIC_CHAIN_TYPE,
+        blockExplorers: {},
+      };
 
-  return resolvedChains;
+    existingDescriptor.name = userDescriptor.name;
+
+    if (userDescriptor.chainType !== undefined) {
+      existingDescriptor.chainType = userDescriptor.chainType;
+    }
+
+    if (userDescriptor.hardforkHistory !== undefined) {
+      existingDescriptor.hardforkHistory = new Map(
+        Object.entries(userDescriptor.hardforkHistory),
+      );
+    }
+
+    if (userDescriptor.blockExplorers?.etherscan !== undefined) {
+      existingDescriptor.blockExplorers.etherscan = await deepClone(
+        userDescriptor.blockExplorers.etherscan,
+      );
+    }
+
+    if (userDescriptor.blockExplorers?.blockscout !== undefined) {
+      existingDescriptor.blockExplorers.blockscout = await deepClone(
+        userDescriptor.blockExplorers.blockscout,
+      );
+    }
+
+    resolvedChainDescriptors.set(toBigInt(chainId), existingDescriptor);
+  }
+
+  return resolvedChainDescriptors;
 }
 
 export function resolveHardfork(
   hardfork: string | undefined,
+  chainType: ChainType | undefined = GENERIC_CHAIN_TYPE,
   _enableTransientStorage: boolean | undefined,
 ): string {
   if (hardfork !== undefined) {
     return hardfork;
   }
 
-  return LATEST_HARDFORK;
+  return getCurrentHardfork(chainType);
 }
 
 export function resolveInitialBaseFeePerGas(

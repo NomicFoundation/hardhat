@@ -20,7 +20,6 @@ describe("hardhat-typechain", () => {
       await remove(`${process.cwd()}/types`);
 
       const hardhatConfig = await import(
-        // eslint-disable-next-line import/no-relative-packages -- allow for fixture projects
         `./fixture-projects/${projectFolder}/hardhat.config.js`
       );
 
@@ -65,7 +64,7 @@ describe("hardhat-typechain", () => {
       assert.equal(content.includes(`import { ethers } from 'ethers'`), true);
     });
 
-    it("should generated types for the contracts and add the support for the `attach` method", async () => {
+    it("should generated types for the contracts and add the support for the `attach` method for concrete contracts", async () => {
       const content = await readUtf8File(
         path.join(
           process.cwd(),
@@ -88,6 +87,30 @@ describe("hardhat-typechain", () => {
         true,
       );
     });
+
+    it("should notgenerated types for the contracts and do not add the support for the `attach` method for abstract contracts", async () => {
+      const content = await readUtf8File(
+        path.join(
+          process.cwd(),
+          "types",
+          "ethers-contracts",
+          "factories",
+          "A__factory.ts",
+        ),
+      );
+
+      // The "Addressable" type should be imported
+      assert.equal(
+        content.includes(`import type { Addressable } from "ethers";`),
+        true,
+      );
+
+      // The "attach" method should not be added to the factory of an abstract contract
+      assert.equal(
+        content.includes(`override attach(address: string | Addressable): B {`),
+        false,
+      );
+    });
   });
 
   describe("typechain should not generate types during compilation", () => {
@@ -98,7 +121,6 @@ describe("hardhat-typechain", () => {
 
       it("should not generate the types", async () => {
         const hardhatConfig = await import(
-          // eslint-disable-next-line import/no-relative-packages -- allow for fixture projects
           `./fixture-projects/${projectFolder}/hardhat.config.js`
         );
 
@@ -127,7 +149,6 @@ describe("hardhat-typechain", () => {
 
       it("should not generate the types", async () => {
         const hardhatConfig = await import(
-          // eslint-disable-next-line import/no-relative-packages -- allow for fixture projects
           `./fixture-projects/${projectFolder}/hardhat.config.js`
         );
 
@@ -160,7 +181,6 @@ describe("hardhat-typechain", () => {
 
     it("should not generate the types", async () => {
       const hardhatConfig = await import(
-        // eslint-disable-next-line import/no-relative-packages -- allow for fixture projects
         `./fixture-projects/${projectFolder}/hardhat.config.js`
       );
 
@@ -187,7 +207,6 @@ describe("hardhat-typechain", () => {
 
     it("should generate the types", async () => {
       const hardhatConfig = await import(
-        // eslint-disable-next-line import/no-relative-packages -- allow for fixture projects
         `./fixture-projects/${projectFolder}/hardhat.config.js`
       );
 

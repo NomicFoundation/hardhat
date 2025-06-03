@@ -1,4 +1,5 @@
 import type { SolidityBuildSystem } from "../../../types/solidity/build-system.js";
+import type { CompilerInput } from "../../../types/solidity.js";
 
 import "../../../types/config.js";
 declare module "../../../types/config.js" {
@@ -114,5 +115,60 @@ declare module "../../../types/hooks.js" {
         artifactPaths: string[],
       ) => Promise<void>,
     ) => Promise<void>;
+
+    /**
+     * Hook triggered within the compilation job when its' solc input is first contstructed.
+     *
+     * @param context The hook context.
+     * @param sourceName The source name of the project file.
+     * @param fileContent The content of the project file.
+     * @param solcVersion The solc version that will be used to compile the project file.
+     * @param next A function to call the next handler for this hook, or the
+     * default implementation if no more handlers exist.
+     *
+     * @returns The modified file content.
+     */
+    preprocessProjectFileBeforeBuilding(
+      context: HookContext,
+      sourceName: string,
+      fsPath: string,
+      fileContent: string,
+      solcVersion: string,
+      next: (
+        nextContext: HookContext,
+        nextSourceName: string,
+        nextFsPath: string,
+        nextFileContent: string,
+        nextSolcVersion: string,
+      ) => Promise<string>,
+    ): Promise<string>;
+
+    /**
+     * Hook triggered within the compilation job when its' solc input is first contstructed.
+     *
+     * @param context The hook context.
+     * @param solcInput The solc input that will be passed to solc.
+     * @param next A function to call the next handler for this hook, or the
+     * default implementation if no more handlers exist.
+     *
+     * @returns The modified solc input.
+     */
+    preprocessSolcInputBeforeBuilding(
+      context: HookContext,
+      solcInput: CompilerInput,
+      next: (
+        nextContext: HookContext,
+        nextSolcInput: CompilerInput,
+      ) => Promise<CompilerInput>,
+    ): Promise<CompilerInput>;
+
+    readSourceFile: (
+      context: HookContext,
+      absolutePath: string,
+      next: (
+        nextContext: HookContext,
+        nextAbsolutePath: string,
+      ) => Promise<string>,
+    ) => Promise<string>;
   }
 }

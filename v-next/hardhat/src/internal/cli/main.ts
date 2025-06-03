@@ -12,6 +12,7 @@ import {
 import { isCi } from "@nomicfoundation/hardhat-utils/ci";
 import { readClosestPackageJson } from "@nomicfoundation/hardhat-utils/package";
 import { kebabToCamelCase } from "@nomicfoundation/hardhat-utils/string";
+import chalk from "chalk";
 import debug from "debug";
 import { register } from "tsx/esm/api";
 
@@ -31,14 +32,13 @@ import { buildGlobalOptionDefinitions } from "../core/global-options.js";
 import { resolveProjectRoot } from "../core/hre.js";
 import { resolvePluginList } from "../core/plugins/resolve-plugin-list.js";
 import { setGlobalHardhatRuntimeEnvironment } from "../global-hre-instance.js";
-import { createHardhatRuntimeEnvironment } from "../hre-intialization.js";
+import { createHardhatRuntimeEnvironment } from "../hre-initialization.js";
 
 import { printErrorMessages } from "./error-handler.js";
 import { getGlobalHelpString } from "./help/get-global-help-string.js";
 import { getHelpString } from "./help/get-help-string.js";
 import { sendTaskAnalytics } from "./telemetry/analytics/analytics.js";
 import { sendErrorTelemetry } from "./telemetry/sentry/reporter.js";
-import { ensureTelemetryConsent } from "./telemetry/telemetry-permissions.js";
 import { printVersionMessage } from "./version.js";
 
 export interface MainOptions {
@@ -48,7 +48,7 @@ export interface MainOptions {
 }
 
 export async function main(
-  cliArguments: string[],
+  rawArguments: string[],
   options: MainOptions = {},
 ): Promise<void> {
   const print = options.print ?? console.log;
@@ -61,6 +61,8 @@ export async function main(
   log("Hardhat CLI started");
 
   try {
+    const cliArguments = parseRawArguments(rawArguments);
+
     const usedCliArguments: boolean[] = new Array(cliArguments.length).fill(
       false,
     );
@@ -80,10 +82,6 @@ export async function main(
       const { initHardhat } = await import("./init/init.js");
       return await initHardhat();
     }
-
-    await ensureTelemetryConsent();
-
-    log("Retrieved telemetry consent");
 
     configPath = await resolveHardhatConfigPath(
       builtinGlobalOptions.configPath,
@@ -197,7 +195,26 @@ export async function main(
 
     await Promise.all([task.run(taskArguments), sendTaskAnalytics(task.id)]);
   } catch (error) {
-    printErrorMessages(error, builtinGlobalOptions?.showStackTraces);
+    // TODO: Remove after -v, -vv etc are implemented
+    if (
+      (HardhatError.isHardhatError(
+        error,
+        HardhatError.ERRORS.CORE.SOLIDITY.RESOLVING_NONEXISTENT_PROJECT_FILE,
+      ) ||
+        HardhatError.isHardhatError(
+          error,
+          HardhatError.ERRORS.CORE.TEST_PLUGIN.CANNOT_DETERMINE_TEST_RUNNER,
+        )) &&
+      /-v+/.test(error.message)
+    ) {
+      console.error(
+        chalk.red(
+          `\nSupport for verbose test output will be added soon. Please re-run this command without the flag.\n`,
+        ),
+      );
+    } else {
+      printErrorMessages(error, builtinGlobalOptions?.showStackTraces);
+    }
 
     if (error instanceof Error) {
       try {
@@ -379,7 +396,7 @@ function getTaskFromCliArguments(
     if (task === undefined) {
       try {
         task = hre.tasks.getTask(arg);
-      } catch (error) {
+      } catch (_error) {
         return [arg]; // No task found
       }
     } else {
@@ -429,6 +446,25 @@ export function parseTaskArguments(
   }
 
   return taskArguments;
+}
+
+/**
+ * Parses the raw arguments from the command line, returning an array of
+ * arguments. If an argument starts with "--" and contains "=" (i.e. "--option=123")
+ * it is split into two separate arguments: the option name and the option value.
+ */
+export function parseRawArguments(rawArguments: string[]): string[] {
+  return rawArguments.flatMap((arg) => {
+    if (arg.startsWith("--") && arg.includes("=")) {
+      const index = arg.indexOf("=");
+      const optionName = arg.substring(0, index);
+      const optionValue = arg.substring(index + 1);
+
+      return [optionName, optionValue];
+    }
+
+    return arg;
+  });
 }
 
 function parseOptions(

@@ -10,8 +10,8 @@ import node from "./node/index.js";
 import run from "./run/index.js";
 import solidity from "./solidity/index.js";
 import solidityTest from "./solidity-test/index.js";
+import telemetry from "./telemetry/index.js";
 import test from "./test/index.js";
-import verify from "./verify/index.js";
 
 // Note: When importing a plugin, you have to export its types, so that its
 // type extensions, if any, also get loaded.
@@ -26,7 +26,7 @@ export type * from "./run/index.js";
 export type * from "./node/index.js";
 export type * from "./flatten/index.js";
 export type * from "./coverage/index.js";
-export type * from "./verify/index.js";
+export type * from "./telemetry/index.js";
 
 // This array should be kept in order, respecting the dependencies between the
 // plugins.
@@ -42,5 +42,5 @@ export const builtinPlugins: HardhatPlugin[] = [
   node,
   flatten,
   coverage,
-  verify,
+  telemetry,
 ];

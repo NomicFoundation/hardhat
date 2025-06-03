@@ -8,11 +8,14 @@ import HardhatNodeTestRunner from "@nomicfoundation/hardhat-node-test-runner";
 import HardhatMochaTestRunner from "@nomicfoundation/hardhat-mocha";
 import HardhatKeystore from "@nomicfoundation/hardhat-keystore";
 import HardhatViem from "@nomicfoundation/hardhat-viem";
+import HardhatViemAssertions from "@nomicfoundation/hardhat-viem-assertions";
 import hardhatNetworkHelpersPlugin from "@nomicfoundation/hardhat-network-helpers";
 import hardhatEthersPlugin from "@nomicfoundation/hardhat-ethers";
 import hardhatChaiMatchersPlugin from "@nomicfoundation/hardhat-ethers-chai-matchers";
 import hardhatTypechain from "@nomicfoundation/hardhat-typechain";
 import hardhatIgnitionViem from "@nomicfoundation/hardhat-ignition-viem";
+import hardhatVerify from "@nomicfoundation/hardhat-verify";
+import { ArgumentType } from "hardhat/types/arguments";
 
 util.inspect.defaultOptions.depth = null;
 
@@ -50,7 +53,8 @@ const exampleTaskOverride = task("example2")
   .addOption({
     name: "grep",
     description: "Only run tests matching the given string or regexp",
-    defaultValue: "",
+    type: ArgumentType.STRING_WITHOUT_DEFAULT,
+    defaultValue: undefined,
   })
   .build();
 
@@ -153,7 +157,9 @@ const config: HardhatUserConfig = {
     HardhatMochaTestRunner,
     hardhatNetworkHelpersPlugin,
     HardhatNodeTestRunner,
+    hardhatVerify,
     HardhatViem,
+    HardhatViemAssertions,
     hardhatChaiMatchersPlugin,
     hardhatTypechain,
     hardhatIgnitionViem,

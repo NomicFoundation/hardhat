@@ -1,0 +1,17 @@
+
+  [90m[32m✔[39m[90m match[39m
+
+  [31m1) no match[39m
+
+
+[32m1 passing[39m[90m (128ms)[39m[31m[39m
+[31m1 failing[39m
+
+  1) no match:
+
+   [31mAssertionError: The input did not match the regular expression /^bar$/. Input:[39m
+   [31m[39m
+   [31m'foo'[39m
+   [31m[39m
+   [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/no-match-test/test.ts:9:10)[39m
+

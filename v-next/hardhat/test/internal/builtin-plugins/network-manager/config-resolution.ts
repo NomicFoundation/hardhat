@@ -1,5 +1,6 @@
 import type {
   ConfigurationVariableResolver,
+  ChainDescriptorsUserConfig,
   EdrNetworkMiningUserConfig,
   EdrNetworkUserConfig,
   HttpNetworkUserConfig,
@@ -10,13 +11,15 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import { before, describe, it } from "node:test";
 
+import { toBigInt } from "@nomicfoundation/hardhat-utils/bigint";
 import { bytesToHexString } from "@nomicfoundation/hardhat-utils/hex";
 
 import { configVariable } from "../../../../src/config.js";
 import { createHardhatRuntimeEnvironment } from "../../../../src/hre.js";
 import { DEFAULT_HD_ACCOUNTS_CONFIG_PARAMS } from "../../../../src/internal/builtin-plugins/network-manager/accounts/constants.js";
+import { DEFAULT_CHAIN_DESCRIPTORS } from "../../../../src/internal/builtin-plugins/network-manager/chain-descriptors.js";
 import {
-  resolveChains,
+  resolveChainDescriptors,
   resolveCoinbase,
   resolveEdrNetwork,
   resolveEdrNetworkAccounts,
@@ -33,8 +36,8 @@ import {
   EDR_NETWORK_DEFAULT_COINBASE,
 } from "../../../../src/internal/builtin-plugins/network-manager/edr/edr-provider.js";
 import {
-  HardforkName,
-  LATEST_HARDFORK,
+  L1HardforkName,
+  getCurrentHardfork,
 } from "../../../../src/internal/builtin-plugins/network-manager/edr/types/hardfork.js";
 import {
   isEdrNetworkForkingConfig,
@@ -42,7 +45,11 @@ import {
   isEdrNetworkMiningConfig,
   isHttpNetworkHdAccountsConfig,
 } from "../../../../src/internal/builtin-plugins/network-manager/type-validation.js";
-import { L1_CHAIN_TYPE } from "../../../../src/internal/constants.js";
+import {
+  GENERIC_CHAIN_TYPE,
+  L1_CHAIN_TYPE,
+  OPTIMISM_CHAIN_TYPE,
+} from "../../../../src/internal/constants.js";
 import { resolveConfigurationVariable } from "../../../../src/internal/core/configuration-variables.js";
 
 describe("config-resolution", () => {
@@ -573,84 +580,219 @@ describe("config-resolution", () => {
     });
   });
 
-  describe("resolveChains", () => {
-    it("should return the resolved chains with the provided chains overriding the defaults", () => {
-      const chainsUserConfig = new Map([
-        [
-          1,
-          {
-            hardforkHistory: new Map([
-              [HardforkName.BYZANTIUM, 1],
-              [HardforkName.CONSTANTINOPLE, 2],
-              ["newHardfork", 3],
-            ]),
+  describe("resolveChainDescriptors", () => {
+    it("should return the resolved chain descriptors with the provided chainDescriptors overriding the defaults", async () => {
+      const mainnetChainId = 1;
+      const myNetworkChainId = 31_337;
+      const chainDescriptorsUserConfig: ChainDescriptorsUserConfig = {
+        [mainnetChainId]: {
+          name: "Ethereum",
+          chainType: GENERIC_CHAIN_TYPE,
+          hardforkHistory: {
+            [L1HardforkName.BYZANTIUM]: { blockNumber: 1 },
+            [L1HardforkName.CONSTANTINOPLE]: { blockNumber: 2 },
+            newHardfork: { blockNumber: 3 },
           },
-        ],
-        [
-          31337,
-          {
-            hardforkHistory: new Map([[HardforkName.BYZANTIUM, 1]]),
+        },
+        [myNetworkChainId]: {
+          name: "My Network",
+          hardforkHistory: {
+            [L1HardforkName.BYZANTIUM]: { blockNumber: 1 },
           },
-        ],
-      ]);
-      const chainsConfig = resolveChains(chainsUserConfig);
-
-      const mainnet = chainsConfig.get(1);
-      assert.ok(mainnet !== undefined, "chain 1 is not in the resolved chains");
-      assert.equal(mainnet.hardforkHistory.get(HardforkName.BYZANTIUM), 1);
-      assert.equal(mainnet.hardforkHistory.get(HardforkName.CONSTANTINOPLE), 2);
-      assert.equal(mainnet.hardforkHistory.get("newHardfork"), 3);
-
-      const myNetwork = chainsConfig.get(31337);
-      assert.ok(
-        myNetwork !== undefined,
-        "chain 31337 is not in the resolved chains",
+          blockExplorers: {
+            etherscan: {
+              url: "http://localhost:8545",
+              apiUrl: "http://localhost:8545/api",
+            },
+          },
+        },
+      };
+      const chainDescriptorsConfig = await resolveChainDescriptors(
+        chainDescriptorsUserConfig,
       );
-      assert.equal(myNetwork.hardforkHistory.get(HardforkName.BYZANTIUM), 1);
+
+      const mainnetUserConfig = chainDescriptorsUserConfig[mainnetChainId];
+      const mainnetConfig = chainDescriptorsConfig.get(
+        toBigInt(mainnetChainId),
+      );
+      assert.equal(mainnetConfig?.chainType, mainnetUserConfig?.chainType);
+      assert.deepEqual(
+        mainnetConfig?.hardforkHistory,
+        new Map(Object.entries(mainnetUserConfig?.hardforkHistory ?? {})),
+      );
+
+      const myNetworkUserConfig = chainDescriptorsUserConfig[myNetworkChainId];
+      const myNetworkConfig = chainDescriptorsConfig.get(
+        toBigInt(myNetworkChainId),
+      );
+      assert.equal(myNetworkConfig?.name, myNetworkUserConfig?.name);
+      assert.equal(myNetworkConfig?.chainType, GENERIC_CHAIN_TYPE);
+      assert.deepEqual(
+        myNetworkConfig?.hardforkHistory,
+        new Map(Object.entries(myNetworkUserConfig?.hardforkHistory ?? {})),
+      );
+      assert.deepEqual(
+        myNetworkConfig?.blockExplorers,
+        myNetworkUserConfig?.blockExplorers,
+      );
     });
 
-    it("should return the default chains if no chains are provided", () => {
-      const chainsConfig = resolveChains(undefined);
+    it("should only override the provided fields", async () => {
+      const mainnetChainId = 1;
+      const sepoliaChainId = 11_155_111;
+      const holeskyChainId = 17_000;
+      const hoodiChainId = 560_048;
 
-      // Check some of the default values
-      const mainnet = chainsConfig.get(1);
-      assert.ok(mainnet !== undefined, "chain 1 is not in the resolved chains");
-      assert.equal(
-        mainnet.hardforkHistory.get(HardforkName.BYZANTIUM),
-        4_370_000,
+      const chainDescriptorsUserConfig: ChainDescriptorsUserConfig = {
+        [mainnetChainId]: {
+          name: "Ethereum Mainnet",
+          hardforkHistory: {
+            [L1HardforkName.BYZANTIUM]: { blockNumber: 1 },
+            [L1HardforkName.CONSTANTINOPLE]: { blockNumber: 2 },
+            newHardfork: { blockNumber: 3 },
+          },
+        },
+        [sepoliaChainId]: {
+          name: "Sepolia Testnet",
+          blockExplorers: {
+            etherscan: {
+              url: "http://localhost:8545",
+              apiUrl: "http://localhost:8545/api",
+            },
+          },
+        },
+        [holeskyChainId]: {
+          name: "Holesky Testnet",
+          chainType: GENERIC_CHAIN_TYPE,
+        },
+        [hoodiChainId]: {
+          name: "Hoodi Testnet",
+        },
+      };
+      const chainDescriptorsConfig = await resolveChainDescriptors(
+        chainDescriptorsUserConfig,
       );
-      assert.equal(
-        mainnet.hardforkHistory.get(HardforkName.CONSTANTINOPLE),
-        7_280_000,
+
+      const mainnetUserConfig = chainDescriptorsUserConfig[mainnetChainId];
+      const mainnetConfig = chainDescriptorsConfig.get(
+        toBigInt(mainnetChainId),
       );
-      assert.equal(
-        mainnet.hardforkHistory.get(HardforkName.SHANGHAI),
-        17_034_870,
+      const mainnetDefault = DEFAULT_CHAIN_DESCRIPTORS.get(
+        toBigInt(mainnetChainId),
       );
-      assert.equal(
-        mainnet.hardforkHistory.get(HardforkName.CANCUN),
-        19_426_589,
+      assert.equal(mainnetConfig?.name, mainnetUserConfig.name);
+      assert.equal(mainnetConfig?.chainType, L1_CHAIN_TYPE);
+      assert.deepEqual(
+        mainnetConfig?.hardforkHistory,
+        new Map(Object.entries(mainnetUserConfig.hardforkHistory ?? {})),
       );
-      const myNetwork = chainsConfig.get(31337);
-      assert.ok(
-        myNetwork === undefined,
-        "chain 31337 is in the resolved chains",
+      assert.deepEqual(
+        mainnetConfig?.blockExplorers,
+        mainnetDefault?.blockExplorers,
       );
+
+      const sepoliaUserConfig = chainDescriptorsUserConfig[sepoliaChainId];
+      const sepoliaConfig = chainDescriptorsConfig.get(
+        toBigInt(sepoliaChainId),
+      );
+      const sepoliaDefault = DEFAULT_CHAIN_DESCRIPTORS.get(
+        toBigInt(sepoliaChainId),
+      );
+      assert.equal(sepoliaConfig?.name, sepoliaUserConfig.name);
+      assert.equal(sepoliaConfig?.chainType, L1_CHAIN_TYPE);
+      assert.deepEqual(
+        sepoliaConfig?.hardforkHistory,
+        sepoliaDefault?.hardforkHistory,
+      );
+      assert.deepEqual(
+        sepoliaConfig?.blockExplorers.etherscan,
+        sepoliaUserConfig.blockExplorers?.etherscan,
+      );
+      assert.deepEqual(
+        sepoliaConfig?.blockExplorers.blockscout,
+        sepoliaDefault?.blockExplorers.blockscout,
+      );
+
+      const holeskyUserConfig = chainDescriptorsUserConfig[holeskyChainId];
+      const holeskyConfig = chainDescriptorsConfig.get(
+        toBigInt(holeskyChainId),
+      );
+      const holeskyDefault = DEFAULT_CHAIN_DESCRIPTORS.get(
+        toBigInt(holeskyChainId),
+      );
+      assert.equal(holeskyConfig?.name, holeskyUserConfig.name);
+      assert.equal(holeskyConfig?.chainType, holeskyUserConfig.chainType);
+      assert.deepEqual(
+        holeskyConfig?.hardforkHistory,
+        holeskyDefault?.hardforkHistory,
+      );
+      assert.deepEqual(
+        holeskyConfig?.blockExplorers,
+        holeskyDefault?.blockExplorers,
+      );
+
+      const hoodiUserConfig = chainDescriptorsUserConfig[hoodiChainId];
+      const hoodiConfig = chainDescriptorsConfig.get(toBigInt(hoodiChainId));
+      const hoodiDefault = DEFAULT_CHAIN_DESCRIPTORS.get(
+        toBigInt(hoodiChainId),
+      );
+      assert.equal(hoodiConfig?.name, hoodiUserConfig.name);
+      assert.equal(hoodiConfig?.chainType, hoodiDefault?.chainType);
+      assert.deepEqual(
+        hoodiConfig?.hardforkHistory,
+        hoodiDefault?.hardforkHistory,
+      );
+      assert.deepEqual(
+        hoodiConfig?.blockExplorers,
+        hoodiDefault?.blockExplorers,
+      );
+    });
+
+    it("should return the default chain descriptors if no value is provided", async () => {
+      const chainDescriptors = await resolveChainDescriptors(undefined);
+      assert.deepEqual(chainDescriptors, DEFAULT_CHAIN_DESCRIPTORS);
+    });
+
+    it("should assign default values to the fields that are not provided", async () => {
+      const chainDescriptorsUserConfig: ChainDescriptorsUserConfig = {
+        31_337: {
+          name: "My Network",
+        },
+      };
+      const chainDescriptorsConfig = await resolveChainDescriptors(
+        chainDescriptorsUserConfig,
+      );
+
+      const myNetworkConfig = chainDescriptorsConfig.get(31_337n);
+      assert.equal(myNetworkConfig?.name, "My Network");
+      assert.equal(myNetworkConfig?.chainType, GENERIC_CHAIN_TYPE);
+      assert.deepEqual(myNetworkConfig?.hardforkHistory, undefined);
+      assert.deepEqual(myNetworkConfig?.blockExplorers, {});
     });
   });
 
   describe("resolveHardfork", () => {
     it("should return the hardfork if it is provided", () => {
-      let hardfork = resolveHardfork(HardforkName.LONDON, true);
-      assert.equal(hardfork, HardforkName.LONDON);
+      let hardfork = resolveHardfork(
+        L1HardforkName.LONDON,
+        L1_CHAIN_TYPE,
+        true,
+      );
+      assert.equal(hardfork, L1HardforkName.LONDON);
 
-      hardfork = resolveHardfork(HardforkName.LONDON, false);
-      assert.equal(hardfork, HardforkName.LONDON);
+      hardfork = resolveHardfork(L1HardforkName.LONDON, L1_CHAIN_TYPE, false);
+      assert.equal(hardfork, L1HardforkName.LONDON);
     });
 
-    it("should return the latest hardfork if no hardfork is provided", () => {
-      const hardfork = resolveHardfork(undefined, true);
-      assert.equal(hardfork, LATEST_HARDFORK);
+    it("should return the current hardfork if no hardfork is provided", () => {
+      let hardfork = resolveHardfork(undefined, L1_CHAIN_TYPE, true);
+      assert.equal(hardfork, getCurrentHardfork(L1_CHAIN_TYPE));
+
+      hardfork = resolveHardfork(undefined, undefined, true);
+      assert.equal(hardfork, getCurrentHardfork(L1_CHAIN_TYPE));
+
+      hardfork = resolveHardfork(undefined, OPTIMISM_CHAIN_TYPE, true);
+      assert.equal(hardfork, getCurrentHardfork(OPTIMISM_CHAIN_TYPE));
     });
   });
 

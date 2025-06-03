@@ -30,6 +30,7 @@ import {
   parseBuiltinGlobalOptions,
   parseTask,
   parseTaskArguments,
+  parseRawArguments,
 } from "../../../src/internal/cli/main.js";
 import {
   globalOption,
@@ -37,7 +38,7 @@ import {
   task,
 } from "../../../src/internal/core/config.js";
 import { resetGlobalHardhatRuntimeEnvironment } from "../../../src/internal/global-hre-instance.js";
-import { createHardhatRuntimeEnvironment } from "../../../src/internal/hre-intialization.js";
+import { createHardhatRuntimeEnvironment } from "../../../src/internal/hre-initialization.js";
 import { getHardhatVersion } from "../../../src/internal/utils/package.js";
 import { ArgumentType } from "../../../src/types/arguments.js";
 
@@ -243,13 +244,12 @@ AVAILABLE TASKS:
   clean                    Clears the cache and deletes all artifacts
   compile                  Compiles your project
   console                  Opens a hardhat console
-  coverage                 Not implemented yet - to be available soon
   flatten                  Flattens and prints contracts and their dependencies
   node                     Starts a JSON-RPC server on top of Hardhat Network
   run                      Runs a user-defined script after compiling the project
   task                     A task that uses arg1
+  telemetry                Displays and modifies your telemetry settings
   test                     Runs all your tests
-  verify                   Not implemented yet - to be available soon
 
 AVAILABLE SUBTASKS:
 
@@ -259,6 +259,7 @@ GLOBAL OPTIONS:
 
   --build-profile          The build profile to use
   --config                 A Hardhat config file.
+  --coverage               Enables code coverage
   --help                   Shows this message, or a task's help if its name is provided.
   --init                   Initializes a Hardhat project.
   --network                The network to connect to
@@ -1418,6 +1419,29 @@ For global options help run: hardhat --help`;
           },
         );
       });
+    });
+  });
+
+  describe("parseRawArguments", function () {
+    it("should parse arguments with = and multiple =", function () {
+      const command =
+        "npx hardhat task --arg1=value1 --arg2=value2=value3 --arg3 value4 variadic1 variadic2";
+
+      const cliArguments = command.split(" ").slice(2);
+
+      const parsedArgs = parseRawArguments(cliArguments);
+
+      assert.deepEqual(parsedArgs, [
+        "task",
+        "--arg1",
+        "value1",
+        "--arg2",
+        "value2=value3",
+        "--arg3",
+        "value4",
+        "variadic1",
+        "variadic2",
+      ]);
     });
   });
 });

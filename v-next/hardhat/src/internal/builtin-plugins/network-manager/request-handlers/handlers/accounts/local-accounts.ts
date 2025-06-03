@@ -41,6 +41,7 @@ import { ChainId } from "../chain-id/chain-id.js";
  */
 export class LocalAccountsHandler extends ChainId implements RequestHandler {
   readonly #addressToPrivateKey: Map<string, Uint8Array> = new Map();
+  readonly #addresses: string[] = [];
 
   constructor(
     provider: EthereumProvider,
@@ -72,7 +73,7 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
       jsonRpcRequest.method === "eth_requestAccounts"
     ) {
       return this.#createJsonRpcResponse(jsonRpcRequest.id, [
-        ...this.#addressToPrivateKey.keys(),
+        ...this.#addresses,
       ]);
     }
 
@@ -229,11 +230,13 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
     for (const pk of privateKeys) {
       const address = addr.fromPrivateKey(pk).toLowerCase();
       this.#addressToPrivateKey.set(address, pk);
+      this.#addresses.push(address);
     }
   }
 
   #getPrivateKeyForAddress(address: Uint8Array): Uint8Array {
     const pk = this.#addressToPrivateKey.get(bytesToHexString(address));
+
     if (pk === undefined) {
       throw new HardhatError(
         HardhatError.ERRORS.CORE.NETWORK.NOT_LOCAL_ACCOUNT,
@@ -314,42 +317,53 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
     );
 
     let transaction;
+    // strict mode is not meant to be used in the context of hardhat
+    const strictMode = false;
     if (txData.maxFeePerGas !== undefined) {
-      transaction = Transaction.prepare({
-        type: "eip1559",
-        to: checksummedAddress,
-        nonce: txData.nonce,
-        chainId: txData.chainId ?? toBigInt(chainId),
-        value: txData.value !== undefined ? txData.value : 0n,
-        data: txData.data !== undefined ? bytesToHexString(txData.data) : "",
-        gasLimit: txData.gasLimit,
-        maxFeePerGas: txData.maxFeePerGas,
-        maxPriorityFeePerGas: txData.maxPriorityFeePerGas,
-        accessList: accessList ?? [],
-      });
+      transaction = Transaction.prepare(
+        {
+          type: "eip1559",
+          to: checksummedAddress,
+          nonce: txData.nonce,
+          chainId: txData.chainId ?? toBigInt(chainId),
+          value: txData.value !== undefined ? txData.value : 0n,
+          data: txData.data !== undefined ? bytesToHexString(txData.data) : "",
+          gasLimit: txData.gasLimit,
+          maxFeePerGas: txData.maxFeePerGas,
+          maxPriorityFeePerGas: txData.maxPriorityFeePerGas,
+          accessList: accessList ?? [],
+        },
+        strictMode,
+      );
     } else if (accessList !== undefined) {
-      transaction = Transaction.prepare({
-        type: "eip2930",
-        to: checksummedAddress,
-        nonce: txData.nonce,
-        chainId: txData.chainId ?? toBigInt(chainId),
-        value: txData.value !== undefined ? txData.value : 0n,
-        data: txData.data !== undefined ? bytesToHexString(txData.data) : "",
-        gasPrice: txData.gasPrice ?? 0n,
-        gasLimit: txData.gasLimit,
-        accessList,
-      });
+      transaction = Transaction.prepare(
+        {
+          type: "eip2930",
+          to: checksummedAddress,
+          nonce: txData.nonce,
+          chainId: txData.chainId ?? toBigInt(chainId),
+          value: txData.value !== undefined ? txData.value : 0n,
+          data: txData.data !== undefined ? bytesToHexString(txData.data) : "",
+          gasPrice: txData.gasPrice ?? 0n,
+          gasLimit: txData.gasLimit,
+          accessList,
+        },
+        strictMode,
+      );
     } else {
-      transaction = Transaction.prepare({
-        type: "legacy",
-        to: checksummedAddress,
-        nonce: txData.nonce,
-        chainId: txData.chainId ?? toBigInt(chainId),
-        value: txData.value !== undefined ? txData.value : 0n,
-        data: txData.data !== undefined ? bytesToHexString(txData.data) : "",
-        gasPrice: txData.gasPrice ?? 0n,
-        gasLimit: txData.gasLimit,
-      });
+      transaction = Transaction.prepare(
+        {
+          type: "legacy",
+          to: checksummedAddress,
+          nonce: txData.nonce,
+          chainId: txData.chainId ?? toBigInt(chainId),
+          value: txData.value !== undefined ? txData.value : 0n,
+          data: txData.data !== undefined ? bytesToHexString(txData.data) : "",
+          gasPrice: txData.gasPrice ?? 0n,
+          gasLimit: txData.gasLimit,
+        },
+        strictMode,
+      );
     }
 
     const signedTransaction = transaction.signBy(privateKey);

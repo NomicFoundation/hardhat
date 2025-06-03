@@ -39,12 +39,13 @@ describe("Counter", async function () {
    *
    * Examples:
    *
-   * - `await network.connect("sepolia", "l1")`: Connects to the
-   *   `sepolia` network config, treating it as an "l1" network with the
+   * - `await network.connect({network: "sepolia", chainType: "l1"})`: Connects
+   *   to the `sepolia` network config, treating it as an "l1" network with the
    *   appropriate viem extensions.
    *
-   * - `await network.connect("hardhatOp", "optimism")`: Creates a new EDR
-   *   instance in Optimism mode, using the `hardhatOp` network config.
+   * - `await network.connect({network: "hardhatOp", chainType: "optimism"})`:
+   *   Creates a new EDR instance in Optimism mode, using the `hardhatOp`
+   *   network config.
    *
    * - `await network.connect()`: Creates a new EDR instance with the default
    *    network config (i.e. `hardhat`), the `generic` chain type, and no
@@ -55,6 +56,18 @@ describe("Counter", async function () {
    */
   const { viem } = await network.connect();
   const publicClient = await viem.getPublicClient();
+
+  it("Should emit the Increment event when calling the inc() function", async function () {
+    const counter = await viem.deployContract("Counter");
+
+    // Hardhat 3 comes with assertions to work with viem
+    await viem.assertions.emitWithArgs(
+      counter.write.inc(),
+      counter,
+      "Increment",
+      [1n],
+    );
+  });
 
   it("The sum of the Increment events should match the current value", async function () {
     const counter = await viem.deployContract("Counter");

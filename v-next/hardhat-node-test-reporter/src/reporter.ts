@@ -109,6 +109,7 @@ export function hardhatTestReporter(
     let topLevelFilePassCount = 0;
 
     for await (const event of source) {
+      // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- The other case will be ignored
       switch (event.type) {
         case "test:diagnostic": {
           diagnostics.push(event.data);
@@ -149,21 +150,62 @@ export function hardhatTestReporter(
               }
             }
 
-            // If a suite/describe was already printed, we need to descrease
-            // the lastPrintedIndex, as we are removing it from the stack.
-            //
-            // If its nesting was 0, we print an empty line to separate top-level
-            // describes.
+            // If the nesting is 0, it means we are dealing with top-level entities
             if (event.data.nesting === 0) {
-              lastPrintedIndex = undefined;
+              // If last printed index is undefined it means that we haven't
+              // printed anything related to the top of the stack yet. If we
+              // would have, lastPrintedIndex would be 0 instead.
+              // This means that it's an empty or skipped describe.
+              if (lastPrintedIndex === undefined) {
+                const top = stack[0];
+
+                yield formatTestContext(
+                  [top],
+                  "",
+                  "",
+                  event.data.skip === true,
+                );
+                yield "\n";
+              } else {
+                lastPrintedIndex = undefined;
+              }
+
+              // If the describe nesting was 0, we print an empty line to separate
+              // top-level describes.
               yield "\n";
             } else {
-              if (lastPrintedIndex !== undefined) {
-                lastPrintedIndex = lastPrintedIndex - 1;
+              // If we are in this situation, we haven't printed anything
+              // related to the describe of the top of the stack yet, so it's
+              // an empty/skipped describe. Hence, we print it.
+              const topStackIndex = stack.length - 1;
+              if (lastPrintedIndex !== topStackIndex) {
+                const unprinted = stack[topStackIndex];
 
-                if (lastPrintedIndex < 0) {
-                  lastPrintedIndex = undefined;
-                }
+                yield formatTestContext(
+                  [unprinted],
+                  "",
+                  "",
+                  event.data.skip === true,
+                );
+
+                yield "\n";
+
+                // We update the newly printed index, as we just printed
+                // all the context related to the empty/skipped describe.
+                lastPrintedIndex = topStackIndex;
+              }
+            }
+
+            // As we are about to pop the a frame from the stack, we decrease
+            // the lastPrintedIndex, because it now becomes invalid.
+            // If we pop the last frame, we'd change it to `undefined`, to
+            // signal that we haven't printed anything related to the top of
+            // the (now empty) stack.
+            if (lastPrintedIndex !== undefined) {
+              lastPrintedIndex = lastPrintedIndex - 1;
+
+              if (lastPrintedIndex < 0) {
+                lastPrintedIndex = undefined;
               }
             }
 
@@ -172,7 +214,7 @@ export function hardhatTestReporter(
             continue;
           }
 
-          // If we have printed everything except the current element in the stack
+          // If we have printed everything except the current top of the stack
           // all of it's context/hierarchy has been printed (e.g. its describes).
           //
           // Otherwise, we print all the unprinted elements in the stack, except
@@ -185,6 +227,7 @@ export function hardhatTestReporter(
               ),
             );
             yield "\n";
+
             lastPrintedIndex = stack.length - 2;
           }
 
@@ -231,6 +274,9 @@ export function hardhatTestReporter(
           if (event.data.nesting === 0) {
             yield "\n";
           }
+
+          // Note: we don't update the lastPrintedIndex here, as we would be
+          // adding 1, just to substract it because of the pop that follows.
 
           // Remove the current test from the stack, as it was just processed it
           stack.pop();

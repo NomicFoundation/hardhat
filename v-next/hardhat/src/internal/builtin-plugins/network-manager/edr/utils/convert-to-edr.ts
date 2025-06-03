@@ -2,7 +2,7 @@
 import type {
   EdrNetworkAccountConfig,
   EdrNetworkAccountsConfig,
-  EdrNetworkChainsConfig,
+  ChainDescriptorsConfig,
   EdrNetworkForkingConfig,
   EdrNetworkMempoolConfig,
   EdrNetworkMiningConfig,
@@ -12,9 +12,8 @@ import type { RpcDebugTraceOutput, RpcStructLog } from "../types/output.js";
 import type {
   IntervalRange,
   DebugTraceResult,
-  ChainConfig,
+  ChainOverride,
   ForkConfig,
-  OwnedAccount,
 } from "@ignored/edr-optimism";
 
 import {
@@ -36,13 +35,24 @@ import {
   MERGE,
   SHANGHAI,
   CANCUN,
-  OPTIMISM_CHAIN_TYPE as EDR_OPTIMISM_CHAIN_TYPE,
+  OP_CHAIN_TYPE as EDR_OP_CHAIN_TYPE,
   L1_CHAIN_TYPE as EDR_L1_CHAIN_TYPE,
   GENERIC_CHAIN_TYPE as EDR_GENERIC_CHAIN_TYPE,
+  BEDROCK,
+  REGOLITH,
+  CANYON,
+  ECOTONE,
+  FJORD,
+  GRANITE,
+  HOLOCENE,
 } from "@ignored/edr-optimism";
 import { getUnprefixedHexString } from "@nomicfoundation/hardhat-utils/hex";
 
-import { L1_CHAIN_TYPE, OPTIMISM_CHAIN_TYPE } from "../../../../constants.js";
+import {
+  GENERIC_CHAIN_TYPE,
+  L1_CHAIN_TYPE,
+  OPTIMISM_CHAIN_TYPE,
+} from "../../../../constants.js";
 import { FixedValueConfigurationVariable } from "../../../../core/configuration-variables.js";
 import { derivePrivateKeys } from "../../accounts/derive-private-keys.js";
 import {
@@ -50,47 +60,84 @@ import {
   EDR_NETWORK_DEFAULT_PRIVATE_KEYS,
   isDefaultEdrNetworkHDAccountsConfig,
 } from "../edr-provider.js";
-import { HardforkName } from "../types/hardfork.js";
+import { L1HardforkName, OpHardforkName } from "../types/hardfork.js";
 
-import { getHardforkName } from "./hardfork.js";
+import { getL1HardforkName, getOpHardforkName } from "./hardfork.js";
 
-export function hardhatHardforkToEdrSpecId(hardfork: string): string {
-  const hardforkName = getHardforkName(hardfork);
+export function hardhatHardforkToEdrSpecId(
+  hardfork: string,
+  chainType: ChainType,
+): string {
+  return chainType === OPTIMISM_CHAIN_TYPE
+    ? hardhatOpHardforkToEdrSpecId(hardfork)
+    : hardhatL1HardforkToEdrSpecId(hardfork);
+}
+
+function hardhatOpHardforkToEdrSpecId(hardfork: string): string {
+  const hardforkName = getOpHardforkName(hardfork);
 
   switch (hardforkName) {
-    case HardforkName.FRONTIER:
+    case OpHardforkName.BEDROCK:
+      return BEDROCK;
+    case OpHardforkName.REGOLITH:
+      return REGOLITH;
+    case OpHardforkName.CANYON:
+      return CANYON;
+    case OpHardforkName.ECOTONE:
+      return ECOTONE;
+    case OpHardforkName.FJORD:
+      return FJORD;
+    case OpHardforkName.GRANITE:
+      return GRANITE;
+    case OpHardforkName.HOLOCENE:
+      return HOLOCENE;
+    // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- trust but verify
+    default:
+      const _exhaustiveCheck: never = hardforkName;
+      throw new Error(
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- we want to print the fork
+        `Unknown hardfork name '${hardforkName as string}', this shouldn't happen`,
+      );
+  }
+}
+
+function hardhatL1HardforkToEdrSpecId(hardfork: string): string {
+  const hardforkName = getL1HardforkName(hardfork);
+
+  switch (hardforkName) {
+    case L1HardforkName.FRONTIER:
       return FRONTIER;
-    case HardforkName.HOMESTEAD:
+    case L1HardforkName.HOMESTEAD:
       return HOMESTEAD;
-    case HardforkName.DAO:
+    case L1HardforkName.DAO:
       return DAO_FORK;
-    case HardforkName.TANGERINE_WHISTLE:
+    case L1HardforkName.TANGERINE_WHISTLE:
       return TANGERINE;
-    case HardforkName.SPURIOUS_DRAGON:
+    case L1HardforkName.SPURIOUS_DRAGON:
       return SPURIOUS_DRAGON;
-    case HardforkName.BYZANTIUM:
+    case L1HardforkName.BYZANTIUM:
       return BYZANTIUM;
-    case HardforkName.CONSTANTINOPLE:
+    case L1HardforkName.CONSTANTINOPLE:
       return CONSTANTINOPLE;
-    case HardforkName.PETERSBURG:
+    case L1HardforkName.PETERSBURG:
       return PETERSBURG;
-    case HardforkName.ISTANBUL:
+    case L1HardforkName.ISTANBUL:
       return ISTANBUL;
-    case HardforkName.MUIR_GLACIER:
+    case L1HardforkName.MUIR_GLACIER:
       return MUIR_GLACIER;
-    case HardforkName.BERLIN:
+    case L1HardforkName.BERLIN:
       return BERLIN;
-    case HardforkName.LONDON:
+    case L1HardforkName.LONDON:
       return LONDON;
-    case HardforkName.ARROW_GLACIER:
+    case L1HardforkName.ARROW_GLACIER:
       return ARROW_GLACIER;
-    case HardforkName.GRAY_GLACIER:
+    case L1HardforkName.GRAY_GLACIER:
       return GRAY_GLACIER;
-    case HardforkName.MERGE:
+    case L1HardforkName.MERGE:
       return MERGE;
-    case HardforkName.SHANGHAI:
+    case L1HardforkName.SHANGHAI:
       return SHANGHAI;
-    case HardforkName.CANCUN:
+    case L1HardforkName.CANCUN:
       return CANCUN;
     // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- trust but verify
     default:
@@ -99,49 +146,6 @@ export function hardhatHardforkToEdrSpecId(hardfork: string): string {
         // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- we want to print the fork
         `Unknown hardfork name '${hardfork as string}', this shouldn't happen`,
       );
-  }
-}
-
-export function edrSpecIdToHardhatHardfork(specId: string): HardforkName {
-  switch (specId) {
-    case FRONTIER:
-      return HardforkName.FRONTIER;
-    case HOMESTEAD:
-      return HardforkName.HOMESTEAD;
-    case DAO_FORK:
-      return HardforkName.DAO;
-    case TANGERINE:
-      return HardforkName.TANGERINE_WHISTLE;
-    case SPURIOUS_DRAGON:
-      return HardforkName.SPURIOUS_DRAGON;
-    case BYZANTIUM:
-      return HardforkName.BYZANTIUM;
-    case CONSTANTINOPLE:
-      return HardforkName.CONSTANTINOPLE;
-    case PETERSBURG:
-      return HardforkName.PETERSBURG;
-    case ISTANBUL:
-      return HardforkName.ISTANBUL;
-    case MUIR_GLACIER:
-      return HardforkName.MUIR_GLACIER;
-    case BERLIN:
-      return HardforkName.BERLIN;
-    case LONDON:
-      return HardforkName.LONDON;
-    case ARROW_GLACIER:
-      return HardforkName.ARROW_GLACIER;
-    case GRAY_GLACIER:
-      return HardforkName.GRAY_GLACIER;
-    case MERGE:
-      return HardforkName.MERGE;
-    case SHANGHAI:
-      return HardforkName.SHANGHAI;
-    // HACK: EthereumJS doesn't support Cancun, so report Shanghai
-    case CANCUN:
-      return HardforkName.SHANGHAI;
-
-    default:
-      throw new Error(`Unknown spec id '${specId}', this shouldn't happen`);
   }
 }
 
@@ -237,7 +241,7 @@ export function edrRpcDebugTraceToHardhat(
 
 export async function hardhatAccountsToEdrOwnedAccounts(
   accounts: EdrNetworkAccountsConfig,
-): Promise<OwnedAccount[]> {
+): Promise<Array<{ secretKey: string; balance: bigint }>> {
   const normalizedAccounts = await normalizeEdrNetworkAccountsConfig(accounts);
 
   const accountPromises = normalizedAccounts.map(async (account) => ({
@@ -272,34 +276,44 @@ export async function normalizeEdrNetworkAccountsConfig(
   }));
 }
 
-export function hardhatChainsToEdrChains(
-  chains: EdrNetworkChainsConfig,
-): ChainConfig[] {
-  const edrChains: ChainConfig[] = [];
+export function hardhatChainDescriptorsToEdrChainOverrides(
+  chainDescriptors: ChainDescriptorsConfig,
+  chainType: ChainType,
+): ChainOverride[] {
+  return (
+    Array.from(chainDescriptors)
+      // Skip chain descriptors that don't match the expected chain type
+      .filter(([_, descriptor]) => {
+        if (chainType === GENERIC_CHAIN_TYPE) {
+          // When "generic" is requested, include both "generic" and "l1" chains
+          return (
+            descriptor.chainType === GENERIC_CHAIN_TYPE ||
+            descriptor.chainType === L1_CHAIN_TYPE
+          );
+        }
 
-  for (const [chainId, hardforkConfig] of chains) {
-    const hardforks = [];
-
-    for (const [hardfork, blockNumber] of hardforkConfig.hardforkHistory) {
-      const specId = hardhatHardforkToEdrSpecId(getHardforkName(hardfork));
-
-      hardforks.push({
-        blockNumber: BigInt(blockNumber),
-        specId,
-      });
-    }
-
-    edrChains.push({
-      chainId: BigInt(chainId),
-      hardforks,
-    });
-  }
-
-  return edrChains;
+        return descriptor.chainType === chainType;
+      })
+      .map(([chainId, descriptor]) => ({
+        chainId,
+        name: descriptor.name,
+        hardforkActivationOverrides: Array.from(
+          descriptor.hardforkHistory ?? new Map(),
+        ).map(([hardfork, { blockNumber, timestamp }]) => ({
+          condition:
+            blockNumber !== undefined
+              ? { blockNumber: BigInt(blockNumber) }
+              : { timestamp: BigInt(timestamp) },
+          hardfork: hardhatHardforkToEdrSpecId(hardfork, descriptor.chainType),
+        })),
+      }))
+  );
 }
 
 export async function hardhatForkingConfigToEdrForkConfig(
   forkingConfig: EdrNetworkForkingConfig | undefined,
+  chainDescriptors: ChainDescriptorsConfig,
+  chainType: ChainType,
 ): Promise<ForkConfig | undefined> {
   let fork: ForkConfig | undefined;
   if (forkingConfig !== undefined && forkingConfig.enabled === true) {
@@ -312,20 +326,23 @@ export async function hardhatForkingConfigToEdrForkConfig(
         : undefined;
 
     fork = {
-      jsonRpcUrl: await forkingConfig.url.getUrl(),
       blockNumber: forkingConfig.blockNumber,
+      cacheDir: forkingConfig.cacheDir,
+      chainOverrides: hardhatChainDescriptorsToEdrChainOverrides(
+        chainDescriptors,
+        chainType,
+      ),
       httpHeaders,
+      url: await forkingConfig.url.getUrl(),
     };
   }
 
   return fork;
 }
 
-export function hardhatChainTypeToEdrChainType(
-  chainType: ChainType | undefined,
-): string {
+export function hardhatChainTypeToEdrChainType(chainType: ChainType): string {
   if (chainType === OPTIMISM_CHAIN_TYPE) {
-    return EDR_OPTIMISM_CHAIN_TYPE;
+    return EDR_OP_CHAIN_TYPE;
   }
 
   if (chainType === L1_CHAIN_TYPE) {

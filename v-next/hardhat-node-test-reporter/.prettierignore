@@ -2,5 +2,6 @@
 /dist
 /coverage
 CHANGELOG.md
-/test/fixture-projects/*/artifacts
-/test/fixture-projects/*/cache
+/test/fixture-projects/**/artifacts
+/test/fixture-projects/**/cache
+/integration-tests/fixture-tests/falsy-expression-test
