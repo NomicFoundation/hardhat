@@ -1,5 +1,14 @@
 # @nomicfoundation/hardhat-verify
 
+## 2.0.14
+
+### Patch Changes
+
+- d0c3dcf: Support Etherscan API v2 (#6716)
+- Updated dependencies [9b75f5d]
+- Updated dependencies [a8ad44c]
+  - hardhat@2.24.1
+
 ## 2.0.13
 
 ### Patch Changes

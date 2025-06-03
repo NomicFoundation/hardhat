@@ -1,5 +1,12 @@
 # hardhat
 
+## 2.24.1
+
+### Patch Changes
+
+- 9b75f5d: Fix a few potential errors that could happen when compiling Solidity in a subprocess
+- a8ad44c: Added support for Node v24.
+
 ## 2.24.0
 
 ### Minor Changes
