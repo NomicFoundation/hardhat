@@ -66,7 +66,7 @@ export async function verifyContract(
   const {
     artifacts,
     config,
-    globalOptions: { buildProfile: buildProfileName },
+    globalOptions: { buildProfile: buildProfileName = "production" },
     network,
     solidity,
   } = hre;
@@ -88,7 +88,9 @@ export async function verifyContract(
     // provider
   } = verifyContractArgs;
 
-  const buildProfile = config.solidity.profiles[buildProfileName ?? "default"];
+  const buildProfile = config.solidity.profiles[buildProfileName];
+  // The "production" build profile is always present by default.
+  // This check only fails if the user specifies a non-existent build profile name.
   if (buildProfile === undefined) {
     throw new HardhatError(
       HardhatError.ERRORS.CORE.SOLIDITY.BUILD_PROFILE_NOT_FOUND,
