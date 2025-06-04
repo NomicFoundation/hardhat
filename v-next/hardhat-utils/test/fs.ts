@@ -118,7 +118,7 @@ describe("File system utils", () => {
 
     async function assertGetAllFilesMatching(
       dir: string,
-      matches: ((f: string) => boolean) | undefined,
+      matches: ((f: string) => Promise<boolean> | boolean) | undefined,
       expected: string[],
     ) {
       assert.deepEqual(
@@ -184,6 +184,22 @@ describe("File system utils", () => {
       ]);
     });
 
+    it("Should filter files asynchronously", async () => {
+      await writeUtf8File(path.join(getTmpDir(), "file-1.txt"), "skip");
+
+      await assertGetAllFilesMatching(
+        getTmpDir(),
+        async (f) => {
+          return f.endsWith(".txt") && (await readUtf8File(f)) !== "skip";
+        },
+        [
+          path.join(getTmpDir(), "file-2.txt"),
+          path.join(getTmpDir(), "dir-with-files", "inner-file-2.txt"),
+          path.join(getTmpDir(), "dir-with-extension.txt", "inner-file-3.txt"),
+        ],
+      );
+    });
+
     it("Should preserve the true casing of the files, except for the dir's path", async () => {
       await assertGetAllFilesMatching(
         getTmpDir(),
@@ -232,6 +248,34 @@ describe("File system utils", () => {
           undefined,
           (absolutePathToDir) => {
             return !absolutePathToDir.endsWith("skip");
+          },
+        );
+
+        assert.deepEqual(
+          new Set(files),
+          new Set([path.join(from, "from.txt"), path.join(dirPath, "dir.txt")]),
+        );
+      });
+
+      it("Should filter directories asynchronously", async () => {
+        const from = path.join(getTmpDir(), "from");
+
+        const dirPath = path.join(from, "dir");
+        await mkdir(dirPath);
+
+        const skipPath = path.join(from, "skip");
+        await mkdir(skipPath);
+
+        await writeUtf8File(path.join(from, "from.txt"), "from");
+        await writeUtf8File(path.join(dirPath, "dir.txt"), "dir");
+        await writeUtf8File(path.join(skipPath, "skip.txt"), "skip");
+        await writeUtf8File(path.join(skipPath, ".keep"), "");
+
+        const files = await getAllFilesMatching(
+          from,
+          undefined,
+          async (absolutePathToDir) => {
+            return !(await exists(path.join(absolutePathToDir, ".keep")));
           },
         );
 
