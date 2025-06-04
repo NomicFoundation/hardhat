@@ -282,7 +282,7 @@ export class HardhatEthersSigner implements ethers.Signer {
         this.accounts.initialIndex,
         this.accounts.count,
         this.accounts.passphrase
-      ).map((pk) => pk.toString("hex"));
+      ).map((pk) => `0x${pk.toString("hex")}`);
     }
 
     throw new HardhatEthersError(`Unsupported account type`);

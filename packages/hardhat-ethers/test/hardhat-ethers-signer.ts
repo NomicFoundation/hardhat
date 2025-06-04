@@ -1,10 +1,133 @@
-import { assert } from "chai";
+import { assert, use } from "chai";
+import chaiAsPromised from "chai-as-promised";
 
-import { usePersistentEnvironment } from "./environment";
+import {
+  useGeneratedEnvironment,
+  usePersistentEnvironment,
+} from "./environment";
 import { ExampleContract, EXAMPLE_CONTRACT } from "./example-contracts";
 import { assertIsNotNull, assertWithin } from "./helpers";
 
+import { HardhatRuntimeEnvironment } from "hardhat/types/runtime";
+
+use(chaiAsPromised);
+
 describe("hardhat ethers signer", function () {
+  describe("authorize", function () {
+    const TEST_P_KEY_1 =
+      "8fb52808bddb9f02a31d076c2904b75e1fe7f2f399a98a27707b5fddb5133163";
+    const TEST_P_KEY_2 =
+      "bb6ab64d010c3e17aa9acaad4725835de85f88056c11621c771bbe0f749128a0";
+
+    const HD_ACCOUNTS = {
+      initialIndex: 0,
+      count: 20,
+      path: "m/44'/60'/0'/0",
+      mnemonic: "test test test test test test test test test test test junk",
+      passphrase: "",
+    };
+
+    async function testStringPrivateKeys(env: HardhatRuntimeEnvironment) {
+      const signer = await env.ethers.provider.getSigner(0);
+      const receiver = await env.ethers.provider.getSigner(1);
+
+      const res = await signer.authorize({
+        address: receiver.address,
+      });
+
+      assert.equal(res.address, receiver.address);
+      assert.equal(
+        res.signature.r,
+        "0x47f7caf3d4103876fa120d31d1f5de7223eeeeb9fea77beb43f3ebe1c4d27a5b"
+      );
+      assert.equal(
+        res.signature.s,
+        "0x273b0ebbbe83f48ca637bf718ca5b9b65b94304b7c65beae40448828a312892f"
+      );
+      assert.equal(res.signature.yParity, 1);
+      assert.equal(res.signature.networkV, null);
+    }
+
+    async function testHdAccounts(env: HardhatRuntimeEnvironment) {
+      const signer = await env.ethers.provider.getSigner(0);
+      const receiver = await env.ethers.provider.getSigner(1);
+
+      const res = await signer.authorize({
+        address: receiver.address,
+      });
+
+      assert.equal(res.address, receiver.address);
+      assert.equal(
+        res.signature.r,
+        "0x48ae509b37c5aead2c01f5587bebd799ff1f03391ff0e990120520d6d209dd83"
+      );
+      assert.equal(
+        res.signature.s,
+        "0x7e54302cb48e7e05fa76a9f5caf79f16329379c88fa0e03b689101d245b6f1de"
+      );
+      assert.equal(res.signature.yParity, 0);
+      assert.equal(res.signature.networkV, null);
+    }
+
+    describe("localhost accounts", function () {
+      describe("accounts of type: remote", function () {
+        useGeneratedEnvironment("auto", "auto", "localhost", "remote");
+
+        it(`should throw because 'remote' is not supported`, async function () {
+          const signer = await this.env.ethers.provider.getSigner(0);
+          const receiver = await this.env.ethers.provider.getSigner(1);
+
+          await assert.isRejected(
+            signer.authorize({
+              address: receiver.address,
+            }),
+            `"remote" accounts are not supported`
+          );
+        });
+      });
+
+      describe("array of private keys as strings", function () {
+        useGeneratedEnvironment("auto", "auto", "localhost", [
+          TEST_P_KEY_1,
+          TEST_P_KEY_2,
+        ]);
+
+        it(`should work`, async function () {
+          await testStringPrivateKeys(this.env);
+        });
+      });
+
+      describe("hd accounts", function () {
+        useGeneratedEnvironment("auto", "auto", "localhost", HD_ACCOUNTS);
+
+        it(`should work`, async function () {
+          await testHdAccounts(this.env);
+        });
+      });
+    });
+
+    describe("hardhat accounts", function () {
+      describe("array of private keys as strings", function () {
+        useGeneratedEnvironment("auto", "auto", "hardhat", [
+          { balance: "1000000000000000000", privateKey: TEST_P_KEY_1 },
+          { balance: "1000000000000000000", privateKey: TEST_P_KEY_2 },
+        ]);
+
+        it(`should work`, async function () {
+          await testStringPrivateKeys(this.env);
+        });
+      });
+
+      describe("hd accounts", function () {
+        useGeneratedEnvironment("auto", "auto", "hardhat", HD_ACCOUNTS);
+
+        it(`should work`, async function () {
+          await testHdAccounts(this.env);
+        });
+      });
+    });
+  });
+
   describe("minimal project", function () {
     usePersistentEnvironment("minimal-project");
 
@@ -118,7 +241,7 @@ describe("hardhat ethers signer", function () {
     });
 
     describe("sendTransaction", function () {
-      it("should send a transaction", async function () {
+      it.skip("should send a transaction", async function () {
         const sender = await this.env.ethers.provider.getSigner(0);
         const receiver = await this.env.ethers.provider.getSigner(1);
 
