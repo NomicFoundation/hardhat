@@ -6,6 +6,7 @@ import type {
 } from "ethers";
 import {
   assertArgument,
+  computeAddress,
   ethers,
   getAddress,
   hexlify,
@@ -13,6 +14,7 @@ import {
   toUtf8Bytes,
   TransactionLike,
   TypedDataEncoder,
+  Wallet,
 } from "ethers";
 import { HardhatEthersProvider } from "./internal/hardhat-ethers-provider";
 import {
@@ -21,8 +23,19 @@ import {
   resolveProperties,
 } from "./internal/ethers-utils";
 import { HardhatEthersError, NotImplementedError } from "./internal/errors";
+import {
+  HardhatNetworkAccountConfig,
+  HardhatNetworkAccountsConfig,
+  HttpNetworkAccountsConfig,
+} from "hardhat/src/types";
+import { derivePrivateKeys } from "hardhat/src/internal/core/providers/util";
 
 export class HardhatEthersSigner implements ethers.Signer {
+  private readonly accounts:
+    | HttpNetworkAccountsConfig
+    | HardhatNetworkAccountsConfig;
+  private privateKey: string | undefined;
+
   public readonly address: string;
   public readonly provider: ethers.JsonRpcProvider | HardhatEthersProvider;
 
@@ -67,32 +80,66 @@ export class HardhatEthersSigner implements ethers.Signer {
       }
     }
 
-    return new HardhatEthersSigner(address, provider, gasLimit);
+    return new HardhatEthersSigner(
+      address,
+      provider,
+      hre.network.config.accounts,
+      gasLimit
+    );
   }
 
   private constructor(
     address: string,
     _provider: ethers.JsonRpcProvider | HardhatEthersProvider,
+    accounts: HttpNetworkAccountsConfig | HardhatNetworkAccountsConfig,
     private readonly _gasLimit?: number
   ) {
     this.address = getAddress(address);
     this.provider = _provider;
+    this.accounts = accounts;
   }
 
   public connect(
     provider: ethers.JsonRpcProvider | HardhatEthersProvider
   ): ethers.Signer {
-    return new HardhatEthersSigner(this.address, provider);
+    return new HardhatEthersSigner(this.address, provider, this.accounts);
   }
 
-  public authorize(_auth: AuthorizationRequest): Promise<Authorization> {
-    throw new NotImplementedError("HardhatEthersSigner.authorize");
+  public async authorize(auth: AuthorizationRequest): Promise<Authorization> {
+    if (this.privateKey === undefined) {
+      const privateKeys = await this.loadPrivateKeys();
+
+      this.privateKey = privateKeys.find(
+        (key) => computeAddress(key) === this.address
+      );
+    }
+
+    if (this.privateKey === undefined) {
+      throw new HardhatEthersError(
+        `No private key found for address ${this.address}`
+      );
+    }
+
+    const wallet = new Wallet(this.privateKey, this.provider);
+
+    return wallet.authorize(auth);
   }
 
-  public populateAuthorization(
+  public async populateAuthorization(
     _auth: AuthorizationRequest
   ): Promise<AuthorizationRequest> {
-    throw new NotImplementedError("HardhatEthersSigner.populateAuthorization");
+    const auth = { ..._auth };
+
+    // Add a chain ID if not explicitly set to 0
+    if (auth.chainId === null) {
+      auth.chainId = (await this.provider.getNetwork()).chainId;
+    }
+
+    if (auth.nonce === null) {
+      auth.nonce = await this.getNonce();
+    }
+
+    return auth;
   }
 
   public getNonce(blockTag?: BlockTag | undefined): Promise<number> {
@@ -211,6 +258,34 @@ export class HardhatEthersSigner implements ethers.Signer {
 
   public toJSON() {
     return `<SignerWithAddress ${this.address}>`;
+  }
+
+  private async loadPrivateKeys(): Promise<string[]> {
+    if (this.accounts === "remote") {
+      throw new HardhatEthersError(`"remote" accounts are not supported`);
+    }
+
+    if (Array.isArray(this.accounts)) {
+      if (typeof this.accounts[0] === "string") {
+        return this.accounts as string[];
+      }
+
+      return (this.accounts as HardhatNetworkAccountConfig[]).map(
+        (acc) => acc.privateKey
+      );
+    }
+
+    if ("mnemonic" in this.accounts) {
+      return derivePrivateKeys(
+        this.accounts.mnemonic,
+        this.accounts.path,
+        this.accounts.initialIndex,
+        this.accounts.count,
+        this.accounts.passphrase
+      ).map((pk) => pk.toString("hex"));
+    }
+
+    throw new HardhatEthersError(`Unsupported account type`);
   }
 
   private async _sendUncheckedTransaction(
