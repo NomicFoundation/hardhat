@@ -269,13 +269,13 @@ describe("File system utils", () => {
         await writeUtf8File(path.join(from, "from.txt"), "from");
         await writeUtf8File(path.join(dirPath, "dir.txt"), "dir");
         await writeUtf8File(path.join(skipPath, "skip.txt"), "skip");
-        await writeUtf8File(path.join(skipPath, ".keep"), "");
+        await writeUtf8File(path.join(skipPath, ".skip"), "");
 
         const files = await getAllFilesMatching(
           from,
           undefined,
           async (absolutePathToDir) => {
-            return !(await exists(path.join(absolutePathToDir, ".keep")));
+            return !(await exists(path.join(absolutePathToDir, ".skip")));
           },
         );
 
