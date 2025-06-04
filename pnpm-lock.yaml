@@ -280,6 +280,9 @@ importers:
       debug:
         specifier: ^4.3.2
         version: 4.4.0(supports-color@5.5.0)
+      ethereum-cryptography:
+        specifier: ^2.2.1
+        version: 2.2.1
       ethers:
         specifier: ^6.14.0
         version: 6.14.1
