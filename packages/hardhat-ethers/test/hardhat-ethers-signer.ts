@@ -249,7 +249,7 @@ describe("hardhat ethers signer", function () {
     });
 
     describe("sendTransaction", function () {
-      it.skip("should send a transaction", async function () {
+      it("should send a transaction", async function () {
         const sender = await this.env.ethers.provider.getSigner(0);
         const receiver = await this.env.ethers.provider.getSigner(1);
 
