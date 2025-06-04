@@ -73,7 +73,7 @@
 
 ### Patch Changes
 
-- ede1cde: Fixed custom HTTP headers for forked configurations
+- edge1cde: Fixed custom HTTP headers for forked configurations
 
 ## 2.22.14
 
@@ -141,7 +141,7 @@
 - cdf0160: Upgrade bundled solcjs
 - 3c66da2: Add support for Node v22
 - 9fadc22: Bump EDR to [v0.4.1](https://github.com/NomicFoundation/edr/releases/tag/%40nomicfoundation%2Fedr%400.4.1).
-- 095faa4: Added hardfork histories for Optimim and Arbitrum chains
+- 095faa4: Added hardfork histories for Optimism and Arbitrum chains
 
 ## 2.22.5
 

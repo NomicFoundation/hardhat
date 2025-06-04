@@ -21,9 +21,9 @@ export function assertValidationError(errors: string[], expectedError: string) {
 
 export function assertInstanceOf<ObjectT>(
   obj: unknown,
-  klass: new (...args: any[]) => ObjectT
+  Class: new (...args: any[]) => ObjectT
 ): asserts obj is ObjectT {
-  assert.instanceOf(obj, klass, `Not a valid instace of ${klass.name}`);
+  assert.instanceOf(obj, Class, `Not a valid instance of ${Class.name}`);
 }
 
 export const fakeArtifact: Artifact = {

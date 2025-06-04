@@ -256,7 +256,7 @@ describe("status", () => {
   it("should throw an error if the deployment is not initialized", async () => {
     await assert.isRejected(
       status("fake"),
-      /IGN800: Cannot get status for nonexistant deployment at fake/
+      /IGN800: Cannot get status for nonexistent deployment at fake/
     );
   });
 });
