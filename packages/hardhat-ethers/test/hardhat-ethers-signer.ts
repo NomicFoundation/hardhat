@@ -28,6 +28,8 @@ describe("hardhat ethers signer", function () {
     };
 
     async function testStringPrivateKeys(env: HardhatRuntimeEnvironment) {
+      await env.network.provider.request({ method: "hardhat_reset" });
+
       const signer = await env.ethers.provider.getSigner(0);
       const receiver = await env.ethers.provider.getSigner(1);
 
@@ -36,6 +38,8 @@ describe("hardhat ethers signer", function () {
       });
 
       assert.equal(res.address, receiver.address);
+      assert.equal(res.nonce, 0n);
+      assert.equal(res.chainId, 31337n);
       assert.equal(
         res.signature.r,
         "0x47f7caf3d4103876fa120d31d1f5de7223eeeeb9fea77beb43f3ebe1c4d27a5b"
@@ -49,6 +53,8 @@ describe("hardhat ethers signer", function () {
     }
 
     async function testHdAccounts(env: HardhatRuntimeEnvironment) {
+      await env.network.provider.request({ method: "hardhat_reset" });
+
       const signer = await env.ethers.provider.getSigner(0);
       const receiver = await env.ethers.provider.getSigner(1);
 
@@ -57,6 +63,8 @@ describe("hardhat ethers signer", function () {
       });
 
       assert.equal(res.address, receiver.address);
+      assert.equal(res.nonce, 0n);
+      assert.equal(res.chainId, 31337n);
       assert.equal(
         res.signature.r,
         "0x48ae509b37c5aead2c01f5587bebd799ff1f03391ff0e990120520d6d209dd83"
