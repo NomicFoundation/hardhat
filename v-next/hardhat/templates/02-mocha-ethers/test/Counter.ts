@@ -1,5 +1,5 @@
-import { network } from "hardhat";
 import { expect } from "chai";
+import { network } from "hardhat";
 
 /*
  * In Hardhat 3, there isn't a single global connection to a network. Instead,
