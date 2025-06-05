@@ -1,5 +1,69 @@
 # hardhat
 
+## 3.0.0-next.14
+
+### Patch Changes
+
+- a1319ee: Add examples of our viem and ethers assertions in the sample projects
+- dcd5f89: Fix node test reporter not stripping some diffs because of coloring (#6688)
+- e582eaa: Removed unreliable context information from falsy expression error messages
+- cf5c563: Add `hardhat-verify` to toolboxes ([#6756](https://github.com/NomicFoundation/hardhat/pull/6756))
+- b7912e2: Rename the package `@nomicfoundation/hardhat-viem-matchers` to `@nomicfoundation/hardhat-viem-assertions` ([#6774](https://github.com/NomicFoundation/hardhat/pull/6774))
+- 18dda34: Fix to set 0 retries on development networks for `hardhat-viem`, thanks @TateB ([#6784](https://github.com/NomicFoundation/hardhat/pull/6784))
+
+## 3.0.0-next.13
+
+### Patch Changes
+
+- fa674d8: Removed `setDescription` from the empty task builder.
+- 6aa223a: Improve the `package.json` that gets created by default on `--init`
+- bfb708c: Support using format on config variables
+- e386767: Upgraded deprecated deleteSnapshot, deleteSnapshots, revertTo, revertToAndDelete, and snapshot cheatcodes in favor of deleteStateSnapshot, deleteStateSnapshots, revertToState, revertToStateAndDelete, and snapshotState
+- 869f8c7: Add support for `grep` in the Hardhat `test` task.
+- 8c1e9cb: Fixed instrumentation for control flow statements
+- 2107cbe: Message on usage of verbose foundry flag for solidity tests (#6444)
+
+## 3.0.0-next.12
+
+### Patch Changes
+
+- b86a3a1: Add a new Hardhat plugin providing assertion testing helpers for `viem` ([#6574](https://github.com/NomicFoundation/hardhat/pull/6574))
+
+## 3.0.0-next.11
+
+### Patch Changes
+
+- 54ba870: Distribute coverage.sol as a part of the hardhat package
+
+## 3.0.0-next.10
+
+### Patch Changes
+
+- 6b84f1a: Implemented coverage data collection from the test node task
+- 6b84f1a: Added the definitions for Hardhat coverage related errors
+- a8dc331: Update Viem to latest version
+- d485fd3: Implemented coverage markdown and lcov reporting
+- 6b84f1a: Implemented source instrumentation for the coverage data collection
+- d485fd3: Implemented coverage data collection from the test mocha task
+- 6b84f1a: Implemented coverage plugin to enable coverage data collection from the test tasks
+
+## 3.0.0-next.9
+
+### Patch Changes
+
+- 458cc89: Delegate from `npx hardhat test` to appropriate test runner when file test path provided ([#6616](https://github.com/NomicFoundation/hardhat/issues/6616))
+- d460644: Add the ability to filter Solidity tests with `--grep` ([#6690](https://github.com/NomicFoundation/hardhat/pull/6690))
+- 918df12: Fix an issue with abstract contracts' factories ([#6703](https://github.com/NomicFoundation/hardhat/pull/6703))
+- ad1d08b: Fix to ignore top-level `.json` files in the `artifacts` folder, as those are never actual artifacts ([#6613](https://github.com/NomicFoundation/hardhat/issues/6613))
+- 624ba10: Fixed unintended deduplication of accounts ([#6707](https://github.com/NomicFoundation/hardhat/issues/6707))
+
+## 3.0.0-next.8
+
+### Patch Changes
+
+- 6c27bd3: Fix to the template project scripts to match the new signature of `network.connect(...)` ([#6691](https://github.com/NomicFoundation/hardhat/issues/6691))
+- 11e4652: Dedupe and sort merged solc outputSelection ([#6678](https://github.com/NomicFoundation/hardhat/pull/6678))
+
 ## 3.0.0-next.7
 
 ### Patch Changes

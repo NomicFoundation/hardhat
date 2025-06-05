@@ -7,6 +7,7 @@ import type {
 } from "../../../types/providers.js";
 import type {
   Dispatcher,
+  HttpResponse,
   RequestOptions,
 } from "@nomicfoundation/hardhat-utils/request";
 
@@ -177,7 +178,7 @@ export class HttpProvider extends BaseProvider {
       },
     };
 
-    let response;
+    let response: HttpResponse;
     try {
       response = await postJsonRequest(
         this.#url,

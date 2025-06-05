@@ -27,6 +27,12 @@
     },
     {
       "path": "../hardhat-viem"
+    },
+    {
+      "path": "../hardhat-viem-assertions"
+    },
+    {
+      "path": "../hardhat-verify"
     }
   ]
 }

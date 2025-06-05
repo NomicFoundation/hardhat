@@ -47,6 +47,7 @@ export async function getRealPath(absolutePath: string): Promise<string> {
  *
  * @param dirFrom The absolute path of the directory to start the search from.
  * @param matches A function to filter files (not directories).
+ * @param directoryFilter A function to filter which directories to recurse into
  * @returns An array of absolute paths. Each file has its true case, except
  *  for the initial dirFrom part, which preserves the given casing.
  *  No order is guaranteed. If dirFrom doesn't exist `[]` is returned.
@@ -55,7 +56,8 @@ export async function getRealPath(absolutePath: string): Promise<string> {
  */
 export async function getAllFilesMatching(
   dirFrom: string,
-  matches?: (absolutePathToFile: string) => boolean,
+  matches?: (absolutePathToFile: string) => Promise<boolean> | boolean,
+  directoryFilter?: (absolutePathToDir: string) => Promise<boolean> | boolean,
 ): Promise<string[]> {
   const dirContent = await readdirOrEmpty(dirFrom);
 
@@ -63,8 +65,19 @@ export async function getAllFilesMatching(
     dirContent.map(async (file) => {
       const absolutePathToFile = path.join(dirFrom, file);
       if (await isDirectory(absolutePathToFile)) {
-        return getAllFilesMatching(absolutePathToFile, matches);
-      } else if (matches === undefined || matches(absolutePathToFile)) {
+        if (
+          directoryFilter === undefined ||
+          (await directoryFilter(absolutePathToFile))
+        ) {
+          return getAllFilesMatching(
+            absolutePathToFile,
+            matches,
+            directoryFilter,
+          );
+        }
+
+        return [];
+      } else if (matches === undefined || (await matches(absolutePathToFile))) {
         return absolutePathToFile;
       } else {
         return [];
@@ -80,7 +93,7 @@ export async function getAllFilesMatching(
  * satisfy the specified condition, returning their absolute paths. Once a
  * directory is found, its subdirectories are not searched.
  *
- * Note: dirFrom is never returned, nor `matches` is called on it.
+ * Note: dirFrom is never returned, nor is `matches` called on it.
  *
  * @param dirFrom The absolute path of the directory to start the search from.
  * @param matches A function to filter directories (not files).
@@ -92,7 +105,7 @@ export async function getAllFilesMatching(
  */
 export async function getAllDirectoriesMatching(
   dirFrom: string,
-  matches?: (absolutePathToDir: string) => boolean,
+  matches?: (absolutePathToDir: string) => Promise<boolean> | boolean,
 ): Promise<string[]> {
   const dirContent = await readdirOrEmpty(dirFrom);
 
@@ -103,7 +116,7 @@ export async function getAllDirectoriesMatching(
         return [];
       }
 
-      if (matches === undefined || matches(absolutePathToFile)) {
+      if (matches === undefined || (await matches(absolutePathToFile))) {
         return absolutePathToFile;
       }
 

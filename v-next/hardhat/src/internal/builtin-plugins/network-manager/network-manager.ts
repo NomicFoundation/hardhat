@@ -1,3 +1,4 @@
+import type { CoverageConfig } from "./edr/types/coverage.js";
 import type { ArtifactManager } from "../../../types/artifacts.js";
 import type {
   ChainDescriptorsConfig,
@@ -216,6 +217,29 @@ export class NetworkManagerImplementation implements NetworkManager {
           );
         }
 
+        let coverageConfig: CoverageConfig | undefined;
+
+        const shouldEnableCoverage = await hookManager.hasHandlers(
+          "network",
+          "onCoverageData",
+        );
+        if (shouldEnableCoverage) {
+          coverageConfig = {
+            onCollectedCoverageCallback: (coverageData: Uint8Array[]) => {
+              // NOTE: We cast the tag we receive from EDR to a hex string to
+              // make it easier to debug.
+              const tags = coverageData.map((tag) =>
+                Buffer.from(tag).toString("hex"),
+              );
+              void hookManager.runParallelHandlers(
+                "network",
+                "onCoverageData",
+                [tags],
+              );
+            },
+          };
+        }
+
         return EdrProvider.create({
           chainDescriptors: this.#chainDescriptors,
           // The resolvedNetworkConfig can have its chainType set to `undefined`
@@ -231,6 +255,7 @@ export class NetworkManagerImplementation implements NetworkManager {
             buildInfos: await this.#getBuildInfosAndOutputsAsBuffers(),
             ignoreContracts: false,
           },
+          coverageConfig,
         });
       }
 
