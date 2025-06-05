@@ -1,6 +1,12 @@
-import type { BlockTag, TransactionRequest } from "ethers";
+import type {
+  Authorization,
+  AuthorizationRequest,
+  BlockTag,
+  TransactionRequest,
+} from "ethers";
 import {
   assertArgument,
+  computeAddress,
   ethers,
   getAddress,
   hexlify,
@@ -8,7 +14,14 @@ import {
   toUtf8Bytes,
   TransactionLike,
   TypedDataEncoder,
+  Wallet,
 } from "ethers";
+import {
+  HardhatNetworkAccountConfig,
+  HardhatNetworkAccountsConfig,
+  HttpNetworkAccountsConfig,
+} from "hardhat/types/config";
+import { derivePrivateKeys } from "hardhat/internal/core/providers/util";
 import { HardhatEthersProvider } from "./internal/hardhat-ethers-provider";
 import {
   copyRequest,
@@ -18,6 +31,11 @@ import {
 import { HardhatEthersError, NotImplementedError } from "./internal/errors";
 
 export class HardhatEthersSigner implements ethers.Signer {
+  private readonly _accounts:
+    | HttpNetworkAccountsConfig
+    | HardhatNetworkAccountsConfig;
+  private _cachedPrivateKey: string | undefined;
+
   public readonly address: string;
   public readonly provider: ethers.JsonRpcProvider | HardhatEthersProvider;
 
@@ -62,22 +80,60 @@ export class HardhatEthersSigner implements ethers.Signer {
       }
     }
 
-    return new HardhatEthersSigner(address, provider, gasLimit);
+    return new HardhatEthersSigner(
+      address,
+      provider,
+      hre.network.config.accounts,
+      gasLimit
+    );
   }
 
   private constructor(
     address: string,
     _provider: ethers.JsonRpcProvider | HardhatEthersProvider,
+    accounts: HttpNetworkAccountsConfig | HardhatNetworkAccountsConfig,
     private readonly _gasLimit?: number
   ) {
     this.address = getAddress(address);
     this.provider = _provider;
+    this._accounts = accounts;
   }
 
   public connect(
     provider: ethers.JsonRpcProvider | HardhatEthersProvider
   ): ethers.Signer {
-    return new HardhatEthersSigner(this.address, provider);
+    return new HardhatEthersSigner(this.address, provider, this._accounts);
+  }
+
+  public async authorize(auth: AuthorizationRequest): Promise<Authorization> {
+    const privateKey = this._getPrivateKey();
+
+    if (privateKey === undefined) {
+      throw new HardhatEthersError(
+        `No private key found for address ${this.address}`
+      );
+    }
+
+    const wallet = new Wallet(privateKey, this.provider);
+
+    return wallet.authorize(auth);
+  }
+
+  public async populateAuthorization(
+    _auth: AuthorizationRequest
+  ): Promise<AuthorizationRequest> {
+    const auth = { ..._auth };
+
+    // Add a chain ID if not explicitly set to 0
+    if (auth.chainId === null || auth.chainId === undefined) {
+      auth.chainId = (await this.provider.getNetwork()).chainId;
+    }
+
+    if (auth.nonce === null || auth.nonce === undefined) {
+      auth.nonce = await this.getNonce();
+    }
+
+    return auth;
   }
 
   public getNonce(blockTag?: BlockTag | undefined): Promise<number> {
@@ -196,6 +252,50 @@ export class HardhatEthersSigner implements ethers.Signer {
 
   public toJSON() {
     return `<SignerWithAddress ${this.address}>`;
+  }
+
+  private _getPrivateKey(): string | undefined {
+    if (this._cachedPrivateKey === undefined) {
+      const privateKeys = this._getPrivateKeys();
+      const privateKey = privateKeys.find(
+        (key) => computeAddress(key) === this.address
+      );
+
+      this._cachedPrivateKey = privateKey;
+    }
+
+    return this._cachedPrivateKey;
+  }
+
+  private _getPrivateKeys(): string[] {
+    if (this._accounts === "remote") {
+      throw new HardhatEthersError(
+        `Tried to obtain a private key, but the network is configured to use remote accounts`
+      );
+    }
+
+    if (Array.isArray(this._accounts)) {
+      if (typeof this._accounts[0] === "string") {
+        return this._accounts as string[];
+      }
+
+      return (this._accounts as HardhatNetworkAccountConfig[]).map(
+        (acc) => acc.privateKey
+      );
+    }
+
+    if ("mnemonic" in this._accounts) {
+      return derivePrivateKeys(
+        this._accounts.mnemonic,
+        this._accounts.path,
+        this._accounts.initialIndex,
+        this._accounts.count,
+        this._accounts.passphrase
+      ).map((pk) => `0x${pk.toString("hex")}`);
+    }
+
+    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+    throw new HardhatEthersError("Assertion error: unsupported accounts type");
   }
 
   private async _sendUncheckedTransaction(
