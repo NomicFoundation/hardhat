@@ -269,7 +269,7 @@ export class HardhatEthersSigner implements ethers.Signer {
 
   private getPrivateKeys(): string[] {
     if (this.accounts === "remote") {
-      throw new HardhatEthersError(`"remote" accounts are not supported`);
+      throw new HardhatEthersError(`Tried to obtain a private key, but the network is configured to use remote accounts`);
     }
 
     if (Array.isArray(this.accounts)) {
@@ -292,7 +292,7 @@ export class HardhatEthersSigner implements ethers.Signer {
       ).map((pk) => `0x${pk.toString("hex")}`);
     }
 
-    throw new HardhatEthersError(`Unsupported account type`);
+    throw new HardhatEthersError(`Assertion error: unsupported accounts type '${this.accounts}'`);
   }
 
   private async _sendUncheckedTransaction(

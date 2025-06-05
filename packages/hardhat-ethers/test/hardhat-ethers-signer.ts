@@ -90,7 +90,7 @@ describe("hardhat ethers signer", function () {
             signer.authorize({
               address: receiver.address,
             }),
-            `"remote" accounts are not supported`
+            `Tried to obtain a private key, but the network is configured to use remote accounts`
           );
         });
       });
