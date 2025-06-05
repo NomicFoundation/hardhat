@@ -56,8 +56,8 @@ export async function getRealPath(absolutePath: string): Promise<string> {
  */
 export async function getAllFilesMatching(
   dirFrom: string,
-  matches?: (absolutePathToFile: string) => boolean,
-  directoryFilter?: (absolutePathToDir: string) => boolean,
+  matches?: (absolutePathToFile: string) => Promise<boolean> | boolean,
+  directoryFilter?: (absolutePathToDir: string) => Promise<boolean> | boolean,
 ): Promise<string[]> {
   const dirContent = await readdirOrEmpty(dirFrom);
 
@@ -67,7 +67,7 @@ export async function getAllFilesMatching(
       if (await isDirectory(absolutePathToFile)) {
         if (
           directoryFilter === undefined ||
-          directoryFilter(absolutePathToFile)
+          (await directoryFilter(absolutePathToFile))
         ) {
           return getAllFilesMatching(
             absolutePathToFile,
@@ -77,7 +77,7 @@ export async function getAllFilesMatching(
         }
 
         return [];
-      } else if (matches === undefined || matches(absolutePathToFile)) {
+      } else if (matches === undefined || (await matches(absolutePathToFile))) {
         return absolutePathToFile;
       } else {
         return [];
@@ -93,7 +93,7 @@ export async function getAllFilesMatching(
  * satisfy the specified condition, returning their absolute paths. Once a
  * directory is found, its subdirectories are not searched.
  *
- * Note: dirFrom is never returned, nor `matches` is called on it.
+ * Note: dirFrom is never returned, nor is `matches` called on it.
  *
  * @param dirFrom The absolute path of the directory to start the search from.
  * @param matches A function to filter directories (not files).
@@ -105,7 +105,7 @@ export async function getAllFilesMatching(
  */
 export async function getAllDirectoriesMatching(
   dirFrom: string,
-  matches?: (absolutePathToDir: string) => boolean,
+  matches?: (absolutePathToDir: string) => Promise<boolean> | boolean,
 ): Promise<string[]> {
   const dirContent = await readdirOrEmpty(dirFrom);
 
@@ -116,7 +116,7 @@ export async function getAllDirectoriesMatching(
         return [];
       }
 
-      if (matches === undefined || matches(absolutePathToFile)) {
+      if (matches === undefined || (await matches(absolutePathToFile))) {
         return absolutePathToFile;
       }
 
