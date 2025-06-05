@@ -293,6 +293,9 @@ export class HardhatEthersSigner implements ethers.Signer {
         this._accounts.passphrase
       ).map((pk) => `0x${pk.toString("hex")}`);
     }
+
+    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+    throw new HardhatEthersError("Assertion error: unsupported accounts type");
   }
 
   private async _sendUncheckedTransaction(
