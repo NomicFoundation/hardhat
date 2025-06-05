@@ -2,7 +2,7 @@
 
 This folder contains integration tests for the reporter. They don't use `node:test` as driver of the test runs, as you can't run `node:test` within `node:test`.
 
-Instead, the script `index.ts` runs all the tests in each fixture folder, comparing the reporter's results with `result.txt`.
+Instead, the script `index.ts` runs all the tests in each fixture folder, comparing the reporter's results with `result.$NODE_MAJOR_VERSION.txt`.
 
 ## Running all tests
 
