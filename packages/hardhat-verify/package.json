@@ -52,7 +52,7 @@
   "devDependencies": {
     "@nomicfoundation/eslint-plugin-hardhat-internal-rules": "workspace:^",
     "@nomicfoundation/eslint-plugin-slow-imports": "workspace:^",
-    "@nomicfoundation/hardhat-ethers": "workspace:^3.0.0",
+    "@nomicfoundation/hardhat-ethers": "workspace:^3.0.9",
     "@types/chai": "^4.2.0",
     "@types/chai-as-promised": "^7.1.3",
     "@types/debug": "^4.1.4",
