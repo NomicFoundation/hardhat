@@ -1,15 +1,14 @@
 import { assert, use } from "chai";
 import chaiAsPromised from "chai-as-promised";
 
+import { HardhatRuntimeEnvironment } from "hardhat/types/runtime";
+import { AuthorizationRequest } from "ethers";
 import {
   useGeneratedEnvironment,
   usePersistentEnvironment,
 } from "./environment";
 import { ExampleContract, EXAMPLE_CONTRACT } from "./example-contracts";
 import { assertIsNotNull, assertWithin } from "./helpers";
-
-import { HardhatRuntimeEnvironment } from "hardhat/types/runtime";
-import { AuthorizationRequest, toQuantity } from "ethers";
 
 use(chaiAsPromised);
 

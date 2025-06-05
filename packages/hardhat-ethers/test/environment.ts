@@ -1,11 +1,9 @@
 import picocolors from "picocolors";
 import fs from "fs";
 import {
-  HardhatNetworkAccountsConfig,
   HardhatNetworkAccountsUserConfig,
   HardhatRuntimeEnvironment,
   HardhatUserConfig,
-  HttpNetworkAccountsConfig,
   HttpNetworkAccountsUserConfig,
 } from "hardhat/types";
 import { resetHardhatContext } from "hardhat/plugins-testing";

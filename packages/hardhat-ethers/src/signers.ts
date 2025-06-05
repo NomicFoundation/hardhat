@@ -16,6 +16,12 @@ import {
   TypedDataEncoder,
   Wallet,
 } from "ethers";
+import {
+  HardhatNetworkAccountConfig,
+  HardhatNetworkAccountsConfig,
+  HttpNetworkAccountsConfig,
+} from "hardhat/src/types";
+import { derivePrivateKeys } from "hardhat/src/internal/core/providers/util";
 import { HardhatEthersProvider } from "./internal/hardhat-ethers-provider";
 import {
   copyRequest,
@@ -23,12 +29,6 @@ import {
   resolveProperties,
 } from "./internal/ethers-utils";
 import { HardhatEthersError, NotImplementedError } from "./internal/errors";
-import {
-  HardhatNetworkAccountConfig,
-  HardhatNetworkAccountsConfig,
-  HttpNetworkAccountsConfig,
-} from "hardhat/src/types";
-import { derivePrivateKeys } from "hardhat/src/internal/core/providers/util";
 
 export class HardhatEthersSigner implements ethers.Signer {
   private readonly accounts:
@@ -106,7 +106,7 @@ export class HardhatEthersSigner implements ethers.Signer {
   }
 
   public async authorize(auth: AuthorizationRequest): Promise<Authorization> {
-    const privateKey = this.getPrivateKey();
+    const privateKey = this._getPrivateKey();
 
     if (privateKey === undefined) {
       throw new HardhatEthersError(
@@ -254,9 +254,9 @@ export class HardhatEthersSigner implements ethers.Signer {
     return `<SignerWithAddress ${this.address}>`;
   }
 
-  private getPrivateKey(): string | undefined {
+  private _getPrivateKey(): string | undefined {
     if (this.cachedPrivateKey === undefined) {
-      const privateKeys = this.getPrivateKeys();
+      const privateKeys = this._getPrivateKeys();
       const privateKey = privateKeys.find(
         (key) => computeAddress(key) === this.address
       );
@@ -267,9 +267,11 @@ export class HardhatEthersSigner implements ethers.Signer {
     return this.cachedPrivateKey;
   }
 
-  private getPrivateKeys(): string[] {
+  private _getPrivateKeys(): string[] {
     if (this.accounts === "remote") {
-      throw new HardhatEthersError(`Tried to obtain a private key, but the network is configured to use remote accounts`);
+      throw new HardhatEthersError(
+        `Tried to obtain a private key, but the network is configured to use remote accounts`
+      );
     }
 
     if (Array.isArray(this.accounts)) {
@@ -292,7 +294,9 @@ export class HardhatEthersSigner implements ethers.Signer {
       ).map((pk) => `0x${pk.toString("hex")}`);
     }
 
-    throw new HardhatEthersError(`Assertion error: unsupported accounts type '${this.accounts}'`);
+    throw new HardhatEthersError(
+      `Assertion error: unsupported accounts type '${this.accounts}'`
+    );
   }
 
   private async _sendUncheckedTransaction(
