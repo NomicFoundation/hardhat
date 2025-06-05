@@ -158,59 +158,59 @@ describe("hardhat ethers signer", function () {
           nonce: await signer.getNonce(),
         });
       });
-    });
 
-    it("should preserve chainId when it is already provided, but set nonce if undefined", async function () {
-      const original: AuthorizationRequest = {
-        address: "0xAbCdEf0123456789",
-        chainId: 123n,
-        nonce: undefined,
-      };
+      it("should preserve chainId when it is already provided, but set nonce if undefined", async function () {
+        const original: AuthorizationRequest = {
+          address: "0xAbCdEf0123456789",
+          chainId: 123n,
+          nonce: undefined,
+        };
 
-      const signer = await this.env.ethers.provider.getSigner(0);
+        const signer = await this.env.ethers.provider.getSigner(0);
 
-      const result = await signer.populateAuthorization(original);
+        const result = await signer.populateAuthorization(original);
 
-      assert.deepEqual(result, {
-        address: "0xAbCdEf0123456789",
-        chainId: 123n,
-        nonce: await signer.getNonce(),
+        assert.deepEqual(result, {
+          address: "0xAbCdEf0123456789",
+          chainId: 123n,
+          nonce: await signer.getNonce(),
+        });
       });
-    });
 
-    it("should preserve nonce when it is already provided, but set chainId if undefined", async function () {
-      const original: AuthorizationRequest = {
-        address: "0xAbCdEf0123456789",
-        chainId: undefined,
-        nonce: 123,
-      };
+      it("should preserve nonce when it is already provided, but set chainId if undefined", async function () {
+        const original: AuthorizationRequest = {
+          address: "0xAbCdEf0123456789",
+          chainId: undefined,
+          nonce: 123,
+        };
 
-      const signer = await this.env.ethers.provider.getSigner(0);
+        const signer = await this.env.ethers.provider.getSigner(0);
 
-      const result = await signer.populateAuthorization(original);
+        const result = await signer.populateAuthorization(original);
 
-      assert.deepEqual(result, {
-        address: "0xAbCdEf0123456789",
-        chainId: 31337n,
-        nonce: 123,
+        assert.deepEqual(result, {
+          address: "0xAbCdEf0123456789",
+          chainId: 31337n,
+          nonce: 123,
+        });
       });
-    });
 
-    it("should preserve both chainId and nonce when neither is undefined", async function () {
-      const original: AuthorizationRequest = {
-        address: "0xAbCdEf0123456789",
-        chainId: 123n,
-        nonce: 123,
-      };
+      it("should preserve both chainId and nonce when neither is undefined", async function () {
+        const original: AuthorizationRequest = {
+          address: "0xAbCdEf0123456789",
+          chainId: 123n,
+          nonce: 123,
+        };
 
-      const signer = await this.env.ethers.provider.getSigner(0);
+        const signer = await this.env.ethers.provider.getSigner(0);
 
-      const result = await signer.populateAuthorization(original);
+        const result = await signer.populateAuthorization(original);
 
-      assert.deepEqual(result, {
-        address: "0xAbCdEf0123456789",
-        chainId: 123n,
-        nonce: 123,
+        assert.deepEqual(result, {
+          address: "0xAbCdEf0123456789",
+          chainId: 123n,
+          nonce: 123,
+        });
       });
     });
 
