@@ -1,5 +1,16 @@
 # hardhat
 
+## 3.0.0-next.14
+
+### Patch Changes
+
+- a1319ee: Add examples of our viem and ethers assertions in the sample projects
+- dcd5f89: Fix node test reporter not stripping some diffs because of coloring (#6688)
+- e582eaa: Removed unreliable context information from falsy expression error messages
+- cf5c563: Add `hardhat-verify` to toolboxes ([#6756](https://github.com/NomicFoundation/hardhat/pull/6756))
+- b7912e2: Rename the package `@nomicfoundation/hardhat-viem-matchers` to `@nomicfoundation/hardhat-viem-assertions` ([#6774](https://github.com/NomicFoundation/hardhat/pull/6774))
+- 18dda34: Fix to set 0 retries on development networks for `hardhat-viem`, thanks @TateB ([#6784](https://github.com/NomicFoundation/hardhat/pull/6784))
+
 ## 3.0.0-next.13
 
 ### Patch Changes
