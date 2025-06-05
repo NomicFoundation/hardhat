@@ -9,7 +9,7 @@ inputs:
   node-version:
     description: Version of node to install
     required: false
-    default: "22"
+    default: "24"
   cache-save:
     description: Whether to save the pnpm cache
     required: false
