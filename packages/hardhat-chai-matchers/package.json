@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-chai-matchers",
-  "version": "2.0.8",
+  "version": "2.0.9",
   "description": "Hardhat utils for testing",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/main/packages/hardhat-chai-matchers",
   "repository": "github:nomicfoundation/hardhat",
@@ -41,7 +41,7 @@
     "@nomicfoundation/eslint-plugin-hardhat-internal-rules": "workspace:^",
     "@nomicfoundation/eslint-plugin-slow-imports": "workspace:^",
     "@nomicfoundation/hardhat-chai-matchers": "workspace:*",
-    "@nomicfoundation/hardhat-ethers": "workspace:^3.0.0",
+    "@nomicfoundation/hardhat-ethers": "workspace:^3.0.9",
     "@types/bn.js": "^5.1.0",
     "@types/chai": "^4.2.0",
     "@types/mocha": ">=9.1.0",
@@ -66,7 +66,7 @@
     "typescript": "~5.0.0"
   },
   "peerDependencies": {
-    "@nomicfoundation/hardhat-ethers": "workspace:^3.0.0",
+    "@nomicfoundation/hardhat-ethers": "workspace:^3.0.9",
     "chai": "^4.2.0",
     "ethers": "^6.14.0",
     "hardhat": "workspace:^2.9.4"

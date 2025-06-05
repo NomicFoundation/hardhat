@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.15.12
+
+### Patch Changes
+
+- d77ecab: Update ethers to v6.14.0 with Pectra support
+
 ## 0.15.11
 
 ### Patch Changes
