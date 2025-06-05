@@ -107,7 +107,7 @@ export class HardhatEthersSigner implements ethers.Signer {
 
   public async authorize(auth: AuthorizationRequest): Promise<Authorization> {
     if (this.privateKey === undefined) {
-      const privateKeys = await this.loadPrivateKeys();
+      const privateKeys = await this.getPrivateKeys();
 
       this.privateKey = privateKeys.find(
         (key) => computeAddress(key) === this.address
@@ -131,11 +131,11 @@ export class HardhatEthersSigner implements ethers.Signer {
     const auth = { ..._auth };
 
     // Add a chain ID if not explicitly set to 0
-    if (auth.chainId === null) {
+    if (auth.chainId === null || auth.chainId === undefined) {
       auth.chainId = (await this.provider.getNetwork()).chainId;
     }
 
-    if (auth.nonce === null) {
+    if (auth.nonce === null || auth.nonce === undefined) {
       auth.nonce = await this.getNonce();
     }
 
@@ -260,7 +260,7 @@ export class HardhatEthersSigner implements ethers.Signer {
     return `<SignerWithAddress ${this.address}>`;
   }
 
-  private async loadPrivateKeys(): Promise<string[]> {
+  private async getPrivateKeys(): Promise<string[]> {
     if (this.accounts === "remote") {
       throw new HardhatEthersError(`"remote" accounts are not supported`);
     }
