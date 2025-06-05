@@ -9,7 +9,7 @@ import { ExampleContract, EXAMPLE_CONTRACT } from "./example-contracts";
 import { assertIsNotNull, assertWithin } from "./helpers";
 
 import { HardhatRuntimeEnvironment } from "hardhat/types/runtime";
-import { AuthorizationRequest } from "ethers";
+import { AuthorizationRequest, toQuantity } from "ethers";
 
 use(chaiAsPromised);
 
@@ -344,6 +344,34 @@ describe("hardhat ethers signer", function () {
         const balanceDifference = balanceAfter - balanceBefore;
 
         assert.strictEqual(balanceDifference, 10n ** 18n);
+      });
+
+      it("should send a transaction of type 4", async function () {
+        const sender = await this.env.ethers.provider.getSigner(0);
+        const receiver = await this.env.ethers.provider.getSigner(1);
+
+        const popAuth = await sender.populateAuthorization({
+          address: receiver.address,
+        });
+
+        const auth = await sender.authorize(popAuth);
+
+        const res = await receiver.sendTransaction({
+          to: receiver,
+          value: this.env.ethers.parseEther("1"),
+          authorizationList: [auth],
+        });
+
+        assert.equal(
+          (await this.env.ethers.provider.getCode(sender)).toLowerCase(),
+          `0xef0100${receiver.address.replace("0x", "")}`.toLowerCase()
+        );
+
+        assert.equal(res.type, 4);
+        assert.isNotNull(res.authorizationList);
+
+        auth.address = auth.address.toLowerCase();
+        assert.deepStrictEqual(res.authorizationList[0], auth);
       });
     });
 

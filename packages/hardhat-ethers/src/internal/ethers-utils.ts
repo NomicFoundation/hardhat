@@ -8,12 +8,16 @@ import type {
   TransactionReceiptParams,
   LogParams,
   JsonRpcTransactionRequest,
+  AuthorizationLike,
+  SignatureLike,
+  Authorization,
 } from "ethers";
 
 import {
   accessListify,
   assert,
   assertArgument,
+  authorizationify,
   getAddress,
   getBigInt,
   getCreateAddress,
@@ -73,6 +77,10 @@ export function copyRequest(
 
   if (req.accessList !== null && req.accessList !== undefined) {
     result.accessList = accessListify(req.accessList);
+  }
+
+  if (req.authorizationList !== null && req.authorizationList !== undefined) {
+    result.authorizationList = authorizationListify(req.authorizationList);
   }
 
   if ("blockTag" in req) {
@@ -213,6 +221,7 @@ export function formatTransactionResponse(
         return getNumber(v);
       },
       accessList: allowNull(accessListify, null),
+      authorizationList: allowNull(convertToAuthorizationTxResponse, null),
 
       blockHash: allowNull(formatHash, null),
       blockNumber: allowNull(getNumber, null),
@@ -253,6 +262,10 @@ export function formatTransactionResponse(
   // eslint-disable-next-line eqeqeq
   if ((value.type === 1 || value.type === 2) && value.accessList == null) {
     result.accessList = [];
+  }
+
+  if (value.type === 4 && value.authorizationList == null) {
+    result.authorizationList = [];
   }
 
   // Compute the signature
@@ -420,5 +433,48 @@ export function getRpcTransaction(
     result.accessList = accessListify(tx.accessList);
   }
 
+  // Normalize the authorization list
+  if (tx.authorizationList !== null && tx.authorizationList !== undefined) {
+    result.authorizationList = authorizationListify(tx.authorizationList);
+  }
+
   return result;
+}
+
+function authorizationListify(authorizationList: AuthorizationLike[]) {
+  return authorizationList.map((el) => {
+    const auth = authorizationify(el);
+
+    return {
+      address: auth.address,
+      nonce: toQuantity(auth.nonce),
+      chainId: toQuantity(auth.chainId),
+      r: auth.signature.r,
+      s: auth.signature.s,
+      yParity: toQuantity(auth.signature.yParity),
+    };
+  });
+}
+
+function convertToAuthorizationTxResponse(
+  authorizationList: Array<
+    {
+      address: string;
+      nonce: string;
+      chainId: string;
+    } & SignatureLike
+  >
+): Authorization[] {
+  const authorizations: Authorization[] = [];
+
+  for (const auth of authorizationList) {
+    authorizations.push({
+      address: auth.address,
+      nonce: getBigInt(auth.nonce),
+      chainId: getBigInt(auth.chainId),
+      signature: Signature.from(auth),
+    });
+  }
+
+  return authorizations;
 }
