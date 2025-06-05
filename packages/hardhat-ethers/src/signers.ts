@@ -34,7 +34,7 @@ export class HardhatEthersSigner implements ethers.Signer {
   private readonly accounts:
     | HttpNetworkAccountsConfig
     | HardhatNetworkAccountsConfig;
-  private privateKey: string | undefined;
+  private cachedPrivateKey: string | undefined;
 
   public readonly address: string;
   public readonly provider: ethers.JsonRpcProvider | HardhatEthersProvider;
@@ -106,21 +106,15 @@ export class HardhatEthersSigner implements ethers.Signer {
   }
 
   public async authorize(auth: AuthorizationRequest): Promise<Authorization> {
-    if (this.privateKey === undefined) {
-      const privateKeys = await this.getPrivateKeys();
+    const privateKey = this.getPrivateKey();
 
-      this.privateKey = privateKeys.find(
-        (key) => computeAddress(key) === this.address
-      );
-    }
-
-    if (this.privateKey === undefined) {
+    if (privateKey === undefined) {
       throw new HardhatEthersError(
         `No private key found for address ${this.address}`
       );
     }
 
-    const wallet = new Wallet(this.privateKey, this.provider);
+    const wallet = new Wallet(privateKey, this.provider);
 
     return wallet.authorize(auth);
   }
@@ -260,9 +254,22 @@ export class HardhatEthersSigner implements ethers.Signer {
     return `<SignerWithAddress ${this.address}>`;
   }
 
-  private async getPrivateKeys(): Promise<string[]> {
+  private getPrivateKey(): string | undefined {
+    if (this.cachedPrivateKey === undefined) {
+      const privateKeys = this.getPrivateKeys();
+      const privateKey = privateKeys.find(
+        (key) => computeAddress(key) === this.address
+      );
+
+      this.cachedPrivateKey = privateKey;
+    }
+
+    return this.cachedPrivateKey;
+  }
+
+  private getPrivateKeys(): string[] {
     if (this.accounts === "remote") {
-      throw new HardhatEthersError(`"remote" accounts are not supported`);
+      throw new HardhatEthersError(`Tried to obtain a private key, but the network is configured to use remote accounts`);
     }
 
     if (Array.isArray(this.accounts)) {
@@ -285,7 +292,7 @@ export class HardhatEthersSigner implements ethers.Signer {
       ).map((pk) => `0x${pk.toString("hex")}`);
     }
 
-    throw new HardhatEthersError(`Unsupported account type`);
+    throw new HardhatEthersError(`Assertion error: unsupported accounts type '${this.accounts}'`);
   }
 
   private async _sendUncheckedTransaction(
