@@ -19,6 +19,9 @@ export interface BuildInfoAndOutput {
 // manager. Reading build info from disk on each call is inefficient.
 // Having the logic in the artifact manager to enable caching and avoid
 // duplication.
+// TODO2: getBuildInfoId and readJsonFile can throw errors, we should
+// wrap them in a try-catch block and return undefined if an error occurs
+// while also logging the error.
 /**
  * Retrieves the saved build information and output for a given contract.
  *
@@ -33,6 +36,8 @@ export async function getBuildInfoAndOutput(
 ): Promise<BuildInfoAndOutput | undefined> {
   const buildInfoId = await artifacts.getBuildInfoId(contract);
   if (buildInfoId === undefined) {
+    // TODO: maybe we should throw an error here indicating that the
+    // contract wasn't compiled with Hardhat 3's build system
     return undefined;
   }
 
