@@ -80,7 +80,7 @@ export function copyRequest(
   }
 
   if (req.authorizationList !== null && req.authorizationList !== undefined) {
-    result.authorizationList = authorizationListify(req.authorizationList);
+    result.authorizationList = req.authorizationList;
   }
 
   if ("blockTag" in req) {
@@ -221,7 +221,7 @@ export function formatTransactionResponse(
         return getNumber(v);
       },
       accessList: allowNull(accessListify, null),
-      authorizationList: allowNull(convertToAuthorizationTxResponse, null),
+      authorizationList: allowNull(convertToTxAuthorizationList, null),
 
       blockHash: allowNull(formatHash, null),
       blockNumber: allowNull(getNumber, null),
@@ -456,7 +456,7 @@ function authorizationListify(authorizationList: AuthorizationLike[]) {
   });
 }
 
-function convertToAuthorizationTxResponse(
+function convertToTxAuthorizationList(
   authorizationList: Array<
     {
       address: string;

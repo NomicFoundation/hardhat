@@ -273,6 +273,27 @@ describe("hardhat ethers signer", function () {
       assert.strictEqual(populatedTx.from, signer.address);
     });
 
+    it("should populate a call/tx with authorizationList", async function () {
+      const signer = await this.env.ethers.provider.getSigner(0);
+
+      const popAuth = await signer.populateAuthorization({
+        address: signer.address,
+      });
+
+      const auth = await signer.authorize(popAuth);
+
+      const populatedCall = await signer.populateCall({
+        to: signer,
+        authorizationList: [auth],
+      });
+
+      assert.isNotNull(populatedCall.authorizationList);
+      assert.isDefined(populatedCall.authorizationList);
+
+      auth.address = auth.address.toLowerCase();
+      assert.deepStrictEqual(populatedCall.authorizationList[0], auth);
+    });
+
     describe("estimateGas", function () {
       it("should estimate gas for a value transaction", async function () {
         const signer = await this.env.ethers.provider.getSigner(0);
