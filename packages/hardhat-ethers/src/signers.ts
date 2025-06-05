@@ -20,8 +20,8 @@ import {
   HardhatNetworkAccountConfig,
   HardhatNetworkAccountsConfig,
   HttpNetworkAccountsConfig,
-} from "hardhat/src/types";
-import { derivePrivateKeys } from "hardhat/src/internal/core/providers/util";
+} from "hardhat/types/config";
+import { derivePrivateKeys } from "hardhat/internal/core/providers/util";
 import { HardhatEthersProvider } from "./internal/hardhat-ethers-provider";
 import {
   copyRequest,
@@ -31,10 +31,10 @@ import {
 import { HardhatEthersError, NotImplementedError } from "./internal/errors";
 
 export class HardhatEthersSigner implements ethers.Signer {
-  private readonly accounts:
+  private readonly _accounts:
     | HttpNetworkAccountsConfig
     | HardhatNetworkAccountsConfig;
-  private cachedPrivateKey: string | undefined;
+  private _cachedPrivateKey: string | undefined;
 
   public readonly address: string;
   public readonly provider: ethers.JsonRpcProvider | HardhatEthersProvider;
@@ -96,13 +96,13 @@ export class HardhatEthersSigner implements ethers.Signer {
   ) {
     this.address = getAddress(address);
     this.provider = _provider;
-    this.accounts = accounts;
+    this._accounts = accounts;
   }
 
   public connect(
     provider: ethers.JsonRpcProvider | HardhatEthersProvider
   ): ethers.Signer {
-    return new HardhatEthersSigner(this.address, provider, this.accounts);
+    return new HardhatEthersSigner(this.address, provider, this._accounts);
   }
 
   public async authorize(auth: AuthorizationRequest): Promise<Authorization> {
@@ -255,48 +255,44 @@ export class HardhatEthersSigner implements ethers.Signer {
   }
 
   private _getPrivateKey(): string | undefined {
-    if (this.cachedPrivateKey === undefined) {
+    if (this._cachedPrivateKey === undefined) {
       const privateKeys = this._getPrivateKeys();
       const privateKey = privateKeys.find(
         (key) => computeAddress(key) === this.address
       );
 
-      this.cachedPrivateKey = privateKey;
+      this._cachedPrivateKey = privateKey;
     }
 
-    return this.cachedPrivateKey;
+    return this._cachedPrivateKey;
   }
 
   private _getPrivateKeys(): string[] {
-    if (this.accounts === "remote") {
+    if (this._accounts === "remote") {
       throw new HardhatEthersError(
         `Tried to obtain a private key, but the network is configured to use remote accounts`
       );
     }
 
-    if (Array.isArray(this.accounts)) {
-      if (typeof this.accounts[0] === "string") {
-        return this.accounts as string[];
+    if (Array.isArray(this._accounts)) {
+      if (typeof this._accounts[0] === "string") {
+        return this._accounts as string[];
       }
 
-      return (this.accounts as HardhatNetworkAccountConfig[]).map(
+      return (this._accounts as HardhatNetworkAccountConfig[]).map(
         (acc) => acc.privateKey
       );
     }
 
-    if ("mnemonic" in this.accounts) {
+    if ("mnemonic" in this._accounts) {
       return derivePrivateKeys(
-        this.accounts.mnemonic,
-        this.accounts.path,
-        this.accounts.initialIndex,
-        this.accounts.count,
-        this.accounts.passphrase
+        this._accounts.mnemonic,
+        this._accounts.path,
+        this._accounts.initialIndex,
+        this._accounts.count,
+        this._accounts.passphrase
       ).map((pk) => `0x${pk.toString("hex")}`);
     }
-
-    throw new HardhatEthersError(
-      `Assertion error: unsupported accounts type '${this.accounts}'`
-    );
   }
 
   private async _sendUncheckedTransaction(

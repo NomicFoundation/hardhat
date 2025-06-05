@@ -264,6 +264,7 @@ export function formatTransactionResponse(
     result.accessList = [];
   }
 
+  // eslint-disable-next-line eqeqeq
   if (value.type === 4 && value.authorizationList == null) {
     result.authorizationList = [];
   }
