@@ -48,7 +48,7 @@ export async function emitWithArgs<
 
   const parsedLogs = await handleEmit(viem, contractFn, contract, eventName);
 
-  const abiEvent = abiEvents[0];
+  const expectedAbiEvent = abiEvents[0];
 
   for (const { args: logArgs } of parsedLogs) {
     let emittedArgs: unknown[] = [];
@@ -70,19 +70,16 @@ export async function emitWithArgs<
       // The event parameters have names, so they are represented as an object.
       // They must be mapped into a sorted array that matches the order of the ABI event parameters.
       // Example: event EventY(uint u, uint v) -> mapped to -> { u: bigint, v: bigint }
-      let parsedLogCount = 0;
-      for (const [index, param] of abiEvent.inputs.entries()) {
+      for (const [index, param] of expectedAbiEvent.inputs.entries()) {
         assertHardhatInvariant(
           param.name !== undefined,
           `The event parameter at index ${index} does not have a name`,
         );
 
         emittedArgs.push(logArgs[param.name]);
-
-        parsedLogCount++;
       }
 
-      if (parsedLogCount !== Object.keys(logArgs).length) {
+      if (emittedArgs.length !== Object.keys(logArgs).length) {
         if (parsedLogs.length === 1) {
           // Provide additional error details only if a single event was emitted
           assert.fail(
