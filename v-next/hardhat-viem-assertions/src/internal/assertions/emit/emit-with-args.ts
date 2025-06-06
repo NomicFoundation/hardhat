@@ -27,23 +27,23 @@ export async function emitWithArgs<
   contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
   contract: ContractReturnType<ContractName>,
   eventName: EventName,
-  args: any[],
+  expectedArgs: any[],
 ): Promise<void> {
   const abiEvents: AbiEvent[] = contract.abi.filter(
     (item): item is AbiEvent =>
       item.type === "event" &&
       item.name === eventName &&
-      item.inputs.length === args.length,
+      item.inputs.length === expectedArgs.length,
   );
 
   assert.ok(
     abiEvents.length !== 0,
-    `Event "${eventName}" with argument count ${args.length} not found in the contract ABI`,
+    `Event "${eventName}" with argument count ${expectedArgs.length} not found in the contract ABI`,
   );
 
   assert.ok(
     abiEvents.length === 1,
-    `There are multiple events named "${eventName}" that accepts ${args.length} input arguments. This scenario is currently not supported.`,
+    `There are multiple events named "${eventName}" that accepts ${expectedArgs.length} input arguments. This scenario is currently not supported.`,
   );
 
   const parsedLogs = await handleEmit(viem, contractFn, contract, eventName);
@@ -54,7 +54,7 @@ export async function emitWithArgs<
     let emittedArgs: unknown[] = [];
 
     if (logArgs === undefined) {
-      if (args.length === 0) {
+      if (expectedArgs.length === 0) {
         // If the logs contain no arguments and none are expected, we can return, this is a valid match
         return;
       }
@@ -70,7 +70,7 @@ export async function emitWithArgs<
     }
 
     if (Array.isArray(logArgs)) {
-      // All the args are listed in an array, this happens when some of the event parameters do not have parameter names.
+      // All the expected args are listed in an array, this happens when some of the event parameters do not have parameter names.
       // Example: event EventX(uint u, uint) -> mapped to -> [bigint, bigint]
       emittedArgs = logArgs;
     } else {
@@ -93,7 +93,7 @@ export async function emitWithArgs<
         if (parsedLogs.length === 1) {
           // Provide additional error details only if a single event was emitted
           assert.fail(
-            `The provided event "${eventName}" expects ${args.length} arguments, but the emitted event contains ${Object.keys(logArgs).length}.`,
+            `The provided event "${eventName}" expects ${expectedArgs.length} arguments, but the emitted event contains ${Object.keys(logArgs).length}.`,
           );
         }
 
@@ -101,7 +101,7 @@ export async function emitWithArgs<
       }
     }
 
-    if ((await deepEqual(emittedArgs, args)) === true) {
+    if ((await deepEqual(emittedArgs, expectedArgs)) === true) {
       return;
     }
 
@@ -109,7 +109,7 @@ export async function emitWithArgs<
       // Provide additional error details only if a single event was emitted
       assert.deepEqual(
         emittedArgs,
-        args,
+        expectedArgs,
         "The event arguments do not match the expected ones.",
       );
     }
