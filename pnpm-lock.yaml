@@ -123,7 +123,7 @@ importers:
         specifier: workspace:*
         version: 'link:'
       '@nomicfoundation/hardhat-ethers':
-        specifier: workspace:^3.0.0
+        specifier: workspace:^3.0.9
         version: link:../hardhat-ethers
       '@types/bn.js':
         specifier: ^5.1.0
@@ -836,7 +836,7 @@ importers:
         specifier: workspace:^
         version: link:../eslint-plugin-hardhat-internal-rules
       '@nomicfoundation/hardhat-ethers':
-        specifier: workspace:^3.0.4
+        specifier: workspace:^3.0.9
         version: link:../hardhat-ethers
       '@nomicfoundation/hardhat-ignition':
         specifier: workspace:^
@@ -1898,7 +1898,7 @@ importers:
         specifier: workspace:^
         version: link:../eslint-plugin-slow-imports
       '@nomicfoundation/hardhat-ethers':
-        specifier: workspace:^3.0.0
+        specifier: workspace:^3.0.9
         version: link:../hardhat-ethers
       '@types/chai':
         specifier: ^4.2.0

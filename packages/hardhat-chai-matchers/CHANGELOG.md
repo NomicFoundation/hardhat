@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-chai-matchers
 
+## 2.0.9
+
+### Patch Changes
+
+- d77ecab: Update ethers to v6.14.0 with Pectra support
+
 ## 2.0.8
 
 ### Patch Changes
