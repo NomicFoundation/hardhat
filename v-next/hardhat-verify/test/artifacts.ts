@@ -3,7 +3,7 @@ import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
 
-import { useFixtureProject } from "@nomicfoundation/hardhat-test-utils";
+import { useEphemeralFixtureProject } from "@nomicfoundation/hardhat-test-utils";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 import {
@@ -13,7 +13,7 @@ import {
 
 describe("artifacts", () => {
   describe("getBuildInfoAndOutput", () => {
-    useFixtureProject("default");
+    useEphemeralFixtureProject("default");
 
     let hre: HardhatRuntimeEnvironment;
     before(async () => {
@@ -46,7 +46,7 @@ describe("artifacts", () => {
   });
 
   describe("getCompilerInput", () => {
-    useFixtureProject("default");
+    useEphemeralFixtureProject("default");
 
     let hre: HardhatRuntimeEnvironment;
     before(async () => {

@@ -59,7 +59,7 @@ export class Bytecode {
       typeof response === "string",
       "eth_getCode response is not a string",
     );
-    const deployedBytecode = response.replace(/^0x/, "");
+    const deployedBytecode = getUnprefixedHexString(response);
 
     if (deployedBytecode === "") {
       throw new HardhatError(
@@ -175,7 +175,7 @@ function inferExecutableSection(unlinkedBytecode: string): string {
  * known offset positions.
  * @returns The bytecode string with all known dynamic offsets zeroed out.
  */
-function nullifyBytecodeOffsets(
+export function nullifyBytecodeOffsets(
   bytecode: string,
   {
     object: unlinkedBytecode,
@@ -208,7 +208,7 @@ function nullifyBytecodeOffsets(
  * @param linkReferences The link references object from compiler output.
  * @returns An array of byte offsets for all library link placeholders.
  */
-function getLibraryOffsets(
+export function getLibraryOffsets(
   linkReferences: CompilerOutputBytecode["linkReferences"] = {},
 ): ByteOffset[] {
   return Object.values(linkReferences).flatMap((libraries) =>
@@ -225,7 +225,7 @@ function getLibraryOffsets(
  * @param immutableReferences Immutable references from compiler output.
  * @returns An array of byte offsets where immutable values will be written.
  */
-function getImmutableOffsets(
+export function getImmutableOffsets(
   immutableReferences: CompilerOutputBytecode["immutableReferences"] = {},
 ): ByteOffset[] {
   return Object.values(immutableReferences).flat();
@@ -250,7 +250,7 @@ function getImmutableOffsets(
  * @returns An array with a single offset entry if call protection is detected,
  * or an empty array otherwise.
  */
-function getCallProtectionOffsets(
+export function getCallProtectionOffsets(
   bytecode: string,
   unlinkedBytecode: string,
 ): ByteOffset[] {
