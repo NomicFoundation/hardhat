@@ -46,9 +46,9 @@ export async function emitWithArgs<
     `There are multiple events named "${eventName}" that accepts ${expectedArgs.length} input arguments. This scenario is currently not supported.`,
   );
 
-  const parsedLogs = await handleEmit(viem, contractFn, contract, eventName);
-
   const expectedAbiEvent = abiEvents[0];
+
+  const parsedLogs = await handleEmit(viem, contractFn, contract, eventName);
 
   for (const { args: logArgs } of parsedLogs) {
     let emittedArgs: unknown[] = [];
@@ -77,17 +77,6 @@ export async function emitWithArgs<
         );
 
         emittedArgs.push(logArgs[param.name]);
-      }
-
-      if (emittedArgs.length !== Object.keys(logArgs).length) {
-        if (parsedLogs.length === 1) {
-          // Provide additional error details only if a single event was emitted
-          assert.fail(
-            `The provided event "${eventName}" expects ${expectedArgs.length} arguments, but the emitted event contains ${Object.keys(logArgs).length}.`,
-          );
-        }
-
-        continue;
       }
     }
 
