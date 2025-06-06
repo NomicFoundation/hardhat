@@ -6,7 +6,7 @@ import { pathToFileURL } from "node:url";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
-import { loadModule } from "../src/internal/utils.js";
+import { loadModule } from "../src/internal/module.js";
 
 describe("utils", () => {
   describe("loadModule", () => {
