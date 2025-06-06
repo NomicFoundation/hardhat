@@ -1,5 +1,34 @@
 # hardhat
 
+## 3.0.0-next.14
+
+### Patch Changes
+
+- a1319ee: Add examples of our viem and ethers assertions in the sample projects
+- dcd5f89: Fix node test reporter not stripping some diffs because of coloring (#6688)
+- e582eaa: Removed unreliable context information from falsy expression error messages
+- cf5c563: Add `hardhat-verify` to toolboxes ([#6756](https://github.com/NomicFoundation/hardhat/pull/6756))
+- b7912e2: Rename the package `@nomicfoundation/hardhat-viem-matchers` to `@nomicfoundation/hardhat-viem-assertions` ([#6774](https://github.com/NomicFoundation/hardhat/pull/6774))
+- 18dda34: Fix to set 0 retries on development networks for `hardhat-viem`, thanks @TateB ([#6784](https://github.com/NomicFoundation/hardhat/pull/6784))
+
+## 3.0.0-next.13
+
+### Patch Changes
+
+- fa674d8: Removed `setDescription` from the empty task builder.
+- 6aa223a: Improve the `package.json` that gets created by default on `--init`
+- bfb708c: Support using format on config variables
+- e386767: Upgraded deprecated deleteSnapshot, deleteSnapshots, revertTo, revertToAndDelete, and snapshot cheatcodes in favor of deleteStateSnapshot, deleteStateSnapshots, revertToState, revertToStateAndDelete, and snapshotState
+- 869f8c7: Add support for `grep` in the Hardhat `test` task.
+- 8c1e9cb: Fixed instrumentation for control flow statements
+- 2107cbe: Message on usage of verbose foundry flag for solidity tests (#6444)
+
+## 3.0.0-next.12
+
+### Patch Changes
+
+- b86a3a1: Add a new Hardhat plugin providing assertion testing helpers for `viem` ([#6574](https://github.com/NomicFoundation/hardhat/pull/6574))
+
 ## 3.0.0-next.11
 
 ### Patch Changes

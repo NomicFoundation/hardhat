@@ -82,6 +82,7 @@ for (const entry of entries) {
     // We disable github actions annotations, as they are misleading on PRs
     // otherwise.
     process.env.NO_GITHUB_ACTIONS_ANNOTATIONS = "true";
+    process.env.FORCE_COLOR = "1";
     const reporterStream = run(options).compose(reporter);
 
     for await (const chunk of reporterStream) {

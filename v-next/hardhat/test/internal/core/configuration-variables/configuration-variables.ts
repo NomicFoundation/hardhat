@@ -4,9 +4,14 @@ import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
-
 import {
+  assertRejectsWithHardhatError,
+  assertThrowsHardhatError,
+} from "@nomicfoundation/hardhat-test-utils";
+
+import { configVariable } from "../../../../src/config.js";
+import {
+  CONFIGURATION_VARIABLE_MARKER,
   FixedValueConfigurationVariable,
   LazyResolvedConfigurationVariable,
 } from "../../../../src/internal/core/configuration-variables.js";
@@ -25,11 +30,11 @@ describe("ResolvedConfigurationVariable", () => {
     assert.equal(await variable.get(), "foo");
   });
 
-  it("should return the value of a configuration variable from an environment variable", async () => {
-    const variable = new LazyResolvedConfigurationVariable(hre.hooks, {
-      name: "foo",
-      _type: "ConfigurationVariable",
-    });
+  it("should return the value of a configuration variable from an environment variable, without format", async () => {
+    const variable = new LazyResolvedConfigurationVariable(
+      hre.hooks,
+      configVariable("foo"),
+    );
 
     process.env.foo = "bar";
 
@@ -38,11 +43,24 @@ describe("ResolvedConfigurationVariable", () => {
     delete process.env.foo;
   });
 
+  it("should return the value of a configuration variable from an environment variable, with format", async () => {
+    const variable = new LazyResolvedConfigurationVariable(
+      hre.hooks,
+      configVariable("foo", `variable: ${CONFIGURATION_VARIABLE_MARKER}`),
+    );
+
+    process.env.foo = "bar";
+
+    assert.equal(await variable.get(), "variable: bar");
+
+    delete process.env.foo;
+  });
+
   it("should throw if the environment variable is not found", async () => {
-    const variable = new LazyResolvedConfigurationVariable(hre.hooks, {
-      name: "foo",
-      _type: "ConfigurationVariable",
-    });
+    const variable = new LazyResolvedConfigurationVariable(
+      hre.hooks,
+      configVariable("foo"),
+    );
 
     await assertRejectsWithHardhatError(
       variable.get(),
@@ -52,10 +70,10 @@ describe("ResolvedConfigurationVariable", () => {
   });
 
   it("should return the cached value if called multiple times", async () => {
-    const variable = new LazyResolvedConfigurationVariable(hre.hooks, {
-      name: "foo",
-      _type: "ConfigurationVariable",
-    });
+    const variable = new LazyResolvedConfigurationVariable(
+      hre.hooks,
+      configVariable("foo"),
+    );
 
     process.env.foo = "bar";
 
@@ -69,10 +87,10 @@ describe("ResolvedConfigurationVariable", () => {
   });
 
   it("should return the value of a configuration variable as a URL", async () => {
-    const variable = new LazyResolvedConfigurationVariable(hre.hooks, {
-      name: "foo",
-      _type: "ConfigurationVariable",
-    });
+    const variable = new LazyResolvedConfigurationVariable(
+      hre.hooks,
+      configVariable("foo"),
+    );
 
     process.env.foo = "http://localhost:8545";
 
@@ -82,10 +100,10 @@ describe("ResolvedConfigurationVariable", () => {
   });
 
   it("should throw if the configuration variable is not a valid URL", async () => {
-    const variable = new LazyResolvedConfigurationVariable(hre.hooks, {
-      name: "foo",
-      _type: "ConfigurationVariable",
-    });
+    const variable = new LazyResolvedConfigurationVariable(
+      hre.hooks,
+      configVariable("foo"),
+    );
 
     process.env.foo = "not a url";
 
@@ -101,10 +119,10 @@ describe("ResolvedConfigurationVariable", () => {
   });
 
   it("should return the value of a configuration variable as a BigInt", async () => {
-    const variable = new LazyResolvedConfigurationVariable(hre.hooks, {
-      name: "foo",
-      _type: "ConfigurationVariable",
-    });
+    const variable = new LazyResolvedConfigurationVariable(
+      hre.hooks,
+      configVariable("foo"),
+    );
 
     process.env.foo = "42";
 
@@ -114,10 +132,10 @@ describe("ResolvedConfigurationVariable", () => {
   });
 
   it("should throw if the configuration variable is not a valid BigInt", async () => {
-    const variable = new LazyResolvedConfigurationVariable(hre.hooks, {
-      name: "foo",
-      _type: "ConfigurationVariable",
-    });
+    const variable = new LazyResolvedConfigurationVariable(
+      hre.hooks,
+      configVariable("foo"),
+    );
 
     process.env.foo = "not a bigint";
 
@@ -141,6 +159,35 @@ describe("ResolvedConfigurationVariable", () => {
       {
         value: "not a hex string",
       },
+    );
+  });
+});
+
+describe("configVariable", function () {
+  it("should return a configuration variable, when passing only name", async () => {
+    const variable = configVariable("foo");
+
+    assert.equal(variable.name, "foo");
+    assert.equal(variable._type, "ConfigurationVariable");
+    assert.equal(variable.format, CONFIGURATION_VARIABLE_MARKER);
+  });
+
+  it("should return a configuration variable, when passing name and format", async () => {
+    const variable = configVariable("foo", "var: {variable}");
+
+    assert.equal(variable.name, "foo");
+    assert.equal(variable._type, "ConfigurationVariable");
+    assert.equal(variable.format, "var: {variable}");
+  });
+
+  it("throws an error when format doesnt include the variable marker", async () => {
+    assertThrowsHardhatError(
+      () => {
+        configVariable("foo", "missing_marker");
+      },
+      HardhatError.ERRORS.CORE.GENERAL
+        .CONFIG_VARIABLE_FORMAT_MUST_INCLUDE_VARIABLE,
+      { format: "missing_marker", marker: "{variable}" },
     );
   });
 });
