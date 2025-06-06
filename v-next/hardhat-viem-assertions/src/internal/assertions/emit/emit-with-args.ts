@@ -59,13 +59,6 @@ export async function emitWithArgs<
         return;
       }
 
-      if (parsedLogs.length === 1) {
-        // Provide additional error details only if a single event was emitted
-        assert.fail(
-          "No arguments in the event logs, are you sure you are targeting an event with arguments?",
-        );
-      }
-
       continue;
     }
 
