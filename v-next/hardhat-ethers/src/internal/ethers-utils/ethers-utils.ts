@@ -8,6 +8,9 @@ import type {
   TransactionReceiptParams,
   LogParams,
   JsonRpcTransactionRequest,
+  SignatureLike,
+  Authorization,
+  AuthorizationLike,
 } from "ethers";
 
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
@@ -23,6 +26,7 @@ import {
   isHexString,
   Signature,
   toQuantity,
+  authorizationify,
 } from "ethers";
 
 export type FormatFunc = (value: any) => any;
@@ -81,6 +85,10 @@ export function copyRequest(
 
   if (req.accessList !== null && req.accessList !== undefined) {
     result.accessList = accessListify(req.accessList);
+  }
+
+  if (req.authorizationList !== null && req.authorizationList !== undefined) {
+    result.authorizationList = req.authorizationList;
   }
 
   if ("blockTag" in req) {
@@ -233,6 +241,8 @@ export function formatTransactionResponse(
       },
       accessList: allowNull(accessListify, null),
 
+      authorizationList: allowNull(convertToTxAuthorizationList, null),
+
       blockHash: allowNull(formatHash, null),
       blockNumber: allowNull(getNumber, null),
       transactionIndex: allowNull(getNumber, null),
@@ -276,6 +286,10 @@ export function formatTransactionResponse(
     (value.accessList === null || value.accessList === undefined)
   ) {
     result.accessList = [];
+  }
+
+  if (value.type === 4 && value.authorizationList === null) {
+    result.authorizationList = [];
   }
 
   // Compute the signature
@@ -450,5 +464,48 @@ export function getRpcTransaction(
     result.accessList = accessListify(tx.accessList);
   }
 
+  // Normalize the authorization list
+  if (tx.authorizationList !== null && tx.authorizationList !== undefined) {
+    result.authorizationList = authorizationListify(tx.authorizationList);
+  }
+
   return result;
+}
+
+function authorizationListify(authorizationList: AuthorizationLike[]) {
+  return authorizationList.map((el) => {
+    const auth = authorizationify(el);
+
+    return {
+      address: auth.address,
+      nonce: toQuantity(auth.nonce),
+      chainId: toQuantity(auth.chainId),
+      r: auth.signature.r,
+      s: auth.signature.s,
+      yParity: toQuantity(auth.signature.yParity),
+    };
+  });
+}
+
+function convertToTxAuthorizationList(
+  authorizationList: Array<
+    {
+      address: string;
+      nonce: string;
+      chainId: string;
+    } & SignatureLike
+  >,
+): Authorization[] {
+  const authorizations: Authorization[] = [];
+
+  for (const auth of authorizationList) {
+    authorizations.push({
+      address: auth.address,
+      nonce: getBigInt(auth.nonce),
+      chainId: getBigInt(auth.chainId),
+      signature: Signature.from(auth),
+    });
+  }
+
+  return authorizations;
 }

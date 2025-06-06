@@ -44,7 +44,7 @@ type SignerAccounts =
 export class HardhatEthersSigner implements HardhatEthersSignerI {
   readonly #gasLimit: bigint | undefined;
   readonly #signerAccounts: SignerAccounts;
-  #privateKey: string | undefined;
+  #cachedPrivateKey: string | undefined;
 
   public readonly address: string;
   public readonly provider: ethers.JsonRpcProvider | HardhatEthersProvider;
@@ -99,37 +99,33 @@ export class HardhatEthersSigner implements HardhatEthersSignerI {
   }
 
   public async authorize(auth: AuthorizationRequest): Promise<Authorization> {
-    if (this.#privateKey === undefined) {
-      const privateKeys = await this.#loadPrivateKeys();
+    const privateKey = await this.#getPrivateKey();
 
-      const matchingKey = privateKeys.find(
-        (key) => computeAddress(key) === this.address,
+    if (privateKey === undefined) {
+      throw new HardhatError(
+        HardhatError.ERRORS.HARDHAT_ETHERS.GENERAL.NO_PRIVATE_KEY_FOR_ADDRESS,
+        {
+          address: this.address,
+        },
       );
-
-      this.#privateKey = matchingKey;
     }
 
-    if (this.#privateKey === undefined) {
-      // eslint-disable-next-line no-restricted-syntax -- TODO
-      throw new Error(`No private key found for address ${this.address}`);
-    }
-
-    const wallet = new Wallet(this.#privateKey, this.provider);
+    const wallet = new Wallet(privateKey, this.provider);
 
     return wallet.authorize(auth);
   }
 
   public async populateAuthorization(
-    authReq: AuthorizationRequest,
+    _auth: AuthorizationRequest,
   ): Promise<AuthorizationRequest> {
-    const auth = { ...authReq };
+    const auth = { ..._auth };
 
     // Add a chain ID if not explicitly set to 0
-    if (auth.chainId === null) {
+    if (auth.chainId === null || auth.chainId === undefined) {
       auth.chainId = (await this.provider.getNetwork()).chainId;
     }
 
-    if (auth.nonce === null) {
+    if (auth.nonce === null || auth.nonce === undefined) {
       auth.nonce = await this.getNonce();
     }
 
@@ -322,13 +318,26 @@ export class HardhatEthersSigner implements HardhatEthersSignerI {
     return this.provider.send("eth_sendTransaction", [hexTx]);
   }
 
-  async #loadPrivateKeys(): Promise<string[]> {
+  async #getPrivateKey(): Promise<string | undefined> {
+    if (this.#cachedPrivateKey === undefined) {
+      const privateKeys = await this.#getPrivateKeys();
+
+      this.#cachedPrivateKey = privateKeys.find(
+        (key) => computeAddress(key) === this.address,
+      );
+    }
+
+    return this.#cachedPrivateKey;
+  }
+
+  async #getPrivateKeys(): Promise<string[]> {
     const { type, accounts } = this.#signerAccounts;
 
     if (type === "http") {
       if (accounts === "remote") {
-        // eslint-disable-next-line no-restricted-syntax -- TODO
-        throw new Error("Remote account type is not supported");
+        throw new HardhatError(
+          HardhatError.ERRORS.HARDHAT_ETHERS.GENERAL.ACCOUNTS_OF_TYPE_REMOTE,
+        );
       }
 
       if (Array.isArray(accounts)) {
@@ -338,9 +347,6 @@ export class HardhatEthersSigner implements HardhatEthersSignerI {
       if ("mnemonic" in accounts) {
         return derivePrivateKeys(accounts);
       }
-
-      // eslint-disable-next-line no-restricted-syntax -- TODO
-      throw new Error("Invalid HTTP‐based signerAccounts");
     }
 
     if (type === "edr") {
@@ -351,13 +357,11 @@ export class HardhatEthersSigner implements HardhatEthersSignerI {
       if ("mnemonic" in accounts) {
         return derivePrivateKeys(accounts);
       }
-
-      // eslint-disable-next-line no-restricted-syntax -- TODO
-      throw new Error("Invalid EDR‐based signerAccounts");
     }
 
-    // eslint-disable-next-line no-restricted-syntax -- TODO
-    throw new Error(`Unsupported type`);
+    throw new HardhatError(
+      HardhatError.ERRORS.HARDHAT_ETHERS.GENERAL.WRONG_ACCOUNTS_FORMAT,
+    );
   }
 }
 

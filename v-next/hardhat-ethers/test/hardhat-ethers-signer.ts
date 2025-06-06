@@ -1,8 +1,13 @@
 import type { ExampleContract } from "./helpers/example-contracts.js";
 import type { HardhatEthers } from "../src/types.js";
+import type { AuthorizationRequest } from "ethers";
+import type { EthereumProvider } from "hardhat/types/providers";
 
 import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
+
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import { EXAMPLE_CONTRACT } from "./helpers/example-contracts.js";
 import {
@@ -12,6 +17,7 @@ import {
 } from "./helpers/helpers.js";
 
 const INFURA_URL = process.env.INFURA_URL;
+const LOCALHOST_URL = "http://localhost:8545";
 
 describe("hardhat ethers signer", () => {
   let ethers: HardhatEthers;
@@ -20,7 +26,241 @@ describe("hardhat ethers signer", () => {
     ({ ethers } = await initializeTestEthers());
   });
 
+  describe("authorize", () => {
+    const TEST_P_KEY_1 =
+      "8fb52808bddb9f02a31d076c2904b75e1fe7f2f399a98a27707b5fddb5133163";
+    const TEST_P_KEY_2 =
+      "bb6ab64d010c3e17aa9acaad4725835de85f88056c11621c771bbe0f749128a0";
+
+    const HD_ACCOUNTS = {
+      initialIndex: 0,
+      count: 20,
+      path: "m/44'/60'/0'/0",
+      mnemonic: "test test test test test test test test test test test junk",
+      passphrase: "",
+    };
+
+    async function testStringPrivateKeys(
+      hhEthers: HardhatEthers,
+      hhProvider: EthereumProvider,
+    ) {
+      await hhProvider.request({ method: "hardhat_reset" });
+
+      const signer = await hhEthers.provider.getSigner(0);
+      const receiver = await hhEthers.provider.getSigner(1);
+
+      const res = await signer.authorize({
+        address: receiver.address,
+      });
+
+      assert.equal(res.address, receiver.address);
+      assert.equal(res.nonce, 0n);
+      assert.equal(res.chainId, 31337n);
+      assert.equal(
+        res.signature.r,
+        "0x47f7caf3d4103876fa120d31d1f5de7223eeeeb9fea77beb43f3ebe1c4d27a5b",
+      );
+      assert.equal(
+        res.signature.s,
+        "0x273b0ebbbe83f48ca637bf718ca5b9b65b94304b7c65beae40448828a312892f",
+      );
+      assert.equal(res.signature.yParity, 1);
+      assert.equal(res.signature.networkV, null);
+    }
+
+    async function testHdAccounts(
+      hhEthers: HardhatEthers,
+      hhProvider: EthereumProvider,
+    ) {
+      await hhProvider.request({ method: "hardhat_reset" });
+
+      const signer = await hhEthers.provider.getSigner(0);
+      const receiver = await hhEthers.provider.getSigner(1);
+
+      const res = await signer.authorize({
+        address: receiver.address,
+      });
+
+      assert.equal(res.address, receiver.address);
+      assert.equal(res.nonce, 0n);
+      assert.equal(res.chainId, 31337n);
+      assert.equal(
+        res.signature.r,
+        "0x48ae509b37c5aead2c01f5587bebd799ff1f03391ff0e990120520d6d209dd83",
+      );
+      assert.equal(
+        res.signature.s,
+        "0x7e54302cb48e7e05fa76a9f5caf79f16329379c88fa0e03b689101d245b6f1de",
+      );
+      assert.equal(res.signature.yParity, 0);
+      assert.equal(res.signature.networkV, null);
+    }
+
+    // TODO: Skip for now, resume once we can launch a separate instance of the local network
+    describe.skip("localhost accounts", () => {
+      it(`should throw because 'remote' is not supported`, async () => {
+        const { ethers: hhEthers } = await initializeTestEthers(undefined, {
+          networks: {
+            localhost: {
+              type: "http",
+              url: LOCALHOST_URL,
+              accounts: "remote",
+            },
+          },
+        });
+
+        const signer = await hhEthers.provider.getSigner(0);
+        const receiver = await hhEthers.provider.getSigner(1);
+
+        await assertRejectsWithHardhatError(
+          signer.authorize({
+            address: receiver.address,
+          }),
+          HardhatError.ERRORS.HARDHAT_ETHERS.GENERAL.ACCOUNTS_OF_TYPE_REMOTE,
+          {},
+        );
+      });
+
+      it(`should work with array of private keys as strings`, async () => {
+        const { ethers: hhEthers, provider: hhProvider } =
+          await initializeTestEthers(undefined, {
+            networks: {
+              localhost: {
+                type: "http",
+                url: LOCALHOST_URL,
+                accounts: [TEST_P_KEY_1, TEST_P_KEY_2],
+              },
+            },
+          });
+
+        await testStringPrivateKeys(hhEthers, hhProvider);
+      });
+
+      it(`should work with hd accounts`, async () => {
+        const { ethers: hhEthers, provider: hhProvider } =
+          await initializeTestEthers(undefined, {
+            networks: {
+              localhost: {
+                type: "http",
+                url: LOCALHOST_URL,
+                accounts: HD_ACCOUNTS,
+              },
+            },
+          });
+
+        await testHdAccounts(hhEthers, hhProvider);
+      });
+    });
+
+    describe("hardhat accounts", () => {
+      it(`should work with an array that has private keys as strings`, async () => {
+        const { ethers: hhEthers, provider: hhProvider } =
+          await initializeTestEthers(undefined, {
+            networks: {
+              hardhat: {
+                type: "edr",
+                accounts: [
+                  { balance: "1000000000000000000", privateKey: TEST_P_KEY_1 },
+                  { balance: "1000000000000000000", privateKey: TEST_P_KEY_2 },
+                ],
+              },
+            },
+          });
+
+        await testStringPrivateKeys(hhEthers, hhProvider);
+      });
+
+      it(`should work`, async () => {
+        const { ethers: hhEthers, provider: hhProvider } =
+          await initializeTestEthers(undefined, {
+            networks: {
+              hardhat: {
+                type: "edr",
+                accounts: HD_ACCOUNTS,
+              },
+            },
+          });
+
+        await testHdAccounts(hhEthers, hhProvider);
+      });
+    });
+  });
+
   describe("minimal project", () => {
+    describe("populateAuthorization", () => {
+      it("should set both chainId and nonce when they are undefined", async () => {
+        const original: AuthorizationRequest = {
+          address: "0xAbCdEf0123456789",
+          chainId: undefined,
+          nonce: undefined,
+        };
+
+        const signer = await ethers.provider.getSigner(0);
+
+        const result = await signer.populateAuthorization(original);
+
+        assert.deepEqual(result, {
+          address: "0xAbCdEf0123456789",
+          chainId: 31337n,
+          nonce: await signer.getNonce(),
+        });
+      });
+
+      it("should preserve chainId when it is already provided, but set nonce if undefined", async () => {
+        const original: AuthorizationRequest = {
+          address: "0xAbCdEf0123456789",
+          chainId: 123n,
+          nonce: undefined,
+        };
+
+        const signer = await ethers.provider.getSigner(0);
+
+        const result = await signer.populateAuthorization(original);
+
+        assert.deepEqual(result, {
+          address: "0xAbCdEf0123456789",
+          chainId: 123n,
+          nonce: await signer.getNonce(),
+        });
+      });
+
+      it("should preserve nonce when it is already provided, but set chainId if undefined", async () => {
+        const original: AuthorizationRequest = {
+          address: "0xAbCdEf0123456789",
+          chainId: undefined,
+          nonce: 123,
+        };
+
+        const signer = await ethers.provider.getSigner(0);
+
+        const result = await signer.populateAuthorization(original);
+
+        assert.deepEqual(result, {
+          address: "0xAbCdEf0123456789",
+          chainId: 31337n,
+          nonce: 123,
+        });
+      });
+
+      it("should preserve both chainId and nonce when neither is undefined", async () => {
+        const original: AuthorizationRequest = {
+          address: "0xAbCdEf0123456789",
+          chainId: 123n,
+          nonce: 123,
+        };
+
+        const signer = await ethers.provider.getSigner(0);
+
+        const result = await signer.populateAuthorization(original);
+
+        assert.deepEqual(result, {
+          address: "0xAbCdEf0123456789",
+          chainId: 123n,
+          nonce: 123,
+        });
+      });
+    });
+
     it("has an address field that matches the address", async () => {
       const signer = await ethers.provider.getSigner(0);
 
@@ -75,6 +315,30 @@ describe("hardhat ethers signer", () => {
       });
 
       assert.equal(populatedTx.from, signer.address);
+    });
+
+    it("should populate a call/tx with authorizationList", async () => {
+      const signer = await ethers.provider.getSigner(0);
+
+      const popAuth = await signer.populateAuthorization({
+        address: signer.address,
+      });
+
+      const auth = await signer.authorize(popAuth);
+
+      const populatedCall = await signer.populateCall({
+        to: signer,
+        authorizationList: [auth],
+      });
+
+      assert.ok(
+        populatedCall.authorizationList !== undefined &&
+          populatedCall.authorizationList !== null,
+        "authorizationList should be present",
+      );
+
+      auth.address = auth.address.toLowerCase();
+      assert.deepEqual(populatedCall.authorizationList[0], auth);
     });
 
     describe("estimateGas", () => {
@@ -138,6 +402,38 @@ describe("hardhat ethers signer", () => {
         const balanceAfter = await ethers.provider.getBalance(receiver);
         const balanceDifference = balanceAfter - balanceBefore;
         assert.equal(balanceDifference, 10n ** 18n);
+      });
+
+      // TODO: enable when Prague support is enabled in v-next
+      it.skip("should send a transaction of type 4", async () => {
+        const sender = await ethers.provider.getSigner(0);
+        const receiver = await ethers.provider.getSigner(1);
+
+        const popAuth = await sender.populateAuthorization({
+          address: receiver.address,
+        });
+
+        const auth = await sender.authorize(popAuth);
+
+        const res = await receiver.sendTransaction({
+          to: receiver,
+          value: ethers.parseEther("1"),
+          authorizationList: [auth],
+        });
+
+        assert.equal(
+          (await ethers.provider.getCode(sender)).toLowerCase(),
+          `0xef0100${receiver.address.replace("0x", "")}`.toLowerCase(),
+        );
+
+        assert.equal(res.type, 4);
+        assert.ok(
+          res.authorizationList !== null,
+          "authorizationList should be present",
+        );
+
+        auth.address = auth.address.toLowerCase();
+        assert.deepEqual(res.authorizationList[0], auth);
       });
     });
 
