@@ -9,8 +9,11 @@ import type {
   TaskOverrideDefinitionBuilder,
 } from "../../types/tasks.js";
 
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+
 import { ArgumentType } from "../../types/arguments.js";
 
+import { CONFIGURATION_VARIABLE_MARKER } from "./configuration-variables.js";
 import { buildGlobalOptionDefinition } from "./global-options.js";
 import {
   EmptyTaskDefinitionBuilderImplementation,
@@ -21,8 +24,17 @@ import {
 /**
  * Creates a configuration variable, which will be fetched at runtime.
  */
-export function configVariable(name: string): ConfigurationVariable {
-  return { _type: "ConfigurationVariable", name };
+export function configVariable(
+  name: string,
+  format: string = CONFIGURATION_VARIABLE_MARKER,
+): ConfigurationVariable {
+  if (!format.includes(CONFIGURATION_VARIABLE_MARKER)) {
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.GENERAL.CONFIG_VARIABLE_FORMAT_MUST_INCLUDE_VARIABLE,
+      { format, marker: CONFIGURATION_VARIABLE_MARKER },
+    );
+  }
+  return { _type: "ConfigurationVariable", name, format };
 }
 
 /**

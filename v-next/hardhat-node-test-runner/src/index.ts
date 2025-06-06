@@ -33,6 +33,7 @@ const hardhatPlugin: HardhatPlugin = {
   ],
   hookHandlers: {
     config: import.meta.resolve("./hookHandlers/config.js"),
+    test: import.meta.resolve("./hookHandlers/test.js"),
   },
   npmPackage: "@nomicfoundation/hardhat-node-test-runner",
 };

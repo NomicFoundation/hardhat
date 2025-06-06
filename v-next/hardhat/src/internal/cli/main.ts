@@ -12,6 +12,7 @@ import {
 import { isCi } from "@nomicfoundation/hardhat-utils/ci";
 import { readClosestPackageJson } from "@nomicfoundation/hardhat-utils/package";
 import { kebabToCamelCase } from "@nomicfoundation/hardhat-utils/string";
+import chalk from "chalk";
 import debug from "debug";
 import { register } from "tsx/esm/api";
 
@@ -194,7 +195,26 @@ export async function main(
 
     await Promise.all([task.run(taskArguments), sendTaskAnalytics(task.id)]);
   } catch (error) {
-    printErrorMessages(error, builtinGlobalOptions?.showStackTraces);
+    // TODO: Remove after -v, -vv etc are implemented
+    if (
+      (HardhatError.isHardhatError(
+        error,
+        HardhatError.ERRORS.CORE.SOLIDITY.RESOLVING_NONEXISTENT_PROJECT_FILE,
+      ) ||
+        HardhatError.isHardhatError(
+          error,
+          HardhatError.ERRORS.CORE.TEST_PLUGIN.CANNOT_DETERMINE_TEST_RUNNER,
+        )) &&
+      /-v+/.test(error.message)
+    ) {
+      console.error(
+        chalk.red(
+          `\nSupport for verbose test output will be added soon. Please re-run this command without the flag.\n`,
+        ),
+      );
+    } else {
+      printErrorMessages(error, builtinGlobalOptions?.showStackTraces);
+    }
 
     if (error instanceof Error) {
       try {
