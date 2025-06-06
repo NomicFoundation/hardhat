@@ -1,11 +1,26 @@
 name: Regression Tests
 
 on:
-  # TODO: Add a workflow_call trigger to allow running this workflow from EDR
-  # and to allow more specialised regression test workflows within hardhat to
-  # specify their own defaults; e.g. one to compare solidity tests performance
-  # with forge, and a separate one to compare solidity compilation performance
-  # with hardhat 2
+  workflow_call:
+    inputs:
+      ref:
+        required: true
+        type: string
+      hardhat-ref:
+        required: true
+        type: string
+      edr-ref:
+        required: false
+        type: string
+      repositories:
+        required: true
+        type: string
+      runners:
+        required: true
+        type: string
+      commands:
+        required: true
+        type: string
   workflow_dispatch:
     inputs:
       hardhat-ref:
@@ -20,17 +35,17 @@ on:
         default: ''
       repositories:
         description: 'A list of repositories to test against'
-        required: false
+        required: true
         type: string
         default: '["Elytro-eth/soul-wallet-contract", "foundry-rs/forge-std", "kalidao/keep", "mds1/multicall", "pancakeswap/infinity-core", "PaulRBerg/prb-math", "PaulRBerg/prb-proxy", "PaulRBerg/prb-test", "pcaversaccio/createx", "ProjectOpenSea/seaport", "sablier-labs/lockup", "sablier-labs/v2-periphery", "transmissions11/solmate", "Uniswap/UniswapX", "Vectorized/solady"]'
       runners:
         description: 'A list of runners to test against'
-        required: false
+        required: true
         type: string
         default: '["ubuntu-latest"]'
       commands:
         description: 'A list of commands to test against'
-        required: false
+        required: true
         type: string
         default: '["hardhat compile", "hardhat test solidity"]'
 
@@ -218,7 +233,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          path: ${{ github.repository }}
+          path: NomicFoundation/hardhat
+          ref: ${{ inputs.ref || github.ref }}
       - if: runner.os == 'Windows'
         run: choco install yq
       - id: workflow
@@ -226,7 +242,7 @@ jobs:
           echo "config<<EOF" >> $GITHUB_OUTPUT
           yq -o json . .github/config/regression-tests.yml >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
-        working-directory: ${{ github.repository }}
+        working-directory: NomicFoundation/hardhat
       - id: config
         env:
           REPOSITORY: ${{ matrix.repository }}
