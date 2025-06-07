@@ -77,14 +77,13 @@ jobs:
       - id: checkout
         uses: actions/checkout@v4
         with:
-          path: NomicFoundation/hardhat
+          repository: NomicFoundation/hardhat
           ref: ${{ inputs.ref || github.ref }}
       - id: workflow
         run: |
           echo "config<<EOF" >> $GITHUB_OUTPUT
           yq -o json . .github/config/regression-tests.yml >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
-        working-directory: NomicFoundation/hardhat
       - id: config
         env:
           PRESET: ${{ inputs.preset }}
@@ -282,6 +281,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          repository: NomicFoundation/hardhat
           path: NomicFoundation/hardhat
           ref: ${{ needs.inputs.outputs.ref }}
       - if: runner.os == 'Windows'
