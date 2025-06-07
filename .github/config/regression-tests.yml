@@ -438,6 +438,10 @@ repositories:
       test/P256.t.sol
       test/WebAuthn.t.sol
 
+      # This test is flaky - no action required 
+      # testBumpSlot(bytes32,uint256): Unknown error
+      test/LibStorage.t.sol
+
       # https://github.com/NomicFoundation/hardhat/issues/6509
       # testTargetGenerate(): Transaction reverted: contract call run out of gas and made the transaction revert
       test/DeploylessPredeployQueryer.t.sol
