@@ -438,7 +438,7 @@ repositories:
       test/P256.t.sol
       test/WebAuthn.t.sol
 
-      # https://github.com/NomicFoundation/hardhat/issues/6509
+      # This test is flaky - no action required 
       # testBumpSlot(bytes32,uint256): Unknown error
       test/LibStorage.t.sol
 
