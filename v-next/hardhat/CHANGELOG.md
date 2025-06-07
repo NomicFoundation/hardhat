@@ -1,5 +1,13 @@
 # hardhat
 
+## 3.0.0-next.15
+
+### Patch Changes
+
+- 8c8c110: Fix a bug in `viem-assertions` to scans every event log, not just the first one [PR](https://github.com/NomicFoundation/hardhat/pull/6787)
+- 3533685: Add linting to template projects
+- 6be01c4: Support aynsc calls in `getAllFilesMatching` in `hardhat-utils`, thanks @ItsNickBarry ([#6789](https://github.com/NomicFoundation/hardhat/pull/6789))
+
 ## 3.0.0-next.14
 
 ### Patch Changes
