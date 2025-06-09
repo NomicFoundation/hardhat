@@ -50,7 +50,6 @@ export class Etherscan {
     chainId: number;
     name?: string;
     url: string;
-    apiUrl: string;
     apiKey: string;
     testDispatcher?: Dispatcher;
   }) {
