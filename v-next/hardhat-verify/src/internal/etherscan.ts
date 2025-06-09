@@ -2,7 +2,10 @@ import type {
   EtherscanGetSourceCodeResponse,
   EtherscanResponse,
 } from "./etherscan.types.js";
-import type { HttpResponse } from "@nomicfoundation/hardhat-utils/request";
+import type {
+  Dispatcher,
+  HttpResponse,
+} from "@nomicfoundation/hardhat-utils/request";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
@@ -41,18 +44,22 @@ export class Etherscan {
   public apiUrl: string;
   public apiKey: string;
 
+  readonly #testDispatcher?: Dispatcher;
+
   constructor(etherscanConfig: {
     chainId: number;
     name?: string;
     url: string;
     apiUrl: string;
     apiKey: string;
+    testDispatcher?: Dispatcher;
   }) {
     this.chainId = String(etherscanConfig.chainId);
     this.name = etherscanConfig.name ?? "Etherscan";
     this.url = etherscanConfig.url;
     this.apiUrl = ETHERSCAN_API_URL;
     this.apiKey = etherscanConfig.apiKey;
+    this.#testDispatcher = etherscanConfig.testDispatcher;
   }
 
   public getContractUrl(address: string) {
@@ -63,15 +70,19 @@ export class Etherscan {
     let response: HttpResponse;
     let responseBody: EtherscanGetSourceCodeResponse | undefined;
     try {
-      response = await getRequest(this.apiUrl, {
-        queryParams: {
-          module: "contract",
-          action: "getsourcecode",
-          chainid: this.chainId,
-          apikey: this.apiKey,
-          address,
+      response = await getRequest(
+        this.apiUrl,
+        {
+          queryParams: {
+            module: "contract",
+            action: "getsourcecode",
+            chainid: this.chainId,
+            apikey: this.apiKey,
+            address,
+          },
         },
-      });
+        this.#testDispatcher,
+      );
       responseBody =
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
         -- Cast to EtherscanGetSourceCodeResponse because that's what we expect from the API
@@ -131,14 +142,19 @@ export class Etherscan {
     let response: HttpResponse;
     let responseBody: EtherscanResponse | undefined;
     try {
-      response = await postFormRequest(this.apiUrl, body, {
-        queryParams: {
-          module: "contract",
-          action: "verifysourcecode",
-          chainid: this.chainId,
-          apikey: this.apiKey,
+      response = await postFormRequest(
+        this.apiUrl,
+        body,
+        {
+          queryParams: {
+            module: "contract",
+            action: "verifysourcecode",
+            chainid: this.chainId,
+            apikey: this.apiKey,
+          },
         },
-      });
+        this.#testDispatcher,
+      );
       responseBody =
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
         -- Cast to EtherscanVerifySourceCodeResponse because that's what we expect from the API
@@ -213,15 +229,19 @@ export class Etherscan {
     let response: HttpResponse;
     let responseBody: EtherscanResponse | undefined;
     try {
-      response = await getRequest(this.apiUrl, {
-        queryParams: {
-          module: "contract",
-          action: "checkverifystatus",
-          chainid: this.chainId,
-          apikey: this.apiKey,
-          guid,
+      response = await getRequest(
+        this.apiUrl,
+        {
+          queryParams: {
+            module: "contract",
+            action: "checkverifystatus",
+            chainid: this.chainId,
+            apikey: this.apiKey,
+            guid,
+          },
         },
-      });
+        this.#testDispatcher,
+      );
       responseBody =
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
         -- Cast to EtherscanVerifySourceCodeResponse because that's what we expect from the API
