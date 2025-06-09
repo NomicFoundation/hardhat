@@ -272,10 +272,13 @@ export async function validatePackageJson(
 
   // Create the package.json file if it does not exist
   if (!(await exists(absolutePathToPackageJson))) {
-    await writeJsonFile(absolutePathToPackageJson, {
-      name: "hardhat-project",
+    const packageJson: PackageJson = {
+      name: path.basename(workspace),
       type: "module",
-    });
+      version: "1.0.0",
+    };
+
+    await writeJsonFile(absolutePathToPackageJson, packageJson);
   }
 
   const pkg: PackageJson = await readJsonFile(absolutePathToPackageJson);

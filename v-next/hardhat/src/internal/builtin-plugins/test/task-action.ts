@@ -11,10 +11,11 @@ import { HardhatRuntimeEnvironmentImplementation } from "../../core/hre.js";
 interface TestActionArguments {
   testFiles: string[];
   noCompile: boolean;
+  grep: string | undefined;
 }
 
 const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
-  { testFiles, noCompile },
+  { testFiles, noCompile, grep },
   hre,
 ) => {
   // If this code is executed, it means the user has not specified a test runner.
@@ -49,11 +50,17 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
       continue;
     }
 
+    const args = {
+      testFiles: files,
+      noCompile: false,
+      grep,
+    };
+
     if (subtask.options.has("noCompile")) {
-      await subtask.run({ testFiles: files, noCompile: true });
-    } else {
-      await subtask.run({ testFiles: files });
+      args.noCompile = true;
     }
+
+    await subtask.run(args);
   }
 
   if (hre.globalOptions.coverage === true) {

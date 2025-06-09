@@ -86,35 +86,6 @@ describe("Task builders", () => {
           description: "Task description",
         });
       });
-
-      it("should set the task description", () => {
-        const builder = new EmptyTaskDefinitionBuilderImplementation("task-id");
-        const taskDefinition = builder
-          .setDescription("Task description")
-          .build();
-
-        assert.deepEqual(taskDefinition, {
-          type: TaskDefinitionType.EMPTY_TASK,
-          id: ["task-id"],
-          description: "Task description",
-        });
-      });
-
-      it("should override the description set in the constructor", () => {
-        const builder = new EmptyTaskDefinitionBuilderImplementation(
-          "task-id",
-          "Task description",
-        );
-        const taskDefinition = builder
-          .setDescription("New task description")
-          .build();
-
-        assert.deepEqual(taskDefinition, {
-          type: TaskDefinitionType.EMPTY_TASK,
-          id: ["task-id"],
-          description: "New task description",
-        });
-      });
     });
   });
 

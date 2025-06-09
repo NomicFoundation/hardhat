@@ -23,10 +23,13 @@
       "path": "../hardhat-ethers"
     },
     {
+      "path": "../hardhat-verify"
+    },
+    {
       "path": "../hardhat-viem"
     },
     {
-      "path": "../hardhat-viem-matchers"
+      "path": "../hardhat-viem-assertions"
     },
     {
       "path": "../hardhat-ethers-chai-matchers"

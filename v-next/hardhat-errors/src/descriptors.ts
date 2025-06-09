@@ -284,6 +284,24 @@ export const ERROR_CATEGORIES: {
       },
     },
   },
+  HARDHAT_VERIFY: {
+    min: 80000,
+    max: 89999,
+    pluginId: "hardhat-verify",
+    websiteTitle: "Hardhat Verify",
+    CATEGORIES: {
+      GENERAL: {
+        min: 80000,
+        max: 80099,
+        websiteSubTitle: "General errors",
+      },
+      VALIDATION: {
+        min: 80100,
+        max: 80199,
+        websiteSubTitle: "Validation errors",
+      },
+    },
+  },
 };
 
 export const ERRORS = {
@@ -423,6 +441,20 @@ Please add the property "type" with the value "module" in your package.json to e
         messageTemplate: `Invalid hex string "{value}"`,
         websiteTitle: "Invalid hex string",
         websiteDescription: `Given value was not a valid hex string.`,
+      },
+      CONFIG_VARIABLE_FORMAT_MUST_INCLUDE_VARIABLE: {
+        number: 19,
+        messageTemplate: `The format string "{format}" must include {marker} marker`,
+        websiteTitle: "Config variable format must include {variable}",
+        websiteDescription: `The config variable format must include the string "{variable}", which will be replaced with the actual value of the variable.`,
+      },
+      INVALID_FULLY_QUALIFIED_NAME: {
+        number: 20,
+        messageTemplate: `Invalid fully qualified contract name "{name}"`,
+        websiteTitle: "Invalid fully qualified contract name",
+        websiteDescription: `A contract name was expected to be in fully qualified form, but it's not.
+
+A fully qualified name should look like file.sol:Contract`,
       },
     },
     INTERNAL: {
@@ -2377,6 +2409,347 @@ This might be caused by using hardhat_reset and loadFixture calls in a testcase.
           "withArgs called with both .emit and .revertedWithCustomError, but these assertions cannot be combined",
         websiteDescription:
           "withArgs called with both .emit and .revertedWithCustomError, but these assertions cannot be combined",
+      },
+    },
+  },
+  HARDHAT_VERIFY: {
+    GENERAL: {
+      NETWORK_NOT_SUPPORTED: {
+        number: 80000,
+        messageTemplate: `The network "{networkName}" with chain id "{chainId}" is not supported.`,
+        websiteTitle: "Network not supported",
+        websiteDescription: `The network is not supported by hardhat-verify. To see the list of supported networks, run:
+
+  npx hardhat verify --list-networks
+
+To add support for a new network, see https://hardhat.org/verify-custom-networks`,
+      },
+      EXPLORER_REQUEST_FAILED: {
+        number: 80001,
+        messageTemplate: `The request to {url} failed with the message "{errorMessage}". This error comes from {name}, not Hardhat.`,
+        websiteTitle: "Explorer request failed",
+        websiteDescription: `The request to the explorer failed.
+- Verify that the URL is correct.
+- Ensure the {name} service is up and reachable.
+- Check your network connection and try again.`,
+      },
+      EXPLORER_REQUEST_STATUS_CODE_ERROR: {
+        number: 80002,
+        messageTemplate: `The request to {url} returned a non-success status code {statusCode}: "{errorMessage}". (This response comes from {name}, not Hardhat.)`,
+        websiteTitle: "Explorer request status code error",
+        websiteDescription: `The request to the explorer returned a non-success status code.
+- Verify that the URL is correct.
+- Ensure the {name} service is up and reachable.
+- Check your network connection and try again.`,
+      },
+      SOLC_VERSION_NOT_SUPPORTED: {
+        number: 80003,
+        messageTemplate: `The following Solidity compiler versions are not supported by the Etherscan API: {unsupportedSolcVersions}.`,
+        websiteTitle: "Unsupported solidity compiler version",
+        websiteDescription: `The specified Solidity compiler version is not supported by the Etherscan API. Only versions 0.4.11 and above are supported.
+For a full list of supported versions, visit: https://etherscan.io/solcversions`,
+      },
+      DEPLOYED_BYTECODE_NOT_FOUND: {
+        number: 80004,
+        messageTemplate: `No bytecode found at address "{address}". Is the contract deployed on the "{networkName}" network?`,
+        websiteTitle: "Deployed bytecode not found",
+        websiteDescription: `No bytecode was found at the specified address. This usually means the contract is not deployed or was deployed to a different network.
+Please verify the address and selected network, and try again.`,
+      },
+      SOLC_VERSION_MISMATCH: {
+        number: 80005,
+        messageTemplate: `The contract deployed to the "{networkName}" network was compiled with Solidity {deployedSolcVersion}, but the configured compiler {configuredSolcVersionSummary}.`,
+        websiteTitle: "Compiler version mismatch",
+        websiteDescription: `The Solidity compiler version used to compile the deployed contract does not match any of the versions configured in your Hardhat project.
+
+This mismatch may indicate:
+- You're not on the same commit that was used to deploy the contract.
+- The compiler version in your Hardhat config is incorrect.
+- The address provided is not the deployed contract.
+- The selected network is incorrect.`,
+      },
+      CONTRACT_NOT_FOUND: {
+        number: 80006,
+        messageTemplate: `The contract "{contract}" is not present in your project's artifacts.`,
+        websiteTitle: "Contract not found",
+        websiteDescription: `The specified contract is not present in your project's artifacts. Please ensure the contract is compiled and the name is correct.`,
+      },
+      BUILD_INFO_NOT_FOUND: {
+        number: 80007,
+        messageTemplate: `The contract "{contract}" is present in your project, but its build info is missing.`,
+        websiteTitle: "Build info not found",
+        websiteDescription: `The specified contract is present in your project, but its build info is missing. Please ensure the contract is compiled by Hardhat and that it is written in Solidity.`,
+      },
+      BUILD_INFO_SOLC_VERSION_MISMATCH: {
+        number: 80008,
+        messageTemplate: `The contract "{contract}" build info specifies Solidity {buildInfoSolcVersion}, but the deployed bytecode on the "{networkName}" network indicates {versionDetails}.`,
+        websiteTitle: "Build info compiler version mismatch",
+        websiteDescription: `The compiler version in the build info does not match the version encoded in the deployed bytecode.
+Possible causes:
+- Compiler settings were changed after deployment.
+- The contract address is incorrect.
+- The selected network is incorrect.`,
+      },
+      DEPLOYED_BYTECODE_MISMATCH: {
+        number: 80009,
+        messageTemplate: `The address contains a contract whose bytecode does not match {contractDescription}.`,
+        websiteTitle: "Deployed bytecode mismatch",
+        websiteDescription: `The bytecode at the specified address did not match the expected contract.
+
+Possible causes:
+- Your artifacts are outdated or missing; try running \`hardhat compile --force\`.
+- The contract code was modified after deployment.
+- Compiler settings (optimizer, EVM version, etc.) changed after deployment.
+- The provided address is incorrect.
+- The selected network is incorrect.`,
+      },
+      DEPLOYED_BYTECODE_MULTIPLE_MATCHES: {
+        number: 80010,
+        messageTemplate: `More than one contract matches the deployed bytecode:
+{fqnList}
+
+Specify the exact contract using the "--contract" flag.`,
+        websiteTitle: "Multiple contract matches",
+        websiteDescription: `The deployed bytecode matches multiple compiled contracts. Specify the exact contract using the "--contract" flag. For example:
+
+npx hardhat verify --contract contracts/Example.sol:ExampleContract <other args>`,
+      },
+      INVALID_LIBRARY_ADDRESS: {
+        number: 80011,
+        messageTemplate: `The library "{library}" provided for the contract "{contract}" has an invalid address: "{address}".`,
+        websiteTitle: "Invalid library address",
+        websiteDescription: `The address provided for a linked library is invalid. Please make sure the address is a valid Ethereum address.`,
+      },
+      UNUSED_LIBRARY: {
+        number: 80012,
+        messageTemplate: `The library "{library}" provided for the contract "{contract}" is not used by the contract.
+
+{suggestion}`,
+        websiteTitle: "Library not found in contract",
+        websiteDescription: `A library was specified using the "--libraries" option, but the selected contract does not use it.
+
+If the contract uses external libraries, verify that the provided name matches the fully qualified name (FQN) of one of them, such as:
+
+  contracts/Math.sol:SafeMath`,
+      },
+      LIBRARY_MULTIPLE_MATCHES: {
+        number: 80013,
+        messageTemplate: `The library "{library}" provided for the contract "{contract}" is ambiguous.
+It matches multiple libraries:
+{fqnList}
+
+To fix this, specify one of these fully qualified library names and try again.`,
+        websiteTitle: "Library name is ambiguous",
+        websiteDescription: `The specified library name matches multiple libraries used by the contract.
+
+To resolve the ambiguity, provide the fully qualified library name in the format:
+
+  path/to/LibraryFile.sol:LibraryName`,
+      },
+      DUPLICATED_LIBRARY: {
+        number: 80014,
+        messageTemplate: `The library name "{library}" and its fully qualified name "{libraryFqn}" refer to the same library.
+
+To fix this, remove one of them and try again.`,
+        websiteTitle: "Duplicated library entry",
+        websiteDescription: `The same library was specified more than once using both its short name and fully qualified name (FQN) in the "--libraries" option.
+
+Only one form should be used for each library. Remove one of the entries and try again.`,
+      },
+      LIBRARY_ADDRESSES_MISMATCH: {
+        number: 80015,
+        messageTemplate: `The following detected library addresses differ from those you provided:
+{conflictList}
+
+You can either fix these addresses in your libraries, or remove them to let the plugin autodetect them.`,
+        websiteTitle: "Library address mismatch",
+        websiteDescription: `Some libraries have conflicting addresses between what you provided and what was detected in the deployed bytecode.
+
+Please ensure each library address is correct. You can remove entries from your input to use autodetection instead.`,
+      },
+      MISSING_LIBRARY_ADDRESSES: {
+        number: 80016,
+        messageTemplate: `The contract "{contract}" has one or more library addresses that cannot be detected from the deployed bytecode.
+This can occur if a library is only used in the contract's constructor. The missing libraries are:
+{missingList}
+
+{solution}`,
+        websiteTitle: "Missing library addresses",
+        websiteDescription: `One or more libraries required by the contract could not be detected from the deployed bytecode.
+
+This usually happens when a library is only referenced in the contract's constructor. To resolve this, provide the missing library addresses using the "--libraries" option.
+
+For more information, see:
+https://hardhat.org/hardhat-runner/plugins/nomicfoundation-hardhat-verify#libraries-with-undetectable-addresses
+`,
+      },
+      INVALID_CONSTRUCTOR_ARGUMENT_TYPE: {
+        number: 80017,
+        messageTemplate: `The value "{value}" for constructor parameter "{argument}" cannot be encoded.
+Reason: {reason}.`,
+        websiteTitle: "Invalid constructor argument type",
+        websiteDescription: `One of the arguments passed to the contract's constructor has an invalid JavaScript type.
+
+This error occurs when you supply a value whose runtime type doesn't match the expected Solidity type. For example, you must pass a JS string for a Solidity string parameter.
+
+Please verify that each constructor argument is the correct JS type.`,
+      },
+      INVALID_CONSTRUCTOR_ARGUMENTS_LENGTH: {
+        number: 80018,
+        messageTemplate: `The constructor for "{contract}" has {requiredArgs} parameters but {providedArgs} arguments were provided instead.`,
+        websiteTitle: "Invalid constructor argument count",
+        websiteDescription: `The number of arguments provided to the contract's constructor doesn't match the number of parameters defined in its ABI.
+
+This error occurs when you supply a different number of arguments than the constructor expects. For example, if the constructor expects two parameters but you provided three.
+
+Please verify that you pass the exact number of arguments required by the constructor.`,
+      },
+      CONSTRUCTOR_ARGUMENT_OVERFLOW: {
+        number: 80019,
+        messageTemplate: `The value "{value}" is not a safe integer and cannot be encoded. Use a string instead of a plain number.
+Reason: {reason}; fault in {operation}.`,
+        websiteTitle: "Invalid constructor argument value",
+        websiteDescription: `One of the arguments passed to the contract's constructor isn't a safe integer and can't be encoded as a JavaScript number.
+
+This error occurs when a numeric value exceeds JavaScript's safe integer range. To encode large integers, provide them as strings instead.
+
+Please convert any large numeric values to strings.`,
+      },
+      CONTRACT_VERIFICATION_MISSING_BYTECODE: {
+        number: 80020,
+        messageTemplate: `The request to {url} failed because the address "{address}" does not have bytecode.`,
+        websiteTitle: "Missing bytecode at address",
+        websiteDescription: `The explorer responded that the specified address does not contain bytecode. This usually means the contract was deployed recently and the explorer's backend has not yet indexed it.
+
+Please wait a short time (e.g., 30-60 seconds) and try again. If you're running this from a script, wait for at least five confirmations before verifying.`,
+      },
+      CONTRACT_ALREADY_VERIFIED: {
+        number: 80021,
+        messageTemplate: `The contract "{contract}" at address "{address}" is already verified.`,
+        websiteTitle: "Contract already verified",
+        websiteDescription: `The block explorer responded that the contract is already verified.
+
+This typically occurs if you used the "--force" flag and the explorer does not support re-verification, or if the contract was previously verified with a full match.`,
+      },
+      CONTRACT_VERIFICATION_REQUEST_FAILED: {
+        number: 80022,
+        messageTemplate: `The contract verification request failed: "{message}".`,
+        websiteTitle: "Contract verification request failed",
+        websiteDescription: `The block explorer returned an error when attempting to verify the contract's source code.
+
+Please check the returned message for details.`,
+      },
+      CONTRACT_VERIFICATION_STATUS_POLLING_FAILED: {
+        number: 80023,
+        messageTemplate: `The contract verification status polling encountered an error: "{message}". Verification may still succeed.`,
+        websiteTitle: "Contract verification status polling failed",
+        websiteDescription:
+          "The block explorer returned a failure status when checking the verification status. Verification may still succeed; please check manually.",
+      },
+      CONTRACT_VERIFICATION_UNEXPECTED_RESPONSE: {
+        number: 80024,
+        messageTemplate: `The block explorer API returned an unexpected message: "{message}". Please report this issue to the Hardhat team.`,
+        shouldBeReported: true,
+        websiteTitle: "Unexpected API response during contract verification",
+        websiteDescription: `The block explorer API returned a message that doesn't match the expected format. This may indicate a change in the API or an issue with the request.
+
+Please report this issue to the Hardhat team.`,
+      },
+      CONTRACT_VERIFICATION_FAILED: {
+        number: 80025,
+        messageTemplate: `The contract verification failed.
+Reason: "{reason}".
+{librariesWarning}`,
+        websiteTitle: "Contract verification failed",
+        websiteDescription: `Unable to verify the contract on the block explorer.
+
+If your contract uses libraries whose addresses cannot be detected automatically, make sure you are providing the correct address for each undetectable library.`,
+      },
+      ETHERSCAN_VERIFICATION_DISABLED_IN_CONFIG: {
+        number: 80026,
+        messageTemplate:
+          "Etherscan verification is disabled in your config. Please add an Etherscan configuration section to your Hardhat config.",
+        websiteTitle: "Etherscan verification disabled",
+        websiteDescription:
+          "No Etherscan verfication configuration set in Hardhat config",
+      },
+      ETHERSCAN_BLOCK_EXPLORER_NOT_CONFIGURED: {
+        number: 80027,
+        messageTemplate:
+          "No Etherscan block explorer is configured for the {chainId} chain in the chain descriptors.",
+        websiteTitle: "Etherscan block explorer not configured",
+        websiteDescription: `
+Etherscan block explorer information is missing in your chain descriptor configuration.
+
+To enable contract verification on Etherscan, add an etherscan entry in the blockExplorers field of the relevant chain descriptor.
+You can override the default chain descriptor by providing your own chainDescriptors object in the Hardhat config, with the following structure:
+
+chainDescriptors: {
+  <chainId>: {
+    name: <name>,
+    blockExplorers: {
+      etherscan: { name: "Etherscan", url: <etherscan-url> apiUrl: <etherscan-api-url> };
+    }
+  }
+}
+
+`,
+      },
+    },
+    VALIDATION: {
+      INVALID_ADDRESS: {
+        number: 80100,
+        messageTemplate: `"{value}" is not a valid address`,
+        websiteTitle: "Invalid address",
+        websiteDescription: "The value is not a valid address",
+      },
+      MUTUALLY_EXCLUSIVE_CONSTRUCTOR_ARGS: {
+        number: 80101,
+        messageTemplate:
+          "The parameters constructorArgs and constructorArgsPath are mutually exclusive.",
+        websiteTitle: "Mutually exclusive constructor arguments",
+        websiteDescription:
+          "The parameters constructorArgs and constructorArgsPath are mutually exclusive. Please provide only one of them.",
+      },
+      INVALID_CONSTRUCTOR_ARGS_MODULE_EXPORT: {
+        number: 80102,
+        messageTemplate: `The module specified by "{constructorArgsPath}" must default export an array of constructor arguments.`,
+        websiteTitle: "Invalid constructor arguments module",
+        websiteDescription: `The module specified by the constructorArgsPath parameter must default export an array of constructor arguments.
+
+Example:
+
+export default ["arg1", "arg2", ...];`,
+      },
+      MODULE_NOT_FOUND: {
+        number: 80103,
+        messageTemplate: `The module specified by "{modulePath}" could not be found.`,
+        websiteTitle: "Module not found",
+        websiteDescription:
+          "The specified module could not be found. Please check the path and try again.",
+      },
+      MODULE_SYNTAX_ERROR: {
+        number: 80104,
+        messageTemplate: `The module specified by "{modulePath}" has a syntax error: {errorMessage}`,
+        websiteTitle: "Module syntax error",
+        websiteDescription:
+          "The specified module has a syntax error. Please fix the error and try again.",
+      },
+      IMPORT_MODULE_FAILED: {
+        number: 80105,
+        messageTemplate: `The module specified by "{modulePath}" could not be imported: {errorMessage}`,
+        websiteTitle: "Import module failed",
+        websiteDescription: "The specified module could not be imported.",
+      },
+      INVALID_LIBRARIES_MODULE_EXPORT: {
+        number: 80106,
+        messageTemplate: `The module specified by "{librariesPath}" must default export a record of libraries.`,
+        websiteTitle: "Invalid libraries module",
+        websiteDescription: `The module specified by the librariesPath parameter must default export a record of libraries.
+
+Example:
+
+export default { lib1: "0x...", lib2: "0x...", ... };`,
       },
     },
   },
