@@ -1012,6 +1012,32 @@ presets:
     commands:
       - forge test
       - hardhat test solidity
+  code-coverage:
+    hardhat-ref: v-next
+    edr-ref: ''
+    repositories:
+      - Elytro-eth/soul-wallet-contract
+      - foundry-rs/forge-std
+      - kalidao/keep
+      - mds1/multicall
+      - pancakeswap/infinity-core
+      - PaulRBerg/prb-math
+      - PaulRBerg/prb-proxy
+      - PaulRBerg/prb-test
+      - pcaversaccio/createx
+      - ProjectOpenSea/seaport
+      - sablier-labs/lockup
+      - sablier-labs/v2-periphery
+      - transmissions11/solmate
+      - Uniswap/UniswapX
+      - Vectorized/solady
+    runners:
+      - ubuntu-latest
+      - macos-latest
+      - windows-latest
+    commands:
+      - hardhat test solidity
+      - hardhat test solidity --coverage
   solidity-compile:
     hardhat-ref: v-next
     edr-ref: ''
