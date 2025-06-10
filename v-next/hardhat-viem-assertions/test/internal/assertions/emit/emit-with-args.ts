@@ -1,5 +1,6 @@
 import type { HardhatViemHelpers } from "@nomicfoundation/hardhat-viem/types";
 import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
+import type { EthereumProvider } from "hardhat/types/providers";
 
 import { before, beforeEach, describe, it } from "node:test";
 
@@ -16,6 +17,7 @@ import { isExpectedError } from "../../../helpers/is-expected-error.js";
 describe("emitWithArgs", () => {
   let hre: HardhatRuntimeEnvironment;
   let viem: HardhatViemHelpers;
+  let provider: EthereumProvider;
 
   useEphemeralFixtureProject("hardhat-project");
 
@@ -29,7 +31,7 @@ describe("emitWithArgs", () => {
   });
 
   beforeEach(async () => {
-    ({ viem } = await hre.network.connect());
+    ({ provider, viem } = await hre.network.connect());
   });
 
   it("should check that the event was emitted with the correct single argument", async () => {
@@ -52,6 +54,41 @@ describe("emitWithArgs", () => {
       "WithTwoUintArgs",
       [1n, 2n],
     );
+  });
+
+  it("should check that the event was emitted when multiple events are emitted", async () => {
+    const contract = await viem.deployContract("Events");
+
+    // Temporarily disable auto mine to ensure all events are emitted within the same block
+    await provider.request({
+      method: "evm_setAutomine",
+      params: [false],
+    });
+
+    await viem.assertions.emitWithArgs(
+      (async () => {
+        await contract.write.emitWithoutArgs();
+        await contract.write.emitTwoUints([1n, 2n]);
+        await contract.write.emitTwoUints([3n, 4n]);
+        await contract.write.emitTwoUints([5n, 6n]);
+        await contract.write.emitWithoutArgs();
+
+        // Mine a block that will contain multiple events
+        await provider.request({
+          method: "hardhat_mine",
+          params: ["0x1"],
+        });
+      })(),
+      contract,
+      "WithTwoUintArgs",
+      [3n, 4n],
+    );
+
+    // Re-enable auto mine
+    await provider.request({
+      method: "evm_setAutomine",
+      params: [true],
+    });
   });
 
   it("should check that the event was emitted with the correct multiple arguments, one with param name, one without", async () => {
