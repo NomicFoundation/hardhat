@@ -133,29 +133,34 @@ export class Bytecode {
  * This approach avoids decoding issues that can occur if the bytecode
  * includes linker placeholders or non-hex characters.
  *
- * @param unlinkedBytecode The full contract bytecode as a hex string
+ * @param bytecode The full contract bytecode as a hex string
  * (with or without `0x` prefix).
  * @returns The hex string of the executable code, excluding metadata.
  */
-function inferExecutableSection(unlinkedBytecode: string): string {
-  const hexBytecode = getUnprefixedHexString(unlinkedBytecode);
+export function inferExecutableSection(bytecode: string): string {
+  const rawBytecode = getUnprefixedHexString(bytecode);
 
   // Read the last 2 bytes (4 hex chars) that encode the length of
   // the metadata section.
   const metadataLengthBytes = hexStringToBytes(
-    hexBytecode.slice(-METADATA_LENGTH_FIELD_SIZE * 2),
+    rawBytecode.slice(-METADATA_LENGTH_FIELD_SIZE * 2),
   );
 
   // If the bytecode is too short to contain a metadata length field,
   // return the entire bytecode.
   if (metadataLengthBytes.length !== METADATA_LENGTH_FIELD_SIZE) {
-    return hexBytecode;
+    return rawBytecode;
   }
 
   const metadataSectionLength =
     getMetadataSectionBytesLength(metadataLengthBytes);
 
-  return hexBytecode.slice(0, hexBytecode.length - metadataSectionLength * 2);
+  // invalid length (metadata + length field doesn't fit)
+  if (metadataSectionLength * 2 > rawBytecode.length) {
+    return rawBytecode;
+  }
+
+  return rawBytecode.slice(0, rawBytecode.length - metadataSectionLength * 2);
 }
 
 /**

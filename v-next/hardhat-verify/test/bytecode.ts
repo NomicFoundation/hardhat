@@ -5,17 +5,61 @@ import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
 
 import { useEphemeralFixtureProject } from "@nomicfoundation/hardhat-test-utils";
-import { getUnprefixedHexString } from "@nomicfoundation/hardhat-utils/hex";
+import {
+  getPrefixedHexString,
+  getUnprefixedHexString,
+} from "@nomicfoundation/hardhat-utils/hex";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 import {
+  inferExecutableSection,
   nullifyBytecodeOffsets,
   getLibraryOffsets,
   getImmutableOffsets,
   getCallProtectionOffsets,
 } from "../src/internal/bytecode.js";
+import { METADATA_LENGTH_FIELD_SIZE } from "../src/internal/metadata.js";
 
 describe("bytecode", () => {
+  describe("inferExecutableSection", () => {
+    it("should strip the metadata section from the bytecode", () => {
+      const executableSection = "deadbeef";
+      const metadataSection = "cafebabe";
+      const bytecode = buildBytecode(executableSection, metadataSection);
+
+      assert.equal(inferExecutableSection(bytecode), executableSection);
+    });
+
+    it("should handle bytecode prefixed with 0x", () => {
+      const executableSection = "cafed00d";
+      const metadataSection = "112233";
+      const bytecode = getPrefixedHexString(
+        buildBytecode(executableSection, metadataSection),
+      );
+
+      assert.equal(inferExecutableSection(bytecode), executableSection);
+    });
+
+    it("should return the entire bytecode if it's less than the metadata length field size", () => {
+      const bytecode = "0xab"; // less than METADATA_LENGTH_FIELD_SIZE * 2 chars
+
+      assert.equal(
+        inferExecutableSection(bytecode),
+        getUnprefixedHexString(bytecode),
+      );
+    });
+
+    it("should return the entire bytecode if the metadata length field size is invalid", () => {
+      const fakeLength = "ffff"; // huge length
+      const bytecode = "0123" + fakeLength;
+
+      assert.equal(
+        inferExecutableSection(bytecode),
+        getUnprefixedHexString(bytecode),
+      );
+    });
+  });
+
   describe("nullifyBytecodeOffsets", () => {
     useEphemeralFixtureProject("default");
 
@@ -317,3 +361,17 @@ describe("bytecode", () => {
     });
   });
 });
+
+function buildBytecode(
+  executableSection: string,
+  metadataSection: string,
+): string {
+  // calculate the length of the metadata section in bytes
+  // and pad it to the required size
+  const metadataBytesLength = metadataSection.length / 2;
+  const metadataSectionLength = metadataBytesLength
+    .toString(16)
+    .padStart(METADATA_LENGTH_FIELD_SIZE * 2, "0");
+
+  return executableSection + metadataSection + metadataSectionLength;
+}
