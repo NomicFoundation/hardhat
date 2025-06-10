@@ -35,7 +35,7 @@ const VERIFICATION_STATUS_POLLING_SECONDS = 3;
 // v-next/hardhat/src/internal/builtin-plugins/network-manager/chain-descriptors.ts
 // and use this as the default API URL for Etherscan v2
 // this.apiUrl = etherscanConfig.apiUrl ?? ETHERSCAN_API_URL;
-const ETHERSCAN_API_URL = "https://api.etherscan.io/v2/api";
+export const ETHERSCAN_API_URL = "https://api.etherscan.io/v2/api";
 
 export class Etherscan {
   public chainId: string;
@@ -45,6 +45,7 @@ export class Etherscan {
   public apiKey: string;
 
   readonly #testDispatcher?: Dispatcher;
+  readonly #pollingIntervalMs: number;
 
   constructor(etherscanConfig: {
     chainId: number;
@@ -52,6 +53,7 @@ export class Etherscan {
     url: string;
     apiKey: string;
     testDispatcher?: Dispatcher;
+    pollingIntervalMs?: number;
   }) {
     this.chainId = String(etherscanConfig.chainId);
     this.name = etherscanConfig.name ?? "Etherscan";
@@ -59,6 +61,10 @@ export class Etherscan {
     this.apiUrl = ETHERSCAN_API_URL;
     this.apiKey = etherscanConfig.apiKey;
     this.#testDispatcher = etherscanConfig.testDispatcher;
+    this.#pollingIntervalMs =
+      etherscanConfig.pollingIntervalMs !== undefined
+        ? etherscanConfig.pollingIntervalMs / 1000
+        : VERIFICATION_STATUS_POLLING_SECONDS;
   }
 
   public getContractUrl(address: string) {
@@ -94,8 +100,9 @@ export class Etherscan {
         HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_REQUEST_FAILED,
         {
           name: this.name,
-          url: this.url,
-          errorMessage: error.message,
+          url: this.apiUrl,
+          errorMessage:
+            error.cause instanceof Error ? error.cause.message : error.message,
         },
       );
     }
@@ -108,14 +115,14 @@ export class Etherscan {
         HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_REQUEST_STATUS_CODE_ERROR,
         {
           name: this.name,
-          url: this.url,
+          url: this.apiUrl,
           statusCode: response.statusCode,
           errorMessage: responseBody.result,
         },
       );
     }
 
-    if (responseBody.message !== "OK") {
+    if (responseBody.status !== "1") {
       return false;
     }
 
@@ -166,8 +173,9 @@ export class Etherscan {
         HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_REQUEST_FAILED,
         {
           name: this.name,
-          url: this.url,
-          errorMessage: error.message,
+          url: this.apiUrl,
+          errorMessage:
+            error.cause instanceof Error ? error.cause.message : error.message,
         },
       );
     }
@@ -180,7 +188,7 @@ export class Etherscan {
         HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_REQUEST_STATUS_CODE_ERROR,
         {
           name: this.name,
-          url: this.url,
+          url: this.apiUrl,
           statusCode: response.statusCode,
           errorMessage: responseBody.result,
         },
@@ -253,8 +261,9 @@ export class Etherscan {
         HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_REQUEST_FAILED,
         {
           name: this.name,
-          url: this.url,
-          errorMessage: error.message,
+          url: this.apiUrl,
+          errorMessage:
+            error.cause instanceof Error ? error.cause.message : error.message,
         },
       );
     }
@@ -267,7 +276,7 @@ export class Etherscan {
         HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_REQUEST_STATUS_CODE_ERROR,
         {
           name: this.name,
-          url: this.url,
+          url: this.apiUrl,
           statusCode: response.statusCode,
           errorMessage: responseBody.result,
         },
@@ -279,7 +288,7 @@ export class Etherscan {
     );
 
     if (etherscanResponse.isPending()) {
-      await sleep(VERIFICATION_STATUS_POLLING_SECONDS);
+      await sleep(this.#pollingIntervalMs);
 
       return this.pollVerificationStatus(guid, contractAddress, contractName);
     }
