@@ -74,7 +74,14 @@ export async function getRemappings() {
 }
 
 export async function installDependency(dependency: string) {
-  const cmd = `forge install --no-commit ${dependency}`;
+  // Check if --no-commit flag is supported. Best way is checking the help text
+  const helpText = await runCmd("forge install --help");
+  const useNoCommitFlag = helpText.includes("--no-commit");
+
+  const cmd = `forge install ${
+    useNoCommitFlag ? "--no-commit" : ""
+  } ${dependency}`;
+
   console.log(`Running '${picocolors.blue(cmd)}'`);
 
   try {
