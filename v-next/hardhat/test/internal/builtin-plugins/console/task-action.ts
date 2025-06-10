@@ -19,6 +19,10 @@ import { createHardhatRuntimeEnvironment } from "../../../../src/internal/hre-in
 
 const log = debug("hardhat:test:console:task-action");
 
+//
+// Just a random comment
+//
+
 describe("console/task-action", function () {
   let hre: HardhatRuntimeEnvironment;
   let options: repl.ReplOptions;
