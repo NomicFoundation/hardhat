@@ -99,7 +99,7 @@ describe("hardhat ethers signer", () => {
     // TODO: Skip for now, resume once we can launch a separate instance of the local network
     describe.skip("localhost accounts", () => {
       it(`should throw because 'remote' is not supported`, async () => {
-        const { ethers: hhEthers } = await initializeTestEthers(undefined, {
+        const { ethers: hhEthers } = await initializeTestEthers([], {
           networks: {
             localhost: {
               type: "http",
@@ -123,7 +123,7 @@ describe("hardhat ethers signer", () => {
 
       it(`should work with array of private keys as strings`, async () => {
         const { ethers: hhEthers, provider: hhProvider } =
-          await initializeTestEthers(undefined, {
+          await initializeTestEthers([], {
             networks: {
               localhost: {
                 type: "http",
@@ -138,7 +138,7 @@ describe("hardhat ethers signer", () => {
 
       it(`should work with hd accounts`, async () => {
         const { ethers: hhEthers, provider: hhProvider } =
-          await initializeTestEthers(undefined, {
+          await initializeTestEthers([], {
             networks: {
               localhost: {
                 type: "http",
@@ -155,7 +155,7 @@ describe("hardhat ethers signer", () => {
     describe("hardhat accounts", () => {
       it(`should work with an array that has private keys as strings`, async () => {
         const { ethers: hhEthers, provider: hhProvider } =
-          await initializeTestEthers(undefined, {
+          await initializeTestEthers([], {
             networks: {
               hardhat: {
                 type: "edr",
@@ -172,7 +172,7 @@ describe("hardhat ethers signer", () => {
 
       it(`should work`, async () => {
         const { ethers: hhEthers, provider: hhProvider } =
-          await initializeTestEthers(undefined, {
+          await initializeTestEthers([], {
             networks: {
               hardhat: {
                 type: "edr",
