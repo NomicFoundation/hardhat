@@ -19,6 +19,11 @@ import { createHardhatRuntimeEnvironment } from "../../../../src/internal/hre-in
 
 const log = debug("hardhat:test:console:task-action");
 
+// NOTE:
+// In a few tests, we replace the `replServer.displayPrompt` function with
+// an empty function to prevent the final prompt from being printed to the console.
+// This avoids a "use after close" error when running tests.
+
 describe("console/task-action", function () {
   let hre: HardhatRuntimeEnvironment;
   let options: repl.ReplOptions;
@@ -53,6 +58,7 @@ describe("console/task-action", function () {
         },
         hre,
       );
+      replServer.displayPrompt = () => {};
       ensureError(replServer.lastError);
     });
 
@@ -79,6 +85,7 @@ describe("console/task-action", function () {
         },
         hre,
       );
+      replServer.displayPrompt = () => {};
       ensureError(replServer.lastError);
     });
   });
@@ -96,6 +103,7 @@ describe("console/task-action", function () {
         },
         hre,
       );
+      replServer.displayPrompt = () => {};
       ensureError(replServer.lastError);
     });
 
@@ -122,6 +130,7 @@ describe("console/task-action", function () {
         },
         hre,
       );
+      replServer.displayPrompt = () => {};
       ensureError(replServer.lastError);
     });
   });

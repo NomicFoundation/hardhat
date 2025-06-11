@@ -51,9 +51,6 @@ const consoleAction: NewTaskActionFunction<ConsoleActionArguments> = async (
 
       // Resolve the task action promise only when the REPL server exits
       replServer.on("exit", () => {
-        // Suppress the REPL’s final prompt to avoid a "use after close" error.
-        // Prevent from queueing one last async prompt after `.exit`.
-        replServer.displayPrompt = () => {};
         resolve(replServer);
       });
 
