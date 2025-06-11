@@ -229,7 +229,7 @@ export interface RemappedNpmPackagesMap {
    *
    *
    * @param from The file with the import.
-   * @param importPath The import path.
+   * @param importPath The import path, which must be a direct import.
    * @returns The best user remapping if any, or any error encountered while
    * processing the best user remapping.
    */

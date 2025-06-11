@@ -581,6 +581,12 @@ export class RemappedNpmPackagesMapImplementation
       path.dirname(unresolvedNpmRemapping.source),
     );
 
+    const target =
+      dependency.package.rootSourceName +
+      unresolvedNpmRemapping.target.substring(
+        "node_modules/".length + unresolvedNpmRemapping.installationName.length,
+      );
+
     return {
       success: true,
       value: {
@@ -593,11 +599,7 @@ export class RemappedNpmPackagesMapImplementation
         prefix: unresolvedNpmRemapping.prefix,
         originalFormat: unresolvedNpmRemapping.originalFormat,
         source: unresolvedNpmRemapping.source,
-        target:
-          dependency.package.rootSourceName +
-          unresolvedNpmRemapping.target.substring(
-            unresolvedNpmRemapping.installationName.length,
-          ),
+        target,
         targetNpmPackage: {
           installationName: unresolvedNpmRemapping.installationName,
           package: dependency.package,
@@ -655,10 +657,8 @@ export class RemappedNpmPackagesMapImplementation
     return sourceNamePathJoin(
       // We add a slash here so that it mains it if the rest of the path is empty
       from.rootSourceName + "/",
-      // We add the slash here if necessary
-      relativeFsPathToRemappingsFileFromPackage.endsWith("/")
-        ? relativeFsPathToRemappingsFileFromPackage
-        : relativeFsPathToRemappingsFileFromPackage + "/",
+      // Same here
+      relativeFsPathToRemappingsFileFromPackage + "/",
       remappingFragment,
     );
   }
