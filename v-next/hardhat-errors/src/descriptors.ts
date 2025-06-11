@@ -2573,7 +2573,7 @@ Please ensure each library address is correct. You can remove entries from your 
 This can occur if a library is only used in the contract's constructor. The missing libraries are:
 {missingList}
 
-{solution}`,
+Visit https://hardhat.org/hardhat-runner/plugins/nomicfoundation-hardhat-verify#libraries-with-undetectable-addresses to learn how to solve this.`,
         websiteTitle: "Missing library addresses",
         websiteDescription: `One or more libraries required by the contract could not be detected from the deployed bytecode.
 
