@@ -1,12 +1,20 @@
 import type { TestProjectTemplate } from "./helpers.js";
 
 import assert from "node:assert/strict";
+import { symlink } from "node:fs/promises";
 import path from "node:path";
-import { describe, it } from "node:test";
+import { after, before, describe, it } from "node:test";
 
-import { writeUtf8File } from "@nomicfoundation/hardhat-utils/fs";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
+import {
+  ensureDir,
+  mkdtemp,
+  remove,
+  writeJsonFile,
+} from "@nomicfoundation/hardhat-utils/fs";
 
-import { RemappedNpmPackagesMap } from "../../../../../../src/internal/builtin-plugins/solidity/build-system/resolver/remapped-npm-packages-map.js";
+import { RemappedNpmPackagesMapImplementation } from "../../../../../../src/internal/builtin-plugins/solidity/build-system/resolver/remapped-npm-packages-map.js";
 import { UserRemappingErrorType } from "../../../../../../src/types/solidity.js";
 
 import { useTestProjectTemplate } from "./helpers.js";
@@ -25,652 +33,904 @@ describe.only("RemappedNpmPackagesMap", () => {
             "./*.sol": "./contracts/*.sol",
           },
         };
-
         await using project = await useTestProjectTemplate(template);
+        const map = await RemappedNpmPackagesMapImplementation.create(
+          project.path,
+        );
 
-        const result = await RemappedNpmPackagesMap.create(project.path);
-        assert.equal(result.success, true);
-        const map = result.value;
+        const hhProjectPackage = map.getHardhatProjectPackage();
 
-        assert.equal(map.hardhatProjectPackage.rootFsPath, project.path);
-        assert.equal(map.hardhatProjectPackage.rootSourceName, "project");
-        assert.equal(map.hardhatProjectPackage.name, template.name);
-        assert.equal(map.hardhatProjectPackage.version, template.version);
-        assert.deepEqual(map.hardhatProjectPackage.exports, template.exports);
-        assert.deepEqual(map.getUserRemappings(map.hardhatProjectPackage), []);
-
-        await using projectWithOutPackageExports = await useTestProjectTemplate(
-          {
-            ...template,
-            exports: undefined,
+        assert.deepEqual(map.toJSON(), {
+          hardhatProjectPackage: hhProjectPackage,
+          packageByRootSourceName: {
+            project: hhProjectPackage,
           },
+          installationMap: {
+            project: {},
+          },
+          userRemappingsPerPackage: {},
+          generatedRemappingsIntoNpmFiles: {
+            project: {},
+          },
+        });
+      });
+
+      it("Shouldn't load any remappings.txt when first intialized", async () => {
+        const template: TestProjectTemplate = {
+          name: "no-remappings-loaded-on-init",
+          version: "1.2.4",
+          files: {
+            "contracts/A.sol": "contract A {}",
+            "remappings.txt": `foo/=bar/
+node_modules/nope/=bar/
+nope`,
+            "lib/submodule/remappings.txt": `context/:prefix/=target/
+invalid syntax`,
+          },
+          exports: {
+            "./*.sol": "./contracts/*.sol",
+          },
+        };
+        await using project = await useTestProjectTemplate(template);
+        const map = await RemappedNpmPackagesMapImplementation.create(
+          project.path,
         );
 
-        const result2 = await RemappedNpmPackagesMap.create(
-          projectWithOutPackageExports.path,
+        const hhProjectPackage = map.getHardhatProjectPackage();
+
+        assert.deepEqual(map.toJSON(), {
+          hardhatProjectPackage: hhProjectPackage,
+          packageByRootSourceName: {
+            project: hhProjectPackage,
+          },
+          installationMap: {
+            project: {},
+          },
+          userRemappingsPerPackage: {},
+          generatedRemappingsIntoNpmFiles: {
+            project: {},
+          },
+        });
+      });
+
+      it("Shouldn't load any dependency nor their remappings.txts when first intialized", async () => {
+        const template: TestProjectTemplate = {
+          name: "no-dependencies-loaded-on-init",
+          version: "1.2.4",
+          files: {
+            "contracts/A.sol": "contract A {}",
+            "remappings.txt": `foo/=bar/
+nope`,
+            "lib/submodule/remappings.txt": `context/:prefix/=target/
+invalid syntax`,
+          },
+          dependencies: {
+            dep1: {
+              name: "dep1",
+              version: "1.2.0",
+              files: {
+                "src/A.sol": "contract A {}",
+              },
+            },
+            "@cope/dep2": {
+              name: "@cope/dep2",
+              version: "1.2.0",
+              files: {
+                "remappings.txt": `foo/=bar/`,
+                "foo/remappings.txt": `nope`,
+              },
+            },
+          },
+        };
+        await using project = await useTestProjectTemplate(template);
+        const map = await RemappedNpmPackagesMapImplementation.create(
+          project.path,
         );
-        assert.equal(result2.success, true);
-        const map2 = result2.value;
-        assert.equal(
-          map2.hardhatProjectPackage.rootFsPath,
-          projectWithOutPackageExports.path,
-        );
-        assert.equal(map2.hardhatProjectPackage.exports, undefined);
+
+        const hhProjectPackage = map.getHardhatProjectPackage();
+
+        assert.deepEqual(map.toJSON(), {
+          hardhatProjectPackage: hhProjectPackage,
+          packageByRootSourceName: {
+            project: hhProjectPackage,
+          },
+          installationMap: {
+            project: {},
+          },
+          userRemappingsPerPackage: {},
+          generatedRemappingsIntoNpmFiles: {
+            project: {},
+          },
+        });
       });
     });
 
-    describe("Remappings loading", () => {
-      describe("Validation", () => {
-        it("Should fail if the remappings.txt file has invalid syntax", async () => {
-          const template: TestProjectTemplate = {
-            name: "invalid-remappings-syntax",
-            version: "1.2.4",
-            files: {
-              "contracts/A.sol": "contract A {}",
-              "remappings.txt": "invalid syntax",
-            },
-          };
-
-          await using project = await useTestProjectTemplate(template);
-
-          let result = await RemappedNpmPackagesMap.create(project.path);
-          assert.equal(result.success, false);
-          assert.deepEqual(result.error, [
-            {
-              type: UserRemappingErrorType.REMAPPING_WITH_INVALID_SYNTAX,
-              source: path.join(project.path, "remappings.txt"),
-              remapping: "invalid syntax",
-            },
-          ]);
-
-          await writeUtf8File(
-            path.join(project.path, "remappings.txt"),
-            `foo/=bar/
-asd`,
-          );
-          result = await RemappedNpmPackagesMap.create(project.path);
-          assert.equal(result.success, false);
-          assert.deepEqual(result.error, [
-            {
-              type: UserRemappingErrorType.REMAPPING_WITH_INVALID_SYNTAX,
-              source: path.join(project.path, "remappings.txt"),
-              remapping: "asd",
-            },
-          ]);
-        });
-
-        it("Should fail if the prefix doesn't end in /", async () => {
-          const template: TestProjectTemplate = {
-            name: "prefix-no-slash",
-            version: "1.2.4",
-            files: {
-              "remappings.txt": "foo=bar/",
-            },
-          };
-
-          await using project = await useTestProjectTemplate(template);
-
-          const result = await RemappedNpmPackagesMap.create(project.path);
-          assert.equal(result.success, false);
-          assert.deepEqual(result.error, [
-            {
-              type: UserRemappingErrorType.ILLEGAL_REMAPPING_WIHTOUT_SLASH_ENDINGS,
-              source: path.join(project.path, "remappings.txt"),
-              remapping: "foo=bar/",
-            },
-          ]);
-        });
-
-        it("Should fail if the target doesn't end in /", async () => {
-          const template: TestProjectTemplate = {
-            name: "target-no-slash",
-            version: "1.2.4",
-            files: {
-              "remappings.txt": "foo/=bar",
-            },
-          };
-
-          await using project = await useTestProjectTemplate(template);
-
-          const result = await RemappedNpmPackagesMap.create(project.path);
-          assert.equal(result.success, false);
-          assert.deepEqual(result.error, [
-            {
-              type: UserRemappingErrorType.ILLEGAL_REMAPPING_WIHTOUT_SLASH_ENDINGS,
-              source: path.join(project.path, "remappings.txt"),
-              remapping: "foo/=bar",
-            },
-          ]);
-        });
-
-        it("Should fail if it has a context and it doesn't end in /", async () => {
-          const template: TestProjectTemplate = {
-            name: "context-no-slash",
-            version: "1.2.4",
-            files: {
-              "remappings.txt": "asd:foo/=bar/",
-            },
-          };
-
-          await using project = await useTestProjectTemplate(template);
-
-          const result = await RemappedNpmPackagesMap.create(project.path);
-          assert.equal(result.success, false);
-          assert.deepEqual(result.error, [
-            {
-              type: UserRemappingErrorType.ILLEGAL_REMAPPING_WIHTOUT_SLASH_ENDINGS,
-              source: path.join(project.path, "remappings.txt"),
-              remapping: "asd:foo/=bar/",
-            },
-          ]);
-        });
-      });
-
-      it("Should ignore empty lines, trim with spaces and tabs, and ignore comments and give the right results", async () => {
+    describe("resolveDependencyByInstallationName", () => {
+      it("Should resolve a dependency by it's installation name", async () => {
         const template: TestProjectTemplate = {
-          name: "empty-lines-and-comments",
+          name: "resolve-dependency-by-installation-name",
           version: "1.2.4",
           files: {
-            "remappings.txt": `#  foo/=bar/ 
-              
- # foo/=bar2/ 
-
- #  context/:prefix/=target/ 
-`,
+            "contracts/A.sol": "contract A {}",
+          },
+          dependencies: {
+            dep1: {
+              name: "dep1",
+              version: "1.2.0",
+              files: {
+                "src/A.sol": "contract A {}",
+              },
+            },
+            otherName: {
+              name: "real-name",
+              version: "1.2.3",
+              files: {},
+              exports: {
+                "./*.sol": "./src/*.sol",
+              },
+            },
+            "@scope/dep2": {
+              name: "no-scope",
+              version: "1.1.1",
+              files: {},
+            },
           },
         };
-
         await using project = await useTestProjectTemplate(template);
+        const map = await RemappedNpmPackagesMapImplementation.create(
+          project.path,
+        );
+        const hhProjectPackage = map.getHardhatProjectPackage();
 
-        const result = await RemappedNpmPackagesMap.create(project.path);
-        assert.equal(result.success, true);
-        const map = result.value;
+        const result = await map.resolveDependencyByInstallationName(
+          hhProjectPackage,
+          "dep1",
+        );
 
-        assert.deepEqual(map.getUserRemappings(map.hardhatProjectPackage), []);
-      });
+        assert.deepEqual(result, {
+          package: {
+            name: "dep1",
+            version: "1.2.0",
+            rootFsPath: path.join(project.path, "node_modules/dep1"),
+            rootSourceName: "npm/dep1@1.2.0",
+            exports: undefined,
+          },
+          generatedRemapping: {
+            context: "project/",
+            prefix: "dep1/",
+            target: "npm/dep1@1.2.0/",
+          },
+        });
 
-      describe("With remappings.txt in the root", () => {
-        it("Should update the remappings fragments according to the root source name and the path to the remappings.txt file", async () => {
-          const template: TestProjectTemplate = {
-            name: "top-level-remappings",
-            version: "1.2.4",
-            files: {
-              "remappings.txt": `  foo/=bar/ 
-              
- # foo/=bar2/ 
+        const resultWithOtherName =
+          await map.resolveDependencyByInstallationName(
+            hhProjectPackage,
+            "otherName",
+          );
 
-   context/:prefix/=target/ 
-`,
+        assert.deepEqual(resultWithOtherName, {
+          package: {
+            name: "real-name",
+            version: "1.2.3",
+            rootFsPath: path.join(project.path, "node_modules/otherName"),
+            rootSourceName: "npm/real-name@1.2.3",
+            exports: {
+              "./*.sol": "./src/*.sol",
             },
-          };
+          },
+          generatedRemapping: {
+            context: "project/",
+            prefix: "otherName/",
+            target: "npm/real-name@1.2.3/",
+          },
+        });
 
-          await using project = await useTestProjectTemplate(template);
+        const resultWithScope = await map.resolveDependencyByInstallationName(
+          hhProjectPackage,
+          "@scope/dep2",
+        );
 
-          const result = await RemappedNpmPackagesMap.create(project.path);
-          assert.equal(result.success, true);
-          const map = result.value;
-
-          assert.deepEqual(map.getUserRemappings(map.hardhatProjectPackage), [
-            {
-              context: "project/",
-              prefix: "foo/",
-              target: "project/bar/",
-              originalFormat: "foo/=bar/",
-              source: path.join(project.path, "remappings.txt"),
-            },
-            {
-              context: "project/context/",
-              prefix: "prefix/",
-              target: "project/target/",
-              originalFormat: "context/:prefix/=target/",
-              source: path.join(project.path, "remappings.txt"),
-            },
-          ]);
+        assert.deepEqual(resultWithScope, {
+          package: {
+            name: "no-scope",
+            version: "1.1.1",
+            rootFsPath: path.join(project.path, "node_modules/@scope/dep2"),
+            rootSourceName: "npm/no-scope@1.1.1",
+            exports: undefined,
+          },
+          generatedRemapping: {
+            context: "project/",
+            prefix: "@scope/dep2/",
+            target: "npm/no-scope@1.1.1/",
+          },
         });
       });
 
-      describe("With remappings.txt in other directories", () => {
-        it("Should also validate and report their errors", async () => {
+      describe("Remappings", () => {
+        it("Shouldn't load the remappings.txt files of a dependency", async () => {
           const template: TestProjectTemplate = {
-            name: "nested-remappings-errors",
+            name: "no-remappings-loaded-on-resolution-of-dependency",
             version: "1.2.4",
-            files: {
-              "lib/submodule/remappings.txt": `foo/=bar`,
-            },
-          };
-
-          await using project = await useTestProjectTemplate(template);
-
-          const result = await RemappedNpmPackagesMap.create(project.path);
-          assert.equal(result.success, false);
-          assert.deepEqual(result.error, [
-            {
-              type: UserRemappingErrorType.ILLEGAL_REMAPPING_WIHTOUT_SLASH_ENDINGS,
-              // The path should be correct here, not the project root's remappings
-              source: path.join(project.path, "lib/submodule/remappings.txt"),
-              remapping: "foo/=bar",
-            },
-          ]);
-        });
-
-        it("Should update the remappings fragments according to the root source name and the path to the remappings.txt file", async () => {
-          const template: TestProjectTemplate = {
-            name: "nested-remappings",
-            version: "1.2.4",
-            files: {
-              "lib/submodule/remappings.txt": `  foo/=bar/ 
-              
- # foo/=bar2/ 
-
-   context/:prefix/=target/ 
-`,
-            },
-          };
-
-          await using project = await useTestProjectTemplate(template);
-
-          const result = await RemappedNpmPackagesMap.create(project.path);
-          assert.equal(result.success, true);
-          const map = result.value;
-
-          assert.deepEqual(map.getUserRemappings(map.hardhatProjectPackage), [
-            {
-              context: "project/lib/submodule/",
-              prefix: "foo/",
-              target: "project/lib/submodule/bar/",
-              originalFormat: "foo/=bar/",
-              source: path.join(project.path, "lib/submodule/remappings.txt"),
-            },
-            {
-              context: "project/lib/submodule/context/",
-              prefix: "prefix/",
-              target: "project/lib/submodule/target/",
-              originalFormat: "context/:prefix/=target/",
-              source: path.join(project.path, "lib/submodule/remappings.txt"),
-            },
-          ]);
-        });
-
-        it("Should merge the top level and the nested remappings", async () => {
-          const template: TestProjectTemplate = {
-            name: "merge-nested-remappings",
-            version: "1.2.4",
-            files: {
-              "remappings.txt": `foo/=bar/`,
-              "lib/submodule/remappings.txt": `context/:prefix/=target/`,
-              "lib/submodule2/remappings.txt": `context/:prefix/=target/`,
-            },
-          };
-
-          await using project = await useTestProjectTemplate(template);
-
-          const result = await RemappedNpmPackagesMap.create(project.path);
-          assert.equal(result.success, true);
-          const map = result.value;
-
-          assert.deepEqual(map.getUserRemappings(map.hardhatProjectPackage), [
-            {
-              context: "project/lib/submodule/context/",
-              prefix: "prefix/",
-              target: "project/lib/submodule/target/",
-              originalFormat: "context/:prefix/=target/",
-              source: path.join(project.path, "lib/submodule/remappings.txt"),
-            },
-            {
-              context: "project/lib/submodule2/context/",
-              prefix: "prefix/",
-              target: "project/lib/submodule2/target/",
-              originalFormat: "context/:prefix/=target/",
-              source: path.join(project.path, "lib/submodule2/remappings.txt"),
-            },
-            {
-              context: "project/",
-              prefix: "foo/",
-              target: "project/bar/",
-              originalFormat: "foo/=bar/",
-              source: path.join(project.path, "remappings.txt"),
-            },
-          ]);
-        });
-      });
-
-      describe("With npm remappings", () => {
-        describe("In the project", () => {
-          describe("Validation", () => {
-            it("Should fail if the npm remapping has invaid syntax", async () => {
-              const template: TestProjectTemplate = {
-                name: "invalid-npm-remapping-syntax",
-                version: "1.2.4",
+            files: {},
+            dependencies: {
+              dep1: {
+                name: "dep1",
+                version: "1.2.0",
                 files: {
-                  "remappings.txt": `foo/=node_modules/@only-scope/`,
-                },
-              };
-
-              await using project = await useTestProjectTemplate(template);
-              const result = await RemappedNpmPackagesMap.create(project.path);
-              assert.equal(result.success, false);
-              assert.deepEqual(result.error, [
-                {
-                  type: UserRemappingErrorType.REMAPPING_WITH_INVALID_SYNTAX,
-                  source: path.join(project.path, "remappings.txt"),
-                  remapping: "foo/=node_modules/@only-scope/",
-                },
-              ]);
-            });
-          });
-
-          it("Should ignore the node_modules/ prfix and treat the rest as an npm path", async () => {
-            const template: TestProjectTemplate = {
-              name: "npm-remappings-target-prefix",
-              version: "1.2.4",
-              files: {
-                "remappings.txt": `@uniswap/core/=node_modules/@uniswap/core/src/
-no-scope/=node_modules/no-scope/src/`,
-              },
-              dependencies: {
-                "@uniswap/core": {
-                  name: "@uniswap/core",
-                  version: "1.0.0",
-                  files: {
-                    "src/A.sol": "contract A {}",
-                  },
-                },
-                "no-scope": {
-                  name: "no-scope",
-                  version: "1.2.0",
-                  files: {
-                    "src/B.sol": "contract B {}",
-                  },
+                  "remappings.txt": `INVALID SYNTAX`,
                 },
               },
-            };
+            },
+          };
+          await using project = await useTestProjectTemplate(template);
+          const map = await RemappedNpmPackagesMapImplementation.create(
+            project.path,
+          );
+          const hhProjectPackage = map.getHardhatProjectPackage();
 
-            await using project = await useTestProjectTemplate(template);
+          const result = await map.resolveDependencyByInstallationName(
+            hhProjectPackage,
+            "dep1",
+          );
 
-            const result = await RemappedNpmPackagesMap.create(project.path);
-            assert.equal(result.success, true);
-            const map = result.value;
-
-            assert.deepEqual(map.getUserRemappings(map.hardhatProjectPackage), [
-              {
-                context: "project/",
-                prefix: "@uniswap/core/",
-                target: "npm/@uniswap/core@1.0.0/src/",
-                originalFormat:
-                  "@uniswap/core/=node_modules/@uniswap/core/src/",
-                source: path.join(project.path, "remappings.txt"),
-                targetNpmPackage: {
-                  installationName: "@uniswap/core",
-                  package: {
-                    name: "@uniswap/core",
-                    version: "1.0.0",
-                    rootFsPath: path.join(
-                      project.path,
-                      "node_modules/@uniswap/core",
-                    ),
-                    rootSourceName: "npm/@uniswap/core@1.0.0",
-                    exports: undefined,
-                  },
-                },
-              },
-              {
-                context: "project/",
-                prefix: "no-scope/",
-                target: "npm/no-scope@1.2.0/src/",
-                originalFormat: "no-scope/=node_modules/no-scope/src/",
-                source: path.join(project.path, "remappings.txt"),
-                targetNpmPackage: {
-                  installationName: "no-scope",
-                  package: {
-                    name: "no-scope",
-                    version: "1.2.0",
-                    rootFsPath: path.join(
-                      project.path,
-                      "node_modules/no-scope",
-                    ),
-                    rootSourceName: "npm/no-scope@1.2.0",
-                    exports: undefined,
-                  },
-                },
-              },
-            ]);
-          });
-
-          it("should ignore any npm remappings that is of the shape prefix/=node_modules/prefix/", async () => {
-            const template: TestProjectTemplate = {
-              name: "ignore-nop-npm-remappings",
-              version: "1.2.4",
-              files: {
-                "remappings.txt": `foo/=node_modules/foo/`,
-              },
-            };
-
-            await using project = await useTestProjectTemplate(template);
-
-            const result = await RemappedNpmPackagesMap.create(project.path);
-            assert.equal(result.success, true);
-            const map = result.value;
-
-            assert.deepEqual(
-              map.getUserRemappings(map.hardhatProjectPackage),
-              [],
-            );
-          });
-
-          it("should support dependencies installed with a different name than the one declared in the package.json file", async () => {
-            const template: TestProjectTemplate = {
-              name: "different-installation-name",
-              version: "1.2.4",
-              files: {
-                "remappings.txt": `
-scoped-package/=node_modules/scoped-package/src/
-top-scope-name/=node_modules/@top-scope/name/src/
-nope/=node_modules/no-scope/
-`,
-              },
-              dependencies: {
-                "scoped-package": {
-                  name: "@scope/name",
-                  version: "1.2.0",
-                  files: {
-                    "src/A.sol": "contract A {}",
-                  },
-                },
-                "@top-scope/name": {
-                  name: "other-name",
-                  version: "1.3.0",
-                  files: {
-                    "src/B.sol": "contract B {}",
-                  },
-                },
-                "no-scope": {
-                  name: "no-scope-2",
-                  version: "1.4.0",
-                  files: {
-                    "src/C.sol": "contract C {}",
-                  },
-                  exports: {
-                    "./*.sol": "./src/*.sol",
-                  },
-                },
-              },
-            };
-
-            await using project = await useTestProjectTemplate(template);
-
-            const result = await RemappedNpmPackagesMap.create(project.path);
-            assert.equal(result.success, true);
-            const map = result.value;
-
-            assert.deepEqual(map.getUserRemappings(map.hardhatProjectPackage), [
-              {
-                context: "project/",
-                prefix: "scoped-package/",
-                target: "npm/@scope/name@1.2.0/src/",
-                originalFormat:
-                  "scoped-package/=node_modules/scoped-package/src/",
-                source: path.join(project.path, "remappings.txt"),
-                targetNpmPackage: {
-                  installationName: "scoped-package",
-                  package: {
-                    name: "@scope/name",
-                    version: "1.2.0",
-                    rootFsPath: path.join(
-                      project.path,
-                      "node_modules/scoped-package",
-                    ),
-                    rootSourceName: "npm/@scope/name@1.2.0",
-                    exports: undefined,
-                  },
-                },
-              },
-              {
-                context: "project/",
-                prefix: "top-scope-name/",
-                target: "npm/other-name@1.3.0/src/",
-                originalFormat:
-                  "top-scope-name/=node_modules/@top-scope/name/src/",
-                source: path.join(project.path, "remappings.txt"),
-                targetNpmPackage: {
-                  installationName: "@top-scope/name",
-                  package: {
-                    name: "other-name",
-                    version: "1.3.0",
-                    rootFsPath: path.join(
-                      project.path,
-                      "node_modules/@top-scope/name",
-                    ),
-                    rootSourceName: "npm/other-name@1.3.0",
-                    exports: undefined,
-                  },
-                },
-              },
-              {
-                context: "project/",
-                prefix: "nope/",
-                target: "npm/no-scope-2@1.4.0/",
-                originalFormat: "nope/=node_modules/no-scope/",
-                source: path.join(project.path, "remappings.txt"),
-                targetNpmPackage: {
-                  installationName: "no-scope",
-                  package: {
-                    name: "no-scope-2",
-                    version: "1.4.0",
-                    rootFsPath: path.join(
-                      project.path,
-                      "node_modules/no-scope",
-                    ),
-                    rootSourceName: "npm/no-scope-2@1.4.0",
-                    exports: {
-                      "./*.sol": "./src/*.sol",
-                    },
-                  },
-                },
-              },
-            ]);
-          });
-
-          it("Should resolve each npm package once, reusing the same instance of the package and the remappings", async () => {
-            const template: TestProjectTemplate = {
-              name: "resuse-project",
-              version: "1.2.4",
-              files: {
-                "remappings.txt": `dep1/=node_modules/dep1/src/
-
-dep1bis/=node_modules/dep1/src/`,
-                "lib/submodule/remappings.txt": `dep1/=node_modules/dep1/src2/`,
-              },
-              dependencies: {
-                dep1: {
-                  name: "dep1",
-                  version: "1.2.0",
-                  files: {
-                    "src/A.sol": "contract A {}",
-                  },
-                },
-              },
-            };
-
-            await using project = await useTestProjectTemplate(template);
-
-            const result = await RemappedNpmPackagesMap.create(project.path);
-            assert.equal(result.success, true);
-            const map = result.value;
-
-            const expectedPackage = {
+          assert.deepEqual(result, {
+            package: {
               name: "dep1",
               version: "1.2.0",
               rootFsPath: path.join(project.path, "node_modules/dep1"),
               rootSourceName: "npm/dep1@1.2.0",
               exports: undefined,
-            };
+            },
+            generatedRemapping: {
+              context: "project/",
+              prefix: "dep1/",
+              target: "npm/dep1@1.2.0/",
+            },
+          });
 
-            const remappings = map.getUserRemappings(map.hardhatProjectPackage);
+          const json = map.toJSON();
+          assert.deepEqual(
+            json.userRemappingsPerPackage[result.package.rootSourceName],
+            undefined,
+          );
+        });
 
-            assert.deepEqual(remappings, [
-              {
-                context: "project/lib/submodule/",
-                prefix: "dep1/",
-                target: "npm/dep1@1.2.0/src2/",
-                originalFormat: "dep1/=node_modules/dep1/src2/",
-                source: path.join(project.path, "lib/submodule/remappings.txt"),
-                targetNpmPackage: {
-                  installationName: "dep1",
-                  package: expectedPackage,
+        it("It should reuse the same remapping object if run twice", async () => {
+          const template: TestProjectTemplate = {
+            name: "reuse-remapping-object-on-resolution-of-dependency",
+            version: "1.2.4",
+            files: {},
+            dependencies: {
+              dep1: {
+                name: "dep1",
+                version: "1.2.0",
+                files: {},
+              },
+            },
+          };
+
+          await using project = await useTestProjectTemplate(template);
+          const map = await RemappedNpmPackagesMapImplementation.create(
+            project.path,
+          );
+          const hhProjectPackage = map.getHardhatProjectPackage();
+
+          const result = await map.resolveDependencyByInstallationName(
+            hhProjectPackage,
+            "dep1",
+          );
+
+          const result2 = await map.resolveDependencyByInstallationName(
+            hhProjectPackage,
+            "dep1",
+          );
+
+          assert.deepEqual(result, result2);
+
+          assert.equal(result?.generatedRemapping, result2?.generatedRemapping);
+        });
+      });
+
+      describe("Transitive dependencies", () => {
+        it("It should load dependencies of dependencies, following npm resolution rules, except for duplicated dependencies", async () => {
+          const template: TestProjectTemplate = {
+            name: "transitive-dependencies",
+            version: "1.0.0",
+            files: {},
+            dependencies: {
+              "@openzeppelin/contracts": {
+                name: "@openzeppelin/contracts",
+                version: "4.8.0",
+                files: {},
+              },
+              "dependency-with-ozc": {
+                name: "dependency-with-ozc",
+                version: "1.0.0",
+                files: {},
+                dependencies: {
+                  "@openzeppelin/contracts": {
+                    name: "@openzeppelin/contracts",
+                    version: "4.7.0",
+                    files: {},
+                  },
                 },
               },
-              {
-                context: "project/",
-                prefix: "dep1/",
-                target: "npm/dep1@1.2.0/src/",
-                originalFormat: "dep1/=node_modules/dep1/src/",
-                source: path.join(project.path, "remappings.txt"),
-                targetNpmPackage: {
-                  installationName: "dep1",
-                  package: expectedPackage,
+              "dependency-with-peer-ozc": {
+                name: "with-peer-ozc",
+                version: "1.2.3",
+                files: {},
+                dependencies: {},
+              },
+              "dependency-with-transitive-dependency": {
+                name: "dependency-with-transitive-dependency",
+                version: "1.0.0",
+                files: {},
+                dependencies: {
+                  "transitive-dependency": {
+                    name: "transitive-dependency",
+                    version: "1.0.0",
+                    files: {},
+                    dependencies: {},
+                  },
                 },
               },
-              {
-                context: "project/",
-                prefix: "dep1bis/",
-                target: "npm/dep1@1.2.0/src/",
-                originalFormat: "dep1bis/=node_modules/dep1/src/",
-                source: path.join(project.path, "remappings.txt"),
-                targetNpmPackage: {
-                  installationName: "dep1",
-                  package: expectedPackage,
+              "with-duplicated-dependency": {
+                name: "with-duplicated-dependency",
+                version: "2.3.4",
+                files: {},
+                dependencies: {
+                  // This dependency would normally be deduplicated by npm
+                  "@openzeppelin/contracts": {
+                    name: "@openzeppelin/contracts",
+                    version: "4.8.0",
+                    files: {},
+                  },
                 },
               },
-            ]);
+            },
+          };
 
-            assert.equal(
-              remappings[0].targetNpmPackage.package,
-              remappings[1].targetNpmPackage.package,
+          const project = await useTestProjectTemplate(template);
+          const map = await RemappedNpmPackagesMapImplementation.create(
+            project.path,
+          );
+          const hhProjectPackage = map.getHardhatProjectPackage();
+
+          const ozcFromRoot = await map.resolveDependencyByInstallationName(
+            hhProjectPackage,
+            "@openzeppelin/contracts",
+          );
+
+          assert.deepEqual(ozcFromRoot, {
+            package: {
+              name: "@openzeppelin/contracts",
+              version: "4.8.0",
+              rootFsPath: path.join(
+                project.path,
+                "node_modules/@openzeppelin/contracts",
+              ),
+              rootSourceName: "npm/@openzeppelin/contracts@4.8.0",
+              exports: undefined,
+            },
+            generatedRemapping: {
+              context: "project/",
+              prefix: "@openzeppelin/contracts/",
+              target: "npm/@openzeppelin/contracts@4.8.0/",
+            },
+          });
+
+          const dependencyWithOzc =
+            await map.resolveDependencyByInstallationName(
+              hhProjectPackage,
+              "dependency-with-ozc",
             );
 
-            assert.equal(
-              remappings[1].targetNpmPackage.package,
-              remappings[2].targetNpmPackage.package,
+          assert.deepEqual(dependencyWithOzc, {
+            package: {
+              name: "dependency-with-ozc",
+              version: "1.0.0",
+              rootFsPath: path.join(
+                project.path,
+                "node_modules/dependency-with-ozc",
+              ),
+              rootSourceName: "npm/dependency-with-ozc@1.0.0",
+              exports: undefined,
+            },
+            generatedRemapping: {
+              context: "project/",
+              prefix: "dependency-with-ozc/",
+              target: "npm/dependency-with-ozc@1.0.0/",
+            },
+          });
+
+          const dependencyWithOzcsOzc =
+            await map.resolveDependencyByInstallationName(
+              dependencyWithOzc.package,
+              "@openzeppelin/contracts",
             );
 
-            assert.equal(
-              remappings[0],
-              map.getUserRemappings(map.hardhatProjectPackage)[0],
+          assert.deepEqual(dependencyWithOzcsOzc, {
+            package: {
+              name: "@openzeppelin/contracts",
+              version: "4.7.0",
+              rootFsPath: path.join(
+                dependencyWithOzc.package.rootFsPath,
+                "node_modules/@openzeppelin/contracts",
+              ),
+              rootSourceName: "npm/@openzeppelin/contracts@4.7.0",
+              exports: undefined,
+            },
+            generatedRemapping: {
+              context: dependencyWithOzc.package.rootSourceName + "/",
+              prefix: "@openzeppelin/contracts/",
+              target: "npm/@openzeppelin/contracts@4.7.0/",
+            },
+          });
+
+          const dependencyWithPeerOzc =
+            await map.resolveDependencyByInstallationName(
+              hhProjectPackage,
+              "dependency-with-peer-ozc",
             );
 
-            assert.equal(
-              remappings[1],
-              map.getUserRemappings(map.hardhatProjectPackage)[1],
+          assert.deepEqual(dependencyWithPeerOzc, {
+            package: {
+              name: "with-peer-ozc",
+              version: "1.2.3",
+              rootFsPath: path.join(
+                project.path,
+                "node_modules/dependency-with-peer-ozc",
+              ),
+              rootSourceName: "npm/with-peer-ozc@1.2.3",
+              exports: undefined,
+            },
+            generatedRemapping: {
+              context: "project/",
+              prefix: "dependency-with-peer-ozc/",
+              target: "npm/with-peer-ozc@1.2.3/",
+            },
+          });
+
+          const dependencyWithPeerOzcsOzc =
+            await map.resolveDependencyByInstallationName(
+              dependencyWithPeerOzc.package,
+              "@openzeppelin/contracts",
             );
 
-            assert.equal(
-              remappings[2],
-              map.getUserRemappings(map.hardhatProjectPackage)[2],
+          assert.equal(dependencyWithPeerOzcsOzc?.package, ozcFromRoot.package);
+          assert.deepEqual(dependencyWithPeerOzcsOzc?.generatedRemapping, {
+            context: dependencyWithPeerOzc.package.rootSourceName + "/",
+            prefix: "@openzeppelin/contracts/",
+            target: "npm/@openzeppelin/contracts@4.8.0/",
+          });
+
+          const dependencyWithTransitiveDependency =
+            await map.resolveDependencyByInstallationName(
+              hhProjectPackage,
+              "dependency-with-transitive-dependency",
             );
+
+          assert.deepEqual(dependencyWithTransitiveDependency, {
+            package: {
+              name: "dependency-with-transitive-dependency",
+              version: "1.0.0",
+              rootFsPath: path.join(
+                project.path,
+                "node_modules/dependency-with-transitive-dependency",
+              ),
+              rootSourceName: "npm/dependency-with-transitive-dependency@1.0.0",
+              exports: undefined,
+            },
+            generatedRemapping: {
+              context: "project/",
+              prefix: "dependency-with-transitive-dependency/",
+              target: "npm/dependency-with-transitive-dependency@1.0.0/",
+            },
+          });
+
+          const transitiveDependency =
+            await map.resolveDependencyByInstallationName(
+              dependencyWithTransitiveDependency.package,
+              "transitive-dependency",
+            );
+
+          assert.deepEqual(transitiveDependency, {
+            package: {
+              name: "transitive-dependency",
+              version: "1.0.0",
+              rootFsPath: path.join(
+                dependencyWithTransitiveDependency.package.rootFsPath,
+                "node_modules/transitive-dependency",
+              ),
+              rootSourceName: "npm/transitive-dependency@1.0.0",
+              exports: undefined,
+            },
+            generatedRemapping: {
+              context:
+                dependencyWithTransitiveDependency.package.rootSourceName + "/",
+              prefix: "transitive-dependency/",
+              target: "npm/transitive-dependency@1.0.0/",
+            },
+          });
+
+          // If we have a duplicated dependency, we return the same instance of
+          // the package that we load first. Not that duplicated here means same
+          // name and version, not just name. Normally npm would deduplicate it.
+          const withDuplicatedDependency =
+            await map.resolveDependencyByInstallationName(
+              hhProjectPackage,
+              "with-duplicated-dependency",
+            );
+
+          assert.deepEqual(withDuplicatedDependency, {
+            package: {
+              name: "with-duplicated-dependency",
+              version: "2.3.4",
+              rootFsPath: path.join(
+                project.path,
+                "node_modules/with-duplicated-dependency",
+              ),
+              rootSourceName: "npm/with-duplicated-dependency@2.3.4",
+              exports: undefined,
+            },
+            generatedRemapping: {
+              context: "project/",
+              prefix: "with-duplicated-dependency/",
+              target: "npm/with-duplicated-dependency@2.3.4/",
+            },
+          });
+
+          const ozcFromWithDuplicatedDependency =
+            await map.resolveDependencyByInstallationName(
+              withDuplicatedDependency.package,
+              "@openzeppelin/contracts",
+            );
+
+          assert.deepEqual(ozcFromWithDuplicatedDependency, {
+            package: {
+              name: "@openzeppelin/contracts",
+              version: "4.8.0",
+              rootFsPath: path.join(
+                hhProjectPackage.rootFsPath,
+                "node_modules/@openzeppelin/contracts",
+              ),
+              rootSourceName: "npm/@openzeppelin/contracts@4.8.0",
+              exports: undefined,
+            },
+            generatedRemapping: {
+              context: withDuplicatedDependency.package.rootSourceName + "/",
+              prefix: "@openzeppelin/contracts/",
+              target: "npm/@openzeppelin/contracts@4.8.0/",
+            },
+          });
+          assert.equal(
+            ozcFromWithDuplicatedDependency?.package,
+            ozcFromRoot.package,
+          );
+        });
+      });
+
+      it("Returns undefined if the dependency is not installed", async () => {
+        const template: TestProjectTemplate = {
+          name: "not-installed-dependencies",
+          version: "1.0.0",
+          files: {},
+          dependencies: {
+            dep1: {
+              name: "dep1",
+              version: "1.2.0",
+              files: {},
+            },
+            "@scope/dep2": {
+              name: "@scope/dep2",
+              version: "1.3.0",
+              files: {},
+            },
+          },
+        };
+
+        const project = await useTestProjectTemplate(template);
+        const map = await RemappedNpmPackagesMapImplementation.create(
+          project.path,
+        );
+        const hhProjectPackage = map.getHardhatProjectPackage();
+
+        const dep1 = await map.resolveDependencyByInstallationName(
+          hhProjectPackage,
+          "dep1",
+        );
+        assert.ok(dep1 !== undefined, "dep1 should exist");
+
+        const dep2 = await map.resolveDependencyByInstallationName(
+          hhProjectPackage,
+          "@scope/dep2",
+        );
+        assert.ok(dep2 !== undefined, "dep2 should exist");
+
+        assert.equal(
+          await map.resolveDependencyByInstallationName(
+            hhProjectPackage,
+            "dep3",
+          ),
+          undefined,
+        );
+
+        assert.equal(
+          await map.resolveDependencyByInstallationName(
+            hhProjectPackage,
+            "@scope/nope",
+          ),
+          undefined,
+        );
+
+        assert.equal(
+          await map.resolveDependencyByInstallationName(dep1.package, "foo"),
+          undefined,
+        );
+
+        assert.equal(
+          await map.resolveDependencyByInstallationName(
+            dep1.package,
+            "@scope/nope",
+          ),
+          undefined,
+        );
+
+        assert.equal(
+          await map.resolveDependencyByInstallationName(dep2.package, "foo"),
+          undefined,
+        );
+
+        assert.equal(
+          await map.resolveDependencyByInstallationName(
+            dep2.package,
+            "@scope/nope",
+          ),
+          undefined,
+        );
+      });
+
+      describe("Monorepo support", () => {
+        let monorepoPath: string;
+        let hhProjectPath: string;
+        let monorepoDependencyPath: string;
+        before(async () => {
+          monorepoPath = await mkdtemp("hh3-solidity-resolver-test-monorepo");
+          hhProjectPath = path.join(monorepoPath, "packages", "hh-project");
+          monorepoDependencyPath = path.join(
+            monorepoPath,
+            "packages",
+            "monorepo-dependency",
+          );
+
+          await ensureDir(path.join(hhProjectPath, "node_modules"));
+          await ensureDir(path.join(monorepoDependencyPath, "node_modules"));
+
+          await writeJsonFile(path.join(hhProjectPath, "package.json"), {
+            name: "hh-project",
+            version: "1.3.4",
+            dependencies: {
+              "monorepo-dependency": "workspace:*",
+            },
+          });
+
+          await writeJsonFile(
+            path.join(monorepoDependencyPath, "package.json"),
+            {
+              name: "monorepo-dependency",
+              version: "1.2.3",
+              dependencies: {
+                "hh-project": "workspace:*",
+              },
+            },
+          );
+
+          await symlink(
+            monorepoDependencyPath,
+            path.join(hhProjectPath, "node_modules", "dependency"),
+          );
+
+          await symlink(
+            hhProjectPath,
+            path.join(monorepoDependencyPath, "node_modules", "main"),
+          );
+        });
+
+        after(async () => {
+          await remove(monorepoPath);
+        });
+
+        it("Should use `local` as version numbers of monorepo packages when creating their root source names", async () => {
+          const map =
+            await RemappedNpmPackagesMapImplementation.create(hhProjectPath);
+
+          const hhProjectPackage = map.getHardhatProjectPackage();
+
+          assert.deepEqual(hhProjectPackage, {
+            name: "hh-project",
+            version: "1.3.4",
+            rootFsPath: hhProjectPath,
+            rootSourceName: "project",
+            exports: undefined,
+          });
+
+          const monorepoDependency =
+            await map.resolveDependencyByInstallationName(
+              hhProjectPackage,
+              "dependency",
+            );
+
+          assert.deepEqual(monorepoDependency, {
+            package: {
+              name: "monorepo-dependency",
+              version: "local",
+              rootFsPath: monorepoDependencyPath,
+              rootSourceName: "npm/monorepo-dependency@local",
+              exports: undefined,
+            },
+            generatedRemapping: {
+              context: "project/",
+              prefix: "dependency/",
+              target: "npm/monorepo-dependency@local/",
+            },
           });
         });
 
-        describe("With npm remappings in a dependency", () => {});
+        it("Should resolve to the same hh package if a monorepo package imports the hh package itself through a circular dependency", async () => {
+          const map =
+            await RemappedNpmPackagesMapImplementation.create(hhProjectPath);
+
+          const hhProjectPackage = map.getHardhatProjectPackage();
+
+          const monorepoDependency =
+            await map.resolveDependencyByInstallationName(
+              hhProjectPackage,
+              "dependency",
+            );
+
+          assert.ok(
+            monorepoDependency !== undefined,
+            "dependency should exist",
+          );
+
+          const hhProject = await map.resolveDependencyByInstallationName(
+            monorepoDependency.package,
+            "main",
+          );
+
+          assert.equal(
+            hhProject?.package,
+            hhProjectPackage,
+            "hh-project should be the hh project",
+          );
+
+          assert.deepEqual(hhProject?.generatedRemapping, {
+            context: "npm/monorepo-dependency@local/",
+            prefix: "main/",
+            target: "project/",
+          });
+        });
+      });
+    });
+
+    describe("generateRemappingIntoNpmFile", () => {
+      const template: TestProjectTemplate = {
+        name: "generate-remapping-into-npm-file",
+        version: "1.0.0",
+        files: {},
+        dependencies: {
+          dep: {
+            name: "depdency",
+            version: "1.0.0",
+            files: {},
+          },
+        },
+      };
+
+      it("Should generate a remapping into a npm file, as provided in the args", async () => {
+        const project = await useTestProjectTemplate(template);
+        const map = await RemappedNpmPackagesMapImplementation.create(
+          project.path,
+        );
+        const hhProjectPackage = map.getHardhatProjectPackage();
+
+        const dep = await map.resolveDependencyByInstallationName(
+          hhProjectPackage,
+          "dep",
+        );
+
+        assert.ok(dep !== undefined, "dep should exist");
+
+        const fromRootToDepFile1Sol = await map.generateRemappingIntoNpmFile(
+          hhProjectPackage,
+          "dep1/file.sol",
+          "npm/dep1@1.2.3/src/file.sol",
+        );
+
+        assert.deepEqual(fromRootToDepFile1Sol, {
+          context: "project/",
+          prefix: "dep1/file.sol",
+          target: "npm/dep1@1.2.3/src/file.sol",
+        });
+
+        const fromDepToFooFile2Sol = await map.generateRemappingIntoNpmFile(
+          dep.package,
+          "foo/file.sol",
+          "npm/foo@1.2.3/file2.sol",
+        );
+
+        assert.deepEqual(fromDepToFooFile2Sol, {
+          context: dep.package.rootSourceName + "/",
+          prefix: "foo/file.sol",
+          target: "npm/foo@1.2.3/file2.sol",
+        });
+      });
+
+      it("Should reuse the same remapping object if run twice", async () => {
+        const project = await useTestProjectTemplate(template);
+        const map = await RemappedNpmPackagesMapImplementation.create(
+          project.path,
+        );
+        const hhProjectPackage = map.getHardhatProjectPackage();
+
+        const fromRootToDepFile1Sol = await map.generateRemappingIntoNpmFile(
+          hhProjectPackage,
+          "dep1/file.sol",
+          "npm/dep1@1.2.3/src/file.sol",
+        );
+
+        const fromRootToDepFile1Sol2 = await map.generateRemappingIntoNpmFile(
+          hhProjectPackage,
+          "dep1/file.sol",
+          "npm/dep1@1.2.3/src/file.sol",
+        );
+
+        assert.equal(fromRootToDepFile1Sol, fromRootToDepFile1Sol2);
+      });
+
+      it("Should validate that the target matches if run twice", async () => {
+        const project = await useTestProjectTemplate(template);
+        const map = await RemappedNpmPackagesMapImplementation.create(
+          project.path,
+        );
+        const hhProjectPackage = map.getHardhatProjectPackage();
+
+        await map.generateRemappingIntoNpmFile(
+          hhProjectPackage,
+          "dep1/file.sol",
+          "npm/dep1@1.2.3/src/file.sol",
+        );
+
+        await assertRejectsWithHardhatError(
+          map.generateRemappingIntoNpmFile(
+            hhProjectPackage,
+            "dep1/file.sol",
+            "npm/dep1@1.2.3/src/no-no.sol",
+          ),
+          HardhatError.ERRORS.CORE.INTERNAL.ASSERTION_ERROR,
+          {
+            message:
+              "Trying to generate different remappings for the same direct import into an npm file",
+          },
+        );
+      });
+    });
+
+    describe("selectBestUserRemapping", () => {
+      describe("Remappings loading", () => {
+        it("should load all the remappings.txt files in a package when it tries to select its first best user remapping", async () => {});
+
+        it("Should validate the remappings when loading them", async () => {});
+
+        it("should treat remappings with target starting in `node_modules/` as npm remappings", async () => {});
+
+        it("Should not resolve npm remappings when first loading them, if not necessary", async () => {});
+
+        it("Should resolve npm remappings when it is the best user remapping", async () => {});
+
+        it("Should throw if npm remappings is the best user remapping, but it's not necessary", async () => {});
+
+        it("should not load the remappings of a package when resolving a remapping pointing to it", async () => {});
       });
     });
   });
