@@ -4,23 +4,306 @@ import type { CompilerOutputBytecode } from "hardhat/types/solidity";
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
 
-import { useEphemeralFixtureProject } from "@nomicfoundation/hardhat-test-utils";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
+  assertRejectsWithHardhatError,
+  useEphemeralFixtureProject,
+} from "@nomicfoundation/hardhat-test-utils";
+import {
+  bytesToHexString,
   getPrefixedHexString,
   getUnprefixedHexString,
 } from "@nomicfoundation/hardhat-utils/hex";
+import { encode } from "cbor2";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 import {
+  Bytecode,
   inferExecutableSection,
   nullifyBytecodeOffsets,
   getLibraryOffsets,
   getImmutableOffsets,
   getCallProtectionOffsets,
 } from "../src/internal/bytecode.js";
-import { METADATA_LENGTH_FIELD_SIZE } from "../src/internal/metadata.js";
+import {
+  METADATA_LENGTH_FIELD_SIZE,
+  MISSING_METADATA_VERSION_RANGE,
+  SOLC_NOT_FOUND_IN_METADATA_VERSION_RANGE,
+} from "../src/internal/metadata.js";
+
+import { MockEthereumProvider } from "./utils.js";
 
 describe("bytecode", () => {
+  describe("Bytecode class", () => {
+    const address = "0x1234567890abcdef1234567890abcdef12345678";
+    const networkName = "testnet";
+
+    describe("getDeployedContractBytecode", () => {
+      it("should create a Bytecode instance from the deployed bytecode", async () => {
+        const metadata = { solc: new Uint8Array([0, 8, 30]) }; // [major, minor, patch]
+        const encodedMetadata = encode(metadata);
+        const metadataSection = getUnprefixedHexString(
+          bytesToHexString(encodedMetadata),
+        );
+        const executableSection = "deadbeefcafebabe"; // dummy bytecode
+
+        const bytecode = buildBytecode(executableSection, metadataSection);
+
+        const provider = new MockEthereumProvider({
+          eth_getCode: getPrefixedHexString(bytecode),
+        });
+
+        const deployedBytecode = await Bytecode.getDeployedContractBytecode(
+          provider,
+          address,
+          networkName,
+        );
+
+        assert.equal(deployedBytecode.solcVersion, "0.8.30");
+        assert.equal(deployedBytecode.bytecode, bytecode);
+        assert.equal(deployedBytecode.executableSection, executableSection);
+      });
+
+      it("should throw if the bytecode is empty", async () => {
+        const provider = new MockEthereumProvider({
+          eth_getCode: "0x",
+        });
+
+        await assertRejectsWithHardhatError(
+          Bytecode.getDeployedContractBytecode(provider, address, networkName),
+          HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
+            .DEPLOYED_BYTECODE_NOT_FOUND,
+          {
+            address,
+            networkName,
+          },
+        );
+      });
+    });
+
+    describe("hasVersionRange", () => {
+      it("should return true if the solc version is a range - MISSING_METADATA_VERSION_RANGE", async () => {
+        const executableSection = "deadbeefcafebabe"; // dummy bytecode
+
+        const bytecode = buildBytecode(executableSection, "");
+
+        const provider = new MockEthereumProvider({
+          eth_getCode: getPrefixedHexString(bytecode),
+        });
+
+        const deployedBytecode = await Bytecode.getDeployedContractBytecode(
+          provider,
+          address,
+          networkName,
+        );
+
+        assert.equal(
+          deployedBytecode.solcVersion,
+          MISSING_METADATA_VERSION_RANGE,
+        );
+        assert.equal(deployedBytecode.hasVersionRange(), true);
+      });
+
+      it("should return true if the solc version is a range - SOLC_NOT_FOUND_IN_METADATA_VERSION_RANGE", async () => {
+        const metadata = {};
+        const encodedMetadata = encode(metadata);
+        const metadataSection = getUnprefixedHexString(
+          bytesToHexString(encodedMetadata),
+        );
+        const executableSection = "deadbeefcafebabe"; // dummy bytecode
+
+        const bytecode = buildBytecode(executableSection, metadataSection);
+
+        const provider = new MockEthereumProvider({
+          eth_getCode: getPrefixedHexString(bytecode),
+        });
+
+        const deployedBytecode = await Bytecode.getDeployedContractBytecode(
+          provider,
+          address,
+          networkName,
+        );
+
+        assert.equal(
+          deployedBytecode.solcVersion,
+          SOLC_NOT_FOUND_IN_METADATA_VERSION_RANGE,
+        );
+        assert.equal(deployedBytecode.hasVersionRange(), true);
+      });
+
+      it("should return false if the solc version is not a range", async () => {
+        const metadata = { solc: new Uint8Array([0, 6, 0]) }; // [major, minor, patch]
+        const encodedMetadata = encode(metadata);
+        const metadataSection = getUnprefixedHexString(
+          bytesToHexString(encodedMetadata),
+        );
+        const executableSection = "deadbeefcafebabe"; // dummy bytecode
+
+        const bytecode = buildBytecode(executableSection, metadataSection);
+
+        const provider = new MockEthereumProvider({
+          eth_getCode: getPrefixedHexString(bytecode),
+        });
+
+        const deployedBytecode = await Bytecode.getDeployedContractBytecode(
+          provider,
+          address,
+          networkName,
+        );
+
+        assert.equal(deployedBytecode.solcVersion, "0.6.0");
+        assert.equal(deployedBytecode.hasVersionRange(), false);
+      });
+    });
+
+    describe("compare", () => {
+      it("should return true when executable sections match exactly and metadata is the same", async () => {
+        const metadata = { solc: new Uint8Array([0, 8, 30]) }; // [major, minor, patch]
+        const encodedMetadata = encode(metadata);
+        const metadataSection = getUnprefixedHexString(
+          bytesToHexString(encodedMetadata),
+        );
+        const executableSection = "deadbeefcafebabe"; // dummy bytecode
+
+        const bytecode = buildBytecode(executableSection, metadataSection);
+
+        const provider = new MockEthereumProvider({
+          eth_getCode: getPrefixedHexString(bytecode),
+        });
+
+        const deployedBytecode = await Bytecode.getDeployedContractBytecode(
+          provider,
+          address,
+          networkName,
+        );
+
+        const output = buildCompilerOutputBytecode(bytecode);
+
+        assert.equal(deployedBytecode.compare(output), true);
+      });
+
+      it("should return true when executable sections match exactly and metadata is different", async () => {
+        const metadata = { solc: new Uint8Array([0, 8, 30]) }; // [major, minor, patch]
+        const encodedMetadata = encode(metadata);
+        const metadataSection = getUnprefixedHexString(
+          bytesToHexString(encodedMetadata),
+        );
+        const executableSection = "deadbeefcafebabe"; // dummy bytecode
+
+        const bytecode = buildBytecode(executableSection, metadataSection);
+
+        const provider = new MockEthereumProvider({
+          eth_getCode: getPrefixedHexString(bytecode),
+        });
+
+        const deployedBytecode = await Bytecode.getDeployedContractBytecode(
+          provider,
+          address,
+          networkName,
+        );
+
+        const output = buildCompilerOutputBytecode(
+          buildBytecode(executableSection, ""),
+        );
+
+        assert.equal(deployedBytecode.compare(output), true);
+      });
+
+      it("should return false when executable sections do not match", async () => {
+        const metadata = { solc: new Uint8Array([0, 8, 30]) }; // [major, minor, patch]
+        const encodedMetadata = encode(metadata);
+        const metadataSection = getUnprefixedHexString(
+          bytesToHexString(encodedMetadata),
+        );
+        const executableSection = "deadbeefcafebabe"; // dummy bytecode
+
+        const bytecode = buildBytecode(executableSection, metadataSection);
+
+        const provider = new MockEthereumProvider({
+          eth_getCode: getPrefixedHexString(bytecode),
+        });
+
+        const deployedBytecode = await Bytecode.getDeployedContractBytecode(
+          provider,
+          address,
+          networkName,
+        );
+
+        // compiler output with one extra hex char in executable section
+        const output = buildCompilerOutputBytecode(
+          buildBytecode(executableSection + "ae", ""),
+        );
+
+        assert.equal(deployedBytecode.compare(output), false);
+      });
+
+      it("should normalize library link references and immutable references", async () => {
+        const metadata = { solc: new Uint8Array([0, 8, 30]) }; // [major, minor, patch]
+        const encodedMetadata = encode(metadata);
+        const metadataSection = getUnprefixedHexString(
+          bytesToHexString(encodedMetadata),
+        );
+        const deployedLibraryAddress =
+          "1234567890abcdef1234567890abcdef12345678"; // 20 bytes = 40 hex chars
+        const deployedImmutableReference =
+          "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdabcdefabcdef"; // 32 bytes = 64 hex chars
+        const libraryPlaceholder = "____11111111111111111111111111111111____";
+        const immutablePlaceholder =
+          "____11111111111111111111111111111111111111111111111111111111____";
+
+        // deployed bytecode: real library address and immutable reference
+        // at bytes 3 and 28 respectively
+        const bytecode = buildBytecode(
+          `deadbe${deployedLibraryAddress}efcafebabe${deployedImmutableReference}`,
+          metadataSection,
+        );
+
+        const provider = new MockEthereumProvider({
+          eth_getCode: getPrefixedHexString(bytecode),
+        });
+
+        const deployedBytecode = await Bytecode.getDeployedContractBytecode(
+          provider,
+          address,
+          networkName,
+        );
+
+        const linkReferences: CompilerOutputBytecode["linkReferences"] = {
+          "dummy.sol": {
+            MyLib: [
+              {
+                start: 3,
+                length: 20,
+              },
+            ],
+          },
+        };
+
+        const immutableReferences: CompilerOutputBytecode["immutableReferences"] =
+          {
+            "280": [
+              {
+                start: 28,
+                length: 32,
+              },
+            ],
+          };
+
+        const output = buildCompilerOutputBytecode(
+          // compiled bytecode: placeholders in same positions
+          buildBytecode(
+            `deadbe${libraryPlaceholder}efcafebabe${immutablePlaceholder}`,
+            metadataSection,
+          ),
+          linkReferences,
+          immutableReferences,
+        );
+
+        assert.equal(deployedBytecode.compare(output), true);
+      });
+    });
+  });
+
   describe("inferExecutableSection", () => {
     it("should strip the metadata section from the bytecode", () => {
       const executableSection = "deadbeef";
@@ -374,4 +657,18 @@ function buildBytecode(
     .padStart(METADATA_LENGTH_FIELD_SIZE * 2, "0");
 
   return executableSection + metadataSection + metadataSectionLength;
+}
+
+function buildCompilerOutputBytecode(
+  bytecode: string,
+  linkReferences: CompilerOutputBytecode["linkReferences"] = {},
+  immutableReferences: CompilerOutputBytecode["immutableReferences"] = {},
+): CompilerOutputBytecode {
+  return {
+    object: bytecode,
+    opcodes: "",
+    sourceMap: "",
+    linkReferences,
+    immutableReferences,
+  };
 }

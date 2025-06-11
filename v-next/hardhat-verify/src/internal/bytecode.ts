@@ -24,15 +24,11 @@ interface ByteOffset {
 }
 
 export class Bytecode {
-  readonly #executableSection: string;
-
   private constructor(
     public readonly bytecode: string,
     public readonly solcVersion: string,
-    executableSection: string,
-  ) {
-    this.#executableSection = executableSection;
-  }
+    public readonly executableSection: string,
+  ) {}
 
   static async #parse(bytecode: string): Promise<Bytecode> {
     const bytecodeBytes = hexStringToBytes(bytecode);
@@ -104,12 +100,12 @@ export class Bytecode {
     );
 
     // If the lengths differ, the bytecodes cannot match, so we can return early
-    if (this.#executableSection.length !== unlinkedExecutableSection.length) {
+    if (this.executableSection.length !== unlinkedExecutableSection.length) {
       return false;
     }
 
     const normalizedBytecode = nullifyBytecodeOffsets(
-      this.#executableSection,
+      this.executableSection,
       compilerOutputBytecode,
     );
 
