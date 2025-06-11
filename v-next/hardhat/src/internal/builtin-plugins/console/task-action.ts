@@ -51,6 +51,7 @@ const consoleAction: NewTaskActionFunction<ConsoleActionArguments> = async (
 
       // Resolve the task action promise only when the REPL server exits
       replServer.on("exit", () => {
+        replServer.displayPrompt = () => {};
         resolve(replServer);
       });
 
