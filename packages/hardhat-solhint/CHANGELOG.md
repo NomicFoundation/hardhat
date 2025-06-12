@@ -1,5 +1,11 @@
 # @nomiclabs/hardhat-solhint
 
+## 4.0.2
+
+### Patch Changes
+
+- 173a8a3: Fixed hardhat-solhint by restricting the solhint dependency to ~5.0.0.
+
 ## 4.0.1
 
 ### Patch Changes
