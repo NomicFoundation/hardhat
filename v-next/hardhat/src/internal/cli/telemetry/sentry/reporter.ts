@@ -2,7 +2,7 @@ import {
   HardhatError,
   HardhatPluginError,
 } from "@nomicfoundation/hardhat-errors";
-import { flush } from "@sentry/node";
+import { flush } from "@sentry/core";
 import debug from "debug";
 
 import {
@@ -12,7 +12,7 @@ import {
 import { getHardhatVersion } from "../../../utils/package.js";
 import { isTelemetryAllowed } from "../telemetry-permissions.js";
 
-import { makeSubprocessTransport } from "./transport.js";
+import { makeSubprocessTransport } from "./transports/subprocess.js";
 
 const log = debug("hardhat:cli:telemetry:sentry:reporter");
 
@@ -63,8 +63,12 @@ class Reporter {
 
     log("Initializing Reporter instance");
 
-    const { init, setExtra, linkedErrorsIntegration, contextLinesIntegration } =
-      await import("@sentry/node");
+    const { setExtra, linkedErrorsIntegration } = await import("@sentry/core");
+    const { contextLinesIntegration } = await import(
+      "./vendor/integrations/contextlines.js"
+    );
+
+    const { init } = await import("./init.js");
 
     const linkedErrorsIntegrationInstance = linkedErrorsIntegration({
       key: "cause",
@@ -72,7 +76,7 @@ class Reporter {
 
     const contextLinesIntegrationInstance = contextLinesIntegration();
 
-    init({
+    await init({
       dsn: SENTRY_DSN,
       transport: makeSubprocessTransport,
       integrations: () => [
@@ -101,7 +105,7 @@ class Reporter {
       return false;
     }
 
-    const { captureException, setExtra } = await import("@sentry/node");
+    const { captureException, setExtra } = await import("@sentry/core");
 
     setExtra("configPath", configPath);
 
