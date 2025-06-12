@@ -53,7 +53,6 @@ export class Etherscan {
     url: string;
     apiKey: string;
     testDispatcher?: Dispatcher;
-    pollingIntervalMs?: number;
   }) {
     this.chainId = String(etherscanConfig.chainId);
     this.name = etherscanConfig.name ?? "Etherscan";
@@ -62,8 +61,8 @@ export class Etherscan {
     this.apiKey = etherscanConfig.apiKey;
     this.#testDispatcher = etherscanConfig.testDispatcher;
     this.#pollingIntervalMs =
-      etherscanConfig.pollingIntervalMs !== undefined
-        ? etherscanConfig.pollingIntervalMs / 1000
+      etherscanConfig.testDispatcher !== undefined
+        ? 0
         : VERIFICATION_STATUS_POLLING_SECONDS;
   }
 

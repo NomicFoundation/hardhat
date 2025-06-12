@@ -64,7 +64,7 @@ describe("etherscan", () => {
       let isVerifiedInterceptor: ReturnType<
         typeof testDispatcher.interceptable.intercept
       >;
-      beforeEach(async () => {
+      beforeEach(() => {
         isVerifiedInterceptor = testDispatcher.interceptable.intercept({
           path: "/v2/api",
           method: "GET",
@@ -217,7 +217,7 @@ describe("etherscan", () => {
       let verifyInterceptor: ReturnType<
         typeof testDispatcher.interceptable.intercept
       >;
-      beforeEach(async () => {
+      beforeEach(() => {
         verifyInterceptor = testDispatcher.interceptable.intercept({
           path: "/v2/api",
           method: "POST",
@@ -464,7 +464,7 @@ describe("etherscan", () => {
       let pollVerificationStatusInterceptor: ReturnType<
         typeof testDispatcher.interceptable.intercept
       >;
-      beforeEach(async () => {
+      beforeEach(() => {
         pollVerificationStatusInterceptor =
           testDispatcher.interceptable.intercept({
             path: "/v2/api",
@@ -483,7 +483,6 @@ describe("etherscan", () => {
         const etherscan = new Etherscan({
           ...etherscanConfig,
           testDispatcher: testDispatcher.interceptable,
-          pollingIntervalMs: 100, // Set a low value to avoid long waits in tests
         });
 
         pollVerificationStatusInterceptor.reply(200, {
@@ -528,7 +527,6 @@ describe("etherscan", () => {
         const etherscan = new Etherscan({
           ...etherscanConfig,
           testDispatcher: testDispatcher.interceptable,
-          pollingIntervalMs: 100, // Set a low value to avoid long waits in tests
         });
 
         let callCount = 0;
@@ -569,7 +567,6 @@ describe("etherscan", () => {
         const etherscan = new Etherscan({
           ...etherscanConfig,
           testDispatcher: testDispatcher.interceptable,
-          pollingIntervalMs: 100, // Set a low value to avoid long waits in tests
         });
 
         // Simulate a network error
@@ -619,7 +616,6 @@ describe("etherscan", () => {
         const etherscan = new Etherscan({
           ...etherscanConfig,
           testDispatcher: testDispatcher.interceptable,
-          pollingIntervalMs: 100, // Set a low value to avoid long waits in tests
         });
 
         pollVerificationStatusInterceptor.reply(300, {
@@ -643,7 +639,6 @@ describe("etherscan", () => {
         const etherscan = new Etherscan({
           ...etherscanConfig,
           testDispatcher: testDispatcher.interceptable,
-          pollingIntervalMs: 100, // Set a low value to avoid long waits in tests
         });
 
         pollVerificationStatusInterceptor.reply(200, {
@@ -677,7 +672,6 @@ describe("etherscan", () => {
         const etherscan = new Etherscan({
           ...etherscanConfig,
           testDispatcher: testDispatcher.interceptable,
-          pollingIntervalMs: 100, // Set a low value to avoid long waits in tests
         });
 
         pollVerificationStatusInterceptor.reply(200, {
@@ -697,7 +691,6 @@ describe("etherscan", () => {
         const etherscan = new Etherscan({
           ...etherscanConfig,
           testDispatcher: testDispatcher.interceptable,
-          pollingIntervalMs: 100, // Set a low value to avoid long waits in tests
         });
 
         pollVerificationStatusInterceptor.reply(200, {
