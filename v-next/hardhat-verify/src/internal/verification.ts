@@ -289,7 +289,7 @@ ${libraryInformation.undetectableLibraries.map((x) => `  * ${x}`).join("\n")}`
   );
 }
 
-function validateArgs({ address, contract }: VerifyContractArgs): void {
+export function validateArgs({ address, contract }: VerifyContractArgs): void {
   if (!isAddress(address)) {
     throw new HardhatError(
       HardhatError.ERRORS.HARDHAT_VERIFY.VALIDATION.INVALID_ADDRESS,
