@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-foundry
 
+## 1.1.4
+
+### Patch Changes
+
+- 52e2272: Fixed a bug in the `init-foundry` task that prevented it from being used with the latest versions of `forge`
+
 ## 1.1.3
 
 ### Patch Changes
