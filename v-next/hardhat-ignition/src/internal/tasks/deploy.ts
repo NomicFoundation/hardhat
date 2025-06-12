@@ -24,6 +24,7 @@ import { HardhatArtifactResolver } from "../../helpers/hardhat-artifact-resolver
 import { PrettyEventHandler } from "../../helpers/pretty-event-handler.js";
 import { readDeploymentParameters } from "../../helpers/read-deployment-parameters.js";
 import { resolveDeploymentId } from "../../helpers/resolve-deployment-id.js";
+import { getUserInterruptionsHandlers } from "../hook-handlers/user-interruptions.js";
 import { bigintReviver } from "../utils/bigintReviver.js";
 import { loadModule } from "../utils/load-module.js";
 
@@ -200,7 +201,13 @@ const taskDeploy: NewTaskActionFunction<TaskDeployArguments> = async (
 
   const artifactResolver = new HardhatArtifactResolver(hre.artifacts);
 
-  const executionEventListener = new PrettyEventHandler();
+  const executionEventListener = new PrettyEventHandler(hre.interruptions);
+
+  const userInterruptionsHandlers = getUserInterruptionsHandlers(
+    executionEventListener,
+  );
+
+  hre.hooks.registerHandlers("userInterruptions", userInterruptionsHandlers);
 
   const strategyConfig = hre.config.ignition.strategyConfig?.[strategyName];
 
@@ -239,6 +246,8 @@ const taskDeploy: NewTaskActionFunction<TaskDeployArguments> = async (
   if (result.type !== "SUCCESSFUL_DEPLOYMENT") {
     process.exitCode = 1;
   }
+
+  hre.hooks.unregisterHandlers("userInterruptions", userInterruptionsHandlers);
 
   return result;
 };
