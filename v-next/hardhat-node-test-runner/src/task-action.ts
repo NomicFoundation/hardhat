@@ -11,6 +11,8 @@ import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
 import { createNonClosingWriter } from "@nomicfoundation/hardhat-utils/stream";
 import { markTestRunStart, markTestRunDone } from "hardhat/internal/coverage";
 
+import { TestProtocolServer } from "./protocol.js";
+
 interface TestActionArguments {
   testFiles: string[];
   only: boolean;
@@ -87,6 +89,10 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
     .map((href) => `--import "${href}"`)
     .join(" ");
 
+  // Start the test protocol server, for dealing with child processes' user interruptions
+  const server = new TestProtocolServer(hre);
+  server.start();
+
   async function runTests(): Promise<number> {
     let failures = 0;
 
@@ -127,6 +133,8 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   await markTestRunStart("node");
 
   const testFailures = await runTests();
+
+  server.end();
 
   // NOTE: This might print a coverage report.
   await markTestRunDone("node");
