@@ -20,6 +20,7 @@ export enum L1HardforkName {
   MERGE = "merge",
   SHANGHAI = "shanghai",
   CANCUN = "cancun",
+  PRAGUE = "prague",
 }
 
 export enum OpHardforkName {
