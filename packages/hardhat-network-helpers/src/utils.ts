@@ -95,7 +95,7 @@ export function assertValidAddress(address: string): void {
 }
 
 export function assertHexString(hexString: string): void {
-  if (typeof hexString !== "string" || !/^0x[0-9a-fA-F]+$/.test(hexString)) {
+  if (typeof hexString !== "string" || !/^0x[0-9a-fA-F]*$/.test(hexString)) {
     throw new HardhatNetworkHelpersError(
       `${hexString} is not a valid hex string`
     );
