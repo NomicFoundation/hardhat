@@ -1075,7 +1075,7 @@ describe("network-manager/hook-handlers/config", () => {
                 {
                   path: ["networks", "localhost", "accounts"],
                   message:
-                    "Expected an array with with objects with private key and balance or Configuration Variables, or an object with HD account details",
+                    "Expected an array with objects with private key and balance or Configuration Variables, or an object with HD account details",
                 },
               ],
             );
