@@ -13,6 +13,7 @@ import {
   emptyDir,
   findUp,
   getAllFilesMatching,
+  getAllDirectoriesMatching,
   getChangeTime,
   getFileTrueCase,
   getRealPath,
@@ -118,7 +119,7 @@ describe("File system utils", () => {
 
     async function assertGetAllFilesMatching(
       dir: string,
-      matches: ((f: string) => boolean) | undefined,
+      matches: ((f: string) => Promise<boolean> | boolean) | undefined,
       expected: string[],
     ) {
       assert.deepEqual(
@@ -184,6 +185,22 @@ describe("File system utils", () => {
       ]);
     });
 
+    it("Should filter files asynchronously", async () => {
+      await writeUtf8File(path.join(getTmpDir(), "file-1.txt"), "skip");
+
+      await assertGetAllFilesMatching(
+        getTmpDir(),
+        async (f) => {
+          return f.endsWith(".txt") && (await readUtf8File(f)) !== "skip";
+        },
+        [
+          path.join(getTmpDir(), "file-2.txt"),
+          path.join(getTmpDir(), "dir-with-files", "inner-file-2.txt"),
+          path.join(getTmpDir(), "dir-with-extension.txt", "inner-file-3.txt"),
+        ],
+      );
+    });
+
     it("Should preserve the true casing of the files, except for the dir's path", async () => {
       await assertGetAllFilesMatching(
         getTmpDir(),
@@ -240,6 +257,109 @@ describe("File system utils", () => {
           new Set([path.join(from, "from.txt"), path.join(dirPath, "dir.txt")]),
         );
       });
+
+      it("Should filter directories asynchronously", async () => {
+        const from = path.join(getTmpDir(), "from");
+
+        const dirPath = path.join(from, "dir");
+        await mkdir(dirPath);
+
+        const skipPath = path.join(from, "skip");
+        await mkdir(skipPath);
+
+        await writeUtf8File(path.join(from, "from.txt"), "from");
+        await writeUtf8File(path.join(dirPath, "dir.txt"), "dir");
+        await writeUtf8File(path.join(skipPath, "skip.txt"), "skip");
+        await writeUtf8File(path.join(skipPath, ".skip"), "");
+
+        const files = await getAllFilesMatching(
+          from,
+          undefined,
+          async (absolutePathToDir) => {
+            return !(await exists(path.join(absolutePathToDir, ".skip")));
+          },
+        );
+
+        assert.deepEqual(
+          new Set(files),
+          new Set([path.join(from, "from.txt"), path.join(dirPath, "dir.txt")]),
+        );
+      });
+    });
+  });
+
+  describe("getAllDirectoriesMatching", () => {
+    beforeEach(async () => {
+      await mkdir(path.join(getTmpDir(), "dir-empty"));
+      await mkdir(path.join(getTmpDir(), "dir-with-files"));
+      await mkdir(path.join(getTmpDir(), "dir-with-subdir", "dir-within-dir"));
+      await mkdir(path.join(getTmpDir(), "dir-with-extension.txt"));
+      await mkdir(path.join(getTmpDir(), "dir-WithCasing"));
+
+      await createFile(path.join(getTmpDir(), "dir-with-files", "file-1.txt"));
+    });
+
+    async function assertGetAllDirectoriesMatching(
+      dir: string,
+      matches: ((d: string) => Promise<boolean> | boolean) | undefined,
+      expected: string[],
+    ) {
+      assert.deepEqual(
+        new Set(await getAllDirectoriesMatching(dir, matches)),
+        new Set(expected),
+      );
+    }
+
+    it("Should return an empty array if the dir doesn't exist", async () => {
+      await assertGetAllDirectoriesMatching(
+        path.join(getTmpDir(), "not-in-fs"),
+        undefined,
+        [],
+      );
+    });
+
+    it("Should return an empty array if the dir is empty", async () => {
+      await assertGetAllDirectoriesMatching(
+        path.join(getTmpDir(), "dir-empty"),
+        undefined,
+        [],
+      );
+    });
+
+    it("Should return an empty array if no file matches", async () => {
+      await assertGetAllDirectoriesMatching(getTmpDir(), () => false, []);
+    });
+
+    it("Should return every dir by default, recursively, except for subdirs of matched dirs", async () => {
+      await assertGetAllDirectoriesMatching(getTmpDir(), undefined, [
+        path.join(getTmpDir(), "dir-empty"),
+        path.join(getTmpDir(), "dir-with-files"),
+        path.join(getTmpDir(), "dir-with-subdir"),
+        path.join(getTmpDir(), "dir-with-extension.txt"),
+        path.join(getTmpDir(), "dir-WithCasing"),
+      ]);
+
+      await assertGetAllDirectoriesMatching(
+        path.join(getTmpDir(), "dir-with-subdir"),
+        undefined,
+        [path.join(getTmpDir(), "dir-with-subdir", "dir-within-dir")],
+      );
+    });
+
+    it("Should filter dirs", async () => {
+      await assertGetAllDirectoriesMatching(
+        getTmpDir(),
+        (d) => d.endsWith(".txt"),
+        [path.join(getTmpDir(), "dir-with-extension.txt")],
+      );
+    });
+
+    it("Should filter dirs asynchronously", async () => {
+      await assertGetAllDirectoriesMatching(
+        getTmpDir(),
+        async (d) => (await getAllFilesMatching(d)).length !== 0,
+        [path.join(getTmpDir(), "dir-with-files")],
+      );
     });
   });
 

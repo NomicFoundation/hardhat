@@ -1,6 +1,6 @@
 {
   "name": "hardhat",
-  "version": "3.0.0-next.13",
+  "version": "3.0.0-next.14",
   "description": "Hardhat is an extensible developer tool that helps smart contract developers increase productivity by reliably bringing together the tools they want.",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat",
   "repository": {
@@ -47,6 +47,8 @@
     "lint": "pnpm prettier --check && pnpm eslint",
     "lint:fix": "pnpm prettier --write && pnpm eslint --fix",
     "eslint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
+    "postlint": "eslint \"templates/**/*.ts\"",
+    "postlint:fix": "eslint --fix \"templates/**/*.ts\"",
     "prettier": "prettier \"**/*.{ts,js,md,json}\"",
     "test": "node --import tsx/esm --test --test-reporter=@nomicfoundation/hardhat-node-test-reporter \"test/*.ts\" \"test/!(fixture-projects|helpers)/**/*.ts\"",
     "test:only": "node --import tsx/esm --test --test-only --test-reporter=@nomicfoundation/hardhat-node-test-reporter \"test/*.ts\" \"test/!(fixture-projects|helpers)/**/*.ts\"",
@@ -68,7 +70,7 @@
     "README.md"
   ],
   "devDependencies": {
-    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0-next.13",
+    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0-next.14",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
     "@types/adm-zip": "^0.5.5",
     "@types/debug": "^4.1.7",
@@ -85,12 +87,11 @@
   "dependencies": {
     "@ignored/edr": "0.10.0-alpha.5",
     "@ignored/edr-optimism": "0.13.0-alpha.4",
-    "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.13",
-    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.13",
-    "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.0-next.13",
+    "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.14",
+    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.14",
+    "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.0-next.14",
     "@nomicfoundation/solidity-analyzer": "^0.1.1",
     "@sentry/core": "^9.4.0",
-    "@sentry/node": "^9.4.0",
     "adm-zip": "^0.4.16",
     "chalk": "^5.3.0",
     "debug": "^4.3.2",

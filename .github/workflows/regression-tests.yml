@@ -1,43 +1,115 @@
 name: Regression Tests
 
 on:
-  # TODO: Add a workflow_call trigger to allow running this workflow from EDR
-  workflow_dispatch:
+  workflow_call:
     inputs:
-      hardhat-ref:
+      ref:
         required: true
         type: string
-        default: 'v-next'
+      preset:
+        required: false
+        type: string
+        default: 'default'
+      hardhat-ref:
+        required: false
+        type: string
       edr-ref:
         required: false
         type: string
-        default: ''
       repositories:
         required: false
         type: string
-        default: '["Elytro-eth/soul-wallet-contract", "foundry-rs/forge-std", "kalidao/keep", "mds1/multicall", "pancakeswap/infinity-core", "PaulRBerg/prb-math", "PaulRBerg/prb-proxy", "PaulRBerg/prb-test", "pcaversaccio/createx", "ProjectOpenSea/seaport", "sablier-labs/lockup", "sablier-labs/v2-periphery", "transmissions11/solmate", "Uniswap/UniswapX", "Vectorized/solady"]'
       runners:
         required: false
         type: string
-        default: '["ubuntu-latest"]'
       commands:
         required: false
         type: string
-        default: '["hardhat compile", "hardhat test solidity"]'
+  workflow_dispatch:
+    inputs:
+      preset:
+        description: 'The preset to use'
+        required: false
+        type: choice
+        options:
+          - solidity-test
+          - solidity-compile
+          - default
+        default: 'default'
+      hardhat-ref:
+        description: 'The branch, tag or SHA of hardhat to test against'
+        required: false
+        type: string
+      edr-ref:
+        description: 'The branch, tag or SHA of edr to test against'
+        required: false
+        type: string
+      repositories:
+        description: 'A list of repositories to test against'
+        required: false
+        type: string
+      runners:
+        description: 'A list of runners to test against'
+        required: false
+        type: string
+      commands:
+        description: 'A list of commands to test against'
+        required: false
+        type: string
 
 defaults:
   run:
     shell: bash
 
 jobs:
+  inputs:
+    name: Parse inputs
+    runs-on: ubuntu-latest
+    outputs:
+      ref: ${{ steps.checkout.outputs.commit }}
+      preset: ${{ inputs.preset }}
+      hardhat-ref: ${{ inputs.hardhat-ref || fromJson(steps.config.outputs.preset).hardhat-ref }}
+      edr-ref: ${{ inputs.edr-ref || fromJson(steps.config.outputs.preset).edr-ref }}
+      repositories: ${{ inputs.repositories || toJson(fromJson(steps.config.outputs.preset).repositories) }}
+      runners: ${{ inputs.runners || toJson(fromJson(steps.config.outputs.preset).runners) }}
+      commands: ${{ inputs.commands || toJson(fromJson(steps.config.outputs.preset).commands) }}
+    steps:
+      - id: checkout
+        uses: actions/checkout@v4
+        with:
+          repository: NomicFoundation/hardhat
+          ref: ${{ inputs.ref || github.ref }}
+      - id: workflow
+        run: |
+          echo "config<<EOF" >> $GITHUB_OUTPUT
+          yq -o json . .github/config/regression-tests.yml >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+      - id: config
+        env:
+          PRESET: ${{ inputs.preset }}
+          CONFIG: ${{ toJSON(fromJSON(steps.workflow.outputs.config)) }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const config = JSON.parse(process.env.CONFIG);
+            const presetConfig = config.presets[process.env.PRESET];
+            if (!presetConfig) {
+              core.setFailed(`Unsupported preset: ${process.env.PRESET}`);
+            }
+            core.setOutput('preset', JSON.stringify(presetConfig));
+            console.log({
+              preset: presetConfig,
+            });
   build-edr:
     name: Build EDR
-    if: inputs.edr-ref
+    needs: [inputs]
+    if: needs.inputs.outputs.edr-ref != ''
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
       matrix:
-        runner: ${{ fromJSON(inputs.runners) }}
+        runner: ${{ fromJSON(needs.inputs.outputs.runners) }}
     defaults:
       run:
         shell: bash
@@ -46,7 +118,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: NomicFoundation/edr
-          ref: ${{ inputs.edr-ref }}
+          ref: ${{ needs.inputs.outputs.edr-ref }}
       - id: target
         env:
           RUNNER: ${{ matrix.runner }}
@@ -86,7 +158,7 @@ jobs:
 
   publish-edr:
     name: Publish EDR
-    needs: [build-edr]
+    needs: [inputs, build-edr]
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -96,7 +168,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: NomicFoundation/edr
-          ref: ${{ inputs.edr-ref }}
+          ref: ${{ needs.inputs.outputs.edr-ref }}
       - uses: ./.github/actions/setup-node
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --prefer-offline
@@ -133,8 +205,8 @@ jobs:
 
   build-and-publish-hardhat:
     name: Build and publish Hardhat
-    needs: [publish-edr]
-    if: (!cancelled() && inputs.hardhat-ref != 'next' && !startsWith(inputs.hardhat-ref, '3') && inputs.edr-ref == '' || needs.publish-edr.result == 'success')
+    needs: [inputs, publish-edr]
+    if: (!cancelled() && needs.inputs.outputs.hardhat-ref != 'next' && !startsWith(needs.inputs.outputs.hardhat-ref, '3') && needs.inputs.outputs.edr-ref == '' || needs.publish-edr.result == 'success')
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -144,19 +216,19 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: NomicFoundation/hardhat
-          ref: ${{ inputs.hardhat-ref }}
+          ref: ${{ needs.inputs.outputs.hardhat-ref }}
       - uses: ./.github/actions/setup-env
       - name: Install dependencies
         run: |
           pnpm install --frozen-lockfile --prefer-offline
       - name: Download EDR
-        if: inputs.edr-ref != ''
+        if: needs.inputs.outputs.edr-ref != ''
         uses: actions/download-artifact@v4
         with:
           name: edr
           path: v-next/hardhat
       - name: Install EDR
-        if: inputs.edr-ref != ''
+        if: needs.inputs.outputs.edr-ref != ''
         run: pnpm install ./*.tgz
       - name: Build
         run: pnpm build
@@ -197,19 +269,21 @@ jobs:
 
   test:
     name: Run the test command
-    needs: [build-and-publish-hardhat]
-    if: (!cancelled() && (inputs.hardhat-ref == 'next' || startsWith(inputs.hardhat-ref, '3')) || needs.build-and-publish-hardhat.result == 'success')
+    needs: [inputs, build-and-publish-hardhat]
+    if: (!cancelled() && (needs.inputs.outputs.hardhat-ref == 'next' || startsWith(needs.inputs.outputs.hardhat-ref, '3')) || needs.build-and-publish-hardhat.result == 'success')
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
       matrix:
-        repository: ${{ fromJSON(inputs.repositories) }}
-        runner: ${{ fromJSON(inputs.runners) }}
-        command: ${{ fromJSON(inputs.commands) }}
+        repository: ${{ fromJSON(needs.inputs.outputs.repositories) }}
+        runner: ${{ fromJSON(needs.inputs.outputs.runners) }}
+        command: ${{ fromJSON(needs.inputs.outputs.commands) }}
     steps:
       - uses: actions/checkout@v4
         with:
-          path: ${{ github.repository }}
+          repository: NomicFoundation/hardhat
+          path: NomicFoundation/hardhat
+          ref: ${{ needs.inputs.outputs.ref }}
       - if: runner.os == 'Windows'
         run: choco install yq
       - id: workflow
@@ -217,7 +291,7 @@ jobs:
           echo "config<<EOF" >> $GITHUB_OUTPUT
           yq -o json . .github/config/regression-tests.yml >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
-        working-directory: ${{ github.repository }}
+        working-directory: NomicFoundation/hardhat
       - id: config
         env:
           REPOSITORY: ${{ matrix.repository }}
@@ -241,6 +315,9 @@ jobs:
             if (!commandConfig) {
               core.setFailed(`Unsupported command: ${process.env.COMMAND}`);
             }
+            if (repositoryConfig.commands === undefined || !repositoryConfig.commands.includes(process.env.COMMAND)) {
+              core.setFailed(`Unsupported command: ${process.env.COMMAND}`);
+            }
             core.setOutput('repository', JSON.stringify(repositoryConfig));
             core.setOutput('runner', JSON.stringify(runnerConfig));
             core.setOutput('command', JSON.stringify(commandConfig));
@@ -254,12 +331,12 @@ jobs:
         with:
           node-version: 22
       - name: Download Hardhat
-        if: (startsWith(matrix.command, 'hardhat') && inputs.hardhat-ref != 'next' && !startsWith(inputs.hardhat-ref, '3'))
+        if: (startsWith(matrix.command, 'hardhat ') && needs.inputs.outputs.hardhat-ref != 'next' && !startsWith(needs.inputs.outputs.hardhat-ref, '3'))
         uses: actions/download-artifact@v4
         with:
           name: hardhat
       - name: Fix Hardhat on Windows
-        if: (startsWith(matrix.command, 'hardhat') && inputs.hardhat-ref != 'next' && !startsWith(inputs.hardhat-ref, '3')) && matrix.runner == 'windows-latest'
+        if: (startsWith(matrix.command, 'hardhat ') && needs.inputs.outputs.hardhat-ref != 'next' && !startsWith(needs.inputs.outputs.hardhat-ref, '3')) && matrix.runner == 'windows-latest'
         run: |
           npm init -y
           npm install esbuild
@@ -271,14 +348,23 @@ jobs:
           tar -czf hardhat-*.tgz package
           rm -rf package
       - name: Install Hardhat from source
-        if: (startsWith(matrix.command, 'hardhat') && inputs.hardhat-ref != 'next' && !startsWith(inputs.hardhat-ref, '3'))
+        if: (startsWith(matrix.command, 'hardhat ') && needs.inputs.outputs.hardhat-ref != 'next' && !startsWith(needs.inputs.outputs.hardhat-ref, '3'))
         run: |
           npm install -g hardhat-*.tgz
           rm hardhat-*.tgz
       - name: Install Hardhat
-        if: (startsWith(matrix.command, 'hardhat') && (inputs.hardhat-ref == 'next' || startsWith(inputs.hardhat-ref, '3')))
+        if: (startsWith(matrix.command, 'hardhat ') && (needs.inputs.outputs.hardhat-ref == 'next' || startsWith(needs.inputs.outputs.hardhat-ref, '3')))
+        env:
+          VERSION: ${{ needs.inputs.outputs.hardhat-ref }}
         run: |
-          npm install -g hardhat@${{ inputs.hardhat-ref }}
+          npm install -g hardhat@$VERSION
+          hardhat --version
+      - name: Install Hardhat 2
+        if: startsWith(matrix.command, 'hardhat2')
+        env:
+          VERSION: ${{ fromJSON(steps.config.outputs.repository).hardhat2-version }}
+        run: |
+          npm install -g hardhat@$VERSION
           hardhat --version
       - name: Install Forge
         if: startsWith(matrix.command, 'forge')
@@ -301,14 +387,16 @@ jobs:
           git rm --cached -r $(git ls-files -i -c --exclude-from=.gitignore)
           git clean -fdX
       - name: Configure Hardhat
-        if: startsWith(matrix.command, 'hardhat')
+        if: startsWith(matrix.command, 'hardhat ')
         env:
           CONFIG: ${{ fromJSON(steps.config.outputs.repository).hardhat-config }}
         run: |
-          rm hardhat.config.* || true
-          echo "$CONFIG" > hardhat.config.js
+          if [[ -n "$CONFIG" ]]; then
+            rm hardhat.config.* || true
+            echo "$CONFIG" > hardhat.config.js
+          fi
       - name: Initialize the package
-        if: startsWith(matrix.command, 'hardhat')
+        if: startsWith(matrix.command, 'hardhat ')
         run: |
           npm init -y
           npm pkg set type="module"
@@ -335,11 +423,12 @@ jobs:
         env:
           DEBUG: ${{ runner.debug && '*' || '' }}
           ENV_SOURCE: ${{ fromJSON(steps.config.outputs.repository).env }}
+          HARDHAT_EXPERIMENTAL_ALLOW_NON_LOCAL_INSTALLATION: ${{ startsWith(matrix.command, 'hardhat2') && 'true' || '' }}
         run: |
           source <(echo "$ENV_SOURCE")
           set +e
           before=$(date +%s)
-          ${{ matrix.command }} 2>&1 | tee -a run.output
+          ${{ fromJSON(steps.config.outputs.command).command }} 2>&1 | tee -a run.output
           status=${PIPESTATUS[0]}
           after=$(date +%s)
           set -e
@@ -394,7 +483,7 @@ jobs:
   summarize:
     name: Summarize the test results
     if: (!cancelled())
-    needs: [test]
+    needs: [inputs, test]
     runs-on: ubuntu-latest
     steps:
       - name: Download the results
@@ -404,8 +493,8 @@ jobs:
       - name: Summarize the results
         id: summary
         env:
-          HARDHAT_REF: ${{ inputs.hardhat-ref }}
-          EDR_REF: ${{ inputs.edr-ref }}
+          HARDHAT_REF: ${{ needs.inputs.outputs.hardhat-ref }}
+          EDR_REF: ${{ needs.inputs.outputs.edr-ref }}
         uses: actions/github-script@v7
         with:
           script: |
@@ -431,8 +520,10 @@ jobs:
             const rows = results.map(({repository, command, runner, result, time, details}) => ([
               repository,
               (() => {
-                if (command.startsWith('hardhat')) {
+                if (command.startsWith('hardhat ')) {
                   return `👷 ${command}`;
+                } else if (command.startsWith('hardhat2')) {
+                  return `🔨 ${command}`;
                 } else if (command.startsWith('forge')) {
                   return `⚙️ ${command}`;
                 } else {

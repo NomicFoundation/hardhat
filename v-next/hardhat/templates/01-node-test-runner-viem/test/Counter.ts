@@ -1,7 +1,8 @@
-import { describe, it } from "node:test";
-import { network } from "hardhat";
 // We don't have Ethereum specific assertions in Hardhat 3 yet
 import assert from "node:assert/strict";
+import { describe, it } from "node:test";
+
+import { network } from "hardhat";
 
 /*
  * `node:test` uses `describe` and `it` to define tests, similar to Mocha.

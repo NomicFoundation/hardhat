@@ -31,15 +31,28 @@ for dir in $dirs; do
     fi
   fi
 
-  node --import tsx/esm --test --test-reporter=./dist/src/reporter.js $options $dir/*.ts --color > $dir/result.txt || true # Ignore failures, as they are expected
-
-  if grep -q '^Node\.js' $dir/result.txt; then
-    sed -i '1,/^Node\.js/d' $dir/result.txt;
+  # TODO: If we ever encounter more tests that are sensitive to the node version,
+  # we should either add a more robust way of detecting such tests or version
+  # all the test result files.
+  result_file_name="result"
+  if [ "$dir" == "integration-tests/fixture-tests/nested-test" ]; then
+    node_major_version="$(node --version | cut -d. -f1)"
+    result_file_name="result.$node_major_version"
   fi
 
-  cat $dir/result.txt | aha --black > $dir/result.html;
+  result_txt="$dir/$result_file_name.txt"
+  result_html="$dir/$result_file_name.html"
+  result_svg="$dir/$result_file_name.svg"
 
-  wkhtmltoimage --quiet --format svg $dir/result.html $dir/result.svg;
+  node --import tsx/esm --test --test-reporter=./dist/src/reporter.js $options $dir/*.ts --color > "$result_txt" || true # Ignore failures, as they are expected
 
-  rm $dir/result.html
+  if grep -q '^Node\.js' "$result_txt"; then
+    sed -i '1,/^Node\.js/d' "$result_txt";
+  fi
+
+  cat "$result_txt" | aha --black > "$result_html";
+
+  wkhtmltoimage --quiet --format svg "$result_html" "$result_svg";
+
+  rm "$result_html";
 done
