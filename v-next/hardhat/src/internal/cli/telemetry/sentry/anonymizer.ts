@@ -1,4 +1,4 @@
-import type { Event, Exception, StackFrame, Stacktrace } from "@sentry/node";
+import type { Event, Exception, StackFrame, Stacktrace } from "@sentry/core";
 
 import * as path from "node:path";
 
