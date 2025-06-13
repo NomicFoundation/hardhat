@@ -34,6 +34,7 @@ export interface ContractInformation {
  *  - the deployed bytecode doesn’t match;
  *  - zero or multiple matches in inference mode.
  */
+// TODO: add tests once the todos in getBuildInfoAndOutput are resolved.
 export class ContractInformationResolver {
   readonly #artifacts: ArtifactManager;
   readonly #compatibleSolcVersions: string[];

@@ -15,10 +15,20 @@ export interface BuildInfoAndOutput {
   buildInfoOutput: SolidityBuildInfoOutput;
 }
 
-// TODO: we should implement this function in the artifact
-// manager. Reading build info from disk on each call is inefficient.
-// Having the logic in the artifact manager to enable caching and avoid
-// duplication.
+// TODO: reading build info from disk on each call is inefficient.
+// We should consider caching the results in memory.
+// TODO2: getBuildInfoId and readJsonFile can throw errors, we should
+// wrap them in a try-catch block and return undefined if an error occurs
+// while also logging the error.
+// TODO3: the information contained in the output can be read from the
+// artifact:
+// artifact field         | output field
+// abi                    | contracts.[sourceName][contractName].abi
+// linkReferences         | contracts.[sourceName][contractName].evm.bytecode.linkReferences
+// deployedLinkReferences | contracts.[sourceName][contractName].evm.deployedBytecode.linkReferences
+// deployedBytecode       | contracts.[sourceName][contractName].evm.deployedBytecode.object
+// immutableReferences    | contracts.[sourceName][contractName].evm.deployedBytecode.immutableReferences
+// TODO4: consider returning only the fields needed from the build info: solcVersion, solcLongVersion, input
 /**
  * Retrieves the saved build information and output for a given contract.
  *
@@ -33,6 +43,8 @@ export async function getBuildInfoAndOutput(
 ): Promise<BuildInfoAndOutput | undefined> {
   const buildInfoId = await artifacts.getBuildInfoId(contract);
   if (buildInfoId === undefined) {
+    // TODO: maybe we should throw an error here indicating that the
+    // contract wasn't compiled with Hardhat 3's build system
     return undefined;
   }
 
