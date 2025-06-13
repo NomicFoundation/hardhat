@@ -1,5 +1,11 @@
 # hardhat
 
+## 2.24.3
+
+### Patch Changes
+
+- 6be5c13: Upgraded EDR to [v0.11.1](https://github.com/NomicFoundation/edr/releases/tag/%40nomicfoundation%2Fedr%400.11.1), which fixed a bug when sending ETH to the testing accounts in forked networks. Now testing accounts are automatically undelegated.
+
 ## 2.24.2
 
 ### Patch Changes
@@ -21,7 +27,7 @@
 
 ### Patch Changes
 
-- a7aa6d6: Upgraded EDR to (https://github.com/NomicFoundation/edr/releases/tag/%40nomicfoundation%2Fedr%400.11.0):
+- a7aa6d6: Upgraded EDR to [v0.11.0](https://github.com/NomicFoundation/edr/releases/tag/%40nomicfoundation%2Fedr%400.11.0):
   - Replaced const enums with non-const enums in \*.d.ts files
 - 2ab8103: Relax validations for transaction signing introduced in the previous version by disabling strict mode in `Transaction.prepare`.
 - 67f1e95: Support chainId values above 2^32 - 1 for local account transactions
