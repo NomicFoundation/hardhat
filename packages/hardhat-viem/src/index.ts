@@ -15,20 +15,21 @@ import "./internal/type-extensions";
 import "./internal/tasks";
 
 extendEnvironment((hre) => {
+  const network = hre.network;
   const { provider } = hre.network;
 
   hre.viem = {
     getPublicClient: (publicClientConfig) =>
-      getPublicClient(provider, publicClientConfig),
+      getPublicClient(network, publicClientConfig),
 
     getWalletClients: (walletClientConfig) =>
-      getWalletClients(provider, walletClientConfig),
+      getWalletClients(network, walletClientConfig),
 
     getWalletClient: (address, walletClientConfig) =>
-      getWalletClient(provider, address, walletClientConfig),
+      getWalletClient(network, address, walletClientConfig),
 
     getTestClient: (testClientConfig) =>
-      getTestClient(provider, testClientConfig),
+      getTestClient(network, testClientConfig),
 
     deployContract: (contractName, constructorArgs, config) =>
       deployContract(hre, contractName, constructorArgs, config),

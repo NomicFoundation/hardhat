@@ -1,4 +1,4 @@
-import type { EthereumProvider } from "hardhat/types";
+import type { EthereumProvider, HttpNetworkConfig, Network } from "hardhat/types";
 import type { Chain } from "viem";
 import type { TestClientMode } from "../types";
 
@@ -10,8 +10,10 @@ import {
   MultipleMatchingNetworksError,
 } from "./errors";
 
-export async function getChain(provider: EthereumProvider): Promise<Chain> {
+export async function getChain(network: Network): Promise<Chain> {
   const chains: Record<string, Chain> = require("viem/chains");
+  const defineChain = require("viem").defineChain;
+  const provider = network.provider;
   const chainId = await getChainId(provider);
 
   if (isDevelopmentNetwork(chainId)) {
@@ -40,7 +42,27 @@ export async function getChain(provider: EthereumProvider): Promise<Chain> {
         id: chainId,
       };
     } else {
-      throw new NetworkNotFoundError(chainId);
+      const httpNetConfig = network.config as HttpNetworkConfig;
+      const rpcURL = httpNetConfig.url;
+      if (!rpcURL) {
+        throw new NetworkNotFoundError(chainId);
+      }
+      return defineChain({
+        id: chainId,
+        name: network.name,
+        nativeCurrency: {
+          name: "ETH",
+          symbol: "ETH",
+          decimals: 18,
+        },
+        rpcUrls: {
+          default: {
+            http: [
+              httpNetConfig.url
+            ],
+          },
+        }
+      });
     }
   }
 

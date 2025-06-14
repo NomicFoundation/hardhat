@@ -1,4 +1,4 @@
-import type { EthereumProvider } from "hardhat/types";
+import type { EthereumProvider, Network } from "hardhat/types";
 import type {
   Address,
   Chain,
@@ -42,12 +42,12 @@ async function getParameters<TConfig extends {} | undefined>(
  * @returns A PublicClient instance.
  */
 export async function getPublicClient(
-  provider: EthereumProvider,
+  hardhatNetwork: Network,
   publicClientConfig?: Partial<PublicClientConfig>
 ): Promise<PublicClient> {
   const { getChain } = await import("./chains");
-  const chain = publicClientConfig?.chain ?? (await getChain(provider));
-  return innerGetPublicClient(provider, chain, publicClientConfig);
+  const chain = publicClientConfig?.chain ?? (await getChain(hardhatNetwork));
+  return innerGetPublicClient(hardhatNetwork.provider, chain, publicClientConfig);
 }
 
 export async function innerGetPublicClient(
@@ -80,12 +80,13 @@ export async function innerGetPublicClient(
  * @returns A list of WalletClient instances.
  */
 export async function getWalletClients(
-  provider: EthereumProvider,
+  network: Network,
   walletClientConfig?: Partial<WalletClientConfig>
 ): Promise<WalletClient[]> {
   const { getAccounts } = await import("./accounts");
   const { getChain } = await import("./chains");
-  const chain = walletClientConfig?.chain ?? (await getChain(provider));
+  const provider = network.provider;
+  const chain = walletClientConfig?.chain ?? (await getChain(network));
   const accounts = await getAccounts(provider);
   return innerGetWalletClients(provider, chain, accounts, walletClientConfig);
 }
@@ -124,12 +125,13 @@ export async function innerGetWalletClients(
  * @returns A WalletClient instance.
  */
 export async function getWalletClient(
-  provider: EthereumProvider,
+  network: Network,
   address: Address,
   walletClientConfig?: Partial<WalletClientConfig>
 ): Promise<WalletClient> {
   const { getChain } = await import("./chains");
-  const chain = walletClientConfig?.chain ?? (await getChain(provider));
+  const provider = network.provider;
+  const chain = walletClientConfig?.chain ?? (await getChain(network));
   return (
     await innerGetWalletClients(provider, chain, [address], walletClientConfig)
   )[0];
@@ -144,11 +146,12 @@ export async function getWalletClient(
  * @returns A TestClient instance.
  */
 export async function getTestClient(
-  provider: EthereumProvider,
+  network: Network,
   testClientConfig?: Partial<TestClientConfig>
 ): Promise<TestClient> {
   const { getChain, getMode } = await import("./chains");
-  const chain = testClientConfig?.chain ?? (await getChain(provider));
+  const provider = network.provider;
+  const chain = testClientConfig?.chain ?? (await getChain(network));
   const mode = await getMode(provider);
   return innerGetTestClient(provider, chain, mode, testClientConfig);
 }
