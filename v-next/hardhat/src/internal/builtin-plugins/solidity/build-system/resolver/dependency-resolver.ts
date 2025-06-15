@@ -573,12 +573,13 @@ export class ResolverImplementation implements Resolver {
     );
 
     if (bestUserRemapping !== undefined) {
-      return this.#resolveUserRemappedImportFromProjectFile({
-        from,
-        importPath,
-        directImport,
-        remapping: bestUserRemapping,
-      });
+      /// /////////////////////////////////////////////////////////////////////////////// TODO
+      // return this.#resolveUserRemappedImportFromProjectFile({
+      //   from,
+      //   importPath,
+      //   directImport,
+      //   remapping: bestUserRemapping,
+      // });
     }
 
     if (await this.#isDirectImportLocal(this.#projectRoot, directImport)) {
