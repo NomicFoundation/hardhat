@@ -1,5 +1,5 @@
 import type {
-  NewResolver,
+  Resolver,
   RemappedNpmPackagesMapJson,
   Remapping,
   ResolvedNpmUserRemapping,
@@ -54,7 +54,7 @@ import {
 
 const NPM_PACKAGES_WITH_SIMULATED_PACKAGE_EXPORTS = new Set(["forge-std"]);
 
-export class NewResolverImplementation implements NewResolver {
+export class ResolverImplementation implements Resolver {
   readonly #projectRoot: string;
   readonly #npmPackageMap: RemappedNpmPackagesMapImplementation;
   readonly #hhProjectPackage: ResolvedNpmPackage;
@@ -90,10 +90,10 @@ export class NewResolverImplementation implements NewResolver {
   public static async create(
     projectRoot: string,
     readUtf8File: (absPath: string) => Promise<string>,
-  ): Promise<NewResolver> {
+  ): Promise<Resolver> {
     const map = await RemappedNpmPackagesMapImplementation.create(projectRoot);
 
-    return new NewResolverImplementation(projectRoot, map, readUtf8File);
+    return new ResolverImplementation(projectRoot, map, readUtf8File);
   }
 
   private constructor(

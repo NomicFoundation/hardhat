@@ -14,9 +14,9 @@ import { describe, it } from "node:test";
 
 import { readUtf8File } from "@nomicfoundation/hardhat-utils/fs";
 
-import { NewResolverImplementation } from "../../../../../../src/internal/builtin-plugins/solidity/build-system/resolver/new-dependency-resolver.js";
+import { ResolverImplementation } from "../../../../../../src/internal/builtin-plugins/solidity/build-system/resolver/dependency-resolver.js";
 import {
-  type NewResolver,
+  type Resolver,
   type Result,
   UserRemappingType,
 } from "../../../../../../src/internal/builtin-plugins/solidity/build-system/resolver/types.js";
@@ -46,7 +46,7 @@ describe("Dependency resolver", () => {
 
     it("Should error if the file isn't inside the project", async () => {
       await using project = await useTestProjectTemplate(projectTemplate);
-      const resolver = await NewResolverImplementation.create(
+      const resolver = await ResolverImplementation.create(
         project.path,
         readUtf8File,
       );
@@ -65,7 +65,7 @@ describe("Dependency resolver", () => {
 
     it("Should error if the file doesn't exist", async () => {
       await using project = await useTestProjectTemplate(projectTemplate);
-      const resolver = await NewResolverImplementation.create(
+      const resolver = await ResolverImplementation.create(
         project.path,
         readUtf8File,
       );
@@ -84,7 +84,7 @@ describe("Dependency resolver", () => {
 
     it("Should error if it's a node_modules file", async () => {
       await using project = await useTestProjectTemplate(projectTemplate);
-      const resolver = await NewResolverImplementation.create(
+      const resolver = await ResolverImplementation.create(
         project.path,
         readUtf8File,
       );
@@ -107,7 +107,7 @@ describe("Dependency resolver", () => {
 
     it("Should resolve a local file correctly", async () => {
       await using project = await useTestProjectTemplate(projectTemplate);
-      const resolver = await NewResolverImplementation.create(
+      const resolver = await ResolverImplementation.create(
         project.path,
         readUtf8File,
       );
@@ -143,7 +143,7 @@ describe("Dependency resolver", () => {
 
     it("Should resolve a local file correctly, even with incorrect casing", async () => {
       await using project = await useTestProjectTemplate(projectTemplate);
-      const resolver = await NewResolverImplementation.create(
+      const resolver = await ResolverImplementation.create(
         project.path,
         readUtf8File,
       );
@@ -180,7 +180,7 @@ describe("Dependency resolver", () => {
 
     it("Should cache resolved files", async () => {
       await using project = await useTestProjectTemplate(projectTemplate);
-      const resolver = await NewResolverImplementation.create(
+      const resolver = await ResolverImplementation.create(
         project.path,
         readUtf8File,
       );
@@ -197,7 +197,7 @@ describe("Dependency resolver", () => {
 
     it("Should cache resolved files, even with incorrect casing", async () => {
       await using project = await useTestProjectTemplate(projectTemplate);
-      const resolver = await NewResolverImplementation.create(
+      const resolver = await ResolverImplementation.create(
         project.path,
         readUtf8File,
       );
@@ -217,7 +217,7 @@ describe("Dependency resolver", () => {
 
     it("Should cache resolved files, even with incorrect casing, starting with incorrect casing", async () => {
       await using project = await useTestProjectTemplate(projectTemplate);
-      const resolver = await NewResolverImplementation.create(
+      const resolver = await ResolverImplementation.create(
         project.path,
         readUtf8File,
       );
@@ -280,7 +280,7 @@ other-exports/=node_modules/exports/other/`,
     it("Should error if the format is invalid", async () => {
       await using project = await useTestProjectTemplate(template);
 
-      const resolver = await NewResolverImplementation.create(
+      const resolver = await ResolverImplementation.create(
         project.path,
         readUtf8File,
       );
@@ -310,7 +310,7 @@ other-exports/=node_modules/exports/other/`,
     describe("Not affected by user remappings", () => {
       it("Should fail if the package isn't installed", async () => {
         await using project = await useTestProjectTemplate(template);
-        const resolver = await NewResolverImplementation.create(
+        const resolver = await ResolverImplementation.create(
           project.path,
           readUtf8File,
         );
@@ -334,7 +334,7 @@ other-exports/=node_modules/exports/other/`,
       describe("Without package.exports", () => {
         it("Should error if the file doesn't exist within the package", async () => {
           await using project = await useTestProjectTemplate(template);
-          const resolver = await NewResolverImplementation.create(
+          const resolver = await ResolverImplementation.create(
             project.path,
             readUtf8File,
           );
@@ -365,7 +365,7 @@ other-exports/=node_modules/exports/other/`,
 
         it("Should error if the file has a different casing", async () => {
           await using project = await useTestProjectTemplate(template);
-          const resolver = await NewResolverImplementation.create(
+          const resolver = await ResolverImplementation.create(
             project.path,
             readUtf8File,
           );
@@ -397,7 +397,7 @@ other-exports/=node_modules/exports/other/`,
 
         it("Should resolve to the correct file", async () => {
           await using project = await useTestProjectTemplate(template);
-          const resolver = await NewResolverImplementation.create(
+          const resolver = await ResolverImplementation.create(
             project.path,
             readUtf8File,
           );
@@ -439,7 +439,7 @@ other-exports/=node_modules/exports/other/`,
       describe("With package.exports", () => {
         it("Should fail if the file isn't exported", async () => {
           await using project = await useTestProjectTemplate(template);
-          const resolver = await NewResolverImplementation.create(
+          const resolver = await ResolverImplementation.create(
             project.path,
             readUtf8File,
           );
@@ -470,7 +470,7 @@ other-exports/=node_modules/exports/other/`,
 
         it("Should fail if the file is exported but doesn't exist", async () => {
           await using project = await useTestProjectTemplate(template);
-          const resolver = await NewResolverImplementation.create(
+          const resolver = await ResolverImplementation.create(
             project.path,
             readUtf8File,
           );
@@ -501,7 +501,7 @@ other-exports/=node_modules/exports/other/`,
 
         it("Should fail if the resolved subpath has a different casing", async () => {
           await using project = await useTestProjectTemplate(template);
-          const resolver = await NewResolverImplementation.create(
+          const resolver = await ResolverImplementation.create(
             project.path,
             readUtf8File,
           );
@@ -533,7 +533,7 @@ other-exports/=node_modules/exports/other/`,
 
         it("Should resolve to the correct file", async () => {
           await using project = await useTestProjectTemplate(template);
-          const resolver = await NewResolverImplementation.create(
+          const resolver = await ResolverImplementation.create(
             project.path,
             readUtf8File,
           );
@@ -576,7 +576,7 @@ other-exports/=node_modules/exports/other/`,
     describe("Affected by user remappings", () => {
       it("Should fail if the package isn't installed", async () => {
         await using project = await useTestProjectTemplate(template);
-        const resolver = await NewResolverImplementation.create(
+        const resolver = await ResolverImplementation.create(
           project.path,
           readUtf8File,
         );
@@ -613,7 +613,7 @@ a/=b`,
           },
         });
 
-        const resolver = await NewResolverImplementation.create(
+        const resolver = await ResolverImplementation.create(
           project.path,
           readUtf8File,
         );
@@ -647,7 +647,7 @@ a/=b`,
 
       it("Should fail if the file doesn't exist within the package", async () => {
         await using project = await useTestProjectTemplate(template);
-        const resolver = await NewResolverImplementation.create(
+        const resolver = await ResolverImplementation.create(
           project.path,
           readUtf8File,
         );
@@ -682,7 +682,7 @@ a/=b`,
 
       it("Should fail if the file has a different casing", async () => {
         await using project = await useTestProjectTemplate(template);
-        const resolver = await NewResolverImplementation.create(
+        const resolver = await ResolverImplementation.create(
           project.path,
           readUtf8File,
         );
@@ -718,7 +718,7 @@ a/=b`,
 
       it("Should fail if the user remapping takes a string that looks like an npm module into a project file", async () => {
         await using project = await useTestProjectTemplate(template);
-        const resolver = await NewResolverImplementation.create(
+        const resolver = await ResolverImplementation.create(
           project.path,
           readUtf8File,
         );
@@ -763,7 +763,7 @@ a/=b`,
 
       it("Should resolve to the correct file with the best user remapping", async () => {
         await using project = await useTestProjectTemplate(template);
-        const resolver = await NewResolverImplementation.create(
+        const resolver = await ResolverImplementation.create(
           project.path,
           readUtf8File,
         );
@@ -818,7 +818,7 @@ a/=b`,
 
       it("Should ignore package.exports and use the best user remapping", async () => {
         await using project = await useTestProjectTemplate(template);
-        const resolver = await NewResolverImplementation.create(
+        const resolver = await ResolverImplementation.create(
           project.path,
           readUtf8File,
         );
@@ -944,7 +944,7 @@ a/=b`,
 
     it("Should error if windows path separators are used", async () => {
       await using project = await useTestProjectTemplate(template);
-      const resolver = await NewResolverImplementation.create(
+      const resolver = await ResolverImplementation.create(
         project.path,
         readUtf8File,
       );
@@ -973,7 +973,7 @@ a/=b`,
         },
       });
 
-      const resolver = await NewResolverImplementation.create(
+      const resolver = await ResolverImplementation.create(
         project.path,
         readUtf8File,
       );
@@ -1014,7 +1014,7 @@ a/=b`,
         };
 
         await using project = await useTestProjectTemplate(templateWithClashes);
-        const resolver = await NewResolverImplementation.create(
+        const resolver = await ResolverImplementation.create(
           project.path,
           readUtf8File,
         );
@@ -1046,7 +1046,7 @@ a/=b`,
 
       it("Should error if the file doesn't exist", async () => {
         await using project = await useTestProjectTemplate(template);
-        const resolver = await NewResolverImplementation.create(
+        const resolver = await ResolverImplementation.create(
           project.path,
           readUtf8File,
         );
@@ -1081,7 +1081,7 @@ a/=b`,
 
       it("Should error if the file has an incorrect casing", async () => {
         await using project = await useTestProjectTemplate(template);
-        const resolver = await NewResolverImplementation.create(
+        const resolver = await ResolverImplementation.create(
           project.path,
           readUtf8File,
         );
@@ -1117,7 +1117,7 @@ a/=b`,
 
       it("Should error if trying to import an npm file with a relative path", async () => {
         await using project = await useTestProjectTemplate(template);
-        const resolver = await NewResolverImplementation.create(
+        const resolver = await ResolverImplementation.create(
           project.path,
           readUtf8File,
         );
@@ -1143,7 +1143,7 @@ a/=b`,
 
       it("Resolving roots and imports should return the same instance of each file, even when importing in different ways", async () => {
         await using project = await useTestProjectTemplate(template);
-        const resolver = await NewResolverImplementation.create(
+        const resolver = await ResolverImplementation.create(
           project.path,
           readUtf8File,
         );
@@ -1186,7 +1186,7 @@ a/=b`,
       describe("From a local file", () => {
         it("Should error on imports that get out of the project", async () => {
           await using project = await useTestProjectTemplate(template);
-          const resolver = await NewResolverImplementation.create(
+          const resolver = await ResolverImplementation.create(
             project.path,
             readUtf8File,
           );
@@ -1212,7 +1212,7 @@ a/=b`,
 
         it("Should resolve to the correct file", async () => {
           await using project = await useTestProjectTemplate(template);
-          const resolver = await NewResolverImplementation.create(
+          const resolver = await ResolverImplementation.create(
             project.path,
             readUtf8File,
           );
@@ -1246,7 +1246,7 @@ a/=b`,
       describe("From an npm package", () => {
         it("Should error on imports that get out of the package", async () => {
           await using project = await useTestProjectTemplate(template);
-          const resolver = await NewResolverImplementation.create(
+          const resolver = await ResolverImplementation.create(
             project.path,
             readUtf8File,
           );
@@ -1278,7 +1278,7 @@ a/=b`,
 
         it("Should resolve to the correct file", async () => {
           await using project = await useTestProjectTemplate(template);
-          const resolver = await NewResolverImplementation.create(
+          const resolver = await ResolverImplementation.create(
             project.path,
             readUtf8File,
           );
@@ -1336,7 +1336,7 @@ a/=b`,
           };
 
           await using project = await useTestProjectTemplate(localTemplate);
-          const resolver = await NewResolverImplementation.create(
+          const resolver = await ResolverImplementation.create(
             project.path,
             readUtf8File,
           );
@@ -1385,7 +1385,7 @@ a/=b`,
           };
 
           await using project = await useTestProjectTemplate(localTemplate);
-          const resolver = await NewResolverImplementation.create(
+          const resolver = await ResolverImplementation.create(
             project.path,
             readUtf8File,
           );
@@ -1436,7 +1436,7 @@ fo/=barr/`,
           };
 
           await using project = await useTestProjectTemplate(localTemplate);
-          const resolver = await NewResolverImplementation.create(
+          const resolver = await ResolverImplementation.create(
             project.path,
             readUtf8File,
           );
@@ -1488,7 +1488,7 @@ fo/=barr/`,
           };
 
           await using project = await useTestProjectTemplate(localTemplate);
-          const resolver = await NewResolverImplementation.create(
+          const resolver = await ResolverImplementation.create(
             project.path,
             readUtf8File,
           );
@@ -1539,7 +1539,7 @@ fo/=barr/`,
           };
 
           await using project = await useTestProjectTemplate(localTemplate);
-          const resolver = await NewResolverImplementation.create(
+          const resolver = await ResolverImplementation.create(
             project.path,
             readUtf8File,
           );
@@ -1596,7 +1596,7 @@ fo/=barr/`,
           };
 
           await using project = await useTestProjectTemplate(localTemplate);
-          const resolver = await NewResolverImplementation.create(
+          const resolver = await ResolverImplementation.create(
             project.path,
             readUtf8File,
           );
@@ -1654,7 +1654,7 @@ fo/=barr/`,
           };
 
           await using project = await useTestProjectTemplate(localTemplate);
-          const resolver = await NewResolverImplementation.create(
+          const resolver = await ResolverImplementation.create(
             project.path,
             readUtf8File,
           );
@@ -1733,7 +1733,7 @@ fo/=barr/`,
           await using project = await useTestProjectTemplate(
             templateWithBrokenRemapping,
           );
-          const resolver = await NewResolverImplementation.create(
+          const resolver = await ResolverImplementation.create(
             project.path,
             readUtf8File,
           );
@@ -1813,7 +1813,7 @@ fo/=barr/`,
           };
 
           await using project = await useTestProjectTemplate(localTemplate);
-          const resolver = await NewResolverImplementation.create(
+          const resolver = await ResolverImplementation.create(
             project.path,
             readUtf8File,
           );
@@ -1893,7 +1893,7 @@ fo/=barr/`,
           };
 
           await using project = await useTestProjectTemplate(localTemplate);
-          const resolver = await NewResolverImplementation.create(
+          const resolver = await ResolverImplementation.create(
             project.path,
             readUtf8File,
           );
@@ -1979,7 +1979,7 @@ fo/=barr/`,
         };
 
         await using project = await useTestProjectTemplate(localTemplate);
-        const resolver = await NewResolverImplementation.create(
+        const resolver = await ResolverImplementation.create(
           project.path,
           readUtf8File,
         );
@@ -2029,7 +2029,7 @@ submodule2/=lib/submodule2/src/`,
           };
 
           await using project = await useTestProjectTemplate(localTemplate);
-          const resolver = await NewResolverImplementation.create(
+          const resolver = await ResolverImplementation.create(
             project.path,
             readUtf8File,
           );
@@ -2083,7 +2083,7 @@ submodule2/=lib/submodule2/src/`,
     describe("Npm imports", () => {
       it("Should error if the importPath isn't a valid npm module identifier", async () => {
         await using project = await useTestProjectTemplate(template);
-        const resolver = await NewResolverImplementation.create(
+        const resolver = await ResolverImplementation.create(
           project.path,
           readUtf8File,
         );
@@ -2113,7 +2113,7 @@ submodule2/=lib/submodule2/src/`,
 
       it("Should fail if the package isn't installed", async () => {
         await using project = await useTestProjectTemplate(template);
-        const resolver = await NewResolverImplementation.create(
+        const resolver = await ResolverImplementation.create(
           project.path,
           readUtf8File,
         );
@@ -2139,7 +2139,7 @@ submodule2/=lib/submodule2/src/`,
       describe("Without package.exports", () => {
         it("Should fail if the file doesn't exist within the package", async () => {
           await using project = await useTestProjectTemplate(template);
-          const resolver = await NewResolverImplementation.create(
+          const resolver = await ResolverImplementation.create(
             project.path,
             readUtf8File,
           );
@@ -2172,7 +2172,7 @@ submodule2/=lib/submodule2/src/`,
 
         it("Should fail if the file has a different casing", async () => {
           await using project = await useTestProjectTemplate(template);
-          const resolver = await NewResolverImplementation.create(
+          const resolver = await ResolverImplementation.create(
             project.path,
             readUtf8File,
           );
@@ -2206,7 +2206,7 @@ submodule2/=lib/submodule2/src/`,
 
         it("Should resolve to the correct file, generating a generic remapping", async () => {
           await using project = await useTestProjectTemplate(template);
-          const resolver = await NewResolverImplementation.create(
+          const resolver = await ResolverImplementation.create(
             project.path,
             readUtf8File,
           );
@@ -2293,7 +2293,7 @@ submodule2/=lib/submodule2/src/`,
       describe("With package.exports", () => {
         it("Should fail if the file is exported but doesn't exist in the file system", async () => {
           await using project = await useTestProjectTemplate(template);
-          const resolver = await NewResolverImplementation.create(
+          const resolver = await ResolverImplementation.create(
             project.path,
             readUtf8File,
           );
@@ -2329,7 +2329,7 @@ submodule2/=lib/submodule2/src/`,
 
         it("Should fail if the file isn't exported", async () => {
           await using project = await useTestProjectTemplate(template);
-          const resolver = await NewResolverImplementation.create(
+          const resolver = await ResolverImplementation.create(
             project.path,
             readUtf8File,
           );
@@ -2365,7 +2365,7 @@ submodule2/=lib/submodule2/src/`,
 
         it("Should fail if the resolved subpath has a different casing", async () => {
           await using project = await useTestProjectTemplate(template);
-          const resolver = await NewResolverImplementation.create(
+          const resolver = await ResolverImplementation.create(
             project.path,
             readUtf8File,
           );
@@ -2402,7 +2402,7 @@ submodule2/=lib/submodule2/src/`,
 
         it("Should resolve to the correct file generating a generic remapping if the resolved subpath is the same as the subpath", async () => {
           await using project = await useTestProjectTemplate(template);
-          const resolver = await NewResolverImplementation.create(
+          const resolver = await ResolverImplementation.create(
             project.path,
             readUtf8File,
           );
@@ -2456,7 +2456,7 @@ submodule2/=lib/submodule2/src/`,
 
         it("Should resolve to the correct file generating a single-file remapping if the resolved subpath is different than subpath", async () => {
           await using project = await useTestProjectTemplate(template);
-          const resolver = await NewResolverImplementation.create(
+          const resolver = await ResolverImplementation.create(
             project.path,
             readUtf8File,
           );
@@ -2530,7 +2530,7 @@ submodule2/=lib/submodule2/src/`,
         it("Should simulate package.exports for forge-std", async () => {
           await using project =
             await useTestProjectTemplate(templateWithForgeStd);
-          const resolver = await NewResolverImplementation.create(
+          const resolver = await ResolverImplementation.create(
             project.path,
             readUtf8File,
           );
@@ -2579,7 +2579,7 @@ submodule2/=lib/submodule2/src/`,
         it("Should return the right errors as if it had a package.exports", async () => {
           await using project =
             await useTestProjectTemplate(templateWithForgeStd);
-          const resolver = await NewResolverImplementation.create(
+          const resolver = await ResolverImplementation.create(
             project.path,
             readUtf8File,
           );
@@ -2636,7 +2636,7 @@ submodule2/=lib/submodule2/src/`,
 
       it("Resolving roots and imports should return the same instance of each file, even when importing in different ways", async () => {
         await using project = await useTestProjectTemplate(template);
-        const resolver = await NewResolverImplementation.create(
+        const resolver = await ResolverImplementation.create(
           project.path,
           readUtf8File,
         );
@@ -2676,7 +2676,7 @@ submodule2/=lib/submodule2/src/`,
 
       it("should return a single instance for the same dependency+version+subpath", async () => {
         await using project = await useTestProjectTemplate(template);
-        const resolver = await NewResolverImplementation.create(
+        const resolver = await ResolverImplementation.create(
           project.path,
           readUtf8File,
         );
@@ -2717,7 +2717,7 @@ submodule2/=lib/submodule2/src/`,
     describe("Special cases", () => {
       describe("Remapping suggestion for local direct import errors", () => {
         async function assertSuggestedRemapping(
-          resolver: NewResolver,
+          resolver: Resolver,
           from: ResolvedFile,
           importPath: string,
           suggestedRemapping: string,
@@ -2748,7 +2748,7 @@ submodule2/=lib/submodule2/src/`,
             };
 
             await using project = await useTestProjectTemplate(localTemplate);
-            const resolver = await NewResolverImplementation.create(
+            const resolver = await ResolverImplementation.create(
               project.path,
               readUtf8File,
             );
@@ -2833,7 +2833,7 @@ submodule2/=lib/submodule2/src/`,
             };
 
             await using project = await useTestProjectTemplate(localTemplate);
-            const resolver = await NewResolverImplementation.create(
+            const resolver = await ResolverImplementation.create(
               project.path,
               readUtf8File,
             );
@@ -2915,7 +2915,7 @@ import * as C from "./C.sol";`,
       };
 
       await using project = await useTestProjectTemplate(localTemplate);
-      const resolver = await NewResolverImplementation.create(
+      const resolver = await ResolverImplementation.create(
         project.path,
         readUtf8File,
       );
@@ -2968,7 +2968,7 @@ import * as C from "./C.sol";`,
       };
 
       await using project = await useTestProjectTemplate(localTemplate);
-      const resolver = await NewResolverImplementation.create(
+      const resolver = await ResolverImplementation.create(
         project.path,
         readUtf8File,
       );

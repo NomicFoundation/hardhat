@@ -249,7 +249,7 @@ export interface RemappedNpmPackagesMapJson {
  * In those cases the Resolver will use the first instance it finds, and will
  * always resolve to that one.
  */
-export interface NewResolver {
+export interface Resolver {
   resolveProjectFile(
     absoluteFilePath: string,
   ): Promise<Result<ProjectResolvedFile, ProjectRootResolutionError>>;
