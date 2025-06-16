@@ -59,7 +59,8 @@
     "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.15",
     "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.15",
     "debug": "^4.3.2",
-    "ethers": "^6.13.4"
+    "ethereum-cryptography": "^2.2.1",
+    "ethers": "^6.14.0"
   },
   "peerDependencies": {
     "hardhat": "workspace:^3.0.0-next.15"

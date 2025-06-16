@@ -69,6 +69,6 @@
   "peerDependencies": {
     "hardhat": "workspace:^3.0.0-next.15",
     "@nomicfoundation/hardhat-ethers": "workspace:^4.0.0-next.15",
-    "ethers": "^6.13.4"
+    "ethers": "^6.14.0"
   }
 }
