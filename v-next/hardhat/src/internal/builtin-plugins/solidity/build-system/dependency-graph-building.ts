@@ -1,7 +1,7 @@
 import type { ResolvedFile } from "../../../../types/solidity/resolved-file.js";
 
 import { DependencyGraphImplementation } from "./dependency-graph.js";
-import { NewResolverImplementation } from "./resolver/new-dependency-resolver.js";
+import { ResolverImplementation } from "./resolver/dependency-resolver.js";
 import { formatRemapping } from "./resolver/remappings.js";
 import { isNpmParsedRootPath, parseRootPath } from "./root-paths-utils.js";
 
@@ -10,10 +10,7 @@ export async function buildDependencyGraph(
   projectRoot: string,
   readFile: (absPath: string) => Promise<string>,
 ): Promise<DependencyGraphImplementation> {
-  const resolver = await NewResolverImplementation.create(
-    projectRoot,
-    readFile,
-  );
+  const resolver = await ResolverImplementation.create(projectRoot, readFile);
 
   const dependencyGraph = new DependencyGraphImplementation();
 
