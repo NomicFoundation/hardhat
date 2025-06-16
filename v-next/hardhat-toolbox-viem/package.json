@@ -63,7 +63,7 @@
     "prettier": "3.2.5",
     "rimraf": "^5.0.5",
     "tsx": "^4.19.3",
-    "typescript": "~5.5.0",
+    "typescript": "~5.8.0",
     "viem": "^2.30.0"
   },
   "peerDependencies": {

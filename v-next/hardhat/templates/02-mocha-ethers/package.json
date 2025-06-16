@@ -17,6 +17,6 @@
     "ethers": "^6.14.0",
     "forge-std": "foundry-rs/forge-std#v1.9.4",
     "mocha": "^11.0.0",
-    "typescript": "~5.5.0"
+    "typescript": "~5.8.0"
   }
 }
