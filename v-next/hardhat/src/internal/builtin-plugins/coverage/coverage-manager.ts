@@ -55,10 +55,6 @@ export class CoverageManagerImplementation implements CoverageManager {
     this.#coveragePath = coveragePath;
   }
 
-  public async clean(): Promise<void> {
-    await remove(this.#coveragePath);
-  }
-
   async #getDataPath(id: string): Promise<string> {
     const dataPath = path.join(this.#coveragePath, "data", id);
     await ensureDir(dataPath);

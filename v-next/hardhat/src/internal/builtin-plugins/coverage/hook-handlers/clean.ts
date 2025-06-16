@@ -1,17 +1,12 @@
 import type { CleanHooks } from "../../../../types/hooks.js";
 
-import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
+import { remove } from "@nomicfoundation/hardhat-utils/fs";
 
-import { CoverageManagerImplementation } from "../coverage-manager.js";
+import { getCoveragePath } from "../helpers.js";
 
 export default async (): Promise<Partial<CleanHooks>> => ({
   onClean: async (context) => {
-    assertHardhatInvariant(
-      "_coverage" in context &&
-        context._coverage instanceof CoverageManagerImplementation,
-      "Expected _coverage to be defined in the HookContext, as it's should be defined in the HRE",
-    );
-
-    await context._coverage.clean();
+    const coveragePath = getCoveragePath(context.config.paths.root);
+    await remove(coveragePath);
   },
 });
