@@ -1,5 +1,16 @@
 # hardhat
 
+## 3.0.0-next.15
+
+### Patch Changes
+
+- fd64634: Fixed a bug when sending ETH to the testing accounts in forked networks. Now testing accounts are automatically undelegated ([#6834](https://github.com/NomicFoundation/hardhat/issues/6834))
+- a433be1: Reduced the number of installed package dependencies by swapping out `@sentry/node` for `@sentry/core` ([#6757](https://github.com/NomicFoundation/hardhat/pull/6757))
+- 8c8c110: Fix a bug in `viem-assertions` to scan every event log, not just the first one ([#6787](https://github.com/NomicFoundation/hardhat/pull/6787))
+- 1d891bd: Use file URLs instead of paths as arguments to `--import` when invoking the WASM solc compiler (https://github.com/nodejs/node/issues/58515)
+- d844f6e: Add support for running under Node 24 ([#6792](https://github.com/NomicFoundation/hardhat/issues/6792))
+- 6be01c4: Support async calls in `getAllFilesMatching` in `hardhat-utils`, thanks @ItsNickBarry ([#6789](https://github.com/NomicFoundation/hardhat/pull/6789))
+
 ## 3.0.0-next.14
 
 ### Patch Changes
