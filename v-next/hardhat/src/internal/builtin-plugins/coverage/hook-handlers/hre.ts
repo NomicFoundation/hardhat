@@ -10,7 +10,7 @@ import { CoverageManagerImplementation } from "../coverage-manager.js";
 export default async (): Promise<Partial<HardhatRuntimeEnvironmentHooks>> => ({
   created: async (context, hre) => {
     if (context.globalOptions.coverage) {
-      const coveragePath = path.join(hre.config.paths.cache, "coverage");
+      const coveragePath = path.join(hre.config.paths.root, "coverage");
       const coverageManager = new CoverageManagerImplementation(coveragePath);
 
       assertHardhatInvariant(
