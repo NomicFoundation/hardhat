@@ -25,7 +25,6 @@ declare module "../../../types/config.js" {
 
   export interface CommonSolidityUserConfig {
     dependenciesToCompile?: string[];
-    remappings?: string[];
   }
 
   export interface SingleVersionSolidityUserConfig
@@ -61,7 +60,6 @@ declare module "../../../types/config.js" {
   export interface SolidityConfig {
     profiles: Record<string, SolidityBuildProfileConfig>;
     dependenciesToCompile: string[];
-    remappings: string[];
   }
 
   export interface HardhatConfig {
