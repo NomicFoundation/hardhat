@@ -126,15 +126,13 @@ describe("JSON-RPC client", function () {
             this.hre.network.provider,
             {
               maxFeePerGas: 1n,
-              maxPriorityFeePerGas: 0n,
             }
           );
           const fees = await maxFeeClient.getNetworkFees();
 
           assert("maxFeePerGas" in fees);
 
-          // internal logic multiplies the given maxFeePerGas by 2 and adds the maxPriorityFeePerGas
-          assert.equal(fees.maxFeePerGas, 2n);
+          assert.equal(fees.maxFeePerGas, 1n);
         });
 
         it("Should use return legacy fees when deploying to polygon network (chainId 137)", async function () {
