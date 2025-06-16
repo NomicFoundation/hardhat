@@ -25,7 +25,10 @@ export interface DependencyGraph {
    * @param file The file to get the dependencies of. It must be present in the
    * graph.
    */
-  getDependencies(file: ResolvedFile): ReadonlySet<ResolvedFile>;
+  getDependencies(file: ResolvedFile): ReadonlySet<{
+    file: ResolvedFile;
+    remappings: ReadonlySet<string>;
+  }>;
 
   /**
    * Returns a file by its source name, if present.
@@ -50,8 +53,13 @@ export interface DependencyGraph {
    * the files of both graphs, with all the dependencies of the files in both
    * graphs, and the roots of both graphs as root.
    *
-   * @param other The other DependencyGraph to merge with, which must have been
+   * @param other The other DependencyGraph to merge with, which MUST have been
    * created with the same Resolver.
    */
   merge(other: DependencyGraph): DependencyGraph;
+
+  /**
+   * Returns a set with all the remappings that are present in the graph.
+   */
+  getAllRemappings(): readonly string[];
 }

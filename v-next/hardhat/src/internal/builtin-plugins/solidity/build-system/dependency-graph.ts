@@ -3,10 +3,25 @@ import type { ResolvedFile } from "../../../../types/solidity/resolved-file.js";
 
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 
+export interface DependencyGraphImplementationJson {
+  readonly fileBySourceName: Record<string, ResolvedFile>;
+  readonly rootByPublicSourceName: Record<
+    string /* public source name */,
+    string /* actual source name */
+  >;
+  readonly dependencies: Record<
+    string /* from source name */,
+    Record<string /* to source name */, string[] /* remappings */>
+  >;
+}
+
 export class DependencyGraphImplementation implements DependencyGraph {
   readonly #fileBySourceName = new Map<string, ResolvedFile>();
   readonly #rootByPublicSourceName = new Map<string, ResolvedFile>();
-  readonly #dependencies = new Map<ResolvedFile, Set<ResolvedFile>>();
+  readonly #dependenciesMap = new Map<
+    ResolvedFile,
+    Map<ResolvedFile, Set<string>>
+  >();
 
   /**
    * Adds a root file to the graph. All the roots of the dependency graph must
@@ -30,9 +45,15 @@ export class DependencyGraphImplementation implements DependencyGraph {
    *  present in the graph.
    * @param to The dependency, which will be added to the list of dependencies
    *  of the file, and addded to the graph if needed.
+   * @param remapping The remapping that was used to resolve this dependency, if
+   *  any.
    */
-  public addDependency(from: ResolvedFile, to: ResolvedFile): void {
-    const dependencies = this.#dependencies.get(from);
+  public addDependency(
+    from: ResolvedFile,
+    to: ResolvedFile,
+    remapping?: string,
+  ): void {
+    const dependencies = this.#dependenciesMap.get(from);
     assertHardhatInvariant(
       dependencies !== undefined,
       "File `from` from not present",
@@ -42,7 +63,15 @@ export class DependencyGraphImplementation implements DependencyGraph {
       this.#addFile(to);
     }
 
-    dependencies.add(to);
+    let edgeRemappings = dependencies.get(to);
+    if (edgeRemappings === undefined) {
+      edgeRemappings = new Set();
+      dependencies.set(to, edgeRemappings);
+    }
+
+    if (remapping !== undefined) {
+      edgeRemappings.add(remapping);
+    }
   }
 
   /**
@@ -56,15 +85,28 @@ export class DependencyGraphImplementation implements DependencyGraph {
    * Returns a set of all the files in the graph.
    */
   public getAllFiles(): Iterable<ResolvedFile> {
-    return this.#dependencies.keys();
+    return this.#dependenciesMap.keys();
   }
 
   public hasFile(file: ResolvedFile): boolean {
-    return this.#dependencies.has(file);
+    return this.#dependenciesMap.has(file);
   }
 
-  public getDependencies(file: ResolvedFile): ReadonlySet<ResolvedFile> {
-    return this.#dependencies.get(file) ?? new Set();
+  public getDependencies(file: ResolvedFile): ReadonlySet<{
+    file: ResolvedFile;
+    remappings: ReadonlySet<string>;
+  }> {
+    const dependencies = this.#dependenciesMap.get(file);
+    if (dependencies === undefined) {
+      return new Set();
+    }
+
+    return new Set(
+      Array.from(dependencies.entries()).map(([to, remappings]) => ({
+        file: to,
+        remappings,
+      })),
+    );
   }
 
   public getFileBySourceName(sourceName: string): ResolvedFile | undefined {
@@ -93,11 +135,14 @@ export class DependencyGraphImplementation implements DependencyGraph {
     let fileToAnalyze;
     while ((fileToAnalyze = filesToTraverse.pop()) !== undefined) {
       for (const dependency of this.getDependencies(fileToAnalyze)) {
-        if (!subgraph.hasFile(dependency)) {
-          filesToTraverse.push(dependency);
+        if (!subgraph.hasFile(dependency.file)) {
+          filesToTraverse.push(dependency.file);
         }
 
-        subgraph.addDependency(fileToAnalyze, dependency);
+        subgraph.addDependency(fileToAnalyze, dependency.file);
+        for (const remapping of dependency.remappings) {
+          subgraph.addDependency(fileToAnalyze, dependency.file, remapping);
+        }
       }
     }
 
@@ -117,19 +162,63 @@ export class DependencyGraphImplementation implements DependencyGraph {
       merged.addRootFile(publicSourceName, root);
     }
 
-    for (const [from, toes] of this.#dependencies) {
-      for (const to of toes) {
+    for (const [from, dependencies] of this.#dependenciesMap) {
+      for (const [to, remappings] of dependencies) {
         merged.addDependency(from, to);
+
+        for (const remapping of remappings) {
+          merged.addDependency(from, to, remapping);
+        }
       }
     }
 
-    for (const [from, toes] of other.#dependencies) {
-      for (const to of toes) {
+    for (const [from, dependencies] of other.#dependenciesMap) {
+      for (const [to, remappings] of dependencies) {
         merged.addDependency(from, to);
+
+        for (const remapping of remappings) {
+          merged.addDependency(from, to, remapping);
+        }
       }
     }
 
     return merged;
+  }
+
+  public getAllRemappings(): readonly string[] {
+    return this.#dependenciesMap
+      .values()
+      .flatMap((dependencies) =>
+        dependencies.values().flatMap((remappings) => remappings.values()),
+      )
+      .toArray()
+      .sort();
+  }
+
+  public toJSON(): DependencyGraphImplementationJson {
+    return {
+      fileBySourceName: Object.fromEntries(this.#fileBySourceName),
+      rootByPublicSourceName: Object.fromEntries(
+        this.#rootByPublicSourceName
+          .entries()
+          .map(([publicSourceName, file]) => [
+            publicSourceName,
+            file.sourceName,
+          ]),
+      ),
+      dependencies: Object.fromEntries(
+        this.#dependenciesMap
+          .entries()
+          .map(([from, dependencies]) => [
+            from.sourceName,
+            Object.fromEntries(
+              dependencies
+                .entries()
+                .map(([to, remappings]) => [to.sourceName, [...remappings]]),
+            ),
+          ]),
+      ),
+    };
   }
 
   #addFile(file: ResolvedFile): void {
@@ -144,6 +233,6 @@ export class DependencyGraphImplementation implements DependencyGraph {
     );
 
     this.#fileBySourceName.set(file.sourceName, file);
-    this.#dependencies.set(file, new Set());
+    this.#dependenciesMap.set(file, new Map());
   }
 }
