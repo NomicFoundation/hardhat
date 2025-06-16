@@ -174,8 +174,8 @@ importers:
         specifier: ^2.2.1
         version: 2.2.1
       micro-eth-signer:
-        specifier: ^0.13.0
-        version: 0.13.3
+        specifier: ^0.14.0
+        version: 0.14.0
       p-map:
         specifier: ^7.0.2
         version: 7.0.3
@@ -2439,10 +2439,6 @@ packages:
   '@noble/curves@1.4.2':
     resolution: {integrity: sha512-TavHr8qycMChk8UwMld0ZDRvatedkzWfH8IiaeGCfymOP5i0hSCozz9vHOL0nkwk7HRMlFnAiKpS2jrUmSybcw==}
 
-  '@noble/curves@1.8.1':
-    resolution: {integrity: sha512-warwspo+UYUPep0Q+vtdVB4Ugn8GGQj8iyB3gnRWsztmUHTI3S1nhdiWNsPUGL0vud7JlRRk1XEu7Lq1KGTnMQ==}
-    engines: {node: ^14.21.3 || >=16}
-
   '@noble/curves@1.8.2':
     resolution: {integrity: sha512-vnI7V6lFNe0tLAuJMu+2sX+FcL14TaCWy1qiczg1VwRmPrpQCdq5ESXQMqUc2tluRNf6irBXrWbl1mGN8uaU/g==}
     engines: {node: ^14.21.3 || >=16}
@@ -4424,8 +4420,8 @@ packages:
   mermaid@10.9.3:
     resolution: {integrity: sha512-V80X1isSEvAewIL3xhmz/rVmc27CVljcsbWxkxlWJWY/1kQa4XOABqpDl2qQLGKzpKm6WbTfUEKImBlUfFYArw==}
 
-  micro-eth-signer@0.13.3:
-    resolution: {integrity: sha512-C1AxZMw10VGQrdox/6rtl94aUYOceEnPUR+ADkm35/z4HPqb6ijIDF6G/KySuG2QveH9dqOohKzaHoru/A3xSw==}
+  micro-eth-signer@0.14.0:
+    resolution: {integrity: sha512-5PLLzHiVYPWClEvZIXXFu5yutzpadb73rnQCpUqIHu3No3coFuWQNfE5tkBQJ7djuLYl6aRLaS0MgWJYGoqiBw==}
 
   micro-packed@0.7.2:
     resolution: {integrity: sha512-HJ/u8+tMzgrJVAl6P/4l8KGjJSA3SCZaRb1m4wpbovNScCSmVOGUYbkkcoPPcknCHWPpRAdjy+yqXqyQWf+k8g==}
@@ -6393,10 +6389,6 @@ snapshots:
   '@noble/curves@1.4.2':
     dependencies:
       '@noble/hashes': 1.4.0
-
-  '@noble/curves@1.8.1':
-    dependencies:
-      '@noble/hashes': 1.7.1
 
   '@noble/curves@1.8.2':
     dependencies:
@@ -8567,9 +8559,9 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  micro-eth-signer@0.13.3:
+  micro-eth-signer@0.14.0:
     dependencies:
-      '@noble/curves': 1.8.1
+      '@noble/curves': 1.8.2
       '@noble/hashes': 1.7.1
       micro-packed: 0.7.2
 

@@ -15,6 +15,10 @@ import {
   hexStringToBigInt,
   hexStringToBytes,
 } from "@nomicfoundation/hardhat-utils/hex";
+import {
+  bytesToBigInt,
+  bytesToNumber,
+} from "@nomicfoundation/hardhat-utils/number";
 import { addr, Transaction } from "micro-eth-signer";
 import * as typed from "micro-eth-signer/typed-data";
 import { signTyped } from "micro-eth-signer/typed-data";
@@ -39,6 +43,8 @@ import { ChainId } from "../chain-id/chain-id.js";
  * It has been identified that micro-eth-signer is one of the most expensive dependencies here.
  * See https://github.com/NomicFoundation/hardhat/pull/6481 for more details.
  */
+
+const EXTRA_ENTROPY = false;
 export class LocalAccountsHandler extends ChainId implements RequestHandler {
   readonly #addressToPrivateKey: Map<string, Uint8Array> = new Map();
   readonly #addresses: string[] = [];
@@ -93,7 +99,7 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
           const privateKey = this.#getPrivateKeyForAddress(address);
           return this.#createJsonRpcResponse(
             jsonRpcRequest.id,
-            typed.personal.sign(data, privateKey),
+            typed.personal.sign(data, privateKey, EXTRA_ENTROPY),
           );
         }
       }
@@ -113,7 +119,7 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
           const privateKey = this.#getPrivateKeyForAddress(address);
           return this.#createJsonRpcResponse(
             jsonRpcRequest.id,
-            typed.personal.sign(data, privateKey),
+            typed.personal.sign(data, privateKey, EXTRA_ENTROPY),
           );
         }
       }
@@ -144,7 +150,7 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
       if (privateKey !== null) {
         return this.#createJsonRpcResponse(
           jsonRpcRequest.id,
-          signTyped(typedMessage, privateKey),
+          signTyped(typedMessage, privateKey, EXTRA_ENTROPY),
         );
       }
     }
@@ -176,10 +182,17 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
       const hasEip1559Fields =
         txRequest.maxFeePerGas !== undefined ||
         txRequest.maxPriorityFeePerGas !== undefined;
+      const hasEip7702Fields = txRequest.authorizationList !== undefined;
 
       if (!hasGasPrice && !hasEip1559Fields) {
         throw new HardhatError(
           HardhatError.ERRORS.CORE.NETWORK.MISSING_FEE_PRICE_FIELDS,
+        );
+      }
+
+      if (hasGasPrice && hasEip7702Fields) {
+        throw new HardhatError(
+          HardhatError.ERRORS.CORE.NETWORK.INCOMPATIBLE_EIP7702_FIELDS,
         );
       }
 
@@ -291,6 +304,19 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
       };
     });
 
+    const authorizationList = txData.authorizationList?.map(
+      ({ chainId: authChainId, address, nonce, yParity, r, s }) => {
+        return {
+          chainId: authChainId,
+          address: addr.addChecksum(bytesToHexString(address)),
+          nonce,
+          yParity: bytesToNumber(yParity),
+          r: bytesToBigInt(r),
+          s: bytesToBigInt(s),
+        };
+      },
+    );
+
     if (
       (txData.to === undefined || txData.to === null) &&
       txData.data === undefined
@@ -300,16 +326,10 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
       );
     }
 
-    let checksummedAddress;
-    if (txData.to === undefined || txData.to === null) {
-      // This scenario arises during contract deployment. The npm package "micro-eth-signer" does not support
-      // null or undefined addresses. Therefore, these values must be converted to "0x", the expected format.
-      checksummedAddress = "0x";
-    } else {
-      checksummedAddress = addr.addChecksum(
-        bytesToHexString(txData.to).toLowerCase(),
-      );
-    }
+    const checksummedAddress = addr.addChecksum(
+      bytesToHexString(txData.to ?? new Uint8Array()),
+      true,
+    );
 
     assertHardhatInvariant(
       txData.nonce !== undefined,
@@ -319,16 +339,38 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
     let transaction;
     // strict mode is not meant to be used in the context of hardhat
     const strictMode = false;
-    if (txData.maxFeePerGas !== undefined) {
+
+    const baseTxParams = {
+      to: checksummedAddress,
+      nonce: txData.nonce,
+      chainId: txData.chainId ?? toBigInt(chainId),
+      value: txData.value ?? 0n,
+      data: bytesToHexString(txData.data ?? new Uint8Array()),
+      gasLimit: txData.gasLimit,
+    };
+
+    if (authorizationList !== undefined) {
+      assertHardhatInvariant(
+        txData.maxFeePerGas !== undefined,
+        "maxFeePerGas should be defined",
+      );
+
+      transaction = Transaction.prepare(
+        {
+          type: "eip7702",
+          ...baseTxParams,
+          maxFeePerGas: txData.maxFeePerGas,
+          maxPriorityFeePerGas: txData.maxPriorityFeePerGas,
+          accessList: accessList ?? [],
+          authorizationList: authorizationList ?? [],
+        },
+        strictMode,
+      );
+    } else if (txData.maxFeePerGas !== undefined) {
       transaction = Transaction.prepare(
         {
           type: "eip1559",
-          to: checksummedAddress,
-          nonce: txData.nonce,
-          chainId: txData.chainId ?? toBigInt(chainId),
-          value: txData.value !== undefined ? txData.value : 0n,
-          data: txData.data !== undefined ? bytesToHexString(txData.data) : "",
-          gasLimit: txData.gasLimit,
+          ...baseTxParams,
           maxFeePerGas: txData.maxFeePerGas,
           maxPriorityFeePerGas: txData.maxPriorityFeePerGas,
           accessList: accessList ?? [],
@@ -339,13 +381,8 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
       transaction = Transaction.prepare(
         {
           type: "eip2930",
-          to: checksummedAddress,
-          nonce: txData.nonce,
-          chainId: txData.chainId ?? toBigInt(chainId),
-          value: txData.value !== undefined ? txData.value : 0n,
-          data: txData.data !== undefined ? bytesToHexString(txData.data) : "",
+          ...baseTxParams,
           gasPrice: txData.gasPrice ?? 0n,
-          gasLimit: txData.gasLimit,
           accessList,
         },
         strictMode,
@@ -354,19 +391,14 @@ export class LocalAccountsHandler extends ChainId implements RequestHandler {
       transaction = Transaction.prepare(
         {
           type: "legacy",
-          to: checksummedAddress,
-          nonce: txData.nonce,
-          chainId: txData.chainId ?? toBigInt(chainId),
-          value: txData.value !== undefined ? txData.value : 0n,
-          data: txData.data !== undefined ? bytesToHexString(txData.data) : "",
+          ...baseTxParams,
           gasPrice: txData.gasPrice ?? 0n,
-          gasLimit: txData.gasLimit,
         },
         strictMode,
       );
     }
 
-    const signedTransaction = transaction.signBy(privateKey);
+    const signedTransaction = transaction.signBy(privateKey, EXTRA_ENTROPY);
 
     return signedTransaction.toRawBytes();
   }
