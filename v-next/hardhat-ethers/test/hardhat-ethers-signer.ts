@@ -404,8 +404,7 @@ describe("hardhat ethers signer", () => {
         assert.equal(balanceDifference, 10n ** 18n);
       });
 
-      // TODO: enable when Prague support is enabled in v-next
-      it.skip("should send a transaction of type 4", async () => {
+      it("should send a transaction of type 4", async () => {
         const sender = await ethers.provider.getSigner(0);
         const receiver = await ethers.provider.getSigner(1);
 
