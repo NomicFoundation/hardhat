@@ -1,5 +1,6 @@
 import type {
   NewResolver,
+  RemappedNpmPackagesMapJson,
   Remapping,
   ResolvedNpmUserRemapping,
   ResolvedUserRemapping,
@@ -273,6 +274,18 @@ export class NewResolverImplementation implements NewResolver {
     return {
       success: true,
       value: resolvedFileAsProjectFile,
+    };
+  }
+
+  public toJSON(): {
+    resolvedFileBySourceName: Record<string, ResolvedFile>;
+    remappedNpmPackagesMap: RemappedNpmPackagesMapJson;
+  } {
+    return {
+      resolvedFileBySourceName: Object.fromEntries(
+        this.#resolvedFileBySourceName.entries(),
+      ),
+      remappedNpmPackagesMap: this.#npmPackageMap.toJSON(),
     };
   }
 
