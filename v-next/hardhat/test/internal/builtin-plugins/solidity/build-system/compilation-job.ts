@@ -1,4 +1,3 @@
-import type { Remapping } from "../../../../../src/internal/builtin-plugins/solidity/build-system/resolver/types.js";
 import type { SolcConfig } from "../../../../../src/types/config.js";
 import type { HookContext } from "../../../../../src/types/hooks.js";
 import type {
@@ -28,7 +27,6 @@ describe("CompilationJobImplementation", () => {
   let projectDependencyFile: ProjectResolvedFile;
   let solcConfig: SolcConfig;
   let solcLongVersion: string;
-  let remappings: Remapping[];
   let hooks: HookManagerImplementation;
   let compilationJob: CompilationJobImplementation;
 
@@ -85,7 +83,7 @@ describe("CompilationJobImplementation", () => {
       settings: {},
     };
     solcLongVersion = "0.8.0-c7dfd78";
-    remappings = [];
+
     hooks = new HookManagerImplementation(process.cwd(), []);
     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- We don't care about hooks in this context
     hooks.setContext({} as HookContext);
@@ -93,7 +91,6 @@ describe("CompilationJobImplementation", () => {
       dependencyGraph,
       solcConfig,
       solcLongVersion,
-      remappings,
       hooks,
     );
   });
@@ -105,7 +102,6 @@ describe("CompilationJobImplementation", () => {
           dependencyGraph,
           solcConfig,
           "0.8.0-df193b1",
-          remappings,
           hooks,
         );
         assert.notEqual(
@@ -126,7 +122,6 @@ describe("CompilationJobImplementation", () => {
             },
           },
           solcLongVersion,
-          remappings,
           hooks,
         );
         assert.notEqual(
@@ -135,19 +130,23 @@ describe("CompilationJobImplementation", () => {
         );
       });
       it("the remappings change", async () => {
+        const newDependecyGraph = dependencyGraph.getSubgraph(
+          ...dependencyGraph.getRoots().keys().toArray(),
+        );
+
+        newDependecyGraph.addDependency(
+          rootFile,
+          projectDependencyFile,
+          "test/:test/=test/",
+        );
+
         const newCompilationJob = new CompilationJobImplementation(
-          dependencyGraph,
+          newDependecyGraph,
           solcConfig,
           solcLongVersion,
-          [
-            {
-              context: "test",
-              prefix: "test",
-              target: "test",
-            },
-          ],
           hooks,
         );
+
         assert.notEqual(
           await compilationJob.getBuildId(),
           await newCompilationJob.getBuildId(),
@@ -167,7 +166,6 @@ describe("CompilationJobImplementation", () => {
           newDependencyGraph,
           solcConfig,
           solcLongVersion,
-          remappings,
           hooks,
         );
         assert.notEqual(
@@ -189,7 +187,6 @@ describe("CompilationJobImplementation", () => {
           newDependencyGraph,
           solcConfig,
           solcLongVersion,
-          remappings,
           hooks,
         );
         assert.notEqual(
@@ -213,7 +210,6 @@ describe("CompilationJobImplementation", () => {
           newDependencyGraph,
           solcConfig,
           solcLongVersion,
-          remappings,
           hooks,
         );
         assert.notEqual(
@@ -237,7 +233,6 @@ describe("CompilationJobImplementation", () => {
           newDependencyGraph,
           solcConfig,
           solcLongVersion,
-          remappings,
           hooks,
         );
         assert.notEqual(
@@ -258,7 +253,6 @@ describe("CompilationJobImplementation", () => {
           newDependencyGraph,
           solcConfig,
           solcLongVersion,
-          remappings,
           hooks,
         );
         assert.notEqual(
@@ -279,7 +273,6 @@ describe("CompilationJobImplementation", () => {
           newDependencyGraph,
           solcConfig,
           solcLongVersion,
-          remappings,
           hooks,
         );
         assert.notEqual(
@@ -293,7 +286,6 @@ describe("CompilationJobImplementation", () => {
           dependencyGraph,
           solcConfig,
           solcLongVersion,
-          remappings,
           hooks,
         );
         hooks.registerHandlers("solidity", {
@@ -317,7 +309,7 @@ describe("CompilationJobImplementation", () => {
           dependencyGraph,
           solcConfig,
           solcLongVersion,
-          remappings,
+
           hooks,
         );
         hooks.registerHandlers("solidity", {
@@ -355,7 +347,6 @@ describe("CompilationJobImplementation", () => {
           newDependencyGraph,
           solcConfig,
           solcLongVersion,
-          remappings,
           hooks,
         );
         assert.equal(
@@ -372,7 +363,6 @@ describe("CompilationJobImplementation", () => {
           newDependencyGraph,
           solcConfig,
           solcLongVersion,
-          remappings,
           hooks,
         );
         assert.equal(
@@ -398,7 +388,6 @@ describe("CompilationJobImplementation", () => {
           },
         },
         solcLongVersion,
-        remappings,
         hooks,
       );
       const solcInput = await newCompilationJob.getSolcInput();
@@ -431,7 +420,6 @@ describe("CompilationJobImplementation", () => {
           },
         },
         solcLongVersion,
-        remappings,
         hooks,
       );
       const solcInput = await newCompilationJob.getSolcInput();

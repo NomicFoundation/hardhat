@@ -1,5 +1,4 @@
 import type { DependencyGraphImplementation } from "./dependency-graph.js";
-import type { Remapping } from "./resolver/types.js";
 import type { BuildInfo } from "../../../../types/artifacts.js";
 import type { SolcConfig } from "../../../../types/config.js";
 import type { HookManager } from "../../../../types/hooks.js";
@@ -16,7 +15,6 @@ import {
   type ResolvedFile,
 } from "../../../../types/solidity.js";
 
-import { formatRemapping } from "./resolver/remappings.js";
 import { getEvmVersionFromSolcVersion } from "./solc-info.js";
 
 export class CompilationJobImplementation implements CompilationJob {
@@ -24,7 +22,6 @@ export class CompilationJobImplementation implements CompilationJob {
   public readonly solcConfig: SolcConfig;
   public readonly solcLongVersion: string;
 
-  readonly #remappings: Remapping[];
   readonly #hooks: HookManager;
 
   #buildId: string | undefined;
@@ -34,13 +31,11 @@ export class CompilationJobImplementation implements CompilationJob {
     dependencyGraph: DependencyGraphImplementation,
     solcConfig: SolcConfig,
     solcLongVersion: string,
-    remappings: Remapping[],
     hooks: HookManager,
   ) {
     this.dependencyGraph = dependencyGraph;
     this.solcConfig = solcConfig;
     this.solcLongVersion = solcLongVersion;
-    this.#remappings = remappings;
     this.#hooks = hooks;
   }
 
@@ -164,7 +159,7 @@ export class CompilationJobImplementation implements CompilationJob {
           settings.evmVersion ??
           getEvmVersionFromSolcVersion(this.solcConfig.version),
         outputSelection: this.#dedupeAndSortOutputSelection(outputSelection),
-        remappings: this.#remappings.map(formatRemapping),
+        remappings: this.dependencyGraph.getAllRemappings(),
       },
       sources,
     };
