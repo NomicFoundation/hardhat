@@ -935,6 +935,16 @@ Try using another mnemonic or deriving less keys.`,
         websiteDescription:
           "The provider your are trying to use has been closed. Please create a new one using hre.network.connect() and try again.",
       },
+      INCOMPATIBLE_EIP7702_FIELDS: {
+        number: 723,
+        messageTemplate:
+          "An incompatible transaction with gasPrice and EIP-7702 fields.",
+        websiteTitle: "Incompatible EIP-7702 parameters",
+        websiteDescription: `You are trying to send a transaction with a locally managed
+account, and its parameters are incompatible. You sent both gasPrice and authorizationList.
+
+Please double check your transactions' parameters.`,
+      },
     },
     SOLIDITY_TESTS: {
       BUILD_INFO_NOT_FOUND_FOR_CONTRACT: {
