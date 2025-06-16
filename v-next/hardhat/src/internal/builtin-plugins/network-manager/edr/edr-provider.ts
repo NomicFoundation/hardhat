@@ -421,6 +421,7 @@ async function getProviderConfig(
       const accountOverride: AccountOverride = {
         address,
         balance: BigInt(balance),
+        code: new Uint8Array(), // Empty account code, removing potential delegation code when forking
       };
 
       return [address, accountOverride];
