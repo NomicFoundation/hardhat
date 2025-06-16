@@ -173,27 +173,29 @@ export class SolcConfigSelector {
     dependency: ResolvedFile;
   }> {
     for (const dependency of dependencyGraph.getDependencies(root)) {
-      if (visited.has(dependency)) {
+      const file = dependency.file;
+
+      if (visited.has(file)) {
         continue;
       }
 
-      visited.add(dependency);
+      visited.add(file);
 
       yield {
-        fsPath: [dependency.fsPath],
-        versionPragmasPath: [dependency.content.versionPragmas],
-        dependency,
+        fsPath: [file.fsPath],
+        versionPragmasPath: [file.content.versionPragmas],
+        dependency: file,
       };
 
       for (const transitive of this.#getTransitiveDependencies(
-        dependency,
+        file,
         dependencyGraph,
         visited,
       )) {
         yield {
-          fsPath: [dependency.fsPath, ...transitive.fsPath],
+          fsPath: [file.fsPath, ...transitive.fsPath],
           versionPragmasPath: [
-            dependency.content.versionPragmas,
+            file.content.versionPragmas,
             ...transitive.versionPragmasPath,
           ],
           dependency: transitive.dependency,
