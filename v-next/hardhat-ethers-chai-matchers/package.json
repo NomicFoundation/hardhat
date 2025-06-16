@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-ethers-chai-matchers",
-  "version": "3.0.0-next.15",
+  "version": "3.0.0-next.16",
   "description": "Hardhat utils for testing",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-ethers-chai-matchers",
   "repository": {
@@ -45,8 +45,8 @@
     "README.md"
   ],
   "devDependencies": {
-    "@nomicfoundation/hardhat-mocha": "workspace:^3.0.0-next.15",
-    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0-next.15",
+    "@nomicfoundation/hardhat-mocha": "workspace:^3.0.0-next.16",
+    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0-next.16",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
     "@types/chai": "^4.2.0",
     "@types/debug": "^4.1.7",
@@ -63,15 +63,15 @@
     "typescript": "~5.5.0"
   },
   "dependencies": {
-    "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.15",
-    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.15",
+    "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.16",
+    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.16",
     "@types/chai-as-promised": "^8.0.1",
     "chai-as-promised": "^8.0.0",
     "deep-eql": "^5.0.1"
   },
   "peerDependencies": {
-    "hardhat": "workspace:^3.0.0-next.15",
-    "@nomicfoundation/hardhat-ethers": "workspace:^4.0.0-next.15",
+    "hardhat": "workspace:^3.0.0-next.16",
+    "@nomicfoundation/hardhat-ethers": "workspace:^4.0.0-next.16",
     "chai": "^5.1.2",
     "ethers": "^6.14.0"
   }
