@@ -223,8 +223,8 @@ importers:
         specifier: 9.25.1
         version: 9.25.1
       expect-type:
-        specifier: ^0.19.0
-        version: 0.19.0
+        specifier: ^1.2.1
+        version: 1.2.1
       prettier:
         specifier: 3.2.5
         version: 3.2.5
@@ -254,8 +254,8 @@ importers:
         specifier: 9.25.1
         version: 9.25.1
       expect-type:
-        specifier: ^0.19.0
-        version: 0.19.0
+        specifier: ^1.2.1
+        version: 1.2.1
       prettier:
         specifier: 3.2.5
         version: 3.2.5
@@ -309,8 +309,8 @@ importers:
         specifier: 9.25.1
         version: 9.25.1
       expect-type:
-        specifier: ^0.19.0
-        version: 0.19.0
+        specifier: ^1.2.1
+        version: 1.2.1
       prettier:
         specifier: 3.2.5
         version: 3.2.5
@@ -385,8 +385,8 @@ importers:
         specifier: 9.25.1
         version: 9.25.1
       expect-type:
-        specifier: ^0.19.0
-        version: 0.19.0
+        specifier: ^1.2.1
+        version: 1.2.1
       mocha:
         specifier: ^11.0.0
         version: 11.1.0
@@ -846,8 +846,8 @@ importers:
         specifier: 9.25.1
         version: 9.25.1
       expect-type:
-        specifier: ^0.19.0
-        version: 0.19.0
+        specifier: ^1.2.1
+        version: 1.2.1
       prettier:
         specifier: 3.2.5
         version: 3.2.5
@@ -904,8 +904,8 @@ importers:
         specifier: 9.25.1
         version: 9.25.1
       expect-type:
-        specifier: ^0.19.0
-        version: 0.19.0
+        specifier: ^1.2.1
+        version: 1.2.1
       prettier:
         specifier: 3.2.5
         version: 3.2.5
@@ -947,8 +947,8 @@ importers:
         specifier: 9.25.1
         version: 9.25.1
       expect-type:
-        specifier: ^0.19.0
-        version: 0.19.0
+        specifier: ^1.2.1
+        version: 1.2.1
       prettier:
         specifier: 3.2.5
         version: 3.2.5
@@ -984,8 +984,8 @@ importers:
         specifier: 9.25.1
         version: 9.25.1
       expect-type:
-        specifier: ^0.19.0
-        version: 0.19.0
+        specifier: ^1.2.1
+        version: 1.2.1
       prettier:
         specifier: 3.2.5
         version: 3.2.5
@@ -1036,8 +1036,8 @@ importers:
         specifier: 9.25.1
         version: 9.25.1
       expect-type:
-        specifier: ^0.19.0
-        version: 0.19.0
+        specifier: ^1.2.1
+        version: 1.2.1
       prettier:
         specifier: 3.2.5
         version: 3.2.5
@@ -1070,8 +1070,8 @@ importers:
         specifier: 9.25.1
         version: 9.25.1
       expect-type:
-        specifier: ^0.19.0
-        version: 0.19.0
+        specifier: ^1.2.1
+        version: 1.2.1
       prettier:
         specifier: 3.2.5
         version: 3.2.5
@@ -1149,8 +1149,8 @@ importers:
         specifier: ^6.14.0
         version: 6.14.1
       expect-type:
-        specifier: ^0.19.0
-        version: 0.19.0
+        specifier: ^1.2.1
+        version: 1.2.1
       prettier:
         specifier: 3.2.5
         version: 3.2.5
@@ -1213,8 +1213,8 @@ importers:
         specifier: 9.25.1
         version: 9.25.1
       expect-type:
-        specifier: ^0.19.0
-        version: 0.19.0
+        specifier: ^1.2.1
+        version: 1.2.1
       prettier:
         specifier: 3.2.5
         version: 3.2.5
@@ -1283,8 +1283,8 @@ importers:
         specifier: 9.25.1
         version: 9.25.1
       expect-type:
-        specifier: ^0.19.0
-        version: 0.19.0
+        specifier: ^1.2.1
+        version: 1.2.1
       prettier:
         specifier: 3.2.5
         version: 3.2.5
@@ -1344,8 +1344,8 @@ importers:
         specifier: 9.25.1
         version: 9.25.1
       expect-type:
-        specifier: ^0.19.0
-        version: 0.19.0
+        specifier: ^1.2.1
+        version: 1.2.1
       prettier:
         specifier: 3.2.5
         version: 3.2.5
@@ -1411,8 +1411,8 @@ importers:
         specifier: 9.25.1
         version: 9.25.1
       expect-type:
-        specifier: ^0.19.0
-        version: 0.19.0
+        specifier: ^1.2.1
+        version: 1.2.1
       prettier:
         specifier: 3.2.5
         version: 3.2.5
@@ -1454,8 +1454,8 @@ importers:
         specifier: 9.25.1
         version: 9.25.1
       expect-type:
-        specifier: ^0.19.0
-        version: 0.19.0
+        specifier: ^1.2.1
+        version: 1.2.1
       prettier:
         specifier: 3.2.5
         version: 3.2.5
@@ -1503,8 +1503,8 @@ importers:
         specifier: 9.25.1
         version: 9.25.1
       expect-type:
-        specifier: ^0.19.0
-        version: 0.19.0
+        specifier: ^1.2.1
+        version: 1.2.1
       prettier:
         specifier: 3.2.5
         version: 3.2.5
@@ -1543,8 +1543,8 @@ importers:
         specifier: 9.25.1
         version: 9.25.1
       expect-type:
-        specifier: ^0.19.0
-        version: 0.19.0
+        specifier: ^1.2.1
+        version: 1.2.1
       prettier:
         specifier: 3.2.5
         version: 3.2.5
@@ -1645,8 +1645,8 @@ importers:
         specifier: 9.25.1
         version: 9.25.1
       expect-type:
-        specifier: ^0.19.0
-        version: 0.19.0
+        specifier: ^1.2.1
+        version: 1.2.1
       prettier:
         specifier: 3.2.5
         version: 3.2.5
@@ -3784,8 +3784,8 @@ packages:
   eventemitter3@5.0.1:
     resolution: {integrity: sha512-GWkBvjiSZK87ELrYOSESUYeVIc9mvLLf/nXalMOS5dYrgZq9o5OVkbZAVM06CVxYsCwH9BDZFPlQTlPA1j4ahA==}
 
-  expect-type@0.19.0:
-    resolution: {integrity: sha512-piv9wz3IrAG4Wnk2A+n2VRCHieAyOSxrRLU872Xo6nyn39kYXKDALk4OcqnvLRnFvkz659CnWC8MWZLuuQnoqg==}
+  expect-type@1.2.1:
+    resolution: {integrity: sha512-/kP8CAwxzLVEeFrMm4kMmy4CCDlpipyA7MYLVrdJIkV0fYF0UaigQHRsxHiuY/GEea+bh4KSv3TIlgr+2UL6bw==}
     engines: {node: '>=12.0.0'}
 
   extendable-error@0.1.7:
@@ -7898,7 +7898,7 @@ snapshots:
 
   eventemitter3@5.0.1: {}
 
-  expect-type@0.19.0: {}
+  expect-type@1.2.1: {}
 
   extendable-error@0.1.7: {}
 
