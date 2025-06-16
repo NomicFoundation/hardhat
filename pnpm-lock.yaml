@@ -1252,7 +1252,7 @@ importers:
         specifier: ^4.3.2
         version: 4.4.0(supports-color@5.5.0)
       ethers:
-        specifier: ^6.14.0
+        specifier: ^6.13.4
         version: 6.14.1
       hardhat:
         specifier: workspace:^3.0.0-next.15
