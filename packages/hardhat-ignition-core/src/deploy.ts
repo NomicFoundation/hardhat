@@ -52,6 +52,7 @@ export async function deploy<
   strategy,
   strategyConfig,
   maxFeePerGasLimit,
+  maxFeePerGas,
   maxPriorityFeePerGas,
   gasPrice,
   disableFeeBumping,
@@ -72,6 +73,7 @@ export async function deploy<
   strategy?: StrategyT;
   strategyConfig?: StrategyConfig[StrategyT];
   maxFeePerGasLimit?: bigint;
+  maxFeePerGas?: bigint;
   maxPriorityFeePerGas?: bigint;
   gasPrice?: bigint;
   disableFeeBumping?: boolean;
@@ -120,6 +122,7 @@ export async function deploy<
 
   const jsonRpcClient = new EIP1193JsonRpcClient(provider, {
     maxFeePerGasLimit,
+    maxFeePerGas,
     maxPriorityFeePerGas,
     gasPrice,
   });

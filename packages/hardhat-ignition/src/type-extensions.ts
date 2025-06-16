@@ -16,6 +16,7 @@ declare module "hardhat/types/config" {
   export interface HardhatNetworkUserConfig {
     ignition?: {
       maxFeePerGasLimit?: bigint;
+      maxFeePerGas?: bigint;
       maxPriorityFeePerGas?: bigint;
       gasPrice?: bigint;
       disableFeeBumping?: boolean;
@@ -26,6 +27,7 @@ declare module "hardhat/types/config" {
   export interface HardhatNetworkConfig {
     ignition: {
       maxFeePerGasLimit?: bigint;
+      maxFeePerGas?: bigint;
       maxPriorityFeePerGas?: bigint;
       gasPrice?: bigint;
       disableFeeBumping?: boolean;
@@ -36,6 +38,7 @@ declare module "hardhat/types/config" {
   export interface HttpNetworkUserConfig {
     ignition?: {
       maxFeePerGasLimit?: bigint;
+      maxFeePerGas?: bigint;
       maxPriorityFeePerGas?: bigint;
       gasPrice?: bigint;
       disableFeeBumping?: boolean;
@@ -46,6 +49,7 @@ declare module "hardhat/types/config" {
   export interface HttpNetworkConfig {
     ignition: {
       maxFeePerGasLimit?: bigint;
+      maxFeePerGas?: bigint;
       maxPriorityFeePerGas?: bigint;
       gasPrice?: bigint;
       disableFeeBumping?: boolean;

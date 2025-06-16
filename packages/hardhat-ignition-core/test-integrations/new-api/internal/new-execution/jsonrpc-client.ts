@@ -121,6 +121,22 @@ describe("JSON-RPC client", function () {
           assert.equal(fees.maxPriorityFeePerGas, 1n);
         });
 
+        it("Should use the configured maxFeePerGas", async function () {
+          const maxFeeClient = new EIP1193JsonRpcClient(
+            this.hre.network.provider,
+            {
+              maxFeePerGas: 1n,
+              maxPriorityFeePerGas: 0n,
+            }
+          );
+          const fees = await maxFeeClient.getNetworkFees();
+
+          assert("maxFeePerGas" in fees);
+
+          // internal logic multiplies the given maxFeePerGas by 2 and adds the maxPriorityFeePerGas
+          assert.equal(fees.maxFeePerGas, 2n);
+        });
+
         it("Should use return legacy fees when deploying to polygon network (chainId 137)", async function () {
           const polygonClient = new EIP1193JsonRpcClient(
             {

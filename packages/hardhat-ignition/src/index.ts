@@ -49,6 +49,7 @@ extendConfig((config, userConfig) => {
 
     config.networks[networkName].ignition = {
       maxFeePerGasLimit: userNetworkConfig.ignition?.maxFeePerGasLimit,
+      maxFeePerGas: userNetworkConfig.ignition?.maxFeePerGas,
       maxPriorityFeePerGas: userNetworkConfig.ignition?.maxPriorityFeePerGas,
       gasPrice: userNetworkConfig.ignition?.gasPrice,
       disableFeeBumping: userNetworkConfig.ignition?.disableFeeBumping,
@@ -325,6 +326,8 @@ ignitionScope
           strategyConfig,
           maxFeePerGasLimit:
             hre.config.networks[hre.network.name]?.ignition.maxFeePerGasLimit,
+          maxFeePerGas:
+            hre.config.networks[hre.network.name]?.ignition.maxFeePerGas,
           maxPriorityFeePerGas:
             hre.config.networks[hre.network.name]?.ignition
               .maxPriorityFeePerGas,
