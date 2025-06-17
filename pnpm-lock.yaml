@@ -125,6 +125,9 @@ importers:
       mocha:
         specifier: ^11.0.0
         version: 11.1.0
+      permit2:
+        specifier: uniswap/permit2#cc56ad0f3439c502c246fc5cfcc3db92bb8b7219
+        version: '@uniswap/permit2@https://codeload.github.com/uniswap/permit2/tar.gz/cc56ad0f3439c502c246fc5cfcc3db92bb8b7219'
       prettier:
         specifier: 3.2.5
         version: 3.2.5
@@ -2891,6 +2894,10 @@ packages:
   '@typescript-eslint/visitor-keys@8.31.0':
     resolution: {integrity: sha512-QcGHmlRHWOl93o64ZUMNewCdwKGU6WItOU52H0djgNmn1EOrhVudrDzXz4OycCRSCPwFCDrE2iIt5vmuUdHxuQ==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+
+  '@uniswap/permit2@https://codeload.github.com/uniswap/permit2/tar.gz/cc56ad0f3439c502c246fc5cfcc3db92bb8b7219':
+    resolution: {tarball: https://codeload.github.com/uniswap/permit2/tar.gz/cc56ad0f3439c502c246fc5cfcc3db92bb8b7219}
+    version: 1.0.0
 
   '@uniswap/v4-core@1.0.2':
     resolution: {integrity: sha512-X15Tm2wWd+USAzEExMbo+g9naA6QN6mPgWm0MzDwRNlOfaNlepfUpSyt9RSrUfEODspwbyWbcLg6t5nwc/e7lg==}
@@ -6861,6 +6868,8 @@ snapshots:
     dependencies:
       '@typescript-eslint/types': 8.31.0
       eslint-visitor-keys: 4.2.0
+
+  '@uniswap/permit2@https://codeload.github.com/uniswap/permit2/tar.gz/cc56ad0f3439c502c246fc5cfcc3db92bb8b7219': {}
 
   '@uniswap/v4-core@1.0.2': {}
 
