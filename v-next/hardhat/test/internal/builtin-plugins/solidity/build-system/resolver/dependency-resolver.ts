@@ -2998,4 +2998,34 @@ import * as C from "./C.sol";`,
       });
     });
   });
+
+  describe("toJSON", () => {
+    it("should return a json-serializable object", async () => {
+      const template: TestProjectTemplate = {
+        name: "to-json",
+        version: "1.0.0",
+        files: {},
+        dependencies: {
+          dep: {
+            name: "dep",
+            version: "1.2.3",
+            files: {
+              "contracts/A.sol": `A`,
+            },
+          },
+        },
+      };
+
+      await using project = await useTestProjectTemplate(template);
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      -- We know it's a ResolverImplementation because we created it, and we
+      need it that type to test this */
+      const resolver = (await ResolverImplementation.create(
+        project.path,
+        readUtf8File,
+      )) as ResolverImplementation;
+
+      assert.equal(typeof JSON.stringify(resolver.toJSON()), "string");
+    });
+  });
 });
