@@ -11,36 +11,37 @@ describe("buildDependencyGraph", () => {
   useFixtureProject("solidity/example-project");
 
   it("should return an empty graph if no files are provided", async () => {
-    const { dependencyGraph, resolver } = await buildDependencyGraph(
+    const dependencyGraph = await buildDependencyGraph(
       [],
       process.cwd(),
-      [],
       readUtf8File,
     );
 
     assert.equal(dependencyGraph.getRoots().size, 0);
     assert.equal(Array.from(dependencyGraph.getAllFiles()).length, 0);
 
-    assert.equal(resolver.getRemappings().length, 0);
+    assert.equal(dependencyGraph.getAllRemappings().length, 0);
   });
 
   it("should build a graph from given files", async () => {
-    const rootSourceNames = [
+    const rootRelativePaths = [
       "contracts/A.sol",
       "contracts/D.sol",
       "contracts/NoImports.sol",
       "contracts/UserRemappedImport.sol",
     ];
+
+    const rootSourceNames = rootRelativePaths.map((p) => `project/${p}`);
+
     const dependencySourceNames = [
-      "contracts/B.sol",
-      "contracts/C.sol",
+      "project/contracts/B.sol",
+      "project/contracts/C.sol",
       "npm/@openzeppelin/contracts@5.1.0/access/Ownable.sol",
     ];
 
-    const { dependencyGraph, resolver } = await buildDependencyGraph(
-      rootSourceNames.map((sourceName) => path.join(process.cwd(), sourceName)),
+    const dependencyGraph = await buildDependencyGraph(
+      rootRelativePaths.map((p) => path.join(process.cwd(), p)),
       process.cwd(),
-      ["remapped/=npm/@openzeppelin/contracts@5.1.0/access/"],
       readUtf8File,
     );
 
@@ -50,8 +51,11 @@ describe("buildDependencyGraph", () => {
       rootSourceNames.length,
       `Should have ${rootSourceNames.length} roots`,
     );
-    for (const sourceName of rootSourceNames) {
-      assert.ok(roots.has(sourceName), `Should have root ${sourceName}`);
+    for (const publicSourceName of rootRelativePaths) {
+      assert.ok(
+        roots.has(publicSourceName),
+        `Should have root ${publicSourceName}`,
+      );
     }
 
     const files = Array.from(dependencyGraph.getAllFiles()).map(
@@ -62,25 +66,56 @@ describe("buildDependencyGraph", () => {
       assert.ok(files.includes(sourceName), `Should have file ${sourceName}`);
     }
 
-    const remappings = resolver.getRemappings();
-    assert.equal(remappings.length, 2, "Should have 2 remappings");
+    const remappings = dependencyGraph.getAllRemappings();
+
+    assert.equal(
+      dependencyGraph.getAllRemappings().length,
+      2,
+      "Should have 2 remappings",
+    );
+
     assert.ok(
-      remappings.some(
-        (r) =>
-          r.context === "" &&
-          r.prefix === "remapped/" &&
-          r.target === "npm/@openzeppelin/contracts@5.1.0/access/",
+      remappings.includes(
+        "project/:remapped/=npm/@openzeppelin/contracts@5.1.0/access/",
       ),
       "Should have remapping for Ownable.sol",
     );
     assert.ok(
-      remappings.some(
-        (r) =>
-          r.context === "" &&
-          r.prefix === "@openzeppelin/contracts/" &&
-          r.target === "npm/@openzeppelin/contracts@5.1.0/",
+      remappings.includes(
+        "project/:@openzeppelin/contracts/=npm/@openzeppelin/contracts@5.1.0/",
       ),
       "Should have remapping for @openzeppelin/contracts",
+    );
+
+    const expectedDependenciesJson: ReturnType<
+      typeof dependencyGraph.toJSON
+    >["dependencies"] = {
+      "project/contracts/A.sol": {
+        "project/contracts/B.sol": [],
+      },
+      "project/contracts/B.sol": {
+        "npm/@openzeppelin/contracts@5.1.0/access/Ownable.sol": [
+          "project/:@openzeppelin/contracts/=npm/@openzeppelin/contracts@5.1.0/",
+        ],
+      },
+      "project/contracts/C.sol": {
+        "project/contracts/B.sol": [],
+      },
+      "project/contracts/D.sol": {
+        "project/contracts/C.sol": [],
+      },
+      "project/contracts/NoImports.sol": {},
+      "project/contracts/UserRemappedImport.sol": {
+        "npm/@openzeppelin/contracts@5.1.0/access/Ownable.sol": [
+          "project/:remapped/=npm/@openzeppelin/contracts@5.1.0/access/",
+        ],
+      },
+      "npm/@openzeppelin/contracts@5.1.0/access/Ownable.sol": {},
+    };
+
+    assert.deepEqual(
+      dependencyGraph.toJSON().dependencies,
+      expectedDependenciesJson,
     );
   });
 });
