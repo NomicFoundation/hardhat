@@ -159,6 +159,9 @@ export class DependencyGraphImplementation implements DependencyGraph {
     }
 
     for (const [publicSourceName, root] of other.#rootByPublicSourceName) {
+      if (merged.hasFile(root)) {
+        continue;
+      }
       merged.addRootFile(publicSourceName, root);
     }
 
@@ -214,7 +217,10 @@ export class DependencyGraphImplementation implements DependencyGraph {
             Object.fromEntries(
               dependencies
                 .entries()
-                .map(([to, remappings]) => [to.sourceName, [...remappings]]),
+                .map(([to, remappings]) => [
+                  to.sourceName,
+                  [...remappings].sort(),
+                ]),
             ),
           ]),
       ),
