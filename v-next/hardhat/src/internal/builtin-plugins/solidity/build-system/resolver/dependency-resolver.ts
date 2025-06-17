@@ -106,13 +106,14 @@ export class ResolverImplementation implements Resolver {
     this.#hhProjectPackage = npmPackagesMap.getHardhatProjectPackage();
     this.#readUtf8File = readUtf8File;
 
+    const fakeRootFileName = "<fake-root-do-not-use>.sol";
     this.#fakeRootFile = {
       type: ResolvedFileType.PROJECT_FILE,
       sourceName: sourceNamePathJoin(
         this.#hhProjectPackage.rootSourceName,
-        "<root>.sol",
+        fakeRootFileName,
       ),
-      fsPath: path.join(this.#projectRoot, "<fake-root-do-not-use>.sol"),
+      fsPath: path.join(this.#projectRoot, fakeRootFileName),
       content: {
         importPaths: [],
         text: "",
