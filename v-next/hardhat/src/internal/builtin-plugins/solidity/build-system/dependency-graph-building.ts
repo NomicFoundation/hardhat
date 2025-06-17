@@ -1,7 +1,15 @@
 import type { ResolvedFile } from "../../../../types/solidity/resolved-file.js";
 
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { shortenPath } from "@nomicfoundation/hardhat-utils/path";
+
 import { DependencyGraphImplementation } from "./dependency-graph.js";
 import { ResolverImplementation } from "./resolver/dependency-resolver.js";
+import {
+  formatImportResolutionError,
+  formatNpmRootResolutionError,
+  formatProjectRootResolutionError,
+} from "./resolver/error-messages.js";
 import { formatRemapping } from "./resolver/remappings.js";
 import { isNpmParsedRootPath, parseRootPath } from "./root-paths-utils.js";
 
@@ -26,8 +34,12 @@ export async function buildDependencyGraph(
       );
 
       if (resolutionResult.success === false) {
-        throw new Error(
-          "Resolver failed: " + JSON.stringify(resolutionResult.error),
+        throw new HardhatError(
+          HardhatError.ERRORS.CORE.SOLIDITY.PROJECT_ROOT_RESOLUTION_ERROR,
+          {
+            filePath: shortenPath(rootPath.npmPath),
+            error: formatNpmRootResolutionError(resolutionResult.error),
+          },
         );
       }
 
@@ -40,8 +52,12 @@ export async function buildDependencyGraph(
       );
 
       if (resolutionResult.success === false) {
-        throw new Error(
-          "Resolver failed: " + JSON.stringify(resolutionResult.error),
+        throw new HardhatError(
+          HardhatError.ERRORS.CORE.SOLIDITY.PROJECT_ROOT_RESOLUTION_ERROR,
+          {
+            filePath: shortenPath(rootPath.fsPath),
+            error: formatProjectRootResolutionError(resolutionResult.error),
+          },
         );
       }
 
@@ -68,8 +84,13 @@ export async function buildDependencyGraph(
       );
 
       if (resolutionResult.success === false) {
-        throw new Error(
-          "Resolver failed: " + JSON.stringify(resolutionResult.error),
+        throw new HardhatError(
+          HardhatError.ERRORS.CORE.SOLIDITY.IMPORT_RESOLUTION_ERROR,
+          {
+            importPath,
+            filePath: shortenPath(fileToProcess.fsPath),
+            error: formatImportResolutionError(resolutionResult.error),
+          },
         );
       }
 

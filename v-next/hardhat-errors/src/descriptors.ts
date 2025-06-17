@@ -972,140 +972,38 @@ Remaining test suites: {suites}`,
       },
     },
     SOLIDITY: {
-      RESOLVING_INCORRECT_FILE_AS_PROJECT_FILE: {
+      PROJECT_ROOT_RESOLUTION_ERROR: {
         number: 900,
-        shouldBeReported: true,
-        messageTemplate: `File "{file}" is being resolved as a project file, but it's not part of the project.`,
-        websiteTitle: "Solidity project file is outside the project",
-        websiteDescription: `Tried to resolve a file as a project file, but it's not part of the project.`,
+        messageTemplate: `There was an error while resolving the project file "{filePath}":
+
+{error}`,
+        websiteTitle: "Project file resolution error",
+        websiteDescription: `There was an error while resolving the project file.
+        
+Please double-check your configuration. If it keeps happening, please report it.`,
       },
-      RESOLVING_NONEXISTENT_PROJECT_FILE: {
+      NPM_ROOT_RESOLUTION_ERROR: {
         number: 901,
-        shouldBeReported: true,
-        messageTemplate: `File "{file}" is being resolved as a project file, but it doesn't exist.`,
-        websiteTitle: "Solidity project file doesn't exist",
-        websiteDescription: `Tried to resolve a file as a project file, but it doesn't exist.`,
+        messageTemplate: `There was an error while resolving the npm module "{npmModule}" when trying to compile it:
+
+{error}`,
+        websiteTitle: "Npm file resolution error",
+        websiteDescription: `There was an error while resolving an npm module that you are trying to compile and generate artifacts for.
+        
+Please double-check your configuration. If it keeps happening, please report it.`,
       },
-      IMPORTED_FILE_DOESNT_EXIST: {
+      IMPORT_RESOLUTION_ERROR: {
         number: 902,
-        messageTemplate: `The import "{importPath} from "{from}" doesn't exist.`,
-        websiteTitle: "Imported file doesn't exist",
-        websiteDescription: `An imported file doesn't exist.`,
-      },
-      IMPORTED_FILE_WITH_INCORRECT_CASING: {
-        number: 903,
-        messageTemplate:
-          'The import "{importPath} from "{from}" exists, but its casing is incorrect. The correct casing is "{correctCasing}".',
-        websiteTitle: "Imported file with incorrect casing",
-        websiteDescription: `Hardhat enforces that you import your files with the correct casing (as stored in the filesystem).
+        messageTemplate: `There was an error while resolving the import "{importPath}" from "{filePath}":
 
-This error is thrown when you import a file with the wrong casing under a case insensitve filesystem.`,
-      },
-      IMPORTED_PACKAGE_EXPORTS_FILE_WITH_INCORRECT_CASING: {
-        number: 904,
-        messageTemplate:
-          'The import "{importPath} from "{from}" exists, but its casing is incorrect.',
-        websiteTitle: "Imported file with incorrect casing",
-        websiteDescription: `Hardhat enforces that you import your files with the correct casing (as stored in the filesystem).
+{error}`,
+        websiteTitle: "Import resolution error",
+        websiteDescription: `There was an error while resolving an import.
 
-This error is thrown when you import a file with the wrong casing under a case insensitve filesystem.`,
-      },
-      NPM_DEPEDNDENCY_NOT_INSTALLED: {
-        number: 905,
-        messageTemplate:
-          'The npm package "{packageName}" isn\'t installed in the {from}.',
-        websiteTitle: "Uninstalled npm dependency",
-        websiteDescription: `Trying to use an npm package as a solidity dependency, but it's not installed.`,
-      },
-      IMPORTED_NPM_DEPENDENCY_NOT_INSTALLED: {
-        number: 906,
-        messageTemplate:
-          'The import "{importPath}" from "{from}" is trying to use an uninstalled npm dependency.',
-        websiteTitle: "Uninstalled npm solidity dependency",
-        websiteDescription: `One of your files is traying to import a dependency using npm, but it hasn't been installed`,
-      },
-      USER_REMAPPING_WITH_NPM_CONTEXT: {
-        number: 907,
-        messageTemplate:
-          'The remapping "{remapping}" has a context starting with "npm/", which is forbidden. Hardhat doesn\'t allow changing the behaviour of npm package\'s imports.',
-        websiteTitle: "Remapping imports in npm packages is not allowed",
-        websiteDescription: `This error happened because you are trying to change how the imports within an npm package, which is not allowed.
-
-While Hardhat supports user-defined remappings, it doesn't support remapping the behavior of npm packages to ensure that everything what's imported via npm uses the same npm resolution logic.`,
-      },
-      REMAPPING_WITH_INVALID_SYNTAX: {
-        number: 908,
-        messageTemplate: `The remapping "{remapping}" is invalid.`,
-        websiteTitle: "Invalid remapping",
-        websiteDescription: `You are trying to set a user remapping, but it's syntax is invalid.
-
-Please double check your remmpaings' syntax.`,
-      },
-      REMAPPING_TO_UNINSTALLED_PACKAGE: {
-        number: 909,
-        messageTemplate: `The remapping "{remapping}" is trying to use the npm package "{package}", which is not installed`,
-        websiteTitle: "Remapping into an uninstaleld npm package",
-        websiteDescription: `You are trying to set a user remapping that uses an npm pacakge as target, but it's not installed.
-
-Please make sure to install the package or fix the remapping.`,
-      },
-      REMAPPING_NPM_PACKAGE_AS_MONOREPO: {
-        number: 910,
-        messageTemplate: `The remapping "{remapping}" targets the npm pacakge "{pacakge}" as if it were part of this repository, but version "{version}" is installed instead`,
-        websiteTitle:
-          "Remapping into a monorepo package but found an npm package instead",
-        websiteDescription: `You are trying to set a remapping setting a monorepo package as target, but Hardhat found the pacakge to be installed from the npm regristry instead.`,
-      },
-      REMAPPING_HARDHAT_PROJECT_AS_MONOREPO_PACKAGE: {
-        number: 911,
-        messageTemplate: `The remapping "{remapping}" is trying to set the npm package "{package}" as target, but that's the project is the Hardhat project, so it shouldn't be remapped through npm/, but as internal project remappings.`,
-        websiteTitle: `Remapping into the project using npm`,
-        websiteDescription: `You are trying to set a remapping whose target uses the npm/ syntax, but is within your Hardhat project.
-
-Please don't use npm/... as target, but use normal internal project remapping istead.`,
-      },
-      REMAPPING_INCORRECT_VERSION: {
-        number: 912,
-        messageTemplate: `The remapping "{remapping}" is trying to set the npm package "{package}" version "{expectedVersion}" as target, but found version "{actualVersion}" instead.`,
-        websiteTitle: `Remapping into incorrect npm package version`,
-        websiteDescription: `You are trying to set a remapping into an npm package, but the version that you are using is not the currently installed one.
-
-Please change your remapping to match the installed version, or installed the correct one.`,
-      },
-      INVALID_NPM_IMPORT: {
-        number: 913,
-        messageTemplate: `The import "{importPath}" in "{from}" is treated as an npm import as it's first directory doesn't exist in your project, but it's syntax is not that of a valid npm import either.`,
-        websiteTitle: `Invalid npm import`,
-        websiteDescription: `You are trying to import a file that is not a valid npm import. Please double check that you are using the correct syntax.`,
-      },
-      ILLEGAL_PACKAGE_IMPORT: {
-        number: 914,
-        messageTemplate: `The import "{importPath}" in "{from}" is not a legal import as it's trying to import a file outside of its package.`,
-        websiteTitle: `Illegal package import`,
-        websiteDescription: `One of your npm packages has a Solidity file that is trying to import a file outside of its package using a relative import. This is disabled for security reasons.`,
-      },
-      ILEGALL_PROJECT_IMPORT: {
-        number: 915,
-        messageTemplate: `The import "{importPath}" in "{from}" is not a legal import as it's trying to import a file outside of the project.`,
-        websiteTitle: `Illegal project import`,
-        websiteDescription: `One of your Solidity files is trying to import a file outside of the Hardhat project using a relative import. This is disabled for security reasons.`,
-      },
-      ILLEGAL_PROJECT_IMPORT_AFTER_REMAPPING: {
-        number: 916,
-        messageTemplate: `Applying the remapping "{remapping}" to the import "{importPath}" from "{from}" results in an invalid import "{remappedDirectImport}", as it's not a local file. If you are trying to remap into an npm module use the npm/ syntax instead.`,
-        websiteTitle: `Illegal project import after remapping`,
-        websiteDescription: `One of your Solidity files has an import which after applying a user remapping becomes an illegal import, as it tries to import a file outside of the project. This is disabled for security reasons.
-
-If you are trying to remap into an npm module use the npm/ syntax instead.`,
-      },
-      IMPORT_PATH_WITH_WINDOWS_SEPARATOR: {
-        number: 917,
-        messageTemplate: `The import "{importPath}" in "{from}" is not a valid import as it contains a Windows path separator.`,
-        websiteTitle: `Import path with Windows path separator`,
-        websiteDescription: `One of your Solidity files is trying to import a file with a Windows path separator, and this is not supported. Please use a Unix-style path instead.`,
+Please double-check your import`,
       },
       INVALID_SOLC_VERSION: {
-        number: 918,
+        number: 903,
         messageTemplate: `Solidity version {version} is invalid or hasn't been released yet.
 
 If you are certain it has been released, run "npx hardhat clean --global" and try again`,
@@ -1114,39 +1012,8 @@ If you are certain it has been released, run "npx hardhat clean --global" and tr
 
 If you are certain it has been released, run \`npx hardhat clean --global\` and try again.`,
       },
-      RESOLVE_NPM_FILE_WITH_INVALID_FORMAT: {
-        number: 919,
-        messageTemplate: `Couldn't resolve the npm file "{module}" because it has an invalid format.
-
-Make sure that you are providing valid npm file paths (e.g. package/File.sol) in your config and programatically.`,
-        websiteTitle: "Resolving invalid npm file",
-        websiteDescription: `Tried to resolve an npm file directly (i.e. not imported by another file) but its format is invalid.
-
-This can happen if you setting npm files to be compiled as local files, with invalid file paths, or by misusing the solidity build system.`,
-      },
-      RESOLVE_NPM_FILE_CLASHES_WITH_LOCAL_FILES: {
-        number: 920,
-        shouldBeReported: true,
-        messageTemplate: `You are tying to resolve the npm file "{module}", for example to compile it as a local one, but it can clash with your project as the "{directory}" directory is present in your project.
-
-Please try renaming the directory.`,
-        websiteTitle: "Resolution of npm file clashes with local files",
-        websiteDescription: `You are tying to resolve an npm file, for example to compile it as a local one, but it can clash with your project files.`,
-      },
-      RESOLVE_NON_EXISTENT_NPM_ROOT: {
-        number: 921,
-        messageTemplate: `You are tying to compile the npm file "{module}", but it doesn't exist within its package.`,
-        websiteTitle: "Resolution of non-existent npm file",
-        websiteDescription: `You are tying to resolve an npm file that doesn't exist within its package.`,
-      },
-      RESOLVE_WRONG_CASING_NPM_ROOT: {
-        number: 922,
-        messageTemplate: `You are tying to compile the npm file "{module}", its casing is incorrect. Please double check it in your config.`,
-        websiteTitle: "Resolution of npm file with incorrect casing",
-        websiteDescription: `You are tying to resolve an npm file whose casing is incorrect.`,
-      },
       DOWNLOAD_FAILED: {
-        number: 923,
+        number: 904,
         messageTemplate:
           "Couldn't download compiler version {remoteVersion}. Please check your internet connection and try again.",
         websiteTitle: "`solc` download failed",
@@ -1155,7 +1022,7 @@ Please try renaming the directory.`,
 Please check your internet connection and try again.`,
       },
       VERSION_LIST_DOWNLOAD_FAILED: {
-        number: 924,
+        number: 905,
         messageTemplate:
           "Couldn't download compiler version list. Please check your internet connection and try again.",
         websiteTitle: "Couldn't obtain `solc` version list",
@@ -1164,7 +1031,7 @@ Please check your internet connection and try again.`,
 Please check your internet connection and try again.`,
       },
       INVALID_DOWNLOAD: {
-        number: 925,
+        number: 906,
         messageTemplate: `Couldn't download compiler version {remoteVersion}: Checksum verification failed.
 
 Please check your internet connection and try again.
@@ -1178,7 +1045,7 @@ Please check your internet connection and try again.
 If this error persists, run \`npx hardhat clean --global\`.`,
       },
       CANT_RUN_NATIVE_COMPILER: {
-        number: 926,
+        number: 907,
         messageTemplate: `A native version of solc failed to run.
 
 If you are running MacOS, try installing Apple Rosetta.
@@ -1192,7 +1059,7 @@ If you are running MacOS, try installing Apple Rosetta.
 If this error persists, run "npx hardhat clean --global".`,
       },
       CANT_RUN_SOLCJS_COMPILER: {
-        number: 927,
+        number: 908,
         messageTemplate: `A wasm version of solc failed to run.
 
 If this error persists, run "npx hardhat clean --global".`,
@@ -1204,7 +1071,7 @@ If you are running MacOS, try installing Apple Rosetta.
 If this error persists, run "npx hardhat clean --global".`,
       },
       COMPILATION_JOB_CREATION_ERROR: {
-        number: 928,
+        number: 909,
         messageTemplate: `Failed to create compilation job for file "{rootFilePath}" using the build profile "{buildProfile}".
 
 {reason}`,
@@ -1214,7 +1081,7 @@ If this error persists, run "npx hardhat clean --global".`,
 This happens when your files require incompatible versions of solc or you haven't configured a version that works with them`,
       },
       BUILD_FAILED: {
-        number: 929,
+        number: 910,
         messageTemplate: "Compilation failed",
         websiteTitle: "Compilation failed",
         websiteDescription: `Your smart contracts failed to compile.
@@ -1222,19 +1089,13 @@ This happens when your files require incompatible versions of solc or you haven'
 Please check Hardhat's output for more details.`,
       },
       INVALID_SOLCJS_COMPILER: {
-        number: 930,
+        number: 911,
         messageTemplate: `A wasm version of solc {version} is invalid. The compile function is not available.`,
         websiteTitle: "Invalid solcjs compiler",
         websiteDescription: `Hardhat successfully downloaded a WASM version of solc {version} but it is invalid. The compile function is missing.`,
       },
-      RESOLVE_NOT_EXPORTED_NPM_FILE: {
-        number: 931,
-        messageTemplate: `You are tying to resolve the npm file "{module}", but it's not exported by its package`,
-        websiteTitle: "Resolution of not-exported npm file",
-        websiteDescription: `You are tying to resolve an npm file that is not exported by its package.`,
-      },
       BUILD_PROFILE_NOT_FOUND: {
-        number: 932,
+        number: 912,
         messageTemplate: `The build profile "{buildProfileName}" is not defined in your Hardhat config`,
         websiteTitle: "Build profile not defined",
         websiteDescription: `The build profile you are trying to use is not defined in your Hardhat config.`,
