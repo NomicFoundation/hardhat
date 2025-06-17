@@ -1023,6 +1023,7 @@ a/=b`,
           type: ImportResolutionErrorType.RELATIVE_IMPORT_CLASHES_WITH_USER_REMAPPING,
           fromFsPath: absoluteFilePath,
           importPath,
+          directImport: "project/a/A2.sol",
           userRemapping: {
             actualUserRemapping: "project/:project/a/=project/b/",
             originalUserRemapping: "project/a/=b/",

@@ -230,7 +230,6 @@ export interface ImportOfUninstalledPackageError {
   fromFsPath: string;
   importPath: string;
   installationName: string;
-  userRemapping?: UserRemappingReference;
 }
 
 export interface ImportWithRemappingErrorsError {
@@ -250,6 +249,7 @@ export interface RelativeImportClashesWithUserRemappingError {
   type: ImportResolutionErrorType.RELATIVE_IMPORT_CLASHES_WITH_USER_REMAPPING;
   fromFsPath: string;
   importPath: string;
+  directImport: string;
   userRemapping: UserRemappingReference;
 }
 

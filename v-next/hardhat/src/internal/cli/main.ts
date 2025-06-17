@@ -199,7 +199,7 @@ export async function main(
     if (
       (HardhatError.isHardhatError(
         error,
-        HardhatError.ERRORS.CORE.SOLIDITY.RESOLVING_NONEXISTENT_PROJECT_FILE,
+        HardhatError.ERRORS.CORE.SOLIDITY.PROJECT_ROOT_RESOLUTION_ERROR,
       ) ||
         HardhatError.isHardhatError(
           error,

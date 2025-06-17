@@ -478,6 +478,7 @@ export class ResolverImplementation implements Resolver {
             type: ImportResolutionErrorType.RELATIVE_IMPORT_CLASHES_WITH_USER_REMAPPING,
             fromFsPath: from.fsPath,
             importPath,
+            directImport,
             userRemapping: this.#buildUserRemappingReference({
               userRemapping: bestUserRemapping,
             }),
