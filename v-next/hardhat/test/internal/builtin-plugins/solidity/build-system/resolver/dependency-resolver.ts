@@ -628,11 +628,6 @@ a/=b`,
               remapping: "nope",
               source: path.join(project.path, "src/foo/remappings.txt"),
             },
-            {
-              type: UserRemappingErrorType.ILLEGAL_REMAPPING_WIHTOUT_SLASH_ENDINGS,
-              remapping: "a/=b",
-              source: path.join(project.path, "src/foo/remappings.txt"),
-            },
           ],
         };
 

@@ -1099,14 +1099,6 @@ invalid syntax`,
             success: false,
             error: [
               {
-                type: UserRemappingErrorType.ILLEGAL_REMAPPING_WIHTOUT_SLASH_ENDINGS,
-                source: path.join(
-                  project.path,
-                  "node_modules/dep1/lib/submodule/remappings.txt",
-                ),
-                remapping: `context/:prefix/=target`,
-              },
-              {
                 type: UserRemappingErrorType.REMAPPING_WITH_INVALID_SYNTAX,
                 source: path.join(
                   project.path,
@@ -1183,7 +1175,7 @@ f/=node_modules/not-installed/src/`,
               {
                 type: "UNRESOLVED_NPM",
                 installationName: "dep1",
-                context: "",
+                context: "project/",
                 prefix: "d/",
                 target: "node_modules/dep1/src/",
                 originalFormat: `d/=node_modules/dep1/src/`,
@@ -1192,7 +1184,7 @@ f/=node_modules/not-installed/src/`,
               {
                 type: "UNRESOLVED_NPM",
                 installationName: "not-installed",
-                context: "",
+                context: "project/",
                 prefix: "f/",
                 target: "node_modules/not-installed/src/",
                 originalFormat: `f/=node_modules/not-installed/src/`,
@@ -1285,7 +1277,7 @@ f/=node_modules/not-installed/src/`,
               {
                 type: "UNRESOLVED_NPM",
                 installationName: "not-installed",
-                context: "",
+                context: "project/",
                 prefix: "f/",
                 target: "node_modules/not-installed/src/",
                 originalFormat: `f/=node_modules/not-installed/src/`,
@@ -1369,7 +1361,7 @@ f/=node_modules/not-installed/src/`,
               {
                 type: "UNRESOLVED_NPM",
                 installationName: "dep1",
-                context: "",
+                context: "project/",
                 prefix: "d/",
                 target: "node_modules/dep1/src/",
                 originalFormat: `d/=node_modules/dep1/src/`,
@@ -1378,7 +1370,7 @@ f/=node_modules/not-installed/src/`,
               {
                 type: "UNRESOLVED_NPM",
                 installationName: "not-installed",
-                context: "",
+                context: "project/",
                 prefix: "f/",
                 target: "node_modules/not-installed/src/",
                 originalFormat: `f/=node_modules/not-installed/src/`,
@@ -1548,6 +1540,101 @@ context/:foo/=npm/bar@1.3.4/src/`,
                   source: path.join(project.path, "remappings.txt"),
                 },
               ],
+            });
+          });
+
+          it("Should add a trailing slash to the prefix and target if they don't have it", async () => {
+            const template: TestProjectTemplate = {
+              name: "add-trailing-slash-to-prefix-and-target",
+              version: "1.0.0",
+              files: {
+                "contracts/A.sol": `A`,
+                "remappings.txt": `contr:foo=bar
+contr:to-npm=node_modules/dep/contracts`,
+              },
+              dependencies: {
+                dep: {
+                  name: "dep",
+                  version: "1.2.3",
+                  files: {
+                    "contracts/A.sol": `A`,
+                  },
+                },
+              },
+            };
+
+            const project = await useTestProjectTemplate(template);
+            const map = await RemappedNpmPackagesMapImplementation.create(
+              project.path,
+            );
+            const hhProjectPackage = map.getHardhatProjectPackage();
+
+            const contractsASol: ProjectResolvedFile = {
+              type: ResolvedFileType.PROJECT_FILE,
+              fsPath: path.join(project.path, "contracts/A.sol"),
+              content: {
+                text: `import "dep1/B.sol";`,
+                importPaths: ["dep1/B.sol"],
+                versionPragmas: [],
+              },
+              sourceName: "project/contracts/A.sol",
+              package: hhProjectPackage,
+            };
+
+            const fooRemappingResult = await map.selectBestUserRemapping(
+              contractsASol,
+              "foo/B.sol",
+            );
+            assert.deepEqual(fooRemappingResult, {
+              success: true,
+              value: {
+                type: UserRemappingType.LOCAL,
+                context: "project/contr",
+                prefix: "foo/",
+                target: "project/bar/",
+                originalFormat: `contr:foo=bar`,
+                source: path.join(project.path, "remappings.txt"),
+              },
+            });
+
+            const fooRemappingWithoutSlashResult =
+              await map.selectBestUserRemapping(contractsASol, "foo");
+            assert.deepEqual(fooRemappingWithoutSlashResult, {
+              success: true,
+              value: undefined,
+            });
+
+            const toNpmRemappingResult = await map.selectBestUserRemapping(
+              contractsASol,
+              "to-npm/B.sol",
+            );
+            assert.deepEqual(toNpmRemappingResult, {
+              success: true,
+              value: {
+                type: UserRemappingType.NPM,
+                context: "project/contr",
+                prefix: "to-npm/",
+                target: "npm/dep@1.2.3/contracts/",
+                originalFormat: `contr:to-npm=node_modules/dep/contracts`,
+                source: path.join(project.path, "remappings.txt"),
+                targetNpmPackage: {
+                  installationName: "dep",
+                  package: {
+                    name: "dep",
+                    version: "1.2.3",
+                    rootFsPath: path.join(project.path, "node_modules/dep"),
+                    rootSourceName: "npm/dep@1.2.3",
+                    exports: undefined,
+                  },
+                },
+              },
+            });
+
+            const toNpmRemappingWithoutSlashResult =
+              await map.selectBestUserRemapping(contractsASol, "to-npm");
+            assert.deepEqual(toNpmRemappingWithoutSlashResult, {
+              success: true,
+              value: undefined,
             });
           });
         });

@@ -472,34 +472,27 @@ export class RemappedNpmPackagesMapImplementation
       };
     }
 
-    // User remappings must have each of their components ending with `/`,
-    // except for the context, which may be empty.
-    if (
-      (remapping.context.length > 0 && !remapping.context.endsWith("/")) ||
-      !remapping.prefix.endsWith("/") ||
-      !remapping.target.endsWith("/")
-    ) {
-      return {
-        success: false,
-        error: {
-          remapping: remappingString,
-          type: UserRemappingErrorType.ILLEGAL_REMAPPING_WIHTOUT_SLASH_ENDINGS,
-          source: sourceOfTheRemapping,
-        },
-      };
-    }
+    // Note: User remappings must have each of their components ending with `/`,
+    // except for the context. If they don't end with a slash, we add it.
+    const context = remapping.context;
+    const prefix = remapping.prefix.endsWith("/")
+      ? remapping.prefix
+      : remapping.prefix + "/";
+    const target = remapping.target.endsWith("/")
+      ? remapping.target
+      : remapping.target + "/";
+
+    const relativeFsPathToRemappingsFile = path.relative(
+      npmPackage.rootFsPath,
+      path.dirname(sourceOfTheRemapping),
+    );
 
     // If the remapping's target starts with `node_modules/`, we treat
     // it as trying to laod an npm dependency, otherwise we treat it as a local
     // remapping.
 
     // Local remapping case
-    if (!remapping.target.startsWith("node_modules/")) {
-      const relativeFsPathToRemappingsFile = path.relative(
-        npmPackage.rootFsPath,
-        path.dirname(sourceOfTheRemapping),
-      );
-
+    if (!target.startsWith("node_modules/")) {
       return {
         success: true,
         value: {
@@ -507,13 +500,13 @@ export class RemappedNpmPackagesMapImplementation
           context: this.#updateRemappingsTxFragment(
             npmPackage,
             relativeFsPathToRemappingsFile,
-            remapping.context,
+            context,
           ),
-          prefix: remapping.prefix,
+          prefix,
           target: this.#updateRemappingsTxFragment(
             npmPackage,
             relativeFsPathToRemappingsFile,
-            remapping.target,
+            target,
           ),
           originalFormat: remappingString,
           source: sourceOfTheRemapping,
@@ -523,11 +516,11 @@ export class RemappedNpmPackagesMapImplementation
 
     // If we are here the remapping is a npm remapping.
     // We first remove the node_modules/ prefix from the actual target.
-    const target = remapping.target.substring("node_modules/".length);
+    const targetWithoutNodeModules = target.substring("node_modules/".length);
 
     // If after doing that the prefix and target are the same, we skip it
     // so that it doesn't even go unnecesarly go through a user remapping.
-    if (remapping.prefix === target) {
+    if (prefix === targetWithoutNodeModules) {
       return { success: true, value: undefined };
     }
 
@@ -538,7 +531,7 @@ export class RemappedNpmPackagesMapImplementation
     //
     // Note that that package name is the installation name of the dependency
     // within the npm package, not the actual dependency name.
-    const installationName = getNpmPackageName(target);
+    const installationName = getNpmPackageName(targetWithoutNodeModules);
 
     if (installationName === undefined) {
       return {
@@ -556,9 +549,13 @@ export class RemappedNpmPackagesMapImplementation
       value: {
         type: "UNRESOLVED_NPM",
         installationName,
-        context: remapping.context,
-        prefix: remapping.prefix,
-        target: remapping.target,
+        context: this.#updateRemappingsTxFragment(
+          npmPackage,
+          relativeFsPathToRemappingsFile,
+          context,
+        ),
+        prefix,
+        target,
         originalFormat: remappingString,
         source: sourceOfTheRemapping,
       },
@@ -586,11 +583,6 @@ export class RemappedNpmPackagesMapImplementation
       };
     }
 
-    const relativeFsPathToRemappingsFile = path.relative(
-      npmPackage.rootFsPath,
-      path.dirname(unresolvedNpmRemapping.source),
-    );
-
     const target =
       dependency.package.rootSourceName +
       unresolvedNpmRemapping.target.substring(
@@ -601,11 +593,7 @@ export class RemappedNpmPackagesMapImplementation
       success: true,
       value: {
         type: UserRemappingType.NPM,
-        context: this.#updateRemappingsTxFragment(
-          npmPackage,
-          relativeFsPathToRemappingsFile,
-          unresolvedNpmRemapping.context,
-        ),
+        context: unresolvedNpmRemapping.context,
         prefix: unresolvedNpmRemapping.prefix,
         originalFormat: unresolvedNpmRemapping.originalFormat,
         source: unresolvedNpmRemapping.source,

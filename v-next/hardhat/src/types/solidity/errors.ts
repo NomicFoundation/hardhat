@@ -287,11 +287,6 @@ export enum UserRemappingErrorType {
    * Remapping into an uninstalled npm package.
    */
   REMAPPING_TO_UNINSTALLED_PACKAGE = "REMAPPING_TO_UNINSTALLED_PACKAGE",
-
-  /**
-   * Remapping that has context, prefix or target that doesn't end in /.
-   */
-  ILLEGAL_REMAPPING_WIHTOUT_SLASH_ENDINGS = "ILLEGAL_REMAPPING_WIHTOUT_SLASH_ENDINGS",
 }
 
 export interface UserRemappingError {
