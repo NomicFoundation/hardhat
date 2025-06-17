@@ -170,7 +170,7 @@ describe("SolcConfigSelector", () => {
             rootFilePath: root.fsPath,
             buildProfile: buildProfileName,
             incompatibleImportPath: [dependency.fsPath],
-            formattedReason: `Following these imports leads to an incompatible solc version pragma that no version can satisfy:\n  * ${root.sourceName}\n  * ${dependency.sourceName}\n`,
+            formattedReason: `Following these imports leads to an incompatible solc version pragma that no version can satisfy:\n  * .${path.sep}${root.sourceName}\n  * .${path.sep}${dependency.sourceName}\n`,
           });
         });
 
@@ -298,7 +298,7 @@ describe("SolcConfigSelector", () => {
             rootFilePath: root.fsPath,
             buildProfile: buildProfileName,
             incompatibleImportPath: [dependency.fsPath],
-            formattedReason: `Following these imports leads to an incompatible solc version pragma that no version can satisfy:\n  * ${root.sourceName}\n  * ${dependency.sourceName}\n`,
+            formattedReason: `Following these imports leads to an incompatible solc version pragma that no version can satisfy:\n  * .${path.sep}${root.sourceName}\n  * .${path.sep}${dependency.sourceName}\n`,
           });
         });
 
