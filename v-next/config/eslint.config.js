@@ -436,8 +436,6 @@ export function createConfig(
           devDependencies: true,
         },
       ],
-      // Disabled until this gets resolved https://github.com/nodejs/node/issues/51292
-      "@typescript-eslint/no-floating-promises": "off",
     },
   };
 

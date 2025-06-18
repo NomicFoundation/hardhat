@@ -8,7 +8,7 @@
     "hardhat": "workspace:^3.0.0-next.16",
     "@nomicfoundation/hardhat-toolbox-viem": "workspace:^4.0.0-next.16",
     "@nomicfoundation/hardhat-ignition": "workspace:^3.0.0-next.16",
-    "@types/node": "^22.8.5",
+    "@types/node": "^24.0.3",
     "forge-std": "foundry-rs/forge-std#v1.9.4",
     "typescript": "~5.8.0",
     "viem": "^2.30.0"

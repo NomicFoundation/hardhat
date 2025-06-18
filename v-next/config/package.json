@@ -19,7 +19,7 @@
   },
   "devDependencies": {
     "@eslint-community/eslint-plugin-eslint-comments": "4.5.0",
-    "@tsconfig/node22": "^22.0.2",
+    "@tsconfig/node24": "^24.0.1",
     "@types/eslint": "9.6.1",
     "eslint": "9.25.1",
     "eslint-import-resolver-typescript": "4.3.4",
