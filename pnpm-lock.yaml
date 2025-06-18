@@ -1570,8 +1570,8 @@ importers:
         specifier: workspace:^4.0.0-next.16
         version: link:../../../hardhat-toolbox-viem
       '@types/node':
-        specifier: ^22.8.5
-        version: 22.10.10
+        specifier: ^24.0.3
+        version: 24.0.3
       forge-std:
         specifier: foundry-rs/forge-std#v1.9.4
         version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/1eea5bae12ae557d589f9f0f0edae2faa47cb262
@@ -1606,8 +1606,8 @@ importers:
         specifier: '>=10.0.10'
         version: 10.0.10
       '@types/node':
-        specifier: ^22.8.5
-        version: 22.10.10
+        specifier: ^24.0.3
+        version: 24.0.3
       chai:
         specifier: ^5.1.2
         version: 5.1.2
@@ -2794,9 +2794,6 @@ packages:
 
   '@types/node@12.20.55':
     resolution: {integrity: sha512-J8xLz7q2OFulZ2cyGTLE1TbbZcjpno7FaN6zdJNrgAdrJ+DZzh/uFR6YrTb4C+nXakvud8Q4+rbhoIWlYQbUFQ==}
-
-  '@types/node@22.10.10':
-    resolution: {integrity: sha512-X47y/mPNzxviAGY5TcYPtYL8JsY3kAq2n8fMmKoRCxq/c4v4pyGNCzM2R6+M5/umG4ZfHuT+sgqDYqWc9rJ6ww==}
 
   '@types/node@22.7.5':
     resolution: {integrity: sha512-jML7s2NAzMWc//QSJ1a3prpk78cOPchGvXJsC3C6R6PSMoooztvRVQEz89gmBTBY1SPMaqo5teB4uNHPdetShQ==}
@@ -5265,9 +5262,6 @@ packages:
   undici-types@6.19.8:
     resolution: {integrity: sha512-ve2KP6f/JnbPBFyobGHuerC9g1FYGn/F8n1LWTwNxCEzd6IfqTwUQcNXgEtmmQ6DlRrC1hrSrBnCZPokRrDHjw==}
 
-  undici-types@6.20.0:
-    resolution: {integrity: sha512-Ny6QZ2Nju20vw1SRHe3d9jVu6gJ+4e3+MMpqu7pqE5HT6WsTSlce++GQmK5UXS8mzV8DSYHrQH+Xrf2jVcuKNg==}
-
   undici-types@7.8.0:
     resolution: {integrity: sha512-9UJ2xGDvQ43tYyVMpuHlsgApydB8ZKfVYTsLDhXkFL/6gfkp+U8xTGdh8pMJv1SpZna0zxG1DwsKZsreLbXBxw==}
 
@@ -6727,10 +6721,6 @@ snapshots:
       '@types/through': 0.0.33
 
   '@types/node@12.20.55': {}
-
-  '@types/node@22.10.10':
-    dependencies:
-      undici-types: 6.20.0
 
   '@types/node@22.7.5':
     dependencies:
@@ -9575,8 +9565,6 @@ snapshots:
       which-boxed-primitive: 1.1.1
 
   undici-types@6.19.8: {}
-
-  undici-types@6.20.0: {}
 
   undici-types@7.8.0: {}
 
