@@ -1,5 +1,13 @@
 # hardhat
 
+## 3.0.0-next.16
+
+### Patch Changes
+
+- 0a24fa5: Update ethers to v6.14.0 with Pectra support
+- 674288c: Set prague as the default hardfork in Hardhat network
+- 2796bb8: Accept `0x` as a valid value for `setCode`, thanks @arr00 ([#6844](https://github.com/NomicFoundation/hardhat/pull/6844))
+
 ## 3.0.0-next.15
 
 ### Patch Changes

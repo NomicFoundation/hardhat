@@ -6,7 +6,7 @@
   "private": true,
   "devDependencies": {
     "@changesets/cli": "^2.16.0",
-    "typescript": "~5.5.0"
+    "typescript": "~5.8.0"
   },
   "scripts": {
     "build": "pnpm run --recursive --if-present build",
