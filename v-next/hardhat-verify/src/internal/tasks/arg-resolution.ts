@@ -1,9 +1,9 @@
-import type { LibraryAddresses } from "../../../libraries.js";
+import type { LibraryAddresses } from "../libraries.js";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 
-import { loadModule } from "../../../module.js";
+import { loadModule } from "../module.js";
 
 export async function resolveConstructorArgs(
   constructorArgs: string[],

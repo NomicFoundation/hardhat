@@ -5,7 +5,10 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
 import { verifyContract } from "../../../verification.js";
 
-import { resolveConstructorArgs, resolveLibraries } from "./arg-resolution.js";
+import {
+  resolveConstructorArgs,
+  resolveLibraries,
+} from "../../arg-resolution.js";
 
 const verifyEtherscanAction: NewTaskActionFunction<VerifyActionArgs> = async (
   { constructorArgs, constructorArgsPath, librariesPath, ...verifyActionArgs },
