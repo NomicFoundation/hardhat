@@ -1,16 +1,15 @@
 import type { HardhatRuntimeEnvironmentHooks } from "../../../../types/hooks.js";
 
-import path from "node:path";
-
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 
 import { HardhatRuntimeEnvironmentImplementation } from "../../../core/hre.js";
 import { CoverageManagerImplementation } from "../coverage-manager.js";
+import { getCoveragePath } from "../helpers.js";
 
 export default async (): Promise<Partial<HardhatRuntimeEnvironmentHooks>> => ({
   created: async (context, hre) => {
     if (context.globalOptions.coverage) {
-      const coveragePath = path.join(hre.config.paths.cache, "coverage");
+      const coveragePath = getCoveragePath(hre.config.paths.root);
       const coverageManager = new CoverageManagerImplementation(coveragePath);
 
       assertHardhatInvariant(
