@@ -13,6 +13,7 @@ import {
   RootResolutionErrorType,
   UserRemappingErrorType,
 } from "../../../../../types/solidity/errors.js";
+import { ResolvedFileType } from "../../../../../types/solidity.js";
 
 export function formatProjectRootResolutionError(
   error: ProjectRootResolutionError,
@@ -143,7 +144,9 @@ If you still want to be able to do it, try adding this remapping "${error.sugges
 
     case ImportResolutionErrorType.IMPORT_DOESNT_EXIST: {
       const packageOrProject =
-        error.fromFsPath === error.importPath ? "the package" : "the project";
+        error.resolvedFileType === ResolvedFileType.NPM_PACKAGE_FILE
+          ? "the package"
+          : "the project";
 
       const message = `The file ${error.packageExportsResolvedSubpath ?? error.subpath} doesn't exist within ${packageOrProject}.`;
 
