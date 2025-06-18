@@ -203,7 +203,7 @@ export class ResolverImplementation implements Resolver {
       };
     }
 
-    if (relativeFilePath.startsWith("node_modules/")) {
+    if (relativeFilePath.startsWith("node_modules" + path.sep)) {
       return {
         success: false,
         error: {
