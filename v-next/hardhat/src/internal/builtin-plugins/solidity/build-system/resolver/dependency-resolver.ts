@@ -772,13 +772,14 @@ export class ResolverImplementation implements Resolver {
     }
 
     const relativePath = resolvedSubpath ?? subpath;
+    const relativeFsPathWithinPackage = sourceNamePathToFsPath(relativePath);
 
     return this.#commonImportResolution({
       from,
       importPath,
       npmPackage: dependency,
       sourceName,
-      relativeFsPathWithinPackage: relativePath,
+      relativeFsPathWithinPackage,
       subpath,
       generatedRemapping: remapping,
       packageExportsResolvedSubpath: resolvedSubpath,
