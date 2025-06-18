@@ -11,8 +11,6 @@ const cleanAction: NewTaskActionFunction<CleanActionArguments> = async (
   { global },
   { config, hooks },
 ) => {
-  await hooks.runParallelHandlers("clean", "onClean", []);
-
   if (global) {
     const globalCacheDir = await getCacheDir();
     await emptyDir(globalCacheDir);
@@ -20,6 +18,8 @@ const cleanAction: NewTaskActionFunction<CleanActionArguments> = async (
 
   await emptyDir(config.paths.cache);
   await remove(config.paths.artifacts);
+
+  await hooks.runParallelHandlers("clean", "onClean", []);
 };
 
 export default cleanAction;
