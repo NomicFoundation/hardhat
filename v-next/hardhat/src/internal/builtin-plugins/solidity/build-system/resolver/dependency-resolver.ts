@@ -850,7 +850,9 @@ export class ResolverImplementation implements Resolver {
             userRemapping,
             packageExportsResolvedSubpath,
           }),
-          correctCasing: pathValidation.error.correctCasing,
+          correctCasing: fsPathToSourceNamePath(
+            pathValidation.error.correctCasing,
+          ),
         },
       };
     }
