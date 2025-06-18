@@ -65,7 +65,7 @@
     "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0-next.16",
     "@types/bn.js": "^5.1.5",
     "@types/debug": "^4.1.7",
-    "@types/node": "^20.14.9",
+    "@types/node": "^24.0.3",
     "c8": "^9.1.0",
     "eslint": "9.25.1",
     "expect-type": "^1.2.1",
