@@ -54,7 +54,7 @@ describe("Resolver utils", () => {
     });
 
     it("Should return success if the path exists with the correct casing", async () => {
-      const relativePath = "FILE.txt";
+      const relativePath = "FILE2.txt";
       const absolutePath = path.join(dir, relativePath);
       await writeUtf8File(absolutePath, "txt");
 
