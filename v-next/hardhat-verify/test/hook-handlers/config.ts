@@ -46,8 +46,11 @@ class MockResolvedConfigurationVariable
 describe("hook-handlers/config", () => {
   describe("validateUserConfig", () => {
     it("should pass if the config is valid", async () => {
-      const config: HardhatUserConfig = {
+      const config = {
         verify: {
+          blockscout: {
+            enabled: true,
+          },
           etherscan: {
             apiKey: "some-api-key",
             enabled: true,
@@ -55,7 +58,9 @@ describe("hook-handlers/config", () => {
         },
       };
 
-      const validationErrors = await validateUserConfig(config);
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      -- testing invalid network type for js users */
+      const validationErrors = await validateUserConfig(config as any);
 
       assertValidationErrors(validationErrors, []);
     });
@@ -77,85 +82,158 @@ describe("hook-handlers/config", () => {
       ]);
     });
 
-    it("should throw if etherscan is not an object", async () => {
-      const config = {
-        verify: {
-          etherscan: "invalid",
-        },
-      };
-
-      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-      -- testing invalid network type for js users */
-      const validationErrors = await validateUserConfig(config as any);
-
-      assertValidationErrors(validationErrors, [
-        {
-          path: ["verify", "etherscan"],
-          message: "Expected object, received string",
-        },
-      ]);
-    });
-
-    it("should throw if apiKey is missing", async () => {
-      const config = {
-        verify: {
-          etherscan: {},
-        },
-      };
-
-      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-      -- testing invalid network type for js users */
-      const validationErrors = await validateUserConfig(config as any);
-
-      assertValidationErrors(validationErrors, [
-        {
-          path: ["verify", "etherscan", "apiKey"],
-          message: "Expected a string or a Configuration Variable",
-        },
-      ]);
-    });
-
-    it("should throw if apiKey is not a string", async () => {
-      const config = {
-        verify: {
-          etherscan: {
-            apiKey: 1,
+    describe("blockscout", () => {
+      it("should pass if the apiKey is not provided", async () => {
+        const config = {
+          verify: {
+            blockscout: {},
           },
-        },
-      };
+        };
 
-      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       -- testing invalid network type for js users */
-      const validationErrors = await validateUserConfig(config as any);
+        const validationErrors = await validateUserConfig(config as any);
 
-      assertValidationErrors(validationErrors, [
-        {
-          path: ["verify", "etherscan", "apiKey"],
-          message: "Expected a string or a Configuration Variable",
-        },
-      ]);
+        assertValidationErrors(validationErrors, []);
+      });
+
+      it("should throw if blockscout is not an object", async () => {
+        const config = {
+          verify: {
+            blockscout: "invalid",
+          },
+        };
+
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      -- testing invalid network type for js users */
+        const validationErrors = await validateUserConfig(config as any);
+
+        assertValidationErrors(validationErrors, [
+          {
+            path: ["verify", "blockscout"],
+            message: "Expected object, received string",
+          },
+        ]);
+      });
+
+      it("should throw if enabled is not a boolean", async () => {
+        const config = {
+          verify: {
+            blockscout: {
+              enabled: "not-a-boolean",
+            },
+          },
+        };
+
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      -- testing invalid network type for js users */
+        const validationErrors = await validateUserConfig(config as any);
+
+        assertValidationErrors(validationErrors, [
+          {
+            path: ["verify", "blockscout", "enabled"],
+            message: "Expected boolean, received string",
+          },
+        ]);
+      });
     });
 
-    it("should throw if enabled is not a boolean", async () => {
-      const config = {
-        verify: {
-          etherscan: {
-            apiKey: "some-api-key",
-            enabled: "not-a-boolean",
+    describe("etherscan", () => {
+      it("should pass if the config is valid", async () => {
+        const config: HardhatUserConfig = {
+          verify: {
+            etherscan: {
+              apiKey: "some-api-key",
+              enabled: true,
+            },
           },
-        },
-      };
+        };
 
-      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+        const validationErrors = await validateUserConfig(config);
+
+        assertValidationErrors(validationErrors, []);
+      });
+
+      it("should throw if etherscan is not an object", async () => {
+        const config = {
+          verify: {
+            etherscan: "invalid",
+          },
+        };
+
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       -- testing invalid network type for js users */
-      const validationErrors = await validateUserConfig(config as any);
+        const validationErrors = await validateUserConfig(config as any);
 
-      assertValidationErrors(validationErrors, [
-        {
-          path: ["verify", "etherscan", "enabled"],
-          message: "Expected boolean, received string",
-        },
-      ]);
+        assertValidationErrors(validationErrors, [
+          {
+            path: ["verify", "etherscan"],
+            message: "Expected object, received string",
+          },
+        ]);
+      });
+
+      it("should throw if apiKey is missing", async () => {
+        const config = {
+          verify: {
+            etherscan: {},
+          },
+        };
+
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      -- testing invalid network type for js users */
+        const validationErrors = await validateUserConfig(config as any);
+
+        assertValidationErrors(validationErrors, [
+          {
+            path: ["verify", "etherscan", "apiKey"],
+            message: "Expected a string or a Configuration Variable",
+          },
+        ]);
+      });
+
+      it("should throw if apiKey is not a string", async () => {
+        const config = {
+          verify: {
+            etherscan: {
+              apiKey: 1,
+            },
+          },
+        };
+
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      -- testing invalid network type for js users */
+        const validationErrors = await validateUserConfig(config as any);
+
+        assertValidationErrors(validationErrors, [
+          {
+            path: ["verify", "etherscan", "apiKey"],
+            message: "Expected a string or a Configuration Variable",
+          },
+        ]);
+      });
+
+      it("should throw if enabled is not a boolean", async () => {
+        const config = {
+          verify: {
+            etherscan: {
+              apiKey: "some-api-key",
+              enabled: "not-a-boolean",
+            },
+          },
+        };
+
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      -- testing invalid network type for js users */
+        const validationErrors = await validateUserConfig(config as any);
+
+        assertValidationErrors(validationErrors, [
+          {
+            path: ["verify", "etherscan", "enabled"],
+            message: "Expected boolean, received string",
+          },
+        ]);
+      });
     });
   });
 
@@ -175,7 +253,7 @@ describe("hook-handlers/config", () => {
         new MockResolvedConfigurationVariable(variable);
     });
 
-    it("should resolve an empty user config with the defaults", async () => {
+    it("should resolve an undefined user config with the defaults", async () => {
       const resolvedConfig = await resolveUserConfig(
         {},
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
@@ -185,6 +263,9 @@ describe("hook-handlers/config", () => {
       );
 
       assert.deepEqual(resolvedConfig.verify, {
+        blockscout: {
+          enabled: false,
+        },
         etherscan: {
           apiKey: new MockResolvedConfigurationVariable(""),
           enabled: false,
@@ -195,6 +276,9 @@ describe("hook-handlers/config", () => {
     it("should resolve with the user config", async () => {
       const userConfig: HardhatUserConfig = {
         verify: {
+          blockscout: {
+            enabled: false,
+          },
           etherscan: {
             apiKey: "some-api-key",
             enabled: false,
@@ -211,6 +295,9 @@ describe("hook-handlers/config", () => {
       );
 
       assert.deepEqual(resolvedConfig.verify, {
+        blockscout: {
+          enabled: false,
+        },
         etherscan: {
           apiKey: new MockResolvedConfigurationVariable("some-api-key"),
           enabled: false,
@@ -218,9 +305,10 @@ describe("hook-handlers/config", () => {
       });
     });
 
-    it("should default enabled to true if not provided but apiKey is present", async () => {
+    it("should default enabled to true if not provided", async () => {
       const userConfig: HardhatUserConfig = {
         verify: {
+          blockscout: {},
           etherscan: {
             apiKey: "some-api-key",
           },
@@ -236,6 +324,9 @@ describe("hook-handlers/config", () => {
       );
 
       assert.deepEqual(resolvedConfig.verify, {
+        blockscout: {
+          enabled: true,
+        },
         etherscan: {
           apiKey: new MockResolvedConfigurationVariable("some-api-key"),
           enabled: true,
