@@ -1,8 +1,6 @@
 import type { Result } from "./types.js";
 import type { ResolvedNpmPackage } from "../../../../../types/solidity.js";
 
-import path from "node:path";
-
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import {
@@ -53,9 +51,9 @@ export async function validateFsPath(
 
 /**
  * Resolves a subpath for a given package, when it uses package#exports
- * @param npmPackage
- * @param subpath
- * @returns
+ * @param npmPackage The npm package.
+ * @param subpath The supath to resolve. Which must use forward slashes.
+ * @returns The resolved subpath. Which uses forward slashes.
  */
 export function resolveSubpathWithPackageExports(
   npmPackage: Required<ResolvedNpmPackage>,
@@ -85,9 +83,7 @@ export function resolveSubpathWithPackageExports(
     "resolve.exports should always return a result when package.exports exist",
   );
 
-  const resolvedSubpath = resolveOutput[0]
-    .slice(2) // skip the leading './'
-    .replace(/\/|\\/g, path.sep); // use fs path separator
+  const resolvedSubpath = resolveOutput[0].slice(2); // skip the leading './'
 
   return { success: true, value: resolvedSubpath };
 }
