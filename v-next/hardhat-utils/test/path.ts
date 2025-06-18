@@ -89,7 +89,7 @@ describe("path", () => {
         "fixture-projects",
         "fs",
         "shorten-path",
-        ...Array(30).fill("nested"),
+        ...Array(20).fill("a"),
       );
       await ensureDir(cwd);
       process.chdir(cwd);
