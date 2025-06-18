@@ -329,7 +329,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
       - name: Download Hardhat
         if: (startsWith(matrix.command, 'hardhat ') && needs.inputs.outputs.hardhat-ref != 'next' && !startsWith(needs.inputs.outputs.hardhat-ref, '3'))
         uses: actions/download-artifact@v4
