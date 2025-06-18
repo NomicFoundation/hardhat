@@ -218,7 +218,7 @@ export class ResolverImplementation implements Resolver {
       relativeFilePath,
     );
 
-    let realCaseingRelativePath = relativeFilePath;
+    let realCasingRelativePath = relativeFilePath;
     if (pathValidation.success === false) {
       if (pathValidation.error.type === PathValidationErrorType.DOESNT_EXIST) {
         return {
@@ -231,10 +231,10 @@ export class ResolverImplementation implements Resolver {
       }
 
       // Now that we have the correct casing, we "fix" the source name.
-      realCaseingRelativePath = pathValidation.error.correctCasing;
+      realCasingRelativePath = pathValidation.error.correctCasing;
       sourceName = sourceNamePathJoin(
         this.#hhProjectPackage.rootSourceName,
-        fsPathToSourceNamePath(realCaseingRelativePath),
+        fsPathToSourceNamePath(realCasingRelativePath),
       );
     }
 
@@ -257,7 +257,7 @@ export class ResolverImplementation implements Resolver {
 
     const fsPathWithTheRightCasing = path.join(
       this.#projectRoot,
-      realCaseingRelativePath,
+      realCasingRelativePath,
     );
 
     const resolvedFile = await this.#buildResolvedFile({
