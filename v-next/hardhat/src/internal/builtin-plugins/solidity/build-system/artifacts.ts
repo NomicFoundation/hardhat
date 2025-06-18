@@ -1,4 +1,8 @@
-import type { Artifact, BuildInfo } from "../../../../types/artifacts.js";
+import type {
+  Artifact,
+  BuildInfo,
+  LinkReferences,
+} from "../../../../types/artifacts.js";
 import type { CompilationJob } from "../../../../types/solidity/compilation-job.js";
 import type {
   CompilerOutput,
@@ -42,14 +46,31 @@ export function getContractArtifact(
     abi: contract.abi,
     bytecode,
     deployedBytecode,
-    linkReferences,
-    deployedLinkReferences,
+    linkReferences:
+      cleanProjectSourceNamePrefixFromLinkReferences(linkReferences),
+    deployedLinkReferences: cleanProjectSourceNamePrefixFromLinkReferences(
+      deployedLinkReferences,
+    ),
     immutableReferences,
     inputSourceName,
     buildInfoId,
   };
 
   return artifact;
+}
+
+function cleanProjectSourceNamePrefixFromLinkReferences(
+  linkReferences: LinkReferences,
+): LinkReferences {
+  const PROJECT_SOURCE_NAME_PREFIX = "project/";
+  return Object.fromEntries(
+    Object.entries(linkReferences).map(([sourceName, references]) => [
+      sourceName.startsWith(PROJECT_SOURCE_NAME_PREFIX)
+        ? sourceName.substring(PROJECT_SOURCE_NAME_PREFIX.length)
+        : sourceName,
+      references,
+    ]),
+  );
 }
 
 export function getArtifactsDeclarationFile(artifacts: Artifact[]): string {
