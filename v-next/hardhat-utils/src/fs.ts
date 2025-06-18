@@ -540,7 +540,9 @@ export const ensureDir: typeof mkdir = mkdir;
  */
 export async function mkdtemp(prefix: string): Promise<string> {
   try {
-    return await fsPromises.mkdtemp(path.join(tmpdir(), prefix));
+    return await getRealPath(
+      await fsPromises.mkdtemp(path.join(tmpdir(), prefix)),
+    );
   } catch (e) {
     ensureNodeErrnoExceptionError(e);
     throw new FileSystemAccessError(e.message, e);
