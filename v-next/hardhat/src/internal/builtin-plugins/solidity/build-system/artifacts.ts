@@ -21,6 +21,7 @@ export function getContractArtifact(
   inputSourceName: string,
   contractName: string,
   contract: CompilerOutputContract,
+  publicSourceNameMap: Record<string, string>,
 ): Artifact {
   const evmBytecode = contract.evm?.bytecode;
   const bytecode: string =
@@ -46,10 +47,13 @@ export function getContractArtifact(
     abi: contract.abi,
     bytecode,
     deployedBytecode,
-    linkReferences:
-      cleanProjectSourceNamePrefixFromLinkReferences(linkReferences),
-    deployedLinkReferences: cleanProjectSourceNamePrefixFromLinkReferences(
+    linkReferences: applyPublicSourceNamesToLinkReferences(
+      linkReferences,
+      publicSourceNameMap,
+    ),
+    deployedLinkReferences: applyPublicSourceNamesToLinkReferences(
       deployedLinkReferences,
+      publicSourceNameMap,
     ),
     immutableReferences,
     inputSourceName,
@@ -59,15 +63,13 @@ export function getContractArtifact(
   return artifact;
 }
 
-function cleanProjectSourceNamePrefixFromLinkReferences(
+function applyPublicSourceNamesToLinkReferences(
   linkReferences: LinkReferences,
+  publicSourceNameMap: Record<string, string>,
 ): LinkReferences {
-  const PROJECT_SOURCE_NAME_PREFIX = "project/";
   return Object.fromEntries(
     Object.entries(linkReferences).map(([sourceName, references]) => [
-      sourceName.startsWith(PROJECT_SOURCE_NAME_PREFIX)
-        ? sourceName.substring(PROJECT_SOURCE_NAME_PREFIX.length)
-        : sourceName,
+      publicSourceNameMap[sourceName] ?? sourceName,
       references,
     ]),
   );
