@@ -57,7 +57,7 @@ Note that the npm module is being remapped by ${formatRemappingReference(error.u
     }
 
     case RootResolutionErrorType.NPM_ROOT_FILE_OF_UNINSTALLED_PACKAGE: {
-      return `The pacakge "${error.installationName}" is not installed.`;
+      return `The package "${error.installationName}" is not installed.`;
     }
 
     case RootResolutionErrorType.NPM_ROOT_FILE_RESOLUTION_WITH_REMAPPING_ERRORS: {

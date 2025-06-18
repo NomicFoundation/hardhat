@@ -2,7 +2,7 @@ import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 
 const NPM_MODULE_PATTERN =
   /^(?<package>(?:@[a-z0-9]+(?:[._-][a-z0-9]+)*\/)?[a-z0-9]+(?:[._-][a-z0-9]+)*)\/(?<path>.+)$/;
-const NPM_MODULE_OR_PREFIX_PATTRN =
+const NPM_MODULE_OR_PREFIX_PATTERN =
   /^(?<package>(?:@[a-z0-9]+(?:[._-][a-z0-9]+)*\/)?[a-z0-9]+(?:[._-][a-z0-9]+)*)\/?.*$/;
 
 /**
@@ -35,7 +35,7 @@ export function parseNpmDirectImport(directImport: string):
  * Parses an npm module or prefix of a module, returning the name of the
  * package.
  *
- * The reason it supports prefixes is because we want to extrat npm package
+ * The reason it supports prefixes is because we want to extract npm package
  * names from remappings, which may be just `@openzeppelin/contracts/`, and
  * not an entire module.
  *
@@ -45,7 +45,7 @@ export function parseNpmDirectImport(directImport: string):
 export function getNpmPackageName(
   npmModuleOrPrefixOfModule: string,
 ): string | undefined {
-  const match = NPM_MODULE_OR_PREFIX_PATTRN.exec(npmModuleOrPrefixOfModule);
+  const match = NPM_MODULE_OR_PREFIX_PATTERN.exec(npmModuleOrPrefixOfModule);
 
   if (match === null) {
     return undefined;

@@ -12,7 +12,7 @@ import { ensureTrailingSlash } from "./string.js";
 
 /* Adapted from `resolve.exports`. License: https://github.com/lukeed/resolve.exports/blob/master/license */
 
-export type PacakgeExports =
+export type PackageExports =
   | PackageExportPath
   | {
       [path: PackageExportsEntry]: PackageExportsValue;
@@ -47,7 +47,7 @@ export interface PackageJson {
   engines?: {
     node?: string;
   };
-  exports?: PacakgeExports;
+  exports?: PackageExports;
   dependencies?: Record<string, string>;
   devDependencies?: Record<string, string>;
   peerDependencies?: Record<string, string>;

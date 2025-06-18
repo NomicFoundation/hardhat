@@ -15,7 +15,7 @@ export interface ResolvedNpmPackage {
   /**
    * The exports of the package.
    */
-  exports?: PacakgeExports;
+  exports?: PackageExports;
 
   /**
    * The path to the package's root directory.
@@ -127,7 +127,7 @@ export interface FileContent {
 
 /* Adapted from `resolve.exports`. License: https://github.com/lukeed/resolve.exports/blob/master/license */
 
-export type PacakgeExports =
+export type PackageExports =
   | PackageExportPath
   | {
       [path: PackageExportsEntry]: PackageExportsValue;

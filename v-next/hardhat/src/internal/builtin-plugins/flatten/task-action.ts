@@ -98,7 +98,7 @@ const flattenAction: NewTaskActionFunction<FlattenActionArguments> = async (
 
     // Write files without imports, with commented licenses and pragma abicoder directives
 
-    flattened += `\n\n// File ${formatSouceName(file)}\n`;
+    flattened += `\n\n// File ${formatSourceName(file)}\n`;
     flattened += `\n${normalizedText}\n`;
   }
 
@@ -147,7 +147,7 @@ const flattenAction: NewTaskActionFunction<FlattenActionArguments> = async (
 };
 
 // We don't display the project's root source name in the flattened file
-function formatSouceName(file: ResolvedFile): string {
+function formatSourceName(file: ResolvedFile): string {
   return file.type === ResolvedFileType.NPM_PACKAGE_FILE
     ? file.sourceName
     : file.sourceName.substring(file.package.rootSourceName.length + 1);
@@ -166,7 +166,7 @@ function getLicensesInfo(files: ResolvedFile[]): LicensesInfo {
     const matches = [...file.content.text.matchAll(SPDX_LICENSES_REGEX)];
 
     if (matches.length === 0) {
-      filesWithoutLicenses.add(formatSouceName(file));
+      filesWithoutLicenses.add(formatSourceName(file));
       continue;
     }
 
@@ -204,7 +204,7 @@ function getPragmaAbicoderDirectiveInfo(
     const matches = [...file.content.text.matchAll(PRAGMA_DIRECTIVES_REGEX)];
 
     if (matches.length === 0) {
-      filesWithoutPragmaDirectives.add(formatSouceName(file));
+      filesWithoutPragmaDirectives.add(formatSourceName(file));
       continue;
     }
 
@@ -231,7 +231,7 @@ function getPragmaAbicoderDirectiveInfo(
       }
     }
 
-    filesWithMostImportantDirective[formatSouceName(file)] =
+    filesWithMostImportantDirective[formatSourceName(file)] =
       fileMostImportantDirective;
   }
 
