@@ -2601,17 +2601,11 @@ Please ensure each library address is correct. You can remove entries from your 
         number: 80016,
         messageTemplate: `The contract "{contract}" has one or more library addresses that cannot be detected from the deployed bytecode.
 This can occur if a library is only used in the contract's constructor. The missing libraries are:
-{missingList}
-
-Visit https://hardhat.org/hardhat-runner/plugins/nomicfoundation-hardhat-verify#libraries-with-undetectable-addresses to learn how to solve this.`,
+{missingList}`,
         websiteTitle: "Missing library addresses",
         websiteDescription: `One or more libraries required by the contract could not be detected from the deployed bytecode.
 
-This usually happens when a library is only referenced in the contract's constructor. To resolve this, provide the missing library addresses using the "--libraries" option.
-
-For more information, see:
-https://hardhat.org/hardhat-runner/plugins/nomicfoundation-hardhat-verify#libraries-with-undetectable-addresses
-`,
+This usually happens when a library is only referenced in the contract's constructor. To resolve this, provide the missing library addresses using the "--libraries" option.`,
       },
       INVALID_CONSTRUCTOR_ARGUMENT_TYPE: {
         number: 80017,
