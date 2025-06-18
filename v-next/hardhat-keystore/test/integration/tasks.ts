@@ -111,6 +111,13 @@ describe("integration tests for the keystore tasks", () => {
       `Key "myNewKey" set\n`,
     );
   });
+
+  it("should show the keystore path", async () => {
+    await _assertConsoleOutputMatchesFor(
+      () => hre.tasks.getTask(["keystore", "path"]).run(),
+      `${keystoreFilePath}\n`,
+    );
+  });
 });
 
 async function _overwriteKeystoreFileWith(
