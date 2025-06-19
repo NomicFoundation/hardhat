@@ -124,12 +124,12 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
     return failures;
   }
 
-  await markTestRunStart("node");
+  await markTestRunStart("nodejs");
 
   const testFailures = await runTests();
 
   // NOTE: This might print a coverage report.
-  await markTestRunDone("node");
+  await markTestRunDone("nodejs");
 
   if (testFailures > 0) {
     process.exitCode = 1;

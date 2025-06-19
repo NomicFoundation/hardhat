@@ -11,7 +11,7 @@ export default async (): Promise<Partial<TestHooks>> => {
         absoluteFilePath.includes(context.config.paths.tests.nodeTest) &&
         absoluteFilePath.endsWith(".sol") === false
       ) {
-        return "node";
+        return "nodejs";
       }
 
       return next(context, filePath);
