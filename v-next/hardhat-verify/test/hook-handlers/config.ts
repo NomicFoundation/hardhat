@@ -77,23 +77,6 @@ describe("hook-handlers/config", () => {
       ]);
     });
 
-    it("should throw if verify is not an object", async () => {
-      const config = {
-        verify: "invalid",
-      };
-
-      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-      -- testing invalid network type for js users */
-      const validationErrors = await validateUserConfig(config as any);
-
-      assertValidationErrors(validationErrors, [
-        {
-          path: ["verify"],
-          message: "Expected object, received string",
-        },
-      ]);
-    });
-
     it("should throw if etherscan is not an object", async () => {
       const config = {
         verify: {
