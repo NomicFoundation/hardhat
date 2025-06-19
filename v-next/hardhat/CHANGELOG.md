@@ -1,5 +1,35 @@
 # hardhat
 
+## 3.0.0-next.16
+
+### Patch Changes
+
+- 0a24fa5: Update ethers to v6.14.0 with Pectra support
+- 674288c: Set prague as the default hardfork in Hardhat network
+- 2796bb8: Accept `0x` as a valid value for `setCode`, thanks @arr00 ([#6844](https://github.com/NomicFoundation/hardhat/pull/6844))
+
+## 3.0.0-next.15
+
+### Patch Changes
+
+- fd64634: Fixed a bug when sending ETH to the testing accounts in forked networks. Now testing accounts are automatically undelegated ([#6834](https://github.com/NomicFoundation/hardhat/issues/6834))
+- a433be1: Reduced the number of installed package dependencies by swapping out `@sentry/node` for `@sentry/core` ([#6757](https://github.com/NomicFoundation/hardhat/pull/6757))
+- 8c8c110: Fix a bug in `viem-assertions` to scan every event log, not just the first one ([#6787](https://github.com/NomicFoundation/hardhat/pull/6787))
+- 1d891bd: Use file URLs instead of paths as arguments to `--import` when invoking the WASM solc compiler (https://github.com/nodejs/node/issues/58515)
+- d844f6e: Add support for running under Node 24 ([#6792](https://github.com/NomicFoundation/hardhat/issues/6792))
+- 6be01c4: Support async calls in `getAllFilesMatching` in `hardhat-utils`, thanks @ItsNickBarry ([#6789](https://github.com/NomicFoundation/hardhat/pull/6789))
+
+## 3.0.0-next.14
+
+### Patch Changes
+
+- a1319ee: Add examples of our viem and ethers assertions in the sample projects
+- dcd5f89: Fix node test reporter not stripping some diffs because of coloring (#6688)
+- e582eaa: Removed unreliable context information from falsy expression error messages
+- cf5c563: Add `hardhat-verify` to toolboxes ([#6756](https://github.com/NomicFoundation/hardhat/pull/6756))
+- b7912e2: Rename the package `@nomicfoundation/hardhat-viem-matchers` to `@nomicfoundation/hardhat-viem-assertions` ([#6774](https://github.com/NomicFoundation/hardhat/pull/6774))
+- 18dda34: Fix to set 0 retries on development networks for `hardhat-viem`, thanks @TateB ([#6784](https://github.com/NomicFoundation/hardhat/pull/6784))
+
 ## 3.0.0-next.13
 
 ### Patch Changes

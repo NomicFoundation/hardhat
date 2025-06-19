@@ -2,7 +2,7 @@ import type { HardhatRuntimeEnvironment } from "../../../../src/types/hre.js";
 
 import assert from "node:assert/strict";
 import path from "node:path";
-import { before, beforeEach, describe, it } from "node:test";
+import { before, beforeEach, describe, it, mock } from "node:test";
 
 import { useFixtureProject } from "@nomicfoundation/hardhat-test-utils";
 import {
@@ -22,9 +22,13 @@ let globalCacheDir: string;
 let cacheDir: string;
 let artifactsDir: string;
 
+const onClean = mock.fn(async () => {});
+
 function assertCleanBehavior(global: boolean) {
   it("should clean the cache and artifacts directories", async () => {
     await cleanAction({ global }, hre);
+
+    assert.equal(onClean.mock.calls.length, 1, "onClean was called once");
 
     // If the cache dir exists, it should be empty
     if (await exists(cacheDir)) {
@@ -66,6 +70,13 @@ describe("clean/task-action", () => {
         // TODO remove this once cache and artifacts are resolved in the config
         paths: { cache: cacheDir, artifacts: artifactsDir },
       });
+      hre.hooks.registerHandlers("clean", {
+        onClean,
+      });
+    });
+
+    beforeEach(async () => {
+      onClean.mock.resetCalls();
     });
 
     describe("when cache and artifact dirs don't exist", async () => {

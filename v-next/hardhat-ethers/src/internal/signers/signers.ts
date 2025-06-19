@@ -1,25 +1,50 @@
 import type { HardhatEthersSigner as HardhatEthersSignerI } from "../../types.js";
 import type { HardhatEthersProvider } from "../hardhat-ethers-provider/hardhat-ethers-provider.js";
-import type { BlockTag, TransactionRequest, ethers } from "ethers";
-import type { NetworkConfig } from "hardhat/types/config";
+import type {
+  BlockTag,
+  TransactionRequest,
+  ethers,
+  AuthorizationRequest,
+  Authorization,
+} from "ethers";
+import type {
+  EdrNetworkAccountsConfig,
+  HttpNetworkAccountsConfig,
+  NetworkConfig,
+} from "hardhat/types/config";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   assertArgument,
+  computeAddress,
   getAddress,
   hexlify,
   resolveAddress,
   toUtf8Bytes,
   TypedDataEncoder,
+  Wallet,
 } from "ethers";
 
 import { getRpcTransaction } from "../ethers-utils/ethers-utils.js";
 
 import { deepCopy } from "./deep-copy.js";
+import { derivePrivateKeys } from "./derive-private-key.js";
 import { populate } from "./populate.js";
+
+type SignerAccounts =
+  | {
+      type: "http";
+      accounts: HttpNetworkAccountsConfig;
+    }
+  | {
+      type: "edr";
+      accounts: EdrNetworkAccountsConfig;
+    };
 
 export class HardhatEthersSigner implements HardhatEthersSignerI {
   readonly #gasLimit: bigint | undefined;
+  readonly #signerAccounts: SignerAccounts;
+  #cachedPrivateKey: string | undefined;
 
   public readonly address: string;
   public readonly provider: ethers.JsonRpcProvider | HardhatEthersProvider;
@@ -41,23 +66,70 @@ export class HardhatEthersSigner implements HardhatEthersSignerI {
       gasLimit = networkConfig.gas;
     }
 
-    return new HardhatEthersSigner(address, provider, gasLimit);
+    const signerAccounts: SignerAccounts =
+      networkConfig.type === "http"
+        ? { type: "http", accounts: networkConfig.accounts }
+        : { type: "edr", accounts: networkConfig.accounts };
+
+    return new HardhatEthersSigner(address, provider, signerAccounts, gasLimit);
   }
 
   private constructor(
     address: string,
     provider: ethers.JsonRpcProvider | HardhatEthersProvider,
+    signerAccounts: SignerAccounts,
     gasLimit?: bigint | undefined,
   ) {
     this.address = getAddress(address);
     this.provider = provider;
     this.#gasLimit = gasLimit;
+
+    this.#signerAccounts = signerAccounts;
   }
 
   public connect(
     provider: ethers.JsonRpcProvider | HardhatEthersProvider,
   ): ethers.Signer {
-    return new HardhatEthersSigner(this.address, provider);
+    return new HardhatEthersSigner(
+      this.address,
+      provider,
+      this.#signerAccounts,
+      this.#gasLimit,
+    );
+  }
+
+  public async authorize(auth: AuthorizationRequest): Promise<Authorization> {
+    const privateKey = await this.#getPrivateKey();
+
+    if (privateKey === undefined) {
+      throw new HardhatError(
+        HardhatError.ERRORS.HARDHAT_ETHERS.GENERAL.NO_PRIVATE_KEY_FOR_ADDRESS,
+        {
+          address: this.address,
+        },
+      );
+    }
+
+    const wallet = new Wallet(privateKey, this.provider);
+
+    return wallet.authorize(auth);
+  }
+
+  public async populateAuthorization(
+    _auth: AuthorizationRequest,
+  ): Promise<AuthorizationRequest> {
+    const auth = { ..._auth };
+
+    // Add a chain ID if not explicitly set to 0
+    if (auth.chainId === null || auth.chainId === undefined) {
+      auth.chainId = (await this.provider.getNetwork()).chainId;
+    }
+
+    if (auth.nonce === null || auth.nonce === undefined) {
+      auth.nonce = await this.getNonce();
+    }
+
+    return auth;
   }
 
   public getNonce(blockTag?: BlockTag | undefined): Promise<number> {
@@ -244,6 +316,52 @@ export class HardhatEthersSigner implements HardhatEthersSignerI {
     const hexTx = getRpcTransaction(resolvedTx);
 
     return this.provider.send("eth_sendTransaction", [hexTx]);
+  }
+
+  async #getPrivateKey(): Promise<string | undefined> {
+    if (this.#cachedPrivateKey === undefined) {
+      const privateKeys = await this.#getPrivateKeys();
+
+      this.#cachedPrivateKey = privateKeys.find(
+        (key) => computeAddress(key) === this.address,
+      );
+    }
+
+    return this.#cachedPrivateKey;
+  }
+
+  async #getPrivateKeys(): Promise<string[]> {
+    const { type, accounts } = this.#signerAccounts;
+
+    if (type === "http") {
+      if (accounts === "remote") {
+        throw new HardhatError(
+          HardhatError.ERRORS.HARDHAT_ETHERS.GENERAL.ACCOUNTS_OF_TYPE_REMOTE,
+        );
+      }
+
+      if (Array.isArray(accounts)) {
+        return Promise.all(accounts.map((acc) => acc.get()));
+      }
+
+      if ("mnemonic" in accounts) {
+        return derivePrivateKeys(accounts);
+      }
+    }
+
+    if (type === "edr") {
+      if (Array.isArray(accounts)) {
+        return Promise.all(accounts.map((acc) => acc.privateKey.get()));
+      }
+
+      if ("mnemonic" in accounts) {
+        return derivePrivateKeys(accounts);
+      }
+    }
+
+    throw new HardhatError(
+      HardhatError.ERRORS.HARDHAT_ETHERS.GENERAL.WRONG_ACCOUNTS_FORMAT,
+    );
   }
 }
 

@@ -71,7 +71,8 @@ describe("LocalAccountsHandler", () => {
     "0x6d7229c1db5892730b84b4bc10543733b72cabf4cd3130d910faa8e459bb8eca",
     "0x6d4ec871d9b5469119bbfc891e958b6220d076a6849006098c370c8af5fc7776",
     "0xec02c2b7019e75378a05018adc30a0252ba705670acb383a1d332e57b0b792d2",
-    "0xec02c2b7019e75378a05018adc30a0252ba705670acb383a1d332e57b0b792d2", // Duplicated account
+    "0xec02c2b7019e75378a05018adc30a0252ba705670acb383a1d332e57b0b792d2", // Duplicated account (on purpose)
+    "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
   ];
 
   beforeEach(() => {
@@ -569,6 +570,163 @@ describe("LocalAccountsHandler", () => {
 
       // The tx type is encoded in the first byte, and it must be the EIP-1559 one
       assert.equal(rawTransaction[0], 2);
+    });
+
+    it("should send EIP-7702 transactions", async () => {
+      const tx = {
+        from: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+        to: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+        gas: numberToHexString(100000),
+        maxFeePerGas: numberToHexString(10n * 10n ** 9n),
+        maxPriorityFeePerGas: numberToHexString(10n ** 9n),
+        chainId: numberToHexString(MOCK_PROVIDER_CHAIN_ID),
+        nonce: numberToHexString(0),
+        authorizationList: [
+          {
+            chainId: numberToHexString(MOCK_PROVIDER_CHAIN_ID),
+            nonce: numberToHexString(1),
+            address: "0x1234567890123456789012345678901234567890",
+            yParity: "0x1",
+            r: "0xd4c36a32c935f7abf3950062024b08ee85a707cd725274a5b017865ea6e989ad",
+            s: "0x6218f33b32f2f26783db21cde75e6b72bcacfedbac4c1a1af438e3e5c755918a",
+          },
+        ],
+      };
+
+      const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [tx]);
+
+      await localAccountsHandler.handle(jsonRpcRequest);
+
+      assert.ok(
+        Array.isArray(jsonRpcRequest.params),
+        "params should be an array",
+      );
+
+      const rawTransaction = jsonRpcRequest.params[0];
+
+      const expectedRaw =
+        "0x04f8ca7b80843b9aca008502540be400830186a094f39fd6e51aad88f6" +
+        "f4ce6ab8827279cfffb922668080c0f85cf85a7b94123456789012345678" +
+        "90123456789012345678900101a0d4c36a32c935f7abf3950062024b08ee" +
+        "85a707cd725274a5b017865ea6e989ada06218f33b32f2f26783db21cde7" +
+        "5e6b72bcacfedbac4c1a1af438e3e5c755918a80a09ae0f9ac575ff45f38" +
+        "805f7101455b397d248166a2a5771122a66e6c279c279ba0234d80d08a6f" +
+        "369a134b0058b74076e608db10da97ec3660ad829c8d4246098f";
+
+      assert.equal(rawTransaction, expectedRaw);
+    });
+
+    it("should allow 'to' to be undefined (contract deployment)", async () => {
+      const tx = {
+        from: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
+        gas: numberToHexString(100000),
+        nonce: numberToHexString(0),
+        value: numberToHexString(1),
+        data: "0x1234",
+        chainId: numberToHexString(MOCK_PROVIDER_CHAIN_ID),
+        maxFeePerGas: numberToHexString(12),
+        maxPriorityFeePerGas: numberToHexString(2),
+      };
+
+      const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [tx]);
+
+      await localAccountsHandler.handle(jsonRpcRequest);
+
+      assert.ok(
+        Array.isArray(jsonRpcRequest.params),
+        "params should be an array",
+      );
+
+      const rawTransaction = jsonRpcRequest.params[0];
+
+      const expectedRaw =
+        "0x02f8517b80020c830186a08001821234c080a0299e6b620a0a42fa7d56" +
+        "42c657975df33974289d58ad3ea45d2eccf9172a5d66a05e408d8d43eba4" +
+        "8edf9da2a833ed4bd6ddaec11f62bcbf8ccb03177f296e0c9b";
+
+      assert.equal(rawTransaction, expectedRaw);
+    });
+
+    it("should allow 'data' to be undefined (regular tx)", async () => {
+      const tx = {
+        from: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
+        to: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
+        gas: numberToHexString(100000),
+        nonce: numberToHexString(0),
+        value: numberToHexString(1),
+        chainId: numberToHexString(MOCK_PROVIDER_CHAIN_ID),
+        maxFeePerGas: numberToHexString(12),
+        maxPriorityFeePerGas: numberToHexString(2),
+      };
+
+      const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [tx]);
+
+      await localAccountsHandler.handle(jsonRpcRequest);
+
+      assert.ok(
+        Array.isArray(jsonRpcRequest.params),
+        "params should be an array",
+      );
+
+      const rawTransaction = jsonRpcRequest.params[0];
+
+      const expectedRaw =
+        "0x02f8637b80020c830186a094b5bc06d4548a3ac17d72b372ae1e416bf6" +
+        "5b8ead0180c001a0db0f3cf6ea38dc6f9da98bbaf7dd1476ad86278eb56d" +
+        "d6173253689481b021fea01b4c3f357eb05a54913fd832c1450b0e169007" +
+        "56a74a7ee82fc78271f1ff19df";
+
+      assert.equal(rawTransaction, expectedRaw);
+    });
+
+    it("should throw if both 'to' and 'data' are undefined", async () => {
+      const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
+        {
+          from: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
+          gas: numberToHexString(100000),
+          nonce: numberToHexString(0),
+          value: numberToHexString(1),
+          chainId: numberToHexString(MOCK_PROVIDER_CHAIN_ID),
+          maxFeePerGas: numberToHexString(12),
+          maxPriorityFeePerGas: numberToHexString(2),
+        },
+      ]);
+
+      await assertRejectsWithHardhatError(
+        () => localAccountsHandler.handle(jsonRpcRequest),
+        HardhatError.ERRORS.CORE.NETWORK
+          .DATA_FIELD_CANNOT_BE_NULL_WITH_NULL_ADDRESS,
+        {},
+      );
+    });
+
+    it("should throw if 'authorizationList' and 'gasPrice' are defined", async () => {
+      const jsonRpcRequest = getJsonRpcRequest(1, "eth_sendTransaction", [
+        {
+          from: "0xb5bc06d4548a3ac17d72b372ae1e416bf65b8ead",
+          gas: numberToHexString(100000),
+          nonce: numberToHexString(0),
+          value: numberToHexString(1),
+          chainId: numberToHexString(MOCK_PROVIDER_CHAIN_ID),
+          gasPrice: numberToHexString(1),
+          authorizationList: [
+            {
+              chainId: numberToHexString(MOCK_PROVIDER_CHAIN_ID),
+              nonce: numberToHexString(1),
+              address: "0x1234567890123456789012345678901234567890",
+              yParity: "0x1",
+              r: "0xd4c36a32c935f7abf3950062024b08ee85a707cd725274a5b017865ea6e989ad",
+              s: "0x6218f33b32f2f26783db21cde75e6b72bcacfedbac4c1a1af438e3e5c755918a",
+            },
+          ],
+        },
+      ]);
+
+      await assertRejectsWithHardhatError(
+        () => localAccountsHandler.handle(jsonRpcRequest),
+        HardhatError.ERRORS.CORE.NETWORK.INCOMPATIBLE_EIP7702_FIELDS,
+        {},
+      );
     });
 
     it("should send access list transactions", async () => {

@@ -935,6 +935,16 @@ Try using another mnemonic or deriving less keys.`,
         websiteDescription:
           "The provider your are trying to use has been closed. Please create a new one using hre.network.connect() and try again.",
       },
+      INCOMPATIBLE_EIP7702_FIELDS: {
+        number: 723,
+        messageTemplate:
+          "An incompatible transaction with gasPrice and EIP-7702 fields.",
+        websiteTitle: "Incompatible EIP-7702 parameters",
+        websiteDescription: `You are trying to send a transaction with a locally managed
+account, and its parameters are incompatible. You sent both gasPrice and authorizationList.
+
+Please double check your transactions' parameters.`,
+      },
     },
     SOLIDITY_TESTS: {
       BUILD_INFO_NOT_FOUND_FOR_CONTRACT: {
@@ -2030,6 +2040,26 @@ Please try again later.`,
         messageTemplate: `The value "{value}" with type "{type}" is not supported by the deepCopy function.`,
         websiteTitle: "Unsupported type for deep copy",
         websiteDescription: "Unsupported type for deep copy",
+      },
+      ACCOUNTS_OF_TYPE_REMOTE: {
+        number: 20014,
+        messageTemplate:
+          "Tried to obtain a private key, but the network is configured to use remote accounts.",
+        websiteTitle: "Remote accounts are not supported",
+        websiteDescription: "Remote accounts are not supported",
+      },
+      WRONG_ACCOUNTS_FORMAT: {
+        number: 20015,
+        messageTemplate: `The "accounts" property in your Hardhat configuration file is not set correctly.`,
+        websiteTitle: `Invalid "accounts" property in your Hardhat configuration file`,
+        websiteDescription: `The "accounts" property in your Hardhat configuration file is not set correctly. Please double check it and try again.`,
+      },
+      NO_PRIVATE_KEY_FOR_ADDRESS: {
+        number: 20016,
+        messageTemplate: `No private key can be associated with the address "{address}".`,
+        websiteTitle: "Private key for the address could not be found",
+        websiteDescription:
+          "The private key for the address could not be found. Please double check your private keys and try again.",
       },
     },
   },

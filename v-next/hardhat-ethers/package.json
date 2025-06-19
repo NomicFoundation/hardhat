@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-ethers",
-  "version": "4.0.0-next.13",
+  "version": "4.0.0-next.16",
   "description": "Hardhat plugin for ethers",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-ethers",
   "repository": {
@@ -43,25 +43,26 @@
     "README.md"
   ],
   "devDependencies": {
-    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0-next.13",
+    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0-next.16",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
     "@types/debug": "^4.1.7",
     "@types/node": "^20.14.9",
     "c8": "^9.1.0",
     "eslint": "9.25.1",
-    "expect-type": "^0.19.0",
+    "expect-type": "^1.2.1",
     "prettier": "3.2.5",
     "rimraf": "^5.0.5",
     "tsx": "^4.19.3",
-    "typescript": "~5.5.0"
+    "typescript": "~5.8.0"
   },
   "dependencies": {
-    "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.13",
-    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.13",
+    "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.16",
+    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.16",
     "debug": "^4.3.2",
-    "ethers": "^6.13.4"
+    "ethereum-cryptography": "^2.2.1",
+    "ethers": "^6.14.0"
   },
   "peerDependencies": {
-    "hardhat": "workspace:^3.0.0-next.13"
+    "hardhat": "workspace:^3.0.0-next.16"
   }
 }
