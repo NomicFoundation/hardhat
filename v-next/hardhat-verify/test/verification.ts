@@ -151,6 +151,7 @@ describe("verification", () => {
       });
     });
 
+    // TODO: Include remaining `hardhat-verify` verification test cases
     describe.todo("all cases", () => {
       it("should throw an error when etherscan is not enabled in the hardhat config", async () => {});
 
