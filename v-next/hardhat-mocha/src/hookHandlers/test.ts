@@ -7,9 +7,21 @@ export default async (): Promise<Partial<TestHooks>> => {
     registerFileForTestRunner: async (context, filePath, next) => {
       const absoluteFilePath = resolveFromRoot(process.cwd(), filePath);
 
+      const allRunnersDirectories = Object.values(context.config.paths.tests);
+
+      const inThisRunnersDirectory = absoluteFilePath.includes(
+        context.config.paths.tests.mocha,
+      );
+
+      const notInOtherRunnersDirectory = allRunnersDirectories.every(
+        (runnersDirectory) => !absoluteFilePath.includes(runnersDirectory),
+      );
+
+      const isSolidityFile = absoluteFilePath.endsWith(".sol");
+
       if (
-        absoluteFilePath.includes(context.config.paths.tests.mocha) &&
-        absoluteFilePath.endsWith(".sol") === false
+        isSolidityFile === false &&
+        (inThisRunnersDirectory || notInOtherRunnersDirectory)
       ) {
         return "mocha";
       }
