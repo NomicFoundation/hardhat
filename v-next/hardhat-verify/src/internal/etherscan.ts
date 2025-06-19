@@ -44,7 +44,7 @@ export class Etherscan {
   public apiUrl: string;
   public apiKey: string;
 
-  readonly #testDispatcher?: Dispatcher;
+  readonly #dispatcher?: Dispatcher;
   readonly #pollingIntervalMs: number;
 
   constructor(etherscanConfig: {
@@ -52,16 +52,16 @@ export class Etherscan {
     name?: string;
     url: string;
     apiKey: string;
-    testDispatcher?: Dispatcher;
+    dispatcher?: Dispatcher;
   }) {
     this.chainId = String(etherscanConfig.chainId);
     this.name = etherscanConfig.name ?? "Etherscan";
     this.url = etherscanConfig.url;
     this.apiUrl = ETHERSCAN_API_URL;
     this.apiKey = etherscanConfig.apiKey;
-    this.#testDispatcher = etherscanConfig.testDispatcher;
+    this.#dispatcher = etherscanConfig.dispatcher;
     this.#pollingIntervalMs =
-      etherscanConfig.testDispatcher !== undefined
+      etherscanConfig.dispatcher !== undefined
         ? 0
         : VERIFICATION_STATUS_POLLING_SECONDS;
   }
@@ -85,7 +85,7 @@ export class Etherscan {
             address,
           },
         },
-        this.#testDispatcher,
+        this.#dispatcher,
       );
       responseBody =
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
@@ -158,7 +158,7 @@ export class Etherscan {
             apikey: this.apiKey,
           },
         },
-        this.#testDispatcher,
+        this.#dispatcher,
       );
       responseBody =
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
@@ -246,7 +246,7 @@ export class Etherscan {
             guid,
           },
         },
-        this.#testDispatcher,
+        this.#dispatcher,
       );
       responseBody =
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions

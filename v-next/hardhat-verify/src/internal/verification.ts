@@ -65,8 +65,8 @@ export async function verifyContract(
   verifyContractArgs: VerifyContractArgs,
   hre: HardhatRuntimeEnvironment,
   consoleLog: (text: string) => void = console.log,
-  testDispatcher?: Dispatcher,
-  testProvider?: EthereumProvider,
+  dispatcher?: Dispatcher,
+  provider?: EthereumProvider,
 ): Promise<boolean> {
   const {
     artifacts,
@@ -107,9 +107,9 @@ export async function verifyContract(
 
   const connection = await network.connect();
   const { networkName } = connection;
-  const provider = testProvider ?? connection.provider;
+  const resolvedProvider = provider ?? connection.provider;
 
-  const chainId = await getChainId(provider);
+  const chainId = await getChainId(resolvedProvider);
   const chainDescriptor = await getChainDescriptor(
     chainId,
     config.chainDescriptors,
@@ -129,7 +129,7 @@ export async function verifyContract(
     ...chainDescriptor.blockExplorers.etherscan,
     chainId,
     apiKey: await config.verify.etherscan.apiKey.get(),
-    testDispatcher,
+    dispatcher,
   });
 
   let isVerified = false;
@@ -160,7 +160,7 @@ Explorer: ${etherscan.getContractUrl(address)}
     await resolveSupportedSolcVersions(buildProfile);
 
   const deployedBytecode = await Bytecode.getDeployedContractBytecode(
-    provider,
+    resolvedProvider,
     address,
     networkName,
   );

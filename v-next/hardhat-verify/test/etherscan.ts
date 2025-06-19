@@ -81,7 +81,7 @@ describe("etherscan", () => {
       it("should return true if the contract is verified", async () => {
         const etherscan = new Etherscan({
           ...etherscanConfig,
-          testDispatcher: testDispatcher.interceptable,
+          dispatcher: testDispatcher.interceptable,
         });
 
         isVerifiedInterceptor.reply(200, {
@@ -106,7 +106,7 @@ describe("etherscan", () => {
       it("should return false if the contract is not verified", async () => {
         const etherscan = new Etherscan({
           ...etherscanConfig,
-          testDispatcher: testDispatcher.interceptable,
+          dispatcher: testDispatcher.interceptable,
         });
 
         isVerifiedInterceptor.reply(200, {
@@ -143,7 +143,7 @@ describe("etherscan", () => {
       it("should throw an error if the request fails", async () => {
         const etherscan = new Etherscan({
           ...etherscanConfig,
-          testDispatcher: testDispatcher.interceptable,
+          dispatcher: testDispatcher.interceptable,
         });
 
         // Simulate a network error
@@ -190,7 +190,7 @@ describe("etherscan", () => {
       it("should throw an error if the response status code is 300-399", async () => {
         const etherscan = new Etherscan({
           ...etherscanConfig,
-          testDispatcher: testDispatcher.interceptable,
+          dispatcher: testDispatcher.interceptable,
         });
 
         isVerifiedInterceptor.reply(300, { result: "Redirection error" });
@@ -241,7 +241,7 @@ describe("etherscan", () => {
       it("should return a guid if the verification request was submitted successfully", async () => {
         const etherscan = new Etherscan({
           ...etherscanConfig,
-          testDispatcher: testDispatcher.interceptable,
+          dispatcher: testDispatcher.interceptable,
         });
 
         verifyInterceptor.reply(200, {
@@ -269,7 +269,7 @@ describe("etherscan", () => {
       it("should throw an error if the request fails", async () => {
         const etherscan = new Etherscan({
           ...etherscanConfig,
-          testDispatcher: testDispatcher.interceptable,
+          dispatcher: testDispatcher.interceptable,
         });
 
         // Simulate a network error
@@ -334,7 +334,7 @@ describe("etherscan", () => {
       it("should throw an error if the response status code is 300-399", async () => {
         const etherscan = new Etherscan({
           ...etherscanConfig,
-          testDispatcher: testDispatcher.interceptable,
+          dispatcher: testDispatcher.interceptable,
         });
 
         verifyInterceptor.reply(300, { result: "Redirection error" });
@@ -361,7 +361,7 @@ describe("etherscan", () => {
       it("should throw an error if Etherscan is unable to locate the contract", async () => {
         const etherscan = new Etherscan({
           ...etherscanConfig,
-          testDispatcher: testDispatcher.interceptable,
+          dispatcher: testDispatcher.interceptable,
         });
 
         verifyInterceptor.reply(200, {
@@ -388,7 +388,7 @@ describe("etherscan", () => {
       it("should throw an error if the contract is already verified", async () => {
         const etherscan = new Etherscan({
           ...etherscanConfig,
-          testDispatcher: testDispatcher.interceptable,
+          dispatcher: testDispatcher.interceptable,
         });
 
         verifyInterceptor.reply(200, {
@@ -433,7 +433,7 @@ describe("etherscan", () => {
       it("should throw an error if the etherscan response status is not 1", async () => {
         const etherscan = new Etherscan({
           ...etherscanConfig,
-          testDispatcher: testDispatcher.interceptable,
+          dispatcher: testDispatcher.interceptable,
         });
 
         verifyInterceptor.reply(200, {
@@ -482,7 +482,7 @@ describe("etherscan", () => {
       it("should return the verification status", async () => {
         const etherscan = new Etherscan({
           ...etherscanConfig,
-          testDispatcher: testDispatcher.interceptable,
+          dispatcher: testDispatcher.interceptable,
         });
 
         pollVerificationStatusInterceptor.reply(200, {
@@ -526,7 +526,7 @@ describe("etherscan", () => {
       it("should poll the verification status until it is successful or fails", async () => {
         const etherscan = new Etherscan({
           ...etherscanConfig,
-          testDispatcher: testDispatcher.interceptable,
+          dispatcher: testDispatcher.interceptable,
         });
 
         let callCount = 0;
@@ -566,7 +566,7 @@ describe("etherscan", () => {
       it("should throw an error if the request fails", async () => {
         const etherscan = new Etherscan({
           ...etherscanConfig,
-          testDispatcher: testDispatcher.interceptable,
+          dispatcher: testDispatcher.interceptable,
         });
 
         // Simulate a network error
@@ -615,7 +615,7 @@ describe("etherscan", () => {
       it("should throw an error if the response status code is 300-399", async () => {
         const etherscan = new Etherscan({
           ...etherscanConfig,
-          testDispatcher: testDispatcher.interceptable,
+          dispatcher: testDispatcher.interceptable,
         });
 
         pollVerificationStatusInterceptor.reply(300, {
@@ -638,7 +638,7 @@ describe("etherscan", () => {
       it("should throw an error if the contract is already verified", async () => {
         const etherscan = new Etherscan({
           ...etherscanConfig,
-          testDispatcher: testDispatcher.interceptable,
+          dispatcher: testDispatcher.interceptable,
         });
 
         pollVerificationStatusInterceptor.reply(200, {
@@ -671,7 +671,7 @@ describe("etherscan", () => {
       it("should throw an error if the etherscan response status is not 1", async () => {
         const etherscan = new Etherscan({
           ...etherscanConfig,
-          testDispatcher: testDispatcher.interceptable,
+          dispatcher: testDispatcher.interceptable,
         });
 
         pollVerificationStatusInterceptor.reply(200, {
@@ -690,7 +690,7 @@ describe("etherscan", () => {
       it("should throw an error if the etherscan response result is not 'Pass - Verified' or 'Fail - Unable to verify'", async () => {
         const etherscan = new Etherscan({
           ...etherscanConfig,
-          testDispatcher: testDispatcher.interceptable,
+          dispatcher: testDispatcher.interceptable,
         });
 
         pollVerificationStatusInterceptor.reply(200, {
