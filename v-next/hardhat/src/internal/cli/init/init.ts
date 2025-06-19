@@ -473,7 +473,7 @@ export async function installProjectDependencies(
       console.log();
       console.log(commandString);
 
-      await spawn([command[0], ...command.slice(1)].join(" "), [], {
+      await spawn(commandString, [], {
         cwd: workspace,
         // We need to run with `shell: true` for this to work on powershell, but
         // we already enclosed every dependency identifier in quotes, so this
