@@ -283,7 +283,7 @@ export function validateArtifactFunctionName(
 
 /**
  * Validates that the event exists in the artifact, it's name is valid, handles overloads
- * correctly, and that the arugment exists in the event.
+ * correctly, and that the argument exists in the event.
  *
  * @param emitterArtifact The artifact of the contract emitting the event.
  * @param eventName The name of the event.
@@ -411,7 +411,7 @@ export function getEventArgumentFromReceipt(
  * @param customErrorReported A value indicating if the JSON-RPC error
  *  reported that it was due to a custom error.
  * @param decodeCustomError A function that decodes custom errors, returning
- *  `RevertWithCustomError` if succesfully decoded, `RevertWithInvalidData`
+ *  `RevertWithCustomError` if successfully decoded, `RevertWithInvalidData`
  *  if a custom error was recognized but couldn't be decoded, and `undefined`
  *  it it wasn't recognized.
  * @returns A `FailedEvmExecutionResult` with the decoded error.

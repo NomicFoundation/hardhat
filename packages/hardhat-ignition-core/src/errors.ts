@@ -22,9 +22,9 @@ export class CustomError extends Error {
  */
 export class IgnitionError extends CustomError {
   // We store the error descriptor as private field to avoid
-  // interferring with Node's default error formatting.
+  // interfering with Node's default error formatting.
   // We can use getters to access any private field without
-  // interferring with it.
+  // interfering with it.
   //
   // Disabling this rule as private fields don't use `private`
   // eslint-disable-next-line @typescript-eslint/explicit-member-accessibility
