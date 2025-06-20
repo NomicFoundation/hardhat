@@ -988,6 +988,9 @@ importers:
       react-tooltip:
         specifier: ^5.21.4
         version: 5.28.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rimraf:
+        specifier: ^3.0.2
+        version: 3.0.2
       styled-components:
         specifier: 5.3.10
         version: 5.3.10(@babel/core@7.27.4)(react-dom@18.3.1(react@18.3.1))(react-is@18.3.1)(react@18.3.1)
