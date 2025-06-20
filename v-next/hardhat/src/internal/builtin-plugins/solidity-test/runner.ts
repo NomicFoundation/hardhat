@@ -4,11 +4,11 @@ import type {
   Artifact,
   SolidityTestRunnerConfigArgs,
   TracingConfigWithBuffers,
-} from "@ignored/edr";
+} from "@ignored/edr-optimism";
 
 import { Readable } from "node:stream";
 
-import { runSolidityTests, EdrContext } from "@ignored/edr";
+import { EdrContext, L1_CHAIN_TYPE } from "@ignored/edr-optimism";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
 import { formatArtifactId } from "./formatters.js";
@@ -55,7 +55,7 @@ export function run(
   options?: RunOptions,
 ): TestsStream {
   const stream = new ReadableStream<TestEvent>({
-    start(controller) {
+    async start(controller) {
       if (testSuiteIds.length === 0) {
         controller.close();
         return;
@@ -82,41 +82,40 @@ export function run(
         }, options.timeout);
       }
 
-      // TODO: Just getting the context here to get it initialized, but this
-      // is not currently tied to the `runSolidityTests` function.
-      getEdrContext();
+      // TODO: Add support for predeploys once EDR supports them.
+      try {
+        await getEdrContext().runSolidityTests(
+          L1_CHAIN_TYPE,
+          artifacts,
+          testSuiteIds,
+          configArgs,
+          tracingConfig,
+          (suiteResult) => {
+            controller.enqueue({
+              type: "suite:result",
+              data: suiteResult,
+            });
+            remainingSuites.delete(
+              formatArtifactId(suiteResult.id, sourceNameToUserSourceName),
+            );
+            if (remainingSuites.size === 0) {
+              clearTimeout(timeout);
+              controller.close();
+            }
+          },
+        );
+      } catch (error: any) {
+        clearTimeout(timeout);
 
-      runSolidityTests(
-        artifacts,
-        testSuiteIds,
-        configArgs,
-        tracingConfig,
-        (suiteResult) => {
-          controller.enqueue({
-            type: "suite:result",
-            data: suiteResult,
-          });
-          remainingSuites.delete(
-            formatArtifactId(suiteResult.id, sourceNameToUserSourceName),
-          );
-          if (remainingSuites.size === 0) {
-            clearTimeout(timeout);
-            controller.close();
-          }
-        },
-        (error) => {
-          clearTimeout(timeout);
-
-          controller.error(
-            new HardhatError(
-              HardhatError.ERRORS.CORE.SOLIDITY_TESTS.UNHANDLED_EDR_ERROR_SOLIDITY_TESTS,
-              {
-                error: error.message,
-              },
-            ),
-          );
-        },
-      );
+        controller.error(
+          new HardhatError(
+            HardhatError.ERRORS.CORE.SOLIDITY_TESTS.UNHANDLED_EDR_ERROR_SOLIDITY_TESTS,
+            {
+              error: error.message,
+            },
+          ),
+        );
+      }
     },
   });
 
