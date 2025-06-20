@@ -10,7 +10,14 @@ import { ArgumentType } from "../../types/arguments.js";
  */
 export const RESERVED_ARGUMENT_NAMES: Set<string> = new Set([]);
 
+/**
+ * Names that cannot be used for global or task arguments.
+ * Reserved for future use.
+ */
+export const RESERVED_ARGUMENT_SHORT_NAMES: Set<string> = new Set([]);
+
 const VALID_ARGUMENT_NAME_PATTERN = /^[a-z][a-zA-Z0-9]*$/;
+const VALID_ARGUMENT_SHORT_NAME_PATTERN = /^[a-z]$/;
 
 /**
  * Validates an argument name, throwing an error if it is invalid.
@@ -42,6 +49,37 @@ export function validateArgumentName(name: string): void {
  */
 export function isArgumentNameValid(name: string): boolean {
   return VALID_ARGUMENT_NAME_PATTERN.test(name);
+}
+
+/**
+ * Validates an argument short name, throwing an error if it is invalid.
+ *
+ * @param name The short name of the argument.
+ * @throws {HardhatError} with descriptor:
+ * - {@link HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_NAME} if the name is invalid.
+ * A valid short name must be a lowercase letter.
+ * - {@link HardhatError.ERRORS.CORE.ARGUMENTS.RESERVED_NAME} if the short name is
+ * reserved. See {@link RESERVED_ARGUMENT_SHORT_NAMES}.
+ */
+export function validateArgumentShortName(name: string): void {
+  if (!isArgumentShortNameValid(name)) {
+    throw new HardhatError(HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_NAME, {
+      name,
+    });
+  }
+
+  if (RESERVED_ARGUMENT_SHORT_NAMES.has(name)) {
+    throw new HardhatError(HardhatError.ERRORS.CORE.ARGUMENTS.RESERVED_NAME, {
+      name,
+    });
+  }
+}
+
+/**
+ * Returns true if the given name is a valid argument name.
+ */
+export function isArgumentShortNameValid(name: string): boolean {
+  return VALID_ARGUMENT_SHORT_NAME_PATTERN.test(name);
 }
 
 /**

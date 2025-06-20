@@ -110,7 +110,7 @@ export function getSection(
     .sort((a, b) => a.name.localeCompare(b.name))
     .map(({ name, description, defaultValue }) => {
       const defaultValueStr = getDefaultValueString(defaultValue);
-      return `  ${name.padEnd(namePadding)}${description}${defaultValueStr}`;
+      return `  ${name.padEnd(namePadding)}${description}${defaultValueStr}`.trimEnd();
     })
     .join("\n")}\n`;
 }

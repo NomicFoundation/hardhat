@@ -219,6 +219,35 @@ export class TaskManagerImplementation implements TaskManager {
         );
       }
     });
+
+    const globalOptionDefinitionsByShortName: GlobalOptionDefinitions =
+      new Map();
+    for (const globalOptionEntry of globalOptionDefinitions.values()) {
+      if (globalOptionEntry.option.shortName !== undefined) {
+        globalOptionDefinitionsByShortName.set(
+          globalOptionEntry.option.shortName,
+          globalOptionEntry,
+        );
+      }
+    }
+    const optionShortNames = Object.values(taskDefinition.options)
+      .map((option) => option.shortName)
+      .filter((shortName) => shortName !== undefined);
+
+    optionShortNames.forEach((argName) => {
+      const globalOptionEntry = globalOptionDefinitions.get(argName);
+      if (globalOptionEntry !== undefined) {
+        throw new HardhatError(
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.TASK_OPTION_ALREADY_DEFINED,
+          {
+            actorFragment: getActorFragment(pluginId),
+            task: formatTaskId(taskDefinition.id),
+            option: argName,
+            globalOptionPluginId: globalOptionEntry.pluginId,
+          },
+        );
+      }
+    });
   }
 
   #processTaskOverride(

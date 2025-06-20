@@ -740,6 +740,24 @@ Please double check your arguments.`,
 
 Please double check your arguments.`,
       },
+      CANNOT_GROUP_OPTIONS: {
+        number: 509,
+        messageTemplate:
+          'Invalid option "{option}". Options cannot be grouped together. Try providing the options separately.',
+        websiteTitle: "Options grouping is not supported",
+        websiteDescription: `Options cannot be grouped together.
+
+Please double check your arguments, and try providing the options separately.`,
+      },
+      CANNOT_REPEAT_OPTIONS: {
+        number: 510,
+        messageTemplate:
+          'Invalid option "{option}". Options of type "{type}" cannot be repeated.',
+        websiteTitle: "Options repetition is not supported",
+        websiteDescription: `Some options cannot be repeated.
+
+Please double check your arguments.`,
+      },
     },
     BUILTIN_TASKS: {
       RUN_FILE_NOT_FOUND: {

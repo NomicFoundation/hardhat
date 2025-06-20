@@ -193,6 +193,7 @@ describe("Global Options", () => {
     it("should build a global option definition", () => {
       const options = {
         name: "foo",
+        shortName: undefined,
         description: "Foo description",
         type: ArgumentType.BOOLEAN,
         defaultValue: true,
@@ -205,6 +206,7 @@ describe("Global Options", () => {
     it("should build a global option definition with a default type of STRING", () => {
       const options = {
         name: "foo",
+        shortName: undefined,
         description: "Foo description",
         defaultValue: "bar",
       };
