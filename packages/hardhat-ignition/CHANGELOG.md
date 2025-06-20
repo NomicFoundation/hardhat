@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.15.12
+
+### Patch Changes
+
+- 698dc70: Add configurable maxFeePerGas and default to it if set
+- Updated dependencies [94b36b0]
+- Updated dependencies [698dc70]
+  - hardhat@2.25.0
+  - @nomicfoundation/ignition-core@0.15.12
+  - @nomicfoundation/ignition-ui@0.15.11
+
 ## 0.15.11
 
 ### Patch Changes

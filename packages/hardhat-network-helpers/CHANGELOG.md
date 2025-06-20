@@ -1,5 +1,13 @@
 # @nomicfoundation/hardhat-network-helpers
 
+## 1.0.13
+
+### Patch Changes
+
+- 538b03c: Accept `0x` as a valid value for `setCode`, thanks @arr00 ([#6844](https://github.com/NomicFoundation/hardhat/pull/6844))
+- Updated dependencies [94b36b0]
+  - hardhat@2.25.0
+
 ## 1.0.12
 
 ### Patch Changes
