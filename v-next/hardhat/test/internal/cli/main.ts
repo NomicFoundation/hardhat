@@ -538,7 +538,7 @@ For global options help run: hardhat --help`;
       });
     });
 
-    it("should parse the bool value after the flag", async function () {
+    it("should not parse the bool value after the flag", async function () {
       const command = "npx hardhat task --flag true <value>";
 
       const cliArguments = command.split(" ").slice(2);
@@ -550,7 +550,7 @@ For global options help run: hardhat --help`;
         usedCliArguments,
       );
 
-      assert.deepEqual(usedCliArguments, [false, true, true, false]);
+      assert.deepEqual(usedCliArguments, [false, true, false, false]);
       assert.deepEqual(globalOptions, {
         flag: true,
       });
@@ -644,10 +644,8 @@ For global options help run: hardhat --help`;
             name: "arg",
             defaultValue: "default",
           }),
-          task(["task1"]).addOption({
+          task(["task1"]).addFlag({
             name: "flag",
-            type: ArgumentType.BOOLEAN,
-            defaultValue: false, // flag behavior
           }),
           task(["task2"]).addOption({
             name: "arg",
@@ -728,21 +726,19 @@ For global options help run: hardhat --help`;
         assert.deepEqual(res.taskArguments, { flag: true });
       });
 
-      it("should get the task and its argument as type boolean - even though it has a flag behavior, boolean values are still consumed", function () {
+      it("should not get the task and its argument as type boolean - flag values are not consumed", function () {
         const command = "npx hardhat task1 --flag false";
 
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = new Array(cliArguments.length).fill(false);
 
-        const res = parseTaskAndArguments(cliArguments, usedCliArguments, hre);
-
-        assert.ok(!Array.isArray(res), "Result should be an array");
-        assert.equal(res.task.id, tasks[1].id);
-        assert.deepEqual(
-          usedCliArguments,
-          new Array(cliArguments.length).fill(true),
+        assertThrowsHardhatError(
+          () => parseTaskAndArguments(cliArguments, usedCliArguments, hre),
+          HardhatError.ERRORS.CORE.ARGUMENTS.UNUSED_ARGUMENT,
+          {
+            value: "false",
+          },
         );
-        assert.deepEqual(res.taskArguments, { flag: false });
       });
 
       it("should get the required bool value (the bool value must be specified, not a flag behavior because default is true)", function () {
