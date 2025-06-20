@@ -7,7 +7,11 @@ import type {
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
-import { validateArgumentName, validateArgumentValue } from "../arguments.js";
+import {
+  validateArgumentName,
+  validateArgumentShortName,
+  validateArgumentValue,
+} from "../arguments.js";
 
 import { formatTaskId } from "./utils.js";
 
@@ -31,7 +35,7 @@ export function validateAction(action: unknown): void {
 }
 
 export function validateOption(
-  { name, type, defaultValue }: OptionDefinition,
+  { name, shortName, type, defaultValue }: OptionDefinition,
   usedNames: Set<string>,
   taskId: string | string[],
 ): void {
@@ -46,6 +50,21 @@ export function validateOption(
   validateTaskArgumentValue("defaultValue", type, defaultValue, false, taskId);
 
   usedNames.add(name);
+
+  if (shortName !== undefined) {
+    validateArgumentShortName(shortName);
+
+    if (usedNames.has(shortName)) {
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.ARGUMENTS.DUPLICATED_NAME,
+        {
+          name: shortName,
+        },
+      );
+    }
+
+    usedNames.add(shortName);
+  }
 }
 
 export function validatePositionalArgument(

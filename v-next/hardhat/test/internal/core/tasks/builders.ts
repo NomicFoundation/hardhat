@@ -280,6 +280,7 @@ describe("Task builders", () => {
           options: {
             arg: {
               name: "arg",
+              shortName: undefined,
               description: "",
               type: ArgumentType.STRING,
               defaultValue: "default",
@@ -309,6 +310,7 @@ describe("Task builders", () => {
           options: {
             arg: {
               name: "arg",
+              shortName: undefined,
               description: "Argument description",
               type: ArgumentType.STRING,
               defaultValue: "default",
@@ -338,6 +340,7 @@ describe("Task builders", () => {
           options: {
             arg: {
               name: "arg",
+              shortName: undefined,
               description: "",
               type: ArgumentType.INT,
               defaultValue: 1,
@@ -365,8 +368,9 @@ describe("Task builders", () => {
           options: {
             flag: {
               name: "flag",
+              shortName: undefined,
               description: "",
-              type: ArgumentType.BOOLEAN,
+              type: ArgumentType.FLAG,
               defaultValue: false,
             },
           },
@@ -390,8 +394,9 @@ describe("Task builders", () => {
           options: {
             flag: {
               name: "flag",
+              shortName: undefined,
               description: "Flag description",
-              type: ArgumentType.BOOLEAN,
+              type: ArgumentType.FLAG,
               defaultValue: false,
             },
           },
@@ -990,6 +995,7 @@ describe("Task builders", () => {
           options: {
             arg: {
               name: "arg",
+              shortName: undefined,
               description: "",
               type: ArgumentType.STRING,
               defaultValue: "default",
@@ -1020,6 +1026,7 @@ describe("Task builders", () => {
           options: {
             arg: {
               name: "arg",
+              shortName: undefined,
               description: "Argument description",
               type: ArgumentType.STRING,
               defaultValue: "default",
@@ -1050,6 +1057,7 @@ describe("Task builders", () => {
           options: {
             arg: {
               name: "arg",
+              shortName: undefined,
               description: "",
               type: ArgumentType.INT,
               defaultValue: 1,
@@ -1078,8 +1086,9 @@ describe("Task builders", () => {
           options: {
             flag: {
               name: "flag",
+              shortName: undefined,
               description: "",
-              type: ArgumentType.BOOLEAN,
+              type: ArgumentType.FLAG,
               defaultValue: false,
             },
           },
@@ -1104,8 +1113,9 @@ describe("Task builders", () => {
           options: {
             flag: {
               name: "flag",
+              shortName: undefined,
               description: "Flag description",
-              type: ArgumentType.BOOLEAN,
+              type: ArgumentType.FLAG,
               defaultValue: false,
             },
           },
