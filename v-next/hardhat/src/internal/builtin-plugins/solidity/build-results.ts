@@ -4,7 +4,10 @@ import type {
   FailedFileBuildResult,
   FileBuildResult,
 } from "../../../types/solidity.js";
-import type { BuildInfoAndOutput, Artifact as EdrArtifact } from "@ignored/edr";
+import type {
+  BuildInfoAndOutput,
+  Artifact as EdrArtifact,
+} from "@ignored/edr-optimism";
 
 import {
   assertHardhatInvariant,
