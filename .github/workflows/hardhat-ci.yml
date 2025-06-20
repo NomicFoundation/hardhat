@@ -107,4 +107,4 @@ jobs:
       - name: Build
         run: pnpm build
       - name: Run tests
-        run: pnpm run ${{ matrix.package == 'hardhat-chai-matchers' && 'test:ci' || 'test' }}
+        run: pnpm run ${{ contains(fromJson('["hardhat-chai-matchers", "hardhat-ignition-core"]'), matrix.package) && 'test:ci' || 'test' }}
