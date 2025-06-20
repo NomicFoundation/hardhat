@@ -4,7 +4,9 @@
 export enum ArgumentType {
   STRING = "STRING",
   BOOLEAN = "BOOLEAN",
+  FLAG = "FLAG",
   INT = "INT",
+  LEVEL = "LEVEL",
   BIGINT = "BIGINT",
   FLOAT = "FLOAT",
   FILE = "FILE",
@@ -18,7 +20,9 @@ export enum ArgumentType {
 export interface ArgumentValueTypes {
   [ArgumentType.STRING]: string;
   [ArgumentType.BOOLEAN]: boolean;
+  [ArgumentType.FLAG]: boolean;
   [ArgumentType.INT]: number;
+  [ArgumentType.LEVEL]: number;
   [ArgumentType.BIGINT]: bigint;
   [ArgumentType.FLOAT]: number;
   [ArgumentType.FILE]: string;

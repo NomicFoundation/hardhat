@@ -12,6 +12,7 @@ const customTask = task("task")
   .addPositionalArgument({ name: "arg2" })
   .addVariadicArgument({ name: "arg3" })
   .addFlag({ name: "arg4", shortName: "f" })
+  .addLevel({ name: "arg5", shortName: "l" })
   .setAction(() => {
     tasksResults.wasArg1Used = true;
   })

@@ -143,7 +143,15 @@ export function getUsageString(
   if (options.length > 0) {
     output += ` ${options
       .sort((a, b) => a.name.localeCompare(b.name))
-      .map((o) => `[${o.name}${o.type === "BOOLEAN" ? "" : ` <${o.type}>`}]`)
+      .map((o) => {
+        // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- We want to explicitly handle all the other types via the default case
+        switch (o.type) {
+          case "FLAG":
+            return `[${o.name}]`;
+          default:
+            return `[${o.name} <${o.type}>]`;
+        }
+      })
       .join(" ")}`;
   }
 

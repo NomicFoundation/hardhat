@@ -89,7 +89,22 @@ export function globalFlag(options: {
 }): OptionDefinition {
   return buildGlobalOptionDefinition({
     ...options,
-    type: ArgumentType.BOOLEAN,
+    type: ArgumentType.FLAG,
     defaultValue: false,
+  });
+}
+
+/**
+ * Defines a global flag.
+ */
+export function globalLevel(options: {
+  name: string;
+  shortName?: string;
+  description: string;
+}): OptionDefinition {
+  return buildGlobalOptionDefinition({
+    ...options,
+    type: ArgumentType.LEVEL,
+    defaultValue: 0,
   });
 }
