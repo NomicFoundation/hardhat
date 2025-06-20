@@ -28,7 +28,7 @@ describe("FixedGasHandler", () => {
       },
     ]);
 
-    fixedGasHandler.handle(jsonRpcRequest);
+    await fixedGasHandler.handle(jsonRpcRequest);
     const [tx] = getRequestParams(jsonRpcRequest);
 
     assert.ok(isObject(tx), "tx is not an object");
@@ -45,7 +45,7 @@ describe("FixedGasHandler", () => {
       },
     ]);
 
-    fixedGasHandler.handle(jsonRpcRequest);
+    await fixedGasHandler.handle(jsonRpcRequest);
     const [tx] = getRequestParams(jsonRpcRequest);
 
     assert.ok(isObject(tx), "tx is not an object");
@@ -61,7 +61,7 @@ describe("FixedGasHandler", () => {
       },
     ]);
 
-    fixedGasHandler.handle(jsonRpcRequest);
+    await fixedGasHandler.handle(jsonRpcRequest);
     const [tx] = getRequestParams(jsonRpcRequest);
 
     assert.ok(isObject(tx), "tx is not an object");
