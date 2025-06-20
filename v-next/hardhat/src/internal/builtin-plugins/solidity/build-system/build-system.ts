@@ -300,10 +300,9 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
   ): Promise<CompilationJobCreationError | Map<string, CompilationJob>> {
     await this.#downloadConfiguredCompilers(options?.quiet);
 
-    const { dependencyGraph, resolver } = await buildDependencyGraph(
+    const dependencyGraph = await buildDependencyGraph(
       rootFilePaths.toSorted(), // We sort them to have a deterministic order
       this.#options.projectRoot,
-      this.#options.solidityConfig.remappings,
       readSourceFileFactory(this.#hooks),
     );
 
@@ -392,7 +391,6 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         subgraph,
         solcConfig,
         solcLongVersion,
-        resolver.getRemappings(), // TODO: Only get the ones relevant to the subgraph?
         this.#hooks,
       );
 
@@ -472,6 +470,13 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     const result = new Map<string, string[]>();
     const buildId = await compilationJob.getBuildId();
 
+    const publicSourceNameMap = Object.fromEntries(
+      compilationJob.dependencyGraph
+        .getRoots()
+        .entries()
+        .map(([publicSourceName, root]) => [root.sourceName, publicSourceName]),
+    );
+
     // We emit the artifacts for each root file, first emitting one artifact
     // for each contract, and then one declaration file for the entire file,
     // which defines their types and augments the ArtifactMap type.
@@ -505,6 +510,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
             root.sourceName,
             contractName,
             contract,
+            publicSourceNameMap,
           );
 
           await writeUtf8File(

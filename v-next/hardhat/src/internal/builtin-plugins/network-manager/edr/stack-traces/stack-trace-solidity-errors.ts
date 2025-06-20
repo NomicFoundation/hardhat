@@ -328,7 +328,14 @@ export class SolidityCallSite implements NodeJS.CallSite {
     _functionName: string | undefined,
     _line: number | undefined,
   ) {
-    this.#sourceName = _sourceName;
+    // If the soruce name starts with `project/` that means that's a local
+    // source name, and we remove that.
+    const LOCAL_SOURCE_NAME_PREFIX = "project/";
+
+    this.#sourceName =
+      _sourceName?.startsWith(LOCAL_SOURCE_NAME_PREFIX) === true
+        ? _sourceName.substring(LOCAL_SOURCE_NAME_PREFIX.length)
+        : _sourceName;
     this.#contract = _contract;
     this.#functionName = _functionName;
     this.#line = _line;

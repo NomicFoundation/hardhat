@@ -48,7 +48,6 @@ const multiVersionSolcUserConfigType = z.object({
 
 const commonSolidityUserConfigType = z.object({
   dependenciesToCompile: z.array(z.string()).optional(),
-  remappings: z.array(z.string()).optional(),
 });
 
 const singleVersionSolidityUserConfigType = singleVersionSolcUserConfigType
@@ -217,7 +216,6 @@ function resolveSolidityConfig(
         },
       },
       dependenciesToCompile: [],
-      remappings: [],
     };
   }
 
@@ -235,7 +233,6 @@ function resolveSolidityConfig(
         },
       },
       dependenciesToCompile: solidityConfig.dependenciesToCompile ?? [],
-      remappings: solidityConfig.remappings ?? [],
     };
   }
 
@@ -263,7 +260,6 @@ function resolveSolidityConfig(
         },
       },
       dependenciesToCompile: solidityConfig.dependenciesToCompile ?? [],
-      remappings: solidityConfig.remappings ?? [],
     };
   }
 
@@ -316,6 +312,5 @@ function resolveSolidityConfig(
   return {
     profiles,
     dependenciesToCompile: solidityConfig.dependenciesToCompile ?? [],
-    remappings: solidityConfig.remappings ?? [],
   };
 }

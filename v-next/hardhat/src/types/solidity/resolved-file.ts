@@ -15,7 +15,7 @@ export interface ResolvedNpmPackage {
   /**
    * The exports of the package.
    */
-  exports?: PacakgeExports;
+  exports?: PackageExports;
 
   /**
    * The path to the package's root directory.
@@ -26,11 +26,13 @@ export interface ResolvedNpmPackage {
    * The prefix that represents the source name of the package's files.
    *
    * For example, package 'foo' with version '1.2.3' would have a root source
-   * name of 'npm/foo@1.2.3/'. If the package is part of the monorepo, the root
-   * source name would be 'npm/package@local/'.
+   * name of 'npm/foo@1.2.3'. If the package is part of the monorepo, the root
+   * source name would be 'npm/package@local'.
    *
-   * Note that this can be derived from the rest of the fields, but it's
-   * cached here for performance reasons.
+   * If this package represents the Hardhat project itself, the root source
+   * name is an empty string.
+   *
+   * Note that this doesn't include a trailing slash.
    */
   rootSourceName: string;
 }
@@ -47,23 +49,28 @@ export enum ResolvedFileType {
  * A file that's part of the Hardhat project (i.e. not installed through npm).
  */
 export interface ProjectResolvedFile {
-  type: ResolvedFileType.PROJECT_FILE;
+  readonly type: ResolvedFileType.PROJECT_FILE;
 
   /**
    * The source name of a project files is its relative path from the Hardhat
    * project root.
    */
-  sourceName: string;
+  readonly sourceName: string;
 
   /**
    * The absolute path to the file.
    */
-  fsPath: string;
+  readonly fsPath: string;
 
   /**
    * The file contents.
    */
-  content: FileContent;
+  readonly content: FileContent;
+
+  /**
+   * The package of the Hardhat project itself.
+   */
+  readonly package: ResolvedNpmPackage;
 }
 
 /**
@@ -120,7 +127,7 @@ export interface FileContent {
 
 /* Adapted from `resolve.exports`. License: https://github.com/lukeed/resolve.exports/blob/master/license */
 
-export type PacakgeExports =
+export type PackageExports =
   | PackageExportPath
   | {
       [path: PackageExportsEntry]: PackageExportsValue;
