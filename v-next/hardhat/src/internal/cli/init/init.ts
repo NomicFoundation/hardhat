@@ -305,11 +305,15 @@ export async function validatePackageJson(
   // package managers support `<package manager> pkg set type=module`.
   const packageManagerToUse = packageManager === "pnpm" ? "pnpm" : "npm";
 
-  await spawn(packageManagerToUse, ["pkg", "set", "type=module"], {
-    cwd: workspace,
-    shell: true,
-    stdio: "inherit",
-  });
+  await spawn(
+    [packageManagerToUse, "pkg", "set", "type=module"].join(" "),
+    [],
+    {
+      cwd: workspace,
+      shell: true,
+      stdio: "inherit",
+    },
+  );
 }
 
 /**
@@ -469,7 +473,7 @@ export async function installProjectDependencies(
       console.log();
       console.log(commandString);
 
-      await spawn(command[0], command.slice(1), {
+      await spawn(commandString, [], {
         cwd: workspace,
         // We need to run with `shell: true` for this to work on powershell, but
         // we already enclosed every dependency identifier in quotes, so this
@@ -513,7 +517,7 @@ export async function installProjectDependencies(
       console.log();
       console.log(commandString);
 
-      await spawn(command[0], command.slice(1), {
+      await spawn(commandString, [], {
         cwd: workspace,
         // We need to run with `shell: true` for this to work on powershell, but
         // we already enclosed every dependency identifier in quotes, so this
