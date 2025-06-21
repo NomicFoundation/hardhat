@@ -29,6 +29,8 @@ import type {
 export interface HardhatViemHelpers<
   ChainTypeT extends ChainType | string = DefaultChainType,
 > {
+  publicClient: PublicClientType<ChainTypeT>;
+
   /**
    * Creates a public client configured with the provided settings.
    *
@@ -39,7 +41,7 @@ export interface HardhatViemHelpers<
    */
   getPublicClient: (
     publicClientConfig?: Partial<ViemPublicClientConfig>,
-  ) => Promise<GetPublicClientReturnType<ChainTypeT>>;
+  ) => Promise<PublicClientType<ChainTypeT>>;
   /**
    * Creates a wallet client configured with the provided settings for each
    * account in the provider.
@@ -132,7 +134,7 @@ export interface HardhatViemHelpers<
   ) => Promise<ContractReturnType<ContractName>>;
 }
 
-export type GetPublicClientReturnType<ChainTypeT extends ChainType | string> =
+export type PublicClientType<ChainTypeT extends ChainType | string> =
   ChainTypeT extends "optimism" ? OpPublicClient : PublicClient;
 
 export type GetWalletClientReturnType<ChainTypeT extends ChainType | string> =
