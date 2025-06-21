@@ -18,8 +18,8 @@ export class MemoryJournal implements Journal {
       | undefined,
   ) {}
 
-  public record(message: JournalMessage): void {
-    this._log(message);
+  public async record(message: JournalMessage): Promise<void> {
+    await this._log(message);
 
     this._messages.push(message);
   }
@@ -30,9 +30,9 @@ export class MemoryJournal implements Journal {
     }
   }
 
-  private _log(message: JournalMessage): void {
+  private async _log(message: JournalMessage): Promise<void> {
     if (this._executionEventListener !== undefined) {
-      emitExecutionEvent(message, this._executionEventListener);
+      await emitExecutionEvent(message, this._executionEventListener);
     }
   }
 }
