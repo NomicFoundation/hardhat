@@ -2,11 +2,11 @@ import type {
   LocalUserRemapping,
   ResolvedNpmUserRemapping,
   InstallationName,
-  RemappedNpmPackagesMap,
+  RemappedNpmPackagesGraph,
   Remapping,
   ResolvedUserRemapping,
   UnresolvedNpmUserRemapping,
-  RemappedNpmPackagesMapJson,
+  RemappedNpmPackagesGraphJson,
   Result,
 } from "./types.js";
 import type {
@@ -47,8 +47,8 @@ export function isResolvedUserRemapping(
   );
 }
 
-export class RemappedNpmPackagesMapImplementation
-  implements RemappedNpmPackagesMap
+export class RemappedNpmPackagesGraphImplementation
+  implements RemappedNpmPackagesGraph
 {
   /**
    * The Hardhat project itself.
@@ -101,7 +101,7 @@ export class RemappedNpmPackagesMapImplementation
 
   public static async create(
     projectRootPath: string,
-  ): Promise<RemappedNpmPackagesMapImplementation> {
+  ): Promise<RemappedNpmPackagesGraphImplementation> {
     const projectPackageJson = await readJsonFile<PackageJson>(
       path.join(projectRootPath, "package.json"),
     );
@@ -114,7 +114,7 @@ export class RemappedNpmPackagesMapImplementation
       rootSourceName: HARDHAT_PROJECT_ROOT_SOURCE_NAME,
     };
 
-    return new RemappedNpmPackagesMapImplementation(resolvedNpmPackage);
+    return new RemappedNpmPackagesGraphImplementation(resolvedNpmPackage);
   }
 
   private constructor(hardhatProjectPackage: ResolvedNpmPackage) {
@@ -129,7 +129,7 @@ export class RemappedNpmPackagesMapImplementation
   /**
    * Resolves a dependency of the package `from` by its installation name.
    *
-   * This method modifies the map, potentially loading new packages, but it
+   * This method modifies the graph, potentially loading new packages, but it
    * doesn't read its remappings, and it doesn't take user remappings into
    * account.
    *
@@ -190,7 +190,7 @@ export class RemappedNpmPackagesMapImplementation
       : dependencyPackageJson.version;
 
     // We get the root source name of the dependency, to check if it already
-    // exists in the map.
+    // exists in the graph.
     const rootSourceName =
       dependencyPackageJsonPath ===
       path.join(this.#hardhatProjectPackage.rootFsPath, "package.json")
@@ -220,7 +220,7 @@ export class RemappedNpmPackagesMapImplementation
     }
 
     // Otherwise it's the first time we see this package, so we add it to the
-    // map.
+    // graph.
     const newDependencyNpmPackage: ResolvedNpmPackage = {
       name: dependencyPackageJson.name,
       version: dependencyVersion,
@@ -330,7 +330,7 @@ export class RemappedNpmPackagesMapImplementation
     return remapping;
   }
 
-  public toJSON(): RemappedNpmPackagesMapJson {
+  public toJSON(): RemappedNpmPackagesGraphJson {
     return {
       hardhatProjectPackage: this.#hardhatProjectPackage,
       packageByRootSourceName: Object.fromEntries(

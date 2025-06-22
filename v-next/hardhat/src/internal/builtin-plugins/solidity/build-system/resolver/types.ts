@@ -54,11 +54,12 @@ export interface LocalUserRemapping extends BaseUserRemapping {
  * An unresolved npm user remapping, whose context and prefix hasn't been
  * processed yet, and whose target npm package hasn't been loaded.
  *
- * This interface should only be internal to the RemappedNpmPackagesMap, but its
- * exported here for testing purposes.
+ * This interface should only be internal to the RemappedNpmPackagesGraph, but
+ * its exported here for testing purposes.
  *
- * Note that instead of using this throught the codebase, RemappedNpmPackagesMap
- * should resolve it and return a ResolvedNpmUserRemapping.
+ * Note that instead of using this throught the codebase,
+ * RemappedNpmPackagesGraph should resolve it and return a
+ * ResolvedNpmUserRemapping.
  */
 export interface UnresolvedNpmUserRemapping extends BaseUserRemapping {
   readonly type: "UNRESOLVED_NPM";
@@ -94,7 +95,7 @@ export type ResolvedUserRemapping =
 export type InstallationName = string;
 
 /**
- * This interface represents a map of all the npm packages that the Hardhat
+ * This interface represents a graph of all the npm packages that the Hardhat
  * project uses, including the Hardhat projecct itself, and their remappings.
  *
  * This class guarantees that there's a single instance of any npm package per
@@ -119,7 +120,7 @@ export type InstallationName = string;
  * They are not thread/async-safe. If you don't do it, it can't ensure the
  * guarantees described above.
  */
-export interface RemappedNpmPackagesMap {
+export interface RemappedNpmPackagesGraph {
   /**
    * Returns the Hardhat project's package. i.e. the npm package of the project.
    */
@@ -132,7 +133,7 @@ export interface RemappedNpmPackagesMap {
    * the resolution process. It only loads npm packages, their remappings, and
    * resolves them.
    *
-   * NOTE: This method may modify the map if necessary.
+   * NOTE: This method may modify the graph if necessary.
    *
    * @param from The package from which the dependency is being resolved.
    * @param installationName The installation name of the dependency.
@@ -184,15 +185,15 @@ export interface RemappedNpmPackagesMap {
   ): Promise<Remapping>;
 
   /**
-   * Returns a JSON representation of the map.
+   * Returns a JSON representation of the graph.
    */
-  toJSON(): RemappedNpmPackagesMapJson;
+  toJSON(): RemappedNpmPackagesGraphJson;
 }
 
 /**
- * A JSON representation of a RemappedNpmPackagesMap.
+ * A JSON representation of a RemappedNpmPackagesGraph.
  */
-export interface RemappedNpmPackagesMapJson {
+export interface RemappedNpmPackagesGraphJson {
   readonly hardhatProjectPackage: ResolvedNpmPackage;
   readonly packageByRootSourceName: Readonly<
     Record<string, ResolvedNpmPackage>

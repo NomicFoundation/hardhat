@@ -1,6 +1,6 @@
 import type {
   Resolver,
-  RemappedNpmPackagesMapJson,
+  RemappedNpmPackagesGraphJson,
   Remapping,
   ResolvedNpmUserRemapping,
   ResolvedUserRemapping,
@@ -37,8 +37,8 @@ import { AsyncMutex } from "../../../../core/async-mutex.js";
 import { parseNpmDirectImport } from "./npm-module-parsing.js";
 import {
   isResolvedUserRemapping,
-  RemappedNpmPackagesMapImplementation,
-} from "./remapped-npm-packages-map.js";
+  RemappedNpmPackagesGraphImplementation,
+} from "./remapped-npm-packages-graph.js";
 import { applyValidRemapping, formatRemapping } from "./remappings.js";
 import {
   fsPathToSourceNamePath,
@@ -56,7 +56,7 @@ const NPM_PACKAGES_WITH_SIMULATED_PACKAGE_EXPORTS = new Set(["forge-std"]);
 
 export class ResolverImplementation implements Resolver {
   readonly #projectRoot: string;
-  readonly #npmPackageMap: RemappedNpmPackagesMapImplementation;
+  readonly #npmPackageGraph: RemappedNpmPackagesGraphImplementation;
   readonly #hhProjectPackage: ResolvedNpmPackage;
   readonly #readUtf8File: (absPath: string) => Promise<string>;
 
@@ -92,19 +92,20 @@ export class ResolverImplementation implements Resolver {
     projectRoot: string,
     readUtf8File: (absPath: string) => Promise<string>,
   ): Promise<Resolver> {
-    const map = await RemappedNpmPackagesMapImplementation.create(projectRoot);
+    const map =
+      await RemappedNpmPackagesGraphImplementation.create(projectRoot);
 
     return new ResolverImplementation(projectRoot, map, readUtf8File);
   }
 
   private constructor(
     projectRoot: string,
-    npmPackagesMap: RemappedNpmPackagesMapImplementation,
+    npmPackagesGraph: RemappedNpmPackagesGraphImplementation,
     readUtf8File: (absPath: string) => Promise<string>,
   ) {
     this.#projectRoot = projectRoot;
-    this.#npmPackageMap = npmPackagesMap;
-    this.#hhProjectPackage = npmPackagesMap.getHardhatProjectPackage();
+    this.#npmPackageGraph = npmPackagesGraph;
+    this.#hhProjectPackage = npmPackagesGraph.getHardhatProjectPackage();
     this.#readUtf8File = readUtf8File;
 
     const fakeRootFileName = "<fake-root-do-not-use>.sol";
@@ -281,13 +282,13 @@ export class ResolverImplementation implements Resolver {
 
   public toJSON(): {
     resolvedFileBySourceName: Record<string, ResolvedFile>;
-    remappedNpmPackagesMap: RemappedNpmPackagesMapJson;
+    remappedNpmPackagesGraph: RemappedNpmPackagesGraphJson;
   } {
     return {
       resolvedFileBySourceName: Object.fromEntries(
         this.#resolvedFileByInputSourceName.entries(),
       ),
-      remappedNpmPackagesMap: this.#npmPackageMap.toJSON(),
+      remappedNpmPackagesGraph: this.#npmPackageGraph.toJSON(),
     };
   }
 
@@ -453,7 +454,7 @@ export class ResolverImplementation implements Resolver {
 
     // Now, we get the best user remapping, if there's any.
     const bestUserRemappingResult =
-      await this.#npmPackageMap.selectBestUserRemapping(from, directImport);
+      await this.#npmPackageGraph.selectBestUserRemapping(from, directImport);
 
     if (bestUserRemappingResult.success === false) {
       return {
@@ -682,7 +683,7 @@ export class ResolverImplementation implements Resolver {
     const installationName = parsedDirectImport.package;
 
     const dependencyResolution =
-      await this.#npmPackageMap.resolveDependencyByInstallationName(
+      await this.#npmPackageGraph.resolveDependencyByInstallationName(
         fromNpmPackage,
         installationName,
       );
@@ -755,7 +756,7 @@ export class ResolverImplementation implements Resolver {
     // subpath of the file.
     const remapping =
       resolvedSubpath !== undefined && resolvedSubpath !== subpath
-        ? await this.#npmPackageMap.generateRemappingIntoNpmFile(
+        ? await this.#npmPackageGraph.generateRemappingIntoNpmFile(
             fromNpmPackage,
             directImport,
             inputSourceName,
