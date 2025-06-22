@@ -35,9 +35,9 @@ export async function buildDependencyGraph(
 
       if (resolutionResult.success === false) {
         throw new HardhatError(
-          HardhatError.ERRORS.CORE.SOLIDITY.PROJECT_ROOT_RESOLUTION_ERROR,
+          HardhatError.ERRORS.CORE.SOLIDITY.NPM_ROOT_RESOLUTION_ERROR,
           {
-            filePath: shortenPath(rootPath.npmPath),
+            npmModule: rootPath.npmPath,
             error: formatNpmRootResolutionError(resolutionResult.error),
           },
         );
