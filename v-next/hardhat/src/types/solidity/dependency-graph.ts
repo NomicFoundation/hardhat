@@ -31,13 +31,13 @@ export interface DependencyGraph {
   }>;
 
   /**
-   * Returns a file by its source name, if present.
+   * Returns a file by its input source name, if present.
    *
-   * @param sourceName The source name of the file.
-   * @returns The file, if present. If found, `file.sourceName` is equal to
-   * `sourceName`.
+   * @param inputSourceName The source name of the file, as used in the solc input.
+   * @returns The file, if present. If found, `file.inputSourceName` is equal to
+   * `inputSourceName`.
    */
-  getFileBySourceName(sourceName: string): ResolvedFile | undefined;
+  getFileByInputSourceName(inputSourceName: string): ResolvedFile | undefined;
 
   /**
    * Returns a subgraph of the graph, containing only the given root files and

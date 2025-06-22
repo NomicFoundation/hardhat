@@ -52,10 +52,10 @@ export interface ProjectResolvedFile {
   readonly type: ResolvedFileType.PROJECT_FILE;
 
   /**
-   * The source name of a project files is its relative path from the Hardhat
-   * project root.
+   * The source name to be used when generating a compiler input, of the form
+   * `project/<relative-path>`.
    */
-  readonly sourceName: string;
+  readonly inputSourceName: string;
 
   /**
    * The absolute path to the file.
@@ -80,9 +80,10 @@ export interface NpmPackageResolvedFile {
   type: ResolvedFileType.NPM_PACKAGE_FILE;
 
   /**
-   * The source of an npm package file is `npm/<package-name>@<version>/<path>`.
+   * The source name to be used when generating a compiler input, of the form
+   * `npm/<package-name>@<version>/<path>`.
    */
-  sourceName: string;
+  inputSourceName: string;
 
   /**
    * The absolute path to the file.

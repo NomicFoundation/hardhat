@@ -35,13 +35,13 @@ export function parseRemappingString(remapping: string): Remapping | undefined {
 /**
  * Selects the best remapping for a direct import, if any.
  *
- * @param fromSouceName The source name fo the file with the import.
+ * @param fromSourceName The source name fo the file with the import.
  * @param directImport The import path, which must be a direct import.
  * @param remappings The array of remmappings to consider.
  * @returns The best remappings index or undefined if none is found.
  */
 export function selectBestRemapping(
-  fromSouceName: string,
+  fromSourceName: string,
   directImport: string,
   remappings: Remapping[],
 ): number | undefined {
@@ -58,7 +58,7 @@ export function selectBestRemapping(
       continue;
     }
 
-    if (!fromSouceName.startsWith(remapping.context)) {
+    if (!fromSourceName.startsWith(remapping.context)) {
       continue;
     }
 

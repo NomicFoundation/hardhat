@@ -45,7 +45,7 @@ const testRootPaths: TestRootPath[] = [
     npmModule: "ethers",
     publicSourceName: "ethers",
     resolvedFile: new NpmPackageResolvedFileImplementation({
-      sourceName: "ethers",
+      inputSourceName: "ethers",
       fsPath: "/Users/root/node_modules/ethers/index.js",
       content: {
         text: "ethers",
@@ -69,7 +69,7 @@ const testRootPaths: TestRootPath[] = [
     npmModule: "@openzeppelin/contracts",
     publicSourceName: "@openzeppelin/contracts",
     resolvedFile: new NpmPackageResolvedFileImplementation({
-      sourceName: "@openzeppelin/contracts",
+      inputSourceName: "@openzeppelin/contracts",
       fsPath: "/Users/root/node_modules/@openzeppelin/contracts/index.js",
       content: {
         text: "@openzeppelin/contracts",
@@ -93,7 +93,7 @@ const testRootPaths: TestRootPath[] = [
     npmModule: "@openzeppelin/contracts/token/ERC20/ERC20.sol",
     publicSourceName: "@openzeppelin/contracts/token/ERC20/ERC20.sol",
     resolvedFile: new NpmPackageResolvedFileImplementation({
-      sourceName: "@openzeppelin/contracts/token/ERC20/ERC20.sol",
+      inputSourceName: "@openzeppelin/contracts/token/ERC20/ERC20.sol",
       fsPath:
         "/Users/root/node_modules/@openzeppelin/contracts/token/ERC20/ERC20.sol",
       content: {
@@ -118,7 +118,7 @@ const testRootPaths: TestRootPath[] = [
     npmModule: undefined,
     publicSourceName: "/Users/root/contracts/Contract.sol",
     resolvedFile: new ProjectResolvedFileImplementation({
-      sourceName: "/Users/root/contracts/Contract.sol",
+      inputSourceName: "/Users/root/contracts/Contract.sol",
       fsPath: "/Users/root/contracts/Contract.sol",
       content: {
         text: "contract Contract {}",
@@ -137,7 +137,7 @@ const testRootPaths: TestRootPath[] = [
     npmModule: undefined,
     publicSourceName: "C:\\Users\\root\\contracts\\Contract.sol",
     resolvedFile: new ProjectResolvedFileImplementation({
-      sourceName: "C:\\Users\\root\\contracts\\Contract.sol",
+      inputSourceName: "C:\\Users\\root\\contracts\\Contract.sol",
       fsPath: "C:\\Users\\root\\contracts\\Contract.sol",
       content: {
         text: "contract Contract {}",

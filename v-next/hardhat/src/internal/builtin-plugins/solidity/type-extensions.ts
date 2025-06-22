@@ -118,7 +118,7 @@ declare module "../../../types/hooks.js" {
      * Hook triggered within the compilation job when its' solc input is first contstructed.
      *
      * @param context The hook context.
-     * @param sourceName The source name of the project file.
+     * @param publicSourceName The source name of the project file.
      * @param fileContent The content of the project file.
      * @param solcVersion The solc version that will be used to compile the project file.
      * @param next A function to call the next handler for this hook, or the
@@ -128,7 +128,7 @@ declare module "../../../types/hooks.js" {
      */
     preprocessProjectFileBeforeBuilding(
       context: HookContext,
-      sourceName: string,
+      publicSourceName: string,
       fsPath: string,
       fileContent: string,
       solcVersion: string,

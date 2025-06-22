@@ -72,7 +72,8 @@ export class ResolverImplementation implements Resolver {
   /**
    * We use this map to ensure that we only resolve each file once.
    **/
-  readonly #resolvedFileBySourceName: Map<string, ResolvedFile> = new Map();
+  readonly #resolvedFileByInputSourceName: Map<string, ResolvedFile> =
+    new Map();
 
   /**
    * A fake `<root>.sol` file that we use to resolve npm roots using
@@ -109,7 +110,7 @@ export class ResolverImplementation implements Resolver {
     const fakeRootFileName = "<fake-root-do-not-use>.sol";
     this.#fakeRootFile = {
       type: ResolvedFileType.PROJECT_FILE,
-      sourceName: sourceNamePathJoin(
+      inputSourceName: sourceNamePathJoin(
         this.#hhProjectPackage.rootSourceName,
         fakeRootFileName,
       ),
@@ -184,17 +185,17 @@ export class ResolverImplementation implements Resolver {
     //
     // If we need to fetch the right casing, we'd have to recheck the cache,
     // to avoid re-resolving the file.
-    let sourceName = sourceNamePathJoin(
+    let inputSourceName = sourceNamePathJoin(
       this.#hhProjectPackage.rootSourceName,
       fsPathToSourceNamePath(relativeFilePath),
     );
 
-    const existing = this.#resolvedFileBySourceName.get(sourceName);
+    const existing = this.#resolvedFileByInputSourceName.get(inputSourceName);
 
     if (existing !== undefined) {
       /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
         The cache is type-unsafe, but we are sure this is a ProjectResolvedFile
-        because of how its source name is created */
+        because of how its input source name is created */
       const existingProjectResolvedFile = existing as ProjectResolvedFile;
 
       return {
@@ -230,9 +231,9 @@ export class ResolverImplementation implements Resolver {
         };
       }
 
-      // Now that we have the correct casing, we "fix" the source name.
+      // Now that we have the correct casing, we "fix" the input source name.
       realCasingRelativePath = pathValidation.error.correctCasing;
-      sourceName = sourceNamePathJoin(
+      inputSourceName = sourceNamePathJoin(
         this.#hhProjectPackage.rootSourceName,
         fsPathToSourceNamePath(realCasingRelativePath),
       );
@@ -241,12 +242,12 @@ export class ResolverImplementation implements Resolver {
     // Maybe it was already resolved, so we need to check with the right
     // casing
     const resolvedWithTheRightCasing =
-      this.#resolvedFileBySourceName.get(sourceName);
+      this.#resolvedFileByInputSourceName.get(inputSourceName);
     if (resolvedWithTheRightCasing !== undefined) {
       const resolvedWithTheRightCasingProjectResolvedFile =
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-          -- Same as above, we know it's a project file because of its source
-          name */
+          -- Same as above, we know it's a project file because of its input
+          source name */
         resolvedWithTheRightCasing as ProjectResolvedFile;
 
       return {
@@ -263,10 +264,10 @@ export class ResolverImplementation implements Resolver {
     const resolvedFile = await this.#buildResolvedFile({
       npmPackage: this.#hhProjectPackage,
       fsPath: fsPathWithTheRightCasing,
-      sourceName,
+      inputSourceName,
     });
 
-    this.#resolvedFileBySourceName.set(sourceName, resolvedFile);
+    this.#resolvedFileByInputSourceName.set(inputSourceName, resolvedFile);
 
     /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
       We know it's a project file, because we created it. */
@@ -284,7 +285,7 @@ export class ResolverImplementation implements Resolver {
   } {
     return {
       resolvedFileBySourceName: Object.fromEntries(
-        this.#resolvedFileBySourceName.entries(),
+        this.#resolvedFileByInputSourceName.entries(),
       ),
       remappedNpmPackagesMap: this.#npmPackageMap.toJSON(),
     };
@@ -417,7 +418,7 @@ export class ResolverImplementation implements Resolver {
       importPath.startsWith("./") || importPath.startsWith("../");
 
     const directImport = isRelativeImport
-      ? sourceNamePathJoin(path.dirname(from.sourceName), importPath)
+      ? sourceNamePathJoin(path.dirname(from.inputSourceName), importPath)
       : importPath;
 
     if (isRelativeImport) {
@@ -553,16 +554,16 @@ export class ResolverImplementation implements Resolver {
     importPath: string;
     directImport: string;
   }): Promise<Result<{ file: ResolvedFile }, ImportResolutionError>> {
-    const sourceName = directImport;
+    const inputSourceName = directImport;
 
-    const existing = this.#resolvedFileBySourceName.get(sourceName);
+    const existing = this.#resolvedFileByInputSourceName.get(inputSourceName);
     if (existing !== undefined) {
       return { success: true, value: { file: existing } };
     }
 
     const relativeSourceNamePath = this.#getRelativeSourceNamePath({
       npmPackage: from.package,
-      fileSourceName: sourceName,
+      fileInputSourceName: inputSourceName,
     });
 
     const relativeFsPath = sourceNamePathToFsPath(relativeSourceNamePath);
@@ -571,7 +572,7 @@ export class ResolverImplementation implements Resolver {
       from,
       importPath,
       npmPackage: from.package,
-      sourceName,
+      inputSourceName,
       relativeFsPathWithinPackage: relativeFsPath,
       subpath: relativeSourceNamePath,
     });
@@ -600,8 +601,9 @@ export class ResolverImplementation implements Resolver {
   > {
     const remappedDirectImport = applyValidRemapping(directImport, remapping);
 
-    const sourceName = remappedDirectImport;
-    const existing = this.#resolvedFileBySourceName.get(remappedDirectImport);
+    const inputSourceName = remappedDirectImport;
+    const existing =
+      this.#resolvedFileByInputSourceName.get(remappedDirectImport);
     if (existing !== undefined) {
       return { success: true, value: { file: existing, remapping } };
     }
@@ -620,11 +622,11 @@ export class ResolverImplementation implements Resolver {
         : fromNpmPackage;
 
     // A user remapping is created based on the fs path in the package, so
-    // we can get the relative path based on the root source name of the target
-    // package.
+    // we can get the relative path based on the input source name root of the
+    // target package.
     const relativeSourceNamePath = this.#getRelativeSourceNamePath({
       npmPackage: targetNpmPackage,
-      fileSourceName: sourceName,
+      fileInputSourceName: inputSourceName,
     });
 
     const relativeFsPath = sourceNamePathToFsPath(relativeSourceNamePath);
@@ -633,7 +635,7 @@ export class ResolverImplementation implements Resolver {
       from,
       importPath,
       npmPackage: targetNpmPackage,
-      sourceName,
+      inputSourceName,
       relativeFsPathWithinPackage: relativeFsPath,
       subpath: relativeSourceNamePath,
       userRemapping: remapping,
@@ -736,7 +738,7 @@ export class ResolverImplementation implements Resolver {
       resolvedSubpath = pathResolutionResult.value;
     }
 
-    const sourceName = sourceNamePathJoin(
+    const inputSourceName = sourceNamePathJoin(
       dependency.rootSourceName,
       resolvedSubpath ?? subpath,
     );
@@ -747,7 +749,7 @@ export class ResolverImplementation implements Resolver {
     // installationName.
     //
     // The other one, while more verbose, is a remapping specifically from
-    // forNpmPackage into souceName, using directImport.
+    // forNpmPackage into inputSourceName, using directImport.
     //
     // We use the second one when applying package.exports, and it changes the
     // subpath of the file.
@@ -756,11 +758,11 @@ export class ResolverImplementation implements Resolver {
         ? await this.#npmPackageMap.generateRemappingIntoNpmFile(
             fromNpmPackage,
             directImport,
-            sourceName,
+            inputSourceName,
           )
         : dependencyResolution.generatedRemapping;
 
-    const existing = this.#resolvedFileBySourceName.get(sourceName);
+    const existing = this.#resolvedFileByInputSourceName.get(inputSourceName);
     if (existing !== undefined) {
       return {
         success: true,
@@ -778,7 +780,7 @@ export class ResolverImplementation implements Resolver {
       from,
       importPath,
       npmPackage: dependency,
-      sourceName,
+      inputSourceName,
       relativeFsPathWithinPackage,
       subpath,
       generatedRemapping: remapping,
@@ -794,7 +796,7 @@ export class ResolverImplementation implements Resolver {
     from,
     importPath,
     npmPackage,
-    sourceName,
+    inputSourceName,
     relativeFsPathWithinPackage,
     subpath,
     userRemapping,
@@ -804,7 +806,7 @@ export class ResolverImplementation implements Resolver {
     from: ResolvedFile;
     importPath: string;
     npmPackage: ResolvedNpmPackage;
-    sourceName: string;
+    inputSourceName: string;
     relativeFsPathWithinPackage: string;
     subpath: string;
     userRemapping?: ResolvedUserRemapping;
@@ -866,10 +868,10 @@ export class ResolverImplementation implements Resolver {
     const resolvedFile = await this.#buildResolvedFile({
       npmPackage,
       fsPath,
-      sourceName,
+      inputSourceName,
     });
 
-    this.#resolvedFileBySourceName.set(sourceName, resolvedFile);
+    this.#resolvedFileByInputSourceName.set(inputSourceName, resolvedFile);
 
     return {
       success: true,
@@ -941,11 +943,11 @@ export class ResolverImplementation implements Resolver {
   }
 
   async #buildResolvedFile({
-    sourceName,
+    inputSourceName,
     fsPath,
     npmPackage,
   }: {
-    sourceName: string;
+    inputSourceName: string;
     fsPath: string;
     npmPackage: ResolvedNpmPackage;
   }): Promise<ResolvedFile> {
@@ -956,7 +958,7 @@ export class ResolverImplementation implements Resolver {
         npmPackage === this.#hhProjectPackage
           ? ResolvedFileType.PROJECT_FILE
           : ResolvedFileType.NPM_PACKAGE_FILE,
-      sourceName,
+      inputSourceName,
       fsPath,
       content,
       package: npmPackage,
@@ -1006,18 +1008,18 @@ export class ResolverImplementation implements Resolver {
   }
 
   /**
-   * Returns the relative source name from the npmPackage's source name root.
+   * Returns the relative input source name from the npmPackage's input source name root.
    * @param nmpPackage The package
-   * @param fileSourceName The file's source name.
+   * @param fileInputSourceName The file's input source name.
    */
   #getRelativeSourceNamePath({
     npmPackage: nmpPackage,
-    fileSourceName,
+    fileInputSourceName,
   }: {
     npmPackage: ResolvedNpmPackage;
-    fileSourceName: string;
+    fileInputSourceName: string;
   }) {
-    return fileSourceName.substring(nmpPackage.rootSourceName.length + 1);
+    return fileInputSourceName.substring(nmpPackage.rootSourceName.length + 1);
   }
 
   #importResolutionErrorToNpmRootResolutionError(

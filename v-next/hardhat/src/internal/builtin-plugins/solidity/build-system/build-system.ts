@@ -330,7 +330,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     > = [];
     for (const [rootFile, resolvedFile] of dependencyGraph.getRoots()) {
       log(
-        `Building compilation job for root file ${rootFile} with source name ${resolvedFile.sourceName}`,
+        `Building compilation job for root file ${rootFile} with input source name ${resolvedFile.inputSourceName} and public source name ${rootFile}`,
       );
 
       const subgraph = dependencyGraph.getSubgraph(rootFile);
@@ -445,12 +445,14 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       errorCode: error.errorCode,
       formattedMessage: error.formattedMessage?.replace(
         /(-->\s+)([^\s:\n]+)/g,
-        (_match, prefix, sourceName) => {
+        (_match, prefix, inputSourceName) => {
           const file =
-            compilationJob.dependencyGraph.getFileBySourceName(sourceName);
+            compilationJob.dependencyGraph.getFileByInputSourceName(
+              inputSourceName,
+            );
 
           if (file === undefined) {
-            return `${prefix}${sourceName}`;
+            return `${prefix}${inputSourceName}`;
           }
 
           const replacement = shouldShortenPaths
@@ -474,7 +476,10 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       compilationJob.dependencyGraph
         .getRoots()
         .entries()
-        .map(([publicSourceName, root]) => [root.sourceName, publicSourceName]),
+        .map(([publicSourceName, root]) => [
+          root.inputSourceName,
+          publicSourceName,
+        ]),
     );
 
     // We emit the artifacts for each root file, first emitting one artifact
@@ -492,7 +497,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       // any old artifacts there.
       await remove(fileFolder);
 
-      const contracts = compilerOutput.contracts?.[root.sourceName];
+      const contracts = compilerOutput.contracts?.[root.inputSourceName];
       const paths: string[] = [];
       const artifacts: Artifact[] = [];
 
@@ -507,7 +512,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
           const artifact = getContractArtifact(
             buildId,
             publicSourceName,
-            root.sourceName,
+            root.inputSourceName,
             contractName,
             contract,
             publicSourceNameMap,

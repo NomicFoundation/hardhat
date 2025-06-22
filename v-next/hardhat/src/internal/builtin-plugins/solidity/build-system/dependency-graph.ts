@@ -4,19 +4,19 @@ import type { ResolvedFile } from "../../../../types/solidity/resolved-file.js";
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 
 export interface DependencyGraphImplementationJson {
-  readonly fileBySourceName: Record<string, ResolvedFile>;
+  readonly fileByInputSourceName: Record<string, ResolvedFile>;
   readonly rootByPublicSourceName: Record<
     string /* public source name */,
-    string /* actual source name */
+    string /* input source name */
   >;
   readonly dependencies: Record<
-    string /* from source name */,
-    Record<string /* to source name */, string[] /* remappings */>
+    string /* from input source name */,
+    Record<string /* to input source name */, string[] /* remappings */>
   >;
 }
 
 export class DependencyGraphImplementation implements DependencyGraph {
-  readonly #fileBySourceName = new Map<string, ResolvedFile>();
+  readonly #fileByInputSourceName = new Map<string, ResolvedFile>();
   readonly #rootByPublicSourceName = new Map<string, ResolvedFile>();
   readonly #dependenciesMap = new Map<
     ResolvedFile,
@@ -109,8 +109,10 @@ export class DependencyGraphImplementation implements DependencyGraph {
     );
   }
 
-  public getFileBySourceName(sourceName: string): ResolvedFile | undefined {
-    return this.#fileBySourceName.get(sourceName);
+  public getFileByInputSourceName(
+    inputSourceName: string,
+  ): ResolvedFile | undefined {
+    return this.#fileByInputSourceName.get(inputSourceName);
   }
 
   public getSubgraph(
@@ -200,25 +202,25 @@ export class DependencyGraphImplementation implements DependencyGraph {
 
   public toJSON(): DependencyGraphImplementationJson {
     return {
-      fileBySourceName: Object.fromEntries(this.#fileBySourceName),
+      fileByInputSourceName: Object.fromEntries(this.#fileByInputSourceName),
       rootByPublicSourceName: Object.fromEntries(
         this.#rootByPublicSourceName
           .entries()
           .map(([publicSourceName, file]) => [
             publicSourceName,
-            file.sourceName,
+            file.inputSourceName,
           ]),
       ),
       dependencies: Object.fromEntries(
         this.#dependenciesMap
           .entries()
           .map(([from, dependencies]) => [
-            from.sourceName,
+            from.inputSourceName,
             Object.fromEntries(
               dependencies
                 .entries()
                 .map(([to, remappings]) => [
-                  to.sourceName,
+                  to.inputSourceName,
                   [...remappings].sort(),
                 ]),
             ),
@@ -230,15 +232,15 @@ export class DependencyGraphImplementation implements DependencyGraph {
   #addFile(file: ResolvedFile): void {
     assertHardhatInvariant(
       !this.hasFile(file),
-      `File ${file.sourceName} already present`,
+      `File ${file.inputSourceName} already present`,
     );
 
     assertHardhatInvariant(
-      this.#fileBySourceName.get(file.sourceName) === undefined,
-      `File "${file.sourceName}" already present`,
+      this.#fileByInputSourceName.get(file.inputSourceName) === undefined,
+      `File "${file.inputSourceName}" already present`,
     );
 
-    this.#fileBySourceName.set(file.sourceName, file);
+    this.#fileByInputSourceName.set(file.inputSourceName, file);
     this.#dependenciesMap.set(file, new Map());
   }
 }

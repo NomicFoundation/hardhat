@@ -40,7 +40,7 @@ describe("CompilationJobImplementation", () => {
 
     dependencyGraph = new DependencyGraphImplementation();
     rootFile = new ProjectResolvedFileImplementation({
-      sourceName: "root.sol",
+      inputSourceName: "root.sol",
       fsPath: "root.sol",
       content: {
         text: "contract Root {}",
@@ -51,7 +51,7 @@ describe("CompilationJobImplementation", () => {
     });
 
     npmDependencyFile = new NpmPackageResolvedFileImplementation({
-      sourceName: "npm:dependency/1.0.0/dependency.sol",
+      inputSourceName: "npm:dependency/1.0.0/dependency.sol",
       fsPath: "dependency.sol",
       package: {
         name: "dependency",
@@ -66,7 +66,7 @@ describe("CompilationJobImplementation", () => {
       },
     });
     projectDependencyFile = new ProjectResolvedFileImplementation({
-      sourceName: "dependency.sol",
+      inputSourceName: "dependency.sol",
       fsPath: "dependency.sol",
       content: {
         text: "contract Dependency {}",
@@ -75,7 +75,7 @@ describe("CompilationJobImplementation", () => {
       },
       package: testHardhatProjectNpmPackage,
     });
-    dependencyGraph.addRootFile(rootFile.sourceName, rootFile);
+    dependencyGraph.addRootFile(rootFile.inputSourceName, rootFile);
     dependencyGraph.addDependency(rootFile, npmDependencyFile);
     dependencyGraph.addDependency(rootFile, projectDependencyFile);
     solcConfig = {
@@ -156,9 +156,9 @@ describe("CompilationJobImplementation", () => {
         const newDependencyGraph = new DependencyGraphImplementation();
         const newRootFile = new ProjectResolvedFileImplementation({
           ...rootFile,
-          sourceName: "newRoot.sol",
+          inputSourceName: "newRoot.sol",
         });
-        newDependencyGraph.addRootFile(rootFile.sourceName, rootFile);
+        newDependencyGraph.addRootFile(rootFile.inputSourceName, rootFile);
         newDependencyGraph.addDependency(rootFile, npmDependencyFile);
         newDependencyGraph.addDependency(rootFile, projectDependencyFile);
         newDependencyGraph.addRootFile("newRoot.sol", newRootFile);
@@ -177,9 +177,9 @@ describe("CompilationJobImplementation", () => {
         const newDependencyGraph = new DependencyGraphImplementation();
         const newDependencyFile = new ProjectResolvedFileImplementation({
           ...projectDependencyFile,
-          sourceName: "newDependency.sol",
+          inputSourceName: "newDependency.sol",
         });
-        newDependencyGraph.addRootFile(rootFile.sourceName, rootFile);
+        newDependencyGraph.addRootFile(rootFile.inputSourceName, rootFile);
         newDependencyGraph.addDependency(rootFile, npmDependencyFile);
         newDependencyGraph.addDependency(rootFile, projectDependencyFile);
         newDependencyGraph.addDependency(rootFile, newDependencyFile);
@@ -203,7 +203,10 @@ describe("CompilationJobImplementation", () => {
             text: "contract NewRoot {}",
           },
         });
-        newDependencyGraph.addRootFile(newRootFile.sourceName, newRootFile);
+        newDependencyGraph.addRootFile(
+          newRootFile.inputSourceName,
+          newRootFile,
+        );
         newDependencyGraph.addDependency(newRootFile, npmDependencyFile);
         newDependencyGraph.addDependency(newRootFile, projectDependencyFile);
         const newCompilationJob = new CompilationJobImplementation(
@@ -226,7 +229,7 @@ describe("CompilationJobImplementation", () => {
             text: "contract NewDependency {}",
           },
         });
-        newDependencyGraph.addRootFile(rootFile.sourceName, rootFile);
+        newDependencyGraph.addRootFile(rootFile.inputSourceName, rootFile);
         newDependencyGraph.addDependency(rootFile, newDependencyFile);
         newDependencyGraph.addDependency(rootFile, projectDependencyFile);
         const newCompilationJob = new CompilationJobImplementation(
@@ -240,13 +243,16 @@ describe("CompilationJobImplementation", () => {
           newCompilationJob.getBuildId(),
         );
       });
-      it("the source name of one of the root files changes", async () => {
+      it("the input source name of one of the root files changes", async () => {
         const newDependencyGraph = new DependencyGraphImplementation();
         const newRootFile = new ProjectResolvedFileImplementation({
           ...rootFile,
-          sourceName: "newRoot.sol",
+          inputSourceName: "newRoot.sol",
         });
-        newDependencyGraph.addRootFile(newRootFile.sourceName, newRootFile);
+        newDependencyGraph.addRootFile(
+          newRootFile.inputSourceName,
+          newRootFile,
+        );
         newDependencyGraph.addDependency(newRootFile, npmDependencyFile);
         newDependencyGraph.addDependency(newRootFile, projectDependencyFile);
         const newCompilationJob = new CompilationJobImplementation(
@@ -260,13 +266,13 @@ describe("CompilationJobImplementation", () => {
           await newCompilationJob.getBuildId(),
         );
       });
-      it("the source name of one of the dependencies changes", async () => {
+      it("the input source name of one of the dependencies changes", async () => {
         const newDependencyGraph = new DependencyGraphImplementation();
         const newDependencyFile = new NpmPackageResolvedFileImplementation({
           ...npmDependencyFile,
-          sourceName: "npm:dependency/1.0.0/newDependency.sol",
+          inputSourceName: "npm:dependency/1.0.0/newDependency.sol",
         });
-        newDependencyGraph.addRootFile(rootFile.sourceName, rootFile);
+        newDependencyGraph.addRootFile(rootFile.inputSourceName, rootFile);
         newDependencyGraph.addDependency(rootFile, newDependencyFile);
         newDependencyGraph.addDependency(rootFile, projectDependencyFile);
         const newCompilationJob = new CompilationJobImplementation(
@@ -315,13 +321,13 @@ describe("CompilationJobImplementation", () => {
         hooks.registerHandlers("solidity", {
           preprocessProjectFileBeforeBuilding: async (
             context,
-            sourceName,
+            inputSourceName,
             fsPath,
             _fileContent,
             solcVersion,
             next,
           ) => {
-            return next(context, sourceName, fsPath, "test", solcVersion);
+            return next(context, inputSourceName, fsPath, "test", solcVersion);
           },
         });
         assert.notEqual(
@@ -331,7 +337,7 @@ describe("CompilationJobImplementation", () => {
       });
     });
     describe("should not change when", () => {
-      it("the version of one of the dependencies changes without it being reflected in the source name", async () => {
+      it("the version of one of the dependencies changes without it being reflected in the input source name", async () => {
         const newDependencyGraph = new DependencyGraphImplementation();
         const newDependencyFile = new NpmPackageResolvedFileImplementation({
           ...npmDependencyFile,
@@ -340,7 +346,7 @@ describe("CompilationJobImplementation", () => {
             version: "2.0.0",
           },
         });
-        newDependencyGraph.addRootFile(rootFile.sourceName, rootFile);
+        newDependencyGraph.addRootFile(rootFile.inputSourceName, rootFile);
         newDependencyGraph.addDependency(rootFile, newDependencyFile);
         newDependencyGraph.addDependency(rootFile, projectDependencyFile);
         const newCompilationJob = new CompilationJobImplementation(
@@ -356,7 +362,7 @@ describe("CompilationJobImplementation", () => {
       });
       it("the order of the sources changes", async () => {
         const newDependencyGraph = new DependencyGraphImplementation();
-        newDependencyGraph.addRootFile(rootFile.sourceName, rootFile);
+        newDependencyGraph.addRootFile(rootFile.inputSourceName, rootFile);
         newDependencyGraph.addDependency(rootFile, projectDependencyFile);
         newDependencyGraph.addDependency(rootFile, npmDependencyFile);
         const newCompilationJob = new CompilationJobImplementation(
@@ -484,7 +490,7 @@ describe("CompilationJobImplementation", () => {
         hooks.registerHandlers("solidity", {
           preprocessProjectFileBeforeBuilding: async (
             context,
-            sourceName,
+            inputSourceName,
             fsPath,
             _fileContent,
             solcVersion,
@@ -492,7 +498,7 @@ describe("CompilationJobImplementation", () => {
           ) => {
             return next(
               context,
-              name ?? sourceName,
+              name ?? inputSourceName,
               path ?? fsPath,
               content,
               version ?? solcVersion,
@@ -504,14 +510,14 @@ describe("CompilationJobImplementation", () => {
       it("should apply the transformation on all project files", async () => {
         const solcInput = await compilationJob.getSolcInput();
         for (const file of [rootFile, projectDependencyFile]) {
-          assert.equal(solcInput.sources[file.sourceName].content, "test");
+          assert.equal(solcInput.sources[file.inputSourceName].content, "test");
         }
       });
 
       it("should not apply the transformation on npm dependency files", async () => {
         const solcInput = await compilationJob.getSolcInput();
         assert.equal(
-          solcInput.sources[npmDependencyFile.sourceName].content,
+          solcInput.sources[npmDependencyFile.inputSourceName].content,
           npmDependencyFile.content.text,
         );
       });
@@ -525,7 +531,7 @@ describe("CompilationJobImplementation", () => {
           {
             hookCategoryName: "solidity",
             hookName: "preprocessProjectFileBeforeBuilding",
-            paramName: "sourceName",
+            paramName: "inputSourceName",
           },
         );
       });

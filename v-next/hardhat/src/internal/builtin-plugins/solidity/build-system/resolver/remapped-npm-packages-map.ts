@@ -264,7 +264,7 @@ export class RemappedNpmPackagesMapImplementation
     }
 
     const bestUserRemappingIndex = selectBestRemapping(
-      from.sourceName,
+      from.inputSourceName,
       directImport,
       userRemappings,
     );
@@ -300,7 +300,7 @@ export class RemappedNpmPackagesMapImplementation
   public async generateRemappingIntoNpmFile(
     fromNpmPackage: ResolvedNpmPackage,
     directImport: string,
-    targetSouceName: string,
+    targetInputSourceName: string,
   ): Promise<Remapping> {
     const remappingsIntoFiles =
       this.#generatedRemappingsIntoNpmFiles.get(fromNpmPackage);
@@ -312,7 +312,7 @@ export class RemappedNpmPackagesMapImplementation
     const existing = remappingsIntoFiles.get(directImport);
     if (existing !== undefined) {
       assertHardhatInvariant(
-        existing.target === targetSouceName,
+        existing.target === targetInputSourceName,
         "Trying to generate different remappings for the same direct import into an npm file",
       );
 
@@ -322,7 +322,7 @@ export class RemappedNpmPackagesMapImplementation
     const remapping = {
       context: fromNpmPackage.rootSourceName + "/",
       prefix: directImport,
-      target: targetSouceName,
+      target: targetInputSourceName,
     };
 
     remappingsIntoFiles.set(directImport, remapping);

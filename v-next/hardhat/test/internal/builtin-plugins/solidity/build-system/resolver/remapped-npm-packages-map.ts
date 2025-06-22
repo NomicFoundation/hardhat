@@ -992,7 +992,7 @@ invalid syntax`,
               importPaths: ["dep1/B.sol"],
               versionPragmas: [],
             },
-            sourceName: "project/contracts/A.sol",
+            inputSourceName: "project/contracts/A.sol",
             package: firstHhProjectPackage,
           };
 
@@ -1086,7 +1086,7 @@ invalid syntax`,
               importPaths: ["dep2/C.sol"],
               versionPragmas: [],
             },
-            sourceName: `${dep1Package.rootSourceName}/B.sol`,
+            inputSourceName: `${dep1Package.rootSourceName}/B.sol`,
             package: dep1Package,
           };
 
@@ -1148,7 +1148,7 @@ f/=node_modules/not-installed/src/`,
               importPaths: ["dep1/B.sol"],
               versionPragmas: [],
             },
-            sourceName: "project/contracts/A.sol",
+            inputSourceName: "project/contracts/A.sol",
             package: hhProjectPackage,
           };
 
@@ -1232,7 +1232,7 @@ f/=node_modules/not-installed/src/`,
               importPaths: ["dep1/B.sol"],
               versionPragmas: [],
             },
-            sourceName: "project/contracts/A.sol",
+            inputSourceName: "project/contracts/A.sol",
             package: hhProjectPackage,
           };
 
@@ -1327,7 +1327,7 @@ f/=node_modules/not-installed/src/`,
               importPaths: ["dep1/B.sol"],
               versionPragmas: [],
             },
-            sourceName: "project/contracts/A.sol",
+            inputSourceName: "project/contracts/A.sol",
             package: hhProjectPackage,
           };
 
@@ -1408,7 +1408,7 @@ context/:prefix/=node_modules/prefix/`,
                 importPaths: [],
                 versionPragmas: [],
               },
-              sourceName: "project/contracts/A.sol",
+              inputSourceName: "project/contracts/A.sol",
               package: hhProjectPackage,
             };
 
@@ -1460,7 +1460,7 @@ context/:prefix/=node_modules/prefix/`,
                 importPaths: [],
                 versionPragmas: [],
               },
-              sourceName: "project/contracts/A.sol",
+              inputSourceName: "project/contracts/A.sol",
               package: hhProjectPackage,
             };
 
@@ -1507,7 +1507,7 @@ context/:foo/=npm/bar@1.3.4/src/`,
                 importPaths: [],
                 versionPragmas: [],
               },
-              sourceName: "project/contracts/A.sol",
+              inputSourceName: "project/contracts/A.sol",
               package: hhProjectPackage,
             };
 
@@ -1577,7 +1577,7 @@ contr:to-npm=node_modules/dep/contracts`,
                 importPaths: ["dep1/B.sol"],
                 versionPragmas: [],
               },
-              sourceName: "project/contracts/A.sol",
+              inputSourceName: "project/contracts/A.sol",
               package: hhProjectPackage,
             };
 

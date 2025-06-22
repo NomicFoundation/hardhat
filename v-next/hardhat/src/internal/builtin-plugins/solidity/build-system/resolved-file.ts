@@ -11,13 +11,13 @@ export class ProjectResolvedFileImplementation implements ProjectResolvedFile {
   public readonly type: ResolvedFileType.PROJECT_FILE =
     ResolvedFileType.PROJECT_FILE;
 
-  public readonly sourceName: string;
+  public readonly inputSourceName: string;
   public readonly fsPath: string;
   public readonly content: FileContent;
   public readonly package: ResolvedNpmPackage;
 
   constructor(options: Omit<ProjectResolvedFile, "type">) {
-    this.sourceName = options.sourceName;
+    this.inputSourceName = options.inputSourceName;
     this.fsPath = options.fsPath;
     this.content = options.content;
     this.package = options.package;
@@ -30,13 +30,13 @@ export class NpmPackageResolvedFileImplementation
   public readonly type: ResolvedFileType.NPM_PACKAGE_FILE =
     ResolvedFileType.NPM_PACKAGE_FILE;
 
-  public readonly sourceName: string;
+  public readonly inputSourceName: string;
   public readonly fsPath: string;
   public readonly content: FileContent;
   public readonly package: ResolvedNpmPackage;
 
   constructor(options: Omit<NpmPackageResolvedFile, "type">) {
-    this.sourceName = options.sourceName;
+    this.inputSourceName = options.inputSourceName;
     this.fsPath = options.fsPath;
     this.content = options.content;
     this.package = options.package;

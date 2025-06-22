@@ -132,7 +132,7 @@ export async function getBuildInfo(
 ): Promise<SolidityBuildInfo> {
   const publicSourceNameMap = Object.fromEntries(
     [...compilationJob.dependencyGraph.getRoots().entries()].map(
-      ([publicSourceName, root]) => [publicSourceName, root.sourceName],
+      ([publicSourceName, root]) => [publicSourceName, root.inputSourceName],
     ),
   );
 
