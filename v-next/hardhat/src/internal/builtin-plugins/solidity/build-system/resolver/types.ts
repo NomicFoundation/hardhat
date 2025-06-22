@@ -159,13 +159,13 @@ export interface RemappedNpmPackagesMap {
    *
    *
    * @param from The file with the import.
-   * @param importPath The import path, which must be a direct import.
+   * @param directImport The direct import.
    * @returns The best user remapping if any, or any error encountered while
    * processing the best user remapping.
    */
   selectBestUserRemapping(
     from: ResolvedFile,
-    importPath: string,
+    directImport: string,
   ): Promise<Result<Remapping | undefined, UserRemappingError[]>>;
 
   /**

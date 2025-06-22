@@ -248,7 +248,7 @@ export class RemappedNpmPackagesMapImplementation
 
   public async selectBestUserRemapping(
     from: ResolvedFile,
-    importPath: string,
+    directImport: string,
   ): Promise<Result<ResolvedUserRemapping | undefined, UserRemappingError[]>> {
     let userRemappings = this.#userRemappingsPerPackage.get(from.package);
 
@@ -265,7 +265,7 @@ export class RemappedNpmPackagesMapImplementation
 
     const bestUserRemappingIndex = selectBestRemapping(
       from.sourceName,
-      importPath,
+      directImport,
       userRemappings,
     );
 
