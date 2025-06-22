@@ -57,7 +57,7 @@ describe("RemappedNpmPackagesGraph", () => {
 
         assert.deepEqual(graph.toJSON(), {
           hardhatProjectPackage: hhProjectPackage,
-          packageByRootSourceName: {
+          packageByInputSourceNameRoot: {
             project: hhProjectPackage,
           },
           installationMap: {
@@ -95,7 +95,7 @@ invalid syntax`,
 
         assert.deepEqual(graph.toJSON(), {
           hardhatProjectPackage: hhProjectPackage,
-          packageByRootSourceName: {
+          packageByInputSourceNameRoot: {
             project: hhProjectPackage,
           },
           installationMap: {
@@ -146,7 +146,7 @@ invalid syntax`,
 
         assert.deepEqual(graph.toJSON(), {
           hardhatProjectPackage: hhProjectPackage,
-          packageByRootSourceName: {
+          packageByInputSourceNameRoot: {
             project: hhProjectPackage,
           },
           installationMap: {
@@ -207,7 +207,7 @@ invalid syntax`,
             name: "dep1",
             version: "1.2.0",
             rootFsPath: path.join(project.path, "node_modules/dep1"),
-            rootSourceName: "npm/dep1@1.2.0",
+            inputSourceNameRoot: "npm/dep1@1.2.0",
             exports: undefined,
           },
           generatedRemapping: {
@@ -228,7 +228,7 @@ invalid syntax`,
             name: "real-name",
             version: "1.2.3",
             rootFsPath: path.join(project.path, "node_modules/otherName"),
-            rootSourceName: "npm/real-name@1.2.3",
+            inputSourceNameRoot: "npm/real-name@1.2.3",
             exports: {
               "./*.sol": "./src/*.sol",
             },
@@ -250,7 +250,7 @@ invalid syntax`,
             name: "no-scope",
             version: "1.1.1",
             rootFsPath: path.join(project.path, "node_modules/@scope/dep2"),
-            rootSourceName: "npm/no-scope@1.1.1",
+            inputSourceNameRoot: "npm/no-scope@1.1.1",
             exports: undefined,
           },
           generatedRemapping: {
@@ -293,7 +293,7 @@ invalid syntax`,
               name: "dep1",
               version: "1.2.0",
               rootFsPath: path.join(project.path, "node_modules/dep1"),
-              rootSourceName: "npm/dep1@1.2.0",
+              inputSourceNameRoot: "npm/dep1@1.2.0",
               exports: undefined,
             },
             generatedRemapping: {
@@ -305,7 +305,7 @@ invalid syntax`,
 
           const json = graph.toJSON();
           assert.deepEqual(
-            json.userRemappingsPerPackage[result.package.rootSourceName],
+            json.userRemappingsPerPackage[result.package.inputSourceNameRoot],
             undefined,
           );
         });
@@ -424,7 +424,7 @@ invalid syntax`,
                 project.path,
                 "node_modules/@openzeppelin/contracts",
               ),
-              rootSourceName: "npm/@openzeppelin/contracts@4.8.0",
+              inputSourceNameRoot: "npm/@openzeppelin/contracts@4.8.0",
               exports: undefined,
             },
             generatedRemapping: {
@@ -448,7 +448,7 @@ invalid syntax`,
                 project.path,
                 "node_modules/dependency-with-ozc",
               ),
-              rootSourceName: "npm/dependency-with-ozc@1.0.0",
+              inputSourceNameRoot: "npm/dependency-with-ozc@1.0.0",
               exports: undefined,
             },
             generatedRemapping: {
@@ -472,11 +472,11 @@ invalid syntax`,
                 dependencyWithOzc.package.rootFsPath,
                 "node_modules/@openzeppelin/contracts",
               ),
-              rootSourceName: "npm/@openzeppelin/contracts@4.7.0",
+              inputSourceNameRoot: "npm/@openzeppelin/contracts@4.7.0",
               exports: undefined,
             },
             generatedRemapping: {
-              context: dependencyWithOzc.package.rootSourceName + "/",
+              context: dependencyWithOzc.package.inputSourceNameRoot + "/",
               prefix: "@openzeppelin/contracts/",
               target: "npm/@openzeppelin/contracts@4.7.0/",
             },
@@ -496,7 +496,7 @@ invalid syntax`,
                 project.path,
                 "node_modules/dependency-with-peer-ozc",
               ),
-              rootSourceName: "npm/with-peer-ozc@1.2.3",
+              inputSourceNameRoot: "npm/with-peer-ozc@1.2.3",
               exports: undefined,
             },
             generatedRemapping: {
@@ -514,7 +514,7 @@ invalid syntax`,
 
           assert.equal(dependencyWithPeerOzcsOzc?.package, ozcFromRoot.package);
           assert.deepEqual(dependencyWithPeerOzcsOzc?.generatedRemapping, {
-            context: dependencyWithPeerOzc.package.rootSourceName + "/",
+            context: dependencyWithPeerOzc.package.inputSourceNameRoot + "/",
             prefix: "@openzeppelin/contracts/",
             target: "npm/@openzeppelin/contracts@4.8.0/",
           });
@@ -533,7 +533,8 @@ invalid syntax`,
                 project.path,
                 "node_modules/dependency-with-transitive-dependency",
               ),
-              rootSourceName: "npm/dependency-with-transitive-dependency@1.0.0",
+              inputSourceNameRoot:
+                "npm/dependency-with-transitive-dependency@1.0.0",
               exports: undefined,
             },
             generatedRemapping: {
@@ -557,12 +558,13 @@ invalid syntax`,
                 dependencyWithTransitiveDependency.package.rootFsPath,
                 "node_modules/transitive-dependency",
               ),
-              rootSourceName: "npm/transitive-dependency@1.0.0",
+              inputSourceNameRoot: "npm/transitive-dependency@1.0.0",
               exports: undefined,
             },
             generatedRemapping: {
               context:
-                dependencyWithTransitiveDependency.package.rootSourceName + "/",
+                dependencyWithTransitiveDependency.package.inputSourceNameRoot +
+                "/",
               prefix: "transitive-dependency/",
               target: "npm/transitive-dependency@1.0.0/",
             },
@@ -585,7 +587,7 @@ invalid syntax`,
                 project.path,
                 "node_modules/with-duplicated-dependency",
               ),
-              rootSourceName: "npm/with-duplicated-dependency@2.3.4",
+              inputSourceNameRoot: "npm/with-duplicated-dependency@2.3.4",
               exports: undefined,
             },
             generatedRemapping: {
@@ -609,11 +611,12 @@ invalid syntax`,
                 hhProjectPackage.rootFsPath,
                 "node_modules/@openzeppelin/contracts",
               ),
-              rootSourceName: "npm/@openzeppelin/contracts@4.8.0",
+              inputSourceNameRoot: "npm/@openzeppelin/contracts@4.8.0",
               exports: undefined,
             },
             generatedRemapping: {
-              context: withDuplicatedDependency.package.rootSourceName + "/",
+              context:
+                withDuplicatedDependency.package.inputSourceNameRoot + "/",
               prefix: "@openzeppelin/contracts/",
               target: "npm/@openzeppelin/contracts@4.8.0/",
             },
@@ -755,7 +758,7 @@ invalid syntax`,
           await remove(monorepoPath);
         });
 
-        it("Should use `local` as version numbers of monorepo packages when creating their root source names", async () => {
+        it("Should use `local` as version numbers of monorepo packages when creating their input source name roots", async () => {
           const graph =
             await RemappedNpmPackagesGraphImplementation.create(hhProjectPath);
 
@@ -765,7 +768,7 @@ invalid syntax`,
             name: "hh-project",
             version: "1.3.4",
             rootFsPath: hhProjectPath,
-            rootSourceName: "project",
+            inputSourceNameRoot: "project",
             exports: undefined,
           });
 
@@ -780,7 +783,7 @@ invalid syntax`,
               name: "monorepo-dependency",
               version: "local",
               rootFsPath: monorepoDependencyPath,
-              rootSourceName: "npm/monorepo-dependency@local",
+              inputSourceNameRoot: "npm/monorepo-dependency@local",
               exports: undefined,
             },
             generatedRemapping: {
@@ -875,7 +878,7 @@ invalid syntax`,
         );
 
         assert.deepEqual(fromDepToFooFile2Sol, {
-          context: dep.package.rootSourceName + "/",
+          context: dep.package.inputSourceNameRoot + "/",
           prefix: "foo/file.sol",
           target: "npm/foo@1.2.3/file2.sol",
         });
@@ -1086,7 +1089,7 @@ invalid syntax`,
               importPaths: ["dep2/C.sol"],
               versionPragmas: [],
             },
-            inputSourceName: `${dep1Package.rootSourceName}/B.sol`,
+            inputSourceName: `${dep1Package.inputSourceNameRoot}/B.sol`,
             package: dep1Package,
           };
 
@@ -1256,7 +1259,7 @@ f/=node_modules/not-installed/src/`,
                   name: "dep1",
                   version: "1.2.3",
                   rootFsPath: path.join(project.path, "node_modules/dep1"),
-                  rootSourceName: "npm/dep1@1.2.3",
+                  inputSourceNameRoot: "npm/dep1@1.2.3",
                   exports: undefined,
                 },
               },
@@ -1623,7 +1626,7 @@ contr:to-npm=node_modules/dep/contracts`,
                     name: "dep",
                     version: "1.2.3",
                     rootFsPath: path.join(project.path, "node_modules/dep"),
-                    rootSourceName: "npm/dep@1.2.3",
+                    inputSourceNameRoot: "npm/dep@1.2.3",
                     exports: undefined,
                   },
                 },
@@ -1658,7 +1661,7 @@ describe("isResolvedUserRemapping", () => {
           name: "name",
           version: "version",
           rootFsPath: "rootFsPath",
-          rootSourceName: "rootSourceName",
+          inputSourceNameRoot: "inputSourceNameRoot",
           exports: undefined,
         },
       },

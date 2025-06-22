@@ -32,7 +32,7 @@ describe("CompilationJobImplementation", () => {
       name: "hardhat-project",
       version: "1.2.3",
       rootFsPath: "/Users/root/",
-      rootSourceName: "project",
+      inputSourceNameRoot: "project",
     };
 
     dependencyGraph = new DependencyGraphImplementation();
@@ -56,7 +56,7 @@ describe("CompilationJobImplementation", () => {
         name: "dependency",
         version: "1.0.0",
         rootFsPath: "dependency",
-        rootSourceName: "dependency.sol",
+        inputSourceNameRoot: "dependency.sol",
       },
       content: {
         text: "contract Dependency {}",

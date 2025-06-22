@@ -146,11 +146,13 @@ const flattenAction: NewTaskActionFunction<FlattenActionArguments> = async (
   };
 };
 
-// We don't display the project's root source name in the flattened file
+// We don't display the project's input source name root in the flattened file
 function formatSourceName(file: ResolvedFile): string {
   return file.type === ResolvedFileType.NPM_PACKAGE_FILE
     ? file.inputSourceName
-    : file.inputSourceName.substring(file.package.rootSourceName.length + 1);
+    : file.inputSourceName.substring(
+        file.package.inputSourceNameRoot.length + 1,
+      );
 }
 
 interface LicensesInfo {

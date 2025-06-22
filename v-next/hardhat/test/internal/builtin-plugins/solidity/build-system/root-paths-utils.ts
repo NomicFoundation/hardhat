@@ -29,7 +29,7 @@ const testHardhatProjectNpmPackage: ResolvedNpmPackage = {
   name: "hardhat-project",
   version: "1.2.3",
   rootFsPath: "/Users/root/",
-  rootSourceName: "project",
+  inputSourceNameRoot: "project",
 };
 
 const testRootPaths: TestRootPath[] = [
@@ -54,7 +54,7 @@ const testRootPaths: TestRootPath[] = [
         name: "ethers",
         version: "5.7.2",
         rootFsPath: "/Users/root/node_modules/ethers",
-        rootSourceName: "ethers",
+        inputSourceNameRoot: "ethers",
       },
     },
   },
@@ -79,7 +79,7 @@ const testRootPaths: TestRootPath[] = [
         name: "@openzeppelin/contracts",
         version: "5.7.2",
         rootFsPath: "/Users/root/node_modules/@openzeppelin/contracts",
-        rootSourceName: "@openzeppelin/contracts",
+        inputSourceNameRoot: "@openzeppelin/contracts",
       },
     },
   },
@@ -105,7 +105,7 @@ const testRootPaths: TestRootPath[] = [
         name: "@openzeppelin/contracts",
         version: "5.7.2",
         rootFsPath: "/Users/root/node_modules/@openzeppelin/contracts",
-        rootSourceName: "@openzeppelin/contracts",
+        inputSourceNameRoot: "@openzeppelin/contracts",
       },
     },
   },

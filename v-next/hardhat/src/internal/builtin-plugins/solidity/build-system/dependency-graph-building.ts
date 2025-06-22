@@ -66,7 +66,7 @@ export async function buildDependencyGraph(
         // We don't use the package's input source name root in the local files
         // public source name.
         resolvedFile.inputSourceName.substring(
-          resolvedFile.package.rootSourceName.length + 1,
+          resolvedFile.package.inputSourceNameRoot.length + 1,
         ),
         resolvedFile,
       );

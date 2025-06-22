@@ -23,18 +23,19 @@ export interface ResolvedNpmPackage {
   rootFsPath: string;
 
   /**
-   * The prefix that represents the source name of the package's files.
+   * The prefix to all the input source names of the package's files.
    *
-   * For example, package 'foo' with version '1.2.3' would have a root source
-   * name of 'npm/foo@1.2.3'. If the package is part of the monorepo, the root
-   * source name would be 'npm/package@local'.
+   * For example, package 'foo' with version '1.2.3' would have an input source
+   * name root of 'npm/foo@1.2.3'.
    *
-   * If this package represents the Hardhat project itself, the root source
-   * name is an empty string.
+   * If the package is part of the monorepo, the input source name root would be
+   * 'npm/package@local'.
+   *
+   * If this package represents the Hardhat project itself, it's 'project'.
    *
    * Note that this doesn't include a trailing slash.
    */
-  rootSourceName: string;
+  inputSourceNameRoot: string;
 }
 
 /**

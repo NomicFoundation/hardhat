@@ -343,9 +343,9 @@ export interface ResolvedFileReference {
   //
   // This means different things depending on the type of import:
   //  - For a relative import, its the relative input source name from the
-  //    package's root source name.
+  //    package's input source name root.
   //  - For a user remapping, its the relative input source name from the
-  //    package's root source name, after applying the user remapping.
+  //    package's input source name root, after applying the user remapping.
   //  - For an npm import, it's the npm-subpath. i.e. the module identifier
   //    without the package name.
   subpath: string;

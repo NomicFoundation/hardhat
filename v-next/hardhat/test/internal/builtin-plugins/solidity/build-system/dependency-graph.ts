@@ -18,7 +18,7 @@ const testHardhatProjectNpmPackage: ResolvedNpmPackage = {
   name: "hardhat-project",
   version: "1.2.3",
   rootFsPath: "/Users/root/",
-  rootSourceName: "project",
+  inputSourceNameRoot: "project",
 };
 
 function createProjectResolvedFile(

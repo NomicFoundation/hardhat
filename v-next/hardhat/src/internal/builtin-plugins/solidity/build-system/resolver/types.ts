@@ -195,7 +195,7 @@ export interface RemappedNpmPackagesGraph {
  */
 export interface RemappedNpmPackagesGraphJson {
   readonly hardhatProjectPackage: ResolvedNpmPackage;
-  readonly packageByRootSourceName: Readonly<
+  readonly packageByInputSourceNameRoot: Readonly<
     Record<string, ResolvedNpmPackage>
   >;
   readonly installationMap: Readonly<

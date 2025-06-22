@@ -112,7 +112,7 @@ export class ResolverImplementation implements Resolver {
     this.#fakeRootFile = {
       type: ResolvedFileType.PROJECT_FILE,
       inputSourceName: sourceNamePathJoin(
-        this.#hhProjectPackage.rootSourceName,
+        this.#hhProjectPackage.inputSourceNameRoot,
         fakeRootFileName,
       ),
       fsPath: path.join(this.#projectRoot, fakeRootFileName),
@@ -187,7 +187,7 @@ export class ResolverImplementation implements Resolver {
     // If we need to fetch the right casing, we'd have to recheck the cache,
     // to avoid re-resolving the file.
     let inputSourceName = sourceNamePathJoin(
-      this.#hhProjectPackage.rootSourceName,
+      this.#hhProjectPackage.inputSourceNameRoot,
       fsPathToSourceNamePath(relativeFilePath),
     );
 
@@ -235,7 +235,7 @@ export class ResolverImplementation implements Resolver {
       // Now that we have the correct casing, we "fix" the input source name.
       realCasingRelativePath = pathValidation.error.correctCasing;
       inputSourceName = sourceNamePathJoin(
-        this.#hhProjectPackage.rootSourceName,
+        this.#hhProjectPackage.inputSourceNameRoot,
         fsPathToSourceNamePath(realCasingRelativePath),
       );
     }
@@ -424,7 +424,7 @@ export class ResolverImplementation implements Resolver {
 
     if (isRelativeImport) {
       // If the import is relative, it shouldn't leave its package
-      if (!directImport.startsWith(from.package.rootSourceName)) {
+      if (!directImport.startsWith(from.package.inputSourceNameRoot)) {
         return {
           success: false,
           error: {
@@ -438,7 +438,7 @@ export class ResolverImplementation implements Resolver {
       // It also shouldn't get into its package's node_modules
       if (
         directImport.startsWith(
-          sourceNamePathJoin(from.package.rootSourceName, "node_modules"),
+          sourceNamePathJoin(from.package.inputSourceNameRoot, "node_modules"),
         )
       ) {
         return {
@@ -740,7 +740,7 @@ export class ResolverImplementation implements Resolver {
     }
 
     const inputSourceName = sourceNamePathJoin(
-      dependency.rootSourceName,
+      dependency.inputSourceNameRoot,
       resolvedSubpath ?? subpath,
     );
 
@@ -914,7 +914,7 @@ export class ResolverImplementation implements Resolver {
               ? baseDirSourceName + "/"
               : ""
             : sourceNamePathJoin(
-                from.package.rootSourceName,
+                from.package.inputSourceNameRoot,
                 baseDirSourceName + "/",
               );
 
@@ -923,7 +923,7 @@ export class ResolverImplementation implements Resolver {
         const target =
           from.package === this.#hhProjectPackage
             ? prefix
-            : sourceNamePathJoin(from.package.rootSourceName, prefix);
+            : sourceNamePathJoin(from.package.inputSourceNameRoot, prefix);
 
         return {
           type: ImportResolutionErrorType.DIRECT_IMPORT_TO_LOCAL_FILE,
@@ -1020,7 +1020,9 @@ export class ResolverImplementation implements Resolver {
     npmPackage: ResolvedNpmPackage;
     fileInputSourceName: string;
   }) {
-    return fileInputSourceName.substring(nmpPackage.rootSourceName.length + 1);
+    return fileInputSourceName.substring(
+      nmpPackage.inputSourceNameRoot.length + 1,
+    );
   }
 
   #importResolutionErrorToNpmRootResolutionError(
