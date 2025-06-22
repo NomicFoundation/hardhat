@@ -130,7 +130,8 @@ export class RemappedNpmPackagesMapImplementation
    * Resolves a dependency of the package `from` by its installation name.
    *
    * This method modifies the map, potentially loading new packages, but it
-   * doesn't read its remappings.
+   * doesn't read its remappings, and it doesn't take user remappings into
+   * account.
    *
    * This method is pretty complex, so read the comments carefully.
    *
