@@ -2740,6 +2740,7 @@ submodule2/=lib/submodule2/src/`,
                 "lib/submodule/src/C.sol": `C`,
                 "lib/submodule/src/asd/D.sol": `D`,
                 "lib/submodule/test/E.sol": `E`,
+                "test/F.sol": `F`,
               },
             };
 
@@ -2800,6 +2801,25 @@ submodule2/=lib/submodule2/src/`,
               libSubmoduleTestE.value,
               "src/C.sol",
               "lib/submodule/:src/=src/",
+            );
+
+            const testF = await resolver.resolveProjectFile(
+              path.join(project.path, "test/F.sol"),
+            );
+            assert.ok(testF.success, "Result should be successful");
+
+            await assertSuggestedRemapping(
+              resolver,
+              testF.value,
+              "contracts/B.sol",
+              "contracts/=contracts/",
+            );
+
+            await assertSuggestedRemapping(
+              resolver,
+              testF.value,
+              "contracts/NonExistent.sol",
+              "contracts/=contracts/",
             );
           });
         });

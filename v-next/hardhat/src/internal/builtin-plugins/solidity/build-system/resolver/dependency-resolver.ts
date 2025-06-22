@@ -24,7 +24,7 @@ import type {
 import path from "node:path";
 
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
-import { exists, isDirectory } from "@nomicfoundation/hardhat-utils/fs";
+import { exists } from "@nomicfoundation/hardhat-utils/fs";
 import { analyze } from "@nomicfoundation/solidity-analyzer";
 
 import {
@@ -890,9 +890,17 @@ export class ResolverImplementation implements Resolver {
     importPath: string;
   }): Promise<ImportResolutionError | undefined> {
     let baseDir = path.dirname(from.fsPath);
+    const firstDir = importPath.substring(0, importPath.indexOf("/"));
+    // If there's no directory separator, or the import is just a directory
+    // we don't suggest a remapping
+    if (firstDir === "" || firstDir.length === importPath.length - 1) {
+      return undefined;
+    }
+
     while (baseDir.startsWith(from.package.rootFsPath)) {
-      const filePath = path.join(baseDir, importPath);
-      if ((await exists(filePath)) && !(await isDirectory(filePath))) {
+      const firstDirPath = path.join(baseDir, firstDir);
+
+      if (await exists(firstDirPath)) {
         const baseDirSourceName = fsPathToSourceNamePath(
           path.relative(from.package.rootFsPath, baseDir),
         );
@@ -907,7 +915,7 @@ export class ResolverImplementation implements Resolver {
                 baseDirSourceName + "/",
               );
 
-        const prefix = importPath.substring(0, importPath.indexOf("/") + 1);
+        const prefix = firstDir + "/";
 
         const target =
           from.package === this.#hhProjectPackage
