@@ -1,5 +1,12 @@
 # hardhat
 
+## 3.0.0-next.18
+
+### Patch Changes
+
+- 5607511: Allow js/ts test runners to run test files outside their configured paths ([#6904](https://github.com/NomicFoundation/hardhat/issues/6904))
+- 6570ea3: Update the pre-release version number of the viem toolbox inline with the latest full release
+
 ## 3.0.0-next.17
 
 ### Patch Changes
