@@ -344,7 +344,18 @@ For global options help run: hardhat --help`;
 
         const expected = `${chalk.bold("A task that uses arg1")}
 
-Usage: hardhat [GLOBAL OPTIONS] task
+Usage: hardhat [GLOBAL OPTIONS] task [--arg-1 <STRING>] [--arg-4] [--arg-5 <LEVEL>] [--] arg2 arg3
+
+OPTIONS:
+
+  --arg-1       (default: <default-value1>)
+  --arg-4       (default: false)
+  --arg-5       (default: 0)
+
+POSITIONAL ARGUMENTS:
+
+  arg2
+  arg3
 
 For global options help run: hardhat --help`;
 
