@@ -20,7 +20,7 @@ describe("registerFileForTestRunner hook", function () {
     ).default;
   });
 
-  it("is not node when the file ends with .sol", async () => {
+  it("is not nodejs when the file ends with .sol", async () => {
     hre = await createHardhatRuntimeEnvironment({
       ...baseHhConfig,
       paths: { tests: { nodeTest: "test" } },
@@ -33,10 +33,10 @@ describe("registerFileForTestRunner hook", function () {
       async () => undefined,
     );
 
-    assert.notEqual(result, "node");
+    assert.notEqual(result, "nodejs");
   });
 
-  it("is node when the file is inside the node test folder", async () => {
+  it("is nodejs when the file is inside the node test folder", async () => {
     hre = await createHardhatRuntimeEnvironment({
       ...baseHhConfig,
       paths: { tests: { nodeTest: "test" } },
@@ -49,10 +49,10 @@ describe("registerFileForTestRunner hook", function () {
       async () => undefined,
     );
 
-    assert.equal(result, "node");
+    assert.equal(result, "nodejs");
   });
 
-  it("is node when the file is not inside other runners directories", async () => {
+  it("is nodejs when the file is not inside other runners directories", async () => {
     hre = await createHardhatRuntimeEnvironment({
       ...baseHhConfig,
       paths: { tests: { nodeTest: "test" } },
@@ -65,10 +65,10 @@ describe("registerFileForTestRunner hook", function () {
       async () => undefined,
     );
 
-    assert.equal(result, "node");
+    assert.equal(result, "nodejs");
   });
 
-  it("is not node when the file is inside other runners directories", async () => {
+  it("is not nodejs when the file is inside other runners directories", async () => {
     hre = await createHardhatRuntimeEnvironment({
       ...baseHhConfig,
       paths: { tests: { nodeTest: "test", solidity: "contracts" } },
@@ -81,6 +81,6 @@ describe("registerFileForTestRunner hook", function () {
       async () => undefined,
     );
 
-    assert.notEqual(result, "node");
+    assert.notEqual(result, "nodejs");
   });
 });
