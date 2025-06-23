@@ -314,11 +314,15 @@ export class TaskOverrideDefinitionBuilderImplementation<
       defaultValue,
     };
 
-    validateOption(
-      optionDefinition,
-      new Set(Object.keys(this.#options)),
-      this.#id,
-    );
+    const usedNames = new Set<string>();
+    for (const option of Object.values(this.#options)) {
+      usedNames.add(option.name);
+      if (option.shortName !== undefined) {
+        usedNames.add(option.shortName);
+      }
+    }
+
+    validateOption(optionDefinition, usedNames, this.#id);
 
     this.#options[name] = optionDefinition;
 

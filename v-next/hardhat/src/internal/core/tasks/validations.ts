@@ -49,8 +49,6 @@ export function validateOption(
 
   validateTaskArgumentValue("defaultValue", type, defaultValue, false, taskId);
 
-  usedNames.add(name);
-
   if (shortName !== undefined) {
     validateArgumentShortName(shortName);
 
@@ -62,7 +60,11 @@ export function validateOption(
         },
       );
     }
+  }
 
+  usedNames.add(name);
+
+  if (shortName !== undefined) {
     usedNames.add(shortName);
   }
 }

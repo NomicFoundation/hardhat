@@ -190,6 +190,7 @@ export interface NewTaskDefinitionBuilder<
     TypeT extends ArgumentType = ArgumentType.STRING,
   >(optionConfig: {
     name: NameT;
+    shortName?: string;
     description?: string;
     type?: TypeT;
     defaultValue: ArgumentTypeToValueType<TypeT>;
@@ -202,6 +203,7 @@ export interface NewTaskDefinitionBuilder<
    */
   addFlag<NameT extends string>(flagConfig: {
     name: NameT;
+    shortName?: string;
     description?: string;
   }): NewTaskDefinitionBuilder<
     ExtendTaskArguments<NameT, ArgumentType.FLAG, TaskArgumentsT>
@@ -212,6 +214,7 @@ export interface NewTaskDefinitionBuilder<
    */
   addLevel<NameT extends string>(flagConfig: {
     name: NameT;
+    shortName?: string;
     description?: string;
   }): NewTaskDefinitionBuilder<
     ExtendTaskArguments<NameT, ArgumentType.LEVEL, TaskArgumentsT>
@@ -305,6 +308,7 @@ export interface TaskOverrideDefinitionBuilder<
     TypeT extends ArgumentType = ArgumentType.STRING,
   >(optionConfig: {
     name: NameT;
+    shortName?: string;
     description?: string;
     type?: TypeT;
     defaultValue: ArgumentTypeToValueType<TypeT>;
@@ -317,6 +321,7 @@ export interface TaskOverrideDefinitionBuilder<
    */
   addFlag<NameT extends string>(flagConfig: {
     name: NameT;
+    shortName?: string;
     description?: string;
   }): TaskOverrideDefinitionBuilder<
     ExtendTaskArguments<NameT, ArgumentType.FLAG, TaskArgumentsT>
@@ -327,6 +332,7 @@ export interface TaskOverrideDefinitionBuilder<
    */
   addLevel<NameT extends string>(flagConfig: {
     name: NameT;
+    shortName?: string;
     description?: string;
   }): TaskOverrideDefinitionBuilder<
     ExtendTaskArguments<NameT, ArgumentType.LEVEL, TaskArgumentsT>
