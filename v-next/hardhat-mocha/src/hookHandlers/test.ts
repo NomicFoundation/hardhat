@@ -9,7 +9,7 @@ export default async (): Promise<Partial<TestHooks>> => {
 
       const allRunnersDirectories = Object.values(context.config.paths.tests);
 
-      const inThisRunnersDirectory = absoluteFilePath.includes(
+      const inThisRunnersDirectory = absoluteFilePath.startsWith(
         context.config.paths.tests.mocha,
       );
 
