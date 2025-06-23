@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-toolbox
 
+## 6.0.0
+
+### Major Changes
+
+- 94b36b0: Upgrade hardhat-gas-reporter to v2 on both toolboxes ([#6886](https://github.com/NomicFoundation/hardhat/pull/6886))
+
 ## 5.0.0
 
 ### Major Changes

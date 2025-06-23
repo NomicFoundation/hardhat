@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.15.13
+
+### Patch Changes
+
+- 698dc70: Add configurable maxFeePerGas and default to it if set ([#6857](https://github.com/NomicFoundation/hardhat/pull/6857))
+
 ## 0.15.12
 
 ### Patch Changes
