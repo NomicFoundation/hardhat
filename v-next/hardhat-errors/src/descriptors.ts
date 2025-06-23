@@ -2695,29 +2695,30 @@ Reason: "{reason}".
 
 If your contract uses libraries whose addresses cannot be detected automatically, make sure you are providing the correct address for each undetectable library.`,
       },
-      ETHERSCAN_VERIFICATION_DISABLED_IN_CONFIG: {
+      VERIFICATION_DISABLED_IN_CONFIG: {
         number: 80027,
         messageTemplate:
-          "Etherscan verification is disabled in your config. Please add an Etherscan configuration section to your Hardhat config.",
-        websiteTitle: "Etherscan verification disabled",
+          "{verificationProvider} verification is disabled in your config. Please add the verification provider configuration to your Hardhat config.",
+        websiteTitle: "Provider verification disabled",
         websiteDescription:
-          "No Etherscan verfication configuration set in Hardhat config",
+          "No provider verfication configuration set in Hardhat config",
       },
-      ETHERSCAN_BLOCK_EXPLORER_NOT_CONFIGURED: {
+      BLOCK_EXPLORER_NOT_CONFIGURED: {
         number: 80028,
         messageTemplate:
-          "No Etherscan block explorer is configured for the {chainId} chain in the chain descriptors.",
-        websiteTitle: "Etherscan block explorer not configured",
+          "No {verificationProvider} block explorer is configured for the {chainId} chain in the chain descriptors.",
+        websiteTitle: "Block explorer not configured",
         websiteDescription: `
-Etherscan block explorer information is missing in your chain descriptor configuration.
+Block explorer information is missing in your chain descriptor configuration.
 
-To enable contract verification on Etherscan, add an etherscan entry in the blockExplorers field of the relevant chain descriptor.
+To enable contract verification, add an entry for the verification provider in the blockExplorers field of the relevant chain descriptor.
 You can override the default chain descriptor by providing your own chainDescriptors object in the Hardhat config, with the following structure:
 
 chainDescriptors: {
   <chainId>: {
     name: <name>,
     blockExplorers: {
+      blockscout: { name: "Blockscout", url: <blockscout-url> apiUrl: <blockscout-api-url> };
       etherscan: { name: "Etherscan", url: <etherscan-url> apiUrl: <etherscan-api-url> };
     }
   }
@@ -2780,6 +2781,13 @@ export default ["arg1", "arg2", ...];`,
 Example:
 
 export default { lib1: "0x...", lib2: "0x...", ... };`,
+      },
+      INVALID_VERIFICATION_PROVIDER: {
+        number: 80107,
+        messageTemplate: `The verification provider "{verificationProvider}" is not supported. Supported providers are: {supportedVerificationProviders}.`,
+        websiteTitle: "Invalid verification provider",
+        websiteDescription:
+          "The specified verification provider is not supported. Please use one of the supported providers.",
       },
     },
   },

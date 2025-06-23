@@ -1,20 +1,27 @@
 import type { ContractInformation } from "./contract.js";
 import type { LibraryAddresses } from "./libraries.js";
+import type { VerificationProvider } from "./types.js";
 import type { Dispatcher } from "@nomicfoundation/hardhat-utils/request";
+import type {
+  ChainDescriptorsConfig,
+  VerificationProvidersConfig,
+} from "hardhat/types/config";
 import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 import type { EthereumProvider } from "hardhat/types/providers";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { isAddress } from "@nomicfoundation/hardhat-utils/eth";
 import { sleep } from "@nomicfoundation/hardhat-utils/lang";
+import { capitalize } from "@nomicfoundation/hardhat-utils/string";
 import { isFullyQualifiedName } from "hardhat/utils/contract-names";
 
 import { getCompilerInput } from "./artifacts.js";
+import { Blockscout, BLOCKSCOUT_PROVIDER_NAME } from "./blockscout.js";
 import { Bytecode } from "./bytecode.js";
 import { getChainDescriptor, getChainId } from "./chains.js";
 import { encodeConstructorArgs } from "./constructor-args.js";
 import { ContractInformationResolver } from "./contract.js";
-import { Etherscan } from "./etherscan.js";
+import { Etherscan, ETHERSCAN_PROVIDER_NAME } from "./etherscan.js";
 import { resolveLibraryInformation } from "./libraries.js";
 import {
   filterVersionsByRange,
@@ -27,8 +34,7 @@ export interface VerifyContractArgs {
   libraries?: LibraryAddresses;
   contract?: string;
   force?: boolean;
-  // TODO: M2
-  // provider?: keyof VerificationProvidersConfig;
+  provider?: keyof VerificationProvidersConfig;
 }
 
 /**
@@ -75,9 +81,16 @@ export async function verifyContract(
     network,
     solidity,
   } = hre;
-  if (config.verify.etherscan.enabled === false) {
+  const { provider: verificationProviderName = ETHERSCAN_PROVIDER_NAME } =
+    verifyContractArgs;
+  validateVerificationProviderName(verificationProviderName);
+
+  if (config.verify[verificationProviderName].enabled === false) {
     throw new HardhatError(
-      HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.ETHERSCAN_VERIFICATION_DISABLED_IN_CONFIG,
+      HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.VERIFICATION_DISABLED_IN_CONFIG,
+      {
+        verificationProvider: capitalize(verificationProviderName),
+      },
     );
   }
 
@@ -89,8 +102,6 @@ export async function verifyContract(
     libraries = {},
     contract,
     force = false,
-    // TODO: M2
-    // provider
   } = verifyContractArgs;
 
   const buildProfile = config.solidity.profiles[buildProfileName];
@@ -109,32 +120,18 @@ export async function verifyContract(
   const { networkName } = connection;
   const resolvedProvider = provider ?? connection.provider;
 
-  const chainId = await getChainId(resolvedProvider);
-  const chainDescriptor = await getChainDescriptor(
-    chainId,
-    config.chainDescriptors,
+  const instance = await createVerificationProviderInstance({
+    provider: resolvedProvider,
     networkName,
-  );
-
-  if (chainDescriptor.blockExplorers.etherscan === undefined) {
-    throw new HardhatError(
-      HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.ETHERSCAN_BLOCK_EXPLORER_NOT_CONFIGURED,
-      {
-        chainId,
-      },
-    );
-  }
-
-  const etherscan = new Etherscan({
-    ...chainDescriptor.blockExplorers.etherscan,
-    chainId,
-    apiKey: await config.verify.etherscan.apiKey.get(),
+    chainDescriptors: config.chainDescriptors,
+    verificationProviderName,
+    verificationProvidersConfig: config.verify,
     dispatcher,
   });
 
   let isVerified = false;
   try {
-    isVerified = await etherscan.isVerified(address);
+    isVerified = await instance.isVerified(address);
   } catch (error) {
     const isExplorerRequestError = HardhatError.isHardhatError(
       error,
@@ -147,11 +144,11 @@ export async function verifyContract(
 
   if (!force && isVerified) {
     consoleLog(`
-The contract at ${address} has already been verified on ${etherscan.name}.
+The contract at ${address} has already been verified on ${instance.name}.
 
 If you need to verify a partially verified contract, please use the --force flag.
 
-Explorer: ${etherscan.getContractUrl(address)}
+Explorer: ${instance.getContractUrl(address)}
 `);
     return true;
   }
@@ -216,7 +213,7 @@ Explorer: ${etherscan.getContractUrl(address)}
   const { success: minimalInputVerificationSuccess } =
     await attemptVerification(
       {
-        verificationProvider: etherscan,
+        verificationProvider: instance,
         address,
         encodedConstructorArgs,
         contractInformation: {
@@ -237,10 +234,10 @@ Explorer: ${etherscan.getContractUrl(address)}
 
   if (minimalInputVerificationSuccess) {
     consoleLog(`
-🎉 Contract verified successfully on ${etherscan.name}!
+🎉 Contract verified successfully on ${instance.name}!
 
   ${contractInformation.contract}
-  Explorer: ${etherscan.getContractUrl(address)}
+  Explorer: ${instance.getContractUrl(address)}
 `);
     return true;
   }
@@ -249,7 +246,7 @@ Explorer: ${etherscan.getContractUrl(address)}
 The initial verification attempt for ${contractInformation.contract} failed using the minimal compiler input.
 
 Trying again with the full solc input used to compile and deploy the contract.
-Unrelated contracts may be displayed on ${etherscan.name} as a result.
+Unrelated contracts may be displayed on ${instance.name} as a result.
 `);
 
   // If verifying with the minimal input failed, try again with the full compiler input
@@ -258,7 +255,7 @@ Unrelated contracts may be displayed on ${etherscan.name} as a result.
     message: verificationMessage,
   } = await attemptVerification(
     {
-      verificationProvider: etherscan,
+      verificationProvider: instance,
       address,
       encodedConstructorArgs,
       contractInformation: {
@@ -278,10 +275,10 @@ Unrelated contracts may be displayed on ${etherscan.name} as a result.
 
   if (fullCompilerInputVerificationSuccess) {
     consoleLog(`
-🎉 Contract verified successfully on ${etherscan.name}!
+🎉 Contract verified successfully on ${instance.name}!
 
   ${contractInformation.contract}
-  Explorer: ${etherscan.getContractUrl(address)}
+  Explorer: ${instance.getContractUrl(address)}
 `);
     return true;
   }
@@ -302,6 +299,24 @@ ${libraryInformation.undetectableLibraries.map((x) => `  * ${x}`).join("\n")}`
       librariesWarning,
     },
   );
+}
+
+export function validateVerificationProviderName(provider: unknown): void {
+  if (
+    provider !== ETHERSCAN_PROVIDER_NAME &&
+    provider !== BLOCKSCOUT_PROVIDER_NAME
+  ) {
+    throw new HardhatError(
+      HardhatError.ERRORS.HARDHAT_VERIFY.VALIDATION.INVALID_VERIFICATION_PROVIDER,
+      {
+        verificationProvider: String(provider),
+        supportedVerificationProviders: [
+          ETHERSCAN_PROVIDER_NAME,
+          BLOCKSCOUT_PROVIDER_NAME,
+        ].join(", "),
+      },
+    );
+  }
 }
 
 export function validateArgs({ address, contract }: VerifyContractArgs): void {
@@ -328,6 +343,54 @@ export function validateArgs({ address, contract }: VerifyContractArgs): void {
   }
 }
 
+async function createVerificationProviderInstance({
+  provider,
+  networkName,
+  chainDescriptors,
+  verificationProviderName,
+  verificationProvidersConfig,
+  dispatcher,
+}: {
+  provider: EthereumProvider;
+  networkName: string;
+  chainDescriptors: ChainDescriptorsConfig;
+  verificationProviderName: keyof VerificationProvidersConfig;
+  verificationProvidersConfig: VerificationProvidersConfig;
+  dispatcher?: Dispatcher;
+}): Promise<VerificationProvider> {
+  const chainId = await getChainId(provider);
+  const chainDescriptor = await getChainDescriptor(
+    chainId,
+    chainDescriptors,
+    networkName,
+  );
+
+  if (chainDescriptor.blockExplorers[verificationProviderName] === undefined) {
+    throw new HardhatError(
+      HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.BLOCK_EXPLORER_NOT_CONFIGURED,
+      {
+        verificationProvider: capitalize(verificationProviderName),
+        chainId,
+      },
+    );
+  }
+
+  const commonOptions = {
+    ...chainDescriptor.blockExplorers[verificationProviderName],
+    dispatcher,
+  };
+
+  if (verificationProviderName === "etherscan") {
+    return new Etherscan({
+      ...commonOptions,
+      chainId,
+      apiKey: await verificationProvidersConfig.etherscan.apiKey.get(),
+    });
+  }
+
+  return new Blockscout(commonOptions);
+}
+
 async function attemptVerification(
   {
     verificationProvider,
@@ -335,7 +398,7 @@ async function attemptVerification(
     encodedConstructorArgs,
     contractInformation,
   }: {
-    verificationProvider: Etherscan;
+    verificationProvider: VerificationProvider;
     address: string;
     encodedConstructorArgs: string;
     contractInformation: ContractInformation;
@@ -370,8 +433,5 @@ async function attemptVerification(
     contractInformation.contract,
   );
 
-  return {
-    success: verificationStatus.isSuccess(),
-    message: verificationStatus.message,
-  };
+  return verificationStatus;
 }
