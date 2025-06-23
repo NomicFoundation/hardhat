@@ -14,7 +14,7 @@ export default async (): Promise<Partial<TestHooks>> => {
       );
 
       const notInOtherRunnersDirectory = allRunnersDirectories.every(
-        (runnersDirectory) => !absoluteFilePath.includes(runnersDirectory),
+        (runnersDirectory) => !absoluteFilePath.startsWith(runnersDirectory),
       );
 
       const isSolidityFile = absoluteFilePath.endsWith(".sol");
