@@ -223,7 +223,7 @@ describe("LocalAccountsHandler", () => {
           addr.fromPrivateKey(accounts[0]),
         ]);
 
-        assertRejects(localAccountsHandler.handle(jsonRpcRequest));
+        await assertRejects(localAccountsHandler.handle(jsonRpcRequest));
       });
 
       it("should throw if the address isn't one of the local ones", async () => {
@@ -506,7 +506,7 @@ describe("LocalAccountsHandler", () => {
             tx,
           ]);
 
-          assertRejectsWithHardhatError(
+          await assertRejectsWithHardhatError(
             () => localAccountsHandler.handle(jsonRpcRequest),
             HardhatError.ERRORS.CORE.NETWORK
               .DATA_FIELD_CANNOT_BE_NULL_WITH_NULL_ADDRESS,

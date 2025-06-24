@@ -55,7 +55,10 @@ describe("KeystoreFileLoader", () => {
 
         encryptedFile.hmac = "corrupted-hmac";
 
-        mockFileManager.writeJsonFile(fakeKeystoreFilePath, encryptedFile);
+        await mockFileManager.writeJsonFile(
+          fakeKeystoreFilePath,
+          encryptedFile,
+        );
       });
 
       it("should load the keystore", async () => {

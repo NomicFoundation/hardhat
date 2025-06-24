@@ -8,7 +8,7 @@ import "./type-extensions.js";
 const hardhatPlugin: HardhatPlugin = {
   id: "hardhat-node-test-runner",
   tasks: [
-    task(["test", "node"], "Runs tests using the NodeJS test runner")
+    task(["test", "nodejs"], "Runs tests using the NodeJS test runner")
       .addVariadicArgument({
         name: "testFiles",
         description: "An optional list of files to test",
