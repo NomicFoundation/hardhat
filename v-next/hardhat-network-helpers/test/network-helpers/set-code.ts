@@ -35,6 +35,12 @@ describe("network-helpers - setCode", () => {
     assert.equal(await getCode(provider, recipient), "0xa1a2a3");
   });
 
+  it("should allow setting the code of a given address to an empty string", async function () {
+    await networkHelpers.setCode(recipient, "0x");
+
+    assert.equal(await getCode(provider, recipient), "0x");
+  });
+
   describe("accepted parameter types for code", () => {
     it("should not accept strings that are not 0x-prefixed", async () => {
       await assertRejectsWithHardhatError(

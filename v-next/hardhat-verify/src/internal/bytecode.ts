@@ -24,15 +24,11 @@ interface ByteOffset {
 }
 
 export class Bytecode {
-  readonly #executableSection: string;
-
   private constructor(
     public readonly bytecode: string,
     public readonly solcVersion: string,
-    executableSection: string,
-  ) {
-    this.#executableSection = executableSection;
-  }
+    public readonly executableSection: string,
+  ) {}
 
   static async #parse(bytecode: string): Promise<Bytecode> {
     const bytecodeBytes = hexStringToBytes(bytecode);
@@ -59,7 +55,7 @@ export class Bytecode {
       typeof response === "string",
       "eth_getCode response is not a string",
     );
-    const deployedBytecode = response.replace(/^0x/, "");
+    const deployedBytecode = getUnprefixedHexString(response);
 
     if (deployedBytecode === "") {
       throw new HardhatError(
@@ -104,12 +100,12 @@ export class Bytecode {
     );
 
     // If the lengths differ, the bytecodes cannot match, so we can return early
-    if (this.#executableSection.length !== unlinkedExecutableSection.length) {
+    if (this.executableSection.length !== unlinkedExecutableSection.length) {
       return false;
     }
 
     const normalizedBytecode = nullifyBytecodeOffsets(
-      this.#executableSection,
+      this.executableSection,
       compilerOutputBytecode,
     );
 
@@ -133,29 +129,34 @@ export class Bytecode {
  * This approach avoids decoding issues that can occur if the bytecode
  * includes linker placeholders or non-hex characters.
  *
- * @param unlinkedBytecode The full contract bytecode as a hex string
+ * @param bytecode The full contract bytecode as a hex string
  * (with or without `0x` prefix).
  * @returns The hex string of the executable code, excluding metadata.
  */
-function inferExecutableSection(unlinkedBytecode: string): string {
-  const hexBytecode = getUnprefixedHexString(unlinkedBytecode);
+export function inferExecutableSection(bytecode: string): string {
+  const rawBytecode = getUnprefixedHexString(bytecode);
 
   // Read the last 2 bytes (4 hex chars) that encode the length of
   // the metadata section.
   const metadataLengthBytes = hexStringToBytes(
-    hexBytecode.slice(-METADATA_LENGTH_FIELD_SIZE * 2),
+    rawBytecode.slice(-METADATA_LENGTH_FIELD_SIZE * 2),
   );
 
   // If the bytecode is too short to contain a metadata length field,
   // return the entire bytecode.
   if (metadataLengthBytes.length !== METADATA_LENGTH_FIELD_SIZE) {
-    return hexBytecode;
+    return rawBytecode;
   }
 
   const metadataSectionLength =
     getMetadataSectionBytesLength(metadataLengthBytes);
 
-  return hexBytecode.slice(0, hexBytecode.length - metadataSectionLength * 2);
+  // invalid length (metadata + length field doesn't fit)
+  if (metadataSectionLength * 2 > rawBytecode.length) {
+    return rawBytecode;
+  }
+
+  return rawBytecode.slice(0, rawBytecode.length - metadataSectionLength * 2);
 }
 
 /**
@@ -175,7 +176,7 @@ function inferExecutableSection(unlinkedBytecode: string): string {
  * known offset positions.
  * @returns The bytecode string with all known dynamic offsets zeroed out.
  */
-function nullifyBytecodeOffsets(
+export function nullifyBytecodeOffsets(
   bytecode: string,
   {
     object: unlinkedBytecode,
@@ -208,7 +209,7 @@ function nullifyBytecodeOffsets(
  * @param linkReferences The link references object from compiler output.
  * @returns An array of byte offsets for all library link placeholders.
  */
-function getLibraryOffsets(
+export function getLibraryOffsets(
   linkReferences: CompilerOutputBytecode["linkReferences"] = {},
 ): ByteOffset[] {
   return Object.values(linkReferences).flatMap((libraries) =>
@@ -225,7 +226,7 @@ function getLibraryOffsets(
  * @param immutableReferences Immutable references from compiler output.
  * @returns An array of byte offsets where immutable values will be written.
  */
-function getImmutableOffsets(
+export function getImmutableOffsets(
   immutableReferences: CompilerOutputBytecode["immutableReferences"] = {},
 ): ByteOffset[] {
   return Object.values(immutableReferences).flat();
@@ -250,7 +251,7 @@ function getImmutableOffsets(
  * @returns An array with a single offset entry if call protection is detected,
  * or an empty array otherwise.
  */
-function getCallProtectionOffsets(
+export function getCallProtectionOffsets(
   bytecode: string,
   unlinkedBytecode: string,
 ): ByteOffset[] {

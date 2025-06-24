@@ -1,6 +1,12 @@
+import path from "node:path";
+
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 
 import { HardhatRuntimeEnvironmentImplementation } from "../../core/hre.js";
+
+export function getCoveragePath(rootPath: string): string {
+  return path.join(rootPath, "coverage");
+}
 
 /**
  * NOTE: The following helpers interact with the global HRE instance only;

@@ -9,7 +9,7 @@ interface CleanActionArguments {
 
 const cleanAction: NewTaskActionFunction<CleanActionArguments> = async (
   { global },
-  { config },
+  { config, hooks },
 ) => {
   if (global) {
     const globalCacheDir = await getCacheDir();
@@ -18,6 +18,8 @@ const cleanAction: NewTaskActionFunction<CleanActionArguments> = async (
 
   await emptyDir(config.paths.cache);
   await remove(config.paths.artifacts);
+
+  await hooks.runParallelHandlers("clean", "onClean", []);
 };
 
 export default cleanAction;

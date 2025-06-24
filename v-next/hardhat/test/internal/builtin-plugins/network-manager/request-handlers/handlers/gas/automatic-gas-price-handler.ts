@@ -39,7 +39,7 @@ describe("AutomaticGasPriceHandler", () => {
         },
       ]);
 
-      automaticGasPriceHandler.handle(jsonRpcRequest);
+      await automaticGasPriceHandler.handle(jsonRpcRequest);
       const [tx] = getRequestParams(jsonRpcRequest);
 
       assert.ok(isObject(tx), "tx is not an object");
@@ -57,7 +57,7 @@ describe("AutomaticGasPriceHandler", () => {
         },
       ]);
 
-      automaticGasPriceHandler.handle(jsonRpcRequest);
+      await automaticGasPriceHandler.handle(jsonRpcRequest);
       const [tx] = getRequestParams(jsonRpcRequest);
 
       assert.ok(isObject(tx), "tx is not an object");

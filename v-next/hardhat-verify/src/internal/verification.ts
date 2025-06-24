@@ -1,6 +1,8 @@
 import type { ContractInformation } from "./contract.js";
 import type { LibraryAddresses } from "./libraries.js";
+import type { Dispatcher } from "@nomicfoundation/hardhat-utils/request";
 import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
+import type { EthereumProvider } from "hardhat/types/providers";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { isAddress } from "@nomicfoundation/hardhat-utils/eth";
@@ -62,6 +64,9 @@ export interface VerifyContractArgs {
 export async function verifyContract(
   verifyContractArgs: VerifyContractArgs,
   hre: HardhatRuntimeEnvironment,
+  consoleLog: (text: string) => void = console.log,
+  dispatcher?: Dispatcher,
+  provider?: EthereumProvider,
 ): Promise<boolean> {
   const {
     artifacts,
@@ -100,8 +105,11 @@ export async function verifyContract(
     );
   }
 
-  const { provider, networkName } = await network.connect();
-  const chainId = await getChainId(provider);
+  const connection = await network.connect();
+  const { networkName } = connection;
+  const resolvedProvider = provider ?? connection.provider;
+
+  const chainId = await getChainId(resolvedProvider);
   const chainDescriptor = await getChainDescriptor(
     chainId,
     config.chainDescriptors,
@@ -121,6 +129,7 @@ export async function verifyContract(
     ...chainDescriptor.blockExplorers.etherscan,
     chainId,
     apiKey: await config.verify.etherscan.apiKey.get(),
+    dispatcher,
   });
 
   let isVerified = false;
@@ -137,7 +146,7 @@ export async function verifyContract(
   }
 
   if (!force && isVerified) {
-    console.log(`
+    consoleLog(`
 The contract at ${address} has already been verified on ${etherscan.name}.
 
 If you need to verify a partially verified contract, please use the --force flag.
@@ -151,7 +160,7 @@ Explorer: ${etherscan.getContractUrl(address)}
     await resolveSupportedSolcVersions(buildProfile);
 
   const deployedBytecode = await Bytecode.getDeployedContractBytecode(
-    provider,
+    resolvedProvider,
     address,
     networkName,
   );
@@ -205,26 +214,29 @@ Explorer: ${etherscan.getContractUrl(address)}
   );
 
   const { success: minimalInputVerificationSuccess } =
-    await attemptVerification({
-      verificationProvider: etherscan,
-      address,
-      encodedConstructorArgs,
-      contractInformation: {
-        ...contractInformation,
-        // Use the minimal compiler input for the first verification attempt
-        compilerInput: {
-          ...minimalCompilerInput,
-          settings: {
-            ...minimalCompilerInput.settings,
-            // Ensure the libraries are included in the compiler input
-            libraries: libraryInformation.libraries,
+    await attemptVerification(
+      {
+        verificationProvider: etherscan,
+        address,
+        encodedConstructorArgs,
+        contractInformation: {
+          ...contractInformation,
+          // Use the minimal compiler input for the first verification attempt
+          compilerInput: {
+            ...minimalCompilerInput,
+            settings: {
+              ...minimalCompilerInput.settings,
+              // Ensure the libraries are included in the compiler input
+              libraries: libraryInformation.libraries,
+            },
           },
         },
       },
-    });
+      consoleLog,
+    );
 
   if (minimalInputVerificationSuccess) {
-    console.log(`
+    consoleLog(`
 🎉 Contract verified successfully on ${etherscan.name}!
 
   ${contractInformation.contract}
@@ -233,7 +245,7 @@ Explorer: ${etherscan.getContractUrl(address)}
     return true;
   }
 
-  console.log(`
+  consoleLog(`
 The initial verification attempt for ${contractInformation.contract} failed using the minimal compiler input.
 
 Trying again with the full solc input used to compile and deploy the contract.
@@ -244,25 +256,28 @@ Unrelated contracts may be displayed on ${etherscan.name} as a result.
   const {
     success: fullCompilerInputVerificationSuccess,
     message: verificationMessage,
-  } = await attemptVerification({
-    verificationProvider: etherscan,
-    address,
-    encodedConstructorArgs,
-    contractInformation: {
-      ...contractInformation,
-      compilerInput: {
-        ...contractInformation.compilerInput,
-        settings: {
-          ...contractInformation.compilerInput.settings,
-          // Ensure the libraries are included in the compiler input
-          libraries: libraryInformation.libraries,
+  } = await attemptVerification(
+    {
+      verificationProvider: etherscan,
+      address,
+      encodedConstructorArgs,
+      contractInformation: {
+        ...contractInformation,
+        compilerInput: {
+          ...contractInformation.compilerInput,
+          settings: {
+            ...contractInformation.compilerInput.settings,
+            // Ensure the libraries are included in the compiler input
+            libraries: libraryInformation.libraries,
+          },
         },
       },
     },
-  });
+    consoleLog,
+  );
 
   if (fullCompilerInputVerificationSuccess) {
-    console.log(`
+    consoleLog(`
 🎉 Contract verified successfully on ${etherscan.name}!
 
   ${contractInformation.contract}
@@ -289,7 +304,7 @@ ${libraryInformation.undetectableLibraries.map((x) => `  * ${x}`).join("\n")}`
   );
 }
 
-function validateArgs({ address, contract }: VerifyContractArgs): void {
+export function validateArgs({ address, contract }: VerifyContractArgs): void {
   if (!isAddress(address)) {
     throw new HardhatError(
       HardhatError.ERRORS.HARDHAT_VERIFY.VALIDATION.INVALID_ADDRESS,
@@ -313,17 +328,20 @@ function validateArgs({ address, contract }: VerifyContractArgs): void {
   }
 }
 
-async function attemptVerification({
-  verificationProvider,
-  address,
-  encodedConstructorArgs,
-  contractInformation,
-}: {
-  verificationProvider: Etherscan;
-  address: string;
-  encodedConstructorArgs: string;
-  contractInformation: ContractInformation;
-}): Promise<{
+async function attemptVerification(
+  {
+    verificationProvider,
+    address,
+    encodedConstructorArgs,
+    contractInformation,
+  }: {
+    verificationProvider: Etherscan;
+    address: string;
+    encodedConstructorArgs: string;
+    contractInformation: ContractInformation;
+  },
+  consoleLog: (text: string) => void = console.log,
+): Promise<{
   success: boolean;
   message: string;
 }> {
@@ -335,7 +353,7 @@ async function attemptVerification({
     encodedConstructorArgs,
   );
 
-  console.log(`
+  consoleLog(`
 ✅ Submitted source code for verification on ${verificationProvider.name}:
 
   ${contractInformation.contract}

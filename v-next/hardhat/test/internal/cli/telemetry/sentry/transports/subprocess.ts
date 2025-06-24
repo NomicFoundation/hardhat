@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { ensureString } from "../../../../../src/internal/cli/telemetry/sentry/transport.js";
+import { ensureString } from "../../../../../../src/internal/cli/telemetry/sentry/transports/subprocess.js";
 
 test("ensureString function", () => {
   assert.equal(

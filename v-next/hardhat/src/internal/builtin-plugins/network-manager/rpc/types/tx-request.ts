@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import { rpcAccessList } from "./access-list.js";
 import { nullableRpcAddress, rpcAddress } from "./address.js";
+import { rpcAuthorizationList } from "./authorization-list.js";
 import { rpcData } from "./data.js";
 import { rpcHash } from "./hash.js";
 import { rpcQuantity } from "./quantity.js";
@@ -24,6 +25,14 @@ export interface RpcTransactionRequest {
   maxPriorityFeePerGas?: bigint;
   blobs?: Uint8Array[];
   blobVersionedHashes?: Uint8Array[];
+  authorizationList?: Array<{
+    chainId: bigint;
+    address: Uint8Array;
+    nonce: bigint;
+    yParity: Uint8Array;
+    r: Uint8Array;
+    s: Uint8Array;
+  }>;
 }
 
 export const rpcTransactionRequest: ZodType<RpcTransactionRequest> = z.object({
@@ -40,4 +49,5 @@ export const rpcTransactionRequest: ZodType<RpcTransactionRequest> = z.object({
   maxPriorityFeePerGas: optional(rpcQuantity),
   blobs: optional(z.array(rpcData)),
   blobVersionedHashes: optional(z.array(rpcHash)),
+  authorizationList: optional(rpcAuthorizationList),
 });

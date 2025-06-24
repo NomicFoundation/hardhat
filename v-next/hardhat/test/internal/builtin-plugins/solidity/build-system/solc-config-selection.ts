@@ -46,7 +46,7 @@ describe("SolcConfigSelector", () => {
   });
 
   describe("selectBestSolcConfigForSingleRootGraph", () => {
-    it("should throw when given a subgraph of size greater than 1", () => {
+    it("should throw when given a subgraph of size greater than 1", async () => {
       dependencyGraph.addRootFile(
         "otherRoot",
         createProjectResolvedFile(
@@ -60,7 +60,7 @@ describe("SolcConfigSelector", () => {
         dependencyGraph,
       );
 
-      assertRejectsWithHardhatError(
+      await assertRejectsWithHardhatError(
         async () => {
           selector.selectBestSolcConfigForSingleRootGraph(dependencyGraph);
         },
@@ -71,7 +71,7 @@ describe("SolcConfigSelector", () => {
       );
     });
 
-    it("should throw when given a subgraph of size 0", () => {
+    it("should throw when given a subgraph of size 0", async () => {
       const emptyDependencyGraph = new DependencyGraphImplementation();
 
       const selector = new SolcConfigSelector(
@@ -80,7 +80,7 @@ describe("SolcConfigSelector", () => {
         emptyDependencyGraph,
       );
 
-      assertRejectsWithHardhatError(
+      await assertRejectsWithHardhatError(
         async () => {
           selector.selectBestSolcConfigForSingleRootGraph(emptyDependencyGraph);
         },

@@ -176,7 +176,7 @@ describe("copyProjectFiles", () => {
       );
       for (const file of workspaceFiles) {
         const pathToFile = path.join(process.cwd(), file);
-        ensureDir(path.dirname(pathToFile));
+        await ensureDir(path.dirname(pathToFile));
         await writeUtf8File(pathToFile, "some content");
       }
       // Copy the template files to the workspace
@@ -211,7 +211,7 @@ describe("copyProjectFiles", () => {
       );
       for (const file of workspaceFiles) {
         const pathToFile = path.join(process.cwd(), file);
-        ensureDir(path.dirname(pathToFile));
+        await ensureDir(path.dirname(pathToFile));
         await writeUtf8File(pathToFile, "some content");
       }
       // Copy the template files to the workspace

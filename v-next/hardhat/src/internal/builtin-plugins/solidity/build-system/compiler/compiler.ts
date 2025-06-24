@@ -125,7 +125,7 @@ export class SolcJsCompiler implements Compiler {
     // If the script is a TypeScript file, we need to pass the --import tsx/esm
     // which is available, as we are running the tests
     const nodeOptions = scriptPath.endsWith(".ts")
-      ? ["--import", "tsx/esm"]
+      ? ["--import", import.meta.resolve("tsx/esm")]
       : [];
 
     const args = [...nodeOptions];

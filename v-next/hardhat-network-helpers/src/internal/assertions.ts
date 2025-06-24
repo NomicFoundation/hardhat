@@ -5,7 +5,7 @@ import {
 } from "@nomicfoundation/hardhat-utils/eth";
 
 export function assertHexString(hexString: string): void {
-  if (typeof hexString !== "string" || !/^0x[0-9a-fA-F]+$/.test(hexString)) {
+  if (typeof hexString !== "string" || !/^0x[0-9a-fA-F]*$/.test(hexString)) {
     throw new HardhatError(
       HardhatError.ERRORS.NETWORK_HELPERS.GENERAL.INVALID_HEX_STRING,
       {

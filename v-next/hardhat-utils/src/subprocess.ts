@@ -33,7 +33,7 @@ export async function spawnDetachedSubProcess(
   const subprocessArgs = [absolutePathToSubProcessFile, ...args];
 
   if (absolutePathToSubProcessFile.endsWith(".ts")) {
-    subprocessArgs.unshift("--import", "tsx/esm");
+    subprocessArgs.unshift("--import", import.meta.resolve("tsx/esm"));
   }
 
   const subprocess = spawn(process.execPath, subprocessArgs, {

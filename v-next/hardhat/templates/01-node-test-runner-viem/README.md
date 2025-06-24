@@ -39,7 +39,7 @@ You can also selectively run the Solidity or `node:test` tests:
 
 ```shell
 npx hardhat test solidity
-npx hardhat test node
+npx hardhat test nodejs
 ```
 
 ### Make a deployment to Sepolia

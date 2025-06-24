@@ -12,7 +12,7 @@ export async function waitForPendingTxs(
   finished: Promise<any>,
 ): Promise<void> {
   let stopWaiting = false;
-  finished.finally(() => {
+  void finished.finally(() => {
     stopWaiting = true;
   });
 

@@ -9,6 +9,7 @@
     "isolatedDeclarations": true,
     "noEmitOnError": true,
     "noImplicitOverride": true,
+    "noUncheckedSideEffectImports": true,
     "skipDefaultLibCheck": true,
     "sourceMap": true,
     "composite": true,

@@ -30,25 +30,24 @@ export async function encodeConstructorArgs(
   try {
     // encodeDeploy doesn't catch subtle type mismatches, such as a number
     // being passed when a string is expected, so we have to validate the
-    // scenario manually.
-    // TODO: im not sure if this is needed, and if it is, it's not checking
-    // if the expectedConstructorArgs length matches the constructorArgs length.
-    // encodeDeploy will throw if the lengths don't match, but this check
-    // is done before that one, so it may throw an invalid error.
+    // scenario manually. This can happen when the verify plugin is used
+    // programmatically or the constructor arguments are passed
+    // through a module (via --constructor-args-path).
     const expectedConstructorArgs = contractInterface.deploy.inputs;
-    constructorArgs.forEach((arg, i) => {
-      const expectedArg = expectedConstructorArgs[i];
-      if (expectedArg.type === "string" && typeof arg !== "string") {
-        throw new HardhatError(
-          HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.INVALID_CONSTRUCTOR_ARGUMENT_TYPE,
-          {
-            value: String(arg),
-            argument: expectedArg.name,
-            reason: "invalid string value",
-          },
-        );
-      }
-    });
+    if (expectedConstructorArgs.length === constructorArgs.length) {
+      constructorArgs.forEach((arg, i) => {
+        const expectedArg = expectedConstructorArgs[i];
+        if (expectedArg.type === "string" && typeof arg !== "string") {
+          throw new HardhatError(
+            HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.INVALID_CONSTRUCTOR_ARGUMENT_TYPE,
+            {
+              value: String(arg),
+              reason: "invalid string value",
+            },
+          );
+        }
+      });
+    }
 
     return getUnprefixedHexString(
       contractInterface.encodeDeploy(constructorArgs),
@@ -72,7 +71,6 @@ export async function encodeConstructorArgs(
         HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.INVALID_CONSTRUCTOR_ARGUMENT_TYPE,
         {
           value: String(error.value),
-          argument: error.name,
           reason: error.reason,
         },
       );
@@ -83,15 +81,25 @@ export async function encodeConstructorArgs(
         HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.CONSTRUCTOR_ARGUMENT_OVERFLOW,
         {
           value: String(error.value),
-          reason: error.fault,
-          operation: error.operation,
         },
       );
     }
 
-    // Should be unreachable.
-    // TODO: we should wrap this in a HardhatError instead of rethrowing
-    throw error;
+    if (HardhatError.isHardhatError(error)) {
+      throw error;
+    }
+
+    const reason =
+      "reason" in error && typeof error.reason === "string"
+        ? error.reason
+        : error.message ?? "Unknown error";
+    throw new HardhatError(
+      HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.CONSTRUCTOR_ARGUMENTS_ENCODING_FAILED,
+      {
+        contract,
+        reason,
+      },
+    );
   }
 }
 
@@ -133,15 +141,16 @@ function isInvalidConstructorArgTypeError(
     typeof error.argument === "string" &&
     "value" in error &&
     "reason" in error &&
-    typeof error.reason === "string"
+    typeof error.reason === "string" &&
+    error.reason !== "value out-of-bounds"
   );
 }
 
 interface ConstructorArgOverflowErrorType extends Error {
-  code: "NUMERIC_FAULT";
-  fault: "overflow";
-  operation: string;
+  code: "INVALID_ARGUMENT";
+  argument: string;
   value: unknown;
+  reason: "value out-of-bounds";
 }
 
 function isConstructorArgOverflowError(
@@ -149,11 +158,11 @@ function isConstructorArgOverflowError(
 ): error is ConstructorArgOverflowErrorType {
   return (
     "code" in error &&
-    error.code === "NUMERIC_FAULT" &&
-    "fault" in error &&
-    error.fault === "overflow" &&
-    "operation" in error &&
-    typeof error.operation === "string" &&
-    "value" in error
+    error.code === "INVALID_ARGUMENT" &&
+    "argument" in error &&
+    typeof error.argument === "string" &&
+    "value" in error &&
+    "reason" in error &&
+    error.reason === "value out-of-bounds"
   );
 }

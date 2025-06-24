@@ -114,7 +114,7 @@ describe("lang", () => {
 
       assert.deepEqual(clonedBuffer, expected);
       assert.notEqual(clonedBuffer, expected);
-      expectTypeOf(clonedBuffer).toEqualTypeOf<Buffer>();
+      expectTypeOf(clonedBuffer).toEqualTypeOf<Buffer<ArrayBuffer>>();
     });
 
     it("Should clone arguments to a normal object", async () => {

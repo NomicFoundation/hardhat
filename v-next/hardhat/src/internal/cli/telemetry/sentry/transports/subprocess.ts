@@ -1,15 +1,16 @@
 import type {
   BaseTransportOptions,
+  Event,
   Transport,
   TransportMakeRequestResponse,
   TransportRequest,
 } from "@sentry/core";
 
 import { spawnDetachedSubProcess } from "@nomicfoundation/hardhat-utils/subprocess";
-import { createTransport, type Event } from "@sentry/node";
+import { createTransport } from "@sentry/core";
 import debug from "debug";
 
-const log = debug("hardhat:cli:telemetry:sentry:transport");
+const log = debug("hardhat:cli:telemetry:sentry:transport:subprocess");
 
 export function makeSubprocessTransport(
   options: BaseTransportOptions,
@@ -57,7 +58,7 @@ export function makeSubprocessTransport(
         process.env.HARDHAT_TEST_SUBPROCESS_RESULT_PATH !== undefined
           ? "ts"
           : "js";
-      const subprocessFile = `${import.meta.dirname}/subprocess.${fileExt}`;
+      const subprocessFile = `${import.meta.dirname}/../subprocess.${fileExt}`;
 
       const env: Record<string, string> = {};
       if (process.env.HARDHAT_TEST_SUBPROCESS_RESULT_PATH !== undefined) {

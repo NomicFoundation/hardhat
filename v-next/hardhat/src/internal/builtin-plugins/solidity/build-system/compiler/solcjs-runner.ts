@@ -33,7 +33,8 @@ async function main() {
   console.log(output);
 }
 
-main().catch((error: unknown) => {
+// eslint-disable-next-line no-restricted-syntax -- We intentionally use TLA here
+await main().catch((error: unknown) => {
   console.error(error);
   process.exitCode = 1;
 });

@@ -37,6 +37,17 @@ describe("console/task-action", function () {
     options = {
       input,
       output,
+      // We force the TTY mode to true because this simulates the conditions
+      // under which the console task is used.
+      // We should be careful about not using commands that require user input
+      // in tests.
+      // In non-TTY mode, the test fail with a "use after close" error because
+      // the REPL server processes the commands differently then and, at least,
+      // the ones that produce errors are not fully processed before the REPL
+      // is closed.
+      // Stricter validation for functions used after close was introduced in
+      // https://github.com/nodejs/node/commit/462c4b0c2459110326f8e20c908a8e1c62e69825
+      terminal: true,
     };
   });
 

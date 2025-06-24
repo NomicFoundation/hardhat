@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-mocha",
-  "version": "3.0.0-next.14",
+  "version": "3.0.0-next.18",
   "description": "A mocha test runner",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-mocha",
   "repository": {
@@ -41,22 +41,22 @@
     "README.md"
   ],
   "devDependencies": {
-    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0-next.14",
+    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0-next.18",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
     "@types/mocha": ">=10.0.10",
     "@types/node": "^20.14.9",
     "c8": "^9.1.0",
     "eslint": "9.25.1",
-    "expect-type": "^0.19.0",
+    "expect-type": "^1.2.1",
     "prettier": "3.2.5",
     "rimraf": "^5.0.5",
-    "typescript": "~5.5.0"
+    "typescript": "~5.8.0"
   },
   "dependencies": {
-    "hardhat": "workspace:^3.0.0-next.14",
-    "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.14",
-    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.14",
-    "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.0-next.14",
+    "hardhat": "workspace:^3.0.0-next.18",
+    "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.18",
+    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.18",
+    "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.0-next.18",
     "mocha": "^11.0.0",
     "tsx": "^4.19.3",
     "zod": "^3.23.8"
