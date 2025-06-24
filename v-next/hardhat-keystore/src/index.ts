@@ -60,6 +60,13 @@ const hardhatKeystorePlugin: HardhatPlugin = {
       })
       .setAction(import.meta.resolve("./internal/tasks/delete.js"))
       .build(),
+
+    task(
+      ["keystore", "change-password"],
+      "Change the password for the keystore",
+    )
+      .setAction(import.meta.resolve("./internal/tasks/change-password.js"))
+      .build(),
   ],
   npmPackage: "@nomicfoundation/hardhat-keystore",
 };
