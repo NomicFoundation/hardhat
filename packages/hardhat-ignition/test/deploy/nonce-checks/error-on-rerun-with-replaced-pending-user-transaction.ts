@@ -52,7 +52,7 @@ describe("execution - error on rerun with replaced pending user transaction", ()
 
     const FooArtifact = this.hre.artifacts.readArtifactSync("Foo");
 
-    // Send user interefering deploy transaction, between runs
+    // Send user interfering deploy transaction, between runs
     // so it is in mempool, overriding the existing nonce 2
     // transaction
     const [, , signer2] = (await this.hre.network.provider.request({
