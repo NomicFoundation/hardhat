@@ -17,8 +17,6 @@ export const MISSING_METADATA_VERSION_RANGE = "<0.4.7";
  * - Metadata was introduced in Solidity v0.4.7.
  * See: https://docs.soliditylang.org/en/v0.4.7/miscellaneous.html#contract-metadata
  * - The version field was first added in v0.5.9.
- * See https://docs.soliditylang.org/en/v0.4.26/metadata.html#encoding-of-the-metadata-hash-in-the-bytecode
- * - Version info is consistently available from v0.6.0 onwards.
  * See https://docs.soliditylang.org/en/v0.5.9/metadata.html#encoding-of-the-metadata-hash-in-the-bytecode
  *
  * @param bytecode The deployed bytecode as a Uint8Array.

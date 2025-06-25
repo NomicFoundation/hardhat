@@ -1,5 +1,23 @@
 # hardhat
 
+## 3.0.0-next.18
+
+### Patch Changes
+
+- 5607511: Allow js/ts test runners to run test files outside their configured paths ([#6904](https://github.com/NomicFoundation/hardhat/issues/6904))
+- 6570ea3: Update the pre-release version number of the viem toolbox inline with the latest full release
+
+## 3.0.0-next.17
+
+### Patch Changes
+
+- 5badb19: Rename 'node' task to 'nodejs' for node-test-runner ([#6884](https://github.com/NomicFoundation/hardhat/issues/6884))
+- 08304e0: Add a task to `hardhat-keystore` to display the path to the keystore file ([#6872](https://github.com/NomicFoundation/hardhat/issues/6872))
+- ee5476f: Made lcov.info coverage report available under coverage directory in the root of the project ([#6891](https://github.com/NomicFoundation/hardhat/issues/6891))
+- 997249a: Upgrade the version of TypeScript used in the sample projects ([#6869](https://github.com/NomicFoundation/hardhat/pull/6869))
+- f6ea8d4: Added onClean hook to the built-in clean plugin ([#6891](https://github.com/NomicFoundation/hardhat/issues/6891))
+- 017ad95: Fix a warning in Node 24 about passing args to `spawn` ([#6896](https://github.com/NomicFoundation/hardhat/issues/6896))
+
 ## 3.0.0-next.16
 
 ### Patch Changes

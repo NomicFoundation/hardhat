@@ -61,6 +61,10 @@ const hardhatKeystorePlugin: HardhatPlugin = {
       .setAction(import.meta.resolve("./internal/tasks/delete.js"))
       .build(),
 
+    task(["keystore", "path"], "Display the path where the keystore is stored")
+      .setAction(import.meta.resolve("./internal/tasks/path.js"))
+      .build(),
+
     task(
       ["keystore", "change-password"],
       "Change the password for the keystore",
