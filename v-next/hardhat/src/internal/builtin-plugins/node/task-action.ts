@@ -22,7 +22,7 @@ import { sendErrorTelemetry } from "../../cli/telemetry/sentry/reporter.js";
 import { BUILD_INFO_DIR_NAME } from "../artifacts/artifact-manager.js";
 import { isEdrSupportedChainType } from "../network-manager/edr/utils/chain-type.js";
 
-import { BuildInfoWatcher } from "./artifacts/build-info-watcher.js";
+import { watchBuildInfo } from "./artifacts/build-info-watcher.js";
 import { formatEdrNetworkConfigAccounts } from "./helpers.js";
 import { JsonRpcServerImplementation } from "./json-rpc/server.js";
 
@@ -149,9 +149,7 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
   );
   await ensureDir(buildInfoDirPath);
 
-  const watcher = new BuildInfoWatcher(buildInfoDirPath);
-
-  watcher.addListener(async (buildId) => {
+  const buildInfoHandler = async (buildId: string) => {
     try {
       log(`Adding new compilation result for build ${buildId} to the node`);
       const buildInfo: BuildInfo = await readJsonFile(
@@ -186,7 +184,11 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
         await sendErrorTelemetry(error);
       }
     }
-  });
+  };
+  const buildInfoWatcher = await watchBuildInfo(
+    buildInfoDirPath,
+    buildInfoHandler,
+  );
 
   // NOTE: Before creating the node, we check if the input network config is of type edr.
   // We only proceed if it is. Hence, we can assume that the output network config is of type edr as well.
@@ -198,7 +200,7 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
   console.log(await formatEdrNetworkConfigAccounts(networkConfig.accounts));
 
   await server.waitUntilClosed();
-  await watcher.waitUntilClosed();
+  await buildInfoWatcher.close();
 };
 
 export default nodeAction;
