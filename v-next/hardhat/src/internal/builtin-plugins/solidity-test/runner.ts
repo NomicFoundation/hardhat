@@ -10,6 +10,7 @@ import { Readable } from "node:stream";
 
 import { EdrContext, L1_CHAIN_TYPE } from "@ignored/edr-optimism";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 
 import { formatArtifactId } from "./formatters.js";
 
@@ -104,7 +105,9 @@ export function run(
             }
           },
         );
-      } catch (error: any) {
+      } catch (error) {
+        ensureError(error);
+
         clearTimeout(timeout);
 
         controller.error(
