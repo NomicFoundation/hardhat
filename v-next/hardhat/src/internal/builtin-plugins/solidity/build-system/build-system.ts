@@ -33,6 +33,7 @@ import {
 } from "@nomicfoundation/hardhat-errors";
 import {
   exists,
+  ensureDir,
   getAllDirectoriesMatching,
   getAllFilesMatching,
   move,
@@ -736,15 +737,20 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     // file, we emit the build info file and its output file.
     const buildInfoId = buildId;
 
-    const buildInfoCachePath = path.join(
+    const buildInfoCacheDirPath = path.join(
       this.#options.cachePath,
       `build-info`,
+    );
+
+    await ensureDir(buildInfoCacheDirPath);
+
+    const buildInfoCachePath = path.join(
+      buildInfoCacheDirPath,
       `${buildInfoId}.json`,
     );
 
     const buildInfoOutputCachePath = path.join(
-      this.#options.cachePath,
-      `build-info`,
+      buildInfoCacheDirPath,
       `${buildInfoId}.output.json`,
     );
 
@@ -780,15 +786,17 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       })(),
     ]);
 
-    const buildInfoPath = path.join(
+    const buildInfoDirPath = path.join(
       this.#options.artifactsPath,
       `build-info`,
-      `${buildInfoId}.json`,
     );
 
+    await ensureDir(buildInfoDirPath);
+
+    const buildInfoPath = path.join(buildInfoDirPath, `${buildInfoId}.json`);
+
     const buildInfoOutputPath = path.join(
-      this.#options.artifactsPath,
-      `build-info`,
+      buildInfoDirPath,
       `${buildInfoId}.output.json`,
     );
 
