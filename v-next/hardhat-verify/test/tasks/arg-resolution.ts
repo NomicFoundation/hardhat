@@ -7,7 +7,7 @@ import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-uti
 import {
   resolveConstructorArgs,
   resolveLibraries,
-} from "../../../../src/internal/tasks/verify/etherscan/arg-resolution.js";
+} from "../../src/internal/tasks/arg-resolution.js";
 
 describe("resolveConstructorArgs", () => {
   const validArgsModule =
