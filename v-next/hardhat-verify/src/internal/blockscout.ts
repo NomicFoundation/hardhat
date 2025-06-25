@@ -196,6 +196,16 @@ export class Blockscout implements VerificationProvider {
       );
     }
 
+    if (blockscoutResponse.addressIsNotAContract()) {
+      throw new HardhatError(
+        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.ADDRESS_NOT_A_CONTRACT,
+        {
+          verificationProvider: this.name,
+          address: contractAddress,
+        },
+      );
+    }
+
     if (!blockscoutResponse.isOk()) {
       throw new HardhatError(
         HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.CONTRACT_VERIFICATION_REQUEST_FAILED,
@@ -319,6 +329,10 @@ class BlockscoutVerificationResponse implements VerificationResponse {
 
   public isAlreadyVerified(): boolean {
     return this.message.startsWith("Smart-contract already verified.");
+  }
+
+  public addressIsNotAContract(): boolean {
+    return this.message.startsWith("The address is not a smart contract");
   }
 
   public isOk(): boolean {

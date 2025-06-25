@@ -405,6 +405,32 @@ describe("blockscout", () => {
         );
       });
 
+      it("should throw an error if the address does not contain a contract", async () => {
+        const blockscout = new Blockscout({
+          ...blockscoutConfig,
+          dispatcher: testDispatcher.interceptable,
+        });
+
+        verifyInterceptor.reply(200, {
+          result: "The address is not a smart contract",
+        });
+
+        await assertRejectsWithHardhatError(
+          blockscout.verify(
+            address,
+            sourceCode,
+            contract,
+            compilerVersion,
+            constructorArguments,
+          ),
+          HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.ADDRESS_NOT_A_CONTRACT,
+          {
+            verificationProvider: blockscoutConfig.name,
+            address,
+          },
+        );
+      });
+
       it("should throw an error if the blockscout response status is not 1", async () => {
         const blockscout = new Blockscout({
           ...blockscoutConfig,

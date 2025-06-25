@@ -2726,6 +2726,13 @@ chainDescriptors: {
 
 `,
       },
+      ADDRESS_NOT_A_CONTRACT: {
+        number: 80029,
+        messageTemplate: `{verificationProvider} responded that the address "{address}" does not contain a contract. This usually means the address is incorrect, the contract was not deployed on the selected network, or there is a temporary issue with the block explorer not updating its index.`,
+        websiteTitle: "Address is not a contract",
+        websiteDescription: `The block explorer responded that the address does not contain a contract. This usually means the address is incorrect, the contract was not deployed on the selected network, or there is a temporary issue with the block explorer not updating its index.
+Please verify the address and network, and try again later if necessary.`,
+      },
     },
     VALIDATION: {
       INVALID_ADDRESS: {
