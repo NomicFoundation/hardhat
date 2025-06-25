@@ -42,7 +42,7 @@ describe("tasks - change-password", () => {
     mockConsoleLog = mock.fn();
 
     // Mock this function because the `change-password` task renames the keystore file
-    // from its temporary name back to the original, so it must actually exist on disk.
+    // from its temporary name back to the original, so the file must exist on disk.
     mockFileManager.writeJsonFile = mock.fn(
       async (
         _absolutePathToFile: string,
