@@ -256,7 +256,7 @@ const edrNetworkAccountsUserConfigSchema = conditionalUnionType(
     [(data) => Array.isArray(data), z.array(edrNetworkAccountUserConfigSchema)],
     [isObject, edrNetworkHDAccountsUserConfigSchema],
   ],
-  `Expected an array with with objects with private key and balance or Configuration Variables, or an object with HD account details`,
+  `Expected an array with objects with private key and balance or Configuration Variables, or an object with HD account details`,
 );
 
 const edrNetworkForkingUserConfigSchema = z.object({

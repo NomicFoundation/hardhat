@@ -1,5 +1,42 @@
 # hardhat
 
+## 3.0.0-next.18
+
+### Patch Changes
+
+- 5607511: Allow js/ts test runners to run test files outside their configured paths ([#6904](https://github.com/NomicFoundation/hardhat/issues/6904))
+- 6570ea3: Update the pre-release version number of the viem toolbox inline with the latest full release
+
+## 3.0.0-next.17
+
+### Patch Changes
+
+- 5badb19: Rename 'node' task to 'nodejs' for node-test-runner ([#6884](https://github.com/NomicFoundation/hardhat/issues/6884))
+- 08304e0: Add a task to `hardhat-keystore` to display the path to the keystore file ([#6872](https://github.com/NomicFoundation/hardhat/issues/6872))
+- ee5476f: Made lcov.info coverage report available under coverage directory in the root of the project ([#6891](https://github.com/NomicFoundation/hardhat/issues/6891))
+- 997249a: Upgrade the version of TypeScript used in the sample projects ([#6869](https://github.com/NomicFoundation/hardhat/pull/6869))
+- f6ea8d4: Added onClean hook to the built-in clean plugin ([#6891](https://github.com/NomicFoundation/hardhat/issues/6891))
+- 017ad95: Fix a warning in Node 24 about passing args to `spawn` ([#6896](https://github.com/NomicFoundation/hardhat/issues/6896))
+
+## 3.0.0-next.16
+
+### Patch Changes
+
+- 0a24fa5: Update ethers to v6.14.0 with Pectra support
+- 674288c: Set prague as the default hardfork in Hardhat network
+- 2796bb8: Accept `0x` as a valid value for `setCode`, thanks @arr00 ([#6844](https://github.com/NomicFoundation/hardhat/pull/6844))
+
+## 3.0.0-next.15
+
+### Patch Changes
+
+- fd64634: Fixed a bug when sending ETH to the testing accounts in forked networks. Now testing accounts are automatically undelegated ([#6834](https://github.com/NomicFoundation/hardhat/issues/6834))
+- a433be1: Reduced the number of installed package dependencies by swapping out `@sentry/node` for `@sentry/core` ([#6757](https://github.com/NomicFoundation/hardhat/pull/6757))
+- 8c8c110: Fix a bug in `viem-assertions` to scan every event log, not just the first one ([#6787](https://github.com/NomicFoundation/hardhat/pull/6787))
+- 1d891bd: Use file URLs instead of paths as arguments to `--import` when invoking the WASM solc compiler (https://github.com/nodejs/node/issues/58515)
+- d844f6e: Add support for running under Node 24 ([#6792](https://github.com/NomicFoundation/hardhat/issues/6792))
+- 6be01c4: Support async calls in `getAllFilesMatching` in `hardhat-utils`, thanks @ItsNickBarry ([#6789](https://github.com/NomicFoundation/hardhat/pull/6789))
+
 ## 3.0.0-next.14
 
 ### Patch Changes

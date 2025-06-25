@@ -11,17 +11,15 @@ export class MockArtifactManager implements ArtifactManager {
   readonly #artifactsPaths: Map<string, string>;
 
   constructor(
-    mockedArtifacts?: Array<{ artifactName: string; fileName: string }>,
+    mockedArtifacts: Array<{ artifactName: string; fileName: string }>,
   ) {
     this.#artifacts = new Map();
     this.#artifactsPaths = new Map();
 
     // An array of elements, where every element has an artifact name and artifact file name, is passed as argument during initialization and stored in the map.
     // This ensures that, during testing, when an artifact is invoked, the mocked implementation can load the correct file associated with the artifact name.
-    if (mockedArtifacts !== undefined) {
-      for (const { artifactName, fileName } of mockedArtifacts) {
-        this.#artifactsPaths.set(artifactName, fileName);
-      }
+    for (const { artifactName, fileName } of mockedArtifacts) {
+      this.#artifactsPaths.set(artifactName, fileName);
     }
   }
 
