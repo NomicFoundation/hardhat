@@ -66,7 +66,7 @@ describe("DependencyGraphImplementation", () => {
       }
     });
 
-    it("should add a mapping between the public source name and the root", () => {
+    it("should add a mapping between the user source name and the root", () => {
       const files = [];
 
       for (let i = 0; i < 10; i++) {
@@ -221,7 +221,7 @@ describe("DependencyGraphImplementation", () => {
   });
 
   describe("getRoots", () => {
-    it("should return a mapping from public source names to roots", () => {
+    it("should return a mapping from user source names to roots", () => {
       const root1 = createProjectResolvedFile("root1.sol");
       const root2 = createProjectResolvedFile("root2.sol");
       const dependency1 = createProjectResolvedFile("dependency1.sol");
@@ -517,7 +517,7 @@ describe("DependencyGraphImplementation", () => {
         },
         HardhatError.ERRORS.CORE.INTERNAL.ASSERTION_ERROR,
         {
-          message: "We should have a root for every root public source name",
+          message: "We should have a root for every root user source name",
         },
       );
     });
@@ -667,7 +667,7 @@ describe("DependencyGraphImplementation", () => {
           [d.inputSourceName]: d,
           [e.inputSourceName]: e,
         },
-        rootByPublicSourceName: {
+        rootByUserSourceName: {
           [a.inputSourceName]: a.inputSourceName,
           [b.inputSourceName]: b.inputSourceName,
           [c.inputSourceName]: c.inputSourceName,

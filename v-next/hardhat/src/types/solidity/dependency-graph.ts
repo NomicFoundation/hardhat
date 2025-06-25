@@ -5,7 +5,7 @@ import type { ResolvedFile } from "./resolved-file.js";
  */
 export interface DependencyGraph {
   /**
-   * Gets a map of public source names to root files.
+   * Gets a map of user source names to root files.
    */
   getRoots(): ReadonlyMap<string, ResolvedFile>;
 
@@ -43,10 +43,10 @@ export interface DependencyGraph {
    * Returns a subgraph of the graph, containing only the given root files and
    * their transitive dependencies.
    *
-   * @param rootPublicSourceNames The public source names of the roots of the
+   * @param rootUserSourceNames The user source names of the roots of the
    * subgraph. They must be present in the graph.
    */
-  getSubgraph(...rootPublicSourceNames: string[]): DependencyGraph;
+  getSubgraph(...rootUserSourceNames: string[]): DependencyGraph;
 
   /**
    * A method to merge two dependency graphs. The resulting graph will have all

@@ -243,7 +243,7 @@ export interface RemappedNpmPackagesGraphJson {
  *
  * If the Node.js resolution algorithm resolve a file into a package that's
  * part of the monorepo where the Hardhat project is (i.e. it's not part of a
- * `node_modules` directory), the public source name is going to be
+ * `node_modules` directory), the user source name is going to be
  * `npm/package@local/path/to/file`.
  *
  * Note that in the Node.js ecosystem, a package manager may install multiple

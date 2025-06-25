@@ -51,10 +51,10 @@ describe("buildDependencyGraph", () => {
       rootInputSourceNames.length,
       `Should have ${rootInputSourceNames.length} roots`,
     );
-    for (const publicSourceName of rootRelativePaths) {
+    for (const userSourceName of rootRelativePaths) {
       assert.ok(
-        roots.has(publicSourceName),
-        `Should have root ${publicSourceName}`,
+        roots.has(userSourceName),
+        `Should have root ${userSourceName}`,
       );
     }
 

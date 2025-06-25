@@ -21,7 +21,7 @@ interface TestRootPath {
   parsedRootPath: ParsedRootPath;
   isNpm: boolean;
   npmModule?: string;
-  publicSourceName: string;
+  userSourceName: string;
   resolvedFile: ResolvedFile;
 }
 
@@ -40,7 +40,7 @@ const testRootPaths: TestRootPath[] = [
     },
     isNpm: true,
     npmModule: "ethers",
-    publicSourceName: "ethers",
+    userSourceName: "ethers",
     resolvedFile: {
       type: ResolvedFileType.NPM_PACKAGE_FILE,
       inputSourceName: "ethers",
@@ -65,7 +65,7 @@ const testRootPaths: TestRootPath[] = [
     },
     isNpm: true,
     npmModule: "@openzeppelin/contracts",
-    publicSourceName: "@openzeppelin/contracts",
+    userSourceName: "@openzeppelin/contracts",
     resolvedFile: {
       type: ResolvedFileType.NPM_PACKAGE_FILE,
       inputSourceName: "@openzeppelin/contracts",
@@ -90,7 +90,7 @@ const testRootPaths: TestRootPath[] = [
     },
     isNpm: true,
     npmModule: "@openzeppelin/contracts/token/ERC20/ERC20.sol",
-    publicSourceName: "@openzeppelin/contracts/token/ERC20/ERC20.sol",
+    userSourceName: "@openzeppelin/contracts/token/ERC20/ERC20.sol",
     resolvedFile: {
       type: ResolvedFileType.NPM_PACKAGE_FILE,
       inputSourceName: "@openzeppelin/contracts/token/ERC20/ERC20.sol",
@@ -116,7 +116,7 @@ const testRootPaths: TestRootPath[] = [
     },
     isNpm: false,
     npmModule: undefined,
-    publicSourceName: "/Users/root/contracts/Contract.sol",
+    userSourceName: "/Users/root/contracts/Contract.sol",
     resolvedFile: {
       type: ResolvedFileType.PROJECT_FILE,
       inputSourceName: "/Users/root/contracts/Contract.sol",
@@ -136,7 +136,7 @@ const testRootPaths: TestRootPath[] = [
     },
     isNpm: false,
     npmModule: undefined,
-    publicSourceName: "C:\\Users\\root\\contracts\\Contract.sol",
+    userSourceName: "C:\\Users\\root\\contracts\\Contract.sol",
     resolvedFile: {
       type: ResolvedFileType.PROJECT_FILE,
       inputSourceName: "C:\\Users\\root\\contracts\\Contract.sol",
@@ -186,9 +186,9 @@ describe("isNpmParsedRootPath", () => {
 });
 
 describe("formatRootPath", () => {
-  for (const { rootPath, publicSourceName, resolvedFile } of testRootPaths) {
-    it(`should correctly format root path for ${publicSourceName}`, () => {
-      assert.equal(formatRootPath(publicSourceName, resolvedFile), rootPath);
+  for (const { rootPath, userSourceName, resolvedFile } of testRootPaths) {
+    it(`should correctly format root path for ${userSourceName}`, () => {
+      assert.equal(formatRootPath(userSourceName, resolvedFile), rootPath);
     });
   }
 });

@@ -5,8 +5,8 @@ import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 
 export interface DependencyGraphImplementationJson {
   readonly fileByInputSourceName: Record<string, ResolvedFile>;
-  readonly rootByPublicSourceName: Record<
-    string /* public source name */,
+  readonly rootByUserSourceName: Record<
+    string /* user source name */,
     string /* input source name */
   >;
   readonly dependencies: Record<
@@ -17,7 +17,7 @@ export interface DependencyGraphImplementationJson {
 
 export class DependencyGraphImplementation implements DependencyGraph {
   readonly #fileByInputSourceName = new Map<string, ResolvedFile>();
-  readonly #rootByPublicSourceName = new Map<string, ResolvedFile>();
+  readonly #rootByUserSourceName = new Map<string, ResolvedFile>();
   readonly #dependenciesMap = new Map<
     ResolvedFile,
     Map<ResolvedFile, Set<string>>
@@ -27,15 +27,15 @@ export class DependencyGraphImplementation implements DependencyGraph {
    * Adds a root file to the graph. All the roots of the dependency graph must
    * be added before any dependencry.
    *
-   * @param publicSourceName The source name used to identify the file, as it
+   * @param userSourceName The source name used to identify the file, as it
    * would appear in the artifacts and used by the user. This is not always the
    * same as the source name used by solc, as it differs when an npm file is
    * acting as a root.
    * @param root The root file.
    */
-  public addRootFile(publicSourceName: string, root: ResolvedFile): void {
+  public addRootFile(userSourceName: string, root: ResolvedFile): void {
     this.#addFile(root);
-    this.#rootByPublicSourceName.set(publicSourceName, root);
+    this.#rootByUserSourceName.set(userSourceName, root);
   }
 
   /**
@@ -75,10 +75,10 @@ export class DependencyGraphImplementation implements DependencyGraph {
   }
 
   /**
-   * Returns a map of public source names to root files.
+   * Returns a map of user source names to root files.
    */
   public getRoots(): ReadonlyMap<string, ResolvedFile> {
-    return this.#rootByPublicSourceName;
+    return this.#rootByUserSourceName;
   }
 
   /**
@@ -116,21 +116,21 @@ export class DependencyGraphImplementation implements DependencyGraph {
   }
 
   public getSubgraph(
-    ...rootPublicSourceNames: string[]
+    ...rootUserSourceNames: string[]
   ): DependencyGraphImplementation {
     const subgraph = new DependencyGraphImplementation();
 
     const filesToTraverse: ResolvedFile[] = [];
 
-    for (const rootPublicSourceName of rootPublicSourceNames) {
-      const root = this.#rootByPublicSourceName.get(rootPublicSourceName);
+    for (const rootUserSourceName of rootUserSourceNames) {
+      const root = this.#rootByUserSourceName.get(rootUserSourceName);
 
       assertHardhatInvariant(
         root !== undefined,
-        "We should have a root for every root public source name",
+        "We should have a root for every root user source name",
       );
 
-      subgraph.addRootFile(rootPublicSourceName, root);
+      subgraph.addRootFile(rootUserSourceName, root);
       filesToTraverse.push(root);
     }
 
@@ -156,15 +156,15 @@ export class DependencyGraphImplementation implements DependencyGraph {
   ): DependencyGraphImplementation {
     const merged = new DependencyGraphImplementation();
 
-    for (const [publicSourceName, root] of this.#rootByPublicSourceName) {
-      merged.addRootFile(publicSourceName, root);
+    for (const [userSourceName, root] of this.#rootByUserSourceName) {
+      merged.addRootFile(userSourceName, root);
     }
 
-    for (const [publicSourceName, root] of other.#rootByPublicSourceName) {
+    for (const [userSourceName, root] of other.#rootByUserSourceName) {
       if (merged.hasFile(root)) {
         continue;
       }
-      merged.addRootFile(publicSourceName, root);
+      merged.addRootFile(userSourceName, root);
     }
 
     for (const [from, dependencies] of this.#dependenciesMap) {
@@ -203,11 +203,11 @@ export class DependencyGraphImplementation implements DependencyGraph {
   public toJSON(): DependencyGraphImplementationJson {
     return {
       fileByInputSourceName: Object.fromEntries(this.#fileByInputSourceName),
-      rootByPublicSourceName: Object.fromEntries(
-        this.#rootByPublicSourceName
+      rootByUserSourceName: Object.fromEntries(
+        this.#rootByUserSourceName
           .entries()
-          .map(([publicSourceName, file]) => [
-            publicSourceName,
+          .map(([userSourceName, file]) => [
+            userSourceName,
             file.inputSourceName,
           ]),
       ),

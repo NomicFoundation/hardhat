@@ -224,7 +224,7 @@ export class ContractInformationResolver {
     deployedBytecode: Bytecode,
   ): ContractInformation | null {
     const { sourceName, contractName } = parseFullyQualifiedName(contract);
-    const inputSourceName = buildInfo.publicSourceNameMap[sourceName];
+    const inputSourceName = buildInfo.userSourceNameMap[sourceName];
 
     const compilerOutputContract =
       buildInfoOutput.output.contracts?.[inputSourceName][contractName];

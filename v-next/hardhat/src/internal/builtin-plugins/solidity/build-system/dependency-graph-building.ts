@@ -64,7 +64,7 @@ export async function buildDependencyGraph(
       resolvedFile = resolutionResult.value;
       dependencyGraph.addRootFile(
         // We don't use the package's input source name root in the local files
-        // public source name.
+        // user source name.
         resolvedFile.inputSourceName.substring(
           resolvedFile.package.inputSourceNameRoot.length + 1,
         ),

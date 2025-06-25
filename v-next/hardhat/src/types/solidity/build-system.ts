@@ -247,7 +247,7 @@ export interface SolidityBuildSystem {
    *
    * @param compilationJob The compilation job to emit the artifacts of.
    * @param compilerOutput The result of running the compilation job.
-   * @returns A map from public source name to the absolute paths of the
+   * @returns A map from user source name to the absolute paths of the
    * artifacts that were emitted for it.
    */
   emitArtifacts(
