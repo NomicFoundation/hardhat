@@ -35,6 +35,7 @@ import {
   exists,
   getAllDirectoriesMatching,
   getAllFilesMatching,
+  move,
   readJsonFile,
   remove,
   writeJsonFile,
@@ -735,27 +736,34 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     // file, we emit the build info file and its output file.
     const buildInfoId = buildId;
 
-    const buildInfoPath = path.join(
-      artifactsDirectory,
+    const buildInfoCachePath = path.join(
+      this.#options.cachePath,
       `build-info`,
       `${buildInfoId}.json`,
     );
 
-    const buildInfoOutputPath = path.join(
-      artifactsDirectory,
+    const buildInfoOutputCachePath = path.join(
+      this.#options.cachePath,
       `build-info`,
       `${buildInfoId}.output.json`,
     );
 
     // BuildInfo and BuildInfoOutput files are large, so we write them
     // concurrently, and keep their lifetimes separated and small.
+    // NOTE: First, we write the build info file and its output to the cache
+    // directory. Once both are successfully written, we move them to the
+    // artifacts directory sequentially, ensuring the build info file is moved
+    // last. This approach minimizes the risk of having corrupted build info
+    // files in the artifacts directory and ensures other processes, like
+    // `hardhat node`, can safely monitor the build info file as an indicator
+    // for build completion.
     await Promise.all([
       (async () => {
         const buildInfo = await getBuildInfo(runnableCompilationJob);
 
         // TODO: Maybe formatting the build info is slow, but it's mostly
         // strings, so it probably shouldn't be a problem.
-        await writeJsonFile(buildInfoPath, buildInfo);
+        await writeJsonFile(buildInfoCachePath, buildInfo);
       })(),
       (async () => {
         const buildInfoOutput = await getBuildInfoOutput(
@@ -768,9 +776,24 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         // TODO: Earlier in the build process, very similar files are created on disk by the
         // Compiler.  Instead of creating them again, we should consider copying/moving them.
         // This would require changing the format of the build info output file.
-        await writeJsonFileAsStream(buildInfoOutputPath, buildInfoOutput);
+        await writeJsonFileAsStream(buildInfoOutputCachePath, buildInfoOutput);
       })(),
     ]);
+
+    const buildInfoPath = path.join(
+      this.#options.artifactsPath,
+      `build-info`,
+      `${buildInfoId}.json`,
+    );
+
+    const buildInfoOutputPath = path.join(
+      this.#options.artifactsPath,
+      `build-info`,
+      `${buildInfoId}.output.json`,
+    );
+
+    await move(buildInfoOutputCachePath, buildInfoOutputPath);
+    await move(buildInfoCachePath, buildInfoPath);
 
     return {
       artifactsPerFile,
