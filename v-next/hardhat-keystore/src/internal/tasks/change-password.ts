@@ -52,7 +52,7 @@ export const changePassword = async (
     requestSecretInput,
   );
 
-  const newMasterKey = await deriveNewMasterKey(requestSecretInput);
+  const newMasterKey = await deriveNewMasterKey(requestSecretInput, consoleLog);
 
   await migrateNewKeystoreToTmpFile(
     oldKeystore,
@@ -67,6 +67,8 @@ export const changePassword = async (
       newKeystoreLoader.getKeystoreFilePath(),
       oldKeystoreLoader.getKeystoreFilePath(),
     );
+
+    consoleLog(UserDisplayMessages.passwordChangedSuccessMessage());
   } finally {
     // If anything goes wrong, delete the new temporary keystore file.
     // If the file does not exist, no error is thrown.
@@ -98,11 +100,12 @@ async function deriveNewMasterKey(
     interruptor: string,
     inputDescription: string,
   ) => Promise<string>,
+  consoleLog: (text: string) => void,
 ): Promise<{
   salt: Uint8Array;
   masterKey: Uint8Array;
 }> {
-  const newPassword = await setNewPassword(requestSecretInput);
+  const newPassword = await setNewPassword(requestSecretInput, consoleLog);
   const newMasterKey = createMasterKey({ password: newPassword });
 
   return newMasterKey;

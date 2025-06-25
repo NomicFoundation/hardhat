@@ -71,6 +71,10 @@ export class UserDisplayMessages {
     return "Change your password.";
   }
 
+  public static passwordChangedSuccessMessage(): string {
+    return "Password changed successfully!";
+  }
+
   public static passwordRequirementsMessage(): string {
     // return "The password must have at least 8 characters, one uppercase letter, one lowercase letter, and one special character.";
     return "The password must have at least 8 characters.";
