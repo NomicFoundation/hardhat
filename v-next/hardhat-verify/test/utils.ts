@@ -69,7 +69,7 @@ export function initializeTestDispatcher(options: InitializeOptions = {}): {
     mockAgent.disableNetConnect();
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     const pendingInterceptors = mockAgent.pendingInterceptors();
 
     if (pendingInterceptors.length > 0) {
@@ -100,7 +100,7 @@ export function initializeTestDispatcher(options: InitializeOptions = {}): {
     }
 
     mockAgent.enableNetConnect();
-    mockAgent.close();
+    await mockAgent.close();
   });
 
   return {
