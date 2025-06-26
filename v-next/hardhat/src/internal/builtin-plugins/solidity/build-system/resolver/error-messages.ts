@@ -61,7 +61,7 @@ Note that the npm module is being remapped by ${formatRemappingReference(error.u
     }
 
     case RootResolutionErrorType.NPM_ROOT_FILE_RESOLUTION_WITH_REMAPPING_ERRORS: {
-      return `These remapping errors where found while trying to resolve it:
+      return `These remapping errors were found while trying to resolve it:
 
 ${formatRemappingErrors(error.remappingErrors)}`;
     }
