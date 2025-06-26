@@ -31,7 +31,7 @@ export function formatProjectRootResolutionError(
       // TODO: This should have a link to the docs.
       return `The file is inside your node_modules directory.
 
-Please read check Hardhat's documentation to learn how to compile npm files.`;
+Please read Hardhat's documentation to learn how to compile npm files.`;
     }
   }
 }
