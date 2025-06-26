@@ -14,12 +14,9 @@ import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
 import { createNonClosingWriter } from "@nomicfoundation/hardhat-utils/stream";
 import chalk from "chalk";
 
-import {
-  getArtifacts,
-  getBuildInfos,
-  throwIfSolidityBuildFailed,
-} from "../solidity/build-results.js";
+import { throwIfSolidityBuildFailed } from "../solidity/build-results.js";
 
+import { getEdrArtifacts, getBuildInfos } from "./edr-artifacts.js";
 import {
   isTestSuiteArtifact,
   solidityTestConfigToRunOptions,
@@ -92,15 +89,16 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   throwIfSolidityBuildFailed(results);
 
   const buildInfos = await getBuildInfos(hre.artifacts);
-  const artifacts = await getArtifacts(hre.artifacts);
-  const testSuiteIds = artifacts
-    .filter((artifact) =>
+  const edrArtifacts = await getEdrArtifacts(hre.artifacts);
+
+  const testSuiteIds = edrArtifacts
+    .filter(({ userSourceName }) =>
       rootFilePaths.includes(
-        resolveFromRoot(hre.config.paths.root, artifact.id.source),
+        resolveFromRoot(hre.config.paths.root, userSourceName),
       ),
     )
-    .filter(isTestSuiteArtifact)
-    .map((artifact) => artifact.id);
+    .filter(({ edrAtifact }) => isTestSuiteArtifact(edrAtifact))
+    .map(({ edrAtifact }) => edrAtifact.id);
 
   console.log("Running Solidity tests");
   console.log();
@@ -123,11 +121,19 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   const options: RunOptions =
     solidityTestConfigToRunOptions(solidityTestConfig);
 
+  const sourceNameToUserSourceName = new Map(
+    edrArtifacts.map(({ userSourceName, edrAtifact }) => [
+      edrAtifact.id.source,
+      userSourceName,
+    ]),
+  );
+
   const runStream = run(
-    artifacts,
+    edrArtifacts.map(({ edrAtifact }) => edrAtifact),
     testSuiteIds,
     config,
     tracingConfig,
+    sourceNameToUserSourceName,
     options,
   );
 
@@ -139,7 +145,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
         }
       }
     })
-    .compose(testReporter);
+    .compose((source) => testReporter(source, sourceNameToUserSourceName));
 
   const outputStream = testReporterStream.pipe(
     createNonClosingWriter(process.stdout),
