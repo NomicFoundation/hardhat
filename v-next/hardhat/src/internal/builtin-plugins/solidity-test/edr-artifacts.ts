@@ -55,7 +55,7 @@ export async function getBuildInfos(
  * @param artifactManager The artifact manager.
  * @returns The artifacts in the format expected by the EDR.
  */
-export async function getArtifacts(
+export async function getEdrArtifacts(
   artifactManager: ArtifactManager,
 ): Promise<Array<{ edrAtifact: EdrArtifact; userSourceName: string }>> {
   const fullyQualifiedNames = await artifactManager.getAllFullyQualifiedNames();

@@ -16,10 +16,7 @@ import chalk from "chalk";
 
 import { throwIfSolidityBuildFailed } from "../solidity/build-results.js";
 
-import {
-  getArtifacts as getEdrArtifacts,
-  getBuildInfos,
-} from "./edr-artifacts.js";
+import { getEdrArtifacts, getBuildInfos } from "./edr-artifacts.js";
 import {
   isTestSuiteArtifact,
   solidityTestConfigToRunOptions,
