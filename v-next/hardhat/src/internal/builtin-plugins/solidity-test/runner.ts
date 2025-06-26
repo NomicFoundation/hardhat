@@ -8,21 +8,13 @@ import type {
 
 import { Readable } from "node:stream";
 
-import { EdrContext, L1_CHAIN_TYPE } from "@ignored/edr-optimism";
+import { L1_CHAIN_TYPE } from "@ignored/edr-optimism";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 
+import { getGlobalEdrContext } from "../../edr/context.js";
+
 import { formatArtifactId } from "./formatters.js";
-
-let edrContext: EdrContext | undefined;
-
-function getEdrContext(): EdrContext {
-  if (edrContext === undefined) {
-    edrContext = new EdrContext();
-  }
-
-  return edrContext;
-}
 
 export interface RunOptions {
   /**
@@ -85,7 +77,9 @@ export function run(
 
       // TODO: Add support for predeploys once EDR supports them.
       try {
-        await getEdrContext().runSolidityTests(
+        const edrContext = await getGlobalEdrContext();
+
+        await edrContext.runSolidityTests(
           L1_CHAIN_TYPE,
           artifacts,
           testSuiteIds,
