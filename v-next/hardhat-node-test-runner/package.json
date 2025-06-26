@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-node-test-runner",
-  "version": "3.0.0-next.19",
+  "version": "3.0.0-next.20",
   "description": "A node:test runner",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-node-test-runner",
   "repository": {
@@ -52,14 +52,14 @@
     "typescript": "~5.8.0"
   },
   "dependencies": {
-    "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.19",
-    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0-next.19",
-    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.19",
-    "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.0-next.19",
+    "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.20",
+    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0-next.20",
+    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.20",
+    "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.0-next.20",
     "tsx": "^4.19.3",
     "zod": "^3.23.8"
   },
   "peerDependencies": {
-    "hardhat": "workspace:^3.0.0-next.19"
+    "hardhat": "workspace:^3.0.0-next.20"
   }
 }
