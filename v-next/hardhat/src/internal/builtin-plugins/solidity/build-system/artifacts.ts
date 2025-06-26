@@ -1,4 +1,8 @@
-import type { Artifact, BuildInfo } from "../../../../types/artifacts.js";
+import type {
+  Artifact,
+  BuildInfo,
+  LinkReferences,
+} from "../../../../types/artifacts.js";
 import type { CompilationJob } from "../../../../types/solidity/compilation-job.js";
 import type {
   CompilerOutput,
@@ -17,6 +21,7 @@ export function getContractArtifact(
   inputSourceName: string,
   contractName: string,
   contract: CompilerOutputContract,
+  publicSourceNameMap: Record<string, string>,
 ): Artifact {
   const evmBytecode = contract.evm?.bytecode;
   const bytecode: string =
@@ -42,14 +47,32 @@ export function getContractArtifact(
     abi: contract.abi,
     bytecode,
     deployedBytecode,
-    linkReferences,
-    deployedLinkReferences,
+    linkReferences: applyPublicSourceNamesToLinkReferences(
+      linkReferences,
+      publicSourceNameMap,
+    ),
+    deployedLinkReferences: applyPublicSourceNamesToLinkReferences(
+      deployedLinkReferences,
+      publicSourceNameMap,
+    ),
     immutableReferences,
     inputSourceName,
     buildInfoId,
   };
 
   return artifact;
+}
+
+function applyPublicSourceNamesToLinkReferences(
+  linkReferences: LinkReferences,
+  publicSourceNameMap: Record<string, string>,
+): LinkReferences {
+  return Object.fromEntries(
+    Object.entries(linkReferences).map(([sourceName, references]) => [
+      publicSourceNameMap[sourceName] ?? sourceName,
+      references,
+    ]),
+  );
 }
 
 export function getArtifactsDeclarationFile(artifacts: Artifact[]): string {

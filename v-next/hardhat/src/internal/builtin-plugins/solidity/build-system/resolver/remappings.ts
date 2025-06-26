@@ -32,17 +32,26 @@ export function parseRemappingString(remapping: string): Remapping | undefined {
   return { context, prefix, target };
 }
 
-export function selectBestRemapping<RemappingT extends Remapping>(
+/**
+ * Selects the best remapping for a direct import, if any.
+ *
+ * @param fromSouceName The source name fo the file with the import.
+ * @param directImport The import path, which must be a direct import.
+ * @param remappings The array of remmappings to consider.
+ * @returns The best remappings index or undefined if none is found.
+ */
+export function selectBestRemapping(
   fromSouceName: string,
   directImport: string,
-  remappings: RemappingT[],
-): RemappingT | undefined {
-  let bestRemapping: RemappingT | undefined;
+  remappings: Remapping[],
+): number | undefined {
+  let bestRemappingIndex: number | undefined;
 
   let longestContext = 0;
   let longestPrefix = 0;
 
-  for (const remapping of remappings) {
+  for (let i = 0; i < remappings.length; i++) {
+    const remapping = remappings[i];
     const contextLength = remapping.context.length;
 
     if (contextLength < longestContext) {
@@ -66,10 +75,10 @@ export function selectBestRemapping<RemappingT extends Remapping>(
 
     longestContext = contextLength;
     longestPrefix = remapping.prefix.length;
-    bestRemapping = remapping;
+    bestRemappingIndex = i;
   }
 
-  return bestRemapping;
+  return bestRemappingIndex;
 }
 
 /**

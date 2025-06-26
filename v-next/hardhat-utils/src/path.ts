@@ -31,11 +31,21 @@ export function resolveFromRoot(root: string, target: string): string {
  * @param folder The absolute path to the folder.
  * @returns The shorter path, if possible, or the original path.
  */
-export function shortenPath(
-  absolutePath: string,
-  folder: string = process.cwd(),
-): string {
-  const relativePath = path.relative(folder, absolutePath);
+export function shortenPath(absolutePath: string): string {
+  const cwd = process.cwd();
+  let relativePath = path.relative(cwd, absolutePath);
+
+  if (relativePath === "..") {
+    return ".." + path.sep;
+  }
+
+  if (
+    !relativePath.startsWith(".." + path.sep) &&
+    !relativePath.startsWith("." + path.sep) &&
+    !path.isAbsolute(relativePath)
+  ) {
+    relativePath = "." + path.sep + relativePath;
+  }
 
   if (relativePath.length < absolutePath.length) {
     return relativePath;
