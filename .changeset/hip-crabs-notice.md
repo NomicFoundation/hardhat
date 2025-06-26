@@ -9,4 +9,4 @@
 "hardhat": patch
 ---
 
-Revamp the dependency resolution system: adding support for `remappings.txt` files, and dropping support for remappings from the config.
+Revamp the dependency resolution system: adding support for `remappings.txt` files, dropping support for `remappings` from the config, and changing how remappings into npm packages are written. 
