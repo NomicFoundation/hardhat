@@ -1,5 +1,11 @@
 # hardhat
 
+## 3.0.0-next.20
+
+### Patch Changes
+
+- 59daf94: Fix how solidity tests are run and displayed
+
 ## 3.0.0-next.19
 
 ### Patch Changes
