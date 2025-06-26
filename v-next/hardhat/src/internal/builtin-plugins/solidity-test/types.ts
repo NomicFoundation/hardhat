@@ -1,4 +1,4 @@
-import type { SuiteResult } from "@ignored/edr";
+import type { SuiteResult } from "@ignored/edr-optimism";
 import type { Readable } from "node:stream";
 
 export type TestStatus = "Success" | "Failure" | "Skipped";

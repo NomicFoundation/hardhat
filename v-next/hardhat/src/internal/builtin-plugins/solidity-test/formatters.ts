@@ -1,4 +1,4 @@
-import type { ArtifactId } from "@ignored/edr";
+import type { ArtifactId } from "@ignored/edr-optimism";
 
 import chalk from "chalk";
 

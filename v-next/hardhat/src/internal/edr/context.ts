@@ -4,8 +4,10 @@ import {
   genericChainProviderFactory,
   L1_CHAIN_TYPE,
   l1ProviderFactory,
+  l1SolidityTestRunnerFactory,
   OP_CHAIN_TYPE,
   opProviderFactory,
+  opSolidityTestRunnerFactory,
 } from "@ignored/edr-optimism";
 
 let _globalEdrContext: EdrContext | undefined;
@@ -24,6 +26,14 @@ export async function getGlobalEdrContext(): Promise<EdrContext> {
     await _globalEdrContext.registerProviderFactory(
       OP_CHAIN_TYPE,
       opProviderFactory(),
+    );
+    await _globalEdrContext.registerSolidityTestRunnerFactory(
+      L1_CHAIN_TYPE,
+      l1SolidityTestRunnerFactory(),
+    );
+    await _globalEdrContext.registerSolidityTestRunnerFactory(
+      OP_CHAIN_TYPE,
+      opSolidityTestRunnerFactory(),
     );
   }
 

@@ -1,5 +1,8 @@
 import type { ArtifactManager, BuildInfo } from "../../../types/artifacts.js";
-import type { BuildInfoAndOutput, Artifact as EdrArtifact } from "@ignored/edr";
+import type {
+  BuildInfoAndOutput,
+  Artifact as EdrArtifact,
+} from "@ignored/edr-optimism";
 
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import {
