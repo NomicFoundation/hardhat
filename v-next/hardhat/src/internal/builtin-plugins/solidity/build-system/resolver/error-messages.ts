@@ -125,7 +125,7 @@ You should write your the path of your imports into npm modules just as you woul
     }
 
     case ImportResolutionErrorType.IMPORT_WITH_REMAPPING_ERRORS: {
-      return `These remapping errors where found while trying to resolve the import:
+      return `These remapping errors were found while trying to resolve the import:
 
 ${formatRemappingErrors(error.remappingErrors)}`;
     }
