@@ -264,11 +264,11 @@ describe("hook-handlers/config", () => {
 
       assert.deepEqual(resolvedConfig.verify, {
         blockscout: {
-          enabled: false,
+          enabled: true,
         },
         etherscan: {
           apiKey: new MockResolvedConfigurationVariable(""),
-          enabled: false,
+          enabled: true,
         },
       });
     });
