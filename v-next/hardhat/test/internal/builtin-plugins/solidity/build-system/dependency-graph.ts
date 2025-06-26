@@ -1,4 +1,8 @@
-import type { ProjectResolvedFile } from "../../../../../src/types/solidity.js";
+import type {
+  ProjectResolvedFile,
+  ResolvedNpmPackage,
+} from "../../../../../src/types/solidity.js";
+import type { Return } from "../../../../../src/types/utils.js";
 
 import assert from "node:assert/strict";
 import path from "node:path";
@@ -10,6 +14,13 @@ import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { DependencyGraphImplementation } from "../../../../../src/internal/builtin-plugins/solidity/build-system/dependency-graph.js";
 import { ProjectResolvedFileImplementation } from "../../../../../src/internal/builtin-plugins/solidity/build-system/resolved-file.js";
 
+const testHardhatProjectNpmPackage: ResolvedNpmPackage = {
+  name: "hardhat-project",
+  version: "1.2.3",
+  rootFsPath: "/Users/root/",
+  rootSourceName: "project",
+};
+
 function createProjectResolvedFile(sourceName: string): ProjectResolvedFile {
   return new ProjectResolvedFileImplementation({
     sourceName,
@@ -19,6 +30,7 @@ function createProjectResolvedFile(sourceName: string): ProjectResolvedFile {
       importPaths: [],
       versionPragmas: [],
     },
+    package: testHardhatProjectNpmPackage,
   });
 }
 
@@ -132,7 +144,6 @@ describe("DependencyGraphImplementation", () => {
     it("should add the downsteam dependency to the list of dependencies of the upstream dependency", () => {
       const upstreamDependency = createProjectResolvedFile("upstream.sol");
       const downstreamDependency = createProjectResolvedFile("downstream.sol");
-
       dependencyGraph.addRootFile(
         upstreamDependency.sourceName,
         upstreamDependency,
@@ -141,21 +152,67 @@ describe("DependencyGraphImplementation", () => {
         downstreamDependency.sourceName,
         downstreamDependency,
       );
-
       assert.ok(
         !dependencyGraph
           .getDependencies(upstreamDependency)
-          .has(downstreamDependency),
+          .values()
+          .some((dep) => dep.file === downstreamDependency),
         `getDependencies should return false for file ${downstreamDependency.sourceName}`,
       );
-
       dependencyGraph.addDependency(upstreamDependency, downstreamDependency);
-
       assert.ok(
         dependencyGraph
           .getDependencies(upstreamDependency)
-          .has(downstreamDependency),
+          .values()
+          .some((dep) => dep.file === downstreamDependency),
         `getDependencies should return true for file ${downstreamDependency.sourceName}`,
+      );
+    });
+
+    it("Should accumulate all the remappings added for an edge", () => {
+      const a = createProjectResolvedFile("a.sol");
+      const b = createProjectResolvedFile("b.sol");
+
+      dependencyGraph.addRootFile(a.sourceName, a);
+      dependencyGraph.addRootFile(b.sourceName, b);
+      dependencyGraph.addDependency(a, b);
+      dependencyGraph.addDependency(a, b, "ab1");
+      dependencyGraph.addDependency(a, b, "ab2");
+      dependencyGraph.addDependency(a, b);
+      dependencyGraph.addDependency(a, b, "ab3");
+
+      dependencyGraph.addDependency(b, a);
+      dependencyGraph.addDependency(b, a, "ba1");
+      dependencyGraph.addDependency(b, a);
+      dependencyGraph.addDependency(b, a, "ba2");
+
+      assert.ok(
+        dependencyGraph
+          .getDependencies(a)
+          .values()
+          .some(
+            (dep) =>
+              dep.file === b &&
+              dep.remappings.size === 3 &&
+              dep.remappings.has("ab1") &&
+              dep.remappings.has("ab2") &&
+              dep.remappings.has("ab3"),
+          ),
+        "Should have the right edge",
+      );
+
+      assert.ok(
+        dependencyGraph
+          .getDependencies(b)
+          .values()
+          .some(
+            (dep) =>
+              dep.file === a &&
+              dep.remappings.size === 2 &&
+              dep.remappings.has("ba1") &&
+              dep.remappings.has("ba2"),
+          ),
+        "Should have the right edge",
       );
     });
   });
@@ -264,25 +321,28 @@ describe("DependencyGraphImplementation", () => {
   });
 
   describe("getDependencies", () => {
-    it("should return the list of dependencies for a given file if it exists", () => {
+    it("should return a set of dependencies for a given file if it exists", () => {
       const root = createProjectResolvedFile("root.sol");
-
       dependencyGraph.addRootFile(root.sourceName, root);
-
       const dependencies = [];
       for (let i = 0; i < 10; i++) {
         const dependency = createProjectResolvedFile(`dependency${i}.sol`);
-        dependencyGraph.addDependency(root, dependency);
+        dependencyGraph.addDependency(root, dependency, `dependency${i}.sol`);
         dependencies.push(dependency);
       }
-
       const actualDependencies = dependencyGraph.getDependencies(root);
-
       assert.equal(actualDependencies.size, 10);
       for (const dependency of dependencies) {
         assert.ok(
-          actualDependencies.has(dependency),
-          `getDependencies should return a set with ${dependency.sourceName} element`,
+          actualDependencies
+            .values()
+            .some(
+              (dep) =>
+                dep.file === dependency &&
+                dep.remappings.size === 1 &&
+                dep.remappings.has(dependency.sourceName),
+            ),
+          `getDependencies should return a set with ${dependency.sourceName} element and the remapping used`,
         );
       }
     });
@@ -366,6 +426,17 @@ describe("DependencyGraphImplementation", () => {
         nestedTransitiveDependency2,
       );
 
+      dependencyGraph.addDependency(
+        dependency1,
+        transitiveDependency1,
+        "remapping1",
+      );
+      dependencyGraph.addDependency(
+        dependency1,
+        transitiveDependency1,
+        "remapping2",
+      );
+
       const subgraph = dependencyGraph.getSubgraph(root1.sourceName);
 
       const roots = subgraph.getRoots();
@@ -416,6 +487,21 @@ describe("DependencyGraphImplementation", () => {
       assert.ok(
         files.includes(nestedTransitiveDependency2),
         `getAllFiles should include ${nestedTransitiveDependency2.sourceName}`,
+      );
+
+      // it should keep the remappings of the edges
+      assert.ok(
+        subgraph
+          .getDependencies(dependency1)
+          .values()
+          .some(
+            (dep) =>
+              dep.file === transitiveDependency1 &&
+              dep.remappings.size === 2 &&
+              dep.remappings.has("remapping1") &&
+              dep.remappings.has("remapping2"),
+          ),
+        `subgraphs should preserve the remappings of the edges`,
       );
     });
 
@@ -537,6 +623,70 @@ describe("DependencyGraphImplementation", () => {
         files.includes(root2),
         `getAllFiles should include ${root2.sourceName}`,
       );
+    });
+
+    it("Should merge the remappings of the edges", () => {
+      const a = createProjectResolvedFile("a.sol");
+      const b = createProjectResolvedFile("b.sol");
+      const c = createProjectResolvedFile("c.sol");
+      const d = createProjectResolvedFile("d.sol");
+      const e = createProjectResolvedFile("e.sol");
+
+      dependencyGraph.addRootFile(a.sourceName, a);
+      dependencyGraph.addRootFile(b.sourceName, b);
+      dependencyGraph.addRootFile(c.sourceName, c);
+
+      dependencyGraph.addDependency(a, b);
+      dependencyGraph.addDependency(a, c, "ac1");
+      dependencyGraph.addDependency(a, c, "ac2");
+      dependencyGraph.addDependency(b, c, "bc1");
+
+      const otherDependencyGraph = new DependencyGraphImplementation();
+      otherDependencyGraph.addRootFile(b.sourceName, b);
+      otherDependencyGraph.addRootFile(c.sourceName, c);
+      otherDependencyGraph.addRootFile(d.sourceName, d);
+      otherDependencyGraph.addRootFile(e.sourceName, e);
+
+      otherDependencyGraph.addDependency(b, c, "bc1");
+      otherDependencyGraph.addDependency(b, c, "bc2");
+      otherDependencyGraph.addDependency(b, d, "bd1");
+      otherDependencyGraph.addDependency(c, d, "cd1");
+
+      const mergedGraph = dependencyGraph.merge(otherDependencyGraph);
+
+      const expectedJson: Return<typeof mergedGraph.toJSON> = {
+        fileBySourceName: {
+          [a.sourceName]: a,
+          [b.sourceName]: b,
+          [c.sourceName]: c,
+          [d.sourceName]: d,
+          [e.sourceName]: e,
+        },
+        rootByPublicSourceName: {
+          [a.sourceName]: a.sourceName,
+          [b.sourceName]: b.sourceName,
+          [c.sourceName]: c.sourceName,
+          [d.sourceName]: d.sourceName,
+          [e.sourceName]: e.sourceName,
+        },
+        dependencies: {
+          [a.sourceName]: {
+            [b.sourceName]: [],
+            [c.sourceName]: ["ac1", "ac2"],
+          },
+          [b.sourceName]: {
+            [c.sourceName]: ["bc1", "bc2"],
+            [d.sourceName]: ["bd1"],
+          },
+          [c.sourceName]: {
+            [d.sourceName]: ["cd1"],
+          },
+          [d.sourceName]: {},
+          [e.sourceName]: {},
+        },
+      };
+
+      assert.deepEqual(mergedGraph.toJSON(), expectedJson);
     });
   });
 });
