@@ -1,4 +1,4 @@
-import type { EthereumProvider } from "hardhat/types";
+import type { EthereumProvider, Network } from "hardhat/types";
 
 import { expect, assert } from "chai";
 import sinon from "sinon";
@@ -17,12 +17,25 @@ describe("chains", () => {
 
     it("should return the chain corresponding to the chain id", async () => {
       const provider: EthereumProvider = new EthereumMockedProvider();
+      const network: Network = {
+        name: "mainnet",
+        config: {
+          gas: "auto",
+          gasPrice: "auto",
+          gasMultiplier: 0,
+          url: "",
+          timeout: 0,
+          httpHeaders: {},
+          accounts: []
+        },
+        provider,
+      }
       const sendStub = sinon.stub(provider, "send");
       sendStub.withArgs("eth_chainId").returns(Promise.resolve("0x1")); // mainnet chain id
       sendStub.withArgs("hardhat_metadata").throws();
       sendStub.withArgs("anvil_nodeInfo").throws();
 
-      const chain = await getChain(provider);
+      const chain = await getChain(network);
 
       expect(chain).to.deep.equal(chains.mainnet);
       assert.equal(sendStub.callCount, 1);
@@ -30,36 +43,75 @@ describe("chains", () => {
 
     it("should return the hardhat chain if the chain id is 31337 and the network is hardhat", async () => {
       const provider: EthereumProvider = new EthereumMockedProvider();
+      const network: Network = {
+        name: "hardhat",
+        config: {
+          gas: "auto",
+          gasPrice: "auto",
+          gasMultiplier: 0,
+          url: "",
+          timeout: 0,
+          httpHeaders: {},
+          accounts: []
+        },
+        provider,
+      }
       const sendStub = sinon.stub(provider, "send");
       sendStub.withArgs("eth_chainId").returns(Promise.resolve("0x7a69")); // 31337 in hex
       sendStub.withArgs("hardhat_metadata").returns(Promise.resolve({}));
       sendStub.withArgs("anvil_nodeInfo").throws();
 
-      const chain = await getChain(provider);
+      const chain = await getChain(network);
 
       expect(chain).to.deep.equal(chains.hardhat);
     });
 
     it("should return the foundry chain if the chain id is 31337 and the network is foundry", async () => {
       const provider: EthereumProvider = new EthereumMockedProvider();
+      const network: Network = {
+        name: "foundry",
+        config: {
+          gas: "auto",
+          gasPrice: "auto",
+          gasMultiplier: 0,
+          url: "",
+          timeout: 0,
+          httpHeaders: {},
+          accounts: []
+        },
+        provider,
+      }
       const sendStub = sinon.stub(provider, "send");
       sendStub.withArgs("eth_chainId").returns(Promise.resolve("0x7a69")); // 31337 in hex
       sendStub.withArgs("hardhat_metadata").throws();
       sendStub.withArgs("anvil_nodeInfo").returns(Promise.resolve({}));
 
-      const chain = await getChain(provider);
+      const chain = await getChain(network);
 
       expect(chain).to.deep.equal(chains.foundry);
     });
 
     it("should throw if the chain id is 31337 and the network is neither hardhat nor foundry", async () => {
       const provider: EthereumProvider = new EthereumMockedProvider();
+      const network: Network = {
+        name: "foundry",
+        config: {
+          gas: "auto",
+          gasPrice: "auto",
+          gasMultiplier: 0,
+          url: "",
+          timeout: 0,
+          httpHeaders: {},
+          accounts: []
+        },
+        provider,
+      }
       const sendStub = sinon.stub(provider, "send");
       sendStub.withArgs("eth_chainId").returns(Promise.resolve("0x7a69")); // 31337 in hex
       sendStub.withArgs("hardhat_metadata").throws();
       sendStub.withArgs("anvil_nodeInfo").throws();
 
-      await expect(getChain(provider)).to.be.rejectedWith(
+      await expect(getChain(network)).to.be.rejectedWith(
         `The chain id corresponds to a development network but we couldn't detect which one.
 Please report this issue if you're using Hardhat or Foundry.`
       );
@@ -67,25 +119,51 @@ Please report this issue if you're using Hardhat or Foundry.`
 
     it("should throw if the chain id is not 31337 and there is no chain with that id", async () => {
       const provider: EthereumProvider = new EthereumMockedProvider();
+      const network: Network = {
+        name: "unknown",
+        config: {
+          gas: "auto",
+          gasPrice: "auto",
+          gasMultiplier: 0,
+          url: "",
+          timeout: 0,
+          httpHeaders: {},
+          accounts: []
+        },
+        provider,
+      }
       const sendStub = sinon.stub(provider, "send");
       sendStub.withArgs("eth_chainId").returns(Promise.resolve("0x0")); // fake chain id 0
       sendStub.withArgs("hardhat_metadata").throws();
       sendStub.withArgs("anvil_nodeInfo").throws();
 
-      await expect(getChain(provider)).to.be.rejectedWith(
+      await expect(getChain(network)).to.be.rejectedWith(
         /No network with chain id 0 found/
       );
     });
 
     it("should throw if the chain id is not 31337 and there are multiple chains with that id", async () => {
       const provider: EthereumProvider = new EthereumMockedProvider();
+      const network: Network = {
+        name: "Zora Goerli",
+        config: {
+          gas: "auto",
+          gasPrice: "auto",
+          gasMultiplier: 0,
+          url: "",
+          timeout: 0,
+          httpHeaders: {},
+          accounts: []
+        },
+        provider,
+      }
       const sendStub = sinon.stub(provider, "send");
       // chain id 999 corresponds to Wanchain Testnet but also Zora Goerli Testnet
       sendStub.withArgs("eth_chainId").returns(Promise.resolve("0x3e7"));
       sendStub.withArgs("hardhat_metadata").throws();
       sendStub.withArgs("anvil_nodeInfo").throws();
 
-      await expect(getChain(provider)).to.be.rejectedWith(
+      await expect(getChain(network)).to.be.rejectedWith(
         /Multiple networks with chain id 999 found./
       );
     });
@@ -138,12 +216,25 @@ Please report this issue if you're using Hardhat or Foundry.`
 
     it("should return a hardhat chain with the custom chainId", async function () {
       const provider: EthereumProvider = new EthereumMockedProvider();
+      const network: Network = {
+        name: "Hardhat",
+        config: {
+          gas: "auto",
+          gasPrice: "auto",
+          gasMultiplier: 0,
+          url: "",
+          timeout: 0,
+          httpHeaders: {},
+          accounts: []
+        },
+        provider,
+      }
       const sendStub = sinon.stub(provider, "send");
       sendStub.withArgs("eth_chainId").returns(Promise.resolve("0x3039")); // 12345 in hex
       sendStub.withArgs("hardhat_metadata").returns(Promise.resolve({}));
       sendStub.withArgs("anvil_nodeInfo").throws();
 
-      const chain = await getChain(provider);
+      const chain = await getChain(network);
 
       expect(chain.id).to.equal(12345);
       expect(chain.name).to.equal("Hardhat");
@@ -151,12 +242,25 @@ Please report this issue if you're using Hardhat or Foundry.`
 
     it("should return a foundry chain with the custom chainId", async function () {
       const provider: EthereumProvider = new EthereumMockedProvider();
+      const network: Network = {
+        name: "Foundry",
+        config: {
+          gas: "auto",
+          gasPrice: "auto",
+          gasMultiplier: 0,
+          url: "",
+          timeout: 0,
+          httpHeaders: {},
+          accounts: []
+        },
+        provider,
+      }
       const sendStub = sinon.stub(provider, "send");
       sendStub.withArgs("eth_chainId").returns(Promise.resolve("0x3039")); // 12345 in hex
       sendStub.withArgs("anvil_nodeInfo").returns(Promise.resolve({}));
       sendStub.withArgs("hardhat_metadata").throws();
 
-      const chain = await getChain(provider);
+      const chain = await getChain(network);
 
       expect(chain.id).to.equal(12345);
       expect(chain.name).to.equal("Foundry");

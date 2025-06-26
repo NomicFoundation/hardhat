@@ -1,6 +1,7 @@
 import type {
   EthereumProvider,
   HardhatRuntimeEnvironment,
+  Network,
 } from "hardhat/types";
 import type { Abi, Address, Hex } from "viem";
 import type {
@@ -52,8 +53,8 @@ export async function deployContract(
     ...deployContractParameters
   } = config;
   const [publicClient, walletClient, { abi, bytecode }] = await Promise.all([
-    client?.public ?? getPublicClient(network.provider),
-    client?.wallet ?? getDefaultWalletClient(network.provider, network.name),
+    client?.public ?? getPublicClient(network),
+    client?.wallet ?? getDefaultWalletClient(network),
     getContractAbiAndBytecode(artifacts, contractName, libraries),
   ]);
 
@@ -139,8 +140,8 @@ export async function sendDeploymentTransaction(
 }> {
   const { client, libraries = {}, ...deployContractParameters } = config;
   const [publicClient, walletClient, { abi, bytecode }] = await Promise.all([
-    client?.public ?? getPublicClient(network.provider),
-    client?.wallet ?? getDefaultWalletClient(network.provider, network.name),
+    client?.public ?? getPublicClient(network),
+    client?.wallet ?? getDefaultWalletClient(network),
     getContractAbiAndBytecode(artifacts, contractName, libraries),
   ]);
 
@@ -214,9 +215,9 @@ export async function getContractAt(
   config: GetContractAtConfig = {}
 ): Promise<GetContractReturnType> {
   const [publicClient, walletClient, contractArtifact] = await Promise.all([
-    config.client?.public ?? getPublicClient(network.provider),
+    config.client?.public ?? getPublicClient(network),
     config.client?.wallet ??
-      getDefaultWalletClient(network.provider, network.name),
+      getDefaultWalletClient(network),
     artifacts.readArtifact(contractName),
   ]);
 
@@ -248,10 +249,10 @@ async function innerGetContractAt(
 }
 
 async function getDefaultWalletClient(
-  provider: EthereumProvider,
-  networkName: string
+  network: Network
 ): Promise<WalletClient> {
-  const [defaultWalletClient] = await getWalletClients(provider);
+  const networkName = network.name;
+  const [defaultWalletClient] = await getWalletClients(network);
 
   if (defaultWalletClient === undefined) {
     throw new DefaultWalletClientNotFoundError(networkName);
