@@ -1,5 +1,13 @@
 # hardhat
 
+## 2.25.1
+
+### Patch Changes
+
+- 035fb94: Upgraded EDR to [v0.11.2](https://github.com/NomicFoundation/edr/releases/tag/%40nomicfoundation%2Fedr%400.11.2):
+
+  - Removed copying of account code for provider accounts in forked networks. Code was previously ignored for default accounts only, now also for user accounts.
+
 ## 2.25.0
 
 ### Minor Changes
