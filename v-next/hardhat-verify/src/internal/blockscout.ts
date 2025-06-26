@@ -1,7 +1,7 @@
 import type {
-  EtherscanGetSourceCodeResponse,
-  EtherscanResponse,
-} from "./etherscan.types.js";
+  BlockscoutGetSourceCodeResponse,
+  BlockscoutResponse,
+} from "./blockscout.types.js";
 import type {
   VerificationProvider,
   VerificationResponse,
@@ -21,53 +21,42 @@ import {
   postFormRequest,
 } from "@nomicfoundation/hardhat-utils/request";
 
-export const ETHERSCAN_PROVIDER_NAME: keyof VerificationProvidersConfig =
-  "etherscan";
+export const BLOCKSCOUT_PROVIDER_NAME: keyof VerificationProvidersConfig =
+  "blockscout";
 
 const VERIFICATION_STATUS_POLLING_SECONDS = 3;
 
-// TODO: we need to remove the apiUrl from the chain descriptors in
-// v-next/hardhat/src/internal/builtin-plugins/network-manager/chain-descriptors.ts
-// and use this as the default API URL for Etherscan v2
-// this.apiUrl = etherscanConfig.apiUrl ?? ETHERSCAN_API_URL;
-export const ETHERSCAN_API_URL = "https://api.etherscan.io/v2/api";
-
-export class Etherscan implements VerificationProvider {
-  public chainId: string;
+export class Blockscout implements VerificationProvider {
   public name: string;
   public url: string;
   public apiUrl: string;
-  public apiKey: string;
 
   readonly #dispatcher?: Dispatcher;
   readonly #pollingIntervalMs: number;
 
-  constructor(etherscanConfig: {
-    chainId: number;
+  constructor(blockscoutConfig: {
     name?: string;
     url: string;
-    apiKey: string;
+    apiUrl: string;
     dispatcher?: Dispatcher;
   }) {
-    this.chainId = String(etherscanConfig.chainId);
-    this.name = etherscanConfig.name ?? "Etherscan";
-    this.url = etherscanConfig.url;
-    this.apiUrl = ETHERSCAN_API_URL;
-    this.apiKey = etherscanConfig.apiKey;
-    this.#dispatcher = etherscanConfig.dispatcher;
+    this.name = blockscoutConfig.name ?? "Blockscout";
+    this.url = blockscoutConfig.url;
+    this.apiUrl = blockscoutConfig.apiUrl;
+    this.#dispatcher = blockscoutConfig.dispatcher;
     this.#pollingIntervalMs =
-      etherscanConfig.dispatcher !== undefined
+      blockscoutConfig.dispatcher !== undefined
         ? 0
         : VERIFICATION_STATUS_POLLING_SECONDS;
   }
 
-  public getContractUrl(address: string) {
+  public getContractUrl(address: string): string {
     return `${this.url}/address/${address}#code`;
   }
 
   public async isVerified(address: string): Promise<boolean> {
     let response: HttpResponse;
-    let responseBody: EtherscanGetSourceCodeResponse | undefined;
+    let responseBody: BlockscoutGetSourceCodeResponse | undefined;
     try {
       response = await getRequest(
         this.apiUrl,
@@ -75,8 +64,6 @@ export class Etherscan implements VerificationProvider {
           queryParams: {
             module: "contract",
             action: "getsourcecode",
-            chainid: this.chainId,
-            apikey: this.apiKey,
             address,
           },
         },
@@ -84,9 +71,9 @@ export class Etherscan implements VerificationProvider {
       );
       responseBody =
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-        -- Cast to EtherscanGetSourceCodeResponse because that's what we expect from the API
-        TODO: check if the API returns a different type and throw an error if it does */
-        (await response.body.json()) as EtherscanGetSourceCodeResponse;
+          -- Cast to BlockscoutGetSourceCodeResponse because that's what we expect from the API
+          TODO: check if the API returns a different type and throw an error if it does */
+        (await response.body.json()) as BlockscoutGetSourceCodeResponse;
     } catch (error) {
       ensureError(error);
 
@@ -140,7 +127,7 @@ export class Etherscan implements VerificationProvider {
       constructorArguments,
     };
     let response: HttpResponse;
-    let responseBody: EtherscanResponse | undefined;
+    let responseBody: BlockscoutResponse | undefined;
     try {
       response = await postFormRequest(
         this.apiUrl,
@@ -149,17 +136,15 @@ export class Etherscan implements VerificationProvider {
           queryParams: {
             module: "contract",
             action: "verifysourcecode",
-            chainid: this.chainId,
-            apikey: this.apiKey,
           },
         },
         this.#dispatcher,
       );
       responseBody =
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-        -- Cast to EtherscanResponse because that's what we expect from the API
+        -- Cast to BlockscoutResponse because that's what we expect from the API
         TODO: check if the API returns a different type and throw an error if it does */
-        (await response.body.json()) as EtherscanResponse;
+        (await response.body.json()) as BlockscoutResponse;
     } catch (error) {
       ensureError(error);
 
@@ -189,9 +174,9 @@ export class Etherscan implements VerificationProvider {
       );
     }
 
-    const etherscanResponse = new EtherscanVerificationResponse(responseBody);
+    const blockscoutResponse = new BlockscoutVerificationResponse(responseBody);
 
-    if (etherscanResponse.isBytecodeMissingInNetworkError()) {
+    if (blockscoutResponse.isBytecodeMissingInNetworkError()) {
       throw new HardhatError(
         HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.CONTRACT_VERIFICATION_MISSING_BYTECODE,
         {
@@ -201,7 +186,7 @@ export class Etherscan implements VerificationProvider {
       );
     }
 
-    if (etherscanResponse.isAlreadyVerified()) {
+    if (blockscoutResponse.isAlreadyVerified()) {
       throw new HardhatError(
         HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.CONTRACT_ALREADY_VERIFIED,
         {
@@ -211,14 +196,24 @@ export class Etherscan implements VerificationProvider {
       );
     }
 
-    if (!etherscanResponse.isOk()) {
+    if (blockscoutResponse.addressIsNotAContract()) {
       throw new HardhatError(
-        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.CONTRACT_VERIFICATION_REQUEST_FAILED,
-        { message: etherscanResponse.message },
+        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.ADDRESS_NOT_A_CONTRACT,
+        {
+          verificationProvider: this.name,
+          address: contractAddress,
+        },
       );
     }
 
-    return etherscanResponse.message;
+    if (!blockscoutResponse.isOk()) {
+      throw new HardhatError(
+        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.CONTRACT_VERIFICATION_REQUEST_FAILED,
+        { message: blockscoutResponse.message },
+      );
+    }
+
+    return blockscoutResponse.message;
   }
 
   public async pollVerificationStatus(
@@ -230,7 +225,7 @@ export class Etherscan implements VerificationProvider {
     message: string;
   }> {
     let response: HttpResponse;
-    let responseBody: EtherscanResponse | undefined;
+    let responseBody: BlockscoutResponse | undefined;
     try {
       response = await getRequest(
         this.apiUrl,
@@ -238,8 +233,6 @@ export class Etherscan implements VerificationProvider {
           queryParams: {
             module: "contract",
             action: "checkverifystatus",
-            chainid: this.chainId,
-            apikey: this.apiKey,
             guid,
           },
         },
@@ -247,9 +240,9 @@ export class Etherscan implements VerificationProvider {
       );
       responseBody =
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-        -- Cast to EtherscanResponse because that's what we expect from the API
+        -- Cast to BlockscoutResponse because that's what we expect from the API
         TODO: check if the API returns a different type and throw an error if it does */
-        (await response.body.json()) as EtherscanResponse;
+        (await response.body.json()) as BlockscoutResponse;
     } catch (error) {
       ensureError(error);
 
@@ -279,17 +272,17 @@ export class Etherscan implements VerificationProvider {
       );
     }
 
-    const etherscanResponse = new EtherscanVerificationStatusResponse(
+    const blockscoutResponse = new BlockscoutVerificationStatusResponse(
       responseBody,
     );
 
-    if (etherscanResponse.isPending()) {
+    if (blockscoutResponse.isPending()) {
       await sleep(this.#pollingIntervalMs);
 
       return this.pollVerificationStatus(guid, contractAddress, contractName);
     }
 
-    if (etherscanResponse.isAlreadyVerified()) {
+    if (blockscoutResponse.isAlreadyVerified()) {
       throw new HardhatError(
         HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.CONTRACT_ALREADY_VERIFIED,
         {
@@ -299,33 +292,33 @@ export class Etherscan implements VerificationProvider {
       );
     }
 
-    if (!etherscanResponse.isOk()) {
+    if (!blockscoutResponse.isOk()) {
       throw new HardhatError(
         HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.CONTRACT_VERIFICATION_STATUS_POLLING_FAILED,
-        { message: etherscanResponse.message },
+        { message: blockscoutResponse.message },
       );
     }
 
-    if (!(etherscanResponse.isFailure() || etherscanResponse.isSuccess())) {
+    if (!(blockscoutResponse.isFailure() || blockscoutResponse.isSuccess())) {
       // Reaching this point shouldn't be possible unless the API is behaving in a new way.
       throw new HardhatError(
         HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.CONTRACT_VERIFICATION_UNEXPECTED_RESPONSE,
-        { message: etherscanResponse.message },
+        { message: blockscoutResponse.message },
       );
     }
 
     return {
-      success: etherscanResponse.isSuccess(),
-      message: etherscanResponse.message,
+      success: blockscoutResponse.isSuccess(),
+      message: blockscoutResponse.message,
     };
   }
 }
 
-class EtherscanVerificationResponse implements VerificationResponse {
+class BlockscoutVerificationResponse implements VerificationResponse {
   public readonly status: number;
   public readonly message: string;
 
-  constructor(response: EtherscanResponse) {
+  constructor(response: BlockscoutResponse) {
     this.status = Number(response.status);
     this.message = response.result;
   }
@@ -335,10 +328,11 @@ class EtherscanVerificationResponse implements VerificationResponse {
   }
 
   public isAlreadyVerified(): boolean {
-    return (
-      this.message.startsWith("Contract source code already verified") ||
-      this.message.startsWith("Already Verified")
-    );
+    return this.message.startsWith("Smart-contract already verified.");
+  }
+
+  public addressIsNotAContract(): boolean {
+    return this.message.startsWith("The address is not a smart contract");
   }
 
   public isOk(): boolean {
@@ -346,13 +340,13 @@ class EtherscanVerificationResponse implements VerificationResponse {
   }
 }
 
-class EtherscanVerificationStatusResponse
+class BlockscoutVerificationStatusResponse
   implements VerificationStatusResponse
 {
   public readonly status: number;
   public readonly message: string;
 
-  constructor(response: EtherscanResponse) {
+  constructor(response: BlockscoutResponse) {
     this.status = Number(response.status);
     this.message = response.result;
   }
@@ -370,10 +364,7 @@ class EtherscanVerificationStatusResponse
   }
 
   public isAlreadyVerified(): boolean {
-    return (
-      this.message.startsWith("Contract source code already verified") ||
-      this.message.startsWith("Already Verified")
-    );
+    return this.message.startsWith("Smart-contract already verified.");
   }
 
   public isOk(): boolean {

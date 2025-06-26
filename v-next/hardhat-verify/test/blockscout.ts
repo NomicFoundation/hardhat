@@ -5,19 +5,18 @@ import { beforeEach, describe, it } from "node:test";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
-import { Etherscan, ETHERSCAN_API_URL } from "../src/internal/etherscan.js";
+import { Blockscout } from "../src/internal/blockscout.js";
 
 import { initializeTestDispatcher } from "./utils.js";
 
-describe("etherscan", () => {
-  describe("Etherscan class", async () => {
-    const etherscanConfig = {
-      chainId: 11_155_111,
-      name: "SepoliaScan",
+describe("blockscout", () => {
+  describe("Blockscout class", async () => {
+    const blockscoutConfig = {
+      name: "SepoliaScout",
       url: "http://localhost",
-      apiKey: "someApiKey",
+      apiUrl: "https://api.localhost/api",
     };
-    const etherscanApiUrl = new URL(ETHERSCAN_API_URL).origin;
+    const blockscoutApiUrl = new URL(blockscoutConfig.apiUrl).origin;
     const address = "0x1234567890abcdef1234567890abcdef12345678";
     const contract = "contracts/Test.sol:Test";
     const sourceCode =
@@ -28,37 +27,36 @@ describe("etherscan", () => {
 
     describe("constructor", () => {
       it("should create an instance with the correct properties", () => {
-        const etherscan = new Etherscan(etherscanConfig);
+        const blockscout = new Blockscout(blockscoutConfig);
 
-        assert.equal(etherscan.chainId, "11155111");
-        assert.equal(etherscan.name, etherscanConfig.name);
-        assert.equal(etherscan.url, etherscanConfig.url);
-        assert.equal(etherscan.apiKey, etherscanConfig.apiKey);
+        assert.equal(blockscout.name, blockscoutConfig.name);
+        assert.equal(blockscout.url, blockscoutConfig.url);
+        assert.equal(blockscout.apiUrl, blockscoutConfig.apiUrl);
       });
 
-      it('should default to "Etherscan" if no name is provided', () => {
-        const etherscan = new Etherscan({
-          ...etherscanConfig,
+      it('should default to "Blockscout" if no name is provided', () => {
+        const blockscout = new Blockscout({
+          ...blockscoutConfig,
           name: undefined,
         });
 
-        assert.equal(etherscan.name, "Etherscan");
+        assert.equal(blockscout.name, "Blockscout");
       });
     });
 
     describe("getContractUrl", () => {
       it("should return the contract url", () => {
-        const etherscan = new Etherscan(etherscanConfig);
+        const blockscout = new Blockscout(blockscoutConfig);
         assert.equal(
-          etherscan.getContractUrl(address),
-          `${etherscanConfig.url}/address/${address}#code`,
+          blockscout.getContractUrl(address),
+          `${blockscoutConfig.url}/address/${address}#code`,
         );
       });
     });
 
     describe("isVerified", async () => {
       const testDispatcher = initializeTestDispatcher({
-        url: etherscanApiUrl,
+        url: blockscoutApiUrl,
       });
 
       let isVerifiedInterceptor: ReturnType<
@@ -66,21 +64,19 @@ describe("etherscan", () => {
       >;
       beforeEach(() => {
         isVerifiedInterceptor = testDispatcher.interceptable.intercept({
-          path: "/v2/api",
+          path: "/api",
           method: "GET",
           query: {
             module: "contract",
             action: "getsourcecode",
-            chainid: String(etherscanConfig.chainId),
-            apikey: etherscanConfig.apiKey,
             address,
           },
         });
       });
 
       it("should return true if the contract is verified", async () => {
-        const etherscan = new Etherscan({
-          ...etherscanConfig,
+        const blockscout = new Blockscout({
+          ...blockscoutConfig,
           dispatcher: testDispatcher.interceptable,
         });
 
@@ -95,7 +91,7 @@ describe("etherscan", () => {
 
         let response: boolean | undefined;
         try {
-          response = await etherscan.isVerified(address);
+          response = await blockscout.isVerified(address);
         } catch {
           assert.fail("Expected isVerified to not throw an error");
         }
@@ -104,8 +100,8 @@ describe("etherscan", () => {
       });
 
       it("should return false if the contract is not verified", async () => {
-        const etherscan = new Etherscan({
-          ...etherscanConfig,
+        const blockscout = new Blockscout({
+          ...blockscoutConfig,
           dispatcher: testDispatcher.interceptable,
         });
 
@@ -115,7 +111,7 @@ describe("etherscan", () => {
 
         let response: boolean | undefined;
         try {
-          response = await etherscan.isVerified(address);
+          response = await blockscout.isVerified(address);
         } catch {
           assert.fail("Expected isVerified to not throw an error");
         }
@@ -132,7 +128,7 @@ describe("etherscan", () => {
         });
 
         try {
-          response = await etherscan.isVerified(address);
+          response = await blockscout.isVerified(address);
         } catch {
           assert.fail("Expected isVerified to not throw an error");
         }
@@ -141,8 +137,8 @@ describe("etherscan", () => {
       });
 
       it("should throw an error if the request fails", async () => {
-        const etherscan = new Etherscan({
-          ...etherscanConfig,
+        const blockscout = new Blockscout({
+          ...blockscoutConfig,
           dispatcher: testDispatcher.interceptable,
         });
 
@@ -150,11 +146,11 @@ describe("etherscan", () => {
         isVerifiedInterceptor.replyWithError(new Error("Network error"));
 
         await assertRejectsWithHardhatError(
-          etherscan.isVerified(address),
+          blockscout.isVerified(address),
           HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_REQUEST_FAILED,
           {
-            name: etherscanConfig.name,
-            url: ETHERSCAN_API_URL,
+            name: blockscoutConfig.name,
+            url: blockscoutConfig.apiUrl,
             errorMessage: "Network error",
           },
         );
@@ -163,11 +159,11 @@ describe("etherscan", () => {
         isVerifiedInterceptor.reply(400, "Bad Request");
 
         await assertRejectsWithHardhatError(
-          etherscan.isVerified(address),
+          blockscout.isVerified(address),
           HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_REQUEST_FAILED,
           {
-            name: etherscanConfig.name,
-            url: ETHERSCAN_API_URL,
+            name: blockscoutConfig.name,
+            url: blockscoutConfig.apiUrl,
             // this message comes from ResponseStatusCodeError in hardhat-utils
             errorMessage: "Response status code 400: Bad Request",
           },
@@ -177,31 +173,31 @@ describe("etherscan", () => {
         isVerifiedInterceptor.reply(200, "Invalid json response");
 
         await assertRejectsWithHardhatError(
-          etherscan.isVerified(address),
+          blockscout.isVerified(address),
           HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_REQUEST_FAILED,
           {
-            name: etherscanConfig.name,
-            url: ETHERSCAN_API_URL,
+            name: blockscoutConfig.name,
+            url: blockscoutConfig.apiUrl,
             errorMessage: `Unexpected token 'I', "Invalid js"... is not valid JSON`,
           },
         );
       });
 
       it("should throw an error if the response status code is 300-399", async () => {
-        const etherscan = new Etherscan({
-          ...etherscanConfig,
+        const blockscout = new Blockscout({
+          ...blockscoutConfig,
           dispatcher: testDispatcher.interceptable,
         });
 
         isVerifiedInterceptor.reply(300, { result: "Redirection error" });
 
         await assertRejectsWithHardhatError(
-          etherscan.isVerified(address),
+          blockscout.isVerified(address),
           HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
             .EXPLORER_REQUEST_STATUS_CODE_ERROR,
           {
-            name: etherscanConfig.name,
-            url: ETHERSCAN_API_URL,
+            name: blockscoutConfig.name,
+            url: blockscoutConfig.apiUrl,
             statusCode: 300,
             errorMessage: "Redirection error",
           },
@@ -211,7 +207,7 @@ describe("etherscan", () => {
 
     describe("verify", async () => {
       const testDispatcher = initializeTestDispatcher({
-        url: etherscanApiUrl,
+        url: blockscoutApiUrl,
       });
 
       let verifyInterceptor: ReturnType<
@@ -219,13 +215,11 @@ describe("etherscan", () => {
       >;
       beforeEach(() => {
         verifyInterceptor = testDispatcher.interceptable.intercept({
-          path: "/v2/api",
+          path: "/api",
           method: "POST",
           query: {
             module: "contract",
             action: "verifysourcecode",
-            chainid: String(etherscanConfig.chainId),
-            apikey: etherscanConfig.apiKey,
           },
           body: querystring.stringify({
             contractaddress: address,
@@ -239,8 +233,8 @@ describe("etherscan", () => {
       });
 
       it("should return a guid if the verification request was submitted successfully", async () => {
-        const etherscan = new Etherscan({
-          ...etherscanConfig,
+        const blockscout = new Blockscout({
+          ...blockscoutConfig,
           dispatcher: testDispatcher.interceptable,
         });
 
@@ -252,7 +246,7 @@ describe("etherscan", () => {
 
         let response: string | undefined;
         try {
-          response = await etherscan.verify(
+          response = await blockscout.verify(
             address,
             sourceCode,
             contract,
@@ -267,8 +261,8 @@ describe("etherscan", () => {
       });
 
       it("should throw an error if the request fails", async () => {
-        const etherscan = new Etherscan({
-          ...etherscanConfig,
+        const blockscout = new Blockscout({
+          ...blockscoutConfig,
           dispatcher: testDispatcher.interceptable,
         });
 
@@ -276,7 +270,7 @@ describe("etherscan", () => {
         verifyInterceptor.replyWithError(new Error("Network error"));
 
         await assertRejectsWithHardhatError(
-          etherscan.verify(
+          blockscout.verify(
             address,
             sourceCode,
             contract,
@@ -285,8 +279,8 @@ describe("etherscan", () => {
           ),
           HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_REQUEST_FAILED,
           {
-            name: etherscanConfig.name,
-            url: ETHERSCAN_API_URL,
+            name: blockscoutConfig.name,
+            url: blockscoutConfig.apiUrl,
             errorMessage: "Network error",
           },
         );
@@ -295,7 +289,7 @@ describe("etherscan", () => {
         verifyInterceptor.reply(400, "Bad Request");
 
         await assertRejectsWithHardhatError(
-          etherscan.verify(
+          blockscout.verify(
             address,
             sourceCode,
             contract,
@@ -304,8 +298,8 @@ describe("etherscan", () => {
           ),
           HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_REQUEST_FAILED,
           {
-            name: etherscanConfig.name,
-            url: ETHERSCAN_API_URL,
+            name: blockscoutConfig.name,
+            url: blockscoutConfig.apiUrl,
             // this message comes from ResponseStatusCodeError in hardhat-utils
             errorMessage: "Response status code 400: Bad Request",
           },
@@ -315,7 +309,7 @@ describe("etherscan", () => {
         verifyInterceptor.reply(200, "Invalid json response");
 
         await assertRejectsWithHardhatError(
-          etherscan.verify(
+          blockscout.verify(
             address,
             sourceCode,
             contract,
@@ -324,23 +318,23 @@ describe("etherscan", () => {
           ),
           HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_REQUEST_FAILED,
           {
-            name: etherscanConfig.name,
-            url: ETHERSCAN_API_URL,
+            name: blockscoutConfig.name,
+            url: blockscoutConfig.apiUrl,
             errorMessage: `Unexpected token 'I', "Invalid js"... is not valid JSON`,
           },
         );
       });
 
       it("should throw an error if the response status code is 300-399", async () => {
-        const etherscan = new Etherscan({
-          ...etherscanConfig,
+        const blockscout = new Blockscout({
+          ...blockscoutConfig,
           dispatcher: testDispatcher.interceptable,
         });
 
         verifyInterceptor.reply(300, { result: "Redirection error" });
 
         await assertRejectsWithHardhatError(
-          etherscan.verify(
+          blockscout.verify(
             address,
             sourceCode,
             contract,
@@ -350,17 +344,17 @@ describe("etherscan", () => {
           HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
             .EXPLORER_REQUEST_STATUS_CODE_ERROR,
           {
-            name: etherscanConfig.name,
-            url: ETHERSCAN_API_URL,
+            name: blockscoutConfig.name,
+            url: blockscoutConfig.apiUrl,
             statusCode: 300,
             errorMessage: "Redirection error",
           },
         );
       });
 
-      it("should throw an error if Etherscan is unable to locate the contract", async () => {
-        const etherscan = new Etherscan({
-          ...etherscanConfig,
+      it("should throw an error if Blockscout is unable to locate the contract", async () => {
+        const blockscout = new Blockscout({
+          ...blockscoutConfig,
           dispatcher: testDispatcher.interceptable,
         });
 
@@ -369,7 +363,7 @@ describe("etherscan", () => {
         });
 
         await assertRejectsWithHardhatError(
-          etherscan.verify(
+          blockscout.verify(
             address,
             sourceCode,
             contract,
@@ -379,43 +373,24 @@ describe("etherscan", () => {
           HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
             .CONTRACT_VERIFICATION_MISSING_BYTECODE,
           {
-            url: ETHERSCAN_API_URL,
+            url: blockscoutConfig.apiUrl,
             address,
           },
         );
       });
 
       it("should throw an error if the contract is already verified", async () => {
-        const etherscan = new Etherscan({
-          ...etherscanConfig,
+        const blockscout = new Blockscout({
+          ...blockscoutConfig,
           dispatcher: testDispatcher.interceptable,
         });
 
         verifyInterceptor.reply(200, {
-          result: "Contract source code already verified",
+          result: "Smart-contract already verified.",
         });
 
         await assertRejectsWithHardhatError(
-          etherscan.verify(
-            address,
-            sourceCode,
-            contract,
-            compilerVersion,
-            constructorArguments,
-          ),
-          HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.CONTRACT_ALREADY_VERIFIED,
-          {
-            contract,
-            address,
-          },
-        );
-
-        verifyInterceptor.reply(200, {
-          result: "Already Verified",
-        });
-
-        await assertRejectsWithHardhatError(
-          etherscan.verify(
+          blockscout.verify(
             address,
             sourceCode,
             contract,
@@ -430,9 +405,35 @@ describe("etherscan", () => {
         );
       });
 
-      it("should throw an error if the etherscan response status is not 1", async () => {
-        const etherscan = new Etherscan({
-          ...etherscanConfig,
+      it("should throw an error if the address does not contain a contract", async () => {
+        const blockscout = new Blockscout({
+          ...blockscoutConfig,
+          dispatcher: testDispatcher.interceptable,
+        });
+
+        verifyInterceptor.reply(200, {
+          result: "The address is not a smart contract",
+        });
+
+        await assertRejectsWithHardhatError(
+          blockscout.verify(
+            address,
+            sourceCode,
+            contract,
+            compilerVersion,
+            constructorArguments,
+          ),
+          HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.ADDRESS_NOT_A_CONTRACT,
+          {
+            verificationProvider: blockscoutConfig.name,
+            address,
+          },
+        );
+      });
+
+      it("should throw an error if the blockscout response status is not 1", async () => {
+        const blockscout = new Blockscout({
+          ...blockscoutConfig,
           dispatcher: testDispatcher.interceptable,
         });
 
@@ -442,7 +443,7 @@ describe("etherscan", () => {
         });
 
         await assertRejectsWithHardhatError(
-          etherscan.verify(
+          blockscout.verify(
             address,
             sourceCode,
             contract,
@@ -458,7 +459,7 @@ describe("etherscan", () => {
 
     describe("pollVerificationStatus", async () => {
       const testDispatcher = initializeTestDispatcher({
-        url: etherscanApiUrl,
+        url: blockscoutApiUrl,
       });
 
       let pollVerificationStatusInterceptor: ReturnType<
@@ -467,21 +468,19 @@ describe("etherscan", () => {
       beforeEach(() => {
         pollVerificationStatusInterceptor =
           testDispatcher.interceptable.intercept({
-            path: "/v2/api",
+            path: "/api",
             method: "GET",
             query: {
               module: "contract",
               action: "checkverifystatus",
-              chainid: String(etherscanConfig.chainId),
-              apikey: etherscanConfig.apiKey,
               guid,
             },
           });
       });
 
       it("should return the verification status", async () => {
-        const etherscan = new Etherscan({
-          ...etherscanConfig,
+        const blockscout = new Blockscout({
+          ...blockscoutConfig,
           dispatcher: testDispatcher.interceptable,
         });
 
@@ -492,7 +491,7 @@ describe("etherscan", () => {
 
         let response: { success: boolean; message: string } | undefined;
         try {
-          response = await etherscan.pollVerificationStatus(
+          response = await blockscout.pollVerificationStatus(
             guid,
             address,
             contract,
@@ -510,7 +509,7 @@ describe("etherscan", () => {
         });
 
         try {
-          response = await etherscan.pollVerificationStatus(
+          response = await blockscout.pollVerificationStatus(
             guid,
             address,
             contract,
@@ -524,8 +523,8 @@ describe("etherscan", () => {
       });
 
       it("should poll the verification status until it is successful or fails", async () => {
-        const etherscan = new Etherscan({
-          ...etherscanConfig,
+        const blockscout = new Blockscout({
+          ...blockscoutConfig,
           dispatcher: testDispatcher.interceptable,
         });
 
@@ -549,7 +548,7 @@ describe("etherscan", () => {
 
         let response: { success: boolean; message: string } | undefined;
         try {
-          response = await etherscan.pollVerificationStatus(
+          response = await blockscout.pollVerificationStatus(
             guid,
             address,
             contract,
@@ -564,8 +563,8 @@ describe("etherscan", () => {
       });
 
       it("should throw an error if the request fails", async () => {
-        const etherscan = new Etherscan({
-          ...etherscanConfig,
+        const blockscout = new Blockscout({
+          ...blockscoutConfig,
           dispatcher: testDispatcher.interceptable,
         });
 
@@ -575,11 +574,11 @@ describe("etherscan", () => {
         );
 
         await assertRejectsWithHardhatError(
-          etherscan.pollVerificationStatus(guid, address, contract),
+          blockscout.pollVerificationStatus(guid, address, contract),
           HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_REQUEST_FAILED,
           {
-            name: etherscanConfig.name,
-            url: ETHERSCAN_API_URL,
+            name: blockscoutConfig.name,
+            url: blockscoutConfig.apiUrl,
             errorMessage: "Network error",
           },
         );
@@ -588,11 +587,11 @@ describe("etherscan", () => {
         pollVerificationStatusInterceptor.reply(400, "Bad Request");
 
         await assertRejectsWithHardhatError(
-          etherscan.pollVerificationStatus(guid, address, contract),
+          blockscout.pollVerificationStatus(guid, address, contract),
           HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_REQUEST_FAILED,
           {
-            name: etherscanConfig.name,
-            url: ETHERSCAN_API_URL,
+            name: blockscoutConfig.name,
+            url: blockscoutConfig.apiUrl,
             // this message comes from ResponseStatusCodeError in hardhat-utils
             errorMessage: "Response status code 400: Bad Request",
           },
@@ -602,19 +601,19 @@ describe("etherscan", () => {
         pollVerificationStatusInterceptor.reply(200, "Invalid json response");
 
         await assertRejectsWithHardhatError(
-          etherscan.pollVerificationStatus(guid, address, contract),
+          blockscout.pollVerificationStatus(guid, address, contract),
           HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_REQUEST_FAILED,
           {
-            name: etherscanConfig.name,
-            url: ETHERSCAN_API_URL,
+            name: blockscoutConfig.name,
+            url: blockscoutConfig.apiUrl,
             errorMessage: `Unexpected token 'I', "Invalid js"... is not valid JSON`,
           },
         );
       });
 
       it("should throw an error if the response status code is 300-399", async () => {
-        const etherscan = new Etherscan({
-          ...etherscanConfig,
+        const blockscout = new Blockscout({
+          ...blockscoutConfig,
           dispatcher: testDispatcher.interceptable,
         });
 
@@ -623,12 +622,12 @@ describe("etherscan", () => {
         });
 
         await assertRejectsWithHardhatError(
-          etherscan.pollVerificationStatus(guid, address, contract),
+          blockscout.pollVerificationStatus(guid, address, contract),
           HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
             .EXPLORER_REQUEST_STATUS_CODE_ERROR,
           {
-            name: etherscanConfig.name,
-            url: ETHERSCAN_API_URL,
+            name: blockscoutConfig.name,
+            url: blockscoutConfig.apiUrl,
             statusCode: 300,
             errorMessage: "Redirection error",
           },
@@ -636,30 +635,17 @@ describe("etherscan", () => {
       });
 
       it("should throw an error if the contract is already verified", async () => {
-        const etherscan = new Etherscan({
-          ...etherscanConfig,
+        const blockscout = new Blockscout({
+          ...blockscoutConfig,
           dispatcher: testDispatcher.interceptable,
         });
 
         pollVerificationStatusInterceptor.reply(200, {
-          result: "Contract source code already verified",
+          result: "Smart-contract already verified.",
         });
 
         await assertRejectsWithHardhatError(
-          etherscan.pollVerificationStatus(guid, address, contract),
-          HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.CONTRACT_ALREADY_VERIFIED,
-          {
-            contract,
-            address,
-          },
-        );
-
-        pollVerificationStatusInterceptor.reply(200, {
-          result: "Already Verified",
-        });
-
-        await assertRejectsWithHardhatError(
-          etherscan.pollVerificationStatus(guid, address, contract),
+          blockscout.pollVerificationStatus(guid, address, contract),
           HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.CONTRACT_ALREADY_VERIFIED,
           {
             contract,
@@ -668,9 +654,9 @@ describe("etherscan", () => {
         );
       });
 
-      it("should throw an error if the etherscan response status is not 1", async () => {
-        const etherscan = new Etherscan({
-          ...etherscanConfig,
+      it("should throw an error if the blockscout response status is not 1", async () => {
+        const blockscout = new Blockscout({
+          ...blockscoutConfig,
           dispatcher: testDispatcher.interceptable,
         });
 
@@ -680,16 +666,16 @@ describe("etherscan", () => {
         });
 
         await assertRejectsWithHardhatError(
-          etherscan.pollVerificationStatus(guid, address, contract),
+          blockscout.pollVerificationStatus(guid, address, contract),
           HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
             .CONTRACT_VERIFICATION_STATUS_POLLING_FAILED,
           { message: "Some error message" },
         );
       });
 
-      it("should throw an error if the etherscan response result is not 'Pass - Verified' or 'Fail - Unable to verify'", async () => {
-        const etherscan = new Etherscan({
-          ...etherscanConfig,
+      it("should throw an error if the blockscout response result is not 'Pass - Verified' or 'Fail - Unable to verify'", async () => {
+        const blockscout = new Blockscout({
+          ...blockscoutConfig,
           dispatcher: testDispatcher.interceptable,
         });
 
@@ -699,7 +685,7 @@ describe("etherscan", () => {
         });
 
         await assertRejectsWithHardhatError(
-          etherscan.pollVerificationStatus(guid, address, contract),
+          blockscout.pollVerificationStatus(guid, address, contract),
           HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL
             .CONTRACT_VERIFICATION_UNEXPECTED_RESPONSE,
           { message: "Some unexpected result" },
