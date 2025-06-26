@@ -2733,6 +2733,17 @@ chainDescriptors: {
         websiteDescription: `The block explorer responded that the address does not contain a contract. This usually means the address is incorrect, the contract was not deployed on the selected network, or there is a temporary issue with the block explorer not updating its index.
 Please verify the address and network, and try again later if necessary.`,
       },
+      EXPLORER_API_KEY_EMPTY: {
+        number: 80030,
+        messageTemplate: `The {verificationProvider} API key is empty.`,
+        websiteTitle: "Block explorer API key is empty",
+        websiteDescription: `The provided API key for the block explorer is empty. This can happen in the following cases:
+- No "apiKey" field is configured in the hardhat config, so the default empty string is used.
+- The "apiKey" is explicitly set to an empty string in the Hardhat config.
+- The "apiKey" is assigned to a config variable that resolves to an empty string at runtime.
+
+To resolve this, set a valid non-empty API key in your Hardhat config, then try again.`,
+      },
     },
     VALIDATION: {
       INVALID_ADDRESS: {
