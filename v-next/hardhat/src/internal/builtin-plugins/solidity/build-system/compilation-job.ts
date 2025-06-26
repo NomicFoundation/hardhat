@@ -78,21 +78,21 @@ export class CompilationJobImplementation implements CompilationJob {
         // NOTE: We run the project file content via the hook handler chain to allow
         // plugins to modify it before it is passed to solc. Originally, we use it to
         // instrument the project file content when coverage feature is enabled.
-        // We pass some additional data via the chain - i.e. source name and solc
+        // We pass some additional data via the chain - i.e. the input source name and solc
         // version - but we expect any handlers to pass them on as-is without modification.
         return this.#hooks.runHandlerChain(
           "solidity",
           "preprocessProjectFileBeforeBuilding",
-          [file.sourceName, file.fsPath, file.content.text, solcVersion],
+          [file.inputSourceName, file.fsPath, file.content.text, solcVersion],
           async (
             _context,
-            nextSourceName,
+            nextInputSourceName,
             nextFsPath,
             nextFileContent,
             nextSolcVersion,
           ) => {
             for (const [paramName, expectedParamValue, actualParamValue] of [
-              ["sourceName", file.sourceName, nextSourceName],
+              ["inputSourceName", file.inputSourceName, nextInputSourceName],
               ["fsPath", file.fsPath, nextFsPath],
               ["solcVersion", solcVersion, nextSolcVersion],
             ]) {
@@ -141,12 +141,12 @@ export class CompilationJobImplementation implements CompilationJob {
 
     // we sort the files so that we always get the same compilation input
     const resolvedFiles = [...this.dependencyGraph.getAllFiles()].sort((a, b) =>
-      a.sourceName.localeCompare(b.sourceName),
+      a.inputSourceName.localeCompare(b.inputSourceName),
     );
 
     for (const file of resolvedFiles) {
       const content = await this.#getFileContent(file);
-      sources[file.sourceName] = {
+      sources[file.inputSourceName] = {
         content,
       };
     }

@@ -215,7 +215,7 @@ export interface SolidityBuildSystem {
    * Returns the output of running the given compilation job.
    *
    * Note that this method returns the compiler output verbatim, as `solc`
-   * returns it. This means that any error message or location will use
+   * returns it. This means that any error message or location will use input
    * source names, and not fs paths. To transform the paths to fs paths, use
    * the `remapCompilerError` method.
    *
@@ -229,7 +229,7 @@ export interface SolidityBuildSystem {
   ): Promise<CompilerOutput>;
 
   /**
-   * Remaps the given compiler error paths from source names to fs paths.
+   * Remaps the given compiler error paths from input source names to fs paths.
    *
    * @param compilationJob The compilation job where the error occurred.
    * @param error The compiler error to remap.
@@ -247,7 +247,7 @@ export interface SolidityBuildSystem {
    *
    * @param compilationJob The compilation job to emit the artifacts of.
    * @param compilerOutput The result of running the compilation job.
-   * @returns A map from public source name to the absolute paths of the
+   * @returns A map from user source name to the absolute paths of the
    * artifacts that were emitted for it.
    */
   emitArtifacts(

@@ -8,23 +8,20 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import {
-  NpmPackageResolvedFileImplementation,
-  ProjectResolvedFileImplementation,
-} from "../../../../../src/internal/builtin-plugins/solidity/build-system/resolved-file.js";
-import {
   formatRootPath,
   isNpmParsedRootPath,
   isNpmRootPath,
   npmModuleToNpmRootPath,
   parseRootPath,
 } from "../../../../../src/internal/builtin-plugins/solidity/build-system/root-paths-utils.js";
+import { ResolvedFileType } from "../../../../../src/types/solidity.js";
 
 interface TestRootPath {
   rootPath: string;
   parsedRootPath: ParsedRootPath;
   isNpm: boolean;
   npmModule?: string;
-  publicSourceName: string;
+  userSourceName: string;
   resolvedFile: ResolvedFile;
 }
 
@@ -32,7 +29,7 @@ const testHardhatProjectNpmPackage: ResolvedNpmPackage = {
   name: "hardhat-project",
   version: "1.2.3",
   rootFsPath: "/Users/root/",
-  rootSourceName: "project",
+  inputSourceNameRoot: "project",
 };
 
 const testRootPaths: TestRootPath[] = [
@@ -43,9 +40,10 @@ const testRootPaths: TestRootPath[] = [
     },
     isNpm: true,
     npmModule: "ethers",
-    publicSourceName: "ethers",
-    resolvedFile: new NpmPackageResolvedFileImplementation({
-      sourceName: "ethers",
+    userSourceName: "ethers",
+    resolvedFile: {
+      type: ResolvedFileType.NPM_PACKAGE_FILE,
+      inputSourceName: "ethers",
       fsPath: "/Users/root/node_modules/ethers/index.js",
       content: {
         text: "ethers",
@@ -56,9 +54,9 @@ const testRootPaths: TestRootPath[] = [
         name: "ethers",
         version: "5.7.2",
         rootFsPath: "/Users/root/node_modules/ethers",
-        rootSourceName: "ethers",
+        inputSourceNameRoot: "ethers",
       },
-    }),
+    },
   },
   {
     rootPath: "npm:@openzeppelin/contracts",
@@ -67,9 +65,10 @@ const testRootPaths: TestRootPath[] = [
     },
     isNpm: true,
     npmModule: "@openzeppelin/contracts",
-    publicSourceName: "@openzeppelin/contracts",
-    resolvedFile: new NpmPackageResolvedFileImplementation({
-      sourceName: "@openzeppelin/contracts",
+    userSourceName: "@openzeppelin/contracts",
+    resolvedFile: {
+      type: ResolvedFileType.NPM_PACKAGE_FILE,
+      inputSourceName: "@openzeppelin/contracts",
       fsPath: "/Users/root/node_modules/@openzeppelin/contracts/index.js",
       content: {
         text: "@openzeppelin/contracts",
@@ -80,9 +79,9 @@ const testRootPaths: TestRootPath[] = [
         name: "@openzeppelin/contracts",
         version: "5.7.2",
         rootFsPath: "/Users/root/node_modules/@openzeppelin/contracts",
-        rootSourceName: "@openzeppelin/contracts",
+        inputSourceNameRoot: "@openzeppelin/contracts",
       },
-    }),
+    },
   },
   {
     rootPath: "npm:@openzeppelin/contracts/token/ERC20/ERC20.sol",
@@ -91,9 +90,10 @@ const testRootPaths: TestRootPath[] = [
     },
     isNpm: true,
     npmModule: "@openzeppelin/contracts/token/ERC20/ERC20.sol",
-    publicSourceName: "@openzeppelin/contracts/token/ERC20/ERC20.sol",
-    resolvedFile: new NpmPackageResolvedFileImplementation({
-      sourceName: "@openzeppelin/contracts/token/ERC20/ERC20.sol",
+    userSourceName: "@openzeppelin/contracts/token/ERC20/ERC20.sol",
+    resolvedFile: {
+      type: ResolvedFileType.NPM_PACKAGE_FILE,
+      inputSourceName: "@openzeppelin/contracts/token/ERC20/ERC20.sol",
       fsPath:
         "/Users/root/node_modules/@openzeppelin/contracts/token/ERC20/ERC20.sol",
       content: {
@@ -105,9 +105,9 @@ const testRootPaths: TestRootPath[] = [
         name: "@openzeppelin/contracts",
         version: "5.7.2",
         rootFsPath: "/Users/root/node_modules/@openzeppelin/contracts",
-        rootSourceName: "@openzeppelin/contracts",
+        inputSourceNameRoot: "@openzeppelin/contracts",
       },
-    }),
+    },
   },
   {
     rootPath: "/Users/root/contracts/Contract.sol",
@@ -116,9 +116,10 @@ const testRootPaths: TestRootPath[] = [
     },
     isNpm: false,
     npmModule: undefined,
-    publicSourceName: "/Users/root/contracts/Contract.sol",
-    resolvedFile: new ProjectResolvedFileImplementation({
-      sourceName: "/Users/root/contracts/Contract.sol",
+    userSourceName: "/Users/root/contracts/Contract.sol",
+    resolvedFile: {
+      type: ResolvedFileType.PROJECT_FILE,
+      inputSourceName: "/Users/root/contracts/Contract.sol",
       fsPath: "/Users/root/contracts/Contract.sol",
       content: {
         text: "contract Contract {}",
@@ -126,7 +127,7 @@ const testRootPaths: TestRootPath[] = [
         versionPragmas: [],
       },
       package: testHardhatProjectNpmPackage,
-    }),
+    },
   },
   {
     rootPath: "C:\\Users\\root\\contracts\\Contract.sol",
@@ -135,9 +136,10 @@ const testRootPaths: TestRootPath[] = [
     },
     isNpm: false,
     npmModule: undefined,
-    publicSourceName: "C:\\Users\\root\\contracts\\Contract.sol",
-    resolvedFile: new ProjectResolvedFileImplementation({
-      sourceName: "C:\\Users\\root\\contracts\\Contract.sol",
+    userSourceName: "C:\\Users\\root\\contracts\\Contract.sol",
+    resolvedFile: {
+      type: ResolvedFileType.PROJECT_FILE,
+      inputSourceName: "C:\\Users\\root\\contracts\\Contract.sol",
       fsPath: "C:\\Users\\root\\contracts\\Contract.sol",
       content: {
         text: "contract Contract {}",
@@ -145,7 +147,7 @@ const testRootPaths: TestRootPath[] = [
         versionPragmas: [],
       },
       package: testHardhatProjectNpmPackage,
-    }),
+    },
   },
 ];
 
@@ -184,9 +186,9 @@ describe("isNpmParsedRootPath", () => {
 });
 
 describe("formatRootPath", () => {
-  for (const { rootPath, publicSourceName, resolvedFile } of testRootPaths) {
-    it(`should correctly format root path for ${publicSourceName}`, () => {
-      assert.equal(formatRootPath(publicSourceName, resolvedFile), rootPath);
+  for (const { rootPath, userSourceName, resolvedFile } of testRootPaths) {
+    it(`should correctly format root path for ${userSourceName}`, () => {
+      assert.equal(formatRootPath(userSourceName, resolvedFile), rootPath);
     });
   }
 });

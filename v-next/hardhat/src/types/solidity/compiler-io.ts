@@ -1,6 +1,6 @@
 export interface CompilerInput {
   language: string;
-  sources: { [sourceName: string]: { content: string } };
+  sources: { [inputSourceName: string]: { content: string } };
   settings: {
     viaIR?: boolean;
     optimizer: {
@@ -14,7 +14,7 @@ export interface CompilerInput {
     };
     metadata?: { useLiteralContent: boolean };
     outputSelection: {
-      [sourceName: string]: {
+      [inputSourceName: string]: {
         [contractName: string]: string[];
       };
     };
@@ -34,7 +34,7 @@ export interface CompilerOutputSource {
 }
 
 export interface CompilerOutputSources {
-  [sourceName: string]: CompilerOutputSource;
+  [inputSourceName: string]: CompilerOutputSource;
 }
 
 export interface CompilerOutputBytecode {
@@ -66,7 +66,7 @@ export interface CompilerOutput {
   errors?: CompilerOutputError[];
   sources: CompilerOutputSources;
   contracts?: {
-    [sourceName: string]: {
+    [inputSourceName: string]: {
       [contractName: string]: CompilerOutputContract;
     };
   };

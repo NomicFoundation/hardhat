@@ -146,11 +146,13 @@ const flattenAction: NewTaskActionFunction<FlattenActionArguments> = async (
   };
 };
 
-// We don't display the project's root source name in the flattened file
+// We don't display the project's input source name root in the flattened file
 function formatSourceName(file: ResolvedFile): string {
   return file.type === ResolvedFileType.NPM_PACKAGE_FILE
-    ? file.sourceName
-    : file.sourceName.substring(file.package.rootSourceName.length + 1);
+    ? file.inputSourceName
+    : file.inputSourceName.substring(
+        file.package.inputSourceNameRoot.length + 1,
+      );
 }
 
 interface LicensesInfo {
@@ -261,7 +263,7 @@ function getSortedFiles(dependencyGraph: DependencyGraph): ResolvedFile[] {
   // Helper function for sorting files by sourceName, for deterministic results
   const sortBySourceName = (files: Iterable<ResolvedFile>) => {
     return Array.from(files).sort((f1, f2) =>
-      f1.sourceName.localeCompare(f2.sourceName),
+      f1.inputSourceName.localeCompare(f2.inputSourceName),
     );
   };
 

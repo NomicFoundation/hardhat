@@ -246,9 +246,9 @@ function resolveSolidityConfig(
           })),
           overrides: Object.fromEntries(
             Object.entries(solidityConfig.overrides ?? {}).map(
-              ([sourceName, override]) => {
+              ([userSourceName, override]) => {
                 return [
-                  sourceName,
+                  userSourceName,
                   {
                     version: override.version,
                     settings: override.settings ?? {},
@@ -289,9 +289,9 @@ function resolveSolidityConfig(
       })),
       overrides: Object.fromEntries(
         Object.entries(profile.overrides ?? {}).map(
-          ([sourceName, override]) => {
+          ([userSourceName, override]) => {
             return [
-              sourceName,
+              userSourceName,
               {
                 version: override.version,
                 settings: override.settings ?? {},

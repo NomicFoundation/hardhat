@@ -54,11 +54,12 @@ export interface LocalUserRemapping extends BaseUserRemapping {
  * An unresolved npm user remapping, whose context and prefix hasn't been
  * processed yet, and whose target npm package hasn't been loaded.
  *
- * This interface should only be internal to the RemappedNpmPackagesMap, but its
- * exported here for testing purposes.
+ * This interface should only be internal to the RemappedNpmPackagesGraph, but
+ * its exported here for testing purposes.
  *
- * Note that instead of using this throught the codebase, RemappedNpmPackagesMap
- * should resolve it and return a ResolvedNpmUserRemapping.
+ * Note that instead of using this throught the codebase,
+ * RemappedNpmPackagesGraph should resolve it and return a
+ * ResolvedNpmUserRemapping.
  */
 export interface UnresolvedNpmUserRemapping extends BaseUserRemapping {
   readonly type: "UNRESOLVED_NPM";
@@ -94,7 +95,7 @@ export type ResolvedUserRemapping =
 export type InstallationName = string;
 
 /**
- * This interface represents a map of all the npm packages that the Hardhat
+ * This interface represents a graph of all the npm packages that the Hardhat
  * project uses, including the Hardhat projecct itself, and their remappings.
  *
  * This class guarantees that there's a single instance of any npm package per
@@ -119,7 +120,7 @@ export type InstallationName = string;
  * They are not thread/async-safe. If you don't do it, it can't ensure the
  * guarantees described above.
  */
-export interface RemappedNpmPackagesMap {
+export interface RemappedNpmPackagesGraph {
   /**
    * Returns the Hardhat project's package. i.e. the npm package of the project.
    */
@@ -132,7 +133,7 @@ export interface RemappedNpmPackagesMap {
    * the resolution process. It only loads npm packages, their remappings, and
    * resolves them.
    *
-   * NOTE: This method may modify the map if necessary.
+   * NOTE: This method may modify the graph if necessary.
    *
    * @param from The package from which the dependency is being resolved.
    * @param installationName The installation name of the dependency.
@@ -175,26 +176,26 @@ export interface RemappedNpmPackagesMap {
    *
    * @param fromNpmPackage The npm package that is importing the file.
    * @param directImport The direct import.
-   * @param targetSouceName The target's souce name.
+   * @param targetInputSourceName The target's input source name.
    */
   generateRemappingIntoNpmFile(
     fromNpmPackage: ResolvedNpmPackage,
     directImport: string,
-    targetSouceName: string,
+    targetInputSourceName: string,
   ): Promise<Remapping>;
 
   /**
-   * Returns a JSON representation of the map.
+   * Returns a JSON representation of the graph.
    */
-  toJSON(): RemappedNpmPackagesMapJson;
+  toJSON(): RemappedNpmPackagesGraphJson;
 }
 
 /**
- * A JSON representation of a RemappedNpmPackagesMap.
+ * A JSON representation of a RemappedNpmPackagesGraph.
  */
-export interface RemappedNpmPackagesMapJson {
+export interface RemappedNpmPackagesGraphJson {
   readonly hardhatProjectPackage: ResolvedNpmPackage;
-  readonly packageByRootSourceName: Readonly<
+  readonly packageByInputSourceNameRoot: Readonly<
     Record<string, ResolvedNpmPackage>
   >;
   readonly installationMap: Readonly<
@@ -224,24 +225,25 @@ export interface RemappedNpmPackagesMapJson {
  * A Resolver is a stateful object that can be used to to construct a dependency
  * graph, by resolving both the local project and npm files, and their imports.
  *
- * This resolver uses `sourceName`s to identify the resolved files, which are
- * not necessarily related to the file path.
+ * This resolver uses `inputSourceName`s to identify the resolved files, which
+ * are  not necessarily related to the file path.
  *
- * The `sourceName` of a Hardhat project file is its relative path from the
+ * The `inputSourceName` of a Hardhat project file is its relative path from the
  * project root, prefixed by `project/`. For example, if the project root is
  * `/home/user/foo`, and there are files `/home/user/foo/contracts/File.sol` and
- * `home/user/foo/File2.sol`, their source names are
+ * `home/user/foo/File2.sol`, their input source names are
  * `project/contracts/File.sol` and `project/File2.sol`.
  *
- * The `sourceName` of an npm file is `npm/<package-name>@<version>/<path>`.
- * This is constructed by using the Node.js resolution algorithm, to resolve
- * an npm file or import, and using the package's `package.json` file to
- * determine the source name. For example, if we import `foo/bar.sol`, its
- * source name could be `npm/foo@1.2.3/bar.sol`.
+ * The `inputSourceName` of an npm file is
+ * `npm/<package-name>@<version>/<path>`. This is constructed by using the
+ * Node.js resolution algorithm, to resolve an npm file or import, and using the
+ * package's `package.json` file to determine the input source name. For
+ * example, if we import `foo/bar.sol`, its input source name could be
+ * `npm/foo@1.2.3/bar.sol`.
  *
  * If the Node.js resolution algorithm resolve a file into a package that's
  * part of the monorepo where the Hardhat project is (i.e. it's not part of a
- * `node_modules` directory), the source name is going to be
+ * `node_modules` directory), the user source name is going to be
  * `npm/package@local/path/to/file`.
  *
  * Note that in the Node.js ecosystem, a package manager may install multiple

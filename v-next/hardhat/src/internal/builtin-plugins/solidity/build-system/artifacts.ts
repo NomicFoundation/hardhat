@@ -17,11 +17,11 @@ import { getPrefixedHexString } from "@nomicfoundation/hardhat-utils/hex";
 
 export function getContractArtifact(
   buildInfoId: string,
-  publicSourceName: string,
+  userSourceName: string,
   inputSourceName: string,
   contractName: string,
   contract: CompilerOutputContract,
-  publicSourceNameMap: Record<string, string>,
+  userSourceNameMap: Record<string, string>,
 ): Artifact {
   const evmBytecode = contract.evm?.bytecode;
   const bytecode: string =
@@ -43,17 +43,17 @@ export function getContractArtifact(
   const artifact: Required<Artifact> = {
     _format: "hh3-artifact-1",
     contractName,
-    sourceName: publicSourceName,
+    sourceName: userSourceName,
     abi: contract.abi,
     bytecode,
     deployedBytecode,
-    linkReferences: applyPublicSourceNamesToLinkReferences(
+    linkReferences: applyUserSourceNamesToLinkReferences(
       linkReferences,
-      publicSourceNameMap,
+      userSourceNameMap,
     ),
-    deployedLinkReferences: applyPublicSourceNamesToLinkReferences(
+    deployedLinkReferences: applyUserSourceNamesToLinkReferences(
       deployedLinkReferences,
-      publicSourceNameMap,
+      userSourceNameMap,
     ),
     immutableReferences,
     inputSourceName,
@@ -63,13 +63,13 @@ export function getContractArtifact(
   return artifact;
 }
 
-function applyPublicSourceNamesToLinkReferences(
+function applyUserSourceNamesToLinkReferences(
   linkReferences: LinkReferences,
-  publicSourceNameMap: Record<string, string>,
+  userSourceNameMap: Record<string, string>,
 ): LinkReferences {
   return Object.fromEntries(
     Object.entries(linkReferences).map(([sourceName, references]) => [
-      publicSourceNameMap[sourceName] ?? sourceName,
+      userSourceNameMap[sourceName] ?? sourceName,
       references,
     ]),
   );
@@ -130,9 +130,9 @@ declare module "hardhat/types/artifacts" {
 export async function getBuildInfo(
   compilationJob: CompilationJob,
 ): Promise<SolidityBuildInfo> {
-  const publicSourceNameMap = Object.fromEntries(
+  const userSourceNameMap = Object.fromEntries(
     [...compilationJob.dependencyGraph.getRoots().entries()].map(
-      ([publicSourceName, root]) => [publicSourceName, root.sourceName],
+      ([userSourceName, root]) => [userSourceName, root.inputSourceName],
     ),
   );
 
@@ -141,7 +141,7 @@ export async function getBuildInfo(
     id: await compilationJob.getBuildId(),
     solcVersion: compilationJob.solcConfig.version,
     solcLongVersion: compilationJob.solcLongVersion,
-    publicSourceNameMap,
+    userSourceNameMap,
     input: await compilationJob.getSolcInput(),
   };
 

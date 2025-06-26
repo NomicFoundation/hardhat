@@ -54,7 +54,7 @@ export class SolcConfigSelector {
       "This method only works for single root graphs",
     );
 
-    const [publicSourceName, root] = [...roots.entries()][0];
+    const [userSourceName, root] = [...roots.entries()][0];
 
     const allVersionPragamas = [...subgraph.getAllFiles()]
       .map(({ content }) => content.versionPragmas)
@@ -62,7 +62,7 @@ export class SolcConfigSelector {
 
     const versionRange = Array.from(new Set(allVersionPragamas)).join(" ");
 
-    const overriddenCompiler = this.#buildProfile.overrides[publicSourceName];
+    const overriddenCompiler = this.#buildProfile.overrides[userSourceName];
 
     // if there's an override, we only check that
     if (overriddenCompiler !== undefined) {

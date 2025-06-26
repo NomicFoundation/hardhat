@@ -4,20 +4,20 @@ import type { ResolvedFile } from "../../../../types/solidity/resolved-file.js";
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 
 export interface DependencyGraphImplementationJson {
-  readonly fileBySourceName: Record<string, ResolvedFile>;
-  readonly rootByPublicSourceName: Record<
-    string /* public source name */,
-    string /* actual source name */
+  readonly fileByInputSourceName: Record<string, ResolvedFile>;
+  readonly rootByUserSourceName: Record<
+    string /* user source name */,
+    string /* input source name */
   >;
   readonly dependencies: Record<
-    string /* from source name */,
-    Record<string /* to source name */, string[] /* remappings */>
+    string /* from input source name */,
+    Record<string /* to input source name */, string[] /* remappings */>
   >;
 }
 
 export class DependencyGraphImplementation implements DependencyGraph {
-  readonly #fileBySourceName = new Map<string, ResolvedFile>();
-  readonly #rootByPublicSourceName = new Map<string, ResolvedFile>();
+  readonly #fileByInputSourceName = new Map<string, ResolvedFile>();
+  readonly #rootByUserSourceName = new Map<string, ResolvedFile>();
   readonly #dependenciesMap = new Map<
     ResolvedFile,
     Map<ResolvedFile, Set<string>>
@@ -27,15 +27,15 @@ export class DependencyGraphImplementation implements DependencyGraph {
    * Adds a root file to the graph. All the roots of the dependency graph must
    * be added before any dependencry.
    *
-   * @param publicSourceName The source name used to identify the file, as it
+   * @param userSourceName The source name used to identify the file, as it
    * would appear in the artifacts and used by the user. This is not always the
    * same as the source name used by solc, as it differs when an npm file is
    * acting as a root.
    * @param root The root file.
    */
-  public addRootFile(publicSourceName: string, root: ResolvedFile): void {
+  public addRootFile(userSourceName: string, root: ResolvedFile): void {
     this.#addFile(root);
-    this.#rootByPublicSourceName.set(publicSourceName, root);
+    this.#rootByUserSourceName.set(userSourceName, root);
   }
 
   /**
@@ -75,10 +75,10 @@ export class DependencyGraphImplementation implements DependencyGraph {
   }
 
   /**
-   * Returns a map of public source names to root files.
+   * Returns a map of user source names to root files.
    */
   public getRoots(): ReadonlyMap<string, ResolvedFile> {
-    return this.#rootByPublicSourceName;
+    return this.#rootByUserSourceName;
   }
 
   /**
@@ -109,26 +109,28 @@ export class DependencyGraphImplementation implements DependencyGraph {
     );
   }
 
-  public getFileBySourceName(sourceName: string): ResolvedFile | undefined {
-    return this.#fileBySourceName.get(sourceName);
+  public getFileByInputSourceName(
+    inputSourceName: string,
+  ): ResolvedFile | undefined {
+    return this.#fileByInputSourceName.get(inputSourceName);
   }
 
   public getSubgraph(
-    ...rootPublicSourceNames: string[]
+    ...rootUserSourceNames: string[]
   ): DependencyGraphImplementation {
     const subgraph = new DependencyGraphImplementation();
 
     const filesToTraverse: ResolvedFile[] = [];
 
-    for (const rootPublicSourceName of rootPublicSourceNames) {
-      const root = this.#rootByPublicSourceName.get(rootPublicSourceName);
+    for (const rootUserSourceName of rootUserSourceNames) {
+      const root = this.#rootByUserSourceName.get(rootUserSourceName);
 
       assertHardhatInvariant(
         root !== undefined,
-        "We should have a root for every root public source name",
+        "We should have a root for every root user source name",
       );
 
-      subgraph.addRootFile(rootPublicSourceName, root);
+      subgraph.addRootFile(rootUserSourceName, root);
       filesToTraverse.push(root);
     }
 
@@ -154,15 +156,15 @@ export class DependencyGraphImplementation implements DependencyGraph {
   ): DependencyGraphImplementation {
     const merged = new DependencyGraphImplementation();
 
-    for (const [publicSourceName, root] of this.#rootByPublicSourceName) {
-      merged.addRootFile(publicSourceName, root);
+    for (const [userSourceName, root] of this.#rootByUserSourceName) {
+      merged.addRootFile(userSourceName, root);
     }
 
-    for (const [publicSourceName, root] of other.#rootByPublicSourceName) {
+    for (const [userSourceName, root] of other.#rootByUserSourceName) {
       if (merged.hasFile(root)) {
         continue;
       }
-      merged.addRootFile(publicSourceName, root);
+      merged.addRootFile(userSourceName, root);
     }
 
     for (const [from, dependencies] of this.#dependenciesMap) {
@@ -200,25 +202,25 @@ export class DependencyGraphImplementation implements DependencyGraph {
 
   public toJSON(): DependencyGraphImplementationJson {
     return {
-      fileBySourceName: Object.fromEntries(this.#fileBySourceName),
-      rootByPublicSourceName: Object.fromEntries(
-        this.#rootByPublicSourceName
+      fileByInputSourceName: Object.fromEntries(this.#fileByInputSourceName),
+      rootByUserSourceName: Object.fromEntries(
+        this.#rootByUserSourceName
           .entries()
-          .map(([publicSourceName, file]) => [
-            publicSourceName,
-            file.sourceName,
+          .map(([userSourceName, file]) => [
+            userSourceName,
+            file.inputSourceName,
           ]),
       ),
       dependencies: Object.fromEntries(
         this.#dependenciesMap
           .entries()
           .map(([from, dependencies]) => [
-            from.sourceName,
+            from.inputSourceName,
             Object.fromEntries(
               dependencies
                 .entries()
                 .map(([to, remappings]) => [
-                  to.sourceName,
+                  to.inputSourceName,
                   [...remappings].sort(),
                 ]),
             ),
@@ -230,15 +232,15 @@ export class DependencyGraphImplementation implements DependencyGraph {
   #addFile(file: ResolvedFile): void {
     assertHardhatInvariant(
       !this.hasFile(file),
-      `File ${file.sourceName} already present`,
+      `File ${file.inputSourceName} already present`,
     );
 
     assertHardhatInvariant(
-      this.#fileBySourceName.get(file.sourceName) === undefined,
-      `File "${file.sourceName}" already present`,
+      this.#fileByInputSourceName.get(file.inputSourceName) === undefined,
+      `File "${file.inputSourceName}" already present`,
     );
 
-    this.#fileBySourceName.set(file.sourceName, file);
+    this.#fileByInputSourceName.set(file.inputSourceName, file);
     this.#dependenciesMap.set(file, new Map());
   }
 }
