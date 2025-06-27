@@ -6,22 +6,25 @@ export const tasksResults = {
   wasArg1Used: false,
   wasArg2Used: false,
   wasArg3Used: false,
+  wasArg4Used: false,
 };
 
 function resetResults() {
   tasksResults.wasArg1Used = false;
   tasksResults.wasArg2Used = false;
   tasksResults.wasArg3Used = false;
+  tasksResults.wasArg4Used = false;
 }
 
 const customTask = task("task")
-  .addOption({ name: "arg1", defaultValue: "<default-value1>" })
+  .addOption({ name: "arg1", shortName: "o", defaultValue: "<default-value1>" })
   .addPositionalArgument({ name: "arg2" })
   .addVariadicArgument({ name: "arg3" })
+  .addFlag({ name: "arg4", shortName: "f" })
   .setAction((taskArguments) => {
     resetResults();
 
-    const { arg1, arg2, arg3 } = taskArguments;
+    const { arg1, arg2, arg3, arg4 } = taskArguments;
 
     tasksResults.wasArg1Used = arg1 === "<value1>";
     tasksResults.wasArg2Used = arg2 === "<value2>";
@@ -29,11 +32,12 @@ const customTask = task("task")
     if (Array.isArray(arg3)) {
       tasksResults.wasArg3Used = arg3[0] === "<value3>";
     }
+    tasksResults.wasArg4Used = arg4 !== false;
   })
   .build();
 
 const customTask2 = task("task-default")
-  .addOption({ name: "arg1", defaultValue: "<default-value1>" })
+  .addOption({ name: "arg1", shortName: "o", defaultValue: "<default-value1>" })
   .setAction((taskArguments) => {
     resetResults();
 
@@ -45,9 +49,10 @@ const customTask2 = task("task-default")
 const customTask3 = emptyTask("task-default-3", "description").build();
 
 const customSubtask = task(["task", "subtask"])
-  .addOption({ name: "arg1", defaultValue: "<default-value1>" })
+  .addOption({ name: "arg1", shortName: "o", defaultValue: "<default-value1>" })
   .addPositionalArgument({ name: "arg2" })
   .addVariadicArgument({ name: "arg3" })
+  .addFlag({ name: "arg4", shortName: "f" })
   .setAction((taskArguments) => {
     resetResults();
 
@@ -63,7 +68,7 @@ const customSubtask = task(["task", "subtask"])
   .build();
 
 const customSubtask2 = task(["task-default", "subtask-default"])
-  .addOption({ name: "arg1", defaultValue: "<default-value1>" })
+  .addOption({ name: "arg1", shortName: "o", defaultValue: "<default-value1>" })
   .setAction((taskArguments) => {
     resetResults();
 

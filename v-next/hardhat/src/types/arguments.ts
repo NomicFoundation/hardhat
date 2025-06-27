@@ -60,6 +60,7 @@ export type ArgumentTypeToValueType<T extends ArgumentType> =
  */
 export interface OptionDefinition<T extends ArgumentType = ArgumentType> {
   name: string;
+  shortName?: string;
   description: string;
   type: T;
   defaultValue: ArgumentTypeToValueType<T>;

@@ -18,6 +18,7 @@ import {
   parseArgumentValue,
   validateArgumentValue,
   validateArgumentName,
+  validateArgumentShortName,
 } from "./arguments.js";
 
 /**
@@ -32,6 +33,7 @@ export function buildGlobalOptionDefinitions(
   resolvedPlugins: HardhatPlugin[],
 ): GlobalOptionDefinitions {
   const globalOptionDefinitions: GlobalOptionDefinitions = new Map();
+  const globalOptionDefinitionsByShortName: GlobalOptionDefinitions = new Map();
 
   for (const plugin of resolvedPlugins) {
     if (plugin.globalOptions === undefined) {
@@ -49,6 +51,22 @@ export function buildGlobalOptionDefinitions(
             definedByPlugin: existingByName.pluginId,
           },
         );
+      }
+
+      if (option.shortName !== undefined) {
+        const existingByShortName = globalOptionDefinitionsByShortName.get(
+          option.shortName,
+        );
+        if (existingByShortName !== undefined) {
+          throw new HardhatError(
+            HardhatError.ERRORS.CORE.GENERAL.GLOBAL_OPTION_ALREADY_DEFINED,
+            {
+              plugin: plugin.id,
+              globalOption: option.shortName,
+              definedByPlugin: existingByShortName.pluginId,
+            },
+          );
+        }
       }
 
       const validatedGlobalOption = buildGlobalOptionDefinition(option);
@@ -73,11 +91,13 @@ export function buildGlobalOptionDefinition<
   T extends ArgumentType = ArgumentType.STRING,
 >({
   name,
+  shortName,
   description,
   type,
   defaultValue,
 }: {
   name: string;
+  shortName?: string;
   description: string;
   type?: T;
   defaultValue: ArgumentTypeToValueType<T>;
@@ -86,10 +106,15 @@ export function buildGlobalOptionDefinition<
 
   validateArgumentName(name);
 
+  if (shortName !== undefined) {
+    validateArgumentShortName(shortName);
+  }
+
   validateArgumentValue("defaultValue", argumentType, defaultValue);
 
   return {
     name,
+    shortName,
     description,
     type: argumentType,
     defaultValue,
