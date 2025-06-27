@@ -1007,8 +1007,6 @@ For global options help run: hardhat --help`;
 
         const res = parseTaskAndArguments(cliArguments, usedCliArguments, hre);
 
-        console.log(res);
-
         assert.ok(!Array.isArray(res), "Result should be an array");
         assert.equal(res.task.id, tasks[4].id);
         assert.deepEqual(
