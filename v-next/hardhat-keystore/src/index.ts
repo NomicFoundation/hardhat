@@ -64,6 +64,13 @@ const hardhatKeystorePlugin: HardhatPlugin = {
     task(["keystore", "path"], "Display the path where the keystore is stored")
       .setAction(import.meta.resolve("./internal/tasks/path.js"))
       .build(),
+
+    task(
+      ["keystore", "change-password"],
+      "Change the password for the keystore",
+    )
+      .setAction(import.meta.resolve("./internal/tasks/change-password.js"))
+      .build(),
   ],
   npmPackage: "@nomicfoundation/hardhat-keystore",
 };
