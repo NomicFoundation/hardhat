@@ -199,14 +199,25 @@ export interface NewTaskDefinitionBuilder<
   >;
 
   /**
-   * Adds an option of boolean type and default value false.
+   * Adds an option of flag type and default value false.
    */
   addFlag<NameT extends string>(flagConfig: {
     name: NameT;
     shortName?: string;
     description?: string;
   }): NewTaskDefinitionBuilder<
-    ExtendTaskArguments<NameT, ArgumentType.BOOLEAN, TaskArgumentsT>
+    ExtendTaskArguments<NameT, ArgumentType.FLAG, TaskArgumentsT>
+  >;
+
+  /**
+   * Adds an option of level type and default value 0.
+   */
+  addLevel<NameT extends string>(flagConfig: {
+    name: NameT;
+    shortName?: string;
+    description?: string;
+  }): NewTaskDefinitionBuilder<
+    ExtendTaskArguments<NameT, ArgumentType.LEVEL, TaskArgumentsT>
   >;
 
   /**
@@ -306,14 +317,25 @@ export interface TaskOverrideDefinitionBuilder<
   >;
 
   /**
-   * Adds an option of boolean type and default value false.
+   * Adds an option of flag type and default value false.
    */
   addFlag<NameT extends string>(flagConfig: {
     name: NameT;
     shortName?: string;
     description?: string;
   }): TaskOverrideDefinitionBuilder<
-    ExtendTaskArguments<NameT, ArgumentType.BOOLEAN, TaskArgumentsT>
+    ExtendTaskArguments<NameT, ArgumentType.FLAG, TaskArgumentsT>
+  >;
+
+  /**
+   * Adds an option of level type and default value 0.
+   */
+  addLevel<NameT extends string>(flagConfig: {
+    name: NameT;
+    shortName?: string;
+    description?: string;
+  }): TaskOverrideDefinitionBuilder<
+    ExtendTaskArguments<NameT, ArgumentType.LEVEL, TaskArgumentsT>
   >;
 
   /**

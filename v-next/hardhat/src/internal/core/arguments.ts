@@ -140,7 +140,10 @@ const argumentTypeValidators: Record<
   [ArgumentType.STRING]: (value): value is string => typeof value === "string",
   [ArgumentType.BOOLEAN]: (value): value is boolean =>
     typeof value === "boolean",
+  [ArgumentType.FLAG]: (value): value is boolean => typeof value === "boolean",
   [ArgumentType.INT]: (value): value is number => Number.isInteger(value),
+  [ArgumentType.LEVEL]: (value): value is number =>
+    Number.isInteger(value) && Number(value) >= 0,
   [ArgumentType.BIGINT]: (value): value is bigint => typeof value === "bigint",
   [ArgumentType.FLOAT]: (value): value is number => typeof value === "number",
   [ArgumentType.FILE]: (value): value is string => typeof value === "string",
@@ -170,12 +173,16 @@ export function parseArgumentValue(
       return value;
     case ArgumentType.INT:
       return validateAndParseInt(name, value);
+    case ArgumentType.LEVEL:
+      return validateAndParseLevel(name, value);
     case ArgumentType.FLOAT:
       return validateAndParseFloat(name, value);
     case ArgumentType.BIGINT:
       return validateAndParseBigInt(name, value);
     case ArgumentType.BOOLEAN:
       return validateAndParseBoolean(name, value);
+    case ArgumentType.FLAG:
+      return validateAndParseFlag(name, value);
   }
 }
 
@@ -190,6 +197,23 @@ function validateAndParseInt(name: string, value: string): number {
         value,
         name,
         type: ArgumentType.INT,
+      },
+    );
+  }
+
+  return Number(value);
+}
+
+function validateAndParseLevel(name: string, value: string): number {
+  const decimalPattern = /^\d+$/;
+
+  if (!decimalPattern.test(value) || Number(value) < 0) {
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+      {
+        value,
+        name,
+        type: ArgumentType.LEVEL,
       },
     );
   }
@@ -243,6 +267,26 @@ function validateAndParseBoolean(name: string, value: string): boolean {
         value,
         name,
         type: ArgumentType.BOOLEAN,
+      },
+    );
+  }
+
+  return normalizedValue === "true";
+}
+
+// NOTE: Even though flags do not accept values, we still provide a validation
+// funciton for consistency. Alternatively, we could always throw an error when
+// we receive a value for a flag.
+function validateAndParseFlag(name: string, value: string): boolean {
+  const normalizedValue = value.toLowerCase();
+
+  if (normalizedValue !== "true" && normalizedValue !== "false") {
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+      {
+        value,
+        name,
+        type: ArgumentType.FLAG,
       },
     );
   }

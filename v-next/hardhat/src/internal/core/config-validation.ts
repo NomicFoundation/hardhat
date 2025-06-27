@@ -409,6 +409,7 @@ export function validateOptions(
           }
           break;
         }
+        case ArgumentType.FLAG:
         case ArgumentType.BOOLEAN: {
           if (typeof option.defaultValue !== "boolean") {
             validationErrors.push({
@@ -428,6 +429,17 @@ export function validateOptions(
           }
           break;
         }
+        case ArgumentType.LEVEL:
+          if (
+            typeof option.defaultValue !== "number" ||
+            option.defaultValue < 0
+          ) {
+            validationErrors.push({
+              path: [...path, name, "defaultValue"],
+              message: "option defaultValue must be a non-negative number",
+            });
+          }
+          break;
         case ArgumentType.BIGINT: {
           if (typeof option.defaultValue !== "bigint") {
             validationErrors.push({
@@ -492,6 +504,7 @@ export function validatePositionalArguments(
 
           break;
         }
+        case ArgumentType.FLAG:
         case ArgumentType.BOOLEAN: {
           if (
             typeof arg.defaultValue !== "boolean" &&
@@ -523,6 +536,20 @@ export function validatePositionalArguments(
 
           break;
         }
+        case ArgumentType.LEVEL:
+          if (
+            (typeof arg.defaultValue !== "number" || arg.defaultValue < 0) &&
+            (!Array.isArray(arg.defaultValue) ||
+              arg.defaultValue.some((v) => typeof v !== "number" || v < 0))
+          ) {
+            validationErrors.push({
+              path: [...path, "positionalArguments", index, "defaultValue"],
+              message:
+                "positional argument defaultValue must be a non-negative number or an array of non-negative numbers",
+            });
+          }
+
+          break;
         case ArgumentType.BIGINT: {
           if (
             typeof arg.defaultValue !== "bigint" &&

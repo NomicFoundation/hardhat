@@ -7,6 +7,7 @@ export const tasksResults = {
   wasArg2Used: false,
   wasArg3Used: false,
   wasArg4Used: false,
+  wasArg5Used: false,
 };
 
 function resetResults() {
@@ -14,6 +15,7 @@ function resetResults() {
   tasksResults.wasArg2Used = false;
   tasksResults.wasArg3Used = false;
   tasksResults.wasArg4Used = false;
+  tasksResults.wasArg5Used = false;
 }
 
 const customTask = task("task")
@@ -21,10 +23,11 @@ const customTask = task("task")
   .addPositionalArgument({ name: "arg2" })
   .addVariadicArgument({ name: "arg3" })
   .addFlag({ name: "arg4", shortName: "f" })
+  .addLevel({ name: "arg5", shortName: "l" })
   .setAction((taskArguments) => {
     resetResults();
 
-    const { arg1, arg2, arg3, arg4 } = taskArguments;
+    const { arg1, arg2, arg3, arg4, arg5 } = taskArguments;
 
     tasksResults.wasArg1Used = arg1 === "<value1>";
     tasksResults.wasArg2Used = arg2 === "<value2>";
@@ -33,6 +36,7 @@ const customTask = task("task")
       tasksResults.wasArg3Used = arg3[0] === "<value3>";
     }
     tasksResults.wasArg4Used = arg4 !== false;
+    tasksResults.wasArg5Used = arg5 !== 0;
   })
   .build();
 
@@ -53,6 +57,7 @@ const customSubtask = task(["task", "subtask"])
   .addPositionalArgument({ name: "arg2" })
   .addVariadicArgument({ name: "arg3" })
   .addFlag({ name: "arg4", shortName: "f" })
+  .addLevel({ name: "arg5", shortName: "l" })
   .setAction((taskArguments) => {
     resetResults();
 
