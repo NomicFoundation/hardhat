@@ -293,6 +293,8 @@ describe("JsonRpcClient", () => {
       workaroundWindowsCiFailures.call(this, { isFork: true });
 
       describe(`Using ${rpcProvider}`, () => {
+        const skipItWhenUsingAlchemy = rpcProvider === "Alchemy" ? it.skip : it;
+
         let client: JsonRpcClient;
         let forkNumber: bigint;
 
@@ -434,12 +436,15 @@ describe("JsonRpcClient", () => {
             );
           });
 
-          it("returns null for non-existent transactions", async () => {
-            const transaction = await client.getTransactionByHash(
-              Buffer.from(randomHashBuffer())
-            );
-            assert.equal(transaction, null);
-          });
+          skipItWhenUsingAlchemy(
+            "returns null for non-existent transactions",
+            async () => {
+              const transaction = await client.getTransactionByHash(
+                Buffer.from(randomHashBuffer())
+              );
+              assert.equal(transaction, null);
+            }
+          );
         });
 
         describe("getTransactionReceipt", () => {
