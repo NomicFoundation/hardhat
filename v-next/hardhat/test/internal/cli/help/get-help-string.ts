@@ -60,7 +60,7 @@ To get help for a specific task run: npx hardhat task <SUBTASK> --help`;
             .set("anotherOption", {
               name: "anotherOption",
               description: "Another example option",
-              type: ArgumentType.BOOLEAN,
+              type: ArgumentType.FLAG,
             }),
           positionalArguments: [],
           pluginId: "task-plugin-id",
@@ -101,7 +101,7 @@ For global options help run: hardhat --help`;
             .set("anotherOption", {
               name: "anotherOption",
               description: "Another example option",
-              type: ArgumentType.BOOLEAN,
+              type: ArgumentType.FLAG,
             }),
           positionalArguments: [
             {
@@ -160,7 +160,7 @@ For global options help run: hardhat --help`;
             .set("anotherOption", {
               name: "anotherOption",
               description: "Another example option",
-              type: ArgumentType.BOOLEAN,
+              type: ArgumentType.FLAG,
             }),
           positionalArguments: [
             {

@@ -93,11 +93,13 @@ export class NewTaskDefinitionBuilderImplementation<
     TypeT extends ArgumentType = ArgumentType.STRING,
   >({
     name,
+    shortName,
     description = "",
     type,
     defaultValue,
   }: {
     name: NameT;
+    shortName?: string;
     description?: string;
     type?: TypeT;
     defaultValue: ArgumentTypeToValueType<TypeT>;
@@ -108,6 +110,7 @@ export class NewTaskDefinitionBuilderImplementation<
 
     const optionDefinition = {
       name,
+      shortName,
       description,
       type: argumentType,
       defaultValue,
@@ -122,14 +125,29 @@ export class NewTaskDefinitionBuilderImplementation<
 
   public addFlag<NameT extends string>(flagConfig: {
     name: NameT;
+    shortName?: string;
     description?: string;
   }): NewTaskDefinitionBuilder<
-    ExtendTaskArguments<NameT, ArgumentType.BOOLEAN, TaskArgumentsT>
+    ExtendTaskArguments<NameT, ArgumentType.FLAG, TaskArgumentsT>
   > {
     return this.addOption({
       ...flagConfig,
-      type: ArgumentType.BOOLEAN,
+      type: ArgumentType.FLAG,
       defaultValue: false,
+    });
+  }
+
+  public addLevel<NameT extends string>(levelConfig: {
+    name: NameT;
+    shortName?: string;
+    description?: string;
+  }): NewTaskDefinitionBuilder<
+    ExtendTaskArguments<NameT, ArgumentType.LEVEL, TaskArgumentsT>
+  > {
+    return this.addOption({
+      ...levelConfig,
+      type: ArgumentType.LEVEL,
+      defaultValue: 0,
     });
   }
 
@@ -273,11 +291,13 @@ export class TaskOverrideDefinitionBuilderImplementation<
     TypeT extends ArgumentType = ArgumentType.STRING,
   >({
     name,
+    shortName,
     description = "",
     type,
     defaultValue,
   }: {
     name: NameT;
+    shortName?: string;
     description?: string;
     type?: TypeT;
     defaultValue: ArgumentTypeToValueType<TypeT>;
@@ -288,16 +308,21 @@ export class TaskOverrideDefinitionBuilderImplementation<
 
     const optionDefinition = {
       name,
+      shortName,
       description,
       type: argumentType,
       defaultValue,
     };
 
-    validateOption(
-      optionDefinition,
-      new Set(Object.keys(this.#options)),
-      this.#id,
-    );
+    const usedNames = new Set<string>();
+    for (const option of Object.values(this.#options)) {
+      usedNames.add(option.name);
+      if (option.shortName !== undefined) {
+        usedNames.add(option.shortName);
+      }
+    }
+
+    validateOption(optionDefinition, usedNames, this.#id);
 
     this.#options[name] = optionDefinition;
 
@@ -306,14 +331,29 @@ export class TaskOverrideDefinitionBuilderImplementation<
 
   public addFlag<NameT extends string>(flagConfig: {
     name: string;
+    shortName?: string;
     description?: string;
   }): TaskOverrideDefinitionBuilder<
-    ExtendTaskArguments<NameT, ArgumentType.BOOLEAN, TaskArgumentsT>
+    ExtendTaskArguments<NameT, ArgumentType.FLAG, TaskArgumentsT>
   > {
     return this.addOption({
       ...flagConfig,
-      type: ArgumentType.BOOLEAN,
+      type: ArgumentType.FLAG,
       defaultValue: false,
+    });
+  }
+
+  public addLevel<NameT extends string>(levelConfig: {
+    name: string;
+    shortName?: string;
+    description?: string;
+  }): TaskOverrideDefinitionBuilder<
+    ExtendTaskArguments<NameT, ArgumentType.LEVEL, TaskArgumentsT>
+  > {
+    return this.addOption({
+      ...levelConfig,
+      type: ArgumentType.LEVEL,
+      defaultValue: 0,
     });
   }
 
