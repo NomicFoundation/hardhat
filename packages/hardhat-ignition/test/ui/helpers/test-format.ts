@@ -9,7 +9,7 @@ export function testFormat(expected: string): string {
     .substring(1) // Remove the first newline
     .split("\n");
 
-  // calcualte the length of the whitespace prefix based on the first line
+  // calculate the length of the whitespace prefix based on the first line
   const whitespacePrefixLength = lines[0].search(/\S/);
 
   return lines
