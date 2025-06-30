@@ -201,6 +201,7 @@ GLOBAL OPTIONS:
   --user-option-1          userOption1 description.
   --user-option-2          userOption2 description.
   --verbose                Enables Hardhat verbose logging.
+  --verbosity              Sets the verbosity level.
   --version                Shows hardhat's version.
 
 To get help for a specific task run: npx hardhat <TASK> [SUBTASK] --help`;
@@ -300,6 +301,7 @@ GLOBAL OPTIONS:
   --user-option-1          userOption1 description.
   --user-option-2          userOption2 description.
   --verbose                Enables Hardhat verbose logging.
+  --verbosity              Sets the verbosity level.
   --version                Shows hardhat's version.
 
 To get help for a specific task run: npx hardhat <TASK> [SUBTASK] --help`;
