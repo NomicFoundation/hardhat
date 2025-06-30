@@ -139,7 +139,7 @@ describe("integration tests for the keystore tasks", () => {
         "Password changed successfully!\n",
     );
 
-    tmpHre = tmpHre = await createHardhatRuntimeEnvironment({
+    tmpHre = await createHardhatRuntimeEnvironment({
       plugins: [
         hardhatKeystorePlugin,
         setupKeystoreFileLocationOverrideAt(keystoreFilePath),
