@@ -232,6 +232,7 @@ export async function main(
   }
 }
 
+// TODO: Replace calls to parseBuiltinGlobalOptions with parseGlobalOptions(BUILTIN_GLOBAL_OPTIONS_DEFINITIONS, ...)
 export async function parseBuiltinGlobalOptions(
   cliArguments: string[],
   usedCliArguments: boolean[],
@@ -248,66 +249,38 @@ export async function parseBuiltinGlobalOptions(
   let version: boolean = false;
   let init: boolean = false;
 
-  for (let i = 0; i < cliArguments.length; i++) {
-    const arg = cliArguments[i];
+  const builtinGlobalOptions = await parseGlobalOptions(
+    BUILTIN_GLOBAL_OPTIONS_DEFINITIONS,
+    cliArguments,
+    usedCliArguments,
+  );
 
-    if (arg === "--init") {
-      usedCliArguments[i] = true;
-      init = true;
-      continue;
-    }
+  if (builtinGlobalOptions.init !== undefined) {
+    init = builtinGlobalOptions.init;
+  }
 
-    if (arg === "--config") {
-      usedCliArguments[i] = true;
+  if (builtinGlobalOptions.config !== undefined) {
+    configPath = builtinGlobalOptions.config;
+  }
 
-      if (configPath !== undefined) {
-        throw new HardhatError(
-          HardhatError.ERRORS.CORE.ARGUMENTS.DUPLICATED_NAME,
-          {
-            name: "--config",
-          },
-        );
-      }
+  if (builtinGlobalOptions.showStackTraces !== undefined) {
+    showStackTraces = builtinGlobalOptions.showStackTraces;
+  }
 
-      if (
-        usedCliArguments[i + 1] === undefined ||
-        usedCliArguments[i + 1] === true
-      ) {
-        throw new HardhatError(
-          HardhatError.ERRORS.CORE.ARGUMENTS.MISSING_CONFIG_FILE,
-        );
-      }
+  if (builtinGlobalOptions.help !== undefined) {
+    help = builtinGlobalOptions.help;
+  }
 
-      configPath = cliArguments[i + 1];
-      i++;
+  if (builtinGlobalOptions.version !== undefined) {
+    version = builtinGlobalOptions.version;
+  }
 
-      usedCliArguments[i] = true;
-      continue;
-    }
-
-    if (arg === "--show-stack-traces") {
-      usedCliArguments[i] = true;
-      showStackTraces = true;
-      continue;
-    }
-
-    if (arg === "--help") {
-      usedCliArguments[i] = true;
-      help = true;
-      continue;
-    }
-
-    if (arg === "--version") {
-      usedCliArguments[i] = true;
-      version = true;
-      continue;
-    }
-
-    if (arg === "--verbose") {
-      usedCliArguments[i] = true;
-      debug.enable("hardhat*");
-      continue;
-    }
+  if (
+    builtinGlobalOptions.verbose === true ||
+    (builtinGlobalOptions.verbosity !== undefined &&
+      builtinGlobalOptions.verbosity !== 0)
+  ) {
+    debug.enable("hardhat*");
   }
 
   if (init && configPath !== undefined) {

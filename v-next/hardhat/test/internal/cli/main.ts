@@ -121,6 +121,28 @@ describe("main", function () {
       });
     });
 
+    describe("verbosity", () => {
+      useFixtureProject("cli/parsing/base-project");
+
+      it("should enable the debug logs", async function () {
+        const spy = mock.method(debug, "enable");
+
+        const command = "npx hardhat --verbosity 4";
+        await runMain(command);
+
+        assert.equal(spy.mock.calls.length, 1);
+      });
+
+      it("should enable the debug logs (short name)", async function () {
+        const spy = mock.method(debug, "enable");
+
+        const command = "npx hardhat -vvvv";
+        await runMain(command);
+
+        assert.equal(spy.mock.calls.length, 1);
+      });
+    });
+
     describe("version", function () {
       useFixtureProject("cli/parsing/base-project");
 
@@ -266,6 +288,7 @@ GLOBAL OPTIONS:
   --network                The network to connect to
   --show-stack-traces      Show stack traces (always enabled on CI servers).
   --verbose                Enables Hardhat verbose logging.
+  --verbosity              Sets the verbosity level.
   --version                Shows hardhat's version.
 
 To get help for a specific task run: npx hardhat <TASK> [SUBTASK] --help`;
@@ -467,9 +490,10 @@ For global options help run: hardhat --help`;
 
       await assertRejectsWithHardhatError(
         async () => parseBuiltinGlobalOptions(cliArguments, usedCliArguments),
-        HardhatError.ERRORS.CORE.ARGUMENTS.DUPLICATED_NAME,
+        HardhatError.ERRORS.CORE.ARGUMENTS.CANNOT_REPEAT_OPTIONS,
         {
-          name: "--config",
+          option: "--config",
+          type: ArgumentType.STRING_WITHOUT_DEFAULT,
         },
       );
     });
@@ -482,8 +506,10 @@ For global options help run: hardhat --help`;
 
       await assertRejectsWithHardhatError(
         async () => parseBuiltinGlobalOptions(cliArguments, usedCliArguments),
-        HardhatError.ERRORS.CORE.ARGUMENTS.MISSING_CONFIG_FILE,
-        {},
+        HardhatError.ERRORS.CORE.ARGUMENTS.MISSING_VALUE_FOR_ARGUMENT,
+        {
+          argument: "--config",
+        },
       );
     });
   });
@@ -524,15 +550,15 @@ For global options help run: hardhat --help`;
       });
 
       const GLOBAL_LEVEL = globalLevel({
-        name: "verbosity",
-        shortName: "v",
+        name: "level",
+        shortName: "l",
         description: "",
       });
 
       globalOptionDefinitions = new Map<string, GlobalOptionDefinitionsEntry>([
         ["arg", { pluginId: "1", option: GLOBAL_OPTION }],
         ["flag", { pluginId: "1", option: GLOBAL_FLAG }],
-        ["verbosity", { pluginId: "1", option: GLOBAL_LEVEL }],
+        ["level", { pluginId: "1", option: GLOBAL_LEVEL }],
       ]);
     });
 
@@ -611,7 +637,7 @@ For global options help run: hardhat --help`;
     }
 
     it("should have a long name level behaviour (value is required)", async function () {
-      const command = "npx hardhat task --verbosity 4";
+      const command = "npx hardhat task --level 4";
 
       const cliArguments = command.split(" ").slice(2);
       const usedCliArguments = new Array(cliArguments.length).fill(false);
@@ -624,12 +650,12 @@ For global options help run: hardhat --help`;
 
       assert.deepEqual(usedCliArguments, [false, true, true]);
       assert.deepEqual(globalOptions, {
-        verbosity: 4,
+        level: 4,
       });
     });
 
     it("should have a short name level behaviour (grouped repetition is allowed)", async function () {
-      const command = "npx hardhat task -vvvv";
+      const command = "npx hardhat task -llll";
 
       const cliArguments = command.split(" ").slice(2);
       const usedCliArguments = new Array(cliArguments.length).fill(false);
@@ -642,7 +668,7 @@ For global options help run: hardhat --help`;
 
       assert.deepEqual(usedCliArguments, [false, true]);
       assert.deepEqual(globalOptions, {
-        verbosity: 4,
+        level: 4,
       });
     });
   });
@@ -747,8 +773,8 @@ For global options help run: hardhat --help`;
             defaultValue: "default",
           }),
           task(["task4"]).addLevel({
-            name: "verbosity",
-            shortName: "v",
+            name: "level",
+            shortName: "l",
           }),
         ];
 
@@ -968,7 +994,7 @@ For global options help run: hardhat --help`;
       }
 
       it("should get the task and its level argument when provided by long name", function () {
-        const command = "npx hardhat task4 --verbosity 4";
+        const command = "npx hardhat task4 --level 4";
 
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = new Array(cliArguments.length).fill(false);
@@ -981,11 +1007,11 @@ For global options help run: hardhat --help`;
           usedCliArguments,
           new Array(cliArguments.length).fill(true),
         );
-        assert.deepEqual(res.taskArguments, { verbosity: 4 });
+        assert.deepEqual(res.taskArguments, { level: 4 });
       });
 
       it("should throw when level is provided by long name and not followed by a value", function () {
-        const command = "npx hardhat task4 --verbosity";
+        const command = "npx hardhat task4 --level";
 
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = new Array(cliArguments.length).fill(false);
@@ -994,13 +1020,13 @@ For global options help run: hardhat --help`;
           () => parseTaskAndArguments(cliArguments, usedCliArguments, hre),
           HardhatError.ERRORS.CORE.ARGUMENTS.MISSING_VALUE_FOR_ARGUMENT,
           {
-            argument: "--verbosity",
+            argument: "--level",
           },
         );
       });
 
       it("should get the task and its level argument when provided by short name", function () {
-        const command = "npx hardhat task4 -vvvv";
+        const command = "npx hardhat task4 -llll";
 
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = new Array(cliArguments.length).fill(false);
@@ -1013,11 +1039,11 @@ For global options help run: hardhat --help`;
           usedCliArguments,
           new Array(cliArguments.length).fill(true),
         );
-        assert.deepEqual(res.taskArguments, { verbosity: 4 });
+        assert.deepEqual(res.taskArguments, { level: 4 });
       });
 
       it("should throw when level is provided by short name and followed by a value", function () {
-        const command = "npx hardhat task4 -v 4";
+        const command = "npx hardhat task4 -l 4";
 
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = new Array(cliArguments.length).fill(false);
