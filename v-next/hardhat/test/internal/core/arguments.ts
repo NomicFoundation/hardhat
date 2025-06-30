@@ -6,6 +6,7 @@ import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import {
   isArgumentNameValid,
+  isArgumentShortNameValid,
   isArgumentValueValid,
   parseArgumentValue,
 } from "../../../src/internal/core/arguments.js";
@@ -30,6 +31,27 @@ describe("Arguments", () => {
       assert.equal(isArgumentNameValid("Foo"), false);
       assert.equal(isArgumentNameValid("123Foo"), false);
       assert.equal(isArgumentNameValid("foo-bar"), false);
+    });
+  });
+
+  describe("isArgumentShortNameValid", () => {
+    it("should return true for valid argument short names", () => {
+      assert.equal(isArgumentShortNameValid("a"), true);
+      assert.equal(isArgumentShortNameValid("b"), true);
+      assert.equal(isArgumentShortNameValid("c"), true);
+      assert.equal(isArgumentShortNameValid("X"), true);
+      assert.equal(isArgumentShortNameValid("Y"), true);
+      assert.equal(isArgumentShortNameValid("Z"), true);
+    });
+
+    it("should return false for invalid argument short names", () => {
+      assert.equal(isArgumentShortNameValid(""), false);
+      assert.equal(isArgumentShortNameValid("1"), false);
+      assert.equal(isArgumentShortNameValid("-"), false);
+      assert.equal(isArgumentShortNameValid("foo"), false);
+      assert.equal(isArgumentShortNameValid("Foo"), false);
+      assert.equal(isArgumentShortNameValid("123Foo"), false);
+      assert.equal(isArgumentShortNameValid("foo-bar"), false);
     });
   });
 
