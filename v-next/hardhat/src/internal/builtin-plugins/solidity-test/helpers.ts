@@ -9,7 +9,7 @@ import type {
   StorageCachingConfig,
   AddressLabel,
   Artifact,
-} from "@ignored/edr";
+} from "@ignored/edr-optimism";
 
 import { hexStringToBytes } from "@nomicfoundation/hardhat-utils/hex";
 
