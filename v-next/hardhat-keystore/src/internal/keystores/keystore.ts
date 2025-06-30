@@ -11,6 +11,7 @@ import {
   doesKeyExist,
   HmacKeyDecryptionError,
   removeSecretFromKeystore,
+  validateHmac,
   type EncryptedKeystore,
 } from "./encryption.js";
 
@@ -107,6 +108,23 @@ export class Keystore implements KeystoreI {
         encryptedKeystore: this.#keystoreData,
         key,
         value,
+      });
+    } catch (error) {
+      if (error instanceof HmacKeyDecryptionError) {
+        throw new HardhatError(
+          HardhatError.ERRORS.HARDHAT_KEYSTORE.GENERAL.INVALID_PASSWORD_OR_CORRUPTED_KEYSTORE,
+        );
+      }
+
+      throw error;
+    }
+  }
+
+  public async isValidPassword(masterKey: Uint8Array): Promise<void> {
+    try {
+      validateHmac({
+        masterKey,
+        encryptedKeystore: this.#keystoreData,
       });
     } catch (error) {
       if (error instanceof HmacKeyDecryptionError) {
