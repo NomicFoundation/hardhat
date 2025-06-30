@@ -1,5 +1,4 @@
 ---
-"@nomicfoundation/example-project": patch
 "@nomicfoundation/hardhat-errors": patch
 "@nomicfoundation/hardhat-ignition-ethers": patch
 "@nomicfoundation/hardhat-ignition-viem": patch
@@ -9,4 +8,4 @@
 "hardhat": patch
 ---
 
-Revamp the dependency resolution system: adding support for `remappings.txt` files, dropping support for `remappings` from the config, and changing how remappings into npm packages are written. 
+Revamp the dependency resolution system: adding support for `remappings.txt` files, dropping support for `remappings` from the config, and changing how remappings into npm packages are written.

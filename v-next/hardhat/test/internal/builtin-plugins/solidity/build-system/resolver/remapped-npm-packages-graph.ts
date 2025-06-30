@@ -24,8 +24,8 @@ import {
 
 import {
   isResolvedUserRemapping,
-  RemappedNpmPackagesMapImplementation,
-} from "../../../../../../src/internal/builtin-plugins/solidity/build-system/resolver/remapped-npm-packages-map.js";
+  RemappedNpmPackagesGraphImplementation,
+} from "../../../../../../src/internal/builtin-plugins/solidity/build-system/resolver/remapped-npm-packages-graph.js";
 import { UserRemappingType } from "../../../../../../src/internal/builtin-plugins/solidity/build-system/resolver/types.js";
 import {
   ResolvedFileType,
@@ -34,10 +34,10 @@ import {
 
 import { useTestProjectTemplate } from "./helpers.js";
 
-describe("RemappedNpmPackagesMap", () => {
-  describe("Map intialization", () => {
+describe("RemappedNpmPackagesGraph", () => {
+  describe("Graph intialization", () => {
     describe("Without dependencies and remappings", () => {
-      it("Should initialize a map with the right hardhat project package", async () => {
+      it("Should initialize a graph with the right hardhat project package", async () => {
         const template: TestProjectTemplate = {
           name: "no-dependencies-nor-remappings",
           version: "1.2.4",
@@ -49,15 +49,15 @@ describe("RemappedNpmPackagesMap", () => {
           },
         };
         await using project = await useTestProjectTemplate(template);
-        const map = await RemappedNpmPackagesMapImplementation.create(
+        const graph = await RemappedNpmPackagesGraphImplementation.create(
           project.path,
         );
 
-        const hhProjectPackage = map.getHardhatProjectPackage();
+        const hhProjectPackage = graph.getHardhatProjectPackage();
 
-        assert.deepEqual(map.toJSON(), {
+        assert.deepEqual(graph.toJSON(), {
           hardhatProjectPackage: hhProjectPackage,
-          packageByRootSourceName: {
+          packageByInputSourceNameRoot: {
             project: hhProjectPackage,
           },
           installationMap: {
@@ -87,15 +87,15 @@ invalid syntax`,
           },
         };
         await using project = await useTestProjectTemplate(template);
-        const map = await RemappedNpmPackagesMapImplementation.create(
+        const graph = await RemappedNpmPackagesGraphImplementation.create(
           project.path,
         );
 
-        const hhProjectPackage = map.getHardhatProjectPackage();
+        const hhProjectPackage = graph.getHardhatProjectPackage();
 
-        assert.deepEqual(map.toJSON(), {
+        assert.deepEqual(graph.toJSON(), {
           hardhatProjectPackage: hhProjectPackage,
-          packageByRootSourceName: {
+          packageByInputSourceNameRoot: {
             project: hhProjectPackage,
           },
           installationMap: {
@@ -138,15 +138,15 @@ invalid syntax`,
           },
         };
         await using project = await useTestProjectTemplate(template);
-        const map = await RemappedNpmPackagesMapImplementation.create(
+        const graph = await RemappedNpmPackagesGraphImplementation.create(
           project.path,
         );
 
-        const hhProjectPackage = map.getHardhatProjectPackage();
+        const hhProjectPackage = graph.getHardhatProjectPackage();
 
-        assert.deepEqual(map.toJSON(), {
+        assert.deepEqual(graph.toJSON(), {
           hardhatProjectPackage: hhProjectPackage,
-          packageByRootSourceName: {
+          packageByInputSourceNameRoot: {
             project: hhProjectPackage,
           },
           installationMap: {
@@ -192,12 +192,12 @@ invalid syntax`,
           },
         };
         await using project = await useTestProjectTemplate(template);
-        const map = await RemappedNpmPackagesMapImplementation.create(
+        const graph = await RemappedNpmPackagesGraphImplementation.create(
           project.path,
         );
-        const hhProjectPackage = map.getHardhatProjectPackage();
+        const hhProjectPackage = graph.getHardhatProjectPackage();
 
-        const result = await map.resolveDependencyByInstallationName(
+        const result = await graph.resolveDependencyByInstallationName(
           hhProjectPackage,
           "dep1",
         );
@@ -207,7 +207,7 @@ invalid syntax`,
             name: "dep1",
             version: "1.2.0",
             rootFsPath: path.join(project.path, "node_modules/dep1"),
-            rootSourceName: "npm/dep1@1.2.0",
+            inputSourceNameRoot: "npm/dep1@1.2.0",
             exports: undefined,
           },
           generatedRemapping: {
@@ -218,7 +218,7 @@ invalid syntax`,
         });
 
         const resultWithOtherName =
-          await map.resolveDependencyByInstallationName(
+          await graph.resolveDependencyByInstallationName(
             hhProjectPackage,
             "otherName",
           );
@@ -228,7 +228,7 @@ invalid syntax`,
             name: "real-name",
             version: "1.2.3",
             rootFsPath: path.join(project.path, "node_modules/otherName"),
-            rootSourceName: "npm/real-name@1.2.3",
+            inputSourceNameRoot: "npm/real-name@1.2.3",
             exports: {
               "./*.sol": "./src/*.sol",
             },
@@ -240,7 +240,7 @@ invalid syntax`,
           },
         });
 
-        const resultWithScope = await map.resolveDependencyByInstallationName(
+        const resultWithScope = await graph.resolveDependencyByInstallationName(
           hhProjectPackage,
           "@scope/dep2",
         );
@@ -250,7 +250,7 @@ invalid syntax`,
             name: "no-scope",
             version: "1.1.1",
             rootFsPath: path.join(project.path, "node_modules/@scope/dep2"),
-            rootSourceName: "npm/no-scope@1.1.1",
+            inputSourceNameRoot: "npm/no-scope@1.1.1",
             exports: undefined,
           },
           generatedRemapping: {
@@ -278,12 +278,12 @@ invalid syntax`,
             },
           };
           await using project = await useTestProjectTemplate(template);
-          const map = await RemappedNpmPackagesMapImplementation.create(
+          const graph = await RemappedNpmPackagesGraphImplementation.create(
             project.path,
           );
-          const hhProjectPackage = map.getHardhatProjectPackage();
+          const hhProjectPackage = graph.getHardhatProjectPackage();
 
-          const result = await map.resolveDependencyByInstallationName(
+          const result = await graph.resolveDependencyByInstallationName(
             hhProjectPackage,
             "dep1",
           );
@@ -293,7 +293,7 @@ invalid syntax`,
               name: "dep1",
               version: "1.2.0",
               rootFsPath: path.join(project.path, "node_modules/dep1"),
-              rootSourceName: "npm/dep1@1.2.0",
+              inputSourceNameRoot: "npm/dep1@1.2.0",
               exports: undefined,
             },
             generatedRemapping: {
@@ -303,9 +303,9 @@ invalid syntax`,
             },
           });
 
-          const json = map.toJSON();
+          const json = graph.toJSON();
           assert.deepEqual(
-            json.userRemappingsPerPackage[result.package.rootSourceName],
+            json.userRemappingsPerPackage[result.package.inputSourceNameRoot],
             undefined,
           );
         });
@@ -325,17 +325,17 @@ invalid syntax`,
           };
 
           await using project = await useTestProjectTemplate(template);
-          const map = await RemappedNpmPackagesMapImplementation.create(
+          const graph = await RemappedNpmPackagesGraphImplementation.create(
             project.path,
           );
-          const hhProjectPackage = map.getHardhatProjectPackage();
+          const hhProjectPackage = graph.getHardhatProjectPackage();
 
-          const result = await map.resolveDependencyByInstallationName(
+          const result = await graph.resolveDependencyByInstallationName(
             hhProjectPackage,
             "dep1",
           );
 
-          const result2 = await map.resolveDependencyByInstallationName(
+          const result2 = await graph.resolveDependencyByInstallationName(
             hhProjectPackage,
             "dep1",
           );
@@ -406,12 +406,12 @@ invalid syntax`,
           };
 
           const project = await useTestProjectTemplate(template);
-          const map = await RemappedNpmPackagesMapImplementation.create(
+          const graph = await RemappedNpmPackagesGraphImplementation.create(
             project.path,
           );
-          const hhProjectPackage = map.getHardhatProjectPackage();
+          const hhProjectPackage = graph.getHardhatProjectPackage();
 
-          const ozcFromRoot = await map.resolveDependencyByInstallationName(
+          const ozcFromRoot = await graph.resolveDependencyByInstallationName(
             hhProjectPackage,
             "@openzeppelin/contracts",
           );
@@ -424,7 +424,7 @@ invalid syntax`,
                 project.path,
                 "node_modules/@openzeppelin/contracts",
               ),
-              rootSourceName: "npm/@openzeppelin/contracts@4.8.0",
+              inputSourceNameRoot: "npm/@openzeppelin/contracts@4.8.0",
               exports: undefined,
             },
             generatedRemapping: {
@@ -435,7 +435,7 @@ invalid syntax`,
           });
 
           const dependencyWithOzc =
-            await map.resolveDependencyByInstallationName(
+            await graph.resolveDependencyByInstallationName(
               hhProjectPackage,
               "dependency-with-ozc",
             );
@@ -448,7 +448,7 @@ invalid syntax`,
                 project.path,
                 "node_modules/dependency-with-ozc",
               ),
-              rootSourceName: "npm/dependency-with-ozc@1.0.0",
+              inputSourceNameRoot: "npm/dependency-with-ozc@1.0.0",
               exports: undefined,
             },
             generatedRemapping: {
@@ -459,7 +459,7 @@ invalid syntax`,
           });
 
           const dependencyWithOzcsOzc =
-            await map.resolveDependencyByInstallationName(
+            await graph.resolveDependencyByInstallationName(
               dependencyWithOzc.package,
               "@openzeppelin/contracts",
             );
@@ -472,18 +472,18 @@ invalid syntax`,
                 dependencyWithOzc.package.rootFsPath,
                 "node_modules/@openzeppelin/contracts",
               ),
-              rootSourceName: "npm/@openzeppelin/contracts@4.7.0",
+              inputSourceNameRoot: "npm/@openzeppelin/contracts@4.7.0",
               exports: undefined,
             },
             generatedRemapping: {
-              context: dependencyWithOzc.package.rootSourceName + "/",
+              context: dependencyWithOzc.package.inputSourceNameRoot + "/",
               prefix: "@openzeppelin/contracts/",
               target: "npm/@openzeppelin/contracts@4.7.0/",
             },
           });
 
           const dependencyWithPeerOzc =
-            await map.resolveDependencyByInstallationName(
+            await graph.resolveDependencyByInstallationName(
               hhProjectPackage,
               "dependency-with-peer-ozc",
             );
@@ -496,7 +496,7 @@ invalid syntax`,
                 project.path,
                 "node_modules/dependency-with-peer-ozc",
               ),
-              rootSourceName: "npm/with-peer-ozc@1.2.3",
+              inputSourceNameRoot: "npm/with-peer-ozc@1.2.3",
               exports: undefined,
             },
             generatedRemapping: {
@@ -507,20 +507,20 @@ invalid syntax`,
           });
 
           const dependencyWithPeerOzcsOzc =
-            await map.resolveDependencyByInstallationName(
+            await graph.resolveDependencyByInstallationName(
               dependencyWithPeerOzc.package,
               "@openzeppelin/contracts",
             );
 
           assert.equal(dependencyWithPeerOzcsOzc?.package, ozcFromRoot.package);
           assert.deepEqual(dependencyWithPeerOzcsOzc?.generatedRemapping, {
-            context: dependencyWithPeerOzc.package.rootSourceName + "/",
+            context: dependencyWithPeerOzc.package.inputSourceNameRoot + "/",
             prefix: "@openzeppelin/contracts/",
             target: "npm/@openzeppelin/contracts@4.8.0/",
           });
 
           const dependencyWithTransitiveDependency =
-            await map.resolveDependencyByInstallationName(
+            await graph.resolveDependencyByInstallationName(
               hhProjectPackage,
               "dependency-with-transitive-dependency",
             );
@@ -533,7 +533,8 @@ invalid syntax`,
                 project.path,
                 "node_modules/dependency-with-transitive-dependency",
               ),
-              rootSourceName: "npm/dependency-with-transitive-dependency@1.0.0",
+              inputSourceNameRoot:
+                "npm/dependency-with-transitive-dependency@1.0.0",
               exports: undefined,
             },
             generatedRemapping: {
@@ -544,7 +545,7 @@ invalid syntax`,
           });
 
           const transitiveDependency =
-            await map.resolveDependencyByInstallationName(
+            await graph.resolveDependencyByInstallationName(
               dependencyWithTransitiveDependency.package,
               "transitive-dependency",
             );
@@ -557,12 +558,13 @@ invalid syntax`,
                 dependencyWithTransitiveDependency.package.rootFsPath,
                 "node_modules/transitive-dependency",
               ),
-              rootSourceName: "npm/transitive-dependency@1.0.0",
+              inputSourceNameRoot: "npm/transitive-dependency@1.0.0",
               exports: undefined,
             },
             generatedRemapping: {
               context:
-                dependencyWithTransitiveDependency.package.rootSourceName + "/",
+                dependencyWithTransitiveDependency.package.inputSourceNameRoot +
+                "/",
               prefix: "transitive-dependency/",
               target: "npm/transitive-dependency@1.0.0/",
             },
@@ -572,7 +574,7 @@ invalid syntax`,
           // the package that we load first. Not that duplicated here means same
           // name and version, not just name. Normally npm would deduplicate it.
           const withDuplicatedDependency =
-            await map.resolveDependencyByInstallationName(
+            await graph.resolveDependencyByInstallationName(
               hhProjectPackage,
               "with-duplicated-dependency",
             );
@@ -585,7 +587,7 @@ invalid syntax`,
                 project.path,
                 "node_modules/with-duplicated-dependency",
               ),
-              rootSourceName: "npm/with-duplicated-dependency@2.3.4",
+              inputSourceNameRoot: "npm/with-duplicated-dependency@2.3.4",
               exports: undefined,
             },
             generatedRemapping: {
@@ -596,7 +598,7 @@ invalid syntax`,
           });
 
           const ozcFromWithDuplicatedDependency =
-            await map.resolveDependencyByInstallationName(
+            await graph.resolveDependencyByInstallationName(
               withDuplicatedDependency.package,
               "@openzeppelin/contracts",
             );
@@ -609,11 +611,12 @@ invalid syntax`,
                 hhProjectPackage.rootFsPath,
                 "node_modules/@openzeppelin/contracts",
               ),
-              rootSourceName: "npm/@openzeppelin/contracts@4.8.0",
+              inputSourceNameRoot: "npm/@openzeppelin/contracts@4.8.0",
               exports: undefined,
             },
             generatedRemapping: {
-              context: withDuplicatedDependency.package.rootSourceName + "/",
+              context:
+                withDuplicatedDependency.package.inputSourceNameRoot + "/",
               prefix: "@openzeppelin/contracts/",
               target: "npm/@openzeppelin/contracts@4.8.0/",
             },
@@ -645,25 +648,25 @@ invalid syntax`,
         };
 
         const project = await useTestProjectTemplate(template);
-        const map = await RemappedNpmPackagesMapImplementation.create(
+        const graph = await RemappedNpmPackagesGraphImplementation.create(
           project.path,
         );
-        const hhProjectPackage = map.getHardhatProjectPackage();
+        const hhProjectPackage = graph.getHardhatProjectPackage();
 
-        const dep1 = await map.resolveDependencyByInstallationName(
+        const dep1 = await graph.resolveDependencyByInstallationName(
           hhProjectPackage,
           "dep1",
         );
         assert.ok(dep1 !== undefined, "dep1 should exist");
 
-        const dep2 = await map.resolveDependencyByInstallationName(
+        const dep2 = await graph.resolveDependencyByInstallationName(
           hhProjectPackage,
           "@scope/dep2",
         );
         assert.ok(dep2 !== undefined, "dep2 should exist");
 
         assert.equal(
-          await map.resolveDependencyByInstallationName(
+          await graph.resolveDependencyByInstallationName(
             hhProjectPackage,
             "dep3",
           ),
@@ -671,7 +674,7 @@ invalid syntax`,
         );
 
         assert.equal(
-          await map.resolveDependencyByInstallationName(
+          await graph.resolveDependencyByInstallationName(
             hhProjectPackage,
             "@scope/nope",
           ),
@@ -679,12 +682,12 @@ invalid syntax`,
         );
 
         assert.equal(
-          await map.resolveDependencyByInstallationName(dep1.package, "foo"),
+          await graph.resolveDependencyByInstallationName(dep1.package, "foo"),
           undefined,
         );
 
         assert.equal(
-          await map.resolveDependencyByInstallationName(
+          await graph.resolveDependencyByInstallationName(
             dep1.package,
             "@scope/nope",
           ),
@@ -692,12 +695,12 @@ invalid syntax`,
         );
 
         assert.equal(
-          await map.resolveDependencyByInstallationName(dep2.package, "foo"),
+          await graph.resolveDependencyByInstallationName(dep2.package, "foo"),
           undefined,
         );
 
         assert.equal(
-          await map.resolveDependencyByInstallationName(
+          await graph.resolveDependencyByInstallationName(
             dep2.package,
             "@scope/nope",
           ),
@@ -755,22 +758,22 @@ invalid syntax`,
           await remove(monorepoPath);
         });
 
-        it("Should use `local` as version numbers of monorepo packages when creating their root source names", async () => {
-          const map =
-            await RemappedNpmPackagesMapImplementation.create(hhProjectPath);
+        it("Should use `local` as version numbers of monorepo packages when creating their input source name roots", async () => {
+          const graph =
+            await RemappedNpmPackagesGraphImplementation.create(hhProjectPath);
 
-          const hhProjectPackage = map.getHardhatProjectPackage();
+          const hhProjectPackage = graph.getHardhatProjectPackage();
 
           assert.deepEqual(hhProjectPackage, {
             name: "hh-project",
             version: "1.3.4",
             rootFsPath: hhProjectPath,
-            rootSourceName: "project",
+            inputSourceNameRoot: "project",
             exports: undefined,
           });
 
           const monorepoDependency =
-            await map.resolveDependencyByInstallationName(
+            await graph.resolveDependencyByInstallationName(
               hhProjectPackage,
               "dependency",
             );
@@ -780,7 +783,7 @@ invalid syntax`,
               name: "monorepo-dependency",
               version: "local",
               rootFsPath: monorepoDependencyPath,
-              rootSourceName: "npm/monorepo-dependency@local",
+              inputSourceNameRoot: "npm/monorepo-dependency@local",
               exports: undefined,
             },
             generatedRemapping: {
@@ -792,13 +795,13 @@ invalid syntax`,
         });
 
         it("Should resolve to the same hh package if a monorepo package imports the hh package itself through a circular dependency", async () => {
-          const map =
-            await RemappedNpmPackagesMapImplementation.create(hhProjectPath);
+          const graph =
+            await RemappedNpmPackagesGraphImplementation.create(hhProjectPath);
 
-          const hhProjectPackage = map.getHardhatProjectPackage();
+          const hhProjectPackage = graph.getHardhatProjectPackage();
 
           const monorepoDependency =
-            await map.resolveDependencyByInstallationName(
+            await graph.resolveDependencyByInstallationName(
               hhProjectPackage,
               "dependency",
             );
@@ -808,7 +811,7 @@ invalid syntax`,
             "dependency should exist",
           );
 
-          const hhProject = await map.resolveDependencyByInstallationName(
+          const hhProject = await graph.resolveDependencyByInstallationName(
             monorepoDependency.package,
             "main",
           );
@@ -844,19 +847,19 @@ invalid syntax`,
 
       it("Should generate a remapping into a npm file, as provided in the args", async () => {
         const project = await useTestProjectTemplate(template);
-        const map = await RemappedNpmPackagesMapImplementation.create(
+        const graph = await RemappedNpmPackagesGraphImplementation.create(
           project.path,
         );
-        const hhProjectPackage = map.getHardhatProjectPackage();
+        const hhProjectPackage = graph.getHardhatProjectPackage();
 
-        const dep = await map.resolveDependencyByInstallationName(
+        const dep = await graph.resolveDependencyByInstallationName(
           hhProjectPackage,
           "dep",
         );
 
         assert.ok(dep !== undefined, "dep should exist");
 
-        const fromRootToDepFile1Sol = await map.generateRemappingIntoNpmFile(
+        const fromRootToDepFile1Sol = await graph.generateRemappingIntoNpmFile(
           hhProjectPackage,
           "dep1/file.sol",
           "npm/dep1@1.2.3/src/file.sol",
@@ -868,14 +871,14 @@ invalid syntax`,
           target: "npm/dep1@1.2.3/src/file.sol",
         });
 
-        const fromDepToFooFile2Sol = await map.generateRemappingIntoNpmFile(
+        const fromDepToFooFile2Sol = await graph.generateRemappingIntoNpmFile(
           dep.package,
           "foo/file.sol",
           "npm/foo@1.2.3/file2.sol",
         );
 
         assert.deepEqual(fromDepToFooFile2Sol, {
-          context: dep.package.rootSourceName + "/",
+          context: dep.package.inputSourceNameRoot + "/",
           prefix: "foo/file.sol",
           target: "npm/foo@1.2.3/file2.sol",
         });
@@ -883,18 +886,18 @@ invalid syntax`,
 
       it("Should reuse the same remapping object if run twice", async () => {
         const project = await useTestProjectTemplate(template);
-        const map = await RemappedNpmPackagesMapImplementation.create(
+        const graph = await RemappedNpmPackagesGraphImplementation.create(
           project.path,
         );
-        const hhProjectPackage = map.getHardhatProjectPackage();
+        const hhProjectPackage = graph.getHardhatProjectPackage();
 
-        const fromRootToDepFile1Sol = await map.generateRemappingIntoNpmFile(
+        const fromRootToDepFile1Sol = await graph.generateRemappingIntoNpmFile(
           hhProjectPackage,
           "dep1/file.sol",
           "npm/dep1@1.2.3/src/file.sol",
         );
 
-        const fromRootToDepFile1Sol2 = await map.generateRemappingIntoNpmFile(
+        const fromRootToDepFile1Sol2 = await graph.generateRemappingIntoNpmFile(
           hhProjectPackage,
           "dep1/file.sol",
           "npm/dep1@1.2.3/src/file.sol",
@@ -905,19 +908,19 @@ invalid syntax`,
 
       it("Should validate that the target matches if run twice", async () => {
         const project = await useTestProjectTemplate(template);
-        const map = await RemappedNpmPackagesMapImplementation.create(
+        const graph = await RemappedNpmPackagesGraphImplementation.create(
           project.path,
         );
-        const hhProjectPackage = map.getHardhatProjectPackage();
+        const hhProjectPackage = graph.getHardhatProjectPackage();
 
-        await map.generateRemappingIntoNpmFile(
+        await graph.generateRemappingIntoNpmFile(
           hhProjectPackage,
           "dep1/file.sol",
           "npm/dep1@1.2.3/src/file.sol",
         );
 
         await assertRejectsWithHardhatError(
-          map.generateRemappingIntoNpmFile(
+          graph.generateRemappingIntoNpmFile(
             hhProjectPackage,
             "dep1/file.sol",
             "npm/dep1@1.2.3/src/no-no.sol",
@@ -979,7 +982,7 @@ invalid syntax`,
           };
 
           // When no remapping matches, we should load them anyways
-          const firstMap = await RemappedNpmPackagesMapImplementation.create(
+          const firstMap = await RemappedNpmPackagesGraphImplementation.create(
             project.path,
           );
 
@@ -992,7 +995,7 @@ invalid syntax`,
               importPaths: ["dep1/B.sol"],
               versionPragmas: [],
             },
-            sourceName: "project/contracts/A.sol",
+            inputSourceName: "project/contracts/A.sol",
             package: firstHhProjectPackage,
           };
 
@@ -1014,7 +1017,7 @@ invalid syntax`,
           );
 
           // When a remapping matches, we should load them too
-          const secondMap = await RemappedNpmPackagesMapImplementation.create(
+          const secondMap = await RemappedNpmPackagesGraphImplementation.create(
             project.path,
           );
 
@@ -1064,12 +1067,12 @@ invalid syntax`,
           };
 
           const project = await useTestProjectTemplate(template);
-          const map = await RemappedNpmPackagesMapImplementation.create(
+          const graph = await RemappedNpmPackagesGraphImplementation.create(
             project.path,
           );
 
-          const hhProjectPackage = map.getHardhatProjectPackage();
-          const dep1 = await map.resolveDependencyByInstallationName(
+          const hhProjectPackage = graph.getHardhatProjectPackage();
+          const dep1 = await graph.resolveDependencyByInstallationName(
             hhProjectPackage,
             "dep1",
           );
@@ -1086,11 +1089,11 @@ invalid syntax`,
               importPaths: ["dep2/C.sol"],
               versionPragmas: [],
             },
-            sourceName: `${dep1Package.rootSourceName}/B.sol`,
+            inputSourceName: `${dep1Package.inputSourceNameRoot}/B.sol`,
             package: dep1Package,
           };
 
-          const result = await map.selectBestUserRemapping(
+          const result = await graph.selectBestUserRemapping(
             dep1BSol,
             "dep2/C.sol",
           );
@@ -1135,11 +1138,11 @@ f/=node_modules/not-installed/src/`,
 
           await using project = await useTestProjectTemplate(template);
 
-          const map = await RemappedNpmPackagesMapImplementation.create(
+          const graph = await RemappedNpmPackagesGraphImplementation.create(
             project.path,
           );
 
-          const hhProjectPackage = map.getHardhatProjectPackage();
+          const hhProjectPackage = graph.getHardhatProjectPackage();
           const contractsASol: ProjectResolvedFile = {
             type: ResolvedFileType.PROJECT_FILE,
             fsPath: path.join(project.path, "contracts/A.sol"),
@@ -1148,11 +1151,11 @@ f/=node_modules/not-installed/src/`,
               importPaths: ["dep1/B.sol"],
               versionPragmas: [],
             },
-            sourceName: "project/contracts/A.sol",
+            inputSourceName: "project/contracts/A.sol",
             package: hhProjectPackage,
           };
 
-          const bestRemapping = await map.selectBestUserRemapping(
+          const bestRemapping = await graph.selectBestUserRemapping(
             contractsASol,
             "nope",
           );
@@ -1162,7 +1165,7 @@ f/=node_modules/not-installed/src/`,
             value: undefined,
           });
 
-          assert.deepEqual(map.toJSON().userRemappingsPerPackage, {
+          assert.deepEqual(graph.toJSON().userRemappingsPerPackage, {
             project: [
               {
                 type: UserRemappingType.LOCAL,
@@ -1219,11 +1222,11 @@ f/=node_modules/not-installed/src/`,
 
           await using project = await useTestProjectTemplate(template);
 
-          const map = await RemappedNpmPackagesMapImplementation.create(
+          const graph = await RemappedNpmPackagesGraphImplementation.create(
             project.path,
           );
 
-          const hhProjectPackage = map.getHardhatProjectPackage();
+          const hhProjectPackage = graph.getHardhatProjectPackage();
           const contractsASol: ProjectResolvedFile = {
             type: ResolvedFileType.PROJECT_FILE,
             fsPath: path.join(project.path, "contracts/A.sol"),
@@ -1232,11 +1235,11 @@ f/=node_modules/not-installed/src/`,
               importPaths: ["dep1/B.sol"],
               versionPragmas: [],
             },
-            sourceName: "project/contracts/A.sol",
+            inputSourceName: "project/contracts/A.sol",
             package: hhProjectPackage,
           };
 
-          const bestRemapping = await map.selectBestUserRemapping(
+          const bestRemapping = await graph.selectBestUserRemapping(
             contractsASol,
             "d/B.sol",
           );
@@ -1256,14 +1259,14 @@ f/=node_modules/not-installed/src/`,
                   name: "dep1",
                   version: "1.2.3",
                   rootFsPath: path.join(project.path, "node_modules/dep1"),
-                  rootSourceName: "npm/dep1@1.2.3",
+                  inputSourceNameRoot: "npm/dep1@1.2.3",
                   exports: undefined,
                 },
               },
             },
           });
 
-          assert.deepEqual(map.toJSON().userRemappingsPerPackage, {
+          assert.deepEqual(graph.toJSON().userRemappingsPerPackage, {
             project: [
               {
                 type: UserRemappingType.LOCAL,
@@ -1314,11 +1317,11 @@ f/=node_modules/not-installed/src/`,
 
           await using project = await useTestProjectTemplate(template);
 
-          const map = await RemappedNpmPackagesMapImplementation.create(
+          const graph = await RemappedNpmPackagesGraphImplementation.create(
             project.path,
           );
 
-          const hhProjectPackage = map.getHardhatProjectPackage();
+          const hhProjectPackage = graph.getHardhatProjectPackage();
           const contractsASol: ProjectResolvedFile = {
             type: ResolvedFileType.PROJECT_FILE,
             fsPath: path.join(project.path, "contracts/A.sol"),
@@ -1327,11 +1330,11 @@ f/=node_modules/not-installed/src/`,
               importPaths: ["dep1/B.sol"],
               versionPragmas: [],
             },
-            sourceName: "project/contracts/A.sol",
+            inputSourceName: "project/contracts/A.sol",
             package: hhProjectPackage,
           };
 
-          const bestRemapping = await map.selectBestUserRemapping(
+          const bestRemapping = await graph.selectBestUserRemapping(
             contractsASol,
             "f/C.sol",
           );
@@ -1347,8 +1350,8 @@ f/=node_modules/not-installed/src/`,
             ],
           });
 
-          // The map should be the same
-          assert.deepEqual(map.toJSON().userRemappingsPerPackage, {
+          // The graph should be the same
+          assert.deepEqual(graph.toJSON().userRemappingsPerPackage, {
             project: [
               {
                 type: UserRemappingType.LOCAL,
@@ -1395,11 +1398,11 @@ context/:prefix/=node_modules/prefix/`,
 
             await using project = await useTestProjectTemplate(template);
 
-            const map = await RemappedNpmPackagesMapImplementation.create(
+            const graph = await RemappedNpmPackagesGraphImplementation.create(
               project.path,
             );
 
-            const hhProjectPackage = map.getHardhatProjectPackage();
+            const hhProjectPackage = graph.getHardhatProjectPackage();
             const contractsASol: ProjectResolvedFile = {
               type: ResolvedFileType.PROJECT_FILE,
               fsPath: path.join(project.path, "contracts/A.sol"),
@@ -1408,11 +1411,11 @@ context/:prefix/=node_modules/prefix/`,
                 importPaths: [],
                 versionPragmas: [],
               },
-              sourceName: "project/contracts/A.sol",
+              inputSourceName: "project/contracts/A.sol",
               package: hhProjectPackage,
             };
 
-            const bestRemapping = await map.selectBestUserRemapping(
+            const bestRemapping = await graph.selectBestUserRemapping(
               contractsASol,
               "nope/B.sol",
             );
@@ -1422,7 +1425,7 @@ context/:prefix/=node_modules/prefix/`,
               value: undefined,
             });
 
-            assert.deepEqual(map.toJSON().userRemappingsPerPackage, {
+            assert.deepEqual(graph.toJSON().userRemappingsPerPackage, {
               project: [
                 {
                   type: UserRemappingType.LOCAL,
@@ -1447,11 +1450,11 @@ context/:prefix/=node_modules/prefix/`,
             };
             await using project = await useTestProjectTemplate(template);
 
-            const map = await RemappedNpmPackagesMapImplementation.create(
+            const graph = await RemappedNpmPackagesGraphImplementation.create(
               project.path,
             );
 
-            const hhProjectPackage = map.getHardhatProjectPackage();
+            const hhProjectPackage = graph.getHardhatProjectPackage();
             const contractsASol: ProjectResolvedFile = {
               type: ResolvedFileType.PROJECT_FILE,
               fsPath: path.join(project.path, "contracts/A.sol"),
@@ -1460,11 +1463,11 @@ context/:prefix/=node_modules/prefix/`,
                 importPaths: [],
                 versionPragmas: [],
               },
-              sourceName: "project/contracts/A.sol",
+              inputSourceName: "project/contracts/A.sol",
               package: hhProjectPackage,
             };
 
-            const bestRemapping = await map.selectBestUserRemapping(
+            const bestRemapping = await graph.selectBestUserRemapping(
               contractsASol,
               "nope/B.sol",
             );
@@ -1494,11 +1497,11 @@ context/:foo/=npm/bar@1.3.4/src/`,
 
             await using project = await useTestProjectTemplate(template);
 
-            const map = await RemappedNpmPackagesMapImplementation.create(
+            const graph = await RemappedNpmPackagesGraphImplementation.create(
               project.path,
             );
 
-            const hhProjectPackage = map.getHardhatProjectPackage();
+            const hhProjectPackage = graph.getHardhatProjectPackage();
             const contractsASol: ProjectResolvedFile = {
               type: ResolvedFileType.PROJECT_FILE,
               fsPath: path.join(project.path, "contracts/A.sol"),
@@ -1507,11 +1510,11 @@ context/:foo/=npm/bar@1.3.4/src/`,
                 importPaths: [],
                 versionPragmas: [],
               },
-              sourceName: "project/contracts/A.sol",
+              inputSourceName: "project/contracts/A.sol",
               package: hhProjectPackage,
             };
 
-            const bestRemapping = await map.selectBestUserRemapping(
+            const bestRemapping = await graph.selectBestUserRemapping(
               contractsASol,
               "nope/B.sol",
             );
@@ -1521,7 +1524,7 @@ context/:foo/=npm/bar@1.3.4/src/`,
               value: undefined,
             });
 
-            assert.deepEqual(map.toJSON().userRemappingsPerPackage, {
+            assert.deepEqual(graph.toJSON().userRemappingsPerPackage, {
               project: [
                 {
                   type: UserRemappingType.LOCAL,
@@ -1564,10 +1567,10 @@ contr:to-npm=node_modules/dep/contracts`,
             };
 
             const project = await useTestProjectTemplate(template);
-            const map = await RemappedNpmPackagesMapImplementation.create(
+            const graph = await RemappedNpmPackagesGraphImplementation.create(
               project.path,
             );
-            const hhProjectPackage = map.getHardhatProjectPackage();
+            const hhProjectPackage = graph.getHardhatProjectPackage();
 
             const contractsASol: ProjectResolvedFile = {
               type: ResolvedFileType.PROJECT_FILE,
@@ -1577,11 +1580,11 @@ contr:to-npm=node_modules/dep/contracts`,
                 importPaths: ["dep1/B.sol"],
                 versionPragmas: [],
               },
-              sourceName: "project/contracts/A.sol",
+              inputSourceName: "project/contracts/A.sol",
               package: hhProjectPackage,
             };
 
-            const fooRemappingResult = await map.selectBestUserRemapping(
+            const fooRemappingResult = await graph.selectBestUserRemapping(
               contractsASol,
               "foo/B.sol",
             );
@@ -1598,13 +1601,13 @@ contr:to-npm=node_modules/dep/contracts`,
             });
 
             const fooRemappingWithoutSlashResult =
-              await map.selectBestUserRemapping(contractsASol, "foo");
+              await graph.selectBestUserRemapping(contractsASol, "foo");
             assert.deepEqual(fooRemappingWithoutSlashResult, {
               success: true,
               value: undefined,
             });
 
-            const toNpmRemappingResult = await map.selectBestUserRemapping(
+            const toNpmRemappingResult = await graph.selectBestUserRemapping(
               contractsASol,
               "to-npm/B.sol",
             );
@@ -1623,7 +1626,7 @@ contr:to-npm=node_modules/dep/contracts`,
                     name: "dep",
                     version: "1.2.3",
                     rootFsPath: path.join(project.path, "node_modules/dep"),
-                    rootSourceName: "npm/dep@1.2.3",
+                    inputSourceNameRoot: "npm/dep@1.2.3",
                     exports: undefined,
                   },
                 },
@@ -1631,7 +1634,7 @@ contr:to-npm=node_modules/dep/contracts`,
             });
 
             const toNpmRemappingWithoutSlashResult =
-              await map.selectBestUserRemapping(contractsASol, "to-npm");
+              await graph.selectBestUserRemapping(contractsASol, "to-npm");
             assert.deepEqual(toNpmRemappingWithoutSlashResult, {
               success: true,
               value: undefined,
@@ -1658,7 +1661,7 @@ describe("isResolvedUserRemapping", () => {
           name: "name",
           version: "version",
           rootFsPath: "rootFsPath",
-          rootSourceName: "rootSourceName",
+          inputSourceNameRoot: "inputSourceNameRoot",
           exports: undefined,
         },
       },

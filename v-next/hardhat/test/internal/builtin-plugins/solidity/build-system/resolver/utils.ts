@@ -70,7 +70,7 @@ describe("Resolver utils", () => {
       name: "foo",
       version: "1.2.3",
       rootFsPath: "root",
-      rootSourceName: "root",
+      inputSourceNameRoot: "root",
       exports: {
         "./*.sol": "./src/*.sol",
       },

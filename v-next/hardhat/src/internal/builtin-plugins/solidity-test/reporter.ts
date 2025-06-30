@@ -20,6 +20,7 @@ import { getMessageFromLastStackTraceEntry } from "./stack-trace-solidity-errors
  */
 export async function* testReporter(
   source: TestEventSource,
+  sourceNameToUserSourceName: Map<string, string>,
 ): TestReporterResult {
   let runTestCount = 0;
   let runSuccessCount = 0;
@@ -44,7 +45,7 @@ export async function* testReporter(
         let suiteSkippedCount = 0;
         const suiteDuration = suiteResult.durationMs;
 
-        yield `Ran ${suiteResult.testResults.length} tests for ${formatArtifactId(suiteResult.id)}\n`;
+        yield `Ran ${suiteResult.testResults.length} tests for ${formatArtifactId(suiteResult.id, sourceNameToUserSourceName)}\n`;
 
         if (suiteResult.warnings.length > 0) {
           for (const warning of suiteResult.warnings) {

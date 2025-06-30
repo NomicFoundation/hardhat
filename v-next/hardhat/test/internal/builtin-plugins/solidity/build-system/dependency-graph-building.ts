@@ -31,9 +31,9 @@ describe("buildDependencyGraph", () => {
       "contracts/UserRemappedImport.sol",
     ];
 
-    const rootSourceNames = rootRelativePaths.map((p) => `project/${p}`);
+    const rootInputSourceNames = rootRelativePaths.map((p) => `project/${p}`);
 
-    const dependencySourceNames = [
+    const dependencyInputSourceNames = [
       "project/contracts/B.sol",
       "project/contracts/C.sol",
       "npm/@openzeppelin/contracts@5.1.0/access/Ownable.sol",
@@ -48,22 +48,27 @@ describe("buildDependencyGraph", () => {
     const roots = dependencyGraph.getRoots();
     assert.equal(
       roots.size,
-      rootSourceNames.length,
-      `Should have ${rootSourceNames.length} roots`,
+      rootInputSourceNames.length,
+      `Should have ${rootInputSourceNames.length} roots`,
     );
-    for (const publicSourceName of rootRelativePaths) {
+    for (const userSourceName of rootRelativePaths) {
       assert.ok(
-        roots.has(publicSourceName),
-        `Should have root ${publicSourceName}`,
+        roots.has(userSourceName),
+        `Should have root ${userSourceName}`,
       );
     }
 
     const files = Array.from(dependencyGraph.getAllFiles()).map(
-      (file) => file.sourceName,
+      (file) => file.inputSourceName,
     );
     assert.equal(files.length, 7, "Should have 7 files");
-    for (const sourceName of rootSourceNames.concat(dependencySourceNames)) {
-      assert.ok(files.includes(sourceName), `Should have file ${sourceName}`);
+    for (const inputSourceName of rootInputSourceNames.concat(
+      dependencyInputSourceNames,
+    )) {
+      assert.ok(
+        files.includes(inputSourceName),
+        `Should have file ${inputSourceName}`,
+      );
     }
 
     const remappings = dependencyGraph.getAllRemappings();

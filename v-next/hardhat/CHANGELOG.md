@@ -1,5 +1,18 @@
 # hardhat
 
+## 3.0.0-next.20
+
+### Patch Changes
+
+- 59daf94: Fix how solidity tests are run and displayed
+
+## 3.0.0-next.19
+
+### Patch Changes
+
+- fe42147: Revamp the dependency resolution system: adding support for `remappings.txt` files, dropping support for `remappings` from the config, and changing how remappings into npm packages are written.
+- ab67a7d: Add support for verifying contracts in Blockscout to hardhat-verify.
+
 ## 3.0.0-next.18
 
 ### Patch Changes

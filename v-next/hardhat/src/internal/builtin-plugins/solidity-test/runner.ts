@@ -51,6 +51,7 @@ export function run(
   testSuiteIds: ArtifactId[],
   configArgs: SolidityTestRunnerConfigArgs,
   tracingConfig: TracingConfigWithBuffers,
+  sourceNameToUserSourceName: Map<string, string>,
   options?: RunOptions,
 ): TestsStream {
   const stream = new ReadableStream<TestEvent>({
@@ -60,7 +61,11 @@ export function run(
         return;
       }
 
-      const remainingSuites = new Set(testSuiteIds.map(formatArtifactId));
+      const remainingSuites = new Set(
+        testSuiteIds.map((id) =>
+          formatArtifactId(id, sourceNameToUserSourceName),
+        ),
+      );
 
       let timeout: NodeJS.Timeout | undefined;
       if (options?.timeout !== undefined) {
@@ -91,7 +96,9 @@ export function run(
             type: "suite:result",
             data: suiteResult,
           });
-          remainingSuites.delete(formatArtifactId(suiteResult.id));
+          remainingSuites.delete(
+            formatArtifactId(suiteResult.id, sourceNameToUserSourceName),
+          );
           if (remainingSuites.size === 0) {
             clearTimeout(timeout);
             controller.close();

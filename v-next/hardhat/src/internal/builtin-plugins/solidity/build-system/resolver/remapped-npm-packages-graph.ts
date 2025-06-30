@@ -2,11 +2,11 @@ import type {
   LocalUserRemapping,
   ResolvedNpmUserRemapping,
   InstallationName,
-  RemappedNpmPackagesMap,
+  RemappedNpmPackagesGraph,
   Remapping,
   ResolvedUserRemapping,
   UnresolvedNpmUserRemapping,
-  RemappedNpmPackagesMapJson,
+  RemappedNpmPackagesGraphJson,
   Result,
 } from "./types.js";
 import type {
@@ -35,7 +35,7 @@ import { parseRemappingString, selectBestRemapping } from "./remappings.js";
 import { sourceNamePathJoin } from "./source-name-utils.js";
 import { UserRemappingType } from "./types.js";
 
-const HARDHAT_PROJECT_ROOT_SOURCE_NAME = "project";
+const HARDHAT_PROJECT_INPUT_SOURCE_NAME_ROOT = "project";
 
 export function isResolvedUserRemapping(
   remapping: Remapping | ResolvedUserRemapping,
@@ -47,8 +47,8 @@ export function isResolvedUserRemapping(
   );
 }
 
-export class RemappedNpmPackagesMapImplementation
-  implements RemappedNpmPackagesMap
+export class RemappedNpmPackagesGraphImplementation
+  implements RemappedNpmPackagesGraph
 {
   /**
    * The Hardhat project itself.
@@ -76,9 +76,12 @@ export class RemappedNpmPackagesMapImplementation
   >();
 
   /**
-   * A map of all the npm packages, indexed by their root source name.
+   * A map of all the npm packages, indexed by their input source name root.
    */
-  readonly #packageByRootSourceName = new Map<string, ResolvedNpmPackage>();
+  readonly #packageByInputSourceNameRoot = new Map<
+    string,
+    ResolvedNpmPackage
+  >();
 
   /**
    * A map of all the user remappings of each npm package.
@@ -101,7 +104,7 @@ export class RemappedNpmPackagesMapImplementation
 
   public static async create(
     projectRootPath: string,
-  ): Promise<RemappedNpmPackagesMapImplementation> {
+  ): Promise<RemappedNpmPackagesGraphImplementation> {
     const projectPackageJson = await readJsonFile<PackageJson>(
       path.join(projectRootPath, "package.json"),
     );
@@ -111,10 +114,10 @@ export class RemappedNpmPackagesMapImplementation
       version: projectPackageJson.version,
       exports: projectPackageJson.exports,
       rootFsPath: projectRootPath,
-      rootSourceName: HARDHAT_PROJECT_ROOT_SOURCE_NAME,
+      inputSourceNameRoot: HARDHAT_PROJECT_INPUT_SOURCE_NAME_ROOT,
     };
 
-    return new RemappedNpmPackagesMapImplementation(resolvedNpmPackage);
+    return new RemappedNpmPackagesGraphImplementation(resolvedNpmPackage);
   }
 
   private constructor(hardhatProjectPackage: ResolvedNpmPackage) {
@@ -129,7 +132,7 @@ export class RemappedNpmPackagesMapImplementation
   /**
    * Resolves a dependency of the package `from` by its installation name.
    *
-   * This method modifies the map, potentially loading new packages, but it
+   * This method modifies the graph, potentially loading new packages, but it
    * doesn't read its remappings, and it doesn't take user remappings into
    * account.
    *
@@ -182,20 +185,20 @@ export class RemappedNpmPackagesMapImplementation
 
     // We treat packages from within the monorepo a bit differently, so we
     // check it here. All we do is using a different version to compute
-    // its root source name.
+    // its input source name root.
     const dependencyVersion = this.#isPackageJsonFromMonorepo(
       dependencyPackageJsonPath,
     )
       ? "local"
       : dependencyPackageJson.version;
 
-    // We get the root source name of the dependency, to check if it already
-    // exists in the map.
-    const rootSourceName =
+    // We get the input source name root of the dependency, to check if it
+    // already exists in the graph.
+    const inputSourceNameRoot =
       dependencyPackageJsonPath ===
       path.join(this.#hardhatProjectPackage.rootFsPath, "package.json")
-        ? HARDHAT_PROJECT_ROOT_SOURCE_NAME
-        : this.#npmPackageToRootSourceName(
+        ? HARDHAT_PROJECT_INPUT_SOURCE_NAME_ROOT
+        : this.#npmPackageToInputSourceNameRoot(
             dependencyPackageJson.name,
             dependencyVersion,
           );
@@ -203,7 +206,7 @@ export class RemappedNpmPackagesMapImplementation
     // If it exists, we need to update the installation map, as it was missing
     // there with this installation name, and we return it.
     const existingDependencyNpmPackageBySourceName =
-      this.#packageByRootSourceName.get(rootSourceName);
+      this.#packageByInputSourceNameRoot.get(inputSourceNameRoot);
     if (existingDependencyNpmPackageBySourceName !== undefined) {
       const resultOfExistingPackage = {
         package: existingDependencyNpmPackageBySourceName,
@@ -220,12 +223,12 @@ export class RemappedNpmPackagesMapImplementation
     }
 
     // Otherwise it's the first time we see this package, so we add it to the
-    // map.
+    // graph.
     const newDependencyNpmPackage: ResolvedNpmPackage = {
       name: dependencyPackageJson.name,
       version: dependencyVersion,
       rootFsPath: path.dirname(dependencyPackageJsonPath),
-      rootSourceName,
+      inputSourceNameRoot,
       exports: dependencyPackageJson.exports,
     };
 
@@ -264,7 +267,7 @@ export class RemappedNpmPackagesMapImplementation
     }
 
     const bestUserRemappingIndex = selectBestRemapping(
-      from.sourceName,
+      from.inputSourceName,
       directImport,
       userRemappings,
     );
@@ -300,7 +303,7 @@ export class RemappedNpmPackagesMapImplementation
   public async generateRemappingIntoNpmFile(
     fromNpmPackage: ResolvedNpmPackage,
     directImport: string,
-    targetSouceName: string,
+    targetInputSourceName: string,
   ): Promise<Remapping> {
     const remappingsIntoFiles =
       this.#generatedRemappingsIntoNpmFiles.get(fromNpmPackage);
@@ -312,7 +315,7 @@ export class RemappedNpmPackagesMapImplementation
     const existing = remappingsIntoFiles.get(directImport);
     if (existing !== undefined) {
       assertHardhatInvariant(
-        existing.target === targetSouceName,
+        existing.target === targetInputSourceName,
         "Trying to generate different remappings for the same direct import into an npm file",
       );
 
@@ -320,9 +323,9 @@ export class RemappedNpmPackagesMapImplementation
     }
 
     const remapping = {
-      context: fromNpmPackage.rootSourceName + "/",
+      context: fromNpmPackage.inputSourceNameRoot + "/",
       prefix: directImport,
-      target: targetSouceName,
+      target: targetInputSourceName,
     };
 
     remappingsIntoFiles.set(directImport, remapping);
@@ -330,17 +333,17 @@ export class RemappedNpmPackagesMapImplementation
     return remapping;
   }
 
-  public toJSON(): RemappedNpmPackagesMapJson {
+  public toJSON(): RemappedNpmPackagesGraphJson {
     return {
       hardhatProjectPackage: this.#hardhatProjectPackage,
-      packageByRootSourceName: Object.fromEntries(
-        this.#packageByRootSourceName.entries(),
+      packageByInputSourceNameRoot: Object.fromEntries(
+        this.#packageByInputSourceNameRoot.entries(),
       ),
       installationMap: Object.fromEntries(
         Array.from(this.#installationMap.entries()).map(
           ([pkg, dependenciesMap]) => {
             return [
-              pkg.rootSourceName,
+              pkg.inputSourceNameRoot,
               Object.fromEntries(dependenciesMap.entries()),
             ];
           },
@@ -349,14 +352,14 @@ export class RemappedNpmPackagesMapImplementation
       userRemappingsPerPackage: Object.fromEntries(
         Array.from(this.#userRemappingsPerPackage.entries()).map(
           ([pkg, remappings]) => {
-            return [pkg.rootSourceName, remappings];
+            return [pkg.inputSourceNameRoot, remappings];
           },
         ),
       ),
       generatedRemappingsIntoNpmFiles: Object.fromEntries(
         Array.from(this.#generatedRemappingsIntoNpmFiles.entries()).map(
           ([pkg, remappings]) => {
-            return [pkg.rootSourceName, Object.fromEntries(remappings)];
+            return [pkg.inputSourceNameRoot, Object.fromEntries(remappings)];
           },
         ),
       ),
@@ -371,7 +374,10 @@ export class RemappedNpmPackagesMapImplementation
    */
   #insertNewPackage(npmPackage: ResolvedNpmPackage) {
     this.#installationMap.set(npmPackage, new Map());
-    this.#packageByRootSourceName.set(npmPackage.rootSourceName, npmPackage);
+    this.#packageByInputSourceNameRoot.set(
+      npmPackage.inputSourceNameRoot,
+      npmPackage,
+    );
     this.#generatedRemappingsIntoNpmFiles.set(npmPackage, new Map());
     // Note: We intentionally don't add an empty array to the map of user
     // remappings, so that we can easily check if they have been processed.
@@ -585,7 +591,7 @@ export class RemappedNpmPackagesMapImplementation
     }
 
     const target =
-      dependency.package.rootSourceName +
+      dependency.package.inputSourceNameRoot +
       unresolvedNpmRemapping.target.substring(
         "node_modules/".length + unresolvedNpmRemapping.installationName.length,
       );
@@ -617,9 +623,9 @@ export class RemappedNpmPackagesMapImplementation
     to: ResolvedNpmPackage,
   ): Remapping {
     return {
-      context: from.rootSourceName + "/",
+      context: from.inputSourceNameRoot + "/",
       prefix: installationName + "/",
-      target: to.rootSourceName + "/",
+      target: to.inputSourceNameRoot + "/",
     };
   }
 
@@ -632,7 +638,7 @@ export class RemappedNpmPackagesMapImplementation
     );
   }
 
-  #npmPackageToRootSourceName(name: string, version: string): string {
+  #npmPackageToInputSourceNameRoot(name: string, version: string): string {
     return `npm/${name}@${version}`;
   }
 
@@ -655,7 +661,7 @@ export class RemappedNpmPackagesMapImplementation
 
     return sourceNamePathJoin(
       // We add a slash here so that it mains it if the rest of the path is empty
-      from.rootSourceName + "/",
+      from.inputSourceNameRoot + "/",
       // Same here
       relativeFsPathToRemappingsFileFromPackage + "/",
       remappingFragment,
