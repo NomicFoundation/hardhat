@@ -1,8 +1,7 @@
 import type { HardhatPlugin } from "hardhat/types/plugins";
 
 import "./type-extensions.js";
-import { globalOption } from "hardhat/config";
-import { ArgumentType } from "hardhat/types/arguments";
+import { globalFlag } from "hardhat/config";
 
 const hardhatTypechain: HardhatPlugin = {
   id: "hardhat-typechain",
@@ -20,11 +19,9 @@ const hardhatTypechain: HardhatPlugin = {
     },
   ],
   globalOptions: [
-    globalOption({
+    globalFlag({
       name: "noTypechain",
       description: "Disables the typechain type generation",
-      defaultValue: false,
-      type: ArgumentType.BOOLEAN,
     }),
   ],
 };

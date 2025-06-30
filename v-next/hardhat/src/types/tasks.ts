@@ -177,10 +177,6 @@ export interface NewTaskDefinitionBuilder<
    *
    * A task option is one that is used as `--<name> value` in the CLI.
    *
-   * If the type is `ArgumentType.BOOLEAN`, the default value is `false`, the
-   * argument is considered a flag, and can be used as `--<name>` to set it to
-   * `true`.
-   *
    * The type of the argument defaults to `ArgumentType.STRING`.
    *
    * The default value should be of the same type as the argument.
