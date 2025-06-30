@@ -8,7 +8,7 @@ import {
 import { exists } from "@nomicfoundation/hardhat-utils/fs";
 import chalk from "chalk";
 
-import { isEdrSupportedChainType } from "../network-manager/edr/utils/chain-type.js";
+import { isEdrSupportedChainType } from "../../edr/chain-type.js";
 
 import { formatEdrNetworkConfigAccounts } from "./helpers.js";
 import { JsonRpcServerImplementation } from "./json-rpc/server.js";

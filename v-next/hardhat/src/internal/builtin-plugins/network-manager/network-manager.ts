@@ -25,10 +25,10 @@ import { readBinaryFile } from "@nomicfoundation/hardhat-utils/fs";
 import { deepMerge } from "@nomicfoundation/hardhat-utils/lang";
 
 import { resolveConfigurationVariable } from "../../core/configuration-variables.js";
+import { isEdrSupportedChainType } from "../../edr/chain-type.js";
 
 import { resolveEdrNetwork, resolveHttpNetwork } from "./config-resolution.js";
 import { EdrProvider } from "./edr/edr-provider.js";
-import { isEdrSupportedChainType } from "./edr/utils/chain-type.js";
 import { HttpProvider } from "./http-provider.js";
 import { NetworkConnectionImplementation } from "./network-connection.js";
 import { validateNetworkConfigOverride } from "./type-validation.js";
