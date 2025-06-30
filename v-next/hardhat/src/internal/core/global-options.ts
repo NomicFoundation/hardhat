@@ -77,6 +77,13 @@ export function buildGlobalOptionDefinitions(
       };
 
       globalOptionDefinitions.set(validatedGlobalOption.name, mapEntry);
+
+      if (validatedGlobalOption.shortName !== undefined) {
+        globalOptionDefinitionsByShortName.set(
+          validatedGlobalOption.shortName,
+          mapEntry,
+        );
+      }
     }
   }
 

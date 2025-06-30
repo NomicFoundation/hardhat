@@ -17,7 +17,7 @@ export const RESERVED_ARGUMENT_NAMES: Set<string> = new Set([]);
 export const RESERVED_ARGUMENT_SHORT_NAMES: Set<string> = new Set([]);
 
 const VALID_ARGUMENT_NAME_PATTERN = /^[a-z][a-zA-Z0-9]*$/;
-const VALID_ARGUMENT_SHORT_NAME_PATTERN = /^[a-z]$/;
+const VALID_ARGUMENT_SHORT_NAME_PATTERN = /^[a-zA-Z]$/;
 
 /**
  * Validates an argument name, throwing an error if it is invalid.
