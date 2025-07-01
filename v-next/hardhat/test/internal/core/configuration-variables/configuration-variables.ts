@@ -180,7 +180,7 @@ describe("configVariable", function () {
     assert.equal(variable.format, "var: {variable}");
   });
 
-  it("throws an error when format doesnt include the variable marker", async () => {
+  it("throws an error when format doesn't include the variable marker", async () => {
     assertThrowsHardhatError(
       () => {
         configVariable("foo", "missing_marker");

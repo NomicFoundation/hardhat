@@ -331,7 +331,7 @@ describe("Global Options", () => {
       const globalOptions = resolveGlobalOptions(
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
         This cast is intentional, so that the test doesn't need to extend the
-        GlobalOptions type, poluting the whole codebase. */
+        GlobalOptions type, polluting the whole codebase. */
         {
           globalOption1: false,
           globalOption2: "user",
@@ -371,7 +371,7 @@ describe("Global Options", () => {
       const globalOptions = resolveGlobalOptions(
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
         This cast is intentional, so that the test doesn't need to extend the
-        GlobalOptions type, poluting the whole codebase. */
+        GlobalOptions type, polluting the whole codebase. */
         {
           globalOption1: false,
           globalOption2: "user",
@@ -405,7 +405,7 @@ describe("Global Options", () => {
       const globalOptions = resolveGlobalOptions(
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
         This cast is intentional, so that the test doesn't need to extend the
-        GlobalOptions type, poluting the whole codebase. */
+        GlobalOptions type, polluting the whole codebase. */
         {
           globalOption1: false,
           globalOption2: "user",

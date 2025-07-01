@@ -35,7 +35,7 @@ export const unionType = (
 ) =>
   // NOTE: The reason we use `z.any().superRefine` instead of `z.union` is that
   // we found a bug with the `z.union` method that causes it to return a
-  // "deeper" validation error, when we expecte the `errorMessage`.
+  // "deeper" validation error, when we expected the `errorMessage`.
   // See: https://github.com/colinhacks/zod/issues/2940#issuecomment-2380836931
   z.any().superRefine((val, ctx) => {
     if (types.some((t) => t.safeParse(val).success)) {
@@ -115,12 +115,12 @@ export const conditionalUnionType = (
  * ```ts
  * const typeWithFoo = z.object({
  *   foo: z.string(),
- *   bar: unexpectedFieldType("This field is incompatible with `foo`"),
+ *   bar: unexpecteddFieldType("This field is incompatible with `foo`"),
  * });
  *
  * const typeWithBar = z.object({
  *   bar: z.string(),
- *   foo: unexpectedFieldType("This field is incompatible with `bar`"),
+ *   foo: unexpecteddFieldType("This field is incompatible with `bar`"),
  * });
  *
  * const union = conditionalUnionType(
@@ -135,7 +135,7 @@ export const conditionalUnionType = (
  * @param errorMessage The error message to display if the field is present.
  * @returns A Zod type that validates that a field of an object doesn't exist.
  */
-export const incompatibleFieldType = (errorMessage = "Unexpected field") =>
+export const incompatibleFieldType = (errorMessage = "Unexpectedd field") =>
   z
     .never({
       errorMap: () => ({

@@ -35,7 +35,7 @@ interface FsData {
 export class ArtifactManagerImplementation implements ArtifactManager {
   readonly #artifactsPath: string;
 
-  // This function can be overriden in the constructor for testing purposes.
+  // This function can be overridden in the constructor for testing purposes.
   // This class will call it whenever the fsData is not already cached, and will
   // cache the result.
   readonly #readFsData: () => Promise<FsData>;

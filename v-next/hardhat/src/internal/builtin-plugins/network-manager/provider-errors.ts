@@ -19,7 +19,7 @@ const IS_PROVIDER_ERROR_PROPERTY_NAME = "_isProviderError";
 // -32004	Method not supported	Method is not implemented	          non-standard
 // -32005	Limit exceeded	      Request exceeds defined limit	      non-standard
 //
-// -32999 Invalid response      The server returned a JSON-RPC      hardhat-sepecific
+// -32999 Invalid response      The server returned a JSON-RPC      hardhat-specific
 //                              response, but the result is not
 //                              in the expected format
 export class ProviderError extends CustomError implements ProviderRpcError {

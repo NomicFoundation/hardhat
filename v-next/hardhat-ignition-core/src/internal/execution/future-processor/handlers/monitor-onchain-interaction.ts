@@ -101,7 +101,7 @@ export async function monitorOnchainInteraction(
     exState.id,
   );
 
-  // We do not try to recover from dopped transactions mid-execution
+  // We do not try to recover from dropped transactions mid-execution
   if (transaction === undefined) {
     throw new HardhatError(
       HardhatError.ERRORS.IGNITION.EXECUTION.DROPPED_TRANSACTION,

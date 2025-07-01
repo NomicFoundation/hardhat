@@ -87,7 +87,7 @@ export interface CompileBuildInfoOptions {
 export enum CompilationJobCreationErrorReason {
   NO_COMPATIBLE_SOLC_VERSION_FOUND = "NO_COMPATIBLE_SOLC_VERSION_FOUND",
   NO_COMPATIBLE_SOLC_VERSION_WITH_ROOT = "NO_COMPATIBLE_SOLC_VERSION_WITH_ROOT",
-  INCOMPATIBLE_OVERRIDEN_SOLC_VERSION = "INCOMPATIBLE_OVERRIDEN_SOLC_VERSION",
+  INCOMPATIBLE_OVERRIDDEN_SOLC_VERSION = "INCOMPATIBLE_OVERRIDDEN_SOLC_VERSION",
   IMPORT_OF_INCOMPATIBLE_FILE = "IMPORT_OF_INCOMPATIBLE_FILE",
 }
 
@@ -102,14 +102,14 @@ export interface CompilationJobCreationErrorNoCompatibleSolcVersionFound
   reason: CompilationJobCreationErrorReason.NO_COMPATIBLE_SOLC_VERSION_WITH_ROOT;
 }
 
-export interface CompilationJobCreationErrorIncompatibleOverridenSolcVersion
+export interface CompilationJobCreationErrorIncompatibleOverriddenSolcVersion
   extends BaseCompilationJobCreationError {
-  reason: CompilationJobCreationErrorReason.INCOMPATIBLE_OVERRIDEN_SOLC_VERSION;
+  reason: CompilationJobCreationErrorReason.INCOMPATIBLE_OVERRIDDEN_SOLC_VERSION;
 }
 
-export interface CompilationJobCreationErrorIncompatibleOverridenSolcVersion
+export interface CompilationJobCreationErrorIncompatibleOverriddenSolcVersion
   extends BaseCompilationJobCreationError {
-  reason: CompilationJobCreationErrorReason.INCOMPATIBLE_OVERRIDEN_SOLC_VERSION;
+  reason: CompilationJobCreationErrorReason.INCOMPATIBLE_OVERRIDDEN_SOLC_VERSION;
 }
 
 export interface CompilationJobCreationErrorIportOfIncompatibleFile
@@ -128,7 +128,7 @@ export interface NoCompatibleSolcVersionFound
 export type CompilationJobCreationError =
   | CompilationJobCreationErrorNoCompatibleSolcVersionFound
   | CompilationJobCreationErrorIportOfIncompatibleFile
-  | CompilationJobCreationErrorIncompatibleOverridenSolcVersion
+  | CompilationJobCreationErrorIncompatibleOverriddenSolcVersion
   | NoCompatibleSolcVersionFound;
 
 /**

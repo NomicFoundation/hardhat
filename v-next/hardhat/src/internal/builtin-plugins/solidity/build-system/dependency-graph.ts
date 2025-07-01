@@ -44,7 +44,7 @@ export class DependencyGraphImplementation implements DependencyGraph {
    * @param from The file that depends on another one, which must be already
    *  present in the graph.
    * @param to The dependency, which will be added to the list of dependencies
-   *  of the file, and addded to the graph if needed.
+   *  of the file, and added to the graph if needed.
    * @param remapping The remapping that was used to resolve this dependency, if
    *  any.
    */
