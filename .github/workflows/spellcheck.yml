@@ -19,5 +19,5 @@ jobs:
       - uses: galargh/cspell-action@report
         with:
           incremental_files_only: ${{ github.event_name == 'pull_request' }}
-          config: .cspell.yml
+          config: cspell.yaml
           report: typos
