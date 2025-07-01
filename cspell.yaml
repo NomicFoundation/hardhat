@@ -1,0 +1,2 @@
+ignorePaths:
+  - pnpm-lock.yaml
