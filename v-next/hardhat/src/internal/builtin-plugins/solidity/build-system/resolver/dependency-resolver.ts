@@ -222,7 +222,9 @@ export class ResolverImplementation implements Resolver {
 
     let realCasingRelativePath = relativeFilePath;
     if (pathValidation.success === false) {
-      if (pathValidation.error.type === PathValidationErrorType.DOES_NOT_EXIST) {
+      if (
+        pathValidation.error.type === PathValidationErrorType.DOES_NOT_EXIST
+      ) {
         return {
           success: false,
           error: {
@@ -825,7 +827,9 @@ export class ResolverImplementation implements Resolver {
     );
 
     if (pathValidation.success === false) {
-      if (pathValidation.error.type === PathValidationErrorType.DOES_NOT_EXIST) {
+      if (
+        pathValidation.error.type === PathValidationErrorType.DOES_NOT_EXIST
+      ) {
         return {
           success: false,
           error: {

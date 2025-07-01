@@ -135,7 +135,6 @@ export async function* testReporter(
 
       yield `Reason: ${chalk.grey(reason)}\n`;
 
-      // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- Ignore Cases not matched: undefined
       switch (stackTrace?.kind) {
         case "StackTrace":
           const stackTraceStack: string[] = [];
@@ -162,7 +161,7 @@ export async function* testReporter(
           }
           break;
         case "HeuristicFailed":
-        default:
+        case undefined:
           break;
       }
 

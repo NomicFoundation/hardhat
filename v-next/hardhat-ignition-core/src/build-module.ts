@@ -22,7 +22,9 @@ export function buildModule<
   IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>,
 >(
   moduleId: ModuleIdT,
-  moduleDefinitionFunction: (m: IgnitionModuleBuilder) => IgnitionModuleResultsT,
+  moduleDefinitionFunction: (
+    m: IgnitionModuleBuilder,
+  ) => IgnitionModuleResultsT,
 ): IgnitionModule<ModuleIdT, ContractNameT, IgnitionModuleResultsT> {
   if (typeof moduleId !== "string") {
     throw new HardhatError(
