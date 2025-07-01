@@ -30,6 +30,20 @@ describe("edr-provider", () => {
   });
 
   describe("EdrProvider#request", () => {
+    it("should return the expected response when the method is web3_clientVersion", async () => {
+      const { provider } = await hre.network.connect();
+
+      const response = await provider.request({
+        method: "web3_clientVersion",
+      });
+
+      assert.ok(
+        typeof response === "string",
+        "The client version should be a string",
+      );
+      assert.match(response, /HardhatNetwork\/.+\/@ignored\/edr-optimism\/.+/);
+    });
+
     it(
       "should emit an event when the method is evm_revert",
       { timeout: 1000 },
@@ -57,20 +71,6 @@ describe("edr-provider", () => {
         assert.ok(eventEmitted, "The evm_revert event should be emitted");
       },
     );
-
-    it("should return the expected response when the method is web3_clientVersion", async () => {
-      const { provider } = await hre.network.connect();
-
-      const response = await provider.request({
-        method: "web3_clientVersion",
-      });
-
-      assert.ok(
-        typeof response === "string",
-        "The client version should be a string",
-      );
-      assert.match(response, /HardhatNetwork\/.+\/@ignored\/edr-optimism\/.+/);
-    });
 
     it("should return the expected response when the method is debug_traceTransaction", async () => {
       const { provider } = await hre.network.connect();
