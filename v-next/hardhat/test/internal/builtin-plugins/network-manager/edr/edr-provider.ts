@@ -3,6 +3,7 @@ import type { HardhatRuntimeEnvironment } from "../../../../../src/types/hre.js"
 import type { SubscriptionEvent } from "@ignored/edr-optimism";
 
 import assert from "node:assert/strict";
+import { once } from "node:events";
 import { before, describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
@@ -36,11 +37,11 @@ describe("edr-provider", () => {
         let eventEmitted = false;
         const { provider } = await hre.network.connect();
 
-        const eventPromise = new Promise<void>((resolve) => {
-          provider.on(EDR_NETWORK_REVERT_SNAPSHOT_EVENT, () => {
-            eventEmitted = true;
-            resolve();
-          });
+        const eventPromise = once(
+          provider,
+          EDR_NETWORK_REVERT_SNAPSHOT_EVENT,
+        ).then(() => {
+          eventEmitted = true;
         });
 
         const revertResponse = await provider.request({
