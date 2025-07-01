@@ -1,4 +1,5 @@
 ignorePaths:
   - pnpm-lock.yaml
-  - buidler # @nomicfoundation/buidler
+ignoreWords:
+  - buidler
   - Saty248
