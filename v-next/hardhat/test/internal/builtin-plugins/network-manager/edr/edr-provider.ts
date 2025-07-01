@@ -43,10 +43,13 @@ describe("edr-provider", () => {
           });
         });
 
-        await provider.request({
+        const revertResponse = await provider.request({
           method: "evm_revert",
-          params: ["0x1"], // if the snapshotId does not exist, it will return false
+          params: ["0x1"],
         });
+
+        // It should return `false` as the id doesn't exist
+        assert.equal(revertResponse, false);
 
         await eventPromise;
 
