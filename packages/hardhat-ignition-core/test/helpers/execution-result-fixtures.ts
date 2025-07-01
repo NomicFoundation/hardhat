@@ -100,7 +100,7 @@ export const staticCallResultFixtures: {
       returnData: "0x",
       customErrorReported: false,
     },
-    withNamedAndUnamedOutputs: {
+    withNamedAndUnnamedOutputs: {
       success: true,
       returnData:
         "0x000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000000568656c6c6f000000000000000000000000000000000000000000000000000000",
@@ -328,7 +328,7 @@ export const staticCallResultFixturesArtifacts: {
       },
       {
         inputs: [],
-        name: "withNamedAndUnamedOutputs",
+        name: "withNamedAndUnnamedOutputs",
         outputs: [
           {
             internalType: "uint256",

@@ -45,7 +45,7 @@ describe("abi", () => {
         `0x${encoded.substring(10)}` // Remove the selector
       );
 
-      assert(decodeResult.type === EvmExecutionResultTypes.SUCESSFUL_RESULT);
+      assert(decodeResult.type === EvmExecutionResultTypes.SUCCESSFUL_RESULT);
       return decodeResult.values;
     }
 
@@ -260,7 +260,7 @@ describe("abi", () => {
       const { decoded } = decodeResult("C", "returnString");
 
       assert.deepEqual(decoded, {
-        type: EvmExecutionResultTypes.SUCESSFUL_RESULT,
+        type: EvmExecutionResultTypes.SUCCESSFUL_RESULT,
         values: {
           positional: ["hello"],
           named: {},
@@ -268,11 +268,11 @@ describe("abi", () => {
       });
     });
 
-    it("Should be able to decode a succesful result without return values", () => {
+    it("Should be able to decode a successful result without return values", () => {
       const { decoded } = decodeResult("C", "returnNothing");
 
       assert.deepEqual(decoded, {
-        type: EvmExecutionResultTypes.SUCESSFUL_RESULT,
+        type: EvmExecutionResultTypes.SUCCESSFUL_RESULT,
         values: {
           positional: [],
           named: {},
@@ -280,11 +280,11 @@ describe("abi", () => {
       });
     });
 
-    it("Should be able to decode a succesful result with named and unnamed values", () => {
-      const { decoded } = decodeResult("C", "withNamedAndUnamedOutputs");
+    it("Should be able to decode a successful result with named and unnamed values", () => {
+      const { decoded } = decodeResult("C", "withNamedAndUnnamedOutputs");
 
       assert.deepEqual(decoded, {
-        type: EvmExecutionResultTypes.SUCESSFUL_RESULT,
+        type: EvmExecutionResultTypes.SUCCESSFUL_RESULT,
         values: {
           positional: [1n, true, "hello"],
           named: { b: true, h: "hello" },
@@ -295,7 +295,7 @@ describe("abi", () => {
     it("Should decode all numbers as bigint and byte types as 0x-prefixed hex strings", () => {
       const { decoded } = decodeResult("C", "withReturnTypes");
       assert.deepEqual(decoded, {
-        type: EvmExecutionResultTypes.SUCESSFUL_RESULT,
+        type: EvmExecutionResultTypes.SUCCESSFUL_RESULT,
         values: {
           positional: [
             2n,
@@ -315,7 +315,7 @@ describe("abi", () => {
     it("Should be able to decode structs", () => {
       const { decoded } = decodeResult("C", "getStruct");
       assert.deepEqual(decoded, {
-        type: EvmExecutionResultTypes.SUCESSFUL_RESULT,
+        type: EvmExecutionResultTypes.SUCCESSFUL_RESULT,
         values: {
           positional: [
             {
@@ -400,7 +400,7 @@ describe("abi", () => {
         `0x${encoded.substring(10)}` // Remove the selector
       );
 
-      assert(decodeResult.type === EvmExecutionResultTypes.SUCESSFUL_RESULT);
+      assert(decodeResult.type === EvmExecutionResultTypes.SUCCESSFUL_RESULT);
 
       assert.deepEqual(decodeResult.values, {
         positional: [
@@ -425,7 +425,7 @@ describe("abi", () => {
   });
 
   describe("decodeArtifactCustomError", () => {
-    it("Should succesfully decode a custom error", () => {
+    it("Should successfully decode a custom error", () => {
       const artifact = staticCallResultFixturesArtifacts.C;
 
       const decoded = decodeArtifactCustomError(
@@ -681,7 +681,7 @@ describe("abi", () => {
         );
       });
 
-      describe("Not overlaoded functions", () => {
+      describe("Not overloaded functions", () => {
         it("Should not throw if the bare function name is used and the function exists", () => {
           validateArtifactFunctionName(
             callEncodingFixtures.FunctionNameValidation,
@@ -783,7 +783,7 @@ describe("abi", () => {
         // This tests should match those of validateArtifactFunctionName
       });
 
-      describe("Param existance validation", () => {
+      describe("Param existence validation", () => {
         it("Should throw if the named param doesn't exist", () => {});
 
         it("Should throw if the positional param doesn't exist", () => {});

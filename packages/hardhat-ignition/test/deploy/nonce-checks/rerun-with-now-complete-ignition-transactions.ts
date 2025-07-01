@@ -9,7 +9,7 @@ import {
 } from "../../test-helpers/use-ignition-project";
 
 /**
- * Run an initial deploy, that sumbit but does not confirm several on-chain
+ * Run an initial deploy, that submit but does not confirm several on-chain
  * transactions via Ignition. Those ignition transactions now confirm before
  * a second run completes the deploy.
  */

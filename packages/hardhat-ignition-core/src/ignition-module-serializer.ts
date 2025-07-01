@@ -90,7 +90,7 @@ export class IgnitionModuleSerializer {
       replaceWithinArg<SerializedArgumentType>(arg, {
         accountRuntimeValue: this._serializeAccountRuntimeValue,
         moduleParameterRuntimeValue: (mprv) =>
-          this._serializeModuleParamterRuntimeValue(mprv),
+          this._serializeModuleParameterRuntimeValue(mprv),
         bigint: this._serializeBigint,
         future: this._convertFutureToFutureToken,
       });
@@ -151,7 +151,7 @@ export class IgnitionModuleSerializer {
             value: isFuture(future.value)
               ? this._convertFutureToFutureToken(future.value)
               : isRuntimeValue(future.value)
-              ? this._serializeModuleParamterRuntimeValue(future.value)
+              ? this._serializeModuleParameterRuntimeValue(future.value)
               : this._serializeBigint(future.value),
           };
         return serializedNamedContractDeploymentFuture;
@@ -179,7 +179,7 @@ export class IgnitionModuleSerializer {
             value: isFuture(future.value)
               ? this._convertFutureToFutureToken(future.value)
               : isRuntimeValue(future.value)
-              ? this._serializeModuleParamterRuntimeValue(future.value)
+              ? this._serializeModuleParameterRuntimeValue(future.value)
               : this._serializeBigint(future.value),
           };
         return serializedArtifactContractDeploymentFuture;
@@ -240,7 +240,7 @@ export class IgnitionModuleSerializer {
             value: isFuture(future.value)
               ? this._convertFutureToFutureToken(future.value)
               : isRuntimeValue(future.value)
-              ? this._serializeModuleParamterRuntimeValue(future.value)
+              ? this._serializeModuleParameterRuntimeValue(future.value)
               : this._serializeBigint(future.value),
             from: isRuntimeValue(future.from)
               ? this._serializeAccountRuntimeValue(future.from)
@@ -302,7 +302,7 @@ export class IgnitionModuleSerializer {
               ? this._convertFutureToFutureToken(future.address)
               : isRuntimeValue(future.address) &&
                 future.address.type === RuntimeValueType.MODULE_PARAMETER
-              ? this._serializeModuleParamterRuntimeValue(future.address)
+              ? this._serializeModuleParameterRuntimeValue(future.address)
               : future.address,
           };
         return serializedNamedContractAtFuture;
@@ -324,7 +324,7 @@ export class IgnitionModuleSerializer {
               ? this._convertFutureToFutureToken(future.address)
               : isRuntimeValue(future.address) &&
                 future.address.type === RuntimeValueType.MODULE_PARAMETER
-              ? this._serializeModuleParamterRuntimeValue(future.address)
+              ? this._serializeModuleParameterRuntimeValue(future.address)
               : future.address,
           };
         return serializedArtifactContractAtFuture;
@@ -363,12 +363,12 @@ export class IgnitionModuleSerializer {
           to: isFuture(future.to)
             ? this._convertFutureToFutureToken(future.to)
             : isModuleParameterRuntimeValue(future.to)
-            ? this._serializeModuleParamterRuntimeValue(future.to)
+            ? this._serializeModuleParameterRuntimeValue(future.to)
             : isAccountRuntimeValue(future.to)
             ? this._serializeAccountRuntimeValue(future.to)
             : future.to,
           value: isRuntimeValue(future.value)
-            ? this._serializeModuleParamterRuntimeValue(future.value)
+            ? this._serializeModuleParameterRuntimeValue(future.value)
             : this._serializeBigint(future.value),
           data: isEncodeFunctionCallFuture(future.data)
             ? this._convertFutureToFutureToken(future.data)
@@ -396,7 +396,7 @@ export class IgnitionModuleSerializer {
     return { _kind: "AccountRuntimeValue", accountIndex: arg.accountIndex };
   }
 
-  private static _serializeModuleParamterRuntimeValue(
+  private static _serializeModuleParameterRuntimeValue(
     arg: ModuleParameterRuntimeValue<ModuleParameterType>
   ): SerializedModuleParameterRuntimeValue {
     return {

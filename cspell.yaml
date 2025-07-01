@@ -1,2 +1,4 @@
 ignorePaths:
   - pnpm-lock.yaml
+  - buidler # @nomicfoundation/buidler
+  - Saty248

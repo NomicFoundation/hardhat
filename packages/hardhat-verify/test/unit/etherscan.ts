@@ -77,7 +77,7 @@ describe("Etherscan", () => {
       );
     });
 
-    it("doesnt warn if apiKey config var is a string", async () => {
+    it("doesn't warn if apiKey config var is a string", async () => {
       Etherscan.fromChainConfig("<api-key>", chainConfig);
 
       expect(warnStub).to.be.callCount(0);
@@ -88,7 +88,7 @@ describe("Etherscan", () => {
       expect(etherscan.chainId).to.equal(5);
     });
 
-    it("doesnt pass chain id to Etherscan constructor if apiKey is an object (treated as v1 api)", async () => {
+    it("doesn't pass chain id to Etherscan constructor if apiKey is an object (treated as v1 api)", async () => {
       const etherscan = Etherscan.fromChainConfig(
         { goerli: "<api-key>" },
         chainConfig
@@ -271,7 +271,7 @@ describe("Etherscan", () => {
       );
     });
 
-    it("doesnt pass chainid if its not present in the instance", async () => {
+    it("doesn't pass chainid if its not present in the instance", async () => {
       const etherscan = new Etherscan(
         "api_key",
         "https://api.etherscan.io/api",
@@ -319,7 +319,7 @@ describe("Etherscan", () => {
       );
     });
 
-    it("doesnt pass chainid if its not present in the instance", async () => {
+    it("doesn't pass chainid if its not present in the instance", async () => {
       const etherscan = new Etherscan(
         "api_key",
         "https://api.etherscan.io/api",
@@ -367,7 +367,7 @@ describe("Etherscan", () => {
       );
     });
 
-    it("doesnt pass chainid if its not present in the instance", async () => {
+    it("doesn't pass chainid if its not present in the instance", async () => {
       const etherscan = new Etherscan(
         "api_key",
         "https://api.etherscan.io/api",

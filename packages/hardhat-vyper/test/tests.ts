@@ -306,7 +306,7 @@ describe("Vyper plugin", function () {
     });
   });
 
-  describe("compile project with different ouput identifiers returned from the vyper compiler", function () {
+  describe("compile project with different output identifiers returned from the vyper compiler", function () {
     useFixtureProject("compilation-with-vyper-output-breakable-version");
     useEnvironment();
 

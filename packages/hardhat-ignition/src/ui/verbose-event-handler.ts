@@ -235,7 +235,7 @@ export class VerboseEventHandler implements ExecutionEventListener {
     event: OnchainInteractionReplacedByUserEvent
   ): void {
     console.log(
-      `Transactions for onchain interaction of future ${event.futureId} has been replaced by the user and the onchain interaction exection will start again`
+      `Transactions for onchain interaction of future ${event.futureId} has been replaced by the user and the onchain interaction execution will start again`
     );
   }
 

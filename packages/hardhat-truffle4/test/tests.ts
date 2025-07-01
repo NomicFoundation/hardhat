@@ -93,7 +93,7 @@ function testArtifactsFunctionality() {
     assert.equal(await greeterWithNew.greet(), "Hi!!!");
   });
 
-  it("Should provison cloned contracts", async function () {
+  it("Should provision cloned contracts", async function () {
     const Greeter = this.env.artifacts.require("Greeter");
     const ClonedGreeter = Greeter.clone();
     const greeter = await ClonedGreeter.new();

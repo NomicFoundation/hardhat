@@ -101,9 +101,9 @@ describe("test task (CJS)", function () {
       });
     });
 
-    describe("when the config has parallel: false and it's overriden", function () {
+    describe("when the config has parallel: false and it's overridden", function () {
       useFixtureProject(
-        "test-task/parallel-tests/parallel-config-false-overriden"
+        "test-task/parallel-tests/parallel-config-false-overridden"
       );
       useEnvironment();
 
@@ -177,8 +177,8 @@ describe("test task (CJS)", function () {
       });
     });
 
-    describe("when the config has bail: false and it's overriden", function () {
-      useFixtureProject("test-task/bail/config-bail-false-overriden");
+    describe("when the config has bail: false and it's overridden", function () {
+      useFixtureProject("test-task/bail/config-bail-false-overridden");
       useEnvironment();
 
       it("should be overridable", async function () {
@@ -318,9 +318,9 @@ describe("test task (ESM)", function () {
       });
     });
 
-    describe("when the config has parallel: false and it's overriden", function () {
+    describe("when the config has parallel: false and it's overridden", function () {
       useFixtureProject(
-        "esm-test-task/parallel-tests/parallel-config-false-overriden"
+        "esm-test-task/parallel-tests/parallel-config-false-overridden"
       );
       useEnvironment();
 
@@ -394,8 +394,8 @@ describe("test task (ESM)", function () {
       });
     });
 
-    describe("when the config has bail: false and it's overriden", function () {
-      useFixtureProject("esm-test-task/bail/bail-config-false-overriden");
+    describe("when the config has bail: false and it's overridden", function () {
+      useFixtureProject("esm-test-task/bail/bail-config-false-overridden");
       useEnvironment();
 
       it("should be overridable", async function () {

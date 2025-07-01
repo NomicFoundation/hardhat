@@ -187,7 +187,7 @@ export class Etherscan {
       codeformat: "solidity-standard-json-input",
       contractname: contractName,
       compilerversion: compilerVersion,
-      constructorArguements: constructorArguments,
+      constructorArguments: constructorArguments,
     });
 
     const url = new URL(this.apiUrl);
