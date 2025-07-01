@@ -553,7 +553,7 @@ describe("id rules", () => {
       );
     });
 
-    it("should allow ethers sytle event specification", () => {
+    it("should allow ethers style event specification", () => {
       assert.doesNotThrow(() => {
         buildModule("MyModule", (m) => {
           const myContract = m.contract("MyContract");

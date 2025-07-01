@@ -22,7 +22,7 @@ export function resolveFromRoot(root: string, target: string): string {
  * Tries to return a shorter version of the path if its inside the given folder.
  *
  * This is useful for displaying paths in the terminal, as they can be shorter
- * when they are insidde the current working directory. For example, if the
+ * when they are inside the current working directory. For example, if the
  * current working directory is `/home/user/project`, and the path is
  * `/home/user/project/contracts/File.sol`, the shorter path is
  * `contracts/File.sol`.

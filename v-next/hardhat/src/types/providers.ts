@@ -125,7 +125,7 @@ export interface JsonRpcNotificationRequest {
 }
 
 /**
- * A succesful JSON-RPC 2.0 response object.
+ * A successful JSON-RPC 2.0 response object.
  */
 export interface SuccessfulJsonRpcResponse {
   jsonrpc: "2.0";

@@ -13,7 +13,7 @@ export interface SolidityBuildInfo {
 
   /**
    * The id of the build, which is derived from the rest of the data,
-   * guaranteing that it's unique and deterministic.
+   * guaranteeing that it's unique and deterministic.
    */
   readonly id: string;
 

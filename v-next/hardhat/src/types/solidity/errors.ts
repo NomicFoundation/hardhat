@@ -9,7 +9,7 @@ export enum RootResolutionErrorType {
   /**
    * Trying to resolve a project file as root, but it doesn't exist.
    */
-  PROJECT_ROOT_FILE_DOESNT_EXIST = "PROJECT_ROOT_FILE_DOESNT_EXIST",
+  PROJECT_ROOT_FILE_DOES_NOT_EXIST = "PROJECT_ROOT_FILE_DOES_NOT_EXIST",
 
   /**
    * Trying to resolve a project file as root, but it's in a node_modules
@@ -45,13 +45,13 @@ export enum RootResolutionErrorType {
    * Trying to resolve an npm file as root, but it doesn't exist within its
    * package.
    */
-  NPM_ROOT_FILE_DOESNT_EXIST_WITHIN_ITS_PACKAGE = "NPM_ROOT_FILE_DOESNT_EXIST_WITHIN_ITS_PACKAGE",
+  NPM_ROOT_FILE_DOES_NOT_EXIST_WITHIN_ITS_PACKAGE = "NPM_ROOT_FILE_DOES_NOT_EXIST_WITHIN_ITS_PACKAGE",
 
   /**
    * Trying to resolve an npm file as root, but the casing you are using is
    * incorrect.
    */
-  NPM_ROOT_FILE_WITH_INCORRRECT_CASING = "NPM_ROOT_FILE_WITH_INCORRRECT_CASING",
+  NPM_ROOT_FILE_WITH_INCORRECT_CASING = "NPM_ROOT_FILE_WITH_INCORRECT_CASING",
 
   /**
    * Trying to resolve an npm file as root, but the file is not exported by the
@@ -65,8 +65,8 @@ export interface ProjectRootFileNotInProjectError {
   absoluteFilePath: string;
 }
 
-export interface ProjectRootFileDoesntExistError {
-  type: RootResolutionErrorType.PROJECT_ROOT_FILE_DOESNT_EXIST;
+export interface ProjectRootFileDoesNotExistError {
+  type: RootResolutionErrorType.PROJECT_ROOT_FILE_DOES_NOT_EXIST;
   absoluteFilePath: string;
 }
 
@@ -99,15 +99,15 @@ export interface NpmRootResolutionWithRemappingErrors {
   remappingErrors: UserRemappingError[];
 }
 
-export interface NpmRootFileDoesntExistWithinPackageError
+export interface NpmRootFileDoesNotExistWithinPackageError
   extends ResolvedFileReference {
-  type: RootResolutionErrorType.NPM_ROOT_FILE_DOESNT_EXIST_WITHIN_ITS_PACKAGE;
+  type: RootResolutionErrorType.NPM_ROOT_FILE_DOES_NOT_EXIST_WITHIN_ITS_PACKAGE;
   npmModule: string;
 }
 
 export interface NpmRootFileWithIncorrectCasingError
   extends ResolvedFileReference {
-  type: RootResolutionErrorType.NPM_ROOT_FILE_WITH_INCORRRECT_CASING;
+  type: RootResolutionErrorType.NPM_ROOT_FILE_WITH_INCORRECT_CASING;
   npmModule: string;
   correctCasing: string;
 }
@@ -119,7 +119,7 @@ export interface NpmRootFileNonExportedFileError extends ResolvedFileReference {
 
 export type ProjectRootResolutionError =
   | ProjectRootFileNotInProjectError
-  | ProjectRootFileDoesntExistError
+  | ProjectRootFileDoesNotExistError
   | ProjectRootFileInNodeModulesError;
 
 export type NpmRootResolutionError =
@@ -127,7 +127,7 @@ export type NpmRootResolutionError =
   | NpmRootFileResolvesToProjectFileError
   | NpmRootFileOfUninstalledPackageError
   | NpmRootResolutionWithRemappingErrors
-  | NpmRootFileDoesntExistWithinPackageError
+  | NpmRootFileDoesNotExistWithinPackageError
   | NpmRootFileWithIncorrectCasingError
   | NpmRootFileNonExportedFileError;
 
@@ -153,15 +153,15 @@ export enum ImportResolutionErrorType {
    */
   RELATIVE_IMPORT_INTO_NODE_MODULES = "RELATIVE_IMPORT_INTO_NODE_MODULES",
   /**
-   * The improted file doesn't exist.
+   * The imported file doesn't exist.
    */
-  IMPORT_DOESNT_EXIST = "IMPORT_DOESNT_EXIST",
+  IMPORT_DOES_NOT_EXIST = "IMPORT_DOES_NOT_EXIST",
   /**
    * The imported file exists, but the casing you are using is incorrect.
    */
   IMPORT_INVALID_CASING = "IMPORT_INVALID_CASING",
   /**
-   * Trying to import a file via npm, but the import sintax is invalid.
+   * Trying to import a file via npm, but the import syntax is invalid.
    */
   IMPORT_WITH_INVALID_NPM_SYNTAX = "IMPORT_WITH_INVALID_NPM_SYNTAX",
   /**
@@ -206,8 +206,8 @@ export interface RelativeImportIntoNodeModulesError {
   importPath: string;
 }
 
-export interface ImportDoesntExistError extends ResolvedFileReference {
-  type: ImportResolutionErrorType.IMPORT_DOESNT_EXIST;
+export interface ImportDoesNotExistError extends ResolvedFileReference {
+  type: ImportResolutionErrorType.IMPORT_DOES_NOT_EXIST;
   fromFsPath: string;
   importPath: string;
 }
@@ -264,7 +264,7 @@ export type ImportResolutionError =
   | ImportWithWindowsPathSeparatorsError
   | IllegalRelativeImportError
   | RelativeImportIntoNodeModulesError
-  | ImportDoesntExistError
+  | ImportDoesNotExistError
   | ImportInvalidCasingError
   | ImportWithInvalidNpmSyntaxError
   | ImportOfUninstalledPackageError

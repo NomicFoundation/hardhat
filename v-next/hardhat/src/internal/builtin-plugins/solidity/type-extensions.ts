@@ -115,7 +115,7 @@ declare module "../../../types/hooks.js" {
     ) => Promise<void>;
 
     /**
-     * Hook triggered within the compilation job when its' solc input is first contstructed.
+     * Hook triggered within the compilation job when its' solc input is first constructed.
      *
      * @param context The hook context.
      * @param inputSourceName The input source name of the project file.
@@ -142,7 +142,7 @@ declare module "../../../types/hooks.js" {
     ): Promise<string>;
 
     /**
-     * Hook triggered within the compilation job when its' solc input is first contstructed.
+     * Hook triggered within the compilation job when its' solc input is first constructed.
      *
      * @param context The hook context.
      * @param solcInput The solc input that will be passed to solc.

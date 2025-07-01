@@ -140,7 +140,7 @@ describe("SolcConfigSelector", () => {
 
           assert.deepEqual(config, {
             reason:
-              CompilationJobCreationErrorReason.INCOMPATIBLE_OVERRIDEN_SOLC_VERSION,
+              CompilationJobCreationErrorReason.INCOMPATIBLE_OVERRIDDEN_SOLC_VERSION,
             rootFilePath: root.fsPath,
             buildProfile: buildProfileName,
             formattedReason:

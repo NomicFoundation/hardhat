@@ -10,7 +10,7 @@ import { isValidIgnitionIdentifier } from "./internal/utils/identifier-validator
  * Construct a module definition that can be deployed through Ignition.
  *
  * @param moduleId - the id of the module
- * @param moduleDefintionFunction - a function accepting the
+ * @param moduleDefinitionFunction - a function accepting the
  * IgnitionModuleBuilder to configure the deployment
  * @returns a module definition
  *
@@ -22,7 +22,7 @@ export function buildModule<
   IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>,
 >(
   moduleId: ModuleIdT,
-  moduleDefintionFunction: (m: IgnitionModuleBuilder) => IgnitionModuleResultsT,
+  moduleDefinitionFunction: (m: IgnitionModuleBuilder) => IgnitionModuleResultsT,
 ): IgnitionModule<ModuleIdT, ContractNameT, IgnitionModuleResultsT> {
   if (typeof moduleId !== "string") {
     throw new HardhatError(
@@ -39,7 +39,7 @@ export function buildModule<
     );
   }
 
-  if (typeof moduleDefintionFunction !== "function") {
+  if (typeof moduleDefinitionFunction !== "function") {
     throw new HardhatError(
       HardhatError.ERRORS.IGNITION.MODULE.INVALID_MODULE_DEFINITION_FUNCTION,
     );
@@ -52,7 +52,7 @@ export function buildModule<
     IgnitionModuleResultsT
   >({
     id: moduleId,
-    moduleDefintionFunction,
+    moduleDefinitionFunction,
   });
 
   _checkForDuplicateModuleIds(ignitionModule);

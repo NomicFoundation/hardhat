@@ -144,7 +144,7 @@ describe("DependencyGraphImplementation", () => {
       );
     });
 
-    it("should add the downsteam dependency to the list of dependencies of the upstream dependency", () => {
+    it("should add the downstream dependency to the list of dependencies of the upstream dependency", () => {
       const upstreamDependency = createProjectResolvedFile("upstream.sol");
       const downstreamDependency = createProjectResolvedFile("downstream.sol");
       dependencyGraph.addRootFile(

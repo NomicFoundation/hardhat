@@ -7,7 +7,7 @@ import { mineBlock } from "../../test-helpers/mine-block.js";
 import { useFileIgnitionProject } from "../../test-helpers/use-ignition-project.js";
 
 /**
- * Run an initial deploy, that sumbit but does not confirm several on-chain
+ * Run an initial deploy, that submit but does not confirm several on-chain
  * transactions via Ignition. Those ignition transactions now confirm before
  * a second run completes the deploy.
  */
