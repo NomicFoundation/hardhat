@@ -419,7 +419,7 @@ describe("Reconciliation", () => {
         {
           futureId: "Module#Contract2",
           failure:
-            "A dependency from Module#Contract2 to Module#Contract1 has been added, and both futures had alreadyy started executing, so this change is incompatible",
+            "A dependency from Module#Contract2 to Module#Contract1 has been added, and both futures had already started executing, so this change is incompatible",
         },
       ]);
     });
@@ -607,7 +607,7 @@ describe("Reconciliation", () => {
   });
 
   describe("strategies", () => {
-    it("should reconcile changes to strategy config if the future is alreadyy complete", async () => {
+    it("should reconcile changes to strategy config if the future is already complete", async () => {
       const moduleDefinition = buildModule("Module", (m) => {
         const contract1 = m.contract("Contract", [], {
           id: "Example",
