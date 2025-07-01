@@ -113,6 +113,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
 
   const config: SolidityTestRunnerConfigArgs =
     solidityTestConfigToSolidityTestRunnerConfigArgs(
+      chainType,
       hre.config.paths.root,
       solidityTestConfig,
       grep,
