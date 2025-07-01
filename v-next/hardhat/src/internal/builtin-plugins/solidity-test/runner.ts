@@ -1,4 +1,5 @@
 import type { TestEvent, TestsStream } from "./types.js";
+import type { ChainType } from "../../../types/network.js";
 import type {
   ArtifactId,
   Artifact,
@@ -8,7 +9,6 @@ import type {
 
 import { Readable } from "node:stream";
 
-import { L1_CHAIN_TYPE } from "@ignored/edr-optimism";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 
@@ -40,6 +40,7 @@ export interface RunOptions {
  * TODO: Once the signature is finalised, give feedback to the EDR team.
  */
 export function run(
+  chainType: ChainType,
   artifacts: Artifact[],
   testSuiteIds: ArtifactId[],
   configArgs: SolidityTestRunnerConfigArgs,
@@ -80,7 +81,7 @@ export function run(
         const edrContext = await getGlobalEdrContext();
 
         await edrContext.runSolidityTests(
-          L1_CHAIN_TYPE,
+          chainType,
           artifacts,
           testSuiteIds,
           configArgs,
