@@ -8,7 +8,7 @@ import {
 import { exists } from "@nomicfoundation/hardhat-utils/fs";
 import chalk from "chalk";
 
-import { isEdrSupportedChainType } from "../../edr/chain-type.js";
+import { isSupportedChainType } from "../../edr/chain-type.js";
 
 import { formatEdrNetworkConfigAccounts } from "./helpers.js";
 import { JsonRpcServerImplementation } from "./json-rpc/server.js";
@@ -50,7 +50,7 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
   const networkConfigOverride: EdrNetworkConfigOverride = {};
 
   if (args.chainType !== undefined) {
-    if (!isEdrSupportedChainType(args.chainType)) {
+    if (!isSupportedChainType(args.chainType)) {
       // NOTE: We could make the error more specific here.
       throw new HardhatError(
         HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE_FOR_TYPE,

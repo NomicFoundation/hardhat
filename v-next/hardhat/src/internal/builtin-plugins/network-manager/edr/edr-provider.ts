@@ -48,6 +48,7 @@ import {
   EDR_NETWORK_REVERT_SNAPSHOT_EVENT,
   OPTIMISM_CHAIN_TYPE,
 } from "../../../constants.js";
+import { hardhatChainTypeToEdrChainType } from "../../../edr/chain-type.js";
 import { getGlobalEdrContext } from "../../../edr/context.js";
 import { DEFAULT_HD_ACCOUNTS_CONFIG_PARAMS } from "../accounts/constants.js";
 import { BaseProvider } from "../base-provider.js";
@@ -72,7 +73,6 @@ import {
   hardhatHardforkToEdrSpecId,
   hardhatAccountsToEdrOwnedAccounts,
   hardhatForkingConfigToEdrForkConfig,
-  hardhatChainTypeToEdrChainType,
 } from "./utils/convert-to-edr.js";
 import { printLine, replaceLastLine } from "./utils/logger.js";
 

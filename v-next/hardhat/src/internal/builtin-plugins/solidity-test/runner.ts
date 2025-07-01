@@ -12,6 +12,7 @@ import { Readable } from "node:stream";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 
+import { hardhatChainTypeToEdrChainType } from "../../edr/chain-type.js";
 import { getGlobalEdrContext } from "../../edr/context.js";
 
 import { formatArtifactId } from "./formatters.js";
@@ -79,9 +80,8 @@ export function run(
       // TODO: Add support for predeploys once EDR supports them.
       try {
         const edrContext = await getGlobalEdrContext();
-
         await edrContext.runSolidityTests(
-          chainType,
+          hardhatChainTypeToEdrChainType(chainType),
           artifacts,
           testSuiteIds,
           configArgs,

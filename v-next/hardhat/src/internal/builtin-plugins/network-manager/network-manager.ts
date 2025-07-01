@@ -25,7 +25,7 @@ import { readBinaryFile } from "@nomicfoundation/hardhat-utils/fs";
 import { deepMerge } from "@nomicfoundation/hardhat-utils/lang";
 
 import { resolveConfigurationVariable } from "../../core/configuration-variables.js";
-import { isEdrSupportedChainType } from "../../edr/chain-type.js";
+import { isSupportedChainType } from "../../edr/chain-type.js";
 
 import { resolveEdrNetwork, resolveHttpNetwork } from "./config-resolution.js";
 import { EdrProvider } from "./edr/edr-provider.js";
@@ -210,7 +210,7 @@ export class NetworkManagerImplementation implements NetworkManager {
         );
 
       if (resolvedNetworkConfig.type === "edr") {
-        if (!isEdrSupportedChainType(resolvedChainType)) {
+        if (!isSupportedChainType(resolvedChainType)) {
           throw new HardhatError(
             HardhatError.ERRORS.CORE.GENERAL.UNSUPPORTED_OPERATION,
             { operation: `Simulating chain type ${resolvedChainType}` },

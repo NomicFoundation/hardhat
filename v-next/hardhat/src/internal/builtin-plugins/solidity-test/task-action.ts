@@ -14,7 +14,7 @@ import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
 import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
 import { createNonClosingWriter } from "@nomicfoundation/hardhat-utils/stream";
 
-import { isEdrSupportedChainType } from "../../edr/chain-type.js";
+import { isSupportedChainType } from "../../edr/chain-type.js";
 import { throwIfSolidityBuildFailed } from "../solidity/build-results.js";
 
 import { getEdrArtifacts, getBuildInfos } from "./edr-artifacts.js";
@@ -39,7 +39,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
 ) => {
   let rootFilePaths: string[];
 
-  if (!isEdrSupportedChainType(chainType)) {
+  if (!isSupportedChainType(chainType)) {
     // NOTE: We could make the error more specific here.
     throw new HardhatError(
       HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
