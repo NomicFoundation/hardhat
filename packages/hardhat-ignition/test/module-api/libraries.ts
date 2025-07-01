@@ -24,9 +24,8 @@ describe("libraries", () => {
     assert.isDefined(result);
     const contractThatDependsOnLib = result.dependsOnLib;
 
-    const libBasedAddition = await contractThatDependsOnLib.read.addThreeNumbers(
-      [1, 2, 3]
-    );
+    const libBasedAddition =
+      await contractThatDependsOnLib.read.addThreeNumbers([1, 2, 3]);
 
     assert.equal(libBasedAddition, 6);
   });
@@ -54,9 +53,8 @@ describe("libraries", () => {
     assert.isDefined(result);
     const contractThatDependsOnLib = result.dependsOnLib;
 
-    const libBasedAddition = await contractThatDependsOnLib.read.addThreeNumbers(
-      [1, 2, 3]
-    );
+    const libBasedAddition =
+      await contractThatDependsOnLib.read.addThreeNumbers([1, 2, 3]);
 
     assert.equal(libBasedAddition, 6);
   });
