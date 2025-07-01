@@ -1,0 +1,23 @@
+name: Check Spelling
+
+on:
+  push:
+    branches:
+      - main
+      - v-next
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  spellcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # TODO: Replace with https://github.com/streetsidesoftware/cspell-action
+      # once it supports the `report` input
+      - uses: galargh/cspell-action@report
+        with:
+          incremental_files_only: ${{ github.event_name == 'pull_request' }}
+          config: .cspell.yml
+          report: typos

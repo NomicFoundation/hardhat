@@ -1,0 +1,3 @@
+ignorePaths:
+  - archive/**
+  - pnpm-lock.yaml
