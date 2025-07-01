@@ -308,7 +308,7 @@ describe("config loading", function () {
       expectHardhatError(
         () => loadConfigAndTasks(),
         ERRORS.PLUGINS.BUIDLER_PLUGIN,
-        `You are using some-buidler-plugin, which is a Builder plugin. Use the equivalent
+        `You are using some-buidler-plugin, which is a Buidler plugin. Use the equivalent
 Hardhat plugin instead.`
       );
     });

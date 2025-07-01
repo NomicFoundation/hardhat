@@ -50,7 +50,7 @@ export function readFirstLegacyAnalyticsId() {
 }
 
 /**
- * This is the same way the analytics id is saved now, but using builder as the
+ * This is the same way the analytics id is saved now, but using buidler as the
  * name of the project for env-paths
  */
 export async function readSecondLegacyAnalyticsId() {
