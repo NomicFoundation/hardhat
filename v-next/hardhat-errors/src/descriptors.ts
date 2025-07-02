@@ -8,7 +8,7 @@ export interface ErrorDescriptor {
   number: number;
 
   /**
-   * A tempalte of the message of the error.
+   * A template of the message of the error.
    *
    * This should be a short description. If possible, it should tell the user
    * how to solve their problem.
@@ -1462,11 +1462,11 @@ Please review the error message and try again.`,
       },
       TRANSACTION_LOST: {
         number: 10410,
-        messageTemplate: `An error occured while trying to send a transaction for future {futureId}.
+        messageTemplate: `An error occurred while trying to send a transaction for future {futureId}.
 Please use a block explorer to find the hash of the transaction with nonce {nonce} sent from account {sender} and use the following command to add it to your deployment:
 npx hardhat ignition track-tx <txHash> <deploymentId> --network <networkName>`,
         websiteTitle: "Transaction lost",
-        websiteDescription: `An error occured while trying to send a transaction`,
+        websiteDescription: `An error occurred while trying to send a transaction`,
       },
     },
     RECONCILIATION: {
@@ -1624,7 +1624,7 @@ npx hardhat ignition track-tx <txHash> <deploymentId> --network <networkName>`,
         messageTemplate:
           "Invalid libraries for contract {contractName}: The names '{inputName}' and '{libName}' clash with each other, please use qualified names for both.",
         websiteTitle: "Conflicting library names",
-        websiteDescription: `The libray names clash with each other`,
+        websiteDescription: `The library names clash with each other`,
       },
       INVALID_LIBRARY_NAME: {
         number: 10718,
@@ -2562,7 +2562,7 @@ If your contract uses libraries whose addresses cannot be detected automatically
           "{verificationProvider} verification is disabled in your config. Please add the verification provider configuration to your Hardhat config.",
         websiteTitle: "Provider verification disabled",
         websiteDescription:
-          "No provider verfication configuration set in Hardhat config",
+          "No provider verification configuration set in Hardhat config",
       },
       BLOCK_EXPLORER_NOT_CONFIGURED: {
         number: 80028,

@@ -57,7 +57,7 @@ export interface LocalUserRemapping extends BaseUserRemapping {
  * This interface should only be internal to the RemappedNpmPackagesGraph, but
  * its exported here for testing purposes.
  *
- * Note that instead of using this throught the codebase,
+ * Note that instead of using this thought the codebase,
  * RemappedNpmPackagesGraph should resolve it and return a
  * ResolvedNpmUserRemapping.
  */
@@ -99,7 +99,7 @@ export type InstallationName = string;
  * project uses, including the Hardhat projecct itself, and their remappings.
  *
  * This class guarantees that there's a single instance of any npm package per
- * each version. That means that, even if you have muiltiple installations of
+ * each version. That means that, even if you have multiple installations of
  * the same package+version (i.e. npm didn't deduplicate them), we only load
  * one of them, and always use that one.
  *

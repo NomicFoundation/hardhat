@@ -107,15 +107,15 @@ export class SolcConfigSelector {
     root: ResolvedFile,
     dependencyGraph: DependencyGraph,
     compilerVersions: string[],
-    overriden: boolean,
+    overridden: boolean,
   ): CompilationJobCreationError {
     const rootVersionRange = root.content.versionPragmas.join(" ");
     if (maxSatisfying(compilerVersions, rootVersionRange) === null) {
       let reason: CompilationJobCreationErrorReason;
       let formattedReason: string;
-      if (overriden) {
+      if (overridden) {
         reason =
-          CompilationJobCreationErrorReason.INCOMPATIBLE_OVERRIDEN_SOLC_VERSION;
+          CompilationJobCreationErrorReason.INCOMPATIBLE_OVERRIDDEN_SOLC_VERSION;
         formattedReason = `An override with incompatible solc version was found for this file.`;
       } else {
         reason =

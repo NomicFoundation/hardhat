@@ -93,7 +93,7 @@ export class RemappedNpmPackagesGraphImplementation
 
   /**
    * A map of all the remappings generated to map a direct import within a
-   * package to a particualr npm file. This is used to generate remappings into
+   * package to a particular npm file. This is used to generate remappings into
    * packages that use package.exports, as we can't generate more generic
    * remappings for them.
    */
@@ -243,7 +243,7 @@ export class RemappedNpmPackagesGraphImplementation
       ),
     };
 
-    // We also need to add it to the installation map, as a dependeny of `from`.
+    // We also need to add it to the installation map, as a dependency of `from`.
     npmPackageDependenciesMap.set(installationName, resultOfNewPackage);
 
     return resultOfNewPackage;
@@ -495,7 +495,7 @@ export class RemappedNpmPackagesGraphImplementation
     );
 
     // If the remapping's target starts with `node_modules/`, we treat
-    // it as trying to laod an npm dependency, otherwise we treat it as a local
+    // it as trying to load an npm dependency, otherwise we treat it as a local
     // remapping.
 
     // Local remapping case
