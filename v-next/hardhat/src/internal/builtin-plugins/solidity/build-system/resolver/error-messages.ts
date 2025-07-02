@@ -23,7 +23,7 @@ export function formatProjectRootResolutionError(
       return `The file is not inside your Hardhat project.`;
     }
 
-    case RootResolutionErrorType.PROJECT_ROOT_FILE_DOESNT_EXIST: {
+    case RootResolutionErrorType.PROJECT_ROOT_FILE_DOES_NOT_EXIST: {
       return "The file doesn't exist";
     }
 
@@ -66,7 +66,7 @@ Note that the npm module is being remapped by ${formatRemappingReference(error.u
 ${formatRemappingErrors(error.remappingErrors)}`;
     }
 
-    case RootResolutionErrorType.NPM_ROOT_FILE_DOESNT_EXIST_WITHIN_ITS_PACKAGE: {
+    case RootResolutionErrorType.NPM_ROOT_FILE_DOES_NOT_EXIST_WITHIN_ITS_PACKAGE: {
       const message = `The file "${error.packageExportsResolvedSubpath ?? error.subpath}" doesn't exist within the package.`;
 
       return formatResolutionErrorRemappingsOrPackageExportsNotes({
@@ -76,7 +76,7 @@ ${formatRemappingErrors(error.remappingErrors)}`;
       });
     }
 
-    case RootResolutionErrorType.NPM_ROOT_FILE_WITH_INCORRRECT_CASING: {
+    case RootResolutionErrorType.NPM_ROOT_FILE_WITH_INCORRECT_CASING: {
       const message = `The file "${error.packageExportsResolvedSubpath ?? error.subpath}" casing is wrong. It should be "${error.correctCasing}".`;
 
       return formatResolutionErrorRemappingsOrPackageExportsNotes({
@@ -112,7 +112,7 @@ export function formatImportResolutionError(
 
     case ImportResolutionErrorType.RELATIVE_IMPORT_INTO_NODE_MODULES: {
       return `You are trying to import a file from your node_modules directory with its file system path.
-      
+
 You should write your the path of your imports into npm modules just as you would do in JavaScript files.`;
     }
 
@@ -132,17 +132,17 @@ ${formatRemappingErrors(error.remappingErrors)}`;
 
     case ImportResolutionErrorType.RELATIVE_IMPORT_CLASHES_WITH_USER_REMAPPING: {
       return `The relative import you are writing gets resolved to "${error.directImport}" which clashes with the remapping ${formatRemappingReference(error.userRemapping)}, and this is not allowed by Hardhat.
-      
+
 If you want to use the remapping, write your import as "${error.directImport}" instead.`;
     }
 
     case ImportResolutionErrorType.DIRECT_IMPORT_TO_LOCAL_FILE: {
-      return `You are trying to import a local file with a direct import path instead of a releative one, and this is not allowed by Hardhat.
-      
+      return `You are trying to import a local file with a direct import path instead of a relative one, and this is not allowed by Hardhat.
+
 If you still want to be able to do it, try adding this remapping "${error.suggestedRemapping}" to the "remappings.txt" file in the root of your project.`;
     }
 
-    case ImportResolutionErrorType.IMPORT_DOESNT_EXIST: {
+    case ImportResolutionErrorType.IMPORT_DOES_NOT_EXIST: {
       const packageOrProject =
         error.resolvedFileType === ResolvedFileType.NPM_PACKAGE_FILE
           ? "the package"

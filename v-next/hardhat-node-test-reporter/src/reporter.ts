@@ -41,7 +41,7 @@ export interface HardhatTestReporterConfig {
  * close as possible.
  *
  * It is designed to output information about the test runs as soon as possible
- * and in test defintion order.
+ * and in test definition order.
  *
  * Once the test run ends, it will output global information about it, based on
  * the diagnostics emitted by node:test, and any custom or unrecognized
@@ -70,7 +70,7 @@ export function hardhatTestReporter(
      * describes where it is nested.
      *
      * As the context may be shared by more than one test, and we don't want to
-     * repeate it, we keep track of the last printed context element. We do this
+     * repeat it, we keep track of the last printed context element. We do this
      * by keeping track of its index in the stack.
      *
      * We also keep track of any diagnostic message that is reported by node:test
@@ -82,7 +82,7 @@ export function hardhatTestReporter(
      * need to keep the failure event in memory, and we can still print the
      * failure reason at the end.
      *
-     * This code is structed in the following way:
+     * This code is structured in the following way:
      *  - We use an async generator to process the events as they come, printing
      *  the information as soon as possible.
      *  - Instead of printing, we yield string.
@@ -91,10 +91,10 @@ export function hardhatTestReporter(
      *  different parts of the test run's output. They do not print anything, and
      *  they never end in a newline. Any newline between different parts of the
      *  output is added by the generator.
-     *  - The generaor drives the high-level format of the output, and only uses
+     *  - The generator drives the high-level format of the output, and only uses
      *  the formatting functions to generate repetitive parts of it.
      *
-     * [1] As reported by node:test, in defintion order, which may differ from
+     * [1] As reported by node:test, in definition order, which may differ from
      * actual execution order.
      */
 
@@ -276,7 +276,7 @@ export function hardhatTestReporter(
           }
 
           // Note: we don't update the lastPrintedIndex here, as we would be
-          // adding 1, just to substract it because of the pop that follows.
+          // adding 1, just to subtract it because of the pop that follows.
 
           // Remove the current test from the stack, as it was just processed it
           stack.pop();

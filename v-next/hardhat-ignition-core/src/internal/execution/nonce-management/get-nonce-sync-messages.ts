@@ -35,7 +35,7 @@ import { JournalMessageType } from "../types/messages.js";
  * This function has three goals:
  *  - Ensure that we never proceed with Ignition if there are transactions
  *    sent by the user that haven't got enough confirmations yet.
- *  - Detect if the user has repaced a transaction sent by Ignition.
+ *  - Detect if the user has replaced a transaction sent by Ignition.
  *  - Distinguish if a transaction not being present in the mempool was
  *    dropped or replaced by the user.
  *
@@ -325,7 +325,7 @@ function createMapFromSenderToNonceAndTransactions(
 
 /**
  * Scan the futures for upcoming account usage, add them to the list,
- * including the default sender if there are any undefined froms
+ * including the default sender if there are any undefined forms
  */
 function _resolveFutureSenders(
   ignitionModule: IgnitionModule<string, string, IgnitionModuleResult<string>>,

@@ -27,7 +27,7 @@ describe("chains", () => {
       assert.equal(provider.callCount, 1);
     });
 
-    it("should return the hardhat chain if the network is hardhat and chaintype is optimisim", async () => {
+    it("should return the hardhat chain if the network is hardhat and chaintype is optimism", async () => {
       const provider = new MockEthereumProvider({
         eth_chainId: "0xa", // Op mainnet: 10
         hardhat_metadata: {},

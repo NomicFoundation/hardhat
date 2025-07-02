@@ -123,7 +123,7 @@ describe("Remappings", () => {
         assert.deepEqual(bestIndex, 0);
       });
 
-      it("If there are multiple candidates pick the lastest one", () => {
+      it("If there are multiple candidates pick the latest one", () => {
         const bestIndex = selectBestRemapping("from.sol", "directImport.sol", [
           { context: "fr", prefix: "di", target: "1" },
           { context: "fr", prefix: "di", target: "2" },
@@ -167,7 +167,7 @@ describe("Remappings", () => {
 
       assert.equal(
         applyValidRemapping("contracts/A.sol", {
-          context: "it-doesnt-matter",
+          context: "it-does-not-matter",
           prefix: "contracts/",
           target: "",
         }),

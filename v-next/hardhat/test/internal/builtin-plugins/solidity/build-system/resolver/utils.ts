@@ -33,7 +33,7 @@ describe("Resolver utils", () => {
       assert.deepEqual(await validateFsPath(dir, relativePath), {
         success: false,
         error: {
-          type: PathValidationErrorType.DOESNT_EXIST,
+          type: PathValidationErrorType.DOES_NOT_EXIST,
         },
       });
     });
