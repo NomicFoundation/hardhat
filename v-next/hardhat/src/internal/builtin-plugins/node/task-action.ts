@@ -51,7 +51,6 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
 
   if (args.chainType !== undefined) {
     if (!isSupportedChainType(args.chainType)) {
-      // NOTE: We could make the error more specific here.
       throw new HardhatError(
         HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
         {

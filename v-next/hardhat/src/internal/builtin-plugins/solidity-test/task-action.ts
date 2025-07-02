@@ -40,7 +40,6 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   let rootFilePaths: string[];
 
   if (!isSupportedChainType(chainType)) {
-    // NOTE: We could make the error more specific here.
     throw new HardhatError(
       HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
       {
