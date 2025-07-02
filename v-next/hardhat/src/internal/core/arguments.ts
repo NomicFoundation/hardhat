@@ -275,7 +275,7 @@ function validateAndParseBoolean(name: string, value: string): boolean {
 }
 
 // NOTE: Even though flags do not accept values, we still provide a validation
-// funciton for consistency. Alternatively, we could always throw an error when
+// function for consistency. Alternatively, we could always throw an error when
 // we receive a value for a flag.
 function validateAndParseFlag(name: string, value: string): boolean {
   const normalizedValue = value.toLowerCase();
