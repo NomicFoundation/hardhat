@@ -4,7 +4,6 @@ import { task } from "../../core/config.js";
 
 import { ArgumentType } from "hardhat/types/arguments";
 
-
 import "./type-extensions.js";
 
 const hardhatPlugin: HardhatPlugin = {
