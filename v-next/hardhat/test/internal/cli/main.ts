@@ -389,6 +389,13 @@ For global options help run: hardhat --help`;
   });
 
   describe("parseBuiltinGlobalOptions", function () {
+    let showStackTraces: boolean;
+
+    before(function () {
+      // In the GitHub CI this value is true, but in the local environment it is false
+      showStackTraces = isCi();
+    });
+
     it("should set all the builtin global options", async function () {
       // All the <value> and "task" should be ignored
       const command =
@@ -442,13 +449,10 @@ For global options help run: hardhat --help`;
         new Array(cliArguments.length).fill(false),
       );
 
-      // In the GitHub CI this value is true, but in the local environment it is false
-      const expected = isCi();
-
       assert.deepEqual(builtinGlobalOptions, {
         init: false,
         configPath: undefined,
-        showStackTraces: expected,
+        showStackTraces,
         help: false,
         version: false,
         verbose: false,
@@ -493,7 +497,7 @@ For global options help run: hardhat --help`;
       assert.deepEqual(builtinGlobalOptions, {
         init: false,
         configPath: undefined,
-        showStackTraces: false,
+        showStackTraces,
         help: false,
         version: false,
         verbose: true,
@@ -516,7 +520,7 @@ For global options help run: hardhat --help`;
       assert.deepEqual(builtinGlobalOptions, {
         init: false,
         configPath: undefined,
-        showStackTraces: false,
+        showStackTraces,
         help: false,
         version: false,
         verbose: true,
@@ -539,7 +543,7 @@ For global options help run: hardhat --help`;
       assert.deepEqual(builtinGlobalOptions, {
         init: false,
         configPath: undefined,
-        showStackTraces: false,
+        showStackTraces,
         help: false,
         version: false,
         verbose: true,
