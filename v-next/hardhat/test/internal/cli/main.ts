@@ -392,7 +392,7 @@ For global options help run: hardhat --help`;
     it("should set all the builtin global options", async function () {
       // All the <value> and "task" should be ignored
       const command =
-        "npx hardhat --help <value> --version --show-stack-traces task --config ./path-to-config <value>";
+        "npx hardhat --help <value> --version --show-stack-traces task --config ./path-to-config --verbose --verbosity 2 <value>";
 
       const cliArguments = command.split(" ").slice(2);
       const usedCliArguments = new Array(cliArguments.length).fill(false);
@@ -410,6 +410,9 @@ For global options help run: hardhat --help`;
         false,
         true,
         true,
+        true,
+        true,
+        true,
         false,
       ]);
       assert.deepEqual(builtinGlobalOptions, {
@@ -418,6 +421,8 @@ For global options help run: hardhat --help`;
         showStackTraces: true,
         help: true,
         version: true,
+        verbose: true,
+        verbosity: 2,
       });
     });
 
@@ -446,6 +451,8 @@ For global options help run: hardhat --help`;
         showStackTraces: expected,
         help: false,
         version: false,
+        verbose: false,
+        verbosity: 0,
       });
     });
 
@@ -466,6 +473,77 @@ For global options help run: hardhat --help`;
         showStackTraces: true,
         help: false,
         version: false,
+        verbose: false,
+        verbosity: 0,
+      });
+    });
+
+    it("should set the verbose flag if the verbosity flag is used", async function () {
+      const command = "npx hardhat --verbosity 2";
+
+      const cliArguments = command.split(" ").slice(2);
+      const usedCliArguments = new Array(cliArguments.length).fill(false);
+
+      const builtinGlobalOptions = await parseBuiltinGlobalOptions(
+        cliArguments,
+        usedCliArguments,
+      );
+
+      assert.deepEqual(usedCliArguments, [true, true]);
+      assert.deepEqual(builtinGlobalOptions, {
+        init: false,
+        configPath: undefined,
+        showStackTraces: false,
+        help: false,
+        version: false,
+        verbose: true,
+        verbosity: 2,
+      });
+    });
+
+    it("should set the verbosity flag if the verbose flag is used", async function () {
+      const command = "npx hardhat --verbose";
+
+      const cliArguments = command.split(" ").slice(2);
+      const usedCliArguments = new Array(cliArguments.length).fill(false);
+
+      const builtinGlobalOptions = await parseBuiltinGlobalOptions(
+        cliArguments,
+        usedCliArguments,
+      );
+
+      assert.deepEqual(usedCliArguments, [true]);
+      assert.deepEqual(builtinGlobalOptions, {
+        init: false,
+        configPath: undefined,
+        showStackTraces: false,
+        help: false,
+        version: false,
+        verbose: true,
+        verbosity: 1,
+      });
+    });
+
+    it("should set the verbosity flag through grouped repetition", async function () {
+      const command = "npx hardhat -vvvv";
+
+      const cliArguments = command.split(" ").slice(2);
+      const usedCliArguments = new Array(cliArguments.length).fill(false);
+
+      const builtinGlobalOptions = await parseBuiltinGlobalOptions(
+        cliArguments,
+        usedCliArguments,
+      );
+
+      assert.deepEqual(usedCliArguments, [true]);
+      assert.deepEqual(builtinGlobalOptions, {
+        init: false,
+        configPath: undefined,
+        showStackTraces: false,
+        help: false,
+        version: false,
+        verbose: true,
+        verbosity: 4,
       });
     });
 
