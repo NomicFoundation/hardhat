@@ -144,7 +144,7 @@ export function logJournalableMessage(message: JournalMessage): void {
 
     case JournalMessageType.ONCHAIN_INTERACTION_REPLACED_BY_USER:
       console.log(
-        `Transactions for onchain interaction ${message.networkInteractionId} of future ${message.futureId} has been replaced by the user and the onchain interaction exection will start again`
+        `Transactions for onchain interaction ${message.networkInteractionId} of future ${message.futureId} has been replaced by the user and the onchain interaction execution will start again`
       );
       break;
 

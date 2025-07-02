@@ -127,13 +127,13 @@ describe("LazyInitializationProviderAdapter", () => {
   });
 
   describe("request", () => {
-    it("should call the intialization function when called", async () => {
+    it("should call the initialization function when called", async () => {
       await provider.request({ method: "method1", params: [1, 2, 3] });
 
       assert.equal(initializationCount, 1);
     });
 
-    it("should call the intialization function only once", async () => {
+    it("should call the initialization function only once", async () => {
       await provider.request({ method: "method1", params: [1, 2, 3] });
       await provider.request({ method: "method2", params: [66, 77] });
       await provider.request({ method: "method3", params: [99, 100] });
@@ -141,7 +141,7 @@ describe("LazyInitializationProviderAdapter", () => {
       assert.equal(initializationCount, 1);
     });
 
-    it("should call the intialization function only once even if multiple requests are done at the same time", async () => {
+    it("should call the initialization function only once even if multiple requests are done at the same time", async () => {
       await Promise.all([
         provider.request({ method: "method1", params: [1, 2, 3] }),
         provider.request({ method: "method2", params: [66, 77] }),
@@ -162,13 +162,13 @@ describe("LazyInitializationProviderAdapter", () => {
   });
 
   describe("send", () => {
-    it("should call the intialization function when called", async () => {
+    it("should call the initialization function when called", async () => {
       await provider.send("method1", [1, 2, 3]);
 
       assert.equal(initializationCount, 1);
     });
 
-    it("should call the intialization function only once", async () => {
+    it("should call the initialization function only once", async () => {
       await provider.send("method1", [1, 2, 3]);
       await provider.send("method2", [66, 77]);
       await provider.send("method3", [99, 100]);
@@ -187,14 +187,14 @@ describe("LazyInitializationProviderAdapter", () => {
   });
 
   describe("sendAsync", () => {
-    it("should call the intialization function when called", (done) => {
+    it("should call the initialization function when called", (done) => {
       provider.sendAsync(createJsonRpcRequest("method1", [1, 2, 3]), () => {
         assert.equal(initializationCount, 1);
         done();
       });
     });
 
-    it("should call the intialization function only once", (done) => {
+    it("should call the initialization function only once", (done) => {
       provider.sendAsync(createJsonRpcRequest("method1", [1, 2, 3]), () => {
         provider.sendAsync(createJsonRpcRequest("method2", [66, 77]), () => {
           provider.sendAsync(createJsonRpcRequest("method3", [99, 100]), () => {
@@ -205,7 +205,7 @@ describe("LazyInitializationProviderAdapter", () => {
       });
     });
 
-    it("should call the intialization function only once even for unresolved calls", (done) => {
+    it("should call the initialization function only once even for unresolved calls", (done) => {
       let checkCalls = 0;
       const check = () => {
         assert.equal(initializationCount, 1);

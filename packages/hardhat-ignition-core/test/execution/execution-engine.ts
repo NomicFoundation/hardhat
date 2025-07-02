@@ -32,7 +32,7 @@ describe("ExecutionEngine", () => {
 
       await assert.isRejected(
         engine.executeModule(deploymentState, {} as any, [], [], {}, "0x"),
-        `IGN411: An error occured while trying to send a transaction for future LockModule#Lock.
+        `IGN411: An error occurred while trying to send a transaction for future LockModule#Lock.
 
 Please use a block explorer to find the hash of the transaction with nonce 1 sent from account 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266 and use the following command to add it to your deployment:
 

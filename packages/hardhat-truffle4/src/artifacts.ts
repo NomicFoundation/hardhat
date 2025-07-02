@@ -183,7 +183,7 @@ export class TruffleEnvironmentArtifacts {
   private _getTruffleContract(contractName: string): TruffleContract {
     const artifact = this._artifacts.readArtifactSync(contractName);
 
-    // Solc 0.6 doesn't set `costant: true` in the ABI elements, so we add it
+    // Solc 0.6 doesn't set `constant: true` in the ABI elements, so we add it
     // here if necessary
     for (const abiElem of artifact.abi) {
       if (

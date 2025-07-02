@@ -246,7 +246,7 @@ describe("Ethers plugin", function () {
             assert.isNotNull(contract.interface.getFunction("setGreeting"));
 
             // non-existent functions should be null
-            assert.isNull(contract.interface.getFunction("doesntExist"));
+            assert.isNull(contract.interface.getFunction("doesNotExist"));
             assertIsSigner(contract.runner);
 
             assert.strictEqual(

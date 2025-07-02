@@ -34,7 +34,7 @@ describe("ui - calculate deployment complete display", () => {
   const exampleNoBatches: UiBatches = [];
 
   describe("successful deployment", () => {
-    it("should render a sucessful deployment", () => {
+    it("should render a successful deployment", () => {
       const expectedText = testFormat(`
         [ MyModule ] successfully deployed 🚀
 
@@ -72,7 +72,7 @@ describe("ui - calculate deployment complete display", () => {
       assert.equal(actualText, expectedText);
     });
 
-    it("should render a sucessful deployment with no contracts", () => {
+    it("should render a successful deployment with no contracts", () => {
       const expectedText = testFormat(`
         [ MyModule ] successfully deployed 🚀
 

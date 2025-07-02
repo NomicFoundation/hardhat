@@ -139,7 +139,7 @@
 
 ### Fixed
 
-- Add memory pool lookup retry to reduce errors from slow propogation ([#667](https://github.com/NomicFoundation/hardhat-ignition/pull/667))
+- Add memory pool lookup retry to reduce errors from slow propagation ([#667](https://github.com/NomicFoundation/hardhat-ignition/pull/667))
 
 ### Added
 

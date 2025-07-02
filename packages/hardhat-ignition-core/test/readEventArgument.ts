@@ -259,7 +259,7 @@ m.readEventArgument(..., { id: "MyUniqueId"})`
       });
     });
 
-    it("should not validate a non-existant hardhat contract", async () => {
+    it("should not validate a non-existent hardhat contract", async () => {
       const module = buildModule("Module1", (m) => {
         const another = m.contract("Another", []);
         m.readEventArgument(another, "test", "arg");
@@ -282,7 +282,7 @@ m.readEventArgument(..., { id: "MyUniqueId"})`
       );
     });
 
-    it("should not validate a non-existant event", async () => {
+    it("should not validate a non-existent event", async () => {
       const fakerArtifact: Artifact = {
         ...fakeArtifact,
         contractName: "Another",

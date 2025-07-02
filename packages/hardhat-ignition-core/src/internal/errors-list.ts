@@ -208,7 +208,7 @@ export const ERRORS = {
     },
     TRANSACTION_LOST: {
       number: 411,
-      message: `An error occured while trying to send a transaction for future %futureId%.
+      message: `An error occurred while trying to send a transaction for future %futureId%.
 
 Please use a block explorer to find the hash of the transaction with nonce %nonce% sent from account %sender% and use the following command to add it to your deployment:
 

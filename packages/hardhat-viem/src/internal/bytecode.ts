@@ -2,7 +2,7 @@ import type * as viemT from "viem";
 import type { Artifact } from "hardhat/types/artifacts";
 
 import {
-  AmbigousLibraryNameError,
+  AmbiguousLibraryNameError,
   MissingLibraryAddressError,
   OverlappingLibraryNamesError,
   UnnecessaryLibraryLinkError,
@@ -39,7 +39,7 @@ export async function linkBytecode(
   return isHex(bytecode) ? bytecode : `0x${bytecode}`;
 }
 
-async function throwOnAmbigousLibraryNameOrUnnecessaryLink(
+async function throwOnAmbiguousLibraryNameOrUnnecessaryLink(
   contractName: string,
   libraries: Libraries<viemT.Address>,
   neededLibraries: Link[]
@@ -52,7 +52,7 @@ async function throwOnAmbigousLibraryNameOrUnnecessaryLink(
     );
 
     if (matchingLibraries.length > 1) {
-      throw new AmbigousLibraryNameError(
+      throw new AmbiguousLibraryNameError(
         contractName,
         linkedLibraryName,
         matchingLibraries.map(
@@ -118,7 +118,7 @@ export async function resolveBytecodeWithLinkedLibraries(
     }
   }
 
-  await throwOnAmbigousLibraryNameOrUnnecessaryLink(
+  await throwOnAmbiguousLibraryNameOrUnnecessaryLink(
     artifact.contractName,
     libraries,
     neededLibraries

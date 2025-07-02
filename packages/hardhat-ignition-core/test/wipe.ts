@@ -107,7 +107,7 @@ describe("wipe", () => {
     );
   });
 
-  it("should error if other futures are depenent on the future being wiped", async () => {
+  it("should error if other futures are dependent on the future being wiped", async () => {
     const deploymentLoader = new EphemeralDeploymentLoader(
       mockArtifactResolver
     );

@@ -149,7 +149,7 @@ export class ExecutionEngine {
     deploymentState: DeploymentState
   ): Promise<DeploymentState> {
     // TODO: Do we really need to sort them here?
-    const sortedFutures: Future[] = this._getBatchSortedByHighesPendingNonce(
+    const sortedFutures: Future[] = this._getBatchSortedByHighestPendingNonce(
       batch,
       deploymentState
     );
@@ -290,7 +290,7 @@ export class ExecutionEngine {
    *
    * Futures without any pending nonce come last.
    */
-  private _getBatchSortedByHighesPendingNonce(
+  private _getBatchSortedByHighestPendingNonce(
     batch: Future[],
     deploymentState: DeploymentState
   ): Future[] {

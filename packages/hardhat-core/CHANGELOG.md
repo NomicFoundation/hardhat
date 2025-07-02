@@ -159,7 +159,7 @@
 - cdf0160: Upgrade bundled solcjs
 - 3c66da2: Add support for Node v22
 - 9fadc22: Bump EDR to [v0.4.1](https://github.com/NomicFoundation/edr/releases/tag/%40nomicfoundation%2Fedr%400.4.1).
-- 095faa4: Added hardfork histories for Optimim and Arbitrum chains
+- 095faa4: Added hardfork histories for Optimism and Arbitrum chains
 
 ## 2.22.5
 
@@ -482,7 +482,7 @@
 - c9809e182: Trim leading and trailing spaces in mnemonics.
 - a1d43109a: Pending blocks now include the `bloom` field.
 - 818107821: Added a new `hardhat_metadata` RPC method
-- 937d15e51: A better error is show if a Solidity file makes an import throug its own package name.
+- 937d15e51: A better error is show if a Solidity file makes an import through its own package name.
 - 4cf9a6d58: Added a `getBuildInfoSync` function to the `hre.artifacts` object (thanks @emretepedev!)
 
 ## 2.12.2
@@ -713,7 +713,7 @@
 ### Patch Changes
 
 - 99c17f43: Bump uuid package to remove a deprecation warning (thanks @yhuard!)
-- 8076c43b: Fixed how the cummulative gas is computed for receipts and added a missing field (Thanks @ngotchac!)
+- 8076c43b: Fixed how the cumulative gas is computed for receipts and added a missing field (Thanks @ngotchac!)
 - e6362902: Display similar artifact names in error output if given name is not found (#201)
 - e087bd0b: Improve validation of private keys in the Hardhat config
 - aa1a0080: Fix an issue with new versions of Node.js that prevented clients from connecting to Hardhat's node using 127.0.0.1

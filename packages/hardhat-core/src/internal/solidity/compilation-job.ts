@@ -289,12 +289,12 @@ function getCompilationJobCreationError(
   directDependencies: ResolvedFile[],
   transitiveDependencies: taskTypes.TransitiveDependency[],
   compilerVersions: string[],
-  overriden: boolean
+  overridden: boolean
 ): CompilationJobCreationError {
   const fileVersionRange = file.content.versionPragmas.join(" ");
   if (semver.maxSatisfying(compilerVersions, fileVersionRange) === null) {
-    const reason = overriden
-      ? CompilationJobCreationErrorReason.INCOMPATIBLE_OVERRIDEN_SOLC_VERSION
+    const reason = overridden
+      ? CompilationJobCreationErrorReason.INCOMPATIBLE_OVERRIDDEN_SOLC_VERSION
       : CompilationJobCreationErrorReason.NO_COMPATIBLE_SOLC_VERSION_FOUND;
     return { reason, file };
   }

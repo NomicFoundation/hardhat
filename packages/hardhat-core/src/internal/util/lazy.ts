@@ -122,7 +122,7 @@ function createLazyProxy<ActualT extends GuardT, GuardT extends object>(
 
       Object.setPrototypeOf(dummyTarget, Object.getPrototypeOf(target));
 
-      // Using a null prototype seems to tirgger a V8 bug, so we forbid it
+      // Using a null prototype seems to trigger a V8 bug, so we forbid it
       // See: https://github.com/nodejs/node/issues/29730
       if (Object.getPrototypeOf(target) === null) {
         throw new HardhatError(ERRORS.GENERAL.UNSUPPORTED_OPERATION, {

@@ -24,11 +24,10 @@ describe("libraries", () => {
     assert.isDefined(result);
     const contractThatDependsOnLib = result.dependsOnLib;
 
-    const libBasedAddtion = await contractThatDependsOnLib.read.addThreeNumbers(
-      [1, 2, 3]
-    );
+    const libBasedAddition =
+      await contractThatDependsOnLib.read.addThreeNumbers([1, 2, 3]);
 
-    assert.equal(libBasedAddtion, 6);
+    assert.equal(libBasedAddition, 6);
   });
 
   it("should be able to deploy a contract that depends on an artifact library", async function () {
@@ -54,11 +53,10 @@ describe("libraries", () => {
     assert.isDefined(result);
     const contractThatDependsOnLib = result.dependsOnLib;
 
-    const libBasedAddtion = await contractThatDependsOnLib.read.addThreeNumbers(
-      [1, 2, 3]
-    );
+    const libBasedAddition =
+      await contractThatDependsOnLib.read.addThreeNumbers([1, 2, 3]);
 
-    assert.equal(libBasedAddtion, 6);
+    assert.equal(libBasedAddition, 6);
   });
 
   it("should deploy a contract with an existing library", async function () {
@@ -120,9 +118,9 @@ describe("libraries", () => {
     assert.isDefined(result);
     const contractThatDependsOnLibOnLib = result.dependsOnLibThatDependsOnLib;
 
-    const libBasedAddtion =
+    const libBasedAddition =
       await contractThatDependsOnLibOnLib.read.addThreeNumbers([1, 2, 3]);
 
-    assert.equal(libBasedAddtion, 6);
+    assert.equal(libBasedAddition, 6);
   });
 });

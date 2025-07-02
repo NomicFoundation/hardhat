@@ -117,7 +117,7 @@ describe("loadFixture", function () {
     }
 
     // we run the second fixture again, this should remove all the ones that
-    // are afte rit
+    // are after rit
     await loadFixture(fixturesFunctions[1]);
     assert.equal(calledCount.get(1), 1);
 

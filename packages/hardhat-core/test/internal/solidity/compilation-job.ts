@@ -111,7 +111,7 @@ describe("Compilation jobs", function () {
         assert.isTrue(compilationJob.emitsArtifacts(Foo));
       });
 
-      it("overriden compiler is used", async function () {
+      it("overridden compiler is used", async function () {
         const FooMock = new MockFile("Foo", [">=0.5.0"]);
         const [dependencyGraph, [Foo]] = await createMockData([
           { file: FooMock },
@@ -157,7 +157,7 @@ describe("Compilation jobs", function () {
         );
       });
 
-      it("invalid overriden compiler", async function () {
+      it("invalid overridden compiler", async function () {
         const FooMock = new MockFile("Foo", ["^0.5.0"]);
         const [dependencyGraph, [Foo]] = await createMockData([
           { file: FooMock },
@@ -180,7 +180,7 @@ describe("Compilation jobs", function () {
 
         assert.equal(
           compilationJobCreationError.reason,
-          CompilationJobCreationErrorReason.INCOMPATIBLE_OVERRIDEN_SOLC_VERSION
+          CompilationJobCreationErrorReason.INCOMPATIBLE_OVERRIDDEN_SOLC_VERSION
         );
       });
     });

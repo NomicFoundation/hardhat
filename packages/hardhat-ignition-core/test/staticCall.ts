@@ -509,7 +509,7 @@ m.staticCall(..., { id: "MyUniqueId"})`
       });
     });
 
-    it("should not validate a non-existant hardhat contract", async () => {
+    it("should not validate a non-existent hardhat contract", async () => {
       const module = buildModule("Module1", (m) => {
         const another = m.contract("Another", []);
         m.staticCall(another, "test");
@@ -532,7 +532,7 @@ m.staticCall(..., { id: "MyUniqueId"})`
       );
     });
 
-    it("should not validate a non-existant function", async () => {
+    it("should not validate a non-existent function", async () => {
       const fakerArtifact: Artifact = {
         ...fakeArtifact,
         contractName: "Another",

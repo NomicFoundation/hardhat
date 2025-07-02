@@ -391,7 +391,7 @@ export class SimpleTaskDefinition implements TaskDefinition {
    * Adds a positional parameter to the task's definition.
    *
    * This will check if the `name` is already used and
-   * if the parameter is being added after a varidic argument.
+   * if the parameter is being added after a variadic argument.
    *
    * @param name the parameter's name.
    * @param description the parameter's description.
@@ -651,7 +651,7 @@ export class OverriddenTaskDefinition implements TaskDefinition {
   }
 
   /**
-   * Overriden tasks can't add new parameters.
+   * Overridden tasks can't add new parameters.
    */
   public addParam<T>(
     name: string,
@@ -669,7 +669,7 @@ export class OverriddenTaskDefinition implements TaskDefinition {
   }
 
   /**
-   * Overriden tasks can't add new parameters.
+   * Overridden tasks can't add new parameters.
    */
   public addOptionalParam<T>(
     name: string,
@@ -687,7 +687,7 @@ export class OverriddenTaskDefinition implements TaskDefinition {
   }
 
   /**
-   * Overriden tasks can't add new parameters.
+   * Overridden tasks can't add new parameters.
    */
   public addPositionalParam<T>(
     _name: string,
@@ -702,7 +702,7 @@ export class OverriddenTaskDefinition implements TaskDefinition {
   }
 
   /**
-   * Overriden tasks can't add new parameters.
+   * Overridden tasks can't add new parameters.
    */
   public addOptionalPositionalParam<T>(
     _name: string,
@@ -716,7 +716,7 @@ export class OverriddenTaskDefinition implements TaskDefinition {
   }
 
   /**
-   * Overriden tasks can't add new parameters.
+   * Overridden tasks can't add new parameters.
    */
   public addVariadicPositionalParam<T>(
     _name: string,
@@ -731,7 +731,7 @@ export class OverriddenTaskDefinition implements TaskDefinition {
   }
 
   /**
-   * Overriden tasks can't add new parameters.
+   * Overridden tasks can't add new parameters.
    */
   public addOptionalVariadicPositionalParam<T>(
     _name: string,

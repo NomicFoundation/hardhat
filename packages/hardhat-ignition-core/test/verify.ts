@@ -5,7 +5,7 @@ import { BuildInfo, VerifyResult, getVerificationInformation } from "../src";
 import { getImportSourceNames } from "../src/verify";
 
 describe("verify", () => {
-  it("should not verify an unitialized deployment", async () => {
+  it("should not verify an uninitialized deployment", async () => {
     await assert.isRejected(
       getVerificationInformation("test").next(),
       /IGN1000: Cannot verify contracts for nonexistant deployment at test/

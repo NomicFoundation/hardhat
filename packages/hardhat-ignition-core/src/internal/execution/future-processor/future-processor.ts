@@ -108,7 +108,7 @@ export class FutureProcessor {
             ExecutionStateType.READ_EVENT_ARGUMENT_EXECUTION_STATE &&
           exState.type !==
             ExecutionStateType.ENCODE_FUNCTION_CALL_EXECUTION_STATE,
-        `Unexpected ExectutionState ${exState.id} with type ${exState.type} and status ${exState.status}: it should have been immediately completed`
+        `Unexpected ExecutionState ${exState.id} with type ${exState.type} and status ${exState.status}: it should have been immediately completed`
       );
 
       const nextAction = nextActionExecutionState(exState);

@@ -77,7 +77,7 @@ export class DeployContractError extends HardhatViemError {
   }
 }
 
-export class AmbigousLibraryNameError extends HardhatViemError {
+export class AmbiguousLibraryNameError extends HardhatViemError {
   constructor(
     contractName: string,
     libraryName: string,

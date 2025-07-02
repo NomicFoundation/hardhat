@@ -280,7 +280,7 @@ describe("Environment", () => {
           variadicOptStrParam: { valid: ["a", "b"], invalid: ["a", 1] },
         };
 
-        const expectTaskRunsSuccesfully = async (
+        const expectTaskRunsSuccessfully = async (
           taskNameToRun: string,
           taskArguments: any
         ) => {
@@ -316,7 +316,7 @@ describe("Environment", () => {
         )) {
           // should run task successfully with valid type arguments
           const validTaskArguments = { [paramName]: valid };
-          await expectTaskRunsSuccesfully(taskName, validTaskArguments);
+          await expectTaskRunsSuccessfully(taskName, validTaskArguments);
 
           // should throw error with argument of type not same type as the param type
           const invalidTaskArguments = { [paramName]: invalid };
@@ -480,7 +480,7 @@ describe("Environment", () => {
       const result1 = await env.run("parentTask");
       assert.equal(result1.optIntParam, 123);
 
-      // subtask args should get overriden
+      // subtask args should get overridden
       const result2 = await env.run("parentTask", undefined, {
         taskWithMultipleTypesParams: {
           optIntParam: 456,

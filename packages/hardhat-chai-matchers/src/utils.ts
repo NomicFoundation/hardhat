@@ -49,7 +49,7 @@ function buildNormal(ssfi: Ssfi) {
  * this value should be captured at the beginning of the matcher's
  * implementation, before any async code is executed. Otherwise things like
  * `.to.emit().and.not.to.emit()` won't work, because by the time the async part
- * of the first emit is executd, the `.not` (executed synchronously) has already
+ * of the first emit is executed, the `.not` (executed synchronously) has already
  * modified the flag.
  *
  * The second parameter is what Chai calls the "start stack function indicator",

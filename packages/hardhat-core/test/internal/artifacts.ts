@@ -1074,7 +1074,7 @@ describe("Artifacts class", function () {
       language: "",
     };
 
-    const SOLC_OUPUT: CompilerOutput = {
+    const SOLC_OUTPUT: CompilerOutput = {
       sources: {},
       contracts: {},
     };
@@ -1087,7 +1087,7 @@ describe("Artifacts class", function () {
         "0.4.12",
         "0.4.12+123",
         SOLC_INPUT,
-        SOLC_OUPUT
+        SOLC_OUTPUT
       );
 
       await artifacts.saveArtifactAndDebugFile(
@@ -1201,7 +1201,7 @@ describe("Artifacts class", function () {
           "0.4.13",
           "0.4.13+123",
           SOLC_INPUT,
-          SOLC_OUPUT
+          SOLC_OUTPUT
         );
 
         await artifacts.saveArtifactAndDebugFile(
@@ -1237,7 +1237,7 @@ describe("Artifacts class", function () {
           "0.4.13",
           "0.4.13+123",
           SOLC_INPUT,
-          SOLC_OUPUT
+          SOLC_OUTPUT
         );
 
         await artifacts.saveArtifactAndDebugFile(

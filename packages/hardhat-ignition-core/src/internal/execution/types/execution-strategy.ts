@@ -95,7 +95,7 @@ export interface SimulationSuccessSignal {
 
 /**
  * A request to perform a static call. This leads to the execution engine
- * seding an `eth_call` to the network.
+ * sending an `eth_call` to the network.
  */
 export type StaticCallRequest = Omit<StaticCall, "result" | "from"> & {
   from?: string;
@@ -171,7 +171,7 @@ export type StaticCallStrategyGenerator = AsyncGenerator<
  *    interaction or not.
  *
  *    If this `OnchainInteractionRequest` was already executed (e.g. we are resuming an
- *    existing deployment), the strategy will immedately get a `SuccessfulTransaction` as
+ *    existing deployment), the strategy will immediately get a `SuccessfulTransaction` as
  *    a response.
  *
  *    If the strategy doesn't want to proceed, it should return a `SimulationErrorExecutionResult`

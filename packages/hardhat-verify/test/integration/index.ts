@@ -167,7 +167,7 @@ https://hardhat.etherscan.io/address/${address}#code
       );
     });
 
-    describe("with overriden config", () => {
+    describe("with overridden config", () => {
       let originalCompilers: SolcConfig[];
 
       it("should throw if the deployed contract version does not match the configured version", async function () {

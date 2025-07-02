@@ -17,7 +17,7 @@ import { CustomError } from "../errors";
 //
 // Non standard:
 
-// -32999 Invalid response      The server returned a JSON-RPC      hardhat-sepecific
+// -32999 Invalid response      The server returned a JSON-RPC      hardhat-specific
 //                              response, but the result is not
 //                              in the expected format
 //

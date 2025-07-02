@@ -35,7 +35,7 @@ import {
  *
  * If the ExecutionState has no NetworkInteraction, a new generator is returned.
  */
-async function replayExecutionStartegyWithOnchainInteractions(
+async function replayExecutionStrategyWithOnchainInteractions(
   executionState:
     | DeploymentExecutionState
     | CallExecutionState
@@ -110,7 +110,7 @@ async function replayExecutionStartegyWithOnchainInteractions(
 }
 
 /**
- * This function is the StaticCall-only version of replayExecutionStartegyWithOnchainInteractions.
+ * This function is the StaticCall-only version of replayExecutionStrategyWithOnchainInteractions.
  */
 async function replayStaticCallExecutionStrategy(
   executionState: StaticCallExecutionState,
@@ -155,7 +155,7 @@ async function replayStaticCallExecutionStrategy(
 
 /**
  * This function returns a strategy generator for the executionState that has been replayed
- * up to the request that lead to the last network interaction of the exectionState being
+ * up to the request that lead to the last network interaction of the executionState being
  * created.
  *
  * IMPORTANT: This function is NOT type-safe. It is the responsibility of the caller to
@@ -181,17 +181,17 @@ export async function replayStrategy(
 > {
   switch (executionState.type) {
     case ExecutionStateType.DEPLOYMENT_EXECUTION_STATE:
-      return replayExecutionStartegyWithOnchainInteractions(
+      return replayExecutionStrategyWithOnchainInteractions(
         executionState,
         strategy
       );
     case ExecutionStateType.CALL_EXECUTION_STATE:
-      return replayExecutionStartegyWithOnchainInteractions(
+      return replayExecutionStrategyWithOnchainInteractions(
         executionState,
         strategy
       );
     case ExecutionStateType.SEND_DATA_EXECUTION_STATE:
-      return replayExecutionStartegyWithOnchainInteractions(
+      return replayExecutionStrategyWithOnchainInteractions(
         executionState,
         strategy
       );

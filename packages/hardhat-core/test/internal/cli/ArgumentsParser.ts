@@ -25,7 +25,7 @@ describe("ArgumentsParser", () => {
   let argumentsParser: ArgumentsParser;
   let envArgs: HardhatArguments;
   let taskDefinition: TaskDefinition;
-  let overridenTaskDefinition: OverriddenTaskDefinition;
+  let overriddenTaskDefinition: OverriddenTaskDefinition;
 
   beforeEach(() => {
     argumentsParser = new ArgumentsParser();
@@ -45,7 +45,7 @@ describe("ArgumentsParser", () => {
       .addParam("strParam", "a str param", "defaultValue", string)
       .addFlag("aFlag", "a flag param");
 
-    overridenTaskDefinition = new OverriddenTaskDefinition(baseTaskDefinition)
+    overriddenTaskDefinition = new OverriddenTaskDefinition(baseTaskDefinition)
       .addFlag("overriddenFlag", "added flag param")
       .addOptionalParam("overriddenOptParam", "added opt param");
   });
@@ -352,7 +352,7 @@ describe("ArgumentsParser", () => {
 
       const { paramArguments, rawPositionalArguments } = argumentsParser[
         "_parseTaskParamArguments"
-      ](overridenTaskDefinition, rawCLAs);
+      ](overriddenTaskDefinition, rawCLAs);
       assert.deepEqual(paramArguments, {
         strParam: "testing",
         aFlag: true,

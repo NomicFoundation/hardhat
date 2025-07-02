@@ -6,7 +6,7 @@ scope("my-scope").subtask("my-subtask", async () => {
   return "my-scope/my-subtask";
 });
 
-scope("my-scope").task("overriden-task", async () => {
+scope("my-scope").task("overridden-task", async () => {
   return "my-scope/overridden-task";
 });
 

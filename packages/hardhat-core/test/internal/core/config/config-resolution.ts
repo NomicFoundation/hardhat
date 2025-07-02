@@ -978,11 +978,11 @@ describe("Config resolution", () => {
       });
     });
 
-    describe("With a solc 0.8.20 project and overriden config", () => {
+    describe("With a solc 0.8.20 project and overridden config", () => {
       useFixtureProject("project-0.8.20-override-evm-version");
       useEnvironment();
 
-      it("Should emit PUSH0 opcodes when compiling a contract with solc gte 0.8.20 and overriden config", async function () {
+      it("Should emit PUSH0 opcodes when compiling a contract with solc gte 0.8.20 and overridden config", async function () {
         await this.env.run("compile");
         const source = "contracts/Lock.sol";
         const contract = "Lock";

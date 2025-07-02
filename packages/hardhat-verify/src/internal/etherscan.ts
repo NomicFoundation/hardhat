@@ -187,6 +187,7 @@ export class Etherscan {
       codeformat: "solidity-standard-json-input",
       contractname: contractName,
       compilerversion: compilerVersion,
+      // cSpell:ignore constructorArguements -- This is the spelling used by the Etherscan API
       constructorArguements: constructorArguments,
     });
 
