@@ -242,12 +242,16 @@ export async function parseBuiltinGlobalOptions(
   showStackTraces: boolean;
   help: boolean;
   version: boolean;
+  verbose: boolean;
+  verbosity: number;
 }> {
   let configPath: string | undefined;
   let showStackTraces: boolean = isCi();
   let help: boolean = false;
   let version: boolean = false;
   let init: boolean = false;
+  let verbose: boolean = false;
+  let verbosity: number = 0;
 
   const builtinGlobalOptions = await parseGlobalOptions(
     BUILTIN_GLOBAL_OPTIONS_DEFINITIONS,
@@ -275,11 +279,20 @@ export async function parseBuiltinGlobalOptions(
     version = builtinGlobalOptions.version;
   }
 
+  if (builtinGlobalOptions.verbose === true) {
+    verbose = true;
+    verbosity = 1;
+  }
+
   if (
-    builtinGlobalOptions.verbose === true ||
-    (builtinGlobalOptions.verbosity !== undefined &&
-      builtinGlobalOptions.verbosity !== 0)
+    builtinGlobalOptions.verbosity !== undefined &&
+    builtinGlobalOptions.verbosity !== 0
   ) {
+    verbose = true;
+    verbosity = builtinGlobalOptions.verbosity;
+  }
+
+  if (verbose) {
     debug.enable("hardhat*");
   }
 
@@ -289,7 +302,15 @@ export async function parseBuiltinGlobalOptions(
     );
   }
 
-  return { init, configPath, showStackTraces, help, version };
+  return {
+    init,
+    configPath,
+    showStackTraces,
+    help,
+    version,
+    verbose,
+    verbosity,
+  };
 }
 
 export async function parseGlobalOptions(
