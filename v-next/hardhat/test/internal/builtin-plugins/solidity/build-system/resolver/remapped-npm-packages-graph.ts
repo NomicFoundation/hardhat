@@ -35,7 +35,7 @@ import {
 import { useTestProjectTemplate } from "./helpers.js";
 
 describe("RemappedNpmPackagesGraph", () => {
-  describe("Graph intialization", () => {
+  describe("Graph initialization", () => {
     describe("Without dependencies and remappings", () => {
       it("Should initialize a graph with the right hardhat project package", async () => {
         const template: TestProjectTemplate = {
@@ -70,7 +70,7 @@ describe("RemappedNpmPackagesGraph", () => {
         });
       });
 
-      it("Shouldn't load any remappings.txt when first intialized", async () => {
+      it("Shouldn't load any remappings.txt when first initialized", async () => {
         const template: TestProjectTemplate = {
           name: "no-remappings-loaded-on-init",
           version: "1.2.4",
@@ -108,7 +108,7 @@ invalid syntax`,
         });
       });
 
-      it("Shouldn't load any dependency nor their remappings.txts when first intialized", async () => {
+      it("Shouldn't load any dependency nor their remappings.txts when first initialized", async () => {
         const template: TestProjectTemplate = {
           name: "no-dependencies-loaded-on-init",
           version: "1.2.4",
@@ -838,7 +838,7 @@ invalid syntax`,
         files: {},
         dependencies: {
           dep: {
-            name: "depdency",
+            name: "dependency",
             version: "1.0.0",
             files: {},
           },

@@ -10,7 +10,7 @@ import {
 import { exports } from "resolve.exports";
 
 export enum PathValidationErrorType {
-  DOESNT_EXIST = "DOESNT_EXIST",
+  DOES_NOT_EXIST = "DOES_NOT_EXIST",
   CASING_ERROR = "CASING_ERROR",
 }
 
@@ -20,7 +20,7 @@ export async function validateFsPath(
 ): Promise<
   Result<
     undefined,
-    | { type: PathValidationErrorType.DOESNT_EXIST }
+    | { type: PathValidationErrorType.DOES_NOT_EXIST }
     | { type: PathValidationErrorType.CASING_ERROR; correctCasing: string }
   >
 > {
@@ -32,7 +32,7 @@ export async function validateFsPath(
 
     return {
       success: false,
-      error: { type: PathValidationErrorType.DOESNT_EXIST },
+      error: { type: PathValidationErrorType.DOES_NOT_EXIST },
     };
   }
 
@@ -64,7 +64,7 @@ export function resolveSubpathWithPackageExports(
     // As we are resolving Solidity files, the conditions don't really apply,
     // and Solidity package authors don't use them either.
     //
-    // We use `resolve.exports` with the appropiate options so that it only
+    // We use `resolve.exports` with the appropriate options so that it only
     // takes the `"default"` condition into account.
     resolveOutput = exports(npmPackage, subpath, {
       browser: false,

@@ -6,6 +6,7 @@ export interface Keystore {
   addNewValue(key: string, value: string, masterKey: Uint8Array): Promise<void>;
   removeKey(key: string, masterKey: Uint8Array): Promise<void>;
   readValue(key: string, masterKey: Uint8Array): Promise<string>;
+  isValidPassword(masterKey: Uint8Array): Promise<void>;
   toJSON(): EncryptedKeystore;
 }
 
@@ -29,6 +30,7 @@ export interface KeystoreLoader {
   }) => Promise<Keystore>;
   loadKeystore: () => Promise<Keystore>;
   saveKeystoreToFile: () => Promise<void>;
+  getKeystoreFilePath: () => string;
 }
 
 export interface FileManager {

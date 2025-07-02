@@ -6,7 +6,7 @@ This package includes Hardhat 3's `node:test` reporter. To integrate it with you
 
 This reporter mimics [the `Mocha`'s default `Spec` reporter](https://mochajs.org/#spec), as close as possible.
 
-It is designed to output information about the test runs as soon as possible and in test **defintion** order.
+It is designed to output information about the test runs as soon as possible and in test **definition** order.
 
 Once the test run ends, it will output global information about it, based on the diagnostics emitted by `node:test`, and any custom or unrecognized diagnostics message.
 

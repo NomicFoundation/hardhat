@@ -11,7 +11,7 @@ export type BaseEvmValue = number | bigint | string | boolean;
  */
 export interface EvmTuple {
   /**
-   * The values in defintion order.
+   * The values in definition order.
    */
   positional: EvmValue[];
 
@@ -53,7 +53,7 @@ export type FailedEvmExecutionResult =
  * Each of the possible contract execution results that Ignition can handle.
  */
 export enum EvmExecutionResultTypes {
-  SUCESSFUL_RESULT = "SUCESSFUL_RESULT",
+  SUCCESSFUL_RESULT = "SUCCESSFUL_RESULT",
   INVALID_RESULT_ERROR = "INVALID_RESULT_ERROR",
   REVERT_WITHOUT_REASON = "REVERT_WITHOUT_REASON",
   REVERT_WITH_REASON = "REVERT_WITH_REASON",
@@ -69,7 +69,7 @@ export enum EvmExecutionResultTypes {
  * custom error parameters.
  */
 export interface SuccessfulEvmExecutionResult {
-  type: EvmExecutionResultTypes.SUCESSFUL_RESULT;
+  type: EvmExecutionResultTypes.SUCCESSFUL_RESULT;
 
   /**
    * The values returned by the execution.

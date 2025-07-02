@@ -18,3 +18,14 @@ export function setupKeystoreLoaderFrom({
 
   return new KeystoreFileLoader(keystoreFilePath, fileManager);
 }
+
+export function setupTmpKeystoreLoaderFrom({
+  config,
+}: {
+  config: HardhatConfig;
+}): KeystoreLoader {
+  const keystoreFilePath = `${config.keystore.filePath}.tmp`;
+  const fileManager = new FileManagerImpl();
+
+  return new KeystoreFileLoader(keystoreFilePath, fileManager);
+}

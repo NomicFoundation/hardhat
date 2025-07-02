@@ -42,7 +42,7 @@ export interface ResolvedConfigurationVariable {
 
   /**
    * Returns the value of the configuration variable, validating that is a
-   * valid hex string. Trimming any spaces, and making sure it's lowecase and
+   * valid hex string. Trimming any spaces, and making sure it's lowercase and
    * that it starts with 0x.
    */
   getHexString(): Promise<string>;

@@ -9,7 +9,7 @@ export class AsyncMutex {
   readonly #queue: Array<() => void> = [];
 
   /**
-   * Aquires the mutex, running the provided function exclusively,
+   * Acquires the mutex, running the provided function exclusively,
    * and releasing it afterwards.
    *
    * @param f The function to run.
@@ -28,7 +28,7 @@ export class AsyncMutex {
   }
 
   /**
-   * Aquires the mutex, returning a function that releases it.
+   * Acquires the mutex, returning a function that releases it.
    */
   async #acquire(): Promise<() => Promise<void>> {
     if (!this.#acquired) {

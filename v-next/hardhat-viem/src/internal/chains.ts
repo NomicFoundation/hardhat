@@ -41,7 +41,7 @@ export async function getChain(
 
   if ((await isDevelopmentNetwork(provider)) || chain === undefined) {
     if (await isHardhatNetwork(provider)) {
-      // TODO: We shoud improve how we handle the chains for the different chain
+      // TODO: We should improve how we handle the chains for the different chain
       // types, as this is both a hardhat and an optimism chain.
       //
       // We are currently creating our chain based off optimism's, but that's

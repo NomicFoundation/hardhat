@@ -3,6 +3,7 @@ import type { HardhatRuntimeEnvironment } from "../../../../../src/types/hre.js"
 import type { SubscriptionEvent } from "@ignored/edr-optimism";
 
 import assert from "node:assert/strict";
+import { once } from "node:events";
 import { before, describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
@@ -29,31 +30,6 @@ describe("edr-provider", () => {
   });
 
   describe("EdrProvider#request", () => {
-    it(
-      "should emit an event when the method is evm_revert",
-      { timeout: 1000 },
-      async () => {
-        let eventEmitted = false;
-        const { provider } = await hre.network.connect();
-
-        const eventPromise = new Promise<void>((resolve) => {
-          provider.on(EDR_NETWORK_REVERT_SNAPSHOT_EVENT, () => {
-            eventEmitted = true;
-            resolve();
-          });
-        });
-
-        await provider.request({
-          method: "evm_revert",
-          params: ["0x1"], // if the snapshotId does not exist, it will return false
-        });
-
-        await eventPromise;
-
-        assert.ok(eventEmitted, "The evm_revert event should be emitted");
-      },
-    );
-
     it("should return the expected response when the method is web3_clientVersion", async () => {
       const { provider } = await hre.network.connect();
 
@@ -67,6 +43,34 @@ describe("edr-provider", () => {
       );
       assert.match(response, /HardhatNetwork\/.+\/@ignored\/edr-optimism\/.+/);
     });
+
+    it(
+      "should emit an event when the method is evm_revert",
+      { timeout: 1000 },
+      async () => {
+        let eventEmitted = false;
+        const { provider } = await hre.network.connect();
+
+        const eventPromise = once(
+          provider,
+          EDR_NETWORK_REVERT_SNAPSHOT_EVENT,
+        ).then(() => {
+          eventEmitted = true;
+        });
+
+        const revertResponse = await provider.request({
+          method: "evm_revert",
+          params: ["0x1"],
+        });
+
+        // It should return `false` as the id doesn't exist
+        assert.equal(revertResponse, false);
+
+        await eventPromise;
+
+        assert.ok(eventEmitted, "The evm_revert event should be emitted");
+      },
+    );
 
     it("should return the expected response when the method is debug_traceTransaction", async () => {
       const { provider } = await hre.network.connect();

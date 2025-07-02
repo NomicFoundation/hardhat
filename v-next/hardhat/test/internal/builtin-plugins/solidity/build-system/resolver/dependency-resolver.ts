@@ -72,7 +72,7 @@ describe("Dependency resolver", () => {
 
       const absoluteFilePath = path.join(project.path, "A.sol");
       const expectedError: ProjectRootResolutionError = {
-        type: RootResolutionErrorType.PROJECT_ROOT_FILE_DOESNT_EXIST,
+        type: RootResolutionErrorType.PROJECT_ROOT_FILE_DOES_NOT_EXIST,
         absoluteFilePath,
       };
 
@@ -341,7 +341,7 @@ other-exports/=node_modules/exports/other/`,
 
           const npmModule = "dep/nope.sol";
           const expectedError: NpmRootResolutionError = {
-            type: RootResolutionErrorType.NPM_ROOT_FILE_DOESNT_EXIST_WITHIN_ITS_PACKAGE,
+            type: RootResolutionErrorType.NPM_ROOT_FILE_DOES_NOT_EXIST_WITHIN_ITS_PACKAGE,
             npmModule,
             npmPackage: {
               name: "dep",
@@ -372,7 +372,7 @@ other-exports/=node_modules/exports/other/`,
 
           const npmModule = "dep/contracts/a.sol";
           const expectedError: NpmRootResolutionError = {
-            type: RootResolutionErrorType.NPM_ROOT_FILE_WITH_INCORRRECT_CASING,
+            type: RootResolutionErrorType.NPM_ROOT_FILE_WITH_INCORRECT_CASING,
             npmModule,
             npmPackage: {
               name: "dep",
@@ -477,7 +477,7 @@ other-exports/=node_modules/exports/other/`,
 
           const npmModule = "exports/nope.sol";
           const expectedError: NpmRootResolutionError = {
-            type: RootResolutionErrorType.NPM_ROOT_FILE_DOESNT_EXIST_WITHIN_ITS_PACKAGE,
+            type: RootResolutionErrorType.NPM_ROOT_FILE_DOES_NOT_EXIST_WITHIN_ITS_PACKAGE,
             npmModule,
             npmPackage: {
               name: "exports",
@@ -508,7 +508,7 @@ other-exports/=node_modules/exports/other/`,
 
           const npmModule = "exports/h.sol";
           const expectedError: NpmRootResolutionError = {
-            type: RootResolutionErrorType.NPM_ROOT_FILE_WITH_INCORRRECT_CASING,
+            type: RootResolutionErrorType.NPM_ROOT_FILE_WITH_INCORRECT_CASING,
             npmModule,
             correctCasing: "src/H.sol",
             npmPackage: {
@@ -649,7 +649,7 @@ a/=b`,
 
         const npmModule = "foo/nope.sol";
         const expectedError: NpmRootResolutionError = {
-          type: RootResolutionErrorType.NPM_ROOT_FILE_DOESNT_EXIST_WITHIN_ITS_PACKAGE,
+          type: RootResolutionErrorType.NPM_ROOT_FILE_DOES_NOT_EXIST_WITHIN_ITS_PACKAGE,
           npmModule,
           npmPackage: {
             name: "dep",
@@ -684,7 +684,7 @@ a/=b`,
 
         const npmModule = "foo/a.sol";
         const expectedError: NpmRootResolutionError = {
-          type: RootResolutionErrorType.NPM_ROOT_FILE_WITH_INCORRRECT_CASING,
+          type: RootResolutionErrorType.NPM_ROOT_FILE_WITH_INCORRECT_CASING,
           npmModule,
           correctCasing: "contracts/A.sol",
           npmPackage: {
@@ -873,7 +873,7 @@ a/=b`,
   });
 
   describe("Import resolution", () => {
-    // This tempalte is used in the majority of the tests in this `describe`
+    // This template is used in the majority of the tests in this `describe`
     const template: TestProjectTemplate = {
       name: "import-resolution",
       version: "1.0.0",
@@ -1052,7 +1052,7 @@ a/=b`,
 
         const importPath = "./nope.sol";
         const expectedError: ImportResolutionError = {
-          type: ImportResolutionErrorType.IMPORT_DOESNT_EXIST,
+          type: ImportResolutionErrorType.IMPORT_DOES_NOT_EXIST,
           fromFsPath: absoluteFilePath,
           importPath,
           npmPackage: {
@@ -1342,7 +1342,7 @@ a/=b`,
 
           const importPath = "foo/C.sol";
           const expectedError: ImportResolutionError = {
-            type: ImportResolutionErrorType.IMPORT_DOESNT_EXIST,
+            type: ImportResolutionErrorType.IMPORT_DOES_NOT_EXIST,
             fromFsPath: absoluteFilePath,
             importPath,
             npmPackage: {
@@ -1545,7 +1545,7 @@ fo/=barr/`,
 
           const importPath = "foo/C.sol";
           const expectedError: ImportResolutionError = {
-            type: ImportResolutionErrorType.IMPORT_DOESNT_EXIST,
+            type: ImportResolutionErrorType.IMPORT_DOES_NOT_EXIST,
             fromFsPath: absoluteFilePath,
             importPath,
             npmPackage: {
@@ -2007,7 +2007,7 @@ fo/=barr/`,
       });
 
       describe("Edge cases", () => {
-        it("Should handle seemgly conflicting remappings in different remappings.txt filse", async () => {
+        it("Should handle seemgly conflicting remappings in different remappings.txt files", async () => {
           const localTemplate: TestProjectTemplate = {
             name: "seemgly-conflicting-remappings",
             version: "1.0.0",
@@ -2149,7 +2149,7 @@ submodule2/=lib/submodule2/src/`,
             {
               success: false,
               error: {
-                type: ImportResolutionErrorType.IMPORT_DOESNT_EXIST,
+                type: ImportResolutionErrorType.IMPORT_DOES_NOT_EXIST,
                 fromFsPath: absoluteFilePath,
                 importPath,
                 npmPackage: {
@@ -2303,7 +2303,7 @@ submodule2/=lib/submodule2/src/`,
             {
               success: false,
               error: {
-                type: ImportResolutionErrorType.IMPORT_DOESNT_EXIST,
+                type: ImportResolutionErrorType.IMPORT_DOES_NOT_EXIST,
                 fromFsPath: absoluteFilePath,
                 importPath,
                 npmPackage: {
@@ -2589,7 +2589,7 @@ submodule2/=lib/submodule2/src/`,
             {
               success: false,
               error: {
-                type: ImportResolutionErrorType.IMPORT_DOESNT_EXIST,
+                type: ImportResolutionErrorType.IMPORT_DOES_NOT_EXIST,
                 fromFsPath: absoluteFilePath,
                 importPath: notExistingImportPath,
                 npmPackage: {

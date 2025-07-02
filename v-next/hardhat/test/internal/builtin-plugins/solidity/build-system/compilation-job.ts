@@ -130,18 +130,18 @@ describe("CompilationJobImplementation", () => {
         );
       });
       it("the remappings change", async () => {
-        const newDependecyGraph = dependencyGraph.getSubgraph(
+        const newDependencyGraph = dependencyGraph.getSubgraph(
           ...dependencyGraph.getRoots().keys().toArray(),
         );
 
-        newDependecyGraph.addDependency(
+        newDependencyGraph.addDependency(
           rootFile,
           projectDependencyFile,
           "test/:test/=test/",
         );
 
         const newCompilationJob = new CompilationJobImplementation(
-          newDependecyGraph,
+          newDependencyGraph,
           solcConfig,
           solcLongVersion,
           hooks,

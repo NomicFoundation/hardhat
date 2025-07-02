@@ -35,13 +35,13 @@ export function throwIfSolidityBuildFailed(
     );
   }
 
-  const sucessful = [...results.values()].every(
+  const successful = [...results.values()].every(
     ({ type }) =>
       type === FileBuildResultType.CACHE_HIT ||
       type === FileBuildResultType.BUILD_SUCCESS,
   );
 
-  if (!sucessful) {
+  if (!successful) {
     throw new HardhatError(HardhatError.ERRORS.CORE.SOLIDITY.BUILD_FAILED);
   }
 }

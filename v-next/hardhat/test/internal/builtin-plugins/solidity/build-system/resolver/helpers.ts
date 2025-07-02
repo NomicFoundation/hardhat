@@ -77,7 +77,7 @@ export interface TestProject {
  * temporary directory.
  *
  * @param template The test project template to use.
- * @returns The test proejct.
+ * @returns The test project.
  */
 export async function useTestProjectTemplate(
   template: TestProjectTemplate,
@@ -113,7 +113,7 @@ export async function useTestProjectTemplate(
 }
 
 /**
- * Initializes a proejct in the provided path.
+ * Initializes a project in the provided path.
  *
  * @param projectPath The root directory of the project to initialize, which
  * must already exist and be empty.

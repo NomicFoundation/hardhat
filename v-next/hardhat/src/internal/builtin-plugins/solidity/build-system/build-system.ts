@@ -556,7 +556,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     );
 
     // BuildInfo and BuildInfoOutput files are large, so we write them
-    // concurrently, and keep their lifetimes sperated and small.
+    // concurrently, and keep their lifetimes separated and small.
     await Promise.all([
       (async () => {
         const buildInfo = await getBuildInfo(compilationJob);

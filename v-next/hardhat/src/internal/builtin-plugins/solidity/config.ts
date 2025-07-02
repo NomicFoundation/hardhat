@@ -122,7 +122,7 @@ const soldityUserConfigType = conditionalUnionType(
       buildProfilesSolidityUserConfigType,
     ],
   ],
-  "Expected a version string, an array of version strings, or an object cofiguring one or more versions of Solidity or multiple build profiles",
+  "Expected a version string, an array of version strings, or an object configuring one or more versions of Solidity or multiple build profiles",
 );
 
 const userConfigType = z.object({
