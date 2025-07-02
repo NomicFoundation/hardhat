@@ -12,7 +12,6 @@ import {
 import { isCi } from "@nomicfoundation/hardhat-utils/ci";
 import { readClosestPackageJson } from "@nomicfoundation/hardhat-utils/package";
 import { kebabToCamelCase } from "@nomicfoundation/hardhat-utils/string";
-import chalk from "chalk";
 import debug from "debug";
 import { register } from "tsx/esm/api";
 

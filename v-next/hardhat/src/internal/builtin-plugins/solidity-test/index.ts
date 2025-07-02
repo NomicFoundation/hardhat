@@ -38,7 +38,7 @@ const hardhatPlugin: HardhatPlugin = {
         name: "verbosity",
         shortName: "v",
         description: "Log verbosity",
-        defaultValue: 2
+        defaultValue: 2,
       })
       .setAction(import.meta.resolve("./task-action.js"))
       .build(),

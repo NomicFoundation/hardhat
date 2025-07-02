@@ -115,6 +115,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
       chainType,
       hre.config.paths.root,
       solidityTestConfig,
+      hre.globalOptions.verbosity,
       grep,
     );
   const tracingConfig: TracingConfigWithBuffers = {
@@ -149,7 +150,13 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
         }
       }
     })
-    .compose((source) => testReporter(source, sourceNameToUserSourceName));
+    .compose((source) =>
+      testReporter(
+        source,
+        sourceNameToUserSourceName,
+        hre.globalOptions.verbosity,
+      ),
+    );
 
   const outputStream = testReporterStream.pipe(
     createNonClosingWriter(process.stdout),
