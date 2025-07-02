@@ -222,11 +222,13 @@ export class ResolverImplementation implements Resolver {
 
     let realCasingRelativePath = relativeFilePath;
     if (pathValidation.success === false) {
-      if (pathValidation.error.type === PathValidationErrorType.DOESNT_EXIST) {
+      if (
+        pathValidation.error.type === PathValidationErrorType.DOES_NOT_EXIST
+      ) {
         return {
           success: false,
           error: {
-            type: RootResolutionErrorType.PROJECT_ROOT_FILE_DOESNT_EXIST,
+            type: RootResolutionErrorType.PROJECT_ROOT_FILE_DOES_NOT_EXIST,
             absoluteFilePath,
           },
         };
@@ -334,7 +336,7 @@ export class ResolverImplementation implements Resolver {
 
     assertHardhatInvariant(
       result.value.remapping !== undefined,
-      "We must have a remapping here, becase we either resolved though a user remapping, or npm",
+      "We must have a remapping here, because we either resolved though a user remapping, or npm",
     );
 
     // If resolving this fake import results in using a user remapping, we
@@ -372,21 +374,21 @@ export class ResolverImplementation implements Resolver {
     // npm package, because otherwise we would have returned an error.
     // We need to do this invariant assertion here, because otherwise TS will
     // complain.
-    let remappingReuslt: ResolvedNpmUserRemapping | undefined;
+    let remappingResult: ResolvedNpmUserRemapping | undefined;
     if (remapping !== undefined) {
       assertHardhatInvariant(
         remapping.type === UserRemappingType.NPM,
         "If we have a user remapping, it must be a npm remapping",
       );
 
-      remappingReuslt = remapping;
+      remappingResult = remapping;
     }
 
     return {
       success: true,
       value: {
         file: resolvedFile,
-        remapping: remappingReuslt,
+        remapping: remappingResult,
       },
     };
   }
@@ -825,11 +827,13 @@ export class ResolverImplementation implements Resolver {
     );
 
     if (pathValidation.success === false) {
-      if (pathValidation.error.type === PathValidationErrorType.DOESNT_EXIST) {
+      if (
+        pathValidation.error.type === PathValidationErrorType.DOES_NOT_EXIST
+      ) {
         return {
           success: false,
           error: {
-            type: ImportResolutionErrorType.IMPORT_DOESNT_EXIST,
+            type: ImportResolutionErrorType.IMPORT_DOES_NOT_EXIST,
             fromFsPath: from.fsPath,
             importPath,
             ...this.#buildResolvedFileReference({
@@ -1052,14 +1056,14 @@ export class ResolverImplementation implements Resolver {
           npmModule,
         };
       }
-      case ImportResolutionErrorType.IMPORT_DOESNT_EXIST: {
+      case ImportResolutionErrorType.IMPORT_DOES_NOT_EXIST: {
         assertHardhatInvariant(
           error.npmPackage !== undefined,
           "We should have a npm package if the import doesn't exist, as we know are doing an npm import",
         );
 
         return {
-          type: RootResolutionErrorType.NPM_ROOT_FILE_DOESNT_EXIST_WITHIN_ITS_PACKAGE,
+          type: RootResolutionErrorType.NPM_ROOT_FILE_DOES_NOT_EXIST_WITHIN_ITS_PACKAGE,
           npmModule,
           userRemapping: error.userRemapping,
           npmPackage: error.npmPackage,
@@ -1075,7 +1079,7 @@ export class ResolverImplementation implements Resolver {
         );
 
         return {
-          type: RootResolutionErrorType.NPM_ROOT_FILE_WITH_INCORRRECT_CASING,
+          type: RootResolutionErrorType.NPM_ROOT_FILE_WITH_INCORRECT_CASING,
           npmModule,
           correctCasing: error.correctCasing,
           userRemapping: error.userRemapping,

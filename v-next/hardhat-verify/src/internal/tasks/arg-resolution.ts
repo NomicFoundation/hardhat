@@ -33,7 +33,7 @@ export async function resolveConstructorArgs(
 
   // TODO: should we check that the imported values are strings?
   // encoding will fail if they are not strings, but we could throw earlier.
-  // TODO2: constructorArgs might not be an string[] when called programatically.
+  // TODO2: constructorArgs might not be an string[] when called programmatically.
   // TODO3: we could split the validation in two parts, one for when the user
   // forgets to export the default value and another for when the user
   // exports a value that is not an string[] and throw better errors.
