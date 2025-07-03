@@ -261,7 +261,7 @@ GLOBAL OPTIONS:
   --build-profile          The build profile to use
   --config                 A Hardhat config file.
   --coverage               Enables code coverage
-  --help                   Shows this message, or a task's help if its name is provided.
+  --help, -h               Shows this message, or a task's help if its name is provided.
   --init                   Initializes a Hardhat project.
   --network                The network to connect to
   --show-stack-traces      Show stack traces (always enabled on CI servers).
