@@ -11,6 +11,7 @@ import type {
   Artifact,
 } from "@ignored/edr-optimism";
 
+import { IncludeTraces } from "@ignored/edr-optimism";
 import { hexStringToBytes } from "@nomicfoundation/hardhat-utils/hex";
 
 function hexStringToBuffer(hexString: string): Buffer {
@@ -26,6 +27,7 @@ export function solidityTestConfigToRunOptions(
 export function solidityTestConfigToSolidityTestRunnerConfigArgs(
   projectRoot: string,
   config: SolidityTestConfig,
+  verbosity: number,
   testPattern?: string,
 ): SolidityTestRunnerConfigArgs {
   const fsPermissions: PathPermission[] | undefined = [
@@ -90,6 +92,13 @@ export function solidityTestConfigToSolidityTestRunnerConfigArgs(
       ? undefined
       : hexStringToBuffer(config.blockCoinbase);
 
+  let includeTraces: IncludeTraces = IncludeTraces.None;
+  if (verbosity >= 4) {
+    includeTraces = IncludeTraces.All;
+  } else if (verbosity >= 3) {
+    includeTraces = IncludeTraces.Failing;
+  }
+
   return {
     projectRoot,
     ...config,
@@ -100,6 +109,7 @@ export function solidityTestConfigToSolidityTestRunnerConfigArgs(
     blockCoinbase,
     rpcStorageCaching,
     testPattern,
+    includeTraces,
   };
 }
 
