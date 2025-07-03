@@ -128,12 +128,26 @@ export class NewTaskDefinitionBuilderImplementation<
     shortName?: string;
     description?: string;
   }): NewTaskDefinitionBuilder<
-    ExtendTaskArguments<NameT, ArgumentType.BOOLEAN, TaskArgumentsT>
+    ExtendTaskArguments<NameT, ArgumentType.FLAG, TaskArgumentsT>
   > {
     return this.addOption({
       ...flagConfig,
-      type: ArgumentType.BOOLEAN,
+      type: ArgumentType.FLAG,
       defaultValue: false,
+    });
+  }
+
+  public addLevel<NameT extends string>(levelConfig: {
+    name: NameT;
+    shortName?: string;
+    description?: string;
+  }): NewTaskDefinitionBuilder<
+    ExtendTaskArguments<NameT, ArgumentType.LEVEL, TaskArgumentsT>
+  > {
+    return this.addOption({
+      ...levelConfig,
+      type: ArgumentType.LEVEL,
+      defaultValue: 0,
     });
   }
 
@@ -320,12 +334,26 @@ export class TaskOverrideDefinitionBuilderImplementation<
     shortName?: string;
     description?: string;
   }): TaskOverrideDefinitionBuilder<
-    ExtendTaskArguments<NameT, ArgumentType.BOOLEAN, TaskArgumentsT>
+    ExtendTaskArguments<NameT, ArgumentType.FLAG, TaskArgumentsT>
   > {
     return this.addOption({
       ...flagConfig,
-      type: ArgumentType.BOOLEAN,
+      type: ArgumentType.FLAG,
       defaultValue: false,
+    });
+  }
+
+  public addLevel<NameT extends string>(levelConfig: {
+    name: string;
+    shortName?: string;
+    description?: string;
+  }): TaskOverrideDefinitionBuilder<
+    ExtendTaskArguments<NameT, ArgumentType.LEVEL, TaskArgumentsT>
+  > {
+    return this.addOption({
+      ...levelConfig,
+      type: ArgumentType.LEVEL,
+      defaultValue: 0,
     });
   }
 

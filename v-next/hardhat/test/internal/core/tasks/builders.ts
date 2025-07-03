@@ -411,7 +411,7 @@ describe("Task builders", () => {
               name: "flag",
               shortName: undefined,
               description: "",
-              type: ArgumentType.BOOLEAN,
+              type: ArgumentType.FLAG,
               defaultValue: false,
             },
           },
@@ -437,7 +437,7 @@ describe("Task builders", () => {
               name: "flag",
               shortName: undefined,
               description: "Flag description",
-              type: ArgumentType.BOOLEAN,
+              type: ArgumentType.FLAG,
               defaultValue: false,
             },
           },
@@ -463,7 +463,33 @@ describe("Task builders", () => {
               name: "flag",
               shortName: "f",
               description: "",
-              type: ArgumentType.BOOLEAN,
+              type: ArgumentType.FLAG,
+              defaultValue: false,
+            },
+          },
+          positionalArguments: [],
+        });
+      });
+
+      it("should add a flag with a short name", () => {
+        const builder = new NewTaskDefinitionBuilderImplementation("task-id");
+        const taskAction = () => {};
+        const taskDefinition = builder
+          .setAction(taskAction)
+          .addFlag({ name: "flag", shortName: "f" })
+          .build();
+
+        assert.deepEqual(taskDefinition, {
+          type: TaskDefinitionType.NEW_TASK,
+          id: ["task-id"],
+          description: "",
+          action: taskAction,
+          options: {
+            flag: {
+              name: "flag",
+              shortName: "f",
+              description: "",
+              type: ArgumentType.FLAG,
               defaultValue: false,
             },
           },
@@ -1279,7 +1305,7 @@ describe("Task builders", () => {
               name: "flag",
               shortName: undefined,
               description: "",
-              type: ArgumentType.BOOLEAN,
+              type: ArgumentType.FLAG,
               defaultValue: false,
             },
           },
@@ -1306,7 +1332,7 @@ describe("Task builders", () => {
               name: "flag",
               shortName: undefined,
               description: "Flag description",
-              type: ArgumentType.BOOLEAN,
+              type: ArgumentType.FLAG,
               defaultValue: false,
             },
           },
@@ -1333,7 +1359,34 @@ describe("Task builders", () => {
               name: "flag",
               shortName: "f",
               description: "",
-              type: ArgumentType.BOOLEAN,
+              type: ArgumentType.FLAG,
+              defaultValue: false,
+            },
+          },
+        });
+      });
+
+      it("should add a flag with a short name", () => {
+        const builder = new TaskOverrideDefinitionBuilderImplementation(
+          "task-id",
+        );
+        const taskAction = () => {};
+        const taskDefinition = builder
+          .setAction(taskAction)
+          .addFlag({ name: "flag", shortName: "f" })
+          .build();
+
+        assert.deepEqual(taskDefinition, {
+          type: TaskDefinitionType.TASK_OVERRIDE,
+          id: ["task-id"],
+          description: undefined,
+          action: taskAction,
+          options: {
+            flag: {
+              name: "flag",
+              shortName: "f",
+              description: "",
+              type: ArgumentType.FLAG,
               defaultValue: false,
             },
           },

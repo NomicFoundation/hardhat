@@ -261,7 +261,7 @@ Section Title:
             .set("anotherOption", {
               name: "anotherOption",
               description: "Another example option",
-              type: ArgumentType.BOOLEAN,
+              type: ArgumentType.FLAG,
             }),
           positionalArguments: [
             {
@@ -295,7 +295,7 @@ Section Title:
             {
               name: "--another-option",
               description: "Another example option",
-              type: ArgumentType.BOOLEAN,
+              type: ArgumentType.FLAG,
             },
           ],
           [
@@ -334,7 +334,7 @@ Section Title:
             .set("anotherOption", {
               name: "anotherOption",
               description: "Another example option",
-              type: ArgumentType.BOOLEAN,
+              type: ArgumentType.FLAG,
             }),
           positionalArguments: [
             {
@@ -368,7 +368,7 @@ Section Title:
             {
               name: "--another-option",
               description: "Another example option",
-              type: ArgumentType.BOOLEAN,
+              type: ArgumentType.FLAG,
             },
           ],
           [

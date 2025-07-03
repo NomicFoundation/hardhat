@@ -36,6 +36,7 @@ import {
   globalOption,
   globalFlag,
   task,
+  globalLevel,
 } from "../../../src/internal/core/config.js";
 import { resetGlobalHardhatRuntimeEnvironment } from "../../../src/internal/global-hre-instance.js";
 import { createHardhatRuntimeEnvironment } from "../../../src/internal/hre-initialization.js";
@@ -344,12 +345,13 @@ For global options help run: hardhat --help`;
 
         const expected = `${chalk.bold("A task that uses arg1")}
 
-Usage: hardhat [GLOBAL OPTIONS] task [--arg-1 <STRING>] [--arg-4] [--] arg2 arg3
+Usage: hardhat [GLOBAL OPTIONS] task [--arg-1 <STRING>] [--arg-4] [--arg-5 <LEVEL>] [--] arg2 arg3
 
 OPTIONS:
 
   --arg-1, -o       (default: <default-value1>)
   --arg-4, -f       (default: false)
+  --arg-5, -l       (default: 0)
 
 POSITIONAL ARGUMENTS:
 
@@ -521,9 +523,16 @@ For global options help run: hardhat --help`;
         description: "",
       });
 
+      const GLOBAL_LEVEL = globalLevel({
+        name: "verbosity",
+        shortName: "v",
+        description: "",
+      });
+
       globalOptionDefinitions = new Map<string, GlobalOptionDefinitionsEntry>([
         ["arg", { pluginId: "1", option: GLOBAL_OPTION }],
         ["flag", { pluginId: "1", option: GLOBAL_FLAG }],
+        ["verbosity", { pluginId: "1", option: GLOBAL_LEVEL }],
       ]);
     });
 
@@ -565,7 +574,7 @@ For global options help run: hardhat --help`;
           });
         });
 
-        it("should parse the bool value after the flag", async function () {
+        it("should not parse the bool value after the flag", async function () {
           const command = `npx hardhat task ${flag} true <value>`;
 
           const cliArguments = command.split(" ").slice(2);
@@ -577,7 +586,7 @@ For global options help run: hardhat --help`;
             usedCliArguments,
           );
 
-          assert.deepEqual(usedCliArguments, [false, true, true, false]);
+          assert.deepEqual(usedCliArguments, [false, true, false, false]);
           assert.deepEqual(globalOptions, {
             flag: true,
           });
@@ -600,6 +609,42 @@ For global options help run: hardhat --help`;
         });
       });
     }
+
+    it("should have a long name level behaviour (value is required)", async function () {
+      const command = "npx hardhat task --verbosity 4";
+
+      const cliArguments = command.split(" ").slice(2);
+      const usedCliArguments = new Array(cliArguments.length).fill(false);
+
+      const globalOptions = await parseGlobalOptions(
+        globalOptionDefinitions,
+        cliArguments,
+        usedCliArguments,
+      );
+
+      assert.deepEqual(usedCliArguments, [false, true, true]);
+      assert.deepEqual(globalOptions, {
+        verbosity: 4,
+      });
+    });
+
+    it("should have a short name level behaviour (grouped repetition is allowed)", async function () {
+      const command = "npx hardhat task -vvvv";
+
+      const cliArguments = command.split(" ").slice(2);
+      const usedCliArguments = new Array(cliArguments.length).fill(false);
+
+      const globalOptions = await parseGlobalOptions(
+        globalOptionDefinitions,
+        cliArguments,
+        usedCliArguments,
+      );
+
+      assert.deepEqual(usedCliArguments, [false, true]);
+      assert.deepEqual(globalOptions, {
+        verbosity: 4,
+      });
+    });
   });
 
   describe("parseTaskAndArguments", function () {
@@ -701,6 +746,10 @@ For global options help run: hardhat --help`;
             name: "camelCaseArg",
             defaultValue: "default",
           }),
+          task(["task4"]).addLevel({
+            name: "verbosity",
+            shortName: "v",
+          }),
         ];
 
         subtasksBuilders = [
@@ -767,7 +816,7 @@ For global options help run: hardhat --help`;
             });
           });
 
-          it("should get the task and its argument as type boolean with value set to true (flag behavior)", function () {
+          it("should get the task and its argument as type flag with value set to true (flag behavior)", function () {
             const command = `npx hardhat task1 ${flag}`;
 
             const cliArguments = command.split(" ").slice(2);
@@ -788,28 +837,22 @@ For global options help run: hardhat --help`;
             assert.deepEqual(res.taskArguments, { flag: true });
           });
 
-          it("should get the task and its argument as type boolean - even though it has a flag behavior, boolean values are still consumed", function () {
+          it("should not get the task and its argument as type flag - flag values are not consumed", function () {
             const command = `npx hardhat task1 ${flag} false`;
 
             const cliArguments = command.split(" ").slice(2);
             const usedCliArguments = new Array(cliArguments.length).fill(false);
 
-            const res = parseTaskAndArguments(
-              cliArguments,
-              usedCliArguments,
-              hre,
+            assertThrowsHardhatError(
+              () => parseTaskAndArguments(cliArguments, usedCliArguments, hre),
+              HardhatError.ERRORS.CORE.ARGUMENTS.UNUSED_ARGUMENT,
+              {
+                value: "false",
+              },
             );
-
-            assert.ok(!Array.isArray(res), "Result should be an array");
-            assert.equal(res.task.id, tasks[1].id);
-            assert.deepEqual(
-              usedCliArguments,
-              new Array(cliArguments.length).fill(true),
-            );
-            assert.deepEqual(res.taskArguments, { flag: false });
           });
 
-          it("should get the required bool value (the bool value must be specified, not a flag behavior because default is true)", function () {
+          it("should get the required bool value (the bool value must be specified, not a flag behavior)", function () {
             const command = `npx hardhat task2 ${arg} false`;
 
             const cliArguments = command.split(" ").slice(2);
@@ -917,12 +960,76 @@ For global options help run: hardhat --help`;
               HardhatError.ERRORS.CORE.ARGUMENTS.CANNOT_REPEAT_OPTIONS,
               {
                 option: flag,
-                type: ArgumentType.BOOLEAN,
+                type: ArgumentType.FLAG,
               },
             );
           });
         });
       }
+
+      it("should get the task and its level argument when provided by long name", function () {
+        const command = "npx hardhat task4 --verbosity 4";
+
+        const cliArguments = command.split(" ").slice(2);
+        const usedCliArguments = new Array(cliArguments.length).fill(false);
+
+        const res = parseTaskAndArguments(cliArguments, usedCliArguments, hre);
+
+        assert.ok(!Array.isArray(res), "Result should be an array");
+        assert.equal(res.task.id, tasks[4].id);
+        assert.deepEqual(
+          usedCliArguments,
+          new Array(cliArguments.length).fill(true),
+        );
+        assert.deepEqual(res.taskArguments, { verbosity: 4 });
+      });
+
+      it("should throw when level is provided by long name and not followed by a value", function () {
+        const command = "npx hardhat task4 --verbosity";
+
+        const cliArguments = command.split(" ").slice(2);
+        const usedCliArguments = new Array(cliArguments.length).fill(false);
+
+        assertThrowsHardhatError(
+          () => parseTaskAndArguments(cliArguments, usedCliArguments, hre),
+          HardhatError.ERRORS.CORE.ARGUMENTS.MISSING_VALUE_FOR_ARGUMENT,
+          {
+            argument: "--verbosity",
+          },
+        );
+      });
+
+      it("should get the task and its level argument when provided by short name", function () {
+        const command = "npx hardhat task4 -vvvv";
+
+        const cliArguments = command.split(" ").slice(2);
+        const usedCliArguments = new Array(cliArguments.length).fill(false);
+
+        const res = parseTaskAndArguments(cliArguments, usedCliArguments, hre);
+
+        assert.ok(!Array.isArray(res), "Result should be an array");
+        assert.equal(res.task.id, tasks[4].id);
+        assert.deepEqual(
+          usedCliArguments,
+          new Array(cliArguments.length).fill(true),
+        );
+        assert.deepEqual(res.taskArguments, { verbosity: 4 });
+      });
+
+      it("should throw when level is provided by short name and followed by a value", function () {
+        const command = "npx hardhat task4 -v 4";
+
+        const cliArguments = command.split(" ").slice(2);
+        const usedCliArguments = new Array(cliArguments.length).fill(false);
+
+        assertThrowsHardhatError(
+          () => parseTaskAndArguments(cliArguments, usedCliArguments, hre),
+          HardhatError.ERRORS.CORE.ARGUMENTS.UNUSED_ARGUMENT,
+          {
+            value: "4",
+          },
+        );
+      });
 
       it("should convert on the fly the camelCase argument to kebab-case", function () {
         const command = `npx hardhat task3 --camel-case-arg <value>`;
@@ -980,7 +1087,7 @@ For global options help run: hardhat --help`;
           HardhatError.ERRORS.CORE.ARGUMENTS.CANNOT_REPEAT_OPTIONS,
           {
             option: "-ff",
-            type: ArgumentType.BOOLEAN,
+            type: ArgumentType.FLAG,
           },
         );
       });
