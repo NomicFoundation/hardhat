@@ -11,6 +11,7 @@ export const GLOBAL_NAME_PADDING = 6;
 
 interface ArgumentDescriptor {
   name: string;
+  shortName?: string;
   description: string;
   type?: ArgumentType;
   defaultValue?: ArgumentTypeToValueType<ArgumentType>;
@@ -22,6 +23,7 @@ export function parseGlobalOptions(
 ): ArgumentDescriptor[] {
   return [...globalOptionDefinitions].map(([, { option }]) => ({
     name: toCommandLineOption(option.name),
+    shortName: toShortCommandLineOption(option.shortName),
     description: option.description,
   }));
 }
@@ -69,6 +71,7 @@ export function parseOptions(task: Task): {
   for (const [optionName, option] of task.options) {
     options.push({
       name: toCommandLineOption(optionName),
+      shortName: toShortCommandLineOption(option.shortName),
       description: option.description,
       type: option.type,
       ...(option.defaultValue !== undefined && {
@@ -97,8 +100,20 @@ export function toCommandLineOption(optionName: string): string {
   return `--${camelToKebabCase(optionName)}`;
 }
 
-export function getLongestNameLength(tasks: Array<{ name: string }>): number {
-  return tasks.reduce((acc, { name }) => Math.max(acc, name.length), 0);
+export function toShortCommandLineOption(
+  optionShortName?: string,
+): string | undefined {
+  return optionShortName !== undefined ? `-${optionShortName}` : undefined;
+}
+
+export function getLongestNameLength(
+  tasks: Array<{ name: string; shortName?: string }>,
+): number {
+  return tasks.reduce(
+    (acc, { name, shortName }) =>
+      Math.max(acc, getNameString(name, shortName).length),
+    0,
+  );
 }
 
 export function getSection(
@@ -108,11 +123,16 @@ export function getSection(
 ): string {
   return `\n${title}:\n\n${items
     .sort((a, b) => a.name.localeCompare(b.name))
-    .map(({ name, description, defaultValue }) => {
+    .map(({ name, shortName, description, defaultValue }) => {
+      const nameStr = getNameString(name, shortName);
       const defaultValueStr = getDefaultValueString(defaultValue);
-      return `  ${name.padEnd(namePadding)}${description}${defaultValueStr}`.trimEnd();
+      return `  ${nameStr.padEnd(namePadding)}${description}${defaultValueStr}`.trimEnd();
     })
     .join("\n")}\n`;
+}
+
+function getNameString(name: string, shortName?: string): string {
+  return shortName !== undefined ? [name, shortName].join(", ") : name;
 }
 
 function getDefaultValueString(
