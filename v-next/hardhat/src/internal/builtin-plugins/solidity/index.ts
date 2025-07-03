@@ -22,6 +22,10 @@ const hardhatPlugin: HardhatPlugin = {
         name: "quiet",
         description: "Makes the compilation process less verbose",
       })
+      .addFlag({
+        name: "isolated",
+        description: "Use isolated mode, which prioritizes reproducibility",
+      })
       .addOption({
         name: "defaultBuildProfile",
         description: "The default build profile to use",
