@@ -14,5 +14,5 @@ export interface RequestArguments {
  * @beta
  */
 export interface EIP1193Provider {
-  request(args: RequestArguments): Promise<unknown>;
+  request(args: RequestArguments): Promise<any>;
 }

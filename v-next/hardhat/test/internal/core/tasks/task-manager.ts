@@ -442,6 +442,51 @@ describe("TaskManagerImplementation", () => {
       );
     });
 
+    it("should throw if there's a global option with the same short name as a task option", async () => {
+      await assertRejectsWithHardhatError(
+        HardhatRuntimeEnvironmentImplementation.create(
+          {
+            plugins: [
+              {
+                id: "plugin1",
+                tasks: [
+                  new NewTaskDefinitionBuilderImplementation("task1")
+                    .addOption({
+                      name: "arg1",
+                      shortName: "a",
+                      defaultValue: "default",
+                    })
+                    .setAction(() => {})
+                    .build(),
+                ],
+              },
+              {
+                id: "plugin2",
+                globalOptions: [
+                  globalOption({
+                    name: "arg1",
+                    shortName: "a",
+                    description: "",
+                    type: ArgumentType.STRING_WITHOUT_DEFAULT,
+                    defaultValue: undefined,
+                  }),
+                ],
+              },
+            ],
+          },
+          {},
+        ),
+
+        HardhatError.ERRORS.CORE.TASK_DEFINITIONS.TASK_OPTION_ALREADY_DEFINED,
+        {
+          actorFragment: "Plugin plugin1 is",
+          task: "task1",
+          option: "arg1",
+          globalOptionPluginId: "plugin2",
+        },
+      );
+    });
+
     it("should throw if there's a global option with the same name as a task positional argument", async () => {
       await assertRejectsWithHardhatError(
         HardhatRuntimeEnvironmentImplementation.create(

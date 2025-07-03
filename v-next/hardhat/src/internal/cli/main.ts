@@ -508,7 +508,7 @@ function parseOptions(
       const name = kebabToCamelCase(arg.substring(2));
       optionDefinition = optionDefinitions.get(name);
     } else if (providedByShortName) {
-      const shortName = arg.substring(1, 2);
+      const shortName = arg[1];
 
       // Check if the short name is valid
       if (Array.from(arg.substring(1)).some((c) => c !== shortName)) {

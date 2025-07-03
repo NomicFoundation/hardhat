@@ -349,9 +349,9 @@ Usage: hardhat [GLOBAL OPTIONS] task [--arg-1 <STRING>] [--arg-4] [--arg-5 <LEVE
 
 OPTIONS:
 
-  --arg-1       (default: <default-value1>)
-  --arg-4       (default: false)
-  --arg-5       (default: 0)
+  --arg-1, -o       (default: <default-value1>)
+  --arg-4, -f       (default: false)
+  --arg-5, -l       (default: 0)
 
 POSITIONAL ARGUMENTS:
 
