@@ -19,7 +19,7 @@ export interface BuildOptions {
   buildProfile?: string;
 
   /**
-   * If `true`, this option allows the build process to merge compilation jobs
+   * If `false`, this option allows the build process to merge compilation jobs
    * if they have the same compiler version and settings.
    *
    * This is an useful optimization to be used when compiling a large number of
@@ -27,7 +27,7 @@ export interface BuildOptions {
    * together, block explorer verification processes trickier and/or with
    * unexpected results.
    */
-  mergeCompilationJobs?: boolean;
+  isolated?: boolean;
 
   /**
    * The number of concurrent compilation jobs to run.
@@ -165,6 +165,18 @@ export interface FailedFileBuildResult {
   errors: CompilerOutputError[];
 }
 
+export interface GetCompilationJobsResult {
+  compilationJobsPerFile: Map<string, CompilationJob>;
+  indexedIndividualJobs: Map<string, CompilationJob>;
+}
+
+export interface EmitArtifactsResult {
+  artifactsPerFile: ReadonlyMap<string, string[]>;
+  buildInfoPath: string;
+  typeFilePaths: Map<string, string>;
+  buildInfoOutputPath: string;
+}
+
 /**
  * The Solidity build system.
  */
@@ -209,7 +221,7 @@ export interface SolidityBuildSystem {
   getCompilationJobs(
     rootFilePaths: string[],
     options?: GetCompilationJobsOptions,
-  ): Promise<CompilationJobCreationError | Map<string, CompilationJob>>;
+  ): Promise<CompilationJobCreationError | GetCompilationJobsResult>;
 
   /**
    * Returns the output of running the given compilation job.
@@ -253,7 +265,7 @@ export interface SolidityBuildSystem {
   emitArtifacts(
     compilationJob: CompilationJob,
     compilerOutput: CompilerOutput,
-  ): Promise<ReadonlyMap<string, string[]>>;
+  ): Promise<EmitArtifactsResult>;
 
   /**
    * Analyzes the project and cleans up the artifacts by:
