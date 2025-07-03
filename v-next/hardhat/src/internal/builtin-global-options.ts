@@ -1,6 +1,6 @@
 import type { GlobalOptionDefinitions } from "../types/global-options.js";
 
-import { globalFlag, globalOption } from "../config.js";
+import { globalFlag, globalLevel, globalOption } from "../config.js";
 import { ArgumentType } from "../types/arguments.js";
 
 export const BUILTIN_GLOBAL_OPTIONS_DEFINITIONS: GlobalOptionDefinitions =
@@ -55,6 +55,17 @@ export const BUILTIN_GLOBAL_OPTIONS_DEFINITIONS: GlobalOptionDefinitions =
         option: globalFlag({
           name: "verbose",
           description: "Enables Hardhat verbose logging.",
+        }),
+      },
+    ],
+    [
+      "verbosity",
+      {
+        pluginId: "builtin",
+        option: globalLevel({
+          name: "verbosity",
+          shortName: "v",
+          description: "Sets the verbosity level.",
         }),
       },
     ],

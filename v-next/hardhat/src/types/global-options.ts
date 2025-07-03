@@ -21,6 +21,8 @@ export interface GlobalOptions {
   help: boolean;
   init: boolean;
   showStackTraces: boolean;
+  verbose: boolean;
+  verbosity: number;
   version: boolean;
 }
 
