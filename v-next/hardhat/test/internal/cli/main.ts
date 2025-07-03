@@ -344,7 +344,17 @@ For global options help run: hardhat --help`;
 
         const expected = `${chalk.bold("A task that uses arg1")}
 
-Usage: hardhat [GLOBAL OPTIONS] task
+Usage: hardhat [GLOBAL OPTIONS] task [--arg-1 <STRING>] [--arg-4] [--] arg2 arg3
+
+OPTIONS:
+
+  --arg-1, -o       (default: <default-value1>)
+  --arg-4, -f       (default: false)
+
+POSITIONAL ARGUMENTS:
+
+  arg2
+  arg3
 
 For global options help run: hardhat --help`;
 
@@ -481,11 +491,25 @@ For global options help run: hardhat --help`;
      * similar to task options. Tests for "parseOptions" are primarily located
      * in the task option section. */
 
+    const testCases = {
+      "with long names": {
+        arg: "--arg",
+        flag: "--flag",
+        taskFlag: "--taskFlag",
+      },
+      "with short names": {
+        arg: "-a",
+        flag: "-f",
+        taskFlag: "-t",
+      },
+    };
+
     let globalOptionDefinitions: GlobalOptionDefinitions;
 
     before(function () {
       const GLOBAL_OPTION = globalOption({
         name: "arg",
+        shortName: "a",
         type: ArgumentType.STRING,
         defaultValue: "default",
         description: "",
@@ -493,6 +517,7 @@ For global options help run: hardhat --help`;
 
       const GLOBAL_FLAG = globalFlag({
         name: "flag",
+        shortName: "f",
         description: "",
       });
 
@@ -502,75 +527,79 @@ For global options help run: hardhat --help`;
       ]);
     });
 
-    it("should get the global option with the values passed in the cli", async function () {
-      const command = "npx hardhat task --arg <value1> <value2> <value3>";
+    for (const [name, { arg, flag, taskFlag }] of Object.entries(testCases)) {
+      describe(name, () => {
+        it("should get the global option with the values passed in the cli", async function () {
+          const command = `npx hardhat task ${arg} <value1> <value2> <value3>`;
 
-      const cliArguments = command.split(" ").slice(2);
-      const usedCliArguments = new Array(cliArguments.length).fill(false);
+          const cliArguments = command.split(" ").slice(2);
+          const usedCliArguments = new Array(cliArguments.length).fill(false);
 
-      const globalOptions = await parseGlobalOptions(
-        globalOptionDefinitions,
-        cliArguments,
-        usedCliArguments,
-      );
+          const globalOptions = await parseGlobalOptions(
+            globalOptionDefinitions,
+            cliArguments,
+            usedCliArguments,
+          );
 
-      assert.deepEqual(usedCliArguments, [false, true, true, false, false]);
-      assert.deepEqual(globalOptions, {
-        arg: "<value1>",
+          assert.deepEqual(usedCliArguments, [false, true, true, false, false]);
+          assert.deepEqual(globalOptions, {
+            arg: "<value1>",
+          });
+        });
+
+        it("should have a flag behavior (no bool value required after)", async function () {
+          const command = `npx hardhat task ${flag} <value>`;
+
+          const cliArguments = command.split(" ").slice(2);
+          const usedCliArguments = new Array(cliArguments.length).fill(false);
+
+          const globalOptions = await parseGlobalOptions(
+            globalOptionDefinitions,
+            cliArguments,
+            usedCliArguments,
+          );
+
+          assert.deepEqual(usedCliArguments, [false, true, false]);
+          assert.deepEqual(globalOptions, {
+            flag: true,
+          });
+        });
+
+        it("should parse the bool value after the flag", async function () {
+          const command = `npx hardhat task ${flag} true <value>`;
+
+          const cliArguments = command.split(" ").slice(2);
+          const usedCliArguments = new Array(cliArguments.length).fill(false);
+
+          const globalOptions = await parseGlobalOptions(
+            globalOptionDefinitions,
+            cliArguments,
+            usedCliArguments,
+          );
+
+          assert.deepEqual(usedCliArguments, [false, true, true, false]);
+          assert.deepEqual(globalOptions, {
+            flag: true,
+          });
+        });
+
+        it("should not fail when a global option is not recognized (it might be a task option)", async function () {
+          const command = `npx hardhat task ${taskFlag} <value>`;
+
+          const cliArguments = command.split(" ").slice(2);
+          const usedCliArguments = new Array(cliArguments.length).fill(false);
+
+          const globalOptions = await parseGlobalOptions(
+            globalOptionDefinitions,
+            cliArguments,
+            usedCliArguments,
+          );
+
+          assert.deepEqual(usedCliArguments, [false, false, false]);
+          assert.deepEqual(globalOptions, {});
+        });
       });
-    });
-
-    it("should have a flag behavior (no bool value required after)", async function () {
-      const command = "npx hardhat task --flag <value>";
-
-      const cliArguments = command.split(" ").slice(2);
-      const usedCliArguments = new Array(cliArguments.length).fill(false);
-
-      const globalOptions = await parseGlobalOptions(
-        globalOptionDefinitions,
-        cliArguments,
-        usedCliArguments,
-      );
-
-      assert.deepEqual(usedCliArguments, [false, true, false]);
-      assert.deepEqual(globalOptions, {
-        flag: true,
-      });
-    });
-
-    it("should parse the bool value after the flag", async function () {
-      const command = "npx hardhat task --flag true <value>";
-
-      const cliArguments = command.split(" ").slice(2);
-      const usedCliArguments = new Array(cliArguments.length).fill(false);
-
-      const globalOptions = await parseGlobalOptions(
-        globalOptionDefinitions,
-        cliArguments,
-        usedCliArguments,
-      );
-
-      assert.deepEqual(usedCliArguments, [false, true, true, false]);
-      assert.deepEqual(globalOptions, {
-        flag: true,
-      });
-    });
-
-    it("should not fail when a global option is not recognized (it might be a task option)", async function () {
-      const command = "npx hardhat task --taskFlag <value>";
-
-      const cliArguments = command.split(" ").slice(2);
-      const usedCliArguments = new Array(cliArguments.length).fill(false);
-
-      const globalOptions = await parseGlobalOptions(
-        globalOptionDefinitions,
-        cliArguments,
-        usedCliArguments,
-      );
-
-      assert.deepEqual(usedCliArguments, [false, false, false]);
-      assert.deepEqual(globalOptions, {});
-    });
+    }
   });
 
   describe("parseTaskAndArguments", function () {
@@ -638,19 +667,33 @@ For global options help run: hardhat --help`;
     });
 
     describe("task and subtask with options", function () {
+      const testCases = {
+        "with long names": {
+          arg: "--arg",
+          flag: "--flag",
+          undefinedArg: "--undefinedArg",
+        },
+        "with short names": {
+          arg: "-a",
+          flag: "-f",
+          undefinedArg: "-u",
+        },
+      };
+
       before(async function () {
         tasksBuilders = [
           task(["task0"]).addOption({
             name: "arg",
+            shortName: "a",
             defaultValue: "default",
           }),
-          task(["task1"]).addOption({
+          task(["task1"]).addFlag({
             name: "flag",
-            type: ArgumentType.BOOLEAN,
-            defaultValue: false, // flag behavior
+            shortName: "f",
           }),
           task(["task2"]).addOption({
             name: "arg",
+            shortName: "a",
             type: ArgumentType.BOOLEAN,
             defaultValue: true,
           }),
@@ -663,6 +706,7 @@ For global options help run: hardhat --help`;
         subtasksBuilders = [
           task(["task0", "subtask0"]).addOption({
             name: "arg",
+            shortName: "a",
             defaultValue: "default",
           }),
         ];
@@ -673,97 +717,215 @@ For global options help run: hardhat --help`;
         ));
       });
 
-      it("should get the task and its argument", function () {
-        const command = "npx hardhat task0 --arg <argValue>";
+      for (const [name, { arg, flag, undefinedArg }] of Object.entries(
+        testCases,
+      )) {
+        describe(name, () => {
+          it("should get the task and its argument", function () {
+            const command = `npx hardhat task0 ${arg} <argValue>`;
 
-        const cliArguments = command.split(" ").slice(2);
-        const usedCliArguments = new Array(cliArguments.length).fill(false);
+            const cliArguments = command.split(" ").slice(2);
+            const usedCliArguments = new Array(cliArguments.length).fill(false);
 
-        const res = parseTaskAndArguments(cliArguments, usedCliArguments, hre);
+            const res = parseTaskAndArguments(
+              cliArguments,
+              usedCliArguments,
+              hre,
+            );
 
-        assert.ok(!Array.isArray(res), "Result should be an array");
-        assert.equal(res.task.id, tasks[0].id);
-        assert.deepEqual(
-          usedCliArguments,
-          new Array(cliArguments.length).fill(true),
-        );
-        assert.deepEqual(res.taskArguments, {
-          arg: "<argValue>",
+            assert.ok(!Array.isArray(res), "Result should be an array");
+            assert.equal(res.task.id, tasks[0].id);
+            assert.deepEqual(
+              usedCliArguments,
+              new Array(cliArguments.length).fill(true),
+            );
+            assert.deepEqual(res.taskArguments, {
+              arg: "<argValue>",
+            });
+          });
+
+          it("should get the subtask and its argument", function () {
+            const command = `npx hardhat task0 subtask0 ${arg} <argValue>`;
+
+            const cliArguments = command.split(" ").slice(2);
+            const usedCliArguments = new Array(cliArguments.length).fill(false);
+
+            const res = parseTaskAndArguments(
+              cliArguments,
+              usedCliArguments,
+              hre,
+            );
+
+            assert.ok(!Array.isArray(res), "Result should be an array");
+            assert.equal(res.task.id, subtasks[0].id);
+            assert.deepEqual(
+              usedCliArguments,
+              new Array(cliArguments.length).fill(true),
+            );
+            assert.deepEqual(res.taskArguments, {
+              arg: "<argValue>",
+            });
+          });
+
+          it("should get the task and its argument as type boolean with value set to true (flag behavior)", function () {
+            const command = `npx hardhat task1 ${flag}`;
+
+            const cliArguments = command.split(" ").slice(2);
+            const usedCliArguments = new Array(cliArguments.length).fill(false);
+
+            const res = parseTaskAndArguments(
+              cliArguments,
+              usedCliArguments,
+              hre,
+            );
+
+            assert.ok(!Array.isArray(res), "Result should be an array");
+            assert.equal(res.task.id, tasks[1].id);
+            assert.deepEqual(
+              usedCliArguments,
+              new Array(cliArguments.length).fill(true),
+            );
+            assert.deepEqual(res.taskArguments, { flag: true });
+          });
+
+          it("should get the task and its argument as type boolean - even though it has a flag behavior, boolean values are still consumed", function () {
+            const command = `npx hardhat task1 ${flag} false`;
+
+            const cliArguments = command.split(" ").slice(2);
+            const usedCliArguments = new Array(cliArguments.length).fill(false);
+
+            const res = parseTaskAndArguments(
+              cliArguments,
+              usedCliArguments,
+              hre,
+            );
+
+            assert.ok(!Array.isArray(res), "Result should be an array");
+            assert.equal(res.task.id, tasks[1].id);
+            assert.deepEqual(
+              usedCliArguments,
+              new Array(cliArguments.length).fill(true),
+            );
+            assert.deepEqual(res.taskArguments, { flag: false });
+          });
+
+          it("should get the required bool value (the bool value must be specified, not a flag behavior because default is true)", function () {
+            const command = `npx hardhat task2 ${arg} false`;
+
+            const cliArguments = command.split(" ").slice(2);
+            const usedCliArguments = new Array(cliArguments.length).fill(false);
+
+            const res = parseTaskAndArguments(
+              cliArguments,
+              usedCliArguments,
+              hre,
+            );
+
+            assert.ok(!Array.isArray(res), "Result should be an array");
+            assert.equal(res.task.id, tasks[2].id);
+            assert.deepEqual(
+              usedCliArguments,
+              new Array(cliArguments.length).fill(true),
+            );
+            assert.deepEqual(res.taskArguments, { arg: false });
+          });
+
+          it("should throw because the argument is not defined", function () {
+            const command = `npx hardhat task0 ${undefinedArg} <value>`;
+
+            const cliArguments = command.split(" ").slice(2);
+            const usedCliArguments = new Array(cliArguments.length).fill(false);
+
+            assertThrowsHardhatError(
+              () => parseTaskAndArguments(cliArguments, usedCliArguments, hre),
+              HardhatError.ERRORS.CORE.ARGUMENTS.UNRECOGNIZED_OPTION,
+              {
+                option: undefinedArg,
+              },
+            );
+          });
+
+          it("should throw because the task argument is declared before the task name", function () {
+            const command = `npx hardhat ${arg} <argValue> task0`;
+
+            const cliArguments = command.split(" ").slice(2);
+            const usedCliArguments = new Array(cliArguments.length).fill(false);
+
+            assertThrowsHardhatError(
+              () => parseTaskAndArguments(cliArguments, usedCliArguments, hre),
+              HardhatError.ERRORS.CORE.ARGUMENTS.UNRECOGNIZED_OPTION,
+              {
+                option: arg,
+              },
+            );
+          });
+
+          it("should throw because the task argument is required but no value is associated to it", function () {
+            const command = `npx hardhat task0 ${arg}`;
+
+            const cliArguments = command.split(" ").slice(2);
+            const usedCliArguments = new Array(cliArguments.length).fill(false);
+
+            assertThrowsHardhatError(
+              () => parseTaskAndArguments(cliArguments, usedCliArguments, hre),
+              HardhatError.ERRORS.CORE.ARGUMENTS.MISSING_VALUE_FOR_ARGUMENT,
+              {
+                argument: arg,
+              },
+            );
+          });
+
+          it("should throw because the task argument is required but there is no value right after it to consume", function () {
+            const command = `npx hardhat task0 ${arg} --global-flag <value>`;
+
+            const cliArguments = command.split(" ").slice(2);
+            const usedCliArguments = [false, false, true, false];
+
+            assertThrowsHardhatError(
+              () => parseTaskAndArguments(cliArguments, usedCliArguments, hre),
+              HardhatError.ERRORS.CORE.ARGUMENTS.MISSING_VALUE_FOR_ARGUMENT,
+              {
+                argument: arg,
+              },
+            );
+          });
+
+          it("should throw because the task argument is repeated", () => {
+            const command = `npx hardhat task0 ${arg} <value1> ${arg} <value2>`;
+
+            const cliArguments = command.split(" ").slice(2);
+            const usedCliArguments = new Array(cliArguments.length).fill(false);
+
+            assertThrowsHardhatError(
+              () => parseTaskAndArguments(cliArguments, usedCliArguments, hre),
+              HardhatError.ERRORS.CORE.ARGUMENTS.CANNOT_REPEAT_OPTIONS,
+              {
+                option: arg,
+                type: ArgumentType.STRING,
+              },
+            );
+          });
+
+          it("should throw because the task flag is repeated", () => {
+            const command = `npx hardhat task1 ${flag} ${flag}`;
+
+            const cliArguments = command.split(" ").slice(2);
+            const usedCliArguments = new Array(cliArguments.length).fill(false);
+
+            assertThrowsHardhatError(
+              () => parseTaskAndArguments(cliArguments, usedCliArguments, hre),
+              HardhatError.ERRORS.CORE.ARGUMENTS.CANNOT_REPEAT_OPTIONS,
+              {
+                option: flag,
+                type: ArgumentType.BOOLEAN,
+              },
+            );
+          });
         });
-      });
-
-      it("should get the subtask and its argument", function () {
-        const command = "npx hardhat task0 subtask0 --arg <argValue>";
-
-        const cliArguments = command.split(" ").slice(2);
-        const usedCliArguments = new Array(cliArguments.length).fill(false);
-
-        const res = parseTaskAndArguments(cliArguments, usedCliArguments, hre);
-
-        assert.ok(!Array.isArray(res), "Result should be an array");
-        assert.equal(res.task.id, subtasks[0].id);
-        assert.deepEqual(
-          usedCliArguments,
-          new Array(cliArguments.length).fill(true),
-        );
-        assert.deepEqual(res.taskArguments, {
-          arg: "<argValue>",
-        });
-      });
-
-      it("should get the task and its argument as type boolean with value set to true (flag behavior)", function () {
-        const command = "npx hardhat task1 --flag";
-
-        const cliArguments = command.split(" ").slice(2);
-        const usedCliArguments = new Array(cliArguments.length).fill(false);
-
-        const res = parseTaskAndArguments(cliArguments, usedCliArguments, hre);
-
-        assert.ok(!Array.isArray(res), "Result should be an array");
-        assert.equal(res.task.id, tasks[1].id);
-        assert.deepEqual(
-          usedCliArguments,
-          new Array(cliArguments.length).fill(true),
-        );
-        assert.deepEqual(res.taskArguments, { flag: true });
-      });
-
-      it("should get the task and its argument as type boolean - even though it has a flag behavior, boolean values are still consumed", function () {
-        const command = "npx hardhat task1 --flag false";
-
-        const cliArguments = command.split(" ").slice(2);
-        const usedCliArguments = new Array(cliArguments.length).fill(false);
-
-        const res = parseTaskAndArguments(cliArguments, usedCliArguments, hre);
-
-        assert.ok(!Array.isArray(res), "Result should be an array");
-        assert.equal(res.task.id, tasks[1].id);
-        assert.deepEqual(
-          usedCliArguments,
-          new Array(cliArguments.length).fill(true),
-        );
-        assert.deepEqual(res.taskArguments, { flag: false });
-      });
-
-      it("should get the required bool value (the bool value must be specified, not a flag behavior because default is true)", function () {
-        const command = "npx hardhat task2 --arg false";
-
-        const cliArguments = command.split(" ").slice(2);
-        const usedCliArguments = new Array(cliArguments.length).fill(false);
-
-        const res = parseTaskAndArguments(cliArguments, usedCliArguments, hre);
-
-        assert.ok(!Array.isArray(res), "Result should be an array");
-        assert.equal(res.task.id, tasks[2].id);
-        assert.deepEqual(
-          usedCliArguments,
-          new Array(cliArguments.length).fill(true),
-        );
-        assert.deepEqual(res.taskArguments, { arg: false });
-      });
+      }
 
       it("should convert on the fly the camelCase argument to kebab-case", function () {
-        const command = "npx hardhat task3 --camel-case-arg <value>";
+        const command = `npx hardhat task3 --camel-case-arg <value>`;
 
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = new Array(cliArguments.length).fill(false);
@@ -792,62 +954,33 @@ For global options help run: hardhat --help`;
         assert.deepEqual(res, ["undefined-task"]);
       });
 
-      it("should throw because the argument is not defined", function () {
-        const command = "npx hardhat task0 --undefinedArg <value>";
+      it("should throw when short arguments are grouped", () => {
+        const command = "npx hardhat task0 -abc";
 
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = new Array(cliArguments.length).fill(false);
 
         assertThrowsHardhatError(
           () => parseTaskAndArguments(cliArguments, usedCliArguments, hre),
-          HardhatError.ERRORS.CORE.ARGUMENTS.UNRECOGNIZED_OPTION,
+          HardhatError.ERRORS.CORE.ARGUMENTS.CANNOT_GROUP_OPTIONS,
           {
-            option: "--undefinedArg",
+            option: "-abc",
           },
         );
       });
 
-      it("should throw because the task argument is declared before the task name", function () {
-        const command = "npx hardhat --arg <argValue> task0";
+      it("should throw when short arguments are grouped and repeated", () => {
+        const command = "npx hardhat task1 -ff";
 
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = new Array(cliArguments.length).fill(false);
 
         assertThrowsHardhatError(
           () => parseTaskAndArguments(cliArguments, usedCliArguments, hre),
-          HardhatError.ERRORS.CORE.ARGUMENTS.UNRECOGNIZED_OPTION,
+          HardhatError.ERRORS.CORE.ARGUMENTS.CANNOT_REPEAT_OPTIONS,
           {
-            option: "--arg",
-          },
-        );
-      });
-
-      it("should throw because the task argument is required but no value is associated to it", function () {
-        const command = "npx hardhat task0 --arg";
-
-        const cliArguments = command.split(" ").slice(2);
-        const usedCliArguments = new Array(cliArguments.length).fill(false);
-
-        assertThrowsHardhatError(
-          () => parseTaskAndArguments(cliArguments, usedCliArguments, hre),
-          HardhatError.ERRORS.CORE.ARGUMENTS.MISSING_VALUE_FOR_ARGUMENT,
-          {
-            argument: "--arg",
-          },
-        );
-      });
-
-      it("should throw because the task argument is required but there is no value right after it to consume", function () {
-        const command = "npx hardhat task0 --arg --global-flag <value>";
-
-        const cliArguments = command.split(" ").slice(2);
-        const usedCliArguments = [false, false, true, false];
-
-        assertThrowsHardhatError(
-          () => parseTaskAndArguments(cliArguments, usedCliArguments, hre),
-          HardhatError.ERRORS.CORE.ARGUMENTS.MISSING_VALUE_FOR_ARGUMENT,
-          {
-            argument: "--arg",
+            option: "-ff",
+            type: ArgumentType.BOOLEAN,
           },
         );
       });
@@ -1442,6 +1575,16 @@ For global options help run: hardhat --help`;
         "variadic1",
         "variadic2",
       ]);
+    });
+
+    it("should not parse short arguments with =", () => {
+      const command = "npx hardhat task -a=value1";
+
+      const cliArguments = command.split(" ").slice(2);
+
+      const parsedArgs = parseRawArguments(cliArguments);
+
+      assert.deepEqual(parsedArgs, ["task", "-a=value1"]);
     });
   });
 });

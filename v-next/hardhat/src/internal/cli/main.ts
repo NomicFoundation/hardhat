@@ -372,12 +372,12 @@ function getTaskFromCliArguments(
 
     const arg = cliArguments[i];
 
-    if (arg.startsWith("--")) {
+    if (arg.startsWith("-")) {
       /* A standalone '--' is ok because it is used to separate CLI tool arguments
        * from task arguments, ensuring the tool passes subsequent options directly
        * to the task. Everything after "--" should be considered as a positional
        * argument. */
-      if (arg.length === 2 || task !== undefined) {
+      if (arg === "--" || task !== undefined) {
         break;
       }
 
@@ -474,6 +474,16 @@ function parseOptions(
   providedArguments: TaskArguments,
   ignoreUnknownOption = false,
 ) {
+  const optionDefinitionsByShortName = new Map<string, OptionDefinition>();
+  for (const optionDefinition of optionDefinitions.values()) {
+    if (optionDefinition.shortName !== undefined) {
+      optionDefinitionsByShortName.set(
+        optionDefinition.shortName,
+        optionDefinition,
+      );
+    }
+  }
+
   for (let i = 0; i < cliArguments.length; i++) {
     if (usedCliArguments[i]) {
       continue;
@@ -489,12 +499,31 @@ function parseOptions(
 
     const arg = cliArguments[i];
 
-    if (arg.startsWith("--") === false) {
+    let optionDefinition: OptionDefinition | undefined;
+
+    const providedByName = arg.startsWith("--");
+    const providedByShortName = !providedByName && arg.startsWith("-");
+
+    if (providedByName) {
+      const name = kebabToCamelCase(arg.substring(2));
+      optionDefinition = optionDefinitions.get(name);
+    } else if (providedByShortName) {
+      const shortName = arg[1];
+
+      // Check if the short name is valid
+      if (Array.from(arg.substring(1)).some((c) => c !== shortName)) {
+        throw new HardhatError(
+          HardhatError.ERRORS.CORE.ARGUMENTS.CANNOT_GROUP_OPTIONS,
+          {
+            option: arg,
+          },
+        );
+      }
+
+      optionDefinition = optionDefinitionsByShortName.get(shortName);
+    } else {
       continue;
     }
-
-    const optionName = kebabToCamelCase(arg.substring(2));
-    const optionDefinition = optionDefinitions.get(optionName);
 
     if (optionDefinition === undefined) {
       if (ignoreUnknownOption === true) {
@@ -507,6 +536,22 @@ function parseOptions(
         HardhatError.ERRORS.CORE.ARGUMENTS.UNRECOGNIZED_OPTION,
         {
           option: arg,
+        },
+      );
+    }
+
+    const optionName = optionDefinition.name;
+
+    // Check if the short name is valid again now that we know its type
+    if (
+      providedArguments[optionName] !== undefined ||
+      (providedByShortName && arg.length > 2)
+    ) {
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.ARGUMENTS.CANNOT_REPEAT_OPTIONS,
+        {
+          option: arg,
+          type: optionDefinition.type,
         },
       );
     }
