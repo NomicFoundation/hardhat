@@ -446,6 +446,29 @@ For global options help run: hardhat --help`;
       });
     });
 
+    it("should recognize the short form of the help command", async function () {
+      const command = "npx hardhat -h";
+
+      const cliArguments = command.split(" ").slice(2);
+      const usedCliArguments = new Array(cliArguments.length).fill(false);
+
+      const builtinGlobalOptions = await parseBuiltinGlobalOptions(
+        cliArguments,
+        usedCliArguments,
+      );
+
+      assert.deepEqual(usedCliArguments, [true]);
+      assert.deepEqual(builtinGlobalOptions, {
+        init: false,
+        configPath: undefined,
+        showStackTraces,
+        help: true,
+        version: false,
+        verbose: false,
+        verbosity: 0,
+      });
+    });
+
     it("should throw an error because the config arg cannot be used with the init command", async function () {
       const command = "npx hardhat --config ./path1 --init";
 
