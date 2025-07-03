@@ -296,6 +296,7 @@ export function createConfig(
           "type",
           "builtin",
           "external",
+          "internal",
           "parent",
           "sibling",
           "index",

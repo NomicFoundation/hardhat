@@ -36,9 +36,6 @@ import {
   SHANGHAI,
   CANCUN,
   PRAGUE,
-  OP_CHAIN_TYPE as EDR_OP_CHAIN_TYPE,
-  L1_CHAIN_TYPE as EDR_L1_CHAIN_TYPE,
-  GENERIC_CHAIN_TYPE as EDR_GENERIC_CHAIN_TYPE,
   BEDROCK,
   REGOLITH,
   CANYON,
@@ -342,16 +339,4 @@ export async function hardhatForkingConfigToEdrForkConfig(
   }
 
   return fork;
-}
-
-export function hardhatChainTypeToEdrChainType(chainType: ChainType): string {
-  if (chainType === OPTIMISM_CHAIN_TYPE) {
-    return EDR_OP_CHAIN_TYPE;
-  }
-
-  if (chainType === L1_CHAIN_TYPE) {
-    return EDR_L1_CHAIN_TYPE;
-  }
-
-  return EDR_GENERIC_CHAIN_TYPE;
 }
