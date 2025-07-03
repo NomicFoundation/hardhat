@@ -9,12 +9,7 @@ const hardhatChaiMatchersPlugin: HardhatPlugin = {
   },
   npmPackage: "@nomicfoundation/hardhat-ethers-chai-matchers",
   dependencies: [
-    async () => {
-      const { default: hardhatEthersPlugin } = await import(
-        "@nomicfoundation/hardhat-ethers"
-      );
-      return hardhatEthersPlugin;
-    },
+    async () => (await import("@nomicfoundation/hardhat-ethers")).default,
   ],
 };
 

@@ -23,7 +23,7 @@ export class MockEthereumProvider
     super();
   }
 
-  public async request(args: RequestArguments): Promise<unknown> {
+  public async request(args: RequestArguments): Promise<any> {
     if (this.returnValues[args.method] !== undefined) {
       this.callCount++;
       return this.returnValues[args.method];
@@ -35,7 +35,7 @@ export class MockEthereumProvider
   public close(): Promise<void> {
     throw new Error("Method not implemented.");
   }
-  public send(): Promise<unknown> {
+  public send(): Promise<any> {
     throw new Error("Method not implemented.");
   }
   public sendAsync(): void {
