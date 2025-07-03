@@ -288,7 +288,7 @@ GLOBAL OPTIONS:
   --network                The network to connect to
   --show-stack-traces      Show stack traces (always enabled on CI servers).
   --verbose                Enables Hardhat verbose logging.
-  --verbosity              Sets the verbosity level.
+  --verbosity, -v          Sets the verbosity level.
   --version                Shows hardhat's version.
 
 To get help for a specific task run: npx hardhat <TASK> [SUBTASK] --help`;
