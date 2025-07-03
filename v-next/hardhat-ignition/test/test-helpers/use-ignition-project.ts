@@ -329,7 +329,7 @@ class ProxyProvider extends EventEmitter implements EthereumProvider {
     this.#provider = provider;
   }
 
-  public async request(requestArguments: RequestArguments): Promise<unknown> {
+  public async request(requestArguments: RequestArguments): Promise<any> {
     if (this.trigger) {
       this.trigger = false;
       throw new Error("Killing deploy process");
@@ -347,7 +347,7 @@ class ProxyProvider extends EventEmitter implements EthereumProvider {
     return this.#provider.close();
   }
 
-  public async send(method: string, params?: unknown[]): Promise<unknown> {
+  public async send(method: string, params?: unknown[]): Promise<any> {
     if (this.trigger) {
       this.trigger = false;
       throw new Error("Killing deploy process");

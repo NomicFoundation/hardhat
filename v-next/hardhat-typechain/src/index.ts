@@ -12,12 +12,7 @@ const hardhatTypechain: HardhatPlugin = {
   },
   npmPackage: "@nomicfoundation/hardhat-typechain",
   dependencies: [
-    async () => {
-      const { default: hardhatEthersPlugin } = await import(
-        "@nomicfoundation/hardhat-ethers"
-      );
-      return hardhatEthersPlugin;
-    },
+    async () => (await import("@nomicfoundation/hardhat-ethers")).default,
   ],
   globalOptions: [
     globalOption({
