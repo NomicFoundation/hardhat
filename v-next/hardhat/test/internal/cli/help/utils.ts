@@ -11,6 +11,7 @@ import {
   getLongestNameLength,
   getSection,
   getUsageString,
+  toShortCommandLineOption,
 } from "../../../../src/internal/cli/help/utils.js";
 import { ArgumentType } from "../../../../src/types/arguments.js";
 
@@ -118,6 +119,7 @@ describe("utils", function () {
         options: new Map()
           .set("option", {
             name: "option",
+            shortName: "o",
             description: "An example option",
             type: ArgumentType.STRING,
           })
@@ -153,11 +155,13 @@ describe("utils", function () {
         options: [
           {
             name: "--option",
+            shortName: "-o",
             description: "An example option",
             type: "STRING",
           },
           {
             name: "--another-option",
+            shortName: undefined,
             description: "Another example option",
             type: "BOOLEAN",
           },
@@ -187,11 +191,29 @@ describe("utils", function () {
     });
   });
 
+  describe("toShortCommandLineOption", function () {
+    it("should parse the short command line option", function () {
+      assert.equal(toShortCommandLineOption("a"), "-a");
+      assert.equal(toShortCommandLineOption("b"), "-b");
+      assert.equal(toShortCommandLineOption("c"), "-c");
+    });
+  });
+
   describe("getLongestNameLength", function () {
     it("should return the length of the longest name", function () {
       assert.equal(
         getLongestNameLength([{ name: "name" }, { name: "anotherName" }]),
         11,
+      );
+    });
+
+    it("should return the length of the longest name with short names", function () {
+      assert.equal(
+        getLongestNameLength([
+          { name: "name", shortName: "n" },
+          { name: "anotherName", shortName: "a" },
+        ]),
+        14,
       );
     });
   });
@@ -232,6 +254,7 @@ Section Title:
           options: new Map()
             .set("option", {
               name: "option",
+              shortName: "o",
               description: "An example option",
               type: ArgumentType.STRING,
             })
@@ -265,6 +288,7 @@ Section Title:
           [
             {
               name: "--option",
+              shortName: "-o",
               description: "An example option",
               type: ArgumentType.STRING,
             },
@@ -303,6 +327,7 @@ Section Title:
           options: new Map()
             .set("option", {
               name: "option",
+              shortName: "o",
               description: "An example option",
               type: ArgumentType.STRING,
             })
@@ -336,6 +361,7 @@ Section Title:
           [
             {
               name: "--option",
+              shortName: "-o",
               description: "An example option",
               type: ArgumentType.STRING,
             },

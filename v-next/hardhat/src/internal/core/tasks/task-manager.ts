@@ -235,7 +235,7 @@ export class TaskManagerImplementation implements TaskManager {
       .filter((shortName) => shortName !== undefined);
 
     optionShortNames.forEach((argName) => {
-      const globalOptionEntry = globalOptionDefinitions.get(argName);
+      const globalOptionEntry = globalOptionDefinitionsByShortName.get(argName);
       if (globalOptionEntry !== undefined) {
         throw new HardhatError(
           HardhatError.ERRORS.CORE.TASK_DEFINITIONS.TASK_OPTION_ALREADY_DEFINED,

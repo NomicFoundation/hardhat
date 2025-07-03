@@ -17,14 +17,7 @@ const hardhatPlugin: HardhatPlugin = {
       .setAction(import.meta.resolve("./task-action.js"))
       .build(),
   ],
-  dependencies: [
-    async () => {
-      const { default: solidityBuiltinPlugin } = await import(
-        "../solidity/index.js"
-      );
-      return solidityBuiltinPlugin;
-    },
-  ],
+  dependencies: [async () => (await import("../solidity/index.js")).default],
   npmPackage: "hardhat",
 };
 

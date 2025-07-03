@@ -7,14 +7,7 @@ import "./type-extensions.js";
 
 const hardhatPlugin: HardhatPlugin = {
   id: "builtin:solidity",
-  dependencies: [
-    async () => {
-      const { default: artifactsPlugin } = await import(
-        "../artifacts/index.js"
-      );
-      return artifactsPlugin;
-    },
-  ],
+  dependencies: [async () => (await import("../artifacts/index.js")).default],
   hookHandlers: {
     config: import.meta.resolve("./hook-handlers/config.js"),
     hre: import.meta.resolve("./hook-handlers/hre.js"),
