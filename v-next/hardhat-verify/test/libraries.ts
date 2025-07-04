@@ -588,8 +588,9 @@ function buildContractInformation(
   deployedLinkReferences: CompilerOutputBytecode["linkReferences"] = {},
 ): ContractInformation {
   return {
-    contract,
-    contractName: "",
+    sourceName: "",
+    sourceFqn: contract,
+    inputFqn: "",
     compilerOutputContract: {
       evm: {
         bytecode: {
@@ -627,6 +628,5 @@ function buildContractInformation(
       },
     },
     solcLongVersion: "",
-    sourceName: "",
   };
 }

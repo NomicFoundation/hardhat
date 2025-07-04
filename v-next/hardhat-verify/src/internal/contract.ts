@@ -10,16 +10,19 @@ import {
   assertHardhatInvariant,
   HardhatError,
 } from "@nomicfoundation/hardhat-errors";
-import { parseFullyQualifiedName } from "hardhat/utils/contract-names";
+import {
+  getFullyQualifiedName,
+  parseFullyQualifiedName,
+} from "hardhat/utils/contract-names";
 
 import { getBuildInfoAndOutput } from "./artifacts.js";
 
 export interface ContractInformation {
   compilerInput: CompilerInput;
   solcLongVersion: string;
-  contract: string;
   sourceName: string;
-  contractName: string;
+  sourceFqn: string;
+  inputFqn: string;
   compilerOutputContract: CompilerOutputContract;
   deployedBytecode: string;
 }
@@ -192,9 +195,7 @@ export class ContractInformationResolver {
     }
 
     if (matches.length > 1) {
-      const fqnList = matches
-        .map((c) => `  * ${c.sourceName}:${c.contractName}`)
-        .join("\n");
+      const fqnList = matches.map((c) => `  * ${c.sourceFqn}`).join("\n");
 
       throw new HardhatError(
         HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.DEPLOYED_BYTECODE_MULTIPLE_MATCHES,
@@ -248,9 +249,9 @@ export class ContractInformationResolver {
       return {
         compilerInput: buildInfo.input,
         solcLongVersion: buildInfo.solcLongVersion,
-        contract,
         sourceName,
-        contractName,
+        sourceFqn: contract,
+        inputFqn: getFullyQualifiedName(inputSourceName, contractName),
         compilerOutputContract,
         deployedBytecode: deployedBytecode.bytecode,
       };
