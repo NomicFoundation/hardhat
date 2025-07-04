@@ -1,5 +1,4 @@
 ---
-"@nomicfoundation/config": patch
 "hardhat": patch
 ---
 
