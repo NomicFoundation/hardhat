@@ -72,7 +72,7 @@ export function resolveLibraryInformation(
     detectableLibraryFqns,
     undetectableLibraryFqns,
     userLibraryAddresses,
-    contractInformation.sourceFqn,
+    contractInformation.userFqn,
   );
 
   const detectableLibraries = getDetectableLibrariesFromBytecode(
@@ -92,7 +92,7 @@ export function resolveLibraryInformation(
     throw new HardhatError(
       HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.MISSING_LIBRARY_ADDRESSES,
       {
-        contract: contractInformation.sourceFqn,
+        contract: contractInformation.userFqn,
         missingList,
       },
     );

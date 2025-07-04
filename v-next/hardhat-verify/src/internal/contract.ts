@@ -21,7 +21,7 @@ export interface ContractInformation {
   compilerInput: CompilerInput;
   solcLongVersion: string;
   sourceName: string;
-  sourceFqn: string;
+  userFqn: string;
   inputFqn: string;
   compilerOutputContract: CompilerOutputContract;
   deployedBytecode: string;
@@ -195,7 +195,7 @@ export class ContractInformationResolver {
     }
 
     if (matches.length > 1) {
-      const fqnList = matches.map((c) => `  * ${c.sourceFqn}`).join("\n");
+      const fqnList = matches.map((c) => `  * ${c.userFqn}`).join("\n");
 
       throw new HardhatError(
         HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.DEPLOYED_BYTECODE_MULTIPLE_MATCHES,
@@ -250,7 +250,7 @@ export class ContractInformationResolver {
         compilerInput: buildInfo.input,
         solcLongVersion: buildInfo.solcLongVersion,
         sourceName,
-        sourceFqn: contract,
+        userFqn: contract,
         inputFqn: getFullyQualifiedName(inputSourceName, contractName),
         compilerOutputContract,
         deployedBytecode: deployedBytecode.bytecode,

@@ -589,7 +589,7 @@ function buildContractInformation(
 ): ContractInformation {
   return {
     sourceName: "",
-    sourceFqn: contract,
+    userFqn: contract,
     inputFqn: "",
     compilerOutputContract: {
       evm: {
