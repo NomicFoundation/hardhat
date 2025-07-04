@@ -22,7 +22,7 @@ export function resolveFromRoot(root: string, target: string): string {
  * Tries to return a shorter version of the path if its inside the given folder.
  *
  * This is useful for displaying paths in the terminal, as they can be shorter
- * when they are insidde the current working directory. For example, if the
+ * when they are inside the current working directory. For example, if the
  * current working directory is `/home/user/project`, and the path is
  * `/home/user/project/contracts/File.sol`, the shorter path is
  * `contracts/File.sol`.
@@ -31,11 +31,21 @@ export function resolveFromRoot(root: string, target: string): string {
  * @param folder The absolute path to the folder.
  * @returns The shorter path, if possible, or the original path.
  */
-export function shortenPath(
-  absolutePath: string,
-  folder: string = process.cwd(),
-): string {
-  const relativePath = path.relative(folder, absolutePath);
+export function shortenPath(absolutePath: string): string {
+  const cwd = process.cwd();
+  let relativePath = path.relative(cwd, absolutePath);
+
+  if (relativePath === "..") {
+    return ".." + path.sep;
+  }
+
+  if (
+    !relativePath.startsWith(".." + path.sep) &&
+    !relativePath.startsWith("." + path.sep) &&
+    !path.isAbsolute(relativePath)
+  ) {
+    relativePath = "." + path.sep + relativePath;
+  }
 
   if (relativePath.length < absolutePath.length) {
     return relativePath;

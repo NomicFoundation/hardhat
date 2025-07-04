@@ -13,7 +13,7 @@ export interface SolidityBuildInfo {
 
   /**
    * The id of the build, which is derived from the rest of the data,
-   * guaranteing that it's unique and deterministic.
+   * guaranteeing that it's unique and deterministic.
    */
   readonly id: string;
 
@@ -28,12 +28,14 @@ export interface SolidityBuildInfo {
   readonly solcLongVersion: string;
 
   /**
-   * A mapping from public source names to input source names, for the root
+   * A mapping from user source names to input source names, for the root
    * files of the build (i.e. the files whose artifacts where being compiled).
    *
-   * @see import("../artifacts.js").Artifact.inputSourceName
+   * A user source name is the source name used by the user, for example, to
+   * refer to artifacts. While an input source name is the source name used by
+   * solc.
    */
-  readonly publicSourceNameMap: Record<string, string>;
+  readonly userSourceNameMap: Record<string, string>;
 
   /**
    * The compiler input, as provided to solc.

@@ -1,8 +1,8 @@
 import type { HardhatPlugin } from "../../../types/plugins.js";
 
-import { task } from "../../core/config.js";
-
 import { ArgumentType } from "hardhat/types/arguments";
+
+import { task } from "../../core/config.js";
 
 import "./type-extensions.js";
 
@@ -21,7 +21,7 @@ const hardhatPlugin: HardhatPlugin = {
       })
       .addOption({
         name: "chainType",
-        description: "Not implemented yet - The chain type to use",
+        description: "The chain type to use",
         defaultValue: "l1",
       })
       .addOption({
@@ -38,16 +38,8 @@ const hardhatPlugin: HardhatPlugin = {
       .build(),
   ],
   dependencies: [
-    async () => {
-      const { default: solidityBuiltinPlugin } = await import(
-        "../solidity/index.js"
-      );
-      return solidityBuiltinPlugin;
-    },
-    async () => {
-      const { default: testBuiltinPlugin } = await import("../test/index.js");
-      return testBuiltinPlugin;
-    },
+    async () => (await import("../solidity/index.js")).default,
+    async () => (await import("../test/index.js")).default,
   ],
   npmPackage: "hardhat",
 };

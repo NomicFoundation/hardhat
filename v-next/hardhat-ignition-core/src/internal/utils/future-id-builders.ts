@@ -1,8 +1,8 @@
 /**
- * The seperator in ids that indicated before as the module id and after
+ * The separator in ids that indicated before as the module id and after
  * as the parts making up the particular future.
  */
-const MODULE_SEPERATOR = "#";
+const MODULE_SEPARATOR = "#";
 
 /**
  * The separator in ids that depend on futures that belong to a submodule.
@@ -11,9 +11,9 @@ const MODULE_SEPERATOR = "#";
 const SUBMODULE_SEPARATOR = "~";
 
 /**
- * The seperator in ids that indicated different subparts of the future key.
+ * The separator in ids that indicated different subparts of the future key.
  */
-const SUBKEY_SEPERATOR = ".";
+const SUBKEY_SEPARATOR = ".";
 
 /**
  * Construct the future id for a contract, contractAt or library, namespaced by the
@@ -42,14 +42,14 @@ export function toContractFutureId(
   // IMPORTANT: Keep in sync with src/internal/utils/identifier-validators.ts#isValidContractName
 
   if (userProvidedId !== undefined) {
-    return `${moduleId}${MODULE_SEPERATOR}${userProvidedId}`;
+    return `${moduleId}${MODULE_SEPARATOR}${userProvidedId}`;
   }
 
   const contractName = contractOrLibraryName.includes(":")
     ? contractOrLibraryName.split(":").at(-1)!
     : contractOrLibraryName;
 
-  return `${moduleId}${MODULE_SEPERATOR}${contractName}`;
+  return `${moduleId}${MODULE_SEPARATOR}${contractName}`;
 }
 
 /**
@@ -71,20 +71,20 @@ export function toCallFutureId(
   functionName: string,
 ): string {
   if (userProvidedId !== undefined) {
-    return `${moduleId}${MODULE_SEPERATOR}${userProvidedId}`;
+    return `${moduleId}${MODULE_SEPARATOR}${userProvidedId}`;
   }
 
   // If the contract belongs to the call's module, we just need to add the function name
   if (moduleId === contractModuleId) {
-    return `${contractId}${SUBKEY_SEPERATOR}${functionName}`;
+    return `${contractId}${SUBKEY_SEPARATOR}${functionName}`;
   }
 
   // We replace the MODULE_SEPARATOR for SUBMODULE_SEPARATOR
   const submoduleContractId = `${contractModuleId}${SUBMODULE_SEPARATOR}${contractId.substring(
-    contractModuleId.length + MODULE_SEPERATOR.length,
+    contractModuleId.length + MODULE_SEPARATOR.length,
   )}`;
 
-  return `${moduleId}${MODULE_SEPERATOR}${submoduleContractId}${SUBKEY_SEPERATOR}${functionName}`;
+  return `${moduleId}${MODULE_SEPARATOR}${submoduleContractId}${SUBKEY_SEPARATOR}${functionName}`;
 }
 
 /**
@@ -106,19 +106,19 @@ export function toEncodeFunctionCallFutureId(
   functionName: string,
 ): string {
   if (userProvidedId !== undefined) {
-    return `${moduleId}${MODULE_SEPERATOR}${userProvidedId}`;
+    return `${moduleId}${MODULE_SEPARATOR}${userProvidedId}`;
   }
 
   if (moduleId === contractModuleId) {
-    return `${moduleId}${MODULE_SEPERATOR}encodeFunctionCall(${contractId}${SUBKEY_SEPERATOR}${functionName})`;
+    return `${moduleId}${MODULE_SEPARATOR}encodeFunctionCall(${contractId}${SUBKEY_SEPARATOR}${functionName})`;
   }
 
   // We replace the MODULE_SEPARATOR for SUBMODULE_SEPARATOR
   const submoduleContractId = `${contractModuleId}${SUBMODULE_SEPARATOR}${contractId.substring(
-    contractModuleId.length + MODULE_SEPERATOR.length,
+    contractModuleId.length + MODULE_SEPARATOR.length,
   )}`;
 
-  return `${moduleId}${MODULE_SEPERATOR}encodeFunctionCall(${submoduleContractId}${SUBKEY_SEPERATOR}${functionName})`;
+  return `${moduleId}${MODULE_SEPARATOR}encodeFunctionCall(${submoduleContractId}${SUBKEY_SEPARATOR}${functionName})`;
 }
 
 /**
@@ -146,9 +146,9 @@ export function toReadEventArgumentFutureId(
 ) {
   const futureKey =
     userProvidedId ??
-    `${contractName}${SUBKEY_SEPERATOR}${eventName}${SUBKEY_SEPERATOR}${nameOrIndex}${SUBKEY_SEPERATOR}${eventIndex}`;
+    `${contractName}${SUBKEY_SEPARATOR}${eventName}${SUBKEY_SEPARATOR}${nameOrIndex}${SUBKEY_SEPARATOR}${eventIndex}`;
 
-  return `${moduleId}${MODULE_SEPERATOR}${futureKey}`;
+  return `${moduleId}${MODULE_SEPARATOR}${futureKey}`;
 }
 
 /**
@@ -160,5 +160,5 @@ export function toReadEventArgumentFutureId(
  * @returns the future id
  */
 export function toSendDataFutureId(moduleId: string, userProvidedId: string) {
-  return `${moduleId}${MODULE_SEPERATOR}${userProvidedId}`;
+  return `${moduleId}${MODULE_SEPARATOR}${userProvidedId}`;
 }

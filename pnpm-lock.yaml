@@ -54,46 +54,46 @@ importers:
   v-next/example-project:
     devDependencies:
       '@nomicfoundation/hardhat-errors':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-ethers':
-        specifier: workspace:^4.0.0-next.18
+        specifier: workspace:^4.0.0-next.20
         version: link:../hardhat-ethers
       '@nomicfoundation/hardhat-ethers-chai-matchers':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-ethers-chai-matchers
       '@nomicfoundation/hardhat-ignition':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-ignition
       '@nomicfoundation/hardhat-ignition-viem':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-ignition-viem
       '@nomicfoundation/hardhat-keystore':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-keystore
       '@nomicfoundation/hardhat-mocha':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-mocha
       '@nomicfoundation/hardhat-network-helpers':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-network-helpers
       '@nomicfoundation/hardhat-node-test-runner':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-node-test-runner
       '@nomicfoundation/hardhat-typechain':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-typechain
       '@nomicfoundation/hardhat-verify':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-verify
       '@nomicfoundation/hardhat-viem':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-viem
       '@nomicfoundation/hardhat-viem-assertions':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-viem-assertions
       '@nomicfoundation/ignition-core':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-ignition-core
       '@openzeppelin/contracts':
         specifier: 5.1.0
@@ -107,6 +107,9 @@ importers:
       '@types/node':
         specifier: ^20.14.9
         version: 20.17.16
+      '@uniswap/v4-core':
+        specifier: 1.0.2
+        version: 1.0.2
       chai:
         specifier: ^5.1.2
         version: 5.1.2
@@ -117,11 +120,14 @@ importers:
         specifier: foundry-rs/forge-std#v1.9.4
         version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/1eea5bae12ae557d589f9f0f0edae2faa47cb262
       hardhat:
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat
       mocha:
         specifier: ^11.0.0
         version: 11.1.0
+      permit2:
+        specifier: uniswap/permit2#cc56ad0f3439c502c246fc5cfcc3db92bb8b7219
+        version: '@uniswap/permit2@https://codeload.github.com/uniswap/permit2/tar.gz/cc56ad0f3439c502c246fc5cfcc3db92bb8b7219'
       prettier:
         specifier: 3.2.5
         version: 3.2.5
@@ -137,20 +143,17 @@ importers:
 
   v-next/hardhat:
     dependencies:
-      '@ignored/edr':
-        specifier: 0.10.0-alpha.5
-        version: 0.10.0-alpha.5
       '@ignored/edr-optimism':
-        specifier: 0.13.0-alpha.4
-        version: 0.13.0-alpha.4
+        specifier: 0.13.0-alpha.6
+        version: 0.13.0-alpha.6
       '@nomicfoundation/hardhat-errors':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-utils
       '@nomicfoundation/hardhat-zod-utils':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-zod-utils
       '@nomicfoundation/solidity-analyzer':
         specifier: ^0.1.1
@@ -196,7 +199,7 @@ importers:
         version: 3.24.1
     devDependencies:
       '@nomicfoundation/hardhat-node-test-reporter':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-node-test-reporter
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
@@ -238,11 +241,11 @@ importers:
   v-next/hardhat-errors:
     dependencies:
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-utils
     devDependencies:
       '@nomicfoundation/hardhat-node-test-reporter':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-node-test-reporter
       '@types/node':
         specifier: ^20.14.9
@@ -272,10 +275,10 @@ importers:
   v-next/hardhat-ethers:
     dependencies:
       '@nomicfoundation/hardhat-errors':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-utils
       debug:
         specifier: ^4.3.2
@@ -287,11 +290,11 @@ importers:
         specifier: ^6.14.0
         version: 6.14.1
       hardhat:
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat
     devDependencies:
       '@nomicfoundation/hardhat-node-test-reporter':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-node-test-reporter
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
@@ -327,13 +330,13 @@ importers:
   v-next/hardhat-ethers-chai-matchers:
     dependencies:
       '@nomicfoundation/hardhat-errors':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-ethers':
-        specifier: workspace:^4.0.0-next.18
+        specifier: workspace:^4.0.0-next.20
         version: link:../hardhat-ethers
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-utils
       '@types/chai-as-promised':
         specifier: ^8.0.1
@@ -351,14 +354,14 @@ importers:
         specifier: ^6.14.0
         version: 6.14.1
       hardhat:
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat
     devDependencies:
       '@nomicfoundation/hardhat-mocha':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-mocha
       '@nomicfoundation/hardhat-node-test-reporter':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-node-test-reporter
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
@@ -406,16 +409,16 @@ importers:
   v-next/hardhat-ignition:
     dependencies:
       '@nomicfoundation/hardhat-errors':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-utils
       '@nomicfoundation/ignition-core':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-ignition-core
       '@nomicfoundation/ignition-ui':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-ignition-ui
       chalk:
         specifier: ^5.3.0
@@ -434,7 +437,7 @@ importers:
         specifier: 1.0.2
         version: 1.0.2(nyc@15.1.0)
       '@nomicfoundation/hardhat-network-helpers':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-network-helpers
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
@@ -473,7 +476,7 @@ importers:
         specifier: 9.25.1
         version: 9.25.1
       hardhat:
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat
       mocha:
         specifier: ^11.0.0
@@ -506,10 +509,10 @@ importers:
         specifier: 5.6.1
         version: 5.6.1
       '@nomicfoundation/hardhat-errors':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-utils
       '@nomicfoundation/solidity-analyzer':
         specifier: ^0.1.1
@@ -597,26 +600,26 @@ importers:
   v-next/hardhat-ignition-ethers:
     dependencies:
       '@nomicfoundation/hardhat-errors':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-errors
     devDependencies:
       '@istanbuljs/nyc-config-typescript':
         specifier: 1.0.2
         version: 1.0.2(nyc@15.1.0)
       '@nomicfoundation/hardhat-ethers':
-        specifier: workspace:^4.0.0-next.18
+        specifier: workspace:^4.0.0-next.20
         version: link:../hardhat-ethers
       '@nomicfoundation/hardhat-ignition':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-ignition
       '@nomicfoundation/hardhat-node-test-reporter':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-node-test-reporter
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
         version: link:../hardhat-test-utils
       '@nomicfoundation/ignition-core':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-ignition-core
       '@types/node':
         specifier: ^20.14.9
@@ -634,7 +637,7 @@ importers:
         specifier: ^6.14.0
         version: 6.14.1
       hardhat:
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat
       nyc:
         specifier: 15.1.0
@@ -661,7 +664,7 @@ importers:
         specifier: ^5.0.8
         version: 5.1.1
       '@nomicfoundation/ignition-core':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-ignition-core
       '@types/chai':
         specifier: ^4.2.0
@@ -739,26 +742,26 @@ importers:
   v-next/hardhat-ignition-viem:
     dependencies:
       '@nomicfoundation/hardhat-errors':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-errors
     devDependencies:
       '@istanbuljs/nyc-config-typescript':
         specifier: 1.0.2
         version: 1.0.2(nyc@15.1.0)
       '@nomicfoundation/hardhat-ignition':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-ignition
       '@nomicfoundation/hardhat-node-test-reporter':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-node-test-reporter
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
         version: link:../hardhat-test-utils
       '@nomicfoundation/hardhat-viem':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-viem
       '@nomicfoundation/ignition-core':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-ignition-core
       '@types/node':
         specifier: ^20.14.9
@@ -773,7 +776,7 @@ importers:
         specifier: 9.25.1
         version: 9.25.1
       hardhat:
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat
       nyc:
         specifier: 15.1.0
@@ -806,13 +809,13 @@ importers:
         specifier: 1.7.1
         version: 1.7.1
       '@nomicfoundation/hardhat-errors':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-utils
       '@nomicfoundation/hardhat-zod-utils':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-zod-utils
       chalk:
         specifier: ^5.3.0
@@ -821,14 +824,14 @@ importers:
         specifier: ^4.3.2
         version: 4.4.0(supports-color@5.5.0)
       hardhat:
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat
       zod:
         specifier: ^3.23.8
         version: 3.24.1
     devDependencies:
       '@nomicfoundation/hardhat-node-test-reporter':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-node-test-reporter
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
@@ -864,16 +867,16 @@ importers:
   v-next/hardhat-mocha:
     dependencies:
       '@nomicfoundation/hardhat-errors':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-utils
       '@nomicfoundation/hardhat-zod-utils':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-zod-utils
       hardhat:
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat
       mocha:
         specifier: ^11.0.0
@@ -886,7 +889,7 @@ importers:
         version: 3.24.1
     devDependencies:
       '@nomicfoundation/hardhat-node-test-reporter':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-node-test-reporter
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
@@ -919,17 +922,17 @@ importers:
   v-next/hardhat-network-helpers:
     dependencies:
       '@nomicfoundation/hardhat-errors':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-utils
       hardhat:
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat
     devDependencies:
       '@nomicfoundation/hardhat-node-test-reporter':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-node-test-reporter
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
@@ -1002,19 +1005,19 @@ importers:
   v-next/hardhat-node-test-runner:
     dependencies:
       '@nomicfoundation/hardhat-errors':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-node-test-reporter':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-node-test-reporter
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-utils
       '@nomicfoundation/hardhat-zod-utils':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-zod-utils
       hardhat:
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat
       tsx:
         specifier: ^4.19.3
@@ -1051,14 +1054,14 @@ importers:
   v-next/hardhat-test-utils:
     dependencies:
       '@nomicfoundation/hardhat-errors':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-utils
     devDependencies:
       '@nomicfoundation/hardhat-node-test-reporter':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-node-test-reporter
       '@types/node':
         specifier: ^20.14.9
@@ -1088,47 +1091,47 @@ importers:
   v-next/hardhat-toolbox-mocha-ethers:
     dependencies:
       hardhat:
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat
     devDependencies:
       '@nomicfoundation/hardhat-ethers':
-        specifier: workspace:^4.0.0-next.18
+        specifier: workspace:^4.0.0-next.20
         version: link:../hardhat-ethers
       '@nomicfoundation/hardhat-ethers-chai-matchers':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-ethers-chai-matchers
       '@nomicfoundation/hardhat-ignition':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-ignition
       '@nomicfoundation/hardhat-ignition-ethers':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-ignition-ethers
       '@nomicfoundation/hardhat-keystore':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-keystore
       '@nomicfoundation/hardhat-mocha':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-mocha
       '@nomicfoundation/hardhat-network-helpers':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-network-helpers
       '@nomicfoundation/hardhat-node-test-reporter':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-node-test-reporter
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
         version: link:../hardhat-test-utils
       '@nomicfoundation/hardhat-typechain':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-typechain
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-utils
       '@nomicfoundation/hardhat-verify':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-verify
       '@nomicfoundation/ignition-core':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-ignition-core
       '@types/chai':
         specifier: ^4.2.0
@@ -1167,41 +1170,41 @@ importers:
   v-next/hardhat-toolbox-viem:
     dependencies:
       hardhat:
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat
     devDependencies:
       '@nomicfoundation/hardhat-ignition':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-ignition
       '@nomicfoundation/hardhat-ignition-viem':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-ignition-viem
       '@nomicfoundation/hardhat-keystore':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-keystore
       '@nomicfoundation/hardhat-network-helpers':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-network-helpers
       '@nomicfoundation/hardhat-node-test-reporter':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-node-test-reporter
       '@nomicfoundation/hardhat-node-test-runner':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-node-test-runner
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
         version: link:../hardhat-test-utils
       '@nomicfoundation/hardhat-verify':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-verify
       '@nomicfoundation/hardhat-viem':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-viem
       '@nomicfoundation/hardhat-viem-assertions':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-viem-assertions
       '@nomicfoundation/ignition-core':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-ignition-core
       '@types/node':
         specifier: ^20.14.9
@@ -1234,16 +1237,16 @@ importers:
   v-next/hardhat-typechain:
     dependencies:
       '@nomicfoundation/hardhat-errors':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-ethers':
-        specifier: workspace:^4.0.0-next.18
+        specifier: workspace:^4.0.0-next.20
         version: link:../hardhat-ethers
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-utils
       '@nomicfoundation/hardhat-zod-utils':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-zod-utils
       '@typechain/ethers-v6':
         specifier: ^0.5.0
@@ -1255,7 +1258,7 @@ importers:
         specifier: ^6.14.0
         version: 6.14.1
       hardhat:
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat
       typechain:
         specifier: ^8.3.1
@@ -1265,7 +1268,7 @@ importers:
         version: 3.24.1
     devDependencies:
       '@nomicfoundation/hardhat-node-test-reporter':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-node-test-reporter
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
@@ -1326,7 +1329,7 @@ importers:
         version: 6.21.1
     devDependencies:
       '@nomicfoundation/hardhat-node-test-reporter':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-node-test-reporter
       '@types/bn.js':
         specifier: ^5.1.5
@@ -1365,13 +1368,13 @@ importers:
         specifier: ^5.8.0
         version: 5.8.0
       '@nomicfoundation/hardhat-errors':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-utils
       '@nomicfoundation/hardhat-zod-utils':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-zod-utils
       cbor2:
         specifier: ^1.9.0
@@ -1380,7 +1383,7 @@ importers:
         specifier: ^4.3.2
         version: 4.4.0(supports-color@5.5.0)
       hardhat:
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat
       semver:
         specifier: ^7.6.3
@@ -1390,7 +1393,7 @@ importers:
         version: 3.24.1
     devDependencies:
       '@nomicfoundation/hardhat-node-test-reporter':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-node-test-reporter
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
@@ -1429,17 +1432,17 @@ importers:
   v-next/hardhat-viem:
     dependencies:
       '@nomicfoundation/hardhat-errors':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-utils
       hardhat:
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat
     devDependencies:
       '@nomicfoundation/hardhat-node-test-reporter':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-node-test-reporter
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
@@ -1475,23 +1478,23 @@ importers:
   v-next/hardhat-viem-assertions:
     dependencies:
       '@nomicfoundation/hardhat-errors':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-utils
       hardhat:
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat
     devDependencies:
       '@nomicfoundation/hardhat-node-test-reporter':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-node-test-reporter
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
         version: link:../hardhat-test-utils
       '@nomicfoundation/hardhat-viem':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-viem
       '@types/node':
         specifier: ^20.14.9
@@ -1524,11 +1527,11 @@ importers:
   v-next/hardhat-zod-utils:
     dependencies:
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-utils
     devDependencies:
       '@nomicfoundation/hardhat-node-test-reporter':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-node-test-reporter
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
@@ -1564,10 +1567,10 @@ importers:
   v-next/hardhat/templates/01-node-test-runner-viem:
     devDependencies:
       '@nomicfoundation/hardhat-ignition':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../../../hardhat-ignition
       '@nomicfoundation/hardhat-toolbox-viem':
-        specifier: workspace:^5.0.0-next.18
+        specifier: workspace:^5.0.0-next.20
         version: link:../../../hardhat-toolbox-viem
       '@types/node':
         specifier: ^22.8.5
@@ -1576,7 +1579,7 @@ importers:
         specifier: foundry-rs/forge-std#v1.9.4
         version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/1eea5bae12ae557d589f9f0f0edae2faa47cb262
       hardhat:
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../..
       typescript:
         specifier: ~5.8.0
@@ -1588,13 +1591,13 @@ importers:
   v-next/hardhat/templates/02-mocha-ethers:
     devDependencies:
       '@nomicfoundation/hardhat-ethers':
-        specifier: workspace:^4.0.0-next.18
+        specifier: workspace:^4.0.0-next.20
         version: link:../../../hardhat-ethers
       '@nomicfoundation/hardhat-ignition':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../../../hardhat-ignition
       '@nomicfoundation/hardhat-toolbox-mocha-ethers':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../../../hardhat-toolbox-mocha-ethers
       '@types/chai':
         specifier: ^4.2.0
@@ -1618,7 +1621,7 @@ importers:
         specifier: foundry-rs/forge-std#v1.9.4
         version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/1eea5bae12ae557d589f9f0f0edae2faa47cb262
       hardhat:
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../..
       mocha:
         specifier: ^11.0.0
@@ -1630,7 +1633,7 @@ importers:
   v-next/template-package:
     devDependencies:
       '@nomicfoundation/hardhat-node-test-reporter':
-        specifier: workspace:^3.0.0-next.18
+        specifier: workspace:^3.0.0-next.20
         version: link:../hardhat-node-test-reporter
       '@nomicfoundation/hardhat-test-utils':
         specifier: workspace:^
@@ -2303,68 +2306,36 @@ packages:
     resolution: {integrity: sha512-xeO57FpIu4p1Ri3Jq/EXq4ClRm86dVF2z/+kvFnyqVYRavTZmaFaUBbWCOuuTh0o/g7DSsk6kc2vrS4Vl5oPOQ==}
     engines: {node: '>=18.18'}
 
-  '@ignored/edr-darwin-arm64@0.10.0-alpha.5':
-    resolution: {integrity: sha512-MX+Q8nZhrrcchNLpbUvFR8jQZwAuYPDOqDD0Rr6uWYcq/0sdMj51xTMknYwEUixBcuzldpby4sSU/ZUssdc5rQ==}
+  '@ignored/edr-optimism-darwin-arm64@0.13.0-alpha.6':
+    resolution: {integrity: sha512-axmysWxVDvvppIfHdWATWFeUGs0o17pD3skvAMS1yNJwnDm53C4b2UftQqbGDvLuMWVLypmTY9oEC8vyD4QCQA==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr-darwin-x64@0.10.0-alpha.5':
-    resolution: {integrity: sha512-yzbSp3+1O8flaAZu3o+0ZdX4mwm6cwRuXztsaIHlHNdgYUyoq9o3ybZSgTGOopRsVEHHcOobyk6wvzbw5Hv1AA==}
+  '@ignored/edr-optimism-darwin-x64@0.13.0-alpha.6':
+    resolution: {integrity: sha512-Mh5ZzNdP2NPuMY/7srzZH/UQCYTSZUu/erPeaWvCIEDIpGP6D8IRs+/7Uj/CBdR+IJwV5i+DcaKEirAcH5T44w==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr-linux-arm64-gnu@0.10.0-alpha.5':
-    resolution: {integrity: sha512-43apil5E4iET6kYMoTcku/yP1FR+1fLfzocrxDGt26EexFI9P90Z+nfTR8WYDXrDijtysEa+OHDTyouX+loMuw==}
+  '@ignored/edr-optimism-linux-arm64-gnu@0.13.0-alpha.6':
+    resolution: {integrity: sha512-REu57Vz8ldAV7ck8JDRLEoN7+sOTmmZ+Ujx2oxqXYn5oEd1ZWXEd5zF36mqGlNHRqTPNwWhZmvFgObFWmfg92g==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr-linux-arm64-musl@0.10.0-alpha.5':
-    resolution: {integrity: sha512-opbL1U2BuGyQTaLd1Bo2DQsMpfx2O+vZrpoAB5ESXquWOQY+HZ+mByL+IhXbhaXLIA+NIIa70p/VwsEWZnpQMA==}
+  '@ignored/edr-optimism-linux-arm64-musl@0.13.0-alpha.6':
+    resolution: {integrity: sha512-fJxv6A2NwDj4YsjPvB0W343z+eoJ+RVZLCCANCCPpy84OeqZDFkFVaKdvVUJv9yuI3BBOnIIGFdlc/zkavyl6A==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr-linux-x64-gnu@0.10.0-alpha.5':
-    resolution: {integrity: sha512-LmM+HXDeZwL8mOUKx/CY3BnuaBCzaDy+ZpSLqrsbSnEdPxm3bWU02TmNetXlpm/ILOndQdkyaLE3/Zu8rGPJ1A==}
+  '@ignored/edr-optimism-linux-x64-gnu@0.13.0-alpha.6':
+    resolution: {integrity: sha512-4+iLjlCNb8uk8n/i51FWK4t/pJZRxJN7/sxPZkz2uSkg6OL82jjQQqbyn0bNgfKKJObRn0++QAZ+Iz052DR7bw==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr-linux-x64-musl@0.10.0-alpha.5':
-    resolution: {integrity: sha512-wUnt879EVKqCCCcMO8w6cMbN17b5hK6zRlX9IDCGp3mC6trKIhtyYhI7wdE3WOCAFugdq5QTaFm3zo/fWq6lCg==}
+  '@ignored/edr-optimism-linux-x64-musl@0.13.0-alpha.6':
+    resolution: {integrity: sha512-YCnPHemYur1CqV4aLOFRY79n6hEiKZgHywg8OmRSrfItAQlmZq2NGpVwyEz7WKYMhmIpDCb/+BSJpOVcG+O1qA==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr-optimism-darwin-arm64@0.13.0-alpha.4':
-    resolution: {integrity: sha512-W6Mm4qOqOkm9GHW/4I+0pNTVaSDsOktjzH2Cg6+R9m/g2mipUqKq7b43u4zBPHxV9p4DYh2tcGGhK+GTujOTyQ==}
+  '@ignored/edr-optimism-win32-x64-msvc@0.13.0-alpha.6':
+    resolution: {integrity: sha512-iSM5QJnFKpenzhqk5OcqJsiNhajGG2eiq//axNjkmKmxlQ+BlTMNDYvfHxacGaZUoiJMb479fRx7sWeMHnrZlw==}
     engines: {node: '>= 18'}
 
-  '@ignored/edr-optimism-darwin-x64@0.13.0-alpha.4':
-    resolution: {integrity: sha512-yY1c1U5NCaTYXz4vB85FqPREm/4FvwdQSZMnm650su1FVeyUBge+X6MqYUvlrg1sCeQcla3Wb743cz5AxFD45g==}
-    engines: {node: '>= 18'}
-
-  '@ignored/edr-optimism-linux-arm64-gnu@0.13.0-alpha.4':
-    resolution: {integrity: sha512-E/qUYKRP/IEjOuR6SHrwH9DG7ymngBHHSST8UDxpTP/ytHRO5uyDkMpTaNuSyO912bgxfJncHPkNWSePXDg5Ww==}
-    engines: {node: '>= 18'}
-
-  '@ignored/edr-optimism-linux-arm64-musl@0.13.0-alpha.4':
-    resolution: {integrity: sha512-f3G3vqj8p1dzuN0dt++mbSujWUuCvcWvPeuyhFd6b8DaB10Cmb/TEQcjoVn03NiadBiUIG5jAaT6Ohv6Ion5rw==}
-    engines: {node: '>= 18'}
-
-  '@ignored/edr-optimism-linux-x64-gnu@0.13.0-alpha.4':
-    resolution: {integrity: sha512-bAeq2MDoeenlQ4yEjtPOf46R0E5NdnHGOOGvJWXvh8JuGTn/MU3SEIp6tmQdEul/2pqtgPuN4UHnlx2yT+LMOQ==}
-    engines: {node: '>= 18'}
-
-  '@ignored/edr-optimism-linux-x64-musl@0.13.0-alpha.4':
-    resolution: {integrity: sha512-13xMnNaFOWWgGsgz+h8GmeqlGdOR5RB2jpmSclvanEJQ8ve7FRefwCrQ6TJuw4X84wMNDbJJsZ56OSYxZH1qxg==}
-    engines: {node: '>= 18'}
-
-  '@ignored/edr-optimism-win32-x64-msvc@0.13.0-alpha.4':
-    resolution: {integrity: sha512-VcnnJP/cbszq1Ke4pAeF7ZNjmDseTpHA37M0sxEmM2Xj2NhRfg2K++slZxpS7bwYUV0uQVs+8ui056ujNEr1Dw==}
-    engines: {node: '>= 18'}
-
-  '@ignored/edr-optimism@0.13.0-alpha.4':
-    resolution: {integrity: sha512-oK11cfDT+e+u8Glf2ayGu7+4MmCQ7mIu+t+ZoM3PRij1NyoIU/OUsBM7nyBmOGkadkzNyd4E1I00y8kMoMVQfA==}
-    engines: {node: '>= 18'}
-
-  '@ignored/edr-win32-x64-msvc@0.10.0-alpha.5':
-    resolution: {integrity: sha512-2/87DicWumiH3WtAPI/EXZIymFuNqxOaFPSL/ttvrTGZz5eAK3gcfjkJEL6Z0FZjCjHdgWgw2+tS5j7K+gyMYw==}
-    engines: {node: '>= 18'}
-
-  '@ignored/edr@0.10.0-alpha.5':
-    resolution: {integrity: sha512-PtLzzrzE0zgFo+obtVfb1qD3Rc5XWTkgsC9X61COMwe9cdJ8AY8gw1f8tBkRyBzvJew3JSCpfL3QhiHShLfL4Q==}
+  '@ignored/edr-optimism@0.13.0-alpha.6':
+    resolution: {integrity: sha512-n13L9UUp+8sD3HtYOBsd40M2RdJ7amHfaXi+LRjpi4BGD4zjMGKxINYf1cZxYm2vsB5hZHkpdtaRKHfVdPwCrA==}
     engines: {node: '>= 18'}
 
   '@isaacs/cliui@8.0.2':
@@ -2888,6 +2859,13 @@ packages:
   '@typescript-eslint/visitor-keys@8.31.0':
     resolution: {integrity: sha512-QcGHmlRHWOl93o64ZUMNewCdwKGU6WItOU52H0djgNmn1EOrhVudrDzXz4OycCRSCPwFCDrE2iIt5vmuUdHxuQ==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+
+  '@uniswap/permit2@https://codeload.github.com/uniswap/permit2/tar.gz/cc56ad0f3439c502c246fc5cfcc3db92bb8b7219':
+    resolution: {tarball: https://codeload.github.com/uniswap/permit2/tar.gz/cc56ad0f3439c502c246fc5cfcc3db92bb8b7219}
+    version: 1.0.0
+
+  '@uniswap/v4-core@1.0.2':
+    resolution: {integrity: sha512-X15Tm2wWd+USAzEExMbo+g9naA6QN6mPgWm0MzDwRNlOfaNlepfUpSyt9RSrUfEODspwbyWbcLg6t5nwc/e7lg==}
 
   '@unrs/resolver-binding-darwin-arm64@1.7.0':
     resolution: {integrity: sha512-vIWAU56r2lZAmUsljp6m9+hrTlwNkZH6pqnSPff2WxzofV+jWRSHLmZRUS+g+VE+LlyPByifmGGHpJmhWetatg==}
@@ -6220,60 +6198,36 @@ snapshots:
 
   '@humanwhocodes/retry@0.4.2': {}
 
-  '@ignored/edr-darwin-arm64@0.10.0-alpha.5':
+  '@ignored/edr-optimism-darwin-arm64@0.13.0-alpha.6':
     optional: true
 
-  '@ignored/edr-darwin-x64@0.10.0-alpha.5':
+  '@ignored/edr-optimism-darwin-x64@0.13.0-alpha.6':
     optional: true
 
-  '@ignored/edr-linux-arm64-gnu@0.10.0-alpha.5':
+  '@ignored/edr-optimism-linux-arm64-gnu@0.13.0-alpha.6':
     optional: true
 
-  '@ignored/edr-linux-arm64-musl@0.10.0-alpha.5':
+  '@ignored/edr-optimism-linux-arm64-musl@0.13.0-alpha.6':
     optional: true
 
-  '@ignored/edr-linux-x64-gnu@0.10.0-alpha.5':
+  '@ignored/edr-optimism-linux-x64-gnu@0.13.0-alpha.6':
     optional: true
 
-  '@ignored/edr-linux-x64-musl@0.10.0-alpha.5':
+  '@ignored/edr-optimism-linux-x64-musl@0.13.0-alpha.6':
     optional: true
 
-  '@ignored/edr-optimism-darwin-arm64@0.13.0-alpha.4': {}
-
-  '@ignored/edr-optimism-darwin-x64@0.13.0-alpha.4': {}
-
-  '@ignored/edr-optimism-linux-arm64-gnu@0.13.0-alpha.4': {}
-
-  '@ignored/edr-optimism-linux-arm64-musl@0.13.0-alpha.4': {}
-
-  '@ignored/edr-optimism-linux-x64-gnu@0.13.0-alpha.4': {}
-
-  '@ignored/edr-optimism-linux-x64-musl@0.13.0-alpha.4': {}
-
-  '@ignored/edr-optimism-win32-x64-msvc@0.13.0-alpha.4': {}
-
-  '@ignored/edr-optimism@0.13.0-alpha.4':
-    dependencies:
-      '@ignored/edr-optimism-darwin-arm64': 0.13.0-alpha.4
-      '@ignored/edr-optimism-darwin-x64': 0.13.0-alpha.4
-      '@ignored/edr-optimism-linux-arm64-gnu': 0.13.0-alpha.4
-      '@ignored/edr-optimism-linux-arm64-musl': 0.13.0-alpha.4
-      '@ignored/edr-optimism-linux-x64-gnu': 0.13.0-alpha.4
-      '@ignored/edr-optimism-linux-x64-musl': 0.13.0-alpha.4
-      '@ignored/edr-optimism-win32-x64-msvc': 0.13.0-alpha.4
-
-  '@ignored/edr-win32-x64-msvc@0.10.0-alpha.5':
+  '@ignored/edr-optimism-win32-x64-msvc@0.13.0-alpha.6':
     optional: true
 
-  '@ignored/edr@0.10.0-alpha.5':
+  '@ignored/edr-optimism@0.13.0-alpha.6':
     optionalDependencies:
-      '@ignored/edr-darwin-arm64': 0.10.0-alpha.5
-      '@ignored/edr-darwin-x64': 0.10.0-alpha.5
-      '@ignored/edr-linux-arm64-gnu': 0.10.0-alpha.5
-      '@ignored/edr-linux-arm64-musl': 0.10.0-alpha.5
-      '@ignored/edr-linux-x64-gnu': 0.10.0-alpha.5
-      '@ignored/edr-linux-x64-musl': 0.10.0-alpha.5
-      '@ignored/edr-win32-x64-msvc': 0.10.0-alpha.5
+      '@ignored/edr-optimism-darwin-arm64': 0.13.0-alpha.6
+      '@ignored/edr-optimism-darwin-x64': 0.13.0-alpha.6
+      '@ignored/edr-optimism-linux-arm64-gnu': 0.13.0-alpha.6
+      '@ignored/edr-optimism-linux-arm64-musl': 0.13.0-alpha.6
+      '@ignored/edr-optimism-linux-x64-gnu': 0.13.0-alpha.6
+      '@ignored/edr-optimism-linux-x64-musl': 0.13.0-alpha.6
+      '@ignored/edr-optimism-win32-x64-msvc': 0.13.0-alpha.6
 
   '@isaacs/cliui@8.0.2':
     dependencies:
@@ -6855,6 +6809,10 @@ snapshots:
     dependencies:
       '@typescript-eslint/types': 8.31.0
       eslint-visitor-keys: 4.2.0
+
+  '@uniswap/permit2@https://codeload.github.com/uniswap/permit2/tar.gz/cc56ad0f3439c502c246fc5cfcc3db92bb8b7219': {}
+
+  '@uniswap/v4-core@1.0.2': {}
 
   '@unrs/resolver-binding-darwin-arm64@1.7.0':
     optional: true

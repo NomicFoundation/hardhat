@@ -20,6 +20,6 @@ echo "it should run the command clean successfully"
 run_test_and_handle_failure "npx hardhat clean" 0
 
 echo "it should have deleted the artifacts directory and emptied the cache directory"
-assert_directory_doesnt_exist "artifacts"
+assert_directory_does_not_exist "artifacts"
 assert_directory_exists "cache"
 assert_directory_empty "cache"

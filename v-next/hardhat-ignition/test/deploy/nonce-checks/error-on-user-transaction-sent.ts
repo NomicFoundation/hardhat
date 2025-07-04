@@ -71,7 +71,7 @@ describe("execution - error on user transaction sent", () => {
         const fooAddress = await deployPromise;
         assert.equal(
           fooAddress,
-          "0xc460a0b29b312aab7cfe6196aaf8d2ee991428c0c01fc7ab185f70041b7526a0",
+          "0x2827d72f957f8c222974e724765629a79689e177729fad094065ad220f35e5e7",
         );
       }),
       HardhatError.ERRORS.IGNITION.EXECUTION.INVALID_NONCE,

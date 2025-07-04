@@ -28,7 +28,7 @@ export interface EIP1193Provider extends EventEmitter {
    * - {@link HardhatError.ERRORS.CORE.NETWORK.NETWORK_TIMEOUT} if the request
    * times out.
    */
-  request(requestArguments: RequestArguments): Promise<unknown>;
+  request(requestArguments: RequestArguments): Promise<any>;
 }
 
 /**
@@ -69,7 +69,7 @@ export interface EthereumProvider extends EIP1193Provider {
    * - {@link HardhatError.ERRORS.CORE.NETWORK.NETWORK_TIMEOUT} if the request
    * times out.
    */
-  send(method: string, params?: unknown[]): Promise<unknown>;
+  send(method: string, params?: unknown[]): Promise<any>;
 
   /**
    * @deprecated
@@ -125,7 +125,7 @@ export interface JsonRpcNotificationRequest {
 }
 
 /**
- * A succesful JSON-RPC 2.0 response object.
+ * A successful JSON-RPC 2.0 response object.
  */
 export interface SuccessfulJsonRpcResponse {
   jsonrpc: "2.0";

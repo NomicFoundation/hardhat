@@ -3,9 +3,15 @@ import type {
   EtherscanResponse,
 } from "./etherscan.types.js";
 import type {
+  VerificationProvider,
+  VerificationResponse,
+  VerificationStatusResponse,
+} from "./types.js";
+import type {
   Dispatcher,
   HttpResponse,
 } from "@nomicfoundation/hardhat-utils/request";
+import type { VerificationProvidersConfig } from "hardhat/types/config";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
@@ -15,19 +21,8 @@ import {
   postFormRequest,
 } from "@nomicfoundation/hardhat-utils/request";
 
-interface VerificationStatusResponse {
-  isPending(): boolean;
-  isFailure(): boolean;
-  isSuccess(): boolean;
-  isAlreadyVerified(): boolean;
-  isOk(): boolean;
-}
-
-interface VerificationResponse {
-  isBytecodeMissingInNetworkError(): boolean;
-  isAlreadyVerified(): boolean;
-  isOk(): boolean;
-}
+export const ETHERSCAN_PROVIDER_NAME: keyof VerificationProvidersConfig =
+  "etherscan";
 
 const VERIFICATION_STATUS_POLLING_SECONDS = 3;
 
@@ -37,7 +32,7 @@ const VERIFICATION_STATUS_POLLING_SECONDS = 3;
 // this.apiUrl = etherscanConfig.apiUrl ?? ETHERSCAN_API_URL;
 export const ETHERSCAN_API_URL = "https://api.etherscan.io/v2/api";
 
-export class Etherscan {
+export class Etherscan implements VerificationProvider {
   public chainId: string;
   public name: string;
   public url: string;
@@ -162,7 +157,7 @@ export class Etherscan {
       );
       responseBody =
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-        -- Cast to EtherscanVerifySourceCodeResponse because that's what we expect from the API
+        -- Cast to EtherscanResponse because that's what we expect from the API
         TODO: check if the API returns a different type and throw an error if it does */
         (await response.body.json()) as EtherscanResponse;
     } catch (error) {
@@ -226,12 +221,14 @@ export class Etherscan {
     return etherscanResponse.message;
   }
 
-  // TODO: we don't need to return the EtherscanResponse, we only need {success,  message}
   public async pollVerificationStatus(
     guid: string,
     contractAddress: string,
     contractName: string,
-  ): Promise<EtherscanVerificationStatusResponse> {
+  ): Promise<{
+    success: boolean;
+    message: string;
+  }> {
     let response: HttpResponse;
     let responseBody: EtherscanResponse | undefined;
     try {
@@ -250,7 +247,7 @@ export class Etherscan {
       );
       responseBody =
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-        -- Cast to EtherscanVerifySourceCodeResponse because that's what we expect from the API
+        -- Cast to EtherscanResponse because that's what we expect from the API
         TODO: check if the API returns a different type and throw an error if it does */
         (await response.body.json()) as EtherscanResponse;
     } catch (error) {
@@ -317,7 +314,10 @@ export class Etherscan {
       );
     }
 
-    return etherscanResponse;
+    return {
+      success: etherscanResponse.isSuccess(),
+      message: etherscanResponse.message,
+    };
   }
 }
 

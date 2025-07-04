@@ -40,7 +40,7 @@ export async function deployContract<ContractName extends string>(
     throw new HardhatError(
       HardhatError.ERRORS.HARDHAT_VIEM.GENERAL.INVALID_CONFIRMATIONS,
       {
-        error: "Confirmations must be greather than 0.",
+        error: "Confirmations must be greater than 0.",
       },
     );
   }

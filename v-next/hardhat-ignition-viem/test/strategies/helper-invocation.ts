@@ -45,7 +45,7 @@ describe("strategies - invocation via helper", () => {
 
       assert.equal(
         result.foo.address,
-        "0x9318a275A28F46CA742f84402226E27463cA8050",
+        "0xdE3bC78Ece937f56E103846B711c1f72C62c8BF6",
       );
     });
 
@@ -100,7 +100,7 @@ describe("strategies - invocation via helper", () => {
 
       assert.equal(
         result.baz.address,
-        "0x8EFE40FAEF47066689Cb06b561F5EC63F9DeA616",
+        "0x8ad6f8a711D9fB2D7f207046536A8FfD96C19a1c",
       );
     });
   });
