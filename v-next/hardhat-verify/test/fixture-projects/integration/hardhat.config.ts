@@ -4,9 +4,9 @@ import hardhatVerify from "../../../src/index.js";
 
 const config: HardhatUserConfig = {
   networks: {
-    sepolia: {
+    default: {
       type: "edr",
-      chainId: 11155111,
+      chainId: 11155111, // Sepolia
     },
   },
   solidity: {
