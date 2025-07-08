@@ -155,7 +155,7 @@ describe("NetworkManagerImplementation", () => {
   });
 
   describe("connect", () => {
-    it.only("should connect to the default network and chain type if none are provided", async () => {
+    it("should connect to the default network and chain type if none are provided", async () => {
       const networkConnection = await networkManager.connect();
       assert.equal(networkConnection.networkName, "default");
       assert.equal(networkConnection.chainType, GENERIC_CHAIN_TYPE);
