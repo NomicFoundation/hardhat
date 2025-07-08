@@ -42,9 +42,9 @@ export async function extendUserConfig(
     ...(networks.localhost as HttpNetworkUserConfig),
   };
 
-  const hardhatConfig: Partial<EdrNetworkUserConfig> = {
+  const defaultConfig: Partial<EdrNetworkUserConfig> = {
     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- This is always edr
-    ...(networks.hardhat as EdrNetworkUserConfig),
+    ...(networks.default as EdrNetworkUserConfig),
   };
 
   return {
@@ -56,19 +56,14 @@ export async function extendUserConfig(
         ...localhostConfig,
         type: "http",
       },
-      // Only add the default network if the user hasn’t already provided one
-      ...(DEFAULT_NETWORK_NAME in networks
-        ? {}
-        : {
-            [DEFAULT_NETWORK_NAME]: {
-              chainId: 31337,
-              gas: "auto",
-              gasMultiplier: 1,
-              gasPrice: "auto",
-              ...hardhatConfig,
-              type: "edr",
-            },
-          }),
+      [DEFAULT_NETWORK_NAME]: {
+        chainId: 31337,
+        gas: "auto",
+        gasMultiplier: 1,
+        gasPrice: "auto",
+        ...defaultConfig,
+        type: "edr",
+      },
     },
   };
 }
