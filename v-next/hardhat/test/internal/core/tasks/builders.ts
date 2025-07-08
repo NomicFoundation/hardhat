@@ -828,7 +828,7 @@ describe("Task builders", () => {
                 shortName,
                 defaultValue: "default",
               }),
-            HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_NAME,
+            HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_SHORT_NAME,
             {
               name: shortName,
             },
@@ -840,7 +840,7 @@ describe("Task builders", () => {
                 name: "flag1",
                 shortName,
               }),
-            HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_NAME,
+            HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_SHORT_NAME,
             {
               name: shortName,
             },
@@ -1438,7 +1438,7 @@ describe("Task builders", () => {
                 shortName,
                 defaultValue: "default",
               }),
-            HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_NAME,
+            HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_SHORT_NAME,
             {
               name: shortName,
             },
@@ -1450,7 +1450,7 @@ describe("Task builders", () => {
                 name: "flag",
                 shortName,
               }),
-            HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_NAME,
+            HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_SHORT_NAME,
             {
               name: shortName,
             },

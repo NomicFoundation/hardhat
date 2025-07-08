@@ -202,7 +202,7 @@ describe("Global Options", () => {
               ],
             },
           ]),
-        HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_NAME,
+        HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_SHORT_NAME,
         {
           name: "bar",
         },
@@ -341,7 +341,7 @@ describe("Global Options", () => {
             description: "Foo description",
             defaultValue: "bar",
           }),
-        HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_NAME,
+        HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_SHORT_NAME,
         {
           name: "bar",
         },
