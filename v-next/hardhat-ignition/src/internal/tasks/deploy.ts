@@ -86,7 +86,7 @@ const taskDeploy: NewTaskActionFunction<TaskDeployArguments> = async (
   );
 
   const deploymentDir =
-    connection.networkName === "hardhat" && !writeLocalhostDeployment
+    connection.networkName === "default" && !writeLocalhostDeployment
       ? undefined
       : path.join(hre.config.paths.ignition, "deployments", deploymentId);
   if (chainId !== 31337) {
