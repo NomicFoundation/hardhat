@@ -200,7 +200,7 @@ Explorer: ${instance.getContractUrl(address)}
   const encodedConstructorArgs = await encodeConstructorArgs(
     contractInformation.compilerOutputContract.abi,
     constructorArgs,
-    contractInformation.contract,
+    contractInformation.userFqn,
   );
 
   const minimalCompilerInput = await getCompilerInput(
@@ -236,14 +236,14 @@ Explorer: ${instance.getContractUrl(address)}
     consoleLog(`
 🎉 Contract verified successfully on ${instance.name}!
 
-  ${contractInformation.contract}
+  ${contractInformation.userFqn}
   Explorer: ${instance.getContractUrl(address)}
 `);
     return true;
   }
 
   consoleLog(`
-The initial verification attempt for ${contractInformation.contract} failed using the minimal compiler input.
+The initial verification attempt for ${contractInformation.userFqn} failed using the minimal compiler input.
 
 Trying again with the full solc input used to compile and deploy the contract.
 Unrelated contracts may be displayed on ${instance.name} as a result.
@@ -277,7 +277,7 @@ Unrelated contracts may be displayed on ${instance.name} as a result.
     consoleLog(`
 🎉 Contract verified successfully on ${instance.name}!
 
-  ${contractInformation.contract}
+  ${contractInformation.userFqn}
   Explorer: ${instance.getContractUrl(address)}
 `);
     return true;
@@ -411,7 +411,7 @@ async function attemptVerification(
   const guid = await verificationProvider.verify(
     address,
     JSON.stringify(contractInformation.compilerInput),
-    contractInformation.contract,
+    contractInformation.inputFqn,
     `v${contractInformation.solcLongVersion}`,
     encodedConstructorArgs,
   );
@@ -419,7 +419,7 @@ async function attemptVerification(
   consoleLog(`
 ✅ Submitted source code for verification on ${verificationProvider.name}:
 
-  ${contractInformation.contract}
+  ${contractInformation.userFqn}
   Address: ${address}
 
 ⏳ Waiting for verification result...
@@ -430,7 +430,7 @@ async function attemptVerification(
   const verificationStatus = await verificationProvider.pollVerificationStatus(
     guid,
     address,
-    contractInformation.contract,
+    contractInformation.userFqn,
   );
 
   return verificationStatus;

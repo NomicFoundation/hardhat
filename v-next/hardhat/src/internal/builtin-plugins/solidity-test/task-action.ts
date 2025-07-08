@@ -9,11 +9,12 @@ import type {
 
 import { finished } from "node:stream/promises";
 
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
 import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
 import { createNonClosingWriter } from "@nomicfoundation/hardhat-utils/stream";
-import chalk from "chalk";
 
+import { isSupportedChainType } from "../../edr/chain-type.js";
 import { throwIfSolidityBuildFailed } from "../solidity/build-results.js";
 
 import { getEdrArtifacts, getBuildInfos } from "./edr-artifacts.js";
@@ -38,14 +39,15 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
 ) => {
   let rootFilePaths: string[];
 
-  if (chainType !== "l1") {
-    console.log(
-      chalk.yellow(
-        `Chain type selection for tests will be implemented soon. Please check our communication channels for updates. For now, please run the task without the --chain-type option.`,
-      ),
+  if (!isSupportedChainType(chainType)) {
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+      {
+        value: chainType,
+        type: "ChainType",
+        name: "chainType",
+      },
     );
-    process.exitCode = 1;
-    return;
   }
 
   // NOTE: We run the compile task first to ensure all the artifacts for them are generated
@@ -110,6 +112,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
 
   const config: SolidityTestRunnerConfigArgs =
     solidityTestConfigToSolidityTestRunnerConfigArgs(
+      chainType,
       hre.config.paths.root,
       solidityTestConfig,
       grep,
@@ -129,6 +132,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   );
 
   const runStream = run(
+    chainType,
     edrArtifacts.map(({ edrAtifact }) => edrAtifact),
     testSuiteIds,
     config,
