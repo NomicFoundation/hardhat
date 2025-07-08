@@ -39,7 +39,7 @@ export class JsonRpcHandler {
       return;
     }
 
-    let jsonHttpRequest: any;
+    let jsonHttpRequest: unknown;
     try {
       jsonHttpRequest = await _readJsonHttpRequest(req);
     } catch (error) {
@@ -52,7 +52,9 @@ export class JsonRpcHandler {
     // the following code block could be safely removed.
     if (Array.isArray(jsonHttpRequest)) {
       const responses = await Promise.all(
-        jsonHttpRequest.map((singleReq: any) => this.#handleRequest(singleReq)),
+        jsonHttpRequest.map((singleReq: unknown) =>
+          this.#handleRequest(singleReq),
+        ),
       );
 
       this.#sendResponse(res, responses);
@@ -148,25 +150,32 @@ export class JsonRpcHandler {
     res.end(JSON.stringify(rpcResp));
   }
 
-  async #handleRequest(req: JsonRpcRequest): Promise<JsonRpcResponse> {
-    req.params = req.params ?? [];
-
-    if (!isJsonRpcRequest(req)) {
+  async #handleRequest(payload: unknown): Promise<JsonRpcResponse> {
+    if (!isObject(payload)) {
       return _handleError(new InvalidRequestError());
     }
 
-    const rpcReq: JsonRpcRequest = req;
+    const maybeReq = {
+      ...payload,
+      params: payload.params ?? [],
+    };
+
+    if (!isJsonRpcRequest(maybeReq)) {
+      return _handleError(new InvalidRequestError());
+    }
+
+    const rpcReq: JsonRpcRequest = maybeReq;
     let rpcResp: JsonRpcResponse | undefined;
 
     try {
       const result = await this.#provider.request({
-        method: req.method,
-        params: req.params,
+        method: rpcReq.method,
+        params: rpcReq.params,
       });
 
       rpcResp = {
         jsonrpc: "2.0",
-        id: req.id,
+        id: rpcReq.id,
         result,
       };
     } catch (error) {
@@ -202,8 +211,8 @@ export class JsonRpcHandler {
   }
 }
 
-const _readJsonHttpRequest = async (req: IncomingMessage): Promise<any> => {
-  let json;
+const _readJsonHttpRequest = async (req: IncomingMessage): Promise<unknown> => {
+  let json: unknown;
 
   try {
     const bytes: number[] = [];
@@ -279,6 +288,7 @@ function extractTxHash(error: Error): string | undefined {
     return error.data.transactionHash;
   }
 }
+
 function extractReturnData(error: Error): string | undefined {
   if (!("data" in error)) {
     return undefined;
