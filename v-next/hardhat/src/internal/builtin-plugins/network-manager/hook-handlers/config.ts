@@ -11,7 +11,10 @@ import type { ConfigHooks } from "../../../../types/hooks.js";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
-import { GENERIC_CHAIN_TYPE } from "../../../constants.js";
+import {
+  DEFAULT_NETWORK_NAME,
+  GENERIC_CHAIN_TYPE,
+} from "../../../constants.js";
 import {
   resolveChainDescriptors,
   resolveEdrNetwork,
@@ -53,14 +56,19 @@ export async function extendUserConfig(
         ...localhostConfig,
         type: "http",
       },
-      hardhat: {
-        chainId: 31337,
-        gas: "auto",
-        gasMultiplier: 1,
-        gasPrice: "auto",
-        ...hardhatConfig,
-        type: "edr",
-      },
+      // Only add the default network if the user hasn’t already provided one
+      ...(DEFAULT_NETWORK_NAME in networks
+        ? {}
+        : {
+            [DEFAULT_NETWORK_NAME]: {
+              chainId: 31337,
+              gas: "auto",
+              gasMultiplier: 1,
+              gasPrice: "auto",
+              ...hardhatConfig,
+              type: "edr",
+            },
+          }),
     },
   };
 }
@@ -107,7 +115,6 @@ export async function resolveUserConfig(
       userConfig.chainDescriptors,
     ),
     defaultChainType: resolvedConfig.defaultChainType ?? GENERIC_CHAIN_TYPE,
-    defaultNetwork: resolvedConfig.defaultNetwork ?? "hardhat",
     networks: resolvedNetworks,
   };
 }

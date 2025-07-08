@@ -3,7 +3,6 @@ import type { HardhatUserConfig } from "hardhat/config";
 import hardhatVerify from "../../../src/index.js";
 
 const config: HardhatUserConfig = {
-  defaultNetwork: "sepolia",
   networks: {
     sepolia: {
       type: "edr",

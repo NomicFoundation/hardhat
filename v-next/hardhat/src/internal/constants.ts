@@ -7,3 +7,5 @@ export const EDR_NETWORK_REVERT_SNAPSHOT_EVENT = "hardhatNetworkRevertSnapshot";
 export const GENERIC_CHAIN_TYPE = "generic";
 export const L1_CHAIN_TYPE = "l1";
 export const OPTIMISM_CHAIN_TYPE = "optimism";
+
+export const DEFAULT_NETWORK_NAME = "default";

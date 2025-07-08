@@ -210,7 +210,6 @@ async function resolveUserConfig(
     plugins: sortedPlugins,
     tasks: config.tasks ?? [],
     paths: resolvePaths(projectRoot, configPath, config.paths),
-    defaultNetwork: config.defaultNetwork ?? "hardhat",
   } as HardhatConfig;
 
   return hooks.runHandlerChain(
