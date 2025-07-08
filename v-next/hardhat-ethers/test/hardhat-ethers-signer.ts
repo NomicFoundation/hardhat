@@ -157,7 +157,7 @@ describe("hardhat ethers signer", () => {
         const { ethers: hhEthers, provider: hhProvider } =
           await initializeTestEthers([], {
             networks: {
-              hardhat: {
+              default: {
                 type: "edr",
                 accounts: [
                   { balance: "1000000000000000000", privateKey: TEST_P_KEY_1 },
@@ -174,7 +174,7 @@ describe("hardhat ethers signer", () => {
         const { ethers: hhEthers, provider: hhProvider } =
           await initializeTestEthers([], {
             networks: {
-              hardhat: {
+              default: {
                 type: "edr",
                 accounts: HD_ACCOUNTS,
               },
