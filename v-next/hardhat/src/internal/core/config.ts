@@ -95,7 +95,7 @@ export function globalFlag(options: {
 }
 
 /**
- * Defines a global flag.
+ * Defines a global level.
  */
 export function globalLevel(options: {
   name: string;

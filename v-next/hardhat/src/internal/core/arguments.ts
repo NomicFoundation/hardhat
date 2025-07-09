@@ -185,7 +185,12 @@ export function parseArgumentValue(
     case ArgumentType.BOOLEAN:
       return validateAndParseBoolean(name, value);
     case ArgumentType.FLAG:
-      return validateAndParseFlag(name, value);
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.INTERNAL.ASSERTION_ERROR,
+        {
+          message: "Flags should never accept values",
+        },
+      );
   }
 }
 
@@ -270,26 +275,6 @@ function validateAndParseBoolean(name: string, value: string): boolean {
         value,
         name,
         type: ArgumentType.BOOLEAN,
-      },
-    );
-  }
-
-  return normalizedValue === "true";
-}
-
-// NOTE: Even though flags do not accept values, we still provide a validation
-// function for consistency. Alternatively, we could always throw an error when
-// we receive a value for a flag.
-function validateAndParseFlag(name: string, value: string): boolean {
-  const normalizedValue = value.toLowerCase();
-
-  if (normalizedValue !== "true" && normalizedValue !== "false") {
-    throw new HardhatError(
-      HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
-      {
-        value,
-        name,
-        type: ArgumentType.FLAG,
       },
     );
   }
