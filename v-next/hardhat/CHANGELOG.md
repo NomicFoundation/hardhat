@@ -1,5 +1,12 @@
 # hardhat
 
+## 3.0.0-next.22
+
+### Patch Changes
+
+- bfb708c: Added support for short option names
+- a5ac0b1: Added FLAG and LEVEL arguments types
+
 ## 3.0.0-next.21
 
 ### Patch Changes
