@@ -143,7 +143,10 @@ const argumentTypeValidators: Record<
   [ArgumentType.STRING]: (value): value is string => typeof value === "string",
   [ArgumentType.BOOLEAN]: (value): value is boolean =>
     typeof value === "boolean",
+  [ArgumentType.FLAG]: (value): value is boolean => typeof value === "boolean",
   [ArgumentType.INT]: (value): value is number => Number.isInteger(value),
+  [ArgumentType.LEVEL]: (value): value is number =>
+    Number.isInteger(value) && Number(value) >= 0,
   [ArgumentType.BIGINT]: (value): value is bigint => typeof value === "bigint",
   [ArgumentType.FLOAT]: (value): value is number => typeof value === "number",
   [ArgumentType.FILE]: (value): value is string => typeof value === "string",
@@ -173,12 +176,21 @@ export function parseArgumentValue(
       return value;
     case ArgumentType.INT:
       return validateAndParseInt(name, value);
+    case ArgumentType.LEVEL:
+      return validateAndParseLevel(name, value);
     case ArgumentType.FLOAT:
       return validateAndParseFloat(name, value);
     case ArgumentType.BIGINT:
       return validateAndParseBigInt(name, value);
     case ArgumentType.BOOLEAN:
       return validateAndParseBoolean(name, value);
+    case ArgumentType.FLAG:
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.INTERNAL.ASSERTION_ERROR,
+        {
+          message: "Flags should never accept values",
+        },
+      );
   }
 }
 
@@ -193,6 +205,23 @@ function validateAndParseInt(name: string, value: string): number {
         value,
         name,
         type: ArgumentType.INT,
+      },
+    );
+  }
+
+  return Number(value);
+}
+
+function validateAndParseLevel(name: string, value: string): number {
+  const decimalPattern = /^\d+$/;
+
+  if (!decimalPattern.test(value) || Number(value) < 0) {
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+      {
+        value,
+        name,
+        type: ArgumentType.LEVEL,
       },
     );
   }

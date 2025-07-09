@@ -543,9 +543,14 @@ function parseOptions(
     const optionName = optionDefinition.name;
 
     // Check if the short name is valid again now that we know its type
+    // E.g. --flag --flag
+    const optionAlreadyProvided = providedArguments[optionName] !== undefined;
+    // E.g. -ff
+    const shortOptionGroupedAndRepeated = providedByShortName && arg.length > 2;
+    const isLevelOption = optionDefinition.type === ArgumentType.LEVEL;
     if (
-      providedArguments[optionName] !== undefined ||
-      (providedByShortName && arg.length > 2)
+      optionAlreadyProvided ||
+      (shortOptionGroupedAndRepeated && !isLevelOption)
     ) {
       throw new HardhatError(
         HardhatError.ERRORS.CORE.ARGUMENTS.CANNOT_REPEAT_OPTIONS,
@@ -558,30 +563,15 @@ function parseOptions(
 
     usedCliArguments[i] = true;
 
-    if (optionDefinition.type === ArgumentType.BOOLEAN) {
-      if (
-        usedCliArguments[i + 1] !== undefined &&
-        usedCliArguments[i + 1] === false &&
-        (cliArguments[i + 1] === "true" || cliArguments[i + 1] === "false")
-      ) {
-        // The argument could be followed by a boolean value if it does not
-        // behaves like a flag
-        providedArguments[optionName] = parseArgumentValue(
-          cliArguments[i + 1],
-          ArgumentType.BOOLEAN,
-          optionName,
-        );
-
-        usedCliArguments[i + 1] = true;
-        continue;
-      }
-
-      if (optionDefinition.defaultValue === false) {
-        // If the default value for the argument is false, the argument behaves
-        // like a flag, so there is no need to specify the value
-        providedArguments[optionName] = true;
-        continue;
-      }
+    if (optionDefinition.type === ArgumentType.FLAG) {
+      providedArguments[optionName] = true;
+      continue;
+    } else if (
+      optionDefinition.type === ArgumentType.LEVEL &&
+      providedByShortName
+    ) {
+      providedArguments[optionName] = arg.length - 1;
+      continue;
     } else if (
       usedCliArguments[i + 1] !== undefined &&
       usedCliArguments[i + 1] === false

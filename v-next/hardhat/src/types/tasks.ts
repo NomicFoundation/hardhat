@@ -177,10 +177,6 @@ export interface NewTaskDefinitionBuilder<
    *
    * A task option is one that is used as `--<name> value` in the CLI.
    *
-   * If the type is `ArgumentType.BOOLEAN`, the default value is `false`, the
-   * argument is considered a flag, and can be used as `--<name>` to set it to
-   * `true`.
-   *
    * The type of the argument defaults to `ArgumentType.STRING`.
    *
    * The default value should be of the same type as the argument.
@@ -199,14 +195,25 @@ export interface NewTaskDefinitionBuilder<
   >;
 
   /**
-   * Adds an option of boolean type and default value false.
+   * Adds an option of flag type and default value false.
    */
   addFlag<NameT extends string>(flagConfig: {
     name: NameT;
     shortName?: string;
     description?: string;
   }): NewTaskDefinitionBuilder<
-    ExtendTaskArguments<NameT, ArgumentType.BOOLEAN, TaskArgumentsT>
+    ExtendTaskArguments<NameT, ArgumentType.FLAG, TaskArgumentsT>
+  >;
+
+  /**
+   * Adds an option of level type and default value 0.
+   */
+  addLevel<NameT extends string>(flagConfig: {
+    name: NameT;
+    shortName?: string;
+    description?: string;
+  }): NewTaskDefinitionBuilder<
+    ExtendTaskArguments<NameT, ArgumentType.LEVEL, TaskArgumentsT>
   >;
 
   /**
@@ -306,14 +313,25 @@ export interface TaskOverrideDefinitionBuilder<
   >;
 
   /**
-   * Adds an option of boolean type and default value false.
+   * Adds an option of flag type and default value false.
    */
   addFlag<NameT extends string>(flagConfig: {
     name: NameT;
     shortName?: string;
     description?: string;
   }): TaskOverrideDefinitionBuilder<
-    ExtendTaskArguments<NameT, ArgumentType.BOOLEAN, TaskArgumentsT>
+    ExtendTaskArguments<NameT, ArgumentType.FLAG, TaskArgumentsT>
+  >;
+
+  /**
+   * Adds an option of level type and default value 0.
+   */
+  addLevel<NameT extends string>(flagConfig: {
+    name: NameT;
+    shortName?: string;
+    description?: string;
+  }): TaskOverrideDefinitionBuilder<
+    ExtendTaskArguments<NameT, ArgumentType.LEVEL, TaskArgumentsT>
   >;
 
   /**
