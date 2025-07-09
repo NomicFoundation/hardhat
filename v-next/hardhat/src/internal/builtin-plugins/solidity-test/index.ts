@@ -1,8 +1,8 @@
 import type { HardhatPlugin } from "../../../types/plugins.js";
 
-import { task } from "../../core/config.js";
-
 import { ArgumentType } from "hardhat/types/arguments";
+
+import { task } from "../../core/config.js";
 
 import "./type-extensions.js";
 
@@ -21,7 +21,7 @@ const hardhatPlugin: HardhatPlugin = {
       })
       .addOption({
         name: "chainType",
-        description: "Not implemented yet - The chain type to use",
+        description: "The chain type to use",
         defaultValue: "l1",
       })
       .addOption({

@@ -1,6 +1,7 @@
 import type { RunOptions } from "./runner.js";
 import type { Abi } from "../../../types/artifacts.js";
 import type { SolidityTestConfig } from "../../../types/config.js";
+import type { ChainType } from "../../../types/network.js";
 import type {
   SolidityTestRunnerConfigArgs,
   CachedChains,
@@ -11,7 +12,15 @@ import type {
   Artifact,
 } from "@ignored/edr-optimism";
 
+import {
+  opGenesisState,
+  opLatestHardfork,
+  l1GenesisState,
+  l1HardforkLatest,
+} from "@ignored/edr-optimism";
 import { hexStringToBytes } from "@nomicfoundation/hardhat-utils/hex";
+
+import { OPTIMISM_CHAIN_TYPE } from "../../constants.js";
 
 function hexStringToBuffer(hexString: string): Buffer {
   return Buffer.from(hexStringToBytes(hexString));
@@ -24,6 +33,7 @@ export function solidityTestConfigToRunOptions(
 }
 
 export function solidityTestConfigToSolidityTestRunnerConfigArgs(
+  chainType: ChainType,
   projectRoot: string,
   config: SolidityTestConfig,
   testPattern?: string,
@@ -90,11 +100,17 @@ export function solidityTestConfigToSolidityTestRunnerConfigArgs(
       ? undefined
       : hexStringToBuffer(config.blockCoinbase);
 
+  const localPredeploys =
+    chainType === OPTIMISM_CHAIN_TYPE
+      ? opGenesisState(opLatestHardfork())
+      : l1GenesisState(l1HardforkLatest());
+
   return {
     projectRoot,
     ...config,
     fsPermissions,
     labels,
+    localPredeploys,
     sender,
     txOrigin,
     blockCoinbase,

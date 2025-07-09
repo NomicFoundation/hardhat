@@ -37,6 +37,11 @@ const hardhatConfigFailingTests = {
   paths: { tests: { solidity: "test/contracts/failing" } },
 };
 
+const hardhatConfigOpTests = {
+  ...hardhatConfig,
+  paths: { tests: { solidity: "test/contracts/op" } },
+};
+
 describe("solidity-test/task-action", function () {
   let hre: HardhatRuntimeEnvironment;
 
@@ -128,6 +133,32 @@ describe("solidity-test/task-action", function () {
       } finally {
         process.exitCode = exitCode;
       }
+    });
+
+    describe("when the contracts are in the optimism chain type", () => {
+      it("should run all the solidity tests when the optimism chain type is specified", async () => {
+        hre = await createHardhatRuntimeEnvironment(hardhatConfigOpTests);
+
+        await hre.tasks.getTask(["test", "solidity"]).run({
+          noCompile: true,
+          chainType: "optimism",
+        });
+      });
+
+      it("should throw because the test is not compatible with the l1 chain type", async () => {
+        hre = await createHardhatRuntimeEnvironment(hardhatConfigOpTests);
+
+        const exitCode = process.exitCode;
+        try {
+          // default chain type is l1
+          await hre.tasks.getTask(["test", "solidity"]).run({
+            noCompile: true,
+          });
+          assert.equal(process.exitCode, 1);
+        } finally {
+          process.exitCode = exitCode;
+        }
+      });
     });
   });
 });

@@ -56,16 +56,19 @@ export function isArgumentNameValid(name: string): boolean {
  *
  * @param name The short name of the argument.
  * @throws {HardhatError} with descriptor:
- * - {@link HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_NAME} if the name is invalid.
+ * - {@link HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_SHORT_NAME} if the name is invalid.
  * A valid short name must be a lowercase letter.
  * - {@link HardhatError.ERRORS.CORE.ARGUMENTS.RESERVED_NAME} if the short name is
  * reserved. See {@link RESERVED_ARGUMENT_SHORT_NAMES}.
  */
 export function validateArgumentShortName(name: string): void {
   if (!isArgumentShortNameValid(name)) {
-    throw new HardhatError(HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_NAME, {
-      name,
-    });
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_SHORT_NAME,
+      {
+        name,
+      },
+    );
   }
 
   if (RESERVED_ARGUMENT_SHORT_NAMES.has(name)) {

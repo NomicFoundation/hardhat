@@ -758,6 +758,14 @@ Please double check your arguments, and try providing the options separately.`,
 
 Please double check your arguments.`,
       },
+      INVALID_SHORT_NAME: {
+        number: 511,
+        messageTemplate: `Argument short name "{name}" is invalid. It must consist of exactly one letter.`,
+        websiteTitle: "Invalid short argument name",
+        websiteDescription: `One of your Hardhat or task short argument names is invalid.
+
+Please double check your arguments.`,
+      },
     },
     BUILTIN_TASKS: {
       RUN_FILE_NOT_FOUND: {
@@ -997,7 +1005,7 @@ Remaining test suites: {suites}`,
 {error}`,
         websiteTitle: "Project file resolution error",
         websiteDescription: `There was an error while resolving the project file.
-        
+
 Please double-check your configuration. If it keeps happening, please report it.`,
       },
       NPM_ROOT_RESOLUTION_ERROR: {
@@ -1007,7 +1015,7 @@ Please double-check your configuration. If it keeps happening, please report it.
 {error}`,
         websiteTitle: "Npm file resolution error",
         websiteDescription: `There was an error while resolving an npm module that you are trying to compile and generate artifacts for.
-        
+
 Please double-check your configuration. If it keeps happening, please report it.`,
       },
       IMPORT_RESOLUTION_ERROR: {
