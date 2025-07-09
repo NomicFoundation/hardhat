@@ -190,6 +190,7 @@ export interface NewTaskDefinitionBuilder<
     TypeT extends ArgumentType = ArgumentType.STRING,
   >(optionConfig: {
     name: NameT;
+    shortName?: string;
     description?: string;
     type?: TypeT;
     defaultValue: ArgumentTypeToValueType<TypeT>;
@@ -202,6 +203,7 @@ export interface NewTaskDefinitionBuilder<
    */
   addFlag<NameT extends string>(flagConfig: {
     name: NameT;
+    shortName?: string;
     description?: string;
   }): NewTaskDefinitionBuilder<
     ExtendTaskArguments<NameT, ArgumentType.BOOLEAN, TaskArgumentsT>
@@ -295,6 +297,7 @@ export interface TaskOverrideDefinitionBuilder<
     TypeT extends ArgumentType = ArgumentType.STRING,
   >(optionConfig: {
     name: NameT;
+    shortName?: string;
     description?: string;
     type?: TypeT;
     defaultValue: ArgumentTypeToValueType<TypeT>;
@@ -307,6 +310,7 @@ export interface TaskOverrideDefinitionBuilder<
    */
   addFlag<NameT extends string>(flagConfig: {
     name: NameT;
+    shortName?: string;
     description?: string;
   }): TaskOverrideDefinitionBuilder<
     ExtendTaskArguments<NameT, ArgumentType.BOOLEAN, TaskArgumentsT>

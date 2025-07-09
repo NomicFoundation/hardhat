@@ -71,6 +71,7 @@ export function overrideTask(
  */
 export function globalOption<T extends ArgumentType>(options: {
   name: string;
+  shortName?: string;
   description: string;
   type?: T;
   defaultValue: ArgumentTypeToValueType<T>;
@@ -83,6 +84,7 @@ export function globalOption<T extends ArgumentType>(options: {
  */
 export function globalFlag(options: {
   name: string;
+  shortName?: string;
   description: string;
 }): OptionDefinition {
   return buildGlobalOptionDefinition({
