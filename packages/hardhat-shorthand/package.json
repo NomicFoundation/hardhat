@@ -40,7 +40,7 @@
     "@types/debug": "^4.1.4",
     "@types/fs-extra": "^5.1.0",
     "@types/mocha": ">=9.1.0",
-    "@types/node": "^18.0.0",
+    "@types/node": "^20.0.0",
     "@types/semver": "^6.0.2",
     "@typescript-eslint/eslint-plugin": "5.61.0",
     "@typescript-eslint/parser": "5.61.0",

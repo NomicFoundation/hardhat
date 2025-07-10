@@ -56,7 +56,7 @@
     "@types/debug": "^4.1.7",
     "@types/fs-extra": "^9.0.13",
     "@types/mocha": "9.1.1",
-    "@types/node": "^18.0.0",
+    "@types/node": "^20.0.0",
     "@types/ndjson": "2.0.1",
     "@types/lodash": "^4.14.123",
     "@typescript-eslint/eslint-plugin": "^5.57.1",
