@@ -222,7 +222,9 @@ describe("compile task", function () {
       useEnvironment();
 
       it("should throw an error because the file does not exist", async function () {
-        const absolutePath = `${__dirname}/../fixture-projects/${folderName}/contracts/file.sol`;
+        const absolutePath = await fsExtra.realpath(
+          `${__dirname}/../fixture-projects/${folderName}/contracts/file.sol`
+        );
 
         await expect(
           this.env.run(TASK_COMPILE_SOLIDITY_READ_FILE, { absolutePath })
