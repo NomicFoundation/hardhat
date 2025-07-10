@@ -25,7 +25,7 @@ export async function initializeTestEthers(
   const hre = await createHardhatRuntimeEnvironment(config);
 
   const network =
-    config.networks?.localhost !== undefined ? "localhost" : "hardhat";
+    config.networks?.localhost !== undefined ? "localhost" : "default";
 
   const connection = await hre.network.connect(network);
 

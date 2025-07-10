@@ -10,7 +10,7 @@ export default {
     },
   },
   networks: {
-    hardhat: {
+    default: {
       chainId: 88888,
     },
   },

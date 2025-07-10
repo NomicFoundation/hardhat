@@ -24,6 +24,7 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { readBinaryFile } from "@nomicfoundation/hardhat-utils/fs";
 import { deepMerge } from "@nomicfoundation/hardhat-utils/lang";
 
+import { DEFAULT_NETWORK_NAME } from "../../constants.js";
 import { resolveConfigurationVariable } from "../../core/configuration-variables.js";
 import { isSupportedChainType } from "../../edr/chain-type.js";
 
@@ -39,7 +40,6 @@ export type JsonRpcRequestWrapperFunction = (
 ) => Promise<JsonRpcResponse>;
 
 export class NetworkManagerImplementation implements NetworkManager {
-  readonly #defaultNetwork: string;
   readonly #defaultChainType: DefaultChainType;
   readonly #networkConfigs: Readonly<Record<string, Readonly<NetworkConfig>>>;
   readonly #hookManager: Readonly<HookManager>;
@@ -50,7 +50,6 @@ export class NetworkManagerImplementation implements NetworkManager {
   #nextConnectionId = 0;
 
   constructor(
-    defaultNetwork: string,
     defaultChainType: DefaultChainType,
     networkConfigs: Record<string, NetworkConfig>,
     hookManager: HookManager,
@@ -58,7 +57,6 @@ export class NetworkManagerImplementation implements NetworkManager {
     userConfigNetworks: Record<string, NetworkUserConfig> | undefined,
     chainDescriptors: ChainDescriptorsConfig,
   ) {
-    this.#defaultNetwork = defaultNetwork;
     this.#defaultChainType = defaultChainType;
     this.#networkConfigs = networkConfigs;
     this.#hookManager = hookManager;
@@ -102,7 +100,8 @@ export class NetworkManagerImplementation implements NetworkManager {
     chainType?: ChainTypeT,
     networkConfigOverride?: NetworkConfigOverride,
   ): Promise<NetworkConnection<ChainTypeT>> {
-    const resolvedNetworkName = networkName ?? this.#defaultNetwork;
+    const resolvedNetworkName = networkName ?? DEFAULT_NETWORK_NAME;
+
     if (this.#networkConfigs[resolvedNetworkName] === undefined) {
       throw new HardhatError(
         HardhatError.ERRORS.CORE.NETWORK.NETWORK_NOT_FOUND,

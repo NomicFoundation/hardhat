@@ -8,6 +8,7 @@ import {
 import { exists } from "@nomicfoundation/hardhat-utils/fs";
 import chalk from "chalk";
 
+import { DEFAULT_NETWORK_NAME } from "../../constants.js";
 import { isSupportedChainType } from "../../edr/chain-type.js";
 
 import { formatEdrNetworkConfigAccounts } from "./helpers.js";
@@ -29,7 +30,7 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
   const network =
     hre.globalOptions.network !== undefined
       ? hre.globalOptions.network
-      : hre.config.defaultNetwork;
+      : DEFAULT_NETWORK_NAME;
 
   if (!(network in hre.config.networks)) {
     throw new HardhatError(HardhatError.ERRORS.CORE.NETWORK.NETWORK_NOT_FOUND, {
