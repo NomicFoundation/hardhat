@@ -3,7 +3,7 @@
   "image": "mcr.microsoft.com/devcontainers/base:bullseye",
   "features": {
     "ghcr.io/devcontainers/features/node:1": {
-      "version": "18"
+      "version": "20"
     }
   },
   "postCreateCommand": "scripts/setup.sh",

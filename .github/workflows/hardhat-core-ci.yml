@@ -39,7 +39,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [18.15]
+        node: [20]
         os: ["macos-13", "ubuntu-latest", "windows-latest"]
     steps:
       - uses: actions/checkout@v4
@@ -77,7 +77,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [18.15]
+        node: [20]
         os: ["macos-13", "ubuntu-latest", "windows-latest"]
     steps:
       - uses: actions/checkout@v4
