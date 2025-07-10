@@ -372,12 +372,12 @@ function getTaskFromCliArguments(
 
     const arg = cliArguments[i];
 
-    if (arg.startsWith("--")) {
+    if (arg.startsWith("-")) {
       /* A standalone '--' is ok because it is used to separate CLI tool arguments
        * from task arguments, ensuring the tool passes subsequent options directly
        * to the task. Everything after "--" should be considered as a positional
        * argument. */
-      if (arg.length === 2 || task !== undefined) {
+      if (arg === "--" || task !== undefined) {
         break;
       }
 
@@ -474,6 +474,16 @@ function parseOptions(
   providedArguments: TaskArguments,
   ignoreUnknownOption = false,
 ) {
+  const optionDefinitionsByShortName = new Map<string, OptionDefinition>();
+  for (const optionDefinition of optionDefinitions.values()) {
+    if (optionDefinition.shortName !== undefined) {
+      optionDefinitionsByShortName.set(
+        optionDefinition.shortName,
+        optionDefinition,
+      );
+    }
+  }
+
   for (let i = 0; i < cliArguments.length; i++) {
     if (usedCliArguments[i]) {
       continue;
@@ -489,12 +499,31 @@ function parseOptions(
 
     const arg = cliArguments[i];
 
-    if (arg.startsWith("--") === false) {
+    let optionDefinition: OptionDefinition | undefined;
+
+    const providedByName = arg.startsWith("--");
+    const providedByShortName = !providedByName && arg.startsWith("-");
+
+    if (providedByName) {
+      const name = kebabToCamelCase(arg.substring(2));
+      optionDefinition = optionDefinitions.get(name);
+    } else if (providedByShortName) {
+      const shortName = arg[1];
+
+      // Check if the short name is valid
+      if (Array.from(arg.substring(1)).some((c) => c !== shortName)) {
+        throw new HardhatError(
+          HardhatError.ERRORS.CORE.ARGUMENTS.CANNOT_GROUP_OPTIONS,
+          {
+            option: arg,
+          },
+        );
+      }
+
+      optionDefinition = optionDefinitionsByShortName.get(shortName);
+    } else {
       continue;
     }
-
-    const optionName = kebabToCamelCase(arg.substring(2));
-    const optionDefinition = optionDefinitions.get(optionName);
 
     if (optionDefinition === undefined) {
       if (ignoreUnknownOption === true) {
@@ -511,32 +540,38 @@ function parseOptions(
       );
     }
 
+    const optionName = optionDefinition.name;
+
+    // Check if the short name is valid again now that we know its type
+    // E.g. --flag --flag
+    const optionAlreadyProvided = providedArguments[optionName] !== undefined;
+    // E.g. -ff
+    const shortOptionGroupedAndRepeated = providedByShortName && arg.length > 2;
+    const isLevelOption = optionDefinition.type === ArgumentType.LEVEL;
+    if (
+      optionAlreadyProvided ||
+      (shortOptionGroupedAndRepeated && !isLevelOption)
+    ) {
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.ARGUMENTS.CANNOT_REPEAT_OPTIONS,
+        {
+          option: arg,
+          type: optionDefinition.type,
+        },
+      );
+    }
+
     usedCliArguments[i] = true;
 
-    if (optionDefinition.type === ArgumentType.BOOLEAN) {
-      if (
-        usedCliArguments[i + 1] !== undefined &&
-        usedCliArguments[i + 1] === false &&
-        (cliArguments[i + 1] === "true" || cliArguments[i + 1] === "false")
-      ) {
-        // The argument could be followed by a boolean value if it does not
-        // behaves like a flag
-        providedArguments[optionName] = parseArgumentValue(
-          cliArguments[i + 1],
-          ArgumentType.BOOLEAN,
-          optionName,
-        );
-
-        usedCliArguments[i + 1] = true;
-        continue;
-      }
-
-      if (optionDefinition.defaultValue === false) {
-        // If the default value for the argument is false, the argument behaves
-        // like a flag, so there is no need to specify the value
-        providedArguments[optionName] = true;
-        continue;
-      }
+    if (optionDefinition.type === ArgumentType.FLAG) {
+      providedArguments[optionName] = true;
+      continue;
+    } else if (
+      optionDefinition.type === ArgumentType.LEVEL &&
+      providedByShortName
+    ) {
+      providedArguments[optionName] = arg.length - 1;
+      continue;
     } else if (
       usedCliArguments[i + 1] !== undefined &&
       usedCliArguments[i + 1] === false

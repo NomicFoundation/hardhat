@@ -1,6 +1,6 @@
 import type { GlobalOptionDefinitions } from "../types/global-options.js";
 
-import { globalOption } from "../config.js";
+import { globalFlag, globalOption } from "../config.js";
 import { ArgumentType } from "../types/arguments.js";
 
 export const BUILTIN_GLOBAL_OPTIONS_DEFINITIONS: GlobalOptionDefinitions =
@@ -21,12 +21,10 @@ export const BUILTIN_GLOBAL_OPTIONS_DEFINITIONS: GlobalOptionDefinitions =
       "help",
       {
         pluginId: "builtin",
-        option: globalOption({
+        option: globalFlag({
           name: "help",
           description:
             "Shows this message, or a task's help if its name is provided.",
-          type: ArgumentType.BOOLEAN,
-          defaultValue: false,
         }),
       },
     ],
@@ -34,11 +32,9 @@ export const BUILTIN_GLOBAL_OPTIONS_DEFINITIONS: GlobalOptionDefinitions =
       "init",
       {
         pluginId: "builtin",
-        option: globalOption({
+        option: globalFlag({
           name: "init",
           description: "Initializes a Hardhat project.",
-          type: ArgumentType.BOOLEAN,
-          defaultValue: false,
         }),
       },
     ],
@@ -46,11 +42,9 @@ export const BUILTIN_GLOBAL_OPTIONS_DEFINITIONS: GlobalOptionDefinitions =
       "showStackTraces",
       {
         pluginId: "builtin",
-        option: globalOption({
+        option: globalFlag({
           name: "showStackTraces",
           description: "Show stack traces (always enabled on CI servers).",
-          type: ArgumentType.BOOLEAN,
-          defaultValue: false,
         }),
       },
     ],
@@ -58,11 +52,9 @@ export const BUILTIN_GLOBAL_OPTIONS_DEFINITIONS: GlobalOptionDefinitions =
       "verbose",
       {
         pluginId: "builtin",
-        option: globalOption({
+        option: globalFlag({
           name: "verbose",
           description: "Enables Hardhat verbose logging.",
-          type: ArgumentType.BOOLEAN,
-          defaultValue: false,
         }),
       },
     ],
@@ -70,11 +62,9 @@ export const BUILTIN_GLOBAL_OPTIONS_DEFINITIONS: GlobalOptionDefinitions =
       "version",
       {
         pluginId: "builtin",
-        option: globalOption({
+        option: globalFlag({
           name: "version",
           description: "Shows hardhat's version.",
-          type: ArgumentType.BOOLEAN,
-          defaultValue: false,
         }),
       },
     ],
