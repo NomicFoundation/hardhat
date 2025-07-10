@@ -1,0 +1,70 @@
+{
+  "name": "@nomicfoundation/hardhat-ledger",
+  "version": "3.0.0-next.21",
+  "description": "A module for interacting with Ledger hardware wallets.",
+  "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-ledger",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NomicFoundation/hardhat",
+    "directory": "v-next/hardhat-ledger"
+  },
+  "author": "Nomic Foundation",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./dist/src/index.js"
+  },
+  "keywords": [
+    "ledger",
+    "storage",
+    "hardhat"
+  ],
+  "scripts": {
+    "lint": "pnpm prettier --check && pnpm eslint",
+    "lint:fix": "pnpm prettier --write && pnpm eslint --fix",
+    "eslint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
+    "prettier": "prettier \"**/*.{ts,js,md,json}\"",
+    "test": "node --import tsx/esm --test --test-reporter=@nomicfoundation/hardhat-node-test-reporter \"test/*.ts\" \"test/!(fixture-projects|helpers)/**/*.ts\"",
+    "test:only": "node --import tsx/esm --test --test-only --test-reporter=@nomicfoundation/hardhat-node-test-reporter \"test/*.ts\" \"test/!(fixture-projects|helpers)/**/*.ts\"",
+    "test:coverage": "c8 --reporter html --reporter text --all --exclude test --exclude \"src/**/{types,type-extensions}.ts\" --src src node --import tsx/esm --test --test-reporter=@nomicfoundation/hardhat-node-test-reporter \"test/*.ts\" \"test/!(fixture-projects|helpers)/**/*.ts\"",
+    "pretest": "pnpm build",
+    "pretest:only": "pnpm build",
+    "build": "tsc --build .",
+    "prepublishOnly": "pnpm build",
+    "clean": "rimraf dist"
+  },
+  "files": [
+    "dist/src/",
+    "src/",
+    "CHANGELOG.md",
+    "LICENSE",
+    "README.md"
+  ],
+  "devDependencies": {
+    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0-next.21",
+    "@nomicfoundation/hardhat-test-utils": "workspace:^",
+    "@types/debug": "^4.1.7",
+    "@types/node": "^20.14.9",
+    "c8": "^9.1.0",
+    "eslint": "9.25.1",
+    "expect-type": "^1.2.1",
+    "prettier": "3.2.5",
+    "rimraf": "^5.0.5",
+    "tsx": "^4.19.3",
+    "typescript": "~5.8.0"
+  },
+  "dependencies": {
+    "@ledgerhq/errors": "^6.22.0",
+    "@ledgerhq/hw-app-eth": "^6.45.10",
+    "@ledgerhq/hw-transport": "^6.31.7",
+    "@ledgerhq/hw-transport-node-hid": "^6.29.8",
+    "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.21",
+    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.21",
+    "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.0-next.21",
+    "debug": "^4.3.2",
+    "zod": "^3.23.8"
+  },
+  "peerDependencies": {
+    "hardhat": "workspace:^3.0.0-next.21"
+  }
+}
