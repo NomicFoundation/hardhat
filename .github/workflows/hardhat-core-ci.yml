@@ -111,6 +111,7 @@ jobs:
     name: Test different versions of @types/node
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         # TODO: Currently there is no @types/node for Node 24,
         # include it when it is available.
