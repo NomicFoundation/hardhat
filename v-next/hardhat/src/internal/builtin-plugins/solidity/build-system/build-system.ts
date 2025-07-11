@@ -57,7 +57,7 @@ import {
   getContractArtifact,
   getDuplicatedContractNamesDeclarationFile,
 } from "./artifacts.js";
-import { getCacheFilepath, loadCache, saveCache } from "./cache.js";
+import { loadCache, saveCache } from "./cache.js";
 import { CompilationJobImplementation } from "./compilation-job.js";
 import { downloadConfiguredCompilers, getCompiler } from "./compiler/index.js";
 import { buildDependencyGraph } from "./dependency-graph-building.js";
@@ -89,7 +89,6 @@ export interface SolidityBuildSystemOptions {
 export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
   readonly #hooks: HookManager;
   readonly #options: SolidityBuildSystemOptions;
-  readonly #compileCachePath: string;
   #compileCache: CompileCache = {};
   readonly #defaultConcurrency = Math.max(os.cpus().length - 1, 1);
   #downloadedCompilers = false;
@@ -97,11 +96,6 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
   constructor(hooks: HookManager, options: SolidityBuildSystemOptions) {
     this.#hooks = hooks;
     this.#options = options;
-    this.#compileCachePath = getCacheFilepath(
-      options.cachePath,
-      "compiler-output",
-      "v2",
-    );
   }
 
   public async getRootFilePaths(): Promise<string[]> {
@@ -241,7 +235,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         }),
       );
 
-      await saveCache(this.#compileCachePath, this.#compileCache);
+      await saveCache(this.#options.cachePath, this.#compileCache);
     }
 
     const resultsMap: Map<string, FileBuildResult> = new Map();
@@ -410,7 +404,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     );
 
     // Load the cache
-    this.#compileCache = await loadCache(this.#compileCachePath);
+    this.#compileCache = await loadCache(this.#options.cachePath);
 
     // Select which files to compile
     const rootFilesToCompile: Set<string> = new Set();
