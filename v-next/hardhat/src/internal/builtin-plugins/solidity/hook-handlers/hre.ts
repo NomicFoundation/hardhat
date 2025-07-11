@@ -6,8 +6,10 @@ import type {
   BuildOptions,
   CompilationJobCreationError,
   CompileBuildInfoOptions,
+  EmitArtifactsResult,
   FileBuildResult,
   GetCompilationJobsOptions,
+  GetCompilationJobsResult,
   RunCompilationJobOptions,
   SolidityBuildSystem,
 } from "../../../../types/solidity/build-system.js";
@@ -46,7 +48,7 @@ class LazySolidityBuildSystem implements SolidityBuildSystem {
   public async getCompilationJobs(
     rootFiles: string[],
     options?: GetCompilationJobsOptions,
-  ): Promise<CompilationJobCreationError | Map<string, CompilationJob>> {
+  ): Promise<CompilationJobCreationError | GetCompilationJobsResult> {
     const buildSystem = await this.#getBuildSystem();
     return buildSystem.getCompilationJobs(rootFiles, options);
   }
@@ -75,7 +77,7 @@ class LazySolidityBuildSystem implements SolidityBuildSystem {
   public async emitArtifacts(
     compilationJob: CompilationJob,
     compilerOutput: CompilerOutput,
-  ): Promise<ReadonlyMap<string, string[]>> {
+  ): Promise<EmitArtifactsResult> {
     const buildSystem = await this.#getBuildSystem();
     return buildSystem.emitArtifacts(compilationJob, compilerOutput);
   }

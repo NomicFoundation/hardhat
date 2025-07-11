@@ -28,7 +28,7 @@ import { HookManagerImplementation } from "../../../../../src/internal/core/hook
 async function emitArtifacts(solidity: SolidityBuildSystem): Promise<void> {
   const rootFilePaths = await solidity.getRootFilePaths();
   const compilationJobs = await solidity.getCompilationJobs(rootFilePaths, {
-    mergeCompilationJobs: true,
+    isolated: false,
     quiet: true,
   });
 
@@ -101,7 +101,7 @@ describe(
       const rootFilePaths = await solidity.getRootFilePaths();
       await solidity.build(rootFilePaths, {
         force: true,
-        mergeCompilationJobs: true,
+        isolated: false,
         quiet: true,
       });
     });
@@ -241,7 +241,7 @@ describe(
         const rootFilePaths = await solidity.getRootFilePaths();
         await solidity.build(rootFilePaths, {
           force: true,
-          mergeCompilationJobs: true,
+          isolated: false,
           quiet: true,
         });
 
@@ -268,7 +268,7 @@ describe(
         const rootFilePaths = await solidity.getRootFilePaths();
         await solidity.build(rootFilePaths, {
           force: true,
-          mergeCompilationJobs: true,
+          isolated: false,
           quiet: true,
         });
 
@@ -276,7 +276,7 @@ describe(
 
         await solidity.build(rootFilePaths, {
           force: false,
-          mergeCompilationJobs: true,
+          isolated: false,
           quiet: true,
         });
 
@@ -287,7 +287,7 @@ describe(
         const rootFilePaths = await solidity.getRootFilePaths();
         await solidity.build(rootFilePaths, {
           force: true,
-          mergeCompilationJobs: true,
+          isolated: false,
           quiet: true,
         });
 
@@ -295,7 +295,7 @@ describe(
 
         await solidity.build(rootFilePaths, {
           force: true,
-          mergeCompilationJobs: true,
+          isolated: false,
           quiet: true,
         });
 
@@ -306,7 +306,7 @@ describe(
         const rootFilePaths = await solidity.getRootFilePaths();
         await solidity.build(rootFilePaths, {
           force: true,
-          mergeCompilationJobs: true,
+          isolated: false,
           quiet: true,
         });
 
@@ -316,7 +316,7 @@ describe(
           rootFilePaths.filter((f) => path.basename(f) !== "NoImports.sol"),
           {
             force: false,
-            mergeCompilationJobs: true,
+            isolated: false,
             quiet: true,
           },
         );
@@ -328,7 +328,7 @@ describe(
         const rootFilePaths = await solidity.getRootFilePaths();
         await solidity.build(rootFilePaths, {
           force: true,
-          mergeCompilationJobs: true,
+          isolated: false,
           quiet: true,
         });
 
@@ -338,7 +338,7 @@ describe(
           rootFilePaths.filter((f) => path.basename(f) !== "A.sol"),
           {
             force: false,
-            mergeCompilationJobs: true,
+            isolated: false,
             quiet: true,
           },
         );
@@ -350,7 +350,7 @@ describe(
         const rootFilePaths = await solidity.getRootFilePaths();
         await solidity.build(rootFilePaths, {
           force: true,
-          mergeCompilationJobs: true,
+          isolated: false,
           quiet: true,
         });
 
@@ -358,7 +358,7 @@ describe(
           rootFilePaths.filter((f) => path.basename(f) !== "A.sol"),
           {
             force: false,
-            mergeCompilationJobs: true,
+            isolated: false,
             quiet: true,
           },
         );
@@ -369,7 +369,7 @@ describe(
           rootFilePaths.filter((f) => path.basename(f) !== "A.sol"),
           {
             force: false,
-            mergeCompilationJobs: true,
+            isolated: false,
             quiet: true,
           },
         );
@@ -383,7 +383,7 @@ describe(
         await assertRejectsWithHardhatError(
           solidity.build(rootFilePaths, {
             force: false,
-            mergeCompilationJobs: true,
+            isolated: false,
             quiet: true,
             buildProfile: "not-defined",
           }),
