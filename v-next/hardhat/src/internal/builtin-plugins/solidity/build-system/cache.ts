@@ -18,19 +18,11 @@ export interface CompileCacheEntry {
 
 const CACHE_FILE_NAME = `compile-cache.json`;
 
-export function getCacheFilepath(
-  basePath: string,
-  namespace: string,
-  version: string,
-): string {
-  return path.join(basePath, namespace, version, CACHE_FILE_NAME);
-}
-
-export async function loadCache(filePath: string): Promise<CompileCache> {
+export async function loadCache(cacheDirectory: string): Promise<CompileCache> {
   let cache: CompileCache;
 
   try {
-    cache = await readJsonFile(filePath);
+    cache = await readJsonFile(path.join(cacheDirectory, CACHE_FILE_NAME));
   } catch (_error) {
     cache = {};
   }
@@ -39,9 +31,10 @@ export async function loadCache(filePath: string): Promise<CompileCache> {
 }
 
 export async function saveCache(
-  filePath: string,
+  cacheDirectory: string,
   cache: CompileCache,
 ): Promise<void> {
+  const filePath = path.join(cacheDirectory, CACHE_FILE_NAME);
   const tmpPath = `${filePath}.tmp`;
   // NOTE: We are writing to a temporary file first because the value might
   // be large and we don't want to end up with corrupted files in the cache.
