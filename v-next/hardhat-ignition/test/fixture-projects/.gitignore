@@ -1,3 +1,6 @@
 artifacts/
 cache/
 deployments/
+tmp/
+!migrate-artifacts/ignition/deployments
+!migrate-artifacts/ignition/deployments/**/*

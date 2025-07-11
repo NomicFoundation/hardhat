@@ -16,6 +16,19 @@ export type LinkReferences = Record<
 >;
 
 /**
+ * The references to the immutable variables that get embedded in the deployed
+ * bytecode.
+ *
+ * Each immutable variable is represented by an id, which in the case of solc
+ * is the id of the AST node that represents the variable.
+ *
+ * @beta
+ */
+export interface ImmutableReferences {
+  [immuatableId: string]: Array<{ start: number; length: number }>;
+}
+
+/**
  * An compilation artifact representing a smart contract.
  *
  * @beta
@@ -29,6 +42,9 @@ export interface Artifact<AbiT extends Abi = Abi> {
   deployedBytecode: string;
   linkReferences: LinkReferences;
   deployedLinkReferences: LinkReferences;
+  immutableReferences?: ImmutableReferences;
+  buildInfoId?: string;
+  inputSourceName?: string;
 }
 
 /**
@@ -54,7 +70,7 @@ export interface BuildInfo {
   solcVersion: string;
   solcLongVersion: string;
   input: CompilerInput;
-  output: CompilerOutput;
+  userSourceNameMap: Record<string, string>;
 }
 
 /**
