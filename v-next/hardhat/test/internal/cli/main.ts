@@ -108,19 +108,6 @@ describe("main", function () {
       resetGlobalHardhatRuntimeEnvironment();
     });
 
-    describe("verbose", function () {
-      useFixtureProject("cli/parsing/base-project");
-
-      it("should enable the debug logs", async function () {
-        const spy = mock.method(debug, "enable");
-
-        const command = "npx hardhat --verbose";
-        await runMain(command);
-
-        assert.equal(spy.mock.calls.length, 1);
-      });
-    });
-
     describe("version", function () {
       useFixtureProject("cli/parsing/base-project");
 
@@ -265,7 +252,6 @@ GLOBAL OPTIONS:
   --init                   Initializes a Hardhat project.
   --network                The network to connect to
   --show-stack-traces      Show stack traces (always enabled on CI servers).
-  --verbose                Enables Hardhat verbose logging.
   --version                Shows hardhat's version.
 
 To get help for a specific task run: npx hardhat <TASK> [SUBTASK] --help`;
@@ -1591,7 +1577,7 @@ For global options help run: hardhat --help`;
 
       it("should get the task, its arguments passed in the cli and ignore global option", function () {
         const command =
-          "npx hardhat task1 --arg <value> --network localhost <posValue> <posValue2> --verbose <varValue1> <varValue2>";
+          "npx hardhat task1 --arg <value> --network localhost <posValue> <posValue2> <varValue1> <varValue2>";
 
         const cliArguments = command.split(" ").slice(2);
         const usedCliArguments = [
@@ -1602,7 +1588,6 @@ For global options help run: hardhat --help`;
           true,
           false,
           false,
-          true,
           false,
           false,
         ];
