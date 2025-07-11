@@ -4,7 +4,10 @@ import { after, before, describe, it } from "node:test";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
-import { RESERVED_ARGUMENT_NAMES } from "../../../../src/internal/core/arguments.js";
+import {
+  RESERVED_ARGUMENT_NAMES,
+  RESERVED_ARGUMENT_SHORT_NAMES,
+} from "../../../../src/internal/core/arguments.js";
 import {
   EmptyTaskDefinitionBuilderImplementation,
   NewTaskDefinitionBuilderImplementation,
@@ -19,6 +22,10 @@ describe("Task builders", () => {
     RESERVED_ARGUMENT_NAMES.add("testName1");
     RESERVED_ARGUMENT_NAMES.add("testName2");
     RESERVED_ARGUMENT_NAMES.add("testName3");
+    // Make sure we have some reserved short names
+    RESERVED_ARGUMENT_SHORT_NAMES.add("x");
+    RESERVED_ARGUMENT_SHORT_NAMES.add("y");
+    RESERVED_ARGUMENT_SHORT_NAMES.add("z");
   });
 
   after(() => {
@@ -26,6 +33,10 @@ describe("Task builders", () => {
     RESERVED_ARGUMENT_NAMES.delete("testName1");
     RESERVED_ARGUMENT_NAMES.delete("testName2");
     RESERVED_ARGUMENT_NAMES.delete("testName3");
+    // Delete the test reserved short names
+    RESERVED_ARGUMENT_SHORT_NAMES.delete("x");
+    RESERVED_ARGUMENT_SHORT_NAMES.delete("y");
+    RESERVED_ARGUMENT_SHORT_NAMES.delete("z");
   });
 
   describe("EmptyTaskDefinitionBuilderImplementation", () => {
@@ -280,6 +291,7 @@ describe("Task builders", () => {
           options: {
             arg: {
               name: "arg",
+              shortName: undefined,
               description: "",
               type: ArgumentType.STRING,
               defaultValue: "default",
@@ -309,6 +321,7 @@ describe("Task builders", () => {
           options: {
             arg: {
               name: "arg",
+              shortName: undefined,
               description: "Argument description",
               type: ArgumentType.STRING,
               defaultValue: "default",
@@ -338,9 +351,40 @@ describe("Task builders", () => {
           options: {
             arg: {
               name: "arg",
+              shortName: undefined,
               description: "",
               type: ArgumentType.INT,
               defaultValue: 1,
+            },
+          },
+          positionalArguments: [],
+        });
+      });
+
+      it("should add an option with a short name", () => {
+        const builder = new NewTaskDefinitionBuilderImplementation("task-id");
+        const taskAction = () => {};
+        const taskDefinition = builder
+          .setAction(taskAction)
+          .addOption({
+            name: "arg",
+            shortName: "a",
+            defaultValue: "default",
+          })
+          .build();
+
+        assert.deepEqual(taskDefinition, {
+          type: TaskDefinitionType.NEW_TASK,
+          id: ["task-id"],
+          description: "",
+          action: taskAction,
+          options: {
+            arg: {
+              name: "arg",
+              shortName: "a",
+              description: "",
+              type: ArgumentType.STRING,
+              defaultValue: "default",
             },
           },
           positionalArguments: [],
@@ -365,8 +409,9 @@ describe("Task builders", () => {
           options: {
             flag: {
               name: "flag",
+              shortName: undefined,
               description: "",
-              type: ArgumentType.BOOLEAN,
+              type: ArgumentType.FLAG,
               defaultValue: false,
             },
           },
@@ -390,8 +435,61 @@ describe("Task builders", () => {
           options: {
             flag: {
               name: "flag",
+              shortName: undefined,
               description: "Flag description",
-              type: ArgumentType.BOOLEAN,
+              type: ArgumentType.FLAG,
+              defaultValue: false,
+            },
+          },
+          positionalArguments: [],
+        });
+      });
+
+      it("should add a flag with a short name", () => {
+        const builder = new NewTaskDefinitionBuilderImplementation("task-id");
+        const taskAction = () => {};
+        const taskDefinition = builder
+          .setAction(taskAction)
+          .addFlag({ name: "flag", shortName: "f" })
+          .build();
+
+        assert.deepEqual(taskDefinition, {
+          type: TaskDefinitionType.NEW_TASK,
+          id: ["task-id"],
+          description: "",
+          action: taskAction,
+          options: {
+            flag: {
+              name: "flag",
+              shortName: "f",
+              description: "",
+              type: ArgumentType.FLAG,
+              defaultValue: false,
+            },
+          },
+          positionalArguments: [],
+        });
+      });
+
+      it("should add a flag with a short name", () => {
+        const builder = new NewTaskDefinitionBuilderImplementation("task-id");
+        const taskAction = () => {};
+        const taskDefinition = builder
+          .setAction(taskAction)
+          .addFlag({ name: "flag", shortName: "f" })
+          .build();
+
+        assert.deepEqual(taskDefinition, {
+          type: TaskDefinitionType.NEW_TASK,
+          id: ["task-id"],
+          description: "",
+          action: taskAction,
+          options: {
+            flag: {
+              name: "flag",
+              shortName: "f",
+              description: "",
+              type: ArgumentType.FLAG,
               defaultValue: false,
             },
           },
@@ -742,6 +840,97 @@ describe("Task builders", () => {
       });
     });
 
+    describe("Argument short name validation", () => {
+      it("should throw if the short name is invalid", () => {
+        const builder = new NewTaskDefinitionBuilderImplementation("task-id");
+
+        const invalidShortNames = ["", "ab", "1"];
+
+        invalidShortNames.forEach((shortName) => {
+          assertThrowsHardhatError(
+            () =>
+              builder.addOption({
+                name: "arg1",
+                shortName,
+                defaultValue: "default",
+              }),
+            HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_SHORT_NAME,
+            {
+              name: shortName,
+            },
+          );
+
+          assertThrowsHardhatError(
+            () =>
+              builder.addFlag({
+                name: "flag1",
+                shortName,
+              }),
+            HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_SHORT_NAME,
+            {
+              name: shortName,
+            },
+          );
+        });
+      });
+
+      it("should throw if the short name is already in use", () => {
+        const builder = new NewTaskDefinitionBuilderImplementation("task-id");
+
+        builder
+          .addOption({
+            name: "option",
+            shortName: "o",
+            defaultValue: "default",
+          })
+          .addFlag({ name: "flag", shortName: "f" });
+
+        const shortNames = ["o", "f"];
+
+        shortNames.forEach((shortName) => {
+          assertThrowsHardhatError(
+            () =>
+              builder.addOption({
+                name: "option1",
+                shortName,
+                defaultValue: "default",
+              }),
+            HardhatError.ERRORS.CORE.ARGUMENTS.DUPLICATED_NAME,
+            {
+              name: shortName,
+            },
+          );
+
+          assertThrowsHardhatError(
+            () => builder.addFlag({ name: "flag1", shortName }),
+            HardhatError.ERRORS.CORE.ARGUMENTS.DUPLICATED_NAME,
+            {
+              name: shortName,
+            },
+          );
+        });
+      });
+
+      it("should throw if the short name is reserved", () => {
+        const builder = new NewTaskDefinitionBuilderImplementation("task-id");
+
+        RESERVED_ARGUMENT_SHORT_NAMES.forEach((shortName) => {
+          assertThrowsHardhatError(
+            () =>
+              builder.addOption({
+                name: "option",
+                shortName,
+                defaultValue: "default",
+              }),
+            HardhatError.ERRORS.CORE.ARGUMENTS.RESERVED_NAME,
+            {
+              name: shortName,
+            },
+          );
+        });
+      });
+    });
+
     describe("Argument type validation", () => {
       it("should throw if the default value does not match the type", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
@@ -990,6 +1179,7 @@ describe("Task builders", () => {
           options: {
             arg: {
               name: "arg",
+              shortName: undefined,
               description: "",
               type: ArgumentType.STRING,
               defaultValue: "default",
@@ -1020,6 +1210,7 @@ describe("Task builders", () => {
           options: {
             arg: {
               name: "arg",
+              shortName: undefined,
               description: "Argument description",
               type: ArgumentType.STRING,
               defaultValue: "default",
@@ -1050,6 +1241,40 @@ describe("Task builders", () => {
           options: {
             arg: {
               name: "arg",
+              shortName: undefined,
+              description: "",
+              type: ArgumentType.INT,
+              defaultValue: 1,
+            },
+          },
+        });
+      });
+
+      it("should add an option with a short name", () => {
+        const builder = new TaskOverrideDefinitionBuilderImplementation(
+          "task-id",
+        );
+        const taskAction = () => {};
+        const taskDefinition = builder
+          .setAction(taskAction)
+          .addOption({
+            name: "arg",
+            shortName: "a",
+            description: "",
+            type: ArgumentType.INT,
+            defaultValue: 1,
+          })
+          .build();
+
+        assert.deepEqual(taskDefinition, {
+          type: TaskDefinitionType.TASK_OVERRIDE,
+          id: ["task-id"],
+          description: undefined,
+          action: taskAction,
+          options: {
+            arg: {
+              name: "arg",
+              shortName: "a",
               description: "",
               type: ArgumentType.INT,
               defaultValue: 1,
@@ -1078,8 +1303,9 @@ describe("Task builders", () => {
           options: {
             flag: {
               name: "flag",
+              shortName: undefined,
               description: "",
-              type: ArgumentType.BOOLEAN,
+              type: ArgumentType.FLAG,
               defaultValue: false,
             },
           },
@@ -1104,8 +1330,63 @@ describe("Task builders", () => {
           options: {
             flag: {
               name: "flag",
+              shortName: undefined,
               description: "Flag description",
-              type: ArgumentType.BOOLEAN,
+              type: ArgumentType.FLAG,
+              defaultValue: false,
+            },
+          },
+        });
+      });
+
+      it("should add a flag with a short name", () => {
+        const builder = new TaskOverrideDefinitionBuilderImplementation(
+          "task-id",
+        );
+        const taskAction = () => {};
+        const taskDefinition = builder
+          .setAction(taskAction)
+          .addFlag({ name: "flag", shortName: "f" })
+          .build();
+
+        assert.deepEqual(taskDefinition, {
+          type: TaskDefinitionType.TASK_OVERRIDE,
+          id: ["task-id"],
+          description: undefined,
+          action: taskAction,
+          options: {
+            flag: {
+              name: "flag",
+              shortName: "f",
+              description: "",
+              type: ArgumentType.FLAG,
+              defaultValue: false,
+            },
+          },
+        });
+      });
+
+      it("should add a flag with a short name", () => {
+        const builder = new TaskOverrideDefinitionBuilderImplementation(
+          "task-id",
+        );
+        const taskAction = () => {};
+        const taskDefinition = builder
+          .setAction(taskAction)
+          .addFlag({ name: "flag", shortName: "f" })
+          .build();
+
+        assert.deepEqual(taskDefinition, {
+          type: TaskDefinitionType.TASK_OVERRIDE,
+          id: ["task-id"],
+          description: undefined,
+          action: taskAction,
+          options: {
+            flag: {
+              name: "flag",
+              shortName: "f",
+              description: "",
+              type: ArgumentType.FLAG,
               defaultValue: false,
             },
           },
@@ -1188,6 +1469,103 @@ describe("Task builders", () => {
             HardhatError.ERRORS.CORE.ARGUMENTS.RESERVED_NAME,
             {
               name,
+            },
+          );
+        });
+      });
+    });
+
+    describe("Argument short name validation", () => {
+      it("should throw if the argument name is invalid", () => {
+        const builder = new TaskOverrideDefinitionBuilderImplementation(
+          "task-id",
+        );
+
+        const invalidNames = ["", "ab", "1"];
+
+        invalidNames.forEach((shortName) => {
+          assertThrowsHardhatError(
+            () =>
+              builder.addOption({
+                name: "arg",
+                shortName,
+                defaultValue: "default",
+              }),
+            HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_SHORT_NAME,
+            {
+              name: shortName,
+            },
+          );
+
+          assertThrowsHardhatError(
+            () =>
+              builder.addFlag({
+                name: "flag",
+                shortName,
+              }),
+            HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_SHORT_NAME,
+            {
+              name: shortName,
+            },
+          );
+        });
+      });
+
+      it("should throw if the argument name is already in use", () => {
+        const builder = new TaskOverrideDefinitionBuilderImplementation(
+          "task-id",
+        );
+
+        builder
+          .addOption({
+            name: "option",
+            shortName: "o",
+            defaultValue: "default",
+          })
+          .addFlag({ name: "flag", shortName: "f" });
+
+        const shortNames = ["o", "f"];
+
+        shortNames.forEach((shortName) => {
+          assertThrowsHardhatError(
+            () =>
+              builder.addOption({
+                name: "option1",
+                shortName,
+                defaultValue: "default",
+              }),
+            HardhatError.ERRORS.CORE.ARGUMENTS.DUPLICATED_NAME,
+            {
+              name: shortName,
+            },
+          );
+
+          assertThrowsHardhatError(
+            () => builder.addFlag({ name: "flag1", shortName }),
+            HardhatError.ERRORS.CORE.ARGUMENTS.DUPLICATED_NAME,
+            {
+              name: shortName,
+            },
+          );
+        });
+      });
+
+      it("should throw if the argument name is reserved", () => {
+        const builder = new TaskOverrideDefinitionBuilderImplementation(
+          "task-id",
+        );
+
+        RESERVED_ARGUMENT_SHORT_NAMES.forEach((shortName) => {
+          assertThrowsHardhatError(
+            () =>
+              builder.addOption({
+                name: "arg",
+                shortName,
+                defaultValue: "default",
+              }),
+            HardhatError.ERRORS.CORE.ARGUMENTS.RESERVED_NAME,
+            {
+              name: shortName,
             },
           );
         });

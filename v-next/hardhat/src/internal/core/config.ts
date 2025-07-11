@@ -71,6 +71,7 @@ export function overrideTask(
  */
 export function globalOption<T extends ArgumentType>(options: {
   name: string;
+  shortName?: string;
   description: string;
   type?: T;
   defaultValue: ArgumentTypeToValueType<T>;
@@ -83,11 +84,27 @@ export function globalOption<T extends ArgumentType>(options: {
  */
 export function globalFlag(options: {
   name: string;
+  shortName?: string;
   description: string;
 }): OptionDefinition {
   return buildGlobalOptionDefinition({
     ...options,
-    type: ArgumentType.BOOLEAN,
+    type: ArgumentType.FLAG,
     defaultValue: false,
+  });
+}
+
+/**
+ * Defines a global level.
+ */
+export function globalLevel(options: {
+  name: string;
+  shortName?: string;
+  description: string;
+}): OptionDefinition {
+  return buildGlobalOptionDefinition({
+    ...options,
+    type: ArgumentType.LEVEL,
+    defaultValue: 0,
   });
 }
