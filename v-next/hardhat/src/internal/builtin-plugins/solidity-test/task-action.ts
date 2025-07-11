@@ -31,10 +31,11 @@ interface TestActionArguments {
   chainType: string;
   grep?: string;
   noCompile: boolean;
+  verbosity: number;
 }
 
 const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
-  { testFiles, chainType, grep, noCompile },
+  { testFiles, chainType, grep, noCompile, verbosity },
   hre,
 ) => {
   let rootFilePaths: string[];
@@ -115,7 +116,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
       chainType,
       hre.config.paths.root,
       solidityTestConfig,
-      hre.globalOptions.verbosity,
+      verbosity,
       grep,
     );
   const tracingConfig: TracingConfigWithBuffers = {
@@ -151,11 +152,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
       }
     })
     .compose((source) =>
-      testReporter(
-        source,
-        sourceNameToUserSourceName,
-        hre.globalOptions.verbosity,
-      ),
+      testReporter(source, sourceNameToUserSourceName, verbosity),
     );
 
   const outputStream = testReporterStream.pipe(

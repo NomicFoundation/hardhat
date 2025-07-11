@@ -10,7 +10,7 @@ import chalk from "chalk";
 
 import { encodeStackTraceEntry } from "../network-manager/edr/stack-traces/stack-trace-solidity-errors.js";
 
-import { formatArtifactId, formatInputs, formatLogs, formatTraces } from "./formatters.js";
+import { formatArtifactId, formatLogs, formatTraces } from "./formatters.js";
 import { getMessageFromLastStackTraceEntry } from "./stack-trace-solidity-errors.js";
 
 /**
@@ -119,15 +119,18 @@ export async function* testReporter(
           }
 
           if (printSetUpTraces || printExecutionTraces) {
-            const callTraces = testResult.callTraces().filter(({inputs}) => {
+            const callTraces = testResult.callTraces().filter(({ inputs }) => {
               if (printSetUpTraces && printExecutionTraces) {
                 return true;
               }
-              const formattedInputs = formatInputs(inputs);
-              if (printSetUpTraces && formattedInputs === "setUp()") {
+              let functionName: string | undefined;
+              if (!(inputs instanceof Uint8Array)) {
+                functionName = inputs.name;
+              }
+              if (printSetUpTraces && functionName === "setUp") {
                 return true;
               }
-              if (printExecutionTraces && formattedInputs !== "setUp()") {
+              if (printExecutionTraces && functionName !== "setUp()") {
                 return true;
               }
               return false;

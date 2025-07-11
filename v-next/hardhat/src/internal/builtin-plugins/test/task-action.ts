@@ -17,6 +17,7 @@ interface TestActionArguments {
   chainType: string;
   grep: string | undefined;
   noCompile: boolean;
+  verbosity: number;
 }
 
 const runAllTests: NewTaskActionFunction<TestActionArguments> = async (

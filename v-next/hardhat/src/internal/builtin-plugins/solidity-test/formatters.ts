@@ -6,8 +6,11 @@ import type {
 } from "@ignored/edr-optimism";
 
 import { LogKind, CallKind } from "@ignored/edr-optimism";
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { bytesToHexString } from "@nomicfoundation/hardhat-utils/hex";
 import chalk from "chalk";
+
+type NestedArray<T> = Array<T | NestedArray<T>>;
 
 export function formatArtifactId(
   artifactId: ArtifactId,
@@ -25,51 +28,68 @@ export function formatLogs(logs: string[], indent: number): string {
   );
 }
 
-export function formatInputs(inputs: DecodedTraceParameters | Uint8Array): string {
+export function formatInputs(
+  inputs: DecodedTraceParameters | Uint8Array,
+  color?: (text: string) => string,
+): string | undefined {
   if (inputs instanceof Uint8Array) {
-    return bytesToHexString(inputs);
+    return inputs.length > 0 ? bytesToHexString(inputs) : undefined;
   } else {
-    return `${inputs.name}(${inputs.arguments.join(", ")})`;
+    const formattedName =
+      color !== undefined ? color(inputs.name) : inputs.name;
+    return `${formattedName}(${inputs.arguments.join(", ")})`;
   }
 }
 
-function formatOutputs(outputs: string | Uint8Array): string {
+function formatOutputs(outputs: string | Uint8Array): string | undefined {
   if (outputs instanceof Uint8Array) {
-    return bytesToHexString(outputs);
+    return outputs.length > 0 ? bytesToHexString(outputs) : undefined;
   } else {
     return outputs;
   }
 }
 
-function formatLog(log: LogTrace, indent: number): string {
+function formatLog(log: LogTrace): string[] {
   const { parameters } = log;
+  const lines = [];
   if (Array.isArray(parameters)) {
-    const topics = parameters
-      .slice(0, parameters.length - 1)
-      .map((topic) => bytesToHexString(topic));
-    const data = bytesToHexString(parameters[parameters.length - 1]);
-    return `${" ".repeat(indent)}${chalk.grey(`(topics: [${topics.join(", ")}], data: ${data})`)}`;
+    const topics = parameters.map((topic) => bytesToHexString(topic));
+    if (topics.length > 0) {
+      lines.push(`emit topic 0: ${chalk.cyan(topics[0])}`);
+    }
+    for (let i = 1; i < topics.length - 1; i++) {
+      lines.push(`     topic ${i}: ${chalk.cyan(topics[i])}`);
+    }
+    if (topics.length > 1) {
+      lines.push(`        data: ${chalk.cyan(topics[topics.length - 1])}`);
+    }
   } else {
-    return `${" ".repeat(indent)}${parameters.name}(${parameters.arguments.join(", ")})`;
+    lines.push(
+      `emit ${parameters.name}(chalk.cyan(${parameters.arguments.join(", ")}))`,
+    );
   }
+  return lines;
 }
 
-function formatKind(kind: CallKind): string {
+function formatKind(kind: CallKind): string | undefined {
+  assertHardhatInvariant(
+    kind !== CallKind.Create,
+    "Unexpected call kind 'Create'",
+  );
+
   switch (kind) {
     case CallKind.Call:
-      return "Call";
+      return undefined;
     case CallKind.CallCode:
-      return "CallCode";
+      return "callcode";
     case CallKind.DelegateCall:
-      return "DelegateCall";
+      return "delegatecall";
     case CallKind.StaticCall:
-      return "StaticCall";
-    case CallKind.Create:
-      return "Create";
+      return "staticcall";
   }
 }
 
-function formatTrace(trace: CallTrace, indent: number): string {
+function formatTrace(trace: CallTrace): NestedArray<string> {
   const {
     success,
     contract,
@@ -80,22 +100,91 @@ function formatTrace(trace: CallTrace, indent: number): string {
     isCheatcode,
     outputs,
   } = trace;
-  const color = success ? chalk.blue : chalk.yellow;
-  const sign = success ? "✔" : "✘";
-  const label = success ? "Succeeded" : "Failed";
-  const lines = [
-    `${" ".repeat(indent)}${color(`${sign} ${formatKind(kind)} ${label}`)}: ${contract}::${formatInputs(inputs)} → ${formatOutputs(outputs)} ${chalk.grey(`(gas: ${gasUsed}, tokens: ${value}, cheatcode: ${isCheatcode})`)}`,
-  ];
-  for (const child of trace.children) {
-    if (child.kind === LogKind.Log) {
-      lines.push(formatLog(child, indent + 2));
-    } else {
-      lines.push(formatTrace(child, indent + 2));
+  let color;
+  if (isCheatcode) {
+    color = chalk.blue;
+  } else if (success) {
+    color = chalk.green;
+  } else {
+    color = chalk.red;
+  }
+
+  const formattedInputs = formatInputs(inputs, color);
+  const formattedOutputs = formatOutputs(outputs);
+
+  let openingLine: string;
+  let closingLine: string | undefined;
+  if (kind === CallKind.Create) {
+    openingLine = `[${gasUsed}] ${chalk.yellow("→ new")} ${contract}`;
+    if (formattedInputs !== undefined) {
+      openingLine = `${openingLine}@${formattedInputs}`;
+    }
+  } else {
+    const formattedKind = formatKind(kind);
+    openingLine = `[${gasUsed}] ${color(contract)}`;
+    if (formattedInputs !== undefined) {
+      openingLine = `${openingLine}::${formattedInputs}`;
+    }
+    if (value !== BigInt(0)) {
+      openingLine = `${openingLine} {value: ${value}}`;
+    }
+    if (formattedKind !== undefined) {
+      openingLine = `${openingLine} ${chalk.yellow(`[${formattedKind}]`)}`;
     }
   }
-  return lines.join("\n");
+  if (formattedOutputs !== undefined) {
+    closingLine = `${color("←")} ${formattedOutputs}`;
+  }
+
+  const lines = [];
+  lines.push(openingLine);
+  for (const child of trace.children) {
+    if (child.kind === LogKind.Log) {
+      lines.push(formatLog(child));
+    } else {
+      lines.push(formatTrace(child));
+    }
+  }
+  if (closingLine !== undefined) {
+    lines.push([closingLine]);
+  }
+  return lines;
+}
+
+function formatNestedArray(
+  data: NestedArray<string>,
+  prefix = "",
+  isTopLevel = true,
+): string {
+  let output = "";
+
+  for (let i = 0; i < data.length; i++) {
+    const item = data[i];
+
+    if (Array.isArray(item) && typeof item[0] === "string") {
+      const [label, ...children] = item;
+
+      if (isTopLevel) {
+        output += `${prefix}${label}\n`;
+        output += formatNestedArray(children, prefix, false);
+      } else {
+        const isLast = i === data.length - 1;
+        const connector = isLast ? " └─ " : " ├─ ";
+        const childPrefix = isLast ? "    " : " |  ";
+        output += `${prefix}${connector}${label}\n`;
+        output += formatNestedArray(children, prefix + childPrefix, false);
+      }
+    } else if (typeof item === "string") {
+      const isLast = i === data.length - 1;
+      const connector = isLast ? " └─ " : " ├─ ";
+      output += `${prefix}${connector}${item}\n`;
+    }
+  }
+
+  return output;
 }
 
 export function formatTraces(traces: CallTrace[], indent: number): string {
-  return traces.map((trace) => formatTrace(trace, indent)).join("\n");
+  const lines = traces.map(formatTrace);
+  return formatNestedArray(lines, " ".repeat(indent));
 }
