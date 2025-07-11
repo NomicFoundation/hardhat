@@ -212,6 +212,7 @@ export interface NewTaskDefinitionBuilder<
     name: NameT;
     shortName?: string;
     description?: string;
+    defaultValue?: number;
   }): NewTaskDefinitionBuilder<
     ExtendTaskArguments<NameT, ArgumentType.LEVEL, TaskArgumentsT>
   >;
@@ -330,6 +331,7 @@ export interface TaskOverrideDefinitionBuilder<
     name: NameT;
     shortName?: string;
     description?: string;
+    defaultValue?: number;
   }): TaskOverrideDefinitionBuilder<
     ExtendTaskArguments<NameT, ArgumentType.LEVEL, TaskArgumentsT>
   >;
