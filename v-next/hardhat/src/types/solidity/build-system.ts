@@ -55,7 +55,7 @@ export interface BuildOptions {
  */
 export type GetCompilationJobsOptions = Omit<
   BuildOptions,
-  "force" | "removeUnusedArtifacts"
+  "removeUnusedArtifacts"
 >;
 
 /**

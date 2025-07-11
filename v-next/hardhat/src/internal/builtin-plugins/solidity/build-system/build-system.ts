@@ -159,19 +159,6 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       async (compilationJob) => {
         const buildId = await compilationJob.getBuildId();
 
-        // if (options?.force !== true) {
-        //   const cachedCompilerOutput =
-        //     await this.#compilerOutputCache.get(buildId);
-        //   if (cachedCompilerOutput !== undefined) {
-        //     console.log(`Using cached compiler output for build ${buildId}`);
-        //     return {
-        //       compilationJob,
-        //       compilerOutput: cachedCompilerOutput,
-        //       cached: true,
-        //     };
-        //   }
-        // }
-
         console.log(`Running compilation job for build ${buildId}`);
 
         const compilerOutput = await this.runCompilationJob(
@@ -413,8 +400,12 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       const jobHash = await compilationJob.getBuildId();
       const cacheResult = this.#compileCache[rootFile];
 
-      // If there's no cache for the root file, or the compilation job changed, compile it
-      if (cacheResult === undefined || cacheResult.jobHash !== jobHash) {
+      // If there's no cache for the root file, or the compilation job changed, or using force flag, compile it
+      if (
+        (options?.force ?? false) ||
+        cacheResult === undefined ||
+        cacheResult.jobHash !== jobHash
+      ) {
         rootFilesToCompile.add(rootFile);
         continue;
       }
