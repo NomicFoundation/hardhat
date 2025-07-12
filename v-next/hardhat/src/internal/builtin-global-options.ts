@@ -49,16 +49,6 @@ export const BUILTIN_GLOBAL_OPTIONS_DEFINITIONS: GlobalOptionDefinitions =
       },
     ],
     [
-      "verbose",
-      {
-        pluginId: "builtin",
-        option: globalFlag({
-          name: "verbose",
-          description: "Enables Hardhat verbose logging.",
-        }),
-      },
-    ],
-    [
       "version",
       {
         pluginId: "builtin",
