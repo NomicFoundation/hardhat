@@ -95,9 +95,16 @@ for (const entry of entries) {
     const start = lines.findIndex((l) => l.startsWith("Node.js"));
     const output = lines.slice(start + 1).join("\n");
 
-    // We're saving the actual outptu in case one needs to access it. It is .gitignored.
+    // We're saving the actual outptut in case one needs to access it. It is .gitignored.
     writeFileSync(entryPath + "/result.actual.txt", output);
-    const expectedOutput = readFileSync(entryPath + "/result.txt", "utf8");
+    // First, we try to access node version specific result file. If it doesn't
+    // exist, we fallback to the generic result file.
+    const nodeMajorVersion = process.version.split(".")[0];
+    let resultTxt = path.join(entryPath, `result.${nodeMajorVersion}.txt`);
+    if (!existsSync(resultTxt)) {
+      resultTxt = path.join(entryPath, "result.txt");
+    }
+    const expectedOutput = readFileSync(resultTxt, "utf8");
 
     const normalizedOutput = normalizeOutput(entry, output);
     const normalizedExpectedOutput = normalizeOutput(entry, expectedOutput);

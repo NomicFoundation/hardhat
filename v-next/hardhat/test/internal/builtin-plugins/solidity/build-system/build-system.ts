@@ -81,7 +81,6 @@ describe(
         },
       },
       dependenciesToCompile: [],
-      remappings: ["remapped/=npm/@openzeppelin/contracts@5.1.0/access/"],
     };
 
     before(async () => {

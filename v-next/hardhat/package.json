@@ -1,6 +1,6 @@
 {
   "name": "hardhat",
-  "version": "3.0.0-next.14",
+  "version": "3.0.0-next.21",
   "description": "Hardhat is an extensible developer tool that helps smart contract developers increase productivity by reliably bringing together the tools they want.",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat",
   "repository": {
@@ -70,7 +70,7 @@
     "README.md"
   ],
   "devDependencies": {
-    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0-next.14",
+    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0-next.21",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
     "@types/adm-zip": "^0.5.5",
     "@types/debug": "^4.1.7",
@@ -79,26 +79,24 @@
     "@types/ws": "^8.5.13",
     "c8": "^9.1.0",
     "eslint": "9.25.1",
-    "expect-type": "^0.19.0",
+    "expect-type": "^1.2.1",
     "prettier": "3.2.5",
     "rimraf": "^5.0.5",
-    "typescript": "~5.5.0"
+    "typescript": "~5.8.0"
   },
   "dependencies": {
-    "@ignored/edr": "0.10.0-alpha.5",
-    "@ignored/edr-optimism": "0.13.0-alpha.4",
-    "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.14",
-    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.14",
-    "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.0-next.14",
+    "@ignored/edr-optimism": "0.13.0-alpha.6",
+    "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.21",
+    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.21",
+    "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.0-next.21",
     "@nomicfoundation/solidity-analyzer": "^0.1.1",
     "@sentry/core": "^9.4.0",
-    "@sentry/node": "^9.4.0",
     "adm-zip": "^0.4.16",
     "chalk": "^5.3.0",
     "debug": "^4.3.2",
     "enquirer": "^2.3.0",
     "ethereum-cryptography": "^2.2.1",
-    "micro-eth-signer": "^0.13.0",
+    "micro-eth-signer": "^0.14.0",
     "p-map": "^7.0.2",
     "resolve.exports": "^2.0.3",
     "semver": "^7.6.3",

@@ -48,7 +48,6 @@ const multiVersionSolcUserConfigType = z.object({
 
 const commonSolidityUserConfigType = z.object({
   dependenciesToCompile: z.array(z.string()).optional(),
-  remappings: z.array(z.string()).optional(),
 });
 
 const singleVersionSolidityUserConfigType = singleVersionSolcUserConfigType
@@ -123,7 +122,7 @@ const soldityUserConfigType = conditionalUnionType(
       buildProfilesSolidityUserConfigType,
     ],
   ],
-  "Expected a version string, an array of version strings, or an object cofiguring one or more versions of Solidity or multiple build profiles",
+  "Expected a version string, an array of version strings, or an object configuring one or more versions of Solidity or multiple build profiles",
 );
 
 const userConfigType = z.object({
@@ -217,7 +216,6 @@ function resolveSolidityConfig(
         },
       },
       dependenciesToCompile: [],
-      remappings: [],
     };
   }
 
@@ -235,7 +233,6 @@ function resolveSolidityConfig(
         },
       },
       dependenciesToCompile: solidityConfig.dependenciesToCompile ?? [],
-      remappings: solidityConfig.remappings ?? [],
     };
   }
 
@@ -249,9 +246,9 @@ function resolveSolidityConfig(
           })),
           overrides: Object.fromEntries(
             Object.entries(solidityConfig.overrides ?? {}).map(
-              ([sourceName, override]) => {
+              ([userSourceName, override]) => {
                 return [
-                  sourceName,
+                  userSourceName,
                   {
                     version: override.version,
                     settings: override.settings ?? {},
@@ -263,7 +260,6 @@ function resolveSolidityConfig(
         },
       },
       dependenciesToCompile: solidityConfig.dependenciesToCompile ?? [],
-      remappings: solidityConfig.remappings ?? [],
     };
   }
 
@@ -293,9 +289,9 @@ function resolveSolidityConfig(
       })),
       overrides: Object.fromEntries(
         Object.entries(profile.overrides ?? {}).map(
-          ([sourceName, override]) => {
+          ([userSourceName, override]) => {
             return [
-              sourceName,
+              userSourceName,
               {
                 version: override.version,
                 settings: override.settings ?? {},
@@ -316,6 +312,5 @@ function resolveSolidityConfig(
   return {
     profiles,
     dependenciesToCompile: solidityConfig.dependenciesToCompile ?? [],
-    remappings: solidityConfig.remappings ?? [],
   };
 }

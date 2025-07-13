@@ -125,7 +125,7 @@ async function defaultRequestSecretInput(
         "Espected readline output to be defined",
       );
 
-      // We shouw the initial message as is
+      // We show the initial message as is
       if (out.startsWith(initialMessage)) {
         rlAsAny.output.write(initialMessage);
         out = out.slice(initialMessage.length);

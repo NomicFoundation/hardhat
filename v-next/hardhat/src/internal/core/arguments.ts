@@ -10,7 +10,14 @@ import { ArgumentType } from "../../types/arguments.js";
  */
 export const RESERVED_ARGUMENT_NAMES: Set<string> = new Set([]);
 
+/**
+ * Names that cannot be used for global or task arguments.
+ * Reserved for future use.
+ */
+export const RESERVED_ARGUMENT_SHORT_NAMES: Set<string> = new Set([]);
+
 const VALID_ARGUMENT_NAME_PATTERN = /^[a-z][a-zA-Z0-9]*$/;
+const VALID_ARGUMENT_SHORT_NAME_PATTERN = /^[a-zA-Z]$/;
 
 /**
  * Validates an argument name, throwing an error if it is invalid.
@@ -42,6 +49,40 @@ export function validateArgumentName(name: string): void {
  */
 export function isArgumentNameValid(name: string): boolean {
   return VALID_ARGUMENT_NAME_PATTERN.test(name);
+}
+
+/**
+ * Validates an argument short name, throwing an error if it is invalid.
+ *
+ * @param name The short name of the argument.
+ * @throws {HardhatError} with descriptor:
+ * - {@link HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_SHORT_NAME} if the name is invalid.
+ * A valid short name must be a lowercase letter.
+ * - {@link HardhatError.ERRORS.CORE.ARGUMENTS.RESERVED_NAME} if the short name is
+ * reserved. See {@link RESERVED_ARGUMENT_SHORT_NAMES}.
+ */
+export function validateArgumentShortName(name: string): void {
+  if (!isArgumentShortNameValid(name)) {
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_SHORT_NAME,
+      {
+        name,
+      },
+    );
+  }
+
+  if (RESERVED_ARGUMENT_SHORT_NAMES.has(name)) {
+    throw new HardhatError(HardhatError.ERRORS.CORE.ARGUMENTS.RESERVED_NAME, {
+      name,
+    });
+  }
+}
+
+/**
+ * Returns true if the given name is a valid argument name.
+ */
+export function isArgumentShortNameValid(name: string): boolean {
+  return VALID_ARGUMENT_SHORT_NAME_PATTERN.test(name);
 }
 
 /**
@@ -102,7 +143,10 @@ const argumentTypeValidators: Record<
   [ArgumentType.STRING]: (value): value is string => typeof value === "string",
   [ArgumentType.BOOLEAN]: (value): value is boolean =>
     typeof value === "boolean",
+  [ArgumentType.FLAG]: (value): value is boolean => typeof value === "boolean",
   [ArgumentType.INT]: (value): value is number => Number.isInteger(value),
+  [ArgumentType.LEVEL]: (value): value is number =>
+    Number.isInteger(value) && Number(value) >= 0,
   [ArgumentType.BIGINT]: (value): value is bigint => typeof value === "bigint",
   [ArgumentType.FLOAT]: (value): value is number => typeof value === "number",
   [ArgumentType.FILE]: (value): value is string => typeof value === "string",
@@ -132,12 +176,21 @@ export function parseArgumentValue(
       return value;
     case ArgumentType.INT:
       return validateAndParseInt(name, value);
+    case ArgumentType.LEVEL:
+      return validateAndParseLevel(name, value);
     case ArgumentType.FLOAT:
       return validateAndParseFloat(name, value);
     case ArgumentType.BIGINT:
       return validateAndParseBigInt(name, value);
     case ArgumentType.BOOLEAN:
       return validateAndParseBoolean(name, value);
+    case ArgumentType.FLAG:
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.INTERNAL.ASSERTION_ERROR,
+        {
+          message: "Flags should never accept values",
+        },
+      );
   }
 }
 
@@ -152,6 +205,23 @@ function validateAndParseInt(name: string, value: string): number {
         value,
         name,
         type: ArgumentType.INT,
+      },
+    );
+  }
+
+  return Number(value);
+}
+
+function validateAndParseLevel(name: string, value: string): number {
+  const decimalPattern = /^\d+$/;
+
+  if (!decimalPattern.test(value) || Number(value) < 0) {
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+      {
+        value,
+        name,
+        type: ArgumentType.LEVEL,
       },
     );
   }

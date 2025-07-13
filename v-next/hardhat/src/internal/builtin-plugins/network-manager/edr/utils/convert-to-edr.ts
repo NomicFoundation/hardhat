@@ -35,9 +35,7 @@ import {
   MERGE,
   SHANGHAI,
   CANCUN,
-  OP_CHAIN_TYPE as EDR_OP_CHAIN_TYPE,
-  L1_CHAIN_TYPE as EDR_L1_CHAIN_TYPE,
-  GENERIC_CHAIN_TYPE as EDR_GENERIC_CHAIN_TYPE,
+  PRAGUE,
   BEDROCK,
   REGOLITH,
   CANYON,
@@ -139,11 +137,14 @@ function hardhatL1HardforkToEdrSpecId(hardfork: string): string {
       return SHANGHAI;
     case L1HardforkName.CANCUN:
       return CANCUN;
-    // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- trust but verify
+    case L1HardforkName.PRAGUE:
+      return PRAGUE;
+
+    // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- we want to print the fork
     default:
       const _exhaustiveCheck: never = hardforkName;
       throw new Error(
-        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- we want to print the fork
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- an enum can be safely cast to a string
         `Unknown hardfork name '${hardfork as string}', this shouldn't happen`,
       );
   }
@@ -338,16 +339,4 @@ export async function hardhatForkingConfigToEdrForkConfig(
   }
 
   return fork;
-}
-
-export function hardhatChainTypeToEdrChainType(chainType: ChainType): string {
-  if (chainType === OPTIMISM_CHAIN_TYPE) {
-    return EDR_OP_CHAIN_TYPE;
-  }
-
-  if (chainType === L1_CHAIN_TYPE) {
-    return EDR_L1_CHAIN_TYPE;
-  }
-
-  return EDR_GENERIC_CHAIN_TYPE;
 }

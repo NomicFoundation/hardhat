@@ -438,6 +438,10 @@ repositories:
       test/P256.t.sol
       test/WebAuthn.t.sol
 
+      # This test is flaky - no action required 
+      # testBumpSlot(bytes32,uint256): Unknown error
+      test/LibStorage.t.sol
+
       # https://github.com/NomicFoundation/hardhat/issues/6509
       # testTargetGenerate(): Transaction reverted: contract call run out of gas and made the transaction revert
       test/DeploylessPredeployQueryer.t.sol
@@ -958,7 +962,6 @@ runners:
   ubuntu-latest: {}
   windows-latest: {}
   macos-latest: {}
-
 commands:
   forge build:
     command: 'forge build'
@@ -980,3 +983,48 @@ commands:
     command: 'hardhat compile'
     pattern: 'Compiled (\d+) Solidity files successfully'
     template: 'Compiled ${0} file(s)'
+presets:
+  default:
+    hardhat-ref: v-next
+    edr-ref: ''
+    repositories: []
+    runners: []
+    commands: []
+  solidity-test:
+    hardhat-ref: v-next
+    edr-ref: ''
+    repositories:
+      - Elytro-eth/soul-wallet-contract
+      - foundry-rs/forge-std
+      - kalidao/keep
+      - mds1/multicall
+      - pancakeswap/infinity-core
+      - PaulRBerg/prb-math
+      - PaulRBerg/prb-proxy
+      - PaulRBerg/prb-test
+      - pcaversaccio/createx
+      - ProjectOpenSea/seaport
+      - sablier-labs/lockup
+      - sablier-labs/v2-periphery
+      - transmissions11/solmate
+      - Uniswap/UniswapX
+      - Vectorized/solady
+    runners:
+      - ubuntu-latest
+      - macos-latest
+      - windows-latest
+    commands:
+      - forge test
+      - hardhat test solidity
+  solidity-compile:
+    hardhat-ref: v-next
+    edr-ref: ''
+    repositories:
+      - OpenZeppelin/openzeppelin-contracts
+    runners:
+      - ubuntu-latest
+      - macos-latest
+      - windows-latest
+    commands:
+      - hardhat compile
+      - hardhat2 compile

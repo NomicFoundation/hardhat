@@ -8,6 +8,11 @@ export const tasksResults = {
 
 const customTask = task("task")
   .setDescription("A task that uses arg1")
+  .addOption({ name: "arg1", shortName: "o", defaultValue: "<default-value1>" })
+  .addPositionalArgument({ name: "arg2" })
+  .addVariadicArgument({ name: "arg3" })
+  .addFlag({ name: "arg4", shortName: "f" })
+  .addLevel({ name: "arg5", shortName: "l" })
   .setAction(() => {
     tasksResults.wasArg1Used = true;
   })

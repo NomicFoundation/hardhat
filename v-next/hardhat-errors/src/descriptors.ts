@@ -8,7 +8,7 @@ export interface ErrorDescriptor {
   number: number;
 
   /**
-   * A tempalte of the message of the error.
+   * A template of the message of the error.
    *
    * This should be a short description. If possible, it should tell the user
    * how to solve their problem.
@@ -740,6 +740,32 @@ Please double check your arguments.`,
 
 Please double check your arguments.`,
       },
+      CANNOT_GROUP_OPTIONS: {
+        number: 509,
+        messageTemplate:
+          'Invalid option "{option}". Options cannot be grouped together. Try providing the options separately.',
+        websiteTitle: "Options grouping is not supported",
+        websiteDescription: `Options cannot be grouped together.
+
+Please double check your arguments, and try providing the options separately.`,
+      },
+      CANNOT_REPEAT_OPTIONS: {
+        number: 510,
+        messageTemplate:
+          'Invalid option "{option}". Options of type "{type}" cannot be repeated.',
+        websiteTitle: "Options repetition is not supported",
+        websiteDescription: `Some options cannot be repeated.
+
+Please double check your arguments.`,
+      },
+      INVALID_SHORT_NAME: {
+        number: 511,
+        messageTemplate: `Argument short name "{name}" is invalid. It must consist of exactly one letter.`,
+        websiteTitle: "Invalid short argument name",
+        websiteDescription: `One of your Hardhat or task short argument names is invalid.
+
+Please double check your arguments.`,
+      },
     },
     BUILTIN_TASKS: {
       RUN_FILE_NOT_FOUND: {
@@ -935,6 +961,16 @@ Try using another mnemonic or deriving less keys.`,
         websiteDescription:
           "The provider your are trying to use has been closed. Please create a new one using hre.network.connect() and try again.",
       },
+      INCOMPATIBLE_EIP7702_FIELDS: {
+        number: 723,
+        messageTemplate:
+          "An incompatible transaction with gasPrice and EIP-7702 fields.",
+        websiteTitle: "Incompatible EIP-7702 parameters",
+        websiteDescription: `You are trying to send a transaction with a locally managed
+account, and its parameters are incompatible. You sent both gasPrice and authorizationList.
+
+Please double check your transactions' parameters.`,
+      },
     },
     SOLIDITY_TESTS: {
       BUILD_INFO_NOT_FOUND_FOR_CONTRACT: {
@@ -962,140 +998,38 @@ Remaining test suites: {suites}`,
       },
     },
     SOLIDITY: {
-      RESOLVING_INCORRECT_FILE_AS_PROJECT_FILE: {
+      PROJECT_ROOT_RESOLUTION_ERROR: {
         number: 900,
-        shouldBeReported: true,
-        messageTemplate: `File "{file}" is being resolved as a project file, but it's not part of the project.`,
-        websiteTitle: "Solidity project file is outside the project",
-        websiteDescription: `Tried to resolve a file as a project file, but it's not part of the project.`,
+        messageTemplate: `There was an error while resolving the project file "{filePath}":
+
+{error}`,
+        websiteTitle: "Project file resolution error",
+        websiteDescription: `There was an error while resolving the project file.
+
+Please double-check your configuration. If it keeps happening, please report it.`,
       },
-      RESOLVING_NONEXISTENT_PROJECT_FILE: {
+      NPM_ROOT_RESOLUTION_ERROR: {
         number: 901,
-        shouldBeReported: true,
-        messageTemplate: `File "{file}" is being resolved as a project file, but it doesn't exist.`,
-        websiteTitle: "Solidity project file doesn't exist",
-        websiteDescription: `Tried to resolve a file as a project file, but it doesn't exist.`,
+        messageTemplate: `There was an error while resolving the npm module "{npmModule}" when trying to compile it:
+
+{error}`,
+        websiteTitle: "Npm file resolution error",
+        websiteDescription: `There was an error while resolving an npm module that you are trying to compile and generate artifacts for.
+
+Please double-check your configuration. If it keeps happening, please report it.`,
       },
-      IMPORTED_FILE_DOESNT_EXIST: {
+      IMPORT_RESOLUTION_ERROR: {
         number: 902,
-        messageTemplate: `The import "{importPath} from "{from}" doesn't exist.`,
-        websiteTitle: "Imported file doesn't exist",
-        websiteDescription: `An imported file doesn't exist.`,
-      },
-      IMPORTED_FILE_WITH_INCORRECT_CASING: {
-        number: 903,
-        messageTemplate:
-          'The import "{importPath} from "{from}" exists, but its casing is incorrect. The correct casing is "{correctCasing}".',
-        websiteTitle: "Imported file with incorrect casing",
-        websiteDescription: `Hardhat enforces that you import your files with the correct casing (as stored in the filesystem).
+        messageTemplate: `There was an error while resolving the import "{importPath}" from "{filePath}":
 
-This error is thrown when you import a file with the wrong casing under a case insensitve filesystem.`,
-      },
-      IMPORTED_PACKAGE_EXPORTS_FILE_WITH_INCORRECT_CASING: {
-        number: 904,
-        messageTemplate:
-          'The import "{importPath} from "{from}" exists, but its casing is incorrect.',
-        websiteTitle: "Imported file with incorrect casing",
-        websiteDescription: `Hardhat enforces that you import your files with the correct casing (as stored in the filesystem).
+{error}`,
+        websiteTitle: "Import resolution error",
+        websiteDescription: `There was an error while resolving an import.
 
-This error is thrown when you import a file with the wrong casing under a case insensitve filesystem.`,
-      },
-      NPM_DEPEDNDENCY_NOT_INSTALLED: {
-        number: 905,
-        messageTemplate:
-          'The npm package "{packageName}" isn\'t installed in the {from}.',
-        websiteTitle: "Uninstalled npm dependency",
-        websiteDescription: `Trying to use an npm package as a solidity dependency, but it's not installed.`,
-      },
-      IMPORTED_NPM_DEPENDENCY_NOT_INSTALLED: {
-        number: 906,
-        messageTemplate:
-          'The import "{importPath}" from "{from}" is trying to use an uninstalled npm dependency.',
-        websiteTitle: "Uninstalled npm solidity dependency",
-        websiteDescription: `One of your files is traying to import a dependency using npm, but it hasn't been installed`,
-      },
-      USER_REMAPPING_WITH_NPM_CONTEXT: {
-        number: 907,
-        messageTemplate:
-          'The remapping "{remapping}" has a context starting with "npm/", which is forbidden. Hardhat doesn\'t allow changing the behaviour of npm package\'s imports.',
-        websiteTitle: "Remapping imports in npm packages is not allowed",
-        websiteDescription: `This error happened because you are trying to change how the imports within an npm package, which is not allowed.
-
-While Hardhat supports user-defined remappings, it doesn't support remapping the behavior of npm packages to ensure that everything what's imported via npm uses the same npm resolution logic.`,
-      },
-      REMAPPING_WITH_INVALID_SYNTAX: {
-        number: 908,
-        messageTemplate: `The remapping "{remapping}" is invalid.`,
-        websiteTitle: "Invalid remapping",
-        websiteDescription: `You are trying to set a user remapping, but it's syntax is invalid.
-
-Please double check your remmpaings' syntax.`,
-      },
-      REMAPPING_TO_UNINSTALLED_PACKAGE: {
-        number: 909,
-        messageTemplate: `The remapping "{remapping}" is trying to use the npm package "{package}", which is not installed`,
-        websiteTitle: "Remapping into an uninstaleld npm package",
-        websiteDescription: `You are trying to set a user remapping that uses an npm pacakge as target, but it's not installed.
-
-Please make sure to install the package or fix the remapping.`,
-      },
-      REMAPPING_NPM_PACKAGE_AS_MONOREPO: {
-        number: 910,
-        messageTemplate: `The remapping "{remapping}" targets the npm pacakge "{pacakge}" as if it were part of this repository, but version "{version}" is installed instead`,
-        websiteTitle:
-          "Remapping into a monorepo package but found an npm package instead",
-        websiteDescription: `You are trying to set a remapping setting a monorepo package as target, but Hardhat found the pacakge to be installed from the npm regristry instead.`,
-      },
-      REMAPPING_HARDHAT_PROJECT_AS_MONOREPO_PACKAGE: {
-        number: 911,
-        messageTemplate: `The remapping "{remapping}" is trying to set the npm package "{package}" as target, but that's the project is the Hardhat project, so it shouldn't be remapped through npm/, but as internal project remappings.`,
-        websiteTitle: `Remapping into the project using npm`,
-        websiteDescription: `You are trying to set a remapping whose target uses the npm/ syntax, but is within your Hardhat project.
-
-Please don't use npm/... as target, but use normal internal project remapping istead.`,
-      },
-      REMAPPING_INCORRECT_VERSION: {
-        number: 912,
-        messageTemplate: `The remapping "{remapping}" is trying to set the npm package "{package}" version "{expectedVersion}" as target, but found version "{actualVersion}" instead.`,
-        websiteTitle: `Remapping into incorrect npm package version`,
-        websiteDescription: `You are trying to set a remapping into an npm package, but the version that you are using is not the currently installed one.
-
-Please change your remapping to match the installed version, or installed the correct one.`,
-      },
-      INVALID_NPM_IMPORT: {
-        number: 913,
-        messageTemplate: `The import "{importPath}" in "{from}" is treated as an npm import as it's first directory doesn't exist in your project, but it's syntax is not that of a valid npm import either.`,
-        websiteTitle: `Invalid npm import`,
-        websiteDescription: `You are trying to import a file that is not a valid npm import. Please double check that you are using the correct syntax.`,
-      },
-      ILLEGAL_PACKAGE_IMPORT: {
-        number: 914,
-        messageTemplate: `The import "{importPath}" in "{from}" is not a legal import as it's trying to import a file outside of its package.`,
-        websiteTitle: `Illegal package import`,
-        websiteDescription: `One of your npm packages has a Solidity file that is trying to import a file outside of its package using a relative import. This is disabled for security reasons.`,
-      },
-      ILEGALL_PROJECT_IMPORT: {
-        number: 915,
-        messageTemplate: `The import "{importPath}" in "{from}" is not a legal import as it's trying to import a file outside of the project.`,
-        websiteTitle: `Illegal project import`,
-        websiteDescription: `One of your Solidity files is trying to import a file outside of the Hardhat project using a relative import. This is disabled for security reasons.`,
-      },
-      ILLEGAL_PROJECT_IMPORT_AFTER_REMAPPING: {
-        number: 916,
-        messageTemplate: `Applying the remapping "{remapping}" to the import "{importPath}" from "{from}" results in an invalid import "{remappedDirectImport}", as it's not a local file. If you are trying to remap into an npm module use the npm/ syntax instead.`,
-        websiteTitle: `Illegal project import after remapping`,
-        websiteDescription: `One of your Solidity files has an import which after applying a user remapping becomes an illegal import, as it tries to import a file outside of the project. This is disabled for security reasons.
-
-If you are trying to remap into an npm module use the npm/ syntax instead.`,
-      },
-      IMPORT_PATH_WITH_WINDOWS_SEPARATOR: {
-        number: 917,
-        messageTemplate: `The import "{importPath}" in "{from}" is not a valid import as it contains a Windows path separator.`,
-        websiteTitle: `Import path with Windows path separator`,
-        websiteDescription: `One of your Solidity files is trying to import a file with a Windows path separator, and this is not supported. Please use a Unix-style path instead.`,
+Please double-check your import`,
       },
       INVALID_SOLC_VERSION: {
-        number: 918,
+        number: 903,
         messageTemplate: `Solidity version {version} is invalid or hasn't been released yet.
 
 If you are certain it has been released, run "npx hardhat clean --global" and try again`,
@@ -1104,39 +1038,8 @@ If you are certain it has been released, run "npx hardhat clean --global" and tr
 
 If you are certain it has been released, run \`npx hardhat clean --global\` and try again.`,
       },
-      RESOLVE_NPM_FILE_WITH_INVALID_FORMAT: {
-        number: 919,
-        messageTemplate: `Couldn't resolve the npm file "{module}" because it has an invalid format.
-
-Make sure that you are providing valid npm file paths (e.g. package/File.sol) in your config and programatically.`,
-        websiteTitle: "Resolving invalid npm file",
-        websiteDescription: `Tried to resolve an npm file directly (i.e. not imported by another file) but its format is invalid.
-
-This can happen if you setting npm files to be compiled as local files, with invalid file paths, or by misusing the solidity build system.`,
-      },
-      RESOLVE_NPM_FILE_CLASHES_WITH_LOCAL_FILES: {
-        number: 920,
-        shouldBeReported: true,
-        messageTemplate: `You are tying to resolve the npm file "{module}", for example to compile it as a local one, but it can clash with your project as the "{directory}" directory is present in your project.
-
-Please try renaming the directory.`,
-        websiteTitle: "Resolution of npm file clashes with local files",
-        websiteDescription: `You are tying to resolve an npm file, for example to compile it as a local one, but it can clash with your project files.`,
-      },
-      RESOLVE_NON_EXISTENT_NPM_ROOT: {
-        number: 921,
-        messageTemplate: `You are tying to compile the npm file "{module}", but it doesn't exist within its package.`,
-        websiteTitle: "Resolution of non-existent npm file",
-        websiteDescription: `You are tying to resolve an npm file that doesn't exist within its package.`,
-      },
-      RESOLVE_WRONG_CASING_NPM_ROOT: {
-        number: 922,
-        messageTemplate: `You are tying to compile the npm file "{module}", its casing is incorrect. Please double check it in your config.`,
-        websiteTitle: "Resolution of npm file with incorrect casing",
-        websiteDescription: `You are tying to resolve an npm file whose casing is incorrect.`,
-      },
       DOWNLOAD_FAILED: {
-        number: 923,
+        number: 904,
         messageTemplate:
           "Couldn't download compiler version {remoteVersion}. Please check your internet connection and try again.",
         websiteTitle: "`solc` download failed",
@@ -1145,7 +1048,7 @@ Please try renaming the directory.`,
 Please check your internet connection and try again.`,
       },
       VERSION_LIST_DOWNLOAD_FAILED: {
-        number: 924,
+        number: 905,
         messageTemplate:
           "Couldn't download compiler version list. Please check your internet connection and try again.",
         websiteTitle: "Couldn't obtain `solc` version list",
@@ -1154,7 +1057,7 @@ Please check your internet connection and try again.`,
 Please check your internet connection and try again.`,
       },
       INVALID_DOWNLOAD: {
-        number: 925,
+        number: 906,
         messageTemplate: `Couldn't download compiler version {remoteVersion}: Checksum verification failed.
 
 Please check your internet connection and try again.
@@ -1168,7 +1071,7 @@ Please check your internet connection and try again.
 If this error persists, run \`npx hardhat clean --global\`.`,
       },
       CANT_RUN_NATIVE_COMPILER: {
-        number: 926,
+        number: 907,
         messageTemplate: `A native version of solc failed to run.
 
 If you are running MacOS, try installing Apple Rosetta.
@@ -1182,7 +1085,7 @@ If you are running MacOS, try installing Apple Rosetta.
 If this error persists, run "npx hardhat clean --global".`,
       },
       CANT_RUN_SOLCJS_COMPILER: {
-        number: 927,
+        number: 908,
         messageTemplate: `A wasm version of solc failed to run.
 
 If this error persists, run "npx hardhat clean --global".`,
@@ -1194,7 +1097,7 @@ If you are running MacOS, try installing Apple Rosetta.
 If this error persists, run "npx hardhat clean --global".`,
       },
       COMPILATION_JOB_CREATION_ERROR: {
-        number: 928,
+        number: 909,
         messageTemplate: `Failed to create compilation job for file "{rootFilePath}" using the build profile "{buildProfile}".
 
 {reason}`,
@@ -1204,7 +1107,7 @@ If this error persists, run "npx hardhat clean --global".`,
 This happens when your files require incompatible versions of solc or you haven't configured a version that works with them`,
       },
       BUILD_FAILED: {
-        number: 929,
+        number: 910,
         messageTemplate: "Compilation failed",
         websiteTitle: "Compilation failed",
         websiteDescription: `Your smart contracts failed to compile.
@@ -1212,19 +1115,13 @@ This happens when your files require incompatible versions of solc or you haven'
 Please check Hardhat's output for more details.`,
       },
       INVALID_SOLCJS_COMPILER: {
-        number: 930,
+        number: 911,
         messageTemplate: `A wasm version of solc {version} is invalid. The compile function is not available.`,
         websiteTitle: "Invalid solcjs compiler",
         websiteDescription: `Hardhat successfully downloaded a WASM version of solc {version} but it is invalid. The compile function is missing.`,
       },
-      RESOLVE_NOT_EXPORTED_NPM_FILE: {
-        number: 931,
-        messageTemplate: `You are tying to resolve the npm file "{module}", but it's not exported by its package`,
-        websiteTitle: "Resolution of not-exported npm file",
-        websiteDescription: `You are tying to resolve an npm file that is not exported by its package.`,
-      },
       BUILD_PROFILE_NOT_FOUND: {
-        number: 932,
+        number: 912,
         messageTemplate: `The build profile "{buildProfileName}" is not defined in your Hardhat config`,
         websiteTitle: "Build profile not defined",
         websiteDescription: `The build profile you are trying to use is not defined in your Hardhat config.`,
@@ -1591,11 +1488,11 @@ Please review the error message and try again.`,
       },
       TRANSACTION_LOST: {
         number: 10410,
-        messageTemplate: `An error occured while trying to send a transaction for future {futureId}.
+        messageTemplate: `An error occurred while trying to send a transaction for future {futureId}.
 Please use a block explorer to find the hash of the transaction with nonce {nonce} sent from account {sender} and use the following command to add it to your deployment:
 npx hardhat ignition track-tx <txHash> <deploymentId> --network <networkName>`,
         websiteTitle: "Transaction lost",
-        websiteDescription: `An error occured while trying to send a transaction`,
+        websiteDescription: `An error occurred while trying to send a transaction`,
       },
     },
     RECONCILIATION: {
@@ -1753,7 +1650,7 @@ npx hardhat ignition track-tx <txHash> <deploymentId> --network <networkName>`,
         messageTemplate:
           "Invalid libraries for contract {contractName}: The names '{inputName}' and '{libName}' clash with each other, please use qualified names for both.",
         websiteTitle: "Conflicting library names",
-        websiteDescription: `The libray names clash with each other`,
+        websiteDescription: `The library names clash with each other`,
       },
       INVALID_LIBRARY_NAME: {
         number: 10718,
@@ -2030,6 +1927,26 @@ Please try again later.`,
         messageTemplate: `The value "{value}" with type "{type}" is not supported by the deepCopy function.`,
         websiteTitle: "Unsupported type for deep copy",
         websiteDescription: "Unsupported type for deep copy",
+      },
+      ACCOUNTS_OF_TYPE_REMOTE: {
+        number: 20014,
+        messageTemplate:
+          "Tried to obtain a private key, but the network is configured to use remote accounts.",
+        websiteTitle: "Remote accounts are not supported",
+        websiteDescription: "Remote accounts are not supported",
+      },
+      WRONG_ACCOUNTS_FORMAT: {
+        number: 20015,
+        messageTemplate: `The "accounts" property in your Hardhat configuration file is not set correctly.`,
+        websiteTitle: `Invalid "accounts" property in your Hardhat configuration file`,
+        websiteDescription: `The "accounts" property in your Hardhat configuration file is not set correctly. Please double check it and try again.`,
+      },
+      NO_PRIVATE_KEY_FOR_ADDRESS: {
+        number: 20016,
+        messageTemplate: `No private key can be associated with the address "{address}".`,
+        websiteTitle: "Private key for the address could not be found",
+        websiteDescription:
+          "The private key for the address could not be found. Please double check your private keys and try again.",
       },
     },
   },
@@ -2497,7 +2414,7 @@ Possible causes:
         websiteDescription: `The bytecode at the specified address did not match the expected contract.
 
 Possible causes:
-- Your artifacts are outdated or missing; try running \`hardhat compile --force\`.
+- Your artifacts are outdated or missing; try running npx hardhat compile --force --buildProfile production.
 - The contract code was modified after deployment.
 - Compiler settings (optimizer, EVM version, etc.) changed after deployment.
 - The provided address is incorrect.
@@ -2571,21 +2488,15 @@ Please ensure each library address is correct. You can remove entries from your 
         number: 80016,
         messageTemplate: `The contract "{contract}" has one or more library addresses that cannot be detected from the deployed bytecode.
 This can occur if a library is only used in the contract's constructor. The missing libraries are:
-{missingList}
-
-{solution}`,
+{missingList}`,
         websiteTitle: "Missing library addresses",
         websiteDescription: `One or more libraries required by the contract could not be detected from the deployed bytecode.
 
-This usually happens when a library is only referenced in the contract's constructor. To resolve this, provide the missing library addresses using the "--libraries" option.
-
-For more information, see:
-https://hardhat.org/hardhat-runner/plugins/nomicfoundation-hardhat-verify#libraries-with-undetectable-addresses
-`,
+This usually happens when a library is only referenced in the contract's constructor. To resolve this, provide the missing library addresses using the "--libraries" option.`,
       },
       INVALID_CONSTRUCTOR_ARGUMENT_TYPE: {
         number: 80017,
-        messageTemplate: `The value "{value}" for constructor parameter "{argument}" cannot be encoded.
+        messageTemplate: `The value "{value}" for a constructor parameter cannot be encoded.
 Reason: {reason}.`,
         websiteTitle: "Invalid constructor argument type",
         websiteDescription: `One of the arguments passed to the contract's constructor has an invalid JavaScript type.
@@ -2606,17 +2517,23 @@ Please verify that you pass the exact number of arguments required by the constr
       },
       CONSTRUCTOR_ARGUMENT_OVERFLOW: {
         number: 80019,
-        messageTemplate: `The value "{value}" is not a safe integer and cannot be encoded. Use a string instead of a plain number.
-Reason: {reason}; fault in {operation}.`,
-        websiteTitle: "Invalid constructor argument value",
-        websiteDescription: `One of the arguments passed to the contract's constructor isn't a safe integer and can't be encoded as a JavaScript number.
+        messageTemplate: `The value "{value}" is out of bounds for its Solidity type and cannot be encoded.`,
+        websiteTitle: "Constructor argument value out of bounds",
+        websiteDescription: `One of the arguments passed to the contract's constructor is outside the allowed range for its Solidity type (for example, passing 256 to a uint8 parameter).
 
-This error occurs when a numeric value exceeds JavaScript's safe integer range. To encode large integers, provide them as strings instead.
+This error occurs when a value exceeds the maximum or minimum allowed for the specified Solidity type.
 
-Please convert any large numeric values to strings.`,
+Please ensure all argument values fit within the valid range for their respective Solidity types.`,
+      },
+      CONSTRUCTOR_ARGUMENTS_ENCODING_FAILED: {
+        number: 80020,
+        messageTemplate: `The constructor arguments for "{contract}" could not be encoded. Reason: {reason}.`,
+        websiteTitle: "Constructor arguments encoding failed",
+        websiteDescription: `The constructor arguments provided for the contract could not be encoded correctly.
+Please review the provided arguments and ensure they match the expected arguments defined in the contract's ABI.`,
       },
       CONTRACT_VERIFICATION_MISSING_BYTECODE: {
-        number: 80020,
+        number: 80021,
         messageTemplate: `The request to {url} failed because the address "{address}" does not have bytecode.`,
         websiteTitle: "Missing bytecode at address",
         websiteDescription: `The explorer responded that the specified address does not contain bytecode. This usually means the contract was deployed recently and the explorer's backend has not yet indexed it.
@@ -2624,7 +2541,7 @@ Please convert any large numeric values to strings.`,
 Please wait a short time (e.g., 30-60 seconds) and try again. If you're running this from a script, wait for at least five confirmations before verifying.`,
       },
       CONTRACT_ALREADY_VERIFIED: {
-        number: 80021,
+        number: 80022,
         messageTemplate: `The contract "{contract}" at address "{address}" is already verified.`,
         websiteTitle: "Contract already verified",
         websiteDescription: `The block explorer responded that the contract is already verified.
@@ -2632,7 +2549,7 @@ Please wait a short time (e.g., 30-60 seconds) and try again. If you're running 
 This typically occurs if you used the "--force" flag and the explorer does not support re-verification, or if the contract was previously verified with a full match.`,
       },
       CONTRACT_VERIFICATION_REQUEST_FAILED: {
-        number: 80022,
+        number: 80023,
         messageTemplate: `The contract verification request failed: "{message}".`,
         websiteTitle: "Contract verification request failed",
         websiteDescription: `The block explorer returned an error when attempting to verify the contract's source code.
@@ -2640,14 +2557,14 @@ This typically occurs if you used the "--force" flag and the explorer does not s
 Please check the returned message for details.`,
       },
       CONTRACT_VERIFICATION_STATUS_POLLING_FAILED: {
-        number: 80023,
+        number: 80024,
         messageTemplate: `The contract verification status polling encountered an error: "{message}". Verification may still succeed.`,
         websiteTitle: "Contract verification status polling failed",
         websiteDescription:
           "The block explorer returned a failure status when checking the verification status. Verification may still succeed; please check manually.",
       },
       CONTRACT_VERIFICATION_UNEXPECTED_RESPONSE: {
-        number: 80024,
+        number: 80025,
         messageTemplate: `The block explorer API returned an unexpected message: "{message}". Please report this issue to the Hardhat team.`,
         shouldBeReported: true,
         websiteTitle: "Unexpected API response during contract verification",
@@ -2656,7 +2573,7 @@ Please check the returned message for details.`,
 Please report this issue to the Hardhat team.`,
       },
       CONTRACT_VERIFICATION_FAILED: {
-        number: 80025,
+        number: 80026,
         messageTemplate: `The contract verification failed.
 Reason: "{reason}".
 {librariesWarning}`,
@@ -2665,35 +2582,43 @@ Reason: "{reason}".
 
 If your contract uses libraries whose addresses cannot be detected automatically, make sure you are providing the correct address for each undetectable library.`,
       },
-      ETHERSCAN_VERIFICATION_DISABLED_IN_CONFIG: {
-        number: 80026,
-        messageTemplate:
-          "Etherscan verification is disabled in your config. Please add an Etherscan configuration section to your Hardhat config.",
-        websiteTitle: "Etherscan verification disabled",
-        websiteDescription:
-          "No Etherscan verfication configuration set in Hardhat config",
-      },
-      ETHERSCAN_BLOCK_EXPLORER_NOT_CONFIGURED: {
+      VERIFICATION_DISABLED_IN_CONFIG: {
         number: 80027,
         messageTemplate:
-          "No Etherscan block explorer is configured for the {chainId} chain in the chain descriptors.",
-        websiteTitle: "Etherscan block explorer not configured",
+          "{verificationProvider} verification is disabled in your config. Please add the verification provider configuration to your Hardhat config.",
+        websiteTitle: "Provider verification disabled",
+        websiteDescription:
+          "No provider verification configuration set in Hardhat config",
+      },
+      BLOCK_EXPLORER_NOT_CONFIGURED: {
+        number: 80028,
+        messageTemplate:
+          "No {verificationProvider} block explorer is configured for the {chainId} chain in the chain descriptors.",
+        websiteTitle: "Block explorer not configured",
         websiteDescription: `
-Etherscan block explorer information is missing in your chain descriptor configuration.
+Block explorer information is missing in your chain descriptor configuration.
 
-To enable contract verification on Etherscan, add an etherscan entry in the blockExplorers field of the relevant chain descriptor.
+To enable contract verification, add an entry for the verification provider in the blockExplorers field of the relevant chain descriptor.
 You can override the default chain descriptor by providing your own chainDescriptors object in the Hardhat config, with the following structure:
 
 chainDescriptors: {
   <chainId>: {
     name: <name>,
     blockExplorers: {
+      blockscout: { name: "Blockscout", url: <blockscout-url> apiUrl: <blockscout-api-url> };
       etherscan: { name: "Etherscan", url: <etherscan-url> apiUrl: <etherscan-api-url> };
     }
   }
 }
 
 `,
+      },
+      ADDRESS_NOT_A_CONTRACT: {
+        number: 80029,
+        messageTemplate: `{verificationProvider} responded that the address "{address}" does not contain a contract. This usually means the address is incorrect, the contract was not deployed on the selected network, or there is a temporary issue with the block explorer not updating its index.`,
+        websiteTitle: "Address is not a contract",
+        websiteDescription: `The block explorer responded that the address does not contain a contract. This usually means the address is incorrect, the contract was not deployed on the selected network, or there is a temporary issue with the block explorer not updating its index.
+Please verify the address and network, and try again later if necessary.`,
       },
     },
     VALIDATION: {
@@ -2750,6 +2675,13 @@ export default ["arg1", "arg2", ...];`,
 Example:
 
 export default { lib1: "0x...", lib2: "0x...", ... };`,
+      },
+      INVALID_VERIFICATION_PROVIDER: {
+        number: 80107,
+        messageTemplate: `The verification provider "{verificationProvider}" is not supported. Supported providers are: {supportedVerificationProviders}.`,
+        websiteTitle: "Invalid verification provider",
+        websiteDescription:
+          "The specified verification provider is not supported. Please use one of the supported providers.",
       },
     },
   },

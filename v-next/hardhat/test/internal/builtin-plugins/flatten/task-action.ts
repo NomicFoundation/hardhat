@@ -95,7 +95,10 @@ describe("flatten/task-action", () => {
           assert.deepEqual(getContractsOrder(bFlattened), ["B", "C"]);
 
           const { flattened: baFlattened } = await flattenAction(
-            { files: ["contracts/B.sol", "contracts/A.sol"], ...logOptions },
+            {
+              files: ["contracts/B.sol", "contracts/A.sol"],
+              ...logOptions,
+            },
             hre,
           );
 

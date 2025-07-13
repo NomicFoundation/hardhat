@@ -23,7 +23,7 @@ export async function annotatePR(
     return;
   }
 
-  const { default: core } = await import("@actions/core");
+  const core = await import("@actions/core");
 
   core.error(formatError(error), {
     file: location.file,

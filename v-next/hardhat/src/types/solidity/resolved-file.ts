@@ -15,7 +15,7 @@ export interface ResolvedNpmPackage {
   /**
    * The exports of the package.
    */
-  exports?: PacakgeExports;
+  exports?: PackageExports;
 
   /**
    * The path to the package's root directory.
@@ -23,16 +23,19 @@ export interface ResolvedNpmPackage {
   rootFsPath: string;
 
   /**
-   * The prefix that represents the source name of the package's files.
+   * The prefix to all the input source names of the package's files.
    *
-   * For example, package 'foo' with version '1.2.3' would have a root source
-   * name of 'npm/foo@1.2.3/'. If the package is part of the monorepo, the root
-   * source name would be 'npm/package@local/'.
+   * For example, package 'foo' with version '1.2.3' would have an input source
+   * name root of 'npm/foo@1.2.3'.
    *
-   * Note that this can be derived from the rest of the fields, but it's
-   * cached here for performance reasons.
+   * If the package is part of the monorepo, the input source name root would be
+   * 'npm/package@local'.
+   *
+   * If this package represents the Hardhat project itself, it's 'project'.
+   *
+   * Note that this doesn't include a trailing slash.
    */
-  rootSourceName: string;
+  inputSourceNameRoot: string;
 }
 
 /**
@@ -47,23 +50,28 @@ export enum ResolvedFileType {
  * A file that's part of the Hardhat project (i.e. not installed through npm).
  */
 export interface ProjectResolvedFile {
-  type: ResolvedFileType.PROJECT_FILE;
+  readonly type: ResolvedFileType.PROJECT_FILE;
 
   /**
-   * The source name of a project files is its relative path from the Hardhat
-   * project root.
+   * The source name to be used when generating a compiler input, of the form
+   * `project/<relative-path>`.
    */
-  sourceName: string;
+  readonly inputSourceName: string;
 
   /**
    * The absolute path to the file.
    */
-  fsPath: string;
+  readonly fsPath: string;
 
   /**
    * The file contents.
    */
-  content: FileContent;
+  readonly content: FileContent;
+
+  /**
+   * The package of the Hardhat project itself.
+   */
+  readonly package: ResolvedNpmPackage;
 }
 
 /**
@@ -73,9 +81,10 @@ export interface NpmPackageResolvedFile {
   type: ResolvedFileType.NPM_PACKAGE_FILE;
 
   /**
-   * The source of an npm package file is `npm/<package-name>@<version>/<path>`.
+   * The source name to be used when generating a compiler input, of the form
+   * `npm/<package-name>@<version>/<path>`.
    */
-  sourceName: string;
+  inputSourceName: string;
 
   /**
    * The absolute path to the file.
@@ -120,7 +129,7 @@ export interface FileContent {
 
 /* Adapted from `resolve.exports`. License: https://github.com/lukeed/resolve.exports/blob/master/license */
 
-export type PacakgeExports =
+export type PackageExports =
   | PackageExportPath
   | {
       [path: PackageExportsEntry]: PackageExportsValue;

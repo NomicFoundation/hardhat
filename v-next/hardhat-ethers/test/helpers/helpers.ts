@@ -1,7 +1,7 @@
 import type { HardhatEthers } from "../../src/types.js";
 import type { ContractRunner, Signer } from "ethers";
 import type { ArtifactManager } from "hardhat/types/artifacts";
-import type { NetworkConfig } from "hardhat/types/config";
+import type { HardhatUserConfig, NetworkConfig } from "hardhat/types/config";
 import type { EthereumProvider } from "hardhat/types/providers";
 
 import assert from "node:assert/strict";
@@ -13,7 +13,8 @@ import { initializeEthers } from "../../src/internal/initialization.js";
 import { MockArtifactManager } from "./artifact-manager-mock.js";
 
 export async function initializeTestEthers(
-  mockedArtifacts?: Array<{ artifactName: string; fileName: string }>,
+  mockedArtifacts: Array<{ artifactName: string; fileName: string }> = [],
+  config: HardhatUserConfig = {},
 ): Promise<{
   ethers: HardhatEthers;
   provider: EthereumProvider;
@@ -21,9 +22,12 @@ export async function initializeTestEthers(
   networkConfig: NetworkConfig;
   artifactManager: ArtifactManager;
 }> {
-  const hre = await createHardhatRuntimeEnvironment({});
+  const hre = await createHardhatRuntimeEnvironment(config);
 
-  const connection = await hre.network.connect();
+  const network =
+    config.networks?.localhost !== undefined ? "localhost" : "hardhat";
+
+  const connection = await hre.network.connect(network);
 
   const provider = connection.provider;
   const networkName = connection.networkName;

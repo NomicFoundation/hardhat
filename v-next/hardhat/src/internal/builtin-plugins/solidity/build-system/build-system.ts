@@ -246,12 +246,11 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         result.compilerOutput,
       );
 
-      for (const [
-        publicSourceName,
-        root,
-      ] of result.compilationJob.dependencyGraph.getRoots().entries()) {
+      for (const [userSourceName, root] of result.compilationJob.dependencyGraph
+        .getRoots()
+        .entries()) {
         if (!successfulResult) {
-          resultsMap.set(formatRootPath(publicSourceName, root), {
+          resultsMap.set(formatRootPath(userSourceName, root), {
             type: FileBuildResultType.BUILD_FAILURE,
             compilationJob: result.compilationJob,
             errors,
@@ -261,22 +260,22 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         }
 
         if (result.cached) {
-          resultsMap.set(formatRootPath(publicSourceName, root), {
+          resultsMap.set(formatRootPath(userSourceName, root), {
             type: FileBuildResultType.CACHE_HIT,
             compilationJob: result.compilationJob,
             contractArtifactsGenerated:
-              contractArtifactsGenerated.get(publicSourceName) ?? [],
+              contractArtifactsGenerated.get(userSourceName) ?? [],
             warnings: errors,
           });
 
           continue;
         }
 
-        resultsMap.set(formatRootPath(publicSourceName, root), {
+        resultsMap.set(formatRootPath(userSourceName, root), {
           type: FileBuildResultType.BUILD_SUCCESS,
           compilationJob: result.compilationJob,
           contractArtifactsGenerated:
-            contractArtifactsGenerated.get(publicSourceName) ?? [],
+            contractArtifactsGenerated.get(userSourceName) ?? [],
           warnings: errors,
         });
       }
@@ -300,10 +299,9 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
   ): Promise<CompilationJobCreationError | Map<string, CompilationJob>> {
     await this.#downloadConfiguredCompilers(options?.quiet);
 
-    const { dependencyGraph, resolver } = await buildDependencyGraph(
+    const dependencyGraph = await buildDependencyGraph(
       rootFilePaths.toSorted(), // We sort them to have a deterministic order
       this.#options.projectRoot,
-      this.#options.solidityConfig.remappings,
       readSourceFileFactory(this.#hooks),
     );
 
@@ -331,7 +329,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     > = [];
     for (const [rootFile, resolvedFile] of dependencyGraph.getRoots()) {
       log(
-        `Building compilation job for root file ${rootFile} with source name ${resolvedFile.sourceName}`,
+        `Building compilation job for root file ${rootFile} with input source name ${resolvedFile.inputSourceName} and user source name ${rootFile}`,
       );
 
       const subgraph = dependencyGraph.getSubgraph(rootFile);
@@ -392,13 +390,12 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         subgraph,
         solcConfig,
         solcLongVersion,
-        resolver.getRemappings(), // TODO: Only get the ones relevant to the subgraph?
         this.#hooks,
       );
 
-      for (const [publicSourceName, root] of subgraph.getRoots().entries()) {
+      for (const [userSourceName, root] of subgraph.getRoots().entries()) {
         compilationJobsPerFile.set(
-          formatRootPath(publicSourceName, root),
+          formatRootPath(userSourceName, root),
           compilationJob,
         );
       }
@@ -447,12 +444,14 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       errorCode: error.errorCode,
       formattedMessage: error.formattedMessage?.replace(
         /(-->\s+)([^\s:\n]+)/g,
-        (_match, prefix, sourceName) => {
+        (_match, prefix, inputSourceName) => {
           const file =
-            compilationJob.dependencyGraph.getFileBySourceName(sourceName);
+            compilationJob.dependencyGraph.getFileByInputSourceName(
+              inputSourceName,
+            );
 
           if (file === undefined) {
-            return `${prefix}${sourceName}`;
+            return `${prefix}${inputSourceName}`;
           }
 
           const replacement = shouldShortenPaths
@@ -472,22 +471,29 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     const result = new Map<string, string[]>();
     const buildId = await compilationJob.getBuildId();
 
+    const userSourceNameMap = Object.fromEntries(
+      compilationJob.dependencyGraph
+        .getRoots()
+        .entries()
+        .map(([userSourceName, root]) => [
+          root.inputSourceName,
+          userSourceName,
+        ]),
+    );
+
     // We emit the artifacts for each root file, first emitting one artifact
     // for each contract, and then one declaration file for the entire file,
     // which defines their types and augments the ArtifactMap type.
-    for (const [publicSourceName, root] of compilationJob.dependencyGraph
+    for (const [userSourceName, root] of compilationJob.dependencyGraph
       .getRoots()
       .entries()) {
-      const fileFolder = path.join(
-        this.#options.artifactsPath,
-        publicSourceName,
-      );
+      const fileFolder = path.join(this.#options.artifactsPath, userSourceName);
 
       // If the folder exists, we remove it first, as we don't want to leave
       // any old artifacts there.
       await remove(fileFolder);
 
-      const contracts = compilerOutput.contracts?.[root.sourceName];
+      const contracts = compilerOutput.contracts?.[root.inputSourceName];
       const paths: string[] = [];
       const artifacts: Artifact[] = [];
 
@@ -501,10 +507,11 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
           const artifact = getContractArtifact(
             buildId,
-            publicSourceName,
-            root.sourceName,
+            userSourceName,
+            root.inputSourceName,
             contractName,
             contract,
+            userSourceNameMap,
           );
 
           await writeUtf8File(
@@ -517,7 +524,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         }
       }
 
-      result.set(publicSourceName, paths);
+      result.set(userSourceName, paths);
 
       const artifactsDeclarationFilePath = path.join(
         fileFolder,
@@ -549,7 +556,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     );
 
     // BuildInfo and BuildInfoOutput files are large, so we write them
-    // concurrently, and keep their lifetimes sperated and small.
+    // concurrently, and keep their lifetimes separated and small.
     await Promise.all([
       (async () => {
         const buildInfo = await getBuildInfo(compilationJob);
@@ -579,14 +586,14 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
   public async cleanupArtifacts(rootFilePaths: string[]): Promise<void> {
     log(`Cleaning up artifacts`);
 
-    const publicSourceNames = rootFilePaths.map((rootFilePath) => {
+    const userSourceNames = rootFilePaths.map((rootFilePath) => {
       const parsed = parseRootPath(rootFilePath);
       return isNpmParsedRootPath(parsed)
         ? parsed.npmPath
         : path.relative(this.#options.projectRoot, parsed.fsPath);
     });
 
-    const publicSourceNamesSet = new Set(publicSourceNames);
+    const userSourceNamesSet = new Set(userSourceNames);
 
     for (const file of await getAllDirectoriesMatching(
       this.#options.artifactsPath,
@@ -594,7 +601,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     )) {
       const relativePath = path.relative(this.#options.artifactsPath, file);
 
-      if (!publicSourceNamesSet.has(relativePath)) {
+      if (!userSourceNamesSet.has(relativePath)) {
         await remove(file);
       }
     }

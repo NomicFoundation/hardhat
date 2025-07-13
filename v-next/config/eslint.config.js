@@ -296,6 +296,7 @@ export function createConfig(
           "type",
           "builtin",
           "external",
+          "internal",
           "parent",
           "sibling",
           "index",
@@ -353,7 +354,9 @@ export function createConfig(
               "Don't import from the src folder, use the package entry point instead.",
           },
           {
-            group: builtinModules.map((m) => `/${m}`),
+            group: builtinModules
+              .filter((m) => !m.startsWith("node:"))
+              .map((m) => `/${m}`),
             message:
               "Use the 'node:' prefix to import built-in Node.js modules.",
           },
@@ -434,8 +437,28 @@ export function createConfig(
           devDependencies: true,
         },
       ],
-      // Disabled until this gets resolved https://github.com/nodejs/node/issues/51292
-      "@typescript-eslint/no-floating-promises": "off",
+      "@typescript-eslint/no-floating-promises": [
+        "error",
+        {
+          // Node <24 uses floating promises in tests and suites. It was removed in Node 24,
+          // but at the time of writing they are considering reverting it, so we allow them
+          // here. See: https://github.com/nodejs/node/pull/58282
+          allowForKnownSafeCalls: [
+            {
+              from: "package",
+              name: ["describe", "suite", "it", "test"],
+              package: "node:test",
+            },
+            // Theseare more permissive than needed, as they allow any call to functions
+            // with these names to float a promise. They can be removed if Node 24+
+            // doesn't revert the removal of floating promises, or if this gets resolved
+            // https://github.com/typescript-eslint/typescript-eslint/issues/10740
+            "skip",
+            "todo",
+            "only",
+          ],
+        },
+      ],
     },
   };
 

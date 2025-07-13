@@ -1,5 +1,8 @@
 import type { SolidityBuildProfileConfig } from "../../../../../src/types/config.js";
-import type { ProjectResolvedFile } from "../../../../../src/types/solidity.js";
+import type {
+  ProjectResolvedFile,
+  ResolvedNpmPackage,
+} from "../../../../../src/types/solidity.js";
 
 import assert from "node:assert/strict";
 import path from "node:path";
@@ -9,23 +12,34 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import { DependencyGraphImplementation } from "../../../../../src/internal/builtin-plugins/solidity/build-system/dependency-graph.js";
-import { ProjectResolvedFileImplementation } from "../../../../../src/internal/builtin-plugins/solidity/build-system/resolved-file.js";
 import { SolcConfigSelector } from "../../../../../src/internal/builtin-plugins/solidity/build-system/solc-config-selection.js";
-import { CompilationJobCreationErrorReason } from "../../../../../src/types/solidity.js";
+import {
+  CompilationJobCreationErrorReason,
+  ResolvedFileType,
+} from "../../../../../src/types/solidity.js";
+
+const testHardhatProjectNpmPackage: ResolvedNpmPackage = {
+  name: "hardhat-project",
+  version: "1.2.3",
+  rootFsPath: "/Users/root/",
+  inputSourceNameRoot: "project",
+};
 
 function createProjectResolvedFile(
-  sourceName: string,
+  inputSourceName: string,
   versionPragmas: string[],
 ): ProjectResolvedFile {
-  return new ProjectResolvedFileImplementation({
-    sourceName,
-    fsPath: path.join(process.cwd(), sourceName),
+  return {
+    type: ResolvedFileType.PROJECT_FILE,
+    inputSourceName,
+    fsPath: path.join(process.cwd(), inputSourceName),
     content: {
       text: "",
       importPaths: [],
       versionPragmas,
     },
-  });
+    package: testHardhatProjectNpmPackage,
+  };
 }
 
 describe("SolcConfigSelector", () => {
@@ -42,11 +56,11 @@ describe("SolcConfigSelector", () => {
     };
     root = createProjectResolvedFile("root.sol", ["^0.8.0"]);
     dependencyGraph = new DependencyGraphImplementation();
-    dependencyGraph.addRootFile(root.sourceName, root);
+    dependencyGraph.addRootFile(root.inputSourceName, root);
   });
 
   describe("selectBestSolcConfigForSingleRootGraph", () => {
-    it("should throw when given a subgraph of size greater than 1", () => {
+    it("should throw when given a subgraph of size greater than 1", async () => {
       dependencyGraph.addRootFile(
         "otherRoot",
         createProjectResolvedFile(
@@ -60,7 +74,7 @@ describe("SolcConfigSelector", () => {
         dependencyGraph,
       );
 
-      assertRejectsWithHardhatError(
+      await assertRejectsWithHardhatError(
         async () => {
           selector.selectBestSolcConfigForSingleRootGraph(dependencyGraph);
         },
@@ -71,7 +85,7 @@ describe("SolcConfigSelector", () => {
       );
     });
 
-    it("should throw when given a subgraph of size 0", () => {
+    it("should throw when given a subgraph of size 0", async () => {
       const emptyDependencyGraph = new DependencyGraphImplementation();
 
       const selector = new SolcConfigSelector(
@@ -80,7 +94,7 @@ describe("SolcConfigSelector", () => {
         emptyDependencyGraph,
       );
 
-      assertRejectsWithHardhatError(
+      await assertRejectsWithHardhatError(
         async () => {
           selector.selectBestSolcConfigForSingleRootGraph(emptyDependencyGraph);
         },
@@ -93,7 +107,7 @@ describe("SolcConfigSelector", () => {
 
     describe("with a compiler override", () => {
       it("should return the compiler if it satisfies the version range ", () => {
-        buildProfile.overrides[root.sourceName] = {
+        buildProfile.overrides[root.inputSourceName] = {
           version: "0.8.0",
           settings: {},
         };
@@ -106,12 +120,12 @@ describe("SolcConfigSelector", () => {
         const config =
           selector.selectBestSolcConfigForSingleRootGraph(dependencyGraph);
 
-        assert.deepEqual(config, buildProfile.overrides[root.sourceName]);
+        assert.deepEqual(config, buildProfile.overrides[root.inputSourceName]);
       });
 
       describe("if it does not satisfy the version range", () => {
         it("should return incompatible override error if it does not satisfy the root version range", () => {
-          buildProfile.overrides[root.sourceName] = {
+          buildProfile.overrides[root.inputSourceName] = {
             version: "0.7.0",
             settings: {},
           };
@@ -126,7 +140,7 @@ describe("SolcConfigSelector", () => {
 
           assert.deepEqual(config, {
             reason:
-              CompilationJobCreationErrorReason.INCOMPATIBLE_OVERRIDEN_SOLC_VERSION,
+              CompilationJobCreationErrorReason.INCOMPATIBLE_OVERRIDDEN_SOLC_VERSION,
             rootFilePath: root.fsPath,
             buildProfile: buildProfileName,
             formattedReason:
@@ -135,7 +149,7 @@ describe("SolcConfigSelector", () => {
         });
 
         it("should return import of incompatible file error if dependency version range clashes with the root version range", () => {
-          buildProfile.overrides[root.sourceName] = {
+          buildProfile.overrides[root.inputSourceName] = {
             version: "0.8.0",
             settings: {},
           };
@@ -159,12 +173,12 @@ describe("SolcConfigSelector", () => {
             rootFilePath: root.fsPath,
             buildProfile: buildProfileName,
             incompatibleImportPath: [dependency.fsPath],
-            formattedReason: `Following these imports leads to an incompatible solc version pragma that no version can satisfy:\n  * ${root.sourceName}\n  * ${dependency.sourceName}\n`,
+            formattedReason: `Following these imports leads to an incompatible solc version pragma that no version can satisfy:\n  * .${path.sep}${root.inputSourceName}\n  * .${path.sep}${dependency.inputSourceName}\n`,
           });
         });
 
         it("should return no compatible solc version error otherwise", () => {
-          buildProfile.overrides[root.sourceName] = {
+          buildProfile.overrides[root.inputSourceName] = {
             version: "0.8.0",
             settings: {},
           };
@@ -287,7 +301,7 @@ describe("SolcConfigSelector", () => {
             rootFilePath: root.fsPath,
             buildProfile: buildProfileName,
             incompatibleImportPath: [dependency.fsPath],
-            formattedReason: `Following these imports leads to an incompatible solc version pragma that no version can satisfy:\n  * ${root.sourceName}\n  * ${dependency.sourceName}\n`,
+            formattedReason: `Following these imports leads to an incompatible solc version pragma that no version can satisfy:\n  * .${path.sep}${root.inputSourceName}\n  * .${path.sep}${dependency.inputSourceName}\n`,
           });
         });
 

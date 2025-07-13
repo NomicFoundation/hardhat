@@ -5,10 +5,15 @@ declare module "hardhat/types/config" {
   }
 
   export interface VerificationProvidersUserConfig {
-    etherscan?: VerificationProviderUserConfig;
+    blockscout?: BlockscoutUserConfig;
+    etherscan?: EtherscanUserConfig;
   }
 
-  export interface VerificationProviderUserConfig {
+  export interface BlockscoutUserConfig {
+    enabled?: boolean;
+  }
+
+  export interface EtherscanUserConfig {
     apiKey: SensitiveString;
     enabled?: boolean;
   }
@@ -18,10 +23,15 @@ declare module "hardhat/types/config" {
   }
 
   export interface VerificationProvidersConfig {
-    etherscan: VerificationProviderConfig;
+    blockscout: BlockscoutConfig;
+    etherscan: EtherscanConfig;
   }
 
-  export interface VerificationProviderConfig {
+  export interface BlockscoutConfig {
+    enabled: boolean;
+  }
+
+  export interface EtherscanConfig {
     apiKey: ResolvedConfigurationVariable;
     enabled: boolean;
   }

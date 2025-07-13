@@ -2,7 +2,16 @@ import type {
   EtherscanGetSourceCodeResponse,
   EtherscanResponse,
 } from "./etherscan.types.js";
-import type { HttpResponse } from "@nomicfoundation/hardhat-utils/request";
+import type {
+  VerificationProvider,
+  VerificationResponse,
+  VerificationStatusResponse,
+} from "./types.js";
+import type {
+  Dispatcher,
+  HttpResponse,
+} from "@nomicfoundation/hardhat-utils/request";
+import type { VerificationProvidersConfig } from "hardhat/types/config";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
@@ -12,19 +21,8 @@ import {
   postFormRequest,
 } from "@nomicfoundation/hardhat-utils/request";
 
-interface VerificationStatusResponse {
-  isPending(): boolean;
-  isFailure(): boolean;
-  isSuccess(): boolean;
-  isAlreadyVerified(): boolean;
-  isOk(): boolean;
-}
-
-interface VerificationResponse {
-  isBytecodeMissingInNetworkError(): boolean;
-  isAlreadyVerified(): boolean;
-  isOk(): boolean;
-}
+export const ETHERSCAN_PROVIDER_NAME: keyof VerificationProvidersConfig =
+  "etherscan";
 
 const VERIFICATION_STATUS_POLLING_SECONDS = 3;
 
@@ -32,27 +30,35 @@ const VERIFICATION_STATUS_POLLING_SECONDS = 3;
 // v-next/hardhat/src/internal/builtin-plugins/network-manager/chain-descriptors.ts
 // and use this as the default API URL for Etherscan v2
 // this.apiUrl = etherscanConfig.apiUrl ?? ETHERSCAN_API_URL;
-const ETHERSCAN_API_URL = "https://api.etherscan.io/v2/api";
+export const ETHERSCAN_API_URL = "https://api.etherscan.io/v2/api";
 
-export class Etherscan {
+export class Etherscan implements VerificationProvider {
   public chainId: string;
   public name: string;
   public url: string;
   public apiUrl: string;
   public apiKey: string;
 
+  readonly #dispatcher?: Dispatcher;
+  readonly #pollingIntervalMs: number;
+
   constructor(etherscanConfig: {
     chainId: number;
     name?: string;
     url: string;
-    apiUrl: string;
     apiKey: string;
+    dispatcher?: Dispatcher;
   }) {
     this.chainId = String(etherscanConfig.chainId);
     this.name = etherscanConfig.name ?? "Etherscan";
     this.url = etherscanConfig.url;
     this.apiUrl = ETHERSCAN_API_URL;
     this.apiKey = etherscanConfig.apiKey;
+    this.#dispatcher = etherscanConfig.dispatcher;
+    this.#pollingIntervalMs =
+      etherscanConfig.dispatcher !== undefined
+        ? 0
+        : VERIFICATION_STATUS_POLLING_SECONDS;
   }
 
   public getContractUrl(address: string) {
@@ -63,15 +69,19 @@ export class Etherscan {
     let response: HttpResponse;
     let responseBody: EtherscanGetSourceCodeResponse | undefined;
     try {
-      response = await getRequest(this.apiUrl, {
-        queryParams: {
-          module: "contract",
-          action: "getsourcecode",
-          chainid: this.chainId,
-          apikey: this.apiKey,
-          address,
+      response = await getRequest(
+        this.apiUrl,
+        {
+          queryParams: {
+            module: "contract",
+            action: "getsourcecode",
+            chainid: this.chainId,
+            apikey: this.apiKey,
+            address,
+          },
         },
-      });
+        this.#dispatcher,
+      );
       responseBody =
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
         -- Cast to EtherscanGetSourceCodeResponse because that's what we expect from the API
@@ -84,8 +94,9 @@ export class Etherscan {
         HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_REQUEST_FAILED,
         {
           name: this.name,
-          url: this.url,
-          errorMessage: error.message,
+          url: this.apiUrl,
+          errorMessage:
+            error.cause instanceof Error ? error.cause.message : error.message,
         },
       );
     }
@@ -98,14 +109,14 @@ export class Etherscan {
         HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_REQUEST_STATUS_CODE_ERROR,
         {
           name: this.name,
-          url: this.url,
+          url: this.apiUrl,
           statusCode: response.statusCode,
           errorMessage: responseBody.result,
         },
       );
     }
 
-    if (responseBody.message !== "OK") {
+    if (responseBody.status !== "1") {
       return false;
     }
 
@@ -131,17 +142,22 @@ export class Etherscan {
     let response: HttpResponse;
     let responseBody: EtherscanResponse | undefined;
     try {
-      response = await postFormRequest(this.apiUrl, body, {
-        queryParams: {
-          module: "contract",
-          action: "verifysourcecode",
-          chainid: this.chainId,
-          apikey: this.apiKey,
+      response = await postFormRequest(
+        this.apiUrl,
+        body,
+        {
+          queryParams: {
+            module: "contract",
+            action: "verifysourcecode",
+            chainid: this.chainId,
+            apikey: this.apiKey,
+          },
         },
-      });
+        this.#dispatcher,
+      );
       responseBody =
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-        -- Cast to EtherscanVerifySourceCodeResponse because that's what we expect from the API
+        -- Cast to EtherscanResponse because that's what we expect from the API
         TODO: check if the API returns a different type and throw an error if it does */
         (await response.body.json()) as EtherscanResponse;
     } catch (error) {
@@ -151,8 +167,9 @@ export class Etherscan {
         HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_REQUEST_FAILED,
         {
           name: this.name,
-          url: this.url,
-          errorMessage: error.message,
+          url: this.apiUrl,
+          errorMessage:
+            error.cause instanceof Error ? error.cause.message : error.message,
         },
       );
     }
@@ -165,7 +182,7 @@ export class Etherscan {
         HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_REQUEST_STATUS_CODE_ERROR,
         {
           name: this.name,
-          url: this.url,
+          url: this.apiUrl,
           statusCode: response.statusCode,
           errorMessage: responseBody.result,
         },
@@ -204,27 +221,33 @@ export class Etherscan {
     return etherscanResponse.message;
   }
 
-  // TODO: we don't need to return the EtherscanResponse, we only need {success,  message}
   public async pollVerificationStatus(
     guid: string,
     contractAddress: string,
     contractName: string,
-  ): Promise<EtherscanVerificationStatusResponse> {
+  ): Promise<{
+    success: boolean;
+    message: string;
+  }> {
     let response: HttpResponse;
     let responseBody: EtherscanResponse | undefined;
     try {
-      response = await getRequest(this.apiUrl, {
-        queryParams: {
-          module: "contract",
-          action: "checkverifystatus",
-          chainid: this.chainId,
-          apikey: this.apiKey,
-          guid,
+      response = await getRequest(
+        this.apiUrl,
+        {
+          queryParams: {
+            module: "contract",
+            action: "checkverifystatus",
+            chainid: this.chainId,
+            apikey: this.apiKey,
+            guid,
+          },
         },
-      });
+        this.#dispatcher,
+      );
       responseBody =
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-        -- Cast to EtherscanVerifySourceCodeResponse because that's what we expect from the API
+        -- Cast to EtherscanResponse because that's what we expect from the API
         TODO: check if the API returns a different type and throw an error if it does */
         (await response.body.json()) as EtherscanResponse;
     } catch (error) {
@@ -234,8 +257,9 @@ export class Etherscan {
         HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_REQUEST_FAILED,
         {
           name: this.name,
-          url: this.url,
-          errorMessage: error.message,
+          url: this.apiUrl,
+          errorMessage:
+            error.cause instanceof Error ? error.cause.message : error.message,
         },
       );
     }
@@ -248,7 +272,7 @@ export class Etherscan {
         HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_REQUEST_STATUS_CODE_ERROR,
         {
           name: this.name,
-          url: this.url,
+          url: this.apiUrl,
           statusCode: response.statusCode,
           errorMessage: responseBody.result,
         },
@@ -260,7 +284,7 @@ export class Etherscan {
     );
 
     if (etherscanResponse.isPending()) {
-      await sleep(VERIFICATION_STATUS_POLLING_SECONDS);
+      await sleep(this.#pollingIntervalMs);
 
       return this.pollVerificationStatus(guid, contractAddress, contractName);
     }
@@ -290,7 +314,10 @@ export class Etherscan {
       );
     }
 
-    return etherscanResponse;
+    return {
+      success: etherscanResponse.isSuccess(),
+      message: etherscanResponse.message,
+    };
   }
 }
 

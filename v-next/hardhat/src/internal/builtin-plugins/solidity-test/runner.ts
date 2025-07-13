@@ -1,27 +1,21 @@
 import type { TestEvent, TestsStream } from "./types.js";
+import type { ChainType } from "../../../types/network.js";
 import type {
   ArtifactId,
   Artifact,
   SolidityTestRunnerConfigArgs,
   TracingConfigWithBuffers,
-} from "@ignored/edr";
+} from "@ignored/edr-optimism";
 
 import { Readable } from "node:stream";
 
-import { runSolidityTests, EdrContext } from "@ignored/edr";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
+
+import { hardhatChainTypeToEdrChainType } from "../../edr/chain-type.js";
+import { getGlobalEdrContext } from "../../edr/context.js";
 
 import { formatArtifactId } from "./formatters.js";
-
-let edrContext: EdrContext | undefined;
-
-function getEdrContext(): EdrContext {
-  if (edrContext === undefined) {
-    edrContext = new EdrContext();
-  }
-
-  return edrContext;
-}
 
 export interface RunOptions {
   /**
@@ -47,20 +41,26 @@ export interface RunOptions {
  * TODO: Once the signature is finalised, give feedback to the EDR team.
  */
 export function run(
+  chainType: ChainType,
   artifacts: Artifact[],
   testSuiteIds: ArtifactId[],
   configArgs: SolidityTestRunnerConfigArgs,
   tracingConfig: TracingConfigWithBuffers,
+  sourceNameToUserSourceName: Map<string, string>,
   options?: RunOptions,
 ): TestsStream {
   const stream = new ReadableStream<TestEvent>({
-    start(controller) {
+    async start(controller) {
       if (testSuiteIds.length === 0) {
         controller.close();
         return;
       }
 
-      const remainingSuites = new Set(testSuiteIds.map(formatArtifactId));
+      const remainingSuites = new Set(
+        testSuiteIds.map((id) =>
+          formatArtifactId(id, sourceNameToUserSourceName),
+        ),
+      );
 
       let timeout: NodeJS.Timeout | undefined;
       if (options?.timeout !== undefined) {
@@ -77,39 +77,43 @@ export function run(
         }, options.timeout);
       }
 
-      // TODO: Just getting the context here to get it initialized, but this
-      // is not currently tied to the `runSolidityTests` function.
-      getEdrContext();
+      // TODO: Add support for predeploys once EDR supports them.
+      try {
+        const edrContext = await getGlobalEdrContext();
+        await edrContext.runSolidityTests(
+          hardhatChainTypeToEdrChainType(chainType),
+          artifacts,
+          testSuiteIds,
+          configArgs,
+          tracingConfig,
+          (suiteResult) => {
+            controller.enqueue({
+              type: "suite:result",
+              data: suiteResult,
+            });
+            remainingSuites.delete(
+              formatArtifactId(suiteResult.id, sourceNameToUserSourceName),
+            );
+            if (remainingSuites.size === 0) {
+              clearTimeout(timeout);
+              controller.close();
+            }
+          },
+        );
+      } catch (error) {
+        ensureError(error);
 
-      runSolidityTests(
-        artifacts,
-        testSuiteIds,
-        configArgs,
-        tracingConfig,
-        (suiteResult) => {
-          controller.enqueue({
-            type: "suite:result",
-            data: suiteResult,
-          });
-          remainingSuites.delete(formatArtifactId(suiteResult.id));
-          if (remainingSuites.size === 0) {
-            clearTimeout(timeout);
-            controller.close();
-          }
-        },
-        (error) => {
-          clearTimeout(timeout);
+        clearTimeout(timeout);
 
-          controller.error(
-            new HardhatError(
-              HardhatError.ERRORS.CORE.SOLIDITY_TESTS.UNHANDLED_EDR_ERROR_SOLIDITY_TESTS,
-              {
-                error: error.message,
-              },
-            ),
-          );
-        },
-      );
+        controller.error(
+          new HardhatError(
+            HardhatError.ERRORS.CORE.SOLIDITY_TESTS.UNHANDLED_EDR_ERROR_SOLIDITY_TESTS,
+            {
+              error: error.message,
+            },
+          ),
+        );
+      }
     },
   });
 

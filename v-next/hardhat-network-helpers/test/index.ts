@@ -70,7 +70,7 @@ describe("hardhat-network-helpers plugin initialization", () => {
     });
 
     it("should throw when using a method from the network-helpers class", async () => {
-      assertRejectsWithHardhatError(
+      await assertRejectsWithHardhatError(
         () => networkHelpers.takeSnapshot(),
         HardhatError.ERRORS.NETWORK_HELPERS.GENERAL
           .CAN_ONLY_BE_USED_WITH_HARDHAT_NETWORK_VERSIONED,
@@ -82,7 +82,7 @@ describe("hardhat-network-helpers plugin initialization", () => {
     });
 
     it("should throw when using a method from the time class", async () => {
-      assertRejectsWithHardhatError(
+      await assertRejectsWithHardhatError(
         () => networkHelpers.time.latest(),
         HardhatError.ERRORS.NETWORK_HELPERS.GENERAL
           .CAN_ONLY_BE_USED_WITH_HARDHAT_NETWORK_VERSIONED,

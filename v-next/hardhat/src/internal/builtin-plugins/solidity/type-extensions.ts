@@ -25,7 +25,6 @@ declare module "../../../types/config.js" {
 
   export interface CommonSolidityUserConfig {
     dependenciesToCompile?: string[];
-    remappings?: string[];
   }
 
   export interface SingleVersionSolidityUserConfig
@@ -61,7 +60,6 @@ declare module "../../../types/config.js" {
   export interface SolidityConfig {
     profiles: Record<string, SolidityBuildProfileConfig>;
     dependenciesToCompile: string[];
-    remappings: string[];
   }
 
   export interface HardhatConfig {
@@ -117,10 +115,10 @@ declare module "../../../types/hooks.js" {
     ) => Promise<void>;
 
     /**
-     * Hook triggered within the compilation job when its solc input is first contstructed.
+     * Hook triggered within the compilation job when its' solc input is first constructed.
      *
      * @param context The hook context.
-     * @param sourceName The source name of the project file.
+     * @param inputSourceName The input source name of the project file.
      * @param fsPath The absolute path to the project file.
      * @param fileContent The content of the project file.
      * @param solcVersion The solc version that will be used to compile the project file.
@@ -131,13 +129,13 @@ declare module "../../../types/hooks.js" {
      */
     preprocessProjectFileBeforeBuilding(
       context: HookContext,
-      sourceName: string,
+      inputSourceName: string,
       fsPath: string,
       fileContent: string,
       solcVersion: string,
       next: (
         nextContext: HookContext,
-        nextSourceName: string,
+        nextInputSourceName: string,
         nextFsPath: string,
         nextFileContent: string,
         nextSolcVersion: string,
@@ -145,7 +143,7 @@ declare module "../../../types/hooks.js" {
     ): Promise<string>;
 
     /**
-     * Hook triggered within the compilation job when its solc input is first contstructed.
+     * Hook triggered within the compilation job when its' solc input is first constructed.
      *
      * @param context The hook context.
      * @param solcInput The solc input that will be passed to solc.

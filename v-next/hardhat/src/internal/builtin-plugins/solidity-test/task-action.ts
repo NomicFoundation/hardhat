@@ -5,21 +5,19 @@ import type { NewTaskActionFunction } from "../../../types/tasks.js";
 import type {
   SolidityTestRunnerConfigArgs,
   TracingConfigWithBuffers,
-} from "@ignored/edr";
+} from "@ignored/edr-optimism";
 
 import { finished } from "node:stream/promises";
 
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
 import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
 import { createNonClosingWriter } from "@nomicfoundation/hardhat-utils/stream";
-import chalk from "chalk";
 
-import {
-  getArtifacts,
-  getBuildInfos,
-  throwIfSolidityBuildFailed,
-} from "../solidity/build-results.js";
+import { isSupportedChainType } from "../../edr/chain-type.js";
+import { throwIfSolidityBuildFailed } from "../solidity/build-results.js";
 
+import { getEdrArtifacts, getBuildInfos } from "./edr-artifacts.js";
 import {
   isTestSuiteArtifact,
   solidityTestConfigToRunOptions,
@@ -41,14 +39,15 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
 ) => {
   let rootFilePaths: string[];
 
-  if (chainType !== "l1") {
-    console.log(
-      chalk.yellow(
-        `Chain type selection for tests will be implemented soon. Please check our communication channels for updates. For now, please run the task without the --chain-type option.`,
-      ),
+  if (!isSupportedChainType(chainType)) {
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+      {
+        value: chainType,
+        type: "ChainType",
+        name: "chainType",
+      },
     );
-    process.exitCode = 1;
-    return;
   }
 
   // NOTE: We run the compile task first to ensure all the artifacts for them are generated
@@ -92,15 +91,16 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   throwIfSolidityBuildFailed(results);
 
   const buildInfos = await getBuildInfos(hre.artifacts);
-  const artifacts = await getArtifacts(hre.artifacts);
-  const testSuiteIds = artifacts
-    .filter((artifact) =>
+  const edrArtifacts = await getEdrArtifacts(hre.artifacts);
+
+  const testSuiteIds = edrArtifacts
+    .filter(({ userSourceName }) =>
       rootFilePaths.includes(
-        resolveFromRoot(hre.config.paths.root, artifact.id.source),
+        resolveFromRoot(hre.config.paths.root, userSourceName),
       ),
     )
-    .filter(isTestSuiteArtifact)
-    .map((artifact) => artifact.id);
+    .filter(({ edrAtifact }) => isTestSuiteArtifact(edrAtifact))
+    .map(({ edrAtifact }) => edrAtifact.id);
 
   console.log("Running Solidity tests");
   console.log();
@@ -112,6 +112,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
 
   const config: SolidityTestRunnerConfigArgs =
     solidityTestConfigToSolidityTestRunnerConfigArgs(
+      chainType,
       hre.config.paths.root,
       solidityTestConfig,
       grep,
@@ -123,11 +124,20 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   const options: RunOptions =
     solidityTestConfigToRunOptions(solidityTestConfig);
 
+  const sourceNameToUserSourceName = new Map(
+    edrArtifacts.map(({ userSourceName, edrAtifact }) => [
+      edrAtifact.id.source,
+      userSourceName,
+    ]),
+  );
+
   const runStream = run(
-    artifacts,
+    chainType,
+    edrArtifacts.map(({ edrAtifact }) => edrAtifact),
     testSuiteIds,
     config,
     tracingConfig,
+    sourceNameToUserSourceName,
     options,
   );
 
@@ -139,7 +149,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
         }
       }
     })
-    .compose(testReporter);
+    .compose((source) => testReporter(source, sourceNameToUserSourceName));
 
   const outputStream = testReporterStream.pipe(
     createNonClosingWriter(process.stdout),

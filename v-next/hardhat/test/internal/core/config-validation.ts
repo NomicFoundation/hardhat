@@ -932,6 +932,72 @@ describe("config validation", function () {
           assert.deepEqual(validateOptions(options, []), []);
         });
       });
+
+      describe("when the opt type is FLAG", () => {
+        it("should return an error if the defaultValue is not a boolean", () => {
+          const options = {
+            opt1: {
+              name: "opt1",
+              type: ArgumentType.FLAG,
+              description: "opt1 description",
+              defaultValue: 1,
+            },
+          };
+
+          assert.deepEqual(validateOptions(options, []), [
+            {
+              message: "option defaultValue must be a boolean",
+              path: ["opt1", "defaultValue"],
+            },
+          ]);
+        });
+
+        it("should return an empty array if the defaultValue is a boolean", () => {
+          const options = {
+            opt1: {
+              name: "opt1",
+              type: ArgumentType.FLAG,
+              description: "opt1 description",
+              defaultValue: true,
+            },
+          };
+
+          assert.deepEqual(validateOptions(options, []), []);
+        });
+      });
+
+      describe("when the opt type is LEVEL", () => {
+        it("should return an error if the defaultValue is not a non-negative number", () => {
+          const options = {
+            opt1: {
+              name: "opt1",
+              type: ArgumentType.LEVEL,
+              description: "opt1 description",
+              defaultValue: -1,
+            },
+          };
+
+          assert.deepEqual(validateOptions(options, []), [
+            {
+              message: "option defaultValue must be a non-negative number",
+              path: ["opt1", "defaultValue"],
+            },
+          ]);
+        });
+
+        it("should return an empty array if the defaultValue is a non-negative number", () => {
+          const options = {
+            opt1: {
+              name: "opt1",
+              type: ArgumentType.LEVEL,
+              description: "opt1 description",
+              defaultValue: 0,
+            },
+          };
+
+          assert.deepEqual(validateOptions(options, []), []);
+        });
+      });
     });
   });
 

@@ -4,20 +4,21 @@ import type {
 } from "hardhat/types/config";
 import type { EthereumProvider } from "hardhat/types/providers";
 
-import {
-  assertHardhatInvariant,
-  HardhatError,
-} from "@nomicfoundation/hardhat-errors";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { toBigInt } from "@nomicfoundation/hardhat-utils/bigint";
 
-// TODO: cache the chainId
+const chainIdCache = new WeakMap<EthereumProvider, number>();
+
 export async function getChainId(provider: EthereumProvider): Promise<number> {
-  const response = await provider.request({ method: "eth_chainId" });
-  assertHardhatInvariant(
-    typeof response === "string",
-    "eth_chainId response is not a string",
-  );
-  return Number(response);
+  const cachedChainId = chainIdCache.get(provider);
+  if (cachedChainId !== undefined) {
+    return cachedChainId;
+  }
+
+  const chainId = Number(await provider.request({ method: "eth_chainId" }));
+  chainIdCache.set(provider, chainId);
+
+  return chainId;
 }
 
 export async function getChainDescriptor(

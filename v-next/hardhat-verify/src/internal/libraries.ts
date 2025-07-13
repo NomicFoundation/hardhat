@@ -1,8 +1,8 @@
 import type { ContractInformation } from "./contract.js";
-import type { CompilerOutputBytecode } from "hardhat/types/solidity";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { isAddress } from "@nomicfoundation/hardhat-utils/eth";
+import { getPrefixedHexString } from "@nomicfoundation/hardhat-utils/hex";
 import { parseFullyQualifiedName } from "hardhat/utils/contract-names";
 
 export interface LibraryInformation {
@@ -10,7 +10,10 @@ export interface LibraryInformation {
   undetectableLibraries: string[];
 }
 
-type SourceLibraries = Record</* source file name */ string, LibraryAddresses>;
+export type SourceLibraries = Record<
+  /* source file name */ string,
+  LibraryAddresses
+>;
 
 export type LibraryAddresses = Record<
   /* library name */ string,
@@ -69,7 +72,7 @@ export function resolveLibraryInformation(
     detectableLibraryFqns,
     undetectableLibraryFqns,
     userLibraryAddresses,
-    contractInformation.contract,
+    contractInformation.userFqn,
   );
 
   const detectableLibraries = getDetectableLibrariesFromBytecode(
@@ -85,17 +88,12 @@ export function resolveLibraryInformation(
       (lib) => !mergedLibraryFqns.some((mergedLib) => lib === mergedLib),
     );
     const missingList = missingLibraries.map((x) => `  * ${x}`).join("\n");
-    const solution =
-      missingLibraries.length === undetectableLibraryFqns.length
-        ? "Visit https://hardhat.org/hardhat-runner/plugins/nomicfoundation-hardhat-verify#libraries-with-undetectable-addresses to learn how to solve this."
-        : "To solve this, provide the missing addresses using the --libraries option.";
 
     throw new HardhatError(
       HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.MISSING_LIBRARY_ADDRESSES,
       {
-        contract: contractInformation.contract,
+        contract: contractInformation.userFqn,
         missingList,
-        solution,
       },
     );
   }
@@ -112,7 +110,7 @@ export function resolveLibraryInformation(
  * @param libraries Nested mapping from source name to library names.
  * @returns An array of fully qualified names (e.g., "contracts/Lib.sol:MyLib").
  */
-function getLibraryFqns(
+export function getLibraryFqns(
   libraries: Record<string, Record<string, unknown>>,
 ): string[] {
   return Object.entries(libraries).flatMap(([sourceName, sourceLibraries]) =>
@@ -151,7 +149,7 @@ function getLibraryFqns(
  *   - LIBRARY_MULTIPLE_MATCHES if a provided library name is ambiguous
  * (matches multiple libraries).
  */
-function resolveUserLibraries(
+export function resolveUserLibraries(
   allLibraryFqns: string[],
   detectableLibraryFqns: string[],
   undetectableLibraryFqns: string[],
@@ -214,7 +212,7 @@ function resolveUserLibraries(
  * all libraries. Throws an error if the library is not found or if multiple
  * libraries match the name.
  */
-function lookupLibrary(
+export function lookupLibrary(
   allLibraryFqns: string[],
   detectableLibraryFqns: string[],
   undetectableLibraryFqns: string[],
@@ -278,8 +276,17 @@ function lookupLibrary(
  * references. Assumes all offsets for a given library will have the same
  * address and only reads the first occurrence.
  */
-function getDetectableLibrariesFromBytecode(
-  linkReferences: CompilerOutputBytecode["linkReferences"] = {},
+export function getDetectableLibrariesFromBytecode(
+  linkReferences:
+    | {
+        [sourceName: string]: {
+          [libraryName: string]: Array<{
+            start: number;
+            length: 20;
+          }>;
+        };
+      }
+    | undefined = {},
   deployedBytecode: string,
 ): SourceLibraries {
   const sourceLibraries: SourceLibraries = {};
@@ -290,10 +297,9 @@ function getDetectableLibrariesFromBytecode(
     }
 
     for (const [libName, [{ start, length }]] of Object.entries(libOffsets)) {
-      sourceLibraries[sourceName][libName] = `0x${deployedBytecode.slice(
-        start * 2,
-        (start + length) * 2,
-      )}`;
+      sourceLibraries[sourceName][libName] = getPrefixedHexString(
+        deployedBytecode.slice(start * 2, (start + length) * 2),
+      );
     }
   }
 
@@ -305,7 +311,7 @@ function getDetectableLibrariesFromBytecode(
  * conflicts. Throws if a library address is provided by the user and also
  * detected, but the addresses do not match.
  */
-function mergeLibraries(
+export function mergeLibraries(
   userLibraries: SourceLibraries,
   detectedLibraries: SourceLibraries,
 ): SourceLibraries {

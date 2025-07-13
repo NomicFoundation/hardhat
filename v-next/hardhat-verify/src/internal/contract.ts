@@ -10,16 +10,19 @@ import {
   assertHardhatInvariant,
   HardhatError,
 } from "@nomicfoundation/hardhat-errors";
-import { parseFullyQualifiedName } from "hardhat/utils/contract-names";
+import {
+  getFullyQualifiedName,
+  parseFullyQualifiedName,
+} from "hardhat/utils/contract-names";
 
 import { getBuildInfoAndOutput } from "./artifacts.js";
 
 export interface ContractInformation {
   compilerInput: CompilerInput;
   solcLongVersion: string;
-  contract: string;
   sourceName: string;
-  contractName: string;
+  userFqn: string;
+  inputFqn: string;
   compilerOutputContract: CompilerOutputContract;
   deployedBytecode: string;
 }
@@ -34,6 +37,7 @@ export interface ContractInformation {
  *  - the deployed bytecode doesn’t match;
  *  - zero or multiple matches in inference mode.
  */
+// TODO: add tests once the todos in getBuildInfoAndOutput are resolved.
 export class ContractInformationResolver {
   readonly #artifacts: ArtifactManager;
   readonly #compatibleSolcVersions: string[];
@@ -191,9 +195,7 @@ export class ContractInformationResolver {
     }
 
     if (matches.length > 1) {
-      const fqnList = matches
-        .map((c) => `  * ${c.sourceName}:${c.contractName}`)
-        .join("\n");
+      const fqnList = matches.map((c) => `  * ${c.userFqn}`).join("\n");
 
       throw new HardhatError(
         HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.DEPLOYED_BYTECODE_MULTIPLE_MATCHES,
@@ -223,7 +225,7 @@ export class ContractInformationResolver {
     deployedBytecode: Bytecode,
   ): ContractInformation | null {
     const { sourceName, contractName } = parseFullyQualifiedName(contract);
-    const inputSourceName = buildInfo.publicSourceNameMap[sourceName];
+    const inputSourceName = buildInfo.userSourceNameMap[sourceName];
 
     const compilerOutputContract =
       buildInfoOutput.output.contracts?.[inputSourceName][contractName];
@@ -247,9 +249,9 @@ export class ContractInformationResolver {
       return {
         compilerInput: buildInfo.input,
         solcLongVersion: buildInfo.solcLongVersion,
-        contract,
         sourceName,
-        contractName,
+        userFqn: contract,
+        inputFqn: getFullyQualifiedName(inputSourceName, contractName),
         compilerOutputContract,
         deployedBytecode: deployedBytecode.bytecode,
       };

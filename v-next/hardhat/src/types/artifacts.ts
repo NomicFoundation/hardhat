@@ -208,8 +208,8 @@ export interface Artifact<AbiT extends Abi = Abi> {
    * The source name of the file in the build info's source map that has this
    * contract's code.
    *
-   * This can be different from the source name of the artifact, when the file
-   * comes from an npm package.
+   * This can be different from the source name of the artifact, and is always
+   * present when compiling Solidity code with Hardhat 3.
    */
   readonly inputSourceName?: string;
 }
