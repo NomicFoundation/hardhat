@@ -40,7 +40,7 @@ export function findConfirmedTransactionByFutureId(
     "Tx hash resolution only supported onchain interaction",
   );
 
-  // On confirmation only one transaction is preserverd
+  // On confirmation only one transaction is preserved
   const transaction = lastNetworkInteraction.transactions[0];
 
   assertIgnitionInvariant(

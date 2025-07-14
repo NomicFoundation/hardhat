@@ -35,7 +35,7 @@ describe("strategies - invocation via helper", () => {
 
       assert.equal(
         await result.foo.getAddress(),
-        "0x647fB9ef6cd97537C553f6cC3c7f60395f81b410",
+        "0xA0737dC2423c9826595aB92bDEE1e7760DBa688C",
       );
     });
 
@@ -83,7 +83,7 @@ describe("strategies - invocation via helper", () => {
 
       assert.equal(
         await result.foo.getAddress(),
-        "0x8C1c4E6Fd637C7aa7165F19beFeAEab5E53095Bf",
+        "0xC6946971a6EE35416fAB8a0fdB1e08d74a192402",
       );
     });
   });

@@ -100,7 +100,7 @@ export class HardhatRuntimeEnvironmentImplementation
       extendedUserConfig,
     );
 
-    // We override the plugins and the proejct root, as we want to prevent
+    // We override the plugins and the project root, as we want to prevent
     // the plugins from changing them
     const config: HardhatConfig = {
       ...resolvedConfig,

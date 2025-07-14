@@ -22,7 +22,7 @@ describe("ui - calculate deployment status display", () => {
   };
 
   describe("successful deployment", () => {
-    it("should render a sucessful deployment", () => {
+    it("should render a successful deployment", () => {
       const expectedText = testFormat(`
         Deployment deployment-01 (chainId: 1) was successful
 
@@ -60,7 +60,7 @@ describe("ui - calculate deployment status display", () => {
       assert.equal(actualText, expectedText);
     });
 
-    it("should render a sucessful deployment with no deploys", () => {
+    it("should render a successful deployment with no deploys", () => {
       const expectedText = testFormat(`
         Deployment deployment-01 (chainId: 1) was successful
 
@@ -160,7 +160,7 @@ describe("ui - calculate deployment status display", () => {
   });
 
   describe("deployment with started but unfinished futures (e.g. simulation errors)", () => {
-    it("should render a sucessful deployment", () => {
+    it("should render a successful deployment", () => {
       const expectedText = testFormat(`
         Deployment deployment-01 (chainId: 1) has futures that have started but not completed
 

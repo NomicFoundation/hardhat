@@ -11,7 +11,7 @@
               [31m3) assertion error in nested test[39m
               [31m4) error with cause in nested test[39m
               [90m[32m✔[39m[90m unawaited test 1[39m
-              [90m[32m✔[39m[90m unawaited test 2[39m
+              [90m5) unawaited test 2[39m
 
             [31m5) level 2[39m
 
@@ -20,8 +20,9 @@
         [31m7) level 0[39m
 
 
-[32m4 passing[39m[90m (139ms)[39m[31m[39m
-[31m7 failing[39m
+[32m3 passing[39m[90m (127ms)[39m[31m[39m
+[31m7 failing[39m[90m[39m
+[90m1 cancelled[39m
 
   1) level 0
        level 1
@@ -63,6 +64,13 @@
    [31m+ 1[39m
    
    [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/nested-test/test.ts:29:22)[39m
+   [90m    at Test.runInAsyncScope (node:async_hooks:214:14)[39m
+   [90m    at Test.run (node:internal/test_runner/test:1062:25)[39m
+   [90m    at Test.start (node:internal/test_runner/test:959:17)[39m
+   [90m    at startSubtestAfterBootstrap (node:internal/test_runner/harness:332:17)[39m
+   [90m    at run (node:internal/test_runner/harness:343:12)[39m
+   [90m    at test (node:internal/test_runner/harness:352:12)[39m
+   [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/nested-test/test.ts:28:19)[39m
 
   4) level 0
        level 1
@@ -74,8 +82,22 @@
 
    [31mError: error with cause[39m
    [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/nested-test/test.ts:33:21)[39m
+   [90m    at Test.runInAsyncScope (node:async_hooks:214:14)[39m
+   [90m    at Test.run (node:internal/test_runner/test:1062:25)[39m
+   [90m    at Test.start (node:internal/test_runner/test:959:17)[39m
+   [90m    at startSubtestAfterBootstrap (node:internal/test_runner/harness:332:17)[39m
+   [90m    at run (node:internal/test_runner/harness:343:12)[39m
+   [90m    at test (node:internal/test_runner/harness:352:12)[39m
+   [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/nested-test/test.ts:32:19)[39m
      [90m[cause]: Error: cause[39m
      [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/nested-test/test.ts:34:24)[39m
+     [90m    at Test.runInAsyncScope (node:async_hooks:214:14)[39m
+     [90m    at Test.run (node:internal/test_runner/test:1062:25)[39m
+     [90m    at Test.start (node:internal/test_runner/test:959:17)[39m
+     [90m    at startSubtestAfterBootstrap (node:internal/test_runner/harness:332:17)[39m
+     [90m    at run (node:internal/test_runner/harness:343:12)[39m
+     [90m    at test (node:internal/test_runner/harness:352:12)[39m
+     [90m    at TestContext.<anonymous> (integration-tests/fixture-tests/nested-test/test.ts:32:19)[39m
 
   5) level 0
        level 1
@@ -84,7 +106,9 @@
              level 1
                level 2:
 
-   [31mError: 2 subtests failed[39m
+   [31mError: 3 subtests failed[39m
+   [90m    at async TestContext.<anonymous> (integration-tests/fixture-tests/nested-test/test.ts:1:424)[39m
+   [90m    at async TestContext.<anonymous> (integration-tests/fixture-tests/nested-test/test.ts:1:395)[39m
 
   6) level 0
        level 1
@@ -93,6 +117,7 @@
              level 1:
 
    [31mError: 1 subtest failed[39m
+   [90m    at async TestContext.<anonymous> (integration-tests/fixture-tests/nested-test/test.ts:1:395)[39m
 
   7) level 0
        level 1

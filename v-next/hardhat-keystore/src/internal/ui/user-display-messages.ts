@@ -63,6 +63,18 @@ export class UserDisplayMessages {
     return "This is the first time you are using the keystore, please set a password.";
   }
 
+  public static unlockBeforePasswordChangeMessage(): string {
+    return "Unlock the keystore using your current password before proceeding with the password change.";
+  }
+
+  public static passwordChangeMessage(): string {
+    return "Change your password.";
+  }
+
+  public static passwordChangedSuccessMessage(): string {
+    return "Password changed successfully!";
+  }
+
   public static passwordRequirementsMessage(): string {
     // return "The password must have at least 8 characters, one uppercase letter, one lowercase letter, and one special character.";
     return "The password must have at least 8 characters.";

@@ -48,7 +48,7 @@ describe("useModule", () => {
     assert(moduleWithSubmodule.submodules.has(submodule));
   });
 
-  it("supports dependending on returned results", () => {
+  it("supports depending on returned results", () => {
     const submodule = buildModule("Submodule1", (m) => {
       const contract1 = m.contract("Contract1");
 

@@ -1,8 +1,7 @@
 import type { HardhatPlugin } from "hardhat/types/plugins";
 
 import "./type-extensions.js";
-import { globalOption } from "hardhat/config";
-import { ArgumentType } from "hardhat/types/arguments";
+import { globalFlag } from "hardhat/config";
 
 const hardhatTypechain: HardhatPlugin = {
   id: "hardhat-typechain",
@@ -12,19 +11,12 @@ const hardhatTypechain: HardhatPlugin = {
   },
   npmPackage: "@nomicfoundation/hardhat-typechain",
   dependencies: [
-    async () => {
-      const { default: hardhatEthersPlugin } = await import(
-        "@nomicfoundation/hardhat-ethers"
-      );
-      return hardhatEthersPlugin;
-    },
+    async () => (await import("@nomicfoundation/hardhat-ethers")).default,
   ],
   globalOptions: [
-    globalOption({
+    globalFlag({
       name: "noTypechain",
       description: "Disables the typechain type generation",
-      defaultValue: false,
-      type: ArgumentType.BOOLEAN,
     }),
   ],
 };
