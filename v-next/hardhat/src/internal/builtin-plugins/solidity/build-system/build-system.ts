@@ -361,6 +361,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
     // build job for each root file. At this point subgraphsWithConfig are 1 root file each
     const indexedIndividualJobs: Map<string, CompilationJob> = new Map();
+    const contentHashes = new Map<string, string>();
     await Promise.all(
       subgraphsWithConfig.map(async ([config, subgraph]) => {
         const solcLongVersion = solcVersionToLongVersion.get(config.version);
@@ -375,6 +376,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
           config,
           solcLongVersion,
           this.#hooks,
+          contentHashes,
         );
 
         await compilationJob.getBuildId(); // precompute
@@ -470,6 +472,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
       subgraphsWithConfig = [...mergedSubgraphsByConfig.entries()];
     } else {
+      // isolated mode
       subgraphsWithConfig = subgraphsWithConfig.filter(
         ([_config, subgraph]) => {
           assertHardhatInvariant(
@@ -498,6 +501,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         solcConfig,
         solcLongVersion,
         this.#hooks,
+        contentHashes,
       );
 
       for (const [userSourceName, root] of subgraph.getRoots().entries()) {

@@ -6,6 +6,8 @@ import type { CompilationJob } from "../../../../types/solidity/compilation-job.
 import type { CompilerInput } from "../../../../types/solidity/compiler-io.js";
 import type { DependencyGraph } from "../../../../types/solidity/dependency-graph.js";
 
+import { createHash } from "node:crypto";
+
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { createNonCryptographicHashId } from "@nomicfoundation/hardhat-utils/crypto";
 import { deepClone } from "@nomicfoundation/hardhat-utils/lang";
@@ -23,6 +25,7 @@ export class CompilationJobImplementation implements CompilationJob {
   public readonly solcLongVersion: string;
 
   readonly #hooks: HookManager;
+  readonly #contentHashes: Map<string, string>;
 
   #buildId: string | undefined;
   #solcInput: CompilerInput | undefined;
@@ -32,11 +35,13 @@ export class CompilationJobImplementation implements CompilationJob {
     solcConfig: SolcConfig,
     solcLongVersion: string,
     hooks: HookManager,
+    contentHashes: Map<string, string> = new Map(),
   ) {
     this.dependencyGraph = dependencyGraph;
     this.solcConfig = solcConfig;
     this.solcLongVersion = solcLongVersion;
     this.#hooks = hooks;
+    this.#contentHashes = contentHashes;
   }
 
   public async getSolcInput(): Promise<CompilerInput> {
@@ -199,6 +204,14 @@ export class CompilationJobImplementation implements CompilationJob {
     // remove it once the code coverage was added because it simplified the
     // implementation and because we expect the caching logic to change.
     const solcInput = await this.getSolcInput();
+    const smallerSolcInput = { ...solcInput };
+
+    smallerSolcInput.sources = Object.fromEntries(
+      Object.entries(solcInput.sources).map(([sourceName, _source]) => [
+        sourceName,
+        { content: this.#getSourceContentHash(sourceName, _source.content) },
+      ]),
+    );
 
     // The preimage should include all the information that makes this
     // compilation job unique, and as this is used to identify the build info
@@ -206,10 +219,21 @@ export class CompilationJobImplementation implements CompilationJob {
     const preimage = JSON.stringify({
       format,
       solcLongVersion: this.solcLongVersion,
-      solcInput,
+      smallerSolcInput,
       solcConfig: this.solcConfig,
     });
 
     return createNonCryptographicHashId(preimage);
+  }
+
+  #getSourceContentHash(sourceName: string, text: string): any {
+    let hash = this.#contentHashes.get(sourceName);
+
+    if (hash !== undefined) {
+      return hash;
+    }
+    hash = createHash("sha1").update(text).digest("hex");
+    this.#contentHashes.set(sourceName, hash);
+    return hash;
   }
 }
