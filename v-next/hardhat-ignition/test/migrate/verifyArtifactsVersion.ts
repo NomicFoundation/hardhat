@@ -8,8 +8,8 @@ import { verifyArtifactsVersion } from "../../src/internal/utils/verifyArtifacts
 
 describe("verifyArtifactsVersion", function () {
   it("should return when the deploymentDir is undefined or nonexistent", async function () {
-    assert.isFulfilled(verifyArtifactsVersion(undefined));
-    assert.isFulfilled(verifyArtifactsVersion("nonexistent"));
+    await assert.isFulfilled(verifyArtifactsVersion(undefined));
+    await assert.isFulfilled(verifyArtifactsVersion("nonexistent"));
   });
 
   it("should throw an error if an artifact is in the old format", async function () {
