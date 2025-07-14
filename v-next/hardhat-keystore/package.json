@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-keystore",
-  "version": "3.0.0-next.20",
+  "version": "3.0.0-next.21",
   "description": "A module for managing keystore files that store a map from IDs to encrypted string values.",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-keystore",
   "repository": {
@@ -41,7 +41,7 @@
     "README.md"
   ],
   "devDependencies": {
-    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0-next.20",
+    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0-next.21",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
     "@types/debug": "^4.1.7",
     "@types/node": "^20.14.9",
@@ -54,9 +54,9 @@
     "typescript": "~5.8.0"
   },
   "dependencies": {
-    "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.20",
-    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.20",
-    "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.0-next.20",
+    "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.21",
+    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.21",
+    "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.0-next.21",
     "@noble/ciphers": "1.2.1",
     "@noble/hashes": "1.7.1",
     "chalk": "^5.3.0",
@@ -64,6 +64,6 @@
     "zod": "^3.23.8"
   },
   "peerDependencies": {
-    "hardhat": "workspace:^3.0.0-next.20"
+    "hardhat": "workspace:^3.0.0-next.21"
   }
 }

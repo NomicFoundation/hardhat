@@ -8,6 +8,7 @@ import type {
 } from "../../types/hooks.js";
 import type { HardhatPlugin } from "../../types/plugins.js";
 
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 
 import {
@@ -409,6 +410,7 @@ export function validateOptions(
           }
           break;
         }
+        case ArgumentType.FLAG:
         case ArgumentType.BOOLEAN: {
           if (typeof option.defaultValue !== "boolean") {
             validationErrors.push({
@@ -428,6 +430,17 @@ export function validateOptions(
           }
           break;
         }
+        case ArgumentType.LEVEL:
+          if (
+            typeof option.defaultValue !== "number" ||
+            option.defaultValue < 0
+          ) {
+            validationErrors.push({
+              path: [...path, name, "defaultValue"],
+              message: "option defaultValue must be a non-negative number",
+            });
+          }
+          break;
         case ArgumentType.BIGINT: {
           if (typeof option.defaultValue !== "bigint") {
             validationErrors.push({
@@ -538,6 +551,14 @@ export function validatePositionalArguments(
 
           break;
         }
+        case ArgumentType.FLAG:
+        case ArgumentType.LEVEL:
+          throw new HardhatError(
+            HardhatError.ERRORS.CORE.INTERNAL.ASSERTION_ERROR,
+            {
+              message: `Argument type ${arg.type} cannot be used as a positional argument`,
+            },
+          );
       }
     }
 

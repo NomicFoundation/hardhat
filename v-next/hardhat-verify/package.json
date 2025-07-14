@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-verify",
-  "version": "3.0.0-next.20",
+  "version": "3.0.0-next.21",
   "description": "Hardhat plugin for verifying contracts",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-verify",
   "repository": {
@@ -47,7 +47,7 @@
     "README.md"
   ],
   "devDependencies": {
-    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0-next.20",
+    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0-next.21",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
     "@types/debug": "^4.1.7",
     "@types/node": "^20.14.9",
@@ -62,15 +62,15 @@
   },
   "dependencies": {
     "@ethersproject/abi": "^5.8.0",
-    "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.20",
-    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.20",
-    "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.0-next.20",
+    "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.21",
+    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.21",
+    "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.0-next.21",
     "cbor2": "^1.9.0",
     "debug": "^4.3.2",
     "semver": "^7.6.3",
     "zod": "^3.23.8"
   },
   "peerDependencies": {
-    "hardhat": "workspace:^3.0.0-next.20"
+    "hardhat": "workspace:^3.0.0-next.21"
   }
 }
