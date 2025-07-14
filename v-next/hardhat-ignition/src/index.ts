@@ -151,7 +151,10 @@ const hardhatIgnitionPlugin: HardhatPlugin = {
       })
       .setAction(import.meta.resolve("./internal/tasks/track-tx.js"))
       .build(),
-    task(["ignition", "migrate"], "Migrate artifacts to the new format")
+    task(
+      ["ignition", "migrate"],
+      "Migrate artifacts to the new Hardhat 3 format",
+    )
       .addPositionalArgument({
         name: "deploymentId",
         type: ArgumentType.STRING,
