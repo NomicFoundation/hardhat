@@ -142,8 +142,6 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
     const compilationJobs = [...new Set(compilationJobsPerFile.values())];
 
-    console.log(`Compilation job count: ${compilationJobs.length}`);
-
     // NOTE: We precompute the build ids in parallel here, which are cached
     // internally in each compilation job
     await Promise.all(
@@ -158,10 +156,6 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     const results: CompilationResult[] = await pMap(
       compilationJobs,
       async (compilationJob) => {
-        const buildId = await compilationJob.getBuildId();
-
-        console.log(`Running compilation job for build ${buildId}`);
-
         const compilerOutput = await this.runCompilationJob(
           compilationJob,
           runCompilationJobOptions,
@@ -185,10 +179,6 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     const uncachedSuccessfulResults = uncachedResults.filter(
       (result) => !this.#hasCompilationErrors(result.compilerOutput),
     );
-
-    // const cachingCompilationResults = this.#cacheCompilationResults(
-    //   uncachedSuccessfulResults,
-    // );
 
     const isSuccessfulBuild =
       uncachedResults.length === uncachedSuccessfulResults.length;
@@ -290,9 +280,6 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         await this.#printCompilationResult(compilationJobs);
       }
     }
-
-    // We wait for the compilation results to be cached before returning
-    // await cachingCompilationResults;
 
     return resultsMap;
   }
@@ -604,8 +591,6 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
       // If the folder exists, we remove it first, as we don't want to leave
       // any old artifacts there.
-      console.log(`Removing artifacts folder ${fileFolder}`);
-
       await remove(fileFolder);
 
       const contracts = compilerOutput.contracts?.[root.inputSourceName];
@@ -629,8 +614,6 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
             userSourceNameMap,
           );
 
-          console.log(`Writing artifact ${contractArtifactPath}`);
-
           await writeUtf8File(
             contractArtifactPath,
             JSON.stringify(artifact, undefined, 2),
@@ -648,9 +631,6 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         "artifacts.d.ts",
       );
       typeFilePaths.set(userSourceName, artifactsDeclarationFilePath);
-      console.log(
-        `Writing artifacts declaration file ${artifactsDeclarationFilePath}`,
-      );
 
       const artifactsDeclarationFile = getArtifactsDeclarationFile(artifacts);
 
@@ -684,8 +664,6 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
         // TODO: Maybe formatting the build info is slow, but it's mostly
         // strings, so it probably shouldn't be a problem.
-        console.log(`Writing build info ${buildInfoPath}`);
-
         await writeJsonFile(buildInfoPath, buildInfo);
       })(),
       (async () => {
@@ -699,8 +677,6 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         // TODO: Earlier in the build process, very similar files are created on disk by the
         // Compiler.  Instead of creating them again, we should consider copying/moving them.
         // This would require changing the format of the build info output file.
-        console.log(`Writing build info output ${buildInfoOutputPath}`);
-
         await writeJsonFileAsStream(buildInfoOutputPath, buildInfoOutput);
       })(),
     ]);
@@ -732,8 +708,6 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       const relativePath = path.relative(this.#options.artifactsPath, file);
 
       if (!userSourceNamesSet.has(relativePath)) {
-        console.log(`Removing artifacts directory ${file}`);
-
         await remove(file);
       }
     }
@@ -775,8 +749,6 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       const id = basename.substring(0, basename.indexOf("."));
 
       if (!reachableBuildInfoIdsSet.has(id)) {
-        console.log(`Removing build info file ${buildInfoFile}`);
-
         await remove(buildInfoFile);
       }
     }
@@ -916,8 +888,6 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       );
 
       const jobHash = await individualJob.getBuildId();
-
-      console.log(`Setting ${rootFilePath}`);
 
       this.#compileCache[rootFilePath] = {
         jobHash,
