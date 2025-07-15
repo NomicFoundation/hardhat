@@ -370,7 +370,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
         assertHardhatInvariant(
           subgraph.getRoots().size === 1,
-          "individual subgraph doesnt have exactly 1 root file",
+          "individual subgraph doesn't have exactly 1 root file",
         );
 
         const rootFilePath = Array.from(subgraph.getRoots().keys())[0];

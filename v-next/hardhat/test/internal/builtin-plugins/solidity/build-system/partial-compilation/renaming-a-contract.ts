@@ -51,7 +51,7 @@ describe("Partial compilation", () => {
         ["A.json", "A2.json"],
       );
 
-      // Artifacts for B shouldnt have changed
+      // Artifacts for B shouldn't have changed
       assert.deepEqual(
         secondSnapshot.artifacts["B.sol"].map((a) => a.modificationTime),
         firstSnapshot.artifacts["B.sol"].map((a) => a.modificationTime),
