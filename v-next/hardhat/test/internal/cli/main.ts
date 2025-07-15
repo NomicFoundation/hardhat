@@ -457,15 +457,16 @@ For global options help run: hardhat --help`;
         usedCliArguments,
       );
 
+      // In the GitHub CI this value is true, but in the local environment it is false
+      const expected = isCi();
+
       assert.deepEqual(usedCliArguments, [true]);
       assert.deepEqual(builtinGlobalOptions, {
         init: false,
         configPath: undefined,
-        showStackTraces,
+        showStackTraces: expected,
         help: true,
         version: false,
-        verbose: false,
-        verbosity: 0,
       });
     });
 
