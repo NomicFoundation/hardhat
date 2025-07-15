@@ -22,7 +22,7 @@ import { MockEthereumProvider } from "../../../../utils.js";
 
 describe("JSON-RPC handler", async function () {
   const hostname = (await exists("/.dockerenv")) ? "0.0.0.0" : "127.0.0.1";
-  const port = 8546;
+  let port: number;
   const provider = new MockEthereumProvider({
     eth_chainId: "0x7a69", // 31337 in hex
     plainError: () => {
@@ -67,12 +67,13 @@ describe("JSON-RPC handler", async function () {
   });
   const server = new JsonRpcServerImplementation({
     hostname,
-    port,
+    port: 0, // use a random port
     provider,
   });
 
   before(async function () {
-    await server.listen();
+    const connection = await server.listen();
+    port = connection.port;
   });
 
   after(async function () {
