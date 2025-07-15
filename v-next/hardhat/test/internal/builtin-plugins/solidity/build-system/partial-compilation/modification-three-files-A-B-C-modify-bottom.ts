@@ -11,7 +11,7 @@ import { assertFileCounts, getHRE, TestProjectWrapper } from "./helpers.js";
 describe("Partial compilation", () => {
   describe("modify bottom dependant on A->B->C schema", () => {
     describe("non-isolated mode", function () {
-      it("should handle build infos and artifacts appropiately", async () => {
+      it("should handle build infos and artifacts appropriately", async () => {
         await using _project = await useTestProjectTemplate({
           name: "test",
           version: "1.0.0",
@@ -99,7 +99,7 @@ describe("Partial compilation", () => {
       });
     });
     describe("isolated mode", function () {
-      it("should handle build infos and artifacts appropiately", async () => {
+      it("should handle build infos and artifacts appropriately", async () => {
         await using _project = await useTestProjectTemplate({
           name: "test",
           version: "1.0.0",

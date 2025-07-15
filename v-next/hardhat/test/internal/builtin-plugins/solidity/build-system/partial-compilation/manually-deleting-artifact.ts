@@ -116,7 +116,7 @@ describe("Partial compilation", () => {
       // Delete the build info file
       await rm(firstBuildInfo.path);
 
-      // Get the snapshot again, the build info shouldnt be there anymore
+      // Get the snapshot again, the build info shouldn't be there anymore
       const secondSnapshot = await project.getSnapshot();
 
       assert.equal(secondSnapshot.buildInfos.length, 0);
@@ -177,7 +177,7 @@ describe("Partial compilation", () => {
       // Delete the typefile
       await rm(firstSnapshot.typeFiles["A.sol"].path);
 
-      // Get the snapshot again, the typefile shouldnt be there anymore
+      // Get the snapshot again, the typefile shouldn't be there anymore
       const secondSnapshot = await project.getSnapshot();
 
       assert.equal(secondSnapshot.typeFiles["A.sol"], undefined);
@@ -215,7 +215,7 @@ describe("Partial compilation", () => {
       // Delete the build info output
       await rm(firstSnapshot.buildInfoOutputs[0].path);
 
-      // Get the snapshot again, the build info output shouldnt be there anymore
+      // Get the snapshot again, the build info output shouldn't be there anymore
       const secondSnapshot = await project.getSnapshot();
 
       assert.equal(secondSnapshot.buildInfoOutputs.length, 0);

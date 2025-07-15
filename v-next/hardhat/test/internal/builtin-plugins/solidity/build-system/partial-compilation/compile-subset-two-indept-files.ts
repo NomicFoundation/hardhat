@@ -11,7 +11,7 @@ import { assertFileCounts, getHRE, TestProjectWrapper } from "./helpers.js";
 describe("Partial compilation", () => {
   describe("Compiling a subset in a project with two independent files", () => {
     describe("Non-isolated", () => {
-      it("generates build infos, artifacts and typefiles appropiately", async () => {
+      it("generates build infos, artifacts and typefiles appropriately", async () => {
         await using _project = await useTestProjectTemplate({
           name: "test",
           version: "1.0.0",
@@ -152,7 +152,7 @@ describe("Partial compilation", () => {
     });
 
     describe("Isolated", () => {
-      it("generates build infos, artifacts and typefiles appropiately", async () => {
+      it("generates build infos, artifacts and typefiles appropriately", async () => {
         await using _project = await useTestProjectTemplate({
           name: "test",
           version: "1.0.0",
@@ -221,7 +221,7 @@ describe("Partial compilation", () => {
           "Bar.sol",
         );
 
-        // Foo build info shouldnt change
+        // Foo build info shouldn't change
         assert.deepEqual(buildInfoFoo, newBuildInfoFoo);
 
         // Bar build info changes

@@ -10,7 +10,7 @@ import { assertFileCounts, getHRE, TestProjectWrapper } from "./helpers.js";
 describe("Partial compilation", () => {
   describe("add a file to a project, then modify both", () => {
     describe("non-isolated mode", function () {
-      it("should handle build infos and artifacs appropiately", async () => {
+      it("should handle build infos and artifacts appropriately", async () => {
         await using _project = await useTestProjectTemplate({
           name: "test",
           version: "1.0.0",
@@ -146,7 +146,7 @@ describe("Partial compilation", () => {
     });
 
     describe("isolated mode", function () {
-      it("should handle build infos and artifacs appropiately", async () => {
+      it("should handle build infos and artifacts appropriately", async () => {
         await using _project = await useTestProjectTemplate({
           name: "test",
           version: "1.0.0",
