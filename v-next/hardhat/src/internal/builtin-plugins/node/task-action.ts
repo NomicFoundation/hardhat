@@ -19,8 +19,8 @@ import chalk from "chalk";
 import debug from "debug";
 
 import { sendErrorTelemetry } from "../../cli/telemetry/sentry/reporter.js";
-import { BUILD_INFO_DIR_NAME } from "../artifacts/artifact-manager.js";
 import { isSupportedChainType } from "../../edr/chain-type.js";
+import { BUILD_INFO_DIR_NAME } from "../artifacts/artifact-manager.js";
 
 import { watchBuildInfo } from "./artifacts/build-info-watcher.js";
 import { formatEdrNetworkConfigAccounts } from "./helpers.js";
