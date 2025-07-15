@@ -162,7 +162,7 @@ export interface UserInterruptionHooks {
     next: (
       nextContext: HookContext,
       nextInterruptor: string,
-      nextMesage: string,
+      nextMessage: string,
     ) => Promise<void>,
   ) => Promise<void>;
 
@@ -281,7 +281,7 @@ export interface HookManager {
    * @param hookName The name of the hook whose handlers should be run.
    * @param initialParams The params to pass to the first handler that is run.
    * @param defaultImplementation The last handler in the chain. This can be thought
-   *  as the behavior that this execution should have in the absense of any
+   *  as the behavior that this execution should have in the absence of any
    *  handler.
    * @returns The result of executing the chained handlers.
    */
@@ -374,7 +374,7 @@ export type ChainedHook<HookT> = HookT extends (
   : never;
 
 /**
- * The intial parameters to run a chain of hooks.
+ * The initial parameters to run a chain of hooks.
  */
 export type InitialChainedHookParams<
   HookCategoryNameT extends keyof HardhatHooks,

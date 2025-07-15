@@ -24,14 +24,7 @@ const hardhatPlugin: HardhatPlugin = {
     }),
   ],
   npmPackage: "hardhat",
-  dependencies: [
-    async () => {
-      const { default: artifactsPlugin } = await import(
-        "../artifacts/index.js"
-      );
-      return artifactsPlugin;
-    },
-  ],
+  dependencies: [async () => (await import("../artifacts/index.js")).default],
 };
 
 export default hardhatPlugin;

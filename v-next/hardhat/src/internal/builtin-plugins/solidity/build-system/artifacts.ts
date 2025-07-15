@@ -1,4 +1,8 @@
-import type { Artifact, BuildInfo } from "../../../../types/artifacts.js";
+import type {
+  Artifact,
+  BuildInfo,
+  LinkReferences,
+} from "../../../../types/artifacts.js";
 import type { CompilationJob } from "../../../../types/solidity/compilation-job.js";
 import type {
   CompilerOutput,
@@ -13,10 +17,11 @@ import { getPrefixedHexString } from "@nomicfoundation/hardhat-utils/hex";
 
 export function getContractArtifact(
   buildInfoId: string,
-  publicSourceName: string,
+  userSourceName: string,
   inputSourceName: string,
   contractName: string,
   contract: CompilerOutputContract,
+  userSourceNameMap: Record<string, string>,
 ): Artifact {
   const evmBytecode = contract.evm?.bytecode;
   const bytecode: string =
@@ -38,18 +43,36 @@ export function getContractArtifact(
   const artifact: Required<Artifact> = {
     _format: "hh3-artifact-1",
     contractName,
-    sourceName: publicSourceName,
+    sourceName: userSourceName,
     abi: contract.abi,
     bytecode,
     deployedBytecode,
-    linkReferences,
-    deployedLinkReferences,
+    linkReferences: applyUserSourceNamesToLinkReferences(
+      linkReferences,
+      userSourceNameMap,
+    ),
+    deployedLinkReferences: applyUserSourceNamesToLinkReferences(
+      deployedLinkReferences,
+      userSourceNameMap,
+    ),
     immutableReferences,
     inputSourceName,
     buildInfoId,
   };
 
   return artifact;
+}
+
+function applyUserSourceNamesToLinkReferences(
+  linkReferences: LinkReferences,
+  userSourceNameMap: Record<string, string>,
+): LinkReferences {
+  return Object.fromEntries(
+    Object.entries(linkReferences).map(([sourceName, references]) => [
+      userSourceNameMap[sourceName] ?? sourceName,
+      references,
+    ]),
+  );
 }
 
 export function getArtifactsDeclarationFile(artifacts: Artifact[]): string {
@@ -107,9 +130,9 @@ declare module "hardhat/types/artifacts" {
 export async function getBuildInfo(
   compilationJob: CompilationJob,
 ): Promise<SolidityBuildInfo> {
-  const publicSourceNameMap = Object.fromEntries(
+  const userSourceNameMap = Object.fromEntries(
     [...compilationJob.dependencyGraph.getRoots().entries()].map(
-      ([publicSourceName, root]) => [publicSourceName, root.sourceName],
+      ([userSourceName, root]) => [userSourceName, root.inputSourceName],
     ),
   );
 
@@ -118,7 +141,7 @@ export async function getBuildInfo(
     id: await compilationJob.getBuildId(),
     solcVersion: compilationJob.solcConfig.version,
     solcLongVersion: compilationJob.solcLongVersion,
-    publicSourceNameMap,
+    userSourceNameMap,
     input: await compilationJob.getSolcInput(),
   };
 

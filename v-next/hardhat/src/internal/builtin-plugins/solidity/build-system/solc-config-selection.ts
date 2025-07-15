@@ -54,7 +54,7 @@ export class SolcConfigSelector {
       "This method only works for single root graphs",
     );
 
-    const [publicSourceName, root] = [...roots.entries()][0];
+    const [userSourceName, root] = [...roots.entries()][0];
 
     const allVersionPragamas = [...subgraph.getAllFiles()]
       .map(({ content }) => content.versionPragmas)
@@ -62,7 +62,7 @@ export class SolcConfigSelector {
 
     const versionRange = Array.from(new Set(allVersionPragamas)).join(" ");
 
-    const overriddenCompiler = this.#buildProfile.overrides[publicSourceName];
+    const overriddenCompiler = this.#buildProfile.overrides[userSourceName];
 
     // if there's an override, we only check that
     if (overriddenCompiler !== undefined) {
@@ -107,15 +107,15 @@ export class SolcConfigSelector {
     root: ResolvedFile,
     dependencyGraph: DependencyGraph,
     compilerVersions: string[],
-    overriden: boolean,
+    overridden: boolean,
   ): CompilationJobCreationError {
     const rootVersionRange = root.content.versionPragmas.join(" ");
     if (maxSatisfying(compilerVersions, rootVersionRange) === null) {
       let reason: CompilationJobCreationErrorReason;
       let formattedReason: string;
-      if (overriden) {
+      if (overridden) {
         reason =
-          CompilationJobCreationErrorReason.INCOMPATIBLE_OVERRIDEN_SOLC_VERSION;
+          CompilationJobCreationErrorReason.INCOMPATIBLE_OVERRIDDEN_SOLC_VERSION;
         formattedReason = `An override with incompatible solc version was found for this file.`;
       } else {
         reason =
@@ -173,27 +173,29 @@ export class SolcConfigSelector {
     dependency: ResolvedFile;
   }> {
     for (const dependency of dependencyGraph.getDependencies(root)) {
-      if (visited.has(dependency)) {
+      const file = dependency.file;
+
+      if (visited.has(file)) {
         continue;
       }
 
-      visited.add(dependency);
+      visited.add(file);
 
       yield {
-        fsPath: [dependency.fsPath],
-        versionPragmasPath: [dependency.content.versionPragmas],
-        dependency,
+        fsPath: [file.fsPath],
+        versionPragmasPath: [file.content.versionPragmas],
+        dependency: file,
       };
 
       for (const transitive of this.#getTransitiveDependencies(
-        dependency,
+        file,
         dependencyGraph,
         visited,
       )) {
         yield {
-          fsPath: [dependency.fsPath, ...transitive.fsPath],
+          fsPath: [file.fsPath, ...transitive.fsPath],
           versionPragmasPath: [
-            dependency.content.versionPragmas,
+            file.content.versionPragmas,
             ...transitive.versionPragmasPath,
           ],
           dependency: transitive.dependency,

@@ -1,9 +1,13 @@
-import type { DependencyGraph, ResolvedFile } from "../../../types/solidity.js";
 import type { NewTaskActionFunction } from "../../../types/tasks.js";
 
 import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
 import chalk from "chalk";
 
+import {
+  ResolvedFileType,
+  type DependencyGraph,
+  type ResolvedFile,
+} from "../../../types/solidity.js";
 import { getHardhatVersion } from "../../utils/package.js";
 import { buildDependencyGraph } from "../solidity/build-system/dependency-graph-building.js";
 import { readSourceFileFactory } from "../solidity/build-system/read-source-file.js";
@@ -56,10 +60,9 @@ const flattenAction: NewTaskActionFunction<FlattenActionArguments> = async (
         });
 
   // Build the dependency graph
-  const { dependencyGraph } = await buildDependencyGraph(
+  const dependencyGraph = await buildDependencyGraph(
     rootPaths.toSorted(), // We sort them to have a deterministic order
     config.paths.root,
-    config.solidity.remappings,
     readSourceFileFactory(hooks),
   );
 
@@ -94,7 +97,8 @@ const flattenAction: NewTaskActionFunction<FlattenActionArguments> = async (
     normalizedText = commentOutPragmaAbicoderDirectives(normalizedText);
 
     // Write files without imports, with commented licenses and pragma abicoder directives
-    flattened += `\n\n// File ${file.sourceName}\n`;
+
+    flattened += `\n\n// File ${formatSourceName(file)}\n`;
     flattened += `\n${normalizedText}\n`;
   }
 
@@ -142,6 +146,15 @@ const flattenAction: NewTaskActionFunction<FlattenActionArguments> = async (
   };
 };
 
+// We don't display the project's input source name root in the flattened file
+function formatSourceName(file: ResolvedFile): string {
+  return file.type === ResolvedFileType.NPM_PACKAGE_FILE
+    ? file.inputSourceName
+    : file.inputSourceName.substring(
+        file.package.inputSourceNameRoot.length + 1,
+      );
+}
+
 interface LicensesInfo {
   licenses: string[];
   filesWithoutLicenses: string[];
@@ -155,7 +168,7 @@ function getLicensesInfo(files: ResolvedFile[]): LicensesInfo {
     const matches = [...file.content.text.matchAll(SPDX_LICENSES_REGEX)];
 
     if (matches.length === 0) {
-      filesWithoutLicenses.add(file.sourceName);
+      filesWithoutLicenses.add(formatSourceName(file));
       continue;
     }
 
@@ -193,7 +206,7 @@ function getPragmaAbicoderDirectiveInfo(
     const matches = [...file.content.text.matchAll(PRAGMA_DIRECTIVES_REGEX)];
 
     if (matches.length === 0) {
-      filesWithoutPragmaDirectives.add(file.sourceName);
+      filesWithoutPragmaDirectives.add(formatSourceName(file));
       continue;
     }
 
@@ -220,7 +233,7 @@ function getPragmaAbicoderDirectiveInfo(
       }
     }
 
-    filesWithMostImportantDirective[file.sourceName] =
+    filesWithMostImportantDirective[formatSourceName(file)] =
       fileMostImportantDirective;
   }
 
@@ -250,7 +263,7 @@ function getSortedFiles(dependencyGraph: DependencyGraph): ResolvedFile[] {
   // Helper function for sorting files by sourceName, for deterministic results
   const sortBySourceName = (files: Iterable<ResolvedFile>) => {
     return Array.from(files).sort((f1, f2) =>
-      f1.sourceName.localeCompare(f2.sourceName),
+      f1.inputSourceName.localeCompare(f2.inputSourceName),
     );
   };
 
@@ -262,7 +275,7 @@ function getSortedFiles(dependencyGraph: DependencyGraph): ResolvedFile[] {
       sortedFiles.push(file);
 
       const dependencies = sortBySourceName(
-        dependencyGraph.getDependencies(file),
+        Array.from(dependencyGraph.getDependencies(file)).map((d) => d.file),
       );
 
       walk(dependencies);

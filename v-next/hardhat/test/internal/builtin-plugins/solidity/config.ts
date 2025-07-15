@@ -149,7 +149,7 @@ describe("solidity plugin config validation", () => {
         [
           {
             message:
-              "Expected a version string, an array of version strings, or an object cofiguring one or more versions of Solidity or multiple build profiles",
+              "Expected a version string, an array of version strings, or an object configuring one or more versions of Solidity or multiple build profiles",
             path: ["solidity"],
           },
         ],
@@ -174,7 +174,7 @@ describe("solidity plugin config validation", () => {
         [
           {
             message:
-              "Expected a version string, an array of version strings, or an object cofiguring one or more versions of Solidity or multiple build profiles",
+              "Expected a version string, an array of version strings, or an object configuring one or more versions of Solidity or multiple build profiles",
             path: ["solidity"],
           },
         ],

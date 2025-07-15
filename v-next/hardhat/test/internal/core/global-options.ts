@@ -6,7 +6,10 @@ import { after, before, describe, it } from "node:test";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
-import { RESERVED_ARGUMENT_NAMES } from "../../../src/internal/core/arguments.js";
+import {
+  RESERVED_ARGUMENT_NAMES,
+  RESERVED_ARGUMENT_SHORT_NAMES,
+} from "../../../src/internal/core/arguments.js";
 import { globalOption } from "../../../src/internal/core/config.js";
 import {
   buildGlobalOptionDefinition,
@@ -23,6 +26,10 @@ describe("Global Options", () => {
     RESERVED_ARGUMENT_NAMES.add("testName1");
     RESERVED_ARGUMENT_NAMES.add("testName2");
     RESERVED_ARGUMENT_NAMES.add("testName3");
+    // Make sure we have some reserved short names
+    RESERVED_ARGUMENT_SHORT_NAMES.add("x");
+    RESERVED_ARGUMENT_SHORT_NAMES.add("y");
+    RESERVED_ARGUMENT_SHORT_NAMES.add("z");
   });
 
   after(() => {
@@ -30,6 +37,10 @@ describe("Global Options", () => {
     RESERVED_ARGUMENT_NAMES.delete("testName1");
     RESERVED_ARGUMENT_NAMES.delete("testName2");
     RESERVED_ARGUMENT_NAMES.delete("testName3");
+    // Delete the test reserved short names
+    RESERVED_ARGUMENT_SHORT_NAMES.delete("x");
+    RESERVED_ARGUMENT_SHORT_NAMES.delete("y");
+    RESERVED_ARGUMENT_SHORT_NAMES.delete("z");
   });
 
   describe("buildGlobalOptionDefinitions", () => {
@@ -113,6 +124,44 @@ describe("Global Options", () => {
       );
     });
 
+    it("should throw if a global option's short name is already defined by another plugin", () => {
+      const globalOptionDefinition = globalOption({
+        name: "globalOption1",
+        shortName: "a",
+        description: "globalOption1 description",
+        type: ArgumentType.BOOLEAN,
+        defaultValue: true,
+      });
+      const globalOptionDefinition2 = globalOption({
+        name: "globalOption2",
+        shortName: "a",
+        description: "globalOption2 description",
+        type: ArgumentType.BOOLEAN,
+        defaultValue: false,
+      });
+
+      assertThrowsHardhatError(
+        () =>
+          buildGlobalOptionDefinitions([
+            {
+              id: "plugin1",
+              globalOptions: [globalOptionDefinition],
+            },
+            {
+              id: "plugin2",
+              globalOptions: [globalOptionDefinition2],
+            },
+          ]),
+
+        HardhatError.ERRORS.CORE.GENERAL.GLOBAL_OPTION_ALREADY_DEFINED,
+        {
+          plugin: "plugin2",
+          globalOption: "a",
+          definedByPlugin: "plugin1",
+        },
+      );
+    });
+
     it("should throw if an option name is not valid", () => {
       assertThrowsHardhatError(
         () =>
@@ -132,6 +181,30 @@ describe("Global Options", () => {
         HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_NAME,
         {
           name: "foo bar",
+        },
+      );
+    });
+
+    it("should throw if a short option name is not valid", () => {
+      assertThrowsHardhatError(
+        () =>
+          buildGlobalOptionDefinitions([
+            {
+              id: "plugin1",
+              globalOptions: [
+                globalOption({
+                  name: "foo",
+                  shortName: "bar",
+                  description: "Foo description",
+                  type: ArgumentType.STRING,
+                  defaultValue: "bar",
+                }),
+              ],
+            },
+          ]),
+        HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_SHORT_NAME,
+        {
+          name: "bar",
         },
       );
     });
@@ -156,6 +229,32 @@ describe("Global Options", () => {
           HardhatError.ERRORS.CORE.ARGUMENTS.RESERVED_NAME,
           {
             name,
+          },
+        );
+      });
+    });
+
+    it("should throw if a short option name is reserved", () => {
+      RESERVED_ARGUMENT_SHORT_NAMES.forEach((shortName) => {
+        assertThrowsHardhatError(
+          () =>
+            buildGlobalOptionDefinitions([
+              {
+                id: "plugin1",
+                globalOptions: [
+                  globalOption({
+                    name: "foo",
+                    shortName,
+                    description: "Foo description",
+                    type: ArgumentType.STRING,
+                    defaultValue: "bar",
+                  }),
+                ],
+              },
+            ]),
+          HardhatError.ERRORS.CORE.ARGUMENTS.RESERVED_NAME,
+          {
+            name: shortName,
           },
         );
       });
@@ -193,6 +292,7 @@ describe("Global Options", () => {
     it("should build a global option definition", () => {
       const options = {
         name: "foo",
+        shortName: undefined,
         description: "Foo description",
         type: ArgumentType.BOOLEAN,
         defaultValue: true,
@@ -205,6 +305,7 @@ describe("Global Options", () => {
     it("should build a global option definition with a default type of STRING", () => {
       const options = {
         name: "foo",
+        shortName: undefined,
         description: "Foo description",
         defaultValue: "bar",
       };
@@ -231,6 +332,22 @@ describe("Global Options", () => {
       );
     });
 
+    it("should throw if the option short name is not valid", () => {
+      assertThrowsHardhatError(
+        () =>
+          buildGlobalOptionDefinition({
+            name: "foo",
+            shortName: "bar",
+            description: "Foo description",
+            defaultValue: "bar",
+          }),
+        HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_SHORT_NAME,
+        {
+          name: "bar",
+        },
+      );
+    });
+
     it("should throw if the option name is reserved", () => {
       RESERVED_ARGUMENT_NAMES.forEach((name) => {
         assertThrowsHardhatError(
@@ -243,6 +360,24 @@ describe("Global Options", () => {
           HardhatError.ERRORS.CORE.ARGUMENTS.RESERVED_NAME,
           {
             name,
+          },
+        );
+      });
+    });
+
+    it("should throw if the short option name is reserved", () => {
+      RESERVED_ARGUMENT_SHORT_NAMES.forEach((shortName) => {
+        assertThrowsHardhatError(
+          () =>
+            buildGlobalOptionDefinition({
+              name: "foo",
+              shortName,
+              description: "Foo description",
+              defaultValue: "bar",
+            }),
+          HardhatError.ERRORS.CORE.ARGUMENTS.RESERVED_NAME,
+          {
+            name: shortName,
           },
         );
       });
@@ -331,7 +466,7 @@ describe("Global Options", () => {
       const globalOptions = resolveGlobalOptions(
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
         This cast is intentional, so that the test doesn't need to extend the
-        GlobalOptions type, poluting the whole codebase. */
+        GlobalOptions type, polluting the whole codebase. */
         {
           globalOption1: false,
           globalOption2: "user",
@@ -371,7 +506,7 @@ describe("Global Options", () => {
       const globalOptions = resolveGlobalOptions(
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
         This cast is intentional, so that the test doesn't need to extend the
-        GlobalOptions type, poluting the whole codebase. */
+        GlobalOptions type, polluting the whole codebase. */
         {
           globalOption1: false,
           globalOption2: "user",
@@ -405,7 +540,7 @@ describe("Global Options", () => {
       const globalOptions = resolveGlobalOptions(
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
         This cast is intentional, so that the test doesn't need to extend the
-        GlobalOptions type, poluting the whole codebase. */
+        GlobalOptions type, polluting the whole codebase. */
         {
           globalOption1: false,
           globalOption2: "user",

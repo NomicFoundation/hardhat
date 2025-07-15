@@ -3,7 +3,7 @@ import type { EthereumProvider } from "./providers.js";
 
 /**
  * Represents the possible chain types for the network. The options are:
- * - `GenericNetowrkType`: Represents the most generic type of network.
+ * - `GenericNetworkType`: Represents the most generic type of network.
  * - `"l1"`: Represents Layer 1 networks like Ethereum.
  * - `"optimism"`: Represents Layer 2 networks like Optimism.
  */
@@ -16,7 +16,7 @@ export type GenericChainType = "generic";
 
 /**
  * Determines the default chain type to use when no chain type is specified.
- * The default chain type is GenericNetowrkType by default. You can customize the
+ * The default chain type is GenericNetworkType by default. You can customize the
  * default chain type by adding a `defaultChainType` property to the
  * `ChainTypeConfig` interface with a valid `ChainType` value.
  * For example:

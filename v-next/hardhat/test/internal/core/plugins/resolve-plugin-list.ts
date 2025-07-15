@@ -166,7 +166,7 @@ describe("Plugins - resolve plugin list", () => {
         npmPackage: "example",
         dependencies: [
           async () => {
-            throw new Error("Unknown reaons");
+            throw new Error("Unknown reasons");
           },
         ],
       };

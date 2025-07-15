@@ -2,7 +2,7 @@ import type { FailedEvmExecutionResult } from "./evm-execution.js";
 import type { SolidityParameterType } from "../../../types/module.js";
 
 /**
- * The differnt types of result that executing a future can produce.
+ * The different types of result that executing a future can produce.
  */
 export enum ExecutionResultType {
   SUCCESS = "SUCCESS",
@@ -25,7 +25,7 @@ export interface SimulationErrorExecutionResult {
 }
 
 /**
- * A simulation of an onchain interaction seemingly succeded, but the strategy
+ * A simulation of an onchain interaction seemingly succeeded, but the strategy
  * decided that it should be considered a failure.
  *
  * Note: We don't journal this result.

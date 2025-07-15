@@ -75,7 +75,7 @@ describe("execution - error on pending user transactions", () => {
     const outsideFoo = await deployPromise;
     assert.equal(
       outsideFoo,
-      "0x94581d6d5b6c86965a35291786d92fc802940c55113878103d26f8131744e96d",
+      "0xbe9ec293f5e7b916baa70d56af1e30667ad5512e1cfad31f454d5da09e3f5973",
     );
   });
 });

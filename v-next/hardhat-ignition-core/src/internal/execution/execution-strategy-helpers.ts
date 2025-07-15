@@ -61,7 +61,7 @@ export type DecodeCustomError = (
 ) => RevertWithCustomError | RevertWithInvalidData | undefined;
 
 /**
- * A function that decodes the succesful result of an evm execution.
+ * A function that decodes the successful result of an evm execution.
  * @param returnData The return data of an evm execution, as returned by the JSON-RPC.
  * @returns `InvalidResultError` if the result is invalid wrt to the contract's ABI.
  *  `SuccessfulEvmExecutionResult` if the result can be decoded.

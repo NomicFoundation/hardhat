@@ -65,7 +65,7 @@ export interface RequestOptions {
 export interface HttpResponse {
   statusCode: number;
   body: {
-    json(): Promise<unknown>;
+    json(): Promise<any>;
     text(): Promise<string>;
   };
 }

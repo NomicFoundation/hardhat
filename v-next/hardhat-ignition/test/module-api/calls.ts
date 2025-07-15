@@ -47,10 +47,10 @@ describe("calls", () => {
 
     assert.isDefined(result.captureArraysContract);
 
-    const captureSuceeded =
+    const captureSucceeded =
       await result.captureArraysContract.read.arraysCaptured();
 
-    assert(captureSuceeded === true);
+    assert(captureSucceeded === true);
   });
 
   it("should be able to call contracts with arrays nested in objects args", async function () {
@@ -74,10 +74,10 @@ describe("calls", () => {
 
     assert.isDefined(result.captureComplexObjectContract);
 
-    const captureSuceeded =
+    const captureSucceeded =
       await result.captureComplexObjectContract.read.complexArgCaptured();
 
-    assert(captureSuceeded === true);
+    assert(captureSucceeded === true);
   });
 
   it("should be able to make calls in order", async function () {

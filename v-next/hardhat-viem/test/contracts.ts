@@ -337,7 +337,7 @@ describe("contracts", () => {
           blocks: 1,
         });
         // We need to wait for the promise to resolve, which will happen
-        // inmediately. As we have automine disabled, this promise wouldn't
+        // immediately. As we have automine disabled, this promise wouldn't
         // resolve if there were less than 5 confirmations and the test would
         // timeout.
         await contractPromise;
@@ -353,7 +353,7 @@ describe("contracts", () => {
           }),
           HardhatError.ERRORS.HARDHAT_VIEM.GENERAL.INVALID_CONFIRMATIONS,
           {
-            error: "Confirmations must be greather than 0.",
+            error: "Confirmations must be greater than 0.",
           },
         );
       });

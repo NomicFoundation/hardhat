@@ -5,13 +5,7 @@ import "./type-extensions.js";
 const hardhatPlugin: HardhatPlugin = {
   id: "hardhat-viem-assertions",
   dependencies: [
-    async () => {
-      const { default: viemPlugin } = await import(
-        "@nomicfoundation/hardhat-viem"
-      );
-
-      return viemPlugin;
-    },
+    async () => (await import("@nomicfoundation/hardhat-viem")).default,
   ],
   hookHandlers: {
     network: import.meta.resolve("./internal/hook-handlers/network.js"),

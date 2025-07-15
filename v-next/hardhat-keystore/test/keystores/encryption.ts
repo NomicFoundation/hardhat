@@ -522,7 +522,7 @@ describe("Keystore primitives", () => {
         "The secret should be present",
       );
 
-      // Overwritting a secret
+      // Overwriting a secret
       previousKeystore = newKeystore;
       newKeystore = addSecretToKeystore({
         masterKey,

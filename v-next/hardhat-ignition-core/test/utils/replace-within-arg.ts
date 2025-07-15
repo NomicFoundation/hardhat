@@ -62,7 +62,7 @@ describe("Arg resolution", () => {
   });
 
   describe("account runtime values", () => {
-    it("should substitue a singleton", () => {
+    it("should substitute a singleton", () => {
       const actual = resolve(new AccountRuntimeValueImplementation(3));
 
       assert.deepStrictEqual(actual, {
@@ -71,7 +71,7 @@ describe("Arg resolution", () => {
       });
     });
 
-    it("should substitue in an array", () => {
+    it("should substitute in an array", () => {
       const actual = resolve([
         1,
         new AccountRuntimeValueImplementation(2),
@@ -88,7 +88,7 @@ describe("Arg resolution", () => {
       ]);
     });
 
-    it("should substitue in an object", () => {
+    it("should substitute in an object", () => {
       const actual = resolve({
         num: 1,
         account: new AccountRuntimeValueImplementation(2),
@@ -116,7 +116,7 @@ describe("Arg resolution", () => {
   });
 
   describe("module parameter runtime values", () => {
-    it("should substitue a singleton", () => {
+    it("should substitute a singleton", () => {
       const actual = resolve(
         new ModuleParameterRuntimeValueImplementation(
           "MyModule",
@@ -133,7 +133,7 @@ describe("Arg resolution", () => {
       });
     });
 
-    it("should substitue in an array", () => {
+    it("should substitute in an array", () => {
       const actual = resolve([
         1,
         new ModuleParameterRuntimeValueImplementation(
@@ -156,7 +156,7 @@ describe("Arg resolution", () => {
       ]);
     });
 
-    it("should substitue in an object", () => {
+    it("should substitute in an object", () => {
       const actual = resolve({
         num: 1,
         account: new ModuleParameterRuntimeValueImplementation(
@@ -196,19 +196,19 @@ describe("Arg resolution", () => {
   });
 
   describe("BigInt", () => {
-    it("should substitue a singleton", () => {
+    it("should substitute a singleton", () => {
       const actual = resolve(BigInt(12));
 
       assert.deepStrictEqual(actual, "12n");
     });
 
-    it("should substitue in an array", () => {
+    it("should substitute in an array", () => {
       const actual = resolve([1, BigInt(12), "c"]);
 
       assert.deepStrictEqual(actual, [1, "12n", "c"]);
     });
 
-    it("should substitue in an object", () => {
+    it("should substitute in an object", () => {
       const actual = resolve({
         num: 1,
         bigint: BigInt(2),
@@ -230,7 +230,7 @@ describe("Arg resolution", () => {
   });
 
   describe("future", () => {
-    it("should substitue a singleton", () => {
+    it("should substitute a singleton", () => {
       const actual = resolve(
         new NamedContractAtFutureImplementation(
           "MyModule:MyContract",
@@ -246,7 +246,7 @@ describe("Arg resolution", () => {
       });
     });
 
-    it("should substitue in an array", () => {
+    it("should substitute in an array", () => {
       const actual = resolve([
         1,
         new NamedContractAtFutureImplementation(
@@ -268,7 +268,7 @@ describe("Arg resolution", () => {
       ]);
     });
 
-    it("should substitue in an object", () => {
+    it("should substitute in an object", () => {
       const actual = resolve({
         num: 1,
         future: new NamedContractAtFutureImplementation(

@@ -181,6 +181,10 @@ const config: HardhatUserConfig = {
           {
             version: "0.7.1",
           },
+          {
+            // Required for @uniswap/core
+            version: "0.8.26",
+          },
         ],
         overrides: {
           "foo/bar.sol": {
@@ -197,12 +201,7 @@ const config: HardhatUserConfig = {
     },
     dependenciesToCompile: [
       "@openzeppelin/contracts/token/ERC20/ERC20.sol",
-      "forge-std/src/Test.sol",
-    ],
-    remappings: [
-      "remapped/=npm/@openzeppelin/contracts@5.1.0/access/",
-      // This is necessary because most people import forge-std/Test.sol, and not forge-std/src/Test.sol
-      "forge-std/=npm/forge-std@1.9.4/src/",
+      "forge-std/Test.sol",
     ],
   },
   solidityTest: {

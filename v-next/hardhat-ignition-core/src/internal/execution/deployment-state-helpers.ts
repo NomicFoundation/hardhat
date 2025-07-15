@@ -69,7 +69,7 @@ export async function applyNewMessage(
 }
 
 /**
- * Returns true if a message should be recorded to the jorunal.
+ * Returns true if a message should be recorded to the journal.
  */
 export function shouldBeJournaled(message: JournalMessage): boolean {
   if (

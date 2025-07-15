@@ -2,8 +2,10 @@ import type {
   ConfigurationVariableResolver,
   HardhatConfig,
   HardhatUserConfig,
-  VerificationProviderConfig,
-  VerificationProviderUserConfig,
+  EtherscanConfig,
+  EtherscanUserConfig,
+  BlockscoutUserConfig,
+  BlockscoutConfig,
 } from "hardhat/types/config";
 import type {
   ConfigHooks,
@@ -24,6 +26,11 @@ export default async (): Promise<Partial<ConfigHooks>> => ({
 const userConfigType = z.object({
   verify: z
     .object({
+      blockscout: z
+        .object({
+          enabled: z.boolean().optional(),
+        })
+        .optional(),
       etherscan: z
         .object({
           apiKey: sensitiveStringSchema,
@@ -54,6 +61,7 @@ export async function resolveUserConfig(
     ...resolvedConfig,
     verify: {
       ...resolvedConfig.verify,
+      blockscout: resolveBlockscoutConfig(userConfig.verify?.blockscout),
       etherscan: resolveEtherscanConfig(
         userConfig.verify?.etherscan,
         resolveConfigurationVariable,
@@ -62,13 +70,23 @@ export async function resolveUserConfig(
   };
 }
 
+function resolveBlockscoutConfig(
+  blockscoutConfig: BlockscoutUserConfig | undefined = {
+    enabled: false,
+  },
+): BlockscoutConfig {
+  return {
+    enabled: blockscoutConfig.enabled ?? true,
+  };
+}
+
 function resolveEtherscanConfig(
-  etherscanConfig: VerificationProviderUserConfig | undefined = {
+  etherscanConfig: EtherscanUserConfig | undefined = {
     apiKey: "",
     enabled: false,
   },
   resolveConfigurationVariable: ConfigurationVariableResolver,
-): VerificationProviderConfig {
+): EtherscanConfig {
   return {
     apiKey: resolveConfigurationVariable(etherscanConfig.apiKey),
     enabled: etherscanConfig.enabled ?? true,

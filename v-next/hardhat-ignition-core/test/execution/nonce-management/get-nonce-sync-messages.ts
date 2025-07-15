@@ -307,7 +307,7 @@ describe("execution - getNonceSyncMessages", () => {
 
         it("should succeed with an in-flight transaction that has been completely confirmed between runs", async () => {
           // Assuming a fresh chain, and a deployment that was halted on the first
-          // future and its deploy transaction is completly confirmed now
+          // future and its deploy transaction is completely confirmed now
 
           const latestCount = 1;
           const safestCount = 1;
@@ -467,7 +467,7 @@ describe("execution - getNonceSyncMessages", () => {
         });
 
         it("should error if the user replaced the transaction and the user transaction is in the mempool but not mined (pending)", async () => {
-          // Set latest to an arbitary nonce
+          // Set latest to an arbitrary nonce
           const latestCount = 30;
           // Safe is the same as latest
           const safestCount = latestCount;
@@ -611,7 +611,7 @@ describe("execution - getNonceSyncMessages", () => {
         });
 
         it("should indicate if the ignition transaction was dropped from mempool (no user interference)", async () => {
-          // Set an arbitary latest
+          // Set an arbitrary latest
           const latestCount = 30;
           // The safest is exactly the same as latest
           const safestCount = latestCount;
@@ -647,7 +647,7 @@ describe("execution - getNonceSyncMessages", () => {
         });
 
         it("should ignore futures that have already been completed", async () => {
-          // Safest count nonce is set arbitarily
+          // Safest count nonce is set arbitrarily
           const latestCount = 40;
           // Safest is the same as latest
           const safestCount = latestCount;

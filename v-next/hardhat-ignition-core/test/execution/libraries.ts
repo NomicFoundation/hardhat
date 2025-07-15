@@ -14,7 +14,7 @@ const mockAddress2 = "0x0011223344556677889900112233445566778899";
 
 describe("Libraries handling", () => {
   describe("validateLibraryNames", () => {
-    it("Should not throw if all libraries are provided, no name is ambiguos, repreated or not recognized", () => {
+    it("Should not throw if all libraries are provided, no name is ambiguous, repreated or not recognized", () => {
       assert.doesNotThrow(() => {
         validateLibraryNames(deploymentFixturesArtifacts.WithLibrary, ["Lib"]);
       });
@@ -78,7 +78,7 @@ describe("Libraries handling", () => {
   });
 
   describe("linkLibraries", () => {
-    it("Should validate that the librearies addressses are valid", () => {
+    it("Should validate that the librearies addresses are valid", () => {
       assertThrowsHardhatError(
         () => {
           linkLibraries(deploymentFixturesArtifacts.WithLibrary, {
@@ -94,7 +94,7 @@ describe("Libraries handling", () => {
       );
     });
 
-    it("Should link ambigous libraries correctly", () => {
+    it("Should link ambiguous libraries correctly", () => {
       const linkedBytecode = linkLibraries(
         deploymentFixturesArtifacts.WithAmbiguousLibraryName,
         {

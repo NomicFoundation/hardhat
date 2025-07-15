@@ -5,20 +5,8 @@ import "./type-extensions.js";
 const hardhatIgnitionViemPlugin: HardhatPlugin = {
   id: "hardhat-ignition-viem",
   dependencies: [
-    async () => {
-      const { default: ignitionPlugin } = await import(
-        "@nomicfoundation/hardhat-ignition"
-      );
-
-      return ignitionPlugin;
-    },
-    async () => {
-      const { default: viemPlugin } = await import(
-        "@nomicfoundation/hardhat-viem"
-      );
-
-      return viemPlugin;
-    },
+    async () => (await import("@nomicfoundation/hardhat-ignition")).default,
+    async () => (await import("@nomicfoundation/hardhat-viem")).default,
   ],
   hookHandlers: {
     network: import.meta.resolve("./internal/hook-handlers/network.js"),

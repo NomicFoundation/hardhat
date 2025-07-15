@@ -129,7 +129,7 @@ describe("HookManager", () => {
             },
           });
 
-          // We clear the sequense here, as we used the plugin already during the
+          // We clear the sequence here, as we used the plugin already during the
           // initialization of the HRE
           sequence = [];
 
@@ -158,7 +158,7 @@ describe("HookManager", () => {
       });
 
       describe("runSequentialHandlers", () => {
-        describe("plugin/handler exection order interactions", () => {
+        describe("plugin/handler execution order interactions", () => {
           beforeEach(async () => {
             const examplePlugin1: HardhatPlugin = {
               id: "example1",
@@ -426,7 +426,7 @@ describe("HookManager", () => {
         const examplePlugin: HardhatPlugin = {
           id: "example",
           hookHandlers: {
-            config: import.meta.resolve("./non-existant.js"),
+            config: import.meta.resolve("./non-existent.js"),
           },
         };
 
@@ -526,7 +526,7 @@ describe("HookManager", () => {
         );
       });
 
-      it("should make any extention to the HRE available to all the handlers as part of the HookContext", async () => {
+      it("should make any extension to the HRE available to all the handlers as part of the HookContext", async () => {
         const extensionPlugin: HardhatPlugin = {
           id: "extension",
           hookHandlers: {

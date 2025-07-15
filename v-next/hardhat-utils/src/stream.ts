@@ -1,7 +1,7 @@
 import { Writable } from "node:stream";
 
 /**
- * Creates a Tansform that writes everything to actualWritable, without closing it
+ * Creates a Transform that writes everything to actualWritable, without closing it
  * when finished.
  *
  * This is useful to pipe things to stdout, without closing it, while being

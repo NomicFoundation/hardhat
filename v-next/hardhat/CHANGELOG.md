@@ -1,5 +1,29 @@
 # hardhat
 
+## 3.0.0-next.21
+
+### Patch Changes
+
+- 136a7fd: Use input fqn in etherscan verification
+- bb433d2: Enable multichain testing support in Solidity test runner
+- 6afa1ac: Change the return tupe of `provider.request` from `unknown` to `any`
+- 9654d75: Combine and upgrade EDR dependencies to @ignored/edr-optimism v0.13.0-alpha.5 ([#6912](https://github.com/NomicFoundation/hardhat/pull/6912))
+- bc9c472: Add task to change password in `hardhat-keystore`
+- 5fbea0d: Fixed misspelled words in all the packages
+
+## 3.0.0-next.20
+
+### Patch Changes
+
+- 59daf94: Fix how solidity tests are run and displayed
+
+## 3.0.0-next.19
+
+### Patch Changes
+
+- fe42147: Revamp the dependency resolution system: adding support for `remappings.txt` files, dropping support for `remappings` from the config, and changing how remappings into npm packages are written.
+- ab67a7d: Add support for verifying contracts in Blockscout to hardhat-verify.
+
 ## 3.0.0-next.18
 
 ### Patch Changes

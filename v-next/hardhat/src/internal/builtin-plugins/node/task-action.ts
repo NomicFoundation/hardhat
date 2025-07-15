@@ -20,7 +20,7 @@ import debug from "debug";
 
 import { sendErrorTelemetry } from "../../cli/telemetry/sentry/reporter.js";
 import { BUILD_INFO_DIR_NAME } from "../artifacts/artifact-manager.js";
-import { isEdrSupportedChainType } from "../network-manager/edr/utils/chain-type.js";
+import { isSupportedChainType } from "../../edr/chain-type.js";
 
 import { watchBuildInfo } from "./artifacts/build-info-watcher.js";
 import { formatEdrNetworkConfigAccounts } from "./helpers.js";
@@ -65,8 +65,7 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
   const networkConfigOverride: EdrNetworkConfigOverride = {};
 
   if (args.chainType !== undefined) {
-    if (!isEdrSupportedChainType(args.chainType)) {
-      // NOTE: We could make the error more specific here.
+    if (!isSupportedChainType(args.chainType)) {
       throw new HardhatError(
         HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
         {

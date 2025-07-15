@@ -11,7 +11,7 @@ import { useFileIgnitionProject } from "../../test-helpers/use-ignition-project.
  * Restart the deployment and ensure that the deployment is completed with
  * all contracts deployed.
  *
- * This covers a bug in the nonce mangement code: see #576
+ * This covers a bug in the nonce management code: see #576
  */
 describe("execution - rerun after kill", function () {
   this.timeout(60000);
@@ -39,7 +39,7 @@ describe("execution - rerun after kill", function () {
     await this.runControlledDeploy(
       moduleDefinition,
       async (c: TestChainHelper) => {
-        // this block shound include deployment of foo1
+        // this block should include deployment of foo1
         await c.waitForPendingTxs(1);
 
         c.exitDeploy();
@@ -50,7 +50,7 @@ describe("execution - rerun after kill", function () {
     const result = await this.runControlledDeploy(
       moduleDefinition,
       async (c: TestChainHelper) => {
-        // this block shound include deployment of foo2
+        // this block should include deployment of foo2
         await c.mineBlock(1);
         await c.mineBlock(1);
         await c.mineBlock(1);

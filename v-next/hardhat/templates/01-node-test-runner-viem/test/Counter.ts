@@ -27,7 +27,7 @@ describe("Counter", async function () {
    * chain it's using, potentially affecting RPC interactions for HTTP
    * connections, and changing the simulation behavior for EDR networks.
    * It also ensures the network connection has the correct TypeScript type and
-   * viem extensions (e.g. Optimisim L2 actions).
+   * viem extensions (e.g. Optimism L2 actions).
    *
    * If you don't provide a `ChainType`, it will be inferred from the network
    * config, and default to `generic` if not specified in the config. In either

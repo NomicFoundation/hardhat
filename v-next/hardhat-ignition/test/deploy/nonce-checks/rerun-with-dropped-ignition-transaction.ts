@@ -47,7 +47,7 @@ describe("execution - rerun with dropped ignition transactions", () => {
     const result = await this.runControlledDeploy(
       moduleDefinition,
       async (c: TestChainHelper) => {
-        // this block shound include deployment of foo via resend
+        // this block should include deployment of foo via resend
         await c.mineBlock(1);
       },
     );

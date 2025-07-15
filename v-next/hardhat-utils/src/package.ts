@@ -10,6 +10,31 @@ import { exists, findUp, getRealPath, readJsonFile } from "./fs.js";
 import { getFilePath } from "./internal/package.js";
 import { ensureTrailingSlash } from "./string.js";
 
+/* Adapted from `resolve.exports`. License: https://github.com/lukeed/resolve.exports/blob/master/license */
+
+export type PackageExports =
+  | PackageExportPath
+  | {
+      [path: PackageExportsEntry]: PackageExportsValue;
+      [condition: string]: PackageExportsValue;
+    };
+
+/** Allows "." and "./{name}" */
+export type PackageExportsEntry = `.${string}`;
+
+/** Internal path */
+export type PackageExportPath = `./${string}`;
+
+export type PackageExportsValue =
+  | PackageExportPath
+  | null
+  | {
+      [condition: string]: PackageExportsValue;
+    }
+  | PackageExportsValue[];
+
+/* End of `resolve.exports` adaptation */
+
 /**
  * The structure of a `package.json` file. This is a subset of the actual
  * `package.json` file, if you need to access other fields you add them here.
@@ -22,6 +47,7 @@ export interface PackageJson {
   engines?: {
     node?: string;
   };
+  exports?: PackageExports;
   dependencies?: Record<string, string>;
   devDependencies?: Record<string, string>;
   peerDependencies?: Record<string, string>;

@@ -1,5 +1,6 @@
 import type { HardhatRuntimeEnvironment } from "../../../../src/types/hre.js";
 
+import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
@@ -15,6 +16,7 @@ import hardhatConfig from "../../../fixture-projects/solidity-test/hardhat.confi
  * The fixture project for this test has two folders:
  *   - all: runs all tests — verifies that all test files are executed
  *   - partial: runs selected tests — verifies that only specific files are executed
+ *   - failing: test that fails — used to verify that tests actually run
  *
  * The `partial` folder includes a test that fails if run, ensuring the task-action runs only the intended files.
  * If it fails, unintended files were executed.
@@ -28,6 +30,16 @@ const hardhatConfigAllTests = {
 const hardhatConfigPartialTests = {
   ...hardhatConfig,
   paths: { tests: { solidity: "test/contracts/partial" } },
+};
+
+const hardhatConfigFailingTests = {
+  ...hardhatConfig,
+  paths: { tests: { solidity: "test/contracts/failing" } },
+};
+
+const hardhatConfigOpTests = {
+  ...hardhatConfig,
+  paths: { tests: { solidity: "test/contracts/op" } },
 };
 
 describe("solidity-test/task-action", function () {
@@ -107,6 +119,46 @@ describe("solidity-test/task-action", function () {
           files: "./test/not-in-test-path.ts",
         },
       );
+    });
+  });
+
+  describe("running the tests", () => {
+    it("should run all the tests and throw if any of them fail", async () => {
+      hre = await createHardhatRuntimeEnvironment(hardhatConfigFailingTests);
+
+      const exitCode = process.exitCode;
+      try {
+        await hre.tasks.getTask(["test", "solidity"]).run({ noCompile: true });
+        assert.equal(process.exitCode, 1);
+      } finally {
+        process.exitCode = exitCode;
+      }
+    });
+
+    describe("when the contracts are in the optimism chain type", () => {
+      it("should run all the solidity tests when the optimism chain type is specified", async () => {
+        hre = await createHardhatRuntimeEnvironment(hardhatConfigOpTests);
+
+        await hre.tasks.getTask(["test", "solidity"]).run({
+          noCompile: true,
+          chainType: "optimism",
+        });
+      });
+
+      it("should throw because the test is not compatible with the l1 chain type", async () => {
+        hre = await createHardhatRuntimeEnvironment(hardhatConfigOpTests);
+
+        const exitCode = process.exitCode;
+        try {
+          // default chain type is l1
+          await hre.tasks.getTask(["test", "solidity"]).run({
+            noCompile: true,
+          });
+          assert.equal(process.exitCode, 1);
+        } finally {
+          process.exitCode = exitCode;
+        }
+      });
     });
   });
 });

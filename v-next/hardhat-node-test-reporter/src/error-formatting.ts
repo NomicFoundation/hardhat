@@ -368,7 +368,7 @@ export function formatLocation(
 /**
  * Returns true if the stack line is a node line.
  *
- * A node line is a line that has a node stack reference, i.e. its' location
+ * A node line is a line that has a node stack reference, i.e. its location
  * starts with "node:" or "async node:", or its context is for a node type.
  */
 function isNodeLine({ reference }: StackLine): boolean {

@@ -211,7 +211,7 @@ If this is not the expected behavior, please edit your Hardhat Ignition module a
       );
     });
 
-    it("should throw an error if the transaction cannot be retrived from the provider", async () => {
+    it("should throw an error if the transaction cannot be retrieved from the provider", async () => {
       const deploymentDir = path.resolve(
         __dirname,
         "./mocks/trackTransaction/success",

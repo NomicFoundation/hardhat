@@ -1,0 +1,3 @@
+---
+"@nomicfoundation/hardhat-ethers": patch
+---

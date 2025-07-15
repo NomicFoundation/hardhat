@@ -6,6 +6,7 @@ import { assertThrowsHardhatError } from "@nomicfoundation/hardhat-test-utils";
 
 import {
   isArgumentNameValid,
+  isArgumentShortNameValid,
   isArgumentValueValid,
   parseArgumentValue,
 } from "../../../src/internal/core/arguments.js";
@@ -30,6 +31,27 @@ describe("Arguments", () => {
       assert.equal(isArgumentNameValid("Foo"), false);
       assert.equal(isArgumentNameValid("123Foo"), false);
       assert.equal(isArgumentNameValid("foo-bar"), false);
+    });
+  });
+
+  describe("isArgumentShortNameValid", () => {
+    it("should return true for valid argument short names", () => {
+      assert.equal(isArgumentShortNameValid("a"), true);
+      assert.equal(isArgumentShortNameValid("b"), true);
+      assert.equal(isArgumentShortNameValid("c"), true);
+      assert.equal(isArgumentShortNameValid("X"), true);
+      assert.equal(isArgumentShortNameValid("Y"), true);
+      assert.equal(isArgumentShortNameValid("Z"), true);
+    });
+
+    it("should return false for invalid argument short names", () => {
+      assert.equal(isArgumentShortNameValid(""), false);
+      assert.equal(isArgumentShortNameValid("1"), false);
+      assert.equal(isArgumentShortNameValid("-"), false);
+      assert.equal(isArgumentShortNameValid("foo"), false);
+      assert.equal(isArgumentShortNameValid("Foo"), false);
+      assert.equal(isArgumentShortNameValid("123Foo"), false);
+      assert.equal(isArgumentShortNameValid("foo-bar"), false);
     });
   });
 
@@ -89,6 +111,36 @@ describe("Arguments", () => {
         false,
       );
     });
+
+    it("should validate flag arguments", () => {
+      assert.equal(isArgumentValueValid(ArgumentType.FLAG, true), true);
+      assert.equal(isArgumentValueValid(ArgumentType.FLAG, false), true);
+      assert.equal(isArgumentValueValid(ArgumentType.FLAG, 0), false);
+      assert.equal(isArgumentValueValid(ArgumentType.FLAG, 1), false);
+      assert.equal(isArgumentValueValid(ArgumentType.FLAG, "true"), false);
+      assert.equal(isArgumentValueValid(ArgumentType.FLAG, "false"), false);
+      assert.equal(isArgumentValueValid(ArgumentType.FLAG, "0"), false);
+      assert.equal(isArgumentValueValid(ArgumentType.FLAG, "1"), false);
+    });
+
+    it("should validate level arguments", () => {
+      assert.equal(isArgumentValueValid(ArgumentType.LEVEL, true), false);
+      assert.equal(isArgumentValueValid(ArgumentType.LEVEL, false), false);
+      assert.equal(isArgumentValueValid(ArgumentType.LEVEL, -1), false);
+      assert.equal(isArgumentValueValid(ArgumentType.LEVEL, 0), true);
+      assert.equal(isArgumentValueValid(ArgumentType.LEVEL, 1), true);
+      assert.equal(isArgumentValueValid(ArgumentType.LEVEL, 2), true);
+      assert.equal(isArgumentValueValid(ArgumentType.LEVEL, 3), true);
+      assert.equal(isArgumentValueValid(ArgumentType.LEVEL, 4), true);
+      assert.equal(isArgumentValueValid(ArgumentType.LEVEL, "true"), false);
+      assert.equal(isArgumentValueValid(ArgumentType.LEVEL, "false"), false);
+      assert.equal(isArgumentValueValid(ArgumentType.LEVEL, "-1"), false);
+      assert.equal(isArgumentValueValid(ArgumentType.LEVEL, "0"), false);
+      assert.equal(isArgumentValueValid(ArgumentType.LEVEL, "1"), false);
+      assert.equal(isArgumentValueValid(ArgumentType.LEVEL, "2"), false);
+      assert.equal(isArgumentValueValid(ArgumentType.LEVEL, "3"), false);
+      assert.equal(isArgumentValueValid(ArgumentType.LEVEL, "4"), false);
+    });
   });
 
   describe("parseArgumentValue", () => {
@@ -131,6 +183,22 @@ describe("Arguments", () => {
       );
     });
 
+    it("should throw when parsing flag arguments values", () => {
+      assertThrowsHardhatError(
+        () => {
+          parseArgumentValue("true", ArgumentType.FLAG, "name");
+        },
+        HardhatError.ERRORS.CORE.INTERNAL.ASSERTION_ERROR,
+        {
+          message: "Flags should never accept values",
+        },
+      );
+    });
+
+    it("should parse level arguments", () => {
+      assert.equal(parseArgumentValue("1", ArgumentType.LEVEL, "name"), 1);
+    });
+
     describe("should throw an error for invalid values", () => {
       it("for int arguments", () => {
         assertThrowsHardhatError(
@@ -169,6 +237,28 @@ describe("Arguments", () => {
           },
           HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
           { value: "foo", name: "name", type: ArgumentType.BOOLEAN },
+        );
+      });
+
+      it("for flag arguments", () => {
+        assertThrowsHardhatError(
+          () => {
+            parseArgumentValue("foo", ArgumentType.FLAG, "name");
+          },
+          HardhatError.ERRORS.CORE.INTERNAL.ASSERTION_ERROR,
+          {
+            message: "Flags should never accept values",
+          },
+        );
+      });
+
+      it("for level arguments", () => {
+        assertThrowsHardhatError(
+          () => {
+            parseArgumentValue("foo", ArgumentType.LEVEL, "name");
+          },
+          HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+          { value: "foo", name: "name", type: ArgumentType.LEVEL },
         );
       });
     });

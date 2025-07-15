@@ -112,13 +112,13 @@ export class ModuleConstructor {
     ModuleIdT extends string,
     ContractNameT extends string,
     IgnitionModuleResultsT extends IgnitionModuleResult<ContractNameT>,
-  >(moduleDefintion: {
+  >(moduleDefinition: {
     id: ModuleIdT;
-    moduleDefintionFunction: (
+    moduleDefinitionFunction: (
       m: IgnitionModuleBuilder,
     ) => IgnitionModuleResultsT;
   }): IgnitionModule<ModuleIdT, ContractNameT, IgnitionModuleResultsT> {
-    const cachedModule = this._modules.get(moduleDefintion.id);
+    const cachedModule = this._modules.get(moduleDefinition.id);
     if (cachedModule !== undefined) {
       // NOTE: This is actually unsafe, but we accept the risk.
       //  A different module could have been cached with this id, and that would lead
@@ -130,13 +130,13 @@ export class ModuleConstructor {
       ModuleIdT,
       ContractNameT,
       IgnitionModuleResultsT
-    >(moduleDefintion.id, STUB_MODULE_RESULTS as any);
+    >(moduleDefinition.id, STUB_MODULE_RESULTS as any);
 
-    (mod as any).results = moduleDefintion.moduleDefintionFunction(
+    (mod as any).results = moduleDefinition.moduleDefinitionFunction(
       new IgnitionModuleBuilderImplementation(
         this,
         mod,
-        this.parameters[moduleDefintion.id],
+        this.parameters[moduleDefinition.id],
       ),
     );
 
@@ -144,12 +144,12 @@ export class ModuleConstructor {
       throw new HardhatError(
         HardhatError.ERRORS.IGNITION.MODULE.ASYNC_MODULE_DEFINITION_FUNCTION,
         {
-          moduleDefinitionId: moduleDefintion.id,
+          moduleDefinitionId: moduleDefinition.id,
         },
       );
     }
 
-    this._modules.set(moduleDefintion.id, mod);
+    this._modules.set(moduleDefinition.id, mod);
 
     return mod;
   }

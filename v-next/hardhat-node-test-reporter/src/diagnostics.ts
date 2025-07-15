@@ -18,7 +18,7 @@ export interface GlobalDiagnostics {
  * emits to report the overall status of the test run.
  *
  * If the diagnostics are not recognized, or can't be parsed effectively, they
- * are returned as `unsedDiagnostics`, so that we can print them at the end.
+ * are returned as `unsaidDiagnostics`, so that we can print them at the end.
  */
 export function processGlobalDiagnostics(
   diagnostics: Array<TestEventData["test:diagnostic"]>,
@@ -51,7 +51,7 @@ export function processGlobalDiagnostics(
     }
 
     /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
-    We checked that thsi is a key of globalDiagnostics */
+    We checked that this is a key of globalDiagnostics */
     const nameAsKey = name as keyof GlobalDiagnostics;
 
     try {
@@ -59,7 +59,7 @@ export function processGlobalDiagnostics(
 
       globalDiagnostics[nameAsKey] = value;
     } catch {
-      // If this throwed, the format of the diagnostic isn't what we expected,
+      // If this threw, the format of the diagnostic isn't what we expected,
       // so we just print it as an unused diagnostic.
       unusedDiagnostics.push(diagnostic);
     }

@@ -77,7 +77,7 @@ interface CompilerList {
 export interface CompilerDownloader {
   /**
    * Updates the compiler list if any of the versions is not found in the
-   * currently downloaded list, or if none has been downlaoded yet.
+   * currently downloaded list, or if none has been downloaded yet.
    */
   updateCompilerListIfNeeded(versions: Set<string>): Promise<void>;
 
@@ -119,7 +119,7 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
     //  The only reason this downloader works is that it validates if the
     //  binaries actually run.
     //
-    //  On top of that, AppleSillicon with Rosetta2 makes things even more
+    //  On top of that, AppleSilicon with Rosetta2 makes things even more
     //  complicated, as it allows x86 binaries to run on ARM, not on MacOS but
     //  on Linux Docker containers too!
 
@@ -244,7 +244,7 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
       `Trying to get a compiler ${version} before it was downloaded`,
     );
 
-    if (await exists(this.#getCompilerDoesntWorkFile(build))) {
+    if (await exists(this.#getCompilerDoesNotWorkFile(build))) {
       return undefined;
     }
 
@@ -303,7 +303,7 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
     return path.join(this.#compilersDir, build.version, "solc.exe");
   }
 
-  #getCompilerDoesntWorkFile(build: CompilerBuild): string {
+  #getCompilerDoesNotWorkFile(build: CompilerBuild): string {
     return `${this.#getCompilerBinaryPathFromBuild(build)}.does.not.work`;
   }
 
@@ -401,7 +401,7 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
       return true;
     }
 
-    await createFile(this.#getCompilerDoesntWorkFile(build));
+    await createFile(this.#getCompilerDoesNotWorkFile(build));
 
     return false;
   }

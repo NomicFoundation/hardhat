@@ -9,7 +9,7 @@
 export interface UserInterruptionManager {
   /**
    * Displays a message to the user, returning a `Promise` that resolve when the
-   * message was displayed and we have a good digree of certainty that the user
+   * message was displayed and we have a good degree of certainty that the user
    * has read it.
    *
    * For example, if the plugin/task handling the user output doesn't refresh the screen,
@@ -36,8 +36,8 @@ export interface UserInterruptionManager {
    * Request a secret input from the user, returning a `Promise` that resolves with
    * the user's input.
    *
-   * The main difference between this method and `requestInput` is that this method
-   * is that the plugin/task handling the user input/output should take extra care
+   * The main difference between this method and `requestInput` is that with this
+   * method the plugin/task handling the user input/output should take extra care
    * to avoid leaking the user's input or displaying it in the user's terminal.
    *
    * @param interruptor - A name or description of the module calling this method.

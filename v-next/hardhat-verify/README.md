@@ -56,6 +56,43 @@ Run the `verify` task, passing the address of the contract, the network where it
 npx hardhat verify --network mainnet DEPLOYED_CONTRACT_ADDRESS "Constructor argument 1"
 ```
 
+### Programmatic verification
+
+You can also verify contracts programmatically by using the `verifyContract` function from the plugin:
+
+```typescript
+import hre from "hardhat";
+import { verifyContract } from "@nomicfoundation/hardhat-verify/verify";
+
+await verifyContract(
+  {
+    contractAddress: "DEPLOYED_CONTRACT_ADDRESS",
+    constructorArguments: ["Constructor argument 1"],
+    provider: "etherscan", // or "blockscout" for Blockscout-compatible explorers
+  },
+  hre,
+);
+```
+
+> Note: The `verifyContract` function is not re-exported from the Hardhat toolboxes, so you need to install the plugin and import it directly from `@nomicfoundation/hardhat-verify/verify`.
+
+### Build profiles and verification
+
+When no build profile is specified, this plugin defaults to the `production` build profile. However, tasks like `compile` and `run` default to `default`. If your contracts are compiled with a different profile than the one used for verification, the compiled bytecode may not match the deployed bytecode, causing verification to fail.
+
+To avoid this, make sure to compile and verify using the same build profile:
+
+```bash
+npx hardhat compile --profile production
+npx hardhat verify --network mainnet DEPLOYED_CONTRACT_ADDRESS "Constructor argument 1"
+```
+
+If you're using the `verifyContract` function programmatically through a script, pass the build profile when running it:
+
+```bash
+npx hardhat run --profile production scripts/verify.ts
+```
+
 ## How it works
 
 The plugin works by fetching the bytecode in the given address and using it to check which contract in your project corresponds to it. Besides that, some sanity checks are performed locally to make sure that the verification won't fail.

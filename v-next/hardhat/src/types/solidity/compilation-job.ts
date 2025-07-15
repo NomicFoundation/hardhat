@@ -30,7 +30,7 @@ export interface CompilationJob {
   /**
    * Returns the build id of the compilation job.
    *
-   * The id is guaranteed to be deterministicly generated based on the solc
+   * The id is guaranteed to be deterministically generated based on the solc
    * input that this compilation job would generate, the solc long version,
    * and the current solidity build info format that Hardhat uses.
    *

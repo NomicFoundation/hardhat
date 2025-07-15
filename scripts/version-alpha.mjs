@@ -98,7 +98,7 @@ function shouldCreateChangeset(changesets, packageName) {
 }
 
 /**
- * Creates a new patch changeset file for the pacakge.
+ * Creates a new patch changeset file for the package.
  */
 async function createChangeset(packageName) {
   const changesetPath = path.join(

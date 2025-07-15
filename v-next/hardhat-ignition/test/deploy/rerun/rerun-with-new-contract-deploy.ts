@@ -27,7 +27,7 @@ describe("execution - rerun with new contract deploy", () => {
     const { bar: originalBar } = await this.runControlledDeploy(
       moduleDefinition,
       async (c: TestChainHelper) => {
-        // this block shound include deployment of foo1
+        // this block should include deployment of foo1
         await c.mineBlock(1);
       },
     );
@@ -52,7 +52,7 @@ describe("execution - rerun with new contract deploy", () => {
     const result = await this.runControlledDeploy(
       updatedModuleDefinition,
       async (c: TestChainHelper) => {
-        // this block shound include deployment of foo2
+        // this block should include deployment of foo2
         await c.mineBlock(1);
       },
     );

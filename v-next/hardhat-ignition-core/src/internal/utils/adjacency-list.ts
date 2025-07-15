@@ -64,7 +64,7 @@ export class AdjacencyList {
   }
 
   /**
-   * Remove a future, transfering its dependencies to its dependents.
+   * Remove a future, transferring its dependencies to its dependents.
    * @param futureId - The future to eliminate
    */
   public eliminate(futureId: string): void {

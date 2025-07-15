@@ -490,7 +490,7 @@ describe("etherscan", () => {
           result: "Pass - Verified",
         });
 
-        let response: { status: number; message: string } | undefined;
+        let response: { success: boolean; message: string } | undefined;
         try {
           response = await etherscan.pollVerificationStatus(
             guid,
@@ -501,7 +501,7 @@ describe("etherscan", () => {
           assert.fail("Expected pollVerificationStatus to not throw an error");
         }
 
-        assert.equal(response.status, 1);
+        assert.equal(response.success, true);
         assert.equal(response.message, "Pass - Verified");
 
         pollVerificationStatusInterceptor.reply(200, {
@@ -519,7 +519,7 @@ describe("etherscan", () => {
           assert.fail("Expected pollVerificationStatus to not throw an error");
         }
 
-        assert.equal(response.status, 1);
+        assert.equal(response.success, false);
         assert.equal(response.message, "Fail - Unable to verify");
       });
 
@@ -547,7 +547,7 @@ describe("etherscan", () => {
           };
         });
 
-        let response: { status: number; message: string } | undefined;
+        let response: { success: boolean; message: string } | undefined;
         try {
           response = await etherscan.pollVerificationStatus(
             guid,
@@ -558,7 +558,7 @@ describe("etherscan", () => {
           assert.fail("Expected pollVerificationStatus to not throw an error");
         }
 
-        assert.equal(response.status, 1);
+        assert.equal(response.success, true);
         assert.equal(response.message, "Pass - Verified");
         assert.equal(callCount, 3);
       });

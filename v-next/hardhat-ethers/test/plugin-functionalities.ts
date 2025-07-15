@@ -243,7 +243,7 @@ describe("Ethers plugin", () => {
             );
 
             // non-existent functions should be null
-            assert.equal(contract.interface.getFunction("doesntExist"), null);
+            assert.equal(contract.interface.getFunction("doesNotExist"), null);
 
             assertIsSigner(contract.runner);
 

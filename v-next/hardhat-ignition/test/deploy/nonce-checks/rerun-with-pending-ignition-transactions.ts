@@ -76,7 +76,7 @@ describe("execution - rerun with pending ignition transactions", () => {
         // this block should confirm foo3 and foo4
         await c.mineBlock(2);
 
-        // this block shound include foo5 and foo6
+        // this block should include foo5 and foo6
         await c.mineBlock(2);
       },
     );

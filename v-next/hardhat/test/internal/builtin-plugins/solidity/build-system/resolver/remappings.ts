@@ -60,48 +60,40 @@ describe("Remappings", () => {
   describe("selectBestRemapping", () => {
     describe("Without context", () => {
       it("Should select the remapping with the longest matching prefix", () => {
-        const best = selectBestRemapping("from.sol", "directImport.sol", [
+        const bestIndex = selectBestRemapping("from.sol", "directImport.sol", [
           { context: "", prefix: "from", target: "1" },
           { context: "", prefix: "dir", target: "2" },
           { context: "", prefix: "direct", target: "3" },
           { context: "", prefix: "directImp", target: "4" },
         ]);
 
-        assert.deepEqual(best, {
-          context: "",
-          prefix: "directImp",
-          target: "4",
-        });
+        assert.equal(bestIndex, 3);
       });
 
       it("Should keep the last matching one if there are many", () => {
-        const best = selectBestRemapping("from.sol", "directImport.sol", [
+        const bestIndex = selectBestRemapping("from.sol", "directImport.sol", [
           { context: "", prefix: "direct", target: "1" },
           { context: "", prefix: "directImp", target: "2" },
           { context: "", prefix: "directImp", target: "3" },
         ]);
 
-        assert.deepEqual(best, {
-          context: "",
-          prefix: "directImp",
-          target: "3",
-        });
+        assert.equal(bestIndex, 2);
       });
 
       it("Should return undefined if there are no matching remappings", () => {
-        const best = selectBestRemapping("from.sol", "directImport.sol", [
+        const bestIndex = selectBestRemapping("from.sol", "directImport.sol", [
           { context: "", prefix: "a", target: "1" },
           { context: "", prefix: "foo/", target: "2" },
           { context: "", prefix: "/not", target: "3" },
         ]);
 
-        assert.deepEqual(best, undefined);
+        assert.equal(bestIndex, undefined);
       });
     });
 
     describe("With context", () => {
       it("Should select the remapping with the longest context whose prefix also matches", () => {
-        const best = selectBestRemapping("from.sol", "directImport.sol", [
+        const bestIndex = selectBestRemapping("from.sol", "directImport.sol", [
           { context: "", prefix: "d", target: "1" },
           { context: "f", prefix: "d", target: "2" },
           { context: "fr", prefix: "d", target: "3" },
@@ -109,46 +101,46 @@ describe("Remappings", () => {
           { context: "f", prefix: "d", target: "5" },
         ]);
 
-        assert.deepEqual(best, { context: "fr", prefix: "d", target: "3" });
+        assert.deepEqual(bestIndex, 2);
       });
 
       it("If multiple match the context with equal length, select the remapping with the longest prefix that matches", () => {
-        const best = selectBestRemapping("from.sol", "directImport.sol", [
+        const bestIndex = selectBestRemapping("from.sol", "directImport.sol", [
           { context: "fr", prefix: "d", target: "1" },
           { context: "fr", prefix: "di", target: "2" },
           { context: "fr", prefix: "d", target: "3" },
         ]);
 
-        assert.deepEqual(best, { context: "fr", prefix: "di", target: "2" });
+        assert.deepEqual(bestIndex, 1);
       });
 
       it("Context should have more priority than prefix", () => {
-        const best = selectBestRemapping("from.sol", "directImport.sol", [
+        const bestIndex = selectBestRemapping("from.sol", "directImport.sol", [
           { context: "f", prefix: "d", target: "1" },
           { context: "not", prefix: "directImport.sol", target: "2" },
         ]);
 
-        assert.deepEqual(best, { context: "f", prefix: "d", target: "1" });
+        assert.deepEqual(bestIndex, 0);
       });
 
-      it("If there are multiple candidates pick the lastest one", () => {
-        const best = selectBestRemapping("from.sol", "directImport.sol", [
+      it("If there are multiple candidates pick the latest one", () => {
+        const bestIndex = selectBestRemapping("from.sol", "directImport.sol", [
           { context: "fr", prefix: "di", target: "1" },
           { context: "fr", prefix: "di", target: "2" },
           { context: "fr", prefix: "di", target: "3" },
         ]);
 
-        assert.deepEqual(best, { context: "fr", prefix: "di", target: "3" });
+        assert.deepEqual(bestIndex, 2);
       });
 
       it("If no remapping matches the context, return undefined", () => {
-        const best = selectBestRemapping("from.sol", "directImport.sol", [
+        const bestIndex = selectBestRemapping("from.sol", "directImport.sol", [
           { context: "no", prefix: "directImport.sol", target: "1" },
           { context: "/", prefix: "di", target: "2" },
           { context: "boo", prefix: "di", target: "3" },
         ]);
 
-        assert.deepEqual(best, undefined);
+        assert.deepEqual(bestIndex, undefined);
       });
     });
   });
@@ -175,7 +167,7 @@ describe("Remappings", () => {
 
       assert.equal(
         applyValidRemapping("contracts/A.sol", {
-          context: "it-doesnt-matter",
+          context: "it-does-not-matter",
           prefix: "contracts/",
           target: "",
         }),

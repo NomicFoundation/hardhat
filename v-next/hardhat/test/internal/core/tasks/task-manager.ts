@@ -442,6 +442,51 @@ describe("TaskManagerImplementation", () => {
       );
     });
 
+    it("should throw if there's a global option with the same short name as a task option", async () => {
+      await assertRejectsWithHardhatError(
+        HardhatRuntimeEnvironmentImplementation.create(
+          {
+            plugins: [
+              {
+                id: "plugin1",
+                tasks: [
+                  new NewTaskDefinitionBuilderImplementation("task1")
+                    .addOption({
+                      name: "arg1",
+                      shortName: "a",
+                      defaultValue: "default",
+                    })
+                    .setAction(() => {})
+                    .build(),
+                ],
+              },
+              {
+                id: "plugin2",
+                globalOptions: [
+                  globalOption({
+                    name: "arg1",
+                    shortName: "a",
+                    description: "",
+                    type: ArgumentType.STRING_WITHOUT_DEFAULT,
+                    defaultValue: undefined,
+                  }),
+                ],
+              },
+            ],
+          },
+          {},
+        ),
+
+        HardhatError.ERRORS.CORE.TASK_DEFINITIONS.TASK_OPTION_ALREADY_DEFINED,
+        {
+          actorFragment: "Plugin plugin1 is",
+          task: "task1",
+          option: "arg1",
+          globalOptionPluginId: "plugin2",
+        },
+      );
+    });
+
     it("should throw if there's a global option with the same name as a task positional argument", async () => {
       await assertRejectsWithHardhatError(
         HardhatRuntimeEnvironmentImplementation.create(
@@ -674,7 +719,7 @@ describe("TaskManagerImplementation", () => {
       );
     });
 
-    it("should throw if trying to override a task and there is a name clash with an exising flag argument", async () => {
+    it("should throw if trying to override a task and there is a name clash with an existing flag argument", async () => {
       // added argument clash with an existing flag
       await assertRejectsWithHardhatError(
         HardhatRuntimeEnvironmentImplementation.create(
@@ -748,7 +793,7 @@ describe("TaskManagerImplementation", () => {
       );
     });
 
-    it("should throw if trying to override a task and there is a name clash with an exising positional argument", async () => {
+    it("should throw if trying to override a task and there is a name clash with an existing positional argument", async () => {
       // added argument clash with an existing positional argument
       await assertRejectsWithHardhatError(
         HardhatRuntimeEnvironmentImplementation.create(
@@ -822,7 +867,7 @@ describe("TaskManagerImplementation", () => {
       );
     });
 
-    it("should throw if trying to override a task and there is a name clash with an exising variadic argument", async () => {
+    it("should throw if trying to override a task and there is a name clash with an existing variadic argument", async () => {
       // added argument clash with an existing variadic argument
       await assertRejectsWithHardhatError(
         HardhatRuntimeEnvironmentImplementation.create(
@@ -1742,7 +1787,7 @@ describe("TaskManagerImplementation", () => {
       await task1.run();
     });
 
-    it("should run an empty task that was overriden", async () => {
+    it("should run an empty task that was overridden", async () => {
       let overrideTaskRun = false;
       const hre = await HardhatRuntimeEnvironmentImplementation.create(
         {
@@ -1803,7 +1848,7 @@ describe("TaskManagerImplementation", () => {
       assert.deepEqual(response, { arg1: "arg1Value" });
     });
 
-    it("should run a task with an invalid action url that was overriden and the override doesn't call runSuper", async () => {
+    it("should run a task with an invalid action url that was overridden and the override doesn't call runSuper", async () => {
       const validActionUrl = import.meta.resolve(
         "./fixture-projects/file-actions/no-run-super.js",
       );

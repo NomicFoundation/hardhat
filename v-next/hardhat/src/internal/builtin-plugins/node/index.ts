@@ -50,12 +50,7 @@ const hardhatPlugin: HardhatPlugin = {
       .build(),
   ],
   dependencies: [
-    async () => {
-      const { default: networkManagerBuiltinPlugin } = await import(
-        "../network-manager/index.js"
-      );
-      return networkManagerBuiltinPlugin;
-    },
+    async () => (await import("../network-manager/index.js")).default,
   ],
 };
 

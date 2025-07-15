@@ -1,5 +1,9 @@
 import type { HookManager } from "../../../types/hooks.js";
-import type { NewTaskActionFunction, Task } from "../../../types/tasks.js";
+import type {
+  NewTaskActionFunction,
+  Task,
+  TaskArguments,
+} from "../../../types/tasks.js";
 
 import {
   assertHardhatInvariant,
@@ -10,12 +14,13 @@ import { HardhatRuntimeEnvironmentImplementation } from "../../core/hre.js";
 
 interface TestActionArguments {
   testFiles: string[];
-  noCompile: boolean;
+  chainType: string;
   grep: string | undefined;
+  noCompile: boolean;
 }
 
 const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
-  { testFiles, noCompile, grep },
+  { testFiles, chainType, grep, noCompile },
   hre,
 ) => {
   // If this code is executed, it means the user has not specified a test runner.
@@ -50,14 +55,14 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
       continue;
     }
 
-    const args = {
+    const args: TaskArguments = {
       testFiles: files,
-      noCompile: false,
       grep,
+      noCompile: subtask.options.has("noCompile"),
     };
 
-    if (subtask.options.has("noCompile")) {
-      args.noCompile = true;
+    if (subtask.options.has("chainType")) {
+      args.chainType = chainType;
     }
 
     await subtask.run(args);

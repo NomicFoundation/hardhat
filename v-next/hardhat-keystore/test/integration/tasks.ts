@@ -118,6 +118,41 @@ describe("integration tests for the keystore tasks", () => {
       `${keystoreFilePath}\n`,
     );
   });
+
+  it("should change the password", async () => {
+    const NEW_PASSWORD = "newPassword";
+
+    let tmpHre = await createHardhatRuntimeEnvironment({
+      plugins: [
+        hardhatKeystorePlugin,
+        setupKeystoreFileLocationOverrideAt(keystoreFilePath),
+        setupKeystorePassword([TEST_PASSWORD, NEW_PASSWORD, NEW_PASSWORD]),
+      ],
+    });
+
+    await _assertConsoleOutputMatchesFor(
+      () => tmpHre.tasks.getTask(["keystore", "change-password"]).run(),
+      "Unlock the keystore using your current password before proceeding with the password change.\n" +
+        "Change your password.\n" +
+        "The password must have at least 8 characters.\n" +
+        "\n" +
+        "Password changed successfully!\n",
+    );
+
+    tmpHre = await createHardhatRuntimeEnvironment({
+      plugins: [
+        hardhatKeystorePlugin,
+        setupKeystoreFileLocationOverrideAt(keystoreFilePath),
+        setupKeystorePassword([NEW_PASSWORD]),
+      ],
+    });
+
+    // Check that the keystore with the new password is working as expected
+    await _assertConsoleOutputMatchesFor(
+      () => tmpHre.tasks.getTask(["keystore", "get"]).run({ key: "myKey1" }),
+      "myValue1\n",
+    );
+  });
 });
 
 async function _overwriteKeystoreFileWith(

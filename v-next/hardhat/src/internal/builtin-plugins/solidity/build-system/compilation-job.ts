@@ -1,5 +1,4 @@
 import type { DependencyGraphImplementation } from "./dependency-graph.js";
-import type { Remapping } from "./resolver/types.js";
 import type { BuildInfo } from "../../../../types/artifacts.js";
 import type { SolcConfig } from "../../../../types/config.js";
 import type { HookManager } from "../../../../types/hooks.js";
@@ -16,7 +15,6 @@ import {
   type ResolvedFile,
 } from "../../../../types/solidity.js";
 
-import { formatRemapping } from "./resolver/remappings.js";
 import { getEvmVersionFromSolcVersion } from "./solc-info.js";
 
 export class CompilationJobImplementation implements CompilationJob {
@@ -24,7 +22,6 @@ export class CompilationJobImplementation implements CompilationJob {
   public readonly solcConfig: SolcConfig;
   public readonly solcLongVersion: string;
 
-  readonly #remappings: Remapping[];
   readonly #hooks: HookManager;
 
   #buildId: string | undefined;
@@ -34,13 +31,11 @@ export class CompilationJobImplementation implements CompilationJob {
     dependencyGraph: DependencyGraphImplementation,
     solcConfig: SolcConfig,
     solcLongVersion: string,
-    remappings: Remapping[],
     hooks: HookManager,
   ) {
     this.dependencyGraph = dependencyGraph;
     this.solcConfig = solcConfig;
     this.solcLongVersion = solcLongVersion;
-    this.#remappings = remappings;
     this.#hooks = hooks;
   }
 
@@ -83,21 +78,21 @@ export class CompilationJobImplementation implements CompilationJob {
         // NOTE: We run the project file content via the hook handler chain to allow
         // plugins to modify it before it is passed to solc. Originally, we use it to
         // instrument the project file content when coverage feature is enabled.
-        // We pass some additional data via the chain - i.e. source name and solc
+        // We pass some additional data via the chain - i.e. the input source name and solc
         // version - but we expect any handlers to pass them on as-is without modification.
         return this.#hooks.runHandlerChain(
           "solidity",
           "preprocessProjectFileBeforeBuilding",
-          [file.sourceName, file.fsPath, file.content.text, solcVersion],
+          [file.inputSourceName, file.fsPath, file.content.text, solcVersion],
           async (
             _context,
-            nextSourceName,
+            nextInputSourceName,
             nextFsPath,
             nextFileContent,
             nextSolcVersion,
           ) => {
             for (const [paramName, expectedParamValue, actualParamValue] of [
-              ["sourceName", file.sourceName, nextSourceName],
+              ["inputSourceName", file.inputSourceName, nextInputSourceName],
               ["fsPath", file.fsPath, nextFsPath],
               ["solcVersion", solcVersion, nextSolcVersion],
             ]) {
@@ -146,12 +141,12 @@ export class CompilationJobImplementation implements CompilationJob {
 
     // we sort the files so that we always get the same compilation input
     const resolvedFiles = [...this.dependencyGraph.getAllFiles()].sort((a, b) =>
-      a.sourceName.localeCompare(b.sourceName),
+      a.inputSourceName.localeCompare(b.inputSourceName),
     );
 
     for (const file of resolvedFiles) {
       const content = await this.#getFileContent(file);
-      sources[file.sourceName] = {
+      sources[file.inputSourceName] = {
         content,
       };
     }
@@ -164,7 +159,7 @@ export class CompilationJobImplementation implements CompilationJob {
           settings.evmVersion ??
           getEvmVersionFromSolcVersion(this.solcConfig.version),
         outputSelection: this.#dedupeAndSortOutputSelection(outputSelection),
-        remappings: this.#remappings.map(formatRemapping),
+        remappings: this.dependencyGraph.getAllRemappings(),
       },
       sources,
     };

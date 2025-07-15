@@ -595,7 +595,7 @@ function deriveMasterKey({
  * Generates the hmac of an encrypted keystore.
  *
  * @param masterKey The keystore's master key to use.
- * @param encryptedKeystore The keystore to generate the hmac for, whithout the
+ * @param encryptedKeystore The keystore to generate the hmac for, without the
  * hmac field.
  * @returns The hmac.
  */

@@ -195,7 +195,7 @@ Usage: hardhat [GLOBAL OPTIONS] <TASK> [SUBTASK] [TASK OPTIONS] [--] [TASK ARGUM
 GLOBAL OPTIONS:
 
   --config                 A Hardhat config file.
-  --help                   Shows this message, or a task's help if its name is provided.
+  --help, -h               Shows this message, or a task's help if its name is provided.
   --init                   Initializes a Hardhat project.
   --show-stack-traces      Show stack traces (always enabled on CI servers).
   --user-option-1          userOption1 description.
@@ -294,7 +294,7 @@ AVAILABLE SUBTASKS:
 GLOBAL OPTIONS:
 
   --config                 A Hardhat config file.
-  --help                   Shows this message, or a task's help if its name is provided.
+  --help, -h               Shows this message, or a task's help if its name is provided.
   --init                   Initializes a Hardhat project.
   --show-stack-traces      Show stack traces (always enabled on CI servers).
   --user-option-1          userOption1 description.

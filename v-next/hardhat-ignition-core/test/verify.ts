@@ -14,7 +14,7 @@ import { fileURLToPath } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 describe("verify", () => {
-  it("should not verify an unitialized deployment", async () => {
+  it("should not verify an uninitialized deployment", async () => {
     await assertRejectsWithHardhatError(
       getVerificationInformation("test").next(),
       HardhatError.ERRORS.IGNITION.VERIFY.UNINITIALIZED_DEPLOYMENT,
