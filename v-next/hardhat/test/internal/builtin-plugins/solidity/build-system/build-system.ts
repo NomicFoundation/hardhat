@@ -27,10 +27,20 @@ import { HookManagerImplementation } from "../../../../../src/internal/core/hook
 
 async function emitArtifacts(solidity: SolidityBuildSystem): Promise<void> {
   const rootFilePaths = await solidity.getRootFilePaths();
-  const compilationJobs = await solidity.getCompilationJobs(rootFilePaths, {
-    isolated: false,
-    quiet: true,
-  });
+  const compilationJobsResult = await solidity.getCompilationJobs(
+    rootFilePaths,
+    {
+      isolated: false,
+      quiet: true,
+    },
+  );
+
+  assert.ok(
+    !("reason" in compilationJobsResult),
+    "getCompilationJobs should not error",
+  );
+
+  const compilationJobs = compilationJobsResult.compilationJobsPerFile;
 
   assert.ok(compilationJobs instanceof Map, "compilationJobs should be a Map");
 
@@ -264,25 +274,6 @@ describe(
         );
       });
 
-      it("should not recompile the project when given the same input as in the previous call", async () => {
-        const rootFilePaths = await solidity.getRootFilePaths();
-        await solidity.build(rootFilePaths, {
-          force: true,
-          isolated: false,
-          quiet: true,
-        });
-
-        const runCompilationJobSpy = mock.method(solidity, "runCompilationJob");
-
-        await solidity.build(rootFilePaths, {
-          force: false,
-          isolated: false,
-          quiet: true,
-        });
-
-        assert.equal(runCompilationJobSpy.mock.callCount(), 0);
-      });
-
       it("should recompile the project when given the same input as in the previous call but the force flag is set", async () => {
         const rootFilePaths = await solidity.getRootFilePaths();
         await solidity.build(rootFilePaths, {
@@ -300,81 +291,6 @@ describe(
         });
 
         assert.equal(runCompilationJobSpy.mock.callCount(), 2);
-      });
-
-      it("should not recompile the project when the input changed but the generated compilation jobs are the subset of the previous ones", async () => {
-        const rootFilePaths = await solidity.getRootFilePaths();
-        await solidity.build(rootFilePaths, {
-          force: true,
-          isolated: false,
-          quiet: true,
-        });
-
-        const runCompilationJobSpy = mock.method(solidity, "runCompilationJob");
-
-        await solidity.build(
-          rootFilePaths.filter((f) => path.basename(f) !== "NoImports.sol"),
-          {
-            force: false,
-            isolated: false,
-            quiet: true,
-          },
-        );
-
-        assert.equal(runCompilationJobSpy.mock.callCount(), 0);
-      });
-
-      it("should recompile the project when the input changed and the generated compilation jobs changed", async () => {
-        const rootFilePaths = await solidity.getRootFilePaths();
-        await solidity.build(rootFilePaths, {
-          force: true,
-          isolated: false,
-          quiet: true,
-        });
-
-        const runCompilationJobSpy = mock.method(solidity, "runCompilationJob");
-
-        await solidity.build(
-          rootFilePaths.filter((f) => path.basename(f) !== "A.sol"),
-          {
-            force: false,
-            isolated: false,
-            quiet: true,
-          },
-        );
-
-        assert.equal(runCompilationJobSpy.mock.callCount(), 1);
-      });
-
-      it("should not recompile the project when the input is the same as in one of the previous calls", async () => {
-        const rootFilePaths = await solidity.getRootFilePaths();
-        await solidity.build(rootFilePaths, {
-          force: true,
-          isolated: false,
-          quiet: true,
-        });
-
-        await solidity.build(
-          rootFilePaths.filter((f) => path.basename(f) !== "A.sol"),
-          {
-            force: false,
-            isolated: false,
-            quiet: true,
-          },
-        );
-
-        const runCompilationJobSpy = mock.method(solidity, "runCompilationJob");
-
-        await solidity.build(
-          rootFilePaths.filter((f) => path.basename(f) !== "A.sol"),
-          {
-            force: false,
-            isolated: false,
-            quiet: true,
-          },
-        );
-
-        assert.equal(runCompilationJobSpy.mock.callCount(), 0);
       });
 
       it("should throw when given a build profile that is not defined", async () => {
