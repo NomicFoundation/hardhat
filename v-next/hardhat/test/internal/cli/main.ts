@@ -261,7 +261,7 @@ GLOBAL OPTIONS:
   --build-profile          The build profile to use
   --config                 A Hardhat config file.
   --coverage               Enables code coverage
-  --help                   Shows this message, or a task's help if its name is provided.
+  --help, -h               Shows this message, or a task's help if its name is provided.
   --init                   Initializes a Hardhat project.
   --network                The network to connect to
   --show-stack-traces      Show stack traces (always enabled on CI servers).
@@ -442,6 +442,30 @@ For global options help run: hardhat --help`;
         configPath: undefined,
         showStackTraces: true,
         help: false,
+        version: false,
+      });
+    });
+
+    it("should recognize the short form of the help command", async function () {
+      const command = "npx hardhat -h";
+
+      const cliArguments = command.split(" ").slice(2);
+      const usedCliArguments = new Array(cliArguments.length).fill(false);
+
+      const builtinGlobalOptions = await parseBuiltinGlobalOptions(
+        cliArguments,
+        usedCliArguments,
+      );
+
+      // In the GitHub CI this value is true, but in the local environment it is false
+      const expected = isCi();
+
+      assert.deepEqual(usedCliArguments, [true]);
+      assert.deepEqual(builtinGlobalOptions, {
+        init: false,
+        configPath: undefined,
+        showStackTraces: expected,
+        help: true,
         version: false,
       });
     });
