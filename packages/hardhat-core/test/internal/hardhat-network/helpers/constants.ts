@@ -1,7 +1,5 @@
 // reused from ethers.js
 import { Address, toBytes } from "@ethereumjs/util";
-import path from "path";
-import url from "url";
 
 function toBuffer(x: Parameters<typeof toBytes>[0]) {
   return Buffer.from(toBytes(x));
