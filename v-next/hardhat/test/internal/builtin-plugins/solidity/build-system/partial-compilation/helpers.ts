@@ -17,7 +17,6 @@ import { createHardhatRuntimeEnvironment } from "../../../../../../src/internal/
 export async function getHRE(
   project: TestProject,
 ): Promise<HardhatRuntimeEnvironment> {
-  process.chdir(project.path);
   return createHardhatRuntimeEnvironment({}, {}, project.path);
 }
 

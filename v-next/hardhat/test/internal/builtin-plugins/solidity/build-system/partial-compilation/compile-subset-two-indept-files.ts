@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { writeFile } from "node:fs/promises";
 import path from "node:path";
-import { describe, it } from "node:test";
+import { beforeEach, describe, it } from "node:test";
 
 import { useTestProjectTemplate } from "../resolver/helpers.js";
 
@@ -10,6 +10,12 @@ import { assertFileCounts, getHRE, TestProjectWrapper } from "./helpers.js";
 
 describe("Partial compilation", () => {
   describe("Compiling a subset in a project with two independent files", () => {
+    let oldCwd: string;
+
+    beforeEach(() => {
+      oldCwd = process.cwd();
+    });
+
     describe("Non-isolated", () => {
       it("generates build infos, artifacts and typefiles appropriately", async () => {
         await using _project = await useTestProjectTemplate({
@@ -22,6 +28,8 @@ describe("Partial compilation", () => {
         });
         const hre = await getHRE(_project);
         const project = new TestProjectWrapper(_project, hre);
+
+        process.chdir(_project.path);
 
         // Compile first time
         await project.compile();
@@ -103,6 +111,7 @@ describe("Partial compilation", () => {
         // Recompile Bar.sol
         await project.compile({ files: ["contracts/Bar.sol"] });
         const thirdSnapshot = await project.getSnapshot();
+        process.chdir(oldCwd);
 
         // Build info 2 will stay because cleanup is only performed on full compilation
         assertFileCounts(thirdSnapshot, 3, 2, 2);
@@ -164,6 +173,8 @@ describe("Partial compilation", () => {
         const hre = await getHRE(_project);
         const project = new TestProjectWrapper(_project, hre);
 
+        process.chdir(_project.path);
+
         // Compile first time
         await project.compile({ isolated: true });
         const firstSnapshot = await project.getSnapshot();
@@ -207,6 +218,8 @@ describe("Partial compilation", () => {
 
         // Compile only Bar.sol
         await project.compile({ files: ["contracts/Bar.sol"], isolated: true });
+        process.chdir(oldCwd);
+
         const secondSnapshot = await project.getSnapshot();
 
         // There will be 3 build infos since cleanup is performed on full compilation
