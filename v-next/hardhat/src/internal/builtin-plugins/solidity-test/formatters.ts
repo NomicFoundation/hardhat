@@ -28,7 +28,7 @@ export function formatLogs(logs: string[], indent: number): string {
   );
 }
 
-export function formatInputs(
+function formatInputs(
   inputs: DecodedTraceParameters | Uint8Array,
   color?: (text: string) => string,
 ): string | undefined {
@@ -186,5 +186,7 @@ function formatNestedArray(
 
 export function formatTraces(traces: CallTrace[], indent: number): string {
   const lines = traces.map(formatTrace);
-  return formatNestedArray(lines, " ".repeat(indent));
+  const formattedTraces = formatNestedArray(lines, " ".repeat(indent));
+  // Remove the trailing newline
+  return formattedTraces.slice(0, -1);
 }
