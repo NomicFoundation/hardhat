@@ -72,7 +72,7 @@ export async function resolveUserConfig(
 
 function resolveBlockscoutConfig(
   blockscoutConfig: BlockscoutUserConfig | undefined = {
-    enabled: false,
+    enabled: true,
   },
 ): BlockscoutConfig {
   return {
@@ -83,7 +83,7 @@ function resolveBlockscoutConfig(
 function resolveEtherscanConfig(
   etherscanConfig: EtherscanUserConfig | undefined = {
     apiKey: "",
-    enabled: false,
+    enabled: true,
   },
   resolveConfigurationVariable: ConfigurationVariableResolver,
 ): EtherscanConfig {
