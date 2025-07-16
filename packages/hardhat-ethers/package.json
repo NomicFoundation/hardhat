@@ -50,7 +50,7 @@
     "@types/debug": "^4.1.4",
     "@types/lodash.isequal": "^4.5.6",
     "@types/mocha": ">=9.1.0",
-    "@types/node": "^18.0.0",
+    "@types/node": "^20.0.0",
     "@types/sinon": "^9.0.8",
     "@typescript-eslint/eslint-plugin": "5.61.0",
     "@typescript-eslint/parser": "5.61.0",
