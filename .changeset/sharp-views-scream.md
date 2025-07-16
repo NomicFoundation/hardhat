@@ -24,4 +24,4 @@
 "@nomiclabs/hardhat-web3": minor
 ---
 
-Updated the minimal supported version of node to v20
+Updated the minimal supported version of Node to v20 ([#6982](https://github.com/NomicFoundation/hardhat/pull/6982))
