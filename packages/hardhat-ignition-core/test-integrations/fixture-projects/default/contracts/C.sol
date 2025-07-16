@@ -118,7 +118,7 @@ contract C {
     }
   }
 
-  function withNamedAndUnamedOutputs()
+  function withNamedAndUnnamedOutputs()
     public
     pure
     returns (uint, bool b, string memory h)

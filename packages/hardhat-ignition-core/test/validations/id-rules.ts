@@ -395,7 +395,7 @@ describe("id rules", () => {
       }, /IGN702: Module validation failed with reason: The event name "MyEvent:v2" is invalid, make sure you use a valid identifier./);
     });
 
-    it("should allow ethers sytle event specification", () => {
+    it("should allow ethers style event specification", () => {
       assert.doesNotThrow(() => {
         buildModule("MyModule", (m) => {
           const myContract = m.contract("MyContract");

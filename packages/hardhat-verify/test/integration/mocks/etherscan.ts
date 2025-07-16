@@ -39,6 +39,7 @@ export const interceptVerify = (response: any, statusCode: number = 200) =>
     .intercept({
       path: "/api",
       method: "POST",
+      // cSpell:ignore constructorArguements -- This is the spelling used by the Etherscan API
       body: /apikey=[a-zA-Z0-9]+&module=contract&action=verifysourcecode&contractaddress=0x[a-fA-F0-9]{40}&sourceCode=.+&codeformat=solidity-standard-json-input&contractname=.+&compilerversion=.+&constructorArguements=.*/,
     })
     .reply(statusCode, response);

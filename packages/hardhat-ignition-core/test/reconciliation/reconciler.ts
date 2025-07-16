@@ -424,7 +424,7 @@ describe("Reconciliation", () => {
       ]);
     });
 
-    it("should not reconcile the addition of a dependency where the dependent has alread started", async () => {
+    it("should not reconcile the addition of a dependency where the dependent has already started", async () => {
       const moduleDefinition = buildModule("Module", (m) => {
         const contractOriginal = m.contract("ContractOriginal");
 

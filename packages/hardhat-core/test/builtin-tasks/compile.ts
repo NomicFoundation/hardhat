@@ -321,7 +321,7 @@ Read about compiler configuration at https://hardhat.org/config
       );
     });
 
-    it("should return a proper message for a non compatible overriden solc error with a single file", async function () {
+    it("should return a proper message for a non compatible overridden solc error with a single file", async function () {
       const Foo = mockFile({
         sourceName: "contracts/Foo.sol",
         pragma: "^0.5.0",
@@ -330,7 +330,7 @@ Read about compiler configuration at https://hardhat.org/config
       const compilationJobsCreationErrors = [
         {
           reason:
-            CompilationJobCreationErrorReason.INCOMPATIBLE_OVERRIDEN_SOLC_VERSION,
+            CompilationJobCreationErrorReason.INCOMPATIBLE_OVERRIDDEN_SOLC_VERSION,
           file: Foo,
         },
       ];
@@ -847,7 +847,7 @@ Read about compiler configuration at https://hardhat.org/config
         },
         {
           reason:
-            CompilationJobCreationErrorReason.INCOMPATIBLE_OVERRIDEN_SOLC_VERSION,
+            CompilationJobCreationErrorReason.INCOMPATIBLE_OVERRIDDEN_SOLC_VERSION,
           file: Foo1,
         },
       ];

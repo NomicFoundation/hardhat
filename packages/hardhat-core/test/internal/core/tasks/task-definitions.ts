@@ -434,7 +434,7 @@ describe("SimpleTaskDefinition", () => {
         });
       });
 
-      it("should accept an optional parm with undefined as default vlaue", () => {
+      it("should accept an optional parm with undefined as default value", () => {
         taskDefinition.addParam("p", "desc", undefined, types.int, true);
         assertParamDefinition(taskDefinition.paramDefinitions.p, {
           defaultValue: undefined,
@@ -1037,10 +1037,10 @@ describe("OverriddenTaskDefinition", () => {
 
   describe("Param definitions can be added only in compatible cases", () => {
     it("should add a flag param if addFlag is called", () => {
-      overriddenTask.addFlag("flagParam", "flag in overriden task");
+      overriddenTask.addFlag("flagParam", "flag in overridden task");
       assertParamDefinition(overriddenTask.paramDefinitions.flagParam, {
         name: "flagParam",
-        description: "flag in overriden task",
+        description: "flag in overridden task",
         defaultValue: false,
         type: types.boolean,
         isOptional: true,
@@ -1051,7 +1051,7 @@ describe("OverriddenTaskDefinition", () => {
 
     it("should throw if adding a param of same name that was already defined in parent task", () => {
       const definedParamName = "f";
-      // a param definition in an overridenTask is present in the parentTask ref as well
+      // a param definition in an overriddenTask is present in the parentTask ref as well
       assert.isDefined(overriddenTask.paramDefinitions[definedParamName]);
       assert.isDefined(parentTask.paramDefinitions[definedParamName]);
 

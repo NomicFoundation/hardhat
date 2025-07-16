@@ -76,7 +76,7 @@ export function validateLibraryNames(
 }
 
 /**
- * Links the libaries in the artifact's deployment bytecode, trowing if the
+ * Links the libraries in the artifact's deployment bytecode, trowing if the
  * libraries object is invalid.
  */
 export function linkLibraries(
