@@ -163,14 +163,19 @@ subtask(TASK_COMPILE_SOLIDITY_READ_FILE)
           encoding: "utf8",
         });
       } catch (e) {
-        if (fsExtra.lstatSync(absolutePath).isDirectory()) {
-          throw new HardhatError(ERRORS.GENERAL.INVALID_READ_OF_DIRECTORY, {
-            absolutePath,
-          });
+        let err = e;
+        try {
+          if (fsExtra.lstatSync(absolutePath).isDirectory()) {
+            err = new HardhatError(ERRORS.GENERAL.INVALID_READ_OF_DIRECTORY, {
+              absolutePath,
+            });
+          }
+        } catch (_) {
+          // ignore
         }
 
         // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
-        throw e;
+        throw err;
       }
     }
   );
