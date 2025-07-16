@@ -7,14 +7,15 @@ import type {
   NamedArtifactLibraryDeploymentFuture,
 } from "../../../types/module.js";
 import type {
-  ContractAtExecutionState,
-  DeploymentExecutionState,
-} from "../../execution/types/execution-state.js";
-import type {
   ReconciliationContext,
   ReconciliationFutureResultFailure,
 } from "../types.js";
 
+import {
+  ExecutionStatus,
+  type ContractAtExecutionState,
+  type DeploymentExecutionState,
+} from "../../execution/types/execution-state.js";
 import { fail, getBytecodeWithoutMetadata } from "../utils.js";
 
 export async function reconcileArtifacts(
@@ -28,6 +29,10 @@ export async function reconcileArtifacts(
   exState: DeploymentExecutionState | ContractAtExecutionState,
   context: ReconciliationContext,
 ): Promise<ReconciliationFutureResultFailure | undefined> {
+  if (exState.status === ExecutionStatus.SUCCESS) {
+    return;
+  }
+
   const moduleArtifact =
     "artifact" in future
       ? future.artifact
