@@ -1,7 +1,7 @@
 export default {
   solidity: "0.8.19",
   networks: {
-    hardhat: {
+    default: {
       mining: {
         auto: false,
       },
