@@ -102,8 +102,6 @@
     "@nomicfoundation/edr": "^0.11.3",
     "@nomicfoundation/solidity-analyzer": "^0.1.0",
     "@sentry/node": "^5.18.1",
-    "@types/bn.js": "^5.1.0",
-    "@types/lru-cache": "^5.1.0",
     "adm-zip": "^0.4.16",
     "aggregate-error": "^3.0.0",
     "ansi-escapes": "^4.3.0",
