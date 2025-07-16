@@ -223,12 +223,18 @@ describe("compile task", function () {
 
       it("should throw an error because the file does not exist", async function () {
         const absolutePath = `${__dirname}/../fixture-projects/${folderName}/contracts/file.sol`;
+        const expectedPath =
+          process.platform === "win32"
+            ? `${fsExtra.realpathSync(
+                path.dirname(absolutePath)
+              )}\\${path.basename(absolutePath)}`
+            : absolutePath;
 
         await expect(
           this.env.run(TASK_COMPILE_SOLIDITY_READ_FILE, { absolutePath })
         )
           .to.be.rejectedWith(
-            `ENOENT: no such file or directory, lstat '${absolutePath}'`
+            `ENOENT: no such file or directory, open '${expectedPath}'`
           )
           .and.eventually.have.property("name", "Error"); // Default js error
       });
