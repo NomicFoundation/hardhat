@@ -2625,7 +2625,7 @@ Please verify the address and network, and try again later if necessary.`,
         messageTemplate: `The {verificationProvider} API key is empty.`,
         websiteTitle: "Block explorer API key is empty",
         websiteDescription: `The provided API key for the block explorer is empty. This can happen in the following cases:
-- No "apiKey" field is configured in the hardhat config, so the default empty string is used.
+- No "apiKey" field is configured in the hardhat config.
 - The "apiKey" is explicitly set to an empty string in the Hardhat config.
 - The "apiKey" is assigned to a config variable that resolves to an empty string at runtime.
 
