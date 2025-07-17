@@ -66,8 +66,8 @@ import { verifyContract } from "@nomicfoundation/hardhat-verify/verify";
 
 await verifyContract(
   {
-    contractAddress: "DEPLOYED_CONTRACT_ADDRESS",
-    constructorArguments: ["Constructor argument 1"],
+    address: "DEPLOYED_CONTRACT_ADDRESS",
+    constructorArgs: ["Constructor argument 1"],
     provider: "etherscan", // or "blockscout" for Blockscout-compatible explorers
   },
   hre,

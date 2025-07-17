@@ -414,8 +414,11 @@ importers:
       '@nomicfoundation/hardhat-utils':
         specifier: workspace:^3.0.0-next.21
         version: link:../hardhat-utils
-      '@nomicfoundation/ignition-core':
+      '@nomicfoundation/hardhat-verify':
         specifier: workspace:^3.0.0-next.21
+        version: link:../hardhat-verify
+      '@nomicfoundation/ignition-core':
+        specifier: workspace:^3.0.0-next.24
         version: link:../hardhat-ignition-core
       '@nomicfoundation/ignition-ui':
         specifier: workspace:^3.0.0-next.21

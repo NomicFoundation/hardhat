@@ -6,7 +6,8 @@
     { "path": "../hardhat-errors" },
     { "path": "../hardhat-network-helpers" },
     { "path": "../hardhat-ignition-ui/tsconfig.node.json" },
-    { "path": "../hardhat-test-utils" }
+    { "path": "../hardhat-test-utils" },
+    { "path": "../hardhat-verify" }
   ],
   "exclude": ["${configDir}/dist", "${configDir}/node_modules"]
 }
