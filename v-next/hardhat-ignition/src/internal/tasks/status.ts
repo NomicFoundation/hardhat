@@ -7,6 +7,7 @@ import { status } from "@nomicfoundation/ignition-core";
 
 import { HardhatArtifactResolver } from "../../helpers/hardhat-artifact-resolver.js";
 import { calculateDeploymentStatusDisplay } from "../ui/helpers/calculate-deployment-status-display.js";
+import { verifyArtifactsVersion } from "../utils/verifyArtifactsVersion.js";
 
 interface TaskStatusArguments {
   deploymentId: string;
@@ -21,6 +22,8 @@ const taskStatus: NewTaskActionFunction<TaskStatusArguments> = async (
     "deployments",
     deploymentId,
   );
+
+  await verifyArtifactsVersion(deploymentDir);
 
   const artifactResolver = new HardhatArtifactResolver(hre.artifacts);
 

@@ -1198,6 +1198,14 @@ Please use the fully qualified name of the contract to disambiguate it.`,
         websiteTitle: "Unsupported ethers.js value",
         websiteDescription: "Unsupported ethers.js value",
       },
+      ARTIFACT_MIGRATION_NEEDED: {
+        number: 10002,
+        messageTemplate:
+          "Hardhat Ignition needs to migrate this deployments artifacts to the new format. Please run `npx hardhat ignition migrate {deploymentId}`",
+        websiteTitle: "Artifact migration needed",
+        websiteDescription:
+          "Hardhat Ignition needs to migrate the artifacts to the new format. Please run `npx hardhat ignition migrate {deploymentId}`",
+      },
     },
     INTERNAL: {
       INTERNAL_ERROR: {
