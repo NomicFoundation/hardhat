@@ -1,5 +1,19 @@
 # hardhat
 
+## 2.26.0
+
+### Minor Changes
+
+- 14b3042: Updated the minimal supported version of Node to v20 ([#6982](https://github.com/NomicFoundation/hardhat/pull/6982))
+
+### Patch Changes
+
+- 69acece: Upgraded EDR to [v0.11.3](https://github.com/NomicFoundation/edr/releases/tag/%40nomicfoundation%2Fedr%400.11.3) which includes:
+  - fixes for stack trace generation and RIP-7212 support.
+  - Removed copying of account code for provider accounts in forked networks. Code was previously ignored for default accounts only, now also for user accounts.
+- 84fff85: Remove unneeded type dependencies, thanks @reallesee ([#6990](https://github.com/NomicFoundation/hardhat/pull/6990))
+- e139cf3: Update the version of micro-eth-signer ([#6950](https://github.com/NomicFoundation/hardhat/issues/6950))
+
 ## 2.25.0
 
 ### Minor Changes

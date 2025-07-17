@@ -1,6 +1,6 @@
 {
   "name": "hardhat-shorthand",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Launcher binary for Hardhat",
   "homepage": "https://github.com/nomiclabs/hardhat/tree/main/packages/hardhat-shorthand",
   "repository": "github:nomiclabs/hardhat",
@@ -50,7 +50,7 @@
     "eslint-plugin-import": "2.27.5",
     "eslint-plugin-mocha": "10.4.1",
     "eslint-plugin-prettier": "3.4.0",
-    "hardhat": "workspace:^2.0.0",
+    "hardhat": "workspace:^2.26.0",
     "mocha": "^10.0.0",
     "prettier": "2.4.1",
     "rimraf": "^3.0.2",
