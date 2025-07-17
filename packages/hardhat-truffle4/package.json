@@ -1,6 +1,6 @@
 {
   "name": "@nomiclabs/hardhat-truffle4",
-  "version": "2.0.6",
+  "version": "2.1.0",
   "description": "Truffle 4 Hardhat compatibility plugin",
   "homepage": "https://github.com/nomiclabs/hardhat/tree/main/packages/hardhat-truffle4",
   "repository": "github:nomiclabs/hardhat",
@@ -43,7 +43,7 @@
   "devDependencies": {
     "@nomicfoundation/eslint-plugin-hardhat-internal-rules": "workspace:^",
     "@nomicfoundation/eslint-plugin-slow-imports": "workspace:^",
-    "@nomiclabs/hardhat-web3-legacy": "workspace:^2.0.0",
+    "@nomiclabs/hardhat-web3-legacy": "workspace:^2.1.0",
     "@types/fs-extra": "^5.1.0",
     "@types/glob": "^7.1.1",
     "@types/mocha": ">=9.1.0",
@@ -56,7 +56,7 @@
     "eslint-plugin-import": "2.27.5",
     "eslint-plugin-mocha": "10.4.1",
     "eslint-plugin-prettier": "3.4.0",
-    "hardhat": "workspace:^2.6.4",
+    "hardhat": "workspace:^2.26.0",
     "mocha": "^10.0.0",
     "prettier": "2.4.1",
     "rimraf": "^3.0.2",
@@ -65,8 +65,8 @@
     "web3": "^0.20.0"
   },
   "peerDependencies": {
-    "@nomiclabs/hardhat-web3-legacy": "workspace:^2.0.0",
-    "hardhat": "workspace:^2.6.4",
+    "@nomiclabs/hardhat-web3-legacy": "workspace:^2.1.0",
+    "hardhat": "workspace:^2.26.0",
     "web3": "^0.20.0"
   }
 }

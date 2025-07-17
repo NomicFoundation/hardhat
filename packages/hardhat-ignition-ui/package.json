@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/ignition-ui",
-  "version": "0.15.11",
+  "version": "0.15.12",
   "type": "module",
   "scripts": {
     "predev": "pnpm regenerate-deployment-example",

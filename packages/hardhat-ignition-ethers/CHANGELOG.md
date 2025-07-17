@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.15.14
+
+### Patch Changes
+
+- 14b3042: Updated the minimal supported version of Node to v20 ([#6982](https://github.com/NomicFoundation/hardhat/pull/6982))
+
 ## 0.15.13
 
 ### Patch Changes
