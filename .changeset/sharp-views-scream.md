@@ -1,13 +1,14 @@
 ---
-"@nomicfoundation/hardhat-ignition-ethers": minor
+"@nomicfoundation/ignition-core": patch
+"@nomicfoundation/hardhat-ignition-ethers": patch
+"@nomicfoundation/hardhat-ignition-viem": patch
+"@nomicfoundation/hardhat-ignition": patch
+"@nomicfoundation/ignition-ui": patch
 "@nomicfoundation/hardhat-network-helpers": minor
 "@nomicfoundation/hardhat-chai-matchers": minor
-"@nomicfoundation/ignition-core": minor
-"@nomicfoundation/hardhat-ignition-viem": minor
 "@nomicfoundation/hardhat-toolbox-viem": minor
 "@nomiclabs/hardhat-web3-legacy": minor
 "hardhat-shorthand": minor
-"@nomicfoundation/hardhat-ignition": minor
 "@nomiclabs/hardhat-truffle4": minor
 "@nomiclabs/hardhat-truffle5": minor
 "@nomicfoundation/hardhat-foundry": minor
