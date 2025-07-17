@@ -13,6 +13,7 @@ import {
   exists,
   readdir,
   readJsonFile,
+  remove,
   writeJsonFile,
 } from "@nomicfoundation/hardhat-utils/fs";
 
@@ -49,9 +50,11 @@ const taskMigrate: NewTaskActionFunction<MigrateArguments> = async (
     const artifactPath = path.join(artifactsDir, filename);
     const artifact: Artifact = await readJsonFile(artifactPath);
 
-    const debugFile: { buildInfo: string } = await readJsonFile(
-      path.join(artifactsDir, `${filename.split(".json")[0]}.dbg.json`),
+    const debugFilePath = path.join(
+      artifactsDir,
+      `${filename.split(".json")[0]}.dbg.json`,
     );
+    const debugFile: { buildInfo: string } = await readJsonFile(debugFilePath);
 
     const buildInfoPath = path.resolve(artifactsDir, debugFile.buildInfo);
 
@@ -70,6 +73,7 @@ const taskMigrate: NewTaskActionFunction<MigrateArguments> = async (
       };
 
       await writeJsonFile(artifactPath, newArtifact);
+      await remove(debugFilePath);
     }
 
     if (buildInfo._format === "hh-sol-build-info-1") {
