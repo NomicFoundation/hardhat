@@ -14,11 +14,7 @@ import {
 } from "@nomicfoundation/hardhat-utils/fs";
 
 import { FileJournal } from "../journal/file-journal.js";
-
-interface DebugInfoFile {
-  _format: "hh-sol-dbg-1";
-  buildInfo: string;
-}
+import { assertIgnitionInvariant } from "../utils/assertions.js";
 
 export class FileDeploymentLoader implements DeploymentLoader {
   private readonly _journal: Journal;
@@ -95,7 +91,7 @@ export class FileDeploymentLoader implements DeploymentLoader {
   }
 
   public async storeBuildInfo(
-    futureId: string,
+    _futureId: string,
     buildInfo: BuildInfo,
   ): Promise<void> {
     await this._initialize();
@@ -106,38 +102,21 @@ export class FileDeploymentLoader implements DeploymentLoader {
     );
 
     await writeJsonFile(buildInfoFilePath, buildInfo);
-
-    const debugInfoFilePath = path.join(
-      this._paths.artifactsDir,
-      `${futureId}.dbg.json`,
-    );
-
-    const relativeBuildInfoPath = path.relative(
-      this._paths.artifactsDir,
-      buildInfoFilePath,
-    );
-
-    const debugInfo: DebugInfoFile = {
-      _format: "hh-sol-dbg-1",
-      buildInfo: relativeBuildInfoPath,
-    };
-
-    await writeJsonFile(debugInfoFilePath, debugInfo);
   }
 
   public async readBuildInfo(futureId: string): Promise<BuildInfo> {
     await this._initialize();
 
-    const debugInfoFilePath = path.join(
-      this._paths.artifactsDir,
-      `${futureId}.dbg.json`,
+    const artifact = await this.loadArtifact(futureId);
+
+    assertIgnitionInvariant(
+      artifact.buildInfoId !== undefined,
+      "Artifact does not have a buildInfoId",
     );
 
-    const debugInfo = (await readJsonFile(debugInfoFilePath)) as DebugInfoFile;
-
     const buildInfoPath = path.resolve(
-      this._paths.artifactsDir,
-      debugInfo.buildInfo,
+      this._paths.buildInfoDir,
+      `${artifact.buildInfoId}.json`,
     );
 
     const buildInfo = (await readJsonFile(buildInfoPath)) as BuildInfo;
