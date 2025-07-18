@@ -1,5 +1,6 @@
 import type { JsonFragment } from "@ethersproject/abi";
 import type { Interceptable } from "@nomicfoundation/hardhat-utils/request";
+import type { HardhatUserConfig } from "hardhat/config";
 import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 import type { EthereumProvider } from "hardhat/types/providers";
 
@@ -28,9 +29,10 @@ describe("verification", () => {
         url: etherscanApiUrl,
       });
 
+      let hardhatUserConfig: HardhatUserConfig;
       let hre: HardhatRuntimeEnvironment;
       before(async () => {
-        const hardhatUserConfig =
+        hardhatUserConfig =
           // eslint-disable-next-line import/no-relative-packages -- allowed in test
           (await import("./fixture-projects/integration/hardhat.config.js"))
             .default;
@@ -56,7 +58,7 @@ describe("verification", () => {
           provider,
         );
 
-        assert(result, "Verification should return true");
+        assert.ok(result, "Verification should return true");
       });
 
       it("should verify a contract with constructor arguments", async () => {
@@ -81,7 +83,7 @@ describe("verification", () => {
           provider,
         );
 
-        assert(result, "Verification should return true");
+        assert.ok(result, "Verification should return true");
       });
 
       it("should verify a contract with libraries", async () => {
@@ -113,7 +115,7 @@ describe("verification", () => {
           provider,
         );
 
-        assert(result, "Verification should return true");
+        assert.ok(result, "Verification should return true");
       });
 
       it("should verify a contract with constructor arguments and libraries", async () => {
@@ -147,7 +149,43 @@ describe("verification", () => {
           provider,
         );
 
-        assert(result, "Verification should return true");
+        assert.ok(result, "Verification should return true");
+      });
+
+      it("should verify a contract on a disabled provider", async () => {
+        const localHre = await createHardhatRuntimeEnvironment({
+          ...hardhatUserConfig,
+          verify: {
+            etherscan: {
+              enabled: false,
+              apiKey: "someApiKey",
+            },
+          },
+        });
+        const { provider } = await localHre.network.connect();
+        const address = await deployContract(
+          "Counter",
+          [],
+          {},
+          localHre,
+          provider,
+        );
+
+        const result = await verifyContract(
+          {
+            address,
+          },
+          localHre,
+          () => {},
+          testDispatcher.interceptable,
+          provider,
+        );
+
+        assert.ok(
+          !localHre.config.verify.etherscan.enabled,
+          "Etherscan verification should be disabled",
+        );
+        assert.ok(result, "Verification should return true");
       });
     });
 

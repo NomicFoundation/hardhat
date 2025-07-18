@@ -85,15 +85,6 @@ export async function verifyContract(
     verifyContractArgs;
   validateVerificationProviderName(verificationProviderName);
 
-  if (config.verify[verificationProviderName].enabled === false) {
-    throw new HardhatError(
-      HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.VERIFICATION_DISABLED_IN_CONFIG,
-      {
-        verificationProvider: capitalize(verificationProviderName),
-      },
-    );
-  }
-
   validateArgs(verifyContractArgs);
 
   const {
