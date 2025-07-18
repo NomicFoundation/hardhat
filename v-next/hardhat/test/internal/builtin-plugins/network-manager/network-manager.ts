@@ -126,25 +126,12 @@ describe("NetworkManagerImplementation", () => {
         "",
         (varOrStr) => resolveConfigurationVariable(hre.hooks, varOrStr),
       ),
-      default: resolveEdrNetwork(
-        {
-          type: "edr",
-          initialDate,
-          mining: {
-            auto: true,
-            mempool: {
-              order: "priority",
-            },
-          },
-        },
-        "",
-        (varOrStr) => resolveConfigurationVariable(hre.hooks, varOrStr),
-      ),
     };
 
     chainDescriptors = await resolveChainDescriptors(undefined);
 
     networkManager = new NetworkManagerImplementation(
+      "localhost",
       GENERIC_CHAIN_TYPE,
       networks,
       hre.hooks,
@@ -157,9 +144,9 @@ describe("NetworkManagerImplementation", () => {
   describe("connect", () => {
     it("should connect to the default network and chain type if none are provided", async () => {
       const networkConnection = await networkManager.connect();
-      assert.equal(networkConnection.networkName, "default");
+      assert.equal(networkConnection.networkName, "localhost");
       assert.equal(networkConnection.chainType, GENERIC_CHAIN_TYPE);
-      assert.deepEqual(networkConnection.networkConfig, networks.default);
+      assert.deepEqual(networkConnection.networkConfig, networks.localhost);
     });
 
     it("should connect to the specified network and default chain type if none are provided and the network doesn't have a chain type", async () => {
