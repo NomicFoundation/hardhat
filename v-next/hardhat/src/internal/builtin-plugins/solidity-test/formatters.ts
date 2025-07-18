@@ -116,9 +116,11 @@ function formatTrace(trace: CallTrace): NestedArray<string> {
   let closingLine: string | undefined;
   if (kind === CallKind.Create) {
     openingLine = `[${gasUsed}] ${chalk.yellow("→ new")} ${contract}`;
-    if (formattedInputs !== undefined) {
-      openingLine = `${openingLine}@${formattedInputs}`;
-    }
+    // TODO: Uncomment this when the formattedInputs starts containing
+    // the address of where the contract was deployed instead of the code.
+    // if (formattedInputs !== undefined) {
+    //   openingLine = `${openingLine}@${formattedInputs}`;
+    // }
   } else {
     const formattedKind = formatKind(kind);
     openingLine = `[${gasUsed}] ${color(contract)}`;
@@ -133,7 +135,14 @@ function formatTrace(trace: CallTrace): NestedArray<string> {
     }
   }
   if (formattedOutputs !== undefined) {
-    closingLine = `${color("←")} ${formattedOutputs}`;
+    if (
+      formattedOutputs === "EvmError: Revert" ||
+      formattedOutputs.startsWith("revert:")
+    ) {
+      closingLine = `${color("←")} ${color("[Revert]")} ${formattedOutputs}`;
+    } else {
+      closingLine = `${color("←")} ${formattedOutputs}`;
+    }
   }
 
   const lines = [];
