@@ -11,6 +11,7 @@ import { supportChangeTokenBalance } from "./changeTokenBalance";
 import { supportReverted } from "./reverted/reverted";
 import { supportRevertedWith } from "./reverted/revertedWith";
 import { supportRevertedWithCustomError } from "./reverted/revertedWithCustomError";
+import { supportRevertedWithCustomErrorSig } from "./reverted/revertedWithCustomErrorSig";
 import { supportRevertedWithPanic } from "./reverted/revertedWithPanic";
 import { supportRevertedWithoutReason } from "./reverted/revertedWithoutReason";
 import { supportWithArgs } from "./withArgs";
@@ -32,6 +33,7 @@ export function hardhatChaiMatchers(
   supportReverted(chai.Assertion, chaiUtils);
   supportRevertedWith(chai.Assertion, chaiUtils);
   supportRevertedWithCustomError(chai.Assertion, chaiUtils);
+  supportRevertedWithCustomErrorSig(chai.Assertion, chaiUtils);
   supportRevertedWithPanic(chai.Assertion, chaiUtils);
   supportRevertedWithoutReason(chai.Assertion, chaiUtils);
   supportWithArgs(chai.Assertion, chaiUtils);
