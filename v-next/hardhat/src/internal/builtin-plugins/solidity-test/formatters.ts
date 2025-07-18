@@ -65,7 +65,7 @@ function formatLog(log: LogTrace): string[] {
     }
   } else {
     lines.push(
-      `emit ${parameters.name}(chalk.cyan(${parameters.arguments.join(", ")}))`,
+      `emit ${parameters.name}(${chalk.cyan(parameters.arguments.join(", "))})`,
     );
   }
   return lines;

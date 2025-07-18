@@ -32,7 +32,7 @@ const hardhatPlugin: HardhatPlugin = {
       .addLevel({
         name: "verbosity",
         shortName: "v",
-        description: "Log verbosity",
+        description: "Verbosity level of the test output",
         defaultValue: 2,
       })
       .setAction(import.meta.resolve("./task-action.js"))

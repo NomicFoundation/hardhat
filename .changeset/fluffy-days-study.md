@@ -2,4 +2,4 @@
 "hardhat": patch
 ---
 
-Added call traces support for solidity tests (they can be enabled via the `-vvvv` verbosity level flag)
+Added call traces support for solidity tests. Call traces can be enabled via the `-vvvv` verbosity level flag.
