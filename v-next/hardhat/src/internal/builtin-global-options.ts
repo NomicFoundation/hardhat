@@ -23,6 +23,7 @@ export const BUILTIN_GLOBAL_OPTIONS_DEFINITIONS: GlobalOptionDefinitions =
         pluginId: "builtin",
         option: globalFlag({
           name: "help",
+          shortName: "h",
           description:
             "Shows this message, or a task's help if its name is provided.",
         }),

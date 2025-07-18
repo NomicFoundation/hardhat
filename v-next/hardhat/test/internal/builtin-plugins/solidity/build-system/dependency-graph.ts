@@ -359,7 +359,7 @@ describe("DependencyGraphImplementation", () => {
   });
 
   describe("getFileBySourceName", () => {
-    it("should return the file by its' input source name if the file was previously added", () => {
+    it("should return the file by its input source name if the file was previously added", () => {
       const root = createProjectResolvedFile("root.sol");
       const dependency = createProjectResolvedFile("dependency.sol");
 

@@ -228,6 +228,7 @@ export async function parseBuiltinGlobalOptions(
   let version: boolean = false;
   let init: boolean = false;
 
+  // TODO: Use parseGlobalOptions(BUILTIN_GLOBAL_OPTIONS_DEFINITIONS, ...) instead
   for (let i = 0; i < cliArguments.length; i++) {
     const arg = cliArguments[i];
 
@@ -271,7 +272,7 @@ export async function parseBuiltinGlobalOptions(
       continue;
     }
 
-    if (arg === "--help") {
+    if (arg === "--help" || arg === "-h") {
       usedCliArguments[i] = true;
       help = true;
       continue;
