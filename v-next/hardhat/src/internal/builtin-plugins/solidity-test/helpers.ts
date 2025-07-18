@@ -10,6 +10,7 @@ import type {
   StorageCachingConfig,
   AddressLabel,
   Artifact,
+  ObservabilityConfig,
 } from "@ignored/edr-optimism";
 
 import {
@@ -36,6 +37,7 @@ export function solidityTestConfigToSolidityTestRunnerConfigArgs(
   chainType: ChainType,
   projectRoot: string,
   config: SolidityTestConfig,
+  observability?: ObservabilityConfig,
   testPattern?: string,
 ): SolidityTestRunnerConfigArgs {
   const fsPermissions: PathPermission[] | undefined = [
@@ -115,6 +117,7 @@ export function solidityTestConfigToSolidityTestRunnerConfigArgs(
     txOrigin,
     blockCoinbase,
     rpcStorageCaching,
+    observability,
     testPattern,
   };
 }
