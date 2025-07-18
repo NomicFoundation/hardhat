@@ -47,7 +47,7 @@ const multiVersionSolcUserConfigType = z.object({
 });
 
 const commonSolidityUserConfigType = z.object({
-  dependenciesToCompile: z.array(z.string()).optional(),
+  npmFilesToBuild: z.array(z.string()).optional(),
 });
 
 const singleVersionSolidityUserConfigType = singleVersionSolcUserConfigType
@@ -215,7 +215,7 @@ function resolveSolidityConfig(
           overrides: {},
         },
       },
-      dependenciesToCompile: [],
+      npmFilesToBuild: [],
     };
   }
 
@@ -232,7 +232,7 @@ function resolveSolidityConfig(
           overrides: {},
         },
       },
-      dependenciesToCompile: solidityConfig.dependenciesToCompile ?? [],
+      npmFilesToBuild: solidityConfig.npmFilesToBuild ?? [],
     };
   }
 
@@ -259,7 +259,7 @@ function resolveSolidityConfig(
           ),
         },
       },
-      dependenciesToCompile: solidityConfig.dependenciesToCompile ?? [],
+      npmFilesToBuild: solidityConfig.npmFilesToBuild ?? [],
     };
   }
 
@@ -311,6 +311,6 @@ function resolveSolidityConfig(
 
   return {
     profiles,
-    dependenciesToCompile: solidityConfig.dependenciesToCompile ?? [],
+    npmFilesToBuild: solidityConfig.npmFilesToBuild ?? [],
   };
 }

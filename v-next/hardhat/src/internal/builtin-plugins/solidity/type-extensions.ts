@@ -24,7 +24,7 @@ declare module "../../../types/config.js" {
   }
 
   export interface CommonSolidityUserConfig {
-    dependenciesToCompile?: string[];
+    npmFilesToBuild?: string[];
   }
 
   export interface SingleVersionSolidityUserConfig
@@ -59,7 +59,7 @@ declare module "../../../types/config.js" {
 
   export interface SolidityConfig {
     profiles: Record<string, SolidityBuildProfileConfig>;
-    dependenciesToCompile: string[];
+    npmFilesToBuild: string[];
   }
 
   export interface HardhatConfig {
