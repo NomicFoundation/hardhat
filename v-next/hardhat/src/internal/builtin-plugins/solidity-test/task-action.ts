@@ -3,18 +3,28 @@ import type { TestEvent } from "./types.js";
 import type { BuildOptions } from "../../../types/solidity/build-system.js";
 import type { NewTaskActionFunction } from "../../../types/tasks.js";
 import type {
+  ObservabilityConfig,
   SolidityTestRunnerConfigArgs,
   TracingConfigWithBuffers,
 } from "@ignored/edr-optimism";
 
 import { finished } from "node:stream/promises";
 
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import {
+  assertHardhatInvariant,
+  HardhatError,
+} from "@nomicfoundation/hardhat-errors";
 import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
 import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
 import { createNonClosingWriter } from "@nomicfoundation/hardhat-utils/stream";
 
+import { HardhatRuntimeEnvironmentImplementation } from "../../core/hre.js";
 import { isSupportedChainType } from "../../edr/chain-type.js";
+import {
+  markTestRunDone,
+  markTestRunStart,
+  markTestWorkerDone,
+} from "../coverage/helpers.js";
 import { throwIfSolidityBuildFailed } from "../solidity/build-results.js";
 
 import { getEdrArtifacts, getBuildInfos } from "./edr-artifacts.js";
@@ -109,12 +119,32 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   let includesErrors = false;
 
   const solidityTestConfig = hre.config.solidityTest;
+  let observabilityConfig: ObservabilityConfig | undefined;
+  if (hre.globalOptions.coverage) {
+    assertHardhatInvariant(
+      hre instanceof HardhatRuntimeEnvironmentImplementation,
+      "Expected HRE to be an instance of HardhatRuntimeEnvironmentImplementation",
+    );
+
+    observabilityConfig = {
+      codeCoverage: {
+        onCollectedCoverageCallback: async (coverageData: Uint8Array[]) => {
+          const tags = coverageData.map((tag) =>
+            Buffer.from(tag).toString("hex"),
+          );
+
+          await hre._coverage.addData(tags);
+        },
+      },
+    };
+  }
 
   const config: SolidityTestRunnerConfigArgs =
     solidityTestConfigToSolidityTestRunnerConfigArgs(
       chainType,
       hre.config.paths.root,
       solidityTestConfig,
+      observabilityConfig,
       grep,
     );
   const tracingConfig: TracingConfigWithBuffers = {
@@ -130,6 +160,8 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
       userSourceName,
     ]),
   );
+
+  await markTestRunStart("solidity");
 
   const runStream = run(
     chainType,
@@ -167,6 +199,11 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     console.error(error);
     includesErrors = true;
   }
+
+  // NOTE: We collect coverage data for solidity tests in the main process.
+  await markTestWorkerDone("solidity");
+  // NOTE: This might print a coverage report.
+  await markTestRunDone("solidity");
 
   if (includesFailures || includesErrors) {
     process.exitCode = 1;
