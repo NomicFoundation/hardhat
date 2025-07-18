@@ -17,6 +17,7 @@ import {
   opLatestHardfork,
   l1GenesisState,
   l1HardforkLatest,
+  IncludeTraces,
 } from "@ignored/edr-optimism";
 import { hexStringToBytes } from "@nomicfoundation/hardhat-utils/hex";
 
@@ -36,6 +37,7 @@ export function solidityTestConfigToSolidityTestRunnerConfigArgs(
   chainType: ChainType,
   projectRoot: string,
   config: SolidityTestConfig,
+  verbosity: number,
   testPattern?: string,
 ): SolidityTestRunnerConfigArgs {
   const fsPermissions: PathPermission[] | undefined = [
@@ -105,6 +107,13 @@ export function solidityTestConfigToSolidityTestRunnerConfigArgs(
       ? opGenesisState(opLatestHardfork())
       : l1GenesisState(l1HardforkLatest());
 
+  let includeTraces: IncludeTraces = IncludeTraces.None;
+  if (verbosity >= 5) {
+    includeTraces = IncludeTraces.All;
+  } else if (verbosity >= 3) {
+    includeTraces = IncludeTraces.Failing;
+  }
+
   return {
     projectRoot,
     ...config,
@@ -116,6 +125,7 @@ export function solidityTestConfigToSolidityTestRunnerConfigArgs(
     blockCoinbase,
     rpcStorageCaching,
     testPattern,
+    includeTraces,
   };
 }
 

@@ -29,6 +29,12 @@ const hardhatPlugin: HardhatPlugin = {
         name: "noCompile",
         description: "Don't compile the project before running the tests",
       })
+      .addLevel({
+        name: "verbosity",
+        shortName: "v",
+        description: "Verbosity level of the test output",
+        defaultValue: 2,
+      })
       .setAction(import.meta.resolve("./task-action.js"))
       .build(),
   ],
