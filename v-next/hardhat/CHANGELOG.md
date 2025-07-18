@@ -1,5 +1,11 @@
 # hardhat
 
+## 3.0.0-next.23
+
+### Patch Changes
+
+- b3eef2f: Fix `--network` passing as a command line option ([#7022](https://github.com/NomicFoundation/hardhat/pull/7022))
+
 ## 3.0.0-next.22
 
 ### Patch Changes
