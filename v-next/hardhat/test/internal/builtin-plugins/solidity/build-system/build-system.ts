@@ -80,7 +80,7 @@ describe(
           overrides: {},
         },
       },
-      dependenciesToCompile: [],
+      npmFilesToBuild: [],
     };
 
     before(async () => {
