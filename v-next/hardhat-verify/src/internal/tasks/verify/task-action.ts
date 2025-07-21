@@ -1,5 +1,6 @@
 import type { VerifyActionArgs } from "./types.js";
 import type { VerificationProvidersConfig } from "hardhat/types/config";
+import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 import type { NewTaskActionFunction } from "hardhat/types/tasks";
 
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
@@ -10,9 +11,22 @@ import { verifyContract } from "../../verification.js";
 import { resolveConstructorArgs, resolveLibraries } from "../arg-resolution.js";
 
 const verifyAction: NewTaskActionFunction<VerifyActionArgs> = async (
-  { constructorArgs, constructorArgsPath, librariesPath, ...verifyActionArgs },
+  verifyActionArgs,
   hre,
 ) => {
+  await internalVerifyAction(verifyActionArgs, hre, verifyContract);
+};
+
+export async function internalVerifyAction(
+  {
+    constructorArgs,
+    constructorArgsPath,
+    librariesPath,
+    ...verifyActionArgs
+  }: VerifyActionArgs,
+  hre: HardhatRuntimeEnvironment,
+  verifyContractFn: typeof verifyContract,
+): Promise<void> {
   const allProviders: Array<keyof VerificationProvidersConfig> = [
     "etherscan",
     "blockscout",
@@ -24,6 +38,7 @@ const verifyAction: NewTaskActionFunction<VerifyActionArgs> = async (
 
   if (enabledProviders.length === 0) {
     console.warn(chalk.yellow("\n⚠️  No verification providers are enabled."));
+    process.exitCode = 0;
     return;
   }
 
@@ -38,7 +53,7 @@ const verifyAction: NewTaskActionFunction<VerifyActionArgs> = async (
   for (const provider of enabledProviders) {
     try {
       console.log(chalk.cyan.bold(`\n=== ${capitalize(provider)} ===`));
-      await verifyContract(
+      await verifyContractFn(
         {
           ...verifyActionArgs,
           constructorArgs: resolvedConstructorArgs,
@@ -57,9 +72,7 @@ const verifyAction: NewTaskActionFunction<VerifyActionArgs> = async (
     }
   }
 
-  if (errorOccurred) {
-    process.exitCode = 1;
-  }
-};
+  process.exitCode = errorOccurred ? 1 : 0;
+}
 
 export default verifyAction;
