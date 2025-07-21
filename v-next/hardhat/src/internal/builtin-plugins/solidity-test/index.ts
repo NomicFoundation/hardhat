@@ -40,6 +40,7 @@ const hardhatPlugin: HardhatPlugin = {
   dependencies: [
     async () => (await import("../solidity/index.js")).default,
     async () => (await import("../test/index.js")).default,
+    async () => (await import("../coverage/index.js")).default,
   ],
   npmPackage: "hardhat",
 };
