@@ -4,6 +4,7 @@ import type { NewTaskActionFunction } from "hardhat/types/tasks";
 
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { capitalize } from "@nomicfoundation/hardhat-utils/string";
+import chalk from "chalk";
 
 import { verifyContract } from "../../verification.js";
 import { resolveConstructorArgs, resolveLibraries } from "../arg-resolution.js";
@@ -22,7 +23,7 @@ const verifyAction: NewTaskActionFunction<VerifyActionArgs> = async (
   );
 
   if (enabledProviders.length === 0) {
-    console.warn("⚠️ No verification providers are enabled");
+    console.warn(chalk.yellow("\n⚠️  No verification providers are enabled."));
     return;
   }
 
@@ -34,9 +35,9 @@ const verifyAction: NewTaskActionFunction<VerifyActionArgs> = async (
   const resolvedLibraries = await resolveLibraries(librariesPath);
 
   let errorOccurred = false;
-  enabledProviders.forEach(async (provider) => {
+  for (const provider of enabledProviders) {
     try {
-      console.log(`=== ${capitalize(provider)} ===`);
+      console.log(chalk.cyan.bold(`\n=== ${capitalize(provider)} ===`));
       await verifyContract(
         {
           ...verifyActionArgs,
@@ -48,10 +49,13 @@ const verifyAction: NewTaskActionFunction<VerifyActionArgs> = async (
       );
     } catch (error) {
       ensureError(error);
-      console.error(error.message);
+      // It would be nice to use printErrorMessages
+      // from v-next/hardhat/src/internal/cli/error-handler.ts
+      // for consistent error formatting
+      console.error(chalk.red(error.message));
       errorOccurred = true;
     }
-  });
+  }
 
   if (errorOccurred) {
     process.exitCode = 1;
