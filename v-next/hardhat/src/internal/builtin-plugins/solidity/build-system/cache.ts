@@ -6,6 +6,12 @@ import {
   writeJsonFileAsStream,
 } from "@nomicfoundation/hardhat-utils/fs";
 
+/**
+ * This object is used to store what source files produced which output files
+ * and what was the last compiled jobHash (buildId) for the individual root file
+ * The keys are the root file paths, as passed to the compile task. For project
+ * files this would be the user source names.
+ */
 export type CompileCache = Record<string, CompileCacheEntry>;
 
 export interface CompileCacheEntry {

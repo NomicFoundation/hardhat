@@ -139,13 +139,15 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     const { compilationJobsPerFile, indexedIndividualJobs } =
       compilationJobsResult;
 
-    const compilationJobs = [...new Set(compilationJobsPerFile.values())];
+    const runnableCompilationJobs = [
+      ...new Set(compilationJobsPerFile.values()),
+    ];
 
     // NOTE: We precompute the build ids in parallel here, which are cached
     // internally in each compilation job
     await Promise.all(
-      compilationJobs.map(async (compilationJob) =>
-        compilationJob.getBuildId(),
+      runnableCompilationJobs.map(async (runnableCompilationJob) =>
+        runnableCompilationJob.getBuildId(),
       ),
     );
 
@@ -153,15 +155,15 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       quiet: options?.quiet,
     };
     const results: CompilationResult[] = await pMap(
-      compilationJobs,
-      async (compilationJob) => {
+      runnableCompilationJobs,
+      async (runnableCompilationJob) => {
         const compilerOutput = await this.runCompilationJob(
-          compilationJob,
+          runnableCompilationJob,
           runCompilationJobOptions,
         );
 
         return {
-          compilationJob,
+          compilationJob: runnableCompilationJob,
           compilerOutput,
           cached: false,
         };
@@ -276,7 +278,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
     if (options?.quiet !== true) {
       if (isSuccessfulBuild) {
-        await this.#printCompilationResult(compilationJobs);
+        await this.#printCompilationResult(runnableCompilationJobs);
       }
     }
 
@@ -348,7 +350,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
     // build job for each root file. At this point subgraphsWithConfig are 1 root file each
     const indexedIndividualJobs: Map<string, CompilationJob> = new Map();
-    const contentHashes = new Map<string, string>();
+    const sharedContentHashes = new Map<string, string>();
     await Promise.all(
       subgraphsWithConfig.map(async ([config, subgraph]) => {
         const solcLongVersion = solcVersionToLongVersion.get(config.version);
@@ -358,15 +360,15 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
           "solcLongVersion should not be undefined",
         );
 
-        const compilationJob = new CompilationJobImplementation(
+        const individualJob = new CompilationJobImplementation(
           subgraph,
           config,
           solcLongVersion,
           this.#hooks,
-          contentHashes,
+          sharedContentHashes,
         );
 
-        await compilationJob.getBuildId(); // precompute
+        await individualJob.getBuildId(); // precompute
 
         assertHardhatInvariant(
           subgraph.getRoots().size === 1,
@@ -375,7 +377,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
         const rootFilePath = Array.from(subgraph.getRoots().keys())[0];
 
-        indexedIndividualJobs.set(rootFilePath, compilationJob);
+        indexedIndividualJobs.set(rootFilePath, individualJob);
       }),
     );
 
@@ -483,18 +485,18 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         "solcLongVersion should not be undefined",
       );
 
-      const compilationJob = new CompilationJobImplementation(
+      const runnableCompilationJob = new CompilationJobImplementation(
         subgraph,
         solcConfig,
         solcLongVersion,
         this.#hooks,
-        contentHashes,
+        sharedContentHashes,
       );
 
       for (const [userSourceName, root] of subgraph.getRoots().entries()) {
         compilationJobsPerFile.set(
           formatRootPath(userSourceName, root),
-          compilationJob,
+          runnableCompilationJob,
         );
       }
     }
@@ -503,34 +505,37 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
   }
 
   public async runCompilationJob(
-    compilationJob: CompilationJob,
+    runnableCompilationJob: CompilationJob,
     options?: RunCompilationJobOptions,
   ): Promise<CompilerOutput> {
     await this.#downloadConfiguredCompilers(options?.quiet);
 
     let numberOfFiles = 0;
-    for (const _ of compilationJob.dependencyGraph.getAllFiles()) {
+    for (const _ of runnableCompilationJob.dependencyGraph.getAllFiles()) {
       numberOfFiles++;
     }
 
-    const numberOfRootFiles = compilationJob.dependencyGraph.getRoots().size;
+    const numberOfRootFiles =
+      runnableCompilationJob.dependencyGraph.getRoots().size;
 
-    const compiler = await getCompiler(compilationJob.solcConfig.version);
+    const compiler = await getCompiler(
+      runnableCompilationJob.solcConfig.version,
+    );
 
     log(
-      `Compiling ${numberOfRootFiles} root files and ${numberOfFiles - numberOfRootFiles} dependency files with solc ${compilationJob.solcConfig.version} using ${compiler.compilerPath}`,
+      `Compiling ${numberOfRootFiles} root files and ${numberOfFiles - numberOfRootFiles} dependency files with solc ${runnableCompilationJob.solcConfig.version} using ${compiler.compilerPath}`,
     );
 
     assertHardhatInvariant(
-      compilationJob.solcLongVersion === compiler.longVersion,
+      runnableCompilationJob.solcLongVersion === compiler.longVersion,
       "The long version of the compiler should match the long version of the compilation job",
     );
 
-    return compiler.compile(await compilationJob.getSolcInput());
+    return compiler.compile(await runnableCompilationJob.getSolcInput());
   }
 
   public async remapCompilerError(
-    compilationJob: CompilationJob,
+    runnableCompilationJob: CompilationJob,
     error: CompilerOutputError,
     shouldShortenPaths: boolean = false,
   ): Promise<CompilerOutputError> {
@@ -544,7 +549,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         /(-->\s+)([^\s:\n]+)/g,
         (_match, prefix, inputSourceName) => {
           const file =
-            compilationJob.dependencyGraph.getFileByInputSourceName(
+            runnableCompilationJob.dependencyGraph.getFileByInputSourceName(
               inputSourceName,
             );
 
@@ -563,17 +568,17 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
   }
 
   public async emitArtifacts(
-    compilationJob: CompilationJob,
+    runnableCompilationJob: CompilationJob,
     compilerOutput: CompilerOutput,
   ): Promise<EmitArtifactsResult> {
     const artifactsPerFile = new Map<string, string[]>();
     const typeFilePaths = new Map<string, string>();
-    const buildId = await compilationJob.getBuildId();
+    const buildId = await runnableCompilationJob.getBuildId();
 
     // We emit the artifacts for each root file, first emitting one artifact
     // for each contract, and then one declaration file for the entire file,
     // which defines their types and augments the ArtifactMap type.
-    for (const [userSourceName, root] of compilationJob.dependencyGraph
+    for (const [userSourceName, root] of runnableCompilationJob.dependencyGraph
       .getRoots()
       .entries()) {
       const fileFolder = path.join(this.#options.artifactsPath, userSourceName);
@@ -648,7 +653,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     // concurrently, and keep their lifetimes separated and small.
     await Promise.all([
       (async () => {
-        const buildInfo = await getBuildInfo(compilationJob);
+        const buildInfo = await getBuildInfo(runnableCompilationJob);
 
         // TODO: Maybe formatting the build info is slow, but it's mostly
         // strings, so it probably shouldn't be a problem.
@@ -656,7 +661,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       })(),
       (async () => {
         const buildInfoOutput = await getBuildInfoOutput(
-          compilationJob,
+          runnableCompilationJob,
           compilerOutput,
         );
 
@@ -923,13 +928,13 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     }
   }
 
-  async #printCompilationResult(compilationJobs: CompilationJob[]) {
+  async #printCompilationResult(runnableCompilationJobs: CompilationJob[]) {
     const jobsPerVersionAndEvmVersion = new Map<
       string,
       Map<string, CompilationJob[]>
     >();
 
-    for (const job of compilationJobs) {
+    for (const job of runnableCompilationJobs) {
       const solcVersion = job.solcConfig.version;
       const solcInput = await job.getSolcInput();
       const evmVersion =

@@ -173,7 +173,7 @@ export interface GetCompilationJobsResult {
 export interface EmitArtifactsResult {
   artifactsPerFile: ReadonlyMap<string, string[]>;
   buildInfoPath: string;
-  typeFilePaths: Map<string, string>;
+  typeFilePaths: ReadonlyMap<string, string>;
   buildInfoOutputPath: string;
 }
 
