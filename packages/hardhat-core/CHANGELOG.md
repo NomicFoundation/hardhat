@@ -1,5 +1,11 @@
 # hardhat
 
+## 2.26.1
+
+### Patch Changes
+
+- 896c4ea: Revert `micro-eth-signer` to `^0.14.0` to fix compatibility with earlier Node 20 versions ([#7026](https://github.com/NomicFoundation/hardhat/issues/7026))
+
 ## 2.26.0
 
 ### Minor Changes
