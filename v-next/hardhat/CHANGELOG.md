@@ -1,5 +1,22 @@
 # hardhat
 
+## 3.0.0-next.23
+
+### Patch Changes
+
+- b3eef2f: Fix `--network` passing as a command line option ([#7022](https://github.com/NomicFoundation/hardhat/pull/7022))
+
+## 3.0.0-next.22
+
+### Patch Changes
+
+- bfb708c: Added support for short option names ([#6941](https://github.com/NomicFoundation/hardhat/pull/6941))
+- a17a837: Allowed requesting help via the -h flag ([#6963](https://github.com/NomicFoundation/hardhat/pull/6963))
+- 41f6295: Remove the `defaultNetwork` config option and introduce a network called `default` ([#6875](https://github.com/NomicFoundation/hardhat/issues/6875))
+- c39d791: Use input source names in the link references, fixing a bug in the solidity test runner ([#7016](https://github.com/NomicFoundation/hardhat/pull/7016))
+- 5451ae6: Fix node crash when sending a tx with insufficient funds ([#6929](https://github.com/NomicFoundation/hardhat/issues/6929))
+- ab67a7d: Enable verification providers by default and throw if Etherscan apiKey is empty ([#6937](https://github.com/NomicFoundation/hardhat/pull/6937))
+
 ## 3.0.0-next.21
 
 ### Patch Changes

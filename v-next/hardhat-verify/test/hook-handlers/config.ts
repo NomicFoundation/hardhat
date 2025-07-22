@@ -140,7 +140,7 @@ describe("hook-handlers/config", () => {
 
     describe("etherscan", () => {
       it("should pass if the config is valid", async () => {
-        const config: HardhatUserConfig = {
+        let config: HardhatUserConfig = {
           verify: {
             etherscan: {
               apiKey: "some-api-key",
@@ -149,7 +149,44 @@ describe("hook-handlers/config", () => {
           },
         };
 
-        const validationErrors = await validateUserConfig(config);
+        let validationErrors = await validateUserConfig(config);
+
+        assertValidationErrors(validationErrors, []);
+
+        config = {
+          verify: {
+            etherscan: {
+              apiKey: "some-api-key",
+            },
+          },
+        };
+
+        validationErrors = await validateUserConfig(config);
+
+        assertValidationErrors(validationErrors, []);
+
+        config = {
+          verify: {
+            etherscan: {
+              apiKey: "some-api-key",
+              enabled: false,
+            },
+          },
+        };
+
+        validationErrors = await validateUserConfig(config);
+
+        assertValidationErrors(validationErrors, []);
+
+        config = {
+          verify: {
+            etherscan: {
+              enabled: false,
+            },
+          },
+        };
+
+        validationErrors = await validateUserConfig(config);
 
         assertValidationErrors(validationErrors, []);
       });
@@ -168,15 +205,37 @@ describe("hook-handlers/config", () => {
         assertValidationErrors(validationErrors, [
           {
             path: ["verify", "etherscan"],
-            message: "Expected object, received string",
+            message:
+              "Expected an object with an 'apiKey' property and an optional 'enabled' boolean property",
           },
         ]);
       });
 
-      it("should throw if apiKey is missing", async () => {
+      it("should throw if apiKey is missing and enabled is undefined", async () => {
         const config = {
           verify: {
             etherscan: {},
+          },
+        };
+
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      -- testing invalid network type for js users */
+        const validationErrors = await validateUserConfig(config as any);
+
+        assertValidationErrors(validationErrors, [
+          {
+            path: ["verify", "etherscan", "apiKey"],
+            message: "Expected a string or a Configuration Variable",
+          },
+        ]);
+      });
+
+      it("should throw if apiKey is missing and enabled is true", async () => {
+        const config = {
+          verify: {
+            etherscan: {
+              enabled: true,
+            },
           },
         };
 
@@ -229,8 +288,9 @@ describe("hook-handlers/config", () => {
 
         assertValidationErrors(validationErrors, [
           {
-            path: ["verify", "etherscan", "enabled"],
-            message: "Expected boolean, received string",
+            path: ["verify", "etherscan"],
+            message:
+              "Expected an object with an 'apiKey' property and an optional 'enabled' boolean property",
           },
         ]);
       });
@@ -264,11 +324,11 @@ describe("hook-handlers/config", () => {
 
       assert.deepEqual(resolvedConfig.verify, {
         blockscout: {
-          enabled: false,
+          enabled: true,
         },
         etherscan: {
           apiKey: new MockResolvedConfigurationVariable(""),
-          enabled: false,
+          enabled: true,
         },
       });
     });

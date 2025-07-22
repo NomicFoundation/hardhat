@@ -12,7 +12,9 @@ import type {
   HardhatUserConfigValidationError,
 } from "hardhat/types/hooks";
 
+import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 import {
+  conditionalUnionType,
   sensitiveStringSchema,
   validateUserConfigZodType,
 } from "@nomicfoundation/hardhat-zod-utils";
@@ -31,12 +33,27 @@ const userConfigType = z.object({
           enabled: z.boolean().optional(),
         })
         .optional(),
-      etherscan: z
-        .object({
-          apiKey: sensitiveStringSchema,
-          enabled: z.boolean().optional(),
-        })
-        .optional(),
+      etherscan: conditionalUnionType(
+        [
+          [
+            (data) => isObject(data) && data.enabled === false,
+            z.object({
+              apiKey: sensitiveStringSchema.optional(),
+              enabled: z.literal(false),
+            }),
+          ],
+          [
+            (data) =>
+              isObject(data) &&
+              (data.enabled === undefined || data.enabled === true),
+            z.object({
+              apiKey: sensitiveStringSchema,
+              enabled: z.literal(true).optional(),
+            }),
+          ],
+        ],
+        "Expected an object with an 'apiKey' property and an optional 'enabled' boolean property",
+      ).optional(),
     })
     .optional(),
 });
@@ -72,7 +89,7 @@ export async function resolveUserConfig(
 
 function resolveBlockscoutConfig(
   blockscoutConfig: BlockscoutUserConfig | undefined = {
-    enabled: false,
+    enabled: true,
   },
 ): BlockscoutConfig {
   return {
@@ -83,12 +100,12 @@ function resolveBlockscoutConfig(
 function resolveEtherscanConfig(
   etherscanConfig: EtherscanUserConfig | undefined = {
     apiKey: "",
-    enabled: false,
+    enabled: true,
   },
   resolveConfigurationVariable: ConfigurationVariableResolver,
 ): EtherscanConfig {
   return {
-    apiKey: resolveConfigurationVariable(etherscanConfig.apiKey),
+    apiKey: resolveConfigurationVariable(etherscanConfig.apiKey ?? ""),
     enabled: etherscanConfig.enabled ?? true,
   };
 }

@@ -200,7 +200,6 @@ GLOBAL OPTIONS:
   --show-stack-traces      Show stack traces (always enabled on CI servers).
   --user-option-1          userOption1 description.
   --user-option-2          userOption2 description.
-  --verbose                Enables Hardhat verbose logging.
   --version                Shows hardhat's version.
 
 To get help for a specific task run: npx hardhat <TASK> [SUBTASK] --help`;
@@ -299,7 +298,6 @@ GLOBAL OPTIONS:
   --show-stack-traces      Show stack traces (always enabled on CI servers).
   --user-option-1          userOption1 description.
   --user-option-2          userOption2 description.
-  --verbose                Enables Hardhat verbose logging.
   --version                Shows hardhat's version.
 
 To get help for a specific task run: npx hardhat <TASK> [SUBTASK] --help`;
