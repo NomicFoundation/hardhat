@@ -146,7 +146,7 @@ export class ViemIgnitionHelperImpl<ChainTypeT extends ChainType | string>
     const deploymentId = resolveDeploymentId(givenDeploymentId, chainId);
 
     const deploymentDir =
-      this.#connection.networkName === "hardhat"
+      this.#connection.networkName === "default"
         ? undefined
         : path.join(
             this.#hardhatConfig.paths.ignition,

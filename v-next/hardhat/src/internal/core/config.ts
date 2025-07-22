@@ -101,10 +101,11 @@ export function globalLevel(options: {
   name: string;
   shortName?: string;
   description: string;
+  defaultValue?: number;
 }): OptionDefinition {
   return buildGlobalOptionDefinition({
     ...options,
     type: ArgumentType.LEVEL,
-    defaultValue: 0,
+    defaultValue: options.defaultValue ?? 0,
   });
 }

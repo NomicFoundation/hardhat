@@ -24,7 +24,7 @@ declare module "../../../types/config.js" {
   }
 
   export interface CommonSolidityUserConfig {
-    dependenciesToCompile?: string[];
+    npmFilesToBuild?: string[];
   }
 
   export interface SingleVersionSolidityUserConfig
@@ -59,7 +59,7 @@ declare module "../../../types/config.js" {
 
   export interface SolidityConfig {
     profiles: Record<string, SolidityBuildProfileConfig>;
-    dependenciesToCompile: string[];
+    npmFilesToBuild: string[];
   }
 
   export interface HardhatConfig {
@@ -119,6 +119,7 @@ declare module "../../../types/hooks.js" {
      *
      * @param context The hook context.
      * @param inputSourceName The input source name of the project file.
+     * @param fsPath The absolute path to the project file.
      * @param fileContent The content of the project file.
      * @param solcVersion The solc version that will be used to compile the project file.
      * @param next A function to call the next handler for this hook, or the

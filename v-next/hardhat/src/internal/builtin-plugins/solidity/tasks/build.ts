@@ -12,7 +12,7 @@ interface CompileActionArguments {
   defaultBuildProfile: string | undefined;
 }
 
-const compileAction: NewTaskActionFunction<CompileActionArguments> = async (
+const buildAction: NewTaskActionFunction<CompileActionArguments> = async (
   { force, files, quiet, defaultBuildProfile },
   { solidity, globalOptions },
 ) => {
@@ -43,4 +43,4 @@ const compileAction: NewTaskActionFunction<CompileActionArguments> = async (
   }
 };
 
-export default compileAction;
+export default buildAction;

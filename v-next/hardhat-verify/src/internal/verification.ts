@@ -85,15 +85,6 @@ export async function verifyContract(
     verifyContractArgs;
   validateVerificationProviderName(verificationProviderName);
 
-  if (config.verify[verificationProviderName].enabled === false) {
-    throw new HardhatError(
-      HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.VERIFICATION_DISABLED_IN_CONFIG,
-      {
-        verificationProvider: capitalize(verificationProviderName),
-      },
-    );
-  }
-
   validateArgs(verifyContractArgs);
 
   const {
@@ -148,8 +139,7 @@ The contract at ${address} has already been verified on ${instance.name}.
 
 If you need to verify a partially verified contract, please use the --force flag.
 
-Explorer: ${instance.getContractUrl(address)}
-`);
+Explorer: ${instance.getContractUrl(address)}`);
     return true;
   }
 
@@ -234,11 +224,10 @@ Explorer: ${instance.getContractUrl(address)}
 
   if (minimalInputVerificationSuccess) {
     consoleLog(`
-🎉 Contract verified successfully on ${instance.name}!
+✅ Contract verified successfully on ${instance.name}!
 
   ${contractInformation.userFqn}
-  Explorer: ${instance.getContractUrl(address)}
-`);
+  Explorer: ${instance.getContractUrl(address)}`);
     return true;
   }
 
@@ -275,11 +264,10 @@ Unrelated contracts may be displayed on ${instance.name} as a result.
 
   if (fullCompilerInputVerificationSuccess) {
     consoleLog(`
-🎉 Contract verified successfully on ${instance.name}!
+✅ Contract verified successfully on ${instance.name}!
 
   ${contractInformation.userFqn}
-  Explorer: ${instance.getContractUrl(address)}
-`);
+  Explorer: ${instance.getContractUrl(address)}`);
     return true;
   }
 
@@ -417,7 +405,7 @@ async function attemptVerification(
   );
 
   consoleLog(`
-✅ Submitted source code for verification on ${verificationProvider.name}:
+📤 Submitted source code for verification on ${verificationProvider.name}:
 
   ${contractInformation.userFqn}
   Address: ${address}

@@ -5,7 +5,6 @@ declare module "../../../../types/config.js" {
   export interface HardhatUserConfig {
     chainDescriptors?: ChainDescriptorsUserConfig;
     defaultChainType?: DefaultChainType;
-    defaultNetwork?: string;
     networks?: Record<string, NetworkUserConfig>;
   }
 
@@ -161,7 +160,6 @@ declare module "../../../../types/config.js" {
   export interface HardhatConfig {
     chainDescriptors: ChainDescriptorsConfig;
     defaultChainType: DefaultChainType;
-    defaultNetwork: string;
     networks: Record<string, NetworkConfig>;
   }
 

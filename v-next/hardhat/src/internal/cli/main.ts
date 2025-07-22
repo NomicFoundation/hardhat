@@ -12,7 +12,6 @@ import {
 import { isCi } from "@nomicfoundation/hardhat-utils/ci";
 import { readClosestPackageJson } from "@nomicfoundation/hardhat-utils/package";
 import { kebabToCamelCase } from "@nomicfoundation/hardhat-utils/string";
-import chalk from "chalk";
 import debug from "debug";
 import { register } from "tsx/esm/api";
 
@@ -195,26 +194,7 @@ export async function main(
 
     await Promise.all([task.run(taskArguments), sendTaskAnalytics(task.id)]);
   } catch (error) {
-    // TODO: Remove after -v, -vv etc are implemented
-    if (
-      (HardhatError.isHardhatError(
-        error,
-        HardhatError.ERRORS.CORE.SOLIDITY.PROJECT_ROOT_RESOLUTION_ERROR,
-      ) ||
-        HardhatError.isHardhatError(
-          error,
-          HardhatError.ERRORS.CORE.TEST_PLUGIN.CANNOT_DETERMINE_TEST_RUNNER,
-        )) &&
-      /-v+/.test(error.message)
-    ) {
-      console.error(
-        chalk.red(
-          `\nSupport for verbose test output will be added soon. Please re-run this command without the flag.\n`,
-        ),
-      );
-    } else {
-      printErrorMessages(error, builtinGlobalOptions?.showStackTraces);
-    }
+    printErrorMessages(error, builtinGlobalOptions?.showStackTraces);
 
     if (error instanceof Error) {
       try {
@@ -248,6 +228,7 @@ export async function parseBuiltinGlobalOptions(
   let version: boolean = false;
   let init: boolean = false;
 
+  // TODO: Use parseGlobalOptions(BUILTIN_GLOBAL_OPTIONS_DEFINITIONS, ...) instead
   for (let i = 0; i < cliArguments.length; i++) {
     const arg = cliArguments[i];
 
@@ -291,7 +272,7 @@ export async function parseBuiltinGlobalOptions(
       continue;
     }
 
-    if (arg === "--help") {
+    if (arg === "--help" || arg === "-h") {
       usedCliArguments[i] = true;
       help = true;
       continue;
@@ -300,12 +281,6 @@ export async function parseBuiltinGlobalOptions(
     if (arg === "--version") {
       usedCliArguments[i] = true;
       version = true;
-      continue;
-    }
-
-    if (arg === "--verbose") {
-      usedCliArguments[i] = true;
-      debug.enable("hardhat*");
       continue;
     }
   }
