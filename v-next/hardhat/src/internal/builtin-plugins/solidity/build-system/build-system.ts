@@ -122,7 +122,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     options?: BuildOptions,
   ): Promise<CompilationJobCreationError | Map<string, FileBuildResult>> {
     if (options?.quiet !== true) {
-      console.log("Compiling your Solidity contracts");
+      console.log("Compiling your Solidity contracts...");
     }
 
     await this.#downloadConfiguredCompilers(options?.quiet);
@@ -937,6 +937,10 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       string,
       Map<string, CompilationJob[]>
     >();
+
+    if (runnableCompilationJobs.length === 0) {
+      console.log("\nNothing to compile");
+    }
 
     for (const job of runnableCompilationJobs) {
       const solcVersion = job.solcConfig.version;
