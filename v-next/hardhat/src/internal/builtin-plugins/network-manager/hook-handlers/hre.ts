@@ -1,6 +1,8 @@
 import type { HardhatRuntimeEnvironmentHooks } from "../../../../types/hooks.js";
 import type { NetworkManager } from "../../../../types/network.js";
 
+import { DEFAULT_NETWORK_NAME } from "../../../constants.js";
+
 export default async (): Promise<Partial<HardhatRuntimeEnvironmentHooks>> => ({
   created: async (context, hre) => {
     let networkManager: NetworkManager | undefined;
@@ -15,6 +17,9 @@ export default async (): Promise<Partial<HardhatRuntimeEnvironmentHooks>> => ({
 
         if (networkManager === undefined) {
           networkManager = new NetworkManagerImplementation(
+            hre.globalOptions.network !== undefined
+              ? hre.globalOptions.network
+              : DEFAULT_NETWORK_NAME,
             hre.config.defaultChainType,
             hre.config.networks,
             context.hooks,

@@ -471,16 +471,6 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     const result = new Map<string, string[]>();
     const buildId = await compilationJob.getBuildId();
 
-    const userSourceNameMap = Object.fromEntries(
-      compilationJob.dependencyGraph
-        .getRoots()
-        .entries()
-        .map(([userSourceName, root]) => [
-          root.inputSourceName,
-          userSourceName,
-        ]),
-    );
-
     // We emit the artifacts for each root file, first emitting one artifact
     // for each contract, and then one declaration file for the entire file,
     // which defines their types and augments the ArtifactMap type.
@@ -511,7 +501,6 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
             root.inputSourceName,
             contractName,
             contract,
-            userSourceNameMap,
           );
 
           await writeUtf8File(
