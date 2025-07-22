@@ -19,6 +19,10 @@ const buildTask = task("build", "Builds your project")
     description: "The default build profile to use",
     defaultValue: "default",
   })
+  .addFlag({
+    name: "isolated",
+    description: "Use isolated mode, which prioritizes reproducibility",
+  })
   .addVariadicArgument({
     name: "files",
     description: "An optional list of files to compile",
