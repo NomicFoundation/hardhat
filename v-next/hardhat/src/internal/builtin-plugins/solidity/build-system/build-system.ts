@@ -210,6 +210,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
             indexedIndividualJobs,
             compilationResult,
             emitArtifactsResult,
+            options,
           );
         }),
       );
@@ -391,11 +392,12 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       const jobHash = await compilationJob.getBuildId();
       const cacheResult = this.#compileCache[rootFile];
 
-      // If there's no cache for the root file, or the compilation job changed, or using force flag, compile it
+      // If there's no cache for the root file, or the compilation job changed, or using force flag, or isolated mode changed, compile it
       if (
-        (options?.force ?? false) ||
+        options?.force === true ||
         cacheResult === undefined ||
-        cacheResult.jobHash !== jobHash
+        cacheResult.jobHash !== jobHash ||
+        cacheResult.isolated !== options?.isolated
       ) {
         rootFilesToCompile.add(rootFile);
         continue;
@@ -852,6 +854,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     indexedIndividualJobs: Map<string, CompilationJob>,
     result: CompilationResult,
     emitArtifactsResult: EmitArtifactsResult,
+    options: BuildOptions | undefined,
   ): Promise<void> {
     const rootFilePaths = result.compilationJob.dependencyGraph
       .getRoots()
@@ -884,6 +887,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
       this.#compileCache[rootFilePath] = {
         jobHash,
+        isolated: options?.isolated === true,
         artifactPaths,
         buildInfoPath: emitArtifactsResult.buildInfoPath,
         buildInfoOutputPath: emitArtifactsResult.buildInfoOutputPath,
