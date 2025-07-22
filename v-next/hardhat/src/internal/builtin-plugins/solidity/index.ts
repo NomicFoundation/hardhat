@@ -37,13 +37,13 @@ const hardhatPlugin: HardhatPlugin = {
   tasks: [
     {
       ...buildTask,
-      id: ["compile"],
-      description: "Builds your project (alias for build)",
+      id: ["build"],
+      description: "Builds your project",
     },
     {
       ...buildTask,
-      id: ["build"],
-      description: "Builds your project",
+      id: ["compile"],
+      description: "Builds your project (alias for build)",
     },
   ],
   globalOptions: [
