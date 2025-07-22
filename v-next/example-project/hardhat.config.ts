@@ -199,7 +199,7 @@ const config: HardhatUserConfig = {
         version: "0.8.2",
       },
     },
-    dependenciesToCompile: [
+    npmFilesToBuild: [
       "@openzeppelin/contracts/token/ERC20/ERC20.sol",
       "forge-std/Test.sol",
     ],

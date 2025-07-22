@@ -111,12 +111,11 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       )
     ).flat(1);
 
-    const dependenciesToCompile =
-      this.#options.solidityConfig.dependenciesToCompile.map(
-        npmModuleToNpmRootPath,
-      );
+    const npmFilesToBuild = this.#options.solidityConfig.npmFilesToBuild.map(
+      npmModuleToNpmRootPath,
+    );
 
-    return [...localFilesToCompile, ...dependenciesToCompile];
+    return [...localFilesToCompile, ...npmFilesToBuild];
   }
 
   public async build(

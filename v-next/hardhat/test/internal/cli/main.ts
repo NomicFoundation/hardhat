@@ -228,8 +228,9 @@ Usage: hardhat [GLOBAL OPTIONS] <TASK> [SUBTASK] [TASK OPTIONS] [--] [TASK ARGUM
 
 AVAILABLE TASKS:
 
+  build                    Builds your project
   clean                    Clears the cache and deletes all artifacts
-  compile                  Compiles your project
+  compile                  Builds your project (alias for build)
   console                  Opens a hardhat console
   flatten                  Flattens and prints contracts and their dependencies
   node                     Starts a JSON-RPC server on top of Hardhat Network
