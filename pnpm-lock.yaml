@@ -605,6 +605,9 @@ importers:
       '@nomicfoundation/hardhat-errors':
         specifier: workspace:^3.0.0-next.23
         version: link:../hardhat-errors
+      '@nomicfoundation/hardhat-verify':
+        specifier: workspace:^3.0.0-next.23
+        version: link:../hardhat-verify
     devDependencies:
       '@istanbuljs/nyc-config-typescript':
         specifier: 1.0.2
@@ -747,6 +750,9 @@ importers:
       '@nomicfoundation/hardhat-errors':
         specifier: workspace:^3.0.0-next.23
         version: link:../hardhat-errors
+      '@nomicfoundation/hardhat-verify':
+        specifier: workspace:^3.0.0-next.23
+        version: link:../hardhat-verify
     devDependencies:
       '@istanbuljs/nyc-config-typescript':
         specifier: 1.0.2
