@@ -119,7 +119,7 @@ describe("Partial compilation", () => {
         assert.ok(firstSnapshot.typeFiles["B.sol"] !== undefined);
 
         // Recompile
-        await project.compile();
+        await project.compile({ isolated: true });
 
         const secondSnapshot = await project.getSnapshot();
 
