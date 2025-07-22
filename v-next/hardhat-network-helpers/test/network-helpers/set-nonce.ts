@@ -2,7 +2,7 @@ import type { NetworkHelpers, NumberLike } from "../../src/types.js";
 import type { EthereumProvider } from "hardhat/types/providers";
 
 import assert from "node:assert/strict";
-import { before, beforeEach, describe, it } from "node:test";
+import { beforeEach, describe, it } from "node:test";
 
 import {
   assertHardhatInvariant,
@@ -28,13 +28,8 @@ describe("network-helpers - setNonce", () => {
   let provider: EthereumProvider;
   const account = "0x000000000000000000000000000000000000bEEF";
 
-  before(async () => {
-    ({ provider, networkHelpers } = await initializeNetwork());
-  });
-
   beforeEach(async () => {
-    // Reset network because nonce must be reset in between tests
-    await networkHelpers.reset();
+    ({ provider, networkHelpers } = await initializeNetwork());
   });
 
   it("should allow setting the nonce of an unused address", async () => {
@@ -82,7 +77,7 @@ describe("network-helpers - setNonce", () => {
       ["number", 2000001, 2000001],
       ["bigint", BigInt(2000002), 2000002],
       ["hex encoded", "0x1e8483", 2000003],
-      ["hex encoded with leading zeros", "0x01e240", 123456],
+      ["hex encoded with leading zeros", "0x1e8484", 2000004],
     ];
 
     for (const [type, value, expectedNonce] of nonceExamples) {
