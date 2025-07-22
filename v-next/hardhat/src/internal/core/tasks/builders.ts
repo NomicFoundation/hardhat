@@ -141,13 +141,14 @@ export class NewTaskDefinitionBuilderImplementation<
     name: NameT;
     shortName?: string;
     description?: string;
+    defaultValue?: number;
   }): NewTaskDefinitionBuilder<
     ExtendTaskArguments<NameT, ArgumentType.LEVEL, TaskArgumentsT>
   > {
     return this.addOption({
       ...levelConfig,
       type: ArgumentType.LEVEL,
-      defaultValue: 0,
+      defaultValue: levelConfig.defaultValue ?? 0,
     });
   }
 
@@ -347,13 +348,14 @@ export class TaskOverrideDefinitionBuilderImplementation<
     name: string;
     shortName?: string;
     description?: string;
+    defaultValue?: number;
   }): TaskOverrideDefinitionBuilder<
     ExtendTaskArguments<NameT, ArgumentType.LEVEL, TaskArgumentsT>
   > {
     return this.addOption({
       ...levelConfig,
       type: ArgumentType.LEVEL,
-      defaultValue: 0,
+      defaultValue: levelConfig.defaultValue ?? 0,
     });
   }
 
