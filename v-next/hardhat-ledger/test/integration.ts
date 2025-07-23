@@ -47,7 +47,7 @@ describe("LedgerHandler", () => {
     hre = await createHardhatRuntimeEnvironment({
       plugins: [hardhatLedgerPlugin],
       networks: {
-        hardhat: {
+        default: {
           type: "edr",
           accounts: HARDHAT_ACCOUNTS,
           ledgerAccounts: LEDGER_ADDRESSES,
@@ -72,7 +72,7 @@ describe("LedgerHandler", () => {
       const tmpHre = await createHardhatRuntimeEnvironment({
         plugins: [hardhatLedgerPlugin],
         networks: {
-          hardhat: {
+          default: {
             type: "edr",
             accounts: HARDHAT_ACCOUNTS,
           },
