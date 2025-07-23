@@ -12,6 +12,7 @@
     "@nomicfoundation/ignition-ui": "2.0.0",
     "@nomicfoundation/hardhat-ignition-viem": "2.0.0",
     "@nomicfoundation/hardhat-keystore": "2.0.0",
+    "@nomicfoundation/hardhat-ledger": "2.0.0",
     "@nomicfoundation/hardhat-mocha": "2.0.0",
     "@nomicfoundation/hardhat-network-helpers": "2.0.0",
     "@nomicfoundation/hardhat-node-test-reporter": "2.0.0",
