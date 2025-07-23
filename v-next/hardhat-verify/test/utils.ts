@@ -1,7 +1,9 @@
+import type { JsonFragment } from "@ethersproject/abi";
 import type {
   Interceptable,
   TestDispatcher,
 } from "@nomicfoundation/hardhat-utils/request";
+import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 import type {
   EthereumProvider,
   RequestArguments,
@@ -11,7 +13,10 @@ import assert from "node:assert/strict";
 import EventEmitter from "node:events";
 import { afterEach, beforeEach } from "node:test";
 
+import { getUnprefixedHexString } from "@nomicfoundation/hardhat-utils/hex";
 import { getTestDispatcher } from "@nomicfoundation/hardhat-utils/request";
+
+import { encodeConstructorArgs } from "../src/internal/constructor-args.js";
 
 export class MockEthereumProvider
   extends EventEmitter
@@ -108,4 +113,68 @@ export function initializeTestDispatcher(options: InitializeOptions = {}): {
       return interceptable;
     },
   };
+}
+
+export async function deployContract(
+  contractName: string,
+  constructorArgs: unknown[],
+  libraries: Record<string, string>,
+  hre: HardhatRuntimeEnvironment,
+  provider: EthereumProvider,
+): Promise<string> {
+  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing
+  const accounts = (await provider.request({
+    method: "eth_accounts",
+  })) as string[];
+  const deployer = accounts[0];
+
+  const artifact = await hre.artifacts.readArtifact(contractName);
+
+  let bytecode = artifact.bytecode;
+  if (Object.keys(libraries).length > 0) {
+    for (const [_, sourceLibraries] of Object.entries(
+      artifact.linkReferences,
+    )) {
+      for (const [libName, libOffsets] of Object.entries(sourceLibraries)) {
+        const libAddress = libraries[libName];
+        const hex = getUnprefixedHexString(libAddress).toLowerCase();
+        for (const { start, length } of libOffsets) {
+          const offset = 2 + start * 2;
+          bytecode =
+            bytecode.slice(0, offset) +
+            hex +
+            bytecode.slice(offset + length * 2);
+        }
+      }
+    }
+  }
+
+  const encodecConstructorArgs = await encodeConstructorArgs(
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing
+    artifact.abi as JsonFragment[],
+    constructorArgs,
+    contractName,
+  );
+
+  const txHash = await provider.request({
+    method: "eth_sendTransaction",
+    params: [
+      {
+        from: deployer,
+        data: bytecode + encodecConstructorArgs,
+      },
+    ],
+  });
+
+  while (true) {
+    const receipt = await provider.request({
+      method: "eth_getTransactionReceipt",
+      params: [txHash],
+    });
+    if (receipt !== undefined) {
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing
+      return (receipt as any).contractAddress;
+    }
+    await new Promise((r) => setTimeout(r, 1000));
+  }
 }

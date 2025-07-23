@@ -10,7 +10,11 @@ import {
   RESERVED_ARGUMENT_NAMES,
   RESERVED_ARGUMENT_SHORT_NAMES,
 } from "../../../src/internal/core/arguments.js";
-import { globalOption } from "../../../src/internal/core/config.js";
+import {
+  globalFlag,
+  globalLevel,
+  globalOption,
+} from "../../../src/internal/core/config.js";
 import {
   buildGlobalOptionDefinition,
   buildGlobalOptionDefinitions,
@@ -457,11 +461,29 @@ describe("Global Options", () => {
               type: ArgumentType.BIGINT,
               defaultValue: 0n,
             }),
+            globalFlag({
+              name: "globalOption4",
+              description: "globalOption4 description",
+            }),
+            globalFlag({
+              name: "globalOption5",
+              description: "globalOption5 description",
+            }),
+            globalLevel({
+              name: "globalOption6",
+              description: "globalOption6 description",
+            }),
+            globalLevel({
+              name: "globalOption7",
+              description: "globalOption7 description",
+            }),
           ],
         },
       ]);
 
       setEnvVar("HARDHAT_GLOBAL_OPTION_3", "5n");
+      setEnvVar("HARDHAT_GLOBAL_OPTION_5", "true");
+      setEnvVar("HARDHAT_GLOBAL_OPTION_7", "2");
 
       const globalOptions = resolveGlobalOptions(
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions  --
@@ -470,6 +492,8 @@ describe("Global Options", () => {
         {
           globalOption1: false,
           globalOption2: "user",
+          globalOption4: true,
+          globalOption6: 2,
         } as Partial<GlobalOptions>,
         globalOptionDefinitions,
       );
@@ -478,6 +502,10 @@ describe("Global Options", () => {
         globalOption1: false,
         globalOption2: "user",
         globalOption3: 5n,
+        globalOption4: true,
+        globalOption5: true,
+        globalOption6: 2,
+        globalOption7: 2,
       });
     });
 

@@ -218,7 +218,7 @@ export interface Artifact<AbiT extends Abi = Abi> {
  * The link references of a contract, which need to be resolved before using it.
  */
 export interface LinkReferences {
-  [librarySourceName: string]: {
+  [libraryInputSourceName: string]: {
     [libraryName: string]: Array<{ length: number; start: number }>;
   };
 }

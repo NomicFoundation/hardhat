@@ -383,7 +383,7 @@ describe("contracts", () => {
             contractName: "OnlyNormalLib",
             error:
               "The following libraries are missing:\n" +
-              '\t* "contracts/WithLibs.sol:NormalLib"\n' +
+              '\t* "project/contracts/WithLibs.sol:NormalLib"\n' +
               "\n" +
               "Please provide all the required libraries.",
           },
@@ -461,8 +461,8 @@ describe("contracts", () => {
             error:
               "The following libraries may resolve to multiple libraries:\n" +
               '\t* "ConstructorLib":\n' +
-              '\t\t* "contracts/ConstructorLib.sol:ConstructorLib"\n' +
-              '\t\t* "contracts/WithLibs.sol:ConstructorLib"\n' +
+              '\t\t* "project/contracts/ConstructorLib.sol:ConstructorLib"\n' +
+              '\t\t* "project/contracts/WithLibs.sol:ConstructorLib"\n' +
               "\n" +
               "Please provide the fully qualified name for these libraries.",
           },
@@ -484,8 +484,8 @@ describe("contracts", () => {
             error:
               "The following libraries may resolve to multiple libraries:\n" +
               '\t* "ConstructorLib":\n' +
-              '\t\t* "contracts/ConstructorLib.sol:ConstructorLib"\n' +
-              '\t\t* "contracts/WithLibs.sol:ConstructorLib"\n' +
+              '\t\t* "project/contracts/ConstructorLib.sol:ConstructorLib"\n' +
+              '\t\t* "project/contracts/WithLibs.sol:ConstructorLib"\n' +
               "\n" +
               "Please provide the fully qualified name for these libraries.",
           },
@@ -498,9 +498,9 @@ describe("contracts", () => {
           [2n],
           {
             libraries: {
-              "contracts/ConstructorLib.sol:ConstructorLib":
+              "project/contracts/ConstructorLib.sol:ConstructorLib":
                 constructorLibConstructorLibContract.address,
-              "contracts/WithLibs.sol:ConstructorLib":
+              "project/contracts/WithLibs.sol:ConstructorLib":
                 withLibsConstructorLibContract.address,
             },
           },
@@ -523,7 +523,7 @@ describe("contracts", () => {
           networkConnection.viem.deployContract("OnlyConstructorLib", [1n], {
             libraries: {
               ConstructorLib: constructorLibContract.address,
-              "contracts/WithLibs.sol:ConstructorLib":
+              "project/contracts/WithLibs.sol:ConstructorLib":
                 constructorLibContract.address,
             },
           }),
@@ -532,7 +532,7 @@ describe("contracts", () => {
             contractName: "OnlyConstructorLib",
             error:
               "The following libraries are provided more than once:\n" +
-              '\t* "contracts/WithLibs.sol:ConstructorLib"\n' +
+              '\t* "project/contracts/WithLibs.sol:ConstructorLib"\n' +
               "\n" +
               "Please ensure that each library is provided only once, either by its name or its fully qualified name.",
           },

@@ -76,13 +76,21 @@ export async function getCompilerInput(
   sourceName: string,
   buildProfileName: string,
 ): Promise<CompilerInput> {
-  const compilationJob = await solidity.getCompilationJobs(
+  const getCompilationJobsResult = await solidity.getCompilationJobs(
     [path.join(rootFilePath, sourceName)],
     {
       buildProfile: buildProfileName,
       quiet: true,
+      force: true,
     },
   );
+
+  assertHardhatInvariant(
+    !("reason" in getCompilationJobsResult),
+    "getCompilationJobs should not error",
+  );
+
+  const compilationJob = getCompilationJobsResult.compilationJobsPerFile;
 
   // TODO: should this be an error instead?
   assertHardhatInvariant(

@@ -19,6 +19,7 @@ import chalk from "chalk";
 import debug from "debug";
 
 import { sendErrorTelemetry } from "../../cli/telemetry/sentry/reporter.js";
+import { DEFAULT_NETWORK_NAME } from "../../constants.js";
 import { isSupportedChainType } from "../../edr/chain-type.js";
 import { BUILD_INFO_DIR_NAME } from "../artifacts/artifact-manager.js";
 
@@ -44,7 +45,7 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
   const network =
     hre.globalOptions.network !== undefined
       ? hre.globalOptions.network
-      : hre.config.defaultNetwork;
+      : DEFAULT_NETWORK_NAME;
 
   if (!(network in hre.config.networks)) {
     throw new HardhatError(HardhatError.ERRORS.CORE.NETWORK.NETWORK_NOT_FOUND, {

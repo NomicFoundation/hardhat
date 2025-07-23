@@ -12,7 +12,7 @@ module.exports = {
     },
   },
   networks: {
-    hardhat: {
+    default: {
       mining: {
         auto: false,
       },

@@ -1,7 +1,6 @@
-import type { JsonFragment } from "@ethersproject/abi";
 import type { Interceptable } from "@nomicfoundation/hardhat-utils/request";
+import type { HardhatUserConfig } from "hardhat/config";
 import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
-import type { EthereumProvider } from "hardhat/types/providers";
 
 import assert from "node:assert/strict";
 import { before, beforeEach, describe, it } from "node:test";
@@ -11,13 +10,11 @@ import {
   assertThrowsHardhatError,
   useEphemeralFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
-import { getUnprefixedHexString } from "@nomicfoundation/hardhat-utils/hex";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
-import { encodeConstructorArgs } from "../src/internal/constructor-args.js";
 import { ETHERSCAN_API_URL } from "../src/internal/etherscan.js";
 import { verifyContract, validateArgs } from "../src/internal/verification.js";
-import { initializeTestDispatcher } from "../test/utils.js";
+import { deployContract, initializeTestDispatcher } from "../test/utils.js";
 
 describe("verification", () => {
   describe("verifyContract", () => {
@@ -28,9 +25,10 @@ describe("verification", () => {
         url: etherscanApiUrl,
       });
 
+      let hardhatUserConfig: HardhatUserConfig;
       let hre: HardhatRuntimeEnvironment;
       before(async () => {
-        const hardhatUserConfig =
+        hardhatUserConfig =
           // eslint-disable-next-line import/no-relative-packages -- allowed in test
           (await import("./fixture-projects/integration/hardhat.config.js"))
             .default;
@@ -56,7 +54,7 @@ describe("verification", () => {
           provider,
         );
 
-        assert(result, "Verification should return true");
+        assert.ok(result, "Verification should return true");
       });
 
       it("should verify a contract with constructor arguments", async () => {
@@ -81,7 +79,7 @@ describe("verification", () => {
           provider,
         );
 
-        assert(result, "Verification should return true");
+        assert.ok(result, "Verification should return true");
       });
 
       it("should verify a contract with libraries", async () => {
@@ -113,7 +111,7 @@ describe("verification", () => {
           provider,
         );
 
-        assert(result, "Verification should return true");
+        assert.ok(result, "Verification should return true");
       });
 
       it("should verify a contract with constructor arguments and libraries", async () => {
@@ -147,7 +145,43 @@ describe("verification", () => {
           provider,
         );
 
-        assert(result, "Verification should return true");
+        assert.ok(result, "Verification should return true");
+      });
+
+      it("should verify a contract on a disabled provider", async () => {
+        const localHre = await createHardhatRuntimeEnvironment({
+          ...hardhatUserConfig,
+          verify: {
+            etherscan: {
+              enabled: false,
+              apiKey: "someApiKey",
+            },
+          },
+        });
+        const { provider } = await localHre.network.connect();
+        const address = await deployContract(
+          "Counter",
+          [],
+          {},
+          localHre,
+          provider,
+        );
+
+        const result = await verifyContract(
+          {
+            address,
+          },
+          localHre,
+          () => {},
+          testDispatcher.interceptable,
+          provider,
+        );
+
+        assert.ok(
+          !localHre.config.verify.etherscan.enabled,
+          "Etherscan verification should be disabled",
+        );
+        assert.ok(result, "Verification should return true");
       });
     });
 
@@ -214,70 +248,6 @@ describe("verification", () => {
     });
   });
 });
-
-async function deployContract(
-  contractName: string,
-  constructorArgs: unknown[],
-  libraries: Record<string, string>,
-  hre: HardhatRuntimeEnvironment,
-  provider: EthereumProvider,
-): Promise<string> {
-  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing
-  const accounts = (await provider.request({
-    method: "eth_accounts",
-  })) as string[];
-  const deployer = accounts[0];
-
-  const artifact = await hre.artifacts.readArtifact(contractName);
-
-  let bytecode = artifact.bytecode;
-  if (Object.keys(libraries).length > 0) {
-    for (const [_, sourceLibraries] of Object.entries(
-      artifact.linkReferences,
-    )) {
-      for (const [libName, libOffsets] of Object.entries(sourceLibraries)) {
-        const libAddress = libraries[libName];
-        const hex = getUnprefixedHexString(libAddress).toLowerCase();
-        for (const { start, length } of libOffsets) {
-          const offset = 2 + start * 2;
-          bytecode =
-            bytecode.slice(0, offset) +
-            hex +
-            bytecode.slice(offset + length * 2);
-        }
-      }
-    }
-  }
-
-  const encodecConstructorArgs = await encodeConstructorArgs(
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing
-    artifact.abi as JsonFragment[],
-    constructorArgs,
-    contractName,
-  );
-
-  const txHash = await provider.request({
-    method: "eth_sendTransaction",
-    params: [
-      {
-        from: deployer,
-        data: bytecode + encodecConstructorArgs,
-      },
-    ],
-  });
-
-  while (true) {
-    const receipt = await provider.request({
-      method: "eth_getTransactionReceipt",
-      params: [txHash],
-    });
-    if (receipt !== undefined) {
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing
-      return (receipt as any).contractAddress;
-    }
-    await new Promise((r) => setTimeout(r, 1000));
-  }
-}
 
 function mockEtherscanRequests(interceptable: Interceptable) {
   interceptable

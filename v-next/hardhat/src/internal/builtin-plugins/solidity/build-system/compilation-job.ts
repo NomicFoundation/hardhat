@@ -6,6 +6,8 @@ import type { CompilationJob } from "../../../../types/solidity/compilation-job.
 import type { CompilerInput } from "../../../../types/solidity/compiler-io.js";
 import type { DependencyGraph } from "../../../../types/solidity/dependency-graph.js";
 
+import { createHash } from "node:crypto";
+
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { createNonCryptographicHashId } from "@nomicfoundation/hardhat-utils/crypto";
 import { deepClone } from "@nomicfoundation/hardhat-utils/lang";
@@ -23,6 +25,9 @@ export class CompilationJobImplementation implements CompilationJob {
   public readonly solcLongVersion: string;
 
   readonly #hooks: HookManager;
+  // This map is shared across compilation jobs and is meant to store content hashes of source files
+  // It is used to speed up the hashing of compilation jobs
+  readonly #sharedContentHashes: Map<string, string>;
 
   #buildId: string | undefined;
   #solcInput: CompilerInput | undefined;
@@ -32,11 +37,13 @@ export class CompilationJobImplementation implements CompilationJob {
     solcConfig: SolcConfig,
     solcLongVersion: string,
     hooks: HookManager,
+    sharedContentHashes: Map<string, string> = new Map(),
   ) {
     this.dependencyGraph = dependencyGraph;
     this.solcConfig = solcConfig;
     this.solcLongVersion = solcLongVersion;
     this.#hooks = hooks;
+    this.#sharedContentHashes = sharedContentHashes;
   }
 
   public async getSolcInput(): Promise<CompilerInput> {
@@ -192,13 +199,16 @@ export class CompilationJobImplementation implements CompilationJob {
     // the format of the BuildInfo type.
     const format: BuildInfo["_format"] = "hh3-sol-build-info-1";
 
-    // NOTE: Historically, we used the source content hashes instead of the full
-    // source contents inside the solc input used to compute the build id here.
-    // This was an optimization that sped up the build ID computation in a case
-    // where multiple compilation jobs share some source files. We decided to
-    // remove it once the code coverage was added because it simplified the
-    // implementation and because we expect the caching logic to change.
     const solcInput = await this.getSolcInput();
+    const smallerSolcInput = { ...solcInput };
+
+    // We replace the source files content with their hashes for speeding up the build id computation
+    smallerSolcInput.sources = Object.fromEntries(
+      Object.entries(solcInput.sources).map(([sourceName, _source]) => [
+        sourceName,
+        { content: this.#getSourceContentHash(sourceName, _source.content) },
+      ]),
+    );
 
     // The preimage should include all the information that makes this
     // compilation job unique, and as this is used to identify the build info
@@ -206,10 +216,21 @@ export class CompilationJobImplementation implements CompilationJob {
     const preimage = JSON.stringify({
       format,
       solcLongVersion: this.solcLongVersion,
-      solcInput,
+      smallerSolcInput,
       solcConfig: this.solcConfig,
     });
 
     return createNonCryptographicHashId(preimage);
+  }
+
+  #getSourceContentHash(sourceName: string, text: string): any {
+    let hash = this.#sharedContentHashes.get(sourceName);
+
+    if (hash !== undefined) {
+      return hash;
+    }
+    hash = createHash("sha1").update(text).digest("hex");
+    this.#sharedContentHashes.set(sourceName, hash);
+    return hash;
   }
 }

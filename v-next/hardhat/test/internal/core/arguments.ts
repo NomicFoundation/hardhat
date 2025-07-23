@@ -183,16 +183,8 @@ describe("Arguments", () => {
       );
     });
 
-    it("should throw when parsing flag arguments values", () => {
-      assertThrowsHardhatError(
-        () => {
-          parseArgumentValue("true", ArgumentType.FLAG, "name");
-        },
-        HardhatError.ERRORS.CORE.INTERNAL.ASSERTION_ERROR,
-        {
-          message: "Flags should never accept values",
-        },
-      );
+    it("should parse flag arguments", () => {
+      assert.equal(parseArgumentValue("true", ArgumentType.FLAG, "name"), true);
     });
 
     it("should parse level arguments", () => {
@@ -245,9 +237,11 @@ describe("Arguments", () => {
           () => {
             parseArgumentValue("foo", ArgumentType.FLAG, "name");
           },
-          HardhatError.ERRORS.CORE.INTERNAL.ASSERTION_ERROR,
+          HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
           {
-            message: "Flags should never accept values",
+            value: "foo",
+            name: "name",
+            type: ArgumentType.FLAG,
           },
         );
       });

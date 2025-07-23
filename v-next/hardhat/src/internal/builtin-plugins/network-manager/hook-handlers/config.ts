@@ -11,7 +11,10 @@ import type { ConfigHooks } from "../../../../types/hooks.js";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 
-import { GENERIC_CHAIN_TYPE } from "../../../constants.js";
+import {
+  DEFAULT_NETWORK_NAME,
+  GENERIC_CHAIN_TYPE,
+} from "../../../constants.js";
 import {
   resolveChainDescriptors,
   resolveEdrNetwork,
@@ -39,9 +42,9 @@ export async function extendUserConfig(
     ...(networks.localhost as HttpNetworkUserConfig),
   };
 
-  const hardhatConfig: Partial<EdrNetworkUserConfig> = {
+  const defaultConfig: Partial<EdrNetworkUserConfig> = {
     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- This is always edr
-    ...(networks.hardhat as EdrNetworkUserConfig),
+    ...(networks.default as EdrNetworkUserConfig),
   };
 
   return {
@@ -53,12 +56,12 @@ export async function extendUserConfig(
         ...localhostConfig,
         type: "http",
       },
-      hardhat: {
+      [DEFAULT_NETWORK_NAME]: {
         chainId: 31337,
         gas: "auto",
         gasMultiplier: 1,
         gasPrice: "auto",
-        ...hardhatConfig,
+        ...defaultConfig,
         type: "edr",
       },
     },
@@ -107,7 +110,6 @@ export async function resolveUserConfig(
       userConfig.chainDescriptors,
     ),
     defaultChainType: resolvedConfig.defaultChainType ?? GENERIC_CHAIN_TYPE,
-    defaultNetwork: resolvedConfig.defaultNetwork ?? "hardhat",
     networks: resolvedNetworks,
   };
 }

@@ -10,7 +10,7 @@ import { before, describe, it } from "node:test";
 import { initializeTestEthers } from "./helpers/helpers.js";
 
 type GasLimitValue = "default" | "auto" | bigint;
-type ConnectedNetwork = "hardhat" | "localhost";
+type ConnectedNetwork = "default" | "localhost";
 
 interface Combination {
   hardhatGasLimit: GasLimitValue;
@@ -34,7 +34,7 @@ function generateCombinations(): Combination[] {
     1_000_000n,
   ];
 
-  // TODO: enable when V3 is ready: V3 node required - add hardhat network -> ["hardhat", "localhost"];
+  // TODO: enable when V3 is ready: V3 node required - add hardhat network -> ["default", "localhost"];
   const connectedNetworkValues: ConnectedNetwork[] = ["localhost"];
 
   for (const hardhatGasLimit of hardhatGasLimitValues) {
@@ -67,7 +67,7 @@ describe("gas config behavior", () => {
           { artifactName: "Example", fileName: "gas-config" },
         ]));
 
-        if (hardhatGasLimit !== "default" && connectedNetwork === "hardhat") {
+        if (hardhatGasLimit !== "default" && connectedNetwork === "default") {
           networkConfig.gas = hardhatGasLimit;
         }
 
@@ -85,12 +85,12 @@ describe("gas config behavior", () => {
       // the result of an estimateGas call should be used
       let defaultGasLimit: bigint | undefined;
       if (
-        (connectedNetwork === "hardhat" && hardhatGasLimit === 1_000_000n) ||
+        (connectedNetwork === "default" && hardhatGasLimit === 1_000_000n) ||
         (connectedNetwork === "localhost" && localhostGasLimit === 1_000_000n)
       ) {
         defaultGasLimit = 1_000_000n;
       } else if (
-        (connectedNetwork === "hardhat" && hardhatGasLimit === "default") ||
+        (connectedNetwork === "default" && hardhatGasLimit === "default") ||
         (connectedNetwork === "localhost" && localhostGasLimit === "default")
       ) {
         // expect the block gas limit to be used as the default gas limit

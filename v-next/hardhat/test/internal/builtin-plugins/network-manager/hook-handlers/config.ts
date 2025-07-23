@@ -103,7 +103,6 @@ describe("network-manager/hook-handlers/config", () => {
     it("should pass if the config is valid", async () => {
       const config: HardhatUserConfig = {
         defaultChainType: GENERIC_CHAIN_TYPE,
-        defaultNetwork: "localhost",
         networks: {
           localhost: {
             type: "http",
@@ -140,23 +139,6 @@ describe("network-manager/hook-handlers/config", () => {
         {
           path: ["defaultChainType"],
           message: "Expected 'l1', 'optimism', or 'generic'",
-        },
-      ]);
-    });
-
-    it("should throw if the defaultNetwork is not a string", async () => {
-      const config = {
-        defaultNetwork: 123,
-      };
-
-      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-      -- testing invalid network type for js users */
-      const validationErrors = await validateNetworkUserConfig(config as any);
-
-      assertValidationErrors(validationErrors, [
-        {
-          path: ["defaultNetwork"],
-          message: "Expected string, received number",
         },
       ]);
     });
@@ -1274,7 +1256,6 @@ describe("network-manager/hook-handlers/config", () => {
       );
 
       assert.equal(resolvedConfig.defaultChainType, GENERIC_CHAIN_TYPE);
-      assert.equal(resolvedConfig.defaultNetwork, "hardhat");
       assert.deepEqual(resolvedConfig.networks, {
         localhost: {
           type: "http",
@@ -1297,7 +1278,6 @@ describe("network-manager/hook-handlers/config", () => {
         // To change the defaultChainType, we need to augment the Hardhat types.
         // Since this can't be done for a single test, we'll leave this untested.
         defaultChainType: GENERIC_CHAIN_TYPE,
-        defaultNetwork: "myNetwork",
         networks: {
           myNetwork: {
             type: "http",
@@ -1324,7 +1304,6 @@ describe("network-manager/hook-handlers/config", () => {
       );
 
       assert.equal(resolvedConfig.defaultChainType, GENERIC_CHAIN_TYPE);
-      assert.equal(resolvedConfig.defaultNetwork, "myNetwork");
       assert.equal(resolvedConfig.networks.myNetwork.type, "http");
       assert.deepEqual(resolvedConfig.networks, {
         myNetwork: {

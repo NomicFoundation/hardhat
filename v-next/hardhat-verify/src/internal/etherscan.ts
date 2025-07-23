@@ -53,12 +53,21 @@ export class Etherscan implements VerificationProvider {
     this.name = etherscanConfig.name ?? "Etherscan";
     this.url = etherscanConfig.url;
     this.apiUrl = ETHERSCAN_API_URL;
-    this.apiKey = etherscanConfig.apiKey;
     this.#dispatcher = etherscanConfig.dispatcher;
     this.#pollingIntervalMs =
       etherscanConfig.dispatcher !== undefined
         ? 0
         : VERIFICATION_STATUS_POLLING_SECONDS;
+
+    if (etherscanConfig.apiKey === "") {
+      throw new HardhatError(
+        HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_API_KEY_EMPTY,
+        {
+          verificationProvider: this.name,
+        },
+      );
+    }
+    this.apiKey = etherscanConfig.apiKey;
   }
 
   public getContractUrl(address: string) {

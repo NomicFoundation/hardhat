@@ -10,7 +10,7 @@ export default {
     },
   },
   networks: {
-    hardhat: {
+    default: {
       mining: {
         auto: false,
       },

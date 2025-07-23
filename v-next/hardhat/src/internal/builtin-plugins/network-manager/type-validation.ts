@@ -421,7 +421,6 @@ const networkUserConfigSchema = baseNetworkUserConfigSchema.superRefine(
 const userConfigSchema = z.object({
   chainDescriptors: z.optional(chainDescriptorsUserConfigSchema),
   defaultChainType: z.optional(chainTypeUserConfigSchema),
-  defaultNetwork: z.optional(z.string()),
   networks: z.optional(z.record(networkUserConfigSchema)),
 });
 
