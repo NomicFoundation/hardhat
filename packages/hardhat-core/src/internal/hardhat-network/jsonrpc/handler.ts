@@ -109,12 +109,12 @@ export class JsonRpcHandler {
 
       // Clear any active subscriptions for the closed websocket connection.
       isClosed = true;
-      subscriptions.forEach(async (subscriptionId) => {
-        await this._provider.request({
+      await Promise.all(subscriptions.map(async (subscriptionId) => {
+        return this._provider.request({
           method: "eth_unsubscribe",
           params: [subscriptionId],
         });
-      });
+      }));
     });
   };
 
