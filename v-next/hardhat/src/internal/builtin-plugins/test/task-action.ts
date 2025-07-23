@@ -17,10 +17,11 @@ interface TestActionArguments {
   chainType: string;
   grep: string | undefined;
   noCompile: boolean;
+  verbosity: number;
 }
 
 const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
-  { testFiles, chainType, grep, noCompile },
+  { testFiles, chainType, grep, noCompile, verbosity },
   hre,
 ) => {
   // If this code is executed, it means the user has not specified a test runner.
@@ -63,6 +64,10 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
 
     if (subtask.options.has("chainType")) {
       args.chainType = chainType;
+    }
+
+    if (subtask.options.has("verbosity")) {
+      args.verbosity = verbosity;
     }
 
     await subtask.run(args);

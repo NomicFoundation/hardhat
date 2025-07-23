@@ -3,7 +3,10 @@ import querystring from "node:querystring";
 import { beforeEach, describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
+import {
+  assertRejectsWithHardhatError,
+  assertThrowsHardhatError,
+} from "@nomicfoundation/hardhat-test-utils";
 
 import { Etherscan, ETHERSCAN_API_URL } from "../src/internal/etherscan.js";
 
@@ -43,6 +46,20 @@ describe("etherscan", () => {
         });
 
         assert.equal(etherscan.name, "Etherscan");
+      });
+
+      it("should throw an error if the apiKey is empty", () => {
+        assertThrowsHardhatError(
+          () =>
+            new Etherscan({
+              ...etherscanConfig,
+              apiKey: "",
+            }),
+          HardhatError.ERRORS.HARDHAT_VERIFY.GENERAL.EXPLORER_API_KEY_EMPTY,
+          {
+            verificationProvider: etherscanConfig.name,
+          },
+        );
       });
     });
 

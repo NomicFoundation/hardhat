@@ -939,7 +939,7 @@ describe("Ethers plugin", () => {
     });
   });
 
-  describe("hardhat", () => {
+  describe("default", () => {
     describe("contract events", () => {
       // TODO re-enable when we make .on("event") work
       // it("should be detected", async ()=> {

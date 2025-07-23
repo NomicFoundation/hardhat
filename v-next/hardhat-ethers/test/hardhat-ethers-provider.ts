@@ -136,7 +136,7 @@ describe("hardhat ethers provider", () => {
   // it("should return the network", async ()=>{
   //   const network = await ethers.provider.getNetwork();
 
-  //   assert.equal(network.name, "hardhat");
+  //   assert.equal(network.name, "default");
   //   assert.equal(network.chainId, 31337n);
   // });
 

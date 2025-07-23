@@ -185,12 +185,7 @@ export function parseArgumentValue(
     case ArgumentType.BOOLEAN:
       return validateAndParseBoolean(name, value);
     case ArgumentType.FLAG:
-      throw new HardhatError(
-        HardhatError.ERRORS.CORE.INTERNAL.ASSERTION_ERROR,
-        {
-          message: "Flags should never accept values",
-        },
-      );
+      return validateAndParseFlag(name, value);
   }
 }
 
@@ -275,6 +270,23 @@ function validateAndParseBoolean(name: string, value: string): boolean {
         value,
         name,
         type: ArgumentType.BOOLEAN,
+      },
+    );
+  }
+
+  return normalizedValue === "true";
+}
+
+function validateAndParseFlag(name: string, value: string): boolean {
+  const normalizedValue = value.toLowerCase();
+
+  if (normalizedValue !== "true" && normalizedValue !== "false") {
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+      {
+        value,
+        name,
+        type: ArgumentType.FLAG,
       },
     );
   }

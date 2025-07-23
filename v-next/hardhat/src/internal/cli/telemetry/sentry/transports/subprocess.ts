@@ -45,8 +45,6 @@ export function makeSubprocessTransport(
 
       // Don't send user's full config path for privacy reasons
       delete event.extra?.configPath;
-      // We don't care about the verbose setting
-      delete event.extra?.verbose;
 
       const serializedEvent = JSON.stringify(event);
 

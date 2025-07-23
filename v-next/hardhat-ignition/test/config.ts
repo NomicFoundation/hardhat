@@ -20,7 +20,7 @@ describe("config", () => {
       const hre = await createHardhatRuntimeEnvironment({
         plugins: [hardhatIgnition],
         networks: {
-          hardhat: {
+          default: {
             type: "edr",
             mining: {
               auto: false,
@@ -48,7 +48,7 @@ describe("config", () => {
       });
 
       loadedOptions = hre.config.ignition;
-      hardhatNetworkOptions = hre.config.networks.hardhat;
+      hardhatNetworkOptions = hre.config.networks.default;
     });
 
     it("should apply requiredConfirmations", async function () {

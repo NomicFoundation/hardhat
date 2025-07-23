@@ -15,7 +15,6 @@ export default {
       },
     },
   },
-  defaultNetwork: "nothardhat",
   networks: {
     nothardhat: {
       type: "edr",

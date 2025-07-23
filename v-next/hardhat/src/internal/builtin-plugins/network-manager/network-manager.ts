@@ -103,6 +103,7 @@ export class NetworkManagerImplementation implements NetworkManager {
     networkConfigOverride?: NetworkConfigOverride,
   ): Promise<NetworkConnection<ChainTypeT>> {
     const resolvedNetworkName = networkName ?? this.#defaultNetwork;
+
     if (this.#networkConfigs[resolvedNetworkName] === undefined) {
       throw new HardhatError(
         HardhatError.ERRORS.CORE.NETWORK.NETWORK_NOT_FOUND,

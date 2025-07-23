@@ -5,6 +5,32 @@ import { globalOption, task } from "../../core/config.js";
 
 import "./type-extensions.js";
 
+const buildTask = task("build", "Builds your project")
+  .addFlag({
+    name: "force",
+    description: "Force compilation even if no files have changed",
+  })
+  .addFlag({
+    name: "quiet",
+    description: "Makes the compilation process less verbose",
+  })
+  .addOption({
+    name: "defaultBuildProfile",
+    description: "The default build profile to use",
+    defaultValue: "default",
+  })
+  .addFlag({
+    name: "isolated",
+    description: "Use isolated mode, which prioritizes reproducibility",
+  })
+  .addVariadicArgument({
+    name: "files",
+    description: "An optional list of files to compile",
+    defaultValue: [],
+  })
+  .setAction(import.meta.resolve("./tasks/build.js"))
+  .build();
+
 const hardhatPlugin: HardhatPlugin = {
   id: "builtin:solidity",
   dependencies: [async () => (await import("../artifacts/index.js")).default],
@@ -13,27 +39,16 @@ const hardhatPlugin: HardhatPlugin = {
     hre: import.meta.resolve("./hook-handlers/hre.js"),
   },
   tasks: [
-    task("compile", "Compiles your project")
-      .addFlag({
-        name: "force",
-        description: "Force compilation even if no files have changed",
-      })
-      .addFlag({
-        name: "quiet",
-        description: "Makes the compilation process less verbose",
-      })
-      .addOption({
-        name: "defaultBuildProfile",
-        description: "The default build profile to use",
-        defaultValue: "default",
-      })
-      .addVariadicArgument({
-        name: "files",
-        description: "An optional list of files to compile",
-        defaultValue: [],
-      })
-      .setAction(import.meta.resolve("./tasks/compile.js"))
-      .build(),
+    {
+      ...buildTask,
+      id: ["build"],
+      description: "Builds your project",
+    },
+    {
+      ...buildTask,
+      id: ["compile"],
+      description: "Builds your project (alias for build)",
+    },
   ],
   globalOptions: [
     globalOption({
