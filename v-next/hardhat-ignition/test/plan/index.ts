@@ -8,8 +8,7 @@ import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-projec
 describe("visualize", () => {
   useEphemeralIgnitionProject("minimal");
 
-  // TODO: HH3 bring back visualization
-  it.skip("should create a visualization", async function () {
+  it("should create a visualization", async function () {
     const visualizationPath = path.resolve("../minimal/cache/visualization");
     await emptyDir(visualizationPath);
 
