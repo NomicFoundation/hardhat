@@ -3,4 +3,4 @@
 "hardhat": patch
 ---
 
-Minimize compilation jobs based on changes in files and config across runs
+Speed up re-compilation with better caching ([#6987](https://github.com/NomicFoundation/hardhat/pull/6987))
