@@ -350,7 +350,7 @@ describe("LedgerHandler", () => {
             result: rsv,
             expectedParams: {
               path: derPath,
-              data: dataToSign,
+              data: dataToSign.replace("0x", ""),
             },
           },
         });
@@ -394,7 +394,7 @@ describe("LedgerHandler", () => {
             result: rsv,
             expectedParams: {
               path: derPath,
-              data: dataToSign,
+              data: dataToSign.replace("0x", ""),
             },
           },
         });
@@ -629,7 +629,7 @@ describe("LedgerHandler", () => {
             result: rsv,
             expectedParams: {
               path: derPath,
-              data: dataToSign,
+              data: dataToSign.replace("0x", ""),
             },
           },
         });

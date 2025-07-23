@@ -192,7 +192,10 @@ export class LedgerHandler {
             "Ledger handler should have initialized the eth instance",
           );
 
-          return this.#eth.signPersonalMessage(path, bytesToHexString(data));
+          return this.#eth.signPersonalMessage(
+            path,
+            bytesToHexString(data).replace("0x", ""),
+          );
         });
 
         return this.#toRpcSig(signature);
@@ -418,7 +421,10 @@ export class LedgerHandler {
             "Ledger handler should have initialized the eth instance",
           );
 
-          return this.#eth.signPersonalMessage(path, bytesToHexString(data));
+          return this.#eth.signPersonalMessage(
+            path,
+            bytesToHexString(data).replace("0x", ""),
+          );
         });
 
         return this.#toRpcSig(signature);
@@ -465,7 +471,7 @@ export class LedgerHandler {
     const domainHash = enc.structHash("EIP712Domain", domain as any);
 
     /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    -- A type assertion is necessary because there is no type overlap between the `domain` imported from `@ledgerhq`
+    -- A type assertion is necessary because there is no type overlap between the `message` imported from `@ledgerhq`
     and the parameter type expected by the function imported from `micro-eth-signer`. */
     const structHash = enc.structHash(primaryType, message as any);
 
