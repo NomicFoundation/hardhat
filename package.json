@@ -16,5 +16,10 @@
     "lint": "pnpm run --recursive --if-present lint",
     "prelint:fix": "pnpm build",
     "lint:fix": "pnpm run --recursive --if-present lint:fix"
+  },
+  "pnpm": {
+    "overrides": {
+      "node-hid": "^3.2.0"
+    }
   }
 }

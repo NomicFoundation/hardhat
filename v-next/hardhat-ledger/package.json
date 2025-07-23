@@ -55,13 +55,16 @@
   },
   "dependencies": {
     "@ledgerhq/errors": "^6.22.0",
+    "@ledgerhq/evm-tools": "^1.7.0",
     "@ledgerhq/hw-app-eth": "^6.45.10",
     "@ledgerhq/hw-transport": "^6.31.7",
     "@ledgerhq/hw-transport-node-hid": "^6.29.8",
+    "@ledgerhq/types-live": "^6.76.0",
     "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.21",
     "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.21",
     "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.0-next.21",
     "debug": "^4.3.2",
+    "micro-eth-signer": "^0.14.0",
     "zod": "^3.23.8"
   },
   "peerDependencies": {
