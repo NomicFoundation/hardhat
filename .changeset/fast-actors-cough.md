@@ -3,4 +3,4 @@
 "@nomicfoundation/hardhat-ethers": patch
 ---
 
-Remove hardhat_reset usage and support
+Remove `hardhat_reset` ([#6110](https://github.com/NomicFoundation/hardhat/issues/6110))
