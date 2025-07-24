@@ -133,7 +133,7 @@ describe("formatTraces", () => {
 [127552] ${chalk.green("FailingCounterTest")}::${chalk.green("setUp")}()
   ├─ [0] ${chalk.green("console")}::${chalk.green("log")}("Setting up") ${chalk.yellow("[staticcall]")}
   ├─ [68915] ${chalk.yellow("→ new")} Counter
-  |    └─ ${chalk.green("←")} 344 bytes of code
+  │    └─ ${chalk.green("←")} 344 bytes of code
   └─ [0] ${chalk.green("console")}::${chalk.green("log")}("Counter set up") ${chalk.yellow("[staticcall]")}
 [32272] ${chalk.green("FailingCounterTest")}::${chalk.green("testFailFuzzInc")}(1)
   ├─ [0] ${chalk.green("console")}::${chalk.green("log")}("Fuzz testing inc fail") ${chalk.yellow("[staticcall]")}

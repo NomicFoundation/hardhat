@@ -196,7 +196,7 @@ function formatNestedArray(
       } else {
         const isLast = i === data.length - 1;
         const connector = isLast ? "  └─ " : "  ├─ ";
-        const childPrefix = isLast ? "     " : "  |  ";
+        const childPrefix = isLast ? "     " : "  │  ";
         output += `${prefix}${connector}${label}\n`;
         output += formatNestedArray(children, prefix + childPrefix, false);
       }
