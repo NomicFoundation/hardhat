@@ -108,20 +108,6 @@ export interface NetworkHelpers {
   mineUpTo(blockNumber: NumberLike): Promise<void>;
 
   /**
-   * Resets the Hardhat Network to its initial state or forks from a given URL and block number.
-   *
-   * @param url Optional JSON-RPC URL to fork from.
-   * @param blockNumber Optional block number to fork from.
-   * @returns A promise that resolves once the reset operation is completed.
-   *
-   * @example
-   * const { networkHelpers } = await hre.network.connect();
-   * await networkHelpers.reset(); // Resets the network
-   * await networkHelpers.reset("https://mainnet.infura.io", 123456); // Resets and forks from a specific block
-   */
-  reset(url?: string, blockNumber?: NumberLike): Promise<void>;
-
-  /**
    * Sets the balance for the given address.
    *
    * @param address The address whose balance will be updated.

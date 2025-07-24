@@ -44,6 +44,7 @@ import debug from "debug";
 import { hexToBytes } from "ethereum-cryptography/utils";
 import { addr } from "micro-eth-signer";
 
+import { sendErrorTelemetry } from "../../../cli/telemetry/sentry/reporter.js";
 import {
   EDR_NETWORK_REVERT_SNAPSHOT_EVENT,
   OPTIMISM_CHAIN_TYPE,
@@ -59,6 +60,7 @@ import {
   UnknownError,
 } from "../provider-errors.js";
 
+import { EdrProviderStackTraceGenerationError } from "./stack-traces/stack-trace-generation-errors.js";
 import { createSolidityErrorWithStackTrace } from "./stack-traces/stack-trace-solidity-errors.js";
 import {
   isDebugTraceResult,
@@ -319,6 +321,10 @@ export class EdrProvider extends BaseProvider {
       try {
         stackTrace = edrResponse.stackTrace();
       } catch (e) {
+        if (e instanceof Error) {
+          await sendErrorTelemetry(new EdrProviderStackTraceGenerationError(e));
+        }
+
         log("Failed to get stack trace: %O", e);
       }
 
