@@ -10,10 +10,11 @@ interface CompileActionArguments {
   files: string[];
   quiet: boolean;
   defaultBuildProfile: string | undefined;
+  isolated: boolean;
 }
 
 const buildAction: NewTaskActionFunction<CompileActionArguments> = async (
-  { force, files, quiet, defaultBuildProfile },
+  { force, files, quiet, defaultBuildProfile, isolated },
   { solidity, globalOptions },
 ) => {
   const rootPaths =
@@ -33,6 +34,7 @@ const buildAction: NewTaskActionFunction<CompileActionArguments> = async (
     force,
     buildProfile,
     quiet,
+    isolated,
   });
 
   throwIfSolidityBuildFailed(results);

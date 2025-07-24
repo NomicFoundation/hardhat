@@ -37,8 +37,7 @@ describe("localhost deployment flag", function () {
     assert(await exists(deploymentDir), "Deployment was not written to disk");
   });
 
-  // TODO: Re-enable once the logic for creating the deploymentDir based on the ephemeral network is fixed
-  it.skip("false should not write deployment to disk", async function () {
+  it("false should not write deployment to disk", async function () {
     await this.hre.tasks.getTask(["ignition", "deploy"]).run({
       modulePath: "./ignition/modules/OwnModule.js",
       writeLocalhostDeployment: false,

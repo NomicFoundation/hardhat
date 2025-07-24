@@ -1,5 +1,17 @@
 # hardhat
 
+## 3.0.0-next.24
+
+### Patch Changes
+
+- 595c970: Rename `dependenciesToCompile` to `npmFilesToBuild` in Hardhat config ([#6877](https://github.com/NomicFoundation/hardhat/issues/6877))
+- 595c970: Add `build` task that replaces `compile`, but keep the `compile` task as an alias to `build` ([#6877](https://github.com/NomicFoundation/hardhat/issues/6877))
+- e3e9757: Added call traces support for solidity tests; call traces can be enabled via the `-vvvv` verbosity level flag ([#6830](https://github.com/NomicFoundation/hardhat/issues/6830))
+- dbd9368: Allow Ignition reconciliation of changed bytecode when the contract has been successfully deployed ([#7006](https://github.com/NomicFoundation/hardhat/pull/7006))
+- ab67a7d: Support verifying contracts on all enabled providers from the main verify task ([#7007](https://github.com/NomicFoundation/hardhat/issues/7007))
+- 3fe7683: Fixed global flag option parsing ([#7028](https://github.com/NomicFoundation/hardhat/issues/7028))
+- cbbe240: Speed up re-compilation with better caching ([#6987](https://github.com/NomicFoundation/hardhat/pull/6987))
+
 ## 3.0.0-next.23
 
 ### Patch Changes

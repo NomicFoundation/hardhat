@@ -65,9 +65,10 @@ const taskDeploy: NewTaskActionFunction<TaskDeployArguments> = async (
   );
 
   const deploymentDir =
-    connection.networkName === "hardhat" && !writeLocalhostDeployment
+    connection.networkConfig.type === "edr" && !writeLocalhostDeployment
       ? undefined
       : path.join(hre.config.paths.ignition, "deployments", deploymentId);
+
   if (chainId !== 31337) {
     if (process.env.HARDHAT_IGNITION_CONFIRM_DEPLOYMENT === undefined) {
       const prompt = await Prompt({

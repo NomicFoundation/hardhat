@@ -86,18 +86,13 @@ export function resolveEdrNetwork(
       networkConfig.allowUnlimitedContractSize ?? false,
     blockGasLimit: BigInt(networkConfig.blockGasLimit ?? 30_000_000n),
     coinbase: resolveCoinbase(networkConfig.coinbase),
-    enableRip7212: networkConfig.enableRip7212 ?? false,
-    enableTransientStorage: networkConfig.enableTransientStorage ?? false,
+
     forking: resolveForkingConfig(
       networkConfig.forking,
       cachePath,
       resolveConfigurationVariable,
     ),
-    hardfork: resolveHardfork(
-      networkConfig.hardfork,
-      networkConfig.chainType,
-      networkConfig.enableTransientStorage,
-    ),
+    hardfork: resolveHardfork(networkConfig.hardfork, networkConfig.chainType),
     initialBaseFeePerGas: resolveInitialBaseFeePerGas(
       networkConfig.initialBaseFeePerGas,
     ),
@@ -276,7 +271,6 @@ export async function resolveChainDescriptors(
 export function resolveHardfork(
   hardfork: string | undefined,
   chainType: ChainType | undefined = GENERIC_CHAIN_TYPE,
-  _enableTransientStorage: boolean | undefined,
 ): string {
   if (hardfork !== undefined) {
     return hardfork;
