@@ -34,7 +34,13 @@ export class Compiler implements ICompiler {
       throw new HardhatError(ERRORS.SOLC.SOLCJS_ERROR, {}, e);
     }
 
-    return JSON.parse(output);
+    let parsedOutput;
+    try {
+      parsedOutput = JSON.parse(output);
+    } catch (e) {
+      throw new HardhatError(ERRORS.SOLC.INVALID_OUTPUT ?? ERRORS.SOLC.SOLCJS_ERROR, { output }, e);
+    }
+    return parsedOutput;
   }
 }
 
@@ -75,7 +81,13 @@ export class NativeCompiler implements ICompiler {
       throw new HardhatError(ERRORS.SOLC.CANT_RUN_NATIVE_COMPILER, {}, e);
     }
 
-    return JSON.parse(output);
+    let parsedOutput;
+    try {
+      parsedOutput = JSON.parse(output);
+    } catch (e) {
+      throw new HardhatError(ERRORS.SOLC.INVALID_OUTPUT ?? ERRORS.SOLC.CANT_RUN_NATIVE_COMPILER, { output }, e);
+    }
+    return parsedOutput;
   }
 }
 
