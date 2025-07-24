@@ -24,7 +24,6 @@ export function createTx(
     chainId,
     value: txRequest.value ?? 0n,
     data: bytesToHexString(txRequest.data ?? new Uint8Array()),
-    gasLimit: txRequest.gas,
   };
 
   const accessList = txRequest.accessList?.map(({ address, storageKeys }) => {

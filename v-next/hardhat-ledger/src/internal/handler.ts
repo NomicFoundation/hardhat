@@ -37,6 +37,7 @@ import { add0x, initSig } from "micro-eth-signer/utils";
 
 import * as cache from "./cache.js";
 import { createTx } from "./create-tx.js";
+import { getYParity } from "./get-y-parity.js";
 import { PLUGIN_NAME } from "./plugin-name.js";
 
 export class LedgerHandler {
@@ -587,7 +588,7 @@ export class LedgerHandler {
       ...unsignedTx.raw,
       r: toBigInt(normalizeHexString(signature.r)),
       s: toBigInt(normalizeHexString(signature.s)),
-      yParity: hexStringToNumber(normalizeHexString(signature.v)) % 2,
+      yParity: getYParity(hexStringToNumber(normalizeHexString(signature.v))),
     }).toHex();
 
     return {
