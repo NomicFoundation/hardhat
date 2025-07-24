@@ -108,7 +108,6 @@ declare module "../../../../types/config.js" {
     allowUnlimitedContractSize?: boolean;
     blockGasLimit?: number | bigint;
     coinbase?: string;
-    enableTransientStorage?: boolean;
     forking?: EdrNetworkForkingUserConfig;
     hardfork?: string;
     initialBaseFeePerGas?: number | bigint;
@@ -248,7 +247,6 @@ declare module "../../../../types/config.js" {
     allowUnlimitedContractSize: boolean;
     blockGasLimit: bigint;
     coinbase: Uint8Array;
-    enableTransientStorage: boolean;
     forking?: EdrNetworkForkingConfig;
     hardfork: string;
     initialBaseFeePerGas?: bigint;

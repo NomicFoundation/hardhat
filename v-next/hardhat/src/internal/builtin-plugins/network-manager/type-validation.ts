@@ -304,7 +304,6 @@ const edrNetworkUserConfigSchema = z.object({
   allowUnlimitedContractSize: z.optional(z.boolean()),
   blockGasLimit: z.optional(gasUnitUserConfigSchema),
   coinbase: z.optional(z.string()),
-  enableTransientStorage: z.optional(z.boolean()),
   forking: z.optional(edrNetworkForkingUserConfigSchema),
   hardfork: z.optional(z.string()),
   initialBaseFeePerGas: z.optional(gasUnitUserConfigSchema),
@@ -334,7 +333,6 @@ function refineEdrNetworkUserConfig(
       hardfork,
       minGasPrice,
       initialBaseFeePerGas,
-      enableTransientStorage,
     } = networkConfig;
 
     if (hardfork !== undefined && !isValidHardforkName(hardfork, chainType)) {
@@ -365,25 +363,6 @@ function refineEdrNetworkUserConfig(
               "initialBaseFeePerGas is only valid for networks with EIP-1559. Try a newer hardfork or remove it.",
           });
         }
-      }
-
-      if (
-        !hardforkGte(resolvedHardfork, L1HardforkName.CANCUN, chainType) &&
-        enableTransientStorage === true
-      ) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: `'enableTransientStorage' is not supported for hardforks before 'cancun'. Please use a hardfork from 'cancun' onwards to enable this feature.`,
-        });
-      }
-      if (
-        hardforkGte(resolvedHardfork, L1HardforkName.CANCUN, chainType) &&
-        enableTransientStorage === false
-      ) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: `'enableTransientStorage' must be enabled for hardforks 'cancun' or later. To disable this feature, use a hardfork before 'cancun'.`,
-        });
       }
     }
 
