@@ -123,7 +123,6 @@ describe("config-resolution", () => {
         allowBlocksWithSameTimestamp: true,
         allowUnlimitedContractSize: true,
         blockGasLimit: 20_000_000,
-        enableRip7212: true,
         enableTransientStorage: true,
         initialDate: new Date(),
         loggingEnabled: true,
@@ -158,7 +157,6 @@ describe("config-resolution", () => {
         // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- cast for testing
         BigInt(userConfig.blockGasLimit as number),
       );
-      assert.equal(edrNetworkConfig.enableRip7212, userConfig.enableRip7212);
       assert.equal(
         edrNetworkConfig.enableTransientStorage,
         userConfig.enableTransientStorage,
@@ -202,7 +200,6 @@ describe("config-resolution", () => {
       assert.equal(edrNetworkConfig.allowBlocksWithSameTimestamp, false);
       assert.equal(edrNetworkConfig.allowUnlimitedContractSize, false);
       assert.equal(edrNetworkConfig.blockGasLimit, 30_000_000n);
-      assert.equal(edrNetworkConfig.enableRip7212, false);
       assert.equal(edrNetworkConfig.enableTransientStorage, false);
       const initialDate = new Date(edrNetworkConfig.initialDate);
       assert.ok(

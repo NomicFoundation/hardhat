@@ -304,7 +304,6 @@ const edrNetworkUserConfigSchema = z.object({
   allowUnlimitedContractSize: z.optional(z.boolean()),
   blockGasLimit: z.optional(gasUnitUserConfigSchema),
   coinbase: z.optional(z.string()),
-  enableRip7212: z.optional(z.boolean()),
   enableTransientStorage: z.optional(z.boolean()),
   forking: z.optional(edrNetworkForkingUserConfigSchema),
   hardfork: z.optional(z.string()),

@@ -1878,37 +1878,6 @@ describe("NetworkManagerImplementation", () => {
       });
     });
 
-    describe("enableRip7212", () => {
-      describe("edr config", () => {
-        it("should validate a valid network config", async () => {
-          let validationErrors = await validateNetworkUserConfig(
-            edrConfig({ enableRip7212: true }),
-          );
-
-          assertValidationErrors(validationErrors, []);
-
-          validationErrors = await validateNetworkUserConfig(
-            edrConfig({ enableRip7212: false }),
-          );
-
-          assertValidationErrors(validationErrors, []);
-        });
-
-        it("should not validate an invalid network config", async () => {
-          const validationErrors = await validateNetworkUserConfig(
-            edrConfig({ enableRip7212: "incorrect" }),
-          );
-
-          assertValidationErrors(validationErrors, [
-            {
-              path: ["networks", "hardhat", "enableRip7212"],
-              message: "Expected boolean, received string",
-            },
-          ]);
-        });
-      });
-    });
-
     describe("enableTransientStorage", () => {
       describe("edr config", () => {
         it("should validate a valid network config", async () => {

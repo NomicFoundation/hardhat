@@ -30,7 +30,6 @@ import {
   opHardforkFromString,
   l1GenesisState,
   l1HardforkFromString,
-  precompileP256Verify,
 } from "@ignored/edr-optimism";
 import {
   assertHardhatInvariant,
@@ -491,8 +490,6 @@ async function getProviderConfig(
       codeCoverage: coverageConfig,
     },
     ownedAccounts: ownedAccounts.map((account) => account.secretKey),
-    precompileOverrides: networkConfig.enableRip7212
-      ? [precompileP256Verify()]
-      : [],
+    precompileOverrides: [],
   };
 }
