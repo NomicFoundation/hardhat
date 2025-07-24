@@ -488,7 +488,6 @@ export class LedgerHandler {
         return this.#eth.signEIP712HashedMessage(
           path,
           domainHash,
-
           structHash,
         );
       }
