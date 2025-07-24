@@ -1,5 +1,5 @@
 import "hardhat/types/config";
-import type { DerivationFunction } from "./types.js";
+import type { DerivationFunction } from "./internal/types.js";
 
 declare module "hardhat/types/config" {
   export interface HttpNetworkUserConfig {
