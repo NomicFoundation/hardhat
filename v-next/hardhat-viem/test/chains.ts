@@ -21,33 +21,60 @@ describe("chains", () => {
     it("should return the chain corresponding to the chain id", async () => {
       const provider = new MockEthereumProvider({ eth_chainId: "0x1" }); // mainnet chain id
 
-      const chain = await getChain(provider, "generic");
+      const chain = await getChain(provider);
 
       assert.deepEqual(chain, chains.mainnet);
       assert.equal(provider.callCount, 1);
     });
 
-    it("should return the hardhat chain if the network is hardhat and chaintype is optimism", async () => {
-      const provider = new MockEthereumProvider({
-        eth_chainId: "0xa", // Op mainnet: 10
-        hardhat_metadata: {},
-      });
-
-      const chain = await getChain(provider, "optimism");
-
-      assert.deepEqual(chain, chains.optimism);
-      assert.equal(provider.callCount, 2);
-    });
-
-    it("should return the hardhat chain if the network is hardhat and chaintype is generic", async () => {
+    it("should return the hardhat chain if the network is hardhat and it's not a forked network", async () => {
       const provider = new MockEthereumProvider({
         eth_chainId: "0x7a69", // 31337 in hex
         hardhat_metadata: {},
       });
 
-      const chain = await getChain(provider, "generic");
+      const chain = await getChain(provider);
 
       assert.deepEqual(chain, chains.hardhat);
+      assert.equal(provider.callCount, 2);
+    });
+
+    it("should return a forked chain with hardhat properties when hardhat is forked from a known network", async () => {
+      const provider = new MockEthereumProvider({
+        eth_chainId: "0x7a69", // 31337 in hex
+        hardhat_metadata: {
+          forkedNetwork: {
+            chainId: 1, // mainnet
+          },
+        },
+      });
+
+      const chain = await getChain(provider);
+
+      assert.deepEqual(chain, {
+        ...chains.mainnet,
+        ...chains.hardhat,
+        id: 31337,
+      });
+      assert.equal(provider.callCount, 2);
+    });
+
+    it("should return the hardhat chain when forked from an unknown network", async () => {
+      const provider = new MockEthereumProvider({
+        eth_chainId: "0x7a69", // 31337 in hex
+        hardhat_metadata: {
+          forkedNetwork: {
+            chainId: 999999, // unknown chainId
+          },
+        },
+      });
+
+      const chain = await getChain(provider);
+
+      assert.deepEqual(chain, {
+        ...chains.hardhat,
+        id: 31337,
+      });
       assert.equal(provider.callCount, 2);
     });
 
@@ -57,7 +84,7 @@ describe("chains", () => {
         anvil_nodeInfo: {},
       });
 
-      const chain = await getChain(provider, "generic");
+      const chain = await getChain(provider);
 
       assert.deepEqual(chain, chains.anvil);
       assert.equal(provider.callCount, 2);
@@ -67,7 +94,7 @@ describe("chains", () => {
       const provider = new MockEthereumProvider({ eth_chainId: "0x0" }); // fake chain id 0
 
       await assertRejectsWithHardhatError(
-        getChain(provider, "generic"),
+        getChain(provider),
         HardhatError.ERRORS.HARDHAT_VIEM.GENERAL.NETWORK_NOT_FOUND,
         { chainId: 0 },
       );
@@ -77,7 +104,7 @@ describe("chains", () => {
       // chain id 999 corresponds to wanchainTestnet but also zoraTestnet
       const provider = new MockEthereumProvider({ eth_chainId: "0x3e7" }); // 999 in hex
 
-      const chainId = await getChain(provider, "generic");
+      const chainId = await getChain(provider);
       assert.equal(chainId, chains.wanchainTestnet);
     });
 
@@ -87,7 +114,7 @@ describe("chains", () => {
         hardhat_metadata: {},
       });
 
-      const chain = await getChain(provider, "generic");
+      const chain = await getChain(provider);
 
       assert.deepEqual(chain, {
         ...chains.hardhat,
@@ -101,7 +128,7 @@ describe("chains", () => {
         anvil_nodeInfo: {},
       });
 
-      const chain = await getChain(provider, "generic");
+      const chain = await getChain(provider);
 
       assert.deepEqual(chain, {
         ...chains.anvil,
