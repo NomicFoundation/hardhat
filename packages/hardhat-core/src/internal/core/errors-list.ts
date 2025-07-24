@@ -1056,6 +1056,13 @@ If this error persists, run "npx hardhat clean --global".`,
       description: `There was an error while running the solcjs compiler.`,
       shouldBeReported: false,
     },
+   INVALID_OUTPUT: {
+      number: 507,
+      message: "Compiler output is not valid JSON.",
+      title: "Invalid compiler output",
+      description: `The output from the Solidity compiler was not valid JSON. This may indicate a problem with the compiler or its execution environment. Please check the output and try again.`,
+      shouldBeReported: true,
+    },
   },
   BUILTIN_TASKS: {
     COMPILE_FAILURE: {
