@@ -18,7 +18,7 @@ describe("formatLogs", () => {
   b
   c`;
 
-    const expected = formatLogs(lines, 2);
+    const expected = formatLogs(lines, 2, chalk);
 
     assert.equal(expected, chalk.grey(actual));
   });
@@ -28,7 +28,7 @@ describe("formatLogs", () => {
 
     const expected = "";
 
-    const actual = formatLogs(lines, 2);
+    const actual = formatLogs(lines, 2, chalk);
 
     assert.equal(expected, actual);
   });
@@ -129,18 +129,19 @@ describe("formatTraces", () => {
       },
     ];
 
-    const expected = `  [127552] ${chalk.green("FailingCounterTest")}::${chalk.green("setUp")}()
-   ├─ [0] ${chalk.green("console")}::${chalk.green("log")}("Setting up") ${chalk.yellow("[staticcall]")}
-   ├─ [68915] ${chalk.yellow("→ new")} Counter
-   |   └─ ${chalk.green("←")} 344 bytes of code
-   └─ [0] ${chalk.green("console")}::${chalk.green("log")}("Counter set up") ${chalk.yellow("[staticcall]")}
-  [32272] ${chalk.green("FailingCounterTest")}::${chalk.green("testFailFuzzInc")}(1)
-   ├─ [0] ${chalk.green("console")}::${chalk.green("log")}("Fuzz testing inc fail") ${chalk.yellow("[staticcall]")}
-   ├─ [22397] ${chalk.green("Counter")}::${chalk.green("inc")}()
-   └─ [402] ${chalk.green("Counter")}::${chalk.green("x")}() ${chalk.yellow("[staticcall]")}
-       └─ ${chalk.green("←")} 1`;
+    const expected = `
+[127552] ${chalk.green("FailingCounterTest")}::${chalk.green("setUp")}()
+  ├─ [0] ${chalk.green("console")}::${chalk.green("log")}("Setting up") ${chalk.yellow("[staticcall]")}
+  ├─ [68915] ${chalk.yellow("→ new")} Counter
+  |    └─ ${chalk.green("←")} 344 bytes of code
+  └─ [0] ${chalk.green("console")}::${chalk.green("log")}("Counter set up") ${chalk.yellow("[staticcall]")}
+[32272] ${chalk.green("FailingCounterTest")}::${chalk.green("testFailFuzzInc")}(1)
+  ├─ [0] ${chalk.green("console")}::${chalk.green("log")}("Fuzz testing inc fail") ${chalk.yellow("[staticcall]")}
+  ├─ [22397] ${chalk.green("Counter")}::${chalk.green("inc")}()
+  └─ [402] ${chalk.green("Counter")}::${chalk.green("x")}() ${chalk.yellow("[staticcall]")}
+       └─ ${chalk.green("←")} 1`.replace("\n", "");
 
-    const actual = formatTraces(traces, 2);
+    const actual = formatTraces(traces, "", chalk);
 
     assert.equal(expected, actual);
   });
@@ -150,7 +151,7 @@ describe("formatTraces", () => {
 
     const expected = "";
 
-    const actual = formatTraces(traces, 2);
+    const actual = formatTraces(traces, "  ", chalk);
 
     assert.equal(expected, actual);
   });
