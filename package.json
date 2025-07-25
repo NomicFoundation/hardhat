@@ -19,7 +19,16 @@
   },
   "pnpm": {
     "overrides": {
-      "node-hid": "^3.2.0"
-    }
+      "@ledgerhq/hw-transport-node-hid>node-hid": "npm:node-hid@^3.2.0"
+    },
+    "ignoredBuiltDependencies": [
+      "esbuild",
+      "keccak",
+      "unrs-resolver",
+      "usb"
+    ],
+    "onlyBuiltDependencies": [
+      "node-hid"
+    ]
   }
 }
