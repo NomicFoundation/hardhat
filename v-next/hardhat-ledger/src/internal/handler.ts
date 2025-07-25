@@ -486,11 +486,7 @@ export class LedgerHandler {
       try {
         return await this.#eth.signEIP712Message(path, typedMessage);
       } catch (_error) {
-        return this.#eth.signEIP712HashedMessage(
-          path,
-          domainHash,
-          structHash,
-        );
+        return this.#eth.signEIP712HashedMessage(path, domainHash, structHash);
       }
     });
 
