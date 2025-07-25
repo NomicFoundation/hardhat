@@ -395,6 +395,7 @@ repositories:
     forge-version: v0.3.0
     remappings: |
       forge-std=test/utils/forge-std/
+      src/=src/
     hardhat-config: |
       export default {
         "paths": {
@@ -834,6 +835,14 @@ repositories:
       - hardhat compile
       - hardhat test solidity
     forge-version: v0.3.0
+    remappings: |
+      @openzeppelin/contracts/=node_modules/@openzeppelin/contracts/
+      @prb/math/=node_modules/@prb/math/
+      @sablier/v2-core/=node_modules/@sablier/v2-core/
+      forge-std/=node_modules/forge-std/
+      solady/=node_modules/solady/
+      precompiles/=precompiles/
+      src/=src/
     hardhat-config: |
       export default {
         "paths": {
