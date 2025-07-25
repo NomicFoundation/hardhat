@@ -522,7 +522,7 @@ describe("LedgerHandler", () => {
 
       it("should successfully handle the method eth_sendTransaction", async () => {
         const signedRawTx =
-          "0xf8626464830f424094da6a52afdae5ff66aa786da68754a227331f56e3648082f4f6a04ab14d7e96a8bc7390cfffa0260d4b82848428ce7f5b8dd367d13bf31944b6c0a03cc226daa6a2f4e22334c59c2e04ac72672af72907ec9c4a601189858ba60069";
+          "0xf861646482520894da6a52afdae5ff66aa786da68754a227331f56e3648082f4f5a04ab14d7e96a8bc7390cfffa0260d4b82848428ce7f5b8dd367d13bf31944b6c0a03cc226daa6a2f4e22334c59c2e04ac72672af72907ec9c4a601189858ba60069";
 
         const txRsv = {
           v: "f4f5",
@@ -543,7 +543,7 @@ describe("LedgerHandler", () => {
             expectedParams: {
               path: derPath,
               rawTxHex:
-                "e26464830f424094da6a52afdae5ff66aa786da68754a227331f56e36480827a698080",
+                "e1646482520894da6a52afdae5ff66aa786da68754a227331f56e36480827a698080",
               resolution: {
                 nfts: [],
                 erc20Tokens: [],
