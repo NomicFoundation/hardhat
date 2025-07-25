@@ -414,6 +414,9 @@ importers:
       '@nomicfoundation/hardhat-utils':
         specifier: workspace:^3.0.0-next.24
         version: link:../hardhat-utils
+      '@nomicfoundation/hardhat-verify':
+        specifier: workspace:^3.0.0-next.24
+        version: link:../hardhat-verify
       '@nomicfoundation/ignition-core':
         specifier: workspace:^3.0.0-next.24
         version: link:../hardhat-ignition-core
@@ -602,6 +605,9 @@ importers:
       '@nomicfoundation/hardhat-errors':
         specifier: workspace:^3.0.0-next.24
         version: link:../hardhat-errors
+      '@nomicfoundation/hardhat-verify':
+        specifier: workspace:^3.0.0-next.24
+        version: link:../hardhat-verify
     devDependencies:
       '@istanbuljs/nyc-config-typescript':
         specifier: 1.0.2
@@ -744,6 +750,9 @@ importers:
       '@nomicfoundation/hardhat-errors':
         specifier: workspace:^3.0.0-next.24
         version: link:../hardhat-errors
+      '@nomicfoundation/hardhat-verify':
+        specifier: workspace:^3.0.0-next.24
+        version: link:../hardhat-verify
     devDependencies:
       '@istanbuljs/nyc-config-typescript':
         specifier: 1.0.2
