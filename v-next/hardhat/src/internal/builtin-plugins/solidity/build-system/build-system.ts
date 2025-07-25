@@ -53,7 +53,6 @@ import {
 import {
   getArtifactsDeclarationFile,
   getBuildInfo,
-  getBuildInfoOutput,
   getContractArtifact,
   getDuplicatedContractNamesDeclarationFile,
 } from "./artifacts.js";
@@ -637,7 +636,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
     // Once we have emitted all the contract artifacts and its declaration
     // file, we emit the build info file and its output file.
-    const buildInfoId = buildId;
+    const buildInfoId = `solc-${runnableCompilationJob.solcConfig.version.replaceAll(".", "_")}-${buildId}`;
 
     const buildInfoPath = path.join(
       this.#options.artifactsPath,
@@ -662,17 +661,10 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         await writeJsonFile(buildInfoPath, buildInfo);
       })(),
       (async () => {
-        const buildInfoOutput = await getBuildInfoOutput(
-          runnableCompilationJob,
-          compilerOutput,
-        );
-
         // NOTE: We use writeJsonFileAsStream here because the build info output might exceed
         // the maximum string length.
-        // TODO: Earlier in the build process, very similar files are created on disk by the
-        // Compiler.  Instead of creating them again, we should consider copying/moving them.
-        // This would require changing the format of the build info output file.
-        await writeJsonFileAsStream(buildInfoOutputPath, buildInfoOutput);
+        // We write the raw solc output as the content of the build info output file
+        await writeJsonFileAsStream(buildInfoOutputPath, compilerOutput);
       })(),
     ]);
 
@@ -740,8 +732,13 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
     for (const buildInfoFile of buildInfoFiles) {
       const basename = path.basename(buildInfoFile);
+      const match = basename.match(/solc-.*-(\w+)\./);
 
-      const id = basename.substring(0, basename.indexOf("."));
+      if (match === null) {
+        continue;
+      }
+
+      const id = match[1];
 
       if (!reachableBuildInfoIdsSet.has(id)) {
         await remove(buildInfoFile);

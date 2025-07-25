@@ -1,7 +1,7 @@
 import type { SolidityConfig } from "../../../../../src/types/config.js";
 import type { HookContext } from "../../../../../src/types/hooks.js";
 import type {
-  SolidityBuildInfoOutput,
+  CompilerOutput,
   SolidityBuildSystem,
 } from "../../../../../src/types/solidity.js";
 
@@ -51,10 +51,10 @@ async function emitArtifacts(solidity: SolidityBuildSystem): Promise<void> {
     const buildId = await compilationJob.getBuildId();
     if (!buildIds.has(buildId)) {
       buildIds.add(buildId);
-      const buildInfoOutput = await readJsonFile<SolidityBuildInfoOutput>(
+      const buildInfoOutput = await readJsonFile<CompilerOutput>(
         path.join(artifactsPath, "build-info", `${buildId}.output.json`),
       );
-      await solidity.emitArtifacts(compilationJob, buildInfoOutput.output);
+      await solidity.emitArtifacts(compilationJob, buildInfoOutput);
     }
   }
 }

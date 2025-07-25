@@ -95,7 +95,10 @@ export class TestProjectWrapper {
     return Promise.all(
       filePaths.map(async (filePath) => {
         const modificationTime = await this.getModificationTime(filePath);
-        const buildId = path.basename(filePath).replace(".json", "");
+        const buildId = path
+          .basename(filePath)
+          .replace(/solc-.*-/, "")
+          .replace(".json", "");
         const sources = Object.keys(
           ((await readJsonFile(filePath)) as BuildInfo).input.sources,
         ).map((sourceName) => sourceName.replace("project/contracts/", ""));
@@ -125,7 +128,10 @@ export class TestProjectWrapper {
       filePaths.map(async (filePath) => ({
         path: filePath,
         modificationTime: await this.getModificationTime(filePath),
-        buildId: path.basename(filePath).replace(".output.json", ""),
+        buildId: path
+          .basename(filePath)
+          .replace(/solc-.*-/, "")
+          .replace(".output.json", ""),
       })),
     );
   }

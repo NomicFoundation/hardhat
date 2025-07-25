@@ -1,4 +1,4 @@
-import type { CompilerInput, CompilerOutput } from "./compiler-io.js";
+import type { CompilerInput } from "./compiler-io.js";
 
 /**
  * A SolidityBuildInfo is a file that contains all the information of a solc
@@ -41,24 +41,4 @@ export interface SolidityBuildInfo {
    * The compiler input, as provided to solc.
    */
   readonly input: CompilerInput;
-}
-
-/**
- * The output of compiling a Solidity build info.
- */
-export interface SolidityBuildInfoOutput {
-  /**
-   * The version identifier of this format.
-   */
-  readonly _format: "hh3-sol-build-info-output-1";
-
-  /**
-   * The id of the SolidityBuildInfo.
-   */
-  readonly id: string;
-
-  /**
-   * The `solc` output, verbatim (i.e. as returned by `solc`).
-   */
-  readonly output: CompilerOutput;
 }

@@ -1,13 +1,7 @@
 import type { Artifact, BuildInfo } from "../../../../types/artifacts.js";
 import type { CompilationJob } from "../../../../types/solidity/compilation-job.js";
-import type {
-  CompilerOutput,
-  CompilerOutputContract,
-} from "../../../../types/solidity/compiler-io.js";
-import type {
-  SolidityBuildInfo,
-  SolidityBuildInfoOutput,
-} from "../../../../types/solidity/solidity-artifacts.js";
+import type { CompilerOutputContract } from "../../../../types/solidity/compiler-io.js";
+import type { SolidityBuildInfo } from "../../../../types/solidity/solidity-artifacts.js";
 
 import { getPrefixedHexString } from "@nomicfoundation/hardhat-utils/hex";
 
@@ -123,17 +117,4 @@ export async function getBuildInfo(
   };
 
   return buildInfo;
-}
-
-export async function getBuildInfoOutput(
-  compilationJob: CompilationJob,
-  compilerOutput: CompilerOutput,
-): Promise<SolidityBuildInfoOutput> {
-  const buildInfoOutput: Required<SolidityBuildInfoOutput> = {
-    _format: "hh3-sol-build-info-output-1",
-    id: await compilationJob.getBuildId(),
-    output: compilerOutput,
-  };
-
-  return buildInfoOutput;
 }
