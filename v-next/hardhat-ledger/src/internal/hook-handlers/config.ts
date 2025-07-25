@@ -1,7 +1,7 @@
 import type { ConfigHooks } from "hardhat/types/hooks";
 
-import { resolveLedgerUserConfig } from "../config/resolution.js";
-import { validateLedgerUserConfig } from "../config/validation.js";
+import { resolveLedgerUserConfig } from "../config/resolve-ledger-user-config.js";
+import { validateLedgerUserConfig } from "../config/validate-ledger-user-config.js";
 
 export default async (): Promise<Partial<ConfigHooks>> => {
   const handlers: Partial<ConfigHooks> = {
