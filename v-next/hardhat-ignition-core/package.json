@@ -43,9 +43,10 @@
     "prettier": "prettier \"**/*.{ts,js,md,json}\"",
     "preapi-extractor": "pnpm build",
     "api-extractor": "api-extractor run --local --verbose",
-    "test": "cross-env TS_NODE_COMPILER_OPTIONS=\"{\\\"isolatedDeclarations\\\":false}\" mocha --recursive \"test/**/*.ts\"",
+    "test": "pnpm test:unit && pnpm test:integrations",
     "test:debug": "DEBUG='ignition:*' pnpm test",
     "test:coverage": "cross-env TS_NODE_COMPILER_OPTIONS=\"{\\\"isolatedDeclarations\\\":false}\" nyc mocha --recursive \"test/**/*.ts\" \"test-integrations/**/*.ts\"",
+    "test:unit": "cross-env TS_NODE_COMPILER_OPTIONS=\"{\\\"isolatedDeclarations\\\":false}\" mocha --recursive \"test/**/*.ts\"",
     "test:integrations": "cross-env TS_NODE_COMPILER_OPTIONS='{\"isolatedDeclarations\":false}' mocha --recursive \"test-integrations/**/*.ts\"",
     "clean": "rimraf dist",
     "prepack": "pnpm build"
