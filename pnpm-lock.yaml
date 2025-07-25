@@ -74,6 +74,9 @@ importers:
       '@nomicfoundation/hardhat-keystore':
         specifier: workspace:^3.0.0-next.24
         version: link:../hardhat-keystore
+      '@nomicfoundation/hardhat-ledger':
+        specifier: workspace:^3.0.0-next.24
+        version: link:../hardhat-ledger
       '@nomicfoundation/hardhat-mocha':
         specifier: workspace:^3.0.0-next.24
         version: link:../hardhat-mocha
