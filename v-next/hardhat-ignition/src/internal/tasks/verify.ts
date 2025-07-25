@@ -4,26 +4,24 @@ import type { NewTaskActionFunction } from "hardhat/types/tasks";
 import path from "node:path";
 
 import { verifyContract } from "@nomicfoundation/hardhat-verify/verify";
+import { getVerificationInformation } from "@nomicfoundation/ignition-core";
 
 interface TaskVerifyArguments {
   deploymentId: string;
-  blockscout: boolean;
   force: boolean;
 }
 
 const verifyTask: NewTaskActionFunction<TaskVerifyArguments> = async (
-  { deploymentId, blockscout, force },
+  { deploymentId, force },
   hre: HardhatRuntimeEnvironment,
 ) => {
-  const { getVerificationInformation } = await import(
-    "@nomicfoundation/ignition-core"
-  );
-
   const deploymentDir = path.join(
     hre.config.paths.ignition,
     "deployments",
     deploymentId,
   );
+
+  const connection = await hre.network.connect();
 
   for await (const contractInfo of getVerificationInformation(deploymentDir)) {
     if (typeof contractInfo === "string") {
@@ -34,8 +32,6 @@ const verifyTask: NewTaskActionFunction<TaskVerifyArguments> = async (
       continue;
     }
 
-    const connection = await hre.network.connect();
-
     console.log(
       `Verifying contract "${contractInfo.contract}" for network ${connection.networkName}...`,
     );
@@ -44,7 +40,7 @@ const verifyTask: NewTaskActionFunction<TaskVerifyArguments> = async (
       {
         ...contractInfo,
         force,
-        provider: blockscout ? "blockscout" : "etherscan",
+        provider: "etherscan",
       },
       hre,
     );

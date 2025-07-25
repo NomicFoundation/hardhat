@@ -130,10 +130,6 @@ const hardhatIgnitionPlugin: HardhatPlugin = {
         description: "The id of the deployment to verify",
       })
       .addFlag({
-        name: "blockscout",
-        description: "Verify contracts on Blockscout",
-      })
-      .addFlag({
         name: "force",
         description: "Force verification",
       })
