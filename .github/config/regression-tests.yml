@@ -70,6 +70,8 @@ repositories:
       - hardhat compile
       - hardhat test solidity
     forge-version: v0.3.0
+    remappings: |
+      forge-std/=node_modules/forge-std/
     hardhat-config: |
       export default {
         "paths": {
@@ -102,6 +104,9 @@ repositories:
       - hardhat compile
       - hardhat test solidity
     forge-version: v0.3.0
+    remappings: |
+      @prb/test/=node_modules/@prb/test/
+      forge-std/=node_modules/forge-std/
     hardhat-config: |
       export default {
         "paths": {
