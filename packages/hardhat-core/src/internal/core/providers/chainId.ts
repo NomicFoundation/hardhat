@@ -34,8 +34,9 @@ export abstract class ProviderWrapperWithChainId extends ProviderWrapper {
       method: "net_version",
     })) as string;
 
-    // There's a node returning this as decimal instead of QUANTITY.
-    // TODO: Document here which node does that
+    // Most Ethereum clients (including Geth, OpenEthereum, and others) return net_version
+    // as a decimal string (e.g., "1", "3", "8995") according to the JSON-RPC specification,
+    // while some may return it in QUANTITY format (hexadecimal with "0x" prefix).
     return id.startsWith("0x") ? rpcQuantityToNumber(id) : parseInt(id, 10);
   }
 }
