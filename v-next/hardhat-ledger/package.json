@@ -1,7 +1,7 @@
 {
   "name": "@nomicfoundation/hardhat-ledger",
   "version": "3.0.0-next.24",
-  "description": "A module for interacting with Ledger hardware wallets.",
+  "description": "Hardhat plugin for the Ledger hardware wallet",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-ledger",
   "repository": {
     "type": "git",
@@ -15,9 +15,12 @@
     ".": "./dist/src/index.js"
   },
   "keywords": [
+    "ethereum",
+    "smart-contracts",
+    "hardhat",
+    "hardhat-plugin",
     "ledger",
-    "storage",
-    "hardhat"
+    "hardware-wallet"
   ],
   "scripts": {
     "lint": "pnpm prettier --check && pnpm eslint",
@@ -41,7 +44,7 @@
     "README.md"
   ],
   "devDependencies": {
-    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0-next.21",
+    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0-next.24",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
     "@types/debug": "^4.1.7",
     "@types/node": "^20.14.9",
@@ -60,14 +63,14 @@
     "@ledgerhq/hw-transport": "^6.31.7",
     "@ledgerhq/hw-transport-node-hid": "^6.29.8",
     "@ledgerhq/types-live": "^6.76.0",
-    "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.21",
-    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.21",
-    "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.0-next.21",
+    "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.24",
+    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.24",
+    "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.0-next.24",
     "debug": "^4.3.2",
     "micro-eth-signer": "^0.14.0",
     "zod": "^3.23.8"
   },
   "peerDependencies": {
-    "hardhat": "workspace:^3.0.0-next.21"
+    "hardhat": "workspace:^3.0.0-next.24"
   }
 }

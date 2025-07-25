@@ -1,4 +1,4 @@
-import type { Paths } from "./type.js";
+import type { Paths } from "./types.js";
 
 import path from "node:path";
 

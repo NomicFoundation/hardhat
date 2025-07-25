@@ -1,4 +1,4 @@
-import type { Paths, Signature, LedgerOptions } from "./type.js";
+import type { Paths, Signature, LedgerOptions } from "./types.js";
 import type { TransportError } from "@ledgerhq/errors";
 import type { EIP712Message } from "@ledgerhq/types-live";
 import type {
@@ -489,7 +489,6 @@ export class LedgerHandler {
         return this.#eth.signEIP712HashedMessage(
           path,
           domainHash,
-
           structHash,
         );
       }
