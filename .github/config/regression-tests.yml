@@ -6,6 +6,17 @@ repositories:
       - hardhat compile
       - hardhat test solidity
     forge-version: v0.3.0
+    remappings: |
+      @soulwallet-core/=lib/soulwallet-core/
+      @source/=contracts/
+      @arbitrum/nitro-contracts=lib/nitro-contracts/
+      @solady=lib/solady/
+      @solenv=lib/solenv/src/
+      @openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/
+      @account-abstraction/=lib/account-abstraction/
+      @crypto-lib/=lib/crypto-lib/src/
+      forge-std/=lib/forge-std/src/
+      @openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/
     hardhat-config: |
       export default {
         "paths": {
@@ -16,18 +27,6 @@ repositories:
         },
         "solidity": {
           "version": "0.8.24",
-          "remappings": [
-            "@soulwallet-core/=lib/soulwallet-core/",
-            "@source/=contracts/",
-            "@arbitrum/nitro-contracts=lib/nitro-contracts/",
-            "@solady=lib/solady/",
-            "@solenv=lib/solenv/src/",
-            "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
-            "@account-abstraction/=lib/account-abstraction/",
-            "@crypto-lib/=lib/crypto-lib/src/",
-            "forge-std/=lib/forge-std/src/",
-            "@openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/"
-          ],
           "settings": {
             "viaIR": true,
             "optimizer": {
@@ -71,6 +70,8 @@ repositories:
       - hardhat compile
       - hardhat test solidity
     forge-version: v0.3.0
+    remappings: |
+      forge-std/=node_modules/forge-std/
     hardhat-config: |
       export default {
         "paths": {
@@ -103,6 +104,9 @@ repositories:
       - hardhat compile
       - hardhat test solidity
     forge-version: v0.3.0
+    remappings: |
+      @prb/test/=node_modules/@prb/test/
+      forge-std/=node_modules/forge-std/
     hardhat-config: |
       export default {
         "paths": {
@@ -189,6 +193,18 @@ repositories:
       - hardhat compile
       - hardhat test solidity
     forge-version: v0.3.0
+    remappings: |
+      @rari-capital/solmate/=lib/solmate/
+      ds-test/=lib/ds-test/src/
+      forge-std/=lib/forge-std/src/
+      murky/=lib/murky/src/
+      @openzeppelin/=lib/openzeppelin-contracts/
+      solarray/=lib/solarray/src/
+      solady/=lib/solady/
+      seaport-sol/=lib/seaport-sol/
+      seaport-types/=lib/seaport-types/
+      seaport-core/=lib/seaport-core/
+      seaport/=contracts/
     hardhat-config: |
       export default {
         "paths": {
@@ -199,19 +215,6 @@ repositories:
         },
         "solidity": {
           "version": "0.8.24",
-          "remappings": [
-            "@rari-capital/solmate/=lib/solmate/",
-            "ds-test/=lib/ds-test/src/",
-            "forge-std/=lib/forge-std/src/",
-            "murky/=lib/murky/src/",
-            "@openzeppelin/=lib/openzeppelin-contracts/",
-            "solarray/=lib/solarray/src/",
-            "solady/=lib/solady/",
-            "seaport-sol/=lib/seaport-sol/",
-            "seaport-types/=lib/seaport-types/",
-            "seaport-core/=lib/seaport-core/",
-            "seaport/=contracts/"
-          ],
           "settings": {
             "evmVersion": "cancun",
             "optimizer": {
@@ -324,6 +327,14 @@ repositories:
       - hardhat compile
       - hardhat test solidity
     forge-version: v0.3.0
+    remappings: |
+      ds-test/=lib/forge-std/lib/ds-test/src/
+      forge-gas-snapshot/=lib/forge-gas-snapshot/src/
+      forge-std/=lib/forge-std/src/
+      openzeppelin-contracts/=lib/openzeppelin-contracts/contracts/
+      permit2/=lib/permit2/
+      solmate/=lib/solmate/
+      solarray/=lib/solarray/src/
     hardhat-config: |
       export default {
         "paths": {
@@ -334,15 +345,6 @@ repositories:
         },
         "solidity": {
           "version": "0.8.24",
-          "remappings": [
-            "ds-test/=lib/forge-std/lib/ds-test/src/",
-            "forge-gas-snapshot/=lib/forge-gas-snapshot/src/",
-            "forge-std/=lib/forge-std/src/",
-            "openzeppelin-contracts/=lib/openzeppelin-contracts/contracts/",
-            "permit2/=lib/permit2/",
-            "solmate/=lib/solmate/",
-            "solarray/=lib/solarray/src/"
-          ],
           "settings": {
             "optimizer": {
               "runs": 1000000
@@ -391,6 +393,9 @@ repositories:
       - hardhat compile
       - hardhat test solidity
     forge-version: v0.3.0
+    remappings: |
+      forge-std=test/utils/forge-std/
+      src/=src/
     hardhat-config: |
       export default {
         "paths": {
@@ -401,9 +406,6 @@ repositories:
         },
         "solidity": {
           "version": "0.8.28",
-          "remappings": [
-            "forge-std=test/utils/forge-std/"
-          ],
           "settings": {
             "optimizer": {
               "enabled": true,
@@ -438,7 +440,7 @@ repositories:
       test/P256.t.sol
       test/WebAuthn.t.sol
 
-      # This test is flaky - no action required 
+      # This test is flaky - no action required
       # testBumpSlot(bytes32,uint256): Unknown error
       test/LibStorage.t.sol
 
@@ -502,6 +504,11 @@ repositories:
       - hardhat compile
       - hardhat test solidity
     forge-version: v0.3.0
+    remappings: |
+      @std/=lib/forge-std/src/
+      @solady/=lib/solady/
+      ds-test/=lib/forge-std/lib/ds-test/src/
+      forge-std/=lib/forge-std/src/
     hardhat-config: |
       export default {
         "paths": {
@@ -512,12 +519,6 @@ repositories:
         },
         "solidity": {
           "version": "0.8.18",
-          "remappings": [
-            "@std/=lib/forge-std/src/",
-            "@solady/=lib/solady/",
-            "ds-test/=lib/forge-std/lib/ds-test/src/",
-            "forge-std/=lib/forge-std/src/"
-          ],
           "settings": {
             "optimizer": {
               "runs": 9999999
@@ -536,6 +537,9 @@ repositories:
       - hardhat compile
       - hardhat test solidity
     forge-version: v0.3.0
+    remappings: |
+      forge-std/=lib/forge-std/src/
+      ds-test/=lib/forge-std/lib/ds-test/src/
     hardhat-config: |
       export default {
         "paths": {
@@ -551,11 +555,7 @@ repositories:
               "enabled": true,
               "runs": 10000000
             }
-          },
-          "remappings": [
-            "forge-std/=lib/forge-std/src/",
-            "ds-test/=lib/forge-std/lib/ds-test/src/"
-          ]
+          }
         },
         "solidityTest": {
           "fuzz": {
@@ -571,6 +571,12 @@ repositories:
       - hardhat compile
       - hardhat test solidity
     forge-version: v0.3.0
+    remappings: |
+      ds-test/=lib/forge-std/lib/ds-test/src/
+      forge-std/=lib/forge-std/src/
+      @openzeppelin/=lib/openzeppelin-contracts/
+      solmate/=lib/solmate/
+      forge-gas-snapshot/=lib/forge-gas-snapshot/src/
     hardhat-config: |
       export default {
         "paths": {
@@ -581,13 +587,6 @@ repositories:
         },
         "solidity": {
           "version": "0.8.26",
-          "remappings": [
-            "ds-test/=lib/forge-std/lib/ds-test/src/",
-            "forge-std/=lib/forge-std/src/",
-            "@openzeppelin/=lib/openzeppelin-contracts/",
-            "solmate/=lib/solmate/",
-            "forge-gas-snapshot/=lib/forge-gas-snapshot/src/"
-          ],
           "settings": {
             "viaIR": true,
             "optimizer": {
@@ -661,6 +660,10 @@ repositories:
       - hardhat compile
       - hardhat test solidity
     forge-version: v0.3.0
+    remappings: |
+      solady/=lib/solady/src/
+      forge-std/=lib/forge-std/src/
+      openzeppelin/=lib/openzeppelin-contracts/contracts/
     hardhat-config: |
       export default {
         "paths": {
@@ -671,11 +674,6 @@ repositories:
         },
         "solidity": {
           "version": "0.8.23",
-          "remappings": [
-            "solady/=lib/solady/src/",
-            "forge-std/=lib/forge-std/src/",
-            "openzeppelin/=lib/openzeppelin-contracts/contracts/"
-          ],
           "settings": {
             "optimizer": {
               "enabled": true,
@@ -837,6 +835,14 @@ repositories:
       - hardhat compile
       - hardhat test solidity
     forge-version: v0.3.0
+    remappings: |
+      @openzeppelin/contracts/=node_modules/@openzeppelin/contracts/
+      @prb/math/=node_modules/@prb/math/
+      @sablier/v2-core/=node_modules/@sablier/v2-core/
+      forge-std/=node_modules/forge-std/
+      solady/=node_modules/solady/
+      precompiles/=precompiles/
+      src/=src/
     hardhat-config: |
       export default {
         "paths": {
@@ -909,6 +915,8 @@ repositories:
       - hardhat compile
       - hardhat test solidity
     forge-version: v0.3.0
+    remappings: |
+      ds-test/=lib/ds-test/src/
     hardhat-config: |
       export default {
         "paths": {
@@ -919,9 +927,6 @@ repositories:
         },
         "solidity": {
           "version": "0.8.15",
-          "remappings": [
-            "ds-test/=lib/ds-test/src/"
-          ],
           "settings": {
             "optimizer": {
               "runs": 1000000
