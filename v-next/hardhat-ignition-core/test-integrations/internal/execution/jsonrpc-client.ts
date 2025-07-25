@@ -2,16 +2,16 @@ import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 
 import { assert } from "chai";
 
-import { Artifact } from "../../../../src/index.js";
+import { Artifact } from "../../../src/index.js";
 import {
   encodeArtifactDeploymentData,
   encodeArtifactFunctionCall,
-} from "../../../../src/internal/execution/abi.js";
-import { EIP1193JsonRpcClient } from "../../../../src/internal/execution/jsonrpc-client.js";
-import { TransactionReceiptStatus } from "../../../../src/internal/execution/types/jsonrpc.js";
-import { assertIgnitionInvariant } from "../../../../src/internal/utils/assertions.js";
-import { createConnection, createClient } from "../../../helpers/create-hre.js";
-import { useHardhatProject } from "../../../helpers/hardhat-projects.js";
+} from "../../../src/internal/execution/abi.js";
+import { EIP1193JsonRpcClient } from "../../../src/internal/execution/jsonrpc-client.js";
+import { TransactionReceiptStatus } from "../../../src/internal/execution/types/jsonrpc.js";
+import { assertIgnitionInvariant } from "../../../src/internal/utils/assertions.js";
+import { createConnection, createClient } from "../../helpers/create-hre.js";
+import { useHardhatProject } from "../../helpers/hardhat-projects.js";
 
 describe("JSON-RPC client", function () {
   describe("With default hardhat project", function () {
