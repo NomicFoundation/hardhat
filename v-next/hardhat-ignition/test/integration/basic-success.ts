@@ -1,6 +1,7 @@
 import { assert } from "chai";
 
-import { useHardhatProject } from "../../helpers/hardhat-projects.js";
+import { createHre } from "../test-helpers/create-hre.js";
+import { useEphemeralIgnitionProject } from "../test-helpers/use-ignition-project.js";
 
 // This test exists to ensure Ignition succeeds in a CI environment.
 // This is a test that the UI, runs even in constrained terminal environments.
@@ -8,16 +9,16 @@ import { useHardhatProject } from "../../helpers/hardhat-projects.js";
 describe("Running deployment in CI environment", function () {
   this.timeout(60000);
 
-  useHardhatProject("ci-success");
+  useEphemeralIgnitionProject("ci-success");
 
   it("should succeed with UI in a CI environment", async function () {
+    const hre = await createHre();
+
+    const ignitionTask = hre.tasks.getTask(["ignition", "deploy"]);
     await assert.isFulfilled(
-      this.hre.run(
-        { scope: "ignition", task: "deploy" },
-        {
-          modulePath: "./ignition/modules/LockModule.js",
-        },
-      ),
+      ignitionTask.run({
+        modulePath: "./ignition/modules/LockModule.js",
+      }),
     );
   });
 });

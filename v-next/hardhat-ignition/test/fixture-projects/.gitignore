@@ -4,3 +4,4 @@ deployments/
 tmp/
 !migrate-artifacts*/ignition/deployments
 !migrate-artifacts*/ignition/deployments/**/*
+!default-with-new-chain-id/ignition/deployments

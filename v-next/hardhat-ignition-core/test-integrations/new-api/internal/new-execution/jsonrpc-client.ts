@@ -1,3 +1,5 @@
+import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
+
 import { assert } from "chai";
 
 import { Artifact } from "../../../../src/index.js";
@@ -6,27 +8,22 @@ import {
   encodeArtifactFunctionCall,
 } from "../../../../src/internal/execution/abi.js";
 import { EIP1193JsonRpcClient } from "../../../../src/internal/execution/jsonrpc-client.js";
-import {
-  NetworkFees,
-  TransactionReceiptStatus,
-} from "../../../../src/internal/execution/types/jsonrpc.js";
+import { TransactionReceiptStatus } from "../../../../src/internal/execution/types/jsonrpc.js";
 import { assertIgnitionInvariant } from "../../../../src/internal/utils/assertions.js";
+import { createConnection, createClient } from "../../../helpers/create-hre.js";
 import { useHardhatProject } from "../../../helpers/hardhat-projects.js";
 
 describe("JSON-RPC client", function () {
   describe("With default hardhat project", function () {
     useHardhatProject("default");
 
-    let client: EIP1193JsonRpcClient;
-    before("Creating client", function () {
-      client = new EIP1193JsonRpcClient(this.hre.network.provider);
-    });
-
     async function deployContract({
       hre,
+      client,
       accounts,
     }: {
-      hre: any;
+      hre: HardhatRuntimeEnvironment;
+      client: EIP1193JsonRpcClient;
       accounts: any[];
     }): Promise<{
       artifact: Artifact;
@@ -55,6 +52,7 @@ describe("JSON-RPC client", function () {
 
     describe("getChainId", function () {
       it("Should return the chainId as number", async function () {
+        const { client } = await createClient();
         const chainId = await client.getChainId();
 
         assert.equal(chainId, 31337);
@@ -63,6 +61,7 @@ describe("JSON-RPC client", function () {
 
     describe("getLatestBlock", function () {
       it("Should return the first block in the correct format", async function () {
+        const { client } = await createClient();
         const block = await client.getLatestBlock();
 
         assert.equal(block.number, 0);
@@ -71,7 +70,8 @@ describe("JSON-RPC client", function () {
       });
 
       it("Should return the second block in the correct format", async function () {
-        await this.hre.network.provider.send("evm_mine");
+        const { client, connection } = await createClient();
+        await connection.provider.request({ method: "evm_mine" });
         const block = await client.getLatestBlock();
 
         assert.equal(block.number, 1);
@@ -83,6 +83,7 @@ describe("JSON-RPC client", function () {
     describe("getNetworkFees", function () {
       describe("With an EIP-1559 network (i.e. Hardhat Network)", function () {
         it("Should return information about EIP-1559 fees", async function () {
+          const { client } = await createClient();
           const fees = await client.getNetworkFees();
 
           assert("maxFeePerGas" in fees);
@@ -94,26 +95,20 @@ describe("JSON-RPC client", function () {
         });
 
         it('Should throw if the "maxFeePerGas" exceeds the configured limit', async function () {
-          const failClient = new EIP1193JsonRpcClient(
-            this.hre.network.provider,
-            {
-              maxFeePerGasLimit: 1n,
-            },
-          );
+          const { client: failClient } = await createClient({
+            maxFeePerGasLimit: 1n,
+          });
 
           await assert.isRejected(
             failClient.getNetworkFees(),
-            /IGN407: The calculated max fee per gas exceeds the configured limit./,
+            /HHE10406: The calculated max fee per gas exceeds the configured limit./,
           );
         });
 
         it("Should use the configured maxPriorityFeePerGas", async function () {
-          const maxFeeClient = new EIP1193JsonRpcClient(
-            this.hre.network.provider,
-            {
-              maxPriorityFeePerGas: 1n,
-            },
-          );
+          const { client: maxFeeClient } = await createClient({
+            maxPriorityFeePerGas: 1n,
+          });
           const fees = await maxFeeClient.getNetworkFees();
 
           assert("maxPriorityFeePerGas" in fees);
@@ -256,16 +251,18 @@ describe("JSON-RPC client", function () {
         });
 
         it("Should use the `maxPriorityFeePerGas` from the node if `eth_maxPriorityFeePerGas` is present (and there is no config)", async function () {
+          const connection = await createConnection();
+
           // TODO: Hardhat does not support `eth_maxPriorityFeePerGas` yet, when it does, this
           // can be removed.
           const proxiedProvider = {
-            ...this.hre.network.provider,
+            ...connection.provider,
             request: async (req: { method: string }) => {
               if (req.method === "eth_maxPriorityFeePerGas") {
                 return "2000000000";
               }
 
-              return this.hre.network.provider.request(req);
+              return connection.provider.request(req);
             },
           };
 
@@ -281,8 +278,10 @@ describe("JSON-RPC client", function () {
         });
 
         it("Should default to 1gwei for maxPriorityFeePerGas if `eth_maxPriorityFeePerGas` is not available and no config set", async function () {
+          const connection = await createConnection();
+
           const proxiedProvider = {
-            ...this.hre.network.provider,
+            ...connection.provider,
             request: async (req: { method: string }) => {
               if (req.method === "eth_maxPriorityFeePerGas") {
                 throw new Error(
@@ -290,7 +289,7 @@ describe("JSON-RPC client", function () {
                 );
               }
 
-              return this.hre.network.provider.request(req);
+              return connection.provider.request(req);
             },
           };
 
@@ -309,12 +308,19 @@ describe("JSON-RPC client", function () {
 
     describe("call", function () {
       it("Should return the raw result in successful deployment calls", async function () {
-        const artifact = await this.hre.artifacts.readArtifact("C");
+        const { client, hre, connection } = await createClient();
+
+        const accounts: any[] = await connection.provider.request({
+          method: "eth_accounts",
+          params: [],
+        });
+
+        const artifact = await hre.artifacts.readArtifact("C");
         const result = await client.call(
           {
             data: encodeArtifactDeploymentData(artifact, [], {}),
             value: 0n,
-            from: this.accounts[0],
+            from: accounts[0],
           },
           "latest",
         );
@@ -325,13 +331,24 @@ describe("JSON-RPC client", function () {
       });
 
       it("Should return the raw result in successful non-deployment calls", async function () {
-        const { artifact, address } = await deployContract(this);
+        const { client, hre, connection } = await createClient();
+
+        const accounts: any[] = await connection.provider.request({
+          method: "eth_accounts",
+          params: [],
+        });
+
+        const { artifact, address } = await deployContract({
+          hre,
+          client,
+          accounts,
+        });
 
         const result = await client.call(
           {
             data: encodeArtifactFunctionCall(artifact, "returnString", []),
             value: 0n,
-            from: this.accounts[0],
+            from: accounts[0],
             to: address,
           },
           "latest",
@@ -347,12 +364,19 @@ describe("JSON-RPC client", function () {
       });
 
       it("Should not throw on execution failures, but return a result", async function () {
+        const { client, connection } = await createClient();
+
+        const accounts: any[] = await connection.provider.request({
+          method: "eth_accounts",
+          params: [],
+        });
+
         // We send an invalid deployment transaction
         const result = await client.call(
           {
             data: "0x1234123120",
             value: 0n,
-            from: this.accounts[0],
+            from: accounts[0],
           },
           "latest",
         );
@@ -363,7 +387,18 @@ describe("JSON-RPC client", function () {
       });
 
       it("Should return the returnData on execution failures", async function () {
-        const { artifact, address } = await deployContract(this);
+        const { client, hre, connection } = await createClient();
+
+        const accounts: any[] = await connection.provider.request({
+          method: "eth_accounts",
+          params: [],
+        });
+
+        const { artifact, address } = await deployContract({
+          hre,
+          client,
+          accounts,
+        });
 
         const result = await client.call(
           {
@@ -373,7 +408,7 @@ describe("JSON-RPC client", function () {
               [],
             ),
             value: 0n,
-            from: this.accounts[0],
+            from: accounts[0],
             to: address,
           },
           "latest",
@@ -391,6 +426,13 @@ describe("JSON-RPC client", function () {
       it("[Geth specific] Should return an empty returnData even when geth doesn't return it", async function () {
         // **NOTE**: This tests is mocked with the error messages that Geth returns
         let formatNumber = 0;
+
+        const connection = await createConnection();
+
+        const accounts: any[] = await connection.provider.request({
+          method: "eth_accounts",
+          params: [],
+        });
 
         class MockProvider {
           public async request(req: { method: string; _: any[] }) {
@@ -419,7 +461,7 @@ describe("JSON-RPC client", function () {
           {
             data: "0x",
             value: 0n,
-            from: this.accounts[0],
+            from: accounts[0],
           },
           "latest",
         );
@@ -432,7 +474,7 @@ describe("JSON-RPC client", function () {
           {
             data: "0x",
             value: 0n,
-            from: this.accounts[0],
+            from: accounts[0],
           },
           "latest",
         );
@@ -458,11 +500,18 @@ describe("JSON-RPC client", function () {
 
         const mockClient = new EIP1193JsonRpcClient(new MockProvider());
 
+        const connection = await createConnection();
+
+        const accounts: any[] = await connection.provider.request({
+          method: "eth_accounts",
+          params: [],
+        });
+
         const result1 = await mockClient.call(
           {
             data: "0x",
             value: 0n,
-            from: this.accounts[0],
+            from: accounts[0],
           },
           "latest",
         );
@@ -488,21 +537,39 @@ describe("JSON-RPC client", function () {
 
         const mockClient = new EIP1193JsonRpcClient(new MockProvider());
 
+        const connection = await createConnection();
+
+        const accounts: any[] = await connection.provider.request({
+          method: "eth_accounts",
+          params: [],
+        });
+
         await assert.isRejected(
           mockClient.call(
             {
               data: "0x",
               value: 0n,
-              from: this.accounts[0],
+              from: accounts[0],
             },
             "latest",
           ),
-          /IGN406\: The configured base fee exceeds the block gas limit\. Please reduce the configured base fee or increase the block gas limit\./,
+          /HHE10405\: The configured base fee exceeds the block gas limit\. Please reduce the configured base fee or increase the block gas limit\./,
         );
       });
 
       it("Should return customErrorReported true when the server reports a custom error", async function () {
-        const { artifact, address } = await deployContract(this);
+        const { client, hre, connection } = await createClient();
+
+        const accounts: any[] = await connection.provider.request({
+          method: "eth_accounts",
+          params: [],
+        });
+
+        const { artifact, address } = await deployContract({
+          hre,
+          client,
+          accounts,
+        });
 
         const result = await client.call(
           {
@@ -512,7 +579,7 @@ describe("JSON-RPC client", function () {
               [],
             ),
             value: 0n,
-            from: this.accounts[0],
+            from: accounts[0],
             to: address,
           },
           "latest",
@@ -524,7 +591,18 @@ describe("JSON-RPC client", function () {
       });
 
       it("Should return customErrorReported false when the server does not reports a custom error", async function () {
-        const { artifact, address } = await deployContract(this);
+        const { client, hre, connection } = await createClient();
+
+        const accounts: any[] = await connection.provider.request({
+          method: "eth_accounts",
+          params: [],
+        });
+
+        const { artifact, address } = await deployContract({
+          hre,
+          client,
+          accounts,
+        });
 
         const result = await client.call(
           {
@@ -534,7 +612,7 @@ describe("JSON-RPC client", function () {
               [],
             ),
             value: 0n,
-            from: this.accounts[0],
+            from: accounts[0],
             to: address,
           },
           "latest",
@@ -548,16 +626,25 @@ describe("JSON-RPC client", function () {
       it("Should accept pending as blockTag", async function () {
         // We disable automining, so the transaction is pending
         // and calls different between latest and pending
+        const { client, connection, hre } = await createClient();
 
-        await this.hre.network.provider.send("evm_setAutomine", [false]);
+        await connection.provider.request({
+          method: "evm_setAutomine",
+          params: [false],
+        });
 
-        const artifact = await this.hre.artifacts.readArtifact("C");
+        const accounts: any[] = await connection.provider.request({
+          method: "eth_accounts",
+          params: [],
+        });
+
+        const artifact = await hre.artifacts.readArtifact("C");
         const fees = await client.getNetworkFees();
 
         await client.sendTransaction({
           data: encodeArtifactDeploymentData(artifact, [], {}),
           value: 0n,
-          from: this.accounts[0],
+          from: accounts[0],
           nonce: 0,
           fees,
           gasLimit: 1_000_000n,
@@ -574,7 +661,7 @@ describe("JSON-RPC client", function () {
               [],
             ),
             value: 0n,
-            from: this.accounts[0],
+            from: accounts[0],
             to: address,
           },
           "latest",
@@ -592,7 +679,7 @@ describe("JSON-RPC client", function () {
               [],
             ),
             value: 0n,
-            from: this.accounts[0],
+            from: accounts[0],
             to: address,
           },
           "pending",
@@ -608,17 +695,21 @@ describe("JSON-RPC client", function () {
     });
 
     describe("sendTransaction", function () {
-      let fees: NetworkFees;
-      before("Fetching fees", async function () {
-        fees = await client.getNetworkFees();
-      });
-
       it("Should return the tx hash, even on execution failures", async function () {
+        const { client, connection } = await createClient();
+
+        const accounts: any[] = await connection.provider.request({
+          method: "eth_accounts",
+          params: [],
+        });
+
+        const fees = await client.getNetworkFees();
+
         // We send an invalid deployment transaction
         const result = await client.sendTransaction({
           data: "0x1234123120",
           value: 0n,
-          from: this.accounts[0],
+          from: accounts[0],
           nonce: 0,
           gasLimit: 5_000_000n,
           fees,
@@ -628,13 +719,25 @@ describe("JSON-RPC client", function () {
       });
 
       it("Should return the tx hash in a network without automining", async function () {
+        const { client, connection } = await createClient();
+
+        const accounts: any[] = await connection.provider.request({
+          method: "eth_accounts",
+          params: [],
+        });
+
+        const fees = await client.getNetworkFees();
+
         // We disable the automining first
-        await this.hre.network.provider.send("evm_setAutomine", [false]);
+        await connection.provider.request({
+          method: "evm_setAutomine",
+          params: [false],
+        });
         const result = await client.sendTransaction({
-          to: this.accounts[0],
+          to: accounts[0],
           data: "0x",
           value: 0n,
-          from: this.accounts[0],
+          from: accounts[0],
           nonce: 0,
           gasLimit: 5_000_000n,
           fees,
@@ -649,9 +752,16 @@ describe("JSON-RPC client", function () {
         const defaultHardhatNetworkBalance = 10n ** 18n * 10_000n;
         const nextBlockBaseFee = 875000000n;
 
+        const { client, connection } = await createClient();
+
+        const accounts: any[] = await connection.provider.request({
+          method: "eth_accounts",
+          params: [],
+        });
+
         await client.sendTransaction({
-          to: this.accounts[1],
-          from: this.accounts[0],
+          to: accounts[1],
+          from: accounts[0],
           value: 1n,
           fees: {
             maxFeePerGas: nextBlockBaseFee,
@@ -662,7 +772,7 @@ describe("JSON-RPC client", function () {
           nonce: 0,
         });
 
-        const balance = await client.getBalance(this.accounts[0], "latest");
+        const balance = await client.getBalance(accounts[0], "latest");
 
         assert.equal(
           balance,
@@ -673,12 +783,22 @@ describe("JSON-RPC client", function () {
       // Skipped because Hardhat Network doesn't implement this correctly and
       // always returns the latest balance.
       it.skip("Should return the pending balance of an account", async function () {
+        const { client, connection } = await createClient();
+
+        const accounts: any[] = await connection.provider.request({
+          method: "eth_accounts",
+          params: [],
+        });
+
         // We disable the automining first
-        await this.hre.network.provider.send("evm_setAutomine", [false]);
+        await connection.provider.request({
+          method: "evm_setAutomine",
+          params: [false],
+        });
 
         await client.sendTransaction({
-          to: this.accounts[1],
-          from: this.accounts[0],
+          to: accounts[1],
+          from: accounts[0],
           value: 1n,
           fees: {
             maxFeePerGas: 1n,
@@ -691,7 +811,7 @@ describe("JSON-RPC client", function () {
 
         const defaultHardhatNetworkBalance = 10n ** 18n * 10_000n;
 
-        const balance = await client.getBalance(this.accounts[0], "pending");
+        const balance = await client.getBalance(accounts[0], "pending");
 
         assert.equal(balance, defaultHardhatNetworkBalance - 21_000n * 1n - 1n);
       });
@@ -699,28 +819,36 @@ describe("JSON-RPC client", function () {
 
     describe("setBalance", function () {
       it("Should allow setting an account balance against a local hardhat node", async function () {
+        const { client, connection } = await createClient();
+
+        const accounts: any[] = await connection.provider.request({
+          method: "eth_accounts",
+          params: [],
+        });
+
         // Arrange
-        const balanceBefore = await client.getBalance(
-          this.accounts[19],
-          "latest",
-        );
+        const balanceBefore = await client.getBalance(accounts[19], "latest");
 
         assert.equal(balanceBefore, 10000000000000000000000n);
 
         // Act
-        await client.setBalance(this.accounts[19], 99999n);
+        await client.setBalance(accounts[19], 99999n);
 
         // Assert
-        const balanceAfter = await client.getBalance(
-          this.accounts[19],
-          "latest",
-        );
+        const balanceAfter = await client.getBalance(accounts[19], "latest");
 
         assert.equal(balanceAfter, 99999n);
       });
 
       it("Should allow setting an account balance against an anvil node", async function () {
         // Arrange
+
+        const connection = await createConnection();
+
+        const accounts: any[] = await connection.provider.request({
+          method: "eth_accounts",
+          params: [],
+        });
 
         // we create a fake anvil client that will
         // correctly set a balance but return null rather
@@ -729,29 +857,29 @@ describe("JSON-RPC client", function () {
           request: async (req) => {
             if (req.method === "hardhat_setBalance") {
               // Apply setBalance
-              await this.hre.network.provider.request(req);
+              await connection.provider.request(req);
 
               // but return null as anvil would
               return null;
             }
 
-            return this.hre.network.provider.request(req);
+            return connection.provider.request(req);
           },
         });
 
         const balanceBefore = await fakeAnvilClient.getBalance(
-          this.accounts[19],
+          accounts[19],
           "latest",
         );
 
         assert.equal(balanceBefore, 10000000000000000000000n);
 
         // Act
-        await fakeAnvilClient.setBalance(this.accounts[19], 99999n);
+        await fakeAnvilClient.setBalance(accounts[19], 99999n);
 
         // Assert
         const balanceAfter = await fakeAnvilClient.getBalance(
-          this.accounts[19],
+          accounts[19],
           "latest",
         );
 
@@ -761,9 +889,16 @@ describe("JSON-RPC client", function () {
 
     describe("estimateGas", function () {
       it("Should return the estimate gas if the tx would succeed", async function () {
+        const { client, connection } = await createClient();
+
+        const accounts: any[] = await connection.provider.request({
+          method: "eth_accounts",
+          params: [],
+        });
+
         const estimation = await client.estimateGas({
-          to: this.accounts[1],
-          from: this.accounts[0],
+          to: accounts[1],
+          from: accounts[0],
           value: 1n,
           fees: {
             maxFeePerGas: 1_000_000_000n,
@@ -778,12 +913,23 @@ describe("JSON-RPC client", function () {
       });
 
       it("Should throw if the tx would not succeed", async function () {
-        const { artifact, address } = await deployContract(this);
+        const { client, hre, connection } = await createClient();
+
+        const accounts: any[] = await connection.provider.request({
+          method: "eth_accounts",
+          params: [],
+        });
+
+        const { artifact, address } = await deployContract({
+          hre,
+          client,
+          accounts,
+        });
 
         await assert.isRejected(
           client.estimateGas({
             to: address,
-            from: this.accounts[0],
+            from: accounts[0],
             data: encodeArtifactFunctionCall(
               artifact,
               "revertWithReasonMessage",
@@ -802,16 +948,20 @@ describe("JSON-RPC client", function () {
 
     describe("getTransactionCount", function () {
       it("`latest` should return the amount of confirmed transactions", async function () {
-        let count = await client.getTransactionCount(
-          this.accounts[0],
-          "latest",
-        );
+        const { client, connection } = await createClient();
+
+        const accounts: any[] = await connection.provider.request({
+          method: "eth_accounts",
+          params: [],
+        });
+
+        let count = await client.getTransactionCount(accounts[0], "latest");
 
         assert.equal(count, 0);
 
         await client.sendTransaction({
-          to: this.accounts[1],
-          from: this.accounts[0],
+          to: accounts[1],
+          from: accounts[0],
           value: 1n,
           fees: {
             maxFeePerGas: 1_000_000_000n,
@@ -822,13 +972,13 @@ describe("JSON-RPC client", function () {
           nonce: 0,
         });
 
-        count = await client.getTransactionCount(this.accounts[0], "latest");
+        count = await client.getTransactionCount(accounts[0], "latest");
 
         assert.equal(count, 1);
 
         await client.sendTransaction({
-          to: this.accounts[1],
-          from: this.accounts[0],
+          to: accounts[1],
+          from: accounts[0],
           value: 1n,
           fees: {
             maxFeePerGas: 1_000_000_000n,
@@ -839,20 +989,30 @@ describe("JSON-RPC client", function () {
           nonce: 1,
         });
 
-        count = await client.getTransactionCount(this.accounts[0], "latest");
+        count = await client.getTransactionCount(accounts[0], "latest");
 
         assert.equal(count, 2);
       });
 
       it("`pending` should return the amount of unconfirmed transactions", async function () {
-        await this.hre.network.provider.send("evm_setAutomine", [false]);
+        const { client, connection } = await createClient();
+
+        const accounts: any[] = await connection.provider.request({
+          method: "eth_accounts",
+          params: [],
+        });
+
+        await connection.provider.request({
+          method: "evm_setAutomine",
+          params: [false],
+        });
         let latestCount = await client.getTransactionCount(
-          this.accounts[0],
+          accounts[0],
           "latest",
         );
 
         let pendingCount = await client.getTransactionCount(
-          this.accounts[0],
+          accounts[0],
           "pending",
         );
 
@@ -860,8 +1020,8 @@ describe("JSON-RPC client", function () {
         assert.equal(pendingCount, 0);
 
         await client.sendTransaction({
-          to: this.accounts[1],
-          from: this.accounts[0],
+          to: accounts[1],
+          from: accounts[0],
           value: 1n,
           fees: {
             maxFeePerGas: 1_000_000_000n,
@@ -872,22 +1032,16 @@ describe("JSON-RPC client", function () {
           nonce: 0,
         });
 
-        latestCount = await client.getTransactionCount(
-          this.accounts[0],
-          "latest",
-        );
+        latestCount = await client.getTransactionCount(accounts[0], "latest");
 
-        pendingCount = await client.getTransactionCount(
-          this.accounts[0],
-          "pending",
-        );
+        pendingCount = await client.getTransactionCount(accounts[0], "pending");
 
         assert.equal(latestCount, 0);
         assert.equal(pendingCount, 1);
 
         await client.sendTransaction({
-          to: this.accounts[1],
-          from: this.accounts[0],
+          to: accounts[1],
+          from: accounts[0],
           value: 1n,
           fees: {
             maxFeePerGas: 1_000_000_000n,
@@ -898,24 +1052,25 @@ describe("JSON-RPC client", function () {
           nonce: 1,
         });
 
-        latestCount = await client.getTransactionCount(
-          this.accounts[0],
-          "latest",
-        );
+        latestCount = await client.getTransactionCount(accounts[0], "latest");
 
-        pendingCount = await client.getTransactionCount(
-          this.accounts[0],
-          "pending",
-        );
+        pendingCount = await client.getTransactionCount(accounts[0], "pending");
 
         assert.equal(latestCount, 0);
         assert.equal(pendingCount, 2);
       });
 
       it("using a number should return the amount of confirmed transactions up to and including that block", async function () {
+        const { client, connection } = await createClient();
+
+        const accounts: any[] = await connection.provider.request({
+          method: "eth_accounts",
+          params: [],
+        });
+
         await client.sendTransaction({
-          to: this.accounts[1],
-          from: this.accounts[0],
+          to: accounts[1],
+          from: accounts[0],
           value: 1n,
           fees: {
             maxFeePerGas: 1_000_000_000n,
@@ -927,21 +1082,18 @@ describe("JSON-RPC client", function () {
         });
 
         let latestCount = await client.getTransactionCount(
-          this.accounts[0],
+          accounts[0],
           "latest",
         );
 
-        let blockOneCount = await client.getTransactionCount(
-          this.accounts[0],
-          1,
-        );
+        let blockOneCount = await client.getTransactionCount(accounts[0], 1);
 
         assert.equal(latestCount, 1);
         assert.equal(blockOneCount, 1);
 
         await client.sendTransaction({
-          to: this.accounts[1],
-          from: this.accounts[0],
+          to: accounts[1],
+          from: accounts[0],
           value: 1n,
           fees: {
             maxFeePerGas: 1_000_000_000n,
@@ -952,12 +1104,9 @@ describe("JSON-RPC client", function () {
           nonce: 1,
         });
 
-        latestCount = await client.getTransactionCount(
-          this.accounts[0],
-          "latest",
-        );
+        latestCount = await client.getTransactionCount(accounts[0], "latest");
 
-        blockOneCount = await client.getTransactionCount(this.accounts[0], 1);
+        blockOneCount = await client.getTransactionCount(accounts[0], 1);
 
         assert.equal(latestCount, 2);
         assert.equal(blockOneCount, 1);
@@ -968,9 +1117,16 @@ describe("JSON-RPC client", function () {
       describe("On a EIP-1559 network", function () {
         describe("Confirmed transactions", function () {
           it("Should return its hash, network fees, blockNumber and blockHash", async function () {
+            const { client, connection } = await createClient();
+
+            const accounts: any[] = await connection.provider.request({
+              method: "eth_accounts",
+              params: [],
+            });
+
             const req = {
-              to: this.accounts[1],
-              from: this.accounts[0],
+              to: accounts[1],
+              from: accounts[0],
               value: 1n,
               fees: {
                 maxFeePerGas: 1_000_000_000n,
@@ -1002,11 +1158,21 @@ describe("JSON-RPC client", function () {
 
         describe("Pending transactions", function () {
           it("Should the tx if it is in the mempool", async function () {
-            await this.hre.network.provider.send("evm_setAutomine", [false]);
+            const { client, connection } = await createClient();
+
+            const accounts: any[] = await connection.provider.request({
+              method: "eth_accounts",
+              params: [],
+            });
+
+            await connection.provider.request({
+              method: "evm_setAutomine",
+              params: [false],
+            });
 
             const req = {
-              to: this.accounts[1],
-              from: this.accounts[0],
+              to: accounts[1],
+              from: accounts[0],
               value: 1n,
               fees: {
                 maxFeePerGas: 1_000_000_000n,
@@ -1033,6 +1199,8 @@ describe("JSON-RPC client", function () {
           });
 
           it("Should return undefined if the transaction was never sent", async function () {
+            const { client } = await createClient();
+
             const tx = await client.getTransaction(
               "0x0000000000000000000000000000000000000000000000000000000000000001",
             );
@@ -1041,11 +1209,21 @@ describe("JSON-RPC client", function () {
           });
 
           it("Should return undefined if the transaction was replaced by a different one", async function () {
-            await this.hre.network.provider.send("evm_setAutomine", [false]);
+            const { client, connection } = await createClient();
+
+            const accounts: any[] = await connection.provider.request({
+              method: "eth_accounts",
+              params: [],
+            });
+
+            await connection.provider.request({
+              method: "evm_setAutomine",
+              params: [false],
+            });
 
             const firstReq = {
-              to: this.accounts[1],
-              from: this.accounts[0],
+              to: accounts[1],
+              from: accounts[0],
               value: 1n,
               fees: {
                 maxFeePerGas: 1_000_000_000n,
@@ -1074,11 +1252,21 @@ describe("JSON-RPC client", function () {
           });
 
           it("Should return undefined if the transaction was dropped", async function () {
-            await this.hre.network.provider.send("evm_setAutomine", [false]);
+            const { client, connection } = await createClient();
+
+            const accounts: any[] = await connection.provider.request({
+              method: "eth_accounts",
+              params: [],
+            });
+
+            await connection.provider.request({
+              method: "evm_setAutomine",
+              params: [false],
+            });
 
             const txHash = await client.sendTransaction({
-              to: this.accounts[1],
-              from: this.accounts[0],
+              to: accounts[1],
+              from: accounts[0],
               value: 1n,
               fees: {
                 maxFeePerGas: 1_000_000_000n,
@@ -1089,9 +1277,10 @@ describe("JSON-RPC client", function () {
               nonce: 0,
             });
 
-            await this.hre.network.provider.send("hardhat_dropTransaction", [
-              txHash,
-            ]);
+            await connection.provider.request({
+              method: "hardhat_dropTransaction",
+              params: [txHash],
+            });
 
             const tx = await client.getTransaction(txHash);
 
@@ -1104,9 +1293,16 @@ describe("JSON-RPC client", function () {
     describe("getTransactionReceipt", function () {
       describe("Confirmed transactions", function () {
         it("Should return the receipt if the transaction was successful", async function () {
+          const { client, connection } = await createClient();
+
+          const accounts: any[] = await connection.provider.request({
+            method: "eth_accounts",
+            params: [],
+          });
+
           const hash = await client.sendTransaction({
-            to: this.accounts[1],
-            from: this.accounts[0],
+            to: accounts[1],
+            from: accounts[0],
             value: 1n,
             fees: {
               maxFeePerGas: 1_000_000_000n,
@@ -1130,9 +1326,16 @@ describe("JSON-RPC client", function () {
         });
 
         it("Should return the contract address for successful deployment transactions", async function () {
-          const artifact = await this.hre.artifacts.readArtifact("C");
+          const { client, hre, connection } = await createClient();
+
+          const accounts: any[] = await connection.provider.request({
+            method: "eth_accounts",
+            params: [],
+          });
+
+          const artifact = await hre.artifacts.readArtifact("C");
           const hash = await client.sendTransaction({
-            from: this.accounts[0],
+            from: accounts[0],
             value: 0n,
             fees: {
               maxFeePerGas: 1_000_000_000n,
@@ -1156,10 +1359,17 @@ describe("JSON-RPC client", function () {
         });
 
         it("Should return the receipt for reverted transactions", async function () {
+          const { client, connection } = await createClient();
+
+          const accounts: any[] = await connection.provider.request({
+            method: "eth_accounts",
+            params: [],
+          });
+
           const hash = await client.sendTransaction({
             data: "0x1234123120",
             value: 0n,
-            from: this.accounts[0],
+            from: accounts[0],
             nonce: 0,
             gasLimit: 5_000_000n,
             fees: {
@@ -1181,12 +1391,23 @@ describe("JSON-RPC client", function () {
         });
 
         it("Should return the right logs", async function () {
-          const { artifact, address } = await deployContract(this);
+          const { client, hre, connection } = await createClient();
+
+          const accounts: any[] = await connection.provider.request({
+            method: "eth_accounts",
+            params: [],
+          });
+
+          const { artifact, address } = await deployContract({
+            hre,
+            client,
+            accounts,
+          });
           const hash = await client.sendTransaction({
             to: address,
             data: encodeArtifactFunctionCall(artifact, "events", []),
             value: 0n,
-            from: this.accounts[0],
+            from: accounts[0],
             nonce: 1,
             gasLimit: 5_000_000n,
             fees: {
@@ -1232,11 +1453,21 @@ describe("JSON-RPC client", function () {
 
       describe("Pending transactions", function () {
         it("Should return undefined if the transaction is in the mempool", async function () {
-          await this.hre.network.provider.send("evm_setAutomine", [false]);
+          const { client, connection } = await createClient();
+
+          const accounts: any[] = await connection.provider.request({
+            method: "eth_accounts",
+            params: [],
+          });
+
+          await connection.provider.request({
+            method: "evm_setAutomine",
+            params: [false],
+          });
 
           const hash = await client.sendTransaction({
-            to: this.accounts[1],
-            from: this.accounts[0],
+            to: accounts[1],
+            from: accounts[0],
             value: 1n,
             fees: {
               maxFeePerGas: 1_000_000_000n,
@@ -1253,6 +1484,8 @@ describe("JSON-RPC client", function () {
         });
 
         it("Should return undefined if the transaction was never sent", async function () {
+          const { client } = await createClient();
+
           const receipt = await client.getTransactionReceipt(
             "0x0000000000000000000000000000000000000000000000000000000000000001",
           );
@@ -1261,11 +1494,21 @@ describe("JSON-RPC client", function () {
         });
 
         it("Should return undefined if the transaction was replaced by a different one", async function () {
-          await this.hre.network.provider.send("evm_setAutomine", [false]);
+          const { client, connection } = await createClient();
+
+          const accounts: any[] = await connection.provider.request({
+            method: "eth_accounts",
+            params: [],
+          });
+
+          await connection.provider.request({
+            method: "evm_setAutomine",
+            params: [false],
+          });
 
           const firstReq = {
-            to: this.accounts[1],
-            from: this.accounts[0],
+            to: accounts[1],
+            from: accounts[0],
             value: 1n,
             fees: {
               maxFeePerGas: 1_000_000_000n,
@@ -1294,11 +1537,21 @@ describe("JSON-RPC client", function () {
         });
 
         it("Should return undefined if the transaction was dropped", async function () {
-          await this.hre.network.provider.send("evm_setAutomine", [false]);
+          const { client, connection } = await createClient();
+
+          const accounts: any[] = await connection.provider.request({
+            method: "eth_accounts",
+            params: [],
+          });
+
+          await connection.provider.request({
+            method: "evm_setAutomine",
+            params: [false],
+          });
 
           const txHash = await client.sendTransaction({
-            to: this.accounts[1],
-            from: this.accounts[0],
+            to: accounts[1],
+            from: accounts[0],
             value: 1n,
             fees: {
               maxFeePerGas: 1_000_000_000n,
@@ -1309,9 +1562,10 @@ describe("JSON-RPC client", function () {
             nonce: 0,
           });
 
-          await this.hre.network.provider.send("hardhat_dropTransaction", [
-            txHash,
-          ]);
+          await connection.provider.request({
+            method: "hardhat_dropTransaction",
+            params: [txHash],
+          });
 
           const receipt = await client.getTransactionReceipt(txHash);
 
@@ -1326,13 +1580,18 @@ describe("JSON-RPC client", function () {
 
     describe("sendTransaction", function () {
       it("Should return the tx hash, even on execution failures", async function () {
-        const client = new EIP1193JsonRpcClient(this.hre.network.provider);
+        const { client, connection } = await createClient();
+
+        const accounts: any[] = await connection.provider.request({
+          method: "eth_accounts",
+          params: [],
+        });
 
         // We send an invalid deployment transaction
         const result = await client.sendTransaction({
           data: "0x1234123120",
           value: 0n,
-          from: this.accounts[0],
+          from: accounts[0],
           nonce: 0,
           gasLimit: 5_000_000n,
           fees: {

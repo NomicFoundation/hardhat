@@ -65,6 +65,7 @@
     "chai-as-promised": "^8.0.0",
     "cross-env": "7.0.3",
     "eslint": "9.25.1",
+    "hardhat": "workspace:^3.0.0-next.23",
     "mocha": "^11.0.0",
     "nyc": "15.1.0",
     "prettier": "3.2.5",

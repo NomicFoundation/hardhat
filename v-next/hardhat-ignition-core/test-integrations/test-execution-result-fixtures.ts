@@ -4,7 +4,6 @@ import {
   encodeArtifactDeploymentData,
   encodeArtifactFunctionCall,
 } from "../src/internal/execution/abi.js";
-import { EIP1193JsonRpcClient } from "../src/internal/execution/jsonrpc-client.js";
 import {
   callEncodingFixtures,
   deploymentFixturesArtifacts,
@@ -13,18 +12,24 @@ import {
 } from "../test/helpers/execution-result-fixtures.js";
 
 import { useHardhatProject } from "./helpers/hardhat-projects.js";
+import { createClient } from "./helpers/create-hre.js";
 
 // See ../test/helpers/execution-result-fixtures.ts
 describe("execution-result-fixture tests", function () {
   useHardhatProject("default");
 
   it("Should have the right values", async function () {
-    const client = new EIP1193JsonRpcClient(this.hre.network.provider);
+    const { client, hre, connection } = await createClient();
+
+    const accounts = await connection.provider.request({
+      method: "eth_accounts",
+      params: [],
+    });
 
     for (const [name, artifact] of Object.entries(
       staticCallResultFixturesArtifacts,
     )) {
-      const expectedArtifact = await this.hre.artifacts.readArtifact(name);
+      const expectedArtifact = await hre.artifacts.readArtifact(name);
       assert.deepEqual(
         artifact,
         expectedArtifact,
@@ -45,7 +50,7 @@ describe("execution-result-fixture tests", function () {
       const tx = await client.sendTransaction({
         data: encodeArtifactDeploymentData(artifact, [], {}),
         value: 0n,
-        from: this.accounts[0],
+        from: accounts[0],
         nonce: nonce++,
         fees,
         gasLimit: 1_000_000n,
@@ -78,7 +83,7 @@ describe("execution-result-fixture tests", function () {
             [],
           ),
           value: 0n,
-          from: this.accounts[0],
+          from: accounts[0],
           to: addresses[contractName]!,
         },
         "latest",
@@ -119,7 +124,7 @@ describe("execution-result-fixture tests", function () {
     for (const [name, artifact] of Object.entries(
       deploymentFixturesArtifacts,
     )) {
-      const expectedArtifact = await this.hre.artifacts.readArtifact(name);
+      const expectedArtifact = await hre.artifacts.readArtifact(name);
       assert.deepEqual(
         artifact,
         expectedArtifact,
@@ -128,7 +133,7 @@ describe("execution-result-fixture tests", function () {
     }
 
     for (const [name, artifact] of Object.entries(callEncodingFixtures)) {
-      const expectedArtifact = await this.hre.artifacts.readArtifact(name);
+      const expectedArtifact = await hre.artifacts.readArtifact(name);
       assert.deepEqual(
         artifact,
         expectedArtifact,
