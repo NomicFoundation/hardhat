@@ -6,6 +6,7 @@ import type {
   TracingMessage,
   TracingMessageResult,
   TracingStep,
+  HttpHeader,
 } from "@nomicfoundation/edr";
 import {
   FRONTIER,
@@ -293,4 +294,22 @@ export function edrTracingMessageToMinimalMessage(
     gasLimit: message.gasLimit,
     isStaticCall: message.isStaticCall,
   };
+}
+
+export function httpHeadersToEdr(input?: {
+  [name: string]: string;
+}): HttpHeader[] | undefined {
+  let httpHeaders: HttpHeader[] | undefined;
+  if (input !== undefined) {
+    httpHeaders = [];
+
+    for (const [name, value] of Object.entries(input)) {
+      httpHeaders.push({
+        name,
+        value,
+      });
+    }
+  }
+
+  return httpHeaders;
 }

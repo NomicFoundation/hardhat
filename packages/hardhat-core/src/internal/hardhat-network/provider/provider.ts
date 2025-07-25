@@ -1,5 +1,7 @@
 import type {
   Artifacts,
+  CompilerInput,
+  CompilerOutput,
   EIP1193Provider,
   EthSubscription,
   HardhatNetworkChainsConfig,
@@ -8,11 +10,13 @@ import type {
 
 import type {
   EdrContext,
+  LoggerConfig as EdrLoggerConfig,
   Provider as EdrProviderT,
   Response,
   SubscriptionEvent,
-  HttpHeader,
   TracingConfigWithBuffers,
+  ProviderConfig,
+  SubscriptionConfig,
 } from "@nomicfoundation/edr";
 import { privateToAddress } from "@ethereumjs/util";
 import { precompileP256Verify } from "@nomicfoundation/edr";
@@ -20,13 +24,25 @@ import picocolors from "picocolors";
 import debug from "debug";
 import { EventEmitter } from "events";
 import fsExtra from "fs-extra";
+import * as t from "io-ts";
 
 import { requireNapiRsModule } from "../../../common/napi-rs";
 import {
   HARDHAT_NETWORK_RESET_EVENT,
   HARDHAT_NETWORK_REVERT_SNAPSHOT_EVENT,
 } from "../../constants";
+import { numberToRpcQuantity } from "../../core/jsonrpc/types/base-types";
 import {
+  optionalRpcHardhatNetworkConfig,
+  RpcHardhatNetworkConfig,
+} from "../../core/jsonrpc/types/input/hardhat-network";
+import {
+  rpcCompilerInput,
+  rpcCompilerOutput,
+} from "../../core/jsonrpc/types/input/solc";
+import { validateParams } from "../../core/jsonrpc/types/input/validation";
+import {
+  InternalError,
   InvalidArgumentsError,
   InvalidInputError,
   ProviderError,
@@ -52,6 +68,7 @@ import {
   ethereumjsIntervalMiningConfigToEdr,
   ethereumjsMempoolOrderToEdrMineOrdering,
   ethereumsjsHardforkToEdrSpecId,
+  httpHeadersToEdr,
 } from "./utils/convertToEdr";
 import { LoggerConfig, printLine, replaceLastLine } from "./modules/logger";
 import { MinimalEthereumJsVm, getMinimalEthereumJsVm } from "./vm/minimal-vm";
@@ -120,17 +137,25 @@ export class EdrProviderWrapper
   extends EventEmitter
   implements EIP1193Provider
 {
+  private _addedCompilationResults: Array<
+    [string, CompilerInput, CompilerOutput]
+  > = [];
+
   private _failedStackTraces = 0;
 
   // temporarily added to make smock work with HH+EDR
   private _callOverrideCallback?: CallOverrideCallback;
 
   private constructor(
-    private readonly _provider: EdrProviderT,
+    private _provider: EdrProviderT,
+    private readonly _providerConfig: ProviderConfig,
+    private readonly _loggerConfig: EdrLoggerConfig,
     // we add this for backwards-compatibility with plugins like solidity-coverage
-    private readonly _node: {
+    private _node: {
       _vm: MinimalEthereumJsVm;
-    }
+    },
+    private readonly _subscriptionConfig: SubscriptionConfig,
+    private readonly _tracingConfig: TracingConfigWithBuffers
   ) {
     super();
   }
@@ -149,27 +174,33 @@ export class EdrProviderWrapper
 
     let fork;
     if (config.forkConfig !== undefined) {
-      let httpHeaders: HttpHeader[] | undefined;
-      if (config.forkConfig.httpHeaders !== undefined) {
-        httpHeaders = [];
-
-        for (const [name, value] of Object.entries(
-          config.forkConfig.httpHeaders
-        )) {
-          httpHeaders.push({
-            name,
-            value,
-          });
-        }
-      }
-
       fork = {
         blockNumber:
           config.forkConfig.blockNumber !== undefined
             ? BigInt(config.forkConfig.blockNumber)
             : undefined,
         cacheDir: config.forkCachePath,
-        httpHeaders,
+        chainOverrides: Array.from(
+          config.chains,
+          ([chainId, hardforkConfig]) => {
+            return {
+              chainId: BigInt(chainId),
+              name: "Unknown",
+              hardforks: Array.from(
+                hardforkConfig.hardforkHistory,
+                ([hardfork, blockNumber]) => {
+                  return {
+                    condition: { blockNumber: BigInt(blockNumber) },
+                    hardfork: ethereumsjsHardforkToEdrSpecId(
+                      getHardforkName(hardfork)
+                    ),
+                  };
+                }
+              ),
+            };
+          }
+        ),
+        httpHeaders: httpHeadersToEdr(config.forkConfig.httpHeaders),
         url: config.forkConfig.jsonRpcUrl,
       };
     }
@@ -195,8 +226,9 @@ export class EdrProviderWrapper
             l1HardforkFromString(ethereumsjsHardforkToEdrSpecId(hardforkName))
           );
 
-    for (const account of config.genesisAccounts) {
+    const ownedAccounts = config.genesisAccounts.map((account) => {
       const privateKey = Uint8Array.from(
+        // Strip the `0x` prefix
         Buffer.from(account.privateKey.slice(2), "hex")
       );
 
@@ -204,95 +236,88 @@ export class EdrProviderWrapper
         address: privateToAddress(privateKey),
         balance: BigInt(account.balance),
       });
-    }
+
+      return account.privateKey;
+    });
+
+    const edrProviderConfig = {
+      allowBlocksWithSameTimestamp:
+        config.allowBlocksWithSameTimestamp ?? false,
+      allowUnlimitedContractSize: config.allowUnlimitedContractSize,
+      bailOnCallFailure: config.throwOnCallFailures,
+      bailOnTransactionFailure: config.throwOnTransactionFailures,
+      blockGasLimit: BigInt(config.blockGasLimit),
+      chainId: BigInt(config.chainId),
+      coinbase: Buffer.from(coinbase.slice(2), "hex"),
+      precompileOverrides: config.enableRip7212 ? [precompileP256Verify()] : [],
+      fork,
+      genesisState,
+      hardfork: ethereumsjsHardforkToEdrSpecId(hardforkName),
+      initialDate,
+      initialBaseFeePerGas:
+        config.initialBaseFeePerGas !== undefined
+          ? BigInt(config.initialBaseFeePerGas!)
+          : undefined,
+      minGasPrice: config.minGasPrice,
+      mining: {
+        autoMine: config.automine,
+        interval: ethereumjsIntervalMiningConfigToEdr(config.intervalMining),
+        memPool: {
+          order: ethereumjsMempoolOrderToEdrMineOrdering(config.mempoolOrder),
+        },
+      },
+      networkId: BigInt(config.networkId),
+      observability: {},
+      ownedAccounts,
+    };
+
+    const edrLoggerConfig = {
+      enable: loggerConfig.enabled,
+      decodeConsoleLogInputsCallback: (inputs: ArrayBuffer[]) => {
+        return ConsoleLogger.getDecodedLogs(
+          inputs.map((input) => {
+            return Buffer.from(input);
+          })
+        );
+      },
+      printLineCallback: (message: string, replace: boolean) => {
+        if (replace) {
+          replaceLastLineFn(message);
+        } else {
+          printLineFn(message);
+        }
+      },
+    };
+
+    const edrSubscriptionConfig = {
+      subscriptionCallback: (event: SubscriptionEvent) => {
+        eventAdapter.emit("ethEvent", event);
+      },
+    };
+
+    const edrTracingConfig = tracingConfig ?? {};
 
     const context = await getGlobalEdrContext();
     const provider = await context.createProvider(
       GENERIC_CHAIN_TYPE,
-      {
-        allowBlocksWithSameTimestamp:
-          config.allowBlocksWithSameTimestamp ?? false,
-        allowUnlimitedContractSize: config.allowUnlimitedContractSize,
-        bailOnCallFailure: config.throwOnCallFailures,
-        bailOnTransactionFailure: config.throwOnTransactionFailures,
-        blockGasLimit: BigInt(config.blockGasLimit),
-        chainId: BigInt(config.chainId),
-        chainOverrides: Array.from(
-          config.chains,
-          ([chainId, hardforkConfig]) => {
-            return {
-              chainId: BigInt(chainId),
-              name: "Unknown",
-              hardforks: Array.from(
-                hardforkConfig.hardforkHistory,
-                ([hardfork, blockNumber]) => {
-                  return {
-                    condition: { blockNumber: BigInt(blockNumber) },
-                    hardfork: ethereumsjsHardforkToEdrSpecId(
-                      getHardforkName(hardfork)
-                    ),
-                  };
-                }
-              ),
-            };
-          }
-        ),
-        coinbase: Buffer.from(coinbase.slice(2), "hex"),
-        precompileOverrides: config.enableRip7212
-          ? [precompileP256Verify()]
-          : [],
-        fork,
-        genesisState,
-        hardfork: ethereumsjsHardforkToEdrSpecId(hardforkName),
-        initialDate,
-        initialBaseFeePerGas:
-          config.initialBaseFeePerGas !== undefined
-            ? BigInt(config.initialBaseFeePerGas!)
-            : undefined,
-        minGasPrice: config.minGasPrice,
-        mining: {
-          autoMine: config.automine,
-          interval: ethereumjsIntervalMiningConfigToEdr(config.intervalMining),
-          memPool: {
-            order: ethereumjsMempoolOrderToEdrMineOrdering(config.mempoolOrder),
-          },
-        },
-        networkId: BigInt(config.networkId),
-        observability: {},
-        ownedAccounts: config.genesisAccounts.map((account) => {
-          return account.privateKey;
-        }),
-      },
-      {
-        enable: loggerConfig.enabled,
-        decodeConsoleLogInputsCallback: (inputs: ArrayBuffer[]) => {
-          return ConsoleLogger.getDecodedLogs(
-            inputs.map((input) => {
-              return Buffer.from(input);
-            })
-          );
-        },
-        printLineCallback: (message: string, replace: boolean) => {
-          if (replace) {
-            replaceLastLineFn(message);
-          } else {
-            printLineFn(message);
-          }
-        },
-      },
-      {
-        subscriptionCallback: (event: SubscriptionEvent) => {
-          eventAdapter.emit("ethEvent", event);
-        },
-      },
-      tracingConfig ?? {}
+      edrProviderConfig,
+      edrLoggerConfig,
+      edrSubscriptionConfig,
+      edrTracingConfig
     );
 
     const minimalEthereumJsNode = {
       _vm: getMinimalEthereumJsVm(provider),
     };
 
-    const wrapper = new EdrProviderWrapper(provider, minimalEthereumJsNode);
+    const wrapper = new EdrProviderWrapper(
+      provider,
+      edrProviderConfig,
+      edrLoggerConfig,
+      minimalEthereumJsNode,
+      edrSubscriptionConfig,
+      edrTracingConfig
+    );
 
     // Pass through all events from the provider
     eventAdapter.addListener(
@@ -312,9 +337,22 @@ export class EdrProviderWrapper
 
     const params = args.params ?? [];
 
-    if (args.method === "hardhat_getStackTraceFailuresCount") {
-      // stubbed for backwards compatibility
-      return 0;
+    // stubbed for backwards compatibility
+    switch (args.method) {
+      case "hardhat_getStackTraceFailuresCount":
+        return 0;
+      case "eth_mining":
+        return false;
+      case "net_listening":
+        return true;
+      case "net_peerCount":
+        return numberToRpcQuantity(0);
+      case "hardhat_reset":
+        return this._reset(..._resetParams(params));
+      case "hardhat_addCompilationResult":
+        return this._addCompilationResult(
+          ..._addCompilationResultParams(params)
+        );
     }
 
     const stringifiedArgs = JSON.stringify({
@@ -417,9 +455,7 @@ export class EdrProviderWrapper
       throw error;
     }
 
-    if (args.method === "hardhat_reset") {
-      this.emit(HARDHAT_NETWORK_RESET_EVENT);
-    } else if (args.method === "evm_revert") {
+    if (args.method === "evm_revert") {
       this.emit(HARDHAT_NETWORK_REVERT_SNAPSHOT_EVENT);
     }
 
@@ -435,6 +471,77 @@ export class EdrProviderWrapper
     } else {
       return response.result;
     }
+  }
+
+  private async _addCompilationResult(
+    solcVersion: string,
+    input: CompilerInput,
+    output: CompilerOutput
+  ): Promise<boolean> {
+    try {
+      const success = await this._provider.addCompilationResult(
+        solcVersion,
+        input,
+        output
+      );
+
+      if (success) {
+        this._addedCompilationResults.push([solcVersion, input, output]);
+      }
+
+      return success;
+    } catch (error: any) {
+      // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
+      throw new InternalError(error);
+    }
+  }
+
+  private async _reset(networkConfig?: RpcHardhatNetworkConfig) {
+    const { GENERIC_CHAIN_TYPE } = requireNapiRsModule(
+      "@nomicfoundation/edr"
+    ) as typeof import("@nomicfoundation/edr");
+    const forkConfig = networkConfig?.forking;
+
+    if (forkConfig !== undefined) {
+      this._providerConfig.fork = {
+        blockNumber:
+          forkConfig.blockNumber !== undefined
+            ? BigInt(forkConfig.blockNumber)
+            : undefined,
+        cacheDir: this._providerConfig.fork?.cacheDir,
+        chainOverrides: this._providerConfig.fork?.chainOverrides,
+        httpHeaders: httpHeadersToEdr(forkConfig.httpHeaders),
+        url: forkConfig.jsonRpcUrl,
+      };
+    } else {
+      this._providerConfig.fork = undefined;
+    }
+
+    const context = await getGlobalEdrContext();
+    const provider = await context.createProvider(
+      GENERIC_CHAIN_TYPE,
+      this._providerConfig,
+      this._loggerConfig,
+      this._subscriptionConfig,
+      this._tracingConfig
+    );
+
+    for (const [solcVersion, input, output] of this._addedCompilationResults) {
+      // This should succeed as only successful compilation results are added
+      // to the provider. Therefore, we don't need to handle errors here.
+      await provider.addCompilationResult(solcVersion, input, output);
+    }
+
+    const minimalEthereumJsNode = {
+      _vm: getMinimalEthereumJsVm(provider),
+    };
+
+    this._provider = provider;
+    this._node = minimalEthereumJsNode;
+
+    this.emit(HARDHAT_NETWORK_RESET_EVENT);
+
+    return true;
   }
 
   // temporarily added to make smock work with HH+EDR
@@ -537,4 +644,14 @@ async function makeTracingConfig(
       );
     }
   }
+}
+
+function _addCompilationResultParams(
+  params: any[]
+): [string, CompilerInput, CompilerOutput] {
+  return validateParams(params, t.string, rpcCompilerInput, rpcCompilerOutput);
+}
+
+function _resetParams(params: any[]): [RpcHardhatNetworkConfig | undefined] {
+  return validateParams(params, optionalRpcHardhatNetworkConfig);
 }
