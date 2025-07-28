@@ -52,6 +52,19 @@ describe("chains", () => {
       expect(chain).to.deep.equal(chains.foundry);
     });
 
+    it("should return the first matching chain if the chain id is not 31337 and there are multiple chains with that id", async () => {
+      const provider: EthereumProvider = new EthereumMockedProvider();
+      const sendStub = sinon.stub(provider, "send");
+      // chain id 999 corresponds to wanchainTestnet but also zoraTestnet
+      sendStub.withArgs("eth_chainId").returns(Promise.resolve("0x3e7"));
+      sendStub.withArgs("hardhat_metadata").throws();
+      sendStub.withArgs("anvil_nodeInfo").throws();
+
+      const chain = await getChain(provider);
+
+      expect(chain).to.deep.equal(chains.wanchainTestnet);
+    });
+
     it("should throw if the chain id is 31337 and the network is neither hardhat nor foundry", async () => {
       const provider: EthereumProvider = new EthereumMockedProvider();
       const sendStub = sinon.stub(provider, "send");
@@ -74,19 +87,6 @@ Please report this issue if you're using Hardhat or Foundry.`
 
       await expect(getChain(provider)).to.be.rejectedWith(
         /No network with chain id 0 found/
-      );
-    });
-
-    it("should throw if the chain id is not 31337 and there are multiple chains with that id", async () => {
-      const provider: EthereumProvider = new EthereumMockedProvider();
-      const sendStub = sinon.stub(provider, "send");
-      // chain id 999 corresponds to Wanchain Testnet but also Zora Goerli Testnet
-      sendStub.withArgs("eth_chainId").returns(Promise.resolve("0x3e7"));
-      sendStub.withArgs("hardhat_metadata").throws();
-      sendStub.withArgs("anvil_nodeInfo").throws();
-
-      await expect(getChain(provider)).to.be.rejectedWith(
-        /Multiple networks with chain id 999 found./
       );
     });
   });

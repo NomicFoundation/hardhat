@@ -4,39 +4,38 @@ import type { TestClientMode } from "../types";
 
 import memoize from "lodash.memoize";
 
-import {
-  UnknownDevelopmentNetworkError,
-  NetworkNotFoundError,
-  MultipleMatchingNetworksError,
-} from "./errors";
+import { UnknownDevelopmentNetworkError, NetworkNotFoundError } from "./errors";
 
 export async function getChain(provider: EthereumProvider): Promise<Chain> {
-  const chains: Record<string, Chain> = require("viem/chains");
+  const { extractChain } = await import("viem");
+  const chainsModule = await import("viem/chains");
+  const chains = Object.values(chainsModule) as Chain[];
   const chainId = await getChainId(provider);
 
   if (isDevelopmentNetwork(chainId)) {
     if (await isHardhatNetwork(provider)) {
-      return chains.hardhat;
+      return chainsModule.hardhat;
     } else if (await isFoundryNetwork(provider)) {
-      return chains.foundry;
+      return chainsModule.foundry;
     } else {
       throw new UnknownDevelopmentNetworkError();
     }
   }
 
-  const matchingChains = Object.values(chains).filter(
-    ({ id }) => id === chainId
-  );
+  const chain = extractChain({
+    chains,
+    id: chainId,
+  });
 
-  if (matchingChains.length === 0) {
+  if (chain === undefined) {
     if (await isHardhatNetwork(provider)) {
       return {
-        ...chains.hardhat,
+        ...chainsModule.hardhat,
         id: chainId,
       };
     } else if (await isFoundryNetwork(provider)) {
       return {
-        ...chains.foundry,
+        ...chainsModule.foundry,
         id: chainId,
       };
     } else {
@@ -44,11 +43,7 @@ export async function getChain(provider: EthereumProvider): Promise<Chain> {
     }
   }
 
-  if (matchingChains.length > 1) {
-    throw new MultipleMatchingNetworksError(chainId);
-  }
-
-  return matchingChains[0];
+  return chain;
 }
 
 export function isDevelopmentNetwork(chainId: number) {
