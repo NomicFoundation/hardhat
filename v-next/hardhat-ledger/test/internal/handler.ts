@@ -2,7 +2,7 @@ import type Eth from "@ledgerhq/hw-app-eth";
 
 import assert from "node:assert/strict";
 import path from "node:path";
-import { before, beforeEach, describe, it } from "node:test";
+import { after, before, beforeEach, describe, it } from "node:test";
 
 import { TransportError } from "@ledgerhq/hw-transport";
 import {
@@ -102,6 +102,10 @@ describe("LedgerHandler", () => {
   });
 
   beforeEach(async () => {
+    await remove(tmpCachePath);
+  });
+
+  after(async () => {
     await remove(tmpCachePath);
   });
 
@@ -672,8 +676,6 @@ describe("LedgerHandler", () => {
       });
 
       it("should write the cache with the new paths", async () => {
-        await remove(tmpCachePath);
-
         await ledgerHandler.handle(request, []);
 
         const file = await readJsonFile(tmpCachePath);
@@ -684,9 +686,6 @@ describe("LedgerHandler", () => {
       });
 
       it("should not break if caching fails", async () => {
-        // Be sue the cache file is not there so an error is thrown
-        await remove(tmpCachePath);
-
         let hasThrown = false;
         try {
           await ledgerHandler.handle(request, []);
@@ -764,6 +763,50 @@ describe("LedgerHandler", () => {
             pathEnd: `m/44'/60'/${LedgerHandler.MAX_DERIVATION_ACCOUNTS}'/0/0`,
           },
         );
+      });
+
+      it("should use the supplied derivationFunction when deriving paths", async () => {
+        const customDerivation = (idx: number) =>
+          `m/44'/60'/${1337 + idx}'/0/0`;
+
+        const expectedPath = customDerivation(0);
+
+        [eth, calls] = getEthMocked({
+          getAddress: {
+            result: (searchedPath: string) =>
+              searchedPath === expectedPath
+                ? account
+                : { address: "0x0", publicKey: "0x0" },
+          },
+          signPersonalMessage: {
+            result: rsv,
+            expectedParams: {
+              path: expectedPath,
+              data: dataToSign.replace("0x", ""),
+            },
+          },
+        });
+
+        ledgerHandler = new LedgerHandler(
+          ethereumMockedProvider,
+          {
+            accounts: LEDGER_ADDRESSES,
+            derivationFunction: customDerivation,
+          },
+          mockedDisplayInfo.fn,
+          {
+            ethConstructor: eth,
+            transportNodeHid: getTransportNodeHidMock(),
+            cachePath: tmpCachePath,
+          },
+        );
+
+        await ledgerHandler.handle(request, []);
+
+        const c = calls.get("getAddress");
+        assertHardhatInvariant(c !== undefined, "c should be defined");
+
+        assert.equal(c.args[0], expectedPath);
       });
     });
   });
