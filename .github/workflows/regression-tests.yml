@@ -390,10 +390,14 @@ jobs:
         if: startsWith(matrix.command, 'hardhat ')
         env:
           CONFIG: ${{ fromJSON(steps.config.outputs.repository).hardhat-config }}
+          REMAPPINGS: ${{ fromJSON(steps.config.outputs.repository).remappings }}
         run: |
           if [[ -n "$CONFIG" ]]; then
             rm hardhat.config.* || true
             echo "$CONFIG" > hardhat.config.js
+          fi
+          if [[ -n "$REMAPPINGS" ]]; then
+            echo "$REMAPPINGS" > remappings.txt
           fi
       - name: Initialize the package
         if: startsWith(matrix.command, 'hardhat ')
