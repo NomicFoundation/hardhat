@@ -474,7 +474,7 @@ export class Resolver {
   }
 
   private _getUriScheme(s: string): string | undefined {
-    const re = /([a-zA-Z]+):\/\//;
+    const re = /^([a-zA-Z]+):\/\//;
     const match = re.exec(s);
     if (match === null) {
       return undefined;
@@ -484,6 +484,8 @@ export class Resolver {
   }
 
   private _isInsideSameDir(sourceNameInDir: string, sourceNameToTest: string) {
+    if (!sourceNameToTest) return false;
+    
     const firstSlash = sourceNameInDir.indexOf("/");
     const dir =
       firstSlash !== -1
@@ -517,7 +519,7 @@ export class Resolver {
     );
 
     const nmIndex = sourceName.indexOf(`${NODE_MODULES}/`);
-    return sourceName.substr(nmIndex + NODE_MODULES.length + 1);
+    return sourceName.substring(nmIndex + NODE_MODULES.length + 1);
   }
 
   private async _validateSourceNameExistenceAndCasing(
