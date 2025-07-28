@@ -1,9 +1,7 @@
 import type { EdrNetworkAccountsUserConfig } from "hardhat/types/config";
-import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
-import type { EthereumProvider } from "hardhat/types/providers";
 
 import assert from "node:assert/strict";
-import { before, describe, it } from "node:test";
+import { describe, it } from "node:test";
 
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
@@ -40,26 +38,21 @@ const LEDGER_ADDRESSES = [
 ];
 
 describe("LedgerHandler", () => {
-  let hre: HardhatRuntimeEnvironment;
-  let provider: EthereumProvider;
-
-  before(async () => {
-    hre = await createHardhatRuntimeEnvironment({
-      plugins: [hardhatLedgerPlugin],
-      networks: {
-        default: {
-          type: "edr",
-          accounts: HARDHAT_ACCOUNTS,
-          ledgerAccounts: LEDGER_ADDRESSES,
-        },
-      },
-    });
-
-    ({ provider } = await hre.network.connect());
-  });
-
   describe("eth_accounts", async () => {
     it("should return both ledger and non-ledger accounts", async () => {
+      const hre = await createHardhatRuntimeEnvironment({
+        plugins: [hardhatLedgerPlugin],
+        networks: {
+          default: {
+            type: "edr",
+            accounts: HARDHAT_ACCOUNTS,
+            ledgerAccounts: LEDGER_ADDRESSES,
+          },
+        },
+      });
+
+      const { provider } = await hre.network.connect();
+
       const res = await provider.request({ method: "eth_accounts" });
 
       assert.deepEqual(res, [
@@ -69,7 +62,7 @@ describe("LedgerHandler", () => {
     });
 
     it("should return only the non-ledger accounts", async () => {
-      const tmpHre = await createHardhatRuntimeEnvironment({
+      const hre = await createHardhatRuntimeEnvironment({
         plugins: [hardhatLedgerPlugin],
         networks: {
           default: {
@@ -79,11 +72,43 @@ describe("LedgerHandler", () => {
         },
       });
 
-      const { provider: tmpProvider } = await tmpHre.network.connect();
+      const { provider } = await hre.network.connect();
 
-      const res = await tmpProvider.request({ method: "eth_accounts" });
+      const res = await provider.request({ method: "eth_accounts" });
 
       assert.deepEqual(res, HARDHAT_ACCOUNTS_ADDRESSES);
     });
+  });
+
+  it("should work with multiple connections", async () => {
+    const hre = await createHardhatRuntimeEnvironment({
+      plugins: [hardhatLedgerPlugin],
+      networks: {
+        firstConnection: {
+          type: "edr",
+          accounts: HARDHAT_ACCOUNTS,
+          ledgerAccounts: LEDGER_ADDRESSES,
+        },
+        secondConnection: {
+          type: "edr",
+          accounts: [], // No edr accounts
+          ledgerAccounts: LEDGER_ADDRESSES,
+        },
+      },
+    });
+
+    const { provider: firsProvider } =
+      await hre.network.connect("firstConnection");
+    const { provider: secondProvider } =
+      await hre.network.connect("secondConnection");
+
+    const firstRes = await firsProvider.request({ method: "eth_accounts" });
+    assert.deepEqual(firstRes, [
+      ...HARDHAT_ACCOUNTS_ADDRESSES,
+      ...LEDGER_ADDRESSES,
+    ]);
+
+    const secondRes = await secondProvider.request({ method: "eth_accounts" });
+    assert.deepEqual(secondRes, [...LEDGER_ADDRESSES]);
   });
 });
