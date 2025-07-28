@@ -305,18 +305,29 @@ jobs:
             const config = JSON.parse(process.env.CONFIG);
             const repositoryConfig = config.repositories[process.env.REPOSITORY];
             const runnerConfig = config.runners[process.env.RUNNER];
-            const commandConfig = config.commands[process.env.COMMAND];
+            let command;
+            for (const key of Object.keys(config.commands)) {
+              if (process.env.COMMAND.startsWith(key)) {
+                command = key;
+                break;
+              }
+            }
+              const commandConfig = config.commands[command];
             if (!repositoryConfig) {
               core.setFailed(`Unsupported repository: ${process.env.REPOSITORY}`);
+              return;
             }
             if (!runnerConfig) {
               core.setFailed(`Unsupported runner: ${process.env.RUNNER}`);
+              return;
             }
             if (!commandConfig) {
               core.setFailed(`Unsupported command: ${process.env.COMMAND}`);
+              return;
             }
-            if (repositoryConfig.commands === undefined || !repositoryConfig.commands.includes(process.env.COMMAND)) {
-              core.setFailed(`Unsupported command: ${process.env.COMMAND}`);
+            if (repositoryConfig.commands === undefined || !repositoryConfig.commands.includes(command)) {
+              core.setFailed(`Unsupported command: ${command}`);
+              return;
             }
             core.setOutput('repository', JSON.stringify(repositoryConfig));
             core.setOutput('runner', JSON.stringify(runnerConfig));
