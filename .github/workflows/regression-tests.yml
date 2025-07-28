@@ -453,7 +453,7 @@ jobs:
           source <(echo "$ENV_SOURCE")
           set +e
           before=$(date +%s)
-          ${{ fromJSON(steps.config.outputs.command).command }} 2>&1 | tee -a run.output
+          ${{ matrix.command }} 2>&1 | tee -a run.output
           status=${PIPESTATUS[0]}
           after=$(date +%s)
           set -e
