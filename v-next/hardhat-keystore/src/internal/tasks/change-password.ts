@@ -2,6 +2,7 @@ import type { Keystore, KeystoreLoader } from "../types.js";
 import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 import type { NewTaskActionFunction } from "hardhat/types/tasks";
 
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { move, remove } from "@nomicfoundation/hardhat-utils/fs";
 
 import {
@@ -15,10 +16,19 @@ import {
   setupTmpKeystoreLoaderFrom,
 } from "../utils/setup-keystore-loader-from.js";
 
-const taskChangePassword: NewTaskActionFunction = async (
-  _taskArguments,
-  hre: HardhatRuntimeEnvironment,
-): Promise<void> => {
+interface TaskChangePasswordArguments {
+  dev: boolean;
+}
+
+const taskChangePassword: NewTaskActionFunction<
+  TaskChangePasswordArguments
+> = async ({ dev }, hre: HardhatRuntimeEnvironment): Promise<void> => {
+  if (dev === true) {
+    throw new HardhatError(
+      HardhatError.ERRORS.HARDHAT_KEYSTORE.GENERAL.CANNOT_CHANGED_PASSWORD_FOR_DEV_KEYSTORE,
+    );
+  }
+
   const keystoreLoader = setupKeystoreLoaderFrom(hre);
   const newKeystoreLoader = setupTmpKeystoreLoaderFrom(hre);
 

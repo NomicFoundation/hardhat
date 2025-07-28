@@ -69,6 +69,11 @@ const hardhatKeystorePlugin: HardhatPlugin = {
       ["keystore", "change-password"],
       "Change the password for the keystore",
     )
+      .addFlag({
+        name: "dev",
+        description:
+          "Use the development keystore instead of the production one",
+      })
       .setAction(import.meta.resolve("./internal/tasks/change-password.js"))
       .build(),
   ],

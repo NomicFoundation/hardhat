@@ -2035,6 +2035,14 @@ Please check Hardhat's output for more details.`,
         websiteDescription:
           "The password you provided is incorrect or the keystore file is corrupted.",
       },
+      CANNOT_CHANGED_PASSWORD_FOR_DEV_KEYSTORE: {
+        number: 50001,
+        messageTemplate:
+          "Cannot change password for dev keystore, as it is auto generated.",
+        websiteTitle: "Cannot change password for dev keystore",
+        websiteDescription:
+          "Cannot change password for dev keystore, as it is auto generated.",
+      },
     },
   },
   NETWORK_HELPERS: {
