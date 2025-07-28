@@ -41,3 +41,10 @@ export interface FileManager {
   ): Promise<void>;
   readJsonFile(absolutePathToFile: string): Promise<EncryptedKeystore>;
 }
+
+export type KeystoreConsoleLog = (text: string) => void;
+
+export type KeystoreRequestSecretInput = (
+  interruptor: string,
+  inputDescription: string,
+) => Promise<string>;

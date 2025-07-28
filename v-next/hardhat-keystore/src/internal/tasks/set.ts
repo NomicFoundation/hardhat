@@ -1,4 +1,8 @@
-import type { KeystoreLoader } from "../types.js";
+import type {
+  KeystoreConsoleLog,
+  KeystoreLoader,
+  KeystoreRequestSecretInput,
+} from "../types.js";
 import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 import type { NewTaskActionFunction } from "hardhat/types/tasks";
 
@@ -31,13 +35,10 @@ const taskSet: NewTaskActionFunction<TaskGetArguments> = async (
 };
 
 export const set = async (
-  { key, force }: TaskGetArguments,
+  { force, key }: TaskGetArguments,
   keystoreLoader: KeystoreLoader,
-  requestSecretInput: (
-    interruptor: string,
-    inputDescription: string,
-  ) => Promise<string>,
-  consoleLog: (text: string) => void = console.log,
+  requestSecretInput: KeystoreRequestSecretInput,
+  consoleLog: KeystoreConsoleLog = console.log,
 ): Promise<void> => {
   if (!(await validateKey(key))) {
     consoleLog(UserDisplayMessages.displayInvalidKeyErrorMessage(key));

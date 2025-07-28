@@ -1,14 +1,16 @@
+import type {
+  KeystoreConsoleLog,
+  KeystoreRequestSecretInput,
+} from "../types.js";
+
 import chalk from "chalk";
 
 import { PLUGIN_ID } from "../constants.js";
 import { UserDisplayMessages } from "../ui/user-display-messages.js";
 
 export async function setUpPassword(
-  requestSecretInput: (
-    interruptor: string,
-    inputDescription: string,
-  ) => Promise<string>,
-  consoleLog: (text: string) => void = console.log,
+  requestSecretInput: KeystoreRequestSecretInput,
+  consoleLog: KeystoreConsoleLog = console.log,
 ): Promise<string> {
   consoleLog(UserDisplayMessages.keystoreBannerMessage());
 
@@ -20,11 +22,8 @@ export async function setUpPassword(
 }
 
 export async function setNewPassword(
-  requestSecretInput: (
-    interruptor: string,
-    inputDescription: string,
-  ) => Promise<string>,
-  consoleLog: (text: string) => void = console.log,
+  requestSecretInput: KeystoreRequestSecretInput,
+  consoleLog: KeystoreConsoleLog = console.log,
 ): Promise<string> {
   consoleLog(UserDisplayMessages.passwordChangeMessage());
   consoleLog(UserDisplayMessages.passwordRequirementsMessage());
@@ -34,20 +33,14 @@ export async function setNewPassword(
 }
 
 export async function askPassword(
-  requestSecretInput: (
-    interruptor: string,
-    inputDescription: string,
-  ) => Promise<string>,
+  requestSecretInput: KeystoreRequestSecretInput,
 ): Promise<string> {
   return requestSecretInput(PLUGIN_ID, UserDisplayMessages.enterPasswordMsg());
 }
 
 async function createPassword(
-  requestSecretInput: (
-    interruptor: string,
-    inputDescription: string,
-  ) => Promise<string>,
-  consoleLog: (text: string) => void = console.log,
+  requestSecretInput: KeystoreRequestSecretInput,
+  consoleLog: KeystoreConsoleLog = console.log,
 ) {
   const PASSWORD_REGEX = /^.{8,}$/;
 

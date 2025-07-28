@@ -1,4 +1,9 @@
-import type { Keystore, KeystoreLoader } from "../types.js";
+import type {
+  Keystore,
+  KeystoreConsoleLog,
+  KeystoreLoader,
+  KeystoreRequestSecretInput,
+} from "../types.js";
 import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 import type { NewTaskActionFunction } from "hardhat/types/tasks";
 
@@ -42,11 +47,8 @@ const taskChangePassword: NewTaskActionFunction<
 export const changePassword = async (
   oldKeystoreLoader: KeystoreLoader,
   newKeystoreLoader: KeystoreLoader,
-  requestSecretInput: (
-    interruptor: string,
-    inputDescription: string,
-  ) => Promise<string>,
-  consoleLog: (text: string) => void = console.log,
+  requestSecretInput: KeystoreRequestSecretInput,
+  consoleLog: KeystoreConsoleLog = console.log,
 ): Promise<void> => {
   if (!(await oldKeystoreLoader.isKeystoreInitialized())) {
     consoleLog(UserDisplayMessages.displayNoKeystoreSetErrorMessage());
@@ -88,10 +90,7 @@ export const changePassword = async (
 
 async function deriveOldMasterKey(
   oldKeystore: Keystore,
-  requestSecretInput: (
-    interruptor: string,
-    inputDescription: string,
-  ) => Promise<string>,
+  requestSecretInput: KeystoreRequestSecretInput,
 ): Promise<Uint8Array> {
   const oldPassword = await askPassword(requestSecretInput);
 
@@ -106,11 +105,8 @@ async function deriveOldMasterKey(
 }
 
 async function deriveNewMasterKey(
-  requestSecretInput: (
-    interruptor: string,
-    inputDescription: string,
-  ) => Promise<string>,
-  consoleLog: (text: string) => void,
+  requestSecretInput: KeystoreRequestSecretInput,
+  consoleLog: KeystoreConsoleLog,
 ): Promise<{
   salt: Uint8Array;
   masterKey: Uint8Array;

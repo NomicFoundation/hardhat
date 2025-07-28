@@ -1,4 +1,4 @@
-import type { KeystoreLoader } from "../types.js";
+import type { KeystoreConsoleLog, KeystoreLoader } from "../types.js";
 import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 import type { NewTaskActionFunction } from "hardhat/types/tasks";
 
@@ -16,7 +16,7 @@ const taskList: NewTaskActionFunction = async (
 
 export const list = async (
   keystoreLoader: KeystoreLoader,
-  consoleLog: (text: string) => void = console.log,
+  consoleLog: KeystoreConsoleLog = console.log,
 ): Promise<void> => {
   if (!(await keystoreLoader.isKeystoreInitialized())) {
     consoleLog(UserDisplayMessages.displayNoKeystoreSetErrorMessage());

@@ -1,3 +1,4 @@
+import type { KeystoreConsoleLog } from "../types.js";
 import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 import type { NewTaskActionFunction } from "hardhat/types/tasks";
 
@@ -10,7 +11,7 @@ const taskList: NewTaskActionFunction = async (
 
 export const path = async (
   hre: HardhatRuntimeEnvironment,
-  consoleLog: (text: string) => void = console.log,
+  consoleLog: KeystoreConsoleLog = console.log,
 ): Promise<void> => {
   const keystoreFilePath = hre.config.keystore.filePath;
 
