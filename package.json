@@ -16,5 +16,19 @@
     "lint": "pnpm run --recursive --if-present lint",
     "prelint:fix": "pnpm build",
     "lint:fix": "pnpm run --recursive --if-present lint:fix"
+  },
+  "pnpm": {
+    "overrides": {
+      "@ledgerhq/hw-transport-node-hid>node-hid": "npm:node-hid@^3.2.0"
+    },
+    "ignoredBuiltDependencies": [
+      "esbuild",
+      "keccak",
+      "unrs-resolver",
+      "usb"
+    ],
+    "onlyBuiltDependencies": [
+      "node-hid"
+    ]
   }
 }

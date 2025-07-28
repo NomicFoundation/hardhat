@@ -36,7 +36,8 @@
     "./types/solidity": "./dist/src/types/solidity.js",
     "./console.sol": "./console.sol",
     "./internal/coverage": "./dist/src/internal/builtin-plugins/coverage/exports.js",
-    "./utils/contract-names": "./dist/src/utils/contract-names.js"
+    "./utils/contract-names": "./dist/src/utils/contract-names.js",
+    "./utils/rpc": "./dist/src/utils/rpc.js"
   },
   "keywords": [
     "ethereum",

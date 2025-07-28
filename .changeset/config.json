@@ -23,6 +23,7 @@
       "@nomicfoundation/ignition-ui",
       "@nomicfoundation/hardhat-ignition-viem",
       "@nomicfoundation/hardhat-keystore",
+      "@nomicfoundation/hardhat-ledger",
       "@nomicfoundation/hardhat-mocha",
       "@nomicfoundation/hardhat-network-helpers",
       "@nomicfoundation/hardhat-node-test-reporter",
