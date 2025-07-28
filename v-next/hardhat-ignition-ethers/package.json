@@ -65,6 +65,7 @@
     "hardhat": "workspace:^3.0.0-next.24",
     "@nomicfoundation/hardhat-ethers": "workspace:^4.0.0-next.24",
     "@nomicfoundation/hardhat-ignition": "workspace:^3.0.0-next.24",
+    "@nomicfoundation/hardhat-verify": "workspace:^3.0.0-next.24",
     "@nomicfoundation/ignition-core": "workspace:^3.0.0-next.24",
     "ethers": "^6.14.0"
   }
