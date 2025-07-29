@@ -5,7 +5,7 @@ import type { NewTaskActionFunction } from "../../../types/tasks.js";
 import type {
   SolidityTestRunnerConfigArgs,
   TracingConfigWithBuffers,
-} from "@ignored/edr-optimism";
+} from "@nomicfoundation/edr";
 
 import { finished } from "node:stream/promises";
 
