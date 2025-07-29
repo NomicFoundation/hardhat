@@ -31,22 +31,6 @@ You can find a list of supported networks here: https://github.com/wevm/viem/blo
   }
 }
 
-export class MultipleMatchingNetworksError extends HardhatViemError {
-  constructor(chainId: number) {
-    super(
-      `Multiple networks with chain id ${chainId} found. You can override the chain by passing it as a parameter to the client getter:
-
-import { someChain } from "viem/chains";
-const client = await hre.viem.getPublicClient({
-  chain: someChain,
-  ...
-});
-
-You can find a list of supported networks here: https://github.com/wevm/viem/blob/main/src/chains/index.ts`
-    );
-  }
-}
-
 export class DefaultWalletClientNotFoundError extends HardhatViemError {
   constructor(networkName: string) {
     super(
