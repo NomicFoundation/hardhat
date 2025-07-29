@@ -474,7 +474,7 @@ export class Resolver {
   }
 
   private _getUriScheme(s: string): string | undefined {
-    const re = /^([a-zA-Z]+):\/\//;
+    const re = /([a-zA-Z]+):\/\//;
     const match = re.exec(s);
     if (match === null) {
       return undefined;
