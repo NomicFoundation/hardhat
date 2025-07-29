@@ -5,7 +5,7 @@ import type {
   Artifact,
   SolidityTestRunnerConfigArgs,
   TracingConfigWithBuffers,
-} from "@ignored/edr-optimism";
+} from "@nomicfoundation/edr";
 
 import { Readable } from "node:stream";
 
