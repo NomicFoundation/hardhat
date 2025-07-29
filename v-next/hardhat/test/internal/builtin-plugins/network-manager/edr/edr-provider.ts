@@ -41,7 +41,7 @@ describe("edr-provider", () => {
         typeof response === "string",
         "The client version should be a string",
       );
-      assert.match(response, /HardhatNetwork\/.+\/@ignored\/edr-optimism\/.+/);
+      assert.match(response, /HardhatNetwork\/.+\/@nomicfoundation\/edr\/.+/);
     });
 
     it(
