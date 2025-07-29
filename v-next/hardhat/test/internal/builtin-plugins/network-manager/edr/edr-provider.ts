@@ -1,6 +1,6 @@
 import type { EdrNetworkHDAccountsConfig } from "../../../../../src/types/config.js";
 import type { HardhatRuntimeEnvironment } from "../../../../../src/types/hre.js";
-import type { SubscriptionEvent } from "@ignored/edr-optimism";
+import type { SubscriptionEvent } from "@nomicfoundation/edr";
 
 import assert from "node:assert/strict";
 import { once } from "node:events";

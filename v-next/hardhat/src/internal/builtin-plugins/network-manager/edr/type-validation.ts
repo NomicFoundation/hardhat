@@ -1,4 +1,4 @@
-import type { DebugTraceResult } from "@ignored/edr-optimism";
+import type { DebugTraceResult } from "@nomicfoundation/edr";
 
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 

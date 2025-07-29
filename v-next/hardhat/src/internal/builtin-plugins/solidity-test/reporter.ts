@@ -3,7 +3,7 @@ import type {
   TestReporterResult,
   TestStatus,
 } from "./types.js";
-import type { TestResult } from "@ignored/edr-optimism";
+import type { TestResult } from "@nomicfoundation/edr";
 
 import { bytesToHexString } from "@nomicfoundation/hardhat-utils/hex";
 import chalk from "chalk";
@@ -46,7 +46,7 @@ export async function* testReporter(
         let suiteSuccessCount = 0;
         let suiteFailureCount = 0;
         let suiteSkippedCount = 0;
-        const suiteDuration = suiteResult.durationMs;
+        const suiteDuration = suiteResult.durationNs;
 
         yield `Ran ${suiteResult.testResults.length} tests for ${formatArtifactId(suiteResult.id, sourceNameToUserSourceName)}\n`;
 
@@ -62,7 +62,7 @@ export async function* testReporter(
           const name = testResult.name;
           const status: TestStatus = testResult.status;
           const details = [
-            ["duration", `${testResult.durationMs} ms`],
+            ["duration", `${testResult.durationNs} ns`],
             ...Object.entries(testResult.kind),
           ]
             .map(
@@ -150,7 +150,7 @@ export async function* testReporter(
         }
 
         const suiteSummary = `${suiteTestCount} tests, ${suiteSuccessCount} passed, ${suiteFailureCount} failed, ${suiteSkippedCount} skipped`;
-        const suiteDetails = `duration: ${suiteDuration} ms`;
+        const suiteDetails = `duration: ${suiteDuration} ns`;
 
         if (suiteFailureCount === 0) {
           yield `${chalk.bold(chalk.green("✔ Suite Passed"))}: ${suiteSummary} ${chalk.grey(`(${suiteDetails})`)}\n`;
@@ -171,7 +171,7 @@ export async function* testReporter(
   }
 
   const runSummary = `${runTestCount} tests, ${runSuccessCount} passed, ${runFailureCount} failed, ${runSkippedCount} skipped`;
-  const runDetails = `duration: ${runDuration} ms`;
+  const runDetails = `duration: ${runDuration} ns`;
   if (runFailureCount !== 0) {
     yield `${chalk.bold(chalk.red("✘ Run Failed"))}: ${runSummary} ${chalk.grey(`(${runDetails})`)}\n`;
   } else {
