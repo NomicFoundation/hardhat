@@ -91,9 +91,15 @@ export async function emitWithArgs<
 
       if (expectedArgs.some((arg) => typeof arg === "function")) {
         // If there are predicate matchers, we can't use the built-in deepEqual with diff
-        const displayExpectedArgs = expectedArgs.map((expectedArg) =>
-          typeof expectedArg === "function" ? "<predicate>" : expectedArg,
-        );
+        const displayExpectedArgs = expectedArgs.map((expectedArg) => {
+          if (typeof expectedArg === "function") {
+            const hasName =
+              expectedArg.name !== undefined && expectedArg.name !== "";
+            return `<${hasName ? expectedArg.name : "predicate"}>`;
+          } else {
+            return expectedArg;
+          }
+        });
 
         assert.fail(
           `The event arguments do not match the expected ones:\nExpected: ${stringifyArgs(displayExpectedArgs)}\nEmitted: ${stringifyArgs(emittedArgs)}`,
