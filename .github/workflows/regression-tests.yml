@@ -25,6 +25,10 @@ on:
       commands:
         required: false
         type: string
+      color:
+        required: false
+        type: string
+        default: '0'
   workflow_dispatch:
     inputs:
       preset:
@@ -56,6 +60,11 @@ on:
         description: 'A list of commands to test against'
         required: false
         type: string
+      color:
+        description: 'Force output colorization'
+        required: false
+        type: string
+        default: '0'
 
 defaults:
   run:
@@ -305,18 +314,29 @@ jobs:
             const config = JSON.parse(process.env.CONFIG);
             const repositoryConfig = config.repositories[process.env.REPOSITORY];
             const runnerConfig = config.runners[process.env.RUNNER];
-            const commandConfig = config.commands[process.env.COMMAND];
+            let command;
+            for (const key of Object.keys(config.commands)) {
+              if (process.env.COMMAND.startsWith(key)) {
+                command = key;
+                break;
+              }
+            }
+              const commandConfig = config.commands[command];
             if (!repositoryConfig) {
               core.setFailed(`Unsupported repository: ${process.env.REPOSITORY}`);
+              return;
             }
             if (!runnerConfig) {
               core.setFailed(`Unsupported runner: ${process.env.RUNNER}`);
+              return;
             }
             if (!commandConfig) {
               core.setFailed(`Unsupported command: ${process.env.COMMAND}`);
+              return;
             }
-            if (repositoryConfig.commands === undefined || !repositoryConfig.commands.includes(process.env.COMMAND)) {
-              core.setFailed(`Unsupported command: ${process.env.COMMAND}`);
+            if (repositoryConfig.commands === undefined || !repositoryConfig.commands.includes(command)) {
+              core.setFailed(`Unsupported command: ${command}`);
+              return;
             }
             core.setOutput('repository', JSON.stringify(repositoryConfig));
             core.setOutput('runner', JSON.stringify(runnerConfig));
@@ -390,10 +410,14 @@ jobs:
         if: startsWith(matrix.command, 'hardhat ')
         env:
           CONFIG: ${{ fromJSON(steps.config.outputs.repository).hardhat-config }}
+          REMAPPINGS: ${{ fromJSON(steps.config.outputs.repository).remappings }}
         run: |
           if [[ -n "$CONFIG" ]]; then
             rm hardhat.config.* || true
             echo "$CONFIG" > hardhat.config.js
+          fi
+          if [[ -n "$REMAPPINGS" ]]; then
+            echo "$REMAPPINGS" > remappings.txt
           fi
       - name: Initialize the package
         if: startsWith(matrix.command, 'hardhat ')
@@ -424,11 +448,12 @@ jobs:
           DEBUG: ${{ runner.debug && '*' || '' }}
           ENV_SOURCE: ${{ fromJSON(steps.config.outputs.repository).env }}
           HARDHAT_EXPERIMENTAL_ALLOW_NON_LOCAL_INSTALLATION: ${{ startsWith(matrix.command, 'hardhat2') && 'true' || '' }}
+          FORCE_COLOR: ${{ inputs.color }}
         run: |
           source <(echo "$ENV_SOURCE")
           set +e
           before=$(date +%s)
-          ${{ fromJSON(steps.config.outputs.command).command }} 2>&1 | tee -a run.output
+          ${{ matrix.command }} 2>&1 | tee -a run.output
           status=${PIPESTATUS[0]}
           after=$(date +%s)
           set -e

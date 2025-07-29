@@ -8,6 +8,8 @@ import type { TestResult } from "@ignored/edr-optimism";
 import { bytesToHexString } from "@nomicfoundation/hardhat-utils/hex";
 import chalk from "chalk";
 
+import { sendErrorTelemetry } from "../../cli/telemetry/sentry/reporter.js";
+import { SolidityTestStackTraceGenerationError } from "../network-manager/edr/stack-traces/stack-trace-generation-errors.js";
 import { encodeStackTraceEntry } from "../network-manager/edr/stack-traces/stack-trace-solidity-errors.js";
 
 import {
@@ -284,6 +286,11 @@ export async function* testReporter(
             yield "\n";
             break;
           case "UnexpectedError":
+            await sendErrorTelemetry(
+              new SolidityTestStackTraceGenerationError(
+                stackTrace.errorMessage,
+              ),
+            );
             yield indenter.t`Stack Trace Warning: ${colorizer.grey(stackTrace.errorMessage)}\n`;
             break;
           case "UnsafeToReplay":
