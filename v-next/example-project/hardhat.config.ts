@@ -204,9 +204,6 @@ const config: HardhatUserConfig = {
       "forge-std/Test.sol",
     ],
   },
-  solidityTest: {
-    testFail: true,
-  },
   typechain: {
     tsNocheck: false,
   },
