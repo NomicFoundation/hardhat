@@ -9,7 +9,9 @@ import type {
   RequestArguments,
 } from "hardhat/types/providers";
 
+import { randomUUID } from "node:crypto";
 import { EventEmitter } from "node:events";
+import { cpSync } from "node:fs";
 import path, { dirname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
@@ -47,6 +49,33 @@ const defaultTestConfig: DeployConfig = {
   requiredConfirmations: 1,
   disableFeeBumping: false,
 };
+
+// todo: whenever these tests are migrated to node:test,
+// we should use `useEphemeralFixtureProject` from hardhat-test-utils here instead
+export function useProject(fixtureProjectName: string): void {
+  const basePath = path.resolve(import.meta.dirname, "..", "fixture-projects");
+  const tmpProjectPath = path.join("tmp", randomUUID());
+  let prevWorkingDir: string;
+
+  before(function () {
+    cpSync(
+      path.join(basePath, fixtureProjectName),
+      path.join(basePath, tmpProjectPath),
+      {
+        recursive: true,
+        force: true,
+      },
+    );
+
+    prevWorkingDir = process.cwd();
+    process.chdir(path.join(basePath, tmpProjectPath));
+  });
+
+  after(async () => {
+    process.chdir(prevWorkingDir);
+    await remove(path.join(basePath, tmpProjectPath));
+  });
+}
 
 export function useEphemeralIgnitionProject(fixtureProjectName: string): void {
   let projectPath: string;
