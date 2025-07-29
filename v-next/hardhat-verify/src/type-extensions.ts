@@ -13,10 +13,15 @@ declare module "hardhat/types/config" {
     enabled?: boolean;
   }
 
-  export interface EtherscanUserConfig {
-    apiKey: SensitiveString;
-    enabled?: boolean;
-  }
+  export type EtherscanUserConfig =
+    | {
+        apiKey: SensitiveString;
+        enabled?: true;
+      }
+    | {
+        apiKey?: SensitiveString;
+        enabled?: false;
+      };
 
   export interface HardhatConfig {
     verify: VerificationProvidersConfig;

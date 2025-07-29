@@ -222,12 +222,6 @@ describe("hardhat ethers provider", () => {
   });
 
   describe("getBalance", () => {
-    beforeEach(async () => {
-      await ethereumProvider.request({
-        method: "hardhat_reset",
-      });
-    });
-
     it("should return the balance of an address", async () => {
       const balance = await ethers.provider.getBalance(
         "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
@@ -305,12 +299,6 @@ describe("hardhat ethers provider", () => {
   });
 
   describe("getTransactionCount", () => {
-    beforeEach(async () => {
-      await ethereumProvider.request({
-        method: "hardhat_reset",
-      });
-    });
-
     it("should return the transaction count of an address", async () => {
       const balance = await ethers.provider.getTransactionCount(
         "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
@@ -829,7 +817,6 @@ describe("hardhat ethers provider", () => {
 
   describe("broadcastTransaction", () => {
     it("should send a raw transaction", async () => {
-      await ethers.provider.send("hardhat_reset");
       // private key of the first unlocked account
       const wallet = new ethers.Wallet(
         "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
@@ -852,7 +839,6 @@ describe("hardhat ethers provider", () => {
 
   describe("getBlock", () => {
     it("should accept latest and earliest block tags", async () => {
-      await ethers.provider.send("hardhat_reset");
       await ethers.provider.send("hardhat_mine");
       await ethers.provider.send("hardhat_mine");
       await ethers.provider.send("hardhat_mine");
@@ -867,7 +853,6 @@ describe("hardhat ethers provider", () => {
     });
 
     it("should accept numbers", async () => {
-      await ethers.provider.send("hardhat_reset");
       await ethers.provider.send("hardhat_mine");
       await ethers.provider.send("hardhat_mine");
       await ethers.provider.send("hardhat_mine");
@@ -882,8 +867,6 @@ describe("hardhat ethers provider", () => {
     });
 
     it("should accept block hashes", async () => {
-      await ethers.provider.send("hardhat_reset");
-
       const blockByNumber = await ethers.provider.getBlock(0);
       assertIsNotNull(blockByNumber);
       assertIsNotNull(blockByNumber.hash);

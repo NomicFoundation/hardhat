@@ -6,7 +6,7 @@ import type {
   ObservabilityConfig,
   SolidityTestRunnerConfigArgs,
   TracingConfigWithBuffers,
-} from "@ignored/edr-optimism";
+} from "@nomicfoundation/edr";
 
 import { finished } from "node:stream/promises";
 
@@ -41,10 +41,11 @@ interface TestActionArguments {
   chainType: string;
   grep?: string;
   noCompile: boolean;
+  verbosity: number;
 }
 
 const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
-  { testFiles, chainType, grep, noCompile },
+  { testFiles, chainType, grep, noCompile, verbosity },
   hre,
 ) => {
   let rootFilePaths: string[];
@@ -144,6 +145,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
       chainType,
       hre.config.paths.root,
       solidityTestConfig,
+      verbosity,
       observabilityConfig,
       grep,
     );
@@ -181,7 +183,9 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
         }
       }
     })
-    .compose((source) => testReporter(source, sourceNameToUserSourceName));
+    .compose((source) =>
+      testReporter(source, sourceNameToUserSourceName, verbosity),
+    );
 
   const outputStream = testReporterStream.pipe(
     createNonClosingWriter(process.stdout),

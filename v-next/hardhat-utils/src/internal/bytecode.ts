@@ -12,7 +12,7 @@ import { isAddress } from "../eth.js";
 export interface Artifact {
   bytecode: string;
   linkReferences: {
-    [sourceName: string]: {
+    [inputSourceName: string]: {
       [libraryName: string]: Array<{ start: number; length: number }>;
     };
   };

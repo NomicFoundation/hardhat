@@ -10,6 +10,7 @@ import {
 import { FutureType } from "../../../src/types/module.js";
 import { exampleAccounts } from "../../helpers.js";
 import {
+  ArtifactMapDeploymentLoader,
   assertSuccessReconciliation,
   createDeploymentState,
   oneAddress,
@@ -234,5 +235,44 @@ describe("Reconciliation - named library", () => {
         failure: 'Strategy config changed from {"salt":"value"} to {}',
       },
     ]);
+  });
+
+  it("should find changes to a future's artifact bytecode reconciliable if the contract was successfully deployed", async () => {
+    const moduleDefinition = buildModule("Module", (m) => {
+      const contract1 = m.library("Contract1", {
+        id: "Example",
+      });
+
+      return { contract1 };
+    });
+
+    const reconiliationResult = await reconcile(
+      moduleDefinition,
+      createDeploymentState({
+        ...exampleDeploymentState,
+        id: "Module#Example",
+        status: ExecutionStatus.SUCCESS,
+        contractName: "Contract1",
+        futureType: FutureType.NAMED_ARTIFACT_LIBRARY_DEPLOYMENT,
+        result: {
+          type: ExecutionResultType.SUCCESS,
+          address: exampleAddress,
+        },
+      }),
+      new ArtifactMapDeploymentLoader({
+        "./artifact.json": {
+          contractName: "Contract1",
+          bytecode: "0x1234",
+          abi: [],
+          deployedBytecode: "0x5678",
+          _format: "hh3-artifact-1",
+          sourceName: "Contract1.sol",
+          linkReferences: {},
+          deployedLinkReferences: {},
+        },
+      }),
+    );
+
+    assert.deepEqual(reconiliationResult.reconciliationFailures, []);
   });
 });

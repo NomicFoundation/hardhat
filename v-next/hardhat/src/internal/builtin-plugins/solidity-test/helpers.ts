@@ -11,14 +11,15 @@ import type {
   AddressLabel,
   Artifact,
   ObservabilityConfig,
-} from "@ignored/edr-optimism";
+} from "@nomicfoundation/edr";
 
 import {
   opGenesisState,
   opLatestHardfork,
   l1GenesisState,
   l1HardforkLatest,
-} from "@ignored/edr-optimism";
+  IncludeTraces,
+} from "@nomicfoundation/edr";
 import { hexStringToBytes } from "@nomicfoundation/hardhat-utils/hex";
 
 import { OPTIMISM_CHAIN_TYPE } from "../../constants.js";
@@ -37,6 +38,7 @@ export function solidityTestConfigToSolidityTestRunnerConfigArgs(
   chainType: ChainType,
   projectRoot: string,
   config: SolidityTestConfig,
+  verbosity: number,
   observability?: ObservabilityConfig,
   testPattern?: string,
 ): SolidityTestRunnerConfigArgs {
@@ -107,6 +109,13 @@ export function solidityTestConfigToSolidityTestRunnerConfigArgs(
       ? opGenesisState(opLatestHardfork())
       : l1GenesisState(l1HardforkLatest());
 
+  let includeTraces: IncludeTraces = IncludeTraces.None;
+  if (verbosity >= 5) {
+    includeTraces = IncludeTraces.All;
+  } else if (verbosity >= 3) {
+    includeTraces = IncludeTraces.Failing;
+  }
+
   return {
     projectRoot,
     ...config,
@@ -119,6 +128,7 @@ export function solidityTestConfigToSolidityTestRunnerConfigArgs(
     rpcStorageCaching,
     observability,
     testPattern,
+    includeTraces,
   };
 }
 

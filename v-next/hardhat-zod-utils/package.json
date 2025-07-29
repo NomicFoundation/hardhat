@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-zod-utils",
-  "version": "3.0.0-next.21",
+  "version": "3.0.0-next.25",
   "description": "Utilities to use Zod to validate Hardhat plugins' config",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-zod-utils",
   "repository": {
@@ -42,7 +42,7 @@
     "README.md"
   ],
   "devDependencies": {
-    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0-next.21",
+    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0-next.25",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
     "@types/node": "^20.14.9",
     "c8": "^9.1.0",
@@ -55,7 +55,7 @@
     "zod": "^3.23.8"
   },
   "dependencies": {
-    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.21"
+    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.25"
   },
   "peerDependencies": {
     "zod": "^3.23.8"

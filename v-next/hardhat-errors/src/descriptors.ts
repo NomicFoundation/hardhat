@@ -2582,16 +2582,8 @@ Reason: "{reason}".
 
 If your contract uses libraries whose addresses cannot be detected automatically, make sure you are providing the correct address for each undetectable library.`,
       },
-      VERIFICATION_DISABLED_IN_CONFIG: {
-        number: 80027,
-        messageTemplate:
-          "{verificationProvider} verification is disabled in your config. Please add the verification provider configuration to your Hardhat config.",
-        websiteTitle: "Provider verification disabled",
-        websiteDescription:
-          "No provider verification configuration set in Hardhat config",
-      },
       BLOCK_EXPLORER_NOT_CONFIGURED: {
-        number: 80028,
+        number: 80027,
         messageTemplate:
           "No {verificationProvider} block explorer is configured for the {chainId} chain in the chain descriptors.",
         websiteTitle: "Block explorer not configured",
@@ -2614,14 +2606,14 @@ chainDescriptors: {
 `,
       },
       ADDRESS_NOT_A_CONTRACT: {
-        number: 80029,
+        number: 80028,
         messageTemplate: `{verificationProvider} responded that the address "{address}" does not contain a contract. This usually means the address is incorrect, the contract was not deployed on the selected network, or there is a temporary issue with the block explorer not updating its index.`,
         websiteTitle: "Address is not a contract",
         websiteDescription: `The block explorer responded that the address does not contain a contract. This usually means the address is incorrect, the contract was not deployed on the selected network, or there is a temporary issue with the block explorer not updating its index.
 Please verify the address and network, and try again later if necessary.`,
       },
       EXPLORER_API_KEY_EMPTY: {
-        number: 80030,
+        number: 80029,
         messageTemplate: `The {verificationProvider} API key is empty.`,
         websiteTitle: "Block explorer API key is empty",
         websiteDescription: `The provided API key for the block explorer is empty. This can happen in the following cases:

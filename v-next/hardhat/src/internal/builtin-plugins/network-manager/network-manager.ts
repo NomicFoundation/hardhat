@@ -24,7 +24,6 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { readBinaryFile } from "@nomicfoundation/hardhat-utils/fs";
 import { deepMerge } from "@nomicfoundation/hardhat-utils/lang";
 
-import { DEFAULT_NETWORK_NAME } from "../../constants.js";
 import { resolveConfigurationVariable } from "../../core/configuration-variables.js";
 import { isSupportedChainType } from "../../edr/chain-type.js";
 
@@ -40,6 +39,7 @@ export type JsonRpcRequestWrapperFunction = (
 ) => Promise<JsonRpcResponse>;
 
 export class NetworkManagerImplementation implements NetworkManager {
+  readonly #defaultNetwork: string;
   readonly #defaultChainType: DefaultChainType;
   readonly #networkConfigs: Readonly<Record<string, Readonly<NetworkConfig>>>;
   readonly #hookManager: Readonly<HookManager>;
@@ -50,6 +50,7 @@ export class NetworkManagerImplementation implements NetworkManager {
   #nextConnectionId = 0;
 
   constructor(
+    defaultNetwork: string,
     defaultChainType: DefaultChainType,
     networkConfigs: Record<string, NetworkConfig>,
     hookManager: HookManager,
@@ -57,6 +58,7 @@ export class NetworkManagerImplementation implements NetworkManager {
     userConfigNetworks: Record<string, NetworkUserConfig> | undefined,
     chainDescriptors: ChainDescriptorsConfig,
   ) {
+    this.#defaultNetwork = defaultNetwork;
     this.#defaultChainType = defaultChainType;
     this.#networkConfigs = networkConfigs;
     this.#hookManager = hookManager;
@@ -100,7 +102,7 @@ export class NetworkManagerImplementation implements NetworkManager {
     chainType?: ChainTypeT,
     networkConfigOverride?: NetworkConfigOverride,
   ): Promise<NetworkConnection<ChainTypeT>> {
-    const resolvedNetworkName = networkName ?? DEFAULT_NETWORK_NAME;
+    const resolvedNetworkName = networkName ?? this.#defaultNetwork;
 
     if (this.#networkConfigs[resolvedNetworkName] === undefined) {
       throw new HardhatError(
@@ -224,13 +226,13 @@ export class NetworkManagerImplementation implements NetworkManager {
         );
         if (shouldEnableCoverage) {
           coverageConfig = {
-            onCollectedCoverageCallback: (coverageData: Uint8Array[]) => {
+            onCollectedCoverageCallback: async (coverageData: Uint8Array[]) => {
               // NOTE: We cast the tag we receive from EDR to a hex string to
               // make it easier to debug.
               const tags = coverageData.map((tag) =>
                 Buffer.from(tag).toString("hex"),
               );
-              void hookManager.runParallelHandlers(
+              await hookManager.runParallelHandlers(
                 "network",
                 "onCoverageData",
                 [tags],

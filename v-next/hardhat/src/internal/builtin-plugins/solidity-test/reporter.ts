@@ -3,14 +3,16 @@ import type {
   TestReporterResult,
   TestStatus,
 } from "./types.js";
-import type { TestResult } from "@ignored/edr-optimism";
+import type { TestResult } from "@nomicfoundation/edr";
 
 import { bytesToHexString } from "@nomicfoundation/hardhat-utils/hex";
 import chalk from "chalk";
 
+import { sendErrorTelemetry } from "../../cli/telemetry/sentry/reporter.js";
+import { SolidityTestStackTraceGenerationError } from "../network-manager/edr/stack-traces/stack-trace-generation-errors.js";
 import { encodeStackTraceEntry } from "../network-manager/edr/stack-traces/stack-trace-solidity-errors.js";
 
-import { formatArtifactId } from "./formatters.js";
+import { formatArtifactId, formatLogs, formatTraces } from "./formatters.js";
 import { getMessageFromLastStackTraceEntry } from "./stack-trace-solidity-errors.js";
 
 /**
@@ -21,6 +23,7 @@ import { getMessageFromLastStackTraceEntry } from "./stack-trace-solidity-errors
 export async function* testReporter(
   source: TestEventSource,
   sourceNameToUserSourceName: Map<string, string>,
+  verbosity: number,
 ): TestReporterResult {
   let runTestCount = 0;
   let runSuccessCount = 0;
@@ -43,7 +46,7 @@ export async function* testReporter(
         let suiteSuccessCount = 0;
         let suiteFailureCount = 0;
         let suiteSkippedCount = 0;
-        const suiteDuration = suiteResult.durationMs;
+        const suiteDuration = suiteResult.durationNs;
 
         yield `Ran ${suiteResult.testResults.length} tests for ${formatArtifactId(suiteResult.id, sourceNameToUserSourceName)}\n`;
 
@@ -59,7 +62,7 @@ export async function* testReporter(
           const name = testResult.name;
           const status: TestStatus = testResult.status;
           const details = [
-            ["duration", `${testResult.durationMs} ms`],
+            ["duration", `${testResult.durationNs} ns`],
             ...Object.entries(testResult.kind),
           ]
             .map(
@@ -68,16 +71,36 @@ export async function* testReporter(
             )
             .join(", ");
 
+          let printDecodedLogs = false;
+          let printSetUpTraces = false;
+          let printExecutionTraces = false;
+
           switch (status) {
             case "Success": {
               yield `${chalk.green("✔ Passed")}: ${name} ${chalk.grey(`(${details})`)}\n`;
               suiteSuccessCount++;
+              if (verbosity >= 2) {
+                printDecodedLogs = true;
+              }
+              if (verbosity >= 5) {
+                printSetUpTraces = true;
+                printExecutionTraces = true;
+              }
               break;
             }
             case "Failure": {
               failures.push(testResult);
               yield `${chalk.red(`✘ Failed(${failures.length})`)}: ${name} ${chalk.grey(`(${details})`)}\n`;
               suiteFailureCount++;
+              if (verbosity >= 1) {
+                printDecodedLogs = true;
+              }
+              if (verbosity >= 3) {
+                printExecutionTraces = true;
+              }
+              if (verbosity >= 4) {
+                printSetUpTraces = true;
+              }
               break;
             }
             case "Skipped": {
@@ -86,10 +109,48 @@ export async function* testReporter(
               break;
             }
           }
+
+          let printExtraSpace = false;
+
+          if (printDecodedLogs) {
+            const decodedLogs = testResult.decodedLogs ?? [];
+            if (decodedLogs.length > 0) {
+              yield `Decoded Logs:\n${formatLogs(decodedLogs, 2)}\n`;
+              printExtraSpace = true;
+            }
+          }
+
+          if (printSetUpTraces || printExecutionTraces) {
+            const callTraces = testResult.callTraces().filter(({ inputs }) => {
+              if (printSetUpTraces && printExecutionTraces) {
+                return true;
+              }
+              let functionName: string | undefined;
+              if (!(inputs instanceof Uint8Array)) {
+                functionName = inputs.name;
+              }
+              if (printSetUpTraces && functionName === "setUp") {
+                return true;
+              }
+              if (printExecutionTraces && functionName !== "setUp()") {
+                return true;
+              }
+              return false;
+            });
+
+            if (callTraces.length > 0) {
+              yield `Call Traces:\n${formatTraces(callTraces, 2)}\n`;
+              printExtraSpace = true;
+            }
+          }
+
+          if (printExtraSpace) {
+            yield "\n";
+          }
         }
 
         const suiteSummary = `${suiteTestCount} tests, ${suiteSuccessCount} passed, ${suiteFailureCount} failed, ${suiteSkippedCount} skipped`;
-        const suiteDetails = `duration: ${suiteDuration} ms`;
+        const suiteDetails = `duration: ${suiteDuration} ns`;
 
         if (suiteFailureCount === 0) {
           yield `${chalk.bold(chalk.green("✔ Suite Passed"))}: ${suiteSummary} ${chalk.grey(`(${suiteDetails})`)}\n`;
@@ -110,7 +171,7 @@ export async function* testReporter(
   }
 
   const runSummary = `${runTestCount} tests, ${runSuccessCount} passed, ${runFailureCount} failed, ${runSkippedCount} skipped`;
-  const runDetails = `duration: ${runDuration} ms`;
+  const runDetails = `duration: ${runDuration} ns`;
   if (runFailureCount !== 0) {
     yield `${chalk.bold(chalk.red("✘ Run Failed"))}: ${runSummary} ${chalk.grey(`(${runDetails})`)}\n`;
   } else {
@@ -151,6 +212,9 @@ export async function* testReporter(
           }
           break;
         case "UnexpectedError":
+          await sendErrorTelemetry(
+            new SolidityTestStackTraceGenerationError(stackTrace.errorMessage),
+          );
           yield `Stack Trace Warning: ${chalk.grey(stackTrace.errorMessage)}\n`;
           break;
         case "UnsafeToReplay":
@@ -164,14 +228,6 @@ export async function* testReporter(
         case "HeuristicFailed":
         default:
           break;
-      }
-
-      if (
-        failure.decodedLogs !== undefined &&
-        failure.decodedLogs !== null &&
-        failure.decodedLogs.length > 0
-      ) {
-        yield `Decoded Logs:\n${chalk.grey(failure.decodedLogs.map((log) => `  ${log}`).join("\n"))}\n`;
       }
 
       if (
