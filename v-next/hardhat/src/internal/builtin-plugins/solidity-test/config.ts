@@ -8,7 +8,6 @@ import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
 import {
   conditionalUnionType,
-  unionType,
   validateUserConfigZodType,
 } from "@nomicfoundation/hardhat-zod-utils";
 import { z } from "zod";
@@ -22,49 +21,16 @@ const solidityTestUserConfigType = z.object({
       write: z.array(z.string()).optional(),
     })
     .optional(),
-  testFail: z.boolean().optional(),
-  labels: z
-    .array(
-      z.object({
-        address: z.string().startsWith("0x"),
-        label: z.string(),
-      }),
-    )
-    .optional(),
   isolate: z.boolean().optional(),
   ffi: z.boolean().optional(),
-  sender: z.string().startsWith("0x").optional(),
+  from: z.string().startsWith("0x").optional(),
   txOrigin: z.string().startsWith("0x").optional(),
   initialBalance: z.bigint().optional(),
   blockBaseFeePerGas: z.bigint().optional(),
-  blockCoinbase: z.string().startsWith("0x").optional(),
+  coinbase: z.string().startsWith("0x").optional(),
   blockTimestamp: z.bigint().optional(),
-  blockDifficulty: z.bigint().optional(),
-  blockGasLimit: z.bigint().optional(),
-  disableBlockGasLimit: z.boolean().optional(),
-  memoryLimit: z.bigint().optional(),
-  ethRpcUrl: z.string().optional(),
-  forkBlockNumber: z.bigint().optional(),
-  rpcEndpoints: z.record(z.string()).optional(),
-  rpcCachePath: z.string().optional(),
-  rpcStorageCaching: z
-    .object({
-      chains: unionType(
-        [z.enum(["All", "None"]), z.array(z.string())],
-        "Expected `All`, `None` or a list of chain names to cache",
-      ),
-      endpoints: unionType(
-        [
-          z.enum(["All", "Remote"]),
-          z.object({
-            source: z.string(),
-          }),
-        ],
-        "Expected `All`, `Remote` or a RegExp object matching endpoints to cacche",
-      ),
-    })
-    .optional(),
-  promptTimeout: z.number().optional(),
+  prevRandao: z.bigint().optional(),
+  blockGasLimit: z.bigint().or(z.literal(false)).optional(),
   fuzz: z
     .object({
       failurePersistDir: z.string().optional(),
@@ -75,6 +41,13 @@ const solidityTestUserConfigType = z.object({
       dictionaryWeight: z.number().optional(),
       includeStorage: z.boolean().optional(),
       includePushBytes: z.boolean().optional(),
+    })
+    .optional(),
+  forking: z
+    .object({
+      url: z.string().optional(),
+      blockNumber: z.bigint().optional(),
+      rpcEndpoints: z.record(z.string()).optional(),
     })
     .optional(),
   invariant: z

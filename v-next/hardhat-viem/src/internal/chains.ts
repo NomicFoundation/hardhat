@@ -1,5 +1,4 @@
 import type { TestClientMode } from "../types.js";
-import type { ChainType } from "hardhat/types/network";
 import type { EthereumProvider } from "hardhat/types/providers";
 import type { Chain as ViemChain } from "viem";
 
@@ -7,9 +6,10 @@ import {
   assertHardhatInvariant,
   HardhatError,
 } from "@nomicfoundation/hardhat-errors";
+import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 import { extractChain } from "viem";
 import * as chainsModule from "viem/chains";
-import { hardhat, anvil, optimism } from "viem/chains";
+import { hardhat, anvil } from "viem/chains";
 
 /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
 -- TODO: this assertion should not be necessary */
@@ -17,16 +17,13 @@ const chains = Object.values(chainsModule) as ViemChain[];
 
 const chainCache = new WeakMap<EthereumProvider, ViemChain>();
 const chainIdCache = new WeakMap<EthereumProvider, number>();
-const isHardhatNetworkCache = new WeakMap<EthereumProvider, boolean>();
+const hardhatMetadataCache = new WeakMap<EthereumProvider, HardhatMetadata>();
 const isAnvilNetworkCache = new WeakMap<EthereumProvider, boolean>();
 
 const HARDHAT_METADATA_METHOD = "hardhat_metadata";
 const ANVIL_NODE_INFO_METHOD = "anvil_nodeInfo";
 
-export async function getChain(
-  provider: EthereumProvider,
-  chainType: ChainType | string,
-): Promise<ViemChain> {
+export async function getChain(provider: EthereumProvider): Promise<ViemChain> {
   const cachedChain = chainCache.get(provider);
   if (cachedChain !== undefined) {
     return cachedChain;
@@ -41,20 +38,7 @@ export async function getChain(
 
   if ((await isDevelopmentNetwork(provider)) || chain === undefined) {
     if (await isHardhatNetwork(provider)) {
-      // TODO: We should improve how we handle the chains for the different chain
-      // types, as this is both a hardhat and an optimism chain.
-      //
-      // We are currently creating our chain based off optimism's, but that's
-      // not always the correct behavior, as the user may be connecting to
-      // a different chain.
-      if (chainType === "optimism") {
-        chain = { ...optimism, id: chainId };
-      } else {
-        chain = {
-          ...hardhat,
-          id: chainId,
-        };
-      }
+      chain = createHardhatChain(provider, chainId);
     } else if (await isAnvilNetwork(provider)) {
       chain = {
         ...anvil,
@@ -111,15 +95,27 @@ export async function isDevelopmentNetwork(
 export async function isHardhatNetwork(
   provider: EthereumProvider,
 ): Promise<boolean> {
-  const cachedIsHardhat = isHardhatNetworkCache.get(provider);
-  if (cachedIsHardhat !== undefined) {
-    return cachedIsHardhat;
+  const cachedHardhatMetadata = hardhatMetadataCache.get(provider);
+  if (cachedHardhatMetadata !== undefined) {
+    return true;
   }
 
-  const isHardhat = await isMethodSupported(provider, HARDHAT_METADATA_METHOD);
-  isHardhatNetworkCache.set(provider, isHardhat);
+  try {
+    const hardhatMetadata = await provider.request({
+      method: HARDHAT_METADATA_METHOD,
+    });
 
-  return isHardhat;
+    assertHardhatInvariant(
+      isHardhatMetadata(hardhatMetadata),
+      "Expected valid hardhat metadata response",
+    );
+
+    hardhatMetadataCache.set(provider, hardhatMetadata);
+    return true;
+  } catch {
+    hardhatMetadataCache.delete(provider);
+    return false;
+  }
 }
 
 export async function isAnvilNetwork(
@@ -157,4 +153,50 @@ async function isMethodSupported(provider: EthereumProvider, method: string) {
   } catch {
     return false;
   }
+}
+
+function createHardhatChain(
+  provider: EthereumProvider,
+  chainId: number,
+): ViemChain {
+  const hardhatMetadata = hardhatMetadataCache.get(provider);
+  assertHardhatInvariant(
+    hardhatMetadata !== undefined,
+    "Expected hardhat metadata to be available",
+  );
+
+  if (hardhatMetadata.forkedNetwork?.chainId !== undefined) {
+    const forkedChain = extractChain({
+      chains,
+      id: hardhatMetadata.forkedNetwork.chainId,
+    });
+
+    if (forkedChain !== undefined) {
+      return {
+        ...forkedChain,
+        ...hardhat,
+        id: chainId,
+      };
+    }
+  }
+
+  return {
+    ...hardhat,
+    id: chainId,
+  };
+}
+
+interface HardhatMetadata {
+  forkedNetwork?: {
+    chainId: number;
+  };
+}
+
+function isHardhatMetadata(value: unknown): value is HardhatMetadata {
+  return (
+    isObject(value) &&
+    (value.forkedNetwork === undefined ||
+      (isObject(value.forkedNetwork) &&
+        typeof value.forkedNetwork.chainId === "number"))
+  );
 }
