@@ -95,7 +95,9 @@ export function formatSlowTestInfo(durationMs: number): string {
 export function formatGlobalDiagnostics(
   diagnostics: GlobalDiagnostics,
 ): string {
-  let result =
+  let result = "  ";
+
+  result +=
     chalk.green(`${diagnostics.pass} passing`) +
     chalk.gray(` (${Math.floor(diagnostics.duration_ms)}ms)`);
 
