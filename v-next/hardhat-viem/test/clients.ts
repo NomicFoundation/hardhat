@@ -497,38 +497,28 @@ describe("clients", () => {
       assert.equal(blockNumber, 1000000n);
     });
 
-    // TODO: this test is skipped because it forks optimism mainnet, which is slow
-    it.skip("should be able to query the blockchain with the extended L2 actions", async () => {
+    it("should have access to L2 actions", async () => {
       hre = await createHardhatRuntimeEnvironment({
         plugins: [HardhatViem],
         networks: {
           edrOptimism: {
             type: "edr",
-            chainId: 10,
             chainType: "optimism",
-            forking: {
-              url: "https://mainnet.optimism.io",
-            },
-            gas: "auto",
-            gasMultiplier: 1,
-            gasPrice: "auto",
           },
         },
       });
 
-      const networkConnection = await hre.network.connect({
+      const { viem } = await hre.network.connect({
         network: "edrOptimism",
         chainType: "optimism",
       });
-      const publicClient = await networkConnection.viem.getPublicClient();
-      const l1BaseFee = await publicClient.getL1BaseFee();
-      const latestBlock = await publicClient.getBlock(); // should still have access to L1 actions
-
-      assert.ok(l1BaseFee > 0n, "L1 base fee should be greater than 0");
-      assert.ok(
-        latestBlock.number > 0n,
-        "Latest block number should be greater than 0",
-      );
+      const publicClient = await viem.getPublicClient();
+      const [senderClient] = await viem.getWalletClients();
+      await publicClient.estimateL1Gas({
+        account: senderClient.account.address,
+        to: senderClient.account.address,
+        value: 1n,
+      });
     });
   });
 });
