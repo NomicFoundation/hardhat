@@ -47,7 +47,7 @@
     "test:debug": "DEBUG='ignition:*' pnpm test",
     "test:coverage": "cross-env TS_NODE_COMPILER_OPTIONS=\"{\\\"isolatedDeclarations\\\":false}\" nyc mocha --recursive \"test/**/*.ts\" \"test-integrations/**/*.ts\"",
     "test:unit": "cross-env TS_NODE_COMPILER_OPTIONS=\"{\\\"isolatedDeclarations\\\":false}\" mocha --recursive \"test/**/*.ts\"",
-    "test:integrations": "cross-env TS_NODE_COMPILER_OPTIONS='{\"isolatedDeclarations\":false}' mocha --recursive \"test-integrations/**/*.ts\"",
+    "test:integrations": "cross-env TS_NODE_COMPILER_OPTIONS=\"{\\\"isolatedDeclarations\\\":false}\" mocha --recursive \"test-integrations/**/*.ts\"",
     "clean": "rimraf dist",
     "prepack": "pnpm build"
   },
