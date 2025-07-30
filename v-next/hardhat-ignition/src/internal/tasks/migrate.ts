@@ -55,7 +55,7 @@ const taskMigrate: NewTaskActionFunction<MigrateArguments> = async (
       const newArtifact: Artifact = {
         ...artifact,
         _format: "hh3-artifact-1",
-        inputSourceName: `project/${artifact.sourceName}`,
+        inputSourceName: artifact.sourceName,
         immutableReferences: {},
       };
 
@@ -99,22 +99,23 @@ const taskMigrate: NewTaskActionFunction<MigrateArguments> = async (
     if (buildInfo._format === "hh-sol-build-info-1") {
       const userSourceNameMap: Record<string, string> = {};
       for (const key of Object.keys(buildInfo.input.sources)) {
-        userSourceNameMap[key] = `project/${key}`;
+        userSourceNameMap[key] = key;
       }
+
+      const updatedId = `solc-${buildInfo.solcVersion.replaceAll(".", "_")}-${buildInfo.id}`;
 
       const newBuildInfo: BuildInfo = {
         ...buildInfo,
         userSourceNameMap,
         _format: "hh3-sol-build-info-1",
+        id: updatedId,
       };
 
       await writeJsonFile(
-        path.join(
-          path.dirname(buildInfoPath),
-          `solc-${newBuildInfo.solcVersion.replaceAll(".", "_")}-${newBuildInfo.id}.json`,
-        ),
+        path.join(path.dirname(buildInfoPath), `${updatedId}.json`),
         newBuildInfo,
       );
+
       await remove(buildInfoPath);
     }
   }

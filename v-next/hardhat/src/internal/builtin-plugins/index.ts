@@ -34,6 +34,7 @@ export const builtinPlugins: HardhatPlugin[] = [
   artifacts,
   solidity,
   test,
+  coverage,
   solidityTest,
   networkManager,
   clean,
@@ -41,6 +42,5 @@ export const builtinPlugins: HardhatPlugin[] = [
   run,
   node,
   flatten,
-  coverage,
   telemetry,
 ];

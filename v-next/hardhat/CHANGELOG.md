@@ -1,5 +1,17 @@
 # hardhat
 
+## 3.0.0-next.26
+
+### Patch Changes
+
+- ed3ba1a: Update build info ids ([#7049](https://github.com/NomicFoundation/hardhat/issues/7049))
+- 9875011: Fixed hardhat-viem support for L2 actions when using the optimism chain type
+- 00be01a: Improve chain detection to enable multicall and ENS actions on forked networks ([#7063](https://github.com/NomicFoundation/hardhat/pull/7063))
+- 2b62b40: Add code coverage for Solidity Test with the `--coverage` flag, i.e. `npx hardhat test solidity --coverage` ([#7019](https://github.com/NomicFoundation/hardhat/pull/7019))
+- 6bf8eb1: Simplify solidity test config ([#7059](https://github.com/NomicFoundation/hardhat/issues/7059))
+- c408306: Support predicates on viem-assertions ([#7038](https://github.com/NomicFoundation/hardhat/issues/7038))
+- dd36123: Improved solidity tests output with a mocha/jest-inspired reporter ([#6909](https://github.com/NomicFoundation/hardhat/issues/6909))
+
 ## 3.0.0-next.25
 
 ### Patch Changes

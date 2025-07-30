@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/ignition-ui",
-  "version": "3.0.0-next.25",
+  "version": "3.0.0-next.26",
   "type": "module",
   "repository": {
     "type": "git",
@@ -10,7 +10,7 @@
   "scripts": {
     "predev": "pnpm regenerate-deployment-example",
     "dev": "vite --force",
-    "build": "tsc --build . && vite build",
+    "build": "tsc --build .",
     "test": "mocha --loader=ts-node/esm --recursive \"test/**/*.ts\"",
     "test:coverage": "nyc mocha --loader=ts-node/esm --recursive \"test/**/*.ts\"",
     "regenerate-deployment-example": "node ./scripts/generate-example-deployment-json.js",
@@ -20,11 +20,11 @@
     "eslint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
     "preview": "vite preview",
     "clean": "rimraf dist",
-    "prepack": "pnpm build"
+    "prepack": "pnpm build && vite build"
   },
   "devDependencies": {
     "@fontsource/roboto": "^5.0.8",
-    "@nomicfoundation/ignition-core": "workspace:^3.0.0-next.25",
+    "@nomicfoundation/ignition-core": "workspace:^3.0.0-next.26",
     "@types/chai": "^4.2.0",
     "@types/chai-as-promised": "^8.0.1",
     "@types/mocha": ">=10.0.10",
