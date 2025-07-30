@@ -21,7 +21,7 @@ describe("chains", () => {
     it("should return the chain corresponding to the chain id", async () => {
       const provider = new MockEthereumProvider({ eth_chainId: "0x1" }); // mainnet chain id
 
-      const chain = await getChain(provider);
+      const chain = await getChain(provider, "generic");
 
       assert.deepEqual(chain, chains.mainnet);
       assert.equal(provider.callCount, 1);
@@ -33,7 +33,7 @@ describe("chains", () => {
         hardhat_metadata: {},
       });
 
-      const chain = await getChain(provider);
+      const chain = await getChain(provider, "generic");
 
       assert.deepEqual(chain, chains.hardhat);
       assert.equal(provider.callCount, 2);
@@ -49,7 +49,7 @@ describe("chains", () => {
         },
       });
 
-      const chain = await getChain(provider);
+      const chain = await getChain(provider, "generic");
 
       assert.deepEqual(chain, {
         ...chains.mainnet,
@@ -69,7 +69,7 @@ describe("chains", () => {
         },
       });
 
-      const chain = await getChain(provider);
+      const chain = await getChain(provider, "generic");
 
       assert.deepEqual(chain, {
         ...chains.hardhat,
@@ -84,7 +84,7 @@ describe("chains", () => {
         anvil_nodeInfo: {},
       });
 
-      const chain = await getChain(provider);
+      const chain = await getChain(provider, "generic");
 
       assert.deepEqual(chain, chains.anvil);
       assert.equal(provider.callCount, 2);
@@ -94,7 +94,7 @@ describe("chains", () => {
       const provider = new MockEthereumProvider({ eth_chainId: "0x0" }); // fake chain id 0
 
       await assertRejectsWithHardhatError(
-        getChain(provider),
+        getChain(provider, "generic"),
         HardhatError.ERRORS.HARDHAT_VIEM.GENERAL.NETWORK_NOT_FOUND,
         { chainId: 0 },
       );
@@ -104,7 +104,7 @@ describe("chains", () => {
       // chain id 999 corresponds to wanchainTestnet but also zoraTestnet
       const provider = new MockEthereumProvider({ eth_chainId: "0x3e7" }); // 999 in hex
 
-      const chainId = await getChain(provider);
+      const chainId = await getChain(provider, "generic");
       assert.equal(chainId, chains.wanchainTestnet);
     });
 
@@ -114,7 +114,7 @@ describe("chains", () => {
         hardhat_metadata: {},
       });
 
-      const chain = await getChain(provider);
+      const chain = await getChain(provider, "generic");
 
       assert.deepEqual(chain, {
         ...chains.hardhat,
@@ -128,7 +128,7 @@ describe("chains", () => {
         anvil_nodeInfo: {},
       });
 
-      const chain = await getChain(provider);
+      const chain = await getChain(provider, "generic");
 
       assert.deepEqual(chain, {
         ...chains.anvil,

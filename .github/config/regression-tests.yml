@@ -41,16 +41,17 @@ repositories:
           }
         },
         "solidityTest": {
-          "testFail": true,
-          "rpcEndpoints": {
-            "goerli": "${GOERLI_RPC_URL}",
-            "arbitrumgoerli": "${ARBITRUM_GOERLI_RPC_URL}",
-            "optimismgoerli": "${OPTIMISM_GOERLI_RPC_URL}",
-            "etherum": "${ETHERUM_RPC_URL}",
-            "arbitrum": "${ARBITRUM_RPC_URL}",
-            "optimism": "${OPTIMISM_RPC_URL}",
-            "scrollsepolia": "${SCROLL_SEPOLIA_RPC_URL}",
-            "basesepolia": "${BASE_SEPOLIA_RPC_URL}"
+          "forking": {
+            "rpcEndpoints": {
+              "goerli": "${GOERLI_RPC_URL}",
+              "arbitrumgoerli": "${ARBITRUM_GOERLI_RPC_URL}",
+              "optimismgoerli": "${OPTIMISM_GOERLI_RPC_URL}",
+              "etherum": "${ETHERUM_RPC_URL}",
+              "arbitrum": "${ARBITRUM_RPC_URL}",
+              "optimism": "${OPTIMISM_RPC_URL}",
+              "scrollsepolia": "${SCROLL_SEPOLIA_RPC_URL}",
+              "basesepolia": "${BASE_SEPOLIA_RPC_URL}"
+            }
           }
         }
       };
@@ -139,17 +140,19 @@ repositories:
               "./out-optimized"
             ]
           },
-          "rpcEndpoints": {
-            "arbitrum": "https://arbitrum-mainnet.infura.io/v3/${API_KEY_INFURA}",
-            "avalanche": "https://avalanche-mainnet.infura.io/v3/${API_KEY_INFURA}",
-            "bnb_smart_chain": "https://bsc-dataseed.binance.org",
-            "gnosis_chain": "https://rpc.gnosischain.com",
-            "goerli": "https://goerli.infura.io/v3/${API_KEY_INFURA}",
-            "localhost": "http://localhost:8545",
-            "mainnet": "https://eth-mainnet.g.alchemy.com/v2/${API_KEY_ALCHEMY}",
-            "optimism": "https://optimism-mainnet.infura.io/v3/${API_KEY_INFURA}",
-            "polygon": "https://polygon-mainnet.infura.io/v3/${API_KEY_INFURA}",
-            "sepolia": "https://sepolia.infura.io/v3/${API_KEY_INFURA}"
+          "forking": {
+            "rpcEndpoints": {
+              "arbitrum": "https://arbitrum-mainnet.infura.io/v3/${API_KEY_INFURA}",
+              "avalanche": "https://avalanche-mainnet.infura.io/v3/${API_KEY_INFURA}",
+              "bnb_smart_chain": "https://bsc-dataseed.binance.org",
+              "gnosis_chain": "https://rpc.gnosischain.com",
+              "goerli": "https://goerli.infura.io/v3/${API_KEY_INFURA}",
+              "localhost": "http://localhost:8545",
+              "mainnet": "https://eth-mainnet.g.alchemy.com/v2/${API_KEY_ALCHEMY}",
+              "optimism": "https://optimism-mainnet.infura.io/v3/${API_KEY_INFURA}",
+              "polygon": "https://polygon-mainnet.infura.io/v3/${API_KEY_INFURA}",
+              "sepolia": "https://sepolia.infura.io/v3/${API_KEY_INFURA}"
+            }
           }
         }
       };
@@ -478,11 +481,13 @@ repositories:
               "./"
             ]
           },
-          "rpcEndpoints": {
-            "mainnet": "https://eth-mainnet.alchemyapi.io/v2/WV407BEiBmjNJfKo9Uo_55u0z0ITyCOX",
-            "optimism_sepolia": "https://sepolia.optimism.io/",
-            "arbitrum_one_sepolia": "https://sepolia-rollup.arbitrum.io/rpc/",
-            "needs_undefined_env_var": "${UNDEFINED_RPC_URL_PLACEHOLDER}"
+          "forking": {
+            "rpcEndpoints": {
+              "mainnet": "https://eth-mainnet.alchemyapi.io/v2/WV407BEiBmjNJfKo9Uo_55u0z0ITyCOX",
+              "optimism_sepolia": "https://sepolia.optimism.io/",
+              "arbitrum_one_sepolia": "https://sepolia-rollup.arbitrum.io/rpc/",
+              "needs_undefined_env_var": "${UNDEFINED_RPC_URL_PLACEHOLDER}"
+            }
           }
         }
       };
@@ -525,9 +530,6 @@ repositories:
             }
           }
         },
-        "solidityTest": {
-          "testFail": true
-        }
       };
     ref: 21213d34042b8a5a68afeb590f43018f08c81a58
   mds1/multicall:
@@ -599,7 +601,6 @@ repositories:
           }
         },
         "solidityTest": {
-          "testFail": true,
           "ffi": true,
           "fsPermissions": {
             "readWrite": [
@@ -774,37 +775,39 @@ repositories:
             "callOverride": false
           },
           "sender": "0x1804c8AB1F12E6bbf3894d4083f33e07309d1f38",
-          "rpcEndpoints": {
-            "arbitrum": "${ARBITRUM_RPC_URL}",
-            "arbitrum_sepolia": "https://arbitrum-sepolia-rpc.publicnode.com",
-            "avalanche": "${AVALANCHE_RPC_URL}",
-            "base": "https://mainnet.base.org",
-            "base_sepolia": "https://sepolia.base.org",
-            "berachain_artio": "https://bartio.rpc.berachain.com/",
-            "blast": "https://rpc.blast.io",
-            "blast_sepolia": "https://sepolia.blast.io",
-            "bnb": "https://bsc-dataseed.binance.org",
-            "core_dao": "https://rpc.coredao.org",
-            "gnosis": "https://rpc.gnosischain.com",
-            "lightlink": "https://replicator.phoenix.lightlink.io/rpc/v1",
-            "linea": "https://rpc.linea.build",
-            "linea_sepolia": "https://rpc.sepolia.linea.build",
-            "localhost": "http://localhost:8545",
-            "mainnet": "${MAINNET_RPC_URL}",
-            "mode": "https://mainnet.mode.network/",
-            "mode_sepolia": "https://sepolia.mode.network/",
-            "morph": "https://rpc.morphl2.io",
-            "optimism": "${OPTIMISM_RPC_URL}",
-            "optimism_sepolia": "https://sepolia.optimism.io",
-            "polygon": "${POLYGON_RPC_URL}",
-            "scroll": "https://rpc.scroll.io/",
-            "sei": "https://evm-rpc.sei-apis.com",
-            "sei_testnet": "https://evm-rpc.arctic-1.seinetwork.io",
-            "sepolia": "${SEPOLIA_RPC_URL}",
-            "superseed": "https://mainnet.superseed.xyz",
-            "superseed_sepolia": "https://sepolia.superseed.xyz",
-            "taiko_hekla": "https://rpc.hekla.taiko.xyz",
-            "taiko_mainnet": "https://rpc.mainnet.taiko.xyz"
+          "forking": {
+            "rpcEndpoints": {
+              "arbitrum": "${ARBITRUM_RPC_URL}",
+              "arbitrum_sepolia": "https://arbitrum-sepolia-rpc.publicnode.com",
+              "avalanche": "${AVALANCHE_RPC_URL}",
+              "base": "https://mainnet.base.org",
+              "base_sepolia": "https://sepolia.base.org",
+              "berachain_artio": "https://bartio.rpc.berachain.com/",
+              "blast": "https://rpc.blast.io",
+              "blast_sepolia": "https://sepolia.blast.io",
+              "bnb": "https://bsc-dataseed.binance.org",
+              "core_dao": "https://rpc.coredao.org",
+              "gnosis": "https://rpc.gnosischain.com",
+              "lightlink": "https://replicator.phoenix.lightlink.io/rpc/v1",
+              "linea": "https://rpc.linea.build",
+              "linea_sepolia": "https://rpc.sepolia.linea.build",
+              "localhost": "http://localhost:8545",
+              "mainnet": "${MAINNET_RPC_URL}",
+              "mode": "https://mainnet.mode.network/",
+              "mode_sepolia": "https://sepolia.mode.network/",
+              "morph": "https://rpc.morphl2.io",
+              "optimism": "${OPTIMISM_RPC_URL}",
+              "optimism_sepolia": "https://sepolia.optimism.io",
+              "polygon": "${POLYGON_RPC_URL}",
+              "scroll": "https://rpc.scroll.io/",
+              "sei": "https://evm-rpc.sei-apis.com",
+              "sei_testnet": "https://evm-rpc.arctic-1.seinetwork.io",
+              "sepolia": "${SEPOLIA_RPC_URL}",
+              "superseed": "https://mainnet.superseed.xyz",
+              "superseed_sepolia": "https://sepolia.superseed.xyz",
+              "taiko_hekla": "https://rpc.hekla.taiko.xyz",
+              "taiko_mainnet": "https://rpc.mainnet.taiko.xyz"
+            }
           }
         }
       };
@@ -882,21 +885,23 @@ repositories:
             "runs": 20,
             "maxTestRejects": 1000000
           },
-          "rpcEndpoints": {
-            "arbitrum": "${ARBITRUM_RPC_URL}",
-            "arbitrum_sepolia": "https://arbitrum-sepolia.blockpi.network/v1/rpc/public",
-            "avalanche": "${AVALANCHE_RPC_URL}",
-            "base": "https://mainnet.base.org",
-            "base_sepolia": "https://sepolia.base.org",
-            "bnb": "https://bsc-dataseed.binance.org",
-            "gnosis": "https://rpc.gnosischain.com",
-            "localhost": "http://localhost:8545",
-            "mainnet": "${MAINNET_RPC_URL}",
-            "optimism": "${OPTIMISM_RPC_URL}",
-            "optimism_sepolia": "https://sepolia.optimism.io",
-            "polygon": "${POLYGON_RPC_URL}",
-            "scroll": "https://rpc.scroll.io/",
-            "sepolia": "${SEPOLIA_RPC_URL}"
+          "forking": {
+            "rpcEndpoints": {
+              "arbitrum": "${ARBITRUM_RPC_URL}",
+              "arbitrum_sepolia": "https://arbitrum-sepolia.blockpi.network/v1/rpc/public",
+              "avalanche": "${AVALANCHE_RPC_URL}",
+              "base": "https://mainnet.base.org",
+              "base_sepolia": "https://sepolia.base.org",
+              "bnb": "https://bsc-dataseed.binance.org",
+              "gnosis": "https://rpc.gnosischain.com",
+              "localhost": "http://localhost:8545",
+              "mainnet": "${MAINNET_RPC_URL}",
+              "optimism": "${OPTIMISM_RPC_URL}",
+              "optimism_sepolia": "https://sepolia.optimism.io",
+              "polygon": "${POLYGON_RPC_URL}",
+              "scroll": "https://rpc.scroll.io/",
+              "sepolia": "${SEPOLIA_RPC_URL}"
+            }
           }
         }
       };
@@ -935,9 +940,6 @@ repositories:
               "bytecodeHash": "none"
             }
           }
-        },
-        "solidityTest": {
-          "testFail": true
         }
       };
     ref: c93f7716c9909175d45f6ef80a34a650e2d24e56

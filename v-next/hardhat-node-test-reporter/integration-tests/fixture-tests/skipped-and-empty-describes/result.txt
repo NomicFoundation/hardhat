@@ -20,6 +20,6 @@
       [90m[32m✔[39m[90m Non-skipped test[39m
 
 
-[32m4 passing[39m[90m (168ms)[39m[36m[39m
-[36m1 skipped[39m
+  [32m4 passing[39m[90m (148ms)[39m[36m[39m
+[36m  1 skipped[39m
 
