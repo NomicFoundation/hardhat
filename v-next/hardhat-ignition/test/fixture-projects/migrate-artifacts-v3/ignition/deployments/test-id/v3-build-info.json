@@ -1,5 +1,5 @@
 {
-  "id": "ad47b6fd82fea4f651540333f2a0887a",
+  "id": "solc-0_8_28-ad47b6fd82fea4f651540333f2a0887a",
   "_format": "hh3-sol-build-info-1",
   "solcVersion": "0.8.28",
   "solcLongVersion": "0.8.28+commit.7893614a",
@@ -31,6 +31,6 @@
     }
   },
   "userSourceNameMap": {
-    "contracts/Lock.sol": "project/contracts/Lock.sol"
+    "contracts/Lock.sol": "contracts/Lock.sol"
   }
 }
