@@ -40,6 +40,15 @@ const hardhatPlugin: HardhatPlugin = {
         description: "Verbosity level of the test output",
         defaultValue: 2,
       })
+      .addFlag({
+        name: "gasReport",
+        description: "Print a gas report",
+      })
+      .addFlag({
+        name: "gasReportSnapshot",
+        description:
+          "Saves the gas report to disk (requires --gas-report to be enabled)",
+      })
       .setAction(import.meta.resolve("./task-action.js"))
       .build(),
   ],
