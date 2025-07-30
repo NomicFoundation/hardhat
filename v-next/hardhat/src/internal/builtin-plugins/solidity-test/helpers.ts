@@ -6,6 +6,7 @@ import type {
   SolidityTestRunnerConfigArgs,
   PathPermission,
   Artifact,
+  ObservabilityConfig,
 } from "@nomicfoundation/edr";
 
 import {
@@ -34,6 +35,7 @@ export function solidityTestConfigToSolidityTestRunnerConfigArgs(
   projectRoot: string,
   config: SolidityTestConfig,
   verbosity: number,
+  observability?: ObservabilityConfig,
   testPattern?: string,
 ): SolidityTestRunnerConfigArgs {
   const fsPermissions: PathPermission[] | undefined = [
@@ -83,6 +85,7 @@ export function solidityTestConfigToSolidityTestRunnerConfigArgs(
     sender,
     txOrigin,
     blockCoinbase,
+    observability,
     testPattern,
     includeTraces,
     blockGasLimit,
