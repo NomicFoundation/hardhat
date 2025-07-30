@@ -31,6 +31,6 @@
     }
   },
   "userSourceNameMap": {
-    "contracts/Lock.sol": "contracts/Lock.sol"
+    "contracts/Lock.sol": "project/contracts/Lock.sol"
   }
 }

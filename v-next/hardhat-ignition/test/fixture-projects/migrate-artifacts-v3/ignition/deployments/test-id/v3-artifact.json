@@ -72,6 +72,6 @@
   "linkReferences": {},
   "deployedLinkReferences": {},
   "immutableReferences": {},
-  "inputSourceName": "contracts/Lock.sol",
-  "buildInfoId": "ad47b6fd82fea4f651540333f2a0887a"
+  "inputSourceName": "project/contracts/Lock.sol",
+  "buildInfoId": "solc-0_8_28-ad47b6fd82fea4f651540333f2a0887a"
 }

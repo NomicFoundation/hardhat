@@ -34,7 +34,7 @@
     }
   },
   "userSourceNameMap": {
-    "contracts/A.sol": "contracts/A.sol",
-    "contracts/B.sol": "contracts/B.sol"
+    "contracts/A.sol": "project/contracts/A.sol",
+    "contracts/B.sol": "project/contracts/B.sol"
   }
 }

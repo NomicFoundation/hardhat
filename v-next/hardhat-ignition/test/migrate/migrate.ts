@@ -32,7 +32,10 @@ describe("migrate", function () {
         path.join(deploymentPath, "v3-build-info.json"),
       );
       const updatedBuildInfo = await readJsonFile(
-        path.join(buildInfoPath, "ad47b6fd82fea4f651540333f2a0887a.json"),
+        path.join(
+          buildInfoPath,
+          "solc-0_8_28-ad47b6fd82fea4f651540333f2a0887a.json",
+        ),
       );
 
       assert.deepEqual(updatedArtifact, v3Artifact);
@@ -70,7 +73,10 @@ describe("migrate", function () {
         path.join(deploymentPath, "v3-build-info.json"),
       );
       const updatedBuildInfo = await readJsonFile(
-        path.join(buildInfoPath, "65860e589a9467319db576328b26eea6.json"),
+        path.join(
+          buildInfoPath,
+          "solc-0_8_28-65860e589a9467319db576328b26eea6.json",
+        ),
       );
 
       assert.deepEqual(updatedArtifactA, v3ArtifactA);
@@ -124,7 +130,10 @@ describe("migrate", function () {
         path.join(deploymentPath, "v3-build-info.json"),
       );
       const updatedBuildInfo = await readJsonFile(
-        path.join(buildInfoPath, "ad47b6fd82fea4f651540333f2a0887a.json"),
+        path.join(
+          buildInfoPath,
+          "solc-0_8_28-ad47b6fd82fea4f651540333f2a0887a.json",
+        ),
       );
 
       assert.deepEqual(updatedArtifact, v3Artifact);
