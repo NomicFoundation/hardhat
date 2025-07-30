@@ -55,7 +55,8 @@ const taskMigrate: NewTaskActionFunction<MigrateArguments> = async (
       const newArtifact: Artifact = {
         ...artifact,
         _format: "hh3-artifact-1",
-        inputSourceName: artifact.sourceName,
+        inputSourceName: `project/${artifact.sourceName}`,
+        immutableReferences: {},
       };
 
       const debugFilePath = path.join(
@@ -69,10 +70,14 @@ const taskMigrate: NewTaskActionFunction<MigrateArguments> = async (
 
         const buildInfoPath = path.resolve(artifactsDir, debugFile.buildInfo);
 
-        const { output, id }: BuildInfo & { output: CompilerOutput } =
+        const {
+          output,
+          id,
+          solcVersion,
+        }: BuildInfo & { output: CompilerOutput } =
           await readJsonFile(buildInfoPath);
 
-        newArtifact.buildInfoId = id;
+        newArtifact.buildInfoId = `solc-${solcVersion.replaceAll(".", "_")}-${id}`;
         newArtifact.immutableReferences =
           output.contracts[artifact.sourceName][artifact.contractName].evm
             .deployedBytecode.immutableReferences ?? {};
@@ -103,7 +108,14 @@ const taskMigrate: NewTaskActionFunction<MigrateArguments> = async (
         _format: "hh3-sol-build-info-1",
       };
 
-      await writeJsonFile(buildInfoPath, newBuildInfo);
+      await writeJsonFile(
+        path.join(
+          path.dirname(buildInfoPath),
+          `solc-${newBuildInfo.solcVersion.replaceAll(".", "_")}-${newBuildInfo.id}.json`,
+        ),
+        newBuildInfo,
+      );
+      await remove(buildInfoPath);
     }
   }
 };
