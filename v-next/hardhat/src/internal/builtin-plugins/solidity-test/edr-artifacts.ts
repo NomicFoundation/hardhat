@@ -2,7 +2,7 @@ import type { ArtifactManager, BuildInfo } from "../../../types/artifacts.js";
 import type {
   BuildInfoAndOutput,
   Artifact as EdrArtifact,
-} from "@ignored/edr-optimism";
+} from "@nomicfoundation/edr";
 
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import {

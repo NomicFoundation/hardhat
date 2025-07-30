@@ -3,12 +3,22 @@ import type {
   ArtifactId,
   CallTrace,
   DecodedTraceParameters,
-} from "@ignored/edr-optimism";
+} from "@nomicfoundation/edr";
 
-import { LogKind, CallKind } from "@ignored/edr-optimism";
+import { LogKind, CallKind } from "@nomicfoundation/edr";
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { bytesToHexString } from "@nomicfoundation/hardhat-utils/hex";
 import chalk from "chalk";
+
+export interface Colorizer {
+  blue: (text: string) => string;
+  green: (text: string) => string;
+  red: (text: string) => string;
+  cyan: (text: string) => string;
+  yellow: (text: string) => string;
+  grey: (text: string) => string;
+  dim: (text: string) => string;
+}
 
 type NestedArray<T> = Array<T | NestedArray<T>>;
 
@@ -19,11 +29,15 @@ export function formatArtifactId(
   const sourceName =
     sourceNameToUserSourceName.get(artifactId.source) ?? artifactId.source;
 
-  return `${chalk.bold(`${sourceName}:${artifactId.name}`)} (v${artifactId.solcVersion})`;
+  return `${sourceName}:${artifactId.name}`;
 }
 
-export function formatLogs(logs: string[], indent: number): string {
-  return chalk.grey(
+export function formatLogs(
+  logs: string[],
+  indent: number,
+  colorizer: Colorizer,
+): string {
+  return colorizer.grey(
     logs.map((log) => `${" ".repeat(indent)}${log}`).join("\n"),
   );
 }
@@ -49,23 +63,23 @@ function formatOutputs(outputs: string | Uint8Array): string | undefined {
   }
 }
 
-function formatLog(log: LogTrace): string[] {
+function formatLog(log: LogTrace, colorizer: Colorizer = chalk): string[] {
   const { parameters } = log;
   const lines = [];
   if (Array.isArray(parameters)) {
     const topics = parameters.map((topic) => bytesToHexString(topic));
     if (topics.length > 0) {
-      lines.push(`emit topic 0: ${chalk.cyan(topics[0])}`);
+      lines.push(`emit topic 0: ${colorizer.cyan(topics[0])}`);
     }
     for (let i = 1; i < topics.length - 1; i++) {
-      lines.push(`     topic ${i}: ${chalk.cyan(topics[i])}`);
+      lines.push(`     topic ${i}: ${colorizer.cyan(topics[i])}`);
     }
     if (topics.length > 1) {
-      lines.push(`        data: ${chalk.cyan(topics[topics.length - 1])}`);
+      lines.push(`        data: ${colorizer.cyan(topics[topics.length - 1])}`);
     }
   } else {
     lines.push(
-      `emit ${parameters.name}(${chalk.cyan(parameters.arguments.join(", "))})`,
+      `emit ${parameters.name}(${colorizer.cyan(parameters.arguments.join(", "))})`,
     );
   }
   return lines;
@@ -89,7 +103,10 @@ function formatKind(kind: CallKind): string | undefined {
   }
 }
 
-function formatTrace(trace: CallTrace): NestedArray<string> {
+function formatTrace(
+  trace: CallTrace,
+  colorizer: Colorizer,
+): NestedArray<string> {
   const {
     success,
     contract,
@@ -102,11 +119,11 @@ function formatTrace(trace: CallTrace): NestedArray<string> {
   } = trace;
   let color;
   if (isCheatcode) {
-    color = chalk.blue;
+    color = colorizer.blue;
   } else if (success) {
-    color = chalk.green;
+    color = colorizer.green;
   } else {
-    color = chalk.red;
+    color = colorizer.red;
   }
 
   const formattedInputs = formatInputs(inputs, color);
@@ -115,7 +132,7 @@ function formatTrace(trace: CallTrace): NestedArray<string> {
   let openingLine: string;
   let closingLine: string | undefined;
   if (kind === CallKind.Create) {
-    openingLine = `[${gasUsed}] ${chalk.yellow("→ new")} ${contract}`;
+    openingLine = `[${gasUsed}] ${colorizer.yellow("→ new")} ${contract}`;
     // TODO: Uncomment this when the formattedInputs starts containing
     // the address of where the contract was deployed instead of the code.
     // if (formattedInputs !== undefined) {
@@ -131,7 +148,7 @@ function formatTrace(trace: CallTrace): NestedArray<string> {
       openingLine = `${openingLine} {value: ${value}}`;
     }
     if (formattedKind !== undefined) {
-      openingLine = `${openingLine} ${chalk.yellow(`[${formattedKind}]`)}`;
+      openingLine = `${openingLine} ${colorizer.yellow(`[${formattedKind}]`)}`;
     }
   }
   if (formattedOutputs !== undefined) {
@@ -151,7 +168,7 @@ function formatTrace(trace: CallTrace): NestedArray<string> {
     if (child.kind === LogKind.Log) {
       lines.push(formatLog(child));
     } else {
-      lines.push(formatTrace(child));
+      lines.push(formatTrace(child, colorizer));
     }
   }
   if (closingLine !== undefined) {
@@ -178,14 +195,14 @@ function formatNestedArray(
         output += formatNestedArray(children, prefix, false);
       } else {
         const isLast = i === data.length - 1;
-        const connector = isLast ? " └─ " : " ├─ ";
-        const childPrefix = isLast ? "    " : " |  ";
+        const connector = isLast ? "  └─ " : "  ├─ ";
+        const childPrefix = isLast ? "     " : "  │  ";
         output += `${prefix}${connector}${label}\n`;
         output += formatNestedArray(children, prefix + childPrefix, false);
       }
     } else if (typeof item === "string") {
       const isLast = i === data.length - 1;
-      const connector = isLast ? " └─ " : " ├─ ";
+      const connector = isLast ? "  └─ " : "  ├─ ";
       output += `${prefix}${connector}${item}\n`;
     }
   }
@@ -193,9 +210,13 @@ function formatNestedArray(
   return output;
 }
 
-export function formatTraces(traces: CallTrace[], indent: number): string {
-  const lines = traces.map(formatTrace);
-  const formattedTraces = formatNestedArray(lines, " ".repeat(indent));
+export function formatTraces(
+  traces: CallTrace[],
+  prefix: string,
+  colorizer: Colorizer,
+): string {
+  const lines = traces.map((trace) => formatTrace(trace, colorizer));
+  const formattedTraces = formatNestedArray(lines, prefix);
   // Remove the trailing newline
   return formattedTraces.slice(0, -1);
 }

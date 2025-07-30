@@ -16,32 +16,24 @@ declare module "../../../types/config.js" {
       read?: string[];
       write?: string[];
     };
-    testFail?: boolean;
-    labels?: Array<{
-      address: string; // 0x-prefixed hex string
-      label: string;
-    }>;
     isolate?: boolean;
     ffi?: boolean;
-    sender?: string; // 0x-prefixed hex string
+
+    from?: string; // 0x-prefixed hex string
     txOrigin?: string; // 0x-prefixed hex string
     initialBalance?: bigint;
     blockBaseFeePerGas?: bigint;
-    blockCoinbase?: string; // 0x-prefixed hex string
+    coinbase?: string; // 0x-prefixed hex string
     blockTimestamp?: bigint;
-    blockDifficulty?: bigint;
-    blockGasLimit?: bigint;
-    disableBlockGasLimit?: boolean;
-    memoryLimit?: bigint;
-    ethRpcUrl?: string;
-    forkBlockNumber?: bigint;
-    rpcEndpoints?: Record<string, string>;
-    rpcCachePath?: string;
-    rpcStorageCaching?: {
-      chains: "All" | "None" | string[];
-      endpoints: "All" | "Remote" | RegExp;
+    prevRandao?: bigint;
+    blockGasLimit?: bigint | false;
+
+    forking?: {
+      url?: string;
+      blockNumber?: bigint;
+      rpcEndpoints?: Record<string, string>;
     };
-    promptTimeout?: number;
+
     fuzz?: {
       failurePersistDir?: string;
       failurePersistFile?: string;

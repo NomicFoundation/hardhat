@@ -39,9 +39,9 @@
     [31m9) level 1[39m
 
 
-[32m2 passing[39m[90m (142ms)[39m[31m[39m
-[31m4 failing[39m[90m[39m
-[90m8 cancelled[39m
+  [32m2 passing[39m[90m (182ms)[39m[31m[39m
+[31m  4 failing[39m[90m[39m
+[90m  8 cancelled[39m
 
   1) after each
        should pass:
@@ -87,12 +87,12 @@
 
    [31mError: describe setup error[39m
    [90m    at SuiteContext.<anonymous> (integration-tests/fixture-tests/hooks-test/describe.ts:13:9)[39m
-   [90m    at Suite.runInAsyncScope (node:async_hooks:211:14)[39m
-   [90m    at Suite.createBuild (node:internal/test_runner/test:1318:13)[39m
-   [90m    at new Suite (node:internal/test_runner/test:1309:28)[39m
-   [90m    at Test.createSubtest (node:internal/test_runner/test:741:18)[39m
-   [90m    at run (node:internal/test_runner/harness:302:28)[39m
-   [90m    at test (node:internal/test_runner/harness:316:12)[39m
+   [90m    at Suite.runInAsyncScope (node:async_hooks:214:14)[39m
+   [90m    at Suite.createBuild (node:internal/test_runner/test:1426:13)[39m
+   [90m    at new Suite (node:internal/test_runner/test:1417:28)[39m
+   [90m    at Test.createSubtest (node:internal/test_runner/test:821:18)[39m
+   [90m    at run (node:internal/test_runner/harness:338:28)[39m
+   [90m    at test (node:internal/test_runner/harness:352:12)[39m
    [90m    at <anonymous> (integration-tests/fixture-tests/hooks-test/describe.ts:4:1)[39m
 
   9) nested describe
@@ -100,11 +100,11 @@
 
    [31mError: describe setup error[39m
    [90m    at SuiteContext.<anonymous> (integration-tests/fixture-tests/hooks-test/describe.ts:26:11)[39m
-   [90m    at Suite.runInAsyncScope (node:async_hooks:211:14)[39m
-   [90m    at Suite.createBuild (node:internal/test_runner/test:1318:13)[39m
-   [90m    at new Suite (node:internal/test_runner/test:1309:28)[39m
-   [90m    at Suite.createSubtest (node:internal/test_runner/test:741:18)[39m
-   [90m    at run (node:internal/test_runner/harness:302:28)[39m
-   [90m    at test (node:internal/test_runner/harness:316:12)[39m
+   [90m    at Suite.runInAsyncScope (node:async_hooks:214:14)[39m
+   [90m    at Suite.createBuild (node:internal/test_runner/test:1426:13)[39m
+   [90m    at new Suite (node:internal/test_runner/test:1417:28)[39m
+   [90m    at Suite.createSubtest (node:internal/test_runner/test:821:18)[39m
+   [90m    at run (node:internal/test_runner/harness:338:28)[39m
+   [90m    at test (node:internal/test_runner/harness:352:12)[39m
    [90m    at SuiteContext.<anonymous> (integration-tests/fixture-tests/hooks-test/describe.ts:17:3)[39m
 
