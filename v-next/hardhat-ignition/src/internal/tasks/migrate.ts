@@ -99,7 +99,7 @@ const taskMigrate: NewTaskActionFunction<MigrateArguments> = async (
     if (buildInfo._format === "hh-sol-build-info-1") {
       const userSourceNameMap: Record<string, string> = {};
       for (const key of Object.keys(buildInfo.input.sources)) {
-        userSourceNameMap[key] = key;
+        userSourceNameMap[key] = `project/${key}`;
       }
 
       const newBuildInfo: BuildInfo = {
