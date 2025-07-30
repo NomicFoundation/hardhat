@@ -28,6 +28,7 @@ const oldKeystoreFilePath = path.join(
   "keystore-change-password.json",
 );
 const newKeystoreFilePath = `${oldKeystoreFilePath}.tmp`;
+const fakeKeystoreDevPasswordFilePath = "./fake-keystore-dev-password-path.txt";
 
 describe("tasks - change-password", () => {
   let mockFileManager: MockFileManager;
@@ -54,86 +55,119 @@ describe("tasks - change-password", () => {
 
     keystoreLoader = new KeystoreFileLoader(
       oldKeystoreFilePath,
+      fakeKeystoreDevPasswordFilePath,
       mockFileManager,
     );
 
     keystoreLoaderTmp = new KeystoreFileLoader(
       newKeystoreFilePath,
+      fakeKeystoreDevPasswordFilePath,
       mockFileManager,
     );
   });
 
-  describe("a successful `change-password`", () => {
-    beforeEach(async () => {
-      mockFileManager.setupExistingKeystoreFile({
-        myKey: "myValue",
-      });
-      mockRequestSecret = mockRequestSecretFn([
-        TEST_PASSWORD,
-        "newPassword",
-        "newPassword",
-      ]);
+  describe("production keystore", () => {
+    describe("a successful `change-password`", () => {
+      beforeEach(async () => {
+        mockFileManager.setupExistingKeystoreFile({
+          myKey: "myValue",
+        });
+        mockRequestSecret = mockRequestSecretFn([
+          TEST_PASSWORD,
+          "newPassword",
+          "newPassword",
+        ]);
 
-      await changePassword(
-        keystoreLoader,
-        keystoreLoaderTmp,
-        mockRequestSecret,
-        mockConsoleLog,
-      );
-    });
-
-    it("should display messages of the `password-change` process, ending with a confirmation that the password was successfully changed", async () => {
-      assertOutputIncludes(
-        mockConsoleLog,
-        "Unlock the keystore using your current password before proceeding with the password change.",
-      );
-      assertOutputIncludes(mockConsoleLog, "Change your password.");
-      assertOutputIncludes(mockConsoleLog, "Password changed successfully!");
-    });
-  });
-
-  describe("a `change-password` when the keystore file does not exist", () => {
-    beforeEach(async () => {
-      mockFileManager.setupNoKeystoreFile();
-      mockRequestSecret = mockRequestSecretFn([]);
-
-      await changePassword(
-        keystoreLoader,
-        keystoreLoaderTmp,
-        mockRequestSecret,
-        mockConsoleLog,
-      );
-
-      assert.equal(process.exitCode, 1);
-      process.exitCode = undefined;
-    });
-
-    it("should display a message that the keystore is not set", async () => {
-      assertOutputIncludes(
-        mockConsoleLog,
-        `No keystore found. Please set one up using ${chalk.blue.italic("npx hardhat keystore set {key}")} `,
-      );
-    });
-  });
-
-  describe("a `change-password` with the wrong `old` password", () => {
-    it("should throw an error", async () => {
-      mockFileManager.setupExistingKeystoreFile({
-        myKey: "myValue",
-      });
-      mockRequestSecret = mockRequestSecretFn(["wrong password"]);
-
-      await assertRejectsWithHardhatError(
-        changePassword(
+        await changePassword(
           keystoreLoader,
           keystoreLoaderTmp,
           mockRequestSecret,
           mockConsoleLog,
-        ),
-        HardhatError.ERRORS.HARDHAT_KEYSTORE.GENERAL
-          .INVALID_PASSWORD_OR_CORRUPTED_KEYSTORE,
-        {},
-      );
+        );
+      });
+
+      it("should display messages of the `password-change` process, ending with a confirmation that the password was successfully changed", async () => {
+        assertOutputIncludes(
+          mockConsoleLog,
+          "Unlock the keystore using your current password before proceeding with the password change.",
+        );
+        assertOutputIncludes(mockConsoleLog, "Change your password.");
+        assertOutputIncludes(mockConsoleLog, "Password changed successfully!");
+      });
+    });
+
+    describe("a `change-password` when the keystore file does not exist", () => {
+      beforeEach(async () => {
+        mockFileManager.setupNoKeystoreFile();
+        mockRequestSecret = mockRequestSecretFn([]);
+
+        await changePassword(
+          keystoreLoader,
+          keystoreLoaderTmp,
+          mockRequestSecret,
+          mockConsoleLog,
+        );
+
+        assert.equal(process.exitCode, 1);
+        process.exitCode = undefined;
+      });
+
+      it("should display a message that the keystore is not set", async () => {
+        assertOutputIncludes(
+          mockConsoleLog,
+          `No keystore found. Please set one up using ${chalk.blue.italic("npx hardhat keystore set {key}")} `,
+        );
+      });
+    });
+
+    describe("a `change-password` with the wrong `old` password", () => {
+      it("should throw an error", async () => {
+        mockFileManager.setupExistingKeystoreFile({
+          myKey: "myValue",
+        });
+        mockRequestSecret = mockRequestSecretFn(["wrong password"]);
+
+        await assertRejectsWithHardhatError(
+          changePassword(
+            keystoreLoader,
+            keystoreLoaderTmp,
+            mockRequestSecret,
+            mockConsoleLog,
+          ),
+          HardhatError.ERRORS.HARDHAT_KEYSTORE.GENERAL
+            .INVALID_PASSWORD_OR_CORRUPTED_KEYSTORE,
+          {},
+        );
+      });
     });
   });
+
+  //
+  // TODO
+  //
+  // describe("development keystore", () => {
+  //   describe("a `change-password` should throw because not allowed", () => {
+  //     beforeEach(async () => {
+  //       mockFileManager.setupNoKeystoreFile();
+  //       mockRequestSecret = mockRequestSecretFn([]);
+
+  //       await changePassword(
+  //         keystoreLoader,
+  //         keystoreLoaderTmp,
+  //         mockRequestSecret,
+  //         mockConsoleLog,
+  //       );
+
+  //       assert.equal(process.exitCode, 1);
+  //       process.exitCode = undefined;
+  //     });
+
+  //     it("should display a message that the keystore is not set", async () => {
+  //       assertOutputIncludes(
+  //         mockConsoleLog,
+  //         `No keystore found. Please set one up using ${chalk.blue.italic("npx hardhat keystore set {key}")} `,
+  //       );
+  //     });
+  //   });
+  // });
 });

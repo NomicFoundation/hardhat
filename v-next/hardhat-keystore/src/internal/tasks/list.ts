@@ -5,11 +5,17 @@ import type { NewTaskActionFunction } from "hardhat/types/tasks";
 import { UserDisplayMessages } from "../ui/user-display-messages.js";
 import { setupKeystoreLoaderFrom } from "../utils/setup-keystore-loader-from.js";
 
-const taskList: NewTaskActionFunction = async (
-  _taskArguments,
+interface TaskListArguments {
+  dev: boolean;
+  force: boolean;
+  key: string;
+}
+
+const taskList: NewTaskActionFunction<TaskListArguments> = async (
+  args,
   hre: HardhatRuntimeEnvironment,
 ): Promise<void> => {
-  const keystoreLoader = setupKeystoreLoaderFrom(hre);
+  const keystoreLoader = setupKeystoreLoaderFrom(hre, args.dev);
 
   await list(keystoreLoader);
 };

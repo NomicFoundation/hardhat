@@ -17,6 +17,7 @@ import { mockRequestSecretFn } from "../helpers/mock-request-secret.js";
 import { TEST_PASSWORD } from "../helpers/test-password.js";
 
 const fakeKeystoreFilePath = "./fake-keystore-path.json";
+const fakeKeystoreDevPasswordFilePath = "./fake-keystore-dev-password-path.txt";
 
 describe("tasks - delete", () => {
   let mockFileManager: MockFileManager;
@@ -30,7 +31,8 @@ describe("tasks - delete", () => {
     mockConsoleLog = mock.fn();
 
     keystoreLoader = new KeystoreFileLoader(
-      "./fake-keystore-path.json",
+      fakeKeystoreFilePath,
+      fakeKeystoreDevPasswordFilePath,
       mockFileManager,
     );
   });
@@ -45,6 +47,7 @@ describe("tasks - delete", () => {
 
       await remove(
         {
+          dev: false,
           key: "myKey",
           force: false,
         },
@@ -77,6 +80,7 @@ describe("tasks - delete", () => {
 
       await remove(
         {
+          dev: false,
           key: "key",
           force: false,
         },
@@ -111,6 +115,7 @@ describe("tasks - delete", () => {
 
       await remove(
         {
+          dev: false,
           key: "unknown",
           force: false,
         },
@@ -149,6 +154,7 @@ describe("tasks - delete", () => {
 
       await remove(
         {
+          dev: false,
           key: "unknown",
           force: true,
         },
@@ -192,6 +198,7 @@ describe("tasks - delete", () => {
       await assertRejectsWithHardhatError(
         remove(
           {
+            dev: false,
             key: "myKey",
             force: false,
           },

@@ -30,7 +30,7 @@ export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
       }
 
       if (keystoreLoader === undefined) {
-        keystoreLoader = setupKeystoreLoaderFrom(context);
+        keystoreLoader = setupKeystoreLoaderFrom(context, false);
       }
 
       if (!(await keystoreLoader.isKeystoreInitialized())) {

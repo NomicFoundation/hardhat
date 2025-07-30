@@ -7,29 +7,30 @@ import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 import type { NewTaskActionFunction } from "hardhat/types/tasks";
 
 import { deriveMasterKeyFromKeystore } from "../keystores/encryption.js";
-import { askPassword } from "../keystores/password.js";
+import { getPasswordHandlers } from "../keystores/password.js";
 import { UserDisplayMessages } from "../ui/user-display-messages.js";
 import { setupKeystoreLoaderFrom } from "../utils/setup-keystore-loader-from.js";
 
 interface TaskGetArguments {
+  dev: boolean;
   key: string;
 }
 
 const taskGet: NewTaskActionFunction<TaskGetArguments> = async (
-  { key },
+  args,
   hre: HardhatRuntimeEnvironment,
 ): Promise<void> => {
-  const keystoreLoader = setupKeystoreLoaderFrom(hre);
+  const keystoreLoader = setupKeystoreLoaderFrom(hre, args.dev);
 
   await get(
-    { key },
+    args,
     keystoreLoader,
     hre.interruptions.requestSecretInput.bind(hre.interruptions),
   );
 };
 
 export const get = async (
-  { key }: TaskGetArguments,
+  { dev, key }: TaskGetArguments,
   keystoreLoader: KeystoreLoader,
   requestSecretInput: KeystoreRequestSecretInput,
   consoleLog: KeystoreConsoleLog = console.log,
@@ -42,7 +43,14 @@ export const get = async (
 
   const keystore = await keystoreLoader.loadKeystore();
 
-  const password = await askPassword(requestSecretInput);
+  const { askPassword } = getPasswordHandlers(
+    requestSecretInput,
+    consoleLog,
+    dev,
+    keystoreLoader.getKeystoreDevPasswordFilePath(),
+  );
+
+  const password = await askPassword();
 
   const masterKey = deriveMasterKeyFromKeystore({
     encryptedKeystore: keystore.toJSON(),

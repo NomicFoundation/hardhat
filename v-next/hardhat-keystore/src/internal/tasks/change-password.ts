@@ -34,7 +34,7 @@ const taskChangePassword: NewTaskActionFunction<
     );
   }
 
-  const keystoreLoader = setupKeystoreLoaderFrom(hre);
+  const keystoreLoader = setupKeystoreLoaderFrom(hre, false);
   const newKeystoreLoader = setupTmpKeystoreLoaderFrom(hre);
 
   await changePassword(

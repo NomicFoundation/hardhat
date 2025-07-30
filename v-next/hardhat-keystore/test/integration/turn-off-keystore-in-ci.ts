@@ -21,13 +21,24 @@ import { TEST_PASSWORD } from "../helpers/test-password.js";
 // Test password: test-password
 // Secret key name: key1
 // Secret value: secret
-const existingKeystoreFilePath = path.join(
+
+const basePath = path.join(
   fileURLToPath(import.meta.url),
   "..",
   "..",
   "fixture-projects",
   "keystore",
-  "existing-keystore.json",
+);
+
+const existingKeystoreFilePath = path.join(basePath, "existing-keystore.json");
+const existingKeystoreDevFilePath = path.join(
+  fileURLToPath(import.meta.url),
+  basePath,
+  "existing-keystore-dev.json",
+);
+const existingKeystoreDevPasswordFilePath = path.join(
+  basePath,
+  "existing-keystore-dev-password-file.txt",
 );
 
 /**
@@ -50,7 +61,11 @@ describe("turn off keystore plugin when running in CI", function () {
     hre = await createHardhatRuntimeEnvironment({
       plugins: [
         hardhatKeystorePlugin,
-        setupKeystoreFileLocationOverrideAt(existingKeystoreFilePath),
+        setupKeystoreFileLocationOverrideAt(
+          existingKeystoreFilePath,
+          existingKeystoreDevFilePath,
+          existingKeystoreDevPasswordFilePath,
+        ),
         setupKeystorePassword([TEST_PASSWORD]),
       ],
     });

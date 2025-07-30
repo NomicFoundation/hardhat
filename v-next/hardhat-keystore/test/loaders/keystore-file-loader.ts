@@ -9,6 +9,7 @@ import { MockFileManager } from "../helpers/mock-file-manager.js";
 import { TEST_PASSWORD } from "../helpers/test-password.js";
 
 const fakeKeystoreFilePath = "./fake-keystore-path.json";
+const fakeKeystoreDevPasswordFilePath = "./fake-keystore-dev-password-path.txt";
 
 describe("KeystoreFileLoader", () => {
   let masterKey: Uint8Array;
@@ -24,6 +25,7 @@ describe("KeystoreFileLoader", () => {
 
         keystoreLoader = new KeystoreFileLoader(
           fakeKeystoreFilePath,
+          fakeKeystoreDevPasswordFilePath,
           mockFileManager,
         );
 
@@ -64,6 +66,7 @@ describe("KeystoreFileLoader", () => {
       it("should load the keystore", async () => {
         const keystoreLoader = new KeystoreFileLoader(
           fakeKeystoreFilePath,
+          fakeKeystoreDevPasswordFilePath,
           mockFileManager,
         );
 
@@ -89,6 +92,7 @@ describe("KeystoreFileLoader", () => {
 
         keystoreLoader = new KeystoreFileLoader(
           fakeKeystoreFilePath,
+          fakeKeystoreDevPasswordFilePath,
           mockFileManager,
         );
       });
@@ -114,6 +118,7 @@ describe("KeystoreFileLoader", () => {
 
         keystoreLoader = new KeystoreFileLoader(
           fakeKeystoreFilePath,
+          fakeKeystoreDevPasswordFilePath,
           mockFileManager,
         );
       });
@@ -137,6 +142,7 @@ describe("KeystoreFileLoader", () => {
 
         keystoreLoader = new KeystoreFileLoader(
           fakeKeystoreFilePath,
+          fakeKeystoreDevPasswordFilePath,
           mockFileManager,
         );
       });

@@ -12,6 +12,7 @@ import { assertOutputIncludes } from "../helpers/assert-output-includes.js";
 import { MockFileManager } from "../helpers/mock-file-manager.js";
 
 const fakeKeystoreFilePath = "./fake-keystore-path.json";
+const fakeKeystoreDevPasswordFilePath = "./fake-keystore-dev-password-path.txt";
 
 describe("tasks - list", () => {
   let mockFileManager: MockFileManager;
@@ -25,6 +26,7 @@ describe("tasks - list", () => {
 
     keystoreLoader = new KeystoreFileLoader(
       fakeKeystoreFilePath,
+      fakeKeystoreDevPasswordFilePath,
       mockFileManager,
     );
   });

@@ -31,6 +31,7 @@ export interface KeystoreLoader {
   loadKeystore: () => Promise<Keystore>;
   saveKeystoreToFile: () => Promise<void>;
   getKeystoreFilePath: () => string;
+  getKeystoreDevPasswordFilePath: () => string;
 }
 
 export interface FileManager {

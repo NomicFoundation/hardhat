@@ -20,13 +20,19 @@ import { setupKeystorePassword } from "../helpers/insert-password-hook.js";
 import { setupKeystoreFileLocationOverrideAt } from "../helpers/setup-keystore-file-location-override-at.js";
 import { TEST_PASSWORD } from "../helpers/test-password.js";
 
-const keystoreFilePath = path.join(
+const basePath = path.join(
   fileURLToPath(import.meta.url),
   "..",
   "..",
   "fixture-projects",
   "keystore",
-  "keystore.json",
+);
+
+const keystoreFilePath = path.join(basePath, "keystore.json");
+const keystoreDevFilePath = path.join(basePath, "keystore-dev.json");
+const keystoreDevPasswordFilePath = path.join(
+  basePath,
+  "keystore-dev-password.txt",
 );
 
 /**
@@ -74,7 +80,11 @@ describe("integration tests for the keystore tasks", () => {
     hre = await createHardhatRuntimeEnvironment({
       plugins: [
         hardhatKeystorePlugin,
-        setupKeystoreFileLocationOverrideAt(keystoreFilePath),
+        setupKeystoreFileLocationOverrideAt(
+          keystoreFilePath,
+          keystoreDevFilePath,
+          keystoreDevPasswordFilePath,
+        ),
         setupKeystorePassword([TEST_PASSWORD, "newSecret"]),
       ],
     });
@@ -125,7 +135,11 @@ describe("integration tests for the keystore tasks", () => {
     let tmpHre = await createHardhatRuntimeEnvironment({
       plugins: [
         hardhatKeystorePlugin,
-        setupKeystoreFileLocationOverrideAt(keystoreFilePath),
+        setupKeystoreFileLocationOverrideAt(
+          keystoreFilePath,
+          keystoreDevFilePath,
+          keystoreDevPasswordFilePath,
+        ),
         setupKeystorePassword([TEST_PASSWORD, NEW_PASSWORD, NEW_PASSWORD]),
       ],
     });
@@ -142,7 +156,11 @@ describe("integration tests for the keystore tasks", () => {
     tmpHre = await createHardhatRuntimeEnvironment({
       plugins: [
         hardhatKeystorePlugin,
-        setupKeystoreFileLocationOverrideAt(keystoreFilePath),
+        setupKeystoreFileLocationOverrideAt(
+          keystoreFilePath,
+          keystoreDevFilePath,
+          keystoreDevPasswordFilePath,
+        ),
         setupKeystorePassword([NEW_PASSWORD]),
       ],
     });

@@ -16,6 +16,7 @@ import { mockRequestSecretFn } from "../helpers/mock-request-secret.js";
 import { TEST_PASSWORD } from "../helpers/test-password.js";
 
 const fakeKeystoreFilePath = "./fake-keystore-path.json";
+const fakeKeystoreDevPasswordFilePath = "./fake-keystore-dev-password-path.txt";
 
 describe("tasks - get", () => {
   let mockFileManager: MockFileManager;
@@ -30,6 +31,7 @@ describe("tasks - get", () => {
 
     keystoreLoader = new KeystoreFileLoader(
       fakeKeystoreFilePath,
+      fakeKeystoreDevPasswordFilePath,
       mockFileManager,
     );
   });
@@ -43,6 +45,7 @@ describe("tasks - get", () => {
 
       await get(
         {
+          dev: false,
           key: "myKey",
         },
         keystoreLoader,
@@ -71,6 +74,7 @@ describe("tasks - get", () => {
 
       await get(
         {
+          dev: false,
           key: "key",
         },
         keystoreLoader,
@@ -107,6 +111,7 @@ describe("tasks - get", () => {
 
       await get(
         {
+          dev: false,
           key: "unknown",
         },
         keystoreLoader,
@@ -141,6 +146,7 @@ describe("tasks - get", () => {
       await assertRejectsWithHardhatError(
         get(
           {
+            dev: false,
             key: "myKey",
           },
           keystoreLoader,

@@ -20,6 +20,7 @@ import { mockRequestSecretFn } from "../helpers/mock-request-secret.js";
 import { TEST_PASSWORD } from "../helpers/test-password.js";
 
 const fakeKeystoreFilePath = "./fake-keystore-path.json";
+const fakeKeystoreDevPasswordFilePath = "./fake-keystore-dev-password-path.txt";
 
 describe("tasks - set", () => {
   let mockFileManager: MockFileManager;
@@ -34,6 +35,7 @@ describe("tasks - set", () => {
 
     keystoreLoader = new KeystoreFileLoader(
       fakeKeystoreFilePath,
+      fakeKeystoreDevPasswordFilePath,
       mockFileManager,
     );
   });
@@ -46,6 +48,7 @@ describe("tasks - set", () => {
       await set(
         {
           key: "myKey",
+          dev: false,
           force: false,
         },
         keystoreLoader,
@@ -81,7 +84,7 @@ describe("tasks - set", () => {
       mockRequestSecret = mockRequestSecretFn([TEST_PASSWORD, "newValue"]);
 
       await set(
-        { key: "key", force: false },
+        { key: "key", dev: false, force: false },
         keystoreLoader,
         mockRequestSecret,
         mockConsoleLog,
@@ -122,7 +125,7 @@ describe("tasks - set", () => {
       mockRequestSecret = mockRequestSecretFn([TEST_PASSWORD, "newValue"]);
 
       await set(
-        { key: "key", force: true },
+        { key: "key", dev: false, force: true },
         keystoreLoader,
         mockRequestSecret,
         mockConsoleLog,
@@ -155,7 +158,7 @@ describe("tasks - set", () => {
       mockRequestSecret = mockRequestSecretFn([TEST_PASSWORD, "value"]);
 
       await set(
-        { key: "1key", force: false },
+        { key: "1key", dev: false, force: false },
         keystoreLoader,
         mockRequestSecret,
         mockConsoleLog,
@@ -181,7 +184,7 @@ describe("tasks - set", () => {
       mockRequestSecret = mockRequestSecretFn([TEST_PASSWORD, ""]);
 
       await set(
-        { key: "key", force: true },
+        { key: "key", dev: false, force: true },
         keystoreLoader,
         mockRequestSecret,
         mockConsoleLog,
@@ -217,7 +220,7 @@ describe("tasks - set", () => {
       ]);
 
       await set(
-        { key: "myKey", force: false },
+        { key: "myKey", dev: false, force: false },
         keystoreLoader,
         mockRequestSecret,
         mockConsoleLog,
@@ -259,6 +262,7 @@ describe("tasks - set", () => {
         set(
           {
             key: "key",
+            dev: false,
             force: true,
           },
           keystoreLoader,

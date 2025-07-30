@@ -6,36 +6,37 @@ import type {
 import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 import type { NewTaskActionFunction } from "hardhat/types/tasks";
 
-import { PLUGIN_ID } from "../constants.js";
+import { PLUGIN_ID, PLUGIN_ID_DEV } from "../constants.js";
 import {
   createMasterKey,
   deriveMasterKeyFromKeystore,
 } from "../keystores/encryption.js";
-import { askPassword, setUpPassword } from "../keystores/password.js";
+import { getPasswordHandlers } from "../keystores/password.js";
 import { UserDisplayMessages } from "../ui/user-display-messages.js";
 import { setupKeystoreLoaderFrom } from "../utils/setup-keystore-loader-from.js";
 import { validateKey } from "../utils/validate-key.js";
 
 interface TaskGetArguments {
-  key: string;
+  dev: boolean;
   force: boolean;
+  key: string;
 }
 
 const taskSet: NewTaskActionFunction<TaskGetArguments> = async (
-  setArgs,
+  args,
   hre: HardhatRuntimeEnvironment,
 ): Promise<void> => {
-  const keystoreLoader = setupKeystoreLoaderFrom(hre);
+  const keystoreLoader = setupKeystoreLoaderFrom(hre, args.dev);
 
   await set(
-    setArgs,
+    args,
     keystoreLoader,
     hre.interruptions.requestSecretInput.bind(hre.interruptions),
   );
 };
 
 export const set = async (
-  { force, key }: TaskGetArguments,
+  { dev, force, key }: TaskGetArguments,
   keystoreLoader: KeystoreLoader,
   requestSecretInput: KeystoreRequestSecretInput,
   consoleLog: KeystoreConsoleLog = console.log,
@@ -48,9 +49,16 @@ export const set = async (
 
   const isKeystoreInitialized = await keystoreLoader.isKeystoreInitialized();
 
+  const { askPassword, setUpPassword } = getPasswordHandlers(
+    requestSecretInput,
+    consoleLog,
+    dev,
+    keystoreLoader.getKeystoreDevPasswordFilePath(),
+  );
+
   const password = isKeystoreInitialized
-    ? await askPassword(requestSecretInput)
-    : await setUpPassword(requestSecretInput, consoleLog);
+    ? await askPassword()
+    : await setUpPassword();
 
   if (isKeystoreInitialized === false) {
     await keystoreLoader.createUnsavedKeystore(createMasterKey({ password }));
@@ -70,7 +78,7 @@ export const set = async (
   }
 
   const secret = await requestSecretInput(
-    PLUGIN_ID,
+    dev ? PLUGIN_ID_DEV : PLUGIN_ID,
     UserDisplayMessages.enterSecretMessage(),
   );
 
