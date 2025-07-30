@@ -8,7 +8,7 @@ import {
   OP_CHAIN_TYPE,
   opProviderFactory,
   opSolidityTestRunnerFactory,
-} from "@ignored/edr-optimism";
+} from "@nomicfoundation/edr";
 
 let _globalEdrContext: EdrContext | undefined;
 

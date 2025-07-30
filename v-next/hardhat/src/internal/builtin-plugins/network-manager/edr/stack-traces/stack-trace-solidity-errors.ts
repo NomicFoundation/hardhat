@@ -4,7 +4,7 @@ import type {
   SourceReference,
 } from "./solidity-stack-trace.js";
 
-import { ReturnData } from "@ignored/edr-optimism";
+import { ReturnData } from "@nomicfoundation/edr";
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { bytesToHexString } from "@nomicfoundation/hardhat-utils/bytes";
 

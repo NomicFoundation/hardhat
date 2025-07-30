@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { IncludeTraces } from "@ignored/edr-optimism";
+import { IncludeTraces } from "@nomicfoundation/edr";
 
 import { solidityTestConfigToSolidityTestRunnerConfigArgs } from "../../../../src/internal/builtin-plugins/solidity-test/helpers.js";
 import { GENERIC_CHAIN_TYPE } from "../../../../src/internal/constants.js";
