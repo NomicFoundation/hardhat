@@ -13,4 +13,11 @@ export default {
       },
     },
   },
+  networks: {
+    default: {
+      // We use a different chain id to avoid triggering the auto-wipe for fixtures
+      chainId: 1337,
+      type: "edr",
+    },
+  },
 };

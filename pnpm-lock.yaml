@@ -581,6 +581,9 @@ importers:
       eslint:
         specifier: 9.25.1
         version: 9.25.1
+      hardhat:
+        specifier: workspace:^3.0.0-next.23
+        version: link:../hardhat
       mocha:
         specifier: ^11.0.0
         version: 11.1.0
