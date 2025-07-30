@@ -1,10 +1,10 @@
 
   [90m[32m✔[39m[90m foo[39m
 
-  [31m1) integration-tests/fixture-tests/asynchronous-activity-test/test.ts[39m [31m[3m(221ms)[23m[39m
+  [31m1) integration-tests/fixture-tests/asynchronous-activity-test/test.ts[39m [31m[3m(214ms)[23m[39m
 
 
-  [32m1 passing[39m[90m (252ms)[39m[31m[39m
+  [32m1 passing[39m[90m (244ms)[39m[31m[39m
 [31m  1 failing[39m
   [34mℹ[39m Error: Test "foo" at integration-tests/fixture-tests/asynchronous-activity-test/test.ts:1:29 generated asynchronous activity after the test ended. This activity created the error "Error" and would have caused the test to fail, but instead triggered an uncaughtException event.
 

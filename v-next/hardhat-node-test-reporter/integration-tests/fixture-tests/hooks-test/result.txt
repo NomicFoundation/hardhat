@@ -39,7 +39,7 @@
     [31m9) level 1[39m
 
 
-  [32m2 passing[39m[90m (167ms)[39m[31m[39m
+  [32m2 passing[39m[90m (166ms)[39m[31m[39m
 [31m  4 failing[39m[90m[39m
 [90m  8 cancelled[39m
 

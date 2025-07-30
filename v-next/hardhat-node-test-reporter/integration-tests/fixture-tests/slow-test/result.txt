@@ -1,10 +1,10 @@
 
-  [90m[32m✔[39m[90m slow test[39m [31m[3m(102ms)[23m[39m
+  [90m[32m✔[39m[90m slow test[39m [31m[3m(101ms)[23m[39m
 
-  [31m1) assertion error in slow test[39m [31m[3m(103ms)[23m[39m
+  [31m1) assertion error in slow test[39m [31m[3m(102ms)[23m[39m
 
 
-  [32m1 passing[39m[90m (348ms)[39m[31m[39m
+  [32m1 passing[39m[90m (347ms)[39m[31m[39m
 [31m  1 failing[39m
 
   1) assertion error in slow test:
