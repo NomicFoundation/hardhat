@@ -103,22 +103,22 @@ export function formatGlobalDiagnostics(
 
   if (diagnostics.fail > 0) {
     result += chalk.red(`
-${diagnostics.fail} failing`);
+  ${diagnostics.fail} failing`);
   }
 
   if (diagnostics.skipped > 0) {
     result += chalk.cyan(`
-${diagnostics.skipped} skipped`);
+  ${diagnostics.skipped} skipped`);
   }
 
   if (diagnostics.todo > 0) {
     result += chalk.blue(`
-${diagnostics.todo} todo`);
+  ${diagnostics.todo} todo`);
   }
 
   if (diagnostics.cancelled > 0) {
     result += chalk.gray(`
-${diagnostics.cancelled} cancelled`);
+  ${diagnostics.cancelled} cancelled`);
   }
 
   return result;
