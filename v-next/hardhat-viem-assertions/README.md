@@ -115,7 +115,9 @@ await viem.assertions.revertWithCustomErrorWithArgs(
   "CustomErrorWithUintAndString",
   [(arg: bigint) => arg === 1n, "test"],
 );
+```
 
+```ts
 import { anyValue } from "@nomicfoundation/hardhat-toolbox-viem/predicates";
 
 await viem.assertions.revertWithCustomErrorWithArgs(
@@ -162,7 +164,9 @@ await viem.assertions.emitWithArgs(
   "WithTwoUintArgs",
   [1n, (arg: bigint) => arg >= 2],
 );
+```
 
+```ts
 import { anyValue } from "@nomicfoundation/hardhat-toolbox-viem/predicates";
 
 await viem.assertions.emitWithArgs(
