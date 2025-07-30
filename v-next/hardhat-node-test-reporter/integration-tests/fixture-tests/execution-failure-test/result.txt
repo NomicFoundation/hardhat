@@ -1,8 +1,8 @@
 
-  [31m1) integration-tests/fixture-tests/execution-failure-test/test.ts[39m [31m[3m(81ms)[23m[39m
+  [31m1) integration-tests/fixture-tests/execution-failure-test/test.ts[39m [31m[3m(121ms)[23m[39m
 
 
-[32m0 passing[39m[90m (107ms)[39m[31m[39m
+  [32m0 passing[39m[90m (150ms)[39m[31m[39m
 [31m1 failing[39m
 
   1) integration-tests/fixture-tests/execution-failure-test/test.ts:

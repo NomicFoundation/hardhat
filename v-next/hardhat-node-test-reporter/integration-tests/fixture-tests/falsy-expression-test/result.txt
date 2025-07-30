@@ -2,7 +2,7 @@
     [31m1) b[39m
 
 
-[32m0 passing[39m[90m (131ms)[39m[31m[39m
+  [32m0 passing[39m[90m (161ms)[39m[31m[39m
 [31m1 failing[39m
 
   1) a

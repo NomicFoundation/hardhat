@@ -3,7 +3,7 @@
     [31m1) should fail[39m
 
 
-[32m1 passing[39m[90m (206ms)[39m[31m[39m
+  [32m1 passing[39m[90m (242ms)[39m[31m[39m
 [31m1 failing[39m
 
   1) imported tests
