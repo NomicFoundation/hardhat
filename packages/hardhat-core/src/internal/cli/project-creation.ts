@@ -43,11 +43,11 @@ const HARDHAT_PACKAGE_NAME = "hardhat";
 const PROJECT_DEPENDENCIES: Dependencies = {};
 
 const ETHERS_PROJECT_DEPENDENCIES: Dependencies = {
-  "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+  "@nomicfoundation/hardhat-toolbox": "^6.0.0",
 };
 
 const VIEM_PROJECT_DEPENDENCIES: Dependencies = {
-  "@nomicfoundation/hardhat-toolbox-viem": "^3.0.0",
+  "@nomicfoundation/hardhat-toolbox-viem": "^4.0.0",
 };
 
 const PEER_DEPENDENCIES: Dependencies = {
@@ -55,7 +55,7 @@ const PEER_DEPENDENCIES: Dependencies = {
   "@nomicfoundation/hardhat-network-helpers": "^1.0.0",
   "@nomicfoundation/hardhat-verify": "^2.0.0",
   chai: "^4.2.0",
-  "hardhat-gas-reporter": "^1.0.8",
+  "hardhat-gas-reporter": "^2.3.0",
   "solidity-coverage": "^0.8.0",
   "@nomicfoundation/hardhat-ignition": "^0.15.0",
 };
@@ -81,7 +81,7 @@ const TYPESCRIPT_DEPENDENCIES: Dependencies = {};
 const TYPESCRIPT_PEER_DEPENDENCIES: Dependencies = {
   "@types/chai": "^4.2.0",
   "@types/mocha": ">=9.1.0",
-  "@types/node": ">=18.0.0",
+  "@types/node": ">=20.0.0",
   "ts-node": ">=8.0.0",
   typescript: ">=4.5.0",
 };

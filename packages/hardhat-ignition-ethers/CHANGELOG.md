@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.15.14
+
+### Patch Changes
+
+- 14b3042: Updated the minimal supported version of Node to v20 ([#6982](https://github.com/NomicFoundation/hardhat/pull/6982))
+
+## 0.15.13
+
+### Patch Changes
+
+- 698dc70: Add configurable maxFeePerGas and default to it if set ([#6857](https://github.com/NomicFoundation/hardhat/pull/6857))
+
+## 0.15.12
+
+### Patch Changes
+
+- d77ecab: Update ethers to v6.14.0 with Pectra support
+
 ## 0.15.11
 
 ### Patch Changes
@@ -127,7 +145,7 @@
 
 ### Fixed
 
-- Add memory pool lookup retry to reduce errors from slow propogation ([#667](https://github.com/NomicFoundation/hardhat-ignition/pull/667))
+- Add memory pool lookup retry to reduce errors from slow propagation ([#667](https://github.com/NomicFoundation/hardhat-ignition/pull/667))
 
 ### Added
 

@@ -1,6 +1,6 @@
 {
   "name": "@nomiclabs/hardhat-vyper",
-  "version": "3.0.8",
+  "version": "3.1.0",
   "description": "Hardhat plugin to develop smart contracts in Vyper",
   "repository": "github:nomiclabs/hardhat",
   "homepage": "https://github.com/nomiclabs/hardhat/tree/main/packages/hardhat-vyper",
@@ -48,7 +48,7 @@
     "@types/fs-extra": "^5.1.0",
     "@types/lodash": "^4.14.123",
     "@types/mocha": ">=9.1.0",
-    "@types/node": "^18.0.0",
+    "@types/node": "^20.0.0",
     "@types/semver": "^6.0.2",
     "@typescript-eslint/eslint-plugin": "5.61.0",
     "@typescript-eslint/parser": "5.61.0",
@@ -59,7 +59,7 @@
     "eslint-plugin-import": "2.27.5",
     "eslint-plugin-mocha": "10.4.1",
     "eslint-plugin-prettier": "3.4.0",
-    "hardhat": "workspace:^2.8.3",
+    "hardhat": "workspace:^2.26.0",
     "mocha": "^10.0.0",
     "prettier": "2.4.1",
     "rimraf": "^3.0.2",
@@ -67,6 +67,6 @@
     "typescript": "~5.0.0"
   },
   "peerDependencies": {
-    "hardhat": "workspace:^2.8.3"
+    "hardhat": "workspace:^2.26.0"
   }
 }

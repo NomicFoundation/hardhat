@@ -65,7 +65,7 @@ export const TRANSACTION_SENT_TYPE = "TRANSACTION";
  * why it failed), and in the case of a successful gas estimation (to make sure
  * the transaction will not fail, and report any error).
  *
- * This function is meant to be used in conjuntion with the ExecutionStrategy's
+ * This function is meant to be used in conjunction with the ExecutionStrategy's
  * generator that requested the OnchainInteraction, as is its responsibility to
  * decode the result of the simulation. The `decodeSimulationResult` callback is
  * more generic to make this function easier to test, but it should normally

@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-foundry",
-  "version": "1.1.3",
+  "version": "1.2.0",
   "description": "Hardhat plugin that adds Hardhat support to Foundry projects",
   "repository": "github:nomicfoundation/hardhat",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/main/packages/hardhat-foundry",
@@ -37,7 +37,7 @@
     "@nomicfoundation/eslint-plugin-slow-imports": "workspace:^",
     "@types/chai": "^4.2.0",
     "@types/mocha": ">=9.1.0",
-    "@types/node": "^18.0.0",
+    "@types/node": "^20.0.0",
     "@typescript-eslint/eslint-plugin": "5.61.0",
     "@typescript-eslint/parser": "5.61.0",
     "chai": "^4.2.0",
@@ -46,7 +46,7 @@
     "eslint-plugin-import": "2.27.5",
     "eslint-plugin-mocha": "10.4.1",
     "eslint-plugin-prettier": "3.4.0",
-    "hardhat": "workspace:^2.17.2",
+    "hardhat": "workspace:^2.26.0",
     "mocha": "^10.0.0",
     "prettier": "2.4.1",
     "rimraf": "^3.0.2",
@@ -54,7 +54,7 @@
     "typescript": "~5.0.0"
   },
   "peerDependencies": {
-    "hardhat": "workspace:^2.17.2"
+    "hardhat": "workspace:^2.26.0"
   },
   "dependencies": {
     "picocolors": "^1.1.0"

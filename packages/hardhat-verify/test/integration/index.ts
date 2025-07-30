@@ -31,13 +31,16 @@ describe("verify task integration tests", () => {
 
   // suppress sourcify info message
   let consoleInfoStub: SinonStub;
+  let consoleWarnStub: SinonStub;
   before(() => {
     consoleInfoStub = sinon.stub(console, "info");
+    consoleWarnStub = sinon.stub(console, "warn");
   });
 
   // suppress warnings
   after(() => {
     consoleInfoStub.restore();
+    consoleWarnStub.restore();
   });
 
   it("should return after printing the supported networks", async function () {
@@ -164,7 +167,7 @@ https://hardhat.etherscan.io/address/${address}#code
       );
     });
 
-    describe("with overriden config", () => {
+    describe("with overridden config", () => {
       let originalCompilers: SolcConfig[];
 
       it("should throw if the deployed contract version does not match the configured version", async function () {

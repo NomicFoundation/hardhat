@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-ledger",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Hardhat plugin for the Ledger hardware wallet",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/main/packages/hardhat-ledger",
   "repository": "github:nomicfoundation/hardhat",
@@ -43,7 +43,7 @@
     "chalk": "^2.4.2",
     "debug": "^4.1.1",
     "env-paths": "^2.2.0",
-    "ethers": "^6.1.0",
+    "ethers": "^6.14.0",
     "fs-extra": "^7.0.1",
     "io-ts": "1.10.4",
     "ora": "^5.4.1"
@@ -54,7 +54,7 @@
     "@types/chai": "^4.2.0",
     "@types/fs-extra": "^5.1.0",
     "@types/mocha": ">=9.1.0",
-    "@types/node": "^18.0.0",
+    "@types/node": "^20.0.0",
     "@types/sinon": "^9.0.8",
     "@typescript-eslint/eslint-plugin": "5.61.0",
     "@typescript-eslint/parser": "5.61.0",
@@ -64,7 +64,7 @@
     "eslint-plugin-import": "2.27.5",
     "eslint-plugin-mocha": "10.4.1",
     "eslint-plugin-prettier": "3.4.0",
-    "hardhat": "workspace:^2.16.0",
+    "hardhat": "workspace:^2.26.0",
     "mocha": "^10.0.0",
     "nyc": "^15.1.0",
     "prettier": "2.4.1",
@@ -74,6 +74,6 @@
     "typescript": "~5.0.0"
   },
   "peerDependencies": {
-    "hardhat": "workspace:^2.16.0"
+    "hardhat": "workspace:^2.26.0"
   }
 }

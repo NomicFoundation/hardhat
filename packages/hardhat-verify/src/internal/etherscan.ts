@@ -8,6 +8,7 @@ import type {
 
 import { HARDHAT_NETWORK_NAME } from "hardhat/plugins";
 
+import picocolors from "picocolors";
 import {
   ContractStatusPollingInvalidStatusCodeError,
   ContractVerificationMissingBytecodeError,
@@ -27,6 +28,8 @@ import { builtinChains } from "./chain-config";
 // Used for polling the result of the contract verification.
 const VERIFICATION_STATUS_POLLING_TIME = 3000;
 
+export const ETHERSCAN_V2_API_URL = "https://api.etherscan.io/v2/api";
+
 /**
  * Etherscan verification provider for verifying smart contracts.
  * It should work with other verification providers as long as the interface
@@ -38,12 +41,16 @@ export class Etherscan {
    * @param apiKey - The Etherscan API key.
    * @param apiUrl - The Etherscan API URL, e.g. https://api.etherscan.io/api.
    * @param browserUrl - The Etherscan browser URL, e.g. https://etherscan.io.
+   * @param chainId - Chain id when willing to use the v2 api, undefined otherwise
    */
   constructor(
     public apiKey: string,
     public apiUrl: string,
-    public browserUrl: string
-  ) {}
+    public browserUrl: string,
+    public chainId: number | undefined
+  ) {
+    this.apiUrl = chainId === undefined ? apiUrl : ETHERSCAN_V2_API_URL;
+  }
 
   public static async getCurrentChainConfig(
     networkName: string,
@@ -80,7 +87,25 @@ export class Etherscan {
     const apiUrl = chainConfig.urls.apiURL;
     const browserUrl = chainConfig.urls.browserURL.trim().replace(/\/$/, "");
 
-    return new Etherscan(resolvedApiKey, apiUrl, browserUrl);
+    // If a user sets a single api key, it means it's etherscan.io key, and we can use the api v2 with multiple chain support
+    // If multiple keys are set, it means that l2/sidechain explorers are being used, and those keys don't work with etherscan.io api v2.
+    // So we keep using the v1 api of their respective explorers
+    const isV2 = typeof apiKey === "string";
+
+    if (!isV2) {
+      console.warn(
+        picocolors.yellow(
+          "[WARNING] Network and explorer-specific api keys are deprecated in favour of the new Etherscan v2 api. Support for v1 is expected to end by May 31st, 2025. To migrate, please specify a single Etherscan.io api key the apiKey config value."
+        )
+      );
+    }
+
+    return new Etherscan(
+      resolvedApiKey,
+      apiUrl,
+      browserUrl,
+      isV2 ? chainConfig.chainId : undefined
+    );
   }
 
   /**
@@ -98,6 +123,10 @@ export class Etherscan {
       action: "getsourcecode",
       address,
     });
+
+    if (this.chainId !== undefined) {
+      parameters.set("chainid", String(this.chainId));
+    }
 
     const url = new URL(this.apiUrl);
     url.search = parameters.toString();
@@ -158,10 +187,16 @@ export class Etherscan {
       codeformat: "solidity-standard-json-input",
       contractname: contractName,
       compilerversion: compilerVersion,
+      // cSpell:ignore constructorArguements -- This is the spelling used by the Etherscan API
       constructorArguements: constructorArguments,
     });
 
     const url = new URL(this.apiUrl);
+
+    if (this.chainId !== undefined) {
+      url.searchParams.append("chainid", String(this.chainId));
+    }
+
     let response: Dispatcher.ResponseData | undefined;
     let json: EtherscanVerifyResponse | undefined;
     try {
@@ -218,6 +253,11 @@ export class Etherscan {
       action: "checkverifystatus",
       guid,
     });
+
+    if (this.chainId !== undefined) {
+      parameters.set("chainid", String(this.chainId));
+    }
+
     const url = new URL(this.apiUrl);
     url.search = parameters.toString();
 

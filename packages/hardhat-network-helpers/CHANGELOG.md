@@ -1,5 +1,17 @@
 # @nomicfoundation/hardhat-network-helpers
 
+## 1.1.0
+
+### Minor Changes
+
+- 14b3042: Updated the minimal supported version of Node to v20 ([#6982](https://github.com/NomicFoundation/hardhat/pull/6982))
+
+## 1.0.13
+
+### Patch Changes
+
+- 538b03c: Accept `0x` as a valid value for `setCode`, thanks @arr00 ([#6844](https://github.com/NomicFoundation/hardhat/pull/6844))
+
 ## 1.0.12
 
 ### Patch Changes

@@ -13,7 +13,7 @@ import {
   isTypescriptFile,
 } from "../internal/core/typescript-support";
 import { getForkCacheDirPath } from "../internal/hardhat-network/provider/utils/disk-cache";
-import { showForkRecommendationsBannerIfNecessary } from "../internal/hardhat-network/provider/utils/fork-recomendations-banner";
+import { showForkRecommendationsBannerIfNecessary } from "../internal/hardhat-network/provider/utils/fork-recommendations-banner";
 import { pluralize } from "../internal/util/strings";
 import { getAllFilesMatching } from "../internal/util/fs-utils";
 import { getProjectPackageJson } from "../internal/util/packageInfo";

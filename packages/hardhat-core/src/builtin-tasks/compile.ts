@@ -163,14 +163,19 @@ subtask(TASK_COMPILE_SOLIDITY_READ_FILE)
           encoding: "utf8",
         });
       } catch (e) {
-        if (fsExtra.lstatSync(absolutePath).isDirectory()) {
-          throw new HardhatError(ERRORS.GENERAL.INVALID_READ_OF_DIRECTORY, {
-            absolutePath,
-          });
+        let err = e;
+        try {
+          if (fsExtra.lstatSync(absolutePath).isDirectory()) {
+            err = new HardhatError(ERRORS.GENERAL.INVALID_READ_OF_DIRECTORY, {
+              absolutePath,
+            });
+          }
+        } catch (_) {
+          // ignore
         }
 
         // eslint-disable-next-line @nomicfoundation/hardhat-internal-rules/only-hardhat-error
-        throw e;
+        throw err;
       }
     }
   );
@@ -1108,7 +1113,7 @@ subtask(TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS)
       compilationJobsCreationErrors: CompilationJobCreationError[];
     }): Promise<string> => {
       const noCompatibleSolc: CompilationJobCreationError[] = [];
-      const incompatibleOverridenSolc: CompilationJobCreationError[] = [];
+      const incompatibleOverriddenSolc: CompilationJobCreationError[] = [];
       const directlyImportsIncompatibleFile: CompilationJobCreationError[] = [];
       const indirectlyImportsIncompatibleFile: CompilationJobCreationError[] =
         [];
@@ -1122,9 +1127,9 @@ subtask(TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS)
           noCompatibleSolc.push(error);
         } else if (
           error.reason ===
-          CompilationJobCreationErrorReason.INCOMPATIBLE_OVERRIDEN_SOLC_VERSION
+          CompilationJobCreationErrorReason.INCOMPATIBLE_OVERRIDDEN_SOLC_VERSION
         ) {
-          incompatibleOverridenSolc.push(error);
+          incompatibleOverriddenSolc.push(error);
         } else if (
           error.reason ===
           CompilationJobCreationErrorReason.DIRECTLY_IMPORTS_INCOMPATIBLE_FILE
@@ -1146,12 +1151,12 @@ subtask(TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS)
       }
 
       let errorMessage = "";
-      if (incompatibleOverridenSolc.length > 0) {
+      if (incompatibleOverriddenSolc.length > 0) {
         errorMessage += `The compiler version for the following files is fixed through an override in your config file to a version that is incompatible with their Solidity version pragmas.
 
 `;
 
-        for (const error of incompatibleOverridenSolc) {
+        for (const error of incompatibleOverriddenSolc) {
           const { sourceName } = error.file;
           const { versionPragmas } = error.file.content;
           const versionsRange = versionPragmas.join(" ");

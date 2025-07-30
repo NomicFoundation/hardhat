@@ -1,5 +1,17 @@
 # @nomicfoundation/hardhat-chai-matchers
 
+## 2.1.0
+
+### Minor Changes
+
+- 14b3042: Updated the minimal supported version of Node to v20 ([#6982](https://github.com/NomicFoundation/hardhat/pull/6982))
+
+## 2.0.9
+
+### Patch Changes
+
+- d77ecab: Update ethers to v6.14.0 with Pectra support
+
 ## 2.0.8
 
 ### Patch Changes

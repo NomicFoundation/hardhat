@@ -1,7 +1,0 @@
-{
-  "TypeScript/JavaScript": "TypeScript",
-  "npm 7+/npm 6/yarn/pnpm": "npm 7+",
-  "Infura/Alchemy": "Infura",
-  "Infura | Typescript/Alchemy | Typescript/Infura | Javascript/Alchemy | Javascript": "Infura | Typescript",
-  "npm/pnpm":"npm"
-}

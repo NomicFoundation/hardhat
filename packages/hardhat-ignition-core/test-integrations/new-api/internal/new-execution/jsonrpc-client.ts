@@ -121,6 +121,20 @@ describe("JSON-RPC client", function () {
           assert.equal(fees.maxPriorityFeePerGas, 1n);
         });
 
+        it("Should use the configured maxFeePerGas", async function () {
+          const maxFeeClient = new EIP1193JsonRpcClient(
+            this.hre.network.provider,
+            {
+              maxFeePerGas: 1n,
+            }
+          );
+          const fees = await maxFeeClient.getNetworkFees();
+
+          assert("maxFeePerGas" in fees);
+
+          assert.equal(fees.maxFeePerGas, 1n);
+        });
+
         it("Should use return legacy fees when deploying to polygon network (chainId 137)", async function () {
           const polygonClient = new EIP1193JsonRpcClient(
             {
@@ -308,7 +322,7 @@ describe("JSON-RPC client", function () {
     });
 
     describe("call", function () {
-      it("Should return the raw result in succesful deployment calls", async function () {
+      it("Should return the raw result in successful deployment calls", async function () {
         const artifact = await this.hre.artifacts.readArtifact("C");
         const result = await client.call(
           {
@@ -324,7 +338,7 @@ describe("JSON-RPC client", function () {
         assert.isFalse(result.customErrorReported);
       });
 
-      it("Should return the raw result in succesful non-deployment calls", async function () {
+      it("Should return the raw result in successful non-deployment calls", async function () {
         const { artifact, address } = await deployContract(this);
 
         const result = await client.call(
@@ -547,7 +561,7 @@ describe("JSON-RPC client", function () {
 
       it("Should accept pending as blockTag", async function () {
         // We disable automining, so the transaction is pending
-        // and calls differt between latest and pending
+        // and calls different between latest and pending
 
         await this.hre.network.provider.send("evm_setAutomine", [false]);
 

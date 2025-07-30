@@ -1,5 +1,63 @@
 # hardhat
 
+## 2.26.1
+
+### Patch Changes
+
+- 896c4ea: Revert `micro-eth-signer` to `^0.14.0` to fix compatibility with earlier Node 20 versions ([#7026](https://github.com/NomicFoundation/hardhat/issues/7026))
+
+## 2.26.0
+
+### Minor Changes
+
+- 14b3042: Updated the minimal supported version of Node to v20 ([#6982](https://github.com/NomicFoundation/hardhat/pull/6982))
+
+### Patch Changes
+
+- 69acece: Upgraded EDR to [v0.11.3](https://github.com/NomicFoundation/edr/releases/tag/%40nomicfoundation%2Fedr%400.11.3) which includes:
+  - fixes for stack trace generation and RIP-7212 support.
+  - Removed copying of account code for provider accounts in forked networks. Code was previously ignored for default accounts only, now also for user accounts.
+- 84fff85: Remove unneeded type dependencies, thanks @reallesee ([#6990](https://github.com/NomicFoundation/hardhat/pull/6990))
+- e139cf3: Update the version of micro-eth-signer ([#6950](https://github.com/NomicFoundation/hardhat/issues/6950))
+
+## 2.25.0
+
+### Minor Changes
+
+- 94b36b0: Upgrade hardhat-gas-reporter to v2 on both toolboxes ([#6886](https://github.com/NomicFoundation/hardhat/pull/6886))
+
+## 2.24.3
+
+### Patch Changes
+
+- 6be5c13: Upgraded EDR to [v0.11.1](https://github.com/NomicFoundation/edr/releases/tag/%40nomicfoundation%2Fedr%400.11.1), which fixed a bug when sending ETH to the testing accounts in forked networks. Now testing accounts are automatically undelegated.
+
+## 2.24.2
+
+### Patch Changes
+
+- 2bbb705: Wrap eth_accounts usage on http provider to handle method deprecation ([#6632](https://github.com/NomicFoundation/hardhat/issues/6632))
+
+## 2.24.1
+
+### Patch Changes
+
+- 9b75f5d: Fix a few potential errors that could happen when compiling Solidity in a subprocess
+- a8ad44c: Added support for Node v24.
+
+## 2.24.0
+
+### Minor Changes
+
+- 82feaae: Set prague as the default hardfork in Hardhat network
+
+### Patch Changes
+
+- a7aa6d6: Upgraded EDR to [v0.11.0](https://github.com/NomicFoundation/edr/releases/tag/%40nomicfoundation%2Fedr%400.11.0):
+  - Replaced const enums with non-const enums in \*.d.ts files
+- 2ab8103: Relax validations for transaction signing introduced in the previous version by disabling strict mode in `Transaction.prepare`.
+- 67f1e95: Support chainId values above 2^32 - 1 for local account transactions
+
 ## 2.23.0
 
 ### Minor Changes
@@ -121,7 +179,7 @@
 - cdf0160: Upgrade bundled solcjs
 - 3c66da2: Add support for Node v22
 - 9fadc22: Bump EDR to [v0.4.1](https://github.com/NomicFoundation/edr/releases/tag/%40nomicfoundation%2Fedr%400.4.1).
-- 095faa4: Added hardfork histories for Optimim and Arbitrum chains
+- 095faa4: Added hardfork histories for Optimism and Arbitrum chains
 
 ## 2.22.5
 
@@ -444,7 +502,7 @@
 - c9809e182: Trim leading and trailing spaces in mnemonics.
 - a1d43109a: Pending blocks now include the `bloom` field.
 - 818107821: Added a new `hardhat_metadata` RPC method
-- 937d15e51: A better error is show if a Solidity file makes an import throug its own package name.
+- 937d15e51: A better error is show if a Solidity file makes an import through its own package name.
 - 4cf9a6d58: Added a `getBuildInfoSync` function to the `hre.artifacts` object (thanks @emretepedev!)
 
 ## 2.12.2
@@ -675,7 +733,7 @@
 ### Patch Changes
 
 - 99c17f43: Bump uuid package to remove a deprecation warning (thanks @yhuard!)
-- 8076c43b: Fixed how the cummulative gas is computed for receipts and added a missing field (Thanks @ngotchac!)
+- 8076c43b: Fixed how the cumulative gas is computed for receipts and added a missing field (Thanks @ngotchac!)
 - e6362902: Display similar artifact names in error output if given name is not found (#201)
 - e087bd0b: Improve validation of private keys in the Hardhat config
 - aa1a0080: Fix an issue with new versions of Node.js that prevented clients from connecting to Hardhat's node using 127.0.0.1

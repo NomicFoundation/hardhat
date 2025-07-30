@@ -1,5 +1,17 @@
 # @nomicfoundation/hardhat-foundry
 
+## 1.2.0
+
+### Minor Changes
+
+- 14b3042: Updated the minimal supported version of Node to v20 ([#6982](https://github.com/NomicFoundation/hardhat/pull/6982))
+
+## 1.1.4
+
+### Patch Changes
+
+- 52e2272: Fixed a bug in the `init-foundry` task that prevented it from being used with the latest versions of `forge`
+
 ## 1.1.3
 
 ### Patch Changes

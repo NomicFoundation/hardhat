@@ -46,7 +46,7 @@ export class Batcher {
   ): BatchState {
     const allFutures = getFuturesFromModule(module);
 
-    const visitState = this._intializeVisitStateFrom(
+    const visitState = this._initializeVisitStateFrom(
       allFutures,
       deploymentState
     );
@@ -54,12 +54,12 @@ export class Batcher {
     const adjacencyList =
       AdjacencyListConverter.buildAdjacencyListFromFutures(allFutures);
 
-    this._eleminateAlreadyVisitedFutures({ adjacencyList, visitState });
+    this._eliminateAlreadyVisitedFutures({ adjacencyList, visitState });
 
     return { adjacencyList, visitState };
   }
 
-  private static _intializeVisitStateFrom(
+  private static _initializeVisitStateFrom(
     futures: Future[],
     deploymentState: DeploymentState
   ): VisitStatusMap {
@@ -84,7 +84,7 @@ export class Batcher {
     );
   }
 
-  public static _eleminateAlreadyVisitedFutures({
+  public static _eliminateAlreadyVisitedFutures({
     adjacencyList,
     visitState,
   }: {

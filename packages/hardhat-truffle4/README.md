@@ -6,7 +6,7 @@
 
 ## What
 
-This plugin brings to Hardhat TruffleContracts from Truffle 4. With it you can call [`contract()` and `artifacts.require()`](https://truffleframework.com/docs/truffle/testing/writing-tests-in-javascript) like you normally would with Truffle. Interact with your contracts with a familiar API from tasks, scripts and tests.
+This plugin brings to Hardhat TruffleContracts from Truffle 4. With it you can call [`contract()` and `artifacts.require()`](https://archive.trufflesuite.com/docs/truffle/how-to/debug-test/write-tests-in-javascript/) like you normally would with Truffle. Interact with your contracts with a familiar API from tasks, scripts and tests.
 
 Additionally, you can **migrate your contracts to Solidity 5 without needing to migrate your tests to Truffle 5**.
 

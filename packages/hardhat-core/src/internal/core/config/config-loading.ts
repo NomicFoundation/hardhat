@@ -33,9 +33,14 @@ export function importCsjOrEsModule(filePath: string): any {
     // because Hardhat configs can only be CJS but a .js extension will be interpreted as ESM.
     // The kind of error we get in these cases depends on the Node.js version.
     const node20Heuristic = e.code === "ERR_REQUIRE_ESM";
+    // Also works for node v24
+    const lines = e.message.split("\n");
+    const message = lines.length > 0 ? lines[0] : "";
     const node22Heuristic =
-      e.message === "module is not defined" ||
-      e.message === "require is not defined";
+      message === "module is not defined" ||
+      message === "require is not defined" ||
+      message === "module is not defined in ES module scope" ||
+      message === "require is not defined in ES module scope";
     if (node20Heuristic || node22Heuristic) {
       throw new HardhatError(
         ERRORS.GENERAL.ESM_PROJECT_WITHOUT_CJS_CONFIG,

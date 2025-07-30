@@ -1,5 +1,20 @@
 # @nomicfoundation/hardhat-verify
 
+## 2.1.0
+
+### Minor Changes
+
+- 14b3042: Updated the minimal supported version of Node to v20 ([#6982](https://github.com/NomicFoundation/hardhat/pull/6982))
+
+## 2.0.14
+
+### Patch Changes
+
+- d0c3dcf: Support Etherscan API v2 (#6716)
+- Updated dependencies [9b75f5d]
+- Updated dependencies [a8ad44c]
+  - hardhat@2.24.1
+
 ## 2.0.13
 
 ### Patch Changes
@@ -34,7 +49,7 @@
 
 ### Patch Changes
 
-- 73d5bea: Improved validation of contructor arguments (thanks @fwx5618177!)
+- 73d5bea: Improved validation of constructor arguments (thanks @fwx5618177!)
 
 ## 2.0.7
 

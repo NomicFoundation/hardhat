@@ -45,7 +45,7 @@ extendConfig((config, userConfig) => {
     );
   }
 
-  // Ensure foundry src path doesnt mismatch user-configured path
+  // Ensure foundry src path doesn't mismatch user-configured path
   const userSourcesPath = userConfig.paths?.sources;
   const foundrySourcesPath = foundryConfig.src;
 

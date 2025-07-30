@@ -223,12 +223,18 @@ describe("compile task", function () {
 
       it("should throw an error because the file does not exist", async function () {
         const absolutePath = `${__dirname}/../fixture-projects/${folderName}/contracts/file.sol`;
+        const expectedPath =
+          process.platform === "win32"
+            ? `${fsExtra.realpathSync(
+                path.dirname(absolutePath)
+              )}\\${path.basename(absolutePath)}`
+            : absolutePath;
 
         await expect(
           this.env.run(TASK_COMPILE_SOLIDITY_READ_FILE, { absolutePath })
         )
           .to.be.rejectedWith(
-            `ENOENT: no such file or directory, lstat '${absolutePath}'`
+            `ENOENT: no such file or directory, open '${expectedPath}'`
           )
           .and.eventually.have.property("name", "Error"); // Default js error
       });
@@ -315,7 +321,7 @@ Read about compiler configuration at https://hardhat.org/config
       );
     });
 
-    it("should return a proper message for a non compatible overriden solc error with a single file", async function () {
+    it("should return a proper message for a non compatible overridden solc error with a single file", async function () {
       const Foo = mockFile({
         sourceName: "contracts/Foo.sol",
         pragma: "^0.5.0",
@@ -324,7 +330,7 @@ Read about compiler configuration at https://hardhat.org/config
       const compilationJobsCreationErrors = [
         {
           reason:
-            CompilationJobCreationErrorReason.INCOMPATIBLE_OVERRIDEN_SOLC_VERSION,
+            CompilationJobCreationErrorReason.INCOMPATIBLE_OVERRIDDEN_SOLC_VERSION,
           file: Foo,
         },
       ];
@@ -841,7 +847,7 @@ Read about compiler configuration at https://hardhat.org/config
         },
         {
           reason:
-            CompilationJobCreationErrorReason.INCOMPATIBLE_OVERRIDEN_SOLC_VERSION,
+            CompilationJobCreationErrorReason.INCOMPATIBLE_OVERRIDDEN_SOLC_VERSION,
           file: Foo1,
         },
       ];

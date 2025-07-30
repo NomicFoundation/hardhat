@@ -1,9 +1,0 @@
-# *
-User-agent: *
-Allow: /
-
-# Host
-Host: https://hardhat.org
-
-# Sitemaps
-Sitemap: https://hardhat.org/sitemap.xml

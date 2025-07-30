@@ -132,13 +132,13 @@ describe("hardhat ethers provider", function () {
     // altering the default Hardhat node's reported results.
     function overrideSendOn(
       provider: EthereumProvider,
-      sendOveride: (method: string, params?: any[] | undefined) => Promise<any>
+      sendOverride: (method: string, params?: any[] | undefined) => Promise<any>
     ) {
       return new Proxy(provider, {
         get: (target: EthereumProvider, prop: keyof EthereumProvider) => {
           if (prop === "send") {
             return async (method: string, params?: any[] | undefined) => {
-              const result = await sendOveride(method, params);
+              const result = await sendOverride(method, params);
 
               return result ?? target.send(method, params);
             };
@@ -175,7 +175,7 @@ describe("hardhat ethers provider", function () {
     it("should default maxPriorityFeePerGas to eth_maxPriorityFeePerGas if available", async function () {
       const expectedMaxPriorityFeePerGas = 4_000_000_000n;
 
-      const overridenEthereumProvider = overrideSendOn(
+      const overriddenEthereumProvider = overrideSendOn(
         this.env.network.provider,
         async (method) => {
           if (method !== "eth_maxPriorityFeePerGas") {
@@ -188,7 +188,7 @@ describe("hardhat ethers provider", function () {
       );
 
       const ethersProvider = new HardhatEthersProvider(
-        overridenEthereumProvider,
+        overriddenEthereumProvider,
         this.env.network.name
       );
 

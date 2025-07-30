@@ -152,7 +152,7 @@ export function decodeArtifactFunctionCallResult(
     const decoded = iface.decodeFunctionResult(functionFragment, returnData);
     const values = ethersResultIntoEvmTuple(decoded, functionFragment.outputs);
 
-    return { type: EvmExecutionResultTypes.SUCESSFUL_RESULT, values };
+    return { type: EvmExecutionResultTypes.SUCCESSFUL_RESULT, values };
   } catch {
     return {
       type: EvmExecutionResultTypes.INVALID_RESULT_ERROR,
@@ -198,7 +198,7 @@ export function validateContractConstructorArgsLength(
  * Validates that a function is valid for the given artifact. That means:
  *  - It's a valid function name
  *    - The function name exists in the artifact's ABI
- *    - If the function is not overlaoded, its bare name is used.
+ *    - If the function is not overloaded, its bare name is used.
  *    - If the function is overloaded, the function name is includes the argument types
  *      in parentheses.
  * - The function has the correct number of arguments
@@ -259,7 +259,7 @@ export function validateArtifactFunction(
  * Validates that a function name is valid for the given artifact. That means:
  *  - It's a valid function name
  *  - The function name exists in the artifact's ABI
- *  - If the function is not overlaoded, its bare name is used.
+ *  - If the function is not overloaded, its bare name is used.
  *  - If the function is overloaded, the function name is includes the argument types
  *    in parentheses.
  */
@@ -283,7 +283,7 @@ export function validateArtifactFunctionName(
 
 /**
  * Validates that the event exists in the artifact, it's name is valid, handles overloads
- * correctly, and that the arugment exists in the event.
+ * correctly, and that the argument exists in the event.
  *
  * @param emitterArtifact The artifact of the contract emitting the event.
  * @param eventName The name of the event.
@@ -411,7 +411,7 @@ export function getEventArgumentFromReceipt(
  * @param customErrorReported A value indicating if the JSON-RPC error
  *  reported that it was due to a custom error.
  * @param decodeCustomError A function that decodes custom errors, returning
- *  `RevertWithCustomError` if succesfully decoded, `RevertWithInvalidData`
+ *  `RevertWithCustomError` if successfully decoded, `RevertWithInvalidData`
  *  if a custom error was recognized but couldn't be decoded, and `undefined`
  *  it it wasn't recognized.
  * @returns A `FailedEvmExecutionResult` with the decoded error.

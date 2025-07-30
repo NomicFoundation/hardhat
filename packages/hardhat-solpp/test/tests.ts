@@ -102,22 +102,23 @@ describe("Solpp plugin", function () {
     });
 
     // This test skipped because solpp won't fail if a contract has an non-defined symbol.
-    describe.skip("fail-project", function () {
-      useEnvironment("fail-project");
+    // The test is commented out because it causes the test suite to fail on Windows after the update to Node 24
+    // describe.skip("fail-project", function () {
+    //   useEnvironment("fail-project");
 
-      it("should fail when symbol does not exist", async function () {
-        const contractPath = join(this.env.config.paths.sources, "A.sol");
-        const content = readFileSync(contractPath).toString();
-        const files = [[contractPath, content]];
-        const opts = {};
+    //   it("should fail when symbol does not exist", async function () {
+    //     const contractPath = join(this.env.config.paths.sources, "A.sol");
+    //     const content = readFileSync(contractPath).toString();
+    //     const files = [[contractPath, content]];
+    //     const opts = {};
 
-        await expectErrorAsync(async () =>
-          this.env.run("hardhat-solpp:run-solpp", {
-            files,
-            opts,
-          })
-        );
-      });
-    });
+    //     await expectErrorAsync(async () =>
+    //       this.env.run("hardhat-solpp:run-solpp", {
+    //         files,
+    //         opts,
+    //       })
+    //     );
+    //   });
+    // });
   });
 });

@@ -1,6 +1,6 @@
 {
   "name": "@nomiclabs/hardhat-solhint",
-  "version": "4.0.1",
+  "version": "4.1.0",
   "description": "Hardhat plugin for solhint",
   "repository": "github:nomiclabs/hardhat",
   "homepage": "https://github.com/nomiclabs/hardhat/tree/main/packages/hardhat-solhint",
@@ -35,7 +35,7 @@
     "README.md"
   ],
   "dependencies": {
-    "solhint": "^5.0.2"
+    "solhint": "~5.0.2"
   },
   "devDependencies": {
     "@nomicfoundation/eslint-plugin-hardhat-internal-rules": "workspace:^",
@@ -43,7 +43,7 @@
     "@types/chai": "^4.2.0",
     "@types/fs-extra": "^5.1.0",
     "@types/mocha": ">=9.1.0",
-    "@types/node": "^18.0.0",
+    "@types/node": "^20.0.0",
     "@types/sinon": "^9.0.8",
     "@typescript-eslint/eslint-plugin": "5.61.0",
     "@typescript-eslint/parser": "5.61.0",
@@ -54,7 +54,7 @@
     "eslint-plugin-mocha": "10.4.1",
     "eslint-plugin-prettier": "3.4.0",
     "fs-extra": "^7.0.1",
-    "hardhat": "workspace:^2.0.0",
+    "hardhat": "workspace:^2.26.0",
     "mocha": "^10.0.0",
     "prettier": "2.4.1",
     "rimraf": "^3.0.2",
@@ -63,6 +63,6 @@
     "typescript": "~5.0.0"
   },
   "peerDependencies": {
-    "hardhat": "workspace:^2.0.0"
+    "hardhat": "workspace:^2.26.0"
   }
 }

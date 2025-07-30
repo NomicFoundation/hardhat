@@ -6,12 +6,10 @@ on:
       - main
     paths:
       - ".github/workflows/lint.yml"
-      - "docs/**"
       - "packages/**"
   pull_request:
     paths:
       - ".github/workflows/lint.yml"
-      - "docs/**"
       - "packages/**"
   workflow_dispatch:
 
@@ -50,12 +48,6 @@ jobs:
         run: pnpm lint
       - name: Check dependency versions
         run: node scripts/check-dependencies.js
-      - name: Install website
-        working-directory: docs/
-        run: pnpm install --frozen-lockfile --prefer-offline
-      - name: Lint website
-        working-directory: docs/
-        run: pnpm lint
   comment:
     needs: [lint]
     if: failure() && github.event_name == 'pull_request_target' && needs.lint.result == 'failure'

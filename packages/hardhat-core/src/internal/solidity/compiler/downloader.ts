@@ -229,7 +229,7 @@ export class CompilerDownloader implements ICompilerDownloader {
       "Trying to get a compiler before it was downloaded"
     );
 
-    if (await fsExtra.pathExists(this._getCompilerDoesntWorkFile(build))) {
+    if (await fsExtra.pathExists(this._getCompilerDoesNotWorkFile(build))) {
       return undefined;
     }
 
@@ -278,7 +278,7 @@ export class CompilerDownloader implements ICompilerDownloader {
     return path.join(this._compilersDir, build.version, "solc.exe");
   }
 
-  private _getCompilerDoesntWorkFile(build: CompilerBuild): string {
+  private _getCompilerDoesNotWorkFile(build: CompilerBuild): string {
     return `${this._getCompilerBinaryPathFromBuild(build)}.does.not.work`;
   }
 
@@ -367,7 +367,7 @@ export class CompilerDownloader implements ICompilerDownloader {
       return;
     }
 
-    await fsExtra.createFile(this._getCompilerDoesntWorkFile(build));
+    await fsExtra.createFile(this._getCompilerDoesNotWorkFile(build));
   }
 
   private async _checkNativeSolc(build: CompilerBuild): Promise<boolean> {

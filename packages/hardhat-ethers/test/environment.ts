@@ -1,6 +1,11 @@
 import picocolors from "picocolors";
 import fs from "fs";
-import { HardhatRuntimeEnvironment, HardhatUserConfig } from "hardhat/types";
+import {
+  HardhatNetworkAccountsUserConfig,
+  HardhatRuntimeEnvironment,
+  HardhatUserConfig,
+  HttpNetworkAccountsUserConfig,
+} from "hardhat/types";
 import { resetHardhatContext } from "hardhat/plugins-testing";
 import path from "path";
 
@@ -85,10 +90,13 @@ export function usePersistentEnvironment(
  * Generate a fixture project on runtime with the given parameters,
  * and start a persistent environment in that project.
  */
-export function useGeneratedEnvironment(
+export function useGeneratedEnvironment<N extends "hardhat" | "localhost">(
   hardhatGasLimit: "default" | "auto" | number,
   localhostGasLimit: "default" | "auto" | number,
-  networkName: "hardhat" | "localhost"
+  networkName: N,
+  accounts?: N extends "hardhat"
+    ? HardhatNetworkAccountsUserConfig
+    : HttpNetworkAccountsUserConfig
 ) {
   const fixtureProjectPath = path.resolve(
     __dirname,
@@ -113,8 +121,18 @@ export function useGeneratedEnvironment(
     const hardhatConfig: HardhatUserConfig = {
       solidity: "0.8.19",
       networks: {
-        hardhat: {},
-        localhost: {},
+        hardhat: {
+          accounts:
+            networkName === "hardhat"
+              ? (accounts as HardhatNetworkAccountsUserConfig)
+              : undefined,
+        },
+        localhost: {
+          accounts:
+            networkName === "localhost"
+              ? (accounts as HttpNetworkAccountsUserConfig)
+              : undefined,
+        },
       },
     };
     if (hardhatGasLimit !== "default") {

@@ -49,7 +49,7 @@ function runTests() {
 
     await assert.isRejected(
       contract.succeeds({
-        gasLimit: 21_064,
+        gasLimit: 21_175,
       }),
       "ran out of gas"
     );

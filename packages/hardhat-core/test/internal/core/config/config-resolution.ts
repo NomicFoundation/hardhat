@@ -762,28 +762,17 @@ describe("Config resolution", () => {
         });
       });
 
-      it("should use cancun as the hardfork when enableTransientStorage is set", async function () {
+      it("should default to the latest hardfork", async function () {
         const config = resolveConfig(__filename, {
           networks: {
-            hardhat: {
-              enableTransientStorage: true,
-            },
+            hardhat: {},
           },
         });
 
-        assert.equal(config.networks.hardhat.hardfork, "cancun");
-      });
-
-      it("should use shanghai as the hardfork when enableTransientStorage is disabled", async function () {
-        const config = resolveConfig(__filename, {
-          networks: {
-            hardhat: {
-              enableTransientStorage: false,
-            },
-          },
-        });
-
-        assert.equal(config.networks.hardhat.hardfork, "shanghai");
+        assert.equal(
+          config.networks.hardhat.hardfork,
+          Object.values(HardforkName).pop()
+        );
       });
     });
 
@@ -989,11 +978,11 @@ describe("Config resolution", () => {
       });
     });
 
-    describe("With a solc 0.8.20 project and overriden config", () => {
+    describe("With a solc 0.8.20 project and overridden config", () => {
       useFixtureProject("project-0.8.20-override-evm-version");
       useEnvironment();
 
-      it("Should emit PUSH0 opcodes when compiling a contract with solc gte 0.8.20 and overriden config", async function () {
+      it("Should emit PUSH0 opcodes when compiling a contract with solc gte 0.8.20 and overridden config", async function () {
         await this.env.run("compile");
         const source = "contracts/Lock.sol";
         const contract = "Lock";

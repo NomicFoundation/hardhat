@@ -22,6 +22,12 @@ describe("setCode", function () {
     assert.equal(await getCode(recipient), "0xa1a2a3");
   });
 
+  it("should allow setting the code of a given address to an empty string", async function () {
+    await hh.setCode(recipient, "0x");
+
+    assert.equal(await getCode(recipient), "0x");
+  });
+
   describe("accepted parameter types for code", function () {
     it("should not accept strings that are not 0x-prefixed", async function () {
       await assert.isRejected(hh.setCode(recipient, "a1a2a3"));
