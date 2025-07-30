@@ -32,7 +32,7 @@
   [36m- skipped test[39m
 
 
-  [32m6 passing[39m[90m (154ms)[39m[31m[39m
+  [32m6 passing[39m[90m (153ms)[39m[31m[39m
 [31m  2 failing[39m[36m[39m
 [36m  1 skipped[39m[34m[39m
 [34m  1 todo[39m[90m[39m
