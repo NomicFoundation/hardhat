@@ -2043,6 +2043,15 @@ Please check Hardhat's output for more details.`,
         websiteDescription:
           "Cannot change password for dev keystore, as it is auto generated.",
       },
+      KEY_NOT_FOUND_DURING_TESTS_WITH_DEV_KEYSTORE: {
+        number: 50002,
+        messageTemplate: `Key "{key}" not found in the development keystore. It looks like you're trying to access a configuration variable during tests.
+This is only allowed with the development keystore, so please ensure the key is defined there.`,
+        websiteTitle: "Key not found in the development keystore during tests",
+        websiteDescription: `Key not found in the development keystore. During tests, configuration variables can only be accessed through the development keystore.
+
+Please ensure the key is defined there.`,
+      },
     },
   },
   NETWORK_HELPERS: {

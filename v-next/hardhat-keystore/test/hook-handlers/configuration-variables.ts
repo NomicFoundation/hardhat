@@ -20,13 +20,27 @@ import { setupKeystorePassword } from "../helpers/insert-password-hook.js";
 import { setupKeystoreFileLocationOverrideAt } from "../helpers/setup-keystore-file-location-override-at.js";
 import { TEST_PASSWORD } from "../helpers/test-password.js";
 
-const configurationVariableKeystoreFilePath = path.join(
+const basePath = path.join(
   fileURLToPath(import.meta.url),
   "..",
   "..",
   "fixture-projects",
   "keystore",
+);
+
+const configurationVariableKeystoreFilePath = path.join(
+  basePath,
   "config-variables-keystore.json",
+);
+
+const configurationVariableDevKeystoreFilePath = path.join(
+  basePath,
+  "config-variables-dev-keystore.json",
+);
+
+const configurationVariableDevKeystorePasswordFilePath = path.join(
+  basePath,
+  "config-variables-dev-keystore-password-file.txt",
 );
 
 const nonExistingKeystoreFilePath = path.join(
@@ -132,6 +146,8 @@ describe("hook-handlers - configuration variables - fetchValue", () => {
           hardhatKeystorePlugin,
           setupKeystoreFileLocationOverrideAt(
             configurationVariableKeystoreFilePath,
+            configurationVariableDevKeystoreFilePath,
+            configurationVariableDevKeystorePasswordFilePath,
           ),
           setupKeystorePassword([TEST_PASSWORD]),
         ],
@@ -268,7 +284,11 @@ describe("hook-handlers - configuration variables - fetchValue", () => {
         hre = await createHardhatRuntimeEnvironment({
           plugins: [
             hardhatKeystorePlugin,
-            setupKeystoreFileLocationOverrideAt(nonExistingKeystoreFilePath),
+            setupKeystoreFileLocationOverrideAt(
+              nonExistingKeystoreFilePath,
+              configurationVariableDevKeystoreFilePath,
+              configurationVariableDevKeystorePasswordFilePath,
+            ),
           ],
         });
 

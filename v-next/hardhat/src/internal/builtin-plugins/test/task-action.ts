@@ -24,6 +24,9 @@ const runAllTests: NewTaskActionFunction<TestActionArguments> = async (
   { testFiles, chainType, grep, noCompile, verbosity },
   hre,
 ) => {
+  // Set an environment variable that plugins can use to detect when a process is running tests
+  process.env.HH_TEST = "true";
+
   // If this code is executed, it means the user has not specified a test runner.
   // If file paths are specified, we need to determine which test runner applies to each test file.
   // If no file paths are specified, each test runner will execute all tests located under its configured path in the Hardhat configuration.
