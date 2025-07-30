@@ -3,7 +3,7 @@ import type {
   TestReporterResult,
   TestStatus,
 } from "./types.js";
-import type { TestResult } from "@ignored/edr-optimism";
+import type { TestResult } from "@nomicfoundation/edr";
 
 import { bytesToHexString } from "@nomicfoundation/hardhat-utils/hex";
 import chalk from "chalk";
@@ -12,8 +12,40 @@ import { sendErrorTelemetry } from "../../cli/telemetry/sentry/reporter.js";
 import { SolidityTestStackTraceGenerationError } from "../network-manager/edr/stack-traces/stack-trace-generation-errors.js";
 import { encodeStackTraceEntry } from "../network-manager/edr/stack-traces/stack-trace-solidity-errors.js";
 
-import { formatArtifactId, formatLogs, formatTraces } from "./formatters.js";
+import {
+  type Colorizer,
+  formatArtifactId,
+  formatTraces,
+} from "./formatters.js";
 import { getMessageFromLastStackTraceEntry } from "./stack-trace-solidity-errors.js";
+
+class Indenter {
+  #indentation: number;
+
+  constructor() {
+    this.#indentation = 2;
+  }
+
+  public inc(): void {
+    this.#indentation += 2;
+  }
+
+  public dec(): void {
+    this.#indentation = Math.max(0, this.#indentation - 2);
+  }
+
+  public prefix(): string {
+    return " ".repeat(this.#indentation);
+  }
+
+  public t(strings: TemplateStringsArray, ...values: any[]): string {
+    const line = strings.reduce(
+      (acc, str, i) => acc + str + (values[i] ?? ""),
+      "",
+    );
+    return this.prefix() + line;
+  }
+}
 
 /**
  * This is a solidity test reporter. It is intended to be composed with the
@@ -24,15 +56,20 @@ export async function* testReporter(
   source: TestEventSource,
   sourceNameToUserSourceName: Map<string, string>,
   verbosity: number,
+  colorizer: Colorizer = chalk,
 ): TestReporterResult {
-  let runTestCount = 0;
   let runSuccessCount = 0;
   let runFailureCount = 0;
   let runSkippedCount = 0;
-  let runDuration = 0n;
 
-  const failures: TestResult[] = [];
+  const failures: Array<{
+    testResult: TestResult;
+    formattedArtifactId: string;
+  }> = [];
 
+  const indenter = new Indenter();
+
+  let firstSuite = true;
   for await (const event of source) {
     switch (event.type) {
       case "suite:result": {
@@ -43,45 +80,70 @@ export async function* testReporter(
           continue;
         }
 
-        let suiteSuccessCount = 0;
-        let suiteFailureCount = 0;
-        let suiteSkippedCount = 0;
-        const suiteDuration = suiteResult.durationMs;
-
-        yield `Ran ${suiteResult.testResults.length} tests for ${formatArtifactId(suiteResult.id, sourceNameToUserSourceName)}\n`;
-
-        if (suiteResult.warnings.length > 0) {
-          for (const warning of suiteResult.warnings) {
-            yield `${chalk.yellow("Warning")}${chalk.grey(`: ${warning}`)}\n`;
-          }
+        if (firstSuite) {
+          firstSuite = false;
+        } else {
+          yield "\n";
         }
 
+        let suiteSuccessCount = 0;
+        let suiteSkippedCount = 0;
+
+        const formattedArtifactId = formatArtifactId(
+          suiteResult.id,
+          sourceNameToUserSourceName,
+        );
+        yield indenter.t`${formattedArtifactId}\n`;
+
+        if (suiteResult.warnings.length > 0) {
+          indenter.inc();
+          for (const warning of suiteResult.warnings) {
+            yield indenter.t`${colorizer.yellow("Warning")}${colorizer.grey(`: ${warning}`)}\n`;
+          }
+          indenter.dec();
+          yield "\n";
+        }
+
+        indenter.inc();
         // NOTE: The test results are in reverse run order, so we reverse them
         // again to display them in the correct order.
-        for (const testResult of suiteResult.testResults.reverse()) {
+        for (const [testIndex, testResult] of suiteResult.testResults
+          .reverse()
+          .entries()) {
           const name = testResult.name;
           const status: TestStatus = testResult.status;
-          const details = [
-            ["duration", `${testResult.durationMs} ms`],
-            ...Object.entries(testResult.kind),
-          ]
-            .map(
-              ([key, value]) =>
-                `${key}: ${Buffer.isBuffer(value) ? bytesToHexString(value) : value}`,
-            )
-            .join(", ");
+          let details = "";
+          const detailsItems = [];
+          for (const [key, value] of Object.entries(testResult.kind)) {
+            if (key === "runs") {
+              detailsItems.push(`runs: ${value}`);
+            }
+          }
+          if (detailsItems.length > 0) {
+            details = ` (${detailsItems.join(", ")})`;
+          }
 
-          let printDecodedLogs = false;
+          const printDecodedLogs =
+            (status === "Success" && verbosity >= 2) ||
+            (status === "Failure" && verbosity >= 1);
           let printSetUpTraces = false;
           let printExecutionTraces = false;
 
+          if (printDecodedLogs) {
+            const decodedLogs = testResult.decodedLogs ?? [];
+            for (const log of decodedLogs) {
+              yield `${log}\n`;
+            }
+          }
+
           switch (status) {
             case "Success": {
-              yield `${chalk.green("✔ Passed")}: ${name} ${chalk.grey(`(${details})`)}\n`;
-              suiteSuccessCount++;
-              if (verbosity >= 2) {
-                printDecodedLogs = true;
+              let successOutput = colorizer.green(`✔ ${name}`);
+              if (details !== "") {
+                successOutput += colorizer.dim(details);
               }
+              yield indenter.t`${successOutput}\n`;
+              suiteSuccessCount++;
               if (verbosity >= 5) {
                 printSetUpTraces = true;
                 printExecutionTraces = true;
@@ -89,12 +151,9 @@ export async function* testReporter(
               break;
             }
             case "Failure": {
-              failures.push(testResult);
-              yield `${chalk.red(`✘ Failed(${failures.length})`)}: ${name} ${chalk.grey(`(${details})`)}\n`;
-              suiteFailureCount++;
-              if (verbosity >= 1) {
-                printDecodedLogs = true;
-              }
+              failures.push({ testResult, formattedArtifactId });
+              runFailureCount++;
+              yield indenter.t`${colorizer.red(`${runFailureCount}) ${name}`)}\n`;
               if (verbosity >= 3) {
                 printExecutionTraces = true;
               }
@@ -104,21 +163,13 @@ export async function* testReporter(
               break;
             }
             case "Skipped": {
-              yield `${chalk.cyan(`- Skipped`)}: ${name}\n`;
+              yield indenter.t`${colorizer.cyan(`- ${name}`)}\n`;
               suiteSkippedCount++;
               break;
             }
           }
 
           let printExtraSpace = false;
-
-          if (printDecodedLogs) {
-            const decodedLogs = testResult.decodedLogs ?? [];
-            if (decodedLogs.length > 0) {
-              yield `Decoded Logs:\n${formatLogs(decodedLogs, 2)}\n`;
-              printExtraSpace = true;
-            }
-          }
 
           if (printSetUpTraces || printExecutionTraces) {
             const callTraces = testResult.callTraces().filter(({ inputs }) => {
@@ -139,8 +190,15 @@ export async function* testReporter(
             });
 
             if (callTraces.length > 0) {
-              yield `Call Traces:\n${formatTraces(callTraces, 2)}\n`;
-              printExtraSpace = true;
+              indenter.inc();
+              yield indenter.t`Call Traces:\n`;
+              indenter.inc();
+              yield `${formatTraces(callTraces, indenter.prefix(), colorizer)}\n`;
+              indenter.dec();
+              indenter.dec();
+              if (testIndex < suiteResult.testResults.length - 1) {
+                printExtraSpace = true;
+              }
             }
           }
 
@@ -148,105 +206,126 @@ export async function* testReporter(
             yield "\n";
           }
         }
+        indenter.dec();
 
-        const suiteSummary = `${suiteTestCount} tests, ${suiteSuccessCount} passed, ${suiteFailureCount} failed, ${suiteSkippedCount} skipped`;
-        const suiteDetails = `duration: ${suiteDuration} ms`;
-
-        if (suiteFailureCount === 0) {
-          yield `${chalk.bold(chalk.green("✔ Suite Passed"))}: ${suiteSummary} ${chalk.grey(`(${suiteDetails})`)}\n`;
-        } else {
-          yield `${chalk.bold(chalk.red("✘ Suite Failed"))}: ${suiteSummary} ${chalk.grey(`(${suiteDetails})`)}\n`;
-        }
-        yield "\n";
-
-        runTestCount += suiteTestCount;
         runSuccessCount += suiteSuccessCount;
-        runFailureCount += suiteFailureCount;
         runSkippedCount += suiteSkippedCount;
-        runDuration += suiteDuration;
 
         break;
       }
     }
   }
 
-  const runSummary = `${runTestCount} tests, ${runSuccessCount} passed, ${runFailureCount} failed, ${runSkippedCount} skipped`;
-  const runDetails = `duration: ${runDuration} ms`;
-  if (runFailureCount !== 0) {
-    yield `${chalk.bold(chalk.red("✘ Run Failed"))}: ${runSummary} ${chalk.grey(`(${runDetails})`)}\n`;
-  } else {
-    yield `${chalk.bold(chalk.green("✔ Run Passed"))}: ${runSummary} ${chalk.grey(`(${runDetails})`)}\n`;
+  yield "\n";
+  yield "\n";
+  yield indenter.t`${colorizer.green(`${runSuccessCount} passing`)}\n`;
+  if (runFailureCount > 0) {
+    yield indenter.t`${colorizer.red(`${runFailureCount} failing`)}\n`;
+  }
+  if (runSkippedCount > 0) {
+    yield indenter.t`${colorizer.cyan(`${runSkippedCount} skipped`)}\n`;
   }
 
+  const failuresByArtifactId = new Map<string, TestResult[]>();
+  for (const { testResult, formattedArtifactId } of failures) {
+    const artifactFailures =
+      failuresByArtifactId.get(formattedArtifactId) ?? [];
+    artifactFailures.push(testResult);
+    failuresByArtifactId.set(formattedArtifactId, artifactFailures);
+  }
+
+  let failureIndex = 1;
   if (failures.length > 0) {
-    for (const [index, failure] of failures.entries()) {
-      yield `\n${chalk.bold(chalk.red(`Failure (${index + 1})`))}: ${failure.name}\n`;
-
-      const stackTrace = failure.stackTrace();
-
-      let reason: string | undefined;
-      if (stackTrace?.kind === "StackTrace") {
-        reason = getMessageFromLastStackTraceEntry(
-          stackTrace.entries[stackTrace.entries.length - 1],
-        );
+    yield "\n";
+    let firstSuiteWithFailures = true;
+    for (const [artifactId, artifactFailures] of failuresByArtifactId) {
+      if (!firstSuiteWithFailures) {
+        yield "\n";
       }
-      if (reason === undefined || reason === "") {
-        reason = failure.reason ?? "Unknown error";
-      }
+      firstSuiteWithFailures = false;
 
-      yield `Reason: ${chalk.grey(reason)}\n`;
-
-      // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- Ignore Cases not matched: undefined
-      switch (stackTrace?.kind) {
-        case "StackTrace":
-          const stackTraceStack: string[] = [];
-          for (const entry of stackTrace.entries.reverse()) {
-            const callsite = encodeStackTraceEntry(entry);
-            if (callsite !== undefined) {
-              stackTraceStack.push(`  at ${callsite.toString()}`);
-            }
-          }
-
-          if (stackTraceStack.length > 0) {
-            yield `${chalk.grey(stackTraceStack.join("\n"))}\n`;
-          }
-          break;
-        case "UnexpectedError":
-          await sendErrorTelemetry(
-            new SolidityTestStackTraceGenerationError(stackTrace.errorMessage),
-          );
-          yield `Stack Trace Warning: ${chalk.grey(stackTrace.errorMessage)}\n`;
-          break;
-        case "UnsafeToReplay":
-          if (stackTrace.globalForkLatest === true) {
-            yield `Stack Trace Warning: ${chalk.grey("The test is not safe to replay because a fork url without a fork block number was provided.")}\n`;
-          }
-          if (stackTrace.impureCheatcodes.length > 0) {
-            yield `Stack Trace Warning: ${chalk.grey(`The test is not safe to replay because it uses impure cheatcodes: ${stackTrace.impureCheatcodes.join(", ")}`)}\n`;
-          }
-          break;
-        case "HeuristicFailed":
-        default:
-          break;
-      }
-
-      if (
-        failure.counterexample !== undefined &&
-        failure.counterexample !== null
-      ) {
-        const counterexamples =
-          "sequence" in failure.counterexample
-            ? failure.counterexample.sequence
-            : [failure.counterexample];
-
-        for (const counterexample of counterexamples) {
-          const details = Object.entries(counterexample).map(
-            ([key, value]) =>
-              `  ${key}: ${Buffer.isBuffer(value) ? bytesToHexString(value) : value}`,
-          );
-          yield `Counterexample:\n${chalk.grey(details.join("\n"))}\n`;
+      yield indenter.t`${artifactId}\n`;
+      indenter.inc();
+      let firstFailure = true;
+      for (const failure of artifactFailures) {
+        if (!firstFailure) {
+          yield "\n";
         }
+        firstFailure = false;
+
+        yield indenter.t`${failureIndex}) ${failure.name}\n`;
+        failureIndex++;
+
+        indenter.inc();
+        const stackTrace = failure.stackTrace();
+        let reason: string | undefined;
+        if (stackTrace?.kind === "StackTrace") {
+          reason = getMessageFromLastStackTraceEntry(
+            stackTrace.entries[stackTrace.entries.length - 1],
+          );
+        }
+        if (reason === undefined || reason === "") {
+          reason = failure.reason ?? "Unknown error";
+        }
+        yield indenter.t`${colorizer.red(`Error: ${reason}`)}\n`;
+        // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- Ignore Cases not matched: undefined
+        switch (stackTrace?.kind) {
+          case "StackTrace":
+            const stackTraceStack: string[] = [];
+            for (const entry of stackTrace.entries.reverse()) {
+              const callsite = encodeStackTraceEntry(entry);
+              if (callsite !== undefined) {
+                indenter.inc();
+                stackTraceStack.push(indenter.t`at ${callsite.toString()}`);
+                indenter.dec();
+              }
+            }
+            if (stackTraceStack.length > 0) {
+              yield `${colorizer.grey(stackTraceStack.join("\n"))}\n`;
+            }
+            yield "\n";
+            break;
+          case "UnexpectedError":
+            await sendErrorTelemetry(
+              new SolidityTestStackTraceGenerationError(
+                stackTrace.errorMessage,
+              ),
+            );
+            yield indenter.t`Stack Trace Warning: ${colorizer.grey(stackTrace.errorMessage)}\n`;
+            break;
+          case "UnsafeToReplay":
+            if (stackTrace.globalForkLatest === true) {
+              yield indenter.t`Stack Trace Warning: ${colorizer.grey("The test is not safe to replay because a fork url without a fork block number was provided.")}\n`;
+            }
+            if (stackTrace.impureCheatcodes.length > 0) {
+              yield indenter.t`Stack Trace Warning: ${colorizer.grey(`The test is not safe to replay because it uses impure cheatcodes: ${stackTrace.impureCheatcodes.join(", ")}`)}\n`;
+            }
+            break;
+          case "HeuristicFailed":
+          default:
+            break;
+        }
+        if (
+          failure.counterexample !== undefined &&
+          failure.counterexample !== null
+        ) {
+          const counterexamples =
+            "sequence" in failure.counterexample
+              ? failure.counterexample.sequence
+              : [failure.counterexample];
+          for (const counterexample of counterexamples) {
+            yield indenter.t`Counterexample:\n`;
+            indenter.inc();
+            for (const [key, value] of Object.entries(counterexample)) {
+              const counterExampleDetails = `${key}: ${Buffer.isBuffer(value) ? bytesToHexString(value) : value}`;
+              yield indenter.t`${colorizer.grey(counterExampleDetails)}\n`;
+            }
+            indenter.dec();
+          }
+        }
+        indenter.dec();
       }
+      indenter.dec();
     }
   }
 }

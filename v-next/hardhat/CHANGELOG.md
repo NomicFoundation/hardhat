@@ -1,5 +1,16 @@
 # hardhat
 
+## 3.0.0-next.25
+
+### Patch Changes
+
+- 9fb4264: Add `--verify` option for Ignition deploy task to verify all contracts of a deployment on Etherscan ([#6817](https://github.com/NomicFoundation/hardhat/issues/6817))
+- 37e712b: Remove `hardhat_reset` ([#6110](https://github.com/NomicFoundation/hardhat/issues/6110))
+- edccb60: Report stack trace generation errors to Sentry ([#7010](https://github.com/NomicFoundation/hardhat/issues/7010))
+- 4b8d464: Fix rule for determining whether local files are written for an Ignition deployment ([#6999](https://github.com/NomicFoundation/hardhat/issues/6999))
+- 72cfaff: Remove `enableRip7212` from EDR network configuration ([#6182](https://github.com/NomicFoundation/hardhat/issues/6182))
+- 72cfaff: Remove `enableTransientStorage` from EDR network configuration ([#6182](https://github.com/NomicFoundation/hardhat/issues/6182))
+
 ## 3.0.0-next.24
 
 ### Patch Changes
