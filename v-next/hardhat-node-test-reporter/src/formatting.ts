@@ -139,7 +139,7 @@ export function formatUnusedDiagnostics(
       }
       return message;
     })
-    .map((message) => `${INFO_SYMBOL} ${message}`);
+    .map((message) => `  ${INFO_SYMBOL} ${message}`);
   return Array.from(new Set(messages)).join("\n");
 }
 
