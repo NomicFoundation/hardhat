@@ -3,7 +3,7 @@ import type {
   TestReporterResult,
   TestStatus,
 } from "./types.js";
-import type { TestResult } from "@ignored/edr-optimism";
+import type { TestResult } from "@nomicfoundation/edr";
 
 import { bytesToHexString } from "@nomicfoundation/hardhat-utils/hex";
 import chalk from "chalk";

@@ -10,7 +10,7 @@ import type {
   StorageCachingConfig,
   AddressLabel,
   Artifact,
-} from "@ignored/edr-optimism";
+} from "@nomicfoundation/edr";
 
 import {
   opGenesisState,
@@ -18,7 +18,7 @@ import {
   l1GenesisState,
   l1HardforkLatest,
   IncludeTraces,
-} from "@ignored/edr-optimism";
+} from "@nomicfoundation/edr";
 import { hexStringToBytes } from "@nomicfoundation/hardhat-utils/hex";
 
 import { OPTIMISM_CHAIN_TYPE } from "../../constants.js";

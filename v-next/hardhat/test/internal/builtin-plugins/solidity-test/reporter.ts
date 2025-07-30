@@ -8,7 +8,7 @@ import {
   TestStatus,
   type CallTrace,
   type TestResult,
-} from "@ignored/edr-optimism";
+} from "@nomicfoundation/edr";
 
 import { testReporter } from "../../../../src/internal/builtin-plugins/solidity-test/reporter.js";
 
@@ -85,7 +85,7 @@ const mocker = {
               name: mockSuite.name,
               solcVersion: "0.8.0",
             },
-            durationMs: 10n,
+            durationNs: 10n,
             warnings: mockSuite.warnings ?? [],
             testResults: (mockSuite.results ?? [])
               .map(
@@ -94,7 +94,7 @@ const mocker = {
                     name: result.name,
                     status: result.status,
                     decodedLogs: result.consoleLogs ?? [],
-                    durationMs: result.duration ?? 10n,
+                    durationNs: result.duration ?? 10n,
                     kind: { consumedGas: 12345n },
                     stackTrace: () => null,
                     callTraces: () => {
