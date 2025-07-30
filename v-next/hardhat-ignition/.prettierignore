@@ -7,4 +7,3 @@
 /test/fixture-projects/**/deployments/**/artifacts
 /test/fixture-projects/**/deployments/**/build-info
 /test/fixture-projects/**/deployments/**/*.json
-

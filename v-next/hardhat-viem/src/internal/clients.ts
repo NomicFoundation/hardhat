@@ -29,8 +29,7 @@ export async function getPublicClient<ChainTypeT extends ChainType | string>(
   chainType: ChainTypeT,
   publicClientConfig?: Partial<ViemPublicClientConfig>,
 ): Promise<GetPublicClientReturnType<ChainTypeT>> {
-  const chain =
-    publicClientConfig?.chain ?? (await getChain(provider, chainType));
+  const chain = publicClientConfig?.chain ?? (await getChain(provider));
   const { defaultClientParams, defaultTransportParams } =
     await getDefaultParams(provider);
 
@@ -55,8 +54,7 @@ export async function getWalletClients<ChainTypeT extends ChainType | string>(
   chainType: ChainTypeT,
   walletClientConfig?: Partial<ViemWalletClientConfig>,
 ): Promise<Array<GetWalletClientReturnType<ChainTypeT>>> {
-  const chain =
-    walletClientConfig?.chain ?? (await getChain(provider, chainType));
+  const chain = walletClientConfig?.chain ?? (await getChain(provider));
   const accounts = await getAccounts(provider);
   const { defaultClientParams, defaultTransportParams } =
     await getDefaultParams(provider);
@@ -88,8 +86,7 @@ export async function getWalletClient<ChainTypeT extends ChainType | string>(
   address: ViemAddress,
   walletClientConfig?: Partial<ViemWalletClientConfig>,
 ): Promise<GetWalletClientReturnType<ChainTypeT>> {
-  const chain =
-    walletClientConfig?.chain ?? (await getChain(provider, chainType));
+  const chain = walletClientConfig?.chain ?? (await getChain(provider));
   const { defaultClientParams, defaultTransportParams } =
     await getDefaultParams(provider);
 
@@ -117,8 +114,7 @@ export async function getDefaultWalletClient<
   chainType: ChainTypeT,
   walletClientConfig?: Partial<ViemWalletClientConfig>,
 ): Promise<GetWalletClientReturnType<ChainTypeT>> {
-  const chain =
-    walletClientConfig?.chain ?? (await getChain(provider, chainType));
+  const chain = walletClientConfig?.chain ?? (await getChain(provider));
   const [defaultAccount] = await getAccounts(provider);
 
   if (defaultAccount === undefined) {
@@ -143,8 +139,7 @@ export async function getTestClient<ChainTypeT extends ChainType | string>(
   chainType: ChainTypeT,
   testClientConfig?: Partial<ViemTestClientConfig>,
 ): Promise<TestClient> {
-  const chain =
-    testClientConfig?.chain ?? (await getChain(provider, chainType));
+  const chain = testClientConfig?.chain ?? (await getChain(provider));
   const mode = await getMode(provider);
 
   const testClient = createTestClient({

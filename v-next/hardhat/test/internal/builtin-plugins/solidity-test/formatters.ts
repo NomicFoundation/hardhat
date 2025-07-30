@@ -1,4 +1,4 @@
-import type { CallTrace } from "@ignored/edr-optimism";
+import type { CallTrace } from "@nomicfoundation/edr";
 
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";

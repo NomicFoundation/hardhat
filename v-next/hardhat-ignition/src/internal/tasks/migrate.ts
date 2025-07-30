@@ -42,6 +42,7 @@ const taskMigrate: NewTaskActionFunction<MigrateArguments> = async (
 
   const artifactsDir = `${deploymentDir}/artifacts`;
 
+  const buildInfoPathsToUpdate: string[] = [];
   for (const filename of await readdir(artifactsDir)) {
     if (filename.endsWith(".dbg.json")) {
       continue;
@@ -50,31 +51,50 @@ const taskMigrate: NewTaskActionFunction<MigrateArguments> = async (
     const artifactPath = path.join(artifactsDir, filename);
     const artifact: Artifact = await readJsonFile(artifactPath);
 
-    const debugFilePath = path.join(
-      artifactsDir,
-      `${filename.split(".json")[0]}.dbg.json`,
-    );
-    const debugFile: { buildInfo: string } = await readJsonFile(debugFilePath);
-
-    const buildInfoPath = path.resolve(artifactsDir, debugFile.buildInfo);
-
-    const { output, ...buildInfo }: BuildInfo & { output: CompilerOutput } =
-      await readJsonFile(buildInfoPath);
-
     if (artifact._format === "hh-sol-artifact-1") {
       const newArtifact: Artifact = {
         ...artifact,
         _format: "hh3-artifact-1",
-        immutableReferences:
-          output.contracts[artifact.sourceName][artifact.contractName].evm
-            .deployedBytecode.immutableReferences ?? {},
-        inputSourceName: artifact.sourceName,
-        buildInfoId: buildInfo.id,
+        inputSourceName: `project/${artifact.sourceName}`,
+        immutableReferences: {},
       };
 
+      const debugFilePath = path.join(
+        artifactsDir,
+        `${filename.split(".json")[0]}.dbg.json`,
+      );
+
+      if (await exists(debugFilePath)) {
+        const debugFile: { buildInfo: string } =
+          await readJsonFile(debugFilePath);
+
+        const buildInfoPath = path.resolve(artifactsDir, debugFile.buildInfo);
+
+        const {
+          output,
+          id,
+          solcVersion,
+        }: BuildInfo & { output: CompilerOutput } =
+          await readJsonFile(buildInfoPath);
+
+        newArtifact.buildInfoId = `solc-${solcVersion.replaceAll(".", "_")}-${id}`;
+        newArtifact.immutableReferences =
+          output.contracts[artifact.sourceName][artifact.contractName].evm
+            .deployedBytecode.immutableReferences ?? {};
+
+        buildInfoPathsToUpdate.push(buildInfoPath);
+        await remove(debugFilePath);
+      }
+
       await writeJsonFile(artifactPath, newArtifact);
-      await remove(debugFilePath);
     }
+  }
+
+  for (const buildInfoPath of [...new Set(buildInfoPathsToUpdate)]) {
+    const buildInfo: BuildInfo & { output: any } =
+      await readJsonFile(buildInfoPath);
+
+    delete buildInfo.output;
 
     if (buildInfo._format === "hh-sol-build-info-1") {
       const userSourceNameMap: Record<string, string> = {};
@@ -88,7 +108,14 @@ const taskMigrate: NewTaskActionFunction<MigrateArguments> = async (
         _format: "hh3-sol-build-info-1",
       };
 
-      await writeJsonFile(buildInfoPath, newBuildInfo);
+      await writeJsonFile(
+        path.join(
+          path.dirname(buildInfoPath),
+          `solc-${newBuildInfo.solcVersion.replaceAll(".", "_")}-${newBuildInfo.id}.json`,
+        ),
+        newBuildInfo,
+      );
+      await remove(buildInfoPath);
     }
   }
 };

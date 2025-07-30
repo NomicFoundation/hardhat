@@ -3,9 +3,9 @@ import type {
   ArtifactId,
   CallTrace,
   DecodedTraceParameters,
-} from "@ignored/edr-optimism";
+} from "@nomicfoundation/edr";
 
-import { LogKind, CallKind } from "@ignored/edr-optimism";
+import { LogKind, CallKind } from "@nomicfoundation/edr";
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { bytesToHexString } from "@nomicfoundation/hardhat-utils/hex";
 import chalk from "chalk";
