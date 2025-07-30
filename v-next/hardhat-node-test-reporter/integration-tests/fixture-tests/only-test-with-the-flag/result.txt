@@ -8,8 +8,8 @@
     [31m3) it only[39m
 
 
-[32m0 passing[39m[90m (126ms)[39m[31m[39m
-[31m3 failing[39m
+  [32m0 passing[39m[90m (150ms)[39m[31m[39m
+[31m  3 failing[39m
 
   1) test only:
 
