@@ -275,6 +275,8 @@ function resolveSolidityConfig(
   for (const [profileName, profile] of Object.entries(
     solidityConfig.profiles,
   )) {
+    const preferWasm = profile.preferWasm ?? profileName === "production";
+
     if ("version" in profile) {
       profiles[profileName] = {
         compilers: [
@@ -284,7 +286,7 @@ function resolveSolidityConfig(
           },
         ],
         overrides: {},
-        preferWasm: profile.preferWasm ?? false,
+        preferWasm,
       };
       continue;
     }
@@ -307,13 +309,17 @@ function resolveSolidityConfig(
           },
         ),
       ),
-      preferWasm: profile.preferWasm ?? false,
+      preferWasm,
     };
   }
 
+  // This will generate default build profiles (e.g. production) when they are not specified in the config, cloning from 'default', which is always present
   for (const profile of DEFAULT_BUILD_PROFILES) {
     if (!(profile in profiles)) {
-      profiles[profile] = profiles.default;
+      profiles[profile] = {
+        ...profiles.default,
+        preferWasm: profile === "production",
+      };
     }
   }
 

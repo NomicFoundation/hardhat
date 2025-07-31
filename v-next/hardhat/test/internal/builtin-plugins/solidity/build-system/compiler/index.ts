@@ -1,7 +1,7 @@
 import type { CompilerInput } from "../../../../../../src/types/solidity.js";
 
 import assert from "node:assert/strict";
-import { before, beforeEach, describe, it } from "node:test";
+import { afterEach, before, beforeEach, describe, it, mock } from "node:test";
 
 import { useTmpDir } from "@nomicfoundation/hardhat-test-utils";
 
@@ -11,8 +11,10 @@ import {
 } from "../../../../../../src/internal/builtin-plugins/solidity/build-system/compiler/compiler.js";
 import {
   CompilerDownloaderImplementation as CompilerDownloader,
+  CompilerDownloaderImplementation,
   CompilerPlatform,
 } from "../../../../../../src/internal/builtin-plugins/solidity/build-system/compiler/downloader.js";
+import { getCompiler } from "../../../../../../src/internal/builtin-plugins/solidity/build-system/compiler/index.js";
 import { spawn } from "../../../../../../src/internal/cli/init/subprocess.js";
 
 const solcVersion = "0.6.6";
@@ -270,3 +272,30 @@ contract A {}
     });
   },
 );
+
+describe("getCompiler", () => {
+  beforeEach(() => {
+    // We mock the downloader to always return the linux platform, so a native compiler is always available
+    mock.method(
+      CompilerDownloaderImplementation,
+      "getCompilerPlatform",
+      () => CompilerPlatform.LINUX,
+    );
+  });
+
+  afterEach(() => {
+    mock.restoreAll();
+  });
+
+  it("should return the native compiler if preferWasm is false", async () => {
+    const version = "0.8.28";
+    const compiler = await getCompiler(version, false);
+    assert.equal(compiler.isSolcJs, false);
+  });
+
+  it("should return solcjs compiler if preferWasm is true", async () => {
+    const version = "0.8.28";
+    const compiler = await getCompiler(version, true);
+    assert.equal(compiler.isSolcJs, true);
+  });
+});
