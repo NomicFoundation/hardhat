@@ -51,7 +51,7 @@ export const changePassword = async (
   consoleLog: KeystoreConsoleLog = console.log,
 ): Promise<void> => {
   if (!(await oldKeystoreLoader.isKeystoreInitialized())) {
-    consoleLog(UserDisplayMessages.displayNoKeystoreSetErrorMessage());
+    consoleLog(UserDisplayMessages.displayNoKeystoreSetErrorMessage(false));
     process.exitCode = 1;
     return;
   }

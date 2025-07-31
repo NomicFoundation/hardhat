@@ -17,15 +17,16 @@ const taskList: NewTaskActionFunction<TaskListArguments> = async (
 ): Promise<void> => {
   const keystoreLoader = setupKeystoreLoaderFrom(hre, args.dev);
 
-  await list(keystoreLoader);
+  await list(args, keystoreLoader);
 };
 
 export const list = async (
+  { dev }: TaskListArguments,
   keystoreLoader: KeystoreLoader,
   consoleLog: KeystoreConsoleLog = console.log,
 ): Promise<void> => {
   if (!(await keystoreLoader.isKeystoreInitialized())) {
-    consoleLog(UserDisplayMessages.displayNoKeystoreSetErrorMessage());
+    consoleLog(UserDisplayMessages.displayNoKeystoreSetErrorMessage(dev));
     process.exitCode = 1;
     return;
   }
@@ -35,11 +36,11 @@ export const list = async (
   const keys = await keystore.listUnverifiedKeys();
 
   if (keys.length === 0) {
-    consoleLog(UserDisplayMessages.displayNoKeysInfoMessage());
+    consoleLog(UserDisplayMessages.displayNoKeysInfoMessage(dev));
     return;
   }
 
-  consoleLog(UserDisplayMessages.displayKeyListInfoMessage(keys));
+  consoleLog(UserDisplayMessages.displayKeyListInfoMessage(keys, dev));
 };
 
 export default taskList;

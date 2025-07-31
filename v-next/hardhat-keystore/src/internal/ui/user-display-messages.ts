@@ -7,14 +7,20 @@ export class UserDisplayMessages {
     );
   }
 
-  public static displayKeyAlreadyExistsWarning(key: string): string {
+  public static displayKeyAlreadyExistsWarning(
+    key: string,
+    dev: boolean,
+  ): string {
     return chalk.yellow(
-      `The key "${key}" already exists. Use the ${chalk.blue.italic("--force")} flag to overwrite it.`,
+      `The key "${key}" already exists in the ${getKeystoreType(dev)} keystore. Use the ${chalk.blue.italic("--force")} flag to overwrite it.`,
     );
   }
 
-  public static displayKeyListInfoMessage(keys: string[]): string {
-    let output = "Keys:";
+  public static displayKeyListInfoMessage(
+    keys: string[],
+    dev: boolean,
+  ): string {
+    let output = `Keys in the ${getKeystoreType(dev)} keystore:`;
 
     for (const key of keys) {
       output += `\n${key}`;
@@ -23,24 +29,32 @@ export class UserDisplayMessages {
     return output + "\n";
   }
 
-  public static displayKeyNotFoundErrorMessage(key: string): string {
-    return chalk.red(`Key "${key}" not found`);
+  public static displayKeyNotFoundErrorMessage(
+    key: string,
+    dev: boolean,
+  ): string {
+    return chalk.red(
+      `Key "${key}" not found in the ${getKeystoreType(dev)} keystore`,
+    );
   }
 
-  public static displayKeyRemovedInfoMessage(key: string): string {
-    return `Key "${key}" deleted`;
+  public static displayKeyRemovedInfoMessage(
+    key: string,
+    dev: boolean,
+  ): string {
+    return `Key "${key}" deleted from the ${getKeystoreType(dev)} keystore`;
   }
 
-  public static displayKeySetInfoMessage(key: string): string {
-    return `Key "${key}" set`;
+  public static displayKeySetInfoMessage(key: string, dev: boolean): string {
+    return `Key "${key}" set in the ${getKeystoreType(dev)} keystore`;
   }
 
-  public static displayNoKeysInfoMessage(): string {
-    return "The keystore does not contain any keys.";
+  public static displayNoKeysInfoMessage(dev: boolean): string {
+    return `The ${getKeystoreType(dev)} keystore does not contain any keys.`;
   }
 
-  public static displayNoKeystoreSetErrorMessage(): string {
-    return `No keystore found. Please set one up using ${chalk.blue.italic("npx hardhat keystore set {key}")} `;
+  public static displayNoKeystoreSetErrorMessage(dev: boolean): string {
+    return `No ${getKeystoreType(dev)} keystore found. Please set one up using ${chalk.blue.italic(`npx hardhat keystore set {key}${dev === true ? " --dev" : ""}`)} `;
   }
 
   public static displaySecretCannotBeEmptyErrorMessage(): string {
@@ -51,20 +65,20 @@ export class UserDisplayMessages {
     return `${value}`;
   }
 
-  public static enterSecretMessage(): string {
-    return "Enter secret to store";
+  public static enterSecretMessage(dev: boolean): string {
+    return `Enter secret to store in the ${getKeystoreType(dev)} keystore`;
   }
 
   public static keystoreBannerMessage(): string {
-    return "\n👷🔐 Hardhat-Keystore 🔐👷\n";
+    return "\n👷🔐 Hardhat Production Keystore 🔐👷\n";
   }
 
   public static passwordSetUpMessage(): string {
-    return "This is the first time you are using the keystore, please set a password.";
+    return "This is the first time you are using the production keystore, please set a password.";
   }
 
   public static unlockBeforePasswordChangeMessage(): string {
-    return "Unlock the keystore using your current password before proceeding with the password change.";
+    return "Unlock the production keystore using your current password before proceeding with the password change.";
   }
 
   public static passwordChangeMessage(): string {
@@ -95,4 +109,8 @@ export class UserDisplayMessages {
   public static passwordsDoNotMatchError(): string {
     return "Passwords do not match!";
   }
+}
+
+function getKeystoreType(dev: boolean): "production" | "development" {
+  return dev ? "development" : "production";
 }

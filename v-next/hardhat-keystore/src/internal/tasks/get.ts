@@ -36,7 +36,7 @@ export const get = async (
   consoleLog: KeystoreConsoleLog = console.log,
 ): Promise<void> => {
   if (!(await keystoreLoader.isKeystoreInitialized())) {
-    consoleLog(UserDisplayMessages.displayNoKeystoreSetErrorMessage());
+    consoleLog(UserDisplayMessages.displayNoKeystoreSetErrorMessage(dev));
     process.exitCode = 1;
     return;
   }
@@ -58,7 +58,7 @@ export const get = async (
   });
 
   if (!(await keystore.hasKey(key, masterKey))) {
-    consoleLog(UserDisplayMessages.displayKeyNotFoundErrorMessage(key));
+    consoleLog(UserDisplayMessages.displayKeyNotFoundErrorMessage(key, dev));
     process.exitCode = 1;
     return;
   }

@@ -37,7 +37,7 @@ export const remove = async (
   consoleLog: KeystoreConsoleLog = console.log,
 ): Promise<void> => {
   if (!(await keystoreLoader.isKeystoreInitialized())) {
-    consoleLog(UserDisplayMessages.displayNoKeystoreSetErrorMessage());
+    consoleLog(UserDisplayMessages.displayNoKeystoreSetErrorMessage(dev));
     process.exitCode = 1;
     return;
   }
@@ -63,7 +63,7 @@ export const remove = async (
       return;
     }
 
-    consoleLog(UserDisplayMessages.displayKeyNotFoundErrorMessage(key));
+    consoleLog(UserDisplayMessages.displayKeyNotFoundErrorMessage(key, dev));
     process.exitCode = 1;
     return;
   }
@@ -72,7 +72,7 @@ export const remove = async (
 
   await keystoreLoader.saveKeystoreToFile();
 
-  consoleLog(UserDisplayMessages.displayKeyRemovedInfoMessage(key));
+  consoleLog(UserDisplayMessages.displayKeyRemovedInfoMessage(key, dev));
 };
 
 export default taskDelete;

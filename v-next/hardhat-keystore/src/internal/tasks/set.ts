@@ -72,14 +72,14 @@ export const set = async (
   });
 
   if (!force && (await keystore.hasKey(key, masterKey))) {
-    consoleLog(UserDisplayMessages.displayKeyAlreadyExistsWarning(key));
+    consoleLog(UserDisplayMessages.displayKeyAlreadyExistsWarning(key, dev));
     process.exitCode = 1;
     return;
   }
 
   const secret = await requestSecretInput(
     dev ? PLUGIN_ID_DEV : PLUGIN_ID,
-    UserDisplayMessages.enterSecretMessage(),
+    UserDisplayMessages.enterSecretMessage(dev),
   );
 
   if (secret.length === 0) {
@@ -92,7 +92,7 @@ export const set = async (
 
   await keystoreLoader.saveKeystoreToFile();
 
-  consoleLog(UserDisplayMessages.displayKeySetInfoMessage(key));
+  consoleLog(UserDisplayMessages.displayKeySetInfoMessage(key, dev));
 };
 
 export default taskSet;
