@@ -1,5 +1,12 @@
 # hardhat
 
+## 3.0.0-next.27
+
+### Patch Changes
+
+- a958d46: Change the config test path property from `nodeTest` to `nodejs` ([#7100](https://github.com/NomicFoundation/hardhat/pull/7100))
+- d71f90e: Add migration task for HHv2 Ignition deployments ([#6538](https://github.com/NomicFoundation/hardhat/issues/6538))
+
 ## 3.0.0-next.26
 
 ### Patch Changes
