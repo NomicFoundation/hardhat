@@ -1,48 +1,57 @@
-import type { KeystoreLoader } from "../types.js";
+import type {
+  KeystoreConsoleLog,
+  KeystoreLoader,
+  KeystoreRequestSecretInput,
+} from "../types.js";
 import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 import type { NewTaskActionFunction } from "hardhat/types/tasks";
 
 import { deriveMasterKeyFromKeystore } from "../keystores/encryption.js";
-import { askPassword } from "../keystores/password.js";
+import { getPasswordHandlers } from "../keystores/password.js";
 import { UserDisplayMessages } from "../ui/user-display-messages.js";
 import { setupKeystoreLoaderFrom } from "../utils/setup-keystore-loader-from.js";
 
 interface TaskDeleteArguments {
-  key: string;
+  dev: boolean;
   force: boolean;
+  key: string;
 }
 
 const taskDelete: NewTaskActionFunction<TaskDeleteArguments> = async (
-  setArgs,
+  args,
   hre: HardhatRuntimeEnvironment,
 ): Promise<void> => {
-  const keystoreLoader = setupKeystoreLoaderFrom(hre);
+  const keystoreLoader = setupKeystoreLoaderFrom(hre, args.dev);
 
   await remove(
-    setArgs,
+    args,
     keystoreLoader,
     hre.interruptions.requestSecretInput.bind(hre.interruptions),
   );
 };
 
 export const remove = async (
-  { key, force }: TaskDeleteArguments,
+  { dev, force, key }: TaskDeleteArguments,
   keystoreLoader: KeystoreLoader,
-  requestSecretInput: (
-    interruptor: string,
-    inputDescription: string,
-  ) => Promise<string>,
-  consoleLog: (text: string) => void = console.log,
+  requestSecretInput: KeystoreRequestSecretInput,
+  consoleLog: KeystoreConsoleLog = console.log,
 ): Promise<void> => {
   if (!(await keystoreLoader.isKeystoreInitialized())) {
-    consoleLog(UserDisplayMessages.displayNoKeystoreSetErrorMessage());
+    consoleLog(UserDisplayMessages.displayNoKeystoreSetErrorMessage(dev));
     process.exitCode = 1;
     return;
   }
 
   const keystore = await keystoreLoader.loadKeystore();
 
-  const password = await askPassword(requestSecretInput);
+  const { askPassword } = getPasswordHandlers(
+    requestSecretInput,
+    consoleLog,
+    dev,
+    keystoreLoader.getKeystoreDevPasswordFilePath(),
+  );
+
+  const password = await askPassword();
 
   const masterKey = deriveMasterKeyFromKeystore({
     encryptedKeystore: keystore.toJSON(),
@@ -54,7 +63,7 @@ export const remove = async (
       return;
     }
 
-    consoleLog(UserDisplayMessages.displayKeyNotFoundErrorMessage(key));
+    consoleLog(UserDisplayMessages.displayKeyNotFoundErrorMessage(key, dev));
     process.exitCode = 1;
     return;
   }
@@ -63,7 +72,7 @@ export const remove = async (
 
   await keystoreLoader.saveKeystoreToFile();
 
-  consoleLog(UserDisplayMessages.displayKeyRemovedInfoMessage(key));
+  consoleLog(UserDisplayMessages.displayKeyRemovedInfoMessage(key, dev));
 };
 
 export default taskDelete;

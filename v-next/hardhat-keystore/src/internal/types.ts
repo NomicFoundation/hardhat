@@ -31,6 +31,7 @@ export interface KeystoreLoader {
   loadKeystore: () => Promise<Keystore>;
   saveKeystoreToFile: () => Promise<void>;
   getKeystoreFilePath: () => string;
+  getKeystoreDevPasswordFilePath: () => string;
 }
 
 export interface FileManager {
@@ -41,3 +42,10 @@ export interface FileManager {
   ): Promise<void>;
   readJsonFile(absolutePathToFile: string): Promise<EncryptedKeystore>;
 }
+
+export type KeystoreConsoleLog = (text: string) => void;
+
+export type KeystoreRequestSecretInput = (
+  interruptor: string,
+  inputDescription: string,
+) => Promise<string>;

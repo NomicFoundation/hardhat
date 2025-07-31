@@ -51,6 +51,9 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   { testFiles, bail, grep, noCompile },
   hre,
 ) => {
+  // Set an environment variable that plugins can use to detect when a process is running tests
+  process.env.HH_TEST = "true";
+
   if (!noCompile) {
     await hre.tasks.getTask("compile").run({});
     console.log();
@@ -92,7 +95,7 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   testsAlreadyRun = true;
 
   // We write instead of console.log because Mocha already prints some newlines
-  process.stdout.write("Running Mocha tests");
+  process.stdout.write("Running Mocha tests\n");
 
   // This instructs Mocha to use the more verbose file loading infrastructure
   // which supports both ESM and CJS

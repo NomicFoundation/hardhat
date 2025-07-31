@@ -56,6 +56,9 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   { testFiles, only, grep, noCompile },
   hre,
 ) => {
+  // Set an environment variable that plugins can use to detect when a process is running tests
+  process.env.HH_TEST = "true";
+
   if (!noCompile) {
     await hre.tasks.getTask("compile").run({});
     console.log();
