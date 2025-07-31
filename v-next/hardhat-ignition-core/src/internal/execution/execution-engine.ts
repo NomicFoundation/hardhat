@@ -112,7 +112,7 @@ export class ExecutionEngine {
     const futures = getFuturesFromModule(module);
 
     for (const batch of batches) {
-      this._emitBeginNextBatchEvent();
+      await this._emitBeginNextBatchEvent();
 
       // TODO: consider changing batcher to return futures rather than ids
       const executionBatch = batch.map((futureId) =>
@@ -331,9 +331,9 @@ export class ExecutionEngine {
   /**
    * Emits an execution event signaling that execution of the next batch has begun.
    */
-  private _emitBeginNextBatchEvent(): void {
+  private async _emitBeginNextBatchEvent(): Promise<void> {
     if (this._executionEventListener !== undefined) {
-      this._executionEventListener.beginNextBatch({
+      await this._executionEventListener.beginNextBatch({
         type: ExecutionEventType.BEGIN_NEXT_BATCH,
       });
     }

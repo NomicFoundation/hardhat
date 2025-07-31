@@ -23,6 +23,7 @@ import type {
 import type { ArtifactManager } from "hardhat/types/artifacts";
 import type { HardhatConfig } from "hardhat/types/config";
 import type { NetworkConnection, ChainType } from "hardhat/types/network";
+import type { UserInterruptionManager } from "hardhat/types/user-interruptions";
 
 import path from "node:path";
 
@@ -52,6 +53,7 @@ export class ViemIgnitionHelperImpl<ChainTypeT extends ChainType | string>
   readonly #hardhatConfig: HardhatConfig;
   readonly #artifactsManager: ArtifactManager;
   readonly #connection: NetworkConnection<ChainTypeT>;
+  readonly #interruptions: UserInterruptionManager;
   readonly #config: Partial<DeployConfig> | undefined;
   readonly #provider: EIP1193Provider;
 
@@ -59,12 +61,14 @@ export class ViemIgnitionHelperImpl<ChainTypeT extends ChainType | string>
     hardhatConfig: HardhatConfig,
     artifactsManager: ArtifactManager,
     connection: NetworkConnection<ChainTypeT>,
+    interruptions: UserInterruptionManager,
     config?: Partial<DeployConfig> | undefined,
     provider?: EIP1193Provider,
   ) {
     this.#hardhatConfig = hardhatConfig;
     this.#artifactsManager = artifactsManager;
     this.#connection = connection;
+    this.#interruptions = interruptions;
     this.#config = config;
     this.#provider = provider ?? this.#connection.provider;
   }
@@ -155,7 +159,7 @@ export class ViemIgnitionHelperImpl<ChainTypeT extends ChainType | string>
           );
 
     const executionEventListener = displayUi
-      ? new PrettyEventHandler()
+      ? new PrettyEventHandler(this.#interruptions)
       : undefined;
 
     let deploymentParameters: DeploymentParameters;
