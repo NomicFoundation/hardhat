@@ -35,11 +35,14 @@ const solcUserConfigType = z.object({
 });
 
 // NOTE: This is only to match the setup present in ./type-extensions.ts
-const singleVersionSolcUserConfigType = solcUserConfigType;
+const singleVersionSolcUserConfigType = solcUserConfigType.extend({
+  preferWasm: z.boolean().optional(),
+});
 
 const multiVersionSolcUserConfigType = z.object({
   compilers: z.array(solcUserConfigType).nonempty(),
   overrides: z.record(z.string(), solcUserConfigType).optional(),
+  preferWasm: z.boolean().optional(),
   version: incompatibleFieldType("This field is incompatible with `compilers`"),
   settings: incompatibleFieldType(
     "This field is incompatible with `compilers`",
@@ -213,6 +216,7 @@ function resolveSolidityConfig(
             settings: {},
           })),
           overrides: {},
+          preferWasm: false,
         },
       },
       npmFilesToBuild: [],
@@ -230,6 +234,7 @@ function resolveSolidityConfig(
             },
           ],
           overrides: {},
+          preferWasm: solidityConfig.preferWasm ?? false,
         },
       },
       npmFilesToBuild: solidityConfig.npmFilesToBuild ?? [],
@@ -240,6 +245,7 @@ function resolveSolidityConfig(
     return {
       profiles: {
         default: {
+          preferWasm: solidityConfig.preferWasm ?? false,
           compilers: solidityConfig.compilers.map((compiler) => ({
             version: compiler.version,
             settings: compiler.settings ?? {},
@@ -278,6 +284,7 @@ function resolveSolidityConfig(
           },
         ],
         overrides: {},
+        preferWasm: profile.preferWasm ?? false,
       };
       continue;
     }
@@ -300,6 +307,7 @@ function resolveSolidityConfig(
           },
         ),
       ),
+      preferWasm: profile.preferWasm ?? false,
     };
   }
 
