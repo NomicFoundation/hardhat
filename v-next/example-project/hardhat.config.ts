@@ -167,7 +167,7 @@ const config: HardhatUserConfig = {
   paths: {
     tests: {
       mocha: "test/mocha",
-      nodeTest: "test/node",
+      nodejs: "test/node",
       solidity: "test/contracts",
     },
   },

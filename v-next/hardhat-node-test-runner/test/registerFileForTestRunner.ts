@@ -23,7 +23,7 @@ describe("registerFileForTestRunner hook", function () {
   it("is not nodejs when the file ends with .sol", async () => {
     hre = await createHardhatRuntimeEnvironment({
       ...baseHhConfig,
-      paths: { tests: { nodeTest: "test" } },
+      paths: { tests: { nodejs: "test" } },
     });
 
     const result = await hre.hooks.runHandlerChain(
@@ -39,7 +39,7 @@ describe("registerFileForTestRunner hook", function () {
   it("is nodejs when the file is inside the node test folder", async () => {
     hre = await createHardhatRuntimeEnvironment({
       ...baseHhConfig,
-      paths: { tests: { nodeTest: "test" } },
+      paths: { tests: { nodejs: "test" } },
     });
 
     const result = await hre.hooks.runHandlerChain(
@@ -55,7 +55,7 @@ describe("registerFileForTestRunner hook", function () {
   it("is nodejs when the file is not inside other runners directories", async () => {
     hre = await createHardhatRuntimeEnvironment({
       ...baseHhConfig,
-      paths: { tests: { nodeTest: "test" } },
+      paths: { tests: { nodejs: "test" } },
     });
 
     const result = await hre.hooks.runHandlerChain(
@@ -71,7 +71,7 @@ describe("registerFileForTestRunner hook", function () {
   it("is not nodejs when the file is inside other runners directories", async () => {
     hre = await createHardhatRuntimeEnvironment({
       ...baseHhConfig,
-      paths: { tests: { nodeTest: "test", solidity: "contracts" } },
+      paths: { tests: { nodejs: "test", solidity: "contracts" } },
     });
 
     const result = await hre.hooks.runHandlerChain(
