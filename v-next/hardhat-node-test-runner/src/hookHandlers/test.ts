@@ -10,7 +10,7 @@ export default async (): Promise<Partial<TestHooks>> => {
       const allRunnersDirectories = Object.values(context.config.paths.tests);
 
       const inThisRunnersDirectory = absoluteFilePath.startsWith(
-        context.config.paths.tests.nodeTest,
+        context.config.paths.tests.nodejs,
       );
 
       const notInOtherRunnersDirectory = allRunnersDirectories.every(
