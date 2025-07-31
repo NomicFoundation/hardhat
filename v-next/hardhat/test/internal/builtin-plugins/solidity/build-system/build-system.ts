@@ -88,6 +88,7 @@ describe(
             },
           ],
           overrides: {},
+          preferWasm: false,
         },
       },
       npmFilesToBuild: [],

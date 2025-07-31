@@ -15,10 +15,12 @@ declare module "../../../types/config.js" {
     settings?: any;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-interface -- This could be an extension point
-  export interface SingleVersionSolcUserConfig extends SolcUserConfig {}
+  export interface SingleVersionSolcUserConfig extends SolcUserConfig {
+    preferWasm?: boolean;
+  }
 
   export interface MultiVersionSolcUserConfig {
+    preferWasm?: boolean;
     compilers: SolcUserConfig[];
     overrides?: Record<string, SolcUserConfig>;
   }
@@ -53,6 +55,7 @@ declare module "../../../types/config.js" {
   }
 
   export interface SolidityBuildProfileConfig {
+    preferWasm: boolean;
     compilers: SolcConfig[];
     overrides: Record<string, SolcConfig>;
   }
