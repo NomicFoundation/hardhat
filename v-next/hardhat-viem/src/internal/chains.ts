@@ -1,4 +1,5 @@
 import type { TestClientMode } from "../types.js";
+import type { ChainType } from "hardhat/types/network";
 import type { EthereumProvider } from "hardhat/types/providers";
 import type { Chain as ViemChain } from "viem";
 
@@ -9,7 +10,7 @@ import {
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 import { extractChain } from "viem";
 import * as chainsModule from "viem/chains";
-import { hardhat, anvil } from "viem/chains";
+import { hardhat, anvil, optimism } from "viem/chains";
 
 /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
 -- TODO: this assertion should not be necessary */
@@ -23,7 +24,10 @@ const isAnvilNetworkCache = new WeakMap<EthereumProvider, boolean>();
 const HARDHAT_METADATA_METHOD = "hardhat_metadata";
 const ANVIL_NODE_INFO_METHOD = "anvil_nodeInfo";
 
-export async function getChain(provider: EthereumProvider): Promise<ViemChain> {
+export async function getChain<ChainTypeT extends ChainType | string>(
+  provider: EthereumProvider,
+  chainType: ChainTypeT,
+): Promise<ViemChain> {
   const cachedChain = chainCache.get(provider);
   if (cachedChain !== undefined) {
     return cachedChain;
@@ -38,7 +42,7 @@ export async function getChain(provider: EthereumProvider): Promise<ViemChain> {
 
   if ((await isDevelopmentNetwork(provider)) || chain === undefined) {
     if (await isHardhatNetwork(provider)) {
-      chain = createHardhatChain(provider, chainId);
+      chain = createHardhatChain(provider, chainId, chainType);
     } else if (await isAnvilNetwork(provider)) {
       chain = {
         ...anvil,
@@ -155,9 +159,10 @@ async function isMethodSupported(provider: EthereumProvider, method: string) {
   }
 }
 
-function createHardhatChain(
+function createHardhatChain<ChainTypeT extends ChainType | string>(
   provider: EthereumProvider,
   chainId: number,
+  chainType: ChainTypeT,
 ): ViemChain {
   const hardhatMetadata = hardhatMetadataCache.get(provider);
   assertHardhatInvariant(
@@ -180,10 +185,19 @@ function createHardhatChain(
     }
   }
 
-  return {
+  const chain: ViemChain = {
     ...hardhat,
     id: chainId,
   };
+
+  if (chainType === "optimism") {
+    // we add the optimism contracts to enable viem's L2 actions
+    chain.contracts = {
+      ...optimism.contracts,
+    };
+  }
+
+  return chain;
 }
 
 interface HardhatMetadata {
