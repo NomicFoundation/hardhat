@@ -15,10 +15,10 @@ import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 import hardhatKeystorePlugin from "../../src/index.js";
 import { setupKeystorePassword } from "../helpers/insert-password-hook.js";
 import { setupKeystoreFileLocationOverrideAt } from "../helpers/setup-keystore-file-location-override-at.js";
-import { TEST_PASSWORD } from "../helpers/test-password.js";
+import { TEST_PASSWORD_PROD } from "../helpers/test-password.js";
 
 // The keystore json file for this test has been created using the following configuration:
-// Test password: test-password
+// Test password: the one contained in the variable `TEST_PASSWORD_PROD`
 // Secret key name: key1
 // Secret value: secret
 
@@ -38,7 +38,7 @@ const existingKeystoreDevFilePath = path.join(
 );
 const existingKeystoreDevPasswordFilePath = path.join(
   basePath,
-  "existing-keystore-dev-password-file.txt",
+  "fake-keystore-dev-password-path-ci.txt",
 );
 
 /**
@@ -66,7 +66,7 @@ describe("turn off keystore plugin when running in CI", function () {
           existingKeystoreDevFilePath,
           existingKeystoreDevPasswordFilePath,
         ),
-        setupKeystorePassword([TEST_PASSWORD]),
+        setupKeystorePassword([TEST_PASSWORD_PROD]),
       ],
     });
 

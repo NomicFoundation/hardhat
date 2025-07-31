@@ -1,5 +1,7 @@
 import chalk from "chalk";
 
+import { getKeystoreType } from "../utils/get-keystore-type.js";
+
 export class UserDisplayMessages {
   public static displayInvalidKeyErrorMessage(key: string): string {
     return chalk.red(
@@ -109,8 +111,4 @@ export class UserDisplayMessages {
   public static passwordsDoNotMatchError(): string {
     return "Passwords do not match!";
   }
-}
-
-function getKeystoreType(dev: boolean): "production" | "development" {
-  return dev ? "development" : "production";
 }

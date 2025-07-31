@@ -66,6 +66,12 @@ export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
 
     if (keystoreLoader === undefined) {
       keystoreLoader = setupKeystoreLoaderFrom(context, isDevKeystore);
+
+      if (isDevKeystore) {
+        keystoreLoaderDev = keystoreLoader;
+      } else {
+        keystoreLoaderProd = keystoreLoader;
+      }
     }
 
     if (!(await keystoreLoader.isKeystoreInitialized())) {
@@ -74,20 +80,26 @@ export default async (): Promise<Partial<ConfigurationVariableHooks>> => {
 
     const keystore = await keystoreLoader.loadKeystore();
 
-    const { askPassword } = getPasswordHandlers(
-      context.interruptions.requestSecretInput.bind(context.interruptions),
-      console.log,
-      isDevKeystore,
-      keystoreLoader.getKeystoreDevPasswordFilePath(),
-    );
-
     if (masterKey === undefined) {
+      const { askPassword } = getPasswordHandlers(
+        context.interruptions.requestSecretInput.bind(context.interruptions),
+        console.log,
+        isDevKeystore,
+        keystoreLoader.getKeystoreDevPasswordFilePath(),
+      );
+
       const password = await askPassword();
 
       masterKey = deriveMasterKeyFromKeystore({
         encryptedKeystore: keystore.toJSON(),
         password,
       });
+
+      if (isDevKeystore) {
+        masterKeyDev = masterKey;
+      } else {
+        masterKeyProd = masterKey;
+      }
     }
 
     if (!(await keystore.hasKey(variable.name, masterKey))) {

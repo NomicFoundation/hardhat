@@ -17,7 +17,7 @@ import { changePassword } from "../../src/internal/tasks/change-password.js";
 import { assertOutputIncludes } from "../helpers/assert-output-includes.js";
 import { MockFileManager } from "../helpers/mock-file-manager.js";
 import { mockRequestSecretFn } from "../helpers/mock-request-secret.js";
-import { TEST_PASSWORD } from "../helpers/test-password.js";
+import { TEST_PASSWORD_PROD } from "../helpers/test-password.js";
 
 const oldKeystoreFilePath = path.join(
   fileURLToPath(import.meta.url),
@@ -39,7 +39,7 @@ describe("tasks - change-password", () => {
   let keystoreLoaderTmp: KeystoreLoader;
 
   beforeEach(() => {
-    mockFileManager = new MockFileManager();
+    mockFileManager = new MockFileManager(false);
     mockConsoleLog = mock.fn();
 
     // Mock this function because the `change-password` task renames the keystore file
@@ -66,6 +66,8 @@ describe("tasks - change-password", () => {
     );
   });
 
+  // For the development keystore, a test is not needed because the
+  // `change-password` task is blocked before the method `changePassword` is reached.
   describe("production keystore", () => {
     describe("a successful `change-password`", () => {
       beforeEach(async () => {
@@ -73,7 +75,7 @@ describe("tasks - change-password", () => {
           myKey: "myValue",
         });
         mockRequestSecret = mockRequestSecretFn([
-          TEST_PASSWORD,
+          TEST_PASSWORD_PROD,
           "newPassword",
           "newPassword",
         ]);
@@ -89,7 +91,7 @@ describe("tasks - change-password", () => {
       it("should display messages of the `password-change` process, ending with a confirmation that the password was successfully changed", async () => {
         assertOutputIncludes(
           mockConsoleLog,
-          "Unlock the keystore using your current password before proceeding with the password change.",
+          "Unlock the production keystore using your current password before proceeding with the password change.",
         );
         assertOutputIncludes(mockConsoleLog, "Change your password.");
         assertOutputIncludes(mockConsoleLog, "Password changed successfully!");
@@ -115,7 +117,7 @@ describe("tasks - change-password", () => {
       it("should display a message that the keystore is not set", async () => {
         assertOutputIncludes(
           mockConsoleLog,
-          `No keystore found. Please set one up using ${chalk.blue.italic("npx hardhat keystore set {key}")} `,
+          `No production keystore found. Please set one up using ${chalk.blue.italic("npx hardhat keystore set {key}")} `,
         );
       });
     });
@@ -141,33 +143,4 @@ describe("tasks - change-password", () => {
       });
     });
   });
-
-  //
-  // TODO
-  //
-  // describe("development keystore", () => {
-  //   describe("a `change-password` should throw because not allowed", () => {
-  //     beforeEach(async () => {
-  //       mockFileManager.setupNoKeystoreFile();
-  //       mockRequestSecret = mockRequestSecretFn([]);
-
-  //       await changePassword(
-  //         keystoreLoader,
-  //         keystoreLoaderTmp,
-  //         mockRequestSecret,
-  //         mockConsoleLog,
-  //       );
-
-  //       assert.equal(process.exitCode, 1);
-  //       process.exitCode = undefined;
-  //     });
-
-  //     it("should display a message that the keystore is not set", async () => {
-  //       assertOutputIncludes(
-  //         mockConsoleLog,
-  //         `No keystore found. Please set one up using ${chalk.blue.italic("npx hardhat keystore set {key}")} `,
-  //       );
-  //     });
-  //   });
-  // });
 });

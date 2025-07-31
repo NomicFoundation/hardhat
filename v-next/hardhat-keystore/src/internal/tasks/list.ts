@@ -7,8 +7,6 @@ import { setupKeystoreLoaderFrom } from "../utils/setup-keystore-loader-from.js"
 
 interface TaskListArguments {
   dev: boolean;
-  force: boolean;
-  key: string;
 }
 
 const taskList: NewTaskActionFunction<TaskListArguments> = async (
