@@ -152,15 +152,12 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       ),
     );
 
-    const runCompilationJobOptions: RunCompilationJobOptions = {
-      quiet: options?.quiet,
-    };
     const results: CompilationResult[] = await pMap(
       runnableCompilationJobs,
       async (runnableCompilationJob) => {
         const compilerOutput = await this.runCompilationJob(
           runnableCompilationJob,
-          runCompilationJobOptions,
+          options,
         );
 
         return {
@@ -301,22 +298,15 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       readSourceFileFactory(this.#hooks),
     );
 
-    const buildProfileName = options?.buildProfile ?? DEFAULT_BUILD_PROFILE;
-
-    if (this.#options.solidityConfig.profiles[buildProfileName] === undefined) {
-      throw new HardhatError(
-        HardhatError.ERRORS.CORE.SOLIDITY.BUILD_PROFILE_NOT_FOUND,
-        {
-          buildProfileName,
-        },
-      );
-    }
+    const { buildProfileName, buildProfile } = this.#getBuildProfile(
+      options?.buildProfile,
+    );
 
     log(`Using build profile ${buildProfileName}`);
 
     const solcConfigSelector = new SolcConfigSelector(
       buildProfileName,
-      this.#options.solidityConfig.profiles[buildProfileName],
+      buildProfile,
       dependencyGraph,
     );
 
@@ -346,7 +336,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       let solcLongVersion = solcVersionToLongVersion.get(solcConfig.version);
 
       if (solcLongVersion === undefined) {
-        const compiler = await getCompiler(solcConfig.version);
+        const compiler = await getCompiler(solcConfig.version, false);
         solcLongVersion = compiler.longVersion;
         solcVersionToLongVersion.set(solcConfig.version, solcLongVersion);
       }
@@ -506,6 +496,23 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     return { compilationJobsPerFile, indexedIndividualJobs };
   }
 
+  #getBuildProfile(_buildProfileName?: string) {
+    const buildProfileName = _buildProfileName ?? DEFAULT_BUILD_PROFILE;
+    const buildProfile =
+      this.#options.solidityConfig.profiles[buildProfileName];
+
+    if (buildProfile === undefined) {
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.SOLIDITY.BUILD_PROFILE_NOT_FOUND,
+        {
+          buildProfileName,
+        },
+      );
+    }
+
+    return { buildProfileName, buildProfile };
+  }
+
   public async runCompilationJob(
     runnableCompilationJob: CompilationJob,
     options?: RunCompilationJobOptions,
@@ -520,8 +527,11 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     const numberOfRootFiles =
       runnableCompilationJob.dependencyGraph.getRoots().size;
 
+    const { buildProfile } = this.#getBuildProfile(options?.buildProfile);
+
     const compiler = await getCompiler(
       runnableCompilationJob.solcConfig.version,
+      buildProfile.preferWasm,
     );
 
     log(

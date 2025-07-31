@@ -61,12 +61,10 @@ export type GetCompilationJobsOptions = Omit<
 /**
  * The options of the `runCompilationJob` method.
  */
-export interface RunCompilationJobOptions {
-  /**
-   * If `true`, the compilation process doesn't print any output.
-   */
-  quiet?: boolean;
-}
+export type RunCompilationJobOptions = Pick<
+  BuildOptions,
+  "quiet" | "buildProfile"
+>;
 
 /**
  * The options of the `compileBuildInfo` method.

@@ -1,7 +1,11 @@
+/* eslint-disable @typescript-eslint/consistent-type-assertions -- test*/
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { validateSolidityUserConfig } from "../../../../src/internal/builtin-plugins/solidity/config.js";
+import {
+  resolveSolidityUserConfig,
+  validateSolidityUserConfig,
+} from "../../../../src/internal/builtin-plugins/solidity/config.js";
 
 describe("solidity plugin config validation", () => {
   describe("sources paths", () => {
@@ -267,4 +271,117 @@ describe("solidity plugin config resolution", () => {
   it.todo("should resolve a MultiVersionSolidityUserConfig value", () => {});
 
   it.todo("should resolve a BuildProfilesSolidityUserConfig value", () => {});
+
+  describe("preferWasm setting resolution", function () {
+    const otherResolvedConfig = { paths: { root: process.cwd() } } as any;
+
+    it("resolves to true when build profile is production and is not specified in the config", async () => {
+      const resolvedConfig = await resolveSolidityUserConfig(
+        {
+          solidity: {
+            profiles: {
+              default: {
+                version: "0.8.28",
+                preferWasm: false,
+              },
+            },
+          },
+        },
+        otherResolvedConfig,
+      );
+
+      assert.equal(
+        resolvedConfig.solidity.profiles.production.preferWasm,
+        true,
+      );
+    });
+
+    it("resolves to true when build profile is production and is specified, but preferWasm is not set", async () => {
+      const resolvedConfig = await resolveSolidityUserConfig(
+        {
+          solidity: {
+            profiles: {
+              default: {
+                version: "0.8.28",
+                preferWasm: false,
+              },
+              production: {
+                version: "0.8.28",
+              },
+            },
+          },
+        },
+        otherResolvedConfig,
+      );
+
+      assert.equal(
+        resolvedConfig.solidity.profiles.production.preferWasm,
+        true,
+      );
+    });
+
+    it("resolves to the specified value when set in the config, regardless of profile name", async () => {
+      const resolvedConfig = await resolveSolidityUserConfig(
+        {
+          solidity: {
+            profiles: {
+              default: {
+                version: "0.8.28",
+                preferWasm: true,
+              },
+              production: {
+                version: "0.8.28",
+                preferWasm: false,
+              },
+            },
+          },
+        },
+        otherResolvedConfig,
+      );
+
+      assert.equal(resolvedConfig.solidity.profiles.default.preferWasm, true);
+      assert.equal(
+        resolvedConfig.solidity.profiles.production.preferWasm,
+        false,
+      );
+    });
+
+    it("resolves to false when profile is not production and value is not set", async () => {
+      const resolvedConfig = await resolveSolidityUserConfig(
+        {
+          solidity: {
+            profiles: {
+              default: {
+                version: "0.8.28",
+              },
+              profile_1: {
+                version: "0.8.28",
+              },
+              profile_2: {
+                version: "0.8.28",
+              },
+              production: {
+                version: "0.8.28",
+              },
+            },
+          },
+        },
+        otherResolvedConfig,
+      );
+
+      assert.equal(resolvedConfig.solidity.profiles.default.preferWasm, false);
+      assert.equal(
+        resolvedConfig.solidity.profiles.profile_1.preferWasm,
+        false,
+      );
+      assert.equal(
+        resolvedConfig.solidity.profiles.profile_2.preferWasm,
+        false,
+      );
+      assert.equal(
+        resolvedConfig.solidity.profiles.production.preferWasm,
+        true,
+      );
+    });
+  });
 });
