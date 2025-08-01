@@ -53,6 +53,7 @@ describe("SolcConfigSelector", () => {
     buildProfile = {
       compilers: [],
       overrides: {},
+      preferWasm: false,
     };
     root = createProjectResolvedFile("root.sol", ["^0.8.0"]);
     dependencyGraph = new DependencyGraphImplementation();
@@ -357,7 +358,11 @@ describe("SolcConfigSelector", () => {
 
       const selector = new SolcConfigSelector(
         buildProfileName,
-        { compilers: [{ version: "0.8.0", settings: {} }], overrides: {} },
+        {
+          compilers: [{ version: "0.8.0", settings: {} }],
+          overrides: {},
+          preferWasm: false,
+        },
         dependencyGraph,
       );
 

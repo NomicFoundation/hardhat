@@ -77,17 +77,22 @@ export async function downloadConfiguredCompilers(
   }
 }
 
-export async function getCompiler(version: string): Promise<Compiler> {
-  const platform = CompilerDownloaderImplementation.getCompilerPlatform();
-  const compilerDownloader = new CompilerDownloaderImplementation(
-    platform,
-    await getGlobalCompilersCacheDir(),
-  );
+export async function getCompiler(
+  version: string,
+  preferWasm: boolean,
+): Promise<Compiler> {
+  if (preferWasm === false) {
+    const platform = CompilerDownloaderImplementation.getCompilerPlatform();
+    const compilerDownloader = new CompilerDownloaderImplementation(
+      platform,
+      await getGlobalCompilersCacheDir(),
+    );
 
-  const compiler = await compilerDownloader.getCompiler(version);
+    const compiler = await compilerDownloader.getCompiler(version);
 
-  if (compiler !== undefined) {
-    return compiler;
+    if (compiler !== undefined) {
+      return compiler;
+    }
   }
 
   const wasmCompilerDownloader = new CompilerDownloaderImplementation(
