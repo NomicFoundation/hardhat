@@ -67,7 +67,7 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
 
   const { default: Mocha } = await import("mocha");
 
-  const mochaConfig: MochaOptions = { ...hre.config.mocha };
+  const mochaConfig: MochaOptions = { ...hre.config.test.mocha };
 
   if (grep !== "") {
     mochaConfig.grep = grep;

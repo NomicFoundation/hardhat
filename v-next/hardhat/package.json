@@ -31,6 +31,7 @@
     "./types/plugins": "./dist/src/types/plugins.js",
     "./types/providers": "./dist/src/types/providers.js",
     "./types/tasks": "./dist/src/types/tasks.js",
+    "./types/test": "./dist/src/types/test.js",
     "./types/user-interruptions": "./dist/src/types/user-interruptions.js",
     "./types/utils": "./dist/src/types/utils.js",
     "./types/solidity": "./dist/src/types/solidity.js",

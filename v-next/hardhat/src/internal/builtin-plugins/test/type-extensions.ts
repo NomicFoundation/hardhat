@@ -1,4 +1,19 @@
 import "../../../types/hooks.js";
+import type {
+  HardhatTestConfig,
+  HardhatTestUserConfig,
+} from "../../../types/test.js";
+
+declare module "../../../types/config.js" {
+  export interface HardhatUserConfig {
+    test?: HardhatTestUserConfig;
+  }
+
+  export interface HardhatConfig {
+    test: HardhatTestConfig;
+  }
+}
+
 declare module "../../../types/hooks.js" {
   export interface HardhatHooks {
     test: TestHooks;
