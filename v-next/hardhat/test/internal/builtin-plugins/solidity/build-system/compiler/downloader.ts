@@ -14,6 +14,8 @@ import {
   CompilerDownloaderImplementation as CompilerDownloader,
   CompilerPlatform,
 } from "../../../../../../src/internal/builtin-plugins/solidity/build-system/compiler/downloader.js";
+import { sha256 } from "@nomicfoundation/hardhat-utils/crypto";
+import { bytesToHexString } from "@nomicfoundation/hardhat-utils/hex";
 
 describe(
   "Compiler downloader",
@@ -460,6 +462,86 @@ describe(
           downloader.getCompiler("0.4.13") !== undefined,
           "Compiler should be defined",
         );
+      });
+    });
+
+    describe("when on linux-arm64", function () {
+      let downloader: CompilerDownloader;
+
+      beforeEach(async () => {
+        downloader = new CompilerDownloader(
+          CompilerPlatform.LINUX_ARM64,
+          process.cwd(),
+        );
+      });
+
+      describe("updateCompilerListIfNeeded", function () {
+        it("downloads the list.json file from the linux-aarch64 repo and populates the expected fields", async () => {
+          await downloader.updateCompilerListIfNeeded(new Set(["0.8.28"]));
+
+          const compilerList: any = await fs.readJsonFile(
+            path.join(process.cwd(), "linux-aarch64", "list.json"),
+          );
+
+          const build = compilerList.builds.find(
+            (b: any) => b.version === "0.8.28",
+          );
+
+          assert.deepEqual(build, {
+            version: "0.8.28",
+            longVersion: "0.8.28",
+            path: "solc-v0.8.28",
+            sha256:
+              "891ecdd8f92a8211ee99f21bc3052b63fa098b4807f21ed8311d66e35d5aeb84",
+          });
+        });
+      });
+
+      describe("downloadCompiler", function () {
+        it("downloads the compiler from the linux-aarch64 repo", async () => {
+          await downloader.updateCompilerListIfNeeded(new Set(["0.8.28"]));
+          await downloader.downloadCompiler("0.8.28");
+
+          const binaryPath = path.join(
+            process.cwd(),
+            "linux-aarch64",
+            "solc-v0.8.28",
+          );
+          // Check the binary exists
+          assert(fs.exists(binaryPath));
+
+          // Check the sha256 matches
+          assert.equal(
+            bytesToHexString(await sha256(await fs.readBinaryFile(binaryPath))),
+            "0x891ecdd8f92a8211ee99f21bc3052b63fa098b4807f21ed8311d66e35d5aeb84",
+          );
+        });
+      });
+
+      describe("getCompiler", function () {
+        it("gets the compiler", async () => {
+          await downloader.updateCompilerListIfNeeded(new Set(["0.8.28"]));
+          await downloader.downloadCompiler("0.8.28");
+
+          // Trick the system by deleting the .does.not.work file, because this test might not be running on an arm64 linux machine
+          const binaryPath = path.join(
+            process.cwd(),
+            "linux-aarch64",
+            "solc-v0.8.28",
+          );
+          await fs.remove(`${binaryPath}.does.not.work`);
+
+          const compiler = await downloader.getCompiler("0.8.28");
+
+          if (compiler === undefined) {
+            assert.fail("getCompiler returned undefined");
+          }
+
+          assert.equal(compiler.compilerPath, binaryPath);
+          assert.equal(compiler.isSolcJs, false);
+          assert.equal(compiler.longVersion, "0.8.28");
+          assert.equal(compiler.version, "0.8.28");
+        });
       });
     });
   },

@@ -1,4 +1,5 @@
 import { keccak256 as keccak256Impl } from "ethereum-cryptography/keccak";
+import { sha256 as sha256Impl } from "ethereum-cryptography/sha256";
 
 /**
  * Computes the Keccak-256 hash of the input bytes.
@@ -8,6 +9,16 @@ import { keccak256 as keccak256Impl } from "ethereum-cryptography/keccak";
  */
 export async function keccak256(bytes: Uint8Array): Promise<Uint8Array> {
   return keccak256Impl(bytes);
+}
+
+/**
+ * Computes the SHA-256 hash of the input bytes.
+ *
+ * @param bytes The input bytes to hash.
+ * @returns The SHA-256 hash of the input bytes.
+ */
+export async function sha256(bytes: Uint8Array): Promise<Uint8Array> {
+  return sha256Impl(bytes);
 }
 
 /**
