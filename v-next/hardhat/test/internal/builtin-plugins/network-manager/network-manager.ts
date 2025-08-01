@@ -1273,7 +1273,7 @@ describe("NetworkManagerImplementation", () => {
           assertValidationErrors(validationErrors, []);
 
           validationErrors = await validateNetworkUserConfig(
-            httpConfig({ chainType: "optimism" }),
+            httpConfig({ chainType: "op" }),
           );
 
           assertValidationErrors(validationErrors, []);
@@ -1293,7 +1293,7 @@ describe("NetworkManagerImplementation", () => {
           assertValidationErrors(validationErrors, [
             {
               path: ["networks", "hardhat", "chainType"],
-              message: "Expected 'l1', 'optimism', or 'generic'",
+              message: "Expected 'l1', 'op', or 'generic'",
             },
           ]);
         });
@@ -1308,7 +1308,7 @@ describe("NetworkManagerImplementation", () => {
           assertValidationErrors(validationErrors, []);
 
           validationErrors = await validateNetworkUserConfig(
-            edrConfig({ chainType: "optimism" }),
+            edrConfig({ chainType: "op" }),
           );
 
           assertValidationErrors(validationErrors, []);
@@ -1328,7 +1328,7 @@ describe("NetworkManagerImplementation", () => {
           assertValidationErrors(validationErrors, [
             {
               path: ["networks", "hardhat", "chainType"],
-              message: "Expected 'l1', 'optimism', or 'generic'",
+              message: "Expected 'l1', 'op', or 'generic'",
             },
           ]);
         });
@@ -2004,7 +2004,7 @@ describe("NetworkManagerImplementation", () => {
             {
               path: ["networks", "hardhat", "hardfork"],
               message:
-                "Invalid hardfork name anything else for chainType optimism. Expected bedrock | regolith | canyon | ecotone | fjord | granite | holocene.",
+                "Invalid hardfork name anything else for chainType op. Expected bedrock | regolith | canyon | ecotone | fjord | granite | holocene.",
             },
           ]);
         });

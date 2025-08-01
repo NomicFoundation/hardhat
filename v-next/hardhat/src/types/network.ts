@@ -5,9 +5,9 @@ import type { EthereumProvider } from "./providers.js";
  * Represents the possible chain types for the network. The options are:
  * - `GenericNetworkType`: Represents the most generic type of network.
  * - `"l1"`: Represents Layer 1 networks like Ethereum.
- * - `"optimism"`: Represents Layer 2 networks like Optimism.
+ * - `"op"`: Represents Layer 2 networks like Optimism.
  */
-export type ChainType = GenericChainType | "l1" | "optimism";
+export type ChainType = GenericChainType | "l1" | "op";
 
 /**
  * The most generic chanin type.

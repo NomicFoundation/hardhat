@@ -31,7 +31,7 @@ import { network } from "hardhat";
  * - `await network.connect({network: "sepolia", chainType: "l1"})`: Connects
  *   to the `sepolia` network config, treating it as an "l1" network.
  *
- * - `await network.connect(network: "hardhatOp", chainType: "optimism"})`:
+ * - `await network.connect(network: "hardhatOp", chainType: "op"})`:
  *   Creates a new EDR instance in Optimism mode, using the `hardhatOp`
  *   network config.
  *

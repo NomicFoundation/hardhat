@@ -190,7 +190,7 @@ function createHardhatChain<ChainTypeT extends ChainType | string>(
     id: chainId,
   };
 
-  if (chainType === "optimism") {
+  if (chainType === "op") {
     // we add the optimism contracts to enable viem's L2 actions
     chain.contracts = {
       ...optimism.contracts,

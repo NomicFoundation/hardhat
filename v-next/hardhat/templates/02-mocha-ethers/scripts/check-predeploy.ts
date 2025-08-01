@@ -20,7 +20,7 @@ async function mainnetExample() {
 async function opExample() {
   const { ethers } = await network.connect({
     network: "hardhatOp",
-    chainType: "optimism",
+    chainType: "op",
   });
 
   const gasPriceOracleCode = await ethers.provider.getCode(OP_GAS_PRICE_ORACLE);

@@ -23,7 +23,7 @@ async function mainnetExample() {
 async function opExample() {
   const { viem } = await network.connect({
     network: "hardhatOp",
-    chainType: "optimism",
+    chainType: "op",
   });
 
   const publicClient = await viem.getPublicClient();
