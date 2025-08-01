@@ -274,13 +274,24 @@ contract A {}
 );
 
 describe("getCompiler", () => {
-  beforeEach(() => {
+  useTmpDir("get-compiler");
+
+  const solcVersion = "0.8.28";
+
+  beforeEach(async () => {
     // We mock the downloader to always return the linux platform, so a native compiler is always available
     mock.method(
       CompilerDownloaderImplementation,
       "getCompilerPlatform",
       () => CompilerPlatform.LINUX,
     );
+    const downloader = new CompilerDownloader(
+      CompilerPlatform.LINUX,
+      process.cwd(),
+    );
+
+    await downloader.updateCompilerListIfNeeded(new Set([solcVersion]));
+    await downloader.downloadCompiler(solcVersion);
   });
 
   afterEach(() => {
@@ -288,14 +299,12 @@ describe("getCompiler", () => {
   });
 
   it("should return the native compiler if preferWasm is false", async () => {
-    const version = "0.8.28";
-    const compiler = await getCompiler(version, false);
+    const compiler = await getCompiler(solcVersion, false);
     assert.equal(compiler.isSolcJs, false);
   });
 
   it("should return solcjs compiler if preferWasm is true", async () => {
-    const version = "0.8.28";
-    const compiler = await getCompiler(version, true);
+    const compiler = await getCompiler(solcVersion, true);
     assert.equal(compiler.isSolcJs, true);
   });
 });
