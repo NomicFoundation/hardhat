@@ -35,7 +35,7 @@ export interface HardhatViemHelpers<
    * @param publicClientConfig A viem's PublicClientConfig object with the
    * desired configuration.
    * @returns The configured public client. If the connection's chainType is
-   * "optimism", the client will be extended with L2 actions.
+   * "op", the client will be extended with L2 actions.
    */
   getPublicClient: (
     publicClientConfig?: Partial<ViemPublicClientConfig>,
@@ -47,7 +47,7 @@ export interface HardhatViemHelpers<
    * @param walletClientConfig A viem's WalletClientConfig object with the
    * desired configuration.
    * @returns An array with the configured wallet clients. If the connection's
-   * chainType is "optimism", the clients will be extended with L2 actions.
+   * chainType is "op", the clients will be extended with L2 actions.
    */
   getWalletClients: (
     walletClientConfig?: Partial<ViemWalletClientConfig>,
@@ -60,7 +60,7 @@ export interface HardhatViemHelpers<
    * @param walletClientConfig A viem's WalletClientConfig object with the
    * desired configuration.
    * @returns The configured wallet client for the specified address. If the
-   * connection's chainType is "optimism", the client will be extended with L2
+   * connection's chainType is "op", the client will be extended with L2
    * actions.
    */
   getWalletClient: (
@@ -133,10 +133,10 @@ export interface HardhatViemHelpers<
 }
 
 export type GetPublicClientReturnType<ChainTypeT extends ChainType | string> =
-  ChainTypeT extends "optimism" ? OpPublicClient : PublicClient;
+  ChainTypeT extends "op" ? OpPublicClient : PublicClient;
 
 export type GetWalletClientReturnType<ChainTypeT extends ChainType | string> =
-  ChainTypeT extends "optimism" ? OpWalletClient : WalletClient;
+  ChainTypeT extends "op" ? OpWalletClient : WalletClient;
 
 export type PublicClient = ViemPublicClient<ViemTransport, ViemChain>;
 

@@ -5,7 +5,7 @@ async function sendL2Transaction(networkConfigName: string) {
 
   const { viem, networkConfig } = await network.connect({
     network: networkConfigName,
-    chainType: "optimism",
+    chainType: "op",
   });
 
   if (networkConfig.type === "edr") {

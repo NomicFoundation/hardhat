@@ -44,7 +44,7 @@ describe("Counter", async function () {
    *   to the `sepolia` network config, treating it as an "l1" network with the
    *   appropriate viem extensions.
    *
-   * - `await network.connect({network: "hardhatOp", chainType: "optimism"})`:
+   * - `await network.connect({network: "hardhatOp", chainType: "op"})`:
    *   Creates a new EDR instance in Optimism mode, using the `hardhatOp`
    *   network config.
    *
