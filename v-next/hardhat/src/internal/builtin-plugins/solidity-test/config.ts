@@ -104,7 +104,7 @@ export async function resolveSolidityTestUserConfig(
 
   const solidityTest = {
     rpcCachePath: defaultRpcCachePath,
-    ...userConfig.test?.solidityTest,
+    ...userConfig.test?.solidityTests,
   };
 
   return {
@@ -118,7 +118,7 @@ export async function resolveSolidityTestUserConfig(
     },
     test: {
       ...resolvedConfig.test,
-      solidityTest,
+      solidityTests: solidityTest,
     },
   };
 }

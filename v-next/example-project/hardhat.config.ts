@@ -211,7 +211,7 @@ const config: HardhatUserConfig = {
     mocha: {
       color: true,
     },
-    solidityTest: {
+    solidityTests: {
       timeout: 1000,
     },
   },
