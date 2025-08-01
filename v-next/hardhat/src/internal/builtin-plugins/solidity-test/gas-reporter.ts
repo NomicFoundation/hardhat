@@ -1,3 +1,4 @@
+import type { Colorizer } from "../../utils/colorizer.js";
 import type {
   FuzzTestKind,
   InvariantTestKind,
@@ -110,13 +111,17 @@ export function getReport(suiteResults: SuiteResult[]): Report {
 
 // NOTE: This is exposed for testing only
 export function formatJsonReport(report: Report): string {
-  return JSON.stringify(report, (_, value) => {
-    if (typeof value === "bigint") {
-      return value.toString();
-    } else {
-      return value;
-    }
-  });
+  return JSON.stringify(
+    report,
+    (_, value) => {
+      if (typeof value === "bigint") {
+        return value.toString();
+      } else {
+        return value;
+      }
+    },
+    2,
+  );
 }
 
 // NOTE: This is exposed for testing only
@@ -149,12 +154,15 @@ export function formatSnapshotReport(report: Report): string {
 }
 
 // NOTE: This is exposed for testing only
-export function formatMarkdownReport(report: Report): string {
+export function formatMarkdownReport(
+  report: Report,
+  colorizer: Colorizer = chalk,
+): string {
   const headerRow = [
-    chalk.bold("Contract / Function Name 📄"),
-    chalk.bold("Median Gas ⛽️"),
-    chalk.bold("Mean Gas ⛽️"),
-    chalk.bold("Runs 👟"),
+    colorizer.bold("Contract / Function Name 📄"),
+    colorizer.bold("Median Gas ⛽️"),
+    colorizer.bold("Mean Gas ⛽️"),
+    colorizer.bold("Runs 👟"),
   ];
 
   const rows: string[][] = [];
@@ -166,7 +174,7 @@ export function formatMarkdownReport(report: Report): string {
       continue;
     }
 
-    rows.push([chalk.bold(contractName)]);
+    rows.push([colorizer.bold(contractName)]);
 
     for (const [functionName, gasUsage] of Object.entries(
       gasUsageByFunctionName,
