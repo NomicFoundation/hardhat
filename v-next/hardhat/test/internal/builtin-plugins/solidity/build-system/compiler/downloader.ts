@@ -7,15 +7,15 @@ import {
   assertRejectsWithHardhatError,
   useTmpDir,
 } from "@nomicfoundation/hardhat-test-utils";
+import { sha256 } from "@nomicfoundation/hardhat-utils/crypto";
 import * as fs from "@nomicfoundation/hardhat-utils/fs";
+import { bytesToHexString } from "@nomicfoundation/hardhat-utils/hex";
 import { download } from "@nomicfoundation/hardhat-utils/request";
 
 import {
   CompilerDownloaderImplementation as CompilerDownloader,
   CompilerPlatform,
 } from "../../../../../../src/internal/builtin-plugins/solidity/build-system/compiler/downloader.js";
-import { sha256 } from "@nomicfoundation/hardhat-utils/crypto";
-import { bytesToHexString } from "@nomicfoundation/hardhat-utils/hex";
 
 describe(
   "Compiler downloader",
@@ -508,7 +508,7 @@ describe(
             "solc-v0.8.28",
           );
           // Check the binary exists
-          assert(fs.exists(binaryPath));
+          assert(await fs.exists(binaryPath), "binary should exist");
 
           // Check the sha256 matches
           assert.equal(

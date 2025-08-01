@@ -276,7 +276,7 @@ contract A {}
 describe("getCompiler", () => {
   useTmpDir("get-compiler");
 
-  const solcVersion = "0.8.28";
+  const testSolcVersion = "0.8.28";
 
   beforeEach(async () => {
     // We mock the downloader to always return the linux platform, so a native compiler is always available
@@ -290,8 +290,8 @@ describe("getCompiler", () => {
       process.cwd(),
     );
 
-    await downloader.updateCompilerListIfNeeded(new Set([solcVersion]));
-    await downloader.downloadCompiler(solcVersion);
+    await downloader.updateCompilerListIfNeeded(new Set([testSolcVersion]));
+    await downloader.downloadCompiler(testSolcVersion);
   });
 
   afterEach(() => {
@@ -299,12 +299,12 @@ describe("getCompiler", () => {
   });
 
   it("should return the native compiler if preferWasm is false", async () => {
-    const compiler = await getCompiler(solcVersion, false);
+    const compiler = await getCompiler(testSolcVersion, false);
     assert.equal(compiler.isSolcJs, false);
   });
 
   it("should return solcjs compiler if preferWasm is true", async () => {
-    const compiler = await getCompiler(solcVersion, true);
+    const compiler = await getCompiler(testSolcVersion, true);
     assert.equal(compiler.isSolcJs, true);
   });
 });

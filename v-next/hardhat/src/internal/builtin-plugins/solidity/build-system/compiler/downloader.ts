@@ -130,7 +130,7 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
       case "win32":
         return CompilerPlatform.WINDOWS;
       case "linux":
-        if (os.arch() == "arm64") {
+        if (os.arch() === "arm64") {
           return CompilerPlatform.LINUX_ARM64;
         } else {
           return CompilerPlatform.LINUX;
