@@ -11,6 +11,7 @@ import {
 } from "@nomicfoundation/edr";
 
 import { testReporter } from "../../../../src/internal/builtin-plugins/solidity-test/reporter.js";
+import { noopColorizer, tagColorizer } from "../../utils/colorizer.js";
 
 function arrayAsAsyncGenerator<T>(array: T[]): AsyncGenerator<T, void> {
   return (async function* () {
@@ -19,26 +20,6 @@ function arrayAsAsyncGenerator<T>(array: T[]): AsyncGenerator<T, void> {
     }
   })();
 }
-
-const noopColorizer = {
-  blue: (text: string) => text,
-  green: (text: string) => text,
-  red: (text: string) => text,
-  yellow: (text: string) => text,
-  cyan: (text: string) => text,
-  grey: (text: string) => text,
-  dim: (text: string) => text,
-};
-
-const tagColorizer = {
-  blue: (text: string) => `<blue>${text}</blue>`,
-  green: (text: string) => `<green>${text}</green>`,
-  red: (text: string) => `<red>${text}</red>`,
-  yellow: (text: string) => `<yellow>${text}</yellow>`,
-  cyan: (text: string) => `<cyan>${text}</cyan>`,
-  grey: (text: string) => `<grey>${text}</grey>`,
-  dim: (text: string) => `<dim>${text}</dim>`,
-};
 
 async function arrayifiedTestReporter(
   arraySource: TestEvent[],

@@ -1,3 +1,4 @@
+import type { Colorizer } from "../../utils/colorizer.js";
 import type {
   LogTrace,
   ArtifactId,
@@ -9,16 +10,6 @@ import { LogKind, CallKind } from "@nomicfoundation/edr";
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { bytesToHexString } from "@nomicfoundation/hardhat-utils/hex";
 import chalk from "chalk";
-
-export interface Colorizer {
-  blue: (text: string) => string;
-  green: (text: string) => string;
-  red: (text: string) => string;
-  cyan: (text: string) => string;
-  yellow: (text: string) => string;
-  grey: (text: string) => string;
-  dim: (text: string) => string;
-}
 
 type NestedArray<T> = Array<T | NestedArray<T>>;
 

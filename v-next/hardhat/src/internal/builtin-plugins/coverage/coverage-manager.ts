@@ -5,6 +5,7 @@ import type {
   Statement,
   Tag,
 } from "./types.js";
+import type { Colorizer } from "../../utils/colorizer.js";
 
 import path from "node:path";
 
@@ -445,7 +446,10 @@ export class CoverageManagerImplementation implements CoverageManager {
   }
 
   // NOTE: This is exposed for testing only
-  public formatMarkdownReport(report: Report): string {
+  public formatMarkdownReport(
+    report: Report,
+    colorizer: Colorizer = chalk,
+  ): string {
     let totalExecutedLines = 0;
     let totalExecutableLines = 0;
 
@@ -453,11 +457,11 @@ export class CoverageManagerImplementation implements CoverageManager {
     let totalExecutableStatements = 0;
 
     const headerRow = [
-      chalk.bold("File Path 📦"),
-      chalk.bold("Line Coverage % 📈"),
-      chalk.bold("Statement Coverage % 📈"),
-      chalk.bold("Uncovered Lines 🔍"),
-      chalk.bold("Partially Covered Lines 🔍"),
+      colorizer.bold("File Path 📦"),
+      colorizer.bold("Line Coverage % 📈"),
+      colorizer.bold("Statement Coverage % 📈"),
+      colorizer.bold("Uncovered Lines 🔍"),
+      colorizer.bold("Partially Covered Lines 🔍"),
     ];
 
     const rows = Object.entries(report).map(
@@ -488,7 +492,7 @@ export class CoverageManagerImplementation implements CoverageManager {
         totalExecutableStatements += tagExecutionCounts.size;
 
         const row: string[] = [
-          chalk.bold(this.formatRelativePath(relativePath)),
+          colorizer.bold(this.formatRelativePath(relativePath)),
           this.formatCoverage(lineCoverage),
           this.formatCoverage(statementCoverage),
           this.formatLines(unexecutedLines),

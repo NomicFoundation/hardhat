@@ -12,6 +12,7 @@ import { disableConsole, useTmpDir } from "@nomicfoundation/hardhat-test-utils";
 import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
 
 import { CoverageManagerImplementation } from "../../../../src/internal/builtin-plugins/coverage/coverage-manager.js";
+import { noopColorizer } from "../../utils/colorizer.js";
 
 describe("CoverageManagerImplementation", () => {
   const id = "test";
@@ -272,14 +273,14 @@ describe("CoverageManagerImplementation", () => {
   });
 
   it("should format the markdown report", async () => {
-    const actual = coverageManager.formatMarkdownReport(report);
+    const actual = coverageManager.formatMarkdownReport(report, noopColorizer);
     const expected = [
-      "| File Path 📦        | Line % 📈 | Statement % 📈 | Uncovered Lines 🔍 | Partially Covered Lines 🔍 |",
-      "| ------------------- | --------- | -------------- | ------------------ | -------------------------- |",
-      "| contracts/test.sol  | 80.00     | 75.00          | 6                  | 5                          |",
-      "| contracts/other.sol | 0.00      | 0.00           | 1-2                | -                          |",
-      "| ------------------- | --------- | -------------- | ------------------ | -------------------------- |",
-      "| Total               | 57.14     | 60.00          |                    |                            |",
+      "| File Path 📦        | Line Coverage % 📈 | Statement Coverage % 📈 | Uncovered Lines 🔍 | Partially Covered Lines 🔍 |",
+      "| ------------------- | ------------------ | ----------------------- | ------------------ | -------------------------- |",
+      "| contracts/test.sol  | 80.00              | 75.00                   | 6                  | 5                          |",
+      "| contracts/other.sol | 0.00               | 0.00                    | 1-2                | -                          |",
+      "| ------------------- | ------------------ | ----------------------- | ------------------ | -------------------------- |",
+      "| Total               | 57.14              | 60.00                   |                    |                            |",
     ].join("\n");
     assert.equal(actual, expected);
   });
