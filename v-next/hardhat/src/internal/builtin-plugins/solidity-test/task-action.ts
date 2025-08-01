@@ -5,9 +5,11 @@ import type { NewTaskActionFunction } from "../../../types/tasks.js";
 import type {
   ObservabilityConfig,
   SolidityTestRunnerConfigArgs,
+  SuiteResult,
   TracingConfigWithBuffers,
 } from "@nomicfoundation/edr";
 
+import path from "node:path";
 import { finished } from "node:stream/promises";
 
 import {
@@ -28,6 +30,7 @@ import {
 import { throwIfSolidityBuildFailed } from "../solidity/build-results.js";
 
 import { getEdrArtifacts, getBuildInfos } from "./edr-artifacts.js";
+import { reportGasUsage } from "./gas-reporter.js";
 import {
   isTestSuiteArtifact,
   solidityTestConfigToRunOptions,
@@ -42,10 +45,20 @@ interface TestActionArguments {
   grep?: string;
   noCompile: boolean;
   verbosity: number;
+  gasReport: boolean;
+  gasReportSnapshot: boolean;
 }
 
 const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
-  { testFiles, chainType, grep, noCompile, verbosity },
+  {
+    testFiles,
+    chainType,
+    grep,
+    noCompile,
+    verbosity,
+    gasReport,
+    gasReportSnapshot,
+  },
   hre,
 ) => {
   let rootFilePaths: string[];
@@ -116,9 +129,6 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   console.log("Running Solidity tests");
   console.log();
 
-  let includesFailures = false;
-  let includesErrors = false;
-
   const solidityTestConfig = hre.config.solidityTest;
   let observabilityConfig: ObservabilityConfig | undefined;
   if (hre.globalOptions.coverage) {
@@ -175,12 +185,11 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     options,
   );
 
+  const suiteResults: SuiteResult[] = [];
   const testReporterStream = runStream
     .on("data", (event: TestEvent) => {
       if (event.type === "suite:result") {
-        if (event.data.testResults.some(({ status }) => status === "Failure")) {
-          includesFailures = true;
-        }
+        suiteResults.push(event.data);
       }
     })
     .compose((source) =>
@@ -201,7 +210,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     await finished(outputStream);
   } catch (error) {
     console.error(error);
-    includesErrors = true;
+    process.exitCode = 1;
   }
 
   // NOTE: We collect coverage data for solidity tests in the main process.
@@ -209,7 +218,20 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   // NOTE: This might print a coverage report.
   await markTestRunDone("solidity");
 
-  if (includesFailures || includesErrors) {
+  if (gasReport) {
+    // TODO: Change the gas report directory once we settle on the format
+    const gasReportPath = path.join(hre.config.paths.cache, "gas");
+    // NOTE: This will print a gas report.
+    await reportGasUsage(gasReportPath, suiteResults, gasReportSnapshot);
+  }
+
+  const testResults = suiteResults.flatMap(
+    (suiteResult) => suiteResult.testResults,
+  );
+  const testRunFailed = testResults.some(
+    (testResult) => testResult.status === "Failure",
+  );
+  if (testRunFailed) {
     process.exitCode = 1;
   }
 
