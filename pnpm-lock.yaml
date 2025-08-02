@@ -1579,14 +1579,14 @@ importers:
         specifier: ^3.23.8
         version: 3.24.1
 
-  v-next/hardhat/templates/01-node-test-runner-viem:
+  v-next/hardhat/templates/hardhat-3/01-node-test-runner-viem:
     devDependencies:
       '@nomicfoundation/hardhat-ignition':
         specifier: workspace:^3.0.0-next.26
-        version: link:../../../hardhat-ignition
+        version: link:../../../../hardhat-ignition
       '@nomicfoundation/hardhat-toolbox-viem':
         specifier: workspace:^5.0.0-next.26
-        version: link:../../../hardhat-toolbox-viem
+        version: link:../../../../hardhat-toolbox-viem
       '@types/node':
         specifier: ^22.8.5
         version: 22.10.10
@@ -1595,7 +1595,7 @@ importers:
         version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/1eea5bae12ae557d589f9f0f0edae2faa47cb262
       hardhat:
         specifier: workspace:^3.0.0-next.26
-        version: link:../..
+        version: link:../../..
       typescript:
         specifier: ~5.8.0
         version: 5.8.3
@@ -1603,17 +1603,17 @@ importers:
         specifier: ^2.30.0
         version: 2.30.0(typescript@5.8.3)(zod@3.24.1)
 
-  v-next/hardhat/templates/02-mocha-ethers:
+  v-next/hardhat/templates/hardhat-3/02-mocha-ethers:
     devDependencies:
       '@nomicfoundation/hardhat-ethers':
         specifier: workspace:^4.0.0-next.26
-        version: link:../../../hardhat-ethers
+        version: link:../../../../hardhat-ethers
       '@nomicfoundation/hardhat-ignition':
         specifier: workspace:^3.0.0-next.26
-        version: link:../../../hardhat-ignition
+        version: link:../../../../hardhat-ignition
       '@nomicfoundation/hardhat-toolbox-mocha-ethers':
         specifier: workspace:^3.0.0-next.26
-        version: link:../../../hardhat-toolbox-mocha-ethers
+        version: link:../../../../hardhat-toolbox-mocha-ethers
       '@types/chai':
         specifier: ^4.2.0
         version: 4.3.20
@@ -1637,7 +1637,7 @@ importers:
         version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/1eea5bae12ae557d589f9f0f0edae2faa47cb262
       hardhat:
         specifier: workspace:^3.0.0-next.26
-        version: link:../..
+        version: link:../../..
       mocha:
         specifier: ^11.0.0
         version: 11.1.0
