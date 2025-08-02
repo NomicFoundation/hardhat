@@ -34,9 +34,11 @@ export interface Template {
  *
  * @returns The list of available templates.
  */
-export async function getTemplates(): Promise<Template[]> {
+export async function getTemplates(
+  templatesDir: "hardhat-2" | "hardhat-3",
+): Promise<Template[]> {
   const packageRoot = await findClosestPackageRoot(import.meta.url);
-  const pathToTemplates = path.join(packageRoot, "templates");
+  const pathToTemplates = path.join(packageRoot, "templates", templatesDir);
 
   if (!(await exists(pathToTemplates))) {
     return [];
