@@ -245,6 +245,8 @@ jobs:
         exclude:
           - package: hardhat-node-test-reporter
             node: 22.0.0
+          - package: hardhat-node-test-reporter
+            node: 24.0.0
 
     name: "[${{ matrix.package }}] ci on ${{ matrix.os }} (Node ${{ matrix.node }})"
     runs-on: ${{ matrix.os }}
