@@ -116,6 +116,7 @@ const mocker = {
       isCheatcode: false,
       gasUsed: trace.gasUsed,
       value: 0n,
+      address: "0x7c926CE5743033Cbe6f6cF7D6622EF70e05503A6",
       contract: trace.contract,
       inputs: new Uint8Array(),
       outputs: new Uint8Array(),
