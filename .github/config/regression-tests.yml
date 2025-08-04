@@ -136,7 +136,7 @@ repositories:
             "maxTestRejects": 1000000
           },
           "fsPermissions": {
-            "read": [
+            "readDirectory": [
               "./out-optimized"
             ]
           },
@@ -230,11 +230,11 @@ repositories:
             "runs": 1000
           },
           "fsPermissions": {
-            "read": [
+            "readDirectory": [
               "./optimized-out",
               "./reference-out"
             ],
-            "write": [
+            "writeFile": [
               "./call-metrics.txt",
               "./mutation-metrics.txt",
               "./assume-metrics.txt",
@@ -357,7 +357,7 @@ repositories:
         "solidityTest": {
           "ffi": true,
           "fsPermissions": {
-            "readWrite": [
+            "dangerouslyReadWriteDirectory": [
               ".forge-snapshots/"
             ]
           }
@@ -420,7 +420,7 @@ repositories:
         "solidityTest": {
           "blockGasLimit": BigInt(100000000),
           "fsPermissions": {
-            "read": [
+            "readDirectory": [
               "./test/data"
             ]
           },
@@ -477,7 +477,7 @@ repositories:
         },
         "solidityTest": {
           "fsPermissions": {
-            "readWrite": [
+            "dangerouslyReadWriteDirectory": [
               "./"
             ]
           },
@@ -603,10 +603,10 @@ repositories:
         "solidityTest": {
           "ffi": true,
           "fsPermissions": {
-            "readWrite": [
+            "dangerouslyReadWriteDirectory": [
               ".forge-snapshots/"
             ],
-            "read": [
+            "readDirectory": [
               "./foundry-out",
               "./script/config",
               "./test/pool-cl/bin",
@@ -692,7 +692,7 @@ repositories:
             "runs": 100
           },
           "fsPermissions": {
-            "readWrite": [
+            "dangerouslyReadWriteDirectory": [
               "./"
             ]
           },
@@ -754,11 +754,13 @@ repositories:
         },
         "solidityTest": {
           "fsPermissions": {
-            "read": [
-              "./out-optimized",
+            "readDirectory": [
+              "./out-optimized"
+            ],
+            "readFile": [
               "package.json"
             ],
-            "readWrite": [
+            "dangerouslyReadWriteDirectory": [
               "./benchmark/results",
               "./script/"
             ]
@@ -871,10 +873,12 @@ repositories:
           "blockTimestamp": BigInt(1714518000),
           "fsPermissions": {
             "read": [
-              "./out-optimized",
+              "./out-optimized"
+            ],
+            "readFile": [
               "package.json"
             ],
-            "readWrite": [
+            "dangerouslyReadWriteDirectory": [
               "./benchmark/results",
               "./cache"
             ]
