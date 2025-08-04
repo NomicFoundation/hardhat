@@ -75,7 +75,7 @@ importers:
         specifier: workspace:^3.0.0-next.25
         version: link:../hardhat-keystore
       '@nomicfoundation/hardhat-ledger':
-        specifier: workspace:^3.0.0-next.25
+        specifier: workspace:^3.0.0-next.26
         version: link:../hardhat-ledger
       '@nomicfoundation/hardhat-mocha':
         specifier: workspace:^3.0.0-next.25
@@ -900,19 +900,19 @@ importers:
         specifier: ^6.76.0
         version: 6.76.0
       '@nomicfoundation/hardhat-errors':
-        specifier: workspace:^3.0.0-next.25
+        specifier: workspace:^3.0.0-next.26
         version: link:../hardhat-errors
       '@nomicfoundation/hardhat-utils':
-        specifier: workspace:^3.0.0-next.25
+        specifier: workspace:^3.0.0-next.26
         version: link:../hardhat-utils
       '@nomicfoundation/hardhat-zod-utils':
-        specifier: workspace:^3.0.0-next.25
+        specifier: workspace:^3.0.0-next.26
         version: link:../hardhat-zod-utils
       debug:
         specifier: ^4.3.2
         version: 4.4.0(supports-color@5.5.0)
       hardhat:
-        specifier: workspace:^3.0.0-next.25
+        specifier: workspace:^3.0.0-next.26
         version: link:../hardhat
       micro-eth-signer:
         specifier: ^0.14.0
