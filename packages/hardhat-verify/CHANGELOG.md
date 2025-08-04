@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-verify
 
+## 2.1.1
+
+### Patch Changes
+
+- 11ee260: Don't use `undici`'s global dispatcher, making Hardhat more stable across Node.js versions
+
 ## 2.1.0
 
 ### Minor Changes
