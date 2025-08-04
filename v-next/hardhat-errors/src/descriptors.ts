@@ -2056,11 +2056,11 @@ Please check Hardhat's output for more details.`,
       },
       KEY_NOT_FOUND_DURING_TESTS_WITH_DEV_KEYSTORE: {
         number: 50002,
-        messageTemplate: `Key "{key}" not found in the development keystore. Run 'hardhat keystore set --dev {key}' to set it.`,
+        messageTemplate: `Key "{key}" not found in the development keystore. Run "npx hardhat keystore set {key} --dev" to set it.`,
         websiteTitle: "Key not found in the development keystore during tests",
         websiteDescription: `Key not found in the development keystore. During tests, configuration variables can only be accessed through the development keystore.
 
-Run 'hardhat keystore set --dev <KEY>' to set it.`,
+Run "npx hardhat keystore set {key} --dev" to set it.`,
       },
     },
   },
