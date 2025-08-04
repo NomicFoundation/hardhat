@@ -28,13 +28,25 @@ export async function sendPostRequest(
   });
 }
 
+let mockDispatcher: Undici.Dispatcher | undefined;
+
 function getDispatcher(): Undici.Dispatcher {
+  if (mockDispatcher !== undefined) {
+    return mockDispatcher;
+  }
+
   const { ProxyAgent, Agent } = require("undici") as typeof Undici;
   if (process.env.http_proxy !== undefined) {
     return new ProxyAgent(process.env.http_proxy);
   }
 
   return new Agent();
+}
+
+export function setMockDispatcher(
+  dispatcher: Undici.Dispatcher | undefined
+): void {
+  mockDispatcher = dispatcher;
 }
 
 export function isSuccessStatusCode(statusCode: number): boolean {

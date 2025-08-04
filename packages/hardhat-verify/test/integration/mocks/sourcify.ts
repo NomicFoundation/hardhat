@@ -1,9 +1,5 @@
-import {
-  Dispatcher,
-  getGlobalDispatcher,
-  MockAgent,
-  setGlobalDispatcher,
-} from "undici";
+import { MockAgent } from "undici";
+import { setMockDispatcher } from "../../../src/internal/undici";
 
 const mockAgent = new MockAgent({
   keepAliveTimeout: 10,
@@ -13,17 +9,15 @@ const mockAgent = new MockAgent({
 const client = mockAgent.get("https://sourcify.dev");
 
 export const mockEnvironmentSourcify = () => {
-  let globalDispatcher: Dispatcher;
   // enable network connections for everything but etherscan API
   mockAgent.enableNetConnect(/^(?!https:\/\/sourcify\.dev)/);
 
   before(() => {
-    globalDispatcher = getGlobalDispatcher();
-    setGlobalDispatcher(mockAgent);
+    setMockDispatcher(mockAgent);
   });
 
   after(() => {
-    setGlobalDispatcher(globalDispatcher);
+    setMockDispatcher(undefined);
   });
 };
 
