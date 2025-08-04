@@ -2050,11 +2050,9 @@ Please check Hardhat's output for more details.`,
       },
       CANNOT_CHANGED_PASSWORD_FOR_DEV_KEYSTORE: {
         number: 50001,
-        messageTemplate:
-          "Cannot change password for dev keystore, as it is auto generated.",
+        messageTemplate: `The keystore "change-password" task cannot be used with the development keystore`,
         websiteTitle: "Cannot change password for dev keystore",
-        websiteDescription:
-          "Cannot change password for dev keystore, as it is auto generated.",
+        websiteDescription: `The keystore "change-password" task cannot be used with the development keystore`,
       },
       KEY_NOT_FOUND_DURING_TESTS_WITH_DEV_KEYSTORE: {
         number: 50002,
@@ -2464,7 +2462,7 @@ Possible causes:
 Specify the exact contract using the \`--contract\` flag.`,
         websiteTitle: "Multiple contract matches",
         websiteDescription: `The deployed bytecode matches multiple compiled contracts. Specify the exact contract using the \`--contract\` flag. For example:
-        
+
 \`\`\`sh
 npx hardhat verify --contract contracts/Example.sol:ExampleContract <other args>
 \`\`\`
