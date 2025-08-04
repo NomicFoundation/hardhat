@@ -52,6 +52,7 @@ describe("Counter", function () {
   });
 
   it("The sum of the Increment events should match the current value", async function () {
+    const startBlockNumber = await ethers.provider.getBlockNumber();
     const counter = await ethers.deployContract("Counter");
 
     // run a series of increments
@@ -61,7 +62,7 @@ describe("Counter", function () {
 
     const events = await counter.queryFilter(
       counter.filters.Increment(),
-      0,
+      startBlockNumber,
       "latest",
     );
 
