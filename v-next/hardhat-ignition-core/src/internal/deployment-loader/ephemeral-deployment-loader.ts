@@ -38,7 +38,7 @@ export class EphemeralDeploymentLoader implements DeploymentLoader {
   }
 
   public async recordToJournal(message: JournalMessage): Promise<void> {
-    this._journal.record(message);
+    await this._journal.record(message);
   }
 
   public readFromJournal(): AsyncGenerator<JournalMessage, any, unknown> {

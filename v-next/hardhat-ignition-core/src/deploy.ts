@@ -81,12 +81,12 @@ export async function deploy<
   );
 
   if (executionEventListener !== undefined) {
-    executionEventListener.setModuleId({
+    await executionEventListener.setModuleId({
       type: ExecutionEventType.SET_MODULE_ID,
       moduleName: ignitionModule.id,
     });
 
-    executionEventListener.setStrategy({
+    await executionEventListener.setStrategy({
       type: ExecutionEventType.SET_STRATEGY,
       strategy: executionStrategy.name,
     });
@@ -101,7 +101,7 @@ export async function deploy<
 
   if (validationResult !== null) {
     if (executionEventListener !== undefined) {
-      executionEventListener.deploymentComplete({
+      await executionEventListener.deploymentComplete({
         type: ExecutionEventType.DEPLOYMENT_COMPLETE,
         result: validationResult,
       });
