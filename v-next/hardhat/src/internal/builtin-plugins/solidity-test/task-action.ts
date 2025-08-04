@@ -119,7 +119,7 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   let includesFailures = false;
   let includesErrors = false;
 
-  const solidityTestConfig = hre.config.test.solidityTests;
+  const solidityTestConfig = hre.config.test.solidity;
   let observabilityConfig: ObservabilityConfig | undefined;
   if (hre.globalOptions.coverage) {
     assertHardhatInvariant(

@@ -60,13 +60,13 @@ declare module "../../../types/test.js" {
   }
 
   export interface HardhatTestUserConfig {
-    solidityTests?: SolidityTestUserConfig;
+    solidity?: SolidityTestUserConfig;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-empty-interface -- This could be an extension point
   export interface SolidityTestConfig extends SolidityTestUserConfig {}
 
   export interface HardhatTestConfig {
-    solidityTests: SolidityTestConfig;
+    solidity: SolidityTestConfig;
   }
 }
