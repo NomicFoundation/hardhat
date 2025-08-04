@@ -23,6 +23,7 @@
     "./error": "./dist/src/error.js",
     "./eth": "./dist/src/eth.js",
     "./fs": "./dist/src/fs.js",
+    "./format": "./dist/src/format.js",
     "./global-dir": "./dist/src/global-dir.js",
     "./hex": "./dist/src/hex.js",
     "./lang": "./dist/src/lang.js",
@@ -82,6 +83,7 @@
     "fast-equals": "^5.0.1",
     "json-stream-stringify": "^3.1.6",
     "rfdc": "^1.3.1",
+    "string-width": "^7.2.0",
     "undici": "^6.16.1"
   }
 }
