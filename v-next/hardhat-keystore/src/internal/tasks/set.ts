@@ -6,7 +6,7 @@ import type {
 import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 import type { NewTaskActionFunction } from "hardhat/types/tasks";
 
-import { PLUGIN_ID, PLUGIN_ID_DEV } from "../constants.js";
+import { PLUGIN_ID } from "../constants.js";
 import {
   createMasterKey,
   deriveMasterKeyFromKeystore,
@@ -78,7 +78,7 @@ export const set = async (
   }
 
   const secret = await requestSecretInput(
-    dev ? PLUGIN_ID_DEV : PLUGIN_ID,
+    PLUGIN_ID,
     UserDisplayMessages.enterSecretMessage(dev),
   );
 
