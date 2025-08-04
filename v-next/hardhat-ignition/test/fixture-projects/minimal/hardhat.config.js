@@ -6,6 +6,7 @@ export default {
       },
       production: {
         version: "0.8.19",
+        preferWasm: false,
       },
     },
   },
