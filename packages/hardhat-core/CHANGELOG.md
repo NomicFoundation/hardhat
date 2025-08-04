@@ -1,5 +1,11 @@
 # hardhat
 
+## 2.26.2
+
+### Patch Changes
+
+- 11ee260: Don't use `undici`'s global dispatcher, making Hardhat more stable across Node.js versions
+
 ## 2.26.1
 
 ### Patch Changes
