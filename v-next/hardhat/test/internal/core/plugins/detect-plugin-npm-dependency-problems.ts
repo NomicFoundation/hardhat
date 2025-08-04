@@ -13,6 +13,11 @@ describe("Plugins - detect npm dependency problems", () => {
     npmPackage: "example",
   };
 
+  const pluginWithNpmPackageUndefined: HardhatPlugin = {
+    id: "example",
+    npmPackage: undefined,
+  };
+
   it("should skip validation if the plugin is not from an npm package", async () => {
     const peerDepWithWrongVersionFixture = import.meta.resolve(
       "./fixture-projects/peer-dep-with-wrong-version",
@@ -20,7 +25,7 @@ describe("Plugins - detect npm dependency problems", () => {
 
     await detectPluginNpmDependencyProblems(peerDepWithWrongVersionFixture, {
       ...plugin,
-      npmPackage: undefined,
+      npmPackage: null,
     });
   });
 
@@ -36,6 +41,17 @@ describe("Plugins - detect npm dependency problems", () => {
       );
     });
 
+    it("should pass validation if the package has been installed and the npmPackage is undefined but the id matches the package", async () => {
+      const installedPackageProjectFixture = import.meta.resolve(
+        "./fixture-projects/installed-package",
+      );
+
+      await detectPluginNpmDependencyProblems(
+        installedPackageProjectFixture,
+        pluginWithNpmPackageUndefined,
+      );
+    });
+
     it("should fail validation if the npm package has not been installed", async () => {
       const nonInstalledPackageProjectFixture = import.meta.resolve(
         "./fixture-projects/not-installed-package",
@@ -47,6 +63,24 @@ describe("Plugins - detect npm dependency problems", () => {
             nonInstalledPackageProjectFixture,
             plugin,
           ),
+        HardhatError.ERRORS.CORE.PLUGINS.PLUGIN_NOT_INSTALLED,
+        {
+          pluginId: "example-plugin",
+        },
+      );
+    });
+
+    it("should fail validation if the package has not been installed and the npmPackage is undefined but the id does not match the package", async () => {
+      const nonInstalledPackageProjectFixture = import.meta.resolve(
+        "./fixture-projects/not-installed-package",
+      );
+
+      await assertRejectsWithHardhatError(
+        async () =>
+          detectPluginNpmDependencyProblems(nonInstalledPackageProjectFixture, {
+            ...pluginWithNpmPackageUndefined,
+            id: "example-plugin",
+          }),
         HardhatError.ERRORS.CORE.PLUGINS.PLUGIN_NOT_INSTALLED,
         {
           pluginId: "example-plugin",
