@@ -336,7 +336,12 @@ CounterTest::testInitialValue() (gas: 11077)`;
 
   describe("formatMarkdownReport", () => {
     it("should format the report as a markdown table", () => {
-      const actual = formatMarkdownReport(report, tagColorizer);
+      const actual = formatMarkdownReport(
+        report,
+        undefined,
+        undefined,
+        tagColorizer,
+      );
       const expected = `| <bold>Contract / Function Name 📄</bold> | <bold>Median Gas ⛽️</bold> | <bold>Mean Gas ⛽️</bold> | <bold>Runs 👟</bold> |
 | ---------------------------------------- | -------------------------- | ------------------------ | -------------------- |
 | <bold>TestContract</bold>                |                            |                          |                      |

@@ -154,6 +154,8 @@ const argumentTypeValidators: Record<
     typeof value === "string" || value === undefined,
   [ArgumentType.FILE_WITHOUT_DEFAULT]: (value): value is string | undefined =>
     typeof value === "string" || value === undefined,
+  [ArgumentType.FLOAT_WITHOUT_DEFAULT]: (value): value is number | undefined =>
+    typeof value === "number" || value === undefined,
 };
 
 /**
@@ -178,6 +180,7 @@ export function parseArgumentValue(
       return validateAndParseInt(name, value);
     case ArgumentType.LEVEL:
       return validateAndParseLevel(name, value);
+    case ArgumentType.FLOAT_WITHOUT_DEFAULT:
     case ArgumentType.FLOAT:
       return validateAndParseFloat(name, value);
     case ArgumentType.BIGINT:

@@ -379,6 +379,7 @@ export function validateOptions(
     if (
       option.type !== ArgumentType.STRING_WITHOUT_DEFAULT &&
       option.type !== ArgumentType.FILE_WITHOUT_DEFAULT &&
+      option.type !== ArgumentType.FLOAT_WITHOUT_DEFAULT &&
       option.defaultValue === undefined
     ) {
       validationErrors.push({
@@ -416,6 +417,18 @@ export function validateOptions(
             validationErrors.push({
               path: [...path, name, "defaultValue"],
               message: "option defaultValue must be a boolean",
+            });
+          }
+          break;
+        }
+        case ArgumentType.FLOAT_WITHOUT_DEFAULT: {
+          if (
+            typeof option.defaultValue !== "number" &&
+            option.defaultValue !== undefined
+          ) {
+            validationErrors.push({
+              path: [...path, name, "defaultValue"],
+              message: "option defaultValue must be a number or undefined",
             });
           }
           break;
@@ -520,6 +533,7 @@ export function validatePositionalArguments(
 
           break;
         }
+        case ArgumentType.FLOAT_WITHOUT_DEFAULT:
         case ArgumentType.INT:
         case ArgumentType.FLOAT: {
           if (
