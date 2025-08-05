@@ -2572,6 +2572,58 @@ submodule2/=lib/submodule2/src/`,
           );
         });
 
+        it("Should simulate package.exports for forge-std, but still allow importing with src/", async () => {
+          await using project =
+            await useTestProjectTemplate(templateWithForgeStd);
+          const resolver = await ResolverImplementation.create(
+            project.path,
+            readUtf8File,
+          );
+          const absoluteFilePath = path.join(project.path, "contracts/A.sol");
+          const result = await resolver.resolveProjectFile(absoluteFilePath);
+          assert.ok(result.success, "Result should be successful");
+
+          assert.deepEqual(
+            await resolver.resolveImport(
+              result.value,
+              "forge-std/src/Test.sol",
+            ),
+            {
+              success: true,
+              value: {
+                file: {
+                  type: ResolvedFileType.NPM_PACKAGE_FILE,
+                  fsPath: path.join(
+                    project.path,
+                    "node_modules/forge-std/src/Test.sol",
+                  ),
+                  content: {
+                    text: `Test`,
+                    importPaths: [],
+                    versionPragmas: [],
+                  },
+                  inputSourceName: "npm/forge-std@1.2.3/src/Test.sol",
+                  package: {
+                    name: "forge-std",
+                    version: "1.2.3",
+                    rootFsPath: path.join(
+                      project.path,
+                      "node_modules/forge-std",
+                    ),
+                    inputSourceNameRoot: "npm/forge-std@1.2.3",
+                    exports: undefined,
+                  },
+                },
+                remapping: {
+                  context: "project/",
+                  prefix: "forge-std/",
+                  target: "npm/forge-std@1.2.3/",
+                },
+              },
+            },
+          );
+        });
+
         it("Should return the right errors as if it had a package.exports", async () => {
           await using project =
             await useTestProjectTemplate(templateWithForgeStd);

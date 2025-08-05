@@ -714,6 +714,10 @@ export class ResolverImplementation implements Resolver {
       const dependencyWithPackageExports = {
         ...dependency,
         exports: dependency.exports ?? {
+          // If someone imports with the full path, we wan't it to work
+          "./src/*.sol": "./src/*.sol",
+          // If they import assuming the typical remapping into src/, we also
+          // want it to work
           "./*.sol": "./src/*.sol",
         },
       };
