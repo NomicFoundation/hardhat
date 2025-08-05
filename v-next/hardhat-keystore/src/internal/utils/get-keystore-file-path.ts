@@ -23,5 +23,5 @@ export async function getDevKeystoreFilePath(): Promise<string> {
  */
 export async function getDevKeystorePasswordFilePath(): Promise<string> {
   const configDirPath = await getConfigDir();
-  return path.join(configDirPath, "dev.keystore.checksum.txt");
+  return path.join(configDirPath, "hardhat.checksum");
 }

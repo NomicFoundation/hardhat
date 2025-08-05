@@ -22,7 +22,7 @@ const fakeKeystoreDevPasswordFilePath = path.join(
   "..",
   "fixture-projects",
   "keystore",
-  "fake-keystore-dev-password-path-loader.txt",
+  "fake-keystore-hardhat.checksum-path-loader",
 );
 
 describe("KeystoreFileLoader", () => {

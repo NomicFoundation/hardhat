@@ -38,7 +38,7 @@ const existingKeystoreDevFilePath = path.join(
 );
 const existingKeystoreDevPasswordFilePath = path.join(
   basePath,
-  "fake-keystore-dev-password-path-ci.txt",
+  "fake-keystore-hardhat.checksum-path-ci",
 );
 
 /**

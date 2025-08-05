@@ -49,7 +49,7 @@ const configurationVariableDevKeystoreFilePath = path.join(
 
 const configurationVariableDevKeystorePasswordFilePath = path.join(
   basePath,
-  "fake-keystore-dev-password-path-config-var.txt",
+  "fake-keystore-hardhat.checksum-path-config-var",
 );
 
 const nonExistingKeystoreFilePath = path.join(

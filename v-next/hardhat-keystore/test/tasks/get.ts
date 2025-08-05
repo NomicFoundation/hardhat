@@ -27,7 +27,7 @@ const fakeKeystoreDevPasswordFilePath = path.join(
   "..",
   "fixture-projects",
   "keystore",
-  "fake-keystore-dev-password-path-get.txt",
+  "fake-keystore-hardhat.checksum-path-get",
 );
 
 describe("tasks - get", () => {

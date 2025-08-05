@@ -28,7 +28,7 @@ const oldKeystoreFilePath = path.join(
   "keystore-change-password.json",
 );
 const newKeystoreFilePath = `${oldKeystoreFilePath}.tmp`;
-const fakeKeystoreDevPasswordFilePath = "./fake-keystore-dev-password-path.txt";
+const fakeKeystoreDevPasswordFilePath = "./fake-keystore-hardhat.checksum-path";
 
 describe("tasks - change-password", () => {
   let mockFileManager: MockFileManager;

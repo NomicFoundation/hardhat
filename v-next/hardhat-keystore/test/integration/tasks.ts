@@ -42,7 +42,7 @@ const keystoreProdFilePath = path.join(basePath, "keystore.json");
 const keystoreDevFilePath = path.join(basePath, "keystore-dev.json");
 const keystoreDevPasswordFilePath = path.join(
   basePath,
-  "fake-keystore-dev-password-path-tasks.txt",
+  "fake-keystore-hardhat.checksum-path-tasks",
 );
 
 /**

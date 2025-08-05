@@ -28,7 +28,7 @@ const fakeKeystoreDevPasswordFilePath = path.join(
   "..",
   "fixture-projects",
   "keystore",
-  "fake-keystore-dev-password-path-delete.txt",
+  "fake-keystore-hardhat.checksum-path-delete",
 );
 
 describe("tasks - delete", () => {
