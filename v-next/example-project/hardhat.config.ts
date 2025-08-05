@@ -207,6 +207,14 @@ const config: HardhatUserConfig = {
   typechain: {
     tsNocheck: false,
   },
+  test: {
+    mocha: {
+      color: true,
+    },
+    solidity: {
+      timeout: 1000,
+    },
+  },
 };
 
 export default config;
