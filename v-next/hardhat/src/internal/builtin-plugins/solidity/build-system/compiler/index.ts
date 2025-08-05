@@ -79,9 +79,9 @@ export async function downloadConfiguredCompilers(
 
 export async function getCompiler(
   version: string,
-  preferWasm: boolean,
+  { preferWasm }: { preferWasm: boolean },
 ): Promise<Compiler> {
-  if (preferWasm === false) {
+  if (!preferWasm) {
     const platform = CompilerDownloaderImplementation.getCompilerPlatform();
     const compilerDownloader = new CompilerDownloaderImplementation(
       platform,

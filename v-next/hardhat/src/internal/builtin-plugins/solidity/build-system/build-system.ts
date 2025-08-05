@@ -336,7 +336,9 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       let solcLongVersion = solcVersionToLongVersion.get(solcConfig.version);
 
       if (solcLongVersion === undefined) {
-        const compiler = await getCompiler(solcConfig.version, false);
+        const compiler = await getCompiler(solcConfig.version, {
+          preferWasm: false,
+        });
         solcLongVersion = compiler.longVersion;
         solcVersionToLongVersion.set(solcConfig.version, solcLongVersion);
       }
@@ -496,8 +498,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     return { compilationJobsPerFile, indexedIndividualJobs };
   }
 
-  #getBuildProfile(_buildProfileName?: string) {
-    const buildProfileName = _buildProfileName ?? DEFAULT_BUILD_PROFILE;
+  #getBuildProfile(buildProfileName: string = DEFAULT_BUILD_PROFILE) {
     const buildProfile =
       this.#options.solidityConfig.profiles[buildProfileName];
 
@@ -531,7 +532,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
     const compiler = await getCompiler(
       runnableCompilationJob.solcConfig.version,
-      buildProfile.preferWasm,
+      { preferWasm: buildProfile.preferWasm },
     );
 
     log(
