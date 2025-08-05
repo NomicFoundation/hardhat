@@ -7,7 +7,6 @@ import type {
   PathPermission,
   Artifact,
   ObservabilityConfig,
-  FsAccessPermission,
 } from "@nomicfoundation/edr";
 
 import {
@@ -16,6 +15,7 @@ import {
   l1GenesisState,
   l1HardforkLatest,
   IncludeTraces,
+  FsAccessPermission,
 } from "@nomicfoundation/edr";
 import { hexStringToBytes } from "@nomicfoundation/hardhat-utils/hex";
 
