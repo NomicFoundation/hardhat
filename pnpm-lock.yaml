@@ -144,8 +144,8 @@ importers:
   v-next/hardhat:
     dependencies:
       '@nomicfoundation/edr':
-        specifier: 0.12.0-next.3
-        version: 0.12.0-next.3
+        specifier: 0.12.0-next.4
+        version: 0.12.0-next.4
       '@nomicfoundation/hardhat-errors':
         specifier: workspace:^3.0.0-next.26
         version: link:../hardhat-errors
@@ -2428,36 +2428,36 @@ packages:
     resolution: {integrity: sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg==}
     engines: {node: '>= 8'}
 
-  '@nomicfoundation/edr-darwin-arm64@0.12.0-next.3':
-    resolution: {integrity: sha512-7IDinGMqSRSrDyVFX3wqkxEad/gIsZR/XfjtOU0Vxb153+r2ZxSLYhO+YDtVe82TPt6N1RGUSv5NEgEheKHPPQ==}
+  '@nomicfoundation/edr-darwin-arm64@0.12.0-next.4':
+    resolution: {integrity: sha512-BJKRXjqqerACk92inxu7haweb3KFk4VJ2qemIjMT7xf4k0RyOO6lzmv+pToD5MMDGEpqhLcI61ALY9oyNKirtQ==}
     engines: {node: '>= 18'}
 
-  '@nomicfoundation/edr-darwin-x64@0.12.0-next.3':
-    resolution: {integrity: sha512-NmNLmYMNp7NyCA3C4AUM1iVoD8SFtJDkJpnSR64EKv4qpz3a3MacoWq47pNCgFt/+1WpdKM3fPVmCieSa8CuNg==}
+  '@nomicfoundation/edr-darwin-x64@0.12.0-next.4':
+    resolution: {integrity: sha512-MMN3VaoPhbepI4Z0anZB0jPorpRik7XwWbTqGyuZZcmNld9ZGKXE5ZQux31eKqSzPfcukHkNilFFZhCN/ck3TA==}
     engines: {node: '>= 18'}
 
-  '@nomicfoundation/edr-linux-arm64-gnu@0.12.0-next.3':
-    resolution: {integrity: sha512-ZpD4PX1efgBGLrEZxYUuRgsUaEasjmNz4NWy1M4rX+/3OB8QRYG2qVvp93EVd4JQR8XL+RvzUU2TV7bc6UpUnA==}
+  '@nomicfoundation/edr-linux-arm64-gnu@0.12.0-next.4':
+    resolution: {integrity: sha512-SYwe1duRkr5i8KnBe3Hw1X25cy/XNVpy5dj/1KbCh8fh1bvv5/gCw+MZW2N2+XzXOwTkP3aMwI2jDGCw4yB0xQ==}
     engines: {node: '>= 18'}
 
-  '@nomicfoundation/edr-linux-arm64-musl@0.12.0-next.3':
-    resolution: {integrity: sha512-1Tcv+IoH5ovVbsOlQDm96z1FaG4MTkF67+cT1c5QvbXzSc9uI3iTomy49dHKa4s2Xy+fiGd8SVprzOjfu152cA==}
+  '@nomicfoundation/edr-linux-arm64-musl@0.12.0-next.4':
+    resolution: {integrity: sha512-FT37tuqYnjLhvlZQey5b7HMhvVVuk5vdVH58cmG6LP3y1R+G/eJJYp8ZEasm67eWgUANp/LwZ2Os0mdkkv2k3g==}
     engines: {node: '>= 18'}
 
-  '@nomicfoundation/edr-linux-x64-gnu@0.12.0-next.3':
-    resolution: {integrity: sha512-QcJ9/q+vYCCJp3Y7sp7nZC6d0P54/ukq0uOTHWQtypAIucHWT8bY3zASzTdGwl6BN6k09xBB7oAwhaWwceUz/w==}
+  '@nomicfoundation/edr-linux-x64-gnu@0.12.0-next.4':
+    resolution: {integrity: sha512-omW2AyLa2WqD7MD5tI8d4Lu4hC0fFei708pM1CWCM0C45DJJxg32e3iNoQzyPgpoVq24ck7GO1fEOWhtt0r5eQ==}
     engines: {node: '>= 18'}
 
-  '@nomicfoundation/edr-linux-x64-musl@0.12.0-next.3':
-    resolution: {integrity: sha512-ATaGBXhw3Or7aPEX+T9QRHrsXmyV5R0dauVZh6mSEkzpu5SoNIybbjZR+kfKP2QcEKX42NSc3tDEvwBIyG+EVw==}
+  '@nomicfoundation/edr-linux-x64-musl@0.12.0-next.4':
+    resolution: {integrity: sha512-lOy2UZWwLnsbLz5NnewhmkM9PtVjzIBzajXX5zcQUdjJmN3daj5wsrR/b0hC8BPqwfGlrLCBr8CJtepKNrEI6A==}
     engines: {node: '>= 18'}
 
-  '@nomicfoundation/edr-win32-x64-msvc@0.12.0-next.3':
-    resolution: {integrity: sha512-gUo4fUW8rq2oX4XuoQ5pQ8jyrkKWHRkiGicuP/ZTTx+lxlXvIFdFYu/k9yspC04odTHDibQ6Tsx7iGiR0wrVYQ==}
+  '@nomicfoundation/edr-win32-x64-msvc@0.12.0-next.4':
+    resolution: {integrity: sha512-OPpVYE7F4FuTKPdt8z0nrx/KZd7vHeNAjd4KAlzi+/X6imVHFX3sArVd0cdbw/oijINrvxgL/S6SrgbvSgASTA==}
     engines: {node: '>= 18'}
 
-  '@nomicfoundation/edr@0.12.0-next.3':
-    resolution: {integrity: sha512-OQ72j5j8gDynE1GRjTWwBj+8XTmUFuMpYcwSxdV/p5uXoO+Ac0nB3gBQ6OmdgwDK2X12zFvss/gaOf2zTwDgPQ==}
+  '@nomicfoundation/edr@0.12.0-next.4':
+    resolution: {integrity: sha512-yXMIpISsZcrlCziY5fwd9s8iJ7Rs9AD+UyHKKzSazKevMvJRlLbdCVqoEld9QZRwWo9Pc8AyAUmS9Xix+ZQiRQ==}
     engines: {node: '>= 20'}
 
   '@nomicfoundation/solidity-analyzer-darwin-arm64@0.1.2':
@@ -6355,36 +6355,36 @@ snapshots:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.18.0
 
-  '@nomicfoundation/edr-darwin-arm64@0.12.0-next.3':
+  '@nomicfoundation/edr-darwin-arm64@0.12.0-next.4':
     optional: true
 
-  '@nomicfoundation/edr-darwin-x64@0.12.0-next.3':
+  '@nomicfoundation/edr-darwin-x64@0.12.0-next.4':
     optional: true
 
-  '@nomicfoundation/edr-linux-arm64-gnu@0.12.0-next.3':
+  '@nomicfoundation/edr-linux-arm64-gnu@0.12.0-next.4':
     optional: true
 
-  '@nomicfoundation/edr-linux-arm64-musl@0.12.0-next.3':
+  '@nomicfoundation/edr-linux-arm64-musl@0.12.0-next.4':
     optional: true
 
-  '@nomicfoundation/edr-linux-x64-gnu@0.12.0-next.3':
+  '@nomicfoundation/edr-linux-x64-gnu@0.12.0-next.4':
     optional: true
 
-  '@nomicfoundation/edr-linux-x64-musl@0.12.0-next.3':
+  '@nomicfoundation/edr-linux-x64-musl@0.12.0-next.4':
     optional: true
 
-  '@nomicfoundation/edr-win32-x64-msvc@0.12.0-next.3':
+  '@nomicfoundation/edr-win32-x64-msvc@0.12.0-next.4':
     optional: true
 
-  '@nomicfoundation/edr@0.12.0-next.3':
+  '@nomicfoundation/edr@0.12.0-next.4':
     optionalDependencies:
-      '@nomicfoundation/edr-darwin-arm64': 0.12.0-next.3
-      '@nomicfoundation/edr-darwin-x64': 0.12.0-next.3
-      '@nomicfoundation/edr-linux-arm64-gnu': 0.12.0-next.3
-      '@nomicfoundation/edr-linux-arm64-musl': 0.12.0-next.3
-      '@nomicfoundation/edr-linux-x64-gnu': 0.12.0-next.3
-      '@nomicfoundation/edr-linux-x64-musl': 0.12.0-next.3
-      '@nomicfoundation/edr-win32-x64-msvc': 0.12.0-next.3
+      '@nomicfoundation/edr-darwin-arm64': 0.12.0-next.4
+      '@nomicfoundation/edr-darwin-x64': 0.12.0-next.4
+      '@nomicfoundation/edr-linux-arm64-gnu': 0.12.0-next.4
+      '@nomicfoundation/edr-linux-arm64-musl': 0.12.0-next.4
+      '@nomicfoundation/edr-linux-x64-gnu': 0.12.0-next.4
+      '@nomicfoundation/edr-linux-x64-musl': 0.12.0-next.4
+      '@nomicfoundation/edr-win32-x64-msvc': 0.12.0-next.4
 
   '@nomicfoundation/solidity-analyzer-darwin-arm64@0.1.2':
     optional: true
@@ -7738,7 +7738,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-module-utils@2.12.0(@typescript-eslint/parser@8.31.0(eslint@9.25.1)(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@4.3.4(eslint-plugin-import@2.31.0)(eslint@9.25.1))(eslint@9.25.1):
+  eslint-module-utils@2.12.0(@typescript-eslint/parser@8.31.0(eslint@9.25.1)(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@4.3.4)(eslint@9.25.1):
     dependencies:
       debug: 3.2.7
     optionalDependencies:
@@ -7760,7 +7760,7 @@ snapshots:
       doctrine: 2.1.0
       eslint: 9.25.1
       eslint-import-resolver-node: 0.3.9
-      eslint-module-utils: 2.12.0(@typescript-eslint/parser@8.31.0(eslint@9.25.1)(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@4.3.4(eslint-plugin-import@2.31.0)(eslint@9.25.1))(eslint@9.25.1)
+      eslint-module-utils: 2.12.0(@typescript-eslint/parser@8.31.0(eslint@9.25.1)(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@4.3.4)(eslint@9.25.1)
       hasown: 2.0.2
       is-core-module: 2.16.1
       is-glob: 4.0.3
