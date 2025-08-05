@@ -2,7 +2,7 @@
   "name": "template-v2-mocha-ethers-js",
   "private": true,
   "version": "0.0.1",
-  "description": "A Javascript Hardhat 2 project using Mocha and Ethers.js",
+  "description": "A Javascript project using Mocha and Ethers.js",
   "devDependencies": {
     "@nomicfoundation/hardhat-chai-matchers": "^2.0.0",
     "@nomicfoundation/hardhat-ethers": "^3.0.0",

@@ -2,7 +2,7 @@
   "name": "template-v2-empty-hardhat-config-js",
   "private": true,
   "version": "0.0.1",
-  "description": "An empty Hardhat 2 config file (hardhat.config.js)",
+  "description": "An empty config file (hardhat.config.js)",
   "devDependencies": {
     "hardhat": "^2.14.0"
   }

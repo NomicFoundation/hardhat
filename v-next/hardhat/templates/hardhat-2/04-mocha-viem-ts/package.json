@@ -2,7 +2,7 @@
   "name": "template-v2-mocha-viem-ts",
   "private": true,
   "version": "0.0.1",
-  "description": "A Typescript Hardhat 2 project using Mocha and Viem",
+  "description": "A Typescript project using Mocha and Viem",
   "devDependencies": {
     "@nomicfoundation/hardhat-ignition": "^0.15.0",
     "@nomicfoundation/hardhat-ignition-viem": "^0.15.0",

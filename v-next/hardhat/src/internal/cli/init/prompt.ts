@@ -20,8 +20,16 @@ export async function promptForHardhatVersion(): Promise<
       message: "Which version of Hardhat would you like to use?",
       initial: 0,
       choices: [
-        { name: "hardhat-3", message: "Hardhat 3", value: "hardhat-3" },
-        { name: "hardhat-2", message: "Hardhat 2", value: "hardhat-2" },
+        {
+          name: "hardhat-3",
+          message: "Hardhat 3 (recommended for new projects)",
+          value: "hardhat-3",
+        },
+        {
+          name: "hardhat-2",
+          message: "Hardhat 2 (older version)",
+          value: "hardhat-2",
+        },
       ],
     },
   ]);
