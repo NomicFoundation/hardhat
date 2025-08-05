@@ -41,7 +41,7 @@ describe("Plugins - detect npm dependency problems", () => {
       );
     });
 
-    it("should pass validation if the package has been installed and the npmPackage is undefined but the id matches the package", async () => {
+    it("should pass validation if the package has been installed and the npmPackage property is undefined but the id matches the installed package", async () => {
       const installedPackageProjectFixture = import.meta.resolve(
         "./fixture-projects/installed-package",
       );
@@ -70,20 +70,20 @@ describe("Plugins - detect npm dependency problems", () => {
       );
     });
 
-    it("should fail validation if the package has not been installed and the npmPackage is undefined but the id does not match the package", async () => {
+    it("should fail validation if the package has been installed and the npmPackage property is undefined but the id has a value that does not match the installed package", async () => {
       const nonInstalledPackageProjectFixture = import.meta.resolve(
-        "./fixture-projects/not-installed-package",
+        "./fixture-projects/installed-package",
       );
 
       await assertRejectsWithHardhatError(
         async () =>
           detectPluginNpmDependencyProblems(nonInstalledPackageProjectFixture, {
             ...pluginWithNpmPackageUndefined,
-            id: "example-plugin",
+            id: "does-not-match-installed-plugin",
           }),
         HardhatError.ERRORS.CORE.PLUGINS.PLUGIN_NOT_INSTALLED,
         {
-          pluginId: "example-plugin",
+          pluginId: "does-not-match-installed-plugin",
         },
       );
     });
