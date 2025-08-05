@@ -4,9 +4,11 @@ import HardhatMochaPlugin from "../../../src/index.js";
 
 const config: HardhatUserConfig = {
   plugins: [HardhatMochaPlugin],
-  mocha: {
-    // @ts-expect-error -- testing config validation
-    delay: 123,
+  test: {
+    mocha: {
+      // @ts-expect-error -- testing config validation
+      delay: 123,
+    },
   },
 };
 

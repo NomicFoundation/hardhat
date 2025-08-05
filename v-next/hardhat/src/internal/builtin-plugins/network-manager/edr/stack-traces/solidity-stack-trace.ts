@@ -24,6 +24,7 @@ import type {
   ContractTooLargeErrorStackTraceEntry,
   InternalFunctionCallStackEntry,
   ContractCallRunOutOfGasError,
+  CheatcodeErrorStackTraceEntry,
 } from "@nomicfoundation/edr";
 
 import {
@@ -102,6 +103,7 @@ export type SolidityStackTraceEntry =
   | UnmappedSolc063RevertErrorStackTraceEntry
   | ContractTooLargeErrorStackTraceEntry
   | InternalFunctionCallStackEntry
-  | ContractCallRunOutOfGasError;
+  | ContractCallRunOutOfGasError
+  | CheatcodeErrorStackTraceEntry;
 
 export type SolidityStackTrace = SolidityStackTraceEntry[];

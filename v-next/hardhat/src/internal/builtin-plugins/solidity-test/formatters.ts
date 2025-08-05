@@ -109,6 +109,7 @@ function formatTrace(
 ): NestedArray<string> {
   const {
     success,
+    address,
     contract,
     inputs,
     gasUsed,
@@ -132,7 +133,7 @@ function formatTrace(
   let openingLine: string;
   let closingLine: string | undefined;
   if (kind === CallKind.Create) {
-    openingLine = `[${gasUsed}] ${colorizer.yellow("→ new")} ${contract}`;
+    openingLine = `[${gasUsed}] ${colorizer.yellow("→ new")} ${contract ?? "<unknown>"}@${address}`;
     // TODO: Uncomment this when the formattedInputs starts containing
     // the address of where the contract was deployed instead of the code.
     // if (formattedInputs !== undefined) {
@@ -140,7 +141,7 @@ function formatTrace(
     // }
   } else {
     const formattedKind = formatKind(kind);
-    openingLine = `[${gasUsed}] ${color(contract)}`;
+    openingLine = `[${gasUsed}] ${color(contract ?? address)}`;
     if (formattedInputs !== undefined) {
       openingLine = `${openingLine}::${formattedInputs}`;
     }

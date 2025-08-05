@@ -8,7 +8,9 @@ declare module "../../../types/config.js" {
   export interface TestPathsConfig {
     solidity: string;
   }
+}
 
+declare module "../../../types/test.js" {
   export interface SolidityTestUserConfig {
     timeout?: number;
     fsPermissions?: {
@@ -57,14 +59,14 @@ declare module "../../../types/config.js" {
     };
   }
 
-  export interface HardhatUserConfig {
-    solidityTest?: SolidityTestUserConfig;
+  export interface HardhatTestUserConfig {
+    solidity?: SolidityTestUserConfig;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-empty-interface -- This could be an extension point
   export interface SolidityTestConfig extends SolidityTestUserConfig {}
 
-  export interface HardhatConfig {
-    solidityTest: SolidityTestConfig;
+  export interface HardhatTestConfig {
+    solidity: SolidityTestConfig;
   }
 }

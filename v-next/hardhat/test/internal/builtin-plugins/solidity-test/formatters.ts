@@ -43,6 +43,7 @@ describe("formatTraces", () => {
         isCheatcode: false,
         gasUsed: 127552n,
         value: 0n,
+        address: "0x9Cded789F1564C12102E41634157434dd1De9fE3",
         contract: "FailingCounterTest",
         inputs: { name: "setUp", arguments: [] },
         outputs: new Uint8Array(),
@@ -53,6 +54,7 @@ describe("formatTraces", () => {
             isCheatcode: false,
             gasUsed: 0n,
             value: 0n,
+            address: "0x7c926CE5743033Cbe6f6cF7D6622EF70e05503A6",
             contract: "console",
             inputs: { name: "log", arguments: ['"Setting up"'] },
             outputs: new Uint8Array(),
@@ -64,6 +66,7 @@ describe("formatTraces", () => {
             isCheatcode: false,
             gasUsed: 68915n,
             value: 0n,
+            address: "0x373b22261122919Ad39F55ac0475dd0f82Bd2499",
             contract: "Counter",
             inputs: new Uint8Array([1, 2, 3]),
             outputs: "344 bytes of code",
@@ -75,6 +78,7 @@ describe("formatTraces", () => {
             isCheatcode: false,
             gasUsed: 0n,
             value: 0n,
+            address: "0x7c926CE5743033Cbe6f6cF7D6622EF70e05503A6",
             contract: "console",
             inputs: { name: "log", arguments: ['"Counter set up"'] },
             outputs: new Uint8Array(),
@@ -88,6 +92,7 @@ describe("formatTraces", () => {
         isCheatcode: false,
         gasUsed: 32272n,
         value: 0n,
+        address: "0x9Cded789F1564C12102E41634157434dd1De9fE3",
         contract: "FailingCounterTest",
         inputs: { name: "testFailFuzzInc", arguments: ["1"] },
         outputs: new Uint8Array(),
@@ -98,6 +103,7 @@ describe("formatTraces", () => {
             isCheatcode: false,
             gasUsed: 0n,
             value: 0n,
+            address: "0x7c926CE5743033Cbe6f6cF7D6622EF70e05503A6",
             contract: "console",
             inputs: { name: "log", arguments: ['"Fuzz testing inc fail"'] },
             outputs: new Uint8Array(),
@@ -109,6 +115,7 @@ describe("formatTraces", () => {
             isCheatcode: false,
             gasUsed: 22397n,
             value: 0n,
+            address: "0x373b22261122919Ad39F55ac0475dd0f82Bd2499",
             contract: "Counter",
             inputs: { name: "inc", arguments: [] },
             outputs: new Uint8Array(),
@@ -120,6 +127,7 @@ describe("formatTraces", () => {
             isCheatcode: false,
             gasUsed: 402n,
             value: 0n,
+            address: "0x373b22261122919Ad39F55ac0475dd0f82Bd2499",
             contract: "Counter",
             inputs: { name: "x", arguments: [] },
             outputs: "1",
@@ -132,7 +140,7 @@ describe("formatTraces", () => {
     const expected = `
 [127552] ${chalk.green("FailingCounterTest")}::${chalk.green("setUp")}()
   ├─ [0] ${chalk.green("console")}::${chalk.green("log")}("Setting up") ${chalk.yellow("[staticcall]")}
-  ├─ [68915] ${chalk.yellow("→ new")} Counter
+  ├─ [68915] ${chalk.yellow("→ new")} Counter@0x373b22261122919Ad39F55ac0475dd0f82Bd2499
   │    └─ ${chalk.green("←")} 344 bytes of code
   └─ [0] ${chalk.green("console")}::${chalk.green("log")}("Counter set up") ${chalk.yellow("[staticcall]")}
 [32272] ${chalk.green("FailingCounterTest")}::${chalk.green("testFailFuzzInc")}(1)

@@ -1,7 +1,7 @@
 import type { RunOptions } from "./runner.js";
 import type { Abi } from "../../../types/artifacts.js";
-import type { SolidityTestConfig } from "../../../types/config.js";
 import type { ChainType } from "../../../types/network.js";
+import type { SolidityTestConfig } from "../../../types/test.js";
 import type {
   SolidityTestRunnerConfigArgs,
   PathPermission,
