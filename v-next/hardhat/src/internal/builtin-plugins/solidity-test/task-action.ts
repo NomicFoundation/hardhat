@@ -47,6 +47,8 @@ interface TestActionArguments {
   verbosity: number;
   gasReport: boolean;
   gasReportSnapshot: boolean;
+  gasReportDiff: boolean;
+  gasReportTolerance?: number;
 }
 
 const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
@@ -58,6 +60,8 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     verbosity,
     gasReport,
     gasReportSnapshot,
+    gasReportDiff,
+    gasReportTolerance,
   },
   hre,
 ) => {
@@ -222,7 +226,17 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     // TODO: Change the gas report directory once we settle on the format
     const gasReportPath = path.join(hre.config.paths.cache, "gas");
     // NOTE: This will print a gas report.
-    await reportGasUsage(gasReportPath, suiteResults, gasReportSnapshot);
+    const isReportWithinTolerance = await reportGasUsage(
+      gasReportPath,
+      suiteResults,
+      gasReportSnapshot,
+      gasReportDiff,
+      gasReportTolerance,
+    );
+
+    if (!isReportWithinTolerance) {
+      process.exitCode = 1;
+    }
   }
 
   const testResults = suiteResults.flatMap(

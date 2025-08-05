@@ -49,6 +49,18 @@ const hardhatPlugin: HardhatPlugin = {
         description:
           "Saves the gas report to disk (requires --gas-report to be enabled)",
       })
+      .addFlag({
+        name: "gasReportDiff",
+        description:
+          "Shows diff in the gas report (requires --gas-report to be enabled)",
+      })
+      .addOption({
+        name: "gasReportTolerance",
+        description:
+          "Sets the gas report deviation tolerance in percentages (requires --gas-report to be enabled)",
+        type: ArgumentType.FLOAT_WITHOUT_DEFAULT,
+        defaultValue: undefined,
+      })
       .setAction(import.meta.resolve("./task-action.js"))
       .build(),
   ],

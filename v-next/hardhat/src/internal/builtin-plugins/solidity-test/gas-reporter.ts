@@ -10,9 +10,21 @@ import path from "node:path";
 
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { formatMarkdownTable } from "@nomicfoundation/hardhat-utils/format";
-import { writeUtf8File } from "@nomicfoundation/hardhat-utils/fs";
+import {
+  exists,
+  readUtf8File,
+  writeUtf8File,
+} from "@nomicfoundation/hardhat-utils/fs";
 import chalk from "chalk";
 import debug from "debug";
+
+import {
+  bigIntAbs,
+  bigIntDiv,
+  bigIntFromNumber,
+  bigIntPadEnd,
+  bigIntToString,
+} from "./utils/bigint.js";
 
 const log = debug("hardhat:solidity-test:gas-reporter");
 
@@ -24,6 +36,12 @@ export type GasUsage =
   | StandardTestGasUsage
   | FuzzTestGasUsage
   | InvariantTestGasUsage;
+
+export interface CommonGasUsage {
+  medianGas: bigint;
+  meanGas: bigint;
+  runs: bigint;
+}
 
 // NOTE: This is exposed for testing only
 export function kindToGasUsage(
@@ -57,6 +75,32 @@ export function kindToGasUsage(
 }
 
 // NOTE: This is exposed for testing only
+export function gasUsageToCommonGasUsage(
+  gasUsage?: GasUsage,
+): CommonGasUsage | undefined {
+  if (gasUsage === undefined) {
+    return undefined;
+  }
+
+  switch (gasUsage.kind) {
+    case "StandardTestKind":
+      return {
+        medianGas: gasUsage.consumedGas,
+        meanGas: gasUsage.consumedGas,
+        runs: BigInt(1),
+      };
+    case "FuzzTestKind":
+      return {
+        medianGas: gasUsage.medianGas,
+        meanGas: gasUsage.meanGas,
+        runs: gasUsage.runs,
+      };
+    case "InvariantTestKind":
+      return undefined;
+  }
+}
+
+// NOTE: This is exposed for testing only
 export interface Report {
   [contractName: string]: {
     gasUsageByFunctionName: {
@@ -73,8 +117,20 @@ export async function reportGasUsage(
   reportPath: string,
   suiteResults: SuiteResult[],
   snapshot: boolean,
-): Promise<void> {
+  diff: boolean,
+  tolerance?: number,
+): Promise<boolean> {
   const report = getReport(suiteResults);
+
+  let previousReport: Report | undefined;
+  if (diff || tolerance !== undefined) {
+    const jsonReportPath = path.join(reportPath, "gas.json");
+    const jsonReportExists = await exists(jsonReportPath);
+    if (jsonReportExists) {
+      const jsonReport = await readUtf8File(jsonReportPath);
+      previousReport = parseJsonReport(jsonReport);
+    }
+  }
 
   if (snapshot) {
     const jsonReport = formatJsonReport(report);
@@ -88,10 +144,21 @@ export async function reportGasUsage(
     log(`Saved snapshot report to ${snapshotReportPath}`);
   }
 
-  const markdownReport = formatMarkdownReport(report);
+  let markdownReport: string;
+  if (diff) {
+    markdownReport = formatMarkdownReport(report, previousReport, tolerance);
+  } else {
+    markdownReport = formatMarkdownReport(report);
+  }
   console.log();
   console.log(markdownReport);
   log("Printed markdown report");
+
+  if (tolerance !== undefined && previousReport !== undefined) {
+    return isReportWithinTolerance(report, previousReport, tolerance);
+  } else {
+    return true;
+  }
 }
 
 // NOTE: This is exposed for testing only
@@ -113,7 +180,7 @@ export function getReport(suiteResults: SuiteResult[]): Report {
 export function formatJsonReport(report: Report): string {
   return JSON.stringify(
     report,
-    (_, value) => {
+    (_key, value) => {
       if (typeof value === "bigint") {
         return value.toString();
       } else {
@@ -122,6 +189,21 @@ export function formatJsonReport(report: Report): string {
     },
     2,
   );
+}
+
+// NOTE: This is exposed for testing only
+export function parseJsonReport(report: string): Report {
+  return JSON.parse(report, (_key, value) => {
+    if (typeof value === "string") {
+      try {
+        return BigInt(value);
+      } catch (_error) {
+        return value;
+      }
+    } else {
+      return value;
+    }
+  });
 }
 
 // NOTE: This is exposed for testing only
@@ -153,9 +235,82 @@ export function formatSnapshotReport(report: Report): string {
   return lines.join("\n");
 }
 
+function formatMarkdownReportCell(
+  value: bigint,
+  previousValue?: bigint,
+  tolerance?: number,
+  colorizer: Colorizer = chalk,
+): string {
+  if (previousValue === undefined || previousValue === 0n) {
+    return value.toString();
+  }
+
+  const precision = 3;
+
+  const diff =
+    bigIntDiv(value, previousValue, precision) -
+    bigIntPadEnd(BigInt(1), precision);
+  const diffString = bigIntToString(diff, precision);
+
+  const cell = `${value} (${diffString}%)`;
+
+  if (tolerance === undefined) {
+    return cell;
+  }
+
+  const absDiff = bigIntAbs(diff);
+  const absTolerance = bigIntAbs(bigIntFromNumber(tolerance, precision));
+
+  if (absDiff > absTolerance) {
+    return colorizer.red(cell);
+  } else if (absDiff === 0n) {
+    return colorizer.green(cell);
+  } else {
+    return colorizer.yellow(cell);
+  }
+}
+
+function formatMarkdownReportRow(
+  functionName: string,
+  gasUsage: GasUsage,
+  previousGasUsage?: GasUsage,
+  tolerance?: number,
+  colorizer: Colorizer = chalk,
+): string[] | undefined {
+  const usage = gasUsageToCommonGasUsage(gasUsage);
+  const previousUsage = gasUsageToCommonGasUsage(previousGasUsage);
+
+  if (usage !== undefined) {
+    if (previousUsage !== undefined) {
+      return [
+        functionName,
+        formatMarkdownReportCell(
+          usage.medianGas,
+          previousUsage.medianGas,
+          tolerance,
+          colorizer,
+        ),
+        usage.meanGas.toString(),
+        usage.runs.toString(),
+      ];
+    }
+
+    return [
+      functionName,
+      usage.medianGas.toString(),
+      usage.meanGas.toString(),
+      usage.runs.toString(),
+    ];
+  }
+
+  return undefined;
+}
+
 // NOTE: This is exposed for testing only
 export function formatMarkdownReport(
   report: Report,
+  previousReport?: Report,
+  tolerance?: number,
   colorizer: Colorizer = chalk,
 ): string {
   const headerRow = [
@@ -179,29 +334,64 @@ export function formatMarkdownReport(
     for (const [functionName, gasUsage] of Object.entries(
       gasUsageByFunctionName,
     )) {
-      switch (gasUsage.kind) {
-        case "StandardTestKind":
-          rows.push([
-            functionName,
-            gasUsage.consumedGas.toString(),
-            gasUsage.consumedGas.toString(),
-            "1",
-          ]);
-          break;
-        case "FuzzTestKind":
-          rows.push([
-            functionName,
-            gasUsage.medianGas.toString(),
-            gasUsage.meanGas.toString(),
-            gasUsage.runs.toString(),
-          ]);
-          break;
-        case "InvariantTestKind":
-          // NOTE: Invariant tests are not included in the markdown report
-          break;
+      const previousGasUsage =
+        previousReport?.[contractName]?.gasUsageByFunctionName?.[functionName];
+      const row = formatMarkdownReportRow(
+        functionName,
+        gasUsage,
+        previousGasUsage,
+        tolerance,
+        colorizer,
+      );
+      if (row !== undefined) {
+        rows.push(row);
       }
     }
   }
 
   return formatMarkdownTable(headerRow, rows, undefined);
+}
+
+// NOTE: This is exposed for testing only
+export function isReportWithinTolerance(
+  report: Report,
+  previousReport: Report,
+  tolerance: number,
+): boolean {
+  for (const [contractName, { gasUsageByFunctionName }] of Object.entries(
+    report,
+  )) {
+    if (Object.keys(gasUsageByFunctionName).length === 0) {
+      continue;
+    }
+
+    for (const [functionName, gasUsage] of Object.entries(
+      gasUsageByFunctionName,
+    )) {
+      const previousGasUsage =
+        previousReport?.[contractName]?.gasUsageByFunctionName?.[functionName];
+
+      const usage = gasUsageToCommonGasUsage(gasUsage);
+      const previousUsage = gasUsageToCommonGasUsage(previousGasUsage);
+
+      if (
+        usage !== undefined &&
+        previousUsage !== undefined &&
+        previousUsage.medianGas !== 0n
+      ) {
+        const precision = 3;
+        const diff =
+          bigIntDiv(usage.medianGas, previousUsage.medianGas, precision) -
+          bigIntPadEnd(BigInt(1), precision);
+        const absDiff = bigIntAbs(diff);
+        const absTolerance = bigIntAbs(bigIntFromNumber(tolerance, precision));
+
+        if (absDiff > absTolerance) {
+          return false;
+        }
+      }
+    }
+  }
+
+  return true;
 }
