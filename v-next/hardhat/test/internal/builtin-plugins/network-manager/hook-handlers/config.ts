@@ -138,7 +138,7 @@ describe("network-manager/hook-handlers/config", () => {
       assertValidationErrors(validationErrors, [
         {
           path: ["defaultChainType"],
-          message: "Expected 'l1', 'optimism', or 'generic'",
+          message: "Expected 'l1', 'op', or 'generic'",
         },
       ]);
     });
@@ -241,7 +241,7 @@ describe("network-manager/hook-handlers/config", () => {
       assertValidationErrors(validationErrors, [
         {
           path: ["networks", "localhost", "chainType"],
-          message: "Expected 'l1', 'optimism', or 'generic'",
+          message: "Expected 'l1', 'op', or 'generic'",
         },
       ]);
     });

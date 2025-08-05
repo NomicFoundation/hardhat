@@ -89,6 +89,7 @@ export function encodeStackTraceEntry(
     case StackTraceEntryType.RETURNDATA_SIZE_ERROR:
     case StackTraceEntryType.NONCONTRACT_ACCOUNT_CALLED_ERROR:
     case StackTraceEntryType.CALL_FAILED_ERROR:
+    case StackTraceEntryType.CHEATCODE_ERROR:
     case StackTraceEntryType.DIRECT_LIBRARY_CALL_ERROR:
       return sourceReferenceToSolidityCallsite(stackTraceEntry.sourceReference);
 
@@ -265,6 +266,7 @@ function getMessageFromLastStackTraceEntry(
       return `VM Exception while processing transaction: ${panicMessage}`;
 
     case StackTraceEntryType.CUSTOM_ERROR:
+    case StackTraceEntryType.CHEATCODE_ERROR:
       return `VM Exception while processing transaction: ${stackTraceEntry.message}`;
 
     case StackTraceEntryType.OTHER_EXECUTION_ERROR:

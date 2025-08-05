@@ -77,7 +77,11 @@ const userConfigType = z.object({
       ).optional(),
     })
     .optional(),
-  solidityTest: solidityTestUserConfigType.optional(),
+  test: z
+    .object({
+      solidityTest: solidityTestUserConfigType.optional(),
+    })
+    .optional(),
 });
 
 export function validateSolidityTestUserConfig(
@@ -100,7 +104,7 @@ export async function resolveSolidityTestUserConfig(
 
   const solidityTest = {
     rpcCachePath: defaultRpcCachePath,
-    ...userConfig.solidityTest,
+    ...userConfig.test?.solidity,
   };
 
   return {
@@ -112,6 +116,9 @@ export async function resolveSolidityTestUserConfig(
         solidity: resolveFromRoot(resolvedConfig.paths.root, testsPath),
       },
     },
-    solidityTest,
+    test: {
+      ...resolvedConfig.test,
+      solidity: solidityTest,
+    },
   };
 }
