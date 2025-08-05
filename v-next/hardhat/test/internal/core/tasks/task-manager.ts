@@ -2096,6 +2096,7 @@ describe("TaskManagerImplementation", () => {
                     .setAction("file://not-a-module")
                     .build(),
                 ],
+                npmPackage: null,
               },
             ],
           },
