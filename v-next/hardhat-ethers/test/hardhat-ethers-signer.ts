@@ -1,7 +1,6 @@
 import type { ExampleContract } from "./helpers/example-contracts.js";
 import type { HardhatEthers } from "../src/types.js";
 import type { AuthorizationRequest } from "ethers";
-import type { EthereumProvider } from "hardhat/types/providers";
 
 import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
@@ -40,12 +39,7 @@ describe("hardhat ethers signer", () => {
       passphrase: "",
     };
 
-    async function testStringPrivateKeys(
-      hhEthers: HardhatEthers,
-      hhProvider: EthereumProvider,
-    ) {
-      await hhProvider.request({ method: "hardhat_reset" });
-
+    async function testStringPrivateKeys(hhEthers: HardhatEthers) {
       const signer = await hhEthers.provider.getSigner(0);
       const receiver = await hhEthers.provider.getSigner(1);
 
@@ -68,12 +62,7 @@ describe("hardhat ethers signer", () => {
       assert.equal(res.signature.networkV, null);
     }
 
-    async function testHdAccounts(
-      hhEthers: HardhatEthers,
-      hhProvider: EthereumProvider,
-    ) {
-      await hhProvider.request({ method: "hardhat_reset" });
-
+    async function testHdAccounts(hhEthers: HardhatEthers) {
       const signer = await hhEthers.provider.getSigner(0);
       const receiver = await hhEthers.provider.getSigner(1);
 
@@ -122,66 +111,62 @@ describe("hardhat ethers signer", () => {
       });
 
       it(`should work with array of private keys as strings`, async () => {
-        const { ethers: hhEthers, provider: hhProvider } =
-          await initializeTestEthers([], {
-            networks: {
-              localhost: {
-                type: "http",
-                url: LOCALHOST_URL,
-                accounts: [TEST_P_KEY_1, TEST_P_KEY_2],
-              },
+        const { ethers: hhEthers } = await initializeTestEthers([], {
+          networks: {
+            localhost: {
+              type: "http",
+              url: LOCALHOST_URL,
+              accounts: [TEST_P_KEY_1, TEST_P_KEY_2],
             },
-          });
+          },
+        });
 
-        await testStringPrivateKeys(hhEthers, hhProvider);
+        await testStringPrivateKeys(hhEthers);
       });
 
       it(`should work with hd accounts`, async () => {
-        const { ethers: hhEthers, provider: hhProvider } =
-          await initializeTestEthers([], {
-            networks: {
-              localhost: {
-                type: "http",
-                url: LOCALHOST_URL,
-                accounts: HD_ACCOUNTS,
-              },
+        const { ethers: hhEthers } = await initializeTestEthers([], {
+          networks: {
+            localhost: {
+              type: "http",
+              url: LOCALHOST_URL,
+              accounts: HD_ACCOUNTS,
             },
-          });
+          },
+        });
 
-        await testHdAccounts(hhEthers, hhProvider);
+        await testHdAccounts(hhEthers);
       });
     });
 
     describe("hardhat accounts", () => {
       it(`should work with an array that has private keys as strings`, async () => {
-        const { ethers: hhEthers, provider: hhProvider } =
-          await initializeTestEthers([], {
-            networks: {
-              default: {
-                type: "edr",
-                accounts: [
-                  { balance: "1000000000000000000", privateKey: TEST_P_KEY_1 },
-                  { balance: "1000000000000000000", privateKey: TEST_P_KEY_2 },
-                ],
-              },
+        const { ethers: hhEthers } = await initializeTestEthers([], {
+          networks: {
+            default: {
+              type: "edr",
+              accounts: [
+                { balance: "1000000000000000000", privateKey: TEST_P_KEY_1 },
+                { balance: "1000000000000000000", privateKey: TEST_P_KEY_2 },
+              ],
             },
-          });
+          },
+        });
 
-        await testStringPrivateKeys(hhEthers, hhProvider);
+        await testStringPrivateKeys(hhEthers);
       });
 
       it(`should work`, async () => {
-        const { ethers: hhEthers, provider: hhProvider } =
-          await initializeTestEthers([], {
-            networks: {
-              default: {
-                type: "edr",
-                accounts: HD_ACCOUNTS,
-              },
+        const { ethers: hhEthers } = await initializeTestEthers([], {
+          networks: {
+            default: {
+              type: "edr",
+              accounts: HD_ACCOUNTS,
             },
-          });
+          },
+        });
 
-        await testHdAccounts(hhEthers, hhProvider);
+        await testHdAccounts(hhEthers);
       });
     });
   });

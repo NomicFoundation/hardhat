@@ -1273,7 +1273,7 @@ describe("NetworkManagerImplementation", () => {
           assertValidationErrors(validationErrors, []);
 
           validationErrors = await validateNetworkUserConfig(
-            httpConfig({ chainType: "optimism" }),
+            httpConfig({ chainType: "op" }),
           );
 
           assertValidationErrors(validationErrors, []);
@@ -1293,7 +1293,7 @@ describe("NetworkManagerImplementation", () => {
           assertValidationErrors(validationErrors, [
             {
               path: ["networks", "hardhat", "chainType"],
-              message: "Expected 'l1', 'optimism', or 'generic'",
+              message: "Expected 'l1', 'op', or 'generic'",
             },
           ]);
         });
@@ -1308,7 +1308,7 @@ describe("NetworkManagerImplementation", () => {
           assertValidationErrors(validationErrors, []);
 
           validationErrors = await validateNetworkUserConfig(
-            edrConfig({ chainType: "optimism" }),
+            edrConfig({ chainType: "op" }),
           );
 
           assertValidationErrors(validationErrors, []);
@@ -1328,7 +1328,7 @@ describe("NetworkManagerImplementation", () => {
           assertValidationErrors(validationErrors, [
             {
               path: ["networks", "hardhat", "chainType"],
-              message: "Expected 'l1', 'optimism', or 'generic'",
+              message: "Expected 'l1', 'op', or 'generic'",
             },
           ]);
         });
@@ -1878,103 +1878,6 @@ describe("NetworkManagerImplementation", () => {
       });
     });
 
-    describe("enableRip7212", () => {
-      describe("edr config", () => {
-        it("should validate a valid network config", async () => {
-          let validationErrors = await validateNetworkUserConfig(
-            edrConfig({ enableRip7212: true }),
-          );
-
-          assertValidationErrors(validationErrors, []);
-
-          validationErrors = await validateNetworkUserConfig(
-            edrConfig({ enableRip7212: false }),
-          );
-
-          assertValidationErrors(validationErrors, []);
-        });
-
-        it("should not validate an invalid network config", async () => {
-          const validationErrors = await validateNetworkUserConfig(
-            edrConfig({ enableRip7212: "incorrect" }),
-          );
-
-          assertValidationErrors(validationErrors, [
-            {
-              path: ["networks", "hardhat", "enableRip7212"],
-              message: "Expected boolean, received string",
-            },
-          ]);
-        });
-      });
-    });
-
-    describe("enableTransientStorage", () => {
-      describe("edr config", () => {
-        it("should validate a valid network config", async () => {
-          let validationErrors = await validateNetworkUserConfig(
-            edrConfig({ enableTransientStorage: true }),
-          );
-
-          assertValidationErrors(validationErrors, []);
-
-          validationErrors = await validateNetworkUserConfig(
-            edrConfig({ enableTransientStorage: false, hardfork: "berlin" }),
-          );
-
-          assertValidationErrors(validationErrors, []);
-        });
-
-        it("should not validate an invalid network config", async () => {
-          let validationErrors = await validateNetworkUserConfig(
-            edrConfig({ enableTransientStorage: true, hardfork: "berlin" }),
-          );
-
-          assertValidationErrors(validationErrors, [
-            {
-              path: ["networks", "hardhat"],
-              message:
-                "'enableTransientStorage' is not supported for hardforks before 'cancun'. Please use a hardfork from 'cancun' onwards to enable this feature.",
-            },
-          ]);
-
-          validationErrors = await validateNetworkUserConfig(
-            edrConfig({ enableTransientStorage: false, hardfork: "cancun" }),
-          );
-
-          assertValidationErrors(validationErrors, [
-            {
-              path: ["networks", "hardhat"],
-              message:
-                "'enableTransientStorage' must be enabled for hardforks 'cancun' or later. To disable this feature, use a hardfork before 'cancun'.",
-            },
-          ]);
-
-          validationErrors = await validateNetworkUserConfig(
-            edrConfig({ enableTransientStorage: "incorrect" }),
-          );
-
-          assertValidationErrors(validationErrors, [
-            {
-              path: ["networks", "hardhat", "enableTransientStorage"],
-              message: "Expected boolean, received string",
-            },
-          ]);
-
-          validationErrors = await validateNetworkUserConfig(
-            edrConfig({ enableTransientStorage: "incorrect" }),
-          );
-
-          assertValidationErrors(validationErrors, [
-            {
-              path: ["networks", "hardhat", "enableTransientStorage"],
-              message: "Expected boolean, received string",
-            },
-          ]);
-        });
-      });
-    });
-
     describe("forking", () => {
       describe("edr config", () => {
         it("should validate a valid network config", async () => {
@@ -2101,7 +2004,7 @@ describe("NetworkManagerImplementation", () => {
             {
               path: ["networks", "hardhat", "hardfork"],
               message:
-                "Invalid hardfork name anything else for chainType optimism. Expected bedrock | regolith | canyon | ecotone | fjord | granite | holocene.",
+                "Invalid hardfork name anything else for chainType op. Expected bedrock | regolith | canyon | ecotone | fjord | granite | holocene.",
             },
           ]);
         });

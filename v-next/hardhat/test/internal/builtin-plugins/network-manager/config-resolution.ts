@@ -123,8 +123,6 @@ describe("config-resolution", () => {
         allowBlocksWithSameTimestamp: true,
         allowUnlimitedContractSize: true,
         blockGasLimit: 20_000_000,
-        enableRip7212: true,
-        enableTransientStorage: true,
         initialDate: new Date(),
         loggingEnabled: true,
         minGasPrice: 10,
@@ -157,11 +155,6 @@ describe("config-resolution", () => {
         edrNetworkConfig.blockGasLimit,
         // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- cast for testing
         BigInt(userConfig.blockGasLimit as number),
-      );
-      assert.equal(edrNetworkConfig.enableRip7212, userConfig.enableRip7212);
-      assert.equal(
-        edrNetworkConfig.enableTransientStorage,
-        userConfig.enableTransientStorage,
       );
       assert.equal(edrNetworkConfig.initialDate, userConfig.initialDate);
       assert.equal(edrNetworkConfig.loggingEnabled, userConfig.loggingEnabled);
@@ -202,8 +195,6 @@ describe("config-resolution", () => {
       assert.equal(edrNetworkConfig.allowBlocksWithSameTimestamp, false);
       assert.equal(edrNetworkConfig.allowUnlimitedContractSize, false);
       assert.equal(edrNetworkConfig.blockGasLimit, 30_000_000n);
-      assert.equal(edrNetworkConfig.enableRip7212, false);
-      assert.equal(edrNetworkConfig.enableTransientStorage, false);
       const initialDate = new Date(edrNetworkConfig.initialDate);
       assert.ok(
         Math.abs(initialDate.getTime() - now.getTime()) < 1000,
@@ -773,25 +764,21 @@ describe("config-resolution", () => {
 
   describe("resolveHardfork", () => {
     it("should return the hardfork if it is provided", () => {
-      let hardfork = resolveHardfork(
-        L1HardforkName.LONDON,
-        L1_CHAIN_TYPE,
-        true,
-      );
+      let hardfork = resolveHardfork(L1HardforkName.LONDON, L1_CHAIN_TYPE);
       assert.equal(hardfork, L1HardforkName.LONDON);
 
-      hardfork = resolveHardfork(L1HardforkName.LONDON, L1_CHAIN_TYPE, false);
+      hardfork = resolveHardfork(L1HardforkName.LONDON, L1_CHAIN_TYPE);
       assert.equal(hardfork, L1HardforkName.LONDON);
     });
 
     it("should return the current hardfork if no hardfork is provided", () => {
-      let hardfork = resolveHardfork(undefined, L1_CHAIN_TYPE, true);
+      let hardfork = resolveHardfork(undefined, L1_CHAIN_TYPE);
       assert.equal(hardfork, getCurrentHardfork(L1_CHAIN_TYPE));
 
-      hardfork = resolveHardfork(undefined, undefined, true);
+      hardfork = resolveHardfork(undefined, undefined);
       assert.equal(hardfork, getCurrentHardfork(L1_CHAIN_TYPE));
 
-      hardfork = resolveHardfork(undefined, OPTIMISM_CHAIN_TYPE, true);
+      hardfork = resolveHardfork(undefined, OPTIMISM_CHAIN_TYPE);
       assert.equal(hardfork, getCurrentHardfork(OPTIMISM_CHAIN_TYPE));
     });
   });

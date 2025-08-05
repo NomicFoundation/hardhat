@@ -1,0 +1,40 @@
+{
+  "id": "solc-0_8_28-65860e589a9467319db576328b26eea6",
+  "_format": "hh3-sol-build-info-1",
+  "solcVersion": "0.8.28",
+  "solcLongVersion": "0.8.28+commit.7893614a",
+  "input": {
+    "language": "Solidity",
+    "sources": {
+      "contracts/A.sol": {
+        "content": "// SPDX-License-Identifier: UNLICENSED\npragma solidity ^0.8.9;\n\n// Uncomment this line to use console.log\n// import \"hardhat/console.sol\";\n\ncontract A {\n  uint public id = 123;\n}\n"
+      },
+      "contracts/B.sol": {
+        "content": "// SPDX-License-Identifier: UNLICENSED\npragma solidity ^0.8.9;\n\n// Uncomment this line to use console.log\n// import \"hardhat/console.sol\";\n\ncontract B {\n  uint public id = 456;\n}\n"
+      }
+    },
+    "settings": {
+      "evmVersion": "paris",
+      "optimizer": {
+        "enabled": false,
+        "runs": 200
+      },
+      "outputSelection": {
+        "*": {
+          "*": [
+            "abi",
+            "evm.bytecode",
+            "evm.deployedBytecode",
+            "evm.methodIdentifiers",
+            "metadata"
+          ],
+          "": ["ast"]
+        }
+      }
+    }
+  },
+  "userSourceNameMap": {
+    "contracts/A.sol": "contracts/A.sol",
+    "contracts/B.sol": "contracts/B.sol"
+  }
+}

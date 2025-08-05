@@ -98,8 +98,8 @@ describe("Libraries handling", () => {
       const linkedBytecode = linkLibraries(
         deploymentFixturesArtifacts.WithAmbiguousLibraryName,
         {
-          ["contracts/Libs.sol:Lib"]: mockAddress,
-          ["contracts/C.sol:Lib"]: mockAddress2,
+          ["project/contracts/Libs.sol:Lib"]: mockAddress,
+          ["project/contracts/C.sol:Lib"]: mockAddress2,
         },
       );
 
@@ -120,7 +120,7 @@ describe("Libraries handling", () => {
 
       const firstRef =
         deploymentFixturesArtifacts.WithLibrary.linkReferences[
-          "contracts/C.sol"
+          "project/contracts/C.sol"
         ].Lib[0];
 
       assert.equal(

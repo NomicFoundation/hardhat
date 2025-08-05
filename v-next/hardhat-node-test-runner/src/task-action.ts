@@ -44,7 +44,7 @@ async function getTestFiles(
   }
 
   return getAllFilesMatching(
-    config.paths.tests.nodeTest,
+    config.paths.tests.nodejs,
     (f) => isJavascriptFile(f) || isTypescriptFile(f),
   );
 }

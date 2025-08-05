@@ -27,19 +27,7 @@ describe("chains", () => {
       assert.equal(provider.callCount, 1);
     });
 
-    it("should return the hardhat chain if the network is hardhat and chaintype is optimism", async () => {
-      const provider = new MockEthereumProvider({
-        eth_chainId: "0xa", // Op mainnet: 10
-        hardhat_metadata: {},
-      });
-
-      const chain = await getChain(provider, "optimism");
-
-      assert.deepEqual(chain, chains.optimism);
-      assert.equal(provider.callCount, 2);
-    });
-
-    it("should return the hardhat chain if the network is hardhat and chaintype is generic", async () => {
+    it("should return the hardhat chain if the network is hardhat and it's not a forked network", async () => {
       const provider = new MockEthereumProvider({
         eth_chainId: "0x7a69", // 31337 in hex
         hardhat_metadata: {},
@@ -48,6 +36,45 @@ describe("chains", () => {
       const chain = await getChain(provider, "generic");
 
       assert.deepEqual(chain, chains.hardhat);
+      assert.equal(provider.callCount, 2);
+    });
+
+    it("should return a forked chain with hardhat properties when hardhat is forked from a known network", async () => {
+      const provider = new MockEthereumProvider({
+        eth_chainId: "0x7a69", // 31337 in hex
+        hardhat_metadata: {
+          forkedNetwork: {
+            chainId: 1, // mainnet
+          },
+        },
+      });
+
+      const chain = await getChain(provider, "generic");
+
+      assert.deepEqual(chain, {
+        ...chains.mainnet,
+        ...chains.hardhat,
+        id: 31337,
+      });
+      assert.equal(provider.callCount, 2);
+    });
+
+    it("should return the hardhat chain when forked from an unknown network", async () => {
+      const provider = new MockEthereumProvider({
+        eth_chainId: "0x7a69", // 31337 in hex
+        hardhat_metadata: {
+          forkedNetwork: {
+            chainId: 999999, // unknown chainId
+          },
+        },
+      });
+
+      const chain = await getChain(provider, "generic");
+
+      assert.deepEqual(chain, {
+        ...chains.hardhat,
+        id: 31337,
+      });
       assert.equal(provider.callCount, 2);
     });
 

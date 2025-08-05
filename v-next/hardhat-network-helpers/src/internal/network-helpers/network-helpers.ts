@@ -19,7 +19,6 @@ import { impersonateAccount } from "./helpers/impersonate-account.js";
 import { loadFixture } from "./helpers/load-fixture.js";
 import { mineUpTo } from "./helpers/mine-up-to.js";
 import { mine } from "./helpers/mine.js";
-import { reset } from "./helpers/reset.js";
 import { setBalance } from "./helpers/set-balance.js";
 import { setBlockGasLimit } from "./helpers/set-block-gas-limit.js";
 import { setCode } from "./helpers/set-code.js";
@@ -99,11 +98,6 @@ export class NetworkHelpers implements NetworkHelpersI {
   public async mineUpTo(blockNumber: NumberLike): Promise<void> {
     await this.throwIfNotDevelopmentNetwork();
     return mineUpTo(this.#provider, blockNumber, this.time);
-  }
-
-  public async reset(url?: string, blockNumber?: NumberLike): Promise<void> {
-    await this.throwIfNotDevelopmentNetwork();
-    return reset(this, this.#provider, url, blockNumber);
   }
 
   public async setBalance(address: string, balance: NumberLike): Promise<void> {

@@ -52,7 +52,7 @@ const config: HardhatUserConfig = {
    *   allowing you to have multiple simulated networks.
    *
    * - You can set a `chainType` for each network, which is either `generic`,
-   *   `l1`, or `optimism`. This has two uses. It ensures that you always
+   *   `l1`, or `op`. This has two uses. It ensures that you always
    *   connect to the network with the right Chain Type. And, on `edr`
    *   networks, it makes sure that the simulated chain behaves exactly like the
    *   real one. More information about this can be found in the test files.
@@ -70,7 +70,7 @@ const config: HardhatUserConfig = {
     },
     hardhatOp: {
       type: "edr",
-      chainType: "optimism",
+      chainType: "op",
     },
     sepolia: {
       type: "http",

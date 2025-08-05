@@ -1,3 +1,5 @@
+import { SolidityParameterType } from "./module.js";
+
 /**
  * The configuration info needed to verify a contract on Etherscan on a given chain.
  *
@@ -32,19 +34,17 @@ export interface SourceToLibraryToAddress {
  */
 export interface VerifyInfo {
   address: string;
-  compilerVersion: string;
-  sourceCode: string;
-  name: string;
-  args: string;
+  constructorArgs: SolidityParameterType[];
+  libraries: Record<string, string>;
+  contract: string;
 }
 
 /**
  * The result of requesting the verification info for a deployment.
- * It returns the chainConfig followed by an array of VerifyInfo objects, one for each contract to be verified.
- * Alternatively, it returns null and the contract name if the contract used external artifacts that could not be resolved for verification.
+ * It returns a VerifyInfo object for each contract to be verified.
+ * Alternatively, it returns the contract name if the contract used
+ * external artifacts that could not be resolved for verification.
  *
  * @beta
  */
-export type VerifyResult =
-  | [ChainConfig, VerifyInfo]
-  | [_null: null, name: string];
+export type VerifyResult = VerifyInfo | string;

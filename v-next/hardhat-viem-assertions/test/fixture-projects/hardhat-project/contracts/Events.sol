@@ -1,6 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
+struct TestStruct {
+  uint a;
+  uint b;
+}
+
 contract Events {
   event WithoutArgs();
   event WithIntArg(int i);
@@ -11,6 +16,9 @@ contract Events {
   event SameEventDifferentArgs(uint u, uint v);
   event SameEventDifferentArgs(uint u, string s);
   event SameEventDifferentArgs(uint u, uint v, string s);
+  event WithString(string s);
+  event WithArray(uint[] a);
+  event WithStruct(TestStruct a);
 
   constructor() {}
 
@@ -46,5 +54,17 @@ contract Events {
 
   function emitSameEventDifferentArgs3(uint u, uint v, string memory s) public {
     emit SameEventDifferentArgs(u, v, s);
+  }
+
+  function emitString(string memory s) public {
+    emit WithString(s);
+  }
+
+  function emitArray(uint[] memory a) public {
+    emit WithArray(a);
+  }
+
+  function emitStruct(TestStruct memory a) public {
+    emit WithStruct(a);
   }
 }

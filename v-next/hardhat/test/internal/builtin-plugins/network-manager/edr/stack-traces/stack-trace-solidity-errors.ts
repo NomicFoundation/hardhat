@@ -1,3 +1,8 @@
+import type {
+  SolidityStackTraceEntry,
+  StackTraceEntryType,
+} from "../../../../../../src/internal/builtin-plugins/network-manager/edr/stack-traces/solidity-stack-trace.js";
+
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
@@ -36,6 +41,20 @@ describe("SolidityCallSite", function () {
       );
 
       assert.equal(callSite.toString(), "Contract.functionName (Source.sol:1)");
+    });
+
+    it("exhaustive stack trace entries", async () => {
+      // This is a type-only test to ensure that the SolidityStackTraceEntry union type
+      // includes all the expected variants.
+      const hhEntryType = (_entryType: SolidityStackTraceEntry["type"]) => {};
+      const edrEntryType = (_entryType: StackTraceEntryType) => {};
+
+      const _test1 = (entryType: SolidityStackTraceEntry["type"]) => {
+        edrEntryType(entryType);
+      };
+      const _test2 = (entryType: StackTraceEntryType) => {
+        hhEntryType(entryType);
+      };
     });
   });
 });

@@ -1,0 +1,8 @@
+{
+  "name": "default",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "license": "ISC",
+  "description": "A Hardhat project"
+}

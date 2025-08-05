@@ -63,6 +63,9 @@ export function getMessageFromLastStackTraceEntry(
     case StackTraceEntryType.CUSTOM_ERROR:
       return stackTraceEntry.message;
 
+    case StackTraceEntryType.CHEATCODE_ERROR:
+      return stackTraceEntry.message;
+
     case StackTraceEntryType.CONTRACT_TOO_LARGE_ERROR:
       return "Trying to deploy a contract whose code is too large";
 

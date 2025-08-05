@@ -13,6 +13,14 @@ const hardhatIgnitionPlugin: HardhatPlugin = {
   hookHandlers: {
     config: import.meta.resolve("./internal/hook-handlers/config.js"),
   },
+  dependencies: [
+    async () => {
+      const { default: hardhatVerifyPlugin } = await import(
+        "@nomicfoundation/hardhat-verify"
+      );
+      return hardhatVerifyPlugin;
+    },
+  ],
   tasks: [
     emptyTask(
       "ignition",
@@ -112,15 +120,18 @@ const hardhatIgnitionPlugin: HardhatPlugin = {
       .setAction(import.meta.resolve("./internal/tasks/visualize.js"))
       .build(),
 
-    task(["ignition", "verify"], "Not implemented yet - to be available soon")
+    task(
+      ["ignition", "verify"],
+      "Verify contracts from a deployment against the configured block explorers",
+    )
       .addPositionalArgument({
         name: "deploymentId",
         type: ArgumentType.STRING,
         description: "The id of the deployment to verify",
       })
       .addFlag({
-        name: "includeUnrelatedContracts",
-        description: "Include all compiled contracts in the verification",
+        name: "force",
+        description: "Force verification",
       })
       .setAction(import.meta.resolve("./internal/tasks/verify.js"))
       .build(),
@@ -139,6 +150,17 @@ const hardhatIgnitionPlugin: HardhatPlugin = {
         description: "The id of the deployment to add the tx to",
       })
       .setAction(import.meta.resolve("./internal/tasks/track-tx.js"))
+      .build(),
+    task(
+      ["ignition", "migrate"],
+      "Migrate artifacts to the new Hardhat 3 format",
+    )
+      .addPositionalArgument({
+        name: "deploymentId",
+        type: ArgumentType.STRING,
+        description: "The id of the deployment to migrate",
+      })
+      .setAction(import.meta.resolve("./internal/tasks/migrate.js"))
       .build(),
   ],
 };

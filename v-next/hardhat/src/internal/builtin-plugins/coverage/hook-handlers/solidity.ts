@@ -3,7 +3,7 @@ import type { CoverageMetadata } from "../types.js";
 
 import path from "node:path";
 
-import { addStatementCoverageInstrumentation } from "@ignored/edr-optimism";
+import { addStatementCoverageInstrumentation } from "@nomicfoundation/edr";
 import {
   assertHardhatInvariant,
   HardhatError,

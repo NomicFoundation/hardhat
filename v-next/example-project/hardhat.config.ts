@@ -116,13 +116,13 @@ const config: HardhatUserConfig = {
   networks: {
     op: {
       type: "http",
-      chainType: "optimism",
+      chainType: "op",
       url: "https://mainnet.optimism.io/",
       accounts: [configVariable("OP_SENDER")],
     },
     edrOp: {
       type: "edr",
-      chainType: "optimism",
+      chainType: "op",
       chainId: 10,
       forking: {
         url: "https://mainnet.optimism.io",
@@ -130,13 +130,13 @@ const config: HardhatUserConfig = {
     },
     opSepolia: {
       type: "http",
-      chainType: "optimism",
+      chainType: "op",
       url: "https://sepolia.optimism.io",
       accounts: [configVariable("OP_SEPOLIA_SENDER")],
     },
     edrOpSepolia: {
       type: "edr",
-      chainType: "optimism",
+      chainType: "op",
       forking: {
         url: "https://sepolia.optimism.io",
       },
@@ -167,7 +167,7 @@ const config: HardhatUserConfig = {
   paths: {
     tests: {
       mocha: "test/mocha",
-      nodeTest: "test/node",
+      nodejs: "test/node",
       solidity: "test/contracts",
     },
   },
@@ -204,11 +204,16 @@ const config: HardhatUserConfig = {
       "forge-std/Test.sol",
     ],
   },
-  solidityTest: {
-    testFail: true,
-  },
   typechain: {
     tsNocheck: false,
+  },
+  test: {
+    mocha: {
+      color: true,
+    },
+    solidity: {
+      timeout: 1000,
+    },
   },
 };
 

@@ -14,7 +14,7 @@ import type {
   DebugTraceResult,
   ChainOverride,
   ForkConfig,
-} from "@ignored/edr-optimism";
+} from "@nomicfoundation/edr";
 
 import {
   MineOrdering,
@@ -43,7 +43,7 @@ import {
   FJORD,
   GRANITE,
   HOLOCENE,
-} from "@ignored/edr-optimism";
+} from "@nomicfoundation/edr";
 import { getUnprefixedHexString } from "@nomicfoundation/hardhat-utils/hex";
 
 import {

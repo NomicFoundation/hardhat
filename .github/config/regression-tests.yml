@@ -6,6 +6,17 @@ repositories:
       - hardhat compile
       - hardhat test solidity
     forge-version: v0.3.0
+    remappings: |
+      @soulwallet-core/=lib/soulwallet-core/
+      @source/=contracts/
+      @arbitrum/nitro-contracts=lib/nitro-contracts/
+      @solady=lib/solady/
+      @solenv=lib/solenv/src/
+      @openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/
+      @account-abstraction/=lib/account-abstraction/
+      @crypto-lib/=lib/crypto-lib/src/
+      forge-std/=lib/forge-std/src/
+      @openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/
     hardhat-config: |
       export default {
         "paths": {
@@ -16,18 +27,6 @@ repositories:
         },
         "solidity": {
           "version": "0.8.24",
-          "remappings": [
-            "@soulwallet-core/=lib/soulwallet-core/",
-            "@source/=contracts/",
-            "@arbitrum/nitro-contracts=lib/nitro-contracts/",
-            "@solady=lib/solady/",
-            "@solenv=lib/solenv/src/",
-            "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
-            "@account-abstraction/=lib/account-abstraction/",
-            "@crypto-lib/=lib/crypto-lib/src/",
-            "forge-std/=lib/forge-std/src/",
-            "@openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/"
-          ],
           "settings": {
             "viaIR": true,
             "optimizer": {
@@ -42,16 +41,17 @@ repositories:
           }
         },
         "solidityTest": {
-          "testFail": true,
-          "rpcEndpoints": {
-            "goerli": "${GOERLI_RPC_URL}",
-            "arbitrumgoerli": "${ARBITRUM_GOERLI_RPC_URL}",
-            "optimismgoerli": "${OPTIMISM_GOERLI_RPC_URL}",
-            "etherum": "${ETHERUM_RPC_URL}",
-            "arbitrum": "${ARBITRUM_RPC_URL}",
-            "optimism": "${OPTIMISM_RPC_URL}",
-            "scrollsepolia": "${SCROLL_SEPOLIA_RPC_URL}",
-            "basesepolia": "${BASE_SEPOLIA_RPC_URL}"
+          "forking": {
+            "rpcEndpoints": {
+              "goerli": "${GOERLI_RPC_URL}",
+              "arbitrumgoerli": "${ARBITRUM_GOERLI_RPC_URL}",
+              "optimismgoerli": "${OPTIMISM_GOERLI_RPC_URL}",
+              "etherum": "${ETHERUM_RPC_URL}",
+              "arbitrum": "${ARBITRUM_RPC_URL}",
+              "optimism": "${OPTIMISM_RPC_URL}",
+              "scrollsepolia": "${SCROLL_SEPOLIA_RPC_URL}",
+              "basesepolia": "${BASE_SEPOLIA_RPC_URL}"
+            }
           }
         }
       };
@@ -71,6 +71,8 @@ repositories:
       - hardhat compile
       - hardhat test solidity
     forge-version: v0.3.0
+    remappings: |
+      forge-std/=node_modules/forge-std/
     hardhat-config: |
       export default {
         "paths": {
@@ -103,6 +105,9 @@ repositories:
       - hardhat compile
       - hardhat test solidity
     forge-version: v0.3.0
+    remappings: |
+      @prb/test/=node_modules/@prb/test/
+      forge-std/=node_modules/forge-std/
     hardhat-config: |
       export default {
         "paths": {
@@ -135,17 +140,19 @@ repositories:
               "./out-optimized"
             ]
           },
-          "rpcEndpoints": {
-            "arbitrum": "https://arbitrum-mainnet.infura.io/v3/${API_KEY_INFURA}",
-            "avalanche": "https://avalanche-mainnet.infura.io/v3/${API_KEY_INFURA}",
-            "bnb_smart_chain": "https://bsc-dataseed.binance.org",
-            "gnosis_chain": "https://rpc.gnosischain.com",
-            "goerli": "https://goerli.infura.io/v3/${API_KEY_INFURA}",
-            "localhost": "http://localhost:8545",
-            "mainnet": "https://eth-mainnet.g.alchemy.com/v2/${API_KEY_ALCHEMY}",
-            "optimism": "https://optimism-mainnet.infura.io/v3/${API_KEY_INFURA}",
-            "polygon": "https://polygon-mainnet.infura.io/v3/${API_KEY_INFURA}",
-            "sepolia": "https://sepolia.infura.io/v3/${API_KEY_INFURA}"
+          "forking": {
+            "rpcEndpoints": {
+              "arbitrum": "https://arbitrum-mainnet.infura.io/v3/${API_KEY_INFURA}",
+              "avalanche": "https://avalanche-mainnet.infura.io/v3/${API_KEY_INFURA}",
+              "bnb_smart_chain": "https://bsc-dataseed.binance.org",
+              "gnosis_chain": "https://rpc.gnosischain.com",
+              "goerli": "https://goerli.infura.io/v3/${API_KEY_INFURA}",
+              "localhost": "http://localhost:8545",
+              "mainnet": "https://eth-mainnet.g.alchemy.com/v2/${API_KEY_ALCHEMY}",
+              "optimism": "https://optimism-mainnet.infura.io/v3/${API_KEY_INFURA}",
+              "polygon": "https://polygon-mainnet.infura.io/v3/${API_KEY_INFURA}",
+              "sepolia": "https://sepolia.infura.io/v3/${API_KEY_INFURA}"
+            }
           }
         }
       };
@@ -189,6 +196,18 @@ repositories:
       - hardhat compile
       - hardhat test solidity
     forge-version: v0.3.0
+    remappings: |
+      @rari-capital/solmate/=lib/solmate/
+      ds-test/=lib/ds-test/src/
+      forge-std/=lib/forge-std/src/
+      murky/=lib/murky/src/
+      @openzeppelin/=lib/openzeppelin-contracts/
+      solarray/=lib/solarray/src/
+      solady/=lib/solady/
+      seaport-sol/=lib/seaport-sol/
+      seaport-types/=lib/seaport-types/
+      seaport-core/=lib/seaport-core/
+      seaport/=contracts/
     hardhat-config: |
       export default {
         "paths": {
@@ -199,19 +218,6 @@ repositories:
         },
         "solidity": {
           "version": "0.8.24",
-          "remappings": [
-            "@rari-capital/solmate/=lib/solmate/",
-            "ds-test/=lib/ds-test/src/",
-            "forge-std/=lib/forge-std/src/",
-            "murky/=lib/murky/src/",
-            "@openzeppelin/=lib/openzeppelin-contracts/",
-            "solarray/=lib/solarray/src/",
-            "solady/=lib/solady/",
-            "seaport-sol/=lib/seaport-sol/",
-            "seaport-types/=lib/seaport-types/",
-            "seaport-core/=lib/seaport-core/",
-            "seaport/=contracts/"
-          ],
           "settings": {
             "evmVersion": "cancun",
             "optimizer": {
@@ -324,6 +330,14 @@ repositories:
       - hardhat compile
       - hardhat test solidity
     forge-version: v0.3.0
+    remappings: |
+      ds-test/=lib/forge-std/lib/ds-test/src/
+      forge-gas-snapshot/=lib/forge-gas-snapshot/src/
+      forge-std/=lib/forge-std/src/
+      openzeppelin-contracts/=lib/openzeppelin-contracts/contracts/
+      permit2/=lib/permit2/
+      solmate/=lib/solmate/
+      solarray/=lib/solarray/src/
     hardhat-config: |
       export default {
         "paths": {
@@ -334,15 +348,6 @@ repositories:
         },
         "solidity": {
           "version": "0.8.24",
-          "remappings": [
-            "ds-test/=lib/forge-std/lib/ds-test/src/",
-            "forge-gas-snapshot/=lib/forge-gas-snapshot/src/",
-            "forge-std/=lib/forge-std/src/",
-            "openzeppelin-contracts/=lib/openzeppelin-contracts/contracts/",
-            "permit2/=lib/permit2/",
-            "solmate/=lib/solmate/",
-            "solarray/=lib/solarray/src/"
-          ],
           "settings": {
             "optimizer": {
               "runs": 1000000
@@ -391,6 +396,9 @@ repositories:
       - hardhat compile
       - hardhat test solidity
     forge-version: v0.3.0
+    remappings: |
+      forge-std=test/utils/forge-std/
+      src/=src/
     hardhat-config: |
       export default {
         "paths": {
@@ -401,9 +409,6 @@ repositories:
         },
         "solidity": {
           "version": "0.8.28",
-          "remappings": [
-            "forge-std=test/utils/forge-std/"
-          ],
           "settings": {
             "optimizer": {
               "enabled": true,
@@ -438,7 +443,7 @@ repositories:
       test/P256.t.sol
       test/WebAuthn.t.sol
 
-      # This test is flaky - no action required 
+      # This test is flaky - no action required
       # testBumpSlot(bytes32,uint256): Unknown error
       test/LibStorage.t.sol
 
@@ -476,11 +481,13 @@ repositories:
               "./"
             ]
           },
-          "rpcEndpoints": {
-            "mainnet": "https://eth-mainnet.alchemyapi.io/v2/WV407BEiBmjNJfKo9Uo_55u0z0ITyCOX",
-            "optimism_sepolia": "https://sepolia.optimism.io/",
-            "arbitrum_one_sepolia": "https://sepolia-rollup.arbitrum.io/rpc/",
-            "needs_undefined_env_var": "${UNDEFINED_RPC_URL_PLACEHOLDER}"
+          "forking": {
+            "rpcEndpoints": {
+              "mainnet": "https://eth-mainnet.alchemyapi.io/v2/WV407BEiBmjNJfKo9Uo_55u0z0ITyCOX",
+              "optimism_sepolia": "https://sepolia.optimism.io/",
+              "arbitrum_one_sepolia": "https://sepolia-rollup.arbitrum.io/rpc/",
+              "needs_undefined_env_var": "${UNDEFINED_RPC_URL_PLACEHOLDER}"
+            }
           }
         }
       };
@@ -502,6 +509,11 @@ repositories:
       - hardhat compile
       - hardhat test solidity
     forge-version: v0.3.0
+    remappings: |
+      @std/=lib/forge-std/src/
+      @solady/=lib/solady/
+      ds-test/=lib/forge-std/lib/ds-test/src/
+      forge-std/=lib/forge-std/src/
     hardhat-config: |
       export default {
         "paths": {
@@ -512,21 +524,12 @@ repositories:
         },
         "solidity": {
           "version": "0.8.18",
-          "remappings": [
-            "@std/=lib/forge-std/src/",
-            "@solady/=lib/solady/",
-            "ds-test/=lib/forge-std/lib/ds-test/src/",
-            "forge-std/=lib/forge-std/src/"
-          ],
           "settings": {
             "optimizer": {
               "runs": 9999999
             }
           }
         },
-        "solidityTest": {
-          "testFail": true
-        }
       };
     ref: 21213d34042b8a5a68afeb590f43018f08c81a58
   mds1/multicall:
@@ -536,6 +539,9 @@ repositories:
       - hardhat compile
       - hardhat test solidity
     forge-version: v0.3.0
+    remappings: |
+      forge-std/=lib/forge-std/src/
+      ds-test/=lib/forge-std/lib/ds-test/src/
     hardhat-config: |
       export default {
         "paths": {
@@ -551,11 +557,7 @@ repositories:
               "enabled": true,
               "runs": 10000000
             }
-          },
-          "remappings": [
-            "forge-std/=lib/forge-std/src/",
-            "ds-test/=lib/forge-std/lib/ds-test/src/"
-          ]
+          }
         },
         "solidityTest": {
           "fuzz": {
@@ -571,6 +573,12 @@ repositories:
       - hardhat compile
       - hardhat test solidity
     forge-version: v0.3.0
+    remappings: |
+      ds-test/=lib/forge-std/lib/ds-test/src/
+      forge-std/=lib/forge-std/src/
+      @openzeppelin/=lib/openzeppelin-contracts/
+      solmate/=lib/solmate/
+      forge-gas-snapshot/=lib/forge-gas-snapshot/src/
     hardhat-config: |
       export default {
         "paths": {
@@ -581,13 +589,6 @@ repositories:
         },
         "solidity": {
           "version": "0.8.26",
-          "remappings": [
-            "ds-test/=lib/forge-std/lib/ds-test/src/",
-            "forge-std/=lib/forge-std/src/",
-            "@openzeppelin/=lib/openzeppelin-contracts/",
-            "solmate/=lib/solmate/",
-            "forge-gas-snapshot/=lib/forge-gas-snapshot/src/"
-          ],
           "settings": {
             "viaIR": true,
             "optimizer": {
@@ -600,7 +601,6 @@ repositories:
           }
         },
         "solidityTest": {
-          "testFail": true,
           "ffi": true,
           "fsPermissions": {
             "readWrite": [
@@ -661,6 +661,10 @@ repositories:
       - hardhat compile
       - hardhat test solidity
     forge-version: v0.3.0
+    remappings: |
+      solady/=lib/solady/src/
+      forge-std/=lib/forge-std/src/
+      openzeppelin/=lib/openzeppelin-contracts/contracts/
     hardhat-config: |
       export default {
         "paths": {
@@ -671,11 +675,6 @@ repositories:
         },
         "solidity": {
           "version": "0.8.23",
-          "remappings": [
-            "solady/=lib/solady/src/",
-            "forge-std/=lib/forge-std/src/",
-            "openzeppelin/=lib/openzeppelin-contracts/contracts/"
-          ],
           "settings": {
             "optimizer": {
               "enabled": true,
@@ -776,37 +775,39 @@ repositories:
             "callOverride": false
           },
           "sender": "0x1804c8AB1F12E6bbf3894d4083f33e07309d1f38",
-          "rpcEndpoints": {
-            "arbitrum": "${ARBITRUM_RPC_URL}",
-            "arbitrum_sepolia": "https://arbitrum-sepolia-rpc.publicnode.com",
-            "avalanche": "${AVALANCHE_RPC_URL}",
-            "base": "https://mainnet.base.org",
-            "base_sepolia": "https://sepolia.base.org",
-            "berachain_artio": "https://bartio.rpc.berachain.com/",
-            "blast": "https://rpc.blast.io",
-            "blast_sepolia": "https://sepolia.blast.io",
-            "bnb": "https://bsc-dataseed.binance.org",
-            "core_dao": "https://rpc.coredao.org",
-            "gnosis": "https://rpc.gnosischain.com",
-            "lightlink": "https://replicator.phoenix.lightlink.io/rpc/v1",
-            "linea": "https://rpc.linea.build",
-            "linea_sepolia": "https://rpc.sepolia.linea.build",
-            "localhost": "http://localhost:8545",
-            "mainnet": "${MAINNET_RPC_URL}",
-            "mode": "https://mainnet.mode.network/",
-            "mode_sepolia": "https://sepolia.mode.network/",
-            "morph": "https://rpc.morphl2.io",
-            "optimism": "${OPTIMISM_RPC_URL}",
-            "optimism_sepolia": "https://sepolia.optimism.io",
-            "polygon": "${POLYGON_RPC_URL}",
-            "scroll": "https://rpc.scroll.io/",
-            "sei": "https://evm-rpc.sei-apis.com",
-            "sei_testnet": "https://evm-rpc.arctic-1.seinetwork.io",
-            "sepolia": "${SEPOLIA_RPC_URL}",
-            "superseed": "https://mainnet.superseed.xyz",
-            "superseed_sepolia": "https://sepolia.superseed.xyz",
-            "taiko_hekla": "https://rpc.hekla.taiko.xyz",
-            "taiko_mainnet": "https://rpc.mainnet.taiko.xyz"
+          "forking": {
+            "rpcEndpoints": {
+              "arbitrum": "${ARBITRUM_RPC_URL}",
+              "arbitrum_sepolia": "https://arbitrum-sepolia-rpc.publicnode.com",
+              "avalanche": "${AVALANCHE_RPC_URL}",
+              "base": "https://mainnet.base.org",
+              "base_sepolia": "https://sepolia.base.org",
+              "berachain_artio": "https://bartio.rpc.berachain.com/",
+              "blast": "https://rpc.blast.io",
+              "blast_sepolia": "https://sepolia.blast.io",
+              "bnb": "https://bsc-dataseed.binance.org",
+              "core_dao": "https://rpc.coredao.org",
+              "gnosis": "https://rpc.gnosischain.com",
+              "lightlink": "https://replicator.phoenix.lightlink.io/rpc/v1",
+              "linea": "https://rpc.linea.build",
+              "linea_sepolia": "https://rpc.sepolia.linea.build",
+              "localhost": "http://localhost:8545",
+              "mainnet": "${MAINNET_RPC_URL}",
+              "mode": "https://mainnet.mode.network/",
+              "mode_sepolia": "https://sepolia.mode.network/",
+              "morph": "https://rpc.morphl2.io",
+              "optimism": "${OPTIMISM_RPC_URL}",
+              "optimism_sepolia": "https://sepolia.optimism.io",
+              "polygon": "${POLYGON_RPC_URL}",
+              "scroll": "https://rpc.scroll.io/",
+              "sei": "https://evm-rpc.sei-apis.com",
+              "sei_testnet": "https://evm-rpc.arctic-1.seinetwork.io",
+              "sepolia": "${SEPOLIA_RPC_URL}",
+              "superseed": "https://mainnet.superseed.xyz",
+              "superseed_sepolia": "https://sepolia.superseed.xyz",
+              "taiko_hekla": "https://rpc.hekla.taiko.xyz",
+              "taiko_mainnet": "https://rpc.mainnet.taiko.xyz"
+            }
           }
         }
       };
@@ -837,6 +838,14 @@ repositories:
       - hardhat compile
       - hardhat test solidity
     forge-version: v0.3.0
+    remappings: |
+      @openzeppelin/contracts/=node_modules/@openzeppelin/contracts/
+      @prb/math/=node_modules/@prb/math/
+      @sablier/v2-core/=node_modules/@sablier/v2-core/
+      forge-std/=node_modules/forge-std/
+      solady/=node_modules/solady/
+      precompiles/=precompiles/
+      src/=src/
     hardhat-config: |
       export default {
         "paths": {
@@ -876,21 +885,23 @@ repositories:
             "runs": 20,
             "maxTestRejects": 1000000
           },
-          "rpcEndpoints": {
-            "arbitrum": "${ARBITRUM_RPC_URL}",
-            "arbitrum_sepolia": "https://arbitrum-sepolia.blockpi.network/v1/rpc/public",
-            "avalanche": "${AVALANCHE_RPC_URL}",
-            "base": "https://mainnet.base.org",
-            "base_sepolia": "https://sepolia.base.org",
-            "bnb": "https://bsc-dataseed.binance.org",
-            "gnosis": "https://rpc.gnosischain.com",
-            "localhost": "http://localhost:8545",
-            "mainnet": "${MAINNET_RPC_URL}",
-            "optimism": "${OPTIMISM_RPC_URL}",
-            "optimism_sepolia": "https://sepolia.optimism.io",
-            "polygon": "${POLYGON_RPC_URL}",
-            "scroll": "https://rpc.scroll.io/",
-            "sepolia": "${SEPOLIA_RPC_URL}"
+          "forking": {
+            "rpcEndpoints": {
+              "arbitrum": "${ARBITRUM_RPC_URL}",
+              "arbitrum_sepolia": "https://arbitrum-sepolia.blockpi.network/v1/rpc/public",
+              "avalanche": "${AVALANCHE_RPC_URL}",
+              "base": "https://mainnet.base.org",
+              "base_sepolia": "https://sepolia.base.org",
+              "bnb": "https://bsc-dataseed.binance.org",
+              "gnosis": "https://rpc.gnosischain.com",
+              "localhost": "http://localhost:8545",
+              "mainnet": "${MAINNET_RPC_URL}",
+              "optimism": "${OPTIMISM_RPC_URL}",
+              "optimism_sepolia": "https://sepolia.optimism.io",
+              "polygon": "${POLYGON_RPC_URL}",
+              "scroll": "https://rpc.scroll.io/",
+              "sepolia": "${SEPOLIA_RPC_URL}"
+            }
           }
         }
       };
@@ -909,6 +920,8 @@ repositories:
       - hardhat compile
       - hardhat test solidity
     forge-version: v0.3.0
+    remappings: |
+      ds-test/=lib/ds-test/src/
     hardhat-config: |
       export default {
         "paths": {
@@ -919,9 +932,6 @@ repositories:
         },
         "solidity": {
           "version": "0.8.15",
-          "remappings": [
-            "ds-test/=lib/ds-test/src/"
-          ],
           "settings": {
             "optimizer": {
               "runs": 1000000
@@ -930,9 +940,6 @@ repositories:
               "bytecodeHash": "none"
             }
           }
-        },
-        "solidityTest": {
-          "testFail": true
         }
       };
     ref: c93f7716c9909175d45f6ef80a34a650e2d24e56

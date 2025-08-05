@@ -2,10 +2,10 @@ import "hardhat/types/config";
 
 declare module "hardhat/types/config" {
   export interface TestPathsUserConfig {
-    nodeTest?: string;
+    nodejs?: string;
   }
 
   export interface TestPathsConfig {
-    nodeTest: string;
+    nodejs: string;
   }
 }

@@ -26,6 +26,7 @@ import { readDeploymentParameters } from "../../helpers/read-deployment-paramete
 import { resolveDeploymentId } from "../../helpers/resolve-deployment-id.js";
 import { bigintReviver } from "../utils/bigintReviver.js";
 import { loadModule } from "../utils/load-module.js";
+import { verifyArtifactsVersion } from "../utils/verifyArtifactsVersion.js";
 
 interface TaskDeployArguments {
   modulePath: string;
@@ -51,27 +52,6 @@ const taskDeploy: NewTaskActionFunction<TaskDeployArguments> = async (
   },
   hre: HardhatRuntimeEnvironment,
 ): Promise<DeploymentResult | null> => {
-  if (verify) {
-    console.log(
-      chalk.yellow(
-        "Verifying deployments will be implemented soon. Check back soon for more updates.",
-      ),
-    );
-
-    // TODO: HH3 Bring back with the port of hardhat-verify
-    // if (
-    //   hre.config.etherscan === undefined ||
-    //   hre.config.etherscan.apiKey === undefined ||
-    //   hre.config.etherscan.apiKey === ""
-    // ) {
-    //   throw new HardhatError(
-    //     HardhatError.ERRORS.IGNITION.ETHERSCAN_API_KEY_NOT_CONFIGURED,
-    //   );
-    // }
-
-    return null;
-  }
-
   const connection = await hre.network.connect();
 
   const chainId = Number(
@@ -86,9 +66,12 @@ const taskDeploy: NewTaskActionFunction<TaskDeployArguments> = async (
   );
 
   const deploymentDir =
-    connection.networkName === "hardhat" && !writeLocalhostDeployment
+    connection.networkConfig.type === "edr" && !writeLocalhostDeployment
       ? undefined
       : path.join(hre.config.paths.ignition, "deployments", deploymentId);
+
+  await verifyArtifactsVersion(deploymentDir);
+
   if (chainId !== 31337) {
     if (process.env.HARDHAT_IGNITION_CONFIRM_DEPLOYMENT === undefined) {
       const prompt = await Prompt({
@@ -227,14 +210,13 @@ const taskDeploy: NewTaskActionFunction<TaskDeployArguments> = async (
       hre.config.networks[connection.networkName]?.ignition.disableFeeBumping,
   });
 
-  // TODO: HH3 Bring back with the port of hardhat-verify
-  // if (result.type === "SUCCESSFUL_DEPLOYMENT" && verify) {
-  //   console.log("");
-  //   console.log(chalk.bold("Verifying deployed contracts"));
-  //   console.log("");
+  if (result.type === "SUCCESSFUL_DEPLOYMENT" && verify) {
+    console.log("");
+    console.log(chalk.bold("Verifying deployed contracts"));
+    console.log("");
 
-  //   await hre.run({ scope: "ignition", task: "verify" }, { deploymentId });
-  // }
+    await hre.tasks.getTask(["ignition", "verify"]).run({ deploymentId });
+  }
 
   if (result.type !== "SUCCESSFUL_DEPLOYMENT") {
     process.exitCode = 1;

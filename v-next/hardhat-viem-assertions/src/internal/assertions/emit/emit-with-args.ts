@@ -14,7 +14,9 @@ import type {
 import assert from "node:assert/strict";
 
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
-import { deepEqual } from "@nomicfoundation/hardhat-utils/lang";
+
+import { stringifyArgs } from "../../helpers.js";
+import { isArgumentMatch } from "../../predicates.js";
 
 import { handleEmit } from "./core.js";
 
@@ -51,7 +53,7 @@ export async function emitWithArgs<
   const parsedLogs = await handleEmit(viem, contractFn, contract, eventName);
 
   for (const { args: logArgs } of parsedLogs) {
-    let emittedArgs: unknown[] = [];
+    let emittedArgs: any[] = [];
 
     if (logArgs === undefined) {
       if (expectedArgs.length === 0) {
@@ -80,17 +82,36 @@ export async function emitWithArgs<
       }
     }
 
-    if ((await deepEqual(emittedArgs, expectedArgs)) === true) {
+    if (await isArgumentMatch(emittedArgs, expectedArgs)) {
       return;
     }
 
     if (parsedLogs.length === 1) {
       // Provide additional error details only if a single event was emitted
-      assert.deepEqual(
-        emittedArgs,
-        expectedArgs,
-        "The event arguments do not match the expected ones.",
-      );
+
+      if (expectedArgs.some((arg) => typeof arg === "function")) {
+        // If there are predicate matchers, we can't use the built-in deepEqual with diff
+        const displayExpectedArgs = expectedArgs.map((expectedArg) => {
+          if (typeof expectedArg === "function") {
+            const hasName =
+              expectedArg.name !== undefined && expectedArg.name !== "";
+            return `<${hasName ? expectedArg.name : "predicate"}>`;
+          } else {
+            return expectedArg;
+          }
+        });
+
+        assert.fail(
+          `The event arguments do not match the expected ones:\nExpected: ${stringifyArgs(displayExpectedArgs)}\nEmitted: ${stringifyArgs(emittedArgs)}`,
+        );
+      } else {
+        // Otherwise, we can use it
+        assert.deepEqual(
+          emittedArgs,
+          expectedArgs,
+          "The event arguments do not match the expected ones.",
+        );
+      }
     }
   }
 

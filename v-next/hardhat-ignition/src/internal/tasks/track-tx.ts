@@ -5,6 +5,8 @@ import path from "node:path";
 
 import { trackTransaction } from "@nomicfoundation/ignition-core";
 
+import { verifyArtifactsVersion } from "../utils/verifyArtifactsVersion.js";
+
 interface TrackTxArguments {
   txHash: string;
   deploymentId: string;
@@ -19,6 +21,8 @@ const taskTransactions: NewTaskActionFunction<TrackTxArguments> = async (
     "deployments",
     deploymentId,
   );
+
+  await verifyArtifactsVersion(deploymentDir);
 
   const connection = await hre.network.connect();
 

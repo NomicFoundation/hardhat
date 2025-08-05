@@ -4,7 +4,7 @@ import {
   OP_CHAIN_TYPE as EDR_OP_CHAIN_TYPE,
   L1_CHAIN_TYPE as EDR_L1_CHAIN_TYPE,
   GENERIC_CHAIN_TYPE as EDR_GENERIC_CHAIN_TYPE,
-} from "@ignored/edr-optimism";
+} from "@nomicfoundation/edr";
 
 import {
   GENERIC_CHAIN_TYPE,

@@ -7,6 +7,9 @@ import "./type-extensions.js";
 
 const hardhatPlugin: HardhatPlugin = {
   id: "builtin:test",
+  hookHandlers: {
+    config: import.meta.resolve("./hook-handlers/config.js"),
+  },
   tasks: [
     task("test", "Runs all your tests")
       .addVariadicArgument({

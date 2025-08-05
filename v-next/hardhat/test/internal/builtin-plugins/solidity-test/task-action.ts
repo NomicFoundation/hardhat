@@ -141,7 +141,7 @@ describe("solidity-test/task-action", function () {
 
         await hre.tasks.getTask(["test", "solidity"]).run({
           noCompile: true,
-          chainType: "optimism",
+          chainType: "op",
         });
       });
 

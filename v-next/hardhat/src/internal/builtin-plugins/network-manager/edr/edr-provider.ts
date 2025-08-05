@@ -23,15 +23,14 @@ import type {
   ProviderConfig,
   TracingConfigWithBuffers,
   AccountOverride,
-} from "@ignored/edr-optimism";
+} from "@nomicfoundation/edr";
 
 import {
   opGenesisState,
   opHardforkFromString,
   l1GenesisState,
   l1HardforkFromString,
-  precompileP256Verify,
-} from "@ignored/edr-optimism";
+} from "@nomicfoundation/edr";
 import {
   assertHardhatInvariant,
   HardhatError,
@@ -276,7 +275,7 @@ export class EdrProvider extends BaseProvider {
     }
 
     // Override EDR version string with Hardhat version string with EDR backend,
-    // e.g. `HardhatNetwork/2.19.0/@ignored/edr-optimism/0.2.0-dev`
+    // e.g. `HardhatNetwork/2.19.0/@nomicfoundation/edr/0.2.0-dev`
     if (jsonRpcRequest.method === "web3_clientVersion") {
       assertHardhatInvariant(
         typeof jsonRpcResponse.result === "string",
@@ -491,8 +490,6 @@ async function getProviderConfig(
       codeCoverage: coverageConfig,
     },
     ownedAccounts: ownedAccounts.map((account) => account.secretKey),
-    precompileOverrides: networkConfig.enableRip7212
-      ? [precompileP256Verify()]
-      : [],
+    precompileOverrides: [],
   };
 }

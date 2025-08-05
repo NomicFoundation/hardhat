@@ -106,6 +106,28 @@ await viem.assertions.revertWithCustomErrorWithArgs(
 );
 ```
 
+This assertion can take predicate functions to match some of the arguments:
+
+```ts
+await viem.assertions.revertWithCustomErrorWithArgs(
+  contract.read.revertWithCustomErrorWithUintAndString([1n, "test"]),
+  contract,
+  "CustomErrorWithUintAndString",
+  [(arg: bigint) => arg === 1n, "test"],
+);
+```
+
+```ts
+import { anyValue } from "@nomicfoundation/hardhat-toolbox-viem/predicates";
+
+await viem.assertions.revertWithCustomErrorWithArgs(
+  contract.read.revertWithCustomErrorWithUintAndString([1n, "test"]),
+  contract,
+  "CustomErrorWithUintAndString",
+  [1n, anyValue],
+);
+```
+
 ### Events
 
 #### `.emit`
@@ -130,6 +152,28 @@ await viem.assertions.emitWithArgs(
   rocketContract,
   "LaunchEventWithArgs",
   ["Apollo", "lift-off"],
+);
+```
+
+This assertion can take predicate functions to match some of the arguments:
+
+```ts
+await viem.assertions.emitWithArgs(
+  contract.write.emitTwoUints([1n, 2n]),
+  contract,
+  "WithTwoUintArgs",
+  [1n, (arg: bigint) => arg >= 2],
+);
+```
+
+```ts
+import { anyValue } from "@nomicfoundation/hardhat-toolbox-viem/predicates";
+
+await viem.assertions.emitWithArgs(
+  contract.write.emitTwoUints([1n, 2n]),
+  contract,
+  "WithTwoUintArgs",
+  [anyValue, 2n],
 );
 ```
 

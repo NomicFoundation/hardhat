@@ -5,7 +5,7 @@ async function testL2Extensions() {
   // This network connection has access to an optimism-specific viem api
   const optimism = await hre.network.connect({
     network: "localhost",
-    chainType: "optimism",
+    chainType: "op",
   });
   const opPublicClient = await optimism.viem.getPublicClient();
   const l1BaseFee = await opPublicClient.getL1BaseFee();

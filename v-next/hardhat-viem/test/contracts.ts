@@ -186,7 +186,7 @@ describe("contracts", () => {
             edrOptimism: {
               type: "edr",
               chainId: 10,
-              chainType: "optimism",
+              chainType: "op",
               forking: {
                 url: "https://mainnet.optimism.io",
               },
@@ -199,7 +199,7 @@ describe("contracts", () => {
 
         const networkConnection = await hre.network.connect({
           network: "edrOptimism",
-          chainType: "optimism",
+          chainType: "op",
         });
         const contract = await networkConnection.viem.deployContract(
           "WithoutConstructorArgs",
