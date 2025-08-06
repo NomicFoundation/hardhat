@@ -37,7 +37,10 @@ import { printErrorMessages } from "./error-handler.js";
 import { getGlobalHelpString } from "./help/get-global-help-string.js";
 import { getHelpString } from "./help/get-help-string.js";
 import { sendTaskAnalytics } from "./telemetry/analytics/analytics.js";
-import { sendErrorTelemetry } from "./telemetry/sentry/reporter.js";
+import {
+  sendErrorTelemetry,
+  setCliHardhatConfigPath,
+} from "./telemetry/sentry/reporter.js";
 import { printVersionMessage } from "./version.js";
 
 export interface MainOptions {
@@ -85,6 +88,8 @@ export async function main(
     configPath = await resolveHardhatConfigPath(
       builtinGlobalOptions.configPath,
     );
+
+    setCliHardhatConfigPath(configPath);
 
     const projectRoot = await resolveProjectRoot(configPath);
 
@@ -198,7 +203,7 @@ export async function main(
 
     if (error instanceof Error) {
       try {
-        await sendErrorTelemetry(error, configPath);
+        await sendErrorTelemetry(error);
       } catch (e) {
         log("Couldn't report error to sentry: %O", e);
       }

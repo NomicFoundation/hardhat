@@ -21,12 +21,13 @@ const log = debug("hardhat:cli:telemetry:sentry:reporter");
 export const SENTRY_DSN =
   "https://572b03708e298427cc72fc26dac1e8b2@o385026.ingest.us.sentry.io/4508780138856448"; // PROD
 
-export async function sendErrorTelemetry(
-  error: Error,
-  configPath: string = "",
-): Promise<boolean> {
+export async function sendErrorTelemetry(error: Error): Promise<boolean> {
   const instance = await Reporter.getInstance();
-  return instance.reportErrorViaSubprocess(error, configPath);
+  return instance.reportErrorViaSubprocess(error);
+}
+
+export function setCliHardhatConfigPath(configPath: string): void {
+  Reporter.setHardhatConfigPath(configPath);
 }
 
 // ATTENTION: this function is exported for testing, do not directly use it in production
@@ -40,11 +41,16 @@ class Reporter {
   // 2) The custom transporter receives the JavaScript error serialized by Sentry.
   // 3) This serialized error is then passed to a detached subprocess, which anonymizes all the information before sending it to Sentry.
 
+  static #hardhatConfigPath?: string;
   static #instance: Reporter | undefined;
   readonly #telemetryEnabled: boolean;
 
   private constructor(telemetryAllowed: boolean) {
     this.#telemetryEnabled = telemetryAllowed;
+  }
+
+  public static setHardhatConfigPath(configPath: string): void {
+    this.#hardhatConfigPath = configPath;
   }
 
   public static async getInstance(): Promise<Reporter> {
@@ -98,10 +104,7 @@ class Reporter {
     this.#instance = undefined;
   }
 
-  public async reportErrorViaSubprocess(
-    error: Error,
-    configPath: string = "",
-  ): Promise<boolean> {
+  public async reportErrorViaSubprocess(error: Error): Promise<boolean> {
     if (!(await this.#shouldBeReported(error))) {
       log("Error not send: this type of error should not be reported");
       return false;
@@ -109,7 +112,9 @@ class Reporter {
 
     const { captureException, setExtra } = await import("@sentry/core");
 
-    setExtra("configPath", configPath);
+    if (Reporter.#hardhatConfigPath !== undefined) {
+      setExtra("configPath", Reporter.#hardhatConfigPath);
+    }
 
     log("Capturing exception");
 
