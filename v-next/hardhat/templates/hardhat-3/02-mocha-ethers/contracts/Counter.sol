@@ -17,4 +17,3 @@ contract Counter {
     emit Increment(by);
   }
 }
-
