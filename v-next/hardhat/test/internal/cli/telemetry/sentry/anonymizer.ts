@@ -5,6 +5,7 @@ import { describe, it } from "node:test";
 import { type Event } from "@sentry/core";
 
 import { Anonymizer } from "../../../../../src/internal/cli/telemetry/sentry/anonymizer.js";
+import { GENERIC_SERVER_NAME } from "../../../../../src/internal/cli/telemetry/sentry/constants.js";
 
 const PROJECT_ROOT = "/path/to/project";
 
@@ -52,7 +53,10 @@ describe("Anonymizer", () => {
       return;
     }
 
-    assert.deepEqual(result.event, originalEvent);
+    assert.deepEqual(result.event, {
+      ...originalEvent,
+      server_name: GENERIC_SERVER_NAME,
+    });
   });
 
   it("should anonymize paths of the user's project", async () => {
