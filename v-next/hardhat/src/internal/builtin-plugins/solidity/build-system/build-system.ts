@@ -1,4 +1,5 @@
 import type { CompileCache } from "./cache.js";
+import type { Compiler } from "./compiler/compiler.js";
 import type { DependencyGraphImplementation } from "./dependency-graph.js";
 import type { Artifact } from "../../../../types/artifacts.js";
 import type { SolcConfig, SolidityConfig } from "../../../../types/config.js";
@@ -13,6 +14,7 @@ import type {
   RunCompilationJobOptions,
   GetCompilationJobsResult,
   EmitArtifactsResult,
+  RunCompilationJobResult,
 } from "../../../../types/solidity/build-system.js";
 import type { CompilationJob } from "../../../../types/solidity/compilation-job.js";
 import type {
@@ -76,6 +78,7 @@ interface CompilationResult {
   compilationJob: CompilationJob;
   compilerOutput: CompilerOutput;
   cached: boolean;
+  compiler: Compiler;
 }
 
 export interface SolidityBuildSystemOptions {
@@ -155,15 +158,16 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     const results: CompilationResult[] = await pMap(
       runnableCompilationJobs,
       async (runnableCompilationJob) => {
-        const compilerOutput = await this.runCompilationJob(
+        const { output, compiler } = await this.runCompilationJob(
           runnableCompilationJob,
           options,
         );
 
         return {
           compilationJob: runnableCompilationJob,
-          compilerOutput,
+          compilerOutput: output,
           cached: false,
+          compiler,
         };
       },
       {
@@ -330,17 +334,19 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       subgraphsWithConfig.push([configOrError, subgraph]);
     }
 
-    // build version => longVersion map
+    // get longVersion and isWasm from the compiler for each version
     const solcVersionToLongVersion = new Map<string, string>();
+    const versionIsWasm = new Map<string, boolean>();
     for (const [solcConfig] of subgraphsWithConfig) {
       let solcLongVersion = solcVersionToLongVersion.get(solcConfig.version);
 
       if (solcLongVersion === undefined) {
         const compiler = await getCompiler(solcConfig.version, {
-          preferWasm: false,
+          preferWasm: buildProfile.preferWasm,
         });
         solcLongVersion = compiler.longVersion;
         solcVersionToLongVersion.set(solcConfig.version, solcLongVersion);
+        versionIsWasm.set(solcConfig.version, compiler.isSolcJs);
       }
     }
 
@@ -386,13 +392,20 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     for (const [rootFile, compilationJob] of indexedIndividualJobs.entries()) {
       const jobHash = await compilationJob.getBuildId();
       const cacheResult = this.#compileCache[rootFile];
+      const isWasm = versionIsWasm.get(compilationJob.solcConfig.version);
+
+      assertHardhatInvariant(
+        isWasm !== undefined,
+        `Version ${compilationJob.solcConfig.version} not present in isWasm map`,
+      );
 
       // If there's no cache for the root file, or the compilation job changed, or using force flag, or isolated mode changed, compile it
       if (
         options?.force === true ||
         cacheResult === undefined ||
         cacheResult.jobHash !== jobHash ||
-        cacheResult.isolated !== isolated
+        cacheResult.isolated !== isolated ||
+        cacheResult.wasm !== isWasm
       ) {
         rootFilesToCompile.add(rootFile);
         continue;
@@ -517,7 +530,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
   public async runCompilationJob(
     runnableCompilationJob: CompilationJob,
     options?: RunCompilationJobOptions,
-  ): Promise<CompilerOutput> {
+  ): Promise<RunCompilationJobResult> {
     await this.#downloadConfiguredCompilers(options?.quiet);
 
     let numberOfFiles = 0;
@@ -544,7 +557,10 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       "The long version of the compiler should match the long version of the compilation job",
     );
 
-    return compiler.compile(await runnableCompilationJob.getSolcInput());
+    const output = await compiler.compile(
+      await runnableCompilationJob.getSolcInput(),
+    );
+    return { output, compiler };
   }
 
   public async remapCompilerError(
@@ -917,6 +933,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         buildInfoPath: emitArtifactsResult.buildInfoPath,
         buildInfoOutputPath: emitArtifactsResult.buildInfoOutputPath,
         typeFilePath,
+        wasm: result.compiler.isSolcJs,
       };
     }
   }

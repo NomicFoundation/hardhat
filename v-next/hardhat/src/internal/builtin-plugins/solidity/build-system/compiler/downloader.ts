@@ -412,6 +412,7 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
 
     if (
       this.#platform === CompilerPlatform.LINUX ||
+      this.#platform === CompilerPlatform.LINUX_ARM64 ||
       this.#platform === CompilerPlatform.MACOS
     ) {
       await chmod(downloadPath, 0o755);

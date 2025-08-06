@@ -21,6 +21,7 @@ export interface CompileCacheEntry {
   buildInfoOutputPath: string;
   artifactPaths: string[];
   typeFilePath: string;
+  wasm: boolean;
 }
 
 const CACHE_FILE_NAME = `compile-cache.json`;
