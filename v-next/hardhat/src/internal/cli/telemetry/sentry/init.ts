@@ -17,6 +17,7 @@ import {
 } from "@sentry/core";
 import debug from "debug";
 
+import { GENERIC_SERVER_NAME } from "./constants.js";
 import { nodeContextIntegration } from "./vendor/integrations/context.js";
 import { contextLinesIntegration } from "./vendor/integrations/contextlines.js";
 import { createGetModuleFromFilename } from "./vendor/utils/module.js";
@@ -46,8 +47,6 @@ interface GlobalCustomSentryReporterOptions {
    */
   transport: Transport;
 }
-
-const GENERIC_SERVER_NAME = "<user-server>";
 
 /**
  * This function initializes a custom global sentry reporter/client.

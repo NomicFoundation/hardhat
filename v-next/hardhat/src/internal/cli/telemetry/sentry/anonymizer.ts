@@ -25,6 +25,8 @@ import * as simplifiedChinese from "ethereum-cryptography/bip39/wordlists/simpli
 import * as SPANISH from "ethereum-cryptography/bip39/wordlists/spanish.js";
 import * as traditionalChinese from "ethereum-cryptography/bip39/wordlists/traditional-chinese.js";
 
+import { GENERIC_SERVER_NAME } from "./constants.js";
+
 interface WordMatch {
   index: number;
   word: string;
@@ -89,7 +91,7 @@ export class Anonymizer {
       contexts: event.contexts,
       sdk: event.sdk,
       level: event.level,
-      server_name: event.server_name,
+      server_name: GENERIC_SERVER_NAME,
       environment: event.environment,
     };
 
