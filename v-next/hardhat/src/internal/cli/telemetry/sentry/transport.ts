@@ -38,7 +38,7 @@ export function createDetachedProcessTransport(
     send: (envelope) => {
       const verbose = log.enabled;
 
-      // **Synchronously** spwan a detached subprocess here
+      // **Synchronously** spawn a detached subprocess here
 
       const out = verbose ? process.stdout : "ignore";
       const err = verbose ? process.stdout : "ignore";
