@@ -31,6 +31,7 @@
     "./types/plugins": "./dist/src/types/plugins.js",
     "./types/providers": "./dist/src/types/providers.js",
     "./types/tasks": "./dist/src/types/tasks.js",
+    "./types/test": "./dist/src/types/test.js",
     "./types/user-interruptions": "./dist/src/types/user-interruptions.js",
     "./types/utils": "./dist/src/types/utils.js",
     "./types/solidity": "./dist/src/types/solidity.js",
@@ -85,7 +86,7 @@
     "typescript": "~5.8.0"
   },
   "dependencies": {
-    "@nomicfoundation/edr": "0.12.0-next.1",
+    "@nomicfoundation/edr": "0.12.0-next.4",
     "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.26",
     "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.26",
     "@nomicfoundation/hardhat-zod-utils": "workspace:^3.0.0-next.26",

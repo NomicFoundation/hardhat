@@ -2,7 +2,7 @@ import { network } from "hardhat";
 
 const { provider } = await network.connect({
   network: "op",
-  chainType: "optimism",
+  chainType: "op",
 });
 
 const accounts = (await provider.request({

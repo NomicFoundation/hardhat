@@ -144,8 +144,8 @@ importers:
   v-next/hardhat:
     dependencies:
       '@nomicfoundation/edr':
-        specifier: 0.12.0-next.1
-        version: 0.12.0-next.1
+        specifier: 0.12.0-next.4
+        version: 0.12.0-next.4
       '@nomicfoundation/hardhat-errors':
         specifier: workspace:^3.0.0-next.26
         version: link:../hardhat-errors
@@ -1579,14 +1579,14 @@ importers:
         specifier: ^3.23.8
         version: 3.24.1
 
-  v-next/hardhat/templates/01-node-test-runner-viem:
+  v-next/hardhat/templates/hardhat-3/01-node-test-runner-viem:
     devDependencies:
       '@nomicfoundation/hardhat-ignition':
         specifier: workspace:^3.0.0-next.26
-        version: link:../../../hardhat-ignition
+        version: link:../../../../hardhat-ignition
       '@nomicfoundation/hardhat-toolbox-viem':
         specifier: workspace:^5.0.0-next.26
-        version: link:../../../hardhat-toolbox-viem
+        version: link:../../../../hardhat-toolbox-viem
       '@types/node':
         specifier: ^22.8.5
         version: 22.10.10
@@ -1595,7 +1595,7 @@ importers:
         version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/1eea5bae12ae557d589f9f0f0edae2faa47cb262
       hardhat:
         specifier: workspace:^3.0.0-next.26
-        version: link:../..
+        version: link:../../..
       typescript:
         specifier: ~5.8.0
         version: 5.8.3
@@ -1603,17 +1603,17 @@ importers:
         specifier: ^2.30.0
         version: 2.30.0(typescript@5.8.3)(zod@3.24.1)
 
-  v-next/hardhat/templates/02-mocha-ethers:
+  v-next/hardhat/templates/hardhat-3/02-mocha-ethers:
     devDependencies:
       '@nomicfoundation/hardhat-ethers':
         specifier: workspace:^4.0.0-next.26
-        version: link:../../../hardhat-ethers
+        version: link:../../../../hardhat-ethers
       '@nomicfoundation/hardhat-ignition':
         specifier: workspace:^3.0.0-next.26
-        version: link:../../../hardhat-ignition
+        version: link:../../../../hardhat-ignition
       '@nomicfoundation/hardhat-toolbox-mocha-ethers':
         specifier: workspace:^3.0.0-next.26
-        version: link:../../../hardhat-toolbox-mocha-ethers
+        version: link:../../../../hardhat-toolbox-mocha-ethers
       '@types/chai':
         specifier: ^4.2.0
         version: 4.3.20
@@ -1637,7 +1637,7 @@ importers:
         version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/1eea5bae12ae557d589f9f0f0edae2faa47cb262
       hardhat:
         specifier: workspace:^3.0.0-next.26
-        version: link:../..
+        version: link:../../..
       mocha:
         specifier: ^11.0.0
         version: 11.1.0
@@ -2428,37 +2428,37 @@ packages:
     resolution: {integrity: sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg==}
     engines: {node: '>= 8'}
 
-  '@nomicfoundation/edr-darwin-arm64@0.12.0-next.1':
-    resolution: {integrity: sha512-oDy/42Ibl4zoenAKwUgmsu7WfKQmolfRYOc4oDnCku7kndHEWAeflu+vIEdxLfQ1ggXx697PHLf11+ESToOftQ==}
+  '@nomicfoundation/edr-darwin-arm64@0.12.0-next.4':
+    resolution: {integrity: sha512-BJKRXjqqerACk92inxu7haweb3KFk4VJ2qemIjMT7xf4k0RyOO6lzmv+pToD5MMDGEpqhLcI61ALY9oyNKirtQ==}
     engines: {node: '>= 18'}
 
-  '@nomicfoundation/edr-darwin-x64@0.12.0-next.1':
-    resolution: {integrity: sha512-8p+Mv+Ih58QgPbm0iQzVpN8bzcPG37ESAPn9RVYyi0010Z37RHqHU3P9G8q81UEugrIiQyfZbDLnIdhlq0iFQg==}
+  '@nomicfoundation/edr-darwin-x64@0.12.0-next.4':
+    resolution: {integrity: sha512-MMN3VaoPhbepI4Z0anZB0jPorpRik7XwWbTqGyuZZcmNld9ZGKXE5ZQux31eKqSzPfcukHkNilFFZhCN/ck3TA==}
     engines: {node: '>= 18'}
 
-  '@nomicfoundation/edr-linux-arm64-gnu@0.12.0-next.1':
-    resolution: {integrity: sha512-5LOtYmB8dmZ4XG7+HgyyphFP2kCJ/XZgDpsQ3h6iSS2dT1BOOByTIkC8a6g6pP3PDSvG+Wby9+rfxTdyK48eVw==}
+  '@nomicfoundation/edr-linux-arm64-gnu@0.12.0-next.4':
+    resolution: {integrity: sha512-SYwe1duRkr5i8KnBe3Hw1X25cy/XNVpy5dj/1KbCh8fh1bvv5/gCw+MZW2N2+XzXOwTkP3aMwI2jDGCw4yB0xQ==}
     engines: {node: '>= 18'}
 
-  '@nomicfoundation/edr-linux-arm64-musl@0.12.0-next.1':
-    resolution: {integrity: sha512-m1EqBgf8UTyocfn/kc7BriPsK9RmfmGxzj++1URNFx7abhHoG/e2uGCutXkFl3udprKhgqZB+iP/37GXrdfIBA==}
+  '@nomicfoundation/edr-linux-arm64-musl@0.12.0-next.4':
+    resolution: {integrity: sha512-FT37tuqYnjLhvlZQey5b7HMhvVVuk5vdVH58cmG6LP3y1R+G/eJJYp8ZEasm67eWgUANp/LwZ2Os0mdkkv2k3g==}
     engines: {node: '>= 18'}
 
-  '@nomicfoundation/edr-linux-x64-gnu@0.12.0-next.1':
-    resolution: {integrity: sha512-U7t8Klls5TS/kt/ITrHDGigerTBN8AGIG9fZ7UV07mSg4JV+f8DPlbilyDmAMlhvAFMhk2HG2P2Tfxc8rt8/Qw==}
+  '@nomicfoundation/edr-linux-x64-gnu@0.12.0-next.4':
+    resolution: {integrity: sha512-omW2AyLa2WqD7MD5tI8d4Lu4hC0fFei708pM1CWCM0C45DJJxg32e3iNoQzyPgpoVq24ck7GO1fEOWhtt0r5eQ==}
     engines: {node: '>= 18'}
 
-  '@nomicfoundation/edr-linux-x64-musl@0.12.0-next.1':
-    resolution: {integrity: sha512-x9OgF3hM8IgB2os7A2FxPS6tXvnzTsp143tvwIALSdWi0jCiWFdLxVA60z1WcQTKB4UAxBXSgoQnqOLP4O4ANA==}
+  '@nomicfoundation/edr-linux-x64-musl@0.12.0-next.4':
+    resolution: {integrity: sha512-lOy2UZWwLnsbLz5NnewhmkM9PtVjzIBzajXX5zcQUdjJmN3daj5wsrR/b0hC8BPqwfGlrLCBr8CJtepKNrEI6A==}
     engines: {node: '>= 18'}
 
-  '@nomicfoundation/edr-win32-x64-msvc@0.12.0-next.1':
-    resolution: {integrity: sha512-eq+Bxc+oVA0ULryy5Y1M/QrMyHB+EUrdcVDuorILBzGHyfn/pIusnO7RQ0GEKnYTLM+QYcVqy38Fy8NVVDLoIA==}
+  '@nomicfoundation/edr-win32-x64-msvc@0.12.0-next.4':
+    resolution: {integrity: sha512-OPpVYE7F4FuTKPdt8z0nrx/KZd7vHeNAjd4KAlzi+/X6imVHFX3sArVd0cdbw/oijINrvxgL/S6SrgbvSgASTA==}
     engines: {node: '>= 18'}
 
-  '@nomicfoundation/edr@0.12.0-next.1':
-    resolution: {integrity: sha512-61H+sAGFjL5LklGEnSo+A1MZa9tX0MbqqKHRTL+F+yo7Qm2iTnXuxOfA1IRLW20+A2SgnHKSBtqKWG5knIFEXQ==}
-    engines: {node: '>= 18'}
+  '@nomicfoundation/edr@0.12.0-next.4':
+    resolution: {integrity: sha512-yXMIpISsZcrlCziY5fwd9s8iJ7Rs9AD+UyHKKzSazKevMvJRlLbdCVqoEld9QZRwWo9Pc8AyAUmS9Xix+ZQiRQ==}
+    engines: {node: '>= 20'}
 
   '@nomicfoundation/solidity-analyzer-darwin-arm64@0.1.2':
     resolution: {integrity: sha512-JaqcWPDZENCvm++lFFGjrDd8mxtf+CtLd2MiXvMNTBD33dContTZ9TWETwNFwg7JTJT5Q9HEecH7FA+HTSsIUw==}
@@ -6355,36 +6355,36 @@ snapshots:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.18.0
 
-  '@nomicfoundation/edr-darwin-arm64@0.12.0-next.1':
+  '@nomicfoundation/edr-darwin-arm64@0.12.0-next.4':
     optional: true
 
-  '@nomicfoundation/edr-darwin-x64@0.12.0-next.1':
+  '@nomicfoundation/edr-darwin-x64@0.12.0-next.4':
     optional: true
 
-  '@nomicfoundation/edr-linux-arm64-gnu@0.12.0-next.1':
+  '@nomicfoundation/edr-linux-arm64-gnu@0.12.0-next.4':
     optional: true
 
-  '@nomicfoundation/edr-linux-arm64-musl@0.12.0-next.1':
+  '@nomicfoundation/edr-linux-arm64-musl@0.12.0-next.4':
     optional: true
 
-  '@nomicfoundation/edr-linux-x64-gnu@0.12.0-next.1':
+  '@nomicfoundation/edr-linux-x64-gnu@0.12.0-next.4':
     optional: true
 
-  '@nomicfoundation/edr-linux-x64-musl@0.12.0-next.1':
+  '@nomicfoundation/edr-linux-x64-musl@0.12.0-next.4':
     optional: true
 
-  '@nomicfoundation/edr-win32-x64-msvc@0.12.0-next.1':
+  '@nomicfoundation/edr-win32-x64-msvc@0.12.0-next.4':
     optional: true
 
-  '@nomicfoundation/edr@0.12.0-next.1':
+  '@nomicfoundation/edr@0.12.0-next.4':
     optionalDependencies:
-      '@nomicfoundation/edr-darwin-arm64': 0.12.0-next.1
-      '@nomicfoundation/edr-darwin-x64': 0.12.0-next.1
-      '@nomicfoundation/edr-linux-arm64-gnu': 0.12.0-next.1
-      '@nomicfoundation/edr-linux-arm64-musl': 0.12.0-next.1
-      '@nomicfoundation/edr-linux-x64-gnu': 0.12.0-next.1
-      '@nomicfoundation/edr-linux-x64-musl': 0.12.0-next.1
-      '@nomicfoundation/edr-win32-x64-msvc': 0.12.0-next.1
+      '@nomicfoundation/edr-darwin-arm64': 0.12.0-next.4
+      '@nomicfoundation/edr-darwin-x64': 0.12.0-next.4
+      '@nomicfoundation/edr-linux-arm64-gnu': 0.12.0-next.4
+      '@nomicfoundation/edr-linux-arm64-musl': 0.12.0-next.4
+      '@nomicfoundation/edr-linux-x64-gnu': 0.12.0-next.4
+      '@nomicfoundation/edr-linux-x64-musl': 0.12.0-next.4
+      '@nomicfoundation/edr-win32-x64-msvc': 0.12.0-next.4
 
   '@nomicfoundation/solidity-analyzer-darwin-arm64@0.1.2':
     optional: true

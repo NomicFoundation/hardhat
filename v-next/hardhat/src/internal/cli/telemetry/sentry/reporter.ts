@@ -68,6 +68,7 @@ class Reporter {
       "./vendor/integrations/contextlines.js"
     );
 
+    const hardhatVersion = await getHardhatVersion();
     const { init } = await import("./init.js");
 
     const linkedErrorsIntegrationInstance = linkedErrorsIntegration({
@@ -79,6 +80,7 @@ class Reporter {
     await init({
       dsn: SENTRY_DSN,
       transport: makeSubprocessTransport,
+      release: `hardhat@${hardhatVersion}`,
       integrations: () => [
         linkedErrorsIntegrationInstance,
         contextLinesIntegrationInstance,
@@ -86,7 +88,7 @@ class Reporter {
     });
 
     setExtra("nodeVersion", process.version);
-    setExtra("hardhatVersion", await getHardhatVersion());
+    setExtra("hardhatVersion", hardhatVersion);
 
     return this.#instance;
   }

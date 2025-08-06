@@ -4,6 +4,39 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { shortenPath } from "@nomicfoundation/hardhat-utils/path";
 import chalk from "chalk";
 
+export async function promptForHardhatVersion(): Promise<
+  "hardhat-2" | "hardhat-3"
+> {
+  ensureTTY();
+
+  const { default: enquirer } = await import("enquirer");
+
+  const hardhatVersionResponse = await enquirer.prompt<{
+    hardhatVersion: "hardhat-2" | "hardhat-3";
+  }>([
+    {
+      name: "hardhatVersion",
+      type: "select",
+      message: "Which version of Hardhat would you like to use?",
+      initial: 0,
+      choices: [
+        {
+          name: "hardhat-3",
+          message: "Hardhat 3 (recommended for new projects)",
+          value: "hardhat-3",
+        },
+        {
+          name: "hardhat-2",
+          message: "Hardhat 2 (older version)",
+          value: "hardhat-2",
+        },
+      ],
+    },
+  ]);
+
+  return hardhatVersionResponse.hardhatVersion;
+}
+
 export async function promptForWorkspace(): Promise<string> {
   ensureTTY();
 
