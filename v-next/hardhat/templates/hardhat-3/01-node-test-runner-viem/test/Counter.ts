@@ -72,6 +72,7 @@ describe("Counter", async function () {
 
   it("The sum of the Increment events should match the current value", async function () {
     const counter = await viem.deployContract("Counter");
+    const deploymentBlockNumber = await publicClient.getBlockNumber();
 
     // run a series of increments
     for (let i = 1n; i <= 10n; i++) {
@@ -82,7 +83,7 @@ describe("Counter", async function () {
       address: counter.address,
       abi: counter.abi,
       eventName: "Increment",
-      fromBlock: 0n,
+      fromBlock: deploymentBlockNumber,
       strict: true,
     });
 
