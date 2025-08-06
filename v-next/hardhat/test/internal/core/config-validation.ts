@@ -1432,6 +1432,39 @@ describe("config validation", function () {
   });
 
   describe("validatePluginsConfig", function () {
+    it("should not throw when the npmPackage is a string", function () {
+      const plugins: HardhatPlugin[] = [
+        {
+          id: "plugin-id",
+          npmPackage: "npm-package",
+        },
+      ];
+
+      assert.deepEqual(validatePluginsConfig(plugins, []), []);
+    });
+
+    it("should not throw when the npmPackage is null", function () {
+      const plugins: HardhatPlugin[] = [
+        {
+          id: "plugin-id",
+          npmPackage: null,
+        },
+      ];
+
+      assert.deepEqual(validatePluginsConfig(plugins, []), []);
+    });
+
+    it("should not throw when the npmPackage is undefined", function () {
+      const plugins: HardhatPlugin[] = [
+        {
+          id: "plugin-id",
+          npmPackage: undefined,
+        },
+      ];
+
+      assert.deepEqual(validatePluginsConfig(plugins, []), []);
+    });
+
     it("should return an error if a plugin is not a non-null object", function () {
       const plugins: HardhatPlugin[] = [
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing validations for js users who can bypass type checks */

@@ -13,6 +13,11 @@ describe("Plugins - detect npm dependency problems", () => {
     npmPackage: "example",
   };
 
+  const pluginWithNpmPackageUndefined: HardhatPlugin = {
+    id: "example",
+    npmPackage: undefined,
+  };
+
   it("should skip validation if the plugin is not from an npm package", async () => {
     const peerDepWithWrongVersionFixture = import.meta.resolve(
       "./fixture-projects/peer-dep-with-wrong-version",
@@ -20,7 +25,7 @@ describe("Plugins - detect npm dependency problems", () => {
 
     await detectPluginNpmDependencyProblems(peerDepWithWrongVersionFixture, {
       ...plugin,
-      npmPackage: undefined,
+      npmPackage: null,
     });
   });
 
@@ -33,6 +38,17 @@ describe("Plugins - detect npm dependency problems", () => {
       await detectPluginNpmDependencyProblems(
         installedPackageProjectFixture,
         plugin,
+      );
+    });
+
+    it("should pass validation if the package has been installed and the npmPackage property is undefined but the id matches the installed package", async () => {
+      const installedPackageProjectFixture = import.meta.resolve(
+        "./fixture-projects/installed-package",
+      );
+
+      await detectPluginNpmDependencyProblems(
+        installedPackageProjectFixture,
+        pluginWithNpmPackageUndefined,
       );
     });
 
@@ -50,6 +66,24 @@ describe("Plugins - detect npm dependency problems", () => {
         HardhatError.ERRORS.CORE.PLUGINS.PLUGIN_NOT_INSTALLED,
         {
           pluginId: "example-plugin",
+        },
+      );
+    });
+
+    it("should fail validation if the package has been installed and the npmPackage property is undefined but the id has a value that does not match the installed package", async () => {
+      const nonInstalledPackageProjectFixture = import.meta.resolve(
+        "./fixture-projects/installed-package",
+      );
+
+      await assertRejectsWithHardhatError(
+        async () =>
+          detectPluginNpmDependencyProblems(nonInstalledPackageProjectFixture, {
+            ...pluginWithNpmPackageUndefined,
+            id: "does-not-match-installed-plugin",
+          }),
+        HardhatError.ERRORS.CORE.PLUGINS.PLUGIN_NOT_INSTALLED,
+        {
+          pluginId: "does-not-match-installed-plugin",
         },
       );
     });
