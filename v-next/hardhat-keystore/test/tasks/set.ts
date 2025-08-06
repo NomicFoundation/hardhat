@@ -56,7 +56,7 @@ describe("tasks - set", () => {
         mockConsoleLog = mock.fn();
 
         if (dev) {
-          await mockFileManager.writePAsswordFileForDevKeystore(
+          await mockFileManager.writePasswordFileForDevKeystore(
             fakeKeystoreDevPasswordFilePath,
           );
         }

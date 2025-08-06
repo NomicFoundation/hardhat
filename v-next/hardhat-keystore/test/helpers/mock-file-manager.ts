@@ -29,7 +29,7 @@ export class MockFileManager implements FileManager {
     }));
   }
 
-  public async writePAsswordFileForDevKeystore(
+  public async writePasswordFileForDevKeystore(
     devKeystorePasswordFilePath: string,
   ): Promise<void> {
     await writeUtf8File(devKeystorePasswordFilePath, TEST_PASSWORD_DEV);

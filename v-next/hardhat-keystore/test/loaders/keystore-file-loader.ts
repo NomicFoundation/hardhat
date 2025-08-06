@@ -46,7 +46,7 @@ describe("KeystoreFileLoader", () => {
             const mockFileManager = new MockFileManager(dev);
 
             if (dev) {
-              await mockFileManager.writePAsswordFileForDevKeystore(
+              await mockFileManager.writePasswordFileForDevKeystore(
                 fakeKeystoreDevPasswordFilePath,
               );
             }
@@ -78,7 +78,7 @@ describe("KeystoreFileLoader", () => {
             mockFileManager = new MockFileManager(dev);
 
             if (dev) {
-              await mockFileManager.writePAsswordFileForDevKeystore(
+              await mockFileManager.writePasswordFileForDevKeystore(
                 fakeKeystoreDevPasswordFilePath,
               );
             }
@@ -125,7 +125,7 @@ describe("KeystoreFileLoader", () => {
             mockFileManager = new MockFileManager(dev);
 
             if (dev) {
-              await mockFileManager.writePAsswordFileForDevKeystore(
+              await mockFileManager.writePasswordFileForDevKeystore(
                 fakeKeystoreDevPasswordFilePath,
               );
             }
@@ -157,7 +157,7 @@ describe("KeystoreFileLoader", () => {
             mockFileManager = new MockFileManager(dev);
 
             if (dev) {
-              await mockFileManager.writePAsswordFileForDevKeystore(
+              await mockFileManager.writePasswordFileForDevKeystore(
                 fakeKeystoreDevPasswordFilePath,
               );
             }
@@ -187,7 +187,7 @@ describe("KeystoreFileLoader", () => {
             mockFileManager = new MockFileManager(dev);
 
             if (dev) {
-              await mockFileManager.writePAsswordFileForDevKeystore(
+              await mockFileManager.writePasswordFileForDevKeystore(
                 fakeKeystoreDevPasswordFilePath,
               );
             }
