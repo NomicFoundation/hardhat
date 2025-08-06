@@ -1,6 +1,10 @@
 import type { HardhatUserConfig } from "../../../config.js";
 import type {
   HardhatConfig,
+  MultiVersionSolidityUserConfig,
+  SingleVersionSolidityUserConfig,
+  SolcConfig,
+  SolcUserConfig,
   SolidityBuildProfileConfig,
   SolidityConfig,
   SolidityUserConfig,
@@ -213,71 +217,29 @@ function resolveSolidityConfig(
     solidityConfig = [solidityConfig];
   }
 
+  // user provided an array of versions or a single version
   if (Array.isArray(solidityConfig)) {
     return {
       profiles: {
-        default: {
-          compilers: solidityConfig.map((version) => ({
-            version,
-            settings: {},
-          })),
-          overrides: {},
-          isolated: false,
-          preferWasm: false,
-        },
+        default: resolveBuildProfileConfig({
+          compilers: solidityConfig.map((version) => ({ version })),
+        }),
       },
       npmFilesToBuild: [],
     };
   }
 
-  if ("version" in solidityConfig) {
+  // user provided a single version config or a multi version config
+  if ("version" in solidityConfig || "compilers" in solidityConfig) {
     return {
       profiles: {
-        default: {
-          compilers: [
-            {
-              version: solidityConfig.version,
-              settings: solidityConfig.settings ?? {},
-            },
-          ],
-          overrides: {},
-          isolated: solidityConfig.isolated ?? false,
-          preferWasm: solidityConfig.preferWasm ?? false,
-        },
+        default: resolveBuildProfileConfig(solidityConfig),
       },
       npmFilesToBuild: solidityConfig.npmFilesToBuild ?? [],
     };
   }
 
-  if ("compilers" in solidityConfig) {
-    return {
-      profiles: {
-        default: {
-          preferWasm: solidityConfig.preferWasm ?? false,
-          compilers: solidityConfig.compilers.map((compiler) => ({
-            version: compiler.version,
-            settings: compiler.settings ?? {},
-          })),
-          overrides: Object.fromEntries(
-            Object.entries(solidityConfig.overrides ?? {}).map(
-              ([userSourceName, override]) => {
-                return [
-                  userSourceName,
-                  {
-                    version: override.version,
-                    settings: override.settings ?? {},
-                  },
-                ];
-              },
-            ),
-          ),
-          isolated: solidityConfig.isolated ?? false,
-        },
-      },
-      npmFilesToBuild: solidityConfig.npmFilesToBuild ?? [],
-    };
-  }
-
+  // user provided a build profiles config
   const profiles: Record<string, SolidityBuildProfileConfig> = {};
 
   // TODO: Merge the profiles
@@ -287,42 +249,11 @@ function resolveSolidityConfig(
     const isolated = profile.isolated ?? profileName === "production";
     const preferWasm = profile.preferWasm ?? profileName === "production";
 
-    if ("version" in profile) {
-      profiles[profileName] = {
-        compilers: [
-          {
-            version: profile.version,
-            settings: profile.settings ?? {},
-          },
-        ],
-        overrides: {},
-        isolated,
-        preferWasm,
-      };
-      continue;
-    }
-
-    profiles[profileName] = {
-      compilers: profile.compilers.map((compiler) => ({
-        version: compiler.version,
-        settings: compiler.settings ?? {},
-      })),
-      overrides: Object.fromEntries(
-        Object.entries(profile.overrides ?? {}).map(
-          ([userSourceName, override]) => {
-            return [
-              userSourceName,
-              {
-                version: override.version,
-                settings: override.settings ?? {},
-              },
-            ];
-          },
-        ),
-      ),
+    profiles[profileName] = resolveBuildProfileConfig({
+      ...profile,
       isolated,
       preferWasm,
-    };
+    });
   }
 
   // This will generate default build profiles (e.g. production) when they are not specified in the config, cloning from 'default', which is always present
@@ -339,5 +270,41 @@ function resolveSolidityConfig(
   return {
     profiles,
     npmFilesToBuild: solidityConfig.npmFilesToBuild ?? [],
+  };
+}
+
+function resolveBuildProfileConfig(
+  solidityConfig:
+    | SingleVersionSolidityUserConfig
+    | MultiVersionSolidityUserConfig,
+): SolidityBuildProfileConfig {
+  if ("version" in solidityConfig) {
+    return {
+      compilers: [resolveSolcConfig(solidityConfig)],
+      overrides: {},
+      isolated: solidityConfig.isolated ?? false,
+      preferWasm: solidityConfig.preferWasm ?? false,
+    };
+  }
+
+  return {
+    compilers: solidityConfig.compilers.map(resolveSolcConfig),
+    overrides: Object.fromEntries(
+      Object.entries(solidityConfig.overrides ?? {}).map(
+        ([userSourceName, override]) => [
+          userSourceName,
+          resolveSolcConfig(override),
+        ],
+      ),
+    ),
+    isolated: solidityConfig.isolated ?? false,
+    preferWasm: solidityConfig.preferWasm ?? false,
+  };
+}
+
+function resolveSolcConfig(solcConfig: SolcUserConfig): SolcConfig {
+  return {
+    version: solcConfig.version,
+    settings: solcConfig.settings ?? {},
   };
 }
