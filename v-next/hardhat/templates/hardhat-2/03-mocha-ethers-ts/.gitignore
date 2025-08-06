@@ -1,0 +1,11 @@
+node_modules
+
+# Hardhat files
+/cache
+/artifacts
+
+# TypeChain files
+/typechain
+/typechain-types
+
+pnpm-lock.yaml
