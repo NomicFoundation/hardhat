@@ -1,4 +1,11 @@
-import type { Event, Exception, StackFrame, Stacktrace } from "@sentry/core";
+import type {
+  Envelope,
+  Event,
+  EventItem,
+  Exception,
+  StackFrame,
+  Stacktrace,
+} from "@sentry/core";
 
 import * as path from "node:path";
 
@@ -23,7 +30,11 @@ interface WordMatch {
   word: string;
 }
 
-export type AnonymizeResult =
+export type AnonymizeEnvelopeResult =
+  | { success: true; envelope: Envelope }
+  | { success: false; error: string };
+
+export type AnonymizeEventResult =
   | { success: true; event: Event }
   | { success: false; error: string };
 
@@ -40,24 +51,46 @@ export class Anonymizer {
   }
 
   /**
+   * Anonymizes the events in the envelope in place, modifying the envelope.
+   */
+  public async anonymizeEventsFromEnvelope(
+    envelope: Envelope,
+  ): Promise<AnonymizeEnvelopeResult> {
+    for (const item of envelope[1]) {
+      if (item[0].type === "event") {
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions 
+          -- We know that the item is an event item */
+        const eventItem = item as EventItem;
+
+        const anonymizedEvent = await this.anonymizeEvent(eventItem[1]);
+        if (anonymizedEvent.success) {
+          eventItem[1] = anonymizedEvent.event;
+        } else {
+          return { success: false, error: anonymizedEvent.error };
+        }
+      }
+    }
+
+    return { success: true, envelope };
+  }
+
+  /**
    * Given a sentry serialized exception
    * (https://develop.sentry.dev/sdk/event-payloads/exception/), return an
    * anonymized version of the event.
    */
-  public async anonymize(event: any): Promise<AnonymizeResult> {
-    if (event === null || event === undefined) {
-      return { success: false, error: "event is null or undefined" };
-    }
-    if (typeof event !== "object") {
-      return { success: false, error: "event is not an object" };
-    }
-
+  public async anonymizeEvent(event: Event): Promise<AnonymizeEventResult> {
     const result: Event = {
       event_id: event.event_id,
       platform: event.platform,
-      release: event.release,
       timestamp: event.timestamp,
       extra: event.extra,
+      release: event.release,
+      contexts: event.contexts,
+      sdk: event.sdk,
+      level: event.level,
+      server_name: event.server_name,
+      environment: event.environment,
     };
 
     if (event.exception !== undefined && event.exception.values !== undefined) {
@@ -253,6 +286,8 @@ export class Anonymizer {
     if (value.stacktrace !== undefined) {
       result.stacktrace = await this.#anonymizeStacktrace(value.stacktrace);
     }
+
+    result.mechanism = value.mechanism;
 
     return result;
   }

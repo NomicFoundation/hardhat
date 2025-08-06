@@ -2,7 +2,6 @@ import {
   HardhatError,
   HardhatPluginError,
 } from "@nomicfoundation/hardhat-errors";
-import { flush } from "@sentry/core";
 import debug from "debug";
 
 import {
@@ -12,7 +11,7 @@ import {
 import { getHardhatVersion } from "../../../utils/package.js";
 import { isTelemetryAllowed } from "../telemetry-permissions.js";
 
-import { makeSubprocessTransport } from "./transports/subprocess.js";
+import { createDetachedProcessTransport } from "./transport.js";
 
 const log = debug("hardhat:cli:telemetry:sentry:reporter");
 
@@ -69,28 +68,24 @@ class Reporter {
 
     log("Initializing Reporter instance");
 
-    const { setExtra, linkedErrorsIntegration } = await import("@sentry/core");
-    const { contextLinesIntegration } = await import(
-      "./vendor/integrations/contextlines.js"
-    );
+    const { setExtra } = await import("@sentry/core");
 
     const hardhatVersion = await getHardhatVersion();
     const { init } = await import("./init.js");
 
-    const linkedErrorsIntegrationInstance = linkedErrorsIntegration({
-      key: "cause",
-    });
+    const release = `hardhat@${hardhatVersion}`;
+    const environment = "production";
 
-    const contextLinesIntegrationInstance = contextLinesIntegration();
-
-    await init({
+    init({
       dsn: SENTRY_DSN,
-      transport: makeSubprocessTransport,
-      release: `hardhat@${hardhatVersion}`,
-      integrations: () => [
-        linkedErrorsIntegrationInstance,
-        contextLinesIntegrationInstance,
-      ],
+      transport: createDetachedProcessTransport(
+        SENTRY_DSN,
+        release,
+        environment,
+        this.#hardhatConfigPath,
+      ),
+      release,
+      environment,
     });
 
     setExtra("nodeVersion", process.version);
@@ -110,20 +105,11 @@ class Reporter {
       return false;
     }
 
-    const { captureException, setExtra } = await import("@sentry/core");
-
-    if (Reporter.#hardhatConfigPath !== undefined) {
-      setExtra("configPath", Reporter.#hardhatConfigPath);
-    }
+    const { captureException } = await import("@sentry/core");
 
     log("Capturing exception");
 
     captureException(error);
-
-    // NOTE: Alternatively, we could close the reporter when we exit the process.
-    if (!(await flush(50))) {
-      log("Failed to flush events");
-    }
 
     return true;
   }

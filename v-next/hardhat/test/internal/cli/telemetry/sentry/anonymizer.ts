@@ -1,8 +1,8 @@
-import type { Event } from "@sentry/core";
-
 import assert from "node:assert/strict";
 import path from "node:path";
 import { describe, it } from "node:test";
+
+import { type Event } from "@sentry/core";
 
 import { Anonymizer } from "../../../../../src/internal/cli/telemetry/sentry/anonymizer.js";
 
@@ -28,11 +28,24 @@ describe("Anonymizer", () => {
       extra: {
         another: "example",
       },
+      contexts: {
+        os: {
+          name: "os1",
+          build: "build1",
+          version: "version1",
+        },
+      },
+      environment: "production",
+      level: "error",
+      sdk: {
+        integrations: [],
+      },
+      server_name: "server1",
     };
 
     const anonymizer = new Anonymizer();
 
-    const result = await anonymizer.anonymize(originalEvent);
+    const result = await anonymizer.anonymizeEvent(originalEvent);
 
     if (!result.success) {
       assert.fail("The event should anonymize without issue");
