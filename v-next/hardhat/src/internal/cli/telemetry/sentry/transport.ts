@@ -129,10 +129,11 @@ export function createHttpTransport(dsn: string): Transport {
 }
 
 /**
- * This function sends an envelope to Sentry's backend.
+ * Sends an envelope to Sentry's backend.
  *
- * This function is used in the subprocess to send the envelopers received
- * by the main process, and to power the `createHttpTransport`'s transports.
+ * This function is used both in the subprocess (to send envelopes received
+ * from the main process) and as the core implementation for the
+ * `createHttpTransport` transport.
  */
 export async function sendEnvelopeToSentryBackend(
   dsn: string,
