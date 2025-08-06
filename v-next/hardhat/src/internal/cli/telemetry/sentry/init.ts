@@ -30,6 +30,7 @@ import { createGetModuleFromFilename } from "./vendor/utils/module.js";
 interface InitOptions {
   dsn: string;
   transport: (transportOptions: BaseTransportOptions) => Transport;
+  release?: string;
   serverName?: string;
   integrations?: (integrations: Integration[]) => Integration[];
 }

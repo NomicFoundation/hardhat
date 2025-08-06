@@ -55,6 +55,7 @@ export class Anonymizer {
     const result: Event = {
       event_id: event.event_id,
       platform: event.platform,
+      release: event.release,
       timestamp: event.timestamp,
       extra: event.extra,
     };
