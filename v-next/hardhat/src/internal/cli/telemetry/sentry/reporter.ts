@@ -11,14 +11,18 @@ import {
 import { getHardhatVersion } from "../../../utils/package.js";
 import { isTelemetryAllowed } from "../telemetry-permissions.js";
 
-import { createDetachedProcessTransport } from "./transport.js";
-
 const log = debug("hardhat:cli:telemetry:sentry:reporter");
 
 // export const SENTRY_DSN =
 //   "https://d578a176729662a28e7a8da268d36912@o385026.ingest.us.sentry.io/4507685793103872"; // DEV
 export const SENTRY_DSN =
   "https://572b03708e298427cc72fc26dac1e8b2@o385026.ingest.us.sentry.io/4508780138856448"; // PROD
+
+// TODO: This could be done in a more elegant way, but for now, we just
+// initialize the entire reporter so that it sets the global error handlers.
+export async function setupErrorTelemetryIfEnabled(): Promise<void> {
+  await Reporter.getInstance(true);
+}
 
 export async function sendErrorTelemetry(error: Error): Promise<boolean> {
   const instance = await Reporter.getInstance();
@@ -52,7 +56,9 @@ class Reporter {
     this.#hardhatConfigPath = configPath;
   }
 
-  public static async getInstance(): Promise<Reporter> {
+  public static async getInstance(
+    shouldSetupErrorHandlers = false,
+  ): Promise<Reporter> {
     if (this.#instance !== undefined) {
       return this.#instance;
     }
@@ -72,6 +78,7 @@ class Reporter {
 
     const hardhatVersion = await getHardhatVersion();
     const { init } = await import("./init.js");
+    const { createDetachedProcessTransport } = await import("./transport.js");
 
     const release = `hardhat@${hardhatVersion}`;
     const environment = "production";
@@ -86,6 +93,7 @@ class Reporter {
       ),
       release,
       environment,
+      installGlobalHandlers: shouldSetupErrorHandlers,
     });
 
     setExtra("nodeVersion", process.version);
