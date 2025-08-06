@@ -1,47 +1,41 @@
-# Hardhat Network Helpers
+# hardhat-network-helpers
 
-Hardhat Network Helpers is a plugin that provides a set of utility functions to interact with the [Hardhat Network](https://hardhat.org/hardhat-network/docs).
+Hardhat Network Helpers is a plugin that provides a set of utility functions to interact with locally simulated networks.
 
 ## Installation
+
+> This plugin is part of [Viem Hardhat Toolbox](/v-next/hardhat-toolbox-viem/) and [Ethers+Mocha Hardhat Toolbox](/v-next/hardhat-toolbox-mocha-ethers/). If you are using any of those toolboxes, there's nothing else you need to do.
 
 To install this plugin, run the following command:
 
 ```bash
-npm install --save-dev @nomicfoundation/hardhat-network-helpers@next
+npm install --save-dev @nomicfoundation/hardhat-network-helpers
 ```
 
-and add the following statements to your `hardhat.config.ts` file:
+In your `hardhat.config.ts` file, import the plugin and add it to the `plugins` array:
 
-```typescript
-// ...
-import networkHelpersPlugin from "@nomicfoundation/hardhat-network-helpers";
-
-// ...
+```ts
+import hardhatNetworkHelpers from "@nomicfoundation/hardhat-network-helpers";
 
 export default {
-  // ...
-  plugins: [
-    // ...
-    networkHelpersPlugin,
-  ],
-
-  // ...
+  plugins: [hardhatNetworkHelpers],
 };
 ```
 
 ### Usage
 
-This plugin defines a new `networkHelpers` property on every `NetworkConnection` object.
+This plugin adds a `networkHelpers` property to each network connection:
 
 ```ts
-const { networkHelpers } = await hre.network.connect();
+import { network } from "hardhat";
 
-// Network helpers methods exposed via `networkHelpers`
+const { networkHelpers } = await network.connect();
+
+// immediately mine a new block
 await networkHelpers.mine();
 
-// Time methods exposed via `time`
-await networkHelpers.time.increase(1);
-
-// Duration methods exposed via `duration`
-networkHelpers.time.duration.days(1);
+// mines a new block whose timestamp is 60 seconds after the latest block's timestamp.
+await networkHelpers.time.increase(60);
 ```
+
+Check [the network helpers docs](https://hardhat.org/hardhat-network-helpers) to learn more.

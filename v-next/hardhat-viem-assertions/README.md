@@ -1,37 +1,30 @@
-# Hardhat Viem Assertions plugin
+# hardhat-viem-assertions
 
 This plugin adds an Ethereum-specific assertions library that integrate with [viem](https://viem.sh/), making your smart contract tests easy to write and read.
 
 ## Installation
 
+> This plugin is part of the [Viem Hardhat Toolbox](/v-next/hardhat-toolbox-viem/). If you are using that toolbox, there's nothing else you need to do.
+
 To install this plugin, run the following command:
 
 ```bash
-npm install --save-dev @nomicfoundation/hardhat-viem-assertions@next
+npm install --save-dev @nomicfoundation/hardhat-viem-assertions
 ```
 
-and add the following statements to your `hardhat.config.ts` file:
+In your `hardhat.config.ts` file, import the plugin and add it to the `plugins` array:
 
-```typescript
-// ...
+```ts
 import hardhatViemAssertions from "@nomicfoundation/hardhat-viem-assertions";
 
-// ...
-
 export default {
-  // ...
-  plugins: [
-    // ...
-    hardhatViemAssertions,
-  ],
-
-  // ...
+  plugins: [hardhatViemAssertions],
 };
 ```
 
 ## Usage
 
-You don't need to do anything else to use this plugin. Whenever you run your tests with Hardhat, it will automatically add the assertions to the `viem` object.
+You don't need to do anything else to use this plugin. The `viem` object added by the [hardhat-viem plugin](/v-next/hardhat-viem/) is expanded with an `assertions` property that contains the assertions library.
 
 Here is an example of using the `balancesHaveChanged` assertion:
 

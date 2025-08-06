@@ -1,37 +1,26 @@
-# Hardhat Typechain plugin
+# hardhat-typechain
 
 This plugin integrates [TypeChain](https://github.com/dethcrypto/TypeChain) into Hardhat, automatically generating TypeScript bindings for your smart contracts.
 
 ## Installation
 
+> This plugin is part of the [Ethers+Mocha Hardhat Toolbox](/v-next/hardhat-toolbox-mocha-ethers/). If you are using that toolbox, there's nothing else you need to do.
+
 To install this plugin, run the following command:
 
 ```bash
-npm install --save-dev @nomicfoundation/hardhat-typechain@next
+npm install --save-dev @nomicfoundation/hardhat-typechain
 ```
 
-and add the following statements to your `hardhat.config.ts` file:
+In your `hardhat.config.ts` file, import the plugin and add it to the `plugins` array:
 
-```typescript
-// ...
-import typechainPlugin from "@nomicfoundation/hardhat-typechain";
-
-// ...
+```ts
+import hardhatTypechain from "@nomicfoundation/hardhat-typechain";
 
 export default {
-  // ...
-  plugins: [
-    // ...
-    typechainPlugin,
-  ],
-
-  // ...
+  plugins: [hardhatTypechain],
 };
 ```
-
-## Configuration
-
-You can configure it in the `hardhat.config.ts` file under the `typechain` property.
 
 ## Usage
 
