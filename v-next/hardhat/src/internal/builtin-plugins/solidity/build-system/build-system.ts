@@ -1,7 +1,11 @@
 import type { CompileCache } from "./cache.js";
 import type { DependencyGraphImplementation } from "./dependency-graph.js";
 import type { Artifact } from "../../../../types/artifacts.js";
-import type { SolcConfig, SolidityConfig } from "../../../../types/config.js";
+import type {
+  SolcConfig,
+  SolidityBuildProfileConfig,
+  SolidityConfig,
+} from "../../../../types/config.js";
 import type { HookManager } from "../../../../types/hooks.js";
 import type {
   SolidityBuildSystem,
@@ -45,10 +49,7 @@ import debug from "debug";
 import pMap from "p-map";
 
 import { FileBuildResultType } from "../../../../types/solidity/build-system.js";
-import {
-  DEFAULT_BUILD_PROFILE,
-  shouldMergeCompilationJobs,
-} from "../build-profiles.js";
+import { DEFAULT_BUILD_PROFILE } from "../build-profiles.js";
 
 import {
   getArtifactsDeclarationFile,
@@ -126,6 +127,11 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     }
 
     await this.#downloadConfiguredCompilers(options?.quiet);
+
+    const buildProfileName = options?.buildProfile ?? DEFAULT_BUILD_PROFILE;
+    const buildProfile = this.#getBuildProfile(buildProfileName);
+
+    const isolated = this.#isIsolated(buildProfile.isolated, options?.isolated);
 
     const compilationJobsResult = await this.getCompilationJobs(
       rootFilePaths,
@@ -210,7 +216,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
             indexedIndividualJobs,
             compilationResult,
             emitArtifactsResult,
-            options,
+            isolated,
           );
         }),
       );
@@ -299,21 +305,13 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     );
 
     const buildProfileName = options?.buildProfile ?? DEFAULT_BUILD_PROFILE;
-
-    if (this.#options.solidityConfig.profiles[buildProfileName] === undefined) {
-      throw new HardhatError(
-        HardhatError.ERRORS.CORE.SOLIDITY.BUILD_PROFILE_NOT_FOUND,
-        {
-          buildProfileName,
-        },
-      );
-    }
+    const buildProfile = this.#getBuildProfile(buildProfileName);
 
     log(`Using build profile ${buildProfileName}`);
 
     const solcConfigSelector = new SolcConfigSelector(
       buildProfileName,
-      this.#options.solidityConfig.profiles[buildProfileName],
+      buildProfile,
       dependencyGraph,
     );
 
@@ -388,6 +386,8 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     // Select which files to compile
     const rootFilesToCompile: Set<string> = new Set();
 
+    const isolated = this.#isIsolated(buildProfile.isolated, options?.isolated);
+
     for (const [rootFile, compilationJob] of indexedIndividualJobs.entries()) {
       const jobHash = await compilationJob.getBuildId();
       const cacheResult = this.#compileCache[rootFile];
@@ -397,7 +397,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         options?.force === true ||
         cacheResult === undefined ||
         cacheResult.jobHash !== jobHash ||
-        cacheResult.isolated !== options?.isolated
+        cacheResult.isolated !== isolated
       ) {
         rootFilesToCompile.add(rootFile);
         continue;
@@ -424,10 +424,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       }
     }
 
-    if (
-      options?.isolated !== true &&
-      shouldMergeCompilationJobs(buildProfileName)
-    ) {
+    if (!isolated) {
       // non-isolated mode
       log(`Merging compilation jobs`);
 
@@ -803,6 +800,34 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     this.#downloadedCompilers = true;
   }
 
+  #getBuildProfile(
+    buildProfileNameOption?: string,
+  ): SolidityBuildProfileConfig {
+    const buildProfileName = buildProfileNameOption ?? DEFAULT_BUILD_PROFILE;
+    const buildProfile =
+      this.#options.solidityConfig.profiles[buildProfileName];
+
+    if (buildProfile === undefined) {
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.SOLIDITY.BUILD_PROFILE_NOT_FOUND,
+        {
+          buildProfileName,
+        },
+      );
+    }
+
+    return buildProfile;
+  }
+
+  #isIsolated(
+    isolatedBuildProfile: boolean,
+    isolatedOption?: boolean,
+  ): boolean {
+    // NOTE: Run in isolated mode if it has been explicitly requested or the build profile demands it
+    // TODO: Consider allowing overriding the build profile's isolated mode via options
+    return isolatedBuildProfile || isolatedOption === true;
+  }
+
   #getAllCompilerVersions(): Set<string> {
     return new Set(
       Object.values(this.#options.solidityConfig.profiles)
@@ -854,7 +879,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     indexedIndividualJobs: Map<string, CompilationJob>,
     result: CompilationResult,
     emitArtifactsResult: EmitArtifactsResult,
-    options: BuildOptions | undefined,
+    isolated: boolean,
   ): Promise<void> {
     const rootFilePaths = result.compilationJob.dependencyGraph
       .getRoots()
@@ -887,7 +912,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
       this.#compileCache[rootFilePath] = {
         jobHash,
-        isolated: options?.isolated === true,
+        isolated,
         artifactPaths,
         buildInfoPath: emitArtifactsResult.buildInfoPath,
         buildInfoOutputPath: emitArtifactsResult.buildInfoOutputPath,

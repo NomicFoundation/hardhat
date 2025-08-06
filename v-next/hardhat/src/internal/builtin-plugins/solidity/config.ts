@@ -213,6 +213,7 @@ function resolveSolidityConfig(
             settings: {},
           })),
           overrides: {},
+          isolated: false,
         },
       },
       npmFilesToBuild: [],
@@ -230,6 +231,7 @@ function resolveSolidityConfig(
             },
           ],
           overrides: {},
+          isolated: solidityConfig.isolated ?? false,
         },
       },
       npmFilesToBuild: solidityConfig.npmFilesToBuild ?? [],
@@ -257,6 +259,7 @@ function resolveSolidityConfig(
               },
             ),
           ),
+          isolated: solidityConfig.isolated ?? false,
         },
       },
       npmFilesToBuild: solidityConfig.npmFilesToBuild ?? [],
@@ -269,6 +272,8 @@ function resolveSolidityConfig(
   for (const [profileName, profile] of Object.entries(
     solidityConfig.profiles,
   )) {
+    const isolated = profile.isolated ?? profileName === "production";
+
     if ("version" in profile) {
       profiles[profileName] = {
         compilers: [
@@ -278,6 +283,7 @@ function resolveSolidityConfig(
           },
         ],
         overrides: {},
+        isolated,
       };
       continue;
     }
@@ -300,12 +306,20 @@ function resolveSolidityConfig(
           },
         ),
       ),
+      isolated,
     };
   }
 
   for (const profile of DEFAULT_BUILD_PROFILES) {
     if (!(profile in profiles)) {
-      profiles[profile] = profiles.default;
+      if (profile === "production") {
+        profiles[profile] = {
+          ...profiles.default,
+          isolated: true,
+        };
+      } else {
+        profiles[profile] = profiles.default;
+      }
     }
   }
 
