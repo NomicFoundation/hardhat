@@ -290,7 +290,7 @@ const edrNetworkMiningUserConfigSchema = z.object({
 });
 
 const edrNetworkUserConfigSchema = z.object({
-  type: z.literal("edr"),
+  type: z.literal("edr-simulated"),
   accounts: z.optional(edrNetworkAccountsUserConfigSchema),
   chainId: z.optional(chainIdSchema),
   chainType: z.optional(chainTypeUserConfigSchema),
@@ -327,7 +327,7 @@ function refineEdrNetworkUserConfig(
   networkConfig: NetworkUserConfig,
   ctx: RefinementCtx,
 ): void {
-  if (networkConfig.type === "edr") {
+  if (networkConfig.type === "edr-simulated") {
     const {
       chainType = GENERIC_CHAIN_TYPE,
       hardfork,

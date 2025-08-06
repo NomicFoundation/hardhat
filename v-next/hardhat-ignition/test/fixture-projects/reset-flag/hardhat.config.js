@@ -17,7 +17,7 @@ export default {
   },
   networks: {
     nothardhat: {
-      type: "edr",
+      type: "edr-simulated",
       chainId: 99999,
       gas: "auto",
       gasMultiplier: 1,

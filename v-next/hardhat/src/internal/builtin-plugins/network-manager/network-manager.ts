@@ -210,7 +210,7 @@ export class NetworkManagerImplementation implements NetworkManager {
           async (_context, _connection, req) => defaultBehavior(req),
         );
 
-      if (resolvedNetworkConfig.type === "edr") {
+      if (resolvedNetworkConfig.type === "edr-simulated") {
         if (!isSupportedChainType(resolvedChainType)) {
           throw new HardhatError(
             HardhatError.ERRORS.CORE.GENERAL.UNSUPPORTED_OPERATION,

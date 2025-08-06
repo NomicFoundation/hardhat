@@ -121,7 +121,7 @@ const config: HardhatUserConfig = {
       accounts: [configVariable("OP_SENDER")],
     },
     edrOp: {
-      type: "edr",
+      type: "edr-simulated",
       chainType: "op",
       chainId: 10,
       forking: {
@@ -135,7 +135,7 @@ const config: HardhatUserConfig = {
       accounts: [configVariable("OP_SEPOLIA_SENDER")],
     },
     edrOpSepolia: {
-      type: "edr",
+      type: "edr-simulated",
       chainType: "op",
       forking: {
         url: "https://sepolia.optimism.io",

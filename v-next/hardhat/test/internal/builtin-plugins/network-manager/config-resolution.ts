@@ -115,7 +115,7 @@ describe("config-resolution", () => {
   describe("resolveEdrNetwork", () => {
     it("should return the edr network config if it is provided", () => {
       const userConfig: EdrNetworkUserConfig = {
-        type: "edr",
+        type: "edr-simulated",
         chainId: 1,
         chainType: L1_CHAIN_TYPE,
         from: "0x1234",
@@ -176,7 +176,7 @@ describe("config-resolution", () => {
 
     it("should use the default values for the optional fields if they are not provided", () => {
       const userConfig: EdrNetworkUserConfig = {
-        type: "edr",
+        type: "edr-simulated",
       };
       const now = new Date();
       const edrNetworkConfig = resolveEdrNetwork(
@@ -187,7 +187,7 @@ describe("config-resolution", () => {
 
       // Only check the fields that are resolved by the function itself
       // Other fields are checked in the following describe blocks
-      assert.equal(edrNetworkConfig.type, "edr");
+      assert.equal(edrNetworkConfig.type, "edr-simulated");
       assert.equal(edrNetworkConfig.chainId, 31337);
       assert.equal(edrNetworkConfig.chainType, undefined);
       assert.equal(edrNetworkConfig.from, undefined);
@@ -209,7 +209,7 @@ describe("config-resolution", () => {
 
     it("should use the provided chainId for the networkId if it is not provided", () => {
       const userConfig: EdrNetworkUserConfig = {
-        type: "edr",
+        type: "edr-simulated",
         chainId: 1,
       };
       const edrNetworkConfig = resolveEdrNetwork(
