@@ -184,7 +184,7 @@ describe("contracts", () => {
           plugins: [HardhatViem],
           networks: {
             edrOptimism: {
-              type: "edr",
+              type: "edr-simulated",
               chainId: 10,
               chainType: "op",
               forking: {

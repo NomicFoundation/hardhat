@@ -65,11 +65,11 @@ const config: HardhatUserConfig = {
    */
   networks: {
     hardhatMainnet: {
-      type: "edr",
+      type: "edr-simulated",
       chainType: "l1",
     },
     hardhatOp: {
-      type: "edr",
+      type: "edr-simulated",
       chainType: "op",
     },
     sepolia: {

@@ -48,7 +48,7 @@ export async function normalizeNetworkConfigOverride(
 
     networkConfigOverrideWithType = {
       ...networkConfigOverrideAsEdr,
-      type: "edr",
+      type: "edr-simulated",
     };
   }
 

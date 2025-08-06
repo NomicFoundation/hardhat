@@ -8,7 +8,7 @@ async function sendL2Transaction(networkConfigName: string) {
     chainType: "op",
   });
 
-  if (networkConfig.type === "edr") {
+  if (networkConfig.type === "edr-simulated") {
     console.log("Using an EDR network simulating Optimism, forking it");
   } else {
     console.log("Using an HTTP connection to Optimism");
