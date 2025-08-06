@@ -279,6 +279,7 @@ export class Anonymizer {
   async #anonymizeException(value: Exception): Promise<Exception> {
     const result: Exception = {
       type: value.type,
+      mechanism: value.mechanism,
     };
 
     if (value.value !== undefined) {
@@ -288,8 +289,6 @@ export class Anonymizer {
     if (value.stacktrace !== undefined) {
       result.stacktrace = await this.#anonymizeStacktrace(value.stacktrace);
     }
-
-    result.mechanism = value.mechanism;
 
     return result;
   }
