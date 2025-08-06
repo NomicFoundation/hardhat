@@ -1,12 +1,15 @@
 /* This file is inspired by https://github.com/getsentry/sentry-javascript/blob/9.4.0/packages/node/src/sdk/index.ts */
 
-import type { ServerRuntimeClientOptions, Transport } from "@sentry/core";
+import type {
+  Client,
+  ServerRuntimeClientOptions,
+  Transport,
+} from "@sentry/core";
 
 import os from "node:os";
 import path from "node:path";
 
 import {
-  captureException,
   createStackParser,
   functionToStringIntegration,
   initAndBind,
@@ -46,6 +49,12 @@ interface GlobalCustomSentryReporterOptions {
    * See the transport module for the different options.
    */
   transport: Transport;
+
+  /**
+   * If `true`, the global unhandled rejection and uncaught exception handlers
+   * will be installed.
+   */
+  installGlobalHandlers?: boolean;
 }
 
 /**
@@ -64,11 +73,11 @@ interface GlobalCustomSentryReporterOptions {
  * initAndBind), is that using the client directly doesn't work with the linked
  * errors integration.
  *
- * Calling `init` will also install the global unhandled rejection and uncaught
- * exception handlers.
+ * Calling `init` also has an option to set global unhandled rejection and
+ * uncaught exception handlers.
  */
 export function init(options: GlobalCustomSentryReporterOptions): void {
-  initAndBind<ServerRuntimeClient, ServerRuntimeClientOptions>(
+  const client = initAndBind<ServerRuntimeClient, ServerRuntimeClientOptions>(
     ServerRuntimeClient,
     {
       dsn: options.dsn,
@@ -105,34 +114,16 @@ export function init(options: GlobalCustomSentryReporterOptions): void {
     },
   );
 
-  setupGlobalUnhandledErrorHandlers();
+  setupGlobalUnhandledErrorHandlers(client);
 }
 
-function setupGlobalUnhandledErrorHandlers() {
-  process.on("unhandledRejection", (reason, promise) => {
-    log("Unhandled rejection", reason, promise);
+function setupGlobalUnhandledErrorHandlers(client: Client) {
+  log("Setting up global unhandled error handlers");
 
-    captureException(reason, {
-      originalException: promise,
-      captureContext: {
-        extra: { unhandledPromiseRejection: true },
-        level: "fatal",
-      },
-      mechanism: {
-        handled: false,
-        type: "onunhandledrejection",
-      },
-    });
-
-    // eslint-disable-next-line no-restricted-syntax -- We just rethrow
-    throw reason;
-  });
-
-  process.on("uncaughtException", (error) => {
+  async function listener(error: Error | unknown) {
     log("Uncaught exception", error);
 
-    captureException(error, {
-      originalException: error,
+    client.captureException(error, {
       captureContext: {
         level: "fatal",
       },
@@ -142,7 +133,14 @@ function setupGlobalUnhandledErrorHandlers() {
       },
     });
 
-    // eslint-disable-next-line no-restricted-syntax -- We just rethrow
-    throw error;
-  });
+    await client.flush(100);
+    await client.close(100);
+
+    console.error("Unexpected error encountered:\n");
+    console.error(error);
+    process.exit(1);
+  }
+
+  process.on("uncaughtException", listener);
+  process.on("unhandledRejection", listener);
 }
