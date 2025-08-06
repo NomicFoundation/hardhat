@@ -1,4 +1,4 @@
-/* eslint-disable no-restricted-syntax -- Alllow top-level await */
+/* eslint-disable no-restricted-syntax -- Allow top-level await */
 import { captureMessage, close, captureException } from "@sentry/core";
 import debug from "debug";
 
