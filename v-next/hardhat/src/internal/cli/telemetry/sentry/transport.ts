@@ -144,14 +144,14 @@ export async function sendEnvelopeToSentryBackend(
   );
 }
 
-function isTsxRequiredForSubprocess(suprocessPath: string): boolean {
+function isTsxRequiredForSubprocess(subprocessPath: string): boolean {
   const tsNativeRuntimes = ["Deno", "Bun"];
 
   if (tsNativeRuntimes.some((env) => env in globalThis)) {
     return false;
   }
 
-  return suprocessPath.endsWith(".ts");
+  return subprocessPath.endsWith(".ts");
 }
 
 async function sendSerializedEnvelopeToSentryBackend(
