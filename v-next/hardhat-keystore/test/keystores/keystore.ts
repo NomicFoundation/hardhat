@@ -9,7 +9,7 @@ import {
   createMasterKey,
 } from "../../src/internal/keystores/encryption.js";
 import { Keystore } from "../../src/internal/keystores/keystore.js";
-import { TEST_PASSWORD } from "../helpers/test-password.js";
+import { TEST_PASSWORD_PROD } from "../helpers/test-password.js";
 
 describe("Keystore", () => {
   describe("when the keystore is valid", () => {
@@ -19,7 +19,7 @@ describe("Keystore", () => {
 
     beforeEach(() => {
       ({ masterKey, salt } = createMasterKey({
-        password: TEST_PASSWORD,
+        password: TEST_PASSWORD_PROD,
       }));
 
       let keystoreFile = createEmptyEncryptedKeystore({ masterKey, salt });

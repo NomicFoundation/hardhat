@@ -2,6 +2,8 @@ import type { HardhatPlugin } from "hardhat/types/plugins";
 
 export const setupKeystoreFileLocationOverrideAt = (
   keystoreFilePath: string,
+  devKeystoreFilePath: string,
+  devKeystorePasswordFilePath: string,
 ): HardhatPlugin => {
   const hardhatKeystoreFileLocationOverridePlugin: HardhatPlugin = {
     id: "hardhat-keystore-file-location-override",
@@ -22,6 +24,8 @@ export const setupKeystoreFileLocationOverrideAt = (
               ...resolvedConfig,
               keystore: {
                 filePath: keystoreFilePath,
+                devFilePath: devKeystoreFilePath,
+                devPasswordFilePath: devKeystorePasswordFilePath,
               },
             };
           },

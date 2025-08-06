@@ -2048,6 +2048,20 @@ Please check Hardhat's output for more details.`,
         websiteDescription:
           "The password you provided is incorrect or the keystore file is corrupted.",
       },
+      CANNOT_CHANGED_PASSWORD_FOR_DEV_KEYSTORE: {
+        number: 50001,
+        messageTemplate: `The keystore "change-password" task cannot be used with the development keystore`,
+        websiteTitle: "Cannot change password for dev keystore",
+        websiteDescription: `The keystore "change-password" task cannot be used with the development keystore`,
+      },
+      KEY_NOT_FOUND_DURING_TESTS_WITH_DEV_KEYSTORE: {
+        number: 50002,
+        messageTemplate: `Key "{key}" not found in the development keystore. Run "npx hardhat keystore set {key} --dev" to set it.`,
+        websiteTitle: "Key not found in the development keystore during tests",
+        websiteDescription: `Key not found in the development keystore. During tests, configuration variables can only be accessed through the development keystore.
+
+Run "npx hardhat keystore set <KEY> --dev" to set it.`,
+      },
     },
   },
   NETWORK_HELPERS: {
