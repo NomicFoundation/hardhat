@@ -945,7 +945,7 @@ Try using another mnemonic or deriving less keys.`,
         messageTemplate:
           'The provided network type "{networkType}" for network "{networkName}" is not recognized, only `http` and `edr` are supported.',
         websiteTitle: "Invalid network type",
-        websiteDescription: `The network manager only supports the network types 'http' and 'edr'.`,
+        websiteDescription: `The network manager only supports the network types 'http' and 'edr-simulated'.`,
       },
       DATA_FIELD_CANNOT_BE_NULL_WITH_NULL_ADDRESS: {
         number: 721,
@@ -1154,9 +1154,9 @@ Please use the fully qualified name of the contract to disambiguate it.`,
     NODE: {
       INVALID_NETWORK_TYPE: {
         number: 1100,
-        messageTemplate: `The provided node network type "{networkType}" for network "{networkName}" is not recognized, only 'edr' is supported.`,
+        messageTemplate: `The provided node network type "{networkType}" for network "{networkName}" is not recognized, only 'edr-simulated' is supported.`,
         websiteTitle: "Invalid node network type",
-        websiteDescription: `The node only supports the 'edr' network type.`,
+        websiteDescription: `The node only supports the 'edr-simulated' network type.`,
       },
     },
     TEST_PLUGIN: {
@@ -2448,7 +2448,7 @@ Possible causes:
 Specify the exact contract using the \`--contract\` flag.`,
         websiteTitle: "Multiple contract matches",
         websiteDescription: `The deployed bytecode matches multiple compiled contracts. Specify the exact contract using the \`--contract\` flag. For example:
-        
+
 \`\`\`sh
 npx hardhat verify --contract contracts/Example.sol:ExampleContract <other args>
 \`\`\`

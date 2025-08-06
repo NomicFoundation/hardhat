@@ -146,7 +146,7 @@ export class ViemIgnitionHelperImpl<ChainTypeT extends ChainType | string>
     const deploymentId = resolveDeploymentId(givenDeploymentId, chainId);
 
     const deploymentDir =
-      this.#connection.networkConfig.type === "edr"
+      this.#connection.networkConfig.type === "edr-simulated"
         ? undefined
         : path.join(
             this.#hardhatConfig.paths.ignition,

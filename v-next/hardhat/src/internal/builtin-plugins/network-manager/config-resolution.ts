@@ -68,7 +68,7 @@ export function resolveEdrNetwork(
   resolveConfigurationVariable: ConfigurationVariableResolver,
 ): EdrNetworkConfig {
   return {
-    type: "edr",
+    type: "edr-simulated",
     accounts: resolveEdrNetworkAccounts(
       networkConfig.accounts,
       resolveConfigurationVariable,

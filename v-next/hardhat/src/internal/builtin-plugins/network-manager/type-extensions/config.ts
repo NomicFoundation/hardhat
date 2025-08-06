@@ -94,7 +94,7 @@ declare module "../../../../types/config.js" {
   export type GasUserConfig = "auto" | number | bigint;
 
   export interface EdrNetworkUserConfig {
-    type: "edr";
+    type: "edr-simulated";
     accounts?: EdrNetworkAccountsUserConfig;
     chainId?: number;
     chainType?: ChainType;
@@ -233,7 +233,7 @@ declare module "../../../../types/config.js" {
   export type GasConfig = "auto" | bigint;
 
   export interface EdrNetworkConfig {
-    type: "edr";
+    type: "edr-simulated";
     accounts: EdrNetworkAccountsConfig;
     chainId: number;
     chainType?: ChainType;
