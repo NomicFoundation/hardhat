@@ -18,7 +18,7 @@ const log = debug("hardhat:core:sentry:transport");
  * This transport spawns a detached process synchronously and sends the envelope
  * from there.
  *
- * This measn that the Hardhat process doesn't have to wait for the request
+ * This means that the Hardhat process doesn't have to wait for the request
  * to finish before exiting, flushing the transport, not closing the client.
  *
  * This is meant to be use as THE main transport in Hardhat.
