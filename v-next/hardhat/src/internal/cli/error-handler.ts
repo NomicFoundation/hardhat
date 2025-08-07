@@ -65,9 +65,9 @@ interface ErrorMessages {
  * `console.error`. Useful for testing to capture error messages.
  */
 export function printErrorMessages(
-  error: unknown,
+  error: Error,
   shouldShowStackTraces: boolean = false,
-  print: (message: any) => void = console.error,
+  print: (message: string | Error) => void = console.error,
 ): void {
   const showStackTraces =
     shouldShowStackTraces ||
@@ -93,7 +93,7 @@ export function printErrorMessages(
   }
 }
 
-function getErrorWithCategory(error: unknown): ErrorWithCategory {
+function getErrorWithCategory(error: Error): ErrorWithCategory {
   if (HardhatError.isHardhatError(error)) {
     if (error.pluginId === undefined) {
       return {
@@ -121,7 +121,7 @@ function getErrorWithCategory(error: unknown): ErrorWithCategory {
   };
 }
 
-function getErrorMessages(error: unknown): ErrorMessages {
+function getErrorMessages(error: Error): ErrorMessages {
   const { category, categorizedError } = getErrorWithCategory(error);
   switch (category) {
     case ErrorCategory.HARDHAT:
