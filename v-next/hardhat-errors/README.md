@@ -1,4 +1,6 @@
-# Hardhat errors
+# hardhat-errors
+
+> ⚠️ This package is an internal Hardhat component and it's not meant to be used directly.
 
 This packages has the definition of the error classes used by Hardhat, and the list of possible errors.
 
