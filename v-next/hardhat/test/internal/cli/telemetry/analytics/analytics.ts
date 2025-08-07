@@ -7,6 +7,7 @@ import { after, afterEach, before, beforeEach, describe, it } from "node:test";
 import { readJsonFile, remove } from "@nomicfoundation/hardhat-utils/fs";
 
 import {
+  sendProjectTypeAnalytics,
   sendTaskAnalytics,
   sendTelemetryConfigAnalytics,
 } from "../../../../../src/internal/cli/telemetry/analytics/analytics.js";
@@ -133,7 +134,44 @@ describe("analytics", () => {
       assert.equal(result.events[0].name, "task");
       assert.equal(result.events[0].params.engagement_time_msec, "10000");
       assert.notEqual(result.events[0].params.session_id, undefined);
+      assert(
+        "task" in result.events[0].params,
+        "params should have a task field",
+      );
       assert.equal(result.events[0].params.task, "task, subtask");
+    });
+
+    it("should create the correct payload for the init analytics", async () => {
+      const wasSent = await sendProjectTypeAnalytics(
+        "hardhat-3",
+        "mocha-ethers",
+      );
+
+      await checkIfSubprocessWasExecuted(RESULT_FILE_PATH);
+
+      const result: Payload = await readJsonFile(RESULT_FILE_PATH);
+
+      assert.equal(wasSent, true);
+
+      // Check payload properties
+      assert.notEqual(result.client_id, undefined);
+      assert.notEqual(result.user_id, undefined);
+      assert.equal(result.user_properties.projectId.value, "hardhat-project");
+      assert.equal(
+        result.user_properties.hardhatVersion.value,
+        await getHardhatVersion(),
+      );
+      assert.notEqual(result.user_properties.operatingSystem.value, undefined);
+      assert.notEqual(result.user_properties.nodeVersion.value, undefined);
+      assert.equal(result.events[0].name, "init");
+      assert.equal(result.events[0].params.engagement_time_msec, "10000");
+      assert.notEqual(result.events[0].params.session_id, undefined);
+      assert(
+        "hardhatVersion" in result.events[0].params,
+        "params should have a task field",
+      );
+      assert.equal(result.events[0].params.hardhatVersion, "hardhat-3");
+      assert.equal(result.events[0].params.template, "mocha-ethers");
     });
 
     it("should not send analytics because the user explicitly opted out of telemetry", async () => {
