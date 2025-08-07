@@ -24,6 +24,7 @@ import * as semver from "semver";
 import { findClosestHardhatConfig } from "../../config-loading.js";
 import { HARDHAT_NAME } from "../../constants.js";
 import { getHardhatVersion } from "../../utils/package.js";
+import { sendProjectTypeAnalytics } from "../telemetry/analytics/analytics.js";
 
 import {
   getDevDependenciesInstallationCommand,
@@ -96,7 +97,10 @@ export async function initHardhat(options?: InitHardhatOptions): Promise<void> {
 
     // Ask the user for the template to use for the project initialization
     // if it was not provided, and validate that it exists
-    const template = await getTemplate(hardhatVersion, options?.template);
+    const [template, projectTypeAnalyticsPromise] = await getTemplate(
+      hardhatVersion,
+      options?.template,
+    );
 
     // Create the package.json file if it does not exist
     // and validate that it is an esm package
@@ -112,7 +116,11 @@ export async function initHardhat(options?: InitHardhatOptions): Promise<void> {
 
     // Print the commands to install the project dependencies
     // Run them only if the user opts-in to it
-    await installProjectDependencies(workspace, template, options?.install);
+    // Concurrently, await the analytics hit
+    await Promise.all([
+      installProjectDependencies(workspace, template, options?.install),
+      projectTypeAnalyticsPromise,
+    ]);
 
     showStarOnGitHubMessage();
   } catch (e) {
@@ -241,12 +249,12 @@ export async function getWorkspace(workspace?: string): Promise<string> {
  * NOTE: This function is exported for testing purposes
  *
  * @param template The name of the template to use for the project initialization.
- * @returns
+ * @returns A tuple with two elements: the template and a promise with the analytics hit.
  */
 export async function getTemplate(
   hardhatVersion: "hardhat-2" | "hardhat-3",
   template?: string,
-): Promise<Template> {
+): Promise<[Template, Promise<boolean>]> {
   const templates = await getTemplates(hardhatVersion);
 
   // Ask the user for the template to use for the project initialization if it was not provided
@@ -254,12 +262,20 @@ export async function getTemplate(
     template = await promptForTemplate(templates);
   }
 
+  const projectTypeAnalyticsPromise = sendProjectTypeAnalytics(
+    hardhatVersion,
+    template,
+  );
+
   // Validate that the template exists
   for (const t of templates) {
     if (t.name === template) {
-      return t;
+      return [t, projectTypeAnalyticsPromise];
     }
   }
+
+  // we wait for the GA hit before throwing
+  await projectTypeAnalyticsPromise;
 
   throw new HardhatError(HardhatError.ERRORS.CORE.GENERAL.TEMPLATE_NOT_FOUND, {
     template,

@@ -90,7 +90,7 @@ describe("getTemplate", () => {
     );
   });
   it("should return the provided template", async () => {
-    const template = await getTemplate("hardhat-3", "mocha-ethers");
+    const [template] = await getTemplate("hardhat-3", "mocha-ethers");
     assert.equal(template.name, "mocha-ethers");
   });
 });
@@ -284,7 +284,7 @@ describe("copyProjectFiles", () => {
 
   describe("when force is true", () => {
     it("should copy the template files to the workspace and overwrite existing files", async () => {
-      const template = await getTemplate("hardhat-3", "mocha-ethers");
+      const [template] = await getTemplate("hardhat-3", "mocha-ethers");
       // Create template files with "some content" in the workspace
       const workspaceFiles = template.files.map(
         relativeTemplateToWorkspacePath,
@@ -303,7 +303,7 @@ describe("copyProjectFiles", () => {
       }
     });
     it("should copy the .gitignore file correctly", async () => {
-      const template = await getTemplate("hardhat-3", "mocha-ethers");
+      const [template] = await getTemplate("hardhat-3", "mocha-ethers");
       // Copy the template files to the workspace
       await copyProjectFiles(process.cwd(), template, true);
       // Check that the .gitignore exists but gitignore does not
@@ -319,7 +319,7 @@ describe("copyProjectFiles", () => {
   });
   describe("when force is false", () => {
     it("should copy the template files to the workspace and NOT overwrite existing files", async () => {
-      const template = await getTemplate("hardhat-3", "mocha-ethers");
+      const [template] = await getTemplate("hardhat-3", "mocha-ethers");
       // Create template files with "some content" in the workspace
       const workspaceFiles = template.files.map(
         relativeTemplateToWorkspacePath,
@@ -338,7 +338,7 @@ describe("copyProjectFiles", () => {
       }
     });
     it("should copy the .gitignore file correctly", async () => {
-      const template = await getTemplate("hardhat-3", "mocha-ethers");
+      const [template] = await getTemplate("hardhat-3", "mocha-ethers");
       // Copy the template files to the workspace
       await copyProjectFiles(process.cwd(), template, false);
       // Check that the .gitignore exists but gitignore does not
@@ -396,7 +396,7 @@ describe("installProjectDependencies", async () => {
   }
 
   it("should not install any template dependencies if the user opts-out of the installation", async () => {
-    const template = await getTemplate("hardhat-3", "mocha-ethers");
+    const [template] = await getTemplate("hardhat-3", "mocha-ethers");
     await writeUtf8File("package.json", JSON.stringify({ type: "module" }));
     await installProjectDependencies(process.cwd(), template, false, false);
     assert.ok(!(await exists("node_modules")), "node_modules should not exist");
@@ -412,7 +412,7 @@ describe("installProjectDependencies", async () => {
         process.env.GITHUB_HEAD_REF?.startsWith("changeset-release/"),
     },
     async () => {
-      const template = await getTemplate("hardhat-3", "mocha-ethers");
+      const [template] = await getTemplate("hardhat-3", "mocha-ethers");
       await writeUtf8File(
         "package.json",
         JSON.stringify({

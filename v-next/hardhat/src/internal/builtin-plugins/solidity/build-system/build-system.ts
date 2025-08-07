@@ -84,6 +84,7 @@ export interface SolidityBuildSystemOptions {
   readonly soliditySourcesPaths: string[];
   readonly artifactsPath: string;
   readonly cachePath: string;
+  readonly solidityTestsPath: string;
 }
 
 export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
@@ -290,6 +291,8 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     rootFilePaths: string[],
     options?: GetCompilationJobsOptions,
   ): Promise<CompilationJobCreationError | GetCompilationJobsResult> {
+    const isolated = options?.isolated ?? false;
+
     await this.#downloadConfiguredCompilers(options?.quiet);
 
     const dependencyGraph = await buildDependencyGraph(
@@ -397,7 +400,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         options?.force === true ||
         cacheResult === undefined ||
         cacheResult.jobHash !== jobHash ||
-        cacheResult.isolated !== options?.isolated
+        cacheResult.isolated !== isolated
       ) {
         rootFilesToCompile.add(rootFile);
         continue;
@@ -424,10 +427,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       }
     }
 
-    if (
-      options?.isolated !== true &&
-      shouldMergeCompilationJobs(buildProfileName)
-    ) {
+    if (!isolated && shouldMergeCompilationJobs(buildProfileName)) {
       // non-isolated mode
       log(`Merging compilation jobs`);
 
@@ -701,6 +701,20 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       (d) => d.endsWith(".sol"),
     )) {
       const relativePath = path.relative(this.#options.artifactsPath, file);
+
+      const testDirectorySubpath = path.relative(
+        this.#options.projectRoot,
+        this.#options.solidityTestsPath,
+      );
+      const hasTestFileExtension = file.endsWith(".t.sol");
+      const isInsideTestFolder = relativePath.startsWith(
+        testDirectorySubpath + path.sep,
+      );
+
+      // Skip test artifacts, since our full compilation doesn't include them, they would incorrectly be marked for deletion
+      if (hasTestFileExtension || isInsideTestFolder) {
+        continue;
+      }
 
       if (!userSourceNamesSet.has(relativePath)) {
         await remove(file);
