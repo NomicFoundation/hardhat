@@ -5,13 +5,21 @@ import type {
 import type { HardhatRuntimeEnvironment } from "../../types/hre.js";
 import type { Task, TaskArguments } from "../../types/tasks.js";
 
+import { createRequire } from "node:module";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
 import {
   HardhatError,
   assertHardhatInvariant,
 } from "@nomicfoundation/hardhat-errors";
 import { isCi } from "@nomicfoundation/hardhat-utils/ci";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
-import { readClosestPackageJson } from "@nomicfoundation/hardhat-utils/package";
+import { getRealPath } from "@nomicfoundation/hardhat-utils/fs";
+import {
+  findClosestPackageJson,
+  readClosestPackageJson,
+} from "@nomicfoundation/hardhat-utils/package";
 import { kebabToCamelCase } from "@nomicfoundation/hardhat-utils/string";
 import debug from "debug";
 import { register } from "tsx/esm/api";
@@ -91,6 +99,12 @@ export async function main(
     configPath = await resolveHardhatConfigPath(
       builtinGlobalOptions.configPath,
     );
+
+    if (!(await isHardhatInstalledLocallyOrLinked(configPath, log))) {
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.GENERAL.NON_LOCAL_INSTALLATION,
+      );
+    }
 
     setCliHardhatConfigPath(configPath);
 
@@ -681,4 +695,53 @@ npm pkg set type="module"
   }
 
   return false;
+}
+
+/**
+ * Returns true if Hardhat is installed locally or linked from its repository,
+ * by looking for it using the node module resolution logic.
+ *
+ * If a config file is provided, we start looking for it from there. Otherwise,
+ * we use the current working directory.
+ */
+async function isHardhatInstalledLocallyOrLinked(
+  configPath: string,
+  log: debug.Debugger,
+) {
+  try {
+    // Setup a require to let us Node resolve based on the
+    // user's repo
+    const require = createRequire(configPath ?? process.cwd());
+
+    // We can only resolve exported package files, this will resolve to:
+    // <user-path>/hardhat/dist/src/index.js
+    const resolveHardhatMainFile = require.resolve("hardhat");
+
+    // Transform to the package.json file within the hardhat package
+    const resolvedPackageJson = path.resolve(
+      resolveHardhatMainFile,
+      "../../../package.json",
+    );
+
+    const thisPackageJson = await findClosestPackageJson(
+      fileURLToPath(import.meta.url),
+    );
+
+    // We need to get the realpaths here, as hardhat may be linked and
+    // running with `node --preserve-symlinks`
+    const isLocalOrLinked =
+      (await getRealPath(resolvedPackageJson)) ===
+      (await getRealPath(thisPackageJson));
+
+    if (!isLocalOrLinked) {
+      log("Determed that Hardhat is not installed locally/linked");
+      log(`  resolved package.json: ${resolvedPackageJson}`);
+      log(`  current package.json: ${thisPackageJson}`);
+    }
+
+    return isLocalOrLinked;
+  } catch (error) {
+    log("Error during installed locally/linked test", error);
+    return false;
+  }
 }

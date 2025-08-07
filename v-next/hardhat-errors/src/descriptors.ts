@@ -465,6 +465,14 @@ A fully qualified name should look like file.sol:Contract`,
 
 Please resolve the errors before rerunning the command.`,
       },
+      NON_LOCAL_INSTALLATION: {
+        number: 22,
+        messageTemplate: `Trying to use a non-local installation of Hardhat, which is not supported.\n\nPlease install Hardhat locally using pnpm, npm or yarn, and try again.`,
+        websiteTitle: "Hardhat is not installed or installed globally",
+        websiteDescription: `You tried to run Hardhat from a global installation or not installing it at all. This is not supported.
+
+Please install Hardhat locally using pnpm, npm or yarn, and try again.`,
+      },
     },
     INTERNAL: {
       ASSERTION_ERROR: {
