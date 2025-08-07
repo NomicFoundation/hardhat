@@ -456,6 +456,13 @@ Please add the property "type" with the value "module" in your package.json to e
 
 A fully qualified name should look like file.sol:Contract`,
       },
+      INVALID_CONFIG_FILE: {
+        number: 21,
+        messageTemplate: `Invalid config file at {configPath}:
+{errors}`,
+        websiteTitle: "Invalid config file",
+        websiteDescription: "The config file is invalid.",
+      },
     },
     INTERNAL: {
       ASSERTION_ERROR: {
@@ -2448,7 +2455,7 @@ Possible causes:
 Specify the exact contract using the \`--contract\` flag.`,
         websiteTitle: "Multiple contract matches",
         websiteDescription: `The deployed bytecode matches multiple compiled contracts. Specify the exact contract using the \`--contract\` flag. For example:
-        
+
 \`\`\`sh
 npx hardhat verify --contract contracts/Example.sol:ExampleContract <other args>
 \`\`\`
