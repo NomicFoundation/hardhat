@@ -139,7 +139,7 @@ export class Anonymizer {
     const nodeModulesIndex = parts.indexOf("node_modules");
 
     if (nodeModulesIndex === -1) {
-      if (filename.startsWith("internal")) {
+      if (filename.startsWith("internal") || filename.startsWith("node:")) {
         // show internal parts of the stack trace
         return {
           anonymizedFilename: filename,
