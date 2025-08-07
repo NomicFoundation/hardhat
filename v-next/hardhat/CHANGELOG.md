@@ -1,5 +1,26 @@
 # hardhat
 
+## 3.0.0-next.27
+
+### Patch Changes
+
+- 1e5d699: Fix example tests hanging when running on fork mode ([#6967](https://github.com/NomicFoundation/hardhat/pull/7120))
+- a958d46: Change the config test path property from `nodeTest` to `nodejs` ([#7100](https://github.com/NomicFoundation/hardhat/pull/7100))
+- ef89be2: Rename `optimism` chain type to `op` ([#7085](https://github.com/NomicFoundation/hardhat/issues/7085))
+- 2da3a06: Group `mocha` and `solidityTest` config under `test` property ([#7101](https://github.com/NomicFoundation/hardhat/pull/7101))
+- 5fbea0d: Rename `edr` label to `edr-simulated` in network config ([#7051](https://github.com/NomicFoundation/hardhat/issues/7051))
+- 4c160a8: Display **GLOBAL OPTIONS** in help messages of all tasks that support them ([#7114](https://github.com/NomicFoundation/hardhat/issues/7114))
+- e98ded3: Upgraded EDR dependency to @nomicfoundation/edr v0.12.0-next.4, which changes the file system permission config interface for Solidity tests to mitigate EVM sandbox escape through cheatcodes.
+- b142813: Added Hardhat v2 template support to `hardhat --init` ([#7035](https://github.com/NomicFoundation/hardhat/issues/7035))
+- 1266aaf: Upgraded EDR dependency to @nomicfoundation/edr v0.12.0-next.2
+- eea70ff: Make `forge-std` work with and without `src/`
+- a657c61: General improvement of error messages.
+- 1266aaf: Added the addresses of created contracts in call traces
+- c2f7136: Removed deprecated JSON-RPC methods: `eth_mining`, `net_listening`, `net_peerCount`, `hardhat_addCompilationResult`, `hardhat_intervalMine`, and `hardhat_reset`.
+- 09d4ccb: Add a development keystore ([#7003](https://github.com/NomicFoundation/hardhat/issues/7003))
+- d71f90e: Add migration task for HHv2 Ignition deployments ([#6538](https://github.com/NomicFoundation/hardhat/issues/6538))
+- 28887b9: Change the type of the `npmPackage` plugin property ([7058](https://github.com/NomicFoundation/hardhat/issues/7058))
+
 ## 3.0.0-next.26
 
 ### Patch Changes
