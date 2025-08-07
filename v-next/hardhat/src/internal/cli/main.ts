@@ -10,6 +10,7 @@ import {
   assertHardhatInvariant,
 } from "@nomicfoundation/hardhat-errors";
 import { isCi } from "@nomicfoundation/hardhat-utils/ci";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { readClosestPackageJson } from "@nomicfoundation/hardhat-utils/package";
 import { kebabToCamelCase } from "@nomicfoundation/hardhat-utils/string";
 import debug from "debug";
@@ -201,14 +202,13 @@ export async function main(
 
     await Promise.all([task.run(taskArguments), sendTaskAnalytics(task.id)]);
   } catch (error) {
+    ensureError(error);
     printErrorMessages(error, builtinGlobalOptions?.showStackTraces);
 
-    if (error instanceof Error) {
-      try {
-        await sendErrorTelemetry(error);
-      } catch (e) {
-        log("Couldn't report error to sentry: %O", e);
-      }
+    try {
+      await sendErrorTelemetry(error);
+    } catch (e) {
+      log("Couldn't report error to sentry: %O", e);
     }
 
     if (options.rethrowErrors) {
