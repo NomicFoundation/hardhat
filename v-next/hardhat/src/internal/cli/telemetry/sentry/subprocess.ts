@@ -1,84 +1,58 @@
-/* eslint-disable no-restricted-syntax -- This is the entry point of a
-subprocess, so we need to allow of top-level await here */
-import type { Event } from "@sentry/core";
-
-import { writeJsonFile } from "@nomicfoundation/hardhat-utils/fs";
-import { captureEvent, captureMessage } from "@sentry/core";
+/* eslint-disable no-restricted-syntax -- Allow top-level await */
+import { captureMessage, close, captureException } from "@sentry/core";
+import debug from "debug";
 
 import { Anonymizer } from "./anonymizer.js";
 import { init } from "./init.js";
-import { SENTRY_DSN } from "./reporter.js";
-import { makeFetchTransport } from "./transports/fetch.js";
+import {
+  createHttpTransport,
+  sendEnvelopeToSentryBackend,
+} from "./transport.js";
 
-try {
-  await init({
-    dsn: SENTRY_DSN,
-    serverName: "<user-server>",
-    transport: makeFetchTransport,
-  });
-} catch (_error) {
+const log = debug("hardhat:core:sentry:subprocess");
+
+const serializedEnvelope = process.argv[2];
+const configPath = process.argv[3] !== "" ? process.argv[3] : undefined;
+const dsn = process.argv[4];
+const release = process.argv[5];
+const environment = process.argv[6];
+
+if (process.argv.length !== 7) {
+  console.error(
+    "Invalid number of arguments. Expected [<script>, <json-serialized-envelope>, <config-path>, <dsn>, <release>]",
+  );
   process.exit(1);
 }
 
-const serializedEvent = process.argv[2];
-const configPath = process.argv[3];
+log("Received envelope to be sent to Sentry from a subprocess");
 
-if (serializedEvent === undefined) {
-  await sendMsgToSentry(
-    "There was an error parsing an event: 'process.argv[2]' argument is not set",
-  );
+init({
+  dsn,
+  release,
+  transport: createHttpTransport(dsn),
+  environment,
+});
 
-  process.exit(1);
-}
+const envelope = JSON.parse(serializedEnvelope);
 
-let sentryEvent: any;
-try {
-  sentryEvent = JSON.parse(serializedEvent);
-} catch {
-  await sendMsgToSentry(
-    "There was an error parsing an event: 'process.argv[2]' doesn't have a valid JSON",
-  );
+const anonymizer = new Anonymizer(configPath);
+const anonymizeResult = await anonymizer.anonymizeEventsFromEnvelope(envelope);
 
-  process.exit(1);
-}
+if (!anonymizeResult.success) {
+  log("Failed to anonymize envelope", anonymizeResult.error);
+  captureMessage(anonymizeResult.error);
+} else {
+  try {
+    log("Sending received envelope to Sentry");
 
-try {
-  const anonymizer = new Anonymizer(configPath);
-  const anonymizedEvent = await anonymizer.anonymize(sentryEvent);
+    await sendEnvelopeToSentryBackend(dsn, anonymizeResult.envelope);
 
-  if (anonymizedEvent.success) {
-    if (anonymizer.raisedByHardhat(anonymizedEvent.event)) {
-      await sendEventToSentry(anonymizedEvent.event);
-    }
-  } else {
-    await sendMsgToSentry(
-      `There was an error anonymizing an event: ${anonymizedEvent.error}`,
-    );
+    log("Successfully sent received envelope to Sentry");
+  } catch (e) {
+    log("Failed to send received envelope to Sentry", e);
+
+    captureException(e);
   }
-} catch (error: any) {
-  await sendMsgToSentry(
-    `There was an error capturing an event: ${error.message}`,
-  );
 }
 
-async function sendMsgToSentry(msg: string) {
-  if (process.env.HARDHAT_TEST_SUBPROCESS_RESULT_PATH !== undefined) {
-    // ATTENTION: only for testing
-    await writeJsonFile(process.env.HARDHAT_TEST_SUBPROCESS_RESULT_PATH, {
-      msg,
-    });
-    return;
-  }
-
-  captureMessage(msg);
-}
-
-async function sendEventToSentry(e: Event) {
-  if (process.env.HARDHAT_TEST_SUBPROCESS_RESULT_PATH !== undefined) {
-    // ATTENTION: only for testing
-    await writeJsonFile(process.env.HARDHAT_TEST_SUBPROCESS_RESULT_PATH, e);
-    return;
-  }
-
-  captureEvent(e);
-}
+await close();

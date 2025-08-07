@@ -23,6 +23,5 @@ function isTsxRequired(): boolean {
   return true;
 }
 
-main(process.argv.slice(2), { registerTsx: isTsxRequired() }).catch(() => {
-  process.exitCode = 1;
-});
+// eslint-disable-next-line no-restricted-syntax -- We do want TLA here
+await main(process.argv.slice(2), { registerTsx: isTsxRequired() });
