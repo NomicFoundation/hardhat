@@ -26,6 +26,10 @@ const sourcePathsType = conditionalUnionType(
   "Expected a string or an array of strings",
 );
 
+const commonSolcUserConfigType = z.object({
+  isolated: z.boolean().optional(),
+});
+
 const solcUserConfigType = z.object({
   version: z.string(),
   settings: z.any().optional(),
@@ -34,10 +38,10 @@ const solcUserConfigType = z.object({
   profiles: incompatibleFieldType("This field is incompatible with `version`"),
 });
 
-// NOTE: This is only to match the setup present in ./type-extensions.ts
-const singleVersionSolcUserConfigType = solcUserConfigType;
+const singleVersionSolcUserConfigType =
+  commonSolcUserConfigType.merge(solcUserConfigType);
 
-const multiVersionSolcUserConfigType = z.object({
+const multiVersionSolcUserConfigType = commonSolcUserConfigType.extend({
   compilers: z.array(solcUserConfigType).nonempty(),
   overrides: z.record(z.string(), solcUserConfigType).optional(),
   version: incompatibleFieldType("This field is incompatible with `compilers`"),
