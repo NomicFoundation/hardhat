@@ -1,7 +1,13 @@
-import type { Keystore, KeystoreLoader } from "../types.js";
+import type {
+  Keystore,
+  KeystoreConsoleLog,
+  KeystoreLoader,
+  KeystoreRequestSecretInput,
+} from "../types.js";
 import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 import type { NewTaskActionFunction } from "hardhat/types/tasks";
 
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { move, remove } from "@nomicfoundation/hardhat-utils/fs";
 
 import {
@@ -15,11 +21,20 @@ import {
   setupTmpKeystoreLoaderFrom,
 } from "../utils/setup-keystore-loader-from.js";
 
-const taskChangePassword: NewTaskActionFunction = async (
-  _taskArguments,
-  hre: HardhatRuntimeEnvironment,
-): Promise<void> => {
-  const keystoreLoader = setupKeystoreLoaderFrom(hre);
+interface TaskChangePasswordArguments {
+  dev: boolean;
+}
+
+const taskChangePassword: NewTaskActionFunction<
+  TaskChangePasswordArguments
+> = async ({ dev }, hre: HardhatRuntimeEnvironment): Promise<void> => {
+  if (dev === true) {
+    throw new HardhatError(
+      HardhatError.ERRORS.HARDHAT_KEYSTORE.GENERAL.CANNOT_CHANGED_PASSWORD_FOR_DEV_KEYSTORE,
+    );
+  }
+
+  const keystoreLoader = setupKeystoreLoaderFrom(hre, false);
   const newKeystoreLoader = setupTmpKeystoreLoaderFrom(hre);
 
   await changePassword(
@@ -32,14 +47,11 @@ const taskChangePassword: NewTaskActionFunction = async (
 export const changePassword = async (
   oldKeystoreLoader: KeystoreLoader,
   newKeystoreLoader: KeystoreLoader,
-  requestSecretInput: (
-    interruptor: string,
-    inputDescription: string,
-  ) => Promise<string>,
-  consoleLog: (text: string) => void = console.log,
+  requestSecretInput: KeystoreRequestSecretInput,
+  consoleLog: KeystoreConsoleLog = console.log,
 ): Promise<void> => {
   if (!(await oldKeystoreLoader.isKeystoreInitialized())) {
-    consoleLog(UserDisplayMessages.displayNoKeystoreSetErrorMessage());
+    consoleLog(UserDisplayMessages.displayNoKeystoreSetErrorMessage(false));
     process.exitCode = 1;
     return;
   }
@@ -78,10 +90,7 @@ export const changePassword = async (
 
 async function deriveOldMasterKey(
   oldKeystore: Keystore,
-  requestSecretInput: (
-    interruptor: string,
-    inputDescription: string,
-  ) => Promise<string>,
+  requestSecretInput: KeystoreRequestSecretInput,
 ): Promise<Uint8Array> {
   const oldPassword = await askPassword(requestSecretInput);
 
@@ -96,11 +105,8 @@ async function deriveOldMasterKey(
 }
 
 async function deriveNewMasterKey(
-  requestSecretInput: (
-    interruptor: string,
-    inputDescription: string,
-  ) => Promise<string>,
-  consoleLog: (text: string) => void,
+  requestSecretInput: KeystoreRequestSecretInput,
+  consoleLog: KeystoreConsoleLog,
 ): Promise<{
   salt: Uint8Array;
   masterKey: Uint8Array;

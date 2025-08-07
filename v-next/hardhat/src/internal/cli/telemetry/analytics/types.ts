@@ -32,11 +32,20 @@ export interface TelemetryConfigPayload extends BasePayload {
   }>;
 }
 
-export type EventNames = "task";
-
-export interface TaskParams {
-  task: string;
-}
+export type AnalyticsEvent =
+  | {
+      name: "task";
+      params: {
+        task: string;
+      };
+    }
+  | {
+      name: "init";
+      params: {
+        hardhatVersion: "hardhat-2" | "hardhat-3";
+        template: string;
+      };
+    };
 
 export interface Payload extends BasePayload {
   user_properties: {
@@ -54,10 +63,10 @@ export interface Payload extends BasePayload {
     };
   };
   events: Array<{
-    name: EventNames;
+    name: AnalyticsEvent["name"];
     params: {
       engagement_time_msec: string;
       session_id: string;
-    } & TaskParams;
+    } & AnalyticsEvent["params"];
   }>;
 }

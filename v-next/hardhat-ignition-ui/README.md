@@ -1,6 +1,6 @@
-# Hardhat Ignition Visualize UI
+# hardhat-ignition-ui
 
-> Warning: this package is used internally within Hardhat Ignition, and is not intended to be used directly.
+> ⚠️ This package is an internal Hardhat component and it's not meant to be used directly.
 
 The website used in Hardhat Ignition's `visualize` task for visualising a deployment.
 

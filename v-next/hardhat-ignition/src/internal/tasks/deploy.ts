@@ -66,7 +66,8 @@ const taskDeploy: NewTaskActionFunction<TaskDeployArguments> = async (
   );
 
   const deploymentDir =
-    connection.networkConfig.type === "edr" && !writeLocalhostDeployment
+    connection.networkConfig.type === "edr-simulated" &&
+    !writeLocalhostDeployment
       ? undefined
       : path.join(hre.config.paths.ignition, "deployments", deploymentId);
 

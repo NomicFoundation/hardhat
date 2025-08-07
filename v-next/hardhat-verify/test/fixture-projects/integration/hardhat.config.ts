@@ -5,7 +5,7 @@ import hardhatVerify from "../../../src/index.js";
 const config: HardhatUserConfig = {
   networks: {
     default: {
-      type: "edr",
+      type: "edr-simulated",
       chainId: 11155111, // Sepolia
     },
   },

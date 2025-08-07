@@ -15,7 +15,7 @@ export default {
   },
   networks: {
     hardhat: {
-      type: "edr",
+      type: "edr-simulated",
       throwOnTransactionFailures: false,
     },
   },

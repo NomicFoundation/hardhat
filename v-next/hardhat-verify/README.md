@@ -1,31 +1,24 @@
-# Hardhat Verify plugin
+# hardhat-verify
 
 [Hardhat](https://hardhat.org) plugin to verify the source of code of deployed contracts.
 
 ## Installation
 
+> This plugin is part of [Viem Hardhat Toolbox](/v-next/hardhat-toolbox-viem/) and [Ethers+Mocha Hardhat Toolbox](/v-next/hardhat-toolbox-mocha-ethers/). If you are using any of those toolboxes, there's nothing else you need to do.
+
 To install this plugin, run the following command:
 
 ```bash
-npm install --save-dev @nomicfoundation/hardhat-verify@next
+npm install --save-dev @nomicfoundation/hardhat-verify
 ```
 
-and add the following statements to your `hardhat.config.ts` file:
+In your `hardhat.config.ts` file, import the plugin and add it to the `plugins` array:
 
-```typescript
-// ...
-import hardhatVerifyPlugin from "@nomicfoundation/hardhat-verify";
-
-// ...
+```ts
+import hardhatVerify from "@nomicfoundation/hardhat-verify";
 
 export default {
-  // ...
-  plugins: [
-    // ...
-    hardhatVerifyPlugin,
-  ],
-
-  // ...
+  plugins: [hardhatVerify],
 };
 ```
 
@@ -36,10 +29,7 @@ export default {
 You need to add the following Etherscan config in your `hardhat.config.ts` file
 
 ```typescript
-import { configVariable } from "hardhat/config";
-
 export default {
-  // ...
   verify: {
     etherscan: {
       // Your API key for Etherscan
@@ -50,7 +40,23 @@ export default {
 };
 ```
 
-Run the `verify` task, passing the address of the contract, the network where it's deployed, and the constructor arguments that were used to deploy it (if any):
+We recommend using a [configuration variable](https://hardhat.org/hardhat3-alpha/learn-more/configuration-variables) to set sensitive information like API keys.
+
+```typescript
+import { configVariable } from "hardhat/config";
+
+export default {
+  verify: {
+    etherscan: {
+      // Your API key for Etherscan
+      // Obtain one at https://etherscan.io/
+      apiKey: configVariable("ETHERSCAN_API_KEY"),
+    },
+  },
+};
+```
+
+Run the `verify` task passing the network where it's deployed, the address of the contract, and the constructor arguments that were used to deploy it (if any):
 
 ```bash
 npx hardhat verify --network mainnet DEPLOYED_CONTRACT_ADDRESS "Constructor argument 1"
@@ -78,19 +84,19 @@ await verifyContract(
 
 ### Build profiles and verification
 
-When no build profile is specified, this plugin defaults to the `production` build profile. However, tasks like `compile` and `run` default to `default`. If your contracts are compiled with a different profile than the one used for verification, the compiled bytecode may not match the deployed bytecode, causing verification to fail.
+When no build profile is specified, this plugin defaults to `production`. However, tasks like `build` and `run` default to the `default` build profile. If your contracts are compiled with a different profile than the one used for verification, the compiled bytecode may not match the deployed bytecode, causing verification to fail.
 
-To avoid this, make sure to compile and verify using the same build profile:
+To avoid this, make sure to build and verify using the same profile:
 
 ```bash
-npx hardhat compile --profile production
+npx hardhat build --build-profile production
 npx hardhat verify --network mainnet DEPLOYED_CONTRACT_ADDRESS "Constructor argument 1"
 ```
 
 If you're using the `verifyContract` function programmatically through a script, pass the build profile when running it:
 
 ```bash
-npx hardhat run --profile production scripts/verify.ts
+npx hardhat run --build-profile production scripts/verify.ts
 ```
 
 ## How it works

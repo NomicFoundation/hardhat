@@ -108,6 +108,7 @@ describe(
         soliditySourcesPaths: [path.join(process.cwd(), "contracts")],
         artifactsPath: expectedArtifactsPath,
         cachePath: expectedCachePath,
+        solidityTestsPath: path.join(process.cwd(), "tests"),
       });
       const rootFilePaths = await solidity.getRootFilePaths();
       await solidity.build(rootFilePaths, {
@@ -130,6 +131,7 @@ describe(
         soliditySourcesPaths: [path.join(process.cwd(), "contracts")],
         artifactsPath: actualArtifactsPath,
         cachePath: actualCachePath,
+        solidityTestsPath: path.join(process.cwd(), "tests"),
       });
     });
 

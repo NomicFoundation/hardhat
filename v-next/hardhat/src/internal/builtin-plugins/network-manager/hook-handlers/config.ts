@@ -62,7 +62,7 @@ export async function extendUserConfig(
         gasMultiplier: 1,
         gasPrice: "auto",
         ...defaultConfig,
-        type: "edr",
+        type: "edr-simulated",
       },
     },
   };
@@ -83,7 +83,10 @@ export async function resolveUserConfig(
   const resolvedNetworks: Record<string, NetworkConfig> = {};
 
   for (const [networkName, networkConfig] of Object.entries(networks)) {
-    if (networkConfig.type !== "http" && networkConfig.type !== "edr") {
+    if (
+      networkConfig.type !== "http" &&
+      networkConfig.type !== "edr-simulated"
+    ) {
       throw new HardhatError(
         HardhatError.ERRORS.CORE.NETWORK.INVALID_NETWORK_TYPE,
         {
