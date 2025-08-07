@@ -151,9 +151,9 @@ We generally really appreciate external contributions, and strongly encourage me
 
 ## Contributing Checklist
 
-Shortlist of steps that should be always considered when commiting changes. All errors, reported by any command must be resolved before moving ahead.
+Shortlist of steps that should be always considered when committing changes. All errors reported by any command must be resolved before moving ahead.
 
-> All commands expect that they are executed from root of the repository.
+> All commands expect that they are executed from the root of the repository.
 
 1) `pnpm build` - build the entire project
 2) `pnpm lint` - check formatting and code structure
