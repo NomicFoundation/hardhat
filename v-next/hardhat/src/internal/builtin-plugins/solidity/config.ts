@@ -11,7 +11,7 @@ import type {
 } from "../../../types/config.js";
 import type { HardhatUserConfigValidationError } from "../../../types/hooks.js";
 
-import { isObject } from "@nomicfoundation/hardhat-utils/lang";
+import { deepMerge, isObject } from "@nomicfoundation/hardhat-utils/lang";
 import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
 import {
   conditionalUnionType,
@@ -303,8 +303,26 @@ function resolveBuildProfileConfig(
 }
 
 function resolveSolcConfig(solcConfig: SolcUserConfig): SolcConfig {
+  const DEFAULT_SOLC_CONFIG_SETTINGS: SolcConfig["settings"] = {
+    outputSelection: {
+      "*": {
+        "": ["ast"],
+        "*": [
+          "abi",
+          "evm.bytecode",
+          "evm.deployedBytecode",
+          "evm.methodIdentifiers",
+          "metadata",
+        ],
+      },
+    },
+  };
+
   return {
     version: solcConfig.version,
-    settings: solcConfig.settings ?? {},
+    settings: deepMerge(
+      DEFAULT_SOLC_CONFIG_SETTINGS,
+      solcConfig.settings ?? {},
+    ),
   };
 }
