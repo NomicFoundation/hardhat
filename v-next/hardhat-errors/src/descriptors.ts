@@ -2060,7 +2060,7 @@ Please check Hardhat's output for more details.`,
         websiteTitle: "Key not found in the development keystore during tests",
         websiteDescription: `Key not found in the development keystore. During tests, configuration variables can only be accessed through the development keystore.
 
-Run "npx hardhat keystore set <KEY> --dev" to set it.`,
+Run \`npx hardhat keystore set <KEY> --dev\` to set it.`,
       },
     },
   },
