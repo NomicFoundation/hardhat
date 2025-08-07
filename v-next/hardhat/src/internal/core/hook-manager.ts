@@ -299,12 +299,11 @@ export class HookManagerImplementation implements HookManager {
 
           let hookCategory: Partial<HardhatHooks[HookCategoryNameT]>;
 
-          if (typeof hookHandlerCategoryFactory === "string") {
-            hookCategory = await this.#loadHookCategoryFactory(
-              plugin,
-              hookCategoryName,
-              hookHandlerCategoryFactory,
-            );
+          const maybeLazyLoad = await hookHandlerCategoryFactory();
+
+          if ("default" in maybeLazyLoad) {
+            const factory = maybeLazyLoad.default;
+            hookCategory = await factory();
           } else {
             if (SHOULD_WARN_ABOUT_INLINE_TASK_ACTIONS_AND_HOOK_HANDLERS) {
               console.warn(
@@ -312,7 +311,7 @@ export class HookManagerImplementation implements HookManager {
               );
             }
 
-            hookCategory = await hookHandlerCategoryFactory();
+            hookCategory = maybeLazyLoad;
           }
 
           if (!this.#staticHookHandlerCategories.has(plugin.id)) {

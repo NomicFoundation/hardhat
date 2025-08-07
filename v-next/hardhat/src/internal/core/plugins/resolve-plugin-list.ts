@@ -47,10 +47,14 @@ async function reverseTopologicalSort(
     visitedPlugins.set(plugin.id, plugin);
 
     if (plugin.dependencies !== undefined) {
-      for (const loadFn of plugin.dependencies) {
-        const dependency = await loadDependency(projectRoot, plugin, loadFn);
+      for (const dependencyPromise of plugin.dependencies()) {
+        const resolvedPlugin = await loadDependency(
+          projectRoot,
+          plugin,
+          async () => (await dependencyPromise).default,
+        );
 
-        await dfs(dependency);
+        await dfs(resolvedPlugin);
       }
     }
 

@@ -16,8 +16,6 @@ import type { HardhatPlugin } from "../../../src/types/plugins.js";
 import assert from "node:assert/strict";
 import { describe, it, beforeEach, before } from "node:test";
 
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 
 import { HookManagerImplementation } from "../../../src/internal/core/hook-manager.js";
@@ -69,7 +67,7 @@ describe("HookManager", () => {
 
           const examplePlugin2: HardhatPlugin = {
             id: "example2",
-            dependencies: [async () => examplePlugin1],
+            dependencies: () => [Promise.resolve({ default: examplePlugin1 })],
             hookHandlers: {
               config: async () => {
                 const handlers: Partial<ConfigHooks> = {
@@ -93,7 +91,7 @@ describe("HookManager", () => {
           };
 
           hre = await HardhatRuntimeEnvironmentImplementation.create(
-            { plugins: [examplePlugin1, examplePlugin2] },
+            { plugins: [examplePlugin2] },
             {},
           );
         });
@@ -270,7 +268,7 @@ describe("HookManager", () => {
 
             const overridingPlugin2: HardhatPlugin = {
               id: "overriding-plugin2",
-              dependencies: [async () => plugin1],
+              dependencies: () => [Promise.resolve({ default: plugin1 })],
               hookHandlers: {
                 hre: async () => {
                   const handlers = {
@@ -396,7 +394,7 @@ describe("HookManager", () => {
         const examplePlugin: HardhatPlugin = {
           id: "example",
           hookHandlers: {
-            config: import.meta.resolve("./fixture-plugins/config-plugin.js"),
+            config: () => import("./fixture-plugins/config-plugin.js"),
           },
         };
 
@@ -423,10 +421,12 @@ describe("HookManager", () => {
       });
 
       it("should throw if a plugin can't be loaded from file", async () => {
+        const nonExistentImport = "./non-existent.js";
+
         const examplePlugin: HardhatPlugin = {
           id: "example",
           hookHandlers: {
-            config: import.meta.resolve("./non-existent.js"),
+            config: () => import(nonExistentImport),
           },
         };
 
@@ -451,37 +451,6 @@ describe("HookManager", () => {
         }
 
         assert.fail("Expected an error, but none was thrown");
-      });
-
-      it("should throw if a non-filepath is given to the plugin being loaded", async () => {
-        const examplePlugin: HardhatPlugin = {
-          id: "example",
-          hookHandlers: {
-            config: "./fixture-plugins/config-plugin.js", // this is not a `file://` URL
-          },
-        };
-
-        const manager = new HookManagerImplementation(projectRoot, [
-          examplePlugin,
-        ]);
-
-        await assertRejectsWithHardhatError(
-          async () =>
-            manager.runHandlerChain(
-              "config",
-              "extendUserConfig",
-              [{}],
-              async () => {
-                return {};
-              },
-            ),
-          HardhatError.ERRORS.CORE.HOOKS.INVALID_HOOK_FACTORY_PATH,
-          {
-            hookCategoryName: "config",
-            pluginId: "example",
-            path: "./fixture-plugins/config-plugin.js",
-          },
-        );
       });
     });
 

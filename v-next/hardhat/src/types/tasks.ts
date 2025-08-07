@@ -99,7 +99,7 @@ export interface NewTaskDefinition {
 
   description: string;
 
-  action: NewTaskActionFunction | string;
+  action: NewTaskActionFunction | LazyActionObject<NewTaskActionFunction>;
 
   options: Record<string, OptionDefinition>;
 
@@ -116,7 +116,9 @@ export interface TaskOverrideDefinition {
 
   description?: string;
 
-  action: TaskOverrideActionFunction | string;
+  action:
+    | TaskOverrideActionFunction
+    | LazyActionObject<TaskOverrideActionFunction>;
 
   options: Record<string, OptionDefinition>;
 }
@@ -136,9 +138,17 @@ export type TaskDefinition =
  **/
 export type ExtendTaskArguments<
   NameT extends string,
-  TypeT extends ArgumentType,
+  TypeT extends ArgumentType | ArgumentType[],
   TaskArgumentsT extends TaskArguments,
-> = Record<NameT, ArgumentTypeToValueType<TypeT>> & TaskArgumentsT;
+> = Record<
+  NameT,
+  TypeT extends ArgumentType[]
+    ? Array<ArgumentTypeToValueType<TypeT[number]>>
+    : TypeT extends ArgumentType
+      ? ArgumentTypeToValueType<TypeT>
+      : never
+> &
+  TaskArgumentsT;
 
 /**
  * A builder for creating EmptyTaskDefinitions.
@@ -170,7 +180,11 @@ export interface NewTaskDefinitionBuilder<
    * Note that plugins can only use the inline function form for development
    * purposes.
    */
-  setAction(action: NewTaskActionFunction<TaskArgumentsT> | string): this;
+  setAction(
+    action:
+      | NewTaskActionFunction<TaskArgumentsT>
+      | LazyActionObject<NewTaskActionFunction<TaskArgumentsT>>,
+  ): this;
 
   /**
    * Adds an option to the task.
@@ -268,7 +282,7 @@ export interface NewTaskDefinitionBuilder<
     type?: TypeT;
     defaultValue?: Array<ArgumentTypeToValueType<TypeT>>;
   }): NewTaskDefinitionBuilder<
-    ExtendTaskArguments<NameT, TypeT, TaskArgumentsT>
+    ExtendTaskArguments<NameT, TypeT[], TaskArgumentsT>
   >;
 
   /**
@@ -293,7 +307,11 @@ export interface TaskOverrideDefinitionBuilder<
    *
    * @see NewTaskDefinitionBuilder.setAction
    */
-  setAction(action: TaskOverrideActionFunction<TaskArgumentsT> | string): this;
+  setAction(
+    action:
+      | NewTaskActionFunction<TaskArgumentsT>
+      | LazyActionObject<NewTaskActionFunction<TaskArgumentsT>>,
+  ): this;
 
   /**
    * Adds a new option to the task.
@@ -355,8 +373,16 @@ export interface TaskOverrideDefinitionBuilder<
  * `string`.
  */
 export type TaskActions = [
-  { pluginId?: string; action?: NewTaskActionFunction | string },
-  ...Array<{ pluginId?: string; action: TaskOverrideActionFunction | string }>,
+  {
+    pluginId?: string;
+    action?: NewTaskActionFunction | LazyActionObject<NewTaskActionFunction>;
+  },
+  ...Array<{
+    pluginId?: string;
+    action:
+      | TaskOverrideActionFunction
+      | LazyActionObject<TaskOverrideActionFunction>;
+  }>,
 ];
 
 /**
@@ -422,4 +448,8 @@ export interface TaskManager {
    * Returns a task by its id, throwing if it doesn't exist.
    */
   getTask(taskId: string | string[]): Task;
+}
+
+export interface LazyActionObject<T> {
+  action: () => Promise<{ default: T }>;
 }

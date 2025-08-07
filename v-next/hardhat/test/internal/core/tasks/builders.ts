@@ -1,3 +1,8 @@
+import type {
+  LazyActionObject,
+  NewTaskActionFunction,
+} from "../../../../src/types/tasks.js";
+
 import assert from "node:assert/strict";
 import { after, before, describe, it } from "node:test";
 
@@ -168,16 +173,21 @@ describe("Task builders", () => {
         });
       });
 
-      it("should create a new task definition builder with a string action", () => {
+      it("should create a new task definition builder with a lazy action", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
-        const taskAction = "file://path/to/task-action.js";
-        const taskDefinition = builder.setAction(taskAction).build();
+        const taskActionUrl = "./path/to/task-action.js";
+
+        const lazyAction: LazyActionObject<NewTaskActionFunction> = {
+          action: () => import(taskActionUrl),
+        };
+
+        const taskDefinition = builder.setAction(lazyAction).build();
 
         assert.deepEqual(taskDefinition, {
           type: TaskDefinitionType.NEW_TASK,
           id: ["task-id"],
           description: "",
-          action: taskAction,
+          action: lazyAction,
           options: {},
           positionalArguments: [],
         });
@@ -190,23 +200,6 @@ describe("Task builders", () => {
           HardhatError.ERRORS.CORE.TASK_DEFINITIONS.NO_ACTION,
           {
             task: "task-id",
-          },
-        );
-      });
-
-      it("should throw if the task action is not a valid file URL", () => {
-        const builder = new NewTaskDefinitionBuilderImplementation("task-id");
-
-        assertThrowsHardhatError(
-          () => builder.setAction("not-a-valid-file-url"),
-          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INVALID_FILE_ACTION,
-          { action: "not-a-valid-file-url" },
-        );
-        assertThrowsHardhatError(
-          () => builder.setAction("file://"),
-          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INVALID_FILE_ACTION,
-          {
-            action: "file://",
           },
         );
       });
@@ -1089,18 +1082,23 @@ describe("Task builders", () => {
         });
       });
 
-      it("should create a task override definition builder with a string action", () => {
+      it("should create a task override definition builder with a lazy action", () => {
         const builder = new TaskOverrideDefinitionBuilderImplementation(
           "task-id",
         );
-        const taskAction = "file://path/to/task-action.js";
-        const taskDefinition = builder.setAction(taskAction).build();
+        const taskActionUrl = "file://path/to/task-action.js";
+
+        const lazyAction: LazyActionObject<NewTaskActionFunction> = {
+          action: () => import(taskActionUrl),
+        };
+
+        const taskDefinition = builder.setAction(lazyAction).build();
 
         assert.deepEqual(taskDefinition, {
           type: TaskDefinitionType.TASK_OVERRIDE,
           id: ["task-id"],
           description: undefined,
-          action: taskAction,
+          action: lazyAction,
           options: {},
         });
       });
@@ -1115,23 +1113,6 @@ describe("Task builders", () => {
           {
             task: "task-id",
           },
-        );
-      });
-
-      it("should throw if the task action is not a valid file URL", () => {
-        const builder = new TaskOverrideDefinitionBuilderImplementation(
-          "task-id",
-        );
-
-        assertThrowsHardhatError(
-          () => builder.setAction("not-a-valid-file-url"),
-          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INVALID_FILE_ACTION,
-          { action: "not-a-valid-file-url" },
-        );
-        assertThrowsHardhatError(
-          () => builder.setAction("file://"),
-          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INVALID_FILE_ACTION,
-          { action: "file://" },
         );
       });
     });

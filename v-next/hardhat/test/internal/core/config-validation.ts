@@ -1128,7 +1128,7 @@ describe("config validation", function () {
       ]);
     });
 
-    it("should return an error if the task action is not a function or a string", function () {
+    it("should return an error if the task action is not a function or a lazy function", function () {
       const task: NewTaskDefinition = {
         type: TaskDefinitionType.NEW_TASK,
         id: ["task-id"],
@@ -1141,7 +1141,7 @@ describe("config validation", function () {
 
       assert.deepEqual(validateNewTask(task, []), [
         {
-          message: "task action must be a function or a string",
+          message: "task action must be a function or a lazy function",
           path: ["action"],
         },
       ]);
@@ -1251,7 +1251,7 @@ describe("config validation", function () {
       ]);
     });
 
-    it("should return an error if the task action is not a function or a string", function () {
+    it("should return an error if the task action is not a function or lazy function", function () {
       const task: TaskOverrideDefinition = {
         type: TaskDefinitionType.TASK_OVERRIDE,
         id: ["task-id"],
@@ -1263,7 +1263,7 @@ describe("config validation", function () {
 
       assert.deepEqual(validateTaskOverride(task, []), [
         {
-          message: "task action must be a function or a string",
+          message: "task action must be a function or a lazy function",
           path: ["action"],
         },
       ]);
@@ -1479,7 +1479,7 @@ describe("config validation", function () {
       ]);
     });
 
-    it("should return an error if the plugin dependencies is not an array", function () {
+    it("should return an error if the plugin dependencies is not an function returning an array", function () {
       const plugins: HardhatPlugin[] = [
         {
           id: "plugin-id",
@@ -1490,13 +1490,13 @@ describe("config validation", function () {
 
       assert.deepEqual(validatePluginsConfig(plugins, []), [
         {
-          message: "plugin dependencies must be an array",
+          message: "plugin dependencies must be a function returning an array",
           path: ["plugins", 0, "dependencies"],
         },
       ]);
     });
 
-    it("should return an error if the plugin dependencies is not an array of functions", function () {
+    it("should return an error if the plugin dependencies is not an function returning an array of functions", function () {
       const plugins: HardhatPlugin[] = [
         {
           id: "plugin-id",
@@ -1507,8 +1507,8 @@ describe("config validation", function () {
 
       assert.deepEqual(validatePluginsConfig(plugins, []), [
         {
-          message: "plugin dependencies must be an array of functions",
-          path: ["plugins", 0, "dependencies", 0],
+          message: "plugin dependencies must be a function returning an array",
+          path: ["plugins", 0, "dependencies"],
         },
       ]);
     });

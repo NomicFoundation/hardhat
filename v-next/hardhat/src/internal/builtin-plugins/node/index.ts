@@ -46,12 +46,12 @@ const hardhatPlugin: HardhatPlugin = {
         type: ArgumentType.INT,
         defaultValue: -1,
       })
-      .setAction(import.meta.resolve("./task-action.js"))
+      .setAction({
+        action: async () => import("./task-action.js"),
+      })
       .build(),
   ],
-  dependencies: [
-    async () => (await import("../network-manager/index.js")).default,
-  ],
+  dependencies: () => [import("../network-manager/index.js")],
 };
 
 export default hardhatPlugin;
