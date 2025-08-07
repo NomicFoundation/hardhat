@@ -1,5 +1,3 @@
-import util from "node:util";
-
 import {
   HardhatError,
   HardhatPluginError,
@@ -69,7 +67,7 @@ interface ErrorMessages {
 export function printErrorMessages(
   error: unknown,
   shouldShowStackTraces: boolean = false,
-  print: (message: string) => void = console.error,
+  print: (message: any) => void = console.error,
 ): void {
   const showStackTraces =
     shouldShowStackTraces ||
@@ -85,7 +83,7 @@ export function printErrorMessages(
   print("");
 
   if (showStackTraces) {
-    print(error instanceof Error ? `${error.stack}` : `${util.inspect(error)}`);
+    print(error);
     if (postErrorStackTraceMessage !== undefined) {
       print("");
       print(postErrorStackTraceMessage);
