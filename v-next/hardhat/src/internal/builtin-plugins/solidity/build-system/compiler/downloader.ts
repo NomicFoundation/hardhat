@@ -10,7 +10,7 @@ import {
   assertHardhatInvariant,
 } from "@nomicfoundation/hardhat-errors";
 import { bytesToHexString } from "@nomicfoundation/hardhat-utils/bytes";
-import { keccak256 } from "@nomicfoundation/hardhat-utils/crypto";
+import { sha256 } from "@nomicfoundation/hardhat-utils/crypto";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import {
   chmod,
@@ -20,7 +20,9 @@ import {
   readBinaryFile,
   readJsonFile,
   remove,
+  writeJsonFile,
 } from "@nomicfoundation/hardhat-utils/fs";
+import { getPrefixedHexString } from "@nomicfoundation/hardhat-utils/hex";
 import { download } from "@nomicfoundation/hardhat-utils/request";
 import { MultiProcessMutex } from "@nomicfoundation/hardhat-utils/synchronization";
 import debug from "debug";
@@ -30,9 +32,12 @@ import { NativeCompiler, SolcJsCompiler } from "./compiler.js";
 const log = debug("hardhat:solidity:downloader");
 
 const COMPILER_REPOSITORY_URL = "https://binaries.soliditylang.org";
+const LINUX_ARM64_REPOSITORY_URL =
+  "https://raw.githubusercontent.com/nikitastupin/solc/refs/heads/main/linux/aarch64";
 
 export enum CompilerPlatform {
   LINUX = "linux-amd64",
+  LINUX_ARM64 = "linux-aarch64",
   WINDOWS = "windows-amd64",
   MACOS = "macosx-amd64",
   WASM = "wasm",
@@ -41,11 +46,8 @@ export enum CompilerPlatform {
 interface CompilerBuild {
   path: string;
   version: string;
-  build: string;
   longVersion: string;
-  keccak256: string;
-  urls: string[];
-  platform: CompilerPlatform;
+  sha256: string;
 }
 
 interface CompilerList {
@@ -128,7 +130,11 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
       case "win32":
         return CompilerPlatform.WINDOWS;
       case "linux":
-        return CompilerPlatform.LINUX;
+        if (os.arch() === "arm64") {
+          return CompilerPlatform.LINUX_ARM64;
+        } else {
+          return CompilerPlatform.LINUX;
+        }
       case "darwin":
         return CompilerPlatform.MACOS;
       default:
@@ -334,15 +340,44 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
 
   async #downloadCompilerList(): Promise<void> {
     log(`Downloading compiler list for platform ${this.#platform}`);
-    const url = `${COMPILER_REPOSITORY_URL}/${this.#platform}/list.json`;
+    let url: string;
+
+    if (this.#onLinuxArm()) {
+      url = `${LINUX_ARM64_REPOSITORY_URL}/list.json`;
+    } else {
+      url = `${COMPILER_REPOSITORY_URL}/${this.#platform}/list.json`;
+    }
     const downloadPath = this.#getCompilerListPath();
 
     await this.#downloadFunction(url, downloadPath);
+
+    // If using the arm64 binary mirror, the list.json file has different information than the solc official mirror, so we complete it
+    if (this.#onLinuxArm()) {
+      const compilerList: CompilerList = await readJsonFile(downloadPath);
+      for (const build of compilerList.builds) {
+        build.path = `solc-v${build.version}`;
+        build.longVersion = build.version;
+      }
+
+      await writeJsonFile(downloadPath, compilerList);
+    }
+  }
+
+  #onLinuxArm() {
+    return this.#platform === CompilerPlatform.LINUX_ARM64;
   }
 
   async #downloadCompiler(build: CompilerBuild): Promise<string> {
     log(`Downloading compiler ${build.longVersion}`);
-    const url = `${COMPILER_REPOSITORY_URL}/${this.#platform}/${build.path}`;
+
+    let url: string;
+
+    if (this.#onLinuxArm()) {
+      url = `${LINUX_ARM64_REPOSITORY_URL}/${build.path}`;
+    } else {
+      url = `${COMPILER_REPOSITORY_URL}/${this.#platform}/${build.path}`;
+    }
+
     const downloadPath = this.#getCompilerDownloadPathFromBuild(build);
 
     await this.#downloadFunction(url, downloadPath);
@@ -354,12 +389,12 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
     build: CompilerBuild,
     downloadPath: string,
   ): Promise<boolean> {
-    const expectedKeccak256 = build.keccak256;
+    const expectedSha = getPrefixedHexString(build.sha256);
     const compiler = await readBinaryFile(downloadPath);
 
-    const compilerKeccak256 = bytesToHexString(await keccak256(compiler));
+    const compilerSha = bytesToHexString(await sha256(compiler));
 
-    if (expectedKeccak256 !== compilerKeccak256) {
+    if (expectedSha !== compilerSha) {
       await remove(downloadPath);
       return false;
     }
@@ -377,6 +412,7 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
 
     if (
       this.#platform === CompilerPlatform.LINUX ||
+      this.#platform === CompilerPlatform.LINUX_ARM64 ||
       this.#platform === CompilerPlatform.MACOS
     ) {
       await chmod(downloadPath, 0o755);

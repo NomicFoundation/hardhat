@@ -11,6 +11,7 @@ import type {
   GetCompilationJobsOptions,
   GetCompilationJobsResult,
   RunCompilationJobOptions,
+  RunCompilationJobResult,
   SolidityBuildSystem,
 } from "../../../../types/solidity/build-system.js";
 import type { CompilationJob } from "../../../../types/solidity/compilation-job.js";
@@ -56,7 +57,7 @@ class LazySolidityBuildSystem implements SolidityBuildSystem {
   public async runCompilationJob(
     compilationJob: CompilationJob,
     options?: RunCompilationJobOptions,
-  ): Promise<CompilerOutput> {
+  ): Promise<RunCompilationJobResult> {
     const buildSystem = await this.#getBuildSystem();
     return buildSystem.runCompilationJob(compilationJob, options);
   }

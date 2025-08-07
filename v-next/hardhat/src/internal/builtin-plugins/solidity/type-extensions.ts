@@ -15,15 +15,14 @@ declare module "../../../types/config.js" {
     settings?: any;
   }
 
-  export interface CommonSolcUserConfig {
+  export interface SingleVersionSolcUserConfig extends SolcUserConfig {
     isolated?: boolean;
+    preferWasm?: boolean;
   }
 
-  export interface SingleVersionSolcUserConfig
-    extends CommonSolcUserConfig,
-      SolcUserConfig {}
-
-  export interface MultiVersionSolcUserConfig extends CommonSolcUserConfig {
+  export interface MultiVersionSolcUserConfig {
+    isolated?: boolean;
+    preferWasm?: boolean;
     compilers: SolcUserConfig[];
     overrides?: Record<string, SolcUserConfig>;
   }
@@ -58,9 +57,10 @@ declare module "../../../types/config.js" {
   }
 
   export interface SolidityBuildProfileConfig {
+    isolated: boolean;
+    preferWasm: boolean;
     compilers: SolcConfig[];
     overrides: Record<string, SolcConfig>;
-    isolated: boolean;
   }
 
   export interface SolidityConfig {

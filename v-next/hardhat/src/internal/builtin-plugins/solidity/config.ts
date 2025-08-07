@@ -38,12 +38,17 @@ const solcUserConfigType = z.object({
   profiles: incompatibleFieldType("This field is incompatible with `version`"),
 });
 
-const singleVersionSolcUserConfigType =
-  commonSolcUserConfigType.merge(solcUserConfigType);
+// NOTE: This is only to match the setup present in ./type-extensions.ts
+const singleVersionSolcUserConfigType = solcUserConfigType.extend({
+  isolated: z.boolean().optional(),
+  preferWasm: z.boolean().optional(),
+});
 
 const multiVersionSolcUserConfigType = commonSolcUserConfigType.extend({
   compilers: z.array(solcUserConfigType).nonempty(),
   overrides: z.record(z.string(), solcUserConfigType).optional(),
+  isolated: z.boolean().optional(),
+  preferWasm: z.boolean().optional(),
   version: incompatibleFieldType("This field is incompatible with `compilers`"),
   settings: incompatibleFieldType(
     "This field is incompatible with `compilers`",
@@ -218,6 +223,7 @@ function resolveSolidityConfig(
           })),
           overrides: {},
           isolated: false,
+          preferWasm: false,
         },
       },
       npmFilesToBuild: [],
@@ -236,6 +242,7 @@ function resolveSolidityConfig(
           ],
           overrides: {},
           isolated: solidityConfig.isolated ?? false,
+          preferWasm: solidityConfig.preferWasm ?? false,
         },
       },
       npmFilesToBuild: solidityConfig.npmFilesToBuild ?? [],
@@ -246,6 +253,7 @@ function resolveSolidityConfig(
     return {
       profiles: {
         default: {
+          preferWasm: solidityConfig.preferWasm ?? false,
           compilers: solidityConfig.compilers.map((compiler) => ({
             version: compiler.version,
             settings: compiler.settings ?? {},
@@ -277,6 +285,7 @@ function resolveSolidityConfig(
     solidityConfig.profiles,
   )) {
     const isolated = profile.isolated ?? profileName === "production";
+    const preferWasm = profile.preferWasm ?? profileName === "production";
 
     if ("version" in profile) {
       profiles[profileName] = {
@@ -288,6 +297,7 @@ function resolveSolidityConfig(
         ],
         overrides: {},
         isolated,
+        preferWasm,
       };
       continue;
     }
@@ -311,19 +321,18 @@ function resolveSolidityConfig(
         ),
       ),
       isolated,
+      preferWasm,
     };
   }
 
+  // This will generate default build profiles (e.g. production) when they are not specified in the config, cloning from 'default', which is always present
   for (const profile of DEFAULT_BUILD_PROFILES) {
     if (!(profile in profiles)) {
-      if (profile === "production") {
-        profiles[profile] = {
-          ...profiles.default,
-          isolated: true,
-        };
-      } else {
-        profiles[profile] = profiles.default;
-      }
+      profiles[profile] = {
+        ...profiles.default,
+        isolated: profile === "production",
+        preferWasm: profile === "production",
+      };
     }
   }
 
