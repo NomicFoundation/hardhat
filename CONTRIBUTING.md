@@ -22,11 +22,11 @@ To install the project's dependencies, run `pnpm i` in the root directory of the
 
 ## Building the projects
 
-Plugins require hardhat to be built or tested. Our recommendation is to run `pnpm watch` from the root folder. This will keep everything compiled, and these problems will be avoided.
+Plugins require hardhat to be built or tested. Our recommendation is to run `pnpm build` from the root folder.
 
 ## Testing
 
-All tests are written using [mocha](https://mochajs.org) and [chai](https://www.chaijs.com).
+All tests are written using [node test runner](https://nodejs.org/api/test.html).
 
 ### Per-package
 
@@ -95,7 +95,7 @@ This is a list of the modules that always get loaded during startup:
 
 ## Developing locally
 
-All these tips assume you are running `pnpm watch` from the root directory.
+The project can be built by `pnpm build` from the root directory.
 
 ### Linking
 
@@ -148,3 +148,23 @@ We generally really appreciate external contributions, and strongly encourage me
 - It introduces inconsequential changes (e.g. rewording phrases)
 - The author of the PR does not respond in a timely manner
 - We suspect the Github account of the author was created for airdrop farming
+
+## Contributing Checklist
+
+Shortlist of steps that should be always considered when commiting changes. All errors, reported by any command must be resolved before moving ahead.
+
+> All commands expect that they are executed from root of the repository.
+
+1) `pnpm build` - build the entire project
+2) `pnpm lint` - check formatting and code structure
+3) `pnpm lint:fix` - fix formatting issues
+4) `pnpm test` - run all tests
+
+Commit changes and create a PR once all the commands above are successful. The CI pipeline would block the PR otherwise.
+
+5) Create a branch for the change
+   * there is a `Create a branch` option in the `Development` section in case the change is tracked by an issue
+6) Create a PR from the new branch to `main`
+   * Add description that explains the change
+
+
