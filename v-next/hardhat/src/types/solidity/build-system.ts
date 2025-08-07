@@ -1,6 +1,7 @@
 import type { CompilationJob } from "./compilation-job.js";
 import type { CompilerOutput, CompilerOutputError } from "./compiler-io.js";
 import type { SolidityBuildInfo } from "./solidity-artifacts.js";
+import type { Compiler } from "../../internal/builtin-plugins/solidity/build-system/compiler/compiler.js";
 
 /**
  * The options of the `build` method.
@@ -61,12 +62,10 @@ export type GetCompilationJobsOptions = Omit<
 /**
  * The options of the `runCompilationJob` method.
  */
-export interface RunCompilationJobOptions {
-  /**
-   * If `true`, the compilation process doesn't print any output.
-   */
-  quiet?: boolean;
-}
+export type RunCompilationJobOptions = Pick<
+  BuildOptions,
+  "quiet" | "buildProfile"
+>;
 
 /**
  * The options of the `compileBuildInfo` method.
@@ -178,6 +177,14 @@ export interface EmitArtifactsResult {
 }
 
 /**
+ * Result object for the `runCompilationJob` method
+ */
+export interface RunCompilationJobResult {
+  output: CompilerOutput;
+  compiler: Compiler;
+}
+
+/**
  * The Solidity build system.
  */
 export interface SolidityBuildSystem {
@@ -238,7 +245,7 @@ export interface SolidityBuildSystem {
   runCompilationJob(
     compilationJob: CompilationJob,
     options?: RunCompilationJobOptions,
-  ): Promise<CompilerOutput>;
+  ): Promise<RunCompilationJobResult>;
 
   /**
    * Remaps the given compiler error paths from input source names to fs paths.
