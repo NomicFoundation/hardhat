@@ -1,5 +1,16 @@
 # hardhat
 
+## 3.0.0-next.28
+
+### Patch Changes
+
+- 76674de: Print error's `cause` when showing stack traces
+- a657c61: Fix an error descriptor
+- 8bd46cb: Stop solidity tests being recompiled unnecessarily ([#7116](https://github.com/NomicFoundation/hardhat/issues/7116))
+- e861a55: Don't anonymize node's internals in the error reporter
+- 78bdf81: Add preferWasm flag to config. Default to wasm on production profile. Support linux-aarch64 native compiler ([#5993](https://github.com/NomicFoundation/hardhat/issues/5993))
+- c2fd9aa: Send selected project type to GA
+
 ## 3.0.0-next.27
 
 ### Patch Changes
