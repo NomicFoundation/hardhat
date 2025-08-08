@@ -341,12 +341,28 @@ function resolveSolcConfig(
   };
 }
 
-function copyFromDefault<
-  T extends SingleVersionSolidityUserConfig | MultiVersionSolidityUserConfig,
->(defaultSolidityConfig: T): T {
+function copyFromDefault(
+  defaultSolidityConfig:
+    | SingleVersionSolidityUserConfig
+    | MultiVersionSolidityUserConfig,
+): SingleVersionSolidityUserConfig | MultiVersionSolidityUserConfig {
+  if ("version" in defaultSolidityConfig) {
+    return {
+      version: defaultSolidityConfig.version,
+    };
+  }
+
   return {
-    ...defaultSolidityConfig,
-    isolated: undefined,
-    preferWasm: undefined,
+    compilers: defaultSolidityConfig.compilers.map((c) => ({
+      version: c.version,
+    })),
+    overrides: Object.fromEntries(
+      Object.entries(defaultSolidityConfig.overrides ?? {}).map(
+        ([userSourceName, override]) => [
+          userSourceName,
+          { version: override.version },
+        ],
+      ),
+    ),
   };
 }
