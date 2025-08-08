@@ -7,7 +7,9 @@ import { extendWithVerificationArgs } from "../utils.js";
 const verifyEtherscanTask: NewTaskDefinition = extendWithVerificationArgs(
   task(["verify", "etherscan"], "Verify a contract on Etherscan"),
 )
-  .setAction(() => import("./task-action.js"))
+  .setAction({
+    action: () => import("./task-action.js"),
+  })
   .build();
 
 export default verifyEtherscanTask;
