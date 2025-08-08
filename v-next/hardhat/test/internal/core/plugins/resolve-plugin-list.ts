@@ -213,11 +213,7 @@ describe("Plugins - resolve plugin list", () => {
       const plugin: HardhatPlugin = {
         id: "plugin",
         npmPackage: "example",
-        dependencies: () => [
-          (async () => {
-            throw new Error("Unknown reasons");
-          })(),
-        ],
+        dependencies: () => [Promise.reject(new Error("Unknown reasons"))],
       };
 
       await assertRejectsWithHardhatError(
@@ -235,11 +231,7 @@ describe("Plugins - resolve plugin list", () => {
       const plugin: HardhatPlugin = {
         id: "example",
         npmPackage: "example",
-        dependencies: () => [
-          (async () => {
-            throw new Error("Not installed");
-          })(),
-        ],
+        dependencies: () => [Promise.reject(new Error("Not installed"))],
       };
 
       await assertRejectsWithHardhatError(

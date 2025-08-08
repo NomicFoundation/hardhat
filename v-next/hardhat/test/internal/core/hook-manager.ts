@@ -91,7 +91,7 @@ describe("HookManager", () => {
           };
 
           hre = await HardhatRuntimeEnvironmentImplementation.create(
-            { plugins: [examplePlugin2] },
+            { plugins: [examplePlugin1, examplePlugin2] },
             {},
           );
         });

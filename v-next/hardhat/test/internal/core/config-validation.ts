@@ -1128,7 +1128,7 @@ describe("config validation", function () {
       ]);
     });
 
-    it("should return an error if the task action is not a function or a lazy function", function () {
+    it("should return an error if the task action is not a function or a lazy action object", function () {
       const task: NewTaskDefinition = {
         type: TaskDefinitionType.NEW_TASK,
         id: ["task-id"],
@@ -1251,7 +1251,7 @@ describe("config validation", function () {
       ]);
     });
 
-    it("should return an error if the task action is not a function or lazy function", function () {
+    it("should return an error if the task action is not a function or lazy action object", function () {
       const task: TaskOverrideDefinition = {
         type: TaskDefinitionType.TASK_OVERRIDE,
         id: ["task-id"],
