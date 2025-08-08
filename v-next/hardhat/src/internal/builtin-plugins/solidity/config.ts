@@ -219,11 +219,16 @@ function resolveSolidityConfig(
 
   // user provided an array of versions or a single version
   if (Array.isArray(solidityConfig)) {
+    const defaultSolidityConfig = {
+      compilers: solidityConfig.map((version) => ({ version })),
+    };
     return {
       profiles: {
-        default: resolveBuildProfileConfig({
-          compilers: solidityConfig.map((version) => ({ version })),
-        }),
+        default: resolveBuildProfileConfig(defaultSolidityConfig),
+        production: resolveBuildProfileConfig(
+          copyFromDefault(defaultSolidityConfig),
+          true,
+        ),
       },
       npmFilesToBuild: [],
     };
@@ -234,6 +239,10 @@ function resolveSolidityConfig(
     return {
       profiles: {
         default: resolveBuildProfileConfig(solidityConfig),
+        production: resolveBuildProfileConfig(
+          copyFromDefault(solidityConfig),
+          true,
+        ),
       },
       npmFilesToBuild: solidityConfig.npmFilesToBuild ?? [],
     };
@@ -242,28 +251,23 @@ function resolveSolidityConfig(
   // user provided a build profiles config
   const profiles: Record<string, SolidityBuildProfileConfig> = {};
 
-  // TODO: Merge the profiles
   for (const [profileName, profile] of Object.entries(
     solidityConfig.profiles,
   )) {
-    const isolated = profile.isolated ?? profileName === "production";
-    const preferWasm = profile.preferWasm ?? profileName === "production";
-
-    profiles[profileName] = resolveBuildProfileConfig({
-      ...profile,
-      isolated,
-      preferWasm,
-    });
+    profiles[profileName] = resolveBuildProfileConfig(
+      profile,
+      profileName === "production",
+    );
   }
 
-  // This will generate default build profiles (e.g. production) when they are not specified in the config, cloning from 'default', which is always present
+  // This will generate default build profiles (e.g. production) when they are
+  // not specified in the config, cloning from 'default', which is always present
   for (const profile of DEFAULT_BUILD_PROFILES) {
     if (!(profile in profiles)) {
-      profiles[profile] = {
-        ...profiles.default,
-        isolated: profile === "production",
-        preferWasm: profile === "production",
-      };
+      profiles[profile] = resolveBuildProfileConfig(
+        copyFromDefault(solidityConfig.profiles.default),
+        profile === "production",
+      );
     }
   }
 
@@ -277,33 +281,39 @@ function resolveBuildProfileConfig(
   solidityConfig:
     | SingleVersionSolidityUserConfig
     | MultiVersionSolidityUserConfig,
+  production: boolean = false,
 ): SolidityBuildProfileConfig {
   if ("version" in solidityConfig) {
     return {
-      compilers: [resolveSolcConfig(solidityConfig)],
+      compilers: [resolveSolcConfig(solidityConfig, production)],
       overrides: {},
-      isolated: solidityConfig.isolated ?? false,
-      preferWasm: solidityConfig.preferWasm ?? false,
+      isolated: solidityConfig.isolated ?? production,
+      preferWasm: solidityConfig.preferWasm ?? production,
     };
   }
 
   return {
-    compilers: solidityConfig.compilers.map(resolveSolcConfig),
+    compilers: solidityConfig.compilers.map((compiler) =>
+      resolveSolcConfig(compiler, production),
+    ),
     overrides: Object.fromEntries(
       Object.entries(solidityConfig.overrides ?? {}).map(
         ([userSourceName, override]) => [
           userSourceName,
-          resolveSolcConfig(override),
+          resolveSolcConfig(override, production),
         ],
       ),
     ),
-    isolated: solidityConfig.isolated ?? false,
-    preferWasm: solidityConfig.preferWasm ?? false,
+    isolated: solidityConfig.isolated ?? production,
+    preferWasm: solidityConfig.preferWasm ?? production,
   };
 }
 
-function resolveSolcConfig(solcConfig: SolcUserConfig): SolcConfig {
-  const DEFAULT_SOLC_CONFIG_SETTINGS: SolcConfig["settings"] = {
+function resolveSolcConfig(
+  solcConfig: SolcUserConfig,
+  production: boolean = false,
+): SolcConfig {
+  const defaultSolcConfigSettings: SolcConfig["settings"] = {
     outputSelection: {
       "*": {
         "": ["ast"],
@@ -318,11 +328,25 @@ function resolveSolcConfig(solcConfig: SolcUserConfig): SolcConfig {
     },
   };
 
+  if (production) {
+    defaultSolcConfigSettings.optimizer = {
+      enabled: true,
+      runs: 200,
+    };
+  }
+
   return {
     version: solcConfig.version,
-    settings: deepMerge(
-      DEFAULT_SOLC_CONFIG_SETTINGS,
-      solcConfig.settings ?? {},
-    ),
+    settings: deepMerge(defaultSolcConfigSettings, solcConfig.settings ?? {}),
+  };
+}
+
+function copyFromDefault<
+  T extends SingleVersionSolidityUserConfig | MultiVersionSolidityUserConfig,
+>(defaultSolidityConfig: T): T {
+  return {
+    ...defaultSolidityConfig,
+    isolated: undefined,
+    preferWasm: undefined,
   };
 }
