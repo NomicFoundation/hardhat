@@ -1046,51 +1046,6 @@ describe("TaskManagerImplementation", () => {
         );
       });
 
-      // it.only("should throw if the task definition object has an invalid action file URL", async () => {
-      //   const invalidActionFileUrl = "not-a-valid-file-url";
-
-      //   await HardhatRuntimeEnvironmentImplementation.create(
-      //     {
-      //       plugins: [
-      //         {
-      //           id: "plugin1",
-      //           tasks: [
-      //             {
-      //               type: TaskDefinitionType.NEW_TASK,
-      //               id: ["task-id"],
-      //               description: "",
-      //               action: invalidActionFileUrl,
-      //               options: {},
-      //               positionalArguments: [],
-      //             },
-      //           ],
-      //         },
-      //       ],
-      //     },
-      //     {},
-      //   );
-
-      //   // await HardhatRuntimeEnvironmentImplementation.create(
-      //   //   {
-      //   //     plugins: [
-      //   //       {
-      //   //         id: "plugin1",
-      //   //         tasks: [
-      //   //           {
-      //   //             type: TaskDefinitionType.TASK_OVERRIDE,
-      //   //             id: ["task-id"],
-      //   //             description: "",
-      //   //             action: invalidActionFileUrl,
-      //   //             options: {},
-      //   //           },
-      //   //         ],
-      //   //       },
-      //   //     ],
-      //   //   },
-      //   //   {},
-      //   // );
-      // });
-
       it("should throw if the task definition object has an option with an invalid name", async () => {
         const invalidName = "invalid-name";
         await assertRejectsWithHardhatError(
@@ -1663,77 +1618,77 @@ describe("TaskManagerImplementation", () => {
       assert.equal(overrideTaskRun, true);
     });
 
-    // it("should run a task with arguments", async () => {
-    //   const hre = await HardhatRuntimeEnvironmentImplementation.create(
-    //     {
-    //       plugins: [
-    //         {
-    //           id: "plugin1",
-    //           tasks: [
-    //             new NewTaskDefinitionBuilderImplementation("task1")
-    //               .addOption({ name: "arg1", defaultValue: "default" })
-    //               .addOption({ name: "withDefault", defaultValue: "default" })
-    //               .addFlag({ name: "flag1" })
-    //               .addPositionalArgument({ name: "posArg" })
-    //               .addVariadicArgument({ name: "varArg" })
-    //               .setAction((args) => {
-    //                 assert.deepEqual(args, {
-    //                   arg1: "arg1Value",
-    //                   flag1: true,
-    //                   posArg: "posValue",
-    //                   varArg: ["varValue1", "varValue2"],
-    //                   withDefault: "default",
-    //                 });
-    //               })
-    //               .build(),
-    //             new TaskOverrideDefinitionBuilderImplementation("task1")
-    //               .addOption({ name: "arg2", defaultValue: "default" })
-    //               .addFlag({ name: "flag2" })
-    //               .setAction(
-    //                 async ({ arg2, flag2, ...args }, _hre, runSuper) => {
-    //                   await runSuper(args);
-    //                   assert.deepEqual(
-    //                     { arg2, flag2 },
-    //                     {
-    //                       arg2: "arg2Value",
-    //                       flag2: true,
-    //                     },
-    //                   );
-    //                 },
-    //               )
-    //               .build(),
-    //           ],
-    //         },
-    //       ],
-    //     },
-    //     {},
-    //   );
-    //   // withDefault option is intentionally omitted
-    //   const providedArgs = {
-    //     arg1: "arg1Value",
-    //     flag1: true,
-    //     posArg: "posValue",
-    //     varArg: ["varValue1", "varValue2"],
-    //     arg2: "arg2Value",
-    //     flag2: true,
-    //   };
+    it("should run a task with arguments", async () => {
+      const hre = await HardhatRuntimeEnvironmentImplementation.create(
+        {
+          plugins: [
+            {
+              id: "plugin1",
+              tasks: [
+                new NewTaskDefinitionBuilderImplementation("task1")
+                  .addOption({ name: "arg1", defaultValue: "default" })
+                  .addOption({ name: "withDefault", defaultValue: "default" })
+                  .addFlag({ name: "flag1" })
+                  .addPositionalArgument({ name: "posArg" })
+                  .addVariadicArgument({ name: "varArg" })
+                  .setAction((args) => {
+                    assert.deepEqual(args, {
+                      arg1: "arg1Value",
+                      flag1: true,
+                      posArg: "posValue",
+                      varArg: ["varValue1", "varValue2"],
+                      withDefault: "default",
+                    });
+                  })
+                  .build(),
+                new TaskOverrideDefinitionBuilderImplementation("task1")
+                  .addOption({ name: "arg2", defaultValue: "default" })
+                  .addFlag({ name: "flag2" })
+                  .setAction(
+                    async ({ arg2, flag2, ...args }, _hre, runSuper) => {
+                      await runSuper(args);
+                      assert.deepEqual(
+                        { arg2, flag2 },
+                        {
+                          arg2: "arg2Value",
+                          flag2: true,
+                        },
+                      );
+                    },
+                  )
+                  .build(),
+              ],
+            },
+          ],
+        },
+        {},
+      );
+      // withDefault option is intentionally omitted
+      const providedArgs = {
+        arg1: "arg1Value",
+        flag1: true,
+        posArg: "posValue",
+        varArg: ["varValue1", "varValue2"],
+        arg2: "arg2Value",
+        flag2: true,
+      };
 
-    //   const task1 = hre.tasks.getTask("task1");
-    //   await task1.run(providedArgs);
-    //   // Ensure withDefault is not added to the args
-    //   assert.deepEqual(
-    //     providedArgs,
-    //     {
-    //       arg1: "arg1Value",
-    //       flag1: true,
-    //       posArg: "posValue",
-    //       varArg: ["varValue1", "varValue2"],
-    //       arg2: "arg2Value",
-    //       flag2: true,
-    //     },
-    //     "Expected the providedArgs to not change",
-    //   );
-    // });
+      const task1 = hre.tasks.getTask("task1");
+      await task1.run(providedArgs);
+      // Ensure withDefault is not added to the args
+      assert.deepEqual(
+        providedArgs,
+        {
+          arg1: "arg1Value",
+          flag1: true,
+          posArg: "posValue",
+          varArg: ["varValue1", "varValue2"],
+          arg2: "arg2Value",
+          flag2: true,
+        },
+        "Expected the providedArgs to not change",
+      );
+    });
 
     it("should run a task with arguments and resolve their default values", async () => {
       const hre = await HardhatRuntimeEnvironmentImplementation.create(

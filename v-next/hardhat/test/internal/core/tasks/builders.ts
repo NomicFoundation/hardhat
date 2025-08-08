@@ -173,7 +173,7 @@ describe("Task builders", () => {
         });
       });
 
-      it("should create a new task definition builder with a lazy action", () => {
+      it("should create a new task definition builder with a lazy action object", async () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
         const taskActionUrl = "./path/to/task-action.js";
 
@@ -1082,11 +1082,11 @@ describe("Task builders", () => {
         });
       });
 
-      it("should create a task override definition builder with a lazy action", () => {
+      it("should create a task override definition builder with a lazy action object", async () => {
         const builder = new TaskOverrideDefinitionBuilderImplementation(
           "task-id",
         );
-        const taskActionUrl = "file://path/to/task-action.js";
+        const taskActionUrl = "./path/to/task-action.js";
 
         const lazyAction: LazyActionObject<NewTaskActionFunction> = {
           action: () => import(taskActionUrl),
