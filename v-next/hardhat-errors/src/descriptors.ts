@@ -456,6 +456,15 @@ Please add the property "type" with the value "module" in your package.json to e
 
 A fully qualified name should look like file.sol:Contract`,
       },
+      INVALID_CONFIG_FILE: {
+        number: 21,
+        messageTemplate: `Invalid Hardhat config file at {configPath}:
+{errors}`,
+        websiteTitle: "Invalid Hardhat config file",
+        websiteDescription: `The config file has JS/TS errors.
+
+Please resolve the errors before rerunning the command.`,
+      },
     },
     INTERNAL: {
       ASSERTION_ERROR: {

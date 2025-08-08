@@ -49,8 +49,8 @@ describe("Partial compilation", () => {
       assert.ok(firstSnapshot.typeFiles["A.sol"] !== undefined);
       assert.ok(firstSnapshot.typeFiles["B.sol"] !== undefined);
 
-      // Recompile with --isolated
-      await project.compile({ isolated: true });
+      // Recompile with isolated
+      await project.compile({ defaultBuildProfile: "production" });
       const secondSnapshot = await project.getSnapshot();
 
       assertFileCounts(secondSnapshot, 2, 2, 2);
@@ -120,8 +120,8 @@ describe("Partial compilation", () => {
       const hre = await getHRE(_project);
       const project = new TestProjectWrapper(_project, hre);
 
-      // Compile first time
-      await project.compile({ isolated: true });
+      // Compile first time, isolated
+      await project.compile({ defaultBuildProfile: "production" });
       const firstSnapshot = await project.getSnapshot();
 
       assertFileCounts(firstSnapshot, 2, 2, 2);
@@ -156,8 +156,8 @@ describe("Partial compilation", () => {
       assert.ok(firstSnapshot.typeFiles["A.sol"] !== undefined);
       assert.ok(firstSnapshot.typeFiles["B.sol"] !== undefined);
 
-      // Recompile with --isolated
-      await project.compile({ isolated: false });
+      // Recompile without isolated
+      await project.compile({ defaultBuildProfile: "default" });
       const secondSnapshot = await project.getSnapshot();
 
       assertFileCounts(secondSnapshot, 1, 2, 2);
