@@ -38,8 +38,14 @@ describe("Plugins - resolve plugin list", () => {
   it("should support nested dependencies", async () => {
     // A -> B -> C
     const c: HardhatPlugin = { id: "c" };
-    const b: HardhatPlugin = { id: "b", dependencies: [async () => c] };
-    const a: HardhatPlugin = { id: "a", dependencies: [async () => b] };
+    const b: HardhatPlugin = {
+      id: "b",
+      dependencies: () => [Promise.resolve({ default: c })],
+    };
+    const a: HardhatPlugin = {
+      id: "a",
+      dependencies: () => [Promise.resolve({ default: b })],
+    };
 
     const expected = [c, b, a];
     assert.deepEqual(
@@ -69,7 +75,10 @@ describe("Plugins - resolve plugin list", () => {
     const b: HardhatPlugin = { id: "b" };
     const a: HardhatPlugin = {
       id: "a",
-      dependencies: [async () => b, async () => c],
+      dependencies: () => [
+        Promise.resolve({ default: b }),
+        Promise.resolve({ default: c }),
+      ],
     };
 
     const expected = [b, c, a];
@@ -84,8 +93,14 @@ describe("Plugins - resolve plugin list", () => {
     //  \ /
     //   C
     const c: HardhatPlugin = { id: "c" };
-    const b: HardhatPlugin = { id: "b", dependencies: [async () => c] };
-    const a: HardhatPlugin = { id: "a", dependencies: [async () => c] };
+    const b: HardhatPlugin = {
+      id: "b",
+      dependencies: () => [Promise.resolve({ default: c })],
+    };
+    const a: HardhatPlugin = {
+      id: "a",
+      dependencies: () => [Promise.resolve({ default: c })],
+    };
 
     const expected = [c, a, b];
     assert.deepEqual(
@@ -101,11 +116,20 @@ describe("Plugins - resolve plugin list", () => {
     //  \ /
     //   D
     const d: HardhatPlugin = { id: "d" };
-    const c: HardhatPlugin = { id: "c", dependencies: [async () => d] };
-    const b: HardhatPlugin = { id: "b", dependencies: [async () => d] };
+    const c: HardhatPlugin = {
+      id: "c",
+      dependencies: () => [Promise.resolve({ default: d })],
+    };
+    const b: HardhatPlugin = {
+      id: "b",
+      dependencies: () => [Promise.resolve({ default: d })],
+    };
     const a: HardhatPlugin = {
       id: "a",
-      dependencies: [async () => b, async () => c],
+      dependencies: () => [
+        Promise.resolve({ default: b }),
+        Promise.resolve({ default: c }),
+      ],
     };
 
     const expected = [d, b, c, a];
@@ -124,19 +148,44 @@ describe("Plugins - resolve plugin list", () => {
     //    \    /
     //      I
     const i: HardhatPlugin = { id: "i" };
-    const h: HardhatPlugin = { id: "h", dependencies: [async () => i] };
-    const g: HardhatPlugin = { id: "g", dependencies: [async () => i] };
-    const f: HardhatPlugin = { id: "f", dependencies: [async () => h] };
-    const e: HardhatPlugin = { id: "e", dependencies: [async () => h] };
-    const d: HardhatPlugin = { id: "d", dependencies: [async () => g] };
-    const c: HardhatPlugin = { id: "c", dependencies: [async () => g] };
+    const h: HardhatPlugin = {
+      id: "h",
+      dependencies: () => [Promise.resolve({ default: i })],
+    };
+    const g: HardhatPlugin = {
+      id: "g",
+      dependencies: () => [Promise.resolve({ default: i })],
+    };
+    const f: HardhatPlugin = {
+      id: "f",
+      dependencies: () => [Promise.resolve({ default: h })],
+    };
+    const e: HardhatPlugin = {
+      id: "e",
+      dependencies: () => [Promise.resolve({ default: h })],
+    };
+    const d: HardhatPlugin = {
+      id: "d",
+      dependencies: () => [Promise.resolve({ default: g })],
+    };
+    const c: HardhatPlugin = {
+      id: "c",
+      dependencies: () => [Promise.resolve({ default: g })],
+    };
     const b: HardhatPlugin = {
       id: "b",
-      dependencies: [async () => d, async () => e, async () => f],
+      dependencies: () => [
+        Promise.resolve({ default: d }),
+        Promise.resolve({ default: e }),
+        Promise.resolve({ default: f }),
+      ],
     };
     const a: HardhatPlugin = {
       id: "a",
-      dependencies: [async () => c, async () => d],
+      dependencies: () => [
+        Promise.resolve({ default: c }),
+        Promise.resolve({ default: d }),
+      ],
     };
 
     const expected = [i, g, c, d, a, h, e, f, b];
@@ -164,11 +213,7 @@ describe("Plugins - resolve plugin list", () => {
       const plugin: HardhatPlugin = {
         id: "plugin",
         npmPackage: "example",
-        dependencies: [
-          async () => {
-            throw new Error("Unknown reasons");
-          },
-        ],
+        dependencies: () => [Promise.reject(new Error("Unknown reasons"))],
       };
 
       await assertRejectsWithHardhatError(
@@ -186,11 +231,7 @@ describe("Plugins - resolve plugin list", () => {
       const plugin: HardhatPlugin = {
         id: "example",
         npmPackage: "example",
-        dependencies: [
-          async () => {
-            throw new Error("Not installed");
-          },
-        ],
+        dependencies: () => [Promise.reject(new Error("Not installed"))],
       };
 
       await assertRejectsWithHardhatError(

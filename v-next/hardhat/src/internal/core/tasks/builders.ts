@@ -14,6 +14,7 @@ import type {
   EmptyTaskDefinition,
   ExtendTaskArguments,
   TaskArguments,
+  LazyActionObject,
 } from "../../../types/tasks.js";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
@@ -64,7 +65,9 @@ export class NewTaskDefinitionBuilderImplementation<
 
   #description: string;
 
-  #action?: NewTaskActionFunction<TaskArgumentsT> | string;
+  #action?:
+    | NewTaskActionFunction<TaskArgumentsT>
+    | LazyActionObject<NewTaskActionFunction<TaskArgumentsT>>;
 
   constructor(id: string | string[], description: string = "") {
     validateId(id);
@@ -79,7 +82,9 @@ export class NewTaskDefinitionBuilderImplementation<
   }
 
   public setAction(
-    action: NewTaskActionFunction<TaskArgumentsT> | string,
+    action:
+      | NewTaskActionFunction<TaskArgumentsT>
+      | LazyActionObject<NewTaskActionFunction<TaskArgumentsT>>,
   ): this {
     validateAction(action);
 
@@ -264,7 +269,9 @@ export class TaskOverrideDefinitionBuilderImplementation<
 
   #description?: string;
 
-  #action?: TaskOverrideActionFunction<TaskArgumentsT> | string;
+  #action?:
+    | TaskOverrideActionFunction<TaskArgumentsT>
+    | LazyActionObject<TaskOverrideActionFunction<TaskArgumentsT>>;
 
   constructor(id: string | string[]) {
     validateId(id);
@@ -278,7 +285,9 @@ export class TaskOverrideDefinitionBuilderImplementation<
   }
 
   public setAction(
-    action: TaskOverrideActionFunction<TaskArgumentsT> | string,
+    action:
+      | TaskOverrideActionFunction<TaskArgumentsT>
+      | LazyActionObject<TaskOverrideActionFunction<TaskArgumentsT>>,
   ): this {
     validateAction(action);
 

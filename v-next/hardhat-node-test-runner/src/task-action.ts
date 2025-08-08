@@ -14,7 +14,7 @@ import { markTestRunStart, markTestRunDone } from "hardhat/internal/coverage";
 interface TestActionArguments {
   testFiles: string[];
   only: boolean;
-  grep: string;
+  grep?: string;
   noCompile: boolean;
 }
 
@@ -95,7 +95,7 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
 
     const nodeTestOptions: LastParameter<typeof run> = { files, only };
 
-    if (grep !== "") {
+    if (grep !== undefined && grep !== "") {
       nodeTestOptions.testNamePatterns = grep;
     }
 

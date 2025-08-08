@@ -29,7 +29,7 @@ export async function createMockHardhatRuntimeEnvironment(
 
 const mockArtifactsPlugin: HardhatPlugin = {
   id: "mock-artifacts",
-  dependencies: [async () => artifacts],
+  dependencies: () => [Promise.resolve({ default: artifacts })],
   hookHandlers: {
     hre: async () => {
       return {

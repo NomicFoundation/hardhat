@@ -4,12 +4,12 @@ import "./type-extensions.js";
 
 const hardhatIgnitionEthersPlugin: HardhatPlugin = {
   id: "hardhat-ignition-ethers",
-  dependencies: [
-    async () => (await import("@nomicfoundation/hardhat-ignition")).default,
-    async () => (await import("@nomicfoundation/hardhat-ethers")).default,
+  dependencies: () => [
+    import("@nomicfoundation/hardhat-ignition"),
+    import("@nomicfoundation/hardhat-ethers"),
   ],
   hookHandlers: {
-    network: import.meta.resolve("./internal/hook-handlers/network.js"),
+    network: () => import("./internal/hook-handlers/network.js"),
   },
   npmPackage: "@nomicfoundation/hardhat-ignition-ethers",
 };

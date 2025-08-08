@@ -617,18 +617,18 @@ Please ensure that an action is defined for each task.`,
         websiteDescription:
           "The task is empty. Please ensure that tasks have at least one action.",
       },
-      INVALID_ACTION_URL: {
+      INVALID_ACTION_IMPORT: {
         number: 411,
         messageTemplate:
-          'Unable to import the action specified by task "{task}" from the module "{action}"',
-        websiteTitle: "Invalid action URL",
+          'Unable to import the action for task "{task}" because the specified module could not be found.',
+        websiteTitle: "Invalid import path",
         websiteDescription:
-          "The action URL is invalid. Please ensure that the URL is correct.",
+          "The file path used to import the action module could not be found. Please verify that the import path is correct and that the file exists.",
       },
       INVALID_ACTION: {
         number: 412,
         messageTemplate:
-          'The action resolved from "{action}" in task "{task}" is not a function',
+          'The action resolved in task "{task}" is not a function',
         websiteTitle: "Invalid action",
         websiteDescription:
           "The action of the task is not a function. Make sure that the file pointed to by the action URL exports a function as the default export.",

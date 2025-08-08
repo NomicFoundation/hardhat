@@ -1,10 +1,11 @@
+import type { VerifyActionArgs } from "./types.js";
 import type { NewTaskDefinitionBuilder } from "hardhat/types/tasks";
 
 import { ArgumentType } from "hardhat/types/arguments";
 
 export function extendWithVerificationArgs(
   task: NewTaskDefinitionBuilder,
-): NewTaskDefinitionBuilder {
+): NewTaskDefinitionBuilder<VerifyActionArgs> {
   return task
     .addPositionalArgument({
       name: "address",

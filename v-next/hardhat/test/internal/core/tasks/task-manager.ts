@@ -1046,62 +1046,6 @@ describe("TaskManagerImplementation", () => {
         );
       });
 
-      it("should throw if the task definition object has an invalid action file URL", async () => {
-        const invalidActionFileUrl = "not-a-valid-file-url";
-        await assertRejectsWithHardhatError(
-          HardhatRuntimeEnvironmentImplementation.create(
-            {
-              plugins: [
-                {
-                  id: "plugin1",
-                  tasks: [
-                    {
-                      type: TaskDefinitionType.NEW_TASK,
-                      id: ["task-id"],
-                      description: "",
-                      action: invalidActionFileUrl,
-                      options: {},
-                      positionalArguments: [],
-                    },
-                  ],
-                },
-              ],
-            },
-            {},
-          ),
-          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INVALID_FILE_ACTION,
-          {
-            action: invalidActionFileUrl,
-          },
-        );
-
-        await assertRejectsWithHardhatError(
-          HardhatRuntimeEnvironmentImplementation.create(
-            {
-              plugins: [
-                {
-                  id: "plugin1",
-                  tasks: [
-                    {
-                      type: TaskDefinitionType.TASK_OVERRIDE,
-                      id: ["task-id"],
-                      description: "",
-                      action: invalidActionFileUrl,
-                      options: {},
-                    },
-                  ],
-                },
-              ],
-            },
-            {},
-          ),
-          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INVALID_FILE_ACTION,
-          {
-            action: invalidActionFileUrl,
-          },
-        );
-      });
-
       it("should throw if the task definition object has an option with an invalid name", async () => {
         const invalidName = "invalid-name";
         await assertRejectsWithHardhatError(
@@ -1818,10 +1762,8 @@ describe("TaskManagerImplementation", () => {
       assert.equal(overrideTaskRun, true);
     });
 
-    it("should run a task with an action url", async () => {
-      const actionUrl = import.meta.resolve(
-        "./fixture-projects/file-actions/action-fn.js",
-      );
+    it("should run a task with a valid lazy action object", async () => {
+      const actionUrl = "./fixture-projects/file-actions/action-fn.js";
 
       const hre = await HardhatRuntimeEnvironmentImplementation.create(
         {
@@ -1834,7 +1776,9 @@ describe("TaskManagerImplementation", () => {
                   .build(),
                 new TaskOverrideDefinitionBuilderImplementation("task1")
                   .addOption({ name: "arg1", defaultValue: "default" })
-                  .setAction(actionUrl)
+                  .setAction({
+                    action: () => import(actionUrl),
+                  })
                   .build(),
               ],
             },
@@ -1848,10 +1792,9 @@ describe("TaskManagerImplementation", () => {
       assert.deepEqual(response, { arg1: "arg1Value" });
     });
 
-    it("should run a task with an invalid action url that was overridden and the override doesn't call runSuper", async () => {
-      const validActionUrl = import.meta.resolve(
-        "./fixture-projects/file-actions/no-run-super.js",
-      );
+    it("should run a task with an invalid lazy action object url that was overridden and the override doesn't call runSuper", async () => {
+      const validActionUrl = "./fixture-projects/file-actions/no-run-super.js";
+      const invalidUrl = "file://not-a-module";
 
       const hre = await HardhatRuntimeEnvironmentImplementation.create(
         {
@@ -1860,11 +1803,15 @@ describe("TaskManagerImplementation", () => {
               id: "plugin1",
               tasks: [
                 new NewTaskDefinitionBuilderImplementation("task1")
-                  .setAction("file://not-a-module")
+                  .setAction({
+                    action: () => import(invalidUrl),
+                  })
                   .build(),
                 new TaskOverrideDefinitionBuilderImplementation("task1")
                   .addOption({ name: "arg1", defaultValue: "default" })
-                  .setAction(validActionUrl)
+                  .setAction({
+                    action: () => import(validActionUrl),
+                  })
                   .build(),
               ],
             },
@@ -2085,7 +2032,9 @@ describe("TaskManagerImplementation", () => {
         );
       });
 
-      it("should throw if an action url is provided but the corresponding module can't be resolved", async () => {
+      it("should throw if a lazy action object import is provided but the corresponding module can't be resolved", async () => {
+        const invalidUrl = "file://not-a-module";
+
         const hre = await HardhatRuntimeEnvironmentImplementation.create(
           {
             plugins: [
@@ -2093,7 +2042,9 @@ describe("TaskManagerImplementation", () => {
                 id: "plugin1",
                 tasks: [
                   new NewTaskDefinitionBuilderImplementation("task1")
-                    .setAction("file://not-a-module")
+                    .setAction({
+                      action: () => import(invalidUrl),
+                    })
                     .build(),
                 ],
                 npmPackage: null,
@@ -2106,9 +2057,8 @@ describe("TaskManagerImplementation", () => {
         const task1 = hre.tasks.getTask("task1");
         await assertRejectsWithHardhatError(
           task1.run(),
-          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INVALID_ACTION_URL,
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INVALID_ACTION_IMPORT,
           {
-            action: "file://not-a-module",
             task: "task1",
           },
         );
@@ -2119,10 +2069,9 @@ describe("TaskManagerImplementation", () => {
        * can throw an error. We're not trying to test all of them, just verify
        * that the logic is being called and that the error is being thrown.
        */
-      it("should throw if an action url is provided but the corresponding module can't be resolved due to a missing package", async () => {
-        const nonInstalledPackageActionUrl = import.meta.resolve(
-          "./fixture-projects/not-installed-package/index.js",
-        );
+      it("should throw if an lazy action object url is provided but the corresponding module can't be resolved due to a missing package", async () => {
+        const nonInstalledPackageActionUrl =
+          "./fixture-projects/not-installed-package/index.js";
 
         // the missing dependency is used in the NEW_TASK action
         let hre = await HardhatRuntimeEnvironmentImplementation.create(
@@ -2133,7 +2082,9 @@ describe("TaskManagerImplementation", () => {
                 npmPackage: "non-installed-package",
                 tasks: [
                   new NewTaskDefinitionBuilderImplementation("task1")
-                    .setAction(nonInstalledPackageActionUrl)
+                    .setAction({
+                      action: () => import(nonInstalledPackageActionUrl),
+                    })
                     .build(),
                 ],
               },
@@ -2167,7 +2118,9 @@ describe("TaskManagerImplementation", () => {
                 npmPackage: "non-installed-package",
                 tasks: [
                   new TaskOverrideDefinitionBuilderImplementation("task1")
-                    .setAction(nonInstalledPackageActionUrl)
+                    .setAction({
+                      action: () => import(nonInstalledPackageActionUrl),
+                    })
                     .build(),
                 ],
               },
@@ -2185,10 +2138,8 @@ describe("TaskManagerImplementation", () => {
         );
       });
 
-      it("should throw if an action url is provided and the corresponding module doesn't have a default export", async () => {
-        const actionUrl = import.meta.resolve(
-          "./fixture-projects/file-actions/no-default.js",
-        );
+      it("should throw if an action lazy object import is provided and the corresponding module doesn't have a default export", async () => {
+        const actionUrl = "./fixture-projects/file-actions/no-default.js";
 
         const hre = await HardhatRuntimeEnvironmentImplementation.create(
           {
@@ -2197,7 +2148,9 @@ describe("TaskManagerImplementation", () => {
                 id: "plugin1",
                 tasks: [
                   new NewTaskDefinitionBuilderImplementation("task1")
-                    .setAction(actionUrl)
+                    .setAction({
+                      action: () => import(actionUrl),
+                    })
                     .build(),
                 ],
               },
@@ -2207,20 +2160,18 @@ describe("TaskManagerImplementation", () => {
         );
 
         const task1 = hre.tasks.getTask("task1");
+
         await assertRejectsWithHardhatError(
           task1.run(),
           HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INVALID_ACTION,
           {
-            action: actionUrl,
             task: "task1",
           },
         );
       });
 
-      it("should throw if an action url is provided and the corresponding module default export is not a function", async () => {
-        const actionUrl = import.meta.resolve(
-          "./fixture-projects/file-actions/no-default-fn.js",
-        );
+      it("should throw if an action lazy action import is provided and the corresponding module default export is not a function", async () => {
+        const actionUrl = "./fixture-projects/file-actions/no-default-fn.js";
 
         const hre = await HardhatRuntimeEnvironmentImplementation.create(
           {
@@ -2229,7 +2180,9 @@ describe("TaskManagerImplementation", () => {
                 id: "plugin1",
                 tasks: [
                   new NewTaskDefinitionBuilderImplementation("task1")
-                    .setAction(actionUrl)
+                    .setAction({
+                      action: () => import(actionUrl),
+                    })
                     .build(),
                 ],
               },
@@ -2239,11 +2192,11 @@ describe("TaskManagerImplementation", () => {
         );
 
         const task1 = hre.tasks.getTask("task1");
+
         await assertRejectsWithHardhatError(
           task1.run(),
           HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INVALID_ACTION,
           {
-            action: actionUrl,
             task: "task1",
           },
         );

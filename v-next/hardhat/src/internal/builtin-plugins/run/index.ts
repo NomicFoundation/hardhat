@@ -14,10 +14,12 @@ const hardhatPlugin: HardhatPlugin = {
         name: "noCompile",
         description: "Don't compile the project before running the script",
       })
-      .setAction(import.meta.resolve("./task-action.js"))
+      .setAction({
+        action: async () => import("./task-action.js"),
+      })
       .build(),
   ],
-  dependencies: [async () => (await import("../solidity/index.js")).default],
+  dependencies: () => [import("../solidity/index.js")],
   npmPackage: "hardhat",
 };
 

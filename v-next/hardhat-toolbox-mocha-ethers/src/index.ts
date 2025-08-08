@@ -4,18 +4,15 @@ import "./type-extensions.js";
 
 const hardhatToolboxMochaEthersPlugin: HardhatPlugin = {
   id: "hardhat-toolbox-mocha-ethers",
-  dependencies: [
-    async () => (await import("@nomicfoundation/hardhat-ethers")).default,
-    async () =>
-      (await import("@nomicfoundation/hardhat-ethers-chai-matchers")).default,
-    async () =>
-      (await import("@nomicfoundation/hardhat-ignition-ethers")).default,
-    async () => (await import("@nomicfoundation/hardhat-keystore")).default,
-    async () => (await import("@nomicfoundation/hardhat-mocha")).default,
-    async () =>
-      (await import("@nomicfoundation/hardhat-network-helpers")).default,
-    async () => (await import("@nomicfoundation/hardhat-typechain")).default,
-    async () => (await import("@nomicfoundation/hardhat-verify")).default,
+  dependencies: () => [
+    import("@nomicfoundation/hardhat-ethers"),
+    import("@nomicfoundation/hardhat-ethers-chai-matchers"),
+    import("@nomicfoundation/hardhat-ignition-ethers"),
+    import("@nomicfoundation/hardhat-keystore"),
+    import("@nomicfoundation/hardhat-mocha"),
+    import("@nomicfoundation/hardhat-network-helpers"),
+    import("@nomicfoundation/hardhat-typechain"),
+    import("@nomicfoundation/hardhat-verify"),
   ],
   npmPackage: "@nomicfoundation/hardhat-toolbox-mocha-ethers",
 };

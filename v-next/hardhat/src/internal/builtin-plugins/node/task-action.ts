@@ -15,11 +15,11 @@ import { formatEdrNetworkConfigAccounts } from "./helpers.js";
 import { JsonRpcServerImplementation } from "./json-rpc/server.js";
 
 interface NodeActionArguments {
-  hostname: string;
+  hostname?: string;
   port: number;
-  chainType: string;
+  chainType?: string;
   chainId: number;
-  fork: string;
+  fork?: string;
   forkBlockNumber: number;
 }
 

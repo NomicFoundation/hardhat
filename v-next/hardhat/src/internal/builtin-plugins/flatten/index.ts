@@ -8,12 +8,14 @@ const hardhatPlugin: HardhatPlugin = {
   tasks: [
     task("flatten")
       .setDescription("Flattens and prints contracts and their dependencies")
-      .setAction(import.meta.resolve("./task-action.js"))
       .addVariadicArgument({
         name: "files",
         defaultValue: [],
         description: "An optional list of files to flatten",
         type: ArgumentType.FILE,
+      })
+      .setAction({
+        action: async () => import("./task-action.js"),
       })
       .build(),
   ],

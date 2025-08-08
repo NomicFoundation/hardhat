@@ -16,7 +16,7 @@ import {
 interface TestActionArguments {
   testFiles: string[];
   bail: boolean;
-  grep: string;
+  grep?: string;
   noCompile: boolean;
 }
 
@@ -72,7 +72,7 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
 
   const mochaConfig: MochaOptions = { ...hre.config.test.mocha };
 
-  if (grep !== "") {
+  if (grep !== undefined && grep !== "") {
     mochaConfig.grep = grep;
   }
 

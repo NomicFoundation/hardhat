@@ -14,9 +14,9 @@ const hardhatPlugin: HardhatPlugin = {
     }),
   ],
   hookHandlers: {
-    clean: import.meta.resolve("./hook-handlers/clean.js"),
-    hre: import.meta.resolve("./hook-handlers/hre.js"),
-    solidity: import.meta.resolve("./hook-handlers/solidity.js"),
+    clean: () => import("./hook-handlers/clean.js"),
+    hre: () => import("./hook-handlers/hre.js"),
+    solidity: () => import("./hook-handlers/solidity.js"),
   },
   npmPackage: "hardhat",
 };

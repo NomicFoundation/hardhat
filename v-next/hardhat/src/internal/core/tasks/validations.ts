@@ -23,6 +23,9 @@ export function validateId(id: string | string[]): void {
   }
 }
 
+//
+// TODO: probably can be removed
+//
 export function validateAction(action: unknown): void {
   if (typeof action === "string" && !isValidActionUrl(action)) {
     throw new HardhatError(

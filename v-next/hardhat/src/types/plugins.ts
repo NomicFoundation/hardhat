@@ -37,7 +37,7 @@ export interface HardhatPlugin {
   /**
    * An array of plugins that this plugin depends on.
    */
-  dependencies?: Array<() => Promise<HardhatPlugin>>;
+  dependencies?: () => Array<Promise<{ default: HardhatPlugin }>>;
 
   /**
    * An object with the different hook handlers that this plugin defines.
@@ -91,7 +91,9 @@ export interface HardhatPlugin {
 export type HookHandlerCategoryFactories = {
   [HookCategoryNameT in keyof HardhatHooks]?:
     | HookHandlerCategoryFactory<HookCategoryNameT>
-    | string;
+    | (() => Promise<{
+        default: HookHandlerCategoryFactory<HookCategoryNameT>;
+      }>);
 };
 
 /**
