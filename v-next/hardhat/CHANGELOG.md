@@ -1,5 +1,14 @@
 # hardhat
 
+## 3.0.0-next.29
+
+### Patch Changes
+
+- 65e26fd: Update comments and readme on template projects ([#7149](https://github.com/NomicFoundation/hardhat/issues/7149))
+- 813237a: Update how production profiles are derived from the default config ([#7154](https://github.com/NomicFoundation/hardhat/pull/7154))
+- 1a0b064: Improve the error message for syntax errors found in the Hardhat config file ([#7056](https://github.com/NomicFoundation/hardhat/issues/7056))
+- bf2d771: Added `isolated` config option to the build profile configuration (https://github.com/NomicFoundation/hardhat/issues/7125) and remove the `--isolated` flag.
+
 ## 3.0.0-next.28
 
 ### Patch Changes
