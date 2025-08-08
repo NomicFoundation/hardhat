@@ -64,7 +64,7 @@ const hardhatIgnitionPlugin: HardhatPlugin = {
           "Write deployment information to disk when deploying to the in-memory network",
       })
       .setAction({
-        action: async () => import("./internal/tasks/deploy.js"),
+        action: () => import("./internal/tasks/deploy.js"),
       })
       .build(),
     task(["ignition", "status"], "Show the current status of a deployment")

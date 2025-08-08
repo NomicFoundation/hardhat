@@ -2043,7 +2043,7 @@ describe("TaskManagerImplementation", () => {
                 tasks: [
                   new NewTaskDefinitionBuilderImplementation("task1")
                     .setAction({
-                      action: async () => import(invalidUrl),
+                      action: () => import(invalidUrl),
                     })
                     .build(),
                 ],
