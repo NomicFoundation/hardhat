@@ -1,6 +1,6 @@
-![](https://user-images.githubusercontent.com/176499/96893278-ebc67580-1460-11eb-9530-d5df3a3d65d0.png)
+![](/img/hardhat-header.png)
 
-Hardhat is an Ethereum development environment for professionals. It facilitates performing frequent tasks, such as running tests, automatically checking code for mistakes or interacting with smart contracts. 
+Hardhat is an Ethereum development environment for professionals. It facilitates performing frequent tasks, such as running tests, automatically checking code for mistakes or interacting with smart contracts.
 
 Built by the [Nomic Foundation](https://nomic.foundation/) for the Ethereum community.
 
