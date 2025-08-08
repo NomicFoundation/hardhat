@@ -11,6 +11,8 @@ import type {
 } from "../../../types/config.js";
 import type { HardhatUserConfigValidationError } from "../../../types/hooks.js";
 
+import os from "node:os";
+
 import { deepMerge, isObject } from "@nomicfoundation/hardhat-utils/lang";
 import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
 import {
@@ -288,7 +290,7 @@ function resolveBuildProfileConfig(
       compilers: [resolveSolcConfig(solidityConfig, production)],
       overrides: {},
       isolated: solidityConfig.isolated ?? production,
-      preferWasm: solidityConfig.preferWasm ?? production,
+      preferWasm: solidityConfig.preferWasm ?? (production && shouldUseWasm()),
     };
   }
 
@@ -305,7 +307,7 @@ function resolveBuildProfileConfig(
       ),
     ),
     isolated: solidityConfig.isolated ?? production,
-    preferWasm: solidityConfig.preferWasm ?? production,
+    preferWasm: solidityConfig.preferWasm ?? (production && shouldUseWasm()),
   };
 }
 
@@ -365,4 +367,10 @@ function copyFromDefault(
       ),
     ),
   };
+}
+
+// We use wasm builds in production to avoid using unofficial builds for deployments
+// This should change once https://github.com/ethereum/solidity/issues/11351 gets resolved
+export function shouldUseWasm(): boolean {
+  return os.platform() === "linux" && os.arch() === "arm64";
 }
