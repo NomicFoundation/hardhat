@@ -405,7 +405,7 @@ export const staticCallResultFixturesArtifacts: {
     deployedLinkReferences: {},
     immutableReferences: {},
     inputSourceName: "project/contracts/C.sol",
-    buildInfoId: "solc-0_8_19-a45ba3c37b2deb0d1fadc772202f4cbff6d5a67a",
+    buildInfoId: "solc-0_8_19-2fe1cba8ef218c727cd1ce3da3aaa170f8016338",
   },
 };
 
@@ -442,7 +442,7 @@ export const deploymentFixturesArtifacts: { [contractName: string]: Artifact } =
       deployedLinkReferences: {},
       immutableReferences: {},
       inputSourceName: "project/contracts/C.sol",
-      buildInfoId: "solc-0_8_19-a45ba3c37b2deb0d1fadc772202f4cbff6d5a67a",
+      buildInfoId: "solc-0_8_19-2fe1cba8ef218c727cd1ce3da3aaa170f8016338",
     },
     WithLibrary: {
       _format: "hh3-artifact-1",
@@ -471,7 +471,7 @@ export const deploymentFixturesArtifacts: { [contractName: string]: Artifact } =
       deployedLinkReferences: {},
       immutableReferences: {},
       inputSourceName: "project/contracts/C.sol",
-      buildInfoId: "solc-0_8_19-a45ba3c37b2deb0d1fadc772202f4cbff6d5a67a",
+      buildInfoId: "solc-0_8_19-2fe1cba8ef218c727cd1ce3da3aaa170f8016338",
     },
     WithAmbiguousLibraryName: {
       _format: "hh3-artifact-1",
@@ -508,7 +508,7 @@ export const deploymentFixturesArtifacts: { [contractName: string]: Artifact } =
       deployedLinkReferences: {},
       immutableReferences: {},
       inputSourceName: "project/contracts/C.sol",
-      buildInfoId: "solc-0_8_19-a45ba3c37b2deb0d1fadc772202f4cbff6d5a67a",
+      buildInfoId: "solc-0_8_19-2fe1cba8ef218c727cd1ce3da3aaa170f8016338",
     },
   };
 
@@ -590,7 +590,7 @@ export const callEncodingFixtures: { [contractName: string]: Artifact } = {
     deployedLinkReferences: {},
     immutableReferences: {},
     inputSourceName: "project/contracts/C.sol",
-    buildInfoId: "solc-0_8_19-a45ba3c37b2deb0d1fadc772202f4cbff6d5a67a",
+    buildInfoId: "solc-0_8_19-2fe1cba8ef218c727cd1ce3da3aaa170f8016338",
   },
   ToTestEthersEncodingConversion: {
     _format: "hh3-artifact-1",
@@ -949,7 +949,7 @@ export const callEncodingFixtures: { [contractName: string]: Artifact } = {
     deployedLinkReferences: {},
     immutableReferences: {},
     inputSourceName: "project/contracts/C.sol",
-    buildInfoId: "solc-0_8_19-a45ba3c37b2deb0d1fadc772202f4cbff6d5a67a",
+    buildInfoId: "solc-0_8_19-2fe1cba8ef218c727cd1ce3da3aaa170f8016338",
   },
   FunctionNameValidation: {
     _format: "hh3-artifact-1",
@@ -1069,6 +1069,6 @@ export const callEncodingFixtures: { [contractName: string]: Artifact } = {
     deployedLinkReferences: {},
     immutableReferences: {},
     inputSourceName: "project/contracts/C.sol",
-    buildInfoId: "solc-0_8_19-a45ba3c37b2deb0d1fadc772202f4cbff6d5a67a",
+    buildInfoId: "solc-0_8_19-2fe1cba8ef218c727cd1ce3da3aaa170f8016338",
   },
 };
