@@ -1141,7 +1141,7 @@ describe("config validation", function () {
 
       assert.deepEqual(validateNewTask(task, []), [
         {
-          message: "task action must be a function or a lazy function",
+          message: "task action must be a function or a lazy action object",
           path: ["action"],
         },
       ]);
@@ -1263,7 +1263,7 @@ describe("config validation", function () {
 
       assert.deepEqual(validateTaskOverride(task, []), [
         {
-          message: "task action must be a function or a lazy function",
+          message: "task action must be a function or a lazy action object",
           path: ["action"],
         },
       ]);

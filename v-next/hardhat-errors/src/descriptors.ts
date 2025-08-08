@@ -612,7 +612,7 @@ Please ensure that an action is defined for each task.`,
         number: 411,
         messageTemplate:
           'Unable to import the action for task "{task}" because the specified module could not be found.',
-        websiteTitle: "Invalid import Path",
+        websiteTitle: "Invalid import path",
         websiteDescription:
           "The file path used to import the action module could not be found. Please verify that the import path is correct and that the file exists.",
       },

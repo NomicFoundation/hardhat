@@ -1,6 +1,5 @@
 import type { HardhatPlugin } from "../../../types/plugins.js";
 
-import { ArgumentType } from "../../../types/arguments.js";
 import { task } from "../../core/config.js";
 
 const hardhatPlugin: HardhatPlugin = {
@@ -20,9 +19,7 @@ const hardhatPlugin: HardhatPlugin = {
         name: "commands",
         description: "Commands to run when the console starts",
         defaultValue: [],
-        type: ArgumentType.STRING,
       })
-
       .setAction({
         action: () => import("./task-action.js"),
       })

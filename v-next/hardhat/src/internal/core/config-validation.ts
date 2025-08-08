@@ -283,7 +283,7 @@ export function validateNewTask(
   ) {
     validationErrors.push({
       path: [...path, "action"],
-      message: "task action must be a function or a lazy function",
+      message: "task action must be a function or a lazy action object",
     });
   }
 
@@ -346,7 +346,7 @@ export function validateTaskOverride(
   ) {
     validationErrors.push({
       path: [...path, "action"],
-      message: "task action must be a function or a lazy function",
+      message: "task action must be a function or a lazy action object",
     });
   }
 
