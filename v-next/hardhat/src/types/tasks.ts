@@ -309,8 +309,8 @@ export interface TaskOverrideDefinitionBuilder<
    */
   setAction(
     action:
-      | NewTaskActionFunction<TaskArgumentsT>
-      | LazyActionObject<NewTaskActionFunction<TaskArgumentsT>>,
+      | TaskOverrideActionFunction<TaskArgumentsT>
+      | LazyActionObject<TaskOverrideActionFunction<TaskArgumentsT>>,
   ): this;
 
   /**
