@@ -14,9 +14,12 @@ declare module "../../../types/test.js" {
   export interface SolidityTestUserConfig {
     timeout?: number;
     fsPermissions?: {
-      readWrite?: string[];
-      read?: string[];
-      write?: string[];
+      readWriteFile?: string[];
+      readFile?: string[];
+      writeFile?: string[];
+      dangerouslyReadWriteDirectory?: string[];
+      readDirectory?: string[];
+      dangerouslyWriteDirectory?: string[];
     };
     isolate?: boolean;
     ffi?: boolean;

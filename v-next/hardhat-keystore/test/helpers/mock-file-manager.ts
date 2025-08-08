@@ -4,6 +4,7 @@ import type { Mock } from "node:test";
 import { mock } from "node:test";
 
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
+import { writeUtf8File } from "@nomicfoundation/hardhat-utils/fs";
 
 import {
   addSecretToKeystore,
@@ -12,7 +13,7 @@ import {
   type EncryptedKeystore,
 } from "../../src/internal/keystores/encryption.js";
 
-import { TEST_PASSWORD } from "./test-password.js";
+import { TEST_PASSWORD_PROD, TEST_PASSWORD_DEV } from "./test-password.js";
 
 export class MockFileManager implements FileManager {
   public masterKey: Uint8Array;
@@ -20,12 +21,18 @@ export class MockFileManager implements FileManager {
   readonly #salt: Uint8Array;
   #keystoreFile: EncryptedKeystore | null;
 
-  constructor() {
+  constructor(dev: boolean) {
     this.#keystoreFile = null;
 
     ({ masterKey: this.masterKey, salt: this.#salt } = createMasterKey({
-      password: TEST_PASSWORD,
+      password: dev ? TEST_PASSWORD_DEV : TEST_PASSWORD_PROD,
     }));
+  }
+
+  public async writePasswordFileForDevKeystore(
+    devKeystorePasswordFilePath: string,
+  ): Promise<void> {
+    await writeUtf8File(devKeystorePasswordFilePath, TEST_PASSWORD_DEV);
   }
 
   /**

@@ -502,7 +502,7 @@ describe("clients", () => {
         plugins: [HardhatViem],
         networks: {
           edrOptimism: {
-            type: "edr",
+            type: "edr-simulated",
             chainType: "op",
           },
         },

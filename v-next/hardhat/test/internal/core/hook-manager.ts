@@ -428,6 +428,7 @@ describe("HookManager", () => {
           hookHandlers: {
             config: () => import(nonExistentImport),
           },
+          npmPackage: null,
         };
 
         const manager = new HookManagerImplementation(projectRoot, [

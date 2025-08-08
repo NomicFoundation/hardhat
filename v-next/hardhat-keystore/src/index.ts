@@ -30,12 +30,22 @@ const hardhatKeystorePlugin: HardhatPlugin = {
         name: "force",
         description: "Forces overwrite if the key already exists.",
       })
+      .addFlag({
+        name: "dev",
+        description:
+          "Use the development keystore instead of the production one",
+      })
       .setAction({
         action: () => import("./internal/tasks/set.js"),
       })
       .build(),
 
     task(["keystore", "get"], "Get a value given a key")
+      .addFlag({
+        name: "dev",
+        description:
+          "Use the development keystore instead of the production one",
+      })
       .addPositionalArgument({
         name: "key",
         type: ArgumentType.STRING,
@@ -47,12 +57,22 @@ const hardhatKeystorePlugin: HardhatPlugin = {
       .build(),
 
     task(["keystore", "list"], "List all keys in the keystore")
+      .addFlag({
+        name: "dev",
+        description:
+          "Use the development keystore instead of the production one",
+      })
       .setAction({
         action: () => import("./internal/tasks/list.js"),
       })
       .build(),
 
     task(["keystore", "delete"], "Delete a key from the keystore")
+      .addFlag({
+        name: "dev",
+        description:
+          "Use the development keystore instead of the production one",
+      })
       .addPositionalArgument({
         name: "key",
         type: ArgumentType.STRING,
@@ -69,6 +89,11 @@ const hardhatKeystorePlugin: HardhatPlugin = {
       .build(),
 
     task(["keystore", "path"], "Display the path where the keystore is stored")
+      .addFlag({
+        name: "dev",
+        description:
+          "Use the development keystore instead of the production one",
+      })
       .setAction({
         action: () => import("./internal/tasks/path.js"),
       })
@@ -78,6 +103,11 @@ const hardhatKeystorePlugin: HardhatPlugin = {
       ["keystore", "change-password"],
       "Change the password for the keystore",
     )
+      .addFlag({
+        name: "dev",
+        description:
+          "Use the development keystore instead of the production one",
+      })
       .setAction({
         action: () => import("./internal/tasks/change-password.js"),
       })

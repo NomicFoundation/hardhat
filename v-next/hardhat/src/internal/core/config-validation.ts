@@ -619,7 +619,8 @@ export function validatePluginsConfig(
 
     if (
       plugin.npmPackage !== undefined &&
-      typeof plugin.npmPackage !== "string"
+      typeof plugin.npmPackage !== "string" &&
+      plugin.npmPackage !== null
     ) {
       validationErrors.push({
         path: [...path, "plugins", index, "npmPackage"],

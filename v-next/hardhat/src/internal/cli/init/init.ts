@@ -24,6 +24,7 @@ import * as semver from "semver";
 import { findClosestHardhatConfig } from "../../config-loading.js";
 import { HARDHAT_NAME } from "../../constants.js";
 import { getHardhatVersion } from "../../utils/package.js";
+import { sendProjectTypeAnalytics } from "../telemetry/analytics/analytics.js";
 
 import {
   getDevDependenciesInstallationCommand,
@@ -37,11 +38,13 @@ import {
   promptForTemplate,
   promptForUpdate,
   promptForWorkspace,
+  promptForHardhatVersion,
 } from "./prompt.js";
 import { spawn } from "./subprocess.js";
 import { getTemplates } from "./template.js";
 
 export interface InitHardhatOptions {
+  hardhatVersion?: "hardhat-2" | "hardhat-3";
   workspace?: string;
   migrateToEsm?: boolean;
   template?: string;
@@ -85,17 +88,27 @@ export async function initHardhat(options?: InitHardhatOptions): Promise<void> {
 
     await printWelcomeMessage();
 
+    const hardhatVersion =
+      options?.hardhatVersion ?? (await promptForHardhatVersion());
+
     // Ask the user for the workspace to initialize the project in
     // if it was not provided, and validate that it is not already initialized
     const workspace = await getWorkspace(options?.workspace);
 
-    // Create the package.json file if it does not exist
-    // and validate that it is an esm package
-    await validatePackageJson(workspace, options?.migrateToEsm);
-
     // Ask the user for the template to use for the project initialization
     // if it was not provided, and validate that it exists
-    const template = await getTemplate(options?.template);
+    const [template, projectTypeAnalyticsPromise] = await getTemplate(
+      hardhatVersion,
+      options?.template,
+    );
+
+    // Create the package.json file if it does not exist
+    // and validate that it is an esm package
+    await validatePackageJson(
+      workspace,
+      template.packageJson,
+      options?.migrateToEsm,
+    );
 
     // Copy the template files to the workspace
     // Overwrite existing files only if the user opts-in to it
@@ -103,7 +116,11 @@ export async function initHardhat(options?: InitHardhatOptions): Promise<void> {
 
     // Print the commands to install the project dependencies
     // Run them only if the user opts-in to it
-    await installProjectDependencies(workspace, template, options?.install);
+    // Concurrently, await the analytics hit
+    await Promise.all([
+      installProjectDependencies(workspace, template, options?.install),
+      projectTypeAnalyticsPromise,
+    ]);
 
     showStarOnGitHubMessage();
   } catch (e) {
@@ -232,22 +249,33 @@ export async function getWorkspace(workspace?: string): Promise<string> {
  * NOTE: This function is exported for testing purposes
  *
  * @param template The name of the template to use for the project initialization.
- * @returns
+ * @returns A tuple with two elements: the template and a promise with the analytics hit.
  */
-export async function getTemplate(template?: string): Promise<Template> {
-  const templates = await getTemplates();
+export async function getTemplate(
+  hardhatVersion: "hardhat-2" | "hardhat-3",
+  template?: string,
+): Promise<[Template, Promise<boolean>]> {
+  const templates = await getTemplates(hardhatVersion);
 
   // Ask the user for the template to use for the project initialization if it was not provided
   if (template === undefined) {
     template = await promptForTemplate(templates);
   }
 
+  const projectTypeAnalyticsPromise = sendProjectTypeAnalytics(
+    hardhatVersion,
+    template,
+  );
+
   // Validate that the template exists
   for (const t of templates) {
     if (t.name === template) {
-      return t;
+      return [t, projectTypeAnalyticsPromise];
     }
   }
+
+  // we wait for the GA hit before throwing
+  await projectTypeAnalyticsPromise;
 
   throw new HardhatError(HardhatError.ERRORS.CORE.GENERAL.TEMPLATE_NOT_FOUND, {
     template,
@@ -266,19 +294,55 @@ export async function getTemplate(template?: string): Promise<Template> {
  */
 export async function validatePackageJson(
   workspace: string,
+  templatePkg: PackageJson,
   migrateToEsm?: boolean,
 ): Promise<void> {
   const absolutePathToPackageJson = path.join(workspace, "package.json");
+  const shouldUseEsm = templatePkg.type === "module";
 
   // Create the package.json file if it does not exist
   if (!(await exists(absolutePathToPackageJson))) {
     const packageJson: PackageJson = {
       name: path.basename(workspace),
-      type: "module",
       version: "1.0.0",
     };
 
+    if (shouldUseEsm) {
+      packageJson.type = "module";
+    }
+
     await writeJsonFile(absolutePathToPackageJson, packageJson);
+  }
+
+  const packageManager = await getPackageManager(workspace);
+
+  // We know this works with npm, pnpm, but not with yarn. If, so we use
+  // pnpm or npm exclusively.
+  // If you read this comment and wonder if this is outdated, you can
+  // answer it by checking if the most popular versions of yarn and other
+  // package managers support `<package manager> pkg set type=module`.
+  const packageManagerToUse = packageManager === "pnpm" ? "pnpm" : "npm";
+
+  // We need to set the hardhat version in the package.json file
+  // to ensure that the template is compatible with the current Hardhat version.
+  // This is needed because we have hardhat-2 and hardhat-3 templates,
+  // and the user may install hardhat 3 first and then initialize a project
+  // with a hardhat-2 template.
+  const templateHardhatVersion = templatePkg.devDependencies?.hardhat ?? "";
+  if (templateHardhatVersion.startsWith("^2")) {
+    await spawn(
+      [packageManagerToUse, "pkg", "delete", "dependencies.hardhat"].join(" "),
+      [],
+      {
+        cwd: workspace,
+        shell: true,
+        stdio: "inherit",
+      },
+    );
+  }
+
+  if (!shouldUseEsm) {
+    return;
   }
 
   const pkg: PackageJson = await readJsonFile(absolutePathToPackageJson);
@@ -295,15 +359,6 @@ export async function validatePackageJson(
   if (!migrateToEsm) {
     throw new HardhatError(HardhatError.ERRORS.CORE.GENERAL.ONLY_ESM_SUPPORTED);
   }
-
-  const packageManager = await getPackageManager(workspace);
-
-  // We know this works with npm, pnpm, but not with yarn. If, so we use
-  // pnpm or npm exclusively.
-  // If you read this comment and wonder if this is outdated, you can
-  // answer it by checking if the most popular versions of yarn and other
-  // package managers support `<package manager> pkg set type=module`.
-  const packageManagerToUse = packageManager === "pnpm" ? "pnpm" : "npm";
 
   await spawn(
     [packageManagerToUse, "pkg", "set", "type=module"].join(" "),

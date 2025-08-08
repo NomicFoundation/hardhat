@@ -31,11 +31,11 @@ describe("handle multiple connections", () => {
       plugins: [hardhatChaiMatchersPlugin, hardhatEthersPlugin],
       networks: {
         test1: {
-          type: "edr",
+          type: "edr-simulated",
           chainId: 1,
         },
         test2: {
-          type: "edr",
+          type: "edr-simulated",
           chainId: 2,
         },
       },

@@ -32,7 +32,7 @@ export interface HardhatPlugin {
   /**
    * The npm package where the plugin is located, if any.
    */
-  npmPackage?: string;
+  npmPackage?: string | null;
 
   /**
    * An array of plugins that this plugin depends on.

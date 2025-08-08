@@ -37,7 +37,7 @@ type SignerAccounts =
       accounts: HttpNetworkAccountsConfig;
     }
   | {
-      type: "edr";
+      type: "edr-simulated";
       accounts: EdrNetworkAccountsConfig;
     };
 
@@ -69,7 +69,7 @@ export class HardhatEthersSigner implements HardhatEthersSignerI {
     const signerAccounts: SignerAccounts =
       networkConfig.type === "http"
         ? { type: "http", accounts: networkConfig.accounts }
-        : { type: "edr", accounts: networkConfig.accounts };
+        : { type: "edr-simulated", accounts: networkConfig.accounts };
 
     return new HardhatEthersSigner(address, provider, signerAccounts, gasLimit);
   }
@@ -349,7 +349,7 @@ export class HardhatEthersSigner implements HardhatEthersSignerI {
       }
     }
 
-    if (type === "edr") {
+    if (type === "edr-simulated") {
       if (Array.isArray(accounts)) {
         return Promise.all(accounts.map((acc) => acc.privateKey.get()));
       }

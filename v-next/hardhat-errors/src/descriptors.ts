@@ -945,7 +945,7 @@ Try using another mnemonic or deriving less keys.`,
         messageTemplate:
           'The provided network type "{networkType}" for network "{networkName}" is not recognized, only `http` and `edr` are supported.',
         websiteTitle: "Invalid network type",
-        websiteDescription: `The network manager only supports the network types 'http' and 'edr'.`,
+        websiteDescription: `The network manager only supports the network types 'http' and 'edr-simulated'.`,
       },
       DATA_FIELD_CANNOT_BE_NULL_WITH_NULL_ADDRESS: {
         number: 721,
@@ -1154,9 +1154,9 @@ Please use the fully qualified name of the contract to disambiguate it.`,
     NODE: {
       INVALID_NETWORK_TYPE: {
         number: 1100,
-        messageTemplate: `The provided node network type "{networkType}" for network "{networkName}" is not recognized, only 'edr' is supported.`,
+        messageTemplate: `The provided node network type "{networkType}" for network "{networkName}" is not recognized, only 'edr-simulated' is supported.`,
         websiteTitle: "Invalid node network type",
-        websiteDescription: `The node only supports the 'edr' network type.`,
+        websiteDescription: `The node only supports the 'edr-simulated' network type.`,
       },
     },
     TEST_PLUGIN: {
@@ -2047,6 +2047,20 @@ Please check Hardhat's output for more details.`,
         websiteTitle: "Invalid password or corrupted keystore file",
         websiteDescription:
           "The password you provided is incorrect or the keystore file is corrupted.",
+      },
+      CANNOT_CHANGED_PASSWORD_FOR_DEV_KEYSTORE: {
+        number: 50001,
+        messageTemplate: `The keystore "change-password" task cannot be used with the development keystore`,
+        websiteTitle: "Cannot change password for dev keystore",
+        websiteDescription: `The keystore "change-password" task cannot be used with the development keystore`,
+      },
+      KEY_NOT_FOUND_DURING_TESTS_WITH_DEV_KEYSTORE: {
+        number: 50002,
+        messageTemplate: `Key "{key}" not found in the development keystore. Run "npx hardhat keystore set {key} --dev" to set it.`,
+        websiteTitle: "Key not found in the development keystore during tests",
+        websiteDescription: `Key not found in the development keystore. During tests, configuration variables can only be accessed through the development keystore.
+
+Run \`npx hardhat keystore set <KEY> --dev\` to set it.`,
       },
     },
   },

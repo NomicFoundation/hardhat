@@ -1,7 +1,6 @@
 import type {
-  EventNames,
+  AnalyticsEvent,
   Payload,
-  TaskParams,
   TelemetryConfigPayload,
 } from "./types.js";
 
@@ -54,23 +53,38 @@ export async function sendTelemetryConfigAnalytics(
 }
 
 export async function sendTaskAnalytics(taskId: string[]): Promise<boolean> {
-  const eventParams: TaskParams = {
-    task: taskId.join(", "),
+  const taskAnalyticsEvent: AnalyticsEvent = {
+    name: "task",
+    params: {
+      task: taskId.join(", "),
+    },
   };
 
-  return sendAnalytics("task", eventParams);
+  return sendAnalytics(taskAnalyticsEvent);
+}
+
+export async function sendProjectTypeAnalytics(
+  hardhatVersion: "hardhat-2" | "hardhat-3",
+  template: string,
+): Promise<boolean> {
+  const initAnalyticsEvent: AnalyticsEvent = {
+    name: "init",
+    params: {
+      hardhatVersion,
+      template,
+    },
+  };
+
+  return sendAnalytics(initAnalyticsEvent);
 }
 
 // Return a boolean for testing purposes to confirm whether analytics were sent based on the consent value and not in CI environments
-async function sendAnalytics(
-  eventName: EventNames,
-  eventParams: TaskParams,
-): Promise<boolean> {
+async function sendAnalytics(analyticsEvent: AnalyticsEvent): Promise<boolean> {
   if (!(await isTelemetryAllowed())) {
     return false;
   }
 
-  const payload = await buildPayload(eventName, eventParams);
+  const payload = await buildPayload(analyticsEvent);
 
   await createSubprocessToSendAnalytics(payload);
 
@@ -104,10 +118,7 @@ async function createSubprocessToSendAnalytics(
   log("Payload sent to detached subprocess");
 }
 
-async function buildPayload(
-  eventName: EventNames,
-  eventParams: TaskParams,
-): Promise<Payload> {
+async function buildPayload(analyticsEvent: AnalyticsEvent): Promise<Payload> {
   const clientId = await getAnalyticsClientId();
 
   return {
@@ -121,11 +132,11 @@ async function buildPayload(
     },
     events: [
       {
-        name: eventName,
+        name: analyticsEvent.name,
         params: {
           engagement_time_msec: ENGAGEMENT_TIME_MSEC,
           session_id: SESSION_ID,
-          ...eventParams,
+          ...analyticsEvent.params,
         },
       },
     ],

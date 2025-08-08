@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-errors",
-  "version": "3.0.0-next.26",
+  "version": "3.0.0-next.28",
   "description": "The different errors that Hardhat can throw",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-errors",
   "repository": {
@@ -42,7 +42,7 @@
     "README.md"
   ],
   "devDependencies": {
-    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0-next.26",
+    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0-next.28",
     "@types/node": "^20.14.9",
     "c8": "^9.1.0",
     "eslint": "9.25.1",
@@ -53,6 +53,6 @@
     "typescript": "~5.8.0"
   },
   "dependencies": {
-    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.26"
+    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.28"
   }
 }

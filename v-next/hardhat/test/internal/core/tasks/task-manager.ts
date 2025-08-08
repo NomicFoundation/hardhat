@@ -2092,6 +2092,7 @@ describe("TaskManagerImplementation", () => {
                     })
                     .build(),
                 ],
+                npmPackage: null,
               },
             ],
           },

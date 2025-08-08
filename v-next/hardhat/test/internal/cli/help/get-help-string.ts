@@ -5,6 +5,7 @@ import { describe, it } from "node:test";
 
 import chalk from "chalk";
 
+import { globalOption } from "../../../../src/config.js";
 import { getHelpString } from "../../../../src/internal/cli/help/get-help-string.js";
 import { ArgumentType } from "../../../../src/types/arguments.js";
 
@@ -28,7 +29,35 @@ describe("getHelpString", function () {
         run: async () => {},
       };
 
-      const help = await getHelpString(task);
+      const globalOptionDefinitions = new Map([
+        [
+          "userOption1",
+          {
+            pluginId: "builtin",
+            option: globalOption({
+              name: "userOption1",
+              description: "userOption1 description.",
+              type: ArgumentType.STRING,
+              defaultValue: "default",
+            }),
+          },
+        ],
+        [
+          "userOption2",
+          {
+            pluginId: "builtin",
+            option: globalOption({
+              name: "userOption2",
+              shortName: "o",
+              description: "userOption2 description.",
+              type: ArgumentType.STRING,
+              defaultValue: "default",
+            }),
+          },
+        ],
+      ]);
+
+      const help = await getHelpString(task, globalOptionDefinitions);
 
       const expected = `${chalk.bold("task description")}
 
@@ -36,7 +65,12 @@ Usage: hardhat [GLOBAL OPTIONS] task <SUBTASK> [SUBTASK OPTIONS] [--] [SUBTASK P
 
 AVAILABLE SUBTASKS:
 
-  task subtask      An example empty subtask task
+  task subtask             An example empty subtask task
+
+GLOBAL OPTIONS:
+
+  --user-option-1          userOption1 description.
+  --user-option-2, -o      userOption2 description.
 
 To get help for a specific task run: npx hardhat task <SUBTASK> --help`;
 
@@ -69,7 +103,9 @@ To get help for a specific task run: npx hardhat task <SUBTASK> --help`;
           run: async () => {},
         };
 
-        const help = await getHelpString(task);
+        const globalOptionDefinitions = new Map();
+
+        const help = await getHelpString(task, globalOptionDefinitions);
 
         const expected = `${chalk.bold("task description")}
 
@@ -80,7 +116,10 @@ OPTIONS:
   --another-option      Another example option
   --option              An example option
 
-For global options help run: hardhat --help`;
+GLOBAL OPTIONS:
+
+
+`;
 
         assert.equal(help, expected);
       });
@@ -123,7 +162,9 @@ For global options help run: hardhat --help`;
           run: async () => {},
         };
 
-        const help = await getHelpString(task);
+        const globalOptionDefinitions = new Map();
+
+        const help = await getHelpString(task, globalOptionDefinitions);
 
         const expected = `${chalk.bold("task description")}
 
@@ -139,7 +180,10 @@ POSITIONAL ARGUMENTS:
   anotherPositionalArgument      Another example positional argument
   positionalArgument             An example positional argument
 
-For global options help run: hardhat --help`;
+GLOBAL OPTIONS:
+
+
+`;
 
         assert.equal(help, expected);
       });
@@ -184,7 +228,9 @@ For global options help run: hardhat --help`;
           run: async () => {},
         };
 
-        const help = await getHelpString(task);
+        const globalOptionDefinitions = new Map();
+
+        const help = await getHelpString(task, globalOptionDefinitions);
 
         const expected = `${chalk.bold("task description")}
 
@@ -204,7 +250,10 @@ AVAILABLE SUBTASKS:
   task another-subtask      Another example subtask
   task subtask              An example subtask
 
-For global options help run: hardhat --help`;
+GLOBAL OPTIONS:
+
+
+`;
 
         assert.equal(help, expected);
       });

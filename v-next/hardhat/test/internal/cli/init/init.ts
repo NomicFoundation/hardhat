@@ -16,6 +16,8 @@ import {
   exists,
   readJsonFile,
   readUtf8File,
+  remove,
+  writeJsonFile,
   writeUtf8File,
 } from "@nomicfoundation/hardhat-utils/fs";
 
@@ -80,7 +82,7 @@ describe("getWorkspace", () => {
 describe("getTemplate", () => {
   it("should throw if the provided template does not exist", async () => {
     await assertRejectsWithHardhatError(
-      async () => getTemplate("non-existent-template"),
+      async () => getTemplate("hardhat-3", "non-existent-template"),
       HardhatError.ERRORS.CORE.GENERAL.TEMPLATE_NOT_FOUND,
       {
         template: "non-existent-template",
@@ -88,7 +90,7 @@ describe("getTemplate", () => {
     );
   });
   it("should return the provided template", async () => {
-    const template = await getTemplate("mocha-ethers");
+    const [template] = await getTemplate("hardhat-3", "mocha-ethers");
     assert.equal(template.name, "mocha-ethers");
   });
 });
@@ -101,34 +103,147 @@ describe("validatePackageJson", () => {
       !(await exists("package.json")),
       "package.json should not exist before ensuring it exists",
     );
-    await validatePackageJson(process.cwd(), false);
+
+    await validatePackageJson(
+      process.cwd(),
+      {
+        name: "package-name",
+        version: "0.0.1",
+        type: "module",
+      },
+      false,
+    );
+
     assert.ok(await exists("package.json"), "package.json should exist");
   });
+
   it("should not create the package.json file if it already exists", async () => {
-    const before = JSON.stringify({
+    const before = {
       name: "a unique name that ensureProjectPackageJson definitely does not set",
       type: "module",
-    });
-    await writeUtf8File("package.json", before);
-    await validatePackageJson(process.cwd(), false);
-    const after = await readUtf8File("package.json");
-    assert.equal(before, after);
+    };
+
+    await writeJsonFile("package.json", before);
+
+    await validatePackageJson(
+      process.cwd(),
+      {
+        name: "package-name",
+        version: "0.0.1",
+        type: "module",
+      },
+      false,
+    );
+
+    const after = await readJsonFile("package.json");
+
+    assert.deepEqual(before, after);
   });
+
   it("should throw if the package.json is not for an esm package", async () => {
-    await writeUtf8File("package.json", "{}");
+    await writeJsonFile("package.json", {});
+
     await assertRejectsWithHardhatError(
-      async () => validatePackageJson(process.cwd(), false),
+      async () =>
+        validatePackageJson(
+          process.cwd(),
+          {
+            name: "package-name",
+            version: "0.0.1",
+            type: "module",
+          },
+          false,
+        ),
       HardhatError.ERRORS.CORE.GENERAL.ONLY_ESM_SUPPORTED,
       {},
     );
   });
+
   it("should migrate package.json to esm if the user opts-in to it", async () => {
-    await writeUtf8File("package.json", "{}");
-    await validatePackageJson(process.cwd(), true);
+    await writeJsonFile("package.json", {});
+
+    await validatePackageJson(
+      process.cwd(),
+      {
+        name: "package-name",
+        version: "0.0.1",
+        type: "module",
+      },
+      true,
+    );
+
     const pkg: PackageJson = await readJsonFile(
       path.join(process.cwd(), "package.json"),
     );
+
     assert.equal(pkg.type, "module");
+  });
+
+  it("should not migrate package.json to esm when shouldUseEsm is false and type is not set", async () => {
+    await writeJsonFile("package.json", {});
+
+    await validatePackageJson(
+      process.cwd(),
+      {
+        name: "package-name",
+        version: "0.0.1",
+      },
+      false,
+    );
+
+    const pkg: PackageJson = await readJsonFile(
+      path.join(process.cwd(), "package.json"),
+    );
+
+    assert.equal(pkg.type, undefined);
+  });
+
+  it("should not migrate package.json to esm when shouldUseEsm is false and type is commonjs", async () => {
+    const before = {
+      name: "a unique name that ensureProjectPackageJson definitely does not set",
+      type: "commonjs",
+    };
+
+    await writeJsonFile("package.json", before);
+
+    await validatePackageJson(
+      process.cwd(),
+      {
+        name: "package-name",
+        version: "0.0.1",
+      },
+      false,
+    );
+
+    const after: PackageJson = await readJsonFile(
+      path.join(process.cwd(), "package.json"),
+    );
+
+    assert.deepEqual(before, after);
+  });
+
+  it("should not migrate package.json to esm when shouldUseEsm is false and no package.json exists", async () => {
+    await remove(path.join(process.cwd(), "package.json"));
+
+    assert.ok(
+      !(await exists("package.json")),
+      "package.json should not exist before ensuring it exists",
+    );
+
+    await validatePackageJson(
+      process.cwd(),
+      {
+        name: "package-name",
+        version: "0.0.1",
+      },
+      false,
+    );
+
+    const after: PackageJson = await readJsonFile(
+      path.join(process.cwd(), "package.json"),
+    );
+
+    assert.equal(after.type, undefined);
   });
 });
 
@@ -169,7 +284,7 @@ describe("copyProjectFiles", () => {
 
   describe("when force is true", () => {
     it("should copy the template files to the workspace and overwrite existing files", async () => {
-      const template = await getTemplate("mocha-ethers");
+      const [template] = await getTemplate("hardhat-3", "mocha-ethers");
       // Create template files with "some content" in the workspace
       const workspaceFiles = template.files.map(
         relativeTemplateToWorkspacePath,
@@ -188,7 +303,7 @@ describe("copyProjectFiles", () => {
       }
     });
     it("should copy the .gitignore file correctly", async () => {
-      const template = await getTemplate("mocha-ethers");
+      const [template] = await getTemplate("hardhat-3", "mocha-ethers");
       // Copy the template files to the workspace
       await copyProjectFiles(process.cwd(), template, true);
       // Check that the .gitignore exists but gitignore does not
@@ -204,7 +319,7 @@ describe("copyProjectFiles", () => {
   });
   describe("when force is false", () => {
     it("should copy the template files to the workspace and NOT overwrite existing files", async () => {
-      const template = await getTemplate("mocha-ethers");
+      const [template] = await getTemplate("hardhat-3", "mocha-ethers");
       // Create template files with "some content" in the workspace
       const workspaceFiles = template.files.map(
         relativeTemplateToWorkspacePath,
@@ -223,7 +338,7 @@ describe("copyProjectFiles", () => {
       }
     });
     it("should copy the .gitignore file correctly", async () => {
-      const template = await getTemplate("mocha-ethers");
+      const [template] = await getTemplate("hardhat-3", "mocha-ethers");
       // Copy the template files to the workspace
       await copyProjectFiles(process.cwd(), template, false);
       // Check that the .gitignore exists but gitignore does not
@@ -244,7 +359,7 @@ describe("installProjectDependencies", async () => {
 
   disableConsole();
 
-  const templates = await getTemplates();
+  const templates = await getTemplates("hardhat-3");
 
   for (const template of templates) {
     // NOTE: This test is slow because it installs dependencies over the network.
@@ -281,7 +396,7 @@ describe("installProjectDependencies", async () => {
   }
 
   it("should not install any template dependencies if the user opts-out of the installation", async () => {
-    const template = await getTemplate("mocha-ethers");
+    const [template] = await getTemplate("hardhat-3", "mocha-ethers");
     await writeUtf8File("package.json", JSON.stringify({ type: "module" }));
     await installProjectDependencies(process.cwd(), template, false, false);
     assert.ok(!(await exists("node_modules")), "node_modules should not exist");
@@ -297,7 +412,7 @@ describe("installProjectDependencies", async () => {
         process.env.GITHUB_HEAD_REF?.startsWith("changeset-release/"),
     },
     async () => {
-      const template = await getTemplate("mocha-ethers");
+      const [template] = await getTemplate("hardhat-3", "mocha-ethers");
       await writeUtf8File(
         "package.json",
         JSON.stringify({
@@ -403,7 +518,7 @@ describe("initHardhat", async () => {
 
     disableConsole();
 
-    const templates = await getTemplates();
+    const templates = await getTemplates("hardhat-3");
 
     for (const template of templates) {
       // NOTE: This test uses network to access the npm registry
@@ -414,6 +529,7 @@ describe("initHardhat", async () => {
         },
         async () => {
           await initHardhat({
+            hardhatVersion: "hardhat-3",
             template: template.name,
             workspace: process.cwd(),
             migrateToEsm: false,
@@ -438,7 +554,7 @@ describe("initHardhat", async () => {
 
     disableConsole();
 
-    const template = (await getTemplates())[0];
+    const template = (await getTemplates("hardhat-3"))[0];
 
     // Verifies that non-existent folders are created during initialization instead of throwing an error
     for (const folderPath of [
@@ -455,6 +571,7 @@ describe("initHardhat", async () => {
           const workspacePath = path.join(process.cwd(), folderPath);
 
           await initHardhat({
+            hardhatVersion: "hardhat-3",
             template: template.name,
             workspace: workspacePath,
             migrateToEsm: false,

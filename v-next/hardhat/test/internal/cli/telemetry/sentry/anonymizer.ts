@@ -2,7 +2,10 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import { describe, it } from "node:test";
 
+import { type Event } from "@sentry/core";
+
 import { Anonymizer } from "../../../../../src/internal/cli/telemetry/sentry/anonymizer.js";
+import { GENERIC_SERVER_NAME } from "../../../../../src/internal/cli/telemetry/sentry/constants.js";
 
 const PROJECT_ROOT = "/path/to/project";
 
@@ -17,6 +20,45 @@ class MockedAnonymizer extends Anonymizer {
 }
 
 describe("Anonymizer", () => {
+  it("should clone key information from an anonymized event", async () => {
+    const originalEvent: Event = {
+      event_id: "my-event",
+      platform: "platform1",
+      release: "release1",
+      timestamp: 1754398906,
+      extra: {
+        another: "example",
+      },
+      contexts: {
+        os: {
+          name: "os1",
+          build: "build1",
+          version: "version1",
+        },
+      },
+      environment: "production",
+      level: "error",
+      sdk: {
+        integrations: [],
+      },
+      server_name: "server1",
+    };
+
+    const anonymizer = new Anonymizer();
+
+    const result = await anonymizer.anonymizeEvent(originalEvent);
+
+    if (!result.success) {
+      assert.fail("The event should anonymize without issue");
+      return;
+    }
+
+    assert.deepEqual(result.event, {
+      ...originalEvent,
+      server_name: GENERIC_SERVER_NAME,
+    });
+  });
+
   it("should anonymize paths of the user's project", async () => {
     const anonymizer = new Anonymizer();
     const anonymizationResult = await anonymizer.anonymizeFilename(

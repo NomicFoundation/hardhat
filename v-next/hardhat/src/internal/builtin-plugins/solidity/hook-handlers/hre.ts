@@ -11,6 +11,7 @@ import type {
   GetCompilationJobsOptions,
   GetCompilationJobsResult,
   RunCompilationJobOptions,
+  RunCompilationJobResult,
   SolidityBuildSystem,
 } from "../../../../types/solidity/build-system.js";
 import type { CompilationJob } from "../../../../types/solidity/compilation-job.js";
@@ -56,7 +57,7 @@ class LazySolidityBuildSystem implements SolidityBuildSystem {
   public async runCompilationJob(
     compilationJob: CompilationJob,
     options?: RunCompilationJobOptions,
-  ): Promise<CompilerOutput> {
+  ): Promise<RunCompilationJobResult> {
     const buildSystem = await this.#getBuildSystem();
     return buildSystem.runCompilationJob(compilationJob, options);
   }
@@ -120,6 +121,7 @@ export default async (): Promise<Partial<HardhatRuntimeEnvironmentHooks>> => {
         soliditySourcesPaths: hre.config.paths.sources.solidity,
         artifactsPath: hre.config.paths.artifacts,
         cachePath: hre.config.paths.cache,
+        solidityTestsPath: hre.config.paths.tests.solidity,
       });
     },
   };

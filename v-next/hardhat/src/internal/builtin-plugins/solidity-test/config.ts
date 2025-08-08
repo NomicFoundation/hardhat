@@ -16,9 +16,12 @@ const solidityTestUserConfigType = z.object({
   timeout: z.number().optional(),
   fsPermissions: z
     .object({
-      readWrite: z.array(z.string()).optional(),
-      read: z.array(z.string()).optional(),
-      write: z.array(z.string()).optional(),
+      readWriteFile: z.array(z.string()).optional(),
+      readFile: z.array(z.string()).optional(),
+      writeFile: z.array(z.string()).optional(),
+      dangerouslyReadWriteDirectory: z.array(z.string()).optional(),
+      readDirectory: z.array(z.string()).optional(),
+      dangerouslyWriteDirectory: z.array(z.string()).optional(),
     })
     .optional(),
   isolate: z.boolean().optional(),
