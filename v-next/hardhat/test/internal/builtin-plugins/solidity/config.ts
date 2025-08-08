@@ -236,11 +236,108 @@ describe("solidity plugin config validation", () => {
       );
     });
 
-    it.todo("Should reject invalid SingleVersionSolidityUserConfig values");
+    it("Should reject invalid SingleVersionSolidityUserConfig values", () => {
+      assert.deepEqual(
+        validateSolidityUserConfig({
+          solidity: {
+            version: 123,
+            npmFilesToBuild: {},
+            isolated: "false",
+          },
+        }),
+        [
+          {
+            message: "Expected string, received number",
+            path: ["solidity", "version"],
+          },
+          {
+            message: "Expected boolean, received string",
+            path: ["solidity", "isolated"],
+          },
+          {
+            message: "Expected array, received object",
+            path: ["solidity", "npmFilesToBuild"],
+          },
+        ],
+      );
+    });
 
-    it.todo("Should reject invalid MultiVersionSolidityUserConfig values");
+    it("Should reject invalid MultiVersionSolidityUserConfig values", () => {
+      assert.deepEqual(
+        validateSolidityUserConfig({
+          solidity: {
+            compilers: [
+              {
+                version: 123,
+              },
+            ],
+            overrides: [],
+            isolated: "false",
+          },
+        }),
+        [
+          {
+            message: "Expected boolean, received string",
+            path: ["solidity", "isolated"],
+          },
+          {
+            message: "Expected string, received number",
+            path: ["solidity", "compilers", 0, "version"],
+          },
+          {
+            message: "Expected object, received array",
+            path: ["solidity", "overrides"],
+          },
+        ],
+      );
+    });
 
-    it.todo("Should reject invalid BuildProfilesSolidityUserConfig values");
+    it("Should reject invalid BuildProfilesSolidityUserConfig values", () => {
+      assert.deepEqual(
+        validateSolidityUserConfig({
+          solidity: {
+            profiles: {
+              default: {
+                version: 123,
+                isolated: "false",
+              },
+              production: {
+                version: "0.8.0",
+                compilers: [
+                  {
+                    version: 123,
+                  },
+                ],
+                overrides: [],
+                isolated: "true",
+              },
+            },
+          },
+        }),
+        [
+          {
+            message: "Expected string, received number",
+            path: ["solidity", "profiles", "default", "version"],
+          },
+          {
+            message: "Expected boolean, received string",
+            path: ["solidity", "profiles", "default", "isolated"],
+          },
+          {
+            message: "This field is incompatible with `version`",
+            path: ["solidity", "profiles", "production", "compilers"],
+          },
+          {
+            message: "This field is incompatible with `version`",
+            path: ["solidity", "profiles", "production", "overrides"],
+          },
+          {
+            message: "Expected boolean, received string",
+            path: ["solidity", "profiles", "production", "isolated"],
+          },
+        ],
+      );
+    });
 
     it("Should accept solidity version strings", () => {
       assert.deepEqual(validateSolidityUserConfig({ solidity: "0.8.0" }), []);
@@ -253,11 +350,104 @@ describe("solidity plugin config validation", () => {
       );
     });
 
-    it.todo("Should accept a SingleVersionSolidityUserConfig value");
+    it("Should accept a SingleVersionSolidityUserConfig value", () => {
+      assert.deepEqual(
+        validateSolidityUserConfig({
+          solidity: {
+            version: "0.8.0",
+            settings: {
+              optimizer: {
+                enabled: true,
+                runs: 200,
+              },
+            },
+            npmFilesToBuild: ["./build.js"],
+            isolated: false,
+          },
+        }),
+        [],
+      );
+    });
 
-    it.todo("Should accept a MultiVersionSolidityUserConfig value");
+    it("Should accept a MultiVersionSolidityUserConfig value", () => {
+      assert.deepEqual(
+        validateSolidityUserConfig({
+          solidity: {
+            compilers: [
+              {
+                version: "0.8.0",
+                settings: {
+                  optimizer: {
+                    enabled: true,
+                    runs: 200,
+                  },
+                },
+              },
+            ],
+            overrides: {
+              "contracts/Contract.sol": {
+                version: "0.8.1",
+                settings: {
+                  optimizer: {
+                    enabled: false,
+                    runs: 100,
+                  },
+                },
+              },
+            },
+            isolated: false,
+          },
+        }),
+        [],
+      );
+    });
 
-    it.todo("Should accept a BuildProfilesSolidityUserConfig value");
+    it("Should accept a BuildProfilesSolidityUserConfig value", () => {
+      assert.deepEqual(
+        validateSolidityUserConfig({
+          solidity: {
+            profiles: {
+              default: {
+                version: "0.8.0",
+                settings: {
+                  optimizer: {
+                    enabled: true,
+                    runs: 200,
+                  },
+                },
+                isolated: false,
+              },
+              production: {
+                compilers: [
+                  {
+                    version: "0.8.0",
+                    settings: {
+                      optimizer: {
+                        enabled: true,
+                        runs: 200,
+                      },
+                    },
+                  },
+                ],
+                overrides: {
+                  "contracts/Contract.sol": {
+                    version: "0.8.1",
+                    settings: {
+                      optimizer: {
+                        enabled: true,
+                        runs: 300,
+                      },
+                    },
+                  },
+                },
+                isolated: true,
+              },
+            },
+          },
+        }),
+        [],
+      );
+    });
   });
 });
 

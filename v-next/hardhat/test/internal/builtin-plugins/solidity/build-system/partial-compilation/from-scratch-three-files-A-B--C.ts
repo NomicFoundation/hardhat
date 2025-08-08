@@ -82,7 +82,7 @@ describe("Partial compilation", () => {
         const project = new TestProjectWrapper(_project, hre);
 
         // Compile first time
-        await project.compile({ isolated: true });
+        await project.compile({ defaultBuildProfile: "production" });
         const firstSnapshot = await project.getSnapshot();
 
         // There should be 3 build infos
@@ -145,7 +145,7 @@ describe("Partial compilation", () => {
         assert.ok(firstSnapshot.typeFiles["FooFactory.sol"] !== undefined);
 
         // Recompile
-        await project.compile({ isolated: true });
+        await project.compile({ defaultBuildProfile: "production" });
         const secondSnapshot = await project.getSnapshot();
 
         // Nothing in the snapshot should have changed
