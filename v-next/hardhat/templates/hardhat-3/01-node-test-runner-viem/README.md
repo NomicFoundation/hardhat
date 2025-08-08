@@ -1,4 +1,8 @@
-# Hardhat 3: `node:test` and `viem` example project
+# Sample Hardhat 3 Beta Project (`node:test` and `viem`)
+
+This project showcases a Hardhat 3 Beta project using the native Node.js test runner (`node:test`) and the `viem` library for Ethereum interactions.
+
+To learn more about the Hardhat 3 Beta, please visit the [Getting Started guide](https://hardhat.org/docs/getting-started#getting-started-with-hardhat-3). To share your feedback, join our [Hardhat 3 Beta](https://hardhat.org/hardhat3-beta-telegram-group) Telegram group or [open an issue](https://github.com/NomicFoundation/hardhat/issues/new) in our GitHub issue tracker.
 
 ## Project Overview
 
@@ -8,14 +12,6 @@ This example project includes:
 - Foundry-compatible Solidity unit tests.
 - TypeScript integration tests using [`node:test`](nodejs.org/api/test.html), the new Node.js native test runner, and [`viem`](https://viem.sh/).
 - Examples demonstrating how to connect to different types of networks, including locally simulating OP mainnet.
-
-## Navigating the Project
-
-To get the most out of this example project, we recommend exploring the files in the following order:
-
-1. Read the `hardhat.config.ts` file, which contains the project configuration.
-2. Review the "Running Tests" section and explore the files in the `contracts/` and `test/` directories.
-3. Read the "Make a deployment to Sepolia" section and follow the instructions.
 
 ## Usage
 
@@ -59,5 +55,3 @@ After setting the variable, you can run the deployment with the Sepolia network:
 ```shell
 npx hardhat ignition deploy --network sepolia ignition/modules/Counter.ts
 ```
-
----

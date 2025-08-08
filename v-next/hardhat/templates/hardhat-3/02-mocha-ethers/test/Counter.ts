@@ -7,7 +7,6 @@ describe("Counter", function () {
   it("Should emit the Increment event when calling the inc() function", async function () {
     const counter = await ethers.deployContract("Counter");
 
-    // Hardhat 3 comes with chai assertions to work with ethers, like `emit` here
     await expect(counter.inc()).to.emit(counter, "Increment").withArgs(1n);
   });
 
