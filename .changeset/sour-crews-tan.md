@@ -3,4 +3,4 @@
 "hardhat": patch
 ---
 
-Improved the error message for syntax errors found in the config file (https://github.com/NomicFoundation/hardhat/issues/7056)
+Improve the error message for syntax errors found in the Hardhat config file ([#7056](https://github.com/NomicFoundation/hardhat/issues/7056))

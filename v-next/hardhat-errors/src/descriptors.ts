@@ -458,10 +458,12 @@ A fully qualified name should look like file.sol:Contract`,
       },
       INVALID_CONFIG_FILE: {
         number: 21,
-        messageTemplate: `Invalid config file at {configPath}:
+        messageTemplate: `Invalid Hardhat config file at {configPath}:
 {errors}`,
-        websiteTitle: "Invalid config file",
-        websiteDescription: "The config file is invalid.",
+        websiteTitle: "Invalid Hardhat config file",
+        websiteDescription: `The config file has JS/TS errors.
+
+Please resolve the errors before rerunning the command.`,
       },
     },
     INTERNAL: {
