@@ -8,7 +8,7 @@ import verifyTask from "./internal/tasks/verify/index.js";
 const hardhatPlugin: HardhatPlugin = {
   id: "hardhat-verify",
   hookHandlers: {
-    config: import.meta.resolve("./internal/hook-handlers/config.js"),
+    config: () => import("./internal/hook-handlers/config.js"),
   },
   tasks: [verifyTask, verifyBlockscoutTask, verifyEtherscanTask],
   npmPackage: "@nomicfoundation/hardhat-verify",

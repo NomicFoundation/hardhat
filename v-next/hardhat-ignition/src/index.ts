@@ -11,16 +11,9 @@ const hardhatIgnitionPlugin: HardhatPlugin = {
   id: PLUGIN_ID,
   npmPackage: "@nomicfoundation/hardhat-ignition",
   hookHandlers: {
-    config: import.meta.resolve("./internal/hook-handlers/config.js"),
+    config: () => import("./internal/hook-handlers/config.js"),
   },
-  dependencies: [
-    async () => {
-      const { default: hardhatVerifyPlugin } = await import(
-        "@nomicfoundation/hardhat-verify"
-      );
-      return hardhatVerifyPlugin;
-    },
-  ],
+  dependencies: () => [import("@nomicfoundation/hardhat-verify")],
   tasks: [
     emptyTask(
       "ignition",
@@ -70,7 +63,9 @@ const hardhatIgnitionPlugin: HardhatPlugin = {
         description:
           "Write deployment information to disk when deploying to the in-memory network",
       })
-      .setAction(import.meta.resolve("./internal/tasks/deploy.js"))
+      .setAction({
+        action: async () => import("./internal/tasks/deploy.js"),
+      })
       .build(),
     task(["ignition", "status"], "Show the current status of a deployment")
       .addPositionalArgument({
@@ -78,10 +73,14 @@ const hardhatIgnitionPlugin: HardhatPlugin = {
         type: ArgumentType.STRING,
         description: "The id of the deployment to show",
       })
-      .setAction(import.meta.resolve("./internal/tasks/status.js"))
+      .setAction({
+        action: () => import("./internal/tasks/status.js"),
+      })
       .build(),
     task(["ignition", "deployments"], "List all deployment IDs")
-      .setAction(import.meta.resolve("./internal/tasks/deployments.js"))
+      .setAction({
+        action: () => import("./internal/tasks/deployments.js"),
+      })
       .build(),
     task(
       ["ignition", "transactions"],
@@ -92,7 +91,9 @@ const hardhatIgnitionPlugin: HardhatPlugin = {
         type: ArgumentType.STRING,
         description: "The id of the deployment to show transactions for",
       })
-      .setAction(import.meta.resolve("./internal/tasks/transactions.js"))
+      .setAction({
+        action: () => import("./internal/tasks/transactions.js"),
+      })
       .build(),
     task(["ignition", "wipe"], "Reset a deployment's future to allow rerunning")
       .addPositionalArgument({
@@ -105,7 +106,9 @@ const hardhatIgnitionPlugin: HardhatPlugin = {
         type: ArgumentType.STRING,
         description: "The id of the future to wipe",
       })
-      .setAction(import.meta.resolve("./internal/tasks/wipe.js"))
+      .setAction({
+        action: () => import("./internal/tasks/wipe.js"),
+      })
       .build(),
     task(["ignition", "visualize"], "Visualize a module as an HTML report")
       .addPositionalArgument({
@@ -117,7 +120,9 @@ const hardhatIgnitionPlugin: HardhatPlugin = {
         name: "noOpen",
         description: "Disables opening report in browser",
       })
-      .setAction(import.meta.resolve("./internal/tasks/visualize.js"))
+      .setAction({
+        action: () => import("./internal/tasks/visualize.js"),
+      })
       .build(),
 
     task(
@@ -133,7 +138,9 @@ const hardhatIgnitionPlugin: HardhatPlugin = {
         name: "force",
         description: "Force verification",
       })
-      .setAction(import.meta.resolve("./internal/tasks/verify.js"))
+      .setAction({
+        action: () => import("./internal/tasks/verify.js"),
+      })
       .build(),
     task(
       ["ignition", "track-tx"],
@@ -149,7 +156,9 @@ const hardhatIgnitionPlugin: HardhatPlugin = {
         type: ArgumentType.STRING,
         description: "The id of the deployment to add the tx to",
       })
-      .setAction(import.meta.resolve("./internal/tasks/track-tx.js"))
+      .setAction({
+        action: () => import("./internal/tasks/track-tx.js"),
+      })
       .build(),
     task(
       ["ignition", "migrate"],
@@ -160,7 +169,9 @@ const hardhatIgnitionPlugin: HardhatPlugin = {
         type: ArgumentType.STRING,
         description: "The id of the deployment to migrate",
       })
-      .setAction(import.meta.resolve("./internal/tasks/migrate.js"))
+      .setAction({
+        action: () => import("./internal/tasks/migrate.js"),
+      })
       .build(),
   ],
 };
