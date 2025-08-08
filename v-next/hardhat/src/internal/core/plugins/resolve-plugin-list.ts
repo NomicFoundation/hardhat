@@ -47,14 +47,25 @@ async function reverseTopologicalSort(
     visitedPlugins.set(plugin.id, plugin);
 
     if (plugin.dependencies !== undefined) {
-      for (const dependencyPromise of plugin.dependencies()) {
-        const resolvedPlugin = await loadDependency(
-          projectRoot,
-          plugin,
-          async () => (await dependencyPromise).default,
-        );
+      let dependencyModules: Array<{ default: HardhatPlugin }>;
 
-        await dfs(resolvedPlugin);
+      try {
+        dependencyModules = await Promise.all(plugin.dependencies());
+      } catch (error) {
+        ensureError(error);
+        await detectPluginNpmDependencyProblems(projectRoot, plugin);
+
+        throw new HardhatError(
+          HardhatError.ERRORS.CORE.PLUGINS.PLUGIN_DEPENDENCY_FAILED_LOAD,
+          {
+            pluginId: plugin.id,
+          },
+          error,
+        );
+      }
+
+      for (const dependencyModule of dependencyModules) {
+        await dfs(dependencyModule.default);
       }
     }
 
@@ -66,35 +77,4 @@ async function reverseTopologicalSort(
   }
 
   return result;
-}
-
-/**
- * Attempt to load a plugins dependency. If there is an error,
- * first try and validate the npm dependencies of the plugin.
- *
- * @param projectRoot - The root of the Hardhat project.
- * @param plugin - the plugin has the dependency
- * @param loadFn - the load function for the dependency
- * @returns the loaded plugin
- */
-async function loadDependency(
-  projectRoot: string,
-  plugin: HardhatPlugin,
-  loadFn: () => Promise<HardhatPlugin>,
-): Promise<HardhatPlugin> {
-  try {
-    return await loadFn();
-  } catch (error) {
-    ensureError(error);
-
-    await detectPluginNpmDependencyProblems(projectRoot, plugin);
-
-    throw new HardhatError(
-      HardhatError.ERRORS.CORE.PLUGINS.PLUGIN_DEPENDENCY_FAILED_LOAD,
-      {
-        pluginId: plugin.id,
-      },
-      error,
-    );
-  }
 }
