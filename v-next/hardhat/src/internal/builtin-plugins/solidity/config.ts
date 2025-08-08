@@ -26,6 +26,10 @@ const sourcePathsType = conditionalUnionType(
   "Expected a string or an array of strings",
 );
 
+const commonSolcUserConfigType = z.object({
+  isolated: z.boolean().optional(),
+});
+
 const solcUserConfigType = z.object({
   version: z.string(),
   settings: z.any().optional(),
@@ -36,12 +40,14 @@ const solcUserConfigType = z.object({
 
 // NOTE: This is only to match the setup present in ./type-extensions.ts
 const singleVersionSolcUserConfigType = solcUserConfigType.extend({
+  isolated: z.boolean().optional(),
   preferWasm: z.boolean().optional(),
 });
 
-const multiVersionSolcUserConfigType = z.object({
+const multiVersionSolcUserConfigType = commonSolcUserConfigType.extend({
   compilers: z.array(solcUserConfigType).nonempty(),
   overrides: z.record(z.string(), solcUserConfigType).optional(),
+  isolated: z.boolean().optional(),
   preferWasm: z.boolean().optional(),
   version: incompatibleFieldType("This field is incompatible with `compilers`"),
   settings: incompatibleFieldType(
@@ -216,6 +222,7 @@ function resolveSolidityConfig(
             settings: {},
           })),
           overrides: {},
+          isolated: false,
           preferWasm: false,
         },
       },
@@ -234,6 +241,7 @@ function resolveSolidityConfig(
             },
           ],
           overrides: {},
+          isolated: solidityConfig.isolated ?? false,
           preferWasm: solidityConfig.preferWasm ?? false,
         },
       },
@@ -263,6 +271,7 @@ function resolveSolidityConfig(
               },
             ),
           ),
+          isolated: solidityConfig.isolated ?? false,
         },
       },
       npmFilesToBuild: solidityConfig.npmFilesToBuild ?? [],
@@ -275,6 +284,7 @@ function resolveSolidityConfig(
   for (const [profileName, profile] of Object.entries(
     solidityConfig.profiles,
   )) {
+    const isolated = profile.isolated ?? profileName === "production";
     const preferWasm = profile.preferWasm ?? profileName === "production";
 
     if ("version" in profile) {
@@ -286,6 +296,7 @@ function resolveSolidityConfig(
           },
         ],
         overrides: {},
+        isolated,
         preferWasm,
       };
       continue;
@@ -309,6 +320,7 @@ function resolveSolidityConfig(
           },
         ),
       ),
+      isolated,
       preferWasm,
     };
   }
@@ -318,6 +330,7 @@ function resolveSolidityConfig(
     if (!(profile in profiles)) {
       profiles[profile] = {
         ...profiles.default,
+        isolated: profile === "production",
         preferWasm: profile === "production",
       };
     }

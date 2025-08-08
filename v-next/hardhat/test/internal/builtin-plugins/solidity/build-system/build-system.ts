@@ -88,6 +88,7 @@ describe(
             },
           ],
           overrides: {},
+          isolated: false,
           preferWasm: false,
         },
       },

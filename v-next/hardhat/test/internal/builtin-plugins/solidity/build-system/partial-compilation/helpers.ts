@@ -17,7 +17,18 @@ import { createHardhatRuntimeEnvironment } from "../../../../../../src/internal/
 export async function getHRE(
   project: TestProject,
 ): Promise<HardhatRuntimeEnvironment> {
-  return createHardhatRuntimeEnvironment({}, {}, project.path);
+  return createHardhatRuntimeEnvironment(
+    {
+      solidity: {
+        profiles: {
+          default: { version: "0.8.30", isolated: false },
+          production: { version: "0.8.30", isolated: true },
+        },
+      },
+    },
+    {},
+    project.path,
+  );
 }
 
 export interface FileDetail {

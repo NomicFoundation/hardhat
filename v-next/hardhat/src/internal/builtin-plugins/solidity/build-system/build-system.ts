@@ -47,10 +47,7 @@ import debug from "debug";
 import pMap from "p-map";
 
 import { FileBuildResultType } from "../../../../types/solidity/build-system.js";
-import {
-  DEFAULT_BUILD_PROFILE,
-  shouldMergeCompilationJobs,
-} from "../build-profiles.js";
+import { DEFAULT_BUILD_PROFILE } from "../build-profiles.js";
 
 import {
   getArtifactsDeclarationFile,
@@ -130,6 +127,9 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     }
 
     await this.#downloadConfiguredCompilers(options?.quiet);
+
+    const buildProfileName = options?.buildProfile ?? DEFAULT_BUILD_PROFILE;
+    const { buildProfile } = this.#getBuildProfile(buildProfileName);
 
     const compilationJobsResult = await this.getCompilationJobs(
       rootFilePaths,
@@ -212,7 +212,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
             indexedIndividualJobs,
             compilationResult,
             emitArtifactsResult,
-            options,
+            buildProfile.isolated,
           );
         }),
       );
@@ -292,8 +292,6 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     rootFilePaths: string[],
     options?: GetCompilationJobsOptions,
   ): Promise<CompilationJobCreationError | GetCompilationJobsResult> {
-    const isolated = options?.isolated ?? false;
-
     await this.#downloadConfiguredCompilers(options?.quiet);
 
     const dependencyGraph = await buildDependencyGraph(
@@ -389,6 +387,8 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     // Select which files to compile
     const rootFilesToCompile: Set<string> = new Set();
 
+    const isolated = buildProfile.isolated;
+
     for (const [rootFile, compilationJob] of indexedIndividualJobs.entries()) {
       const jobHash = await compilationJob.getBuildId();
       const cacheResult = this.#compileCache[rootFile];
@@ -432,7 +432,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       }
     }
 
-    if (!isolated && shouldMergeCompilationJobs(buildProfileName)) {
+    if (!isolated) {
       // non-isolated mode
       log(`Merging compilation jobs`);
 
@@ -895,7 +895,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     indexedIndividualJobs: Map<string, CompilationJob>,
     result: CompilationResult,
     emitArtifactsResult: EmitArtifactsResult,
-    options: BuildOptions | undefined,
+    isolated: boolean,
   ): Promise<void> {
     const rootFilePaths = result.compilationJob.dependencyGraph
       .getRoots()
@@ -928,7 +928,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
       this.#compileCache[rootFilePath] = {
         jobHash,
-        isolated: options?.isolated === true,
+        isolated,
         artifactPaths,
         buildInfoPath: emitArtifactsResult.buildInfoPath,
         buildInfoOutputPath: emitArtifactsResult.buildInfoOutputPath,

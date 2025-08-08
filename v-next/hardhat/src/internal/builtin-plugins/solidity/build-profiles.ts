@@ -6,7 +6,3 @@ export const DEFAULT_BUILD_PROFILES = [
   "solidity-tests",
   "javascript-tests",
 ] as const;
-
-export function shouldMergeCompilationJobs(buildProfile: string): boolean {
-  return buildProfile !== "production";
-}

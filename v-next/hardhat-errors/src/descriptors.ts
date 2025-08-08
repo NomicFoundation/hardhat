@@ -456,8 +456,17 @@ Please add the property "type" with the value "module" in your package.json to e
 
 A fully qualified name should look like file.sol:Contract`,
       },
-      NON_LOCAL_INSTALLATION: {
+      INVALID_CONFIG_FILE: {
         number: 21,
+        messageTemplate: `Invalid Hardhat config file at {configPath}:
+{errors}`,
+        websiteTitle: "Invalid Hardhat config file",
+        websiteDescription: `The config file has JS/TS errors.
+
+Please resolve the errors before rerunning the command.`,
+      },
+      NON_LOCAL_INSTALLATION: {
+        number: 22,
         messageTemplate: `Trying to use a non-local installation of Hardhat, which is not supported.\n\nPlease install Hardhat locally using pnpm, npm or yarn, and try again.`,
         websiteTitle: "Hardhat is not installed or installed globally",
         websiteDescription: `You tried to run Hardhat from a global installation or not installing it at all. This is not supported.

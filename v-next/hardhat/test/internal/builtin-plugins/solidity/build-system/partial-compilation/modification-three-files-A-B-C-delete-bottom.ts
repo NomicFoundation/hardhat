@@ -92,7 +92,7 @@ describe("Partial compilation", () => {
         const project = new TestProjectWrapper(_project, hre);
 
         // Compile first time
-        await project.compile({ isolated: true });
+        await project.compile({ defaultBuildProfile: "production" });
         const firstSnapshot = await project.getSnapshot();
 
         assertFileCounts(firstSnapshot, 3, 3, 3);
@@ -111,7 +111,7 @@ describe("Partial compilation", () => {
         await rm(path.join(_project.path, "contracts/FooFactory.sol"));
 
         // Compile second time
-        await project.compile({ isolated: true });
+        await project.compile({ defaultBuildProfile: "production" });
         const secondSnapshot = await project.getSnapshot();
 
         assertFileCounts(secondSnapshot, 2, 2, 2);
