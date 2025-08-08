@@ -1,6 +1,9 @@
 import type { CompilerInput } from "../../../../../../src/types/solidity.js";
 
 import assert from "node:assert/strict";
+import fsPromises from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
 import { before, beforeEach, describe, it } from "node:test";
 
 import { useTmpDir } from "@nomicfoundation/hardhat-test-utils";
@@ -81,6 +84,19 @@ contract A {}
         const compiler = new NativeCompiler(solcVersion, solcVersion, solcPath);
 
         const output = await compiler.compile(input);
+
+        // Ensure /tmp/hardhat-solc is globally writable
+        // issue: https://github.com/NomicFoundation/hardhat/issues/7161
+        const tmpHardhatSolc = path.join(os.tmpdir(), "hardhat-solc");
+        const stats = await fsPromises.stat(tmpHardhatSolc);
+        // On Windows, folders have permissions of 666
+        const openMode = process.platform === "win32" ? 0o666 : 0o777;
+        assert.equal(
+          // eslint-disable-next-line no-bitwise -- Get only permission bits
+          (stats.mode & openMode).toString(8),
+          openMode.toString(8),
+          "/tmp/hardhat-solc folder should have open permissions",
+        );
 
         // We just check some properties
         assert.ok(
