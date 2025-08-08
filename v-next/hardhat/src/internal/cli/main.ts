@@ -5,8 +5,6 @@ import type {
 import type { HardhatRuntimeEnvironment } from "../../types/hre.js";
 import type { Task, TaskArguments } from "../../types/tasks.js";
 
-import { createRequire } from "node:module";
-import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import {
@@ -18,6 +16,7 @@ import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { getRealPath } from "@nomicfoundation/hardhat-utils/fs";
 import {
   findClosestPackageJson,
+  findDependencyPackageJson,
   readClosestPackageJson,
 } from "@nomicfoundation/hardhat-utils/package";
 import { kebabToCamelCase } from "@nomicfoundation/hardhat-utils/string";
@@ -709,20 +708,14 @@ async function isHardhatInstalledLocallyOrLinked(
   log: debug.Debugger,
 ) {
   try {
-    // Setup a require to let us Node resolve based on the
-    // user's repo
-    const require = createRequire(configPath ?? process.cwd());
-
-    // We can only resolve exported package files, this will resolve to:
-    // <user-path>/hardhat/dist/src/index.js
-    const resolveHardhatMainFile = require.resolve("hardhat");
-
-    // Transform to the package.json file within the hardhat package
-    const resolvedPackageJson = path.resolve(
-      resolveHardhatMainFile,
-      "../../../package.json",
+    // Based on Node.js resolution algorithm find the real path
+    // of the project's version of Hardhat
+    const realPathToResolvedPackageJson = await findDependencyPackageJson(
+      configPath ?? process.cwd(),
+      "hardhat",
     );
 
+    // Find the executing code's Hardhat Package.json
     const thisPackageJson = await findClosestPackageJson(
       fileURLToPath(import.meta.url),
     );
@@ -730,12 +723,11 @@ async function isHardhatInstalledLocallyOrLinked(
     // We need to get the realpaths here, as hardhat may be linked and
     // running with `node --preserve-symlinks`
     const isLocalOrLinked =
-      (await getRealPath(resolvedPackageJson)) ===
-      (await getRealPath(thisPackageJson));
+      realPathToResolvedPackageJson === (await getRealPath(thisPackageJson));
 
     if (!isLocalOrLinked) {
       log("Determed that Hardhat is not installed locally/linked");
-      log(`  resolved package.json: ${resolvedPackageJson}`);
+      log(`  resolved package.json: ${realPathToResolvedPackageJson}`);
       log(`  current package.json: ${thisPackageJson}`);
     }
 
