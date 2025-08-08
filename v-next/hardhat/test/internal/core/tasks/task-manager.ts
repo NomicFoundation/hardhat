@@ -1762,7 +1762,7 @@ describe("TaskManagerImplementation", () => {
       assert.equal(overrideTaskRun, true);
     });
 
-    it("should run a task with an action url", async () => {
+    it("should run a task with a valid lazy action object", async () => {
       const actionUrl = "./fixture-projects/file-actions/action-fn.js";
 
       const hre = await HardhatRuntimeEnvironmentImplementation.create(
@@ -1777,7 +1777,7 @@ describe("TaskManagerImplementation", () => {
                 new TaskOverrideDefinitionBuilderImplementation("task1")
                   .addOption({ name: "arg1", defaultValue: "default" })
                   .setAction({
-                    action: async () => import(actionUrl),
+                    action: () => import(actionUrl),
                   })
                   .build(),
               ],
@@ -1792,7 +1792,7 @@ describe("TaskManagerImplementation", () => {
       assert.deepEqual(response, { arg1: "arg1Value" });
     });
 
-    it("should run a task with an invalid action url that was overridden and the override doesn't call runSuper", async () => {
+    it("should run a task with an invalid lazy action object url that was overridden and the override doesn't call runSuper", async () => {
       const validActionUrl = "./fixture-projects/file-actions/no-run-super.js";
       const invalidUrl = "file://not-a-module";
 
@@ -1804,13 +1804,13 @@ describe("TaskManagerImplementation", () => {
               tasks: [
                 new NewTaskDefinitionBuilderImplementation("task1")
                   .setAction({
-                    action: async () => import(invalidUrl),
+                    action: () => import(invalidUrl),
                   })
                   .build(),
                 new TaskOverrideDefinitionBuilderImplementation("task1")
                   .addOption({ name: "arg1", defaultValue: "default" })
                   .setAction({
-                    action: async () => import(validActionUrl),
+                    action: () => import(validActionUrl),
                   })
                   .build(),
               ],
@@ -2032,7 +2032,7 @@ describe("TaskManagerImplementation", () => {
         );
       });
 
-      it("should throw if a lazy import is provided but the corresponding module can't be resolved", async () => {
+      it("should throw if a lazy action object import is provided but the corresponding module can't be resolved", async () => {
         const invalidUrl = "file://not-a-module";
 
         const hre = await HardhatRuntimeEnvironmentImplementation.create(
@@ -2069,7 +2069,7 @@ describe("TaskManagerImplementation", () => {
        * can throw an error. We're not trying to test all of them, just verify
        * that the logic is being called and that the error is being thrown.
        */
-      it("should throw if an action url is provided but the corresponding module can't be resolved due to a missing package", async () => {
+      it("should throw if an lazy action object url is provided but the corresponding module can't be resolved due to a missing package", async () => {
         const nonInstalledPackageActionUrl =
           "./fixture-projects/not-installed-package/index.js";
 
@@ -2083,7 +2083,7 @@ describe("TaskManagerImplementation", () => {
                 tasks: [
                   new NewTaskDefinitionBuilderImplementation("task1")
                     .setAction({
-                      action: async () => import(nonInstalledPackageActionUrl),
+                      action: () => import(nonInstalledPackageActionUrl),
                     })
                     .build(),
                 ],
@@ -2119,7 +2119,7 @@ describe("TaskManagerImplementation", () => {
                 tasks: [
                   new TaskOverrideDefinitionBuilderImplementation("task1")
                     .setAction({
-                      action: async () => import(nonInstalledPackageActionUrl),
+                      action: () => import(nonInstalledPackageActionUrl),
                     })
                     .build(),
                 ],
@@ -2138,7 +2138,7 @@ describe("TaskManagerImplementation", () => {
         );
       });
 
-      it("should throw if an action lazy import  is provided and the corresponding module doesn't have a default export", async () => {
+      it("should throw if an action lazy object import is provided and the corresponding module doesn't have a default export", async () => {
         const actionUrl = "./fixture-projects/file-actions/no-default.js";
 
         const hre = await HardhatRuntimeEnvironmentImplementation.create(
@@ -2149,7 +2149,7 @@ describe("TaskManagerImplementation", () => {
                 tasks: [
                   new NewTaskDefinitionBuilderImplementation("task1")
                     .setAction({
-                      action: async () => import(actionUrl),
+                      action: () => import(actionUrl),
                     })
                     .build(),
                 ],
@@ -2170,7 +2170,7 @@ describe("TaskManagerImplementation", () => {
         );
       });
 
-      it("should throw if an action lazy import is provided and the corresponding module default export is not a function", async () => {
+      it("should throw if an action lazy action import is provided and the corresponding module default export is not a function", async () => {
         const actionUrl = "./fixture-projects/file-actions/no-default-fn.js";
 
         const hre = await HardhatRuntimeEnvironmentImplementation.create(
@@ -2181,7 +2181,7 @@ describe("TaskManagerImplementation", () => {
                 tasks: [
                   new NewTaskDefinitionBuilderImplementation("task1")
                     .setAction({
-                      action: async () => import(actionUrl),
+                      action: () => import(actionUrl),
                     })
                     .build(),
                 ],
