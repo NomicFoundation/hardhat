@@ -16,6 +16,7 @@ import {
 } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import {
+  chmod,
   mkdir,
   readJsonFileAsStream,
   remove,
@@ -54,8 +55,17 @@ async function spawnCompile(
 ): Promise<CompilerOutput> {
   // We create a temporary folder to store the output of the compiler in
   // We use a random UUID to avoid collisions with other compilations
-  const tmpFolder = path.join(os.tmpdir(), "hardhat-solc", crypto.randomUUID());
+  const tmpHardhatSolc = path.join(os.tmpdir(), "hardhat-solc");
+  const tmpFolder = path.join(tmpHardhatSolc, crypto.randomUUID());
   await mkdir(tmpFolder);
+
+  // Make hardhat-solc dir globally writable to prevent permission issues on unix
+  // mkdir() defaults to 777 but can result it lesser permissions due to umask
+  // (see: https://github.com/nodejs/node/issues/15092)
+  // issue: https://github.com/NomicFoundation/hardhat/issues/7161
+  await chmod(tmpHardhatSolc, 0o777).catch(() => {
+    // ignore errors if we can't change the permissions
+  });
 
   try {
     return await new Promise(async (resolve, reject) => {
