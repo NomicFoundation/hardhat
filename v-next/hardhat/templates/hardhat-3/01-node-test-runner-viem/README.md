@@ -1,10 +1,4 @@
-# Hardhat 3 Alpha: `node:test` and `viem` example project
-
-> **WARNING**: This example project uses Hardhat 3, which is still in development. Hardhat 3 is not yet intended for production use.
-
-Welcome to the Hardhat 3 alpha version! This project showcases some of the changes and new features coming in Hardhat 3.
-
-To learn more about the Hardhat 3 Alpha, please visit [its tutorial](https://hardhat.org/hardhat3-alpha). To share your feedback, join our [Hardhat 3 Alpha](https://hardhat.org/hardhat3-alpha-telegram-group) Telegram group or [open an issue](https://github.com/NomicFoundation/hardhat/issues/new?template=hardhat-3-alpha.yml) in our GitHub issue tracker.
+# Hardhat 3: `node:test` and `viem` example project
 
 ## Project Overview
 
@@ -19,11 +13,9 @@ This example project includes:
 
 To get the most out of this example project, we recommend exploring the files in the following order:
 
-1. Read the `hardhat.config.ts` file, which contains the project configuration and explains multiple changes.
+1. Read the `hardhat.config.ts` file, which contains the project configuration.
 2. Review the "Running Tests" section and explore the files in the `contracts/` and `test/` directories.
 3. Read the "Make a deployment to Sepolia" section and follow the instructions.
-
-Each file includes inline explanations of its purpose and highlights the changes and new features introduced in Hardhat 3.
 
 ## Usage
 
@@ -69,5 +61,3 @@ npx hardhat ignition deploy --network sepolia ignition/modules/Counter.ts
 ```
 
 ---
-
-Feel free to explore the project and provide feedback on your experience with Hardhat 3 Alpha!
