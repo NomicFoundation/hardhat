@@ -307,7 +307,7 @@ export class HookManagerImplementation implements HookManager {
           } else {
             if (SHOULD_WARN_ABOUT_INLINE_TASK_ACTIONS_AND_HOOK_HANDLERS) {
               console.warn(
-                `WARNING: Inline hooks found in plugin "${plugin.id}", category "${hookCategoryName}". Use file:// URLs in production.`,
+                `WARNING: Inline hooks found in plugin "${plugin.id}", category "${hookCategoryName}". Use a lazy import in production.`,
               );
             }
 
