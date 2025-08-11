@@ -32,8 +32,11 @@ import { NativeCompiler, SolcJsCompiler } from "./compiler.js";
 const log = debug("hardhat:solidity:downloader");
 
 const COMPILER_REPOSITORY_URL = "https://binaries.soliditylang.org";
+
+// We use a mirror of nikitastupin/solc because downloading directly from
+// github has rate limiting issues
 const LINUX_ARM64_REPOSITORY_URL =
-  "https://raw.githubusercontent.com/nikitastupin/solc/refs/heads/main/linux/aarch64";
+  "https://solc-linux-arm64-mirror.hardhat.org/linux/aarch64";
 
 export enum CompilerPlatform {
   LINUX = "linux-amd64",
