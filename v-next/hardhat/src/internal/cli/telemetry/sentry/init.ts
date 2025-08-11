@@ -117,11 +117,16 @@ export function init(options: GlobalCustomSentryReporterOptions): void {
   setupGlobalUnhandledErrorHandlers(client);
 }
 
-function setupGlobalUnhandledErrorHandlers(client: Client) {
-  log("Setting up global unhandled error handlers");
+function createUnhandledErrorListener(
+  client: Client,
+  isPromiseRejection: boolean,
+) {
+  const description = isPromiseRejection
+    ? "Unhandled promise rejection"
+    : "Uncaught exception";
 
   async function listener(error: Error | unknown) {
-    log("Uncaught exception", error);
+    log(description, error);
 
     client.captureException(error, {
       captureContext: {
@@ -136,11 +141,20 @@ function setupGlobalUnhandledErrorHandlers(client: Client) {
     await client.flush(100);
     await client.close(100);
 
-    console.error("Unexpected error encountered:\n");
+    console.error();
+    console.error(`${description}:`);
+    console.error();
     console.error(error);
+
     process.exit(1);
   }
 
-  process.on("uncaughtException", listener);
-  process.on("unhandledRejection", listener);
+  return listener;
+}
+
+function setupGlobalUnhandledErrorHandlers(client: Client) {
+  log("Setting up global unhandled error handlers");
+
+  process.on("uncaughtException", createUnhandledErrorListener(client, false));
+  process.on("unhandledRejection", createUnhandledErrorListener(client, true));
 }
