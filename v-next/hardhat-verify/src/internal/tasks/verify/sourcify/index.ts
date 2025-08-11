@@ -7,9 +7,7 @@ import { extendWithVerificationArgs } from "../utils.js";
 const verifySourcifyTask: NewTaskDefinition = extendWithVerificationArgs(
   task(["verify", "sourcify"], "Verify a contract on Sourcify"),
 )
-  .setAction({
-    action: () => import("./task-action.js"),
-  })
+  .setAction(() => import("./task-action.js"))
   .build();
 
 export default verifySourcifyTask;

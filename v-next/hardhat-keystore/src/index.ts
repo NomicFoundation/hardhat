@@ -35,9 +35,7 @@ const hardhatKeystorePlugin: HardhatPlugin = {
         description:
           "Use the development keystore instead of the production one",
       })
-      .setAction({
-        action: () => import("./internal/tasks/set.js"),
-      })
+      .setAction(() => import("./internal/tasks/set.js"))
       .build(),
 
     task(["keystore", "get"], "Get a value given a key")
@@ -51,9 +49,7 @@ const hardhatKeystorePlugin: HardhatPlugin = {
         type: ArgumentType.STRING,
         description: "Specifies the key to retrieve the value for",
       })
-      .setAction({
-        action: () => import("./internal/tasks/get.js"),
-      })
+      .setAction(() => import("./internal/tasks/get.js"))
       .build(),
 
     task(["keystore", "list"], "List all keys in the keystore")
@@ -62,9 +58,7 @@ const hardhatKeystorePlugin: HardhatPlugin = {
         description:
           "Use the development keystore instead of the production one",
       })
-      .setAction({
-        action: () => import("./internal/tasks/list.js"),
-      })
+      .setAction(() => import("./internal/tasks/list.js"))
       .build(),
 
     task(["keystore", "delete"], "Delete a key from the keystore")
@@ -83,9 +77,7 @@ const hardhatKeystorePlugin: HardhatPlugin = {
         description:
           "Forces to not throw an error if the key does not exist during deletion.",
       })
-      .setAction({
-        action: () => import("./internal/tasks/delete.js"),
-      })
+      .setAction(() => import("./internal/tasks/delete.js"))
       .build(),
 
     task(["keystore", "path"], "Display the path where the keystore is stored")
@@ -94,9 +86,7 @@ const hardhatKeystorePlugin: HardhatPlugin = {
         description:
           "Use the development keystore instead of the production one",
       })
-      .setAction({
-        action: () => import("./internal/tasks/path.js"),
-      })
+      .setAction(() => import("./internal/tasks/path.js"))
       .build(),
 
     task(
@@ -108,9 +98,7 @@ const hardhatKeystorePlugin: HardhatPlugin = {
         description:
           "Use the development keystore instead of the production one",
       })
-      .setAction({
-        action: () => import("./internal/tasks/change-password.js"),
-      })
+      .setAction(() => import("./internal/tasks/change-password.js"))
       .build(),
   ],
   npmPackage: "@nomicfoundation/hardhat-keystore",

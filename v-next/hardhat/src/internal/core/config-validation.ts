@@ -272,18 +272,11 @@ export function validateNewTask(
     });
   }
 
-  if (
-    typeof task.action !== "function" &&
-    !(
-      typeof task.action === "object" &&
-      task.action !== null &&
-      "action" in task.action &&
-      typeof task.action.action === "function"
-    )
-  ) {
+  if (typeof task.action !== "function") {
     validationErrors.push({
       path: [...path, "action"],
-      message: "task action must be a function or a lazy action object",
+      message:
+        "task action must be a lazy import function returning a module with a default export",
     });
   }
 
@@ -335,18 +328,11 @@ export function validateTaskOverride(
     });
   }
 
-  if (
-    typeof task.action !== "function" &&
-    !(
-      typeof task.action === "object" &&
-      task.action !== null &&
-      "action" in task.action &&
-      typeof task.action.action === "function"
-    )
-  ) {
+  if (typeof task.action !== "function") {
     validationErrors.push({
       path: [...path, "action"],
-      message: "task action must be a function or a lazy action object",
+      message:
+        "task action must be a lazy import function returning a module with a default export",
     });
   }
 
@@ -632,36 +618,9 @@ export function validatePluginsConfig(
       if (typeof plugin.dependencies !== "function") {
         validationErrors.push({
           path: [...path, "plugins", index, "dependencies"],
-          message: "plugin dependencies must be a function returning an array",
+          message:
+            "plugin dependencies must be a function returning an array of functions, each importing a module with a default export",
         });
-      } else {
-        let result: unknown;
-
-        try {
-          result = plugin.dependencies();
-        } catch {
-          validationErrors.push({
-            path: [...path, "plugins", index, "dependencies"],
-            message: "plugin dependencies must be callable without throwing",
-          });
-        }
-
-        if (!Array.isArray(result)) {
-          validationErrors.push({
-            path: [...path, "plugins", index, "dependencies"],
-            message: "plugin dependencies must return an array",
-          });
-        } else {
-          for (const [depIndex, dep] of result.entries()) {
-            if (!(dep instanceof Promise)) {
-              validationErrors.push({
-                path: [...path, "plugins", index, "dependencies", depIndex],
-                message:
-                  "each dependency must be a Promise resolving to { default: HardhatPlugin }",
-              });
-            }
-          }
-        }
       }
     }
 
@@ -671,11 +630,11 @@ export function validatePluginsConfig(
         plugin.hookHandlers !== null
       ) {
         for (const [hookName, handler] of Object.entries(plugin.hookHandlers)) {
-          if (typeof handler !== "function" && typeof handler !== "string") {
+          if (typeof handler !== "function") {
             validationErrors.push({
               path: [...path, "plugins", index, "hookHandlers", hookName],
               message:
-                "plugin hookHandlers must be an object of functions or strings",
+                "plugin hookHandlers must be a lazy import function returning a module with a default export",
             });
           }
         }

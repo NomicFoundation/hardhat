@@ -28,11 +28,13 @@ describe("build profile", function () {
         plugins: [hardhatIgnitionPlugin],
         tasks: [
           overrideTask("compile")
-            .setAction(async (args, _hre, runSuper) => {
-              defaultBuildProfile = args.defaultBuildProfile;
+            .setAction(async () => ({
+              default: async (args, _hre, runSuper) => {
+                defaultBuildProfile = args.defaultBuildProfile;
 
-              return runSuper(args);
-            })
+                return runSuper(args);
+              },
+            }))
             .build(),
         ],
       },

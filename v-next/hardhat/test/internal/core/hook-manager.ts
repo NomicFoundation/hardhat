@@ -44,24 +44,26 @@ describe("HookManager", () => {
           const examplePlugin1: HardhatPlugin = {
             id: "example1",
             hookHandlers: {
-              config: async () => {
-                const handlers: Partial<ConfigHooks> = {
-                  extendUserConfig: async (
-                    config: HardhatUserConfig,
-                    next: (
-                      nextConfig: HardhatUserConfig,
-                    ) => Promise<HardhatUserConfig>,
-                  ) => {
-                    sequence.push("FromExamplePlugin1:before");
-                    const newConfig = await next(config);
-                    sequence.push("FromExamplePlugin2:after");
+              config: async () => ({
+                default: async () => {
+                  const handlers: Partial<ConfigHooks> = {
+                    extendUserConfig: async (
+                      config: HardhatUserConfig,
+                      next: (
+                        nextConfig: HardhatUserConfig,
+                      ) => Promise<HardhatUserConfig>,
+                    ) => {
+                      sequence.push("FromExamplePlugin1:before");
+                      const newConfig = await next(config);
+                      sequence.push("FromExamplePlugin2:after");
 
-                    return newConfig;
-                  },
-                };
+                      return newConfig;
+                    },
+                  };
 
-                return handlers;
-              },
+                  return handlers;
+                },
+              }),
             },
           };
 
@@ -69,24 +71,26 @@ describe("HookManager", () => {
             id: "example2",
             dependencies: () => [Promise.resolve({ default: examplePlugin1 })],
             hookHandlers: {
-              config: async () => {
-                const handlers: Partial<ConfigHooks> = {
-                  extendUserConfig: async (
-                    config: HardhatUserConfig,
-                    next: (
-                      nextConfig: HardhatUserConfig,
-                    ) => Promise<HardhatUserConfig>,
-                  ) => {
-                    sequence.push("FromExamplePlugin2:before");
-                    const newConfig = await next(config);
-                    sequence.push("FromExamplePlugin2:after");
+              config: async () => ({
+                default: async () => {
+                  const handlers: Partial<ConfigHooks> = {
+                    extendUserConfig: async (
+                      config: HardhatUserConfig,
+                      next: (
+                        nextConfig: HardhatUserConfig,
+                      ) => Promise<HardhatUserConfig>,
+                    ) => {
+                      sequence.push("FromExamplePlugin2:before");
+                      const newConfig = await next(config);
+                      sequence.push("FromExamplePlugin2:after");
 
-                    return newConfig;
-                  },
-                };
+                      return newConfig;
+                    },
+                  };
 
-                return handlers;
-              },
+                  return handlers;
+                },
+              }),
             },
           };
 
@@ -161,36 +165,40 @@ describe("HookManager", () => {
             const examplePlugin1: HardhatPlugin = {
               id: "example1",
               hookHandlers: {
-                hre: async () => {
-                  const handlers = {
-                    testExample: async (
-                      _context: HookContext,
-                      _input: string,
-                    ): Promise<string> => {
-                      return "FromExamplePlugin1";
-                    },
-                  } as Partial<HardhatRuntimeEnvironmentHooks>;
+                hre: async () => ({
+                  default: async () => {
+                    const handlers = {
+                      testExample: async (
+                        _context: HookContext,
+                        _input: string,
+                      ): Promise<string> => {
+                        return "FromExamplePlugin1";
+                      },
+                    } as Partial<HardhatRuntimeEnvironmentHooks>;
 
-                  return handlers;
-                },
+                    return handlers;
+                  },
+                }),
               },
             };
 
             const examplePlugin2: HardhatPlugin = {
               id: "example2",
               hookHandlers: {
-                hre: async () => {
-                  const handlers = {
-                    testExample: async (
-                      _context: HookContext,
-                      _input: string,
-                    ): Promise<string> => {
-                      return "FromExamplePlugin2";
-                    },
-                  } as Partial<HardhatRuntimeEnvironmentHooks>;
+                hre: async () => ({
+                  default: async () => {
+                    const handlers = {
+                      testExample: async (
+                        _context: HookContext,
+                        _input: string,
+                      ): Promise<string> => {
+                        return "FromExamplePlugin2";
+                      },
+                    } as Partial<HardhatRuntimeEnvironmentHooks>;
 
-                  return handlers;
-                },
+                    return handlers;
+                  },
+                }),
               },
             };
 
@@ -249,20 +257,22 @@ describe("HookManager", () => {
             const plugin1: HardhatPlugin = {
               id: "plugin1",
               hookHandlers: {
-                hre: async () => {
-                  const handlers = {
-                    created: async (
-                      _context: HookContext,
-                      givenHre: HardhatRuntimeEnvironment,
-                    ): Promise<void> => {
-                      givenHre.config.paths.tests = {
-                        solidity: "./test-folder-from-plugin1",
-                      };
-                    },
-                  } as Partial<HardhatRuntimeEnvironmentHooks>;
+                hre: async () => ({
+                  default: async () => {
+                    const handlers = {
+                      created: async (
+                        _context: HookContext,
+                        givenHre: HardhatRuntimeEnvironment,
+                      ): Promise<void> => {
+                        givenHre.config.paths.tests = {
+                          solidity: "./test-folder-from-plugin1",
+                        };
+                      },
+                    } as Partial<HardhatRuntimeEnvironmentHooks>;
 
-                  return handlers;
-                },
+                    return handlers;
+                  },
+                }),
               },
             };
 
@@ -270,20 +280,22 @@ describe("HookManager", () => {
               id: "overriding-plugin2",
               dependencies: () => [Promise.resolve({ default: plugin1 })],
               hookHandlers: {
-                hre: async () => {
-                  const handlers = {
-                    created: async (
-                      _context: HookContext,
-                      givenHre: HardhatRuntimeEnvironment,
-                    ): Promise<void> => {
-                      givenHre.config.paths.tests = {
-                        solidity: "./test-folder-from-overriding-plugin2",
-                      };
-                    },
-                  } as Partial<HardhatRuntimeEnvironmentHooks>;
+                hre: async () => ({
+                  default: async () => {
+                    const handlers = {
+                      created: async (
+                        _context: HookContext,
+                        givenHre: HardhatRuntimeEnvironment,
+                      ): Promise<void> => {
+                        givenHre.config.paths.tests = {
+                          solidity: "./test-folder-from-overriding-plugin2",
+                        };
+                      },
+                    } as Partial<HardhatRuntimeEnvironmentHooks>;
 
-                  return handlers;
-                },
+                    return handlers;
+                  },
+                }),
               },
             };
 
@@ -318,26 +330,28 @@ describe("HookManager", () => {
           const examplePlugin: HardhatPlugin = {
             id: "example",
             hookHandlers: {
-              config: async () => {
-                const handlers: Partial<ConfigHooks> = {
-                  validateUserConfig: async (
-                    _config: HardhatUserConfig,
-                  ): Promise<HardhatUserConfigValidationError[]> => {
-                    if (forceConfigValidationErrorFromPlugin) {
-                      return [
-                        {
-                          path: [],
-                          message: "FromPlugin",
-                        },
-                      ];
-                    }
+              config: async () => ({
+                default: async () => {
+                  const handlers: Partial<ConfigHooks> = {
+                    validateUserConfig: async (
+                      _config: HardhatUserConfig,
+                    ): Promise<HardhatUserConfigValidationError[]> => {
+                      if (forceConfigValidationErrorFromPlugin) {
+                        return [
+                          {
+                            path: [],
+                            message: "FromPlugin",
+                          },
+                        ];
+                      }
 
-                    return [];
-                  },
-                };
+                      return [];
+                    },
+                  };
 
-                return handlers;
-              },
+                  return handlers;
+                },
+              }),
             },
           };
 
@@ -461,9 +475,11 @@ describe("HookManager", () => {
           id: "assertion",
           hookHandlers: {
             hre: async () => ({
-              created: async (context, _): Promise<void> => {
-                assert.equal((context as any).tasks, undefined);
-              },
+              default: async () => ({
+                created: async (context, _): Promise<void> => {
+                  assert.equal((context as any).tasks, undefined);
+                },
+              }),
             }),
           },
         };
@@ -479,13 +495,18 @@ describe("HookManager", () => {
           id: "assertion",
           hookHandlers: {
             hre: async () => ({
-              created: async (context, hre): Promise<void> => {
-                for (const field in Object.keys(hre)) {
-                  if (field !== "tasks") {
-                    assert.equal((context as any)[field], (hre as any)[field]);
+              default: async () => ({
+                created: async (context, hre): Promise<void> => {
+                  for (const field in Object.keys(hre)) {
+                    if (field !== "tasks") {
+                      assert.equal(
+                        (context as any)[field],
+                        (hre as any)[field],
+                      );
+                    }
                   }
-                }
-              },
+                },
+              }),
             }),
           },
         };
@@ -501,9 +522,11 @@ describe("HookManager", () => {
           id: "extension",
           hookHandlers: {
             hre: async () => ({
-              created: async (_, hre): Promise<void> => {
-                (hre as any).myExtension = "myExtension";
-              },
+              default: async () => ({
+                created: async (_, hre): Promise<void> => {
+                  (hre as any).myExtension = "myExtension";
+                },
+              }),
             }),
           },
         };
@@ -512,9 +535,11 @@ describe("HookManager", () => {
           id: "assertion",
           hookHandlers: {
             hre: async () => ({
-              created: async (context, _): Promise<void> => {
-                assert.equal((context as any).myExtension, "myExtension");
-              },
+              default: async () => ({
+                created: async (context, _): Promise<void> => {
+                  assert.equal((context as any).myExtension, "myExtension");
+                },
+              }),
             }),
           },
         };

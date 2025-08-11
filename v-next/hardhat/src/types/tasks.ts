@@ -99,7 +99,7 @@ export interface NewTaskDefinition {
 
   description: string;
 
-  action: NewTaskActionFunction | LazyActionObject<NewTaskActionFunction>;
+  action: LazyActionObject<NewTaskActionFunction>;
 
   options: Record<string, OptionDefinition>;
 
@@ -116,9 +116,7 @@ export interface TaskOverrideDefinition {
 
   description?: string;
 
-  action:
-    | TaskOverrideActionFunction
-    | LazyActionObject<TaskOverrideActionFunction>;
+  action: LazyActionObject<TaskOverrideActionFunction>;
 
   options: Record<string, OptionDefinition>;
 }
@@ -181,9 +179,7 @@ export interface NewTaskDefinitionBuilder<
    * purposes.
    */
   setAction(
-    action:
-      | NewTaskActionFunction<TaskArgumentsT>
-      | LazyActionObject<NewTaskActionFunction<TaskArgumentsT>>,
+    action: LazyActionObject<NewTaskActionFunction<TaskArgumentsT>>,
   ): this;
 
   /**
@@ -308,9 +304,7 @@ export interface TaskOverrideDefinitionBuilder<
    * @see NewTaskDefinitionBuilder.setAction
    */
   setAction(
-    action:
-      | TaskOverrideActionFunction<TaskArgumentsT>
-      | LazyActionObject<TaskOverrideActionFunction<TaskArgumentsT>>,
+    action: LazyActionObject<TaskOverrideActionFunction<TaskArgumentsT>>,
   ): this;
 
   /**
@@ -375,13 +369,11 @@ export interface TaskOverrideDefinitionBuilder<
 export type TaskActions = [
   {
     pluginId?: string;
-    action?: NewTaskActionFunction | LazyActionObject<NewTaskActionFunction>;
+    action?: LazyActionObject<NewTaskActionFunction>;
   },
   ...Array<{
     pluginId?: string;
-    action:
-      | TaskOverrideActionFunction
-      | LazyActionObject<TaskOverrideActionFunction>;
+    action: LazyActionObject<TaskOverrideActionFunction>;
   }>,
 ];
 
@@ -450,6 +442,6 @@ export interface TaskManager {
   getTask(taskId: string | string[]): Task;
 }
 
-export interface LazyActionObject<T> {
-  action: () => Promise<{ default: T }>;
-}
+export type LazyActionObject<T> = () => Promise<{
+  default: T;
+}>;
