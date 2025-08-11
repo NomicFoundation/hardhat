@@ -38,6 +38,17 @@ describe("hardhat-network-helpers plugin initialization", () => {
       // Test a method from the duration class to be sure that it is correctly set up
       networkHelpers.time.duration.days(1);
     });
+
+    it("should let the user call methods from NetworkHelpers and Time independently", async () => {
+      const mine = networkHelpers.mine;
+      await mine();
+
+      const time = networkHelpers.time;
+      await time.increase(1);
+
+      const increase = time.increase;
+      await increase(1);
+    });
   });
 
   describe("should throw because not a dev network", async () => {

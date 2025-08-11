@@ -12,6 +12,7 @@ import {
   assertHardhatInvariant,
   HardhatError,
 } from "@nomicfoundation/hardhat-errors";
+import { bindAllMethods } from "@nomicfoundation/hardhat-utils/lang";
 
 import { dropTransaction } from "./helpers/drop-transaction.js";
 import { getStorageAt } from "./helpers/get-storage-at.js";
@@ -48,6 +49,7 @@ export class NetworkHelpers implements NetworkHelpersI {
     this.#networkName = networkName;
 
     this.time = new Time(this, provider);
+    bindAllMethods(this);
   }
 
   public clearSnapshots(): void {
