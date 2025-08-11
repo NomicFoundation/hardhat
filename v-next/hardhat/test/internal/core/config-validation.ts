@@ -1603,7 +1603,7 @@ describe("config validation", function () {
       assert.deepEqual(validatePluginsConfig(plugins, []), [
         {
           message:
-            "plugin hookHandlers must be an object of functions or strings",
+            "plugin hookHandlers must be a lazy import function returning a module with a default export",
           path: ["plugins", 0, "hookHandlers", "invalid"],
         },
       ]);

@@ -630,11 +630,11 @@ export function validatePluginsConfig(
         plugin.hookHandlers !== null
       ) {
         for (const [hookName, handler] of Object.entries(plugin.hookHandlers)) {
-          if (typeof handler !== "function" && typeof handler !== "string") {
+          if (typeof handler !== "function") {
             validationErrors.push({
               path: [...path, "plugins", index, "hookHandlers", hookName],
               message:
-                "plugin hookHandlers must be an object of functions or strings",
+                "plugin hookHandlers must be a lazy import function returning a module with a default export",
             });
           }
         }
