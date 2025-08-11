@@ -1,5 +1,11 @@
 # hardhat
 
+## 2.26.3
+
+### Patch Changes
+
+- 5b2be3d: Make the resolver more robust ([#7073](https://github.com/NomicFoundation/hardhat/pull/7073))
+
 ## 2.26.2
 
 ### Patch Changes
