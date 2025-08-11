@@ -42,7 +42,7 @@ jobs:
         node: [20.0.0]
         os: ["macos-13", "ubuntu-latest", "windows-latest"]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - uses: ./.github/actions/setup-env
         with:
@@ -80,7 +80,7 @@ jobs:
         node: [20.0.0]
         os: ["macos-13", "ubuntu-latest", "windows-latest"]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - uses: ./.github/actions/setup-env
         with:
@@ -117,7 +117,7 @@ jobs:
         # include it when it is available.
         node: [20, 22]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-env
         with:
           node-version: ${{ matrix.node }}
