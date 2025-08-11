@@ -4,7 +4,7 @@ on:
   merge_group:
   push:
     branches:
-      - v-next
+      - main
   pull_request:
   workflow_dispatch:
 
@@ -96,7 +96,6 @@ jobs:
         with:
           list-files: json
           filters: ${{ steps.generate.outputs.filters }}
-          base: v-next # TODO: Remove once v-next becomes the default branch
 
   bundle:
     # Depending on list-packages only to check whether pnpm-lock.yaml has changed

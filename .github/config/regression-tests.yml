@@ -996,13 +996,13 @@ commands:
     template: 'Compiled ${0} file(s)'
 presets:
   default:
-    hardhat-ref: v-next
+    hardhat-ref: main
     edr-ref: ''
     repositories: []
     runners: []
     commands: []
   solidity-test:
-    hardhat-ref: v-next
+    hardhat-ref: main
     edr-ref: ''
     repositories:
       - Elytro-eth/soul-wallet-contract
@@ -1028,7 +1028,7 @@ presets:
       - forge test
       - hardhat test solidity
   solidity-compile:
-    hardhat-ref: v-next
+    hardhat-ref: main
     edr-ref: ''
     repositories:
       - OpenZeppelin/openzeppelin-contracts
