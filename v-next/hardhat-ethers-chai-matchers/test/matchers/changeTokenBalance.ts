@@ -678,7 +678,7 @@ describe(
             assertThrowsHardhatError(
               () =>
                 expect(matchers.revertWithCustomErrorWithInt(1))
-                  .to.be.reverted(ethers)
+                  .to.be.revert(ethers)
                   .and.to.changeTokenBalances(
                     provider,
                     mockToken,
@@ -689,7 +689,7 @@ describe(
                 .MATCHER_CANNOT_BE_CHAINED_AFTER,
               {
                 matcher: "changeTokenBalances",
-                previousMatcher: "reverted",
+                previousMatcher: "revert",
               },
             );
           });
