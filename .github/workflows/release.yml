@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - v-next
+      - main
 
 defaults:
   run:
@@ -41,6 +41,7 @@ jobs:
         uses: changesets/action@v1
         with:
           version: node scripts/version-alpha.mjs
+          title: Version Packages (v3)
 
       - name: Check if release needs to be published
         id: before
