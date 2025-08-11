@@ -22,7 +22,7 @@ export async function promptForHardhatVersion(): Promise<
       choices: [
         {
           name: "hardhat-3",
-          message: "Hardhat 3 (recommended for new projects)",
+          message: "Hardhat 3 Beta (recommended for new projects)",
           value: "hardhat-3",
         },
         {
