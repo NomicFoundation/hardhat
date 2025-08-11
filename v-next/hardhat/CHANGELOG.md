@@ -1,5 +1,16 @@
 # hardhat
 
+## 3.0.0-next.31
+
+### Patch Changes
+
+- eb32f52: Replace .reverted with .revert
+- fdf9fae: Make the network helpers methods work as independent functions too ([#7174](https://github.com/NomicFoundation/hardhat/pull/7174))
+- 949e531: Use a mirror for Linux ARM64 solc builds
+- eb32f52: Make the balance change matchers receive ethers and not a provider
+- fd31686: Improve how Hardhat displays unhandled exceptions and promise rejections
+- 7e55eb2: Add bindAllMethods ([#7174](https://github.com/NomicFoundation/hardhat/pull/7174))
+
 ## 3.0.0-next.30
 
 ### Patch Changes
