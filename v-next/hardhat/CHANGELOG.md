@@ -1,5 +1,11 @@
 # hardhat
 
+## 3.0.0-next.30
+
+### Patch Changes
+
+- 5fbea0d: Modified to use type-safe lazy imports for hooks, task actions, and plugin dependencies ([7117](https://github.com/NomicFoundation/hardhat/issues/7117)).
+
 ## 3.0.0-next.29
 
 ### Patch Changes
