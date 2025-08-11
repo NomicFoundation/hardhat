@@ -71,3 +71,27 @@ export function isObject(
 export async function sleep(seconds: number): Promise<void> {
   await new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 }
+
+/**
+ * Binds all methods of an object to the object itself, so that they can be
+ * assigned to an independent variable and still work.
+ *
+ * @param obj The object, which can be an instance of a class.
+ */
+export function bindAllMethods<ObjectT extends object>(obj: ObjectT): void {
+  const keys = [
+    ...Object.getOwnPropertyNames(Object.getPrototypeOf(obj)),
+    ...Object.getOwnPropertyNames(obj),
+  ];
+
+  /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
+    typescript can't express this in a safe way, so we use any here */
+  const objAsAny = obj as any;
+
+  for (const key of keys) {
+    const val = objAsAny[key];
+    if (typeof val === "function" && key !== "constructor") {
+      objAsAny[key] = val.bind(obj);
+    }
+  }
+}

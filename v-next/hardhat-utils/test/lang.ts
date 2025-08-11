@@ -4,6 +4,7 @@ import { describe, it } from "node:test";
 import { expectTypeOf } from "expect-type";
 
 import {
+  bindAllMethods,
   deepClone,
   deepEqual,
   deepMerge,
@@ -653,6 +654,97 @@ describe("lang", () => {
 
     it("should handle non-integer delay", async () => {
       await assertSleep(1.5, { minMillis: 1500 });
+    });
+  });
+
+  describe("bindAllMethods", () => {
+    it("Should work with objects", () => {
+      const obj = {
+        foo() {
+          return this.bar();
+        },
+        bar() {
+          return "bar";
+        },
+      };
+
+      assert.throws(() => {
+        const foo = obj.foo;
+        foo();
+      });
+
+      bindAllMethods(obj);
+      const boundFoo = obj.foo;
+      assert.equal(boundFoo(), "bar");
+    });
+
+    it("Should work with instances of classes", () => {
+      class FooBar {
+        public foo() {
+          return this.bar();
+        }
+        public bar() {
+          return "bar";
+        }
+      }
+
+      const obj = new FooBar();
+
+      assert.throws(() => {
+        const foo = obj.foo;
+        foo();
+      });
+
+      bindAllMethods(obj);
+      const boundFoo = obj.foo;
+      assert.equal(boundFoo(), "bar");
+    });
+
+    it("Should work with instances of classes, from its constructor", () => {
+      class FooBar {
+        constructor() {
+          bindAllMethods(this);
+        }
+        public foo() {
+          return this.bar();
+        }
+        public bar() {
+          return "bar";
+        }
+      }
+
+      const obj = new FooBar();
+      const foo = obj.foo;
+      assert.equal(foo(), "bar");
+    });
+
+    it("Should work with instances of classes with their own properties", () => {
+      class FooBar {
+        public foo() {
+          return this.bar();
+        }
+        public bar() {
+          return "bar";
+        }
+      }
+
+      const obj = new FooBar();
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
+        We do this to add its own property. */
+      const objAsAny = obj as any;
+      objAsAny.baz = function () {
+        return this.foo();
+      };
+
+      assert.throws(() => {
+        const baz = objAsAny.baz;
+        baz();
+      });
+
+      bindAllMethods(obj);
+
+      const boundBaz = objAsAny.baz;
+      assert.equal(boundBaz(), "bar");
     });
   });
 });
