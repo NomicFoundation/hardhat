@@ -1,7 +1,7 @@
 import type { BalanceChangeOptions } from "../utils/balance.js";
+import type { HardhatEthers } from "@nomicfoundation/hardhat-ethers/types";
 import type { Addressable } from "ethers/address";
 import type { TransactionResponse } from "ethers/providers";
-import type { EthereumProvider } from "hardhat/types/providers";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { toBigInt } from "ethers/utils";
@@ -22,7 +22,7 @@ export function supportChangeEtherBalances(
     CHANGE_ETHER_BALANCES_MATCHER,
     function (
       this: any,
-      provider: EthereumProvider,
+      ethers: HardhatEthers,
       accounts: Array<Addressable | string>,
       balanceChanges: bigint[] | ((changes: bigint[]) => boolean),
       options?: BalanceChangeOptions,
@@ -99,7 +99,7 @@ export function supportChangeEtherBalances(
       };
 
       const derivedPromise = Promise.all([
-        getBalanceChanges(provider, subject, accounts, options),
+        getBalanceChanges(ethers, subject, accounts, options),
         getAddresses(accounts),
       ]).then(checkBalanceChanges);
       this.then = derivedPromise.then.bind(derivedPromise);
@@ -137,7 +137,7 @@ function validateInput(
 }
 
 export async function getBalanceChanges(
-  provider: EthereumProvider,
+  ethers: HardhatEthers,
   transaction: TransactionResponse | Promise<TransactionResponse>,
   accounts: Array<Addressable | string>,
   options?: BalanceChangeOptions,
@@ -148,12 +148,8 @@ export async function getBalanceChanges(
   assertIsNotNull(txReceipt, "txReceipt");
   const txBlockNumber = txReceipt.blockNumber;
 
-  const balancesAfter = await getBalances(provider, accounts, txBlockNumber);
-  const balancesBefore = await getBalances(
-    provider,
-    accounts,
-    txBlockNumber - 1,
-  );
+  const balancesAfter = await getBalances(ethers, accounts, txBlockNumber);
+  const balancesBefore = await getBalances(ethers, accounts, txBlockNumber - 1);
 
   const txFees = await getTxFees(accounts, txResponse, options);
 

@@ -2362,6 +2362,14 @@ This might be caused by using hardhat_reset and loadFixture calls in a testcase.
         websiteDescription:
           "withArgs called with both .emit and .revertedWithCustomError, but these assertions cannot be combined",
       },
+      DEPRECATED_REVERTED_MATCHER: {
+        number: 70024,
+        messageTemplate:
+          "The .reverted matcher has been deprecated. Use .revert(ethers) instead.",
+        websiteTitle: "Deprecated `reverted` matcher",
+        websiteDescription:
+          "The `.reverted` matcher was deprecated and you should use `.revert(ethers)` instead.",
+      },
     },
   },
   HARDHAT_VERIFY: {

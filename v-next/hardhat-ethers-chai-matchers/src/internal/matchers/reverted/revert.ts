@@ -3,7 +3,7 @@ import type { HardhatEthers } from "@nomicfoundation/hardhat-ethers/types";
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
 
-import { REVERTED_MATCHER } from "../../constants.js";
+import { REVERT_MATCHER } from "../../constants.js";
 import { assertIsNotNull } from "../../utils/asserts.js";
 import { buildAssert } from "../../utils/build-assert.js";
 import { preventAsyncMatcherChaining } from "../../utils/prevent-chaining.js";
@@ -14,24 +14,24 @@ import {
   parseBytes32String,
 } from "./utils.js";
 
-export function supportReverted(
+export function supportRevert(
   Assertion: Chai.AssertionStatic,
   chaiUtils: Chai.ChaiUtils,
 ): void {
   Assertion.addMethod(
-    REVERTED_MATCHER,
+    REVERT_MATCHER,
     function (this: any, ethers: HardhatEthers) {
       // capture negated flag before async code executes; see buildAssert's jsdoc
       const negated = this.__flags.negate;
 
       const subject: unknown = this._obj;
 
-      preventAsyncMatcherChaining(this, REVERTED_MATCHER, chaiUtils);
+      preventAsyncMatcherChaining(this, REVERT_MATCHER, chaiUtils);
 
       // Check if the received value can be linked to a transaction, and then
       // get the receipt of that transaction and check its status.
       //
-      // If the value doesn't correspond to a transaction, then the `reverted`
+      // If the value doesn't correspond to a transaction, then the `revert`
       // assertion is false.
       const onSuccess = async (value: unknown) => {
         const assert = buildAssert(negated, onSuccess);
@@ -75,10 +75,10 @@ export function supportReverted(
         } else {
           // If the subject of the assertion is not connected to a transaction
           // (hash, receipt, etc.), then the assertion fails.
-          // Since we use `false` here, this means that `.not.to.be.reverted`
+          // Since we use `false` here, this means that `.not.to.be.revert`
           // assertions will pass instead of always throwing a validation error.
           // This allows users to do things like:
-          //   `expect(c.callStatic.f()).to.not.be.reverted`
+          //   `expect(c.callStatic.f()).to.not.be.revert`
           assert(false, "Expected transaction to be reverted");
         }
       };
