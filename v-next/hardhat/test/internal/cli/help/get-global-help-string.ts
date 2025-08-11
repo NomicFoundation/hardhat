@@ -42,7 +42,14 @@ To get help for a specific task run: npx hardhat <TASK> [SUBTASK] --help`;
           {
             id: ["task1"],
             description: "task1 description",
-            actions: [{ pluginId: "task1-plugin-id", action: () => {} }],
+            actions: [
+              {
+                pluginId: "task1-plugin-id",
+                action: async () => ({
+                  default: () => {},
+                }),
+              },
+            ],
             options: new Map(),
             positionalArguments: [],
             pluginId: "task1-plugin-id",
@@ -56,7 +63,14 @@ To get help for a specific task run: npx hardhat <TASK> [SUBTASK] --help`;
           {
             id: ["task2"],
             description: "task2 description",
-            actions: [{ pluginId: "task2-plugin-id", action: () => {} }],
+            actions: [
+              {
+                pluginId: "task2-plugin-id",
+                action: async () => ({
+                  default: () => {},
+                }),
+              },
+            ],
             options: new Map(),
             positionalArguments: [],
             pluginId: "task2-plugin-id",
@@ -125,14 +139,30 @@ To get help for a specific task run: npx hardhat <TASK> [SUBTASK] --help`;
           {
             id: ["task1"],
             description: "task1 description",
-            actions: [{ pluginId: "task1-plugin-id", action: () => {} }],
+            actions: [
+              {
+                pluginId: "task1-plugin-id",
+                action: async () => ({
+                  default: () => {},
+                }),
+              },
+            ],
             options: new Map(),
             positionalArguments: [],
             pluginId: "task1-plugin-id",
             subtasks: new Map().set("subtask1", {
               id: ["task1", "subtask1"],
               description: "subtask1 description",
-              actions: [{ pluginId: "task1-plugin-id", action: () => {} }],
+              actions: [
+                {
+                  pluginId: "task1-plugin-id",
+                  action: {
+                    action: async () => ({
+                      default: () => {},
+                    }),
+                  },
+                },
+              ],
               options: new Map(),
               positionalArguments: [],
               pluginId: "task1-plugin-id",
@@ -149,7 +179,14 @@ To get help for a specific task run: npx hardhat <TASK> [SUBTASK] --help`;
           {
             id: ["task2"],
             description: "task2 description",
-            actions: [{ pluginId: "task2-plugin-id", action: () => {} }],
+            actions: [
+              {
+                pluginId: "task2-plugin-id",
+                action: async () => ({
+                  default: () => {},
+                }),
+              },
+            ],
             options: new Map(),
             positionalArguments: [],
             pluginId: "task2-plugin-id",
@@ -244,14 +281,30 @@ To get help for a specific task run: npx hardhat <TASK> [SUBTASK] --help`;
           {
             id: ["task1"],
             description: "task1 description",
-            actions: [{ pluginId: "task1-plugin-id", action: () => {} }],
+            actions: [
+              {
+                pluginId: "task1-plugin-id",
+                action: async () => ({
+                  default: () => {},
+                }),
+              },
+            ],
             options: new Map(),
             positionalArguments: [],
             pluginId: "task1-plugin-id",
             subtasks: new Map().set("subtask1", {
               id: ["task1", "subtask1"],
               description: "subtask1 description",
-              actions: [{ pluginId: "task1-plugin-id", action: () => {} }],
+              actions: [
+                {
+                  pluginId: "task1-plugin-id",
+                  action: {
+                    action: async () => ({
+                      default: () => {},
+                    }),
+                  },
+                },
+              ],
               options: new Map(),
               positionalArguments: [],
               pluginId: "task1-plugin-id",
@@ -268,7 +321,14 @@ To get help for a specific task run: npx hardhat <TASK> [SUBTASK] --help`;
           {
             id: ["task2"],
             description: "task2 description",
-            actions: [{ pluginId: "task2-plugin-id", action: () => {} }],
+            actions: [
+              {
+                pluginId: "task2-plugin-id",
+                action: async () => ({
+                  default: () => {},
+                }),
+              },
+            ],
             options: new Map(),
             positionalArguments: [],
             pluginId: "task2-plugin-id",

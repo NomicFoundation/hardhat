@@ -1065,7 +1065,9 @@ describe("config validation", function () {
         type: TaskDefinitionType.NEW_TASK,
         id: ["task-id"],
         description: "task description",
-        action: async () => {},
+        action: async () => ({
+          default: () => {},
+        }),
         options: {},
         positionalArguments: [],
       };
@@ -1079,7 +1081,9 @@ describe("config validation", function () {
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing validations for js users who can bypass type checks */
         id: 1 as any,
         description: "task description",
-        action: async () => {},
+        action: async () => ({
+          default: () => {},
+        }),
         options: {},
         positionalArguments: [],
       };
@@ -1089,7 +1093,9 @@ describe("config validation", function () {
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing validations for js users who can bypass type checks */
         id: [1] as any,
         description: "task description",
-        action: async () => {},
+        action: async () => ({
+          default: () => {},
+        }),
         options: {},
         positionalArguments: [],
       };
@@ -1115,7 +1121,9 @@ describe("config validation", function () {
         id: ["task-id"],
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing validations for js users who can bypass type checks */
         description: 1 as any,
-        action: async () => {},
+        action: async () => ({
+          default: () => {},
+        }),
         options: {},
         positionalArguments: [],
       };
@@ -1128,7 +1136,7 @@ describe("config validation", function () {
       ]);
     });
 
-    it("should return an error if the task action is not a function or a string", function () {
+    it("should return an error if the task action is not a function or a lazy action object", function () {
       const task: NewTaskDefinition = {
         type: TaskDefinitionType.NEW_TASK,
         id: ["task-id"],
@@ -1141,7 +1149,8 @@ describe("config validation", function () {
 
       assert.deepEqual(validateNewTask(task, []), [
         {
-          message: "task action must be a function or a string",
+          message:
+            "task action must be a lazy import function returning a module with a default export",
           path: ["action"],
         },
       ]);
@@ -1152,7 +1161,9 @@ describe("config validation", function () {
         type: TaskDefinitionType.NEW_TASK,
         id: ["task-id"],
         description: "task description",
-        action: async () => {},
+        action: async () => ({
+          default: () => {},
+        }),
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing validations for js users who can bypass type checks */
         options: 1 as any,
         positionalArguments: [],
@@ -1171,7 +1182,9 @@ describe("config validation", function () {
         type: TaskDefinitionType.NEW_TASK,
         id: ["task-id"],
         description: "task description",
-        action: async () => {},
+        action: async () => ({
+          default: () => {},
+        }),
         options: {},
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing validations for js users who can bypass type checks */
         positionalArguments: 1 as any,
@@ -1192,7 +1205,9 @@ describe("config validation", function () {
         type: TaskDefinitionType.TASK_OVERRIDE,
         id: ["task-id"],
         description: "task description",
-        action: async () => {},
+        action: async () => ({
+          default: () => {},
+        }),
         options: {},
       };
 
@@ -1205,7 +1220,9 @@ describe("config validation", function () {
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing validations for js users who can bypass type checks */
         id: 1 as any,
         description: "task description",
-        action: async () => {},
+        action: async () => ({
+          default: () => {},
+        }),
         options: {},
       };
 
@@ -1214,7 +1231,9 @@ describe("config validation", function () {
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing validations for js users who can bypass type checks */
         id: [1] as any,
         description: "task description",
-        action: async () => {},
+        action: async () => ({
+          default: () => {},
+        }),
         options: {},
       };
 
@@ -1239,7 +1258,9 @@ describe("config validation", function () {
         id: ["task-id"],
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing validations for js users who can bypass type checks */
         description: 1 as any,
-        action: async () => {},
+        action: async () => ({
+          default: () => {},
+        }),
         options: {},
       };
 
@@ -1251,7 +1272,7 @@ describe("config validation", function () {
       ]);
     });
 
-    it("should return an error if the task action is not a function or a string", function () {
+    it("should return an error if the task action is not a function or lazy action object", function () {
       const task: TaskOverrideDefinition = {
         type: TaskDefinitionType.TASK_OVERRIDE,
         id: ["task-id"],
@@ -1263,7 +1284,8 @@ describe("config validation", function () {
 
       assert.deepEqual(validateTaskOverride(task, []), [
         {
-          message: "task action must be a function or a string",
+          message:
+            "task action must be a lazy import function returning a module with a default export",
           path: ["action"],
         },
       ]);
@@ -1274,7 +1296,9 @@ describe("config validation", function () {
         type: TaskDefinitionType.TASK_OVERRIDE,
         id: ["task-id"],
         description: "task description",
-        action: async () => {},
+        action: async () => ({
+          default: () => {},
+        }),
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing validations for js users who can bypass type checks */
         options: 1 as any,
       };
@@ -1417,7 +1441,9 @@ describe("config validation", function () {
           /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing validations for js users who can bypass type checks */
           type: "invalid" as any,
           id: ["task-id"],
-          action: async () => {},
+          action: async () => ({
+            default: () => {},
+          }),
           options: {},
         },
       ];
@@ -1512,7 +1538,7 @@ describe("config validation", function () {
       ]);
     });
 
-    it("should return an error if the plugin dependencies is not an array", function () {
+    it("should return an error if the plugin dependencies is not an function returning an array", function () {
       const plugins: HardhatPlugin[] = [
         {
           id: "plugin-id",
@@ -1523,13 +1549,14 @@ describe("config validation", function () {
 
       assert.deepEqual(validatePluginsConfig(plugins, []), [
         {
-          message: "plugin dependencies must be an array",
+          message:
+            "plugin dependencies must be a function returning an array of functions, each importing a module with a default export",
           path: ["plugins", 0, "dependencies"],
         },
       ]);
     });
 
-    it("should return an error if the plugin dependencies is not an array of functions", function () {
+    it("should return an error if the plugin dependencies is not an function returning an array of functions", function () {
       const plugins: HardhatPlugin[] = [
         {
           id: "plugin-id",
@@ -1540,8 +1567,9 @@ describe("config validation", function () {
 
       assert.deepEqual(validatePluginsConfig(plugins, []), [
         {
-          message: "plugin dependencies must be an array of functions",
-          path: ["plugins", 0, "dependencies", 0],
+          message:
+            "plugin dependencies must be a function returning an array of functions, each importing a module with a default export",
+          path: ["plugins", 0, "dependencies"],
         },
       ]);
     });
@@ -1575,7 +1603,7 @@ describe("config validation", function () {
       assert.deepEqual(validatePluginsConfig(plugins, []), [
         {
           message:
-            "plugin hookHandlers must be an object of functions or strings",
+            "plugin hookHandlers must be a lazy import function returning a module with a default export",
           path: ["plugins", 0, "hookHandlers", "invalid"],
         },
       ]);

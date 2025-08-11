@@ -16,28 +16,30 @@ describe("ignition helper mutual exclusivity", () => {
   const fakeHardhatIgnitionViemPlugin: HardhatPlugin = {
     id: "test:hardhat-ignition-viem",
     hookHandlers: {
-      network: async () => {
-        const handlers: Partial<NetworkHooks> = {
-          async newConnection<ChainTypeT extends ChainType | string>(
-            context: HookContext,
-            next: (
-              nextContext: HookContext,
-            ) => Promise<NetworkConnection<ChainTypeT>>,
-          ) {
-            const connection: NetworkConnection<ChainTypeT> =
-              await next(context);
+      network: async () => ({
+        default: async () => {
+          const handlers: Partial<NetworkHooks> = {
+            async newConnection<ChainTypeT extends ChainType | string>(
+              context: HookContext,
+              next: (
+                nextContext: HookContext,
+              ) => Promise<NetworkConnection<ChainTypeT>>,
+            ) {
+              const connection: NetworkConnection<ChainTypeT> =
+                await next(context);
 
-            // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- we are using a fake intentionally for the test
-            connection.ignition = {
-              type: "test-fake-of-ignition-viem",
-            } as any;
+              // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- we are using a fake intentionally for the test
+              connection.ignition = {
+                type: "test-fake-of-ignition-viem",
+              } as any;
 
-            return connection;
-          },
-        };
+              return connection;
+            },
+          };
 
-        return handlers;
-      },
+          return handlers;
+        },
+      }),
     },
   };
 

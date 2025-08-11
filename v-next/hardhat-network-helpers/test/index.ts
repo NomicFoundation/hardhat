@@ -56,9 +56,7 @@ describe("hardhat-network-helpers plugin initialization", () => {
             // enabling the simulation of a non-test network.
             id: "mocked-web3-client-version",
             hookHandlers: {
-              network: import.meta.resolve(
-                "./helpers/mocked-web3-client-version.js",
-              ),
+              network: () => import("./helpers/mocked-web3-client-version.js"),
             },
           },
         ],

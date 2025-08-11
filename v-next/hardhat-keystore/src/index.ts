@@ -10,10 +10,9 @@ import { PLUGIN_ID } from "./internal/constants.js";
 const hardhatKeystorePlugin: HardhatPlugin = {
   id: PLUGIN_ID,
   hookHandlers: {
-    config: import.meta.resolve("./internal/hook-handlers/config.js"),
-    configurationVariables: import.meta.resolve(
-      "./internal/hook-handlers/configuration-variables.js",
-    ),
+    config: () => import("./internal/hook-handlers/config.js"),
+    configurationVariables: () =>
+      import("./internal/hook-handlers/configuration-variables.js"),
   },
   tasks: [
     emptyTask("keystore", "Store your keys in a secure way").build(),
@@ -36,7 +35,7 @@ const hardhatKeystorePlugin: HardhatPlugin = {
         description:
           "Use the development keystore instead of the production one",
       })
-      .setAction(import.meta.resolve("./internal/tasks/set.js"))
+      .setAction(() => import("./internal/tasks/set.js"))
       .build(),
 
     task(["keystore", "get"], "Get a value given a key")
@@ -50,7 +49,7 @@ const hardhatKeystorePlugin: HardhatPlugin = {
         type: ArgumentType.STRING,
         description: "Specifies the key to retrieve the value for",
       })
-      .setAction(import.meta.resolve("./internal/tasks/get.js"))
+      .setAction(() => import("./internal/tasks/get.js"))
       .build(),
 
     task(["keystore", "list"], "List all keys in the keystore")
@@ -59,7 +58,7 @@ const hardhatKeystorePlugin: HardhatPlugin = {
         description:
           "Use the development keystore instead of the production one",
       })
-      .setAction(import.meta.resolve("./internal/tasks/list.js"))
+      .setAction(() => import("./internal/tasks/list.js"))
       .build(),
 
     task(["keystore", "delete"], "Delete a key from the keystore")
@@ -78,7 +77,7 @@ const hardhatKeystorePlugin: HardhatPlugin = {
         description:
           "Forces to not throw an error if the key does not exist during deletion.",
       })
-      .setAction(import.meta.resolve("./internal/tasks/delete.js"))
+      .setAction(() => import("./internal/tasks/delete.js"))
       .build(),
 
     task(["keystore", "path"], "Display the path where the keystore is stored")
@@ -87,7 +86,7 @@ const hardhatKeystorePlugin: HardhatPlugin = {
         description:
           "Use the development keystore instead of the production one",
       })
-      .setAction(import.meta.resolve("./internal/tasks/path.js"))
+      .setAction(() => import("./internal/tasks/path.js"))
       .build(),
 
     task(
@@ -99,7 +98,7 @@ const hardhatKeystorePlugin: HardhatPlugin = {
         description:
           "Use the development keystore instead of the production one",
       })
-      .setAction(import.meta.resolve("./internal/tasks/change-password.js"))
+      .setAction(() => import("./internal/tasks/change-password.js"))
       .build(),
   ],
   npmPackage: "@nomicfoundation/hardhat-keystore",

@@ -16,7 +16,7 @@ describe("HardhatError helpers", () => {
         assertIsHardhatError(
           new Error("Not a HardhatError"),
           HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INVALID_ACTION,
-          { action: "foo", task: "bar" },
+          { task: "bar" },
         );
       });
 
@@ -24,7 +24,7 @@ describe("HardhatError helpers", () => {
         assertIsHardhatError(
           123,
           HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INVALID_ACTION,
-          { action: "foo", task: "bar" },
+          { task: "bar" },
         );
       });
     });
@@ -37,7 +37,7 @@ describe("HardhatError helpers", () => {
             { option: "foo", task: "bar" },
           ),
           HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INVALID_ACTION,
-          { action: "foo", task: "bar" },
+          { task: "bar" },
         );
       });
     });
@@ -73,7 +73,7 @@ describe("HardhatError helpers", () => {
         assertThrowsHardhatError(
           () => {},
           HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INVALID_ACTION,
-          { action: "foo", task: "bar" },
+          { task: "bar" },
         );
       });
     });
@@ -111,7 +111,7 @@ describe("HardhatError helpers", () => {
         assertRejectsWithHardhatError(
           async () => {},
           HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INVALID_ACTION,
-          { action: "foo", task: "bar" },
+          { task: "bar" },
         ),
       );
     });
@@ -121,7 +121,7 @@ describe("HardhatError helpers", () => {
         assertRejectsWithHardhatError(
           Promise.resolve(1),
           HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INVALID_ACTION,
-          { action: "foo", task: "bar" },
+          { task: "bar" },
         ),
       );
     });
