@@ -262,7 +262,7 @@ describe("INTEGRATION: Revert", { timeout: 60000 }, () => {
                 value: 200,
               }),
             )
-              .to.changeEtherBalance(provider, sender, "-200")
+              .to.changeEtherBalance(ethers, sender, "-200")
               .and.to.be.revertedWithPanic(),
           HardhatError.ERRORS.CHAI_MATCHERS.GENERAL
             .MATCHER_CANNOT_BE_CHAINED_AFTER,

@@ -1,8 +1,7 @@
+import type { HardhatEthers } from "@nomicfoundation/hardhat-ethers/types";
 import type { Addressable } from "ethers";
-import type { EthereumProvider } from "hardhat/types/providers";
 
 import { toBigInt } from "@nomicfoundation/hardhat-utils/bigint";
-import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
 
 import { getAddressOf } from "./account.js";
 import { assertCanBeConvertedToBigint } from "./asserts.js";
@@ -18,19 +17,15 @@ export function getAddresses(
 }
 
 export async function getBalances(
-  provider: EthereumProvider,
+  ethers: HardhatEthers,
   accounts: Array<Addressable | string>,
-  blockNumber?: number,
+  blockNumber: number,
 ): Promise<bigint[]> {
   return Promise.all(
     accounts.map(async (account) => {
       const address = await getAddressOf(account);
 
-      const result = await provider.request({
-        method: "eth_getBalance",
-        params: [address, numberToHexString(blockNumber ?? 0)],
-      });
-
+      const result = await ethers.provider.getBalance(address, blockNumber);
       assertCanBeConvertedToBigint(result);
 
       return toBigInt(result);

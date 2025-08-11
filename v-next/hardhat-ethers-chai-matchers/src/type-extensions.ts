@@ -1,5 +1,4 @@
 import type { HardhatEthers } from "@nomicfoundation/hardhat-ethers/types";
-import type { EthereumProvider } from "hardhat/types/providers";
 
 // We use declare global instead of declare module "chai", because that's what
 // @types/chai does.
@@ -26,25 +25,25 @@ declare global {
       properAddress: void;
       properHex(length: number): void;
       changeEtherBalance(
-        provider: EthereumProvider,
+        ethers: HardhatEthers,
         account: any,
         balance: any,
         options?: any,
       ): AsyncAssertion;
       changeEtherBalances(
-        provider: EthereumProvider,
+        ethers: HardhatEthers,
         accounts: any[],
         balances: any[] | ((changes: bigint[]) => boolean),
         options?: any,
       ): AsyncAssertion;
       changeTokenBalance(
-        provider: EthereumProvider,
+        ethers: HardhatEthers,
         token: any,
         account: any,
         balance: any,
       ): AsyncAssertion;
       changeTokenBalances(
-        provider: EthereumProvider,
+        ethers: HardhatEthers,
         token: any,
         account: any[],
         balance: any[] | ((changes: bigint[]) => boolean),
