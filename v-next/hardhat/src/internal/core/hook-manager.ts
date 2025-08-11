@@ -12,10 +12,7 @@ import type {
 import type { HardhatPlugin } from "../../types/plugins.js";
 import type { LastParameter, Return } from "../../types/utils.js";
 
-import {
-  HardhatError,
-  assertHardhatInvariant,
-} from "@nomicfoundation/hardhat-errors";
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 
 import { AsyncMutex } from "./async-mutex.js";
 import { detectPluginNpmDependencyProblems } from "./plugins/detect-plugin-npm-dependency-problems.js";
