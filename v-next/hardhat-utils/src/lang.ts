@@ -79,10 +79,11 @@ export async function sleep(seconds: number): Promise<void> {
  * @param obj The object, which can be an instance of a class.
  */
 export function bindAllMethods<ObjectT extends object>(obj: ObjectT): void {
-  const keys = [
-    ...Object.getOwnPropertyNames(Object.getPrototypeOf(obj)),
-    ...Object.getOwnPropertyNames(obj),
-  ];
+  const prototype = Object.getPrototypeOf(obj);
+  const prototypeKeys =
+    prototype !== null ? Object.getOwnPropertyNames(prototype) : [];
+
+  const keys = [...prototypeKeys, ...Object.getOwnPropertyNames(obj)];
 
   /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
     typescript can't express this in a safe way, so we use any here */
@@ -101,10 +102,7 @@ export function bindAllMethods<ObjectT extends object>(obj: ObjectT): void {
 
   for (const key of keys) {
     const val = objAsAny[key];
-    if (
-      typeof val === "function" &&
-      !EXCLUDED_METHODS.includes(key)
-    ) {
+    if (typeof val === "function" && !EXCLUDED_METHODS.includes(key)) {
       objAsAny[key] = val.bind(obj);
     }
   }

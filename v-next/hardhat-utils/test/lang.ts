@@ -746,5 +746,24 @@ describe("lang", () => {
       const boundBaz = objAsAny.baz;
       assert.equal(boundBaz(), "bar");
     });
+
+    it("Should work with objects without a prototype", () => {
+      const obj = Object.create(null);
+      obj.foo = function () {
+        return this.bar();
+      };
+      obj.bar = function () {
+        return "bar";
+      };
+
+      assert.throws(() => {
+        const foo = obj.foo;
+        foo();
+      });
+
+      bindAllMethods(obj);
+      const boundFoo = obj.foo;
+      assert.equal(boundFoo(), "bar");
+    });
   });
 });
