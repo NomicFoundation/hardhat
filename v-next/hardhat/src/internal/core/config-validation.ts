@@ -275,7 +275,8 @@ export function validateNewTask(
   if (typeof task.action !== "function") {
     validationErrors.push({
       path: [...path, "action"],
-      message: "task action must be a lazy import function",
+      message:
+        "task action must be a lazy import function returning a module with a default export",
     });
   }
 
@@ -330,7 +331,8 @@ export function validateTaskOverride(
   if (typeof task.action !== "function") {
     validationErrors.push({
       path: [...path, "action"],
-      message: "task action must be a lazy import function",
+      message:
+        "task action must be a lazy import function returning a module with a default export",
     });
   }
 
@@ -617,7 +619,7 @@ export function validatePluginsConfig(
         validationErrors.push({
           path: [...path, "plugins", index, "dependencies"],
           message:
-            "plugin dependencies must be a function returning an array of functions",
+            "plugin dependencies must be a function returning an array of functions, each importing a module with a default export",
         });
       }
     }

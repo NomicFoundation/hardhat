@@ -1149,7 +1149,8 @@ describe("config validation", function () {
 
       assert.deepEqual(validateNewTask(task, []), [
         {
-          message: "task action must be a lazy import function",
+          message:
+            "task action must be a lazy import function returning a module with a default export",
           path: ["action"],
         },
       ]);
@@ -1283,7 +1284,8 @@ describe("config validation", function () {
 
       assert.deepEqual(validateTaskOverride(task, []), [
         {
-          message: "task action must be a lazy import function",
+          message:
+            "task action must be a lazy import function returning a module with a default export",
           path: ["action"],
         },
       ]);
@@ -1548,7 +1550,7 @@ describe("config validation", function () {
       assert.deepEqual(validatePluginsConfig(plugins, []), [
         {
           message:
-            "plugin dependencies must be a function returning an array of functions",
+            "plugin dependencies must be a function returning an array of functions, each importing a module with a default export",
           path: ["plugins", 0, "dependencies"],
         },
       ]);
@@ -1566,7 +1568,7 @@ describe("config validation", function () {
       assert.deepEqual(validatePluginsConfig(plugins, []), [
         {
           message:
-            "plugin dependencies must be a function returning an array of functions",
+            "plugin dependencies must be a function returning an array of functions, each importing a module with a default export",
           path: ["plugins", 0, "dependencies"],
         },
       ]);
