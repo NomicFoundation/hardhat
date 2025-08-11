@@ -142,7 +142,7 @@ function createUnhandledErrorListener(
     await client.close(100);
 
     console.error();
-    console.log(`${description}:`);
+    console.error(`${description}:`);
     console.error();
     console.error(error);
 
