@@ -19,7 +19,6 @@ import {
 } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 
-import { SHOULD_WARN_ABOUT_INLINE_TASK_ACTIONS_AND_HOOK_HANDLERS } from "../inline-functions-warning.js";
 import { detectPluginNpmDependencyProblems } from "../plugins/detect-plugin-npm-dependency-problems.js";
 
 import { formatTaskId } from "./utils.js";
@@ -50,7 +49,7 @@ export class ResolvedTask implements Task {
     hre: HardhatRuntimeEnvironment,
     id: string[],
     description: string,
-    action: NewTaskActionFunction | LazyActionObject<NewTaskActionFunction>,
+    action: LazyActionObject<NewTaskActionFunction>,
     options: Record<string, OptionDefinition>,
     positionalArguments: PositionalArgumentDefinition[],
     pluginId?: string,
@@ -144,26 +143,16 @@ export class ResolvedTask implements Task {
       currentIndex = this.actions.length - 1,
     ): Promise<any> => {
       // The first action may be empty if the task was originally an empty task
-      const currentAction = this.actions[currentIndex].action ?? (() => {});
-      const pluginId = this.actions[currentIndex].pluginId;
+      const currentAction = this.actions[currentIndex].action ?? {
+        action: async () => ({
+          default: () => {},
+        }),
+      };
 
-      if (
-        typeof currentAction === "function" &&
-        pluginId !== undefined &&
-        SHOULD_WARN_ABOUT_INLINE_TASK_ACTIONS_AND_HOOK_HANDLERS
-      ) {
-        console.warn(
-          `WARNING: Inline task action found in plugin "${pluginId}" for task "${formatTaskId(this.id)}". Use the lazy import syntax in production.`,
-        );
-      }
-
-      const actionFn =
-        typeof currentAction === "function"
-          ? currentAction
-          : await this.#resolveImportAction(
-              currentAction,
-              this.actions[currentIndex].pluginId,
-            );
+      const actionFn = await this.#resolveImportAction(
+        currentAction,
+        this.actions[currentIndex].pluginId,
+      );
 
       if (currentIndex === 0) {
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --

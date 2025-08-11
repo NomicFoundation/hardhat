@@ -64,9 +64,7 @@ export class NewTaskDefinitionBuilderImplementation<
 
   #description: string;
 
-  #action?:
-    | NewTaskActionFunction<TaskArgumentsT>
-    | LazyActionObject<NewTaskActionFunction<TaskArgumentsT>>;
+  #action?: LazyActionObject<NewTaskActionFunction<TaskArgumentsT>>;
 
   constructor(id: string | string[], description: string = "") {
     validateId(id);
@@ -204,7 +202,7 @@ export class NewTaskDefinitionBuilderImplementation<
       -- The type of the action is narrowed in the setAction function to
       improve the argument types. Once the task is built, we use the more
       general type to avoid having to parameterize the NewTaskDefinition */
-      action: this.#action as NewTaskActionFunction,
+      action: this.#action as LazyActionObject<NewTaskActionFunction>,
       options: this.#options,
       positionalArguments: this.#positionalArgs,
     };
@@ -264,9 +262,7 @@ export class TaskOverrideDefinitionBuilderImplementation<
 
   #description?: string;
 
-  #action?:
-    | TaskOverrideActionFunction<TaskArgumentsT>
-    | LazyActionObject<TaskOverrideActionFunction<TaskArgumentsT>>;
+  #action?: LazyActionObject<TaskOverrideActionFunction<TaskArgumentsT>>;
 
   constructor(id: string | string[]) {
     validateId(id);
@@ -377,7 +373,7 @@ export class TaskOverrideDefinitionBuilderImplementation<
       -- The type of the action is narrowed in the setAction function to
       improve the argument types. Once the task is built, we use the more
       general type to avoid having to parameterize the TaskOverrideDefinition */
-      action: this.#action as TaskOverrideActionFunction,
+      action: this.#action as LazyActionObject<TaskOverrideActionFunction>,
       options: this.#options,
     };
   }

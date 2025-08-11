@@ -612,7 +612,11 @@ describe("TaskManagerImplementation", () => {
                     type: TaskDefinitionType.NEW_TASK,
                     id: [], // empty id
                     description: "",
-                    action: () => {},
+                    action: {
+                      action: async () => ({
+                        default: () => {},
+                      }),
+                    },
                     options: {},
                     positionalArguments: [],
                   },
@@ -1167,7 +1171,11 @@ describe("TaskManagerImplementation", () => {
                       type: TaskDefinitionType.NEW_TASK,
                       id: [],
                       description: "",
-                      action: () => {},
+                      action: {
+                        action: async () => ({
+                          default: () => {},
+                        }),
+                      },
                       options: {},
                       positionalArguments: [],
                     },
@@ -1192,7 +1200,11 @@ describe("TaskManagerImplementation", () => {
                       type: TaskDefinitionType.TASK_OVERRIDE,
                       id: [],
                       description: "",
-                      action: () => {},
+                      action: {
+                        action: async () => ({
+                          default: () => {},
+                        }),
+                      },
                       options: {},
                     },
                   ],
@@ -1219,7 +1231,11 @@ describe("TaskManagerImplementation", () => {
                       type: TaskDefinitionType.NEW_TASK,
                       id: ["task-id"],
                       description: "",
-                      action: () => {},
+                      action: {
+                        action: async () => ({
+                          default: () => {},
+                        }),
+                      },
                       options: {
                         [invalidName]: {
                           name: invalidName,
@@ -1253,7 +1269,11 @@ describe("TaskManagerImplementation", () => {
                       type: TaskDefinitionType.TASK_OVERRIDE,
                       id: ["task-id"],
                       description: "",
-                      action: () => {},
+                      action: {
+                        action: async () => ({
+                          default: () => {},
+                        }),
+                      },
                       options: {
                         [invalidName]: {
                           name: invalidName,
@@ -1289,7 +1309,11 @@ describe("TaskManagerImplementation", () => {
                         type: TaskDefinitionType.NEW_TASK,
                         id: ["task-id"],
                         description: "",
-                        action: () => {},
+                        action: {
+                          action: async () => ({
+                            default: () => {},
+                          }),
+                        },
                         options: {
                           [reservedName]: {
                             name: reservedName,
@@ -1323,7 +1347,11 @@ describe("TaskManagerImplementation", () => {
                         type: TaskDefinitionType.TASK_OVERRIDE,
                         id: ["task-id"],
                         description: "",
-                        action: () => {},
+                        action: {
+                          action: async () => ({
+                            default: () => {},
+                          }),
+                        },
                         options: {
                           [reservedName]: {
                             name: reservedName,
@@ -1360,7 +1388,11 @@ describe("TaskManagerImplementation", () => {
                       type: TaskDefinitionType.NEW_TASK,
                       id: ["task-id"],
                       description: "",
-                      action: () => {},
+                      action: {
+                        action: async () => ({
+                          default: () => {},
+                        }),
+                      },
                       options: {
                         [duplicatedName]: {
                           name: duplicatedName,
@@ -1401,7 +1433,11 @@ describe("TaskManagerImplementation", () => {
                       type: TaskDefinitionType.NEW_TASK,
                       id: ["task-id"],
                       description: "",
-                      action: () => {},
+                      action: {
+                        action: async () => ({
+                          default: () => {},
+                        }),
+                      },
                       options: {},
                       positionalArguments: [
                         {
@@ -1444,7 +1480,11 @@ describe("TaskManagerImplementation", () => {
                       type: TaskDefinitionType.NEW_TASK,
                       id: ["task-id"],
                       description: "",
-                      action: () => {},
+                      action: {
+                        action: async () => ({
+                          default: () => {},
+                        }),
+                      },
                       options: {},
                       positionalArguments: [
                         {
@@ -1481,7 +1521,11 @@ describe("TaskManagerImplementation", () => {
                         type: TaskDefinitionType.NEW_TASK,
                         id: ["task-id"],
                         description: "",
-                        action: () => {},
+                        action: {
+                          action: async () => ({
+                            default: () => {},
+                          }),
+                        },
                         options: {},
                         positionalArguments: [
                           {
@@ -1518,7 +1562,11 @@ describe("TaskManagerImplementation", () => {
                       type: TaskDefinitionType.NEW_TASK,
                       id: ["task-id"],
                       description: "",
-                      action: () => {},
+                      action: {
+                        action: async () => ({
+                          default: () => {},
+                        }),
+                      },
                       options: {},
                       positionalArguments: [
                         {

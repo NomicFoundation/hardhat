@@ -1065,7 +1065,11 @@ describe("config validation", function () {
         type: TaskDefinitionType.NEW_TASK,
         id: ["task-id"],
         description: "task description",
-        action: async () => {},
+        action: {
+          action: async () => ({
+            default: () => {},
+          }),
+        },
         options: {},
         positionalArguments: [],
       };
@@ -1079,7 +1083,11 @@ describe("config validation", function () {
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing validations for js users who can bypass type checks */
         id: 1 as any,
         description: "task description",
-        action: async () => {},
+        action: {
+          action: async () => ({
+            default: () => {},
+          }),
+        },
         options: {},
         positionalArguments: [],
       };
@@ -1089,7 +1097,11 @@ describe("config validation", function () {
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing validations for js users who can bypass type checks */
         id: [1] as any,
         description: "task description",
-        action: async () => {},
+        action: {
+          action: async () => ({
+            default: () => {},
+          }),
+        },
         options: {},
         positionalArguments: [],
       };
@@ -1115,7 +1127,11 @@ describe("config validation", function () {
         id: ["task-id"],
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing validations for js users who can bypass type checks */
         description: 1 as any,
-        action: async () => {},
+        action: {
+          action: async () => ({
+            default: () => {},
+          }),
+        },
         options: {},
         positionalArguments: [],
       };
@@ -1141,7 +1157,7 @@ describe("config validation", function () {
 
       assert.deepEqual(validateNewTask(task, []), [
         {
-          message: "task action must be a function or a lazy action object",
+          message: "task action must be a lazy action object",
           path: ["action"],
         },
       ]);
@@ -1152,7 +1168,11 @@ describe("config validation", function () {
         type: TaskDefinitionType.NEW_TASK,
         id: ["task-id"],
         description: "task description",
-        action: async () => {},
+        action: {
+          action: async () => ({
+            default: () => {},
+          }),
+        },
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing validations for js users who can bypass type checks */
         options: 1 as any,
         positionalArguments: [],
@@ -1171,7 +1191,11 @@ describe("config validation", function () {
         type: TaskDefinitionType.NEW_TASK,
         id: ["task-id"],
         description: "task description",
-        action: async () => {},
+        action: {
+          action: async () => ({
+            default: () => {},
+          }),
+        },
         options: {},
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing validations for js users who can bypass type checks */
         positionalArguments: 1 as any,
@@ -1192,7 +1216,11 @@ describe("config validation", function () {
         type: TaskDefinitionType.TASK_OVERRIDE,
         id: ["task-id"],
         description: "task description",
-        action: async () => {},
+        action: {
+          action: async () => ({
+            default: () => {},
+          }),
+        },
         options: {},
       };
 
@@ -1205,7 +1233,11 @@ describe("config validation", function () {
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing validations for js users who can bypass type checks */
         id: 1 as any,
         description: "task description",
-        action: async () => {},
+        action: {
+          action: async () => ({
+            default: () => {},
+          }),
+        },
         options: {},
       };
 
@@ -1214,7 +1246,11 @@ describe("config validation", function () {
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing validations for js users who can bypass type checks */
         id: [1] as any,
         description: "task description",
-        action: async () => {},
+        action: {
+          action: async () => ({
+            default: () => {},
+          }),
+        },
         options: {},
       };
 
@@ -1239,7 +1275,11 @@ describe("config validation", function () {
         id: ["task-id"],
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing validations for js users who can bypass type checks */
         description: 1 as any,
-        action: async () => {},
+        action: {
+          action: async () => ({
+            default: () => {},
+          }),
+        },
         options: {},
       };
 
@@ -1263,7 +1303,7 @@ describe("config validation", function () {
 
       assert.deepEqual(validateTaskOverride(task, []), [
         {
-          message: "task action must be a function or a lazy action object",
+          message: "task action must be a lazy action object",
           path: ["action"],
         },
       ]);
@@ -1274,7 +1314,11 @@ describe("config validation", function () {
         type: TaskDefinitionType.TASK_OVERRIDE,
         id: ["task-id"],
         description: "task description",
-        action: async () => {},
+        action: {
+          action: async () => ({
+            default: () => {},
+          }),
+        },
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing validations for js users who can bypass type checks */
         options: 1 as any,
       };
@@ -1417,7 +1461,11 @@ describe("config validation", function () {
           /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- testing validations for js users who can bypass type checks */
           type: "invalid" as any,
           id: ["task-id"],
-          action: async () => {},
+          action: {
+            action: async () => ({
+              default: () => {},
+            }),
+          },
           options: {},
         },
       ];

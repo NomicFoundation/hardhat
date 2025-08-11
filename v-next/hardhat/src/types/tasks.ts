@@ -99,7 +99,7 @@ export interface NewTaskDefinition {
 
   description: string;
 
-  action: NewTaskActionFunction | LazyActionObject<NewTaskActionFunction>;
+  action: LazyActionObject<NewTaskActionFunction>;
 
   options: Record<string, OptionDefinition>;
 
@@ -116,9 +116,7 @@ export interface TaskOverrideDefinition {
 
   description?: string;
 
-  action:
-    | TaskOverrideActionFunction
-    | LazyActionObject<TaskOverrideActionFunction>;
+  action: LazyActionObject<TaskOverrideActionFunction>;
 
   options: Record<string, OptionDefinition>;
 }
@@ -371,13 +369,11 @@ export interface TaskOverrideDefinitionBuilder<
 export type TaskActions = [
   {
     pluginId?: string;
-    action?: NewTaskActionFunction | LazyActionObject<NewTaskActionFunction>;
+    action?: LazyActionObject<NewTaskActionFunction>;
   },
   ...Array<{
     pluginId?: string;
-    action:
-      | TaskOverrideActionFunction
-      | LazyActionObject<TaskOverrideActionFunction>;
+    action: LazyActionObject<TaskOverrideActionFunction>;
   }>,
 ];
 

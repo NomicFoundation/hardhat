@@ -15,7 +15,16 @@ describe("getHelpString", function () {
       const task: Task = {
         id: ["task"],
         description: "task description",
-        actions: [{ pluginId: "task-plugin-id", action: () => {} }],
+        actions: [
+          {
+            pluginId: "task-plugin-id",
+            action: {
+              action: async () => ({
+                default: () => {},
+              }),
+            },
+          },
+        ],
         options: new Map(),
         positionalArguments: [],
         pluginId: "task-plugin-id",
@@ -84,7 +93,16 @@ To get help for a specific task run: npx hardhat task <SUBTASK> --help`;
         const task: Task = {
           id: ["task"],
           description: "task description",
-          actions: [{ pluginId: "task-plugin-id", action: () => {} }],
+          actions: [
+            {
+              pluginId: "task-plugin-id",
+              action: {
+                action: async () => ({
+                  default: () => {},
+                }),
+              },
+            },
+          ],
           options: new Map()
             .set("option", {
               name: "option",
@@ -130,7 +148,16 @@ GLOBAL OPTIONS:
         const task: Task = {
           id: ["task"],
           description: "task description",
-          actions: [{ pluginId: "task-plugin-id", action: () => {} }],
+          actions: [
+            {
+              pluginId: "task-plugin-id",
+              action: {
+                action: async () => ({
+                  default: () => {},
+                }),
+              },
+            },
+          ],
           options: new Map()
             .set("option", {
               name: "option",
@@ -194,7 +221,16 @@ GLOBAL OPTIONS:
         const task: Task = {
           id: ["task"],
           description: "task description",
-          actions: [{ pluginId: "task-plugin-id", action: () => {} }],
+          actions: [
+            {
+              pluginId: "task-plugin-id",
+              action: {
+                action: async () => ({
+                  default: () => {},
+                }),
+              },
+            },
+          ],
           options: new Map()
             .set("option", {
               name: "option",

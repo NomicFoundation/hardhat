@@ -273,7 +273,6 @@ export function validateNewTask(
   }
 
   if (
-    typeof task.action !== "function" &&
     !(
       typeof task.action === "object" &&
       task.action !== null &&
@@ -283,7 +282,7 @@ export function validateNewTask(
   ) {
     validationErrors.push({
       path: [...path, "action"],
-      message: "task action must be a function or a lazy action object",
+      message: "task action must be a lazy action object",
     });
   }
 
@@ -346,7 +345,7 @@ export function validateTaskOverride(
   ) {
     validationErrors.push({
       path: [...path, "action"],
-      message: "task action must be a function or a lazy action object",
+      message: "task action must be a lazy action object",
     });
   }
 
@@ -634,34 +633,6 @@ export function validatePluginsConfig(
           path: [...path, "plugins", index, "dependencies"],
           message: "plugin dependencies must be a function returning an array",
         });
-      } else {
-        let result: unknown;
-
-        try {
-          result = plugin.dependencies();
-        } catch {
-          validationErrors.push({
-            path: [...path, "plugins", index, "dependencies"],
-            message: "plugin dependencies must be callable without throwing",
-          });
-        }
-
-        if (!Array.isArray(result)) {
-          validationErrors.push({
-            path: [...path, "plugins", index, "dependencies"],
-            message: "plugin dependencies must return an array",
-          });
-        } else {
-          for (const [depIndex, dep] of result.entries()) {
-            if (!(dep instanceof Promise)) {
-              validationErrors.push({
-                path: [...path, "plugins", index, "dependencies", depIndex],
-                message:
-                  "each dependency must be a Promise resolving to { default: HardhatPlugin }",
-              });
-            }
-          }
-        }
       }
     }
 
