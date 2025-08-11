@@ -28,7 +28,7 @@ jobs:
       # be run on an existing project.
       IS_WINDOWS: ${{ matrix.os == 'windows-latest' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-env
       - name: Run fixture-projects script
         run: |
