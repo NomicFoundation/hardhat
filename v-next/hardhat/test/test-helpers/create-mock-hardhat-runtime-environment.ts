@@ -31,12 +31,12 @@ const mockArtifactsPlugin: HardhatPlugin = {
   id: "mock-artifacts",
   dependencies: () => [Promise.resolve({ default: artifacts })],
   hookHandlers: {
-    hre: async () => {
-      return {
+    hre: async () => ({
+      default: async () => ({
         created: async (_context, hre): Promise<void> => {
           hre.artifacts = new MockArtifactManager();
         },
-      };
-    },
+      }),
+    }),
   },
 };

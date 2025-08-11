@@ -18,7 +18,6 @@ import {
 } from "@nomicfoundation/hardhat-errors";
 
 import { AsyncMutex } from "./async-mutex.js";
-import { SHOULD_WARN_ABOUT_INLINE_TASK_ACTIONS_AND_HOOK_HANDLERS } from "./inline-functions-warning.js";
 import { detectPluginNpmDependencyProblems } from "./plugins/detect-plugin-npm-dependency-problems.js";
 
 export class HookManagerImplementation implements HookManager {
@@ -297,22 +296,8 @@ export class HookManagerImplementation implements HookManager {
             return;
           }
 
-          let hookCategory: Partial<HardhatHooks[HookCategoryNameT]>;
-
-          const maybeLazyLoad = await hookHandlerCategoryFactory();
-
-          if ("default" in maybeLazyLoad) {
-            const factory = maybeLazyLoad.default;
-            hookCategory = await factory();
-          } else {
-            if (SHOULD_WARN_ABOUT_INLINE_TASK_ACTIONS_AND_HOOK_HANDLERS) {
-              console.warn(
-                `WARNING: Inline hooks found in plugin "${plugin.id}", category "${hookCategoryName}". Use a lazy import in production.`,
-              );
-            }
-
-            hookCategory = maybeLazyLoad;
-          }
+          const factory = (await hookHandlerCategoryFactory()).default;
+          const hookCategory = await factory();
 
           if (!this.#staticHookHandlerCategories.has(plugin.id)) {
             this.#staticHookHandlerCategories.set(plugin.id, new Map());

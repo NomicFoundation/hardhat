@@ -89,11 +89,9 @@ export interface HardhatPlugin {
  * @see HardhatPlugin#hookHandlers
  */
 export type HookHandlerCategoryFactories = {
-  [HookCategoryNameT in keyof HardhatHooks]?:
-    | HookHandlerCategoryFactory<HookCategoryNameT>
-    | (() => Promise<{
-        default: HookHandlerCategoryFactory<HookCategoryNameT>;
-      }>);
+  [HookCategoryNameT in keyof HardhatHooks]?: () => Promise<{
+    default: HookHandlerCategoryFactory<HookCategoryNameT>;
+  }>;
 };
 
 /**
