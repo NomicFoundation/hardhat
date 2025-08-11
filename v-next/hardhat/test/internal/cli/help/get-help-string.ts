@@ -18,11 +18,9 @@ describe("getHelpString", function () {
         actions: [
           {
             pluginId: "task-plugin-id",
-            action: {
-              action: async () => ({
-                default: () => {},
-              }),
-            },
+            action: async () => ({
+              default: () => {},
+            }),
           },
         ],
         options: new Map(),
@@ -96,11 +94,9 @@ To get help for a specific task run: npx hardhat task <SUBTASK> --help`;
           actions: [
             {
               pluginId: "task-plugin-id",
-              action: {
-                action: async () => ({
-                  default: () => {},
-                }),
-              },
+              action: async () => ({
+                default: () => {},
+              }),
             },
           ],
           options: new Map()
@@ -151,11 +147,9 @@ GLOBAL OPTIONS:
           actions: [
             {
               pluginId: "task-plugin-id",
-              action: {
-                action: async () => ({
-                  default: () => {},
-                }),
-              },
+              action: async () => ({
+                default: () => {},
+              }),
             },
           ],
           options: new Map()
@@ -224,11 +218,9 @@ GLOBAL OPTIONS:
           actions: [
             {
               pluginId: "task-plugin-id",
-              action: {
-                action: async () => ({
-                  default: () => {},
-                }),
-              },
+              action: async () => ({
+                default: () => {},
+              }),
             },
           ],
           options: new Map()

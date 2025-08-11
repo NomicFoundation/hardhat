@@ -442,6 +442,6 @@ export interface TaskManager {
   getTask(taskId: string | string[]): Task;
 }
 
-export interface LazyActionObject<T> {
-  action: () => Promise<{ default: T }>;
-}
+export type LazyActionObject<T> = () => Promise<{
+  default: T;
+}>;

@@ -272,17 +272,10 @@ export function validateNewTask(
     });
   }
 
-  if (
-    !(
-      typeof task.action === "object" &&
-      task.action !== null &&
-      "action" in task.action &&
-      typeof task.action.action === "function"
-    )
-  ) {
+  if (typeof task.action !== "function") {
     validationErrors.push({
       path: [...path, "action"],
-      message: "task action must be a lazy action object",
+      message: "task action must be a lazy import function",
     });
   }
 
@@ -334,18 +327,10 @@ export function validateTaskOverride(
     });
   }
 
-  if (
-    typeof task.action !== "function" &&
-    !(
-      typeof task.action === "object" &&
-      task.action !== null &&
-      "action" in task.action &&
-      typeof task.action.action === "function"
-    )
-  ) {
+  if (typeof task.action !== "function") {
     validationErrors.push({
       path: [...path, "action"],
-      message: "task action must be a lazy action object",
+      message: "task action must be a lazy import function",
     });
   }
 

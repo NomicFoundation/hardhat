@@ -108,11 +108,9 @@ describe("Task builders", () => {
   describe("NewTaskDefinitionBuilderImplementation", () => {
     it("should create a new task definition builder", () => {
       const builder = new NewTaskDefinitionBuilderImplementation("task-id");
-      const taskAction = {
-        action: async () => ({
-          default: () => {},
-        }),
-      };
+      const taskAction = async () => ({
+        default: () => {},
+      });
       const taskDefinition = builder.setAction(taskAction).build();
 
       assert.deepEqual(taskDefinition, {
@@ -128,11 +126,9 @@ describe("Task builders", () => {
     it("should create a new task definition builder with an array of ids", () => {
       const ids = ["task-id", "subtask-id", "sub-subtask-id"];
       const builder = new NewTaskDefinitionBuilderImplementation(ids);
-      const taskAction = {
-        action: async () => ({
-          default: () => {},
-        }),
-      };
+      const taskAction = async () => ({
+        default: () => {},
+      });
       const taskDefinition = builder.setAction(taskAction).build();
 
       assert.deepEqual(taskDefinition, {
@@ -170,9 +166,8 @@ describe("Task builders", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
         const taskActionUrl = "./path/to/task-action.js";
 
-        const lazyAction: LazyActionObject<NewTaskActionFunction> = {
-          action: () => import(taskActionUrl),
-        };
+        const lazyAction: LazyActionObject<NewTaskActionFunction> = () =>
+          import(taskActionUrl);
 
         const taskDefinition = builder.setAction(lazyAction).build();
 
@@ -204,11 +199,9 @@ describe("Task builders", () => {
           "task-id",
           "Task description",
         );
-        const taskAction = {
-          action: async () => ({
-            default: () => {},
-          }),
-        };
+        const taskAction = async () => ({
+          default: () => {},
+        });
         const taskDefinition = builder.setAction(taskAction).build();
 
         assert.deepEqual(taskDefinition, {
@@ -223,11 +216,9 @@ describe("Task builders", () => {
 
       it("should set the task description", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
-        const taskAction = {
-          action: async () => ({
-            default: () => {},
-          }),
-        };
+        const taskAction = async () => ({
+          default: () => {},
+        });
         const taskDefinition = builder
           .setAction(taskAction)
           .setDescription("Task description")
@@ -248,11 +239,9 @@ describe("Task builders", () => {
           "task-id",
           "Task description",
         );
-        const taskAction = {
-          action: async () => ({
-            default: () => {},
-          }),
-        };
+        const taskAction = async () => ({
+          default: () => {},
+        });
         const taskDefinition = builder
           .setAction(taskAction)
           .setDescription("New task description")
@@ -272,11 +261,9 @@ describe("Task builders", () => {
     describe("Adding options", () => {
       it("should add an option", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
-        const taskAction = {
-          action: async () => ({
-            default: () => {},
-          }),
-        };
+        const taskAction = async () => ({
+          default: () => {},
+        });
         const taskDefinition = builder
           .setAction(taskAction)
           .addOption({
@@ -305,11 +292,9 @@ describe("Task builders", () => {
 
       it("should add an option with a description", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
-        const taskAction = {
-          action: async () => ({
-            default: () => {},
-          }),
-        };
+        const taskAction = async () => ({
+          default: () => {},
+        });
         const taskDefinition = builder
           .setAction(taskAction)
           .addOption({
@@ -339,11 +324,9 @@ describe("Task builders", () => {
 
       it("should add an option with a type", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
-        const taskAction = {
-          action: async () => ({
-            default: () => {},
-          }),
-        };
+        const taskAction = async () => ({
+          default: () => {},
+        });
         const taskDefinition = builder
           .setAction(taskAction)
           .addOption({
@@ -373,11 +356,9 @@ describe("Task builders", () => {
 
       it("should add an option with a short name", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
-        const taskAction = {
-          action: async () => ({
-            default: () => {},
-          }),
-        };
+        const taskAction = async () => ({
+          default: () => {},
+        });
         const taskDefinition = builder
           .setAction(taskAction)
           .addOption({
@@ -409,11 +390,9 @@ describe("Task builders", () => {
     describe("Adding flags", () => {
       it("should add a flag", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
-        const taskAction = {
-          action: async () => ({
-            default: () => {},
-          }),
-        };
+        const taskAction = async () => ({
+          default: () => {},
+        });
         const taskDefinition = builder
           .setAction(taskAction)
           .addFlag({ name: "flag" })
@@ -439,11 +418,9 @@ describe("Task builders", () => {
 
       it("should add a flag with a description", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
-        const taskAction = {
-          action: async () => ({
-            default: () => {},
-          }),
-        };
+        const taskAction = async () => ({
+          default: () => {},
+        });
         const taskDefinition = builder
           .setAction(taskAction)
           .addFlag({ name: "flag", description: "Flag description" })
@@ -469,11 +446,9 @@ describe("Task builders", () => {
 
       it("should add a flag with a short name", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
-        const taskAction = {
-          action: async () => ({
-            default: () => {},
-          }),
-        };
+        const taskAction = async () => ({
+          default: () => {},
+        });
         const taskDefinition = builder
           .setAction(taskAction)
           .addFlag({ name: "flag", shortName: "f" })
@@ -499,11 +474,9 @@ describe("Task builders", () => {
 
       it("should add a flag with a short name", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
-        const taskAction = {
-          action: async () => ({
-            default: () => {},
-          }),
-        };
+        const taskAction = async () => ({
+          default: () => {},
+        });
         const taskDefinition = builder
           .setAction(taskAction)
           .addFlag({ name: "flag", shortName: "f" })
@@ -531,11 +504,9 @@ describe("Task builders", () => {
     describe("Adding positional arguments", () => {
       it("should add a positional argument", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
-        const taskAction = {
-          action: async () => ({
-            default: () => {},
-          }),
-        };
+        const taskAction = async () => ({
+          default: () => {},
+        });
         const taskDefinition = builder
           .setAction(taskAction)
           .addPositionalArgument({ name: "arg" })
@@ -561,11 +532,9 @@ describe("Task builders", () => {
 
       it("should add a positional argument with a description", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
-        const taskAction = {
-          action: async () => ({
-            default: () => {},
-          }),
-        };
+        const taskAction = async () => ({
+          default: () => {},
+        });
         const taskDefinition = builder
           .setAction(taskAction)
           .addPositionalArgument({
@@ -594,11 +563,9 @@ describe("Task builders", () => {
 
       it("should add a positional argument with a default value", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
-        const taskAction = {
-          action: async () => ({
-            default: () => {},
-          }),
-        };
+        const taskAction = async () => ({
+          default: () => {},
+        });
         const taskDefinition = builder
           .setAction(taskAction)
           .addPositionalArgument({
@@ -627,11 +594,9 @@ describe("Task builders", () => {
 
       it("should add a positional argument with a type", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
-        const taskAction = {
-          action: async () => ({
-            default: () => {},
-          }),
-        };
+        const taskAction = async () => ({
+          default: () => {},
+        });
         const taskDefinition = builder
           .setAction(taskAction)
           .addPositionalArgument({
@@ -662,11 +627,9 @@ describe("Task builders", () => {
     describe("Adding variadic arguments", () => {
       it("should add a variadic argument", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
-        const taskAction = {
-          action: async () => ({
-            default: () => {},
-          }),
-        };
+        const taskAction = async () => ({
+          default: () => {},
+        });
         const taskDefinition = builder
           .setAction(taskAction)
           .addVariadicArgument({ name: "arg" })
@@ -692,11 +655,9 @@ describe("Task builders", () => {
 
       it("should add a variadic argument with a description", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
-        const taskAction = {
-          action: async () => ({
-            default: () => {},
-          }),
-        };
+        const taskAction = async () => ({
+          default: () => {},
+        });
         const taskDefinition = builder
           .setAction(taskAction)
           .addVariadicArgument({
@@ -725,11 +686,9 @@ describe("Task builders", () => {
 
       it("should add a variadic argument with a default value", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
-        const taskAction = {
-          action: async () => ({
-            default: () => {},
-          }),
-        };
+        const taskAction = async () => ({
+          default: () => {},
+        });
         const taskDefinition = builder
           .setAction(taskAction)
           .addVariadicArgument({
@@ -758,11 +717,9 @@ describe("Task builders", () => {
 
       it("should add a variadic argument with a type", () => {
         const builder = new NewTaskDefinitionBuilderImplementation("task-id");
-        const taskAction = {
-          action: async () => ({
-            default: () => {},
-          }),
-        };
+        const taskAction = async () => ({
+          default: () => {},
+        });
         const taskDefinition = builder
           .setAction(taskAction)
           .addVariadicArgument({ name: "arg", type: ArgumentType.INT })
@@ -1087,11 +1044,9 @@ describe("Task builders", () => {
       const builder = new TaskOverrideDefinitionBuilderImplementation(
         "task-id",
       );
-      const taskAction = {
-        action: async () => ({
-          default: () => {},
-        }),
-      };
+      const taskAction = async () => ({
+        default: () => {},
+      });
       const taskDefinition = builder.setAction(taskAction).build();
 
       assert.deepEqual(taskDefinition, {
@@ -1106,11 +1061,9 @@ describe("Task builders", () => {
     it("should create a task override definition builder with an array of ids", () => {
       const ids = ["task-id", "subtask-id", "sub-subtask-id"];
       const builder = new TaskOverrideDefinitionBuilderImplementation(ids);
-      const taskAction = {
-        action: async () => ({
-          default: () => {},
-        }),
-      };
+      const taskAction = async () => ({
+        default: () => {},
+      });
       const taskDefinition = builder.setAction(taskAction).build();
 
       assert.deepEqual(taskDefinition, {
@@ -1149,9 +1102,8 @@ describe("Task builders", () => {
         );
         const taskActionUrl = "./path/to/task-action.js";
 
-        const lazyAction: LazyActionObject<NewTaskActionFunction> = {
-          action: () => import(taskActionUrl),
-        };
+        const lazyAction: LazyActionObject<NewTaskActionFunction> = () =>
+          import(taskActionUrl);
 
         const taskDefinition = builder.setAction(lazyAction).build();
 
@@ -1183,11 +1135,9 @@ describe("Task builders", () => {
         const builder = new TaskOverrideDefinitionBuilderImplementation(
           "task-id",
         );
-        const taskAction = {
-          action: async () => ({
-            default: () => {},
-          }),
-        };
+        const taskAction = async () => ({
+          default: () => {},
+        });
         const taskDefinition = builder
           .setAction(taskAction)
           .setDescription("Task description")
@@ -1208,11 +1158,9 @@ describe("Task builders", () => {
         const builder = new TaskOverrideDefinitionBuilderImplementation(
           "task-id",
         );
-        const taskAction = {
-          action: async () => ({
-            default: () => {},
-          }),
-        };
+        const taskAction = async () => ({
+          default: () => {},
+        });
         const taskDefinition = builder
           .setAction(taskAction)
           .addOption({
@@ -1242,11 +1190,9 @@ describe("Task builders", () => {
         const builder = new TaskOverrideDefinitionBuilderImplementation(
           "task-id",
         );
-        const taskAction = {
-          action: async () => ({
-            default: () => {},
-          }),
-        };
+        const taskAction = async () => ({
+          default: () => {},
+        });
         const taskDefinition = builder
           .setAction(taskAction)
           .addOption({
@@ -1277,11 +1223,9 @@ describe("Task builders", () => {
         const builder = new TaskOverrideDefinitionBuilderImplementation(
           "task-id",
         );
-        const taskAction = {
-          action: async () => ({
-            default: () => {},
-          }),
-        };
+        const taskAction = async () => ({
+          default: () => {},
+        });
         const taskDefinition = builder
           .setAction(taskAction)
           .addOption({
@@ -1312,11 +1256,9 @@ describe("Task builders", () => {
         const builder = new TaskOverrideDefinitionBuilderImplementation(
           "task-id",
         );
-        const taskAction = {
-          action: async () => ({
-            default: () => {},
-          }),
-        };
+        const taskAction = async () => ({
+          default: () => {},
+        });
         const taskDefinition = builder
           .setAction(taskAction)
           .addOption({
@@ -1351,11 +1293,9 @@ describe("Task builders", () => {
         const builder = new TaskOverrideDefinitionBuilderImplementation(
           "task-id",
         );
-        const taskAction = {
-          action: async () => ({
-            default: () => {},
-          }),
-        };
+        const taskAction = async () => ({
+          default: () => {},
+        });
         const taskDefinition = builder
           .setAction(taskAction)
           .addFlag({ name: "flag" })
@@ -1382,11 +1322,9 @@ describe("Task builders", () => {
         const builder = new TaskOverrideDefinitionBuilderImplementation(
           "task-id",
         );
-        const taskAction = {
-          action: async () => ({
-            default: () => {},
-          }),
-        };
+        const taskAction = async () => ({
+          default: () => {},
+        });
         const taskDefinition = builder
           .setAction(taskAction)
           .addFlag({ name: "flag", description: "Flag description" })
@@ -1413,11 +1351,9 @@ describe("Task builders", () => {
         const builder = new TaskOverrideDefinitionBuilderImplementation(
           "task-id",
         );
-        const taskAction = {
-          action: async () => ({
-            default: () => {},
-          }),
-        };
+        const taskAction = async () => ({
+          default: () => {},
+        });
         const taskDefinition = builder
           .setAction(taskAction)
           .addFlag({ name: "flag", shortName: "f" })
@@ -1444,11 +1380,9 @@ describe("Task builders", () => {
         const builder = new TaskOverrideDefinitionBuilderImplementation(
           "task-id",
         );
-        const taskAction = {
-          action: async () => ({
-            default: () => {},
-          }),
-        };
+        const taskAction = async () => ({
+          default: () => {},
+        });
         const taskDefinition = builder
           .setAction(taskAction)
           .addFlag({ name: "flag", shortName: "f" })

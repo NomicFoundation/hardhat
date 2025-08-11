@@ -24,11 +24,9 @@ describe("utils", function () {
         actions: [
           {
             pluginId: "task-plugin-id",
-            action: {
-              action: async () => ({
-                default: () => {},
-              }),
-            },
+            action: async () => ({
+              default: () => {},
+            }),
           },
         ],
         options: new Map(),
@@ -64,11 +62,9 @@ describe("utils", function () {
         actions: [
           {
             pluginId: "task-plugin-id",
-            action: {
-              action: async () => ({
-                default: () => {},
-              }),
-            },
+            action: async () => ({
+              default: () => {},
+            }),
           },
         ],
         options: new Map(),
@@ -106,11 +102,9 @@ describe("utils", function () {
         actions: [
           {
             pluginId: "task-plugin-id",
-            action: {
-              action: async () => ({
-                default: () => {},
-              }),
-            },
+            action: async () => ({
+              default: () => {},
+            }),
           },
         ],
         options: new Map(),
@@ -145,11 +139,9 @@ describe("utils", function () {
         actions: [
           {
             pluginId: "task-plugin-id",
-            action: {
-              action: async () => ({
-                default: () => {},
-              }),
-            },
+            action: async () => ({
+              default: () => {},
+            }),
           },
         ],
         options: new Map()
@@ -289,11 +281,9 @@ Section Title:
           actions: [
             {
               pluginId: "task-plugin-id",
-              action: {
-                action: async () => ({
-                  default: () => {},
-                }),
-              },
+              action: async () => ({
+                default: () => {},
+              }),
             },
           ],
           options: new Map()
@@ -371,11 +361,9 @@ Section Title:
           actions: [
             {
               pluginId: "task-plugin-id",
-              action: {
-                action: async () => ({
-                  default: () => {},
-                }),
-              },
+              action: async () => ({
+                default: () => {},
+              }),
             },
           ],
           options: new Map()

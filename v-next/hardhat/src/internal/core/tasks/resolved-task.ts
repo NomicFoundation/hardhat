@@ -143,11 +143,11 @@ export class ResolvedTask implements Task {
       currentIndex = this.actions.length - 1,
     ): Promise<any> => {
       // The first action may be empty if the task was originally an empty task
-      const currentAction = this.actions[currentIndex].action ?? {
-        action: async () => ({
+      const currentAction =
+        this.actions[currentIndex].action ??
+        (async () => ({
           default: () => {},
-        }),
-      };
+        }));
 
       const actionFn = await this.#resolveImportAction(
         currentAction,
@@ -227,7 +227,7 @@ export class ResolvedTask implements Task {
   ): Promise<NewTaskActionFunction | TaskOverrideActionFunction> {
     let resolvedActionFn;
     try {
-      resolvedActionFn = await action.action();
+      resolvedActionFn = await action();
     } catch (error) {
       ensureError(error);
 

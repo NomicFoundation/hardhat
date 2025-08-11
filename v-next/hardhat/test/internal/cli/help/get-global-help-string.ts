@@ -45,11 +45,9 @@ To get help for a specific task run: npx hardhat <TASK> [SUBTASK] --help`;
             actions: [
               {
                 pluginId: "task1-plugin-id",
-                action: {
-                  action: async () => ({
-                    default: () => {},
-                  }),
-                },
+                action: async () => ({
+                  default: () => {},
+                }),
               },
             ],
             options: new Map(),
@@ -68,11 +66,9 @@ To get help for a specific task run: npx hardhat <TASK> [SUBTASK] --help`;
             actions: [
               {
                 pluginId: "task2-plugin-id",
-                action: {
-                  action: async () => ({
-                    default: () => {},
-                  }),
-                },
+                action: async () => ({
+                  default: () => {},
+                }),
               },
             ],
             options: new Map(),
@@ -146,11 +142,9 @@ To get help for a specific task run: npx hardhat <TASK> [SUBTASK] --help`;
             actions: [
               {
                 pluginId: "task1-plugin-id",
-                action: {
-                  action: async () => ({
-                    default: () => {},
-                  }),
-                },
+                action: async () => ({
+                  default: () => {},
+                }),
               },
             ],
             options: new Map(),
@@ -188,11 +182,9 @@ To get help for a specific task run: npx hardhat <TASK> [SUBTASK] --help`;
             actions: [
               {
                 pluginId: "task2-plugin-id",
-                action: {
-                  action: async () => ({
-                    default: () => {},
-                  }),
-                },
+                action: async () => ({
+                  default: () => {},
+                }),
               },
             ],
             options: new Map(),
@@ -292,11 +284,9 @@ To get help for a specific task run: npx hardhat <TASK> [SUBTASK] --help`;
             actions: [
               {
                 pluginId: "task1-plugin-id",
-                action: {
-                  action: async () => ({
-                    default: () => {},
-                  }),
-                },
+                action: async () => ({
+                  default: () => {},
+                }),
               },
             ],
             options: new Map(),
@@ -334,11 +324,9 @@ To get help for a specific task run: npx hardhat <TASK> [SUBTASK] --help`;
             actions: [
               {
                 pluginId: "task2-plugin-id",
-                action: {
-                  action: async () => ({
-                    default: () => {},
-                  }),
-                },
+                action: async () => ({
+                  default: () => {},
+                }),
               },
             ],
             options: new Map(),

@@ -38,9 +38,7 @@ const hardhatPlugin: HardhatPlugin = {
         description: "Verbosity level of the test output",
         defaultValue: 2,
       })
-      .setAction({
-        action: async () => import("./task-action.js"),
-      })
+      .setAction(async () => import("./task-action.js"))
       .build(),
   ],
   dependencies: () => [import("../solidity/index.js")],

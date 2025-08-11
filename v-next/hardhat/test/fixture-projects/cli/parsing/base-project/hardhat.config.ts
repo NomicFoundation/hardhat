@@ -13,13 +13,12 @@ const customTask = task("task")
   .addVariadicArgument({ name: "arg3" })
   .addFlag({ name: "arg4", shortName: "f" })
   .addLevel({ name: "arg5", shortName: "l" })
-  .setAction({
-    action: async () => ({
-      default: () => {
-        tasksResults.wasArg1Used = true;
-      },
-    }),
-  })
+  .setAction(async () => ({
+    default: () => {
+      tasksResults.wasArg1Used = true;
+    },
+  }))
+
   .build();
 
 const config: HardhatUserConfig = {

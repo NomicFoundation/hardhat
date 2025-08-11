@@ -3,11 +3,9 @@ import type { HardhatUserConfig } from "../../../../../src/config.js";
 import { task } from "../../../../../src/config.js";
 
 const customTask = task("test-task", "description")
-  .setAction({
-    action: async () => ({
-      default: () => {},
-    }),
-  })
+  .setAction(async () => ({
+    default: () => {},
+  }))
   .addOption({
     name: "opt",
     description: "opt description",

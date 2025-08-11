@@ -24,9 +24,7 @@ const buildTask = task("build", "Builds your project")
     description: "An optional list of files to compile",
     defaultValue: [],
   })
-  .setAction({
-    action: async () => import("./tasks/build.js"),
-  })
+  .setAction(async () => import("./tasks/build.js"))
   .build();
 
 const hardhatPlugin: HardhatPlugin = {

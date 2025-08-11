@@ -7,13 +7,12 @@ export const tasksResults = {
 };
 
 const customTask = task("user-task")
-  .setAction({
-    action: async () => ({
-      default: () => {
-        tasksResults.wasArg1Used = true;
-      },
-    }),
-  })
+  .setAction(async () => ({
+    default: () => {
+      tasksResults.wasArg1Used = true;
+    },
+  }))
+
   .build();
 
 const config: HardhatUserConfig = {
