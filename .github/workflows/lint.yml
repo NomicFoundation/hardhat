@@ -28,10 +28,10 @@ jobs:
       # twice. The first checkout is for the base branch of the PR. The second,
       # for the merge commit. We do this to be able to use the `setup-env`
       # action that's on the base branch.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           persist-credentials: false
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         if: github.event_name == 'pull_request_target'
         with:
           ref: "refs/pull/${{ github.event.number }}/merge"
