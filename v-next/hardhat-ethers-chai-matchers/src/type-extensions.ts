@@ -12,6 +12,7 @@ declare global {
         NumericComparison,
         TypeComparison {
       emit(contract: any, eventName: string): EmitAssertion;
+      reverted: AsyncAssertion;
       revert(ethers: HardhatEthers): AsyncAssertion;
       revertedWith(reason: string | RegExp): AsyncAssertion;
       revertedWithoutReason(ethers: HardhatEthers): AsyncAssertion;

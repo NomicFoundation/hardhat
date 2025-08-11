@@ -11,6 +11,7 @@ import { supportHexEqual } from "./matchers/hexEqual.js";
 import { supportProperAddress } from "./matchers/properAddress.js";
 import { supportProperHex } from "./matchers/properHex.js";
 import { supportProperPrivateKey } from "./matchers/properPrivateKey.js";
+import { supportLegacyReverted } from "./matchers/reverted/legacyReverted.js";
 import { supportRevert } from "./matchers/reverted/revert.js";
 import { supportRevertedWith } from "./matchers/reverted/revertedWith.js";
 import { supportRevertedWithCustomError } from "./matchers/reverted/revertedWithCustomError.js";
@@ -37,6 +38,7 @@ function hardhatChaiMatchers(
   supportChangeEtherBalance(chai.Assertion, chaiUtils);
   supportChangeEtherBalances(chai.Assertion, chaiUtils);
   supportChangeTokenBalance(chai.Assertion, chaiUtils);
+  supportLegacyReverted(chai.Assertion, chaiUtils);
   supportRevert(chai.Assertion, chaiUtils);
   supportRevertedWith(chai.Assertion, chaiUtils);
   supportRevertedWithCustomError(chai.Assertion, chaiUtils);
