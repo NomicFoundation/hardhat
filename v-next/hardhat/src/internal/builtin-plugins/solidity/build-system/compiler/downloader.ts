@@ -371,8 +371,6 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
   }
 
   async #downloadCompiler(build: CompilerBuild): Promise<string> {
-    log(`Downloading compiler ${build.longVersion}`);
-
     let url: string;
 
     if (this.#onLinuxArm()) {
@@ -380,6 +378,8 @@ export class CompilerDownloaderImplementation implements CompilerDownloader {
     } else {
       url = `${COMPILER_REPOSITORY_URL}/${this.#platform}/${build.path}`;
     }
+
+    log(`Downloading compiler ${build.version} from ${url}`);
 
     const downloadPath = this.#getCompilerDownloadPathFromBuild(build);
 
