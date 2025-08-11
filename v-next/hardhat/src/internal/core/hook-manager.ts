@@ -296,8 +296,25 @@ export class HookManagerImplementation implements HookManager {
             return;
           }
 
-          const factory = (await hookHandlerCategoryFactory()).default;
+          let factory;
+          try {
+            factory = (await hookHandlerCategoryFactory()).default;
+          } catch (error) {
+            await detectPluginNpmDependencyProblems(this.#projectRoot, plugin);
+            throw error;
+          }
+
+          assertHardhatInvariant(
+            typeof factory === "function",
+            `Plugin ${plugin.id} doesn't export a hook factory for category ${hookCategoryName}`,
+          );
+
           const hookCategory = await factory();
+
+          assertHardhatInvariant(
+            hookCategory !== null && typeof hookCategory === "object",
+            `Plugin ${plugin.id} doesn't export a valid factory for category ${hookCategoryName}, it didn't return an object`,
+          );
 
           if (!this.#staticHookHandlerCategories.has(plugin.id)) {
             this.#staticHookHandlerCategories.set(plugin.id, new Map());
@@ -321,47 +338,5 @@ export class HookManagerImplementation implements HookManager {
 
       return handler as HardhatHooks[HookCategoryNameT][HookNameT];
     });
-  }
-
-  async #loadHookCategoryFactory<HookCategoryNameT extends keyof HardhatHooks>(
-    plugin: HardhatPlugin,
-    hookCategoryName: HookCategoryNameT,
-    path: string,
-  ): Promise<Partial<HardhatHooks[HookCategoryNameT]>> {
-    if (!path.startsWith("file://")) {
-      throw new HardhatError(
-        HardhatError.ERRORS.CORE.HOOKS.INVALID_HOOK_FACTORY_PATH,
-        {
-          pluginId: plugin.id,
-          hookCategoryName,
-          path,
-        },
-      );
-    }
-
-    let mod;
-
-    try {
-      mod = await import(path);
-    } catch (error) {
-      await detectPluginNpmDependencyProblems(this.#projectRoot, plugin);
-      throw error;
-    }
-
-    const factory = mod.default;
-
-    assertHardhatInvariant(
-      typeof factory === "function",
-      `Plugin ${plugin.id} doesn't export a hook factory for category ${hookCategoryName} in ${path}`,
-    );
-
-    const category = await factory();
-
-    assertHardhatInvariant(
-      category !== null && typeof category === "object",
-      `Plugin ${plugin.id} doesn't export a valid factory for category ${hookCategoryName} in ${path}, it didn't return an object`,
-    );
-
-    return category;
   }
 }
