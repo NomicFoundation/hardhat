@@ -24,7 +24,6 @@ import { TaskDefinitionType } from "../../../types/tasks.js";
 
 import { formatTaskId } from "./utils.js";
 import {
-  validateAction,
   validateId,
   validateOption,
   validatePositionalArgument,
@@ -82,12 +81,8 @@ export class NewTaskDefinitionBuilderImplementation<
   }
 
   public setAction(
-    action:
-      | NewTaskActionFunction<TaskArgumentsT>
-      | LazyActionObject<NewTaskActionFunction<TaskArgumentsT>>,
+    action: LazyActionObject<NewTaskActionFunction<TaskArgumentsT>>,
   ): this {
-    validateAction(action);
-
     this.#action = action;
 
     return this;
@@ -285,12 +280,8 @@ export class TaskOverrideDefinitionBuilderImplementation<
   }
 
   public setAction(
-    action:
-      | TaskOverrideActionFunction<TaskArgumentsT>
-      | LazyActionObject<TaskOverrideActionFunction<TaskArgumentsT>>,
+    action: LazyActionObject<TaskOverrideActionFunction<TaskArgumentsT>>,
   ): this {
-    validateAction(action);
-
     this.#action = action;
 
     return this;

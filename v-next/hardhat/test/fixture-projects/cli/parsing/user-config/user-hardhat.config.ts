@@ -7,8 +7,12 @@ export const tasksResults = {
 };
 
 const customTask = task("user-task")
-  .setAction(() => {
-    tasksResults.wasArg1Used = true;
+  .setAction({
+    action: async () => ({
+      default: () => {
+        tasksResults.wasArg1Used = true;
+      },
+    }),
   })
   .build();
 

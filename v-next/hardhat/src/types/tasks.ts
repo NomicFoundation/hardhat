@@ -181,9 +181,7 @@ export interface NewTaskDefinitionBuilder<
    * purposes.
    */
   setAction(
-    action:
-      | NewTaskActionFunction<TaskArgumentsT>
-      | LazyActionObject<NewTaskActionFunction<TaskArgumentsT>>,
+    action: LazyActionObject<NewTaskActionFunction<TaskArgumentsT>>,
   ): this;
 
   /**
@@ -308,9 +306,7 @@ export interface TaskOverrideDefinitionBuilder<
    * @see NewTaskDefinitionBuilder.setAction
    */
   setAction(
-    action:
-      | TaskOverrideActionFunction<TaskArgumentsT>
-      | LazyActionObject<TaskOverrideActionFunction<TaskArgumentsT>>,
+    action: LazyActionObject<TaskOverrideActionFunction<TaskArgumentsT>>,
   ): this;
 
   /**

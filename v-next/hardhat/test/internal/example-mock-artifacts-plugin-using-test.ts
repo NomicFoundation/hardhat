@@ -29,8 +29,12 @@ describe("createMockHardhatRuntimeEnvironment", () => {
       id: "my-plugin",
       tasks: [
         task("hello-artifact-using-world", "Tests artifact loading")
-          .setAction(async ({}, hre: HardhatRuntimeEnvironment) => {
-            return hre.artifacts.readArtifact("MyContract");
+          .setAction({
+            action: async () => ({
+              default: ({}, hre: HardhatRuntimeEnvironment) => {
+                return hre.artifacts.readArtifact("MyContract");
+              },
+            }),
           })
           .build(),
       ],

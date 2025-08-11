@@ -54,11 +54,27 @@ async function getTasksAndHreEnvironment(
   const subtasks: NewTaskDefinition[] = [];
 
   for (const t of tasksBuilders) {
-    tasks.push(t.setAction(() => {}).build());
+    tasks.push(
+      t
+        .setAction({
+          action: async () => ({
+            default: () => {},
+          }),
+        })
+        .build(),
+    );
   }
 
   for (const s of subtasksBuilders) {
-    subtasks.push(s.setAction(() => {}).build());
+    subtasks.push(
+      s
+        .setAction({
+          action: async () => ({
+            default: () => {},
+          }),
+        })
+        .build(),
+    );
   }
 
   const hre = await createHardhatRuntimeEnvironment({
