@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - pre-release-testing-branch
-      - changeset-release/main
+      - changeset-release/v2
   workflow_dispatch:
 
 concurrency:

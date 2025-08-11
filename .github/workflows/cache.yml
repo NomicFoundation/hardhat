@@ -3,9 +3,9 @@ name: Cache
 on:
   push:
     branches:
-      - main
+      - v2
       - pre-release-testing-branch
-      - changeset-release/main
+      - changeset-release/v2
       - v-next
     paths:
       - ".github/workflows/cache.yml"

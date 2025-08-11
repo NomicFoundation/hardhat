@@ -5,7 +5,7 @@ name: hardhat-core CI
 on:
   push:
     branches:
-      - main
+      - v2
     paths:
       - ".github/workflows/hardhat-core-ci.yml"
       - "config/**"
