@@ -1547,7 +1547,8 @@ describe("config validation", function () {
 
       assert.deepEqual(validatePluginsConfig(plugins, []), [
         {
-          message: "plugin dependencies must be a function returning an array",
+          message:
+            "plugin dependencies must be a function returning an array of functions",
           path: ["plugins", 0, "dependencies"],
         },
       ]);
@@ -1564,7 +1565,8 @@ describe("config validation", function () {
 
       assert.deepEqual(validatePluginsConfig(plugins, []), [
         {
-          message: "plugin dependencies must be a function returning an array",
+          message:
+            "plugin dependencies must be a function returning an array of functions",
           path: ["plugins", 0, "dependencies"],
         },
       ]);

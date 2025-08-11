@@ -616,7 +616,8 @@ export function validatePluginsConfig(
       if (typeof plugin.dependencies !== "function") {
         validationErrors.push({
           path: [...path, "plugins", index, "dependencies"],
-          message: "plugin dependencies must be a function returning an array",
+          message:
+            "plugin dependencies must be a function returning an array of functions",
         });
       }
     }
