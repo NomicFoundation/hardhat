@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-ignition-viem",
-  "version": "3.0.0-next.30",
+  "version": "3.0.0-next.31",
   "description": "The Viem extension to Hardhat Ignition. Hardhat Ignition is a declarative system for deploying smart contracts on Ethereum. It enables you to define smart contract instances you want to deploy, and any operation you want to run on them. By taking over the deployment and execution, Hardhat Ignition lets you focus on your project instead of getting caught up in the deployment details.",
   "homepage": "https://hardhat.org",
   "repository": {
@@ -41,11 +41,11 @@
   },
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "1.0.2",
-    "hardhat": "workspace:^3.0.0-next.30",
-    "@nomicfoundation/hardhat-ignition": "workspace:^3.0.0-next.30",
-    "@nomicfoundation/ignition-core": "workspace:^3.0.0-next.30",
-    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0-next.30",
-    "@nomicfoundation/hardhat-viem": "workspace:^3.0.0-next.30",
+    "hardhat": "workspace:^3.0.0-next.31",
+    "@nomicfoundation/hardhat-ignition": "workspace:^3.0.0-next.31",
+    "@nomicfoundation/ignition-core": "workspace:^3.0.0-next.31",
+    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0-next.31",
+    "@nomicfoundation/hardhat-viem": "workspace:^3.0.0-next.31",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
     "@types/node": "^20.14.9",
     "c8": "^9.1.0",
@@ -60,14 +60,14 @@
     "viem": "^2.30.0"
   },
   "dependencies": {
-    "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.30"
+    "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.31"
   },
   "peerDependencies": {
-    "hardhat": "workspace:^3.0.0-next.30",
-    "@nomicfoundation/hardhat-ignition": "workspace:^3.0.0-next.30",
-    "@nomicfoundation/ignition-core": "workspace:^3.0.0-next.30",
-    "@nomicfoundation/hardhat-verify": "workspace:^3.0.0-next.30",
-    "@nomicfoundation/hardhat-viem": "workspace:^3.0.0-next.30",
+    "hardhat": "workspace:^3.0.0-next.31",
+    "@nomicfoundation/hardhat-ignition": "workspace:^3.0.0-next.31",
+    "@nomicfoundation/ignition-core": "workspace:^3.0.0-next.31",
+    "@nomicfoundation/hardhat-verify": "workspace:^3.0.0-next.31",
+    "@nomicfoundation/hardhat-viem": "workspace:^3.0.0-next.31",
     "viem": "^2.30.0"
   }
 }
