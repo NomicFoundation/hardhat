@@ -8,8 +8,8 @@ export const setupKeystoreFileLocationOverrideAt = (
   const hardhatKeystoreFileLocationOverridePlugin: HardhatPlugin = {
     id: "hardhat-keystore-file-location-override",
     hookHandlers: {
-      config: async () => {
-        return {
+      config: async () => ({
+        default: async () => ({
           resolveUserConfig: async (
             userConfig,
             resolveConfigurationVariable,
@@ -29,8 +29,8 @@ export const setupKeystoreFileLocationOverrideAt = (
               },
             };
           },
-        };
-      },
+        }),
+      }),
     },
   };
 
