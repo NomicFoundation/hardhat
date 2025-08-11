@@ -484,8 +484,13 @@ export class Resolver {
   }
 
   private _isInsideSameDir(sourceNameInDir: string, sourceNameToTest: string) {
-    if (!sourceNameToTest) return false;
-    
+    if (
+      typeof sourceNameToTest !== "string" ||
+      typeof sourceNameInDir !== "string"
+    ) {
+      return false;
+    }
+
     const firstSlash = sourceNameInDir.indexOf("/");
     const dir =
       firstSlash !== -1
