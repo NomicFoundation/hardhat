@@ -158,16 +158,26 @@ export class CompilationJobImplementation implements CompilationJob {
       };
     }
 
+    const resolvedSettings: CompilerInput["settings"] = {
+      ...settings,
+      evmVersion:
+        settings.evmVersion ??
+        getEvmVersionFromSolcVersion(this.solcConfig.version),
+      outputSelection: this.#dedupeAndSortOutputSelection(outputSelection),
+      remappings: this.dependencyGraph.getAllRemappings(),
+    };
+
+    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
+      We just sort the same object to make the builds more consistent */
+    const sortedSettings = Object.fromEntries(
+      Object.entries(resolvedSettings).sort(([keyA], [keyB]) =>
+        keyA.localeCompare(keyB),
+      ),
+    ) as CompilerInput["settings"];
+
     return {
       language: "Solidity",
-      settings: {
-        ...settings,
-        evmVersion:
-          settings.evmVersion ??
-          getEvmVersionFromSolcVersion(this.solcConfig.version),
-        outputSelection: this.#dedupeAndSortOutputSelection(outputSelection),
-        remappings: this.dependencyGraph.getAllRemappings(),
-      },
+      settings: sortedSettings,
       sources,
     };
   }
