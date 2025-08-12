@@ -15,7 +15,9 @@ export const ANONYMIZED_PATH = "<user-path>";
  * will be anonymized to `<user-path>/node_modules/my-package/node_modules/some-other-package`.
  *
  * This function supports both Windows and Unix paths, as well as `file://` URLs,
- * preserving the original format. It may normalize all path separators to `/`.
+ * preserving the original format.
+ *
+ * It normalizes all path separators to `/`.
  *
  * It also supports all major node package managers, including pnpm, yarn, and npm.
  *
