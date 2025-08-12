@@ -5,6 +5,8 @@ export const ANONYMIZED_PATH = "<user-path>";
  *   - Node.js core modules
  *   - node_modules files
  *   - Yarn cache files
+ *   - pnpm global store
+ *   - bare file names (i.e. foo.json)
  *
  * Note that in the case where a path is not a Node.js core module,
  * it does anonymize the directory containing the outermost node_modules or
