@@ -80,20 +80,23 @@ export function anonymizeUserPaths(str: string): string {
 }
 
 function anonymizeSinglePath(path: string): string {
+  // Normalize path separators for easier processing
+  const normalizedPath = path.replace(/\\/g, "/");
+
   // We don't anonymize node internals
-  if (path.startsWith("node:") || path.startsWith("internal/")) {
-    return path;
+  if (
+    normalizedPath.startsWith("node:") ||
+    normalizedPath.startsWith("internal/")
+  ) {
+    return normalizedPath;
   }
 
   // Handle file:// URLs recursively
-  if (path.startsWith("file://")) {
-    const urlPath = path.substring(7); // Remove 'file://'
+  if (normalizedPath.startsWith("file://")) {
+    const urlPath = normalizedPath.substring(7); // Remove 'file://'
     const anonymizedPath = anonymizeSinglePath(urlPath);
     return `file://${anonymizedPath}`;
   }
-
-  // Normalize path separators for easier processing
-  const normalizedPath = path.replace(/\\/g, "/");
 
   // If the path starts with node_modules, we return it as is
   if (normalizedPath.startsWith("node_modules")) {
