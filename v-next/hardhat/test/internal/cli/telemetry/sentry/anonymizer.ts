@@ -83,7 +83,7 @@ describe("Anonymizer", () => {
 
     assert.equal(
       anonymizationResult.anonymizedFilename,
-      path.join("<user-path>", hardhatFilePath),
+      path.join("<user-path>", hardhatFilePath).replace(/\\/g, "/"),
     );
     assert.equal(anonymizationResult.anonymizeContent, false);
   });
@@ -94,7 +94,10 @@ describe("Anonymizer", () => {
     const anonymizationResult =
       await anonymizer.anonymizeFilename(internalNodePath);
 
-    assert.equal(anonymizationResult.anonymizedFilename, internalNodePath);
+    assert.equal(
+      anonymizationResult.anonymizedFilename,
+      internalNodePath.replace(/\\/g, "/"),
+    );
     assert.equal(anonymizationResult.anonymizeContent, false);
   });
 
