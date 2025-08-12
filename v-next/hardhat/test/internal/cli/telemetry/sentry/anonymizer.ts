@@ -9,16 +9,6 @@ import { GENERIC_SERVER_NAME } from "../../../../../src/internal/cli/telemetry/s
 
 const PROJECT_ROOT = "/path/to/project";
 
-class MockedAnonymizer extends Anonymizer {
-  public getFilePackageJsonPathResult: string | null = null;
-
-  protected override async _getFilePackageJsonPath(
-    _: string,
-  ): Promise<string | null> {
-    return this.getFilePackageJsonPathResult;
-  }
-}
-
 describe("Anonymizer", () => {
   it("should clone key information from an anonymized event", async () => {
     const originalEvent: Event = {
@@ -65,7 +55,7 @@ describe("Anonymizer", () => {
       path.join(PROJECT_ROOT, "src", "someFile.js"),
     );
 
-    assert.equal(anonymizationResult.anonymizedFilename, "<user-file>");
+    assert.equal(anonymizationResult.anonymizedFilename, "<user-path>");
     assert.equal(anonymizationResult.anonymizeContent, true);
   });
 
@@ -75,7 +65,7 @@ describe("Anonymizer", () => {
       path.join(PROJECT_ROOT, "someFile.js"),
     );
 
-    assert.equal(anonymizationResult.anonymizedFilename, "<user-file>");
+    assert.equal(anonymizationResult.anonymizedFilename, "<user-path>");
     assert.equal(anonymizationResult.anonymizeContent, true);
   });
 
@@ -93,7 +83,7 @@ describe("Anonymizer", () => {
 
     assert.equal(
       anonymizationResult.anonymizedFilename,
-      path.join(hardhatFilePath),
+      path.join("<user-path>", hardhatFilePath).replace(/\\/g, "/"),
     );
     assert.equal(anonymizationResult.anonymizeContent, false);
   });
@@ -104,18 +94,18 @@ describe("Anonymizer", () => {
     const anonymizationResult =
       await anonymizer.anonymizeFilename(internalNodePath);
 
-    assert.equal(anonymizationResult.anonymizedFilename, internalNodePath);
+    assert.equal(
+      anonymizationResult.anonymizedFilename,
+      internalNodePath.replace(/\\/g, "/"),
+    );
     assert.equal(anonymizationResult.anonymizeContent, false);
   });
 
   describe("hardhat config", () => {
     it("should return only the config's relative path", async () => {
       const pathToHardhatConfig = path.join(PROJECT_ROOT, "hardhat.config.ts");
-      const anonymizer = new MockedAnonymizer(pathToHardhatConfig);
-      anonymizer.getFilePackageJsonPathResult = path.join(
-        PROJECT_ROOT,
-        "package.json",
-      );
+      const anonymizer = new Anonymizer(pathToHardhatConfig);
+
       const anonymizationResult =
         await anonymizer.anonymizeFilename(pathToHardhatConfig);
       assert.equal(anonymizationResult.anonymizedFilename, "hardhat.config.ts");
@@ -128,17 +118,11 @@ describe("Anonymizer", () => {
         "config",
         "hardhat.config.ts",
       );
-      const anonymizer = new MockedAnonymizer(pathToHardhatConfig);
-      anonymizer.getFilePackageJsonPathResult = path.join(
-        PROJECT_ROOT,
-        "package.json",
-      );
+      const anonymizer = new Anonymizer(pathToHardhatConfig);
+
       const anonymizationResult =
         await anonymizer.anonymizeFilename(pathToHardhatConfig);
-      assert.equal(
-        anonymizationResult.anonymizedFilename,
-        path.join("config", "hardhat.config.ts"),
-      );
+      assert.equal(anonymizationResult.anonymizedFilename, "hardhat.config.ts");
       assert.equal(anonymizationResult.anonymizeContent, true);
     });
 
@@ -148,7 +132,7 @@ describe("Anonymizer", () => {
         "config",
         "hardhat.config.ts",
       );
-      const anonymizer = new MockedAnonymizer(pathToHardhatConfig);
+      const anonymizer = new Anonymizer(pathToHardhatConfig);
       const anonymizationResult =
         await anonymizer.anonymizeFilename(pathToHardhatConfig);
       assert.equal(anonymizationResult.anonymizedFilename, "hardhat.config.ts");
@@ -172,7 +156,7 @@ describe("Anonymizer", () => {
         anonymizer.anonymizeErrorMessage(errorMessage);
       assert.equal(
         anonymizedErrorMessage,
-        "Something happened at file <user-file>",
+        "Something happened at file file://<user-path>",
       );
     });
 
@@ -181,32 +165,35 @@ describe("Anonymizer", () => {
       const errorMessage = `Something happened (${import.meta.url})`;
       const anonymizedErrorMessage =
         anonymizer.anonymizeErrorMessage(errorMessage);
-      assert.equal(anonymizedErrorMessage, "Something happened <user-file>");
+      assert.equal(
+        anonymizedErrorMessage,
+        "Something happened (file://<user-path>)",
+      );
     });
 
     it("should anonymize multiple paths", () => {
       const anonymizer = new Anonymizer();
       const file1 = import.meta.url;
-      const file2 = path.resolve(import.meta.url, "..", "some-other-file.js");
+      const file2 = path.resolve("..", "some-other-file.js");
       const errorMessage = `Something happened at file ${file1} and at file ${file2}`;
       const anonymizedErrorMessage =
         anonymizer.anonymizeErrorMessage(errorMessage);
       assert.equal(
         anonymizedErrorMessage,
-        "Something happened at file <user-file> and at file <user-file>",
+        "Something happened at file file://<user-path> and at file <user-path>",
       );
     });
 
     it("should anonymize multiline errors", () => {
       const anonymizer = new Anonymizer();
       const file1 = import.meta.url;
-      const file2 = path.resolve(import.meta.url, "..", "some-other-file.js");
+      const file2 = path.resolve("..", "some-other-file.js");
       const errorMessage = `Something happened at file ${file1} and\nsomething else happened at file ${file2}`;
       const anonymizedErrorMessage =
         anonymizer.anonymizeErrorMessage(errorMessage);
       assert.equal(
         anonymizedErrorMessage,
-        `Something happened at file <user-file> and\nsomething else happened at file <user-file>`,
+        `Something happened at file file://<user-path> and\nsomething else happened at file <user-path>`,
       );
     });
 
@@ -218,7 +205,7 @@ describe("Anonymizer", () => {
         anonymizer.anonymizeErrorMessage(errorMessage);
       assert.equal(
         anonymizedErrorMessage,
-        "Something happened at file <user-file> something",
+        "Something happened at file file://<user-path>: something",
       );
     });
 
@@ -229,7 +216,7 @@ describe("Anonymizer", () => {
         anonymizer.anonymizeErrorMessage(errorMessage);
       assert.equal(
         anonymizedErrorMessage,
-        "Something happened at file <user-file>",
+        "Something happened at file foo.json",
       );
     });
 
@@ -241,7 +228,7 @@ describe("Anonymizer", () => {
         anonymizer.anonymizeErrorMessage(errorMessage);
       assert.equal(
         anonymizedErrorMessage,
-        "Something happened at file <user-file> and at file <user-file>",
+        "Something happened at file foo.json and at file bar.ts",
       );
     });
 
@@ -422,10 +409,10 @@ describe("Anonymizer", () => {
               stacktrace: {
                 frames: [
                   {
-                    filename: "<user-file>",
+                    filename: "<user-path>",
                   },
                   {
-                    filename: "<user-file>",
+                    filename: "<user-path>",
                   },
                   {
                     filename: filePath,
