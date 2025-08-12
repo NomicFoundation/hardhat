@@ -93,18 +93,14 @@ describe("anonymizeUserPaths", () => {
     // Deep nesting
     assert.equal(
       anonymizeUserPaths(
-        "/home/user/node_modules/my-package/node_modules/some-other-package/dist/index.js",
+        "C:\\Users\\Bob\\project\\node_modules\\express\\node_modules\\lib\\express.js",
       ),
-      "<user-path>/node_modules/my-package/node_modules/some-other-package/dist/index.js",
-    );
-
-    assert.equal(
-      anonymizeUserPaths("/home/user/project/node_modules/lodash/index.js"),
-      "<user-path>/node_modules/lodash/index.js",
+      "<user-path>/node_modules/express/node_modules/lib/express.js",
     );
   });
 
   it("Relative paths should be handled correctly", () => {
+    assert.equal(anonymizeUserPaths("src/index.js"), "<user-path>");
     assert.equal(anonymizeUserPaths("./src/index.js"), "<user-path>");
     assert.equal(anonymizeUserPaths("../lib/utils.ts"), "<user-path>");
     assert.equal(
@@ -316,11 +312,13 @@ describe("anonymizeUserPaths", () => {
     const errorMessage = `Module build failed (from /home/developer/project/node_modules/babel-loader/lib/index.js):
 SyntaxError: /home/developer/project/src/components/App.tsx:45:12
     at node:internal/modules/cjs/loader:936:15
+    at foo.js:13:58
     at /home/developer/project/node_modules/@babel/core/lib/transformation/normalize-file.js:13:58`;
 
     const expected = `Module build failed (from <user-path>/node_modules/babel-loader/lib/index.js):
 SyntaxError: <user-path>:45:12
     at node:internal/modules/cjs/loader:936:15
+    at foo.js:13:58
     at <user-path>/node_modules/@babel/core/lib/transformation/normalize-file.js:13:58`;
 
     assert.equal(anonymizeUserPaths(errorMessage), expected);
@@ -348,7 +346,9 @@ SyntaxError: <user-path>:45:12
       anonymizeUserPaths("../../node_modules/react/index.js"),
       "<user-path>/node_modules/react/index.js",
     );
+  });
 
+  it("Regression tests", () => {
     assert.equal(
       anonymizeUserPaths(
         "Something happened at file file://home/foo.js and at file file://home/foo.js",
