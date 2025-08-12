@@ -66,6 +66,7 @@ repositories:
 
       # DeclarationError: Identifier already declared.
       test/paymaster/ERC20PaymasterActiveWallet.t.sol
+      test/soulwallet/deploy/protocol.t.sol
     ref: fc7cc084563ad1bda870df841b77caa9ee3a3661
   PaulRBerg/prb-math:
     commands:
