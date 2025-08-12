@@ -63,6 +63,9 @@ repositories:
 
       # unknown cheatcode with selector 0xf0259e92 (breakpoint(string))
       test/paymaster/ERC20Paymaster.t.sol
+
+      # DeclarationError: Identifier already declared.
+      test/paymaster/ERC20PaymasterActiveWallet.t.sol
     ref: fc7cc084563ad1bda870df841b77caa9ee3a3661
   PaulRBerg/prb-math:
     commands:
@@ -73,6 +76,7 @@ repositories:
     forge-version: v0.3.0
     remappings: |
       forge-std/=node_modules/forge-std/
+      src/=src/
     hardhat-config: |
       export default {
         "paths": {
@@ -108,6 +112,7 @@ repositories:
     remappings: |
       @prb/test/=node_modules/@prb/test/
       forge-std/=node_modules/forge-std/
+      src/=src/
     hardhat-config: |
       export default {
         "paths": {
@@ -830,6 +835,8 @@ repositories:
       #   calldata: 0x436f32710000000000000000000000000000000000000000000000000000aa3685b35e0f
       #   args: 187151148080655 [1.871e14]
       tests/integration/fuzz/lockup-tranched/createWithTimestampsLT.t.sol
+    remappings: |
+      src/=src/
     ref: a8528a6d0ca25f4f36eb9327fc87e08dc78ad0a6
   sablier-labs/v2-periphery:
     env: |
@@ -988,8 +995,8 @@ commands:
     template: 'Compiled ${0} file(s)'
   hardhat test solidity:
     command: 'hardhat test solidity'
-    pattern: 'Run (?:Failed|Passed): (\d+) tests, (\d+) passed, (\d+) failed, (\d+) skipped \(duration: \d+ ms\)'
-    template: 'Ran ${0} tests (${1} passed, ${2} failed, ${3} skipped)'
+    pattern: '(?:(\d+) passing)?(?:(\d+) failing\n)?(?:(\d+) skipped\n)?'
+    template: 'Ran ${∑} tests (${0} passed, ${1} failed, ${2} skipped)'
   hardhat2 compile:
     command: 'hardhat compile'
     pattern: 'Compiled (\d+) Solidity files successfully'

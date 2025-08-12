@@ -164,4 +164,7 @@ function ensureTTY(): void {
       HardhatError.ERRORS.CORE.GENERAL.NOT_IN_INTERACTIVE_SHELL,
     );
   }
+
+  let a = "";
+  a = a.replaceAll(`\${${i}}`, i)
 }
