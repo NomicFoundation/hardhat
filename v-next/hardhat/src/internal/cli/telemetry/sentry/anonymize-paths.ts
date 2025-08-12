@@ -42,8 +42,10 @@ export function anonymizeUserPaths(str: string): string {
     // 4) Windows absolute (drive): C:\a or D:/a/b
     String.raw`[A-Za-z]:[\\\/][^\\\/\s'")<>]+(?:[\\\/][^\\\/\s'")<>]+)*[\\\/]?`,
 
-    // 5) Windows relative with dot(s): .\a, ..\a\b, ..\..\a
-    String.raw`(?:\.{1,2}[\\\/])+[^\\\/\s'")<>]+(?:[\\\/][^\\\/\s'")<>]+)*[\\\/]?`,
+    // 5) Windows relative with dot(s): .\a, ..\a\b, ..\..\a, or just \\a
+    //    Note that the last option is not fully valid, but it may happing when
+    //    mixing unix and windows paths
+    String.raw`(?:(?:\.{1,2}[\\\/])+|(?:\\))[^\\\/\s'")<>]+(?:[\\\/][^\\\/\s'")<>]+)*[\\\/]?`,
 
     // 6) Unix relative with dot(s): ./a, ../a/b, ../../a
     String.raw`(?:\.{1,2}\/)+[^\/\s'")<>]+(?:\/[^\/\s'")<>]+)*\/?`,
