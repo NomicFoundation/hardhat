@@ -1,18 +1,33 @@
+import type { BuildInfo } from "../../../types/artifacts.js";
 import type { EdrNetworkConfigOverride } from "../../../types/config.js";
+import type { SolidityBuildInfoOutput } from "../../../types/solidity.js";
 import type { NewTaskActionFunction } from "../../../types/tasks.js";
+
+import path from "node:path";
 
 import {
   assertHardhatInvariant,
   HardhatError,
 } from "@nomicfoundation/hardhat-errors";
-import { exists } from "@nomicfoundation/hardhat-utils/fs";
+import {
+  ensureDir,
+  exists,
+  readJsonFile,
+  readJsonFileAsStream,
+} from "@nomicfoundation/hardhat-utils/fs";
 import chalk from "chalk";
+import debug from "debug";
 
+import { sendErrorTelemetry } from "../../cli/telemetry/sentry/reporter.js";
 import { DEFAULT_NETWORK_NAME } from "../../constants.js";
 import { isSupportedChainType } from "../../edr/chain-type.js";
+import { BUILD_INFO_DIR_NAME } from "../artifacts/artifact-manager.js";
 
+import { watchBuildInfo } from "./artifacts/build-info-watcher.js";
 import { formatEdrNetworkConfigAccounts } from "./helpers.js";
 import { JsonRpcServerImplementation } from "./json-rpc/server.js";
+
+const log = debug("hardhat:core:tasks:node");
 
 interface NodeActionArguments {
   hostname?: string;
@@ -128,7 +143,52 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
 
   console.log();
 
-  // TODO(https://github.com/NomicFoundation/hardhat/issues/6040): Add build info watcher here
+  const buildInfoDirPath = path.join(
+    hre.config.paths.artifacts,
+    BUILD_INFO_DIR_NAME,
+  );
+  await ensureDir(buildInfoDirPath);
+
+  const buildInfoHandler = async (buildId: string) => {
+    try {
+      log(`Adding new compilation result for build ${buildId} to the node`);
+      const buildInfo: BuildInfo = await readJsonFile(
+        path.join(buildInfoDirPath, `${buildId}.json`),
+      );
+      const buildInfoOutput: SolidityBuildInfoOutput =
+        await readJsonFileAsStream(
+          path.join(buildInfoDirPath, `${buildId}.output.json`),
+        );
+
+      await provider.request({
+        method: "hardhat_addCompilationResult",
+        params: [
+          buildInfo.solcVersion,
+          buildInfo.input,
+          buildInfoOutput.output,
+        ],
+      });
+    } catch (error) {
+      console.warn(
+        chalk.yellow(
+          `There was a problem adding the new compiler result for build ${buildId}. Run Hardhat with --verbose to learn more.`,
+        ),
+      );
+
+      log(
+        "Last compilation result couldn't be added. Please report this to help us improve Hardhat.\n",
+        error,
+      );
+
+      if (error instanceof Error) {
+        await sendErrorTelemetry(error);
+      }
+    }
+  };
+  const buildInfoWatcher = await watchBuildInfo(
+    buildInfoDirPath,
+    buildInfoHandler,
+  );
 
   // NOTE: Before creating the node, we check if the input network config is of type edr.
   // We only proceed if it is. Hence, we can assume that the output network config is of type edr as well.
@@ -140,6 +200,7 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
   console.log(await formatEdrNetworkConfigAccounts(networkConfig.accounts));
 
   await server.waitUntilClosed();
+  await buildInfoWatcher.close();
 };
 
 export default nodeAction;
