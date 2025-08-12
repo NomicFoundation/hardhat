@@ -75,12 +75,16 @@ export async function getEdrArtifacts(
 
   const solcVersionsArray: Array<[string, string]> = buildInfoIds
     .map((buildInfoId) => {
-      if (buildInfoId === undefined) {
-        return undefined;
-      }
+      assertHardhatInvariant(
+        buildInfoId !== undefined,
+        "buildInfoId should not be undefined",
+      );
 
       const match = BUILD_INFO_FORMAT.exec(buildInfoId);
 
+      // If the build info doesn't match this pattern it was probably generated
+      // by something other than Hardhat and/or using a different compiler, so
+      // we just ignore it.
       if (match === null) {
         return undefined;
       }
