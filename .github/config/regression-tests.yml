@@ -63,6 +63,10 @@ repositories:
 
       # unknown cheatcode with selector 0xf0259e92 (breakpoint(string))
       test/paymaster/ERC20Paymaster.t.sol
+
+      # DeclarationError: Identifier already declared.
+      test/paymaster/ERC20PaymasterActiveWallet.t.sol
+      test/soulwallet/deploy/protocol.t.sol
     ref: fc7cc084563ad1bda870df841b77caa9ee3a3661
   PaulRBerg/prb-math:
     commands:
@@ -73,6 +77,7 @@ repositories:
     forge-version: v0.3.0
     remappings: |
       forge-std/=node_modules/forge-std/
+      src/=src/
     hardhat-config: |
       export default {
         "paths": {
@@ -97,6 +102,45 @@ repositories:
           }
         }
       };
+    ignore: |
+      # reverted with custom error *
+      # reverted with panic code 0x12 (Division or modulo division by zero)
+      test/fuzz/casting/CastingUint128.t.sol
+      test/fuzz/casting/CastingUint256.t.sol
+      test/fuzz/sd1x18/casting/Casting.t.sol
+      test/fuzz/sd21x18/casting/Casting.t.sol
+      test/fuzz/sd59x18/casting/Casting.t.sol
+      test/fuzz/ud21x18/casting/Casting.t.sol
+      test/fuzz/ud2x18/casting/Casting.t.sol
+      test/fuzz/ud60x18/casting/Casting.t.sol
+      test/unit/sd59x18/conversion/convert-to/convertTo.t.sol
+      test/unit/sd59x18/math/abs/abs.t.sol
+      test/unit/sd59x18/math/ceil/ceil.t.sol
+      test/unit/sd59x18/math/div/div.t.sol
+      test/unit/sd59x18/math/exp/exp.t.sol
+      test/unit/sd59x18/math/exp2/exp2.t.sol
+      test/unit/sd59x18/math/floor/floor.t.sol
+      test/unit/sd59x18/math/gm/gm.t.sol
+      test/unit/sd59x18/math/inv/inv.t.sol
+      test/unit/sd59x18/math/ln/ln.t.sol
+      test/unit/sd59x18/math/log10/log10.t.sol
+      test/unit/sd59x18/math/log2/log2.t.sol
+      test/unit/sd59x18/math/mul/mul.t.sol
+      test/unit/sd59x18/math/powu/powu.t.sol
+      test/unit/sd59x18/math/sqrt/sqrt.t.sol
+      test/unit/ud60x18/conversion/convert-to/convertTo.t.sol
+      test/unit/ud60x18/math/ceil/ceil.t.sol
+      test/unit/ud60x18/math/div/div.t.sol
+      test/unit/ud60x18/math/exp/exp.t.sol
+      test/unit/ud60x18/math/exp2/exp2.t.sol
+      test/unit/ud60x18/math/gm/gm.t.sol
+      test/unit/ud60x18/math/inv/inv.t.sol
+      test/unit/ud60x18/math/ln/ln.t.sol
+      test/unit/ud60x18/math/log10/log10.t.sol
+      test/unit/ud60x18/math/log2/log2.t.sol
+      test/unit/ud60x18/math/mul/mul.t.sol
+      test/unit/ud60x18/math/powu/powu.t.sol
+      test/unit/ud60x18/math/sqrt/sqrt.t.sol
     ref: 93be53541f39a0c1e80818a9183b2acb3908ae74
   PaulRBerg/prb-proxy:
     commands:
@@ -108,6 +152,7 @@ repositories:
     remappings: |
       @prb/test/=node_modules/@prb/test/
       forge-std/=node_modules/forge-std/
+      src/=src/
     hardhat-config: |
       export default {
         "paths": {
@@ -388,6 +433,15 @@ repositories:
       test/reactors/BaseDutchOrderReactor.t.sol
       test/reactors/ExclusiveDutchOrderReactor.t.sol
       test/reactors/DutchOrderReactor.t.sol
+
+      # reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      # reverted with custom error
+      # call didn't revert at a lower depth than cheatcode call depth
+      # gas price must be less than 2^128 - 1
+      test/lib/DutchDecayLib.t.sol
+      test/lib/MathExt.t.sol
+      test/lib/PriorityFeeLib.t.sol
+      test/lib/Uint16Array.t.sol
     ref: 4013dfa4bc53b823b406b035a9b5eb579607eb99
   Vectorized/solady:
     commands:
@@ -501,6 +555,14 @@ repositories:
       # test_RevertIf_ChainBubbleUp(): call did not revert as expected (this is caused by using an invalid mainnet rpc endpoint)
       # test_ChainRpcInitialization(): assertion failed: https://eth-mainnet.alchemyapi.io/v2/WV407BEiBmjNJfKo9Uo_55u0z0ITyCOX != https://eth.merkle.io
       test/StdChains.t.sol
+
+      # the path test/fixtures/test.* is not allowed to be accessed for read operations
+      # the path test/fixtures/test.* is not allowed to be accessed for write operations
+      test/StdToml.t.sol
+      test/StdJson.t.sol
+
+      # Unknown error
+      test/ReentrancyGuard.t.sol
     ref: 8ba9031ffcbe25aa0d1224d3ca263a995026e477
   kalidao/keep:
     commands:
@@ -531,6 +593,12 @@ repositories:
           }
         },
       };
+    ignore: |
+      # next call did not revert as expected
+      test/Kali.t.sol
+
+      # Unknown error
+      test/ReentrancyGuard.t.sol
     ref: 21213d34042b8a5a68afeb590f43018f08c81a58
   mds1/multicall:
     commands:
@@ -653,6 +721,29 @@ repositories:
       test/pool-cl/CLCustomCurveHook.t.sol
       test/pool-cl/CLMintBurnFeeHook.t.sol
       test/pool-cl/libraries/TickBitmap.t.sol
+
+      # the path test/* is not allowed to be accessed for read operations
+      # reverted with custom error *
+      # call didn't revert at a lower depth than cheatcode call depth
+      # reverted with an unrecognized custom error
+      # reverted with panic code 0x12 (Division or modulo division by zero)
+      # reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      test/pool-cl/CLPoolManagerBehaviorComparison.t.sol
+      test/libraries/BipsLibrary.t.sol
+      test/pool-cl/libraries/FullMath.t.sol
+      test/pool-bin/libraries/BinHelper.t.sol
+      test/libraries/LPFeeLibrary.t.sol
+      test/pool-bin/libraries/math/LiquidityConfigurations.t.sol
+      test/pool-bin/libraries/math/PackedUint128Math.t.sol
+      test/pool-cl/libraries/CLPool.t.sol
+      test/pool-bin/libraries/PriceHelper.t.sol
+      test/pool-bin/BinPoolManagerBehaviorComparison.t.sol
+      test/pool-bin/libraries/math/Uint256x256Math.t.sol
+      test/libraries/SafeCast.t.sol
+      test/libraries/SettlementGuard.t.sol
+      test/pool-bin/libraries/math/SafeCast.t.sol
+      test/libraries/BalanceDelta.t.sol
+      test/VaultToken.t.sol
     ref: 9a050c44cdf801fd19753409e6a03a8026a1fd09
   pcaversaccio/createx:
     commands:
@@ -721,6 +812,9 @@ repositories:
       test/public/CREATE3/CreateX.deployCreate3AndInit_4Args_CustomiseSalt.t.sol
       test/public/CREATE3/CreateX.deployCreate3AndInit_4Args_CustomiseSalt.t.sol
       test/internal/CreateX._generateSalt.t.sol
+
+      # block height must be less than 2^64 - 1
+      test/internal/CreateX._guard.t.sol
     ref: ac7e49b93030145a646c6cffd62a81f447422309
   sablier-labs/lockup:
     env: |
@@ -830,6 +924,9 @@ repositories:
       #   calldata: 0x436f32710000000000000000000000000000000000000000000000000000aa3685b35e0f
       #   args: 187151148080655 [1.871e14]
       tests/integration/fuzz/lockup-tranched/createWithTimestampsLT.t.sol
+    remappings: |
+      src/=src/
+      tests/=tests/
     ref: a8528a6d0ca25f4f36eb9327fc87e08dc78ad0a6
   sablier-labs/v2-periphery:
     env: |
@@ -946,6 +1043,27 @@ repositories:
           }
         }
       };
+    ignore: |
+      # revert: *
+      # EvmRevert
+      # Function returned an unexpected amount of data
+      # reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      # Unknown error
+      # Function selector was not recognized and there's no fallback function
+      src/test/Auth.t.sol
+      src/test/ERC6909.t.sol
+      src/test/CREATE3.t.sol
+      src/test/DSTestPlus.t.sol
+      src/test/ReentrancyGuard.t.sol
+      src/test/SSTORE2.t.sol
+      src/test/SafeCastLib.t.sol
+      src/test/SafeTransferLib.t.sol
+      src/test/SignedWadMath.t.sol
+      src/test/ERC721.t.sol
+      src/test/ERC1155.t.sol
+      src/test/FixedPointMathLib.t.sol
+      src/test/ERC20.t.sol
+      src/test/ERC4626.t.sol
     ref: c93f7716c9909175d45f6ef80a34a650e2d24e56
   OpenZeppelin/openzeppelin-contracts:
     commands:
@@ -988,8 +1106,8 @@ commands:
     template: 'Compiled ${0} file(s)'
   hardhat test solidity:
     command: 'hardhat test solidity'
-    pattern: 'Run (?:Failed|Passed): (\d+) tests, (\d+) passed, (\d+) failed, (\d+) skipped \(duration: \d+ ms\)'
-    template: 'Ran ${0} tests (${1} passed, ${2} failed, ${3} skipped)'
+    pattern: '(?:(\d+) passing)?(?:(\d+) failing\n)?(?:(\d+) skipped\n)?'
+    template: 'Ran ${∑} tests (${0} passed, ${1} failed, ${2} skipped)'
   hardhat2 compile:
     command: 'hardhat compile'
     pattern: 'Compiled (\d+) Solidity files successfully'
@@ -1015,7 +1133,8 @@ presets:
       - PaulRBerg/prb-test
       - pcaversaccio/createx
       - ProjectOpenSea/seaport
-      - sablier-labs/lockup
+      # The tests never finishi - infinite loop (?)
+      # - sablier-labs/lockup
       - sablier-labs/v2-periphery
       - transmissions11/solmate
       - Uniswap/UniswapX
