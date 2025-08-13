@@ -106,6 +106,263 @@ repositories:
           }
         }
       };
+    ignore: |
+      # test/unit/ud60x18/math/gm/gm.t.sol:Gm_Unit_Test
+      #   1) test_RevertWhen_ProductOverflows()
+      #     Error: reverted with custom error 'PRBMath_UD60x18_Gm_Overflow(340282366920938463463374607431768211456000000000, 340282366920938463463374607431768211456000000000)'
+      test/unit/ud60x18/math/gm/gm.t.sol
+      # test/unit/sd59x18/math/exp/exp.t.sol:Exp_Unit_Test
+      #   2) test_RevertWhen_Positive_GtMaxPermitted()
+      #     Error: reverted with custom error 'PRBMath_SD59x18_Exp_InputTooBig(133084258667509499441)'
+      test/unit/sd59x18/math/exp/exp.t.sol
+      # test/unit/sd59x18/conversion/convert-to/convertTo.t.sol:ConvertTo_Unit_Test
+      #   3) test_RevertWhen_LtMinPermitted()
+      #     Error: reverted with custom error 'PRBMath_SD59x18_Convert_Underflow(-57896044618658097711785492504343953926634992332820282019729)'
+      #   4) test_RevertWhen_GtMaxPermitted()
+      #     Error: reverted with custom error 'PRBMath_SD59x18_Convert_Overflow(57896044618658097711785492504343953926634992332820282019729)'
+      test/unit/sd59x18/conversion/convert-to/convertTo.t.sol
+      # test/unit/sd59x18/math/inv/inv.t.sol:Inv_Unit_Test
+      #   5) test_RevertWhen_Zero()
+      #     Error: reverted with panic code 0x12 (Division or modulo division by zero)
+      test/unit/sd59x18/math/inv/inv.t.sol
+      # test/unit/sd59x18/math/abs/abs.t.sol:Abs_Unit_Test
+      #   6) test_RevertWhen_MinSD59x18()
+      #     Error: reverted with custom error 'PRBMath_SD59x18_Abs_MinSD59x18()'
+      test/unit/sd59x18/math/abs/abs.t.sol
+      # test/unit/ud60x18/math/exp/exp.t.sol:Exp_Unit_Test
+      #   7) test_RevertWhen_GtMaxPermitted()
+      #     Error: reverted with custom error 'PRBMath_UD60x18_Exp_InputTooBig(133084258667509499441)'
+      test/unit/ud60x18/math/exp/exp.t.sol
+      # test/unit/ud60x18/conversion/convert-to/convertTo.t.sol:ConvertTo_Unit_Test
+      #   8) test_RevertWhen_GtMaxPermitted()
+      #     Error: reverted with custom error 'PRBMath_UD60x18_Convert_Overflow(115792089237316195423570985008687907853269984665640564039458)'
+      test/unit/ud60x18/conversion/convert-to/convertTo.t.sol
+      # test/unit/ud60x18/math/inv/inv.t.sol:Inv_Unit_Test
+      #   9) test_RevertWhen_Zero()
+      #     Error: reverted with panic code 0x12 (Division or modulo division by zero)
+      test/unit/ud60x18/math/inv/inv.t.sol
+      # test/unit/sd59x18/math/floor/floor.t.sol:Floor_Unit_Test
+      #   10) test_RevertWhen_Negative_LtMinPermitted()
+      #     Error: reverted with custom error 'PRBMath_SD59x18_Floor_Underflow(-57896044618658097711785492504343953926634992332820282019728000000000000000001)'
+      test/unit/sd59x18/math/floor/floor.t.sol
+      # test/unit/sd59x18/math/ln/ln.t.sol:Ln_Unit_Test
+      #   11) test_RevertWhen_Zero()
+      #     Error: reverted with custom error 'PRBMath_SD59x18_Log_InputTooSmall(0)'
+      #   12) test_RevertWhen_Negative()
+      #     Error: reverted with custom error 'PRBMath_SD59x18_Log_InputTooSmall(-1)'
+      test/unit/sd59x18/math/ln/ln.t.sol
+      # test/unit/ud60x18/math/ln/ln.t.sol:Ln_Unit_Test
+      #   13) test_RevertWhen_LtUnit()
+      #     Error: reverted with custom error 'PRBMath_UD60x18_Log_InputTooSmall(999999999999999999)'
+      test/unit/ud60x18/math/ln/ln.t.sol
+      # test/unit/sd59x18/math/log10/log10.t.sol:Log10_Unit_Test
+      #   14) test_RevertWhen_Zero()
+      #     Error: reverted with custom error 'PRBMath_SD59x18_Log_InputTooSmall(0)'
+      #   15) test_RevertWhen_Negative()
+      #     Error: reverted with custom error 'PRBMath_SD59x18_Log_InputTooSmall(-1)'
+      test/unit/sd59x18/math/log10/log10.t.sol
+      # test/unit/ud60x18/math/log10/log10.t.sol:Log10_Unit_Test
+      #   16) test_RevertWhen_LtUnit()
+      #     Error: reverted with custom error 'PRBMath_UD60x18_Log_InputTooSmall(999999999999999999)'
+      test/unit/ud60x18/math/log10/log10.t.sol
+      # test/unit/sd59x18/math/gm/gm.t.sol:Gm_Unit_Test
+      #   17) test_RevertWhen_ProductOverflow_D()
+      #     Error: reverted with custom error 'PRBMath_SD59x18_Gm_Overflow(57896044618658097711785492504343953926634992332820282019728792003956564819967, 2)'
+      #   18) test_RevertWhen_ProductOverflow_C()
+      #     Error: reverted with custom error 'PRBMath_SD59x18_Gm_Overflow(240615969168004511545033772477625056928, 240615969168004511545033772477625056928)'
+      #   19) test_RevertWhen_ProductOverflow_B()
+      #     Error: reverted with custom error 'PRBMath_SD59x18_Gm_Overflow(-240615969168004511545033772477625056927, -240615969168004511545033772477625056928)'
+      #   20) test_RevertWhen_ProductOverflow_A()
+      #     Error: reverted with custom error 'PRBMath_SD59x18_Gm_Overflow(-57896044618658097711785492504343953926634992332820282019728792003956564819968, 2)'
+      #   21) test_RevertWhen_ProductNegative_B()
+      #     Error: reverted with custom error 'PRBMath_SD59x18_Gm_NegativeProduct(3141592653589793238, -1000000000000000000)'
+      #   22) test_RevertWhen_ProductNegative_A()
+      #     Error: reverted with custom error 'PRBMath_SD59x18_Gm_NegativeProduct(-1000000000000000000, 3141592653589793238)'
+      test/unit/sd59x18/math/gm/gm.t.sol
+      # test/unit/sd59x18/math/div/div.t.sol:Div_Unit_Test
+      #   23) test_RevertWhen_ResultOverflowSD59x18_Operator()
+      #     Error: reverted with custom error 'PRBMath_SD59x18_Div_Overflow(-57896044618658097711785492504343953926634992332820282019729, 1)'
+      #   24) test_RevertWhen_ResultOverflowSD59x18_Function()
+      #     Error: reverted with custom error 'PRBMath_SD59x18_Div_Overflow(-57896044618658097711785492504343953926634992332820282019729, 1)'
+      #   25) test_RevertWhen_NumeratorMinSD59x18_Operator()
+      #     Error: reverted with custom error 'PRBMath_SD59x18_Div_InputTooSmall()'
+      #   26) test_RevertWhen_NumeratorMinSD59x18_Function()
+      #     Error: reverted with custom error 'PRBMath_SD59x18_Div_InputTooSmall()'
+      #   27) test_RevertWhen_DenominatorZero_Operator()
+      #     Error: reverted with panic code 0x12 (Division or modulo division by zero)
+      #   28) test_RevertWhen_DenominatorZero_Function()
+      #     Error: reverted with panic code 0x12 (Division or modulo division by zero)
+      #   29) test_RevertWhen_DenominatorMinSD59x18_Operator()
+      #     Error: reverted with custom error 'PRBMath_SD59x18_Div_InputTooSmall()'
+      #   30) test_RevertWhen_DenominatorMinSD59x18_Function()
+      #     Error: reverted with custom error 'PRBMath_SD59x18_Div_InputTooSmall()'
+      test/unit/sd59x18/math/div/div.t.sol
+      # test/unit/sd59x18/math/log2/log2.t.sol:Log2_Unit_Test
+      #   31) test_RevertWhen_Zero()
+      #     Error: reverted with custom error 'PRBMath_SD59x18_Log_InputTooSmall(0)'
+      #   32) test_RevertWhen_Negative()
+      #     Error: reverted with custom error 'PRBMath_SD59x18_Log_InputTooSmall(-1)'
+      test/unit/sd59x18/math/log2/log2.t.sol
+      # test/unit/ud60x18/math/log2/log2.t.sol:Log2_Unit_Test
+      #   33) test_RevertWhen_LtUnit()
+      #     Error: reverted with custom error 'PRBMath_UD60x18_Log_InputTooSmall(999999999999999999)'
+      test/unit/ud60x18/math/log2/log2.t.sol
+      # test/unit/ud60x18/math/div/div.t.sol:Div_Unit_Test
+      #   34) test_RevertWhen_ResultOverflowUD60x18_Operator()
+      #     Error: reverted with custom error 'PRBMath_MulDiv_Overflow(115792089237316195423570985008687907853269984665640564039458, 1000000000000000000, 1)'
+      #   35) test_RevertWhen_ResultOverflowUD60x18_Function()
+      #     Error: reverted with custom error 'PRBMath_MulDiv_Overflow(115792089237316195423570985008687907853269984665640564039458, 1000000000000000000, 1)'
+      #   36) test_RevertWhen_DenominatorZero_Operator()
+      #     Error: reverted with panic code 0x12 (Division or modulo division by zero)
+      #   37) test_RevertWhen_DenominatorZero_Function()
+      #     Error: reverted with panic code 0x12 (Division or modulo division by zero)
+      test/unit/ud60x18/math/div/div.t.sol
+      # test/unit/sd59x18/math/mul/mul.t.sol:Mul_Unit_Test
+      #   38) test_RevertWhen_ResultOverflowUint256()
+      #     Error: reverted with custom error 'PRBMath_MulDiv18_Overflow(57896044618658097711785492504343953926634992332820282019728792003956564819967, 57896044618658097711785492504343953926634992332820282019728792003956564819967)'
+      #   39) test_RevertWhen_ResultOverflowSD59x18_B()
+      #     Error: reverted with custom error 'PRBMath_SD59x18_Mul_Overflow(240615969168004511545033772477625056927114980741, 240615969168004511545033772477625056927114980742)'
+      #   40) test_RevertWhen_ResultOverflowSD59x18_A()
+      #     Error: reverted with custom error 'PRBMath_SD59x18_Mul_Overflow(-240615969168004511545033772477625056927114980741, -240615969168004511545033772477625056927114980742)'
+      #   41) test_RevertWhen_OneOperandMinSD59x18_Operator()
+      #     Error: reverted with custom error 'PRBMath_SD59x18_Mul_InputTooSmall()'
+      #   42) test_RevertWhen_OneOperandMinSD59x18_Function()
+      #     Error: reverted with custom error 'PRBMath_SD59x18_Mul_InputTooSmall()'
+      test/unit/sd59x18/math/mul/mul.t.sol
+      # test/unit/sd59x18/math/exp2/exp2.t.sol:Exp2_Unit_Test
+      #   43) test_RevertWhen_Positive_GtMaxPermitted()
+      #     Error: reverted with custom error 'PRBMath_SD59x18_Exp2_InputTooBig(192000000000000000000)'
+      test/unit/sd59x18/math/exp2/exp2.t.sol
+      # test/unit/ud60x18/math/exp2/exp2.t.sol:Exp2_Unit_Test
+      #   44) test_RevertWhen_GtMaxPermitted()
+      #     Error: reverted with custom error 'PRBMath_UD60x18_Exp2_InputTooBig(192000000000000000000)'
+      test/unit/ud60x18/math/exp2/exp2.t.sol
+      # test/unit/ud60x18/math/mul/mul.t.sol:Mul_Unit_Test
+      #   45) test_RevertWhen_ResultOverflowUD60x18_Operator()
+      #     Error: reverted with custom error 'PRBMath_MulDiv18_Overflow(340282366920938463463374607431768211456000000000, 340282366920938463463374607431768211456000000000)'
+      #   46) test_RevertWhen_ResultOverflowUD60x18_Function()
+      #     Error: reverted with custom error 'PRBMath_MulDiv18_Overflow(340282366920938463463374607431768211456000000000, 340282366920938463463374607431768211456000000000)'
+      test/unit/ud60x18/math/mul/mul.t.sol
+      # test/unit/sd59x18/math/ceil/ceil.t.sol:Ceil_Unit_Test
+      #   47) test_RevertWhen_GtMaxPermitted()
+      #     Error: reverted with custom error 'PRBMath_SD59x18_Ceil_Overflow(57896044618658097711785492504343953926634992332820282019728000000000000000001)'
+      test/unit/sd59x18/math/ceil/ceil.t.sol
+      # test/fuzz/casting/CastingUint128.t.sol:CastingUint128_Test
+      #   48) testFuzz_RevertWhen_OverflowUD2x18(uint128)
+      #     Error: reverted with custom error 'PRBMath_IntoUD2x18_Overflow(340282366920938463444927863358058659914)'
+      #   49) testFuzz_RevertWhen_OverflowSD1x18(uint128)
+      #     Error: reverted with custom error 'PRBMath_IntoSD1x18_Overflow(9784779306380621444583590145563)'
+      test/fuzz/casting/CastingUint128.t.sol
+      # test/fuzz/sd1x18/casting/Casting.t.sol:Casting_Fuzz_Test
+      #   50) testFuzz_RevertWhen_UnderflowUint40(int64)
+      #     Error: reverted with custom error 'PRBMath_SD1x18_ToUint40_Underflow(-9223371992128542184)'
+      #   51) testFuzz_RevertWhen_UnderflowUint256(int64)
+      #     Error: reverted with custom error 'PRBMath_SD1x18_ToUint256_Underflow(-9223372036854769499)'
+      #   52) testFuzz_RevertWhen_UnderflowUint128(int64)
+      #     Error: reverted with custom error 'PRBMath_SD1x18_ToUint128_Underflow(-9223372036854775478)'
+      #   53) testFuzz_RevertWhen_UnderflowUD60x18(int64)
+      #     Error: reverted with custom error 'PRBMath_SD1x18_ToUD60x18_Underflow(-9223372034963812896)'
+      #   54) testFuzz_RevertWhen_OverflowUint40(int64)
+      #     Error: reverted with custom error 'PRBMath_SD1x18_ToUint40_Overflow(8837769963450549885)'
+      test/fuzz/sd1x18/casting/Casting.t.sol
+      # test/unit/ud60x18/math/ceil/ceil.t.sol:CeilTest
+      #   55) test_RevertWhen_GtMaxPermitted()
+      #     Error: reverted with custom error 'PRBMath_UD60x18_Ceil_Overflow(115792089237316195423570985008687907853269984665640564039457000000000000000001)'
+      test/unit/ud60x18/math/ceil/ceil.t.sol
+      # test/fuzz/sd21x18/casting/Casting.t.sol:Casting_Fuzz_Test
+      #   56) testFuzz_RevertWhen_UnderflowUint40(int128)
+      #     Error: reverted with custom error 'PRBMath_SD21x18_ToUint40_Underflow(-6427220068346512575495)'
+      #   57) testFuzz_RevertWhen_UnderflowUint256(int128)
+      #     Error: reverted with custom error 'PRBMath_SD21x18_ToUint256_Underflow(-790179)'
+      #   58) testFuzz_RevertWhen_UnderflowUint128(int128)
+      #     Error: reverted with custom error 'PRBMath_SD21x18_ToUint128_Underflow(-1122676072051139295539994)'
+      #   59) testFuzz_RevertWhen_UnderflowUD60x18(int128)
+      #     Error: reverted with custom error 'PRBMath_SD21x18_ToUD60x18_Underflow(-170141183460469231731687303715884099509)'
+      #   60) testFuzz_RevertWhen_OverflowUint40(int128)
+      #     Error: reverted with custom error 'PRBMath_SD21x18_ToUint40_Overflow(170141183460469231731687301516860854649)'
+      test/fuzz/sd21x18/casting/Casting.t.sol
+      # test/unit/sd59x18/math/powu/powu.t.sol:Powu_Unit_Test
+      #   61) test_RevertWhen_ResultUnderflowSD59x18()
+      #     Error: reverted with custom error 'PRBMath_SD59x18_Powu_Overflow(-240615969168004511545033772477625056927114980742, 2)'
+      #   62) test_RevertWhen_ResultOverflowUint256()
+      #     Error: reverted with custom error 'PRBMath_MulDiv18_Overflow(57896044618658097711785492504343953926634992332820282019728792003956564819967, 57896044618658097711785492504343953926634992332820282019728792003956564819967)'
+      #   63) test_RevertWhen_ResultOverflowSD59x18()
+      #     Error: reverted with custom error 'PRBMath_SD59x18_Powu_Overflow(240615969168004511545033772477625056927114980742, 2)'
+      test/unit/sd59x18/math/powu/powu.t.sol
+      # test/unit/ud60x18/math/powu/powu.t.sol:Powu_Unit_Test
+      #   64) test_RevertWhen_ResultOverflowsUD60x18()
+      #     Error: reverted with custom error 'PRBMath_MulDiv18_Overflow(115792089237316195423570985008687907853269984665640564039457000000000000000000, 115792089237316195423570985008687907853269984665640564039457000000000000000000)'
+      test/unit/ud60x18/math/powu/powu.t.sol
+      # test/fuzz/ud21x18/casting/Casting.t.sol:UD21x18_Casting_Fuzz_Test
+      #   65) testFuzz_RevertWhen_OverflowUint40(uint128)
+      #     Error: reverted with custom error 'PRBMath_UD21x18_IntoUint40_Overflow(340282366920938463463374606332256584085)'
+      test/fuzz/ud21x18/casting/Casting.t.sol
+      # test/fuzz/ud60x18/casting/Casting.t.sol:UD60x18_Casting_Fuzz_Test
+      #   66) testFuzz_RevertWhen_OverflowUint40(uint256)
+      #     Error: reverted with custom error 'PRBMath_UD60x18_IntoUint40_Overflow(3554230952538099806587433463494386892551840825188264471963171550907544151499)'
+      #   67) testFuzz_RevertWhen_OverflowUint128(uint256)
+      #     Error: reverted with custom error 'PRBMath_UD60x18_IntoUint128_Overflow(115792089237316195423570985008687907852929702298719625575994209400481361432034)'
+      #   68) testFuzz_RevertWhen_OverflowUD2x18(uint256)
+      #     Error: reverted with custom error 'PRBMath_UD60x18_IntoUD2x18_Overflow(31418771582270255995592727068552667028015016216248445522360472886331968585727)'
+      #   69) testFuzz_RevertWhen_OverflowSD59x18(uint256)
+      #     Error: reverted with custom error 'PRBMath_UD60x18_IntoSD59x18_Overflow(83273214092658670851737132770804760310477461344781608400083277865068385009664)'
+      #   70) testFuzz_RevertWhen_OverflowSD21x18(uint256)
+      #     Error: reverted with custom error 'PRBMath_UD60x18_IntoSD21x18_Overflow(115792089237316195423570985008687907853099843482180094807726844152593790793393)'
+      #   71) testFuzz_RevertWhen_OverflowSD1x18(uint256)
+      #     Error: reverted with custom error 'PRBMath_UD60x18_IntoSD1x18_Overflow(8033376807914568406431254104444895969999191089820145551491)'
+      test/fuzz/ud60x18/casting/Casting.t.sol
+      # test/fuzz/ud2x18/casting/Casting.t.sol:UD2x18_Casting_Fuzz_Test
+      #   72) testFuzz_RevertWhen_OverflowUint40(uint64)
+      #     Error: reverted with custom error 'PRBMath_UD2x18_IntoUint40_Overflow(18446743008108568002)'
+      test/fuzz/ud2x18/casting/Casting.t.sol
+      # test/fuzz/sd59x18/casting/Casting.t.sol:SD59x18_Casting_Fuzz_Test
+      #   73) testFuzz_RevertWhen_UnderflowUint40(int256)
+      #     Error: reverted with custom error 'PRBMath_SD59x18_IntoUint40_Underflow(-57896044618658097711785492504343953926634992332820282019728792003956564811390)'
+      #   74) testFuzz_RevertWhen_UnderflowUint256(int256)
+      #     Error: reverted with custom error 'PRBMath_SD59x18_IntoUint256_Underflow(-182446176710823212526741255105867344918401160768643610925471075730)'
+      #   75) testFuzz_RevertWhen_UnderflowUint128(int256)
+      #     Error: reverted with custom error 'PRBMath_SD59x18_IntoUint128_Underflow(-91512)'
+      #   76) testFuzz_RevertWhen_UnderflowUD60x18(int256)
+      #     Error: reverted with custom error 'PRBMath_SD59x18_IntoUD60x18_Underflow(-57896044618658097711785492504343953926634992332820282019728792002690536810338)'
+      #   77) testFuzz_RevertWhen_UnderflowUD2x18(int256)
+      #     Error: reverted with custom error 'PRBMath_SD59x18_IntoUD2x18_Underflow(-57896044618658097711785492504343953926634992332820282019728792003956443979527)'
+      #   78) testFuzz_RevertWhen_UnderflowUD21x18(int256)
+      #     Error: reverted with custom error 'PRBMath_SD59x18_IntoUD21x18_Underflow(-57896044618658097711785474639906541719952910831798460073580306208041314750365)'
+      #   79) testFuzz_RevertWhen_UnderflowSD21x18(int256)
+      #     Error: reverted with custom error 'PRBMath_SD59x18_IntoSD21x18_Underflow(-57896044618658097711785492504343953926464851149359812787997104700240680712004)'
+      #   80) testFuzz_RevertWhen_UnderflowSD1x18(int256)
+      #     Error: reverted with custom error 'PRBMath_SD59x18_IntoSD1x18_Underflow(-57896044618658097711785492504343953926634992332820282019719568631919710044164)'
+      #   81) testFuzz_RevertWhen_OverflowUint40(int256)
+      #     Error: reverted with custom error 'PRBMath_SD59x18_IntoUint40_Overflow(57896044618658097711785492504343953926634992332820281744074822229858394101739)'
+      #   82) testFuzz_RevertWhen_OverflowUint128(int256)
+      #     Error: reverted with custom error 'PRBMath_SD59x18_IntoUint128_Overflow(57896044618658097711785492504343953926294709965899343556265417396524796609068)'
+      #   83) testFuzz_RevertWhen_OverflowUD2x18(int256)
+      #     Error: reverted with custom error 'PRBMath_SD59x18_IntoUD2x18_Overflow(57896044618658097711785492504343953926634992332820282019710345259882855278305)'
+      #   84) testFuzz_RevertWhen_OverflowUD21x18(int256)
+      #     Error: reverted with custom error 'PRBMath_SD59x18_IntoUD21x18_Overflow(57896044618658097711785492504343953926294709965899343556265417396524796613522)'
+      #   85) testFuzz_RevertWhen_OverflowSD21x18(int256)
+      #     Error: reverted with custom error 'PRBMath_SD59x18_IntoSD21x18_Overflow(57896044618658097711785492504343953926464851149359812787997104700244969489992)'
+      #   86) testFuzz_RevertWhen_OverflowSD1x18(int256)
+      #     Error: reverted with custom error 'PRBMath_SD59x18_IntoSD1x18_Overflow(57896044618658097711785491918586874033546267428936949250322875040902106971173)'
+      test/fuzz/sd59x18/casting/Casting.t.sol
+      # test/unit/sd59x18/math/sqrt/sqrt.t.sol:Sqrt_Unit_Test
+      #   87) test_RevertWhen_Negative()
+      #     Error: reverted with custom error 'PRBMath_SD59x18_Sqrt_NegativeInput(-1)'
+      #   88) test_RevertWhen_GtMaxPermitted()
+      #     Error: reverted with custom error 'PRBMath_SD59x18_Sqrt_Overflow(57896044618658097711785492504343953926634992332820282019729)'
+      test/unit/sd59x18/math/sqrt/sqrt.t.sol
+      # test/unit/ud60x18/math/sqrt/sqrt.t.sol:Sqrt_Unit_Test
+      #   89) test_RevertWhen_GtMaxPermitted()
+      #     Error: reverted with custom error 'PRBMath_UD60x18_Sqrt_Overflow(115792089237316195423570985008687907853269984665640564039458)'
+      test/unit/ud60x18/math/sqrt/sqrt.t.sol
+      # test/fuzz/casting/CastingUint256.t.sol:CastingUint256_Test
+      #   90) testFuzz_RevertWhen_OverflowUD2x18(uint256)
+      #     Error: reverted with custom error 'PRBMath_IntoUD2x18_Overflow(115792089237316195423570985008687907853269984665640564039439137263839420088540)'
+      #   91) testFuzz_RevertWhen_OverflowSD59x18(uint256)
+      #     Error: reverted with custom error 'PRBMath_IntoSD59x18_Overflow(57896044618668588984561637712789027047515752905034557429884758360034263812368)'
+      #   92) testFuzz_RevertWhen_OverflowSD1x18(uint256)
+      #     Error: reverted with custom error 'PRBMath_IntoSD1x18_Overflow(10766441923395371961604405909970407941750070016)'
+      test/fuzz/casting/CastingUint256.t.sol
     ref: 93be53541f39a0c1e80818a9183b2acb3908ae74
   PaulRBerg/prb-proxy:
     commands:
@@ -406,6 +663,48 @@ repositories:
       test/reactors/BaseDutchOrderReactor.t.sol
       test/reactors/ExclusiveDutchOrderReactor.t.sol
       test/reactors/DutchOrderReactor.t.sol
+
+      # test/lib/PriorityFeeLib.t.sol:PriorityFeeLibTest
+      #   1) testScaleRevertsOnLargeOutput()
+      #     Error: call didn't revert at a lower depth than cheatcode call depth
+      #   2) testScaleOutputWithZeroMpsPerPriorityFeeWei_fuzz(uint256)
+      #     Error: gas price must be less than 2^128 - 1
+      #   3) testScaleOutputPriorityFee_fuzz(uint256,uint256)
+      #     Error: gas price must be less than 2^128 - 1
+      #   4) testScaleInputWithZeroMpsPerPriorityFeeWei_fuzz(uint256)
+      #     Error: gas price must be less than 2^128 - 1
+      #   5) testScaleInputPriorityFee_fuzz(uint256)
+      #     Error: gas price must be less than 2^128 - 1
+      test/lib/PriorityFeeLib.t.sol
+
+      # test/lib/MathExt.t.sol:MathExtTest
+      #   6) testSubUintFromUintUnderflow()
+      #     Error: call didn't revert at a lower depth than cheatcode call depth
+      #   7) testSubUintFromUintOverflow()
+      #     Error: call didn't revert at a lower depth than cheatcode call depth
+      #   8) testSubIntFromUintOverflow()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   9) testSubIntFromUintNegativeUint()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      test/lib/MathExt.t.sol
+
+      # test/lib/Uint16Array.t.sol:Uint16ArrayTest
+      #   10) testToUint16ArrayRevert()
+      #     Error: reverted with custom error 'InvalidArrLength()'
+      #   11) testGetElementRevert()
+      #     Error: reverted with custom error 'IndexOutOfBounds()'
+      test/lib/Uint16Array.t.sol
+
+      # test/lib/DutchDecayLib.t.sol:DutchDecayLibTest
+      #   12) testDutchUpwardDecayOverflow()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   13) testDutchDownwardDecayOverflow()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   14) testDutchDecayInvalidTimes(uint256,uint256,uint256,uint256)
+      #     Error: reverted with custom error 'EndTimeBeforeStartTime()'
+      #   15) testDutchDecayDivByZero()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      test/lib/DutchDecayLib.t.sol
     ref: 4013dfa4bc53b823b406b035a9b5eb579607eb99
   Vectorized/solady:
     commands:
@@ -553,6 +852,22 @@ repositories:
           }
         },
       };
+    ignore: |
+      # test/Kali.t.sol:KaliTest
+      #   1) testFailProposalRepeatVoting()
+      #     Error: next call did not revert as expected
+      #   2) testFailProposalCreation()
+      #     Error: next call did not revert as expected
+      #   3) testFailNotAuthorizedExtension()
+      #     Error: reverted with custom error 'Unauthorized()'
+      #   4) testFailDeploy()
+      #     Error: Error != expected error: 0d% != custom error 5daa87a0:
+      test/Kali.t.sol
+
+      # test/ReentrancyGuard.t.sol:ReentrancyGuardTest
+      #   5) testFailUnprotectedCall()
+      #     Error: Unknown error
+      test/ReentrancyGuard.t.sol
     ref: 21213d34042b8a5a68afeb590f43018f08c81a58
   mds1/multicall:
     commands:
@@ -679,6 +994,200 @@ repositories:
       test/pool-cl/CLCustomCurveHook.t.sol
       test/pool-cl/CLMintBurnFeeHook.t.sol
       test/pool-cl/libraries/TickBitmap.t.sol
+
+      # test/libraries/BipsLibrary.t.sol:BipsLibraryTest
+      #   1) test_fuzz_gasLimit(uint256)
+      #     Error: reverted with custom error 'InvalidBips()'
+      #   2) test_fuzz_calculatePortion(uint256,uint256)
+      #     Error: reverted with custom error 'InvalidBips()'
+      test/libraries/BipsLibrary.t.sol
+
+      # test/pool-cl/libraries/FullMath.t.sol:FullMathTest
+      #   3) test_mulDiv_revertsWithOverflowingNumeratorAndZeroDenominator()
+      #     Error: call didn't revert at a lower depth than cheatcode call depth
+      #   4) test_mulDiv_revertsWith0Denominator(uint256,uint256)
+      #     Error: call didn't revert at a lower depth than cheatcode call depth
+      #   5) test_mulDiv_revertsOverflowWithAllMaxInputs()
+      #     Error: call didn't revert at a lower depth than cheatcode call depth
+      #   6) test_mulDiv_revertsIfOutputOverflows()
+      #     Error: call didn't revert at a lower depth than cheatcode call depth
+      #   7) test_mulDivRoundingUp_revertsWith0Denominator(uint256,uint256)
+      #     Error: call didn't revert at a lower depth than cheatcode call depth
+      #   8) test_mulDivRoundingUp_revertsIfMulDivOverflows256BitsAfterRoundingUpCase2()
+      #     Error: call didn't revert at a lower depth than cheatcode call depth
+      #   9) test_mulDivRoundingUp_revertsIfMulDivOverflows256BitsAfterRoundingUp()
+      #     Error: call didn't revert at a lower depth than cheatcode call depth
+      test/pool-cl/libraries/FullMath.t.sol
+
+      # test/pool-bin/libraries/BinHelper.t.sol:BinHelperTest
+      #   10) testFuzz_VerifyAmountsNeqIds(uint128,uint128,uint24,uint24)
+      #     Error: reverted with custom error 'BinHelper__CompositionFactorFlawed(1196305)'
+      #   11) testFuzz_GetCompositionFees(uint128,uint128,uint16,uint128,uint128,uint256,uint256,uint24)
+      #     Error: call didn't revert at a lower depth than cheatcode call depth
+      test/pool-bin/libraries/BinHelper.t.sol
+
+      # test/libraries/LPFeeLibrary.t.sol:LPFeeLibraryTest
+      #   12) testFuzzValidate(uint24,uint24)
+      #     Error: reverted with custom error 'LPFeeTooLarge(5880)'
+      #   13) testFuzzRemoveOverrideAndValidate(uint24,uint24)
+      #     Error: reverted with custom error 'LPFeeTooLarge(12582911)'
+      test/libraries/LPFeeLibrary.t.sol
+
+      # test/pool-bin/libraries/math/LiquidityConfigurations.t.sol:LiquidityConfigurationsTest
+      #   14) testFuzz_GetAmountsAndId(bytes32,bytes32)
+      #     Error: reverted with custom error 'LiquidityConfigurations__InvalidConfig()'
+      #   15) testFuzz_DecodeParams(bytes32)
+      #     Error: reverted with custom error 'LiquidityConfigurations__InvalidConfig()'
+      test/pool-bin/libraries/math/LiquidityConfigurations.t.sol
+
+      # test/pool-bin/libraries/math/PackedUint128Math.t.sol:PackedUint128MathTest
+      #   16) test_getProtocolFeeAmt_Overflow()
+      #     Error: reverted with an unrecognized custom error (return data: 0x93dafdf1)
+      #   17) test_SubUnderflow()
+      #     Error: reverted with custom error 'PackedUint128Math__SubUnderflow()'
+      #   18) test_AddOverflow()
+      #     Error: reverted with custom error 'PackedUint128Math__AddOverflow()'
+      #   19) testFuzz_Sub(bytes32,bytes32)
+      #     Error: reverted with custom error 'PackedUint128Math__SubUnderflow()'
+      #   20) testFuzz_Add(bytes32,bytes32)
+      #     Error: reverted with custom error 'PackedUint128Math__AddOverflow()'
+      test/pool-bin/libraries/math/PackedUint128Math.t.sol
+
+      # test/pool-cl/libraries/CLPool.t.sol:PoolTest
+      #   21) testSwap(uint160,(address,int24,int24,int128,int24,bytes32),(int24,bool,int256,uint160,uint24),uint24,uint16,uint16)
+      #     Error: reverted with custom error 'InvalidSqrtRatio(106141030)'
+      #   22) testPoolInitialize(uint160,uint24,uint24)
+      #     Error: reverted with custom error 'InvalidSqrtRatio(1461501637330902918203684832716283019655932542973)'
+      #   23) testModifyPosition(uint160,(address,int24,int24,int128,int24,bytes32),uint24,uint24)
+      #     Error: reverted with custom error 'InvalidSqrtRatio(3203)'
+      #   24) testDonate(uint160,(address,int24,int24,int128,int24,bytes32),uint256,uint256,uint24,uint16,uint16)
+      #     Error: reverted with custom error 'TickLowerOutOfBounds(-8388605)'
+      test/pool-cl/libraries/CLPool.t.sol
+
+      # test/pool-bin/libraries/math/Uint256x256Math.t.sol:Uint256x256MathTest
+      #   25) testFuzz_mulShiftRoundUp(uint256,uint256,uint8)
+      #     Error: reverted with custom error 'Uint256x256Math__MulShiftOverflow()'
+      #   26) testFuzz_mulShiftRoundDown(uint256,uint256,uint8)
+      #     Error: reverted with custom error 'Uint256x256Math__MulShiftOverflow()'
+      test/pool-bin/libraries/math/Uint256x256Math.t.sol
+
+      # test/pool-bin/libraries/PriceHelper.t.sol:PriceHelperTest
+      #   27) testFuzz_revert_ConvertDecimalPriceTo128x128(uint256)
+      #     Error: reverted with custom error 'Uint256x256Math__MulDivOverflow()'
+      test/pool-bin/libraries/PriceHelper.t.sol
+
+      # test/libraries/SafeCast.t.sol:SafeCastTest
+      #   28) testToUint256(int256)
+      #     Error: reverted with an unrecognized custom error (return data: 0x93dafdf1)
+      #   29) testToUint160(uint256)
+      #     Error: reverted with an unrecognized custom error (return data: 0x93dafdf1)
+      #   30) testToInt128(uint256)
+      #     Error: reverted with an unrecognized custom error (return data: 0x93dafdf1)
+      #   31) testToInt128(int256)
+      #     Error: reverted with an unrecognized custom error (return data: 0x93dafdf1)
+      test/libraries/SafeCast.t.sol
+
+      # test/VaultToken.t.sol:VaultTokenTest
+      #   32) testFailTransferFromNotAuthorized(address,address,address,uint256)
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   33) testFailTransferFromNotAuthorized()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   34) testFailTransferFromBalanceUnderflow(address,address,address,uint256)
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   35) testFailTransferFromBalanceUnderflow()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   36) testFailTransferFromBalanceOverflow(address,address,address,uint256)
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   37) testFailTransferFromBalanceOverflow()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   38) testFailTransferBalanceUnderflow(address,address,address,uint256)
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   39) testFailTransferBalanceUnderflow()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   40) testFailTransferBalanceOverflow(address,address,address,uint256)
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   41) testFailTransferBalanceOverflow()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   42) testFailMintBalanceOverflow()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      test/VaultToken.t.sol
+
+      # test/pool-bin/libraries/math/SafeCast.t.sol:SafeCastTest
+      #   43) testFuzz_SafeCast96(uint256)
+      #     Error: reverted with an unrecognized custom error (return data: 0x93dafdf1)
+      #   44) testFuzz_SafeCast88(uint256)
+      #     Error: reverted with an unrecognized custom error (return data: 0x93dafdf1)
+      #   45) testFuzz_SafeCast80(uint256)
+      #     Error: reverted with an unrecognized custom error (return data: 0x93dafdf1)
+      #   46) testFuzz_SafeCast8(uint256)
+      #     Error: reverted with an unrecognized custom error (return data: 0x93dafdf1)
+      #   47) testFuzz_SafeCast72(uint256)
+      #     Error: reverted with an unrecognized custom error (return data: 0x93dafdf1)
+      #   48) testFuzz_SafeCast64(uint256)
+      #     Error: reverted with an unrecognized custom error (return data: 0x93dafdf1)
+      #   49) testFuzz_SafeCast56(uint256)
+      #     Error: reverted with an unrecognized custom error (return data: 0x93dafdf1)
+      #   50) testFuzz_SafeCast48(uint256)
+      #     Error: reverted with an unrecognized custom error (return data: 0x93dafdf1)
+      #   51) testFuzz_SafeCast40(uint256)
+      #     Error: reverted with an unrecognized custom error (return data: 0x93dafdf1)
+      #   52) testFuzz_SafeCast32(uint256)
+      #     Error: reverted with an unrecognized custom error (return data: 0x93dafdf1)
+      #   53) testFuzz_SafeCast248(uint256)
+      #     Error: reverted with an unrecognized custom error (return data: 0x93dafdf1)
+      #   54) testFuzz_SafeCast240(uint256)
+      #     Error: reverted with an unrecognized custom error (return data: 0x93dafdf1)
+      #   55) testFuzz_SafeCast24(uint256)
+      #     Error: reverted with an unrecognized custom error (return data: 0x93dafdf1)
+      #   56) testFuzz_SafeCast232(uint256)
+      #     Error: reverted with an unrecognized custom error (return data: 0x93dafdf1)
+      #   57) testFuzz_SafeCast216(uint256)
+      #     Error: reverted with an unrecognized custom error (return data: 0x93dafdf1)
+      #   58) testFuzz_SafeCast208(uint256)
+      #     Error: reverted with an unrecognized custom error (return data: 0x93dafdf1)
+      #   59) testFuzz_SafeCast192(uint256)
+      #     Error: reverted with an unrecognized custom error (return data: 0x93dafdf1)
+      #   60) testFuzz_SafeCast184(uint256)
+      #     Error: reverted with an unrecognized custom error (return data: 0x93dafdf1)
+      #   61) testFuzz_SafeCast176(uint256)
+      #     Error: reverted with an unrecognized custom error (return data: 0x93dafdf1)
+      #   62) testFuzz_SafeCast168(uint256)
+      #     Error: reverted with an unrecognized custom error (return data: 0x93dafdf1)
+      #   63) testFuzz_SafeCast16(uint256)
+      #     Error: reverted with an unrecognized custom error (return data: 0x93dafdf1)
+      #   64) testFuzz_SafeCast152(uint256)
+      #     Error: reverted with an unrecognized custom error (return data: 0x93dafdf1)
+      #   65) testFuzz_SafeCast144(uint256)
+      #     Error: reverted with an unrecognized custom error (return data: 0x93dafdf1)
+      #   66) testFuzz_SafeCast136(uint256)
+      #     Error: reverted with an unrecognized custom error (return data: 0x93dafdf1)
+      #   67) testFuzz_SafeCast128(uint256)
+      #     Error: reverted with an unrecognized custom error (return data: 0x93dafdf1)
+      #   68) testFuzz_SafeCast120(uint256)
+      #     Error: reverted with an unrecognized custom error (return data: 0x93dafdf1)
+      #   69) testFuzz_SafeCast112(uint256)
+      #     Error: reverted with an unrecognized custom error (return data: 0x93dafdf1)
+      #   70) testFuzz_SafeCast104(uint256)
+      #     Error: reverted with an unrecognized custom error (return data: 0x93dafdf1)
+      test/pool-bin/libraries/math/SafeCast.t.sol
+
+      # test/libraries/SettlementGuard.t.sol:SettlementGuardTest
+      #   71) testSetLocker(address,address)
+      #     Error: reverted with custom error 'LockerAlreadySet("0x9f61D4004787466605E126Ae9001594C64776861")'
+      #   72) testAccountDelta(address,address,int256,int256)
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      test/libraries/SettlementGuard.t.sol
+
+      # test/libraries/BalanceDelta.t.sol:TestBalanceDelta
+      #   73) test_sub_revertsOnUnderflow()
+      #     Error: reverted with an unrecognized custom error (return data: 0x93dafdf1)
+      #   74) test_fuzz_sub(int128,int128,int128,int128)
+      #     Error: reverted with an unrecognized custom error (return data: 0x93dafdf1)
+      #   75) test_fuzz_add(int128,int128,int128,int128)
+      #     Error: reverted with an unrecognized custom error (return data: 0x93dafdf1)
+      #   76) test_add_revertsOnOverflow()
+      #     Error: reverted with an unrecognized custom error (return data: 0x93dafdf1)
+      test/libraries/BalanceDelta.t.sol
     ref: 9a050c44cdf801fd19753409e6a03a8026a1fd09
   pcaversaccio/createx:
     commands:
@@ -749,6 +1258,11 @@ repositories:
       test/public/CREATE3/CreateX.deployCreate3AndInit_4Args_CustomiseSalt.t.sol
       test/public/CREATE3/CreateX.deployCreate3AndInit_4Args_CustomiseSalt.t.sol
       test/internal/CreateX._generateSalt.t.sol
+
+      # test/internal/CreateX._guard.t.sol:CreateX_Guard_Internal_Test
+      #   1) testFuzz_WhenTheFirst20BytesOfTheSaltDoNotEqualTheCallerOrTheZeroAddressAndWhenTheSaltValueIsGeneratedPseudorandomly(address,uint256,address,string,uint64)
+      #     Error: block height must be less than 2^64 - 1
+      test/internal/CreateX._guard.t.sol
     ref: ac7e49b93030145a646c6cffd62a81f447422309
   sablier-labs/lockup:
     env: |
@@ -982,6 +1496,606 @@ repositories:
           }
         }
       };
+    ignore: |
+      # src/test/Auth.t.sol:AuthTest
+      #   1) testFailTransferOwnershipWithRestrictiveAuthority(address,address)
+      #     Error: revert: UNAUTHORIZED
+      #   2) testFailTransferOwnershipWithRestrictiveAuthority()
+      #     Error: revert: UNAUTHORIZED
+      #   3) testFailTransferOwnershipAsOwnerWithOutOfOrderAuthority(address)
+      #     Error: revert: OUT_OF_ORDER
+      #   4) testFailTransferOwnershipAsOwnerWithOutOfOrderAuthority()
+      #     Error: revert: OUT_OF_ORDER
+      #   5) testFailTransferOwnershipAsNonOwner(address,address)
+      #     Error: revert: UNAUTHORIZED
+      #   6) testFailTransferOwnershipAsNonOwner()
+      #     Error: revert: UNAUTHORIZED
+      #   7) testFailSetAuthorityWithRestrictiveAuthority(address,address)
+      #     Error: EvmError: Revert
+      #   8) testFailSetAuthorityWithRestrictiveAuthority()
+      #     Error: EvmError: Revert
+      #   9) testFailSetAuthorityAsNonOwner(address,address)
+      #     Error: Function returned an unexpected amount of data
+      #   10) testFailSetAuthorityAsNonOwner()
+      #     Error: Function returned an unexpected amount of data
+      #   11) testFailCallFunctionWithRestrictiveAuthority(address)
+      #     Error: revert: UNAUTHORIZED
+      #   12) testFailCallFunctionWithRestrictiveAuthority()
+      #     Error: revert: UNAUTHORIZED
+      #   13) testFailCallFunctionAsOwnerWithOutOfOrderAuthority()
+      #     Error: revert: OUT_OF_ORDER
+      #   14) testFailCallFunctionAsNonOwner(address)
+      #     Error: revert: UNAUTHORIZED
+      #   15) testFailCallFunctionAsNonOwner()
+      #     Error: revert: UNAUTHORIZED
+      src/test/Auth.t.sol
+
+      # src/test/ERC6909.t.sol:ERC6909Test
+      #   16) testFailTransferFromNotAuthorized(address,address,uint256,uint256)
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   17) testFailTransferFromNotAuthorized()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   18) testFailTransferFromBalanceUnderflow(address,address,uint256,uint256)
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   19) testFailTransferFromBalanceUnderflow()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   20) testFailTransferFromBalanceOverflow(address,address,uint256,uint256)
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   21) testFailTransferFromBalanceOverflow()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   22) testFailTransferBalanceUnderflow(address,address,uint256,uint256)
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   23) testFailTransferBalanceUnderflow()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   24) testFailTransferBalanceOverflow(address,address,uint256,uint256)
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   25) testFailTransferBalanceOverflow()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   26) testFailMintBalanceOverflow()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      src/test/ERC6909.t.sol
+
+      # src/test/CREATE3.t.sol:CREATE3Test
+      #   27) testFailDoubleDeploySameBytecode(bytes32,bytes)
+      #     Error: revert: INITIALIZATION_FAILED
+      #   28) testFailDoubleDeploySameBytecode()
+      #     Error: revert: DEPLOYMENT_FAILED
+      #   29) testFailDoubleDeployDifferentBytecode(bytes32,bytes,bytes)
+      #     Error: revert: INITIALIZATION_FAILED
+      #   30) testFailDoubleDeployDifferentBytecode()
+      #     Error: revert: DEPLOYMENT_FAILED
+      src/test/CREATE3.t.sol
+
+      # src/test/DSTestPlus.t.sol:DSTestPlusTest
+      #   31) testFailBoundMinBiggerThanMax(uint256,uint256,uint256)
+      #     Error: revert: MAX_LESS_THAN_MIN
+      #   32) testFailBoundMinBiggerThanMax()
+      #     Error: revert: MAX_LESS_THAN_MIN
+      src/test/DSTestPlus.t.sol
+
+      # src/test/ReentrancyGuard.t.sol:ReentrancyGuardTest
+      #   33) testFailUnprotectedCall()
+      #     Error: Unknown error
+      src/test/ReentrancyGuard.t.sol
+
+      # src/test/SSTORE2.t.sol:SSTORE2Test
+      #   34) testFailWriteReadOutOfStartBound()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   35) testFailWriteReadOutOfBounds()
+      #     Error: revert: OUT_OF_BOUNDS
+      #   36) testFailWriteReadEmptyOutOfBounds()
+      #     Error: revert: OUT_OF_BOUNDS
+      #   37) testFailWriteReadCustomStartBoundOutOfRange(bytes,uint256,bytes)
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   38) testFailWriteReadCustomBoundsOutOfRange(bytes,uint256,uint256,bytes)
+      #     Error: revert: OUT_OF_BOUNDS
+      #   39) testFailReadInvalidPointerCustomStartBound(address,uint256,bytes)
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   40) testFailReadInvalidPointerCustomStartBound()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   41) testFailReadInvalidPointerCustomBounds(address,uint256,uint256,bytes)
+      #     Error: revert: OUT_OF_BOUNDS
+      #   42) testFailReadInvalidPointerCustomBounds()
+      #     Error: revert: OUT_OF_BOUNDS
+      #   43) testFailReadInvalidPointer(address,bytes)
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   44) testFailReadInvalidPointer()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      src/test/SSTORE2.t.sol
+
+      # src/test/SafeCastLib.t.sol:SafeCastLibTest
+      #   45) testFailSafeCastTo96(uint256)
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   46) testFailSafeCastTo96()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   47) testFailSafeCastTo88(uint256)
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   48) testFailSafeCastTo88()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   49) testFailSafeCastTo80(uint256)
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   50) testFailSafeCastTo80()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   51) testFailSafeCastTo8(uint256)
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   52) testFailSafeCastTo8()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   53) testFailSafeCastTo72(uint256)
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   54) testFailSafeCastTo72()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   55) testFailSafeCastTo64(uint256)
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   56) testFailSafeCastTo64()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   57) testFailSafeCastTo56(uint256)
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   58) testFailSafeCastTo56()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   59) testFailSafeCastTo48(uint256)
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   60) testFailSafeCastTo48()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   61) testFailSafeCastTo40(uint256)
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   62) testFailSafeCastTo40()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   63) testFailSafeCastTo32(uint256)
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   64) testFailSafeCastTo32()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   65) testFailSafeCastTo248(uint256)
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   66) testFailSafeCastTo248()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   67) testFailSafeCastTo240(uint256)
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   68) testFailSafeCastTo240()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   69) testFailSafeCastTo24(uint256)
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   70) testFailSafeCastTo24()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   71) testFailSafeCastTo232(uint256)
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   72) testFailSafeCastTo232()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   73) testFailSafeCastTo224(uint256)
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   74) testFailSafeCastTo224()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   75) testFailSafeCastTo216(uint256)
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   76) testFailSafeCastTo216()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   77) testFailSafeCastTo208(uint256)
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   78) testFailSafeCastTo208()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   79) testFailSafeCastTo200(uint256)
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   80) testFailSafeCastTo200()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   81) testFailSafeCastTo192(uint256)
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   82) testFailSafeCastTo192()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   83) testFailSafeCastTo184(uint256)
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   84) testFailSafeCastTo184()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   85) testFailSafeCastTo176(uint256)
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   86) testFailSafeCastTo176()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   87) testFailSafeCastTo168(uint256)
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   88) testFailSafeCastTo168()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   89) testFailSafeCastTo160(uint256)
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   90) testFailSafeCastTo160()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   91) testFailSafeCastTo16(uint256)
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   92) testFailSafeCastTo16()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   93) testFailSafeCastTo152(uint256)
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   94) testFailSafeCastTo152()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   95) testFailSafeCastTo144(uint256)
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   96) testFailSafeCastTo144()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   97) testFailSafeCastTo136(uint256)
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   98) testFailSafeCastTo136()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   99) testFailSafeCastTo128(uint256)
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   100) testFailSafeCastTo128()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   101) testFailSafeCastTo120(uint256)
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   102) testFailSafeCastTo120()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   103) testFailSafeCastTo112(uint256)
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   104) testFailSafeCastTo112()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   105) testFailSafeCastTo104(uint256)
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   106) testFailSafeCastTo104()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      src/test/SafeCastLib.t.sol
+
+      # src/test/ERC1155.t.sol:ERC1155Test
+      #   107) testSafeBatchTransferFromToEOA(address,uint256[],uint256[],uint256[],bytes,bytes)
+      #     Error: Unknown error
+      #   108) testFailSafeTransferFromToZero(uint256,uint256,uint256,bytes,bytes)
+      #     Error: revert: UNSAFE_RECIPIENT
+      #   109) testFailSafeTransferFromToZero()
+      #     Error: revert: UNSAFE_RECIPIENT
+      #   110) testFailSafeTransferFromToWrongReturnDataERC1155Recipient(uint256,uint256,uint256,bytes,bytes)
+      #     Error: revert: UNSAFE_RECIPIENT
+      #   111) testFailSafeTransferFromToWrongReturnDataERC1155Recipient()
+      #     Error: revert: UNSAFE_RECIPIENT
+      #   112) testFailSafeTransferFromToRevertingERC1155Recipient(uint256,uint256,uint256,bytes,bytes)
+      #     Error: revert: �:na
+      #   113) testFailSafeTransferFromToRevertingERC1155Recipient()
+      #     Error: revert: �:na
+      #   114) testFailSafeTransferFromToNonERC155Recipient(uint256,uint256,uint256,bytes,bytes)
+      #     Error: Function selector was not recognized and there's no fallback function
+      #   115) testFailSafeTransferFromToNonERC155Recipient()
+      #     Error: Function selector was not recognized and there's no fallback function
+      #   116) testFailSafeTransferFromSelfInsufficientBalance(address,uint256,uint256,uint256,bytes,bytes)
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   117) testFailSafeTransferFromSelfInsufficientBalance()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   118) testFailSafeTransferFromInsufficientBalance(address,uint256,uint256,uint256,bytes,bytes)
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   119) testFailSafeTransferFromInsufficientBalance()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   120) testFailSafeBatchTransferInsufficientBalance(address,uint256[],uint256[],uint256[],bytes,bytes)
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   121) testFailSafeBatchTransferInsufficientBalance()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   122) testFailSafeBatchTransferFromWithArrayLengthMismatch(address,uint256[],uint256[],uint256[],bytes,bytes)
+      #     Error: revert: LENGTH_MISMATCH
+      #   123) testFailSafeBatchTransferFromWithArrayLengthMismatch()
+      #     Error: revert: LENGTH_MISMATCH
+      #   124) testFailSafeBatchTransferFromToZero(uint256[],uint256[],uint256[],bytes,bytes)
+      #     Error: revert: UNSAFE_RECIPIENT
+      #   125) testFailSafeBatchTransferFromToZero()
+      #     Error: revert: UNSAFE_RECIPIENT
+      #   126) testFailSafeBatchTransferFromToWrongReturnDataERC1155Recipient(uint256[],uint256[],uint256[],bytes,bytes)
+      #     Error: revert: UNSAFE_RECIPIENT
+      #   127) testFailSafeBatchTransferFromToWrongReturnDataERC1155Recipient()
+      #     Error: revert: UNSAFE_RECIPIENT
+      #   128) testFailSafeBatchTransferFromToRevertingERC1155Recipient(uint256[],uint256[],uint256[],bytes,bytes)
+      #     Error: revert: �|�
+      #   129) testFailSafeBatchTransferFromToRevertingERC1155Recipient()
+      #     Error: revert: �|�
+      #   130) testFailSafeBatchTransferFromToNonERC1155Recipient(uint256[],uint256[],uint256[],bytes,bytes)
+      #     Error: Function selector was not recognized and there's no fallback function
+      #   131) testFailSafeBatchTransferFromToNonERC1155Recipient()
+      #     Error: Function selector was not recognized and there's no fallback function
+      #   132) testFailMintToZero(uint256,uint256,bytes)
+      #     Error: revert: UNSAFE_RECIPIENT
+      #   133) testFailMintToZero()
+      #     Error: revert: UNSAFE_RECIPIENT
+      #   134) testFailMintToWrongReturnDataERC155Recipient(uint256,uint256,bytes)
+      #     Error: revert: �:na
+      #   135) testFailMintToWrongReturnDataERC155Recipient()
+      #     Error: revert: �:na
+      #   136) testFailMintToRevertingERC155Recipient(uint256,uint256,bytes)
+      #     Error: revert: �:na
+      #   137) testFailMintToRevertingERC155Recipient()
+      #     Error: revert: �:na
+      #   138) testFailMintToNonERC155Recipient(uint256,uint256,bytes)
+      #     Error: Function selector was not recognized and there's no fallback function
+      #   139) testFailMintToNonERC155Recipient()
+      #     Error: Function selector was not recognized and there's no fallback function
+      #   140) testFailBurnInsufficientBalance(address,uint256,uint256,uint256,bytes)
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   141) testFailBurnInsufficientBalance()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   142) testFailBatchMintWithArrayMismatch(address,uint256[],uint256[],bytes)
+      #     Error: revert: LENGTH_MISMATCH
+      #   143) testFailBatchMintWithArrayMismatch()
+      #     Error: revert: LENGTH_MISMATCH
+      #   144) testFailBatchMintToZero(uint256[],uint256[],bytes)
+      #     Error: revert: UNSAFE_RECIPIENT
+      #   145) testFailBatchMintToZero()
+      #     Error: revert: UNSAFE_RECIPIENT
+      #   146) testFailBatchMintToWrongReturnDataERC1155Recipient(uint256[],uint256[],bytes)
+      #     Error: revert: UNSAFE_RECIPIENT
+      #   147) testFailBatchMintToWrongReturnDataERC1155Recipient()
+      #     Error: revert: UNSAFE_RECIPIENT
+      #   148) testFailBatchMintToRevertingERC1155Recipient(uint256[],uint256[],bytes)
+      #     Error: revert: �|�
+      #   149) testFailBatchMintToRevertingERC1155Recipient()
+      #     Error: revert: �|�
+      #   150) testFailBatchMintToNonERC1155Recipient(uint256[],uint256[],bytes)
+      #     Error: Function selector was not recognized and there's no fallback function
+      #   151) testFailBatchMintToNonERC1155Recipient()
+      #     Error: Function selector was not recognized and there's no fallback function
+      #   152) testFailBatchBurnWithArrayLengthMismatch(address,uint256[],uint256[],uint256[],bytes)
+      #     Error: revert: LENGTH_MISMATCH
+      #   153) testFailBatchBurnWithArrayLengthMismatch()
+      #     Error: revert: LENGTH_MISMATCH
+      #   154) testFailBatchBurnInsufficientBalance(address,uint256[],uint256[],uint256[],bytes)
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   155) testFailBatchBurnInsufficientBalance()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   156) testFailBalanceOfBatchWithArrayMismatch(address[],uint256[])
+      #     Error: revert: LENGTH_MISMATCH
+      #   157) testFailBalanceOfBatchWithArrayMismatch()
+      #     Error: revert: LENGTH_MISMATCH
+      src/test/ERC1155.t.sol
+
+      # src/test/ERC721.t.sol:ERC721Test
+      #   158) testFailTransferFromWrongFrom(address,address,address,uint256)
+      #     Error: revert: WRONG_FROM
+      #   159) testFailTransferFromWrongFrom()
+      #     Error: revert: WRONG_FROM
+      #   160) testFailTransferFromUnOwned(address,address,uint256)
+      #     Error: revert: WRONG_FROM
+      #   161) testFailTransferFromUnOwned()
+      #     Error: revert: WRONG_FROM
+      #   162) testFailTransferFromToZero(uint256)
+      #     Error: revert: INVALID_RECIPIENT
+      #   163) testFailTransferFromToZero()
+      #     Error: revert: INVALID_RECIPIENT
+      #   164) testFailTransferFromNotOwner(address,address,uint256)
+      #     Error: revert: NOT_AUTHORIZED
+      #   165) testFailTransferFromNotOwner()
+      #     Error: revert: NOT_AUTHORIZED
+      #   166) testFailSafeTransferFromToRevertingERC721RecipientWithData(uint256,bytes)
+      #     Error: revert: z
+      #   167) testFailSafeTransferFromToRevertingERC721RecipientWithData()
+      #     Error: revert: z
+      #   168) testFailSafeTransferFromToRevertingERC721Recipient(uint256)
+      #     Error: revert: z
+      #   169) testFailSafeTransferFromToRevertingERC721Recipient()
+      #     Error: revert: z
+      #   170) testFailSafeTransferFromToNonERC721RecipientWithData(uint256,bytes)
+      #     Error: Function selector was not recognized and there's no fallback function
+      #   171) testFailSafeTransferFromToNonERC721RecipientWithData()
+      #     Error: Function selector was not recognized and there's no fallback function
+      #   172) testFailSafeTransferFromToNonERC721Recipient(uint256)
+      #     Error: Function selector was not recognized and there's no fallback function
+      #   173) testFailSafeTransferFromToNonERC721Recipient()
+      #     Error: Function selector was not recognized and there's no fallback function
+      #   174) testFailSafeTransferFromToERC721RecipientWithWrongReturnDataWithData(uint256,bytes)
+      #     Error: revert: UNSAFE_RECIPIENT
+      #   175) testFailSafeTransferFromToERC721RecipientWithWrongReturnDataWithData()
+      #     Error: revert: UNSAFE_RECIPIENT
+      #   176) testFailSafeTransferFromToERC721RecipientWithWrongReturnData(uint256)
+      #     Error: revert: UNSAFE_RECIPIENT
+      #   177) testFailSafeTransferFromToERC721RecipientWithWrongReturnData()
+      #     Error: revert: UNSAFE_RECIPIENT
+      #   178) testFailSafeMintToRevertingERC721RecipientWithData(uint256,bytes)
+      #     Error: revert: z
+      #   179) testFailSafeMintToRevertingERC721RecipientWithData()
+      #     Error: revert: z
+      #   180) testFailSafeMintToRevertingERC721Recipient(uint256)
+      #     Error: revert: z
+      #   181) testFailSafeMintToRevertingERC721Recipient()
+      #     Error: revert: z
+      #   182) testFailSafeMintToNonERC721RecipientWithData(uint256,bytes)
+      #     Error: Function selector was not recognized and there's no fallback function
+      #   183) testFailSafeMintToNonERC721RecipientWithData()
+      #     Error: Function selector was not recognized and there's no fallback function
+      #   184) testFailSafeMintToNonERC721Recipient(uint256)
+      #     Error: Function selector was not recognized and there's no fallback function
+      #   185) testFailSafeMintToNonERC721Recipient()
+      #     Error: Function selector was not recognized and there's no fallback function
+      #   186) testFailSafeMintToERC721RecipientWithWrongReturnDataWithData(uint256,bytes)
+      #     Error: revert: UNSAFE_RECIPIENT
+      #   187) testFailSafeMintToERC721RecipientWithWrongReturnDataWithData()
+      #     Error: revert: UNSAFE_RECIPIENT
+      #   188) testFailSafeMintToERC721RecipientWithWrongReturnData(uint256)
+      #     Error: revert: UNSAFE_RECIPIENT
+      #   189) testFailSafeMintToERC721RecipientWithWrongReturnData()
+      #     Error: revert: UNSAFE_RECIPIENT
+      #   190) testFailOwnerOfUnminted(uint256)
+      #     Error: revert: NOT_MINTED
+      #   191) testFailOwnerOfUnminted()
+      #     Error: revert: NOT_MINTED
+      #   192) testFailMintToZero(uint256)
+      #     Error: revert: INVALID_RECIPIENT
+      #   193) testFailMintToZero()
+      #     Error: revert: INVALID_RECIPIENT
+      #   194) testFailDoubleMint(uint256,address)
+      #     Error: revert: ALREADY_MINTED
+      #   195) testFailDoubleMint()
+      #     Error: revert: ALREADY_MINTED
+      #   196) testFailDoubleBurn(uint256,address)
+      #     Error: revert: NOT_MINTED
+      #   197) testFailDoubleBurn()
+      #     Error: revert: NOT_MINTED
+      #   198) testFailBurnUnMinted(uint256)
+      #     Error: revert: NOT_MINTED
+      #   199) testFailBurnUnMinted()
+      #     Error: revert: NOT_MINTED
+      #   200) testFailBalanceOfZeroAddress()
+      #     Error: revert: ZERO_ADDRESS
+      #   201) testFailApproveUnMinted(uint256,address)
+      #     Error: revert: NOT_AUTHORIZED
+      #   202) testFailApproveUnMinted()
+      #     Error: revert: NOT_AUTHORIZED
+      #   203) testFailApproveUnAuthorized(address,uint256,address)
+      #     Error: revert: NOT_AUTHORIZED
+      #   204) testFailApproveUnAuthorized()
+      #     Error: revert: NOT_AUTHORIZED
+      src/test/ERC721.t.sol
+
+      # src/test/SafeTransferLib.t.sol:SafeTransferLibTest
+      #   205) testFailTransferWithReverting(address,uint256,bytes)
+      #     Error: revert: TRANSFER_FAILED
+      #   206) testFailTransferWithReverting()
+      #     Error: revert: TRANSFER_FAILED
+      #   207) testFailTransferWithReturnsTwo(address,uint256,bytes)
+      #     Error: revert: TRANSFER_FAILED
+      #   208) testFailTransferWithReturnsTooLittle(address,uint256,bytes)
+      #     Error: revert: TRANSFER_FAILED
+      #   209) testFailTransferWithReturnsTooLittle()
+      #     Error: revert: TRANSFER_FAILED
+      #   210) testFailTransferWithReturnsFalse(address,uint256,bytes)
+      #     Error: revert: TRANSFER_FAILED
+      #   211) testFailTransferWithReturnsFalse()
+      #     Error: revert: TRANSFER_FAILED
+      #   212) testFailTransferWithNonContract(address,address,uint256,bytes)
+      #     Error: revert: TRANSFER_FAILED
+      #   213) testFailTransferWithNonContract()
+      #     Error: revert: TRANSFER_FAILED
+      #   214) testFailTransferWithGarbage(address,uint256,bytes,bytes)
+      #     Error: revert: TRANSFER_FAILED
+      #   215) testFailTransferFromWithReverting(address,address,uint256,bytes)
+      #     Error: EvmError: Revert
+      #   216) testFailTransferFromWithReverting()
+      #     Error: EvmError: Revert
+      #   217) testFailTransferFromWithReturnsTwo(address,address,uint256,bytes)
+      #     Error: revert: TRANSFER_FROM_FAILED
+      #   218) testFailTransferFromWithReturnsTooLittle(address,address,uint256,bytes)
+      #     Error: revert: TRANSFER_FROM_FAILED
+      #   219) testFailTransferFromWithReturnsTooLittle()
+      #     Error: revert: TRANSFER_FROM_FAILED
+      #   220) testFailTransferFromWithReturnsFalse(address,address,uint256,bytes)
+      #     Error: revert: TRANSFER_FROM_FAILED
+      #   221) testFailTransferFromWithReturnsFalse()
+      #     Error: revert: TRANSFER_FROM_FAILED
+      #   222) testFailTransferFromWithNonContract(address,address,address,uint256,bytes)
+      #     Error: revert: TRANSFER_FROM_FAILED
+      #   223) testFailTransferFromWithNonContract()
+      #     Error: revert: TRANSFER_FROM_FAILED
+      #   224) testFailTransferFromWithGarbage(address,address,uint256,bytes,bytes)
+      #     Error: revert: TRANSFER_FROM_FAILED
+      #   225) testFailTransferETHToContractWithoutFallback(uint256,bytes)
+      #     Error: revert: ETH_TRANSFER_FAILED
+      #   226) testFailTransferETHToContractWithoutFallback()
+      #     Error: revert: ETH_TRANSFER_FAILED
+      #   227) testFailApproveWithReverting(address,uint256,bytes)
+      #     Error: revert: APPROVE_FAILED
+      #   228) testFailApproveWithReverting()
+      #     Error: revert: APPROVE_FAILED
+      #   229) testFailApproveWithReturnsTwo(address,uint256,bytes)
+      #     Error: revert: APPROVE_FAILED
+      #   230) testFailApproveWithReturnsTooLittle(address,uint256,bytes)
+      #     Error: revert: APPROVE_FAILED
+      #   231) testFailApproveWithReturnsTooLittle()
+      #     Error: revert: APPROVE_FAILED
+      #   232) testFailApproveWithReturnsFalse(address,uint256,bytes)
+      #     Error: revert: APPROVE_FAILED
+      #   233) testFailApproveWithReturnsFalse()
+      #     Error: revert: APPROVE_FAILED
+      #   234) testFailApproveWithNonContract(address,address,uint256,bytes)
+      #     Error: revert: APPROVE_FAILED
+      #   235) testFailApproveWithNonContract()
+      #     Error: revert: APPROVE_FAILED
+      #   236) testFailApproveWithGarbage(address,uint256,bytes,bytes)
+      #     Error: revert: APPROVE_FAILED
+      src/test/SafeTransferLib.t.sol
+
+      # src/test/SignedWadMath.t.sol:SignedWadMathTest
+      #   237) testFailWadMulOverflow(int256,int256)
+      #     Error: EvmError: Revert
+      #   238) testFailWadMulEdgeCase2()
+      #     Error: EvmError: Revert
+      #   239) testFailWadMulEdgeCase()
+      #     Error: EvmError: Revert
+      #   240) testFailWadDivZeroDenominator(int256)
+      #     Error: EvmError: Revert
+      #   241) testFailWadDivOverflow(int256,int256)
+      #     Error: EvmError: Revert
+      src/test/SignedWadMath.t.sol
+
+      # src/test/ERC20.t.sol:ERC20Test
+      #   242) testFailTransferInsufficientBalance(address,uint256,uint256)
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   243) testFailTransferInsufficientBalance()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   244) testFailTransferFromInsufficientBalance(address,uint256,uint256)
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   245) testFailTransferFromInsufficientBalance()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   246) testFailTransferFromInsufficientAllowance(address,uint256,uint256)
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   247) testFailTransferFromInsufficientAllowance()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   248) testFailPermitReplay(uint256,address,uint256,uint256)
+      #     Error: revert: INVALID_SIGNER
+      #   249) testFailPermitReplay()
+      #     Error: revert: INVALID_SIGNER
+      #   250) testFailPermitPastDeadline(uint256,address,uint256,uint256)
+      #     Error: revert: PERMIT_DEADLINE_EXPIRED
+      #   251) testFailPermitPastDeadline()
+      #     Error: revert: PERMIT_DEADLINE_EXPIRED
+      #   252) testFailPermitBadNonce(uint256,address,uint256,uint256,uint256)
+      #     Error: revert: INVALID_SIGNER
+      #   253) testFailPermitBadNonce()
+      #     Error: revert: INVALID_SIGNER
+      #   254) testFailPermitBadDeadline(uint256,address,uint256,uint256)
+      #     Error: revert: INVALID_SIGNER
+      #   255) testFailPermitBadDeadline()
+      #     Error: revert: INVALID_SIGNER
+      #   256) testFailBurnInsufficientBalance(address,uint256,uint256)
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      src/test/ERC20.t.sol
+
+      # src/test/ERC4626.t.sol:ERC4626Test
+      #   257) testFailWithdrawWithNotEnoughUnderlyingAmount()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   258) testFailWithdrawWithNoUnderlyingAmount()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   259) testFailRedeemZero()
+      #     Error: revert: ZERO_ASSETS
+      #   260) testFailRedeemWithNotEnoughShareAmount()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   261) testFailRedeemWithNoShareAmount()
+      #     Error: reverted with panic code 0x11 (Arithmetic operation overflowed outside of an unchecked block)
+      #   262) testFailMintWithNoApproval()
+      #     Error: revert: TRANSFER_FROM_FAILED
+      #   263) testFailDepositZero()
+      #     Error: revert: ZERO_SHARES
+      #   264) testFailDepositWithNotEnoughApproval()
+      #     Error: revert: TRANSFER_FROM_FAILED
+      #   265) testFailDepositWithNoApproval()
+      #     Error: revert: TRANSFER_FROM_FAILED
+      src/test/ERC4626.t.sol
+
+      # src/test/FixedPointMathLib.t.sol:FixedPointMathLibTest
+      #   266) testFailMulWadUpOverflow(uint256,uint256)
+      #     Error: EvmError: Revert
+      #   267) testFailMulWadDownOverflow(uint256,uint256)
+      #     Error: EvmError: Revert
+      #   268) testFailMulDivUpZeroDenominator(uint256,uint256)
+      #     Error: EvmError: Revert
+      #   269) testFailMulDivUpZeroDenominator()
+      #     Error: EvmError: Revert
+      #   270) testFailMulDivUpOverflow(uint256,uint256,uint256)
+      #     Error: EvmError: Revert
+      #   271) testFailMulDivDownZeroDenominator(uint256,uint256)
+      #     Error: EvmError: Revert
+      #   272) testFailMulDivDownZeroDenominator()
+      #     Error: EvmError: Revert
+      #   273) testFailMulDivDownOverflow(uint256,uint256,uint256)
+      #     Error: EvmError: Revert
+      #   274) testFailDivWadUpZeroDenominator(uint256)
+      #     Error: EvmError: Revert
+      #   275) testFailDivWadUpZeroDenominator()
+      #     Error: EvmError: Revert
+      #   276) testFailDivWadUpOverflow(uint256,uint256)
+      #     Error: EvmError: Revert
+      #   277) testFailDivWadDownZeroDenominator(uint256)
+      #     Error: EvmError: Revert
+      #   278) testFailDivWadDownZeroDenominator()
+      #     Error: EvmError: Revert
+      #   279) testFailDivWadDownOverflow(uint256,uint256)
+      #     Error: EvmError: Revert
+      src/test/FixedPointMathLib.t.sol
     ref: c93f7716c9909175d45f6ef80a34a650e2d24e56
   OpenZeppelin/openzeppelin-contracts:
     commands:
