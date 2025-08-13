@@ -1,5 +1,12 @@
 # hardhat
 
+## 3.0.0-next.32
+
+### Patch Changes
+
+- a60c4d8: Better path anonymization of paths
+- 60db6e7: Avoid parsing build info files when not needed
+
 ## 3.0.0-next.31
 
 ### Patch Changes
