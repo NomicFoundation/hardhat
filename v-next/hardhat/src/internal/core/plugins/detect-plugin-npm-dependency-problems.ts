@@ -19,9 +19,9 @@ import {
  * - {@link HardhatError.ERRORS.CORE.PLUGINS.PLUGIN_NOT_INSTALLED} if the plugin is
  * not installed as an npm package
  * - {@link HardhatError.ERRORS.CORE.PLUGINS.PLUGIN_MISSING_DEPENDENCY} if the
- * plugin's package peer dependency is not installed
+ * plugin package's peer dependency is not installed
  * - {@link HardhatError.ERRORS.CORE.PLUGINS.DEPENDENCY_VERSION_MISMATCH} if the
- * plugin's package peer dependency is installed but has the wrong version
+ * plugin package's peer dependency is installed but has the wrong version
  */
 export async function detectPluginNpmDependencyProblems(
   basePathForNpmResolution: string,
