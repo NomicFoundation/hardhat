@@ -10,25 +10,16 @@ const exec = promisify(execSync);
 const changesetDir = ".changeset";
 
 /**
- * Read all the changesets that have not yet been applied
- * based on the pre.json file.
+ * Read all the changesets.
  */
 export async function readAllNewChangsets() {
   const allChangesetNames = (await readdir(changesetDir))
     .filter((file) => file.endsWith(".md"))
     .map((file) => file.slice(0, -3));
 
-  const alreadyAppliedChangesetNames = JSON.parse(
-    (await readFile(path.join(changesetDir, "pre.json"))).toString()
-  );
-
-  const newChangesetNames = allChangesetNames.filter(
-    (name) => !alreadyAppliedChangesetNames.changesets.includes(name)
-  );
-
   const changesets = [];
 
-  for (const newChangeSetName of newChangesetNames) {
+  for (const newChangeSetName of allChangesetNames) {
     const changesetFilePath = path.join(changesetDir, `${newChangeSetName}.md`);
 
     const changesetContent = await readFile(changesetFilePath, "utf-8");

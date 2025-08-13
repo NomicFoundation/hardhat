@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-ethers
 
+## 4.0.0
+
+### Major Changes
+
+- 29cc141: First release of Hardhat 3!
+
 ## 3.1.0
 
 ### Minor Changes

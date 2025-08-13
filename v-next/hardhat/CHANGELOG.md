@@ -1,5 +1,11 @@
 # hardhat
 
+## 3.0.0
+
+### Major Changes
+
+- 29cc141: First release of Hardhat 3!
+
 ## 2.26.3
 
 ### Patch Changes
