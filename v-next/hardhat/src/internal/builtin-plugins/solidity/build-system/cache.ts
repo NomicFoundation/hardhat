@@ -2,7 +2,7 @@ import path from "node:path";
 
 import {
   move,
-  readJsonFile,
+  readJsonFileAsStream,
   writeJsonFileAsStream,
 } from "@nomicfoundation/hardhat-utils/fs";
 
@@ -30,7 +30,7 @@ export async function loadCache(cacheDirectory: string): Promise<CompileCache> {
   let cache: CompileCache;
 
   try {
-    cache = await readJsonFile(path.join(cacheDirectory, CACHE_FILE_NAME));
+    cache = await readJsonFileAsStream(path.join(cacheDirectory, CACHE_FILE_NAME));
   } catch (_error) {
     cache = {};
   }
