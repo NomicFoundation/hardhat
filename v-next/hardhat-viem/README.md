@@ -4,7 +4,7 @@ This plugin integrates [viem](https://viem.sh) into Hardhat, adding a `viem` obj
 
 ## Installation
 
-> This plugin is part of the [Viem Hardhat Toolbox](/v-next/hardhat-toolbox-viem/). If you are using that toolbox, there's nothing else you need to do.
+> This plugin is part of the [Viem Hardhat Toolbox](https://hardhat.org/plugins/nomicfoundation-hardhat-toolbox-viem). If you are using that toolbox, there's nothing else you need to do.
 
 To install this plugin, run the following command:
 
