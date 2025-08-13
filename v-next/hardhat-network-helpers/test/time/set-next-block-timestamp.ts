@@ -3,6 +3,8 @@ import type { NetworkHelpers, Time } from "../../src/types.js";
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
 
+import { assertRejects } from "@nomicfoundation/hardhat-test-utils";
+
 import { initializeNetwork } from "../helpers/helpers.js";
 
 describe("time - setNextBlockTimestamp", () => {
@@ -70,39 +72,41 @@ describe("time - setNextBlockTimestamp", () => {
     );
   });
 
-  // TODO: in V3 we are currently missing this functionality
-  // describe("blocks with same timestamp", () => {
-  //   before(async () => {
-  //     ({ provider, networkHelpers } = await initializeNetwork(
-  //       "allow-blocks-same-timestamp",
-  //     ));
-  //   });
+  describe("blocks with same timestamp", () => {
+    before(async () => {
+      ({ networkHelpers } = await initializeNetwork({
+        allowBlocksWithSameTimestamp: true,
+      }));
+      time = networkHelpers.time;
+    });
 
-  //   it("should not throw if given a timestamp that is equal to the current block timestamp", async () => {
-  //     const initialTimestamp = await time.latest();
+    it("should not throw if given a timestamp that is equal to the current block timestamp", async () => {
+      const initialTimestamp = await time.latest();
+      const initialBlockNumber = await time.latestBlock();
 
-  //     await time.setNextBlockTimestamp(initialTimestamp);
-  //   });
+      await time.setNextBlockTimestamp(initialTimestamp);
+      await networkHelpers.mine();
 
-  //   it("should throw if given a timestamp that is less than the current block timestamp", async () => {
-  //     const initialBlockNumber = await time.latestBlock();
-  //     const initialTimestamp = await time.latest();
+      const endBlockNumber = await time.latestBlock();
+      const endTimestamp = await time.latest();
 
-  //     await assertRejectsWithHardhatError(
-  //       async () =>
-  //         time.setNextBlockTimestamp(initialTimestamp - 1),
-  //       HardhatError.ERRORS.NETWORK_HELPERS.GENERAL.INVALID_TIMESTAMP_TOO_LOW,
-  //       {},
-  //     );
+      assert.equal(endBlockNumber, initialBlockNumber + 1);
+      assert.equal(endTimestamp, initialTimestamp);
+    });
 
-  //     await time.setNextBlockTimestamp(initialTimestamp);
-  //     await networkHelpers.mine();
+    it("should throw if given a timestamp that is less than the current block timestamp", async () => {
+      const initialTimestamp = await time.latest();
 
-  //     const endBlockNumber = await time.latestBlock();
-  //     const endTimestamp = await time.latest();
-
-  //     assert.equal(endBlockNumber, initialBlockNumber + 1);
-  //     assert.equal(endTimestamp, initialTimestamp);
-  //   });
-  // });
+      await assertRejects(
+        time.setNextBlockTimestamp(initialTimestamp - 1),
+        (error: Error) => {
+          assert.match(
+            error.message,
+            /is lower than the previous block's timestamp/,
+          );
+          return true;
+        },
+      );
+    });
+  });
 });

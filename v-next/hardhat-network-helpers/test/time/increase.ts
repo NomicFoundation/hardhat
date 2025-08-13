@@ -68,35 +68,35 @@ describe("time - increase", () => {
     }
   });
 
-  // TODO: in V3 we are currently missing this functionality
-  // describe("blocks with same timestamp", () => {
-  //   before(async () => {
-  //     // Switch to the "allow-blocks-same-timestamp" environment.
-  //     ({ provider, networkHelpers } = await initializeNetwork(
-  //       "allow-blocks-same-timestamp",
-  //     ));
-  //   });
+  describe("blocks with same timestamp", () => {
+    before(async () => {
+      const { networkHelpers } = await initializeNetwork({
+        allowBlocksWithSameTimestamp: true,
+      });
+      time = networkHelpers.time;
+    });
 
-  //   it("should not throw if given zero number of seconds", async () => {
-  //     const initialBlockNumber = await time.latestBlock();
-  //     const initialTimestamp = await time.latest();
+    it("should not throw if given zero number of seconds", async () => {
+      const initialBlockNumber = await time.latestBlock();
+      const initialTimestamp = await time.latest();
 
-  //     const returnedTimestamp = await time.increase(0);
+      const returnedTimestamp = await time.increase(0);
 
-  //     const endBlockNumber = await time.latestBlock();
-  //     const endTimestamp = await time.latest();
+      const endBlockNumber = await time.latestBlock();
+      const endTimestamp = await time.latest();
 
-  //     assert.equal(endBlockNumber, initialBlockNumber + 1);
-  //     assert.equal(returnedTimestamp, endTimestamp);
-  //     assert.equal(endTimestamp, initialTimestamp);
-  //   });
+      assert.equal(endBlockNumber, initialBlockNumber + 1);
+      assert.equal(returnedTimestamp, endTimestamp);
+      assert.equal(endTimestamp, initialTimestamp);
+    });
 
-  //   it("should throw if given a negative number of seconds", async () => {
-  //     await assertRejectsWithHardhatError(
-  //       async () => time.increase(-1),
-  //       HardhatError.ERRORS.NETWORK_HELPERS.GENERAL.INVALID_TIMESTAMP_INCREMENT,
-  //       {},
-  //     );
-  //   });
-  // });
+    it("should throw if given a negative number of seconds", async () => {
+      await assertRejectsWithHardhatError(
+        time.increase(-1),
+        HardhatError.ERRORS.NETWORK_HELPERS.GENERAL
+          .CANNOT_CONVERT_NEGATIVE_NUMBER_TO_RPC_QUANTITY,
+        { value: -1 },
+      );
+    });
+  });
 });
