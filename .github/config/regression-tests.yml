@@ -40,17 +40,19 @@ repositories:
             }
           }
         },
-        "solidityTest": {
-          "forking": {
-            "rpcEndpoints": {
-              "goerli": "${GOERLI_RPC_URL}",
-              "arbitrumgoerli": "${ARBITRUM_GOERLI_RPC_URL}",
-              "optimismgoerli": "${OPTIMISM_GOERLI_RPC_URL}",
-              "etherum": "${ETHERUM_RPC_URL}",
-              "arbitrum": "${ARBITRUM_RPC_URL}",
-              "optimism": "${OPTIMISM_RPC_URL}",
-              "scrollsepolia": "${SCROLL_SEPOLIA_RPC_URL}",
-              "basesepolia": "${BASE_SEPOLIA_RPC_URL}"
+        "test": {
+          "solidity": {
+            "forking": {
+              "rpcEndpoints": {
+                "goerli": "${GOERLI_RPC_URL}",
+                "arbitrumgoerli": "${ARBITRUM_GOERLI_RPC_URL}",
+                "optimismgoerli": "${OPTIMISM_GOERLI_RPC_URL}",
+                "etherum": "${ETHERUM_RPC_URL}",
+                "arbitrum": "${ARBITRUM_RPC_URL}",
+                "optimism": "${OPTIMISM_RPC_URL}",
+                "scrollsepolia": "${SCROLL_SEPOLIA_RPC_URL}",
+                "basesepolia": "${BASE_SEPOLIA_RPC_URL}"
+              }
             }
           }
         }
@@ -96,9 +98,11 @@ repositories:
             "evmVersion": "shanghai"
           }
         },
-        "solidityTest": {
-          "fuzz": {
-            "runs": 256
+        "test": {
+          "solidity": {
+            "fuzz": {
+              "runs": 256
+            }
           }
         }
       };
@@ -175,28 +179,30 @@ repositories:
             }
           }
         },
-        "solidityTest": {
-          "fuzz": {
-            "runs": 1000,
-            "maxTestRejects": 1000000
-          },
-          "fsPermissions": {
-            "readDirectory": [
-              "./out-optimized"
-            ]
-          },
-          "forking": {
-            "rpcEndpoints": {
-              "arbitrum": "https://arbitrum-mainnet.infura.io/v3/${API_KEY_INFURA}",
-              "avalanche": "https://avalanche-mainnet.infura.io/v3/${API_KEY_INFURA}",
-              "bnb_smart_chain": "https://bsc-dataseed.binance.org",
-              "gnosis_chain": "https://rpc.gnosischain.com",
-              "goerli": "https://goerli.infura.io/v3/${API_KEY_INFURA}",
-              "localhost": "http://localhost:8545",
-              "mainnet": "https://eth-mainnet.g.alchemy.com/v2/${API_KEY_ALCHEMY}",
-              "optimism": "https://optimism-mainnet.infura.io/v3/${API_KEY_INFURA}",
-              "polygon": "https://polygon-mainnet.infura.io/v3/${API_KEY_INFURA}",
-              "sepolia": "https://sepolia.infura.io/v3/${API_KEY_INFURA}"
+        "test": {
+          "solidity": {
+            "fuzz": {
+              "runs": 1000,
+              "maxTestRejects": 1000000
+            },
+            "fsPermissions": {
+              "readDirectory": [
+                "./out-optimized"
+              ]
+            },
+            "forking": {
+              "rpcEndpoints": {
+                "arbitrum": "https://arbitrum-mainnet.infura.io/v3/${API_KEY_INFURA}",
+                "avalanche": "https://avalanche-mainnet.infura.io/v3/${API_KEY_INFURA}",
+                "bnb_smart_chain": "https://bsc-dataseed.binance.org",
+                "gnosis_chain": "https://rpc.gnosischain.com",
+                "goerli": "https://goerli.infura.io/v3/${API_KEY_INFURA}",
+                "localhost": "http://localhost:8545",
+                "mainnet": "https://eth-mainnet.g.alchemy.com/v2/${API_KEY_ALCHEMY}",
+                "optimism": "https://optimism-mainnet.infura.io/v3/${API_KEY_INFURA}",
+                "polygon": "https://polygon-mainnet.infura.io/v3/${API_KEY_INFURA}",
+                "sepolia": "https://sepolia.infura.io/v3/${API_KEY_INFURA}"
+              }
             }
           }
         }
@@ -226,10 +232,12 @@ repositories:
             "evmVersion": "shanghai"
           }
         },
-        "solidityTest": {
-          "fuzz": {
-            "runs": 100,
-            "maxTestRejects": 100000
+        "test": {
+          "solidity": {
+            "fuzz": {
+              "runs": 100,
+              "maxTestRejects": 100000
+            }
           }
         }
       };
@@ -270,21 +278,23 @@ repositories:
             }
           }
         },
-        "solidityTest": {
-          "fuzz": {
-            "runs": 1000
-          },
-          "fsPermissions": {
-            "readDirectory": [
-              "./optimized-out",
-              "./reference-out"
-            ],
-            "writeFile": [
-              "./call-metrics.txt",
-              "./mutation-metrics.txt",
-              "./assume-metrics.txt",
-              "./fuzz_debug.json"
-            ]
+        "test": {
+          "solidity": {
+            "fuzz": {
+              "runs": 1000
+            },
+            "fsPermissions": {
+              "readDirectory": [
+                "./optimized-out",
+                "./reference-out"
+              ],
+              "writeFile": [
+                "./call-metrics.txt",
+                "./mutation-metrics.txt",
+                "./assume-metrics.txt",
+                "./fuzz_debug.json"
+              ]
+            }
           }
         }
       };
@@ -399,12 +409,14 @@ repositories:
             }
           }
         },
-        "solidityTest": {
-          "ffi": true,
-          "fsPermissions": {
-            "dangerouslyReadWriteDirectory": [
-              ".forge-snapshots/"
-            ]
+        "test": {
+          "solidity": {
+            "ffi": true,
+            "fsPermissions": {
+              "dangerouslyReadWriteDirectory": [
+                ".forge-snapshots/"
+              ]
+            }
           }
         }
       };
@@ -471,19 +483,21 @@ repositories:
             "evmVersion": "cancun"
           }
         },
-        "solidityTest": {
-          "blockGasLimit": BigInt(100000000),
-          "fsPermissions": {
-            "readDirectory": [
-              "./test/data"
-            ]
-          },
-          "fuzz": {
-            "runs": 256
-          },
-          "invariant": {
-            "depth": 15,
-            "runs": 10
+        "test": {
+          "solidity": {
+            "blockGasLimit": BigInt(100000000),
+            "fsPermissions": {
+              "readDirectory": [
+                "./test/data"
+              ]
+            },
+            "fuzz": {
+              "runs": 256
+            },
+            "invariant": {
+              "depth": 15,
+              "runs": 10
+            }
           }
         }
       };
@@ -529,18 +543,20 @@ repositories:
             }
           }
         },
-        "solidityTest": {
-          "fsPermissions": {
-            "dangerouslyReadWriteDirectory": [
-              "./"
-            ]
-          },
-          "forking": {
-            "rpcEndpoints": {
-              "mainnet": "https://eth-mainnet.alchemyapi.io/v2/WV407BEiBmjNJfKo9Uo_55u0z0ITyCOX",
-              "optimism_sepolia": "https://sepolia.optimism.io/",
-              "arbitrum_one_sepolia": "https://sepolia-rollup.arbitrum.io/rpc/",
-              "needs_undefined_env_var": "${UNDEFINED_RPC_URL_PLACEHOLDER}"
+        "test": {
+          "solidity": {
+            "fsPermissions": {
+              "dangerouslyReadWriteDirectory": [
+                "./"
+              ]
+            },
+            "forking": {
+              "rpcEndpoints": {
+                "mainnet": "https://eth-mainnet.alchemyapi.io/v2/WV407BEiBmjNJfKo9Uo_55u0z0ITyCOX",
+                "optimism_sepolia": "https://sepolia.optimism.io/",
+                "arbitrum_one_sepolia": "https://sepolia-rollup.arbitrum.io/rpc/",
+                "needs_undefined_env_var": "${UNDEFINED_RPC_URL_PLACEHOLDER}"
+              }
             }
           }
         }
@@ -627,9 +643,11 @@ repositories:
             }
           }
         },
-        "solidityTest": {
-          "fuzz": {
-            "runs": 1000
+        "test": {
+          "solidity": {
+            "fuzz": {
+              "runs": 1000
+            }
           }
         }
       };
@@ -668,22 +686,24 @@ repositories:
             }
           }
         },
-        "solidityTest": {
-          "ffi": true,
-          "fsPermissions": {
-            "dangerouslyReadWriteDirectory": [
-              ".forge-snapshots/"
-            ],
-            "readDirectory": [
-              "./foundry-out",
-              "./script/config",
-              "./test/pool-cl/bin",
-              "./test/pool-bin/bin"
-            ]
-          },
-          "blockGasLimit": BigInt(300000000),
-          "fuzz": {
-            "runs": 5
+        "test": {
+          "solidity": {
+            "ffi": true,
+            "fsPermissions": {
+              "dangerouslyReadWriteDirectory": [
+                ".forge-snapshots/"
+              ],
+              "readDirectory": [
+                "./foundry-out",
+                "./script/config",
+                "./test/pool-cl/bin",
+                "./test/pool-bin/bin"
+              ]
+            },
+            "blockGasLimit": BigInt(300000000),
+            "fuzz": {
+              "runs": 5
+            }
           }
         }
       };
@@ -778,18 +798,20 @@ repositories:
             }
           }
         },
-        "solidityTest": {
-          "fuzz": {
-            "runs": 100
-          },
-          "fsPermissions": {
-            "dangerouslyReadWriteDirectory": [
-              "./"
-            ]
-          },
-          "invariant": {
-            "runs": 256,
-            "depth": 15
+        "test": {
+          "solidity": {
+            "fuzz": {
+              "runs": 100
+            },
+            "fsPermissions": {
+              "dangerouslyReadWriteDirectory": [
+                "./"
+              ]
+            },
+            "invariant": {
+              "runs": 256,
+              "depth": 15
+            }
           }
         }
       };
@@ -812,9 +834,6 @@ repositories:
       test/public/CREATE3/CreateX.deployCreate3AndInit_4Args_CustomiseSalt.t.sol
       test/public/CREATE3/CreateX.deployCreate3AndInit_4Args_CustomiseSalt.t.sol
       test/internal/CreateX._generateSalt.t.sol
-
-      # block height must be less than 2^64 - 1
-      test/internal/CreateX._guard.t.sol
     ref: ac7e49b93030145a646c6cffd62a81f447422309
   sablier-labs/lockup:
     env: |
@@ -846,63 +865,65 @@ repositories:
             }
           }
         },
-        "solidityTest": {
-          "fsPermissions": {
-            "readDirectory": [
-              "./out-optimized"
-            ],
-            "readFile": [
-              "package.json"
-            ],
-            "dangerouslyReadWriteDirectory": [
-              "./benchmark/results",
-              "./script/"
-            ]
-          },
-          "blockGasLimit": BigInt(9223372036854775807),
-          "fuzz": {
-            "runs": 50,
-            "maxTestRejects": 1000000
-          },
-          "invariant": {
-            "runs": 20,
-            "depth": 20,
-            "failOnRevert": true,
-            "callOverride": false
-          },
-          "sender": "0x1804c8AB1F12E6bbf3894d4083f33e07309d1f38",
-          "forking": {
-            "rpcEndpoints": {
-              "arbitrum": "${ARBITRUM_RPC_URL}",
-              "arbitrum_sepolia": "https://arbitrum-sepolia-rpc.publicnode.com",
-              "avalanche": "${AVALANCHE_RPC_URL}",
-              "base": "https://mainnet.base.org",
-              "base_sepolia": "https://sepolia.base.org",
-              "berachain_artio": "https://bartio.rpc.berachain.com/",
-              "blast": "https://rpc.blast.io",
-              "blast_sepolia": "https://sepolia.blast.io",
-              "bnb": "https://bsc-dataseed.binance.org",
-              "core_dao": "https://rpc.coredao.org",
-              "gnosis": "https://rpc.gnosischain.com",
-              "lightlink": "https://replicator.phoenix.lightlink.io/rpc/v1",
-              "linea": "https://rpc.linea.build",
-              "linea_sepolia": "https://rpc.sepolia.linea.build",
-              "localhost": "http://localhost:8545",
-              "mainnet": "${MAINNET_RPC_URL}",
-              "mode": "https://mainnet.mode.network/",
-              "mode_sepolia": "https://sepolia.mode.network/",
-              "morph": "https://rpc.morphl2.io",
-              "optimism": "${OPTIMISM_RPC_URL}",
-              "optimism_sepolia": "https://sepolia.optimism.io",
-              "polygon": "${POLYGON_RPC_URL}",
-              "scroll": "https://rpc.scroll.io/",
-              "sei": "https://evm-rpc.sei-apis.com",
-              "sei_testnet": "https://evm-rpc.arctic-1.seinetwork.io",
-              "sepolia": "${SEPOLIA_RPC_URL}",
-              "superseed": "https://mainnet.superseed.xyz",
-              "superseed_sepolia": "https://sepolia.superseed.xyz",
-              "taiko_hekla": "https://rpc.hekla.taiko.xyz",
-              "taiko_mainnet": "https://rpc.mainnet.taiko.xyz"
+        "test": {
+          "solidity": {
+            "fsPermissions": {
+              "readDirectory": [
+                "./out-optimized"
+              ],
+              "readFile": [
+                "package.json"
+              ],
+              "dangerouslyReadWriteDirectory": [
+                "./benchmark/results",
+                "./script/"
+              ]
+            },
+            "blockGasLimit": BigInt(9223372036854775807),
+            "fuzz": {
+              "runs": 50,
+              "maxTestRejects": 1000000
+            },
+            "invariant": {
+              "runs": 20,
+              "depth": 20,
+              "failOnRevert": true,
+              "callOverride": false
+            },
+            "sender": "0x1804c8AB1F12E6bbf3894d4083f33e07309d1f38",
+            "forking": {
+              "rpcEndpoints": {
+                "arbitrum": "${ARBITRUM_RPC_URL}",
+                "arbitrum_sepolia": "https://arbitrum-sepolia-rpc.publicnode.com",
+                "avalanche": "${AVALANCHE_RPC_URL}",
+                "base": "https://mainnet.base.org",
+                "base_sepolia": "https://sepolia.base.org",
+                "berachain_artio": "https://bartio.rpc.berachain.com/",
+                "blast": "https://rpc.blast.io",
+                "blast_sepolia": "https://sepolia.blast.io",
+                "bnb": "https://bsc-dataseed.binance.org",
+                "core_dao": "https://rpc.coredao.org",
+                "gnosis": "https://rpc.gnosischain.com",
+                "lightlink": "https://replicator.phoenix.lightlink.io/rpc/v1",
+                "linea": "https://rpc.linea.build",
+                "linea_sepolia": "https://rpc.sepolia.linea.build",
+                "localhost": "http://localhost:8545",
+                "mainnet": "${MAINNET_RPC_URL}",
+                "mode": "https://mainnet.mode.network/",
+                "mode_sepolia": "https://sepolia.mode.network/",
+                "morph": "https://rpc.morphl2.io",
+                "optimism": "${OPTIMISM_RPC_URL}",
+                "optimism_sepolia": "https://sepolia.optimism.io",
+                "polygon": "${POLYGON_RPC_URL}",
+                "scroll": "https://rpc.scroll.io/",
+                "sei": "https://evm-rpc.sei-apis.com",
+                "sei_testnet": "https://evm-rpc.arctic-1.seinetwork.io",
+                "sepolia": "${SEPOLIA_RPC_URL}",
+                "superseed": "https://mainnet.superseed.xyz",
+                "superseed_sepolia": "https://sepolia.superseed.xyz",
+                "taiko_hekla": "https://rpc.hekla.taiko.xyz",
+                "taiko_mainnet": "https://rpc.mainnet.taiko.xyz"
+              }
             }
           }
         }
@@ -966,42 +987,44 @@ repositories:
             }
           }
         },
-        "solidityTest": {
-          "blockTimestamp": BigInt(1714518000),
-          "fsPermissions": {
-            "read": [
-              "./out-optimized"
-            ],
-            "readFile": [
-              "package.json"
-            ],
-            "dangerouslyReadWriteDirectory": [
-              "./benchmark/results",
-              "./cache"
-            ]
-          },
-          "blockGasLimit": BigInt(9223372036854775807),
-          "sender": "0x1804c8AB1F12E6bbf3894d4083f33e07309d1f38",
-          "fuzz": {
-            "runs": 20,
-            "maxTestRejects": 1000000
-          },
-          "forking": {
-            "rpcEndpoints": {
-              "arbitrum": "${ARBITRUM_RPC_URL}",
-              "arbitrum_sepolia": "https://arbitrum-sepolia.blockpi.network/v1/rpc/public",
-              "avalanche": "${AVALANCHE_RPC_URL}",
-              "base": "https://mainnet.base.org",
-              "base_sepolia": "https://sepolia.base.org",
-              "bnb": "https://bsc-dataseed.binance.org",
-              "gnosis": "https://rpc.gnosischain.com",
-              "localhost": "http://localhost:8545",
-              "mainnet": "${MAINNET_RPC_URL}",
-              "optimism": "${OPTIMISM_RPC_URL}",
-              "optimism_sepolia": "https://sepolia.optimism.io",
-              "polygon": "${POLYGON_RPC_URL}",
-              "scroll": "https://rpc.scroll.io/",
-              "sepolia": "${SEPOLIA_RPC_URL}"
+        "test": {
+          "solidity": {
+            "blockTimestamp": BigInt(1714518000),
+            "fsPermissions": {
+              "read": [
+                "./out-optimized"
+              ],
+              "readFile": [
+                "package.json"
+              ],
+              "dangerouslyReadWriteDirectory": [
+                "./benchmark/results",
+                "./cache"
+              ]
+            },
+            "blockGasLimit": BigInt(9223372036854775807),
+            "sender": "0x1804c8AB1F12E6bbf3894d4083f33e07309d1f38",
+            "fuzz": {
+              "runs": 20,
+              "maxTestRejects": 1000000
+            },
+            "forking": {
+              "rpcEndpoints": {
+                "arbitrum": "${ARBITRUM_RPC_URL}",
+                "arbitrum_sepolia": "https://arbitrum-sepolia.blockpi.network/v1/rpc/public",
+                "avalanche": "${AVALANCHE_RPC_URL}",
+                "base": "https://mainnet.base.org",
+                "base_sepolia": "https://sepolia.base.org",
+                "bnb": "https://bsc-dataseed.binance.org",
+                "gnosis": "https://rpc.gnosischain.com",
+                "localhost": "http://localhost:8545",
+                "mainnet": "${MAINNET_RPC_URL}",
+                "optimism": "${OPTIMISM_RPC_URL}",
+                "optimism_sepolia": "https://sepolia.optimism.io",
+                "polygon": "${POLYGON_RPC_URL}",
+                "scroll": "https://rpc.scroll.io/",
+                "sepolia": "${SEPOLIA_RPC_URL}"
+              }
             }
           }
         }
