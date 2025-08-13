@@ -10,7 +10,6 @@
 "@nomicfoundation/hardhat-ignition-viem": major
 "@nomicfoundation/hardhat-toolbox-viem": major
 "@nomicfoundation/ignition-ui": major
-"@nomicfoundation/hardhat-test-utils": major
 "@nomicfoundation/hardhat-typechain": major
 "@nomicfoundation/hardhat-zod-utils": major
 "@nomicfoundation/hardhat-ignition": major
