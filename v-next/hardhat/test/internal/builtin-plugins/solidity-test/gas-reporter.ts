@@ -494,7 +494,12 @@ CounterTest::testInitialValue() (gas: 11077)`;
     });
 
     it("should format the report as the same markdown table when tolerance is provided but previous report is not", () => {
-      const actual = formatMarkdownReport(report, undefined, 0.1, tagColorizer);
+      const actual = formatMarkdownReport(
+        report,
+        undefined,
+        0.01,
+        tagColorizer,
+      );
       const expected = `| <bold>Contract / Function Name 📄</bold> | <bold>Median Gas ⛽️</bold> | <bold>Mean Gas ⛽️</bold> | <bold>Runs 👟</bold> |
 | ---------------------------------------- | -------------------------- | ------------------------ | -------------------- |
 | <bold>TestContract</bold>                |                            |                          |                      |
@@ -522,16 +527,16 @@ CounterTest::testInitialValue() (gas: 11077)`;
       const expected = `| <bold>Contract / Function Name 📄</bold> | <bold>Median Gas ⛽️</bold> | <bold>Mean Gas ⛽️</bold> | <bold>Runs 👟</bold> |
 | ---------------------------------------- | -------------------------- | ------------------------ | -------------------- |
 | <bold>TestContract</bold>                |                            |                          |                      |
-| testExpectArithmetic()                   | 9899 (+0.000%)             | 9899                     | 1                    |
+| testExpectArithmetic()                   | 9899 (+0.001%)             | 9899                     | 1                    |
 | <bold>FailingCounterTest</bold>          |                            |                          |                      |
-| testFailFuzzInc(uint8)                   | 44608 (+0.013%)            | 87206                    | 256                  |
+| testFailFuzzInc(uint8)                   | 44608 (+0.014%)            | 87206                    | 256                  |
 | testFuzzInc(uint8)                       | 0                          | 0                        | 0                    |
-| testInitialValue()                       | 11331 (-0.051%)            | 11331                    | 1                    |
+| testInitialValue()                       | 11331 (-0.050%)            | 11331                    | 1                    |
 | <bold>CounterTest</bold>                 |                            |                          |                      |
 | testFailFuzzInc(uint8)                   | 0                          | 0                        | 0                    |
-| testFailInitialValue()                   | 11309 (+0.000%)            | 11309                    | 1                    |
-| testFuzzInc(uint8)                       | 61658 (-0.001%)            | 98747                    | 256                  |
-| testInitialValue()                       | 11077 (+0.000%)            | 11077                    | 1                    |`;
+| testFailInitialValue()                   | 11309 (0.000%)             | 11309                    | 1                    |
+| testFuzzInc(uint8)                       | 61658 (-0.000%)            | 98747                    | 256                  |
+| testInitialValue()                       | 11077 (0.000%)             | 11077                    | 1                    |`;
 
       assert.equal(actual, expected);
     });
@@ -540,22 +545,22 @@ CounterTest::testInitialValue() (gas: 11077)`;
       const actual = formatMarkdownReport(
         report,
         previousReport,
-        0.1,
+        0.01,
         tagColorizer,
       );
       const expected = `| <bold>Contract / Function Name 📄</bold> | <bold>Median Gas ⛽️</bold>       | <bold>Mean Gas ⛽️</bold> | <bold>Runs 👟</bold> |
 | ---------------------------------------- | -------------------------------- | ------------------------ | -------------------- |
 | <bold>TestContract</bold>                |                                  |                          |                      |
-| testExpectArithmetic()                   | <green>9899 (+0.000%)</green>    | 9899                     | 1                    |
+| testExpectArithmetic()                   | <yellow>9899 (+0.001%)</yellow>  | 9899                     | 1                    |
 | <bold>FailingCounterTest</bold>          |                                  |                          |                      |
-| testFailFuzzInc(uint8)                   | <yellow>44608 (+0.013%)</yellow> | 87206                    | 256                  |
+| testFailFuzzInc(uint8)                   | <red>44608 (+0.014%)</red>       | 87206                    | 256                  |
 | testFuzzInc(uint8)                       | 0                                | 0                        | 0                    |
-| testInitialValue()                       | <yellow>11331 (-0.051%)</yellow> | 11331                    | 1                    |
+| testInitialValue()                       | <red>11331 (-0.050%)</red>       | 11331                    | 1                    |
 | <bold>CounterTest</bold>                 |                                  |                          |                      |
 | testFailFuzzInc(uint8)                   | 0                                | 0                        | 0                    |
-| testFailInitialValue()                   | <green>11309 (+0.000%)</green>   | 11309                    | 1                    |
-| testFuzzInc(uint8)                       | <yellow>61658 (-0.001%)</yellow> | 98747                    | 256                  |
-| testInitialValue()                       | <green>11077 (+0.000%)</green>   | 11077                    | 1                    |`;
+| testFailInitialValue()                   | <green>11309 (0.000%)</green>    | 11309                    | 1                    |
+| testFuzzInc(uint8)                       | <yellow>61658 (-0.000%)</yellow> | 98747                    | 256                  |
+| testInitialValue()                       | <green>11077 (0.000%)</green>    | 11077                    | 1                    |`;
 
       assert.equal(actual, expected);
     });

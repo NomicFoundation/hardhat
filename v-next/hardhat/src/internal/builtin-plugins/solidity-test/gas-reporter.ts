@@ -18,13 +18,7 @@ import {
 import chalk from "chalk";
 import debug from "debug";
 
-import {
-  bigIntAbs,
-  bigIntDiv,
-  bigIntFromNumber,
-  bigIntPadEnd,
-  bigIntToString,
-} from "./utils/bigint.js";
+import { BigFloat } from "./utils/bigfloat.js";
 
 const log = debug("hardhat:solidity-test:gas-reporter");
 
@@ -245,25 +239,22 @@ function formatMarkdownReportCell(
     return value.toString();
   }
 
-  const precision = 3;
+  const diff = BigFloat.fromBigInt(value)
+    .div(BigFloat.fromBigInt(previousValue))
+    .sub(BigFloat.fromNumber(1));
 
-  const diff =
-    bigIntDiv(value, previousValue, precision) -
-    bigIntPadEnd(BigInt(1), precision);
-  const diffString = bigIntToString(diff, precision);
-
-  const cell = `${value} (${diffString}%)`;
+  const cell = `${value} (${diff.toFixed(3, true)}%)`;
 
   if (tolerance === undefined) {
     return cell;
   }
 
-  const absDiff = bigIntAbs(diff);
-  const absTolerance = bigIntAbs(bigIntFromNumber(tolerance, precision));
+  const absDiff = diff.abs();
+  const absTolerance = BigFloat.fromNumber(tolerance).abs();
 
-  if (absDiff > absTolerance) {
+  if (absDiff.greaterThan(absTolerance)) {
     return colorizer.red(cell);
-  } else if (absDiff === 0n) {
+  } else if (absDiff.equals(BigFloat.fromNumber(0))) {
     return colorizer.green(cell);
   } else {
     return colorizer.yellow(cell);
@@ -379,14 +370,13 @@ export function isReportWithinTolerance(
         previousUsage !== undefined &&
         previousUsage.medianGas !== 0n
       ) {
-        const precision = 3;
-        const diff =
-          bigIntDiv(usage.medianGas, previousUsage.medianGas, precision) -
-          bigIntPadEnd(BigInt(1), precision);
-        const absDiff = bigIntAbs(diff);
-        const absTolerance = bigIntAbs(bigIntFromNumber(tolerance, precision));
+        const absDiff = BigFloat.fromBigInt(usage.medianGas)
+          .div(BigFloat.fromBigInt(previousUsage.medianGas))
+          .sub(BigFloat.fromNumber(1))
+          .abs();
+        const absTolerance = BigFloat.fromNumber(tolerance).abs();
 
-        if (absDiff > absTolerance) {
+        if (absDiff.greaterThan(absTolerance)) {
           return false;
         }
       }
