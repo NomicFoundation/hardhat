@@ -24,7 +24,7 @@ export default {
 
 ## Usage
 
-You don't need to do anything else to use this plugin. The `viem` object added by the [hardhat-viem plugin](http://hardhat.org/plugins/nomicfoundation-hardhat-viem) is expanded with an `assertions` property that contains the assertions library.
+You don't need to do anything else to use this plugin. The `viem` object added by the [hardhat-viem plugin](https://hardhat.org/plugins/nomicfoundation-hardhat-viem) is expanded with an `assertions` property that contains the assertions library.
 
 Here is an example of using the `balancesHaveChanged` assertion:
 
