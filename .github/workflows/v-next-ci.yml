@@ -4,7 +4,7 @@ on:
   merge_group:
   push:
     branches:
-      - v-next
+      - main
   pull_request:
   workflow_dispatch:
 
@@ -96,7 +96,6 @@ jobs:
         with:
           list-files: json
           filters: ${{ steps.generate.outputs.filters }}
-          base: v-next # TODO: Remove once v-next becomes the default branch
 
   bundle:
     # Depending on list-packages only to check whether pnpm-lock.yaml has changed
@@ -241,7 +240,12 @@ jobs:
       matrix:
         package: ${{ fromJson(needs.list-packages.outputs.packages) }}
         os: [ubuntu-latest, macos-13, macos-latest, windows-latest]
-        node: [22, 24]
+        node: [22.0.0, 24.0.0]
+        exclude:
+          - package: hardhat-node-test-reporter
+            node: 22.0.0
+          - package: hardhat-node-test-reporter
+            node: 24.0.0
 
     name: "[${{ matrix.package }}] ci on ${{ matrix.os }} (Node ${{ matrix.node }})"
     runs-on: ${{ matrix.os }}
@@ -279,3 +283,33 @@ jobs:
             exit 1
           fi
         shell: bash
+
+  hardhat-node-test-reporter:
+    needs: list-packages
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-13, macos-latest, windows-latest]
+        # We run the tests for `hardhat-node-test-reporter` with the latest
+        # versions of Node (the testing output relying on recent changes)
+        node: [22, 24]
+
+    name: "[hardhat-node-test-reporter] ci on ${{ matrix.os }} (Node ${{ matrix.node }})"
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: v-next/hardhat-node-test-reporter
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-env
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --prefer-offline
+      - name: Build
+        run: pnpm run --if-present build
+      - name: Run tests
+        env:
+          __DO_NOT_USE_IS_HARDHAT_CI: true
+        run: pnpm run --if-present test

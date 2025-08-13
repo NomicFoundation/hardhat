@@ -19,7 +19,6 @@ import { TaskDefinitionType } from "../../../types/tasks.js";
 import { ResolvedTask } from "./resolved-task.js";
 import { formatTaskId, getActorFragment } from "./utils.js";
 import {
-  validateAction,
   validateId,
   validateOption,
   validatePositionalArgument,
@@ -291,8 +290,6 @@ export class TaskManagerImplementation implements TaskManager {
     }
 
     const usedNames = new Set<string>();
-
-    validateAction(taskDefinition.action);
 
     Object.values(taskDefinition.options).forEach((optionDefinition) =>
       validateOption(optionDefinition, usedNames, taskDefinition.id),

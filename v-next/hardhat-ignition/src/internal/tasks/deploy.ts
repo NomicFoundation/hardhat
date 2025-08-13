@@ -30,9 +30,9 @@ import { verifyArtifactsVersion } from "../utils/verifyArtifactsVersion.js";
 
 interface TaskDeployArguments {
   modulePath: string;
-  parameters: string;
-  deploymentId: string;
-  defaultSender: string;
+  parameters?: string;
+  deploymentId?: string;
+  defaultSender?: string;
   strategy: string;
   reset: boolean;
   verify: boolean;
@@ -61,12 +61,15 @@ const taskDeploy: NewTaskActionFunction<TaskDeployArguments> = async (
   );
 
   const deploymentId = resolveDeploymentId(
-    givenDeploymentId === "" ? undefined : givenDeploymentId,
+    givenDeploymentId === undefined || givenDeploymentId === ""
+      ? undefined
+      : givenDeploymentId,
     chainId,
   );
 
   const deploymentDir =
-    connection.networkConfig.type === "edr" && !writeLocalhostDeployment
+    connection.networkConfig.type === "edr-simulated" &&
+    !writeLocalhostDeployment
       ? undefined
       : path.join(hre.config.paths.ignition, "deployments", deploymentId);
 
@@ -196,7 +199,10 @@ const taskDeploy: NewTaskActionFunction<TaskDeployArguments> = async (
     ignitionModule: userModule,
     deploymentParameters: parameters ?? {},
     accounts,
-    defaultSender: defaultSender === "" ? undefined : defaultSender,
+    defaultSender:
+      defaultSender === undefined || defaultSender === ""
+        ? undefined
+        : defaultSender,
     strategy: strategyName,
     strategyConfig,
     maxFeePerGasLimit:

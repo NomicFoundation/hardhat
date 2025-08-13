@@ -1,5 +1,3 @@
-import util from "node:util";
-
 import {
   HardhatError,
   HardhatPluginError,
@@ -67,9 +65,9 @@ interface ErrorMessages {
  * `console.error`. Useful for testing to capture error messages.
  */
 export function printErrorMessages(
-  error: unknown,
+  error: Error,
   shouldShowStackTraces: boolean = false,
-  print: (message: string) => void = console.error,
+  print: (message: string | Error) => void = console.error,
 ): void {
   const showStackTraces =
     shouldShowStackTraces ||
@@ -85,7 +83,7 @@ export function printErrorMessages(
   print("");
 
   if (showStackTraces) {
-    print(error instanceof Error ? `${error.stack}` : `${util.inspect(error)}`);
+    print(error);
     if (postErrorStackTraceMessage !== undefined) {
       print("");
       print(postErrorStackTraceMessage);
@@ -95,7 +93,7 @@ export function printErrorMessages(
   }
 }
 
-function getErrorWithCategory(error: unknown): ErrorWithCategory {
+function getErrorWithCategory(error: Error): ErrorWithCategory {
   if (HardhatError.isHardhatError(error)) {
     if (error.pluginId === undefined) {
       return {
@@ -123,20 +121,18 @@ function getErrorWithCategory(error: unknown): ErrorWithCategory {
   };
 }
 
-function getErrorMessages(error: unknown): ErrorMessages {
+function getErrorMessages(error: Error): ErrorMessages {
   const { category, categorizedError } = getErrorWithCategory(error);
   switch (category) {
     case ErrorCategory.HARDHAT:
       return {
         formattedErrorMessage: `${chalk.red.bold(`Error ${categorizedError.errorCode}:`)} ${categorizedError.formattedMessage}`,
-        // Commented out until we have the new website
-        // showMoreInfoMessage: `For more info go to ${HARDHAT_WEBSITE_URL}${categorizedError.errorCode} or run ${HARDHAT_NAME} with --show-stack-traces`,
+        showMoreInfoMessage: `For more info go to ${HARDHAT_WEBSITE_URL}${categorizedError.errorCode} or run ${HARDHAT_NAME} with --show-stack-traces`,
       };
     case ErrorCategory.PLUGIN:
       return {
         formattedErrorMessage: `${chalk.red.bold(`Error ${categorizedError.errorCode} in plugin ${categorizedError.pluginId}:`)} ${categorizedError.formattedMessage}`,
-        // Commented out until we have the new website
-        // showMoreInfoMessage: `For more info go to ${HARDHAT_WEBSITE_URL}${categorizedError.errorCode} or run ${HARDHAT_NAME} with --show-stack-traces`,
+        showMoreInfoMessage: `For more info go to ${HARDHAT_WEBSITE_URL}${categorizedError.errorCode} or run ${HARDHAT_NAME} with --show-stack-traces`,
       };
     case ErrorCategory.COMMUNITY_PLUGIN:
       return {

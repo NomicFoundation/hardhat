@@ -28,6 +28,8 @@ describe("solc-versions", () => {
           },
         ],
         overrides: {},
+        isolated: false,
+        preferWasm: false,
       };
       const expected = ["0.8.18", "0.7.2", "0.4.11"];
 
@@ -50,6 +52,8 @@ describe("solc-versions", () => {
             settings: {},
           },
         },
+        isolated: false,
+        preferWasm: false,
       };
       const expected = ["0.5.5", "0.6.4"];
 
@@ -81,6 +85,8 @@ describe("solc-versions", () => {
             settings: {},
           },
         },
+        isolated: false,
+        preferWasm: false,
       };
       const expected = ["0.8.18", "0.7.2", "0.5.5", "0.6.4"];
 
@@ -104,6 +110,8 @@ describe("solc-versions", () => {
             settings: {},
           },
         },
+        isolated: false,
+        preferWasm: false,
       };
       const expected = ["0.8.18", "0.8.18"];
 
@@ -131,6 +139,8 @@ describe("solc-versions", () => {
             settings: {},
           },
         },
+        isolated: false,
+        preferWasm: false,
       };
 
       await assertRejectsWithHardhatError(
@@ -160,6 +170,8 @@ describe("solc-versions", () => {
             settings: {},
           },
         },
+        isolated: false,
+        preferWasm: false,
       };
 
       await assertRejectsWithHardhatError(

@@ -1,7 +1,7 @@
 import type { RunOptions } from "./runner.js";
 import type { Abi } from "../../../types/artifacts.js";
-import type { SolidityTestConfig } from "../../../types/config.js";
 import type { ChainType } from "../../../types/network.js";
+import type { SolidityTestConfig } from "../../../types/test.js";
 import type {
   SolidityTestRunnerConfigArgs,
   PathPermission,
@@ -15,6 +15,7 @@ import {
   l1GenesisState,
   l1HardforkLatest,
   IncludeTraces,
+  FsAccessPermission,
 } from "@nomicfoundation/edr";
 import { hexStringToBytes } from "@nomicfoundation/hardhat-utils/hex";
 
@@ -39,9 +40,30 @@ export function solidityTestConfigToSolidityTestRunnerConfigArgs(
   testPattern?: string,
 ): SolidityTestRunnerConfigArgs {
   const fsPermissions: PathPermission[] | undefined = [
-    config.fsPermissions?.readWrite?.map((p) => ({ access: 0, path: p })) ?? [],
-    config.fsPermissions?.read?.map((p) => ({ access: 0, path: p })) ?? [],
-    config.fsPermissions?.write?.map((p) => ({ access: 0, path: p })) ?? [],
+    config.fsPermissions?.readWriteFile?.map((p) => ({
+      access: FsAccessPermission.ReadWriteFile,
+      path: p,
+    })) ?? [],
+    config.fsPermissions?.readFile?.map((p) => ({
+      access: FsAccessPermission.ReadFile,
+      path: p,
+    })) ?? [],
+    config.fsPermissions?.writeFile?.map((p) => ({
+      access: FsAccessPermission.WriteFile,
+      path: p,
+    })) ?? [],
+    config.fsPermissions?.dangerouslyReadWriteDirectory?.map((p) => ({
+      access: FsAccessPermission.DangerouslyReadWriteDirectory,
+      path: p,
+    })) ?? [],
+    config.fsPermissions?.readDirectory?.map((p) => ({
+      access: FsAccessPermission.ReadDirectory,
+      path: p,
+    })) ?? [],
+    config.fsPermissions?.dangerouslyWriteDirectory?.map((p) => ({
+      access: FsAccessPermission.DangerouslyWriteDirectory,
+      path: p,
+    })) ?? [],
   ].flat(1);
 
   const sender: Buffer | undefined =

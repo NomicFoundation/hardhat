@@ -1,31 +1,24 @@
-# Hardhat Ethers Chai Matchers plugin
+# hardhat-ethers-chai-matchers
 
 This plugin adds Ethereum-specific matchers to the [Chai](https://chaijs.com/) assertion library that integrate with [ethers.js](https://ethers.org/), making your smart contract tests easy to write and read.
 
 ## Installation
 
+> This plugin is part of the [Ethers+Mocha Hardhat Toolbox](https://hardhat.org/plugins/nomicfoundation-hardhat-toolbox-mocha-ethers). If you are using that toolbox, there's nothing else you need to do.
+
 To install this plugin, run the following command:
 
 ```bash
-npm install --save-dev @nomicfoundation/hardhat-ethers-chai-matchers@next
+npm install --save-dev @nomicfoundation/hardhat-ethers-chai-matchers
 ```
 
-and add the following statements to your `hardhat.config.ts` file:
+In your `hardhat.config.ts` file, import the plugin and add it to the `plugins` array:
 
-```typescript
-// ...
-import ethersChaiMatchersPlugin from "@nomicfoundation/hardhat-ethers-chai-matchers";
-
-// ...
+```ts
+import hardhatEthersChaiMatchers from "@nomicfoundation/hardhat-ethers-chai-matchers";
 
 export default {
-  // ...
-  plugins: [
-    // ...
-    ethersChaiMatchersPlugin,
-  ],
-
-  // ...
+  plugins: [hardhatEthersChaiMatchers],
 };
 ```
 
@@ -33,20 +26,16 @@ export default {
 
 You don't need to do anything else to use this plugin. Whenever you run your tests with Hardhat, it will automatically add the matchers.
 
-Here is an example of using the `changeEtherBalances` matcher:
+Here is an example of using the `emit` matcher:
 
 ```ts
 import { expect } from "chai";
 
-// ...
-// ...
+it("some test", async function () {
+  const contract = await ethers.deployContract("SomeContract");
 
-const amount = ethers.utils.parseEther("1");
-
-await expect(() =>
-  sender.sendTransaction({
-    to: contract,
-    value: AMOUNT,
-  }),
-).to.changeEtherBalances(provider, [sender, contract], [-AMOUNT, AMOUNT]);
+  await expect(contract.someFunction())
+    .to.emit(contract, "SomeEvent")
+    .withArgs("0x...", 3);
+});
 ```

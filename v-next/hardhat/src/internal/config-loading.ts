@@ -1,5 +1,6 @@
 import type { HardhatUserConfig } from "../types/config.js";
 
+import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
@@ -140,29 +141,56 @@ async function normalizeConfigPath(configPath: string): Promise<string> {
  */
 async function importConfigFileWithTsxFallback(configPath: string) {
   try {
-    return await import(configPath);
+    try {
+      return await import(configPath);
+    } catch (error) {
+      ensureError(error);
+
+      if (
+        "code" in error &&
+        error.code === "ERR_UNKNOWN_FILE_EXTENSION" &&
+        configPath.endsWith(".ts")
+      ) {
+        const realPath = await getRealPath(fileURLToPath(configPath));
+
+        if (compiledConfigFile.has(realPath)) {
+          return compiledConfigFile.get(realPath);
+        }
+
+        const { tsImport } = await import("tsx/esm/api");
+        const config = await tsImport(configPath, import.meta.url);
+
+        compiledConfigFile.set(realPath, config);
+
+        return config;
+      }
+
+      throw error;
+    }
   } catch (error) {
     ensureError(error);
 
-    if (
-      "code" in error &&
-      error.code === "ERR_UNKNOWN_FILE_EXTENSION" &&
-      configPath.endsWith(".ts")
-    ) {
-      const realPath = await getRealPath(fileURLToPath(configPath));
+    switch (error.name) {
+      case "TransformError":
+        const errors = error.message
+          .split("\n")
+          .filter((line) => line.includes(path.basename(configPath)))
+          // For example: /.../hardhat.config.ts:86:5: ERROR: Expected "}" but found "\"community-plugin\""
+          .map((line) => line.split(":"))
+          .map(
+            ([_path, line, _char, _code, ...message]) =>
+              `* Syntax error in line ${line}: ${message.join(":").trim()}`,
+          );
 
-      if (compiledConfigFile.has(realPath)) {
-        return compiledConfigFile.get(realPath);
-      }
-
-      const { tsImport } = await import("tsx/esm/api");
-      const config = tsImport(configPath, import.meta.url);
-
-      compiledConfigFile.set(realPath, config);
-
-      return config;
+        throw new HardhatError(
+          HardhatError.ERRORS.CORE.GENERAL.INVALID_CONFIG_FILE,
+          {
+            configPath,
+            errors: `\t${errors.join("\n\t")}`,
+          },
+        );
+      default:
+        throw error;
     }
-
-    throw error;
   }
 }

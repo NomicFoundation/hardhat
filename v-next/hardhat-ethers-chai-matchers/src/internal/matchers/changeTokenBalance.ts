@@ -1,3 +1,4 @@
+import type { HardhatEthers } from "@nomicfoundation/hardhat-ethers/types";
 import type {
   Addressable,
   BaseContract,
@@ -6,7 +7,6 @@ import type {
   ContractTransactionResponse,
 } from "ethers";
 import type { TransactionResponse } from "ethers/providers";
-import type { EthereumProvider } from "hardhat/types/providers";
 
 import {
   assertHardhatInvariant,
@@ -43,7 +43,7 @@ export function supportChangeTokenBalance(
     CHANGE_TOKEN_BALANCE_MATCHER,
     function (
       this: any,
-      provider: EthereumProvider,
+      ethers: HardhatEthers,
       token: Token,
       account: Addressable | string,
       balanceChange: bigint | ((change: bigint) => boolean),
@@ -87,7 +87,7 @@ export function supportChangeTokenBalance(
       };
 
       const derivedPromise = Promise.all([
-        getBalanceChange(provider, subject, token, account),
+        getBalanceChange(ethers, subject, token, account),
         getAddressOf(account),
         getTokenDescription(token),
       ]).then(checkBalanceChange);
@@ -103,7 +103,7 @@ export function supportChangeTokenBalance(
     CHANGE_TOKEN_BALANCES_MATCHER,
     function (
       this: any,
-      provider: EthereumProvider,
+      ethers: HardhatEthers,
       token: Token,
       accounts: Array<Addressable | string>,
       balanceChanges: bigint[] | ((changes: bigint[]) => boolean),
@@ -126,7 +126,7 @@ export function supportChangeTokenBalance(
 
       const balanceChangesPromise = Promise.all(
         accounts.map((account) =>
-          getBalanceChange(provider, subject, token, account),
+          getBalanceChange(ethers, subject, token, account),
         ),
       );
       const addressesPromise = Promise.all(accounts.map(getAddressOf));
@@ -229,7 +229,7 @@ function checkToken(token: unknown, method: string) {
 }
 
 export async function getBalanceChange(
-  provider: EthereumProvider,
+  ethers: HardhatEthers,
   transaction: TransactionResponse | Promise<TransactionResponse>,
   token: Token,
   account: Addressable | string,
@@ -240,15 +240,12 @@ export async function getBalanceChange(
   assertIsNotNull(txReceipt, "txReceipt");
   const txBlockNumber = txReceipt.blockNumber;
 
-  const block = await provider.request({
-    method: "eth_getBlockByHash",
-    params: [txReceipt.blockHash, false],
-  });
+  const block = await ethers.provider.getBlock(txReceipt.blockHash, false);
+
+  assertHardhatInvariant(block !== null, "The block doesn't exist");
 
   assertHardhatInvariant(
-    isObject(block) &&
-      Array.isArray(block.transactions) &&
-      block.transactions.length === 1,
+    Array.isArray(block.transactions) && block.transactions.length === 1,
     "There should be only 1 transaction in the block",
   );
 

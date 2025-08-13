@@ -1,6 +1,8 @@
 # Hardhat's `node:test` reporter
 
-This package includes Hardhat 3's `node:test` reporter. To integrate it with your Hardhat project, you should use the `node:test` plugin.
+> ⚠️ This package is an internal Hardhat component and it's not meant to be used directly.
+
+This package includes Hardhat 3's `node:test` reporter used by the [`hardhat-node-test-runner`](https://github.com/NomicFoundation/hardhat/tree/v-next/v-next/hardhat-node-test-runner) plugin.
 
 ## Reporter style
 

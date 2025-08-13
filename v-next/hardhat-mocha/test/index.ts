@@ -33,7 +33,7 @@ describe("Hardhat Mocha plugin", () => {
       const { createHardhatRuntimeEnvironment } = await import("hardhat/hre");
 
       const errors =
-        "\t* Config error in config.mocha.delay: Expected boolean, received number";
+        "\t* Config error in config.test.mocha.delay: Expected boolean, received number";
 
       const hardhatConfig = await import(
         "./fixture-projects/invalid-mocha-config/hardhat.config.js"

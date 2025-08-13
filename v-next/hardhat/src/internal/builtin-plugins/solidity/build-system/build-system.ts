@@ -1,4 +1,5 @@
 import type { CompileCache } from "./cache.js";
+import type { Compiler } from "./compiler/compiler.js";
 import type { DependencyGraphImplementation } from "./dependency-graph.js";
 import type { Artifact } from "../../../../types/artifacts.js";
 import type { SolcConfig, SolidityConfig } from "../../../../types/config.js";
@@ -13,6 +14,7 @@ import type {
   RunCompilationJobOptions,
   GetCompilationJobsResult,
   EmitArtifactsResult,
+  RunCompilationJobResult,
 } from "../../../../types/solidity/build-system.js";
 import type { CompilationJob } from "../../../../types/solidity/compilation-job.js";
 import type {
@@ -45,10 +47,7 @@ import debug from "debug";
 import pMap from "p-map";
 
 import { FileBuildResultType } from "../../../../types/solidity/build-system.js";
-import {
-  DEFAULT_BUILD_PROFILE,
-  shouldMergeCompilationJobs,
-} from "../build-profiles.js";
+import { DEFAULT_BUILD_PROFILE } from "../build-profiles.js";
 
 import {
   getArtifactsDeclarationFile,
@@ -76,6 +75,7 @@ interface CompilationResult {
   compilationJob: CompilationJob;
   compilerOutput: CompilerOutput;
   cached: boolean;
+  compiler: Compiler;
 }
 
 export interface SolidityBuildSystemOptions {
@@ -84,6 +84,7 @@ export interface SolidityBuildSystemOptions {
   readonly soliditySourcesPaths: string[];
   readonly artifactsPath: string;
   readonly cachePath: string;
+  readonly solidityTestsPath: string;
 }
 
 export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
@@ -127,6 +128,9 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
     await this.#downloadConfiguredCompilers(options?.quiet);
 
+    const buildProfileName = options?.buildProfile ?? DEFAULT_BUILD_PROFILE;
+    const { buildProfile } = this.#getBuildProfile(buildProfileName);
+
     const compilationJobsResult = await this.getCompilationJobs(
       rootFilePaths,
       options,
@@ -151,21 +155,19 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       ),
     );
 
-    const runCompilationJobOptions: RunCompilationJobOptions = {
-      quiet: options?.quiet,
-    };
     const results: CompilationResult[] = await pMap(
       runnableCompilationJobs,
       async (runnableCompilationJob) => {
-        const compilerOutput = await this.runCompilationJob(
+        const { output, compiler } = await this.runCompilationJob(
           runnableCompilationJob,
-          runCompilationJobOptions,
+          options,
         );
 
         return {
           compilationJob: runnableCompilationJob,
-          compilerOutput,
+          compilerOutput: output,
           cached: false,
+          compiler,
         };
       },
       {
@@ -210,7 +212,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
             indexedIndividualJobs,
             compilationResult,
             emitArtifactsResult,
-            options,
+            buildProfile.isolated,
           );
         }),
       );
@@ -298,22 +300,15 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       readSourceFileFactory(this.#hooks),
     );
 
-    const buildProfileName = options?.buildProfile ?? DEFAULT_BUILD_PROFILE;
-
-    if (this.#options.solidityConfig.profiles[buildProfileName] === undefined) {
-      throw new HardhatError(
-        HardhatError.ERRORS.CORE.SOLIDITY.BUILD_PROFILE_NOT_FOUND,
-        {
-          buildProfileName,
-        },
-      );
-    }
+    const { buildProfileName, buildProfile } = this.#getBuildProfile(
+      options?.buildProfile,
+    );
 
     log(`Using build profile ${buildProfileName}`);
 
     const solcConfigSelector = new SolcConfigSelector(
       buildProfileName,
-      this.#options.solidityConfig.profiles[buildProfileName],
+      buildProfile,
       dependencyGraph,
     );
 
@@ -337,15 +332,19 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       subgraphsWithConfig.push([configOrError, subgraph]);
     }
 
-    // build version => longVersion map
+    // get longVersion and isWasm from the compiler for each version
     const solcVersionToLongVersion = new Map<string, string>();
+    const versionIsWasm = new Map<string, boolean>();
     for (const [solcConfig] of subgraphsWithConfig) {
       let solcLongVersion = solcVersionToLongVersion.get(solcConfig.version);
 
       if (solcLongVersion === undefined) {
-        const compiler = await getCompiler(solcConfig.version);
+        const compiler = await getCompiler(solcConfig.version, {
+          preferWasm: buildProfile.preferWasm,
+        });
         solcLongVersion = compiler.longVersion;
         solcVersionToLongVersion.set(solcConfig.version, solcLongVersion);
+        versionIsWasm.set(solcConfig.version, compiler.isSolcJs);
       }
     }
 
@@ -388,16 +387,25 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     // Select which files to compile
     const rootFilesToCompile: Set<string> = new Set();
 
+    const isolated = buildProfile.isolated;
+
     for (const [rootFile, compilationJob] of indexedIndividualJobs.entries()) {
       const jobHash = await compilationJob.getBuildId();
       const cacheResult = this.#compileCache[rootFile];
+      const isWasm = versionIsWasm.get(compilationJob.solcConfig.version);
+
+      assertHardhatInvariant(
+        isWasm !== undefined,
+        `Version ${compilationJob.solcConfig.version} not present in isWasm map`,
+      );
 
       // If there's no cache for the root file, or the compilation job changed, or using force flag, or isolated mode changed, compile it
       if (
         options?.force === true ||
         cacheResult === undefined ||
         cacheResult.jobHash !== jobHash ||
-        cacheResult.isolated !== options?.isolated
+        cacheResult.isolated !== isolated ||
+        cacheResult.wasm !== isWasm
       ) {
         rootFilesToCompile.add(rootFile);
         continue;
@@ -424,10 +432,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       }
     }
 
-    if (
-      options?.isolated !== true &&
-      shouldMergeCompilationJobs(buildProfileName)
-    ) {
+    if (!isolated) {
       // non-isolated mode
       log(`Merging compilation jobs`);
 
@@ -506,10 +511,26 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     return { compilationJobsPerFile, indexedIndividualJobs };
   }
 
+  #getBuildProfile(buildProfileName: string = DEFAULT_BUILD_PROFILE) {
+    const buildProfile =
+      this.#options.solidityConfig.profiles[buildProfileName];
+
+    if (buildProfile === undefined) {
+      throw new HardhatError(
+        HardhatError.ERRORS.CORE.SOLIDITY.BUILD_PROFILE_NOT_FOUND,
+        {
+          buildProfileName,
+        },
+      );
+    }
+
+    return { buildProfileName, buildProfile };
+  }
+
   public async runCompilationJob(
     runnableCompilationJob: CompilationJob,
     options?: RunCompilationJobOptions,
-  ): Promise<CompilerOutput> {
+  ): Promise<RunCompilationJobResult> {
     await this.#downloadConfiguredCompilers(options?.quiet);
 
     let numberOfFiles = 0;
@@ -520,8 +541,11 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     const numberOfRootFiles =
       runnableCompilationJob.dependencyGraph.getRoots().size;
 
+    const { buildProfile } = this.#getBuildProfile(options?.buildProfile);
+
     const compiler = await getCompiler(
       runnableCompilationJob.solcConfig.version,
+      { preferWasm: buildProfile.preferWasm },
     );
 
     log(
@@ -533,7 +557,10 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       "The long version of the compiler should match the long version of the compilation job",
     );
 
-    return compiler.compile(await runnableCompilationJob.getSolcInput());
+    const output = await compiler.compile(
+      await runnableCompilationJob.getSolcInput(),
+    );
+    return { output, compiler };
   }
 
   public async remapCompilerError(
@@ -702,6 +729,20 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     )) {
       const relativePath = path.relative(this.#options.artifactsPath, file);
 
+      const testDirectorySubpath = path.relative(
+        this.#options.projectRoot,
+        this.#options.solidityTestsPath,
+      );
+      const hasTestFileExtension = file.endsWith(".t.sol");
+      const isInsideTestFolder = relativePath.startsWith(
+        testDirectorySubpath + path.sep,
+      );
+
+      // Skip test artifacts, since our full compilation doesn't include them, they would incorrectly be marked for deletion
+      if (hasTestFileExtension || isInsideTestFolder) {
+        continue;
+      }
+
       if (!userSourceNamesSet.has(relativePath)) {
         await remove(file);
       }
@@ -854,7 +895,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     indexedIndividualJobs: Map<string, CompilationJob>,
     result: CompilationResult,
     emitArtifactsResult: EmitArtifactsResult,
-    options: BuildOptions | undefined,
+    isolated: boolean,
   ): Promise<void> {
     const rootFilePaths = result.compilationJob.dependencyGraph
       .getRoots()
@@ -887,11 +928,12 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
       this.#compileCache[rootFilePath] = {
         jobHash,
-        isolated: options?.isolated === true,
+        isolated,
         artifactPaths,
         buildInfoPath: emitArtifactsResult.buildInfoPath,
         buildInfoOutputPath: emitArtifactsResult.buildInfoOutputPath,
         typeFilePath,
+        wasm: result.compiler.isSolcJs,
       };
     }
   }

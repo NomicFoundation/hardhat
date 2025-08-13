@@ -72,7 +72,7 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
               to: receiver.address,
               value: 200,
             }),
-          ).to.changeEtherBalance(provider, sender, "-200");
+          ).to.changeEtherBalance(ethers, sender, "-200");
         });
 
         it("should fail when block contains more than one transaction", async () => {
@@ -97,7 +97,7 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
                 value: 200,
                 gasLimit: 30_000,
               }),
-            ).to.changeEtherBalance(provider, sender, -200, {
+            ).to.changeEtherBalance(ethers, sender, -200, {
               includeFee: true,
             }),
           ).to.be.eventually.rejectedWith(
@@ -111,7 +111,7 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
               to: receiver.address,
               value: 200,
             }),
-          ).to.changeEtherBalance(provider, sender.address, "-200");
+          ).to.changeEtherBalance(ethers, sender.address, "-200");
         });
 
         it("should pass when given a native bigint", async () => {
@@ -120,7 +120,7 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
               to: receiver.address,
               value: 200,
             }),
-          ).to.changeEtherBalance(provider, sender, -200n);
+          ).to.changeEtherBalance(ethers, sender, -200n);
         });
 
         it("should pass when given a predicate", async () => {
@@ -130,7 +130,7 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
               value: 200,
             }),
           ).to.changeEtherBalance(
-            provider,
+            ethers,
             sender,
             (diff: bigint) => diff === -200n,
           );
@@ -142,7 +142,7 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
               to: receiver.address,
               value: 200,
             }),
-          ).to.changeEtherBalance(provider, receiver, 200);
+          ).to.changeEtherBalance(ethers, receiver, 200);
         });
 
         it("should take into account transaction fee", async () => {
@@ -152,7 +152,7 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
               gasPrice: 1,
               value: 200,
             }),
-          ).to.changeEtherBalance(provider, sender, -(txGasFees + 200), {
+          ).to.changeEtherBalance(ethers, sender, -(txGasFees + 200), {
             includeFee: true,
           });
         });
@@ -165,7 +165,7 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
               value: 200,
             }),
           ).to.changeEtherBalance(
-            provider,
+            ethers,
             sender,
             (diff: bigint) => diff === -(BigInt(txGasFees) + 200n),
             {
@@ -181,7 +181,7 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
               gasPrice: 1,
               value: 200,
             }),
-          ).to.changeEtherBalance(provider, receiver, 200, {
+          ).to.changeEtherBalance(ethers, receiver, 200, {
             includeFee: true,
           });
         });
@@ -193,7 +193,7 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
               gasPrice: 1,
               value: 200,
             }),
-          ).to.changeEtherBalance(provider, sender, -200);
+          ).to.changeEtherBalance(ethers, sender, -200);
         });
 
         it("should pass on negative case when expected balance does not satisfy the predicate", async () => {
@@ -203,7 +203,7 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
               value: 200,
             }),
           ).to.not.changeEtherBalance(
-            provider,
+            ethers,
             receiver,
             (diff: bigint) => diff === 300n,
           );
@@ -217,7 +217,7 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
                 gasPrice: 1,
                 value: 200,
               }),
-            ).to.changeEtherBalance(provider, sender, -200, {
+            ).to.changeEtherBalance(ethers, sender, -200, {
               includeFee: true,
             }),
           ).to.be.eventually.rejectedWith(
@@ -235,7 +235,7 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
                 to: receiver.address,
                 value: 200,
               }),
-            ).to.changeEtherBalance(provider, sender, "-500"),
+            ).to.changeEtherBalance(ethers, sender, "-500"),
           ).to.be.eventually.rejectedWith(
             AssertionError,
             `Expected the ether balance of "${sender.address}" to change by -500 wei, but it changed by -200 wei`,
@@ -250,7 +250,7 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
                 value: 200,
               }),
             ).to.changeEtherBalance(
-              provider,
+              ethers,
               sender,
               (diff: bigint) => diff === -500n,
             ),
@@ -267,7 +267,7 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
                 to: receiver.address,
                 value: 200,
               }),
-            ).to.not.changeEtherBalance(provider, sender, "-200"),
+            ).to.not.changeEtherBalance(ethers, sender, "-200"),
           ).to.be.eventually.rejectedWith(
             AssertionError,
             `Expected the ether balance of "${sender.address}" NOT to change by -200 wei, but it did`,
@@ -282,7 +282,7 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
                 value: 200,
               }),
             ).to.not.changeEtherBalance(
-              provider,
+              ethers,
               sender,
               (diff: bigint) => diff === -200n,
             ),
@@ -295,7 +295,7 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
         it("should pass when given zero value tx", async () => {
           await expect(() =>
             sender.sendTransaction({ to: receiver.address, value: 0 }),
-          ).to.changeEtherBalance(provider, sender, 0);
+          ).to.changeEtherBalance(ethers, sender, 0);
         });
 
         it("shouldn't run the transaction twice", async () => {
@@ -306,7 +306,7 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
               to: receiver.address,
               value: 200,
             }),
-          ).to.changeEtherBalance(provider, sender, -200);
+          ).to.changeEtherBalance(ethers, sender, -200);
           const receiverBalanceAfter: bigint =
             await ethers.provider.getBalance(receiver);
           const receiverBalanceChange =
@@ -322,13 +322,13 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
               to: contract,
               value: 200,
             }),
-          ).to.changeEtherBalance(provider, contract, 200);
+          ).to.changeEtherBalance(ethers, contract, 200);
         });
 
         it("should pass when calling function that returns half the sent ether", async () => {
           await expect(async () =>
             contract.returnHalf({ value: 200 }),
-          ).to.changeEtherBalance(provider, sender, -100);
+          ).to.changeEtherBalance(ethers, sender, -100);
         });
       });
     });
@@ -343,7 +343,7 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
               maxPriorityFeePerGas: 1,
               value: 200,
             }),
-          ).to.changeEtherBalance(provider, sender, "-200");
+          ).to.changeEtherBalance(ethers, sender, "-200");
         });
 
         it("should pass when expected balance change is passed as int and is equal to an actual", async () => {
@@ -354,7 +354,7 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
               maxPriorityFeePerGas: 1,
               value: 200,
             }),
-          ).to.changeEtherBalance(provider, receiver, 200);
+          ).to.changeEtherBalance(ethers, receiver, 200);
         });
 
         it("should take into account transaction fee", async () => {
@@ -365,7 +365,7 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
               maxPriorityFeePerGas: 1,
               value: 200,
             }),
-          ).to.changeEtherBalance(provider, sender, -(txGasFees + 200), {
+          ).to.changeEtherBalance(ethers, sender, -(txGasFees + 200), {
             includeFee: true,
           });
         });
@@ -378,7 +378,7 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
               maxPriorityFeePerGas: 1,
               value: 200,
             }),
-          ).to.changeEtherBalance(provider, receiver, 200, {
+          ).to.changeEtherBalance(ethers, receiver, 200, {
             includeFee: true,
           });
         });
@@ -391,7 +391,7 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
               maxPriorityFeePerGas: 1,
               value: 200,
             }),
-          ).to.changeEtherBalance(provider, sender, -200);
+          ).to.changeEtherBalance(ethers, sender, -200);
         });
 
         it("should throw when fee was not calculated correctly", async () => {
@@ -403,7 +403,7 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
                 maxPriorityFeePerGas: 1,
                 value: 200,
               }),
-            ).to.changeEtherBalance(provider, sender, -200, {
+            ).to.changeEtherBalance(ethers, sender, -200, {
               includeFee: true,
             }),
           ).to.be.eventually.rejectedWith(
@@ -423,7 +423,7 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
                 maxPriorityFeePerGas: 1,
                 value: 200,
               }),
-            ).to.changeEtherBalance(provider, sender, "-500"),
+            ).to.changeEtherBalance(ethers, sender, "-500"),
           ).to.be.eventually.rejectedWith(
             AssertionError,
             `Expected the ether balance of "${sender.address}" to change by -500 wei, but it changed by -200 wei`,
@@ -439,7 +439,7 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
                 maxPriorityFeePerGas: 1,
                 value: 200,
               }),
-            ).to.not.changeEtherBalance(provider, sender, "-200"),
+            ).to.not.changeEtherBalance(ethers, sender, "-200"),
           ).to.be.eventually.rejectedWith(
             AssertionError,
             `Expected the ether balance of "${sender.address}" NOT to change by -200 wei, but it did`,
@@ -456,7 +456,7 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
               maxPriorityFeePerGas: 1,
               value: 200,
             }),
-          ).to.changeEtherBalance(provider, contract, 200);
+          ).to.changeEtherBalance(ethers, contract, 200);
         });
 
         it("should take into account transaction fee", async () => {
@@ -468,7 +468,7 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
           };
           const gas: bigint = await ethers.provider.estimateGas(tx);
           await expect(() => sender.sendTransaction(tx)).to.changeEtherBalance(
-            provider,
+            ethers,
             sender,
             -(gas + 200n),
             {
@@ -484,7 +484,7 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
               maxFeePerGas: 2,
               maxPriorityFeePerGas: 1,
             }),
-          ).to.changeEtherBalance(provider, sender, -100);
+          ).to.changeEtherBalance(ethers, sender, -100);
         });
       });
 
@@ -499,7 +499,7 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
             maxPriorityFeePerGas: 1,
             value: 200,
           }),
-        ).to.changeEtherBalance(provider, sender, -200);
+        ).to.changeEtherBalance(ethers, sender, -200);
 
         const receiverBalanceAfter: bigint =
           await ethers.provider.getBalance(receiver);
@@ -519,7 +519,7 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
               to: receiver.address,
               value: 200,
             }),
-          ).to.changeEtherBalance(provider, sender, "-200");
+          ).to.changeEtherBalance(ethers, sender, "-200");
         });
 
         it("should pass when expected balance change is passed as int and is equal to an actual", async () => {
@@ -528,7 +528,7 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
               to: receiver.address,
               value: 200,
             }),
-          ).to.changeEtherBalance(provider, receiver, 200);
+          ).to.changeEtherBalance(ethers, receiver, 200);
         });
 
         it("should throw when expected balance change value was different from an actual", async () => {
@@ -538,7 +538,7 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
                 to: receiver.address,
                 value: 200,
               }),
-            ).to.changeEtherBalance(provider, sender, "-500"),
+            ).to.changeEtherBalance(ethers, sender, "-500"),
           ).to.be.eventually.rejectedWith(
             AssertionError,
             `Expected the ether balance of "${sender.address}" to change by -500 wei, but it changed by -200 wei`,
@@ -552,7 +552,7 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
                 to: receiver.address,
                 value: 200,
               }),
-            ).to.not.changeEtherBalance(provider, sender, "-200"),
+            ).to.not.changeEtherBalance(ethers, sender, "-200"),
           ).to.be.eventually.rejectedWith(
             AssertionError,
             `Expected the ether balance of "${sender.address}" NOT to change by -200 wei, but it did`,
@@ -567,7 +567,7 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
               to: contract,
               value: 200,
             }),
-          ).to.changeEtherBalance(provider, contract, 200);
+          ).to.changeEtherBalance(ethers, contract, 200);
         });
       });
     });
@@ -580,7 +580,7 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
               to: receiver.address,
               value: 200,
             }),
-          ).to.changeEtherBalance(provider, sender, "-200");
+          ).to.changeEtherBalance(ethers, sender, "-200");
         });
 
         it("should pass when expected balance change is passed as int and is equal to an actual", async () => {
@@ -589,7 +589,7 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
               to: receiver.address,
               value: 200,
             }),
-          ).to.changeEtherBalance(provider, receiver, 200);
+          ).to.changeEtherBalance(ethers, receiver, 200);
         });
 
         it("should throw when expected balance change value was different from an actual", async () => {
@@ -599,7 +599,7 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
                 to: receiver.address,
                 value: 200,
               }),
-            ).to.changeEtherBalance(provider, sender, "-500"),
+            ).to.changeEtherBalance(ethers, sender, "-500"),
           ).to.be.eventually.rejectedWith(
             AssertionError,
             `Expected the ether balance of "${sender.address}" to change by -500 wei, but it changed by -200 wei`,
@@ -613,7 +613,7 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
                 to: receiver.address,
                 value: 200,
               }),
-            ).to.not.changeEtherBalance(provider, sender, "-200"),
+            ).to.not.changeEtherBalance(ethers, sender, "-200"),
           ).to.be.eventually.rejectedWith(
             AssertionError,
             `Expected the ether balance of "${sender.address}" NOT to change by -200 wei, but it did`,
@@ -629,8 +629,8 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
                   value: 200,
                 }),
               )
-                .to.changeTokenBalance(provider, mockToken, receiver, 0)
-                .and.to.changeEtherBalance(provider, sender, "-200"),
+                .to.changeTokenBalance(ethers, mockToken, receiver, 0)
+                .and.to.changeEtherBalance(ethers, sender, "-200"),
             HardhatError.ERRORS.CHAI_MATCHERS.GENERAL
               .MATCHER_CANNOT_BE_CHAINED_AFTER,
             {
@@ -651,7 +651,7 @@ describe("INTEGRATION: changeEtherBalance matcher", { timeout: 60000 }, () => {
               to: receiver.address,
               value: 200,
             }),
-          ).to.changeEtherBalance(provider, sender, -100);
+          ).to.changeEtherBalance(ethers, sender, -100);
         } catch (e) {
           expect(util.inspect(e)).to.include(
             path.join("test", "matchers", "changeEtherBalance.ts"),

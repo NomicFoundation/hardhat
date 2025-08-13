@@ -1,18 +1,5 @@
 # Changelog
 
-## 3.0.0-next.2
-
-### Patch Changes
-
-- Hardhat 3 Alpha release (2025-03-20T08:38:27.809Z)
-
-## 3.0.0-next.1
-
-### Patch Changes
-
-- 726fe76: update mermaid version and re-enable visualize task (v3)
-- af5eb2b: Fix for mermaid diagram centering in visalization report [#6409](https://github.com/NomicFoundation/hardhat/issues/6409).
-
 ## 0.15.9 - 2024-12-18
 
 ### Added

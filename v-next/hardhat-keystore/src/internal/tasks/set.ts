@@ -1,4 +1,8 @@
-import type { KeystoreLoader } from "../types.js";
+import type {
+  KeystoreConsoleLog,
+  KeystoreLoader,
+  KeystoreRequestSecretInput,
+} from "../types.js";
 import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 import type { NewTaskActionFunction } from "hardhat/types/tasks";
 
@@ -7,37 +11,35 @@ import {
   createMasterKey,
   deriveMasterKeyFromKeystore,
 } from "../keystores/encryption.js";
-import { askPassword, setUpPassword } from "../keystores/password.js";
+import { getPasswordHandlers } from "../keystores/password.js";
 import { UserDisplayMessages } from "../ui/user-display-messages.js";
 import { setupKeystoreLoaderFrom } from "../utils/setup-keystore-loader-from.js";
 import { validateKey } from "../utils/validate-key.js";
 
 interface TaskGetArguments {
-  key: string;
+  dev: boolean;
   force: boolean;
+  key: string;
 }
 
 const taskSet: NewTaskActionFunction<TaskGetArguments> = async (
-  setArgs,
+  args,
   hre: HardhatRuntimeEnvironment,
 ): Promise<void> => {
-  const keystoreLoader = setupKeystoreLoaderFrom(hre);
+  const keystoreLoader = setupKeystoreLoaderFrom(hre, args.dev);
 
   await set(
-    setArgs,
+    args,
     keystoreLoader,
     hre.interruptions.requestSecretInput.bind(hre.interruptions),
   );
 };
 
 export const set = async (
-  { key, force }: TaskGetArguments,
+  { dev, force, key }: TaskGetArguments,
   keystoreLoader: KeystoreLoader,
-  requestSecretInput: (
-    interruptor: string,
-    inputDescription: string,
-  ) => Promise<string>,
-  consoleLog: (text: string) => void = console.log,
+  requestSecretInput: KeystoreRequestSecretInput,
+  consoleLog: KeystoreConsoleLog = console.log,
 ): Promise<void> => {
   if (!(await validateKey(key))) {
     consoleLog(UserDisplayMessages.displayInvalidKeyErrorMessage(key));
@@ -47,9 +49,16 @@ export const set = async (
 
   const isKeystoreInitialized = await keystoreLoader.isKeystoreInitialized();
 
+  const { askPassword, setUpPassword } = getPasswordHandlers(
+    requestSecretInput,
+    consoleLog,
+    dev,
+    keystoreLoader.getKeystoreDevPasswordFilePath(),
+  );
+
   const password = isKeystoreInitialized
-    ? await askPassword(requestSecretInput)
-    : await setUpPassword(requestSecretInput, consoleLog);
+    ? await askPassword()
+    : await setUpPassword();
 
   if (isKeystoreInitialized === false) {
     await keystoreLoader.createUnsavedKeystore(createMasterKey({ password }));
@@ -63,14 +72,14 @@ export const set = async (
   });
 
   if (!force && (await keystore.hasKey(key, masterKey))) {
-    consoleLog(UserDisplayMessages.displayKeyAlreadyExistsWarning(key));
+    consoleLog(UserDisplayMessages.displayKeyAlreadyExistsWarning(key, dev));
     process.exitCode = 1;
     return;
   }
 
   const secret = await requestSecretInput(
     PLUGIN_ID,
-    UserDisplayMessages.enterSecretMessage(),
+    UserDisplayMessages.enterSecretMessage(dev),
   );
 
   if (secret.length === 0) {
@@ -83,7 +92,7 @@ export const set = async (
 
   await keystoreLoader.saveKeystoreToFile();
 
-  consoleLog(UserDisplayMessages.displayKeySetInfoMessage(key));
+  consoleLog(UserDisplayMessages.displayKeySetInfoMessage(key, dev));
 };
 
 export default taskSet;

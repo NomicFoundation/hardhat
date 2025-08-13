@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-viem-assertions",
-  "version": "3.0.0-next.26",
+  "version": "2.0.0",
   "description": "A Hardhat plugin that adds test assertions for Viem",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/v-next/v-next/hardhat-viem-assertions",
   "repository": {
@@ -47,9 +47,9 @@
     "README.md"
   ],
   "devDependencies": {
-    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^3.0.0-next.26",
+    "@nomicfoundation/hardhat-node-test-reporter": "workspace:^2.0.0",
     "@nomicfoundation/hardhat-test-utils": "workspace:^",
-    "@nomicfoundation/hardhat-viem": "workspace:^3.0.0-next.26",
+    "@nomicfoundation/hardhat-viem": "workspace:^2.0.6",
     "@types/node": "^20.14.9",
     "c8": "^9.1.0",
     "eslint": "9.25.1",
@@ -61,12 +61,12 @@
     "viem": "^2.30.0"
   },
   "dependencies": {
-    "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.26",
-    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.26"
+    "@nomicfoundation/hardhat-errors": "workspace:^2.0.0",
+    "@nomicfoundation/hardhat-utils": "workspace:^2.0.0"
   },
   "peerDependencies": {
-    "@nomicfoundation/hardhat-viem": "workspace:^3.0.0-next.26",
-    "hardhat": "workspace:^3.0.0-next.26",
+    "@nomicfoundation/hardhat-viem": "workspace:^2.0.6",
+    "hardhat": "workspace:^2.22.18",
     "viem": "^2.30.0"
   }
 }

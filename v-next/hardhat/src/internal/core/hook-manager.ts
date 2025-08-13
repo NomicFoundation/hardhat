@@ -12,13 +12,9 @@ import type {
 import type { HardhatPlugin } from "../../types/plugins.js";
 import type { LastParameter, Return } from "../../types/utils.js";
 
-import {
-  HardhatError,
-  assertHardhatInvariant,
-} from "@nomicfoundation/hardhat-errors";
+import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 
 import { AsyncMutex } from "./async-mutex.js";
-import { SHOULD_WARN_ABOUT_INLINE_TASK_ACTIONS_AND_HOOK_HANDLERS } from "./inline-functions-warning.js";
 import { detectPluginNpmDependencyProblems } from "./plugins/detect-plugin-npm-dependency-problems.js";
 
 export class HookManagerImplementation implements HookManager {
@@ -297,23 +293,25 @@ export class HookManagerImplementation implements HookManager {
             return;
           }
 
-          let hookCategory: Partial<HardhatHooks[HookCategoryNameT]>;
-
-          if (typeof hookHandlerCategoryFactory === "string") {
-            hookCategory = await this.#loadHookCategoryFactory(
-              plugin,
-              hookCategoryName,
-              hookHandlerCategoryFactory,
-            );
-          } else {
-            if (SHOULD_WARN_ABOUT_INLINE_TASK_ACTIONS_AND_HOOK_HANDLERS) {
-              console.warn(
-                `WARNING: Inline hooks found in plugin "${plugin.id}", category "${hookCategoryName}". Use file:// URLs in production.`,
-              );
-            }
-
-            hookCategory = await hookHandlerCategoryFactory();
+          let factory;
+          try {
+            factory = (await hookHandlerCategoryFactory()).default;
+          } catch (error) {
+            await detectPluginNpmDependencyProblems(this.#projectRoot, plugin);
+            throw error;
           }
+
+          assertHardhatInvariant(
+            typeof factory === "function",
+            `Plugin ${plugin.id} doesn't export a hook factory for category ${hookCategoryName}`,
+          );
+
+          const hookCategory = await factory();
+
+          assertHardhatInvariant(
+            hookCategory !== null && typeof hookCategory === "object",
+            `Plugin ${plugin.id} doesn't export a valid factory for category ${hookCategoryName}, it didn't return an object`,
+          );
 
           if (!this.#staticHookHandlerCategories.has(plugin.id)) {
             this.#staticHookHandlerCategories.set(plugin.id, new Map());
@@ -337,47 +335,5 @@ export class HookManagerImplementation implements HookManager {
 
       return handler as HardhatHooks[HookCategoryNameT][HookNameT];
     });
-  }
-
-  async #loadHookCategoryFactory<HookCategoryNameT extends keyof HardhatHooks>(
-    plugin: HardhatPlugin,
-    hookCategoryName: HookCategoryNameT,
-    path: string,
-  ): Promise<Partial<HardhatHooks[HookCategoryNameT]>> {
-    if (!path.startsWith("file://")) {
-      throw new HardhatError(
-        HardhatError.ERRORS.CORE.HOOKS.INVALID_HOOK_FACTORY_PATH,
-        {
-          pluginId: plugin.id,
-          hookCategoryName,
-          path,
-        },
-      );
-    }
-
-    let mod;
-
-    try {
-      mod = await import(path);
-    } catch (error) {
-      await detectPluginNpmDependencyProblems(this.#projectRoot, plugin);
-      throw error;
-    }
-
-    const factory = mod.default;
-
-    assertHardhatInvariant(
-      typeof factory === "function",
-      `Plugin ${plugin.id} doesn't export a hook factory for category ${hookCategoryName} in ${path}`,
-    );
-
-    const category = await factory();
-
-    assertHardhatInvariant(
-      category !== null && typeof category === "object",
-      `Plugin ${plugin.id} doesn't export a valid factory for category ${hookCategoryName} in ${path}, it didn't return an object`,
-    );
-
-    return category;
   }
 }

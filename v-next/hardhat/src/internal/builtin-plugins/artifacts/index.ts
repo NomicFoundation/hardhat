@@ -4,7 +4,7 @@ import "./type-extensions.js";
 const hardhatPlugin: HardhatPlugin = {
   id: "builtin:artifacts",
   hookHandlers: {
-    hre: import.meta.resolve("./hook-handlers/hre.js"),
+    hre: () => import("./hook-handlers/hre.js"),
   },
   npmPackage: "hardhat",
 };

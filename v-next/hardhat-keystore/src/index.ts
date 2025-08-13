@@ -10,10 +10,9 @@ import { PLUGIN_ID } from "./internal/constants.js";
 const hardhatKeystorePlugin: HardhatPlugin = {
   id: PLUGIN_ID,
   hookHandlers: {
-    config: import.meta.resolve("./internal/hook-handlers/config.js"),
-    configurationVariables: import.meta.resolve(
-      "./internal/hook-handlers/configuration-variables.js",
-    ),
+    config: () => import("./internal/hook-handlers/config.js"),
+    configurationVariables: () =>
+      import("./internal/hook-handlers/configuration-variables.js"),
   },
   tasks: [
     emptyTask("keystore", "Store your keys in a secure way").build(),
@@ -31,23 +30,43 @@ const hardhatKeystorePlugin: HardhatPlugin = {
         name: "force",
         description: "Forces overwrite if the key already exists.",
       })
-      .setAction(import.meta.resolve("./internal/tasks/set.js"))
+      .addFlag({
+        name: "dev",
+        description:
+          "Use the development keystore instead of the production one",
+      })
+      .setAction(() => import("./internal/tasks/set.js"))
       .build(),
 
     task(["keystore", "get"], "Get a value given a key")
+      .addFlag({
+        name: "dev",
+        description:
+          "Use the development keystore instead of the production one",
+      })
       .addPositionalArgument({
         name: "key",
         type: ArgumentType.STRING,
         description: "Specifies the key to retrieve the value for",
       })
-      .setAction(import.meta.resolve("./internal/tasks/get.js"))
+      .setAction(() => import("./internal/tasks/get.js"))
       .build(),
 
     task(["keystore", "list"], "List all keys in the keystore")
-      .setAction(import.meta.resolve("./internal/tasks/list.js"))
+      .addFlag({
+        name: "dev",
+        description:
+          "Use the development keystore instead of the production one",
+      })
+      .setAction(() => import("./internal/tasks/list.js"))
       .build(),
 
     task(["keystore", "delete"], "Delete a key from the keystore")
+      .addFlag({
+        name: "dev",
+        description:
+          "Use the development keystore instead of the production one",
+      })
       .addPositionalArgument({
         name: "key",
         type: ArgumentType.STRING,
@@ -58,18 +77,28 @@ const hardhatKeystorePlugin: HardhatPlugin = {
         description:
           "Forces to not throw an error if the key does not exist during deletion.",
       })
-      .setAction(import.meta.resolve("./internal/tasks/delete.js"))
+      .setAction(() => import("./internal/tasks/delete.js"))
       .build(),
 
     task(["keystore", "path"], "Display the path where the keystore is stored")
-      .setAction(import.meta.resolve("./internal/tasks/path.js"))
+      .addFlag({
+        name: "dev",
+        description:
+          "Use the development keystore instead of the production one",
+      })
+      .setAction(() => import("./internal/tasks/path.js"))
       .build(),
 
     task(
       ["keystore", "change-password"],
       "Change the password for the keystore",
     )
-      .setAction(import.meta.resolve("./internal/tasks/change-password.js"))
+      .addFlag({
+        name: "dev",
+        description:
+          "Use the development keystore instead of the production one",
+      })
+      .setAction(() => import("./internal/tasks/change-password.js"))
       .build(),
   ],
   npmPackage: "@nomicfoundation/hardhat-keystore",

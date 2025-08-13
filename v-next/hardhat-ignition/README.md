@@ -1,34 +1,27 @@
-# Hardhat Ignition plugin
+# hardhat-ignition
 
-This plugin integrates [Hardhat Ignition][https://hardhat.org/ignition] into Hardhat.
+This plugin integrates [Hardhat Ignition](https://hardhat.org/ignition) into Hardhat.
 
 ## Installation
+
+> This plugin is part of [Viem Hardhat Toolbox](https://hardhat.org/plugins/nomicfoundation-hardhat-toolbox-viem) and [Ethers+Mocha Hardhat Toolbox](https://hardhat.org/plugins/nomicfoundation-hardhat-toolbox-mocha-ethers). If you are using any of those toolboxes, there's nothing else you need to do.
 
 To install this plugin, run the following command:
 
 ```bash
-npm install --save-dev @nomicfoundation/hardhat-ignition@next
+npm install --save-dev @nomicfoundation/hardhat-ignition
 ```
 
-and add the following statements to your `hardhat.config.ts` file:
+In your `hardhat.config.ts` file, import the plugin and add it to the `plugins` array:
 
 ```typescript
-// ...
-import hardhatIgnitionPlugin from "@nomicfoundation/hardhat-ignition";
-
-// ...
+import hardhatIgnition from "@nomicfoundation/hardhat-ignition";
 
 export default {
-  // ...
-  plugins: [
-    // ...
-    hardhatIgnitionPlugin,
-  ],
-
-  // ...
+  plugins: [hardhatIgnition],
 };
 ```
 
 ## Usage
 
-To learn more about how to use Hardhat Ignition, check out the [Hardhat Ignition documentation](https://hardhat.org/ignition/docs/getting-started).
+To learn more about how to use Hardhat Ignition, check out the [Hardhat Ignition documentation](https://hardhat.org/ignition).

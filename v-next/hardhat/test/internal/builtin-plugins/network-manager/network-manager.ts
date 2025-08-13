@@ -76,7 +76,7 @@ describe("NetworkManagerImplementation", () => {
         url: "http://node.myNetwork.com",
       },
       edrNetwork: {
-        type: "edr",
+        type: "edr-simulated",
         chainType: OPTIMISM_CHAIN_TYPE,
         initialDate,
         mining: {
@@ -113,7 +113,7 @@ describe("NetworkManagerImplementation", () => {
       ),
       edrNetwork: resolveEdrNetwork(
         {
-          type: "edr",
+          type: "edr-simulated",
           chainType: OPTIMISM_CHAIN_TYPE,
           initialDate,
           mining: {
@@ -227,7 +227,7 @@ describe("NetworkManagerImplementation", () => {
 
       assert.equal(networkConnection.networkName, "edrNetwork");
       assert.equal(networkConnection.chainType, OPTIMISM_CHAIN_TYPE);
-      assert.equal(networks.edrNetwork.type, "edr"); // this is for the type assertion
+      assert.equal(networks.edrNetwork.type, "edr-simulated"); // this is for the type assertion
       assert.deepEqual(networkConnection.networkConfig, {
         ...networks.edrNetwork,
         ...edrConfigOverride,
@@ -258,7 +258,7 @@ describe("NetworkManagerImplementation", () => {
           /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
           -- Cast to test validation error */
           override: {
-            type: "edr",
+            type: "edr-simulated",
           } as any,
         }),
         HardhatError.ERRORS.CORE.NETWORK.INVALID_CONFIG_OVERRIDE,
@@ -454,7 +454,7 @@ describe("NetworkManagerImplementation", () => {
       return {
         networks: {
           hardhat: {
-            type: "edr",
+            type: "edr-simulated",
             ...partial,
           },
         },
@@ -1273,7 +1273,7 @@ describe("NetworkManagerImplementation", () => {
           assertValidationErrors(validationErrors, []);
 
           validationErrors = await validateNetworkUserConfig(
-            httpConfig({ chainType: "optimism" }),
+            httpConfig({ chainType: "op" }),
           );
 
           assertValidationErrors(validationErrors, []);
@@ -1293,7 +1293,7 @@ describe("NetworkManagerImplementation", () => {
           assertValidationErrors(validationErrors, [
             {
               path: ["networks", "hardhat", "chainType"],
-              message: "Expected 'l1', 'optimism', or 'generic'",
+              message: "Expected 'l1', 'op', or 'generic'",
             },
           ]);
         });
@@ -1308,7 +1308,7 @@ describe("NetworkManagerImplementation", () => {
           assertValidationErrors(validationErrors, []);
 
           validationErrors = await validateNetworkUserConfig(
-            edrConfig({ chainType: "optimism" }),
+            edrConfig({ chainType: "op" }),
           );
 
           assertValidationErrors(validationErrors, []);
@@ -1328,7 +1328,7 @@ describe("NetworkManagerImplementation", () => {
           assertValidationErrors(validationErrors, [
             {
               path: ["networks", "hardhat", "chainType"],
-              message: "Expected 'l1', 'optimism', or 'generic'",
+              message: "Expected 'l1', 'op', or 'generic'",
             },
           ]);
         });
@@ -2004,7 +2004,7 @@ describe("NetworkManagerImplementation", () => {
             {
               path: ["networks", "hardhat", "hardfork"],
               message:
-                "Invalid hardfork name anything else for chainType optimism. Expected bedrock | regolith | canyon | ecotone | fjord | granite | holocene.",
+                "Invalid hardfork name anything else for chainType op. Expected bedrock | regolith | canyon | ecotone | fjord | granite | holocene.",
             },
           ]);
         });

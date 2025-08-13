@@ -2,7 +2,6 @@ import type {
   HardhatEthers,
   HardhatEthersSigner,
 } from "@nomicfoundation/hardhat-ethers/types";
-import type { EthereumProvider } from "hardhat/types/providers";
 
 import assert from "node:assert/strict";
 import { before, beforeEach, describe, it } from "node:test";
@@ -20,10 +19,7 @@ describe("handle multiple connections", () => {
   let sender2: HardhatEthersSigner;
   let receiver2: HardhatEthersSigner;
 
-  let provider: EthereumProvider;
   let ethers: HardhatEthers;
-
-  let provider2: EthereumProvider;
   let ethers2: HardhatEthers;
 
   before(async () => {
@@ -31,21 +27,21 @@ describe("handle multiple connections", () => {
       plugins: [hardhatChaiMatchersPlugin, hardhatEthersPlugin],
       networks: {
         test1: {
-          type: "edr",
+          type: "edr-simulated",
           chainId: 1,
         },
         test2: {
-          type: "edr",
+          type: "edr-simulated",
           chainId: 2,
         },
       },
     });
 
-    ({ ethers, provider } = await hre.network.connect({
+    ({ ethers } = await hre.network.connect({
       network: "test1",
     }));
 
-    ({ ethers: ethers2, provider: provider2 } = await hre.network.connect({
+    ({ ethers: ethers2 } = await hre.network.connect({
       network: "test2",
     }));
   });
@@ -75,7 +71,7 @@ describe("handle multiple connections", () => {
           to: receiver.address,
           value: 200,
         }),
-      ).to.changeEtherBalance(provider, sender, "-200");
+      ).to.changeEtherBalance(ethers, sender, "-200");
 
       // Only the sender nonce should be changed
       assert.equal(await sender.getNonce(), nonceSender + 1);
@@ -90,7 +86,7 @@ describe("handle multiple connections", () => {
           to: receiver2.address,
           value: 200,
         }),
-      ).to.changeEtherBalance(provider2, sender2, "-200");
+      ).to.changeEtherBalance(ethers2, sender2, "-200");
 
       // Only the sender2 nonce should be changed
       assert.equal(await sender.getNonce(), nonceSender);

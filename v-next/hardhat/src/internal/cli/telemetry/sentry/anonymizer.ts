@@ -1,11 +1,14 @@
-import type { Event, Exception, StackFrame, Stacktrace } from "@sentry/core";
+import type {
+  Envelope,
+  Event,
+  EventItem,
+  Exception,
+  StackFrame,
+  Stacktrace,
+} from "@sentry/core";
 
 import * as path from "node:path";
 
-import {
-  findClosestPackageJson,
-  PackageJsonNotFoundError,
-} from "@nomicfoundation/hardhat-utils/package";
 // This file is executed in a subprocess, and it is always run in this context.
 // Therefore, it is acceptable to avoid using dynamic imports and instead import all necessary modules at the beginning.
 import * as czech from "ethereum-cryptography/bip39/wordlists/czech.js";
@@ -18,16 +21,23 @@ import * as simplifiedChinese from "ethereum-cryptography/bip39/wordlists/simpli
 import * as SPANISH from "ethereum-cryptography/bip39/wordlists/spanish.js";
 import * as traditionalChinese from "ethereum-cryptography/bip39/wordlists/traditional-chinese.js";
 
+import { ANONYMIZED_PATH, anonymizeUserPaths } from "./anonymize-paths.js";
+import { GENERIC_SERVER_NAME } from "./constants.js";
+
 interface WordMatch {
   index: number;
   word: string;
 }
 
-export type AnonymizeResult =
+export type AnonymizeEnvelopeResult =
+  | { success: true; envelope: Envelope }
+  | { success: false; error: string };
+
+export type AnonymizeEventResult =
   | { success: true; event: Event }
   | { success: false; error: string };
 
-const ANONYMIZED_FILE = "<user-file>";
+const ANONYMIZED_FILE = ANONYMIZED_PATH;
 const ANONYMIZED_MNEMONIC = "<mnemonic>";
 const MNEMONIC_PHRASE_LENGTH_THRESHOLD = 7;
 const MINIMUM_AMOUNT_OF_WORDS_TO_ANONYMIZE = 4;
@@ -40,23 +50,46 @@ export class Anonymizer {
   }
 
   /**
+   * Anonymizes the events in the envelope in place, modifying the envelope.
+   */
+  public async anonymizeEventsFromEnvelope(
+    envelope: Envelope,
+  ): Promise<AnonymizeEnvelopeResult> {
+    for (const item of envelope[1]) {
+      if (item[0].type === "event") {
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions 
+          -- We know that the item is an event item */
+        const eventItem = item as EventItem;
+
+        const anonymizedEvent = await this.anonymizeEvent(eventItem[1]);
+        if (anonymizedEvent.success) {
+          eventItem[1] = anonymizedEvent.event;
+        } else {
+          return { success: false, error: anonymizedEvent.error };
+        }
+      }
+    }
+
+    return { success: true, envelope };
+  }
+
+  /**
    * Given a sentry serialized exception
    * (https://develop.sentry.dev/sdk/event-payloads/exception/), return an
    * anonymized version of the event.
    */
-  public async anonymize(event: any): Promise<AnonymizeResult> {
-    if (event === null || event === undefined) {
-      return { success: false, error: "event is null or undefined" };
-    }
-    if (typeof event !== "object") {
-      return { success: false, error: "event is not an object" };
-    }
-
+  public async anonymizeEvent(event: Event): Promise<AnonymizeEventResult> {
     const result: Event = {
       event_id: event.event_id,
       platform: event.platform,
       timestamp: event.timestamp,
       extra: event.extra,
+      release: event.release,
+      contexts: event.contexts,
+      sdk: event.sdk,
+      level: event.level,
+      server_name: GENERIC_SERVER_NAME,
+      environment: event.environment,
     };
 
     if (event.exception !== undefined && event.exception.values !== undefined) {
@@ -80,66 +113,35 @@ export class Anonymizer {
     anonymizeContent: boolean;
   }> {
     if (filename === this.#configPath) {
-      const packageJsonPath = await this._getFilePackageJsonPath(filename);
-
-      if (packageJsonPath === null) {
-        // if we can't find a package.json, we just return the basename
-        return {
-          anonymizedFilename: path.basename(filename),
-          anonymizeContent: true,
-        };
-      }
-
       return {
-        anonymizedFilename: path.relative(
-          path.dirname(packageJsonPath),
-          filename,
-        ),
+        anonymizedFilename: path.basename(filename),
         anonymizeContent: true,
       };
     }
 
-    const parts = filename.split(path.sep);
-    const nodeModulesIndex = parts.indexOf("node_modules");
+    const anonymizedFilename = anonymizeUserPaths(filename);
 
-    if (nodeModulesIndex === -1) {
-      if (filename.startsWith("internal")) {
-        // show internal parts of the stack trace
-        return {
-          anonymizedFilename: filename,
-          anonymizeContent: false,
-        };
-      }
-
-      // if the file isn't inside node_modules and it's a user file, we hide it completely
-      return {
-        anonymizedFilename: ANONYMIZED_FILE,
-        anonymizeContent: true,
-      };
-    }
+    // We anonymize the content if the file path is entirely anonymized, or if
+    // it wasn't anonymized because it's just a basename
+    const anonymizeContent =
+      anonymizedFilename === ANONYMIZED_PATH ||
+      path.basename(filename) === filename;
 
     return {
-      anonymizedFilename: parts.slice(nodeModulesIndex).join(path.sep),
-      anonymizeContent: false,
+      anonymizedFilename,
+      anonymizeContent,
     };
   }
 
   public anonymizeErrorMessage(errorMessage: string): string {
     errorMessage = this.#anonymizeMnemonic(errorMessage);
 
-    // Match path separators both for Windows and Unix
-    const pathRegex = /\S+[\/\\]\S+/g;
-
-    // for files that don't have a path separator
-    const fileRegex = new RegExp("\\S+\\.(js|ts)\\S*", "g");
-
     // hide hex strings of 20 chars or more
     const hexRegex = /(0x)?[0-9A-Fa-f]{20,}/g;
 
-    return errorMessage
-      .replace(pathRegex, ANONYMIZED_FILE)
-      .replace(fileRegex, ANONYMIZED_FILE)
-      .replace(hexRegex, (match) => match.replace(/./g, "x"));
+    return anonymizeUserPaths(errorMessage).replace(hexRegex, (match) =>
+      match.replace(/./g, "x"),
+    );
   }
 
   public raisedByHardhat(event: Event): boolean {
@@ -190,20 +192,6 @@ export class Anonymizer {
     return false;
   }
 
-  protected async _getFilePackageJsonPath(
-    filename: string,
-  ): Promise<string | null> {
-    try {
-      return await findClosestPackageJson(filename);
-    } catch (err) {
-      if (err instanceof PackageJsonNotFoundError) {
-        return null;
-      }
-
-      throw err;
-    }
-  }
-
   #errorRaisedByPackageToIgnore(filename: string): boolean {
     const pkgsToIgnore: string[] = [
       path.join("node_modules", "@ethersproject"), // List of external packages that we don't want to report errors from
@@ -243,6 +231,7 @@ export class Anonymizer {
   async #anonymizeException(value: Exception): Promise<Exception> {
     const result: Exception = {
       type: value.type,
+      mechanism: value.mechanism,
     };
 
     if (value.value !== undefined) {

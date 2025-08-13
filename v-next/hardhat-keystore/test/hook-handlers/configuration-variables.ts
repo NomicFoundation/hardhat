@@ -6,8 +6,14 @@ import path from "node:path";
 import { after, afterEach, before, beforeEach, describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { isCi } from "@nomicfoundation/hardhat-utils/ci";
-import { remove, writeJsonFile } from "@nomicfoundation/hardhat-utils/fs";
+import {
+  remove,
+  writeJsonFile,
+  writeUtf8File,
+} from "@nomicfoundation/hardhat-utils/fs";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 import hardhatKeystorePlugin from "../../src/index.js";
@@ -18,15 +24,32 @@ import {
 } from "../../src/internal/keystores/encryption.js";
 import { setupKeystorePassword } from "../helpers/insert-password-hook.js";
 import { setupKeystoreFileLocationOverrideAt } from "../helpers/setup-keystore-file-location-override-at.js";
-import { TEST_PASSWORD } from "../helpers/test-password.js";
+import {
+  TEST_PASSWORD_DEV,
+  TEST_PASSWORD_PROD,
+} from "../helpers/test-password.js";
 
-const configurationVariableKeystoreFilePath = path.join(
+const basePath = path.join(
   fileURLToPath(import.meta.url),
   "..",
   "..",
   "fixture-projects",
   "keystore",
+);
+
+const configurationVariableProdKeystoreFilePath = path.join(
+  basePath,
   "config-variables-keystore.json",
+);
+
+const configurationVariableDevKeystoreFilePath = path.join(
+  basePath,
+  "config-variables-dev-keystore.json",
+);
+
+const configurationVariableDevKeystorePasswordFilePath = path.join(
+  basePath,
+  "fake-keystore-hardhat.checksum-path-config-var",
 );
 
 const nonExistingKeystoreFilePath = path.join(
@@ -45,25 +68,22 @@ const exampleConfigurationVariable: ConfigurationVariable = {
 
 const exampleConfigurationVariable2: ConfigurationVariable = {
   _type: "ConfigurationVariable",
-  name: "key2",
+  name: "key3-dev",
 };
 
 const exampleConfigurationVariable3: ConfigurationVariable = {
   _type: "ConfigurationVariable",
-  name: "key3",
+  name: "key3-prod",
 };
 
 const exampleConfigurationVariable4: ConfigurationVariable = {
   _type: "ConfigurationVariable",
-  name: "key4",
+  name: "key4-prod",
 };
 
 describe("hook-handlers - configuration variables - fetchValue", () => {
   let hre: HardhatRuntimeEnvironment;
   let runningInCi: boolean;
-
-  let masterKey: Uint8Array;
-  let salt: Uint8Array;
 
   // The config variables hook handler short circuits if running in CI
   // intentionally. In this integration test we check whether we are running
@@ -87,59 +107,126 @@ describe("hook-handlers - configuration variables - fetchValue", () => {
     }
   });
 
-  describe("when there is an existing valid keystore file", () => {
+  describe("when there are existing development and production valid keystore files", () => {
     beforeEach(async () => {
-      await remove(configurationVariableKeystoreFilePath);
+      //
+      // Prod keystore setup
+      //
+      await remove(configurationVariableProdKeystoreFilePath);
 
-      ({ masterKey, salt } = createMasterKey({
-        password: TEST_PASSWORD,
-      }));
+      const { masterKey: masterKeyProd, salt: saltProd } = createMasterKey({
+        password: TEST_PASSWORD_PROD,
+      });
 
-      let keystoreFile = createEmptyEncryptedKeystore({ masterKey, salt });
+      let keystoreFileProd = createEmptyEncryptedKeystore({
+        masterKey: masterKeyProd,
+        salt: saltProd,
+      });
 
-      const secrets = [
+      const secretsProd = [
+        // Key1 and Key2 are the same in both keystores
         {
           key: "key1",
-          value: "value1",
+          value: "value1-prod",
         },
         {
           key: "key2",
-          value: "value2",
+          value: "value2-prod",
         },
         {
-          key: "key3",
-          value: "value3",
+          key: "key3-prod",
+          value: "value3-prod",
         },
         {
-          key: "key4",
-          value: "value4",
+          key: "key4-prod",
+          value: "value4-prod",
         },
       ];
 
-      for (const secret of secrets) {
-        keystoreFile = addSecretToKeystore({
-          masterKey,
-          encryptedKeystore: keystoreFile,
+      for (const secret of secretsProd) {
+        keystoreFileProd = addSecretToKeystore({
+          masterKey: masterKeyProd,
+          encryptedKeystore: keystoreFileProd,
           key: secret.key,
           value: secret.value,
         });
       }
 
-      await writeJsonFile(configurationVariableKeystoreFilePath, keystoreFile);
+      await writeJsonFile(
+        configurationVariableProdKeystoreFilePath,
+        keystoreFileProd,
+      );
+
+      //
+      // Dev Keystore setup
+      //
+      await remove(configurationVariableDevKeystorePasswordFilePath);
+
+      const { masterKey: masterKeyDev, salt: saltDev } = createMasterKey({
+        password: TEST_PASSWORD_DEV,
+      });
+
+      let keystoreFileDev = createEmptyEncryptedKeystore({
+        masterKey: masterKeyDev,
+        salt: saltDev,
+      });
+
+      await writeUtf8File(
+        configurationVariableDevKeystorePasswordFilePath,
+        TEST_PASSWORD_DEV,
+      );
+
+      const secretsDev = [
+        // Key1 and Key2 are the same in both keystores
+        {
+          key: "key1",
+          value: "value1-dev",
+        },
+        {
+          key: "key2",
+          value: "value2-dev",
+        },
+        {
+          key: "key3-dev",
+          value: "value3-dev",
+        },
+        {
+          key: "key4-dev",
+          value: "value4-dev",
+        },
+      ];
+
+      for (const secret of secretsDev) {
+        keystoreFileDev = addSecretToKeystore({
+          masterKey: masterKeyDev,
+          encryptedKeystore: keystoreFileDev,
+          key: secret.key,
+          value: secret.value,
+        });
+      }
+
+      await writeJsonFile(
+        configurationVariableDevKeystoreFilePath,
+        keystoreFileDev,
+      );
 
       hre = await createHardhatRuntimeEnvironment({
         plugins: [
           hardhatKeystorePlugin,
           setupKeystoreFileLocationOverrideAt(
-            configurationVariableKeystoreFilePath,
+            configurationVariableProdKeystoreFilePath,
+            configurationVariableDevKeystoreFilePath,
+            configurationVariableDevKeystorePasswordFilePath,
           ),
-          setupKeystorePassword([TEST_PASSWORD]),
+          setupKeystorePassword([TEST_PASSWORD_PROD]),
         ],
       });
     });
 
     afterEach(async () => {
-      await remove(configurationVariableKeystoreFilePath);
+      await remove(configurationVariableProdKeystoreFilePath);
+      await remove(configurationVariableDevKeystoreFilePath);
+      await remove(configurationVariableDevKeystorePasswordFilePath);
     });
 
     describe("successful get keys in the keystore", () => {
@@ -147,9 +234,9 @@ describe("hook-handlers - configuration variables - fetchValue", () => {
       let results: string[];
 
       beforeEach(async () => {
-        results = await Promise.all([
-          // Ask twice for value
-          hre.hooks.runHandlerChain(
+        results = [
+          // This one gets the value from the development keystore, even if it exists in the production keystore too
+          await hre.hooks.runHandlerChain(
             "configurationVariables",
             "fetchValue",
             [exampleConfigurationVariable],
@@ -157,7 +244,8 @@ describe("hook-handlers - configuration variables - fetchValue", () => {
               return "unexpected-default-value";
             },
           ),
-          hre.hooks.runHandlerChain(
+          // This one gets the value from the development keystore, because it doesn't exist in the production keystore
+          await hre.hooks.runHandlerChain(
             "configurationVariables",
             "fetchValue",
             [exampleConfigurationVariable2],
@@ -165,7 +253,8 @@ describe("hook-handlers - configuration variables - fetchValue", () => {
               return "unexpected-default-value";
             },
           ),
-          hre.hooks.runHandlerChain(
+          // This one gets the value from the production keystore, because it doesn't exist in the development keystore
+          await hre.hooks.runHandlerChain(
             "configurationVariables",
             "fetchValue",
             [exampleConfigurationVariable3],
@@ -173,7 +262,9 @@ describe("hook-handlers - configuration variables - fetchValue", () => {
               return "unexpected-default-value";
             },
           ),
-          hre.hooks.runHandlerChain(
+          // This one gets the value from the production keystore, because it doesn't exist in the development keystore
+          // and it should not ask for the password again as it was provided in the previous fetch
+          await hre.hooks.runHandlerChain(
             "configurationVariables",
             "fetchValue",
             [exampleConfigurationVariable4],
@@ -181,18 +272,58 @@ describe("hook-handlers - configuration variables - fetchValue", () => {
               return "unexpected-default-value";
             },
           ),
-        ]);
+        ];
       });
 
       it("should fetch the value for the key in the keystore", async () => {
-        assert.equal(results[0], "value1");
-        assert.equal(results[1], "value2");
-        assert.equal(results[2], "value3");
-        assert.equal(results[3], "value4");
+        assert.equal(results[0], "value1-dev");
+        assert.equal(results[1], "value3-dev");
+        assert.equal(results[2], "value3-prod");
+        assert.equal(results[3], "value4-prod");
       });
     });
 
-    describe("where the key is not in the keystore", () => {
+    describe("when the keystore is in test mode", () => {
+      before(() => {
+        process.env.HH_TEST = "true";
+      });
+
+      after(() => {
+        process.env.HH_TEST = undefined;
+      });
+
+      it("should not throw an error if the keystore is executed in test mode and the key is in the development keystore", async () => {
+        const res = await hre.hooks.runHandlerChain(
+          "configurationVariables",
+          "fetchValue",
+          [exampleConfigurationVariable2],
+          async (_context, _configVar) => {
+            return "unexpected-default-value";
+          },
+        );
+
+        assert.equal(res, "value3-dev");
+      });
+
+      it("should throw an error if the keystore is executed in test mode and the key is not in the development keystore", async () => {
+        await assertRejectsWithHardhatError(
+          () =>
+            hre.hooks.runHandlerChain(
+              "configurationVariables",
+              "fetchValue",
+              [exampleConfigurationVariable3],
+              async (_context, _configVar) => {
+                return "unexpected-default-value";
+              },
+            ),
+          HardhatError.ERRORS.HARDHAT_KEYSTORE.GENERAL
+            .KEY_NOT_FOUND_DURING_TESTS_WITH_DEV_KEYSTORE,
+          { key: "key3-prod" },
+        );
+      });
+    });
+
+    describe("where the key is not in the development and production keystore", () => {
       let resultValue: string;
 
       beforeEach(async () => {
@@ -218,24 +349,36 @@ describe("hook-handlers - configuration variables - fetchValue", () => {
 
     describe("caching", () => {
       describe("on a second get against the same hre", () => {
-        let resultValue2: string;
+        let resultValueProd2: string;
+        let resultValueDev2: string;
 
         beforeEach(async () => {
-          const resultValue = await hre.hooks.runHandlerChain(
+          const resultValueProd = await hre.hooks.runHandlerChain(
             "configurationVariables",
             "fetchValue",
-            [{ ...exampleConfigurationVariable, name: "key1" }],
+            [{ ...exampleConfigurationVariable, name: "key3-prod" }],
             async (_context, _configVar) => {
               return "unexpected-default-value";
             },
           );
 
-          assert.equal(resultValue, "value1");
+          assert.equal(resultValueProd, "value3-prod");
+
+          const resultValueDev = await hre.hooks.runHandlerChain(
+            "configurationVariables",
+            "fetchValue",
+            [{ ...exampleConfigurationVariable, name: "key3-dev" }],
+            async (_context, _configVar) => {
+              return "unexpected-default-value";
+            },
+          );
+
+          assert.equal(resultValueDev, "value3-dev");
 
           // After the initial read, overwrite the keystore file with
           // empty keys to ensure the cache is being used
           await writeJsonFile(
-            configurationVariableKeystoreFilePath,
+            configurationVariableProdKeystoreFilePath,
             createEmptyEncryptedKeystore(
               createMasterKey({
                 password: "random-password",
@@ -243,10 +386,28 @@ describe("hook-handlers - configuration variables - fetchValue", () => {
             ),
           );
 
-          resultValue2 = await hre.hooks.runHandlerChain(
+          await writeJsonFile(
+            configurationVariableDevKeystoreFilePath,
+            createEmptyEncryptedKeystore(
+              createMasterKey({
+                password: "random-password",
+              }),
+            ),
+          );
+
+          resultValueProd2 = await hre.hooks.runHandlerChain(
             "configurationVariables",
             "fetchValue",
-            [{ ...exampleConfigurationVariable, name: "key2" }],
+            [{ ...exampleConfigurationVariable, name: "key3-prod" }],
+            async (_context, _configVar) => {
+              return "unexpected-default-value";
+            },
+          );
+
+          resultValueDev2 = await hre.hooks.runHandlerChain(
+            "configurationVariables",
+            "fetchValue",
+            [{ ...exampleConfigurationVariable, name: "key3-dev" }],
             async (_context, _configVar) => {
               return "unexpected-default-value";
             },
@@ -254,7 +415,8 @@ describe("hook-handlers - configuration variables - fetchValue", () => {
         });
 
         it("should successfully get a key on", async () => {
-          assert.equal(resultValue2, "value2");
+          assert.equal(resultValueProd2, "value3-prod");
+          assert.equal(resultValueDev2, "value3-dev");
         });
       });
     });
@@ -262,20 +424,34 @@ describe("hook-handlers - configuration variables - fetchValue", () => {
 
   describe("when the keystore file has not been setup", () => {
     describe("when trying to get a value", () => {
-      let resultValue: string;
+      let resultValueProd: string;
+      let resultValueDev: string;
 
       beforeEach(async () => {
         hre = await createHardhatRuntimeEnvironment({
           plugins: [
             hardhatKeystorePlugin,
-            setupKeystoreFileLocationOverrideAt(nonExistingKeystoreFilePath),
+            setupKeystoreFileLocationOverrideAt(
+              nonExistingKeystoreFilePath,
+              nonExistingKeystoreFilePath,
+              configurationVariableDevKeystorePasswordFilePath,
+            ),
           ],
         });
 
-        resultValue = await hre.hooks.runHandlerChain(
+        resultValueProd = await hre.hooks.runHandlerChain(
           "configurationVariables",
           "fetchValue",
-          [exampleConfigurationVariable],
+          [{ ...exampleConfigurationVariable, name: "key3-prod" }],
+          async (_context, _configVar) => {
+            return "value-from-hardhat-package";
+          },
+        );
+
+        resultValueDev = await hre.hooks.runHandlerChain(
+          "configurationVariables",
+          "fetchValue",
+          [{ ...exampleConfigurationVariable, name: "key3-dev" }],
           async (_context, _configVar) => {
             return "value-from-hardhat-package";
           },
@@ -283,7 +459,8 @@ describe("hook-handlers - configuration variables - fetchValue", () => {
       });
 
       it("should invoke the next function and return its value because no keystore is found", async () => {
-        assert.equal(resultValue, "value-from-hardhat-package");
+        assert.equal(resultValueProd, "value-from-hardhat-package");
+        assert.equal(resultValueDev, "value-from-hardhat-package");
       });
     });
   });

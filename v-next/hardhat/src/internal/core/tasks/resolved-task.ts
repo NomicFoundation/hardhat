@@ -5,6 +5,7 @@ import type {
 } from "../../../types/arguments.js";
 import type { HardhatRuntimeEnvironment } from "../../../types/hre.js";
 import type {
+  LazyActionObject,
   NewTaskActionFunction,
   Task,
   TaskActions,
@@ -18,7 +19,6 @@ import {
 } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 
-import { SHOULD_WARN_ABOUT_INLINE_TASK_ACTIONS_AND_HOOK_HANDLERS } from "../inline-functions-warning.js";
 import { detectPluginNpmDependencyProblems } from "../plugins/detect-plugin-npm-dependency-problems.js";
 
 import { formatTaskId } from "./utils.js";
@@ -49,7 +49,7 @@ export class ResolvedTask implements Task {
     hre: HardhatRuntimeEnvironment,
     id: string[],
     description: string,
-    action: NewTaskActionFunction | string,
+    action: LazyActionObject<NewTaskActionFunction>,
     options: Record<string, OptionDefinition>,
     positionalArguments: PositionalArgumentDefinition[],
     pluginId?: string,
@@ -143,26 +143,16 @@ export class ResolvedTask implements Task {
       currentIndex = this.actions.length - 1,
     ): Promise<any> => {
       // The first action may be empty if the task was originally an empty task
-      const currentAction = this.actions[currentIndex].action ?? (() => {});
-      const pluginId = this.actions[currentIndex].pluginId;
+      const currentAction =
+        this.actions[currentIndex].action ??
+        (async () => ({
+          default: () => {},
+        }));
 
-      if (
-        typeof currentAction === "function" &&
-        pluginId !== undefined &&
-        SHOULD_WARN_ABOUT_INLINE_TASK_ACTIONS_AND_HOOK_HANDLERS
-      ) {
-        console.warn(
-          `WARNING: Inline task action found in plugin "${pluginId}" for task "${formatTaskId(this.id)}". Use file:// URLs in production.`,
-        );
-      }
-
-      const actionFn =
-        typeof currentAction === "function"
-          ? currentAction
-          : await this.#resolveFileAction(
-              currentAction,
-              this.actions[currentIndex].pluginId,
-            );
+      const actionFn = await this.#resolveImportAction(
+        currentAction,
+        this.actions[currentIndex].pluginId,
+      );
 
       if (currentIndex === 0) {
         /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
@@ -231,13 +221,13 @@ export class ResolvedTask implements Task {
    * @throws HardhatError if the module can't be imported or doesn't have a
    * default export function.
    */
-  async #resolveFileAction(
-    actionFileUrl: string,
+  async #resolveImportAction(
+    action: LazyActionObject<TaskOverrideActionFunction<TaskArguments>>,
     actionPluginId?: string,
   ): Promise<NewTaskActionFunction | TaskOverrideActionFunction> {
     let resolvedActionFn;
     try {
-      resolvedActionFn = await import(actionFileUrl);
+      resolvedActionFn = await action();
     } catch (error) {
       ensureError(error);
 
@@ -258,9 +248,8 @@ export class ResolvedTask implements Task {
       }
 
       throw new HardhatError(
-        HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INVALID_ACTION_URL,
+        HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INVALID_ACTION_IMPORT,
         {
-          action: actionFileUrl,
           task: formatTaskId(this.id),
         },
         error,
@@ -271,7 +260,6 @@ export class ResolvedTask implements Task {
       throw new HardhatError(
         HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INVALID_ACTION,
         {
-          action: actionFileUrl,
           task: formatTaskId(this.id),
         },
       );

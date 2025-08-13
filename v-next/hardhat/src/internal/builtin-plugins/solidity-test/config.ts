@@ -16,9 +16,12 @@ const solidityTestUserConfigType = z.object({
   timeout: z.number().optional(),
   fsPermissions: z
     .object({
-      readWrite: z.array(z.string()).optional(),
-      read: z.array(z.string()).optional(),
-      write: z.array(z.string()).optional(),
+      readWriteFile: z.array(z.string()).optional(),
+      readFile: z.array(z.string()).optional(),
+      writeFile: z.array(z.string()).optional(),
+      dangerouslyReadWriteDirectory: z.array(z.string()).optional(),
+      readDirectory: z.array(z.string()).optional(),
+      dangerouslyWriteDirectory: z.array(z.string()).optional(),
     })
     .optional(),
   isolate: z.boolean().optional(),
@@ -77,7 +80,11 @@ const userConfigType = z.object({
       ).optional(),
     })
     .optional(),
-  solidityTest: solidityTestUserConfigType.optional(),
+  test: z
+    .object({
+      solidityTest: solidityTestUserConfigType.optional(),
+    })
+    .optional(),
 });
 
 export function validateSolidityTestUserConfig(
@@ -100,7 +107,7 @@ export async function resolveSolidityTestUserConfig(
 
   const solidityTest = {
     rpcCachePath: defaultRpcCachePath,
-    ...userConfig.solidityTest,
+    ...userConfig.test?.solidity,
   };
 
   return {
@@ -112,6 +119,9 @@ export async function resolveSolidityTestUserConfig(
         solidity: resolveFromRoot(resolvedConfig.paths.root, testsPath),
       },
     },
-    solidityTest,
+    test: {
+      ...resolvedConfig.test,
+      solidity: solidityTest,
+    },
   };
 }

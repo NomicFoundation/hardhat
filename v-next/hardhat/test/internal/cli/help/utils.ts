@@ -21,7 +21,14 @@ describe("utils", function () {
       const task: Task = {
         id: ["task"],
         description: "task description",
-        actions: [{ pluginId: "task-plugin-id", action: () => {} }],
+        actions: [
+          {
+            pluginId: "task-plugin-id",
+            action: async () => ({
+              default: () => {},
+            }),
+          },
+        ],
         options: new Map(),
         positionalArguments: [],
         pluginId: "task-plugin-id",
@@ -52,7 +59,14 @@ describe("utils", function () {
       const task: Task = {
         id: ["task"],
         description: "task description",
-        actions: [{ pluginId: "task-plugin-id", action: () => {} }],
+        actions: [
+          {
+            pluginId: "task-plugin-id",
+            action: async () => ({
+              default: () => {},
+            }),
+          },
+        ],
         options: new Map(),
         positionalArguments: [],
         pluginId: "task-plugin-id",
@@ -85,7 +99,14 @@ describe("utils", function () {
       const task: Task = {
         id: ["task"],
         description: "task description",
-        actions: [{ pluginId: "task-plugin-id", action: () => {} }],
+        actions: [
+          {
+            pluginId: "task-plugin-id",
+            action: async () => ({
+              default: () => {},
+            }),
+          },
+        ],
         options: new Map(),
         positionalArguments: [],
         pluginId: "task-plugin-id",
@@ -115,7 +136,14 @@ describe("utils", function () {
       const task: Task = {
         id: ["task"],
         description: "task description",
-        actions: [{ pluginId: "task-plugin-id", action: () => {} }],
+        actions: [
+          {
+            pluginId: "task-plugin-id",
+            action: async () => ({
+              default: () => {},
+            }),
+          },
+        ],
         options: new Map()
           .set("option", {
             name: "option",
@@ -250,7 +278,14 @@ Section Title:
         const task: Task = {
           id: ["task"],
           description: "task description",
-          actions: [{ pluginId: "task-plugin-id", action: () => {} }],
+          actions: [
+            {
+              pluginId: "task-plugin-id",
+              action: async () => ({
+                default: () => {},
+              }),
+            },
+          ],
           options: new Map()
             .set("option", {
               name: "option",
@@ -323,7 +358,14 @@ Section Title:
         const task: Task = {
           id: ["task"],
           description: "task description",
-          actions: [{ pluginId: "task-plugin-id", action: () => {} }],
+          actions: [
+            {
+              pluginId: "task-plugin-id",
+              action: async () => ({
+                default: () => {},
+              }),
+            },
+          ],
           options: new Map()
             .set("option", {
               name: "option",

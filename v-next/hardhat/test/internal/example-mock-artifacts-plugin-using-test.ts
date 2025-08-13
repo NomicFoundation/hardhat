@@ -1,5 +1,4 @@
 import type { Artifact } from "../../src/types/artifacts.js";
-import type { HardhatRuntimeEnvironment } from "../../src/types/hre.js";
 import type { HardhatPlugin } from "../../src/types/plugins.js";
 
 import assert from "node:assert/strict";
@@ -29,9 +28,11 @@ describe("createMockHardhatRuntimeEnvironment", () => {
       id: "my-plugin",
       tasks: [
         task("hello-artifact-using-world", "Tests artifact loading")
-          .setAction(async ({}, hre: HardhatRuntimeEnvironment) => {
-            return hre.artifacts.readArtifact("MyContract");
-          })
+          .setAction(async () => ({
+            default: (_args, hre) => {
+              return hre.artifacts.readArtifact("MyContract");
+            },
+          }))
           .build(),
       ],
     };

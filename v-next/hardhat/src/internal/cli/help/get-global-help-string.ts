@@ -7,8 +7,8 @@ import {
   GLOBAL_NAME_PADDING,
   getLongestNameLength,
   getSection,
-  parseGlobalOptions,
   parseTasks,
+  parseGlobalOptions,
 } from "./utils.js";
 
 export async function getGlobalHelpString(

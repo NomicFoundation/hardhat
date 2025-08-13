@@ -15,11 +15,11 @@ import { formatEdrNetworkConfigAccounts } from "./helpers.js";
 import { JsonRpcServerImplementation } from "./json-rpc/server.js";
 
 interface NodeActionArguments {
-  hostname: string;
+  hostname?: string;
   port: number;
-  chainType: string;
+  chainType?: string;
   chainId: number;
-  fork: string;
+  fork?: string;
   forkBlockNumber: number;
 }
 
@@ -38,7 +38,7 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
     });
   }
 
-  if (hre.config.networks[network].type !== "edr") {
+  if (hre.config.networks[network].type !== "edr-simulated") {
     throw new HardhatError(HardhatError.ERRORS.CORE.NODE.INVALID_NETWORK_TYPE, {
       networkType: hre.config.networks[network].type,
       networkName: network,
@@ -133,7 +133,7 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
   // NOTE: Before creating the node, we check if the input network config is of type edr.
   // We only proceed if it is. Hence, we can assume that the output network config is of type edr as well.
   assertHardhatInvariant(
-    networkConfig.type === "edr",
+    networkConfig.type === "edr-simulated",
     "Network config type should be edr",
   );
 
