@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-network-helpers
 
+## 3.0.0
+
+### Major Changes
+
+- 29cc141: First release of Hardhat 3!
+
 ## 1.1.0
 
 ### Minor Changes
