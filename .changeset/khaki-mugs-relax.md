@@ -24,4 +24,4 @@
 "hardhat": major
 ---
 
-Updated as part of the Hardhat 3 release.
+Upgraded to Hardhat 3 and Ecmascript modules.
