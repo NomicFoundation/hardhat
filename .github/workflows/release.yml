@@ -42,23 +42,18 @@ jobs:
         with:
           title: Version Packages (v3)
 
-      - name: Check if release needs to be published
-        id: before
-        if: steps.pr.outputs.hasChangesets == 'false'
-        run: node scripts/check-release.mjs
-
       - name: Build All Packages
-        if: steps.before.outputs.released == 'false'
+        if: steps.pr.outputs.hasChangesets == 'false'
         run: pnpm run --recursive -no-bail --filter './v-next/**' --if-present build
 
       - name: Publish All Packages (dry-run)
-        if: steps.before.outputs.released == 'false'
-        run: pnpm publish --filter "./v-next/**" -r --no-git-checks --tag next --access public --dry-run
+        if: steps.pr.outputs.hasChangesets == 'false'
+        run: pnpm publish --filter "./v-next/**" -r --no-git-checks --access public --tag next --dry-run
 
       - name: Publish All Packages
         id: publish
-        if: steps.before.outputs.released == 'false'
+        if: steps.pr.outputs.hasChangesets == 'false'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
-        run: pnpm publish --filter "./v-next/**" -r --no-git-checks --tag next --access public
+        run: pnpm publish --filter "./v-next/**" -r --no-git-checks --access public --tag next
