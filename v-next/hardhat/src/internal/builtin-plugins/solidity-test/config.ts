@@ -82,7 +82,7 @@ const userConfigType = z.object({
     .optional(),
   test: z
     .object({
-      solidityTest: solidityTestUserConfigType.optional(),
+      solidity: solidityTestUserConfigType.optional(),
     })
     .optional(),
 });
