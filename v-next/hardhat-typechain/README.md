@@ -4,7 +4,7 @@ This plugin integrates [TypeChain](https://github.com/dethcrypto/TypeChain) into
 
 ## Installation
 
-> This plugin is part of the [Ethers+Mocha Hardhat Toolbox](/v-next/hardhat-toolbox-mocha-ethers/). If you are using that toolbox, there's nothing else you need to do.
+> This plugin is part of the [Ethers+Mocha Hardhat Toolbox](https://hardhat.org/plugins/nomicfoundation-hardhat-toolbox-mocha-ethers). If you are using that toolbox, there's nothing else you need to do.
 
 To install this plugin, run the following command:
 

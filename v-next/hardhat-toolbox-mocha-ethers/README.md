@@ -30,8 +30,8 @@ With this toolbox, you can:
 
 - Use [ethers.js](https://docs.ethers.io/) as the connection library for interacting with the network
 - Write Solidity tests using Hardhat's built-in test runner
-- Write TypeScript tests using [Mocha](https://mochajs.org/) and our [chai matchers plugin](/v-next/hardhat-ethers-chai-matchers/).
-- Verify contracts with [hardhat-verify](/v-next/hardhat-verify)
+- Write TypeScript tests using [Mocha](https://mochajs.org/) and our [chai matchers plugin](http://hardhat.org/plugins/nomicfoundation-hardhat-ethers-chai-matchers).
+- Verify contracts with [hardhat-verify](http://hardhat.org/plugins/nomicfoundation-hardhat-verify)
 - Deploy contracts using [Hardhat Ignition](https://hardhat.org/ignition)
 
 ## Bundled plugins
