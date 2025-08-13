@@ -861,7 +861,7 @@ repositories:
       #   3) testFailNotAuthorizedExtension()
       #     Error: reverted with custom error 'Unauthorized()'
       #   4) testFailDeploy()
-      #     Error: Error != expected error: 0d% != custom error 5daa87a0:
+      #     Error: Error != expected error: 0<#x0011>d% != custom error 5daa87a0:
       test/Kali.t.sol
 
       # test/ReentrancyGuard.t.sol:ReentrancyGuardTest
@@ -1774,9 +1774,9 @@ repositories:
       #   127) testFailSafeBatchTransferFromToWrongReturnDataERC1155Recipient()
       #     Error: revert: UNSAFE_RECIPIENT
       #   128) testFailSafeBatchTransferFromToRevertingERC1155Recipient(uint256[],uint256[],uint256[],bytes,bytes)
-      #     Error: revert: �|�
+      #     Error: revert: �<#x0019>|�
       #   129) testFailSafeBatchTransferFromToRevertingERC1155Recipient()
-      #     Error: revert: �|�
+      #     Error: revert: �<#x0019>|�
       #   130) testFailSafeBatchTransferFromToNonERC1155Recipient(uint256[],uint256[],uint256[],bytes,bytes)
       #     Error: Function selector was not recognized and there's no fallback function
       #   131) testFailSafeBatchTransferFromToNonERC1155Recipient()
@@ -1814,9 +1814,9 @@ repositories:
       #   147) testFailBatchMintToWrongReturnDataERC1155Recipient()
       #     Error: revert: UNSAFE_RECIPIENT
       #   148) testFailBatchMintToRevertingERC1155Recipient(uint256[],uint256[],bytes)
-      #     Error: revert: �|�
+      #     Error: revert: �<#x0019>|�
       #   149) testFailBatchMintToRevertingERC1155Recipient()
-      #     Error: revert: �|�
+      #     Error: revert: �<#x0019>|�
       #   150) testFailBatchMintToNonERC1155Recipient(uint256[],uint256[],bytes)
       #     Error: Function selector was not recognized and there's no fallback function
       #   151) testFailBatchMintToNonERC1155Recipient()
@@ -1853,13 +1853,13 @@ repositories:
       #   165) testFailTransferFromNotOwner()
       #     Error: revert: NOT_AUTHORIZED
       #   166) testFailSafeTransferFromToRevertingERC721RecipientWithData(uint256,bytes)
-      #     Error: revert: z
+      #     Error: revert: <#x0015><#x000b>z<#x0002>
       #   167) testFailSafeTransferFromToRevertingERC721RecipientWithData()
-      #     Error: revert: z
+      #     Error: revert: <#x0015><#x000b>z<#x0002>
       #   168) testFailSafeTransferFromToRevertingERC721Recipient(uint256)
-      #     Error: revert: z
+      #     Error: revert: <#x0015><#x000b>z<#x0002>
       #   169) testFailSafeTransferFromToRevertingERC721Recipient()
-      #     Error: revert: z
+      #     Error: revert: <#x0015><#x000b>z<#x0002>
       #   170) testFailSafeTransferFromToNonERC721RecipientWithData(uint256,bytes)
       #     Error: Function selector was not recognized and there's no fallback function
       #   171) testFailSafeTransferFromToNonERC721RecipientWithData()
@@ -1877,13 +1877,13 @@ repositories:
       #   177) testFailSafeTransferFromToERC721RecipientWithWrongReturnData()
       #     Error: revert: UNSAFE_RECIPIENT
       #   178) testFailSafeMintToRevertingERC721RecipientWithData(uint256,bytes)
-      #     Error: revert: z
+      #     Error: revert: <#x0015><#x000b>z<#x0002>
       #   179) testFailSafeMintToRevertingERC721RecipientWithData()
-      #     Error: revert: z
+      #     Error: revert: <#x0015><#x000b>z<#x0002>
       #   180) testFailSafeMintToRevertingERC721Recipient(uint256)
-      #     Error: revert: z
+      #     Error: revert: <#x0015><#x000b>z<#x0002>
       #   181) testFailSafeMintToRevertingERC721Recipient()
-      #     Error: revert: z
+      #     Error: revert: <#x0015><#x000b>z<#x0002>
       #   182) testFailSafeMintToNonERC721RecipientWithData(uint256,bytes)
       #     Error: Function selector was not recognized and there's no fallback function
       #   183) testFailSafeMintToNonERC721RecipientWithData()
