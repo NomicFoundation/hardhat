@@ -54,11 +54,23 @@ async function getTasksAndHreEnvironment(
   const subtasks: NewTaskDefinition[] = [];
 
   for (const t of tasksBuilders) {
-    tasks.push(t.setAction(() => {}).build());
+    tasks.push(
+      t
+        .setAction(async () => ({
+          default: () => {},
+        }))
+        .build(),
+    );
   }
 
   for (const s of subtasksBuilders) {
-    subtasks.push(s.setAction(() => {}).build());
+    subtasks.push(
+      s
+        .setAction(async () => ({
+          default: () => {},
+        }))
+        .build(),
+    );
   }
 
   const hre = await createHardhatRuntimeEnvironment({
@@ -307,15 +319,25 @@ Usage: hardhat [GLOBAL OPTIONS] test-task [--opt <STRING>] [--] pos1 [pos2] [var
 
 OPTIONS:
 
-  --opt      opt description (default: opt default value)
+  --opt                    opt description (default: opt default value)
 
 POSITIONAL ARGUMENTS:
 
-  pos1       pos1 description
-  pos2       pos2 description (default: pos2 default value)
-  var1       var1 description (default: var1 default value 1, var1 default value 2)
+  pos1                     pos1 description
+  pos2                     pos2 description (default: pos2 default value)
+  var1                     var1 description (default: var1 default value 1, var1 default value 2)
 
-For global options help run: hardhat --help`;
+GLOBAL OPTIONS:
+
+  --build-profile          The build profile to use
+  --config                 A Hardhat config file.
+  --coverage               Enables code coverage
+  --help, -h               Shows this message, or a task's help if its name is provided.
+  --init                   Initializes a Hardhat project.
+  --network                The network to connect to
+  --show-stack-traces      Show stack traces (always enabled on CI servers).
+  --version                Shows hardhat's version.
+`;
 
           assert.equal(lines.join(""), expected);
         });
@@ -335,16 +357,26 @@ Usage: hardhat [GLOBAL OPTIONS] task [--arg-1 <STRING>] [--arg-4] [--arg-5 <LEVE
 
 OPTIONS:
 
-  --arg-1, -o       (default: <default-value1>)
-  --arg-4, -f       (default: false)
-  --arg-5, -l       (default: 0)
+  --arg-1, -o               (default: <default-value1>)
+  --arg-4, -f               (default: false)
+  --arg-5, -l               (default: 0)
 
 POSITIONAL ARGUMENTS:
 
   arg2
   arg3
 
-For global options help run: hardhat --help`;
+GLOBAL OPTIONS:
+
+  --build-profile          The build profile to use
+  --config                 A Hardhat config file.
+  --coverage               Enables code coverage
+  --help, -h               Shows this message, or a task's help if its name is provided.
+  --init                   Initializes a Hardhat project.
+  --network                The network to connect to
+  --show-stack-traces      Show stack traces (always enabled on CI servers).
+  --version                Shows hardhat's version.
+`;
 
         assert.equal(lines.join(""), expected);
       });

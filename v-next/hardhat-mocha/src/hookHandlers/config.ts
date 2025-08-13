@@ -73,7 +73,11 @@ const mochaConfigType = z.object({
 });
 
 const userConfigType = z.object({
-  mocha: z.optional(mochaConfigType),
+  test: z
+    .object({
+      mocha: z.optional(mochaConfigType),
+    })
+    .optional(),
   paths: z
     .object({
       test: conditionalUnionType(
@@ -110,10 +114,13 @@ export default async (): Promise<Partial<ConfigHooks>> => {
 
       return {
         ...resolvedConfig,
-        mocha: {
-          timeout: 40000,
-          ...resolvedConfig.mocha,
-          ...userConfig.mocha,
+        test: {
+          ...resolvedConfig.test,
+          mocha: {
+            timeout: 40000,
+            ...resolvedConfig.test.mocha,
+            ...userConfig.test?.mocha,
+          },
         },
         paths: {
           ...resolvedConfig.paths,

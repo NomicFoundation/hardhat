@@ -1,117 +1,160 @@
 /* This file is inspired by https://github.com/getsentry/sentry-javascript/blob/9.4.0/packages/node/src/sdk/index.ts */
 
 import type {
-  BaseTransportOptions,
-  Integration,
+  Client,
   ServerRuntimeClientOptions,
   Transport,
 } from "@sentry/core";
 
+import os from "node:os";
+import path from "node:path";
+
 import {
   createStackParser,
   functionToStringIntegration,
-  getIntegrationsToSetup,
   initAndBind,
   linkedErrorsIntegration,
   nodeStackLineParser,
-  requestDataIntegration,
   ServerRuntimeClient,
   stackParserFromStackParserOptions,
 } from "@sentry/core";
+import debug from "debug";
 
-import { getHardhatVersion } from "../../../utils/package.js";
-
-import { onUncaughtExceptionIntegration } from "./integrations/onuncaughtexception.js";
-import { onUnhandledRejectionIntegration } from "./integrations/onunhandledrejection.js";
+import { GENERIC_SERVER_NAME } from "./constants.js";
 import { nodeContextIntegration } from "./vendor/integrations/context.js";
 import { contextLinesIntegration } from "./vendor/integrations/contextlines.js";
 import { createGetModuleFromFilename } from "./vendor/utils/module.js";
 
-interface InitOptions {
+const log = debug("hardhat:core:sentry:init");
+
+interface GlobalCustomSentryReporterOptions {
+  /**
+   * Sentry's DSN
+   */
   dsn: string;
-  transport: (transportOptions: BaseTransportOptions) => Transport;
-  serverName?: string;
-  integrations?: (integrations: Integration[]) => Integration[];
+
+  /**
+   * The environment used to report the events
+   */
+  environment: string;
+
+  /**
+   * The release of Hardhat
+   */
+  release: string;
+
+  /**
+   * A transport that customizes how we send envelopes to Sentry's server.
+   *
+   * See the transport module for the different options.
+   */
+  transport: Transport;
+
+  /**
+   * If `true`, the global unhandled rejection and uncaught exception handlers
+   * will be installed.
+   */
+  installGlobalHandlers?: boolean;
 }
 
 /**
- * Initialize Sentry for Node, without performance instrumentation.
+ * This function initializes a custom global sentry reporter/client.
+ *
+ * There are two reasons why we customize it, instead of using the default one
+ * provided by @sentry/node:
+ *   - @sentry/node has an astronomical amount of dependencies -- See https://github.com/getsentry/sentry-javascript/discussions/13846
+ *   - We customize the transport to avoid blocking the main Hardhat process
+ *     while reporting errors.
+ *
+ * Once you initialize the custom global sentry reporter, you can use the usual
+ * `captureException` and `captureMessage` functions exposed by @sentry/core.
+ *
+ * The reason that this uses the global instance of sentry (by calling
+ * initAndBind), is that using the client directly doesn't work with the linked
+ * errors integration.
+ *
+ * Calling `init` also has an option to set global unhandled rejection and
+ * uncaught exception handlers.
  */
-export async function init(options: InitOptions): Promise<void> {
-  const stackParser = stackParserFromStackParserOptions(
-    createStackParser(nodeStackLineParser(createGetModuleFromFilename())),
+export function init(options: GlobalCustomSentryReporterOptions): void {
+  const client = initAndBind<ServerRuntimeClient, ServerRuntimeClientOptions>(
+    ServerRuntimeClient,
+    {
+      dsn: options.dsn,
+      environment: options.environment,
+      serverName: GENERIC_SERVER_NAME,
+      release: options.release,
+      initialScope: {
+        contexts: {
+          os: {
+            name: os.type(),
+            build: os.release(),
+            version: os.version(),
+          },
+          device: {
+            arch: os.arch(),
+          },
+          runtime: {
+            name: path.basename(process.title),
+            version: process.version,
+          },
+        },
+      },
+      transport: () => options.transport,
+      integrations: [
+        functionToStringIntegration(),
+        contextLinesIntegration(),
+        linkedErrorsIntegration(),
+        nodeContextIntegration(),
+      ],
+      platform: process.platform,
+      stackParser: stackParserFromStackParserOptions(
+        createStackParser(nodeStackLineParser(createGetModuleFromFilename())),
+      ),
+    },
   );
 
-  // NOTE: We do not include most of the default integrations @sentry/node does
-  // because in the main hardhat process, we don't use the default integrations
-  // at all, and they're of limited use in the context of a reporter subprocess.
-  const integrationOptions = {
-    defaultIntegrations: [
-      // Inbound filters integration filters out events (errors and transactions) mainly based on init inputs we never use
-      // Import from @sentry/core if needed
-      // inboundFiltersIntegration(),
+  setupGlobalUnhandledErrorHandlers(client);
+}
 
-      functionToStringIntegration(),
-      linkedErrorsIntegration(),
-      requestDataIntegration(),
+function createUnhandledErrorListener(
+  client: Client,
+  isPromiseRejection: boolean,
+) {
+  const description = isPromiseRejection
+    ? "Unhandled promise rejection"
+    : "Uncaught exception";
 
-      // Native Wrappers
-      // Console integration captures console logs as breadcrumbs
-      // Vendor https://github.com/getsentry/sentry-javascript/blob/9.4.0/packages/node/src/integrations/console.ts if needed
-      // consoleIntegration(),
+  async function listener(error: Error | unknown) {
+    log(description, error);
 
-      // HTTP integration instruments the http(s) modules to capture outgoing requests and attach them as breadcrumbs/spans
-      // Vendor https://github.com/getsentry/sentry-javascript/blob/9.4.0/packages/node/src/integrations/http/index.ts if needed
-      // httpIntegration(),
-
-      // Native Node Fetch integration instruments the native node fetch module to capture outgoing requests and attach them as breadcrumbs/spans
-      // Vendor https://github.com/getsentry/sentry-javascript/blob/9.4.0/packages/node/src/integrations/node-fetch/index.ts if needed
-      // nativeNodeFetchIntegration(),
-
-      // Global Handlers
-      onUncaughtExceptionIntegration(),
-      onUnhandledRejectionIntegration(),
-
-      // Event Info
-      contextLinesIntegration(),
-      nodeContextIntegration(),
-
-      // Local variables integrations adds local variables to exception frames
-      // Vendor https://github.com/getsentry/sentry-javascript/blob/9.4.0/packages/node/src/integrations/local-variables/local-variables-async.ts if needed
-      // localVariablesIntegration(),
-
-      // Child process integration captures child process/worker thread events as breadcrumbs
-      // Vendor https://github.com/getsentry/sentry-javascript/blob/9.4.0/packages/node/src/integrations/childProcess.ts if needed
-      // childProcessIntegration(),
-
-      // Records a session for the current process to track release health
-      // Vendor https://github.com/getsentry/sentry-javascript/blob/9.4.0/packages/node/src/integrations/processSession.ts if needed
-      // processSessionIntegration(),
-
-      // CommonJS Only
-      // Vendor https://github.com/getsentry/sentry-javascript/blob/9.4.0/packages/node/src/integrations/modules.ts if needed
-      // modulesIntegration(),
-    ],
-    integrations: options.integrations,
-  };
-
-  const clientOptions: ServerRuntimeClientOptions = {
-    sendClientReports: true,
-    ...options,
-    platform: "node",
-    runtime: {
-      name: "node",
-      version: process.version,
-    },
-    stackParser,
-    integrations: getIntegrationsToSetup(integrationOptions),
-    _metadata: {
-      sdk: {
-        name: "hardhat",
-        version: await getHardhatVersion(),
+    client.captureException(error, {
+      captureContext: {
+        level: "fatal",
       },
-    },
-  };
+      mechanism: {
+        handled: false,
+        type: "onuncaughtexception",
+      },
+    });
 
-  initAndBind(ServerRuntimeClient, clientOptions);
+    await client.flush(100);
+    await client.close(100);
+
+    console.error();
+    console.error(`${description}:`);
+    console.error();
+    console.error(error);
+
+    process.exit(1);
+  }
+
+  return listener;
+}
+
+function setupGlobalUnhandledErrorHandlers(client: Client) {
+  log("Setting up global unhandled error handlers");
+
+  process.on("uncaughtException", createUnhandledErrorListener(client, false));
+  process.on("unhandledRejection", createUnhandledErrorListener(client, true));
 }

@@ -54,7 +54,7 @@ export const ERROR_CATEGORIES: {
     min: 1,
     max: 9999,
     pluginId: undefined,
-    websiteTitle: "Hardhat Core",
+    websiteTitle: "Hardhat 3",
     CATEGORIES: {
       GENERAL: {
         min: 1,
@@ -445,8 +445,8 @@ Please add the property "type" with the value "module" in your package.json to e
       CONFIG_VARIABLE_FORMAT_MUST_INCLUDE_VARIABLE: {
         number: 19,
         messageTemplate: `The format string "{format}" must include {marker} marker`,
-        websiteTitle: "Config variable format must include {variable}",
-        websiteDescription: `The config variable format must include the string "{variable}", which will be replaced with the actual value of the variable.`,
+        websiteTitle: "Config variable format must include \\{variable\\}",
+        websiteDescription: `The config variable format must include the string "\\{variable\\}", which will be replaced with the actual value of the variable.`,
       },
       INVALID_FULLY_QUALIFIED_NAME: {
         number: 20,
@@ -455,6 +455,15 @@ Please add the property "type" with the value "module" in your package.json to e
         websiteDescription: `A contract name was expected to be in fully qualified form, but it's not.
 
 A fully qualified name should look like file.sol:Contract`,
+      },
+      INVALID_CONFIG_FILE: {
+        number: 21,
+        messageTemplate: `Invalid Hardhat config file at {configPath}:
+{errors}`,
+        websiteTitle: "Invalid Hardhat config file",
+        websiteDescription: `The config file has JS/TS errors.
+
+Please resolve the errors before rerunning the command.`,
       },
     },
     INTERNAL: {
@@ -608,18 +617,17 @@ Please ensure that an action is defined for each task.`,
         websiteDescription:
           "The task is empty. Please ensure that tasks have at least one action.",
       },
-      INVALID_ACTION_URL: {
+      INVALID_ACTION_IMPORT: {
         number: 411,
-        messageTemplate:
-          'Unable to import the action specified by task "{task}" from the module "{action}"',
-        websiteTitle: "Invalid action URL",
+        messageTemplate: 'Unable to import the action for task "{task}".',
+        websiteTitle: "Unable to import action for task",
         websiteDescription:
-          "The action URL is invalid. Please ensure that the URL is correct.",
+          "Unable to import action for task. Please verify that the the file exists and that it provides a default function export.",
       },
       INVALID_ACTION: {
         number: 412,
         messageTemplate:
-          'The action resolved from "{action}" in task "{task}" is not a function',
+          'The action resolved in task "{task}" is not a function',
         websiteTitle: "Invalid action",
         websiteDescription:
           "The action of the task is not a function. Make sure that the file pointed to by the action URL exports a function as the default export.",
@@ -945,7 +953,7 @@ Try using another mnemonic or deriving less keys.`,
         messageTemplate:
           'The provided network type "{networkType}" for network "{networkName}" is not recognized, only `http` and `edr` are supported.',
         websiteTitle: "Invalid network type",
-        websiteDescription: `The network manager only supports the network types 'http' and 'edr'.`,
+        websiteDescription: `The network manager only supports the network types 'http' and 'edr-simulated'.`,
       },
       DATA_FIELD_CANNOT_BE_NULL_WITH_NULL_ADDRESS: {
         number: 721,
@@ -1118,7 +1126,7 @@ Please check Hardhat's output for more details.`,
         number: 911,
         messageTemplate: `A wasm version of solc {version} is invalid. The compile function is not available.`,
         websiteTitle: "Invalid solcjs compiler",
-        websiteDescription: `Hardhat successfully downloaded a WASM version of solc {version} but it is invalid. The compile function is missing.`,
+        websiteDescription: `Hardhat successfully downloaded a WASM version of solc but it is invalid. The compile function is missing.`,
       },
       BUILD_PROFILE_NOT_FOUND: {
         number: 912,
@@ -1154,9 +1162,9 @@ Please use the fully qualified name of the contract to disambiguate it.`,
     NODE: {
       INVALID_NETWORK_TYPE: {
         number: 1100,
-        messageTemplate: `The provided node network type "{networkType}" for network "{networkName}" is not recognized, only 'edr' is supported.`,
+        messageTemplate: `The provided node network type "{networkType}" for network "{networkName}" is not recognized, only 'edr-simulated' is supported.`,
         websiteTitle: "Invalid node network type",
-        websiteDescription: `The node only supports the 'edr' network type.`,
+        websiteDescription: `The node only supports the 'edr-simulated' network type.`,
       },
     },
     TEST_PLUGIN: {
@@ -1977,11 +1985,13 @@ Please try again later.`,
         websiteTitle: "Network not found",
         websiteDescription: `No network with the specified chain id was found. You can override the chain by passing it as a parameter to the client getter:
 
+\`\`\`ts
 import { someChain } from "viem/chains";
 const client = await hre.viem.getPublicClient({
   chain: someChain,
   ...
 });
+\`\`\`
 
 You can find a list of supported networks here: https://github.com/wevm/viem/blob/main/src/chains/index.ts`,
       },
@@ -2002,12 +2012,15 @@ Please ensure you're using one of the supported networks.`,
 
 To resolve this, make sure to add an account to the specified network in the Hardhat config. Alternatively, you can set a custom wallet client by passing it as a parameter in the relevant function:
 
+\`\`\`ts
 const networkConnection = await hre.network.connect(...);
 const walletClient = await networkConnection.viem.getWalletClient(address);
 
 await networkConnection.viem.deployContract(contractName, constructorArgs, { walletClient });
 await networkConnection.viem.sendDeploymentTransaction(contractName, constructorArgs, { walletClient });
-await networkConnection.viem.getContractAt(contractName, address, { walletClient });`,
+await networkConnection.viem.getContractAt(contractName, address, { walletClient });
+\`\`\`
+`,
       },
       LINKING_CONTRACT_ERROR: {
         number: 40003,
@@ -2042,6 +2055,20 @@ Please check Hardhat's output for more details.`,
         websiteTitle: "Invalid password or corrupted keystore file",
         websiteDescription:
           "The password you provided is incorrect or the keystore file is corrupted.",
+      },
+      CANNOT_CHANGED_PASSWORD_FOR_DEV_KEYSTORE: {
+        number: 50001,
+        messageTemplate: `The keystore "change-password" task cannot be used with the development keystore`,
+        websiteTitle: "Cannot change password for dev keystore",
+        websiteDescription: `The keystore "change-password" task cannot be used with the development keystore`,
+      },
+      KEY_NOT_FOUND_DURING_TESTS_WITH_DEV_KEYSTORE: {
+        number: 50002,
+        messageTemplate: `Key "{key}" not found in the development keystore. Run "npx hardhat keystore set {key} --dev" to set it.`,
+        websiteTitle: "Key not found in the development keystore during tests",
+        websiteDescription: `Key not found in the development keystore. During tests, configuration variables can only be accessed through the development keystore.
+
+Run \`npx hardhat keystore set <KEY> --dev\` to set it.`,
       },
     },
   },
@@ -2237,9 +2264,9 @@ This might be caused by using hardhat_reset and loadFixture calls in a testcase.
         messageTemplate:
           "The .revertedWithCustomError matcher expects two arguments: the contract and the custom error name. Arguments should be asserted with the .withArgs helper.",
         websiteTitle:
-          "Invalid arguments length for the  .revertedWithCustomError matcher",
+          "Invalid arguments length for the .revertedWithCustomError matcher",
         websiteDescription:
-          "Invalid arguments length for the  .revertedWithCustomError matcher",
+          "Invalid arguments length for the .revertedWithCustomError matcher",
       },
       WITH_ARGS_FORBIDDEN: {
         number: 70011,
@@ -2335,6 +2362,14 @@ This might be caused by using hardhat_reset and loadFixture calls in a testcase.
         websiteDescription:
           "withArgs called with both .emit and .revertedWithCustomError, but these assertions cannot be combined",
       },
+      DEPRECATED_REVERTED_MATCHER: {
+        number: 70024,
+        messageTemplate:
+          "The .reverted matcher has been deprecated. Use .revert(ethers) instead.",
+        websiteTitle: "Deprecated `reverted` matcher",
+        websiteDescription:
+          "The `.reverted` matcher was deprecated and you should use `.revert(ethers)` instead.",
+      },
     },
   },
   HARDHAT_VERIFY: {
@@ -2345,7 +2380,9 @@ This might be caused by using hardhat_reset and loadFixture calls in a testcase.
         websiteTitle: "Network not supported",
         websiteDescription: `The network is not supported by hardhat-verify. To see the list of supported networks, run:
 
-  npx hardhat verify --list-networks
+\`\`\`sh
+npx hardhat verify --list-networks
+\`\`\`
 
 To add support for a new network, see https://hardhat.org/verify-custom-networks`,
       },
@@ -2354,8 +2391,9 @@ To add support for a new network, see https://hardhat.org/verify-custom-networks
         messageTemplate: `The request to {url} failed with the message "{errorMessage}". This error comes from {name}, not Hardhat.`,
         websiteTitle: "Explorer request failed",
         websiteDescription: `The request to the explorer failed.
+
 - Verify that the URL is correct.
-- Ensure the {name} service is up and reachable.
+- Ensure the service is up and reachable.
 - Check your network connection and try again.`,
       },
       EXPLORER_REQUEST_STATUS_CODE_ERROR: {
@@ -2363,8 +2401,9 @@ To add support for a new network, see https://hardhat.org/verify-custom-networks
         messageTemplate: `The request to {url} returned a non-success status code {statusCode}: "{errorMessage}". (This response comes from {name}, not Hardhat.)`,
         websiteTitle: "Explorer request status code error",
         websiteDescription: `The request to the explorer returned a non-success status code.
+
 - Verify that the URL is correct.
-- Ensure the {name} service is up and reachable.
+- Ensure the service is up and reachable.
 - Check your network connection and try again.`,
       },
       SOLC_VERSION_NOT_SUPPORTED: {
@@ -2388,6 +2427,7 @@ Please verify the address and selected network, and try again.`,
         websiteDescription: `The Solidity compiler version used to compile the deployed contract does not match any of the versions configured in your Hardhat project.
 
 This mismatch may indicate:
+
 - You're not on the same commit that was used to deploy the contract.
 - The compiler version in your Hardhat config is incorrect.
 - The address provided is not the deployed contract.
@@ -2411,6 +2451,7 @@ This mismatch may indicate:
         websiteTitle: "Build info compiler version mismatch",
         websiteDescription: `The compiler version in the build info does not match the version encoded in the deployed bytecode.
 Possible causes:
+
 - Compiler settings were changed after deployment.
 - The contract address is incorrect.
 - The selected network is incorrect.`,
@@ -2422,7 +2463,8 @@ Possible causes:
         websiteDescription: `The bytecode at the specified address did not match the expected contract.
 
 Possible causes:
-- Your artifacts are outdated or missing; try running npx hardhat compile --force --buildProfile production.
+
+- Your artifacts are outdated or missing; try running \`npx hardhat compile --force --buildProfile production\`.
 - The contract code was modified after deployment.
 - Compiler settings (optimizer, EVM version, etc.) changed after deployment.
 - The provided address is incorrect.
@@ -2433,11 +2475,14 @@ Possible causes:
         messageTemplate: `More than one contract matches the deployed bytecode:
 {fqnList}
 
-Specify the exact contract using the "--contract" flag.`,
+Specify the exact contract using the \`--contract\` flag.`,
         websiteTitle: "Multiple contract matches",
-        websiteDescription: `The deployed bytecode matches multiple compiled contracts. Specify the exact contract using the "--contract" flag. For example:
+        websiteDescription: `The deployed bytecode matches multiple compiled contracts. Specify the exact contract using the \`--contract\` flag. For example:
 
-npx hardhat verify --contract contracts/Example.sol:ExampleContract <other args>`,
+\`\`\`sh
+npx hardhat verify --contract contracts/Example.sol:ExampleContract <other args>
+\`\`\`
+`,
       },
       INVALID_LIBRARY_ADDRESS: {
         number: 80011,
@@ -2455,7 +2500,10 @@ npx hardhat verify --contract contracts/Example.sol:ExampleContract <other args>
 
 If the contract uses external libraries, verify that the provided name matches the fully qualified name (FQN) of one of them, such as:
 
-  contracts/Math.sol:SafeMath`,
+\`\`\`
+  contracts/Math.sol:SafeMath
+\`\`\`
+`,
       },
       LIBRARY_MULTIPLE_MATCHES: {
         number: 80013,
@@ -2469,7 +2517,10 @@ To fix this, specify one of these fully qualified library names and try again.`,
 
 To resolve the ambiguity, provide the fully qualified library name in the format:
 
-  path/to/LibraryFile.sol:LibraryName`,
+\`\`\`
+  path/to/LibraryFile.sol:LibraryName
+\`\`\`
+`,
       },
       DUPLICATED_LIBRARY: {
         number: 80014,
@@ -2477,7 +2528,7 @@ To resolve the ambiguity, provide the fully qualified library name in the format
 
 To fix this, remove one of them and try again.`,
         websiteTitle: "Duplicated library entry",
-        websiteDescription: `The same library was specified more than once using both its short name and fully qualified name (FQN) in the "--libraries" option.
+        websiteDescription: `The same library was specified more than once using both its short name and fully qualified name (FQN) in the \`--libraries\` option.
 
 Only one form should be used for each library. Remove one of the entries and try again.`,
       },
@@ -2601,6 +2652,7 @@ Block explorer information is missing in your chain descriptor configuration.
 To enable contract verification, add an entry for the verification provider in the blockExplorers field of the relevant chain descriptor.
 You can override the default chain descriptor by providing your own chainDescriptors object in the Hardhat config, with the following structure:
 
+\`\`\`
 chainDescriptors: {
   <chainId>: {
     name: <name>,
@@ -2610,7 +2662,7 @@ chainDescriptors: {
     }
   }
 }
-
+\`\`\`
 `,
       },
       ADDRESS_NOT_A_CONTRACT: {
@@ -2625,6 +2677,7 @@ Please verify the address and network, and try again later if necessary.`,
         messageTemplate: `The {verificationProvider} API key is empty.`,
         websiteTitle: "Block explorer API key is empty",
         websiteDescription: `The provided API key for the block explorer is empty. This can happen in the following cases:
+
 - No "apiKey" field is configured in the hardhat config.
 - The "apiKey" is explicitly set to an empty string in the Hardhat config.
 - The "apiKey" is assigned to a config variable that resolves to an empty string at runtime.
@@ -2655,7 +2708,10 @@ To resolve this, set a valid non-empty API key in your Hardhat config, then try 
 
 Example:
 
-export default ["arg1", "arg2", ...];`,
+\`\`\`ts
+export default ["arg1", "arg2", ...];
+\`\`\`
+`,
       },
       MODULE_NOT_FOUND: {
         number: 80103,
@@ -2685,7 +2741,9 @@ export default ["arg1", "arg2", ...];`,
 
 Example:
 
-export default { lib1: "0x...", lib2: "0x...", ... };`,
+\`\`\`ts
+export default { lib1: "0x...", lib2: "0x...", ... };
+\`\`\``,
       },
       INVALID_VERIFICATION_PROVIDER: {
         number: 80107,

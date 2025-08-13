@@ -19,24 +19,20 @@ const buildTask = task("build", "Builds your project")
     description: "The default build profile to use",
     defaultValue: "default",
   })
-  .addFlag({
-    name: "isolated",
-    description: "Use isolated mode, which prioritizes reproducibility",
-  })
   .addVariadicArgument({
     name: "files",
     description: "An optional list of files to compile",
     defaultValue: [],
   })
-  .setAction(import.meta.resolve("./tasks/build.js"))
+  .setAction(async () => import("./tasks/build.js"))
   .build();
 
 const hardhatPlugin: HardhatPlugin = {
   id: "builtin:solidity",
-  dependencies: [async () => (await import("../artifacts/index.js")).default],
+  dependencies: () => [import("../artifacts/index.js")],
   hookHandlers: {
-    config: import.meta.resolve("./hook-handlers/config.js"),
-    hre: import.meta.resolve("./hook-handlers/hre.js"),
+    config: () => import("./hook-handlers/config.js"),
+    hre: () => import("./hook-handlers/hre.js"),
   },
   tasks: [
     {

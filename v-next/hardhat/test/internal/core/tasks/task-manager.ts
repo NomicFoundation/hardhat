@@ -44,11 +44,15 @@ describe("TaskManagerImplementation", () => {
             tasks: [
               new NewTaskDefinitionBuilderImplementation("task1")
                 .addOption({ name: "arg1", defaultValue: "default" })
-                .setAction(() => {})
+                .setAction(async () => ({
+                  default: () => {},
+                }))
                 .build(),
               new NewTaskDefinitionBuilderImplementation("task2")
                 .addFlag({ name: "flag1" })
-                .setAction(() => {})
+                .setAction(async () => ({
+                  default: () => {},
+                }))
                 .build(),
             ],
             globalOptions: [
@@ -66,7 +70,9 @@ describe("TaskManagerImplementation", () => {
               new NewTaskDefinitionBuilderImplementation("task3")
                 .addPositionalArgument({ name: "posArg1" })
                 .addVariadicArgument({ name: "varArg1" })
-                .setAction(() => {})
+                .setAction(async () => ({
+                  default: () => {},
+                }))
                 .build(),
             ],
           },
@@ -103,16 +109,22 @@ describe("TaskManagerImplementation", () => {
         tasks: [
           new NewTaskDefinitionBuilderImplementation("task1")
             .addOption({ name: "arg1", defaultValue: "default" })
-            .setAction(() => {})
+            .setAction(async () => ({
+              default: () => {},
+            }))
             .build(),
           new NewTaskDefinitionBuilderImplementation("task2")
             .addFlag({ name: "flag1" })
-            .setAction(() => {})
+            .setAction(async () => ({
+              default: () => {},
+            }))
             .build(),
           new NewTaskDefinitionBuilderImplementation("task3")
             .addPositionalArgument({ name: "posArg1" })
             .addVariadicArgument({ name: "varArg1" })
-            .setAction(() => {})
+            .setAction(async () => ({
+              default: () => {},
+            }))
             .build(),
         ],
       },
@@ -154,14 +166,18 @@ describe("TaskManagerImplementation", () => {
                 .addFlag({ name: "flag1" })
                 .addPositionalArgument({ name: "posArg1" })
                 .addVariadicArgument({ name: "varArg1" })
-                .setAction(() => {})
+                .setAction(async () => ({
+                  default: () => {},
+                }))
                 .build(),
               // overriding task1 with a new description and arguments
               new TaskOverrideDefinitionBuilderImplementation("task1")
                 .setDescription("description2")
                 .addOption({ name: "arg2", defaultValue: "default" })
                 .addFlag({ name: "flag2" })
-                .setAction(() => {})
+                .setAction(async () => ({
+                  default: () => {},
+                }))
                 .build(),
             ],
           },
@@ -207,7 +223,9 @@ describe("TaskManagerImplementation", () => {
                 .addFlag({ name: "flag1" })
                 .addPositionalArgument({ name: "posArg1" })
                 .addVariadicArgument({ name: "varArg1" })
-                .setAction(() => {})
+                .setAction(async () => ({
+                  default: () => {},
+                }))
                 .build(),
             ],
           },
@@ -219,7 +237,9 @@ describe("TaskManagerImplementation", () => {
                 .setDescription("description2")
                 .addOption({ name: "arg2", defaultValue: "default" })
                 .addFlag({ name: "flag2" })
-                .setAction(() => {})
+                .setAction(async () => ({
+                  default: () => {},
+                }))
                 .build(),
             ],
           },
@@ -265,14 +285,18 @@ describe("TaskManagerImplementation", () => {
                 .addFlag({ name: "flag1" })
                 .addPositionalArgument({ name: "posArg1" })
                 .addVariadicArgument({ name: "varArg1" })
-                .setAction(() => {})
+                .setAction(async () => ({
+                  default: () => {},
+                }))
                 .build(),
               // overriding task1 with a new description and arguments
               new TaskOverrideDefinitionBuilderImplementation("task1")
                 .setDescription("description2")
                 .addOption({ name: "arg2", defaultValue: "default" })
                 .addFlag({ name: "flag2" })
-                .setAction(() => {})
+                .setAction(async () => ({
+                  default: () => {},
+                }))
                 .build(),
             ],
           },
@@ -284,7 +308,9 @@ describe("TaskManagerImplementation", () => {
                 .setDescription("description3")
                 .addOption({ name: "arg3", defaultValue: "default" })
                 .addFlag({ name: "flag3" })
-                .setAction(() => {})
+                .setAction(async () => ({
+                  default: () => {},
+                }))
                 .build(),
             ],
           },
@@ -356,7 +382,9 @@ describe("TaskManagerImplementation", () => {
               ).build(),
               // adds a subtask to the empty task
               new NewTaskDefinitionBuilderImplementation(["task1", "subtask1"])
-                .setAction(() => {})
+                .setAction(async () => ({
+                  default: () => {},
+                }))
                 .build(),
             ],
           },
@@ -370,7 +398,9 @@ describe("TaskManagerImplementation", () => {
                 "subtask1",
                 "subsubtask1",
               ])
-                .setAction(() => {})
+                .setAction(async () => ({
+                  default: () => {},
+                }))
                 .build(),
             ],
           },
@@ -412,7 +442,9 @@ describe("TaskManagerImplementation", () => {
                 tasks: [
                   new NewTaskDefinitionBuilderImplementation("task1")
                     .addOption({ name: "arg1", defaultValue: "default" })
-                    .setAction(() => {})
+                    .setAction(async () => ({
+                      default: () => {},
+                    }))
                     .build(),
                 ],
               },
@@ -456,7 +488,9 @@ describe("TaskManagerImplementation", () => {
                       shortName: "a",
                       defaultValue: "default",
                     })
-                    .setAction(() => {})
+                    .setAction(async () => ({
+                      default: () => {},
+                    }))
                     .build(),
                 ],
               },
@@ -497,7 +531,9 @@ describe("TaskManagerImplementation", () => {
                 tasks: [
                   new NewTaskDefinitionBuilderImplementation("task1")
                     .addPositionalArgument({ name: "arg1" })
-                    .setAction(() => {})
+                    .setAction(async () => ({
+                      default: () => {},
+                    }))
                     .build(),
                 ],
               },
@@ -540,7 +576,9 @@ describe("TaskManagerImplementation", () => {
                     type: TaskDefinitionType.NEW_TASK,
                     id: [], // empty id
                     description: "",
-                    action: () => {},
+                    action: async () => ({
+                      default: () => {},
+                    }),
                     options: {},
                     positionalArguments: [],
                   },
@@ -568,7 +606,9 @@ describe("TaskManagerImplementation", () => {
                     "subtask1",
                   ])
                     .addOption({ name: "arg1", defaultValue: "default" })
-                    .setAction(() => {})
+                    .setAction(async () => ({
+                      default: () => {},
+                    }))
                     .build(),
                 ],
               },
@@ -594,7 +634,9 @@ describe("TaskManagerImplementation", () => {
                 tasks: [
                   new NewTaskDefinitionBuilderImplementation("task1")
                     .addOption({ name: "arg1", defaultValue: "default" })
-                    .setAction(() => {})
+                    .setAction(async () => ({
+                      default: () => {},
+                    }))
                     .build(),
                 ],
               },
@@ -603,7 +645,9 @@ describe("TaskManagerImplementation", () => {
                 tasks: [
                   new NewTaskDefinitionBuilderImplementation("task1")
                     .addOption({ name: "arg2", defaultValue: "default" })
-                    .setAction(() => {})
+                    .setAction(async () => ({
+                      default: () => {},
+                    }))
                     .build(),
                 ],
               },
@@ -630,7 +674,9 @@ describe("TaskManagerImplementation", () => {
                 id: "plugin1",
                 tasks: [
                   new TaskOverrideDefinitionBuilderImplementation("task1")
-                    .setAction(() => {})
+                    .setAction(async () => ({
+                      default: () => {},
+                    }))
                     .build(),
                 ],
               },
@@ -656,7 +702,9 @@ describe("TaskManagerImplementation", () => {
                 tasks: [
                   new NewTaskDefinitionBuilderImplementation("task1")
                     .addOption({ name: "arg1", defaultValue: "default" })
-                    .setAction(() => {})
+                    .setAction(async () => ({
+                      default: () => {},
+                    }))
                     .build(),
                 ],
               },
@@ -665,7 +713,9 @@ describe("TaskManagerImplementation", () => {
                 tasks: [
                   new TaskOverrideDefinitionBuilderImplementation("task1")
                     .addOption({ name: "arg1", defaultValue: "default" })
-                    .setAction(() => {})
+                    .setAction(async () => ({
+                      default: () => {},
+                    }))
                     .build(),
                 ],
               },
@@ -692,7 +742,9 @@ describe("TaskManagerImplementation", () => {
                 tasks: [
                   new NewTaskDefinitionBuilderImplementation("task1")
                     .addOption({ name: "arg1", defaultValue: "default" })
-                    .setAction(() => {})
+                    .setAction(async () => ({
+                      default: () => {},
+                    }))
                     .build(),
                 ],
               },
@@ -701,7 +753,9 @@ describe("TaskManagerImplementation", () => {
                 tasks: [
                   new TaskOverrideDefinitionBuilderImplementation("task1")
                     .addFlag({ name: "arg1" })
-                    .setAction(() => {})
+                    .setAction(async () => ({
+                      default: () => {},
+                    }))
                     .build(),
                 ],
               },
@@ -730,7 +784,9 @@ describe("TaskManagerImplementation", () => {
                 tasks: [
                   new NewTaskDefinitionBuilderImplementation("task1")
                     .addFlag({ name: "flag1" })
-                    .setAction(() => {})
+                    .setAction(async () => ({
+                      default: () => {},
+                    }))
                     .build(),
                 ],
               },
@@ -739,7 +795,9 @@ describe("TaskManagerImplementation", () => {
                 tasks: [
                   new TaskOverrideDefinitionBuilderImplementation("task1")
                     .addOption({ name: "flag1", defaultValue: "default" })
-                    .setAction(() => {})
+                    .setAction(async () => ({
+                      default: () => {},
+                    }))
                     .build(),
                 ],
               },
@@ -766,7 +824,9 @@ describe("TaskManagerImplementation", () => {
                 tasks: [
                   new NewTaskDefinitionBuilderImplementation("task1")
                     .addFlag({ name: "flag1" })
-                    .setAction(() => {})
+                    .setAction(async () => ({
+                      default: () => {},
+                    }))
                     .build(),
                 ],
               },
@@ -775,7 +835,9 @@ describe("TaskManagerImplementation", () => {
                 tasks: [
                   new TaskOverrideDefinitionBuilderImplementation("task1")
                     .addFlag({ name: "flag1" })
-                    .setAction(() => {})
+                    .setAction(async () => ({
+                      default: () => {},
+                    }))
                     .build(),
                 ],
               },
@@ -804,7 +866,9 @@ describe("TaskManagerImplementation", () => {
                 tasks: [
                   new NewTaskDefinitionBuilderImplementation("task1")
                     .addPositionalArgument({ name: "arg1" })
-                    .setAction(() => {})
+                    .setAction(async () => ({
+                      default: () => {},
+                    }))
                     .build(),
                 ],
               },
@@ -813,7 +877,9 @@ describe("TaskManagerImplementation", () => {
                 tasks: [
                   new TaskOverrideDefinitionBuilderImplementation("task1")
                     .addOption({ name: "arg1", defaultValue: "default" })
-                    .setAction(() => {})
+                    .setAction(async () => ({
+                      default: () => {},
+                    }))
                     .build(),
                 ],
               },
@@ -840,7 +906,9 @@ describe("TaskManagerImplementation", () => {
                 tasks: [
                   new NewTaskDefinitionBuilderImplementation("task1")
                     .addPositionalArgument({ name: "flag1" })
-                    .setAction(() => {})
+                    .setAction(async () => ({
+                      default: () => {},
+                    }))
                     .build(),
                 ],
               },
@@ -849,7 +917,9 @@ describe("TaskManagerImplementation", () => {
                 tasks: [
                   new TaskOverrideDefinitionBuilderImplementation("task1")
                     .addFlag({ name: "flag1" })
-                    .setAction(() => {})
+                    .setAction(async () => ({
+                      default: () => {},
+                    }))
                     .build(),
                 ],
               },
@@ -878,7 +948,9 @@ describe("TaskManagerImplementation", () => {
                 tasks: [
                   new NewTaskDefinitionBuilderImplementation("task1")
                     .addVariadicArgument({ name: "arg1" })
-                    .setAction(() => {})
+                    .setAction(async () => ({
+                      default: () => {},
+                    }))
                     .build(),
                 ],
               },
@@ -887,7 +959,9 @@ describe("TaskManagerImplementation", () => {
                 tasks: [
                   new TaskOverrideDefinitionBuilderImplementation("task1")
                     .addOption({ name: "arg1", defaultValue: "default" })
-                    .setAction(() => {})
+                    .setAction(async () => ({
+                      default: () => {},
+                    }))
                     .build(),
                 ],
               },
@@ -914,7 +988,9 @@ describe("TaskManagerImplementation", () => {
                 tasks: [
                   new NewTaskDefinitionBuilderImplementation("task1")
                     .addVariadicArgument({ name: "flag1" })
-                    .setAction(() => {})
+                    .setAction(async () => ({
+                      default: () => {},
+                    }))
                     .build(),
                 ],
               },
@@ -923,7 +999,9 @@ describe("TaskManagerImplementation", () => {
                 tasks: [
                   new TaskOverrideDefinitionBuilderImplementation("task1")
                     .addFlag({ name: "flag1" })
-                    .setAction(() => {})
+                    .setAction(async () => ({
+                      default: () => {},
+                    }))
                     .build(),
                 ],
               },
@@ -949,7 +1027,9 @@ describe("TaskManagerImplementation", () => {
           {
             tasks: [
               new NewTaskDefinitionBuilderImplementation("task1")
-                .setAction(() => {})
+                .setAction(async () => ({
+                  default: () => {},
+                }))
                 .build(),
             ],
             plugins: [
@@ -957,7 +1037,9 @@ describe("TaskManagerImplementation", () => {
                 id: "plugin1",
                 tasks: [
                   new TaskOverrideDefinitionBuilderImplementation("task1")
-                    .setAction(() => {})
+                    .setAction(async () => ({
+                      default: () => {},
+                    }))
                     .build(),
                 ],
               },
@@ -1007,7 +1089,9 @@ describe("TaskManagerImplementation", () => {
                       type: TaskDefinitionType.NEW_TASK,
                       id: [],
                       description: "",
-                      action: () => {},
+                      action: async () => ({
+                        default: () => {},
+                      }),
                       options: {},
                       positionalArguments: [],
                     },
@@ -1032,7 +1116,9 @@ describe("TaskManagerImplementation", () => {
                       type: TaskDefinitionType.TASK_OVERRIDE,
                       id: [],
                       description: "",
-                      action: () => {},
+                      action: async () => ({
+                        default: () => {},
+                      }),
                       options: {},
                     },
                   ],
@@ -1043,62 +1129,6 @@ describe("TaskManagerImplementation", () => {
           ),
           HardhatError.ERRORS.CORE.TASK_DEFINITIONS.EMPTY_TASK_ID,
           {},
-        );
-      });
-
-      it("should throw if the task definition object has an invalid action file URL", async () => {
-        const invalidActionFileUrl = "not-a-valid-file-url";
-        await assertRejectsWithHardhatError(
-          HardhatRuntimeEnvironmentImplementation.create(
-            {
-              plugins: [
-                {
-                  id: "plugin1",
-                  tasks: [
-                    {
-                      type: TaskDefinitionType.NEW_TASK,
-                      id: ["task-id"],
-                      description: "",
-                      action: invalidActionFileUrl,
-                      options: {},
-                      positionalArguments: [],
-                    },
-                  ],
-                },
-              ],
-            },
-            {},
-          ),
-          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INVALID_FILE_ACTION,
-          {
-            action: invalidActionFileUrl,
-          },
-        );
-
-        await assertRejectsWithHardhatError(
-          HardhatRuntimeEnvironmentImplementation.create(
-            {
-              plugins: [
-                {
-                  id: "plugin1",
-                  tasks: [
-                    {
-                      type: TaskDefinitionType.TASK_OVERRIDE,
-                      id: ["task-id"],
-                      description: "",
-                      action: invalidActionFileUrl,
-                      options: {},
-                    },
-                  ],
-                },
-              ],
-            },
-            {},
-          ),
-          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INVALID_FILE_ACTION,
-          {
-            action: invalidActionFileUrl,
-          },
         );
       });
 
@@ -1115,7 +1145,9 @@ describe("TaskManagerImplementation", () => {
                       type: TaskDefinitionType.NEW_TASK,
                       id: ["task-id"],
                       description: "",
-                      action: () => {},
+                      action: async () => ({
+                        default: () => {},
+                      }),
                       options: {
                         [invalidName]: {
                           name: invalidName,
@@ -1149,7 +1181,9 @@ describe("TaskManagerImplementation", () => {
                       type: TaskDefinitionType.TASK_OVERRIDE,
                       id: ["task-id"],
                       description: "",
-                      action: () => {},
+                      action: async () => ({
+                        default: () => {},
+                      }),
                       options: {
                         [invalidName]: {
                           name: invalidName,
@@ -1185,7 +1219,9 @@ describe("TaskManagerImplementation", () => {
                         type: TaskDefinitionType.NEW_TASK,
                         id: ["task-id"],
                         description: "",
-                        action: () => {},
+                        action: async () => ({
+                          default: () => {},
+                        }),
                         options: {
                           [reservedName]: {
                             name: reservedName,
@@ -1219,7 +1255,9 @@ describe("TaskManagerImplementation", () => {
                         type: TaskDefinitionType.TASK_OVERRIDE,
                         id: ["task-id"],
                         description: "",
-                        action: () => {},
+                        action: async () => ({
+                          default: () => {},
+                        }),
                         options: {
                           [reservedName]: {
                             name: reservedName,
@@ -1256,7 +1294,9 @@ describe("TaskManagerImplementation", () => {
                       type: TaskDefinitionType.NEW_TASK,
                       id: ["task-id"],
                       description: "",
-                      action: () => {},
+                      action: async () => ({
+                        default: () => {},
+                      }),
                       options: {
                         [duplicatedName]: {
                           name: duplicatedName,
@@ -1297,7 +1337,9 @@ describe("TaskManagerImplementation", () => {
                       type: TaskDefinitionType.NEW_TASK,
                       id: ["task-id"],
                       description: "",
-                      action: () => {},
+                      action: async () => ({
+                        default: () => {},
+                      }),
                       options: {},
                       positionalArguments: [
                         {
@@ -1340,7 +1382,9 @@ describe("TaskManagerImplementation", () => {
                       type: TaskDefinitionType.NEW_TASK,
                       id: ["task-id"],
                       description: "",
-                      action: () => {},
+                      action: async () => ({
+                        default: () => {},
+                      }),
                       options: {},
                       positionalArguments: [
                         {
@@ -1377,7 +1421,9 @@ describe("TaskManagerImplementation", () => {
                         type: TaskDefinitionType.NEW_TASK,
                         id: ["task-id"],
                         description: "",
-                        action: () => {},
+                        action: async () => ({
+                          default: () => {},
+                        }),
                         options: {},
                         positionalArguments: [
                           {
@@ -1414,7 +1460,9 @@ describe("TaskManagerImplementation", () => {
                       type: TaskDefinitionType.NEW_TASK,
                       id: ["task-id"],
                       description: "",
-                      action: () => {},
+                      action: async () => ({
+                        default: () => {},
+                      }),
                       options: {},
                       positionalArguments: [
                         {
@@ -1456,14 +1504,18 @@ describe("TaskManagerImplementation", () => {
               id: "plugin1",
               tasks: [
                 new NewTaskDefinitionBuilderImplementation("task1")
-                  .setAction(() => {})
+                  .setAction(async () => ({
+                    default: () => {},
+                  }))
                   .build(),
               ],
             },
           ],
           tasks: [
             new NewTaskDefinitionBuilderImplementation("task2")
-              .setAction(() => {})
+              .setAction(async () => ({
+                default: () => {},
+              }))
               .build(),
           ],
         },
@@ -1506,9 +1558,11 @@ describe("TaskManagerImplementation", () => {
               id: "plugin1",
               tasks: [
                 new NewTaskDefinitionBuilderImplementation("task1")
-                  .setAction(() => {
-                    taskRun = true;
-                  })
+                  .setAction(async () => ({
+                    default: () => {
+                      taskRun = true;
+                    },
+                  }))
                   .build(),
               ],
             },
@@ -1531,7 +1585,11 @@ describe("TaskManagerImplementation", () => {
               id: "plugin1",
               tasks: [
                 new NewTaskDefinitionBuilderImplementation("task1")
-                  .setAction(() => "task run successfully")
+                  .setAction(async () => ({
+                    default: () => {
+                      return "task run successfully";
+                    },
+                  }))
                   .build(),
               ],
             },
@@ -1555,15 +1613,19 @@ describe("TaskManagerImplementation", () => {
               id: "plugin1",
               tasks: [
                 new NewTaskDefinitionBuilderImplementation("task1")
-                  .setAction(() => {
-                    taskRun = true;
-                  })
+                  .setAction(async () => ({
+                    default: () => {
+                      taskRun = true;
+                    },
+                  }))
                   .build(),
                 new TaskOverrideDefinitionBuilderImplementation("task1")
-                  .setAction(async (args, _hre, runSuper) => {
-                    await runSuper(args);
-                    overrideTaskRun = true;
-                  })
+                  .setAction(async () => ({
+                    default: async (args, _hre, runSuper) => {
+                      await runSuper(args);
+                      overrideTaskRun = true;
+                    },
+                  }))
                   .build(),
               ],
             },
@@ -1592,15 +1654,19 @@ describe("TaskManagerImplementation", () => {
               id: "plugin1",
               tasks: [
                 new NewTaskDefinitionBuilderImplementation("task1")
-                  .setAction(() => {
-                    taskRun = true;
-                  })
+                  .setAction(async () => ({
+                    default: () => {
+                      taskRun = true;
+                    },
+                  }))
                   .build(),
                 new TaskOverrideDefinitionBuilderImplementation("task1")
-                  .setAction(async (args, _hre, runSuper) => {
-                    await runSuper(args);
-                    override1TaskRun = true;
-                  })
+                  .setAction(async () => ({
+                    default: async (args, _hre, runSuper) => {
+                      await runSuper(args);
+                      override1TaskRun = true;
+                    },
+                  }))
                   .build(),
               ],
             },
@@ -1608,20 +1674,24 @@ describe("TaskManagerImplementation", () => {
               id: "plugin2",
               tasks: [
                 new TaskOverrideDefinitionBuilderImplementation("task1")
-                  .setAction(async (args, _hre, runSuper) => {
-                    await runSuper(args);
-                    override2TaskRun = true;
-                  })
+                  .setAction(async () => ({
+                    default: async (args, _hre, runSuper) => {
+                      await runSuper(args);
+                      override2TaskRun = true;
+                    },
+                  }))
                   .build(),
               ],
             },
           ],
           tasks: [
             new TaskOverrideDefinitionBuilderImplementation("task1")
-              .setAction(async (args, _hre, runSuper) => {
-                await runSuper(args);
-                override3TaskRun = true;
-              })
+              .setAction(async () => ({
+                default: async (args, _hre, runSuper) => {
+                  await runSuper(args);
+                  override3TaskRun = true;
+                },
+              }))
               .build(),
           ],
         },
@@ -1650,14 +1720,18 @@ describe("TaskManagerImplementation", () => {
               id: "plugin1",
               tasks: [
                 new NewTaskDefinitionBuilderImplementation("task1")
-                  .setAction(() => {
-                    taskRun = true;
-                  })
+                  .setAction(async () => ({
+                    default: () => {
+                      taskRun = true;
+                    },
+                  }))
                   .build(),
                 new TaskOverrideDefinitionBuilderImplementation("task1")
-                  .setAction(async (_args, _hre, _runSuper) => {
-                    overrideTaskRun = true;
-                  })
+                  .setAction(async () => ({
+                    default: (_args, _hre, _runSuper) => {
+                      overrideTaskRun = true;
+                    },
+                  }))
                   .build(),
               ],
             },
@@ -1687,21 +1761,27 @@ describe("TaskManagerImplementation", () => {
                   .addFlag({ name: "flag1" })
                   .addPositionalArgument({ name: "posArg" })
                   .addVariadicArgument({ name: "varArg" })
-                  .setAction((args) => {
-                    assert.deepEqual(args, {
-                      arg1: "arg1Value",
-                      flag1: true,
-                      posArg: "posValue",
-                      varArg: ["varValue1", "varValue2"],
-                      withDefault: "default",
-                    });
-                  })
+                  .setAction(async () => ({
+                    default: (args) => {
+                      assert.deepEqual(args, {
+                        arg1: "arg1Value",
+                        flag1: true,
+                        posArg: "posValue",
+                        varArg: ["varValue1", "varValue2"],
+                        withDefault: "default",
+                      });
+                    },
+                  }))
                   .build(),
                 new TaskOverrideDefinitionBuilderImplementation("task1")
                   .addOption({ name: "arg2", defaultValue: "default" })
                   .addFlag({ name: "flag2" })
-                  .setAction(
-                    async ({ arg2, flag2, ...args }, _hre, runSuper) => {
+                  .setAction(async () => ({
+                    default: async (
+                      { arg2, flag2, ...args },
+                      _hre,
+                      runSuper,
+                    ) => {
                       await runSuper(args);
                       assert.deepEqual(
                         { arg2, flag2 },
@@ -1711,7 +1791,7 @@ describe("TaskManagerImplementation", () => {
                         },
                       );
                     },
-                  )
+                  }))
                   .build(),
               ],
             },
@@ -1767,14 +1847,16 @@ describe("TaskManagerImplementation", () => {
                     name: "varArg",
                     defaultValue: ["varValue1", "varValue2"],
                   })
-                  .setAction((args) => {
-                    assert.deepEqual(args, {
-                      arg1: "arg1DefaultValue",
-                      flag1: false,
-                      posArg: "posValue",
-                      varArg: ["varValue1", "varValue2"],
-                    });
-                  })
+                  .setAction(async () => ({
+                    default: (args) => {
+                      assert.deepEqual(args, {
+                        arg1: "arg1DefaultValue",
+                        flag1: false,
+                        posArg: "posValue",
+                        varArg: ["varValue1", "varValue2"],
+                      });
+                    },
+                  }))
                   .build(),
               ],
             },
@@ -1800,10 +1882,12 @@ describe("TaskManagerImplementation", () => {
                   "description1",
                 ).build(),
                 new TaskOverrideDefinitionBuilderImplementation("task1")
-                  .setAction(async (args, _hre, runSuper) => {
-                    await runSuper(args);
-                    overrideTaskRun = true;
-                  })
+                  .setAction(async () => ({
+                    default: async (args, _hre, runSuper) => {
+                      await runSuper(args);
+                      overrideTaskRun = true;
+                    },
+                  }))
                   .build(),
               ],
             },
@@ -1818,10 +1902,8 @@ describe("TaskManagerImplementation", () => {
       assert.equal(overrideTaskRun, true);
     });
 
-    it("should run a task with an action url", async () => {
-      const actionUrl = import.meta.resolve(
-        "./fixture-projects/file-actions/action-fn.js",
-      );
+    it("should run a task with a valid lazy action object", async () => {
+      const actionUrl = "./fixture-projects/file-actions/action-fn.js";
 
       const hre = await HardhatRuntimeEnvironmentImplementation.create(
         {
@@ -1830,11 +1912,15 @@ describe("TaskManagerImplementation", () => {
               id: "plugin1",
               tasks: [
                 new NewTaskDefinitionBuilderImplementation("task1")
-                  .setAction((args) => args)
+                  .setAction(async () => ({
+                    default: (args) => {
+                      return args;
+                    },
+                  }))
                   .build(),
                 new TaskOverrideDefinitionBuilderImplementation("task1")
                   .addOption({ name: "arg1", defaultValue: "default" })
-                  .setAction(actionUrl)
+                  .setAction(() => import(actionUrl))
                   .build(),
               ],
             },
@@ -1848,10 +1934,9 @@ describe("TaskManagerImplementation", () => {
       assert.deepEqual(response, { arg1: "arg1Value" });
     });
 
-    it("should run a task with an invalid action url that was overridden and the override doesn't call runSuper", async () => {
-      const validActionUrl = import.meta.resolve(
-        "./fixture-projects/file-actions/no-run-super.js",
-      );
+    it("should run a task with an invalid lazy action object url that was overridden and the override doesn't call runSuper", async () => {
+      const validActionUrl = "./fixture-projects/file-actions/no-run-super.js";
+      const invalidUrl = "file://not-a-module";
 
       const hre = await HardhatRuntimeEnvironmentImplementation.create(
         {
@@ -1860,11 +1945,11 @@ describe("TaskManagerImplementation", () => {
               id: "plugin1",
               tasks: [
                 new NewTaskDefinitionBuilderImplementation("task1")
-                  .setAction("file://not-a-module")
+                  .setAction(() => import(invalidUrl))
                   .build(),
                 new TaskOverrideDefinitionBuilderImplementation("task1")
                   .addOption({ name: "arg1", defaultValue: "default" })
-                  .setAction(validActionUrl)
+                  .setAction(() => import(validActionUrl))
                   .build(),
               ],
             },
@@ -1918,7 +2003,9 @@ describe("TaskManagerImplementation", () => {
                 id: "plugin1",
                 tasks: [
                   new NewTaskDefinitionBuilderImplementation("task1")
-                    .setAction(() => {})
+                    .setAction(async () => ({
+                      default: () => {},
+                    }))
                     .build(),
                 ],
               },
@@ -1948,7 +2035,9 @@ describe("TaskManagerImplementation", () => {
                   new NewTaskDefinitionBuilderImplementation("task1")
                     .addPositionalArgument({ name: "posArg" })
                     .addVariadicArgument({ name: "varArg" })
-                    .setAction(() => {})
+                    .setAction(async () => ({
+                      default: () => {},
+                    }))
                     .build(),
                 ],
               },
@@ -2009,7 +2098,9 @@ describe("TaskManagerImplementation", () => {
                       name: "varArg",
                       type: ArgumentType.FILE,
                     })
-                    .setAction(() => {})
+                    .setAction(async () => ({
+                      default: () => {},
+                    }))
                     .build(),
                 ],
               },
@@ -2085,7 +2176,9 @@ describe("TaskManagerImplementation", () => {
         );
       });
 
-      it("should throw if an action url is provided but the corresponding module can't be resolved", async () => {
+      it("should throw if a lazy action object import is provided but the corresponding module can't be resolved", async () => {
+        const invalidUrl = "file://not-a-module";
+
         const hre = await HardhatRuntimeEnvironmentImplementation.create(
           {
             plugins: [
@@ -2093,9 +2186,10 @@ describe("TaskManagerImplementation", () => {
                 id: "plugin1",
                 tasks: [
                   new NewTaskDefinitionBuilderImplementation("task1")
-                    .setAction("file://not-a-module")
+                    .setAction(() => import(invalidUrl))
                     .build(),
                 ],
+                npmPackage: null,
               },
             ],
           },
@@ -2105,9 +2199,8 @@ describe("TaskManagerImplementation", () => {
         const task1 = hre.tasks.getTask("task1");
         await assertRejectsWithHardhatError(
           task1.run(),
-          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INVALID_ACTION_URL,
+          HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INVALID_ACTION_IMPORT,
           {
-            action: "file://not-a-module",
             task: "task1",
           },
         );
@@ -2118,10 +2211,9 @@ describe("TaskManagerImplementation", () => {
        * can throw an error. We're not trying to test all of them, just verify
        * that the logic is being called and that the error is being thrown.
        */
-      it("should throw if an action url is provided but the corresponding module can't be resolved due to a missing package", async () => {
-        const nonInstalledPackageActionUrl = import.meta.resolve(
-          "./fixture-projects/not-installed-package/index.js",
-        );
+      it("should throw if an lazy action object url is provided but the corresponding module can't be resolved due to a missing package", async () => {
+        const nonInstalledPackageActionUrl =
+          "./fixture-projects/not-installed-package/index.js";
 
         // the missing dependency is used in the NEW_TASK action
         let hre = await HardhatRuntimeEnvironmentImplementation.create(
@@ -2132,7 +2224,7 @@ describe("TaskManagerImplementation", () => {
                 npmPackage: "non-installed-package",
                 tasks: [
                   new NewTaskDefinitionBuilderImplementation("task1")
-                    .setAction(nonInstalledPackageActionUrl)
+                    .setAction(() => import(nonInstalledPackageActionUrl))
                     .build(),
                 ],
               },
@@ -2157,7 +2249,9 @@ describe("TaskManagerImplementation", () => {
                 id: "plugin1",
                 tasks: [
                   new NewTaskDefinitionBuilderImplementation("task1")
-                    .setAction(() => {})
+                    .setAction(async () => ({
+                      default: () => {},
+                    }))
                     .build(),
                 ],
               },
@@ -2166,7 +2260,7 @@ describe("TaskManagerImplementation", () => {
                 npmPackage: "non-installed-package",
                 tasks: [
                   new TaskOverrideDefinitionBuilderImplementation("task1")
-                    .setAction(nonInstalledPackageActionUrl)
+                    .setAction(() => import(nonInstalledPackageActionUrl))
                     .build(),
                 ],
               },
@@ -2184,10 +2278,8 @@ describe("TaskManagerImplementation", () => {
         );
       });
 
-      it("should throw if an action url is provided and the corresponding module doesn't have a default export", async () => {
-        const actionUrl = import.meta.resolve(
-          "./fixture-projects/file-actions/no-default.js",
-        );
+      it("should throw if an action lazy object import is provided and the corresponding module doesn't have a default export", async () => {
+        const actionUrl = "./fixture-projects/file-actions/no-default.js";
 
         const hre = await HardhatRuntimeEnvironmentImplementation.create(
           {
@@ -2196,7 +2288,7 @@ describe("TaskManagerImplementation", () => {
                 id: "plugin1",
                 tasks: [
                   new NewTaskDefinitionBuilderImplementation("task1")
-                    .setAction(actionUrl)
+                    .setAction(() => import(actionUrl))
                     .build(),
                 ],
               },
@@ -2206,20 +2298,18 @@ describe("TaskManagerImplementation", () => {
         );
 
         const task1 = hre.tasks.getTask("task1");
+
         await assertRejectsWithHardhatError(
           task1.run(),
           HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INVALID_ACTION,
           {
-            action: actionUrl,
             task: "task1",
           },
         );
       });
 
-      it("should throw if an action url is provided and the corresponding module default export is not a function", async () => {
-        const actionUrl = import.meta.resolve(
-          "./fixture-projects/file-actions/no-default-fn.js",
-        );
+      it("should throw if an action lazy action import is provided and the corresponding module default export is not a function", async () => {
+        const actionUrl = "./fixture-projects/file-actions/no-default-fn.js";
 
         const hre = await HardhatRuntimeEnvironmentImplementation.create(
           {
@@ -2228,7 +2318,7 @@ describe("TaskManagerImplementation", () => {
                 id: "plugin1",
                 tasks: [
                   new NewTaskDefinitionBuilderImplementation("task1")
-                    .setAction(actionUrl)
+                    .setAction(() => import(actionUrl))
                     .build(),
                 ],
               },
@@ -2238,11 +2328,11 @@ describe("TaskManagerImplementation", () => {
         );
 
         const task1 = hre.tasks.getTask("task1");
+
         await assertRejectsWithHardhatError(
           task1.run(),
           HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INVALID_ACTION,
           {
-            action: actionUrl,
             task: "task1",
           },
         );

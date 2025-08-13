@@ -1,11 +1,10 @@
 import type { BalanceChangeOptions } from "../utils/balance.js";
+import type { HardhatEthers } from "@nomicfoundation/hardhat-ethers/types";
 import type { Addressable } from "ethers/address";
 import type { TransactionResponse } from "ethers/providers";
 import type { BigNumberish } from "ethers/utils";
-import type { EthereumProvider } from "hardhat/types/providers";
 
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
-import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
 import { isObject } from "@nomicfoundation/hardhat-utils/lang";
 import { toBigInt } from "ethers/utils";
 
@@ -26,7 +25,7 @@ export function supportChangeEtherBalance(
     CHANGE_ETHER_BALANCE_MATCHER,
     function (
       this: any,
-      provider: EthereumProvider,
+      ethers: HardhatEthers,
       account: Addressable | string,
       balanceChange: BigNumberish | ((change: bigint) => boolean),
       options?: BalanceChangeOptions,
@@ -64,7 +63,7 @@ export function supportChangeEtherBalance(
       };
 
       const derivedPromise = Promise.all([
-        getBalanceChange(provider, subject, account, options),
+        getBalanceChange(ethers, subject, account, options),
         getAddressOf(account),
       ]).then(checkBalanceChange);
       this.then = derivedPromise.then.bind(derivedPromise);
@@ -76,7 +75,7 @@ export function supportChangeEtherBalance(
 }
 
 export async function getBalanceChange(
-  provider: EthereumProvider,
+  ethers: HardhatEthers,
   transaction:
     | TransactionResponse
     | Promise<TransactionResponse>
@@ -96,10 +95,9 @@ export async function getBalanceChange(
   assertIsNotNull(txReceipt, "txReceipt");
   const txBlockNumber = txReceipt.blockNumber;
 
-  const block = await provider.request({
-    method: "eth_getBlockByHash",
-    params: [txReceipt.blockHash, false],
-  });
+  const block = await ethers.provider.getBlock(txReceipt.blockHash, false);
+
+  assertHardhatInvariant(block !== null, "The block doesn't exist");
 
   assertHardhatInvariant(
     isObject(block) &&
@@ -110,15 +108,15 @@ export async function getBalanceChange(
 
   const address = await getAddressOf(account);
 
-  const balanceAfterHex = await provider.request({
-    method: "eth_getBalance",
-    params: [address, numberToHexString(txBlockNumber)],
-  });
+  const balanceAfterHex = await ethers.provider.getBalance(
+    address,
+    txBlockNumber,
+  );
 
-  const balanceBeforeHex = await provider.request({
-    method: "eth_getBalance",
-    params: [address, numberToHexString(txBlockNumber - 1)],
-  });
+  const balanceBeforeHex = await ethers.provider.getBalance(
+    address,
+    txBlockNumber - 1,
+  );
 
   assertCanBeConvertedToBigint(balanceAfterHex);
   assertCanBeConvertedToBigint(balanceBeforeHex);

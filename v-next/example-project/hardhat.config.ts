@@ -23,15 +23,19 @@ const exampleEmptyTask = emptyTask("empty", "An example empty task").build();
 
 const exampleEmptySubtask = task(["empty", "task"])
   .setDescription("An example empty subtask task")
-  .setAction(async (_, _hre) => {
-    console.log("empty task");
-  })
+  .setAction(async () => ({
+    default: async (_, _hre) => {
+      console.log("empty task");
+    },
+  }))
   .build();
 
 const exampleTaskOverride = task("example2")
-  .setAction(async (_, _hre) => {
-    console.log("from an override");
-  })
+  .setAction(async () => ({
+    default: async (_, _hre) => {
+      console.log("from an override");
+    },
+  }))
   .setDescription("An example task")
   .addVariadicArgument({
     name: "testFiles",
@@ -64,22 +68,28 @@ const greeting = task("hello", "Prints a greeting")
     description: "The greeting to print",
     defaultValue: "Hello, World!",
   })
-  .setAction(async ({ greeting }, _) => {
-    console.log(greeting);
-  })
+  .setAction(async () => ({
+    default: async ({ greeting }, _) => {
+      console.log(greeting);
+    },
+  }))
   .build();
 
 const printConfig = task("config", "Prints the config")
-  .setAction(async ({}, hre) => {
-    console.log(util.inspect(hre.config, { colors: true, depth: null }));
-  })
+  .setAction(async () => ({
+    default: async ({}, hre) => {
+      console.log(util.inspect(hre.config, { colors: true, depth: null }));
+    },
+  }))
   .build();
 
 const printAccounts = task("accounts", "Prints the accounts")
-  .setAction(async ({}, hre) => {
-    const { provider } = await hre.network.connect();
-    console.log(await provider.request({ method: "eth_accounts" }));
-  })
+  .setAction(async () => ({
+    default: async ({}, hre) => {
+      const { provider } = await hre.network.connect();
+      console.log(await provider.request({ method: "eth_accounts" }));
+    },
+  }))
   .build();
 
 const pluginExample = {
@@ -91,16 +101,18 @@ const pluginExample = {
         description: "The greeting to print",
         defaultValue: "Hello, World from community-plugin!",
       })
-      .setAction(async ({ greeting }, _) => {
-        console.log(greeting);
+      .setAction(async () => ({
+        default: async ({ greeting }, _) => {
+          console.log(greeting);
 
-        if (greeting === "") {
-          throw new HardhatPluginError(
-            "community-plugin",
-            "Greeting cannot be empty",
-          );
-        }
-      })
+          if (greeting === "") {
+            throw new HardhatPluginError(
+              "community-plugin",
+              "Greeting cannot be empty",
+            );
+          }
+        },
+      }))
       .build(),
   ],
   globalOptions: [
@@ -116,13 +128,13 @@ const config: HardhatUserConfig = {
   networks: {
     op: {
       type: "http",
-      chainType: "optimism",
+      chainType: "op",
       url: "https://mainnet.optimism.io/",
       accounts: [configVariable("OP_SENDER")],
     },
     edrOp: {
-      type: "edr",
-      chainType: "optimism",
+      type: "edr-simulated",
+      chainType: "op",
       chainId: 10,
       forking: {
         url: "https://mainnet.optimism.io",
@@ -130,13 +142,13 @@ const config: HardhatUserConfig = {
     },
     opSepolia: {
       type: "http",
-      chainType: "optimism",
+      chainType: "op",
       url: "https://sepolia.optimism.io",
       accounts: [configVariable("OP_SEPOLIA_SENDER")],
     },
     edrOpSepolia: {
-      type: "edr",
-      chainType: "optimism",
+      type: "edr-simulated",
+      chainType: "op",
       forking: {
         url: "https://sepolia.optimism.io",
       },
@@ -206,6 +218,14 @@ const config: HardhatUserConfig = {
   },
   typechain: {
     tsNocheck: false,
+  },
+  test: {
+    mocha: {
+      color: true,
+    },
+    solidity: {
+      timeout: 1000,
+    },
   },
 };
 

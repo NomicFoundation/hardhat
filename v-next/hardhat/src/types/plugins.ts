@@ -32,12 +32,12 @@ export interface HardhatPlugin {
   /**
    * The npm package where the plugin is located, if any.
    */
-  npmPackage?: string;
+  npmPackage?: string | null;
 
   /**
    * An array of plugins that this plugin depends on.
    */
-  dependencies?: Array<() => Promise<HardhatPlugin>>;
+  dependencies?: () => Array<Promise<{ default: HardhatPlugin }>>;
 
   /**
    * An object with the different hook handlers that this plugin defines.
@@ -89,9 +89,9 @@ export interface HardhatPlugin {
  * @see HardhatPlugin#hookHandlers
  */
 export type HookHandlerCategoryFactories = {
-  [HookCategoryNameT in keyof HardhatHooks]?:
-    | HookHandlerCategoryFactory<HookCategoryNameT>
-    | string;
+  [HookCategoryNameT in keyof HardhatHooks]?: () => Promise<{
+    default: HookHandlerCategoryFactory<HookCategoryNameT>;
+  }>;
 };
 
 /**

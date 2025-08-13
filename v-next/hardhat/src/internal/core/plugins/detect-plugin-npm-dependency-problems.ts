@@ -27,13 +27,14 @@ export async function detectPluginNpmDependencyProblems(
   basePathForNpmResolution: string,
   plugin: HardhatPlugin,
 ): Promise<void> {
-  if (plugin.npmPackage === undefined) {
+  if (plugin.npmPackage === null) {
     return;
   }
 
   const pluginPackageJsonPath = await findDependencyPackageJson(
     basePathForNpmResolution,
-    plugin.npmPackage,
+    // When npmPackage is undefined, we use the id as the package name instead
+    plugin.npmPackage ?? plugin.id,
   );
 
   if (pluginPackageJsonPath === undefined) {

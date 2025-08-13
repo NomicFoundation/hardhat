@@ -1,7 +1,12 @@
+/* eslint-disable @typescript-eslint/consistent-type-assertions -- test*/
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { validateSolidityUserConfig } from "../../../../src/internal/builtin-plugins/solidity/config.js";
+import {
+  resolveSolidityUserConfig,
+  shouldUseWasm,
+  validateSolidityUserConfig,
+} from "../../../../src/internal/builtin-plugins/solidity/config.js";
 
 describe("solidity plugin config validation", () => {
   describe("sources paths", () => {
@@ -232,11 +237,108 @@ describe("solidity plugin config validation", () => {
       );
     });
 
-    it.todo("Should reject invalid SingleVersionSolidityUserConfig values");
+    it("Should reject invalid SingleVersionSolidityUserConfig values", () => {
+      assert.deepEqual(
+        validateSolidityUserConfig({
+          solidity: {
+            version: 123,
+            npmFilesToBuild: {},
+            isolated: "false",
+          },
+        }),
+        [
+          {
+            message: "Expected string, received number",
+            path: ["solidity", "version"],
+          },
+          {
+            message: "Expected boolean, received string",
+            path: ["solidity", "isolated"],
+          },
+          {
+            message: "Expected array, received object",
+            path: ["solidity", "npmFilesToBuild"],
+          },
+        ],
+      );
+    });
 
-    it.todo("Should reject invalid MultiVersionSolidityUserConfig values");
+    it("Should reject invalid MultiVersionSolidityUserConfig values", () => {
+      assert.deepEqual(
+        validateSolidityUserConfig({
+          solidity: {
+            compilers: [
+              {
+                version: 123,
+              },
+            ],
+            overrides: [],
+            isolated: "false",
+          },
+        }),
+        [
+          {
+            message: "Expected boolean, received string",
+            path: ["solidity", "isolated"],
+          },
+          {
+            message: "Expected string, received number",
+            path: ["solidity", "compilers", 0, "version"],
+          },
+          {
+            message: "Expected object, received array",
+            path: ["solidity", "overrides"],
+          },
+        ],
+      );
+    });
 
-    it.todo("Should reject invalid BuildProfilesSolidityUserConfig values");
+    it("Should reject invalid BuildProfilesSolidityUserConfig values", () => {
+      assert.deepEqual(
+        validateSolidityUserConfig({
+          solidity: {
+            profiles: {
+              default: {
+                version: 123,
+                isolated: "false",
+              },
+              production: {
+                version: "0.8.0",
+                compilers: [
+                  {
+                    version: 123,
+                  },
+                ],
+                overrides: [],
+                isolated: "true",
+              },
+            },
+          },
+        }),
+        [
+          {
+            message: "Expected string, received number",
+            path: ["solidity", "profiles", "default", "version"],
+          },
+          {
+            message: "Expected boolean, received string",
+            path: ["solidity", "profiles", "default", "isolated"],
+          },
+          {
+            message: "This field is incompatible with `version`",
+            path: ["solidity", "profiles", "production", "compilers"],
+          },
+          {
+            message: "This field is incompatible with `version`",
+            path: ["solidity", "profiles", "production", "overrides"],
+          },
+          {
+            message: "Expected boolean, received string",
+            path: ["solidity", "profiles", "production", "isolated"],
+          },
+        ],
+      );
+    });
 
     it("Should accept solidity version strings", () => {
       assert.deepEqual(validateSolidityUserConfig({ solidity: "0.8.0" }), []);
@@ -249,11 +351,104 @@ describe("solidity plugin config validation", () => {
       );
     });
 
-    it.todo("Should accept a SingleVersionSolidityUserConfig value");
+    it("Should accept a SingleVersionSolidityUserConfig value", () => {
+      assert.deepEqual(
+        validateSolidityUserConfig({
+          solidity: {
+            version: "0.8.0",
+            settings: {
+              optimizer: {
+                enabled: true,
+                runs: 200,
+              },
+            },
+            npmFilesToBuild: ["./build.js"],
+            isolated: false,
+          },
+        }),
+        [],
+      );
+    });
 
-    it.todo("Should accept a MultiVersionSolidityUserConfig value");
+    it("Should accept a MultiVersionSolidityUserConfig value", () => {
+      assert.deepEqual(
+        validateSolidityUserConfig({
+          solidity: {
+            compilers: [
+              {
+                version: "0.8.0",
+                settings: {
+                  optimizer: {
+                    enabled: true,
+                    runs: 200,
+                  },
+                },
+              },
+            ],
+            overrides: {
+              "contracts/Contract.sol": {
+                version: "0.8.1",
+                settings: {
+                  optimizer: {
+                    enabled: false,
+                    runs: 100,
+                  },
+                },
+              },
+            },
+            isolated: false,
+          },
+        }),
+        [],
+      );
+    });
 
-    it.todo("Should accept a BuildProfilesSolidityUserConfig value");
+    it("Should accept a BuildProfilesSolidityUserConfig value", () => {
+      assert.deepEqual(
+        validateSolidityUserConfig({
+          solidity: {
+            profiles: {
+              default: {
+                version: "0.8.0",
+                settings: {
+                  optimizer: {
+                    enabled: true,
+                    runs: 200,
+                  },
+                },
+                isolated: false,
+              },
+              production: {
+                compilers: [
+                  {
+                    version: "0.8.0",
+                    settings: {
+                      optimizer: {
+                        enabled: true,
+                        runs: 200,
+                      },
+                    },
+                  },
+                ],
+                overrides: {
+                  "contracts/Contract.sol": {
+                    version: "0.8.1",
+                    settings: {
+                      optimizer: {
+                        enabled: true,
+                        runs: 300,
+                      },
+                    },
+                  },
+                },
+                isolated: true,
+              },
+            },
+          },
+        }),
+        [],
+      );
+    });
   });
 });
 
@@ -267,4 +462,110 @@ describe("solidity plugin config resolution", () => {
   it.todo("should resolve a MultiVersionSolidityUserConfig value", () => {});
 
   it.todo("should resolve a BuildProfilesSolidityUserConfig value", () => {});
+
+  describe("preferWasm setting resolution", function () {
+    const otherResolvedConfig = { paths: { root: process.cwd() } } as any;
+
+    it("resolves to shouldUseWasm() when build profile is production and is not specified in the config", async () => {
+      const resolvedConfig = await resolveSolidityUserConfig(
+        {
+          solidity: {
+            profiles: {
+              default: {
+                version: "0.8.28",
+                preferWasm: false,
+              },
+            },
+          },
+        },
+        otherResolvedConfig,
+      );
+
+      assert.equal(
+        resolvedConfig.solidity.profiles.production.preferWasm,
+        shouldUseWasm(),
+      );
+    });
+
+    it("resolves to shouldUseWasm() when build profile is production and is specified, but preferWasm is not set", async () => {
+      const resolvedConfig = await resolveSolidityUserConfig(
+        {
+          solidity: {
+            profiles: {
+              default: {
+                version: "0.8.28",
+                preferWasm: false,
+              },
+              production: {
+                version: "0.8.28",
+              },
+            },
+          },
+        },
+        otherResolvedConfig,
+      );
+
+      assert.equal(
+        resolvedConfig.solidity.profiles.production.preferWasm,
+        shouldUseWasm(),
+      );
+    });
+
+    it("resolves to the specified value when set in the config, regardless of profile name", async () => {
+      const resolvedConfig = await resolveSolidityUserConfig(
+        {
+          solidity: {
+            profiles: {
+              default: {
+                version: "0.8.28",
+                preferWasm: true,
+              },
+              production: {
+                version: "0.8.28",
+                preferWasm: false,
+              },
+            },
+          },
+        },
+        otherResolvedConfig,
+      );
+
+      assert.equal(resolvedConfig.solidity.profiles.default.preferWasm, true);
+      assert.equal(
+        resolvedConfig.solidity.profiles.production.preferWasm,
+        false,
+      );
+    });
+
+    it("resolves to false when profile is not production and value is not set", async () => {
+      const resolvedConfig = await resolveSolidityUserConfig(
+        {
+          solidity: {
+            profiles: {
+              default: {
+                version: "0.8.28",
+              },
+              profile_1: {
+                version: "0.8.28",
+              },
+              profile_2: {
+                version: "0.8.28",
+              },
+            },
+          },
+        },
+        otherResolvedConfig,
+      );
+
+      assert.equal(resolvedConfig.solidity.profiles.default.preferWasm, false);
+      assert.equal(
+        resolvedConfig.solidity.profiles.profile_1.preferWasm,
+        false,
+      );
+      assert.equal(
+        resolvedConfig.solidity.profiles.profile_2.preferWasm,
+        false,
+      );
+    });
+  });
 });

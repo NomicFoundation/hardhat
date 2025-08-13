@@ -137,11 +137,7 @@ export class SolcJsCompiler implements Compiler {
       const compilerFileUrl = pathToFileURL(this.compilerPath);
       // NOTE: The script path passed to a tsx/esm loader is an exception to the
       // above rule since the tsx/esm loader doesn't support URLs with a scheme.
-      if (scriptPath.endsWith(".ts")) {
-        args.push(scriptPath);
-      } else {
-        args.push(scriptFileUrl);
-      }
+      args.push(scriptPath);
       args.push(compilerFileUrl.href);
     } else {
       args.push(scriptPath, this.compilerPath);

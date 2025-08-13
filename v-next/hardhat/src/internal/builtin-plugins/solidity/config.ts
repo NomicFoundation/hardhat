@@ -1,13 +1,19 @@
 import type { HardhatUserConfig } from "../../../config.js";
 import type {
   HardhatConfig,
+  MultiVersionSolidityUserConfig,
+  SingleVersionSolidityUserConfig,
+  SolcConfig,
+  SolcUserConfig,
   SolidityBuildProfileConfig,
   SolidityConfig,
   SolidityUserConfig,
 } from "../../../types/config.js";
 import type { HardhatUserConfigValidationError } from "../../../types/hooks.js";
 
-import { isObject } from "@nomicfoundation/hardhat-utils/lang";
+import os from "node:os";
+
+import { deepMerge, isObject } from "@nomicfoundation/hardhat-utils/lang";
 import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
 import {
   conditionalUnionType,
@@ -26,6 +32,10 @@ const sourcePathsType = conditionalUnionType(
   "Expected a string or an array of strings",
 );
 
+const commonSolcUserConfigType = z.object({
+  isolated: z.boolean().optional(),
+});
+
 const solcUserConfigType = z.object({
   version: z.string(),
   settings: z.any().optional(),
@@ -35,11 +45,16 @@ const solcUserConfigType = z.object({
 });
 
 // NOTE: This is only to match the setup present in ./type-extensions.ts
-const singleVersionSolcUserConfigType = solcUserConfigType;
+const singleVersionSolcUserConfigType = solcUserConfigType.extend({
+  isolated: z.boolean().optional(),
+  preferWasm: z.boolean().optional(),
+});
 
-const multiVersionSolcUserConfigType = z.object({
+const multiVersionSolcUserConfigType = commonSolcUserConfigType.extend({
   compilers: z.array(solcUserConfigType).nonempty(),
   overrides: z.record(z.string(), solcUserConfigType).optional(),
+  isolated: z.boolean().optional(),
+  preferWasm: z.boolean().optional(),
   version: incompatibleFieldType("This field is incompatible with `compilers`"),
   settings: incompatibleFieldType(
     "This field is incompatible with `compilers`",
@@ -204,108 +219,57 @@ function resolveSolidityConfig(
     solidityConfig = [solidityConfig];
   }
 
+  // user provided an array of versions or a single version
   if (Array.isArray(solidityConfig)) {
+    const defaultSolidityConfig = {
+      compilers: solidityConfig.map((version) => ({ version })),
+    };
     return {
       profiles: {
-        default: {
-          compilers: solidityConfig.map((version) => ({
-            version,
-            settings: {},
-          })),
-          overrides: {},
-        },
+        default: resolveBuildProfileConfig(defaultSolidityConfig),
+        production: resolveBuildProfileConfig(
+          copyFromDefault(defaultSolidityConfig),
+          true,
+        ),
       },
       npmFilesToBuild: [],
     };
   }
 
-  if ("version" in solidityConfig) {
+  // user provided a single version config or a multi version config
+  if ("version" in solidityConfig || "compilers" in solidityConfig) {
     return {
       profiles: {
-        default: {
-          compilers: [
-            {
-              version: solidityConfig.version,
-              settings: solidityConfig.settings ?? {},
-            },
-          ],
-          overrides: {},
-        },
+        default: resolveBuildProfileConfig(solidityConfig),
+        production: resolveBuildProfileConfig(
+          copyFromDefault(solidityConfig),
+          true,
+        ),
       },
       npmFilesToBuild: solidityConfig.npmFilesToBuild ?? [],
     };
   }
 
-  if ("compilers" in solidityConfig) {
-    return {
-      profiles: {
-        default: {
-          compilers: solidityConfig.compilers.map((compiler) => ({
-            version: compiler.version,
-            settings: compiler.settings ?? {},
-          })),
-          overrides: Object.fromEntries(
-            Object.entries(solidityConfig.overrides ?? {}).map(
-              ([userSourceName, override]) => {
-                return [
-                  userSourceName,
-                  {
-                    version: override.version,
-                    settings: override.settings ?? {},
-                  },
-                ];
-              },
-            ),
-          ),
-        },
-      },
-      npmFilesToBuild: solidityConfig.npmFilesToBuild ?? [],
-    };
-  }
-
+  // user provided a build profiles config
   const profiles: Record<string, SolidityBuildProfileConfig> = {};
 
-  // TODO: Merge the profiles
   for (const [profileName, profile] of Object.entries(
     solidityConfig.profiles,
   )) {
-    if ("version" in profile) {
-      profiles[profileName] = {
-        compilers: [
-          {
-            version: profile.version,
-            settings: profile.settings ?? {},
-          },
-        ],
-        overrides: {},
-      };
-      continue;
-    }
-
-    profiles[profileName] = {
-      compilers: profile.compilers.map((compiler) => ({
-        version: compiler.version,
-        settings: compiler.settings ?? {},
-      })),
-      overrides: Object.fromEntries(
-        Object.entries(profile.overrides ?? {}).map(
-          ([userSourceName, override]) => {
-            return [
-              userSourceName,
-              {
-                version: override.version,
-                settings: override.settings ?? {},
-              },
-            ];
-          },
-        ),
-      ),
-    };
+    profiles[profileName] = resolveBuildProfileConfig(
+      profile,
+      profileName === "production",
+    );
   }
 
+  // This will generate default build profiles (e.g. production) when they are
+  // not specified in the config, cloning from 'default', which is always present
   for (const profile of DEFAULT_BUILD_PROFILES) {
     if (!(profile in profiles)) {
-      profiles[profile] = profiles.default;
+      profiles[profile] = resolveBuildProfileConfig(
+        copyFromDefault(solidityConfig.profiles.default),
+        profile === "production",
+      );
     }
   }
 
@@ -313,4 +277,100 @@ function resolveSolidityConfig(
     profiles,
     npmFilesToBuild: solidityConfig.npmFilesToBuild ?? [],
   };
+}
+
+function resolveBuildProfileConfig(
+  solidityConfig:
+    | SingleVersionSolidityUserConfig
+    | MultiVersionSolidityUserConfig,
+  production: boolean = false,
+): SolidityBuildProfileConfig {
+  if ("version" in solidityConfig) {
+    return {
+      compilers: [resolveSolcConfig(solidityConfig, production)],
+      overrides: {},
+      isolated: solidityConfig.isolated ?? production,
+      preferWasm: solidityConfig.preferWasm ?? (production && shouldUseWasm()),
+    };
+  }
+
+  return {
+    compilers: solidityConfig.compilers.map((compiler) =>
+      resolveSolcConfig(compiler, production),
+    ),
+    overrides: Object.fromEntries(
+      Object.entries(solidityConfig.overrides ?? {}).map(
+        ([userSourceName, override]) => [
+          userSourceName,
+          resolveSolcConfig(override, production),
+        ],
+      ),
+    ),
+    isolated: solidityConfig.isolated ?? production,
+    preferWasm: solidityConfig.preferWasm ?? (production && shouldUseWasm()),
+  };
+}
+
+function resolveSolcConfig(
+  solcConfig: SolcUserConfig,
+  production: boolean = false,
+): SolcConfig {
+  const defaultSolcConfigSettings: SolcConfig["settings"] = {
+    outputSelection: {
+      "*": {
+        "": ["ast"],
+        "*": [
+          "abi",
+          "evm.bytecode",
+          "evm.deployedBytecode",
+          "evm.methodIdentifiers",
+          "metadata",
+        ],
+      },
+    },
+  };
+
+  if (production) {
+    defaultSolcConfigSettings.optimizer = {
+      enabled: true,
+      runs: 200,
+    };
+  }
+
+  return {
+    version: solcConfig.version,
+    settings: deepMerge(defaultSolcConfigSettings, solcConfig.settings ?? {}),
+  };
+}
+
+function copyFromDefault(
+  defaultSolidityConfig:
+    | SingleVersionSolidityUserConfig
+    | MultiVersionSolidityUserConfig,
+): SingleVersionSolidityUserConfig | MultiVersionSolidityUserConfig {
+  if ("version" in defaultSolidityConfig) {
+    return {
+      version: defaultSolidityConfig.version,
+    };
+  }
+
+  return {
+    compilers: defaultSolidityConfig.compilers.map((c) => ({
+      version: c.version,
+    })),
+    overrides: Object.fromEntries(
+      Object.entries(defaultSolidityConfig.overrides ?? {}).map(
+        ([userSourceName, override]) => [
+          userSourceName,
+          { version: override.version },
+        ],
+      ),
+    ),
+  };
+}
+
+// We use wasm builds in production to avoid using unofficial builds for deployments
+// This should change once https://github.com/ethereum/solidity/issues/11351 gets resolved
+export function shouldUseWasm(): boolean {
+  return os.platform() === "linux" && os.arch() === "arm64";
 }

@@ -46,7 +46,7 @@ describe("clients", () => {
 
     it("should return a public client extended with L2 actions for Optimism", async () => {
       const provider = new MockEthereumProvider({ eth_chainId: "0xa" }); // optimism
-      const client = await getPublicClient(provider, "optimism");
+      const client = await getPublicClient(provider, "op");
 
       assert.equal(client.type, "publicClient");
       assert.equal(client.chain.id, 10);
@@ -126,7 +126,7 @@ describe("clients", () => {
         eth_chainId: "0xa", // optimism
         eth_accounts: ["0x123", "0x456"],
       });
-      const clients = await getWalletClients(provider, "optimism");
+      const clients = await getWalletClients(provider, "op");
 
       assert.ok(Array.isArray(clients), "should return an array of clients");
       assert.equal(
@@ -248,7 +248,7 @@ describe("clients", () => {
       const provider = new MockEthereumProvider({
         eth_chainId: "0xa", // optimism
       });
-      const client = await getWalletClient(provider, "optimism", "0x123");
+      const client = await getWalletClient(provider, "op", "0x123");
 
       assert.equal(client.type, "walletClient");
       assert.equal(client.chain.id, 10);
@@ -317,7 +317,7 @@ describe("clients", () => {
         eth_chainId: "0xa", // optimism
         eth_accounts: ["0x123", "0x456"],
       });
-      const client = await getDefaultWalletClient(provider, "optimism");
+      const client = await getDefaultWalletClient(provider, "op");
 
       assert.equal(client.type, "walletClient");
       assert.equal(client.chain.id, 10);
@@ -502,15 +502,15 @@ describe("clients", () => {
         plugins: [HardhatViem],
         networks: {
           edrOptimism: {
-            type: "edr",
-            chainType: "optimism",
+            type: "edr-simulated",
+            chainType: "op",
           },
         },
       });
 
       const { viem } = await hre.network.connect({
         network: "edrOptimism",
-        chainType: "optimism",
+        chainType: "op",
       });
       const publicClient = await viem.getPublicClient();
       const [senderClient] = await viem.getWalletClients();

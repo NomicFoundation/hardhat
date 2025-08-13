@@ -6,7 +6,6 @@ const hardhatPlugin: HardhatPlugin = {
   id: "builtin:console",
   tasks: [
     task("console", "Opens a hardhat console")
-      .setAction(import.meta.resolve("./task-action.js"))
       .addOption({
         name: "history",
         description: "Path to a history file",
@@ -21,9 +20,10 @@ const hardhatPlugin: HardhatPlugin = {
         description: "Commands to run when the console starts",
         defaultValue: [],
       })
+      .setAction(async () => import("./task-action.js"))
       .build(),
   ],
-  dependencies: [async () => (await import("../solidity/index.js")).default],
+  dependencies: () => [import("../solidity/index.js")],
   npmPackage: "hardhat",
 };
 

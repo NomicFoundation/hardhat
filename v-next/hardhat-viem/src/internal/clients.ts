@@ -41,7 +41,7 @@ export async function getPublicClient<ChainTypeT extends ChainType | string>(
     ...publicClientConfig,
   });
 
-  if (chainType === "optimism") {
+  if (chainType === "op") {
     publicClient = publicClient.extend(publicActionsL2());
   }
 
@@ -71,7 +71,7 @@ export async function getWalletClients<ChainTypeT extends ChainType | string>(
     }),
   );
 
-  if (chainType === "optimism") {
+  if (chainType === "op") {
     walletClients = walletClients.map((walletClient) =>
       walletClient.extend(walletActionsL2()),
     );
@@ -101,7 +101,7 @@ export async function getWalletClient<ChainTypeT extends ChainType | string>(
     ...walletClientConfig,
   });
 
-  if (chainType === "optimism") {
+  if (chainType === "op") {
     walletClient = walletClient.extend(walletActionsL2());
   }
 

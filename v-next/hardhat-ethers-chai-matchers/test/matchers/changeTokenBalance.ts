@@ -89,7 +89,7 @@ describe(
           });
 
           await runAllAsserts(
-            provider,
+            ethers,
             transactionResponse,
             mockToken,
             [sender, receiver],
@@ -99,7 +99,7 @@ describe(
 
         it("with a TxResponse", async () => {
           await runAllAsserts(
-            provider,
+            ethers,
             await sender.sendTransaction({
               to: receiver.address,
             }),
@@ -111,7 +111,7 @@ describe(
 
         it("with a function that returns a promise of a TxResponse", async () => {
           await runAllAsserts(
-            provider,
+            ethers,
             () => sender.sendTransaction({ to: receiver.address }),
             mockToken,
             [sender, receiver],
@@ -124,7 +124,7 @@ describe(
             to: receiver.address,
           });
           await runAllAsserts(
-            provider,
+            ethers,
             () => txResponse,
             mockToken,
             [sender, receiver],
@@ -135,12 +135,12 @@ describe(
         it("accepts addresses", async () => {
           await expect(
             sender.sendTransaction({ to: receiver.address }),
-          ).to.changeTokenBalance(provider, mockToken, sender.address, 0);
+          ).to.changeTokenBalance(ethers, mockToken, sender.address, 0);
 
           await expect(() =>
             sender.sendTransaction({ to: receiver.address }),
           ).to.changeTokenBalances(
-            provider,
+            ethers,
             mockToken,
             [sender.address, receiver.address],
             [0, 0],
@@ -150,7 +150,7 @@ describe(
           await expect(() =>
             sender.sendTransaction({ to: receiver.address }),
           ).to.changeTokenBalances(
-            provider,
+            ethers,
             mockToken,
             [sender.address, receiver],
             [0, 0],
@@ -160,12 +160,12 @@ describe(
         it("negated", async () => {
           await expect(
             sender.sendTransaction({ to: receiver.address }),
-          ).to.not.changeTokenBalance(provider, mockToken, sender, 1);
+          ).to.not.changeTokenBalance(ethers, mockToken, sender, 1);
 
           await expect(
             sender.sendTransaction({ to: receiver.address }),
           ).to.not.changeTokenBalance(
-            provider,
+            ethers,
             mockToken,
             sender,
             (diff: bigint) => diff > 0n,
@@ -174,7 +174,7 @@ describe(
           await expect(() =>
             sender.sendTransaction({ to: receiver.address }),
           ).to.not.changeTokenBalances(
-            provider,
+            ethers,
             mockToken,
             [sender, receiver],
             [0, 1],
@@ -183,7 +183,7 @@ describe(
           await expect(() =>
             sender.sendTransaction({ to: receiver.address }),
           ).to.not.changeTokenBalances(
-            provider,
+            ethers,
             mockToken,
             [sender, receiver],
             [1, 0],
@@ -192,7 +192,7 @@ describe(
           await expect(() =>
             sender.sendTransaction({ to: receiver.address }),
           ).to.not.changeTokenBalances(
-            provider,
+            ethers,
             mockToken,
             [sender, receiver],
             [1, 1],
@@ -204,7 +204,7 @@ describe(
             await expect(
               expect(
                 sender.sendTransaction({ to: receiver.address }),
-              ).to.changeTokenBalance(provider, mockToken, sender, 1),
+              ).to.changeTokenBalance(ethers, mockToken, sender, 1),
             ).to.be.rejectedWith(
               AssertionError,
               /Expected the balance of MCK tokens for "0x\w{40}" to change by 1, but it changed by 0/,
@@ -216,7 +216,7 @@ describe(
               expect(
                 sender.sendTransaction({ to: receiver.address }),
               ).to.changeTokenBalance(
-                provider,
+                ethers,
                 mockToken,
                 sender,
                 (diff: bigint) => diff > 0n,
@@ -231,7 +231,7 @@ describe(
             await expect(
               expect(
                 sender.sendTransaction({ to: receiver.address }),
-              ).to.not.changeTokenBalance(provider, mockToken, sender, 0),
+              ).to.not.changeTokenBalance(ethers, mockToken, sender, 0),
             ).to.be.rejectedWith(
               AssertionError,
               /Expected the balance of MCK tokens for "0x\w{40}" NOT to change by 0, but it did/,
@@ -243,7 +243,7 @@ describe(
               expect(
                 sender.sendTransaction({ to: receiver.address }),
               ).to.not.changeTokenBalance(
-                provider,
+                ethers,
                 mockToken,
                 sender,
                 (diff: bigint) => diff < 1n,
@@ -259,7 +259,7 @@ describe(
               expect(
                 sender.sendTransaction({ to: receiver.address }),
               ).to.changeTokenBalances(
-                provider,
+                ethers,
                 mockToken,
                 [sender, receiver],
                 [1, 0],
@@ -272,7 +272,7 @@ describe(
               expect(
                 sender.sendTransaction({ to: receiver.address }),
               ).to.changeTokenBalances(
-                provider,
+                ethers,
                 mockToken,
                 [sender, receiver],
                 [0, 1],
@@ -285,7 +285,7 @@ describe(
               expect(
                 sender.sendTransaction({ to: receiver.address }),
               ).to.changeTokenBalances(
-                provider,
+                ethers,
                 mockToken,
                 [sender, receiver],
                 [1, 1],
@@ -298,7 +298,7 @@ describe(
               expect(
                 sender.sendTransaction({ to: receiver.address }),
               ).to.not.changeTokenBalances(
-                provider,
+                ethers,
                 mockToken,
                 [sender, receiver],
                 [0, 0],
@@ -313,7 +313,7 @@ describe(
           await expect(() =>
             mockToken.transfer(receiver.address, 75),
           ).to.changeTokenBalances(
-            provider,
+            ethers,
             mockToken,
             [sender, receiver],
             ([senderDiff, receiverDiff]: bigint[]) =>
@@ -326,7 +326,7 @@ describe(
             expect(
               mockToken.transfer(receiver.address, 75),
             ).to.changeTokenBalances(
-              provider,
+              ethers,
               mockToken,
               [sender, receiver],
               ([senderDiff, receiverDiff]: bigint[]) =>
@@ -343,7 +343,7 @@ describe(
             expect(
               mockToken.transfer(receiver.address, 75),
             ).to.not.changeTokenBalances(
-              provider,
+              ethers,
               mockToken,
               [sender, receiver],
               ([senderDiff, receiverDiff]: bigint[]) =>
@@ -359,7 +359,7 @@ describe(
       describe("transaction that transfers some tokens", () => {
         it("with a promise of a TxResponse", async () => {
           await runAllAsserts(
-            provider,
+            ethers,
             mockToken.transfer(receiver.address, 50),
             mockToken,
             [sender, receiver],
@@ -367,7 +367,7 @@ describe(
           );
 
           await runAllAsserts(
-            provider,
+            ethers,
             mockToken.transfer(receiver.address, 100),
             mockToken,
             [sender, receiver],
@@ -377,7 +377,7 @@ describe(
 
         it("with a TxResponse", async () => {
           await runAllAsserts(
-            provider,
+            ethers,
             await mockToken.transfer(receiver.address, 150),
             mockToken,
             [sender, receiver],
@@ -387,7 +387,7 @@ describe(
 
         it("with a function that returns a promise of a TxResponse", async () => {
           await runAllAsserts(
-            provider,
+            ethers,
             () => mockToken.transfer(receiver.address, 200),
             mockToken,
             [sender, receiver],
@@ -398,7 +398,7 @@ describe(
         it("with a function that returns a TxResponse", async () => {
           const txResponse = await mockToken.transfer(receiver.address, 300);
           await runAllAsserts(
-            provider,
+            ethers,
             () => txResponse,
             mockToken,
             [sender, receiver],
@@ -413,7 +413,7 @@ describe(
 
           await expect(() =>
             mockToken.transfer(receiver.address, 50),
-          ).to.changeTokenBalance(provider, mockToken, receiver, 50);
+          ).to.changeTokenBalance(ethers, mockToken, receiver, 50);
 
           const receiverBalanceChange =
             (await mockToken.balanceOf(receiver.address)) -
@@ -430,7 +430,7 @@ describe(
           await expect(() =>
             mockToken.transfer(receiver.address, 50),
           ).to.changeTokenBalances(
-            provider,
+            ethers,
             mockToken,
             [sender, receiver],
             [-50, 50],
@@ -446,15 +446,15 @@ describe(
         it("negated", async () => {
           await expect(
             mockToken.transfer(receiver.address, 50),
-          ).to.not.changeTokenBalance(provider, mockToken, sender, 0);
+          ).to.not.changeTokenBalance(ethers, mockToken, sender, 0);
           await expect(
             mockToken.transfer(receiver.address, 50),
-          ).to.not.changeTokenBalance(provider, mockToken, sender, 1);
+          ).to.not.changeTokenBalance(ethers, mockToken, sender, 1);
 
           await expect(
             mockToken.transfer(receiver.address, 50),
           ).to.not.changeTokenBalances(
-            provider,
+            ethers,
             mockToken,
             [sender, receiver],
             [0, 0],
@@ -462,7 +462,7 @@ describe(
           await expect(
             mockToken.transfer(receiver.address, 50),
           ).to.not.changeTokenBalances(
-            provider,
+            ethers,
             mockToken,
             [sender, receiver],
             [-50, 0],
@@ -470,7 +470,7 @@ describe(
           await expect(
             mockToken.transfer(receiver.address, 50),
           ).to.not.changeTokenBalances(
-            provider,
+            ethers,
             mockToken,
             [sender, receiver],
             [0, 50],
@@ -482,7 +482,7 @@ describe(
             await expect(
               expect(
                 mockToken.transfer(receiver.address, 50),
-              ).to.changeTokenBalance(provider, mockToken, receiver, 500),
+              ).to.changeTokenBalance(ethers, mockToken, receiver, 500),
             ).to.be.rejectedWith(
               AssertionError,
               /Expected the balance of MCK tokens for "0x\w{40}" to change by 500, but it changed by 50/,
@@ -494,7 +494,7 @@ describe(
               expect(
                 mockToken.transfer(receiver.address, 50),
               ).to.changeTokenBalance(
-                provider,
+                ethers,
                 mockToken,
                 receiver,
                 (diff: bigint) => diff === 500n,
@@ -509,7 +509,7 @@ describe(
             await expect(
               expect(
                 mockToken.transfer(receiver.address, 50),
-              ).to.not.changeTokenBalance(provider, mockToken, receiver, 50),
+              ).to.not.changeTokenBalance(ethers, mockToken, receiver, 50),
             ).to.be.rejectedWith(
               AssertionError,
               /Expected the balance of MCK tokens for "0x\w{40}" NOT to change by 50, but it did/,
@@ -521,7 +521,7 @@ describe(
               expect(
                 mockToken.transfer(receiver.address, 50),
               ).to.not.changeTokenBalance(
-                provider,
+                ethers,
                 mockToken,
                 receiver,
                 (diff: bigint) => diff === 50n,
@@ -537,7 +537,7 @@ describe(
               expect(
                 mockToken.transfer(receiver.address, 50),
               ).to.changeTokenBalances(
-                provider,
+                ethers,
                 mockToken,
                 [sender, receiver],
                 [-100, 50],
@@ -550,7 +550,7 @@ describe(
               expect(
                 mockToken.transfer(receiver.address, 50),
               ).to.changeTokenBalances(
-                provider,
+                ethers,
                 mockToken,
                 [sender, receiver],
                 [-50, 100],
@@ -563,7 +563,7 @@ describe(
               expect(
                 mockToken.transfer(receiver.address, 50),
               ).to.changeTokenBalances(
-                provider,
+                ethers,
                 mockToken,
                 [sender, receiver],
                 [0, 0],
@@ -576,7 +576,7 @@ describe(
               expect(
                 mockToken.transfer(receiver.address, 50),
               ).to.not.changeTokenBalances(
-                provider,
+                ethers,
                 mockToken,
                 [sender, receiver],
                 [-50, 50],
@@ -595,12 +595,7 @@ describe(
             await expect(
               expect(
                 tokenWithOnlyName.transfer(receiver.address, 50),
-              ).to.changeTokenBalance(
-                provider,
-                tokenWithOnlyName,
-                receiver,
-                500,
-              ),
+              ).to.changeTokenBalance(ethers, tokenWithOnlyName, receiver, 500),
             ).to.be.rejectedWith(
               AssertionError,
               /Expected the balance of MockToken tokens for "0x\w{40}" to change by 500, but it changed by 50/,
@@ -610,7 +605,7 @@ describe(
               expect(
                 tokenWithOnlyName.transfer(receiver.address, 50),
               ).to.not.changeTokenBalance(
-                provider,
+                ethers,
                 tokenWithOnlyName,
                 receiver,
                 50,
@@ -634,7 +629,7 @@ describe(
               expect(
                 tokenWithoutNameNorSymbol.transfer(receiver.address, 50),
               ).to.changeTokenBalance(
-                provider,
+                ethers,
                 tokenWithoutNameNorSymbol,
                 receiver,
                 500,
@@ -648,7 +643,7 @@ describe(
               expect(
                 tokenWithoutNameNorSymbol.transfer(receiver.address, 50),
               ).to.not.changeTokenBalance(
-                provider,
+                ethers,
                 tokenWithoutNameNorSymbol,
                 receiver,
                 50,
@@ -664,7 +659,7 @@ describe(
               () =>
                 expect(contract.emitWithoutArgs())
                   .to.emit(contract, "WithoutArgs")
-                  .and.to.changeTokenBalance(provider, mockToken, receiver, 0),
+                  .and.to.changeTokenBalance(ethers, mockToken, receiver, 0),
               HardhatError.ERRORS.CHAI_MATCHERS.GENERAL
                 .MATCHER_CANNOT_BE_CHAINED_AFTER,
               {
@@ -678,9 +673,9 @@ describe(
             assertThrowsHardhatError(
               () =>
                 expect(matchers.revertWithCustomErrorWithInt(1))
-                  .to.be.reverted(ethers)
+                  .to.be.revert(ethers)
                   .and.to.changeTokenBalances(
-                    provider,
+                    ethers,
                     mockToken,
                     [sender, receiver],
                     [-50, 100],
@@ -689,7 +684,7 @@ describe(
                 .MATCHER_CANNOT_BE_CHAINED_AFTER,
               {
                 matcher: "changeTokenBalances",
-                previousMatcher: "reverted",
+                previousMatcher: "revert",
               },
             );
           });
@@ -704,7 +699,7 @@ describe(
                 expect(
                   mockToken.transfer(receiver.address, 50),
                   // @ts-expect-error -- force error scenario: token should be specified
-                ).to.changeTokenBalance(provider, receiver, 50),
+                ).to.changeTokenBalance(ethers, receiver, 50),
               HardhatError.ERRORS.CHAI_MATCHERS.GENERAL
                 .FIRST_ARGUMENT_MUST_BE_A_CONTRACT_INSTANCE,
               {
@@ -718,7 +713,7 @@ describe(
                 expect(
                   mockToken.transfer(receiver.address, 50),
                   // @ts-expect-error -- force error scenario: token should be specified
-                ).to.changeTokenBalance(provider, receiver.address, 50),
+                ).to.changeTokenBalance(ethers, receiver.address, 50),
               HardhatError.ERRORS.CHAI_MATCHERS.GENERAL
                 .FIRST_ARGUMENT_MUST_BE_A_CONTRACT_INSTANCE,
               {
@@ -734,7 +729,7 @@ describe(
             expect(() =>
               expect(
                 mockToken.transfer(receiver.address, 50),
-              ).to.changeTokenBalance(provider, notAToken, sender, -50),
+              ).to.changeTokenBalance(ethers, notAToken, sender, -50),
             ).to.throw(
               Error,
               "The given contract instance is not an ERC20 token",
@@ -761,7 +756,7 @@ describe(
             await expect(
               expect(
                 mockToken.transfer(receiver.address, 50, { gasLimit: 100_000 }),
-              ).to.changeTokenBalance(provider, mockToken, sender, -50),
+              ).to.changeTokenBalance(ethers, mockToken, sender, -50),
             ).to.be.rejectedWith(
               "There should be only 1 transaction in the block",
             );
@@ -771,7 +766,7 @@ describe(
             await expect(
               expect(
                 mockToken.transfer(receiver.address, 0),
-              ).to.changeTokenBalance(provider, mockToken, sender, -50),
+              ).to.changeTokenBalance(ethers, mockToken, sender, -50),
             ).to.be.rejectedWith(
               Error,
               // check that the error message includes the revert reason
@@ -787,11 +782,7 @@ describe(
                 expect(
                   mockToken.transfer(receiver.address, 50),
                   // @ts-expect-error -- force error scenario: token should be specified
-                ).to.changeTokenBalances(
-                  provider,
-                  [sender, receiver],
-                  [-50, 50],
-                ),
+                ).to.changeTokenBalances(ethers, [sender, receiver], [-50, 50]),
               HardhatError.ERRORS.CHAI_MATCHERS.GENERAL
                 .FIRST_ARGUMENT_MUST_BE_A_CONTRACT_INSTANCE,
               {
@@ -808,7 +799,7 @@ describe(
               expect(
                 mockToken.transfer(receiver.address, 50),
               ).to.changeTokenBalances(
-                provider,
+                ethers,
                 notAToken,
                 [sender, receiver],
                 [-50, 50],
@@ -822,12 +813,7 @@ describe(
             expect(() =>
               expect(
                 mockToken.transfer(receiver.address, 50),
-              ).to.changeTokenBalances(
-                provider,
-                mockToken,
-                [sender],
-                [-50, 50],
-              ),
+              ).to.changeTokenBalances(ethers, mockToken, [sender], [-50, 50]),
             ).to.throw(
               Error,
               "The number of accounts (1) is different than the number of expected balance changes (2)",
@@ -837,7 +823,7 @@ describe(
               expect(
                 mockToken.transfer(receiver.address, 50),
               ).to.changeTokenBalances(
-                provider,
+                ethers,
                 mockToken,
                 [sender, receiver],
                 [-50],
@@ -851,7 +837,7 @@ describe(
           it("arrays have different length, subject is a rejected promise", async () => {
             expect(() =>
               expect(matchers.revertsWithoutReason()).to.changeTokenBalances(
-                provider,
+                ethers,
                 mockToken,
                 [sender],
                 [-50, 50],
@@ -883,7 +869,7 @@ describe(
               expect(
                 mockToken.transfer(receiver.address, 50, { gasLimit: 100_000 }),
               ).to.changeTokenBalances(
-                provider,
+                ethers,
                 mockToken,
                 [sender, receiver],
                 [-50, 50],
@@ -898,7 +884,7 @@ describe(
               expect(
                 mockToken.transfer(receiver.address, 0),
               ).to.changeTokenBalances(
-                provider,
+                ethers,
                 mockToken,
                 [sender, receiver],
                 [-50, 50],
@@ -916,11 +902,11 @@ describe(
         it("native bigints are accepted", async () => {
           await expect(
             mockToken.transfer(receiver.address, 50),
-          ).to.changeTokenBalance(provider, mockToken, sender, -50n);
+          ).to.changeTokenBalance(ethers, mockToken, sender, -50n);
           await expect(
             mockToken.transfer(receiver.address, 50),
           ).to.changeTokenBalances(
-            provider,
+            ethers,
             mockToken,
             [sender, receiver],
             [-50n, 50n],
@@ -936,7 +922,7 @@ describe(
             try {
               await expect(
                 mockToken.transfer(receiver.address, 50),
-              ).to.changeTokenBalance(provider, mockToken, sender, -100);
+              ).to.changeTokenBalance(ethers, mockToken, sender, -100);
             } catch (e) {
               hasProperStackTrace = util
                 .inspect(e)
@@ -954,7 +940,7 @@ describe(
               await expect(
                 mockToken.transfer(receiver.address, 50),
               ).to.changeTokenBalances(
-                provider,
+                ethers,
                 mockToken,
                 [sender, receiver],
                 [-100, 100],
@@ -985,7 +971,7 @@ function zip<T, U>(a: T[], b: U[]): Array<[T, U]> {
  * scenarios.
  */
 async function runAllAsserts(
-  provider: EthereumProvider,
+  ethers: HardhatEthers,
   expr:
     | TransactionResponse
     | Promise<TransactionResponse>
@@ -996,19 +982,14 @@ async function runAllAsserts(
   balances: Array<number | bigint>,
 ) {
   // changeTokenBalances works for the given arrays
-  await expect(expr).to.changeTokenBalances(
-    provider,
-    token,
-    accounts,
-    balances,
-  );
+  await expect(expr).to.changeTokenBalances(ethers, token, accounts, balances);
 
   // changeTokenBalances works for empty arrays
-  await expect(expr).to.changeTokenBalances(provider, token, [], []);
+  await expect(expr).to.changeTokenBalances(ethers, token, [], []);
 
   // for each given pair of account and balance, check that changeTokenBalance
   // works correctly
   for (const [account, balance] of zip(accounts, balances)) {
-    await expect(expr).to.changeTokenBalance(provider, token, account, balance);
+    await expect(expr).to.changeTokenBalance(ethers, token, account, balance);
   }
 }

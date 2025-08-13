@@ -272,10 +272,11 @@ export function validateNewTask(
     });
   }
 
-  if (typeof task.action !== "function" && typeof task.action !== "string") {
+  if (typeof task.action !== "function") {
     validationErrors.push({
       path: [...path, "action"],
-      message: "task action must be a function or a string",
+      message:
+        "task action must be a lazy import function returning a module with a default export",
     });
   }
 
@@ -327,10 +328,11 @@ export function validateTaskOverride(
     });
   }
 
-  if (typeof task.action !== "function" && typeof task.action !== "string") {
+  if (typeof task.action !== "function") {
     validationErrors.push({
       path: [...path, "action"],
-      message: "task action must be a function or a string",
+      message:
+        "task action must be a lazy import function returning a module with a default export",
     });
   }
 
@@ -617,7 +619,8 @@ export function validatePluginsConfig(
 
     if (
       plugin.npmPackage !== undefined &&
-      typeof plugin.npmPackage !== "string"
+      typeof plugin.npmPackage !== "string" &&
+      plugin.npmPackage !== null
     ) {
       validationErrors.push({
         path: [...path, "plugins", index, "npmPackage"],
@@ -626,19 +629,11 @@ export function validatePluginsConfig(
     }
 
     if (plugin.dependencies !== undefined) {
-      if (Array.isArray(plugin.dependencies)) {
-        for (const [depIndex, dep] of plugin.dependencies.entries()) {
-          if (typeof dep !== "function") {
-            validationErrors.push({
-              path: [...path, "plugins", index, "dependencies", depIndex],
-              message: "plugin dependencies must be an array of functions",
-            });
-          }
-        }
-      } else {
+      if (typeof plugin.dependencies !== "function") {
         validationErrors.push({
           path: [...path, "plugins", index, "dependencies"],
-          message: "plugin dependencies must be an array",
+          message:
+            "plugin dependencies must be a function returning an array of functions, each importing a module with a default export",
         });
       }
     }
@@ -649,11 +644,11 @@ export function validatePluginsConfig(
         plugin.hookHandlers !== null
       ) {
         for (const [hookName, handler] of Object.entries(plugin.hookHandlers)) {
-          if (typeof handler !== "function" && typeof handler !== "string") {
+          if (typeof handler !== "function") {
             validationErrors.push({
               path: [...path, "plugins", index, "hookHandlers", hookName],
               message:
-                "plugin hookHandlers must be an object of functions or strings",
+                "plugin hookHandlers must be a lazy import function returning a module with a default export",
             });
           }
         }

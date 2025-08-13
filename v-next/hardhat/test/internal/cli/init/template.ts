@@ -11,11 +11,11 @@ import { getTemplates } from "../../../../src/internal/cli/init/template.js";
 
 describe("getTemplates", () => {
   it("should return a non-empty array of templates", async () => {
-    const templates = await getTemplates();
+    const templates = await getTemplates("hardhat-3");
     assert.ok(templates.length > 0, "No templates found");
   });
   it("should ensure the templates have unique names", async () => {
-    const templates = await getTemplates();
+    const templates = await getTemplates("hardhat-3");
     const names = templates.map((t) => t.name);
     assert.ok(
       new Set(names).size === names.length,
@@ -23,7 +23,7 @@ describe("getTemplates", () => {
     );
   });
   it("should ensure the template files exist", async () => {
-    const templates = await getTemplates();
+    const templates = await getTemplates("hardhat-3");
     for (const template of templates) {
       for (const file of template.files) {
         const pathToTemplateFile = path.join(template.path, file);
@@ -75,7 +75,7 @@ describe("template contents", async () => {
     return cleanup;
   }
 
-  const templates = await getTemplates();
+  const templates = await getTemplates("hardhat-3");
 
   for (const template of templates) {
     describe(`template ${template.name}`, async () => {
@@ -84,7 +84,7 @@ describe("template contents", async () => {
         cleanup = await useTemplateHardhatProject(template);
       });
 
-      it(`should compile with tsc`, async () => {
+      it("should compile with tsc", async () => {
         // We run tsc --noEmit in the template
         const resultTscBuild = spawnSync("pnpm tsc --noEmit", {
           stdio: "inherit",
@@ -98,7 +98,7 @@ describe("template contents", async () => {
         );
       });
 
-      it(`should pass the hardhat tests`, async () => {
+      it("should pass the hardhat tests", async () => {
         const hardhatTest = spawnSync("pnpm hardhat test", {
           stdio: "inherit",
           shell: true,

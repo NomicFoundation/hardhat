@@ -24,30 +24,34 @@ const customTask = task("task")
   .addVariadicArgument({ name: "arg3" })
   .addFlag({ name: "arg4", shortName: "f" })
   .addLevel({ name: "arg5", shortName: "l" })
-  .setAction((taskArguments) => {
-    resetResults();
+  .setAction(async () => ({
+    default: (taskArguments) => {
+      resetResults();
 
-    const { arg1, arg2, arg3, arg4, arg5 } = taskArguments;
+      const { arg1, arg2, arg3, arg4, arg5 } = taskArguments;
 
-    tasksResults.wasArg1Used = arg1 === "<value1>";
-    tasksResults.wasArg2Used = arg2 === "<value2>";
-    // Variadic arguments are always in an array
-    if (Array.isArray(arg3)) {
-      tasksResults.wasArg3Used = arg3[0] === "<value3>";
-    }
-    tasksResults.wasArg4Used = arg4 !== false;
-    tasksResults.wasArg5Used = arg5 !== 0;
-  })
+      tasksResults.wasArg1Used = arg1 === "<value1>";
+      tasksResults.wasArg2Used = arg2 === "<value2>";
+      // Variadic arguments are always in an array
+      if (Array.isArray(arg3)) {
+        tasksResults.wasArg3Used = arg3[0] === "<value3>";
+      }
+      tasksResults.wasArg4Used = arg4 !== false;
+      tasksResults.wasArg5Used = arg5 !== 0;
+    },
+  }))
   .build();
 
 const customTask2 = task("task-default")
   .addOption({ name: "arg1", shortName: "o", defaultValue: "<default-value1>" })
-  .setAction((taskArguments) => {
-    resetResults();
+  .setAction(async () => ({
+    default: (taskArguments) => {
+      resetResults();
 
-    const { arg1 } = taskArguments;
-    tasksResults.wasArg1Used = arg1 === "<default-value1>";
-  })
+      const { arg1 } = taskArguments;
+      tasksResults.wasArg1Used = arg1 === "<default-value1>";
+    },
+  }))
   .build();
 
 const customTask3 = emptyTask("task-default-3", "description").build();
@@ -58,32 +62,35 @@ const customSubtask = task(["task", "subtask"])
   .addVariadicArgument({ name: "arg3" })
   .addFlag({ name: "arg4", shortName: "f" })
   .addLevel({ name: "arg5", shortName: "l" })
-  .setAction((taskArguments) => {
-    resetResults();
+  .setAction(async () => ({
+    default: (taskArguments) => {
+      resetResults();
 
-    const { arg1, arg2, arg3 } = taskArguments;
+      const { arg1, arg2, arg3 } = taskArguments;
 
-    tasksResults.wasArg1Used = arg1 === "<value1>";
-    tasksResults.wasArg2Used = arg2 === "<value2>";
-    // Variadic arguments are always in an array
-    if (Array.isArray(arg3)) {
-      tasksResults.wasArg3Used = arg3[0] === "<value3>";
-    }
-  })
+      tasksResults.wasArg1Used = arg1 === "<value1>";
+      tasksResults.wasArg2Used = arg2 === "<value2>";
+      // Variadic arguments are always in an array
+      if (Array.isArray(arg3)) {
+        tasksResults.wasArg3Used = arg3[0] === "<value3>";
+      }
+    },
+  }))
   .build();
 
 const customSubtask2 = task(["task-default", "subtask-default"])
   .addOption({ name: "arg1", shortName: "o", defaultValue: "<default-value1>" })
-  .setAction((taskArguments) => {
-    resetResults();
+  .setAction(async () => ({
+    default: (taskArguments) => {
+      resetResults();
 
-    const { arg1 } = taskArguments;
-    tasksResults.wasArg1Used = arg1 === "<default-value1>";
-  })
+      const { arg1 } = taskArguments;
+      tasksResults.wasArg1Used = arg1 === "<default-value1>";
+    },
+  }))
   .build();
-
 const customSubtask3 = task(["task-default-3", "subtask-default-3"])
-  .setAction(() => {})
+  .setAction(async () => ({ default: () => {} }))
   .build();
 
 const config: HardhatUserConfig = {

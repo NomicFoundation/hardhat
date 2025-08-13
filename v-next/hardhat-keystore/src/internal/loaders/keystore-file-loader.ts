@@ -7,11 +7,17 @@ import { Keystore } from "../keystores/keystore.js";
 
 export class KeystoreFileLoader implements KeystoreLoader {
   readonly #keystoreFilePath: string;
+  readonly #keystoreDevPasswordFilePath: string;
   readonly #fileManager: FileManager;
   #keystoreCache: Keystore | null;
 
-  constructor(keystoreFilePath: string, fileManger: FileManager) {
+  constructor(
+    keystoreFilePath: string,
+    keystoreDevPasswordFilePath: string,
+    fileManger: FileManager,
+  ) {
     this.#keystoreFilePath = keystoreFilePath;
+    this.#keystoreDevPasswordFilePath = keystoreDevPasswordFilePath;
     this.#fileManager = fileManger;
 
     this.#keystoreCache = null;
@@ -19,6 +25,10 @@ export class KeystoreFileLoader implements KeystoreLoader {
 
   public getKeystoreFilePath(): string {
     return this.#keystoreFilePath;
+  }
+
+  public getKeystoreDevPasswordFilePath(): string {
+    return this.#keystoreDevPasswordFilePath;
   }
 
   public async isKeystoreInitialized(): Promise<boolean> {

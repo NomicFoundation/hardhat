@@ -176,7 +176,7 @@ describe("Partial compilation", () => {
         process.chdir(_project.path);
 
         // Compile first time
-        await project.compile({ isolated: true });
+        await project.compile({ defaultBuildProfile: "production" });
         const firstSnapshot = await project.getSnapshot();
 
         assertFileCounts(firstSnapshot, 2, 2, 2);
@@ -217,7 +217,10 @@ describe("Partial compilation", () => {
         );
 
         // Compile only Bar.sol
-        await project.compile({ files: ["contracts/Bar.sol"], isolated: true });
+        await project.compile({
+          files: ["contracts/Bar.sol"],
+          defaultBuildProfile: "production",
+        });
         process.chdir(oldCwd);
 
         const secondSnapshot = await project.getSnapshot();

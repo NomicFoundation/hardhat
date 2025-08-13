@@ -21,7 +21,7 @@ describe("config", () => {
         plugins: [hardhatIgnition],
         networks: {
           default: {
-            type: "edr",
+            type: "edr-simulated",
             mining: {
               auto: false,
             },

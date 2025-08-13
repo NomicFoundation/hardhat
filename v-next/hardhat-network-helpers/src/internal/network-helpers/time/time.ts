@@ -2,6 +2,8 @@ import type { NumberLike, Time as TimeI } from "../../../types.js";
 import type { NetworkHelpers } from "../network-helpers.js";
 import type { EthereumProvider } from "hardhat/types/providers";
 
+import { bindAllMethods } from "@nomicfoundation/hardhat-utils/lang";
+
 import { Duration } from "../duration/duration.js";
 
 import { increaseTo } from "./helpers/increase-to.js";
@@ -21,6 +23,7 @@ export class Time implements TimeI {
     this.#provider = provider;
 
     this.duration = new Duration();
+    bindAllMethods(this);
   }
 
   public async increase(amountInSeconds: NumberLike): Promise<number> {
