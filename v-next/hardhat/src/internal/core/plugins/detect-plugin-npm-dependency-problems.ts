@@ -19,7 +19,7 @@ import {
  * - {@link HardhatError.ERRORS.CORE.PLUGINS.PLUGIN_NOT_INSTALLED} if the plugin is
  * not installed as an npm package
  * - {@link HardhatError.ERRORS.CORE.PLUGINS.PLUGIN_MISSING_DEPENDENCY} if the
- * plugin package's peer dependency is not installed
+ * plugin package's non-optional peer dependency is not installed
  * - {@link HardhatError.ERRORS.CORE.PLUGINS.DEPENDENCY_VERSION_MISMATCH} if the
  * plugin package's peer dependency is installed but has the wrong version
  */
@@ -65,6 +65,12 @@ export async function detectPluginNpmDependencyProblems(
     );
 
     if (dependencyPackageJsonPath === undefined) {
+      const optional =
+        pluginPackageJson?.peerDependenciesMeta?.[dependencyName]?.optional ??
+        false;
+
+      if (optional) return;
+
       throw new HardhatError(
         HardhatError.ERRORS.CORE.PLUGINS.PLUGIN_MISSING_DEPENDENCY,
         {
