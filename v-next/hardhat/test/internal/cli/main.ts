@@ -258,13 +258,13 @@ AVAILABLE SUBTASKS:
 GLOBAL OPTIONS:
 
   --build-profile          The build profile to use
-  --config                 A Hardhat config file.
+  --config                 A Hardhat config file
   --coverage               Enables code coverage
-  --help, -h               Shows this message, or a task's help if its name is provided.
-  --init                   Initializes a Hardhat project.
+  --help, -h               Shows this message, or a task's help if its name is provided
+  --init                   Initializes a Hardhat project
   --network                The network to connect to
-  --show-stack-traces      Show stack traces (always enabled on CI servers).
-  --version                Shows hardhat's version.
+  --show-stack-traces      Show stack traces (always enabled on CI servers)
+  --version                Shows hardhat's version
 
 To get help for a specific task run: npx hardhat <TASK> [SUBTASK] --help`;
 
@@ -330,13 +330,13 @@ POSITIONAL ARGUMENTS:
 GLOBAL OPTIONS:
 
   --build-profile          The build profile to use
-  --config                 A Hardhat config file.
+  --config                 A Hardhat config file
   --coverage               Enables code coverage
-  --help, -h               Shows this message, or a task's help if its name is provided.
-  --init                   Initializes a Hardhat project.
+  --help, -h               Shows this message, or a task's help if its name is provided
+  --init                   Initializes a Hardhat project
   --network                The network to connect to
-  --show-stack-traces      Show stack traces (always enabled on CI servers).
-  --version                Shows hardhat's version.
+  --show-stack-traces      Show stack traces (always enabled on CI servers)
+  --version                Shows hardhat's version
 `;
 
           assert.equal(lines.join(""), expected);
@@ -369,13 +369,13 @@ POSITIONAL ARGUMENTS:
 GLOBAL OPTIONS:
 
   --build-profile          The build profile to use
-  --config                 A Hardhat config file.
+  --config                 A Hardhat config file
   --coverage               Enables code coverage
-  --help, -h               Shows this message, or a task's help if its name is provided.
-  --init                   Initializes a Hardhat project.
+  --help, -h               Shows this message, or a task's help if its name is provided
+  --init                   Initializes a Hardhat project
   --network                The network to connect to
-  --show-stack-traces      Show stack traces (always enabled on CI servers).
-  --version                Shows hardhat's version.
+  --show-stack-traces      Show stack traces (always enabled on CI servers)
+  --version                Shows hardhat's version
 `;
 
         assert.equal(lines.join(""), expected);
