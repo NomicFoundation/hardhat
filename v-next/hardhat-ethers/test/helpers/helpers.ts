@@ -1,12 +1,15 @@
 import type { HardhatEthers } from "../../src/types.js";
 import type { ContractRunner, Signer } from "ethers";
+import type { JsonRpcServer } from "hardhat/tasks/node";
 import type { ArtifactManager } from "hardhat/types/artifacts";
 import type { HardhatUserConfig, NetworkConfig } from "hardhat/types/config";
+import type { HardhatRuntimeEnvironment } from "hardhat/types/hre";
 import type { EthereumProvider } from "hardhat/types/providers";
 
 import assert from "node:assert/strict";
 
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
+import { createJsonRpcServer } from "hardhat/tasks/node";
 
 import { initializeEthers } from "../../src/internal/initialization.js";
 
@@ -21,6 +24,7 @@ export async function initializeTestEthers(
   networkName: string;
   networkConfig: NetworkConfig;
   artifactManager: ArtifactManager;
+  hre: HardhatRuntimeEnvironment;
 }> {
   const hre = await createHardhatRuntimeEnvironment(config);
 
@@ -48,7 +52,17 @@ export async function initializeTestEthers(
     networkName,
     networkConfig,
     artifactManager,
+    hre,
   };
+}
+
+export async function spawnTestRpcServer(): Promise<JsonRpcServer> {
+  const hre = await createHardhatRuntimeEnvironment({});
+  const { provider } = await hre.network.connect();
+  const server = await createJsonRpcServer(provider);
+  await server.listen();
+
+  return server;
 }
 
 export function assertWithin(
