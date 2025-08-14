@@ -286,7 +286,7 @@ describe("utils", function () {
     it("should remove a trailing full stop from options and positional arguments descriptions", function () {
       const task: Task = {
         id: ["task"],
-        description: "task description",
+        description: "task description.",
         actions: [
           {
             pluginId: "task-plugin-id",
@@ -299,24 +299,24 @@ describe("utils", function () {
           .set("option", {
             name: "option",
             shortName: "o",
-            description: "An example option",
+            description: "An example option.",
             type: ArgumentType.STRING,
           })
           .set("anotherOption", {
             name: "anotherOption",
-            description: "Another example option",
+            description: "Another example option.",
             type: ArgumentType.BOOLEAN,
           }),
         positionalArguments: [
           {
             name: "positionalArgument",
-            description: "An example argument",
+            description: "An example argument.",
             type: ArgumentType.STRING,
             isVariadic: false,
           },
           {
             name: "anotherPositionalArgument",
-            description: "Another example argument",
+            description: "Another example argument.",
             type: ArgumentType.STRING,
             isVariadic: false,
             defaultValue: "default",
