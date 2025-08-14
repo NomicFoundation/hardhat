@@ -1,32 +1,51 @@
 import type { HardhatEthers } from "../src/types.js";
+import type { JsonRpcServer } from "hardhat/tasks/node";
 
 import assert from "node:assert/strict";
-import { describe, it } from "node:test";
+import { after, before, beforeEach, describe, it } from "node:test";
 
-import { initializeTestEthers } from "./helpers/helpers.js";
+import { initializeTestEthers, spawnTestRpcServer } from "./helpers/helpers.js";
+
+let ethers: HardhatEthers;
 
 describe("error messages", () => {
-  let ethers: HardhatEthers;
-
-  // TODO: enable when V3 is ready: V3 node required
-  // describe("in-process hardhat network", async () => {
-  //   ({ ethers } = await initializeTestEthers([
-  //     { artifactName: "Contract", fileName: "error-messages" },
-  //   ]));
-
-  //   runTests(ethers);
-  // });
-
   describe("hardhat node", async () => {
-    ({ ethers } = await initializeTestEthers([
-      { artifactName: "Contract", fileName: "error-messages" },
-    ]));
+    let server: JsonRpcServer;
 
-    runTests(ethers);
+    before(async () => {
+      server = await spawnTestRpcServer();
+    });
+
+    after(async () => {
+      await server.close();
+    });
+
+    beforeEach(async () => {
+      ({ ethers } = await initializeTestEthers(
+        [{ artifactName: "Contract", fileName: "error-messages" }],
+        {
+          networks: {
+            localhost: { type: "http", url: "http://localhost:8545" },
+          },
+        },
+      ));
+    });
+
+    defineTests();
+  });
+
+  describe("in-process hardhat network", async () => {
+    beforeEach(async () => {
+      ({ ethers } = await initializeTestEthers([
+        { artifactName: "Contract", fileName: "error-messages" },
+      ]));
+    });
+
+    defineTests();
   });
 });
 
-function runTests(ethers: HardhatEthers) {
+function defineTests() {
   it("should return the right error message for a transaction that reverts with a reason string", async () => {
     const contract = await ethers.deployContract("Contract");
 
