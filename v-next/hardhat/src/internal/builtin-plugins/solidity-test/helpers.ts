@@ -98,7 +98,6 @@ export function solidityTestConfigToSolidityTestRunnerConfigArgs(
   const ethRpcUrl = config.forking?.url;
   const forkBlockNumber = config.forking?.blockNumber;
   const rpcEndpoints = config.forking?.rpcEndpoints;
-  const promptTimeout = config.timeout;
 
   return {
     projectRoot,
@@ -117,7 +116,6 @@ export function solidityTestConfigToSolidityTestRunnerConfigArgs(
     ethRpcUrl,
     forkBlockNumber,
     rpcEndpoints,
-    promptTimeout,
   };
 }
 
