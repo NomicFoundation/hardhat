@@ -4,7 +4,7 @@ This plugin adds an Ethereum-specific assertions library that integrate with [vi
 
 ## Installation
 
-> This plugin is part of the [Viem Hardhat Toolbox](/v-next/hardhat-toolbox-viem/). If you are using that toolbox, there's nothing else you need to do.
+> This plugin is part of the [Viem Hardhat Toolbox](https://hardhat.org/plugins/nomicfoundation-hardhat-toolbox-viem). If you are using that toolbox, there's nothing else you need to do.
 
 To install this plugin, run the following command:
 
@@ -24,7 +24,7 @@ export default {
 
 ## Usage
 
-You don't need to do anything else to use this plugin. The `viem` object added by the [hardhat-viem plugin](/v-next/hardhat-viem/) is expanded with an `assertions` property that contains the assertions library.
+You don't need to do anything else to use this plugin. The `viem` object added by the [hardhat-viem plugin](https://hardhat.org/plugins/nomicfoundation-hardhat-viem) is expanded with an `assertions` property that contains the assertions library.
 
 Here is an example of using the `balancesHaveChanged` assertion:
 

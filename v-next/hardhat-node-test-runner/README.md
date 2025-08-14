@@ -4,7 +4,7 @@ This plugin integrates the native Node.js Test Runner (or [`node:test`](https://
 
 ## Installation
 
-> This plugin is part of the [Viem Hardhat Toolbox](/v-next/hardhat-toolbox-viem/). If you are using that toolbox, there's nothing else you need to do.
+> This plugin is part of the [Viem Hardhat Toolbox](https://hardhat.org/plugins/nomicfoundation-hardhat-toolbox-viem). If you are using that toolbox, there's nothing else you need to do.
 
 To install this plugin, run the following command:
 
