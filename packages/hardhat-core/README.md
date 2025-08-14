@@ -42,8 +42,8 @@ On [Hardhat's website](https://hardhat.org) you will find:
 
 Within the [Hardhat repo](https://github.com/nomicFoundation/hardhat):
 
-* Hardhat 2 development is on the `v2` branch
-* Hardhat 3 development is on the `main` branch
+- Hardhat 2 development is on the `v2` branch
+- Hardhat 3 development is on the `main` branch
 
 ## Contributing
 
