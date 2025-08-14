@@ -117,7 +117,7 @@ export function solidityTestConfigToSolidityTestRunnerConfigArgs(
     ethRpcUrl,
     forkBlockNumber,
     rpcEndpoints,
-    promptTimeout
+    promptTimeout,
   };
 }
 
