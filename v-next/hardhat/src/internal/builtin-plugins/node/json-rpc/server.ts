@@ -99,3 +99,22 @@ export class JsonRpcServerImplementation implements JsonRpcServer {
     ]);
   };
 }
+
+export async function createJsonRpcServer(
+  provider: EthereumProvider,
+  options: { address?: string; port?: number } = {},
+): Promise<JsonRpcServer> {
+  if (options.address === undefined) {
+    options.address = "127.0.0.1";
+  }
+
+  if (options.port === undefined) {
+    options.port = 8545;
+  }
+
+  return new JsonRpcServerImplementation({
+    hostname: options.address,
+    port: options.port,
+    provider,
+  });
+}

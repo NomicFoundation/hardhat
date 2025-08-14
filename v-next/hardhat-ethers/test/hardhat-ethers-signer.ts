@@ -1,9 +1,10 @@
 import type { ExampleContract } from "./helpers/example-contracts.js";
 import type { HardhatEthers } from "../src/types.js";
 import type { AuthorizationRequest } from "ethers";
+import type { JsonRpcServer } from "hardhat/tasks/node";
 
 import assert from "node:assert/strict";
-import { beforeEach, describe, it } from "node:test";
+import { after, before, beforeEach, describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
@@ -13,6 +14,7 @@ import {
   assertIsNotNull,
   assertWithin,
   initializeTestEthers,
+  spawnTestRpcServer,
 } from "./helpers/helpers.js";
 
 const INFURA_URL = process.env.INFURA_URL;
@@ -85,10 +87,19 @@ describe("hardhat ethers signer", () => {
       assert.equal(res.signature.networkV, null);
     }
 
-    // TODO: Skip for now, resume once we can launch a separate instance of the local network
-    describe.skip("localhost accounts", () => {
-      it(`should throw because 'remote' is not supported`, async () => {
-        const { ethers: hhEthers } = await initializeTestEthers([], {
+    describe("localhost accounts", () => {
+      let server: JsonRpcServer;
+
+      before(async () => {
+        server = await spawnTestRpcServer();
+      });
+
+      after(async () => {
+        await server.close();
+      });
+
+      beforeEach(async () => {
+        ({ ethers } = await initializeTestEthers([], {
           networks: {
             localhost: {
               type: "http",
@@ -96,10 +107,11 @@ describe("hardhat ethers signer", () => {
               accounts: "remote",
             },
           },
-        });
-
-        const signer = await hhEthers.provider.getSigner(0);
-        const receiver = await hhEthers.provider.getSigner(1);
+        }));
+      });
+      it(`should throw because 'remote' is not supported`, async () => {
+        const signer = await ethers.provider.getSigner(0);
+        const receiver = await ethers.provider.getSigner(1);
 
         await assertRejectsWithHardhatError(
           signer.authorize({
@@ -489,7 +501,7 @@ describe("hardhat ethers signer", () => {
 
     describe("default gas limit", () => {
       // TODO: enable when V3 is ready: when blockGasLimit is implemented
-      // it("should use the block gas limit for the in-process hardhat network", async ()=>{
+      // it("should use the block gas limit for the in-process hardhat network", async () => {
       //   const signer = await ethers.provider.getSigner(0);
       //   const tx = await signer.sendTransaction({ to: signer });
 

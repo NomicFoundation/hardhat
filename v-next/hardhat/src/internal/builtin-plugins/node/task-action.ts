@@ -12,7 +12,7 @@ import { DEFAULT_NETWORK_NAME } from "../../constants.js";
 import { isSupportedChainType } from "../../edr/chain-type.js";
 
 import { formatEdrNetworkConfigAccounts } from "./helpers.js";
-import { JsonRpcServerImplementation } from "./json-rpc/server.js";
+import { createJsonRpcServer } from "./json-rpc/server.js";
 
 interface NodeActionArguments {
   hostname?: string;
@@ -112,10 +112,9 @@ const nodeAction: NewTaskActionFunction<NodeActionArguments> = async (
     }
   }
 
-  const server: JsonRpcServerImplementation = new JsonRpcServerImplementation({
-    hostname,
+  const server = await createJsonRpcServer(provider, {
+    address: hostname,
     port: args.port,
-    provider,
   });
 
   const { port: actualPort, address: actualHostname } = await server.listen();

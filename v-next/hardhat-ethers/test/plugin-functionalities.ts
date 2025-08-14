@@ -4,10 +4,11 @@ import type {
 } from "./helpers/example-contracts.js";
 import type { HardhatEthers, HardhatEthersSigner } from "../src/types.js";
 import type * as EthersT from "ethers";
+import type { JsonRpcServer } from "hardhat/tasks/node";
 import type { Artifact, ArtifactManager } from "hardhat/types/artifacts";
 
 import assert from "node:assert/strict";
-import { beforeEach, describe, it } from "node:test";
+import { after, before, beforeEach, describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
@@ -16,6 +17,7 @@ import {
   assertIsNotNull,
   assertIsSigner,
   initializeTestEthers,
+  spawnTestRpcServer,
 } from "./helpers/helpers.js";
 
 describe("Ethers plugin", () => {
@@ -704,32 +706,26 @@ describe("Ethers plugin", () => {
             assert.equal(await greeter.greet(), "Hola");
           });
 
-          // TODO re-enable when we make .on("event") work
-          // it("Should be able to detect events", async ()=> {
-          //   const greeter = await ethers.getContractAt(
-          //     greeterArtifact.abi,
-          //     deployedGreeter.target
-          //   );
-          //
-          //   // at the time of this writing, ethers' default polling interval is
-          //   // 4000 ms. here we turn it down in order to speed up this test.
-          //   // see also
-          //   // https://github.com/ethers-io/ethers.js/issues/615#issuecomment-848991047
-          //   // const provider = greeter.provider as any;
-          //   // provider.pollingInterval = 100;
-          //
-          //   let eventEmitted = false;
-          //   await greeter.on("GreetingUpdated", () => {
-          //     eventEmitted = true;
-          //   });
-          //
-          //   await greeter.setGreeting("Hola");
-          //
-          //   // wait for 1.5 polling intervals for the event to fire
-          //   await new Promise((resolve) => setTimeout(resolve, 10_000));
-          //
-          //   assert.equal(eventEmitted, true);
-          // });
+          it("Should be able to detect events", async () => {
+            const greeter = await ethers.getContractAt(
+              greeterArtifact.abi,
+              deployedGreeter.target,
+            );
+
+            let eventEmitted = false;
+            await greeter.on("GreetingUpdated", () => {
+              eventEmitted = true;
+            });
+
+            await greeter.setGreeting("Hola");
+
+            // wait for 1.5 polling intervals for the event to fire
+            await new Promise((resolve) => setTimeout(resolve, 100));
+
+            await greeter.removeAllListeners();
+
+            assert.equal(eventEmitted, true);
+          });
 
           describe("with hardhat's signer", () => {
             it("Should return an instance of a contract associated to a hardhat's signer", async () => {
@@ -941,30 +937,23 @@ describe("Ethers plugin", () => {
 
   describe("default", () => {
     describe("contract events", () => {
-      // TODO re-enable when we make .on("event") work
-      // it("should be detected", async ()=> {
-      //   const Greeter = await ethers.getContractFactory("Greeter");
-      //   const deployedGreeter: any = await Greeter.deploy();
-      //
-      //   // at the time of this writing, ethers' default polling interval is
-      //   // 4000 ms. here we turn it down in order to speed up this test.
-      //   // see also
-      //   // https://github.com/ethers-io/ethers.js/issues/615#issuecomment-848991047
-      //   // const provider = deployedGreeter.provider as EthersProviderWrapper;
-      //   // provider.pollingInterval = 200;
-      //
-      //   let eventEmitted = false;
-      //   deployedGreeter.on("GreetingUpdated", () => {
-      //     eventEmitted = true;
-      //   });
-      //
-      //   await deployedGreeter.setGreeting("Hola");
-      //
-      //   // wait for 1.5 polling intervals for the event to fire
-      //   await new Promise((resolve) => setTimeout(resolve, 200 * 2));
-      //
-      //   assert.equal(eventEmitted, true);
-      // });
+      it("should be detected", async () => {
+        const Greeter = await ethers.getContractFactory("Greeter");
+        const deployedGreeter: any = await Greeter.deploy();
+
+        let eventEmitted = false;
+        deployedGreeter.on("GreetingUpdated", () => {
+          eventEmitted = true;
+        });
+
+        await deployedGreeter.setGreeting("Hola");
+
+        // wait for 1.5 polling intervals for the event to fire
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
+        deployedGreeter.removeAllListeners();
+        assert.equal(eventEmitted, true);
+      });
     });
 
     describe("evm_revert", () => {
@@ -1132,28 +1121,48 @@ describe("Ethers plugin", () => {
   });
 
   describe("hardhat node via WebSocket", () => {
-    // TODO re-enable when we make .on("event") work
-    // useEnvironment("hardhat-project", "localhost");
-    // it("should be able to detect events", async ()=> {
-    //   await this.env.run("compile", { quiet: true });
-    //
-    //   const Greeter = await ethers.getContractFactory("Greeter");
-    //   const deployedGreeter: any = await Greeter.deploy();
-    //
-    //   const readonlyContract = deployedGreeter.connect(
-    //     new ethers.WebSocketProvider("ws://127.0.0.1:8545")
-    //   );
-    //   let emitted = false;
-    //   await readonlyContract.on("GreetingUpdated", () => {
-    //     emitted = true;
-    //   });
-    //
-    //   await deployedGreeter.setGreeting("Hola");
-    //
-    //   // wait for the event to fire
-    //   await new Promise((resolve) => setTimeout(resolve, 100));
-    //
-    //   assert.equal(emitted, true);
-    // });
+    let server: JsonRpcServer;
+
+    before(async () => {
+      server = await spawnTestRpcServer();
+    });
+
+    after(async () => {
+      await server.close();
+    });
+
+    it("should be able to detect events", async () => {
+      const { ethers: httpEthers } = await initializeTestEthers(
+        [{ artifactName: "Greeter", fileName: "greeter" }],
+        {
+          networks: {
+            localhost: {
+              type: "http",
+              url: "http://localhost:8545",
+            },
+          },
+        },
+      );
+
+      const Greeter = await httpEthers.getContractFactory("Greeter");
+      const deployedGreeter = await Greeter.deploy();
+
+      const wsProvider = new httpEthers.WebSocketProvider(
+        "ws://127.0.0.1:8545",
+      );
+      const readonlyContract = deployedGreeter.connect(wsProvider);
+      let emitted = false;
+      await readonlyContract.on("GreetingUpdated", () => {
+        emitted = true;
+      });
+
+      await deployedGreeter.setGreeting("Hola");
+
+      // wait for the event to fire
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      await wsProvider.destroy();
+      assert.equal(emitted, true);
+    });
   });
 });

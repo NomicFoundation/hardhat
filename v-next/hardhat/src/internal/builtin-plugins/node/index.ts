@@ -53,3 +53,5 @@ const hardhatPlugin: HardhatPlugin = {
 };
 
 export default hardhatPlugin;
+
+export { createJsonRpcServer, type JsonRpcServer } from "./json-rpc/server.js";
