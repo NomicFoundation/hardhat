@@ -38,6 +38,13 @@ On [Hardhat's website](https://hardhat.org) you will find:
 - [Hardhat Network](https://hardhat.org/hardhat-network/)
 - [Plugin list](https://hardhat.org/plugins/)
 
+## Branches
+
+Within the [Hardhat repo](https://github.com/nomicFoundation/hardhat):
+
+- Hardhat 2 development is on the `v2` branch
+- Hardhat 3 development is on the `main` branch
+
 ## Contributing
 
 Contributions are always welcome! Feel free to open any issue or send a pull request.
