@@ -266,8 +266,7 @@ export async function* testReporter(
         }
         if (reason === undefined || reason === "") {
           reason =
-            failure.reason ===
-            "FFI is disabled; add the `--ffi` flag to allow tests to call external commands"
+            failure.reason?.startsWith("FFI is disabled") === true
               ? "FFI is disabled; set `test.solidity.ffi` to `true` in your Hardhat config to allow tests to call external commands"
               : failure.reason ?? "Unknown error";
         }
