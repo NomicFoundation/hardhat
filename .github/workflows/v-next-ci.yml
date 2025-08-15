@@ -20,7 +20,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Check if the folder v-next exists
         id: check
@@ -37,7 +37,7 @@ jobs:
     if: ${{ needs.is-v-next.outputs.is_v_next == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-node@v4
         with:
           node-version: 24
@@ -50,7 +50,7 @@ jobs:
     if: ${{ needs.is-v-next.outputs.is_v_next == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-node@v4
         with:
           node-version: 24
@@ -66,7 +66,7 @@ jobs:
       packages: ${{ steps.filter.outputs.changes }}
       should_bundle: ${{ contains(steps.filter.outputs.hardhat_files, '.github/workflows/v-next-ci.yml') || contains(steps.filter.outputs.hardhat_files, 'pnpm-lock.yaml') }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-node@v4
         with:
           node-version: 24
@@ -117,7 +117,7 @@ jobs:
       run:
         working-directory: v-next/${{ matrix.package }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-env
         with:
           node-version: 24
@@ -202,7 +202,7 @@ jobs:
         working-directory: v-next/${{ matrix.package }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-env
         with:
           node-version: 24
@@ -254,7 +254,7 @@ jobs:
         working-directory: v-next/${{ matrix.package }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-env
         with:
           node-version: ${{ matrix.node }}
@@ -301,7 +301,7 @@ jobs:
       run:
         working-directory: v-next/hardhat-node-test-reporter
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-env
         with:
           node-version: ${{ matrix.node }}
