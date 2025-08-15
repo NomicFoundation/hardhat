@@ -8,10 +8,13 @@ export const MIN_SUPPORTED_NODE_VERSION: number[] = [22, 10, 0];
 export function isNodeVersionSupported(): boolean {
   try {
     const [majorStr, minorStr, patchStr] = process.versions.node.split(".");
-
     const major = parseInt(majorStr, 10);
     const minor = parseInt(minorStr, 10);
     const patch = parseInt(patchStr, 10);
+
+    if (major % 2 === 1) {
+      return false;
+    }
 
     if (major < MIN_SUPPORTED_NODE_VERSION[0]) {
       return false;
@@ -37,14 +40,11 @@ export function isNodeVersionSupported(): boolean {
 }
 
 export function printNodeJsVersionWarningIfNecessary(): void {
-  if (isNodeVersionSupported()) {
+  if (!isNodeVersionSupported()) {
+    console.log(
+      chalk.bold(`\n${chalk.yellow("WARNING:")} You are using Node.js ${process.versions.node} which is not supported by Hardhat.
+Please upgrade to ${MIN_SUPPORTED_NODE_VERSION.join(".")} or a later LTS version (even major version number)\n`),
+    );
     return;
   }
-
-  console.log("");
-  console.log(
-    chalk.bold(`${chalk.yellow("WARNING:")} You are using Node.js ${process.versions.node} which is not supported by Hardhat.
-Please upgrade to ${MIN_SUPPORTED_NODE_VERSION.join(".")} or a later version.`),
-  );
-  console.log("");
 }
