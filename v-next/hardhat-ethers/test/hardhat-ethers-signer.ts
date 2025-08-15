@@ -18,7 +18,6 @@ import {
 } from "./helpers/helpers.js";
 
 const INFURA_URL = process.env.INFURA_URL;
-const LOCALHOST_URL = "http://localhost:8545";
 
 describe("hardhat ethers signer", () => {
   let ethers: HardhatEthers;
@@ -89,9 +88,11 @@ describe("hardhat ethers signer", () => {
 
     describe("localhost accounts", () => {
       let server: JsonRpcServer;
+      let port: number;
+      let address: string;
 
       before(async () => {
-        server = await spawnTestRpcServer();
+        ({ server, port, address } = await spawnTestRpcServer());
       });
 
       after(async () => {
@@ -103,7 +104,7 @@ describe("hardhat ethers signer", () => {
           networks: {
             localhost: {
               type: "http",
-              url: LOCALHOST_URL,
+              url: `http://${address}:${port}`,
               accounts: "remote",
             },
           },
@@ -127,7 +128,7 @@ describe("hardhat ethers signer", () => {
           networks: {
             localhost: {
               type: "http",
-              url: LOCALHOST_URL,
+              url: `http://${address}:${port}`,
               accounts: [TEST_P_KEY_1, TEST_P_KEY_2],
             },
           },
@@ -141,7 +142,7 @@ describe("hardhat ethers signer", () => {
           networks: {
             localhost: {
               type: "http",
-              url: LOCALHOST_URL,
+              url: `http://${address}:${port}`,
               accounts: HD_ACCOUNTS,
             },
           },

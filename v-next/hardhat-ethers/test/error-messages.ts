@@ -11,9 +11,11 @@ let ethers: HardhatEthers;
 describe("error messages", () => {
   describe("hardhat node", async () => {
     let server: JsonRpcServer;
+    let port: number;
+    let address: string;
 
     before(async () => {
-      server = await spawnTestRpcServer();
+      ({ server, port, address } = await spawnTestRpcServer());
     });
 
     after(async () => {
@@ -25,7 +27,7 @@ describe("error messages", () => {
         [{ artifactName: "Contract", fileName: "error-messages" }],
         {
           networks: {
-            localhost: { type: "http", url: "http://localhost:8545" },
+            localhost: { type: "http", url: `http://${address}:${port}` },
           },
         },
       ));
