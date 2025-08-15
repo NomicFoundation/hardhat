@@ -1,5 +1,11 @@
 # @nomicfoundation/hardhat-ledger
 
+## 1.2.1
+
+### Patch Changes
+
+- 4b63c37: Show underlying error when there is a connection error
+
 ## 1.2.0
 
 ### Minor Changes

@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/hardhat-ledger",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Hardhat plugin for the Ledger hardware wallet",
   "homepage": "https://github.com/nomicfoundation/hardhat/tree/main/packages/hardhat-ledger",
   "repository": "github:nomicfoundation/hardhat",
