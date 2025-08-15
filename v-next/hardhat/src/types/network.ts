@@ -52,6 +52,12 @@ export interface NetworkManager {
   connect<ChainTypeT extends ChainType | string = DefaultChainType>(
     networkOrParams?: NetworkConnectionParams<ChainTypeT> | string,
   ): Promise<NetworkConnection<ChainTypeT>>;
+
+  createServer(
+    networkOrParams?: NetworkConnectionParams | string,
+    hostname?: string,
+    port?: number,
+  ): Promise<JsonRpcServer>;
 }
 
 export interface NetworkConnection<
@@ -63,5 +69,11 @@ export interface NetworkConnection<
   readonly chainType: ChainTypeT;
   readonly provider: EthereumProvider;
 
+  close(): Promise<void>;
+}
+
+export interface JsonRpcServer {
+  listen(): Promise<{ address: string; port: number }>;
+  waitUntilClosed(): Promise<void>;
   close(): Promise<void>;
 }

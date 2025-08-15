@@ -1,4 +1,8 @@
-import type { HardhatRuntimeEnvironmentHooks } from "../../../../types/hooks.js";
+import type {
+  HardhatRuntimeEnvironmentHooks,
+  HookContext,
+} from "../../../../types/hooks.js";
+import type { HardhatRuntimeEnvironment } from "../../../../types/hre.js";
 import type { NetworkManager } from "../../../../types/network.js";
 
 import { DEFAULT_NETWORK_NAME } from "../../../constants.js";
@@ -7,30 +11,43 @@ export default async (): Promise<Partial<HardhatRuntimeEnvironmentHooks>> => ({
   created: async (context, hre) => {
     let networkManager: NetworkManager | undefined;
 
-    const userConfigNetworks = hre.userConfig.networks;
-
     hre.network = {
       async connect(networkConnectionParams) {
-        const { NetworkManagerImplementation } = await import(
-          "../network-manager.js"
-        );
-
         if (networkManager === undefined) {
-          networkManager = new NetworkManagerImplementation(
-            hre.globalOptions.network !== undefined
-              ? hre.globalOptions.network
-              : DEFAULT_NETWORK_NAME,
-            hre.config.defaultChainType,
-            hre.config.networks,
-            context.hooks,
-            context.artifacts,
-            userConfigNetworks,
-            hre.config.chainDescriptors,
-          );
+          networkManager = await createNetworkManager(hre, context);
         }
 
         return networkManager.connect(networkConnectionParams);
       },
+      async createServer(...params) {
+        if (networkManager === undefined) {
+          networkManager = await createNetworkManager(hre, context);
+        }
+
+        return networkManager.createServer(...params);
+      },
     };
   },
 });
+async function createNetworkManager(
+  hre: HardhatRuntimeEnvironment,
+  context: HookContext,
+): Promise<NetworkManager> {
+  const { NetworkManagerImplementation } = await import(
+    "../network-manager.js"
+  );
+
+  const userConfigNetworks = hre.userConfig.networks;
+
+  return new NetworkManagerImplementation(
+    hre.globalOptions.network !== undefined
+      ? hre.globalOptions.network
+      : DEFAULT_NETWORK_NAME,
+    hre.config.defaultChainType,
+    hre.config.networks,
+    context.hooks,
+    context.artifacts,
+    userConfigNetworks,
+    hre.config.chainDescriptors,
+  );
+}
