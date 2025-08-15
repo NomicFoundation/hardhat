@@ -5,10 +5,12 @@ import type {
   Statement,
   Tag,
 } from "./types.js";
+import type { Colorizer } from "../../utils/colorizer.js";
 
 import path from "node:path";
 
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
+import { formatMarkdownTable } from "@nomicfoundation/hardhat-utils/format";
 import {
   ensureDir,
   getAllFilesMatching,
@@ -17,6 +19,7 @@ import {
   writeJsonFile,
   writeUtf8File,
 } from "@nomicfoundation/hardhat-utils/fs";
+import chalk from "chalk";
 import debug from "debug";
 
 const log = debug("hardhat:core:coverage:coverage-manager");
@@ -103,6 +106,7 @@ export class CoverageManagerImplementation implements CoverageManager {
     await writeUtf8File(lcovReportPath, lcovReport);
     log(`Saved lcov report to ${lcovReportPath}`);
 
+    console.log();
     console.log(markdownReport);
     log("Printed markdown report");
   }
@@ -442,7 +446,10 @@ export class CoverageManagerImplementation implements CoverageManager {
   }
 
   // NOTE: This is exposed for testing only
-  public formatMarkdownReport(report: Report): string {
+  public formatMarkdownReport(
+    report: Report,
+    colorizer: Colorizer = chalk,
+  ): string {
     let totalExecutedLines = 0;
     let totalExecutableLines = 0;
 
@@ -450,11 +457,11 @@ export class CoverageManagerImplementation implements CoverageManager {
     let totalExecutableStatements = 0;
 
     const headerRow = [
-      "File Path 📦",
-      "Line % 📈",
-      "Statement % 📈",
-      "Uncovered Lines 🔍",
-      "Partially Covered Lines 🔍",
+      colorizer.bold("File Path 📦"),
+      colorizer.bold("Line Coverage % 📈"),
+      colorizer.bold("Statement Coverage % 📈"),
+      colorizer.bold("Uncovered Lines 🔍"),
+      colorizer.bold("Partially Covered Lines 🔍"),
     ];
 
     const rows = Object.entries(report).map(
@@ -485,7 +492,7 @@ export class CoverageManagerImplementation implements CoverageManager {
         totalExecutableStatements += tagExecutionCounts.size;
 
         const row: string[] = [
-          this.formatRelativePath(relativePath),
+          colorizer.bold(this.formatRelativePath(relativePath)),
           this.formatCoverage(lineCoverage),
           this.formatCoverage(statementCoverage),
           this.formatLines(unexecutedLines),
@@ -513,32 +520,6 @@ export class CoverageManagerImplementation implements CoverageManager {
       "",
     ];
 
-    const widths = headerRow.map((header) => header.length);
-
-    for (const row of rows) {
-      for (let i = 0; i < row.length; i++) {
-        widths[i] = Math.max(widths[i], row[i].length);
-      }
-    }
-
-    for (let i = 0; i < footerRow.length; i++) {
-      widths[i] = Math.max(widths[i], footerRow[i].length);
-    }
-
-    const dividerRow = widths.map((width) => "-".repeat(width));
-
-    rows.unshift(dividerRow);
-    rows.unshift(headerRow);
-
-    rows.push(dividerRow);
-    rows.push(footerRow);
-
-    rows.forEach((row) => {
-      for (let i = 0; i < row.length; i++) {
-        row[i] = row[i].padEnd(widths[i]);
-      }
-    });
-
-    return rows.map((row) => `| ${row.join(" | ")} |`).join("\n");
+    return formatMarkdownTable(headerRow, rows, footerRow);
   }
 }

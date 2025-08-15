@@ -3,6 +3,7 @@ import type {
   TestReporterResult,
   TestStatus,
 } from "./types.js";
+import type { Colorizer } from "../../utils/colorizer.js";
 import type { TestResult } from "@nomicfoundation/edr";
 
 import { bytesToHexString } from "@nomicfoundation/hardhat-utils/hex";
@@ -12,11 +13,7 @@ import { sendErrorTelemetry } from "../../cli/telemetry/sentry/reporter.js";
 import { SolidityTestStackTraceGenerationError } from "../network-manager/edr/stack-traces/stack-trace-generation-errors.js";
 import { encodeStackTraceEntry } from "../network-manager/edr/stack-traces/stack-trace-solidity-errors.js";
 
-import {
-  type Colorizer,
-  formatArtifactId,
-  formatTraces,
-} from "./formatters.js";
+import { formatArtifactId, formatTraces } from "./formatters.js";
 import { getMessageFromLastStackTraceEntry } from "./stack-trace-solidity-errors.js";
 
 class Indenter {
