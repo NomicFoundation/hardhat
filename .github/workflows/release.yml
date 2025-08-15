@@ -57,3 +57,11 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
         run: pnpm publish --filter "./v-next/**" -r --no-git-checks --access public --tag next
+
+      - name: Create Git tags for packages
+        if: steps.pr.outputs.hasChangesets == 'false'
+        run: pnpm changeset tag
+
+      - name: Push Git tags
+        if: steps.pr.outputs.hasChangesets == 'false'
+        run: git push --follow-tags
