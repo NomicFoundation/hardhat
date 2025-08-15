@@ -243,18 +243,22 @@ function getErrorCode(errorDescriptor: ErrorDescriptor): string {
 }
 
 /**
- * This function applies error messages templates like this:
+ * Applies error message templates with {variable} placeholders.
  *
- *  - Template is a string which contains a variable tags. A variable tag is a
- *    a variable name surrounded by %. Eg: %plugin1%
- *  - A variable name is a string of alphanumeric ascii characters.
- *  - Every variable tag is replaced by its value.
- *  - %% is replaced by %.
- *  - Values can't contain variable tags.
- *  - If a variable is not present in the template, but present in the values
- *    object, an error is thrown.
+ * Rules:
+ * - A variable tag is any substring between "{" and "}". E.g.: {pluginId}
+ * - Each tag is replaced by its corresponding value from "values".
+ * - Extra entries in "values" that don't appear in the template are ignored.
+ * - Values are converted as follows:
+ *   - undefined -> "undefined"
+ *   - null -> "null"
+ *   - bigint -> "<value>n"
+ *   - arrays -> JSON.stringify(value)
+ *   - other -> value.toString()
+ * - Escapes like "%%" are NOT supported; only "{" and "}" tags are recognized.
+ * - Tags inside value strings are not re-interpreted.
  *
- * @param template The template string.
+ * @param template The template string with {variable} placeholders.
  * @param values A map of variable names to their values.
  */
 export function applyErrorMessageTemplate(
