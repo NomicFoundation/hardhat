@@ -46,6 +46,10 @@ jobs:
         if: steps.pr.outputs.hasChangesets == 'false'
         run: pnpm run --recursive -no-bail --filter './v-next/**' --if-present build
 
+      - name: Create Git tags for packages
+        if: steps.pr.outputs.hasChangesets == 'false'
+        run: pnpm changeset tag
+
       - name: Publish All Packages (dry-run)
         if: steps.pr.outputs.hasChangesets == 'false'
         run: pnpm publish --filter "./v-next/**" -r --no-git-checks --access public --tag next --dry-run
@@ -57,3 +61,8 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
         run: pnpm publish --filter "./v-next/**" -r --no-git-checks --access public --tag next
+
+      - name: Push Git tags
+        if: steps.pr.outputs.hasChangesets == 'false'
+        run: |
+          git push --follow-tags
