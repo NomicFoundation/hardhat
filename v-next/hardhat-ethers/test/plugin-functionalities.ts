@@ -4,8 +4,8 @@ import type {
 } from "./helpers/example-contracts.js";
 import type { HardhatEthers, HardhatEthersSigner } from "../src/types.js";
 import type * as EthersT from "ethers";
-import type { JsonRpcServer } from "hardhat/tasks/node";
 import type { Artifact, ArtifactManager } from "hardhat/types/artifacts";
+import type { JsonRpcServer } from "hardhat/types/network";
 
 import assert from "node:assert/strict";
 import { after, before, beforeEach, describe, it } from "node:test";
