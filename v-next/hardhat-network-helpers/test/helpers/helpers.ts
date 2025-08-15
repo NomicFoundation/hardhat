@@ -1,3 +1,4 @@
+import type { EdrNetworkUserConfig } from "hardhat/types/config";
 import type { EthereumProvider } from "hardhat/types/providers";
 
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
@@ -5,12 +6,17 @@ import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 import { NetworkHelpers } from "../../src/internal/network-helpers/network-helpers.js";
 
-export async function initializeNetwork(): Promise<{
+export async function initializeNetwork(
+  config: Partial<EdrNetworkUserConfig> = {},
+): Promise<{
   provider: EthereumProvider;
   networkHelpers: NetworkHelpers;
 }> {
-  const hre = await createHardhatRuntimeEnvironment({});
+  const hre = await createHardhatRuntimeEnvironment({
+    networks: { default: { type: "edr-simulated", ...config } },
+  });
   const connection = await hre.network.connect();
+
   const provider = connection.provider;
 
   const networkHelpers = new NetworkHelpers(provider, connection.networkName);
