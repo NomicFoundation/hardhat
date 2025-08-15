@@ -10,6 +10,7 @@ import type { HookManager } from "../../../types/hooks.js";
 import type {
   ChainType,
   DefaultChainType,
+  JsonRpcServer,
   NetworkConnection,
   NetworkConnectionParams,
   NetworkManager,
@@ -26,6 +27,7 @@ import { deepMerge } from "@nomicfoundation/hardhat-utils/lang";
 
 import { resolveConfigurationVariable } from "../../core/configuration-variables.js";
 import { isSupportedChainType } from "../../edr/chain-type.js";
+import { JsonRpcServerImplementation } from "../node/json-rpc/server.js";
 
 import { resolveEdrNetwork, resolveHttpNetwork } from "./config-resolution.js";
 import { EdrProvider } from "./edr/edr-provider.js";
@@ -95,6 +97,20 @@ export class NetworkManagerImplementation implements NetworkManager {
     /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     -- Cast to NetworkConnection<ChainTypeT> because we know it's valid */
     return networkConnection as NetworkConnection<ChainTypeT>;
+  }
+
+  public async createServer(
+    networkOrParams: NetworkConnectionParams | string = "default",
+    hostname: string = "127.0.0.1",
+    port?: number,
+  ): Promise<JsonRpcServer> {
+    const { provider } = await this.connect(networkOrParams);
+
+    return new JsonRpcServerImplementation({
+      hostname,
+      port,
+      provider,
+    });
   }
 
   async #initializeNetworkConnection<ChainTypeT extends ChainType | string>(
