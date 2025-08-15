@@ -27,6 +27,7 @@ const solidityTestUserConfigType = z.object({
   isolate: z.boolean().optional(),
   ffi: z.boolean().optional(),
   allowInternalExpectRevert: z.boolean().optional(),
+  testFail: z.boolean().optional(),
   from: z.string().startsWith("0x").optional(),
   txOrigin: z.string().startsWith("0x").optional(),
   initialBalance: z.bigint().optional(),
