@@ -56,13 +56,17 @@ export async function initializeTestEthers(
   };
 }
 
-export async function spawnTestRpcServer(): Promise<JsonRpcServer> {
+export async function spawnTestRpcServer(): Promise<{
+  server: JsonRpcServer;
+  port: number;
+  address: string;
+}> {
   const hre = await createHardhatRuntimeEnvironment({});
   const { provider } = await hre.network.connect();
   const server = await createJsonRpcServer(provider);
-  await server.listen();
+  const { port, address } = await server.listen();
 
-  return server;
+  return { server, port, address };
 }
 
 export function assertWithin(

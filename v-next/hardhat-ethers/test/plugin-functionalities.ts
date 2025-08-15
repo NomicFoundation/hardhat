@@ -1122,9 +1122,11 @@ describe("Ethers plugin", () => {
 
   describe("hardhat node via WebSocket", () => {
     let server: JsonRpcServer;
+    let port: number;
+    let address: string;
 
     before(async () => {
-      server = await spawnTestRpcServer();
+      ({ server, port, address } = await spawnTestRpcServer());
     });
 
     after(async () => {
@@ -1138,7 +1140,7 @@ describe("Ethers plugin", () => {
           networks: {
             localhost: {
               type: "http",
-              url: "http://localhost:8545",
+              url: `http://${address}:${port}`,
             },
           },
         },
@@ -1148,7 +1150,7 @@ describe("Ethers plugin", () => {
       const deployedGreeter = await Greeter.deploy();
 
       const wsProvider = new httpEthers.WebSocketProvider(
-        "ws://127.0.0.1:8545",
+        `ws://${address}:${port}`,
       );
       const readonlyContract = deployedGreeter.connect(wsProvider);
       let emitted = false;
