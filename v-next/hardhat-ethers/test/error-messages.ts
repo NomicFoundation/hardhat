@@ -1,5 +1,5 @@
 import type { HardhatEthers } from "../src/types.js";
-import type { JsonRpcServer } from "hardhat/tasks/node";
+import type { JsonRpcServer } from "hardhat/types/network";
 
 import assert from "node:assert/strict";
 import { after, before, beforeEach, describe, it } from "node:test";

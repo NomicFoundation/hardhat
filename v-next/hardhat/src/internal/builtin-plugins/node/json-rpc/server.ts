@@ -1,3 +1,4 @@
+import type { JsonRpcServer } from "../../../../types/network.js";
 import type { EthereumProvider } from "../../../../types/providers.js";
 import type { Server } from "node:http";
 import type { AddressInfo } from "node:net";
@@ -11,17 +12,9 @@ import { JsonRpcHandler } from "./handler.js";
 
 const log = debug("hardhat:core:tasks:node:json-rpc:server");
 
-export interface JsonRpcServer {
-  listen(): Promise<{ address: string; port: number }>;
-  waitUntilClosed(): Promise<void>;
-
-  close(): Promise<void>;
-}
-
 export interface JsonRpcServerConfig {
   hostname: string;
   port?: number;
-
   provider: EthereumProvider;
 }
 
@@ -98,19 +91,4 @@ export class JsonRpcServerImplementation implements JsonRpcServer {
       }),
     ]);
   };
-}
-
-export async function createJsonRpcServer(
-  provider: EthereumProvider,
-  options: { address?: string; port?: number } = {},
-): Promise<JsonRpcServer> {
-  if (options.address === undefined) {
-    options.address = "127.0.0.1";
-  }
-
-  return new JsonRpcServerImplementation({
-    hostname: options.address,
-    port: options.port,
-    provider,
-  });
 }
