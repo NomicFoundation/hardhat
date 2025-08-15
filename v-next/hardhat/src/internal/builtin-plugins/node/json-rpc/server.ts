@@ -20,7 +20,7 @@ export interface JsonRpcServer {
 
 export interface JsonRpcServerConfig {
   hostname: string;
-  port: number;
+  port?: number;
 
   provider: EthereumProvider;
 }
@@ -106,10 +106,6 @@ export async function createJsonRpcServer(
 ): Promise<JsonRpcServer> {
   if (options.address === undefined) {
     options.address = "127.0.0.1";
-  }
-
-  if (options.port === undefined) {
-    options.port = 8545;
   }
 
   return new JsonRpcServerImplementation({

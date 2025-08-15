@@ -15,9 +15,11 @@ let provider: EthereumProvider;
 describe("gas price overrides", () => {
   describe("local http node", async () => {
     let server: JsonRpcServer;
+    let port: number;
+    let address: string;
 
     before(async () => {
-      server = await spawnTestRpcServer();
+      ({ server, port, address } = await spawnTestRpcServer());
     });
 
     after(async () => {
@@ -27,7 +29,7 @@ describe("gas price overrides", () => {
     beforeEach(async () => {
       ({ ethers, provider } = await initializeTestEthers([], {
         networks: {
-          localhost: { type: "http", url: "http://localhost:8545" },
+          localhost: { type: "http", url: `http://${address}:${port}` },
         },
       }));
     });
