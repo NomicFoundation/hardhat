@@ -24,6 +24,7 @@ declare module "../../../types/test.js" {
     isolate?: boolean;
     ffi?: boolean;
     allowInternalExpectRevert?: boolean;
+    testFail?: boolean;
     from?: string; // 0x-prefixed hex string
     txOrigin?: string; // 0x-prefixed hex string
     initialBalance?: bigint;
