@@ -1,5 +1,13 @@
 # hardhat
 
+## 3.0.1
+
+### Patch Changes
+
+- 6446a38: Add temporary fix for incorrect error message ([#7168](https://github.com/NomicFoundation/hardhat/issues/7168))
+- 0fc1f3f: Remove full stops from help message descriptions ([#7185](https://github.com/NomicFoundation/hardhat/issues/7185))
+- e7d2f80: Added missing Solidity test config option `allowInternalExpectRevert`.
+
 ## 3.0.0
 
 ### Major Changes
