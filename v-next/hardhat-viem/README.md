@@ -39,4 +39,4 @@ await counter.write.inc();
 console.log(await counter.read.x());
 ```
 
-To learn more about using viem with Hardhat, read [our guide](https://hardhat.org/hardhat3-alpha/learn-more/using-viem).
+To learn more about using viem with Hardhat, read [our guide](https://hardhat.org/docs/learn-more/using-viem).
