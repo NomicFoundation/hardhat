@@ -2,15 +2,10 @@
 
 Overall the Ledger Developer Portal provides a solid foundation for developers working with Ledger devices, but there are several areas where the documentation could be improved to enhance developer experience. We highglighted 3 areas that could provide the most positive impact to devx.
 
----
-
-## 1. TypeScript Documentation
-- **Completely empty**: TS Doc pages (`Device Management Kit`, `Device Signer Kit Ethereum`) are missing.
-- **Improvement idea**: Remove the links that just link back to the page itself.
 
 ---
 
-## 2. Ethereum Signer Kit
+## 1. Ethereum Signer Kit
 - **Incomplete parameter/return details**: Methods like `signTransaction`, `signTypedData` lack precise type and format documentation for it parameters.
 - **No error handling guidance**: Missing error codes, common failure cases (e.g., user cancel, invalid derivation path).
 - **Outdated transaction support**: Unclear compatibility with Ethereum standards other than EIP-712 and EIP-7702 (eg. EIP-1559, EIP-4337).
@@ -38,7 +33,7 @@ try {
 
 ---
 
-## 3. Legacy vs. Modern SDKs
+## 2. Better documentation on Legacy vs. New SDKs
 - **LedgerJS tutorials still featured**: Marked as deprecated but not consistently flagged.
 - **No migration guides**: No clear step-by-step transition from `ledger-js` to DMK/Signer Kits.
 - **Example improvement: Version-Specific Documentation**
@@ -66,3 +61,31 @@ const account = await signer.getAddress("44'/60'/0'/0/0");
 
 console.log("Migrated Address:", account.address);
 ```
+
+Furthermore, documentation is inconsistent on https://www.npmjs.com/package/@ledgerhq/device-signer-kit-ethereum compared to https://developers.ledger.com/docs/device-interaction/references/signers/eth
+
+### Before (v1.3.3) (also on npmjs.com)
+```typescript
+const signerEth = new SignerEthBuilder({ sdk, sessionId }).build();
+```
+
+### After (v1.4.0) (on developers.ledger.com)
+```typescript
+const signerEth = new SignerEthBuilder({
+  sdk,
+  sessionId,
+  originToken: "your-origin-token" // Required in v1.4.0
+}).build();
+```
+
+### Identification of Unclear or Missing Information
+
+- **Issue**: The documentation mentions `originToken` is required but doesn't explain how to obtain it
+- **Missing**: Application process, token validation, and usage guidelines
+- **Impact**: Developers cannot complete basic setup without the `originToken` 
+
+---
+
+## 3. TypeScript Documentation
+- **Missing TS docs**: TS Doc pages (`Device Management Kit`, `Device Signer Kit Ethereum`) are missing.
+- **Improvement idea**: Remove the links that just link back to the page itself.
