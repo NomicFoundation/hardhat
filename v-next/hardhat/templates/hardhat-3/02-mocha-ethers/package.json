@@ -18,5 +18,16 @@
     "forge-std": "foundry-rs/forge-std#v1.9.4",
     "mocha": "^11.0.0",
     "typescript": "~5.8.0"
+  },
+  "peerDependencies": {
+    "@nomicfoundation/hardhat-ethers-chai-matchers": "workspace:^3.0.0",
+    "@nomicfoundation/hardhat-ignition": "workspace:^3.0.0",
+    "@nomicfoundation/hardhat-ignition-ethers": "workspace:^3.0.0",
+    "@nomicfoundation/hardhat-keystore": "workspace:^3.0.0",
+    "@nomicfoundation/hardhat-mocha": "workspace:^3.0.0",
+    "@nomicfoundation/hardhat-network-helpers": "workspace:^3.0.0",
+    "@nomicfoundation/hardhat-typechain": "workspace:^3.0.0",
+    "@nomicfoundation/hardhat-verify": "workspace:^3.0.0",
+    "@nomicfoundation/ignition-core": "workspace:^3.0.0"
   }
 }
