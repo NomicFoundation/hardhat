@@ -36,6 +36,8 @@ try {
 }
 ```
 
+---
+
 ## 3. Legacy vs. Modern SDKs
 - **LedgerJS tutorials still featured**: Marked as deprecated but not consistently flagged.
 - **No migration guides**: No clear step-by-step transition from `ledger-js` to DMK/Signer Kits.
