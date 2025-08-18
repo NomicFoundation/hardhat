@@ -4,9 +4,19 @@
  * @file
  */
 
+import os from "node:os";
+
 import { Artifact } from "../../src/types/artifact.js";
 
 import { RawStaticCallResult } from "../../src/internal/execution/types/jsonrpc.js";
+
+// NOTE: Compiler's long version string is an input to the build info ID calculation.
+// Linux ARM64 is a special case because the mirror we use doesn't advertise long
+// version information and we fall back to the short version string.
+const buildInfoId =
+  os.platform() === "linux" && os.arch() === "arm64"
+    ? "solc-0_8_19-212d1ae643d27f15734ceaa4108859c2f104c4ca"
+    : "solc-0_8_19-2fe1cba8ef218c727cd1ce3da3aaa170f8016338";
 
 export const staticCallResultFixtures: {
   [contractName: string]: { [functionName: string]: RawStaticCallResult };
@@ -405,7 +415,7 @@ export const staticCallResultFixturesArtifacts: {
     deployedLinkReferences: {},
     immutableReferences: {},
     inputSourceName: "project/contracts/C.sol",
-    buildInfoId: "solc-0_8_19-2fe1cba8ef218c727cd1ce3da3aaa170f8016338",
+    buildInfoId,
   },
 };
 
@@ -442,7 +452,7 @@ export const deploymentFixturesArtifacts: { [contractName: string]: Artifact } =
       deployedLinkReferences: {},
       immutableReferences: {},
       inputSourceName: "project/contracts/C.sol",
-      buildInfoId: "solc-0_8_19-2fe1cba8ef218c727cd1ce3da3aaa170f8016338",
+      buildInfoId,
     },
     WithLibrary: {
       _format: "hh3-artifact-1",
@@ -471,7 +481,7 @@ export const deploymentFixturesArtifacts: { [contractName: string]: Artifact } =
       deployedLinkReferences: {},
       immutableReferences: {},
       inputSourceName: "project/contracts/C.sol",
-      buildInfoId: "solc-0_8_19-2fe1cba8ef218c727cd1ce3da3aaa170f8016338",
+      buildInfoId,
     },
     WithAmbiguousLibraryName: {
       _format: "hh3-artifact-1",
@@ -508,7 +518,7 @@ export const deploymentFixturesArtifacts: { [contractName: string]: Artifact } =
       deployedLinkReferences: {},
       immutableReferences: {},
       inputSourceName: "project/contracts/C.sol",
-      buildInfoId: "solc-0_8_19-2fe1cba8ef218c727cd1ce3da3aaa170f8016338",
+      buildInfoId,
     },
   };
 
@@ -590,7 +600,7 @@ export const callEncodingFixtures: { [contractName: string]: Artifact } = {
     deployedLinkReferences: {},
     immutableReferences: {},
     inputSourceName: "project/contracts/C.sol",
-    buildInfoId: "solc-0_8_19-2fe1cba8ef218c727cd1ce3da3aaa170f8016338",
+    buildInfoId,
   },
   ToTestEthersEncodingConversion: {
     _format: "hh3-artifact-1",
@@ -949,7 +959,7 @@ export const callEncodingFixtures: { [contractName: string]: Artifact } = {
     deployedLinkReferences: {},
     immutableReferences: {},
     inputSourceName: "project/contracts/C.sol",
-    buildInfoId: "solc-0_8_19-2fe1cba8ef218c727cd1ce3da3aaa170f8016338",
+    buildInfoId,
   },
   FunctionNameValidation: {
     _format: "hh3-artifact-1",
@@ -1069,6 +1079,6 @@ export const callEncodingFixtures: { [contractName: string]: Artifact } = {
     deployedLinkReferences: {},
     immutableReferences: {},
     inputSourceName: "project/contracts/C.sol",
-    buildInfoId: "solc-0_8_19-2fe1cba8ef218c727cd1ce3da3aaa170f8016338",
+    buildInfoId,
   },
 };
