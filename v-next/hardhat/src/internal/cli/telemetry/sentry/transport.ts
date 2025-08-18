@@ -32,7 +32,7 @@ export function createDetachedProcessTransport(
   dsn: string,
   release: string,
   environment: string,
-  configPath?: string,
+  getConfigPath: () => string | undefined,
 ): Transport {
   return {
     send: (envelope) => {
@@ -52,7 +52,7 @@ export function createDetachedProcessTransport(
       let args = [
         subprocessPath,
         serializedEnvelope,
-        configPath ?? "",
+        getConfigPath() ?? "",
         dsn,
         release,
         environment,
