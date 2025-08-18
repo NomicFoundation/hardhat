@@ -136,12 +136,39 @@ export class Anonymizer {
   public anonymizeErrorMessage(errorMessage: string): string {
     errorMessage = this.#anonymizeMnemonic(errorMessage);
 
+    if (this.#configPath !== undefined) {
+      errorMessage = errorMessage.replaceAll(
+        this.#configPath,
+        "<hardhat-config-file>",
+      );
+    }
+
     // hide hex strings of 20 chars or more
     const hexRegex = /(0x)?[0-9A-Fa-f]{20,}/g;
 
     return anonymizeUserPaths(errorMessage).replace(hexRegex, (match) =>
       match.replace(/./g, "x"),
     );
+  }
+
+  public filterOutEcentsOfExceptionsNotRaisedByHardhat(
+    envelope: Envelope,
+  ): Envelope {
+    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
+      We are just filtering events in place, not changing any type */
+    envelope[1] = envelope[1].filter((item) => {
+      if (item[0].type !== "event") {
+        return true;
+      }
+
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions 
+          -- We know that the item is an event item */
+      const eventItem = item as EventItem;
+
+      return this.raisedByHardhat(eventItem[1]);
+    }) as any;
+
+    return envelope;
   }
 
   public raisedByHardhat(event: Event): boolean {
@@ -193,8 +220,9 @@ export class Anonymizer {
   }
 
   #errorRaisedByPackageToIgnore(filename: string): boolean {
+    // List of external packages that we don't want to report errors from
     const pkgsToIgnore: string[] = [
-      path.join("node_modules", "@ethersproject"), // List of external packages that we don't want to report errors from
+      path.join("node_modules", "@ethersproject"),
     ];
 
     const pkgs = filename.match(/node_modules[\/\\][^\/\\]+/g); // Match path separators both for Windows and Unix

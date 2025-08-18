@@ -24,7 +24,9 @@ if (process.argv.length !== 7) {
   process.exit(1);
 }
 
+log("Config path:", configPath);
 log("Received envelope to be sent to Sentry from a subprocess");
+log(JSON.stringify(JSON.parse(serializedEnvelope), null, 2));
 
 init({
   dsn,
@@ -36,23 +38,34 @@ init({
 const envelope = JSON.parse(serializedEnvelope);
 
 const anonymizer = new Anonymizer(configPath);
-const anonymizeResult = await anonymizer.anonymizeEventsFromEnvelope(envelope);
 
-if (!anonymizeResult.success) {
-  log("Failed to anonymize envelope", anonymizeResult.error);
-  captureMessage(anonymizeResult.error);
+anonymizer.filterOutEcentsOfExceptionsNotRaisedByHardhat(envelope);
+
+if (envelope[1].length === 0) {
+  log("The events weren't raised by Hardhat, so we don't report them");
 } else {
-  try {
-    log("Sending received envelope to Sentry");
+  const anonymizeResult =
+    await anonymizer.anonymizeEventsFromEnvelope(envelope);
 
-    await sendEnvelopeToSentryBackend(dsn, anonymizeResult.envelope);
+  if (!anonymizeResult.success) {
+    log("Failed to anonymize envelope", anonymizeResult.error);
+    captureMessage(anonymizeResult.error);
+  } else {
+    try {
+      log("Anonymized envelope");
+      log(JSON.stringify(anonymizeResult, null, 2));
 
-    log("Successfully sent received envelope to Sentry");
-  } catch (e) {
-    log("Failed to send received envelope to Sentry", e);
+      log("Sending received envelope to Sentry");
 
-    captureException(e);
+      await sendEnvelopeToSentryBackend(dsn, anonymizeResult.envelope);
+
+      log("Successfully sent received envelope to Sentry");
+    } catch (e) {
+      log("Failed to send received envelope to Sentry", e);
+
+      captureException(e);
+    }
   }
-}
 
-await close();
+  await close();
+}
