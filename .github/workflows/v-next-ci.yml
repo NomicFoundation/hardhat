@@ -290,7 +290,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest]
         # We run the tests for `hardhat-node-test-reporter` with the latest
         # versions of Node (the testing output relying on recent changes)
         node: [22, 24]
