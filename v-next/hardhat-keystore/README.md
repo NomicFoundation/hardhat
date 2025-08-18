@@ -24,4 +24,4 @@ export default {
 
 ## Usage
 
-Check [our guide to configuration variables](https://hardhat.org/hardhat3-alpha/learn-more/configuration-variables) to learn how to use the keystore in your Hardhat configuration.
+Check [our guide to configuration variables](https://hardhat.org/docs/learn-more/configuration-variables) to learn how to use the keystore in your Hardhat configuration.
