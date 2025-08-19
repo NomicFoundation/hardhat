@@ -40,7 +40,7 @@ export default {
 };
 ```
 
-We recommend using a [configuration variable](https://hardhat.org/hardhat3-alpha/learn-more/configuration-variables) to set sensitive information like API keys.
+We recommend using a [configuration variable](https://hardhat.org/docs/learn-more/configuration-variables) to set sensitive information like API keys.
 
 ```typescript
 import { configVariable } from "hardhat/config";

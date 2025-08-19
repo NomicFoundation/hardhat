@@ -24,7 +24,7 @@ export function parseGlobalOptions(
   return [...globalOptionDefinitions].map(([, { option }]) => ({
     name: toCommandLineOption(option.name),
     shortName: toShortCommandLineOption(option.shortName),
-    description: option.description,
+    description: trimFullStop(option.description),
   }));
 }
 
@@ -42,7 +42,7 @@ export function parseTasks(taskMap: Map<string, Task>): {
       continue;
     }
 
-    tasks.push({ name: taskName, description: task.description });
+    tasks.push({ name: taskName, description: trimFullStop(task.description) });
   }
 
   return { tasks, subtasks };
@@ -54,7 +54,7 @@ export function parseSubtasks(task: Task): ArgumentDescriptor[] {
   for (const [, subtask] of task.subtasks) {
     subtasks.push({
       name: subtask.id.join(" "),
-      description: subtask.description,
+      description: trimFullStop(subtask.description),
     });
   }
 
@@ -72,7 +72,7 @@ export function parseOptions(task: Task): {
     options.push({
       name: toCommandLineOption(optionName),
       shortName: toShortCommandLineOption(option.shortName),
-      description: option.description,
+      description: trimFullStop(option.description),
       type: option.type,
       ...(option.defaultValue !== undefined && {
         defaultValue: option.defaultValue,
@@ -83,7 +83,7 @@ export function parseOptions(task: Task): {
   for (const { name, description, defaultValue } of task.positionalArguments) {
     positionalArguments.push({
       name,
-      description,
+      description: trimFullStop(description),
       isRequired: defaultValue === undefined,
       ...(defaultValue !== undefined && {
         defaultValue: Array.isArray(defaultValue)
@@ -129,6 +129,10 @@ export function getSection(
       return `  ${nameStr.padEnd(namePadding)}${description}${defaultValueStr}`.trimEnd();
     })
     .join("\n")}\n`;
+}
+
+function trimFullStop(str: string): string {
+  return str.endsWith(".") ? str.slice(0, -1) : str;
 }
 
 function getNameString(name: string, shortName?: string): string {

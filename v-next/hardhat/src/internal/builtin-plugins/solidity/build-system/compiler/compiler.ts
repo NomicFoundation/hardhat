@@ -16,7 +16,7 @@ import {
 } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import {
-  mkdir,
+  mkdtemp,
   readJsonFileAsStream,
   remove,
 } from "@nomicfoundation/hardhat-utils/fs";
@@ -54,8 +54,7 @@ async function spawnCompile(
 ): Promise<CompilerOutput> {
   // We create a temporary folder to store the output of the compiler in
   // We use a random UUID to avoid collisions with other compilations
-  const tmpFolder = path.join(os.tmpdir(), "hardhat-solc", crypto.randomUUID());
-  await mkdir(tmpFolder);
+  const tmpFolder = await mkdtemp("hardhat-solc-");
 
   try {
     return await new Promise(async (resolve, reject) => {
@@ -177,8 +176,7 @@ export class NativeCompiler implements Compiler {
         args.push("--no-import-callback");
       } else if (semver.gte(this.version, "0.6.9")) {
         // version >= 0.6.9
-        const tmpFolder = path.join(os.tmpdir(), "hardhat-solc");
-        await mkdir(tmpFolder);
+        const tmpFolder = await mkdtemp("hardhat-solc-");
         args.push(`--base-path`);
         args.push(tmpFolder);
       }

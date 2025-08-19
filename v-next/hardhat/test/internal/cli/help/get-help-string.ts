@@ -76,8 +76,8 @@ AVAILABLE SUBTASKS:
 
 GLOBAL OPTIONS:
 
-  --user-option-1          userOption1 description.
-  --user-option-2, -o      userOption2 description.
+  --user-option-1          userOption1 description
+  --user-option-2, -o      userOption2 description
 
 To get help for a specific task run: npx hardhat task <SUBTASK> --help`;
 
