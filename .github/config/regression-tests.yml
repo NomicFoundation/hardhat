@@ -560,10 +560,13 @@ repositories:
         "test": {
           "solidity": {
             "allowInternalExpectRevert": true,
-            "testFail": true
           }
         }
       };
+    ignore: |
+      # Unsupported testFail: https://github.com/NomicFoundation/hardhat/issues/7253
+      test/Kali.t.sol
+      test/ReentrancyGuard.t.sol
     ref: 21213d34042b8a5a68afeb590f43018f08c81a58
   mds1/multicall:
     commands:
@@ -638,7 +641,6 @@ repositories:
         "test": {
           "solidity": {
             "allowInternalExpectRevert": true,
-            "testFail": true,
             "ffi": true,
             "fsPermissions": {
               "dangerouslyReadWriteDirectory": [
@@ -692,6 +694,9 @@ repositories:
       test/pool-cl/CLCustomCurveHook.t.sol
       test/pool-cl/CLMintBurnFeeHook.t.sol
       test/pool-cl/libraries/TickBitmap.t.sol
+
+      # Unsupported testFail: https://github.com/NomicFoundation/hardhat/issues/7253
+      test/VaultToken.t.sol
     ref: 9a050c44cdf801fd19753409e6a03a8026a1fd09
   pcaversaccio/createx:
     commands:
@@ -1000,10 +1005,25 @@ repositories:
         "test": {
           "solidity": {
             "allowInternalExpectRevert": true,
-            "testFail": true
           }
         }
       };
+    ignore: |
+      # Unsupported testFail: https://github.com/NomicFoundation/hardhat/issues/7253
+      src/test/Auth.t.sol
+      src/test/ERC6909.t.sol
+      src/test/CREATE3.t.sol
+      src/test/DSTestPlus.t.sol
+      src/test/ReentrancyGuard.t.sol
+      src/test/SSTORE2.t.sol
+      src/test/SafeCastLib.t.sol
+      src/test/ERC1155.t.sol
+      src/test/ERC721.t.sol
+      src/test/SafeTransferLib.t.sol
+      src/test/SignedWadMath.t.sol
+      src/test/ERC20.t.sol
+      src/test/ERC4626.t.sol
+      src/test/FixedPointMathLib.t.sol
     ref: c93f7716c9909175d45f6ef80a34a650e2d24e56
   OpenZeppelin/openzeppelin-contracts:
     commands:
