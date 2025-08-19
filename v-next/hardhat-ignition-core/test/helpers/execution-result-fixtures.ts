@@ -10,9 +10,8 @@ import { Artifact } from "../../src/types/artifact.js";
 
 import { RawStaticCallResult } from "../../src/internal/execution/types/jsonrpc.js";
 
-// NOTE: Compiler's long version string is an input to the build info ID calculation.
-// Linux ARM64 is a special case because the mirror we use doesn't advertise long
-// version information and we fall back to the short version string.
+// NOTE: We are testing against a known build info id. As input to the build info // ID calculation we use the Compiler's long version string if available, and the // short version string if it is not.
+// On Linux ARM64 we download from a mirror that does not provide the long version, hence the known build info id has to change when running the test suite on that platform.
 const buildInfoId =
   os.platform() === "linux" && os.arch() === "arm64"
     ? "solc-0_8_19-212d1ae643d27f15734ceaa4108859c2f104c4ca"
