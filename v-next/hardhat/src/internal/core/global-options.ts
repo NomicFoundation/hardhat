@@ -167,6 +167,9 @@ export function resolveGlobalOptions(
     // and it takes precedence over env vars
     if (value !== undefined) {
       parsedValue = value;
+      // TODO: Consider setting global options as env variables to systemically
+      // expose them to subprocesses
+      // process.env[`HARDHAT_${camelToSnakeCase(name).toUpperCase()}`] = value;
     } else {
       value = process.env[`HARDHAT_${camelToSnakeCase(name).toUpperCase()}`];
       if (value !== undefined) {
