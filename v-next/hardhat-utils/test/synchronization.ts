@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
+import { spawn } from "node:child_process";
+import os from "node:os";
+import path from "node:path";
 import { describe, it } from "node:test";
 
+import { readUtf8File } from "../src/fs.js";
 import { sleep } from "../src/lang.js";
 import { MultiProcessMutex } from "../src/synchronization.js";
 
@@ -95,6 +99,61 @@ describe("multi-process-mutex", () => {
     assert.deepEqual(res, [2]);
     // Since the first function that obtained the mutex failed, the function waiting for it will acquire it instantly.
     // Therefore, the mutex timeout will not be reached, and the test should complete in less time than the mutex timeout.
+    assert.ok(
+      duration < 1000,
+      "Duration should be less than the mutex timeout",
+    );
+  });
+
+  it("should acquire the mutex lock after the first owner was cancelled due to a process crash", async () => {
+    // Spawn a long running process, then kill it. This allows another function to acquire the mutex,
+    // since it will detect that the process holding the lock is no longer running.
+
+    const child = spawn(process.execPath, [
+      "--import",
+      "tsx/esm",
+      path.resolve("test/helpers/synchronization.ts"),
+    ]);
+
+    // Wait until the process PID is available and written to the mutex file
+    await new Promise((resolve) => {
+      const interval = setInterval(async () => {
+        if (child.pid !== undefined) {
+          try {
+            const file = await readUtf8File(
+              path.join(os.tmpdir(), `${mutexName}.txt`),
+            );
+
+            if (file === child.pid.toString()) {
+              clearInterval(interval);
+              resolve(true);
+            }
+          } catch (_e) {}
+        }
+      }, 10);
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- pid guaranteed to exists as it is awaited
+    process.kill(child.pid!, "SIGKILL");
+
+    const mutex = new MultiProcessMutex(mutexName, 20_000);
+
+    const start = performance.now();
+
+    const res: number[] = [];
+    await new Promise((resolve) =>
+      setTimeout(async () => {
+        await mutex.use(async () => {
+          res.push(2);
+        });
+        resolve(true);
+      }, 200),
+    );
+
+    const end = performance.now();
+    const duration = end - start;
+
+    assert.deepEqual(res, [2]);
     assert.ok(
       duration < 1000,
       "Duration should be less than the mutex timeout",
