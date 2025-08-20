@@ -298,18 +298,22 @@ export function isFutureThatSubmitsOnchainTransaction(
 ): f is Exclude<
   Exclude<
     Exclude<
-      Exclude<Future, StaticCallFuture<string, string>>,
-      ReadEventArgumentFuture
+      Exclude<
+        Exclude<Future, StaticCallFuture<string, string>>,
+        ReadEventArgumentFuture
+      >,
+      NamedArtifactContractAtFuture<string>
     >,
-    NamedArtifactContractAtFuture<string>
+    ContractAtFuture
   >,
-  ContractAtFuture
+  EncodeFunctionCallFuture<string, string>
 > {
   return (
     !isNamedStaticCallFuture(f) &&
     !isReadEventArgumentFuture(f) &&
     !isNamedContractAtFuture(f) &&
-    !isArtifactContractAtFuture(f)
+    !isArtifactContractAtFuture(f) &&
+    !isEncodeFunctionCallFuture(f)
   );
 }
 
