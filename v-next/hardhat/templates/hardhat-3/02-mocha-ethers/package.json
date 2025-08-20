@@ -8,7 +8,6 @@
     "hardhat": "workspace:^3.0.0",
     "@nomicfoundation/hardhat-toolbox-mocha-ethers": "workspace:^3.0.0",
     "@nomicfoundation/hardhat-ignition": "workspace:^3.0.0",
-    "@nomicfoundation/hardhat-ethers": "workspace:^4.0.0",
     "@types/chai": "^4.2.0",
     "@types/chai-as-promised": "^8.0.1",
     "@types/mocha": ">=10.0.10",
@@ -20,6 +19,7 @@
     "typescript": "~5.8.0"
   },
   "peerDependencies": {
+    "@nomicfoundation/hardhat-ethers": "workspace:^4.0.0",
     "@nomicfoundation/hardhat-ethers-chai-matchers": "workspace:^3.0.0",
     "@nomicfoundation/hardhat-ignition": "workspace:^3.0.0",
     "@nomicfoundation/hardhat-ignition-ethers": "workspace:^3.0.0",
