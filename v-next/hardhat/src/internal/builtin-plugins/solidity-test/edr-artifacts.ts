@@ -1,4 +1,4 @@
-import type { ArtifactManager } from "../../../types/artifacts.js";
+import type { Artifact, ArtifactManager } from "../../../types/artifacts.js";
 import type {
   BuildInfoAndOutput,
   Artifact as EdrArtifact,
@@ -69,17 +69,21 @@ export async function getEdrArtifacts(
     }),
   );
 
-  const buildInfoIds = Array.from(
-    new Set(artifacts.map((artifact) => artifact.buildInfoId)),
+  const buildInfoIds: string[] = Array.from(
+    new Set(
+      artifacts.map((artifact) => {
+        assertHardhatInvariant(
+          artifact.buildInfoId !== undefined,
+          `buildInfoId should not be undefined for artifact: ${displayArtifactForError(artifact)}`,
+        );
+
+        return artifact.buildInfoId;
+      }),
+    ),
   );
 
   const solcVersionsArray: Array<[string, string]> = buildInfoIds
     .map((buildInfoId) => {
-      assertHardhatInvariant(
-        buildInfoId !== undefined,
-        "buildInfoId should not be undefined",
-      );
-
       const match = BUILD_INFO_FORMAT.exec(buildInfoId);
 
       // If the build info doesn't match this pattern it was probably generated
@@ -107,14 +111,14 @@ export async function getEdrArtifacts(
   return artifacts.map((artifact) => {
     assertHardhatInvariant(
       artifact.buildInfoId !== undefined,
-      "solcVersion should not be undefined",
+      `buildInfoId should not be undefined for artifact: ${displayArtifactForError(artifact)}`,
     );
 
     const solcVersion = solcVersions.get(artifact.buildInfoId);
 
     assertHardhatInvariant(
       solcVersion !== undefined,
-      "solcVersion should not be undefined",
+      `solcVersion should not be undefined for artifact: ${displayArtifactForError(artifact)}`,
     );
 
     const id = {
@@ -143,4 +147,8 @@ export async function getEdrArtifacts(
       userSourceName: artifact.sourceName,
     };
   });
+}
+
+function displayArtifactForError(artifact: Artifact): string {
+  return `'${artifact.contractName}' in '${artifact.sourceName}'`;
 }
