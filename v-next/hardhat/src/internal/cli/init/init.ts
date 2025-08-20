@@ -7,6 +7,7 @@ import {
   assertHardhatInvariant,
   HardhatError,
 } from "@nomicfoundation/hardhat-errors";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import {
   copy,
   ensureDir,
@@ -19,12 +20,17 @@ import {
 } from "@nomicfoundation/hardhat-utils/fs";
 import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
 import chalk from "chalk";
+import debug from "debug";
 import * as semver from "semver";
 
 import { findClosestHardhatConfig } from "../../config-loading.js";
 import { HARDHAT_NAME } from "../../constants.js";
-import { getHardhatVersion } from "../../utils/package.js";
+import {
+  getHardhatVersion,
+  getLatestHardhatVersion,
+} from "../../utils/package.js";
 import { sendProjectTypeAnalytics } from "../telemetry/analytics/analytics.js";
+import { sendErrorTelemetry } from "../telemetry/sentry/reporter.js";
 
 import {
   getDevDependenciesInstallationCommand,
@@ -51,6 +57,8 @@ export interface InitHardhatOptions {
   force?: boolean;
   install?: boolean;
 }
+
+const log = debug("hardhat:cli:init");
 
 /**
  * initHardhat implements the project initialization wizard flow.
@@ -164,24 +172,29 @@ export async function printWelcomeMessage(): Promise<void> {
     chalk.cyan(`👷 Welcome to ${HARDHAT_NAME} v${hardhatVersion} 👷\n`),
   );
 
-  // TODO: Disabled this until the first release of v3
-  // // Warn the user if they are using an outdated version of Hardhat
-  // try {
-  //   const latestHardhatVersion = await getLatestHardhatVersion();
-  //   if (hardhatVersion !== latestHardhatVersion) {
-  //     console.warn(
-  //       chalk.yellow.bold(
-  //         `⚠️ You are using an outdated version of Hardhat. The latest version is v${latestHardhatVersion}. Please consider upgrading to the latest version before continuing with the project initialization. ⚠️\n`,
-  //       ),
-  //     );
-  //   }
-  // } catch (e) {
-  //   console.warn(
-  //     chalk.yellow.bold(
-  //       `⚠️ We couldn't check if you are using the latest version of Hardhat. Please consider upgrading to the latest version if you are not using it yet. ⚠️\n`,
-  //     ),
-  //   );
-  // }
+  // Warn the user if they are using an outdated version of Hardhat
+  try {
+    const latestHardhatVersion = await getLatestHardhatVersion();
+    if (hardhatVersion !== latestHardhatVersion) {
+      console.warn(
+        chalk.yellow.bold(
+          `⚠️ You are using an outdated version of Hardhat. The latest version is v${latestHardhatVersion}. Please consider upgrading to the latest version before continuing with the project initialization. ⚠️\n`,
+        ),
+      );
+    }
+  } catch (error) {
+    ensureError(error);
+    try {
+      await sendErrorTelemetry(error);
+    } catch (e) {
+      log("Couldn't report error to sentry: %O", e);
+    }
+    console.warn(
+      chalk.yellow.bold(
+        `⚠️ We couldn't check if you are using the latest version of Hardhat. Please consider upgrading to the latest version if you are not using it yet. ⚠️\n`,
+      ),
+    );
+  }
 }
 
 /**
