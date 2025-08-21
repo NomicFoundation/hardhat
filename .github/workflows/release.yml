@@ -41,7 +41,7 @@ jobs:
         uses: changesets/action@v1
         with:
           title: Version Packages (v3)
-          version: pnpm changeset version && pnpm -w install --lockfile-only
+          version: pnpm version-for-release
 
       - name: Build All Packages
         if: steps.pr.outputs.hasChangesets == 'false'
