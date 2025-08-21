@@ -1,8 +1,10 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import {
   assertRejects,
+  assertRejectsWithHardhatError,
   useEphemeralFixtureProject,
 } from "@nomicfoundation/hardhat-test-utils";
 import { buildModule } from "@nomicfoundation/ignition-core";
@@ -12,6 +14,28 @@ import { externallyLoadedContractArtifact } from "./test-helpers/externally-load
 
 describe("viem results", () => {
   useEphemeralFixtureProject("minimal");
+
+  it("should throw when modules are deployed concurrently", async function () {
+    const moduleDefinition = buildModule("Module", (m) => {
+      const foo = m.contract("Foo");
+
+      return { foo };
+    });
+
+    const connection = await createConnection();
+
+    await assertRejectsWithHardhatError(
+      async () => {
+        await Promise.all([
+          connection.ignition.deploy(moduleDefinition),
+          connection.ignition.deploy(moduleDefinition),
+          connection.ignition.deploy(moduleDefinition),
+        ]);
+      },
+      HardhatError.ERRORS.IGNITION.DEPLOY.ALREADY_IN_PROGRESS,
+      {},
+    );
+  });
 
   it("should only return properties for the properties of the module results", async function () {
     const moduleDefinition = buildModule("Module", (m) => {
