@@ -1,14 +1,14 @@
-import type { ArtifactManager, BuildInfo } from "../../../types/artifacts.js";
+import type { Artifact, ArtifactManager } from "../../../types/artifacts.js";
 import type {
   BuildInfoAndOutput,
   Artifact as EdrArtifact,
 } from "@nomicfoundation/edr";
 
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
-import {
-  readBinaryFile,
-  readJsonFile,
-} from "@nomicfoundation/hardhat-utils/fs";
+import { readBinaryFile } from "@nomicfoundation/hardhat-utils/fs";
+
+const BUILD_INFO_FORMAT =
+  /^solc-(?<major>\d+)_(?<minor>\d+)_(?<patch>\d+)-[0-9a-fA-F]*$/;
 
 /**
  * This function returns all the build infos and associated outputs.
@@ -69,43 +69,56 @@ export async function getEdrArtifacts(
     }),
   );
 
-  const buildInfoIds = Array.from(
-    new Set(artifacts.map((artifact) => artifact.buildInfoId)),
+  const buildInfoIds: string[] = Array.from(
+    new Set(
+      artifacts.map((artifact) => {
+        assertHardhatInvariant(
+          artifact.buildInfoId !== undefined,
+          `buildInfoId should not be undefined for artifact: ${displayArtifactForError(artifact)}`,
+        );
+
+        return artifact.buildInfoId;
+      }),
+    ),
   );
 
-  const solcVersionsArray: Array<[string, string]> = await Promise.all(
-    buildInfoIds.map(async (buildInfoId) => {
+  const solcVersionsArray: Array<[string, string]> = buildInfoIds
+    .map((buildInfoId) => {
+      const match = BUILD_INFO_FORMAT.exec(buildInfoId);
+
+      // If the build info doesn't match this pattern it was probably generated
+      // by something other than Hardhat and/or using a different compiler, so
+      // we just ignore it.
+      if (match === null) {
+        return undefined;
+      }
+
       assertHardhatInvariant(
-        buildInfoId !== undefined,
-        "artifactBuildInfoId should not be undefined",
+        match.groups !== undefined,
+        "The match must have groups",
       );
 
-      // TODO: Don't read the build info just to get the solc version
-      const buildInfoPath = await artifactManager.getBuildInfoPath(buildInfoId);
+      const solcShortVersion = `${match.groups.major}.${match.groups.minor}.${match.groups.patch}`;
 
-      assertHardhatInvariant(
-        buildInfoPath !== undefined,
-        "buildInfoPath should not be undefined",
-      );
+      const result: [string, string] = [buildInfoId, solcShortVersion];
 
-      const buildInfo: BuildInfo = await readJsonFile(buildInfoPath);
+      return result;
+    })
+    .filter((solcVersionBuildInfoId) => solcVersionBuildInfoId !== undefined);
 
-      return [buildInfoId, buildInfo.solcVersion];
-    }),
-  );
   const solcVersions = new Map(solcVersionsArray);
 
   return artifacts.map((artifact) => {
     assertHardhatInvariant(
       artifact.buildInfoId !== undefined,
-      "solcVersion should not be undefined",
+      `buildInfoId should not be undefined for artifact: ${displayArtifactForError(artifact)}`,
     );
 
     const solcVersion = solcVersions.get(artifact.buildInfoId);
 
     assertHardhatInvariant(
       solcVersion !== undefined,
-      "solcVersion should not be undefined",
+      `solcVersion should not be undefined for artifact: ${displayArtifactForError(artifact)}`,
     );
 
     const id = {
@@ -134,4 +147,8 @@ export async function getEdrArtifacts(
       userSourceName: artifact.sourceName,
     };
   });
+}
+
+function displayArtifactForError(artifact: Artifact): string {
+  return `'${artifact.contractName}' in '${artifact.sourceName}'`;
 }

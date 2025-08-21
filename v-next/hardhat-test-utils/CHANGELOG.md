@@ -1,13 +1,9 @@
 # @nomicfoundation/hardhat-test-utils
 
-## 3.0.0-next.2
+## 2.0.1
 
 ### Patch Changes
 
-- Updated dependencies [c9d81f9]
-
-## 3.0.0-next.1
-
-### Patch Changes
-
-- 5fbea0d: A small bug fix release for the Hardhat 3 Alpha.
+- Updated dependencies [29cc141]
+  - @nomicfoundation/hardhat-errors@3.0.0
+  - @nomicfoundation/hardhat-utils@3.0.0

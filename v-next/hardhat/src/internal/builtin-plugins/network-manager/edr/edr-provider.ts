@@ -179,7 +179,7 @@ export class EdrProvider extends BaseProvider {
         hardhatChainTypeToEdrChainType(networkConfig.chainType),
         providerConfig,
         {
-          enable: loggerConfig.enabled,
+          enable: loggerConfig.enabled || networkConfig.loggingEnabled,
           decodeConsoleLogInputsCallback: (inputs: ArrayBuffer[]) => {
             return ConsoleLogger.getDecodedLogs(
               inputs.map((input) => {

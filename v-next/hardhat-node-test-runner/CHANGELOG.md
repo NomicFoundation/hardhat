@@ -1,13 +1,7 @@
 # @nomicfoundation/hardhat-node-test-runner
 
-## 3.0.0-next.2
+## 3.0.0
 
-### Patch Changes
+### Major Changes
 
-- Hardhat 3 Alpha release (2025-03-20T08:38:27.809Z)
-
-## 3.0.0-next.1
-
-### Patch Changes
-
-- 5fbea0d: A small bug fix release for the Hardhat 3 Alpha.
+- 29cc141: First release of Hardhat 3!

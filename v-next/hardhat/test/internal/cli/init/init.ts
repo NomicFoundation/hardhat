@@ -372,6 +372,7 @@ describe("installProjectDependencies", async () => {
           process.env.HARDHAT_DISABLE_SLOW_TESTS === "true" ||
           process.env.GITHUB_EVENT_NAME === "push" || // TODO: This check should be limited to push events associated with a release PR merge
           process.env.GITHUB_EVENT_NAME === "merge_group" || // TODO: This check should be limited to merge_group events associated with a release PR merge
+          process.env.GITHUB_HEAD_REF === "chore/remove-pre-release-config" || // TODO: remove this line after release
           process.env.GITHUB_HEAD_REF?.startsWith("changeset-release/"),
       },
       async () => {

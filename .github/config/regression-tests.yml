@@ -40,17 +40,19 @@ repositories:
             }
           }
         },
-        "solidityTest": {
-          "forking": {
-            "rpcEndpoints": {
-              "goerli": "${GOERLI_RPC_URL}",
-              "arbitrumgoerli": "${ARBITRUM_GOERLI_RPC_URL}",
-              "optimismgoerli": "${OPTIMISM_GOERLI_RPC_URL}",
-              "etherum": "${ETHERUM_RPC_URL}",
-              "arbitrum": "${ARBITRUM_RPC_URL}",
-              "optimism": "${OPTIMISM_RPC_URL}",
-              "scrollsepolia": "${SCROLL_SEPOLIA_RPC_URL}",
-              "basesepolia": "${BASE_SEPOLIA_RPC_URL}"
+        "test": {
+          "solidity": {
+            "forking": {
+              "rpcEndpoints": {
+                "goerli": "${GOERLI_RPC_URL}",
+                "arbitrumgoerli": "${ARBITRUM_GOERLI_RPC_URL}",
+                "optimismgoerli": "${OPTIMISM_GOERLI_RPC_URL}",
+                "etherum": "${ETHERUM_RPC_URL}",
+                "arbitrum": "${ARBITRUM_RPC_URL}",
+                "optimism": "${OPTIMISM_RPC_URL}",
+                "scrollsepolia": "${SCROLL_SEPOLIA_RPC_URL}",
+                "basesepolia": "${BASE_SEPOLIA_RPC_URL}"
+              }
             }
           }
         }
@@ -63,6 +65,10 @@ repositories:
 
       # unknown cheatcode with selector 0xf0259e92 (breakpoint(string))
       test/paymaster/ERC20Paymaster.t.sol
+
+      # DeclarationError: Identifier already declared.
+      test/paymaster/ERC20PaymasterActiveWallet.t.sol
+      test/soulwallet/deploy/protocol.t.sol
     ref: fc7cc084563ad1bda870df841b77caa9ee3a3661
   PaulRBerg/prb-math:
     commands:
@@ -73,6 +79,7 @@ repositories:
     forge-version: v0.3.0
     remappings: |
       forge-std/=node_modules/forge-std/
+      src/=src/
     hardhat-config: |
       export default {
         "paths": {
@@ -91,9 +98,12 @@ repositories:
             "evmVersion": "shanghai"
           }
         },
-        "solidityTest": {
-          "fuzz": {
-            "runs": 256
+        "test": {
+          "solidity": {
+            "allowInternalExpectRevert": true,
+            "fuzz": {
+              "runs": 256
+            }
           }
         }
       };
@@ -108,6 +118,7 @@ repositories:
     remappings: |
       @prb/test/=node_modules/@prb/test/
       forge-std/=node_modules/forge-std/
+      src/=src/
     hardhat-config: |
       export default {
         "paths": {
@@ -130,28 +141,30 @@ repositories:
             }
           }
         },
-        "solidityTest": {
-          "fuzz": {
-            "runs": 1000,
-            "maxTestRejects": 1000000
-          },
-          "fsPermissions": {
-            "readDirectory": [
-              "./out-optimized"
-            ]
-          },
-          "forking": {
-            "rpcEndpoints": {
-              "arbitrum": "https://arbitrum-mainnet.infura.io/v3/${API_KEY_INFURA}",
-              "avalanche": "https://avalanche-mainnet.infura.io/v3/${API_KEY_INFURA}",
-              "bnb_smart_chain": "https://bsc-dataseed.binance.org",
-              "gnosis_chain": "https://rpc.gnosischain.com",
-              "goerli": "https://goerli.infura.io/v3/${API_KEY_INFURA}",
-              "localhost": "http://localhost:8545",
-              "mainnet": "https://eth-mainnet.g.alchemy.com/v2/${API_KEY_ALCHEMY}",
-              "optimism": "https://optimism-mainnet.infura.io/v3/${API_KEY_INFURA}",
-              "polygon": "https://polygon-mainnet.infura.io/v3/${API_KEY_INFURA}",
-              "sepolia": "https://sepolia.infura.io/v3/${API_KEY_INFURA}"
+        "test": {
+          "solidity": {
+            "fuzz": {
+              "runs": 1000,
+              "maxTestRejects": 1000000
+            },
+            "fsPermissions": {
+              "readDirectory": [
+                "./out-optimized"
+              ]
+            },
+            "forking": {
+              "rpcEndpoints": {
+                "arbitrum": "https://arbitrum-mainnet.infura.io/v3/${API_KEY_INFURA}",
+                "avalanche": "https://avalanche-mainnet.infura.io/v3/${API_KEY_INFURA}",
+                "bnb_smart_chain": "https://bsc-dataseed.binance.org",
+                "gnosis_chain": "https://rpc.gnosischain.com",
+                "goerli": "https://goerli.infura.io/v3/${API_KEY_INFURA}",
+                "localhost": "http://localhost:8545",
+                "mainnet": "https://eth-mainnet.g.alchemy.com/v2/${API_KEY_ALCHEMY}",
+                "optimism": "https://optimism-mainnet.infura.io/v3/${API_KEY_INFURA}",
+                "polygon": "https://polygon-mainnet.infura.io/v3/${API_KEY_INFURA}",
+                "sepolia": "https://sepolia.infura.io/v3/${API_KEY_INFURA}"
+              }
             }
           }
         }
@@ -181,10 +194,12 @@ repositories:
             "evmVersion": "shanghai"
           }
         },
-        "solidityTest": {
-          "fuzz": {
-            "runs": 100,
-            "maxTestRejects": 100000
+        "test": {
+          "solidity": {
+            "fuzz": {
+              "runs": 100,
+              "maxTestRejects": 100000
+            }
           }
         }
       };
@@ -225,21 +240,23 @@ repositories:
             }
           }
         },
-        "solidityTest": {
-          "fuzz": {
-            "runs": 1000
-          },
-          "fsPermissions": {
-            "readDirectory": [
-              "./optimized-out",
-              "./reference-out"
-            ],
-            "writeFile": [
-              "./call-metrics.txt",
-              "./mutation-metrics.txt",
-              "./assume-metrics.txt",
-              "./fuzz_debug.json"
-            ]
+        "test": {
+          "solidity": {
+            "fuzz": {
+              "runs": 1000
+            },
+            "fsPermissions": {
+              "readDirectory": [
+                "./optimized-out",
+                "./reference-out"
+              ],
+              "writeFile": [
+                "./call-metrics.txt",
+                "./mutation-metrics.txt",
+                "./assume-metrics.txt",
+                "./fuzz_debug.json"
+              ]
+            }
           }
         }
       };
@@ -354,12 +371,15 @@ repositories:
             }
           }
         },
-        "solidityTest": {
-          "ffi": true,
-          "fsPermissions": {
-            "dangerouslyReadWriteDirectory": [
-              ".forge-snapshots/"
-            ]
+        "test": {
+          "solidity": {
+            "allowInternalExpectRevert": true,
+            "ffi": true,
+            "fsPermissions": {
+              "dangerouslyReadWriteDirectory": [
+                ".forge-snapshots/"
+              ]
+            }
           }
         }
       };
@@ -388,6 +408,9 @@ repositories:
       test/reactors/BaseDutchOrderReactor.t.sol
       test/reactors/ExclusiveDutchOrderReactor.t.sol
       test/reactors/DutchOrderReactor.t.sol
+
+      # gas price must be less than 2^128 - 1
+      test/lib/PriorityFeeLib.t.sol
     ref: 4013dfa4bc53b823b406b035a9b5eb579607eb99
   Vectorized/solady:
     commands:
@@ -417,19 +440,21 @@ repositories:
             "evmVersion": "cancun"
           }
         },
-        "solidityTest": {
-          "blockGasLimit": BigInt(100000000),
-          "fsPermissions": {
-            "readDirectory": [
-              "./test/data"
-            ]
-          },
-          "fuzz": {
-            "runs": 256
-          },
-          "invariant": {
-            "depth": 15,
-            "runs": 10
+        "test": {
+          "solidity": {
+            "blockGasLimit": BigInt(100000000),
+            "fsPermissions": {
+              "readDirectory": [
+                "./test/data"
+              ]
+            },
+            "fuzz": {
+              "runs": 256
+            },
+            "invariant": {
+              "depth": 15,
+              "runs": 10
+            }
           }
         }
       };
@@ -475,18 +500,20 @@ repositories:
             }
           }
         },
-        "solidityTest": {
-          "fsPermissions": {
-            "dangerouslyReadWriteDirectory": [
-              "./"
-            ]
-          },
-          "forking": {
-            "rpcEndpoints": {
-              "mainnet": "https://eth-mainnet.alchemyapi.io/v2/WV407BEiBmjNJfKo9Uo_55u0z0ITyCOX",
-              "optimism_sepolia": "https://sepolia.optimism.io/",
-              "arbitrum_one_sepolia": "https://sepolia-rollup.arbitrum.io/rpc/",
-              "needs_undefined_env_var": "${UNDEFINED_RPC_URL_PLACEHOLDER}"
+        "test": {
+          "solidity": {
+            "fsPermissions": {
+              "dangerouslyReadWriteDirectory": [
+                "./"
+              ]
+            },
+            "forking": {
+              "rpcEndpoints": {
+                "mainnet": "https://eth-mainnet.alchemyapi.io/v2/WV407BEiBmjNJfKo9Uo_55u0z0ITyCOX",
+                "optimism_sepolia": "https://sepolia.optimism.io/",
+                "arbitrum_one_sepolia": "https://sepolia-rollup.arbitrum.io/rpc/",
+                "needs_undefined_env_var": "${UNDEFINED_RPC_URL_PLACEHOLDER}"
+              }
             }
           }
         }
@@ -530,7 +557,16 @@ repositories:
             }
           }
         },
+        "test": {
+          "solidity": {
+            "allowInternalExpectRevert": true,
+          }
+        }
       };
+    ignore: |
+      # Unsupported testFail: https://github.com/NomicFoundation/hardhat/issues/7253
+      test/Kali.t.sol
+      test/ReentrancyGuard.t.sol
     ref: 21213d34042b8a5a68afeb590f43018f08c81a58
   mds1/multicall:
     commands:
@@ -559,9 +595,11 @@ repositories:
             }
           }
         },
-        "solidityTest": {
-          "fuzz": {
-            "runs": 1000
+        "test": {
+          "solidity": {
+            "fuzz": {
+              "runs": 1000
+            }
           }
         }
       };
@@ -600,22 +638,25 @@ repositories:
             }
           }
         },
-        "solidityTest": {
-          "ffi": true,
-          "fsPermissions": {
-            "dangerouslyReadWriteDirectory": [
-              ".forge-snapshots/"
-            ],
-            "readDirectory": [
-              "./foundry-out",
-              "./script/config",
-              "./test/pool-cl/bin",
-              "./test/pool-bin/bin"
-            ]
-          },
-          "blockGasLimit": BigInt(300000000),
-          "fuzz": {
-            "runs": 5
+        "test": {
+          "solidity": {
+            "allowInternalExpectRevert": true,
+            "ffi": true,
+            "fsPermissions": {
+              "dangerouslyReadWriteDirectory": [
+                ".forge-snapshots/"
+              ],
+              "readDirectory": [
+                "./foundry-out",
+                "./script/config",
+                "./test/pool-cl/bin",
+                "./test/pool-bin/bin"
+              ]
+            },
+            "blockGasLimit": BigInt(300000000),
+            "fuzz": {
+              "runs": 5
+            }
           }
         }
       };
@@ -653,6 +694,9 @@ repositories:
       test/pool-cl/CLCustomCurveHook.t.sol
       test/pool-cl/CLMintBurnFeeHook.t.sol
       test/pool-cl/libraries/TickBitmap.t.sol
+
+      # Unsupported testFail: https://github.com/NomicFoundation/hardhat/issues/7253
+      test/VaultToken.t.sol
     ref: 9a050c44cdf801fd19753409e6a03a8026a1fd09
   pcaversaccio/createx:
     commands:
@@ -687,18 +731,20 @@ repositories:
             }
           }
         },
-        "solidityTest": {
-          "fuzz": {
-            "runs": 100
-          },
-          "fsPermissions": {
-            "dangerouslyReadWriteDirectory": [
-              "./"
-            ]
-          },
-          "invariant": {
-            "runs": 256,
-            "depth": 15
+        "test": {
+          "solidity": {
+            "fuzz": {
+              "runs": 100
+            },
+            "fsPermissions": {
+              "dangerouslyReadWriteDirectory": [
+                "./"
+              ]
+            },
+            "invariant": {
+              "runs": 256,
+              "depth": 15
+            }
           }
         }
       };
@@ -721,6 +767,9 @@ repositories:
       test/public/CREATE3/CreateX.deployCreate3AndInit_4Args_CustomiseSalt.t.sol
       test/public/CREATE3/CreateX.deployCreate3AndInit_4Args_CustomiseSalt.t.sol
       test/internal/CreateX._generateSalt.t.sol
+
+      # block height must be less than 2^64 - 1
+      test/internal/CreateX._guard.t.sol
     ref: ac7e49b93030145a646c6cffd62a81f447422309
   sablier-labs/lockup:
     env: |
@@ -752,63 +801,66 @@ repositories:
             }
           }
         },
-        "solidityTest": {
-          "fsPermissions": {
-            "readDirectory": [
-              "./out-optimized"
-            ],
-            "readFile": [
-              "package.json"
-            ],
-            "dangerouslyReadWriteDirectory": [
-              "./benchmark/results",
-              "./script/"
-            ]
-          },
-          "blockGasLimit": BigInt(9223372036854775807),
-          "fuzz": {
-            "runs": 50,
-            "maxTestRejects": 1000000
-          },
-          "invariant": {
-            "runs": 20,
-            "depth": 20,
-            "failOnRevert": true,
-            "callOverride": false
-          },
-          "sender": "0x1804c8AB1F12E6bbf3894d4083f33e07309d1f38",
-          "forking": {
-            "rpcEndpoints": {
-              "arbitrum": "${ARBITRUM_RPC_URL}",
-              "arbitrum_sepolia": "https://arbitrum-sepolia-rpc.publicnode.com",
-              "avalanche": "${AVALANCHE_RPC_URL}",
-              "base": "https://mainnet.base.org",
-              "base_sepolia": "https://sepolia.base.org",
-              "berachain_artio": "https://bartio.rpc.berachain.com/",
-              "blast": "https://rpc.blast.io",
-              "blast_sepolia": "https://sepolia.blast.io",
-              "bnb": "https://bsc-dataseed.binance.org",
-              "core_dao": "https://rpc.coredao.org",
-              "gnosis": "https://rpc.gnosischain.com",
-              "lightlink": "https://replicator.phoenix.lightlink.io/rpc/v1",
-              "linea": "https://rpc.linea.build",
-              "linea_sepolia": "https://rpc.sepolia.linea.build",
-              "localhost": "http://localhost:8545",
-              "mainnet": "${MAINNET_RPC_URL}",
-              "mode": "https://mainnet.mode.network/",
-              "mode_sepolia": "https://sepolia.mode.network/",
-              "morph": "https://rpc.morphl2.io",
-              "optimism": "${OPTIMISM_RPC_URL}",
-              "optimism_sepolia": "https://sepolia.optimism.io",
-              "polygon": "${POLYGON_RPC_URL}",
-              "scroll": "https://rpc.scroll.io/",
-              "sei": "https://evm-rpc.sei-apis.com",
-              "sei_testnet": "https://evm-rpc.arctic-1.seinetwork.io",
-              "sepolia": "${SEPOLIA_RPC_URL}",
-              "superseed": "https://mainnet.superseed.xyz",
-              "superseed_sepolia": "https://sepolia.superseed.xyz",
-              "taiko_hekla": "https://rpc.hekla.taiko.xyz",
-              "taiko_mainnet": "https://rpc.mainnet.taiko.xyz"
+        "test": {
+          "solidity": {
+            "timeout": 600000,
+            "fsPermissions": {
+              "readDirectory": [
+                "./out-optimized"
+              ],
+              "readFile": [
+                "package.json"
+              ],
+              "dangerouslyReadWriteDirectory": [
+                "./benchmark/results",
+                "./script/"
+              ]
+            },
+            "blockGasLimit": BigInt(9223372036854775807),
+            "fuzz": {
+              "runs": 50,
+              "maxTestRejects": 1000000
+            },
+            "invariant": {
+              "runs": 20,
+              "depth": 20,
+              "failOnRevert": true,
+              "callOverride": false
+            },
+            "sender": "0x1804c8AB1F12E6bbf3894d4083f33e07309d1f38",
+            "forking": {
+              "rpcEndpoints": {
+                "arbitrum": "${ARBITRUM_RPC_URL}",
+                "arbitrum_sepolia": "https://arbitrum-sepolia-rpc.publicnode.com",
+                "avalanche": "${AVALANCHE_RPC_URL}",
+                "base": "https://mainnet.base.org",
+                "base_sepolia": "https://sepolia.base.org",
+                "berachain_artio": "https://bartio.rpc.berachain.com/",
+                "blast": "https://rpc.blast.io",
+                "blast_sepolia": "https://sepolia.blast.io",
+                "bnb": "https://bsc-dataseed.binance.org",
+                "core_dao": "https://rpc.coredao.org",
+                "gnosis": "https://rpc.gnosischain.com",
+                "lightlink": "https://replicator.phoenix.lightlink.io/rpc/v1",
+                "linea": "https://rpc.linea.build",
+                "linea_sepolia": "https://rpc.sepolia.linea.build",
+                "localhost": "http://localhost:8545",
+                "mainnet": "${MAINNET_RPC_URL}",
+                "mode": "https://mainnet.mode.network/",
+                "mode_sepolia": "https://sepolia.mode.network/",
+                "morph": "https://rpc.morphl2.io",
+                "optimism": "${OPTIMISM_RPC_URL}",
+                "optimism_sepolia": "https://sepolia.optimism.io",
+                "polygon": "${POLYGON_RPC_URL}",
+                "scroll": "https://rpc.scroll.io/",
+                "sei": "https://evm-rpc.sei-apis.com",
+                "sei_testnet": "https://evm-rpc.arctic-1.seinetwork.io",
+                "sepolia": "${SEPOLIA_RPC_URL}",
+                "superseed": "https://mainnet.superseed.xyz",
+                "superseed_sepolia": "https://sepolia.superseed.xyz",
+                "taiko_hekla": "https://rpc.hekla.taiko.xyz",
+                "taiko_mainnet": "https://rpc.mainnet.taiko.xyz"
+              }
             }
           }
         }
@@ -830,6 +882,9 @@ repositories:
       #   calldata: 0x436f32710000000000000000000000000000000000000000000000000000aa3685b35e0f
       #   args: 187151148080655 [1.871e14]
       tests/integration/fuzz/lockup-tranched/createWithTimestampsLT.t.sol
+    remappings: |
+      src/=src/
+      tests/=tests/
     ref: a8528a6d0ca25f4f36eb9327fc87e08dc78ad0a6
   sablier-labs/v2-periphery:
     env: |
@@ -869,42 +924,44 @@ repositories:
             }
           }
         },
-        "solidityTest": {
-          "blockTimestamp": BigInt(1714518000),
-          "fsPermissions": {
-            "read": [
-              "./out-optimized"
-            ],
-            "readFile": [
-              "package.json"
-            ],
-            "dangerouslyReadWriteDirectory": [
-              "./benchmark/results",
-              "./cache"
-            ]
-          },
-          "blockGasLimit": BigInt(9223372036854775807),
-          "sender": "0x1804c8AB1F12E6bbf3894d4083f33e07309d1f38",
-          "fuzz": {
-            "runs": 20,
-            "maxTestRejects": 1000000
-          },
-          "forking": {
-            "rpcEndpoints": {
-              "arbitrum": "${ARBITRUM_RPC_URL}",
-              "arbitrum_sepolia": "https://arbitrum-sepolia.blockpi.network/v1/rpc/public",
-              "avalanche": "${AVALANCHE_RPC_URL}",
-              "base": "https://mainnet.base.org",
-              "base_sepolia": "https://sepolia.base.org",
-              "bnb": "https://bsc-dataseed.binance.org",
-              "gnosis": "https://rpc.gnosischain.com",
-              "localhost": "http://localhost:8545",
-              "mainnet": "${MAINNET_RPC_URL}",
-              "optimism": "${OPTIMISM_RPC_URL}",
-              "optimism_sepolia": "https://sepolia.optimism.io",
-              "polygon": "${POLYGON_RPC_URL}",
-              "scroll": "https://rpc.scroll.io/",
-              "sepolia": "${SEPOLIA_RPC_URL}"
+        "test": {
+          "solidity": {
+            "blockTimestamp": BigInt(1714518000),
+            "fsPermissions": {
+              "read": [
+                "./out-optimized"
+              ],
+              "readFile": [
+                "package.json"
+              ],
+              "dangerouslyReadWriteDirectory": [
+                "./benchmark/results",
+                "./cache"
+              ]
+            },
+            "blockGasLimit": BigInt(9223372036854775807),
+            "sender": "0x1804c8AB1F12E6bbf3894d4083f33e07309d1f38",
+            "fuzz": {
+              "runs": 20,
+              "maxTestRejects": 1000000
+            },
+            "forking": {
+              "rpcEndpoints": {
+                "arbitrum": "${ARBITRUM_RPC_URL}",
+                "arbitrum_sepolia": "https://arbitrum-sepolia.blockpi.network/v1/rpc/public",
+                "avalanche": "${AVALANCHE_RPC_URL}",
+                "base": "https://mainnet.base.org",
+                "base_sepolia": "https://sepolia.base.org",
+                "bnb": "https://bsc-dataseed.binance.org",
+                "gnosis": "https://rpc.gnosischain.com",
+                "localhost": "http://localhost:8545",
+                "mainnet": "${MAINNET_RPC_URL}",
+                "optimism": "${OPTIMISM_RPC_URL}",
+                "optimism_sepolia": "https://sepolia.optimism.io",
+                "polygon": "${POLYGON_RPC_URL}",
+                "scroll": "https://rpc.scroll.io/",
+                "sepolia": "${SEPOLIA_RPC_URL}"
+              }
             }
           }
         }
@@ -944,8 +1001,29 @@ repositories:
               "bytecodeHash": "none"
             }
           }
+        },
+        "test": {
+          "solidity": {
+            "allowInternalExpectRevert": true,
+          }
         }
       };
+    ignore: |
+      # Unsupported testFail: https://github.com/NomicFoundation/hardhat/issues/7253
+      src/test/Auth.t.sol
+      src/test/ERC6909.t.sol
+      src/test/CREATE3.t.sol
+      src/test/DSTestPlus.t.sol
+      src/test/ReentrancyGuard.t.sol
+      src/test/SSTORE2.t.sol
+      src/test/SafeCastLib.t.sol
+      src/test/ERC1155.t.sol
+      src/test/ERC721.t.sol
+      src/test/SafeTransferLib.t.sol
+      src/test/SignedWadMath.t.sol
+      src/test/ERC20.t.sol
+      src/test/ERC4626.t.sol
+      src/test/FixedPointMathLib.t.sol
     ref: c93f7716c9909175d45f6ef80a34a650e2d24e56
   OpenZeppelin/openzeppelin-contracts:
     commands:
@@ -988,8 +1066,8 @@ commands:
     template: 'Compiled ${0} file(s)'
   hardhat test solidity:
     command: 'hardhat test solidity'
-    pattern: 'Run (?:Failed|Passed): (\d+) tests, (\d+) passed, (\d+) failed, (\d+) skipped \(duration: \d+ ms\)'
-    template: 'Ran ${0} tests (${1} passed, ${2} failed, ${3} skipped)'
+    pattern: '(?:(\d+) passing)?(?:(\d+) failing\n)?(?:(\d+) skipped\n)?'
+    template: 'Ran ${∑} tests (${0} passed, ${1} failed, ${2} skipped)'
   hardhat2 compile:
     command: 'hardhat compile'
     pattern: 'Compiled (\d+) Solidity files successfully'

@@ -1,13 +1,7 @@
 # @nomicfoundation/hardhat-zod-utils
 
-## 3.0.0-next.2
+## 3.0.0
 
-### Patch Changes
+### Major Changes
 
-- Updated dependencies [c9d81f9]
-
-## 3.0.0-next.1
-
-### Patch Changes
-
-- 5fbea0d: A small bug fix release for the Hardhat 3 Alpha.
+- 29cc141: First release of Hardhat 3!

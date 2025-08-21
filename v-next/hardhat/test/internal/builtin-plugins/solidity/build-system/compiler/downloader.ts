@@ -39,29 +39,29 @@ describe(
 
       it("should throw when version is bad", async function () {
         await assertRejectsWithHardhatError(
-          () => wasmDownloader.isCompilerDownloaded("0.4.12a"),
+          () => wasmDownloader.isCompilerDownloaded("0.5.0a"),
           HardhatError.ERRORS.CORE.SOLIDITY.INVALID_SOLC_VERSION,
           {
-            version: "0.4.12a",
+            version: "0.5.0a",
           },
         );
       });
 
       it("should return false when the compiler isn't downloaded yet", async function () {
         assert.ok(
-          !(await wasmDownloader.isCompilerDownloaded("0.4.12")),
+          !(await wasmDownloader.isCompilerDownloaded("0.5.0")),
           "Compiler should not be downloaded",
         );
       });
 
       it("should return true when the compiler is already downloaded", async function () {
-        await wasmDownloader.updateCompilerListIfNeeded(new Set(["0.4.12"]));
+        await wasmDownloader.updateCompilerListIfNeeded(new Set(["0.5.0"]));
         assert.ok(
-          await wasmDownloader.downloadCompiler("0.4.12"),
+          await wasmDownloader.downloadCompiler("0.5.0"),
           "Downloading compiler should succeed",
         );
         assert.ok(
-          await wasmDownloader.isCompilerDownloaded("0.4.12"),
+          await wasmDownloader.isCompilerDownloaded("0.5.0"),
           "Compiler should be downloaded",
         );
       });
@@ -79,29 +79,29 @@ describe(
 
       it("should throw when version is bad", async function () {
         await assertRejectsWithHardhatError(
-          () => downloader.isCompilerDownloaded("0.4.12a"),
+          () => downloader.isCompilerDownloaded("0.5.0a"),
           HardhatError.ERRORS.CORE.SOLIDITY.INVALID_SOLC_VERSION,
           {
-            version: "0.4.12a",
+            version: "0.5.0a",
           },
         );
       });
 
       it("should return false when the compiler isn't downloaded yet", async function () {
         assert.ok(
-          !(await downloader.isCompilerDownloaded("0.4.12")),
+          !(await downloader.isCompilerDownloaded("0.5.0")),
           "Compiler should not be downloaded",
         );
       });
 
       it("should return true when the compiler is already downloaded", async function () {
-        await downloader.updateCompilerListIfNeeded(new Set(["0.4.12"]));
+        await downloader.updateCompilerListIfNeeded(new Set(["0.5.0"]));
         assert.ok(
-          await downloader.downloadCompiler("0.4.12"),
+          await downloader.downloadCompiler("0.5.0"),
           "Downloading compiler should succeed",
         );
         assert.ok(
-          await downloader.isCompilerDownloaded("0.4.12"),
+          await downloader.isCompilerDownloaded("0.5.0"),
           "Compiler should be downloaded",
         );
       });
@@ -149,7 +149,7 @@ describe(
         );
 
         await assertRejectsWithHardhatError(
-          () => mockDownloader.updateCompilerListIfNeeded(new Set(["0.4.12"])),
+          () => mockDownloader.updateCompilerListIfNeeded(new Set(["0.5.0"])),
           HardhatError.ERRORS.CORE.SOLIDITY.VERSION_LIST_DOWNLOAD_FAILED,
           {},
         );
@@ -174,13 +174,13 @@ describe(
           },
         );
 
-        await mockDownloader.updateCompilerListIfNeeded(new Set(["0.4.12"]));
+        await mockDownloader.updateCompilerListIfNeeded(new Set(["0.5.0"]));
 
         await assertRejectsWithHardhatError(
-          () => mockDownloader.downloadCompiler("0.4.12"),
+          () => mockDownloader.downloadCompiler("0.5.0"),
           HardhatError.ERRORS.CORE.SOLIDITY.DOWNLOAD_FAILED,
           {
-            remoteVersion: "0.4.12+commit.194ff033",
+            remoteVersion: "0.5.0+commit.1d4f565a",
           },
         );
       });
@@ -202,11 +202,11 @@ describe(
         );
 
         await mockDownloader.updateCompilerListIfNeeded(
-          new Set(["0.4.12", "0.4.13"]),
+          new Set(["0.5.0", "0.5.1"]),
         );
 
-        await mockDownloader.downloadCompiler("0.4.12");
-        await mockDownloader.downloadCompiler("0.4.13");
+        await mockDownloader.downloadCompiler("0.5.0");
+        await mockDownloader.downloadCompiler("0.5.1");
 
         // NOTE: 1 download is done for the list, and 2 downloads are done for
         // the compilers.
@@ -245,13 +245,13 @@ describe(
           },
         );
 
-        await mockDownloader.updateCompilerListIfNeeded(new Set(["0.4.12"]));
+        await mockDownloader.updateCompilerListIfNeeded(new Set(["0.5.0"]));
 
         await assertRejectsWithHardhatError(
-          () => mockDownloader.downloadCompiler("0.4.12"),
+          () => mockDownloader.downloadCompiler("0.5.0"),
           HardhatError.ERRORS.CORE.SOLIDITY.INVALID_DOWNLOAD,
           {
-            remoteVersion: "0.4.12+commit.194ff033",
+            remoteVersion: "0.5.0+commit.1d4f565a",
           },
         );
 
@@ -266,9 +266,9 @@ describe(
 
         // it should work with the normal download now
         stopMocking = true;
-        await mockDownloader.downloadCompiler("0.4.12");
+        await mockDownloader.downloadCompiler("0.5.0");
         assert.ok(
-          await mockDownloader.isCompilerDownloaded("0.4.12"),
+          await mockDownloader.isCompilerDownloaded("0.5.0"),
           "Compiler should be downloaded",
         );
       });
@@ -279,7 +279,7 @@ describe(
           // Without a mutex, the value would be 10 because the compiler would be downloaded multiple times.
           // However, the check is implemented to ensure that the value remains 1.
 
-          const VERSION = "0.4.12";
+          const VERSION = "0.5.0";
 
           let downloads = 0;
           const mockDownloader = new CompilerDownloader(
@@ -369,26 +369,26 @@ describe(
         await downloader.updateCompilerListIfNeeded(new Set([]));
 
         await assertRejectsWithHardhatError(
-          () => downloader.getCompiler("0.4.12"),
+          () => downloader.getCompiler("0.5.0"),
           HardhatError.ERRORS.CORE.INTERNAL.ASSERTION_ERROR,
           {
-            message: "Trying to get a compiler 0.4.12 before it was downloaded",
+            message: "Trying to get a compiler 0.5.0 before it was downloaded",
           },
         );
       });
 
       it("should throw when trying to get a compiler that's in the compiler list but hasn't been downloaded yet", async function () {
         await downloader.updateCompilerListIfNeeded(
-          new Set(["0.4.12", "0.4.13"]),
+          new Set(["0.5.0", "0.5.1"]),
         );
 
-        await downloader.downloadCompiler("0.4.12");
+        await downloader.downloadCompiler("0.5.0");
 
         await assertRejectsWithHardhatError(
-          () => downloader.getCompiler("0.4.13"),
+          () => downloader.getCompiler("0.5.1"),
           HardhatError.ERRORS.CORE.INTERNAL.ASSERTION_ERROR,
           {
-            message: "Trying to get a compiler 0.4.13 before it was downloaded",
+            message: "Trying to get a compiler 0.5.1 before it was downloaded",
           },
         );
       });
@@ -402,7 +402,7 @@ describe(
           async (_url, destination, _requestOptions, _dispatcherOptions) => {
             if (!hasDownloadedOnce) {
               hasDownloadedOnce = true;
-              const longVersion = "0.4.12+mock";
+              const longVersion = "0.5.0+mock";
               const compilersList = {
                 builds: [
                   {
@@ -410,7 +410,7 @@ describe(
                       platform === CompilerPlatform.WINDOWS
                         ? "solc.exe"
                         : "solc",
-                    version: "0.4.12",
+                    version: "0.5.0",
                     longVersion,
                     build: "build",
                     keccak256:
@@ -420,9 +420,9 @@ describe(
                   },
                 ],
                 releases: {
-                  "0.4.12": "0.4.12+mock",
+                  "0.5.0": "0.5.0+mock",
                 },
-                latestRelease: "0.4.12",
+                latestRelease: "0.5.0",
               };
 
               await fs.ensureDir(path.dirname(destination));
@@ -435,31 +435,35 @@ describe(
           },
         );
 
-        await mockDownloader.updateCompilerListIfNeeded(new Set(["0.4.12"]));
+        await mockDownloader.updateCompilerListIfNeeded(new Set(["0.5.0"]));
 
+        const remoteVersion =
+          platform === CompilerPlatform.LINUX_ARM64
+            ? "0.5.0"
+            : "0.5.0+commit.1d4f565a";
         await assertRejectsWithHardhatError(
-          () => mockDownloader.downloadCompiler("0.4.12"),
+          () => mockDownloader.downloadCompiler("0.5.0"),
           HardhatError.ERRORS.CORE.SOLIDITY.INVALID_DOWNLOAD,
           {
-            remoteVersion: "0.4.12+commit.194ff033",
+            remoteVersion,
           },
         );
       });
 
       it("should work for downloaded compilers", async function () {
         await downloader.updateCompilerListIfNeeded(
-          new Set(["0.4.12", "0.4.13"]),
+          new Set(["0.5.0", "0.5.1"]),
         );
 
-        await downloader.downloadCompiler("0.4.12");
+        await downloader.downloadCompiler("0.5.0");
         assert.ok(
-          downloader.getCompiler("0.4.12") !== undefined,
+          downloader.getCompiler("0.5.0") !== undefined,
           "Compiler should be defined",
         );
 
-        await downloader.downloadCompiler("0.4.13");
+        await downloader.downloadCompiler("0.5.1");
         assert.ok(
-          downloader.getCompiler("0.4.13") !== undefined,
+          downloader.getCompiler("0.5.1") !== undefined,
           "Compiler should be defined",
         );
       });

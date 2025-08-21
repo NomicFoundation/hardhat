@@ -40,52 +40,20 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.RELEASE_GITHUB_TOKEN || github.token }}
         uses: changesets/action@v1
         with:
-          version: node scripts/version-alpha.mjs
           title: Version Packages (v3)
 
-      - name: Check if release needs to be published
-        id: before
-        if: steps.pr.outputs.hasChangesets == 'false'
-        run: node scripts/check-release.mjs
-
       - name: Build All Packages
-        if: steps.before.outputs.released == 'false'
+        if: steps.pr.outputs.hasChangesets == 'false'
         run: pnpm run --recursive -no-bail --filter './v-next/**' --if-present build
 
       - name: Publish All Packages (dry-run)
-        if: steps.before.outputs.released == 'false'
-        run: pnpm publish --filter "./v-next/**" -r --no-git-checks --tag next --access public --dry-run
+        if: steps.pr.outputs.hasChangesets == 'false'
+        run: pnpm publish --filter "./v-next/**" -r --no-git-checks --access public --tag next --dry-run
 
       - name: Publish All Packages
         id: publish
-        if: steps.before.outputs.released == 'false'
+        if: steps.pr.outputs.hasChangesets == 'false'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
-        run: pnpm publish --filter "./v-next/**" -r --no-git-checks --tag next --access public
-
-      - name: Check if release was published
-        id: after
-        if: steps.before.outputs.released == 'false'
-        run: node scripts/check-release.mjs
-
-      - name: Prepare GitHub release
-        id: release
-        if: steps.before.outputs.released == 'false' && steps.after.outputs.released == 'true'
-        run: node scripts/prepare-github-release.mjs
-
-      - name: Create GitHub Release
-        if: steps.before.outputs.released == 'false' && steps.after.outputs.released == 'true'
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        uses: galargh/action-gh-release@571276229e7c9e6ea18f99bad24122a4c3ec813f # https://github.com/galargh/action-gh-release/pull/1
-        with:
-          # We want the GitHub releases to be verified and published by a human because they are automatically pulled into the website
-          draft: true
-          tag_name: hardhat@${{ steps.release.outputs.version }}
-          generate_release_notes: false
-          target_commitish: ${{ github.sha }}
-          make_latest: ${{ steps.release.outputs.latest == 'true' }}
-          prerelease: ${{ steps.release.outputs.prerelease == 'true' }}
-          body: ${{ steps.release.outputs.body }}
-          token: ${{ github.token }}
+        run: pnpm publish --filter "./v-next/**" -r --no-git-checks --access public --tag next

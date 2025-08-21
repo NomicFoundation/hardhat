@@ -89,7 +89,7 @@ class Reporter {
         SENTRY_DSN,
         release,
         environment,
-        this.#hardhatConfigPath,
+        () => this.#hardhatConfigPath,
       ),
       release,
       environment,
