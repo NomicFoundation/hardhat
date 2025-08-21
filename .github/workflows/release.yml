@@ -49,7 +49,7 @@ jobs:
 
       - name: Publish All Packages (dry-run)
         if: steps.pr.outputs.hasChangesets == 'false'
-        run: pnpm publish --filter "./v-next/**" -r --no-git-checks --access public --tag next --dry-run
+        run: pnpm publish --filter "./v-next/**" -r --no-git-checks --access public --dry-run
 
       - name: Publish All Packages
         id: publish
@@ -57,7 +57,7 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
-        run: pnpm publish --filter "./v-next/**" -r --no-git-checks --access public --tag next
+        run: pnpm publish --filter "./v-next/**" -r --no-git-checks --access public
 
       - name: Create Git tags for packages
         if: steps.pr.outputs.hasChangesets == 'false'
