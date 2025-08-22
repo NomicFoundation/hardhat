@@ -138,7 +138,7 @@ describe("network-manager/hook-handlers/config", () => {
       assertValidationErrors(validationErrors, [
         {
           path: ["defaultChainType"],
-          message: "Expected 'l1', 'optimism', or 'generic'",
+          message: "Expected 'l1', 'op', or 'generic'",
         },
       ]);
     });
@@ -176,7 +176,8 @@ describe("network-manager/hook-handlers/config", () => {
       assertValidationErrors(validationErrors, [
         {
           path: ["networks", "localhost", "type"],
-          message: "Invalid discriminator value. Expected 'http' | 'edr'",
+          message:
+            "Invalid discriminator value. Expected 'http' | 'edr-simulated'",
         },
       ]);
     });
@@ -195,7 +196,8 @@ describe("network-manager/hook-handlers/config", () => {
       assertValidationErrors(validationErrors, [
         {
           path: ["networks", "localhost", "type"],
-          message: "Invalid discriminator value. Expected 'http' | 'edr'",
+          message:
+            "Invalid discriminator value. Expected 'http' | 'edr-simulated'",
         },
       ]);
     });
@@ -241,7 +243,7 @@ describe("network-manager/hook-handlers/config", () => {
       assertValidationErrors(validationErrors, [
         {
           path: ["networks", "localhost", "chainType"],
-          message: "Expected 'l1', 'optimism', or 'generic'",
+          message: "Expected 'l1', 'op', or 'generic'",
         },
       ]);
     });
@@ -441,7 +443,7 @@ describe("network-manager/hook-handlers/config", () => {
       ): HardhatUserConfig => ({
         networks: {
           test: {
-            type: "edr",
+            type: "edr-simulated",
             chainType: "l1",
             allowBlocksWithSameTimestamp,
             mining: {
@@ -875,7 +877,7 @@ describe("network-manager/hook-handlers/config", () => {
                 gas: "auto",
                 gasMultiplier: 1,
                 gasPrice: "auto",
-                type: "edr",
+                type: "edr-simulated",
                 accounts: "", // Modified in the tests
                 url: "http://localhost:8545",
               },

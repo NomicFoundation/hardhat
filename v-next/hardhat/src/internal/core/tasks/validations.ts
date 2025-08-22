@@ -23,17 +23,6 @@ export function validateId(id: string | string[]): void {
   }
 }
 
-export function validateAction(action: unknown): void {
-  if (typeof action === "string" && !isValidActionUrl(action)) {
-    throw new HardhatError(
-      HardhatError.ERRORS.CORE.TASK_DEFINITIONS.INVALID_FILE_ACTION,
-      {
-        action,
-      },
-    );
-  }
-}
-
 export function validateOption(
   { name, shortName, type, defaultValue }: OptionDefinition,
   usedNames: Set<string>,
@@ -116,12 +105,6 @@ export function validatePositionalArgument(
   }
 
   usedNames.add(name);
-}
-
-const FILE_PROTOCOL_PATTERN = /^file:\/\/.+/;
-
-function isValidActionUrl(action: string): boolean {
-  return FILE_PROTOCOL_PATTERN.test(action);
 }
 
 export function validateTaskArgumentValue(

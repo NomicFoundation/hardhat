@@ -26,12 +26,13 @@ import { readDeploymentParameters } from "../../helpers/read-deployment-paramete
 import { resolveDeploymentId } from "../../helpers/resolve-deployment-id.js";
 import { bigintReviver } from "../utils/bigintReviver.js";
 import { loadModule } from "../utils/load-module.js";
+import { verifyArtifactsVersion } from "../utils/verifyArtifactsVersion.js";
 
 interface TaskDeployArguments {
   modulePath: string;
-  parameters: string;
-  deploymentId: string;
-  defaultSender: string;
+  parameters?: string;
+  deploymentId?: string;
+  defaultSender?: string;
   strategy: string;
   reset: boolean;
   verify: boolean;
@@ -60,14 +61,19 @@ const taskDeploy: NewTaskActionFunction<TaskDeployArguments> = async (
   );
 
   const deploymentId = resolveDeploymentId(
-    givenDeploymentId === "" ? undefined : givenDeploymentId,
+    givenDeploymentId === undefined || givenDeploymentId === ""
+      ? undefined
+      : givenDeploymentId,
     chainId,
   );
 
   const deploymentDir =
-    connection.networkConfig.type === "edr" && !writeLocalhostDeployment
+    connection.networkConfig.type === "edr-simulated" &&
+    !writeLocalhostDeployment
       ? undefined
       : path.join(hre.config.paths.ignition, "deployments", deploymentId);
+
+  await verifyArtifactsVersion(deploymentDir);
 
   if (chainId !== 31337) {
     if (process.env.HARDHAT_IGNITION_CONFIRM_DEPLOYMENT === undefined) {
@@ -193,7 +199,10 @@ const taskDeploy: NewTaskActionFunction<TaskDeployArguments> = async (
     ignitionModule: userModule,
     deploymentParameters: parameters ?? {},
     accounts,
-    defaultSender: defaultSender === "" ? undefined : defaultSender,
+    defaultSender:
+      defaultSender === undefined || defaultSender === ""
+        ? undefined
+        : defaultSender,
     strategy: strategyName,
     strategyConfig,
     maxFeePerGasLimit:

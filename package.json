@@ -15,7 +15,8 @@
     "prelint": "pnpm build",
     "lint": "pnpm run --recursive --if-present lint",
     "prelint:fix": "pnpm build",
-    "lint:fix": "pnpm run --recursive --if-present lint:fix"
+    "lint:fix": "pnpm run --recursive --if-present lint:fix",
+    "version-for-release": "pnpm changeset version && pnpm -w install --lockfile-only"
   },
   "pnpm": {
     "overrides": {

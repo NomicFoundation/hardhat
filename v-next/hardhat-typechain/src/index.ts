@@ -6,13 +6,11 @@ import { globalFlag } from "hardhat/config";
 const hardhatTypechain: HardhatPlugin = {
   id: "hardhat-typechain",
   hookHandlers: {
-    config: import.meta.resolve("./internal/hook-handlers/config.js"),
-    solidity: import.meta.resolve("./internal/hook-handlers/solidity.js"),
+    config: () => import("./internal/hook-handlers/config.js"),
+    solidity: () => import("./internal/hook-handlers/solidity.js"),
   },
   npmPackage: "@nomicfoundation/hardhat-typechain",
-  dependencies: [
-    async () => (await import("@nomicfoundation/hardhat-ethers")).default,
-  ],
+  dependencies: () => [import("@nomicfoundation/hardhat-ethers")],
   globalOptions: [
     globalFlag({
       name: "noTypechain",

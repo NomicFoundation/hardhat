@@ -1,3 +1,7 @@
 artifacts/
 cache/
 deployments/
+tmp/
+!default-with-new-chain-id/ignition/deployments
+!migrate*/ignition/deployments
+!migrate*/ignition/deployments/**/*

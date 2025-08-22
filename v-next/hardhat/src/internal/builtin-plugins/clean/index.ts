@@ -12,7 +12,7 @@ const hardhatPlugin: HardhatPlugin = {
         name: "global",
         description: "Clear the global cache",
       })
-      .setAction(import.meta.resolve("./task-action.js"))
+      .setAction(async () => import("./task-action.js"))
       .build(),
   ],
   npmPackage: "hardhat",

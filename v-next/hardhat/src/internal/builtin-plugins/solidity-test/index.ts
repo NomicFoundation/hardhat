@@ -9,8 +9,8 @@ import "./type-extensions.js";
 const hardhatPlugin: HardhatPlugin = {
   id: "builtin:solidity-tests",
   hookHandlers: {
-    config: import.meta.resolve("./hook-handlers/config.js"),
-    test: import.meta.resolve("./hook-handlers/test.js"),
+    config: () => import("./hook-handlers/config.js"),
+    test: () => import("./hook-handlers/test.js"),
   },
   tasks: [
     task(["test", "solidity"], "Run the Solidity tests")
@@ -40,12 +40,13 @@ const hardhatPlugin: HardhatPlugin = {
         description: "Verbosity level of the test output",
         defaultValue: 2,
       })
-      .setAction(import.meta.resolve("./task-action.js"))
+      .setAction(async () => import("./task-action.js"))
       .build(),
   ],
-  dependencies: [
-    async () => (await import("../solidity/index.js")).default,
-    async () => (await import("../test/index.js")).default,
+  dependencies: () => [
+    import("../solidity/index.js"),
+    import("../test/index.js"),
+    import("../coverage/index.js"),
   ],
   npmPackage: "hardhat",
 };

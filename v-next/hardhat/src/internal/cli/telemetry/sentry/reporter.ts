@@ -2,7 +2,6 @@ import {
   HardhatError,
   HardhatPluginError,
 } from "@nomicfoundation/hardhat-errors";
-import { flush } from "@sentry/core";
 import debug from "debug";
 
 import {
@@ -12,8 +11,6 @@ import {
 import { getHardhatVersion } from "../../../utils/package.js";
 import { isTelemetryAllowed } from "../telemetry-permissions.js";
 
-import { makeSubprocessTransport } from "./transports/subprocess.js";
-
 const log = debug("hardhat:cli:telemetry:sentry:reporter");
 
 // export const SENTRY_DSN =
@@ -21,12 +18,19 @@ const log = debug("hardhat:cli:telemetry:sentry:reporter");
 export const SENTRY_DSN =
   "https://572b03708e298427cc72fc26dac1e8b2@o385026.ingest.us.sentry.io/4508780138856448"; // PROD
 
-export async function sendErrorTelemetry(
-  error: Error,
-  configPath: string = "",
-): Promise<boolean> {
+// TODO: This could be done in a more elegant way, but for now, we just
+// initialize the entire reporter so that it sets the global error handlers.
+export async function setupErrorTelemetryIfEnabled(): Promise<void> {
+  await Reporter.getInstance(true);
+}
+
+export async function sendErrorTelemetry(error: Error): Promise<boolean> {
   const instance = await Reporter.getInstance();
-  return instance.reportErrorViaSubprocess(error, configPath);
+  return instance.reportErrorViaSubprocess(error);
+}
+
+export function setCliHardhatConfigPath(configPath: string): void {
+  Reporter.setHardhatConfigPath(configPath);
 }
 
 // ATTENTION: this function is exported for testing, do not directly use it in production
@@ -40,6 +44,7 @@ class Reporter {
   // 2) The custom transporter receives the JavaScript error serialized by Sentry.
   // 3) This serialized error is then passed to a detached subprocess, which anonymizes all the information before sending it to Sentry.
 
+  static #hardhatConfigPath?: string;
   static #instance: Reporter | undefined;
   readonly #telemetryEnabled: boolean;
 
@@ -47,7 +52,13 @@ class Reporter {
     this.#telemetryEnabled = telemetryAllowed;
   }
 
-  public static async getInstance(): Promise<Reporter> {
+  public static setHardhatConfigPath(configPath: string): void {
+    this.#hardhatConfigPath = configPath;
+  }
+
+  public static async getInstance(
+    shouldSetupErrorHandlers = false,
+  ): Promise<Reporter> {
     if (this.#instance !== undefined) {
       return this.#instance;
     }
@@ -63,30 +74,30 @@ class Reporter {
 
     log("Initializing Reporter instance");
 
-    const { setExtra, linkedErrorsIntegration } = await import("@sentry/core");
-    const { contextLinesIntegration } = await import(
-      "./vendor/integrations/contextlines.js"
-    );
+    const { setExtra } = await import("@sentry/core");
 
+    const hardhatVersion = await getHardhatVersion();
     const { init } = await import("./init.js");
+    const { createDetachedProcessTransport } = await import("./transport.js");
 
-    const linkedErrorsIntegrationInstance = linkedErrorsIntegration({
-      key: "cause",
-    });
+    const release = `hardhat@${hardhatVersion}`;
+    const environment = "production";
 
-    const contextLinesIntegrationInstance = contextLinesIntegration();
-
-    await init({
+    init({
       dsn: SENTRY_DSN,
-      transport: makeSubprocessTransport,
-      integrations: () => [
-        linkedErrorsIntegrationInstance,
-        contextLinesIntegrationInstance,
-      ],
+      transport: createDetachedProcessTransport(
+        SENTRY_DSN,
+        release,
+        environment,
+        () => this.#hardhatConfigPath,
+      ),
+      release,
+      environment,
+      installGlobalHandlers: shouldSetupErrorHandlers,
     });
 
     setExtra("nodeVersion", process.version);
-    setExtra("hardhatVersion", await getHardhatVersion());
+    setExtra("hardhatVersion", hardhatVersion);
 
     return this.#instance;
   }
@@ -96,27 +107,17 @@ class Reporter {
     this.#instance = undefined;
   }
 
-  public async reportErrorViaSubprocess(
-    error: Error,
-    configPath: string = "",
-  ): Promise<boolean> {
+  public async reportErrorViaSubprocess(error: Error): Promise<boolean> {
     if (!(await this.#shouldBeReported(error))) {
       log("Error not send: this type of error should not be reported");
       return false;
     }
 
-    const { captureException, setExtra } = await import("@sentry/core");
-
-    setExtra("configPath", configPath);
+    const { captureException } = await import("@sentry/core");
 
     log("Capturing exception");
 
     captureException(error);
-
-    // NOTE: Alternatively, we could close the reporter when we exit the process.
-    if (!(await flush(50))) {
-      log("Failed to flush events");
-    }
 
     return true;
   }

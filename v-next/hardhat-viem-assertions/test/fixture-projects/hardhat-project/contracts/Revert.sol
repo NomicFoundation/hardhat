@@ -1,6 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
+struct TestStruct {
+  uint a;
+  uint b;
+}
+
 contract Revert {
   //
   // Custom errors
@@ -9,6 +14,8 @@ contract Revert {
   error CustomErrorWithInt(int);
   error CustomErrorWithUintAndString(uint, string);
   error CustomErrorWithUintAndStringNamedParam(uint u, uint v, string s);
+  error CustomErrorWithArray(uint[]);
+  error CustomErrorWithStruct(TestStruct);
 
   function alwaysRevert() external pure {
     revert("Intentional revert for testing purposes");
@@ -37,6 +44,14 @@ contract Revert {
     string memory s
   ) external pure {
     revert CustomErrorWithUintAndStringNamedParam(u, v, s);
+  }
+
+  function revertWithCustomErrorWithArray(uint[] memory a) external pure {
+    revert CustomErrorWithArray(a);
+  }
+
+  function revertWithCustomErrorWithStruct(TestStruct memory a) external pure {
+    revert CustomErrorWithStruct(a);
   }
 }
 

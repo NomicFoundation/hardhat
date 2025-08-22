@@ -13,10 +13,10 @@ const userConfigType = z.object({
     .object({
       test: conditionalUnionType(
         [
-          [isObject, z.object({ nodeTest: z.string().optional() })],
+          [isObject, z.object({ nodejs: z.string().optional() })],
           [(data) => typeof data === "string", z.string()],
         ],
-        "Expected a string or an object with an optional 'nodeTest' property",
+        "Expected a string or an object with an optional 'nodejs' property",
       ).optional(),
     })
     .optional(),
@@ -40,8 +40,7 @@ export default async (): Promise<Partial<ConfigHooks>> => {
       let testsPath = userConfig.paths?.tests;
 
       // TODO: use isObject when the type narrowing issue is fixed
-      testsPath =
-        typeof testsPath === "object" ? testsPath.nodeTest : testsPath;
+      testsPath = typeof testsPath === "object" ? testsPath.nodejs : testsPath;
       testsPath ??= "test";
 
       return {
@@ -50,7 +49,7 @@ export default async (): Promise<Partial<ConfigHooks>> => {
           ...resolvedConfig.paths,
           tests: {
             ...resolvedConfig.paths.tests,
-            nodeTest: resolveFromRoot(resolvedConfig.paths.root, testsPath),
+            nodejs: resolveFromRoot(resolvedConfig.paths.root, testsPath),
           },
         },
       };

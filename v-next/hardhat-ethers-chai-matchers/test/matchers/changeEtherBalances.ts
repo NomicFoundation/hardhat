@@ -72,7 +72,7 @@ describe("INTEGRATION: changeEtherBalances matcher", { timeout: 60000 }, () => {
               to: contract,
               value: 200,
             }),
-          ).to.changeEtherBalances(provider, [sender, contract], [-200, 200]);
+          ).to.changeEtherBalances(ethers, [sender, contract], [-200, 200]);
         });
       });
 
@@ -81,7 +81,7 @@ describe("INTEGRATION: changeEtherBalances matcher", { timeout: 60000 }, () => {
           await expect(() =>
             contract.transferTo(receiver.address, { value: 200 }),
           ).to.changeEtherBalances(
-            provider,
+            ethers,
             [sender, contract, receiver],
             [-200, 0, 200],
           );
@@ -96,7 +96,7 @@ describe("INTEGRATION: changeEtherBalances matcher", { timeout: 60000 }, () => {
               gasPrice: 1,
               value: 200,
             }),
-          ).to.changeEtherBalances(provider, [sender, receiver], ["-200", 200]);
+          ).to.changeEtherBalances(ethers, [sender, receiver], ["-200", 200]);
         });
 
         it("should pass when given addresses as strings", async () => {
@@ -107,7 +107,7 @@ describe("INTEGRATION: changeEtherBalances matcher", { timeout: 60000 }, () => {
               value: 200,
             }),
           ).to.changeEtherBalances(
-            provider,
+            ethers,
             [sender.address, receiver.address],
             ["-200", 200],
           );
@@ -120,7 +120,7 @@ describe("INTEGRATION: changeEtherBalances matcher", { timeout: 60000 }, () => {
               gasPrice: 1,
               value: 200,
             }),
-          ).to.changeEtherBalances(provider, [sender, receiver], [-200n, 200n]);
+          ).to.changeEtherBalances(ethers, [sender, receiver], [-200n, 200n]);
         });
 
         it("should pass when given a predicate", async () => {
@@ -131,7 +131,7 @@ describe("INTEGRATION: changeEtherBalances matcher", { timeout: 60000 }, () => {
               value: 200,
             }),
           ).to.changeEtherBalances(
-            provider,
+            ethers,
             [sender, receiver],
             ([senderDiff, receiverDiff]: bigint[]) =>
               senderDiff === -200n && receiverDiff === 200n,
@@ -147,7 +147,7 @@ describe("INTEGRATION: changeEtherBalances matcher", { timeout: 60000 }, () => {
                 value: 200,
               }),
             ).to.changeEtherBalances(
-              provider,
+              ethers,
               [sender, receiver],
               ([senderDiff, receiverDiff]: bigint[]) =>
                 senderDiff === -201n && receiverDiff === 200n,
@@ -167,7 +167,7 @@ describe("INTEGRATION: changeEtherBalances matcher", { timeout: 60000 }, () => {
                 value: 200,
               }),
             ).to.not.changeEtherBalances(
-              provider,
+              ethers,
               [sender, receiver],
               ([senderDiff, receiverDiff]: bigint[]) =>
                 senderDiff === -200n && receiverDiff === 200n,
@@ -186,7 +186,7 @@ describe("INTEGRATION: changeEtherBalances matcher", { timeout: 60000 }, () => {
               value: 200,
             }),
           ).to.changeEtherBalances(
-            provider,
+            ethers,
             [sender, receiver, contract],
             [-(txGasFees + 200), 200, 0],
             { includeFee: true },
@@ -202,7 +202,7 @@ describe("INTEGRATION: changeEtherBalances matcher", { timeout: 60000 }, () => {
               value: 200,
             }),
           ).to.changeEtherBalances(
-            provider,
+            ethers,
             [sender, receiver, contract],
             [-(txGasFees + 200), 200, 0],
             { includeFee: true },
@@ -212,7 +212,7 @@ describe("INTEGRATION: changeEtherBalances matcher", { timeout: 60000 }, () => {
         it("should pass when given a single address", async () => {
           await expect(() =>
             sender.sendTransaction({ to: receiver.address, value: 200 }),
-          ).to.changeEtherBalances(provider, [sender], [-200]);
+          ).to.changeEtherBalances(ethers, [sender], [-200]);
         });
 
         it("should pass when negated and numbers don't match", async () => {
@@ -223,7 +223,7 @@ describe("INTEGRATION: changeEtherBalances matcher", { timeout: 60000 }, () => {
               value: 200,
             }),
           ).to.not.changeEtherBalances(
-            provider,
+            ethers,
             [sender, receiver],
             [-(txGasFees + 201), 200],
           );
@@ -233,7 +233,7 @@ describe("INTEGRATION: changeEtherBalances matcher", { timeout: 60000 }, () => {
               value: 200,
             }),
           ).to.not.changeEtherBalances(
-            provider,
+            ethers,
             [sender, receiver],
             [-200, 201],
             {
@@ -250,7 +250,7 @@ describe("INTEGRATION: changeEtherBalances matcher", { timeout: 60000 }, () => {
                 gasPrice: 1,
                 value: 200,
               }),
-            ).to.changeEtherBalances(provider, [sender, receiver], [-200, 201]),
+            ).to.changeEtherBalances(ethers, [sender, receiver], [-200, 201]),
           ).to.be.eventually.rejectedWith(
             AssertionError,
             `Expected the ether balance of ${receiver.address} (the 2nd address in the list) to change by 201 wei, but it changed by 200 wei`,
@@ -262,7 +262,7 @@ describe("INTEGRATION: changeEtherBalances matcher", { timeout: 60000 }, () => {
                 gasPrice: 1,
                 value: 200,
               }),
-            ).to.changeEtherBalances(provider, [sender, receiver], [-201, 200]),
+            ).to.changeEtherBalances(ethers, [sender, receiver], [-201, 200]),
           ).to.be.eventually.rejectedWith(
             AssertionError,
             `Expected the ether balance of ${sender.address} (the 1st address in the list) to change by -201 wei, but it changed by -200 wei`,
@@ -278,7 +278,7 @@ describe("INTEGRATION: changeEtherBalances matcher", { timeout: 60000 }, () => {
                 value: 200,
               }),
             ).to.not.changeEtherBalances(
-              provider,
+              ethers,
               [sender, receiver],
               [-200, 200],
             ),
@@ -296,7 +296,7 @@ describe("INTEGRATION: changeEtherBalances matcher", { timeout: 60000 }, () => {
                 gasPrice: 1,
                 value: 200,
               }),
-            ).to.changeEtherBalances(provider, [sender], ["-200", 200]),
+            ).to.changeEtherBalances(ethers, [sender], ["-200", 200]),
           ).to.throw(
             Error,
             "The number of accounts (1) is different than the number of expected balance changes (2)",
@@ -308,7 +308,7 @@ describe("INTEGRATION: changeEtherBalances matcher", { timeout: 60000 }, () => {
                 gasPrice: 1,
                 value: 200,
               }),
-            ).to.changeEtherBalances(provider, [sender, receiver], ["-200"]),
+            ).to.changeEtherBalances(ethers, [sender, receiver], ["-200"]),
           ).to.throw(
             Error,
             "The number of accounts (2) is different than the number of expected balance changes (1)",
@@ -326,7 +326,7 @@ describe("INTEGRATION: changeEtherBalances matcher", { timeout: 60000 }, () => {
             gasPrice: 1,
             value: 200,
           }),
-        ).to.changeEtherBalances(provider, [sender, receiver], [-200, 200]);
+        ).to.changeEtherBalances(ethers, [sender, receiver], [-200, 200]);
 
         const receiverBalanceAfter = await ethers.provider.getBalance(receiver);
         const receiverBalanceChange =
@@ -344,7 +344,7 @@ describe("INTEGRATION: changeEtherBalances matcher", { timeout: 60000 }, () => {
               to: contract,
               value: 200,
             }),
-          ).to.changeEtherBalances(provider, [sender, contract], [-200, 200]);
+          ).to.changeEtherBalances(ethers, [sender, contract], [-200, 200]);
         });
       });
 
@@ -358,13 +358,13 @@ describe("INTEGRATION: changeEtherBalances matcher", { timeout: 60000 }, () => {
               }),
             )
               .to.changeTokenBalances(
-                provider,
+                ethers,
                 mockToken,
                 [sender, receiver],
                 [0, 0],
               )
               .and.to.changeEtherBalances(
-                provider,
+                ethers,
                 [sender, contract],
                 [-200, 200],
               ),
@@ -386,7 +386,7 @@ describe("INTEGRATION: changeEtherBalances matcher", { timeout: 60000 }, () => {
               value: 200,
             }),
           ).to.changeEtherBalances(
-            provider,
+            ethers,
             [sender, receiver],
             [(-(txGasFees + 200)).toString(), 200],
             { includeFee: true },
@@ -401,7 +401,7 @@ describe("INTEGRATION: changeEtherBalances matcher", { timeout: 60000 }, () => {
               value: 200,
             }),
           ).to.changeEtherBalances(
-            provider,
+            ethers,
             [sender, receiver, contract],
             [-(txGasFees + 200), 200, 0],
             { includeFee: true },
@@ -414,21 +414,13 @@ describe("INTEGRATION: changeEtherBalances matcher", { timeout: 60000 }, () => {
               to: receiver.address,
               value: 200,
             }),
-          ).to.not.changeEtherBalances(
-            provider,
-            [sender, receiver],
-            [-201, 200],
-          );
+          ).to.not.changeEtherBalances(ethers, [sender, receiver], [-201, 200]);
           await expect(
             await sender.sendTransaction({
               to: receiver.address,
               value: 200,
             }),
-          ).to.not.changeEtherBalances(
-            provider,
-            [sender, receiver],
-            [-200, 201],
-          );
+          ).to.not.changeEtherBalances(ethers, [sender, receiver], [-200, 201]);
         });
 
         it("should throw when fee was not calculated correctly", async () => {
@@ -439,14 +431,9 @@ describe("INTEGRATION: changeEtherBalances matcher", { timeout: 60000 }, () => {
                 gasPrice: 1,
                 value: 200,
               }),
-            ).to.changeEtherBalances(
-              provider,
-              [sender, receiver],
-              [-200, 200],
-              {
-                includeFee: true,
-              },
-            ),
+            ).to.changeEtherBalances(ethers, [sender, receiver], [-200, 200], {
+              includeFee: true,
+            }),
           ).to.be.eventually.rejectedWith(
             AssertionError,
             `Expected the ether balance of ${
@@ -464,7 +451,7 @@ describe("INTEGRATION: changeEtherBalances matcher", { timeout: 60000 }, () => {
                 to: receiver.address,
                 value: 200,
               }),
-            ).to.changeEtherBalances(provider, [sender, receiver], [-200, 201]),
+            ).to.changeEtherBalances(ethers, [sender, receiver], [-200, 201]),
           ).to.be.eventually.rejectedWith(
             AssertionError,
             `Expected the ether balance of ${receiver.address} (the 2nd address in the list) to change by 201 wei, but it changed by 200 wei`,
@@ -475,7 +462,7 @@ describe("INTEGRATION: changeEtherBalances matcher", { timeout: 60000 }, () => {
                 to: receiver.address,
                 value: 200,
               }),
-            ).to.changeEtherBalances(provider, [sender, receiver], [-201, 200]),
+            ).to.changeEtherBalances(ethers, [sender, receiver], [-201, 200]),
           ).to.be.eventually.rejectedWith(
             AssertionError,
             `Expected the ether balance of ${sender.address} (the 1st address in the list) to change by -201 wei, but it changed by -200 wei`,
@@ -490,7 +477,7 @@ describe("INTEGRATION: changeEtherBalances matcher", { timeout: 60000 }, () => {
                 value: 200,
               }),
             ).to.not.changeEtherBalances(
-              provider,
+              ethers,
               [sender, receiver],
               [-200, 200],
             ),
@@ -511,7 +498,7 @@ describe("INTEGRATION: changeEtherBalances matcher", { timeout: 60000 }, () => {
               to: receiver.address,
               value: 200,
             }),
-          ).to.changeEtherBalances(provider, [sender, receiver], [-100, 100]);
+          ).to.changeEtherBalances(ethers, [sender, receiver], [-100, 100]);
         } catch (e) {
           expect(util.inspect(e)).to.include(
             path.join("test", "matchers", "changeEtherBalances.ts"),

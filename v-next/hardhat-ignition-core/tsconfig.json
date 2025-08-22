@@ -1,6 +1,7 @@
 {
   "extends": "../config/tsconfig.base.json",
   "references": [
+    { "path": "../hardhat" },
     { "path": "../hardhat-utils" },
     { "path": "../hardhat-test-utils" },
     { "path": "../hardhat-errors" }

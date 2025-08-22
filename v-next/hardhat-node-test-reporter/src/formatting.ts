@@ -95,28 +95,30 @@ export function formatSlowTestInfo(durationMs: number): string {
 export function formatGlobalDiagnostics(
   diagnostics: GlobalDiagnostics,
 ): string {
-  let result =
+  let result = "  ";
+
+  result +=
     chalk.green(`${diagnostics.pass} passing`) +
     chalk.gray(` (${Math.floor(diagnostics.duration_ms)}ms)`);
 
   if (diagnostics.fail > 0) {
     result += chalk.red(`
-${diagnostics.fail} failing`);
+  ${diagnostics.fail} failing`);
   }
 
   if (diagnostics.skipped > 0) {
     result += chalk.cyan(`
-${diagnostics.skipped} skipped`);
+  ${diagnostics.skipped} skipped`);
   }
 
   if (diagnostics.todo > 0) {
     result += chalk.blue(`
-${diagnostics.todo} todo`);
+  ${diagnostics.todo} todo`);
   }
 
   if (diagnostics.cancelled > 0) {
     result += chalk.gray(`
-${diagnostics.cancelled} cancelled`);
+  ${diagnostics.cancelled} cancelled`);
   }
 
   return result;
@@ -137,7 +139,7 @@ export function formatUnusedDiagnostics(
       }
       return message;
     })
-    .map((message) => `${INFO_SYMBOL} ${message}`);
+    .map((message) => `  ${INFO_SYMBOL} ${message}`);
   return Array.from(new Set(messages)).join("\n");
 }
 

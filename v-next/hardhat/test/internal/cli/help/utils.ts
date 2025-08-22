@@ -21,7 +21,14 @@ describe("utils", function () {
       const task: Task = {
         id: ["task"],
         description: "task description",
-        actions: [{ pluginId: "task-plugin-id", action: () => {} }],
+        actions: [
+          {
+            pluginId: "task-plugin-id",
+            action: async () => ({
+              default: () => {},
+            }),
+          },
+        ],
         options: new Map(),
         positionalArguments: [],
         pluginId: "task-plugin-id",
@@ -52,7 +59,14 @@ describe("utils", function () {
       const task: Task = {
         id: ["task"],
         description: "task description",
-        actions: [{ pluginId: "task-plugin-id", action: () => {} }],
+        actions: [
+          {
+            pluginId: "task-plugin-id",
+            action: async () => ({
+              default: () => {},
+            }),
+          },
+        ],
         options: new Map(),
         positionalArguments: [],
         pluginId: "task-plugin-id",
@@ -78,6 +92,44 @@ describe("utils", function () {
         ],
       });
     });
+
+    it("should remove a trailing full stop from tasks and subtasks descriptions", function () {
+      const task: Task = {
+        id: ["task"],
+        description: "task description.",
+        actions: [
+          {
+            pluginId: "task-plugin-id",
+            action: async () => ({
+              default: () => {},
+            }),
+          },
+        ],
+        options: new Map(),
+        positionalArguments: [],
+        pluginId: "task-plugin-id",
+        subtasks: new Map().set("subtask", {
+          id: ["task", "subtask"],
+          description: "An example empty subtask task.",
+          isEmpty: false,
+          run: async () => {},
+        }),
+        isEmpty: false,
+        run: async () => {},
+      };
+
+      const result = parseTasks(new Map().set("task", task));
+
+      assert.deepEqual(result, {
+        tasks: [{ name: "task", description: "task description" }],
+        subtasks: [
+          {
+            name: "task subtask",
+            description: "An example empty subtask task",
+          },
+        ],
+      });
+    });
   });
 
   describe("parseSubtasks", function () {
@@ -85,13 +137,55 @@ describe("utils", function () {
       const task: Task = {
         id: ["task"],
         description: "task description",
-        actions: [{ pluginId: "task-plugin-id", action: () => {} }],
+        actions: [
+          {
+            pluginId: "task-plugin-id",
+            action: async () => ({
+              default: () => {},
+            }),
+          },
+        ],
         options: new Map(),
         positionalArguments: [],
         pluginId: "task-plugin-id",
         subtasks: new Map().set("subtask", {
           id: ["task", "subtask"],
           description: "An example empty subtask task",
+          isEmpty: false,
+          run: async () => {},
+        }),
+        isEmpty: false,
+        run: async () => {},
+      };
+
+      const result = parseSubtasks(task);
+
+      assert.deepEqual(result, [
+        {
+          name: "task subtask",
+          description: "An example empty subtask task",
+        },
+      ]);
+    });
+
+    it("should remove a trailing full stop from subtasks descriptions", function () {
+      const task: Task = {
+        id: ["task"],
+        description: "task description.",
+        actions: [
+          {
+            pluginId: "task-plugin-id",
+            action: async () => ({
+              default: () => {},
+            }),
+          },
+        ],
+        options: new Map(),
+        positionalArguments: [],
+        pluginId: "task-plugin-id",
+        subtasks: new Map().set("subtask", {
+          id: ["task", "subtask"],
+          description: "An example empty subtask task.",
           isEmpty: false,
           run: async () => {},
         }),
@@ -115,7 +209,14 @@ describe("utils", function () {
       const task: Task = {
         id: ["task"],
         description: "task description",
-        actions: [{ pluginId: "task-plugin-id", action: () => {} }],
+        actions: [
+          {
+            pluginId: "task-plugin-id",
+            action: async () => ({
+              default: () => {},
+            }),
+          },
+        ],
         options: new Map()
           .set("option", {
             name: "option",
@@ -138,6 +239,84 @@ describe("utils", function () {
           {
             name: "anotherPositionalArgument",
             description: "Another example argument",
+            type: ArgumentType.STRING,
+            isVariadic: false,
+            defaultValue: "default",
+          },
+        ],
+        pluginId: "task-plugin-id",
+        subtasks: new Map(),
+        isEmpty: false,
+        run: async () => {},
+      };
+
+      const result = parseOptions(task);
+
+      assert.deepEqual(result, {
+        options: [
+          {
+            name: "--option",
+            shortName: "-o",
+            description: "An example option",
+            type: "STRING",
+          },
+          {
+            name: "--another-option",
+            shortName: undefined,
+            description: "Another example option",
+            type: "BOOLEAN",
+          },
+        ],
+        positionalArguments: [
+          {
+            name: "positionalArgument",
+            description: "An example argument",
+            isRequired: true,
+          },
+          {
+            name: "anotherPositionalArgument",
+            description: "Another example argument",
+            isRequired: false,
+            defaultValue: "default",
+          },
+        ],
+      });
+    });
+
+    it("should remove a trailing full stop from options and positional arguments descriptions", function () {
+      const task: Task = {
+        id: ["task"],
+        description: "task description.",
+        actions: [
+          {
+            pluginId: "task-plugin-id",
+            action: async () => ({
+              default: () => {},
+            }),
+          },
+        ],
+        options: new Map()
+          .set("option", {
+            name: "option",
+            shortName: "o",
+            description: "An example option.",
+            type: ArgumentType.STRING,
+          })
+          .set("anotherOption", {
+            name: "anotherOption",
+            description: "Another example option.",
+            type: ArgumentType.BOOLEAN,
+          }),
+        positionalArguments: [
+          {
+            name: "positionalArgument",
+            description: "An example argument.",
+            type: ArgumentType.STRING,
+            isVariadic: false,
+          },
+          {
+            name: "anotherPositionalArgument",
+            description: "Another example argument.",
             type: ArgumentType.STRING,
             isVariadic: false,
             defaultValue: "default",
@@ -250,7 +429,14 @@ Section Title:
         const task: Task = {
           id: ["task"],
           description: "task description",
-          actions: [{ pluginId: "task-plugin-id", action: () => {} }],
+          actions: [
+            {
+              pluginId: "task-plugin-id",
+              action: async () => ({
+                default: () => {},
+              }),
+            },
+          ],
           options: new Map()
             .set("option", {
               name: "option",
@@ -323,7 +509,14 @@ Section Title:
         const task: Task = {
           id: ["task"],
           description: "task description",
-          actions: [{ pluginId: "task-plugin-id", action: () => {} }],
+          actions: [
+            {
+              pluginId: "task-plugin-id",
+              action: async () => ({
+                default: () => {},
+              }),
+            },
+          ],
           options: new Map()
             .set("option", {
               name: "option",

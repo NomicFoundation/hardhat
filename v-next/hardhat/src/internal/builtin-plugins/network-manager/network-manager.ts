@@ -210,7 +210,7 @@ export class NetworkManagerImplementation implements NetworkManager {
           async (_context, _connection, req) => defaultBehavior(req),
         );
 
-      if (resolvedNetworkConfig.type === "edr") {
+      if (resolvedNetworkConfig.type === "edr-simulated") {
         if (!isSupportedChainType(resolvedChainType)) {
           throw new HardhatError(
             HardhatError.ERRORS.CORE.GENERAL.UNSUPPORTED_OPERATION,
@@ -247,6 +247,11 @@ export class NetworkManagerImplementation implements NetworkManager {
           // so we default to the default chain type here.
           networkConfig: {
             ...resolvedNetworkConfig,
+            // When coverage is enabled, we set allowUnlimitedContractSize to true
+            // because the added coverage data can push the contract size over the limit.
+            allowUnlimitedContractSize: shouldEnableCoverage
+              ? true
+              : resolvedNetworkConfig.allowUnlimitedContractSize,
             /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
             This case is safe because we have a check above */
             chainType: resolvedChainType as ChainType,

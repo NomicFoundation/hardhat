@@ -1,6 +1,6 @@
 {
   "name": "@nomicfoundation/ignition-core",
-  "version": "3.0.0-next.25",
+  "version": "3.0.0",
   "description": "Hardhat Ignition is a declarative system for deploying smart contracts on Ethereum. It enables you to define smart contract instances you want to deploy, and any operation you want to run on them. By taking over the deployment and execution, Hardhat Ignition lets you focus on your project instead of getting caught up in the deployment details.",
   "homepage": "https://hardhat.org",
   "repository": {
@@ -43,10 +43,11 @@
     "prettier": "prettier \"**/*.{ts,js,md,json}\"",
     "preapi-extractor": "pnpm build",
     "api-extractor": "api-extractor run --local --verbose",
-    "test": "cross-env TS_NODE_COMPILER_OPTIONS=\"{\\\"isolatedDeclarations\\\":false}\" mocha --recursive \"test/**/*.ts\"",
+    "test": "pnpm test:unit && pnpm test:integrations",
     "test:debug": "DEBUG='ignition:*' pnpm test",
     "test:coverage": "cross-env TS_NODE_COMPILER_OPTIONS=\"{\\\"isolatedDeclarations\\\":false}\" nyc mocha --recursive \"test/**/*.ts\" \"test-integrations/**/*.ts\"",
-    "test:integrations": "cross-env TS_NODE_COMPILER_OPTIONS='{\"isolatedDeclarations\":false}' mocha --recursive \"test-integrations/**/*.ts\"",
+    "test:unit": "cross-env TS_NODE_COMPILER_OPTIONS=\"{\\\"isolatedDeclarations\\\":false}\" mocha --recursive \"test/**/*.ts\"",
+    "test:integrations": "cross-env TS_NODE_COMPILER_OPTIONS=\"{\\\"isolatedDeclarations\\\":false}\" mocha --recursive \"test-integrations/**/*.ts\"",
     "clean": "rimraf dist",
     "prepack": "pnpm build"
   },
@@ -65,6 +66,7 @@
     "chai-as-promised": "^8.0.0",
     "cross-env": "7.0.3",
     "eslint": "9.25.1",
+    "hardhat": "workspace:^3.0.0",
     "mocha": "^11.0.0",
     "nyc": "15.1.0",
     "prettier": "3.2.5",
@@ -74,8 +76,8 @@
   },
   "dependencies": {
     "@ethersproject/address": "5.6.1",
-    "@nomicfoundation/hardhat-errors": "workspace:^3.0.0-next.25",
-    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0-next.25",
+    "@nomicfoundation/hardhat-errors": "workspace:^3.0.0",
+    "@nomicfoundation/hardhat-utils": "workspace:^3.0.0",
     "@nomicfoundation/solidity-analyzer": "^0.1.1",
     "cbor2": "^1.9.0",
     "debug": "^4.3.2",

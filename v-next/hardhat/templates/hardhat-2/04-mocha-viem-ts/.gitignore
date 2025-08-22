@@ -1,0 +1,7 @@
+node_modules
+
+# Hardhat files
+/cache
+/artifacts
+
+pnpm-lock.yaml

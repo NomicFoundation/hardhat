@@ -46,7 +46,7 @@ describe("clients", () => {
 
     it("should return a public client extended with L2 actions for Optimism", async () => {
       const provider = new MockEthereumProvider({ eth_chainId: "0xa" }); // optimism
-      const client = await getPublicClient(provider, "optimism");
+      const client = await getPublicClient(provider, "op");
 
       assert.equal(client.type, "publicClient");
       assert.equal(client.chain.id, 10);
@@ -126,7 +126,7 @@ describe("clients", () => {
         eth_chainId: "0xa", // optimism
         eth_accounts: ["0x123", "0x456"],
       });
-      const clients = await getWalletClients(provider, "optimism");
+      const clients = await getWalletClients(provider, "op");
 
       assert.ok(Array.isArray(clients), "should return an array of clients");
       assert.equal(
@@ -248,7 +248,7 @@ describe("clients", () => {
       const provider = new MockEthereumProvider({
         eth_chainId: "0xa", // optimism
       });
-      const client = await getWalletClient(provider, "optimism", "0x123");
+      const client = await getWalletClient(provider, "op", "0x123");
 
       assert.equal(client.type, "walletClient");
       assert.equal(client.chain.id, 10);
@@ -317,7 +317,7 @@ describe("clients", () => {
         eth_chainId: "0xa", // optimism
         eth_accounts: ["0x123", "0x456"],
       });
-      const client = await getDefaultWalletClient(provider, "optimism");
+      const client = await getDefaultWalletClient(provider, "op");
 
       assert.equal(client.type, "walletClient");
       assert.equal(client.chain.id, 10);
@@ -497,38 +497,28 @@ describe("clients", () => {
       assert.equal(blockNumber, 1000000n);
     });
 
-    // TODO: this test is skipped because it forks optimism mainnet, which is slow
-    it.skip("should be able to query the blockchain with the extended L2 actions", async () => {
+    it("should have access to L2 actions", async () => {
       hre = await createHardhatRuntimeEnvironment({
         plugins: [HardhatViem],
         networks: {
           edrOptimism: {
-            type: "edr",
-            chainId: 10,
-            chainType: "optimism",
-            forking: {
-              url: "https://mainnet.optimism.io",
-            },
-            gas: "auto",
-            gasMultiplier: 1,
-            gasPrice: "auto",
+            type: "edr-simulated",
+            chainType: "op",
           },
         },
       });
 
-      const networkConnection = await hre.network.connect({
+      const { viem } = await hre.network.connect({
         network: "edrOptimism",
-        chainType: "optimism",
+        chainType: "op",
       });
-      const publicClient = await networkConnection.viem.getPublicClient();
-      const l1BaseFee = await publicClient.getL1BaseFee();
-      const latestBlock = await publicClient.getBlock(); // should still have access to L1 actions
-
-      assert.ok(l1BaseFee > 0n, "L1 base fee should be greater than 0");
-      assert.ok(
-        latestBlock.number > 0n,
-        "Latest block number should be greater than 0",
-      );
+      const publicClient = await viem.getPublicClient();
+      const [senderClient] = await viem.getWalletClients();
+      await publicClient.estimateL1Gas({
+        account: senderClient.account.address,
+        to: senderClient.account.address,
+        value: 1n,
+      });
     });
   });
 });

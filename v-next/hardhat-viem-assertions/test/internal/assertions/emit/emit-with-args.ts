@@ -12,6 +12,7 @@ import hardhatViem from "@nomicfoundation/hardhat-viem";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 import hardhatViemAssertions from "../../../../src/index.js";
+import { anyValue } from "../../../../src/internal/predicates.js";
 import { isExpectedError } from "../../../helpers/is-expected-error.js";
 
 describe("emitWithArgs", () => {
@@ -226,5 +227,157 @@ describe("emitWithArgs", () => {
           [2n, "hello"],
         ),
     );
+  });
+
+  describe("using predicates", function () {
+    it("should allow using a predicate for all the arguments", async () => {
+      const contract = await viem.deployContract("Events");
+
+      await viem.assertions.emitWithArgs(
+        contract.write.emitTwoUints([1n, 2n]),
+        contract,
+        "WithTwoUintArgs",
+        [anyValue, anyValue],
+      );
+    });
+
+    it("should print the predicate name if it has one", async () => {
+      const contract = await viem.deployContract("Events");
+
+      const isOdd = (x: bigint) => x % 2n === 1n;
+
+      await assertRejects(
+        viem.assertions.emitWithArgs(
+          contract.write.emitTwoUints([1n, 2n]),
+          contract,
+          "WithTwoUintArgs",
+          [anyValue, isOdd],
+        ),
+        (error) => error.message.includes(`["<anyValue>","<isOdd>"]`),
+      );
+    });
+
+    it("should use a placeholder name if the predicate is anonymous", async () => {
+      const contract = await viem.deployContract("Events");
+
+      await assertRejects(
+        viem.assertions.emitWithArgs(
+          contract.write.emitTwoUints([1n, 2n]),
+          contract,
+          "WithTwoUintArgs",
+          [anyValue, (x: bigint) => x % 2n === 1n],
+        ),
+        (error) => error.message.includes(`["<anyValue>","<predicate>"]`),
+      );
+    });
+
+    it("should allow using a predicate for some of the arguments", async () => {
+      const contract = await viem.deployContract("Events");
+
+      await viem.assertions.emitWithArgs(
+        contract.write.emitTwoUints([1n, 2n]),
+        contract,
+        "WithTwoUintArgs",
+        [1n, (arg: bigint) => arg >= 2],
+      );
+
+      await viem.assertions.emitWithArgs(
+        contract.write.emitTwoUints([1n, 2n]),
+        contract,
+        "WithTwoUintArgs",
+        [anyValue, 2n],
+      );
+    });
+
+    it("supports predicates on strings", async () => {
+      const contract = await viem.deployContract("Events");
+
+      await viem.assertions.emitWithArgs(
+        contract.write.emitString(["foo"]),
+        contract,
+        "WithString",
+        [(arg: string) => arg.length === 3],
+      );
+
+      await assertRejects(
+        viem.assertions.emitWithArgs(
+          contract.write.emitString(["foo"]),
+          contract,
+          "WithString",
+          [(arg: string) => arg.length === 4],
+        ),
+        (error) =>
+          error.message.includes(
+            "The event arguments do not match the expected ones",
+          ),
+      );
+    });
+
+    it("supports predicates on arrays", async () => {
+      const contract = await viem.deployContract("Events");
+
+      await viem.assertions.emitWithArgs(
+        contract.write.emitArray([[1, 2, 3]]),
+        contract,
+        "WithArray",
+        [(arg: number[]) => arg.length === 3],
+      );
+
+      await assertRejects(
+        viem.assertions.emitWithArgs(
+          contract.write.emitArray([[1, 2, 3]]),
+          contract,
+          "WithArray",
+          [(arg: number[]) => arg.length === 4],
+        ),
+        (error) =>
+          error.message.includes(
+            "The event arguments do not match the expected ones",
+          ),
+      );
+    });
+
+    it("supports predicates on structs", async () => {
+      const contract = await viem.deployContract("Events");
+
+      await viem.assertions.emitWithArgs(
+        contract.write.emitStruct([{ a: 1, b: 2 }]),
+        contract,
+        "WithStruct",
+        [(arg: any) => arg.a === 1n && arg.b === 2n],
+      );
+
+      await assertRejects(
+        viem.assertions.emitWithArgs(
+          contract.write.emitStruct([{ a: 1, b: 2 }]),
+          contract,
+          "WithStruct",
+          [(arg: any) => arg.a === 1n && arg.b === 3n],
+        ),
+        (error) =>
+          error.message.includes(
+            "The event arguments do not match the expected ones",
+          ),
+      );
+    });
+
+    it("fails when predicate returns false", async () => {
+      const contract = await viem.deployContract("Events");
+
+      await assertRejects(
+        viem.assertions.emitWithArgs(
+          contract.write.emitTwoUints([1n, 2n]),
+          contract,
+          "WithTwoUintArgs",
+          [1n, (arg: bigint) => arg < 2],
+        ),
+        (error) =>
+          [
+            "The event arguments do not match the expected ones",
+            'Expected: ["1","<predicate>"]',
+            'Emitted: ["1","2"]',
+          ].every((msg) => error.message.includes(msg)),
+      );
+    });
   });
 });

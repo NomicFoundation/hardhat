@@ -10,6 +10,7 @@ import {
   assertHardhatInvariant,
 } from "@nomicfoundation/hardhat-errors";
 import { isCi } from "@nomicfoundation/hardhat-utils/ci";
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { readClosestPackageJson } from "@nomicfoundation/hardhat-utils/package";
 import { kebabToCamelCase } from "@nomicfoundation/hardhat-utils/string";
 import debug from "debug";
@@ -37,7 +38,11 @@ import { printErrorMessages } from "./error-handler.js";
 import { getGlobalHelpString } from "./help/get-global-help-string.js";
 import { getHelpString } from "./help/get-help-string.js";
 import { sendTaskAnalytics } from "./telemetry/analytics/analytics.js";
-import { sendErrorTelemetry } from "./telemetry/sentry/reporter.js";
+import {
+  sendErrorTelemetry,
+  setCliHardhatConfigPath,
+  setupErrorTelemetryIfEnabled,
+} from "./telemetry/sentry/reporter.js";
 import { printVersionMessage } from "./version.js";
 
 export interface MainOptions {
@@ -50,6 +55,7 @@ export async function main(
   rawArguments: string[],
   options: MainOptions = {},
 ): Promise<void> {
+  await setupErrorTelemetryIfEnabled();
   const print = options.print ?? console.log;
 
   const log = debug("hardhat:core:cli:main");
@@ -85,6 +91,8 @@ export async function main(
     configPath = await resolveHardhatConfigPath(
       builtinGlobalOptions.configPath,
     );
+
+    setCliHardhatConfigPath(configPath);
 
     const projectRoot = await resolveProjectRoot(configPath);
 
@@ -178,7 +186,7 @@ export async function main(
     }
 
     if (builtinGlobalOptions.help || task.isEmpty) {
-      const taskHelp = await getHelpString(task);
+      const taskHelp = await getHelpString(task, globalOptionDefinitions);
 
       print(taskHelp);
       return;
@@ -194,14 +202,13 @@ export async function main(
 
     await Promise.all([task.run(taskArguments), sendTaskAnalytics(task.id)]);
   } catch (error) {
+    ensureError(error);
     printErrorMessages(error, builtinGlobalOptions?.showStackTraces);
 
-    if (error instanceof Error) {
-      try {
-        await sendErrorTelemetry(error, configPath);
-      } catch (e) {
-        log("Couldn't report error to sentry: %O", e);
-      }
+    try {
+      await sendErrorTelemetry(error);
+    } catch (e) {
+      log("Couldn't report error to sentry: %O", e);
     }
 
     if (options.rethrowErrors) {

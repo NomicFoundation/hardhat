@@ -1,29 +1,62 @@
 import assert from "node:assert/strict";
 import path from "node:path";
 import { describe, it } from "node:test";
+import { fileURLToPath } from "node:url";
+
+import { type Event } from "@sentry/core";
 
 import { Anonymizer } from "../../../../../src/internal/cli/telemetry/sentry/anonymizer.js";
+import { GENERIC_SERVER_NAME } from "../../../../../src/internal/cli/telemetry/sentry/constants.js";
 
 const PROJECT_ROOT = "/path/to/project";
 
-class MockedAnonymizer extends Anonymizer {
-  public getFilePackageJsonPathResult: string | null = null;
-
-  protected override async _getFilePackageJsonPath(
-    _: string,
-  ): Promise<string | null> {
-    return this.getFilePackageJsonPathResult;
-  }
-}
-
 describe("Anonymizer", () => {
+  it("should clone key information from an anonymized event", async () => {
+    const originalEvent: Event = {
+      event_id: "my-event",
+      platform: "platform1",
+      release: "release1",
+      timestamp: 1754398906,
+      extra: {
+        another: "example",
+      },
+      contexts: {
+        os: {
+          name: "os1",
+          build: "build1",
+          version: "version1",
+        },
+      },
+      environment: "production",
+      level: "error",
+      sdk: {
+        integrations: [],
+      },
+      server_name: "server1",
+    };
+
+    const anonymizer = new Anonymizer();
+
+    const result = await anonymizer.anonymizeEvent(originalEvent);
+
+    if (!result.success) {
+      assert.fail("The event should anonymize without issue");
+      return;
+    }
+
+    assert.deepEqual(result.event, {
+      ...originalEvent,
+      server_name: GENERIC_SERVER_NAME,
+    });
+  });
+
   it("should anonymize paths of the user's project", async () => {
     const anonymizer = new Anonymizer();
     const anonymizationResult = await anonymizer.anonymizeFilename(
       path.join(PROJECT_ROOT, "src", "someFile.js"),
     );
 
-    assert.equal(anonymizationResult.anonymizedFilename, "<user-file>");
+    assert.equal(anonymizationResult.anonymizedFilename, "<user-path>");
     assert.equal(anonymizationResult.anonymizeContent, true);
   });
 
@@ -33,7 +66,7 @@ describe("Anonymizer", () => {
       path.join(PROJECT_ROOT, "someFile.js"),
     );
 
-    assert.equal(anonymizationResult.anonymizedFilename, "<user-file>");
+    assert.equal(anonymizationResult.anonymizedFilename, "<user-path>");
     assert.equal(anonymizationResult.anonymizeContent, true);
   });
 
@@ -51,7 +84,7 @@ describe("Anonymizer", () => {
 
     assert.equal(
       anonymizationResult.anonymizedFilename,
-      path.join(hardhatFilePath),
+      path.join("<user-path>", hardhatFilePath).replace(/\\/g, "/"),
     );
     assert.equal(anonymizationResult.anonymizeContent, false);
   });
@@ -62,18 +95,18 @@ describe("Anonymizer", () => {
     const anonymizationResult =
       await anonymizer.anonymizeFilename(internalNodePath);
 
-    assert.equal(anonymizationResult.anonymizedFilename, internalNodePath);
+    assert.equal(
+      anonymizationResult.anonymizedFilename,
+      internalNodePath.replace(/\\/g, "/"),
+    );
     assert.equal(anonymizationResult.anonymizeContent, false);
   });
 
   describe("hardhat config", () => {
     it("should return only the config's relative path", async () => {
       const pathToHardhatConfig = path.join(PROJECT_ROOT, "hardhat.config.ts");
-      const anonymizer = new MockedAnonymizer(pathToHardhatConfig);
-      anonymizer.getFilePackageJsonPathResult = path.join(
-        PROJECT_ROOT,
-        "package.json",
-      );
+      const anonymizer = new Anonymizer(pathToHardhatConfig);
+
       const anonymizationResult =
         await anonymizer.anonymizeFilename(pathToHardhatConfig);
       assert.equal(anonymizationResult.anonymizedFilename, "hardhat.config.ts");
@@ -86,17 +119,11 @@ describe("Anonymizer", () => {
         "config",
         "hardhat.config.ts",
       );
-      const anonymizer = new MockedAnonymizer(pathToHardhatConfig);
-      anonymizer.getFilePackageJsonPathResult = path.join(
-        PROJECT_ROOT,
-        "package.json",
-      );
+      const anonymizer = new Anonymizer(pathToHardhatConfig);
+
       const anonymizationResult =
         await anonymizer.anonymizeFilename(pathToHardhatConfig);
-      assert.equal(
-        anonymizationResult.anonymizedFilename,
-        path.join("config", "hardhat.config.ts"),
-      );
+      assert.equal(anonymizationResult.anonymizedFilename, "hardhat.config.ts");
       assert.equal(anonymizationResult.anonymizeContent, true);
     });
 
@@ -106,7 +133,7 @@ describe("Anonymizer", () => {
         "config",
         "hardhat.config.ts",
       );
-      const anonymizer = new MockedAnonymizer(pathToHardhatConfig);
+      const anonymizer = new Anonymizer(pathToHardhatConfig);
       const anonymizationResult =
         await anonymizer.anonymizeFilename(pathToHardhatConfig);
       assert.equal(anonymizationResult.anonymizedFilename, "hardhat.config.ts");
@@ -130,7 +157,24 @@ describe("Anonymizer", () => {
         anonymizer.anonymizeErrorMessage(errorMessage);
       assert.equal(
         anonymizedErrorMessage,
-        "Something happened at file <user-file>",
+        "Something happened at file file://<user-path>",
+      );
+    });
+
+    it("should anonymize the config path with its own anonymization token", () => {
+      const configPath = fileURLToPath(
+        new URL("../hardhat.config.js", import.meta.url),
+      );
+
+      const anonymizer = new Anonymizer(configPath);
+
+      const errorMessage = `Invalid config exported in ${configPath}`;
+      const anonymizedErrorMessage =
+        anonymizer.anonymizeErrorMessage(errorMessage);
+
+      assert.equal(
+        anonymizedErrorMessage,
+        "Invalid config exported in <hardhat-config-file>",
       );
     });
 
@@ -139,32 +183,35 @@ describe("Anonymizer", () => {
       const errorMessage = `Something happened (${import.meta.url})`;
       const anonymizedErrorMessage =
         anonymizer.anonymizeErrorMessage(errorMessage);
-      assert.equal(anonymizedErrorMessage, "Something happened <user-file>");
+      assert.equal(
+        anonymizedErrorMessage,
+        "Something happened (file://<user-path>)",
+      );
     });
 
     it("should anonymize multiple paths", () => {
       const anonymizer = new Anonymizer();
       const file1 = import.meta.url;
-      const file2 = path.resolve(import.meta.url, "..", "some-other-file.js");
+      const file2 = path.resolve("..", "some-other-file.js");
       const errorMessage = `Something happened at file ${file1} and at file ${file2}`;
       const anonymizedErrorMessage =
         anonymizer.anonymizeErrorMessage(errorMessage);
       assert.equal(
         anonymizedErrorMessage,
-        "Something happened at file <user-file> and at file <user-file>",
+        "Something happened at file file://<user-path> and at file <user-path>",
       );
     });
 
     it("should anonymize multiline errors", () => {
       const anonymizer = new Anonymizer();
       const file1 = import.meta.url;
-      const file2 = path.resolve(import.meta.url, "..", "some-other-file.js");
+      const file2 = path.resolve("..", "some-other-file.js");
       const errorMessage = `Something happened at file ${file1} and\nsomething else happened at file ${file2}`;
       const anonymizedErrorMessage =
         anonymizer.anonymizeErrorMessage(errorMessage);
       assert.equal(
         anonymizedErrorMessage,
-        `Something happened at file <user-file> and\nsomething else happened at file <user-file>`,
+        `Something happened at file file://<user-path> and\nsomething else happened at file <user-path>`,
       );
     });
 
@@ -176,7 +223,7 @@ describe("Anonymizer", () => {
         anonymizer.anonymizeErrorMessage(errorMessage);
       assert.equal(
         anonymizedErrorMessage,
-        "Something happened at file <user-file> something",
+        "Something happened at file file://<user-path>: something",
       );
     });
 
@@ -187,7 +234,7 @@ describe("Anonymizer", () => {
         anonymizer.anonymizeErrorMessage(errorMessage);
       assert.equal(
         anonymizedErrorMessage,
-        "Something happened at file <user-file>",
+        "Something happened at file foo.json",
       );
     });
 
@@ -199,7 +246,7 @@ describe("Anonymizer", () => {
         anonymizer.anonymizeErrorMessage(errorMessage);
       assert.equal(
         anonymizedErrorMessage,
-        "Something happened at file <user-file> and at file <user-file>",
+        "Something happened at file foo.json and at file bar.ts",
       );
     });
 
@@ -370,25 +417,61 @@ describe("Anonymizer", () => {
   });
 
   describe("raisedByHardhat", () => {
-    function createTestEvent(filePath: string) {
+    const projectRoot = path.resolve(
+      path.dirname(fileURLToPath(import.meta.url)),
+      "../../../../../../../my-project",
+    );
+
+    const hardhatFile = path.join(
+      projectRoot,
+      "node_modules",
+      "hardhat",
+      "dist",
+      "internal",
+      "cli",
+      "version.js",
+    );
+
+    const nonhardhatPackageFile = path.join(
+      projectRoot,
+      "node_modules",
+      "@random-npm-package",
+      "random-path",
+      "some-file.js",
+    );
+
+    const userProjectFile = path.join(projectRoot, "scripts", "run.js");
+    const anotherUserProjectFile = path.join(
+      projectRoot,
+      "ignition",
+      "modules",
+      "my-module.js",
+    );
+    const yetAnotherUserProjectFile = path.join(
+      projectRoot,
+      "utils",
+      "helpers.js",
+    );
+
+    const userHardhatConfigFile = path.join(projectRoot, "hardhat.config.ts");
+
+    function createTestEvent(
+      frameFilePaths: string[],
+      options: { type: string; value: string } = {
+        type: "Error",
+        value: "test-error",
+      },
+    ) {
       return {
         exception: {
           values: [
             {
-              type: "Error",
-              value: "test-error",
+              type: options.type,
+              value: options.value,
               stacktrace: {
-                frames: [
-                  {
-                    filename: "<user-file>",
-                  },
-                  {
-                    filename: "<user-file>",
-                  },
-                  {
-                    filename: filePath,
-                  },
-                ],
+                frames: frameFilePaths.map((ffp) => ({
+                  filename: ffp,
+                })),
               },
             },
           ],
@@ -396,41 +479,144 @@ describe("Anonymizer", () => {
       };
     }
 
-    it("should return true because the error was raised by hardhat", () => {
+    it("should keep the error if it was raised by hardhat", () => {
       const anonymizer = new Anonymizer();
+
       const res = anonymizer.raisedByHardhat(
-        createTestEvent(
-          path.join(
-            "node_modules",
-            "@nomicfoundation",
-            "random-path",
-            "some-file.js",
-          ),
-        ),
+        createTestEvent([
+          // The highest level if a user file
+          userProjectFile,
+          // But the error originates in a hardhat file
+          hardhatFile,
+        ]),
       );
+
       assert.equal(res, true);
     });
 
-    it("should return false because the error was not raised by hardhat", () => {
+    it("should filter the error if it was raised by a file in the user's project", () => {
       const anonymizer = new Anonymizer();
+
       const res = anonymizer.raisedByHardhat(
-        createTestEvent(
-          path.join(
-            "node_modules",
-            "@random-npm-package",
-            "random-path",
-            "some-file.js",
-          ),
-        ),
+        createTestEvent([userProjectFile]),
       );
+
       assert.equal(res, false);
     });
 
-    it("should return false because the error was raised inside of hardhat BUT from an external package", () => {
+    it("should filter the error if it was raised by a file in the user's project, even through a chain of files", () => {
       const anonymizer = new Anonymizer();
+
       const res = anonymizer.raisedByHardhat(
-        createTestEvent(
+        createTestEvent([
+          userProjectFile,
+          anotherUserProjectFile,
+          yetAnotherUserProjectFile,
+        ]),
+      );
+
+      assert.equal(res, false);
+    });
+
+    it("should filter the error if it was raised by a file in the user's project though called from a hardhat package file", () => {
+      const anonymizer = new Anonymizer();
+
+      const res = anonymizer.raisedByHardhat(
+        createTestEvent([
+          // Hardhat file calls into a user project file
+          hardhatFile,
+          // the user project file originates the error e.g. a script
+          userProjectFile,
+        ]),
+      );
+
+      assert.equal(res, false);
+    });
+
+    it('should filter out "require is not defined in ES module scope" errors', () => {
+      const anonymizer = new Anonymizer();
+
+      const res = anonymizer.raisedByHardhat(
+        createTestEvent([hardhatFile, userHardhatConfigFile, userProjectFile], {
+          type: "ReferenceError",
+          value:
+            "require is not defined in ES module scope, you can use import instead",
+        }),
+      );
+
+      assert.equal(res, false);
+    });
+
+    it('should filter out "Cannot find package" errors', () => {
+      const anonymizer = new Anonymizer();
+
+      const res = anonymizer.raisedByHardhat(
+        createTestEvent([hardhatFile, userHardhatConfigFile, userProjectFile], {
+          type: "Error",
+          value: `Cannot find package 'nonexistant' imported from ${userProjectFile}`,
+        }),
+      );
+
+      assert.equal(res, false);
+    });
+
+    it('should filter out "Cannot find module" errors', () => {
+      const anonymizer = new Anonymizer();
+
+      const res = anonymizer.raisedByHardhat(
+        createTestEvent([hardhatFile, userHardhatConfigFile, userProjectFile], {
+          type: "Error",
+          value:
+            "Cannot find module 'chai'\nRequire stack:\n- <user-path>/node_modules/@nomicfoundation/hardhat-chai-matchers/internal/add-ch…ndation/hardhat-chai-matchers/index.js\n- <user-path>/node_modules/@nomicfoundation/hardhat-toolbox/index.js\n- <user-path>",
+        }),
+      );
+
+      assert.equal(res, false);
+    });
+
+    it('should filter out "require() cannot be used on an ESM graph with top-level await" errors', () => {
+      const anonymizer = new Anonymizer();
+
+      const res = anonymizer.raisedByHardhat(
+        createTestEvent([hardhatFile, userHardhatConfigFile, userProjectFile], {
+          type: "Error",
+          value:
+            "require() cannot be used on an ESM graph with top-level await. Use import() instead. To see where the top-level await comes from, use --experimental-print-required-tla.\n  From <user-path> \n  Requiring <user-path>/node_modules/.pnpm/hardhat@3.0.0/node_modules/hardhat/dist/src/index.js ",
+        }),
+      );
+
+      assert.equal(res, false);
+    });
+
+    it("should filter out errors originating in non-hardhat packages", () => {
+      const anonymizer = new Anonymizer();
+
+      const res = anonymizer.raisedByHardhat(
+        createTestEvent([userProjectFile, hardhatFile, nonhardhatPackageFile]),
+      );
+
+      assert.equal(res, false);
+    });
+
+    it("should filter out errors raised by the user's Hardhat config file", () => {
+      const anonymizer = new Anonymizer(userHardhatConfigFile);
+
+      const res = anonymizer.raisedByHardhat(
+        createTestEvent([hardhatFile, userHardhatConfigFile]),
+      );
+
+      assert.equal(res, false);
+    });
+
+    it("should filter out errors raised inside of of a hardhat package BUT from an external package", () => {
+      const anonymizer = new Anonymizer();
+
+      const res = anonymizer.raisedByHardhat(
+        createTestEvent([
+          userProjectFile,
+          hardhatFile,
           path.join(
+            projectRoot,
             "node_modules",
             "@nomicfoundation",
             "node_modules",
@@ -439,8 +625,9 @@ describe("Anonymizer", () => {
             "@ethersproject",
             "some-file.js",
           ),
-        ),
+        ]),
       );
+
       assert.equal(res, false);
     });
   });

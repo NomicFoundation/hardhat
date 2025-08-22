@@ -8,7 +8,7 @@ on:
   pull_request:
     branches:
       - main
-      - v-next
+      - v2
     types:
       - opened
       - synchronize

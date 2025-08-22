@@ -16,7 +16,7 @@ import {
 } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import {
-  mkdir,
+  mkdtemp,
   readJsonFileAsStream,
   remove,
 } from "@nomicfoundation/hardhat-utils/fs";
@@ -54,8 +54,7 @@ async function spawnCompile(
 ): Promise<CompilerOutput> {
   // We create a temporary folder to store the output of the compiler in
   // We use a random UUID to avoid collisions with other compilations
-  const tmpFolder = path.join(os.tmpdir(), "hardhat-solc", crypto.randomUUID());
-  await mkdir(tmpFolder);
+  const tmpFolder = await mkdtemp("hardhat-solc-");
 
   try {
     return await new Promise(async (resolve, reject) => {
@@ -137,11 +136,7 @@ export class SolcJsCompiler implements Compiler {
       const compilerFileUrl = pathToFileURL(this.compilerPath);
       // NOTE: The script path passed to a tsx/esm loader is an exception to the
       // above rule since the tsx/esm loader doesn't support URLs with a scheme.
-      if (scriptPath.endsWith(".ts")) {
-        args.push(scriptPath);
-      } else {
-        args.push(scriptFileUrl);
-      }
+      args.push(scriptPath);
       args.push(compilerFileUrl.href);
     } else {
       args.push(scriptPath, this.compilerPath);
@@ -181,8 +176,7 @@ export class NativeCompiler implements Compiler {
         args.push("--no-import-callback");
       } else if (semver.gte(this.version, "0.6.9")) {
         // version >= 0.6.9
-        const tmpFolder = path.join(os.tmpdir(), "hardhat-solc");
-        await mkdir(tmpFolder);
+        const tmpFolder = await mkdtemp("hardhat-solc-");
         args.push(`--base-path`);
         args.push(tmpFolder);
       }

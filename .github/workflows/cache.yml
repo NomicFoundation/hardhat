@@ -6,7 +6,7 @@ on:
       - main
       - pre-release-testing-branch
       - changeset-release/main
-      - v-next
+      - v2
     paths:
       - ".github/workflows/cache.yml"
       - "**/pnpm-lock.yaml"

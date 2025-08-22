@@ -1,3 +1,4 @@
+import type { GlobalOptionDefinitions } from "../../../types/global-options.js";
 import type { Task } from "../../../types/tasks.js";
 
 import {
@@ -7,18 +8,28 @@ import {
   getSection,
   parseSubtasks,
   getUsageString,
+  parseGlobalOptions,
 } from "./utils.js";
 
-export async function getHelpString(task: Task): Promise<string> {
+export async function getHelpString(
+  task: Task,
+  globalOptionDefinitions: GlobalOptionDefinitions,
+): Promise<string> {
   const { default: chalk } = await import("chalk");
 
   const { options, positionalArguments } = parseOptions(task);
 
   const subtasks = parseSubtasks(task);
 
+  const globalOptions = parseGlobalOptions(globalOptionDefinitions);
+
   const namePadding =
-    getLongestNameLength([...options, ...positionalArguments, ...subtasks]) +
-    GLOBAL_NAME_PADDING;
+    getLongestNameLength([
+      ...options,
+      ...positionalArguments,
+      ...subtasks,
+      ...globalOptions,
+    ]) + GLOBAL_NAME_PADDING;
 
   let output = `${chalk.bold(task.description)}`;
 
@@ -27,6 +38,8 @@ export async function getHelpString(task: Task): Promise<string> {
 
     if (subtasks.length > 0) {
       output += getSection("AVAILABLE SUBTASKS", subtasks, namePadding);
+
+      output += getSection("GLOBAL OPTIONS", globalOptions, namePadding);
 
       output += `\nTo get help for a specific task run: npx hardhat ${task.id.join(" ")} <SUBTASK> --help`;
     }
@@ -54,7 +67,7 @@ export async function getHelpString(task: Task): Promise<string> {
     output += getSection("AVAILABLE SUBTASKS", subtasks, namePadding);
   }
 
-  output += `\nFor global options help run: hardhat --help`;
+  output += getSection("GLOBAL OPTIONS", globalOptions, namePadding);
 
   return output;
 }
