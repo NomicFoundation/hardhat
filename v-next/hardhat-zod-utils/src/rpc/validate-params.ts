@@ -1,6 +1,6 @@
 import type { ZodType } from "zod";
 
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { RpcValidationError } from "../errors/rpc.js";
 
 export function validateParams<TypesT extends ReadonlyArray<ZodType<any>>>(
   params: any[],
@@ -9,11 +9,8 @@ export function validateParams<TypesT extends ReadonlyArray<ZodType<any>>>(
   [i in keyof TypesT]: TypesT[i] extends ZodType<infer TypeT> ? TypeT : never;
 } {
   if (types === undefined && params.length > 0) {
-    throw new HardhatError(
-      HardhatError.ERRORS.CORE.NETWORK.WRONG_VALIDATION_PARAMS,
-      {
-        reason: `No argument was expected and got ${params.length}`,
-      },
+    throw new RpcValidationError(
+      `No argument was expected and got ${params.length}`,
     );
   }
 
@@ -28,11 +25,8 @@ export function validateParams<TypesT extends ReadonlyArray<ZodType<any>>>(
 
   if (optionalParams === 0) {
     if (params.length !== types.length) {
-      throw new HardhatError(
-        HardhatError.ERRORS.CORE.NETWORK.WRONG_VALIDATION_PARAMS,
-        {
-          reason: `Expected exactly ${types.length} arguments and got ${params.length}`,
-        },
+      throw new RpcValidationError(
+        `Expected exactly ${types.length} arguments and got ${params.length}`,
       );
     }
   } else {
@@ -40,13 +34,10 @@ export function validateParams<TypesT extends ReadonlyArray<ZodType<any>>>(
       params.length > types.length ||
       params.length < types.length - optionalParams
     ) {
-      throw new HardhatError(
-        HardhatError.ERRORS.CORE.NETWORK.WRONG_VALIDATION_PARAMS,
-        {
-          reason: `Expected between ${types.length - optionalParams} and ${
-            types.length
-          } arguments and got ${params.length}`,
-        },
+      throw new RpcValidationError(
+        `Expected between ${types.length - optionalParams} and ${
+          types.length
+        } arguments and got ${params.length}`,
       );
     }
   }

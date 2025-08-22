@@ -2,8 +2,9 @@ import type { ZodType } from "zod";
 
 import { isAddress } from "@nomicfoundation/hardhat-utils/eth";
 import { hexStringToBytes } from "@nomicfoundation/hardhat-utils/hex";
-import { conditionalUnionType } from "@nomicfoundation/hardhat-zod-utils";
 import { z } from "zod";
+
+import { conditionalUnionType } from "@nomicfoundation/hardhat-zod-utils";
 
 const ADDRESS_LENGTH_BYTES = 20;
 
