@@ -102,7 +102,7 @@ task("sign", "Signs a message", async (_, hre) => {
 
 ## Errors
 
-The package throws and exports a few [errors](https://github.com/NomicFoundation/hardhat/blob/feat/main/packages/hardhat-core/src/config.ts). In case you ever need to catch and check for them, you can use the `public static` method present on each of them. For example:
+The package throws and exports a few [errors](https://github.com/NomicFoundation/hardhat/blob/main/v-next/hardhat-errors/src/index.ts). In case you ever need to catch and check for them, you can use the `public static` method present on each of them. For example:
 
 ```ts
 try {
