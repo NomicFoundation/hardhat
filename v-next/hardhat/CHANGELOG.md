@@ -1,5 +1,18 @@
 # hardhat
 
+## 3.0.1
+
+### Patch Changes
+
+- a3bd239: Add Yarn support for Hardhat v3 ([#7192](https://github.com/NomicFoundation/hardhat/issues/7192))
+- 617254e: Move extraneous dependency to peer ([#7231](https://github.com/NomicFoundation/hardhat/issues/7231))
+- 6446a38: Add temporary fix for incorrect error message ([#7168](https://github.com/NomicFoundation/hardhat/issues/7168))
+- 6361ea4: Fixed an issue with compiling a Hardhat project after switching OS users (#7161)
+- 5c9ee7f: Warn the user if they are not using the latest version of Hardhat
+- 0fc1f3f: Remove full stops from help message descriptions ([#7185](https://github.com/NomicFoundation/hardhat/issues/7185))
+- 8acf48f: Improved exception filtering for Sentry telemetry ([#7246](https://github.com/NomicFoundation/hardhat/issues/7246))
+- e7d2f80: Added missing Solidity test config option `allowInternalExpectRevert`.
+
 ## 3.0.0
 
 ### Major Changes
