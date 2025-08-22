@@ -161,9 +161,10 @@ export class NetworkManagerImplementation implements NetworkManager {
             );
     }
 
-    const resolvedNetworkConfig =
-      resolvedNetworkConfigOverride ??
-      this.#networkConfigs[resolvedNetworkName];
+    const resolvedNetworkConfig = {
+      ...this.#networkConfigs[resolvedNetworkName],
+      ...resolvedNetworkConfigOverride,
+    };
 
     /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     -- Cast to ChainTypeT because we know it's valid */
