@@ -44,7 +44,7 @@ describe("LedgerHandler", () => {
         plugins: [hardhatLedgerPlugin],
         networks: {
           default: {
-            type: "edr",
+            type: "edr-simulated",
             accounts: HARDHAT_ACCOUNTS,
             ledgerAccounts: LEDGER_ADDRESSES,
           },
@@ -66,7 +66,7 @@ describe("LedgerHandler", () => {
         plugins: [hardhatLedgerPlugin],
         networks: {
           default: {
-            type: "edr",
+            type: "edr-simulated",
             accounts: HARDHAT_ACCOUNTS,
           },
         },
@@ -85,12 +85,12 @@ describe("LedgerHandler", () => {
       plugins: [hardhatLedgerPlugin],
       networks: {
         firstConnection: {
-          type: "edr",
+          type: "edr-simulated",
           accounts: HARDHAT_ACCOUNTS,
           ledgerAccounts: LEDGER_ADDRESSES,
         },
         secondConnection: {
-          type: "edr",
+          type: "edr-simulated",
           accounts: [], // No edr accounts
           ledgerAccounts: LEDGER_ADDRESSES,
         },

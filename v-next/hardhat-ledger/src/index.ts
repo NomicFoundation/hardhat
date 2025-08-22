@@ -7,8 +7,8 @@ import { PLUGIN_NAME } from "./internal/plugin-name.js";
 const hardhatLedgerPlugin: HardhatPlugin = {
   id: PLUGIN_NAME,
   hookHandlers: {
-    config: import.meta.resolve("./internal/hook-handlers/config.js"),
-    network: import.meta.resolve("./internal/hook-handlers/network.js"),
+    config: () => import("./internal/hook-handlers/config.js"),
+    network: () => import("./internal/hook-handlers/network.js"),
   },
   npmPackage: "@nomicfoundation/hardhat-ledger",
 };

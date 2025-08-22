@@ -18,7 +18,7 @@ describe("config validation", () => {
       plugins: [hardhatLedger],
       networks: {
         "test-network": {
-          type: "edr",
+          type: "edr-simulated",
           ledgerAccounts: [
             "0xa809931e3b38059adae9bc5455bc567d0509ab92",
             "0xda6a52afdae5ff66aa786da68754a227331f56e3",
@@ -33,7 +33,7 @@ describe("config validation", () => {
       plugins: [hardhatLedger],
       networks: {
         "test-network-1": {
-          type: "edr",
+          type: "edr-simulated",
           ledgerAccounts: [
             "0xa809931e3b38059adae9bc5455bc567d0509ab92",
             "0xda6a52afdae5ff66aa786da68754a227331f56e3",
@@ -56,7 +56,7 @@ describe("config validation", () => {
       plugins: [hardhatLedger],
       networks: {
         "test-network": {
-          type: "edr",
+          type: "edr-simulated",
           ledgerAccounts: [
             "0xa809931e3b38059adae9bc5455bc567d0509ab92",
             "0xda6a52afdae5ff66aa786da68754a227331f56e3",
@@ -74,7 +74,7 @@ describe("config validation", () => {
       plugins: [hardhatLedger],
       networks: {
         "test-network": {
-          type: "edr",
+          type: "edr-simulated",
           ledgerAccounts: [
             "0xa809931e3b38059adae9bc5455bc567d0509ab92",
             "0xda6a52afdae5ff66aa786da68754a227331f56e3",
@@ -91,7 +91,7 @@ describe("config validation", () => {
         plugins: [hardhatLedger],
         networks: {
           "test-network": {
-            type: "edr",
+            type: "edr-simulated",
             ledgerAccounts: ["0xa809931e3b"],
           },
         },
@@ -111,7 +111,7 @@ describe("config validation", () => {
         plugins: [hardhatLedger],
         networks: {
           "test-network-1": {
-            type: "edr",
+            type: "edr-simulated",
             ledgerAccounts: ["0xa809931e3b"],
           },
           "test-network-2": {
