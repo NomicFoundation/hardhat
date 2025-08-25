@@ -11,11 +11,10 @@ import type {
 } from "viem";
 
 /**
- * Ethereum-specific assertions that integrate with viem and Hardhat.
+ * Ethereum-specific test assertions that integrate with viem.
  *
- * These assertions help validate reverted transactions, emitted events, and
- * ether balance changes in a clear, test-friendly way. They are available at
- * `viem.assertions` after connecting to a Hardhat network.
+ * These assertions help validate: reverted transactions, emitted events, and
+ * ether balance changes in a test-friendly way.
  */
 export interface HardhatViemAssertions {
   /**
@@ -64,7 +63,7 @@ export interface HardhatViemAssertions {
    * Assert that executing a contract function emits a specific event with the given arguments.
    *
    * Arguments are matched positionally in the same order as defined in the event's ABI. You can pass
-   * predicate functions in the `args` array to perform flexible checks, or use the `anyValue` predicate
+   * predicate functions in the `args` array to perform specific checks, or use the `anyValue` predicate
    * to match any value.
    *
    * @typeParam ContractName - The contract name associated with the `contract` instance.
@@ -87,7 +86,7 @@ export interface HardhatViemAssertions {
   ): Promise<void>;
 
   /**
-   * Assert that executing a contract function reverts for any reason.
+   * Assert that executing a contract function reverts for any reason, without checking the cause of the revert
    *
    * @param contractFn - A promise returned by a viem read or write contract call expected to revert.
    */
@@ -126,7 +125,7 @@ export interface HardhatViemAssertions {
    * Assert that executing a contract function reverts with a specific custom error and arguments.
    *
    * Arguments are matched positionally in the same order as defined in the error's ABI. Each expected argument
-   * can be a concrete value or a predicate function to perform flexible checks. You can also use the `anyValue`
+   * can be a concrete value or a predicate function to perform specific checks. You can also use the `anyValue`
    * predicate to match any value.
    *
    * @typeParam ContractName - The contract name associated with the `contract` instance.
