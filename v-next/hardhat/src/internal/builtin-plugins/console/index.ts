@@ -5,7 +5,7 @@ import { task } from "../../core/config.js";
 const hardhatPlugin: HardhatPlugin = {
   id: "builtin:console",
   tasks: [
-    task("console", "Opens a hardhat console")
+    task("console", "Open a hardhat console")
       .addOption({
         name: "history",
         description: "Path to a history file",
@@ -13,7 +13,7 @@ const hardhatPlugin: HardhatPlugin = {
       })
       .addFlag({
         name: "noCompile",
-        description: "Don't compile the project before starting the console",
+        description: "Do not compile the project before starting the console",
       })
       .addVariadicArgument({
         name: "commands",

@@ -7,7 +7,7 @@ const hardhatPlugin: HardhatPlugin = {
   id: "builtin:flatten",
   tasks: [
     task("flatten")
-      .setDescription("Flattens and prints contracts and their dependencies")
+      .setDescription("Flatten and print contracts and their dependencies")
       .addVariadicArgument({
         name: "files",
         defaultValue: [],

@@ -6,7 +6,7 @@ import { task } from "../../core/config.js";
 const hardhatPlugin: HardhatPlugin = {
   id: "builtin:node",
   tasks: [
-    task("node", "Starts a JSON-RPC server on top of Hardhat Network")
+    task("node", "Start a JSON-RPC server on top of Hardhat Network")
       .addOption({
         name: "hostname",
         description:

@@ -11,7 +11,7 @@ const hardhatPlugin: HardhatPlugin = {
     config: () => import("./hook-handlers/config.js"),
   },
   tasks: [
-    task("test", "Runs all your tests")
+    task("test", "Run all tests")
       .addVariadicArgument({
         name: "testFiles",
         description: "List of specific files to run tests on",
@@ -30,7 +30,7 @@ const hardhatPlugin: HardhatPlugin = {
       })
       .addFlag({
         name: "noCompile",
-        description: "Don't compile the project before running the tests",
+        description: "Do not compile the project before running the tests",
       })
       .addLevel({
         name: "verbosity",

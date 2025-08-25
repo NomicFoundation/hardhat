@@ -7,7 +7,7 @@ import "./type-extensions.js";
 const hardhatPlugin: HardhatPlugin = {
   id: "builtin:clean",
   tasks: [
-    task("clean", "Clears the cache and deletes all artifacts")
+    task("clean", "Clear the cache and delete all artifacts")
       .addFlag({
         name: "global",
         description: "Clear the global cache",

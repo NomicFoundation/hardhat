@@ -76,7 +76,7 @@ An additional (optional) configuration is possible to specify the derivation pat
 If you want to use the provider, you could, for example in a task:
 
 ```js
-task("sign", "Signs a message", async (_, hre) => {
+task("sign", "Sign a message", async (_, hre) => {
   const message =
     "0x5417aa2a18a44da0675524453ff108c545382f0d7e26605c56bba47c21b5e979";
   const account = "0xa809931e3b38059adae9bc5455bc567d0509ab92";

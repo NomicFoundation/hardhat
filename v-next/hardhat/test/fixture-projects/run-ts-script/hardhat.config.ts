@@ -4,7 +4,7 @@ import { task } from "hardhat/config";
 
 const config: HardhatUserConfig = {
   tasks: [
-    task("test-task", "Prints a test")
+    task("test-task", "Print a test")
       .setAction(async () => ({
         default: () => {
           console.log("test!");
