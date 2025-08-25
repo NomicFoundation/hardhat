@@ -72,6 +72,15 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
 
   const mochaConfig: MochaOptions = { ...hre.config.test.mocha };
 
+  if (hre.config.test.mocha.parallel === true) {
+    // NOTE: We set the global variables as environment variables here because, as of now,
+    // the global options are not automatically passed to the child processes when the parallel
+    // execution is enabled.
+    if (hre.globalOptions.network !== undefined) {
+      process.env.HARDHAT_NETWORK = hre.globalOptions.network;
+    }
+  }
+
   if (grep !== undefined && grep !== "") {
     mochaConfig.grep = grep;
   }
