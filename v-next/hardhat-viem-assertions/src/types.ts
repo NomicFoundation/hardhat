@@ -86,7 +86,7 @@ export interface HardhatViemAssertions {
   ): Promise<void>;
 
   /**
-   * Assert that executing a contract function reverts for any reason, without checking the cause of the revert
+   * Assert that executing a contract function reverts for any reason, without checking the cause of the revert.
    *
    * @param contractFn - A promise returned by a viem read or write contract call expected to revert.
    */
