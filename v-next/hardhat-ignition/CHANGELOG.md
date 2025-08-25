@@ -1,5 +1,15 @@
 # Changelog
 
+## 3.0.1
+
+### Patch Changes
+
+- Updated dependencies [86cecc7]
+- Updated dependencies [0120e67]
+  - @nomicfoundation/ignition-core@3.0.1
+  - hardhat@3.0.2
+  - @nomicfoundation/ignition-ui@3.0.1
+
 ## 3.0.0
 
 ### Major Changes
