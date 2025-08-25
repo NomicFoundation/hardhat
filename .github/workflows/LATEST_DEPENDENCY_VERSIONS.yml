@@ -14,6 +14,8 @@ jobs:
     runs-on: ${{ matrix.system }}
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: v2
       - uses: ./.github/actions/setup-env
       - name: Delete pnpm-lock.yaml
         run: "rm pnpm-lock.yaml"
