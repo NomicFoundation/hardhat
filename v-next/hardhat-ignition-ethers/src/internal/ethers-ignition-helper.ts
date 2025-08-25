@@ -49,6 +49,8 @@ export class EthersIgnitionHelperImpl<ChainTypeT extends ChainType | string>
   readonly #config: Partial<DeployConfig> | undefined;
   readonly #provider: EIP1193Provider;
 
+  #mutex: boolean = false;
+
   constructor(
     hardhatConfig: HardhatConfig,
     artifactsManager: ArtifactManager,
@@ -114,6 +116,14 @@ export class EthersIgnitionHelperImpl<ChainTypeT extends ChainType | string>
       IgnitionModuleResultsT
     >
   > {
+    if (this.#mutex) {
+      throw new HardhatError(
+        HardhatError.ERRORS.IGNITION.DEPLOY.ALREADY_IN_PROGRESS,
+      );
+    }
+
+    this.#mutex = true;
+
     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- eth_accounts returns a string array
     const accounts: string[] = (await this.#connection.provider.request({
       method: "eth_accounts",
@@ -192,7 +202,15 @@ export class EthersIgnitionHelperImpl<ChainTypeT extends ChainType | string>
       );
     }
 
-    return this.#toEthersContracts(this.#connection, ignitionModule, result);
+    const returnValue = await this.#toEthersContracts(
+      this.#connection,
+      ignitionModule,
+      result,
+    );
+
+    this.#mutex = false;
+
+    return returnValue;
   }
 
   async #toEthersContracts<

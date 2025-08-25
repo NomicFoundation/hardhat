@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { useEphemeralFixtureProject } from "@nomicfoundation/hardhat-test-utils";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import {
+  useEphemeralFixtureProject,
+  assertRejectsWithHardhatError,
+} from "@nomicfoundation/hardhat-test-utils";
 import { buildModule } from "@nomicfoundation/ignition-core";
 
 import { createConnection } from "./test-helpers/create-hre.js";
@@ -9,6 +13,28 @@ import { externallyLoadedContractArtifact } from "./test-helpers/externally-load
 
 describe("deploy with ethers result", () => {
   useEphemeralFixtureProject("minimal");
+
+  it("should throw when modules are deployed concurrently", async function () {
+    const moduleDefinition = buildModule("Module", (m) => {
+      const foo = m.contract("Foo");
+
+      return { foo };
+    });
+
+    const connection = await createConnection();
+
+    await assertRejectsWithHardhatError(
+      async () => {
+        await Promise.all([
+          connection.ignition.deploy(moduleDefinition),
+          connection.ignition.deploy(moduleDefinition),
+          connection.ignition.deploy(moduleDefinition),
+        ]);
+      },
+      HardhatError.ERRORS.IGNITION.DEPLOY.ALREADY_IN_PROGRESS,
+      {},
+    );
+  });
 
   it("should get return ethers result from deploy", async function () {
     const moduleDefinition = buildModule("Module", (m) => {
