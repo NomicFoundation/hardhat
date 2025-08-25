@@ -33,7 +33,7 @@ export interface RunOptions {
  * The stream is closed when all the test suites have been run.
  *
  * This function, initially, was a direct port of the example v2 integration in
- * the EDR repo (see  https://github.com/NomicFoundation/edr/blob/feat/solidity-tests/js/helpers/src/index.ts).
+ * the EDR repo (see  https://github.com/NomicFoundation/edr/blob/main/js/helpers/src/index.ts).
  *
  * Despite the changes, the signature of the function should still be considered
  * a draft that may change in the future.

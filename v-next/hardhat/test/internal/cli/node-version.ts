@@ -29,7 +29,7 @@ describe("Node version", () => {
     it("is true when current node version is greater than supported version", () => {
       const [major, minor, patch] = MIN_SUPPORTED_NODE_VERSION;
 
-      setNodeVersion(`${major + 1}.${minor - 1}.${patch - 1}`);
+      setNodeVersion(`${major + 2}.${minor - 1}.${patch - 1}`);
       assert(
         isNodeVersionSupported(),
         `${process.versions.node} should be supported`,
@@ -61,7 +61,7 @@ describe("Node version", () => {
     it("is false when the current version is less than the supported version", () => {
       const [major, minor, patch] = MIN_SUPPORTED_NODE_VERSION;
 
-      setNodeVersion(`${major - 1}.${minor + 1}.${patch + 1}`);
+      setNodeVersion(`${major - 2}.${minor + 1}.${patch + 1}`);
       assert(
         !isNodeVersionSupported(),
         `${process.versions.node} should not be supported`,
@@ -85,6 +85,16 @@ describe("Node version", () => {
       assert(
         isNodeVersionSupported(),
         `${process.versions.node} should be supported`,
+      );
+    });
+
+    it("is false when the major version is above the minimum but non LTS (odd)", async () => {
+      const [major, minor, patch] = MIN_SUPPORTED_NODE_VERSION;
+
+      setNodeVersion(`${major + 1}.${minor}.${patch}`);
+      assert(
+        !isNodeVersionSupported(),
+        `${process.versions.node} should not be supported`,
       );
     });
   });
