@@ -1,3 +1,3 @@
 import { createConfig } from "../config/eslint.config.js";
 
-export default createConfig(import.meta.filename);
+export default createConfig(import.meta.filename, { onlyHardhatError: false });

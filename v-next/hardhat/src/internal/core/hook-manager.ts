@@ -13,8 +13,8 @@ import type { HardhatPlugin } from "../../types/plugins.js";
 import type { LastParameter, Return } from "../../types/utils.js";
 
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
+import { AsyncMutex } from "@nomicfoundation/hardhat-utils/synchronization";
 
-import { AsyncMutex } from "./async-mutex.js";
 import { detectPluginNpmDependencyProblems } from "./plugins/detect-plugin-npm-dependency-problems.js";
 
 export class HookManagerImplementation implements HookManager {
