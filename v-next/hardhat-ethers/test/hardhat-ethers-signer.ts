@@ -1,9 +1,10 @@
 import type { ExampleContract } from "./helpers/example-contracts.js";
 import type { HardhatEthers } from "../src/types.js";
 import type { AuthorizationRequest } from "ethers";
+import type { JsonRpcServer } from "hardhat/types/network";
 
 import assert from "node:assert/strict";
-import { beforeEach, describe, it } from "node:test";
+import { after, before, beforeEach, describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
@@ -13,10 +14,10 @@ import {
   assertIsNotNull,
   assertWithin,
   initializeTestEthers,
+  spawnTestRpcServer,
 } from "./helpers/helpers.js";
 
 const INFURA_URL = process.env.INFURA_URL;
-const LOCALHOST_URL = "http://localhost:8545";
 
 describe("hardhat ethers signer", () => {
   let ethers: HardhatEthers;
@@ -85,21 +86,33 @@ describe("hardhat ethers signer", () => {
       assert.equal(res.signature.networkV, null);
     }
 
-    // TODO: Skip for now, resume once we can launch a separate instance of the local network
-    describe.skip("localhost accounts", () => {
-      it(`should throw because 'remote' is not supported`, async () => {
-        const { ethers: hhEthers } = await initializeTestEthers([], {
+    describe("localhost accounts", () => {
+      let server: JsonRpcServer;
+      let port: number;
+      let address: string;
+
+      before(async () => {
+        ({ server, port, address } = await spawnTestRpcServer());
+      });
+
+      after(async () => {
+        await server.close();
+      });
+
+      beforeEach(async () => {
+        ({ ethers } = await initializeTestEthers([], {
           networks: {
             localhost: {
               type: "http",
-              url: LOCALHOST_URL,
+              url: `http://${address}:${port}`,
               accounts: "remote",
             },
           },
-        });
-
-        const signer = await hhEthers.provider.getSigner(0);
-        const receiver = await hhEthers.provider.getSigner(1);
+        }));
+      });
+      it(`should throw because 'remote' is not supported`, async () => {
+        const signer = await ethers.provider.getSigner(0);
+        const receiver = await ethers.provider.getSigner(1);
 
         await assertRejectsWithHardhatError(
           signer.authorize({
@@ -115,7 +128,7 @@ describe("hardhat ethers signer", () => {
           networks: {
             localhost: {
               type: "http",
-              url: LOCALHOST_URL,
+              url: `http://${address}:${port}`,
               accounts: [TEST_P_KEY_1, TEST_P_KEY_2],
             },
           },
@@ -129,7 +142,7 @@ describe("hardhat ethers signer", () => {
           networks: {
             localhost: {
               type: "http",
-              url: LOCALHOST_URL,
+              url: `http://${address}:${port}`,
               accounts: HD_ACCOUNTS,
             },
           },
@@ -489,7 +502,7 @@ describe("hardhat ethers signer", () => {
 
     describe("default gas limit", () => {
       // TODO: enable when V3 is ready: when blockGasLimit is implemented
-      // it("should use the block gas limit for the in-process hardhat network", async ()=>{
+      // it("should use the block gas limit for the in-process hardhat network", async () => {
       //   const signer = await ethers.provider.getSigner(0);
       //   const tx = await signer.sendTransaction({ to: signer });
 

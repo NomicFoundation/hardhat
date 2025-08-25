@@ -1,3 +1,4 @@
+import type { JsonRpcServer } from "../../../../types/network.js";
 import type { EthereumProvider } from "../../../../types/providers.js";
 import type { Server } from "node:http";
 import type { AddressInfo } from "node:net";
@@ -11,17 +12,9 @@ import { JsonRpcHandler } from "./handler.js";
 
 const log = debug("hardhat:core:tasks:node:json-rpc:server");
 
-export interface JsonRpcServer {
-  listen(): Promise<{ address: string; port: number }>;
-  waitUntilClosed(): Promise<void>;
-
-  close(): Promise<void>;
-}
-
 export interface JsonRpcServerConfig {
   hostname: string;
-  port: number;
-
+  port?: number;
   provider: EthereumProvider;
 }
 
