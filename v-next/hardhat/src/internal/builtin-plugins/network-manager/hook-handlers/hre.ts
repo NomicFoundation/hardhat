@@ -15,11 +15,14 @@ export default async (): Promise<Partial<HardhatRuntimeEnvironmentHooks>> => ({
           "../network-manager.js"
         );
 
+        const networkName =
+          hre.globalOptions.network ??
+          process.env.HARDHAT_NETWORK ??
+          DEFAULT_NETWORK_NAME;
+
         if (networkManager === undefined) {
           networkManager = new NetworkManagerImplementation(
-            hre.globalOptions.network !== undefined
-              ? hre.globalOptions.network
-              : DEFAULT_NETWORK_NAME,
+            networkName,
             hre.config.defaultChainType,
             hre.config.networks,
             context.hooks,
