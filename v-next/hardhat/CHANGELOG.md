@@ -1,5 +1,11 @@
 # hardhat
 
+## 3.0.2
+
+### Patch Changes
+
+- 0120e67: Added warning when running with a non-LTS Node version ([#7167](https://github.com/NomicFoundation/hardhat/issues/7167))
+
 ## 3.0.1
 
 ### Patch Changes
