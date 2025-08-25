@@ -85,7 +85,7 @@ export class CoverageManagerImplementation implements CoverageManager {
     const filePath = path.join(dataPath, `${crypto.randomUUID()}.json`);
     const data = this.data;
     await writeJsonFile(filePath, data);
-    log("Saved data");
+    log("Saved data", id, filePath);
   }
 
   public async report(...ids: string[]): Promise<void> {
@@ -125,6 +125,7 @@ export class CoverageManagerImplementation implements CoverageManager {
       for (const filePath of filePaths) {
         const partialData = await readJsonFile<CoverageData>(filePath);
         data.push(...partialData);
+        log("Loaded data", id, filePath);
       }
       this.data.push(...data);
     }
