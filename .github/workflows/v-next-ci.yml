@@ -192,6 +192,7 @@ jobs:
 
     strategy:
       fail-fast: false
+      max-parallel: 3
       matrix:
         package: ${{ fromJson(needs.list-packages.outputs.packages) }}
 
@@ -237,6 +238,7 @@ jobs:
 
     strategy:
       fail-fast: false
+      max-parallel: 3
       matrix:
         package: ${{ fromJson(needs.list-packages.outputs.packages) }}
         os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest]
