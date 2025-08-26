@@ -20,7 +20,7 @@ jobs:
       id-token: write # Provenance generation in GitHub Actions requires "write" access to the "id-token" permission
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           # This makes Actions fetch all Git history so that Changesets can generate changelogs with the correct commits
           fetch-depth: 0
@@ -41,6 +41,7 @@ jobs:
         uses: changesets/action@v1
         with:
           title: Version Packages (v3)
+          version: pnpm version-for-release
 
       - name: Build All Packages
         if: steps.pr.outputs.hasChangesets == 'false'
@@ -48,7 +49,7 @@ jobs:
 
       - name: Publish All Packages (dry-run)
         if: steps.pr.outputs.hasChangesets == 'false'
-        run: pnpm publish --filter "./v-next/**" -r --no-git-checks --access public --tag next --dry-run
+        run: pnpm publish --filter "./v-next/**" -r --no-git-checks --access public --dry-run
 
       - name: Publish All Packages
         id: publish
@@ -56,4 +57,12 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
-        run: pnpm publish --filter "./v-next/**" -r --no-git-checks --access public --tag next
+        run: pnpm publish --filter "./v-next/**" -r --no-git-checks --access public
+
+      - name: Create Git tags for packages
+        if: steps.pr.outputs.hasChangesets == 'false'
+        run: pnpm changeset tag
+
+      - name: Push Git tags
+        if: steps.pr.outputs.hasChangesets == 'false'
+        run: git push --follow-tags
