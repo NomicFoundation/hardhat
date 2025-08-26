@@ -168,7 +168,7 @@ export function resolveGlobalOptions(
     if (value !== undefined) {
       parsedValue = value;
     } else {
-      value = process.env[`HARDHAT_${camelToSnakeCase(name).toUpperCase()}`];
+      value = process.env[getEnvVariableNameFromGlobalOption(name)];
       if (value !== undefined) {
         // if the value is provided via an env var, it needs to be parsed
         parsedValue = parseArgumentValue(value, option.type, name);
@@ -185,4 +185,26 @@ export function resolveGlobalOptions(
   }
 
   return globalOptions;
+}
+
+/**
+ * Sets the resolved global options as environment variables.
+ *
+ * @param globalOptions An object containing the resolved global options,
+ * with each option adhering to its definition in the globalOptionDefinitions.
+ */
+export function setGlobalOptionsAsEnvVariables(
+  globalOptions: GlobalOptions,
+): void {
+  for (const [name, value] of Object.entries(globalOptions)) {
+    const envName = getEnvVariableNameFromGlobalOption(name);
+
+    if (value !== undefined) {
+      process.env[envName] = value;
+    }
+  }
+}
+
+function getEnvVariableNameFromGlobalOption(globalOptionName: string) {
+  return `HARDHAT_${camelToSnakeCase(globalOptionName).toUpperCase()}`;
 }
