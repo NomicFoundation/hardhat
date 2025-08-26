@@ -86,6 +86,10 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
     imports.push(coverage.href);
   }
 
+  if (hre.globalOptions.network !== undefined) {
+    process.env.HARDHAT_NETWORK = hre.globalOptions.network;
+  }
+
   process.env.NODE_OPTIONS = imports
     .map((href) => `--import "${href}"`)
     .join(" ");

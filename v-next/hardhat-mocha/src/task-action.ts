@@ -3,7 +3,6 @@ import type { NewTaskActionFunction } from "hardhat/types/tasks";
 import type { MochaOptions } from "mocha";
 
 import { resolve as pathResolve } from "node:path";
-import { fileURLToPath } from "node:url";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
@@ -65,8 +64,33 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
     return;
   }
 
-  const tsx = fileURLToPath(import.meta.resolve("tsx/esm"));
-  process.env.NODE_OPTIONS = `--import ${tsx}`;
+  if (hre.config.test.mocha.parallel === true) {
+    const imports = [];
+
+    const tsx = new URL(import.meta.resolve("tsx/esm"));
+    imports.push(tsx.href);
+
+    if (hre.globalOptions.coverage === true) {
+      // NOTE: We set the HARDHAT_COVERAGE environment variable here because, as of now,
+      // the global options are not automatically passed to the child processes.
+      process.env.HARDHAT_COVERAGE = "true";
+
+      const coverage = new URL(
+        import.meta.resolve("@nomicfoundation/hardhat-mocha/coverage"),
+      );
+
+      hre.config.test.mocha.require = hre.config.test.mocha.require ?? [];
+      hre.config.test.mocha.require.push(coverage.href);
+    }
+
+    if (hre.globalOptions.network !== undefined) {
+      process.env.HARDHAT_NETWORK = hre.globalOptions.network;
+    }
+
+    process.env.NODE_OPTIONS = imports
+      .map((href) => `--import "${href}"`)
+      .join(" ");
+  }
 
   const { default: Mocha } = await import("mocha");
 
@@ -107,8 +131,10 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
     mocha.run(resolve);
   });
 
-  // NOTE: We execute mocha tests in the main process.
-  await markTestWorkerDone("mocha");
+  if (hre.config.test.mocha.parallel !== true) {
+    // NOTE: We execute mocha tests in the main process.
+    await markTestWorkerDone("mocha");
+  }
   // NOTE: This might print a coverage report.
   await markTestRunDone("mocha");
 
