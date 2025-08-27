@@ -1,5 +1,9 @@
-import type { EdrNetworkHDAccountsConfig } from "../../../../../src/types/config.js";
+import type {
+  EdrNetworkHDAccountsConfig,
+  NetworkConfig,
+} from "../../../../../src/types/config.js";
 import type { HardhatRuntimeEnvironment } from "../../../../../src/types/hre.js";
+import type { RequireField } from "../../../../../src/types/utils.js";
 import type { SubscriptionEvent } from "@nomicfoundation/edr";
 
 import assert from "node:assert/strict";
@@ -8,11 +12,13 @@ import { before, describe, it } from "node:test";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
+import { mkdtemp } from "@nomicfoundation/hardhat-utils/fs";
 
 import { createHardhatRuntimeEnvironment } from "../../../../../src/hre.js";
 import {
   DEFAULT_EDR_NETWORK_HD_ACCOUNTS_CONFIG_PARAMS,
   EdrProvider,
+  getProviderConfig,
   isDefaultEdrNetworkHDAccountsConfig,
 } from "../../../../../src/internal/builtin-plugins/network-manager/edr/edr-provider.js";
 import {
@@ -354,6 +360,66 @@ describe("edr-provider", () => {
         !(await isDefaultEdrNetworkHDAccountsConfig(accounts)),
         "The accounts with a different count should not be detected as default",
       );
+    });
+  });
+
+  describe("getProviderConfig", async () => {
+    const networkConfigStub: RequireField<NetworkConfig, "chainType"> = {
+      type: "edr-simulated",
+      chainType: "l1",
+      accounts: [],
+      allowBlocksWithSameTimestamp: true,
+      allowUnlimitedContractSize: true,
+      blockGasLimit: 30_000_000n,
+      chainId: 31337,
+      coinbase: Buffer.from("0000000000000000000000000000000000000000", "hex"),
+      gas: "auto",
+      gasMultiplier: 1,
+      gasPrice: "auto",
+      hardfork: "prague",
+      initialDate: new Date(),
+      loggingEnabled: false,
+      minGasPrice: 0n,
+      mining: { auto: true, interval: 0, mempool: { order: "fifo" } },
+      networkId: 31337,
+      throwOnCallFailures: true,
+      throwOnTransactionFailures: true,
+      forking: {
+        enabled: true,
+        url: new FixedValueConfigurationVariable("http://example.com"),
+        cacheDir: await mkdtemp("getProviderConfigTest"),
+      },
+    };
+
+    it("should not include hardfork history if not present in the chain descriptor", async () => {
+      const providerConfig = await getProviderConfig(
+        networkConfigStub,
+        undefined,
+        new Map([
+          [1n, { name: "mainnet", chainType: "l1", blockExplorers: {} }],
+          [
+            11155111n,
+            {
+              name: "sepolia",
+              chainType: "l1",
+              blockExplorers: {},
+              hardforkHistory: new Map(),
+            },
+          ],
+        ]),
+      );
+
+      assert.equal(providerConfig.fork?.chainOverrides?.length, 2);
+
+      // mainnet doesn't have harfork history, so it should be undefined
+      const mainnetOverride = providerConfig.fork?.chainOverrides[0];
+      assert.equal(mainnetOverride.name, "mainnet");
+      assert.equal(mainnetOverride.hardforkActivationOverrides, undefined);
+
+      // sepolia has an empty map as hardfork history, so it should be an empty array
+      const sepoliaOverride = providerConfig.fork?.chainOverrides[1];
+      assert.equal(sepoliaOverride.name, "sepolia");
+      assert.deepEqual(sepoliaOverride.hardforkActivationOverrides, []);
     });
   });
 });
