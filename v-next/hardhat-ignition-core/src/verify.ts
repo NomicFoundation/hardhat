@@ -58,11 +58,6 @@ export async function* getVerificationInformation(
       deploymentLoader,
     );
 
-    if (typeof verifyInfo === "string") {
-      yield verifyInfo;
-      continue;
-    }
-
     yield verifyInfo;
   }
 }
@@ -84,7 +79,7 @@ async function convertExStateToVerifyInfo(
     );
 
     // if the artifact cannot be found, we cannot verify the contract
-    // we return the contract name so the recipient can know which contract could not be verified
+    // we return the artifact id so the recipient can know which contract could not be verified
     return exState.artifactId;
   }
 
