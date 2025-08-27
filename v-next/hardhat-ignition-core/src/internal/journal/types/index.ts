@@ -6,7 +6,7 @@ import type { JournalMessage } from "../../execution/types/messages.js";
  * @beta
  */
 export interface Journal {
-  record(message: JournalMessage): void;
+  record(message: JournalMessage): Promise<void>;
 
   read(): AsyncGenerator<JournalMessage>;
 }
