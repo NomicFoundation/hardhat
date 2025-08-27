@@ -1,5 +1,14 @@
 # hardhat
 
+## 3.0.2
+
+### Patch Changes
+
+- d45d544: Fixed passing global network options to node:test and mocha subprocesses ([#7248](https://github.com/NomicFoundation/hardhat/issues/7248))
+- 003e72c: Help message phrasing unified
+- 0120e67: Added warning when running with a non-LTS Node version ([#7167](https://github.com/NomicFoundation/hardhat/issues/7167))
+- 9261714: Update npm module regex to include versions in solidity imports ([#7308](https://github.com/NomicFoundation/hardhat/issues/7308))
+
 ## 3.0.1
 
 ### Patch Changes
