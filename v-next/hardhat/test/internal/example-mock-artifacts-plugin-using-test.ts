@@ -27,7 +27,7 @@ describe("createMockHardhatRuntimeEnvironment", () => {
     const myPlugin: HardhatPlugin = {
       id: "my-plugin",
       tasks: [
-        task("hello-artifact-using-world", "Tests artifact loading")
+        task("hello-artifact-using-world", "Test artifact loading")
           .setAction(async () => ({
             default: (_args, hre) => {
               return hre.artifacts.readArtifact("MyContract");

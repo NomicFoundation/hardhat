@@ -265,7 +265,10 @@ export async function* testReporter(
           );
         }
         if (reason === undefined || reason === "") {
-          reason = failure.reason ?? "Unknown error";
+          reason =
+            failure.reason?.startsWith("FFI is disabled") === true
+              ? "FFI is disabled; set `test.solidity.ffi` to `true` in your Hardhat config to allow tests to call external commands"
+              : failure.reason ?? "Unknown error";
         }
         yield indenter.t`${colorizer.red(`Error: ${reason}`)}\n`;
         // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- Ignore Cases not matched: undefined

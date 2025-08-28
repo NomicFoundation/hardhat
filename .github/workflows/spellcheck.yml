@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - v-next
+      - v2
   pull_request:
   workflow_dispatch:
 
@@ -12,11 +12,9 @@ jobs:
   spellcheck:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      # TODO: Replace with https://github.com/streetsidesoftware/cspell-action
-      # once it supports the `report` input
-      - uses: galargh/cspell-action@report
+      - uses: streetsidesoftware/cspell-action@v7
         with:
           incremental_files_only: ${{ github.event_name == 'pull_request' }}
           config: cspell.yaml

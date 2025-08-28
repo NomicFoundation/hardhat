@@ -30,8 +30,8 @@ With this toolbox, you can:
 
 - Use [ethers.js](https://docs.ethers.io/) as the connection library for interacting with the network
 - Write Solidity tests using Hardhat's built-in test runner
-- Write TypeScript tests using [Mocha](https://mochajs.org/) and our [chai matchers plugin](/v-next/hardhat-ethers-chai-matchers/).
-- Verify contracts with [hardhat-verify](/v-next/hardhat-verify)
+- Write TypeScript tests using [Mocha](https://mochajs.org/) and our [chai matchers plugin](https://hardhat.org/plugins/nomicfoundation-hardhat-ethers-chai-matchers).
+- Verify contracts with [hardhat-verify](https://hardhat.org/plugins/nomicfoundation-hardhat-verify)
 - Deploy contracts using [Hardhat Ignition](https://hardhat.org/ignition)
 
 ## Bundled plugins
@@ -47,7 +47,7 @@ When you install `@nomicfoundation/hardhat-toolbox-mocha-ethers`, these plugins 
 - [`@nomicfoundation/hardhat-network-helpers`](https://github.com/NomicFoundation/hardhat/tree/v-next/v-next/hardhat-network-helpers)
 - [`@nomicfoundation/hardhat-typechain`](https://github.com/NomicFoundation/hardhat/tree/v-next/v-next/hardhat-typechain)
 - [`@nomicfoundation/hardhat-verify`](https://github.com/NomicFoundation/hardhat/tree/v-next/v-next/hardhat-verify)
-- [`@nomicfoundation/ignition-core`](https://github.com/NomicFoundation/hardhat/tree/v-next/v-next/ignition-core)
+- [`@nomicfoundation/ignition-core`](https://github.com/NomicFoundation/hardhat/tree/v-next/v-next/hardhat-ignition-core)
 
 ## Explicitly installing plugins
 

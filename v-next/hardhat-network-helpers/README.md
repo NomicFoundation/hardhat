@@ -4,7 +4,7 @@ Hardhat Network Helpers is a plugin that provides a set of utility functions to 
 
 ## Installation
 
-> This plugin is part of [Viem Hardhat Toolbox](/v-next/hardhat-toolbox-viem/) and [Ethers+Mocha Hardhat Toolbox](/v-next/hardhat-toolbox-mocha-ethers/). If you are using any of those toolboxes, there's nothing else you need to do.
+> This plugin is part of [Viem Hardhat Toolbox](https://hardhat.org/plugins/nomicfoundation-hardhat-toolbox-viem) and [Ethers+Mocha Hardhat Toolbox](https://hardhat.org/plugins/nomicfoundation-hardhat-toolbox-mocha-ethers). If you are using any of those toolboxes, there's nothing else you need to do.
 
 To install this plugin, run the following command:
 

@@ -6,7 +6,7 @@ on:
       - main
       - pre-release-testing-branch
       - changeset-release/main
-      - v-next
+      - v2
     paths:
       - ".github/workflows/cache.yml"
       - "**/pnpm-lock.yaml"
@@ -33,7 +33,7 @@ jobs:
       matrix:
         runner: ["ubuntu-latest", "macos-latest", "windows-latest"]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - id: env
         uses: ./.github/actions/setup-env
         with:

@@ -84,7 +84,7 @@ jobs:
       commands: ${{ inputs.commands || toJson(fromJson(steps.config.outputs.preset).commands) }}
     steps:
       - id: checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: NomicFoundation/hardhat
           ref: ${{ inputs.ref || github.ref }}
@@ -124,7 +124,7 @@ jobs:
         shell: bash
         working-directory: crates/edr_napi
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           repository: NomicFoundation/edr
           ref: ${{ needs.inputs.outputs.edr-ref }}
@@ -174,7 +174,7 @@ jobs:
         shell: bash
         working-directory: crates/edr_napi
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           repository: NomicFoundation/edr
           ref: ${{ needs.inputs.outputs.edr-ref }}
@@ -222,7 +222,7 @@ jobs:
         shell: bash
         working-directory: v-next/hardhat
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           repository: NomicFoundation/hardhat
           ref: ${{ needs.inputs.outputs.hardhat-ref }}
@@ -288,7 +288,7 @@ jobs:
         runner: ${{ fromJSON(needs.inputs.outputs.runners) }}
         command: ${{ fromJSON(needs.inputs.outputs.commands) }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           repository: NomicFoundation/hardhat
           path: NomicFoundation/hardhat
@@ -393,7 +393,7 @@ jobs:
           version: ${{ fromJSON(steps.config.outputs.repository).forge-version }}
           cache: false
       - name: Checkout the repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           submodules: recursive
           repository: ${{ matrix.repository }}
@@ -468,20 +468,23 @@ jobs:
             const fs = require('fs');
             const path = require('path');
             const output = fs.readFileSync('run.output').toString();
-            const matches = output.matchAll(new RegExp(process.env.PATTERN, 'g'));
+            const matches = output.matchAll(new RegExp(process.env.PATTERN, 'gm'));
             const sums = [];
             for (const groups of matches) {
               for (let i = 1; i < groups.length; i++) {
                 while (sums.length < i) {
                   sums.push(0);
                 }
-                sums[i - 1] += parseInt(groups[i]);
+                sums[i - 1] += parseInt(groups[i] ?? '0');
               }
             }
             let details = process.env.TEMPLATE;
+            let sum = 0;
             for (let i = 0; i < sums.length; i++) {
               details = details.replaceAll(`\${${i}}`, sums[i]);
+              sum += sums[i];
             }
+            details = details.replaceAll(`\${∑}`, sum);
             fs.writeFileSync('run.details', details);
       - id: upload
         env:

@@ -9,10 +9,6 @@ import type {
 
 import * as path from "node:path";
 
-import {
-  findClosestPackageJson,
-  PackageJsonNotFoundError,
-} from "@nomicfoundation/hardhat-utils/package";
 // This file is executed in a subprocess, and it is always run in this context.
 // Therefore, it is acceptable to avoid using dynamic imports and instead import all necessary modules at the beginning.
 import * as czech from "ethereum-cryptography/bip39/wordlists/czech.js";
@@ -25,6 +21,7 @@ import * as simplifiedChinese from "ethereum-cryptography/bip39/wordlists/simpli
 import * as SPANISH from "ethereum-cryptography/bip39/wordlists/spanish.js";
 import * as traditionalChinese from "ethereum-cryptography/bip39/wordlists/traditional-chinese.js";
 
+import { ANONYMIZED_PATH, anonymizeUserPaths } from "./anonymize-paths.js";
 import { GENERIC_SERVER_NAME } from "./constants.js";
 
 interface WordMatch {
@@ -40,7 +37,6 @@ export type AnonymizeEventResult =
   | { success: true; event: Event }
   | { success: false; error: string };
 
-const ANONYMIZED_FILE = "<user-file>";
 const ANONYMIZED_MNEMONIC = "<mnemonic>";
 const MNEMONIC_PHRASE_LENGTH_THRESHOLD = 7;
 const MINIMUM_AMOUNT_OF_WORDS_TO_ANONYMIZE = 4;
@@ -60,7 +56,7 @@ export class Anonymizer {
   ): Promise<AnonymizeEnvelopeResult> {
     for (const item of envelope[1]) {
       if (item[0].type === "event") {
-        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions 
+        /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
           -- We know that the item is an event item */
         const eventItem = item as EventItem;
 
@@ -116,66 +112,65 @@ export class Anonymizer {
     anonymizeContent: boolean;
   }> {
     if (filename === this.#configPath) {
-      const packageJsonPath = await this._getFilePackageJsonPath(filename);
-
-      if (packageJsonPath === null) {
-        // if we can't find a package.json, we just return the basename
-        return {
-          anonymizedFilename: path.basename(filename),
-          anonymizeContent: true,
-        };
-      }
-
       return {
-        anonymizedFilename: path.relative(
-          path.dirname(packageJsonPath),
-          filename,
-        ),
+        anonymizedFilename: path.basename(filename),
         anonymizeContent: true,
       };
     }
 
-    const parts = filename.split(path.sep);
-    const nodeModulesIndex = parts.indexOf("node_modules");
+    const anonymizedFilename = anonymizeUserPaths(filename);
 
-    if (nodeModulesIndex === -1) {
-      if (filename.startsWith("internal") || filename.startsWith("node:")) {
-        // show internal parts of the stack trace
-        return {
-          anonymizedFilename: filename,
-          anonymizeContent: false,
-        };
-      }
-
-      // if the file isn't inside node_modules and it's a user file, we hide it completely
-      return {
-        anonymizedFilename: ANONYMIZED_FILE,
-        anonymizeContent: true,
-      };
-    }
+    // We anonymize the content if the file path is entirely anonymized, or if
+    // it wasn't anonymized because it's just a basename
+    const anonymizeContent =
+      anonymizedFilename === ANONYMIZED_PATH ||
+      path.basename(filename) === filename;
 
     return {
-      anonymizedFilename: parts.slice(nodeModulesIndex).join(path.sep),
-      anonymizeContent: false,
+      anonymizedFilename,
+      anonymizeContent,
     };
   }
 
   public anonymizeErrorMessage(errorMessage: string): string {
     errorMessage = this.#anonymizeMnemonic(errorMessage);
 
-    // Match path separators both for Windows and Unix
-    const pathRegex = /\S+[\/\\]\S+/g;
-
-    // for files that don't have a path separator
-    const fileRegex = new RegExp("\\S+\\.(js|ts)\\S*", "g");
+    // We intentionally replace the config path with its own
+    // anonymized token, to help differentiate the config
+    // file in exception reports while keeping it anonymized.
+    if (this.#configPath !== undefined) {
+      errorMessage = errorMessage.replaceAll(
+        this.#configPath,
+        "<hardhat-config-file>",
+      );
+    }
 
     // hide hex strings of 20 chars or more
     const hexRegex = /(0x)?[0-9A-Fa-f]{20,}/g;
 
-    return errorMessage
-      .replace(pathRegex, ANONYMIZED_FILE)
-      .replace(fileRegex, ANONYMIZED_FILE)
-      .replace(hexRegex, (match) => match.replace(/./g, "x"));
+    return anonymizeUserPaths(errorMessage).replace(hexRegex, (match) =>
+      match.replace(/./g, "x"),
+    );
+  }
+
+  public filterOutEventsWithExceptionsNotRaisedByHardhat(
+    envelope: Envelope,
+  ): Envelope {
+    /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions --
+      We are just filtering events in place, not changing any type */
+    envelope[1] = envelope[1].filter((item) => {
+      if (item[0].type !== "event") {
+        return true;
+      }
+
+      /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+          -- We know that the item is an event item */
+      const eventItem = item as EventItem;
+
+      return this.raisedByHardhat(eventItem[1]);
+    }) as any;
+
+    return envelope;
   }
 
   public raisedByHardhat(event: Event): boolean {
@@ -189,6 +184,10 @@ export class Anonymizer {
 
     const originalException = exceptions[exceptions.length - 1];
 
+    if (!this.#isErrorMessageAllowed(originalException)) {
+      return false;
+    }
+
     const frames = originalException?.stacktrace?.frames;
 
     if (frames === undefined) {
@@ -200,52 +199,94 @@ export class Anonymizer {
         continue;
       }
 
-      if (this.#errorRaisedByPackageToIgnore(frame.filename)) {
-        return false;
-      }
-
-      // we stop after finding either a hardhat file or a file from the user's
-      // project
-      if (this.#isHardhatFile(frame.filename)) {
-        return true;
-      }
-
-      if (frame.filename === ANONYMIZED_FILE) {
-        return false;
-      }
-
+      // We don't report errors from the Hardhat.config file
       if (
         this.#configPath !== undefined &&
         this.#configPath.includes(frame.filename)
       ) {
         return false;
       }
+
+      if (this.#isPackageFile(frame.filename)) {
+        // We don't report errors from the ignored package list e.g. `ethers`
+        // even when buried as a subpackage of a hardhat package
+        if (this.#errorRaisedByPackageToIgnore(frame.filename)) {
+          return false;
+        }
+
+        // We report errors from Hardhat packages, we exclude
+        // those from non-hardhat packages
+        return this.#isHardhatFile(frame.filename);
+      }
+
+      // Error originating not in packages, but in the user project
+      // should be filtered.
+      if (this.#isUserProjectFile(frame.filename)) {
+        return false;
+      }
+
+      // Otherwise look at the next frame up
     }
 
     // if we didn't find any hardhat frame, we don't report the error
     return false;
   }
 
-  protected async _getFilePackageJsonPath(
-    filename: string,
-  ): Promise<string | null> {
-    try {
-      return await findClosestPackageJson(filename);
-    } catch (err) {
-      if (err instanceof PackageJsonNotFoundError) {
-        return null;
-      }
+  #isErrorMessageAllowed(originalException: Exception): boolean {
+    const exceptionType = originalException.type;
+    const exceptionMessage = originalException.value;
 
-      throw err;
+    // Without an exception message, we can't filter so allow it
+    if (exceptionMessage === undefined) {
+      return true;
     }
+
+    // Filter out required not defined in ES Modules errors
+    if (
+      exceptionType === "ReferenceError" &&
+      exceptionMessage ===
+        "require is not defined in ES module scope, you can use import instead"
+    ) {
+      return false;
+    }
+
+    // Filter out cannot find package when importing errors
+    if (
+      exceptionType === "Error" &&
+      /^Cannot find package '([^']+)' imported from .+$/.test(exceptionMessage)
+    ) {
+      return false;
+    }
+
+    // Filter out cannot find module errors
+    if (
+      exceptionType === "Error" &&
+      /^Cannot find module '([^']+)'/.test(exceptionMessage)
+    ) {
+      return false;
+    }
+
+    // Filter out "require() cannot be sued on an ESM graph"
+    if (
+      exceptionType === "Error" &&
+      exceptionMessage.startsWith(
+        "require() cannot be used on an ESM graph with top-level await. Use import() instead.",
+      )
+    ) {
+      return false;
+    }
+
+    return true;
   }
 
   #errorRaisedByPackageToIgnore(filename: string): boolean {
+    // List of external packages that we don't want to report errors from
     const pkgsToIgnore: string[] = [
-      path.join("node_modules", "@ethersproject"), // List of external packages that we don't want to report errors from
+      path.join("node_modules", "@ethersproject"),
     ];
 
-    const pkgs = filename.match(/node_modules[\/\\][^\/\\]+/g); // Match path separators both for Windows and Unix
+    // Match path separators both for Windows and Unix
+    const pkgs = filename.match(/node_modules[\/\\][^\/\\]+/g);
 
     if (pkgs === null) {
       return false;
@@ -260,13 +301,24 @@ export class Anonymizer {
     const nomicFoundationPath = path.join("node_modules", "@nomicfoundation");
     const ignoredOrgPath = path.join("node_modules", "@ignored");
     const hardhatPath = path.join("node_modules", "hardhat");
+
     filename = filename.toLowerCase();
 
     return (
-      filename.startsWith(nomicFoundationPath) ||
-      filename.startsWith(ignoredOrgPath) ||
-      filename.startsWith(hardhatPath)
+      filename.includes(nomicFoundationPath) ||
+      filename.includes(ignoredOrgPath) ||
+      filename.includes(hardhatPath)
     );
+  }
+
+  #isPackageFile(filename: string): boolean {
+    return filename.includes("node_modules");
+  }
+
+  #isUserProjectFile(filename: string): boolean {
+    const anonymizedUserPath = anonymizeUserPaths(filename);
+
+    return anonymizedUserPath === ANONYMIZED_PATH;
   }
 
   async #anonymizeExceptions(exceptions: Exception[]): Promise<Exception[]> {

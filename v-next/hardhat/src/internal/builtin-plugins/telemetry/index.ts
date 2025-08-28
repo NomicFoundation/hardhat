@@ -5,7 +5,7 @@ import { task } from "../../core/config.js";
 const hardhatPlugin: HardhatPlugin = {
   id: "builtin:telemetry",
   tasks: [
-    task("telemetry", "Displays and modifies your telemetry settings")
+    task("telemetry", "Display and modify telemetry settings")
       .addFlag({
         name: "enable",
         description: "Enable telemetry",

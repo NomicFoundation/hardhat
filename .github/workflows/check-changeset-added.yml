@@ -8,7 +8,7 @@ on:
   pull_request:
     branches:
       - main
-      - v-next
+      - v2
     types:
       - opened
       - synchronize
@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # We need to fetch the base ref because the pull request check inspects the diff between the head and the base ref
       - run: git fetch origin "$GITHUB_BASE_REF":"$GITHUB_BASE_REF"
