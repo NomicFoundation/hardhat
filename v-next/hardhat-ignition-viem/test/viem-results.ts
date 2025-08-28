@@ -15,28 +15,6 @@ import { externallyLoadedContractArtifact } from "./test-helpers/externally-load
 describe("viem results", () => {
   useEphemeralFixtureProject("minimal");
 
-  it("should throw when modules are deployed concurrently", async function () {
-    const moduleDefinition = buildModule("Module", (m) => {
-      const foo = m.contract("Foo");
-
-      return { foo };
-    });
-
-    const connection = await createConnection();
-
-    await assertRejectsWithHardhatError(
-      async () => {
-        await Promise.all([
-          connection.ignition.deploy(moduleDefinition),
-          connection.ignition.deploy(moduleDefinition),
-          connection.ignition.deploy(moduleDefinition),
-        ]);
-      },
-      HardhatError.ERRORS.IGNITION.DEPLOY.ALREADY_IN_PROGRESS,
-      {},
-    );
-  });
-
   it("should only return properties for the properties of the module results", async function () {
     const moduleDefinition = buildModule("Module", (m) => {
       const foo = m.contract("Foo");
@@ -103,5 +81,60 @@ describe("viem results", () => {
       // @ts-expect-error - isBar is not a method on the externally loaded contract
       result.baz.read.isBar(),
     );
+  });
+
+  describe("concurrent invocations of deploy", () => {
+    it("should throw when modules are deployed concurrently", async function () {
+      const moduleDefinition = buildModule("Module", (m) => {
+        const foo = m.contract("Foo");
+
+        return { foo };
+      });
+
+      const connection = await createConnection();
+
+      await assertRejectsWithHardhatError(
+        async () => {
+          await Promise.all([
+            connection.ignition.deploy(moduleDefinition),
+            connection.ignition.deploy(moduleDefinition),
+            connection.ignition.deploy(moduleDefinition),
+          ]);
+        },
+        HardhatError.ERRORS.IGNITION.DEPLOY.ALREADY_IN_PROGRESS,
+        {},
+      );
+    });
+
+    it("should allow subsequent deploys if the first deploy fails", async function () {
+      const connection = await createConnection();
+
+      const badModuleDefinition = buildModule("BadModule", (m) => {
+        const foo = m.contract("Nonexistant");
+
+        return { foo };
+      });
+
+      await assertRejectsWithHardhatError(
+        () => {
+          return connection.ignition.deploy(badModuleDefinition);
+        },
+        HardhatError.ERRORS.CORE.ARTIFACTS.NOT_FOUND,
+        {
+          contractName: "Nonexistant",
+          suggestion: "",
+        },
+      );
+
+      const goodModuleDefinition = buildModule("Module", (m) => {
+        const foo = m.contract("Foo");
+
+        return { foo };
+      });
+
+      const result = await connection.ignition.deploy(goodModuleDefinition);
+
+      assert.equal(await result.foo.read.x(), 1n);
+    });
   });
 });
