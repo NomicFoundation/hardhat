@@ -29,6 +29,7 @@ type Compile = (
 
 export interface SolcWrapper {
   compile: CompileWrapper;
+  version: Version;
 }
 
 export type CompileWrapper = (input: string) => string;
@@ -51,6 +52,7 @@ export default function wrapper(solc: Solc): SolcWrapper {
 
   return {
     compile: compileWrapper(isVersion6OrNewer, compile, reset),
+    version,
   };
 }
 

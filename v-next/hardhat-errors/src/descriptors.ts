@@ -1142,6 +1142,18 @@ Please check Hardhat's output for more details.`,
         websiteTitle: "Build profile not defined",
         websiteDescription: `The build profile you are trying to use is not defined in your Hardhat config.`,
       },
+      COMPILER_PATH_DOES_NOT_EXIST: {
+        number: 913,
+        messageTemplate: `The compiler path "{compilerPath}" specified in your config for version {version} does not exist.`,
+        websiteTitle: "Compiler path does not exist",
+        websiteDescription: `The compiler path you are trying to use does not exist. Ensure you specified the correct path in the config file and that the file exists.`,
+      },
+      PARSING_VERSION_STRING_FAILED: {
+        number: 914,
+        messageTemplate: `Could not parse the full solc version from "{versionString}".`,
+        websiteTitle: "Could not parse a solc version",
+        websiteDescription: `Hardhat failed to parse the full compiler version from the output of the compiler's 'version' command.`,
+      },
     },
     ARTIFACTS: {
       NOT_FOUND: {
