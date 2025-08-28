@@ -4,4 +4,4 @@
 "@nomicfoundation/hardhat-ignition-viem": patch
 ---
 
-Add mutex to Viem and Ethers IgnitionHelpers ([#6440](https://github.com/NomicFoundation/hardhat/issues/6440))
+Added guard to stop multiple simultaneous calls to `ignition.deploy(...)` at once ([#6440](https://github.com/NomicFoundation/hardhat/issues/6440))
