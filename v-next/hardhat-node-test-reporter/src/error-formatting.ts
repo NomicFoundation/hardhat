@@ -5,12 +5,12 @@ import { stripVTControlCharacters } from "node:util";
 import chalk from "chalk";
 import { diff as getDiff } from "jest-diff";
 
+import { isCi } from "./ci.js";
 import { indent } from "./formatting.js";
 import {
   cleanupTestFailError,
   isTestFileExecutionFailureError,
 } from "./node-test-error-utils.js";
-import { isCi } from "./ci.js";
 
 const AGGREGATE_ERROR_INNER_ERROR_INDENT = 2;
 const ERROR_CAUSE_INDENT = 2;
