@@ -1,5 +1,12 @@
 # hardhat
 
+## 3.0.3
+
+### Patch Changes
+
+- 34a5bc9: Fixed an issue when making historical calls in a forked network ([#7271](https://github.com/NomicFoundation/hardhat/issues/7271))
+- e0e658a: Upgraded EDR to 0.12.0-next.5. This brings a fix for `expectEmit` cheatcode stack traces and performance improvements from upgrading to REVM 27 ([#1063](https://github.com/NomicFoundation/edr/issues/1063))
+
 ## 3.0.2
 
 ### Patch Changes
