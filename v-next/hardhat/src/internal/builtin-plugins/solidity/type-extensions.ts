@@ -13,6 +13,7 @@ declare module "../../../types/config.js" {
   export interface SolcUserConfig {
     version: string;
     settings?: any;
+    path?: string;
   }
 
   export interface SingleVersionSolcUserConfig extends SolcUserConfig {
@@ -54,6 +55,7 @@ declare module "../../../types/config.js" {
   export interface SolcConfig {
     version: string;
     settings: any;
+    path?: string;
   }
 
   export interface SolidityBuildProfileConfig {

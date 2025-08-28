@@ -340,6 +340,7 @@ function resolveSolcConfig(
   return {
     version: solcConfig.version,
     settings: deepMerge(defaultSolcConfigSettings, solcConfig.settings ?? {}),
+    path: solcConfig.path,
   };
 }
 
