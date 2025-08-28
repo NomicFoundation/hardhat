@@ -150,7 +150,7 @@ describe("Plugins - resolve plugin list", () => {
     // B depends on C (mandatory) and "not-installed-package" (optional, not found)
     // A depends on B (optional found) and "not-installed-package" (optional, not found)
     //
-    // Resolution of A includes B (optional found) and C (transitive from C found)
+    // Resolution of A includes B (optional found) and C (transitive from B)
 
     const c: HardhatPlugin = {
       id: "c",
