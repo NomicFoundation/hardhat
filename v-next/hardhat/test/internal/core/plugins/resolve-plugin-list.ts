@@ -139,6 +139,44 @@ describe("Plugins - resolve plugin list", () => {
     );
   });
 
+  it("should support optional (resolved to undefined) dependencies", async () => {
+    function makeOptional(
+      dep: Promise<{ default: HardhatPlugin }>,
+    ): Promise<{ default: HardhatPlugin } | undefined> {
+      return dep.catch(() => undefined);
+    }
+
+    // C has no dependencies
+    // B depends on C (mandatory) and "not-installed-package" (optional, not found)
+    // A depends on B (optional found) and "not-installed-package" (optional, not found)
+    //
+    // Resolution of A includes B (optional found) and C (transitive from C found)
+
+    const c: HardhatPlugin = {
+      id: "c",
+    };
+    const b: HardhatPlugin = {
+      id: "b",
+      dependencies: () => [
+        Promise.resolve({ default: c }),
+        makeOptional(import("./fixture-projects/not-installed-package")),
+      ],
+    };
+    const a: HardhatPlugin = {
+      id: "a",
+      dependencies: () => [
+        makeOptional(Promise.resolve({ default: b })),
+        makeOptional(import("./fixture-projects/not-installed-package")),
+      ],
+    };
+
+    const expected = [c, b, a];
+    assert.deepEqual(
+      await resolvePluginList(installedPackageFixture, [a]),
+      expected,
+    );
+  });
+
   it("should deal with a complicated dependency graph", async () => {
     //   A    B
     //  / \  / \ \

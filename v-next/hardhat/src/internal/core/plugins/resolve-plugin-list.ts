@@ -50,7 +50,9 @@ async function reverseTopologicalSort(
       let dependencyModules: Array<{ default: HardhatPlugin }>;
 
       try {
-        dependencyModules = await Promise.all(plugin.dependencies());
+        dependencyModules = (await Promise.all(plugin.dependencies())).filter(
+          (module) => module !== undefined,
+        );
       } catch (error) {
         ensureError(error);
         await detectPluginNpmDependencyProblems(projectRoot, plugin);
