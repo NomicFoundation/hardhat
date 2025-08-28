@@ -1,8 +1,9 @@
 import type { ZodType } from "zod";
 
 import { hexStringToBytes } from "@nomicfoundation/hardhat-utils/hex";
-import { conditionalUnionType } from "@nomicfoundation/hardhat-zod-utils";
 import { z } from "zod";
+
+import { conditionalUnionType } from "@nomicfoundation/hardhat-zod-utils";
 
 import { isRpcDataString } from "../utils.js";
 

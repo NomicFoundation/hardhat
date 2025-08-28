@@ -25,6 +25,7 @@ import path from "node:path";
 
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { exists } from "@nomicfoundation/hardhat-utils/fs";
+import { AsyncMutex } from "@nomicfoundation/hardhat-utils/synchronization";
 import { analyze } from "@nomicfoundation/solidity-analyzer";
 
 import {
@@ -32,7 +33,6 @@ import {
   RootResolutionErrorType,
 } from "../../../../../types/solidity/errors.js";
 import { ResolvedFileType } from "../../../../../types/solidity/resolved-file.js";
-import { AsyncMutex } from "../../../../core/async-mutex.js";
 
 import { parseNpmDirectImport } from "./npm-module-parsing.js";
 import {

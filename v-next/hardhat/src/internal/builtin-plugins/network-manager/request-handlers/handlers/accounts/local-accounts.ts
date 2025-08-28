@@ -4,6 +4,7 @@ import type {
   JsonRpcResponse,
 } from "../../../../../../types/providers.js";
 import type { RequestHandler } from "../../types.js";
+import type { RpcTransactionRequest } from "@nomicfoundation/hardhat-zod-utils/rpc";
 
 import {
   assertHardhatInvariant,
@@ -19,19 +20,18 @@ import {
   bytesToBigInt,
   bytesToNumber,
 } from "@nomicfoundation/hardhat-utils/number";
+import {
+  rpcAddress,
+  rpcAny,
+  rpcData,
+  rpcTransactionRequest,
+  validateParams,
+} from "@nomicfoundation/hardhat-zod-utils/rpc";
 import { addr, Transaction } from "micro-eth-signer";
-import * as typed from "micro-eth-signer/typed-data";
 import { signTyped } from "micro-eth-signer/typed-data";
+import * as typed from "micro-eth-signer/typed-data";
 
 import { getRequestParams } from "../../../json-rpc.js";
-import { rpcAddress } from "../../../rpc/types/address.js";
-import { rpcAny } from "../../../rpc/types/any.js";
-import { rpcData } from "../../../rpc/types/data.js";
-import {
-  rpcTransactionRequest,
-  type RpcTransactionRequest,
-} from "../../../rpc/types/tx-request.js";
-import { validateParams } from "../../../rpc/validate-params.js";
 import { ChainId } from "../chain-id/chain-id.js";
 
 /**
