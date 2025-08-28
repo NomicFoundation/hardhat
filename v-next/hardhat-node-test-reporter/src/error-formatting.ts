@@ -10,11 +10,12 @@ import {
   cleanupTestFailError,
   isTestFileExecutionFailureError,
 } from "./node-test-error-utils.js";
+import { isCi } from "./ci.js";
 
 const AGGREGATE_ERROR_INNER_ERROR_INDENT = 2;
 const ERROR_CAUSE_INDENT = 2;
 const ERROR_STACK_INDENT = 4;
-const MAX_ERROR_CHAIN_LENGTH = 3;
+const MAX_ERROR_CHAIN_LENGTH = isCi() ? 100 : 5;
 
 /**
  * Represents the result of successful parsing of a stack trace line.
