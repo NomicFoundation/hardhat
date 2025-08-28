@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { useEphemeralFixtureProject } from "@nomicfoundation/hardhat-test-utils";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import {
+  useEphemeralFixtureProject,
+  assertRejectsWithHardhatError,
+} from "@nomicfoundation/hardhat-test-utils";
 import { buildModule } from "@nomicfoundation/ignition-core";
 
 import { createConnection } from "./test-helpers/create-hre.js";
@@ -98,5 +102,62 @@ describe("deploy with ethers result", () => {
     // TODO: add @ts-expect-error when we have typescript support
     assert.equal(result.foo.isBar, undefined);
     assert.equal(result.bar.isFoo, undefined);
+  });
+
+  describe("concurrent invocations of deploy", () => {
+    it("should throw when modules are deployed concurrently", async function () {
+      const moduleDefinition = buildModule("Module", (m) => {
+        const foo = m.contract("Foo");
+
+        return { foo };
+      });
+
+      const connection = await createConnection();
+
+      await assertRejectsWithHardhatError(
+        async () => {
+          await Promise.all([
+            connection.ignition.deploy(moduleDefinition),
+            connection.ignition.deploy(moduleDefinition),
+            connection.ignition.deploy(moduleDefinition),
+          ]);
+        },
+        HardhatError.ERRORS.IGNITION.DEPLOY.ALREADY_IN_PROGRESS,
+        {},
+      );
+    });
+
+    it("should allow subsequent deploys if the first deploy fails", async function () {
+      const connection = await createConnection();
+
+      const badModuleDefinition = buildModule("Module", (m) => {
+        const nonexistant = m.contract("Nonexistant");
+
+        return { nonexistant };
+      });
+
+      await assertRejectsWithHardhatError(
+        () => {
+          return connection.ignition.deploy(badModuleDefinition);
+        },
+        HardhatError.ERRORS.CORE.ARTIFACTS.NOT_FOUND,
+        {
+          contractName: "Nonexistant",
+          suggestion: "",
+        },
+      );
+
+      const goodModuleDefinition = buildModule("Module", (m) => {
+        const foo = m.contract("Foo");
+        const fooAt = m.contractAt("Foo", foo, { id: "FooAt" });
+
+        return { foo, fooAt };
+      });
+
+      const result = await connection.ignition.deploy(goodModuleDefinition);
+
+      assert.equal(await result.foo.x(), 1n);
+      assert.equal(await result.fooAt.x(), 1n);
+    });
   });
 });

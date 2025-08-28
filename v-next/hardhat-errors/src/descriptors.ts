@@ -1743,6 +1743,14 @@ npx hardhat ignition track-tx <txHash> <deploymentId> --network <networkName>`,
         websiteTitle: "Chain ID changed",
         websiteDescription: `The deployment's chain cannot be changed between runs.`,
       },
+      ALREADY_IN_PROGRESS: {
+        number: 10901,
+        messageTemplate:
+          "Another instance of `IgnitionHelper.deploy()` is already in use. Please wait for the previous deployment to finish.",
+        websiteTitle: "Deployment already in progress",
+        websiteDescription:
+          "Another instance of `IgnitionHelper.deploy()` is already in use. Please wait for the previous deployment to finish.",
+      },
     },
     VERIFY: {
       UNINITIALIZED_DEPLOYMENT: {

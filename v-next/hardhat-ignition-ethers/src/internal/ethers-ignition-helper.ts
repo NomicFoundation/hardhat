@@ -49,6 +49,8 @@ export class EthersIgnitionHelperImpl<ChainTypeT extends ChainType | string>
   readonly #config: Partial<DeployConfig> | undefined;
   readonly #provider: EIP1193Provider;
 
+  #mutex: boolean = false;
+
   constructor(
     hardhatConfig: HardhatConfig,
     artifactsManager: ArtifactManager,
@@ -114,85 +116,101 @@ export class EthersIgnitionHelperImpl<ChainTypeT extends ChainType | string>
       IgnitionModuleResultsT
     >
   > {
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- eth_accounts returns a string array
-    const accounts: string[] = (await this.#connection.provider.request({
-      method: "eth_accounts",
-    })) as string[];
-
-    const artifactResolver = new HardhatArtifactResolver(
-      this.#artifactsManager,
-    );
-
-    const resolvedConfig: Partial<DeployConfig> = {
-      ...this.#config,
-      ...perDeployConfig,
-    };
-
-    const resolvedStrategyConfig = this.#resolveStrategyConfig<StrategyT>(
-      this.#hardhatConfig,
-      strategy,
-      strategyConfig,
-    );
-
-    const chainId = Number(
-      await this.#connection.provider.request({
-        method: "eth_chainId",
-      }),
-    );
-
-    const deploymentId = resolveDeploymentId(givenDeploymentId, chainId);
-
-    const deploymentDir =
-      this.#connection.networkConfig.type === "edr-simulated"
-        ? undefined
-        : path.join(
-            this.#hardhatConfig.paths.ignition,
-            "deployments",
-            deploymentId,
-          );
-
-    const executionEventListener = displayUi
-      ? new PrettyEventHandler()
-      : undefined;
-
-    let deploymentParameters: DeploymentParameters;
-
-    if (typeof parameters === "string") {
-      deploymentParameters = await readDeploymentParameters(parameters);
-    } else {
-      deploymentParameters = parameters;
-    }
-
-    const result = await deploy({
-      config: resolvedConfig,
-      provider: this.#provider,
-      deploymentDir,
-      executionEventListener,
-      artifactResolver,
-      ignitionModule,
-      deploymentParameters,
-      accounts,
-      defaultSender,
-      strategy,
-      strategyConfig: resolvedStrategyConfig,
-      maxFeePerGasLimit:
-        this.#connection.networkConfig?.ignition.maxFeePerGasLimit,
-      maxPriorityFeePerGas:
-        this.#connection.networkConfig?.ignition.maxPriorityFeePerGas,
-    });
-
-    if (result.type !== DeploymentResultType.SUCCESSFUL_DEPLOYMENT) {
-      const message = errorDeploymentResultToExceptionMessage(result);
-
+    if (this.#mutex) {
       throw new HardhatError(
-        HardhatError.ERRORS.IGNITION.INTERNAL.DEPLOYMENT_ERROR,
-        {
-          message,
-        },
+        HardhatError.ERRORS.IGNITION.DEPLOY.ALREADY_IN_PROGRESS,
       );
     }
 
-    return this.#toEthersContracts(this.#connection, ignitionModule, result);
+    this.#mutex = true;
+
+    try {
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- eth_accounts returns a string array
+      const accounts: string[] = (await this.#connection.provider.request({
+        method: "eth_accounts",
+      })) as string[];
+
+      const artifactResolver = new HardhatArtifactResolver(
+        this.#artifactsManager,
+      );
+
+      const resolvedConfig: Partial<DeployConfig> = {
+        ...this.#config,
+        ...perDeployConfig,
+      };
+
+      const resolvedStrategyConfig = this.#resolveStrategyConfig<StrategyT>(
+        this.#hardhatConfig,
+        strategy,
+        strategyConfig,
+      );
+
+      const chainId = Number(
+        await this.#connection.provider.request({
+          method: "eth_chainId",
+        }),
+      );
+
+      const deploymentId = resolveDeploymentId(givenDeploymentId, chainId);
+
+      const deploymentDir =
+        this.#connection.networkConfig.type === "edr-simulated"
+          ? undefined
+          : path.join(
+              this.#hardhatConfig.paths.ignition,
+              "deployments",
+              deploymentId,
+            );
+
+      const executionEventListener = displayUi
+        ? new PrettyEventHandler()
+        : undefined;
+
+      let deploymentParameters: DeploymentParameters;
+
+      if (typeof parameters === "string") {
+        deploymentParameters = await readDeploymentParameters(parameters);
+      } else {
+        deploymentParameters = parameters;
+      }
+
+      const result = await deploy({
+        config: resolvedConfig,
+        provider: this.#provider,
+        deploymentDir,
+        executionEventListener,
+        artifactResolver,
+        ignitionModule,
+        deploymentParameters,
+        accounts,
+        defaultSender,
+        strategy,
+        strategyConfig: resolvedStrategyConfig,
+        maxFeePerGasLimit:
+          this.#connection.networkConfig?.ignition.maxFeePerGasLimit,
+        maxPriorityFeePerGas:
+          this.#connection.networkConfig?.ignition.maxPriorityFeePerGas,
+      });
+
+      if (result.type !== DeploymentResultType.SUCCESSFUL_DEPLOYMENT) {
+        const message = errorDeploymentResultToExceptionMessage(result);
+
+        throw new HardhatError(
+          HardhatError.ERRORS.IGNITION.INTERNAL.DEPLOYMENT_ERROR,
+          {
+            message,
+          },
+        );
+      }
+
+      return await this.#toEthersContracts(
+        this.#connection,
+        ignitionModule,
+        result,
+      );
+    } finally {
+      this.#mutex = false;
+    }
   }
 
   async #toEthersContracts<
