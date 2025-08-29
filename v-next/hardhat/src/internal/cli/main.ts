@@ -707,6 +707,11 @@ async function isHardhatInstalledLocallyOrLinked(
   configPath: string,
   log: debug.Debugger,
 ) {
+  // Assume hardhat installation is local when running tests
+  if (process.env.NODE_TEST_CONTEXT !== undefined) {
+    return true;
+  }
+
   try {
     // Based on Node.js resolution algorithm find the real path
     // of the project's version of Hardhat
@@ -726,7 +731,7 @@ async function isHardhatInstalledLocallyOrLinked(
       realPathToResolvedPackageJson === (await getRealPath(thisPackageJson));
 
     if (!isLocalOrLinked) {
-      log("Determed that Hardhat is not installed locally/linked");
+      log("Determined that Hardhat is not installed locally/linked");
       log(`  resolved package.json: ${realPathToResolvedPackageJson}`);
       log(`  current package.json: ${thisPackageJson}`);
     }
