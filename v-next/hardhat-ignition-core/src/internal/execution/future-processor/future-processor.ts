@@ -53,6 +53,8 @@ export class FutureProcessor {
     private readonly _deploymentParameters: DeploymentParameters,
     private readonly _defaultSender: string,
     private readonly _disableFeeBumping: boolean,
+    private readonly _maxRetries: number,
+    private readonly _retryInterval: number,
   ) {}
 
   /**
@@ -214,7 +216,10 @@ export class FutureProcessor {
           this._requiredConfirmations,
           this._millisecondBeforeBumpingFees,
           this._maxFeeBumps,
-          undefined,
+          {
+            maxRetries: this._maxRetries,
+            retryInterval: this._retryInterval,
+          },
           this._disableFeeBumping,
         );
     }

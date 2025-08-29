@@ -44,6 +44,8 @@ describe("config", () => {
             },
           },
           disableFeeBumping: true,
+          maxRetries: 10,
+          retryInterval: 1000,
         },
       });
 
@@ -98,7 +100,9 @@ describe("config", () => {
         "blockPollingInterval",
         "disableFeeBumping",
         "maxFeeBumps",
+        "maxRetries",
         "requiredConfirmations",
+        "retryInterval",
         "strategyConfig",
         "timeBeforeBumpingFees",
       ];
