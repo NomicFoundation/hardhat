@@ -4,7 +4,7 @@
   "commit": false,
   "linked": [],
   "access": "public",
-  "baseBranch": "main",
+  "baseBranch": "v2",
   "updateInternalDependencies": "minor",
   "ignore": ["@nomiclabs/common"],
   "___experimentalUnsafeOptions_WILL_CHANGE_IN_PATCH": {
