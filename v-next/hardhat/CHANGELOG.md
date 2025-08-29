@@ -1,5 +1,11 @@
 # hardhat
 
+## 3.0.4
+
+### Patch Changes
+
+- af301a8: Update validation for solidity test config ([#7205](https://github.com/NomicFoundation/hardhat/pull/7205))
+
 ## 3.0.3
 
 ### Patch Changes
