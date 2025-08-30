@@ -5,6 +5,7 @@ import { stripVTControlCharacters } from "node:util";
 import chalk from "chalk";
 import { diff as getDiff } from "jest-diff";
 
+import { isCi } from "./ci.js";
 import { indent } from "./formatting.js";
 import {
   cleanupTestFailError,
@@ -14,7 +15,7 @@ import {
 const AGGREGATE_ERROR_INNER_ERROR_INDENT = 2;
 const ERROR_CAUSE_INDENT = 2;
 const ERROR_STACK_INDENT = 4;
-const MAX_ERROR_CHAIN_LENGTH = 3;
+const MAX_ERROR_CHAIN_LENGTH = isCi() ? 100 : 10;
 
 /**
  * Represents the result of successful parsing of a stack trace line.

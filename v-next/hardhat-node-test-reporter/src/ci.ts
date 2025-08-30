@@ -1,6 +1,6 @@
 /**
- * IMPORTANT: A copy of this function exists in `v-next/hardhat-node-test-reporter/src/ci.ts`.
- * If you change this function, you must also change the copy.
+ * Copied from `v-next/hardhat-utils/src/ci.ts` to prevent a circular dependency.
+ * IMPORTANT: If you change this function, you must also change the original.
  */
 
 /**
