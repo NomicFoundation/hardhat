@@ -182,6 +182,12 @@ export class ViemIgnitionHelperImpl<ChainTypeT extends ChainType | string>
         this.#connection.networkConfig?.ignition.maxFeePerGasLimit,
       maxPriorityFeePerGas:
         this.#connection.networkConfig?.ignition.maxPriorityFeePerGas,
+      maxRetries:
+        resolvedConfig.maxRetries ??
+        this.#connection.networkConfig?.ignition.maxRetries,
+      retryInterval:
+        resolvedConfig.retryInterval ??
+        this.#connection.networkConfig?.ignition.retryInterval,
     });
 
     if (result.type !== DeploymentResultType.SUCCESSFUL_DEPLOYMENT) {

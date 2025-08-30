@@ -2,10 +2,7 @@ import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { assertRejectsWithHardhatError } from "@nomicfoundation/hardhat-test-utils";
 import { assert } from "chai";
 
-import {
-  GetTransactionRetryConfig,
-  monitorOnchainInteraction,
-} from "../../../../src/internal/execution/future-processor/handlers/monitor-onchain-interaction.js";
+import { monitorOnchainInteraction } from "../../../../src/internal/execution/future-processor/handlers/monitor-onchain-interaction.js";
 import { decodeSimulationResult } from "../../../../src/internal/execution/future-processor/helpers/decode-simulation-result.js";
 import {
   TRANSACTION_SENT_TYPE,
@@ -49,6 +46,7 @@ import {
   NetworkInteractionType,
   OnchainInteraction,
   StaticCall,
+  GetTransactionRetryConfig,
 } from "../../../../src/internal/execution/types/network-interaction.js";
 import { FutureType } from "../../../../src/types/module.js";
 import { exampleAccounts } from "../../../helpers.js";
