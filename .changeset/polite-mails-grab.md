@@ -2,4 +2,4 @@
 "@nomicfoundation/hardhat-node-test-reporter": patch
 ---
 
-Fix test error logs being cut off. The default is now 5 lines (up from 3). In CI environments, it shows 100 lines for more detail.
+Fix test error `cause` chains being cut off. The default is now 10 `cause`s (up from 3). In CI environments, it's 100.
