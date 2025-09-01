@@ -1,9 +1,9 @@
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 
 const NPM_MODULE_PATTERN =
-  /^(?<package>(?:@[a-z0-9]+(?:[._-][a-z0-9]+)*\/)?[a-z0-9]+(?:[._-][a-z0-9]+)*)\/(?<path>.+)$/;
+  /^(?<package>(?:@[a-z0-9]+(?:[._-][a-z0-9]+)*\/)?[a-z0-9]+(?:[._-][a-z0-9]+)*(?:@(?:\d+\.)?(?:\d+\.)?(?:\*|\d+))?)\/(?<path>.+)$/;
 const NPM_MODULE_OR_PREFIX_PATTERN =
-  /^(?<package>(?:@[a-z0-9]+(?:[._-][a-z0-9]+)*\/)?[a-z0-9]+(?:[._-][a-z0-9]+)*)\/?.*$/;
+  /^(?<package>(?:@[a-z0-9]+(?:[._-][a-z0-9]+)*\/)?[a-z0-9]+(?:[._-][a-z0-9]+)*(?:@(?:\d+\.)?(?:\d+\.)?(?:\*|\d+))?)\/?.*$/;
 
 /**
  * Parses a direct import as if it were an npm import, returning `undefined`

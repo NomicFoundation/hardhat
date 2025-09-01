@@ -1,5 +1,21 @@
 # hardhat
 
+## 3.0.3
+
+### Patch Changes
+
+- 34a5bc9: Fixed an issue when making historical calls in a forked network ([#7271](https://github.com/NomicFoundation/hardhat/issues/7271))
+- e0e658a: Upgraded EDR to 0.12.0-next.5. This brings a fix for `expectEmit` cheatcode stack traces and performance improvements from upgrading to REVM 27 ([#1063](https://github.com/NomicFoundation/edr/issues/1063))
+
+## 3.0.2
+
+### Patch Changes
+
+- d45d544: Fixed passing global network options to node:test and mocha subprocesses ([#7248](https://github.com/NomicFoundation/hardhat/issues/7248))
+- 003e72c: Help message phrasing unified
+- 0120e67: Added warning when running with a non-LTS Node version ([#7167](https://github.com/NomicFoundation/hardhat/issues/7167))
+- 9261714: Update npm module regex to include versions in solidity imports ([#7308](https://github.com/NomicFoundation/hardhat/issues/7308))
+
 ## 3.0.1
 
 ### Patch Changes

@@ -86,6 +86,10 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
     imports.push(coverage.href);
   }
 
+  if (hre.globalOptions.network !== undefined) {
+    process.env.HARDHAT_NETWORK = hre.globalOptions.network;
+  }
+
   process.env.NODE_OPTIONS = imports
     .map((href) => `--import "${href}"`)
     .join(" ");
@@ -93,7 +97,11 @@ const testWithHardhat: NewTaskActionFunction<TestActionArguments> = async (
   async function runTests(): Promise<number> {
     let failures = 0;
 
-    const nodeTestOptions: LastParameter<typeof run> = { files, only };
+    const nodeTestOptions: LastParameter<typeof run> = {
+      files,
+      only,
+      concurrency: true, // uses `os.availableParallelism() - 1`
+    };
 
     if (grep !== undefined && grep !== "") {
       nodeTestOptions.testNamePatterns = grep;

@@ -409,7 +409,7 @@ export class EdrProvider extends BaseProvider {
   }
 }
 
-async function getProviderConfig(
+export async function getProviderConfig(
   networkConfig: RequireField<EdrNetworkConfig, "chainType">,
   coverageConfig: CoverageConfig | undefined,
   chainDescriptors: ChainDescriptorsConfig,
