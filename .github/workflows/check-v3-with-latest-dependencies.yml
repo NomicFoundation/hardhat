@@ -23,6 +23,8 @@ jobs:
         run: pnpm list -r --depth 2
       - name: Run tests
         run: pnpm test || (echo "===== Retry =====" && pnpm test)
+        env:
+          NODE_OPTIONS: --no-experimental-strip-types
       - name: Notify failures
         if: failure()
         uses: slackapi/slack-github-action@70cd7be8e40a46e8b0eced40b0de447bdb42f68e # v1.26.0
