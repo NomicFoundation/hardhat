@@ -71,29 +71,18 @@ function getOptimize(
   }
 
   if (typeof optimize === "boolean") {
-    if (optimize) {
-      if (
-        semver.gte(compilerVersion, "0.3.10") ||
-        semver.lte(compilerVersion, "0.3.0")
-      ) {
-        throw new VyperPluginError(
-          `The 'optimize' setting with value 'true' is not supported for versions of the Vyper compiler older than or equal to 0.3.0 or newer than or equal to 0.3.10. You are currently using version ${compilerVersion}.`
-        );
-      }
-
-      // The optimizer is enabled by default
-      return "";
-    } else {
-      if (semver.lte(compilerVersion, "0.3.0")) {
-        throw new VyperPluginError(
-          `The 'optimize' setting with value 'false' is not supported for versions of the Vyper compiler older than or equal to 0.3.0. You are currently using version ${compilerVersion}.`
-        );
-      }
-
-      return semver.lt(compilerVersion, "0.3.10")
-        ? "--no-optimize"
-        : "--optimize none";
+     if (semver.lte(compilerVersion, "0.3.0")) {
+      throw new VyperPluginError(
+        `The 'optimize' setting is not supported for Vyper versions <= 0.3.0. You are using ${compilerVersion}.`
+      );
     }
+
+    if (optimize && semver.gte(compilerVersion, "0.3.10")) {
+      throw new VyperPluginError(
+        `The 'optimize' setting with 'true' is not supported for Vyper >= 0.3.10. You are using ${compilerVersion}.`
+      );
+    }
+    return optimize ? "" : semver.lt(compilerVersion, "0.3.10") ? "--no-optimize" : "--optimize none";
   }
 
   if (typeof optimize === "string") {
