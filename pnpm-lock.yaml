@@ -1541,6 +1541,9 @@ importers:
 
   v-next/hardhat-zod-utils:
     dependencies:
+      '@nomicfoundation/hardhat-errors':
+        specifier: workspace:^3.0.0
+        version: link:../hardhat-errors
       '@nomicfoundation/hardhat-utils':
         specifier: workspace:^3.0.0
         version: link:../hardhat-utils

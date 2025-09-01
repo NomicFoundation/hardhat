@@ -941,9 +941,6 @@ Read the [documentation](https://hardhat.org/hardhat-runner/docs/config#hd-walle
 Try using another mnemonic or deriving less keys.`,
       },
       WRONG_VALIDATION_PARAMS: {
-        // Deprecated: previously used in `hardhat` to display errors related to zod validation for RPC types.
-        // These types have now been moved to the `hardhat-zod-utils` plugin,
-        // and this plugin no longer depends on `hardhat-errors`.
         number: 719,
         messageTemplate:
           "Validation of parameters against the schemas failed for the following reason: {reason}",
