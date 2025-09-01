@@ -295,19 +295,29 @@ export function hardhatChainDescriptorsToEdrChainOverrides(
 
         return descriptor.chainType === chainType;
       })
-      .map(([chainId, descriptor]) => ({
-        chainId,
-        name: descriptor.name,
-        hardforkActivationOverrides: Array.from(
-          descriptor.hardforkHistory ?? new Map(),
-        ).map(([hardfork, { blockNumber, timestamp }]) => ({
-          condition:
-            blockNumber !== undefined
-              ? { blockNumber: BigInt(blockNumber) }
-              : { timestamp: BigInt(timestamp) },
-          hardfork: hardhatHardforkToEdrSpecId(hardfork, descriptor.chainType),
-        })),
-      }))
+      .map(([chainId, descriptor]) => {
+        const chainOverride: ChainOverride = {
+          chainId,
+          name: descriptor.name,
+        };
+
+        if (descriptor.hardforkHistory !== undefined) {
+          chainOverride.hardforkActivationOverrides = Array.from(
+            descriptor.hardforkHistory,
+          ).map(([hardfork, { blockNumber, timestamp }]) => ({
+            condition:
+              blockNumber !== undefined
+                ? { blockNumber: BigInt(blockNumber) }
+                : { timestamp: BigInt(timestamp) },
+            hardfork: hardhatHardforkToEdrSpecId(
+              hardfork,
+              descriptor.chainType,
+            ),
+          }));
+        }
+
+        return chainOverride;
+      })
   );
 }
 
