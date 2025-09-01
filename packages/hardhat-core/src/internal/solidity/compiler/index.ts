@@ -85,24 +85,32 @@ export class NativeCompiler implements ICompiler {
  *
  * @param {string} file - The file to execute.
  * @param {readonly string[]} args - The arguments to pass to the file.
- * @param {ExecFileOptions} options - The options to pass to the exec function.
+ * @param {ExecFileOptions} options - The options to pass to the exec function
+ *   (excluding encoding, which is forced to be "utf8" to allow stdout/stderr to
+ *   be treated as strings)
  * @returns {Promise<{stdout: string, stderr: string}>}
  */
 export async function execFileWithInput(
   file: string,
   args: readonly string[],
   input: string,
-  options: ExecFileOptions = {}
+  options: Omit<ExecFileOptions, "encoding"> = {}
 ): Promise<{ stdout: string; stderr: string }> {
   return new Promise((resolve, reject) => {
-    const child = execFile(file, args, options, (error, stdout, stderr) => {
-      // `error` is any execution error. e.g. command not found, non-zero exit code, etc.
-      if (error !== null) {
-        reject(error);
-      } else {
-        resolve({ stdout, stderr });
+    const child = execFile(
+      file,
+      args,
+      // We force encoding to utf8 to ensure stdout/stderr are strings
+      { ...options, encoding: "utf8" },
+      (error, stdout, stderr) => {
+        // `error` is any execution error. e.g. command not found, non-zero exit code, etc.
+        if (error !== null) {
+          reject(error);
+        } else {
+          resolve({ stdout: stdout as any, stderr: stderr as any });
+        }
       }
-    });
+    );
 
     // This could be triggered if node fails to spawn the child process
     child.on("error", (err) => {

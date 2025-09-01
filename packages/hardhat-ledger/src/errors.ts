@@ -35,10 +35,13 @@ export class HardhatLedgerConnectionError extends HardhatLedgerError {
   private readonly _isConnectionError = true;
 
   constructor(error: Error) {
-    super(`There was an error trying to establish a connection to the Ledger wallet: "${error.message}".
+    super(
+      `There was an error trying to establish a connection to the Ledger wallet: "${error.message}".
 
 Make sure your Ledger is connected and unlocked, and that the Ethereum app is open.
-`, error);
+`,
+      error
+    );
 
     if (error.name === "TransportError") {
       const transportError = error as TransportError;
