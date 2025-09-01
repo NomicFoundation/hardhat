@@ -14,11 +14,11 @@ export class KeystoreFileLoader implements KeystoreLoader {
   constructor(
     keystoreFilePath: string,
     keystoreDevPasswordFilePath: string,
-    fileManger: FileManager,
+    fileManager: FileManager,
   ) {
     this.#keystoreFilePath = keystoreFilePath;
     this.#keystoreDevPasswordFilePath = keystoreDevPasswordFilePath;
-    this.#fileManager = fileManger;
+    this.#fileManager = fileManager;
 
     this.#keystoreCache = null;
   }
