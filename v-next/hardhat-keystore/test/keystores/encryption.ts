@@ -467,7 +467,7 @@ describe("Keystore primitives", () => {
   });
 
   describe("Adding secrets to keystore", () => {
-    it("Should add multiple secrets to a keystore, modifying only the secrets and hmac, allowing to overwrite secrets by key, and generating different cyphertext and ivs for the same secret values", () => {
+    it("Should add multiple secrets to a keystore, modifying only the secrets and hmac, allowing to overwrite secrets by key, and generating different ciphertext and ivs for the same secret values", () => {
       const { emptyKeystore, masterKey } = testEmptyKeystore;
 
       let previousKeystore = emptyKeystore;

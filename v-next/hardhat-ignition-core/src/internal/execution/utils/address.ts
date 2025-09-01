@@ -10,10 +10,10 @@ export function isAddress(address: any): address is string {
 }
 
 /**
- * Returns a normalized and checksumed address for the given address.
+ * Returns a normalized and checksummed address for the given address.
  *
  * @param address - the address to reformat
- * @returns checksumed address
+ * @returns checksummed address
  */
 export function toChecksumFormat(address: string): string {
   assertIgnitionInvariant(
