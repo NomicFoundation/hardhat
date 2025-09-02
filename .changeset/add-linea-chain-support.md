@@ -1,5 +1,4 @@
 ---
-"@nomicfoundation/hardhat-verify": patch
 "@nomicfoundation/ignition-core": patch
 "hardhat": patch
 ---
