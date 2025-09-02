@@ -1,41 +1,46 @@
-import type {
-  ContractFunctionExecutionError,
-  ReadContractReturnType,
-  WriteContractReturnType,
-} from "viem";
+import type { ReadContractReturnType, WriteContractReturnType } from "viem";
 
 import assert from "node:assert/strict";
 
-import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { decodeErrorResult } from "viem";
 
-import { extractRevertData } from "./extract-revert-data.js";
-import { isDefaultRevert } from "./is-default-revert.js";
+import { isKnownErrorString } from "./error-string.js";
+import { extractRevertError } from "./extract-revert-error.js";
+
+interface RevertInfo {
+  message: string;
+  args: string[];
+  isPanicError: boolean;
+}
 
 export async function handleRevert(
   contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
-): Promise<string> {
+): Promise<RevertInfo> {
   try {
     await contractFn;
   } catch (error) {
-    ensureError<ContractFunctionExecutionError>(error);
-
-    const decodedOrRawError = extractRevertData(error);
+    const decodedOrRawError = extractRevertError(error);
 
     if (decodedOrRawError.data === undefined) {
-      return decodedOrRawError.message;
+      return {
+        message: decodedOrRawError.decodedMessage,
+        args: [],
+      };
     }
 
-    if (isDefaultRevert(decodedOrRawError.data) === false) {
+    if (isKnownErrorString(decodedOrRawError.data) === false) {
       assert.fail(
-        `Expected default error revert, but got a custom error selector "${decodedOrRawError.data.slice(0, 10)}" with data "${decodedOrRawError.data}"`,
+        `Expected non custom error string, but got a custom error selector "${decodedOrRawError.data.slice(0, 10)}" with data "${decodedOrRawError.data}"`,
       );
     }
 
-    const { args } = decodeErrorResult({ data: decodedOrRawError.data });
+    const decodedError = decodeErrorResult({ data: decodedOrRawError.data });
 
-    // In the case of default ETH errors, the array contains only a single element
-    return String(args[0]);
+    return {
+      message: decodedOrRawError.message,
+      args: decodedError.args.map((a) => String(a)),
+      isPanicError: decodedError.errorName === "Panic",
+    };
   }
 
   assert.fail("The function was expected to revert, but it did not.");

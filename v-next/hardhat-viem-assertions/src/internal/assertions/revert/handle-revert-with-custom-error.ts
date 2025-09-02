@@ -14,11 +14,8 @@ import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { decodeErrorResult } from "viem";
 
-import { extractRevertData } from "./extract-revert-data.js";
-import {
-  DEFAULT_REVERT_REASON_SELECTOR,
-  isDefaultRevert,
-} from "./is-default-revert.js";
+import { getRevertErrorString, isKnownErrorString } from "./error-string.js";
+import { extractRevertError } from "./extract-revert-error.js";
 
 export async function handleRevertWithCustomError<
   ContractName extends keyof ContractAbis,
@@ -44,18 +41,18 @@ export async function handleRevertWithCustomError<
       assert.fail(`The error "${customErrorName}" does not exists in the abi.`);
     }
 
-    const decodedOrRawError = extractRevertData(error);
+    const decodedOrRawError = extractRevertError(error);
 
-    if (decodedOrRawError.message !== undefined) {
+    if (decodedOrRawError.data === undefined) {
       assert.fail(
-        `Expected a custom error with name "${customErrorName}", but got a non custom error with name "${decodedOrRawError.name}" and error message: ${decodedOrRawError.message}`,
+        `Expected a custom error with name "${customErrorName}", but got a non custom error with name "${decodedOrRawError.name}" and error message: ${decodedOrRawError.decodedMessage}`,
       );
     }
 
     try {
-      if (isDefaultRevert(decodedOrRawError.data)) {
+      if (isKnownErrorString(decodedOrRawError.data)) {
         assert.fail(
-          `Expected a custom error with name "${customErrorName}", but got a non custom error with default revert selector ${DEFAULT_REVERT_REASON_SELECTOR}`,
+          `Expected a custom error with name "${customErrorName}", but got a non custom error with error string "${getRevertErrorString(decodedOrRawError.data)}"`,
         );
       }
 

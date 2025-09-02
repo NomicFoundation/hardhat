@@ -63,19 +63,35 @@ describe("revert", () => {
       ),
       (error) =>
         error.message ===
-        `Expected default error revert, but got a custom error selector "0x09caebf3" with data "0x09caebf3"`,
+        `Expected non custom error string, but got a custom error selector "0x09caebf3" with data "0x09caebf3"`,
     );
   });
 
   it("should handle when the thrown error is a panic error", async function () {
-    const counter = await viem.deployContract("Counter");
+    const contract = await viem.deployContract("Counter");
 
-    await viem.assertions.revert(counter.write.incBy([2000])); // Overflow - cause panic error
+    await contract.write.incBy([200]);
+
+    await viem.assertions.revert(contract.write.incBy([200]));
   });
 
   it("should handle when the thrown error is a panic error within nested contracts", async () => {
     const contract = await viem.deployContract("CounterNestedPanicError");
 
-    await viem.assertions.revert(contract.write.nestedRevert([2000])); // Overflow - cause panic error
+    await contract.write.incBy([200]);
+
+    await viem.assertions.revert(contract.write.nestedRevert([200])); // Overflow - cause panic error
+  });
+
+  it("should handle when the thrown error is a Viem decoded error", async function () {
+    const contract = await viem.deployContract("Counter");
+
+    await viem.assertions.revert(contract.write.incBy([2000])); // Only uint values are accepted
+  });
+
+  it("should handle when the thrown error is a Viem decoded error within nested contracts", async () => {
+    const contract = await viem.deployContract("CounterNestedPanicError");
+
+    await viem.assertions.revert(contract.write.nestedRevert([2000])); // Only uint values are accepted
   });
 });

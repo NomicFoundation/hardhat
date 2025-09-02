@@ -20,6 +20,10 @@ contract CounterNestedPanicError {
     counter = new Counter();
   }
 
+  function incBy(uint8 by) public {
+    counter.incBy(by);
+  }
+
   function nestedRevert(uint8 by) external {
     counter.incBy(by);
   }
