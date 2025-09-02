@@ -483,6 +483,36 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
       },
     },
   ],
+  // linea sepolia testnet
+  [
+    59_141n,
+    {
+      name: "Linea Sepolia",
+      chainType: GENERIC_CHAIN_TYPE,
+      blockExplorers: {
+        etherscan: {
+          name: "LineaScan",
+          url: "https://sepolia.lineascan.build",
+          apiUrl: "https://api-sepolia.lineascan.build/api",
+        },
+      },
+    },
+  ],
+  // linea mainnet
+  [
+    59_144n,
+    {
+      name: "Linea",
+      chainType: GENERIC_CHAIN_TYPE,
+      blockExplorers: {
+        etherscan: {
+          name: "LineaScan",
+          url: "https://lineascan.build",
+          apiUrl: "https://api.lineascan.build/api",
+        },
+      },
+    },
+  ],
   // ink sepolia testnet
   [
     763_373n,

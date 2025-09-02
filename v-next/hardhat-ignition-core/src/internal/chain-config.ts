@@ -195,6 +195,22 @@ export const builtinChains: ChainConfig[] = [
     },
   },
   {
+    network: "linea",
+    chainId: 59144,
+    urls: {
+      apiURL: "https://api.lineascan.build/api",
+      browserURL: "https://lineascan.build/",
+    },
+  },
+  {
+    network: "lineaSepolia",
+    chainId: 59141,
+    urls: {
+      apiURL: "https://api-sepolia.lineascan.build/api",
+      browserURL: "https://sepolia.lineascan.build/",
+    },
+  },
+  {
     network: "polygonMumbai",
     chainId: 80001,
     urls: {
