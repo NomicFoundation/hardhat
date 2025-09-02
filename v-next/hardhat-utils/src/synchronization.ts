@@ -13,7 +13,7 @@ import path from "node:path";
 
 import debug from "debug";
 
-import { ensureError, ensureNodeErrnoExceptionError } from "./error.js";
+import { ensureNodeErrnoExceptionError } from "./error.js";
 import { FileSystemAccessError } from "./errors/fs.js";
 import { readUtf8File } from "./fs.js";
 import { sleep } from "./lang.js";
@@ -150,7 +150,7 @@ export class MultiProcessMutex {
     try {
       process.kill(parseInt(mutexPid, 10), 0);
     } catch (e) {
-      ensureError<Error & { code: string }>(e);
+      ensureNodeErrnoExceptionError(e);
 
       if (e.code === "ESRCH") {
         // The process owning the mutex no longer exists
