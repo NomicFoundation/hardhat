@@ -495,6 +495,10 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
           url: "https://sepolia.lineascan.build",
           apiUrl: "https://api-sepolia.lineascan.build/api",
         },
+        blockscout: {
+          url: "https://explorer.sepolia.linea.build",
+          apiUrl: "https://api-explorer.sepolia.linea.build/api",
+        },
       },
     },
   ],
@@ -509,6 +513,10 @@ export const DEFAULT_CHAIN_DESCRIPTORS: ChainDescriptorsConfig = new Map([
           name: "LineaScan",
           url: "https://lineascan.build",
           apiUrl: "https://api.lineascan.build/api",
+        },
+        blockscout: {
+          url: "https://explorer.linea.build",
+          apiUrl: "https://api-explorer.linea.build/api",
         },
       },
     },
