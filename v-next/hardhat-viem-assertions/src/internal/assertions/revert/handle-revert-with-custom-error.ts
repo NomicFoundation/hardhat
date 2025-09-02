@@ -2,7 +2,11 @@ import type {
   ContractAbis,
   ContractReturnType,
 } from "@nomicfoundation/hardhat-viem/types";
-import type { ReadContractReturnType, WriteContractReturnType } from "viem";
+import type {
+  ContractFunctionExecutionError,
+  ReadContractReturnType,
+  WriteContractReturnType,
+} from "viem";
 
 import assert from "node:assert/strict";
 
@@ -26,7 +30,7 @@ export async function handleRevertWithCustomError<
   try {
     await contractFn;
   } catch (error) {
-    ensureError(error);
+    ensureError<ContractFunctionExecutionError>(error);
 
     const contractAbi = Array.isArray(contract.abi)
       ? contract.abi
@@ -40,16 +44,25 @@ export async function handleRevertWithCustomError<
       assert.fail(`The error "${customErrorName}" does not exists in the abi.`);
     }
 
-    const data = extractRevertData(error);
+    const decodedOrRawError = extractRevertData(error);
+
+    if (decodedOrRawError.message !== undefined) {
+      assert.fail(
+        `Expected a custom error with name "${customErrorName}", but got a non custom error with name "${decodedOrRawError.name}" and error message: ${decodedOrRawError.message}`,
+      );
+    }
 
     try {
-      if (isDefaultRevert(data)) {
+      if (isDefaultRevert(decodedOrRawError.data)) {
         assert.fail(
           `Expected a custom error with name "${customErrorName}", but got a non custom error with default revert selector ${DEFAULT_REVERT_REASON_SELECTOR}`,
         );
       }
 
-      const { abiItem, args } = decodeErrorResult({ data, abi: contract.abi });
+      const { abiItem, args } = decodeErrorResult({
+        data: decodedOrRawError.data,
+        abi: contract.abi,
+      });
 
       assertHardhatInvariant(
         abiItem.type === "error",
@@ -71,7 +84,7 @@ export async function handleRevertWithCustomError<
       }
 
       assert.fail(
-        `The error "${customErrorName}" was not found in the contract ABI. Encoded error signature found: "${data}".`,
+        `The error "${customErrorName}" was not found in the contract ABI. Encoded error signature found: "${decodedOrRawError.data}".`,
       );
     }
   }

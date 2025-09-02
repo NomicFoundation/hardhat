@@ -1,4 +1,8 @@
-import type { ReadContractReturnType, WriteContractReturnType } from "viem";
+import type {
+  ContractFunctionExecutionError,
+  ReadContractReturnType,
+  WriteContractReturnType,
+} from "viem";
 
 import assert from "node:assert/strict";
 
@@ -14,17 +18,21 @@ export async function handleRevert(
   try {
     await contractFn;
   } catch (error) {
-    ensureError(error);
+    ensureError<ContractFunctionExecutionError>(error);
 
-    const data = extractRevertData(error);
+    const decodedOrRawError = extractRevertData(error);
 
-    if (isDefaultRevert(data) === false) {
+    if (decodedOrRawError.data === undefined) {
+      return decodedOrRawError.message;
+    }
+
+    if (isDefaultRevert(decodedOrRawError.data) === false) {
       assert.fail(
-        `Expected default error revert, but got a custom error selector "${data.slice(0, 10)}" with data "${data}"`,
+        `Expected default error revert, but got a custom error selector "${decodedOrRawError.data.slice(0, 10)}" with data "${decodedOrRawError.data}"`,
       );
     }
 
-    const { args } = decodeErrorResult({ data });
+    const { args } = decodeErrorResult({ data: decodedOrRawError.data });
 
     // In the case of default ETH errors, the array contains only a single element
     return String(args[0]);

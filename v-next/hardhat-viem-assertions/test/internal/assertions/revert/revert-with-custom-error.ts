@@ -117,4 +117,34 @@ describe("revertWithCustomError", () => {
         `Expected a custom error with name "CustomError", but got a non custom error with default revert selector ${DEFAULT_REVERT_REASON_SELECTOR}`,
     );
   });
+
+  it("should handle when the thrown error is a panic rather than a custom one", async () => {
+    const contract = await viem.deployContract("Counter");
+
+    await assertRejects(
+      viem.assertions.revertWithCustomError(
+        contract.write.incBy([2000]), // Overflow - cause panic error
+        contract,
+        "CustomError",
+      ),
+      (error) =>
+        error.message ===
+        `Expected a custom error with name "CustomError", but got a non custom error with name "IntegerOutOfRangeError" and error message: Number "2000" is not in safe 8-bit unsigned integer range (0 to 255)`,
+    );
+  });
+
+  it("should handle when the thrown error is a panic rather than a custom one within nested contracts", async () => {
+    const contract = await viem.deployContract("CounterNestedPanicError");
+
+    await assertRejects(
+      viem.assertions.revertWithCustomError(
+        contract.write.nestedRevert([2000]), // Overflow - cause panic error
+        contract,
+        "CustomError",
+      ),
+      (error) =>
+        error.message ===
+        `Expected a custom error with name "CustomError", but got a non custom error with name "IntegerOutOfRangeError" and error message: Number "2000" is not in safe 8-bit unsigned integer range (0 to 255)`,
+    );
+  });
 });

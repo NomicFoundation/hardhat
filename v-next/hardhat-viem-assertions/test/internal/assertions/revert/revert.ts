@@ -66,4 +66,16 @@ describe("revert", () => {
         `Expected default error revert, but got a custom error selector "0x09caebf3" with data "0x09caebf3"`,
     );
   });
+
+  it("should handle when the thrown error is a panic error", async function () {
+    const counter = await viem.deployContract("Counter");
+
+    await viem.assertions.revert(counter.write.incBy([2000])); // Overflow - cause panic error
+  });
+
+  it("should handle when the thrown error is a panic error within nested contracts", async () => {
+    const contract = await viem.deployContract("CounterNestedPanicError");
+
+    await viem.assertions.revert(contract.write.nestedRevert([2000])); // Overflow - cause panic error
+  });
 });

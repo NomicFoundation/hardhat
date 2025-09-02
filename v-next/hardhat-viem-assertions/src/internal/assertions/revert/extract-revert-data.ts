@@ -1,33 +1,48 @@
-import type { Hex } from "viem";
+import type { ContractFunctionExecutionError, Hex } from "viem";
 
-import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { isPrefixedHexString } from "@nomicfoundation/hardhat-utils/hex";
 
+type DecodedOrRawError = {
+  name: string;
+} & (
+  | {
+      message: string;
+      data: undefined;
+    }
+  | {
+      message: undefined;
+      data: Hex;
+    }
+);
+
 /**
- * Recursively extracts, if it exists, the revert data hex string from a nested Viem error.
+ * Recursively extracts the revert data hex string from a nested Viem error, if it exists.
+ * Falls back to a short error message when no revert data is found.
  *
- * When a contract call reverts, Viem throws an `Error` whose `data` property
- * contains the hex-encoded revert reason. That `data` may live on the top-level
- * error or deeper in a chain of `cause` errors. This function walks down the
- * `cause` chain until it finds a valid `0x` hex string.
+ * When a contract call reverts, Viem throws an error whose `data` property
+ * may contain the hex-encoded revert reason. This `data` can be present either
+ * on the top-level error or nested deeper within a chain of `cause` errors.
+ * This function traverses the `cause` chain until it finds a valid `0x` hex string.
  *
- * @param error - The thrown Viem `Error` object, which may include a `data` field
+ * @param error - The thrown Viem error object, which may contain a `data` field
  *                or nested `cause` errors carrying the revert data.
- * @returns The `0x` hex string representing the revert data.
- *
- * @throws If no valid `0x` prefixed hex string revert data is found anywhere in the error chain.
+ * @returns The error name and the `0x` hex string representing the revert data,
+ *          or a fallback message if none is found.
  */
 export function extractRevertData(
-  error: Error & { data?: unknown; cause?: unknown },
-): Hex {
-  let errorData: Hex | undefined;
+  error: ContractFunctionExecutionError,
+): DecodedOrRawError {
   let current: typeof error | undefined = error;
 
+  let dataReason: Hex | undefined;
   while (current !== undefined) {
-    const { data } = current;
+    // Traverse the cause chain to find a valid raw error reason, if one exists.
+    if ("data" in current) {
+      const { data } = current;
 
-    if (typeof data === "string" && isPrefixedHexString(data)) {
-      errorData = data;
+      if (typeof data === "string" && isPrefixedHexString(data)) {
+        dataReason = data;
+      }
     }
 
     /* eslint-disable-next-line @typescript-eslint/consistent-type-assertions
@@ -35,11 +50,19 @@ export function extractRevertData(
     current = current.cause as typeof error | undefined;
   }
 
-  // In a revert scenario, a data field containing the revert reason is always expected
-  assertHardhatInvariant(
-    errorData !== undefined,
-    "No revert data found on error",
-  );
+  if (dataReason !== undefined) {
+    return {
+      name: error.name,
+      message: undefined,
+      data: dataReason,
+    };
+  }
 
-  return errorData;
+  // If no hexadecimal reason is found, return the short fallback message that is always present.
+  // This also handles cases where the error is a PANIC, such as an overflow.
+  return {
+    name: error.name,
+    message: error.shortMessage,
+    data: undefined,
+  };
 }

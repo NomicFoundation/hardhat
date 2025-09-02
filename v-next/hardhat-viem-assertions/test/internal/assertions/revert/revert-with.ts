@@ -78,4 +78,22 @@ describe("revertWith", () => {
         "The function was expected to revert, but it did not.",
     );
   });
+
+  it("should check that the function reverts with a panic error", async function () {
+    const counter = await viem.deployContract("Counter");
+
+    await viem.assertions.revertWith(
+      counter.write.incBy([2000]), // Overflow - cause panic error
+      `Number "2000" is not in safe 8-bit unsigned integer range (0 to 255)`,
+    );
+  });
+
+  it("should check that the function reverts with a panic error when called within nested contracts", async () => {
+    const contract = await viem.deployContract("CounterNestedPanicError");
+
+    await viem.assertions.revertWith(
+      contract.write.nestedRevert([2000]), // Overflow - cause panic error
+      `Number "2000" is not in safe 8-bit unsigned integer range (0 to 255)`,
+    );
+  });
 });
