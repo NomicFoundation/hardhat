@@ -1,4 +1,4 @@
-name: Run the entire test suite with the latest dependency versions
+name: Run the Hardhat 2 test suite with the latest dependency versions
 
 on:
   schedule:
@@ -15,7 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          ref: v2
+          ref: v2 # Checkout the `v2` branch
       - uses: ./.github/actions/setup-env
       - name: Delete pnpm-lock.yaml
         run: "rm pnpm-lock.yaml"
