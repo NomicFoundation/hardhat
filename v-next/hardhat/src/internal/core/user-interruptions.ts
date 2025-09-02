@@ -2,8 +2,7 @@ import type { HookContext, HookManager } from "../../types/hooks.js";
 import type { UserInterruptionManager } from "../../types/user-interruptions.js";
 
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
-
-import { AsyncMutex } from "./async-mutex.js";
+import { AsyncMutex } from "@nomicfoundation/hardhat-utils/synchronization";
 
 export class UserInterruptionManagerImplementation
   implements UserInterruptionManager

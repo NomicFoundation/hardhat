@@ -9,8 +9,7 @@ import {
   HardhatError,
 } from "@nomicfoundation/hardhat-errors";
 import { normalizeHexString } from "@nomicfoundation/hardhat-utils/hex";
-
-import { AsyncMutex } from "./async-mutex.js";
+import { AsyncMutex } from "@nomicfoundation/hardhat-utils/synchronization";
 
 export const CONFIGURATION_VARIABLE_MARKER = "{variable}";
 
