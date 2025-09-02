@@ -132,7 +132,7 @@ async function getCompilerFromPath(
   if (match === null || match.groups === undefined) {
     throw new HardhatError(
       HardhatError.ERRORS.CORE.SOLIDITY.PARSING_VERSION_STRING_FAILED,
-      { versionString: stdout },
+      { versionString: stdout, compilerPath },
     );
   }
 

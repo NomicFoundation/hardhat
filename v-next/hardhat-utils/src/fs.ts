@@ -836,10 +836,6 @@ export async function findUp(
 
 /**
  * This function uses some heuristics to check if a file is binary by reading the first bytesToCheck bytes from the file.
- *
- * @param filePath
- * @param bytesToCheck
- * @returns
  */
 export async function isBinaryFile(
   filePath: string,
