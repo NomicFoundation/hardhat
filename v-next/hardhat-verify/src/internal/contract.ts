@@ -228,7 +228,7 @@ export class ContractInformationResolver {
     const inputSourceName = buildInfo.userSourceNameMap[sourceName];
 
     const compilerOutputContract =
-      buildInfoOutput.output.contracts?.[inputSourceName][contractName];
+      buildInfoOutput.output.contracts?.[inputSourceName]?.[contractName];
 
     // TODO: can this happen after validating the artifact and build info? should we throw an error?
     assertHardhatInvariant(
