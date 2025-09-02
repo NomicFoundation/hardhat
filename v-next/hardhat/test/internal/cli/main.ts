@@ -108,6 +108,7 @@ async function runMain(command: string): Promise<string[]> {
       lines.push(message);
     },
     rethrowErrors: true,
+    allowNonlocalHardhatInstallation: true,
   });
 
   return lines;

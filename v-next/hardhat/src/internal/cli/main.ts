@@ -56,6 +56,7 @@ export interface MainOptions {
   print?: (message: string) => void;
   registerTsx?: boolean;
   rethrowErrors?: true;
+  allowNonlocalHardhatInstallation?: true;
 }
 
 export async function main(
@@ -99,7 +100,10 @@ export async function main(
       builtinGlobalOptions.configPath,
     );
 
-    if (!(await isHardhatInstalledLocallyOrLinked(configPath, log))) {
+    if (
+      options.allowNonlocalHardhatInstallation !== true &&
+      !(await isHardhatInstalledLocallyOrLinked(configPath, log))
+    ) {
       throw new HardhatError(
         HardhatError.ERRORS.CORE.GENERAL.NON_LOCAL_INSTALLATION,
       );
@@ -707,11 +711,6 @@ async function isHardhatInstalledLocallyOrLinked(
   configPath: string,
   log: debug.Debugger,
 ) {
-  // Assume hardhat installation is local when running tests
-  if (process.env.NODE_TEST_CONTEXT !== undefined) {
-    return true;
-  }
-
   try {
     // Based on Node.js resolution algorithm find the real path
     // of the project's version of Hardhat
