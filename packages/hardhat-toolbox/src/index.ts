@@ -21,7 +21,8 @@ extendConfig((config, userConfig) => {
   const configAsAny = config as any;
 
   if (userConfig.gasReporter?.enabled === undefined) {
-    configAsAny.gasReporter.enabled = process.env.REPORT_GAS ? true : false;
+    configAsAny.gasReporter.enabled =
+      process.env.REPORT_GAS === "true" ? true : false;
   }
 
   // We don't generate types for js projects
