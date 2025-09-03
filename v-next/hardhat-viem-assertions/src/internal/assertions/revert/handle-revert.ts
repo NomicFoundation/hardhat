@@ -8,15 +8,13 @@ import { decodeErrorResult } from "viem";
 import { isKnownErrorSelector } from "./error-string.js";
 import { extractRevertError } from "./extract-revert-error.js";
 
-interface RevertInfo {
+export async function handleRevert(
+  contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
+): Promise<{
   message: string;
   args: string[];
   isPanicError: boolean;
-}
-
-export async function handleRevert(
-  contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
-): Promise<RevertInfo> {
+}> {
   try {
     await contractFn;
   } catch (error) {
