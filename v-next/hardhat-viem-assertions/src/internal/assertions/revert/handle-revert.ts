@@ -24,7 +24,7 @@ export async function handleRevert(
 
     if (isKnownErrorSelector(rawError.data) === false) {
       assert.fail(
-        `Expected non custom error string, but got a custom error selector "${rawError.data.slice(0, 10)}" with data "${rawError.data}"`,
+        `Expected non custom error, but got a custom error selector "${rawError.data.slice(0, 10)}" with data "${rawError.data}"`,
       );
     }
 

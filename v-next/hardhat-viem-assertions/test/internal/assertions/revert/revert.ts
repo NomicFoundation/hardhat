@@ -63,7 +63,7 @@ describe("revert", () => {
       ),
       (error) =>
         error.message ===
-        `Expected non custom error string, but got a custom error selector "0x09caebf3" with data "0x09caebf3"`,
+        `Expected non custom error, but got a custom error selector "0x09caebf3" with data "0x09caebf3"`,
     );
   });
 
