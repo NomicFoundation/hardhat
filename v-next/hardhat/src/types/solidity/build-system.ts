@@ -38,18 +38,18 @@ export interface BuildOptions {
   concurrency?: number;
 
   /**
-   * An array of remappings provided by the user.
-   */
-  userProvidedRemappings?: string[];
-
-  /**
    * If `true`, the build process doesn't print any output.
    */
   quiet?: boolean;
+
+  /**
+   * Whether to compile contracts or tests. Defaults to contracts
+   */
+  targetSources?: TargetSources;
 }
 
 /**
- * The options of the `getBuildInfos` method.
+ * The options of the `getCompilationJobs` method.
  *
  * Note that this option object includes a `quiet` property, as this process
  * may require downloading compilers, and potentially printing some output.
@@ -196,7 +196,7 @@ export interface SolidityBuildSystem {
    *
    * @returns An array of root file paths.
    */
-  getRootFilePaths(): Promise<string[]>;
+  getRootFilePaths(targetSources?: TargetSources): Promise<string[]>;
 
   /**
    * Builds the provided files, generating their compilation artifacts.
@@ -272,6 +272,7 @@ export interface SolidityBuildSystem {
   emitArtifacts(
     compilationJob: CompilationJob,
     compilerOutput: CompilerOutput,
+    targetSources: TargetSources,
   ): Promise<EmitArtifactsResult>;
 
   /**
@@ -287,7 +288,10 @@ export interface SolidityBuildSystem {
 
    * @param rootFilePaths All the root files of the project.
    */
-  cleanupArtifacts(rootFilePaths: string[]): Promise<void>;
+  cleanupArtifacts(
+    rootFilePaths: string[],
+    targetSources: TargetSources,
+  ): Promise<void>;
 
   /**
    * Compiles a build info, returning the output of the compilation, verbatim,
@@ -301,4 +305,11 @@ export interface SolidityBuildSystem {
     buildInfo: SolidityBuildInfo,
     options?: CompileBuildInfoOptions,
   ): Promise<CompilerOutput>;
+
+  /**
+   * Gets the artifacts directory for a given target (contracts/tests)
+   */
+  getArtifactsDirectory(targetSources: TargetSources): Promise<string>;
 }
+
+export type TargetSources = "contracts" | "tests";

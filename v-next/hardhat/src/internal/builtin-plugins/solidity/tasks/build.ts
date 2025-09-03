@@ -4,28 +4,41 @@ import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
 
 import { throwIfSolidityBuildFailed } from "../build-results.js";
 import { isNpmRootPath } from "../build-system/root-paths-utils.js";
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
+import { TargetSources } from "../../../../types/solidity.js";
 
-interface CompileActionArguments {
+interface BuildActionArguments {
   force: boolean;
   files: string[];
   quiet: boolean;
   defaultBuildProfile: string | undefined;
+  targetSources: string;
 }
 
-const buildAction: NewTaskActionFunction<CompileActionArguments> = async (
-  { force, files, quiet, defaultBuildProfile },
+const buildAction: NewTaskActionFunction<BuildActionArguments> = async (
+  { force, files, quiet, defaultBuildProfile, targetSources },
   { solidity, globalOptions },
 ) => {
-  const rootPaths =
-    files.length === 0
-      ? await solidity.getRootFilePaths()
-      : files.map((file) => {
-          if (isNpmRootPath(file)) {
-            return file;
-          }
+  validateTargetSources(targetSources);
 
-          return resolveFromRoot(process.cwd(), file);
-        });
+  // If no specific files are passed, it means a full compilation, i.e. all source files
+  const isFullCompilation = files.length === 0;
+
+  const rootPaths = [];
+
+  if (isFullCompilation) {
+    rootPaths.push(...(await solidity.getRootFilePaths(targetSources)));
+  } else {
+    rootPaths.push(
+      ...files.map((file) => {
+        if (isNpmRootPath(file)) {
+          return file;
+        }
+
+        return resolveFromRoot(process.cwd(), file);
+      }),
+    );
+  }
 
   const buildProfile = globalOptions.buildProfile ?? defaultBuildProfile;
 
@@ -33,14 +46,32 @@ const buildAction: NewTaskActionFunction<CompileActionArguments> = async (
     force,
     buildProfile,
     quiet,
+    targetSources,
   });
 
   throwIfSolidityBuildFailed(results);
 
   // If we recompiled the entire project we cleanup the artifacts
-  if (files.length === 0) {
-    await solidity.cleanupArtifacts(rootPaths);
+  if (isFullCompilation) {
+    await solidity.cleanupArtifacts(rootPaths, targetSources);
   }
+
+  return { rootPaths };
 };
+
+function validateTargetSources(
+  targetSources: string,
+): asserts targetSources is TargetSources {
+  if (!["contracts", "tests"].includes(targetSources)) {
+    throw new HardhatError(
+      HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
+      {
+        value: targetSources,
+        type: "contracts | tests",
+        name: "targetSources",
+      },
+    );
+  }
+}
 
 export default buildAction;
