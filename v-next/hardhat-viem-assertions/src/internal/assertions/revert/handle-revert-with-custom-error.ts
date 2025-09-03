@@ -2,11 +2,7 @@ import type {
   ContractAbis,
   ContractReturnType,
 } from "@nomicfoundation/hardhat-viem/types";
-import type {
-  ContractFunctionExecutionError,
-  ReadContractReturnType,
-  WriteContractReturnType,
-} from "viem";
+import type { ReadContractReturnType, WriteContractReturnType } from "viem";
 
 import assert from "node:assert/strict";
 
@@ -14,7 +10,10 @@ import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { decodeErrorResult } from "viem";
 
-import { getRevertErrorString, isKnownErrorString } from "./error-string.js";
+import {
+  getRevertErrorSelector,
+  isKnownErrorSelector,
+} from "./error-string.js";
 import { extractRevertError } from "./extract-revert-error.js";
 
 export async function handleRevertWithCustomError<
@@ -27,8 +26,6 @@ export async function handleRevertWithCustomError<
   try {
     await contractFn;
   } catch (error) {
-    ensureError<ContractFunctionExecutionError>(error);
-
     const contractAbi = Array.isArray(contract.abi)
       ? contract.abi
       : Object.values(contract.abi);
@@ -41,23 +38,17 @@ export async function handleRevertWithCustomError<
       assert.fail(`The error "${customErrorName}" does not exists in the abi.`);
     }
 
-    const decodedOrRawError = extractRevertError(error);
-
-    if (decodedOrRawError.data === undefined) {
-      assert.fail(
-        `Expected a custom error with name "${customErrorName}", but got a non custom error with name "${decodedOrRawError.name}" and error message: ${decodedOrRawError.decodedMessage}`,
-      );
-    }
+    const rawError = extractRevertError(error);
 
     try {
-      if (isKnownErrorString(decodedOrRawError.data)) {
+      if (isKnownErrorSelector(rawError.data)) {
         assert.fail(
-          `Expected a custom error with name "${customErrorName}", but got a non custom error with error string "${getRevertErrorString(decodedOrRawError.data)}"`,
+          `Expected a custom error with name "${customErrorName}", but got a non custom error with error string "${getRevertErrorSelector(rawError.data)}"`,
         );
       }
 
       const { abiItem, args } = decodeErrorResult({
-        data: decodedOrRawError.data,
+        data: rawError.data,
         abi: contract.abi,
       });
 
@@ -81,7 +72,7 @@ export async function handleRevertWithCustomError<
       }
 
       assert.fail(
-        `The error "${customErrorName}" was not found in the contract ABI. Encoded error signature found: "${decodedOrRawError.data}".`,
+        `The error "${customErrorName}" was not found in the contract ABI. Encoded error signature found: "${rawError.data}".`,
       );
     }
   }

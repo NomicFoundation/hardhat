@@ -2,6 +2,8 @@ import type { ReadContractReturnType, WriteContractReturnType } from "viem";
 
 import assert from "node:assert/strict";
 
+import { numberToHexString } from "@nomicfoundation/hardhat-utils/hex";
+
 import { handleRevert } from "./handle-revert.js";
 
 export async function revertWith(
@@ -10,11 +12,24 @@ export async function revertWith(
 ): Promise<void> {
   const reason = await handleRevert(contractFn);
 
-  assert.equal(
-    reason.args[0] ?? reason.message, // For Viem errors, there are no args, so use the error message
-    expectedRevertReason,
-    `The function was expected to revert with reason "${expectedRevertReason}", but it reverted with reason: ${reason.args[0] ?? reason.message}.` +
-      // If it is a panic error, add additional error info
-      `${reason.isPanicError ? ` This is the result of a panic error: ${reason.message}` : ""}`,
-  );
+  let actualArg = "";
+  let errMsg = "";
+  if (reason.isPanicError) {
+    // If the error is a panic error, convert the argument to hex and include additional failure details.
+    // Otherwise, only the panic error code will be present in the arguments (e.g., "args": ["17"]).
+    // The argument represents the panic error code, for example:
+    // In hexadecimal: 0x11
+    // In decimal: 17
+    // Meaning: Arithmetic overflow or underflow
+    actualArg = numberToHexString(parseInt(reason.args[0], 10));
+
+    errMsg =
+      `The function was expected to revert with reason "${expectedRevertReason}", but it reverted with reason: ${actualArg}. ` +
+      `This is the result of a panic error: ${reason.message}`;
+  } else {
+    actualArg = reason.args[0];
+    errMsg = `The function was expected to revert with reason "${expectedRevertReason}", but it reverted with reason: ${actualArg}.`;
+  }
+
+  assert.equal(actualArg, expectedRevertReason, errMsg);
 }

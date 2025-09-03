@@ -2,9 +2,10 @@ import type { ReadContractReturnType, WriteContractReturnType } from "viem";
 
 import assert from "node:assert/strict";
 
+import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { decodeErrorResult } from "viem";
 
-import { isKnownErrorString } from "./error-string.js";
+import { isKnownErrorSelector } from "./error-string.js";
 import { extractRevertError } from "./extract-revert-error.js";
 
 interface RevertInfo {
@@ -19,25 +20,20 @@ export async function handleRevert(
   try {
     await contractFn;
   } catch (error) {
-    const decodedOrRawError = extractRevertError(error);
+    ensureError(error);
 
-    if (decodedOrRawError.data === undefined) {
-      return {
-        message: decodedOrRawError.decodedMessage,
-        args: [],
-      };
-    }
+    const rawError = extractRevertError(error);
 
-    if (isKnownErrorString(decodedOrRawError.data) === false) {
+    if (isKnownErrorSelector(rawError.data) === false) {
       assert.fail(
-        `Expected non custom error string, but got a custom error selector "${decodedOrRawError.data.slice(0, 10)}" with data "${decodedOrRawError.data}"`,
+        `Expected non custom error string, but got a custom error selector "${rawError.data.slice(0, 10)}" with data "${rawError.data}"`,
       );
     }
 
-    const decodedError = decodeErrorResult({ data: decodedOrRawError.data });
+    const decodedError = decodeErrorResult({ data: rawError.data });
 
     return {
-      message: decodedOrRawError.message,
+      message: rawError.message,
       args: decodedError.args.map((a) => String(a)),
       isPanicError: decodedError.errorName === "Panic",
     };

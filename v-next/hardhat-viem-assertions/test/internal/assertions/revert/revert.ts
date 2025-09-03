@@ -67,12 +67,18 @@ describe("revert", () => {
     );
   });
 
-  it("should handle when the thrown error is a panic error", async function () {
+  it("should handle when the thrown error is a panic error (overflow)", async function () {
     const contract = await viem.deployContract("Counter");
 
     await contract.write.incBy([200]);
 
-    await viem.assertions.revert(contract.write.incBy([200]));
+    await viem.assertions.revert(contract.write.incBy([200])); // Overflow - cause panic error
+  });
+
+  it("should handle when the thrown error is a panic error (divide by zero)", async function () {
+    const contract = await viem.deployContract("Counter");
+
+    await viem.assertions.revert(contract.write.divideBy([0])); // Division by 0 - cause panic error
   });
 
   it("should handle when the thrown error is a panic error within nested contracts", async () => {
@@ -81,17 +87,5 @@ describe("revert", () => {
     await contract.write.incBy([200]);
 
     await viem.assertions.revert(contract.write.nestedRevert([200])); // Overflow - cause panic error
-  });
-
-  it("should handle when the thrown error is a Viem decoded error", async function () {
-    const contract = await viem.deployContract("Counter");
-
-    await viem.assertions.revert(contract.write.incBy([2000])); // Only uint values are accepted
-  });
-
-  it("should handle when the thrown error is a Viem decoded error within nested contracts", async () => {
-    const contract = await viem.deployContract("CounterNestedPanicError");
-
-    await viem.assertions.revert(contract.write.nestedRevert([2000])); // Only uint values are accepted
   });
 });

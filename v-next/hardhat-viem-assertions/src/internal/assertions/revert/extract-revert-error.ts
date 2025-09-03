@@ -1,46 +1,31 @@
-import type { ContractFunctionExecutionError, Hex } from "viem";
+import type { Hex } from "viem";
 
 import { assertHardhatInvariant } from "@nomicfoundation/hardhat-errors";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { isPrefixedHexString } from "@nomicfoundation/hardhat-utils/hex";
-import { isObject } from "@nomicfoundation/hardhat-utils/lang";
-
-type DecodedOrRawError = {
-  name: string;
-} & (
-  | {
-      decodedMessage: string;
-      data: undefined;
-    }
-  | {
-      message: string;
-      data: Hex;
-    }
-);
 
 /**
- * Extracts information about the reason the error occurred.
+ * Recursively extracts, if it exists, the revert data hex string from an error.
  *
- * An error can either be a raw error containing the revert reason
- * as a hex string, or a Viem-decoded error with a structured format.
+ * When a contract call reverts, Viem throws an `Error` whose `data` property
+ * contains the hex-encoded revert reason. That `data` may live on the top-level
+ * error or deeper in a chain of `cause` errors. This function walks down the
+ * `cause` chain until it finds a valid `0x` hex string.
  *
- * @param error - The thrown error object, which may be a raw error or a Viem decoded error.
+ * @param error - The thrown Viem `Error` object, which may include a `data` field
+ *                or nested `cause` errors carrying the revert data.
+ * @returns The `0x` hex string representing the revert data.
  *
- * @returns An object containing information about either the raw revert error or the Viem decoded error.
- *
+ * @throws If no valid `0x` prefixed hex string revert data is found anywhere in the error chain.
  */
-export function extractRevertError(error: unknown): DecodedOrRawError {
-  if (isObject(error) && "cause" in error) {
-    return findRawError(error);
-  }
-
-  return findViemError(error);
-}
-
-function findRawError(error: unknown): DecodedOrRawError {
-  let dataReason: Hex | undefined;
-
+export function extractRevertError(error: unknown): {
+  name: string;
+  message: string;
+  data: Hex;
+} {
   ensureError(error);
+
+  let dataReason: Hex | undefined;
 
   let current: Error | undefined = error;
   let message: string = "";
@@ -62,23 +47,12 @@ function findRawError(error: unknown): DecodedOrRawError {
 
   assertHardhatInvariant(
     dataReason !== undefined,
-    "No revert data found on error",
+    `No revert data found on error.\nError name: "${error.name}", message: ${error.message}`,
   );
 
   return {
     name: error.name,
     message,
     data: dataReason,
-  };
-}
-
-function findViemError(error: unknown) {
-  // Viem-decoded error, for example, when a function expects a uint but an int is provided.
-  ensureError<ContractFunctionExecutionError>(error);
-
-  return {
-    name: error.name,
-    decodedMessage: error.shortMessage,
-    data: undefined,
   };
 }

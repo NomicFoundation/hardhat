@@ -65,6 +65,21 @@ describe("revertWith", () => {
     );
   });
 
+  it("should throw because the function reverts with a different reason (it panics)", async () => {
+    const contract = await viem.deployContract("Counter");
+
+    await assertRejects(
+      viem.assertions.revertWith(contract.write.divideBy([0]), "wrong reasons"),
+      (error) =>
+        isExpectedError(
+          error,
+          `The function was expected to revert with reason "wrong reasons", but it reverted with reason: 0x12. This is the result of a panic error: VM Exception while processing transaction: reverted with panic code 0x12 (Division or modulo division by zero)`,
+          "0x12",
+          "wrong reasons",
+        ),
+    );
+  });
+
   it("should throw because the function does not revert", async () => {
     const contract = await viem.deployContract("Revert");
 
@@ -79,14 +94,23 @@ describe("revertWith", () => {
     );
   });
 
-  it("should check that the function reverts with a panic error", async function () {
+  it("should check that the function reverts with a panic error (overflow)", async function () {
     const contract = await viem.deployContract("Counter");
 
     await contract.write.incBy([200]);
 
     await viem.assertions.revertWith(
       contract.write.incBy([200]), // Overflow - cause panic error
-      "17",
+      "0x11",
+    );
+  });
+
+  it("should check that the function reverts with a panic error (divide by zero)", async function () {
+    const contract = await viem.deployContract("Counter");
+
+    await viem.assertions.revertWith(
+      contract.write.divideBy([0]), // Division by 0 - cause panic error
+      "0x12",
     );
   });
 
@@ -97,25 +121,7 @@ describe("revertWith", () => {
 
     await viem.assertions.revertWith(
       contract.write.nestedRevert([200]), // Overflow - cause panic error
-      "17",
-    );
-  });
-
-  it("should check that the function reverts with a Viem decoded error", async function () {
-    const contract = await viem.deployContract("Counter");
-
-    await viem.assertions.revertWith(
-      contract.write.incBy([2000]), // Only uint values are accepted
-      `Number "2000" is not in safe 8-bit unsigned integer range (0 to 255)`,
-    );
-  });
-
-  it("should check that the function reverts with a Viem decoded error when called within nested contracts", async () => {
-    const contract = await viem.deployContract("CounterNestedPanicError");
-
-    await viem.assertions.revertWith(
-      contract.write.nestedRevert([2000]), // Only uint values are accepted
-      `Number "2000" is not in safe 8-bit unsigned integer range (0 to 255)`,
+      "0x11",
     );
   });
 });

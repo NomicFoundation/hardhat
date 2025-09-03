@@ -9,6 +9,10 @@ contract Counter {
   function incBy(uint8 by) public {
     x += by;
   }
+
+  function divideBy(uint8 by) public {
+    x /= by;
+  }
 }
 
 contract CounterNestedPanicError {

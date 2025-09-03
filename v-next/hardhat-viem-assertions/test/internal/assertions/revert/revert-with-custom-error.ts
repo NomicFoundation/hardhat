@@ -12,8 +12,8 @@ import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 import hardhatViemAssertions from "../../../../src/index.js";
 import {
-  REVERT_REASON_ERROR_SELECTOR,
-  REVERT_REASON_PANIC_SELECTOR,
+  ERROR_STRING_SELECTOR,
+  PANIC_SELECTOR,
 } from "../../../../src/internal/assertions/revert/error-string.js";
 import { isExpectedError } from "../../../helpers/is-expected-error.js";
 
@@ -117,11 +117,11 @@ describe("revertWithCustomError", () => {
       ),
       (error) =>
         error.message ===
-        `Expected a custom error with name "CustomError", but got a non custom error with error string "${REVERT_REASON_ERROR_SELECTOR}"`,
+        `Expected a custom error with name "CustomError", but got a non custom error with error string "${ERROR_STRING_SELECTOR}"`,
     );
   });
 
-  it("should handle when the thrown error is a panic rather than a custom one", async () => {
+  it("should handle when the thrown error is a panic (overflow) rather than a custom one", async () => {
     const contract = await viem.deployContract("Counter");
 
     await contract.write.incBy([200]);
@@ -134,7 +134,22 @@ describe("revertWithCustomError", () => {
       ),
       (error) =>
         error.message ===
-        `Expected a custom error with name "CustomError", but got a non custom error with error string "${REVERT_REASON_PANIC_SELECTOR}"`,
+        `Expected a custom error with name "CustomError", but got a non custom error with error string "${PANIC_SELECTOR}"`,
+    );
+  });
+
+  it("should handle when the thrown error is a panic (divide by 0) rather than a custom one", async () => {
+    const contract = await viem.deployContract("Counter");
+
+    await assertRejects(
+      viem.assertions.revertWithCustomError(
+        contract.write.divideBy([0]), // Division by 0 - cause panic error
+        contract,
+        "CustomError",
+      ),
+      (error) =>
+        error.message ===
+        `Expected a custom error with name "CustomError", but got a non custom error with error string "${PANIC_SELECTOR}"`,
     );
   });
 
@@ -151,37 +166,7 @@ describe("revertWithCustomError", () => {
       ),
       (error) =>
         error.message ===
-        `Expected a custom error with name "CustomError", but got a non custom error with error string "${REVERT_REASON_PANIC_SELECTOR}"`,
-    );
-  });
-
-  it("should handle when the thrown error is a Viem decoded error rather than a custom one", async () => {
-    const contract = await viem.deployContract("Counter");
-
-    await assertRejects(
-      viem.assertions.revertWithCustomError(
-        contract.write.incBy([2000]), // Only uint values are accepted
-        contract,
-        "CustomError",
-      ),
-      (error) =>
-        error.message ===
-        `Expected a custom error with name "CustomError", but got a non custom error with name "IntegerOutOfRangeError" and error message: Number "2000" is not in safe 8-bit unsigned integer range (0 to 255)`,
-    );
-  });
-
-  it("should handle when the thrown error is a Viem decoded error rather than a custom one within nested contracts", async () => {
-    const contract = await viem.deployContract("CounterNestedPanicError");
-
-    await assertRejects(
-      viem.assertions.revertWithCustomError(
-        contract.write.nestedRevert([2000]), // Only uint values are accepted
-        contract,
-        "CustomError",
-      ),
-      (error) =>
-        error.message ===
-        `Expected a custom error with name "CustomError", but got a non custom error with name "IntegerOutOfRangeError" and error message: Number "2000" is not in safe 8-bit unsigned integer range (0 to 255)`,
+        `Expected a custom error with name "CustomError", but got a non custom error with error string "${PANIC_SELECTOR}"`,
     );
   });
 });
