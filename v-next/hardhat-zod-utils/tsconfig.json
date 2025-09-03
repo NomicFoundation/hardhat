@@ -5,6 +5,9 @@
   },
   "references": [
     {
+      "path": "../hardhat-errors"
+    },
+    {
       "path": "../hardhat-node-test-reporter"
     },
     {
