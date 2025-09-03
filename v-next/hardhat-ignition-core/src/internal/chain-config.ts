@@ -209,7 +209,7 @@ export const builtinChains: ChainConfig[] = [
       apiURL: "https://api.lineascan.build/api",
       browserURL: "https://lineascan.build/",
     },
-  }, 
+  },
   {
     network: "polygonMumbai",
     chainId: 80001,
