@@ -3,4 +3,4 @@
 "hardhat": patch
 ---
 
-Add support for Linea network verification (Chain IDs: 59144 mainnet, 59141 Sepolia testnet)
+Added support for Linea network verification, thanks @kyzooghost ([#7357]https://github.com/NomicFoundation/hardhat/issues/7357)
