@@ -24,6 +24,13 @@ const buildTask = task("build", "Build project")
     description: "An optional list of files to compile",
     defaultValue: [],
   })
+  .addOption({
+    name: "targetSources",
+    description:
+      "Target sources to compile. Valid options are 'contracts' and 'tests'",
+    defaultValue: "contracts",
+    type: ArgumentType.STRING,
+  })
   .setAction(async () => import("./tasks/build.js"))
   .build();
 
