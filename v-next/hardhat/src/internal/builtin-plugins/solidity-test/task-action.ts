@@ -1,6 +1,5 @@
 import type { RunOptions } from "./runner.js";
 import type { TestEvent } from "./types.js";
-import type { BuildOptions } from "../../../types/solidity/build-system.js";
 import type { NewTaskActionFunction } from "../../../types/tasks.js";
 import type {
   ObservabilityConfig,
@@ -14,18 +13,17 @@ import {
   assertHardhatInvariant,
   HardhatError,
 } from "@nomicfoundation/hardhat-errors";
-import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
 import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
 import { createNonClosingWriter } from "@nomicfoundation/hardhat-utils/stream";
 
 import { HardhatRuntimeEnvironmentImplementation } from "../../core/hre.js";
 import { isSupportedChainType } from "../../edr/chain-type.js";
+import { ArtifactManagerImplementation } from "../artifacts/artifact-manager.js";
 import {
   markTestRunDone,
   markTestRunStart,
   markTestWorkerDone,
 } from "../coverage/helpers.js";
-import { throwIfSolidityBuildFailed } from "../solidity/build-results.js";
 
 import { getEdrArtifacts, getBuildInfos } from "./edr-artifacts.js";
 import {
@@ -36,7 +34,6 @@ import {
 } from "./helpers.js";
 import { testReporter } from "./reporter.js";
 import { run } from "./runner.js";
-import { ArtifactManagerImplementation } from "../artifacts/artifact-manager.js";
 
 interface TestActionArguments {
   testFiles: string[];
