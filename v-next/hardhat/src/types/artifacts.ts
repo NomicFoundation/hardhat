@@ -96,7 +96,7 @@ export interface ArtifactManager {
   getAllBuildInfoIds(): Promise<ReadonlySet<string>>;
 
   /**
-   * Returns the absolute path to the given build info, or undefined if it
+   * Returns the absolute path to the given build info, or `undefined` if it
    * doesn't exist.
    *
    * @param buildInfoId The id of an existing build info.
@@ -107,7 +107,8 @@ export interface ArtifactManager {
    * Returns the absolute path to the output of the given build info,
    * if present.
    *
-   * Note that the build info may exist, but it's output may not.
+   * Note that the build info may exist, but it's output may not. In that case,
+   * this function returns `undefined`.
    *
    * @param buildInfoId The id of an existing build info.
    */
