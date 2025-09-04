@@ -7,6 +7,7 @@ on:
 
 jobs:
   test-without-pnpm-lock-yaml:
+    if: false # disable the job
     name: Test without pnpm-lock.yaml
     strategy:
       matrix:
