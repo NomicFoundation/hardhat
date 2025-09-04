@@ -13,7 +13,25 @@ jobs:
       - uses: actions/github-script@v7
         with:
           script: |
-            const externalPrTriagers = ["kanej", "michalbrabec"];
+            // each user has a chance of (p - (previousP ?? 0)) to be assigned
+            const potentialAssignees = [
+              ["kanej", 1/2],
+              ["michalbrabec", 1.0]
+            ];
+
+            let assignee;
+            const r = Math.random();
+            console.log("r:", r);
+            for (const [username, p] of potentialAssignees) {
+              if (r < p) {
+                assignee = username;
+                break;
+              }
+            }
+
+            if (assignee === undefined) {
+              throw new Error("An assignee should've been set");
+            }
 
             // Within the Github API PRs are issue objects
             const pr = await github.rest.issues.get({
@@ -30,6 +48,6 @@ jobs:
                 owner: context.issue.owner,
                 repo: context.issue.repo,
                 issue_number: context.issue.number,
-                assignees: externalPrTriagers,
+                assignees: [assignee],
               });
             }

@@ -15,11 +15,11 @@ jobs:
           script: |
             // each user has a chance of (p - (previousP ?? 0)) to be assigned
             const potentialAssignees = [
-              ["kanej", 1.0],
-              ["michalbrabec", 1.0],
-              ["schaable", 1.0],
-              ["ChristopherDedominici", 1.0],
-              ["antico5", 1.0],
+              ["kanej", 1/6],
+              ["michalbrabec", 2/6],
+              ["schaable", 3/6],
+              ["ChristopherDedominici", 4/6],
+              ["antico5", 5/6],
               ["zoeyTM", 1.0],
             ];
 

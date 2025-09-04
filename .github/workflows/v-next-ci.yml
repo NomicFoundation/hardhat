@@ -1,0 +1,315 @@
+name: vNext CI
+
+on:
+  merge_group:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{github.workflow}}-${{github.ref}}
+  cancel-in-progress: true
+
+jobs:
+  is-v-next:
+    runs-on: ubuntu-latest
+    outputs:
+      is_v_next: ${{ steps.check.outputs.folder_exists }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Check if the folder v-next exists
+        id: check
+        run: |
+          if [ -d "./v-next" ]; then
+            echo "folder_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "folder_exists=false" >> $GITHUB_OUTPUT
+          fi
+
+  check_dependencies:
+    name: Check dependency versions
+    needs: is-v-next
+    if: ${{ needs.is-v-next.outputs.is_v_next == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Run check
+        run: node scripts/check-v-next-dependencies.js
+
+  check_npm_scripts:
+    name: Check that the npm scripts are consistent
+    needs: is-v-next
+    if: ${{ needs.is-v-next.outputs.is_v_next == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Run check
+        run: node scripts/check-v-next-npm-scripts.js
+
+  list-packages:
+    name: List packages
+    needs: is-v-next
+    if: ${{ needs.is-v-next.outputs.is_v_next == 'true' }}
+    runs-on: ubuntu-latest
+    outputs:
+      packages: ${{ steps.filter.outputs.changes }}
+      should_bundle: ${{ contains(steps.filter.outputs.hardhat_files, '.github/workflows/v-next-ci.yml') || contains(steps.filter.outputs.hardhat_files, 'pnpm-lock.yaml') }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: yq -p yaml -o json pnpm-lock.yaml | tee pnpm-lock.json
+      - id: generate
+        env:
+          PACKAGE_IGNORE: |
+            [
+              ".",
+              "packages/",
+              "v-next/hardhat/templates/"
+            ]
+          COMMON_FILTERS: |
+            [
+              ".github/workflows/v-next-ci.yml",
+              "config-v-next/**",
+              "pnpm-lock.yaml"
+            ]
+        run: |
+          echo "filters<<EOF" >> $GITHUB_OUTPUT
+          node scripts/generate-filters.js |
+            yq -Po yaml 'with_entries(.key |= sub("^v-next/", ""))' |
+            tee -a $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+      - id: filter
+        uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
+        with:
+          list-files: json
+          filters: ${{ steps.generate.outputs.filters }}
+
+  bundle:
+    # Depending on list-packages only to check whether pnpm-lock.yaml has changed
+    # This could be handled by a simpler job, but an extra runner would have to be allocated for it
+    needs: list-packages
+
+    if: needs.list-packages.outputs.should_bundle == 'true'
+
+    # Using a matrix strategy even though there's only one package
+    # because we will want to add, at least, hardhat-toolbox in the future
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ["hardhat"]
+
+    name: "[${{ matrix.package }}] bundle"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: v-next/${{ matrix.package }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup-env
+        with:
+          node-version: 24
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --prefer-offline
+      - name: Build
+        run: pnpm build
+      - name: Deploy
+        run: |
+          pnpm deploy --config.shamefully-hoist=true --config.hoist=true --config.node-linker=true --config.shared-workspace-lockfile=false --filter="$(jq -r .name package.json)" --prod --no-optional bundle
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.package }}
+          path: |
+            v-next/${{ matrix.package }}/bundle
+
+  bundle-aggregate:
+    needs: bundle
+
+    if: ${{ !cancelled() }}
+
+    name: bundle
+    runs-on: ubuntu-latest
+
+    permissions:
+      pull-requests: write
+
+    steps:
+      - env:
+          result: ${{ needs.bundle.result }}
+        run: |
+          if [[ "$result" == "failure" ]]; then
+            exit 1
+          fi
+        shell: bash
+      - uses: actions/download-artifact@v4
+      - id: download
+        run: ls -1 | wc -l | xargs -I {} -0 echo "count={}" | tee -a $GITHUB_OUTPUT
+        shell: bash
+      - id: comment
+        if: steps.download.outputs.count != '0'
+        run: |
+          echo 'body<<EOF' >> $GITHUB_OUTPUT
+          for bundle in *; do
+            echo "# $bundle" | tee -a $GITHUB_OUTPUT
+            echo '' | tee -a $GITHUB_OUTPUT
+            echo "Total size of the bundle: "'`'"$(du -sh $bundle --exclude=$bundle/node_modules/.pnpm | cut -f1)"'`' | tee -a $GITHUB_OUTPUT
+            echo "Total number of dependencies (including transitive): "'`'"$(find $bundle/node_modules/@* $bundle/node_modules -mindepth 1 -maxdepth 1 -type d ! -name '.*' ! -name '@*' | wc -l)"'`' | tee -a $GITHUB_OUTPUT
+            echo '' | tee -a $GITHUB_OUTPUT
+            echo '<details>' | tee -a $GITHUB_OUTPUT
+            echo '<summary>List of dependencies (sorted by size)</summary>' | tee -a $GITHUB_OUTPUT
+            echo '' | tee -a $GITHUB_OUTPUT
+            echo '```' | tee -a $GITHUB_OUTPUT
+            du -shc $bundle/node_modules/@*/* $bundle/node_modules/* |
+              grep -Ev '/node_modules/@[^/]+$' | sort -rh |
+              sed "s|$bundle/node_modules/||" | tee -a $GITHUB_OUTPUT
+            echo '```' | tee -a $GITHUB_OUTPUT
+            echo '</details>' | tee -a $GITHUB_OUTPUT
+            echo '' | tee -a $GITHUB_OUTPUT
+          done
+          echo 'EOF' >> $GITHUB_OUTPUT
+      - if: github.event_name == 'pull_request' && github.repository == github.event.pull_request.head.repo.full_name && steps.download.outputs.count != '0'
+        uses: marocchino/sticky-pull-request-comment@331f8f5b4215f0445d3c07b4967662a32a2d3e31 # v2.9.0
+        with:
+          header: bundle
+          message: ${{ steps.comment.outputs.body }}
+
+  lint:
+    needs: list-packages
+
+    if: needs.list-packages.outputs.packages != '[]'
+
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ${{ fromJson(needs.list-packages.outputs.packages) }}
+
+    name: "[${{ matrix.package }}] lint"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: v-next/${{ matrix.package }}
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup-env
+        with:
+          node-version: 24
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --prefer-offline
+      - name: Build
+        run: pnpm run --if-present build
+      - name: Lint
+        run: pnpm run --if-present lint
+
+  lint-aggregate:
+    needs: lint
+
+    if: ${{ !cancelled() }}
+
+    name: lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - env:
+          result: ${{ needs.lint.result }}
+        run: |
+          if [[ "$result" == "failure" ]]; then
+            exit 1
+          fi
+        shell: bash
+
+  ci:
+    needs: list-packages
+
+    if: needs.list-packages.outputs.packages != '[]'
+
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ${{ fromJson(needs.list-packages.outputs.packages) }}
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest]
+        node: [22.0.0, 24.0.0]
+        exclude:
+          - package: hardhat-node-test-reporter
+            node: 22.0.0
+          - package: hardhat-node-test-reporter
+            node: 24.0.0
+
+    name: "[${{ matrix.package }}] ci on ${{ matrix.os }} (Node ${{ matrix.node }})"
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: v-next/${{ matrix.package }}
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup-env
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --prefer-offline
+      - name: Build
+        run: pnpm run --if-present build
+      - name: Run tests
+        env:
+          __DO_NOT_USE_IS_HARDHAT_CI: true
+        run: pnpm run --if-present test
+
+  ci-aggregate:
+    needs: ci
+
+    if: ${{ !cancelled() }}
+
+    name: ci
+    runs-on: ubuntu-latest
+
+    steps:
+      - env:
+          result: ${{ needs.ci.result }}
+        run: |
+          if [[ "$result" == "failure" ]]; then
+            exit 1
+          fi
+        shell: bash
+
+  hardhat-node-test-reporter:
+    needs: list-packages
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest]
+        # We run the tests for `hardhat-node-test-reporter` with the latest
+        # versions of Node (the testing output relying on recent changes)
+        node: [22, 24]
+
+    name: "[hardhat-node-test-reporter] ci on ${{ matrix.os }} (Node ${{ matrix.node }})"
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: v-next/hardhat-node-test-reporter
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup-env
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --prefer-offline
+      - name: Build
+        run: pnpm run --if-present build
+      - name: Run tests
+        env:
+          __DO_NOT_USE_IS_HARDHAT_CI: true
+        run: pnpm run --if-present test
