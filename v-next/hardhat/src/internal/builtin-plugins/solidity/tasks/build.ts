@@ -1,11 +1,11 @@
+import type { TargetSources } from "../../../../types/solidity.js";
 import type { NewTaskActionFunction } from "../../../../types/tasks.js";
 
+import { HardhatError } from "@nomicfoundation/hardhat-errors";
 import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
 
 import { throwIfSolidityBuildFailed } from "../build-results.js";
 import { isNpmRootPath } from "../build-system/root-paths-utils.js";
-import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { TargetSources } from "../../../../types/solidity.js";
 
 interface BuildActionArguments {
   force: boolean;
