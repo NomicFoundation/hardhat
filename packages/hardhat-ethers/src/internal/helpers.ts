@@ -295,7 +295,7 @@ Remove one of them and review your library links before proceeding.`
       `The contract ${artifact.contractName} is missing links for the following libraries:
 ${missingLibraries}
 
-Learn more about linking contracts at https://hardhat.org/hardhat-runner/plugins/nomicfoundation-hardhat-ethers#library-linking
+Learn more about linking contracts at https://v2.hardhat.org/hardhat-runner/plugins/nomicfoundation-hardhat-ethers#library-linking
 `
     );
   }

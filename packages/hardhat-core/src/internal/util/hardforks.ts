@@ -109,7 +109,7 @@ export function selectHardfork(
     throw new InternalError(
       `Could not find a hardfork to run for block ${blockNumber.toString()}, after having looked for one in the hardfork activation history, which was: ${JSON.stringify(
         hardforkHistory
-      )}. For more information, see https://hardhat.org/hardhat-network/reference/#config`
+      )}. For more information, see https://v2.hardhat.org/hardhat-network/reference/#config`
     );
   }
 

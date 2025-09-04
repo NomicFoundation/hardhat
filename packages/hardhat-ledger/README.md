@@ -1,4 +1,4 @@
-[![npm](https://img.shields.io/npm/v/@nomicfoundation/hardhat-ledger.svg)](https://www.npmjs.com/package/@nomicfoundation/hardhat-ledger) [![hardhat](https://hardhat.org/buidler-plugin-badge.svg?1)](https://hardhat.org)
+[![npm](https://img.shields.io/npm/v/@nomicfoundation/hardhat-ledger.svg)](https://www.npmjs.com/package/@nomicfoundation/hardhat-ledger) [![hardhat](https://v2.hardhat.org/buidler-plugin-badge.svg?1)](https://hardhat.org)
 
 # hardhat-ledger
 
@@ -36,7 +36,7 @@ This plugin adds nothing to the Hardhat Runtime Environment.
 
 ## Provider extensions
 
-The provider supplied by Hardhat will be extended using [`extendProvider`](https://hardhat.org/hardhat-runner/docs/advanced/building-plugins#extending-the-hardhat-provider), decorating it to be a `LedgerProvider`. Any successive calls to `extendProvider` will be added on top of this.
+The provider supplied by Hardhat will be extended using [`extendProvider`](https://v2.hardhat.org/hardhat-runner/docs/advanced/building-plugins#extending-the-hardhat-provider), decorating it to be a `LedgerProvider`. Any successive calls to `extendProvider` will be added on top of this.
 
 A `LedgerProvider` knows how to connect and interact with a Ledger wallet
 

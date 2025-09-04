@@ -125,7 +125,7 @@ export class ChainConfigNotFoundError extends HardhatVerifyError {
   constructor(chainId: number) {
     super(`Trying to verify a contract in a network with chain id ${chainId}, but the plugin doesn't recognize it as a supported chain.
 
-You can manually add support for it by following these instructions: https://hardhat.org/verify-custom-networks
+You can manually add support for it by following these instructions: https://v2.hardhat.org/verify-custom-networks
 
 To see the list of supported networks, run this command:
 
@@ -348,7 +348,7 @@ ${missingLibraries.map((x) => `  * ${x}`).join("\n")}
 
 ${
   missingLibraries.length === undetectableLibraries.length
-    ? "Visit https://hardhat.org/hardhat-runner/plugins/nomicfoundation-hardhat-verify#libraries-with-undetectable-addresses to learn how to solve this."
+    ? "Visit https://v2.hardhat.org/hardhat-runner/plugins/nomicfoundation-hardhat-verify#libraries-with-undetectable-addresses to learn how to solve this."
     : "To solve this, you can add them to your --libraries dictionary with their corresponding addresses."
 }`);
   }

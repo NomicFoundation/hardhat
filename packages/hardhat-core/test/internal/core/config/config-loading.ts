@@ -415,7 +415,7 @@ Hardhat plugin instead.`
       );
       assert.include(
         consoleWarnStub.args[0][0],
-        "Learn more about configuring Hardhat at https://hardhat.org/config"
+        "Learn more about configuring Hardhat at https://v2.hardhat.org/config"
       );
     });
 

@@ -39,7 +39,7 @@ export class Parser {
       throw new VyperPluginError(
         `We found a test directive in the file at path ${absolutePath}.` +
           ` Test directives are a Brownie feature not supported by Hardhat.` +
-          ` Learn more at https://hardhat.org/hardhat-runner/plugins/nomiclabs-hardhat-vyper#test-directives`
+          ` Learn more at https://v2.hardhat.org/hardhat-runner/plugins/nomiclabs-hardhat-vyper#test-directives`
       );
     }
   }

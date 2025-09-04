@@ -823,7 +823,7 @@ subtask(TASK_COMPILE_SOLIDITY_LOG_COMPILATION_ERRORS)
     if (hasConsoleErrors) {
       console.error(
         picocolors.red(
-          `The console.log call you made isn’t supported. See https://hardhat.org/console-log for the list of supported methods.`
+          `The console.log call you made isn’t supported. See https://v2.hardhat.org/console-log for the list of supported methods.`
         )
       );
       console.log();
@@ -1302,7 +1302,7 @@ ${other.map((x) => `  * ${x.file.sourceName}`).join("\n")}
 
       errorMessage += `To learn more, run the command again with --verbose
 
-Read about compiler configuration at https://hardhat.org/config
+Read about compiler configuration at https://v2.hardhat.org/config
 `;
 
       return errorMessage;

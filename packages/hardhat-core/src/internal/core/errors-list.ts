@@ -120,11 +120,11 @@ Please [report it](https://github.com/nomiclabs/hardhat/issues/new) to help us i
 
 %errors%
 
-To learn more about Hardhat's configuration, please go to https://hardhat.org/config/`,
+To learn more about Hardhat's configuration, please go to https://v2.hardhat.org/config/`,
       title: "Invalid Hardhat config",
       description: `You have one or more errors in your config file.
 
-Check the error message for details, or go to the [documentation](https://hardhat.org/config/) to learn more.`,
+Check the error message for details, or go to the [documentation](https://v2.hardhat.org/config/) to learn more.`,
       shouldBeReported: false,
     },
     LIB_IMPORTED_FROM_THE_CONFIG: {
@@ -134,7 +134,7 @@ Check the error message for details, or go to the [documentation](https://hardha
 You probably tried to import the "hardhat" module from your config or a file imported from it.
 This is not possible, as Hardhat can't be initialized while its config is being defined.
 
-To learn more about how to access the Hardhat Runtime Environment from different contexts go to https://hardhat.org/hre`,
+To learn more about how to access the Hardhat Runtime Environment from different contexts go to https://v2.hardhat.org/hre`,
       title: "Failed to load config file",
       description: `There was an error while loading your config file.
 
@@ -145,7 +145,7 @@ You may also have accidentally imported \`hardhat\` instead of \`hardhat/config\
 
 Please make sure your config file is correct.
 
-To learn more about how to access the Hardhat Runtime Environment from different contexts go to https://hardhat.org/hre`,
+To learn more about how to access the Hardhat Runtime Environment from different contexts go to https://v2.hardhat.org/hre`,
       shouldBeReported: false,
     },
     USER_CONFIG_MODIFIED: {
@@ -315,7 +315,7 @@ Please re-run the command inside an interactive shell.`,
       title: "Selected network doesn't exist",
       description: `You are trying to run Hardhat with a nonexistent network.
 
-Read the [documentation](https://hardhat.org/hardhat-runner/docs/config#networks-configuration) to learn how to define custom networks.`,
+Read the [documentation](https://v2.hardhat.org/hardhat-runner/docs/config#networks-configuration) to learn how to define custom networks.`,
       shouldBeReported: false,
     },
     INVALID_GLOBAL_CHAIN_ID: {
@@ -375,7 +375,7 @@ Please make sure that your Ethereum node has unlocked accounts.`,
       title: "Invalid HD path",
       description: `An invalid HD/BIP32 derivation path was provided in your config.
 
-Read the [documentation](https://hardhat.org/hardhat-runner/docs/config#hd-wallet-config) to learn how to define HD accounts correctly.`,
+Read the [documentation](https://v2.hardhat.org/hardhat-runner/docs/config#hd-wallet-config) to learn how to define HD accounts correctly.`,
       shouldBeReported: false,
     },
     INVALID_RPC_QUANTITY_VALUE: {

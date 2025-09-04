@@ -233,7 +233,7 @@ sourcify: {
 
 Or set 'enabled' to false to hide this message.
 
-For more information, visit https://hardhat.org/hardhat-runner/plugins/nomicfoundation-hardhat-verify#verifying-on-sourcify`
+For more information, visit https://v2.hardhat.org/hardhat-runner/plugins/nomicfoundation-hardhat-verify#verifying-on-sourcify`
     )
   );
 });

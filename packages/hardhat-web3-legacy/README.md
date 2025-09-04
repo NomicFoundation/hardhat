@@ -1,4 +1,4 @@
-[![npm](https://img.shields.io/npm/v/@nomiclabs/hardhat-web3-legacy.svg)](https://www.npmjs.com/package/@nomiclabs/hardhat-web3-legacy) [![hardhat](https://hardhat.org/buidler-plugin-badge.svg?1)](https://hardhat.org)
+[![npm](https://img.shields.io/npm/v/@nomiclabs/hardhat-web3-legacy.svg)](https://www.npmjs.com/package/@nomiclabs/hardhat-web3-legacy) [![hardhat](https://v2.hardhat.org/buidler-plugin-badge.svg?1)](https://hardhat.org)
 
 # hardhat-web3-legacy
 
