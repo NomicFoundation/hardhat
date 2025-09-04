@@ -722,7 +722,7 @@ https://hardhat.etherscan.io/address/${simpleContractAddress}#code\n`);
     });
 
     // If contract was verified via matching a deployed bytecode of another contract,
-    // Etherscan returns an error only on ve get verification status response.
+    // Etherscan returns an error only on the get verification status response.
     it("should throw if the get verification status is 'already verified' (etherscan automatically verified)", async function () {
       interceptVerify({
         status: 1,
