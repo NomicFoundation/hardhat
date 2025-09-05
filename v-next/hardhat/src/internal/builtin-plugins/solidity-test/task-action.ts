@@ -1,6 +1,5 @@
 import type { RunOptions } from "./runner.js";
 import type { TestEvent } from "./types.js";
-import type { BuildOptions } from "../../../types/solidity/build-system.js";
 import type { NewTaskActionFunction } from "../../../types/tasks.js";
 import type {
   ObservabilityConfig,
@@ -14,18 +13,17 @@ import {
   assertHardhatInvariant,
   HardhatError,
 } from "@nomicfoundation/hardhat-errors";
-import { getAllFilesMatching } from "@nomicfoundation/hardhat-utils/fs";
 import { resolveFromRoot } from "@nomicfoundation/hardhat-utils/path";
 import { createNonClosingWriter } from "@nomicfoundation/hardhat-utils/stream";
 
 import { HardhatRuntimeEnvironmentImplementation } from "../../core/hre.js";
 import { isSupportedChainType } from "../../edr/chain-type.js";
+import { ArtifactManagerImplementation } from "../artifacts/artifact-manager.js";
 import {
   markTestRunDone,
   markTestRunStart,
   markTestWorkerDone,
 } from "../coverage/helpers.js";
-import { throwIfSolidityBuildFailed } from "../solidity/build-results.js";
 
 import { getEdrArtifacts, getBuildInfos } from "./edr-artifacts.js";
 import {
@@ -48,8 +46,6 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
   { testFiles, chainType, grep, noCompile, verbosity },
   hre,
 ) => {
-  let rootFilePaths: string[];
-
   if (!isSupportedChainType(chainType)) {
     throw new HardhatError(
       HardhatError.ERRORS.CORE.ARGUMENTS.INVALID_VALUE_FOR_TYPE,
@@ -68,45 +64,28 @@ const runSolidityTests: NewTaskActionFunction<TestActionArguments> = async (
     await hre.tasks.getTask("compile").run();
   }
 
-  if (testFiles.length > 0) {
-    rootFilePaths = testFiles.map((f) =>
-      resolveFromRoot(hre.config.paths.root, f),
-    );
-  } else {
-    // NOTE: A test file is either a file with a `.sol` extension in the `tests.solidity`
-    // directory or a file with a `.t.sol` extension in the `sources.solidity` directory
-    rootFilePaths = (
-      await Promise.all([
-        getAllFilesMatching(hre.config.paths.tests.solidity, (f) =>
-          f.endsWith(".sol"),
-        ),
-        ...hre.config.paths.sources.solidity.map(async (dir) => {
-          return getAllFilesMatching(dir, (f) => f.endsWith(".t.sol"));
-        }),
-      ])
-    ).flat(1);
-  }
-  // NOTE: We remove duplicates in case there is an intersection between
-  // the tests.solidity paths and the sources paths
-  rootFilePaths = Array.from(new Set(rootFilePaths));
+  // Run the compile task for test files
+  const { rootPaths }: { rootPaths: string[] } = await hre.tasks
+    .getTask("compile")
+    .run({
+      targetSources: "tests",
+      quiet: true,
+      force: false,
+      files: testFiles,
+    });
 
-  // NOTE: We are not skipping the test compilation even if the noCompile flag is set
-  // because the user cannot run test compilation outside of the test task yet.
-  // TODO: Allow users to run test compilation outside of the test task.
-  const buildOptions: BuildOptions = {
-    force: false,
-    buildProfile: hre.globalOptions.buildProfile ?? "default",
-    quiet: true,
-  };
-  const results = await hre.solidity.build(rootFilePaths, buildOptions);
-  throwIfSolidityBuildFailed(results);
+  const artifactsDirectory = await hre.solidity.getArtifactsDirectory("tests");
 
-  const buildInfos = await getBuildInfos(hre.artifacts);
-  const edrArtifacts = await getEdrArtifacts(hre.artifacts);
+  const artifactsManager = new ArtifactManagerImplementation(
+    artifactsDirectory,
+  );
+
+  const buildInfos = await getBuildInfos(artifactsManager);
+  const edrArtifacts = await getEdrArtifacts(artifactsManager);
 
   const testSuiteIds = edrArtifacts
     .filter(({ userSourceName }) =>
-      rootFilePaths.includes(
+      rootPaths.includes(
         resolveFromRoot(hre.config.paths.root, userSourceName),
       ),
     )

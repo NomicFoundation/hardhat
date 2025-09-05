@@ -15,6 +15,7 @@ import type {
   GetCompilationJobsResult,
   EmitArtifactsResult,
   RunCompilationJobResult,
+  TargetSources,
 } from "../../../../types/solidity/build-system.js";
 import type { CompilationJob } from "../../../../types/solidity/compilation-job.js";
 import type {
@@ -91,7 +92,6 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
   readonly #hooks: HookManager;
   readonly #options: SolidityBuildSystemOptions;
   #compileCache: CompileCache = {};
-  readonly #defaultConcurrency = Math.max(os.cpus().length - 1, 1);
   #downloadedCompilers = false;
 
   constructor(hooks: HookManager, options: SolidityBuildSystemOptions) {
@@ -99,37 +99,68 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     this.#options = options;
   }
 
-  public async getRootFilePaths(): Promise<string[]> {
-    const localFilesToCompile = (
-      await Promise.all(
-        this.#options.soliditySourcesPaths.map((dir) =>
-          getAllFilesMatching(
-            dir,
-            (f) => f.endsWith(".sol") && !f.endsWith(".t.sol"),
-          ),
-        ),
-      )
-    ).flat(1);
+  public async getRootFilePaths(
+    targetSources: TargetSources = "contracts",
+  ): Promise<string[]> {
+    switch (targetSources) {
+      case "contracts":
+        const localFilesToCompile = (
+          await Promise.all(
+            this.#options.soliditySourcesPaths.map((dir) =>
+              getAllFilesMatching(
+                dir,
+                (f) => f.endsWith(".sol") && !f.endsWith(".t.sol"),
+              ),
+            ),
+          )
+        ).flat(1);
 
-    const npmFilesToBuild = this.#options.solidityConfig.npmFilesToBuild.map(
-      npmModuleToNpmRootPath,
-    );
+        const npmFilesToBuild =
+          this.#options.solidityConfig.npmFilesToBuild.map(
+            npmModuleToNpmRootPath,
+          );
 
-    return [...localFilesToCompile, ...npmFilesToBuild];
+        return [...localFilesToCompile, ...npmFilesToBuild];
+      case "tests":
+        let rootFilePaths = (
+          await Promise.all([
+            getAllFilesMatching(this.#options.solidityTestsPath, (f) =>
+              f.endsWith(".sol"),
+            ),
+            ...this.#options.soliditySourcesPaths.map(async (dir) => {
+              return getAllFilesMatching(dir, (f) => f.endsWith(".t.sol"));
+            }),
+          ])
+        ).flat(1);
+
+        // NOTE: We remove duplicates in case there is an intersection between
+        // the tests.solidity paths and the sources paths
+        rootFilePaths = Array.from(new Set(rootFilePaths));
+        return rootFilePaths;
+    }
   }
 
   public async build(
     rootFilePaths: string[],
-    options?: BuildOptions,
+    _options?: BuildOptions,
   ): Promise<CompilationJobCreationError | Map<string, FileBuildResult>> {
-    if (options?.quiet !== true) {
+    const options: Required<BuildOptions> = {
+      buildProfile: DEFAULT_BUILD_PROFILE,
+      concurrency: Math.max(os.cpus().length - 1, 1),
+      force: false,
+      isolated: false,
+      quiet: false,
+      targetSources: "contracts",
+      ..._options,
+    };
+
+    if (!options.quiet) {
       console.log("Compiling your Solidity contracts...");
     }
 
-    await this.#downloadConfiguredCompilers(options?.quiet);
+    await this.#downloadConfiguredCompilers(options.quiet);
 
-    const buildProfileName = options?.buildProfile ?? DEFAULT_BUILD_PROFILE;
-    const { buildProfile } = this.#getBuildProfile(buildProfileName);
+    const { buildProfile } = this.#getBuildProfile(options.buildProfile);
 
     const compilationJobsResult = await this.getCompilationJobs(
       rootFilePaths,
@@ -171,7 +202,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
         };
       },
       {
-        concurrency: options?.concurrency ?? this.#defaultConcurrency,
+        concurrency: options.concurrency,
         // An error when running the compiler is not a compilation failure, but
         // a fatal failure trying to run it, so we just throw on the first error
         stopOnError: true,
@@ -198,6 +229,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
           const emitArtifactsResult = await this.emitArtifacts(
             compilationResult.compilationJob,
             compilationResult.compilerOutput,
+            options.targetSources,
           );
 
           const { artifactsPerFile } = emitArtifactsResult;
@@ -279,7 +311,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       }
     }
 
-    if (options?.quiet !== true) {
+    if (!options.quiet) {
       if (isSuccessfulBuild) {
         await this.#printCompilationResult(runnableCompilationJobs);
       }
@@ -603,10 +635,13 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
   public async emitArtifacts(
     runnableCompilationJob: CompilationJob,
     compilerOutput: CompilerOutput,
+    targetSources: TargetSources,
   ): Promise<EmitArtifactsResult> {
     const artifactsPerFile = new Map<string, string[]>();
     const typeFilePaths = new Map<string, string>();
     const buildId = await runnableCompilationJob.getBuildId();
+
+    const artifactsDirectory = await this.getArtifactsDirectory(targetSources);
 
     // We emit the artifacts for each root file, first emitting one artifact
     // for each contract, and then one declaration file for the entire file,
@@ -614,7 +649,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     for (const [userSourceName, root] of runnableCompilationJob.dependencyGraph
       .getRoots()
       .entries()) {
-      const fileFolder = path.join(this.#options.artifactsPath, userSourceName);
+      const fileFolder = path.join(artifactsDirectory, userSourceName);
 
       // If the folder exists, we remove it first, as we don't want to leave
       // any old artifacts there.
@@ -652,6 +687,7 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
 
       artifactsPerFile.set(userSourceName, paths);
 
+      // Write the type declaration file
       const artifactsDeclarationFilePath = path.join(
         fileFolder,
         "artifacts.d.ts",
@@ -671,13 +707,13 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     const buildInfoId = buildId;
 
     const buildInfoPath = path.join(
-      this.#options.artifactsPath,
+      artifactsDirectory,
       `build-info`,
       `${buildInfoId}.json`,
     );
 
     const buildInfoOutputPath = path.join(
-      this.#options.artifactsPath,
+      artifactsDirectory,
       `build-info`,
       `${buildInfoId}.output.json`,
     );
@@ -715,8 +751,21 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     };
   }
 
-  public async cleanupArtifacts(rootFilePaths: string[]): Promise<void> {
+  public async getArtifactsDirectory(
+    targetSources: TargetSources,
+  ): Promise<string> {
+    return targetSources === "contracts"
+      ? this.#options.artifactsPath
+      : path.join(this.#options.cachePath, "test-artifacts");
+  }
+
+  public async cleanupArtifacts(
+    rootFilePaths: string[],
+    targetSources: TargetSources,
+  ): Promise<void> {
     log(`Cleaning up artifacts`);
+
+    const artifactsDirectory = await this.getArtifactsDirectory(targetSources);
 
     const userSourceNames = rootFilePaths.map((rootFilePath) => {
       const parsed = parseRootPath(rootFilePath);
@@ -728,42 +777,25 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
     const userSourceNamesSet = new Set(userSourceNames);
 
     for (const file of await getAllDirectoriesMatching(
-      this.#options.artifactsPath,
+      artifactsDirectory,
       (d) => d.endsWith(".sol"),
     )) {
-      const relativePath = path.relative(this.#options.artifactsPath, file);
-
-      const testDirectorySubpath = path.relative(
-        this.#options.projectRoot,
-        this.#options.solidityTestsPath,
-      );
-      const hasTestFileExtension = file.endsWith(".t.sol");
-      const isInsideTestFolder = relativePath.startsWith(
-        testDirectorySubpath + path.sep,
-      );
-
-      // Skip test artifacts, since our full compilation doesn't include them, they would incorrectly be marked for deletion
-      if (hasTestFileExtension || isInsideTestFolder) {
-        continue;
-      }
+      const relativePath = path.relative(artifactsDirectory, file);
 
       if (!userSourceNamesSet.has(relativePath)) {
         await remove(file);
       }
     }
 
-    const buildInfosDir = path.join(this.#options.artifactsPath, `build-info`);
+    const buildInfosDir = path.join(artifactsDirectory, `build-info`);
 
     // TODO: This logic is duplicated with respect to the artifacts manager
     const artifactPaths = await getAllFilesMatching(
-      this.#options.artifactsPath,
+      artifactsDirectory,
       (p) =>
         p.endsWith(".json") && // Only consider json files
         // Ignore top level json files
-        p.indexOf(
-          path.sep,
-          this.#options.artifactsPath.length + path.sep.length,
-        ) !== -1,
+        p.indexOf(path.sep, artifactsDirectory.length + path.sep.length) !== -1,
       (dir) => dir !== buildInfosDir,
     );
 
@@ -793,40 +825,41 @@ export class SolidityBuildSystemImplementation implements SolidityBuildSystem {
       }
     }
 
-    // Get duplicated contract names
-    const artifactNameCounts = new Map<string, number>();
-    for (const artifactPath of artifactPaths) {
-      const basename = path.basename(artifactPath);
-      const name = basename.substring(0, basename.indexOf("."));
+    // These steps only apply when compiling contracts
+    if (targetSources === "contracts") {
+      // Get duplicated contract names and write a top-level artifacts.d.ts file
+      const artifactNameCounts = new Map<string, number>();
+      for (const artifactPath of artifactPaths) {
+        const basename = path.basename(artifactPath);
+        const name = basename.substring(0, basename.indexOf("."));
 
-      let count = artifactNameCounts.get(name);
-      if (count === undefined) {
-        count = 0;
+        const count = artifactNameCounts.get(name) ?? 0;
+
+        artifactNameCounts.set(name, count + 1);
       }
 
-      artifactNameCounts.set(name, count + 1);
+      const duplicatedNames = [...artifactNameCounts.entries()]
+        .filter(([_, count]) => count > 1)
+        .map(([name, _]) => name);
+
+      const duplicatedContractNamesDeclarationFilePath = path.join(
+        artifactsDirectory,
+        "artifacts.d.ts",
+      );
+
+      await writeUtf8File(
+        duplicatedContractNamesDeclarationFilePath,
+        getDuplicatedContractNamesDeclarationFile(duplicatedNames),
+      );
+
+      // Run the onCleanUpArtifacts hook
+      await this.#hooks.runHandlerChain(
+        "solidity",
+        "onCleanUpArtifacts",
+        [artifactPaths],
+        async () => {},
+      );
     }
-
-    const duplicatedNames = [...artifactNameCounts.entries()]
-      .filter(([_, count]) => count > 1)
-      .map(([name, _]) => name);
-
-    const duplicatedContractNamesDeclarationFilePath = path.join(
-      this.#options.artifactsPath,
-      "artifacts.d.ts",
-    );
-
-    await writeUtf8File(
-      duplicatedContractNamesDeclarationFilePath,
-      getDuplicatedContractNamesDeclarationFile(duplicatedNames),
-    );
-
-    await this.#hooks.runHandlerChain(
-      "solidity",
-      "onCleanUpArtifacts",
-      [artifactPaths],
-      async () => {},
-    );
   }
 
   public async compileBuildInfo(
