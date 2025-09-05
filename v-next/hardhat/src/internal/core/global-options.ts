@@ -10,7 +10,7 @@ import type {
 import type { HardhatPlugin } from "../../types/plugins.js";
 
 import { HardhatError } from "@nomicfoundation/hardhat-errors";
-import { camelToSnakeCase } from "@nomicfoundation/hardhat-utils/string";
+import { getEnvVariableNameFromGlobalOption } from "@nomicfoundation/hardhat-utils/env";
 
 import { ArgumentType } from "../../types/arguments.js";
 
@@ -168,7 +168,7 @@ export function resolveGlobalOptions(
     if (value !== undefined) {
       parsedValue = value;
     } else {
-      value = process.env[`HARDHAT_${camelToSnakeCase(name).toUpperCase()}`];
+      value = process.env[getEnvVariableNameFromGlobalOption(name)];
       if (value !== undefined) {
         // if the value is provided via an env var, it needs to be parsed
         parsedValue = parseArgumentValue(value, option.type, name);

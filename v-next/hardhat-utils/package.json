@@ -20,6 +20,7 @@
     "./crypto": "./dist/src/crypto.js",
     "./date": "./dist/src/date.js",
     "./debug": "./dist/src/debug.js",
+    "./env": "./dist/src/env.js",
     "./error": "./dist/src/error.js",
     "./eth": "./dist/src/eth.js",
     "./fs": "./dist/src/fs.js",
