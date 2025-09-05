@@ -11,7 +11,10 @@ import hardhatViem from "@nomicfoundation/hardhat-viem";
 import { createHardhatRuntimeEnvironment } from "hardhat/hre";
 
 import hardhatViemAssertions from "../../../../src/index.js";
-import { DEFAULT_REVERT_REASON_SELECTOR } from "../../../../src/internal/assertions/revert/is-default-revert.js";
+import {
+  ERROR_STRING_SELECTOR,
+  PANIC_SELECTOR,
+} from "../../../../src/internal/assertions/revert/error-string.js";
 import { isExpectedError } from "../../../helpers/is-expected-error.js";
 
 describe("revertWithCustomError", () => {
@@ -114,7 +117,56 @@ describe("revertWithCustomError", () => {
       ),
       (error) =>
         error.message ===
-        `Expected a custom error with name "CustomError", but got a non custom error with default revert selector ${DEFAULT_REVERT_REASON_SELECTOR}`,
+        `Expected a custom error with name "CustomError", but got a non custom error with error string "${ERROR_STRING_SELECTOR}"`,
+    );
+  });
+
+  it("should handle when the thrown error is a panic (overflow) rather than a custom one", async () => {
+    const contract = await viem.deployContract("Counter");
+
+    await contract.write.incBy([200]);
+
+    await assertRejects(
+      viem.assertions.revertWithCustomError(
+        contract.write.incBy([200]), // Overflow - cause panic error
+        contract,
+        "CustomError",
+      ),
+      (error) =>
+        error.message ===
+        `Expected a custom error with name "CustomError", but got a non custom error with error string "${PANIC_SELECTOR}"`,
+    );
+  });
+
+  it("should handle when the thrown error is a panic (divide by 0) rather than a custom one", async () => {
+    const contract = await viem.deployContract("Counter");
+
+    await assertRejects(
+      viem.assertions.revertWithCustomError(
+        contract.write.divideBy([0]), // Division by 0 - cause panic error
+        contract,
+        "CustomError",
+      ),
+      (error) =>
+        error.message ===
+        `Expected a custom error with name "CustomError", but got a non custom error with error string "${PANIC_SELECTOR}"`,
+    );
+  });
+
+  it("should handle when the thrown error is a panic rather than a custom one within nested contracts", async () => {
+    const contract = await viem.deployContract("CounterNestedPanicError");
+
+    await contract.write.incBy([200]);
+
+    await assertRejects(
+      viem.assertions.revertWithCustomError(
+        contract.write.nestedRevert([200]), // Overflow - cause panic error
+        contract,
+        "CustomError",
+      ),
+      (error) =>
+        error.message ===
+        `Expected a custom error with name "CustomError", but got a non custom error with error string "${PANIC_SELECTOR}"`,
     );
   });
 });

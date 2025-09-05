@@ -7,7 +7,7 @@ export function isExpectedError(
   expected: any,
 ): boolean {
   assert.ok(
-    error.message.includes(errMsg),
+    error.message.startsWith(errMsg),
     "The error message does not include the expected message",
   );
   assert.deepEqual(error.expected, expected);

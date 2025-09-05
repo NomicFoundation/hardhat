@@ -5,29 +5,36 @@ import assert from "node:assert/strict";
 import { ensureError } from "@nomicfoundation/hardhat-utils/error";
 import { decodeErrorResult } from "viem";
 
-import { extractRevertData } from "./extract-revert-data.js";
-import { isDefaultRevert } from "./is-default-revert.js";
+import { isKnownErrorSelector } from "./error-string.js";
+import { extractRevertError } from "./extract-revert-error.js";
 
 export async function handleRevert(
   contractFn: Promise<ReadContractReturnType | WriteContractReturnType>,
-): Promise<string> {
+): Promise<{
+  message: string;
+  args: string[];
+  isPanicError: boolean;
+}> {
   try {
     await contractFn;
   } catch (error) {
     ensureError(error);
 
-    const data = extractRevertData(error);
+    const rawError = extractRevertError(error);
 
-    if (isDefaultRevert(data) === false) {
+    if (isKnownErrorSelector(rawError.data) === false) {
       assert.fail(
-        `Expected default error revert, but got a custom error selector "${data.slice(0, 10)}" with data "${data}"`,
+        `Expected non custom error, but got a custom error selector "${rawError.data.slice(0, 10)}" with data "${rawError.data}"`,
       );
     }
 
-    const { args } = decodeErrorResult({ data });
+    const decodedError = decodeErrorResult({ data: rawError.data });
 
-    // In the case of default ETH errors, the array contains only a single element
-    return String(args[0]);
+    return {
+      message: rawError.message,
+      args: decodedError.args.map((a) => String(a)),
+      isPanicError: decodedError.errorName === "Panic",
+    };
   }
 
   assert.fail("The function was expected to revert, but it did not.");
